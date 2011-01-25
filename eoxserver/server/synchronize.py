@@ -1,0 +1,398 @@
+#-----------------------------------------------------------------------
+#
+# This software is named EOxServer, a server for Earth Observation data.
+#
+# Copyright (C) 2011 EOX IT Services GmbH
+# Authors: Stephan Krause, Stephan Meissl
+#
+# This file is part of EOxServer <http://www.eoxserver.org>.
+#
+#    EOxServer is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published
+#    by the Free Software Foundation, either version 3 of the License,
+#    or (at your option) any later version.
+#
+#    EOxServer is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with EOxServer. If not, see <http://www.gnu.org/licenses/>.
+#
+#-----------------------------------------------------------------------
+
+import os.path
+from fnmatch import fnmatch
+from datetime import datetime
+from osgeo import ogr, osr
+
+import logging
+from traceback import format_exc
+
+from django.conf import settings
+from django.db.models.signals import post_save, post_delete
+from django.contrib.gis.geos import Point, Polygon, GEOSGeometry
+
+from eoxserver.server.models import (
+    EOxSRectifiedDatasetSeriesRecord, EOxSRectifiedDatasetRecord,
+    EOxSRectifiedStitchedMosaicRecord, EOxSFileRecord,
+    EOxSRectifiedGridRecord, EOxSAxisRecord, EOxSRangeType,
+    EOxSLineageRecord, EOxSEOMetadataRecord, EOxSDataDirRecord,
+    EOxSMosaicDataDirRecord
+)
+from eoxserver.lib.domainset import getGridFromFile
+from eoxserver.lib.metadata import EOxSMetadataInterfaceFactory
+from eoxserver.lib.interfaces import EOxSRectifiedStitchedMosaicRecordInterface
+from eoxserver.lib.mosaic import EOxSRectifiedMosaicStitcher
+from eoxserver.lib.util import findFiles
+from eoxserver.lib.exceptions import (EOxSInternalError, 
+    EOxSSynchronizationError, EOxSXMLException
+)
+
+class EOxSFileInfo(object):
+    @classmethod
+    def fromFile(cls, filename, range_type, default_srid=None):
+        info = cls(filename, range_type, default_srid)
+        info.read()
+        return info
+    
+    def __init__(self, filename, range_type, default_srid=None):
+        super(EOxSFileInfo, self).__init__()
+        
+        self.filename = filename
+        self.range_type = range_type
+        self.default_srid = default_srid
+        
+        self.grid = None
+        self.md_filename = None
+        self.md_format = None
+        self.eo_id = None
+        self.timestamp_begin = None
+        self.timestamp_end = None
+        self.footprint_wkt = None
+    
+    def _getMetadataFileName(self):
+        dir_name = os.path.dirname(self.filename)
+        base_name = os.path.splitext(os.path.basename(self.filename))[0]
+
+        md_filename = os.path.join(dir_name, "%s.xml" % base_name) # TODO: assume XML file in the same directory as image file with extension .xml
+        
+        return md_filename
+    
+    def _transformToWGS84(self, geom):
+        geom.transform("+init=EPSG:4326")
+        return geom
+        
+    def read(self):
+        self.grid = getGridFromFile(str(self.filename))
+        if self.grid.srid is None:
+            self.grid.srid = self.default_srid
+        
+        self.md_filename = self._getMetadataFileName()
+        self.md_format = "native" # TODO: assume metadata is always in native format
+        
+        try:
+            md_int = EOxSMetadataInterfaceFactory.getMetadataInterface(self.md_filename, self.md_format)
+        except Exception, e:
+            raise EOxSSynchronizationError(str(e))
+        
+        try:
+            self.eo_id = md_int.getEOID()
+            self.timestamp_begin = md_int.getBeginTime()
+            self.timestamp_end = md_int.getEndTime()
+            self.footprint_wkt = md_int.getFootprint()
+        except EOxSXMLException, e:
+            raise EOxSSynchronizationError("Metadata XML Error: %s" % str(e))
+
+        # TODO: provisional begin
+        #minx, miny, maxx, maxy = self.grid.getExtent2D()
+        #ll = self._transformToWGS84(Point(minx, miny, srid=self.grid.srid))
+        #lr = self._transformToWGS84(Point(maxx, miny, srid=self.grid.srid))
+        #ur = self._transformToWGS84(Point(maxx, maxy, srid=self.grid.srid))
+        #ul = self._transformToWGS84(Point(minx, maxy, srid=self.grid.srid))
+        #self.footprint_wkt = "POLYGON((%f %f, %f %f, %f %f, %f %f, %f %f))" % (
+            #ll.x, ll.y,
+            #lr.x, lr.y,
+            #ur.x, ur.y,
+            #ul.x, ul.y,
+            #ll.x, ll.y
+        #)
+        # TODO: provisional end
+    
+    def astuple(self):
+        return (
+            self.grid, 
+            self.range_type, 
+            self.md_filename, 
+            self.md_format, 
+            self.eo_id, 
+            self.timestamp_begin, 
+            self.timestamp_end, 
+            self.footprint_wkt
+        )
+
+class EOxSRectifiedCompositeObjectSynchronizer(object):
+    def __init__(self, wcseo_object):
+        super(EOxSRectifiedCompositeObjectSynchronizer, self).__init__()
+        
+        self.wcseo_object = wcseo_object
+        
+    def _getRangeTypeName(self, filename):
+        return "RGB" # TODO
+    
+    def _getRangeType(self, filename):
+        return EOxSRangeType.objects.get(name=self._getRangeTypeName(filename))
+    
+    def _getDefaultSRID(self, filename):
+        return 3035 # TODO
+
+    def _findFiles(self, data_dir):
+        try:
+            filenames = findFiles(data_dir, self.wcseo_object.image_pattern)
+        except OSError: # TODO
+            return []
+
+        return filenames
+        
+    def _findAllFiles(self):
+        filenames = []
+        
+        for data_dir in self.wcseo_object.data_dirs.all():
+            filenames.extend(self._findFiles(data_dir.dir))
+        
+        return filenames
+
+    def _getFileInfo(self, filename):
+        return EOxSFileInfo.fromFile(filename, self._getRangeType(filename), self._getDefaultSRID(filename))
+        
+    def _createRecord(self, filename, file_info):
+        logging.info("Creating Dataset for file '%s' ..." % filename)
+
+        grid, range_type, md_filename, md_format, eo_id, timestamp_begin, timestamp_end, footprint_wkt = file_info.astuple()
+        
+        file_record = EOxSFileRecord.objects.create(
+            path = filename,
+            metadata_path = md_filename,
+            metadata_format = md_format
+        )
+        eo_metadata = EOxSEOMetadataRecord.objects.create(
+            timestamp_begin = timestamp_begin,
+            timestamp_end = timestamp_end,
+            footprint = GEOSGeometry(footprint_wkt)
+        )
+        grid_record = EOxSRectifiedGridRecord.objects.create(
+            srid = grid.srid
+        )
+        axis_1 = EOxSAxisRecord.objects.create(
+            grid = grid_record,
+            label = grid.axis_labels[0],
+            dimension_idx = 1,
+            low = grid.low[0],
+            high = grid.high[0],
+            origin_component = grid.origin[0],
+            offset_vector_component = grid.offsets[0][0]
+        )
+        axis_2 = EOxSAxisRecord.objects.create(
+            grid = grid_record,
+            label = grid.axis_labels[1],
+            dimension_idx = 2,
+            low = grid.low[1],
+            high = grid.high[1],
+            origin_component = grid.origin[1],
+            offset_vector_component = grid.offsets[1][1]
+        )
+        lineage = EOxSLineageRecord.objects.create()
+        dataset = EOxSRectifiedDatasetRecord.objects.create(
+            file = file_record,
+            coverage_id = eo_id,
+            eo_id = eo_id,
+            grid = grid_record,
+            range_type = range_type,
+            eo_metadata = eo_metadata,
+            lineage = lineage,
+            automatic = True,
+            visible = False,
+            contained_in = self.wcseo_object
+        )
+
+        logging.info("Success.")
+
+    def _updateRecord(self, dataset, filename):
+        # TODO
+        logging.info("Updating Dataset for file '%s' ..." % filename)
+        logging.info("Success.")
+
+    def _deleteRecord(self, dataset):
+        logging.info("Deleting Dataset for file '%s' ..." % dataset.file.path)
+
+        file_record = dataset.file
+        grid_record = dataset.grid
+        
+        dataset.delete()
+        if file_record.rect_datasets.count() == 0 and file_record.single_file_coverages.count() == 0:
+            file_record.delete()
+        if grid_record.rect_datasets.count() == 0 and grid_record.rect_stitched_mosaics.count() == 0 and grid_record.single_file_coverages.count() == 0:
+            grid_record.delete()
+
+        logging.info("Success.")
+
+    def _createDataset(self, filename):
+        file_info = self._getFileInfo(filename)
+        
+        self._createRecord(filename, file_info)
+    
+    def _updateDataset(self, dataset, filename):
+        self._updateRecord(dataset, filename)
+        
+    def _deleteDataset(self, dataset, filename):
+        self._deleteRecord(dataset)
+
+    def _updateOrCreateDatasets(self, fs_files, db_files):
+        for filename in fs_files:
+            if filename not in db_files:
+                self._createDataset(filename)
+            else:
+                self._updateDataset(self.wcseo_object.rect_datasets.get(file__path=filename), filename)
+    
+    def _deleteNotCompliant(self, all_files=None):
+        if all_files is None:
+            all_files = self._findAllFiles()
+        
+        datasets = self.wcseo_object.rect_datasets.filter(automatic=True).exclude(file__path__in=all_files)
+        for dataset in datasets:
+            self._deleteDataset(dataset, dataset.file.path)
+    
+    def _createDir(self, data_dir):
+        fs_files = self._findFiles(data_dir)
+        db_files = [dataset.file.path for dataset in self.wcseo_object.rect_datasets.all()]
+        
+        for filename in fs_files and filename not in db_files:
+            self._createDataset(filename)
+    
+    def _create(self):
+        fs_files = self._findAllFiles()
+        #db_files = [dataset.file.path for dataset in self.wcseo_object.rect_datasets.all()]
+        db_files = self.wcseo_object.rect_datasets.all().values_list('file__path', flat=True)
+        
+        for filename in fs_files:
+            if filename not in db_files:
+                self._createDataset(filename)
+            
+    def _updateDir(self, data_dir):
+        fs_files = self._findFiles(data_dir)
+        db_files = self.wcseo_object.rect_datasets.filter(file__path__startswith=data_dir).values_list('file__path', flat=True)
+        
+        self._updateOrCreateDatasets(fs_files, db_files)
+        
+        self._deleteNotCompliant()
+    
+    def _update(self):
+        fs_files = self._findAllFiles()
+        db_files = self.wcseo_object.rect_datasets.all().values_list('file__path', flat=True)
+        
+        self._updateOrCreateDatasets(fs_files, db_files)
+        
+        self._deleteNotCompliant(fs_files)
+    
+    def _logError(self, e):
+        logging.error(str(e))
+        logging.error(format_exc())
+
+class EOxSRectifiedDatasetSeriesSynchronizer(EOxSRectifiedCompositeObjectSynchronizer):
+    def createDir(self, data_dir):
+        try:
+            self._createDir(data_dir)
+        except Exception, e:
+            self._logError(e)
+            raise
+    
+    def create(self):
+        try:
+            self._create()
+        except Exception, e:
+            self._logError(e)
+            raise
+    
+    def updateDir(self, data_dir):
+        try:
+            self._updateDir(data_dir)
+        except Exception, e:
+            self._logError(e)
+            raise
+    
+    def update(self):
+        try:
+            self._update()
+        except Exception, e:
+            self._logError(e)
+            raise
+    
+    def deleteDir(self, data_dir):
+        try:
+            self._deleteNotCompliant()
+        except Exception, e:
+            self._logError(e)
+            raise
+
+class EOxSRectifiedStitchedMosaicSynchronizer(EOxSRectifiedCompositeObjectSynchronizer):
+    def __init__(self, wcseo_object):
+        super(EOxSRectifiedStitchedMosaicSynchronizer, self).__init__(wcseo_object)
+        
+        mosaic_int = EOxSRectifiedStitchedMosaicRecordInterface(wcseo_object)
+        
+        self.stitcher = EOxSRectifiedMosaicStitcher(mosaic_int)
+        
+    def _getRangeTypeName(self, filename):
+        return self.wcseo_object.range_type.name
+    
+    def _getRangeType(self, filename):
+        return self.wcseo_object.range_type
+    
+    def _getDefaultSRID(self, filename):
+        return self.wcseo_object.grid.srid
+    
+    def createDir(self, data_dir):
+        try:
+            self._createDir(data_dir)
+            
+            self.stitcher.generate()
+        except Exception, e:
+            self._logError(e)
+            raise
+    
+    def create(self):
+        try:
+            self._create()
+            
+            self.stitcher.generate()
+        except Exception, e:
+            self._logError(e)
+            raise
+    
+    def updateDir(self, data_dir):
+        try:
+            self._updateDir(data_dir)
+            
+            self.stitcher.generate()
+        except Exception, e:
+            self._logError(e)
+            raise
+
+    def update(self):
+        try:
+            self._update()
+            
+            self.stitcher.generate()
+        except Exception, e:
+            self._logError(e)
+            raise
+    
+    def deleteDir(self, data_dir):
+        try:
+            self._deleteNotCompliant()
+
+            self.stitcher.generate()
+        except Exception, e:
+            self._logError(e)
+            raise

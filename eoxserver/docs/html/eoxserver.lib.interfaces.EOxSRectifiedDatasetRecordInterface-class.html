@@ -1,0 +1,555 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>eoxserver.lib.interfaces.EOxSRectifiedDatasetRecordInterface</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="eoxserver-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >EOxServer</th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="eoxserver-module.html">Package&nbsp;eoxserver</a> ::
+        <a href="eoxserver.lib-module.html">Package&nbsp;lib</a> ::
+        <a href="eoxserver.lib.interfaces-module.html">Module&nbsp;interfaces</a> ::
+        Class&nbsp;EOxSRectifiedDatasetRecordInterface
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="eoxserver.lib.interfaces.EOxSRectifiedDatasetRecordInterface-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class EOxSRectifiedDatasetRecordInterface</h1><p class="nomargin-top"><span class="codelink"><a href="eoxserver.lib.interfaces-pysrc.html#EOxSRectifiedDatasetRecordInterface">source&nbsp;code</a></span></p>
+<center>
+<center>  <map id="uml_class_diagram_for_eoxserve_44" name="uml_class_diagram_for_eoxserve_44">
+<area shape="rect" id="node136" href="eoxserver.lib.interfaces.EOxSEOCoverageRecordInterface-class.html#getEOID" title="eoxserver.lib.interfaces.EOxSEOCoverageRecordInterface.getEOID" alt="" coords="433,268,639,287"/>
+<area shape="rect" id="node136" href="eoxserver.lib.interfaces.EOxSEOCoverageRecordInterface-class.html#getLineage" title="eoxserver.lib.interfaces.EOxSEOCoverageRecordInterface.getLineage" alt="" coords="433,287,639,305"/>
+<area shape="rect" id="node1" href="eoxserver.lib.interfaces.EOxSEOCoverageRecordInterface-class.html" title="eoxserver.lib.interfaces.EOxSEOCoverageRecordInterface" alt="" coords="421,235,651,311"/>
+<area shape="rect" id="node135" href="eoxserver.lib.interfaces.EOxSRectifiedDatasetRecordInterface-class.html#getCoverageSubtype" title="Returns the GML coverage subtype." alt="" coords="188,383,416,401"/>
+<area shape="rect" id="node135" href="eoxserver.lib.interfaces.EOxSRectifiedDatasetRecordInterface-class.html#getEOCoverageSubtype" title="Returns the EO coverage subtype." alt="" coords="188,401,416,420"/>
+<area shape="rect" id="node135" href="eoxserver.lib.interfaces.EOxSRectifiedDatasetRecordInterface-class.html#getType" title="Returns the EOxServer coverage type." alt="" coords="188,420,416,439"/>
+<area shape="rect" id="node135" href="eoxserver.lib.interfaces.EOxSRectifiedDatasetRecordInterface-class.html#getDatasets" title="Returns the EO datasets contained in this coverage; if this coverage is a dataself itself, returns a reference to this &#160;coverage interface." alt="" coords="188,439,416,457"/>
+<area shape="rect" id="node135" href="eoxserver.lib.interfaces.EOxSRectifiedDatasetRecordInterface-class.html#timeSliceWithin" title="eoxserver.lib.interfaces.EOxSRectifiedDatasetRecordInterface.timeSliceWithin" alt="" coords="188,457,416,476"/>
+<area shape="rect" id="node135" href="eoxserver.lib.interfaces.EOxSRectifiedDatasetRecordInterface-class.html#timeOverlaps" title="eoxserver.lib.interfaces.EOxSRectifiedDatasetRecordInterface.timeOverlaps" alt="" coords="188,476,416,495"/>
+<area shape="rect" id="node135" href="eoxserver.lib.interfaces.EOxSRectifiedDatasetRecordInterface-class.html#timeWithin" title="eoxserver.lib.interfaces.EOxSRectifiedDatasetRecordInterface.timeWithin" alt="" coords="188,495,416,513"/>
+<area shape="rect" id="node135" href="eoxserver.lib.interfaces.EOxSRectifiedDatasetRecordInterface-class.html#spatialSliceWithin" title="eoxserver.lib.interfaces.EOxSRectifiedDatasetRecordInterface.spatialSliceWithin" alt="" coords="188,513,416,532"/>
+<area shape="rect" id="node135" href="eoxserver.lib.interfaces.EOxSRectifiedDatasetRecordInterface-class.html#spatiallyOverlaps" title="eoxserver.lib.interfaces.EOxSRectifiedDatasetRecordInterface.spatiallyOverlaps" alt="" coords="188,532,416,551"/>
+<area shape="rect" id="node135" href="eoxserver.lib.interfaces.EOxSRectifiedDatasetRecordInterface-class.html#spatiallyWithin" title="eoxserver.lib.interfaces.EOxSRectifiedDatasetRecordInterface.spatiallyWithin" alt="" coords="188,551,416,569"/>
+<area shape="rect" id="node6" href="eoxserver.lib.interfaces.EOxSRectifiedDatasetRecordInterface-class.html" title="eoxserver.lib.interfaces.EOxSRectifiedDatasetRecordInterface" alt="" coords="176,350,427,575"/>
+<area shape="rect" id="node138" href="eoxserver.lib.interfaces.EOxSEOMetadataRecordInterface-class.html#getBeginTime" title="eoxserver.lib.interfaces.EOxSEOMetadataRecordInterface.getBeginTime" alt="" coords="435,116,637,135"/>
+<area shape="rect" id="node138" href="eoxserver.lib.interfaces.EOxSEOMetadataRecordInterface-class.html#getEndTime" title="eoxserver.lib.interfaces.EOxSEOMetadataRecordInterface.getEndTime" alt="" coords="435,135,637,153"/>
+<area shape="rect" id="node138" href="eoxserver.lib.interfaces.EOxSEOMetadataRecordInterface-class.html#getFootprint" title="eoxserver.lib.interfaces.EOxSEOMetadataRecordInterface.getFootprint" alt="" coords="435,153,637,172"/>
+<area shape="rect" id="node138" href="eoxserver.lib.interfaces.EOxSEOMetadataRecordInterface-class.html#getWGS84Extent" title="eoxserver.lib.interfaces.EOxSEOMetadataRecordInterface.getWGS84Extent" alt="" coords="435,172,637,191"/>
+<area shape="rect" id="node2" href="eoxserver.lib.interfaces.EOxSEOMetadataRecordInterface-class.html" title="eoxserver.lib.interfaces.EOxSEOMetadataRecordInterface" alt="" coords="423,83,649,197"/>
+<area shape="rect" id="node139" href="eoxserver.lib.interfaces.EOxSFileRecordInterface-class.html#getFilename" title="eoxserver.lib.interfaces.EOxSFileRecordInterface.getFilename" alt="" coords="23,249,173,268"/>
+<area shape="rect" id="node139" href="eoxserver.lib.interfaces.EOxSFileRecordInterface-class.html#getQuicklookPath" title="eoxserver.lib.interfaces.EOxSFileRecordInterface.getQuicklookPath" alt="" coords="23,268,173,287"/>
+<area shape="rect" id="node139" href="eoxserver.lib.interfaces.EOxSFileRecordInterface-class.html#getMetadataPath" title="eoxserver.lib.interfaces.EOxSFileRecordInterface.getMetadataPath" alt="" coords="23,287,173,305"/>
+<area shape="rect" id="node139" href="eoxserver.lib.interfaces.EOxSFileRecordInterface-class.html#getMetadataFormat" title="eoxserver.lib.interfaces.EOxSFileRecordInterface.getMetadataFormat" alt="" coords="23,305,173,324"/>
+<area shape="rect" id="node3" href="eoxserver.lib.interfaces.EOxSFileRecordInterface-class.html" title="eoxserver.lib.interfaces.EOxSFileRecordInterface" alt="" coords="11,217,184,330"/>
+<area shape="rect" id="node4" href="eoxserver.lib.interfaces.EOxSDatasetInterface-class.html" title="eoxserver.lib.interfaces.EOxSDatasetInterface" alt="" coords="23,118,180,162"/>
+<area shape="rect" id="node9" href="eoxserver.lib.interfaces.EOxSEODatasetInterface-class.html" title="eoxserver.lib.interfaces.EOxSEODatasetInterface" alt="" coords="213,251,389,295"/>
+<area shape="rect" id="node5" href="eoxserver.lib.interfaces.EOxSEOMetadataInterface-class.html" title="eoxserver.lib.interfaces.EOxSEOMetadataInterface" alt="" coords="209,118,393,162"/>
+<area shape="rect" id="node142" href="eoxserver.lib.interfaces.EOxSCoverageInterface-class.html#__init__" title="x.__init__(...) initializes x; see x.__class__.__doc__ for signature" alt="" coords="17,39,187,57"/>
+<area shape="rect" id="node7" href="eoxserver.lib.interfaces.EOxSCoverageInterface-class.html" title="The parent class of all coverage interfaces." alt="" coords="5,6,197,63"/>
+<area shape="rect" id="node137" href="eoxserver.lib.interfaces.EOxSCoverageRecordInterface-class.html#getCoverageId" title="eoxserver.lib.interfaces.EOxSCoverageRecordInterface.getCoverageId" alt="" coords="691,116,877,135"/>
+<area shape="rect" id="node137" href="eoxserver.lib.interfaces.EOxSCoverageRecordInterface-class.html#getGrid" title="eoxserver.lib.interfaces.EOxSCoverageRecordInterface.getGrid" alt="" coords="691,135,877,153"/>
+<area shape="rect" id="node137" href="eoxserver.lib.interfaces.EOxSCoverageRecordInterface-class.html#getRangeType" title="eoxserver.lib.interfaces.EOxSCoverageRecordInterface.getRangeType" alt="" coords="691,153,877,172"/>
+<area shape="rect" id="node137" href="eoxserver.lib.interfaces.EOxSCoverageRecordInterface-class.html#getLayerMetadata" title="eoxserver.lib.interfaces.EOxSCoverageRecordInterface.getLayerMetadata" alt="" coords="691,172,877,191"/>
+<area shape="rect" id="node8" href="eoxserver.lib.interfaces.EOxSCoverageRecordInterface-class.html" title="eoxserver.lib.interfaces.EOxSCoverageRecordInterface" alt="" coords="679,83,889,197"/>
+</map>
+  <img src="uml_class_diagram_for_eoxserve_44.gif" alt='' usemap="#uml_class_diagram_for_eoxserve_44" ismap="ismap" class="graph-without-title" />
+</center>
+</center>
+<hr />
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="eoxserver.lib.interfaces.EOxSRectifiedDatasetRecordInterface-class.html#getCoverageSubtype" class="summary-sig-name">getCoverageSubtype</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Returns the GML coverage subtype.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="eoxserver.lib.interfaces-pysrc.html#EOxSRectifiedDatasetRecordInterface.getCoverageSubtype">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="eoxserver.lib.interfaces.EOxSRectifiedDatasetRecordInterface-class.html#getEOCoverageSubtype" class="summary-sig-name">getEOCoverageSubtype</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Returns the EO coverage subtype.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="eoxserver.lib.interfaces-pysrc.html#EOxSRectifiedDatasetRecordInterface.getEOCoverageSubtype">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="eoxserver.lib.interfaces.EOxSRectifiedDatasetRecordInterface-class.html#getType" class="summary-sig-name">getType</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Returns the EOxServer coverage type.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="eoxserver.lib.interfaces-pysrc.html#EOxSRectifiedDatasetRecordInterface.getType">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="eoxserver.lib.interfaces.EOxSRectifiedDatasetRecordInterface-class.html#getDatasets" class="summary-sig-name">getDatasets</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      Returns the EO datasets contained in this coverage; if this
+coverage is a dataself itself, returns a reference to this 
+coverage interface.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="eoxserver.lib.interfaces-pysrc.html#EOxSRectifiedDatasetRecordInterface.getDatasets">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="timeSliceWithin"></a><span class="summary-sig-name">timeSliceWithin</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">slice</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="eoxserver.lib.interfaces-pysrc.html#EOxSRectifiedDatasetRecordInterface.timeSliceWithin">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="timeOverlaps"></a><span class="summary-sig-name">timeOverlaps</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">trim</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="eoxserver.lib.interfaces-pysrc.html#EOxSRectifiedDatasetRecordInterface.timeOverlaps">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="timeWithin"></a><span class="summary-sig-name">timeWithin</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">trim</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="eoxserver.lib.interfaces-pysrc.html#EOxSRectifiedDatasetRecordInterface.timeWithin">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="spatialSliceWithin"></a><span class="summary-sig-name">spatialSliceWithin</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">slice</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="eoxserver.lib.interfaces-pysrc.html#EOxSRectifiedDatasetRecordInterface.spatialSliceWithin">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="spatiallyOverlaps"></a><span class="summary-sig-name">spatiallyOverlaps</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">trim</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="eoxserver.lib.interfaces-pysrc.html#EOxSRectifiedDatasetRecordInterface.spatiallyOverlaps">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="spatiallyWithin"></a><span class="summary-sig-name">spatiallyWithin</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">trim</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="eoxserver.lib.interfaces-pysrc.html#EOxSRectifiedDatasetRecordInterface.spatiallyWithin">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="eoxserver.lib.interfaces.EOxSEOCoverageRecordInterface-class.html">EOxSEOCoverageRecordInterface</a></code></b>:
+      <code><a href="eoxserver.lib.interfaces.EOxSEOCoverageRecordInterface-class.html#getEOID">getEOID</a></code>,
+      <code><a href="eoxserver.lib.interfaces.EOxSEOCoverageRecordInterface-class.html#getLineage">getLineage</a></code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="eoxserver.lib.interfaces.EOxSCoverageRecordInterface-class.html">EOxSCoverageRecordInterface</a></code></b>:
+      <code><a href="eoxserver.lib.interfaces.EOxSCoverageRecordInterface-class.html#getCoverageId">getCoverageId</a></code>,
+      <code><a href="eoxserver.lib.interfaces.EOxSCoverageRecordInterface-class.html#getGrid">getGrid</a></code>,
+      <code><a href="eoxserver.lib.interfaces.EOxSCoverageRecordInterface-class.html#getLayerMetadata">getLayerMetadata</a></code>,
+      <code><a href="eoxserver.lib.interfaces.EOxSCoverageRecordInterface-class.html#getRangeType">getRangeType</a></code>
+      </p>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="eoxserver.lib.interfaces.EOxSCoverageRecordInterface-class.html">EOxSCoverageRecordInterface</a></code></b> (private):
+      <code><a href="eoxserver.lib.interfaces.EOxSCoverageRecordInterface-class.html#_getRectifiedGrid" onclick="show_private();">_getRectifiedGrid</a></code>,
+      <code><a href="eoxserver.lib.interfaces.EOxSCoverageRecordInterface-class.html#_getReferenceableGrid" onclick="show_private();">_getReferenceableGrid</a></code>
+      </p></div>
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="eoxserver.lib.interfaces.EOxSEOMetadataRecordInterface-class.html">EOxSEOMetadataRecordInterface</a></code></b>:
+      <code><a href="eoxserver.lib.interfaces.EOxSEOMetadataRecordInterface-class.html#getBeginTime">getBeginTime</a></code>,
+      <code><a href="eoxserver.lib.interfaces.EOxSEOMetadataRecordInterface-class.html#getEndTime">getEndTime</a></code>,
+      <code><a href="eoxserver.lib.interfaces.EOxSEOMetadataRecordInterface-class.html#getFootprint">getFootprint</a></code>,
+      <code><a href="eoxserver.lib.interfaces.EOxSEOMetadataRecordInterface-class.html#getWGS84Extent">getWGS84Extent</a></code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="eoxserver.lib.interfaces.EOxSFileRecordInterface-class.html">EOxSFileRecordInterface</a></code></b>:
+      <code><a href="eoxserver.lib.interfaces.EOxSFileRecordInterface-class.html#getFilename">getFilename</a></code>,
+      <code><a href="eoxserver.lib.interfaces.EOxSFileRecordInterface-class.html#getMetadataFormat">getMetadataFormat</a></code>,
+      <code><a href="eoxserver.lib.interfaces.EOxSFileRecordInterface-class.html#getMetadataPath">getMetadataPath</a></code>,
+      <code><a href="eoxserver.lib.interfaces.EOxSFileRecordInterface-class.html#getQuicklookPath">getQuicklookPath</a></code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="eoxserver.lib.interfaces.EOxSCoverageInterface-class.html">EOxSCoverageInterface</a></code></b>:
+      <code><a href="eoxserver.lib.interfaces.EOxSCoverageInterface-class.html#__init__">__init__</a></code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__delattr__</code>,
+      <code>__format__</code>,
+      <code>__getattribute__</code>,
+      <code>__hash__</code>,
+      <code>__new__</code>,
+      <code>__reduce__</code>,
+      <code>__reduce_ex__</code>,
+      <code>__repr__</code>,
+      <code>__setattr__</code>,
+      <code>__sizeof__</code>,
+      <code>__str__</code>,
+      <code>__subclasshook__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== PROPERTIES ==================== -->
+<a name="section-Properties"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Properties</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Properties"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__class__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="getCoverageSubtype"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">getCoverageSubtype</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="eoxserver.lib.interfaces-pysrc.html#EOxSRectifiedDatasetRecordInterface.getCoverageSubtype">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  Returns the GML coverage subtype.
+  <dl class="fields">
+    <dt>Returns:</dt>
+        <dd>A string representing the coverage subtype</dd>
+    <dt>Overrides:
+        <a href="eoxserver.lib.interfaces.EOxSCoverageInterface-class.html#getCoverageSubtype">EOxSCoverageInterface.getCoverageSubtype</a>
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="getEOCoverageSubtype"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">getEOCoverageSubtype</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="eoxserver.lib.interfaces-pysrc.html#EOxSRectifiedDatasetRecordInterface.getEOCoverageSubtype">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  Returns the EO coverage subtype.
+  <dl class="fields">
+    <dt>Returns:</dt>
+        <dd>A string representing the EO coverage subtype</dd>
+    <dt>Overrides:
+        <a href="eoxserver.lib.interfaces.EOxSCoverageInterface-class.html#getEOCoverageSubtype">EOxSCoverageInterface.getEOCoverageSubtype</a>
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="getType"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">getType</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="eoxserver.lib.interfaces-pysrc.html#EOxSRectifiedDatasetRecordInterface.getType">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  Returns the EOxServer coverage type. Current choices are
+<ul>
+<li><tt>"file"</tt></li>
+<li><tt>"eo.rect_dataset"</tt></li>
+<li><tt>"eo.ref_dataset"</tt></li>
+<li><tt>"eo.rect_stitched_mosaic"</tt></li>
+<li><tt>"eo.ref_stitched_mosaic"</tt></li>
+</ul>
+  <dl class="fields">
+    <dt>Returns:</dt>
+        <dd>A string representing the coverage type</dd>
+    <dt>Overrides:
+        <a href="eoxserver.lib.interfaces.EOxSCoverageInterface-class.html#getType">EOxSCoverageInterface.getType</a>
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="getDatasets"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">getDatasets</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">**kwargs</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="eoxserver.lib.interfaces-pysrc.html#EOxSRectifiedDatasetRecordInterface.getDatasets">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  Returns the EO datasets contained in this coverage; if this
+coverage is a dataself itself, returns a reference to this 
+coverage interface. If provided, the filenames are selected
+according to the keyword arguments included in the request; the
+specific behaviour depends on the type of coverage.
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>kwargs</code></strong> - keyword arguments for selection of datasets</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>a list of <a href="eoxserver.lib.interfaces.EOxSDatasetInterface-class.html" class="link">eoxserver.lib.interfaces.EOxSDatasetInterface</a> objects</dd>
+    <dt>Overrides:
+        <a href="eoxserver.lib.interfaces.EOxSCoverageInterface-class.html#getDatasets">EOxSCoverageInterface.getDatasets</a>
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="eoxserver-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >EOxServer</th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Tue Jan 25 19:19:13 2011
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema targetNamespace="http://www.opengis.net/wcseo/1.0"
+    xmlns:wcseo="http://www.opengis.net/wcseo/1.0"
+    xmlns:wcs="http://www.opengis.net/wcs/2.0"
+    xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0"
+    xmlns:ows="http://www.opengis.net/ows/2.0"
+    xmlns:gml="http://www.opengis.net/gml/3.2"
+    xmlns:eop="http://www.opengis.net/eop/2.0"
+    xmlns="http://www.w3.org/2001/XMLSchema"
+    elementFormDefault="qualified" version="1.0.0" xml:lang="en">
+    <annotation>
+        <appinfo>wcsEOCommon.xsd</appinfo>
+        <documentation>This XML Schema Document encodes the elements and types that are shared by multiple EO-WCS operations.
+            Last updated: 2011-jan-04
+            Copyright (c) 2011 Open Geospatial Consortium, Inc. All Rights Reserved.
+            To obtain additional rights of use, visit http://www.opengeospatial.org/legal/.
+        </documentation>
+    </annotation>
+
+    <!-- =========================================================== -->
+    <!-- includes and imports                                        -->
+    <!-- =========================================================== -->
+    <import namespace="http://www.opengis.net/gml/3.2" schemaLocation="http://schemas.opengis.net/gml/3.2.1/gml.xsd"/>
+    <import namespace="http://www.opengis.net/ows/2.0" schemaLocation="http://schemas.opengis.net/ows/2.0/owsAll.xsd"/>
+    <import namespace="http://www.opengis.net/gmlcov/1.0" schemaLocation="http://schemas.opengis.net/gmlcov/1.0/gmlcovAll.xsd"/>
+    <import namespace="http://www.opengis.net/wcs/2.0" schemaLocation="http://schemas.opengis.net/wcs/2.0/wcsAll.xsd"/>
+    <import namespace="http://www.opengis.net/eop/2.0" schemaLocation="http://schemas.opengis.net/eop/2.0/eop.xsd"/> <!--TODO: Where will the schema reside?-->
+
+    <!-- =========================================================== -->
+    <!-- elements and types                                          -->
+    <!-- =========================================================== -->
+    <element name="DatasetSeriesId" type="NCName">
+        <annotation>
+            <documentation>This element represents dataset series identifiers. It uses the same type as gml:id to allow for identifier values to be used in both contexts. </documentation>
+        </annotation>
+    </element>
+    <!-- =========================================================== -->
+    <element name="EOMetadata" type="wcseo:EOMetadataType"/>
+    <complexType name="EOMetadataType">
+        <annotation>
+            <documentation></documentation>
+        </annotation>
+        <sequence>
+            <element ref="eop:EarthObservation"/>
+            <element name="lineage" type="string" minOccurs="0" maxOccurs="unbounded"/>
+        </sequence>
+    </complexType>
+    <!-- =========================================================== -->
+    <element name="dataset" type="wcseo:datasetType">
+         <annotation>
+            <documentation>This element is used in stitched mosaics to reference datasets.</documentation>
+        </annotation>
+    </element>
+    <complexType name="datasetType">
+        <sequence>
+            <element ref="wcs:CoverageId"/>
+            <element ref="wcseo:contributingFootprint" minOccurs="0"/>
+        </sequence>
+    </complexType>
+    <!-- =========================================================== -->
+    <element name="contributingFootprint">
+        <complexType>
+            <sequence>
+                <element ref="eop:Footprint"/>
+            </sequence>
+        </complexType>
+    </element>
+    <!-- =========================================================== -->
+    <element name="rectifiedDataset">
+        <complexType>
+            <sequence>
+                <element ref="wcs:CoverageId"/>
+            </sequence>
+        </complexType>
+    </element>
+    <element name="referenceableDataset">
+        <complexType>
+            <sequence>
+                <element ref="wcs:CoverageId"/>
+            </sequence>
+        </complexType>
+    </element>
+    <element name="rectifiedStitchedMosaic">
+        <complexType>
+            <sequence>
+                <element ref="wcs:CoverageId"/>
+            </sequence>
+        </complexType>
+    </element>
+    <element name="referenceableStitchedMosaic">
+        <complexType>
+            <sequence>
+                <element ref="wcs:CoverageId"/>
+            </sequence>
+        </complexType>
+    </element>
+</schema>

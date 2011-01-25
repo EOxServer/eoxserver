@@ -1,0 +1,464 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="eoxserver-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >EOxServer</th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="eoxserver-module.html">Package&nbsp;eoxserver</a> ::
+        <a href="eoxserver.modules-module.html">Package&nbsp;modules</a> ::
+        <a href="eoxserver.modules.wms1x-module.html">Module&nbsp;wms1x</a> ::
+        Class&nbsp;EOxSWMS10_11GetMapHandler
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class EOxSWMS10_11GetMapHandler</h1><p class="nomargin-top"><span class="codelink"><a href="eoxserver.modules.wms1x-pysrc.html#EOxSWMS10_11GetMapHandler">source&nbsp;code</a></span></p>
+<center>
+<center>  <map id="uml_class_diagram_for_eoxserve_110" name="uml_class_diagram_for_eoxserve_110">
+<area shape="rect" id="node356" href="eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler-class.html#createCoverages" title="This method creates coverages, i.e." alt="" coords="60,409,247,428"/>
+<area shape="rect" id="node1" href="eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler-class.html" title="eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler" alt="" coords="48,377,259,434"/>
+<area shape="rect" id="node355" href="eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler-class.html#SERVICE" title="eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.SERVICE" alt="" coords="17,479,288,497"/>
+<area shape="rect" id="node355" href="eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler-class.html#VERSIONS" title="eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.VERSIONS" alt="" coords="17,497,288,516"/>
+<area shape="rect" id="node355" href="eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler-class.html#OPERATIONS" title="eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.OPERATIONS" alt="" coords="17,516,288,535"/>
+<area shape="rect" id="node355" href="eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler-class.html#ABSTRACT" title="eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.ABSTRACT" alt="" coords="17,535,288,553"/>
+<area shape="rect" id="node355" href="eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler-class.html#PARAM_SCHEMA" title="eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.PARAM_SCHEMA" alt="" coords="17,553,288,572"/>
+<area shape="rect" id="node355" href="eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler-class.html#configureMapObj" title="This method configures the &lt;tt&gt;ms_req.map&lt;/tt&gt; object (an instance of &lt;tt&gt;mapscript.mapObj&lt;/tt&gt;) with parameters from the config." alt="" coords="17,575,288,593"/>
+<area shape="rect" id="node355" href="eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler-class.html#getMapServerLayer" title="This method is invoked by the {@link #addLayers} method in order to generate &lt;tt&gt;mapscript.layerObj&lt;/tt&gt; instances for each coverage." alt="" coords="17,593,288,612"/>
+<area shape="rect" id="node4" href="eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler-class.html" title="eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler" alt="" coords="5,454,299,618"/>
+<area shape="rect" id="node358" href="eoxserver.lib.handlers.EOxSMapServerOperationHandler-class.html#configureRequest" title="This method configures the &lt;tt&gt;ms_req.ows_req&lt;/tt&gt; object (an instance of &lt;tt&gt;mapscript.OWSRequest&lt;/tt&gt;) with the parameters passed in with the user request." alt="" coords="17,199,288,217"/>
+<area shape="rect" id="node358" href="eoxserver.lib.handlers.EOxSMapServerOperationHandler-class.html#dispatch" title="This method actually executes the MapServer request by calling &lt;tt&gt;ms_req.map.OWSDispatch()&lt;/tt&gt;." alt="" coords="17,217,288,236"/>
+<area shape="rect" id="node358" href="eoxserver.lib.handlers.EOxSMapServerOperationHandler-class.html#postprocess" title="This method operates on the MapServer response." alt="" coords="17,236,288,255"/>
+<area shape="rect" id="node358" href="eoxserver.lib.handlers.EOxSMapServerOperationHandler-class.html#postprocessFault" title="eoxserver.lib.handlers.EOxSMapServerOperationHandler.postprocessFault" alt="" coords="17,255,288,273"/>
+<area shape="rect" id="node2" href="eoxserver.lib.handlers.EOxSMapServerOperationHandler-class.html" title="EOxSMapServerOperationHandler serves as parent class for all operations involving calls to MapServer." alt="" coords="5,166,299,279"/>
+<area shape="rect" id="node357" href="eoxserver.modules.wms1x.EOxSWMSCommonHandler-class.html#addLayers" title="This method adds layers to the &lt;tt&gt;ms_req.map&lt;/tt&gt; object based on the coverages defined in &lt;tt&gt;ms_req.coverages&lt;/tt&gt;." alt="" coords="69,332,237,351"/>
+<area shape="rect" id="node6" href="eoxserver.modules.wms1x.EOxSWMSCommonHandler-class.html" title="eoxserver.modules.wms1x.EOxSWMSCommonHandler" alt="" coords="57,299,249,357"/>
+<area shape="rect" id="node360" href="eoxserver.lib.handlers.EOxSRequestHandler-class.html#__init__" title="x.__init__(...) initializes x; see x.__class__.__doc__ for signature" alt="" coords="52,39,253,57"/>
+<area shape="rect" id="node360" href="eoxserver.lib.handlers.EOxSRequestHandler-class.html#handle" title="Basic request handling method which should be invoked from external code." alt="" coords="52,57,253,76"/>
+<area shape="rect" id="node3" href="eoxserver.lib.handlers.EOxSRequestHandler-class.html" title="Abstract base class for all EOxServer Handlers." alt="" coords="40,6,264,82"/>
+<area shape="rect" id="node5" href="eoxserver.lib.handlers.EOxSOperationHandler-class.html" title="Abstract base class for EOxServer Operation Handlers." alt="" coords="37,102,269,146"/>
+</map>
+  <img src="uml_class_diagram_for_eoxserve_110.gif" alt='' usemap="#uml_class_diagram_for_eoxserve_110" ismap="ismap" class="graph-without-title" />
+</center>
+</center>
+<hr />
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler-class.html#configureMapObj" class="summary-sig-name">configureMapObj</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">ms_req</span>)</span><br />
+      This method configures the <tt>ms_req.map</tt> object (an
+instance of <tt>mapscript.mapObj</tt>) with parameters from the
+config.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="eoxserver.modules.wms1x-pysrc.html#EOxSWMS10_11GetMapHandler.configureMapObj">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler-class.html#getMapServerLayer" class="summary-sig-name">getMapServerLayer</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">coverage</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      This method is invoked by the <a href="eoxserver.modules.wms1x.EOxSWMSCommonHandler-class.html#addLayers" class="link">addLayers</a> method in order
+to generate <tt>mapscript.layerObj</tt> instances for each
+coverage.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="eoxserver.modules.wms1x-pysrc.html#EOxSWMS10_11GetMapHandler.getMapServerLayer">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler-class.html">EOxSWMS1XGetMapHandler</a></code></b>:
+      <code><a href="eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler-class.html#createCoverages">createCoverages</a></code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="eoxserver.modules.wms1x.EOxSWMSCommonHandler-class.html">EOxSWMSCommonHandler</a></code></b>:
+      <code><a href="eoxserver.modules.wms1x.EOxSWMSCommonHandler-class.html#addLayers">addLayers</a></code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="eoxserver.lib.handlers.EOxSMapServerOperationHandler-class.html">lib.handlers.EOxSMapServerOperationHandler</a></code></b>:
+      <code><a href="eoxserver.lib.handlers.EOxSMapServerOperationHandler-class.html#configureRequest">configureRequest</a></code>,
+      <code><a href="eoxserver.lib.handlers.EOxSMapServerOperationHandler-class.html#dispatch">dispatch</a></code>,
+      <code><a href="eoxserver.lib.handlers.EOxSMapServerOperationHandler-class.html#postprocess">postprocess</a></code>,
+      <code><a href="eoxserver.lib.handlers.EOxSMapServerOperationHandler-class.html#postprocessFault">postprocessFault</a></code>
+      </p>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="eoxserver.lib.handlers.EOxSMapServerOperationHandler-class.html">lib.handlers.EOxSMapServerOperationHandler</a></code></b> (private):
+      <code><a href="eoxserver.lib.handlers.EOxSMapServerOperationHandler-class.html#_processRequest" onclick="show_private();">_processRequest</a></code>,
+      <code><a href="eoxserver.lib.handlers.EOxSMapServerOperationHandler-class.html#_setParameter" onclick="show_private();">_setParameter</a></code>
+      </p></div>
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="eoxserver.lib.handlers.EOxSRequestHandler-class.html">lib.handlers.EOxSRequestHandler</a></code></b>:
+      <code><a href="eoxserver.lib.handlers.EOxSRequestHandler-class.html#__init__">__init__</a></code>,
+      <code><a href="eoxserver.lib.handlers.EOxSRequestHandler-class.html#handle">handle</a></code>
+      </p>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="eoxserver.lib.handlers.EOxSRequestHandler-class.html">lib.handlers.EOxSRequestHandler</a></code></b> (private):
+      <code><a href="eoxserver.lib.handlers.EOxSRequestHandler-class.html#_handleException" onclick="show_private();">_handleException</a></code>
+      </p></div>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__delattr__</code>,
+      <code>__format__</code>,
+      <code>__getattribute__</code>,
+      <code>__hash__</code>,
+      <code>__new__</code>,
+      <code>__reduce__</code>,
+      <code>__reduce_ex__</code>,
+      <code>__repr__</code>,
+      <code>__setattr__</code>,
+      <code>__sizeof__</code>,
+      <code>__str__</code>,
+      <code>__subclasshook__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassVariables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="SERVICE"></a><span class="summary-name">SERVICE</span> = <code title="&quot;WMS&quot;">&quot;WMS&quot;</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="VERSIONS"></a><span class="summary-name">VERSIONS</span> = <code title="&quot;1.0&quot;, &quot;1.0.0&quot;, &quot;1.1&quot;, &quot;1.1.0&quot;">&quot;1.0&quot;, &quot;1.0.0&quot;, &quot;1.1&quot;, &quot;1.1.0&quot;</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="OPERATIONS"></a><span class="summary-name">OPERATIONS</span> = <code title="&quot;getmap&quot;">&quot;getmap&quot;</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="ABSTRACT"></a><span class="summary-name">ABSTRACT</span> = <code title="False">False</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler-class.html#PARAM_SCHEMA" class="summary-name">PARAM_SCHEMA</a> = <code title="{&quot;service&quot;: {&quot;xml_location&quot;: &quot;/@service&quot;, &quot;xml_type&quot;: &quot;string&quot;, &quot;kvp_k\
+ey&quot;: &quot;service&quot;, &quot;kvp_type&quot;: &quot;string&quot;}, &quot;version&quot;: {&quot;xml_location&quot;: &quot;/@\
+version&quot;, &quot;xml_type&quot;: &quot;string&quot;, &quot;kvp_key&quot;: &quot;version&quot;, &quot;kvp_type&quot;: &quot;str\
+ing&quot;}, &quot;operation&quot;: {&quot;xml_location&quot;: &quot;/&quot;, &quot;xml_type&quot;: &quot;localName&quot;, &quot;kv\
+p_key&quot;: &quot;request&quot;, &quot;kvp_type&quot;: &quot;string&quot;}, &quot;srs&quot;: {&quot;xml_location&quot;: &quot;/sr\
+s&quot;, &quot;xml_type&quot;: &quot;string&quot;, &quot;kvp_key&quot;: &quot;srs&quot;, &quot;kvp_type&quot;: &quot;string&quot;}, &quot;la\
+yers&quot;: {&quot;xml_location&quot;: &quot;/layer&quot;, &quot;xml_type&quot;: &quot;string[]&quot;, &quot;kvp_key&quot;: &quot;\
+layers&quot;, &quot;kvp_type&quot;: &quot;string[]&quot;}, &quot;time&quot;: {&quot;xml_location&quot;: &quot;/time&quot;, &quot;x\
+...">{&quot;service&quot;: {&quot;xml_location&quot;: &quot;/@service&quot;, &quot;xml_<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== PROPERTIES ==================== -->
+<a name="section-Properties"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Properties</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Properties"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__class__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="configureMapObj"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">configureMapObj</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">ms_req</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="eoxserver.modules.wms1x-pysrc.html#EOxSWMS10_11GetMapHandler.configureMapObj">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  This method configures the <tt>ms_req.map</tt> object (an
+instance of <tt>mapscript.mapObj</tt>) with parameters from the
+config. This method can be overridden in order to implement more
+sophisticated behaviour.
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>ms_req</code></strong> - An <a href="eoxserver.lib.requests.EOxSMapServerRequest-class.html" class="link">eoxserver.lib.requests.EOxSMapServerRequest</a> object</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>None</dd>
+    <dt>Overrides:
+        <a href="eoxserver.lib.handlers.EOxSMapServerOperationHandler-class.html#configureMapObj">lib.handlers.EOxSMapServerOperationHandler.configureMapObj</a>
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="getMapServerLayer"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">getMapServerLayer</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">coverage</span>,
+        <span class="sig-arg">**kwargs</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="eoxserver.modules.wms1x-pysrc.html#EOxSWMS10_11GetMapHandler.getMapServerLayer">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  This method is invoked by the <a href="eoxserver.modules.wms1x.EOxSWMSCommonHandler-class.html#addLayers" class="link">addLayers</a> method in order
+to generate <tt>mapscript.layerObj</tt> instances for each
+coverage. The basic configuration is done here, but subclasses
+will have to override this method in order to define e.g. the
+data sources for the layer.
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>coverage</code></strong> - An <a href="eoxserver.lib.interfaces.EOxSCoverageInterface-class.html" class="link">eoxserver.lib.interfaces.EOxSCoverageInterface</a>
+                    object giving access to the coverage data</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>A <tt>mapscribt.layerObj</tt> object
+                    representing the layer to be inserted</dd>
+    <dt>Overrides:
+        <a href="eoxserver.lib.handlers.EOxSMapServerOperationHandler-class.html#getMapServerLayer">lib.handlers.EOxSMapServerOperationHandler.getMapServerLayer</a>
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== CLASS VARIABLE DETAILS ==================== -->
+<a name="section-ClassVariableDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Variable Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassVariableDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="PARAM_SCHEMA"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">PARAM_SCHEMA</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+{&quot;service&quot;: {&quot;xml_location&quot;: &quot;/@service&quot;, &quot;xml_type&quot;: &quot;string&quot;, &quot;kvp_k<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ey&quot;: &quot;service&quot;, &quot;kvp_type&quot;: &quot;string&quot;}, &quot;version&quot;: {&quot;xml_location&quot;: &quot;/@<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+version&quot;, &quot;xml_type&quot;: &quot;string&quot;, &quot;kvp_key&quot;: &quot;version&quot;, &quot;kvp_type&quot;: &quot;str<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ing&quot;}, &quot;operation&quot;: {&quot;xml_location&quot;: &quot;/&quot;, &quot;xml_type&quot;: &quot;localName&quot;, &quot;kv<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+p_key&quot;: &quot;request&quot;, &quot;kvp_type&quot;: &quot;string&quot;}, &quot;srs&quot;: {&quot;xml_location&quot;: &quot;/sr<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+s&quot;, &quot;xml_type&quot;: &quot;string&quot;, &quot;kvp_key&quot;: &quot;srs&quot;, &quot;kvp_type&quot;: &quot;string&quot;}, &quot;la<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+yers&quot;: {&quot;xml_location&quot;: &quot;/layer&quot;, &quot;xml_type&quot;: &quot;string[]&quot;, &quot;kvp_key&quot;: &quot;<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+layers&quot;, &quot;kvp_type&quot;: &quot;string[]&quot;}, &quot;time&quot;: {&quot;xml_location&quot;: &quot;/time&quot;, &quot;x<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="eoxserver-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >EOxServer</th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Tue Jan 25 19:19:17 2011
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>
