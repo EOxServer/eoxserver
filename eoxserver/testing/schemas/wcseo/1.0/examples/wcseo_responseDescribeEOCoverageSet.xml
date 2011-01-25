@@ -1,0 +1,215 @@
+<?xml version='1.0' encoding='ISO-8859-1'?>
+<wcseo:EOCoverageSetDescription
+    xmlns:ows="http://www.opengis.net/ows/2.0"
+    xmlns:gml="http://www.opengis.net/gml/3.2"
+    xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0"
+    xmlns:swe="http://www.opengis.net/swe/2.0"
+    xmlns:wcs="http://www.opengis.net/wcs/2.0"
+    xmlns:wcseo="http://www.opengis.net/wcseo/1.0"
+    xmlns:eop="http://www.opengis.net/eop/2.0"
+    xmlns:om="http://www.opengis.net/om/2.0"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd">
+    <wcs:CoverageDescriptions>
+        <wcs:CoverageDescription gml:id="collection_080313P600320035L0040S4_rgb">
+            <gml:boundedBy>
+                <gml:Envelope axisLabels="Lat Long" srsDimension="2" srsName="http://www.opengis.net/def/crs/EPSG/0/4326" uomLabels="deg deg">
+                    <gml:lowerCorner>4742525.000000 2665950.000000</gml:lowerCorner>
+                    <gml:upperCorner>4767500.000000 2690925.000000</gml:upperCorner>
+                </gml:Envelope>
+            </gml:boundedBy>
+            <wcs:CoverageId>collection_080313P600320035L0040S4_rgb</wcs:CoverageId>
+            <gmlcov:metadata>
+                <wcseo:EOMetadata>
+                    <eop:EarthObservation gml:id="collection_080313P600320035L0040S4_rgb_metadata">
+                        <om:phenomenonTime>
+                            <gml:TimePeriod gml:id="tp_1">
+                                <gml:beginPosition>2008-03-13T10:00:06.000</gml:beginPosition>
+                                <gml:endPosition>2008-03-13T10:20:26.000</gml:endPosition>
+                            </gml:TimePeriod>
+                        </om:phenomenonTime>
+                        <om:resultTime>
+                            <gml:TimeInstant gml:id="archivingdate_1">
+                                <gml:timePosition>2001-08-22T11:02:47.999</gml:timePosition>
+                            </gml:TimeInstant>
+                        </om:resultTime>
+                        <om:procedure>
+                            <eop:EarthObservationEquipment gml:id="eoe_1">
+                                <eop:platform>
+                                    <eop:Platform>
+                                        <eop:shortName>PHR</eop:shortName>
+                                        <eop:serialIdentifier>1A</eop:serialIdentifier>
+                                    </eop:Platform>
+                                </eop:platform>
+                                <eop:instrument>
+                                    <eop:Instrument>
+                                        <eop:shortName>PHR</eop:shortName>
+                                    </eop:Instrument>
+                                </eop:instrument>
+                                <eop:sensor>
+                                    <eop:Sensor>
+                                        <eop:sensorType>OPTICAL</eop:sensorType>
+                                        <eop:operationalMode codeSpace="urn:eop:PHR:sensorMode">PX</eop:operationalMode>
+                                        <eop:resolution uom="m">0.7</eop:resolution>
+                                    </eop:Sensor>
+                                </eop:sensor>
+                                <eop:acquisitionParameters>
+                                    <eop:Acquisition>
+                                        <eop:orbitNumber>12</eop:orbitNumber>
+                                        <eop:lastOrbitNumber>12</eop:lastOrbitNumber>
+                                        <eop:orbitDirection>ASCENDING</eop:orbitDirection>
+                                        <eop:wrsLongitudeGrid codeSpace="EPSG">12</eop:wrsLongitudeGrid>
+                                        <eop:wrsLatitudeGrid codeSpace="EPSG">12</eop:wrsLatitudeGrid>
+                                        <eop:instrumentAzimuthAngle uom="deg">-14.0</eop:instrumentAzimuthAngle>
+                                        <eop:pitch uom="deg">0</eop:pitch>
+                                        <eop:roll uom="deg">0</eop:roll>
+                                        <eop:yaw uom="deg">0</eop:yaw>
+                                    </eop:Acquisition>
+                                </eop:acquisitionParameters>
+                            </eop:EarthObservationEquipment>
+                        </om:procedure>
+                        <om:observedProperty xlink:href="#phenom1"></om:observedProperty>
+                        <om:featureOfInterest>
+                            <eop:Footprint gml:id="fp_1">
+                                <eop:multiExtentOf>
+                                    <gml:MultiSurface gml:id="ms_1" srsName="EPSG:4326">
+                                        <gml:surfaceMembers>
+                                            <gml:Polygon gml:id="fppoly_1">
+                                                <gml:exterior>
+                                                    <gml:LinearRing>
+                                                        <gml:posList>2.1025 43.516667 2.861667 43.381667 2.65 42.862778 1.896944 42.996389 2.1025 43.516667</gml:posList>
+                                                    </gml:LinearRing>
+                                                </gml:exterior>
+                                            </gml:Polygon>
+                                        </gml:surfaceMembers>
+                                    </gml:MultiSurface>
+                                </eop:multiExtentOf>
+                                <eop:centerOf>
+                                    <gml:Point gml:id="p1" srsName="EPSG:4326">
+                                        <gml:pos>2.374167 43.190833</gml:pos>
+                                    </gml:Point>
+                                </eop:centerOf>
+                            </eop:Footprint>
+                        </om:featureOfInterest>
+                        <om:result>
+                            <eop:EarthObservationResult gml:id="eor_1">
+                                <eop:browse>
+                                    <eop:BrowseInformation>
+                                        <eop:type>QUICKLOOK</eop:type>
+                                        <eop:referenceSystemIdentifier codeSpace="EPSG">epsg:4326</eop:referenceSystemIdentifier>
+                                        <eop:fileName>
+                                           <ows:ServiceReference xlink:href="http://etc"><ows:RequestMessage></ows:RequestMessage></ows:ServiceReference>
+                                        </eop:fileName>
+                                    </eop:BrowseInformation>
+                                </eop:browse>
+                                <eop:mask>
+                                    <eop:MaskInformation>
+                                        <eop:type>CLOUD</eop:type>
+                                        <eop:format>VECTOR</eop:format>
+                                        <eop:referenceSystemIdentifier codeSpace="EPSG">epsg:4326</eop:referenceSystemIdentifier>
+                                        <eop:fileName>
+                                            <ows:ServiceReference xlink:href="http://etc"><ows:RequestMessage></ows:RequestMessage></ows:ServiceReference>
+                                        </eop:fileName>
+                                    </eop:MaskInformation>
+                                </eop:mask>
+                                <eop:parameter>
+                                    <eop:ParameterInformation>
+                                    </eop:ParameterInformation>
+                                </eop:parameter>
+                            </eop:EarthObservationResult>
+                        </om:result>
+                        <eop:metaDataProperty>
+                            <eop:EarthObservationMetaData>
+                                <eop:identifier>collection_080313P600320035L0040S4_rgb</eop:identifier>
+                                <eop:acquisitionType>NOMINAL</eop:acquisitionType>
+                                <eop:productType>TBD</eop:productType>
+                                <eop:status>ARCHIVED</eop:status>
+                                <eop:downlinkedTo>
+                                    <eop:DownlinkInformation>
+                                        <eop:acquisitionStation codeSpace="urn:eop:PHR:stationCode">TLS</eop:acquisitionStation>
+                                    </eop:DownlinkInformation>
+                                </eop:downlinkedTo>
+                                <eop:archivedIn>
+                                    <eop:ArchivingInformation>
+                                        <eop:archivingCenter codeSpace="urn:eop:PHR:stationCode">TLS</eop:archivingCenter>
+                                        <eop:archivingDate>2001-08-22T11:02:47.999</eop:archivingDate>
+                                    </eop:ArchivingInformation>
+                                </eop:archivedIn>
+                                <eop:processing>
+                                    <eop:ProcessingInformation/>
+                                </eop:processing>
+                            </eop:EarthObservationMetaData>
+                        </eop:metaDataProperty>
+                    </eop:EarthObservation>
+                </wcseo:EOMetadata>
+            </gmlcov:metadata>
+            <gml:domainSet>
+                <gml:RectifiedGrid dimension="2" gml:id="collection_080313P600320035L0040S4_rgb_grid">
+                    <gml:limits>
+                        <gml:GridEnvelope>
+                            <gml:low>0 0</gml:low>
+                            <gml:high>999 999</gml:high>
+                        </gml:GridEnvelope>
+                    </gml:limits>
+                    <gml:axisLabels>x y</gml:axisLabels>
+                    <gml:origin>
+                        <gml:Point gml:id="collection_080313P600320035L0040S4_rgb_grid_origin" srsName="http://www.opengis.net/def/crs/EPSG/0/3035">
+                            <gml:pos>4742525.0 2690925.0</gml:pos>
+                        </gml:Point>
+                    </gml:origin>
+                    <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/3035">25.0 0.0</gml:offsetVector>
+                    <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/3035">0.0 -25.0</gml:offsetVector>
+                </gml:RectifiedGrid>
+            </gml:domainSet>
+            <gmlcov:rangeType>
+                <swe:DataRecord>
+                    <swe:field name="red">
+                        <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+                            <swe:description>Red Channel</swe:description>
+                            <swe:nilValues/>
+                            <swe:uom code="W/cm2"/>
+                            <swe:constraint>
+                                <swe:AllowedValues>
+                                    <swe:interval>0 255</swe:interval>
+                                    <swe:significantFigures>3</swe:significantFigures>
+                                </swe:AllowedValues>
+                            </swe:constraint>
+                        </swe:Quantity>
+                    </swe:field>
+                    <swe:field name="green">
+                        <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+                            <swe:description>Green Channel</swe:description>
+                            <swe:nilValues/>
+                            <swe:uom code="W/cm2"/>
+                            <swe:constraint>
+                                <swe:AllowedValues>
+                                    <swe:interval>0 255</swe:interval>
+                                    <swe:significantFigures>3</swe:significantFigures>
+                                </swe:AllowedValues>
+                            </swe:constraint>
+                        </swe:Quantity>
+                    </swe:field>
+                    <swe:field name="blue">
+                        <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+                            <swe:description>Blue Channel</swe:description>
+                            <swe:nilValues/>
+                            <swe:uom code="W/cm2"/>
+                            <swe:constraint>
+                                <swe:AllowedValues>
+                                    <swe:interval>0 255</swe:interval>
+                                    <swe:significantFigures>3</swe:significantFigures>
+                                </swe:AllowedValues>
+                            </swe:constraint>
+                        </swe:Quantity>
+                    </swe:field>
+                </swe:DataRecord>
+            </gmlcov:rangeType>
+            <wcs:ServiceParameters>
+                <wcs:CoverageSubtype>RectifiedGridCoverage</wcs:CoverageSubtype>
+                <wcs:CoverageSubtype>RectifiedEOCoverage</wcs:CoverageSubtype>
+                <wcs:CoverageSubtype>RectifiedDataset</wcs:CoverageSubtype>
+            </wcs:ServiceParameters>
+        </wcs:CoverageDescription>
+    </wcs:CoverageDescriptions>
+</wcseo:EOCoverageSetDescription>

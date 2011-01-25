@@ -1,0 +1,140 @@
+[
+    {
+        "pk": 1, 
+        "model": "server.eoxsnilvaluerecord", 
+        "fields": {
+            "reason": "No Data", 
+            "value": 255
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "server.eoxschannelrecord", 
+        "fields": {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+            "name": "red", 
+            "allowed_values_end": 255, 
+            "nil_values": [], 
+            "allowed_values_significant_figures": 3, 
+            "identifier": "red", 
+            "allowed_values_start": 0, 
+            "uom": "W.m-2.Sr-1", 
+            "description": "Red Channel"
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "server.eoxschannelrecord", 
+        "fields": {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+            "name": "green", 
+            "allowed_values_end": 255, 
+            "nil_values": [], 
+            "allowed_values_significant_figures": 3, 
+            "identifier": "green", 
+            "allowed_values_start": 0, 
+            "uom": "W.m-2.Sr-1", 
+            "description": "Green Channel"
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "server.eoxschannelrecord", 
+        "fields": {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+            "name": "blue", 
+            "allowed_values_end": 255, 
+            "nil_values": [], 
+            "allowed_values_significant_figures": 3, 
+            "identifier": "blue", 
+            "allowed_values_start": 0, 
+            "uom": "W.m-2.Sr-1", 
+            "description": "Blue Channel"
+        }
+    }, 
+    {
+        "pk": 4, 
+        "model": "server.eoxschannelrecord", 
+        "fields": {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+            "name": "gray", 
+            "allowed_values_end": 255, 
+            "nil_values": [
+                1
+            ], 
+            "allowed_values_significant_figures": 3, 
+            "identifier": "blue", 
+            "allowed_values_start": 0, 
+            "uom": "W.m-2.Sr-1", 
+            "description": "Gray Channel"
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "server.eoxsrangetype", 
+        "fields": {
+            "name": "RGB"
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "server.eoxsrangetype", 
+        "fields": {
+            "name": "Grayscale"
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "server.eoxsrangetype2channel", 
+        "fields": {
+            "range_type": 1, 
+            "channel": 1, 
+            "no": 1
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "server.eoxsrangetype2channel", 
+        "fields": {
+            "range_type": 1, 
+            "channel": 2, 
+            "no": 2
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "server.eoxsrangetype2channel", 
+        "fields": {
+            "range_type": 1, 
+            "channel": 3, 
+            "no": 3
+        }
+    }, 
+    {
+        "pk": 4, 
+        "model": "server.eoxsrangetype2channel", 
+        "fields": {
+            "range_type": 2, 
+            "channel": 4, 
+            "no": 1
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "auth.user", 
+        "fields": {
+            "username": "admin", 
+            "first_name": "", 
+            "last_name": "", 
+            "is_active": true, 
+            "is_superuser": true, 
+            "is_staff": true, 
+            "last_login": "2011-01-10 22:31:09", 
+            "groups": [], 
+            "user_permissions": [], 
+            "password": "sha1$0996d$4bc564749c42cf6d461ef373bd22aadd6425038f", 
+            "email": "office@eox.at", 
+            "date_joined": "2010-08-31 19:16:40"
+        }
+    }
+]
