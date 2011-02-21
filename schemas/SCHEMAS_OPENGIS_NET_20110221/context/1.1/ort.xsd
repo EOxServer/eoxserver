@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema targetNamespace="http://www.opengis.net/context" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" version="1.1.1 2010-11-15">
+    <annotation>
+        <documentation>
+            <description>Web Map Context version 1.1</description>
+            <copyright>
+                WMC is an OGC Standard.
+                Copyright (c) 2005,2010 Open Geospatial Consortium, Inc. All Rights Reserved.
+                To obtain additional rights of use, visit http://www.opengeospatial.org/legal/ .
+            </copyright>
+        </documentation>
+    </annotation>
+    
+    <!-- ==============================================================
+        includes and imports
+        ============================================================== -->
+    <import namespace="http://www.w3.org/1999/xlink" schemaLocation="http://schemas.opengis.net/xlink/1.0.0/xlinks.xsd"/>
+    <!-- ==============================================================
+        elements and types
+        ============================================================== -->
+    <complexType name="OnlineResourceType">
+        <attributeGroup ref="xlink:simpleLink"/>
+    </complexType>
+    
+</schema>

@@ -1,0 +1,961 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+  External Code List enumerating the values for the attribute BuildingFurnitureFunctionType.
+  City GML Version No. 1.0.0, January 14th, 2008.
+  Compiled by Sandra Schlueter, Joachim Benner, Frank Bildstein, Ruediger Drees,
+  Andreas Kohlhaas and Mark Pendlington, 07/11/07
+
+  The lists of the values have to be completed.  
+  The dictionary concept of GML 3 is used to represent the values in this file.
+  For each of the attributes listed above, the list of all possible values is
+  given below.
+  The values are represented by a specific code, given by the name qualified
+  by the codeSpace="urn:d_nrw_sig3d". The corresponding attribute is given
+  by the corresponding name of the definitionMember without codeSpace.
+  This is according to the approach in  the german cadastre standard ALKIS.
+  The IDs cannot be used to reference attribute values, since they must be
+  unique globally (thus, for example. the roof type and the building function
+  cannot have the same value 3002) and since IDs are restricted syntactically, 
+  e.g. they must start with a character.
+  However, the intended use of names is to reflect the different terms of a
+  specific notion in different communities, not to reference a entry or value.
+  In GML3,IDs are usually used to reference a value (IDs are mandatory in 
+  dictionary entries). It has to be clarified finally whether to use names or
+  IDs for referencing values.
+
+  The GML IDs are not used. Since they are mandatory, they are generated
+  automatically (as sequence of consecuting natural numbers, preceded by the
+  prefix ID_). In ALKIS this is prevented by redefining the dictionary concept,
+  with a non-mandatory GML ID.
+ -->
+<gml:Dictionary
+        xmlns="http://www.opengis.net/gml"
+        xmlns:gml="http://www.opengis.net/gml"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.opengis.net/gml http://schemas.opengis.net/gml/3.1.1/profiles/SimpleDictionary/1.0.0/gmlSimpleDictionaryProfile.xsd" gml:id="BuildingFurnitureFunctionType">
+  <name>BuildingFurnitureFunctionType</name>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id409">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1000</gml:name>
+      <gml:name>cupboard</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id410">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1010</gml:name>
+      <gml:name>wardrobe</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id411">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1020</gml:name>
+      <gml:name>cabinet</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id412">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1030</gml:name>
+      <gml:name>sideboard</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id413">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1040</gml:name>
+      <gml:name>locker</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id414">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1050</gml:name>
+      <gml:name>tool cabinet</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id415">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1100</gml:name>
+      <gml:name>shelf</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id416">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1110</gml:name>
+      <gml:name>rack</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id417">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1120</gml:name>
+      <gml:name>coat stand</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id418">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1200</gml:name>
+      <gml:name>table</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id419">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1210</gml:name>
+      <gml:name>dining table</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id420">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1220</gml:name>
+      <gml:name>coffee table</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id421">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1230</gml:name>
+      <gml:name>desk</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id422">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1240</gml:name>
+      <gml:name>bedside cabinet</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id423">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1250</gml:name>
+      <gml:name>baby changing table</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id424">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1260</gml:name>
+      <gml:name>bar</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id425">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1270</gml:name>
+      <gml:name>pool table</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id426">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1280</gml:name>
+      <gml:name>snooker table</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id427">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1290</gml:name>
+      <gml:name>roulette table</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id428">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1270</gml:name>
+      <gml:name>work bench</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id429">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1300</gml:name>
+      <gml:name>chair</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id430">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1310</gml:name>
+      <gml:name>bench</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id431">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1320</gml:name>
+      <gml:name>office chair</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id432">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1330</gml:name>
+      <gml:name>sofa</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id433">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1340</gml:name>
+      <gml:name>rocking chair</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id434">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1350</gml:name>
+      <gml:name>bar stool</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id435">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1360</gml:name>
+      <gml:name>armchair</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id436">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1400</gml:name>
+      <gml:name>bed</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id437">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1410</gml:name>
+      <gml:name>crib</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id438">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1420</gml:name>
+      <gml:name>bunk bed</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id439">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1430</gml:name>
+      <gml:name>cradle</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id440">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1440</gml:name>
+      <gml:name>cot</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id441">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1450</gml:name>
+      <gml:name>stretcher</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id442">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1500</gml:name>
+      <gml:name>lighting</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id443">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1510</gml:name>
+      <gml:name>standard lamp</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id444">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1520</gml:name>
+      <gml:name>ceiling light</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id445">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1530</gml:name>
+      <gml:name>spotlight</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id446">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1600</gml:name>
+      <gml:name>electric appliances</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id447">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1610</gml:name>
+      <gml:name>television set</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id448">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1620</gml:name>
+      <gml:name>video recorder </gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id449">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1630</gml:name>
+      <gml:name>stereo unit</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id450">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1700</gml:name>
+      <gml:name>kitchen appliances</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id451">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1710</gml:name>
+      <gml:name>cooker</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id452">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1720</gml:name>
+      <gml:name>oven</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id453">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1730</gml:name>
+      <gml:name>refrigerator</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id454">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1740</gml:name>
+      <gml:name>coffee machine</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id455">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1750</gml:name>
+      <gml:name>toaster</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id456">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1760</gml:name>
+      <gml:name>kettle</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id457">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1770</gml:name>
+      <gml:name>microwave</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id458">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1780</gml:name>
+      <gml:name>dish washer</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id459">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1800</gml:name>
+      <gml:name>laundry equipment</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id460">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1810</gml:name>
+      <gml:name>washing machine</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id461">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1820</gml:name>
+      <gml:name>ironing machine</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id462">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1830</gml:name>
+      <gml:name>rotary iron (mangle) </gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id463">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1840</gml:name>
+      <gml:name>laundry tumble drier</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id464">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1850</gml:name>
+      <gml:name>spin drier</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id465">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1900</gml:name>
+      <gml:name>technical office equipment</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id466">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1910</gml:name>
+      <gml:name>copy machine</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id467">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1920</gml:name>
+      <gml:name>scanner</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id468">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1930</gml:name>
+      <gml:name>plotter</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id469">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1940</gml:name>
+      <gml:name>printer</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id470">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1950</gml:name>
+      <gml:name>screen</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id471">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1960</gml:name>
+      <gml:name>computer</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id472">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1970</gml:name>
+      <gml:name>overhead projector</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id473">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1980</gml:name>
+      <gml:name>video projector</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id474">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2000</gml:name>
+      <gml:name>sanitation equipment</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id475">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2010</gml:name>
+      <gml:name>sink,  hand-basin</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id476">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2020</gml:name>
+      <gml:name>water tap</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id477">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2030</gml:name>
+      <gml:name>toilet bowl</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id478">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2040</gml:name>
+      <gml:name>bathtub</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id479">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2050</gml:name>
+      <gml:name>shower</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id480">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2060</gml:name>
+      <gml:name>bidet</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id481">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2100</gml:name>
+      <gml:name>animal park</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id482">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2110</gml:name>
+      <gml:name>aquarium</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id483">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2120</gml:name>
+      <gml:name>cage</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id484">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2130</gml:name>
+      <gml:name>birdcage</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id485">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2200</gml:name>
+      <gml:name>religious equipment</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id486">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2300</gml:name>
+      <gml:name>shop fittings</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id487">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2310</gml:name>
+      <gml:name>sales counter</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id488">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2320</gml:name>
+      <gml:name>glass cabinet</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id489">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2330</gml:name>
+      <gml:name>changing cubicle</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id490">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2340</gml:name>
+      <gml:name>refrigerated counter</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id491">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2350</gml:name>
+      <gml:name>cash desk or till or counter</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id492">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2360</gml:name>
+      <gml:name>box-office</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id493">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2400</gml:name>
+      <gml:name>machines</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id494">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2410</gml:name>
+      <gml:name>ticket machine</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id495">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2420</gml:name>
+      <gml:name>cigarette machine</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id496">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2430</gml:name>
+      <gml:name>cash machine or ATM</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id497">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2440</gml:name>
+      <gml:name>vending machine</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id498">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2450</gml:name>
+      <gml:name>gambling machine</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id499">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2500</gml:name>
+      <gml:name>technical furniture</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id500">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2510</gml:name>
+      <gml:name>heating installation</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id501">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2520</gml:name>
+      <gml:name>tank</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id502">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2521</gml:name>
+      <gml:name>oil tank</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id503">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2522</gml:name>
+      <gml:name>water tank</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id504">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2523</gml:name>
+      <gml:name>gas tank </gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id505">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2524</gml:name>
+      <gml:name>fuel tank </gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id506">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2525</gml:name>
+      <gml:name>milk tank </gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id507">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2526</gml:name>
+      <gml:name>steel tank </gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id508">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2530</gml:name>
+      <gml:name>fire protection appliance</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id509">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2531</gml:name>
+      <gml:name>fire extinguishing system</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id510">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2532</gml:name>
+      <gml:name>fire alarm</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id511">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2533</gml:name>
+      <gml:name>fire extinguisher</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id512">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2540</gml:name>
+      <gml:name>switch board</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id513">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2550</gml:name>
+      <gml:name>lifting platform</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id514">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2560</gml:name>
+      <gml:name>compressed air system</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id515">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2570</gml:name>
+      <gml:name>loud-speaker</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id516">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2580</gml:name>
+      <gml:name>microphone</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id517">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2600</gml:name>
+      <gml:name>sports equipment</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id518">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2610</gml:name>
+      <gml:name>goal posts</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id519">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2620</gml:name>
+      <gml:name>basketball basket</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id520">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2630</gml:name>
+      <gml:name>volleyball net</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id521">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2640</gml:name>
+      <gml:name>gymnastic apparatus</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id522">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2650</gml:name>
+      <gml:name>diving platform </gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id523">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2660</gml:name>
+      <gml:name>swimming pool</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id524">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2700</gml:name>
+      <gml:name>sales promotion furniture</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id525">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2710</gml:name>
+      <gml:name>display panel</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id526">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2720</gml:name>
+      <gml:name>billboard</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id527">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2730</gml:name>
+      <gml:name>display cabinet</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id528">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2800</gml:name>
+      <gml:name>functional furniture</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id529">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2805</gml:name>
+      <gml:name>ashtray</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id530">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2810</gml:name>
+      <gml:name>lectern</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id531">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2815</gml:name>
+      <gml:name>stage</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id532">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2820</gml:name>
+      <gml:name>blackboard</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id533">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2825</gml:name>
+      <gml:name>screen</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id534">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2830</gml:name>
+      <gml:name>mapstand</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id535">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2835</gml:name>
+      <gml:name>rubbish bin</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id536">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2840</gml:name>
+      <gml:name>sauna</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id537">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2845</gml:name>
+      <gml:name>carpet</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id538">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2850</gml:name>
+      <gml:name>wall clock</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id539">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2855</gml:name>
+      <gml:name>curtain</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id540">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2860</gml:name>
+      <gml:name>mirror</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+</gml:Dictionary>

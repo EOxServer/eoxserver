@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema targetNamespace="http://www.opengis.net/examples" xmlns:ex="http://www.opengis.net/examples" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:gml="http://www.opengis.net/gml" xmlns="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" xml:lang="en" version="1.1.0 2010-01-28">
+	<annotation>
+		<documentation>
+			<name>UIGM1transformation.xsd</name>
+			<scope>How to encode definition of Universal Image Geometry Model for one image.</scope>
+			<description>Example Application Schema to encode ground-to-image coordinate transformation data for a specific image, using the Universal Image Geometry Model type of coordinate transformation as described in Section 6.5 of OGC Abstract Specification Topic 7 : The Earth Imagery Case (OGC document 99-107). This example does not encode data for the image correction tables, stereoscopic position error estimates, and most information not used by the image geometry model. Builds on coordinateOperations.xsd and typedValues.xsd, and follows same GML 3 patterns and ISO 19118 encoding. Written in the "ex" namespace. Primary editor: Arliss Whiteside.</description>
+			<copyright>
+				ImageCRSs is an OGC Standard.
+				Copyright (c) 2005,2010 Open Geospatial Consortium, Inc. All Rights Reserved.
+				To obtain additional rights of use, visit http://www.opengeospatial.org/legal/ .
+			</copyright>
+			<conformance>This schema encodes a draft UIGM package that builds on the Coordinate Operation (CC_) package of the extended UML Model for OGC Abstract Specification Topic 2: Spatial Referencing by Coordinates. That draft package defines restricted subtypes of the CC_Transformation,  CC_ParameterValue, and CC_ParameterValueGroup classes as needed for the UIGM transformation. </conformance>
+		</documentation>
+	</annotation>
+	<!-- ======================================================
+       includes and imports
+	====================================================== -->
+	<include schemaLocation="typedValues.xsd"/>
+	<import namespace="http://www.opengis.net/gml" schemaLocation="http://schemas.opengis.net/gml/3.1.1/base/coordinateOperations.xsd"/>
+	<import namespace="http://www.w3.org/1999/xlink" schemaLocation="http://schemas.opengis.net/xlink/1.0.0/xlinks.xsd"/>
+	<!-- ======================================================
+       elements and types
+	====================================================== -->
+	<element name="UIGM1Transformation" type="ex:UIGM1TransformationType" substitutionGroup="gml:_GeneralTransformation"/>
+	<!-- =================================================== -->
+	<complexType name="UIGM1TransformationType">
+		<annotation>
+			<documentation>Specific Universal Image Geometry Model type of coordinate transformation. Extends the AbstractGeneralTransformationType with restricted values for included elements, including elements in the coordinateOperationID element with the IdentifierType. If appropriate, the "codeSpace" element could have the string value "UIGM1", and the "code" element should then identify the specific image. The other elements in the IdentifierType can be omitted. The "coordinateOperationName" element shall have a string value that names a UIGM1 Transformation for a specific image and specific ground coordinate reference system. The "_PositionalAccuracy" and "metaDataProperty" elements can be omitted. </documentation>
+		</annotation>
+		<complexContent>
+			<extension base="gml:AbstractGeneralTransformationType">
+				<sequence>
+					<element ref="ex:usesUIGM1Method"/>
+					<element ref="ex:usesImageIdValue"/>
+					<element ref="ex:usesVersionValue"/>
+					<element ref="ex:usesLinearCoefficientsValue"/>
+					<element ref="ex:usesNumberSectionsValue"/>
+					<element ref="ex:usesSectionParameters"/>
+					<element ref="ex:usesMonoscopicErrors"/>
+				</sequence>
+			</extension>
+		</complexContent>
+	</complexType>
+	<!-- =================================================== -->
+	<element name="usesUIGM1Method">
+		<annotation>
+			<documentation>Reference to UIGM1 operation method. </documentation>
+		</annotation>
+		<complexType>
+			<sequence/>
+			<attribute ref="xlink:href" use="required" fixed="urn:ogc:def:method:UIGM:1.0:MethodUIGM1"/>
+		</complexType>
+	</element>
+	<!-- =================================================== -->
+	<element name="usesImageIdValue" type="ex:StringValueType">
+		<annotation>
+			<documentation>Alphanumeric text identifying one specific original image. </documentation>
+		</annotation>
+	</element>
+	<!-- =================================================== -->
+	<element name="usesVersionValue" type="ex:IntegerValueType">
+		<annotation>
+			<documentation>Increasing numbers of the Image Support Data Version integer are used to identify versions with increasing quality of the image geometry model data for the same original image. This Version shall be "0" before the original image support data is adjusted. The minimum value is 0, and the maximum value is 9. </documentation>
+		</annotation>
+	</element>
+	<!-- =================================================== -->
+	<element name="usesLinearCoefficientsValue" type="ex:ScaleListValueType">
+		<annotation>
+			<documentation>The values of the coefficients of the approximate linear sensor model, which is used to find the proper image geometry model section for a ground coordinate position. The parameter value shall contain an ordered list of eight double precision floating point numbers, four for the section number in the image row axis followed by four for the image column axis. These coefficients shall be recorded with Scale units, but various implied units are used by the various coefficients. </documentation>
+		</annotation>
+	</element>
+	<!-- =================================================== -->
+	<element name="usesNumberSectionsValue" type="ex:IntegerListValueType">
+		<annotation>
+			<documentation>The numbers of rows and columns of sections into which the image geometry model is divided for this image. The parameter value shall contain an ordered list of two small integers, the first specifying the number of rows and the second specifying the number of columns. For each integer, the minimum value is 1, and the maximum value is 8. </documentation>
+		</annotation>
+	</element>
+	<!-- =================================================== -->
+	<!-- =================================================== -->
+	<element name="usesSectionParameters">
+		<annotation>
+			<documentation>Group of parameters for one section of the universal image geometry model. There shall be from 1 up to 64 model sections for one image. If the model for this image is not divided into sections, there shall be only one repetition of this group of parameters. </documentation>
+		</annotation>
+		<complexType>
+			<sequence>
+				<element ref="ex:includesSectionNumberValue"/>
+				<element ref="ex:includesNormalizationParameters"/>
+				<element ref="ex:includesPolynomials"/>
+				<element ref="gml:valuesOfGroup"/>
+			</sequence>
+		</complexType>
+	</element>
+	<!-- =================================================== -->
+	<element name="includesSectionNumberValue" type="ex:IntegerListValueType">
+		<annotation>
+			<documentation>The row and column numbers of this section of the universal image geometry model for this image. The parameter value contains an ordered list of two small integers, the first specifying the row number and the second specifying the column number. For each integer, the minimum value is 1, and the maximum value is 8.</documentation>
+		</annotation>
+	</element>
+	<!-- =================================================== -->
+	<!-- =================================================== -->
+	<element name="includesNormalizationParameters">
+		<annotation>
+			<documentation>Group of ground position normalization parameters and image position un-normalization parameters, for this section of the universal image geometry model. </documentation>
+		</annotation>
+		<complexType>
+			<sequence>
+				<element ref="ex:includesEastOffsetValue"/>
+				<element ref="ex:includesNorthOffsetValue"/>
+				<element ref="ex:includesVerticalOffsetValue"/>
+				<element ref="ex:includesEastScaleValue"/>
+				<element ref="ex:includesNorthScaleValue"/>
+				<element ref="ex:includesVerticalScaleValue"/>
+				<element ref="ex:includesRowOffsetValue"/>
+				<element ref="ex:includesColumnOffsetValue"/>
+				<element ref="ex:includesRowScaleValue"/>
+				<element ref="ex:includesColumnScaleValue"/>
+				<element ref="gml:valuesOfGroup"/>
+			</sequence>
+		</complexType>
+	</element>
+	<!-- =================================================== -->
+	<element name="includesEastOffsetValue" type="ex:AngleOrLengthValueType">
+		<annotation>
+			<documentation>East position offset for normalizing ground coordinates. The units shall be either angle or length units. </documentation>
+		</annotation>
+	</element>
+	<!-- =================================================== -->
+	<element name="includesNorthOffsetValue" type="ex:AngleOrLengthValueType">
+		<annotation>
+			<documentation>North position offset for normalizing ground coordinates. The units shall be the same as for the East Offset, either angle or length units. </documentation>
+		</annotation>
+	</element>
+	<!-- =================================================== -->
+	<element name="includesVerticalOffsetValue" type="ex:LengthValueType">
+		<annotation>
+			<documentation>Vertical position offset for normalizing ground coordinates. The units shall be length units. </documentation>
+		</annotation>
+	</element>
+	<!-- =================================================== -->
+	<element name="includesEastScaleValue" type="ex:AngleOrLengthValueType">
+		<annotation>
+			<documentation>East scale factor for normalizing ground coordinates. The units shall be the same as for the East Offset, either angle or length units. </documentation>
+		</annotation>
+	</element>
+	<!-- =================================================== -->
+	<element name="includesNorthScaleValue" type="ex:AngleOrLengthValueType">
+		<annotation>
+			<documentation>North scale factor for normalizing ground coordinates. The units shall be the same as for the North Offset, either angle or length units. </documentation>
+		</annotation>
+	</element>
+	<!-- =================================================== -->
+	<element name="includesVerticalScaleValue" type="ex:LengthValueType">
+		<annotation>
+			<documentation>Vertical scale factor for normalizing ground coordinates. The units shall be the same as for the Vertical Offset, and shall be length units. </documentation>
+		</annotation>
+	</element>
+	<!-- =================================================== -->
+	<element name="includesRowOffsetValue" type="ex:GridLengthValueType">
+		<annotation>
+			<documentation>Image row position offset for un-normalizing image coordinates. The units shall be one grid spacing. </documentation>
+		</annotation>
+	</element>
+	<!-- =================================================== -->
+	<element name="includesColumnOffsetValue" type="ex:GridLengthValueType">
+		<annotation>
+			<documentation>Image column position offset for un-normalizing image coordinates. The units shall be one grid spacing. </documentation>
+		</annotation>
+	</element>
+	<!-- =================================================== -->
+	<element name="includesRowScaleValue" type="ex:GridLengthValueType">
+		<annotation>
+			<documentation>Image row scale factors for un-normalizing image coordinates. The units shall be one grid spacing. </documentation>
+		</annotation>
+	</element>
+	<!-- =================================================== -->
+	<element name="includesColumnScaleValue" type="ex:GridLengthValueType">
+		<annotation>
+			<documentation>Image column scale factors for un-normalizing image coordinates. The units shall be one grid spacing. </documentation>
+		</annotation>
+	</element>
+	<!-- =================================================== -->
+	<!-- =================================================== -->
+	<element name="includesPolynomials">
+		<annotation>
+			<documentation>Numerator and denominator polynomial parameters for this section of the universal image geometry model. </documentation>
+		</annotation>
+		<complexType>
+			<sequence>
+				<element ref="ex:includesRowNumeratorPowersValue"/>
+				<element ref="ex:includesRowNumeratorCoefficientsValue"/>
+				<element ref="ex:includesRowDenominatorPowersValue"/>
+				<element ref="ex:includesRowDenominatorCoefficientsValue"/>
+				<element ref="ex:includesColumnNumeratorPowersValue"/>
+				<element ref="ex:includesColumnNumeratorCoefficientsValue"/>
+				<element ref="ex:includesColumnDenominatorPowersValue"/>
+				<element ref="ex:includesColumnDenominatorCoefficientsValue"/>
+				<element ref="gml:valuesOfGroup"/>
+			</sequence>
+		</complexType>
+	</element>
+	<!-- =================================================== -->
+	<element name="includesRowNumeratorPowersValue" type="ex:IntegerListValueType">
+		<annotation>
+			<documentation>Maximum powers of the three ground coordinates in the numerator polynomial for computing the image row coordinate. The parameter value shall contain an ordered list of three small integers, corresponding to the East, North, and Vertical ground coordinate axes. For each integer, the minimum value is 1. For the East and North axis integers, the maximum value is 5. For the Vertical axis integer, the maximum value is 3. </documentation>
+		</annotation>
+	</element>
+	<!-- =================================================== -->
+	<element name="includesRowNumeratorCoefficientsValue" type="ex:ScaleListValueType">
+		<annotation>
+			<documentation>Polynomial coefficients in the numerator polynomial for computing the image row coordinate. The parameter value shall contain an ordered list of from 8 to 144 Scale measures. </documentation>
+		</annotation>
+	</element>
+	<!-- =================================================== -->
+	<element name="includesRowDenominatorPowersValue" type="ex:IntegerListValueType">
+		<annotation>
+			<documentation>Maximum powers of the three ground coordinates in the denominator polynomial for computing the image row coordinate. The parameter value shall contain an ordered list of three small integers, corresponding to the East, North, and Vertical ground coordinate axes. For each integer, the minimum value is 1. For the East and North axis integers, the maximum value is 5. For the Vertical axis integer, the maximum value is 3. </documentation>
+		</annotation>
+	</element>
+	<!-- =================================================== -->
+	<element name="includesRowDenominatorCoefficientsValue" type="ex:ScaleListValueType">
+		<annotation>
+			<documentation>Polynomial coefficients in the denominator polynomial for computing the image row coordinate. The parameter value shall contain an ordered list of from 8 to 144 Scale measures. </documentation>
+		</annotation>
+	</element>
+	<!-- =================================================== -->
+	<element name="includesColumnNumeratorPowersValue" type="ex:IntegerListValueType">
+		<annotation>
+			<documentation>Maximum powers of the three ground coordinates in the numerator polynomial for computing the image column coordinate. The parameter value shall contain an ordered list of three small integers, corresponding to the East, North, and Vertical ground coordinate axes. For each integer, the minimum value is 1. For the East and North axis integers, the maximum value is 5. For the Vertical axis integer, the maximum value is 3. </documentation>
+		</annotation>
+	</element>
+	<!-- =================================================== -->
+	<element name="includesColumnNumeratorCoefficientsValue" type="ex:ScaleListValueType">
+		<annotation>
+			<documentation>Polynomial coefficients in the numerator polynomial for computing the image column coordinate. The parameter value shall contain an ordered list of from 8 to 144 Scale measures. </documentation>
+		</annotation>
+	</element>
+	<!-- =================================================== -->
+	<element name="includesColumnDenominatorPowersValue" type="ex:IntegerListValueType">
+		<annotation>
+			<documentation>Maximum powers of the three ground coordinates in the denominator polynomial for computing the image column coordinate. The parameter value shall contain an ordered list of three small integers, corresponding to the East, North, and Vertical ground coordinate axes. For each integer, the minimum value is 1. For the East and North axis integers, the maximum value is 5. For the Vertical axis integer, the maximum value is 3. </documentation>
+		</annotation>
+	</element>
+	<!-- =================================================== -->
+	<element name="includesColumnDenominatorCoefficientsValue" type="ex:ScaleListValueType">
+		<annotation>
+			<documentation>Polynomial coefficients in the denominator polynomial for computing the image column coordinate. The parameter value shall contain an ordered list of from 8 to 144 Scale measures. </documentation>
+		</annotation>
+	</element>
+	<!-- =================================================== -->
+	<!-- =================================================== -->
+	<element name="usesMonoscopicErrors">
+		<annotation>
+			<documentation>Group of parameters for horizontal error estimates when a position in this one image is used to determine the corresponding ground coordinates, using this universal image geometry model for this image. </documentation>
+		</annotation>
+		<complexType>
+			<sequence>
+				<element ref="ex:includesReferenceHeightValue"/>
+				<element ref="ex:includesAbsoluteErrorValue"/>
+				<element ref="ex:includesRelativeError" minOccurs="0" maxOccurs="9"/>
+				<element ref="gml:valuesOfGroup"/>
+			</sequence>
+		</complexType>
+	</element>
+	<!-- =================================================== -->
+	<element name="includesReferenceHeightValue" type="ex:LengthValueType">
+		<annotation>
+			<documentation>The value of the ground elevation or height used to estimate the recorded horizontal error estimate when a position in this one image is used to determine the corresponding ground coordinates. This reference height is in the Vertical coordinate system axis of the ground CRS used by the universal image geometry model for this image. </documentation>
+		</annotation>
+	</element>
+	<!-- =================================================== -->
+	<element name="includesAbsoluteErrorValue" type="ex:LengthValueType">
+		<annotation>
+			<documentation>The value of the horizontal absolute error estimate when a position in this one (monoscopic) image is used to determine the corresponding ground coordinates. This error estimate shall be recorded as the Circular Error (CE) with 90% confidence, always in one meter units. The minimum value is 0.0. </documentation>
+		</annotation>
+	</element>
+	<!-- =================================================== -->
+	<!-- =================================================== -->
+	<element name="includesRelativeError">
+		<annotation>
+			<documentation>Relative error estimate for one distance bin between two points. These error estimates are for use when multiple positions in one (monoscopic) image are used to determine the corresponding ground coordinates. </documentation>
+		</annotation>
+		<complexType>
+			<sequence>
+				<element ref="ex:includesBinDistancesValue"/>
+				<element ref="ex:includesBinErrorValue"/>
+				<element ref="gml:valuesOfGroup"/>
+			</sequence>
+		</complexType>
+	</element>
+	<!-- =================================================== -->
+	<element name="includesBinDistancesValue" type="ex:LengthListValueType">
+		<annotation>
+			<documentation>The minimum and maximum ground distances between two points for this distance bin recorded for horizontal relative error estimates. The parameter value shall contain an ordered list of two Length measures, always in one meter units. The first value specifies the bin minimum distance, and the second value specifies the bin maximum distance. The minimum values are 0.0. </documentation>
+		</annotation>
+	</element>
+	<!-- =================================================== -->
+	<element name="includesBinErrorValue" type="ex:LengthValueType">
+		<annotation>
+			<documentation>The value of the horizontal relative error estimate between two points for this distance bin recorded for horizontal relative error estimates. These error estimates are for use when multiple positions in one (monoscopic) image are used to determine the corresponding ground coordinates. The relative error estimate shall be recorded as the Circular Error (CE) with 90% confidence, always in one meter units. The minimum value is 0.0. </documentation>
+		</annotation>
+	</element>
+	<!-- =================================================== -->
+</schema>

@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+  External Code List enumerating the values for the attribute TrafficAreaFunctionType.
+  City GML Version No. 1.0.0, January 14th, 2008.
+  Compiled by Sandra Schlueter, Joachim Benner, Frank Bildstein, Ruediger Drees,
+  Andreas Kohlhaas and Mark Pendlington, 07/11/07
+
+  The lists of the values have to be completed.  
+  The dictionary concept of GML 3 is used to represent the values in this file.
+  For each of the attributes listed above, the list of all possible values is
+  given below.
+  The values are represented by a specific code, given by the name qualified
+  by the codeSpace="urn:d_nrw_sig3d". The corresponding attribute is given
+  by the corresponding name of the definitionMember without codeSpace.
+  This is according to the approach in  the german cadastre standard ALKIS.
+  The IDs cannot be used to reference attribute values, since they must be
+  unique globally (thus, for example. the roof type and the building function
+  cannot have the same value 3002) and since IDs are restricted syntactically, 
+  e.g. they must start with a character.
+  However, the intended use of names is to reflect the different terms of a
+  specific notion in different communities, not to reference a entry or value.
+  In GML3,IDs are usually used to reference a value (IDs are mandatory in 
+  dictionary entries). It has to be clarified finally whether to use names or
+  IDs for referencing values.
+
+  The GML IDs are not used. Since they are mandatory, they are generated
+  automatically (as sequence of consecuting natural numbers, preceded by the
+  prefix ID_). In ALKIS this is prevented by redefining the dictionary concept,
+  with a non-mandatory GML ID.
+ -->
+<gml:Dictionary
+        xmlns="http://www.opengis.net/gml"
+        xmlns:gml="http://www.opengis.net/gml"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.opengis.net/gml http://schemas.opengis.net/gml/3.1.1/profiles/SimpleDictionary/1.0.0/gmlSimpleDictionaryProfile.xsd" gml:id="TrafficAreaFunctionType">
+  <name>TrafficAreaFunctionType</name>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id1355">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1</gml:name>
+      <gml:name>driving_lane</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id1356">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2</gml:name>
+      <gml:name>footpath</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id1357">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">3</gml:name>
+      <gml:name>cyclepath</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id1358">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">4</gml:name>
+      <gml:name>combined foot-/cyclepath</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id1359">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">5</gml:name>
+      <gml:name>square</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id1360">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">6</gml:name>
+      <gml:name>car_park</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id1361">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">7</gml:name>
+      <gml:name>parking_lay_by</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id1362">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">8</gml:name>
+      <gml:name>rail</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id1363">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">9</gml:name>
+      <gml:name>rail_road_combined</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id1364">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">10</gml:name>
+      <gml:name>drainage</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id1365">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">11</gml:name>
+      <gml:name>road marking</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id1366">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">12</gml:name>
+      <gml:name>road_marking_direction</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id1367">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">13</gml:name>
+      <gml:name>road_marking_lane</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id1368">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">14</gml:name>
+      <gml:name>road_marking_restricted</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id1369">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">15</gml:name>
+      <gml:name>road_marking_crosswalk</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id1370">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">16</gml:name>
+      <gml:name>road_marking_stop</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id1371">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">17</gml:name>
+      <gml:name>road_marking_other</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id1372">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">18</gml:name>
+      <gml:name>overhead wire (trolley)</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id1373">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">19</gml:name>
+      <gml:name>train platform</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id1374">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">20</gml:name>
+      <gml:name>crosswalk</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id1375">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">21</gml:name>
+      <gml:name>barrier</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id1376">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">22</gml:name>
+      <gml:name>stairs</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id1377">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">23</gml:name>
+      <gml:name>escalator</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id1378">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">24</gml:name>
+      <gml:name>filtering lane</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id1379">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">25</gml:name>
+      <gml:name>airport_runway</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id1380">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">26</gml:name>
+      <gml:name>airport_taxiway</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id1381">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">27</gml:name>
+      <gml:name>airport_apron</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id1382">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">28</gml:name>
+      <gml:name>airport_heliport</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id1383">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">29</gml:name>
+      <gml:name>airport_runway_marking</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id1384">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">30</gml:name>
+      <gml:name>green spaces</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id1385">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">31</gml:name>
+      <gml:name>recreation</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id1386">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">32</gml:name>
+      <gml:name>bus_lay_by</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id1387">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">33</gml:name>
+      <gml:name>motorway</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id1388">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">34</gml:name>
+      <gml:name>motorway_entry</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id1389">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">35</gml:name>
+      <gml:name>motorway_exit</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id1390">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">36</gml:name>
+      <gml:name>motorway_emergency lane</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id1391">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">37</gml:name>
+      <gml:name>private_area</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id1392">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">9999</gml:name>
+      <gml:name>unknown</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+</gml:Dictionary>

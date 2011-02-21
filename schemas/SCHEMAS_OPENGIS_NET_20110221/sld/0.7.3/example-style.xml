@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<FeatureStyle version="0.7.3"
+   xsi:schemaLocation="http://www.opengis.net/sld FeatureStyle.xsd"
+   xmlns="http://www.opengis.net/sld"
+   xmlns:ogc="http://www.opengis.net/ogc"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+   <FeatureTypeName>OCEANSEA_1M:Foundation</FeatureTypeName>
+   <Rule>
+      <Name>main</Name>
+      <PolygonSymbol>
+         <Geometry>
+            <ogc:PropertyName>GEOMETRY</ogc:PropertyName>
+         </Geometry>
+         <Fill>
+            <SvgParameter name="fill">#96C3F5</SvgParameter>
+         </Fill>
+      </PolygonSymbol>
+   </Rule>
+</FeatureStyle>
