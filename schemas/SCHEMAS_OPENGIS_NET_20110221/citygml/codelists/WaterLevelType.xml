@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+  External Code List enumerating the values for the attribute WaterLevelType.
+  City GML Version No. 1.0.0, January 14th, 2008.
+  Compiled by Sandra Schlueter, Joachim Benner, Frank Bildstein, Ruediger Drees,
+  Andreas Kohlhaas and Mark Pendlington, 07/11/07
+
+  The lists of the values have to be completed.  
+  The dictionary concept of GML 3 is used to represent the values in this file.
+  For each of the attributes listed above, the list of all possible values is
+  given below.
+  The values are represented by a specific code, given by the name qualified
+  by the codeSpace="urn:d_nrw_sig3d". The corresponding attribute is given
+  by the corresponding name of the definitionMember without codeSpace.
+  This is according to the approach in  the german cadastre standard ALKIS.
+  The IDs cannot be used to reference attribute values, since they must be
+  unique globally (thus, for example. the roof type and the building function
+  cannot have the same value 3002) and since IDs are restricted syntactically, 
+  e.g. they must start with a character.
+  However, the intended use of names is to reflect the different terms of a
+  specific notion in different communities, not to reference a entry or value.
+  In GML3,IDs are usually used to reference a value (IDs are mandatory in 
+  dictionary entries). It has to be clarified finally whether to use names or
+  IDs for referencing values.
+
+  The GML IDs are not used. Since they are mandatory, they are generated
+  automatically (as sequence of consecuting natural numbers, preceded by the
+  prefix ID_). In ALKIS this is prevented by redefining the dictionary concept,
+  with a non-mandatory GML ID.
+ -->
+<gml:Dictionary
+        xmlns="http://www.opengis.net/gml"
+        xmlns:gml="http://www.opengis.net/gml"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.opengis.net/gml http://schemas.opengis.net/gml/3.1.1/profiles/SimpleDictionary/1.0.0/gmlSimpleDictionaryProfile.xsd" gml:id="WaterLevelType">
+  <name>WaterLevelType</name>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id2092">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1000</gml:name>
+      <gml:name>MSL - Mean Sea Level</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id2093">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1010</gml:name>
+      <gml:name>LAT - Lowest Astronomical Tide </gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id2094">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1020</gml:name>
+      <gml:name>National Water Level</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id2095">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1030</gml:name>
+      <gml:name>Mean High Tide  (related to National Waterlevel)</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id2096">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1040</gml:name>
+      <gml:name>Extreme High Tide (related to National Waterlevel)</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id2097">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1050</gml:name>
+      <gml:name>Mean Low Tide (related to National Waterlevel)</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id2098">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1060</gml:name>
+      <gml:name>Extreme Low Tide (related to National Waterlevel)</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id2099">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1070</gml:name>
+      <gml:name>Mean Water Level (watercourse)</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id2100">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1080</gml:name>
+      <gml:name>critical high-water level</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id2101">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1090</gml:name>
+      <gml:name>Hundred Year Flood</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id2102">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1100</gml:name>
+      <gml:name>highest known water level</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id2103">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1110</gml:name>
+      <gml:name>critical low-water level</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id2104">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1120</gml:name>
+      <gml:name>lowest known water level</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id2105">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1130</gml:name>
+      <gml:name>Established Line of Navigability</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id2106">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1140</gml:name>
+      <gml:name>Minimum Limit of Navigability</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id2107">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1150</gml:name>
+      <gml:name>Maximum Limit of Navigability</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id2108">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">9999</gml:name>
+      <gml:name>unknown</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+</gml:Dictionary>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OperationMethod xmlns="http://www.opengis.net/gml" xmlns:gml="http://www.opengis.net/gml" xmlns:ex="http://www.opengis.net/examples" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/examples extendedOperationParameter.xsd" gml:id="EPSG9807">
+	<!-- Primary editor: Arliss Whiteside. Last updated 2005-01-28-->
+	<methodName>Transverse Mercator</methodName>
+	<methodID>
+		<name codeSpace="urn:ogc:def:method:EPSG:6.3:">9807</name>
+	</methodID>
+	<methodFormula>See Section 1.4.6 "Transverse Mercator" of EPSG Guidance Note 7, December 2000. </methodFormula>
+	<sourceDimensions>2</sourceDimensions>
+	<targetDimensions>2</targetDimensions>
+	<usesParameter>
+		<ex:ExtendedOperationParameter gml:id="EPSG8801">
+			<parameterName>Latitude of natural origin</parameterName>
+			<parameterID>
+				<name codeSpace="urn:ogc:def:parameter:EPSG:6.3:">8801</name>
+			</parameterID>
+			<ex:parameterType codeSpace="parameterTypeCodeList.xml">AngleChoiceType</ex:parameterType>
+		</ex:ExtendedOperationParameter>
+	</usesParameter>
+	<usesParameter>
+		<ex:ExtendedOperationParameter gml:id="EPSG8802">
+			<parameterName>Longitude of natural origin</parameterName>
+			<parameterID>
+				<name codeSpace="urn:ogc:def:parameter:EPSG:6.3:">8802</name>
+			</parameterID>
+			<ex:parameterType codeSpace="parameterTypeCodeList.xml">AngleChoiceType</ex:parameterType>
+		</ex:ExtendedOperationParameter>
+	</usesParameter>
+	<usesParameter>
+		<ex:ExtendedOperationParameter gml:id="EPSG8805">
+			<parameterName>Scale factor at natural origin</parameterName>
+			<parameterID>
+				<name codeSpace="urn:ogc:def:parameter:EPSG:6.3:">8805</name>
+			</parameterID>
+			<ex:parameterType codeSpace="parameterTypeCodeList.xml">ScaleType</ex:parameterType>
+		</ex:ExtendedOperationParameter>
+	</usesParameter>
+	<usesParameter>
+		<ex:ExtendedOperationParameter gml:id="EPSG8806">
+			<parameterName>False Easting</parameterName>
+			<parameterID>
+				<name codeSpace="urn:ogc:def:parameter:EPSG:6.3:">8806</name>
+			</parameterID>
+			<ex:parameterType codeSpace="parameterTypeCodeList.xml">LengthType</ex:parameterType>
+		</ex:ExtendedOperationParameter>
+	</usesParameter>
+	<usesParameter>
+		<ex:ExtendedOperationParameter gml:id="EPSG8807">
+			<parameterName>False Northing</parameterName>
+			<parameterID>
+				<name codeSpace="urn:ogc:def:parameter:EPSG:6.3:">8807</name>
+			</parameterID>
+			<ex:parameterType codeSpace="parameterTypeCodeList.xml">LengthType</ex:parameterType>
+		</ex:ExtendedOperationParameter>
+	</usesParameter>
+</OperationMethod>

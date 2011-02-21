@@ -1,0 +1,1206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+  External Code List enumerating the values for the attribute BuildingUsageType.
+  City GML Version No. 1.0.0, January 14th, 2008.
+  Compiled by Sandra Schlueter, Joachim Benner, Frank Bildstein, Ruediger Drees,
+  Andreas Kohlhaas and Mark Pendlington, 07/11/07
+
+  The lists of the values have to be completed.  
+  The dictionary concept of GML 3 is used to represent the values in this file.
+  For each of the attributes listed above, the list of all possible values is
+  given below.
+  The values are represented by a specific code, given by the name qualified
+  by the codeSpace="urn:d_nrw_sig3d". The corresponding attribute is given
+  by the corresponding name of the definitionMember without codeSpace.
+  This is according to the approach in  the german cadastre standard ALKIS.
+  The IDs cannot be used to reference attribute values, since they must be
+  unique globally (thus, for example. the roof type and the building function
+  cannot have the same value 3002) and since IDs are restricted syntactically, 
+  e.g. they must start with a character.
+  However, the intended use of names is to reflect the different terms of a
+  specific notion in different communities, not to reference a entry or value.
+  In GML3,IDs are usually used to reference a value (IDs are mandatory in 
+  dictionary entries). It has to be clarified finally whether to use names or
+  IDs for referencing values.
+
+  The GML IDs are not used. Since they are mandatory, they are generated
+  automatically (as sequence of consecuting natural numbers, preceded by the
+  prefix ID_). In ALKIS this is prevented by redefining the dictionary concept,
+  with a non-mandatory GML ID.
+ -->
+<gml:Dictionary
+        xmlns="http://www.opengis.net/gml"
+        xmlns:gml="http://www.opengis.net/gml"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.opengis.net/gml http://schemas.opengis.net/gml/3.1.1/profiles/SimpleDictionary/1.0.0/gmlSimpleDictionaryProfile.xsd" gml:id="BuildingUsageType">
+  <name>BuildingUsageType</name>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id189">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1000</gml:name>
+      <gml:name>residential building</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id190">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1010</gml:name>
+      <gml:name>tenement</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id191">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1020</gml:name>
+      <gml:name>hostel</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id192">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1030</gml:name>
+      <gml:name>residential- and administration building</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id193">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1040</gml:name>
+      <gml:name>residential- and office building</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id194">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1050</gml:name>
+      <gml:name>residential- and business building</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id195">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1060</gml:name>
+      <gml:name>residential- and plant builiding</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id196">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1070</gml:name>
+      <gml:name>agrarian- and forestry builiding</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id197">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1080</gml:name>
+      <gml:name>residential- and commercial building</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id198">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1090</gml:name>
+      <gml:name>forester's lodge</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id199">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1100</gml:name>
+      <gml:name>holiday house</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id200">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1110</gml:name>
+      <gml:name>summer house</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id201">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1120</gml:name>
+      <gml:name>office building</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id202">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1130</gml:name>
+      <gml:name>credit institution</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id203">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1140</gml:name>
+      <gml:name>insurance</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id204">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1150</gml:name>
+      <gml:name>business building</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id205">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1160</gml:name>
+      <gml:name>department store</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id206">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1170</gml:name>
+      <gml:name>shopping centre</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id207">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1180</gml:name>
+      <gml:name>kiosk</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id208">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1190</gml:name>
+      <gml:name>pharmacy</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id209">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1200</gml:name>
+      <gml:name>pavilion</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id210">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1210</gml:name>
+      <gml:name>hotel</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id211">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1220</gml:name>
+      <gml:name>youth hostel</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id212">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1230</gml:name>
+      <gml:name>campsite building</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id213">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1240</gml:name>
+      <gml:name>restaurant</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id214">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1250</gml:name>
+      <gml:name>cantine</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id215">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1260</gml:name>
+      <gml:name>recreational site</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id216">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1270</gml:name>
+      <gml:name>function room</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id217">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1280</gml:name>
+      <gml:name>cinema</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id218">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1290</gml:name>
+      <gml:name>bowling alley</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id219">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1300</gml:name>
+      <gml:name>casino</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id220">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1310</gml:name>
+      <gml:name>industrial building</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id221">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1320</gml:name>
+      <gml:name>factory</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id222">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1330</gml:name>
+      <gml:name>workshop</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id223">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1340</gml:name>
+      <gml:name>petrol / gas station</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id224">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1350</gml:name>
+      <gml:name>washing plant</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id225">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1360</gml:name>
+      <gml:name>cold store</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id226">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1370</gml:name>
+      <gml:name>depot</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id227">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1380</gml:name>
+      <gml:name>building for research purposes</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id228">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1390</gml:name>
+      <gml:name>quarry</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id229">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1400</gml:name>
+      <gml:name>salt works</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id230">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1410</gml:name>
+      <gml:name>miscellaneous industrial building</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id231">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1420</gml:name>
+      <gml:name>mill</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id232">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1430</gml:name>
+      <gml:name>windmill</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id233">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1440</gml:name>
+      <gml:name>water mill</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id234">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1450</gml:name>
+      <gml:name>bucket elevator</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id235">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1460</gml:name>
+      <gml:name>weather station</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id236">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1470</gml:name>
+      <gml:name>traffic assets office</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id237">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1480</gml:name>
+      <gml:name>street maintenance</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id238">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1490</gml:name>
+      <gml:name>waiting hall</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id239">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1500</gml:name>
+      <gml:name>signal control box</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id240">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1510</gml:name>
+      <gml:name>engine shed</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id241">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1520</gml:name>
+      <gml:name>signal box or stop signal</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id242">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1530</gml:name>
+      <gml:name>plant building for air traffic</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id243">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1540</gml:name>
+      <gml:name>hangar</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id244">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1550</gml:name>
+      <gml:name>plant building for shipping</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id245">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1560</gml:name>
+      <gml:name>shipyard</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id246">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1570</gml:name>
+      <gml:name>dock</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id247">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1580</gml:name>
+      <gml:name>plant building for canal lock</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id248">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1590</gml:name>
+      <gml:name>boathouse</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id249">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1600</gml:name>
+      <gml:name>plant building for cablecar</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id250">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1610</gml:name>
+      <gml:name>multi-storey car park</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id251">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1620</gml:name>
+      <gml:name>parking level</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id252">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1630</gml:name>
+      <gml:name>garage</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id253">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1640</gml:name>
+      <gml:name>vehicle hall</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id254">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1650</gml:name>
+      <gml:name>underground garage</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id255">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1660</gml:name>
+      <gml:name>building for supply</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id256">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1670</gml:name>
+      <gml:name>waterworks</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id257">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1680</gml:name>
+      <gml:name>pump station</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id258">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1690</gml:name>
+      <gml:name>water basin</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id259">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1700</gml:name>
+      <gml:name>electric power station</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id260">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1710</gml:name>
+      <gml:name>transformer station</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id261">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1720</gml:name>
+      <gml:name>converter</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id262">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1730</gml:name>
+      <gml:name>reactor</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id263">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1740</gml:name>
+      <gml:name>turbine house</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id264">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1750</gml:name>
+      <gml:name>boiler house</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id265">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1760</gml:name>
+      <gml:name>building for telecommunications</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id266">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1770</gml:name>
+      <gml:name>gas works</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id267">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1780</gml:name>
+      <gml:name>heat plant</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id268">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1790</gml:name>
+      <gml:name>pumping station</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id269">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1800</gml:name>
+      <gml:name>building for disposal</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id270">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1810</gml:name>
+      <gml:name>building for effluent disposal</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id271">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1820</gml:name>
+      <gml:name>building for filter plant</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id272">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1830</gml:name>
+      <gml:name>toilet</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id273">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1840</gml:name>
+      <gml:name>rubbish bunker</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id274">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1850</gml:name>
+      <gml:name>building for rubbish incineration</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id275">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1860</gml:name>
+      <gml:name>building for rubbish disposal</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id276">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1870</gml:name>
+      <gml:name>building for agrarian and forestry</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id277">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1880</gml:name>
+      <gml:name>barn</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id278">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1890</gml:name>
+      <gml:name>stall</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id279">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1900</gml:name>
+      <gml:name>equestrian hall</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id280">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1910</gml:name>
+      <gml:name>alpine cabin</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id281">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1920</gml:name>
+      <gml:name>hunting lodge</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id282">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1930</gml:name>
+      <gml:name>arboretum</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id283">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1940</gml:name>
+      <gml:name>glass house</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id284">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1950</gml:name>
+      <gml:name>moveable glass house</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id285">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1960</gml:name>
+      <gml:name>public building</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id286">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1970</gml:name>
+      <gml:name>administration building</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id287">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1980</gml:name>
+      <gml:name>parliament</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id288">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">1990</gml:name>
+      <gml:name>guildhall</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id289">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2000</gml:name>
+      <gml:name>post office</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id290">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2010</gml:name>
+      <gml:name>customs office</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id291">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2020</gml:name>
+      <gml:name>court</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id292">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2030</gml:name>
+      <gml:name>embassy or consulate</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id293">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2040</gml:name>
+      <gml:name>district administration</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id294">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2050</gml:name>
+      <gml:name>district government</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id295">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2060</gml:name>
+      <gml:name>tax office</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id296">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2070</gml:name>
+      <gml:name>building for education and research</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id297">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2080</gml:name>
+      <gml:name>comprehensive school</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id298">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2090</gml:name>
+      <gml:name>vocational school</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id299">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2100</gml:name>
+      <gml:name>college or university</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id300">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2110</gml:name>
+      <gml:name>research establishment</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id301">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2120</gml:name>
+      <gml:name>building for cultural purposes</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id302">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2130</gml:name>
+      <gml:name>castle</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id303">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2140</gml:name>
+      <gml:name>theatre or opera</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id304">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2150</gml:name>
+      <gml:name>concert building</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id305">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2160</gml:name>
+      <gml:name>museum</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id306">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2170</gml:name>
+      <gml:name>broadcasting building</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id307">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2180</gml:name>
+      <gml:name>activity building</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id308">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2190</gml:name>
+      <gml:name>library</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id309">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2200</gml:name>
+      <gml:name>fort</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id310">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2210</gml:name>
+      <gml:name>religious building</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id311">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2220</gml:name>
+      <gml:name>church</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id312">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2230</gml:name>
+      <gml:name>synagogue</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id313">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2240</gml:name>
+      <gml:name>chapel</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id314">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2250</gml:name>
+      <gml:name>community center </gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id315">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2260</gml:name>
+      <gml:name>place of worship</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id316">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2270</gml:name>
+      <gml:name>mosque</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id317">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2280</gml:name>
+      <gml:name>temple</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id318">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2290</gml:name>
+      <gml:name>convent</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id319">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2300</gml:name>
+      <gml:name>building for health care</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id320">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2310</gml:name>
+      <gml:name>hospital</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id321">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2320</gml:name>
+      <gml:name>healing centre or care home</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id322">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2330</gml:name>
+      <gml:name>health centre or outpatients clinic</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id323">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2340</gml:name>
+      <gml:name>building for social purposes</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id324">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2350</gml:name>
+      <gml:name>youth centre</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id325">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2360</gml:name>
+      <gml:name>seniors centre</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id326">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2370</gml:name>
+      <gml:name>homeless shelter</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id327">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2380</gml:name>
+      <gml:name>kindergarten or nursery</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id328">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2390</gml:name>
+      <gml:name>asylum seekers home</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id329">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2400</gml:name>
+      <gml:name>police station</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id330">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2410</gml:name>
+      <gml:name>fire station</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id331">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2420</gml:name>
+      <gml:name>barracks</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id332">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2430</gml:name>
+      <gml:name>bunker</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id333">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2440</gml:name>
+      <gml:name>penitentiary or prison</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id334">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2450</gml:name>
+      <gml:name>cemetery building</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id335">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2460</gml:name>
+      <gml:name>funeral parlor</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id336">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2470</gml:name>
+      <gml:name>crematorium</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id337">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2480</gml:name>
+      <gml:name>train station</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id338">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2490</gml:name>
+      <gml:name>airport building</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id339">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2500</gml:name>
+      <gml:name>building for underground station</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id340">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2510</gml:name>
+      <gml:name>building for tramway</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id341">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2520</gml:name>
+      <gml:name>building for bus station</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id342">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2530</gml:name>
+      <gml:name>shipping terminal</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id343">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2540</gml:name>
+      <gml:name>building for recuperation purposes</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id344">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2550</gml:name>
+      <gml:name>building for sport purposes</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id345">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2560</gml:name>
+      <gml:name>sports hall</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id346">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2570</gml:name>
+      <gml:name>building for sports field</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id347">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2580</gml:name>
+      <gml:name>swimming baths</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id348">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2590</gml:name>
+      <gml:name>indoor swimming pool</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id349">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2600</gml:name>
+      <gml:name>sanatorium</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id350">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2610</gml:name>
+      <gml:name>zoo building</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id351">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2620</gml:name>
+      <gml:name>green house</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id352">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2630</gml:name>
+      <gml:name>botanical show house</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id353">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2640</gml:name>
+      <gml:name>bothy</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id354">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2650</gml:name>
+      <gml:name>tourist information centre</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+  <dictionaryEntry>
+    <gml:Definition gml:id="id355">
+      <gml:description></gml:description>
+      <gml:name codeSpace="urn:d_nrw_sig3d">2700</gml:name>
+      <gml:name>others</gml:name>
+    </gml:Definition>
+  </dictionaryEntry>
+</gml:Dictionary>

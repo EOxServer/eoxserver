@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<UIGM1Transformation xmlns="http://www.opengis.net/examples" xmlns:gml="http://www.opengis.net/gml" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/examples UIGM1transformation.xsd" gml:id="AaaaAaaa">
+	<!-- Primary editor: Arliss Whiteside. Last updated 2005-01-28-->
+	<gml:coordinateOperationName>Aaaa Aaaa</gml:coordinateOperationName>
+	<gml:operationVersion>1</gml:operationVersion>
+	<gml:sourceCRS xlink:href="urn:ogc:def:crs:EPSG:6.6:7405" xlink:title="OSGB36 /British National Grid + ODN"/>
+	<gml:targetCRS xlink:href="urn:ogc:def:crs:UIGM:1.0:mageCRS"/>
+	<usesUIGM1Method xlink:href="urn:ogc:def:method:UIGM:1.0:MethodUIGM1"/>
+	<usesImageIdValue>
+		<gml:stringValue>AAAAAA</gml:stringValue>
+		<gml:valueOfParameter xlink:href="urn:ogc:def:parameter:UIGM:1.0:mageID"/>
+	</usesImageIdValue>
+	<usesVersionValue>
+		<gml:integerValue>1</gml:integerValue>
+		<gml:valueOfParameter xlink:href="urn:ogc:def:parameter:UIGM:1.0:Version"/>
+	</usesVersionValue>
+	<usesLinearCoefficientsValue>
+		<scaleValueList uom="urn:ogc:def:uom:unity">9.999 9.999 9.999 9.999 9.999 9.999 9.999 9.999</scaleValueList>
+		<gml:valueOfParameter xlink:href="urn:ogc:def:parameter:UIGM:1.0:LinearCoefficients"/>
+	</usesLinearCoefficientsValue>
+	<usesNumberSectionsValue>
+		<gml:integerValueList>1 1</gml:integerValueList>
+		<gml:valueOfParameter xlink:href="urn:ogc:def:parameter:UIGM:1.0:NumberSections"/>
+	</usesNumberSectionsValue>
+	<usesSectionParameters>
+		<includesSectionNumberValue>
+			<gml:integerValueList>1 1</gml:integerValueList>
+			<gml:valueOfParameter xlink:href="urn:ogc:def:parameter:UIGM:1.0:SectionNumber"/>
+		</includesSectionNumberValue>
+		<includesNormalizationParameters>
+			<includesEastOffsetValue>
+				<angleValue uom="urn:ogc:def:uom:degree">99.999</angleValue>
+				<gml:valueOfParameter xlink:href="urn:ogc:def:method:UIGM:1.0:EastOffset"/>
+			</includesEastOffsetValue>
+			<includesNorthOffsetValue>
+				<angleValue uom="urn:ogc:def:uom:degree">9.999</angleValue>
+				<gml:valueOfParameter xlink:href="urn:ogc:def:method:UIGM:1.0:NorthOffset"/>
+			</includesNorthOffsetValue>
+			<includesVerticalOffsetValue>
+				<lengthValue uom="urn:ogc:def:uom:metre">99.999</lengthValue>
+				<gml:valueOfParameter xlink:href="urn:ogc:def:method:UIGM:1.0:VerticalOffset"/>
+			</includesVerticalOffsetValue>
+			<includesEastScaleValue>
+				<angleValue uom="urn:ogc:def:uom:degree">9.999</angleValue>
+				<gml:valueOfParameter xlink:href="urn:ogc:def:method:UIGM:1.0:EastScale"/>
+			</includesEastScaleValue>
+			<includesNorthScaleValue>
+				<angleValue uom="urn:ogc:def:uom:degree">9.999</angleValue>
+				<gml:valueOfParameter xlink:href="urn:ogc:def:method:UIGM:1.0:NorthScale"/>
+			</includesNorthScaleValue>
+			<includesVerticalScaleValue>
+				<lengthValue uom="urn:ogc:def:uom:metre">9.999</lengthValue>
+				<gml:valueOfParameter xlink:href="urn:ogc:def:method:UIGM:1.0:VerticalScale"/>
+			</includesVerticalScaleValue>
+			<includesRowOffsetValue>
+				<gridLengthValue uom="urn:ogc:def:uom:PixelSpacing">9999.99</gridLengthValue>
+				<gml:valueOfParameter xlink:href="urn:ogc:def:method:UIGM:1.0:RowOffset"/>
+			</includesRowOffsetValue>
+			<includesColumnOffsetValue>
+				<gridLengthValue uom="urn:ogc:def:uom:PixelSpacing">9999.99</gridLengthValue>
+				<gml:valueOfParameter xlink:href="urn:ogc:def:method:UIGM:1.0:ColumnOffset"/>
+			</includesColumnOffsetValue>
+			<includesRowScaleValue>
+				<gridLengthValue uom="urn:ogc:def:uom:PixelSpacing">999.99</gridLengthValue>
+				<gml:valueOfParameter xlink:href="urn:ogc:def:method:UIGM:1.0:RowScale"/>
+			</includesRowScaleValue>
+			<includesColumnScaleValue>
+				<gridLengthValue uom="urn:ogc:def:uom:PixelSpacing">999.99</gridLengthValue>
+				<gml:valueOfParameter xlink:href="urn:ogc:def:method:UIGM:1.0:ColumnScale"/>
+			</includesColumnScaleValue>
+			<gml:valuesOfGroup xlink:href="urn:ogc:def:method:UIGM:1.0:NormalizationParameters"/>
+		</includesNormalizationParameters>
+		<includesPolynomials>
+			<includesRowNumeratorPowersValue>
+				<gml:integerValueList>1 1 1</gml:integerValueList>
+				<gml:valueOfParameter xlink:href="urn:ogc:def:method:UIGM:1.0:RowNumeratorPowers"/>
+			</includesRowNumeratorPowersValue>
+			<includesRowNumeratorCoefficientsValue>
+				<scaleValueList uom="urn:ogc:def:uom:unity">0.999999 0.999999 0.999999 0.999999 0.999999 0.999999 0.999999 0.999999</scaleValueList>
+				<gml:valueOfParameter xlink:href="urn:ogc:def:method:UIGM:1.0:RowNumeratorCoefficients"/>
+			</includesRowNumeratorCoefficientsValue>
+			<includesRowDenominatorPowersValue>
+				<gml:integerValueList>1 1 1</gml:integerValueList>
+				<gml:valueOfParameter xlink:href="urn:ogc:def:method:UIGM:1.0:RowDenominatorPowers"/>
+			</includesRowDenominatorPowersValue>
+			<includesRowDenominatorCoefficientsValue>
+				<scaleValueList uom="urn:ogc:def:uom:unity">0.999999 0.999999 0.999999 0.999999 0.999999 0.999999 0.999999 0.999999</scaleValueList>
+				<gml:valueOfParameter xlink:href="urn:ogc:def:method:UIGM:1.0:RowDenominatorCoefficients"/>
+			</includesRowDenominatorCoefficientsValue>
+			<includesColumnNumeratorPowersValue>
+				<gml:integerValueList>1 1 1</gml:integerValueList>
+				<gml:valueOfParameter xlink:href="urn:ogc:def:method:UIGM:1.0:ColumnNumeratorPowers"/>
+			</includesColumnNumeratorPowersValue>
+			<includesColumnNumeratorCoefficientsValue>
+				<scaleValueList uom="urn:ogc:def:uom:unity">0.999999 0.999999 0.999999 0.999999 0.999999 0.999999 0.999999 0.999999</scaleValueList>
+				<gml:valueOfParameter xlink:href="urn:ogc:def:method:UIGM:1.0:ColumnNumeratorCoefficients"/>
+			</includesColumnNumeratorCoefficientsValue>
+			<includesColumnDenominatorPowersValue>
+				<gml:integerValueList>1 1 1</gml:integerValueList>
+				<gml:valueOfParameter xlink:href="urn:ogc:def:method:UIGM:1.0:ColumnDenominatorPowers"/>
+			</includesColumnDenominatorPowersValue>
+			<includesColumnDenominatorCoefficientsValue>
+				<scaleValueList uom="urn:ogc:def:uom:unity">0.999999 0.999999 0.999999 0.999999 0.999999 0.999999 0.999999 0.999999</scaleValueList>
+				<gml:valueOfParameter xlink:href="urn:ogc:def:method:UIGM:1.0:ColumnDenominatorCoefficients"/>
+			</includesColumnDenominatorCoefficientsValue>
+			<gml:valuesOfGroup xlink:href="urn:ogc:def:method:UIGM:1.0:Polynomials"/>
+		</includesPolynomials>
+		<gml:valuesOfGroup xlink:href="urn:ogc:def:method:UIGM:1.0:SectionParameters"/>
+	</usesSectionParameters>
+	<usesMonoscopicErrors>
+		<includesReferenceHeightValue>
+			<lengthValue uom="urn:ogc:def:uom:metre">999</lengthValue>
+			<gml:valueOfParameter xlink:href="urn:ogc:def:method:UIGM:1.0:ReferenceHeight"/>
+		</includesReferenceHeightValue>
+		<includesAbsoluteErrorValue>
+			<lengthValue uom="urn:ogc:def:uom:metre">99.99</lengthValue>
+			<gml:valueOfParameter xlink:href="urn:ogc:def:method:UIGM:1.0:AbsoluteError"/>
+		</includesAbsoluteErrorValue>
+		<includesRelativeError>
+			<includesBinDistancesValue>
+				<lengthValueList uom="urn:ogc:def:uom:metre">0 1000</lengthValueList>
+				<gml:valueOfParameter xlink:href="urn:ogc:def:method:UIGM:1.0:BinDistances"/>
+			</includesBinDistancesValue>
+			<includesBinErrorValue>
+				<lengthValue uom="urn:ogc:def:uom:metre">9.99</lengthValue>
+				<gml:valueOfParameter xlink:href="urn:ogc:def:method:UIGM:1.0:BinError"/>
+			</includesBinErrorValue>
+			<gml:valuesOfGroup xlink:href="urn:ogc:def:method:UIGM:1.0:RelativeError"/>
+		</includesRelativeError>
+		<includesRelativeError>
+			<includesBinDistancesValue>
+				<lengthValueList uom="urn:ogc:def:uom:metre">1000 10000</lengthValueList>
+				<gml:valueOfParameter xlink:href="urn:ogc:def:method:UIGM:1.0:BinDistances"/>
+			</includesBinDistancesValue>
+			<includesBinErrorValue>
+				<lengthValue uom="urn:ogc:def:uom:metre">9.99</lengthValue>
+				<gml:valueOfParameter xlink:href="urn:ogc:def:method:UIGM:1.0:BinError"/>
+			</includesBinErrorValue>
+			<gml:valuesOfGroup xlink:href="urn:ogc:def:method:UIGM:1.0:RelativeError"/>
+		</includesRelativeError>
+		<gml:valuesOfGroup xlink:href="urn:ogc:def:method:UIGM:1.0:MonoscopicErrors"/>
+	</usesMonoscopicErrors>
+</UIGM1Transformation>
