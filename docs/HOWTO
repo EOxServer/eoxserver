@@ -1,11 +1,19 @@
 -- HOWTO --
 
-1. How to generate the epydoc documentation
+1. How to generate the epydoc documentation (obsolete)
 
 Run
 
 cd <path_to_eoxserver_directory>
 epydoc --name=EOxServer --output=../docs/html/ --html --docformat=javadoc --graph=all .
+
+1a. How to generate sphinx documentation
+
+Run
+cd <path_to_docs_directory>/sphinx
+make html
+
+The documentation is generated in _build/html.
 
 ------------------------------------------------------------------------
 
