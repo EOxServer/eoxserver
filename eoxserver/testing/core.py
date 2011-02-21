@@ -27,6 +27,11 @@ import filecmp
 import logging
 from lxml import etree
 
+import email
+from email.parser import Parser as MIMEParser
+from email.message import Message
+from email import message_from_string
+
 from django.test import TestCase, Client
 
 from eoxserver.lib.config import EOxSConfig
@@ -66,18 +71,21 @@ class EOxSTestCase(TestCase):
         else:
             raise Exception("Invalid request type '%s'." % type)
         
-        f = open(os.path.join("testing","responses", self.getResponseFileName()), 'w')
+        f = open(os.path.join(self.getResponseFileDir(), self.getResponseFileName()), 'w')
         f.write(self.response.content)
         f.close()
     
     def getRequest(self):
         raise Exception("Not implemented.")
     
-    def getResponseFileExtension(self):
+    def getFileExtension(self):
         return "xml"
     
+    def getResponseFileDir(self):
+        return os.path.join("testing","responses")
+    
     def getResponseFileName(self):
-        return "response_%s.%s" % (self.__class__.__name__, self.getResponseFileExtension())
+        return "response_%s.%s" % (self.__class__.__name__, self.getFileExtension())
     
     def testStatus(self):
         logging.info("Checking HTTP Status ...")
@@ -150,26 +158,37 @@ class EOxSExceptionTestCase(EOxSXMLTestCase):
 
 class EOxSFileTestCase(EOxSTestCase):
     def getExpectedFileDir(self):
-        return os.join("testing", "expected")
+        return os.path.join("testing", "expected")
     
     def getExpectedFileName(self):
-        return "expected_%s.%s" % (self.__class__.__name__, self.getExpectedFileExtension())
+        return "expected_%s.%s" % (self.__class__.__name__, self.getFileExtension())
     
     def testBinaryComparison(self):
-        self.assertTrue(filecmp.cmp(os.join(self.getExpectedFileDir(), 
-                                            self.getExpectedFileName()),
-                                    self.getResponseFileName()))
+        self.assertTrue(filecmp.cmp(os.path.join(self.getExpectedFileDir(), 
+                                                 self.getExpectedFileName()),
+                                    os.path.join(self.getResponseDir(),
+                                                 self.getResponseFileName())))
         
-class EOxSWCS20GetCoverageTestCase(EOxSFileTestCase):
-    def getResponseFileExtension(self):
-        return "tif"
-    
-    def getExpectedFileExtension(self):
+class EOxSWCS20GetCoverageTestCase(EOxSFileTestCase):    
+    def getFileExtension(self):
         return "tif"
     
 class EOxSWCS20GetCoverageMultipartTestCase(EOxSWCS20GetCoverageTestCase):
-    def getResponseFileExtension(self):
+    def getFileExtension(self):
         return "dat"
-
-    def getExpectedFileExtension(self):
-        return "dat"
+    
+    def testBinaryComparison(self):
+        expected_msg = email.message_from_file(open(os.path.join(self.getExpectedFileDir(), 
+                                                                 self.getExpectedFileName())))
+        
+        response_msg = email.message_from_file(open(os.path.join(self.getResponseFileDir(), 
+                                                                 self.getResponseFileName())))
+        
+        self.assertTrue(response_msg.is_multipart())
+        
+        for i in range(0, len(response_msg.get_payload())):
+            if response_msg['content-type'] == 'text/xml':
+                continue
+            else:
+                self.assertEqual(response_msg.get_payload(i).get_payload(),
+                                 expected_msg.get_payload(i).get_payload())

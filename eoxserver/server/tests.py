@@ -41,7 +41,7 @@ class EOxSWCS20GetCapabilitiesValidTestCase(eoxstest.EOxSWCS20GetCapabilitiesTes
     """This test shall retrieve a valid WCS 2.0 EO-AP GetCapabilities response"""
     def getRequest(self):
         params = "service=WCS&version=2.0.0&request=GetCapabilities"
-        return EOxSOWSRequest(params=params, param_type="kvp")
+        return (params, "kvp")
 
 ########################################################################
 #TODO: Commented because of Segfault in libxml2:
@@ -49,20 +49,20 @@ class EOxSWCS20GetCapabilitiesValidTestCase(eoxstest.EOxSWCS20GetCapabilitiesTes
     #"""This test shall check old style version negotiation. A valid WCS 2.0 EO-AP GetCapabilities response shall be returned"""
     #def getRequest(self):
         #params = "service=wcs&version=3.0.0&request=GetCapabilities"
-        #return EOxSOWSRequest(params=params, param_type="kvp")
+        #return (params, "kvp")
 
 #class EOxSWCSVersionNegotiationNewStyleTestCase(eoxstest.EOxSWCS20GetCapabilitiesTestCase):
     #"""This test shall check new style version negotiation. A valid WCS 2.0 EO-AP GetCapabilities response shall be returned"""
     #def getRequest(self):
         #params = "service=wcs&acceptversions=2.0.0,1.1.0&request=GetCapabilities"
-        #return EOxSOWSRequest(params=params, param_type="kvp")
+        #return (params, "kvp")
 ########################################################################
 
 #class EOxSWCSVersionNegotiationFaultTestCase(eoxstest.EOxSExceptionTestCase):
     #"""This test shall check new style version negotiation. A valid ows:ExceptionReport shall be returned"""
     #def getRequest(self):
         #params = "service=wcs&acceptversions=3.0.0&request=GetCapabilities"
-        #return EOxSOWSRequest(params=params, param_type="kvp")
+        #return (params, "kvp")
 
     #def getExpectedHTTPStatus(self):
         #return 400
@@ -74,19 +74,19 @@ class EOxSWCS20DescribeCoverageDatasetTestCase(eoxstest.EOxSWCS20DescribeCoverag
     """This test shall retrieve a valid WCS 2.0 EO-AP DescribeCoverage response for a wcseo:RectifiedDataset."""
     def getRequest(self):
         params = "service=WCS&version=2.0.0&request=DescribeCoverage&CoverageId=collection_080313P600320035L0040S4_rgb"
-        return EOxSOWSRequest(params=params, param_type="kvp")
+        return (params, "kvp")
 
 class EOxSWCS20DescribeCoverageMosaicTestCase(eoxstest.EOxSWCS20DescribeCoverageTestCase):
     """This test shall retrieve a valid WCS 2.0 EO-AP DescribeCoverage response for a wcseo:RectifiedStitchedMosaic."""
     def getRequest(self):
         params = "service=WCS&version=2.0.0&request=DescribeCoverage&CoverageId=image2009_mosaic"
-        return EOxSOWSRequest(params=params, param_type="kvp")
+        return (params, "kvp")
 
 class EOxSWCS20DescribeCoverageDatasetSeriesTestCase(eoxstest.EOxSExceptionTestCase):
     """This test shall try to retrieve a CoverageDescription for a non-coverage. It shall yield a valid ows:ExceptionReport"""
     def getRequest(self):
-        params = "service=WCS&version=2.0.0&request=DescribeCoverage&CoverageId=image2009_collection"
-        return EOxSOWSRequest(params=params, param_type="kvp")
+        params = "service=WCS&version=2.0.0&request=DescribeCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"
+        return (params, "kvp")
     
     def getExpectedHTTPStatus(self):
         return 404
@@ -98,7 +98,7 @@ class EOxSWCS20DescribeCoverageFaultTestCase(eoxstest.EOxSExceptionTestCase):
     """This test shall try to retrieve a CoverageDescription for a coverage that does not exist. It shall yield a valid ows:ExceptionReport"""
     def getRequest(self):
         params = "service=WCS&version=2.0.0&request=DescribeCoverage&CoverageId=some_coverage"
-        return EOxSOWSRequest(params=params, param_type="kvp")
+        return (params, "kvp")
     
     def getExpectedHTTPStatus(self):
         return 404
@@ -110,7 +110,7 @@ class EOxSWCS20DescribeCoverageMissingParameterTestCase(eoxstest.EOxSExceptionTe
     """This test shall yield a valid ows:ExceptionReport for a missing parameter"""
     def getRequest(self):
         params = "service=WCS&version=2.0.0&request=DescribeCoverage"
-        return EOxSOWSRequest(params=params, param_type="kvp")
+        return (params, "kvp")
     
     def getExpectedHTTPStatus(self):
         return 400
@@ -122,25 +122,25 @@ class EOxSWCS20DescribeEOCoverageSetDatasetTestCase(eoxstest.EOxSWCS20DescribeEO
     """This test shall retrieve a valid WCS 2.0 EO-AP DescribeEOCoverageSet response for a wcseo:RectifiedDataset"""
     def getRequest(self):
         params = "service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=collection_080313P600320035L0040S4_rgb"
-        return EOxSOWSRequest(params=params, param_type="kvp")
+        return (params, "kvp")
 
 class EOxSWCS20DescribeEOCoverageSetMosaicTestCase(eoxstest.EOxSWCS20DescribeEOCoverageSetTestCase):
     """This test shall retrieve a valid WCS 2.0 EO-AP DescribeEOCoverageSet response for a wcseo:RectifiedStitchedMosaic"""
     def getRequest(self):
         params = "service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=image2009_mosaic"
-        return EOxSOWSRequest(params=params, param_type="kvp")
+        return (params, "kvp")
 
 class EOxSWCS20DescribeEOCoverageSetDatasetSeriesTestCase(eoxstest.EOxSWCS20DescribeEOCoverageSetTestCase):
     """This test shall retrieve a valid WCS 2.0 EO-AP DescribeEOCoverageSet response for a wcseo:RectifiedDatasetSeries."""
     def getRequest(self):
-        params = "service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=image2009_collection"
-        return EOxSOWSRequest(params=params, param_type="kvp")
+        params = "service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"
+        return (params, "kvp")
 
 class EOxSWCS20DescribeEOCoverageSetFaultTestCase(eoxstest.EOxSExceptionTestCase):
     """This test shall try to retrieve a CoverageDescription set for an wcseo-Object that does not exist. It shall yield a valid ows:ExceptionReport."""
     def getRequest(self):
         params = "service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=some_eo_object"
-        return EOxSOWSRequest(params=params, param_type="kvp")
+        return (params, "kvp")
     
     def getExpectedHTTPStatus(self):
         return 404
@@ -151,7 +151,7 @@ class EOxSWCS20DescribeEOCoverageSetFaultTestCase(eoxstest.EOxSExceptionTestCase
 class EOxSWCS20DescribeEOCoverageSetMissingParameterTestCase(eoxstest.EOxSExceptionTestCase):
     def getRequest(self):
         params = "service=WCS&version=2.0.0&request=DescribeEOCoverageSet"
-        return EOxSOWSRequest(params=params, param_type="kvp")
+        return (params, "kvp")
     
     def getExpectedHTTPStatus(self):
         return 400
@@ -162,7 +162,7 @@ class EOxSWCS20DescribeEOCoverageSetMissingParameterTestCase(eoxstest.EOxSExcept
 class EOxSWCS20DescribeEOCoverageSetTwoSpatialSubsetsTestCase(eoxstest.EOxSWCS20DescribeEOCoverageSetSubsettingTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=image2009_collection&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(47,48.7)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(14,14.1)"
-        return EOxSOWSRequest(params=params, param_type="kvp")
+        return (params, "kvp")
 
     def getExpectedCoverageIds(self):
         return [
@@ -173,7 +173,7 @@ class EOxSWCS20DescribeEOCoverageSetTwoSpatialSubsetsTestCase(eoxstest.EOxSWCS20
 class EOxSWCS20DescribeEOCoverageSetTwoSpatialSubsetsOverlapsTestCase(eoxstest.EOxSWCS20DescribeEOCoverageSetSubsettingTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=image2009_collection&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(47,48.7)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(14,14.1)&containment=overlaps"
-        return EOxSOWSRequest(params=params, param_type="kvp")
+        return (params, "kvp")
 
     def getExpectedCoverageIds(self):
         return [
@@ -184,7 +184,7 @@ class EOxSWCS20DescribeEOCoverageSetTwoSpatialSubsetsOverlapsTestCase(eoxstest.E
 class EOxSWCS20DescribeEOCoverageSetTwoSpatialSubsetsContainsTestCase(eoxstest.EOxSWCS20DescribeEOCoverageSetSubsettingTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=image2009_collection&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(47,48.7)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(14,14.1)&containment=contains"
-        return EOxSOWSRequest(params=params, param_type="kvp")
+        return (params, "kvp")
     
     def getExpectedCoverageIds(self):
         return []
@@ -192,7 +192,7 @@ class EOxSWCS20DescribeEOCoverageSetTwoSpatialSubsetsContainsTestCase(eoxstest.E
 class EOxSWCS20DescribeEOCoverageSetTemporalSubsetTestCase(eoxstest.EOxSWCS20DescribeEOCoverageSetSubsettingTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=image2009_collection&subset=time(\"2008-01-01\",\"2008-03-31\")"
-        return EOxSOWSRequest(params=params, param_type="kvp")
+        return (params, "kvp")
     
     def getExpectedCoverageIds(self):
         return [
@@ -202,7 +202,7 @@ class EOxSWCS20DescribeEOCoverageSetTemporalSubsetTestCase(eoxstest.EOxSWCS20Des
 class EOxSWCS20DescribeEOCoverageSetTemporalSubsetOverlapsTestCase(eoxstest.EOxSWCS20DescribeEOCoverageSetSubsettingTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=image2009_collection&subset=time(\"2008-01-01\",\"2008-03-13T10:00:15Z\")&containment=overlaps"
-        return EOxSOWSRequest(params=params, param_type="kvp")
+        return (params, "kvp")
     
     def getExpectedCoverageIds(self):
         return [
@@ -212,7 +212,7 @@ class EOxSWCS20DescribeEOCoverageSetTemporalSubsetOverlapsTestCase(eoxstest.EOxS
 class EOxSWCS20DescribeEOCoverageSetTemporalSubsetContainsTestCase(eoxstest.EOxSWCS20DescribeEOCoverageSetSubsettingTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=image2009_collection&subset=time(\"2008-01-01\",\"2008-03-13T10:00:15Z\")&containment=contains"
-        return EOxSOWSRequest(params=params, param_type="kvp")
+        return (params, "kvp")
     
     def getExpectedCoverageIds(self):
         return []
@@ -220,19 +220,18 @@ class EOxSWCS20DescribeEOCoverageSetTemporalSubsetContainsTestCase(eoxstest.EOxS
 class EOxSWCS20DescribeEOCoverageSetSpatioTemporalSubsetTestCase(eoxstest.EOxSWCS20DescribeEOCoverageSetSubsettingTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=image2009_collection&subset=time(\"2008-10-01\",\"2008-11-01\")&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(47,48)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(12,14.8)&containment=overlaps"
-        return EOxSOWSRequest(params=params, param_type="kvp")
+        return (params, "kvp")
         
     def getExpectedCoverageIds(self):
         return [
             "collection_081010P600310035L0000S4_rgb",
             "collection_081024P600290035L0020S4_rgb"
         ]
-
 
 class EOxSWCS20DescribeEOCoverageSetSpatioTemporalSubsetOverlapsTestCase(eoxstest.EOxSWCS20DescribeEOCoverageSetSubsettingTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=image2009_collection&subset=time(\"2008-10-01\",\"2008-11-01\")&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(47,48)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(12,14.8)&containment=overlaps"
-        return EOxSOWSRequest(params=params, param_type="kvp")
+        return (params, "kvp")
         
     def getExpectedCoverageIds(self):
         return [
@@ -240,11 +239,10 @@ class EOxSWCS20DescribeEOCoverageSetSpatioTemporalSubsetOverlapsTestCase(eoxstes
             "collection_081024P600290035L0020S4_rgb"
         ]
 
-
 class EOxSWCS20DescribeEOCoverageSetSpatioTemporalSubsetContainsTestCase(eoxstest.EOxSWCS20DescribeEOCoverageSetSubsettingTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=image2009_collection&subset=time(\"2008-10-01\",\"2008-11-01\")&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(47,48)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(12,14.8)&containment=contains"
-        return EOxSOWSRequest(params=params, param_type="kvp")
+        return (params, "kvp")
         
     def getExpectedCoverageIds(self):
         return [
@@ -254,7 +252,7 @@ class EOxSWCS20DescribeEOCoverageSetSpatioTemporalSubsetContainsTestCase(eoxstes
 class EOxSWCS20DescribeEOCoverageSetIncorrectTemporalSubsetTestCase(eoxstest.EOxSExceptionTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=image2009_collection&subset=time(2008-01-01,2008-12-31)"
-        return EOxSOWSRequest(params=params, param_type="kvp")
+        return (params, "kvp")
     
     def getExpectedHTTPStatus(self):
         return 404
@@ -265,7 +263,7 @@ class EOxSWCS20DescribeEOCoverageSetIncorrectTemporalSubsetTestCase(eoxstest.EOx
 class EOxSWCS20DescribeEOCoverageSetInvalidTemporalSubsetTestCase(eoxstest.EOxSExceptionTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=image2009_collection&subset=time(\"2008-01-01\",\"2008-31-31\")"
-        return EOxSOWSRequest(params=params, param_type="kvp")
+        return (params, "kvp")
     
     def getExpectedHTTPStatus(self):
         return 404
@@ -276,7 +274,7 @@ class EOxSWCS20DescribeEOCoverageSetInvalidTemporalSubsetTestCase(eoxstest.EOxSE
 class EOxSWCS20DescribeEOCoverageSetIncorrectSpatialSubsetTestCase(eoxstest.EOxSExceptionTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=image2009_collection&subset=x,http://www.opengis.net/def/crs/EPSG/0/3035(some_x,some_other_x)"
-        return EOxSOWSRequest(params=params, param_type="kvp")
+        return (params, "kvp")
     
     def getExpectedHTTPStatus(self):
         return 404
@@ -287,7 +285,7 @@ class EOxSWCS20DescribeEOCoverageSetIncorrectSpatialSubsetTestCase(eoxstest.EOxS
 class EOxSWCS20DescribeEOCoverageSetInvalidSpatialSubsetTestCase(eoxstest.EOxSExceptionTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=image2009_collection&subset=x,http://www.opengis.net/def/crs/EPSG/0/3035(4650000,4630000)"
-        return EOxSOWSRequest(params=params, param_type="kvp")
+        return (params, "kvp")
     
     def getExpectedHTTPStatus(self):
         return 404
@@ -300,7 +298,7 @@ class EOxSWCS20DescribeEOCoverageSetInvalidSpatialSubsetTestCase(eoxstest.EOxSEx
 #class EOxSWCS20DescribeEOCoverageSetInvalidAxisLabelTestCase(eoxstest.EOxSExceptionTestCase):
     #def getRequest(self):
         #params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=image2009_collection&subset=x_axis,http://www.opengis.net/def/crs/EPSG/0/3035(4500000,4700000)"
-        #return EOxSOWSRequest(params=params, param_type="kvp")
+        #return (params, "kvp")
     
     #def getExpectedHTTPStatus(self):
         #return 404
@@ -308,31 +306,184 @@ class EOxSWCS20DescribeEOCoverageSetInvalidSpatialSubsetTestCase(eoxstest.EOxSEx
     #def getExpectedExceptionCode(self):
         #return "InvalidAxisLabel"
 
-#curl -s -o 25.xml 'http://hma.eox.at/wcs-test?service=wcs&version=2.0.0&request=GetCoverage&CoverageId=Image2009_Test_Scene_1'
-#curl -s -o 26.xml 'http://hma.eox.at/wcs-test?service=wcs&version=2.0.0&request=GetCoverage&CoverageId=Stitched_Mosaic_Test'
-#curl -s -o 27.xml 'http://hma.eox.at/wcs-test?service=wcs&version=2.0.0&request=GetCoverage&CoverageId=Image2002_Test_Scene_1'
-#curl -s -o 28.tif 'http://hma.eox.at/wcs-test?service=wcs&version=2.0.0&request=GetCoverage&CoverageId=Image2009_Test_Scene_1&FORMAT=image/tiff'
-#curl -s -o 29.xml 'http://hma.eox.at/wcs-test?service=wcs&version=2.0.0&request=GetCoverage&CoverageId=Stitched_Mosaic_Test&FORMAT=image/tiff'
-#curl -s -o 30.xml 'http://hma.eox.at/wcs-test?service=wcs&version=2.0.0&request=GetCoverage&CoverageId=Image2009_Test_Scene_1&FORMAT=image/bmp'
-#curl -s -o 31.dat 'http://hma.eox.at/wcs-test?service=wcs&version=2.0.0&request=GetCoverage&CoverageId=Image2009_Test_Scene_1&FORMAT=image/tiff&mediatype=multipart/mixed'
-#curl -s -o 32.xml 'http://hma.eox.at/wcs-test?service=wcs&version=2.0.0&request=GetCoverage&CoverageId=Stitched_Mosaic_Test&FORMAT=image/tiff&mediatype=multipart/mixed'
-#curl -s -o 33.tif 'http://hma.eox.at/wcs-test?service=wcs&version=2.0.0&request=GetCoverage&CoverageId=Image2009_Test_Scene_1&FORMAT=image/tiff&mediatype=multipart/something'
-#curl -s -o 34.tif 'http://hma.eox.at/wcs-test?service=wcs&version=2.0.0&request=GetCoverage&CoverageId=Image2009_Test_Scene_1&FORMAT=image/tiff&SUBSET=x(2100,2300)&SUBSET=y(3870,4070)'
-#curl -s -o 35.dat 'http://hma.eox.at/wcs-test?service=wcs&version=2.0.0&request=GetCoverage&CoverageId=Image2009_Test_Scene_1&FORMAT=image/tiff&mediatype=multipart/mixed&subset=x(2100,2300)&subset=y(3870,4070)'
-#curl -s -o 36.xml 'http://hma.eox.at/wcs-test?service=wcs&version=2.0.0&request=GetCoverage&CoverageId=Stitched_Mosaic_Test&FORMAT=image/tiff&subset=x(2100,2300)&subset=y(3870,4070)'
-#curl -s -o 37.tif 'http://hma.eox.at/wcs-test?service=wcs&version=2.0.0&request=GetCoverage&CoverageId=Image2009_Test_Scene_1&FORMAT=image/tiff&subset=x(2100,2300)&subset=y(3870,4070)'
-#curl -s -o 38.tif 'http://hma.eox.at/wcs-test?service=wcs&version=2.0.0&request=GetCoverage&CoverageId=Image2009_Test_Scene_1&FORMAT=image/tiff&SUBSET=x,http://www.opengis.net/def/crs/EPSG/0/4326(17,17.4)&SUBSET=y,http://www.opengis.net/def/crs/EPSG/0/4326(48,48.3)'
-#curl -s -o 39.xml 'http://hma.eox.at/wcs-test?service=wcs&version=2.0.0&request=GetCoverage&CoverageId=Stitched_Mosaic_Test&FORMAT=image/tiff&SUBSET=x,http://www.opengis.net/def/crs/EPSG/0/4326(17,17.4)&SUBSET=y,http://www.opengis.net/def/crs/EPSG/0/4326(48,48.3)'
-#curl -s -o 40.tif 'http://hma.eox.at/wcs-test?service=wcs&version=2.0.0&request=GetCoverage&CoverageId=Image2009_Test_Scene_1&FORMAT=image/tiff&OutputCRS=http://www.opengis.net/def/crs/EPSG/0/4326'
-#curl -s -o 41.xml 'http://hma.eox.at/wcs-test?service=wcs&version=2.0.0&request=GetCoverage&CoverageId=Image2009_Test_Scene_1&FORMAT=image/tiff&SUBSET=x,http://www.opengis.net/def/crs/EPSG/0/99999(17,17.4)&SUBSET=y,http://www.opengis.net/def/crs/EPSG/0/4326(48,48.3)'
-#curl -s -o 42.xml 'http://hma.eox.at/wcs-test?service=wcs&version=2.0.0&request=GetCoverage&CoverageId=Image2009_Test_Scene_1&FORMAT=image/tiff&SUBSET=x,http://www.opengis.net/def/crs/EPSG/0/99999(17,17.4)&SUBSET=y,http://www.opengis.net/def/crs/EPSG/0/99999(48,48.3)'
-#curl -s -o 43.tif 'http://hma.eox.at/wcs-test?service=wcs&version=2.0.0&request=GetCoverage&CoverageId=Image2009_Test_Scene_1&FORMAT=image/tiff&size=x(200)&size=y(200)'
-#curl -s -o 44.xml 'http://hma.eox.at/wcs-test?service=wcs&version=2.0.0&request=GetCoverage&CoverageId=Stitched_Mosaic_Test&FORMAT=image/tiff&size=x(200)&size=y(400)'
-#curl -s -o 45.tif 'http://hma.eox.at/wcs-test?service=wcs&version=2.0.0&request=GetCoverage&CoverageId=Image2009_Test_Scene_1&FORMAT=image/tiff&SUBSET=x(2100,2700)&SUBSET=y(3870,4470)&size=x(200)&size=y(400)'
-#curl -s -o 46.tif 'http://hma.eox.at/wcs-test?service=wcs&version=2.0.0&request=GetCoverage&CoverageId=Image2009_Test_Scene_1&FORMAT=image/tiff&SUBSET=x,http://www.opengis.net/def/crs/EPSG/0/4326(17,17.4)&SUBSET=y,http://www.opengis.net/def/crs/EPSG/0/4326(48,48.3)&SIZE=x(200)&SIZE=y(200)'
-#curl -s -o 47.xml 'http://hma.eox.at/wcs-test?service=wcs&version=2.0.0&request=GetCoverage&CoverageId=Image2009_Test_Scene_1&FORMAT=image/tiff&SUBSET=x,http://www.opengis.net/def/crs/EPSG/0/4326(17,17.4)&SUBSET=y,http://www.opengis.net/def/crs/EPSG/0/4326(48,48.3)&SIZE=x(17.3)&SIZE=y(20)'
-#curl -s -o 48.tif 'http://hma.eox.at/wcs-test?service=wcs&version=2.0.0&request=GetCoverage&CoverageId=Image2009_Test_Scene_1&FORMAT=image/tiff&RESOLUTION=x(100)&RESOLUTION=y(100)'
-#curl -s -o 49.xml 'http://hma.eox.at/wcs-test?service=wcs&version=2.0.0&request=GetCoverage&CoverageId=Stitched_Mosaic_Test&FORMAT=image/tiff&resolution=x(10)&resolution=y(20)'
-#curl -s -o 50.tif 'http://hma.eox.at/wcs-test?service=wcs&version=2.0.0&request=GetCoverage&CoverageId=Image2009_Test_Scene_1&FORMAT=image/tiff&SUBSET=x(2100,2700)&SUBSET=y(3870,4470)&resolution=x(30)&resolution=y(30)'
-#curl -s -o 51.tif 'http://hma.eox.at/wcs-test?service=wcs&version=2.0.0&request=GetCoverage&CoverageId=Image2009_Test_Scene_1&FORMAT=image/tiff&SUBSET=x,http://www.opengis.net/def/crs/EPSG/0/4326(17,17.4)&SUBSET=y,http://www.opengis.net/def/crs/EPSG/0/4326(48,48.3)&RESOLUTION=x(0.00027)&RESOLUTION=y(0.00027)'
-#curl -s -o 52.xml 'http://hma.eox.at/wcs-test?service=wcs&version=2.0.0&request=GetCoverage&CoverageId=Image2009_Test_Scene_1&FORMAT=image/tiff&SUBSET=x,http://www.opengis.net/def/crs/EPSG/0/4326(17,17.4)&SUBSET=y,http://www.opengis.net/def/crs/EPSG/0/4326(48,48.3)&RESOLUTION=lat(0.00027)&RESOLUTION=lon(0.00027)'
+
+#TODO this is a XML test, isnt it?
+
+class EOxSWCS20GetCoverageFormatMissingTestCase(eoxstest.EOxSExceptionTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced"
+        return (params, "kvp")
+    
+    def getExpectedHTTPStatus(self):
+        return 400
+    
+    def getExpectedExceptionCode(self):
+        return "MissingParameterValue"
+
+#class EOxSWCS20GetCoverageSimpleTestCase(eoxstest.EOxSWCS20GetCoverageTestCase):
+#    def getRequest(self):
+#        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=Image2009_Test_Scene_1&format=image/tiff"
+#        return (params, "kvp")
+
+# SIMPLE requests
+
+class EOxSWCS20GetCoverageMosaicTestCase(eoxstest.EOxSWCS20GetCoverageTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=image/tiff"
+        return (params, "kvp")
+
+class EOxSWCS20GetCoverageCollectionTestCase(eoxstest.EOxSWCS20GetCoverageTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff"
+        return (params, "kvp")
+
+# FORMAT
+
+# TODO: currently unrecognised format 'bmp'. either choose another, or add it to outputformats
+#class EOxSWCS20GetCoverageBMPTestCase(eoxstest.EOxSWCS20GetCoverageTestCase):
+#    def getRequest(self):
+#        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=image/bmp"
+#        return (params, "kvp")
+#    
+#    def getFileExtension(self):
+#        return "bmp"
+
+    
+# MEDIATYPE
+
+class EOxSWCS20GetCoverageMultipartMosaicTestCase(eoxstest.EOxSWCS20GetCoverageMultipartTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=image/tiff&mediatype=multipart/mixed"
+        return (params, "kvp")
+
+class EOxSWCS20GetCoverageMultipartCollectionTestCase(eoxstest.EOxSWCS20GetCoverageMultipartTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/mixed"
+        return (params, "kvp")
+
+# TODO: wrong multipart parameters only result in non-multipart images. Uncomment, when implemented
+#class EOxSWCS20GetCoverageWrongMultipartParameterTestCase(eoxstest.EOxSExceptionTestCase):
+#    def getRequest(self):
+#        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=image2009_mosaic&format=image/tiff&mediatype=multipart/something"
+#        return (params, "kvp")
+#
+#    def getExpectedHTTPStatus(self):
+#        return 404
+#    
+#    def getExpectedExceptionCode(self):
+#        return "InvalidParameterValue"
+
+# SUBSET
+
+class EOxSWCS20GetCoverageSubsetCollectionTestCase(eoxstest.EOxSWCS20GetCoverageTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=x(100,500)&subset=y(200,500)"
+        return (params, "kvp")
+
+class EOxSWCS20GetCoverageSubsetMosaicTestCase(eoxstest.EOxSWCS20GetCoverageTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=image/tiff&subset=x(100,500)&subset=y(200,500)"
+        return (params, "kvp")
+
+class EOxSWCS20GetCoverageMultipartSubsetCollectionTestCase(eoxstest.EOxSWCS20GetCoverageMultipartTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/mixed&subset=x(100,500)&subset=y(200,500)"
+        return (params, "kvp")
+
+class EOxSWCS20GetCoverageSubsetEPSG4326CollectionTestCase(eoxstest.EOxSWCS20GetCoverageTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=x,http://www.opengis.net/def/crs/EPSG/0/4326(16,17.4)&subset=y,http://www.opengis.net/def/crs/EPSG/0/4326(43,44.3)"
+        return (params, "kvp")
+
+class EOxSWCS20GetCoverageSubsetEPSG4326MosaicTestCase(eoxstest.EOxSWCS20GetCoverageTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=image/tiff&subset=x,http://www.opengis.net/def/crs/EPSG/0/4326(16,17.4)&subset=y,http://www.opengis.net/def/crs/EPSG/0/4326(43,44.3)"
+        return (params, "kvp")
+    
+class EOxSWCS20GetCoverageOutputCRSCollectionTestCase(eoxstest.EOxSWCS20GetCoverageTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=image/tiff&outputcrs=http://www.opengis.net/def/crs/EPSG/0/4326"
+        return (params, "kvp")
+
+class EOxSWCS20GetCoverageSubsetInvalidEPSGTestCase(eoxstest.EOxSExceptionTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=image/tiff&subset=x,http://www.opengis.net/def/crs/EPSG/0/99999(16,17.4)&subset=y,http://www.opengis.net/def/crs/EPSG/0/99999(43,44.3)"
+        return (params, "kvp")
+    
+    def getExpectedHTTPStatus(self):
+        return 400
+    
+    def getExpectedExceptionCode(self):
+        return "InvalidParameterValue"
+
+# SIZE
+
+class EOxSWCS20GetCoverageSizeCollectionTestCase(eoxstest.EOxSWCS20GetCoverageTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&size=x(200)&size=y(200)"
+        return (params, "kvp")
+
+class EOxSWCS20GetCoverageSizeMosaicTestCase(eoxstest.EOxSWCS20GetCoverageTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=image/tiff&size=x(200)&size=y(400)"
+        return (params, "kvp")
+
+class EOxSWCS20GetCoverageSubsetSizeCollectionTestCase(eoxstest.EOxSWCS20GetCoverageTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=x(100,500)&subset=y(200,500)&size=x(200)&size=y(200)"
+        return (params, "kvp")
+
+class EOxSWCS20GetCoverageSubsetEPSG4326SizeCollectionTestCase(eoxstest.EOxSWCS20GetCoverageTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=x,http://www.opengis.net/def/crs/EPSG/0/4326(16,17.4)&subset=y,http://www.opengis.net/def/crs/EPSG/0/4326(43,44.3)&size=x(200)&size=y(200)"
+        return (params, "kvp")
+
+class EOxSWCS20GetCoverageInvalidSizeTestCase(eoxstest.EOxSExceptionTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=image/tiff&size=x(1.11)"
+        return (params, "kvp")
+    
+    def getExpectedHTTPStatus(self):
+        return 400
+    
+    def getExpectedExceptionCode(self):
+        return "InvalidParameterValue"
+
+# RESOLUTION
+
+class EOxSWCS20GetCoverageResolutionCollectionTestCase(eoxstest.EOxSWCS20GetCoverageTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&resolution=x(0.1)&resolution=y(0.1)"
+        return (params, "kvp")
+    
+class EOxSWCS20GetCoverageResolutionMosaicTestCase(eoxstest.EOxSWCS20GetCoverageTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=image/tiff&resolution=x(0.1)&resolution=y(0.1)"
+        return (params, "kvp")
+
+class EOxSWCS20GetCoverageSubsetResolutionCollectionTestCase(eoxstest.EOxSWCS20GetCoverageTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=x(100,500)&subset=y(200,500)&resolution=x(0.1)&resolution=y(0.1)"
+        return (params, "kvp")
+
+class EOxSWCS20GetCoverageSubsetEPSG4326ResolutionCollectionTestCase(eoxstest.EOxSWCS20GetCoverageTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=x,http://www.opengis.net/def/crs/EPSG/0/4326(16,17.4)&subset=y,http://www.opengis.net/def/crs/EPSG/0/4326(43,44.3)&resolution=x(0.01)&resolution=y(0.01)"
+        return (params, "kvp")
+
+class EOxSWCS20GetCoverageSubsetEPSG4326ResolutionLatLonCollectionTestCase(eoxstest.EOxSWCS20GetCoverageTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=lon,http://www.opengis.net/def/crs/EPSG/0/4326(16,17.4)&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(43,44.3)&resolution=lat(0.01)&resolution=lon(0.01)"
+        return (params, "kvp")
+
+# RANGESUBSET
+
+class EOxSWCS20GetCoverageRangeSubsetIndicesCollectionTestCase(eoxstest.EOxSWCS20GetCoverageTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&rangesubset=1,2,3"
+        return (params, "kvp")
+
+class EOxSWCS20GetCoverageRangeSubsetNamesCollectionTestCase(eoxstest.EOxSWCS20GetCoverageTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&rangesubset=MERIS_radiance_04_uint16,MERIS_radiance_05_uint16,MERIS_radiance_06_uint16"
+        return (params, "kvp")
