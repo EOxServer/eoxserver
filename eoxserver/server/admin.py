@@ -31,6 +31,7 @@ from django.http import HttpResponseRedirect
 
 from eoxserver.server.models import *
 from eoxserver.server.synchronize import EOxSRectifiedDatasetSeriesSynchronizer, EOxSRectifiedStitchedMosaicSynchronizer
+from eoxserver.lib.metadata import EOxSMetadataInterfaceFactory
 import os.path
 import logging
 
@@ -147,6 +148,13 @@ class EOxSRectifiedStitchedMosaicAdmin(admin.ModelAdmin):
         super(EOxSRectifiedStitchedMosaicAdmin, self).save_model(request, obj, form, change)
         
     def save_formset(self, request, form, formset, change):
+        # the reason why the synchronization method is placed here
+        # instead of the save_model() method is that this is the last step
+        # in saving the data filled in in the admin view.
+        # At the time the save_model() method is called, the data dir
+        # is not yet saved and thus not available. We need the data dirs
+        # however for synchronization.
+        
         if formset.model == EOxSRectifiedDatasetRecord:
             changed_datasets = formset.save(commit=False)
             
@@ -232,6 +240,13 @@ class EOxSRectifiedDatasetSeriesAdmin(admin.ModelAdmin):
         super(EOxSRectifiedDatasetSeriesAdmin, self).save_model(request, obj, form, change)
         
     def save_formset(self, request, form, formset, change):
+        # the reason why the synchronization method is placed here
+        # instead of the save_model() method is that this is the last step
+        # in saving the data filled in in the admin view.
+        # At the time the save_model() method is called, the data dir
+        # is not yet saved and thus not available. We need the data dirs
+        # however for synchronization.
+        
         if formset.model == EOxSRectifiedDatasetRecord:
             changed_datasets = formset.save(commit=False)
             
@@ -287,7 +302,57 @@ admin.site.register(EOxSRectifiedDatasetSeriesRecord, EOxSRectifiedDatasetSeries
 
 
 class EOxSEOMetadataAdmin(admin.GeoModelAdmin):
-    pass
+    def save_model(self, request, obj, form, change):
+        # steps:
+        # 1. retrieve EO GML from obj
+        # 2. validate against other input values (begin_time, end_time, footprint)
+        # 3. validate against schema
+        
+        self.metadata_object = obj
+        super(EOxSEOMetadataAdmin, self).save_model(request, obj, form, change)
+        """
+        if len(self.metadata_object.eo_gml) > 0:
+            # not sure about this:
+            # get right metadata interface
+            # look for metadata given in gml
+            # TODO currently error because no filename given 
+            iu = EOxSMetadataInterfaceFactory.getMetadataInterface(None, "eogml") #we got no filename, do we?
+            # TODO what if metadata is already set?
+            self.metadata_object.footprint = interface.getFootprint()
+        """
+    
+    def save_formset(self, request, form, formset, change):
+        """raise
+        if formset.model == EOxSEOMetadataRecord:
+            changed_datasets = formset.save(commit=False)
+            
+            synchronizer = EOxSEOxSEOMetadataSynchronizer(self.metadata_object)
+            
+            try:
+                if change:
+                    synchronizer.update()
+                else:
+                    synchronizer.create()
+            except:
+                logging.error("Error when synchronizing.")
+                #transaction.rollback()
+                messages.error(request, "Error when synchronizing with file system.")
+                #return
+                raise
+            
+            for dataset in changed_datasets:
+                if not dataset.automatic:
+                    dataset.save()
+        else:
+            super(EOxSEOMetadataAdmin, self).save_formset(request, form, formset, change)
+        """
+        # SK: don't think we need to override this method, as it should
+        # not be called; see also the explanation in the save_formset()
+        # method of EOxSRectifiedStitchedMosaicAdmin,
+        # EOxSRectifiedDatasetSeriesAdmin
+        
+        super(EOxSEOMetadataAdmin, self).save_formset(request, form, formset, change)
+    
 admin.site.register(EOxSEOMetadataRecord, EOxSEOMetadataAdmin)
 
 class EOxSLayerMetadataAdmin(admin.ModelAdmin):

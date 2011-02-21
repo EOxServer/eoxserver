@@ -86,19 +86,23 @@ class EOxSRectifiedGrid(object):
                this_maxx >= that_maxx and this_maxy >= that_maxy
         
     def isSubGrid(self, grid):
-        if self.spatial_dim == grid.spatial_dim:
-            this_offsets = numpy.array([self.offsets[i][0:self.spatial_dim-1] for i in range(0, self.spatial_dim)])
-            that_offsets = numpy.array([grid.offsets[i][0:grid.spatial_dim-1] for i in range(0, grid.spatial_dim)])
+        logging.debug("EOxSRectifiedGrid.isSubGrid: Own Extent: (%f,%f,%f,%f)" % self.getExtent2D())
+        logging.debug("EOxSRectifiedGrid.isSubGrid: Containing Extent: (%f,%f,%f,%f)" % grid.getExtent2D())
+        
+        if grid.contains(self):
+            this_offsets = numpy.array([self.offsets[i][0:2] for i in range(0, 2)])
+            that_offsets = numpy.array([grid.offsets[i][0:2] for i in range(0, 2)])
             
-            if not numpy.all(numpy.equal(this_offsets, that_offsets)):
+            if not numpy.all(numpy.equal(numpy.abs(this_offsets), numpy.abs(that_offsets))):
                 return False
             else:
-                this_low = numpy.array(self.origin[0:self.spatial_dim-1]) + numpy.linalg.dot(this_offsets, numpy.array(self.low[0:self.spatial_dim-1]))
-                that_low = numpy.array(grid.origin[0:self.spatial_dim-1]) + numpy.linalg.dot(that_offsets, numpy.array(grid.low[0:self.spatial_dim-1]))
+                v = numpy.linalg.solve(this_offsets, numpy.array(self.origin[0:2]) - numpy.array(grid.origin[0:2]))
                 
-                v = numpy.linalg.solve(this_offsets, this_low - that_low)
-                if numpy.all(numpy.equal(numpy.rint(v), v)) and \
-                   all([(v[i] >= 0 and v[i] + self.high[i] - self.low[i] <= grid.high[i] - grid.low[i]) for i in range(0, self.spatial_dim - 1)]):
+                logging.debug("EOxSRectifiedGrid.isSubGrid: v=(%f,%f)" % (v[0], v[1]))
+                
+                EPSILON = 1e-10
+                
+                if numpy.all(numpy.less(numpy.absolute((numpy.rint(v) - v) / numpy.maximum(v, 1)), EPSILON)):
                     return True
                 else:
                     return False
@@ -115,7 +119,7 @@ class EOxSSubsetting(object):
     def normalize(self, dimension, value):
         if value is None or len(value) == 0:
             return None
-        elif dimension in ("time", "t"):
+        elif dimension in ("phenomenonTime", "time", "t"):
             if value[0] == '"' and value[-1] == '"':
                 token = value.lstrip('"').rstrip('"')
                 return getDateTime(token) # this raises an EOxSUnknkownParameterFormatException if the datetime format is not recognized
@@ -156,9 +160,9 @@ class EOxSSlice(EOxSSubsetting):
     def crosses(self, footprint):
         srid, env_minx, env_miny, env_maxx, env_maxy = self._getDataFromFootprint(footprint)
         
-        if self.dimension == "long":
+        if self.dimension in ("long", "Long"):
             line = LineString((self.slice_point, env_miny), (self.slice_point, env_maxy), srid=srid)
-        elif self.dimension == "lat":
+        elif self.dimension in ("lat", "Lat"):
             line = LineString((env_minx, self.slice_point), (env_maxx, self.slice_point), srid=srid)
         else:
             raise EOxSInternalError("Can handle 2D coverages only.")
@@ -180,15 +184,17 @@ class EOxSTrim(EOxSSubsetting):
         #    if self.dimension not in grid.axis_labels:
         #        raise EOxSInvalidAxisLabelException("Invalid axis label '%s'" % self.dimension)
         
-        if self.dimension not in ("time", "long", "lat"):
-            raise EOxSInvalidAxisLabelException("Invalid axis label '%s'. Use 'time', 'long' and 'lat'." % self.dimension)
+        if self.dimension not in ("phenomenonTime", "time", "t", "Long", "long", "Lat", "lat"):
+            raise EOxSInvalidAxisLabelException("Invalid axis label '%s'. Use 'phenomenonTime', 'Long' and 'Lat'." % self.dimension)
 
         return True
     
-    def _getPolygon(self, srid, env_minx, env_miny, env_maxx, env_maxy):
+    def getPolygon(self, footprint):
+        srid, env_minx, env_miny, env_maxx, env_maxy = self._getDataFromFootprint(footprint)
+        
         EPSILON = 1e-10
         
-        if self.dimension == "long":
+        if self.dimension in ("long", "Long"):
             miny = env_miny
             maxy = env_maxy
             
@@ -202,7 +208,7 @@ class EOxSTrim(EOxSSubsetting):
             else:
                 maxx = min(env_maxx, self.trim_high)
                 
-        elif self.dimension == "lat":
+        elif self.dimension in ("lat", "Lat"):
             minx = env_minx
             maxx = env_maxx
             
@@ -232,16 +238,12 @@ class EOxSTrim(EOxSSubsetting):
             return poly
                
     def overlaps(self, footprint):
-        srid, env_minx, env_miny, env_maxx, env_maxy = self._getDataFromFootprint(footprint)
-        
-        poly = self._getPolygon(srid, env_minx, env_miny, env_maxx, env_maxy)
+        poly = self.getPolygon(footprint)
         
         return footprint.intersects(poly)
     
     def contains(self, footprint):
-        srid, env_minx, env_miny, env_maxx, env_maxy = self._getDataFromFootprint(footprint)
-        
-        poly = self._getPolygon(srid, env_minx, env_miny, env_maxx, env_maxy)
+        poly = self.getPolygon(footprint)
         
         return poly.contains(footprint)
 

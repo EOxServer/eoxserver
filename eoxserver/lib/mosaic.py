@@ -36,27 +36,71 @@ from django.contrib.gis.geos import Polygon
 
 from eoxserver.lib.exceptions import EOxSSynchronizationError
 
+class EOxSMosaicContribution(object):
+    def __init__(self, dataset, contributing_footprint):
+        self.dataset = dataset
+        self.contributing_footprint = contributing_footprint
+    
+    def difference(self, other_footprint):
+        self.contributing_footprint = self.contributing_footprint.difference(other_footprint)
+    
+    def isEmpty(self):
+        return self.contributing_footprint.empty or self.contributing_footprint.num_geom == 0
+    
+    @classmethod
+    def getContributions(cls, mosaic_int, poly=None):
+        if poly is None:
+            datasets = mosaic_int.getDatasets()
+        else:
+            poly.transform(4326)
+            
+            datasets = filter(
+                lambda dataset: dataset.getFootprint().intersects(poly),
+                mosaic_int.getDatasets()
+            )
+        
+        datasets.sort(lambda a, b: timegm(a.getBeginTime().timetuple()) - timegm(b.getBeginTime().timetuple()))
+        
+        contributions = []
+        
+        for dataset in datasets:
+            footprint = dataset.getFootprint()
+            
+            for contribution in contributions:
+                contribution.difference(footprint)
+            
+            if poly is None:
+                contributions.append(cls(dataset, footprint))
+            else:
+                contributions.append(cls(dataset, footprint.intersection(poly)))
+        
+        #logging.debug("Contributions")
+        #for contribution in contributions:
+            #logging.debug("Dataset: %s" % contribution.dataset.getCoverageId())
+            #logging.debug("Contributing Footprint: %s" % contribution.contributing_footprint.wkt)
+        
+        return filter(
+            lambda contribution: not contribution.isEmpty(),
+            contributions
+        )
+        
 class EOxSRectifiedMosaicStitcher(object):
     def __init__(self, mosaic_int):
         self.mosaic_int = mosaic_int
         
         self.grid = mosaic_int.getGrid()
         self.minx, self.miny, self.maxx, self.maxy = self.grid.getExtent2D()
-        self.xres = self.grid.offsets[0][0]
-        self.yres = self.grid.offsets[1][1]
+        self.xres = math.fabs(self.grid.offsets[0][0])
+        self.yres = math.fabs(self.grid.offsets[1][1])
         
         self.band_count = 3 # TODO
         self.nodata = 0 # TODO
         
         self.target_dir = os.path.join(settings.PROJECT_DIR, "data", "mosaics", mosaic_int.getEOID())
         self.create_time = datetime.now()
-        
-    def _orderDatasets(self):
-        datasets = self.mosaic_int.getDatasets()
-        
-        datasets.sort(lambda a, b: timegm(a.getBeginTime().timetuple()) - timegm(b.getBeginTime().timetuple()))
-        
-        return datasets
+    
+    def _roundint(self, f):
+        return int(numpy.int_(numpy.rint(f)))
     
     def _getTileExtent(self, x_index, y_index):
         minx = self.minx + float(x_index) * self.xres * 256.0
@@ -93,23 +137,6 @@ class EOxSRectifiedMosaicStitcher(object):
                     if self._getTileGeometry(x_index, y_index).intersects(ref_area):
                         yield (x_index, y_index)
 
-    def getContributions(self):
-        contributions = []
-        
-        for dataset in self._orderDatasets():
-            footprint = dataset.getFootprint()
-            
-            new_contributions = []
-            
-            for contributing_dataset, contributing_footprint in contributions:
-                new_contributions.append((contributing_dataset, contributing_footprint.difference(footprint)))
-
-            new_contributions.append((dataset, footprint))
-            
-            contributions = new_contributions
-        
-        return contributions
-        
     def _getTilePath(self, id, x_index, y_index):
         dst_dir = os.path.join(
             self.target_dir,
@@ -137,10 +164,10 @@ class EOxSRectifiedMosaicStitcher(object):
         maxx = min(ds_maxx, tile_maxx)
         maxy = min(ds_maxy, tile_maxy)
         
-        x_offset = int((minx - ds_minx) / self.xres)
-        y_offset = int((ds_maxy - maxy) / self.yres)
-        x_size = int((maxx - minx) / self.xres)
-        y_size = int((maxy - miny) / self.yres)
+        x_offset = self._roundint((minx - ds_minx) / self.xres)
+        y_offset = self._roundint((ds_maxy - maxy) / self.yres)
+        x_size = self._roundint((maxx - minx) / self.xres)
+        y_size = self._roundint((maxy - miny) / self.yres)
         
         logging.debug("_makeTile()")
         logging.debug("Tile Extent: %f, %f, %f, %f" % (tile_minx, tile_miny, tile_maxx, tile_maxy))
@@ -183,8 +210,8 @@ class EOxSRectifiedMosaicStitcher(object):
             maxx = max([tile.maxx for tile in tiles])
             maxy = max([tile.maxy for tile in tiles])
             
-            x_size = int((maxx - minx) / self.xres)
-            y_size = int((maxy - miny) / self.yres)
+            x_size = self._roundint((maxx - minx) / self.xres)
+            y_size = self._roundint((maxy - miny) / self.yres)
             
             dst_path = str(self._getTilePath("merged", x_index, y_index))
             
@@ -200,9 +227,12 @@ class EOxSRectifiedMosaicStitcher(object):
             for tile in tiles:
                 src = gdal.Open(tile.path)
                 
-                tile_x_offset = int((tile.minx - minx) / self.xres)
-                tile_y_offset = int((maxy - tile.maxy) / self.yres)
-                
+                tile_x_offset = self._roundint((tile.minx - minx) / self.xres)
+                tile_y_offset = self._roundint((maxy - tile.maxy) / self.yres)
+
+                logging.debug("Offsets: %d, %d" % (tile_x_offset, tile_y_offset))
+                logging.debug("Float Offsets: %f, %f" % ((tile.minx - minx) / self.xres, (maxy - tile.maxy) / self.yres))
+
                 for band_no in range(1, self.band_count + 1):
                     src_band = src.GetRasterBand(band_no)
                     tmp_band = tmp.GetRasterBand(band_no)
@@ -214,7 +244,6 @@ class EOxSRectifiedMosaicStitcher(object):
                     
                     to_write = numpy.choose(tile_nodata, (tile_data, merged_data))
                     
-                    logging.debug("Offsets: %d, %d" % (tile_x_offset, tile_y_offset))
                     logging.debug("Shape: %s " % str(to_write.shape))
                     
                     tmp_band.WriteArray(to_write, tile_x_offset, tile_y_offset)
@@ -255,19 +284,19 @@ class EOxSRectifiedMosaicStitcher(object):
 
     def generate(self):
         # determine contributing footprints
-        contributions = self.getContributions()
+        contributions = EOxSMosaicContribution.getContributions(self.mosaic_int)
         
         # tile datasets
         dataset_tiles = {}
         
-        for dataset, contributing_footprint in contributions:
-            logging.debug("Processing Dataset '%s' ..." % dataset.getEOID())
+        for contribution in contributions:
+            logging.debug("Processing Dataset '%s' ..." % contribution.dataset.getEOID())
             
-            for tile_coords in self._getContributingTiles(contributing_footprint):
+            for tile_coords in self._getContributingTiles(contribution.contributing_footprint):
                 if tile_coords in dataset_tiles:
-                    dataset_tiles[tile_coords].append(self._makeTile(tile_coords, dataset))
+                    dataset_tiles[tile_coords].append(self._makeTile(tile_coords, contribution.dataset))
                 else:
-                    dataset_tiles[tile_coords] = [self._makeTile(tile_coords, dataset)]
+                    dataset_tiles[tile_coords] = [self._makeTile(tile_coords, contribution.dataset)]
         
         # merge tiles
         result_tiles = {}
@@ -282,7 +311,7 @@ class EOxSRectifiedMosaicStitcher(object):
         self._save(result_tiles, tile_index)
         
         # cleanup
-        #self._cleanup(dataset_tiles, result_tiles)
+        self._cleanup(dataset_tiles, result_tiles)
         
 class EOxSTile(object):
     def __init__(self, path, x_index, y_index, minx, miny, maxx, maxy, x_size, y_size):

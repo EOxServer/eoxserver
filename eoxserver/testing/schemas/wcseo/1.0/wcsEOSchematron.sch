@@ -6,6 +6,7 @@
     queryBinding="xslt">
     <sch:title>Additional validation rules for EO-WCS XML instances.</sch:title>
     <sch:ns prefix="gmlcov" uri="http://www.opengis.net/gmlcov/1.0"/>
+    <sch:ns prefix="gml" uri="http://www.opengis.net/gml/3.2"/>
     <sch:ns prefix="wcs" uri="http://www.opengis.net/wcs/2.0"/>
     <sch:ns prefix="wcseo" uri="http://www.opengis.net/wcseo/1.0"/>
     <sch:ns prefix="eop" uri="http://www.opengis.net/eop/2.0"/>
@@ -21,17 +22,33 @@
 <!-- Req 5 -->
     <sch:pattern>
         <sch:title>Requirement 6</sch:title>
-        <sch:rule context="gmlcov:RectifiedGridCoverage">
+        <sch:rule context="wcseo:RectifiedDataset">
             <sch:assert test="gml:boundedBy/gml:Envelope[@srsName = 'http://www.opengis.net/def/crs/EPSG/0/4326']">
-                WCSEO::RectifiedEOCoverage instances shall contain a gml:boundedBy element with a gml:Envelope containing a srsName attribute value identifying WGS84.
+                WCSEO::RectifiedDataset instances shall contain a gml:boundedBy element with a gml:Envelope containing a srsName attribute value identifying WGS84.
             </sch:assert>
         </sch:rule>
     </sch:pattern>
     <sch:pattern>
         <sch:title>Requirement 6</sch:title>
-        <sch:rule context="gmlcov:ReferenceableGridCoverage">
+        <sch:rule context="wcseo:RectifiedStitchedMosaic">
             <sch:assert test="gml:boundedBy/gml:Envelope[@srsName = 'http://www.opengis.net/def/crs/EPSG/0/4326']">
-                WCSEO::ReferenceableEOCoverage instances shall contain a gml:boundedBy element with a gml:Envelope containing a srsName attribute value identifying WGS84.
+                WCSEO::RectifiedStitchedMosaic instances shall contain a gml:boundedBy element with a gml:Envelope containing a srsName attribute value identifying WGS84.
+            </sch:assert>
+        </sch:rule>
+    </sch:pattern>
+    <sch:pattern>
+        <sch:title>Requirement 6</sch:title>
+        <sch:rule context="wcseo:ReferenceableDataset">
+            <sch:assert test="gml:boundedBy/gml:Envelope[@srsName = 'http://www.opengis.net/def/crs/EPSG/0/4326']">
+                WCSEO::ReferenceableDataset instances shall contain a gml:boundedBy element with a gml:Envelope containing a srsName attribute value identifying WGS84.
+            </sch:assert>
+        </sch:rule>
+    </sch:pattern>
+    <sch:pattern>
+        <sch:title>Requirement 6</sch:title>
+        <sch:rule context="wcseo:ReferenceableStitchedMosaic">
+            <sch:assert test="gml:boundedBy/gml:Envelope[@srsName = 'http://www.opengis.net/def/crs/EPSG/0/4326']">
+                WCSEO::ReferenceableStitchedMosaic instances shall contain a gml:boundedBy element with a gml:Envelope containing a srsName attribute value identifying WGS84.
             </sch:assert>
         </sch:rule>
     </sch:pattern>
@@ -48,19 +65,33 @@
     </sch:pattern>
     <sch:pattern>
         <sch:title>Req </sch:title>
-        <sch:rule context="gmlcov:RectifiedGridCoverage">
+        <sch:rule context="wcseo:RectifiedDataset">
             <sch:assert test="gmlcov:metadata">
-                gmlcov:RectifiedGridCoverage shall always have one gmlcov:metadata child element.
-                Rule used in gmlcov:RectifiedGridCoverage elements in GetCoverage responses.
+                wcseo:RectifiedDataset shall always have one gmlcov:metadata child element.
             </sch:assert>
         </sch:rule>
     </sch:pattern>
     <sch:pattern>
         <sch:title>Req </sch:title>
-        <sch:rule context="gmlcov:ReferencableGridCoverage">
+        <sch:rule context="wcseo:RectifiedStitchedMosaic">
             <sch:assert test="gmlcov:metadata">
-                gmlcov:ReferencableGridCoverage shall always have one gmlcov:metadata child element.
-                Rule used in gmlcov:ReferencableGridCoverage elements in GetCoverage responses.
+                wcseo:RectifiedStitchedMosaic shall always have one gmlcov:metadata child element.
+            </sch:assert>
+        </sch:rule>
+    </sch:pattern>
+    <sch:pattern>
+        <sch:title>Req </sch:title>
+        <sch:rule context="wcseo:ReferenceableDataset">
+            <sch:assert test="gmlcov:metadata">
+                wcseo:ReferenceableDataset shall always have one gmlcov:metadata child element.
+            </sch:assert>
+        </sch:rule>
+    </sch:pattern>
+    <sch:pattern>
+        <sch:title>Req </sch:title>
+        <sch:rule context="wcseo:ReferenceableStitchedMosaic">
+            <sch:assert test="gmlcov:metadata">
+                wcseo:ReferenceableStitchedMosaic shall always have one gmlcov:metadata child element.
             </sch:assert>
         </sch:rule>
     </sch:pattern>
@@ -69,10 +100,12 @@
         <sch:rule context="gmlcov:metadata">
             <sch:assert test="wcseo:EOMetadata">
                 gmlcov:metadata shall always have one wcseo:EOMetadata child element.
-                Rule used in gmlcov:RectifiedGridCoverage and gmlcov:ReferencableGridCoverage elements in GetCoverage responses and
+                Rule used in wcseo:RectifiedDataset, wcseo:RectifiedStitchedMosaic, wcseo:ReferenceableDataset,
+                and wcseo:ReferenceableStitchedMosaic elements in GetCoverage responses and
                 wcs:CoverageDescription elements in DescribeEOCoverageSet and DescribeCoverage responses.
             </sch:assert>
         </sch:rule>
     </sch:pattern>
-<!-- TODO: Ensure wcseo:EOCoverageSubType is available in CoverageSummary and CoverageDescription but for EO Coverages only... Is this possible? -->
+<!-- TODO: Ensure wcs:CoverageSubtype is correctly set in CoverageSummary and CoverageDescription for EO Coverages. -->
+<!-- TODO: Go to all requirements and include relevant tests. -->
 </sch:schema>

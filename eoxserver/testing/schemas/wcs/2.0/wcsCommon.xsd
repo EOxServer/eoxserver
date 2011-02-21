@@ -102,7 +102,7 @@
     </element>
     <complexType name="ServiceParametersType">
         <sequence>
-            <element ref="wcs:CoverageSubtype" maxOccurs="unbounded"/>
+            <element ref="wcs:CoverageSubtype"/>
             <any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
         </sequence>
     </complexType>

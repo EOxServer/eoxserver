@@ -90,10 +90,10 @@ class EOxSFileInfo(object):
             self.grid.srid = self.default_srid
         
         self.md_filename = self._getMetadataFileName()
-        self.md_format = "native" # TODO: assume metadata is always in native format
+        #self.md_format = #"native" # TODO: assume metadata is always in native format
         
         try:
-            md_int = EOxSMetadataInterfaceFactory.getMetadataInterface(self.md_filename, self.md_format)
+            md_int = EOxSMetadataInterfaceFactory.getMetadataInterfaceForFile(self.md_filename)
         except Exception, e:
             raise EOxSSynchronizationError(str(e))
         
@@ -102,6 +102,11 @@ class EOxSFileInfo(object):
             self.timestamp_begin = md_int.getBeginTime()
             self.timestamp_end = md_int.getEndTime()
             self.footprint_wkt = md_int.getFootprint()
+            self.md_format = md_int.getMetadataFormat()
+            self.md_xml_text = ""
+            if self.md_format == "eogml":
+                self.md_xml_text = md_int.getXMLText()
+                
         except EOxSXMLException, e:
             raise EOxSSynchronizationError("Metadata XML Error: %s" % str(e))
 
@@ -125,7 +130,8 @@ class EOxSFileInfo(object):
             self.grid, 
             self.range_type, 
             self.md_filename, 
-            self.md_format, 
+            self.md_format,
+            self.md_xml_text,
             self.eo_id, 
             self.timestamp_begin, 
             self.timestamp_end, 
@@ -169,7 +175,7 @@ class EOxSRectifiedCompositeObjectSynchronizer(object):
     def _createRecord(self, filename, file_info):
         logging.info("Creating Dataset for file '%s' ..." % filename)
 
-        grid, range_type, md_filename, md_format, eo_id, timestamp_begin, timestamp_end, footprint_wkt = file_info.astuple()
+        grid, range_type, md_filename, md_format, md_xml_text, eo_id, timestamp_begin, timestamp_end, footprint_wkt = file_info.astuple()
         
         file_record = EOxSFileRecord.objects.create(
             path = filename,
@@ -179,7 +185,8 @@ class EOxSRectifiedCompositeObjectSynchronizer(object):
         eo_metadata = EOxSEOMetadataRecord.objects.create(
             timestamp_begin = timestamp_begin,
             timestamp_end = timestamp_end,
-            footprint = GEOSGeometry(footprint_wkt)
+            footprint = GEOSGeometry(footprint_wkt),
+            eo_gml = md_xml_text
         )
         grid_record = EOxSRectifiedGridRecord.objects.create(
             srid = grid.srid
@@ -300,6 +307,29 @@ class EOxSRectifiedCompositeObjectSynchronizer(object):
         logging.error(format_exc())
 
 class EOxSRectifiedDatasetSeriesSynchronizer(EOxSRectifiedCompositeObjectSynchronizer):
+    def __init__(self, wcseo_object):
+        super(EOxSRectifiedDatasetSeriesSynchronizer, self).__init__(wcseo_object)
+        
+        self.range_type_names = {}
+    
+    def _getRangeTypeName(self, filename):
+        dir_name = os.path.dirname(filename)
+        
+        if dir_name in self.range_type_names:
+            return self.range_type_names[dir_name]
+        else:
+            rt_path = os.path.join(dir_name, "rangetype.txt")
+            if os.path.exists(rt_path):
+                rt_file = open(rt_path)
+                range_type_name = rt_file.read().strip()
+                rt_file.close()
+            
+                self.range_type_names[dir_name] = range_type_name
+                return range_type_name
+            else:
+                self.range_type_names[dir_name] = "RGB" # TODO: make this configurable (default_range_type)
+                return "RGB"
+    
     def createDir(self, data_dir):
         try:
             self._createDir(data_dir)
@@ -340,6 +370,7 @@ class EOxSRectifiedStitchedMosaicSynchronizer(EOxSRectifiedCompositeObjectSynchr
         super(EOxSRectifiedStitchedMosaicSynchronizer, self).__init__(wcseo_object)
         
         mosaic_int = EOxSRectifiedStitchedMosaicRecordInterface(wcseo_object)
+        self.grid = mosaic_int.getGrid()
         
         self.stitcher = EOxSRectifiedMosaicStitcher(mosaic_int)
         
@@ -351,6 +382,14 @@ class EOxSRectifiedStitchedMosaicSynchronizer(EOxSRectifiedCompositeObjectSynchr
     
     def _getDefaultSRID(self, filename):
         return self.wcseo_object.grid.srid
+        
+    def _createDataset(self, filename):
+        file_info = self._getFileInfo(filename)
+        
+        if file_info.grid.isSubGrid(self.grid):
+            self._createRecord(filename, file_info)
+        else:
+            raise EOxSSynchronizationError("Dataset '%s': Grid does not match mosaic grid." % file_info.eo_id)
     
     def createDir(self, data_dir):
         try:

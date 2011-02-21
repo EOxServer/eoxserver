@@ -10,7 +10,7 @@
         <appinfo>wcsEOCoverage.xsd</appinfo>
         <documentation>This XML Schema Document encodes the coverage elements and types that are defined in the WCS EO-AP.
             This file is actually not needed by WCS EO-AP implementations but provided for completeness.
-            Last updated: 2011-jan-04
+            Last updated: 2011-feb-04
             Copyright (c) 2011 Open Geospatial Consortium, Inc. All Rights Reserved.
             To obtain additional rights of use, visit http://www.opengeospatial.org/legal/.
         </documentation>
@@ -22,7 +22,7 @@
     <import namespace="http://www.opengis.net/gml/3.2" schemaLocation="http://schemas.opengis.net/gml/3.2.1/gml.xsd"/>
     <import namespace="http://www.opengis.net/gmlcov/1.0" schemaLocation="http://schemas.opengis.net/gmlcov/1.0/gmlcovAll.xsd"/>
     <import namespace="http://www.opengis.net/eop/2.0" schemaLocation="http://schemas.opengis.net/eop/2.0/eop.xsd"/> <!--TODO: Where will the schema reside?-->
-    <include schemaLocation="wcsEOCommon.xsd"/>
+    <include schemaLocation="wcsEOAll.xsd"/>
 
     <!-- =========================================================== -->
     <!-- elements and types                                          -->
@@ -32,11 +32,7 @@
             <documentation></documentation>
         </annotation>
         <complexContent>
-            <extension base="gmlcov:AbstractDiscreteCoverageType">
-                <sequence>
-                    <element ref="wcseo:EOMetadata"/>
-                </sequence>
-            </extension>
+            <extension base="gmlcov:AbstractDiscreteCoverageType"/>
         </complexContent>
     </complexType>
     <!-- =========================================================== -->
@@ -51,7 +47,7 @@
             <complexContent>
                 <extension base="wcseo:AbstractEOCoverageType">
                     <sequence>
-                        <element ref="wcseo:dataset"/>
+                        <element ref="wcseo:datasets"/>
                     </sequence>
                 </extension>
             </complexContent>
@@ -62,7 +58,7 @@
             <complexContent>
                 <extension base="wcseo:AbstractEOCoverageType">
                     <sequence>
-                        <element ref="wcseo:dataset"/>
+                        <element ref="wcseo:datasets"/>
                     </sequence>
                 </extension>
             </complexContent>

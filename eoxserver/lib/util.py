@@ -95,21 +95,22 @@ class EOxSXMLEncoder(object):
 
 class EOxSXPath(object):
     def __init__(self, init_data):
-        if isinstance(init_data, str):
-            self.xpath_expr = init_data
-            self.xpath = self.XPathExprToList(init_data)
-        elif isinstance(init_data, list):
+        if isinstance(init_data, list):
             self.xpath = init_data
             self.xpath_expr = self.listToXPathExpr(init_data)
-            
+        else:
+            self.xpath_expr = str(init_data)
+            self.xpath = self.XPathExprToList(init_data)
+
     @classmethod
     def XPathExprToList(cls, xpath_expr):
-        if xpath_expr == "/":
+        if xpath_expr.startswith("/"):
             xpath = ["/"]
         else:
             xpath = []
-            
-        xpath.extend(xpath_expr.lstrip("/").split("/"))
+        
+        if xpath_expr.lstrip("/"):
+            xpath.extend(xpath_expr.lstrip("/").split("/"))
         
         return xpath
 
@@ -126,7 +127,7 @@ class EOxSXPath(object):
     def reverse(cls, node):
         parent = node.parentNode
         
-        if parent is None:
+        if isinstance(parent, xml.dom.minidom.Document):
             return cls("/")
         else:
             if not node.prefix:
@@ -149,16 +150,18 @@ class EOxSXPath(object):
             
             return self.__class__(xpath)
         else:
-            raise EOxSInternalError("Cannot append absolute XPath expression to another XPath.")
+            return other
 
     def _getNodesXPath(self, element, xpath):
+        logging.debug("Element: %s:%s XPath: %s" % (element.prefix, element.localName, str(xpath)))
+        
         if len(xpath) == 0:
             return [element]
         else:
             locator = xpath[0]
             
             if locator == "/":
-                if element.parentNode is None:
+                if isinstance(element.parentNode, xml.dom.minidom.Document):
                     return self._getNodesXPath(element, xpath[1:])
                 else:
                     raise EOxSInternalError("Absolute XPath expressions can only be applied to the document root element.")
@@ -232,14 +235,14 @@ class EOxSXMLNode(object):
                 else:
                     return None
         elif len(nodes) == 0:
-            raise EOxSXMLNodeNotFound("Node '%s' not found." % EOxSXPath.reverse(context_element).append(self.xpath))
+            raise EOxSXMLNodeNotFound("Node '%s' not found." % EOxSXPath.reverse(context_element).append(self.xpath).xpath_expr)
         elif len(nodes) < self.min_occ:
             raise EOxSXMLNodeOccurrenceError("Expected at least %d results for node '%s'. Found %d matching nodes." % (
-                self.min_occ, EOxSXPath.reverse(context_element).append(self.xpath), len(nodes)
+                self.min_occ, EOxSXPath.reverse(context_element).append(self.xpath).xpath_expr, len(nodes)
             ))
         elif len(nodes) > self.max_occ:
             raise EOxSXMLNodeOccurenceError("Expected no more than %d results for node '%s'. Found %d matching nodes." % (
-                self.max_occ, EOxSXPath.reverse(context_element).append(self.xpath), len(nodes)
+                self.max_occ, EOxSXPath.reverse(context_element).append(self.xpath).xpath_expr, len(nodes)
             ))
 
 class EOxSXMLSimpleNode(EOxSXMLNode):
