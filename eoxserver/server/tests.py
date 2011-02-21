@@ -85,7 +85,7 @@ class EOxSWCS20DescribeCoverageMosaicTestCase(eoxstest.EOxSWCS20DescribeCoverage
 class EOxSWCS20DescribeCoverageDatasetSeriesTestCase(eoxstest.EOxSExceptionTestCase):
     """This test shall try to retrieve a CoverageDescription for a non-coverage. It shall yield a valid ows:ExceptionReport"""
     def getRequest(self):
-        params = "service=WCS&version=2.0.0&request=DescribeCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"
+        params = "service=WCS&version=2.0.0&request=DescribeCoverage&CoverageId=WRONG_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"
         return (params, "kvp")
     
     def getExpectedHTTPStatus(self):

@@ -82,7 +82,7 @@ class EOxSTestCase(TestCase):
         return "xml"
     
     def getResponseFileDir(self):
-        return os.path.join("testing","responses")
+        return os.path.join("../autotest","responses")
     
     def getResponseFileName(self):
         return "response_%s.%s" % (self.__class__.__name__, self.getFileExtension())
@@ -93,7 +93,7 @@ class EOxSTestCase(TestCase):
 
 class EOxSXMLTestCase(EOxSTestCase):
     def getSchemaLocation(self):
-        return "testing/schemas/wcseo/1.0/wcsEOAll.xsd"
+        return "../schemas/wcseo/1.0/wcsEOAll.xsd"
     
     def testValidate(self):
         logging.info("Validating XML ...")
@@ -106,15 +106,15 @@ class EOxSXMLTestCase(EOxSTestCase):
 
 class EOxSWCS20GetCapabilitiesTestCase(EOxSXMLTestCase):
     def getSchemaLocation(self):
-        return "testing/schemas/wcseo/1.0/wcsEOGetCapabilities.xsd"
+        return "../schemas/wcseo/1.0/wcsEOGetCapabilities.xsd"
 
 class EOxSWCS20DescribeCoverageTestCase(EOxSXMLTestCase):
     def getSchemaLocation(self):
-        return "testing/schemas/wcs/2.0/wcsDescribeCoverage.xsd"
+        return "../schemas/wcs/2.0/wcsDescribeCoverage.xsd"
 
 class EOxSWCS20DescribeEOCoverageSetTestCase(EOxSXMLTestCase):
     def getSchemaLocation(self):
-        return "testing/schemas/wcseo/1.0/wcsEODescribeEOCoverageSet.xsd"
+        return "../schemas/wcseo/1.0/wcsEODescribeEOCoverageSet.xsd"
     
 class EOxSWCS20DescribeEOCoverageSetSubsettingTestCase(EOxSWCS20DescribeEOCoverageSetTestCase):
     def getExpectedCoverageIds(self):
@@ -136,7 +136,7 @@ class EOxSWCS20DescribeEOCoverageSetSubsettingTestCase(EOxSWCS20DescribeEOCovera
 
 class EOxSExceptionTestCase(EOxSXMLTestCase):
     def getSchemaLocation(self):
-        return "testing/schemas/ows/2.0/owsExceptionReport.xsd"
+        return "../schemas/ows/2.0/owsExceptionReport.xsd"
     
     def getExpectedHTTPStatus(self):
         return 400
@@ -158,7 +158,7 @@ class EOxSExceptionTestCase(EOxSXMLTestCase):
 
 class EOxSFileTestCase(EOxSTestCase):
     def getExpectedFileDir(self):
-        return os.path.join("testing", "expected")
+        return os.path.join("../autotest", "expected")
     
     def getExpectedFileName(self):
         return "expected_%s.%s" % (self.__class__.__name__, self.getFileExtension())
@@ -166,7 +166,7 @@ class EOxSFileTestCase(EOxSTestCase):
     def testBinaryComparison(self):
         self.assertTrue(filecmp.cmp(os.path.join(self.getExpectedFileDir(), 
                                                  self.getExpectedFileName()),
-                                    os.path.join(self.getResponseDir(),
+                                    os.path.join(self.getResponseFileDir(),
                                                  self.getResponseFileName())))
         
 class EOxSWCS20GetCoverageTestCase(EOxSFileTestCase):    
