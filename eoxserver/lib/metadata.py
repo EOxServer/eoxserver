@@ -28,10 +28,6 @@ from eoxserver.lib.exceptions import EOxSMetadataException, EOxSXMLException
 from eoxserver.lib.util import EOxSXMLDecoder, getDateTime, posListToWkt
 
 class EOxSMetadataInterface(object):
-    def __init__(self, filename):
-        super(EOxSMetadataInterface, self).__init__()
-        
-        self.filename = filename
     
     def getEOID(self):
         return None
@@ -44,40 +40,23 @@ class EOxSMetadataInterface(object):
     
     def getFootprint(self):
         return None
+    
+    def getMetadataFormat(self):
+        return None
 
 class EOxSXMLMetadataInterface(EOxSMetadataInterface):
     PARAM_SCHEMA = {}
     
-    def __init__(self, filename):
-        super(EOxSXMLMetadataInterface, self).__init__(filename)
-        
-        try:
-            f = open(filename)
-        except:
-            raise EOxSMetadataException("Could not open file '%s'" % filename)
-        
-        xml = f.read()
-        f.close()
-        
+    def __init__(self, xml):
         self.decoder = EOxSXMLDecoder(xml, self.PARAM_SCHEMA)
-
-class EOxSNativeMetadataInterface(EOxSXMLMetadataInterface):
-    PARAM_SCHEMA = {
-        "eoid": {"xml_location": "/EOID", "xml_type": "string"},
-        "begintime": {"xml_location": "/BeginTime", "xml_type": "string"},
-        "endtime": {"xml_location": "/EndTime", "xml_type": "string"},
-        "footprint": {"xml_location": "/Footprint/Polygon", "xml_type": "dict[1:]", "xml_dict_elements": {
-            "exterior_ring": {"xml_location": "Exterior", "xml_type": "floatlist"},
-            "interior_rings": {"xml_location": "Interior", "xml_type": "floatlist[]"}
-        }}
-    }
-
+        self.xml_text = xml
+    
     def getEOID(self):
         return self.decoder.getValue("eoid")
         
     def getBeginTime(self):
         return getDateTime(self.decoder.getValue("begintime"))
-
+    
     def getEndTime(self):
         return getDateTime(self.decoder.getValue("endtime"))
     
@@ -96,26 +75,93 @@ class EOxSNativeMetadataInterface(EOxSXMLMetadataInterface):
         
         if len(polygon_wkts) == 1:
             wkt = "POLYGON%s" % polygon_wkts[0]
+        elif len(polygon_wkts) == 0:
+            wkt = ""
         else:
             wkt = "MULTIPOLYGON(%s)" % ",".join(polygon_wkts)
         
         return wkt
+    
+    def getXMLText(self):
+        return self.xml_text
+    
+
+class EOxSNativeMetadataInterface(EOxSXMLMetadataInterface):
+    PARAM_SCHEMA = {
+        "eoid": {"xml_location": "/EOID", "xml_type": "string"},
+        "begintime": {"xml_location": "/BeginTime", "xml_type": "string"},
+        "endtime": {"xml_location": "/EndTime", "xml_type": "string"},
+        "footprint": {"xml_location": "/Footprint/Polygon", "xml_type": "dict[1:]", "xml_dict_elements": {
+            "exterior_ring": {"xml_location": "Exterior", "xml_type": "floatlist"},
+            "interior_rings": {"xml_location": "Interior", "xml_type": "floatlist[]"}
+        }}
+    }
+
+    def getMetadataFormat(self):
+        return "native" 
 
 class EOxSDIMAPMetadataInterface(EOxSXMLMetadataInterface):
-    pass
+    def getMetadataFormat(self):
+        return "dimap" 
     
 class EOxSEOGMLMetadataInterface(EOxSXMLMetadataInterface):
-    pass
+    PARAM_SCHEMA = {
+        "eoid": {"xml_location": "/eop:metaDataProperty/eop:EarthObservationMetaData/eop:identifier", "xml_type": "string"},
+        "begintime": {"xml_location": "/om:phenomenonTime/gml:TimePeriod/gml:beginPosition", "xml_type": "string"},
+        "endtime": {"xml_location": "/om:phenomenonTime/gml:TimePeriod/gml:endPosition", "xml_type": "string"},
+        "footprint": {"xml_location": "/om:featureOfInterest/eop:Footprint/eop:multiExtentOf/gml:MultiSurface/gml:surfaceMember/gml:Polygon", "xml_type": "dict[1:]", "xml_dict_elements": {
+            "exterior_ring": {"xml_location": "gml:exterior/gml:LinearRing/gml:posList", "xml_type": "floatlist"},
+            "interior_rings": {"xml_location": "gml:interior/gml:LinearRing/gml:posList", "xml_type": "floatlist[]"}
+        }}
+    }
     
+    def getMetadataFormat(self):
+        return "eogml" 
+
 class EOxSMetadataInterfaceFactory(object):
     @classmethod
-    def getMetadataInterface(cls, filename, format):
+    def getMetadataInterface(cls, xml, format):
         if format.lower() == "native":
-            return EOxSNativeMetadataInterface(filename)
+            return EOxSNativeMetadataInterface(xml)
         elif format.lower() == "dimap":
-            return EOxSDIMAPMetadataInterface(filename)
+            return EOxSDIMAPMetadataInterface(xml)
         elif format.lower() == "eogml":
-            return EOxSEOGMLMetadataInterface(filename)
+            return EOxSEOGMLMetadataInterface(xml)
         else:
             raise EOxSMetadataException("Unknown metadata format '%s'" % format)
 
+    @classmethod
+    def getMetadataInterfaceForFile(cls, filename, format=None):
+        try:
+            f = open(filename)
+        except:
+            raise EOxSMetadataException("Could not open file '%s'" % filename)
+        
+        xml = f.read()
+        f.close()
+        
+        if format is None:
+            used_format = cls._detectFormat(xml)
+        else:
+            used_format = format
+        
+        return cls.getMetadataInterface(xml, used_format)
+        
+    @classmethod
+    def _detectFormat(cls, xml):
+        DETECTION_SCHEMA = {
+            "root_name": {"xml_location": "/", "xml_type": "localName"}
+        }
+    
+        decoder = EOxSXMLDecoder(xml, DETECTION_SCHEMA)
+        
+        root_name = decoder.getValue("root_name")
+        
+        if root_name == "Metadata":
+            return "native"
+        elif root_name == "EarthObservation":
+            return "eogml"
+        elif root_name == "...":
+            return "dimap"
+        else:
+            raise EOxSMetadataException("Unknown metadata format.")

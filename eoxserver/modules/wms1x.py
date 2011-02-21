@@ -28,6 +28,8 @@ import logging
 import os
 import os.path
 
+from osgeo import gdal, ogr, osr
+
 from eoxserver.lib.handlers import EOxSMapServerOperationHandler, EOxSExceptionHandler, EOxSExceptionEncoder
 from eoxserver.lib.ows import EOxSOWSCommonServiceHandler, EOxSOWSCommonVersionHandler
 from eoxserver.lib.ogc import EOxSOGCExceptionHandler
@@ -38,7 +40,7 @@ from eoxserver.lib.util import EOxSXMLEncoder, DOMtoXML, DOMElementToXML, isotim
 from eoxserver.lib.exceptions import (EOxSInternalError,
     EOxSInvalidRequestException, EOxSNoSuchCoverageException
 )
-
+from django.conf import settings
 from eoxserver.contrib import mapscript
 
 class EOxSWMSServiceHandler(EOxSOWSCommonServiceHandler):
@@ -111,7 +113,6 @@ class EOxSWMSCommonHandler(EOxSMapServerOperationHandler):
             if coverage.getType() in ("file", "eo.rect_dataset"):
                 datasets = coverage.getDatasets(**kwargs)
                 if len(datasets) == 0:
-                    # TODO: produce a no-data value only coverage
                     raise EOxSInternalError("Cannot handle empty coverages")
                 elif len(datasets) == 1:
                     layer.data = os.path.abspath(datasets[0].getFilename())
@@ -127,15 +128,79 @@ class EOxSWMSCommonHandler(EOxSMapServerOperationHandler):
                 if len(datasets) == 0:
                     raise EOxSInternalError("Cannot handle empty coverages")
                 
-                layer.setExtent(*datasets[0].getGrid().getExtent2D())
-                layer.setProjection("EPSG:%d"%datasets[0].getGrid().srid)
-                layer.setMetaData("wms_srs", "EPSG:%d"%int(datasets[0].getGrid().srid))
-                #layer.setMetaData("wms_crs", "EPSG:%d"%datasets[0].getGrid().srid)
-
-                layer.data = datasets[0].getFilename() # TODO: Show all requested files. (Default without time parameter to all.)
+                elif len(datasets) == 1:
+                    layer.setExtent(*datasets[0].getGrid().getExtent2D())
+                    layer.setProjection("EPSG:%d"%datasets[0].getGrid().srid)
+                    layer.setMetaData("wms_srs", "EPSG:%d"%int(datasets[0].getGrid().srid))
+                    #layer.setMetaData("wms_crs", "EPSG:%d"%datasets[0].getGrid().srid)
+                    layer.data = datasets[0].getFilename() # TODO: Show all requested files. (Default without time parameter to all.)
+                
+                else: # we have multiple datasets
+                    # set projection to the first datasets projection
+                    # TODO: dataset projections can differ
+                    layer.setProjection("EPSG:%d" % datasets[0].getGrid().srid)
+                    layer.setMetaData("wms_srs", "EPSG:%d" % int(datasets[0].getGrid().srid))
+                    
+                    # initialize OGR driver
+                    driver = ogr.GetDriverByName('ESRI Shapefile')
+                    if driver is None:
+                        raise EOxSSynchronizationError("Cannot start GDAL Shapefile driver")
+                    
+                    # create path to temporary shapefile, if it already exists, delete it
+                    path = os.path.join(settings.PROJECT_DIR, "data", "tmp", "tmp.shp")
+                    if os.path.exists(path):
+                        driver.DeleteDataSource(path)
+                    
+                    # create a new shapefile
+                    shapefile = driver.CreateDataSource(path)
+                    if shapefile is None:
+                        raise EOxSSynchronizationError("Cannot create shapefile '%s'." % path)
+                    
+                    # create a new srs object
+                    srs = osr.SpatialReference()
+                    srs.ImportFromEPSG(datasets[0].getGrid().srid) # TODO: srids can differ 
+                    
+                    # create a new shapefile layer
+                    shapefile_layer = shapefile.CreateLayer("file_locations", srs, ogr.wkbPolygon)
+                    if shapefile_layer is None:
+                        raise EOxSSynchronizationError("Cannot create layer 'file_locations' in shapefile '%s'" % path)
+                    
+                    # add a field definition for the file location
+                    location_defn = ogr.FieldDefn("location", ogr.OFTString)
+                    location_defn.SetWidth(256) # TODO: make this configurable
+                    if shapefile_layer.CreateField(location_defn) != 0:
+                        raise EOxSSynchronizationError("Cannot create field 'location' on layer 'file_locations' in shapefile '%s'" % self.path)
+                    
+                    # add each dataset to the layer as a feature
+                    for dataset in datasets:
+                        feature = ogr.Feature(shapefile_layer.GetLayerDefn())
+                        
+                        extent = dataset.getGrid().getExtent2D()
+                        
+                        geom = ogr.CreateGeometryFromWkt("POLYGON((%f %f, %f %f, %f %f, %f %f, %f %f))" % (
+                            extent[0], extent[1],
+                            extent[2], extent[1],
+                            extent[2], extent[3],
+                            extent[0], extent[3],
+                            extent[0], extent[1]
+                        ), srs)
+                        
+                        feature.SetGeometry(geom)
+                        feature.SetField("location", os.path.abspath(dataset.getFilename()))
+                        if shapefile_layer.CreateFeature(feature) != 0:
+                            raise EOxSSynchronizationError("Could not create shapefile entry for file '%s'" % path)
+                        feature = None
+                    
+                    #save the shapefile
+                    shapefile_layer.SyncToDisk()
+                    shapefile = None
+                    
+                    #set mapserver layer information for the shapefile
+                    layer.tileindex = os.path.abspath(path)
+                    layer.tileitem = "location"
 
         except EOxSInternalError:
-            # create an empty layer
+            # create "no data" layer
             logging.debug(layer.data)
             layer.setProjection("EPSG:4326")
             layer.setMetaData("wms_srs", "EPSG:3035 EPSG:4326 EPSG:900913") # TODO find out possible projections

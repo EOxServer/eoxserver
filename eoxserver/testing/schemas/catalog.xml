@@ -23,6 +23,6 @@ Unset: export -n XML_CATALOG_FILES (use standard catalog at /etc/xml/)
   <rewriteSystem systemIdStartString="http://schemas.opengis.net/wcs/2.0/" rewritePrefix="wcs/2.0/"/>
   <rewriteURI uriStartString="http://schemas.opengis.net/wcs/2.0/" rewritePrefix="wcs/2.0/"/>
 <!-- schemas.opengis.net -->
-<!--  <rewriteSystem systemIdStartString="http://schemas.opengis.net/" rewritePrefix="SCHEMAS_OPENGIS_NET/"/>
-  <rewriteURI uriStartString="http://schemas.opengis.net/" rewritePrefix="SCHEMAS_OPENGIS_NET/"/>-->
+  <rewriteSystem systemIdStartString="http://schemas.opengis.net/" rewritePrefix="SCHEMAS_OPENGIS_NET/"/>
+  <rewriteURI uriStartString="http://schemas.opengis.net/" rewritePrefix="SCHEMAS_OPENGIS_NET/"/>
 </catalog>

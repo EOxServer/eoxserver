@@ -87,7 +87,7 @@
                         Because order is relevant and the wcs:CoverageId separates both this ambiguity gets resolved.
                         -->
                     <element ref="wcs:CoverageId"/>
-                    <element ref="wcs:CoverageSubtype" maxOccurs="unbounded"/>
+                    <element ref="wcs:CoverageSubtype"/>
                     <element ref="ows:BoundingBox" minOccurs="0" maxOccurs="unbounded"/>
                     <element ref="ows:Metadata" minOccurs="0" maxOccurs="unbounded"/>
                 </sequence>

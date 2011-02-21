@@ -54,6 +54,11 @@
                 </ows:HTTP>
             </ows:DCP>
         </ows:Operation>
+        <!-- CountDefault is used to limit the number of coverageDescriptions returned with DescribeEOCoverageSet operations by the server. -->
+        <ows:Constraint name="CountDefault">
+            <ows:NoValues/>
+            <ows:DefaultValue>100</ows:DefaultValue>
+        </ows:Constraint>
     </ows:OperationsMetadata>
 
     <wcs:ServiceMetadata version="1.0.0"/>
@@ -67,8 +72,6 @@
         <!-- CoverageSummary including mandatory elements for EO Coverages only -->
         <wcs:CoverageSummary>
             <wcs:CoverageId>someEOCoverage1</wcs:CoverageId>
-            <wcs:CoverageSubtype>RectifiedGridCoverage</wcs:CoverageSubtype>
-            <wcs:CoverageSubtype>RectifiedEOCoverage</wcs:CoverageSubtype>
             <wcs:CoverageSubtype>RectifiedDataset</wcs:CoverageSubtype>
         </wcs:CoverageSummary>
         <!-- CoverageSummary including also optional elements -->
@@ -78,8 +81,6 @@
                 <ows:UpperCorner>180 90</ows:UpperCorner>
             </ows:WGS84BoundingBox>
             <wcs:CoverageId>someEOCoverage2</wcs:CoverageId>
-            <wcs:CoverageSubtype>RectifiedGridCoverage</wcs:CoverageSubtype>
-            <wcs:CoverageSubtype>RectifiedEOCoverage</wcs:CoverageSubtype>
             <wcs:CoverageSubtype>RectifiedDataset</wcs:CoverageSubtype>
             <ows:BoundingBox crs="http://www.opengis.net/def/crs/EPSG/0/3035" dimensions="2">
                 <ows:LowerCorner>4742525 2665925</ows:LowerCorner>

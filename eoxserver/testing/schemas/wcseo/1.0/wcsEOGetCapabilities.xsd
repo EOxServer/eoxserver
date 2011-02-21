@@ -9,7 +9,7 @@
     <annotation>
         <appinfo>wcsEOGetCapabilities.xsd</appinfo>
         <documentation>This XML Schema Document includes, directly and indirectly, all the XML Schema Documents defined by the OGC Web Coverage Service (WCS) Earth Observation Application Profile (EO-WCS).
-            Last updated: 2011-jan-04
+            Last updated: 2011-feb-04
             Copyright (c) 2011 Open Geospatial Consortium, Inc. All Rights Reserved.
             To obtain additional rights of use, visit http://www.opengeospatial.org/legal/.
         </documentation>
@@ -21,7 +21,7 @@
     <import namespace="http://www.opengis.net/ows/2.0" schemaLocation="http://schemas.opengis.net/ows/2.0/owsAll.xsd"/>
     <import namespace="http://www.opengis.net/wcs/2.0" schemaLocation="http://schemas.opengis.net/wcs/2.0/wcsAll.xsd"/>
     <import namespace="http://www.opengis.net/gml/3.2" schemaLocation="http://schemas.opengis.net/gml/3.2.1/gml.xsd"/>
-    <include schemaLocation="wcsEOCommon.xsd"/>
+    <include schemaLocation="wcsEOAll.xsd"/>
 
     <!-- =========================================================== -->
     <!-- elements and types                                          -->

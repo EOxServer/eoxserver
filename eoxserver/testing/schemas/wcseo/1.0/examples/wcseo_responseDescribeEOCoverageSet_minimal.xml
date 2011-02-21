@@ -1,5 +1,8 @@
 <?xml version='1.0' encoding='ISO-8859-1'?>
 <wcseo:EOCoverageSetDescription
+    numberMatched="2"
+    numberReturned="2"
+    xmlns:ows="http://www.opengis.net/ows/2.0"
     xmlns:gml="http://www.opengis.net/gml/3.2"
     xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0"
     xmlns:swe="http://www.opengis.net/swe/2.0"
@@ -92,7 +95,7 @@
                         <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
                             <swe:description>Gray Channel</swe:description>
                             <swe:nilValues/>
-                            <swe:uom code="W/cm2"/>
+                            <swe:uom code="W.m-2.Sr-1"/>
                             <swe:constraint>
                                 <swe:AllowedValues>
                                     <swe:interval>0 255</swe:interval>
@@ -104,58 +107,26 @@
                 </swe:DataRecord>
             </gmlcov:rangeType>
             <wcs:ServiceParameters>
-                <wcs:CoverageSubtype>RectifiedGridCoverage</wcs:CoverageSubtype>
-                <wcs:CoverageSubtype>RectifiedEOCoverage</wcs:CoverageSubtype>
                 <wcs:CoverageSubtype>RectifiedStitchedMosaic</wcs:CoverageSubtype>
-                <!-- Dataset with contributingFootprint -->
-                <wcseo:dataset>
-                    <wcs:CoverageId>c2</wcs:CoverageId>
-                    <wcseo:contributingFootprint>
-                        <eop:Footprint gml:id="c2_fp">
-                            <eop:multiExtentOf>
-                                <gml:MultiSurface gml:id="c2_ms" srsName="EPSG:4326">
-                                    <gml:surfaceMembers>
-                                        <gml:Polygon gml:id="c2_fppoly">
-                                            <gml:exterior>
-                                                <gml:LinearRing>
-                                                    <gml:posList>43.516667 2.1025 43.381667 2.861667 42.862778 2.65 42.996389 1.896944 43.516667 2.1025</gml:posList>
-                                                </gml:LinearRing>
-                                            </gml:exterior>
-                                        </gml:Polygon>
-                                    </gml:surfaceMembers>
-                                </gml:MultiSurface>
-                            </eop:multiExtentOf>
-                            <eop:centerOf>
-                                <gml:Point gml:id="c2_p" srsName="EPSG:4326">
-                                    <gml:pos>43.190833 2.374167</gml:pos>
-                                </gml:Point>
-                            </eop:centerOf>
-                        </eop:Footprint>
-                    </wcseo:contributingFootprint>
-                </wcseo:dataset>
-                <!-- Dataset without contributingFootprint -->
-                <wcseo:dataset>
-                    <wcs:CoverageId>c3</wcs:CoverageId>
-                </wcseo:dataset>
             </wcs:ServiceParameters>
         </wcs:CoverageDescription>
 
-        <!-- TODO -->
         <!-- Example using xlink to reference EOMetadata -->
-<!--
-        <wcs:CoverageDescription gml:id="b">
+        <wcs:CoverageDescription gml:id="c2">
             <gml:boundedBy>
                 <gml:Envelope axisLabels="Lat Long" srsDimension="2" srsName="http://www.opengis.net/def/crs/EPSG/0/4326" uomLabels="deg deg">
                     <gml:lowerCorner>45 110</gml:lowerCorner>
                     <gml:upperCorner>46 111</gml:upperCorner>
                 </gml:Envelope>
             </gml:boundedBy>
-            <wcs:CoverageId>b</wcs:CoverageId>
+            <wcs:CoverageId>c2</wcs:CoverageId>
             <gmlcov:metadata>
-                <wcseo:EOMetadata xlink:href="http://etc"/>
+                <wcseo:EOMetadata>
+                    <ows:Reference xlink:href="http://www.someCatalogue.org/eop-metadata-from-c2"/>
+                </wcseo:EOMetadata>
             </gmlcov:metadata>
             <gml:domainSet>
-                <gml:RectifiedGrid dimension="2" gml:id="b_grid">
+                <gml:RectifiedGrid dimension="2" gml:id="c2_grid">
                     <gml:limits>
                         <gml:GridEnvelope>
                             <gml:low>0 0</gml:low>
@@ -164,7 +135,7 @@
                     </gml:limits>
                     <gml:axisLabels>y x</gml:axisLabels>
                     <gml:origin>
-                        <gml:Point gml:id="b_grid_origin" srsName="http://www.opengis.net/def/crs/EPSG/0/3035">
+                        <gml:Point gml:id="c2_grid_origin" srsName="http://www.opengis.net/def/crs/EPSG/0/3035">
                             <gml:pos>2690925.0 4742525.0</gml:pos>
                         </gml:Point>
                     </gml:origin>
@@ -178,7 +149,7 @@
                         <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
                             <swe:description>Gray Channel</swe:description>
                             <swe:nilValues/>
-                            <swe:uom code="W/cm2"/>
+                            <swe:uom code="W.m-2.Sr-1"/>
                             <swe:constraint>
                                 <swe:AllowedValues>
                                     <swe:interval>0 255</swe:interval>
@@ -190,12 +161,9 @@
                 </swe:DataRecord>
             </gmlcov:rangeType>
             <wcs:ServiceParameters>
-                <wcs:CoverageSubtype>RectifiedGridCoverage</wcs:CoverageSubtype>
-                <wcs:CoverageSubtype>RectifiedEOCoverage</wcs:CoverageSubtype>
                 <wcs:CoverageSubtype>RectifiedDataset</wcs:CoverageSubtype>
             </wcs:ServiceParameters>
         </wcs:CoverageDescription>
--->
     </wcs:CoverageDescriptions>
 
     <wcseo:DatasetSeriesDescriptions>

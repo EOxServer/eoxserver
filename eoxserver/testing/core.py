@@ -23,10 +23,11 @@
 #-----------------------------------------------------------------------
 
 import os.path
+import filecmp
 import logging
 from lxml import etree
 
-from django.test import TestCase
+from django.test import TestCase, Client
 
 from eoxserver.lib.config import EOxSConfig
 from eoxserver.lib.ows import EOxSOWSCommonHandler
@@ -53,28 +54,34 @@ class EOxSTestSchemaFactory(object):
 class EOxSTestCase(TestCase):
     def setUp(self):
         logging.info("Starting Test Case: %s" % self.__class__.__name__)
-        ows_req = self.getRequest()
         
-        config = EOxSConfig.getConfig(os.path.join('conf', 'test.conf'))
-        handler = EOxSOWSCommonHandler(config)
+        request, type = self.getRequest()
         
-        EOxSRegistry.registerAll()
-
-        self.response = handler.handle(ows_req)
+        client = Client()
         
-        f = open("testing/responses/%s" % self.getResponseFileName(), 'w')
-        f.write(self.response.getContent())
+        if type == "kvp":
+            self.response = client.get('/ows?%s' % request)
+        elif type == "xml":
+            self.response = client.post('/ows', request, "text/xml")
+        else:
+            raise Exception("Invalid request type '%s'." % type)
+        
+        f = open(os.path.join("testing","responses", self.getResponseFileName()), 'w')
+        f.write(self.response.content)
         f.close()
     
     def getRequest(self):
         raise Exception("Not implemented.")
-        
+    
+    def getResponseFileExtension(self):
+        return "xml"
+    
     def getResponseFileName(self):
-        return "response_%s.%s" % (self.__class__.__name__, "xml")
+        return "response_%s.%s" % (self.__class__.__name__, self.getResponseFileExtension())
     
     def testStatus(self):
         logging.info("Checking HTTP Status ...")
-        self.assertEqual(self.response.getStatus(), 200)
+        self.assertEqual(self.response.status_code, 200)
 
 class EOxSXMLTestCase(EOxSTestCase):
     def getSchemaLocation(self):
@@ -85,7 +92,7 @@ class EOxSXMLTestCase(EOxSTestCase):
         schema = EOxSTestSchemaFactory.getSchema(self.getSchemaLocation())
         
         try:
-            schema.assertValid(etree.fromstring(self.response.getContent()))
+            schema.assertValid(etree.fromstring(self.response.content))
         except etree.Error as e:
             self.fail(str(e))
 
@@ -107,7 +114,7 @@ class EOxSWCS20DescribeEOCoverageSetSubsettingTestCase(EOxSWCS20DescribeEOCovera
     
     def testCoverageIds(self):
         logging.info("Checking Coverage Ids ...")
-        decoder = EOxSXMLDecoder(self.response.getContent(), {
+        decoder = EOxSXMLDecoder(self.response.content, {
             "coverageids": {"xml_location": "/wcs:CoverageDescriptions/wcs:CoverageDescription/wcs:CoverageId", "xml_type": "string[]"}
         })
         
@@ -131,13 +138,38 @@ class EOxSExceptionTestCase(EOxSXMLTestCase):
         
     def testStatus(self):
         logging.info("Checking HTTP Status ...")
-        self.assertEqual(self.response.getStatus(), self.getExpectedHTTPStatus())
+        self.assertEqual(self.response.status_code, self.getExpectedHTTPStatus())
     
     def testExceptionCode(self):
         logging.info("Checking OWS Exception Code ...")
-        decoder = EOxSXMLDecoder(self.response.getContent(), {
+        decoder = EOxSXMLDecoder(self.response.content, {
             "exceptionCode": {"xml_location": "/ows:Exception/@exceptionCode", "xml_type": "string"}
         })
         
         self.assertEqual(decoder.getValue("exceptionCode"), self.getExpectedExceptionCode())
 
+class EOxSFileTestCase(EOxSTestCase):
+    def getExpectedFileDir(self):
+        return os.join("testing", "expected")
+    
+    def getExpectedFileName(self):
+        return "expected_%s.%s" % (self.__class__.__name__, self.getExpectedFileExtension())
+    
+    def testBinaryComparison(self):
+        self.assertTrue(filecmp.cmp(os.join(self.getExpectedFileDir(), 
+                                            self.getExpectedFileName()),
+                                    self.getResponseFileName()))
+        
+class EOxSWCS20GetCoverageTestCase(EOxSFileTestCase):
+    def getResponseFileExtension(self):
+        return "tif"
+    
+    def getExpectedFileExtension(self):
+        return "tif"
+    
+class EOxSWCS20GetCoverageMultipartTestCase(EOxSWCS20GetCoverageTestCase):
+    def getResponseFileExtension(self):
+        return "dat"
+
+    def getExpectedFileExtension(self):
+        return "dat"

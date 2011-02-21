@@ -24,7 +24,10 @@
 
 import re
 import os.path
+import sys
 from xml.dom import minidom
+
+from django.contrib.gis.geos import Polygon
 
 import logging
 
@@ -34,7 +37,7 @@ from eoxserver.lib.domainset import EOxSTrim, EOxSSlice
 from eoxserver.lib.requests import EOxSResponse
 from eoxserver.lib.interfaces import EOxSCoverageInterfaceFactory, EOxSDatasetSeriesFactory
 from eoxserver.lib.ows import EOxSOWSCommonVersionHandler, EOxSOWSCommonExceptionHandler
-from eoxserver.lib.util import DOMtoXML, DOMElementToXML, getDateTime
+from eoxserver.lib.util import DOMtoXML, DOMElementToXML, getDateTime, getSRIDFromCRSURI
 from eoxserver.lib.exceptions import (EOxSInternalError,
     EOxSInvalidRequestException, EOxSNoSuchCoverageException,
     EOxSNoSuchDatasetSeriesException, EOxSUnknownParameterFormatException,
@@ -133,6 +136,9 @@ class EOxSWCS20GetCapabilitiesHandler(EOxSWCSCommonHandler):
             desc_eo_cov_set_op = encoder.encodeDescribeEOCoverageSetOperation(self.config.http_service_url)
 
             op_metadata.appendChild(desc_eo_cov_set_op)
+            
+            op_metadata.appendChild(encoder.encodeCountDefaultConstraint(100)) # TODO remove hardcoded number and make it configurable
+
 
         # rewrite wcs:Contents
         # append wcseo:EOCoverageSubtype to wcs:CoverageSummary
@@ -152,9 +158,9 @@ class EOxSWCS20GetCapabilitiesHandler(EOxSWCSCommonHandler):
                 contents_new.appendChild(dss_summary)
 
             contents_old.parentNode.replaceChild(contents_new, contents_old)
-        else:
-            raise EOxSInternalError("Internal error.")
-
+#        else:
+#            raise EOxSInternalError("Internal error.")
+        
         # rewrite XML and replace it in the response
         resp.content = DOMtoXML(dom)
         dom.unlink()
@@ -209,16 +215,17 @@ class EOxSWCS20DescribeEOCoverageSetHandler(EOxSOperationHandler):
         "service": {"xml_location": "/@ows:service", "xml_type": "string", "kvp_key": "service", "kvp_type": "string"},
         "version": {"xml_location": "/@ows:version", "xml_type": "string", "kvp_key": "version", "kvp_type": "string"},
         "operation": {"xml_location": "/", "xml_type": "localName", "kvp_key": "request", "kvp_type": "string"},
-        "eoid": {"xml_location": "/wcseo:eoId", "xml_type": "string", "kvp_key": "eoid", "kvp_type": "string"}, # TODO: what about multiple ids 
+        "eoid": {"xml_location": "/wcseo:eoId", "xml_type": "string[]", "kvp_key": "eoid", "kvp_type": "stringlist"}, # TODO: what about multiple ids 
         "containment": {"xml_location": "/wcseo:containment", "xml_type": "string", "kvp_key": "containment", "kvp_type": "string"},
         "trims": {"xml_location": "/wcs:DimensionTrim", "xml_type": "element[]"},
-        "slices": {"xml_location": "/wcs:DimensionSlice", "xml_type": "element[]"}
+        "slices": {"xml_location": "/wcs:DimensionSlice", "xml_type": "element[]"},
+        "count": {"xml_location": "/@count", "xml_type": "string", "kvp_key": "count", "kvp_type": "string"} #TODO: kvp location
     }
 
     def handle(self, req):
         req.setSchema(self.PARAM_SCHEMA)
         
-        wcseo_object = self.createWCSEOObject(req)
+        wcseo_objects = self.createWCSEOObject(req)
         
         try:
             slices, trims = EOxSWCS20Utils.getSubsetting(req)
@@ -227,64 +234,79 @@ class EOxSWCS20DescribeEOCoverageSetHandler(EOxSOperationHandler):
         except EOxSInvalidSubsettingException, e:
             raise EOxSInvalidRequestException(e.msg, "InvalidSubsetting", "subset")
         
-        for slice in slices:
-            self.validateSlice(slice, wcseo_object)
-        for trim in trims:
-            self.validateTrim(trim, wcseo_object)
-            
+        coverages = []
+        dataset_series = []
+        
         containment = req.getParamValue("containment")
         if containment is None:
             containment = "overlaps"
         elif containment.lower() not in ("overlaps", "contains"):
             raise EOxSInvalidRequestException("'containment' parameter must be either 'overlaps' or 'contains'", "InvalidParameterValue", "containment")
         
-        if wcseo_object.getType() in ("eo.rect_dataset", "eo.rect_mosaic"):
-            coverages = [wcseo_object]
-            dataset_series = []
-        else:
-            coverages = []
-            dataset_series = [wcseo_object]
-        
-        if wcseo_object.getType() in ("eo.rect_dataset_series", "eo.rect_mosaic"):
-            try:
-                coverages.extend(wcseo_object.getDatasets(containment=containment.lower(), slices=slices, trims=trims))
-            except EOxSUnknownCRSException, e:
-                raise EOxSInvalidRequestException(e.msg, "NoApplicableCode", None)
-            except EOxSInvalidAxisLabelException, e:
-                raise EOxSInvalidRequestException(e.msg, "InvalidAxisLabel", None)
+        for wcseo_object in wcseo_objects:
+            for slice in slices:
+                self.validateSlice(slice, wcseo_object)
+            for trim in trims:
+                self.validateTrim(trim, wcseo_object)
+                
+            if wcseo_object.getType() in ("eo.rect_dataset", "eo.rect_mosaic"):
+                coverages.append(wcseo_object)
+            else:
+                dataset_series.append(wcseo_object)
+            
+            if wcseo_object.getType() in ("eo.rect_dataset_series", "eo.rect_mosaic"):
+                try:
+                    coverages.extend(wcseo_object.getDatasets(containment=containment.lower(), slices=slices, trims=trims))
+                except EOxSUnknownCRSException, e:
+                    raise EOxSInvalidRequestException(e.msg, "NoApplicableCode", None)
+                except EOxSInvalidAxisLabelException, e:
+                    raise EOxSInvalidRequestException(e.msg, "InvalidAxisLabel", None)
 
+        # TODO: find out config value 'count'
+        # subset returned dataset series/coverages to min(count from config, count from req)
+        
+        count_req = sys.maxint
+        if req.getParamValue("count") is not None:
+            count_req = int(req.getParamValue("count"))
+ 
+        count_conf = 100 # TODO remove this hardcoded line and make it configurable
+        count_used = min(count_req, count_conf)
+        
+        count_all_coverages = len(coverages)
+        if count_used < count_all_coverages:
+            coverages = coverages[:count_used]
+        else:
+            count_used = count_all_coverages
+ 
         encoder = EOxSWCS20EOAPEncoder()
         
         return EOxSResponse(
-            content=DOMElementToXML(encoder.encodeEOCoverageSetDescription(dataset_series, coverages)), #TODO: Invoke with all datasetseries and EOCoverage elements.
+            content=DOMElementToXML(encoder.encodeEOCoverageSetDescription(dataset_series, coverages, count_all_coverages, count_used)), #TODO: Invoke with all datasetseries and EOCoverage elements.
             content_type="text/xml",
             status=200
         )
 
     def createWCSEOObject(self, req):
-        eo_id = req.getParamValue("eoid")
+        eo_ids = req.getParamValue("eoid")
             
-        if eo_id is None:
+        if eo_ids is None:
             raise EOxSInvalidRequestException("Missing 'eoid' parameter", "MissingParameterValue", "eoid")
         else:
             wcseo_objects = []
-            
-            try:
-                wcseo_objects.append(EOxSDatasetSeriesFactory.getDatasetSeriesInterface(eo_id))
-            except EOxSNoSuchDatasetSeriesException:
-                pass
-            
-            try:
-                wcseo_objects.append(EOxSCoverageInterfaceFactory.getCoverageInterfaceByEOID(eo_id))
-            except EOxSNoSuchCoverageException:
-                pass
-            
-            if len(wcseo_objects) == 0:
-                raise EOxSInvalidRequestException("No coverage or dataset series with EO ID '%s' found" % eo_id, "NoSuchCoverage", "eoid")
-            elif len(wcseo_objects) > 1:
-                raise EOxSInternalError("Improperly configured: EO ID '%s' is not unique." % eo_id)
-            else:
-                return wcseo_objects[0]
+            for eo_id in eo_ids:
+                try:
+                    wcseo_objects.append(EOxSDatasetSeriesFactory.getDatasetSeriesInterface(eo_id))
+                except EOxSNoSuchDatasetSeriesException:
+                    pass
+                
+                try:
+                    wcseo_objects.append(EOxSCoverageInterfaceFactory.getCoverageInterfaceByEOID(eo_id))
+                except EOxSNoSuchCoverageException:
+                    pass
+                
+                if len(wcseo_objects) == 0:
+                    raise EOxSInvalidRequestException("No coverage or dataset series with EO ID '%s' found" % eo_id, "NoSuchCoverage", "eoid")
+            return wcseo_objects
     
     def validateSlice(self, slice, wcseo_object):
         try:
@@ -338,7 +360,28 @@ class EOxSWCS20GetCoverageHandler(EOxSWCSCommonHandler):
             except EOxSNoSuchCoverageException, e:
                 raise EOxSInvalidRequestException(e.msg, "NoSuchCoverage", coverage_id)
 
+    def _setParameter(self, ms_req, key, value):
+        if key.lower() == "format" and len(ms_req.coverages[0].getRangeType()) > 3: # TODO
+            super(EOxSWCS20GetCoverageHandler, self)._setParameter(ms_req, "format", "GTiff16")
+        else:
+            super(EOxSWCS20GetCoverageHandler, self)._setParameter(ms_req, key, value)
     
+    def configureMapObj(self, ms_req):
+        super(EOxSWCS20GetCoverageHandler, self).configureMapObj(ms_req)
+        
+        if len(ms_req.coverages[0].getRangeType()) > 3: # TODO see eoxserver.org ticket #3
+            output_format = mapscript.outputFormatObj("GDAL/GTiff", "GTiff16")
+            output_format.mimetype = "image/tiff"
+            output_format.extension = "tiff"
+            output_format.imagemode = mapscript.MS_IMAGEMODE_INT16
+            #output_format.bands = len(ms_req.coverages[0].getRangeType())
+            #output_format.setOption("BAND_COUNT", str(len(ms_req.coverages[0].getRangeType())))
+        
+            ms_req.map.appendOutputFormat(output_format)
+            ms_req.map.setOutputFormat(output_format)
+            
+            logging.debug("EOxSWCS20GetCoverageHandler.configureMapObj: %s" % ms_req.map.imagetype)
+
     def addLayers(self, ms_req):
         slices, trims = EOxSWCS20Utils.getSubsetting(ms_req)
 
@@ -358,7 +401,9 @@ class EOxSWCS20GetCoverageHandler(EOxSWCSCommonHandler):
                 layer.data = os.path.abspath(datasets[0].getFilename())
             else:
                 raise EOxSInternalError("A single file or EO dataset should never return more than one dataset.")
-
+                
+            #layer.setMetaData("wcs_bandcount", str(len(coverage.getRangeType())))
+            
         elif coverage.getType() == "eo.rect_mosaic":
            
             layer.tileindex = os.path.abspath(coverage.getShapeFilePath())
@@ -372,10 +417,27 @@ class EOxSWCS20GetCoverageHandler(EOxSWCSCommonHandler):
             layer.setMetaData("wcs_nativeformat", "GTiff")
             layer.setMetaData("wcs_bandcount", "3") # TODO
         
+        axes = " ".join(channel.name for channel in coverage.getRangeType())
+        layer.setMetaData("wcs_rangeset_axes", axes)
+        
+        if len(coverage.getRangeType()) > 3: # TODO make this dependent on actual data type
+            layer.setMetaData("wcs_formats", "GTiff16")
+            layer.setMetaData("wcs_imagemode", "INT16")
+        else:
+            layer.setMetaData("wcs_imagemode", "BYTE")
+        
         return layer
 
     def postprocess(self, ms_req, resp):
         coverage_id = ms_req.getParamValue("coverageid")
+        
+        if ms_req.coverages[0].getType() == "eo.rect_mosaic":
+            include_composed_of = False #True
+            
+
+        else:
+            include_composed_of = False
+            poly = None
         
         resp.splitResponse()
         
@@ -385,11 +447,30 @@ class EOxSWCS20GetCoverageHandler(EOxSWCSCommonHandler):
             
             if rectified_grid_coverage is not None:
                 encoder = EOxSWCS20EOAPEncoder()
-                eometadata = encoder.encodeEOMetadata(EOxSCoverageInterfaceFactory.getCoverageInterface(coverage_id))
                 
-                rectified_grid_coverage.appendChild(eometadata)
+                if ms_req.coverages[0].getType() == "eo.rect_dataset":
+                    resp_xml = encoder.encodeRectifiedDataset(
+                        ms_req.coverages[0],
+                        req = ms_req,
+                        nodes = rectified_grid_coverage.childNodes
+                    )
+                elif ms_req.coverages[0].getType() == "eo.rect_mosaic":
+                    slices, trims = EOxSWCS20Utils.getSubsetting(ms_req)
 
-                resp = resp.getProcessedResponse(DOMtoXML(dom))
+                    if len(trims) > 0:
+                        poly = EOxSWCS20Utils.getPolygon(trims, ms_req.coverages[0].getFootprint())
+                    else:
+                        poly = None
+
+                    resp_xml = encoder.encodeRectifiedStitchedMosaic(
+                        ms_req.coverages[0],
+                        req = ms_req,
+                        nodes = rectified_grid_coverage.childNodes,
+                        poly = poly
+                    )
+                    
+
+                resp = resp.getProcessedResponse(DOMElementToXML(resp_xml))
                 dom.unlink()
 
         return resp
@@ -454,4 +535,57 @@ class EOxSWCS20Utils(object):
             return cls._getSubsettingKVP(req)
         else:
             return cls._getSubsettingXML(req)
+    
+    @classmethod
+    def getPolygon(cls, trims, footprint):
+        crs = trims[0].crs
+        
+        for trim in trims[1:]:
+            if trim.crs != crs:
+                raise EOxSInvalidRequestException("All subsettings must be expressed in the same CRS.")
+        
+        srid = getSRIDFromCRSURI(crs)
+        
+        fp_minx, fp_miny, fp_maxx, fp_maxy = footprint.transform(srid, True).extent
+        
+        minx = None
+        miny = None
+        maxx = None
+        maxy = None
+        
+        for trim in trims:
+            if trim.dimension in ("x", "long"):
+                if trim.trim_low is None:
+                    minx = fp_minx 
+                else:
+                    minx = max(fp_minx, trim.trim_low)
+                
+                if trim.trim_high is None:
+                    maxx = fp_maxx
+                else:
+                    maxx = min(fp_maxx, trim.trim_high)
+            elif trim.dimension in ("y", "lat"):
+                if trim.trim_low is None:
+                    miny = fp_miny
+                else:
+                    miny = max(fp_miny, trim.trim_low)
+                
+                if trim.trim_high is None:
+                    maxy = fp_maxy
+                else:
+                    maxy = min(fp_maxy, trim.trim_high)
+        
+        if minx is None:
+            minx = fp_minx
+        if miny is None:
+            miny = fp_miny
+        if maxx is None:
+            maxx = fp_maxx
+        if maxy is None:
+            maxy = fp_maxy
+        
+        poly = Polygon.from_bbox((minx, miny, maxx, maxy))
+        poly.srid = srid
+        
+        return poly
 

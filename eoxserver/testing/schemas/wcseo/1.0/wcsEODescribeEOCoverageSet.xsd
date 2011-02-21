@@ -10,7 +10,7 @@
     <annotation>
         <appinfo>wcsEODescribeCoverageSet.xsd</appinfo>
         <documentation>This XML Schema Document defines the DescribeEOCoverageSet operation request and response XML elements and types, used by the OGC Web Coverage Service (WCS) Earth Observation Application Profile (EO-WCS).
-            Last updated: 2011-jan-04
+            Last updated: 2011-feb-04
             Copyright (c) 2011 Open Geospatial Consortium, Inc. All Rights Reserved.
             To obtain additional rights of use, visit http://www.opengeospatial.org/legal/.
         </documentation>
@@ -23,7 +23,7 @@
     <import namespace="http://www.opengis.net/gmlcov/1.0" schemaLocation="http://schemas.opengis.net/gmlcov/1.0/gmlcovAll.xsd"/>
     <import namespace="http://www.opengis.net/wcs/2.0" schemaLocation="http://schemas.opengis.net/wcs/2.0/wcsAll.xsd"/>
     <import namespace="http://www.opengis.net/eop/2.0" schemaLocation="http://schemas.opengis.net/eop/2.0/eop.xsd"/> <!--TODO: Where will the schema reside?-->
-    <include schemaLocation="wcsEOCommon.xsd"/>
+    <include schemaLocation="wcsEOAll.xsd"/>
 
     <!-- =========================================================== -->
     <!-- elements and types                                          -->
@@ -42,6 +42,7 @@
                     <element ref="wcseo:Sections" minOccurs="0"/>
                     <element ref="wcs:DimensionTrim" minOccurs="0" maxOccurs="3"/>
                 </sequence>
+                <attribute name="count" type="nonNegativeInteger"/>
             </extension>
         </complexContent>
     </complexType>
@@ -88,6 +89,13 @@
             <element ref="wcs:CoverageDescriptions" minOccurs="0"/>
             <element ref="wcseo:DatasetSeriesDescriptions" minOccurs="0"/>
         </sequence>
+        <attribute name="numberMatched" type="nonNegativeInteger" use="required"/>
+        <attribute name="numberReturned" type="nonNegativeInteger" use="required"/>
+        <!-- TODO: Paging -->
+<!-- From WFS 2.0:
+        <attribute name="next" type="anyURI"/>
+        <attribute name="previous" type="anyURI"/>
+-->
     </complexType>
     <!-- =========================================================== -->
     <element name="DatasetSeriesDescriptions" type="wcseo:DatasetSeriesDescriptionsType">

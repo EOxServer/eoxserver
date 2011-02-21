@@ -25,9 +25,15 @@
 import re
 
 from django.contrib.gis.db import models
+from django.contrib.gis.geos import GEOSGeometry
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from django.core.validators import RegexValidator
+from django.core.exceptions import ValidationError
+
+from eoxserver.server.validators import validateEOOM
+from eoxserver.lib.util import EOxSXMLDecoder
+from eoxserver.lib.metadata import EOxSMetadataInterfaceFactory
 
 NCNameValidator = RegexValidator(re.compile(r'^[a-zA-z_][a-zA-Z0-9_.-]*$'), message="This field must contain a valid NCName.")
 
@@ -91,6 +97,10 @@ class EOxSAxisRecord(models.Model):
     origin_component = models.FloatField()
     offset_vector_component = models.FloatField() # only axis parallel
 
+    class Meta:
+        verbose_name = "Axis"
+        verbose_name_plural = "Axis"
+
 class EOxSLayerMetadataRecord(models.Model):
     key = models.CharField(max_length=256)
     value = models.TextField()
@@ -125,15 +135,38 @@ class EOxSEOMetadataRecord(models.Model):
     timestamp_begin = models.DateTimeField()
     timestamp_end = models.DateTimeField()
     footprint = models.PolygonField(srid=4326, geography=True)
-    eo_gml = models.TextField(blank=True)
+    eo_gml = models.TextField(blank=True, validators=[validateEOOM]) # validate against schema
     objects = models.GeoManager()
-
-    def __unicode__(self):
-        return ("BeginTime: %s" % self.timestamp_begin)
 
     class Meta:
         verbose_name = "EO Metadata Entry"
         verbose_name_plural = "EO Metadata Entries"
+
+    def __unicode__(self):
+        return ("BeginTime: %s" % self.timestamp_begin)
+    
+    def clean(self):
+        """
+        This method validates the consistency of the EO Metadata record,
+        i.e.:
+        * check that the begin time in timestamp_begin is the same as in
+          EO GML
+        * check that the end time in timestamp_end is the same as in EO
+          GML
+        * check that the footprint is the same as in EO GML
+        """
+        EPSILON = 1e-10
+        
+        if self.eo_gml:
+            md_int = EOxSMetadataInterfaceFactory.getMetadataInterface(self.eo_gml, "eogml")
+            
+            if self.timestamp_begin != md_int.getBeginTime().replace(tzinfo=None):
+                raise ValidationError("EO GML acquisition begin time does not match.")
+            if self.timestamp_end != md_int.getEndTime().replace(tzinfo=None):
+                raise ValidationError("EO GML acquisition end time does not match.")
+            if self.footprint is not None:
+                if not self.footprint.equals_exact(GEOSGeometry(md_int.getFootprint()), EPSILON * max(self.footprint.extent)): # compare the footprints with a tolerance in order to account for rounding and string conversion errors
+                    raise ValidationError("EO GML footprint does not match.")
 
 class EOxSCoverageRecord(models.Model):
     coverage_id = models.CharField(max_length=256, unique=True, validators=[NCNameValidator])

@@ -22,9 +22,13 @@
 #
 #-----------------------------------------------------------------------
 
-from eoxserver.lib.util import EOxSXMLEncoder, isotime
 from osgeo.osr import SpatialReference
 from datetime import datetime
+from xml.dom import minidom
+
+from eoxserver.lib.util import EOxSXMLEncoder, isotime
+from eoxserver.lib.mosaic import EOxSMosaicContribution
+
 
 class EOxSGMLEncoder(EOxSXMLEncoder):
     def _initializeNamespaces(self):
@@ -63,8 +67,8 @@ class EOxSGMLEncoder(EOxSXMLEncoder):
         )
 
     def encodeMultiPolygon(self, geom, base_id):
-        if geom.geom_type == "MultiPolygon":
-            polygons = [self.encodePolygon(geom[c], "%s_%d" % (base_id, c+1)) for c in range(0, len(geom))]
+        if geom.geom_type in ("MultiPolygon", "GeometryCollection"):
+            polygons = [self.encodePolygon(geom[c], "%s_%d" % (base_id, c+1)) for c in range(0, geom.num_geom)]
         elif geom.geom_type == "Polygon":
             polygons = [self.encodePolygon(geom, base_id)]
         
@@ -98,7 +102,25 @@ class EOxSEOPEncoder(EOxSGMLEncoder):
             ]
         )
     
-    def encodeEarthObservation(self, eo_metadata):
+    def encodeMetadataProperty(self, eo_id, contributing_datasets=None):
+        sub_elements =  [
+            ("eop", "identifier", eo_id),
+            ("eop", "acquisitionType", "NOMINAL"), # TODO
+            ("eop", "status", "ARCHIVED") # TODO
+        ]
+        
+        if contributing_datasets is not None:
+            sub_elements.append(
+                ("eop", "composedOf", contributing_datasets)
+            )
+        
+        return self._makeElement(
+            "eop", "metaDataProperty", [
+                ("eop", "EarthObservationMetaData", sub_elements)
+            ]
+        )
+    
+    def encodeEarthObservation(self, eo_metadata, contributing_datasets=None):
         eo_id = eo_metadata.getEOID()
         begin_time_iso = isotime(eo_metadata.getBeginTime())
         end_time_iso = isotime(eo_metadata.getEndTime())
@@ -126,13 +148,7 @@ class EOxSEOPEncoder(EOxSGMLEncoder):
                     (self.encodeFootprint(eo_metadata.getFootprint(), eo_id),)
                 ]),
                 ("om", "result", []),
-                ("eop", "metaDataProperty", [
-                    ("eop", "EarthObservationMetaData", [
-                        ("eop", "identifier", eo_id),
-                        ("eop", "acquisitionType", "NOMINAL"), # TODO
-                        ("eop", "status", "ARCHIVED") # TODO
-                    ])
-                ])
+                (self.encodeMetadataProperty(eo_id, contributing_datasets),)
             ]
         )
 
@@ -272,14 +288,74 @@ class EOxSWCS20EOAPEncoder(EOxSWCS20Encoder):
         })
         return ns_dict
     
-    def encodeEOMetadata(self, coverage):
+    def encodeContributingDatasets(self, coverage, poly=None):
         eop_encoder = EOxSEOPEncoder()
         
-        return self._makeElement("gmlcov", "metadata", [
-            ("wcseo", "EOMetadata", [
-                (eop_encoder.encodeEarthObservation(coverage),)
-            ]),
-        ])
+        contributions = EOxSMosaicContribution.getContributions(coverage, poly)
+        
+        return [
+            (self._makeElement(
+                "wcseo", "dataset", [
+                    ("wcs", "CoverageId", contribution.dataset.getCoverageId()),
+                    ("wcseo", "contributingFootprint", eop_encoder.encodeFootprint(contribution.contributing_footprint, contribution.dataset.getEOID()))
+                ]
+            ),)
+            for contribution in contributions
+        ]
+    
+    def encodeEOMetadata(self, coverage, req=None, include_composed_of=False, poly=None): # TODO include_composed_of and poly are currently ignored
+        if coverage.getEOGML():
+            dom = minidom.parseString(coverage.getEOGML())
+            earth_observation = dom.documentElement
+        else:
+            eop_encoder = EOxSEOPEncoder()
+            earth_observation = eop_encoder.encodeEarthObservation(coverage)
+        
+        if req is None:
+            lineage = None
+        else:
+            if req.getParamType() == "kvp":
+                lineage = self._makeElement(
+                    "wcseo", "lineage", [
+                        ("wcseo", "referenceGetCoverage", [
+                            ("ows", "Reference", [
+                                ("@xlink", "href", req.http_req.build_absolute_uri().replace("&", "&amp;"))
+                            ])
+                        ]),
+                        ("gml", "timePosition", isotime(datetime.now()))
+                    ]
+                )
+            elif req.getParamType() == "xml":
+                post_dom = minidom.parseString(req.params)
+                post_xml = post_dom.documentElement
+                
+                lineage = self._makeElement(
+                    "wcseo", "lineage", [
+                        ("wcseo", "referenceGetCoverage", [
+                            ("ows", "ServiceReference", [
+                                ("@xlink", "href", req.http_req.build_absolute_uri()),
+                                ("ows", "RequestMessage", post_xml)
+                            ])
+                        ])
+                        ("gml", "timePosition", isotime(datetime.now()))
+                    ]
+                )
+            else:
+                lineage = None
+        
+        if lineage is None:
+            return self._makeElement("gmlcov", "metadata", [
+                ("wcseo", "EOMetadata", [
+                    (earth_observation,),
+                ]),
+            ])
+        else:
+            return self._makeElement("gmlcov", "metadata", [
+                ("wcseo", "EOMetadata", [
+                    (earth_observation,),
+                    (lineage,)
+                ]),
+            ])
 
     def encodeContents(self):
         return self._makeElement("wcs", "Contents", [])
@@ -287,8 +363,6 @@ class EOxSWCS20EOAPEncoder(EOxSWCS20Encoder):
     def encodeCoverageSummary(self, coverage):
         return self._makeElement("wcs", "CoverageSummary", [
             ("wcs", "CoverageId", coverage.getCoverageId()),
-            ("wcs", "CoverageSubtype", coverage.getCoverageSubtype()),
-            ("wcs", "CoverageSubtype", "RectifiedEOCoverage"),
             ("wcs", "CoverageSubtype", coverage.getEOCoverageSubtype()),
         ])
 
@@ -301,8 +375,6 @@ class EOxSWCS20EOAPEncoder(EOxSWCS20Encoder):
             (self.encodeDomainSet(coverage),),
             (self.encodeRangeType(coverage),),
             ("wcs", "ServiceParameters", [
-                ("wcs", "CoverageSubtype", coverage.getCoverageSubtype()),
-                ("wcs", "CoverageSubtype", "RectifiedEOCoverage"),
                 ("wcs", "CoverageSubtype", coverage.getEOCoverageSubtype()),
             ])
         ])
@@ -325,15 +397,22 @@ class EOxSWCS20EOAPEncoder(EOxSWCS20Encoder):
     def encodeDatasetSeriesDescriptions(self, datasetseriess):
         return self._makeElement("wcseo", "DatasetSeriesDescriptions", [(self.encodeDatasetSeriesDescription(datasetseries),) for datasetseries in datasetseriess])
         
-    def encodeEOCoverageSetDescription(self, datasetseriess, coverages):
+    def encodeEOCoverageSetDescription(self, datasetseriess, coverages, numberMatched=None, numberReturned=None):
+        if numberMatched is None:
+            numberMatched = len(coverages)
+        if numberReturned is None:
+            numberReturned = len(coverages)
+            
         return self._makeElement("wcseo", "EOCoverageSetDescription", [
             ("@xsi", "schemaLocation", "http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd"),
+            ("", "@numberMatched", str(numberMatched)),
+            ("", "@numberReturned", str(numberReturned)),
             (self.encodeCoverageDescriptions(coverages),),
             (self.encodeDatasetSeriesDescriptions(datasetseriess),),
         ])
 
     def encodeEOProfile(self):
-        return self._makeElement("ows", "Profile", "http://www.opengis.net/spec/WCS_profile_earth-observation/1.0")
+        return self._makeElement("ows", "Profile", "http://www.opengis.net/spec/WCS_profile_earth-observation/1.0/conf/ap-eo")
 
     def encodeDescribeEOCoverageSetOperation(self, http_service_url):
         return self._makeElement("ows", "Operation", [
@@ -372,4 +451,44 @@ class EOxSWCS20EOAPEncoder(EOxSWCS20Encoder):
             (self.encodeWGS84BoundingBox(dataset_series),),
             ("wcseo", "DatasetSeriesId", dataset_series.getEOID()),
             (self.encodeTimePeriod(dataset_series),)
+        ])
+
+    def encodeRectifiedDataset(self, dataset, req=None, nodes=None):
+        root_element = self._makeElement("wcseo", "RectifiedDataset", [
+            ("@xsi", "schemaLocation", "http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd"),
+            ("@gml", "id", dataset.getCoverageId())
+        ])
+        
+        if nodes is not None:
+            for node in nodes:
+                root_element.appendChild(node.cloneNode(deep=True))
+        #else: TODO
+                
+        root_element.appendChild(self.encodeEOMetadata(dataset, req))
+        
+        return root_element
+        
+    def encodeRectifiedStitchedMosaic(self, mosaic, req=None, nodes=None, poly=None):
+        root_element = self._makeElement("wcseo", "RectifiedStitchedMosaic", [
+            ("@xsi", "schemaLocation", "http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd"),
+            ("@gml", "id", mosaic.getCoverageId())
+        ])
+
+        if nodes is not None:
+            for node in nodes:
+                root_element.appendChild(node.cloneNode(deep=True))
+        #else: TODO
+        
+        root_element.appendChild(self.encodeEOMetadata(mosaic, req))
+        
+        root_element.appendChild(self._makeElement(
+            "wcseo", "datasets", self.encodeContributingDatasets(mosaic, poly)
+        ))
+        
+        return root_element
+    def encodeCountDefaultConstraint(self, count):
+        return self._makeElement("ows", "Constraint", [
+            ("", "@name", "CountDefault"),
+            ("ows", "NoValues", ""),
+            ("ows", "DefaultValue", count)
         ])

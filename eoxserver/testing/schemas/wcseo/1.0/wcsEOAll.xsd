@@ -8,7 +8,7 @@
     <annotation>
         <appinfo>wcsEOAll.xsd</appinfo>
         <documentation>This XML Schema Document includes, directly and indirectly, all the XML Schema Documents defined by the OGC Web Coverage Service (WCS) - Earth Observation Application Profile (EO-AP).
-            Last updated: 2011-jan-04
+            Last updated: 2011-feb-04
             Copyright (c) 2011 Open Geospatial Consortium, Inc. All Rights Reserved.
             To obtain additional rights of use, visit http://www.opengeospatial.org/legal/.
         </documentation>
@@ -16,6 +16,8 @@
     <!-- =========================================================== -->
     <!-- includes and imports                                        -->
     <!-- =========================================================== -->
+    <include schemaLocation="wcsEOCommon.xsd"/>
+    <include schemaLocation="wcsEOCoverage.xsd"/>
     <include schemaLocation="wcsEOGetCapabilities.xsd"/>
     <include schemaLocation="wcsEODescribeEOCoverageSet.xsd"/>
 </schema>

@@ -1,0 +1,507 @@
+[
+    {
+        "pk": 1, 
+        "model": "server.eoxsnilvaluerecord", 
+        "fields": {
+            "reason": "No Data", 
+            "value": 255
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "server.eoxschannelrecord", 
+        "fields": {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+            "name": "red", 
+            "allowed_values_end": 255, 
+            "nil_values": [], 
+            "allowed_values_significant_figures": 3, 
+            "identifier": "red", 
+            "allowed_values_start": 0, 
+            "uom": "W.m-2.Sr-1", 
+            "description": "Red Channel"
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "server.eoxschannelrecord", 
+        "fields": {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+            "name": "green", 
+            "allowed_values_end": 255, 
+            "nil_values": [], 
+            "allowed_values_significant_figures": 3, 
+            "identifier": "green", 
+            "allowed_values_start": 0, 
+            "uom": "W.m-2.Sr-1", 
+            "description": "Green Channel"
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "server.eoxschannelrecord", 
+        "fields": {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+            "name": "blue", 
+            "allowed_values_end": 255, 
+            "nil_values": [], 
+            "allowed_values_significant_figures": 3, 
+            "identifier": "blue", 
+            "allowed_values_start": 0, 
+            "uom": "W.m-2.Sr-1", 
+            "description": "Blue Channel"
+        }
+    }, 
+    {
+        "pk": 4, 
+        "model": "server.eoxschannelrecord", 
+        "fields": {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+            "name": "gray", 
+            "allowed_values_end": 255, 
+            "nil_values": [
+                1
+            ], 
+            "allowed_values_significant_figures": 3, 
+            "identifier": "blue", 
+            "allowed_values_start": 0, 
+            "uom": "W.m-2.Sr-1", 
+            "description": "Gray Channel"
+        }
+    }, 
+    {
+        "pk": 5, 
+        "model": "server.eoxschannelrecord", 
+        "fields": {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+            "name": "MERIS_radiance_01_uint16", 
+            "allowed_values_end": 65535, 
+            "nil_values": [], 
+            "allowed_values_significant_figures": 5, 
+            "identifier": "MERIS_radiance_01_uint16", 
+            "allowed_values_start": 0, 
+            "uom": "W.m-2.sr-1.nm-1", 
+            "description": "MERIS first band"
+        }
+    }, 
+    {
+        "pk": 6, 
+        "model": "server.eoxschannelrecord", 
+        "fields": {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+            "name": "MERIS_radiance_02_uint16", 
+            "allowed_values_end": 65535, 
+            "nil_values": [], 
+            "allowed_values_significant_figures": 5, 
+            "identifier": "MERIS_radiance_02_uint16", 
+            "allowed_values_start": 0, 
+            "uom": "W.m-2.sr-1.nm-1", 
+            "description": "MERIS uint16 second band"
+        }
+    }, 
+    {
+        "pk": 7, 
+        "model": "server.eoxschannelrecord", 
+        "fields": {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+            "name": "MERIS_radiance_03_uint16", 
+            "allowed_values_end": 65535, 
+            "nil_values": [], 
+            "allowed_values_significant_figures": 5, 
+            "identifier": "MERIS_radiance_03_uint16", 
+            "allowed_values_start": 0, 
+            "uom": "W.m-2.sr-1.nm-1", 
+            "description": "MERIS uint16 third band"
+        }
+    }, 
+    {
+        "pk": 8, 
+        "model": "server.eoxschannelrecord", 
+        "fields": {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+            "name": "MERIS_radiance_04_uint16", 
+            "allowed_values_end": 65535, 
+            "nil_values": [], 
+            "allowed_values_significant_figures": 5, 
+            "identifier": "MERIS_radiance_04_uint16", 
+            "allowed_values_start": 0, 
+            "uom": "W.m-2.sr-1.nm-1", 
+            "description": "MERIS uint16 fourth band"
+        }
+    }, 
+    {
+        "pk": 9, 
+        "model": "server.eoxschannelrecord", 
+        "fields": {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+            "name": "MERIS_radiance_05_uint16", 
+            "allowed_values_end": 65535, 
+            "nil_values": [], 
+            "allowed_values_significant_figures": 5, 
+            "identifier": "MERIS_radiance_05_uint16", 
+            "allowed_values_start": 0, 
+            "uom": "W.m-2.sr-1.nm-1", 
+            "description": "MERIS uint16 fifth band"
+        }
+    }, 
+    {
+        "pk": 10, 
+        "model": "server.eoxschannelrecord", 
+        "fields": {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+            "name": "MERIS_radiance_06_uint16", 
+            "allowed_values_end": 65535, 
+            "nil_values": [], 
+            "allowed_values_significant_figures": 5, 
+            "identifier": "MERIS_radiance_06_uint16", 
+            "allowed_values_start": 0, 
+            "uom": "W.m-2.sr-1.nm-1", 
+            "description": "MERIS uint16 sixth band"
+        }
+    }, 
+    {
+        "pk": 11, 
+        "model": "server.eoxschannelrecord", 
+        "fields": {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+            "name": "MERIS_radiance_07_uint16", 
+            "allowed_values_end": 65535, 
+            "nil_values": [], 
+            "allowed_values_significant_figures": 5, 
+            "identifier": "MERIS_radiance_07_uint16", 
+            "allowed_values_start": 0, 
+            "uom": "W.m-2.sr-1.nm-1", 
+            "description": "MERIS uint16 seventh band"
+        }
+    }, 
+    {
+        "pk": 12, 
+        "model": "server.eoxschannelrecord", 
+        "fields": {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+            "name": "MERIS_radiance_08_uint16", 
+            "allowed_values_end": 65535, 
+            "nil_values": [], 
+            "allowed_values_significant_figures": 5, 
+            "identifier": "MERIS_radiance_08_uint16", 
+            "allowed_values_start": 0, 
+            "uom": "W.m-2.sr-1.nm-1", 
+            "description": "MERIS uint16 eighth band"
+        }
+    }, 
+    {
+        "pk": 13, 
+        "model": "server.eoxschannelrecord", 
+        "fields": {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+            "name": "MERIS_radiance_09_uint16", 
+            "allowed_values_end": 65535, 
+            "nil_values": [], 
+            "allowed_values_significant_figures": 5, 
+            "identifier": "MERIS_radiance_09_uint16", 
+            "allowed_values_start": 0, 
+            "uom": "W.m-2.sr-1.nm-1", 
+            "description": "MERIS uint16 ninth band"
+        }
+    }, 
+    {
+        "pk": 14, 
+        "model": "server.eoxschannelrecord", 
+        "fields": {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+            "name": "MERIS_radiance_10_uint16", 
+            "allowed_values_end": 65535, 
+            "nil_values": [], 
+            "allowed_values_significant_figures": 5, 
+            "identifier": "MERIS_radiance_10_uint16", 
+            "allowed_values_start": 0, 
+            "uom": "W.m-2.sr-1.nm-1", 
+            "description": "MERIS uint16 tenth band"
+        }
+    }, 
+    {
+        "pk": 15, 
+        "model": "server.eoxschannelrecord", 
+        "fields": {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+            "name": "MERIS_radiance_11_uint16", 
+            "allowed_values_end": 65535, 
+            "nil_values": [], 
+            "allowed_values_significant_figures": 5, 
+            "identifier": "MERIS_radiance_11_uint16", 
+            "allowed_values_start": 0, 
+            "uom": "W.m-2.sr-1.nm-1", 
+            "description": "MERIS uint16 eleventh band"
+        }
+    }, 
+    {
+        "pk": 16, 
+        "model": "server.eoxschannelrecord", 
+        "fields": {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+            "name": "MERIS_radiance_12_uint16", 
+            "allowed_values_end": 65535, 
+            "nil_values": [], 
+            "allowed_values_significant_figures": 5, 
+            "identifier": "MERIS_radiance_12_uint16", 
+            "allowed_values_start": 0, 
+            "uom": "W.m-2.sr-1.nm-1", 
+            "description": "MERIS uint16 twelfth band"
+        }
+    }, 
+    {
+        "pk": 17, 
+        "model": "server.eoxschannelrecord", 
+        "fields": {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+            "name": "MERIS_radiance_13_uint16", 
+            "allowed_values_end": 65535, 
+            "nil_values": [], 
+            "allowed_values_significant_figures": 5, 
+            "identifier": "MERIS_radiance_13_uint16", 
+            "allowed_values_start": 0, 
+            "uom": "W.m-2.sr-1.nm-1", 
+            "description": "MERIS uint 16 thirteenth band"
+        }
+    }, 
+    {
+        "pk": 18, 
+        "model": "server.eoxschannelrecord", 
+        "fields": {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+            "name": "MERIS_radiance_14_uint16", 
+            "allowed_values_end": 65535, 
+            "nil_values": [], 
+            "allowed_values_significant_figures": 5, 
+            "identifier": "MERIS_radiance_14_uint16", 
+            "allowed_values_start": 0, 
+            "uom": "W.m-2.sr-1.nm-1", 
+            "description": "MERIS uint16 fourteenth band"
+        }
+    }, 
+    {
+        "pk": 19, 
+        "model": "server.eoxschannelrecord", 
+        "fields": {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+            "name": "MERIS_radiance_15_uint16", 
+            "allowed_values_end": 65535, 
+            "nil_values": [], 
+            "allowed_values_significant_figures": 5, 
+            "identifier": "MERIS_radiance_15_uint16", 
+            "allowed_values_start": 0, 
+            "uom": "W.m-2.sr-1.nm-1", 
+            "description": "MERIS uint16 fifteenth band"
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "server.eoxsrangetype", 
+        "fields": {
+            "name": "RGB"
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "server.eoxsrangetype", 
+        "fields": {
+            "name": "Grayscale"
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "server.eoxsrangetype", 
+        "fields": {
+            "name": "MERIS_uint16"
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "server.eoxsrangetype2channel", 
+        "fields": {
+            "range_type": 1, 
+            "channel": 1, 
+            "no": 1
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "server.eoxsrangetype2channel", 
+        "fields": {
+            "range_type": 1, 
+            "channel": 2, 
+            "no": 2
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "server.eoxsrangetype2channel", 
+        "fields": {
+            "range_type": 1, 
+            "channel": 3, 
+            "no": 3
+        }
+    }, 
+    {
+        "pk": 4, 
+        "model": "server.eoxsrangetype2channel", 
+        "fields": {
+            "range_type": 2, 
+            "channel": 4, 
+            "no": 1
+        }
+    }, 
+    {
+        "pk": 5, 
+        "model": "server.eoxsrangetype2channel", 
+        "fields": {
+            "range_type": 3, 
+            "channel": 5, 
+            "no": 1
+        }
+    }, 
+    {
+        "pk": 6, 
+        "model": "server.eoxsrangetype2channel", 
+        "fields": {
+            "range_type": 3, 
+            "channel": 6, 
+            "no": 2
+        }
+    }, 
+    {
+        "pk": 7, 
+        "model": "server.eoxsrangetype2channel", 
+        "fields": {
+            "range_type": 3, 
+            "channel": 7, 
+            "no": 3
+        }
+    }, 
+    {
+        "pk": 8, 
+        "model": "server.eoxsrangetype2channel", 
+        "fields": {
+            "range_type": 3, 
+            "channel": 8, 
+            "no": 4
+        }
+    }, 
+    {
+        "pk": 9, 
+        "model": "server.eoxsrangetype2channel", 
+        "fields": {
+            "range_type": 3, 
+            "channel": 9, 
+            "no": 5
+        }
+    }, 
+    {
+        "pk": 10, 
+        "model": "server.eoxsrangetype2channel", 
+        "fields": {
+            "range_type": 3, 
+            "channel": 10, 
+            "no": 6
+        }
+    }, 
+    {
+        "pk": 11, 
+        "model": "server.eoxsrangetype2channel", 
+        "fields": {
+            "range_type": 3, 
+            "channel": 11, 
+            "no": 7
+        }
+    }, 
+    {
+        "pk": 12, 
+        "model": "server.eoxsrangetype2channel", 
+        "fields": {
+            "range_type": 3, 
+            "channel": 12, 
+            "no": 8
+        }
+    }, 
+    {
+        "pk": 13, 
+        "model": "server.eoxsrangetype2channel", 
+        "fields": {
+            "range_type": 3, 
+            "channel": 13, 
+            "no": 9
+        }
+    }, 
+    {
+        "pk": 14, 
+        "model": "server.eoxsrangetype2channel", 
+        "fields": {
+            "range_type": 3, 
+            "channel": 14, 
+            "no": 10
+        }
+    }, 
+    {
+        "pk": 15, 
+        "model": "server.eoxsrangetype2channel", 
+        "fields": {
+            "range_type": 3, 
+            "channel": 15, 
+            "no": 11
+        }
+    }, 
+    {
+        "pk": 16, 
+        "model": "server.eoxsrangetype2channel", 
+        "fields": {
+            "range_type": 3, 
+            "channel": 16, 
+            "no": 12
+        }
+    }, 
+    {
+        "pk": 17, 
+        "model": "server.eoxsrangetype2channel", 
+        "fields": {
+            "range_type": 3, 
+            "channel": 17, 
+            "no": 13
+        }
+    }, 
+    {
+        "pk": 18, 
+        "model": "server.eoxsrangetype2channel", 
+        "fields": {
+            "range_type": 3, 
+            "channel": 18, 
+            "no": 14
+        }
+    }, 
+    {
+        "pk": 19, 
+        "model": "server.eoxsrangetype2channel", 
+        "fields": {
+            "range_type": 3, 
+            "channel": 19, 
+            "no": 15
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "auth.user", 
+        "fields": {
+            "username": "admin", 
+            "first_name": "", 
+            "last_name": "", 
+            "is_active": true, 
+            "is_superuser": true, 
+            "is_staff": true, 
+            "last_login": "2011-02-21 18:13:54", 
+            "groups": [], 
+            "user_permissions": [], 
+            "password": "sha1$0996d$4bc564749c42cf6d461ef373bd22aadd6425038f", 
+            "email": "office@eox.at", 
+            "date_joined": "2010-08-31 19:16:40"
+        }
+    }
+]

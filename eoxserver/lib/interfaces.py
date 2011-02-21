@@ -178,6 +178,14 @@ class EOxSEOMetadataInterface(object):
         @return a 4-tuple of (minx, miny, maxx, maxy)
         """
         return None
+        
+    def getEOGML(self):
+        """
+        Returns the EO GML associated with the coverage
+        
+        @return a string containing the EO GML
+        """
+        return None
     
 class EOxSDatasetInterface(EOxSCoverageInterface):
     def getFilename(self):
@@ -299,6 +307,9 @@ class EOxSEOMetadataRecordInterface(object):
     
     def getWGS84Extent(self):
         return self.wcseo_object.eo_metadata.footprint.extent
+        
+    def getEOGML(self):
+        return self.wcseo_object.eo_metadata.eo_gml
 
 class EOxSEOCoverageRecordInterface(EOxSCoverageRecordInterface, EOxSEOMetadataRecordInterface):
     def getEOID(self):
@@ -346,7 +357,7 @@ class EOxSRectifiedCompositeObjectInterface(object):
         query_set = self.wcseo_object.rect_datasets.all()
         
         for slice in slices:
-            if slice.dimension in ("t", "time"): # TODO
+            if slice.dimension in ("t", "time", "phenomenonTime"): # TODO
                 if slice.crs is None or slice.crs == "http://www.opengis.net/def/trs/ISO-8601/0/Gregorian+UTC":
                     query_set = query_set.filter(
                         eo_metadata__timestamp_begin__lte=slice.slice_point,
@@ -354,13 +365,13 @@ class EOxSRectifiedCompositeObjectInterface(object):
                     )
                 else:
                     raise EOxSUnknownCRSException("Time reference system '%s' not recognized. Please use UTC." % slice.crs)
-            elif slice.dimension in ("x", "long"): # TODO
+            elif slice.dimension in ("x", "long", "Long"): # TODO
                 spatial_slices.append(slice)
-            elif slice.dimension in ("y", "lat"): # TODO
+            elif slice.dimension in ("y", "lat", "Lat"): # TODO
                 spatial_slices.append(slice)
 
         for trim in trims:
-            if trim.dimension in ("t", "time"): # TODO
+            if trim.dimension in ("t", "time", "phenomenonTime"): # TODO
                 if trim.crs is None or trim.crs == "http://www.opengis.net/def/trs/ISO-8601/0/Gregorian+UTC":
                     if trim.trim_low is not None:
                         dt_low = trim.trim_low
@@ -385,7 +396,7 @@ class EOxSRectifiedCompositeObjectInterface(object):
                         )
                 else:
                     raise EOxSUnknownCRSException("Time reference system '%s' not recognized. Please use UTC." % trim.crs)
-            elif trim.dimension in ("x", "long", "y", "lat"): # TODO
+            elif trim.dimension in ("x", "long", "Long", "y", "lat", "Lat"): # TODO
                 spatial_trims.append(trim)
                 
         datasets = []
@@ -438,13 +449,13 @@ class EOxSRectifiedDatasetRecordInterface(EOxSEOCoverageRecordInterface, EOxSFil
             trims = []
             
         for slice in slices:
-            if slice.dimension in ("t", "time") and not self.timeSliceWithin(slice): # TODO
+            if slice.dimension in ("t", "time", "phenomenonTime") and not self.timeSliceWithin(slice): # TODO
                 return []
             elif not self.spatialSliceWithin(slice):
                 return []
         
         for trim in trims:
-            if trim.dimension in ("t", "time"): # TODO
+            if trim.dimension in ("t", "time", "phenomenonTime"): # TODO
                 if containment == "overlaps" and not self.timeOverlaps(trim):
                     return []
                 elif containment == "contains" and not self.timeWithin(trim):

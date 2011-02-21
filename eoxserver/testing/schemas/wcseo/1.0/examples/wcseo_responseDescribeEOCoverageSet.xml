@@ -1,5 +1,7 @@
 <?xml version='1.0' encoding='ISO-8859-1'?>
 <wcseo:EOCoverageSetDescription
+    numberMatched="1"
+    numberReturned="1"
     xmlns:ows="http://www.opengis.net/ows/2.0"
     xmlns:gml="http://www.opengis.net/gml/3.2"
     xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0"
@@ -168,7 +170,7 @@
                         <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
                             <swe:description>Red Channel</swe:description>
                             <swe:nilValues/>
-                            <swe:uom code="W/cm2"/>
+                            <swe:uom code="W.m-2.Sr-1"/>
                             <swe:constraint>
                                 <swe:AllowedValues>
                                     <swe:interval>0 255</swe:interval>
@@ -181,7 +183,7 @@
                         <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
                             <swe:description>Green Channel</swe:description>
                             <swe:nilValues/>
-                            <swe:uom code="W/cm2"/>
+                            <swe:uom code="W.m-2.Sr-1"/>
                             <swe:constraint>
                                 <swe:AllowedValues>
                                     <swe:interval>0 255</swe:interval>
@@ -194,7 +196,7 @@
                         <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
                             <swe:description>Blue Channel</swe:description>
                             <swe:nilValues/>
-                            <swe:uom code="W/cm2"/>
+                            <swe:uom code="W.m-2.Sr-1"/>
                             <swe:constraint>
                                 <swe:AllowedValues>
                                     <swe:interval>0 255</swe:interval>
@@ -206,8 +208,6 @@
                 </swe:DataRecord>
             </gmlcov:rangeType>
             <wcs:ServiceParameters>
-                <wcs:CoverageSubtype>RectifiedGridCoverage</wcs:CoverageSubtype>
-                <wcs:CoverageSubtype>RectifiedEOCoverage</wcs:CoverageSubtype>
                 <wcs:CoverageSubtype>RectifiedDataset</wcs:CoverageSubtype>
             </wcs:ServiceParameters>
         </wcs:CoverageDescription>

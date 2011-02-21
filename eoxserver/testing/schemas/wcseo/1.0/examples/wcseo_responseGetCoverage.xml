@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<gmlcov:RectifiedGridCoverage
+<wcseo:RectifiedDataset
     xmlns:ows="http://www.opengis.net/ows/2.0"
     xmlns:gml="http://www.opengis.net/gml/3.2"
     xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0"
@@ -51,7 +51,7 @@
                 <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
                     <swe:description>Gray Channel</swe:description>
                     <swe:nilValues/>
-                    <swe:uom code="W/cm2"/>
+                    <swe:uom code="W.m-2.Sr-1"/>
                     <swe:constraint>
                         <swe:AllowedValues>
                             <swe:interval>0 255</swe:interval>
@@ -163,7 +163,7 @@
                 </om:result>
                 <eop:metaDataProperty>
                     <eop:EarthObservationMetaData>
-                        <eop:identifier>a</eop:identifier>
+                        <eop:identifier>c1</eop:identifier>
                         <eop:acquisitionType>NOMINAL</eop:acquisitionType>
                         <eop:productType>TBD</eop:productType>
                         <eop:status>ARCHIVED</eop:status>
@@ -184,7 +184,32 @@
                     </eop:EarthObservationMetaData>
                 </eop:metaDataProperty>
             </eop:EarthObservation>
-            <wcseo:lineage><![CDATA[GetCoverage request: http://www.someWCS.org?SERVICE=WCS&VERSION=2.0.0&REQUEST=GetCoverage&FORMAT=application/gml+xml]]></wcseo:lineage>
+            <wcseo:lineage>
+                <!-- GetCoverage request via KVP -->
+                <wcseo:referenceGetCoverage>
+                    <ows:Reference xlink:href="http://www.someWCS.org?SERVICE=WCS&amp;VERSION=2.0.0&amp;REQUEST=GetCoverage&amp;COVERAGEID=c1&amp;FORMAT=application/gml+xml"/>
+                </wcseo:referenceGetCoverage>
+                <gml:timePosition>2011-02-04T15:45:52Z</gml:timePosition>
+            </wcseo:lineage>
+            <wcseo:lineage>
+                <!-- GetCoverage request via POST -->
+                <wcseo:referenceGetCoverage>
+                    <ows:ServiceReference xlink:href="http://www.someWCS.org">
+                        <ows:RequestMessage>
+                            <wcs:GetCoverage
+                                xmlns:wcs="http://www.opengis.net/wcs/2.0"
+                                xmlns:gml="http://www.opengis.net/gml/3.2"
+                                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                xsi:schemaLocation="http://www.opengis.net/wcs/2.0 http://schemas.opengis.net/wcs/2.0/wcsAll.xsd"
+                                service="WCS" version="2.0.0">
+                                <wcs:format>application/gml+xml</wcs:format>
+                                <wcs:CoverageId>c1</wcs:CoverageId>
+                            </wcs:GetCoverage>
+                        </ows:RequestMessage>
+                    </ows:ServiceReference>
+                </wcseo:referenceGetCoverage>
+                <gml:timePosition>2011-02-04T15:45:52Z</gml:timePosition>
+            </wcseo:lineage>
         </wcseo:EOMetadata>
     </gmlcov:metadata>
-</gmlcov:RectifiedGridCoverage>
+</wcseo:RectifiedDataset>

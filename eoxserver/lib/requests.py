@@ -32,8 +32,10 @@ from eoxserver.lib.util import EOxSKVPDecoder, EOxSXMLDecoder
 from eoxserver.contrib import mapscript
 
 class EOxSOWSRequest(object):
-    def __init__(self, params='', param_type='kvp', decoder=None):
+    def __init__(self, http_req, params='', param_type='kvp', decoder=None):
         super(EOxSOWSRequest, self).__init__()
+        
+        self.http_req = http_req
         
         self.params = params
         
@@ -69,7 +71,7 @@ class EOxSOWSRequest(object):
 
 class EOxSMapServerRequest(EOxSOWSRequest):
     def __init__(self, req):
-        super(EOxSMapServerRequest, self).__init__(params=req.params, decoder=req.decoder)
+        super(EOxSMapServerRequest, self).__init__(req.http_req, params=req.params, decoder=req.decoder)
         
         self.version = req.version
         
