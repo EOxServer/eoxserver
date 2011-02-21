@@ -1,0 +1,1074 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>eoxserver.modules.wms1x</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="eoxserver-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >EOxServer</th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="eoxserver-module.html">Package&nbsp;eoxserver</a> ::
+        <a href="eoxserver.modules-module.html">Package&nbsp;modules</a> ::
+        Module&nbsp;wms1x
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="eoxserver.modules.wms1x-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="eoxserver.modules.wms1x-module.html">Module eoxserver.modules.wms1x</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">  1</tt>  <tt class="py-line"><tt class="py-comment">#-----------------------------------------------------------------------</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">  2</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"><tt class="py-comment"># This software is named EOxServer, a server for Earth Observation data.</tt> </tt>
+<a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L5"></a><tt class="py-lineno">  5</tt>  <tt class="py-line"><tt class="py-comment"># Copyright (C) 2011 EOX IT Services GmbH</tt> </tt>
+<a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line"><tt class="py-comment"># Authors: Stephan Krause, Stephan Meissl</tt> </tt>
+<a name="L7"></a><tt class="py-lineno">  7</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line"><tt class="py-comment"># This file is part of EOxServer &lt;http://www.eoxserver.org&gt;.</tt> </tt>
+<a name="L9"></a><tt class="py-lineno">  9</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L10"></a><tt class="py-lineno"> 10</tt>  <tt class="py-line"><tt class="py-comment">#    EOxServer is free software: you can redistribute it and/or modify</tt> </tt>
+<a name="L11"></a><tt class="py-lineno"> 11</tt>  <tt class="py-line"><tt class="py-comment">#    it under the terms of the GNU General Public License as published</tt> </tt>
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-comment">#    by the Free Software Foundation, either version 3 of the License,</tt> </tt>
+<a name="L13"></a><tt class="py-lineno"> 13</tt>  <tt class="py-line"><tt class="py-comment">#    or (at your option) any later version.</tt> </tt>
+<a name="L14"></a><tt class="py-lineno"> 14</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L15"></a><tt class="py-lineno"> 15</tt>  <tt class="py-line"><tt class="py-comment">#    EOxServer is distributed in the hope that it will be useful,</tt> </tt>
+<a name="L16"></a><tt class="py-lineno"> 16</tt>  <tt class="py-line"><tt class="py-comment">#    but WITHOUT ANY WARRANTY; without even the implied warranty of</tt> </tt>
+<a name="L17"></a><tt class="py-lineno"> 17</tt>  <tt class="py-line"><tt class="py-comment">#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the</tt> </tt>
+<a name="L18"></a><tt class="py-lineno"> 18</tt>  <tt class="py-line"><tt class="py-comment">#    GNU General Public License for more details.</tt> </tt>
+<a name="L19"></a><tt class="py-lineno"> 19</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L20"></a><tt class="py-lineno"> 20</tt>  <tt class="py-line"><tt class="py-comment">#    You should have received a copy of the GNU General Public License</tt> </tt>
+<a name="L21"></a><tt class="py-lineno"> 21</tt>  <tt class="py-line"><tt class="py-comment">#    along with EOxServer. If not, see &lt;http://www.gnu.org/licenses/&gt;.</tt> </tt>
+<a name="L22"></a><tt class="py-lineno"> 22</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line"><tt class="py-comment">#-----------------------------------------------------------------------</tt> </tt>
+<a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line"> </tt>
+<a name="L25"></a><tt class="py-lineno"> 25</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">re</tt> </tt>
+<a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line"> </tt>
+<a name="L27"></a><tt class="py-lineno"> 27</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">logging</tt> </tt>
+<a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">os</tt> </tt>
+<a name="L29"></a><tt class="py-lineno"> 29</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-0" class="py-name" targets="Variable eoxserver.server.models.EOxSFileRecord.path=eoxserver.server.models.EOxSFileRecord-class.html#path"><a title="eoxserver.server.models.EOxSFileRecord.path" class="py-name" href="#" onclick="return doclink('link-0', 'path', 'link-0');">path</a></tt> </tt>
+<a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line"> </tt>
+<a name="L31"></a><tt class="py-lineno"> 31</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-1" class="py-name" targets="Package eoxserver=eoxserver-module.html"><a title="eoxserver" class="py-name" href="#" onclick="return doclink('link-1', 'eoxserver', 'link-1');">eoxserver</a></tt><tt class="py-op">.</tt><tt id="link-2" class="py-name" targets="Package eoxserver.lib=eoxserver.lib-module.html"><a title="eoxserver.lib" class="py-name" href="#" onclick="return doclink('link-2', 'lib', 'link-2');">lib</a></tt><tt class="py-op">.</tt><tt id="link-3" class="py-name" targets="Module eoxserver.lib.handlers=eoxserver.lib.handlers-module.html"><a title="eoxserver.lib.handlers" class="py-name" href="#" onclick="return doclink('link-3', 'handlers', 'link-3');">handlers</a></tt> <tt class="py-keyword">import</tt> <tt id="link-4" class="py-name" targets="Class eoxserver.lib.handlers.EOxSMapServerOperationHandler=eoxserver.lib.handlers.EOxSMapServerOperationHandler-class.html"><a title="eoxserver.lib.handlers.EOxSMapServerOperationHandler" class="py-name" href="#" onclick="return doclink('link-4', 'EOxSMapServerOperationHandler', 'link-4');">EOxSMapServerOperationHandler</a></tt><tt class="py-op">,</tt> <tt id="link-5" class="py-name" targets="Class eoxserver.lib.handlers.EOxSExceptionHandler=eoxserver.lib.handlers.EOxSExceptionHandler-class.html"><a title="eoxserver.lib.handlers.EOxSExceptionHandler" class="py-name" href="#" onclick="return doclink('link-5', 'EOxSExceptionHandler', 'link-5');">EOxSExceptionHandler</a></tt><tt class="py-op">,</tt> <tt id="link-6" class="py-name" targets="Class eoxserver.lib.handlers.EOxSExceptionEncoder=eoxserver.lib.handlers.EOxSExceptionEncoder-class.html"><a title="eoxserver.lib.handlers.EOxSExceptionEncoder" class="py-name" href="#" onclick="return doclink('link-6', 'EOxSExceptionEncoder', 'link-6');">EOxSExceptionEncoder</a></tt> </tt>
+<a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-7" class="py-name"><a title="eoxserver" class="py-name" href="#" onclick="return doclink('link-7', 'eoxserver', 'link-1');">eoxserver</a></tt><tt class="py-op">.</tt><tt id="link-8" class="py-name"><a title="eoxserver.lib" class="py-name" href="#" onclick="return doclink('link-8', 'lib', 'link-2');">lib</a></tt><tt class="py-op">.</tt><tt id="link-9" class="py-name" targets="Module eoxserver.lib.ows=eoxserver.lib.ows-module.html,Function eoxserver.server.views.ows()=eoxserver.server.views-module.html#ows"><a title="eoxserver.lib.ows
+eoxserver.server.views.ows" class="py-name" href="#" onclick="return doclink('link-9', 'ows', 'link-9');">ows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-10" class="py-name" targets="Class eoxserver.lib.ows.EOxSOWSCommonServiceHandler=eoxserver.lib.ows.EOxSOWSCommonServiceHandler-class.html"><a title="eoxserver.lib.ows.EOxSOWSCommonServiceHandler" class="py-name" href="#" onclick="return doclink('link-10', 'EOxSOWSCommonServiceHandler', 'link-10');">EOxSOWSCommonServiceHandler</a></tt><tt class="py-op">,</tt> <tt id="link-11" class="py-name" targets="Class eoxserver.lib.ows.EOxSOWSCommonVersionHandler=eoxserver.lib.ows.EOxSOWSCommonVersionHandler-class.html"><a title="eoxserver.lib.ows.EOxSOWSCommonVersionHandler" class="py-name" href="#" onclick="return doclink('link-11', 'EOxSOWSCommonVersionHandler', 'link-11');">EOxSOWSCommonVersionHandler</a></tt> </tt>
+<a name="L33"></a><tt class="py-lineno"> 33</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-12" class="py-name"><a title="eoxserver" class="py-name" href="#" onclick="return doclink('link-12', 'eoxserver', 'link-1');">eoxserver</a></tt><tt class="py-op">.</tt><tt id="link-13" class="py-name"><a title="eoxserver.lib" class="py-name" href="#" onclick="return doclink('link-13', 'lib', 'link-2');">lib</a></tt><tt class="py-op">.</tt><tt id="link-14" class="py-name" targets="Module eoxserver.lib.ogc=eoxserver.lib.ogc-module.html"><a title="eoxserver.lib.ogc" class="py-name" href="#" onclick="return doclink('link-14', 'ogc', 'link-14');">ogc</a></tt> <tt class="py-keyword">import</tt> <tt id="link-15" class="py-name" targets="Class eoxserver.lib.ogc.EOxSOGCExceptionHandler=eoxserver.lib.ogc.EOxSOGCExceptionHandler-class.html"><a title="eoxserver.lib.ogc.EOxSOGCExceptionHandler" class="py-name" href="#" onclick="return doclink('link-15', 'EOxSOGCExceptionHandler', 'link-15');">EOxSOGCExceptionHandler</a></tt> </tt>
+<a name="L34"></a><tt class="py-lineno"> 34</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-16" class="py-name"><a title="eoxserver" class="py-name" href="#" onclick="return doclink('link-16', 'eoxserver', 'link-1');">eoxserver</a></tt><tt class="py-op">.</tt><tt id="link-17" class="py-name"><a title="eoxserver.lib" class="py-name" href="#" onclick="return doclink('link-17', 'lib', 'link-2');">lib</a></tt><tt class="py-op">.</tt><tt id="link-18" class="py-name" targets="Module eoxserver.lib.domainset=eoxserver.lib.domainset-module.html"><a title="eoxserver.lib.domainset" class="py-name" href="#" onclick="return doclink('link-18', 'domainset', 'link-18');">domainset</a></tt> <tt class="py-keyword">import</tt> <tt id="link-19" class="py-name" targets="Class eoxserver.lib.domainset.EOxSTrim=eoxserver.lib.domainset.EOxSTrim-class.html"><a title="eoxserver.lib.domainset.EOxSTrim" class="py-name" href="#" onclick="return doclink('link-19', 'EOxSTrim', 'link-19');">EOxSTrim</a></tt><tt class="py-op">,</tt> <tt id="link-20" class="py-name" targets="Class eoxserver.lib.domainset.EOxSSlice=eoxserver.lib.domainset.EOxSSlice-class.html"><a title="eoxserver.lib.domainset.EOxSSlice" class="py-name" href="#" onclick="return doclink('link-20', 'EOxSSlice', 'link-20');">EOxSSlice</a></tt> </tt>
+<a name="L35"></a><tt class="py-lineno"> 35</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-21" class="py-name"><a title="eoxserver" class="py-name" href="#" onclick="return doclink('link-21', 'eoxserver', 'link-1');">eoxserver</a></tt><tt class="py-op">.</tt><tt id="link-22" class="py-name"><a title="eoxserver.lib" class="py-name" href="#" onclick="return doclink('link-22', 'lib', 'link-2');">lib</a></tt><tt class="py-op">.</tt><tt id="link-23" class="py-name" targets="Module eoxserver.lib.requests=eoxserver.lib.requests-module.html"><a title="eoxserver.lib.requests" class="py-name" href="#" onclick="return doclink('link-23', 'requests', 'link-23');">requests</a></tt> <tt class="py-keyword">import</tt> <tt id="link-24" class="py-name" targets="Class eoxserver.lib.requests.EOxSResponse=eoxserver.lib.requests.EOxSResponse-class.html"><a title="eoxserver.lib.requests.EOxSResponse" class="py-name" href="#" onclick="return doclink('link-24', 'EOxSResponse', 'link-24');">EOxSResponse</a></tt> </tt>
+<a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-25" class="py-name"><a title="eoxserver" class="py-name" href="#" onclick="return doclink('link-25', 'eoxserver', 'link-1');">eoxserver</a></tt><tt class="py-op">.</tt><tt id="link-26" class="py-name"><a title="eoxserver.lib" class="py-name" href="#" onclick="return doclink('link-26', 'lib', 'link-2');">lib</a></tt><tt class="py-op">.</tt><tt id="link-27" class="py-name" targets="Module eoxserver.lib.interfaces=eoxserver.lib.interfaces-module.html"><a title="eoxserver.lib.interfaces" class="py-name" href="#" onclick="return doclink('link-27', 'interfaces', 'link-27');">interfaces</a></tt> <tt class="py-keyword">import</tt> <tt id="link-28" class="py-name" targets="Class eoxserver.lib.interfaces.EOxSCoverageInterfaceFactory=eoxserver.lib.interfaces.EOxSCoverageInterfaceFactory-class.html"><a title="eoxserver.lib.interfaces.EOxSCoverageInterfaceFactory" class="py-name" href="#" onclick="return doclink('link-28', 'EOxSCoverageInterfaceFactory', 'link-28');">EOxSCoverageInterfaceFactory</a></tt><tt class="py-op">,</tt> <tt id="link-29" class="py-name" targets="Class eoxserver.lib.interfaces.EOxSDatasetSeriesFactory=eoxserver.lib.interfaces.EOxSDatasetSeriesFactory-class.html"><a title="eoxserver.lib.interfaces.EOxSDatasetSeriesFactory" class="py-name" href="#" onclick="return doclink('link-29', 'EOxSDatasetSeriesFactory', 'link-29');">EOxSDatasetSeriesFactory</a></tt> </tt>
+<a name="L37"></a><tt class="py-lineno"> 37</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-30" class="py-name"><a title="eoxserver" class="py-name" href="#" onclick="return doclink('link-30', 'eoxserver', 'link-1');">eoxserver</a></tt><tt class="py-op">.</tt><tt id="link-31" class="py-name"><a title="eoxserver.lib" class="py-name" href="#" onclick="return doclink('link-31', 'lib', 'link-2');">lib</a></tt><tt class="py-op">.</tt><tt id="link-32" class="py-name" targets="Module eoxserver.lib.util=eoxserver.lib.util-module.html"><a title="eoxserver.lib.util" class="py-name" href="#" onclick="return doclink('link-32', 'util', 'link-32');">util</a></tt> <tt class="py-keyword">import</tt> <tt id="link-33" class="py-name" targets="Class eoxserver.lib.util.EOxSXMLEncoder=eoxserver.lib.util.EOxSXMLEncoder-class.html"><a title="eoxserver.lib.util.EOxSXMLEncoder" class="py-name" href="#" onclick="return doclink('link-33', 'EOxSXMLEncoder', 'link-33');">EOxSXMLEncoder</a></tt><tt class="py-op">,</tt> <tt id="link-34" class="py-name" targets="Function eoxserver.lib.util.DOMtoXML()=eoxserver.lib.util-module.html#DOMtoXML"><a title="eoxserver.lib.util.DOMtoXML" class="py-name" href="#" onclick="return doclink('link-34', 'DOMtoXML', 'link-34');">DOMtoXML</a></tt><tt class="py-op">,</tt> <tt id="link-35" class="py-name" targets="Function eoxserver.lib.util.DOMElementToXML()=eoxserver.lib.util-module.html#DOMElementToXML"><a title="eoxserver.lib.util.DOMElementToXML" class="py-name" href="#" onclick="return doclink('link-35', 'DOMElementToXML', 'link-35');">DOMElementToXML</a></tt><tt class="py-op">,</tt> <tt id="link-36" class="py-name" targets="Function eoxserver.lib.util.isotime()=eoxserver.lib.util-module.html#isotime"><a title="eoxserver.lib.util.isotime" class="py-name" href="#" onclick="return doclink('link-36', 'isotime', 'link-36');">isotime</a></tt> </tt>
+<a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-37" class="py-name"><a title="eoxserver" class="py-name" href="#" onclick="return doclink('link-37', 'eoxserver', 'link-1');">eoxserver</a></tt><tt class="py-op">.</tt><tt id="link-38" class="py-name"><a title="eoxserver.lib" class="py-name" href="#" onclick="return doclink('link-38', 'lib', 'link-2');">lib</a></tt><tt class="py-op">.</tt><tt id="link-39" class="py-name" targets="Module eoxserver.lib.exceptions=eoxserver.lib.exceptions-module.html"><a title="eoxserver.lib.exceptions" class="py-name" href="#" onclick="return doclink('link-39', 'exceptions', 'link-39');">exceptions</a></tt> <tt class="py-keyword">import</tt> <tt class="py-op">(</tt><tt id="link-40" class="py-name" targets="Class eoxserver.lib.exceptions.EOxSInternalError=eoxserver.lib.exceptions.EOxSInternalError-class.html"><a title="eoxserver.lib.exceptions.EOxSInternalError" class="py-name" href="#" onclick="return doclink('link-40', 'EOxSInternalError', 'link-40');">EOxSInternalError</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line">    <tt id="link-41" class="py-name" targets="Class eoxserver.lib.exceptions.EOxSInvalidRequestException=eoxserver.lib.exceptions.EOxSInvalidRequestException-class.html"><a title="eoxserver.lib.exceptions.EOxSInvalidRequestException" class="py-name" href="#" onclick="return doclink('link-41', 'EOxSInvalidRequestException', 'link-41');">EOxSInvalidRequestException</a></tt><tt class="py-op">,</tt> <tt id="link-42" class="py-name" targets="Class eoxserver.lib.exceptions.EOxSNoSuchCoverageException=eoxserver.lib.exceptions.EOxSNoSuchCoverageException-class.html"><a title="eoxserver.lib.exceptions.EOxSNoSuchCoverageException" class="py-name" href="#" onclick="return doclink('link-42', 'EOxSNoSuchCoverageException', 'link-42');">EOxSNoSuchCoverageException</a></tt> </tt>
+<a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line"><tt class="py-op">)</tt> </tt>
+<a name="L41"></a><tt class="py-lineno"> 41</tt>  <tt class="py-line"> </tt>
+<a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-43" class="py-name"><a title="eoxserver" class="py-name" href="#" onclick="return doclink('link-43', 'eoxserver', 'link-1');">eoxserver</a></tt><tt class="py-op">.</tt><tt id="link-44" class="py-name" targets="Package eoxserver.contrib=eoxserver.contrib-module.html"><a title="eoxserver.contrib" class="py-name" href="#" onclick="return doclink('link-44', 'contrib', 'link-44');">contrib</a></tt> <tt class="py-keyword">import</tt> <tt class="py-name">mapscript</tt> </tt>
+<a name="L43"></a><tt class="py-lineno"> 43</tt>  <tt class="py-line"> </tt>
+<a name="EOxSWMSServiceHandler"></a><div id="EOxSWMSServiceHandler-def"><a name="L44"></a><tt class="py-lineno"> 44</tt> <a class="py-toggle" href="#" id="EOxSWMSServiceHandler-toggle" onclick="return toggle('EOxSWMSServiceHandler');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="eoxserver.modules.wms1x.EOxSWMSServiceHandler-class.html">EOxSWMSServiceHandler</a><tt class="py-op">(</tt><tt class="py-base-class">EOxSOWSCommonServiceHandler</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EOxSWMSServiceHandler-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="EOxSWMSServiceHandler-expanded"><a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line">    <tt id="link-45" class="py-name" targets="Variable eoxserver.lib.handlers.EOxSOperationHandler.SERVICE=eoxserver.lib.handlers.EOxSOperationHandler-class.html#SERVICE,Variable eoxserver.lib.handlers.EOxSServiceHandler.SERVICE=eoxserver.lib.handlers.EOxSServiceHandler-class.html#SERVICE,Variable eoxserver.lib.handlers.EOxSVersionHandler.SERVICE=eoxserver.lib.handlers.EOxSVersionHandler-class.html#SERVICE,Variable eoxserver.modules.wcs1x.EOxSWCS10VersionHandler.SERVICE=eoxserver.modules.wcs1x.EOxSWCS10VersionHandler-class.html#SERVICE,Variable eoxserver.modules.wcs1x.EOxSWCS11VersionHandler.SERVICE=eoxserver.modules.wcs1x.EOxSWCS11VersionHandler-class.html#SERVICE,Variable eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler.SERVICE=eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler-class.html#SERVICE,Variable eoxserver.modules.wcs1x.EOxSWCSServiceHandler.SERVICE=eoxserver.modules.wcs1x.EOxSWCSServiceHandler-class.html#SERVICE,Variable eoxserver.modules.wcs20.EOxSWCS20DescribeCoverageHandler.SERVICE=eoxserver.modules.wcs20.EOxSWCS20DescribeCoverageHandler-class.html#SERVICE,Variable eoxserver.modules.wcs20.EOxSWCS20DescribeEOCoverageSetHandler.SERVICE=eoxserver.modules.wcs20.EOxSWCS20DescribeEOCoverageSetHandler-class.html#SERVICE,Variable eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.SERVICE=eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler-class.html#SERVICE,Variable eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.SERVICE=eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler-class.html#SERVICE,Variable eoxserver.modules.wcs20.EOxSWCS20VersionHandler.SERVICE=eoxserver.modules.wcs20.EOxSWCS20VersionHandler-class.html#SERVICE,Variable eoxserver.modules.wms1x.EOxSWMS10VersionHandler.SERVICE=eoxserver.modules.wms1x.EOxSWMS10VersionHandler-class.html#SERVICE,Variable eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.SERVICE=eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler-class.html#SERVICE,Variable eoxserver.modules.wms1x.EOxSWMS11VersionHandler.SERVICE=eoxserver.modules.wms1x.EOxSWMS11VersionHandler-class.html#SERVICE,Variable eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.SERVICE=eoxserver.modules.wms1x.EOxSWMS13GetMapHandler-class.html#SERVICE,Variable eoxserver.modules.wms1x.EOxSWMS13VersionHandler.SERVICE=eoxserver.modules.wms1x.EOxSWMS13VersionHandler-class.html#SERVICE,Variable eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler.SERVICE=eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler-class.html#SERVICE,Variable eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler.SERVICE=eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler-class.html#SERVICE,Variable eoxserver.modules.wms1x.EOxSWMSServiceHandler.SERVICE=eoxserver.modules.wms1x.EOxSWMSServiceHandler-class.html#SERVICE"><a title="eoxserver.lib.handlers.EOxSOperationHandler.SERVICE
+eoxserver.lib.handlers.EOxSServiceHandler.SERVICE
+eoxserver.lib.handlers.EOxSVersionHandler.SERVICE
+eoxserver.modules.wcs1x.EOxSWCS10VersionHandler.SERVICE
+eoxserver.modules.wcs1x.EOxSWCS11VersionHandler.SERVICE
+eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler.SERVICE
+eoxserver.modules.wcs1x.EOxSWCSServiceHandler.SERVICE
+eoxserver.modules.wcs20.EOxSWCS20DescribeCoverageHandler.SERVICE
+eoxserver.modules.wcs20.EOxSWCS20DescribeEOCoverageSetHandler.SERVICE
+eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.SERVICE
+eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.SERVICE
+eoxserver.modules.wcs20.EOxSWCS20VersionHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS10VersionHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS11VersionHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS13VersionHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMSServiceHandler.SERVICE" class="py-name" href="#" onclick="return doclink('link-45', 'SERVICE', 'link-45');">SERVICE</a></tt> <tt class="py-op">=</tt> <tt class="py-string">"WMS"</tt> </tt>
+<a name="L46"></a><tt class="py-lineno"> 46</tt>  <tt class="py-line">    <tt id="link-46" class="py-name" targets="Variable eoxserver.lib.handlers.EOxSOperationHandler.ABSTRACT=eoxserver.lib.handlers.EOxSOperationHandler-class.html#ABSTRACT,Variable eoxserver.lib.handlers.EOxSServiceHandler.ABSTRACT=eoxserver.lib.handlers.EOxSServiceHandler-class.html#ABSTRACT,Variable eoxserver.lib.handlers.EOxSVersionHandler.ABSTRACT=eoxserver.lib.handlers.EOxSVersionHandler-class.html#ABSTRACT,Variable eoxserver.lib.ows.EOxSOWSCommonServiceHandler.ABSTRACT=eoxserver.lib.ows.EOxSOWSCommonServiceHandler-class.html#ABSTRACT,Variable eoxserver.modules.wcs.common.EOxSWCSCommonHandler.ABSTRACT=eoxserver.modules.wcs.common.EOxSWCSCommonHandler-class.html#ABSTRACT,Variable eoxserver.modules.wcs1x.EOxSWCS10VersionHandler.ABSTRACT=eoxserver.modules.wcs1x.EOxSWCS10VersionHandler-class.html#ABSTRACT,Variable eoxserver.modules.wcs1x.EOxSWCS11VersionHandler.ABSTRACT=eoxserver.modules.wcs1x.EOxSWCS11VersionHandler-class.html#ABSTRACT,Variable eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler.ABSTRACT=eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler-class.html#ABSTRACT,Variable eoxserver.modules.wcs1x.EOxSWCSServiceHandler.ABSTRACT=eoxserver.modules.wcs1x.EOxSWCSServiceHandler-class.html#ABSTRACT,Variable eoxserver.modules.wcs20.EOxSWCS20DescribeCoverageHandler.ABSTRACT=eoxserver.modules.wcs20.EOxSWCS20DescribeCoverageHandler-class.html#ABSTRACT,Variable eoxserver.modules.wcs20.EOxSWCS20DescribeEOCoverageSetHandler.ABSTRACT=eoxserver.modules.wcs20.EOxSWCS20DescribeEOCoverageSetHandler-class.html#ABSTRACT,Variable eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.ABSTRACT=eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler-class.html#ABSTRACT,Variable eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.ABSTRACT=eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler-class.html#ABSTRACT,Variable eoxserver.modules.wcs20.EOxSWCS20VersionHandler.ABSTRACT=eoxserver.modules.wcs20.EOxSWCS20VersionHandler-class.html#ABSTRACT,Variable eoxserver.modules.wms1x.EOxSWMS10VersionHandler.ABSTRACT=eoxserver.modules.wms1x.EOxSWMS10VersionHandler-class.html#ABSTRACT,Variable eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.ABSTRACT=eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler-class.html#ABSTRACT,Variable eoxserver.modules.wms1x.EOxSWMS11VersionHandler.ABSTRACT=eoxserver.modules.wms1x.EOxSWMS11VersionHandler-class.html#ABSTRACT,Variable eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.ABSTRACT=eoxserver.modules.wms1x.EOxSWMS13GetMapHandler-class.html#ABSTRACT,Variable eoxserver.modules.wms1x.EOxSWMS13VersionHandler.ABSTRACT=eoxserver.modules.wms1x.EOxSWMS13VersionHandler-class.html#ABSTRACT,Variable eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler.ABSTRACT=eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler-class.html#ABSTRACT,Variable eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler.ABSTRACT=eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler-class.html#ABSTRACT,Variable eoxserver.modules.wms1x.EOxSWMSCommonHandler.ABSTRACT=eoxserver.modules.wms1x.EOxSWMSCommonHandler-class.html#ABSTRACT,Variable eoxserver.modules.wms1x.EOxSWMSServiceHandler.ABSTRACT=eoxserver.modules.wms1x.EOxSWMSServiceHandler-class.html#ABSTRACT"><a title="eoxserver.lib.handlers.EOxSOperationHandler.ABSTRACT
+eoxserver.lib.handlers.EOxSServiceHandler.ABSTRACT
+eoxserver.lib.handlers.EOxSVersionHandler.ABSTRACT
+eoxserver.lib.ows.EOxSOWSCommonServiceHandler.ABSTRACT
+eoxserver.modules.wcs.common.EOxSWCSCommonHandler.ABSTRACT
+eoxserver.modules.wcs1x.EOxSWCS10VersionHandler.ABSTRACT
+eoxserver.modules.wcs1x.EOxSWCS11VersionHandler.ABSTRACT
+eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler.ABSTRACT
+eoxserver.modules.wcs1x.EOxSWCSServiceHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20DescribeCoverageHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20DescribeEOCoverageSetHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20VersionHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS10VersionHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS11VersionHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS13VersionHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMSCommonHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMSServiceHandler.ABSTRACT" class="py-name" href="#" onclick="return doclink('link-46', 'ABSTRACT', 'link-46');">ABSTRACT</a></tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt> </tt>
+</div><a name="L47"></a><tt class="py-lineno"> 47</tt>  <tt class="py-line"> </tt>
+<a name="EOxSWMS10VersionHandler"></a><div id="EOxSWMS10VersionHandler-def"><a name="L48"></a><tt class="py-lineno"> 48</tt> <a class="py-toggle" href="#" id="EOxSWMS10VersionHandler-toggle" onclick="return toggle('EOxSWMS10VersionHandler');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="eoxserver.modules.wms1x.EOxSWMS10VersionHandler-class.html">EOxSWMS10VersionHandler</a><tt class="py-op">(</tt><tt class="py-base-class">EOxSOWSCommonVersionHandler</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EOxSWMS10VersionHandler-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="EOxSWMS10VersionHandler-expanded"><a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line">    <tt id="link-47" class="py-name"><a title="eoxserver.lib.handlers.EOxSOperationHandler.SERVICE
+eoxserver.lib.handlers.EOxSServiceHandler.SERVICE
+eoxserver.lib.handlers.EOxSVersionHandler.SERVICE
+eoxserver.modules.wcs1x.EOxSWCS10VersionHandler.SERVICE
+eoxserver.modules.wcs1x.EOxSWCS11VersionHandler.SERVICE
+eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler.SERVICE
+eoxserver.modules.wcs1x.EOxSWCSServiceHandler.SERVICE
+eoxserver.modules.wcs20.EOxSWCS20DescribeCoverageHandler.SERVICE
+eoxserver.modules.wcs20.EOxSWCS20DescribeEOCoverageSetHandler.SERVICE
+eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.SERVICE
+eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.SERVICE
+eoxserver.modules.wcs20.EOxSWCS20VersionHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS10VersionHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS11VersionHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS13VersionHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMSServiceHandler.SERVICE" class="py-name" href="#" onclick="return doclink('link-47', 'SERVICE', 'link-45');">SERVICE</a></tt> <tt class="py-op">=</tt> <tt class="py-string">"WMS"</tt> </tt>
+<a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line">    <tt id="link-48" class="py-name" targets="Variable eoxserver.lib.handlers.EOxSOperationHandler.VERSIONS=eoxserver.lib.handlers.EOxSOperationHandler-class.html#VERSIONS,Variable eoxserver.lib.handlers.EOxSVersionHandler.VERSIONS=eoxserver.lib.handlers.EOxSVersionHandler-class.html#VERSIONS,Variable eoxserver.modules.wcs1x.EOxSWCS10VersionHandler.VERSIONS=eoxserver.modules.wcs1x.EOxSWCS10VersionHandler-class.html#VERSIONS,Variable eoxserver.modules.wcs1x.EOxSWCS11VersionHandler.VERSIONS=eoxserver.modules.wcs1x.EOxSWCS11VersionHandler-class.html#VERSIONS,Variable eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler.VERSIONS=eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler-class.html#VERSIONS,Variable eoxserver.modules.wcs20.EOxSWCS20DescribeCoverageHandler.VERSIONS=eoxserver.modules.wcs20.EOxSWCS20DescribeCoverageHandler-class.html#VERSIONS,Variable eoxserver.modules.wcs20.EOxSWCS20DescribeEOCoverageSetHandler.VERSIONS=eoxserver.modules.wcs20.EOxSWCS20DescribeEOCoverageSetHandler-class.html#VERSIONS,Variable eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.VERSIONS=eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler-class.html#VERSIONS,Variable eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.VERSIONS=eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler-class.html#VERSIONS,Variable eoxserver.modules.wcs20.EOxSWCS20VersionHandler.VERSIONS=eoxserver.modules.wcs20.EOxSWCS20VersionHandler-class.html#VERSIONS,Variable eoxserver.modules.wms1x.EOxSWMS10VersionHandler.VERSIONS=eoxserver.modules.wms1x.EOxSWMS10VersionHandler-class.html#VERSIONS,Variable eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.VERSIONS=eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler-class.html#VERSIONS,Variable eoxserver.modules.wms1x.EOxSWMS11VersionHandler.VERSIONS=eoxserver.modules.wms1x.EOxSWMS11VersionHandler-class.html#VERSIONS,Variable eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.VERSIONS=eoxserver.modules.wms1x.EOxSWMS13GetMapHandler-class.html#VERSIONS,Variable eoxserver.modules.wms1x.EOxSWMS13VersionHandler.VERSIONS=eoxserver.modules.wms1x.EOxSWMS13VersionHandler-class.html#VERSIONS,Variable eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler.VERSIONS=eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler-class.html#VERSIONS,Variable eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler.VERSIONS=eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler-class.html#VERSIONS"><a title="eoxserver.lib.handlers.EOxSOperationHandler.VERSIONS
+eoxserver.lib.handlers.EOxSVersionHandler.VERSIONS
+eoxserver.modules.wcs1x.EOxSWCS10VersionHandler.VERSIONS
+eoxserver.modules.wcs1x.EOxSWCS11VersionHandler.VERSIONS
+eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler.VERSIONS
+eoxserver.modules.wcs20.EOxSWCS20DescribeCoverageHandler.VERSIONS
+eoxserver.modules.wcs20.EOxSWCS20DescribeEOCoverageSetHandler.VERSIONS
+eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.VERSIONS
+eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.VERSIONS
+eoxserver.modules.wcs20.EOxSWCS20VersionHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS10VersionHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS11VersionHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS13VersionHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler.VERSIONS" class="py-name" href="#" onclick="return doclink('link-48', 'VERSIONS', 'link-48');">VERSIONS</a></tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt><tt class="py-string">"1.0"</tt><tt class="py-op">,</tt> <tt class="py-string">"1.0.0"</tt><tt class="py-op">)</tt> </tt>
+<a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line">    <tt id="link-49" class="py-name"><a title="eoxserver.lib.handlers.EOxSOperationHandler.ABSTRACT
+eoxserver.lib.handlers.EOxSServiceHandler.ABSTRACT
+eoxserver.lib.handlers.EOxSVersionHandler.ABSTRACT
+eoxserver.lib.ows.EOxSOWSCommonServiceHandler.ABSTRACT
+eoxserver.modules.wcs.common.EOxSWCSCommonHandler.ABSTRACT
+eoxserver.modules.wcs1x.EOxSWCS10VersionHandler.ABSTRACT
+eoxserver.modules.wcs1x.EOxSWCS11VersionHandler.ABSTRACT
+eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler.ABSTRACT
+eoxserver.modules.wcs1x.EOxSWCSServiceHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20DescribeCoverageHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20DescribeEOCoverageSetHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20VersionHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS10VersionHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS11VersionHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS13VersionHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMSCommonHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMSServiceHandler.ABSTRACT" class="py-name" href="#" onclick="return doclink('link-49', 'ABSTRACT', 'link-46');">ABSTRACT</a></tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt> </tt>
+<a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line"> </tt>
+<a name="EOxSWMS10VersionHandler._handleException"></a><div id="EOxSWMS10VersionHandler._handleException-def"><a name="L53"></a><tt class="py-lineno"> 53</tt> <a class="py-toggle" href="#" id="EOxSWMS10VersionHandler._handleException-toggle" onclick="return toggle('EOxSWMS10VersionHandler._handleException');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="eoxserver.modules.wms1x.EOxSWMS10VersionHandler-class.html#_handleException">_handleException</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">req</tt><tt class="py-op">,</tt> <tt class="py-param">exception</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EOxSWMS10VersionHandler._handleException-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="EOxSWMS10VersionHandler._handleException-expanded"><a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-50" class="py-name" targets="Class eoxserver.modules.wms1x.EOxSWMS10ExceptionHandler=eoxserver.modules.wms1x.EOxSWMS10ExceptionHandler-class.html"><a title="eoxserver.modules.wms1x.EOxSWMS10ExceptionHandler" class="py-name" href="#" onclick="return doclink('link-50', 'EOxSWMS10ExceptionHandler', 'link-50');">EOxSWMS10ExceptionHandler</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt id="link-51" class="py-name" targets="Method eoxserver.lib.handlers.EOxSExceptionHandler.handleException()=eoxserver.lib.handlers.EOxSExceptionHandler-class.html#handleException"><a title="eoxserver.lib.handlers.EOxSExceptionHandler.handleException" class="py-name" href="#" onclick="return doclink('link-51', 'handleException', 'link-51');">handleException</a></tt><tt class="py-op">(</tt><tt class="py-name">req</tt><tt class="py-op">,</tt> <tt class="py-name">exception</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line"> </tt>
+<a name="EOxSWMS11VersionHandler"></a><div id="EOxSWMS11VersionHandler-def"><a name="L56"></a><tt class="py-lineno"> 56</tt> <a class="py-toggle" href="#" id="EOxSWMS11VersionHandler-toggle" onclick="return toggle('EOxSWMS11VersionHandler');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="eoxserver.modules.wms1x.EOxSWMS11VersionHandler-class.html">EOxSWMS11VersionHandler</a><tt class="py-op">(</tt><tt class="py-base-class">EOxSOWSCommonVersionHandler</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EOxSWMS11VersionHandler-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="EOxSWMS11VersionHandler-expanded"><a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line">    <tt id="link-52" class="py-name"><a title="eoxserver.lib.handlers.EOxSOperationHandler.SERVICE
+eoxserver.lib.handlers.EOxSServiceHandler.SERVICE
+eoxserver.lib.handlers.EOxSVersionHandler.SERVICE
+eoxserver.modules.wcs1x.EOxSWCS10VersionHandler.SERVICE
+eoxserver.modules.wcs1x.EOxSWCS11VersionHandler.SERVICE
+eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler.SERVICE
+eoxserver.modules.wcs1x.EOxSWCSServiceHandler.SERVICE
+eoxserver.modules.wcs20.EOxSWCS20DescribeCoverageHandler.SERVICE
+eoxserver.modules.wcs20.EOxSWCS20DescribeEOCoverageSetHandler.SERVICE
+eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.SERVICE
+eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.SERVICE
+eoxserver.modules.wcs20.EOxSWCS20VersionHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS10VersionHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS11VersionHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS13VersionHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMSServiceHandler.SERVICE" class="py-name" href="#" onclick="return doclink('link-52', 'SERVICE', 'link-45');">SERVICE</a></tt> <tt class="py-op">=</tt> <tt class="py-string">"WMS"</tt> </tt>
+<a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line">    <tt id="link-53" class="py-name"><a title="eoxserver.lib.handlers.EOxSOperationHandler.VERSIONS
+eoxserver.lib.handlers.EOxSVersionHandler.VERSIONS
+eoxserver.modules.wcs1x.EOxSWCS10VersionHandler.VERSIONS
+eoxserver.modules.wcs1x.EOxSWCS11VersionHandler.VERSIONS
+eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler.VERSIONS
+eoxserver.modules.wcs20.EOxSWCS20DescribeCoverageHandler.VERSIONS
+eoxserver.modules.wcs20.EOxSWCS20DescribeEOCoverageSetHandler.VERSIONS
+eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.VERSIONS
+eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.VERSIONS
+eoxserver.modules.wcs20.EOxSWCS20VersionHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS10VersionHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS11VersionHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS13VersionHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler.VERSIONS" class="py-name" href="#" onclick="return doclink('link-53', 'VERSIONS', 'link-48');">VERSIONS</a></tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt><tt class="py-string">"1.1"</tt><tt class="py-op">,</tt> <tt class="py-string">"1.1.0"</tt><tt class="py-op">,</tt> <tt class="py-string">"1.1.1"</tt><tt class="py-op">)</tt> </tt>
+<a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line">    <tt id="link-54" class="py-name"><a title="eoxserver.lib.handlers.EOxSOperationHandler.ABSTRACT
+eoxserver.lib.handlers.EOxSServiceHandler.ABSTRACT
+eoxserver.lib.handlers.EOxSVersionHandler.ABSTRACT
+eoxserver.lib.ows.EOxSOWSCommonServiceHandler.ABSTRACT
+eoxserver.modules.wcs.common.EOxSWCSCommonHandler.ABSTRACT
+eoxserver.modules.wcs1x.EOxSWCS10VersionHandler.ABSTRACT
+eoxserver.modules.wcs1x.EOxSWCS11VersionHandler.ABSTRACT
+eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler.ABSTRACT
+eoxserver.modules.wcs1x.EOxSWCSServiceHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20DescribeCoverageHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20DescribeEOCoverageSetHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20VersionHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS10VersionHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS11VersionHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS13VersionHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMSCommonHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMSServiceHandler.ABSTRACT" class="py-name" href="#" onclick="return doclink('link-54', 'ABSTRACT', 'link-46');">ABSTRACT</a></tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt> </tt>
+<a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line"> </tt>
+<a name="EOxSWMS11VersionHandler._handleException"></a><div id="EOxSWMS11VersionHandler._handleException-def"><a name="L61"></a><tt class="py-lineno"> 61</tt> <a class="py-toggle" href="#" id="EOxSWMS11VersionHandler._handleException-toggle" onclick="return toggle('EOxSWMS11VersionHandler._handleException');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="eoxserver.modules.wms1x.EOxSWMS11VersionHandler-class.html#_handleException">_handleException</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">req</tt><tt class="py-op">,</tt> <tt class="py-param">exception</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EOxSWMS11VersionHandler._handleException-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="EOxSWMS11VersionHandler._handleException-expanded"><a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-55" class="py-name" targets="Class eoxserver.modules.wms1x.EOxSWMS11ExceptionHandler=eoxserver.modules.wms1x.EOxSWMS11ExceptionHandler-class.html"><a title="eoxserver.modules.wms1x.EOxSWMS11ExceptionHandler" class="py-name" href="#" onclick="return doclink('link-55', 'EOxSWMS11ExceptionHandler', 'link-55');">EOxSWMS11ExceptionHandler</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt id="link-56" class="py-name"><a title="eoxserver.lib.handlers.EOxSExceptionHandler.handleException" class="py-name" href="#" onclick="return doclink('link-56', 'handleException', 'link-51');">handleException</a></tt><tt class="py-op">(</tt><tt class="py-name">req</tt><tt class="py-op">,</tt> <tt class="py-name">exception</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line"> </tt>
+<a name="EOxSWMS13VersionHandler"></a><div id="EOxSWMS13VersionHandler-def"><a name="L64"></a><tt class="py-lineno"> 64</tt> <a class="py-toggle" href="#" id="EOxSWMS13VersionHandler-toggle" onclick="return toggle('EOxSWMS13VersionHandler');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="eoxserver.modules.wms1x.EOxSWMS13VersionHandler-class.html">EOxSWMS13VersionHandler</a><tt class="py-op">(</tt><tt class="py-base-class">EOxSOWSCommonVersionHandler</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EOxSWMS13VersionHandler-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="EOxSWMS13VersionHandler-expanded"><a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line">    <tt id="link-57" class="py-name"><a title="eoxserver.lib.handlers.EOxSOperationHandler.SERVICE
+eoxserver.lib.handlers.EOxSServiceHandler.SERVICE
+eoxserver.lib.handlers.EOxSVersionHandler.SERVICE
+eoxserver.modules.wcs1x.EOxSWCS10VersionHandler.SERVICE
+eoxserver.modules.wcs1x.EOxSWCS11VersionHandler.SERVICE
+eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler.SERVICE
+eoxserver.modules.wcs1x.EOxSWCSServiceHandler.SERVICE
+eoxserver.modules.wcs20.EOxSWCS20DescribeCoverageHandler.SERVICE
+eoxserver.modules.wcs20.EOxSWCS20DescribeEOCoverageSetHandler.SERVICE
+eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.SERVICE
+eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.SERVICE
+eoxserver.modules.wcs20.EOxSWCS20VersionHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS10VersionHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS11VersionHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS13VersionHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMSServiceHandler.SERVICE" class="py-name" href="#" onclick="return doclink('link-57', 'SERVICE', 'link-45');">SERVICE</a></tt> <tt class="py-op">=</tt> <tt class="py-string">"WMS"</tt> </tt>
+<a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line">    <tt id="link-58" class="py-name"><a title="eoxserver.lib.handlers.EOxSOperationHandler.VERSIONS
+eoxserver.lib.handlers.EOxSVersionHandler.VERSIONS
+eoxserver.modules.wcs1x.EOxSWCS10VersionHandler.VERSIONS
+eoxserver.modules.wcs1x.EOxSWCS11VersionHandler.VERSIONS
+eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler.VERSIONS
+eoxserver.modules.wcs20.EOxSWCS20DescribeCoverageHandler.VERSIONS
+eoxserver.modules.wcs20.EOxSWCS20DescribeEOCoverageSetHandler.VERSIONS
+eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.VERSIONS
+eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.VERSIONS
+eoxserver.modules.wcs20.EOxSWCS20VersionHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS10VersionHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS11VersionHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS13VersionHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler.VERSIONS" class="py-name" href="#" onclick="return doclink('link-58', 'VERSIONS', 'link-48');">VERSIONS</a></tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt><tt class="py-string">"1.3"</tt><tt class="py-op">,</tt> <tt class="py-string">"1.3.0"</tt><tt class="py-op">)</tt> </tt>
+<a name="L67"></a><tt class="py-lineno"> 67</tt>  <tt class="py-line">    <tt id="link-59" class="py-name"><a title="eoxserver.lib.handlers.EOxSOperationHandler.ABSTRACT
+eoxserver.lib.handlers.EOxSServiceHandler.ABSTRACT
+eoxserver.lib.handlers.EOxSVersionHandler.ABSTRACT
+eoxserver.lib.ows.EOxSOWSCommonServiceHandler.ABSTRACT
+eoxserver.modules.wcs.common.EOxSWCSCommonHandler.ABSTRACT
+eoxserver.modules.wcs1x.EOxSWCS10VersionHandler.ABSTRACT
+eoxserver.modules.wcs1x.EOxSWCS11VersionHandler.ABSTRACT
+eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler.ABSTRACT
+eoxserver.modules.wcs1x.EOxSWCSServiceHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20DescribeCoverageHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20DescribeEOCoverageSetHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20VersionHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS10VersionHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS11VersionHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS13VersionHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMSCommonHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMSServiceHandler.ABSTRACT" class="py-name" href="#" onclick="return doclink('link-59', 'ABSTRACT', 'link-46');">ABSTRACT</a></tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt> </tt>
+<a name="L68"></a><tt class="py-lineno"> 68</tt>  <tt class="py-line">     </tt>
+<a name="EOxSWMS13VersionHandler._handleException"></a><div id="EOxSWMS13VersionHandler._handleException-def"><a name="L69"></a><tt class="py-lineno"> 69</tt> <a class="py-toggle" href="#" id="EOxSWMS13VersionHandler._handleException-toggle" onclick="return toggle('EOxSWMS13VersionHandler._handleException');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="eoxserver.modules.wms1x.EOxSWMS13VersionHandler-class.html#_handleException">_handleException</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">req</tt><tt class="py-op">,</tt> <tt class="py-param">exception</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EOxSWMS13VersionHandler._handleException-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="EOxSWMS13VersionHandler._handleException-expanded"><a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-60" class="py-name"><a title="eoxserver.lib.ogc.EOxSOGCExceptionHandler" class="py-name" href="#" onclick="return doclink('link-60', 'EOxSOGCExceptionHandler', 'link-15');">EOxSOGCExceptionHandler</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt id="link-61" class="py-name"><a title="eoxserver.lib.handlers.EOxSExceptionHandler.handleException" class="py-name" href="#" onclick="return doclink('link-61', 'handleException', 'link-51');">handleException</a></tt><tt class="py-op">(</tt><tt class="py-name">req</tt><tt class="py-op">,</tt> <tt class="py-name">exception</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line"> </tt>
+<a name="EOxSWMSCommonHandler"></a><div id="EOxSWMSCommonHandler-def"><a name="L72"></a><tt class="py-lineno"> 72</tt> <a class="py-toggle" href="#" id="EOxSWMSCommonHandler-toggle" onclick="return toggle('EOxSWMSCommonHandler');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="eoxserver.modules.wms1x.EOxSWMSCommonHandler-class.html">EOxSWMSCommonHandler</a><tt class="py-op">(</tt><tt class="py-base-class">EOxSMapServerOperationHandler</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EOxSWMSCommonHandler-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="EOxSWMSCommonHandler-expanded"><a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line">    <tt id="link-62" class="py-name"><a title="eoxserver.lib.handlers.EOxSOperationHandler.ABSTRACT
+eoxserver.lib.handlers.EOxSServiceHandler.ABSTRACT
+eoxserver.lib.handlers.EOxSVersionHandler.ABSTRACT
+eoxserver.lib.ows.EOxSOWSCommonServiceHandler.ABSTRACT
+eoxserver.modules.wcs.common.EOxSWCSCommonHandler.ABSTRACT
+eoxserver.modules.wcs1x.EOxSWCS10VersionHandler.ABSTRACT
+eoxserver.modules.wcs1x.EOxSWCS11VersionHandler.ABSTRACT
+eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler.ABSTRACT
+eoxserver.modules.wcs1x.EOxSWCSServiceHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20DescribeCoverageHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20DescribeEOCoverageSetHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20VersionHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS10VersionHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS11VersionHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS13VersionHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMSCommonHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMSServiceHandler.ABSTRACT" class="py-name" href="#" onclick="return doclink('link-62', 'ABSTRACT', 'link-46');">ABSTRACT</a></tt> <tt class="py-op">=</tt> <tt class="py-name">True</tt> </tt>
+<a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line">     </tt>
+<a name="EOxSWMSCommonHandler.addLayers"></a><div id="EOxSWMSCommonHandler.addLayers-def"><a name="L75"></a><tt class="py-lineno"> 75</tt> <a class="py-toggle" href="#" id="EOxSWMSCommonHandler.addLayers-toggle" onclick="return toggle('EOxSWMSCommonHandler.addLayers');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="eoxserver.modules.wms1x.EOxSWMSCommonHandler-class.html#addLayers">addLayers</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">ms_req</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EOxSWMSCommonHandler.addLayers-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="EOxSWMSCommonHandler.addLayers-expanded"><a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line">        <tt class="py-name">time_param</tt> <tt class="py-op">=</tt> <tt class="py-name">ms_req</tt><tt class="py-op">.</tt><tt id="link-63" class="py-name" targets="Method eoxserver.lib.requests.EOxSOWSRequest.getParamValue()=eoxserver.lib.requests.EOxSOWSRequest-class.html#getParamValue"><a title="eoxserver.lib.requests.EOxSOWSRequest.getParamValue" class="py-name" href="#" onclick="return doclink('link-63', 'getParamValue', 'link-63');">getParamValue</a></tt><tt class="py-op">(</tt><tt class="py-string">"time"</tt><tt class="py-op">)</tt> </tt>
+<a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line">        <tt class="py-name">slices</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-op">]</tt> </tt>
+<a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">time_param</tt><tt class="py-op">:</tt> </tt>
+<a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line">            <tt class="py-name">slices</tt><tt class="py-op">.</tt><tt id="link-64" class="py-name" targets="Method eoxserver.lib.util.EOxSXPath.append()=eoxserver.lib.util.EOxSXPath-class.html#append"><a title="eoxserver.lib.util.EOxSXPath.append" class="py-name" href="#" onclick="return doclink('link-64', 'append', 'link-64');">append</a></tt><tt class="py-op">(</tt><tt id="link-65" class="py-name"><a title="eoxserver.lib.domainset.EOxSSlice" class="py-name" href="#" onclick="return doclink('link-65', 'EOxSSlice', 'link-20');">EOxSSlice</a></tt><tt class="py-op">(</tt><tt class="py-string">"time"</tt><tt class="py-op">,</tt> <tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-string">"\"%s\""</tt> <tt class="py-op">%</tt> <tt class="py-name">time_param</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line">         </tt>
+<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">coverage</tt> <tt class="py-keyword">in</tt> <tt class="py-name">ms_req</tt><tt class="py-op">.</tt><tt class="py-name">coverages</tt><tt class="py-op">:</tt> </tt>
+<a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line">            <tt class="py-name">ms_req</tt><tt class="py-op">.</tt><tt class="py-name">map</tt><tt class="py-op">.</tt><tt class="py-name">insertLayer</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-66" class="py-name" targets="Method eoxserver.lib.handlers.EOxSMapServerOperationHandler.getMapServerLayer()=eoxserver.lib.handlers.EOxSMapServerOperationHandler-class.html#getMapServerLayer,Method eoxserver.modules.wcs.common.EOxSWCSCommonHandler.getMapServerLayer()=eoxserver.modules.wcs.common.EOxSWCSCommonHandler-class.html#getMapServerLayer,Method eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler.getMapServerLayer()=eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler-class.html#getMapServerLayer,Method eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.getMapServerLayer()=eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler-class.html#getMapServerLayer,Method eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.getMapServerLayer()=eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler-class.html#getMapServerLayer,Method eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.getMapServerLayer()=eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler-class.html#getMapServerLayer,Method eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.getMapServerLayer()=eoxserver.modules.wms1x.EOxSWMS13GetMapHandler-class.html#getMapServerLayer,Method eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler.getMapServerLayer()=eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler-class.html#getMapServerLayer,Method eoxserver.modules.wms1x.EOxSWMSCommonHandler.getMapServerLayer()=eoxserver.modules.wms1x.EOxSWMSCommonHandler-class.html#getMapServerLayer"><a title="eoxserver.lib.handlers.EOxSMapServerOperationHandler.getMapServerLayer
+eoxserver.modules.wcs.common.EOxSWCSCommonHandler.getMapServerLayer
+eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler.getMapServerLayer
+eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.getMapServerLayer
+eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.getMapServerLayer
+eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.getMapServerLayer
+eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.getMapServerLayer
+eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler.getMapServerLayer
+eoxserver.modules.wms1x.EOxSWMSCommonHandler.getMapServerLayer" class="py-name" href="#" onclick="return doclink('link-66', 'getMapServerLayer', 'link-66');">getMapServerLayer</a></tt><tt class="py-op">(</tt><tt class="py-name">coverage</tt><tt class="py-op">,</tt> <tt class="py-name">slices</tt><tt class="py-op">=</tt><tt class="py-name">slices</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line"> </tt>
+<a name="EOxSWMSCommonHandler.getMapServerLayer"></a><div id="EOxSWMSCommonHandler.getMapServerLayer-def"><a name="L84"></a><tt class="py-lineno"> 84</tt> <a class="py-toggle" href="#" id="EOxSWMSCommonHandler.getMapServerLayer-toggle" onclick="return toggle('EOxSWMSCommonHandler.getMapServerLayer');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="eoxserver.modules.wms1x.EOxSWMSCommonHandler-class.html#getMapServerLayer">getMapServerLayer</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">coverage</tt><tt class="py-op">,</tt> <tt class="py-op">**</tt><tt class="py-param">kwargs</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EOxSWMSCommonHandler.getMapServerLayer-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="EOxSWMSCommonHandler.getMapServerLayer-expanded"><a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line">        <tt class="py-name">logging</tt><tt class="py-op">.</tt><tt class="py-name">debug</tt><tt class="py-op">(</tt><tt class="py-string">"EOxSWMSCommonHandler.getMapServerLayer"</tt><tt class="py-op">)</tt> </tt>
+<a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line">         </tt>
+<a name="L87"></a><tt class="py-lineno"> 87</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">coverage</tt><tt class="py-op">.</tt><tt id="link-67" class="py-name" targets="Method eoxserver.lib.interfaces.EOxSCoverageInterface.getType()=eoxserver.lib.interfaces.EOxSCoverageInterface-class.html#getType,Method eoxserver.lib.interfaces.EOxSDatasetSeriesInterface.getType()=eoxserver.lib.interfaces.EOxSDatasetSeriesInterface-class.html#getType,Method eoxserver.lib.interfaces.EOxSRectifiedDatasetRecordInterface.getType()=eoxserver.lib.interfaces.EOxSRectifiedDatasetRecordInterface-class.html#getType,Method eoxserver.lib.interfaces.EOxSRectifiedDatasetSeriesRecordInterface.getType()=eoxserver.lib.interfaces.EOxSRectifiedDatasetSeriesRecordInterface-class.html#getType,Method eoxserver.lib.interfaces.EOxSRectifiedStitchedMosaicRecordInterface.getType()=eoxserver.lib.interfaces.EOxSRectifiedStitchedMosaicRecordInterface-class.html#getType,Method eoxserver.lib.interfaces.EOxSSingleFileCoverageRecordInterface.getType()=eoxserver.lib.interfaces.EOxSSingleFileCoverageRecordInterface-class.html#getType"><a title="eoxserver.lib.interfaces.EOxSCoverageInterface.getType
+eoxserver.lib.interfaces.EOxSDatasetSeriesInterface.getType
+eoxserver.lib.interfaces.EOxSRectifiedDatasetRecordInterface.getType
+eoxserver.lib.interfaces.EOxSRectifiedDatasetSeriesRecordInterface.getType
+eoxserver.lib.interfaces.EOxSRectifiedStitchedMosaicRecordInterface.getType
+eoxserver.lib.interfaces.EOxSSingleFileCoverageRecordInterface.getType" class="py-name" href="#" onclick="return doclink('link-67', 'getType', 'link-67');">getType</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> <tt class="py-op">==</tt> <tt class="py-string">"eo.rect_dataset_series"</tt><tt class="py-op">:</tt> </tt>
+<a name="L88"></a><tt class="py-lineno"> 88</tt>  <tt class="py-line">            <tt class="py-name">layer</tt> <tt class="py-op">=</tt> <tt class="py-name">mapscript</tt><tt class="py-op">.</tt><tt class="py-name">layerObj</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L89"></a><tt class="py-lineno"> 89</tt>  <tt class="py-line">             </tt>
+<a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line">            <tt class="py-name">layer</tt><tt class="py-op">.</tt><tt id="link-68" class="py-name" targets="Variable eoxserver.server.models.EOxSChannelRecord.name=eoxserver.server.models.EOxSChannelRecord-class.html#name,Variable eoxserver.server.models.EOxSRangeType.name=eoxserver.server.models.EOxSRangeType-class.html#name"><a title="eoxserver.server.models.EOxSChannelRecord.name
+eoxserver.server.models.EOxSRangeType.name" class="py-name" href="#" onclick="return doclink('link-68', 'name', 'link-68');">name</a></tt> <tt class="py-op">=</tt> <tt class="py-name">coverage</tt><tt class="py-op">.</tt><tt id="link-69" class="py-name" targets="Method eoxserver.lib.interfaces.EOxSEOCoverageRecordInterface.getEOID()=eoxserver.lib.interfaces.EOxSEOCoverageRecordInterface-class.html#getEOID,Method eoxserver.lib.interfaces.EOxSEOMetadataInterface.getEOID()=eoxserver.lib.interfaces.EOxSEOMetadataInterface-class.html#getEOID,Method eoxserver.lib.interfaces.EOxSRectifiedDatasetSeriesRecordInterface.getEOID()=eoxserver.lib.interfaces.EOxSRectifiedDatasetSeriesRecordInterface-class.html#getEOID,Method eoxserver.lib.metadata.EOxSMetadataInterface.getEOID()=eoxserver.lib.metadata.EOxSMetadataInterface-class.html#getEOID,Method eoxserver.lib.metadata.EOxSNativeMetadataInterface.getEOID()=eoxserver.lib.metadata.EOxSNativeMetadataInterface-class.html#getEOID"><a title="eoxserver.lib.interfaces.EOxSEOCoverageRecordInterface.getEOID
+eoxserver.lib.interfaces.EOxSEOMetadataInterface.getEOID
+eoxserver.lib.interfaces.EOxSRectifiedDatasetSeriesRecordInterface.getEOID
+eoxserver.lib.metadata.EOxSMetadataInterface.getEOID
+eoxserver.lib.metadata.EOxSNativeMetadataInterface.getEOID" class="py-name" href="#" onclick="return doclink('link-69', 'getEOID', 'link-69');">getEOID</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L91"></a><tt class="py-lineno"> 91</tt>  <tt class="py-line">            <tt class="py-name">layer</tt><tt class="py-op">.</tt><tt class="py-name">status</tt> <tt class="py-op">=</tt> <tt class="py-name">mapscript</tt><tt class="py-op">.</tt><tt class="py-name">MS_ON</tt> </tt>
+<a name="L92"></a><tt class="py-lineno"> 92</tt>  <tt class="py-line">            <tt class="py-name">layer</tt><tt class="py-op">.</tt><tt class="py-name">setMetaData</tt><tt class="py-op">(</tt><tt class="py-string">"wms_label"</tt><tt class="py-op">,</tt> <tt class="py-name">coverage</tt><tt class="py-op">.</tt><tt id="link-70" class="py-name"><a title="eoxserver.lib.interfaces.EOxSEOCoverageRecordInterface.getEOID
+eoxserver.lib.interfaces.EOxSEOMetadataInterface.getEOID
+eoxserver.lib.interfaces.EOxSRectifiedDatasetSeriesRecordInterface.getEOID
+eoxserver.lib.metadata.EOxSMetadataInterface.getEOID
+eoxserver.lib.metadata.EOxSNativeMetadataInterface.getEOID" class="py-name" href="#" onclick="return doclink('link-70', 'getEOID', 'link-69');">getEOID</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line">             </tt>
+<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line">            <tt class="py-name">time_extent</tt> <tt class="py-op">=</tt> <tt class="py-string">","</tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt class="py-op">[</tt><tt id="link-71" class="py-name"><a title="eoxserver.lib.util.isotime" class="py-name" href="#" onclick="return doclink('link-71', 'isotime', 'link-36');">isotime</a></tt><tt class="py-op">(</tt><tt class="py-name">dataset</tt><tt class="py-op">.</tt><tt id="link-72" class="py-name" targets="Method eoxserver.lib.interfaces.EOxSEOMetadataInterface.getBeginTime()=eoxserver.lib.interfaces.EOxSEOMetadataInterface-class.html#getBeginTime,Method eoxserver.lib.interfaces.EOxSEOMetadataRecordInterface.getBeginTime()=eoxserver.lib.interfaces.EOxSEOMetadataRecordInterface-class.html#getBeginTime,Method eoxserver.lib.metadata.EOxSMetadataInterface.getBeginTime()=eoxserver.lib.metadata.EOxSMetadataInterface-class.html#getBeginTime,Method eoxserver.lib.metadata.EOxSNativeMetadataInterface.getBeginTime()=eoxserver.lib.metadata.EOxSNativeMetadataInterface-class.html#getBeginTime"><a title="eoxserver.lib.interfaces.EOxSEOMetadataInterface.getBeginTime
+eoxserver.lib.interfaces.EOxSEOMetadataRecordInterface.getBeginTime
+eoxserver.lib.metadata.EOxSMetadataInterface.getBeginTime
+eoxserver.lib.metadata.EOxSNativeMetadataInterface.getBeginTime" class="py-name" href="#" onclick="return doclink('link-72', 'getBeginTime', 'link-72');">getBeginTime</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> <tt class="py-keyword">for</tt> <tt class="py-name">dataset</tt> <tt class="py-keyword">in</tt> <tt class="py-name">coverage</tt><tt class="py-op">.</tt><tt id="link-73" class="py-name" targets="Method eoxserver.lib.interfaces.EOxSCoverageInterface.getDatasets()=eoxserver.lib.interfaces.EOxSCoverageInterface-class.html#getDatasets,Method eoxserver.lib.interfaces.EOxSDatasetSeriesInterface.getDatasets()=eoxserver.lib.interfaces.EOxSDatasetSeriesInterface-class.html#getDatasets,Method eoxserver.lib.interfaces.EOxSRectifiedCompositeObjectInterface.getDatasets()=eoxserver.lib.interfaces.EOxSRectifiedCompositeObjectInterface-class.html#getDatasets,Method eoxserver.lib.interfaces.EOxSRectifiedDatasetRecordInterface.getDatasets()=eoxserver.lib.interfaces.EOxSRectifiedDatasetRecordInterface-class.html#getDatasets,Method eoxserver.lib.interfaces.EOxSSingleFileCoverageRecordInterface.getDatasets()=eoxserver.lib.interfaces.EOxSSingleFileCoverageRecordInterface-class.html#getDatasets"><a title="eoxserver.lib.interfaces.EOxSCoverageInterface.getDatasets
+eoxserver.lib.interfaces.EOxSDatasetSeriesInterface.getDatasets
+eoxserver.lib.interfaces.EOxSRectifiedCompositeObjectInterface.getDatasets
+eoxserver.lib.interfaces.EOxSRectifiedDatasetRecordInterface.getDatasets
+eoxserver.lib.interfaces.EOxSSingleFileCoverageRecordInterface.getDatasets" class="py-name" href="#" onclick="return doclink('link-73', 'getDatasets', 'link-73');">getDatasets</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L95"></a><tt class="py-lineno"> 95</tt>  <tt class="py-line">             </tt>
+<a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line">            <tt class="py-name">layer</tt><tt class="py-op">.</tt><tt class="py-name">setMetaData</tt><tt class="py-op">(</tt><tt class="py-string">"wms_timeextent"</tt><tt class="py-op">,</tt> <tt class="py-name">time_extent</tt><tt class="py-op">)</tt> </tt>
+<a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line">            <tt class="py-comment">#layer.setMetaData("wms_timeitem", "valid_time_begin")</tt> </tt>
+<a name="L98"></a><tt class="py-lineno"> 98</tt>  <tt class="py-line">            <tt class="py-comment">#layer.setMetaData("wms_timedefault", time_layer["default"])</tt> </tt>
+<a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line"> </tt>
+<a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line">            <tt class="py-name">layer</tt> <tt class="py-op">=</tt> <tt class="py-name">super</tt><tt class="py-op">(</tt><tt id="link-74" class="py-name" targets="Class eoxserver.modules.wms1x.EOxSWMSCommonHandler=eoxserver.modules.wms1x.EOxSWMSCommonHandler-class.html"><a title="eoxserver.modules.wms1x.EOxSWMSCommonHandler" class="py-name" href="#" onclick="return doclink('link-74', 'EOxSWMSCommonHandler', 'link-74');">EOxSWMSCommonHandler</a></tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt id="link-75" class="py-name"><a title="eoxserver.lib.handlers.EOxSMapServerOperationHandler.getMapServerLayer
+eoxserver.modules.wcs.common.EOxSWCSCommonHandler.getMapServerLayer
+eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler.getMapServerLayer
+eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.getMapServerLayer
+eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.getMapServerLayer
+eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.getMapServerLayer
+eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.getMapServerLayer
+eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler.getMapServerLayer
+eoxserver.modules.wms1x.EOxSWMSCommonHandler.getMapServerLayer" class="py-name" href="#" onclick="return doclink('link-75', 'getMapServerLayer', 'link-66');">getMapServerLayer</a></tt><tt class="py-op">(</tt><tt class="py-name">coverage</tt><tt class="py-op">,</tt> <tt class="py-op">**</tt><tt class="py-name">kwargs</tt><tt class="py-op">)</tt> </tt>
+<a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line">            <tt class="py-name">layer</tt><tt class="py-op">.</tt><tt class="py-name">setMetaData</tt><tt class="py-op">(</tt><tt class="py-string">"ows_srs"</tt><tt class="py-op">,</tt> <tt class="py-string">"EPSG:%d"</tt> <tt class="py-op">%</tt> <tt class="py-name">int</tt><tt class="py-op">(</tt><tt class="py-name">coverage</tt><tt class="py-op">.</tt><tt id="link-76" class="py-name" targets="Method eoxserver.lib.interfaces.EOxSCoverageInterface.getGrid()=eoxserver.lib.interfaces.EOxSCoverageInterface-class.html#getGrid,Method eoxserver.lib.interfaces.EOxSCoverageRecordInterface.getGrid()=eoxserver.lib.interfaces.EOxSCoverageRecordInterface-class.html#getGrid"><a title="eoxserver.lib.interfaces.EOxSCoverageInterface.getGrid
+eoxserver.lib.interfaces.EOxSCoverageRecordInterface.getGrid" class="py-name" href="#" onclick="return doclink('link-76', 'getGrid', 'link-76');">getGrid</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt id="link-77" class="py-name" targets="Variable eoxserver.server.models.EOxSRectifiedGridRecord.srid=eoxserver.server.models.EOxSRectifiedGridRecord-class.html#srid"><a title="eoxserver.server.models.EOxSRectifiedGridRecord.srid" class="py-name" href="#" onclick="return doclink('link-77', 'srid', 'link-77');">srid</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line">            <tt class="py-name">layer</tt><tt class="py-op">.</tt><tt class="py-name">setMetaData</tt><tt class="py-op">(</tt><tt class="py-string">"wms_label"</tt><tt class="py-op">,</tt> <tt class="py-name">coverage</tt><tt class="py-op">.</tt><tt id="link-78" class="py-name" targets="Method eoxserver.lib.interfaces.EOxSCoverageInterface.getCoverageId()=eoxserver.lib.interfaces.EOxSCoverageInterface-class.html#getCoverageId,Method eoxserver.lib.interfaces.EOxSCoverageRecordInterface.getCoverageId()=eoxserver.lib.interfaces.EOxSCoverageRecordInterface-class.html#getCoverageId"><a title="eoxserver.lib.interfaces.EOxSCoverageInterface.getCoverageId
+eoxserver.lib.interfaces.EOxSCoverageRecordInterface.getCoverageId" class="py-name" href="#" onclick="return doclink('link-78', 'getCoverageId', 'link-78');">getCoverageId</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L104"></a><tt class="py-lineno">104</tt>  <tt class="py-line">            <tt class="py-name">layer</tt><tt class="py-op">.</tt><tt class="py-name">setMetaData</tt><tt class="py-op">(</tt><tt class="py-string">"wms_extent"</tt><tt class="py-op">,</tt> <tt class="py-string">"%f %f %f %f"</tt> <tt class="py-op">%</tt> <tt class="py-name">coverage</tt><tt class="py-op">.</tt><tt id="link-79" class="py-name"><a title="eoxserver.lib.interfaces.EOxSCoverageInterface.getGrid
+eoxserver.lib.interfaces.EOxSCoverageRecordInterface.getGrid" class="py-name" href="#" onclick="return doclink('link-79', 'getGrid', 'link-76');">getGrid</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt id="link-80" class="py-name" targets="Method eoxserver.lib.domainset.EOxSRectifiedGrid.getExtent2D()=eoxserver.lib.domainset.EOxSRectifiedGrid-class.html#getExtent2D"><a title="eoxserver.lib.domainset.EOxSRectifiedGrid.getExtent2D" class="py-name" href="#" onclick="return doclink('link-80', 'getExtent2D', 'link-80');">getExtent2D</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L105"></a><tt class="py-lineno">105</tt>  <tt class="py-line">            <tt class="py-name">layer</tt><tt class="py-op">.</tt><tt class="py-name">setExtent</tt><tt class="py-op">(</tt><tt class="py-op">*</tt><tt class="py-name">coverage</tt><tt class="py-op">.</tt><tt id="link-81" class="py-name"><a title="eoxserver.lib.interfaces.EOxSCoverageInterface.getGrid
+eoxserver.lib.interfaces.EOxSCoverageRecordInterface.getGrid" class="py-name" href="#" onclick="return doclink('link-81', 'getGrid', 'link-76');">getGrid</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt id="link-82" class="py-name"><a title="eoxserver.lib.domainset.EOxSRectifiedGrid.getExtent2D" class="py-name" href="#" onclick="return doclink('link-82', 'getExtent2D', 'link-80');">getExtent2D</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L106"></a><tt class="py-lineno">106</tt>  <tt class="py-line">         </tt>
+<a name="L107"></a><tt class="py-lineno">107</tt>  <tt class="py-line">        <tt class="py-name">layer</tt><tt class="py-op">.</tt><tt class="py-name">type</tt> <tt class="py-op">=</tt> <tt class="py-name">mapscript</tt><tt class="py-op">.</tt><tt class="py-name">MS_LAYER_RASTER</tt> </tt>
+<a name="L108"></a><tt class="py-lineno">108</tt>  <tt class="py-line">        <tt class="py-comment">#layer.dump = mapscript.MS_TRUE</tt> </tt>
+<a name="L109"></a><tt class="py-lineno">109</tt>  <tt class="py-line">        <tt class="py-name">layer</tt><tt class="py-op">.</tt><tt class="py-name">setConnectionType</tt><tt class="py-op">(</tt><tt class="py-name">mapscript</tt><tt class="py-op">.</tt><tt class="py-name">MS_RASTER</tt><tt class="py-op">,</tt> <tt class="py-string">''</tt><tt class="py-op">)</tt> </tt>
+<a name="L110"></a><tt class="py-lineno">110</tt>  <tt class="py-line">        <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L111"></a><tt class="py-lineno">111</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">coverage</tt><tt class="py-op">.</tt><tt id="link-83" class="py-name"><a title="eoxserver.lib.interfaces.EOxSCoverageInterface.getType
+eoxserver.lib.interfaces.EOxSDatasetSeriesInterface.getType
+eoxserver.lib.interfaces.EOxSRectifiedDatasetRecordInterface.getType
+eoxserver.lib.interfaces.EOxSRectifiedDatasetSeriesRecordInterface.getType
+eoxserver.lib.interfaces.EOxSRectifiedStitchedMosaicRecordInterface.getType
+eoxserver.lib.interfaces.EOxSSingleFileCoverageRecordInterface.getType" class="py-name" href="#" onclick="return doclink('link-83', 'getType', 'link-67');">getType</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> <tt class="py-keyword">in</tt> <tt class="py-op">(</tt><tt class="py-string">"file"</tt><tt class="py-op">,</tt> <tt class="py-string">"eo.rect_dataset"</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L112"></a><tt class="py-lineno">112</tt>  <tt class="py-line">                <tt class="py-name">datasets</tt> <tt class="py-op">=</tt> <tt class="py-name">coverage</tt><tt class="py-op">.</tt><tt id="link-84" class="py-name"><a title="eoxserver.lib.interfaces.EOxSCoverageInterface.getDatasets
+eoxserver.lib.interfaces.EOxSDatasetSeriesInterface.getDatasets
+eoxserver.lib.interfaces.EOxSRectifiedCompositeObjectInterface.getDatasets
+eoxserver.lib.interfaces.EOxSRectifiedDatasetRecordInterface.getDatasets
+eoxserver.lib.interfaces.EOxSSingleFileCoverageRecordInterface.getDatasets" class="py-name" href="#" onclick="return doclink('link-84', 'getDatasets', 'link-73');">getDatasets</a></tt><tt class="py-op">(</tt><tt class="py-op">**</tt><tt class="py-name">kwargs</tt><tt class="py-op">)</tt> </tt>
+<a name="L113"></a><tt class="py-lineno">113</tt>  <tt class="py-line">                <tt class="py-keyword">if</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">datasets</tt><tt class="py-op">)</tt> <tt class="py-op">==</tt> <tt class="py-number">0</tt><tt class="py-op">:</tt> </tt>
+<a name="L114"></a><tt class="py-lineno">114</tt>  <tt class="py-line">                    <tt class="py-comment"># TODO: produce a no-data value only coverage</tt> </tt>
+<a name="L115"></a><tt class="py-lineno">115</tt>  <tt class="py-line">                    <tt class="py-keyword">raise</tt> <tt id="link-85" class="py-name"><a title="eoxserver.lib.exceptions.EOxSInternalError" class="py-name" href="#" onclick="return doclink('link-85', 'EOxSInternalError', 'link-40');">EOxSInternalError</a></tt><tt class="py-op">(</tt><tt class="py-string">"Cannot handle empty coverages"</tt><tt class="py-op">)</tt> </tt>
+<a name="L116"></a><tt class="py-lineno">116</tt>  <tt class="py-line">                <tt class="py-keyword">elif</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">datasets</tt><tt class="py-op">)</tt> <tt class="py-op">==</tt> <tt class="py-number">1</tt><tt class="py-op">:</tt> </tt>
+<a name="L117"></a><tt class="py-lineno">117</tt>  <tt class="py-line">                    <tt class="py-name">layer</tt><tt class="py-op">.</tt><tt class="py-name">data</tt> <tt class="py-op">=</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-86" class="py-name"><a title="eoxserver.server.models.EOxSFileRecord.path" class="py-name" href="#" onclick="return doclink('link-86', 'path', 'link-0');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">abspath</tt><tt class="py-op">(</tt><tt class="py-name">datasets</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">.</tt><tt id="link-87" class="py-name" targets="Method eoxserver.lib.interfaces.EOxSDatasetInterface.getFilename()=eoxserver.lib.interfaces.EOxSDatasetInterface-class.html#getFilename,Method eoxserver.lib.interfaces.EOxSFileRecordInterface.getFilename()=eoxserver.lib.interfaces.EOxSFileRecordInterface-class.html#getFilename"><a title="eoxserver.lib.interfaces.EOxSDatasetInterface.getFilename
+eoxserver.lib.interfaces.EOxSFileRecordInterface.getFilename" class="py-name" href="#" onclick="return doclink('link-87', 'getFilename', 'link-87');">getFilename</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L118"></a><tt class="py-lineno">118</tt>  <tt class="py-line">                <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L119"></a><tt class="py-lineno">119</tt>  <tt class="py-line">                    <tt class="py-keyword">raise</tt> <tt id="link-88" class="py-name"><a title="eoxserver.lib.exceptions.EOxSInternalError" class="py-name" href="#" onclick="return doclink('link-88', 'EOxSInternalError', 'link-40');">EOxSInternalError</a></tt><tt class="py-op">(</tt><tt class="py-string">"A single file or EO dataset should never return more than one dataset."</tt><tt class="py-op">)</tt> </tt>
+<a name="L120"></a><tt class="py-lineno">120</tt>  <tt class="py-line">                 </tt>
+<a name="L121"></a><tt class="py-lineno">121</tt>  <tt class="py-line">            <tt class="py-keyword">elif</tt> <tt class="py-name">coverage</tt><tt class="py-op">.</tt><tt id="link-89" class="py-name"><a title="eoxserver.lib.interfaces.EOxSCoverageInterface.getType
+eoxserver.lib.interfaces.EOxSDatasetSeriesInterface.getType
+eoxserver.lib.interfaces.EOxSRectifiedDatasetRecordInterface.getType
+eoxserver.lib.interfaces.EOxSRectifiedDatasetSeriesRecordInterface.getType
+eoxserver.lib.interfaces.EOxSRectifiedStitchedMosaicRecordInterface.getType
+eoxserver.lib.interfaces.EOxSSingleFileCoverageRecordInterface.getType" class="py-name" href="#" onclick="return doclink('link-89', 'getType', 'link-67');">getType</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> <tt class="py-op">==</tt> <tt class="py-string">"eo.rect_mosaic"</tt><tt class="py-op">:</tt> </tt>
+<a name="L122"></a><tt class="py-lineno">122</tt>  <tt class="py-line">                <tt class="py-name">layer</tt><tt class="py-op">.</tt><tt class="py-name">tileindex</tt> <tt class="py-op">=</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-90" class="py-name"><a title="eoxserver.server.models.EOxSFileRecord.path" class="py-name" href="#" onclick="return doclink('link-90', 'path', 'link-0');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">abspath</tt><tt class="py-op">(</tt><tt class="py-name">coverage</tt><tt class="py-op">.</tt><tt id="link-91" class="py-name" targets="Method eoxserver.lib.interfaces.EOxSRectifiedStitchedMosaicRecordInterface.getShapeFilePath()=eoxserver.lib.interfaces.EOxSRectifiedStitchedMosaicRecordInterface-class.html#getShapeFilePath,Method eoxserver.lib.interfaces.EOxSStitchedMosaicInterface.getShapeFilePath()=eoxserver.lib.interfaces.EOxSStitchedMosaicInterface-class.html#getShapeFilePath"><a title="eoxserver.lib.interfaces.EOxSRectifiedStitchedMosaicRecordInterface.getShapeFilePath
+eoxserver.lib.interfaces.EOxSStitchedMosaicInterface.getShapeFilePath" class="py-name" href="#" onclick="return doclink('link-91', 'getShapeFilePath', 'link-91');">getShapeFilePath</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L123"></a><tt class="py-lineno">123</tt>  <tt class="py-line">                <tt class="py-name">layer</tt><tt class="py-op">.</tt><tt class="py-name">tileitem</tt> <tt class="py-op">=</tt> <tt class="py-string">"location"</tt> </tt>
+<a name="L124"></a><tt class="py-lineno">124</tt>  <tt class="py-line">                 </tt>
+<a name="L125"></a><tt class="py-lineno">125</tt>  <tt class="py-line">            <tt class="py-keyword">elif</tt> <tt class="py-name">coverage</tt><tt class="py-op">.</tt><tt id="link-92" class="py-name"><a title="eoxserver.lib.interfaces.EOxSCoverageInterface.getType
+eoxserver.lib.interfaces.EOxSDatasetSeriesInterface.getType
+eoxserver.lib.interfaces.EOxSRectifiedDatasetRecordInterface.getType
+eoxserver.lib.interfaces.EOxSRectifiedDatasetSeriesRecordInterface.getType
+eoxserver.lib.interfaces.EOxSRectifiedStitchedMosaicRecordInterface.getType
+eoxserver.lib.interfaces.EOxSSingleFileCoverageRecordInterface.getType" class="py-name" href="#" onclick="return doclink('link-92', 'getType', 'link-67');">getType</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> <tt class="py-op">==</tt> <tt class="py-string">"eo.rect_dataset_series"</tt><tt class="py-op">:</tt> </tt>
+<a name="L126"></a><tt class="py-lineno">126</tt>  <tt class="py-line">                <tt class="py-name">datasets</tt> <tt class="py-op">=</tt> <tt class="py-name">coverage</tt><tt class="py-op">.</tt><tt id="link-93" class="py-name"><a title="eoxserver.lib.interfaces.EOxSCoverageInterface.getDatasets
+eoxserver.lib.interfaces.EOxSDatasetSeriesInterface.getDatasets
+eoxserver.lib.interfaces.EOxSRectifiedCompositeObjectInterface.getDatasets
+eoxserver.lib.interfaces.EOxSRectifiedDatasetRecordInterface.getDatasets
+eoxserver.lib.interfaces.EOxSSingleFileCoverageRecordInterface.getDatasets" class="py-name" href="#" onclick="return doclink('link-93', 'getDatasets', 'link-73');">getDatasets</a></tt><tt class="py-op">(</tt><tt class="py-op">**</tt><tt class="py-name">kwargs</tt><tt class="py-op">)</tt> </tt>
+<a name="L127"></a><tt class="py-lineno">127</tt>  <tt class="py-line">                <tt class="py-keyword">if</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">datasets</tt><tt class="py-op">)</tt> <tt class="py-op">==</tt> <tt class="py-number">0</tt><tt class="py-op">:</tt> </tt>
+<a name="L128"></a><tt class="py-lineno">128</tt>  <tt class="py-line">                    <tt class="py-keyword">raise</tt> <tt id="link-94" class="py-name"><a title="eoxserver.lib.exceptions.EOxSInternalError" class="py-name" href="#" onclick="return doclink('link-94', 'EOxSInternalError', 'link-40');">EOxSInternalError</a></tt><tt class="py-op">(</tt><tt class="py-string">"Cannot handle empty coverages"</tt><tt class="py-op">)</tt> </tt>
+<a name="L129"></a><tt class="py-lineno">129</tt>  <tt class="py-line">                 </tt>
+<a name="L130"></a><tt class="py-lineno">130</tt>  <tt class="py-line">                <tt class="py-name">layer</tt><tt class="py-op">.</tt><tt class="py-name">setExtent</tt><tt class="py-op">(</tt><tt class="py-op">*</tt><tt class="py-name">datasets</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">.</tt><tt id="link-95" class="py-name"><a title="eoxserver.lib.interfaces.EOxSCoverageInterface.getGrid
+eoxserver.lib.interfaces.EOxSCoverageRecordInterface.getGrid" class="py-name" href="#" onclick="return doclink('link-95', 'getGrid', 'link-76');">getGrid</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt id="link-96" class="py-name"><a title="eoxserver.lib.domainset.EOxSRectifiedGrid.getExtent2D" class="py-name" href="#" onclick="return doclink('link-96', 'getExtent2D', 'link-80');">getExtent2D</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L131"></a><tt class="py-lineno">131</tt>  <tt class="py-line">                <tt class="py-name">layer</tt><tt class="py-op">.</tt><tt class="py-name">setProjection</tt><tt class="py-op">(</tt><tt class="py-string">"EPSG:%d"</tt><tt class="py-op">%</tt><tt class="py-name">datasets</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">.</tt><tt id="link-97" class="py-name"><a title="eoxserver.lib.interfaces.EOxSCoverageInterface.getGrid
+eoxserver.lib.interfaces.EOxSCoverageRecordInterface.getGrid" class="py-name" href="#" onclick="return doclink('link-97', 'getGrid', 'link-76');">getGrid</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt id="link-98" class="py-name"><a title="eoxserver.server.models.EOxSRectifiedGridRecord.srid" class="py-name" href="#" onclick="return doclink('link-98', 'srid', 'link-77');">srid</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L132"></a><tt class="py-lineno">132</tt>  <tt class="py-line">                <tt class="py-name">layer</tt><tt class="py-op">.</tt><tt class="py-name">setMetaData</tt><tt class="py-op">(</tt><tt class="py-string">"wms_srs"</tt><tt class="py-op">,</tt> <tt class="py-string">"EPSG:%d"</tt><tt class="py-op">%</tt><tt class="py-name">int</tt><tt class="py-op">(</tt><tt class="py-name">datasets</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">.</tt><tt id="link-99" class="py-name"><a title="eoxserver.lib.interfaces.EOxSCoverageInterface.getGrid
+eoxserver.lib.interfaces.EOxSCoverageRecordInterface.getGrid" class="py-name" href="#" onclick="return doclink('link-99', 'getGrid', 'link-76');">getGrid</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt id="link-100" class="py-name"><a title="eoxserver.server.models.EOxSRectifiedGridRecord.srid" class="py-name" href="#" onclick="return doclink('link-100', 'srid', 'link-77');">srid</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L133"></a><tt class="py-lineno">133</tt>  <tt class="py-line">                <tt class="py-comment">#layer.setMetaData("wms_crs", "EPSG:%d"%datasets[0].getGrid().srid)</tt> </tt>
+<a name="L134"></a><tt class="py-lineno">134</tt>  <tt class="py-line"> </tt>
+<a name="L135"></a><tt class="py-lineno">135</tt>  <tt class="py-line">                <tt class="py-name">layer</tt><tt class="py-op">.</tt><tt class="py-name">data</tt> <tt class="py-op">=</tt> <tt class="py-name">datasets</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">.</tt><tt id="link-101" class="py-name"><a title="eoxserver.lib.interfaces.EOxSDatasetInterface.getFilename
+eoxserver.lib.interfaces.EOxSFileRecordInterface.getFilename" class="py-name" href="#" onclick="return doclink('link-101', 'getFilename', 'link-87');">getFilename</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> <tt class="py-comment"># TODO: Show all requested files. (Default without time parameter to all.)</tt> </tt>
+<a name="L136"></a><tt class="py-lineno">136</tt>  <tt class="py-line"> </tt>
+<a name="L137"></a><tt class="py-lineno">137</tt>  <tt class="py-line">        <tt class="py-keyword">except</tt> <tt id="link-102" class="py-name"><a title="eoxserver.lib.exceptions.EOxSInternalError" class="py-name" href="#" onclick="return doclink('link-102', 'EOxSInternalError', 'link-40');">EOxSInternalError</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L138"></a><tt class="py-lineno">138</tt>  <tt class="py-line">            <tt class="py-comment"># create an empty layer</tt> </tt>
+<a name="L139"></a><tt class="py-lineno">139</tt>  <tt class="py-line">            <tt class="py-name">logging</tt><tt class="py-op">.</tt><tt class="py-name">debug</tt><tt class="py-op">(</tt><tt class="py-name">layer</tt><tt class="py-op">.</tt><tt class="py-name">data</tt><tt class="py-op">)</tt> </tt>
+<a name="L140"></a><tt class="py-lineno">140</tt>  <tt class="py-line">            <tt class="py-name">layer</tt><tt class="py-op">.</tt><tt class="py-name">setProjection</tt><tt class="py-op">(</tt><tt class="py-string">"EPSG:4326"</tt><tt class="py-op">)</tt> </tt>
+<a name="L141"></a><tt class="py-lineno">141</tt>  <tt class="py-line">            <tt class="py-name">layer</tt><tt class="py-op">.</tt><tt class="py-name">setMetaData</tt><tt class="py-op">(</tt><tt class="py-string">"wms_srs"</tt><tt class="py-op">,</tt> <tt class="py-string">"EPSG:3035 EPSG:4326 EPSG:900913"</tt><tt class="py-op">)</tt> <tt class="py-comment"># TODO find out possible projections</tt> </tt>
+<a name="L142"></a><tt class="py-lineno">142</tt>  <tt class="py-line"> </tt>
+<a name="L143"></a><tt class="py-lineno">143</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">layer</tt> </tt>
+</div></div><a name="L144"></a><tt class="py-lineno">144</tt>  <tt class="py-line"> </tt>
+<a name="EOxSWMS1XGetCapabilitiesHandler"></a><div id="EOxSWMS1XGetCapabilitiesHandler-def"><a name="L145"></a><tt class="py-lineno">145</tt> <a class="py-toggle" href="#" id="EOxSWMS1XGetCapabilitiesHandler-toggle" onclick="return toggle('EOxSWMS1XGetCapabilitiesHandler');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler-class.html">EOxSWMS1XGetCapabilitiesHandler</a><tt class="py-op">(</tt><tt class="py-base-class">EOxSWMSCommonHandler</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EOxSWMS1XGetCapabilitiesHandler-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="EOxSWMS1XGetCapabilitiesHandler-expanded"><a name="L146"></a><tt class="py-lineno">146</tt>  <tt class="py-line">    <tt id="link-103" class="py-name"><a title="eoxserver.lib.handlers.EOxSOperationHandler.SERVICE
+eoxserver.lib.handlers.EOxSServiceHandler.SERVICE
+eoxserver.lib.handlers.EOxSVersionHandler.SERVICE
+eoxserver.modules.wcs1x.EOxSWCS10VersionHandler.SERVICE
+eoxserver.modules.wcs1x.EOxSWCS11VersionHandler.SERVICE
+eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler.SERVICE
+eoxserver.modules.wcs1x.EOxSWCSServiceHandler.SERVICE
+eoxserver.modules.wcs20.EOxSWCS20DescribeCoverageHandler.SERVICE
+eoxserver.modules.wcs20.EOxSWCS20DescribeEOCoverageSetHandler.SERVICE
+eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.SERVICE
+eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.SERVICE
+eoxserver.modules.wcs20.EOxSWCS20VersionHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS10VersionHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS11VersionHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS13VersionHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMSServiceHandler.SERVICE" class="py-name" href="#" onclick="return doclink('link-103', 'SERVICE', 'link-45');">SERVICE</a></tt> <tt class="py-op">=</tt> <tt class="py-string">"WMS"</tt> </tt>
+<a name="L147"></a><tt class="py-lineno">147</tt>  <tt class="py-line">    <tt id="link-104" class="py-name"><a title="eoxserver.lib.handlers.EOxSOperationHandler.VERSIONS
+eoxserver.lib.handlers.EOxSVersionHandler.VERSIONS
+eoxserver.modules.wcs1x.EOxSWCS10VersionHandler.VERSIONS
+eoxserver.modules.wcs1x.EOxSWCS11VersionHandler.VERSIONS
+eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler.VERSIONS
+eoxserver.modules.wcs20.EOxSWCS20DescribeCoverageHandler.VERSIONS
+eoxserver.modules.wcs20.EOxSWCS20DescribeEOCoverageSetHandler.VERSIONS
+eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.VERSIONS
+eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.VERSIONS
+eoxserver.modules.wcs20.EOxSWCS20VersionHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS10VersionHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS11VersionHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS13VersionHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler.VERSIONS" class="py-name" href="#" onclick="return doclink('link-104', 'VERSIONS', 'link-48');">VERSIONS</a></tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt><tt class="py-string">"1.0"</tt><tt class="py-op">,</tt> <tt class="py-string">"1.0.0"</tt><tt class="py-op">,</tt> <tt class="py-string">"1.1"</tt><tt class="py-op">,</tt> <tt class="py-string">"1.1.0"</tt><tt class="py-op">,</tt> <tt class="py-string">"1.3"</tt><tt class="py-op">,</tt> <tt class="py-string">"1.3.0"</tt><tt class="py-op">)</tt> </tt>
+<a name="L148"></a><tt class="py-lineno">148</tt>  <tt class="py-line">    <tt id="link-105" class="py-name" targets="Variable eoxserver.lib.handlers.EOxSOperationHandler.OPERATIONS=eoxserver.lib.handlers.EOxSOperationHandler-class.html#OPERATIONS,Variable eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler.OPERATIONS=eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler-class.html#OPERATIONS,Variable eoxserver.modules.wcs20.EOxSWCS20DescribeCoverageHandler.OPERATIONS=eoxserver.modules.wcs20.EOxSWCS20DescribeCoverageHandler-class.html#OPERATIONS,Variable eoxserver.modules.wcs20.EOxSWCS20DescribeEOCoverageSetHandler.OPERATIONS=eoxserver.modules.wcs20.EOxSWCS20DescribeEOCoverageSetHandler-class.html#OPERATIONS,Variable eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.OPERATIONS=eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler-class.html#OPERATIONS,Variable eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.OPERATIONS=eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler-class.html#OPERATIONS,Variable eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.OPERATIONS=eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler-class.html#OPERATIONS,Variable eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.OPERATIONS=eoxserver.modules.wms1x.EOxSWMS13GetMapHandler-class.html#OPERATIONS,Variable eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler.OPERATIONS=eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler-class.html#OPERATIONS,Variable eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler.OPERATIONS=eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler-class.html#OPERATIONS"><a title="eoxserver.lib.handlers.EOxSOperationHandler.OPERATIONS
+eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler.OPERATIONS
+eoxserver.modules.wcs20.EOxSWCS20DescribeCoverageHandler.OPERATIONS
+eoxserver.modules.wcs20.EOxSWCS20DescribeEOCoverageSetHandler.OPERATIONS
+eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.OPERATIONS
+eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.OPERATIONS
+eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.OPERATIONS
+eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.OPERATIONS
+eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler.OPERATIONS
+eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler.OPERATIONS" class="py-name" href="#" onclick="return doclink('link-105', 'OPERATIONS', 'link-105');">OPERATIONS</a></tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt><tt class="py-string">"getcapabilities"</tt><tt class="py-op">)</tt> </tt>
+<a name="L149"></a><tt class="py-lineno">149</tt>  <tt class="py-line">    <tt id="link-106" class="py-name"><a title="eoxserver.lib.handlers.EOxSOperationHandler.ABSTRACT
+eoxserver.lib.handlers.EOxSServiceHandler.ABSTRACT
+eoxserver.lib.handlers.EOxSVersionHandler.ABSTRACT
+eoxserver.lib.ows.EOxSOWSCommonServiceHandler.ABSTRACT
+eoxserver.modules.wcs.common.EOxSWCSCommonHandler.ABSTRACT
+eoxserver.modules.wcs1x.EOxSWCS10VersionHandler.ABSTRACT
+eoxserver.modules.wcs1x.EOxSWCS11VersionHandler.ABSTRACT
+eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler.ABSTRACT
+eoxserver.modules.wcs1x.EOxSWCSServiceHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20DescribeCoverageHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20DescribeEOCoverageSetHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20VersionHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS10VersionHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS11VersionHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS13VersionHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMSCommonHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMSServiceHandler.ABSTRACT" class="py-name" href="#" onclick="return doclink('link-106', 'ABSTRACT', 'link-46');">ABSTRACT</a></tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt> </tt>
+<a name="L150"></a><tt class="py-lineno">150</tt>  <tt class="py-line">     </tt>
+<a name="EOxSWMS1XGetCapabilitiesHandler.createCoverages"></a><div id="EOxSWMS1XGetCapabilitiesHandler.createCoverages-def"><a name="L151"></a><tt class="py-lineno">151</tt> <a class="py-toggle" href="#" id="EOxSWMS1XGetCapabilitiesHandler.createCoverages-toggle" onclick="return toggle('EOxSWMS1XGetCapabilitiesHandler.createCoverages');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler-class.html#createCoverages">createCoverages</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">ms_req</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EOxSWMS1XGetCapabilitiesHandler.createCoverages-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="EOxSWMS1XGetCapabilitiesHandler.createCoverages-expanded"><a name="L152"></a><tt class="py-lineno">152</tt>  <tt class="py-line">        <tt class="py-comment">#ms_req.coverages = EOxSCoverageInterfaceFactory.getAllCoverageInterfaces()</tt> </tt>
+<a name="L153"></a><tt class="py-lineno">153</tt>  <tt class="py-line">        <tt class="py-name">ms_req</tt><tt class="py-op">.</tt><tt class="py-name">coverages</tt> <tt class="py-op">=</tt> <tt id="link-107" class="py-name"><a title="eoxserver.lib.interfaces.EOxSCoverageInterfaceFactory" class="py-name" href="#" onclick="return doclink('link-107', 'EOxSCoverageInterfaceFactory', 'link-28');">EOxSCoverageInterfaceFactory</a></tt><tt class="py-op">.</tt><tt id="link-108" class="py-name" targets="Class Method eoxserver.lib.interfaces.EOxSCoverageInterfaceFactory.getVisibleCoverageInterfaces()=eoxserver.lib.interfaces.EOxSCoverageInterfaceFactory-class.html#getVisibleCoverageInterfaces"><a title="eoxserver.lib.interfaces.EOxSCoverageInterfaceFactory.getVisibleCoverageInterfaces" class="py-name" href="#" onclick="return doclink('link-108', 'getVisibleCoverageInterfaces', 'link-108');">getVisibleCoverageInterfaces</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L154"></a><tt class="py-lineno">154</tt>  <tt class="py-line">        <tt class="py-name">ms_req</tt><tt class="py-op">.</tt><tt class="py-name">coverages</tt><tt class="py-op">.</tt><tt class="py-name">extend</tt><tt class="py-op">(</tt><tt id="link-109" class="py-name"><a title="eoxserver.lib.interfaces.EOxSDatasetSeriesFactory" class="py-name" href="#" onclick="return doclink('link-109', 'EOxSDatasetSeriesFactory', 'link-29');">EOxSDatasetSeriesFactory</a></tt><tt class="py-op">.</tt><tt id="link-110" class="py-name" targets="Class Method eoxserver.lib.interfaces.EOxSDatasetSeriesFactory.getAllDatasetSeriesInterfaces()=eoxserver.lib.interfaces.EOxSDatasetSeriesFactory-class.html#getAllDatasetSeriesInterfaces"><a title="eoxserver.lib.interfaces.EOxSDatasetSeriesFactory.getAllDatasetSeriesInterfaces" class="py-name" href="#" onclick="return doclink('link-110', 'getAllDatasetSeriesInterfaces', 'link-110');">getAllDatasetSeriesInterfaces</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L155"></a><tt class="py-lineno">155</tt>  <tt class="py-line">         </tt>
+<a name="EOxSWMS1XGetCapabilitiesHandler.getMapServerLayer"></a><div id="EOxSWMS1XGetCapabilitiesHandler.getMapServerLayer-def"><a name="L156"></a><tt class="py-lineno">156</tt> <a class="py-toggle" href="#" id="EOxSWMS1XGetCapabilitiesHandler.getMapServerLayer-toggle" onclick="return toggle('EOxSWMS1XGetCapabilitiesHandler.getMapServerLayer');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler-class.html#getMapServerLayer">getMapServerLayer</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">coverage</tt><tt class="py-op">,</tt> <tt class="py-op">**</tt><tt class="py-param">kwargs</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EOxSWMS1XGetCapabilitiesHandler.getMapServerLayer-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="EOxSWMS1XGetCapabilitiesHandler.getMapServerLayer-expanded"><a name="L157"></a><tt class="py-lineno">157</tt>  <tt class="py-line">        <tt class="py-name">layer</tt> <tt class="py-op">=</tt> <tt class="py-name">super</tt><tt class="py-op">(</tt><tt id="link-111" class="py-name" targets="Class eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler=eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler-class.html"><a title="eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler" class="py-name" href="#" onclick="return doclink('link-111', 'EOxSWMS1XGetCapabilitiesHandler', 'link-111');">EOxSWMS1XGetCapabilitiesHandler</a></tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt id="link-112" class="py-name"><a title="eoxserver.lib.handlers.EOxSMapServerOperationHandler.getMapServerLayer
+eoxserver.modules.wcs.common.EOxSWCSCommonHandler.getMapServerLayer
+eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler.getMapServerLayer
+eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.getMapServerLayer
+eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.getMapServerLayer
+eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.getMapServerLayer
+eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.getMapServerLayer
+eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler.getMapServerLayer
+eoxserver.modules.wms1x.EOxSWMSCommonHandler.getMapServerLayer" class="py-name" href="#" onclick="return doclink('link-112', 'getMapServerLayer', 'link-66');">getMapServerLayer</a></tt><tt class="py-op">(</tt><tt class="py-name">coverage</tt><tt class="py-op">,</tt> <tt class="py-op">**</tt><tt class="py-name">kwargs</tt><tt class="py-op">)</tt> </tt>
+<a name="L158"></a><tt class="py-lineno">158</tt>  <tt class="py-line">         </tt>
+<a name="L159"></a><tt class="py-lineno">159</tt>  <tt class="py-line">        <tt class="py-name">datasets</tt> <tt class="py-op">=</tt> <tt class="py-name">coverage</tt><tt class="py-op">.</tt><tt id="link-113" class="py-name"><a title="eoxserver.lib.interfaces.EOxSCoverageInterface.getDatasets
+eoxserver.lib.interfaces.EOxSDatasetSeriesInterface.getDatasets
+eoxserver.lib.interfaces.EOxSRectifiedCompositeObjectInterface.getDatasets
+eoxserver.lib.interfaces.EOxSRectifiedDatasetRecordInterface.getDatasets
+eoxserver.lib.interfaces.EOxSSingleFileCoverageRecordInterface.getDatasets" class="py-name" href="#" onclick="return doclink('link-113', 'getDatasets', 'link-73');">getDatasets</a></tt><tt class="py-op">(</tt><tt class="py-op">**</tt><tt class="py-name">kwargs</tt><tt class="py-op">)</tt> </tt>
+<a name="L160"></a><tt class="py-lineno">160</tt>  <tt class="py-line">         </tt>
+<a name="L161"></a><tt class="py-lineno">161</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">coverage</tt><tt class="py-op">.</tt><tt id="link-114" class="py-name"><a title="eoxserver.lib.interfaces.EOxSCoverageInterface.getType
+eoxserver.lib.interfaces.EOxSDatasetSeriesInterface.getType
+eoxserver.lib.interfaces.EOxSRectifiedDatasetRecordInterface.getType
+eoxserver.lib.interfaces.EOxSRectifiedDatasetSeriesRecordInterface.getType
+eoxserver.lib.interfaces.EOxSRectifiedStitchedMosaicRecordInterface.getType
+eoxserver.lib.interfaces.EOxSSingleFileCoverageRecordInterface.getType" class="py-name" href="#" onclick="return doclink('link-114', 'getType', 'link-67');">getType</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> <tt class="py-op">==</tt> <tt class="py-string">"eo.rect_dataset_series"</tt><tt class="py-op">:</tt> </tt>
+<a name="L162"></a><tt class="py-lineno">162</tt>  <tt class="py-line">            <tt class="py-name">layer</tt><tt class="py-op">.</tt><tt class="py-name">setMetaData</tt><tt class="py-op">(</tt><tt class="py-string">"wms_extent"</tt><tt class="py-op">,</tt> <tt class="py-string">"%f %f %f %f"</tt> <tt class="py-op">%</tt> <tt class="py-name">coverage</tt><tt class="py-op">.</tt><tt id="link-115" class="py-name" targets="Method eoxserver.lib.interfaces.EOxSEOMetadataInterface.getWGS84Extent()=eoxserver.lib.interfaces.EOxSEOMetadataInterface-class.html#getWGS84Extent,Method eoxserver.lib.interfaces.EOxSEOMetadataRecordInterface.getWGS84Extent()=eoxserver.lib.interfaces.EOxSEOMetadataRecordInterface-class.html#getWGS84Extent"><a title="eoxserver.lib.interfaces.EOxSEOMetadataInterface.getWGS84Extent
+eoxserver.lib.interfaces.EOxSEOMetadataRecordInterface.getWGS84Extent" class="py-name" href="#" onclick="return doclink('link-115', 'getWGS84Extent', 'link-115');">getWGS84Extent</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L163"></a><tt class="py-lineno">163</tt>  <tt class="py-line">            <tt class="py-name">layer</tt><tt class="py-op">.</tt><tt class="py-name">setExtent</tt><tt class="py-op">(</tt><tt class="py-op">*</tt><tt class="py-name">coverage</tt><tt class="py-op">.</tt><tt id="link-116" class="py-name"><a title="eoxserver.lib.interfaces.EOxSEOMetadataInterface.getWGS84Extent
+eoxserver.lib.interfaces.EOxSEOMetadataRecordInterface.getWGS84Extent" class="py-name" href="#" onclick="return doclink('link-116', 'getWGS84Extent', 'link-115');">getWGS84Extent</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L164"></a><tt class="py-lineno">164</tt>  <tt class="py-line">         </tt>
+<a name="L165"></a><tt class="py-lineno">165</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">datasets</tt><tt class="py-op">)</tt> <tt class="py-op">==</tt> <tt class="py-number">0</tt><tt class="py-op">:</tt> </tt>
+<a name="L166"></a><tt class="py-lineno">166</tt>  <tt class="py-line">            <tt class="py-keyword">raise</tt> <tt id="link-117" class="py-name"><a title="eoxserver.lib.exceptions.EOxSInternalError" class="py-name" href="#" onclick="return doclink('link-117', 'EOxSInternalError', 'link-40');">EOxSInternalError</a></tt><tt class="py-op">(</tt><tt class="py-string">"Misconfigured coverage '%s' has no file data."</tt> <tt class="py-op">%</tt> <tt class="py-name">coverage</tt><tt class="py-op">.</tt><tt id="link-118" class="py-name"><a title="eoxserver.lib.interfaces.EOxSCoverageInterface.getCoverageId
+eoxserver.lib.interfaces.EOxSCoverageRecordInterface.getCoverageId" class="py-name" href="#" onclick="return doclink('link-118', 'getCoverageId', 'link-78');">getCoverageId</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L167"></a><tt class="py-lineno">167</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L168"></a><tt class="py-lineno">168</tt>  <tt class="py-line">            <tt class="py-name">layer</tt><tt class="py-op">.</tt><tt class="py-name">data</tt> <tt class="py-op">=</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-119" class="py-name"><a title="eoxserver.server.models.EOxSFileRecord.path" class="py-name" href="#" onclick="return doclink('link-119', 'path', 'link-0');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">abspath</tt><tt class="py-op">(</tt><tt class="py-name">datasets</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">.</tt><tt id="link-120" class="py-name"><a title="eoxserver.lib.interfaces.EOxSDatasetInterface.getFilename
+eoxserver.lib.interfaces.EOxSFileRecordInterface.getFilename" class="py-name" href="#" onclick="return doclink('link-120', 'getFilename', 'link-87');">getFilename</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L169"></a><tt class="py-lineno">169</tt>  <tt class="py-line">             </tt>
+<a name="L170"></a><tt class="py-lineno">170</tt>  <tt class="py-line">        <tt class="py-name">logging</tt><tt class="py-op">.</tt><tt class="py-name">debug</tt><tt class="py-op">(</tt><tt class="py-string">"EOxSWMSCommonHandler.getMapServerLayer: filename: %s"</tt> <tt class="py-op">%</tt> <tt class="py-name">layer</tt><tt class="py-op">.</tt><tt class="py-name">data</tt><tt class="py-op">)</tt> </tt>
+<a name="L171"></a><tt class="py-lineno">171</tt>  <tt class="py-line">         </tt>
+<a name="L172"></a><tt class="py-lineno">172</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">layer</tt> </tt>
+</div><a name="L173"></a><tt class="py-lineno">173</tt>  <tt class="py-line"> </tt>
+<a name="EOxSWMS1XGetCapabilitiesHandler.postprocess"></a><div id="EOxSWMS1XGetCapabilitiesHandler.postprocess-def"><a name="L174"></a><tt class="py-lineno">174</tt> <a class="py-toggle" href="#" id="EOxSWMS1XGetCapabilitiesHandler.postprocess-toggle" onclick="return toggle('EOxSWMS1XGetCapabilitiesHandler.postprocess');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler-class.html#postprocess">postprocess</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">ms_req</tt><tt class="py-op">,</tt> <tt class="py-param">resp</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EOxSWMS1XGetCapabilitiesHandler.postprocess-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="EOxSWMS1XGetCapabilitiesHandler.postprocess-expanded"><a name="L175"></a><tt class="py-lineno">175</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">resp</tt> </tt>
+</div></div><a name="L176"></a><tt class="py-lineno">176</tt>  <tt class="py-line"> </tt>
+<a name="EOxSWMS1XGetMapHandler"></a><div id="EOxSWMS1XGetMapHandler-def"><a name="L177"></a><tt class="py-lineno">177</tt> <a class="py-toggle" href="#" id="EOxSWMS1XGetMapHandler-toggle" onclick="return toggle('EOxSWMS1XGetMapHandler');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler-class.html">EOxSWMS1XGetMapHandler</a><tt class="py-op">(</tt><tt class="py-base-class">EOxSWMSCommonHandler</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EOxSWMS1XGetMapHandler-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="EOxSWMS1XGetMapHandler-expanded"><a name="L178"></a><tt class="py-lineno">178</tt>  <tt class="py-line">    <tt id="link-121" class="py-name"><a title="eoxserver.lib.handlers.EOxSOperationHandler.SERVICE
+eoxserver.lib.handlers.EOxSServiceHandler.SERVICE
+eoxserver.lib.handlers.EOxSVersionHandler.SERVICE
+eoxserver.modules.wcs1x.EOxSWCS10VersionHandler.SERVICE
+eoxserver.modules.wcs1x.EOxSWCS11VersionHandler.SERVICE
+eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler.SERVICE
+eoxserver.modules.wcs1x.EOxSWCSServiceHandler.SERVICE
+eoxserver.modules.wcs20.EOxSWCS20DescribeCoverageHandler.SERVICE
+eoxserver.modules.wcs20.EOxSWCS20DescribeEOCoverageSetHandler.SERVICE
+eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.SERVICE
+eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.SERVICE
+eoxserver.modules.wcs20.EOxSWCS20VersionHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS10VersionHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS11VersionHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS13VersionHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMSServiceHandler.SERVICE" class="py-name" href="#" onclick="return doclink('link-121', 'SERVICE', 'link-45');">SERVICE</a></tt> <tt class="py-op">=</tt> <tt class="py-string">"WMS"</tt> </tt>
+<a name="L179"></a><tt class="py-lineno">179</tt>  <tt class="py-line">    <tt id="link-122" class="py-name"><a title="eoxserver.lib.handlers.EOxSOperationHandler.VERSIONS
+eoxserver.lib.handlers.EOxSVersionHandler.VERSIONS
+eoxserver.modules.wcs1x.EOxSWCS10VersionHandler.VERSIONS
+eoxserver.modules.wcs1x.EOxSWCS11VersionHandler.VERSIONS
+eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler.VERSIONS
+eoxserver.modules.wcs20.EOxSWCS20DescribeCoverageHandler.VERSIONS
+eoxserver.modules.wcs20.EOxSWCS20DescribeEOCoverageSetHandler.VERSIONS
+eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.VERSIONS
+eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.VERSIONS
+eoxserver.modules.wcs20.EOxSWCS20VersionHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS10VersionHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS11VersionHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS13VersionHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler.VERSIONS" class="py-name" href="#" onclick="return doclink('link-122', 'VERSIONS', 'link-48');">VERSIONS</a></tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt><tt class="py-string">"1.0"</tt><tt class="py-op">,</tt> <tt class="py-string">"1.0.0"</tt><tt class="py-op">,</tt> <tt class="py-string">"1.1"</tt><tt class="py-op">,</tt> <tt class="py-string">"1.1.0"</tt><tt class="py-op">,</tt> <tt class="py-string">"1.3"</tt><tt class="py-op">,</tt> <tt class="py-string">"1.3.0"</tt><tt class="py-op">)</tt> </tt>
+<a name="L180"></a><tt class="py-lineno">180</tt>  <tt class="py-line">    <tt id="link-123" class="py-name"><a title="eoxserver.lib.handlers.EOxSOperationHandler.OPERATIONS
+eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler.OPERATIONS
+eoxserver.modules.wcs20.EOxSWCS20DescribeCoverageHandler.OPERATIONS
+eoxserver.modules.wcs20.EOxSWCS20DescribeEOCoverageSetHandler.OPERATIONS
+eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.OPERATIONS
+eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.OPERATIONS
+eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.OPERATIONS
+eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.OPERATIONS
+eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler.OPERATIONS
+eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler.OPERATIONS" class="py-name" href="#" onclick="return doclink('link-123', 'OPERATIONS', 'link-105');">OPERATIONS</a></tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt><tt class="py-string">"getmap"</tt><tt class="py-op">)</tt> </tt>
+<a name="L181"></a><tt class="py-lineno">181</tt>  <tt class="py-line">    <tt id="link-124" class="py-name"><a title="eoxserver.lib.handlers.EOxSOperationHandler.ABSTRACT
+eoxserver.lib.handlers.EOxSServiceHandler.ABSTRACT
+eoxserver.lib.handlers.EOxSVersionHandler.ABSTRACT
+eoxserver.lib.ows.EOxSOWSCommonServiceHandler.ABSTRACT
+eoxserver.modules.wcs.common.EOxSWCSCommonHandler.ABSTRACT
+eoxserver.modules.wcs1x.EOxSWCS10VersionHandler.ABSTRACT
+eoxserver.modules.wcs1x.EOxSWCS11VersionHandler.ABSTRACT
+eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler.ABSTRACT
+eoxserver.modules.wcs1x.EOxSWCSServiceHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20DescribeCoverageHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20DescribeEOCoverageSetHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20VersionHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS10VersionHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS11VersionHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS13VersionHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMSCommonHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMSServiceHandler.ABSTRACT" class="py-name" href="#" onclick="return doclink('link-124', 'ABSTRACT', 'link-46');">ABSTRACT</a></tt> <tt class="py-op">=</tt> <tt class="py-name">True</tt> </tt>
+<a name="L182"></a><tt class="py-lineno">182</tt>  <tt class="py-line">     </tt>
+<a name="EOxSWMS1XGetMapHandler.createCoverages"></a><div id="EOxSWMS1XGetMapHandler.createCoverages-def"><a name="L183"></a><tt class="py-lineno">183</tt> <a class="py-toggle" href="#" id="EOxSWMS1XGetMapHandler.createCoverages-toggle" onclick="return toggle('EOxSWMS1XGetMapHandler.createCoverages');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler-class.html#createCoverages">createCoverages</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">ms_req</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EOxSWMS1XGetMapHandler.createCoverages-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="EOxSWMS1XGetMapHandler.createCoverages-expanded"><a name="L184"></a><tt class="py-lineno">184</tt>  <tt class="py-line">        <tt class="py-name">layers</tt> <tt class="py-op">=</tt> <tt class="py-name">ms_req</tt><tt class="py-op">.</tt><tt id="link-125" class="py-name"><a title="eoxserver.lib.requests.EOxSOWSRequest.getParamValue" class="py-name" href="#" onclick="return doclink('link-125', 'getParamValue', 'link-63');">getParamValue</a></tt><tt class="py-op">(</tt><tt class="py-string">"layers"</tt><tt class="py-op">)</tt> </tt>
+<a name="L185"></a><tt class="py-lineno">185</tt>  <tt class="py-line">         </tt>
+<a name="L186"></a><tt class="py-lineno">186</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">layers</tt> <tt class="py-keyword">is</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L187"></a><tt class="py-lineno">187</tt>  <tt class="py-line">            <tt class="py-keyword">raise</tt> <tt id="link-126" class="py-name"><a title="eoxserver.lib.exceptions.EOxSInvalidRequestException" class="py-name" href="#" onclick="return doclink('link-126', 'EOxSInvalidRequestException', 'link-41');">EOxSInvalidRequestException</a></tt><tt class="py-op">(</tt><tt class="py-string">"Missing 'LAYERS' parameter"</tt><tt class="py-op">,</tt> <tt class="py-string">"MissingParameterValue"</tt><tt class="py-op">,</tt> <tt class="py-string">"layers"</tt><tt class="py-op">)</tt> </tt>
+<a name="L188"></a><tt class="py-lineno">188</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L189"></a><tt class="py-lineno">189</tt>  <tt class="py-line">            <tt class="py-keyword">for</tt> <tt class="py-name">layer</tt> <tt class="py-keyword">in</tt> <tt class="py-name">layers</tt><tt class="py-op">:</tt> </tt>
+<a name="L190"></a><tt class="py-lineno">190</tt>  <tt class="py-line">                <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L191"></a><tt class="py-lineno">191</tt>  <tt class="py-line">                    <tt class="py-name">ms_req</tt><tt class="py-op">.</tt><tt class="py-name">coverages</tt><tt class="py-op">.</tt><tt id="link-127" class="py-name"><a title="eoxserver.lib.util.EOxSXPath.append" class="py-name" href="#" onclick="return doclink('link-127', 'append', 'link-64');">append</a></tt><tt class="py-op">(</tt><tt id="link-128" class="py-name"><a title="eoxserver.lib.interfaces.EOxSCoverageInterfaceFactory" class="py-name" href="#" onclick="return doclink('link-128', 'EOxSCoverageInterfaceFactory', 'link-28');">EOxSCoverageInterfaceFactory</a></tt><tt class="py-op">.</tt><tt id="link-129" class="py-name" targets="Class Method eoxserver.lib.interfaces.EOxSCoverageInterfaceFactory.getCoverageInterface()=eoxserver.lib.interfaces.EOxSCoverageInterfaceFactory-class.html#getCoverageInterface"><a title="eoxserver.lib.interfaces.EOxSCoverageInterfaceFactory.getCoverageInterface" class="py-name" href="#" onclick="return doclink('link-129', 'getCoverageInterface', 'link-129');">getCoverageInterface</a></tt><tt class="py-op">(</tt><tt class="py-name">layer</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L192"></a><tt class="py-lineno">192</tt>  <tt class="py-line">                <tt class="py-keyword">except</tt> <tt id="link-130" class="py-name"><a title="eoxserver.lib.exceptions.EOxSNoSuchCoverageException" class="py-name" href="#" onclick="return doclink('link-130', 'EOxSNoSuchCoverageException', 'link-42');">EOxSNoSuchCoverageException</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L193"></a><tt class="py-lineno">193</tt>  <tt class="py-line">                    <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L194"></a><tt class="py-lineno">194</tt>  <tt class="py-line">                        <tt class="py-name">ms_req</tt><tt class="py-op">.</tt><tt class="py-name">coverages</tt><tt class="py-op">.</tt><tt id="link-131" class="py-name"><a title="eoxserver.lib.util.EOxSXPath.append" class="py-name" href="#" onclick="return doclink('link-131', 'append', 'link-64');">append</a></tt><tt class="py-op">(</tt><tt id="link-132" class="py-name"><a title="eoxserver.lib.interfaces.EOxSDatasetSeriesFactory" class="py-name" href="#" onclick="return doclink('link-132', 'EOxSDatasetSeriesFactory', 'link-29');">EOxSDatasetSeriesFactory</a></tt><tt class="py-op">.</tt><tt id="link-133" class="py-name" targets="Class Method eoxserver.lib.interfaces.EOxSDatasetSeriesFactory.getDatasetSeriesInterface()=eoxserver.lib.interfaces.EOxSDatasetSeriesFactory-class.html#getDatasetSeriesInterface"><a title="eoxserver.lib.interfaces.EOxSDatasetSeriesFactory.getDatasetSeriesInterface" class="py-name" href="#" onclick="return doclink('link-133', 'getDatasetSeriesInterface', 'link-133');">getDatasetSeriesInterface</a></tt><tt class="py-op">(</tt><tt class="py-name">layer</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L195"></a><tt class="py-lineno">195</tt>  <tt class="py-line">                    <tt class="py-keyword">except</tt> <tt id="link-134" class="py-name"><a title="eoxserver.lib.exceptions.EOxSNoSuchCoverageException" class="py-name" href="#" onclick="return doclink('link-134', 'EOxSNoSuchCoverageException', 'link-42');">EOxSNoSuchCoverageException</a></tt><tt class="py-op">,</tt> <tt class="py-name">e</tt><tt class="py-op">:</tt> </tt>
+<a name="L196"></a><tt class="py-lineno">196</tt>  <tt class="py-line">                        <tt class="py-keyword">raise</tt> <tt id="link-135" class="py-name"><a title="eoxserver.lib.exceptions.EOxSInvalidRequestException" class="py-name" href="#" onclick="return doclink('link-135', 'EOxSInvalidRequestException', 'link-41');">EOxSInvalidRequestException</a></tt><tt class="py-op">(</tt><tt class="py-name">e</tt><tt class="py-op">.</tt><tt class="py-name">msg</tt><tt class="py-op">,</tt> <tt class="py-string">"LayerNotDefined"</tt><tt class="py-op">,</tt> <tt class="py-string">"layers"</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L197"></a><tt class="py-lineno">197</tt>  <tt class="py-line"> </tt>
+<a name="EOxSWMS10_11GetMapHandler"></a><div id="EOxSWMS10_11GetMapHandler-def"><a name="L198"></a><tt class="py-lineno">198</tt> <a class="py-toggle" href="#" id="EOxSWMS10_11GetMapHandler-toggle" onclick="return toggle('EOxSWMS10_11GetMapHandler');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler-class.html">EOxSWMS10_11GetMapHandler</a><tt class="py-op">(</tt><tt class="py-base-class">EOxSWMS1XGetMapHandler</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EOxSWMS10_11GetMapHandler-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="EOxSWMS10_11GetMapHandler-expanded"><a name="L199"></a><tt class="py-lineno">199</tt>  <tt class="py-line">    <tt id="link-136" class="py-name"><a title="eoxserver.lib.handlers.EOxSOperationHandler.SERVICE
+eoxserver.lib.handlers.EOxSServiceHandler.SERVICE
+eoxserver.lib.handlers.EOxSVersionHandler.SERVICE
+eoxserver.modules.wcs1x.EOxSWCS10VersionHandler.SERVICE
+eoxserver.modules.wcs1x.EOxSWCS11VersionHandler.SERVICE
+eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler.SERVICE
+eoxserver.modules.wcs1x.EOxSWCSServiceHandler.SERVICE
+eoxserver.modules.wcs20.EOxSWCS20DescribeCoverageHandler.SERVICE
+eoxserver.modules.wcs20.EOxSWCS20DescribeEOCoverageSetHandler.SERVICE
+eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.SERVICE
+eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.SERVICE
+eoxserver.modules.wcs20.EOxSWCS20VersionHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS10VersionHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS11VersionHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS13VersionHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMSServiceHandler.SERVICE" class="py-name" href="#" onclick="return doclink('link-136', 'SERVICE', 'link-45');">SERVICE</a></tt> <tt class="py-op">=</tt> <tt class="py-string">"WMS"</tt> </tt>
+<a name="L200"></a><tt class="py-lineno">200</tt>  <tt class="py-line">    <tt id="link-137" class="py-name"><a title="eoxserver.lib.handlers.EOxSOperationHandler.VERSIONS
+eoxserver.lib.handlers.EOxSVersionHandler.VERSIONS
+eoxserver.modules.wcs1x.EOxSWCS10VersionHandler.VERSIONS
+eoxserver.modules.wcs1x.EOxSWCS11VersionHandler.VERSIONS
+eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler.VERSIONS
+eoxserver.modules.wcs20.EOxSWCS20DescribeCoverageHandler.VERSIONS
+eoxserver.modules.wcs20.EOxSWCS20DescribeEOCoverageSetHandler.VERSIONS
+eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.VERSIONS
+eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.VERSIONS
+eoxserver.modules.wcs20.EOxSWCS20VersionHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS10VersionHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS11VersionHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS13VersionHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler.VERSIONS" class="py-name" href="#" onclick="return doclink('link-137', 'VERSIONS', 'link-48');">VERSIONS</a></tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt><tt class="py-string">"1.0"</tt><tt class="py-op">,</tt> <tt class="py-string">"1.0.0"</tt><tt class="py-op">,</tt> <tt class="py-string">"1.1"</tt><tt class="py-op">,</tt> <tt class="py-string">"1.1.0"</tt><tt class="py-op">)</tt> </tt>
+<a name="L201"></a><tt class="py-lineno">201</tt>  <tt class="py-line">    <tt id="link-138" class="py-name"><a title="eoxserver.lib.handlers.EOxSOperationHandler.OPERATIONS
+eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler.OPERATIONS
+eoxserver.modules.wcs20.EOxSWCS20DescribeCoverageHandler.OPERATIONS
+eoxserver.modules.wcs20.EOxSWCS20DescribeEOCoverageSetHandler.OPERATIONS
+eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.OPERATIONS
+eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.OPERATIONS
+eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.OPERATIONS
+eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.OPERATIONS
+eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler.OPERATIONS
+eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler.OPERATIONS" class="py-name" href="#" onclick="return doclink('link-138', 'OPERATIONS', 'link-105');">OPERATIONS</a></tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt><tt class="py-string">"getmap"</tt><tt class="py-op">)</tt> </tt>
+<a name="L202"></a><tt class="py-lineno">202</tt>  <tt class="py-line">    <tt id="link-139" class="py-name"><a title="eoxserver.lib.handlers.EOxSOperationHandler.ABSTRACT
+eoxserver.lib.handlers.EOxSServiceHandler.ABSTRACT
+eoxserver.lib.handlers.EOxSVersionHandler.ABSTRACT
+eoxserver.lib.ows.EOxSOWSCommonServiceHandler.ABSTRACT
+eoxserver.modules.wcs.common.EOxSWCSCommonHandler.ABSTRACT
+eoxserver.modules.wcs1x.EOxSWCS10VersionHandler.ABSTRACT
+eoxserver.modules.wcs1x.EOxSWCS11VersionHandler.ABSTRACT
+eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler.ABSTRACT
+eoxserver.modules.wcs1x.EOxSWCSServiceHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20DescribeCoverageHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20DescribeEOCoverageSetHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20VersionHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS10VersionHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS11VersionHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS13VersionHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMSCommonHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMSServiceHandler.ABSTRACT" class="py-name" href="#" onclick="return doclink('link-139', 'ABSTRACT', 'link-46');">ABSTRACT</a></tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt> </tt>
+<a name="L203"></a><tt class="py-lineno">203</tt>  <tt class="py-line">     </tt>
+<a name="L204"></a><tt class="py-lineno">204</tt>  <tt class="py-line">    <tt id="link-140" class="py-name" targets="Variable eoxserver.lib.handlers.EOxSMapServerOperationHandler.PARAM_SCHEMA=eoxserver.lib.handlers.EOxSMapServerOperationHandler-class.html#PARAM_SCHEMA,Variable eoxserver.lib.metadata.EOxSNativeMetadataInterface.PARAM_SCHEMA=eoxserver.lib.metadata.EOxSNativeMetadataInterface-class.html#PARAM_SCHEMA,Variable eoxserver.lib.metadata.EOxSXMLMetadataInterface.PARAM_SCHEMA=eoxserver.lib.metadata.EOxSXMLMetadataInterface-class.html#PARAM_SCHEMA,Variable eoxserver.lib.ows.EOxSOWSCommonHandler.PARAM_SCHEMA=eoxserver.lib.ows.EOxSOWSCommonHandler-class.html#PARAM_SCHEMA,Variable eoxserver.lib.ows.EOxSOWSCommonServiceHandler.PARAM_SCHEMA=eoxserver.lib.ows.EOxSOWSCommonServiceHandler-class.html#PARAM_SCHEMA,Variable eoxserver.lib.ows.EOxSOWSCommonVersionHandler.PARAM_SCHEMA=eoxserver.lib.ows.EOxSOWSCommonVersionHandler-class.html#PARAM_SCHEMA,Variable eoxserver.modules.wcs20.EOxSWCS20DescribeCoverageHandler.PARAM_SCHEMA=eoxserver.modules.wcs20.EOxSWCS20DescribeCoverageHandler-class.html#PARAM_SCHEMA,Variable eoxserver.modules.wcs20.EOxSWCS20DescribeEOCoverageSetHandler.PARAM_SCHEMA=eoxserver.modules.wcs20.EOxSWCS20DescribeEOCoverageSetHandler-class.html#PARAM_SCHEMA,Variable eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.PARAM_SCHEMA=eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler-class.html#PARAM_SCHEMA,Variable eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.PARAM_SCHEMA=eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler-class.html#PARAM_SCHEMA,Variable eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.PARAM_SCHEMA=eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler-class.html#PARAM_SCHEMA,Variable eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.PARAM_SCHEMA=eoxserver.modules.wms1x.EOxSWMS13GetMapHandler-class.html#PARAM_SCHEMA"><a title="eoxserver.lib.handlers.EOxSMapServerOperationHandler.PARAM_SCHEMA
+eoxserver.lib.metadata.EOxSNativeMetadataInterface.PARAM_SCHEMA
+eoxserver.lib.metadata.EOxSXMLMetadataInterface.PARAM_SCHEMA
+eoxserver.lib.ows.EOxSOWSCommonHandler.PARAM_SCHEMA
+eoxserver.lib.ows.EOxSOWSCommonServiceHandler.PARAM_SCHEMA
+eoxserver.lib.ows.EOxSOWSCommonVersionHandler.PARAM_SCHEMA
+eoxserver.modules.wcs20.EOxSWCS20DescribeCoverageHandler.PARAM_SCHEMA
+eoxserver.modules.wcs20.EOxSWCS20DescribeEOCoverageSetHandler.PARAM_SCHEMA
+eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.PARAM_SCHEMA
+eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.PARAM_SCHEMA
+eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.PARAM_SCHEMA
+eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.PARAM_SCHEMA" class="py-name" href="#" onclick="return doclink('link-140', 'PARAM_SCHEMA', 'link-140');">PARAM_SCHEMA</a></tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt> </tt>
+<a name="L205"></a><tt class="py-lineno">205</tt>  <tt class="py-line">        <tt class="py-string">"service"</tt><tt class="py-op">:</tt> <tt class="py-op">{</tt><tt class="py-string">"xml_location"</tt><tt class="py-op">:</tt> <tt class="py-string">"/@service"</tt><tt class="py-op">,</tt> <tt class="py-string">"xml_type"</tt><tt class="py-op">:</tt> <tt class="py-string">"string"</tt><tt class="py-op">,</tt> <tt class="py-string">"kvp_key"</tt><tt class="py-op">:</tt> <tt class="py-string">"service"</tt><tt class="py-op">,</tt> <tt class="py-string">"kvp_type"</tt><tt class="py-op">:</tt> <tt class="py-string">"string"</tt><tt class="py-op">}</tt><tt class="py-op">,</tt> </tt>
+<a name="L206"></a><tt class="py-lineno">206</tt>  <tt class="py-line">        <tt class="py-string">"version"</tt><tt class="py-op">:</tt> <tt class="py-op">{</tt><tt class="py-string">"xml_location"</tt><tt class="py-op">:</tt> <tt class="py-string">"/@version"</tt><tt class="py-op">,</tt> <tt class="py-string">"xml_type"</tt><tt class="py-op">:</tt> <tt class="py-string">"string"</tt><tt class="py-op">,</tt> <tt class="py-string">"kvp_key"</tt><tt class="py-op">:</tt> <tt class="py-string">"version"</tt><tt class="py-op">,</tt> <tt class="py-string">"kvp_type"</tt><tt class="py-op">:</tt> <tt class="py-string">"string"</tt><tt class="py-op">}</tt><tt class="py-op">,</tt> </tt>
+<a name="L207"></a><tt class="py-lineno">207</tt>  <tt class="py-line">        <tt class="py-string">"operation"</tt><tt class="py-op">:</tt> <tt class="py-op">{</tt><tt class="py-string">"xml_location"</tt><tt class="py-op">:</tt> <tt class="py-string">"/"</tt><tt class="py-op">,</tt> <tt class="py-string">"xml_type"</tt><tt class="py-op">:</tt> <tt class="py-string">"localName"</tt><tt class="py-op">,</tt> <tt class="py-string">"kvp_key"</tt><tt class="py-op">:</tt> <tt class="py-string">"request"</tt><tt class="py-op">,</tt> <tt class="py-string">"kvp_type"</tt><tt class="py-op">:</tt> <tt class="py-string">"string"</tt><tt class="py-op">}</tt><tt class="py-op">,</tt> </tt>
+<a name="L208"></a><tt class="py-lineno">208</tt>  <tt class="py-line">        <tt class="py-string">"srs"</tt><tt class="py-op">:</tt> <tt class="py-op">{</tt><tt class="py-string">"xml_location"</tt><tt class="py-op">:</tt> <tt class="py-string">"/srs"</tt><tt class="py-op">,</tt> <tt class="py-string">"xml_type"</tt><tt class="py-op">:</tt> <tt class="py-string">"string"</tt><tt class="py-op">,</tt> <tt class="py-string">"kvp_key"</tt><tt class="py-op">:</tt> <tt class="py-string">"srs"</tt><tt class="py-op">,</tt> <tt class="py-string">"kvp_type"</tt><tt class="py-op">:</tt> <tt class="py-string">"string"</tt><tt class="py-op">}</tt><tt class="py-op">,</tt> <tt class="py-comment"># TODO: check XML location</tt> </tt>
+<a name="L209"></a><tt class="py-lineno">209</tt>  <tt class="py-line">        <tt class="py-string">"layers"</tt><tt class="py-op">:</tt> <tt class="py-op">{</tt><tt class="py-string">"xml_location"</tt><tt class="py-op">:</tt> <tt class="py-string">"/layer"</tt><tt class="py-op">,</tt> <tt class="py-string">"xml_type"</tt><tt class="py-op">:</tt> <tt class="py-string">"string[]"</tt><tt class="py-op">,</tt> <tt class="py-string">"kvp_key"</tt><tt class="py-op">:</tt> <tt class="py-string">"layers"</tt><tt class="py-op">,</tt> <tt class="py-string">"kvp_type"</tt><tt class="py-op">:</tt> <tt class="py-string">"string[]"</tt><tt class="py-op">}</tt><tt class="py-op">,</tt> <tt class="py-comment"># TODO: check XML location</tt> </tt>
+<a name="L210"></a><tt class="py-lineno">210</tt>  <tt class="py-line">        <tt class="py-string">"time"</tt><tt class="py-op">:</tt> <tt class="py-op">{</tt><tt class="py-string">"xml_location"</tt><tt class="py-op">:</tt> <tt class="py-string">"/time"</tt><tt class="py-op">,</tt> <tt class="py-string">"xml_type"</tt><tt class="py-op">:</tt> <tt class="py-string">"string"</tt><tt class="py-op">,</tt> <tt class="py-string">"kvp_key"</tt><tt class="py-op">:</tt> <tt class="py-string">"time"</tt><tt class="py-op">,</tt> <tt class="py-string">"kvp_type"</tt><tt class="py-op">:</tt> <tt class="py-string">"string"</tt><tt class="py-op">}</tt> </tt>
+<a name="L211"></a><tt class="py-lineno">211</tt>  <tt class="py-line">    <tt class="py-op">}</tt> </tt>
+<a name="L212"></a><tt class="py-lineno">212</tt>  <tt class="py-line">     </tt>
+<a name="EOxSWMS10_11GetMapHandler.configureMapObj"></a><div id="EOxSWMS10_11GetMapHandler.configureMapObj-def"><a name="L213"></a><tt class="py-lineno">213</tt> <a class="py-toggle" href="#" id="EOxSWMS10_11GetMapHandler.configureMapObj-toggle" onclick="return toggle('EOxSWMS10_11GetMapHandler.configureMapObj');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler-class.html#configureMapObj">configureMapObj</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">ms_req</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EOxSWMS10_11GetMapHandler.configureMapObj-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="EOxSWMS10_11GetMapHandler.configureMapObj-expanded"><a name="L214"></a><tt class="py-lineno">214</tt>  <tt class="py-line">        <tt class="py-name">super</tt><tt class="py-op">(</tt><tt id="link-141" class="py-name" targets="Class eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler=eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler-class.html"><a title="eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler" class="py-name" href="#" onclick="return doclink('link-141', 'EOxSWMS10_11GetMapHandler', 'link-141');">EOxSWMS10_11GetMapHandler</a></tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt id="link-142" class="py-name" targets="Method eoxserver.lib.handlers.EOxSMapServerOperationHandler.configureMapObj()=eoxserver.lib.handlers.EOxSMapServerOperationHandler-class.html#configureMapObj,Method eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.configureMapObj()=eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler-class.html#configureMapObj,Method eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.configureMapObj()=eoxserver.modules.wms1x.EOxSWMS13GetMapHandler-class.html#configureMapObj"><a title="eoxserver.lib.handlers.EOxSMapServerOperationHandler.configureMapObj
+eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.configureMapObj
+eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.configureMapObj" class="py-name" href="#" onclick="return doclink('link-142', 'configureMapObj', 'link-142');">configureMapObj</a></tt><tt class="py-op">(</tt><tt class="py-name">ms_req</tt><tt class="py-op">)</tt> </tt>
+<a name="L215"></a><tt class="py-lineno">215</tt>  <tt class="py-line">         </tt>
+<a name="L216"></a><tt class="py-lineno">216</tt>  <tt class="py-line">        <tt class="py-name">ms_req</tt><tt class="py-op">.</tt><tt class="py-name">map</tt><tt class="py-op">.</tt><tt class="py-name">setMetaData</tt><tt class="py-op">(</tt><tt class="py-string">"wms_exceptions_format"</tt><tt class="py-op">,</tt> <tt class="py-string">"text/xml"</tt><tt class="py-op">)</tt><tt class="py-comment">#"application/vnd.ogc.se_xml")</tt> </tt>
+<a name="L217"></a><tt class="py-lineno">217</tt>  <tt class="py-line">         </tt>
+<a name="L218"></a><tt class="py-lineno">218</tt>  <tt class="py-line">        <tt class="py-name">srs</tt> <tt class="py-op">=</tt> <tt class="py-name">ms_req</tt><tt class="py-op">.</tt><tt id="link-143" class="py-name"><a title="eoxserver.lib.requests.EOxSOWSRequest.getParamValue" class="py-name" href="#" onclick="return doclink('link-143', 'getParamValue', 'link-63');">getParamValue</a></tt><tt class="py-op">(</tt><tt class="py-string">"srs"</tt><tt class="py-op">)</tt> </tt>
+<a name="L219"></a><tt class="py-lineno">219</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">srs</tt> <tt class="py-keyword">is</tt> <tt class="py-keyword">not</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L220"></a><tt class="py-lineno">220</tt>  <tt class="py-line">            <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L221"></a><tt class="py-lineno">221</tt>  <tt class="py-line">                <tt class="py-name">ms_req</tt><tt class="py-op">.</tt><tt class="py-name">map</tt><tt class="py-op">.</tt><tt class="py-name">setProjection</tt><tt class="py-op">(</tt><tt class="py-name">srs</tt><tt class="py-op">)</tt> </tt>
+<a name="L222"></a><tt class="py-lineno">222</tt>  <tt class="py-line">            <tt class="py-keyword">except</tt><tt class="py-op">:</tt> </tt>
+<a name="L223"></a><tt class="py-lineno">223</tt>  <tt class="py-line">                <tt class="py-name">ms_req</tt><tt class="py-op">.</tt><tt class="py-name">map</tt><tt class="py-op">.</tt><tt class="py-name">setProjection</tt><tt class="py-op">(</tt><tt class="py-string">"EPSG:4326"</tt><tt class="py-op">)</tt> </tt>
+<a name="L224"></a><tt class="py-lineno">224</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L225"></a><tt class="py-lineno">225</tt>  <tt class="py-line">            <tt class="py-keyword">raise</tt> <tt id="link-144" class="py-name"><a title="eoxserver.lib.exceptions.EOxSInvalidRequestException" class="py-name" href="#" onclick="return doclink('link-144', 'EOxSInvalidRequestException', 'link-41');">EOxSInvalidRequestException</a></tt><tt class="py-op">(</tt><tt class="py-string">"Mandatory 'SRS' parameter missing."</tt><tt class="py-op">,</tt> <tt class="py-string">"MissingParameterValue"</tt><tt class="py-op">,</tt> <tt class="py-string">"srs"</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L226"></a><tt class="py-lineno">226</tt>  <tt class="py-line">     </tt>
+<a name="EOxSWMS10_11GetMapHandler.getMapServerLayer"></a><div id="EOxSWMS10_11GetMapHandler.getMapServerLayer-def"><a name="L227"></a><tt class="py-lineno">227</tt> <a class="py-toggle" href="#" id="EOxSWMS10_11GetMapHandler.getMapServerLayer-toggle" onclick="return toggle('EOxSWMS10_11GetMapHandler.getMapServerLayer');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler-class.html#getMapServerLayer">getMapServerLayer</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">coverage</tt><tt class="py-op">,</tt> <tt class="py-op">**</tt><tt class="py-param">kwargs</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EOxSWMS10_11GetMapHandler.getMapServerLayer-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="EOxSWMS10_11GetMapHandler.getMapServerLayer-expanded"><a name="L228"></a><tt class="py-lineno">228</tt>  <tt class="py-line">        <tt class="py-name">layer</tt> <tt class="py-op">=</tt> <tt class="py-name">super</tt><tt class="py-op">(</tt><tt id="link-145" class="py-name"><a title="eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler" class="py-name" href="#" onclick="return doclink('link-145', 'EOxSWMS10_11GetMapHandler', 'link-141');">EOxSWMS10_11GetMapHandler</a></tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt id="link-146" class="py-name"><a title="eoxserver.lib.handlers.EOxSMapServerOperationHandler.getMapServerLayer
+eoxserver.modules.wcs.common.EOxSWCSCommonHandler.getMapServerLayer
+eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler.getMapServerLayer
+eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.getMapServerLayer
+eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.getMapServerLayer
+eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.getMapServerLayer
+eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.getMapServerLayer
+eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler.getMapServerLayer
+eoxserver.modules.wms1x.EOxSWMSCommonHandler.getMapServerLayer" class="py-name" href="#" onclick="return doclink('link-146', 'getMapServerLayer', 'link-66');">getMapServerLayer</a></tt><tt class="py-op">(</tt><tt class="py-name">coverage</tt><tt class="py-op">,</tt> <tt class="py-op">**</tt><tt class="py-name">kwargs</tt><tt class="py-op">)</tt> </tt>
+<a name="L229"></a><tt class="py-lineno">229</tt>  <tt class="py-line">        <tt class="py-name">layer</tt><tt class="py-op">.</tt><tt class="py-name">setMetaData</tt><tt class="py-op">(</tt><tt class="py-string">"wms_exceptions_format"</tt><tt class="py-op">,</tt><tt class="py-string">"application/vnd.ogc.se_xml"</tt><tt class="py-op">)</tt> </tt>
+<a name="L230"></a><tt class="py-lineno">230</tt>  <tt class="py-line">         </tt>
+<a name="L231"></a><tt class="py-lineno">231</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">layer</tt>  </tt>
+</div></div><a name="L232"></a><tt class="py-lineno">232</tt>  <tt class="py-line"> </tt>
+<a name="L233"></a><tt class="py-lineno">233</tt>  <tt class="py-line"> </tt>
+<a name="EOxSWMS13GetMapHandler"></a><div id="EOxSWMS13GetMapHandler-def"><a name="L234"></a><tt class="py-lineno">234</tt> <a class="py-toggle" href="#" id="EOxSWMS13GetMapHandler-toggle" onclick="return toggle('EOxSWMS13GetMapHandler');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="eoxserver.modules.wms1x.EOxSWMS13GetMapHandler-class.html">EOxSWMS13GetMapHandler</a><tt class="py-op">(</tt><tt class="py-base-class">EOxSWMS1XGetMapHandler</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EOxSWMS13GetMapHandler-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="EOxSWMS13GetMapHandler-expanded"><a name="L235"></a><tt class="py-lineno">235</tt>  <tt class="py-line">    <tt id="link-147" class="py-name"><a title="eoxserver.lib.handlers.EOxSOperationHandler.SERVICE
+eoxserver.lib.handlers.EOxSServiceHandler.SERVICE
+eoxserver.lib.handlers.EOxSVersionHandler.SERVICE
+eoxserver.modules.wcs1x.EOxSWCS10VersionHandler.SERVICE
+eoxserver.modules.wcs1x.EOxSWCS11VersionHandler.SERVICE
+eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler.SERVICE
+eoxserver.modules.wcs1x.EOxSWCSServiceHandler.SERVICE
+eoxserver.modules.wcs20.EOxSWCS20DescribeCoverageHandler.SERVICE
+eoxserver.modules.wcs20.EOxSWCS20DescribeEOCoverageSetHandler.SERVICE
+eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.SERVICE
+eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.SERVICE
+eoxserver.modules.wcs20.EOxSWCS20VersionHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS10VersionHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS11VersionHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS13VersionHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler.SERVICE
+eoxserver.modules.wms1x.EOxSWMSServiceHandler.SERVICE" class="py-name" href="#" onclick="return doclink('link-147', 'SERVICE', 'link-45');">SERVICE</a></tt> <tt class="py-op">=</tt> <tt class="py-string">"WMS"</tt> </tt>
+<a name="L236"></a><tt class="py-lineno">236</tt>  <tt class="py-line">    <tt id="link-148" class="py-name"><a title="eoxserver.lib.handlers.EOxSOperationHandler.VERSIONS
+eoxserver.lib.handlers.EOxSVersionHandler.VERSIONS
+eoxserver.modules.wcs1x.EOxSWCS10VersionHandler.VERSIONS
+eoxserver.modules.wcs1x.EOxSWCS11VersionHandler.VERSIONS
+eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler.VERSIONS
+eoxserver.modules.wcs20.EOxSWCS20DescribeCoverageHandler.VERSIONS
+eoxserver.modules.wcs20.EOxSWCS20DescribeEOCoverageSetHandler.VERSIONS
+eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.VERSIONS
+eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.VERSIONS
+eoxserver.modules.wcs20.EOxSWCS20VersionHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS10VersionHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS11VersionHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS13VersionHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler.VERSIONS
+eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler.VERSIONS" class="py-name" href="#" onclick="return doclink('link-148', 'VERSIONS', 'link-48');">VERSIONS</a></tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt><tt class="py-string">"1.3"</tt><tt class="py-op">,</tt> <tt class="py-string">"1.3.0"</tt><tt class="py-op">)</tt> </tt>
+<a name="L237"></a><tt class="py-lineno">237</tt>  <tt class="py-line">    <tt id="link-149" class="py-name"><a title="eoxserver.lib.handlers.EOxSOperationHandler.OPERATIONS
+eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler.OPERATIONS
+eoxserver.modules.wcs20.EOxSWCS20DescribeCoverageHandler.OPERATIONS
+eoxserver.modules.wcs20.EOxSWCS20DescribeEOCoverageSetHandler.OPERATIONS
+eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.OPERATIONS
+eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.OPERATIONS
+eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.OPERATIONS
+eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.OPERATIONS
+eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler.OPERATIONS
+eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler.OPERATIONS" class="py-name" href="#" onclick="return doclink('link-149', 'OPERATIONS', 'link-105');">OPERATIONS</a></tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt><tt class="py-string">"getmap"</tt><tt class="py-op">)</tt> </tt>
+<a name="L238"></a><tt class="py-lineno">238</tt>  <tt class="py-line">    <tt id="link-150" class="py-name"><a title="eoxserver.lib.handlers.EOxSOperationHandler.ABSTRACT
+eoxserver.lib.handlers.EOxSServiceHandler.ABSTRACT
+eoxserver.lib.handlers.EOxSVersionHandler.ABSTRACT
+eoxserver.lib.ows.EOxSOWSCommonServiceHandler.ABSTRACT
+eoxserver.modules.wcs.common.EOxSWCSCommonHandler.ABSTRACT
+eoxserver.modules.wcs1x.EOxSWCS10VersionHandler.ABSTRACT
+eoxserver.modules.wcs1x.EOxSWCS11VersionHandler.ABSTRACT
+eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler.ABSTRACT
+eoxserver.modules.wcs1x.EOxSWCSServiceHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20DescribeCoverageHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20DescribeEOCoverageSetHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.ABSTRACT
+eoxserver.modules.wcs20.EOxSWCS20VersionHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS10VersionHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS11VersionHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS13VersionHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMS1XGetMapHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMSCommonHandler.ABSTRACT
+eoxserver.modules.wms1x.EOxSWMSServiceHandler.ABSTRACT" class="py-name" href="#" onclick="return doclink('link-150', 'ABSTRACT', 'link-46');">ABSTRACT</a></tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt> </tt>
+<a name="L239"></a><tt class="py-lineno">239</tt>  <tt class="py-line">     </tt>
+<a name="L240"></a><tt class="py-lineno">240</tt>  <tt class="py-line">    <tt id="link-151" class="py-name"><a title="eoxserver.lib.handlers.EOxSMapServerOperationHandler.PARAM_SCHEMA
+eoxserver.lib.metadata.EOxSNativeMetadataInterface.PARAM_SCHEMA
+eoxserver.lib.metadata.EOxSXMLMetadataInterface.PARAM_SCHEMA
+eoxserver.lib.ows.EOxSOWSCommonHandler.PARAM_SCHEMA
+eoxserver.lib.ows.EOxSOWSCommonServiceHandler.PARAM_SCHEMA
+eoxserver.lib.ows.EOxSOWSCommonVersionHandler.PARAM_SCHEMA
+eoxserver.modules.wcs20.EOxSWCS20DescribeCoverageHandler.PARAM_SCHEMA
+eoxserver.modules.wcs20.EOxSWCS20DescribeEOCoverageSetHandler.PARAM_SCHEMA
+eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.PARAM_SCHEMA
+eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.PARAM_SCHEMA
+eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.PARAM_SCHEMA
+eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.PARAM_SCHEMA" class="py-name" href="#" onclick="return doclink('link-151', 'PARAM_SCHEMA', 'link-140');">PARAM_SCHEMA</a></tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt> </tt>
+<a name="L241"></a><tt class="py-lineno">241</tt>  <tt class="py-line">        <tt class="py-string">"service"</tt><tt class="py-op">:</tt> <tt class="py-op">{</tt><tt class="py-string">"xml_location"</tt><tt class="py-op">:</tt> <tt class="py-string">"/@service"</tt><tt class="py-op">,</tt> <tt class="py-string">"xml_type"</tt><tt class="py-op">:</tt> <tt class="py-string">"string"</tt><tt class="py-op">,</tt> <tt class="py-string">"kvp_key"</tt><tt class="py-op">:</tt> <tt class="py-string">"service"</tt><tt class="py-op">,</tt> <tt class="py-string">"kvp_type"</tt><tt class="py-op">:</tt> <tt class="py-string">"string"</tt><tt class="py-op">}</tt><tt class="py-op">,</tt> </tt>
+<a name="L242"></a><tt class="py-lineno">242</tt>  <tt class="py-line">        <tt class="py-string">"version"</tt><tt class="py-op">:</tt> <tt class="py-op">{</tt><tt class="py-string">"xml_location"</tt><tt class="py-op">:</tt> <tt class="py-string">"/@version"</tt><tt class="py-op">,</tt> <tt class="py-string">"xml_type"</tt><tt class="py-op">:</tt> <tt class="py-string">"string"</tt><tt class="py-op">,</tt> <tt class="py-string">"kvp_key"</tt><tt class="py-op">:</tt> <tt class="py-string">"version"</tt><tt class="py-op">,</tt> <tt class="py-string">"kvp_type"</tt><tt class="py-op">:</tt> <tt class="py-string">"string"</tt><tt class="py-op">}</tt><tt class="py-op">,</tt> </tt>
+<a name="L243"></a><tt class="py-lineno">243</tt>  <tt class="py-line">        <tt class="py-string">"operation"</tt><tt class="py-op">:</tt> <tt class="py-op">{</tt><tt class="py-string">"xml_location"</tt><tt class="py-op">:</tt> <tt class="py-string">"/"</tt><tt class="py-op">,</tt> <tt class="py-string">"xml_type"</tt><tt class="py-op">:</tt> <tt class="py-string">"localName"</tt><tt class="py-op">,</tt> <tt class="py-string">"kvp_key"</tt><tt class="py-op">:</tt> <tt class="py-string">"request"</tt><tt class="py-op">,</tt> <tt class="py-string">"kvp_type"</tt><tt class="py-op">:</tt> <tt class="py-string">"string"</tt><tt class="py-op">}</tt><tt class="py-op">,</tt> </tt>
+<a name="L244"></a><tt class="py-lineno">244</tt>  <tt class="py-line">        <tt class="py-string">"crs"</tt><tt class="py-op">:</tt> <tt class="py-op">{</tt><tt class="py-string">"xml_location"</tt><tt class="py-op">:</tt> <tt class="py-string">"/crs"</tt><tt class="py-op">,</tt> <tt class="py-string">"xml_type"</tt><tt class="py-op">:</tt> <tt class="py-string">"string"</tt><tt class="py-op">,</tt> <tt class="py-string">"kvp_key"</tt><tt class="py-op">:</tt> <tt class="py-string">"crs"</tt><tt class="py-op">,</tt> <tt class="py-string">"kvp_type"</tt><tt class="py-op">:</tt> <tt class="py-string">"string"</tt><tt class="py-op">}</tt><tt class="py-op">,</tt> <tt class="py-comment"># TODO: check XML location</tt> </tt>
+<a name="L245"></a><tt class="py-lineno">245</tt>  <tt class="py-line">        <tt class="py-string">"layers"</tt><tt class="py-op">:</tt> <tt class="py-op">{</tt><tt class="py-string">"xml_location"</tt><tt class="py-op">:</tt> <tt class="py-string">"/layer"</tt><tt class="py-op">,</tt> <tt class="py-string">"xml_type"</tt><tt class="py-op">:</tt> <tt class="py-string">"string[]"</tt><tt class="py-op">,</tt> <tt class="py-string">"kvp_key"</tt><tt class="py-op">:</tt> <tt class="py-string">"layers"</tt><tt class="py-op">,</tt> <tt class="py-string">"kvp_type"</tt><tt class="py-op">:</tt> <tt class="py-string">"string[]"</tt><tt class="py-op">}</tt><tt class="py-op">,</tt> <tt class="py-comment"># TODO: check XML location</tt> </tt>
+<a name="L246"></a><tt class="py-lineno">246</tt>  <tt class="py-line">        <tt class="py-string">"time"</tt><tt class="py-op">:</tt> <tt class="py-op">{</tt><tt class="py-string">"xml_location"</tt><tt class="py-op">:</tt> <tt class="py-string">"/time"</tt><tt class="py-op">,</tt> <tt class="py-string">"xml_type"</tt><tt class="py-op">:</tt> <tt class="py-string">"string"</tt><tt class="py-op">,</tt> <tt class="py-string">"kvp_key"</tt><tt class="py-op">:</tt> <tt class="py-string">"time"</tt><tt class="py-op">,</tt> <tt class="py-string">"kvp_type"</tt><tt class="py-op">:</tt> <tt class="py-string">"string"</tt><tt class="py-op">}</tt> </tt>
+<a name="L247"></a><tt class="py-lineno">247</tt>  <tt class="py-line">    <tt class="py-op">}</tt> </tt>
+<a name="L248"></a><tt class="py-lineno">248</tt>  <tt class="py-line">     </tt>
+<a name="EOxSWMS13GetMapHandler.configureMapObj"></a><div id="EOxSWMS13GetMapHandler.configureMapObj-def"><a name="L249"></a><tt class="py-lineno">249</tt> <a class="py-toggle" href="#" id="EOxSWMS13GetMapHandler.configureMapObj-toggle" onclick="return toggle('EOxSWMS13GetMapHandler.configureMapObj');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="eoxserver.modules.wms1x.EOxSWMS13GetMapHandler-class.html#configureMapObj">configureMapObj</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">ms_req</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EOxSWMS13GetMapHandler.configureMapObj-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="EOxSWMS13GetMapHandler.configureMapObj-expanded"><a name="L250"></a><tt class="py-lineno">250</tt>  <tt class="py-line">        <tt class="py-name">super</tt><tt class="py-op">(</tt><tt id="link-152" class="py-name" targets="Class eoxserver.modules.wms1x.EOxSWMS13GetMapHandler=eoxserver.modules.wms1x.EOxSWMS13GetMapHandler-class.html"><a title="eoxserver.modules.wms1x.EOxSWMS13GetMapHandler" class="py-name" href="#" onclick="return doclink('link-152', 'EOxSWMS13GetMapHandler', 'link-152');">EOxSWMS13GetMapHandler</a></tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt id="link-153" class="py-name"><a title="eoxserver.lib.handlers.EOxSMapServerOperationHandler.configureMapObj
+eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.configureMapObj
+eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.configureMapObj" class="py-name" href="#" onclick="return doclink('link-153', 'configureMapObj', 'link-142');">configureMapObj</a></tt><tt class="py-op">(</tt><tt class="py-name">ms_req</tt><tt class="py-op">)</tt> </tt>
+<a name="L251"></a><tt class="py-lineno">251</tt>  <tt class="py-line"> </tt>
+<a name="L252"></a><tt class="py-lineno">252</tt>  <tt class="py-line">        <tt class="py-name">ms_req</tt><tt class="py-op">.</tt><tt class="py-name">map</tt><tt class="py-op">.</tt><tt class="py-name">setMetaData</tt><tt class="py-op">(</tt><tt class="py-string">"wms_exceptions_format"</tt><tt class="py-op">,</tt> <tt class="py-string">"xml"</tt><tt class="py-op">)</tt> </tt>
+<a name="L253"></a><tt class="py-lineno">253</tt>  <tt class="py-line">        <tt class="py-name">ms_req</tt><tt class="py-op">.</tt><tt class="py-name">map</tt><tt class="py-op">.</tt><tt class="py-name">setMetaData</tt><tt class="py-op">(</tt><tt class="py-string">"ows_srs"</tt><tt class="py-op">,</tt><tt class="py-string">"EPSG:4326"</tt><tt class="py-op">)</tt> </tt>
+<a name="L254"></a><tt class="py-lineno">254</tt>  <tt class="py-line">         </tt>
+<a name="L255"></a><tt class="py-lineno">255</tt>  <tt class="py-line">        <tt class="py-name">crs</tt> <tt class="py-op">=</tt> <tt class="py-name">ms_req</tt><tt class="py-op">.</tt><tt id="link-154" class="py-name"><a title="eoxserver.lib.requests.EOxSOWSRequest.getParamValue" class="py-name" href="#" onclick="return doclink('link-154', 'getParamValue', 'link-63');">getParamValue</a></tt><tt class="py-op">(</tt><tt class="py-string">'crs'</tt><tt class="py-op">)</tt> </tt>
+<a name="L256"></a><tt class="py-lineno">256</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">crs</tt> <tt class="py-keyword">is</tt> <tt class="py-keyword">not</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L257"></a><tt class="py-lineno">257</tt>  <tt class="py-line">            <tt class="py-keyword">try</tt><tt class="py-op">:</tt>         </tt>
+<a name="L258"></a><tt class="py-lineno">258</tt>  <tt class="py-line">                <tt class="py-name">ms_req</tt><tt class="py-op">.</tt><tt class="py-name">map</tt><tt class="py-op">.</tt><tt class="py-name">setProjection</tt><tt class="py-op">(</tt><tt class="py-name">crs</tt><tt class="py-op">)</tt> </tt>
+<a name="L259"></a><tt class="py-lineno">259</tt>  <tt class="py-line">            <tt class="py-keyword">except</tt><tt class="py-op">:</tt> </tt>
+<a name="L260"></a><tt class="py-lineno">260</tt>  <tt class="py-line">                <tt class="py-name">ms_req</tt><tt class="py-op">.</tt><tt class="py-name">map</tt><tt class="py-op">.</tt><tt class="py-name">setProjection</tt><tt class="py-op">(</tt><tt class="py-string">"EPSG:4326"</tt><tt class="py-op">)</tt> </tt>
+<a name="L261"></a><tt class="py-lineno">261</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L262"></a><tt class="py-lineno">262</tt>  <tt class="py-line">            <tt class="py-keyword">raise</tt> <tt id="link-155" class="py-name"><a title="eoxserver.lib.exceptions.EOxSInvalidRequestException" class="py-name" href="#" onclick="return doclink('link-155', 'EOxSInvalidRequestException', 'link-41');">EOxSInvalidRequestException</a></tt><tt class="py-op">(</tt><tt class="py-string">"Mandatory 'CRS' parameter missing"</tt><tt class="py-op">,</tt> <tt class="py-string">"MissingParameterValue"</tt><tt class="py-op">,</tt> <tt class="py-string">"crs"</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L263"></a><tt class="py-lineno">263</tt>  <tt class="py-line">     </tt>
+<a name="EOxSWMS13GetMapHandler.getMapServerLayer"></a><div id="EOxSWMS13GetMapHandler.getMapServerLayer-def"><a name="L264"></a><tt class="py-lineno">264</tt> <a class="py-toggle" href="#" id="EOxSWMS13GetMapHandler.getMapServerLayer-toggle" onclick="return toggle('EOxSWMS13GetMapHandler.getMapServerLayer');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="eoxserver.modules.wms1x.EOxSWMS13GetMapHandler-class.html#getMapServerLayer">getMapServerLayer</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">coverage</tt><tt class="py-op">,</tt> <tt class="py-op">**</tt><tt class="py-param">kwargs</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EOxSWMS13GetMapHandler.getMapServerLayer-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="EOxSWMS13GetMapHandler.getMapServerLayer-expanded"><a name="L265"></a><tt class="py-lineno">265</tt>  <tt class="py-line">        <tt class="py-name">layer</tt> <tt class="py-op">=</tt> <tt class="py-name">super</tt><tt class="py-op">(</tt><tt id="link-156" class="py-name"><a title="eoxserver.modules.wms1x.EOxSWMS13GetMapHandler" class="py-name" href="#" onclick="return doclink('link-156', 'EOxSWMS13GetMapHandler', 'link-152');">EOxSWMS13GetMapHandler</a></tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt id="link-157" class="py-name"><a title="eoxserver.lib.handlers.EOxSMapServerOperationHandler.getMapServerLayer
+eoxserver.modules.wcs.common.EOxSWCSCommonHandler.getMapServerLayer
+eoxserver.modules.wcs1x.EOxSWCS1XOperationHandler.getMapServerLayer
+eoxserver.modules.wcs20.EOxSWCS20GetCapabilitiesHandler.getMapServerLayer
+eoxserver.modules.wcs20.EOxSWCS20GetCoverageHandler.getMapServerLayer
+eoxserver.modules.wms1x.EOxSWMS10_11GetMapHandler.getMapServerLayer
+eoxserver.modules.wms1x.EOxSWMS13GetMapHandler.getMapServerLayer
+eoxserver.modules.wms1x.EOxSWMS1XGetCapabilitiesHandler.getMapServerLayer
+eoxserver.modules.wms1x.EOxSWMSCommonHandler.getMapServerLayer" class="py-name" href="#" onclick="return doclink('link-157', 'getMapServerLayer', 'link-66');">getMapServerLayer</a></tt><tt class="py-op">(</tt><tt class="py-name">coverage</tt><tt class="py-op">,</tt> <tt class="py-op">**</tt><tt class="py-name">kwargs</tt><tt class="py-op">)</tt> </tt>
+<a name="L266"></a><tt class="py-lineno">266</tt>  <tt class="py-line">        <tt class="py-name">layer</tt><tt class="py-op">.</tt><tt class="py-name">setMetaData</tt><tt class="py-op">(</tt><tt class="py-string">"wms_exceptions_format"</tt><tt class="py-op">,</tt><tt class="py-string">"xml"</tt><tt class="py-op">)</tt> </tt>
+<a name="L267"></a><tt class="py-lineno">267</tt>  <tt class="py-line">         </tt>
+<a name="L268"></a><tt class="py-lineno">268</tt>  <tt class="py-line"> </tt>
+<a name="L269"></a><tt class="py-lineno">269</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">layer</tt> </tt>
+</div></div><a name="L270"></a><tt class="py-lineno">270</tt>  <tt class="py-line"> </tt>
+<a name="EOxSWMS10ExceptionHandler"></a><div id="EOxSWMS10ExceptionHandler-def"><a name="L271"></a><tt class="py-lineno">271</tt> <a class="py-toggle" href="#" id="EOxSWMS10ExceptionHandler-toggle" onclick="return toggle('EOxSWMS10ExceptionHandler');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="eoxserver.modules.wms1x.EOxSWMS10ExceptionHandler-class.html">EOxSWMS10ExceptionHandler</a><tt class="py-op">(</tt><tt class="py-base-class">EOxSExceptionHandler</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EOxSWMS10ExceptionHandler-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="EOxSWMS10ExceptionHandler-expanded"><a name="EOxSWMS10ExceptionHandler._filterExceptions"></a><div id="EOxSWMS10ExceptionHandler._filterExceptions-def"><a name="L272"></a><tt class="py-lineno">272</tt> <a class="py-toggle" href="#" id="EOxSWMS10ExceptionHandler._filterExceptions-toggle" onclick="return toggle('EOxSWMS10ExceptionHandler._filterExceptions');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="eoxserver.modules.wms1x.EOxSWMS10ExceptionHandler-class.html#_filterExceptions">_filterExceptions</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">exception</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EOxSWMS10ExceptionHandler._filterExceptions-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="EOxSWMS10ExceptionHandler._filterExceptions-expanded"><a name="L273"></a><tt class="py-lineno">273</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">isinstance</tt><tt class="py-op">(</tt><tt class="py-name">exception</tt><tt class="py-op">,</tt> <tt id="link-158" class="py-name"><a title="eoxserver.lib.exceptions.EOxSInvalidRequestException" class="py-name" href="#" onclick="return doclink('link-158', 'EOxSInvalidRequestException', 'link-41');">EOxSInvalidRequestException</a></tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L274"></a><tt class="py-lineno">274</tt>  <tt class="py-line">            <tt class="py-keyword">raise</tt> </tt>
+</div><a name="L275"></a><tt class="py-lineno">275</tt>  <tt class="py-line">     </tt>
+<a name="EOxSWMS10ExceptionHandler._getEncoder"></a><div id="EOxSWMS10ExceptionHandler._getEncoder-def"><a name="L276"></a><tt class="py-lineno">276</tt> <a class="py-toggle" href="#" id="EOxSWMS10ExceptionHandler._getEncoder-toggle" onclick="return toggle('EOxSWMS10ExceptionHandler._getEncoder');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="eoxserver.modules.wms1x.EOxSWMS10ExceptionHandler-class.html#_getEncoder">_getEncoder</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EOxSWMS10ExceptionHandler._getEncoder-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="EOxSWMS10ExceptionHandler._getEncoder-expanded"><a name="L277"></a><tt class="py-lineno">277</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-159" class="py-name" targets="Class eoxserver.modules.wms1x.EOxSWMS10ExceptionEncoder=eoxserver.modules.wms1x.EOxSWMS10ExceptionEncoder-class.html"><a title="eoxserver.modules.wms1x.EOxSWMS10ExceptionEncoder" class="py-name" href="#" onclick="return doclink('link-159', 'EOxSWMS10ExceptionEncoder', 'link-159');">EOxSWMS10ExceptionEncoder</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L278"></a><tt class="py-lineno">278</tt>  <tt class="py-line">         </tt>
+<a name="EOxSWMS10ExceptionHandler._getContentType"></a><div id="EOxSWMS10ExceptionHandler._getContentType-def"><a name="L279"></a><tt class="py-lineno">279</tt> <a class="py-toggle" href="#" id="EOxSWMS10ExceptionHandler._getContentType-toggle" onclick="return toggle('EOxSWMS10ExceptionHandler._getContentType');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="eoxserver.modules.wms1x.EOxSWMS10ExceptionHandler-class.html#_getContentType">_getContentType</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">exception</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EOxSWMS10ExceptionHandler._getContentType-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="EOxSWMS10ExceptionHandler._getContentType-expanded"><a name="L280"></a><tt class="py-lineno">280</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-string">"text/xml"</tt> </tt>
+</div></div><a name="L281"></a><tt class="py-lineno">281</tt>  <tt class="py-line">         </tt>
+<a name="EOxSWMS10ExceptionEncoder"></a><div id="EOxSWMS10ExceptionEncoder-def"><a name="L282"></a><tt class="py-lineno">282</tt> <a class="py-toggle" href="#" id="EOxSWMS10ExceptionEncoder-toggle" onclick="return toggle('EOxSWMS10ExceptionEncoder');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="eoxserver.modules.wms1x.EOxSWMS10ExceptionEncoder-class.html">EOxSWMS10ExceptionEncoder</a><tt class="py-op">(</tt><tt class="py-base-class">EOxSExceptionEncoder</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EOxSWMS10ExceptionEncoder-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="EOxSWMS10ExceptionEncoder-expanded"><a name="EOxSWMS10ExceptionEncoder.encodeExceptionReport"></a><div id="EOxSWMS10ExceptionEncoder.encodeExceptionReport-def"><a name="L283"></a><tt class="py-lineno">283</tt> <a class="py-toggle" href="#" id="EOxSWMS10ExceptionEncoder.encodeExceptionReport-toggle" onclick="return toggle('EOxSWMS10ExceptionEncoder.encodeExceptionReport');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="eoxserver.modules.wms1x.EOxSWMS10ExceptionEncoder-class.html#encodeExceptionReport">encodeExceptionReport</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">exception_text</tt><tt class="py-op">,</tt> <tt class="py-param">exception_code</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EOxSWMS10ExceptionEncoder.encodeExceptionReport-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="EOxSWMS10ExceptionEncoder.encodeExceptionReport-expanded"><a name="L284"></a><tt class="py-lineno">284</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-160" class="py-name" targets="Method eoxserver.lib.util.EOxSXMLEncoder._makeElement()=eoxserver.lib.util.EOxSXMLEncoder-class.html#_makeElement"><a title="eoxserver.lib.util.EOxSXMLEncoder._makeElement" class="py-name" href="#" onclick="return doclink('link-160', '_makeElement', 'link-160');">_makeElement</a></tt><tt class="py-op">(</tt><tt class="py-string">""</tt><tt class="py-op">,</tt> <tt class="py-string">"WMTException"</tt><tt class="py-op">,</tt> <tt class="py-op">[</tt> </tt>
+<a name="L285"></a><tt class="py-lineno">285</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-string">""</tt><tt class="py-op">,</tt> <tt class="py-string">"@version"</tt><tt class="py-op">,</tt> <tt class="py-string">"1.0.0"</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L286"></a><tt class="py-lineno">286</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-string">""</tt><tt class="py-op">,</tt> <tt class="py-string">"@@"</tt><tt class="py-op">,</tt> <tt class="py-name">str</tt><tt class="py-op">(</tt><tt class="py-name">exception_text</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L287"></a><tt class="py-lineno">287</tt>  <tt class="py-line">        <tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L288"></a><tt class="py-lineno">288</tt>  <tt class="py-line">     </tt>
+<a name="EOxSWMS10ExceptionEncoder.encodeInvalidRequestException"></a><div id="EOxSWMS10ExceptionEncoder.encodeInvalidRequestException-def"><a name="L289"></a><tt class="py-lineno">289</tt> <a class="py-toggle" href="#" id="EOxSWMS10ExceptionEncoder.encodeInvalidRequestException-toggle" onclick="return toggle('EOxSWMS10ExceptionEncoder.encodeInvalidRequestException');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="eoxserver.modules.wms1x.EOxSWMS10ExceptionEncoder-class.html#encodeInvalidRequestException">encodeInvalidRequestException</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">exception</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EOxSWMS10ExceptionEncoder.encodeInvalidRequestException-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="EOxSWMS10ExceptionEncoder.encodeInvalidRequestException-expanded"><a name="L290"></a><tt class="py-lineno">290</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-161" class="py-name" targets="Method eoxserver.lib.ogc.EOxSOGCExceptionEncoder.encodeExceptionReport()=eoxserver.lib.ogc.EOxSOGCExceptionEncoder-class.html#encodeExceptionReport,Method eoxserver.lib.ows.EOxSOWSCommonExceptionEncoder.encodeExceptionReport()=eoxserver.lib.ows.EOxSOWSCommonExceptionEncoder-class.html#encodeExceptionReport,Method eoxserver.modules.wms1x.EOxSWMS10ExceptionEncoder.encodeExceptionReport()=eoxserver.modules.wms1x.EOxSWMS10ExceptionEncoder-class.html#encodeExceptionReport,Method eoxserver.modules.wms1x.EOxSWMS11ExceptionEncoder.encodeExceptionReport()=eoxserver.modules.wms1x.EOxSWMS11ExceptionEncoder-class.html#encodeExceptionReport"><a title="eoxserver.lib.ogc.EOxSOGCExceptionEncoder.encodeExceptionReport
+eoxserver.lib.ows.EOxSOWSCommonExceptionEncoder.encodeExceptionReport
+eoxserver.modules.wms1x.EOxSWMS10ExceptionEncoder.encodeExceptionReport
+eoxserver.modules.wms1x.EOxSWMS11ExceptionEncoder.encodeExceptionReport" class="py-name" href="#" onclick="return doclink('link-161', 'encodeExceptionReport', 'link-161');">encodeExceptionReport</a></tt><tt class="py-op">(</tt><tt class="py-name">exception</tt><tt class="py-op">.</tt><tt class="py-name">msg</tt><tt class="py-op">,</tt> <tt class="py-name">exception</tt><tt class="py-op">.</tt><tt class="py-name">error_code</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L291"></a><tt class="py-lineno">291</tt>  <tt class="py-line"> </tt>
+<a name="EOxSWMS11ExceptionHandler"></a><div id="EOxSWMS11ExceptionHandler-def"><a name="L292"></a><tt class="py-lineno">292</tt> <a class="py-toggle" href="#" id="EOxSWMS11ExceptionHandler-toggle" onclick="return toggle('EOxSWMS11ExceptionHandler');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="eoxserver.modules.wms1x.EOxSWMS11ExceptionHandler-class.html">EOxSWMS11ExceptionHandler</a><tt class="py-op">(</tt><tt class="py-base-class">EOxSExceptionHandler</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EOxSWMS11ExceptionHandler-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="EOxSWMS11ExceptionHandler-expanded"><a name="EOxSWMS11ExceptionHandler._filterExceptions"></a><div id="EOxSWMS11ExceptionHandler._filterExceptions-def"><a name="L293"></a><tt class="py-lineno">293</tt> <a class="py-toggle" href="#" id="EOxSWMS11ExceptionHandler._filterExceptions-toggle" onclick="return toggle('EOxSWMS11ExceptionHandler._filterExceptions');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="eoxserver.modules.wms1x.EOxSWMS11ExceptionHandler-class.html#_filterExceptions">_filterExceptions</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">exception</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EOxSWMS11ExceptionHandler._filterExceptions-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="EOxSWMS11ExceptionHandler._filterExceptions-expanded"><a name="L294"></a><tt class="py-lineno">294</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">isinstance</tt><tt class="py-op">(</tt><tt class="py-name">exception</tt><tt class="py-op">,</tt> <tt id="link-162" class="py-name"><a title="eoxserver.lib.exceptions.EOxSInvalidRequestException" class="py-name" href="#" onclick="return doclink('link-162', 'EOxSInvalidRequestException', 'link-41');">EOxSInvalidRequestException</a></tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L295"></a><tt class="py-lineno">295</tt>  <tt class="py-line">            <tt class="py-keyword">raise</tt> </tt>
+</div><a name="L296"></a><tt class="py-lineno">296</tt>  <tt class="py-line">     </tt>
+<a name="EOxSWMS11ExceptionHandler._getEncoder"></a><div id="EOxSWMS11ExceptionHandler._getEncoder-def"><a name="L297"></a><tt class="py-lineno">297</tt> <a class="py-toggle" href="#" id="EOxSWMS11ExceptionHandler._getEncoder-toggle" onclick="return toggle('EOxSWMS11ExceptionHandler._getEncoder');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="eoxserver.modules.wms1x.EOxSWMS11ExceptionHandler-class.html#_getEncoder">_getEncoder</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EOxSWMS11ExceptionHandler._getEncoder-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="EOxSWMS11ExceptionHandler._getEncoder-expanded"><a name="L298"></a><tt class="py-lineno">298</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-163" class="py-name" targets="Class eoxserver.modules.wms1x.EOxSWMS11ExceptionEncoder=eoxserver.modules.wms1x.EOxSWMS11ExceptionEncoder-class.html"><a title="eoxserver.modules.wms1x.EOxSWMS11ExceptionEncoder" class="py-name" href="#" onclick="return doclink('link-163', 'EOxSWMS11ExceptionEncoder', 'link-163');">EOxSWMS11ExceptionEncoder</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L299"></a><tt class="py-lineno">299</tt>  <tt class="py-line">         </tt>
+<a name="EOxSWMS11ExceptionHandler._getContentType"></a><div id="EOxSWMS11ExceptionHandler._getContentType-def"><a name="L300"></a><tt class="py-lineno">300</tt> <a class="py-toggle" href="#" id="EOxSWMS11ExceptionHandler._getContentType-toggle" onclick="return toggle('EOxSWMS11ExceptionHandler._getContentType');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="eoxserver.modules.wms1x.EOxSWMS11ExceptionHandler-class.html#_getContentType">_getContentType</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">exception</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EOxSWMS11ExceptionHandler._getContentType-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="EOxSWMS11ExceptionHandler._getContentType-expanded"><a name="L301"></a><tt class="py-lineno">301</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-string">"application/vnd.ogc.se_xml"</tt> </tt>
+</div></div><a name="L302"></a><tt class="py-lineno">302</tt>  <tt class="py-line"> </tt>
+<a name="EOxSWMS11ExceptionEncoder"></a><div id="EOxSWMS11ExceptionEncoder-def"><a name="L303"></a><tt class="py-lineno">303</tt> <a class="py-toggle" href="#" id="EOxSWMS11ExceptionEncoder-toggle" onclick="return toggle('EOxSWMS11ExceptionEncoder');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="eoxserver.modules.wms1x.EOxSWMS11ExceptionEncoder-class.html">EOxSWMS11ExceptionEncoder</a><tt class="py-op">(</tt><tt class="py-base-class">EOxSExceptionEncoder</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EOxSWMS11ExceptionEncoder-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="EOxSWMS11ExceptionEncoder-expanded"><a name="EOxSWMS11ExceptionEncoder.encodeExceptionReport"></a><div id="EOxSWMS11ExceptionEncoder.encodeExceptionReport-def"><a name="L304"></a><tt class="py-lineno">304</tt> <a class="py-toggle" href="#" id="EOxSWMS11ExceptionEncoder.encodeExceptionReport-toggle" onclick="return toggle('EOxSWMS11ExceptionEncoder.encodeExceptionReport');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="eoxserver.modules.wms1x.EOxSWMS11ExceptionEncoder-class.html#encodeExceptionReport">encodeExceptionReport</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">exception_text</tt><tt class="py-op">,</tt> <tt class="py-param">exception_code</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EOxSWMS11ExceptionEncoder.encodeExceptionReport-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="EOxSWMS11ExceptionEncoder.encodeExceptionReport-expanded"><a name="L305"></a><tt class="py-lineno">305</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-164" class="py-name"><a title="eoxserver.lib.util.EOxSXMLEncoder._makeElement" class="py-name" href="#" onclick="return doclink('link-164', '_makeElement', 'link-160');">_makeElement</a></tt><tt class="py-op">(</tt><tt class="py-string">""</tt><tt class="py-op">,</tt> <tt class="py-string">"ServiceExceptionReport"</tt><tt class="py-op">,</tt> <tt class="py-op">[</tt> </tt>
+<a name="L306"></a><tt class="py-lineno">306</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-string">""</tt><tt class="py-op">,</tt> <tt class="py-string">"@version"</tt><tt class="py-op">,</tt> <tt class="py-string">"1.1.1"</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L307"></a><tt class="py-lineno">307</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-string">""</tt><tt class="py-op">,</tt> <tt class="py-string">"ServiceException"</tt><tt class="py-op">,</tt> <tt class="py-op">[</tt> </tt>
+<a name="L308"></a><tt class="py-lineno">308</tt>  <tt class="py-line">                <tt class="py-op">(</tt><tt class="py-string">""</tt><tt class="py-op">,</tt> <tt class="py-string">"@code"</tt><tt class="py-op">,</tt> <tt class="py-name">exception_code</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L309"></a><tt class="py-lineno">309</tt>  <tt class="py-line">                <tt class="py-op">(</tt><tt class="py-string">""</tt><tt class="py-op">,</tt> <tt class="py-string">"@@"</tt><tt class="py-op">,</tt> <tt class="py-name">exception_text</tt><tt class="py-op">)</tt> </tt>
+<a name="L310"></a><tt class="py-lineno">310</tt>  <tt class="py-line">            <tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L311"></a><tt class="py-lineno">311</tt>  <tt class="py-line">        <tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L312"></a><tt class="py-lineno">312</tt>  <tt class="py-line">     </tt>
+<a name="EOxSWMS11ExceptionEncoder.encodeInvalidRequestException"></a><div id="EOxSWMS11ExceptionEncoder.encodeInvalidRequestException-def"><a name="L313"></a><tt class="py-lineno">313</tt> <a class="py-toggle" href="#" id="EOxSWMS11ExceptionEncoder.encodeInvalidRequestException-toggle" onclick="return toggle('EOxSWMS11ExceptionEncoder.encodeInvalidRequestException');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="eoxserver.modules.wms1x.EOxSWMS11ExceptionEncoder-class.html#encodeInvalidRequestException">encodeInvalidRequestException</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">exception</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EOxSWMS11ExceptionEncoder.encodeInvalidRequestException-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="EOxSWMS11ExceptionEncoder.encodeInvalidRequestException-expanded"><a name="L314"></a><tt class="py-lineno">314</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-165" class="py-name"><a title="eoxserver.lib.ogc.EOxSOGCExceptionEncoder.encodeExceptionReport
+eoxserver.lib.ows.EOxSOWSCommonExceptionEncoder.encodeExceptionReport
+eoxserver.modules.wms1x.EOxSWMS10ExceptionEncoder.encodeExceptionReport
+eoxserver.modules.wms1x.EOxSWMS11ExceptionEncoder.encodeExceptionReport" class="py-name" href="#" onclick="return doclink('link-165', 'encodeExceptionReport', 'link-161');">encodeExceptionReport</a></tt><tt class="py-op">(</tt><tt class="py-name">exception</tt><tt class="py-op">.</tt><tt class="py-name">msg</tt><tt class="py-op">,</tt> <tt class="py-name">exception</tt><tt class="py-op">.</tt><tt class="py-name">error_code</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L315"></a><tt class="py-lineno">315</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="eoxserver-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >EOxServer</th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Tue Jan 25 19:19:22 2011
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>
