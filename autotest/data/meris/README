@@ -1,0 +1,7 @@
+MERIS L1b sample data available at: http://earth.esa.int/object/index.cfm?fobjectid=4320
+
+The following configuration is provided with the fixture "meris_data.json":
+ * DatasetSeries (EOId: MER_FRS_1P) containing the 3 MERIS datasets with all 15 radiance bands encoded as uint16 values.
+ * StitchedMosaic (CoverageId: mosaic_MER_FRS_1P_RGB) containing the 3 MERIS datasets reduced to RGB 8-bit
+ 
+Thanks to the European Space Agency (ESA) for providing the MERIS sample data.
