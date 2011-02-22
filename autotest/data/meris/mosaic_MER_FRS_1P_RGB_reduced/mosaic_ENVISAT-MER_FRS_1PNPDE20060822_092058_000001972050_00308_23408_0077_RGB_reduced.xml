@@ -6,7 +6,7 @@
     xmlns:eop="http://www.opengis.net/eop/2.0"
     xmlns:swe="http://www.opengis.net/swe/1.0"
     xmlns:om="http://www.opengis.net/om/2.0"
-    gml:id="eop_mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced">
+    gml:id="eop_mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced">
     <om:phenomenonTime>
         <gml:TimePeriod gml:id="tp_mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced">
             <gml:beginPosition>2006-08-22T09:20:58Z</gml:beginPosition>
