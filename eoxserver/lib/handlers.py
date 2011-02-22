@@ -35,7 +35,10 @@ from cgi import escape
 from eoxserver.lib.requests import EOxSMapServerRequest, EOxSResponse, EOxSMapServerResponse
 from eoxserver.lib.domainset import EOxSTrim, EOxSSlice
 from eoxserver.lib.util import DOMElementToXML, EOxSXMLEncoder
-from eoxserver.lib.exceptions import EOxSInvalidRequestException, EOxSVersionNegotiationException
+from eoxserver.lib.exceptions import (
+    EOxSInvalidRequestException, EOxSVersionNegotiationException,
+    EOxSInternalError
+)
 
 from eoxserver.contrib import mapscript
 
@@ -267,7 +270,7 @@ class EOxSMapServerOperationHandler(EOxSOperationHandler):
             ms_req.ows_req.type = mapscript.MS_POST_REQUEST
             ms_req.ows_req.postrequest = ms_req.getParams()
         else:
-            raise Exception("Unknown parameter type '%s'." % req.param_type)
+            raise Exception("Unknown parameter type '%s'." % ms_req.getParamType())
 
     def configureMapObj(self, ms_req):
         """

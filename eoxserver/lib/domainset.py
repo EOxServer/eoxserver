@@ -34,7 +34,7 @@ from django.contrib.gis.geos import GEOSGeometry, Polygon, LineString
 
 from eoxserver.lib.exceptions import (
     EOxSUnknownCRSException, EOxSInvalidAxisLabelException,
-    EOxSInvalidSubsettingException
+    EOxSInvalidSubsettingException, EOxSInternalError
 )
 from eoxserver.lib.util import getDateTime, getSRIDFromCRSURI
 
@@ -167,7 +167,9 @@ class EOxSSlice(EOxSSubsetting):
         else:
             raise EOxSInternalError("Can handle 2D coverages only.")
         
-        return line.crosses(bbox)
+        # TODO bbox not defined
+        #return line.crosses(bbox)
+        raise EOxSInternalError("BBOX not defined")
 
 class EOxSTrim(EOxSSubsetting):
     def __init__(self, dimension, crs, trim_low, trim_high):

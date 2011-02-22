@@ -35,7 +35,8 @@ from django.http import QueryDict
 
 from eoxserver.lib.exceptions import (EOxSInternalError, EOxSKVPException,
     EOxSXMLException, EOxSXMLNodeNotFound, EOxSXMLContentTypeError,
-    EOxSUnknownParameterFormatException
+    EOxSUnknownParameterFormatException, EOxSXMLEncodingException,
+    EOxSXMLNodeOccurenceError
 )
 
 import logging
@@ -237,7 +238,7 @@ class EOxSXMLNode(object):
         elif len(nodes) == 0:
             raise EOxSXMLNodeNotFound("Node '%s' not found." % EOxSXPath.reverse(context_element).append(self.xpath).xpath_expr)
         elif len(nodes) < self.min_occ:
-            raise EOxSXMLNodeOccurrenceError("Expected at least %d results for node '%s'. Found %d matching nodes." % (
+            raise EOxSXMLNodeOccurenceError("Expected at least %d results for node '%s'. Found %d matching nodes." % (
                 self.min_occ, EOxSXPath.reverse(context_element).append(self.xpath).xpath_expr, len(nodes)
             ))
         elif len(nodes) > self.max_occ:
@@ -275,7 +276,7 @@ class EOxSXMLStringNode(EOxSXMLSimpleNode):
 
 class EOxSXMLIntNode(EOxSXMLSimpleNode):
     def _getValueFromElement(self, element):
-        if hasattr(elements.firstChild, "data"):
+        if hasattr(element.firstChild, "data"):
             try:
                 return int(element.firstChild.data)
             except:

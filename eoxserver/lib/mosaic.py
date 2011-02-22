@@ -347,7 +347,7 @@ class EOxSTileIndex(object):
         
         self.shapefile = driver.CreateDataSource(str(self.path))
         if self.shapefile is None:
-            raise EOxSSynchronizationError("Cannot create shapefile '%s'." % path)
+            raise EOxSSynchronizationError("Cannot create shapefile '%s'." % self.path)
         
         self.layer = self.shapefile.CreateLayer("file_locations", self.srs, ogr.wkbPolygon)
         if self.layer is None:
@@ -372,13 +372,13 @@ class EOxSTileIndex(object):
         else:
             logging.info("Opening shapefile '%s' ...")
             
-            self.shapefile = ogr.Open(path, True) # Open for updating
+            self.shapefile = ogr.Open(self.path, True) # Open for updating
             if self.shapefile is None:
-                raise EOxSSynchronizationError("Cannot open shapefile '%s'." % path)
+                raise EOxSSynchronizationError("Cannot open shapefile '%s'." % self.path)
                 
             self.layer = self.shapefile.GetLayer(0)
             if self.layer is None:
-                raise EOxSSynchronizationError("Shapefile '%s' has wrong format." % path)
+                raise EOxSSynchronizationError("Shapefile '%s' has wrong format." % self.path)
             
             logging.info("Success")
     
@@ -404,7 +404,7 @@ class EOxSTileIndex(object):
         feature.SetField("x_index", tile.x_index)
         feature.SetField("y_index", tile.y_index)
         if self.layer.CreateFeature(feature) != 0:
-            raise EOxSSynchronizationError("Could not create shapefile entry for file '%s'" % filename)
+            raise EOxSSynchronizationError("Could not create shapefile entry for file '%s'" % self.path)
         
         feature = None
         

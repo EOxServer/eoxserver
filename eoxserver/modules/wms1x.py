@@ -38,7 +38,8 @@ from eoxserver.lib.requests import EOxSResponse
 from eoxserver.lib.interfaces import EOxSCoverageInterfaceFactory, EOxSDatasetSeriesFactory
 from eoxserver.lib.util import EOxSXMLEncoder, DOMtoXML, DOMElementToXML, isotime
 from eoxserver.lib.exceptions import (EOxSInternalError,
-    EOxSInvalidRequestException, EOxSNoSuchCoverageException
+    EOxSInvalidRequestException, EOxSNoSuchCoverageException,
+    EOxSSynchronizationError
 )
 from django.conf import settings
 from eoxserver.contrib import mapscript

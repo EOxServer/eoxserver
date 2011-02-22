@@ -87,7 +87,7 @@ class EOxSWCS20GetCapabilitiesHandler(EOxSWCSCommonHandler):
             #if cov_subtype.lower() == "scene":
                 #ms_req.coverages = EOxSCoverageInterfaceFactory.getCoverageInterfacesByType("file")
             #elif cov_subtype.lower() == "datasetseries":
-                 #ms_req.coverages = EOxSCoverageInterfaceFactory.getCoverageInterfacesByType("eo.collection")
+                #ms_req.coverages = EOxSCoverageInterfaceFactory.getCoverageInterfacesByType("eo.collection")
             #else:
                 #raise EOxSInvalidRequestException("Unknown coverage subtype '%s'" % cov_subtype, "InvalidParameterValue", "coverageSubtype")
         #else:

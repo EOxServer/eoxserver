@@ -59,7 +59,7 @@ def ows(request):
         )
     elif request.method == 'POST':
         ows_req = EOxSOWSRequest(
-            http_req=req,
+            http_req=request,
             params=request.raw_post_data,
             param_type="xml"
         )
