@@ -30,6 +30,8 @@ from os.path import join
 PROJECT_DIR = 'eoxserver'
 PROJECT_URL_PREFIX = ''
 
+MAPSCRIPT_PATH = '/home/fabian/odas_svn/developments/mapserver/mapserver-5.6.5_dev/mapscript/python/build'
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
