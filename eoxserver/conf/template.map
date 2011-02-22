@@ -25,6 +25,8 @@
 MAP
 
     IMAGECOLOR 0 0 0
+   
+    #CONFIG "MS_ERRORFILE" "stderr"
 
     WEB
         METADATA

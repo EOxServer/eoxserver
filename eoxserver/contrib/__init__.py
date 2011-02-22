@@ -27,9 +27,8 @@ from django.conf import settings
 
 import sys, os, distutils.util
 
-MAPSCRIPT_PATH = '../../../../odas/svn/developments/mapserver/mapserver-5.6.5_dev/mapscript/python/build'
-
 # Put local build directory on head of python path
 platformdir = '-'.join((distutils.util.get_platform(), '.'.join(map(str, sys.version_info[0:2]))))
-sys.path.insert(0, os.path.join(settings.PROJECT_DIR, MAPSCRIPT_PATH, 'lib.' + platformdir))
+sys.path.insert(0, os.path.join(settings.MAPSCRIPT_PATH, 'lib.' + platformdir))
+print sys.path[0]
 import mapscript
