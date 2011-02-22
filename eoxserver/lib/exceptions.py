@@ -91,3 +91,8 @@ class EOxSXMLNodeNotFound(EOxSXMLException):
 class EOxSXMLContentTypeError(EOxSXMLException):
     pass
 
+class EOxSXMLEncodingException(EOxSXMLException):
+    pass
+
+class EOxSXMLNodeOccurenceError(EOxSXMLException):
+    pass

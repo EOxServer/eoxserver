@@ -379,7 +379,7 @@ class EOxSCoverageConfig(object):
                     origin.append(float(value))
                 grid.origin = tuple(origin)
             elif self.type == "eo.collection":
-                raise EOxSInteralError("Missing mandatory parameter 'grid.origin' for coverage '%s'" % self.coverage_id)
+                raise EOxSInternalError("Missing mandatory parameter 'grid.origin' for coverage '%s'" % self.coverage_id)
             
             offsets = []
             for axis_label in grid.axis_labels:
