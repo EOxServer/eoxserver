@@ -270,22 +270,67 @@ developed in the last subsection and the following sections.
 Draft Architecture
 ~~~~~~~~~~~~~~~~~~
 
-* O3S draft ADD/SDD
-* identified components
+The O3S draft Architectural Design Document (ADD/SDD) has already
+proposed a software architecture which is, however, outdated in certain
+aspects due to changes made in the requirements phase of O3S. Here is an
+overview of the O3S draft architecture:
 
 .. figure:: resources/rfc1/O3S_Server_Software_Components.png
    :width: 75%
    :align: center
 
    Draft architecture from O3S Proposal
+   
+This identifies four servers and extending modules:
 
+* WPS Server
+* WCS Server
 
-Dependencies
-~~~~~~~~~~~~
+  * WCS Earth Observation Application Profile Module
+  * WCS-T Module
+  * WCPS Module (not included in the requirements any more)
 
-* Django
-* MapServer
-* GDAL
+* WFS Server
+
+  * WFS-T Module (not included in the requirements any more)
+
+* WMS Server
+
+  * WMS Profile for EO Products Module
+
+Furthermore the architecture proposes to use `PyWPS
+<http://pywps.wald.intevation.org/>`_ and `MapServer
+<http://www.mapserver.org>`_ as middleware for handling OGC Web Service
+requests.
+
+An additional integrating Data Access Layer is foreseen that
+shall implement storage patterns such as image pyramids and offer an API
+to read and write data that hides the internal details of data storage
+from the service and extension modules using it.
+
+`PostgreSQL <http://www.postgresql.org>`_ with its geo-spatial extension
+`PostGIS <http://postgis.refractions.net>`_ has been planned as
+relational database backend. Finally, the system relies on the local
+filesystem as its only storage backend.
+
+During the requirements phase of O3S and the early development of
+EOxServer many deviations from this original design have been made
+necessary. Most importantly:
+
+* `Django <http://www.djangoproject.com>`_ has been added as dependency
+* `GDAL <http://www.gdal.org>`_ has been added as dependency
+* the implementation of WCPS has been postponed
+* the implementation of WFS-T has been postponed
+* Django has made use of different geo-spatial backends possible
+* requirements for remote storage backends have been added
+
+Although the basic concepts of the draft architecture remain valid, an
+updated version is needed for EOxServer to fulfill its requirements and
+evolve beyond the project horizon of O3S.
+
+Status Quo of Release 0.1.0
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 
 .. _rfc1_prop_arch:
