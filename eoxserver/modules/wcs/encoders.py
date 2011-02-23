@@ -124,7 +124,7 @@ class EOxSEOPEncoder(EOxSGMLEncoder):
         eo_id = eo_metadata.getEOID()
         begin_time_iso = isotime(eo_metadata.getBeginTime())
         end_time_iso = isotime(eo_metadata.getEndTime())
-        result_time_iso = isotime(datetime.now()) # TODO
+        result_time_iso = isotime(eo_metadata.getEndTime()) # TODO isotime(datetime.now())
         
         return self._makeElement(
             "eop", "EarthObservation", [
