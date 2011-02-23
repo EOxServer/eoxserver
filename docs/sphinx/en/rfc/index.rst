@@ -27,3 +27,8 @@ RFCs
    
    rfc*
 
+.. toctree::
+   :hidden:
+   
+   policies
+   howto

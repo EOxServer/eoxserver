@@ -2,8 +2,8 @@
 
 .. _rfc_howto:
 
-Guidelines for Request for Comments
-===================================
+Guidelines for Requests for Comments
+====================================
 
 :Author: Stephan Krause
 :Date: 2011-02-19
