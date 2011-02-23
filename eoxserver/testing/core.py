@@ -23,7 +23,6 @@
 #-----------------------------------------------------------------------
 
 import os.path
-import filecmp
 import logging
 from lxml import etree
 
@@ -44,17 +43,28 @@ class EOxSTestSchemaFactory(object):
     
     @classmethod
     def getSchema(cls, schema_location):
-        if schema_location in cls.schemas:
-            return cls.schemas[schema_location]
-        else:
-            logging.info("Opening schema: %s" % schema_location)
-            f = open(schema_location)
-            schema = etree.XMLSchema(etree.parse(f))
-            f.close()
-            
-            cls.schemas[schema_location] = schema
-            
-            return schema
+#        # Singleton version for usage with remote schemas:
+#        # This version provides hugh performance advantages but 
+#        # also random segfaults in libxml2.
+#        if schema_location in cls.schemas:
+#            return cls.schemas[schema_location]
+#        else:
+#            logging.info("Opening schema: %s" % schema_location)
+#            f = open(schema_location)
+#            schema = etree.XMLSchema(etree.parse(f))
+#            f.close()
+#            
+#            cls.schemas[schema_location] = schema
+#            
+#            return schema
+        # Non singleton version for usage with locally stored schemas:
+        logging.info("Opening schema: %s" % schema_location)
+        f = open(schema_location)
+        schema = etree.XMLSchema(etree.parse(f))
+        f.close()
+        
+        return schema
+
 
 class EOxSTestCase(TestCase):
     def setUp(self):
@@ -70,10 +80,6 @@ class EOxSTestCase(TestCase):
             self.response = client.post('/ows', request, "text/xml")
         else:
             raise Exception("Invalid request type '%s'." % type)
-        
-        f = open(os.path.join(self.getResponseFileDir(), self.getResponseFileName()), 'w')
-        f.write(self.response.content)
-        f.close()
     
     def getRequest(self):
         raise Exception("Not implemented.")
@@ -85,11 +91,32 @@ class EOxSTestCase(TestCase):
         return os.path.join("../autotest","responses")
     
     def getResponseFileName(self):
-        return "response_%s.%s" % (self.__class__.__name__, self.getFileExtension())
+        return "expected_%s.%s" % (self.__class__.__name__, self.getFileExtension())
     
     def testStatus(self):
         logging.info("Checking HTTP Status ...")
         self.assertEqual(self.response.status_code, 200)
+
+    def getExpectedFileDir(self):
+        return os.path.join("../autotest", "expected")
+    
+    def getExpectedFileName(self):
+        return "expected_%s.%s" % (self.__class__.__name__, self.getFileExtension())
+    
+    def testBinaryComparison(self):
+        try:
+            f = open(os.path.join(self.getExpectedFileDir(), self.getExpectedFileName()), 'r')
+            expected = f.read()
+            f.close()
+        except:
+            expected = ""
+        
+        if expected != self.response.content:
+            f = open(os.path.join(self.getResponseFileDir(), self.getResponseFileName()), 'w')
+            f.write(self.response.content)
+            f.close()
+
+            self.fail("Response returned is not equal to expected response. %s %s" % (os.path.join(self.getResponseFileDir(), self.getResponseFileName()), os.path.join(self.getExpectedFileDir(), self.getExpectedFileName())))
 
 class EOxSXMLTestCase(EOxSTestCase):
     def getSchemaLocation(self):
@@ -156,20 +183,7 @@ class EOxSExceptionTestCase(EOxSXMLTestCase):
         
         self.assertEqual(decoder.getValue("exceptionCode"), self.getExpectedExceptionCode())
 
-class EOxSFileTestCase(EOxSTestCase):
-    def getExpectedFileDir(self):
-        return os.path.join("../autotest", "expected")
-    
-    def getExpectedFileName(self):
-        return "expected_%s.%s" % (self.__class__.__name__, self.getFileExtension())
-    
-    def testBinaryComparison(self):
-        self.assertTrue(filecmp.cmp(os.path.join(self.getExpectedFileDir(), 
-                                                 self.getExpectedFileName()),
-                                    os.path.join(self.getResponseFileDir(),
-                                                 self.getResponseFileName())))
-        
-class EOxSWCS20GetCoverageTestCase(EOxSFileTestCase):    
+class EOxSWCS20GetCoverageTestCase(EOxSTestCase):    
     def getFileExtension(self):
         return "tif"
     
@@ -177,8 +191,8 @@ class EOxSWCS20GetCoverageMultipartTestCase(EOxSWCS20GetCoverageTestCase):
     def getFileExtension(self):
         return "dat"
     
-    def testBinaryComparison(self):
-        pass
+#    def testBinaryComparison(self):
+# TODO: Validate first part against "../schemas/wcseo/1.0/wcsEOCoverage.xsd" and compare second part to expected.
 #        expected_msg = email.message_from_file(open(os.path.join(self.getExpectedFileDir(), 
 #                                                                 self.getExpectedFileName())))
 #        
