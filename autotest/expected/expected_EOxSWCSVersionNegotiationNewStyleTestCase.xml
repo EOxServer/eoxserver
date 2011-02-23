@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="ISO-8859-1"?><wcs:Capabilities updateSequence="20110223T120000Z" version="2.0.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0" xmlns:ogc="http://www.opengis.net/ogc" xmlns:ows="http://www.opengis.net/ows/2.0" xmlns:swe="http://www.opengis.net/swe/2.0" xmlns:wcs="http://www.opengis.net/wcs/2.0" xmlns:wcseo="http://www.opengis.net/wcseo/1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd">
+  <ows:ServiceIdentification>
+    <ows:Title>Test configuration of MapServer used to demonstrate EOxServer</ows:Title>
+    <ows:Abstract>Test configuration of MapServer used to demonstrate EOxServer</ows:Abstract>
+    <ows:Keywords>
+      <ows:Keyword>EO-WCS</ows:Keyword>
+      <ows:Keyword>WCS EO-AP</ows:Keyword>
+      <ows:Keyword>WCS 2.0</ows:Keyword>
+      <ows:Keyword>WCS</ows:Keyword>
+      <ows:Keyword>MERIS</ows:Keyword>
+      <ows:Keyword>Envisat</ows:Keyword>
+    </ows:Keywords>
+    <ows:ServiceType codeSpace="OGC">OGC WCS</ows:ServiceType>
+    <ows:ServiceTypeVersion>2.0.0</ows:ServiceTypeVersion>
+    <ows:Profile>http://www.opengis.net/spec/WCS_profile_earth-observation/1.0/conf/ap-eo</ows:Profile><ows:Profile>http://www.opengis.net/spec/WCS/2.0/conf/core</ows:Profile>
+    <ows:Profile>http://www.opengis.net/spec/WCS_protocol-binding_get-kvp/1.0</ows:Profile>
+    <ows:Profile>http://www.opengis.net/spec/WCS_protocol-binding_post-xml/1.0</ows:Profile>
+    <ows:Profile>http://www.placeholder.com/EPSG</ows:Profile>
+    <ows:Profile>http://www.placeholder.com/IMAGECRS</ows:Profile>
+    <ows:Profile>http://www.opengis.net/spec/WCS_coverage-encoding_geotiff/1.0/</ows:Profile>
+    <ows:Profile>http://www.placeholder.com/GML_and_GeoTIFF</ows:Profile>
+    <ows:Profile>http://www.placeholder.com/SCALING</ows:Profile>
+    <ows:Profile>http://www.placeholder.com/INTERPOLATION</ows:Profile>
+    <ows:Fees>None</ows:Fees>
+    <ows:AccessConstraints>None</ows:AccessConstraints>
+  </ows:ServiceIdentification>
+  <ows:ServiceProvider>
+    <ows:ProviderName>EOX IT Services GmbH - HG Wien - FN 312068z - UID ATU64265057</ows:ProviderName>
+    <ows:ProviderSite xlink:href="http://localhost:8000/ows?" xlink:type="simple"/>
+    <ows:ServiceContact>
+      <ows:IndividualName>Stephan Meissl</ows:IndividualName>
+      <ows:PositionName>Senior IT Consultant</ows:PositionName>
+      <ows:ContactInfo>
+        <ows:Phone>
+          <ows:Voice>Provided on request</ows:Voice>
+          <ows:Facsimile>None</ows:Facsimile>
+        </ows:Phone>
+        <ows:Address>
+          <ows:DeliveryPoint>Thurngasse 8/4</ows:DeliveryPoint>
+          <ows:City>Wien</ows:City>
+          <ows:AdministrativeArea>Vienna</ows:AdministrativeArea>
+          <ows:PostalCode>1090</ows:PostalCode>
+          <ows:Country>Austria</ows:Country>
+          <ows:ElectronicMailAddress>office@eox.at</ows:ElectronicMailAddress>
+        </ows:Address>
+        <ows:OnlineResource xlink:href="http://localhost:8000/ows?" xlink:type="simple"/>
+        <ows:HoursOfService>Mon - Fri 10:30 - 17:00 CET and CEST respectively excl. Austrian holidays</ows:HoursOfService>
+        <ows:ContactInstructions>E-mails are usually answered within 3 working days.</ows:ContactInstructions>
+      </ows:ContactInfo>
+      <ows:Role>Service provider</ows:Role>
+    </ows:ServiceContact>
+  </ows:ServiceProvider>
+  <ows:OperationsMetadata>
+    <ows:Operation name="GetCapabilities">
+      <ows:DCP>
+        <ows:HTTP>
+          <ows:Get xlink:href="http://localhost:8000/ows?" xlink:type="simple"/>
+          <ows:Post xlink:href="http://localhost:8000/ows?" xlink:type="simple"/>
+        </ows:HTTP>
+      </ows:DCP>
+    </ows:Operation>
+    <ows:Operation name="DescribeCoverage">
+      <ows:DCP>
+        <ows:HTTP>
+          <ows:Get xlink:href="http://localhost:8000/ows?" xlink:type="simple"/>
+          <ows:Post xlink:href="http://localhost:8000/ows?" xlink:type="simple"/>
+        </ows:HTTP>
+      </ows:DCP>
+    </ows:Operation>
+    <ows:Operation name="GetCoverage">
+      <ows:DCP>
+        <ows:HTTP>
+          <ows:Get xlink:href="http://localhost:8000/ows?" xlink:type="simple"/>
+          <ows:Post xlink:href="http://localhost:8000/ows?" xlink:type="simple"/>
+        </ows:HTTP>
+      </ows:DCP>
+    </ows:Operation>
+  <ows:Operation name="DescribeEOCoverageSet"><ows:DCP><ows:HTTP><ows:Get xlink:href="http://localhost:8000/ows?" xlink:type="simple"/><ows:Post xlink:href="http://localhost:8000/ows?" xlink:type="simple"/></ows:HTTP></ows:DCP></ows:Operation><ows:Constraint name="CountDefault"><ows:NoValues></ows:NoValues><ows:DefaultValue>100</ows:DefaultValue></ows:Constraint></ows:OperationsMetadata>
+  <wcs:ServiceMetadata version="1.0.0"/>
+  <wcs:Contents><wcs:CoverageSummary><wcs:CoverageId>mosaic_MER_FRS_1P_RGB_reduced</wcs:CoverageId><wcs:CoverageSubtype>RectifiedStitchedMosaic</wcs:CoverageSubtype></wcs:CoverageSummary><wcseo:DatasetSeriesSummary><ows:WGS84BoundingBox><ows:LowerCorner>-4.042969 32.080078</ows:LowerCorner><ows:UpperCorner>33.134766 45.175781</ows:UpperCorner></ows:WGS84BoundingBox><wcseo:DatasetSeriesId>MER_FRS_1P_reduced</wcseo:DatasetSeriesId><gml:TimePeriod gml:id="MER_FRS_1P_reduced_timeperiod"><gml:beginPosition>2006-08-16T00:00:00</gml:beginPosition><gml:endPosition>2006-08-31T00:00:00</gml:endPosition></gml:TimePeriod></wcseo:DatasetSeriesSummary></wcs:Contents>
+</wcs:Capabilities>
