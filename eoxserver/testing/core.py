@@ -91,7 +91,7 @@ class EOxSTestCase(TestCase):
         return os.path.join("../autotest","responses")
     
     def getResponseFileName(self):
-        return "expected_%s.%s" % (self.__class__.__name__, self.getFileExtension())
+        return "response_%s.%s" % (self.__class__.__name__, self.getFileExtension())
     
     def testStatus(self):
         logging.info("Checking HTTP Status ...")
@@ -115,8 +115,16 @@ class EOxSTestCase(TestCase):
             f = open(os.path.join(self.getResponseFileDir(), self.getResponseFileName()), 'w')
             f.write(self.response.content)
             f.close()
-
-            self.fail("Response returned is not equal to expected response. %s %s" % (os.path.join(self.getResponseFileDir(), self.getResponseFileName()), os.path.join(self.getExpectedFileDir(), self.getExpectedFileName())))
+            
+            if expected == "":
+                self.fail("Expected response in '%s' is not present" % 
+                           os.path.join(self.getExpectedFileDir(), self.getExpectedFileName())
+                )
+            else:
+                self.fail("Response returned in '%s' is not equal to expected response in '%s'." % (
+                           os.path.join(self.getResponseFileDir(), self.getResponseFileName()),
+                           os.path.join(self.getExpectedFileDir(), self.getExpectedFileName()))
+                )
 
 class EOxSXMLTestCase(EOxSTestCase):
     def getSchemaLocation(self):
@@ -191,19 +199,44 @@ class EOxSWCS20GetCoverageMultipartTestCase(EOxSWCS20GetCoverageTestCase):
     def getFileExtension(self):
         return "dat"
     
-#    def testBinaryComparison(self):
-# TODO: Validate first part against "../schemas/wcseo/1.0/wcsEOCoverage.xsd" and compare second part to expected.
-#        expected_msg = email.message_from_file(open(os.path.join(self.getExpectedFileDir(), 
-#                                                                 self.getExpectedFileName())))
-#        
-#        response_msg = email.message_from_file(open(os.path.join(self.getResponseFileDir(), 
-#                                                                 self.getResponseFileName())))
-#        
-#        self.assertTrue(response_msg.is_multipart())
-#        
-#        for i in range(0, len(response_msg.get_payload())):
-#            if response_msg['content-type'] == 'text/xml':
-#                continue
-#            else:
-#                self.assertEqual(response_msg.get_payload(i).get_payload(),
-#                                 expected_msg.get_payload(i).get_payload())
+    def testBinaryComparison(self):
+        try:
+            f = open(os.path.join(self.getExpectedFileDir(), self.getExpectedFileName()), 'r')
+            expected = f.read()
+            f.close()
+        except:
+            expected = ""
+
+        self.assertTrue(self.response["Content-type"] == "multipart/mixed; boundary=wcs","Response returned '%s' is not of type multipart/mixed.")
+        
+        response_msg = email.message_from_string("Content-type: multipart/mixed; boundary=wcs\n\n"+self.response.content)
+        
+        for part in response_msg.walk():
+            if part['Content-type'] == "multipart/mixed; boundary=wcs":
+                continue
+            elif part['Content-type'] == "text/xml":
+                logging.info("Validating XML ...")
+                schema = EOxSTestSchemaFactory.getSchema("../schemas/wcseo/1.0/wcsEOCoverage.xsd")
+                try:
+                    schema.assertValid(etree.fromstring(part.get_payload()))
+                except etree.Error as e:
+                    f = open(os.path.join(self.getResponseFileDir(), self.getResponseFileName()), 'w')
+                    f.write(self.response.content)
+                    f.close()
+                    self.fail(str(e))
+            else:
+                logging.info("Comparing actual and expected responses.")
+                if expected != part.get_payload():
+                    f = open(os.path.join(self.getResponseFileDir(), self.getResponseFileName()), 'w')
+                    f.write(self.response.content)
+                    f.close()
+                    
+                    if expected == "":
+                        self.fail("Expected response '%s' not present" % 
+                                   os.path.join(self.getExpectedFileDir(), self.getExpectedFileName())
+                        )
+                    else:
+                        self.fail("Response returned '%s' is not equal to expected response '%s'." % (
+                                   os.path.join(self.getResponseFileDir(), self.getResponseFileName()),
+                                   os.path.join(self.getExpectedFileDir(), self.getExpectedFileName()))
+                        )

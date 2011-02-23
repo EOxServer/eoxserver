@@ -326,38 +326,36 @@ class EOxSWCS20GetCoverageDatasetTestCase(eoxstest.EOxSWCS20GetCoverageTestCase)
 
 # FORMAT
 
-# TODO: currently unrecognised format 'bmp'. either choose another, or add it to outputformats
-#class EOxSWCS20GetCoverageBMPTestCase(eoxstest.EOxSWCS20GetCoverageTestCase):
-#    def getRequest(self):
-#        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=image/bmp"
-#        return (params, "kvp")
-#    
-#    def getFileExtension(self):
-#        return "bmp"
-
+class EOxSWCS20GetCoverageJPEGTestCase(eoxstest.EOxSWCS20GetCoverageTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=image/jpeg"
+        return (params, "kvp")
     
+    def getFileExtension(self):
+        return "jpg"
+
 # MEDIATYPE
 
-#class EOxSWCS20GetCoverageMultipartMosaicTestCase(eoxstest.EOxSWCS20GetCoverageMultipartTestCase):
-    #def getRequest(self):
-        #params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=image/tiff&mediatype=multipart/mixed"
-        #return (params, "kvp")
+class EOxSWCS20GetCoverageMultipartMosaicTestCase(eoxstest.EOxSWCS20GetCoverageMultipartTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=image/tiff&mediatype=multipart/mixed"
+        return (params, "kvp")
 
-#class EOxSWCS20GetCoverageMultipartDatasetTestCase(eoxstest.EOxSWCS20GetCoverageMultipartTestCase):
-    #def getRequest(self):
-        #params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/mixed"
-        #return (params, "kvp")
+class EOxSWCS20GetCoverageMultipartDatasetTestCase(eoxstest.EOxSWCS20GetCoverageMultipartTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/mixed"
+        return (params, "kvp")
 
-## TODO: wrong multipart parameters only result in non-multipart images. Uncomment, when implemented
-##class EOxSWCS20GetCoverageWrongMultipartParameterFaultTestCase(eoxstest.EOxSExceptionTestCase):
-##    def getRequest(self):
-##        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=image2009_mosaic&format=image/tiff&mediatype=multipart/something"
-##        return (params, "kvp")
-##
-##    def getExpectedExceptionCode(self):
-##        return "InvalidParameterValue"
+# TODO: wrong multipart parameters only result in non-multipart images. Uncomment, when implemented
+#class EOxSWCS20GetCoverageWrongMultipartParameterFaultTestCase(eoxstest.EOxSExceptionTestCase):
+#    def getRequest(self):
+#        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=image2009_mosaic&format=image/tiff&mediatype=multipart/something"
+#        return (params, "kvp")
+#
+#    def getExpectedExceptionCode(self):
+#        return "InvalidParameterValue"
 
-## SUBSET
+# SUBSET
 
 #class EOxSWCS20GetCoverageSubsetDatasetTestCase(eoxstest.EOxSWCS20GetCoverageTestCase):
     #def getRequest(self):
@@ -397,7 +395,7 @@ class EOxSWCS20GetCoverageDatasetTestCase(eoxstest.EOxSWCS20GetCoverageTestCase)
     #def getExpectedExceptionCode(self):
         #return "InvalidParameterValue"
 
-## SIZE
+# SIZE
 
 #class EOxSWCS20GetCoverageSizeDatasetTestCase(eoxstest.EOxSWCS20GetCoverageTestCase):
     #def getRequest(self):
@@ -427,7 +425,7 @@ class EOxSWCS20GetCoverageDatasetTestCase(eoxstest.EOxSWCS20GetCoverageTestCase)
     #def getExpectedExceptionCode(self):
         #return "InvalidParameterValue"
 
-## RESOLUTION
+# RESOLUTION
 
 #class EOxSWCS20GetCoverageResolutionDatasetTestCase(eoxstest.EOxSWCS20GetCoverageTestCase):
     #def getRequest(self):
@@ -454,7 +452,7 @@ class EOxSWCS20GetCoverageDatasetTestCase(eoxstest.EOxSWCS20GetCoverageTestCase)
         #params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=lon,http://www.opengis.net/def/crs/EPSG/0/4326(16,17.4)&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(43,44.3)&resolution=lat(0.01)&resolution=lon(0.01)"
         #return (params, "kvp")
 
-## RANGESUBSET
+# RANGESUBSET
 
 #class EOxSWCS20GetCoverageRangeSubsetIndicesDatasetTestCase(eoxstest.EOxSWCS20GetCoverageTestCase):
     #def getRequest(self):
