@@ -228,7 +228,10 @@ class EOxSWCS20GetCoverageMultipartTestCase(EOxSWCS20GetCoverageTestCase):
                 logging.info("Comparing actual and expected responses.")
                 if expected != part.get_payload():
                     f = open(os.path.join(self.getResponseFileDir(), self.getResponseFileName()), 'w')
+                    # Write full multipart response:
                     f.write(self.response.content)
+                    # Write only image part:
+                    #f.write(part.get_payload())
                     f.close()
                     
                     if expected == "":
