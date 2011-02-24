@@ -9,7 +9,7 @@ RFC 5: Ingestion Chains
 :Created: 2011-02-23
 :Last Edit: 2011-02-23
 :Status: IN PREPARATION
-:Discussion: http://www.eoxserver.org/wiki/DiscussionRfc4
+:Discussion: http://www.eoxserver.org/wiki/DiscussionRfc5
 
 <short description of the RFC>
 

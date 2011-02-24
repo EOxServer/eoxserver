@@ -2,7 +2,7 @@
 
 .. index::
    single: RFC; RFC 1
-   single: software architecture
+   single: software architecture; overview
    
 .. _rfc1:
 
@@ -11,7 +11,7 @@ RFC 1: An Extensible Software Architecture for EOxServer
 
 :Author: Stephan Krause
 :Created: 2011-02-18
-:Last Edit: 2011-02-21
+:Last Edit: 2011-02-24
 :Status: IN PREPARATION
 :Discussion: http://www.eoxserver.org/wiki/DiscussionRfc1
 
@@ -19,8 +19,7 @@ This RFC proposes an extensible software architecture for EOxServer that
 is based on the following ideas:
 
 * Separation of instance and distribution code
-* Structuring of the distribution in data model, views and a controller
-  core plus extending modules
+* Structuring of the distribution in layers
 * Extensibility through a plugin system
 
 .. _rfc1_intro:
@@ -35,6 +34,8 @@ Introduction
 Requirements
 ------------
 
+.. index::
+   single: software architecture; requirements
 
 The main sources of requirements for EOxServer at the moment of writing
 this RFC are:
@@ -239,6 +240,8 @@ The ability to activate or deactivate various components of the system
 implies not only that the architecture must be modular but also that it
 must be configurable to use different combinations of modules.
 
+.. _rfc1_req_summary:
+
 Summary
 ~~~~~~~
 
@@ -247,15 +250,20 @@ Architecture shall be:
 
 * modular
 * extensible
-* able to present resources using different OGC Web Services
+* flexible in the sense that it must be possible to select different
+  combinations of modules to deploy and activate* able to present
+  resources using different OGC Web Services
 * able to access data from different backends
 * able to handle different data, metadata and packaging formats
 * separating distribution and instance data
-* flexible in the sense that it must be possible to select different
-  combinations of modules to deploy and activate
 
-In the following sections we will develop a proposed software
-architecture based on these considerations.
+The development of the software architecture will be based on these
+considerations.
+
+Goals of EOxServer Development
+------------------------------
+
+* ...
 
 Architecture Overview
 ---------------------
@@ -269,6 +277,9 @@ developed in the last subsection and the following sections.
 
 Draft Architecture
 ~~~~~~~~~~~~~~~~~~
+
+.. index::
+   single: software architecture; draft architecture
 
 The O3S draft Architectural Design Document (ADD/SDD) has already
 proposed a software architecture which is, however, outdated in certain
@@ -321,25 +332,168 @@ necessary. Most importantly:
 * `GDAL <http://www.gdal.org>`_ has been added as dependency
 * the implementation of WCPS has been postponed
 * the implementation of WFS-T has been postponed
-* Django has made use of different geo-spatial backends possible
+* Django has made use of different geo-spatial database backends possible
 * requirements for remote storage backends have been added
 
 Although the basic concepts of the draft architecture remain valid, an
 updated version is needed for EOxServer to fulfill its requirements and
 evolve beyond the project horizon of O3S.
 
-Status Quo of Release 0.1.0
+Status Quo of Release 0.1.1
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. index ::
+   single: software architecture; release 0.1.1
 
+As of release 0.1.1 EOxServer is an integrated Django project including
+a single Django application and additional modules that support OGC Web
+Service (OWS) request handling and data integration.
 
+The data model is contained in the ``eoxserver.server`` application. So
+is the ``ows`` view, the central entrance point for OWS requests, and
+the administration client view as well as tools for automatic data
+ingestion.
+
+Supporting modules are gathered in the ``eoxserver.lib`` module. These
+contain the core application logic for OWS request handling, coverage
+and metadata manipulation as well as utilities e.g. for XML processing.
+
+EOxServer 0.1.1 includes an extension mechanism already which so far is
+restricted to services. The ``eoxserver.lib.registry`` module maintains
+a central registry for the concrete implementations of OWS interfaces
+which may be published in the ``eoxserver.modules`` namespace. At the
+moment there are implementations for WMS 1.0, 1.1 and 1.3, WCS 1.0, 1.1 
+and 2.0 as well as a preliminary version of EO-WCS. All these modules
+use MapServer MapScript for image manipulation and part of the request
+handling in the backend.
+
+This approach fulfills some of the requirements summarized :ref:`above
+<rfc1_req_summary>` already, but further development of the architecture
+and the code is necessary to be fully compliant. Most
+importantly:
+
+* extensibility and flexibility have to be enhanced
+* WPS must be implemented
+* WFS must be implemented
+* support for remote backends is necessary
+
+.. index::
+   single: software architecture; layers
+   single: dynamic binding
+   single: Service Layer
+   single: Processing Layer
+   single: Data Integration Layer
+   single: Data Access Layer
+   
 .. _rfc1_prop_arch:
 
 Proposed Architecture
 ~~~~~~~~~~~~~~~~~~~~~
 
-Distribution and Instances
---------------------------
+* separation of instance and distribution
+* layered architecture of distribution
+
+  * MVC substructure
+  
+* extensibility through extension modules and plugins
+
+  * dynamic binding
+
+..
+
+* Core
+
+  * extensibility tools
+  * modules for common use
+  * configuration data model
+  * administration application?
+
+* Service Layer
+
+  * core request handling logic
+  * services and extensions
+
+* Processing Layer
+
+  * data model (?)
+  * processing modules used internally
+  * processes to be published
+
+* Data Integration Layer
+
+  * coverages
+  * vector data
+  * data model
+  * data formats
+  * metadata formats
+  * data packaging formats
+
+* Data Access Layer
+
+  * data model (?)
+  * local backend
+  * remote backends
+  
+Architecture Specification
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+  
+* :ref:`rfc1_core`
+* :ref:`rfc1_svc_lyr`
+* :ref:`rfc1_proc_lyr`
+* :ref:`rfc1_dint_lyr`
+* :ref:`rfc1_dacc_lyr`
+* :ref:`rfc1_inst`
+  
+.. toctree::
+   :maxdepth: 1
+
+   rfc2
+   rfc3
+   rfc4
+   rfc5
+   rfc6
+
+.. index:: Distribution Core
+
+.. _rfc1_core:
+
+Distribution Core
+-----------------
+
+.. index:: Service Layer
+
+.. _rfc1_svc_lyr:
+
+Service Layer
+-------------
+
+.. index:: Processing Layer
+
+.. _rfc1_proc_lyr:
+
+Processing Layer
+----------------
+
+.. index:: Data Integration Layer
+
+.. _rfc1_dint_lyr:
+
+Data Integration Layer
+----------------------
+
+.. index:: Data Access Layer
+
+.. _rfc1_dacc_lyr:
+
+Data Access Layer
+-----------------
+
+.. index:: EOxServer instances
+  
+.. _rfc1_inst:
+
+Instances
+---------
 
 * instance items
 
@@ -349,64 +503,6 @@ Distribution and Instances
   * configuration
   * data
   * deployment
-
-* distribution
-
-  * data model
-  * views (ows, admin)
-  * controller
-
-Structure of the Distribution Code
-----------------------------------
-
-* core
-* Django applications for coverages, vector data
-* extension modules and plugins
-* extension mechanism see :doc:`rfc2`
-
-Modules and Plugins
--------------------
-
-* modules: built-in extensions of the core
-
-  * services
-  * backends
-  * basic data and metadata formats
-  * processes used in the ingestion chain see :doc:`rfc5`
-  
-* plugins: additional extensions of the core or the modules
-
-  * data and metadata formats
-  * additional processes
-  * ...
-
-
-Directory Structure
--------------------
-
-* distribution
-
-  * ``core``
-  * ``coverage``
-  * ``vector``
-  * ``services``
-  * ``processes``
-  * ``formats``
-  * ``plugins``
-  
-* instance
-
-  * ``settings.py``
-  * ``manage.py``
-  * ``urls.py``
-  * ``conf``
-  
-    * ``eoxserver.conf``
-    * ``template.map``
-  
-  * ``data``
-  * ``db``
-  * ``plugins``
 
 Voting History
 --------------
