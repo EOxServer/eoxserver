@@ -196,17 +196,21 @@ class EOxSWCS20GetCoverageTestCase(EOxSTestCase):
         return "tif"
     
 class EOxSWCS20GetCoverageMultipartTestCase(EOxSWCS20GetCoverageTestCase):
-    def getFileExtension(self):
-        return "dat"
+    def getFileExtension(self,part=None):
+        if part == "xml":
+            return "xml"
+        elif part == "tif":
+            return "tif"
+        else:
+            return "dat"
+    
+    def getResponseFileName(self,part):
+        return "response_%s.%s" % (self.__class__.__name__, self.getFileExtension(part))
+    
+    def getExpectedFileName(self,part):
+        return "expected_%s.%s" % (self.__class__.__name__, self.getFileExtension(part))
     
     def testBinaryComparison(self):
-        try:
-            f = open(os.path.join(self.getExpectedFileDir(), self.getExpectedFileName()), 'r')
-            expected = f.read()
-            f.close()
-        except:
-            expected = ""
-
         self.assertTrue(self.response["Content-type"] == "multipart/mixed; boundary=wcs","Response returned '%s' is not of type multipart/mixed.")
         
         response_msg = email.message_from_string("Content-type: multipart/mixed; boundary=wcs\n\n"+self.response.content)
@@ -220,26 +224,35 @@ class EOxSWCS20GetCoverageMultipartTestCase(EOxSWCS20GetCoverageTestCase):
                 try:
                     schema.assertValid(etree.fromstring(part.get_payload()))
                 except etree.Error as e:
-                    f = open(os.path.join(self.getResponseFileDir(), self.getResponseFileName()), 'w')
-                    f.write(self.response.content)
+                    f = open(os.path.join(self.getResponseFileDir(), self.getResponseFileName("xml")), 'w')
+                    f.write(part.get_payload())
                     f.close()
                     self.fail(str(e))
+                
+                # TODO: Comparison to expected response needs to consider the current timestamp in the linage element
+                #logging.info("Comparing actual and expected XML responses.")
+            
             else:
-                logging.info("Comparing actual and expected responses.")
+                logging.info("Comparing actual and expected GeoTIFF responses.")
+                
+                try:
+                    f = open(os.path.join(self.getExpectedFileDir(), self.getExpectedFileName("tif")), 'r')
+                    expected = f.read()
+                    f.close()
+                except:
+                    expected = ""
+                
                 if expected != part.get_payload():
-                    f = open(os.path.join(self.getResponseFileDir(), self.getResponseFileName()), 'w')
-                    # Write full multipart response:
-                    f.write(self.response.content)
-                    # Write only image part:
-                    #f.write(part.get_payload())
+                    f = open(os.path.join(self.getResponseFileDir(), self.getResponseFileName("tif")), 'w')
+                    f.write(part.get_payload())
                     f.close()
                     
                     if expected == "":
                         self.fail("Expected response '%s' not present" % 
-                                   os.path.join(self.getExpectedFileDir(), self.getExpectedFileName())
+                                   os.path.join(self.getExpectedFileDir(), self.getExpectedFileName("tif"))
                         )
                     else:
                         self.fail("Response returned '%s' is not equal to expected response '%s'." % (
-                                   os.path.join(self.getResponseFileDir(), self.getResponseFileName()),
-                                   os.path.join(self.getExpectedFileDir(), self.getExpectedFileName()))
+                                   os.path.join(self.getResponseFileDir(), self.getResponseFileName("tif")),
+                                   os.path.join(self.getExpectedFileDir(), self.getExpectedFileName("tif")))
                         )
