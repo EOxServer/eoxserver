@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="ISO-8859-1"?><wcseo:RectifiedDataset gml:id="MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed" xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0" xmlns:om="http://www.opengis.net/om/2.0" xmlns:ows="http://www.opengis.net/ows/2.0" xmlns:swe="http://www.opengis.net/swe/2.0" xmlns:wcseo="http://www.opengis.net/wcseo/1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd">
+  <gml:boundedBy>
+    <gml:Envelope axisLabels="lat long" srsDimension="2" srsName="http://www.opengis.net/def/crs/EPSG/0/4326" uomLabels="deg deg">
+      <gml:lowerCorner>11.6268524270304 36.8067154708988</gml:lowerCorner>
+      <gml:upperCorner>14.797340045125 39.9750915360138</gml:upperCorner>
+    </gml:Envelope>
+  </gml:boundedBy>
+  <gml:domainSet>
+    <gml:RectifiedGrid dimension="2" gml:id="grid_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed">
+      <gml:limits>
+        <gml:GridEnvelope>
+          <gml:low>0 0</gml:low>
+          <gml:high>100 100</gml:high>
+        </gml:GridEnvelope>
+      </gml:limits>
+      <gml:axisLabels>lat long</gml:axisLabels>
+      <gml:origin>
+        <gml:Point gml:id="grid_origin_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed" srsName="http://www.opengis.net/def/crs/EPSG/0/4326">
+          <gml:pos>11.626852 36.806715</gml:pos>
+        </gml:Point>
+      </gml:origin>
+      <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/4326">0.031391 0</gml:offsetVector>
+      <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/4326">0 0.031370</gml:offsetVector>
+    </gml:RectifiedGrid>
+  </gml:domainSet>
+  <gml:rangeSet>
+    <gml:File>
+      <gml:rangeParameters xlink:arcrole="fileReference" xlink:href="coverage/out.tiff" xlink:role="image/tiff"/>
+      <gml:fileReference>coverage/out.tiff</gml:fileReference>
+      <gml:fileStructure/>
+      <gml:mimeType>image/tiff</gml:mimeType>
+    </gml:File>
+  </gml:rangeSet>
+  <gmlcov:rangeType>
+    <swe:DataRecord>
+      <swe:field name="Gray">
+        <swe:Quantity>
+          <swe:uom code="W.m-2.Sr-1"/>
+          <swe:constraint>
+            <swe:AllowedValues>
+              <swe:interval>-340282346638528859811704183484516925440.00000 340282346638528859811704183484516925440.00000</swe:interval>
+            </swe:AllowedValues>
+          </swe:constraint>
+        </swe:Quantity>
+      </swe:field>
+      <swe:field name="Undefined">
+        <swe:Quantity>
+          <swe:uom code="W.m-2.Sr-1"/>
+          <swe:constraint>
+            <swe:AllowedValues>
+              <swe:interval>-340282346638528859811704183484516925440.00000 340282346638528859811704183484516925440.00000</swe:interval>
+            </swe:AllowedValues>
+          </swe:constraint>
+        </swe:Quantity>
+      </swe:field>
+      <swe:field name="Undefined">
+        <swe:Quantity>
+          <swe:uom code="W.m-2.Sr-1"/>
+          <swe:constraint>
+            <swe:AllowedValues>
+              <swe:interval>-340282346638528859811704183484516925440.00000 340282346638528859811704183484516925440.00000</swe:interval>
+            </swe:AllowedValues>
+          </swe:constraint>
+        </swe:Quantity>
+      </swe:field>
+      <swe:field name="Undefined">
+        <swe:Quantity>
+          <swe:uom code="W.m-2.Sr-1"/>
+          <swe:constraint>
+            <swe:AllowedValues>
+              <swe:interval>-340282346638528859811704183484516925440.00000 340282346638528859811704183484516925440.00000</swe:interval>
+            </swe:AllowedValues>
+          </swe:constraint>
+        </swe:Quantity>
+      </swe:field>
+      <swe:field name="Undefined">
+        <swe:Quantity>
+          <swe:uom code="W.m-2.Sr-1"/>
+          <swe:constraint>
+            <swe:AllowedValues>
+              <swe:interval>-340282346638528859811704183484516925440.00000 340282346638528859811704183484516925440.00000</swe:interval>
+            </swe:AllowedValues>
+          </swe:constraint>
+        </swe:Quantity>
+      </swe:field>
+      <swe:field name="Undefined">
+        <swe:Quantity>
+          <swe:uom code="W.m-2.Sr-1"/>
+          <swe:constraint>
+            <swe:AllowedValues>
+              <swe:interval>-340282346638528859811704183484516925440.00000 340282346638528859811704183484516925440.00000</swe:interval>
+            </swe:AllowedValues>
+          </swe:constraint>
+        </swe:Quantity>
+      </swe:field>
+      <swe:field name="Undefined">
+        <swe:Quantity>
+          <swe:uom code="W.m-2.Sr-1"/>
+          <swe:constraint>
+            <swe:AllowedValues>
+              <swe:interval>-340282346638528859811704183484516925440.00000 340282346638528859811704183484516925440.00000</swe:interval>
+            </swe:AllowedValues>
+          </swe:constraint>
+        </swe:Quantity>
+      </swe:field>
+      <swe:field name="Undefined">
+        <swe:Quantity>
+          <swe:uom code="W.m-2.Sr-1"/>
+          <swe:constraint>
+            <swe:AllowedValues>
+              <swe:interval>-340282346638528859811704183484516925440.00000 340282346638528859811704183484516925440.00000</swe:interval>
+            </swe:AllowedValues>
+          </swe:constraint>
+        </swe:Quantity>
+      </swe:field>
+      <swe:field name="Undefined">
+        <swe:Quantity>
+          <swe:uom code="W.m-2.Sr-1"/>
+          <swe:constraint>
+            <swe:AllowedValues>
+              <swe:interval>-340282346638528859811704183484516925440.00000 340282346638528859811704183484516925440.00000</swe:interval>
+            </swe:AllowedValues>
+          </swe:constraint>
+        </swe:Quantity>
+      </swe:field>
+      <swe:field name="Undefined">
+        <swe:Quantity>
+          <swe:uom code="W.m-2.Sr-1"/>
+          <swe:constraint>
+            <swe:AllowedValues>
+              <swe:interval>-340282346638528859811704183484516925440.00000 340282346638528859811704183484516925440.00000</swe:interval>
+            </swe:AllowedValues>
+          </swe:constraint>
+        </swe:Quantity>
+      </swe:field>
+    </swe:DataRecord>
+  </gmlcov:rangeType>
+<gmlcov:metadata><wcseo:EOMetadata><eop:EarthObservation gml:id="eop_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed" xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:om="http://www.opengis.net/om/2.0" xmlns:swe="http://www.opengis.net/swe/1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/opt/2.0 ../xsd/opt.xsd">
+    <om:phenomenonTime>
+        <gml:TimePeriod gml:id="tp_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed">
+            <gml:beginPosition>2006-08-22T09:20:58Z</gml:beginPosition>
+            <gml:endPosition>2006-08-22T09:24:15Z</gml:endPosition>
+        </gml:TimePeriod>
+    </om:phenomenonTime>
+    <om:resultTime>
+        <!-- repeat of archiving date? -->
+        <gml:TimeInstant gml:id="archivingdate_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed">
+            <gml:timePosition>2006-08-25T07:49:17Z</gml:timePosition>
+        </gml:TimeInstant>
+    </om:resultTime>
+    <om:procedure>
+        <eop:EarthObservationEquipment gml:id="equ_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed">
+            <eop:platform>
+                <eop:Platform>
+                    <eop:shortName>ENVISAT</eop:shortName>
+                </eop:Platform>
+            </eop:platform>
+            <eop:instrument>
+                <eop:Instrument>
+                    <eop:shortName>MERIS</eop:shortName>
+                </eop:Instrument>
+            </eop:instrument>
+            <eop:sensor>
+                <eop:Sensor>
+                    <eop:sensorType>OPTICAL</eop:sensorType>
+                </eop:Sensor>
+            </eop:sensor>
+        </eop:EarthObservationEquipment>
+    </om:procedure>
+    <om:observedProperty xlink:href="#params1"/>
+    <om:featureOfInterest>
+        <eop:Footprint gml:id="footprint_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed">
+            <eop:multiExtentOf>
+                <gml:MultiSurface gml:id="ms_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed" srsName="EPSG:4326">
+                    <gml:surfaceMember>
+                        <gml:Polygon gml:id="poly_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed">
+                            <gml:exterior>
+                                <gml:LinearRing>
+                                    <gml:posList>11.452164999301536 46.215382038266426 12.56460056524387 46.077138992332522 13.88709473239655 45.898160545555285 15.27428923693798 45.680873827856274 16.732634573806106 45.449785763554488 18.910935999726473 45.051916790463871 20.408605523933062 44.748011699503031 21.96696659827764 44.411941287675177 23.519043285242258 44.042016022159309 25.093495248306709 43.643722088460834 24.697623348710682 42.820580145843472 24.095725514178625 41.526815857193817 23.448735861981131 40.080867763238736 22.989465254572469 39.025151818307243 22.50232224402901 37.85145204973027 22.01522231099019 36.642481720935422 21.498852478425345 35.307014823570611 20.944158667755332 33.815137282909021 20.386391220319478 32.266926679766343 19.564204682221426 32.473013412727383 18.208092189126496 32.79995702514136 16.635974830934515 33.156754966055587 15.045830395932443 33.490105968579719 13.468673053964881 33.802420221893549 11.788656279967018 34.117627714568791 10.10198645739054 34.404759326849735 8.778925655898064 34.612069910182186 9.065762626406386 35.937735362108867 9.314689072633191 37.042634504980391 9.571219329906695 38.211692868275371 9.910891562982675 39.708832350160876 10.256936653724585 41.235238659326725 10.570638082577355 42.571739065122323 10.804735163945022 43.567273827516843 11.06940217936636 44.657040223845229 11.28225456261711 45.550039415025189 11.452164999301536 46.215382038266426</gml:posList>
+                                </gml:LinearRing>
+                            </gml:exterior>
+                        </gml:Polygon>
+                    </gml:surfaceMember>
+                </gml:MultiSurface>
+            </eop:multiExtentOf>
+        </eop:Footprint>
+    </om:featureOfInterest>
+    <om:result/>
+    <eop:metaDataProperty>
+        <eop:EarthObservationMetaData>
+            <eop:identifier>MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed</eop:identifier>
+            <eop:acquisitionType>NOMINAL</eop:acquisitionType>
+            <eop:productType>MER_FRS_1P</eop:productType>
+            <eop:status>ARCHIVED</eop:status>
+            <eop:downlinkedTo>
+                <eop:DownlinkInformation>
+                    <eop:acquisitionStation>PDHS-E</eop:acquisitionStation>
+                </eop:DownlinkInformation>
+            </eop:downlinkedTo>
+            <eop:processing>
+                <eop:ProcessingInformation>
+                    <eop:processingCenter>PDHS-E</eop:processingCenter>
+                </eop:ProcessingInformation>
+            </eop:processing>
+        </eop:EarthObservationMetaData>
+    </eop:metaDataProperty>
+</eop:EarthObservation><wcseo:lineage><wcseo:referenceGetCoverage><ows:Reference xlink:href="http://testserver/ows?service=wcs&amp;amp;version=2.0.0&amp;amp;request=GetCoverage&amp;amp;CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&amp;amp;format=image/tiff&amp;amp;mediatype=multipart/mixed&amp;amp;subset=x(100,200)&amp;amp;subset=y(200,300)"/></wcseo:referenceGetCoverage><gml:timePosition>2011-02-24T10:59:33Z</gml:timePosition></wcseo:lineage></wcseo:EOMetadata></gmlcov:metadata></wcseo:RectifiedDataset>

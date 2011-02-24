@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="ISO-8859-1"?><wcseo:RectifiedStitchedMosaic gml:id="mosaic_MER_FRS_1P_RGB_reduced" xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0" xmlns:om="http://www.opengis.net/om/2.0" xmlns:ows="http://www.opengis.net/ows/2.0" xmlns:swe="http://www.opengis.net/swe/2.0" xmlns:wcs="http://www.opengis.net/wcs/2.0" xmlns:wcseo="http://www.opengis.net/wcseo/1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd">
+  <gml:boundedBy>
+    <gml:Envelope axisLabels="lat long" srsDimension="2" srsName="http://www.opengis.net/def/crs/EPSG/0/4326" uomLabels="deg deg">
+      <gml:lowerCorner>-3.75 32.19025</gml:lowerCorner>
+      <gml:upperCorner>28.29481 46.3</gml:upperCorner>
+    </gml:Envelope>
+  </gml:boundedBy>
+  <gml:domainSet>
+    <gml:RectifiedGrid dimension="2" gml:id="grid_mosaic_MER_FRS_1P_RGB_reduced">
+      <gml:limits>
+        <gml:GridEnvelope>
+          <gml:low>0 0</gml:low>
+          <gml:high>1022 450</gml:high>
+        </gml:GridEnvelope>
+      </gml:limits>
+      <gml:axisLabels>lat long</gml:axisLabels>
+      <gml:origin>
+        <gml:Point gml:id="grid_origin_mosaic_MER_FRS_1P_RGB_reduced" srsName="http://www.opengis.net/def/crs/EPSG/0/4326">
+          <gml:pos>-3.750000 32.190250</gml:pos>
+        </gml:Point>
+      </gml:origin>
+      <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/4326">0.031324 0</gml:offsetVector>
+      <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/4326">0 0.031285</gml:offsetVector>
+    </gml:RectifiedGrid>
+  </gml:domainSet>
+  <gml:rangeSet>
+    <gml:File>
+      <gml:rangeParameters xlink:arcrole="fileReference" xlink:href="coverage/out.tif" xlink:role="image/tiff"/>
+      <gml:fileReference>coverage/out.tif</gml:fileReference>
+      <gml:fileStructure/>
+      <gml:mimeType>image/tiff</gml:mimeType>
+    </gml:File>
+  </gml:rangeSet>
+  <gmlcov:rangeType>
+    <swe:DataRecord>
+      <swe:field name="band">
+        <swe:Quantity>
+          <swe:uom code="W.m-2.Sr-1"/>
+          <swe:constraint>
+            <swe:AllowedValues>
+              <swe:interval>0 255</swe:interval>
+            </swe:AllowedValues>
+          </swe:constraint>
+        </swe:Quantity>
+      </swe:field>
+      <swe:field name="band">
+        <swe:Quantity>
+          <swe:uom code="W.m-2.Sr-1"/>
+          <swe:constraint>
+            <swe:AllowedValues>
+              <swe:interval>0 255</swe:interval>
+            </swe:AllowedValues>
+          </swe:constraint>
+        </swe:Quantity>
+      </swe:field>
+      <swe:field name="band">
+        <swe:Quantity>
+          <swe:uom code="W.m-2.Sr-1"/>
+          <swe:constraint>
+            <swe:AllowedValues>
+              <swe:interval>0 255</swe:interval>
+            </swe:AllowedValues>
+          </swe:constraint>
+        </swe:Quantity>
+      </swe:field>
+    </swe:DataRecord>
+  </gmlcov:rangeType>
+<gmlcov:metadata><wcseo:EOMetadata><eop:EarthObservation gml:id="eop_mosaic_MER_FRS_1P_RGB_reduced"><om:phenomenonTime><gml:TimePeriod gml:id="phen_time_mosaic_MER_FRS_1P_RGB_reduced"><gml:beginPosition>2006-08-16T00:00:00Z</gml:beginPosition><gml:endPosition>2006-08-31T00:00:00Z</gml:endPosition></gml:TimePeriod></om:phenomenonTime><om:resultTime><gml:TimeInstant gml:id="res_time_mosaic_MER_FRS_1P_RGB_reduced"><gml:timePosition>2006-08-31T00:00:00Z</gml:timePosition></gml:TimeInstant></om:resultTime><om:procedure/><om:observedProperty/><om:featureOfInterest><eop:Footprint gml:id="footprint_mosaic_MER_FRS_1P_RGB_reduced"><eop:multiExtentOf><gml:MultiSurface gml:id="multisurface_mosaic_MER_FRS_1P_RGB_reduced"><gml:surfaceMember><gml:Polygon gml:id="polygon_mosaic_MER_FRS_1P_RGB_reduced"><gml:exterior><gml:LinearRing><gml:posList>44.824219 -3.955078 32.080078 -4.042969 32.167969 33.134766 45.175781 32.958984 44.824219 -3.955078</gml:posList></gml:LinearRing></gml:exterior></gml:Polygon></gml:surfaceMember></gml:MultiSurface></eop:multiExtentOf></eop:Footprint></om:featureOfInterest><om:result/><eop:metaDataProperty><eop:EarthObservationMetaData><eop:identifier>mosaic_MER_FRS_1P_RGB_reduced</eop:identifier><eop:acquisitionType>NOMINAL</eop:acquisitionType><eop:status>ARCHIVED</eop:status></eop:EarthObservationMetaData></eop:metaDataProperty></eop:EarthObservation><wcseo:lineage><wcseo:referenceGetCoverage><ows:Reference xlink:href="http://testserver/ows?service=wcs&amp;amp;version=2.0.0&amp;amp;request=GetCoverage&amp;amp;CoverageId=mosaic_MER_FRS_1P_RGB_reduced&amp;amp;format=image/tiff&amp;amp;mediatype=multipart/mixed"/></wcseo:referenceGetCoverage><gml:timePosition>2011-02-24T10:42:23Z</gml:timePosition></wcseo:lineage></wcseo:EOMetadata></gmlcov:metadata><wcseo:datasets><wcseo:dataset><wcs:CoverageId>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</wcs:CoverageId><wcseo:contributingFootprint><eop:Footprint gml:id="footprint_mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced"><eop:multiExtentOf><gml:MultiSurface gml:id="multisurface_mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced"><gml:surfaceMember><gml:Polygon gml:id="polygon_mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced"><gml:exterior><gml:LinearRing><gml:posList>46.216558 14.322576 46.152076 14.889221 46.044475 15.714163 45.874384 16.939196 45.707637 18.041168 45.437661 19.696621 45.188708 21.061979 44.985502 22.146530 44.817601 22.972839 44.548719 24.216794 44.353026 25.078471 44.222401 25.619454 43.869453 27.096691 43.648678 27.968591 42.914276 27.608909 41.406745 26.904154 39.890887 26.231198 38.857425 25.792810 37.327455 25.159378 35.916980 24.607823 34.659956 24.126822 33.485864 23.695477 32.269746 23.264471 32.597366 21.937720 32.907609 20.617207 33.815137 20.944159 35.307015 21.498852 36.642482 22.015222 37.851452 22.502322 39.025152 22.989465 40.080868 23.448736 41.526816 24.095726 42.820580 24.697623 43.643722 25.093495 44.042016 23.519043 44.411941 21.966967 44.748012 20.408606 45.051917 18.910936 45.449786 16.732635 45.680874 15.274289 45.845343 14.224295 46.216558 14.322576</gml:posList></gml:LinearRing></gml:exterior></gml:Polygon></gml:surfaceMember></gml:MultiSurface></eop:multiExtentOf></eop:Footprint></wcseo:contributingFootprint></wcseo:dataset><wcseo:dataset><wcs:CoverageId>mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced</wcs:CoverageId><wcseo:contributingFootprint><eop:Footprint gml:id="footprint_mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced"><eop:multiExtentOf><gml:MultiSurface gml:id="multisurface_mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced"><gml:surfaceMember><gml:Polygon gml:id="polygon_mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced"><gml:exterior><gml:LinearRing><gml:posList>46.215382 11.452165 46.077139 12.564601 45.898161 13.887095 45.680874 15.274289 45.449786 16.732635 45.051917 18.910936 44.748012 20.408606 44.411941 21.966967 44.042016 23.519043 43.643722 25.093495 42.820580 24.697623 41.526816 24.095726 40.080868 23.448736 39.025152 22.989465 37.851452 22.502322 36.642482 22.015222 35.307015 21.498852 33.815137 20.944159 32.266927 20.386391 32.473013 19.564205 32.799957 18.208092 33.156755 16.635975 33.490106 15.045830 33.802420 13.468673 34.117628 11.788656 34.404759 10.101986 34.575270 9.013785 35.182260 9.239588 36.963088 9.927539 38.744184 10.660988 40.540559 11.428425 42.297024 12.228748 43.640356 12.874734 43.799809 12.278833 44.106066 11.006182 44.121347 10.939300 44.657040 11.069402 45.550039 11.282255 46.215382 11.452165</gml:posList></gml:LinearRing></gml:exterior></gml:Polygon></gml:surfaceMember></gml:MultiSurface></eop:multiExtentOf></eop:Footprint></wcseo:contributingFootprint></wcseo:dataset><wcseo:dataset><wcs:CoverageId>mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced</wcs:CoverageId><wcseo:contributingFootprint><eop:Footprint gml:id="footprint_mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced"><eop:multiExtentOf><gml:MultiSurface gml:id="multisurface_mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced"><gml:surfaceMember><gml:Polygon gml:id="polygon_mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced"><gml:exterior><gml:LinearRing><gml:posList>46.218445 -0.769772 46.082906 0.288547 45.736363 2.733420 45.399470 4.815657 45.009482 6.894776 44.750185 8.154914 44.419524 9.634246 44.106066 11.006182 43.799809 12.278833 43.640356 12.874734 42.297024 12.228748 40.540559 11.428425 38.744184 10.660988 36.963088 9.927539 35.182260 9.239588 33.807811 8.728287 32.264541 8.174463 32.474457 7.346658 32.914721 5.489001 33.329295 3.594913 33.718949 1.679562 34.082882 -0.256213 34.340572 -1.744084 34.602948 -3.437981 35.200500 -3.312138 36.757094 -2.968614 38.055796 -2.682010 39.517336 -2.350759 41.300921 -1.942069 42.946216 -1.553860 44.592511 -1.166995 46.218445 -0.769772</gml:posList></gml:LinearRing></gml:exterior></gml:Polygon></gml:surfaceMember></gml:MultiSurface></eop:multiExtentOf></eop:Footprint></wcseo:contributingFootprint></wcseo:dataset></wcseo:datasets></wcseo:RectifiedStitchedMosaic>
