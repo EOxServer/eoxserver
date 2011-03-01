@@ -25,7 +25,8 @@ RFCs
    :maxdepth: 1
    :glob:
    
-   rfc*
+   rfc?
+   rfc??
 
 .. toctree::
    :hidden:

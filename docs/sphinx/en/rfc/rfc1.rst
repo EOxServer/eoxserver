@@ -11,7 +11,7 @@ RFC 1: An Extensible Software Architecture for EOxServer
 
 :Author: Stephan Krause
 :Created: 2011-02-18
-:Last Edit: 2011-02-24
+:Last Edit: 2011-02-28
 :Status: IN PREPARATION
 :Discussion: http://www.eoxserver.org/wiki/DiscussionRfc1
 
@@ -62,30 +62,31 @@ directly related to the software architecture;
   * extension of the system functionality according to new or modified
     requirements
 
-Thus, the integration and extension of functionality must be a main
-issue in the drafting of the EOxServer software architecture. Digging
-deeper into the requirements specifications we will find out more
-about what :ref:`rfc1_req_func` is needed, what :ref:`rfc1_req_res`
-shall be handled by the software and where it is going to be
-:ref:`deployed <rfc1_req_deploy>`.
+Thus, modularity as well as integration and extension of functionality
+are central issues in the drafting of the EOxServer software
+architecture. The question remains what considerations shall govern the
+structuring of the software into modules, what functionality it shall
+implement and in what way the system shall be able to be extended.
 
-.. _rfc1_req_func:
-
-Functionality
-~~~~~~~~~~~~~
+Our approach to this question is to identify different topics of concern
+for the EOxServer development that shall structure the requirements
+analysis and give a first hint on the architectural design.
 
 The main goal of EOxServer is to furnish an implementation of `OGC
 <http://www.opengeospatial.org>`_ Web Services (OWS) intended for use
 within the Earth Observation (EO) domain. These :ref:`services
-<rfc1_req_svc>` need access to :ref:`data <rfc1_req_res>`. The
-requirements document of HMA-FO cites different :ref:`backends
-<rfc1_req_backend>` that the software shall implement in order to allow
-access to local and remote content.
+<rfc1_req_svc>` shall provide access to different kinds of
+:ref:`resources <rfc1_req_res>` and to :ref:`processes <rfc1_req_proc>`
+operating on these resources. The requirements cite different
+:ref:`backends <rfc1_req_backend>` that the software shall implement in
+order to allow access to local and remote content. Finally, we discuss
+where and how the software is going to be :ref:`deployed
+<rfc1_req_deploy>`.
 
 .. _rfc1_req_svc:
 
 Services
-^^^^^^^^
+~~~~~~~~
 
 The following OGC Web Services shall be implemented:
 
@@ -127,27 +128,21 @@ The following OGC Web Services shall be implemented:
   This service shall be used to make processing resources accessible
   online.
 
-.. _rfc1_req_backend:
+.. _rfc1_req_proc:
 
-Backends
-^^^^^^^^
+Processes
+~~~~~~~~~
 
-EOxServer shall implement various backends to access data it presents
-to the public via the OGC Web Services:
+EOxServer shall present various processes to the public using WPS. The
+processes planned for implementation at the moment of writing this RFC
+are specific to the use cases to be handled in the course of the O3S
+project. The capability to publish a variety of processes on the other
+hand is a general requirement for EOxServer. 
 
-* Backend for local data (requirement `O3S_CAP_013
-  <https://o3s.eox.at/requirements/ticket/68>`_)
-* Backends for remote data (requirements: HMA-FO SR_ODA_IF_070,
-  `O3S_CAP_014 <https://o3s.eox.at/requirements/ticket/69>`_)
-
-  * using HTTP/HTTPS
-  * using FTP
-  * using WCS
-
-* Backend for retrieving data from `rasdaman <http://www.rasdaman.com>`_
-  (requirement `O3S_CAP_017
-  <https://o3s.eox.at/requirements/ticket/183>`_)
-
+Being a project focussing on the EO domain EOxServer concentrates on
+the processing of EO coverage (raster) data. So, the considerations
+made for coverages regarding the variety of data and metadata
+:ref:`formats <rfc1_formats>` are valid for processes as well.
 
 .. _rfc1_req_res:
 
@@ -207,19 +202,26 @@ use case road network data shall be generated from Pléiades satellite
 data using automated feature detection algorithms. The road network data
 shall be presented using WFS and WMS.
 
-Processes
-^^^^^^^^^
+.. _rfc1_req_backend:
 
-EOxServer shall present various processes to the public using WPS. The
-processes planned for implementation at the moment of writing this RFC
-are specific to the use cases to be handled in the course of the O3S
-project. The capability to publish a variety of processes on the other
-hand is a general requirement for EOxServer. 
+Backends
+~~~~~~~~
 
-Being a project focussing on the EO domain EOxServer concentrates on
-the processing of EO coverage (raster) data. So, the considerations
-made for coverages regarding the variety of data and metadata
-:ref:`formats <rfc1_formats>` are valid for processes as well.
+EOxServer shall implement various backends to access data it presents
+to the public via the OGC Web Services:
+
+* Backend for local data (requirement `O3S_CAP_013
+  <https://o3s.eox.at/requirements/ticket/68>`_)
+* Backends for remote data (requirements: HMA-FO SR_ODA_IF_070,
+  `O3S_CAP_014 <https://o3s.eox.at/requirements/ticket/69>`_)
+
+  * using HTTP/HTTPS
+  * using FTP
+  * using WCS
+
+* Backend for retrieving data from `rasdaman <http://www.rasdaman.com>`_
+  (requirement `O3S_CAP_017
+  <https://o3s.eox.at/requirements/ticket/183>`_)
 
 .. _rfc1_req_deploy:
 
@@ -290,7 +292,7 @@ overview of the O3S draft architecture:
    :width: 75%
    :align: center
 
-   Draft architecture from O3S Proposal
+   *Draft architecture from O3S Proposal*
    
 This identifies four servers and extending modules:
 
@@ -390,60 +392,122 @@ importantly:
 Proposed Architecture
 ~~~~~~~~~~~~~~~~~~~~~
 
-* separation of instance and distribution
-* layered architecture of distribution
+The proposed architecture for EOxServer shall be based on the following
+principles:
 
-  * MVC substructure
+* **Separation of Instance and Distribution**: instance applications
+  shall be separated from EOxServer distribution code in order to
+  facilitate deployment of multiple services on the same machine and to
+  support flexible configurations of services
+* **Layered Architecture of the Distribution**: The software
+  architecture shall be structured in layers and a core that contains
+  basic common functionality; each layer builds on the capabilities of
+  the underlying ones to fulfill its tasks
+* **Extensibility**: the EOxServer distribution shall be extensible by
+  additional modules and plugins; the distribution core shall provide
+  functionality to enable dynamic binding to extending modules
   
-* extensibility through extension modules and plugins
+The identification of different layers is performed based on the
+structuring of the system components underlying the requirements
+analysis.
 
-  * dynamic binding
+Dependencies
+^^^^^^^^^^^^
 
-..
+The implementation of EOxServer shall use the following
+dependencies:
 
-* Core
-
-  * extensibility tools
-  * modules for common use
-  * configuration data model
-  * administration application?
-
-* Service Layer
-
-  * core request handling logic
-  * services and extensions
-
-* Processing Layer
-
-  * data model (?)
-  * processing modules used internally
-  * processes to be published
-
-* Data Integration Layer
-
-  * coverages
-  * vector data
-  * data model
-  * data formats
-  * metadata formats
-  * data packaging formats
-
-* Data Access Layer
-
-  * data model (?)
-  * local backend
-  * remote backends
+* **Python**: `Python <http://www.python.org>`_ shall serve as the
+  implementation language; it has been chosen because
   
-Architecture Specification
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+  * it facilitates rapid development
+  * the geospatial libraries used all have Python bindings
   
+* **Django**: `Django <http://www.djangoproject.com>`_ has been
+  selected as development framework because
+  
+  * it provides an object-relational mapper that supports various
+    database backends
+  * it supports geospatial databases and integrates vector data handling
+    functionality in the GeoDjango extension
+  * it allows for rapid web application development
+  
+* **Spatial Database Backend**: using GeoDjango, EOxServer shall support
+  at least the `SpatiaLite <http://www.gaia-gis.it/spatialite/>`_ and
+  `PostGIS <http://postgis.refractions.net>`_ geospatially enabled
+  RDBMS backends. 
+* **MapServer**: EOxServer shall build on `MapServer
+  <http://www.mapserver.org>`_ MapScript in order to facilitate OGC
+  Web Service handling
+* **GDAL/OGR**: For image processing tasks and vector data manipulation
+  the Python binding of the `GDAL/OGR <http://www.gdal.org>`_ libraries
+  shall be used
+  
+Concerning the software architecture, the use of Django enforces a
+Model-View-Controller (MVC) substructure of the distribution layers of
+EOxServer.
+
+Distribution Core and Layers
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The breakdown of the distribution into core and layers is as follows:
+
+Core
+  The Core shall contain modules for common use throughout the different
+  components of EOxServer. This includes the global configuration data
+  model, the implementation of the extension mechanism as well as the
+  basic functionality for the EOxServer administration client
+
+Service Layer
+  This layer contains the core request handling logic as well as the
+  implementation of services and service extensions
+  
+Processing Layer
+  This layer contains the processing models used internally by EOxServer
+  as well as the data model and the basic handling routines for
+  processes to be published using WPS
+
+Data Integration Layer
+  This layer shall provide data models for resources as well as an
+  abstraction layer for different data formats and data packaging
+  formats
+  
+Data Access Layer
+  This layer shall provide backends for local and remote data access
+  
+.. figure:: resources/rfc1/EOxServer_Distribution_Breakdown.png
+   :width: 75%
+   :align: center
+   
+   *EOxServer Distribution Breakdown*
+
+Each of the four layers shall be sub-structured in:
+
+* data model
+* views for public access (if applicable)
+* views for the administration client
+* core handling logic
+* interface definitions for extensions
+* modules implementing the interface definitions
+  
+Structure of the Architecture Specification
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The further specification of the proposed architecture is subdivided
+into several sections and separate RFCs. This RFC 1 contains a
+high-level description of the different architectural layers and of
+EOxServer instances:
+
 * :ref:`rfc1_core`
 * :ref:`rfc1_svc_lyr`
 * :ref:`rfc1_proc_lyr`
 * :ref:`rfc1_dint_lyr`
 * :ref:`rfc1_dacc_lyr`
 * :ref:`rfc1_inst`
-  
+
+The following RFCs discuss different aspects of the system in further
+detail:
+
 .. toctree::
    :maxdepth: 1
 
@@ -460,12 +524,20 @@ Architecture Specification
 Distribution Core
 -----------------
 
+* modules for common use
+* configuration data model
+* extensibility tools
+* administration application?
+
 .. index:: Service Layer
 
 .. _rfc1_svc_lyr:
 
 Service Layer
 -------------
+
+* core request handling logic
+* services and extensions
 
 .. index:: Processing Layer
 
@@ -474,12 +546,23 @@ Service Layer
 Processing Layer
 ----------------
 
+* data model (?)
+* processing modules used internally
+* processes to be published
+
 .. index:: Data Integration Layer
 
 .. _rfc1_dint_lyr:
 
 Data Integration Layer
 ----------------------
+
+* coverages
+* vector data
+* data model
+* data formats
+* metadata formats
+* data packaging formats
 
 .. index:: Data Access Layer
 
@@ -488,6 +571,10 @@ Data Integration Layer
 Data Access Layer
 -----------------
 
+* data model (?)
+* local backend
+* remote backends  
+
 .. index:: EOxServer instances
   
 .. _rfc1_inst:
@@ -495,14 +582,12 @@ Data Access Layer
 Instances
 ---------
 
-* instance items
-
-  * Django project
-  * Django application
-  * settings
-  * configuration
-  * data
-  * deployment
+* Django project
+* Django application
+* settings
+* configuration
+* data
+* deployment
 
 Voting History
 --------------
