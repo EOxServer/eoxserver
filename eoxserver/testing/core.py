@@ -26,6 +26,8 @@ import os.path
 import logging
 from lxml import etree
 
+import mimetypes
+
 import email
 from email.parser import Parser as MIMEParser
 from email.message import Message

@@ -544,7 +544,10 @@ class EOxSWCS20Utils(object):
             if trim.crs != crs:
                 raise EOxSInvalidRequestException("All subsettings must be expressed in the same CRS.")
         
-        srid = getSRIDFromCRSURI(crs)
+        if crs is not None:
+            srid = getSRIDFromCRSURI(crs)
+        else:
+            srid = footprint.srid
         
         fp_minx, fp_miny, fp_maxx, fp_maxy = footprint.transform(srid, True).extent
         
