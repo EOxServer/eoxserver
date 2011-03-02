@@ -418,8 +418,26 @@ class EOxSWCS20GetCoverageHandler(EOxSWCSCommonHandler):
             layer.setMetaData("wcs_bandcount", "3") # TODO
         
         axes = " ".join(channel.name for channel in coverage.getRangeType())
-        layer.setMetaData("wcs_rangeset_axes", axes)
+        layer.setMetaData("wcs_band_names", axes)
         
+        # set layer depending metadata
+        for axis in coverage.getRangeType():
+            axis_metadata = {
+                "%s_band_description"%axis.name: axis.description,
+                "%s_band_definition"%axis.name: axis.definition,
+                "%s_band_uom"%axis.name: axis.uom
+            }
+            for key, value in axis_metadata.items():
+                if value != '':
+                    layer.setMetaData(key, value)
+            
+            layer.setMetaData("%s_interval"%axis.name,
+                              "%g %g"%(axis.allowed_values_start,
+                                       axis.allowed_values_end))
+            
+            layer.setMetaData("%s_significant_figures"%axis.name,
+                              "%d"%axis.allowed_values_significant_figures)
+            
         if len(coverage.getRangeType()) > 3: # TODO make this dependent on actual data type
             layer.setMetaData("wcs_formats", "GTiff16")
             layer.setMetaData("wcs_imagemode", "INT16")
@@ -433,7 +451,6 @@ class EOxSWCS20GetCoverageHandler(EOxSWCSCommonHandler):
         
         if ms_req.coverages[0].getType() == "eo.rect_mosaic":
             include_composed_of = False #True
-            
 
         else:
             include_composed_of = False
