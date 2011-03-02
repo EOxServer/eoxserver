@@ -748,12 +748,14 @@ be **implemented**:
 * local backends:
   
   * file system
-  
+
 * remote backends:
 
-    * using HTTP/HTTPS
-    * using FTP
-    * using WCS
+  * using HTTP/HTTPS
+  * using FTP
+  * using WCS
+
+* `rasdaman <http://www.rasdaman.com>`_ backend
 
 .. index:: EOxServer instances
   
