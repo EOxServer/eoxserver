@@ -7,13 +7,15 @@ Guidelines for Requests for Comments
 
 :Author: Stephan Krause
 :Date: 2011-02-19
+:Last Edit: 2011-03-02
+:Discussion: http://www.eoxserver.org/wiki/DiscussionRfcTemplate
 
 This document contains instructions for writing RFCs as well as a
 template for RFCs. Please read it carefully before submitting your own
 requests.
 
 In this document the terms *shall*, *should* and *may* have a
-normative meaning, that is well known from software engineering and 
+normative meaning that is well known from software engineering and 
 standards definition:
 
 * *shall*: indicates an absolute requirement to be strictly followed
