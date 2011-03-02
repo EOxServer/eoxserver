@@ -11,8 +11,8 @@ RFC 1: An Extensible Software Architecture for EOxServer
 
 :Author: Stephan Krause
 :Created: 2011-02-18
-:Last Edit: 2011-02-28
-:Status: IN PREPARATION
+:Last Edit: 2011-03-02
+:Status: PENDING
 :Discussion: http://www.eoxserver.org/wiki/DiscussionRfc1
 
 This RFC proposes an extensible software architecture for EOxServer that
@@ -27,15 +27,54 @@ is based on the following ideas:
 Introduction
 ------------
 
-* Motivation
-* Problems to address
-* Proposed solution
+EOxServer development has been initiated in the course of two ESA
+projects that aim at providing a harmonized standard interface to
+access Earth Observation (EO) products, namely:
 
-Requirements
-------------
+* Heterogeneous Mission Accessibility - Follow-On Open Data Access 
+  (HMA-FO ODA)
+* Open-standard Online Observation Service (O3S)
+
+The specification of a software architecture is required by these
+projects. From a practical point of view, EOxServer has reached a point
+where a common framework for a rapidly evolving project is needed.
+
+Summarizing the requirements in a nutshell EOxServer has to integrate:
+
+* different OGC Web Services
+* different data and processing resources
+* heterogeneous data and metadata formats
+
+This leads to the conclusion that an extensible software architecture
+is needed. The problems to address are discussed in further detail in
+the :ref:`rfc1_req` section.
+
+The :ref:`proposed architecture <rfc1_prop_arch>` is modular, extensible
+and flexible and structured in layers. The following separate components
+are identified:
+
+* Distribution
+
+  * :ref:`rfc1_core`
+  * :ref:`rfc1_svc_lyr`
+  * :ref:`rfc1_proc_lyr`
+  * :ref:`rfc1_dint_lyr`
+  * :ref:`rfc1_dacc_lyr`
+  
+* :ref:`rfc1_inst`
+
+In this architecture the Core shall provide the central logic for
+the extension mechanism while the layers shall contain interface
+definitions based on the extension model of the Core that can be
+implemented by extending modules and plugins.
 
 .. index::
    single: software architecture; requirements
+
+.. _rfc1_req:
+
+Requirements
+------------
 
 The main sources of requirements for EOxServer at the moment of writing
 this RFC are:
@@ -262,11 +301,6 @@ Architecture shall be:
 The development of the software architecture will be based on these
 considerations.
 
-Goals of EOxServer Development
-------------------------------
-
-* ...
-
 Architecture Overview
 ---------------------
 
@@ -484,8 +518,11 @@ Data Access Layer
 Each of the four layers shall be sub-structured in:
 
 * data model
-* views for public access (if applicable)
-* views for the administration client
+* views 
+
+  * for public access (if applicable)
+  * for the administration client
+
 * core handling logic
 * interface definitions for extensions
 * modules implementing the interface definitions
@@ -495,8 +532,8 @@ Structure of the Architecture Specification
 
 The further specification of the proposed architecture is subdivided
 into several sections and separate RFCs. This RFC 1 contains a
-high-level description of the different architectural layers and of
-EOxServer instances:
+description of the different architectural layers and of EOxServer
+instances:
 
 * :ref:`rfc1_core`
 * :ref:`rfc1_svc_lyr`
@@ -505,8 +542,8 @@ EOxServer instances:
 * :ref:`rfc1_dacc_lyr`
 * :ref:`rfc1_inst`
 
-The following RFCs discuss different aspects of the system in further
-detail:
+The following RFCs discuss different aspects of the architecture in
+further detail:
 
 .. toctree::
    :maxdepth: 1
@@ -524,10 +561,29 @@ detail:
 Distribution Core
 -----------------
 
-* modules for common use
-* configuration data model
-* extensibility tools
-* administration application?
+The Core shall act as a "glue" for EOxServer that links the different
+parts of the software together and provides functionality used
+throughout the EOxServer project.
+
+It defines the core of the configuration data model which is extended
+by the layers and implementing modules. The configuration is partly
+stored in the database and partly in files. Both parts need to be
+easily modifiable and extensible.
+
+Therefore the Core also includes an administration client that can be
+used by system operators to edit the part of the configuration
+stored in the database. The basic functionality of the administrator,
+the entry view and its extension mechanisms shall be part of the Core.
+
+The Core includes modules for common use, for instance utilities for the
+handling of spatio-temporal metadata as well as for decoding and
+encoding of XML documents.
+
+Most importantly, the Core contains the central logic that enables the
+dynamic extension of system functionality. The layers shall provide
+interface definitions based on the extension model of the Core that can
+be implemented by extending modules and plugins. For more details see
+:doc:`rfc2`.
 
 .. index:: Service Layer
 
@@ -536,8 +592,50 @@ Distribution Core
 Service Layer
 -------------
 
-* core request handling logic
-* services and extensions
+The Service Layer contains the OWS request handling logic as well as the
+implementation of services and service extensions.
+
+It defines a configuration **data model** for OGC Web Services and for
+their metadata. The model includes:
+
+* service metadata to be published in the GetCapabilities response
+* options to enable or disable a specific service or service extension
+  for a given data source
+* options to configure the services themselves, e.g. enabling or
+  disabling certain non-mandatory features
+
+The Service Layer provides **views** for public access, namely the
+central entrance point for OWS requests. It also contains views for the
+administration client that allow to configure services and service
+metadata.
+
+The **core handling logic** for OGC Web Services is part of the Service
+Layer. It implements the behaviour defined by OWS Common and defines
+a structured approach to request handling that discerns different
+levels:
+
+* services
+* service versions
+* service extensions
+* service operations
+
+The way services and service extensions interact is described in further
+detail in :doc:`rfc3`.
+
+The Service Layer defines request handler **interfaces** for each of
+these levels that are **implemented** by modules for:
+
+* WPS
+* WCS
+  
+  * EO-WCS
+  * WCS-T
+
+* WMS
+
+  * EO-WMS
+
+* WFS
 
 .. index:: Processing Layer
 
@@ -546,9 +644,26 @@ Service Layer
 Processing Layer
 ----------------
 
-* data model (?)
-* processing modules used internally
-* processes to be published
+The Processing Layer contains the processing models used internally by
+EOxServer as well as the data model and the basic handling routines for
+processes to be published using WPS.
+
+In its **data model** it defines the configuration options and metadata
+for processes. The model shall also support processing chains as 
+described in further detail in :doc:`rfc5`. The Processing Layer
+publishes administration client **views** to support the configuration
+of processes and processing chains.
+
+The Processing Layer defines **interfaces** for processes. It also
+contains implementations of the processes used internally by EOxServer;
+these include:
+
+* coverage tiling
+* coverage mosaicking
+
+Further processes as required e.g. by the O3S Use Cases will be added as
+plugins based on the data model and interface definitions of the
+Processing Layer.
 
 .. index:: Data Integration Layer
 
@@ -557,12 +672,59 @@ Processing Layer
 Data Integration Layer
 ----------------------
 
+The Data Integration Layer shall provide data models for resources as
+well as an abstraction layer for different data formats and data
+packaging formats.
+
+Data packaging formats are explained in greater detail in :doc:`rfc4`.
+Roughly speaking, they represent the way data and metadata for an
+EO product or derived product are packaged. They shall abstract from the
+actual substructure of the packaging format in directories and files
+so these resources can be handled transparently by EOxServer.
+
+Its **data model** shall include items common to all types of data as
+well as individual models for:
+
 * coverages
 * vector data
-* data model
-* data formats
-* metadata formats
-* data packaging formats
+* metadata
+
+Just as the other layers the Data Integration Layer shall publish
+administration client **views** that support adding, modifying and
+removal of resources and their respective metadata.
+
+The **interface definitions** of the Data Integration Layer shall
+provide an abstraction layer for:
+
+* various data formats
+* various metadata formats
+* various data packaging formats
+
+The modules **implementing** these interfaces shall support:
+
+* coverage data formats supported by:
+
+  * `GDAL <http://www.gdal.org>`_
+  * `NEST <http://www.array.ca/nest>`_ (optional)
+
+* vector data formats supported by `OGR <http://www.gdal.org/ogr/>`_
+* metadata formats:
+
+  * EO-GML
+  * DIMAP (optional)
+  * INSPIRE (optional)
+  * GSC-DA (optional)
+  
+* data packaging formats:
+
+  * directories
+  * ZIP archives
+  * TAR archives
+  * compressed file formats:
+
+    * ZIP
+    * GZIP
+    * BZ2
 
 .. index:: Data Access Layer
 
@@ -571,9 +733,27 @@ Data Integration Layer
 Data Access Layer
 -----------------
 
-* data model (?)
-* local backend
-* remote backends  
+The Data Access Layer shall provide transparent access to local and
+remote data using different backends. It constitutes an abstraction
+layer for data sources.
+
+Its **data model** therefore provides configuration options for the
+backends. It contains **views** for the administration client to
+configure different data sources.
+
+The Data Access Layer is built around the **interface definitions** of
+backends and data sources stored by them. The following backends need to
+be **implemented**:
+
+* local backends:
+  
+  * file system
+  
+* remote backends:
+
+    * using HTTP/HTTPS
+    * using FTP
+    * using WCS
 
 .. index:: EOxServer instances
   
@@ -582,12 +762,43 @@ Data Access Layer
 Instances
 ---------
 
-* Django project
-* Django application
-* settings
-* configuration
-* data
-* deployment
+EOxServer instances are Django projects that import different EOxServer
+modules as Django applications.
+
+Like every Django project they contain a settings file that governs
+the Django configuration and in addition the most basic parts of
+EOxServer configuration. Specifically:
+
+* the connection details for the database containing the EOxServer
+  configuration is defined in the settings file
+* the Django ``INSTALLED_APPS`` setting must be used to define the
+  parts of the EOxServer data model that shall be loaded
+* some EOxServer configuration settings that are needed in the startup
+  phase will be appended to the Django settings file
+
+Apart from the settings, every Django project has an "urlconf" that
+defines which URLs shall point to the different views of the project.
+For using the full EOxServer functionality there have to be URLs
+pointing to the Service Layer OWS entrance point and the administration
+client entrance point defined by the EOxServer core.
+
+Furthermore the instance contains the Django configuration files whose
+content is defined by the configuration data model of the Core and the
+layers.
+
+Optionally, the instance directory may include subdirectories for the
+data (if stored locally) and the database (if using the file-based
+SpatiaLite spatial database backend).
+
+Finally, in a production setting, it shall contain the modules needed to
+deploy the instance. The favourite deployment method is WSGI (see
+:pep:`333`). These must be configured as well to include the path to the
+instance.
+
+The Django project may or may not contain applications itself, which
+may or may not use EOxServer functionality. Writing an own application
+is not necessary to use EOxServer, though; placing links to EOxServer
+views in the urlconf is sufficient.
 
 Voting History
 --------------
