@@ -33,7 +33,7 @@ import logging
 
 from eoxserver.lib.config import EOxSCoverageConfig
 from eoxserver.lib.handlers import EOxSOperationHandler
-from eoxserver.lib.domainset import EOxSTrim, EOxSSlice
+from eoxserver.lib.domainset import EOxSTrim, EOxSSlice, EOxSRectifiedGrid
 from eoxserver.lib.requests import EOxSResponse
 from eoxserver.lib.interfaces import EOxSCoverageInterfaceFactory, EOxSDatasetSeriesFactory
 from eoxserver.lib.ows import EOxSOWSCommonVersionHandler, EOxSOWSCommonExceptionHandler
@@ -475,7 +475,9 @@ class EOxSWCS20GetCoverageHandler(EOxSWCSCommonHandler):
                     slices, trims = EOxSWCS20Utils.getSubsetting(ms_req)
 
                     if len(trims) > 0:
-                        poly = EOxSWCS20Utils.getPolygon(trims, ms_req.coverages[0].getFootprint())
+                        poly = EOxSWCS20Utils.getPolygon(trims,
+                                                         ms_req.coverages[0].getFootprint(),
+                                                         ms_req.coverages[0].getGrid())
                     else:
                         poly = None
 
@@ -554,7 +556,7 @@ class EOxSWCS20Utils(object):
             return cls._getSubsettingXML(req)
     
     @classmethod
-    def getPolygon(cls, trims, footprint):
+    def getPolygon(cls, trims, footprint, grid):
         crs = trims[0].crs
         
         for trim in trims[1:]:
@@ -563,49 +565,65 @@ class EOxSWCS20Utils(object):
         
         if crs is not None:
             srid = getSRIDFromCRSURI(crs)
-        else:
+            fp_minx, fp_miny, fp_maxx, fp_maxy = footprint.transform(srid, True).extent
+            minx = None
+            miny = None
+            maxx = None
+            maxy = None
+            
+            for trim in trims:
+                if trim.dimension in ("x", "long"):
+                    if trim.trim_low is None:
+                        minx = fp_minx 
+                    else:
+                        minx = max(fp_minx, trim.trim_low)
+                    
+                    if trim.trim_high is None:
+                        maxx = fp_maxx
+                    else:
+                        maxx = min(fp_maxx, trim.trim_high)
+                elif trim.dimension in ("y", "lat"):
+                    if trim.trim_low is None:
+                        miny = fp_miny
+                    else:
+                        miny = max(fp_miny, trim.trim_low)
+                    
+                    if trim.trim_high is None:
+                        maxy = fp_maxy
+                    else:
+                        maxy = min(fp_maxy, trim.trim_high)
+            
+            if minx is None:
+                minx = fp_minx
+            if miny is None:
+                miny = fp_miny
+            if maxx is None:
+                maxx = fp_maxx
+            if maxy is None:
+                maxy = fp_maxy
+            
+            poly = Polygon.from_bbox((minx, miny, maxx, maxy))
+            poly.srid = srid
+            
+        else: # if no CRS is given, imageCRS is assumed
             srid = footprint.srid
-        
-        fp_minx, fp_miny, fp_maxx, fp_maxy = footprint.transform(srid, True).extent
-        
-        minx = None
-        miny = None
-        maxx = None
-        maxy = None
-        
-        for trim in trims:
-            if trim.dimension in ("x", "long"):
-                if trim.trim_low is None:
-                    minx = fp_minx 
-                else:
-                    minx = max(fp_minx, trim.trim_low)
+            
+            imageCRSgrid = EOxSRectifiedGrid(dim=grid.dim, spatial_dim=grid.spatial_dim,low=grid.low,high=grid.high,axis_labels=grid.axis_labels,srid=grid.srid,origin=grid.origin,offsets=grid.offsets)
+            
+            for trim in trims:
+                if trim.dimension in ("x", "long"):
+                    if trim.trim_low is not None:
+                        imageCRSgrid.low = (trim.trim_low, imageCRSgrid.low[1])
+                    if trim.trim_high is not None:
+                        imageCRSgrid.high = (trim.trim_high, imageCRSgrid.high[1])
                 
-                if trim.trim_high is None:
-                    maxx = fp_maxx
-                else:
-                    maxx = min(fp_maxx, trim.trim_high)
-            elif trim.dimension in ("y", "lat"):
-                if trim.trim_low is None:
-                    miny = fp_miny
-                else:
-                    miny = max(fp_miny, trim.trim_low)
-                
-                if trim.trim_high is None:
-                    maxy = fp_maxy
-                else:
-                    maxy = min(fp_maxy, trim.trim_high)
-        
-        if minx is None:
-            minx = fp_minx
-        if miny is None:
-            miny = fp_miny
-        if maxx is None:
-            maxx = fp_maxx
-        if maxy is None:
-            maxy = fp_maxy
-        
-        poly = Polygon.from_bbox((minx, miny, maxx, maxy))
-        poly.srid = srid
-        
+                elif trim.dimension in ("y", "lat"):        
+                    if trim.trim_low is not None:
+                        imageCRSgrid.low = (imageCRSgrid.low[0], trim.trim_low)
+                    if trim.trim_high is not None:
+                        imageCRSgrid.high = (imageCRSgrid.high[0], trim.trim_high)
+            
+            poly = imageCRSgrid.getBBOX()
+            
         return poly
 
