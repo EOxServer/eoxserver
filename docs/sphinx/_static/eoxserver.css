@@ -1,0 +1,6 @@
+@import url('default.css');
+
+.admonition-requirement {
+  border: 1px solid yellow;
+  background-color: #FFFFC0;
+}

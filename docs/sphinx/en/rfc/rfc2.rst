@@ -7,13 +7,13 @@ RFC 2: Extension Mechanism for EOxServer
 
 :Author: Stephan Krause
 :Created: 2011-02-20
-:Last Edit: 2011-03-02
+:Last Edit: 2011-03-03
 :Status: IN PREPARATION
 :Discussion: http://www.eoxserver.org/wiki/DiscussionRfc2
 
 This RFC proposes an extension mechanism that allows to integrate
-extension modules and plugins dynamically into EOxServer distributions
-and instances.
+extension modules and plugins dynamically into the EOxServer
+distribution and instances.
 
 Introduction
 ------------
@@ -25,39 +25,99 @@ Introduction
 Requirements
 ------------
 
-* Service Layer
+:doc:`rfc1` proposes an extension mechanism for EOxServer. It shall
+assure extensibility by additional modules and plugins and provide
+functionality to enable dynamic binding to extending modules.
 
-  * services
-  * service extensions
-  * configurable if enabled/disabled
+In the layered architecture of RFC 1 the :ref:`rfc1_core` shall be the
+place where the central logic that enables the dynamic extension of
+system functionality resides. The layers shall provide interface
+definitions based on the extension model of the Core that can be
+implemented by extending modules and plugins.
 
-* Processing Layer
+Now which extensions are needed and which requirements do they impose on
+the extension mechansims? Digging deeper we have a look at the four
+architectural layers of EOxServer and analyze the interfaces and
+implementations needed by each of them.
 
-  * processes to be published using WPS
-  * configurable if enabled/disabled
-  * "pluggable" processing chains see :doc:`rfc5`
+The :ref:`rfc1_svc_lyr` defines a structured approach to OGC Web Service
+(OWS) request handling that discerns different levels:
 
-* Data Integration Layer
+* services
+* service versions
+* service extensions
+* service operations
 
-  * data formats
-  * metadata formats
-  * data packaging formats
-  * format autodetection
+For all of these levels interfaces are defined that are implemented by
+extending modules for specific OWS and their different versions and
+extensions.
 
-* Data Access Layer
+The :ref:`rfc1_proc_lyr` defines interfaces for processes and processing
+chains (see :doc:`rfc5`). Some of these are used internally and
+integrated into the distribution, most will be provided by plugins.
+While the process interface needs to be generic in order to make the
+implementation of many different processes possible, it must be concise
+enough to allow binding between processes in a processing chain. So,
+this must be sustained by the extension mechanism as well.
 
-  * backends
+The :ref:`rfc1_dint_lyr` shall provide an abstraction layer for
+different data formats, metadata formats and data packaging formats.
+This shall be achieved using common interfaces for coverage data, vector
+data and metadata respectively.
 
-* modules can be combined to build a specific application
+Data and packaging formats are often not known by the system before
+ingesting a dataset. Thus, some kind of autodetection of formats is
+necessary. This is provided partly by the underlying
+libraries such as `GDAL <http://www.gdal.org>`_, but shall also be
+considered for the design of the extension mechanism: it must be
+possible to dynamically bind to the right data, metadata and data
+packaging format based on evaluations of the data. These tests should be
+implemented by format extensions and supported by the extension 
+mechansim.
 
-  * e.g. O3S Use Case 2: WCS backend - coverage data, metadata,
-    packaging formats - feature detection process - WPS, WFS
+The :ref:`rfc1_dacc_lyr` is built around the interface definitions of
+backends and data sources stored by them. 
+
+In addition to modularity and extensibility RFC 1 states that the
+system shall be
+
+  flexible in the sense that it must be possible to select different
+  combinations of modules to deploy and activate
+  
+Modules can be combined to build a specific application. From a user
+perspective it is essential to be able to activate and deactivate
+services, service versions and service extensions globally 
+and/or separately for each resource or process. The same applies for
+other extensible parts of the system such as backends.
+
+The O3S Use Case 2 for instance requires a server setup that consists of:
+
+* local and WCS backends in the Data Access Layer
+* a specific combination of coverage, vector data, metadata and
+  packaging formats in the Data Integration Layer
+* a feature detection process in the Processing Layer
+* WPS and WFS implementations in the Service Layer
+
+All other backends, services and processes shall be disabled.
+
+Summarizing the requirements the extension mechanism shall support:
+
+* extensibility by additional modules and plugins 
+* dynamic binding
+* interface definitions for extensions
+* implementations that can be enabled or disabled
+
+  * globally
+  * per resource or per process
+
+* modules that can be configured dynamically to build an application
+* autodetection of data, metadata and data packaging formats
 
 Extension Mechanism
 -------------------
 
-* registry
 * interfaces and implementations
+* registry
 * dynamic binding
 * hooks
 * extension names
@@ -72,8 +132,10 @@ Extension Mechanism
 
   * global settings
   * settings on a per-resource basis
+  * configuration data model
 
 * deployment of plugins and extensions
+
 
 Interfaces and Implementations
 ------------------------------

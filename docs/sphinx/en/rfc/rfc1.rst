@@ -292,8 +292,8 @@ Architecture shall be:
 * modular
 * extensible
 * flexible in the sense that it must be possible to select different
-  combinations of modules to deploy and activate* able to present
-  resources using different OGC Web Services
+  combinations of modules to deploy and activate
+* able to present resources using different OGC Web Services
 * able to access data from different backends
 * able to handle different data, metadata and packaging formats
 * separating distribution and instance data
