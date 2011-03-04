@@ -136,6 +136,13 @@ Extension Mechanism
 
 * deployment of plugins and extensions
 
+The basic questions for the design of the extension mechanism are:
+
+* how to define extensible interfaces
+* how to design implementations of these interfaces
+* how to detect them
+* how to bind to them
+
 
 Interfaces and Implementations
 ------------------------------
@@ -155,6 +162,38 @@ Interfaces and Implementations
 * naming conventions
 * settings for conflict resolution
 * settings for enabling / disabling
+
+::
+
+    class ServiceInterface(ExtensibleInterface):
+        NAME = "Abstract Service Interface"
+        HOOK = "services.owscommon.ServiceInterface"
+        ABSTRACT = True
+        REGISTRY_KEYS = {
+            "services.owscommon.service": {"mandatory": True}
+        }
+        
+        # ...
+
+:: 
+
+    class WxSServiceImplementation(ServiceInterface):
+        NAME = "WxS"
+        ABSTRACT = False
+        REGISTRY_VALUES = {"services.owscommon.service": "WXS"}
+        
+        # ...
+
+::
+
+    def bind(service_name):
+        service = Registry.getImplementation(
+            hook = "services.owscommon.ServiceInterface",
+                "services.owscommon.service": service_name
+            }
+        )
+        
+        # ...
 
 Registry and Dynamic Binding
 ----------------------------
