@@ -30,6 +30,7 @@ Copy directory "eoxserver" to destiniation.
 Change to "eoxserver" directory.
 Copy or move "TEMPLATE_settings.py" to "settings.py" and adjust settings.
 Optional: Add link "initial_data.json" to "eoxserver/server/fixtures/" pointing to either "template_initial_data.json" or "../../../autotest/data/meris/meris_data.json" in order to add test data.
+Run: "python manage.py syncdb"
 Run: "python manage.py runserver"
 Point your browser to "http://localhost:8000/ows?" (e.g. "http://localhost:8000/ows?service=wcs&version=2.0.0&request=GetCapabilities") or "http://localhost:8000/admin/".
 
