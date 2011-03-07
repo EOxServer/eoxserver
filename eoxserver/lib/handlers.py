@@ -361,6 +361,9 @@ class EOxSMapServerOperationHandler(EOxSOperationHandler):
         logging.debug("EOxSMapServerOperationHandler.dispatch: 5")
         #logging.debug(result)
         
+        # do cleanup? 
+        mapscript.msCleanup()
+        
         return EOxSMapServerResponse(result, content_type, dispatch_status)
         
     def postprocess(self, ms_req, resp):
