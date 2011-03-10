@@ -247,14 +247,6 @@ Let's have a look at a quick example::
     from eoxserver.core.interfaces import Interface, Method, Arg
 
     class ServiceInterface(Interface):
-        CONF = {
-            "name": "Abstract Service Interface",
-            "hook": "services.owscommon.ServiceInterface",
-            "registry_keys": (
-                "services.owscommon.service",
-            )
-        }
-        
         handle = Method(
             Arg("req")
         )
@@ -268,11 +260,7 @@ Let's have a look at a quick example::
 
 This snippet of Python code represents a simple and complete interface
 declaration. The ``ServiceInterface`` class will be used in further
-examples as well.
-
-The first part of the class declaration is a dictionary called ``CONF``
-that will be explained in further detail in the :ref:`rfc2_registry`
-section. The second part shows a method definition that declares the
+examples as well. It shows a method definition that declares the
 following: the method ``handle`` shall take one argument of arbitrary
 type named ``req`` that stands for an OWS request.
 
@@ -287,7 +275,7 @@ Thinking of these two goals, the writer of the code could have been more
 rigorous and declare an argument like this::
 
     handle = Method(
-        ObjectArg("req", arg_type=type(OWSRequest))
+        ObjectArg("req", arg_class=OWSRequest)
     )
 
 That way it is documented what kind of argument is expected. When
@@ -323,12 +311,7 @@ Implementations
             
             return response
     
-    WxSServiceImplementation = implement(ServiceInterface, WxSService, {
-        "name": "WxS",
-        "registry_values": {
-            "services.owscommon.service": "wxs"
-        }
-    })
+    WxSServiceImplementation = implement(ServiceInterface, WxSService)
 
 .. _rfc2_impl_val:
 
