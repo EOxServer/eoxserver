@@ -7,7 +7,7 @@ RFC 2: Extension Mechanism for EOxServer
 
 :Author: Stephan Krause
 :Created: 2011-02-20
-:Last Edit: 2011-03-09
+:Last Edit: 2011-03-11
 :Status: IN PREPARATION
 :Discussion: http://www.eoxserver.org/wiki/DiscussionRfc2
 
@@ -289,18 +289,12 @@ look at implementations.
 Implementations
 ~~~~~~~~~~~~~~~
 
-* code in conventional Python class (that does not derive
-  from Interface or an implementation base class)
-* implementation: wrapper around code made using implement()
+The proposed design of interface implementation intends to hide all the
+complexity of this process from the developers of implementations. They
+just have to write an implementing class which is a normal new-style
+Python class, and wrap it with the ``implement()`` method of the
+interface, such as in the following example::
 
-* implement()
-
-  * arguments: InterfaceCls, ImplementationCls, conf
-  * returns implementation class
-
-::
-
-    from eoxserver.core.implementations import implement
     from eoxserver.services.owscommon import ServiceInterface
 
     class WxSService(object):
@@ -311,7 +305,28 @@ Implementations
             
             return response
     
-    WxSServiceImplementation = implement(ServiceInterface, WxSService)
+    WxSServiceImplementation = ServiceInterface.implement(WxSService)
+
+Actually, starting with Python 2.6 you can even be more
+concise using the class decorator syntax::
+
+    from eoxserver.services.owscommon import ServiceInterface
+    
+    @ServiceInterface.implement
+    class WxSServiceImplementation(object):
+        
+        def handle(self, req):
+            
+            # ...
+            
+            return response
+
+The call to ``implement()`` ensures validation of the interface and
+produces an implementation class that inherits all the code of the
+implementing class and contains information about the
+interface. This is only the basic functionality of the interface
+implementation process: more is to be revealed in the following
+sections.
 
 .. _rfc2_impl_val:
 
