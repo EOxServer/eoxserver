@@ -26,7 +26,7 @@ MAP
 
     IMAGECOLOR 0 0 0
    
-    #CONFIG "MS_ERRORFILE" "stderr"
+    CONFIG "MS_ERRORFILE" "stderr"
 
     WEB
         METADATA
@@ -58,6 +58,7 @@ MAP
             "wcs_label"                         ""
             "wcs_name"                          ""
             "wcs_fees"                          "None"
+            "ows_enable_request"                "*"
 #            "ows_schemas_location"             "http://localhost/schemas"
         END
     END
