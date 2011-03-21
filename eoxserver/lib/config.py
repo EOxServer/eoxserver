@@ -122,7 +122,12 @@ class EOxSConfig(object):
 
                 if self._parser.has_option("eoxs.service", "extensions"):
                     self.extensions = self._parser.get("eoxs.service", "extensions").split(",")
-
+                
+                if self._parser.has_option("eoxs.service", "paging_count_default"):
+                    self.paging_count_default = int(self._parser.get("eoxs.service", "paging_count_default"))
+                else:
+                    self.paging_count_default = 100
+                
                 for option_name, value in self._parser.items("eoxs.service"):
                     if option_name.startswith("web."):
                         web_option_name = option_name[4:]

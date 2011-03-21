@@ -31,7 +31,7 @@ from django.contrib.gis.geos import Polygon
 
 import logging
 
-from eoxserver.lib.config import EOxSCoverageConfig
+from eoxserver.lib.config import EOxSCoverageConfig, EOxSConfig
 from eoxserver.lib.handlers import EOxSOperationHandler
 from eoxserver.lib.domainset import EOxSTrim, EOxSSlice, EOxSRectifiedGrid
 from eoxserver.lib.requests import EOxSResponse
@@ -269,8 +269,9 @@ class EOxSWCS20DescribeEOCoverageSetHandler(EOxSOperationHandler):
         if req.getParamValue("count") is not None:
             count_req = int(req.getParamValue("count"))
  
-        count_conf = 100 # TODO remove this hardcoded line and make it configurable
-        count_used = min(count_req, count_conf)
+        
+        count_default = EOxSConfig.getConfig("conf/eoxserver.conf").paging_count_default
+        count_used = min(count_req, count_default)
         
         count_all_coverages = len(coverages)
         if count_used < count_all_coverages:
@@ -399,6 +400,10 @@ class EOxSWCS20GetCoverageHandler(EOxSWCSCommonHandler):
                 raise EOxSInvalidRequestException("Image extent does not intersect with desired region.", "ExtentError", "extent") # TODO: check if this is the right exception report
             elif len(datasets) == 1:
                 layer.data = os.path.abspath(datasets[0].getFilename())
+                #TODO: set layer metadata
+                
+                #raise Exception
+                
             else:
                 raise EOxSInternalError("A single file or EO dataset should never return more than one dataset.")
                 
@@ -408,41 +413,46 @@ class EOxSWCS20GetCoverageHandler(EOxSWCSCommonHandler):
            
             layer.tileindex = os.path.abspath(coverage.getShapeFilePath())
             layer.tileitem = "location"
-            
-            grid = coverage.getGrid()
-            
-            layer.setMetaData("wcs_extent", "%f %f %f %f" % grid.getExtent2D())
-            layer.setMetaData("wcs_resolution", "%f %f" % (grid.offsets[0][0], grid.offsets[1][1]))
-            layer.setMetaData("wcs_size", "%d %d" % (grid.high[0] - grid.low[0] + 1, grid.high[1] - grid.low[1] + 1))
-            layer.setMetaData("wcs_nativeformat", "GTiff")
-            layer.setMetaData("wcs_bandcount", "3") # TODO
         
-        axes = " ".join(channel.name for channel in coverage.getRangeType())
-        layer.setMetaData("wcs_band_names", axes)
+        # this was under the "eo.rect_mosaic"-path. minor accurracy issues
+        # have evolved since making it accissible to all paths
+             
+        grid = coverage.getGrid()
+        
+        layer.setMetaData("wcs_extent", "%.10f %.10f %.10f %.10f" % grid.getExtent2D())
+        layer.setMetaData("wcs_resolution", "%f %f" % (grid.offsets[0][0], grid.offsets[1][1]))
+        layer.setMetaData("wcs_size", "%d %d" % (grid.high[0] - grid.low[0] + 1, grid.high[1] - grid.low[1] + 1))
+        layer.setMetaData("wcs_nativeformat", "GTiff")
+        layer.setMetaData("wcs_bandcount", "%d"%len(coverage.getRangeType()))
+
+        channels = " ".join(channel.name for channel in coverage.getRangeType())
+        layer.setMetaData("wcs_band_names", channels)
         
         # set layer depending metadata
-        for axis in coverage.getRangeType():
+        for channel in coverage.getRangeType():
             axis_metadata = {
-                "%s_band_description"%axis.name: axis.description,
-                "%s_band_definition"%axis.name: axis.definition,
-                "%s_band_uom"%axis.name: axis.uom
+                "%s_band_description"%channel.name: channel.description,
+                "%s_band_definition"%channel.name: channel.definition,
+                "%s_band_uom"%channel.name: channel.uom
             }
             for key, value in axis_metadata.items():
                 if value != '':
                     layer.setMetaData(key, value)
             
-            layer.setMetaData("%s_interval"%axis.name,
-                              "%g %g"%(axis.allowed_values_start,
-                                       axis.allowed_values_end))
+            layer.setMetaData("%s_interval"%channel.name,
+                              "%g %g"%(channel.allowed_values_start,
+                                       channel.allowed_values_end))
             
-            layer.setMetaData("%s_significant_figures"%axis.name,
-                              "%d"%axis.allowed_values_significant_figures)
+            layer.setMetaData("%s_significant_figures"%channel.name,
+                              "%d"%channel.allowed_values_significant_figures)
             
         if len(coverage.getRangeType()) > 3: # TODO make this dependent on actual data type
             layer.setMetaData("wcs_formats", "GTiff16")
             layer.setMetaData("wcs_imagemode", "INT16")
         else:
             layer.setMetaData("wcs_imagemode", "BYTE")
+            
+            layer.setMetaData("wcs_formats", "GTiff")
         
         return layer
 
@@ -456,6 +466,7 @@ class EOxSWCS20GetCoverageHandler(EOxSWCSCommonHandler):
             include_composed_of = False
             poly = None
         
+        #raise Exception
         resp.splitResponse()
         
         if resp.ms_response_xml:
@@ -561,7 +572,7 @@ class EOxSWCS20Utils(object):
         
         for trim in trims[1:]:
             if trim.crs != crs:
-                raise EOxSInvalidRequestException("All subsettings must be expressed in the same CRS.")
+                raise EOxSInvalidRequestException("All subsets must be expressed in the same CRS.")
         
         if crs is not None:
             srid = getSRIDFromCRSURI(crs)
