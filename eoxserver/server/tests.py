@@ -303,6 +303,28 @@ class EOxSWCS20DescribeEOCoverageSetInvalidAxisLabelFaultTestCase(eoxstest.EOxSE
     
     def getExpectedExceptionCode(self):
         return "InvalidAxisLabel"
+    
+    
+# Paging testcases
+
+class EOxSWCS20DescribeEOCoverageSetDatasetPagingCountTestCase(eoxstest.EOxSWCS20DescribeEOCoverageSetPagingTestCase):
+    def getExpectedCoverageCount(self):
+        return 2
+    
+    def getRequest(self):
+        params = "service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=MER_FRS_1P_reduced&count=2"
+        return (params, "kvp")
+
+class EOxSWCS20DescribeEOCoverageSetDatasetPagingConfigTestCase(eoxstest.EOxSWCS20DescribeEOCoverageSetPagingTestCase):
+    def getConfigCountOverride(self):
+        return 1
+    
+    def getExpectedCoverageCount(self):
+        return 2
+    
+    def getRequest(self):
+        params = "service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=MER_FRS_1P_reduced"
+        return (params, "kvp")
 
 class EOxSWCS20GetCoverageFormatMissingFaultTestCase(eoxstest.EOxSExceptionTestCase):
     def getRequest(self):
