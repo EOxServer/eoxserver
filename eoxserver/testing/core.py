@@ -171,6 +171,29 @@ class EOxSWCS20DescribeEOCoverageSetSubsettingTestCase(EOxSWCS20DescribeEOCovera
         for expected_coverage_id in expected_coverage_ids:
             self.assertTrue(expected_coverage_id in result_coverage_ids)
 
+class EOxSWCS20DescribeEOCoverageSetPagingTestCase(EOxSWCS20DescribeEOCoverageSetTestCase):
+    def setUp(self):
+        super(EOxSWCS20DescribeEOCoverageSetPagingTestCase, self).setUp()
+        self.saved_paging_default = EOxSConfig.getConfig("conf/eoxserver.conf").paging_count_default
+        EOxSConfig.getConfig("conf/eoxserver.conf").paging_count_default = self.getConfigCountOverride()
+    
+    def tearDown(self):
+        super(EOxSWCS20DescribeEOCoverageSetPagingTestCase, self).tearDown()
+        EOxSConfig.getConfig("conf/eoxserver.conf").paging_count_default = self.saved_paging_default
+    
+    def getExpectedCoverageCount(self):
+        return 0
+    
+    def getConfigCountOverride(self):
+        return EOxSConfig.getConfig("conf/eoxserver.conf").paging_count_default
+    
+    def testCoverageCount(self):
+        decoder = EOxSXMLDecoder(self.response.content, {
+            "coverageids": {"xml_location": "/wcs:CoverageDescriptions/wcs:CoverageDescription/wcs:CoverageId", "xml_type": "string[]"}
+        })
+        coverage_ids = decoder.getValue("coverageids")
+        self.assertEqual(len(coverage_ids), self.getExpectedCoverageCount())
+
 class EOxSExceptionTestCase(EOxSXMLTestCase):
     def getSchemaLocation(self):
         return "../schemas/ows/2.0/owsExceptionReport.xsd"
