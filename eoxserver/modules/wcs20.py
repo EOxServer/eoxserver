@@ -268,9 +268,8 @@ class EOxSWCS20DescribeEOCoverageSetHandler(EOxSOperationHandler):
         count_req = sys.maxint
         if req.getParamValue("count") is not None:
             count_req = int(req.getParamValue("count"))
- 
         
-        count_default = EOxSConfig.getConfig("conf/eoxserver.conf").paging_count_default
+        count_default = EOxSConfig.getConfig(os.path.join(settings.PROJECT_DIR, "conf", "eoxserver.conf")).paging_count_default # TODO: Hack -> make config singleton
         count_used = min(count_req, count_default)
         
         count_all_coverages = len(coverages)
@@ -402,8 +401,6 @@ class EOxSWCS20GetCoverageHandler(EOxSWCSCommonHandler):
                 layer.data = os.path.abspath(datasets[0].getFilename())
                 #TODO: set layer metadata
                 
-                #raise Exception
-                
             else:
                 raise EOxSInternalError("A single file or EO dataset should never return more than one dataset.")
                 
@@ -451,8 +448,6 @@ class EOxSWCS20GetCoverageHandler(EOxSWCSCommonHandler):
             layer.setMetaData("wcs_imagemode", "INT16")
         else:
             layer.setMetaData("wcs_imagemode", "BYTE")
-            
-            layer.setMetaData("wcs_formats", "GTiff")
         
         return layer
 
@@ -466,7 +461,6 @@ class EOxSWCS20GetCoverageHandler(EOxSWCSCommonHandler):
             include_composed_of = False
             poly = None
         
-        #raise Exception
         resp.splitResponse()
         
         if resp.ms_response_xml:

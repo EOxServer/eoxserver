@@ -348,7 +348,6 @@ class EOxSMapServerOperationHandler(EOxSOperationHandler):
                         of the request as well as the status code
                         returned by MapServer
         """
-        mapscript.msSetup()
         logging.debug("EOxSMapServerOperationHandler.dispatch: 1")
         mapscript.msIO_installStdoutToBuffer()
         # Execute the OWS request by mapserver, obtain the status in dispatch_status (==0 is OK)
@@ -361,7 +360,6 @@ class EOxSMapServerOperationHandler(EOxSOperationHandler):
         logging.debug("EOxSMapServerOperationHandler.dispatch: 4")
         result = mapscript.msIO_getStdoutBufferBytes()
         logging.debug("EOxSMapServerOperationHandler.dispatch: 5")
-        #logging.debug(result)
         mapscript.msCleanup()
         
         return EOxSMapServerResponse(result, content_type, dispatch_status)
