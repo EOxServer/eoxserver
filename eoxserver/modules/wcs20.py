@@ -270,7 +270,7 @@ class EOxSWCS20DescribeEOCoverageSetHandler(EOxSOperationHandler):
         if req.getParamValue("count") is not None:
             count_req = int(req.getParamValue("count"))
         
-        count_default = EOxSConfig.getConfig(os.path.join(settings.PROJECT_DIR, "conf", "eoxserver.conf")).paging_count_default # TODO: Hack -> make config singleton
+        count_default = EOxSConfig.getConfig().paging_count_default
         count_used = min(count_req, count_default)
         
         count_all_coverages = len(coverages)
@@ -373,7 +373,7 @@ class EOxSWCS20GetCoverageHandler(EOxSWCSCommonHandler):
         if len(ms_req.coverages[0].getRangeType()) > 3: # TODO see eoxserver.org ticket #3
             output_format = mapscript.outputFormatObj("GDAL/GTiff", "GTiff16")
             output_format.mimetype = "image/tiff"
-            output_format.extension = "tiff"
+            output_format.extension = "tif"
             output_format.imagemode = mapscript.MS_IMAGEMODE_INT16
             #output_format.bands = len(ms_req.coverages[0].getRangeType())
             #output_format.setOption("BAND_COUNT", str(len(ms_req.coverages[0].getRangeType())))
