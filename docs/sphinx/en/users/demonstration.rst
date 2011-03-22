@@ -6,6 +6,7 @@ EOxServer Demonstration
 The EOxServer demonstration is based on the Envisat MERIS sample data available `here <http://earth.esa.int/object/index.cfm?fobjectid=4320>`_.
 
 The configuration which is also shipped together with EOxServer for the unit tests includes one DatasetSeries and one StitchedMosaic:
+
 * DatasetSeries (EOId: MER_FRS_1P_reduced) containing the 3 MERIS sample datasets with all 15 radiance bands encoded as uint16 values
 * StitchedMosaic (CoverageId: mosaic_MER_FRS_1P_RGB_reduced) containing the 3 MERIS sample datasets reduced to RGB 8-bit
 
