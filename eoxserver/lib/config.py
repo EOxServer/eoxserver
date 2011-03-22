@@ -27,6 +27,8 @@ from ConfigParser import ConfigParser
 from osgeo.osr import SpatialReference
 import logging
 
+from django.conf import settings
+
 from eoxserver.lib.rangetype import EOxSChannel, EOxSNilValue
 from eoxserver.lib.domainset import EOxSRectifiedGrid
 from eoxserver.lib.exceptions import EOxSInternalError, EOxSNoSuchCoverageException
@@ -35,7 +37,10 @@ class EOxSConfig(object):
     _instances = []
     
     @classmethod
-    def getConfig(cls, config_filename):
+    def getConfig(cls, config_filename = None):
+        if config_filename is None:
+            config_filename = settings.DEFAULT_CONFIG_PATH
+        
         for instance in cls._instances:
             if instance.config_filename == config_filename:
                 logging.debug("EOxSConfig.getConfig: returned existing config")
