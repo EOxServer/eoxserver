@@ -32,6 +32,8 @@ PROJECT_URL_PREFIX = ''
 
 MAPSCRIPT_PATH = 'mapserver/mapscript/python/build'
 
+DEFAULT_CONFIG_PATH = join(PROJECT_DIR, "conf", "eoxserver.conf")
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
