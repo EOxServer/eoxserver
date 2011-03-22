@@ -11,5 +11,6 @@ have their data quickly presented to the public.
    :maxdepth: 2
    
    getting_started
+   demonstration
    install
    admin_tutorial
