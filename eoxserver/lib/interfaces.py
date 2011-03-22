@@ -29,7 +29,6 @@ can be stored in different formats and has different types.
 """
 import logging
 
-from eoxserver.lib.config import EOxSConfig, EOxSCoverageConfig
 from eoxserver.lib.domainset import EOxSRectifiedGrid, getGridFromFile
 from eoxserver.lib.rangetype import EOxSChannel, EOxSNilValue, getRangeTypeFromFile
 from eoxserver.lib.util import findFiles, getDateTime
