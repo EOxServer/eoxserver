@@ -27,6 +27,7 @@ import os.path
 import sys
 from xml.dom import minidom
 
+from django.conf import settings
 from django.contrib.gis.geos import Polygon
 
 import logging
