@@ -3,14 +3,19 @@
 EOxServer Demonstration
 =======================
 
-The EOxServer demonstration is based on the Envisat MERIS sample data available `here <http://earth.esa.int/object/index.cfm?fobjectid=4320>`_.
+The EOxServer demonstration is based on the Envisat MERIS sample data
+available `here <http://earth.esa.int/object/index.cfm?fobjectid=4320>`_.
 
-The configuration which is also shipped together with EOxServer for the unit tests includes one DatasetSeries and one StitchedMosaic:
+The configuration which is also shipped together with EOxServer for the
+unit tests includes one DatasetSeries and one StitchedMosaic both
+combining the three available datasets:
 
-* DatasetSeries (EOId: MER_FRS_1P_reduced) containing the 3 MERIS sample datasets with all 15 radiance bands encoded as uint16 values
-* StitchedMosaic (CoverageId: mosaic_MER_FRS_1P_RGB_reduced) containing the 3 MERIS sample datasets reduced to RGB 8-bit
+* DatasetSeries (EOId: MER_FRS_1P_reduced) containing the 3 MERIS sample
+  datasets with all 15 radiance bands encoded as uint16 values
+* StitchedMosaic (CoverageId: mosaic_MER_FRS_1P_RGB_reduced) containing
+  the 3 MERIS sample datasets reduced to RGB 8-bit
 
-Note, the data has been reduced to from 300m resolution to 3000m.
+Note, the data has been reduced from 300m resolution to 3000m.
 
 GetCapabilities
 ---------------
@@ -21,6 +26,61 @@ GetCapabilities
         service=wcs&
         version=2.0.0&
         request=GetCapabilities
+
+Interesting parts of the repsonse:
+
+* Advertising EO-WCS:
+
+  .. code-block:: xml
+
+    <ows:Profile>http://www.opengis.net/spec/WCS_profile_earth-observation/1.0/conf/ap-eo</ows:Profile>
+
+* The additional EO-WCS operation:
+
+  .. code-block:: xml
+
+    <ows:Operation name="DescribeEOCoverageSet">
+        <ows:DCP>
+            <ows:HTTP>
+                <ows:Get xlink:href="http://www.eoxserver.org/demo_trunk/ows?" xlink:type="simple"/>
+                <ows:Post xlink:href="http://www.eoxserver.org/demo_trunk/ows?" xlink:type="simple"/>
+            </ows:HTTP>
+        </ows:DCP>
+    </ows:Operation>
+
+* The server will limit the number of CoverageDescription elements in DescribeEOCoverageSet responses:
+
+  .. code-block:: xml
+
+    <ows:Constraint name="CountDefault">
+        <ows:NoValues/>
+        <ows:DefaultValue>100</ows:DefaultValue>
+    </ows:Constraint>
+
+* There is a StitchedMosaic available:
+
+  .. code-block:: xml
+
+    <wcs:CoverageSummary>
+        <wcs:CoverageId>mosaic_MER_FRS_1P_RGB_reduced</wcs:CoverageId>
+        <wcs:CoverageSubtype>RectifiedStitchedMosaic</wcs:CoverageSubtype>
+    </wcs:CoverageSummary>
+        
+* There is a DatasetSeries available:
+
+  .. code-block:: xml
+
+    <wcseo:DatasetSeriesSummary>
+        <ows:WGS84BoundingBox>
+            <ows:LowerCorner>-4.042969 32.080078</ows:LowerCorner>
+            <ows:UpperCorner>33.134766 45.175781</ows:UpperCorner>
+        </ows:WGS84BoundingBox>
+        <wcseo:DatasetSeriesId>MER_FRS_1P_reduced</wcseo:DatasetSeriesId>
+        <gml:TimePeriod gml:id="MER_FRS_1P_reduced_timeperiod">
+            <gml:beginPosition>2006-08-16T00:00:00</gml:beginPosition>
+            <gml:endPosition>2006-08-31T00:00:00</gml:endPosition>
+        </gml:TimePeriod>
+    </wcseo:DatasetSeriesSummary>
 
 DescribeCoverage
 ----------------
@@ -226,7 +286,7 @@ GetCoverage
         mediatype=multipart/mixed&
         size=x(200)&size=y(400)
 
-`GetCoverage Dataset, subset in bands <http://www.eoxserver.org/demo_trunk/ows?service=wcs&version=2.0.0&request=GetCoverage&coverageid=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/mixed&rangesubset=1,2,3&resolution=Lat(0.031324)&resolution=Long(0.031324)>`_::
+`GetCoverage Dataset, subset in bands <http://www.eoxserver.org/demo_trunk/ows?service=wcs&version=2.0.0&request=GetCoverage&coverageid=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/mixed&rangesubset=1,2,3>`_::
 
     http://www.eoxserver.org/demo_trunk/ows?
         service=wcs&
