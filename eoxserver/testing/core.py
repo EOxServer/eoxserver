@@ -173,9 +173,9 @@ class EOxSWCS20DescribeEOCoverageSetSubsettingTestCase(EOxSWCS20DescribeEOCovera
 
 class EOxSWCS20DescribeEOCoverageSetPagingTestCase(EOxSWCS20DescribeEOCoverageSetTestCase):
     def setUp(self):
-        super(EOxSWCS20DescribeEOCoverageSetPagingTestCase, self).setUp()
         self.saved_paging_default = EOxSConfig.getConfig().paging_count_default
         EOxSConfig.getConfig().paging_count_default = self.getConfigCountOverride()
+        super(EOxSWCS20DescribeEOCoverageSetPagingTestCase, self).setUp()
     
     def tearDown(self):
         super(EOxSWCS20DescribeEOCoverageSetPagingTestCase, self).tearDown()

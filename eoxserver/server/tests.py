@@ -317,7 +317,7 @@ class EOxSWCS20DescribeEOCoverageSetDatasetPagingCountTestCase(eoxstest.EOxSWCS2
 
 class EOxSWCS20DescribeEOCoverageSetDatasetPagingConfigTestCase(eoxstest.EOxSWCS20DescribeEOCoverageSetPagingTestCase):
     def getConfigCountOverride(self):
-        return 1
+        return 2
     
     def getExpectedCoverageCount(self):
         return 2
