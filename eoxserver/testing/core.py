@@ -174,18 +174,18 @@ class EOxSWCS20DescribeEOCoverageSetSubsettingTestCase(EOxSWCS20DescribeEOCovera
 class EOxSWCS20DescribeEOCoverageSetPagingTestCase(EOxSWCS20DescribeEOCoverageSetTestCase):
     def setUp(self):
         super(EOxSWCS20DescribeEOCoverageSetPagingTestCase, self).setUp()
-        self.saved_paging_default = EOxSConfig.getConfig("conf/eoxserver.conf").paging_count_default
-        EOxSConfig.getConfig("conf/eoxserver.conf").paging_count_default = self.getConfigCountOverride()
+        self.saved_paging_default = EOxSConfig.getConfig().paging_count_default
+        EOxSConfig.getConfig().paging_count_default = self.getConfigCountOverride()
     
     def tearDown(self):
         super(EOxSWCS20DescribeEOCoverageSetPagingTestCase, self).tearDown()
-        EOxSConfig.getConfig("conf/eoxserver.conf").paging_count_default = self.saved_paging_default
+        EOxSConfig.getConfig().paging_count_default = self.saved_paging_default
     
     def getExpectedCoverageCount(self):
         return 0
     
     def getConfigCountOverride(self):
-        return EOxSConfig.getConfig("conf/eoxserver.conf").paging_count_default
+        return EOxSConfig.getConfig().paging_count_default
     
     def testCoverageCount(self):
         decoder = EOxSXMLDecoder(self.response.content, {
