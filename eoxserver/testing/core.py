@@ -25,6 +25,7 @@
 import os.path
 import logging
 from lxml import etree
+from xml.dom import minidom
 
 import mimetypes
 
@@ -38,7 +39,7 @@ from django.test import TestCase, Client
 from eoxserver.lib.config import EOxSConfig
 from eoxserver.lib.ows import EOxSOWSCommonHandler
 from eoxserver.lib.registry import EOxSRegistry
-from eoxserver.lib.util import EOxSXMLDecoder
+from eoxserver.lib.util import EOxSXMLDecoder, DOMtoXML
 
 class EOxSTestSchemaFactory(object):
     schemas = {}
@@ -254,8 +255,38 @@ class EOxSWCS20GetCoverageMultipartTestCase(EOxSWCS20GetCoverageTestCase):
                     f.close()
                     self.fail(str(e))
                 
-                # TODO: Comparison to expected response needs to consider the current timestamp in the linage element
-                #logging.info("Comparing actual and expected XML responses.")
+                logging.info("Comparing actual and expected XML responses.")
+                
+                try:
+                    f = open(os.path.join(self.getExpectedFileDir(), self.getExpectedFileName("xml")), 'r')
+                    expected = f.read()
+                    f.close()
+                except:
+                    expected = ""
+                
+                result_dom = minidom.parseString(part.get_payload())
+                lineage_date = result_dom.getElementsByTagName("wcseo:lineage").item(0)
+                for node in lineage_date.childNodes:
+                    if node.tagName == "gml:timePosition":
+                        logging.info("Normalizing timePosition in lineage")
+                        node.firstChild.data = "2011-01-01T00:00:00Z"
+                result_cleared = DOMtoXML(result_dom)
+                result_dom.unlink()
+                
+                if expected != result_cleared:
+                    f = open(os.path.join(self.getResponseFileDir(), self.getResponseFileName("xml")), 'w')
+                    f.write(result_cleared)
+                    f.close()
+                    
+                    if expected == "":
+                        self.fail("Expected response '%s' not present" % 
+                                   os.path.join(self.getExpectedFileDir(), self.getExpectedFileName("xml"))
+                        )
+                    else:
+                        self.fail("Response returned '%s' is not equal to expected response '%s'." % (
+                                   os.path.join(self.getResponseFileDir(), self.getResponseFileName("xml")),
+                                   os.path.join(self.getExpectedFileDir(), self.getExpectedFileName("xml")))
+                        )
             
             else:
                 logging.info("Comparing actual and expected GeoTIFF responses.")
