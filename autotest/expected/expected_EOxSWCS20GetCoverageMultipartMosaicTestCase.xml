@@ -33,32 +33,41 @@
   </gml:rangeSet>
   <gmlcov:rangeType>
     <swe:DataRecord>
-      <swe:field name="band">
-        <swe:Quantity>
+      <swe:field name="red">
+        <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+          <swe:description>Red Channel</swe:description>
+          <swe:nilValues/>
           <swe:uom code="W.m-2.Sr-1"/>
           <swe:constraint>
             <swe:AllowedValues>
               <swe:interval>0 255</swe:interval>
+              <swe:significantFigures>3</swe:significantFigures>
             </swe:AllowedValues>
           </swe:constraint>
         </swe:Quantity>
       </swe:field>
-      <swe:field name="band">
-        <swe:Quantity>
+      <swe:field name="green">
+        <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+          <swe:description>Green Channel</swe:description>
+          <swe:nilValues/>
           <swe:uom code="W.m-2.Sr-1"/>
           <swe:constraint>
             <swe:AllowedValues>
               <swe:interval>0 255</swe:interval>
+              <swe:significantFigures>3</swe:significantFigures>
             </swe:AllowedValues>
           </swe:constraint>
         </swe:Quantity>
       </swe:field>
-      <swe:field name="band">
-        <swe:Quantity>
+      <swe:field name="blue">
+        <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+          <swe:description>Blue Channel</swe:description>
+          <swe:nilValues/>
           <swe:uom code="W.m-2.Sr-1"/>
           <swe:constraint>
             <swe:AllowedValues>
               <swe:interval>0 255</swe:interval>
+              <swe:significantFigures>3</swe:significantFigures>
             </swe:AllowedValues>
           </swe:constraint>
         </swe:Quantity>

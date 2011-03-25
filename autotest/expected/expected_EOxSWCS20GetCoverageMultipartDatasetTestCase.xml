@@ -33,152 +33,197 @@
   </gml:rangeSet>
   <gmlcov:rangeType>
     <swe:DataRecord>
-      <swe:field name="band">
-        <swe:Quantity>
-          <swe:uom code="W.m-2.Sr-1"/>
+      <swe:field name="MERIS_radiance_01_uint16">
+        <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+          <swe:description>MERIS first band</swe:description>
+          <swe:nilValues/>
+          <swe:uom code="W.m-2.sr-1.nm-1"/>
           <swe:constraint>
             <swe:AllowedValues>
               <swe:interval>0 65535</swe:interval>
+              <swe:significantFigures>5</swe:significantFigures>
             </swe:AllowedValues>
           </swe:constraint>
         </swe:Quantity>
       </swe:field>
-      <swe:field name="band">
-        <swe:Quantity>
-          <swe:uom code="W.m-2.Sr-1"/>
+      <swe:field name="MERIS_radiance_02_uint16">
+        <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+          <swe:description>MERIS uint16 second band</swe:description>
+          <swe:nilValues/>
+          <swe:uom code="W.m-2.sr-1.nm-1"/>
           <swe:constraint>
             <swe:AllowedValues>
               <swe:interval>0 65535</swe:interval>
+              <swe:significantFigures>5</swe:significantFigures>
             </swe:AllowedValues>
           </swe:constraint>
         </swe:Quantity>
       </swe:field>
-      <swe:field name="band">
-        <swe:Quantity>
-          <swe:uom code="W.m-2.Sr-1"/>
+      <swe:field name="MERIS_radiance_03_uint16">
+        <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+          <swe:description>MERIS uint16 third band</swe:description>
+          <swe:nilValues/>
+          <swe:uom code="W.m-2.sr-1.nm-1"/>
           <swe:constraint>
             <swe:AllowedValues>
               <swe:interval>0 65535</swe:interval>
+              <swe:significantFigures>5</swe:significantFigures>
             </swe:AllowedValues>
           </swe:constraint>
         </swe:Quantity>
       </swe:field>
-      <swe:field name="band">
-        <swe:Quantity>
-          <swe:uom code="W.m-2.Sr-1"/>
+      <swe:field name="MERIS_radiance_04_uint16">
+        <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+          <swe:description>MERIS uint16 fourth band</swe:description>
+          <swe:nilValues/>
+          <swe:uom code="W.m-2.sr-1.nm-1"/>
           <swe:constraint>
             <swe:AllowedValues>
               <swe:interval>0 65535</swe:interval>
+              <swe:significantFigures>5</swe:significantFigures>
             </swe:AllowedValues>
           </swe:constraint>
         </swe:Quantity>
       </swe:field>
-      <swe:field name="band">
-        <swe:Quantity>
-          <swe:uom code="W.m-2.Sr-1"/>
+      <swe:field name="MERIS_radiance_05_uint16">
+        <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+          <swe:description>MERIS uint16 fifth band</swe:description>
+          <swe:nilValues/>
+          <swe:uom code="W.m-2.sr-1.nm-1"/>
           <swe:constraint>
             <swe:AllowedValues>
               <swe:interval>0 65535</swe:interval>
+              <swe:significantFigures>5</swe:significantFigures>
             </swe:AllowedValues>
           </swe:constraint>
         </swe:Quantity>
       </swe:field>
-      <swe:field name="band">
-        <swe:Quantity>
-          <swe:uom code="W.m-2.Sr-1"/>
+      <swe:field name="MERIS_radiance_06_uint16">
+        <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+          <swe:description>MERIS uint16 sixth band</swe:description>
+          <swe:nilValues/>
+          <swe:uom code="W.m-2.sr-1.nm-1"/>
           <swe:constraint>
             <swe:AllowedValues>
               <swe:interval>0 65535</swe:interval>
+              <swe:significantFigures>5</swe:significantFigures>
             </swe:AllowedValues>
           </swe:constraint>
         </swe:Quantity>
       </swe:field>
-      <swe:field name="band">
-        <swe:Quantity>
-          <swe:uom code="W.m-2.Sr-1"/>
+      <swe:field name="MERIS_radiance_07_uint16">
+        <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+          <swe:description>MERIS uint16 seventh band</swe:description>
+          <swe:nilValues/>
+          <swe:uom code="W.m-2.sr-1.nm-1"/>
           <swe:constraint>
             <swe:AllowedValues>
               <swe:interval>0 65535</swe:interval>
+              <swe:significantFigures>5</swe:significantFigures>
             </swe:AllowedValues>
           </swe:constraint>
         </swe:Quantity>
       </swe:field>
-      <swe:field name="band">
-        <swe:Quantity>
-          <swe:uom code="W.m-2.Sr-1"/>
+      <swe:field name="MERIS_radiance_08_uint16">
+        <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+          <swe:description>MERIS uint16 eighth band</swe:description>
+          <swe:nilValues/>
+          <swe:uom code="W.m-2.sr-1.nm-1"/>
           <swe:constraint>
             <swe:AllowedValues>
               <swe:interval>0 65535</swe:interval>
+              <swe:significantFigures>5</swe:significantFigures>
             </swe:AllowedValues>
           </swe:constraint>
         </swe:Quantity>
       </swe:field>
-      <swe:field name="band">
-        <swe:Quantity>
-          <swe:uom code="W.m-2.Sr-1"/>
+      <swe:field name="MERIS_radiance_09_uint16">
+        <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+          <swe:description>MERIS uint16 ninth band</swe:description>
+          <swe:nilValues/>
+          <swe:uom code="W.m-2.sr-1.nm-1"/>
           <swe:constraint>
             <swe:AllowedValues>
               <swe:interval>0 65535</swe:interval>
+              <swe:significantFigures>5</swe:significantFigures>
             </swe:AllowedValues>
           </swe:constraint>
         </swe:Quantity>
       </swe:field>
-      <swe:field name="band">
-        <swe:Quantity>
-          <swe:uom code="W.m-2.Sr-1"/>
+      <swe:field name="MERIS_radiance_10_uint16">
+        <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+          <swe:description>MERIS uint16 tenth band</swe:description>
+          <swe:nilValues/>
+          <swe:uom code="W.m-2.sr-1.nm-1"/>
           <swe:constraint>
             <swe:AllowedValues>
               <swe:interval>0 65535</swe:interval>
+              <swe:significantFigures>5</swe:significantFigures>
             </swe:AllowedValues>
           </swe:constraint>
         </swe:Quantity>
       </swe:field>
-      <swe:field name="band">
-        <swe:Quantity>
-          <swe:uom code="W.m-2.Sr-1"/>
+      <swe:field name="MERIS_radiance_11_uint16">
+        <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+          <swe:description>MERIS uint16 eleventh band</swe:description>
+          <swe:nilValues/>
+          <swe:uom code="W.m-2.sr-1.nm-1"/>
           <swe:constraint>
             <swe:AllowedValues>
               <swe:interval>0 65535</swe:interval>
+              <swe:significantFigures>5</swe:significantFigures>
             </swe:AllowedValues>
           </swe:constraint>
         </swe:Quantity>
       </swe:field>
-      <swe:field name="band">
-        <swe:Quantity>
-          <swe:uom code="W.m-2.Sr-1"/>
+      <swe:field name="MERIS_radiance_12_uint16">
+        <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+          <swe:description>MERIS uint16 twelfth band</swe:description>
+          <swe:nilValues/>
+          <swe:uom code="W.m-2.sr-1.nm-1"/>
           <swe:constraint>
             <swe:AllowedValues>
               <swe:interval>0 65535</swe:interval>
+              <swe:significantFigures>5</swe:significantFigures>
             </swe:AllowedValues>
           </swe:constraint>
         </swe:Quantity>
       </swe:field>
-      <swe:field name="band">
-        <swe:Quantity>
-          <swe:uom code="W.m-2.Sr-1"/>
+      <swe:field name="MERIS_radiance_13_uint16">
+        <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+          <swe:description>MERIS uint 16 thirteenth band</swe:description>
+          <swe:nilValues/>
+          <swe:uom code="W.m-2.sr-1.nm-1"/>
           <swe:constraint>
             <swe:AllowedValues>
               <swe:interval>0 65535</swe:interval>
+              <swe:significantFigures>5</swe:significantFigures>
             </swe:AllowedValues>
           </swe:constraint>
         </swe:Quantity>
       </swe:field>
-      <swe:field name="band">
-        <swe:Quantity>
-          <swe:uom code="W.m-2.Sr-1"/>
+      <swe:field name="MERIS_radiance_14_uint16">
+        <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+          <swe:description>MERIS uint16 fourteenth band</swe:description>
+          <swe:nilValues/>
+          <swe:uom code="W.m-2.sr-1.nm-1"/>
           <swe:constraint>
             <swe:AllowedValues>
               <swe:interval>0 65535</swe:interval>
+              <swe:significantFigures>5</swe:significantFigures>
             </swe:AllowedValues>
           </swe:constraint>
         </swe:Quantity>
       </swe:field>
-      <swe:field name="band">
-        <swe:Quantity>
-          <swe:uom code="W.m-2.Sr-1"/>
+      <swe:field name="MERIS_radiance_15_uint16">
+        <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+          <swe:description>MERIS uint16 fifteenth band</swe:description>
+          <swe:nilValues/>
+          <swe:uom code="W.m-2.sr-1.nm-1"/>
           <swe:constraint>
             <swe:AllowedValues>
               <swe:interval>0 65535</swe:interval>
+              <swe:significantFigures>5</swe:significantFigures>
             </swe:AllowedValues>
           </swe:constraint>
         </swe:Quantity>
