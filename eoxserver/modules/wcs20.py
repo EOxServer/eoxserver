@@ -375,8 +375,6 @@ class EOxSWCS20GetCoverageHandler(EOxSWCSCommonHandler):
             output_format.mimetype = "image/tiff"
             output_format.extension = "tif"
             output_format.imagemode = mapscript.MS_IMAGEMODE_INT16
-            #output_format.bands = len(ms_req.coverages[0].getRangeType())
-            #output_format.setOption("BAND_COUNT", str(len(ms_req.coverages[0].getRangeType())))
         
             ms_req.map.appendOutputFormat(output_format)
             ms_req.map.setOutputFormat(output_format)
