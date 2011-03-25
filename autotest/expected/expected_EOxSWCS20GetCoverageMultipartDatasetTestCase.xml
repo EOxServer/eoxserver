@@ -254,4 +254,4 @@
             </eop:processing>
         </eop:EarthObservationMetaData>
     </eop:metaDataProperty>
-</eop:EarthObservation><wcseo:lineage><wcseo:referenceGetCoverage><ows:Reference xlink:href="http://testserver/ows?service=wcs&amp;amp;version=2.0.0&amp;amp;request=GetCoverage&amp;amp;CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&amp;amp;format=image/tiff&amp;amp;mediatype=multipart/mixed"/></wcseo:referenceGetCoverage><gml:timePosition>2011-03-25T00:31:40Z</gml:timePosition></wcseo:lineage></wcseo:EOMetadata></gmlcov:metadata></wcseo:RectifiedDataset>
+</eop:EarthObservation><wcseo:lineage><wcseo:referenceGetCoverage><ows:Reference xlink:href="http://testserver/ows?service=wcs&amp;amp;version=2.0.0&amp;amp;request=GetCoverage&amp;amp;CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&amp;amp;format=image/tiff&amp;amp;mediatype=multipart/mixed"/></wcseo:referenceGetCoverage><gml:timePosition>2011-01-01T00:00:00Z</gml:timePosition></wcseo:lineage></wcseo:EOMetadata></gmlcov:metadata></wcseo:RectifiedDataset>
