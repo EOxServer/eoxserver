@@ -5,11 +5,11 @@
 RFC Policies
 ============
 
-:Author: Stephan Krause
-:Date: 2011-02-19
+:Author: Stephan Krause, Stephan Meißl
+:Date: 2011-05-02
 
 This document contains the policies that govern the life cycle of
-Requests for Comments. It may be changed by submitting an RFC for
+Requests for Comments (RFCs). It may be changed by submitting an RFC for
 discussion and vote following the provisions of this document.
 
 In this document the terms *shall*, *should* and *may* have a
@@ -41,7 +41,7 @@ Every RFC has a status. That status may be one of:
   rejected. The RFC is not going to be implemented and the discussion
   is closed.
 * **POSTPONED**: A vote has been held on the RFC and it has been
-  postponed to a later stage of development. The RFC may reopened any
+  postponed to a later stage of development. The RFC may be reopened any
   time.
 * **OBSOLETE**: A vote has been held on the RFC and it has been declared
   obsolete. It has been superseded by another RFC or it is not
@@ -50,8 +50,8 @@ Every RFC has a status. That status may be one of:
 The status IN PREPARATION may be declared by the authors of the
 RFC. They may move it to PENDING once they consider it ready for
 discussion and submission to a vote. Any further status changes shall
-be declared by the chairman exclusively. Most of them require a
-vote, see section :ref:`voting`.
+be declared according to the results of the discussion and the voting 
+(see :doc:`rfc0`).
 
 The following status changes are possible:
 
@@ -62,16 +62,17 @@ The following status changes are possible:
 * from POSTPONED to PENDING or via VOTING ACTIVE to ACCEPTED, REJECTED,
   OBSOLETE
 
+
 Creation of RFCs
 ----------------
 
 Any one who has write access to the EOxServer SVN may submit an RFC. It
 shall obey to the rules of the :doc:`howto`. The initial status of the
 RFC is IN PREPARATION, lest the authors deem it to be mature for
-discussion from the start, in which case they may submit it as PENDING.
+discussion from the start, in which case they may submit it as PENDING. The 
+RFC shall be assign the next possible consecutive number.
 
-When beginning work on an RFC the authors shall inform the chairman.
-The chairman shall assign an RFC number.
+When beginning work on an RFC the authors shall inform the PSC chair.
 
 As long as the RFC is IN PREPARATION or PENDING, only the authors of the
 RFC shall edit it. Anyone else who wants to contribute to the document
@@ -79,12 +80,20 @@ shall submit his or her text to the discussion page. The authors may
 also decide to let him or her become a co-author who has all the rights
 of an author.
 
+Authors may choose to support their RFC by implementing the needed changes 
+and committing them to a subdirectory of the sandbox directory for review.
+
+
 Discussion Pages
 ----------------
 
-Any RFC that is not still IN PREPARATION shall have a discussion page
+Any RFC, especially those still IN PREPARATION, shall have a discussion page
 on the EOxServer Trac Wiki (http://www.eoxserver.org/wiki). The design
 and the location of the discussion page is detailed in the :doc:`howto`.
+
+The discussion page may include links to preliminary implementations 
+which have been committed to a sandbox subdirectory.
+
 
 Pending RFCs
 ------------
@@ -95,8 +104,9 @@ not be altered in a radical manner though, changing the proposed
 solution completely. In this case the authors may withdraw the RFC and
 propose another one.
 
-An RFC shall be PENDING for at least 10 working days (in Austria) till
-a first vote can be held on it.
+An RFC shall be PENDING for at least two business days (in Austria) till
+a vote can be held on it (see :doc:`rfc0`).
+
 
 Withdrawal of RFCs
 ------------------
@@ -106,69 +116,8 @@ PREPARATION or PENDING. The RFC status will change to WITHDRAWN. The
 authors may decide to leave the text as is or remove everything except
 for the basic information as defined in the :doc:`howto`.
 
-.. _voting:
 
 Voting on RFCs
 --------------
 
-Chairman
-~~~~~~~~
-
-The chairman is responsible for votes on RFCs and changes made to RFCs
-after a vote as described in detail in the different sections of this
-document.
-
-The chairman shall be chosen from the group of eligible voters. He or
-she shall be elected by the eligible voters. His or her term shall end
-only when he or she decides to resign from the office or when he or she
-is not an eligible voter any more.
-
-The chairman shall appoint a vice-chairman from the group of eligible
-voters.
-
-Voters
-~~~~~~
-
-Eligible Voters
-^^^^^^^^^^^^^^^
-
-Anyone who has write access to the EOxServer SVN shall be considered an
-eligible voter.
-
-Active and Inactive Voters
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Any eligible voter who has not cast a vote in the last two votes shall
-be considered inactive. Any other eligible voter shall be considered
-active. An inactive voter has the same rights as any other eligible
-voter.
-
-Votes
-~~~~~
-
-Motions
-~~~~~~~
-
-Motion to accept
-^^^^^^^^^^^^^^^^
-
-Motion to reject
-^^^^^^^^^^^^^^^^
-
-Motion to postpone
-^^^^^^^^^^^^^^^^^^
-
-Motion to reopen
-^^^^^^^^^^^^^^^^
-
-Motion to make obsolete
-^^^^^^^^^^^^^^^^^^^^^^^
-
-Accepted RFCs
--------------
-
-Postponed RFCs
---------------
-
-Obsolete RFCs
--------------
+The voting on RFCs is defined in the first RFC: :doc:`rfc0`.
