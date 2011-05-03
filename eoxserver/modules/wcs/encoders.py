@@ -126,6 +126,17 @@ class EOxSEOPEncoder(EOxSGMLEncoder):
         end_time_iso = isotime(eo_metadata.getEndTime())
         result_time_iso = isotime(eo_metadata.getEndTime()) # TODO isotime(datetime.now())
         
+        footprint = None
+        if eo_metadata.getType() == "eo.rect_mosaic":
+            for ds in eo_metadata.getDatasets():
+                if footprint is None:
+                    footprint = ds.getFootprint()
+                else:
+                    footprint = ds.getFootprint().union(footprint) 
+            
+        else:
+            footprint = eo_metadata.getFootprint()
+        
         return self._makeElement(
             "eop", "EarthObservation", [
                 ("@gml", "id", "eop_%s" % eo_id),
@@ -145,7 +156,7 @@ class EOxSEOPEncoder(EOxSGMLEncoder):
                 ("om", "procedure", []),
                 ("om", "observedProperty", []),
                 ("om", "featureOfInterest", [
-                    (self.encodeFootprint(eo_metadata.getFootprint(), eo_id),)
+                    (self.encodeFootprint(footprint, eo_id),)
                 ]),
                 ("om", "result", []),
                 (self.encodeMetadataProperty(eo_id, contributing_datasets),)
