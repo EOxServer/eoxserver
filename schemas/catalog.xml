@@ -25,4 +25,7 @@ Unset: export -n XML_CATALOG_FILES (use standard catalog at /etc/xml/)
 <!-- schemas.opengis.net -->
   <rewriteSystem systemIdStartString="http://schemas.opengis.net/" rewritePrefix="SCHEMAS_OPENGIS_NET/"/>
   <rewriteURI uriStartString="http://schemas.opengis.net/" rewritePrefix="SCHEMAS_OPENGIS_NET/"/>
+<!-- www.w3.org -->
+  <rewriteSystem systemIdStartString="http://www.w3.org/2001/" rewritePrefix="WWW_W3_ORG/"/>
+  <rewriteURI uriStartString="http://www.w3.org/2001/" rewritePrefix="WWW_W3_ORG/"/>
 </catalog>
