@@ -31,8 +31,9 @@ admin.autodiscover()
 
 from django.contrib import databrowse
 from django.views.static import serve
-from eoxserver.server.models import *
 from django.conf import settings
+
+#from eoxserver.server.models import *
 
 #databrowse.site.register(EOxSCoverageEOCollectionRecord)
 #databrowse.site.register(EOxSCoverageSingleFileRecord)
