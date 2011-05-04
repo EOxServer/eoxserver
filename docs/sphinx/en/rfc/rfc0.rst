@@ -1,13 +1,22 @@
-.. RFC 0: Project Steering Committee Guidelines
+.. _rfc_0:
 
 RFC 0: Project Steering Committee Guidelines
 ============================================
 
 :Author: Stephan Meißl
 :Created: 2011-03-02
-:Last Edit: 2011-05-02
+:Last Edit: 2011-05-04
 :Status: PENDING
 :Discussion: http://www.eoxserver.org/wiki/DiscussionRfc0
+
+
+Overview
+--------
+
+This RFC documents the EOxServer Project Steering Committee Guidelines.
+
+(Credit: Inspired by the MapServer PSC guidelines at: 
+http://mapserver.org/development/rfc/ms-rfc-23.html)
 
 
 Introduction
@@ -25,7 +34,7 @@ The PSC duties include:
 * establishing a regular release cycle
 * reviewing and voting on RFCs
 
-The PSC members vote on proposals, RFCs, etc. via e-mail on the eoxserver-dev 
+The PSC members vote on proposals, RFCs, etc. via e-mail on the dev 
 mailing list. Proposals shall be available for review for at least two days 
 where a single veto delays the progress but at the end a majority of members 
 may adopt a proposal.
@@ -39,8 +48,8 @@ Voting Procedure
 
 The following steps shall be followed in any voting:
 
-* Any interested person may submit a proposal to the eoxserver-dev mailing list 
-  for discussion. Note that this is explicitly not limited to PSC members.
+* Any interested person may submit a proposal to the dev mailing list for 
+  discussion. Note that this is explicitly not limited to PSC members.
 * Voting on proposals shall not be closed earlier than two business days after 
   the proposal has been submitted.
 * The following voting options shall be used:
@@ -102,10 +111,10 @@ There is no fixed number of members for the PSC.
 Adding Members
 ~~~~~~~~~~~~~~
 
-Any member of the eoxserver-dev mailing list may nominate someone for 
-committee membership at any time. Only existing PSC committee members may 
-vote on new members. Nominees must receive a majority vote from existing 
-members to be added to the PSC.
+Any member of the dev mailing list may nominate someone for committee 
+membership at any time. Only existing PSC committee members may vote on new 
+members. Nominees must receive a majority vote from existing members to be 
+added to the PSC.
 
 Stepping Down
 ~~~~~~~~~~~~~
@@ -143,12 +152,12 @@ the member should let the meeting organizer know via e-mail.
 Mailing List Participation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-PSC members are expected to be active on both the eoxserver-users 
-and eoxserver-dev mailing lists, subject to open source mailing list 
-etiquette. Non-developer members of the PSC are not expected to respond 
-to coding level questions on the developer mailing list, however they 
-are expected to provide their thoughts and opinions on user level 
-requirements and compatibility issues when RFC discussions take place.
+PSC members are expected to be active on both the users and dev mailing lists, 
+subject to open source mailing list etiquette. Non-developer members of the 
+PSC are not expected to respond to coding level questions on the developer 
+mailing list, however they are expected to provide their thoughts and opinions 
+on user level requirements and compatibility issues when RFC discussions take 
+place.
 
 
 List of Members
