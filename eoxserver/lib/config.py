@@ -1,10 +1,10 @@
 #-----------------------------------------------------------------------
+# $Id$
 #
 # This software is named EOxServer, a server for Earth Observation data.
 #
 # Copyright (C) 2011 EOX IT Services GmbH
 # Authors: Stephan Krause, Stephan Meissl
-# $Id$
 #
 # This file is part of EOxServer <http://www.eoxserver.org>.
 #
