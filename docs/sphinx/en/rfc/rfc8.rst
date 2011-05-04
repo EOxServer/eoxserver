@@ -97,6 +97,10 @@ project.
 * When committing new features or significant changes to existing source
   code, the committer should take reasonable measures to insure that the
   source code continues to work.
+* Include the standard EOxServer header in every new file and set the following 
+  SVN properties:
+  * svn propset svn:keywords 'Author Date Id Revision' <new_file>
+  * svn propset svn:eol-style native <new_file>
 
 
 Legal
