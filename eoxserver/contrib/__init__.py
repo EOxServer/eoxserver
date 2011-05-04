@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 #-----------------------------------------------------------------------
+# $Id$
 #
 # This software is named EOxServer, a server for Earth Observation data.
 #
