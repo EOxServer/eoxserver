@@ -1,11 +1,30 @@
--- HOWTO --
+#-----------------------------------------------------------------------
+#
+# This software is named EOxServer, a server for Earth Observation data.
+#
+# Copyright (C) 2011 EOX IT Services GmbH
+# Authors: Stephan Krause, Stephan Meissl
+#
+# This file is part of EOxServer <http://www.eoxserver.org>.
+#
+#    EOxServer is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published
+#    by the Free Software Foundation, either version 3 of the License,
+#    or (at your option) any later version.
+#
+#    EOxServer is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with EOxServer. If not, see <http://www.gnu.org/licenses/>.
+#
+#-----------------------------------------------------------------------
 
-1. How to generate the epydoc documentation (obsolete)
-
-Run
-
-cd <path_to_eoxserver_directory>
-epydoc --name=EOxServer --output=../docs/html/ --html --docformat=javadoc --graph=all .
+#######################
+# Documentation HowTo #
+#######################
 
 1a. How to generate sphinx documentation
 
@@ -15,6 +34,13 @@ make html
 
 The documentation is generated in _build/html.
 
+1b. How to generate the epydoc documentation
+
+Run
+
+cd <path_to_eoxserver_directory>
+epydoc --name=EOxServer --output=../docs/epydoc/ --html --docformat=javadoc --graph=all .
+
 ------------------------------------------------------------------------
 
 2. How to update model graph (docs/model.png)
@@ -23,16 +49,5 @@ Run
 
 cd <path_to_eoxserver_directory>
 python manage.py graph_models --output=../docs/model.png server
-
-------------------------------------------------------------------------
-
-3. How to update fixtures
-
-Run
-
-cd <path_to_eoxserver_directory>
-python manage.py dumpdata --format=json --indent=4 > tmp.json
-Inspect file e.g. with: meld tmp.json server/fixtures/initial_data.json
-mv tmp.json server/fixtures/initial_data.json
 
 ------------------------------------------------------------------------
