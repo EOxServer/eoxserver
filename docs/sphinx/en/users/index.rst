@@ -11,6 +11,7 @@ have their data quickly presented to the public.
    :maxdepth: 2
    
    getting_started
+   mailing_lists
    demonstration
    install
    admin_tutorial
