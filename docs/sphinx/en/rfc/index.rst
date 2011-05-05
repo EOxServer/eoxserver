@@ -3,8 +3,8 @@
 EOxServer Requests for Comments
 ===============================
 
-EOxServer Requests for Comments are a means for EOxServer developers to
-share their ideas and feature requests, propose enhancements and discuss
+EOxServer Requests for Comments (RFCs) are a means for EOxServer developers to
+share their ideas and feature requests, propose enhancements, and discuss
 high-level issues concerning the further development of the software.
 
 RFC Procedures

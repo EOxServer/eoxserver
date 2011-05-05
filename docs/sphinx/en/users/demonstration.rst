@@ -1,5 +1,8 @@
 .. EOxServer Demonstration
 
+.. index::
+   single: Demonstration
+   
 EOxServer Demonstration
 =======================
 
@@ -16,6 +19,9 @@ combining the three available datasets:
   the 3 MERIS sample datasets reduced to RGB 8-bit
 
 Note, the data has been reduced from 300m resolution to 3000m.
+
+.. index::
+   single: GetCapabilities
 
 GetCapabilities
 ---------------
@@ -82,6 +88,9 @@ Interesting parts of the repsonse:
         </gml:TimePeriod>
     </wcseo:DatasetSeriesSummary>
 
+.. index::
+   single: DescribeCoverage
+
 DescribeCoverage
 ----------------
 
@@ -100,6 +109,9 @@ DescribeCoverage
         version=2.0.0&
         request=DescribeCoverage&
         coverageid=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed
+
+.. index::
+   single: DescribeEOCoverageSet
 
 DescribeEOCoverageSet
 ---------------------
@@ -205,6 +217,9 @@ DatasetSeries
         subset=Lat,http://www.opengis.net/def/crs/EPSG/0/4326(32,47)&
         subset=Long,http://www.opengis.net/def/crs/EPSG/0/4326(11,33)&
         containment=contains
+
+.. index::
+   single: GetCoverage
 
 GetCoverage
 -----------

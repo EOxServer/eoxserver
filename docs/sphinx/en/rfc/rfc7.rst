@@ -1,5 +1,9 @@
 .. _rfc_7:
 
+.. index::
+   single: Release Guidelines
+   single: RFC; RFC 7
+
 RFC 7: Release Guidelines
 =========================
 

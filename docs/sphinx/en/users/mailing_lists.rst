@@ -1,5 +1,8 @@
 .. EOxServer Mailing Lists
 
+.. index::
+   single: Mailing List
+
 EOxServer Mailing Lists
 =======================
 

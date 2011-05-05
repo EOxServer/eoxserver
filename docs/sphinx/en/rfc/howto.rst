@@ -1,5 +1,8 @@
 .. RFC Guidelines
 
+.. index::
+   single: RFC; RFC Guidelines
+
 .. _rfc_howto:
 
 Guidelines for Requests for Comments

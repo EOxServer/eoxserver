@@ -1,5 +1,9 @@
 .. _rfc_8:
 
+.. index::
+   single: Commit Management
+   single: RFC; RFC 8
+
 RFC 8: SVN Commit Management
 ============================
 

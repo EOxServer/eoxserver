@@ -1,5 +1,8 @@
 .. RFC Policies
 
+.. index::
+   single: RFC; RFC Policies
+
 .. _rfc_policies:
 
 RFC Policies
