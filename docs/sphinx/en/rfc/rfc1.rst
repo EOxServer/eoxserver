@@ -11,7 +11,7 @@ RFC 1: An Extensible Software Architecture for EOxServer
 
 :Author: Stephan Krause
 :Created: 2011-02-18
-:Last Edit: 2011-03-02
+:Last Edit: 2011-04-06
 :Status: PENDING
 :Discussion: http://www.eoxserver.org/wiki/DiscussionRfc1
 
@@ -748,14 +748,13 @@ be **implemented**:
 * local backends:
   
   * file system
+  * `rasdaman <http://www.rasdaman.com>`_ backend
 
 * remote backends:
 
   * using HTTP/HTTPS
   * using FTP
   * using WCS
-
-* `rasdaman <http://www.rasdaman.com>`_ backend
 
 .. index:: EOxServer instances
   

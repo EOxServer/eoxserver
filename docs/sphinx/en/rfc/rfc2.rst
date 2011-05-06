@@ -7,7 +7,7 @@ RFC 2: Extension Mechanism for EOxServer
 
 :Author: Stephan Krause
 :Created: 2011-02-20
-:Last Edit: 2011-03-11
+:Last Edit: 2011-05-05
 :Status: IN PREPARATION
 :Discussion: http://www.eoxserver.org/wiki/DiscussionRfc2
 
@@ -158,7 +158,7 @@ services, processes, formats, backends and plugins in an interactive
 way using the administration client. In order to assure this required
 functionality a configuration data model is needed that allows to store
 information about what parts of the system are activated and what
-resources they may operate on. See section :ref:`rfc2_config` for
+resources they may operate on. See the section :ref:`rfc2_model` for
 further details.
 
 Implementations of interfaces are not isolated objects. They depend on
@@ -307,49 +307,102 @@ interface, such as in the following example::
     
     WxSServiceImplementation = ServiceInterface.implement(WxSService)
 
-Actually, starting with Python 2.6 you can even be more
-concise using the class decorator syntax::
-
-    from eoxserver.services.owscommon import ServiceInterface
-    
-    @ServiceInterface.implement
-    class WxSServiceImplementation(object):
-        
-        def handle(self, req):
-            
-            # ...
-            
-            return response
-
 The call to ``implement()`` ensures validation of the interface and
 produces an implementation class that inherits all the code of the
-implementing class and contains information about the
-interface. This is only the basic functionality of the interface
-implementation process: more is to be revealed in the following
-sections.
+implementing class and contains information about the interface. This is
+only the basic functionality of the interface implementation process:
+more is to be revealed in the following sections.
 
 .. _rfc2_impl_val:
 
 Validation of Implementations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+The validation of implementations is performed in two ways:
+
+* at class creation time
+* at instance method invocation time
+
+Validation at class creation time checks:
+
+* if all methods declared by the interface are implemented
+* if the method arguments of the interface and implementation match
+
+Class creation time validation is performed unconditionally.
+
+Instance method invocation time ("runtime") validation is optional. It
+can be triggered by the ``runtime_validation_level`` setting. There are
+three possible values for this option:
+
+* ``trust``: no runtime validation
+* ``warn``: argument types are checked against interface declaration;
+  in case of mismatch a warning is written to the log file
+* ``fail``: argument types are checked against interface declaration;
+  in case of mismatch an exception is raised
+  
+The ``runtime_validation_level`` option can be set
+
+    * globally (in configuration file)
+    * per interface
+    * per implementation
+
+where stricter settings override weaker ones.
+
+.. note::
+
+  The ``warn`` and ``fail`` levels are intended for use
+  throughout the development process. In a production setting ``trust``
+  should be used.
+
+.. _rfc2_model:
+
+Data Model
+----------
+
+* Registry Model
+
+  * Interfaces
+  * Implementations
+
+* Database Model
+
+  * Implementation
+
+    * Component
+    * ResourceClass
+
+  * Resources
+
+  * Relations
+
+    * ClassRelations
+
+* ComponentManager
+
+  * Configuration Validation
+  * Relation Management
+  * Dependency Management
+  * Conflict Resolution
+
 .. _rfc2_registry:
 
-Registry and Dynamic Binding
-----------------------------
+Registry
+--------
+
 * hooks
 * extension names
 * keys, values
 * naming conventions
+* proxy / persistence layer(s)
 
 ::
 
-    from eoxserver.core.registry import Registry
+    from eoxserver.core.system import System
     
     def dispatch(service_name, req):
     
-        service = Registry.bind(
-            hook = "services.owscommon.ServiceInterface",
+        service = System.getRegistry().bind(
+            intf_id = "services.owscommon.ServiceInterface",
             registry_values = {
                 "services.owscommon.service": service_name
             }
@@ -385,9 +438,12 @@ Registry and Dynamic Binding
 
   * based on subclass and superclass settings
 
-* settings for conflict resolution
-* settings for enabling / disabling
 
+Detection
+---------
+
+Binding
+-------
 
 .. _rfc2_dep_confl:
 
@@ -409,16 +465,6 @@ Dependencies and Conflicts
   * more than on service extension may be applicable see :doc:`rfc3`
 
 * conflict resolution
-
-.. _rfc2_config:
-
-Configuration Data Model and Admin Client Actions
--------------------------------------------------
-
-* enabling and disabling using the admin
-
-  * global settings
-  * settings on a per-resource basis
 
 Voting History
 --------------
