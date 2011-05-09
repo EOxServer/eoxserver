@@ -251,20 +251,24 @@ class EOxSMapServerOperationHandler(EOxSOperationHandler):
         ms_req.ows_req = mapscript.OWSRequest()
         if ms_req.getParamType() == "kvp":
             for key, values in ms_req.getParams().items():
-                if len(values) == 1:
-                    self._setParameter(ms_req, key.lower(), escape(values[0]))
-                else:
-                    c = 0
-                    for value in values: # TODO: hack: append "_<index>" to equally named KVP keys
-                        if c == 0:
-                            new_key = key
-                        else:
-                            new_key = "%s_%d" % (key.lower(), c)
-                        self._setParameter(ms_req, new_key, escape(value))
-                        
-                        c += 1
-                        while "%s_%d" % (key.lower(), c) in ms_req.getParams():
+                try: # first try 'addParameter'
+                    for value in values:
+                        ms_req.ows_req.addParameter(key, value)
+                except AttributeError:
+                    if len(values) == 1:
+                        self._setParameter(ms_req, key.lower(), escape(values[0]))
+                    else:
+                        c = 0
+                        for value in values:
+                            if c == 0:
+                                new_key = key
+                            else:
+                                new_key = "%s_%d" % (key.lower(), c)
+                            self._setParameter(ms_req, new_key, escape(value))
+                            
                             c += 1
+                            while "%s_%d" % (key.lower(), c) in ms_req.getParams():
+                                c += 1
 
             self._setParameter(ms_req, "version", ms_req.getVersion())
         elif ms_req.getParamType() == "xml":
