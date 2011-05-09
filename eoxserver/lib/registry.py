@@ -155,7 +155,7 @@ class EOxSRegistry(object):
         if MatchingClass is None:
             return None
         else:
-            return MatchingClass(EOxSConfig.getConfig(os.path.join(settings.PROJECT_DIR, "conf", "eoxserver.conf"))) # TODO: Hack -> make config singleton
+            return MatchingClass(EOxSConfig.getConfig())
 
     @classmethod
     def getServiceHandler(cls, service):

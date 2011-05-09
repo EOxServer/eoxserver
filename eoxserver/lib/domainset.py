@@ -28,16 +28,14 @@ from osgeo.osr import SpatialReference
 
 import logging
 
-import numpy
 import numpy.linalg
 
 from django.contrib.gis.geos import GEOSGeometry, Polygon, LineString
 
-from eoxserver.lib.exceptions import (
-    EOxSUnknownCRSException, EOxSInvalidAxisLabelException,
+from eoxserver.lib.exceptions import (EOxSInvalidAxisLabelException,
     EOxSInvalidSubsettingException, EOxSInternalError
 )
-from eoxserver.lib.util import getDateTime, getSRIDFromCRSURI
+from eoxserver.lib.util import getDateTime
 
 class EOxSRectifiedGrid(object):
     def __init__(self,
