@@ -1,0 +1,5 @@
+class EOxSException(Exception):
+    pass
+    
+class InternalError(Exception):
+    pass
