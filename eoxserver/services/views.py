@@ -32,10 +32,9 @@ from django.conf import settings
 import os.path
 import logging
 
-from eoxserver.lib.ows import EOxSOWSCommonHandler
-from eoxserver.lib.requests import EOxSOWSRequest
-from eoxserver.lib.config import EOxSConfig, EOxSCoverageConfig
-from eoxserver.lib.registry import EOxSRegistry
+from eoxserver.services.owscommon import OWSCommonHandler
+from eoxserver.services.requests import OWSRequest
+from eoxserver.core.system import System
 
 def ows(request):
     """
@@ -67,15 +66,9 @@ def ows(request):
     else:
         raise Exception("Unsupported request method '%s'" % request.method)
 
-    logging.basicConfig(
-        filename=os.path.join(settings.PROJECT_DIR, 'logs', 'eoxserver.log'),
-        level=logging.DEBUG,
-        format="[%(asctime)s][%(levelname)s] %(message)s"
-    )
-
-    EOxSRegistry.registerAll()
-    config = EOxSConfig.getConfig(os.path.join(settings.PROJECT_DIR, 'conf', 'eoxserver.conf'))
-    handler = EOxSOWSCommonHandler(config)
+    System.startRequest()
+    
+    handler = OWSCommonHandler()
 
     ows_resp = handler.handle(ows_req)
 
