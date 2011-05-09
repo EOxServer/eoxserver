@@ -33,24 +33,68 @@ import logging
 import os.path
 from cgi import escape
 
-from eoxserver.lib.requests import EOxSMapServerRequest, EOxSResponse, EOxSMapServerResponse
-from eoxserver.lib.domainset import EOxSTrim, EOxSSlice
-from eoxserver.lib.util import DOMElementToXML, EOxSXMLEncoder
-from eoxserver.lib.exceptions import (
+from eoxserver.services.requests import OWSRequest, MapServerRequest, Response, MapServerResponse
+from eoxserver.resources.coverages.domainset import EOxSTrim, EOxSSlice
+from eoxserver.core.util.xmltools import DOMElementToXML, EOxSXMLEncoder
+from eoxserver.core.interfaces import 
+from eoxserver.core.registry import RegisteredInterface
+from eoxserver.core.exceptions import InternalError
+from eoxserver.services.exceptions import (
     EOxSInvalidRequestException, EOxSVersionNegotiationException,
-    EOxSInternalError
+    
 )
 
 from eoxserver.contrib import mapscript
 
+class RequestHandlerInterface(RegisteredInterface):
+    REGISTRY_CONF = {
+        "name": "Request Handler Interface",
+        "intf_id": "services.handlers.RequestHandler",
+        "binding_method": "kvp"
+    }
+    
+    handle = Method(
+        ObjectArg("req", arg_class=OWSRequest),
+        returns = ObjectArg("@return", arg_class=Response)
+    )
+
+class ServiceHandlerInterface(RequestHandlerInterface):
+    REGISTRY_CONF = {
+        "name": "Service Handler Interface",
+        "intf_id": "services.handlers.ServiceHandler",
+        "binding_method": "kvp",
+        "registry_keys": (
+            "services.handlers.service"
+        )
+    }
+
+class VersionHandlerInterface(RequestHandlerInterface):
+    REGISTRY_CONF = {
+        "name": "Service Handler Interface",
+        "intf_id": "services.handler.ServiceHandler",
+        "binding_method": "kvp",
+        "registry_keys": (
+            "services.handlers.service",
+            "services.handlers.version"
+        )
+    }
+
+class OperationHandlerInterface(RequestHandlerInterface):
+    REGISTRY_CONF = {
+        "name": "Service Handler Interface",
+        "intf_id": "services.handler.ServiceHandler",
+        "binding_method": "kvp",
+        "registry_keys": (
+            "services.handlers.service",
+            "services.handlers.version",
+            "services.handlers.operation"
+        )
+    }
+
 class EOxSRequestHandler(object):
     """
-    Abstract base class for all EOxServer Handlers.
+    Base class for all EOxServer Handler Implementations.
     """
-    def __init__(self, config):
-        super(EOxSRequestHandler, self).__init__()
-        self.config = config
-    
     def _handleException(self, req, exception):
         """
         Abstract method which must be overridden by child classes to
@@ -98,60 +142,6 @@ class EOxSRequestHandler(object):
             return self._processRequest(req)
         except Exception, e:
             return self._handleException(req, e)
-
-class EOxSServiceHandler(EOxSRequestHandler):
-    """
-    Abstract base class for EOxServer Service Handlers.
-    
-    This class and its subclasses have two class variables that
-    determine which requests the class will handle:<br/>
-    
-    <ul>
-    <li><b>SERVICE:</b> Name of the service to be handled</li>
-    <li><b>ABSTRACT:</b> A boolean indicating whether this is an abstract base class or a concrete instantiation</li>
-    </ul>
-    """
-    
-    SERVICE = ""
-    ABSTRACT = True
-
-class EOxSVersionHandler(EOxSRequestHandler):
-    """
-    Abstract base class for EOxServer Version Handlers.
-    
-    This class and its subclasses have two class variables that
-    determine which requests the class will handle:<br/>
-    
-    <ul>
-    <li><b>SERVICE:</b> Name of the service to be handled</li>
-    <li><b>VERSIONS:</b> A tuple of version strings supported by this handler</li>
-    <li><b>ABSTRACT:</b> A boolean indicating whether this is an abstract base class or a concrete instantiation</li>
-    </ul>
-    """
-    
-    SERVICE = ""
-    VERSIONS = ()
-    ABSTRACT = True
-
-class EOxSOperationHandler(EOxSRequestHandler):
-    """
-    Abstract base class for EOxServer Operation Handlers.
-    
-    This class and its subclasses have four class variables that
-    determine which requests the class will handle:<br/>
-    
-    <ul>
-    <li><b>SERVICE:</b> Name of the service to be handled</li>
-    <li><b>VERSIONS:</b> A tuple of version strings supported by this handler</li>
-    <li><b>OPERATIONS:</b> A tuple of lower case operation names supported by this handler</li>
-    <li><b>ABSTRACT:</b> A boolean indicating whether this is an abstract base class or a concrete instantiation</li>
-    </ul>
-    """
-    
-    SERVICE = ""
-    VERSIONS = ()
-    OPERATIONS = ()
-    ABSTRACT = True
         
 class EOxSMapServerOperationHandler(EOxSOperationHandler):
     """\
