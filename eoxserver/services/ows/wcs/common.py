@@ -27,15 +27,13 @@ import logging
 
 import os.path
 
-from eoxserver.lib.handlers import EOxSMapServerOperationHandler
+from eoxserver.services.mapserver import MapServerOperationHandler
 
 from eoxserver.contrib import mapscript
 
-class EOxSWCSCommonHandler(EOxSMapServerOperationHandler):
-    ABSTRACT = True
-
+class WCSCommonHandler(MapServerOperationHandler):
     def getMapServerLayer(self, coverage, **kwargs):
-        layer = super(EOxSWCSCommonHandler, self).getMapServerLayer(coverage, **kwargs)
+        layer = super(WCSCommonHandler, self).getMapServerLayer(coverage, **kwargs)
         
         layer.type = mapscript.MS_LAYER_RASTER
         layer.dump = mapscript.MS_TRUE

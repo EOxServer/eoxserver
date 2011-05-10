@@ -27,11 +27,12 @@ from osgeo.osr import SpatialReference
 from datetime import datetime
 from xml.dom import minidom
 
-from eoxserver.lib.util import EOxSXMLEncoder, isotime
-from eoxserver.lib.mosaic import EOxSMosaicContribution
+from eoxserver.core.util.xmltools import XMLEncoder
+from eoxserver.core.util.timetools import isotime
+from eoxserver.processing.mosaic import MosaicContribution
 
 
-class EOxSGMLEncoder(EOxSXMLEncoder):
+class GMLEncoder(XMLEncoder):
     def _initializeNamespaces(self):
         return {
             "gml": "http://www.opengis.net/gml/3.2"
@@ -84,9 +85,9 @@ class EOxSGMLEncoder(EOxSXMLEncoder):
             "gml", "MultiSurface", sub_elements
         )
 
-class EOxSEOPEncoder(EOxSGMLEncoder):
+class EOPEncoder(GMLEncoder):
     def _initializeNamespaces(self):
-        ns_dict = super(EOxSEOPEncoder, self)._initializeNamespaces()
+        ns_dict = super(EOPEncoder, self)._initializeNamespaces()
         ns_dict.update({
             "om": "http://www.opengis.net/om/2.0",
             "eop": "http://www.opengis.net/eop/2.0"
@@ -164,7 +165,7 @@ class EOxSEOPEncoder(EOxSGMLEncoder):
             ]
         )
 
-class EOxSCoverageGML10Encoder(EOxSXMLEncoder):
+class CoverageGML10Encoder(XMLEncoder):
     def _initializeNamespaces(self):
         return {
             "gml": "http://www.opengis.net/gml/3.2",
@@ -260,9 +261,9 @@ class EOxSCoverageGML10Encoder(EOxSXMLEncoder):
         ])
 
 
-class EOxSWCS20Encoder(EOxSCoverageGML10Encoder):
+class WCS20Encoder(CoverageGML10Encoder):
     def _initializeNamespaces(self):
-        ns_dict = super(EOxSWCS20Encoder, self)._initializeNamespaces()
+        ns_dict = super(WCS20Encoder, self)._initializeNamespaces()
         ns_dict.update({
             "wcs": "http://www.opengis.net/wcs/2.0",
             "xsi": "http://www.w3.org/2001/XMLSchema-instance"
@@ -290,9 +291,9 @@ class EOxSWCS20Encoder(EOxSCoverageGML10Encoder):
         sub_nodes.extend([(self.encodeCoverageDescription(coverage),) for coverage in coverages])
         return self._makeElement("wcs", "CoverageDescriptions", sub_nodes)
 
-class EOxSWCS20EOAPEncoder(EOxSWCS20Encoder):
+class WCS20EOAPEncoder(WCS20Encoder):
     def _initializeNamespaces(self):
-        ns_dict = super(EOxSWCS20EOAPEncoder, self)._initializeNamespaces()
+        ns_dict = super(WCS20EOAPEncoder, self)._initializeNamespaces()
         ns_dict.update({
             "ows": "http://www.opengis.net/ows/2.0",
             "wcseo": "http://www.opengis.net/wcseo/1.0",
@@ -301,9 +302,9 @@ class EOxSWCS20EOAPEncoder(EOxSWCS20Encoder):
         return ns_dict
     
     def encodeContributingDatasets(self, coverage, poly=None):
-        eop_encoder = EOxSEOPEncoder()
+        eop_encoder = EOPEncoder()
         
-        contributions = EOxSMosaicContribution.getContributions(coverage, poly)
+        contributions = MosaicContribution.getContributions(coverage, poly)
         
         return [
             (self._makeElement(
@@ -320,7 +321,7 @@ class EOxSWCS20EOAPEncoder(EOxSWCS20Encoder):
             dom = minidom.parseString(coverage.getEOGML())
             earth_observation = dom.documentElement
         else:
-            eop_encoder = EOxSEOPEncoder()
+            eop_encoder = EOPEncoder()
             earth_observation = eop_encoder.encodeEarthObservation(coverage)
         
         if req is None:
