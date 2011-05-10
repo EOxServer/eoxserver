@@ -35,10 +35,9 @@ from cgi import escape
 
 from eoxserver.services.requests import OWSRequest, MapServerRequest, Response, MapServerResponse
 from eoxserver.resources.coverages.domainset import EOxSTrim, EOxSSlice
-from eoxserver.core.util.xmltools import DOMElementToXML, EOxSXMLEncoder
-from eoxserver.core.interfaces import 
-from eoxserver.core.registry import RegisteredInterface
-from eoxserver.core.exceptions import InternalError
+
+
+
 from eoxserver.services.exceptions import (
     EOxSInvalidRequestException, EOxSVersionNegotiationException,
     
@@ -46,102 +45,9 @@ from eoxserver.services.exceptions import (
 
 from eoxserver.contrib import mapscript
 
-class RequestHandlerInterface(RegisteredInterface):
-    REGISTRY_CONF = {
-        "name": "Request Handler Interface",
-        "intf_id": "services.handlers.RequestHandler",
-        "binding_method": "kvp"
-    }
-    
-    handle = Method(
-        ObjectArg("req", arg_class=OWSRequest),
-        returns = ObjectArg("@return", arg_class=Response)
-    )
 
-class ServiceHandlerInterface(RequestHandlerInterface):
-    REGISTRY_CONF = {
-        "name": "Service Handler Interface",
-        "intf_id": "services.handlers.ServiceHandler",
-        "binding_method": "kvp",
-        "registry_keys": (
-            "services.handlers.service"
-        )
-    }
 
-class VersionHandlerInterface(RequestHandlerInterface):
-    REGISTRY_CONF = {
-        "name": "Service Handler Interface",
-        "intf_id": "services.handler.ServiceHandler",
-        "binding_method": "kvp",
-        "registry_keys": (
-            "services.handlers.service",
-            "services.handlers.version"
-        )
-    }
 
-class OperationHandlerInterface(RequestHandlerInterface):
-    REGISTRY_CONF = {
-        "name": "Service Handler Interface",
-        "intf_id": "services.handler.ServiceHandler",
-        "binding_method": "kvp",
-        "registry_keys": (
-            "services.handlers.service",
-            "services.handlers.version",
-            "services.handlers.operation"
-        )
-    }
-
-class EOxSRequestHandler(object):
-    """
-    Base class for all EOxServer Handler Implementations.
-    """
-    def _handleException(self, req, exception):
-        """
-        Abstract method which must be overridden by child classes to
-        provide specific exception reports. If the exception report
-        cannot be generated in this specific handler, the exception
-        should be re-raised. This is also the default behaviour.
-        
-        @param  req     The {@link eoxserver.lib.requests.EOxSOWSRequest}
-                        object that was being processed when the
-                        exception was raised
-        @param  exception The <tt>Exception</tt> raised by the request
-                        handling method
-        @return         An {@link eoxserver.lib.requests.EOxSResponse}
-                        object containing an exception report
-        """
-        raise
-    
-    def _processRequest(self, req):
-        """
-        Abstract method which must be overridden to provide the specific
-        request handling logic. Should not be invoked from external code,
-        use the {@link #handle handle} method instead.
-        
-        @param  req An {@link eoxserver.lib.requests.EOxSOWSRequest} object
-                    containing the request parameters
-        
-        @return     An {@link eoxserver.lib.requests.EOxSResponse} object
-                    containing the response content, headers and status
-        """
-        pass
-
-    def handle(self, req):
-        """
-        Basic request handling method which should be invoked from
-        external code.
-        
-        @param  req An {@link eoxserver.lib.requests.EOxSOWSRequest} object
-                    containing the request parameters
-        
-        @return     An {@link eoxserver.lib.requests.EOxSResponse} object
-                    containing the response content, headers and status
-        """
-
-        try:
-            return self._processRequest(req)
-        except Exception, e:
-            return self._handleException(req, e)
         
 class EOxSMapServerOperationHandler(EOxSOperationHandler):
     """\
@@ -376,49 +282,3 @@ class EOxSMapServerOperationHandler(EOxSOperationHandler):
     def postprocessFault(self, ms_req, resp):
         return resp
 
-class EOxSExceptionHandler(object):
-    def _filterExceptions(self, exception):
-        raise
-    
-    def _getEncoder(self):
-        raise EOxSInternalError("Not implemented.")
-    
-    def _getExceptionReport(self, req, exception, encoder):
-        if isinstance(exception, EOxSVersionNegotiationException):
-            return DOMElementToXML(encoder.encodeVersionNegotiationException(exception))
-        elif isinstance(exception, EOxSInvalidRequestException):
-            return DOMElementToXML(encoder.encodeInvalidRequestException(exception))
-        
-    def _getHTTPStatus(self, exception):
-        return 400
-        
-    def _logError(self, req, exception):
-        logging.error(str(req.getParams()))
-        logging.error(str(exception))
-        
-    def _getContentType(self, exception):
-        raise EOxSInternalError("Not implemented.")
-    
-    def handleException(self, req, exception):
-        self._filterExceptions(exception)
-        
-        encoder = self._getEncoder()
-        
-        content = self._getExceptionReport(req, exception, encoder)
-        status = self._getHTTPStatus(exception)
-        
-        self._logError(req, exception)
-        
-        return EOxSResponse(
-            content = content,
-            content_type = self._getContentType(exception),
-            headers = {},
-            status = status
-        )
-
-class EOxSExceptionEncoder(EOxSXMLEncoder):
-    def encodeInvalidRequestException(self, exception):
-        pass
-    
-    def encodeVersionNegotiationException(self, exception):
-        pass
