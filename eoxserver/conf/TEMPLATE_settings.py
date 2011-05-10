@@ -125,9 +125,11 @@ INSTALLED_APPS = (
 #    'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.gis',
-    'eoxserver.server',
     # Enable the admin:
     'django.contrib.admin',
     'django.contrib.databrowse',
     'django_extensions',
+    'eoxserver.core',
+    'eoxserver.resources.coverages',
+    'eoxserver.testing',
 )
