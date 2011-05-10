@@ -1,0 +1,109 @@
+#-----------------------------------------------------------------------
+# $Id$
+#
+# This software is named EOxServer, a server for Earth Observation data.
+#
+# Copyright (C) 2011 EOX IT Services GmbH
+# Authors: Stephan Krause, Stephan Meissl
+#
+# This file is part of EOxServer <http://www.eoxserver.org>.
+#
+#    EOxServer is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published
+#    by the Free Software Foundation, either version 3 of the License,
+#    or (at your option) any later version.
+#
+#    EOxServer is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with EOxServer. If not, see <http://www.gnu.org/licenses/>.
+#
+#-----------------------------------------------------------------------
+
+from eoxserver.core.interfaces import *
+from eoxserver.core.registry import RegisteredInterface
+from eoxserver.core.owscommon.requests import OWSRequest, Response
+
+class RequestHandlerInterface(RegisteredInterface):
+    REGISTRY_CONF = {
+        "name": "Request Handler Interface",
+        "intf_id": "services.handlers.RequestHandler",
+        "binding_method": "kvp"
+    }
+    
+    handle = Method(
+        ObjectArg("req", arg_class=OWSRequest),
+        returns = ObjectArg("@return", arg_class=Response)
+    )
+
+class ServiceHandlerInterface(RequestHandlerInterface):
+    REGISTRY_CONF = {
+        "name": "Service Handler Interface",
+        "intf_id": "services.handlers.ServiceHandler",
+        "binding_method": "kvp",
+        "registry_keys": (
+            "services.handlers.service"
+        )
+    }
+
+class VersionHandlerInterface(RequestHandlerInterface):
+    REGISTRY_CONF = {
+        "name": "Service Handler Interface",
+        "intf_id": "services.handler.ServiceHandler",
+        "binding_method": "kvp",
+        "registry_keys": (
+            "services.handlers.service",
+            "services.handlers.version"
+        )
+    }
+
+class OperationHandlerInterface(RequestHandlerInterface):
+    REGISTRY_CONF = {
+        "name": "Service Handler Interface",
+        "intf_id": "services.handler.ServiceHandler",
+        "binding_method": "kvp",
+        "registry_keys": (
+            "services.handlers.service",
+            "services.handlers.version",
+            "services.handlers.operation"
+        )
+    }
+
+class ExceptionHandlerInterface(RegisteredInterface):
+    REGISTRY_CONF = {
+        "name": "Exception Handler Interface",
+        "intf_id": "services.handlers.ExceptionHandler",
+        "binding_method": "kvp",
+        "registry_keys": (
+            "services.handlers.exception_scheme",
+        )
+    }
+    
+    handleException = Method(
+        ObjectArg("req", arg_class=OWSRequest),
+        ObjectArg("exception", arg_class=Exception),
+        returns = ObjectArg("@return", arg_class=Response)
+    )
+
+class OWSExceptionEncoderInterface(RegisteredInterface):
+    REGISTRY_CONF = {
+        "name": "OWS Exception Report XML Encoder Interface",
+        "intf_id": "services.handler.OWSExceptionEncoder",
+        "binding_method": "kvp",
+        "registry_keys": (
+            "services.handlers.exception_scheme",
+        )
+    }
+    
+    encodeInvalidRequestException = Method(
+        ObjectArg("exception", arg_class=Exception),
+        returns = StringArg("@return")
+    )
+    
+    encodeVersionNegotiationException = Method(
+        ObjectArg("exception", arg_class=Exception),
+        returns = StringArg("@return")
+    )
