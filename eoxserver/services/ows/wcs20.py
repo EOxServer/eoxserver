@@ -33,31 +33,46 @@ from django.contrib.gis.geos import Polygon
 
 import logging
 
-from eoxserver.lib.config import EOxSCoverageConfig, EOxSConfig
-from eoxserver.lib.handlers import EOxSOperationHandler
-from eoxserver.lib.domainset import EOxSTrim, EOxSSlice, EOxSRectifiedGrid
-from eoxserver.lib.requests import EOxSResponse
-from eoxserver.lib.interfaces import EOxSCoverageInterfaceFactory, EOxSDatasetSeriesFactory
-from eoxserver.lib.ows import EOxSOWSCommonVersionHandler, EOxSOWSCommonExceptionHandler
-from eoxserver.lib.util import DOMtoXML, DOMElementToXML, getDateTime, getSRIDFromCRSURI
-from eoxserver.lib.exceptions import (EOxSInternalError,
-    EOxSInvalidRequestException, EOxSNoSuchCoverageException,
-    EOxSNoSuchDatasetSeriesException, EOxSUnknownParameterFormatException,
-    EOxSInvalidAxisLabelException, EOxSInvalidSubsettingException,
-    EOxSUnknownCRSException
+from eoxserver.core.system import System
+from eoxserver.core.exceptions import( 
+    InternalErrorUnknown, CRSException, UnknownParameterFormatException
 )
-from eoxserver.modules.wcs.common import EOxSWCSCommonHandler
-from eoxserver.modules.wcs.encoders import EOxSWCS20Encoder, EOxSWCS20EOAPEncoder
+from eoxserver.core.util.xmltools import DOMtoXML, DOMElementToXML
+from eoxserver.core.util.timetools import getDateTime
+from eoxserver.core.util.geotools import getSRIDFromCRSURI
+from eoxserver.resources.coverages.domainset import Trim, Slice, RectifiedGrid
+from eoxserver.resources.exceptions import (
+    NoSuchCoverageException, NoSuchDatasetSeriesException
+)
+from eoxserver.lib.interfaces import EOxSCoverageInterfaceFactory, EOxSDatasetSeriesFactory # TODO: correct imports
+from eoxserver.services.interfaces import (
+    VersionHandlerInterface, OperationHandlerInterface
+)
+from eoxserver.services.requests import Response
+from eoxserver.services.owscommon import (
+    OWSCommonVersionHandler, OWSCommonExceptionHandler
+)
+from eoxserver.services.exceptions import (
+    InvalidRequestException, InvalidAxisLabelException,
+    InvalidSubsettingException
+)
+from eoxserver.services.ows.wcs.common import WCSCommonHandler
+from eoxserver.services.ows.wcs.encoders import WCS20Encoder, WCS20EOAPEncoder
 
 from eoxserver.contrib import mapscript
 
-class EOxSWCS20VersionHandler(EOxSOWSCommonVersionHandler):
-    SERVICE = "WCS"
-    VERSIONS = ("2.0.0",)
-    ABSTRACT = False
-
+class WCS20VersionHandler(OWSCommonVersionHandler):
+    REGISTRY_CONF = {
+        "name": "WCS 2.0 Version Handler",
+        "impl_id": "services.ows.wcs20.WCS20VersionHandler",
+        "registry_values": {
+            "services.interfaces.service": "wcs",
+            "services.interfaces.version": "2.0.0"
+        }
+    }
+    
     def _handleException(self, req, exception):
-        handler = EOxSOWSCommonExceptionHandler()
+        handler = OWSCommonExceptionHandler()
         
         handler.setHTTPStatusCodes({
                 "NoSuchCoverage": 404,
@@ -67,11 +82,18 @@ class EOxSWCS20VersionHandler(EOxSOWSCommonVersionHandler):
         
         return handler.handleException(req, exception)
 
-class EOxSWCS20GetCapabilitiesHandler(EOxSWCSCommonHandler):
-    SERVICE = "WCS"
-    VERSIONS = ("2.0.0",)
-    OPERATIONS = ("getcapabilities",)
-    ABSTRACT = False
+WCS20VersionHandlerImplementation = VersionHandlerInterface.implement(WCS20VersionHandler)
+
+class WCS20GetCapabilitiesHandler(WCSCommonHandler):
+    REGISTRY_CONF = {
+        "name": "WCS 2.0 GetCapabilities Handler",
+        "impl_id": "services.ows.wcs20.WCS20GetCapabilitiesHandler",
+        "registry_values": {
+            "servives.interfaces.service": "wcs",
+            "services.interfaces.version": "2.0.0",
+            "services.interfaces.operation": "getcapabilities"
+        }
+    }
     
     PARAM_SCHEMA = {
         "service": {"xml_location": "/@ows:service", "xml_type": "string", "kvp_key": "service", "kvp_type": "string"},
@@ -96,12 +118,12 @@ class EOxSWCS20GetCapabilitiesHandler(EOxSWCSCommonHandler):
         ms_req.coverages = EOxSCoverageInterfaceFactory.getVisibleCoverageInterfaces()
             
     def getMapServerLayer(self, coverage, **kwargs):
-        layer = super(EOxSWCS20GetCapabilitiesHandler, self).getMapServerLayer(coverage, **kwargs)
+        layer = super(WCS20GetCapabilitiesHandler, self).getMapServerLayer(coverage, **kwargs)
         
         datasets = coverage.getDatasets(**kwargs)
         
         if len(datasets) == 0:
-            raise EOxSInternalError("Misconfigured coverage '%s' has no file data." % coverage.getCoverageId())
+            raise InternalError("Misconfigured coverage '%s' has no file data." % coverage.getCoverageId())
         else:
             layer.data = os.path.abspath(datasets[0].getFilename()) # we just need an arbitrary file here
         
@@ -110,7 +132,7 @@ class EOxSWCS20GetCapabilitiesHandler(EOxSWCSCommonHandler):
     def postprocess(self, ms_req, resp):
         dom = minidom.parseString(resp.content)
         
-        encoder = EOxSWCS20EOAPEncoder()
+        encoder = WCS20EOAPEncoder()
 
         svc_identification = dom.getElementsByTagName("ows:ServiceIdentification").item(0)
         
@@ -169,11 +191,18 @@ class EOxSWCS20GetCapabilitiesHandler(EOxSWCSCommonHandler):
         
         return resp
 
-class EOxSWCS20DescribeCoverageHandler(EOxSOperationHandler):
-    SERVICE = "WCS"
-    VERSIONS = ("2.0.0",)
-    OPERATIONS = ("describecoverage",)
-    ABSTRACT = False
+WCS20GetCapabilitiesHandlerImplementation = OperationHandlerInterface.implement(WCS20GetCapabilitiesHandler)
+
+class WCS20DescribeCoverageHandler(BaseRequestHandler):
+    REGISTRY_CONF = {
+        "name": "WCS 2.0 DescribeCoverage Handler",
+        "impl_id": "services.ows.wcs20.WCS20DescribeCoverageHandler",
+        "registry_values": {
+            "services.interfaces.service": "wcs",
+            "services.interfaces.version": "2.0.0",
+            "services.interfaces.operation": "describecoverage"
+        }
+    }
     
     PARAM_SCHEMA = {
         "service": {"xml_location": "/@ows:service", "xml_type": "string", "kvp_key": "service", "kvp_type": "string"},
@@ -182,14 +211,14 @@ class EOxSWCS20DescribeCoverageHandler(EOxSOperationHandler):
         "coverageids": {"xml_location": "/wcs:CoverageId", "xml_type": "string[]", "kvp_key": "coverageid", "kvp_type": "stringlist"}
     }
     
-    def handle(self, req):
+    def _processRequest(self, req):
         req.setSchema(self.PARAM_SCHEMA)
 
         self.createCoverages(req)
         
-        encoder = EOxSWCS20EOAPEncoder()
+        encoder = WCS20EOAPEncoder()
         
-        return EOxSResponse(
+        return Response(
             content=DOMElementToXML(encoder.encodeCoverageDescriptions(req.coverages, True)), # TODO: Distinguish between encodeEOCoverageDescriptions and encodeCoverageDescription?
             content_type="text/xml",
             status=200
@@ -199,19 +228,26 @@ class EOxSWCS20DescribeCoverageHandler(EOxSOperationHandler):
         coverage_ids = req.getParamValue("coverageids")
         
         if coverage_ids is None:
-            raise EOxSInvalidRequestException("Missing 'coverageid' parameter.", "MissingParameterValue", "coverageid")
+            raise InvalidRequestException("Missing 'coverageid' parameter.", "MissingParameterValue", "coverageid")
         else:
             for coverage_id in coverage_ids:
                 try:
                     req.coverages.append(EOxSCoverageInterfaceFactory.getCoverageInterface(coverage_id))
-                except EOxSNoSuchCoverageException, e:
-                    raise EOxSInvalidRequestException(e.msg, "NoSuchCoverage", coverage_id)
+                except NoSuchCoverageException, e:
+                    raise InvalidRequestException(e.msg, "NoSuchCoverage", coverage_id)
 
-class EOxSWCS20DescribeEOCoverageSetHandler(EOxSOperationHandler):
-    SERVICE = "WCS"
-    VERSIONS = ("2.0.0",)
-    OPERATIONS = ("describeeocoverageset",)
-    ABSTRACT = False
+WCS20DescribeCoverageHandlerImplementation = OperationHandlerInterface.implement(WCS20DescribeCoverageHandler)
+
+class WCS20DescribeEOCoverageSetHandler(BaseRequestHandler):
+    REGISTRY_CONF = {
+        "name": "WCS 2.0 EO-AP DescribeEOCoverageSet Handler",
+        "impl_id": "services.ows.wcs20.WCS20DescribeEOCoverageSetHandler",
+        "registry_values": {
+            "services.interfaces.service": "wcs",
+            "services.interfaces.version": "2.0.0",
+            "services.interfaces.operation": "describeeocoverageset"
+        }
+    }
 
     PARAM_SCHEMA = {
         "service": {"xml_location": "/@ows:service", "xml_type": "string", "kvp_key": "service", "kvp_type": "string"},
@@ -224,17 +260,17 @@ class EOxSWCS20DescribeEOCoverageSetHandler(EOxSOperationHandler):
         "count": {"xml_location": "/@count", "xml_type": "string", "kvp_key": "count", "kvp_type": "string"} #TODO: kvp location
     }
 
-    def handle(self, req):
+    def _processRequest(self, req):
         req.setSchema(self.PARAM_SCHEMA)
         
         wcseo_objects = self.createWCSEOObject(req)
         
         try:
-            slices, trims = EOxSWCS20Utils.getSubsetting(req)
-        except EOxSUnknownParameterFormatException, e:
-            raise EOxSInvalidRequestException(e.msg, "InvalidSubsetting", "subset")
-        except EOxSInvalidSubsettingException, e:
-            raise EOxSInvalidRequestException(e.msg, "InvalidSubsetting", "subset")
+            slices, trims = WCS20Utils.getSubsetting(req)
+        except UnknownParameterFormatException, e:
+            raise InvalidRequestException(e.msg, "InvalidSubsetting", "subset")
+        except InvalidSubsettingException, e:
+            raise InvalidRequestException(e.msg, "InvalidSubsetting", "subset")
         
         coverages = []
         dataset_series = []
@@ -243,7 +279,7 @@ class EOxSWCS20DescribeEOCoverageSetHandler(EOxSOperationHandler):
         if containment is None:
             containment = "overlaps"
         elif containment.lower() not in ("overlaps", "contains"):
-            raise EOxSInvalidRequestException("'containment' parameter must be either 'overlaps' or 'contains'", "InvalidParameterValue", "containment")
+            raise InvalidRequestException("'containment' parameter must be either 'overlaps' or 'contains'", "InvalidParameterValue", "containment")
         
         for wcseo_object in wcseo_objects:
             for slice in slices:
@@ -259,10 +295,10 @@ class EOxSWCS20DescribeEOCoverageSetHandler(EOxSOperationHandler):
             if wcseo_object.getType() in ("eo.rect_dataset_series", "eo.rect_mosaic"):
                 try:
                     coverages.extend(wcseo_object.getDatasets(containment=containment.lower(), slices=slices, trims=trims))
-                except EOxSUnknownCRSException, e:
-                    raise EOxSInvalidRequestException(e.msg, "NoApplicableCode", None)
-                except EOxSInvalidAxisLabelException, e:
-                    raise EOxSInvalidRequestException(e.msg, "InvalidAxisLabel", None)
+                except UnknownCRSException, e:
+                    raise InvalidRequestException(e.msg, "NoApplicableCode", None)
+                except InvalidAxisLabelException, e:
+                    raise InvalidRequestException(e.msg, "InvalidAxisLabel", None)
 
         # TODO: find out config value 'count'
         # subset returned dataset series/coverages to min(count from config, count from req)
@@ -271,7 +307,7 @@ class EOxSWCS20DescribeEOCoverageSetHandler(EOxSOperationHandler):
         if req.getParamValue("count") is not None:
             count_req = int(req.getParamValue("count"))
         
-        count_default = EOxSConfig.getConfig().paging_count_default
+        count_default = WCS20ConfigReader().getPagingCountDefault()
         count_used = min(count_req, count_default)
         
         count_all_coverages = len(coverages)
@@ -280,9 +316,9 @@ class EOxSWCS20DescribeEOCoverageSetHandler(EOxSOperationHandler):
         else:
             count_used = count_all_coverages
  
-        encoder = EOxSWCS20EOAPEncoder()
+        encoder = WCS20EOAPEncoder()
         
-        return EOxSResponse(
+        return Response(
             content=DOMElementToXML(encoder.encodeEOCoverageSetDescription(dataset_series, coverages, count_all_coverages, count_used)), #TODO: Invoke with all datasetseries and EOCoverage elements.
             content_type="text/xml",
             status=200
@@ -292,22 +328,22 @@ class EOxSWCS20DescribeEOCoverageSetHandler(EOxSOperationHandler):
         eo_ids = req.getParamValue("eoid")
             
         if eo_ids is None:
-            raise EOxSInvalidRequestException("Missing 'eoid' parameter", "MissingParameterValue", "eoid")
+            raise InvalidRequestException("Missing 'eoid' parameter", "MissingParameterValue", "eoid")
         else:
             wcseo_objects = []
             for eo_id in eo_ids:
                 try:
                     wcseo_objects.append(EOxSDatasetSeriesFactory.getDatasetSeriesInterface(eo_id))
-                except EOxSNoSuchDatasetSeriesException:
+                except NoSuchDatasetSeriesException:
                     pass
                 
                 try:
                     wcseo_objects.append(EOxSCoverageInterfaceFactory.getCoverageInterfaceByEOID(eo_id))
-                except EOxSNoSuchCoverageException:
+                except NoSuchCoverageException:
                     pass
                 
                 if len(wcseo_objects) == 0:
-                    raise EOxSInvalidRequestException("No coverage or dataset series with EO ID '%s' found" % eo_id, "NoSuchCoverage", "eoid")
+                    raise InvalidRequestException("No coverage or dataset series with EO ID '%s' found" % eo_id, "NoSuchCoverage", "eoid")
             return wcseo_objects
     
     def validateSlice(self, slice, wcseo_object):
@@ -316,10 +352,10 @@ class EOxSWCS20DescribeEOCoverageSetHandler(EOxSOperationHandler):
                 slice.validate(wcseo_object.getGrid())
             else:
                 slice.validate()
-        except EOxSInvalidAxisLabelException, e:
-            raise EOxSInvalidRequestException(e.msg, "InvalidAxisLabel", "subset")
-        except EOxSInvalidSubsettingException, e:
-            raise EOxSInvalidRequestException(e.msg, "InvalidSubsetting", "subset")
+        except InvalidAxisLabelException, e:
+            raise InvalidRequestException(e.msg, "InvalidAxisLabel", "subset")
+        except InvalidSubsettingException, e:
+            raise InvalidRequestException(e.msg, "InvalidSubsetting", "subset")
 
     def validateTrim(self, trim, wcseo_object):
         try:
@@ -327,18 +363,24 @@ class EOxSWCS20DescribeEOCoverageSetHandler(EOxSOperationHandler):
                 trim.validate(wcseo_object.getGrid())
             else:
                 trim.validate()
-        except EOxSInvalidAxisLabelException, e:
-            raise EOxSInvalidRequestException(e.msg, "InvalidAxisLabel", "subset")
-        except EOxSInvalidSubsettingException, e:
-            raise EOxSInvalidRequestException(e.msg, "InvalidSubsetting", "subset")
+        except InvalidAxisLabelException, e:
+            raise InvalidRequestException(e.msg, "InvalidAxisLabel", "subset")
+        except InvalidSubsettingException, e:
+            raise InvalidRequestException(e.msg, "InvalidSubsetting", "subset")
 
+WCS20DescribeEOCoverageSetHandlerImplementation = OperationHandlerInterface.implement(WCS20DescribeEOCoverageSetHandler)
 
-class EOxSWCS20GetCoverageHandler(EOxSWCSCommonHandler):
+class WCS20GetCoverageHandler(WCSCommonHandler):
     # TODO: override createCoverages, configureRequest, configureMapObj
-    SERVICE = "WCS"
-    VERSIONS = ("2.0.0",)
-    OPERATIONS = ("getcoverage",)
-    ABSTRACT = False
+    REGISTRY_CONF = {
+        "name": "WCS 2.0 GetCoverage Handler",
+        "impl_id": "services.ows.wcs20.WCS20GetCoverageHandler",
+        "registry_values": {
+            "services.interfaces.service": "wcs",
+            "services.interfaces.version": "2.0.0",
+            "services.interfaces.operation": "getcoverage"
+        }
+    }
 
     PARAM_SCHEMA = {
         "service": {"xml_location": "/@ows:service", "xml_type": "string", "kvp_key": "service", "kvp_type": "string"},
@@ -355,21 +397,21 @@ class EOxSWCS20GetCoverageHandler(EOxSWCSCommonHandler):
         coverage_id = ms_req.getParamValue("coverageid")
             
         if coverage_id is None:
-            raise EOxSInvalidRequestException("Missing 'coverageid' parameter", "MissingParameterValue", "coverageid")
+            raise InvalidRequestException("Missing 'coverageid' parameter", "MissingParameterValue", "coverageid")
         else:
             try:
                 ms_req.coverages.append(EOxSCoverageInterfaceFactory.getCoverageInterface(coverage_id))
-            except EOxSNoSuchCoverageException, e:
-                raise EOxSInvalidRequestException(e.msg, "NoSuchCoverage", coverage_id)
+            except NoSuchCoverageException, e:
+                raise InvalidRequestException(e.msg, "NoSuchCoverage", coverage_id)
 
     def _setParameter(self, ms_req, key, value):
         if key.lower() == "format" and len(ms_req.coverages[0].getRangeType()) > 3: # TODO
-            super(EOxSWCS20GetCoverageHandler, self)._setParameter(ms_req, "format", "GTiff16")
+            super(WCS20GetCoverageHandler, self)._setParameter(ms_req, "format", "GTiff16")
         else:
-            super(EOxSWCS20GetCoverageHandler, self)._setParameter(ms_req, key, value)
+            super(WCS20GetCoverageHandler, self)._setParameter(ms_req, key, value)
     
     def configureMapObj(self, ms_req):
-        super(EOxSWCS20GetCoverageHandler, self).configureMapObj(ms_req)
+        super(WCS20GetCoverageHandler, self).configureMapObj(ms_req)
         
         if len(ms_req.coverages[0].getRangeType()) > 3: # TODO see eoxserver.org ticket #3
             output_format = mapscript.outputFormatObj("GDAL/GTiff", "GTiff16")
@@ -380,29 +422,29 @@ class EOxSWCS20GetCoverageHandler(EOxSWCSCommonHandler):
             ms_req.map.appendOutputFormat(output_format)
             ms_req.map.setOutputFormat(output_format)
             
-            logging.debug("EOxSWCS20GetCoverageHandler.configureMapObj: %s" % ms_req.map.imagetype)
+            logging.debug("WCS20GetCoverageHandler.configureMapObj: %s" % ms_req.map.imagetype)
 
     def addLayers(self, ms_req):
-        slices, trims = EOxSWCS20Utils.getSubsetting(ms_req)
+        slices, trims = WCS20Utils.getSubsetting(ms_req)
 
         for coverage in ms_req.coverages:
             ms_req.map.insertLayer(self.getMapServerLayer(coverage, slices=slices, trims=trims))
 
     def getMapServerLayer(self, coverage, **kwargs):
-        layer = super(EOxSWCS20GetCoverageHandler, self).getMapServerLayer(coverage, **kwargs)
+        layer = super(WCS20GetCoverageHandler, self).getMapServerLayer(coverage, **kwargs)
         
         if coverage.getType() in ("file", "eo.rect_dataset"):
 
             datasets = coverage.getDatasets()
             
             if len(datasets) == 0:
-                raise EOxSInvalidRequestException("Image extent does not intersect with desired region.", "ExtentError", "extent") # TODO: check if this is the right exception report
+                raise InvalidRequestException("Image extent does not intersect with desired region.", "ExtentError", "extent") # TODO: check if this is the right exception report
             elif len(datasets) == 1:
                 layer.data = os.path.abspath(datasets[0].getFilename())
                 #TODO: set layer metadata
                 
             else:
-                raise EOxSInternalError("A single file or EO dataset should never return more than one dataset.")
+                raise InternalError("A single file or EO dataset should never return more than one dataset.")
                 
             #layer.setMetaData("wcs_bandcount", str(len(coverage.getRangeType())))
             
@@ -468,7 +510,7 @@ class EOxSWCS20GetCoverageHandler(EOxSWCSCommonHandler):
             rectified_grid_coverage = dom.getElementsByTagName("gmlcov:RectifiedGridCoverage").item(0)
             
             if rectified_grid_coverage is not None:
-                encoder = EOxSWCS20EOAPEncoder()
+                encoder = WCS20EOAPEncoder()
                 
                 if ms_req.coverages[0].getType() == "eo.rect_dataset":
                     resp_xml = encoder.encodeRectifiedDataset(
@@ -477,10 +519,10 @@ class EOxSWCS20GetCoverageHandler(EOxSWCSCommonHandler):
                         nodes = rectified_grid_coverage.childNodes
                     )
                 elif ms_req.coverages[0].getType() == "eo.rect_mosaic":
-                    slices, trims = EOxSWCS20Utils.getSubsetting(ms_req)
+                    slices, trims = WCS20Utils.getSubsetting(ms_req)
 
                     if len(trims) > 0:
-                        poly = EOxSWCS20Utils.getPolygon(trims,
+                        poly = WCS20Utils.getPolygon(trims,
                                                          ms_req.coverages[0].getFootprint(),
                                                          ms_req.coverages[0].getGrid())
                     else:
@@ -499,7 +541,9 @@ class EOxSWCS20GetCoverageHandler(EOxSWCSCommonHandler):
 
         return resp
 
-class EOxSWCS20Utils(object):
+WCS20GetCoverageHandlerImplementation = OperationHandlerInterface.implement(WCS20GetCoverageHandler)
+
+class WCS20Utils(object):
     @classmethod
     def _getSubsettingKVP(cls, req):
         #extract slicing and trimming parameters
@@ -511,18 +555,18 @@ class EOxSWCS20Utils(object):
                 for value in values:
                     match = re.match(r'(\w+)(,([^(]+))?\(([^,]*)(,([^)]*))?\)', value)
                     if match is None:
-                        raise EOxSInvalidRequestException("Invalid subsetting operation '%s=%s'" % (key, value), "InvalidSubsetting", key)
+                        raise InvalidRequestException("Invalid subsetting operation '%s=%s'" % (key, value), "InvalidSubsetting", key)
                     else:
                         dimension = match.group(1)
                         crs = match.group(3)
                         if match.group(6) is not None:
-                            trim = EOxSTrim(dimension, crs, match.group(4), match.group(6))
+                            trim = Trim(dimension, crs, match.group(4), match.group(6))
                             trims.append(trim)
-                            logging.debug("EOxSWCS20Utils.getSubsetting: trim: dimension: %s; crs: %s; low: %s; high: %s" % (dimension, str(crs), match.group(4), match.group(6)))
+                            logging.debug("WCS20Utils.getSubsetting: trim: dimension: %s; crs: %s; low: %s; high: %s" % (dimension, str(crs), match.group(4), match.group(6)))
                         else:
-                            slice = EOxSSlice(dimension, crs, match.group(4))
+                            slice = Slice(dimension, crs, match.group(4))
                             slices.append(slice)
-                            logging.debug("EOxSWCS20Utils.getSubsetting: slice: dimension: %s; crs: %s; slicePoint: %s" % (dimension, str(crs), match.group(4)))
+                            logging.debug("WCS20Utils.getSubsetting: slice: dimension: %s; crs: %s; slicePoint: %s" % (dimension, str(crs), match.group(4)))
 
         return (slices, trims)
     
@@ -535,7 +579,7 @@ class EOxSWCS20Utils(object):
         trims = []
         
         for slice_element in slice_elements:
-            slice = EOxSSlice(
+            slice = Slice(
                 dimension=slice_element.getElementsByTagName("wcs:Dimension")[0].firstChild.data,
                 crs=None,
                 slice_point=slice_element.getElementsByTagName("wcs:SlicePoint")[0].firstChild.data
@@ -543,7 +587,7 @@ class EOxSWCS20Utils(object):
             slices.append(slice)
             
         for trim_element in trim_elements:
-            trim = EOxSTrim(
+            trim = Trim(
                 dimension=trim_element.getElementsByTagName("wcs:Dimension")[0].firstChild.data,
                 crs=None,
                 trim_low=trim_element.getElementsByTagName("wcs:TrimLow")[0].firstChild.data,
@@ -566,7 +610,7 @@ class EOxSWCS20Utils(object):
         
         for trim in trims[1:]:
             if trim.crs != crs:
-                raise EOxSInvalidRequestException("All subsets must be expressed in the same CRS.")
+                raise InvalidRequestException("All subsets must be expressed in the same CRS.")
         
         if crs is not None:
             srid = getSRIDFromCRSURI(crs)
@@ -613,7 +657,7 @@ class EOxSWCS20Utils(object):
         else: # if no CRS is given, imageCRS is assumed
             srid = footprint.srid
             
-            imageCRSgrid = EOxSRectifiedGrid(dim=grid.dim, spatial_dim=grid.spatial_dim,low=grid.low,high=grid.high,axis_labels=grid.axis_labels,srid=grid.srid,origin=grid.origin,offsets=grid.offsets)
+            imageCRSgrid = RectifiedGrid(dim=grid.dim, spatial_dim=grid.spatial_dim,low=grid.low,high=grid.high,axis_labels=grid.axis_labels,srid=grid.srid,origin=grid.origin,offsets=grid.offsets)
             
             for trim in trims:
                 if trim.dimension in ("x", "long"):
@@ -632,3 +676,15 @@ class EOxSWCS20Utils(object):
             
         return poly
 
+class WCS20ConfigReader(object):
+    REGISTRY_CONF = {
+        "name": "WCS 2.0 Configuration Reader",
+        "impl_id": "services.ows.wcs20.WCS20ConfigReader",
+        "registry_values": {}
+    }
+
+    def validate(self, config):
+        pass
+
+    def getPagingCountDefault(self):
+        return System.getConfig().getConfigValue("services.ows.wcs20", "paging_count_default")
