@@ -25,7 +25,7 @@
 
 from eoxserver.core.interfaces import *
 from eoxserver.core.registry import RegisteredInterface
-from eoxserver.core.owscommon.requests import OWSRequest, Response
+from eoxserver.services.requests import OWSRequest, Response
 
 class RequestHandlerInterface(RegisteredInterface):
     REGISTRY_CONF = {
@@ -88,7 +88,7 @@ class ExceptionHandlerInterface(RegisteredInterface):
         returns = ObjectArg("@return", arg_class=Response)
     )
 
-class OWSExceptionEncoderInterface(RegisteredInterface):
+class ExceptionEncoderInterface(RegisteredInterface):
     REGISTRY_CONF = {
         "name": "OWS Exception Report XML Encoder Interface",
         "intf_id": "services.interfaces.OWSExceptionEncoder",
