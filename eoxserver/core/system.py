@@ -262,7 +262,7 @@ class SystemConfigReader(object):
             raise ConfigError("'instance_id' parameter must be NCName")
         
         if not self.getLoggingFilename():
-            raise ConfigError("Missing mandatory 'logging_filename' parameter").
+            raise ConfigError("Missing mandatory 'logging_filename' parameter")
 
     def getInstanceID(self):
         return self.config.getInstanceConfigValue("core.system", "instance_id")

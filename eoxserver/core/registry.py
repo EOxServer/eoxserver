@@ -245,7 +245,7 @@ class Registry(object):
             db_impl_ids = Component.objects.all().values("impl_id")
         
         for impl_id in self.__impl_index.keys():
-            if impl_id not db_impl_ids:
+            if impl_id not in db_impl_ids:
                 Component.objects.create(
                     impl_id=impl_id,
                     intf_id=self.__impl_index[impl_id]["cls"].__get_intf_id__(),
@@ -264,7 +264,7 @@ class Registry(object):
             if entry["enabled"] or include_disabled:
                 return entry["cls"]
             else:
-                raise ImplementationDisabled("Implementation '%s' is disabled"n % entry["impl_id"])
+                raise ImplementationDisabled("Implementation '%s' is disabled." % entry["impl_id"])
         else:
             raise ImplementationNotFound(
                 "No implementation found for interface '%s' and parameters: '%s'" % (
@@ -461,7 +461,7 @@ class RegisteredInterfaceMetaClass(InterfaceMetaClass):
         
         conf = mcls._mergeConfs(local_conf, bases, "__rconf__")
         
-        mcls._validateRegistryconf(conf)
+        mcls._validateRegistryConf(conf)
         
         class_dict["__rconf__"] = conf
 
@@ -473,7 +473,7 @@ class RegisteredInterfaceMetaClass(InterfaceMetaClass):
             raise InternalError("Missing 'name' parameter in interface configuration dictionary.")
         
         if "intf_id" not in local_conf:
-            raise InternalError("Missing 'intf_id' parameter in interface configuration dictionary."
+            raise InternalError("Missing 'intf_id' parameter in interface configuration dictionary.")
             
     
     @classmethod

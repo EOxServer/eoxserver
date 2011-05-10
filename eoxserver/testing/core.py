@@ -37,10 +37,9 @@ from email import message_from_string
 
 from django.test import TestCase, Client
 
-from eoxserver.lib.config import EOxSConfig
-from eoxserver.lib.ows import EOxSOWSCommonHandler
-from eoxserver.lib.registry import EOxSRegistry
-from eoxserver.lib.util import EOxSXMLDecoder, DOMtoXML
+from eoxserver.core.system import System
+from eoxserver.services.owscommon import OWSCommonHandler
+from eoxserver.core.util.xmltools import XMLDecoder, DOMtoXML
 
 class EOxSTestSchemaFactory(object):
     schemas = {}
@@ -175,19 +174,19 @@ class EOxSWCS20DescribeEOCoverageSetSubsettingTestCase(EOxSWCS20DescribeEOCovera
 
 class EOxSWCS20DescribeEOCoverageSetPagingTestCase(EOxSWCS20DescribeEOCoverageSetTestCase):
     def setUp(self):
-        self.saved_paging_default = EOxSConfig.getConfig().paging_count_default
-        EOxSConfig.getConfig().paging_count_default = self.getConfigCountOverride()
+        self.saved_paging_default = System.getConfig().getConfigValue("services.ows.wcs20", "paging_count_default")
+        System.getConfig().paging_count_default = self.getConfigCountOverride()
         super(EOxSWCS20DescribeEOCoverageSetPagingTestCase, self).setUp()
     
     def tearDown(self):
         super(EOxSWCS20DescribeEOCoverageSetPagingTestCase, self).tearDown()
-        EOxSConfig.getConfig().paging_count_default = self.saved_paging_default
+        System.getConfig().paging_count_default = self.saved_paging_default
     
     def getExpectedCoverageCount(self):
         return 0
     
     def getConfigCountOverride(self):
-        return EOxSConfig.getConfig().paging_count_default
+        return System.getConfig().getConfigValue("services.ows.wcs20", "paging_count_default")
     
     def testCoverageCount(self):
         decoder = EOxSXMLDecoder(self.response.content, {

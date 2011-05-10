@@ -61,3 +61,9 @@ class XMLEncodingException(XMLException):
 
 class XMLNodeOccurenceError(XMLException):
     pass
+
+class ImplementationDisabled(EOxSException):
+    pass
+
+class BindingMethodError(EOxSException):
+    pass
