@@ -28,21 +28,43 @@ This module contains old style exception handlers that use the OGC
 namespace for exception reports
 """
 
-from eoxserver.lib.exceptions import EOxSInvalidRequestException
-from eoxserver.lib.handlers import EOxSExceptionHandler, EOxSExceptionEncoder
+from eoxserver.core.util.xmltools import XMLEncoder
+from eoxserver.services.exceptions import InvalidRequestException
+from eoxserver.services.base import BaseExceptionHandler
+from eoxserver.services.interfaces import (
+    ExceptionHandlerInterface, ExceptionEncoderInterface
+)
 
-class EOxSOGCExceptionHandler(EOxSExceptionHandler):
+class OGCExceptionHandler(BaseExceptionHandler):
+    REGISTRY_CONF = {
+        "name": "OGC Namespace Exception Handler",
+        "impl_id": "services.ogc.OGCExceptionHandler",
+        "registry_values": {
+            "services.interfaces.exception_scheme": "ogc"
+        }
+    }
+    
     def _filterExceptions(self, exception):
-        if not isinstance(exception, EOxSInvalidRequestException):
+        if not isinstance(exception, InvalidRequestException):
             raise
     
     def _getEncoder(self):
-        return EOxSOGCExceptionEncoder()
+        return OGCExceptionEncoder()
     
     def _getContentType(self, exception):
         return "application/vnd.ogs.se_xml"
 
-class EOxSOGCExceptionEncoder(EOxSExceptionEncoder):
+OGCExceptionHandlerImplementation = ExceptionHandlerInterface.implement(OGCExceptionHandler)
+
+class OGCExceptionEncoder(XMLEncoder):
+    REGISTRY_CONF = {
+        "name": "OGC Namespace Exception Report Encoder",
+        "impl_id": "services.ogc.OGCExceptionEncoder",
+        "registry_values": {
+            "services.interfaces.exception_scheme": "ogc"
+        }
+    }
+    
     def _initializeNamespaces(self):
         return {"ogc": "http://www.opengis.net/ogc"}
     
@@ -66,4 +88,10 @@ class EOxSOGCExceptionEncoder(EOxSExceptionEncoder):
             ])
     
     def encodeInvalidRequestException(self, exception):
-        return self.encodeExceptionReport(exception.msg, exception.error_code, exception.locator)
+        return self.encodeExceptionReport(
+            exception.msg,
+            exception.error_code,
+            exception.locator
+        )
+
+OGCExceptionEncoderImplementation = ExceptionEncoderInterface.implement(OGCExceptionEncoder)
