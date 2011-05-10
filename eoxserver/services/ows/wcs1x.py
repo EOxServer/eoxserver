@@ -27,54 +27,77 @@ import os.path
 
 import logging
 
-from eoxserver.modules.wcs.common import EOxSWCSCommonHandler
-from eoxserver.lib.interfaces import EOxSCoverageInterfaceFactory
-from eoxserver.lib.ows import EOxSOWSCommonServiceHandler, EOxSOWSCommonVersionHandler
-from eoxserver.lib.ogc import EOxSOGCExceptionHandler
-from eoxserver.lib.util import DOMElementToXML
-from eoxserver.lib.exceptions import EOxSInternalError, EOxSInvalidRequestException
+from eoxserver.core.util.xmltools import DOMElementToXML
+from eoxserver.core.exceptions import InternalError
+from eoxserver.services.interfaces import (
+    ServiceHandlerInterface, VersionHandlerInterface,
+    OperationHandlerInterface
+)
+from eoxserver.services.owscommon import (
+    OWSCommonServiceHandler, OWSCommonVersionHandler
+)
+from eoxserver.services.ogc import OGCExceptionHandler
+from eoxserver.services.exceptions import InvalidRequestException
+from eoxserver.services.ows.wcs.common import WCSCommonHandler
+from eoxserver.lib.interfaces import EOxSCoverageInterfaceFactory # TODO: correct imports
 
-class EOxSWCSServiceHandler(EOxSOWSCommonServiceHandler):
-    SERVICE = "WCS"
-    ABSTRACT = False
+class WCSServiceHandler(OWSCommonServiceHandler):
+    REGISTRY_CONF = {
+        "name": "WCS Service Handler",
+        "impl_id": "services.ows.wcs1x.WCSServiceHandler",
+        "registry_values": {
+            "services.interfaces.service": "wcs"
+        }
+    }
 
-class EOxSWCS10VersionHandler(EOxSOWSCommonVersionHandler):
-    SERVICE = "WCS"
-    VERSIONS = ("1.0", "1.0.0")
-    ABSTRACT = False
+WCSServiceHandlerImplementation = ServiceHandlerInterface.implement(WCSServiceHandler)
+
+class WCS10VersionHandler(OWSCommonVersionHandler):
+    REGISTRY_CONF = {
+        "name": "WCS 1.0 Version Handler",
+        "impl_id": "services.ows.wcs1x.WCS10VersionHandler",
+        "registry_values": {
+            "services.interfaces.service": "wcs",
+            "services.interfaces.version": "1.0.0"
+        }
+    }
     
     def _handleException(self, req, exception):
-        return EOxSOGCExceptionHandler().handleException(req, exception)
+        return OGCExceptionHandler().handleException(req, exception)
 
-class EOxSWCS11VersionHandler(EOxSOWSCommonVersionHandler):
-    SERVICE = "WCS"
-    VERSIONS = ("1.1", "1.1.0")
-    ABSTRACT = False
+WCS10VersionHandlerImplementation = VersionHandlerInterface.implement(WCS10VersionHandler)
 
-class EOxSWCS1XOperationHandler(EOxSWCSCommonHandler):
-    SERVICE = "WCS"
-    VERSIONS = ("1.0", "1.0.0", "1.1", "1.1.0")
-    OPERATIONS = ("getcapabilities", "describecoverage", "getcoverage")
-    ABSTRACT = False
+class WCS11VersionHandler(OWSCommonVersionHandler):
+    REGISTRY_CONF = {
+        "name": "WCS 1.1 Version Handler",
+        "impl_id": "services.ows.wcs1x.WCS11VersionHandler",
+        "registry_values": {
+            "services.interfaces.service": "wcs",
+            "services.interfaces.version": "1.1.0"
+        }
+    }
+
+WCS11VersionHandlerImplementation = VersionHandlerInterface.implement(WCS11VersionHandler)
     
+class WCS1XOperationHandler(WCSCommonHandler):
     def createCoverages(self, ms_req):
         for coverage in EOxSCoverageInterfaceFactory.getVisibleCoverageInterfaces():
             if coverage.getType() in ("file", "eo.rect_dataset", "eo.rect_mosaic"):
                 ms_req.coverages.append(coverage)
 
     def getMapServerLayer(self, coverage, **kwargs):
-        layer = super(EOxSWCS1XOperationHandler, self).getMapServerLayer(coverage, **kwargs)
+        layer = super(WCS1XOperationHandler, self).getMapServerLayer(coverage, **kwargs)
         
         if coverage.getType() in ("file", "eo.rect_dataset"):
 
             datasets = coverage.getDatasets()
             
             if len(datasets) == 0:
-                raise EOxSInvalidRequestException("Image extent does not intersect with desired region.", "ExtentError", "extent") # TODO: check if this is the right exception report
+                raise InvalidRequestException("Image extent does not intersect with desired region.", "ExtentError", "extent") # TODO: check if this is the right exception report
             elif len(datasets) == 1:
                 layer.data = os.path.abspath(datasets[0].getFilename())
             else:
-                raise EOxSInternalError("A single file or EO dataset should never return more than one dataset.")
+                raise InternalError("A single file or EO dataset should never return more than one dataset.")
             
             layer.setProjection("+init=epsg:%d" % coverage.getGrid().srid)
 
@@ -92,3 +115,82 @@ class EOxSWCS1XOperationHandler(EOxSWCSCommonHandler):
             layer.setMetaData("wcs_bandcount", "3")
         
         return layer
+
+class WCS10GetCapabilitiesHandler(WCS1XOperationHandler):
+    REGISTRY_CONF = {
+        "name": "WCS 1.0 GetCapabilities Handler",
+        "impl_id": "services.ows.wcs1x.WCS10GetCapabilitiesHandler",
+        "registry_values": {
+            "services.interfaces.service": "wcs",
+            "services.interfaces.version": "1.0.0",
+            "servives.interfaces.operation": "getcapabilities"
+        }
+    }
+    
+WCS10GetCapabilitiesHandlerImplementation = OperationHandlerInterface.implement(WCS10GetCapabilitiesHandler)
+
+class WCS11GetCapabilitiesHandler(WCS1XOperationHandler):
+    REGISTRY_CONF = {
+        "name": "WCS 1.1 GetCapabilities Handler",
+        "impl_id": "services.ows.wcs1x.WCS11GetCapabilitiesHandler",
+        "registry_values": {
+            "services.interfaces.service": "wcs",
+            "services.interfaces.version": "1.1.0",
+            "servives.interfaces.operation": "getcapabilities"
+        }
+    }
+    
+WCS11GetCapabilitiesHandlerImplementation = OperationHandlerInterface.implement(WCS11GetCapabilitiesHandler)
+
+class WCS10DescribeCoverageHandler(WCS1XOperationHandler):
+    REGISTRY_CONF = {
+        "name": "WCS 1.0 DescribeCoverage Handler",
+        "impl_id": "services.ows.wcs1x.WCS10DescribeCoverageHandler",
+        "registry_values": {
+            "services.interfaces.service": "wcs",
+            "services.interfaces.version": "1.0.0",
+            "servives.interfaces.operation": "describecoverage"
+        }
+    }
+    
+WCS10DescribeCoverageHandlerImplementation = OperationHandlerInterface.implement(WCS10DescribeCoverageHandler)
+
+class WCS11DescribeCoverageHandler(WCS1XOperationHandler):
+    REGISTRY_CONF = {
+        "name": "WCS 1.1 DescribeCoverage Handler",
+        "impl_id": "services.ows.wcs1x.WCS11DescribeCoverageHandler",
+        "registry_values": {
+            "services.interfaces.service": "wcs",
+            "services.interfaces.version": "1.1.0",
+            "servives.interfaces.operation": "describecoverage"
+        }
+    }
+    
+WCS11DescribeCoverageHandlerImplementation = OperationHandlerInterface.implement(WCS11DescribeCoverageHandler)
+
+class WCS10GetCoverageHandler(WCS1XOperationHandler):
+    REGISTRY_CONF = {
+        "name": "WCS 1.0 GetCoverage Handler",
+        "impl_id": "services.ows.wcs1x.WCS10GetCoverageHandler",
+        "registry_values": {
+            "services.interfaces.service": "wcs",
+            "services.interfaces.version": "1.0.0",
+            "servives.interfaces.operation": "getcoverage"
+        }
+    }
+    
+WCS10GetCoverageHandlerImplementation = OperationHandlerInterface.implement(WCS10GetCoverageHandler)
+
+
+class WCS11GetCoverageHandler(WCS1XOperationHandler):
+    REGISTRY_CONF = {
+        "name": "WCS 1.1 GetCoverage Handler",
+        "impl_id": "services.ows.wcs1x.WCS11GetCoverageHandler",
+        "registry_values": {
+            "services.interfaces.service": "wcs",
+            "services.interfaces.version": "1.1.0",
+            "servives.interfaces.operation": "getcoverage"
+        }
+    }
+    
+WCS11GetCoverageHandlerImplementation = OperationHandlerInterface.implement(WCS11GetCoverageHandler)
