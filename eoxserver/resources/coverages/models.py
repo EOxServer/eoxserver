@@ -32,9 +32,9 @@ from django.contrib.contenttypes import generic
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
 
-from eoxserver.server.validators import validateEOOM
-from eoxserver.lib.util import EOxSXMLDecoder
-from eoxserver.lib.metadata import EOxSMetadataInterfaceFactory
+from eoxserver.resources.coverages.validators import validateEOOM
+from eoxserver.core.util.xmltools import XMLDecoder
+from eoxserver.resources.coverages.metadata import EOxSMetadataInterfaceFactory
 
 NCNameValidator = RegexValidator(re.compile(r'^[a-zA-z_][a-zA-Z0-9_.-]*$'), message="This field must contain a valid NCName.")
 

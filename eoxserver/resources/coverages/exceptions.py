@@ -23,41 +23,7 @@
 #
 #-----------------------------------------------------------------------
 
-class EOxSException(Exception):
-    pass
-    
-class InternalError(EOxSException):
-    pass
-
-class ImplementationNotFound(EOxSException):
-    pass
-
-class ImplementationAmbiguous(EOxSException):
-    pass
-
-class TypeMismatch(InternalError):
-    pass
-
-class IpcException(EOxSException):
-    pass
-
-class UnknownParameterFormatException(EOxSException):
-    pass
-
-class KVPException(EOxSException):
-    pass
-
-class XMLException(EOxSException):
-    pass
-
-class XMLNodeNotFound(XMLException):
-    pass
-
-class XMLContentTypeError(XMLException):
-    pass
-
-class XMLEncodingException(XMLException):
-    pass
-
-class XMLNodeOccurenceError(XMLException):
+from eoxserver.core.exceptions import EOxSException
+ 
+class MetadataException(EOxSException):
     pass
