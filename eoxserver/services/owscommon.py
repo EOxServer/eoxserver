@@ -31,7 +31,8 @@ from django.conf import settings
 from eoxserver.core.system import System
 from eoxserver.core.util.xmltools import XMLEncoder, DOMElementToXML
 from eoxserver.services.interfaces import (
-    RequestHandlerInterface, ExceptionEncoderInterface
+    RequestHandlerInterface, ExceptionHandlerInterface,
+    ExceptionEncoderInterface
 )
 from eoxserver.services.base import (
     BaseRequestHandler, BaseExceptionHandler
@@ -310,6 +311,14 @@ class EOxSOWSCommonVersionHandler(BaseRequestHandler):
             return handler.handle(req)
 
 class OWSCommonExceptionHandler(BaseExceptionHandler):
+    REGISTRY_CONF = {
+        "name": "OWS Common Exception Handler",
+        "impl_id": "services.owscommon.OWSCommonExceptionHandler", 
+        "registry_values": {
+            "services.interfaces.exception_scheme": "owscommon_2.0"
+        }
+    }
+    
     OWS_COMMON_HTTP_STATUS_CODES = {
         "_default": 400,
         "OperationNotSupported": 501,
@@ -349,7 +358,17 @@ class OWSCommonExceptionHandler(BaseExceptionHandler):
     def _getContentType(self, exception):
         return "text/xml"
 
-class EOxSOWSCommonExceptionEncoder(EOxSExceptionEncoder):
+OWSCommonExceptionHandlerImplementation = ExceptionHandlerInterface.implement(OWSCommonExceptionHandler)
+
+class OWSCommonExceptionEncoder(XMLEncoder):
+    REGISTRY_CONF = {
+        "name": "OWS Common 2.0 Exception Report Encoder",
+        "impl_id": "services.owscommon.OWSCommonExceptionEncoder",
+        "registry_values": {
+            "services.interfaces.exception_scheme": "owscommon_2.0"
+        }
+    }
+    
     def _initializeNamespaces(self):
         return {"ows": "http://www.opengis.net/ows/2.0"}
     
@@ -379,3 +398,5 @@ class EOxSOWSCommonExceptionEncoder(EOxSExceptionEncoder):
     
     def encodeVersionNegotiationException(self, exception):
         return self.encodeExceptionReport(exception.msg, "VersionNegotiationFailed")
+
+OWSCommonExceptionEncoderImplementation = ExceptionEncoderInterface.implement(OWSCommonExceptionEncoder)
