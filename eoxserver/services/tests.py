@@ -25,7 +25,7 @@
 
 import logging
 
-from eoxserver.lib.requests import EOxSOWSRequest
+from eoxserver.services.requests import OWSRequest
 import eoxserver.testing.core as eoxstest
 
 from osgeo import gdal
