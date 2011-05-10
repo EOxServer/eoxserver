@@ -33,25 +33,109 @@ import logging
 import os.path
 from cgi import escape
 
-from eoxserver.services.requests import OWSRequest, MapServerRequest, Response, MapServerResponse
-from eoxserver.resources.coverages.domainset import EOxSTrim, EOxSSlice
-
-
-
+from eoxserver.resources.coverages.domainset import Trim, Slice
+from eoxserver.services.base import BaseRequestHandler
+from eoxserver.services.requests import OWSRequest, Response
 from eoxserver.services.exceptions import (
-    EOxSInvalidRequestException, EOxSVersionNegotiationException,
-    
+    InvalidRequestException, VersionNegotiationException
 )
-
 from eoxserver.contrib import mapscript
 
+class MapServerRequest(OWSRequest):
+    def __init__(self, req):
+        super(MapServerRequest, self).__init__(req.http_req, params=req.params, decoder=req.decoder)
+        
+        self.version = req.version
+        
+        self.map = mapscript.mapObj()
+        self.ows_req = mapscript.OWSRequest()
 
-
+class MapServerResponse(Response):
+    def __init__(self, ms_response, ms_content_type, ms_status, headers={}, status=None):
+        super(MapServerResponse, self).__init__(content=ms_response, content_type=ms_content_type, headers=headers, status=status)
+        self.ms_status = ms_status
+        
+        self.ms_response_data = None
+        self.ms_response_xml = ''
+        self.ms_response_xml_headers = {}
+        
+    def _isXML(self, content_type):
+        return content_type.split(";")[0].lower() in ("text/xml", "application/xml")
+            
+    def _isMultipart(self, content_type):
+        return content_type.split("/")[0].lower() == "multipart"
+        
+    def splitResponse(self):
+        if self._isXML(self.content_type):
+            self.ms_response_xml = self.content
+            self.ms_response_xml_headers = {'Content-type': self.content_type}
+        elif self._isMultipart(self.content_type):
+            parts = MIMEParser().parsestr("Content-type:%s\n\n%s" % (self.content_type, self.content.rstrip("--wcs--\n\n"))).get_payload()
+            for part in parts:
+                if self._isXML(part.get_content_type()):
+                    self.ms_response_xml = part.get_payload()
+                    for header in part.keys():
+                        self.ms_response_xml_headers[header] = part[header]
+                else:
+                    self.ms_response_data = part
+        else:
+            self.ms_response_data = self.content
+    
+    def getProcessedResponse(self, processed_xml, processed_xml_headers=None):
+        if self.ms_response_data is not None:
+            xml_msg = Message()
+            xml_msg.set_payload(processed_xml)
+            
+            if processed_xml_headers is not None:
+                xml_headers = processed_xml_headers
+            else:
+                xml_headers = self.ms_response_xml_headers
+            for name, value in xml_headers.items():
+                xml_msg.add_header(name, value)
+            
+            if isinstance(self.ms_response_data, Message):
+                data_msg = self.ms_response_data
+            else:
+                data_msg = Message()
+                
+                data_msg.set_payload(self.ms_response_data)
+                
+                data_msg.add_header('Content-type', self.content_type)
+                for name, value in self.headers.items():
+                    data_msg.add_header(name, value)
+                
+            content = "--wcs\n%s\n--wcs\n%s\n--wcs--" % (xml_msg.as_string(), data_msg.as_string())
+            content_type = "multipart/mixed; boundary=wcs"
+            headers = {}
+        else:
+            content = processed_xml
+            content_type = self.content_type
+            if processed_xml_headers is None:
+                headers = self.headers
+            else:
+                headers = processed_xml_headers
+            
+        return Response(content, content_type, headers, self.getStatus())
+        
+    def getContentType(self):
+        if "Content-type" in self.headers:
+            return self.headers["Content-type"]
+        else:
+            return self.content_type # TODO: headers for multipart messages
+        
+    def getStatus(self):
+        if self.status is None:
+            if self.ms_status is not None and self.ms_status == 0:
+                return 200
+            else:
+                return 400
+        else:
+            return self.status
 
         
-class EOxSMapServerOperationHandler(EOxSOperationHandler):
+class MapServerOperationHandler(BaseRequestHandler):
     """\
-    EOxSMapServerOperationHandler serves as parent class for all operations
+    MapServerOperationHandler serves as parent class for all operations
     involving calls to MapServer. It is not an abstract class, but implements
     the most basic functionality, i.e. simply passing on a request to
     MapServer as it comes in.
@@ -94,9 +178,9 @@ class EOxSMapServerOperationHandler(EOxSOperationHandler):
         This method implements the workflow described in the class
         documentation.
         
-        First it creates a EOxSMapServerRequest object and passes the
+        First it creates a MapServerRequest object and passes the
         request data to it. Then it invokes the methods in the order
-        defined above and finally returns an {@link eoxserver.lib.requests.EOxSMapServerResponse}
+        defined above and finally returns an {@link eoxserver.lib.requests.MapServerResponse}
         object. It is not recommended to override this method.
         
         @param  req An {@link eoxserver.lib.requests.EOxSOWSRequest}
@@ -107,7 +191,7 @@ class EOxSMapServerOperationHandler(EOxSOperationHandler):
                     status as well as the status code returned by
                     MapServer
         """
-        ms_req = EOxSMapServerRequest(req)
+        ms_req = MapServerRequest(req)
         ms_req.setSchema(self.PARAM_SCHEMA)
         self.createCoverages(ms_req)
         self.configureRequest(ms_req)
@@ -249,21 +333,21 @@ class EOxSMapServerOperationHandler(EOxSOperationHandler):
                         of the request as well as the status code
                         returned by MapServer
         """
-        logging.debug("EOxSMapServerOperationHandler.dispatch: 1")
+        logging.debug("MapServerOperationHandler.dispatch: 1")
         mapscript.msIO_installStdoutToBuffer()
         # Execute the OWS request by mapserver, obtain the status in dispatch_status (==0 is OK)
-        logging.debug("EOxSMapServerOperationHandler.dispatch: 2")
+        logging.debug("MapServerOperationHandler.dispatch: 2")
         dispatch_status = ms_req.map.OWSDispatch(ms_req.ows_req)
         
-        logging.debug("EOxSMapServerOperationHandler.dispatch: 3")
+        logging.debug("MapServerOperationHandler.dispatch: 3")
         content_type = mapscript.msIO_stripStdoutBufferContentType()
         mapscript.msIO_stripStdoutBufferContentHeaders()
-        logging.debug("EOxSMapServerOperationHandler.dispatch: 4")
+        logging.debug("MapServerOperationHandler.dispatch: 4")
         result = mapscript.msIO_getStdoutBufferBytes()
-        logging.debug("EOxSMapServerOperationHandler.dispatch: 5")
+        logging.debug("MapServerOperationHandler.dispatch: 5")
         mapscript.msCleanup()
         
-        return EOxSMapServerResponse(result, content_type, dispatch_status)
+        return MapServerResponse(result, content_type, dispatch_status)
         
     def postprocess(self, ms_req, resp):
         """

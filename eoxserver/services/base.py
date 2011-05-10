@@ -23,9 +23,14 @@
 #
 #-----------------------------------------------------------------------
 
+import logging
+
 from eoxserver.core.exceptions import InternalError
 from eoxserver.core.util.xmltools import DOMElementToXML
 from eoxserver.services.requests import Response
+from eoxserver.services.exceptions import (
+    EOxSInvalidRequestException, EOxSVersionNegotiationException
+)
 
 class BaseRequestHandler(object):
     """
