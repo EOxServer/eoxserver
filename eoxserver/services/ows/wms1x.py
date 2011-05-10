@@ -31,62 +31,126 @@ import os.path
 
 from osgeo import gdal, ogr, osr
 
-from eoxserver.lib.handlers import EOxSMapServerOperationHandler, EOxSExceptionHandler, EOxSExceptionEncoder
-from eoxserver.lib.ows import EOxSOWSCommonServiceHandler, EOxSOWSCommonVersionHandler
-from eoxserver.lib.ogc import EOxSOGCExceptionHandler
-from eoxserver.lib.domainset import EOxSTrim, EOxSSlice
-from eoxserver.lib.requests import EOxSResponse
-from eoxserver.lib.interfaces import EOxSCoverageInterfaceFactory, EOxSDatasetSeriesFactory
-from eoxserver.lib.util import EOxSXMLEncoder, DOMtoXML, DOMElementToXML, isotime
-from eoxserver.lib.exceptions import (EOxSInternalError,
-    EOxSInvalidRequestException, EOxSNoSuchCoverageException,
-    EOxSSynchronizationError
-)
 from django.conf import settings
+
+from eoxserver.core.util.xmltools import XMLEncoder, DOMtoXML, DOMElementToXML
+from eoxserver.core.util.timetools import isotime
+from eoxserver.core.exceptions import InternalError
+from eoxserver.resources.exceptions import (
+    NoSuchCoverageException, SynchronizationError
+)
+from eoxserver.resources.coverages.domainset import Trim, Slice
+from eoxserver.services.mapserver import MapServerOperationHandler
+from eoxserver.services.base import (
+    BaseRequestHandler, BaseExceptionHandler
+)
+from eoxserver.services.owscommon import (
+    OWSCommonServiceHandler, OWSCommonVersionHandler
+)
+from eoxserver.services.ogc import OGCExceptionHandler
+from eoxserver.services.requests import Response
+from eoxserver.services.exceptions import InvalidRequestException
+from eoxserver.lib.interfaces import EOxSCoverageInterfaceFactory, EOxSDatasetSeriesFactory # TODO: correct imports
+
 from eoxserver.contrib import mapscript
 
-class EOxSWMSServiceHandler(EOxSOWSCommonServiceHandler):
-    SERVICE = "WMS"
-    ABSTRACT = False
-
-class EOxSWMS10VersionHandler(EOxSOWSCommonVersionHandler):
-    SERVICE = "WMS"
-    VERSIONS = ("1.0", "1.0.0")
-    ABSTRACT = False
-
-    def _handleException(self, req, exception):
-        return EOxSWMS10ExceptionHandler().handleException(req, exception)
-
-class EOxSWMS11VersionHandler(EOxSOWSCommonVersionHandler):
-    SERVICE = "WMS"
-    VERSIONS = ("1.1", "1.1.0", "1.1.1")
-    ABSTRACT = False
-
-    def _handleException(self, req, exception):
-        return EOxSWMS11ExceptionHandler().handleException(req, exception)
-
-class EOxSWMS13VersionHandler(EOxSOWSCommonVersionHandler):
-    SERVICE = "WMS"
-    VERSIONS = ("1.3", "1.3.0")
-    ABSTRACT = False
+class WMSServiceHandler(OWSCommonServiceHandler):
+    REGISTRY_CONF = {
+        "name": "WMS Service Handler",
+        "impl_id": "services.ows.wms1x.WMSServiceHandler",
+        "registry_values": {
+            "services.interfaces.service": "wms"
+        }
+    }
     
-    def _handleException(self, req, exception):
-        return EOxSOGCExceptionHandler().handleException(req, exception)
+    SERVICE = "wms"
 
-class EOxSWMSCommonHandler(EOxSMapServerOperationHandler):
-    ABSTRACT = True
+WMSServiceHandlerImplementation = ServiceHandlerInterface.implement(WMSServiceHandler)
+
+class WMS10VersionHandler(OWSCommonVersionHandler):
+    REGISTRY_CONF = {
+        "name": "WMS 1.0 Version Handler",
+        "impl_id": "services.ows.wms1x.WMS10VersionHandler",
+        "registry_values": {
+            "services.interfaces.service": "wms",
+            "services.interfaces.version": "1.0.0",
+        }
+    }
     
+    SERVICE = "wms"
+    VERSION = "1.0.0"
+
+    def _handleException(self, req, exception):
+        return WMS10ExceptionHandler().handleException(req, exception)
+
+WMS10VersionHandlerImplementation = VersionHandlerInterface.implement(WMS10VersionHandler)
+
+class WMS110VersionHandler(OWSCommonVersionHandler):
+    REGISTRY_CONF = {
+        "name": "WMS 1.1.0 Version Handler",
+        "impl_id": "services.ows.wms1x.WMS110VersionHandler",
+        "registry_values": {
+            "services.interfaces.service": "wms",
+            "services.interfaces.version": "1.1.0"
+        }
+    }
+    
+    SERVICE = "wms"
+    VERSIONS = "1.1.0"
+
+    def _handleException(self, req, exception):
+        return WMS11ExceptionHandler().handleException(req, exception)
+
+WMS110VersionHandlerImplementation = VersionHandlerInterface.implement(WMS110VersionHandler)
+        
+class WMS111VersionHandler(OWSCommonVersionHandler):
+    REGISTRY_CONF = {
+        "name": "WMS 1.1.1 Version Handler",
+        "impl_id": "services.ows.wms1x.WMS111VersionHandler",
+        "registry_values": {
+            "services.interfaces.service": "wms",
+            "services.interfaces.version": "1.1.1"
+        }
+    }
+    
+    SERVICE = "wms"
+    VERSIONS = "1.1.1"
+
+    def _handleException(self, req, exception):
+        return WMS11ExceptionHandler().handleException(req, exception)
+
+WMS111VersionHandlerImplementation = VersionHandlerInterface.implement(WMS111VersionHandler)
+
+class WMS13VersionHandler(OWSCommonVersionHandler):
+    REGISTRY_CONF = {
+        "name": "WMS 1.3.0 Version Handler",
+        "impl_id": "services.ows.wms1x.WMS130VersionHandler",
+        "registry_values": {
+            "services.interfaces.service": "wms",
+            "services.interfaces.version": "1.3.0"
+        }
+    }
+    
+    SERVICE = "wms"
+    VERSION = "1.3.0"
+        
+    def _handleException(self, req, exception):
+        return OGCExceptionHandler().handleException(req, exception)
+
+WMS130VersionHandlerImplementation = VersionHandlerInterface.implement(WMS130VersionHandler)
+
+class WMSCommonHandler(MapServerOperationHandler):
     def addLayers(self, ms_req):
         time_param = ms_req.getParamValue("time")
         slices = []
         if time_param:
-            slices.append(EOxSSlice("time", None, "\"%s\"" % time_param))
+            slices.append(Slice("time", None, "\"%s\"" % time_param))
         
         for coverage in ms_req.coverages:
             ms_req.map.insertLayer(self.getMapServerLayer(coverage, slices=slices))
 
     def getMapServerLayer(self, coverage, **kwargs):
-        logging.debug("EOxSWMSCommonHandler.getMapServerLayer")
+        logging.debug("WMSCommonHandler.getMapServerLayer")
         
         if coverage.getType() == "eo.rect_dataset_series":
             layer = mapscript.layerObj()
@@ -102,7 +166,7 @@ class EOxSWMSCommonHandler(EOxSMapServerOperationHandler):
             #layer.setMetaData("wms_timedefault", time_layer["default"])
 
         else:
-            layer = super(EOxSWMSCommonHandler, self).getMapServerLayer(coverage, **kwargs)
+            layer = super(WMSCommonHandler, self).getMapServerLayer(coverage, **kwargs)
             layer.setMetaData("ows_srs", "EPSG:%d" % int(coverage.getGrid().srid))
             layer.setMetaData("wms_label", coverage.getCoverageId())
             layer.setMetaData("wms_extent", "%f %f %f %f" % coverage.getGrid().getExtent2D())
@@ -115,11 +179,11 @@ class EOxSWMSCommonHandler(EOxSMapServerOperationHandler):
             if coverage.getType() in ("file", "eo.rect_dataset"):
                 datasets = coverage.getDatasets(**kwargs)
                 if len(datasets) == 0:
-                    raise EOxSInternalError("Cannot handle empty coverages")
+                    raise InternalError("Cannot handle empty coverages")
                 elif len(datasets) == 1:
                     layer.data = os.path.abspath(datasets[0].getFilename())
                 else:
-                    raise EOxSInternalError("A single file or EO dataset should never return more than one dataset.")
+                    raise InternalError("A single file or EO dataset should never return more than one dataset.")
                 
             elif coverage.getType() == "eo.rect_mosaic":
                 layer.tileindex = os.path.abspath(coverage.getShapeFilePath())
@@ -128,7 +192,7 @@ class EOxSWMSCommonHandler(EOxSMapServerOperationHandler):
             elif coverage.getType() == "eo.rect_dataset_series":
                 datasets = coverage.getDatasets(**kwargs)
                 if len(datasets) == 0:
-                    raise EOxSInternalError("Cannot handle empty coverages")
+                    raise InternalError("Cannot handle empty coverages")
                 
                 elif len(datasets) == 1:
                     layer.setExtent(*datasets[0].getGrid().getExtent2D())
@@ -146,7 +210,7 @@ class EOxSWMSCommonHandler(EOxSMapServerOperationHandler):
                     # initialize OGR driver
                     driver = ogr.GetDriverByName('ESRI Shapefile')
                     if driver is None:
-                        raise EOxSSynchronizationError("Cannot start GDAL Shapefile driver")
+                        raise InternalError("Cannot start GDAL Shapefile driver")
                     
                     # create path to temporary shapefile, if it already exists, delete it
                     path = os.path.join(settings.PROJECT_DIR, "data", "tmp", "tmp.shp")
@@ -156,7 +220,7 @@ class EOxSWMSCommonHandler(EOxSMapServerOperationHandler):
                     # create a new shapefile
                     shapefile = driver.CreateDataSource(path)
                     if shapefile is None:
-                        raise EOxSSynchronizationError("Cannot create shapefile '%s'." % path)
+                        raise InternalError("Cannot create shapefile '%s'." % path)
                     
                     # create a new srs object
                     srs = osr.SpatialReference()
@@ -165,13 +229,13 @@ class EOxSWMSCommonHandler(EOxSMapServerOperationHandler):
                     # create a new shapefile layer
                     shapefile_layer = shapefile.CreateLayer("file_locations", srs, ogr.wkbPolygon)
                     if shapefile_layer is None:
-                        raise EOxSSynchronizationError("Cannot create layer 'file_locations' in shapefile '%s'" % path)
+                        raise InternalError("Cannot create layer 'file_locations' in shapefile '%s'" % path)
                     
                     # add a field definition for the file location
                     location_defn = ogr.FieldDefn("location", ogr.OFTString)
                     location_defn.SetWidth(256) # TODO: make this configurable
                     if shapefile_layer.CreateField(location_defn) != 0:
-                        raise EOxSSynchronizationError("Cannot create field 'location' on layer 'file_locations' in shapefile '%s'" % self.path)
+                        raise InternalError("Cannot create field 'location' on layer 'file_locations' in shapefile '%s'" % self.path)
                     
                     # add each dataset to the layer as a feature
                     for dataset in datasets:
@@ -190,7 +254,7 @@ class EOxSWMSCommonHandler(EOxSMapServerOperationHandler):
                         feature.SetGeometry(geom)
                         feature.SetField("location", os.path.abspath(dataset.getFilename()))
                         if shapefile_layer.CreateFeature(feature) != 0:
-                            raise EOxSSynchronizationError("Could not create shapefile entry for file '%s'" % path)
+                            raise InternalError("Could not create shapefile entry for file '%s'" % path)
                         feature = None
                     
                     #save the shapefile
@@ -201,7 +265,7 @@ class EOxSWMSCommonHandler(EOxSMapServerOperationHandler):
                     layer.tileindex = os.path.abspath(path)
                     layer.tileitem = "location"
 
-        except EOxSInternalError:
+        except InternalError:
             # create "no data" layer
             logging.debug(layer.data)
             layer.setProjection("EPSG:4326")
@@ -209,19 +273,14 @@ class EOxSWMSCommonHandler(EOxSMapServerOperationHandler):
 
         return layer
 
-class EOxSWMS1XGetCapabilitiesHandler(EOxSWMSCommonHandler):
-    SERVICE = "WMS"
-    VERSIONS = ("1.0", "1.0.0", "1.1", "1.1.0", "1.3", "1.3.0")
-    OPERATIONS = ("getcapabilities")
-    ABSTRACT = False
-    
+class WMS1XGetCapabilitiesHandler(WMSCommonHandler):
     def createCoverages(self, ms_req):
         #ms_req.coverages = EOxSCoverageInterfaceFactory.getAllCoverageInterfaces()
         ms_req.coverages = EOxSCoverageInterfaceFactory.getVisibleCoverageInterfaces()
         ms_req.coverages.extend(EOxSDatasetSeriesFactory.getAllDatasetSeriesInterfaces())
         
     def getMapServerLayer(self, coverage, **kwargs):
-        layer = super(EOxSWMS1XGetCapabilitiesHandler, self).getMapServerLayer(coverage, **kwargs)
+        layer = super(WMS1XGetCapabilitiesHandler, self).getMapServerLayer(coverage, **kwargs)
         
         datasets = coverage.getDatasets(**kwargs)
         
@@ -230,44 +289,83 @@ class EOxSWMS1XGetCapabilitiesHandler(EOxSWMSCommonHandler):
             layer.setExtent(*coverage.getWGS84Extent())
         
         if len(datasets) == 0:
-            raise EOxSInternalError("Misconfigured coverage '%s' has no file data." % coverage.getCoverageId())
+            raise InternalError("Misconfigured coverage '%s' has no file data." % coverage.getCoverageId())
         else:
             layer.data = os.path.abspath(datasets[0].getFilename())
             
-        logging.debug("EOxSWMSCommonHandler.getMapServerLayer: filename: %s" % layer.data)
+        logging.debug("WMSCommonHandler.getMapServerLayer: filename: %s" % layer.data)
         
         return layer
 
-    def postprocess(self, ms_req, resp):
-        return resp
+class WMS10GetCapabilitiesHandler(WMS1XGetCapabilitiesHandler):
+    REGISTRY_CONF = {
+        "name": "WMS 1.0 GetCapabilities Handler",
+        "impl_id": "services.ows.wms1x.WMS10GetCapabilitiesHandler",
+        "registry_values": {
+            "services.interfaces.service": "wms",
+            "services.interfaces.version": "1.0.0",
+            "services.interfaces.operation": "getcapabilities"
+        }
+    }
 
-class EOxSWMS1XGetMapHandler(EOxSWMSCommonHandler):
-    SERVICE = "WMS"
-    VERSIONS = ("1.0", "1.0.0", "1.1", "1.1.0", "1.3", "1.3.0")
-    OPERATIONS = ("getmap")
-    ABSTRACT = True
-    
+WMS10GetCapabilitiesHandlerImplementation = OperationHandlerInterface.implement(WMS10GetCapabilitiesHandler)
+
+class WMS110GetCapabilitiesHandler(WMS1XGetCapabilitiesHandler):
+    REGISTRY_CONF = {
+        "name": "WMS 1.1.0 GetCapabilities Handler",
+        "impl_id": "services.ows.wms1x.WMS110GetCapabilitiesHandler",
+        "registry_values": {
+            "services.interfaces.service": "wms",
+            "services.interfaces.version": "1.1.0",
+            "services.interfaces.operation": "getcapabilities"
+        }
+    }
+
+WMS110GetCapabilitiesHandlerImplementation = OperationHandlerInterface.implement(WMS110GetCapabilitiesHandler)
+
+class WMS111GetCapabilitiesHandler(WMS1XGetCapabilitiesHandler):
+    REGISTRY_CONF = {
+        "name": "WMS 1.1.1 GetCapabilities Handler",
+        "impl_id": "services.ows.wms1x.WMS111GetCapabilitiesHandler",
+        "registry_values": {
+            "services.interfaces.service": "wms",
+            "services.interfaces.version": "1.1.1",
+            "services.interfaces.operation": "getcapabilities"
+        }
+    }
+
+WMS111GetCapabilitiesHandlerImplementation = OperationHandlerInterface.implement(WMS111GetCapabilitiesHandler)
+
+class WMS13GetCapabilitiesHandler(WMS1XGetCapabilitiesHandler):
+    REGISTRY_CONF = {
+        "name": "WMS 1.3 GetCapabilities Handler",
+        "impl_id": "services.ows.wms1x.WMS13GetCapabilitiesHandler",
+        "registry_values": {
+            "services.interfaces.service": "wms",
+            "services.interfaces.version": "1.3.0",
+            "services.interfaces.operation": "getcapabilities"
+        }
+    }
+
+WMS13GetCapabilitiesHandlerImplementation = OperationHandlerInterface.implement(WMS13GetCapabilitiesHandler)
+
+class WMS1XGetMapHandler(WMSCommonHandler):
     def createCoverages(self, ms_req):
         layers = ms_req.getParamValue("layers")
         
         if layers is None:
-            raise EOxSInvalidRequestException("Missing 'LAYERS' parameter", "MissingParameterValue", "layers")
+            raise InvalidRequestException("Missing 'LAYERS' parameter", "MissingParameterValue", "layers")
         else:
             for layer in layers:
                 try:
                     ms_req.coverages.append(EOxSCoverageInterfaceFactory.getCoverageInterface(layer))
-                except EOxSNoSuchCoverageException:
+                except NoSuchCoverageException:
                     try:
                         ms_req.coverages.append(EOxSDatasetSeriesFactory.getDatasetSeriesInterface(layer))
-                    except EOxSNoSuchCoverageException, e:
-                        raise EOxSInvalidRequestException(e.msg, "LayerNotDefined", "layers")
+                    except NoSuchCoverageException, e:
+                        raise InvalidRequestException(e.msg, "LayerNotDefined", "layers")
 
-class EOxSWMS10_11GetMapHandler(EOxSWMS1XGetMapHandler):
-    SERVICE = "WMS"
-    VERSIONS = ("1.0", "1.0.0", "1.1", "1.1.0")
-    OPERATIONS = ("getmap")
-    ABSTRACT = False
-    
+class WMS10_11GetMapHandler(WMS1XGetMapHandler):
     PARAM_SCHEMA = {
         "service": {"xml_location": "/@service", "xml_type": "string", "kvp_key": "service", "kvp_type": "string"},
         "version": {"xml_location": "/@version", "xml_type": "string", "kvp_key": "version", "kvp_type": "string"},
@@ -278,7 +376,7 @@ class EOxSWMS10_11GetMapHandler(EOxSWMS1XGetMapHandler):
     }
     
     def configureMapObj(self, ms_req):
-        super(EOxSWMS10_11GetMapHandler, self).configureMapObj(ms_req)
+        super(WMS10_11GetMapHandler, self).configureMapObj(ms_req)
         
         ms_req.map.setMetaData("wms_exceptions_format", "text/xml")#"application/vnd.ogc.se_xml")
         
@@ -289,20 +387,63 @@ class EOxSWMS10_11GetMapHandler(EOxSWMS1XGetMapHandler):
             except:
                 ms_req.map.setProjection("EPSG:4326")
         else:
-            raise EOxSInvalidRequestException("Mandatory 'SRS' parameter missing.", "MissingParameterValue", "srs")
+            raise InvalidRequestException("Mandatory 'SRS' parameter missing.", "MissingParameterValue", "srs")
     
     def getMapServerLayer(self, coverage, **kwargs):
-        layer = super(EOxSWMS10_11GetMapHandler, self).getMapServerLayer(coverage, **kwargs)
+        layer = super(WMS10_11GetMapHandler, self).getMapServerLayer(coverage, **kwargs)
         layer.setMetaData("wms_exceptions_format","application/vnd.ogc.se_xml")
         
-        return layer 
+        return layer
 
+class WMS10GetMapHandler(WMS10_11GetMapHandler):
+    REGISTRY_CONF = {
+        "name": "WMS 1.0 GetMap Handler",
+        "impl_id": "services.ows.wms1x.WMS10GetMapHandler",
+        "registry_values": {
+            "services.interfaces.service": "wms",
+            "services.interfaces.version": "1.0.0",
+            "services.interfaces.operation": "getmap"
+        }
+    }
 
-class EOxSWMS13GetMapHandler(EOxSWMS1XGetMapHandler):
-    SERVICE = "WMS"
-    VERSIONS = ("1.3", "1.3.0")
-    OPERATIONS = ("getmap")
-    ABSTRACT = False
+WMS10GetMapHandlerImplementation = OperationHandlerInterface.implement(WMS10GetMapHandler)
+
+class WMS110GetMapHandler(WMS10_11GetMapHandler):
+    REGISTRY_CONF = {
+        "name": "WMS 1.1.0 GetMap Handler",
+        "impl_id": "services.ows.wms1x.WMS110GetMapHandler",
+        "registry_values": {
+            "services.interfaces.service": "wms",
+            "services.interfaces.version": "1.1.0",
+            "services.interfaces.operation": "getmap"
+        }
+    }
+
+WMS110GetMapHandlerImplementation = OperationHandlerInterface.implement(WMS110GetMapHandler)
+
+class WMS111GetMapHandler(WMS10_11GetMapHandler):
+    REGISTRY_CONF = {
+        "name": "WMS 1.1.1 GetMap Handler",
+        "impl_id": "services.ows.wms1x.WMS111GetMapHandler",
+        "registry_values": {
+            "services.interfaces.service": "wms",
+            "services.interfaces.version": "1.1.1",
+            "services.interfaces.operation": "getmap"
+        }
+    }
+
+WMS111GetMapHandlerImplementation = OperationHandlerInterface.implement(WMS111GetMapHandler)
+
+class WMS13GetMapHandler(WMS1XGetMapHandler):
+    REGISTRY_CONF = {
+        "name": "WMS 1.3 GetMap Handler",
+        "impl_id": "services.ows.wms1x.WMS13GetMapHandler",
+        "registry_values": {
+            "services.interfaces.service": "wms",
+            "services.interfaces.version": "1.3.0",
+            "services.interfaces.operation": "getmap"
+        }
+    }
     
     PARAM_SCHEMA = {
         "service": {"xml_location": "/@service", "xml_type": "string", "kvp_key": "service", "kvp_type": "string"},
@@ -314,7 +455,7 @@ class EOxSWMS13GetMapHandler(EOxSWMS1XGetMapHandler):
     }
     
     def configureMapObj(self, ms_req):
-        super(EOxSWMS13GetMapHandler, self).configureMapObj(ms_req)
+        super(WMS13GetMapHandler, self).configureMapObj(ms_req)
 
         ms_req.map.setMetaData("wms_exceptions_format", "xml")
         ms_req.map.setMetaData("ows_srs","EPSG:4326")
@@ -326,27 +467,47 @@ class EOxSWMS13GetMapHandler(EOxSWMS1XGetMapHandler):
             except:
                 ms_req.map.setProjection("EPSG:4326")
         else:
-            raise EOxSInvalidRequestException("Mandatory 'CRS' parameter missing", "MissingParameterValue", "crs")
+            raise InvalidRequestException("Mandatory 'CRS' parameter missing", "MissingParameterValue", "crs")
     
     def getMapServerLayer(self, coverage, **kwargs):
-        layer = super(EOxSWMS13GetMapHandler, self).getMapServerLayer(coverage, **kwargs)
+        layer = super(WMS13GetMapHandler, self).getMapServerLayer(coverage, **kwargs)
         layer.setMetaData("wms_exceptions_format","xml")
         
 
         return layer
 
-class EOxSWMS10ExceptionHandler(EOxSExceptionHandler):
+WMS13GetMapHandlerImplementation = OperationHandlerInterface.implement(WMS13GetMapHandler)
+
+class WMS10ExceptionHandler(BaseExceptionHandler):
+    REGISTRY_CONF = {
+        "name": "WMS 1.0 Exception Handler",
+        "impl_id": "services.ows.wms1x.WMS10ExceptionHandler",
+        "registry_values": {
+            "services.interfaces.exception_scheme": "wms_1.0"
+        }
+    }
+    
     def _filterExceptions(self, exception):
-        if not isinstance(exception, EOxSInvalidRequestException):
+        if not isinstance(exception, InvalidRequestException):
             raise
     
     def _getEncoder(self):
-        return EOxSWMS10ExceptionEncoder()
+        return WMS10ExceptionEncoder()
         
     def _getContentType(self, exception):
         return "text/xml"
+
+WMS10ExceptionHandlerImplementation = ExceptionHandlerInterface.implement(WMS10ExceptionHandler)
         
-class EOxSWMS10ExceptionEncoder(EOxSExceptionEncoder):
+class WMS10ExceptionEncoder(XMLEncoder):
+    REGISTRY_CONF = {
+        "name": "WMS 1.0 Exception Report Encoder",
+        "impl_id": "services.ows.wms1x.WMS10ExceptionEncoder",
+        "registry_values": {
+            "services.interfaces.exception_scheme": "wms_1.0"
+        }
+    }
+    
     def encodeExceptionReport(self, exception_text, exception_code):
         return self._makeElement("", "WMTException", [
             ("", "@version", "1.0.0"),
@@ -356,18 +517,38 @@ class EOxSWMS10ExceptionEncoder(EOxSExceptionEncoder):
     def encodeInvalidRequestException(self, exception):
         return self.encodeExceptionReport(exception.msg, exception.error_code)
 
-class EOxSWMS11ExceptionHandler(EOxSExceptionHandler):
+WMS10ExceptionEncoderImplementation = ExceptionEncoderInterface.implement(WMS10ExceptionEncoder)
+
+class WMS11ExceptionHandler(BaseExceptionHandler):
+    REGISTRY_CONF = {
+        "name": "WMS 1.1 Exception Handler",
+        "impl_id": "services.ows.wms1x.WMS11ExceptionHandler",
+        "registry_values": {
+            "services.interfaces.exception_scheme": "wms_1.1"
+        }
+    }
+    
     def _filterExceptions(self, exception):
-        if not isinstance(exception, EOxSInvalidRequestException):
+        if not isinstance(exception, InvalidRequestException):
             raise
     
     def _getEncoder(self):
-        return EOxSWMS11ExceptionEncoder()
+        return WMS11ExceptionEncoder()
         
     def _getContentType(self, exception):
         return "application/vnd.ogc.se_xml"
 
-class EOxSWMS11ExceptionEncoder(EOxSExceptionEncoder):
+WMS11ExceptionHandlerImplementation = ExceptionHandlerInterface.implement(WMS11ExceptionHandler)
+
+class WMS11ExceptionEncoder(XMLEncoder):
+    REGISTRY_CONF = {
+        "name": "WMS 1.0 Exception Report Encoder",
+        "impl_id": "services.ows.wms1x.WMS10ExceptionEncoder",
+        "registry_values": {
+            "services.interfaces.exception_scheme": "wms_1.0"
+        }
+    }
+
     def encodeExceptionReport(self, exception_text, exception_code):
         return self._makeElement("", "ServiceExceptionReport", [
             ("", "@version", "1.1.1"),
@@ -379,3 +560,5 @@ class EOxSWMS11ExceptionEncoder(EOxSExceptionEncoder):
     
     def encodeInvalidRequestException(self, exception):
         return self.encodeExceptionReport(exception.msg, exception.error_code)
+
+WMS11ExceptionEncoderImplementation = ExceptionEncoderInterface.implement(WMS11ExceptionHandler)
