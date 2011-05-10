@@ -23,18 +23,16 @@
 #
 #-----------------------------------------------------------------------
 
-from email.parser import Parser as MIMEParser
-from email.message import Message
+
 
 import logging
 
-from eoxserver.lib.util import EOxSKVPDecoder, EOxSXMLDecoder
+from eoxserver.core.util.xmltools import XMLDecoder
+from eoxserver.core.util.kvptools import KVPDecoder
 
-from eoxserver.contrib import mapscript
-
-class EOxSOWSRequest(object):
+class OWSRequest(object):
     def __init__(self, http_req, params='', param_type='kvp', decoder=None):
-        super(EOxSOWSRequest, self).__init__()
+        super(OWSRequest, self).__init__()
         
         self.http_req = http_req
         
@@ -42,9 +40,9 @@ class EOxSOWSRequest(object):
         
         if decoder is None:
             if param_type == 'kvp':
-                self.decoder = EOxSKVPDecoder(params)
+                self.decoder = KVPDecoder(params)
             elif param_type == 'xml':
-                self.decoder = EOxSXMLDecoder(params)
+                self.decoder = XMLDecoder(params)
         else:
             self.decoder = decoder
         
@@ -70,18 +68,10 @@ class EOxSOWSRequest(object):
     def getVersion(self):
         return self.version
 
-class EOxSMapServerRequest(EOxSOWSRequest):
-    def __init__(self, req):
-        super(EOxSMapServerRequest, self).__init__(req.http_req, params=req.params, decoder=req.decoder)
-        
-        self.version = req.version
-        
-        self.map = mapscript.mapObj()
-        self.ows_req = mapscript.OWSRequest()
 
-class EOxSResponse(object):
+class Response(object):
     def __init__(self, content='', content_type='text/xml', headers={}, status=None):
-        super(EOxSResponse, self).__init__()
+        super(Response, self).__init__()
         self.content = content
         self.content_type = content_type
         self.headers = headers
@@ -100,84 +90,3 @@ class EOxSResponse(object):
         return self.status
         
 
-class EOxSMapServerResponse(EOxSResponse):
-    def __init__(self, ms_response, ms_content_type, ms_status, headers={}, status=None):
-        super(EOxSMapServerResponse, self).__init__(content=ms_response, content_type=ms_content_type, headers=headers, status=status)
-        self.ms_status = ms_status
-        
-        self.ms_response_data = None
-        self.ms_response_xml = ''
-        self.ms_response_xml_headers = {}
-        
-    def _isXML(self, content_type):
-        return content_type.split(";")[0].lower() in ("text/xml", "application/xml")
-            
-    def _isMultipart(self, content_type):
-        return content_type.split("/")[0].lower() == "multipart"
-        
-    def splitResponse(self):
-        if self._isXML(self.content_type):
-            self.ms_response_xml = self.content
-            self.ms_response_xml_headers = {'Content-type': self.content_type}
-        elif self._isMultipart(self.content_type):
-            parts = MIMEParser().parsestr("Content-type:%s\n\n%s" % (self.content_type, self.content.rstrip("--wcs--\n\n"))).get_payload()
-            for part in parts:
-                if self._isXML(part.get_content_type()):
-                    self.ms_response_xml = part.get_payload()
-                    for header in part.keys():
-                        self.ms_response_xml_headers[header] = part[header]
-                else:
-                    self.ms_response_data = part
-        else:
-            self.ms_response_data = self.content
-    
-    def getProcessedResponse(self, processed_xml, processed_xml_headers=None):
-        if self.ms_response_data is not None:
-            xml_msg = Message()
-            xml_msg.set_payload(processed_xml)
-            
-            if processed_xml_headers is not None:
-                xml_headers = processed_xml_headers
-            else:
-                xml_headers = self.ms_response_xml_headers
-            for name, value in xml_headers.items():
-                xml_msg.add_header(name, value)
-            
-            if isinstance(self.ms_response_data, Message):
-                data_msg = self.ms_response_data
-            else:
-                data_msg = Message()
-                
-                data_msg.set_payload(self.ms_response_data)
-                
-                data_msg.add_header('Content-type', self.content_type)
-                for name, value in self.headers.items():
-                    data_msg.add_header(name, value)
-                
-            content = "--wcs\n%s\n--wcs\n%s\n--wcs--" % (xml_msg.as_string(), data_msg.as_string())
-            content_type = "multipart/mixed; boundary=wcs"
-            headers = {}
-        else:
-            content = processed_xml
-            content_type = self.content_type
-            if processed_xml_headers is None:
-                headers = self.headers
-            else:
-                headers = processed_xml_headers
-            
-        return EOxSResponse(content, content_type, headers, self.getStatus())
-        
-    def getContentType(self):
-        if "Content-type" in self.headers:
-            return self.headers["Content-type"]
-        else:
-            return self.content_type # TODO: headers for multipart messages
-        
-    def getStatus(self):
-        if self.status is None:
-            if self.ms_status is not None and self.ms_status == 0:
-                return 200
-            else:
-                return 400
-        else:
-            return self.status

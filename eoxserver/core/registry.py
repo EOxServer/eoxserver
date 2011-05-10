@@ -108,7 +108,7 @@ class Registry(object):
         
         return [impl.__get_impl_id__() for impl in impls]
     
-    def getRegistryValues(self, intf_id, registry_key, include_disabled=False):
+    def getRegistryValues(self, intf_id, registry_key, filter=None, include_disabled=False):
         if intf_id in self.__intf_index:
             InterfaceCls = self.__intf_index[intf_id]["intf"]
             if InterfaceCls.getBindingMethod() == "kvp":
@@ -118,12 +118,17 @@ class Registry(object):
                     ))
                     
                 else:
-                    entries = self.__intf_index[intf_id]["impls"]
+                    if filter:
+                        _filter = filter
+                    else:
+                        _filter = {}
                     
-                    if not include_disabled:
-                        entries = filter(lambda entry: entry["enabled"], entries)
+                    impls = self.__find_all_by_values(
+                        self.__intf_index[intf_id]["impls"],
+                        _filter
+                    )
                     
-                    return [entry["cls"].__get_kvps__()[registry_key] for entry in entries]
+                    return [impl.__get_kvps__()[registry_key] for impl in impls]
             else:
                 raise InternalError("Binding method of interface '%s' is '%s', not 'kvp'." % (
                     intf_id,

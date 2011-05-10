@@ -30,7 +30,7 @@ from eoxserver.core.owscommon.requests import OWSRequest, Response
 class RequestHandlerInterface(RegisteredInterface):
     REGISTRY_CONF = {
         "name": "Request Handler Interface",
-        "intf_id": "services.handlers.RequestHandler",
+        "intf_id": "services.interfaces.RequestHandler",
         "binding_method": "kvp"
     }
     
@@ -42,43 +42,43 @@ class RequestHandlerInterface(RegisteredInterface):
 class ServiceHandlerInterface(RequestHandlerInterface):
     REGISTRY_CONF = {
         "name": "Service Handler Interface",
-        "intf_id": "services.handlers.ServiceHandler",
+        "intf_id": "services.interfaces.ServiceHandler",
         "binding_method": "kvp",
         "registry_keys": (
-            "services.handlers.service"
+            "services.interfaces.service"
         )
     }
 
 class VersionHandlerInterface(RequestHandlerInterface):
     REGISTRY_CONF = {
         "name": "Service Handler Interface",
-        "intf_id": "services.handler.ServiceHandler",
+        "intf_id": "services.interfaces.ServiceHandler",
         "binding_method": "kvp",
         "registry_keys": (
-            "services.handlers.service",
-            "services.handlers.version"
+            "services.interfaces.service",
+            "services.interfaces.version"
         )
     }
 
 class OperationHandlerInterface(RequestHandlerInterface):
     REGISTRY_CONF = {
         "name": "Service Handler Interface",
-        "intf_id": "services.handler.ServiceHandler",
+        "intf_id": "services.interfaces.ServiceHandler",
         "binding_method": "kvp",
         "registry_keys": (
-            "services.handlers.service",
-            "services.handlers.version",
-            "services.handlers.operation"
+            "services.interfaces.service",
+            "services.interfaces.version",
+            "services.interfaces.operation"
         )
     }
 
 class ExceptionHandlerInterface(RegisteredInterface):
     REGISTRY_CONF = {
         "name": "Exception Handler Interface",
-        "intf_id": "services.handlers.ExceptionHandler",
+        "intf_id": "services.interfaces.ExceptionHandler",
         "binding_method": "kvp",
         "registry_keys": (
-            "services.handlers.exception_scheme",
+            "services.interfaces.exception_scheme",
         )
     }
     
@@ -91,10 +91,10 @@ class ExceptionHandlerInterface(RegisteredInterface):
 class OWSExceptionEncoderInterface(RegisteredInterface):
     REGISTRY_CONF = {
         "name": "OWS Exception Report XML Encoder Interface",
-        "intf_id": "services.handler.OWSExceptionEncoder",
+        "intf_id": "services.interfaces.OWSExceptionEncoder",
         "binding_method": "kvp",
         "registry_keys": (
-            "services.handlers.exception_scheme",
+            "services.interfaces.exception_scheme",
         )
     }
     
