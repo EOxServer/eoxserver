@@ -160,7 +160,7 @@ class EOxSWCS20DescribeEOCoverageSetSubsettingTestCase(EOxSWCS20DescribeEOCovera
     
     def testCoverageIds(self):
         logging.info("Checking Coverage Ids ...")
-        decoder = EOxSXMLDecoder(self.response.content, {
+        decoder = XMLDecoder(self.response.content, {
             "coverageids": {"xml_location": "/wcs:CoverageDescriptions/wcs:CoverageDescription/wcs:CoverageId", "xml_type": "string[]"}
         })
         
@@ -173,23 +173,24 @@ class EOxSWCS20DescribeEOCoverageSetSubsettingTestCase(EOxSWCS20DescribeEOCovera
             self.assertTrue(expected_coverage_id in result_coverage_ids)
 
 class EOxSWCS20DescribeEOCoverageSetPagingTestCase(EOxSWCS20DescribeEOCoverageSetTestCase):
-    def setUp(self):
-        self.saved_paging_default = System.getConfig().getConfigValue("services.ows.wcs20", "paging_count_default")
-        System.getConfig().paging_count_default = self.getConfigCountOverride()
-        super(EOxSWCS20DescribeEOCoverageSetPagingTestCase, self).setUp()
+# TODO
+#    def setUp(self):
+#        self.saved_paging_default = System.getConfig().getConfigValue("services.ows.wcs20", "paging_count_default")
+#        System.getConfig().paging_count_default = self.getConfigCountOverride()
+#        super(EOxSWCS20DescribeEOCoverageSetPagingTestCase, self).setUp()
     
-    def tearDown(self):
-        super(EOxSWCS20DescribeEOCoverageSetPagingTestCase, self).tearDown()
-        System.getConfig().paging_count_default = self.saved_paging_default
+#    def tearDown(self):
+#        super(EOxSWCS20DescribeEOCoverageSetPagingTestCase, self).tearDown()
+#        System.getConfig().paging_count_default = self.saved_paging_default
     
     def getExpectedCoverageCount(self):
         return 0
     
-    def getConfigCountOverride(self):
-        return System.getConfig().getConfigValue("services.ows.wcs20", "paging_count_default")
+#    def getConfigCountOverride(self):
+#        return System.getConfig().getConfigValue("services.ows.wcs20", "paging_count_default")
     
     def testCoverageCount(self):
-        decoder = EOxSXMLDecoder(self.response.content, {
+        decoder = XMLDecoder(self.response.content, {
             "coverageids": {"xml_location": "/wcs:CoverageDescriptions/wcs:CoverageDescription/wcs:CoverageId", "xml_type": "string[]"}
         })
         coverage_ids = decoder.getValue("coverageids")
@@ -211,7 +212,7 @@ class EOxSExceptionTestCase(EOxSXMLTestCase):
     
     def testExceptionCode(self):
         logging.info("Checking OWS Exception Code ...")
-        decoder = EOxSXMLDecoder(self.response.content, {
+        decoder = XMLDecoder(self.response.content, {
             "exceptionCode": {"xml_location": "/ows:Exception/@exceptionCode", "xml_type": "string"}
         })
         
