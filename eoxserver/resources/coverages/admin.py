@@ -23,6 +23,7 @@
 #
 #-----------------------------------------------------------------------
 
+from django import forms
 from django.contrib.gis import admin
 from django.contrib.contenttypes import generic
 from django.contrib import messages
@@ -85,14 +86,23 @@ class EOxSCoverageSingleFileAdmin(admin.ModelAdmin):
     exclude = ('layer_metadata',)
 admin.site.register(EOxSSingleFileCoverageRecord, EOxSCoverageSingleFileAdmin)
 
+class EOxSStitchedMosaic2DatasetInline(admin.TabularInline):
+    model = EOxSRectifiedStitchedMosaicRecord.rect_datasets.through
+    verbose_name = "Stitched Mosaic to Dataset Relation"
+    verbose_name_plural = "Stitched Mosaic to Dataset Relations"
+    extra = 1
+class EOxSDatasetSeries2DatasetInline(admin.TabularInline):
+    model = EOxSRectifiedDatasetSeriesRecord.rect_datasets.through
+    verbose_name = "Dataset Series to Dataset Relation"
+    verbose_name_plural = "Dataset Series to Dataset Relations"
+    extra = 1
 class EOxSRectifiedDatasetAdmin(admin.ModelAdmin):
-    list_display = ('coverage_id', 'eo_id', 'file', 'range_type', 'grid', 'contained_in')
+    list_display = ('coverage_id', 'eo_id', 'file', 'range_type', 'grid')
     list_editable = ('file', 'range_type', 'grid')
     list_filter = ('range_type', )
     ordering = ('coverage_id', )
     search_fields = ('coverage_id', )
-#    inlines = (EOxSSingleFileLayerMetadataInline, )
-#    exclude = ('layer_metadata',)
+    inlines = (EOxSStitchedMosaic2DatasetInline, EOxSDatasetSeries2DatasetInline)
 
     # We need to override the bulk delete function of the admin to make
     # sure the overrode delete() method of EOxSEOCoverageRecord is
@@ -116,9 +126,13 @@ admin.site.register(EOxSRectifiedDatasetRecord, EOxSRectifiedDatasetAdmin)
 
 class EOxSMosaicDataDirInline(admin.TabularInline):
     model = EOxSMosaicDataDirRecord
+    verbose_name = "Stitched Mosaic Data Directory"
+    verbose_name_plural = "Stitched Mosaic Data Directories"
     extra = 1
-class EOxSRectifiedDatasetInline(generic.GenericTabularInline):
-    model = EOxSRectifiedDatasetRecord
+class EOxSDatasetSeries2StichedMosaicInline(admin.TabularInline):
+    model = EOxSRectifiedDatasetSeriesRecord.rect_stitched_mosaics.through
+    verbose_name = "Dataset Series to Stitched Mosaic Relation"
+    verbose_name_plural = "Dataset Series to Stitched Mosaic Relations"
     extra = 1
 class EOxSRectifiedStitchedMosaicAdmin(admin.ModelAdmin):
     list_display = ('eo_id', 'eo_metadata', 'image_pattern')
@@ -126,7 +140,8 @@ class EOxSRectifiedStitchedMosaicAdmin(admin.ModelAdmin):
     list_filter = ('image_pattern', )
     ordering = ('eo_id', )
     search_fields = ('eo_id', )
-    inlines = (EOxSMosaicDataDirInline, EOxSRectifiedDatasetInline)
+    filter_horizontal = ('rect_datasets', )
+    inlines = (EOxSMosaicDataDirInline, EOxSDatasetSeries2StichedMosaicInline, )
 
     # We need to override the bulk delete function of the admin to make
     # sure the overrode delete() method of EOxSEOCoverageRecord is
@@ -212,18 +227,38 @@ admin.site.register(EOxSRectifiedStitchedMosaicRecord, EOxSRectifiedStitchedMosa
 class EOxSDataDirInline(admin.TabularInline):
     model = EOxSDataDirRecord
     extra = 1
+    
+    def save_model(self, request, obj, form, change):
+        raise # TODO
+    
 class EOxSRectifiedDatasetSeriesAdmin(admin.ModelAdmin):
     list_display = ('eo_id', 'eo_metadata', 'image_pattern')
     list_editable = ('eo_metadata', 'image_pattern')
     list_filter = ('image_pattern', )
     ordering = ('eo_id', )
     search_fields = ('eo_id', )
-    inlines = (EOxSDataDirInline, EOxSRectifiedDatasetInline)
+    inlines = (EOxSDataDirInline, )
+    filter_horizontal = ('rect_stitched_mosaics', 'rect_datasets', )
+    
 
     # We need to override the bulk delete function of the admin to make
     # sure the overrode delete() method of EOxSEOCoverageRecord is
     # called.
     actions = ['really_delete_selected', ]
+    
+    """
+        TODO here
+    """
+    
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        if db_field.name == "rect_datasets":
+            pass
+            #raise
+            #data_dirs = EOxSDataDirRecord.objects.get(dataset_series=
+            #TODO: get all data dirs
+            # exclude all datasets from the query that are included in the dir
+            #kwargs["queryset"] = EOxSRectifiedDatasetRecord.objects.get(file__path__istartswith="")
+        return super(EOxSRectifiedDatasetSeriesAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
     
     def get_actions(self, request):
         actions = super(EOxSRectifiedDatasetSeriesAdmin, self).get_actions(request)
@@ -238,8 +273,27 @@ class EOxSRectifiedDatasetSeriesAdmin(admin.ModelAdmin):
     
     def save_model(self, request, obj, form, change):
         self.dataset_series = obj
-        super(EOxSRectifiedDatasetSeriesAdmin, self).save_model(request, obj, form, change)
+        error = False
         
+        
+        #TODO
+        """for data_dir in obj.data_dirs.all():
+            try:
+                files = findFiles(data_dir.dir, obj.image_pattern)
+            except OSError, e:
+                messages.error(request, "%s: %s"%(e.strerror, e.filename))
+                continue
+            
+            for dataset in obj.rect_datasets.all():
+                if dataset.file.path in files:
+                    messages.error(request, "The dataset with the id %s is already included in the data directory %s"%(dataset.eo_id, data_dir.dir))
+                    error = True"""
+        
+        #raise
+        
+        if not error:
+            super(EOxSRectifiedDatasetSeriesAdmin, self).save_model(request, obj, form, change)
+
     def save_formset(self, request, form, formset, change):
         # the reason why the synchronization method is placed here
         # instead of the save_model() method is that this is the last step
