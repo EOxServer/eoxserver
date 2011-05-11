@@ -38,7 +38,7 @@ from eoxserver.resources.coverages.metadata import EOxSMetadataInterfaceFactory
 
 NCNameValidator = RegexValidator(re.compile(r'^[a-zA-z_][a-zA-Z0-9_.-]*$'), message="This field must contain a valid NCName.")
 
-class EOxSNilValueRecord(models.Model):
+class NilValueRecord(models.Model):
     reason = models.CharField(max_length=128)
     value = models.IntegerField()
 
@@ -48,12 +48,12 @@ class EOxSNilValueRecord(models.Model):
     class Meta:
         verbose_name = "NilValue"
 
-class EOxSChannelRecord(models.Model):
+class ChannelRecord(models.Model):
     name = models.CharField(max_length=256)
     identifier = models.CharField(max_length=256)
     description = models.TextField()
     definition = models.CharField(max_length=256)
-    nil_values = models.ManyToManyField(EOxSNilValueRecord, null=True, blank=True) # TODO: NilValues operate on RangeType not Channel
+    nil_values = models.ManyToManyField(NilValueRecord, null=True, blank=True) # TODO: NilValues operate on RangeType not Channel
     uom = models.CharField(max_length=16)
     allowed_values_start = models.IntegerField()
     allowed_values_end = models.IntegerField()
@@ -65,9 +65,9 @@ class EOxSChannelRecord(models.Model):
     class Meta:
         verbose_name = "Channel"
 
-class EOxSRangeType(models.Model):
+class RangeType(models.Model):
     name = models.CharField(max_length=256)
-    channels = models.ManyToManyField(EOxSChannelRecord, through="EOxSRangeType2Channel")
+    channels = models.ManyToManyField(ChannelRecord, through="RangeType2Channel")
 
     def __unicode__(self):
         return self.name
@@ -75,12 +75,12 @@ class EOxSRangeType(models.Model):
     class Meta:
         verbose_name = "RangeType"
     
-class EOxSRangeType2Channel(models.Model):
-    channel = models.ForeignKey(EOxSChannelRecord)
-    range_type = models.ForeignKey(EOxSRangeType)
+class RangeType2Channel(models.Model):
+    channel = models.ForeignKey(ChannelRecord)
+    range_type = models.ForeignKey(RangeType)
     no = models.PositiveIntegerField()
 
-class EOxSRectifiedGridRecord(models.Model):
+class RectifiedGridRecord(models.Model):
     def __unicode__(self):
         return str(self.id) + " RectifiedGrid"
 
@@ -89,8 +89,8 @@ class EOxSRectifiedGridRecord(models.Model):
     class Meta:
         verbose_name = "RectifiedGrid"
 
-class EOxSAxisRecord(models.Model):
-    grid = models.ForeignKey(EOxSRectifiedGridRecord, related_name="axis_set")
+class AxisRecord(models.Model):
+    grid = models.ForeignKey(RectifiedGridRecord, related_name="axis_set")
     label = models.CharField(max_length=64)
     dimension_idx = models.PositiveIntegerField()
     low = models.IntegerField()
@@ -102,7 +102,7 @@ class EOxSAxisRecord(models.Model):
         verbose_name = "Axis"
         verbose_name_plural = "Axis"
 
-class EOxSLayerMetadataRecord(models.Model):
+class LayerMetadataRecord(models.Model):
     key = models.CharField(max_length=256)
     value = models.TextField()
 
@@ -113,7 +113,7 @@ class EOxSLayerMetadataRecord(models.Model):
         verbose_name = "Layer Metadata"
         verbose_name_plural = "Layer Metadata"
 
-class EOxSFileRecord(models.Model):
+class FileRecord(models.Model):
     path = models.CharField(max_length=1024)
     #file = models.FileField(upload_to='files') # TODO
     quicklook_path = models.CharField(max_length=1024, blank=True)
@@ -127,13 +127,13 @@ class EOxSFileRecord(models.Model):
         verbose_name = "File"
         verbose_name_plural = "Files"
 
-class EOxSLineageRecord(models.Model):
+class LineageRecord(models.Model):
 
     class Meta:
         verbose_name = "Lineage Entry"
         verbose_name_plural = "Lineage Entries"
 
-class EOxSEOMetadataRecord(models.Model):
+class EOMetadataRecord(models.Model):
     timestamp_begin = models.DateTimeField()
     timestamp_end = models.DateTimeField()
     footprint = models.PolygonField(srid=4326, geography=True)
@@ -170,26 +170,26 @@ class EOxSEOMetadataRecord(models.Model):
                 if not self.footprint.equals_exact(GEOSGeometry(md_int.getFootprint()), EPSILON * max(self.footprint.extent)): # compare the footprints with a tolerance in order to account for rounding and string conversion errors
                     raise ValidationError("EO GML footprint does not match.")
 
-class EOxSCoverageRecord(models.Model):
+class CoverageRecord(models.Model):
     coverage_id = models.CharField(max_length=256, unique=True, validators=[NCNameValidator])
-    range_type = models.ForeignKey(EOxSRangeType)
-    layer_metadata = models.ManyToManyField(EOxSLayerMetadataRecord, null=True, blank=True)
+    range_type = models.ForeignKey(RangeType)
+    layer_metadata = models.ManyToManyField(LayerMetadataRecord, null=True, blank=True)
 
     class Meta:
         abstract = True
 
-class EOxSSingleFileCoverageRecord(EOxSCoverageRecord):
-    grid = models.ForeignKey(EOxSRectifiedGridRecord, related_name = "single_file_coverages")
-    file = models.ForeignKey(EOxSFileRecord, related_name = "single_file_coverages")
+class SingleFileCoverageRecord(CoverageRecord):
+    grid = models.ForeignKey(RectifiedGridRecord, related_name = "single_file_coverages")
+    file = models.ForeignKey(FileRecord, related_name = "single_file_coverages")
 
     class Meta:
         verbose_name = "Single File Coverage"
         verbose_name_plural = "Single File Coverages"
 
-class EOxSEOCoverageRecord(EOxSCoverageRecord):
+class EOCoverageRecord(CoverageRecord):
     eo_id = models.CharField(max_length=256, unique=True, validators=[NCNameValidator])
-    eo_metadata = models.OneToOneField(EOxSEOMetadataRecord, related_name="%(class)s_set")
-    lineage = models.OneToOneField(EOxSLineageRecord, related_name="%(class)s_set")
+    eo_metadata = models.OneToOneField(EOMetadataRecord, related_name="%(class)s_set")
+    lineage = models.OneToOneField(LineageRecord, related_name="%(class)s_set")
     
     class Meta:
         abstract = True
@@ -197,13 +197,13 @@ class EOxSEOCoverageRecord(EOxSCoverageRecord):
     def delete(self):
         eo_metadata = self.eo_metadata
         lineage = self.lineage
-        super(EOxSEOCoverageRecord, self).delete()
+        super(EOCoverageRecord, self).delete()
         eo_metadata.delete()
         lineage.delete()
 
-class EOxSRectifiedDatasetRecord(EOxSEOCoverageRecord):
-    grid = models.ForeignKey(EOxSRectifiedGridRecord, related_name="rect_datasets")
-    file = models.ForeignKey(EOxSFileRecord, related_name="rect_datasets")
+class RectifiedDatasetRecord(EOCoverageRecord):
+    grid = models.ForeignKey(RectifiedGridRecord, related_name="rect_datasets")
+    file = models.ForeignKey(FileRecord, related_name="rect_datasets")
     automatic = models.BooleanField(default=False) # True means that the dataset was automatically generated from a dataset series's data dir
     visible = models.BooleanField(default=False) # True means that the dataset is visible in the GetCapabilities response
 
@@ -214,11 +214,11 @@ class EOxSRectifiedDatasetRecord(EOxSEOCoverageRecord):
         verbose_name = "Dataset"
         verbose_name_plural = "Datasets"
 
-class EOxSRectifiedStitchedMosaicRecord(EOxSEOCoverageRecord):
-    grid = models.ForeignKey(EOxSRectifiedGridRecord, related_name="rect_stitched_mosaics")
+class RectifiedStitchedMosaicRecord(EOCoverageRecord):
+    grid = models.ForeignKey(RectifiedGridRecord, related_name="rect_stitched_mosaics")
     image_pattern = models.CharField(max_length=1024)
     shape_file_path = models.CharField(max_length=1024, blank=True)
-    rect_datasets = models.ManyToManyField(EOxSRectifiedDatasetRecord, related_name = "rect_stitched_mosaics")
+    rect_datasets = models.ManyToManyField(RectifiedDatasetRecord, related_name = "rect_stitched_mosaics")
 
     def __unicode__(self):
         return self.eo_id
@@ -231,11 +231,11 @@ class EOxSRectifiedStitchedMosaicRecord(EOxSEOCoverageRecord):
         eo_metadata = self.eo_metadata
         for dataset in self.rect_datasets.all():
             dataset.delete()
-        super(EOxSRectifiedStitchedMosaicRecord, self).delete()
+        super(RectifiedStitchedMosaicRecord, self).delete()
         eo_metadata.delete()
 
-class EOxSMosaicDataDirRecord(models.Model):
-    mosaic = models.ForeignKey(EOxSRectifiedStitchedMosaicRecord, related_name = "data_dirs")
+class MosaicDataDirRecord(models.Model):
+    mosaic = models.ForeignKey(RectifiedStitchedMosaicRecord, related_name = "data_dirs")
     dir = models.CharField(max_length=1024)
 
     def __unicode__(self):
@@ -245,12 +245,12 @@ class EOxSMosaicDataDirRecord(models.Model):
         verbose_name = "Mosaic Data Directory"
         verbose_name_plural = "Mosaic Data Directories"
 
-class EOxSRectifiedDatasetSeriesRecord(models.Model):
+class RectifiedDatasetSeriesRecord(models.Model):
     eo_id = models.CharField(max_length=256, unique=True, validators=[NCNameValidator])
-    eo_metadata = models.OneToOneField(EOxSEOMetadataRecord, related_name="rect_dataset_series_set")
+    eo_metadata = models.OneToOneField(EOMetadataRecord, related_name="rect_dataset_series_set")
     image_pattern = models.CharField(max_length=1024)
-    rect_stitched_mosaics = models.ManyToManyField(EOxSRectifiedStitchedMosaicRecord, blank=True, null=True, related_name="dataset_series")
-    rect_datasets = models.ManyToManyField(EOxSRectifiedDatasetRecord, blank=True, null=True, related_name="rect_dataset_series_set")
+    rect_stitched_mosaics = models.ManyToManyField(RectifiedStitchedMosaicRecord, blank=True, null=True, related_name="dataset_series")
+    rect_datasets = models.ManyToManyField(RectifiedDatasetRecord, blank=True, null=True, related_name="rect_dataset_series_set")
 
     def __unicode__(self):
         return self.eo_id
@@ -295,11 +295,11 @@ class EOxSRectifiedDatasetSeriesRecord(models.Model):
         eo_metadata = self.eo_metadata
         for dataset in self.rect_datasets.all():
             dataset.delete()
-        super(EOxSRectifiedDatasetSeriesRecord, self).delete()
+        super(RectifiedDatasetSeriesRecord, self).delete()
         eo_metadata.delete()
 
-class EOxSDataDirRecord(models.Model):
-    dataset_series = models.ForeignKey(EOxSRectifiedDatasetSeriesRecord, related_name="data_dirs")
+class DataDirRecord(models.Model):
+    dataset_series = models.ForeignKey(RectifiedDatasetSeriesRecord, related_name="data_dirs")
     dir = models.CharField(max_length=1024)
 
     def __unicode__(self):
