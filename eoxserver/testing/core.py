@@ -41,7 +41,7 @@ from eoxserver.core.system import System
 from eoxserver.services.owscommon import OWSCommonHandler
 from eoxserver.core.util.xmltools import XMLDecoder, DOMtoXML
 
-class EOxSTestSchemaFactory(object):
+class TestSchemaFactory(object):
     schemas = {}
     
     @classmethod
@@ -129,32 +129,32 @@ class EOxSTestCase(TestCase):
                            os.path.join(self.getExpectedFileDir(), self.getExpectedFileName()))
                 )
 
-class EOxSXMLTestCase(EOxSTestCase):
+class XMLTestCase(EOxSTestCase):
     def getSchemaLocation(self):
         return "../schemas/wcseo/1.0/wcsEOAll.xsd"
     
     def testValidate(self):
         logging.info("Validating XML ...")
-        schema = EOxSTestSchemaFactory.getSchema(self.getSchemaLocation())
+        schema = TestSchemaFactory.getSchema(self.getSchemaLocation())
         
         try:
             schema.assertValid(etree.fromstring(self.response.content))
         except etree.Error as e:
             self.fail(str(e))
 
-class EOxSWCS20GetCapabilitiesTestCase(EOxSXMLTestCase):
+class WCS20GetCapabilitiesTestCase(XMLTestCase):
     def getSchemaLocation(self):
         return "../schemas/wcseo/1.0/wcsEOGetCapabilities.xsd"
 
-class EOxSWCS20DescribeCoverageTestCase(EOxSXMLTestCase):
+class WCS20DescribeCoverageTestCase(XMLTestCase):
     def getSchemaLocation(self):
         return "../schemas/wcs/2.0/wcsDescribeCoverage.xsd"
 
-class EOxSWCS20DescribeEOCoverageSetTestCase(EOxSXMLTestCase):
+class WCS20DescribeEOCoverageSetTestCase(XMLTestCase):
     def getSchemaLocation(self):
         return "../schemas/wcseo/1.0/wcsEODescribeEOCoverageSet.xsd"
     
-class EOxSWCS20DescribeEOCoverageSetSubsettingTestCase(EOxSWCS20DescribeEOCoverageSetTestCase):
+class WCS20DescribeEOCoverageSetSubsettingTestCase(WCS20DescribeEOCoverageSetTestCase):
     def getExpectedCoverageIds(self):
         return []
     
@@ -172,15 +172,15 @@ class EOxSWCS20DescribeEOCoverageSetSubsettingTestCase(EOxSWCS20DescribeEOCovera
         for expected_coverage_id in expected_coverage_ids:
             self.assertTrue(expected_coverage_id in result_coverage_ids)
 
-class EOxSWCS20DescribeEOCoverageSetPagingTestCase(EOxSWCS20DescribeEOCoverageSetTestCase):
+class WCS20DescribeEOCoverageSetPagingTestCase(WCS20DescribeEOCoverageSetTestCase):
 # TODO
 #    def setUp(self):
 #        self.saved_paging_default = System.getConfig().getConfigValue("services.ows.wcs20", "paging_count_default")
 #        System.getConfig().paging_count_default = self.getConfigCountOverride()
-#        super(EOxSWCS20DescribeEOCoverageSetPagingTestCase, self).setUp()
+#        super(WCS20DescribeEOCoverageSetPagingTestCase, self).setUp()
     
 #    def tearDown(self):
-#        super(EOxSWCS20DescribeEOCoverageSetPagingTestCase, self).tearDown()
+#        super(WCS20DescribeEOCoverageSetPagingTestCase, self).tearDown()
 #        System.getConfig().paging_count_default = self.saved_paging_default
     
     def getExpectedCoverageCount(self):
@@ -196,7 +196,7 @@ class EOxSWCS20DescribeEOCoverageSetPagingTestCase(EOxSWCS20DescribeEOCoverageSe
         coverage_ids = decoder.getValue("coverageids")
         self.assertEqual(len(coverage_ids), self.getExpectedCoverageCount())
 
-class EOxSExceptionTestCase(EOxSXMLTestCase):
+class ExceptionTestCase(XMLTestCase):
     def getSchemaLocation(self):
         return "../schemas/ows/2.0/owsExceptionReport.xsd"
     
@@ -218,11 +218,11 @@ class EOxSExceptionTestCase(EOxSXMLTestCase):
         
         self.assertEqual(decoder.getValue("exceptionCode"), self.getExpectedExceptionCode())
 
-class EOxSWCS20GetCoverageTestCase(EOxSTestCase):    
+class WCS20GetCoverageTestCase(EOxSTestCase):    
     def getFileExtension(self):
         return "tif"
     
-class EOxSWCS20GetCoverageMultipartTestCase(EOxSWCS20GetCoverageTestCase):
+class WCS20GetCoverageMultipartTestCase(WCS20GetCoverageTestCase):
     def getFileExtension(self,part=None):
         if part == "xml":
             return "xml"
@@ -247,7 +247,7 @@ class EOxSWCS20GetCoverageMultipartTestCase(EOxSWCS20GetCoverageTestCase):
                 continue
             elif part['Content-type'] == "text/xml":
                 logging.info("Validating XML ...")
-                schema = EOxSTestSchemaFactory.getSchema("../schemas/wcseo/1.0/wcsEOCoverage.xsd")
+                schema = TestSchemaFactory.getSchema("../schemas/wcseo/1.0/wcsEOCoverage.xsd")
                 try:
                     schema.assertValid(etree.fromstring(part.get_payload()))
                 except etree.Error as e:
