@@ -115,6 +115,7 @@ class EOxSLayerMetadataRecord(models.Model):
 
 class EOxSFileRecord(models.Model):
     path = models.CharField(max_length=1024)
+    #file = models.FileField(upload_to='files') # TODO
     quicklook_path = models.CharField(max_length=1024, blank=True)
     metadata_path = models.CharField(max_length=1024, blank=True)
     metadata_format = models.CharField(max_length=64, blank=True)
@@ -205,9 +206,6 @@ class EOxSRectifiedDatasetRecord(EOxSEOCoverageRecord):
     file = models.ForeignKey(EOxSFileRecord, related_name="rect_datasets")
     automatic = models.BooleanField(default=False) # True means that the dataset was automatically generated from a dataset series's data dir
     visible = models.BooleanField(default=False) # True means that the dataset is visible in the GetCapabilities response
-    content_type = models.ForeignKey(ContentType, null=True, blank=True)
-    object_id = models.PositiveIntegerField(null=True, blank=True)
-    contained_in = generic.GenericForeignKey('content_type', 'object_id')
 
     def __unicode__(self):
         return self.eo_id
@@ -218,9 +216,9 @@ class EOxSRectifiedDatasetRecord(EOxSEOCoverageRecord):
 
 class EOxSRectifiedStitchedMosaicRecord(EOxSEOCoverageRecord):
     grid = models.ForeignKey(EOxSRectifiedGridRecord, related_name="rect_stitched_mosaics")
-    rect_datasets = generic.GenericRelation(EOxSRectifiedDatasetRecord)
     image_pattern = models.CharField(max_length=1024)
     shape_file_path = models.CharField(max_length=1024, blank=True)
+    rect_datasets = models.ManyToManyField(EOxSRectifiedDatasetRecord, related_name = "rect_stitched_mosaics")
 
     def __unicode__(self):
         return self.eo_id
@@ -251,7 +249,8 @@ class EOxSRectifiedDatasetSeriesRecord(models.Model):
     eo_id = models.CharField(max_length=256, unique=True, validators=[NCNameValidator])
     eo_metadata = models.OneToOneField(EOxSEOMetadataRecord, related_name="rect_dataset_series_set")
     image_pattern = models.CharField(max_length=1024)
-    rect_datasets = generic.GenericRelation(EOxSRectifiedDatasetRecord)
+    rect_stitched_mosaics = models.ManyToManyField(EOxSRectifiedStitchedMosaicRecord, blank=True, null=True, related_name="dataset_series")
+    rect_datasets = models.ManyToManyField(EOxSRectifiedDatasetRecord, blank=True, null=True, related_name="rect_dataset_series_set")
 
     def __unicode__(self):
         return self.eo_id
@@ -259,6 +258,38 @@ class EOxSRectifiedDatasetSeriesRecord(models.Model):
     class Meta:
         verbose_name = "DatasetSeries"
         verbose_name_plural = "DatasetSeries"
+
+    def clean(self):
+        pass
+    """
+        super(RectifiedDatasetSeriesRecord, self).clean()
+        
+        for data_dir in self.data_dirs.all():
+            try:
+                files = findFiles(data_dir.dir, self.image_pattern)
+            except OSError, e:
+                raise ValidationError("%s: %s"%(e.strerror, e.filename))
+            
+            for dataset in self.rect_datasets.all():
+                #raise ValidationError(self.rect_datasets.all())
+                if dataset.file.path in files:
+                    raise ValidationError("The dataset with the id %s is already included in the data directory %s"%(dataset.eo_id, data_dir.dir))
+    """
+
+    def save(self):
+        pass
+    """    for data_dir in self.data_dirs.all():
+            try:
+                files = findFiles(data_dir.dir, self.image_pattern)
+            except OSError, e:
+                raise ValidationError("%s: %s"%(e.strerror, e.filename))
+            
+            for dataset in self.rect_datasets.all():
+                if dataset.file.path in files:
+                    raise ValidationError("The dataset with the id %s is already included in the data directory %s"%(dataset.eo_id, data_dir.dir))
+                    
+        super(RectifiedDatasetSeriesRecord, self).save()
+    """
 
     def delete(self):
         eo_metadata = self.eo_metadata
