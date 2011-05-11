@@ -316,16 +316,16 @@ class EOxSWCS20DescribeEOCoverageSetDatasetPagingCountTestCase(eoxstest.EOxSWCS2
         params = "service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=MER_FRS_1P_reduced&count=2"
         return (params, "kvp")
 
-class EOxSWCS20DescribeEOCoverageSetDatasetPagingConfigTestCase(eoxstest.EOxSWCS20DescribeEOCoverageSetPagingTestCase):
-    def getConfigCountOverride(self):
-        return 2
-    
-    def getExpectedCoverageCount(self):
-        return 2
-    
-    def getRequest(self):
-        params = "service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=MER_FRS_1P_reduced"
-        return (params, "kvp")
+#class EOxSWCS20DescribeEOCoverageSetDatasetPagingConfigTestCase(eoxstest.EOxSWCS20DescribeEOCoverageSetPagingTestCase):
+#    def getConfigCountOverride(self):
+#        return 2
+#    
+#    def getExpectedCoverageCount(self):
+#        return 2
+#    
+#    def getRequest(self):
+#        params = "service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=MER_FRS_1P_reduced"
+#        return (params, "kvp")
 
 class EOxSWCS20GetCoverageFormatMissingFaultTestCase(eoxstest.EOxSExceptionTestCase):
     def getRequest(self):
