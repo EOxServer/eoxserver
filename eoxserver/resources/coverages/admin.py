@@ -25,7 +25,6 @@
 
 from django import forms
 from django.contrib.gis import admin
-from django.contrib.contenttypes import generic
 from django.contrib import messages
 from django.db import transaction
 from django.conf import settings

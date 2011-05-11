@@ -41,6 +41,7 @@ from eoxserver.services.requests import Response
 from eoxserver.services.exceptions import (
     InvalidRequestException, VersionNegotiationException
 )
+from eoxserver.core.exceptions import ImplementationNotFound
 
 class OWSCommonHandler(BaseRequestHandler):
     REGISTRY_CONF = {
