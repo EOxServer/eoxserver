@@ -23,8 +23,10 @@
 #
 #-----------------------------------------------------------------------
 
+import imp
 import os.path
 import logging
+from inspect import isclass
 
 from django.conf import settings
 
@@ -241,9 +243,9 @@ class Registry(object):
     
     def __save_diff_to_db(self, qs=None):
         if qs is not None:
-            db_impl_ids = qs.values("impl_id")
+            db_impl_ids = qs.values_list("impl_id", flat=True)
         else:
-            db_impl_ids = Component.objects.all().values("impl_id")
+            db_impl_ids = Component.objects.all().values_list("impl_id", flat=True)
         
         for impl_id in self.__impl_index.keys():
             if impl_id not in db_impl_ids:
@@ -316,7 +318,7 @@ class Registry(object):
         
         return impls
 
-    def __register(self, ImplementationCls):
+    def __register_implementation(self, ImplementationCls):
         # update interface index
         self.__add_to_intf_index(ImplementationCls)
         
@@ -325,6 +327,26 @@ class Registry(object):
         
         # update KVP index
         self.__add_to_kvp_index(ImplementationCls)
+    
+    def __register_interface(self, InterfaceCls):
+        logging.debug("Registry.__register_interface(): intf_id: %s" % InterfaceCls.getInterfaceId())
+        
+        intf_id = InterfaceCls.getInterfaceId()
+        
+        if intf_id in self.__intf_index:
+            if InterfaceCls is not self.__intf_index[intf_id]["intf"]:
+                raise InternalError("Duplicate interface ID '%s' for '%s' in module '%s' and '%s' in module '%s'" % (
+                    intf_id,
+                    InterfaceCls.__name__,
+                    InterfaceCls.__module__,
+                    self.__intf_index[intf_id]["intf"].__name__,
+                    self.__intf_index[intf_id]["intf"].__module__
+                ))
+        else:
+            self.__intf_index[intf_id] = {
+                "intf": InterfaceCls,
+                "impls": []
+            }
 
     def __add_to_intf_index(self, ImplementationCls):
         intf_id = ImplementationCls.__get_intf_id__()
@@ -357,7 +379,7 @@ class Registry(object):
             if self.__impl_index[impl_id] is not ImplementationCls:
                 raise InternalError("Duplicate implementation id '%s' defined in modules '%s' and '%s'" % (
                     impl_id,
-                    self.__impl_index[impl_id].__module__,
+                    self.__impl_index[impl_id]["cls"].__module__,
                     ImplementationCls.__module__
                 ))
         else:
@@ -383,8 +405,8 @@ class Registry(object):
                         intf_id,
                         impl_id,
                         ImplementationCls.__module__,
-                        self.__kvp_index[key].__get_impl_id__(),
-                        self.__kvp_index[key].__module__
+                        self.__kvp_index[key]["cls"].__get_impl_id__(),
+                        self.__kvp_index[key]["cls"].__module__
                     ))
                     
     def __get_index_entry(self, ImplementationCls, enabled=False):
@@ -426,27 +448,37 @@ class Registry(object):
     
     def __load_module(self, module_name, strict=False):
         try:
-            #module = __import__(module_name, globals(), locals(), [])
-            f, path, desc = imp.find_module(module_name)
-            module = imp.load_module(module_name, f, path, desc)
+            # TODO: use imp module here (it reloads modules, which is more close to what we want)
+            module = __import__(module_name, globals(), locals(), [])
             
-        except:
+            for sub_module_name in module_name.split(".")[1:]:
+                module = getattr(module, sub_module_name)
+            #f, path, desc = imp.find_module(module_name)
+            #module = imp.load_module(module_name, f, path, desc)
+            
+        except Exception, e:
             if strict:
-                raise InternalError("Could not load required module '%s'." % module_name)
+                raise InternalError("Could not load required module '%s'. Error was: %s" % (
+                    module_name, str(e)
+                ))
             else:
                 # NOTE: a check for consistency will be applied later
                 # on; if an enabled component is missing, an exception
                 # will be raised by the final validation routine
-                logging.warning("Could not load module '%s'" % module_name)
+                logging.warning("Could not load module '%s'. Error was: %s" % (
+                    module_name, str(e)
+                ))
                 return
-        
+                
         for attr in module.__dict__.values():
-            if hasattr(attr, "__ifclass__") and\
+            if isclass(attr) and issubclass(attr, RegisteredInterface):
+                self.__register_interface(attr)
+            elif hasattr(attr, "__ifclass__") and\
                hasattr(attr, "__rconf__") and\
                hasattr(attr, "__get_intf_id__") and\
                hasattr(attr, "__get_impl_id__") and\
                hasattr(attr, "__get_kvps__"):
-                self.__register(attr)
+                self.__register_implementation(attr)
 
 class RegisteredInterfaceMetaClass(InterfaceMetaClass):    
     def __new__(mcls, name, bases, class_dict):
@@ -523,8 +555,14 @@ class RegisteredInterface(Interface):
             if "registry_values" not in conf:
                 raise InternalError("Missing 'registry_values' parameter in implementation configuration dictionary.")
             
-            if set(conf["registry_values"].keys()) != set(InterfaceCls.getRegistryKeys()):
-                raise InternalError("Registry keys in implementation configuration dictionary do not match interface definition")
+            if not InterfaceCls._keysMatch(conf["registry_values"].keys(), InterfaceCls.getRegistryKeys()):
+                raise InternalError("Registry keys in implementation configuration dictionary for '%s' do not match interface definition" % conf["impl_id"])
+    
+    @classmethod
+    def _keysMatch(InterfaceCls, impl_keys, intf_keys):
+        return (len(impl_keys) == 0 and len(intf_keys) == 0) or\
+               (all(map(lambda key: key in intf_keys, impl_keys)) and \
+                all(map(lambda key: key in impl_keys, intf_keys)))
 
     @classmethod
     def getInterfaceId(cls):
@@ -536,7 +574,10 @@ class RegisteredInterface(Interface):
     
     @classmethod
     def getRegistryKeys(cls):
-        return cls.__rconf__.get("registry_keys")
+        if "registry_keys" in cls.__rconf__:
+            return cls.__rconf__["registry_keys"]
+        else:
+            return []
 
 class TestingInterface(RegisteredInterface):
     REGISTRY_CONF = {

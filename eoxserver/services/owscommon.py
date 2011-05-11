@@ -265,7 +265,7 @@ class OWSCommonServiceHandler(BaseRequestHandler):
 
         return handler.handle(req)
 
-class EOxSOWSCommonVersionHandler(BaseRequestHandler):
+class OWSCommonVersionHandler(BaseRequestHandler):
     SERVICE = ""
     VERSION = ""
     

@@ -23,26 +23,14 @@
 #
 #-----------------------------------------------------------------------
 
-from eoxserver.core.exceptions import EOxSException
+from eoxserver.core.interfaces import Method, ObjectArg
+from eoxserver.core.config import Config
+from eoxserver.core.registry import RegisteredInterface
 
-class InvalidRequestException(EOxSException):
-    def __init__(self, msg, error_code, locator):
-        super(InvalidRequestException, self).__init__(msg)
-        
-        self.msg = msg
-        self.error_code = error_code
-        self.locator = locator
+class ConfigReaderInterface(RegisteredInterface):
+    REGISTRY_CONF = {
+        "name": "Config Reader Interface",
+        "intf_id": "core.readers.ConfigReader"
+    }
     
-    def __str__(self):
-        return "Invalid Request: ErrorCode: %s; Locator: %s; Message: '%s'" % (
-            self.error_code, self.locator, self.msg
-        )
-
-class VersionNegotiationException(EOxSException):
-    pass
-
-class InvalidAxisLabelException(EOxSException):
-    pass
-
-class InvalidSubsettingException(EOxSException):
-    pass
+    validate = Method(ObjectArg("config", arg_class=Config))
