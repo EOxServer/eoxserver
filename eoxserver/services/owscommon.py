@@ -194,7 +194,7 @@ class OWSCommonServiceHandler(BaseRequestHandler):
         
         for version in versions:
             if min_version:
-                if self._convertVersionNumber(version) < self._convertVersionNumber(max_version):
+                if self._convertVersionNumber(version) < self._convertVersionNumber(min_version):
                     min_version = version
             else:
                 min_version = version
