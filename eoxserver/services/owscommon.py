@@ -92,7 +92,7 @@ class OWSCommonHandler(BaseRequestHandler):
         try:
             handler = System.getRegistry().findAndBind(
                 intf_id = "services.interfaces.ServiceHandler",
-                params = {"services.interfaces.service": service}
+                params = {"services.interfaces.service": service.lower()}
             )
         except ImplementationNotFound, e:
             raise InvalidRequestException(
@@ -303,7 +303,7 @@ class OWSCommonVersionHandler(BaseRequestHandler):
                 params = {
                     "services.interfaces.service": self.SERVICE,
                     "services.interfaces.version": version,
-                    "services.interfaces.operation": operation
+                    "services.interfaces.operation": operation.lower()
                 }
             )
         except ImplementationNotFound, e:

@@ -408,7 +408,7 @@ class WCS20GetCoverageHandler(WCSCommonHandler):
             raise InvalidRequestException("Missing 'coverageid' parameter", "MissingParameterValue", "coverageid")
         else:
             try:
-                ms_req.coverages.append(EOxSCoverageInterfaceFactory.getCoverageInterface(coverage_id))
+                ms_req.coverages.append(CoverageInterfaceFactory.getCoverageInterface(coverage_id))
             except NoSuchCoverageException, e:
                 raise InvalidRequestException(e.msg, "NoSuchCoverage", coverage_id)
 
