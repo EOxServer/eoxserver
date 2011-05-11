@@ -24,7 +24,10 @@
 #-----------------------------------------------------------------------
 
 class EOxSException(Exception):
-    pass
+    def __init__(self, msg):
+        super(EOxSException, self).__init__(msg)
+        
+        self.msg = msg
     
 class InternalError(EOxSException):
     pass
