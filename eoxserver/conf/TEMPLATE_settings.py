@@ -28,7 +28,7 @@
 
 from os.path import join
 
-PROJECT_DIR = 'eoxserver'
+PROJECT_DIR = 'autotest'
 PROJECT_URL_PREFIX = ''
 
 MAPSCRIPT_PATH = 'mapserver/mapscript/python/build'
@@ -109,7 +109,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 
-ROOT_URLCONF = 'eoxserver.urls'
+ROOT_URLCONF = 'autotest.urls'
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
@@ -133,4 +133,8 @@ INSTALLED_APPS = (
     'eoxserver.services',
     'eoxserver.resources.coverages',
     'eoxserver.testing',
+)
+
+FIXTURE_DIRS = (
+    join(PROJECT_DIR, 'data/fixtures'),
 )
