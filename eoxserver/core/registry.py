@@ -223,7 +223,26 @@ class Registry(object):
         
         for comp in qs:
             if comp.impl_id in self.__impl_index:
+                
+                # TODO: at the moment, the 'enabled' property is stored
+                # in each index seperately. Make the indices point to
+                # the same entry, so 'enabled' does not need to be set
+                # three times (once for each index)
                 self.__impl_index[comp.impl_id]["enabled"] = comp.enabled
+                
+                intf_id = self.__impl_index[comp.impl_id]["cls"].__get_intf_id__()
+                entries = self.__intf_index[intf_id]["impls"]
+                for entry in entries:
+                    if entry["impl_id"] == comp.impl_id:
+                        entry["enabled"] = comp.enabled
+                
+                if self.__intf_index[intf_id]["intf"].getBindingMethod() == "kvp":
+                    key = self.__make_kvp_index_key(
+                        intf_id,
+                        self.__intf_index[intf_id]["intf"].getRegistryKeys(),
+                        self.__impl_index[comp.impl_id]["cls"].__get_kvps__()
+                    )
+                    self.__kvp_index[key]["enabled"] = comp.enabled
         
         return qs
     
@@ -259,9 +278,9 @@ class Registry(object):
         key = self.__make_kvp_index_key(
             InterfaceCls.getInterfaceId(),
             InterfaceCls.getRegistryKeys(),
-            params
+            kvp_dict
         )
-        entry = cls.__kvp_index.get(key)
+        entry = self.__kvp_index.get(key)
         
         if entry:
             if entry["enabled"] or include_disabled:

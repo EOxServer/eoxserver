@@ -51,7 +51,8 @@ from eoxserver.services.interfaces import (
 from eoxserver.services.base import BaseRequestHandler
 from eoxserver.services.requests import Response
 from eoxserver.services.owscommon import (
-    OWSCommonVersionHandler, OWSCommonExceptionHandler
+    OWSCommonVersionHandler, OWSCommonExceptionHandler,
+    OWSCommonConfigReader
 )
 from eoxserver.services.exceptions import (
     InvalidRequestException, InvalidAxisLabelException,
@@ -63,6 +64,8 @@ from eoxserver.services.ows.wcs.encoders import WCS20Encoder, WCS20EOAPEncoder
 from eoxserver.contrib import mapscript
 
 class WCS20VersionHandler(OWSCommonVersionHandler):
+    SERVICE = "wcs"
+    
     REGISTRY_CONF = {
         "name": "WCS 2.0 Version Handler",
         "impl_id": "services.ows.wcs20.WCS20VersionHandler",
@@ -86,6 +89,8 @@ class WCS20VersionHandler(OWSCommonVersionHandler):
 WCS20VersionHandlerImplementation = VersionHandlerInterface.implement(WCS20VersionHandler)
 
 class WCS20GetCapabilitiesHandler(WCSCommonHandler):
+    SERVICE = "wcs"
+    
     REGISTRY_CONF = {
         "name": "WCS 2.0 GetCapabilities Handler",
         "impl_id": "services.ows.wcs20.WCS20GetCapabilitiesHandler",
@@ -116,7 +121,7 @@ class WCS20GetCapabilitiesHandler(WCSCommonHandler):
             #else:
                 #raise EOxSInvalidRequestException("Unknown coverage subtype '%s'" % cov_subtype, "InvalidParameterValue", "coverageSubtype")
         #else:
-        ms_req.coverages = EOxSCoverageInterfaceFactory.getVisibleCoverageInterfaces()
+        ms_req.coverages = CoverageInterfaceFactory.getVisibleCoverageInterfaces()
             
     def getMapServerLayer(self, coverage, **kwargs):
         layer = super(WCS20GetCapabilitiesHandler, self).getMapServerLayer(coverage, **kwargs)
@@ -158,7 +163,9 @@ class WCS20GetCapabilitiesHandler(WCSCommonHandler):
         op_metadata = dom.getElementsByTagName("ows:OperationsMetadata").item(0)
         
         if op_metadata is not None:
-            desc_eo_cov_set_op = encoder.encodeDescribeEOCoverageSetOperation(self.config.http_service_url)
+            desc_eo_cov_set_op = encoder.encodeDescribeEOCoverageSetOperation(
+                OWSCommonConfigReader().getHTTPServiceURL()
+            )
 
             op_metadata.appendChild(desc_eo_cov_set_op)
             
@@ -173,12 +180,12 @@ class WCS20GetCapabilitiesHandler(WCSCommonHandler):
         if contents_old is not None:
             contents_new = encoder.encodeContents()
             
-            for coverage in EOxSCoverageInterfaceFactory.getVisibleCoverageInterfaces():
+            for coverage in CoverageInterfaceFactory.getVisibleCoverageInterfaces():
                 cov_summary = encoder.encodeCoverageSummary(coverage)
                 contents_new.appendChild(cov_summary)
 
             # append dataset series summaries
-            for dataset_series in EOxSDatasetSeriesFactory.getAllDatasetSeriesInterfaces():
+            for dataset_series in DatasetSeriesFactory.getAllDatasetSeriesInterfaces():
                 dss_summary = encoder.encodeDatasetSeriesSummary(dataset_series)
                 contents_new.appendChild(dss_summary)
 

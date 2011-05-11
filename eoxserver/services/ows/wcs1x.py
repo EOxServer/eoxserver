@@ -42,6 +42,8 @@ from eoxserver.services.ows.wcs.common import WCSCommonHandler
 from eoxserver.resources.coverages.interfaces import CoverageInterfaceFactory # TODO: correct imports
 
 class WCSServiceHandler(OWSCommonServiceHandler):
+    SERVICE = "wcs"
+    
     REGISTRY_CONF = {
         "name": "WCS Service Handler",
         "impl_id": "services.ows.wcs1x.WCSServiceHandler",

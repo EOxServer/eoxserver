@@ -35,6 +35,7 @@ from cgi import escape
 
 from eoxserver.resources.coverages.domainset import Trim, Slice
 from eoxserver.services.base import BaseRequestHandler
+from eoxserver.services.owscommon import OWSCommonConfigReader
 from eoxserver.services.requests import OWSRequest, Response
 from eoxserver.services.exceptions import (
     InvalidRequestException, VersionNegotiationException
@@ -271,7 +272,7 @@ class MapServerOperationHandler(BaseRequestHandler):
         ms_req.map = mapscript.mapObj(os.path.join(settings.PROJECT_DIR, "conf", "template.map")) # TODO: Store information in database??? (title, abstract, etc.)
         #ms_req.map.loadOWSParameters(ms_req.ows_req)
         
-        ms_req.map.setMetaData("ows_onlineresource", self.config.http_service_url + "?")
+        ms_req.map.setMetaData("ows_onlineresource", OWSCommonConfigReader().getHTTPServiceURL() + "?")
         ms_req.map.setMetaData("wcs_label", "EOxServer WCS") # TODO: to WCS
         
         #ms_req.map.debug = 5

@@ -29,6 +29,10 @@ import logging
 from django.conf import settings
 
 from eoxserver.core.system import System
+from eoxserver.core.readers import ConfigReaderInterface
+from eoxserver.core.exceptions import (
+    ConfigError, ImplementationNotFound
+)
 from eoxserver.core.util.xmltools import XMLEncoder, DOMElementToXML
 from eoxserver.services.interfaces import (
     RequestHandlerInterface, ExceptionHandlerInterface,
@@ -41,7 +45,7 @@ from eoxserver.services.requests import Response
 from eoxserver.services.exceptions import (
     InvalidRequestException, VersionNegotiationException
 )
-from eoxserver.core.exceptions import ImplementationNotFound
+
 
 class OWSCommonHandler(BaseRequestHandler):
     REGISTRY_CONF = {
@@ -147,6 +151,8 @@ class OWSCommonServiceHandler(BaseRequestHandler):
             registry_key = "services.interfaces.version",
             filter = {"services.interfaces.service": self.SERVICE}
         )
+        
+        logging.debug("OWSCommonServiceHandler._versionSupported(): versions: %s" % str(versions))
         
         return version in versions
         
@@ -301,7 +307,7 @@ class OWSCommonVersionHandler(BaseRequestHandler):
                 }
             )
         except ImplementationNotFound, e:
-            raise EOxSInvalidRequestException(
+            raise InvalidRequestException(
                 "Service '%s', version '%s' does not support operation '%s'." % (
                     self.SERVICE, version, operation
                 ),
@@ -401,3 +407,19 @@ class OWSCommonExceptionEncoder(XMLEncoder):
         return self.encodeExceptionReport(exception.msg, "VersionNegotiationFailed")
 
 OWSCommonExceptionEncoderImplementation = ExceptionEncoderInterface.implement(OWSCommonExceptionEncoder)
+
+class OWSCommonConfigReader(object):
+    REGISTRY_CONF = {
+        "name": "OWS Common Config Reader",
+        "impl_id": "services.owscommon.OWSCommonConfigReader",
+        "registry_values": {}
+    }
+    
+    def validate(self, config):
+        if config.getInstanceConfigValue("services.owscommon", "http_service_url") is None:
+            raise ConfigError("Missing mandatory 'http_service_url' parameter")
+    
+    def getHTTPServiceURL(self):
+        return System.getConfig().getInstanceConfigValue("services.owscommon", "http_service_url")
+
+OWSCommonConfigReaderImplementation = ConfigReaderInterface.implement(OWSCommonConfigReader)
