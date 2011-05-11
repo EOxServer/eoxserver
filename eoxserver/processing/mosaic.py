@@ -35,9 +35,9 @@ import logging
 from django.conf import settings
 from django.contrib.gis.geos import Polygon
 
-from eoxserver.lib.exceptions import EOxSSynchronizationError
+from eoxserver.resources.coverages.exceptions import SynchronizationError
 
-class EOxSMosaicContribution(object):
+class MosaicContribution(object):
     def __init__(self, dataset, contributing_footprint):
         self.dataset = dataset
         self.contributing_footprint = contributing_footprint
@@ -85,7 +85,7 @@ class EOxSMosaicContribution(object):
             contributions
         )
         
-class EOxSRectifiedMosaicStitcher(object):
+class RectifiedMosaicStitcher(object):
     def __init__(self, mosaic_int):
         self.mosaic_int = mosaic_int
         
@@ -193,7 +193,7 @@ class EOxSRectifiedMosaicStitcher(object):
         del src # close the datasets
         del dst
         
-        return EOxSTile(dst_path, x_index, y_index, minx, miny, maxx, maxy, x_size, y_size)
+        return Tile(dst_path, x_index, y_index, minx, miny, maxx, maxy, x_size, y_size)
 
     def _mergeTiles(self, tiles):
         if len(tiles) == 1:
@@ -255,12 +255,12 @@ class EOxSRectifiedMosaicStitcher(object):
             dst.SetGeoTransform(gt)
             dst.SetProjection(src.GetProjection())
 
-            return EOxSTile(dst_path, x_index, y_index, minx, miny, maxx, maxy, x_size, y_size)
+            return Tile(dst_path, x_index, y_index, minx, miny, maxx, maxy, x_size, y_size)
             
     def _createTileIndex(self, result_tiles):
         path = os.path.join(self.target_dir, "tindex_%s.shp" % self.create_time.strftime("%Y%m%dT%H%M%S"))
         
-        tile_index = EOxSTileIndex(path, self.grid.srid)
+        tile_index = TileIndex(path, self.grid.srid)
         
         tile_index.open()
         
@@ -285,7 +285,7 @@ class EOxSRectifiedMosaicStitcher(object):
 
     def generate(self):
         # determine contributing footprints
-        contributions = EOxSMosaicContribution.getContributions(self.mosaic_int)
+        contributions = MosaicContribution.getContributions(self.mosaic_int)
         
         # tile datasets
         dataset_tiles = {}
@@ -314,7 +314,7 @@ class EOxSRectifiedMosaicStitcher(object):
         # cleanup
         self._cleanup(dataset_tiles, result_tiles)
         
-class EOxSTile(object):
+class Tile(object):
     def __init__(self, path, x_index, y_index, minx, miny, maxx, maxy, x_size, y_size):
         self.path = path
         self.x_index = x_index
@@ -328,7 +328,7 @@ class EOxSTile(object):
         self.x_size = x_size
         self.y_size = y_size
 
-class EOxSTileIndex(object):
+class TileIndex(object):
     def __init__(self, path, srid):
         self.path = path
         
@@ -342,28 +342,28 @@ class EOxSTileIndex(object):
     def _createShapeFile(self):
         driver = ogr.GetDriverByName('ESRI Shapefile')
         if driver is None:
-            raise EOxSSynchronizationError("Cannot start GDAL Shapefile driver")
+            raise SynchronizationError("Cannot start GDAL Shapefile driver")
         
         logging.info("Creating shapefile '%s' ...")
         
         self.shapefile = driver.CreateDataSource(str(self.path))
         if self.shapefile is None:
-            raise EOxSSynchronizationError("Cannot create shapefile '%s'." % self.path)
+            raise SynchronizationError("Cannot create shapefile '%s'." % self.path)
         
         self.layer = self.shapefile.CreateLayer("file_locations", self.srs, ogr.wkbPolygon)
         if self.layer is None:
-            raise EOxSSynchronizationError("Cannot create layer 'file_locations' in shapefile '%s'" % self.path)
+            raise SynchronizationError("Cannot create layer 'file_locations' in shapefile '%s'" % self.path)
         
         location_defn = ogr.FieldDefn("location", ogr.OFTString)
         location_defn.SetWidth(256) # TODO: make this configurable
         if self.layer.CreateField(location_defn) != 0:
-            raise EOxSSynchronizationError("Cannot create field 'location' on layer 'file_locations' in shapefile '%s'" % self.path)
+            raise SynchronizationError("Cannot create field 'location' on layer 'file_locations' in shapefile '%s'" % self.path)
 
         if self.layer.CreateField(ogr.FieldDefn("x_index", ogr.OFTInteger)) != 0:
-            raise EOxSSynchronizationError("Cannot create field 'location' on layer 'file_locations' in shapefile '%s'" % self.path)
+            raise SynchronizationError("Cannot create field 'location' on layer 'file_locations' in shapefile '%s'" % self.path)
 
         if self.layer.CreateField(ogr.FieldDefn("y_index", ogr.OFTInteger)) != 0:
-            raise EOxSSynchronizationError("Cannot create field 'location' on layer 'file_locations' in shapefile '%s'" % self.path)
+            raise SynchronizationError("Cannot create field 'location' on layer 'file_locations' in shapefile '%s'" % self.path)
 
         logging.info("Success.")
                 
@@ -375,11 +375,11 @@ class EOxSTileIndex(object):
             
             self.shapefile = ogr.Open(self.path, True) # Open for updating
             if self.shapefile is None:
-                raise EOxSSynchronizationError("Cannot open shapefile '%s'." % self.path)
+                raise SynchronizationError("Cannot open shapefile '%s'." % self.path)
                 
             self.layer = self.shapefile.GetLayer(0)
             if self.layer is None:
-                raise EOxSSynchronizationError("Shapefile '%s' has wrong format." % self.path)
+                raise SynchronizationError("Shapefile '%s' has wrong format." % self.path)
             
             logging.info("Success")
     
@@ -405,7 +405,7 @@ class EOxSTileIndex(object):
         feature.SetField("x_index", tile.x_index)
         feature.SetField("y_index", tile.y_index)
         if self.layer.CreateFeature(feature) != 0:
-            raise EOxSSynchronizationError("Could not create shapefile entry for file '%s'" % self.path)
+            raise SynchronizationError("Could not create shapefile entry for file '%s'" % self.path)
         
         feature = None
         

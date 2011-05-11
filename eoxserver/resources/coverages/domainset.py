@@ -32,12 +32,13 @@ import numpy.linalg
 
 from django.contrib.gis.geos import GEOSGeometry, Polygon, LineString
 
-from eoxserver.lib.exceptions import (EOxSInvalidAxisLabelException,
-    EOxSInvalidSubsettingException, EOxSInternalError
+from eoxserver.core.exceptions import InternalError
+from eoxserver.core.util.timetools import getDateTime
+from eoxserver.services.exceptions import (
+    InvalidAxisLabelException, InvalidSubsettingException
 )
-from eoxserver.lib.util import getDateTime
 
-class EOxSRectifiedGrid(object):
+class RectifiedGrid(object):
     def __init__(self,
         dim=2,
         spatial_dim=2,
@@ -48,7 +49,7 @@ class EOxSRectifiedGrid(object):
         origin=(0,0),
         offsets=((1,0),(0,1))
     ):
-        super(EOxSRectifiedGrid, self).__init__()
+        super(RectifiedGrid, self).__init__()
         self.dim = dim
         self.spatial_dim = spatial_dim
         self.low = low
@@ -108,9 +109,9 @@ class EOxSRectifiedGrid(object):
         else:
             return False
 
-class EOxSSubsetting(object):
+class Subsetting(object):
     def __init__(self, dimension, crs):
-        super(EOxSSubsetting, self).__init__()
+        super(Subsetting, self).__init__()
         
         self.dimension = dimension
         self.crs = crs
@@ -121,14 +122,14 @@ class EOxSSubsetting(object):
         elif dimension in ("phenomenonTime", "time", "t"):
             if value[0] == '"' and value[-1] == '"':
                 token = value.lstrip('"').rstrip('"')
-                return getDateTime(token) # this raises an EOxSUnknkownParameterFormatException if the datetime format is not recognized
+                return getDateTime(token) # this raises an UnknkownParameterFormatException if the datetime format is not recognized
             else:
-                raise EOxSInvalidSubsettingException("Date/Time tokens have to be enclosed in quotation marks (\")")
+                raise InvalidSubsettingException("Date/Time tokens have to be enclosed in quotation marks (\")")
         else:
             try:
                 return float(value)
             except:
-                raise EOxSInvalidSubsettingException("'%s' not recognized as a number" % value)
+                raise InvalidSubsettingException("'%s' not recognized as a number" % value)
 
     def validate(self, grid=None):
         return True
@@ -140,9 +141,9 @@ class EOxSSubsetting(object):
         
         return (srid, env_minx, env_miny, env_maxx, env_maxy)
 
-class EOxSSlice(EOxSSubsetting):
+class Slice(Subsetting):
     def __init__(self, dimension, crs, slice_point):
-        super(EOxSSlice, self).__init__(dimension, crs)
+        super(Slice, self).__init__(dimension, crs)
         
         self.slice_point = self.normalize(dimension, slice_point)
     
@@ -150,9 +151,9 @@ class EOxSSlice(EOxSSubsetting):
         if self.slice_point is not None:
             if grid is not None:
                 if self.dimension not in grid.axis_labels:
-                    raise EOxSInvalidAxisLabelException("Invalid axis label '%s'" % self.dimension)
+                    raise InvalidAxisLabelException("Invalid axis label '%s'" % self.dimension)
         else:
-            raise EOxSInvalidSubsettingException("Empty slices are not allowed")
+            raise InvalidSubsettingException("Empty slices are not allowed")
         
         return True
     
@@ -164,29 +165,29 @@ class EOxSSlice(EOxSSubsetting):
         elif self.dimension in ("lat", "Lat"):
             line = LineString((env_minx, self.slice_point), (env_maxx, self.slice_point), srid=srid)
         else:
-            raise EOxSInternalError("Can handle 2D coverages only.")
+            raise InternalError("Can handle 2D coverages only.")
         
         # TODO bbox not defined
         #return line.crosses(bbox)
-        raise EOxSInternalError("BBOX not defined")
+        raise InternalError("BBOX not defined")
 
-class EOxSTrim(EOxSSubsetting):
+class Trim(Subsetting):
     def __init__(self, dimension, crs, trim_low, trim_high):
-        super(EOxSTrim, self).__init__(dimension, crs)
+        super(Trim, self).__init__(dimension, crs)
 
         self.trim_low = self.normalize(dimension, trim_low)
         self.trim_high = self.normalize(dimension, trim_high)
         
     def validate(self, grid=None):
         if self.trim_low is not None and self.trim_high is not None and self.trim_high < self.trim_low:
-            raise EOxSInvalidSubsettingException("Lower bound of trim greater than upper bound")
+            raise InvalidSubsettingException("Lower bound of trim greater than upper bound")
             
         #if grid is not None:
         #    if self.dimension not in grid.axis_labels:
-        #        raise EOxSInvalidAxisLabelException("Invalid axis label '%s'" % self.dimension)
+        #        raise InvalidAxisLabelException("Invalid axis label '%s'" % self.dimension)
         
         if self.dimension not in ("phenomenonTime", "time", "t", "Long", "long", "Lat", "lat"):
-            raise EOxSInvalidAxisLabelException("Invalid axis label '%s'. Use 'phenomenonTime', 'Long' and 'Lat'." % self.dimension)
+            raise InvalidAxisLabelException("Invalid axis label '%s'. Use 'phenomenonTime', 'Long' and 'Lat'." % self.dimension)
 
         return True
     
@@ -272,9 +273,9 @@ def getGridFromFile(filename, collection_srid=None):
     else:
         axis_labels = ('x', 'y')
         srid = collection_srid
-    #logging.debug("EOxSCoverageInterface._getGridFromFile: SRID: %s" % str(srid))
+    #logging.debug("CoverageInterface._getGridFromFile: SRID: %s" % str(srid))
 
-    return EOxSRectifiedGrid(
+    return RectifiedGrid(
         dim=2,
         low=(0, 0),
         high=(ds.RasterXSize - 1, ds.RasterYSize - 1),

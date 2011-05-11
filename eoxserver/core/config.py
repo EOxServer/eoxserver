@@ -25,7 +25,7 @@
 
 import imp
 import os.path
-from ConfigParser import ConfigParser
+from ConfigParser import RawConfigParser
 
 from django.conf import settings
 
@@ -91,7 +91,7 @@ class ConfigFile(object):
     def __init__(self, config_filename):
         self.config_filename = config_filename
 
-        self._parser = ConfigParser()
+        self._parser = RawConfigParser()
         self._parser.read(config_filename)
 
     def get(self, section, key):

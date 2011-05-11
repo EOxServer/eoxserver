@@ -52,13 +52,13 @@ def ows(request):
     """
 
     if request.method == 'GET':
-        ows_req = EOxSOWSRequest(
+        ows_req = OWSRequest(
             http_req=request,
             params=request.GET,
             param_type="kvp"
         )
     elif request.method == 'POST':
-        ows_req = EOxSOWSRequest(
+        ows_req = OWSRequest(
             http_req=request,
             params=request.raw_post_data,
             param_type="xml"

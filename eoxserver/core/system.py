@@ -31,7 +31,7 @@ import logging
 from django.conf import settings
 
 from eoxserver.core.config import Config
-from eoxserver.core.registry import Registry
+from eoxserver.core.registry import Registry, RegistryConfigReader
 from eoxserver.core.interfaces import RUNTIME_VALIDATION_LEVEL, IntfConfigReader
 
 class Environment(local):
@@ -62,8 +62,8 @@ class System(object):
         try:
             if cls.__state == cls.UNCONFIGURED:
                 cls.__state = cls.STARTING
-                cls.__state_cond.release()
                 cls.__state_cond.notifyAll()
+                cls.__state_cond.release()
                 try:
                     config, registry = cls.__load()
                     cls.__state_cond.acquire()
@@ -86,8 +86,8 @@ class System(object):
                     raise InternalError("Could not load system config.")
             elif cls.__state == cls.ERROR:
                 cls.__state = cls.RESETTING
-                cls.__state_cond.release()
                 cls.__state_cond.notifyAll()
+                cls.__state_cond.release()
                 
                 try:
                     config, registry = cls.__load(reset=True)
@@ -102,8 +102,13 @@ class System(object):
                     cls.__state = cls.ERROR
                     raise
         finally:
-            cls.__state_cond.release()
-            cls.__state_cond.notifyAll()
+            # try to release the state condition lock; if it has not
+            # been acquired, ignore the resulting RuntimeError
+            try:
+                cls.__state_cond.notifyAll()
+                cls.__state_cond.release()
+            except RuntimeError: 
+                pass
     
     @classmethod
     def reset(cls):
@@ -112,6 +117,7 @@ class System(object):
         try:
             if cls.__state == cls.UNCONFIGURED:
                 cls.__state = cls.STARTING
+                cls.__state_cond.notifyAll()
                 cls.__state_cond.release()
                 try:
                     config, registry = cls.__load()
@@ -131,8 +137,8 @@ class System(object):
                 prev_state = cls.__state
                 
                 cls.__state = cls.RESETTING
-                cls.__state_cond.release()
                 cls.__state_cond.notifyAll()
+                cls.__state_cond.release()
                 
                 try:
                     config, registry = cls.__load(reset=True)
@@ -148,8 +154,13 @@ class System(object):
                     raise
 
         finally:
-            cls.__state_cond.release()
-            cls.__state_cond.notifyAll()
+            # try to release the state condition lock; if it has not
+            # been acquired, ignore the resulting RuntimeError
+            try:
+                cls.__state_cond.notifyAll()
+                cls.__state_cond.release()
+            except RuntimeError:
+                pass
         
     @classmethod
     def getRegistry(cls):
@@ -285,6 +296,6 @@ class SystemConfigReader(object):
         level_name = self.config.getInstanceConfigValue("core.system", "logging_level")
         
         if not level_name or level_name.upper() not in LEVELS:
-            level_name = self.config.getDefaultConfigValue()
+            level_name = self.config.getDefaultConfigValue("core.system", "logging_level")
         
         return LEVELS[level_name.upper()]

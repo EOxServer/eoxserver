@@ -27,3 +27,12 @@ from eoxserver.core.exceptions import EOxSException
  
 class MetadataException(EOxSException):
     pass
+
+class NoSuchCoverageException(EOxSException):
+    pass
+
+class NoSuchDatasetSeriesException(EOxSException):
+    pass
+
+class SynchronizationError(EOxSException):
+    pass

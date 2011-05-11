@@ -29,7 +29,7 @@ from lxml import etree
 from django.conf import settings
 from django.core.exceptions import ValidationError
 
-class EOxSEOOMSchema(object):
+class EOOMSchema(object):
     SCHEMA_LOCATION = os.path.join(settings.PROJECT_DIR, "testing", "schemas", "omeo", "eop.xsd")
     schema = None
     
@@ -43,7 +43,7 @@ class EOxSEOOMSchema(object):
         return cls.schema
         
 def validateEOOM(xml):
-    schema = EOxSEOOMSchema.getSchema()
+    schema = EOOMSchema.getSchema()
     
     try:
         schema.assertValid(etree.fromstring(xml))

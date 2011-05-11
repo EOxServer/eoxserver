@@ -31,7 +31,8 @@ class RequestHandlerInterface(RegisteredInterface):
     REGISTRY_CONF = {
         "name": "Request Handler Interface",
         "intf_id": "services.interfaces.RequestHandler",
-        "binding_method": "kvp"
+        "binding_method": "kvp",
+        "registry_keys": ()
     }
     
     handle = Method(

@@ -29,10 +29,19 @@ class EOxSException(Exception):
 class InternalError(EOxSException):
     pass
 
+class ConfigError(EOxSException):
+    pass
+
 class ImplementationNotFound(EOxSException):
     pass
 
 class ImplementationAmbiguous(EOxSException):
+    pass
+
+class ImplementationDisabled(EOxSException):
+    pass
+
+class BindingMethodError(EOxSException):
     pass
 
 class TypeMismatch(InternalError):
@@ -42,6 +51,12 @@ class IpcException(EOxSException):
     pass
 
 class UnknownParameterFormatException(EOxSException):
+    pass
+
+class InvalidParameterException(EOxSException):
+    pass
+
+class UnknownCRSException(EOxSException):
     pass
 
 class KVPException(EOxSException):
@@ -60,10 +75,4 @@ class XMLEncodingException(XMLException):
     pass
 
 class XMLNodeOccurenceError(XMLException):
-    pass
-
-class ImplementationDisabled(EOxSException):
-    pass
-
-class BindingMethodError(EOxSException):
     pass

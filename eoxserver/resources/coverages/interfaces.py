@@ -30,25 +30,33 @@ can be stored in different formats and has different types.
 """
 import logging
 
-from eoxserver.lib.domainset import EOxSRectifiedGrid, getGridFromFile
-from eoxserver.lib.rangetype import EOxSChannel, EOxSNilValue, getRangeTypeFromFile
-from eoxserver.lib.util import findFiles, getDateTime
-from eoxserver.lib.metadata import EOxSMetadataInterfaceFactory
-from eoxserver.lib.exceptions import (
-    EOxSInternalError, EOxSNoSuchCoverageException, EOxSInvalidParameterException,
-    EOxSUnknownCRSException, EOxSNoSuchDatasetSeriesException
+from eoxserver.core.exceptions import (
+    InternalError, InvalidParameterException, UnknownCRSException
 )
-from eoxserver.server.models import (
-    EOxSSingleFileCoverageRecord, EOxSRectifiedDatasetRecord,
-    EOxSRectifiedDatasetSeriesRecord, EOxSRectifiedStitchedMosaicRecord,
-    EOxSRectifiedGridRecord
+from eoxserver.core.util.filetools import findFiles
+from eoxserver.core.util.timetools import getDateTime
+from eoxserver.resources.coverages.models import (
+    SingleFileCoverageRecord, RectifiedDatasetRecord,
+    RectifiedDatasetSeriesRecord, RectifiedStitchedMosaicRecord,
+    RectifiedGridRecord
 )
+from eoxserver.resources.coverages.domainset import (
+    RectifiedGrid, getGridFromFile
+)
+from eoxserver.resources.coverages.rangetype import (
+    Channel, NilValue, getRangeTypeFromFile
+)
+from eoxserver.resources.coverages.metadata import MetadataInterfaceFactory
+from eoxserver.resources.coverages.exceptions import (
+    NoSuchCoverageException, NoSuchDatasetSeriesException
+)
+
 
 #-----------------------------------------------------------------------
 # Abstract Interface Definitions
 #-----------------------------------------------------------------------
 
-class EOxSCoverageInterface(object):
+class CoverageInterface(object):
     """
     The parent class of all coverage interfaces. It defines methods for
     access to coverage data.
@@ -135,7 +143,7 @@ class EOxSCoverageInterface(object):
         """
         return None
 
-class EOxSEOMetadataInterface(object):
+class EOMetadataInterface(object):
     def getEOID(self):
         """
         Returns the EO ID of the EO Coverage or EO Dataset Series.
@@ -187,7 +195,7 @@ class EOxSEOMetadataInterface(object):
         """
         return None
     
-class EOxSDatasetInterface(EOxSCoverageInterface):
+class DatasetInterface(CoverageInterface):
     def getFilename(self):
         return None
     
@@ -200,18 +208,18 @@ class EOxSDatasetInterface(EOxSCoverageInterface):
     def getMetadataFormat(self):
         return None
 
-class EOxSEODatasetInterface(EOxSDatasetInterface, EOxSEOMetadataInterface):
+class EODatasetInterface(DatasetInterface, EOMetadataInterface):
     def getLineage(self):
         return None
 
-class EOxSStitchedMosaicInterface(EOxSCoverageInterface, EOxSEOMetadataInterface):
+class StitchedMosaicInterface(CoverageInterface, EOMetadataInterface):
     def getLineage(self):
         return None
     
     def getShapeFilePath(self):
         return None
 
-class EOxSDatasetSeriesInterface(EOxSEOMetadataInterface):
+class DatasetSeriesInterface(EOMetadataInterface):
     def __init__(self, wcseo_object):
         self.wcseo_object = wcseo_object
     
@@ -242,7 +250,7 @@ class EOxSDatasetSeriesInterface(EOxSEOMetadataInterface):
 # Implementation of model interfaces
 #-----------------------------------------------------------------------
 
-class EOxSCoverageRecordInterface(object):
+class CoverageRecordInterface(object):
     def getCoverageId(self):
         return self.wcseo_object.coverage_id
             
@@ -254,7 +262,7 @@ class EOxSCoverageRecordInterface(object):
             offset_vectors.append(tuple([0.0 for j in range(0,i)] + [axis.offset_vector_component] + [0.0 for j in range(i+1, dim)]))
             i += 1
 
-        return EOxSRectifiedGrid(
+        return RectifiedGrid(
             dim = self.wcseo_object.grid.axis_set.count(),
             low = tuple([axis.low for axis in self.wcseo_object.grid.axis_set.order_by('dimension_idx')]),
             high = tuple([axis.high for axis in self.wcseo_object.grid.axis_set.order_by('dimension_idx')]),
@@ -265,10 +273,10 @@ class EOxSCoverageRecordInterface(object):
         )
     
     def _getReferenceableGrid(self):
-        raise EOxSInternalError("Referenceable grids are not implemented")
+        raise InternalError("Referenceable grids are not implemented")
 
     def getGrid(self):
-        if isinstance(self.wcseo_object.grid, EOxSRectifiedGridRecord):
+        if isinstance(self.wcseo_object.grid, RectifiedGridRecord):
             return self._getRectifiedGrid()
         else:
             return self._getReferenceableGrid()
@@ -276,14 +284,14 @@ class EOxSCoverageRecordInterface(object):
     def getRangeType(self):
         range_type = []
         
-        for channel in self.wcseo_object.range_type.channels.order_by('eoxsrangetype2channel__no'):
-            range_type.append(EOxSChannel(
+        for channel in self.wcseo_object.range_type.channels.order_by('rangetype2channel__no'):
+            range_type.append(Channel(
                 name = channel.name,
                 identifier = channel.identifier,
                 description = channel.description,
                 definition = channel.definition,
                 quality=None,
-                nil_values = [EOxSNilValue(reason=nil_value.reason, value=nil_value.value) for nil_value in channel.nil_values.all()],
+                nil_values = [NilValue(reason=nil_value.reason, value=nil_value.value) for nil_value in channel.nil_values.all()],
                 uom = channel.uom,
                 allowed_values_start = channel.allowed_values_start,
                 allowed_values_end = channel.allowed_values_end,
@@ -295,7 +303,7 @@ class EOxSCoverageRecordInterface(object):
     def getLayerMetadata(self):
         return [(kvp.key, kvp.value) for kvp in self.wcseo_object.layer_metadata.all()]
         
-class EOxSEOMetadataRecordInterface(object):
+class EOMetadataRecordInterface(object):
     def getBeginTime(self):
         return self.wcseo_object.eo_metadata.timestamp_begin
     
@@ -311,7 +319,7 @@ class EOxSEOMetadataRecordInterface(object):
     def getEOGML(self):
         return self.wcseo_object.eo_metadata.eo_gml
 
-class EOxSEOCoverageRecordInterface(EOxSCoverageRecordInterface, EOxSEOMetadataRecordInterface):
+class EOCoverageRecordInterface(CoverageRecordInterface, EOMetadataRecordInterface):
     def getEOID(self):
         return self.wcseo_object.eo_id
     
@@ -319,7 +327,7 @@ class EOxSEOCoverageRecordInterface(EOxSCoverageRecordInterface, EOxSEOMetadataR
         return None # TODO: Lineage
 
 
-class EOxSFileRecordInterface(object):
+class FileRecordInterface(object):
     def getFilename(self):
         return self.wcseo_object.file.path
     
@@ -332,12 +340,12 @@ class EOxSFileRecordInterface(object):
     def getMetadataFormat(self):
         return self.wcseo_object.file.metadata_format
 
-class EOxSRectifiedCompositeObjectInterface(object):
+class RectifiedCompositeObjectInterface(object):
     def getDatasets(self, **kwargs):
         if "containment" in kwargs:
             containment = kwargs["containment"].lower()
             if containment not in ("overlaps", "contains"):
-                raise EOxSInvalidParameterException("The 'containment' must be either 'overlaps' or 'contains', but is '%s'" % containment)
+                raise InvalidParameterException("The 'containment' must be either 'overlaps' or 'contains', but is '%s'" % containment)
         else:
             containment = "overlaps"
         
@@ -364,7 +372,7 @@ class EOxSRectifiedCompositeObjectInterface(object):
                         eo_metadata__timestamp_end__gte=slice.slice_point
                     )
                 else:
-                    raise EOxSUnknownCRSException("Time reference system '%s' not recognized. Please use UTC." % slice.crs)
+                    raise UnknownCRSException("Time reference system '%s' not recognized. Please use UTC." % slice.crs)
             elif slice.dimension in ("x", "long", "Long"): # TODO
                 spatial_slices.append(slice)
             elif slice.dimension in ("y", "lat", "Lat"): # TODO
@@ -395,19 +403,19 @@ class EOxSRectifiedCompositeObjectInterface(object):
                             eo_metadata__timestamp_end__lte=dt_high
                         )
                 else:
-                    raise EOxSUnknownCRSException("Time reference system '%s' not recognized. Please use UTC." % trim.crs)
+                    raise UnknownCRSException("Time reference system '%s' not recognized. Please use UTC." % trim.crs)
             elif trim.dimension in ("x", "long", "Long", "y", "lat", "Lat"): # TODO
                 spatial_trims.append(trim)
                 
         datasets = []
         for dataset_record in query_set:
-            dataset = EOxSRectifiedDatasetRecordInterface(dataset_record)
+            dataset = RectifiedDatasetRecordInterface(dataset_record)
             datasets.extend(dataset.getDatasets(containment=containment, slices=spatial_slices, trims=spatial_trims))
         
         return datasets
     
 
-class EOxSSingleFileCoverageRecordInterface(EOxSCoverageRecordInterface, EOxSFileRecordInterface, EOxSDatasetInterface):
+class SingleFileCoverageRecordInterface(CoverageRecordInterface, FileRecordInterface, DatasetInterface):
     def getCoverageSubtype(self):
         return "RectifiedGridCoverage"
     
@@ -420,7 +428,7 @@ class EOxSSingleFileCoverageRecordInterface(EOxSCoverageRecordInterface, EOxSFil
     def getDatasets(self, **kwargs):
         return [self]
 
-class EOxSRectifiedDatasetRecordInterface(EOxSEOCoverageRecordInterface, EOxSFileRecordInterface, EOxSEODatasetInterface):
+class RectifiedDatasetRecordInterface(EOCoverageRecordInterface, FileRecordInterface, EODatasetInterface):
     def getCoverageSubtype(self):
         return "RectifiedGridCoverage"
         
@@ -434,7 +442,7 @@ class EOxSRectifiedDatasetRecordInterface(EOxSEOCoverageRecordInterface, EOxSFil
         if "containment" in kwargs:
             containment = kwargs["containment"].lower()
             if containment not in ("overlaps", "contains"):
-                raise EOxSInvalidParameterException("The 'containment' must be either 'overlaps' or 'contains', but is '%s'" % containment)
+                raise InvalidParameterException("The 'containment' must be either 'overlaps' or 'contains', but is '%s'" % containment)
         else:
             containment = "overlaps"
         
@@ -474,7 +482,7 @@ class EOxSRectifiedDatasetRecordInterface(EOxSEOCoverageRecordInterface, EOxSFil
             return (self.getBeginTime() <= slice.slice_point and\
                     slice.slice_point <= self.getEndTime())
         else:
-            raise EOxSUnknownCRSException("Time reference system '%s' not recognized. Please use UTC." % slice.crs)
+            raise UnknownCRSException("Time reference system '%s' not recognized. Please use UTC." % slice.crs)
     
     def timeOverlaps(self, trim):
         if trim.crs is None or trim.crs == "http://www.opengis.net/def/trs/ISO-8601/0/Gregorian+UTC":
@@ -491,7 +499,7 @@ class EOxSRectifiedDatasetRecordInterface(EOxSEOCoverageRecordInterface, EOxSFil
             return ((dt_low <= self.getBeginTime() and self.getBeginTime() <= dt_high) or\
                     (dt_low <= self.getEndTime() and self.getEndTime() <= dt_high))
         else:
-            raise EOxSUnknownCRSException("Time reference system '%s' not recognized. Please use UTC." % trim.crs)
+            raise UnknownCRSException("Time reference system '%s' not recognized. Please use UTC." % trim.crs)
 
     def timeWithin(self, trim):
         if trim.crs is None or trim.crs == "http://www.opengis.net/def/trs/ISO-8601/0/Gregorian+UTC":
@@ -507,7 +515,7 @@ class EOxSRectifiedDatasetRecordInterface(EOxSEOCoverageRecordInterface, EOxSFil
             
             return (dt_low <= self.getBeginTime() and self.getEndTime() <= dt_high)
         else:
-            raise EOxSUnknownCRSException("Time reference system '%s' not recognized. Please use UTC." % trim.crs)
+            raise UnknownCRSException("Time reference system '%s' not recognized. Please use UTC." % trim.crs)
     
     def spatialSliceWithin(self, slice):
         grid = self.getGrid()
@@ -520,7 +528,7 @@ class EOxSRectifiedDatasetRecordInterface(EOxSEOCoverageRecordInterface, EOxSFil
     def spatiallyWithin(self, trim):
         return trim.contains(self.getFootprint())
 
-class EOxSRectifiedStitchedMosaicRecordInterface(EOxSEOCoverageRecordInterface, EOxSRectifiedCompositeObjectInterface, EOxSStitchedMosaicInterface):
+class RectifiedStitchedMosaicRecordInterface(EOCoverageRecordInterface, RectifiedCompositeObjectInterface, StitchedMosaicInterface):
     def getCoverageSubtype(self):
         return "RectifiedGridCoverage"
     
@@ -533,7 +541,7 @@ class EOxSRectifiedStitchedMosaicRecordInterface(EOxSEOCoverageRecordInterface, 
     def getShapeFilePath(self):
         return self.wcseo_object.shape_file_path
     
-class EOxSRectifiedDatasetSeriesRecordInterface(EOxSEOMetadataRecordInterface, EOxSRectifiedCompositeObjectInterface, EOxSDatasetSeriesInterface):
+class RectifiedDatasetSeriesRecordInterface(EOMetadataRecordInterface, RectifiedCompositeObjectInterface, DatasetSeriesInterface):
     def getEOID(self):
         return self.wcseo_object.eo_id
         
@@ -542,120 +550,114 @@ class EOxSRectifiedDatasetSeriesRecordInterface(EOxSEOMetadataRecordInterface, E
     
 
 #-----------------------------------------------------------------------
-# Implementation of configuration file interfaces
-#-----------------------------------------------------------------------
-
-# TODO
-
-#-----------------------------------------------------------------------
 # Factories
 #-----------------------------------------------------------------------
 
-class EOxSCoverageInterfaceFactory(object):
+class CoverageInterfaceFactory(object):
     @classmethod
     def getCoverageInterface(cls, coverage_id):
         try:
-            coverage = EOxSSingleFileCoverageRecord.objects.get(coverage_id=coverage_id)
-            return EOxSSingleFileCoverageRecordInterface(coverage)
+            coverage = SingleFileCoverageRecord.objects.get(coverage_id=coverage_id)
+            return SingleFileCoverageRecordInterface(coverage)
         except Exception, e:
-            if isinstance(e, EOxSSingleFileCoverageRecord.DoesNotExist):
+            if isinstance(e, SingleFileCoverageRecord.DoesNotExist):
                 pass
-            elif isinstance(e, EOxSSingleFileCoverageRecord.MultipleObjectsReturned):
-                raise EOxSInternalError("Multiple single file coverages with coverage id '%s'." % coverage_id)
+            elif isinstance(e, SingleFileCoverageRecord.MultipleObjectsReturned):
+                raise InternalError("Multiple single file coverages with coverage id '%s'." % coverage_id)
             else:
                 raise
         
         try:
-            coverage = EOxSRectifiedDatasetRecord.objects.get(coverage_id=coverage_id)
-            return EOxSRectifiedDatasetRecordInterface(coverage)
+            coverage = RectifiedDatasetRecord.objects.get(coverage_id=coverage_id)
+            return RectifiedDatasetRecordInterface(coverage)
         except Exception, e:
-            if isinstance(e, EOxSRectifiedDatasetRecord.DoesNotExist):
+            if isinstance(e, RectifiedDatasetRecord.DoesNotExist):
                 pass
-            elif isinstance(e, EOxSRectifiedDatasetRecord.MultipleObjectsReturned):
-                raise EOxSInternalError("Multiple rectified datasets with coverage id '%s'." % coverage_id)
+            elif isinstance(e, RectifiedDatasetRecord.MultipleObjectsReturned):
+                raise InternalError("Multiple rectified datasets with coverage id '%s'." % coverage_id)
             else:
                 raise
         
         try:
-            coverage = EOxSRectifiedStitchedMosaicRecord.objects.get(coverage_id=coverage_id)
-            return EOxSRectifiedStitchedMosaicRecordInterface(coverage)
+            coverage = RectifiedStitchedMosaicRecord.objects.get(coverage_id=coverage_id)
+            return RectifiedStitchedMosaicRecordInterface(coverage)
         except Exception, e:
-            if isinstance(e, EOxSRectifiedStitchedMosaicRecord.DoesNotExist):
+            if isinstance(e, RectifiedStitchedMosaicRecord.DoesNotExist):
                 pass
-            elif isinstance(e, EOxSRectifiedStitchedMosaicRecord.MultipleObjectsReturned):
-                raise EOxSInternalError("Multiple rectified stitched mosaics with coverage id '%s'." % coverage_id)
+            elif isinstance(e, RectifiedStitchedMosaicRecord.MultipleObjectsReturned):
+                raise InternalError("Multiple rectified stitched mosaics with coverage id '%s'." % coverage_id)
             else:
                 raise
                 
         # TODO: configuration file coverages
         
-        raise EOxSNoSuchCoverageException("No coverage with coverage id '%s' found" % coverage_id)
+        raise NoSuchCoverageException("No coverage with coverage id '%s' found" % coverage_id)
         
     @classmethod
     def getCoverageInterfaceByEOID(cls, eo_id):
         try:
-            coverage = EOxSRectifiedDatasetRecord.objects.get(eo_id=eo_id)
-            return EOxSRectifiedDatasetRecordInterface(coverage)
+            coverage = RectifiedDatasetRecord.objects.get(eo_id=eo_id)
+            return RectifiedDatasetRecordInterface(coverage)
         except Exception, e:
-            if isinstance(e, EOxSRectifiedDatasetRecord.DoesNotExist):
+            if isinstance(e, RectifiedDatasetRecord.DoesNotExist):
                 pass
-            elif isinstance(e, EOxSRectifiedDatasetRecord.MultipleObjectsReturned):
-                raise EOxSInternalError("Multiple rectified datasets with EO id '%s'." % eo_id)
+            elif isinstance(e, RectifiedDatasetRecord.MultipleObjectsReturned):
+                raise InternalError("Multiple rectified datasets with EO id '%s'." % eo_id)
             else:
                 raise
         
         try:
-            coverage = EOxSRectifiedStitchedMosaicRecord.objects.get(eo_id=eo_id)
-            return EOxSRectifiedStitchedMosaicRecordInterface(coverage)
+            coverage = RectifiedStitchedMosaicRecord.objects.get(eo_id=eo_id)
+            return RectifiedStitchedMosaicRecordInterface(coverage)
         except Exception, e:
-            if isinstance(e, EOxSRectifiedStitchedMosaicRecord.DoesNotExist):
+            if isinstance(e, RectifiedStitchedMosaicRecord.DoesNotExist):
                 pass
-            elif isinstance(e, EOxSRectifiedStitchedMosaicRecord.MultipleObjectsReturned):
-                raise EOxSInternalError("Multiple rectified stitched mosaics with EO id '%s'." % eo_id)
+            elif isinstance(e, RectifiedStitchedMosaicRecord.MultipleObjectsReturned):
+                raise InternalError("Multiple rectified stitched mosaics with EO id '%s'." % eo_id)
             else:
                 raise
         
-        raise EOxSNoSuchCoverageException("No coverage with EO id '%s' found" % eo_id)
+        raise NoSuchCoverageException("No coverage with EO id '%s' found" % eo_id)
 
     @classmethod
     def getVisibleCoverageInterfaces(cls):
         cov_ints = []
         
-        for coverage in EOxSSingleFileCoverageRecord.objects.all():
-            cov_ints.append(EOxSSingleFileCoverageRecordInterface(coverage))
+        for coverage in SingleFileCoverageRecord.objects.all():
+            cov_ints.append(SingleFileCoverageRecordInterface(coverage))
         
-        for coverage in EOxSRectifiedDatasetRecord.objects.filter(visible=True):
-            cov_ints.append(EOxSRectifiedDatasetRecordInterface(coverage))
+        for coverage in RectifiedDatasetRecord.objects.filter(visible=True):
+            cov_ints.append(RectifiedDatasetRecordInterface(coverage))
         
-        for coverage in EOxSRectifiedStitchedMosaicRecord.objects.all():
-            cov_ints.append(EOxSRectifiedStitchedMosaicRecordInterface(coverage))
+        for coverage in RectifiedStitchedMosaicRecord.objects.all():
+            cov_ints.append(RectifiedStitchedMosaicRecordInterface(coverage))
         
         return cov_ints
 
-class EOxSDatasetSeriesFactory(object):
+class DatasetSeriesFactory(object):
     @classmethod
     def getDatasetSeriesInterface(cls, eo_id):
         try:
-            series = EOxSRectifiedDatasetSeriesRecord.objects.get(eo_id=eo_id)
-            return EOxSRectifiedDatasetSeriesRecordInterface(series)
+            series = RectifiedDatasetSeriesRecord.objects.get(eo_id=eo_id)
+            return RectifiedDatasetSeriesRecordInterface(series)
         except Exception, e:
-            if isinstance(e, EOxSRectifiedDatasetSeriesRecord.DoesNotExist):
+            if isinstance(e, RectifiedDatasetSeriesRecord.DoesNotExist):
                 pass
-            elif isinstance(e, EOxSRectifiedDatasetSeriesRecord.MultipleObjectsReturned):
-                raise EOxSInternalError("Multiple rectified dataset series with EO id '%s'." % eo_id)
+            elif isinstance(e, RectifiedDatasetSeriesRecord.MultipleObjectsReturned):
+                raise InternalError("Multiple rectified dataset series with EO id '%s'." % eo_id)
             else:
                 raise
         
         # TODO: configuration file series
         
-        raise EOxSNoSuchDatasetSeriesException("No dataset series with EO id '%s' found." % eo_id)
+        raise NoSuchDatasetSeriesException("No dataset series with EO id '%s' found." % eo_id)
                 
     @classmethod
     def getAllDatasetSeriesInterfaces(cls):
         series_ints = []
         
-        for series in EOxSRectifiedDatasetSeriesRecord.objects.all():
-            series_ints.append(EOxSRectifiedDatasetSeriesRecordInterface(series))
+        for series in RectifiedDatasetSeriesRecord.objects.all():
+            series_ints.append(RectifiedDatasetSeriesRecordInterface(series))
         
         return series_ints
 

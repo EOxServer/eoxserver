@@ -360,7 +360,9 @@ class InterfaceMetaClass(type):
             local_conf = class_dict["INTERFACE_CONF"]
             
             class_dict["__iconf__"] = mcls._mergeConfs(local_conf, bases, "__iconf__")
-            
+        else:
+            class_dict["__iconf__"] = {}
+        
         return type.__new__(mcls, name, bases, class_dict)
     
     @classmethod
