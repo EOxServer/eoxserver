@@ -31,7 +31,7 @@ from eoxserver.core.util.xmltools import XMLDecoder
 from eoxserver.core.util.timetools import getDateTime
 from eoxserver.core.util.geotools import posListToWkt
 
-class EOxSMetadataInterface(object):
+class MetadataInterface(object):
     
     def getEOID(self):
         return None
@@ -48,11 +48,11 @@ class EOxSMetadataInterface(object):
     def getMetadataFormat(self):
         return None
 
-class EOxSXMLMetadataInterface(EOxSMetadataInterface):
+class XMLMetadataInterface(MetadataInterface):
     PARAM_SCHEMA = {}
     
     def __init__(self, xml):
-        self.decoder = EOxSXMLDecoder(xml, self.PARAM_SCHEMA)
+        self.decoder = XMLDecoder(xml, self.PARAM_SCHEMA)
         self.xml_text = xml
     
     def getEOID(self):
@@ -90,7 +90,7 @@ class EOxSXMLMetadataInterface(EOxSMetadataInterface):
         return self.xml_text
     
 
-class EOxSNativeMetadataInterface(EOxSXMLMetadataInterface):
+class NativeMetadataInterface(XMLMetadataInterface):
     PARAM_SCHEMA = {
         "eoid": {"xml_location": "/EOID", "xml_type": "string"},
         "begintime": {"xml_location": "/BeginTime", "xml_type": "string"},
@@ -104,11 +104,11 @@ class EOxSNativeMetadataInterface(EOxSXMLMetadataInterface):
     def getMetadataFormat(self):
         return "native" 
 
-class EOxSDIMAPMetadataInterface(EOxSXMLMetadataInterface):
+class DIMAPMetadataInterface(XMLMetadataInterface):
     def getMetadataFormat(self):
         return "dimap" 
     
-class EOxSEOGMLMetadataInterface(EOxSXMLMetadataInterface):
+class EOGMLMetadataInterface(XMLMetadataInterface):
     PARAM_SCHEMA = {
         "eoid": {"xml_location": "/eop:metaDataProperty/eop:EarthObservationMetaData/eop:identifier", "xml_type": "string"},
         "begintime": {"xml_location": "/om:phenomenonTime/gml:TimePeriod/gml:beginPosition", "xml_type": "string"},
@@ -122,24 +122,24 @@ class EOxSEOGMLMetadataInterface(EOxSXMLMetadataInterface):
     def getMetadataFormat(self):
         return "eogml" 
 
-class EOxSMetadataInterfaceFactory(object):
+class MetadataInterfaceFactory(object):
     @classmethod
     def getMetadataInterface(cls, xml, format):
         if format.lower() == "native":
-            return EOxSNativeMetadataInterface(xml)
+            return NativeMetadataInterface(xml)
         elif format.lower() == "dimap":
-            return EOxSDIMAPMetadataInterface(xml)
+            return DIMAPMetadataInterface(xml)
         elif format.lower() == "eogml":
-            return EOxSEOGMLMetadataInterface(xml)
+            return EOGMLMetadataInterface(xml)
         else:
-            raise EOxSMetadataException("Unknown metadata format '%s'" % format)
+            raise MetadataException("Unknown metadata format '%s'" % format)
 
     @classmethod
     def getMetadataInterfaceForFile(cls, filename, format=None):
         try:
             f = open(filename)
         except:
-            raise EOxSMetadataException("Could not open file '%s'" % filename)
+            raise MetadataException("Could not open file '%s'" % filename)
         
         xml = f.read()
         f.close()
@@ -157,7 +157,7 @@ class EOxSMetadataInterfaceFactory(object):
             "root_name": {"xml_location": "/", "xml_type": "localName"}
         }
     
-        decoder = EOxSXMLDecoder(xml, DETECTION_SCHEMA)
+        decoder = XMLDecoder(xml, DETECTION_SCHEMA)
         
         root_name = decoder.getValue("root_name")
         
@@ -168,4 +168,4 @@ class EOxSMetadataInterfaceFactory(object):
         elif root_name == "...":
             return "dimap"
         else:
-            raise EOxSMetadataException("Unknown metadata format.")
+            raise MetadataException("Unknown metadata format.")

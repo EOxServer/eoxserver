@@ -44,7 +44,7 @@ def pathToModuleName(path):
     module_name = [os.path.splitext(os.path.basename(path))[0]]
     tmp_path = os.path.abspath(os.path.dirname(path))
     
-    search_paths = sys.path.copy()
+    search_paths = [dir for dir in sys.path]
     if '' in search_paths:
         search_paths.remove('')
         search_paths.append(os.getcwd())

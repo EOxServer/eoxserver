@@ -25,9 +25,9 @@
 
 from osgeo import gdal
 
-class EOxSChannel(object):
+class Channel(object):
     """\
-    EOxSChannel represents a channel or band configuration.
+    Channel represents a channel or band configuration.
     
     The fields of EOxSChannel correspond to a subset of the elements of
     the swe:Quantity class of SWE Common 2.0. Notably, the 'optional',
@@ -51,7 +51,7 @@ class EOxSChannel(object):
         allowed_values_end=255,
         allowed_values_significant_figures=3
     ):
-        super(EOxSChannel, self).__init__()
+        super(Channel, self).__init__()
         self.name = name
         self.identifier = identifier
         self.description = description
@@ -63,7 +63,7 @@ class EOxSChannel(object):
         self.allowed_values_end = allowed_values_end
         self.allowed_values_significant_figures = allowed_values_significant_figures
 
-class EOxSNilValue(object):
+class NilValue(object):
     def __init__(self, reason, value):
         super(EOxSNilValue, self).__init__()
         self.reason = reason
@@ -101,7 +101,7 @@ def getRangeTypeFromFile(filename):
         #allowed_values_significant_figures = int(math.log10(allowed_values_end)) + 1
 
         range_type.append(
-            EOxSChannel(
+            Channel(
                 name=name,
                 description=description,
                 nil_values=nil_values#,

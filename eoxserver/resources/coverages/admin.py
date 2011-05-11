@@ -31,85 +31,89 @@ from django.db import transaction
 from django.conf import settings
 from django.http import HttpResponseRedirect
 
-from eoxserver.server.models import *
-from eoxserver.server.synchronize import EOxSRectifiedDatasetSeriesSynchronizer, EOxSRectifiedStitchedMosaicSynchronizer
-from eoxserver.lib.metadata import EOxSMetadataInterfaceFactory
+from eoxserver.resources.coverages.models import *
+from eoxserver.resources.coverages.synchronize import (
+    RectifiedDatasetSeriesSynchronizer,
+    RectifiedStitchedMosaicSynchronizer
+)
+from eoxserver.resources.coverages.metadata import MetadataInterfaceFactory
 import os.path
 import logging
 
+# TODO: harmonize with core.system
 logging.basicConfig(
     filename=os.path.join(settings.PROJECT_DIR, 'logs', 'eoxserver.log'),
     level=logging.DEBUG,
     format="[%(asctime)s][%(levelname)s] %(message)s"
 )
 
-# EOxSGrid
-class EOxSAxisInline(admin.TabularInline):
-    model = EOxSAxisRecord
+# Grid
+class AxisInline(admin.TabularInline):
+    model = AxisRecord
     extra = 1
-class EOxSRectifiedGridAdmin(admin.ModelAdmin):
-    inlines = (EOxSAxisInline, )
-admin.site.register(EOxSRectifiedGridRecord, EOxSRectifiedGridAdmin)
+class RectifiedGridAdmin(admin.ModelAdmin):
+    inlines = (AxisInline, )
+admin.site.register(RectifiedGridRecord, RectifiedGridAdmin)
 
-# EOxS NilValue
-class EOxSNilValueInline(admin.TabularInline):
-    model = EOxSChannelRecord.nil_values.through
+# NilValue
+class NilValueInline(admin.TabularInline):
+    model = ChannelRecord.nil_values.through
     extra = 1
-class EOxSNilValueAdmin(admin.ModelAdmin):
-    inlines = (EOxSNilValueInline, )
-admin.site.register(EOxSNilValueRecord, EOxSNilValueAdmin)
+class NilValueAdmin(admin.ModelAdmin):
+    inlines = (NilValueInline, )
+admin.site.register(NilValueRecord, NilValueAdmin)
 
-# EOxS RangeType
-class EOxSRangeType2ChannelInline(admin.TabularInline):
-    model = EOxSRangeType2Channel
+# RangeType
+class RangeType2ChannelInline(admin.TabularInline):
+    model = RangeType2Channel
     extra = 1
-class EOxSRangeTypeAdmin(admin.ModelAdmin):
-    inlines = (EOxSRangeType2ChannelInline, )
-class EOxSChannelRecordAdmin(admin.ModelAdmin):
-    inlines = (EOxSRangeType2ChannelInline, EOxSNilValueInline)
+class RangeTypeAdmin(admin.ModelAdmin):
+    inlines = (RangeType2ChannelInline, )
+class ChannelRecordAdmin(admin.ModelAdmin):
+    inlines = (RangeType2ChannelInline, NilValueInline)
     exclude = ('nil_values', )
-admin.site.register(EOxSRangeType, EOxSRangeTypeAdmin)
-admin.site.register(EOxSChannelRecord, EOxSChannelRecordAdmin)
-#admin.site.register(EOxSRangeType2Channel)
+admin.site.register(RangeType, RangeTypeAdmin)
+admin.site.register(ChannelRecord, ChannelRecordAdmin)
+#admin.site.register(RangeType2Channel)
 
-# EOxS SingleFile Coverage
-class EOxSSingleFileLayerMetadataInline(admin.TabularInline):
-    model = EOxSSingleFileCoverageRecord.layer_metadata.through
+# SingleFile Coverage
+class SingleFileLayerMetadataInline(admin.TabularInline):
+    model = SingleFileCoverageRecord.layer_metadata.through
     extra = 1
-class EOxSCoverageSingleFileAdmin(admin.ModelAdmin):
+class CoverageSingleFileAdmin(admin.ModelAdmin):
     #list_display = ('coverage_id', 'filename', 'range_type')
     #list_editable = ('filename', 'range_type')
     list_filter = ('range_type', )
     ordering = ('coverage_id', )
     search_fields = ('coverage_id', )
-    inlines = (EOxSSingleFileLayerMetadataInline, )
+    inlines = (SingleFileLayerMetadataInline, )
     exclude = ('layer_metadata',)
-admin.site.register(EOxSSingleFileCoverageRecord, EOxSCoverageSingleFileAdmin)
+admin.site.register(SingleFileCoverageRecord, CoverageSingleFileAdmin)
 
-class EOxSStitchedMosaic2DatasetInline(admin.TabularInline):
-    model = EOxSRectifiedStitchedMosaicRecord.rect_datasets.through
+class StitchedMosaic2DatasetInline(admin.TabularInline):
+    model = RectifiedStitchedMosaicRecord.rect_datasets.through
     verbose_name = "Stitched Mosaic to Dataset Relation"
     verbose_name_plural = "Stitched Mosaic to Dataset Relations"
     extra = 1
-class EOxSDatasetSeries2DatasetInline(admin.TabularInline):
-    model = EOxSRectifiedDatasetSeriesRecord.rect_datasets.through
+class DatasetSeries2DatasetInline(admin.TabularInline):
+    model = RectifiedDatasetSeriesRecord.rect_datasets.through
     verbose_name = "Dataset Series to Dataset Relation"
     verbose_name_plural = "Dataset Series to Dataset Relations"
     extra = 1
-class EOxSRectifiedDatasetAdmin(admin.ModelAdmin):
+class RectifiedDatasetAdmin(admin.ModelAdmin):
     list_display = ('coverage_id', 'eo_id', 'file', 'range_type', 'grid')
     list_editable = ('file', 'range_type', 'grid')
     list_filter = ('range_type', )
     ordering = ('coverage_id', )
     search_fields = ('coverage_id', )
-    inlines = (EOxSStitchedMosaic2DatasetInline, EOxSDatasetSeries2DatasetInline)
+    inlines = (StitchedMosaic2DatasetInline, DatasetSeries2DatasetInline)
 
     # We need to override the bulk delete function of the admin to make
-    # sure the overrode delete() method of EOxSEOCoverageRecord is
+    # sure the overrode delete() method of EOCoverageRecord is
     # called.
     actions = ['really_delete_selected', ]
     def get_actions(self, request):
-        actions = super(EOxSRectifiedDatasetAdmin, self).get_actions(request)
+        actions = super(RectifiedDatasetAdmin, self).get_actions(request)
         del actions['delete_selected']
         return actions
     def really_delete_selected(self, request, queryset):
@@ -122,34 +126,34 @@ class EOxSRectifiedDatasetAdmin(admin.ModelAdmin):
         self.message_user(request, "%s successfully deleted." % message_bit)
     really_delete_selected.short_description = "Delete selected Dataset(s) entries"
 
-admin.site.register(EOxSRectifiedDatasetRecord, EOxSRectifiedDatasetAdmin)
+admin.site.register(RectifiedDatasetRecord, RectifiedDatasetAdmin)
 
-class EOxSMosaicDataDirInline(admin.TabularInline):
-    model = EOxSMosaicDataDirRecord
+class MosaicDataDirInline(admin.TabularInline):
+    model = MosaicDataDirRecord
     verbose_name = "Stitched Mosaic Data Directory"
     verbose_name_plural = "Stitched Mosaic Data Directories"
     extra = 1
-class EOxSDatasetSeries2StichedMosaicInline(admin.TabularInline):
-    model = EOxSRectifiedDatasetSeriesRecord.rect_stitched_mosaics.through
+class DatasetSeries2StichedMosaicInline(admin.TabularInline):
+    model = RectifiedDatasetSeriesRecord.rect_stitched_mosaics.through
     verbose_name = "Dataset Series to Stitched Mosaic Relation"
     verbose_name_plural = "Dataset Series to Stitched Mosaic Relations"
     extra = 1
-class EOxSRectifiedStitchedMosaicAdmin(admin.ModelAdmin):
+class RectifiedStitchedMosaicAdmin(admin.ModelAdmin):
     list_display = ('eo_id', 'eo_metadata', 'image_pattern')
     list_editable = ('eo_metadata', 'image_pattern')
     list_filter = ('image_pattern', )
     ordering = ('eo_id', )
     search_fields = ('eo_id', )
     filter_horizontal = ('rect_datasets', )
-    inlines = (EOxSMosaicDataDirInline, EOxSDatasetSeries2StichedMosaicInline, )
+    inlines = (MosaicDataDirInline, DatasetSeries2StichedMosaicInline, )
 
     # We need to override the bulk delete function of the admin to make
-    # sure the overrode delete() method of EOxSEOCoverageRecord is
+    # sure the overrode delete() method of EOCoverageRecord is
     # called.
     actions = ['really_delete_selected', ]
 
     def get_actions(self, request):
-        actions = super(EOxSRectifiedStitchedMosaicAdmin, self).get_actions(request)
+        actions = super(RectifiedStitchedMosaicAdmin, self).get_actions(request)
         del actions['delete_selected']
         return actions
 
@@ -161,7 +165,7 @@ class EOxSRectifiedStitchedMosaicAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         self.mosaic = obj
-        super(EOxSRectifiedStitchedMosaicAdmin, self).save_model(request, obj, form, change)
+        super(RectifiedStitchedMosaicAdmin, self).save_model(request, obj, form, change)
         
     def save_formset(self, request, form, formset, change):
         # the reason why the synchronization method is placed here
@@ -171,10 +175,10 @@ class EOxSRectifiedStitchedMosaicAdmin(admin.ModelAdmin):
         # is not yet saved and thus not available. We need the data dirs
         # however for synchronization.
         
-        if formset.model == EOxSRectifiedDatasetRecord:
+        if formset.model == RectifiedDatasetRecord:
             changed_datasets = formset.save(commit=False)
             
-            synchronizer = EOxSRectifiedStitchedMosaicSynchronizer(self.mosaic)
+            synchronizer = RectifiedStitchedMosaicSynchronizer(self.mosaic)
             
             try:
                 if change:
@@ -192,57 +196,57 @@ class EOxSRectifiedStitchedMosaicAdmin(admin.ModelAdmin):
                 if not dataset.automatic:
                     dataset.save()
         else:
-            super(EOxSRectifiedStitchedMosaicAdmin, self).save_formset(request, form, formset, change)
+            super(RectifiedStitchedMosaicAdmin, self).save_formset(request, form, formset, change)
         
     def add_view(self, request, form_url="", extra_context=None):
         try:
-            return super(EOxSRectifiedStitchedMosaicAdmin, self).add_view(request, form_url, extra_context)
+            return super(RectifiedStitchedMosaicAdmin, self).add_view(request, form_url, extra_context)
         except:
             messages.error(request, "Could not create StitchedMosaic")
             return HttpResponseRedirect("..")
     
     def change_view(self, request, object_id, extra_context=None):
         try:
-            return super(EOxSRectifiedStitchedMosaicAdmin, self).change_view(request, object_id, extra_context)
+            return super(RectifiedStitchedMosaicAdmin, self).change_view(request, object_id, extra_context)
         except:
             messages.error(request, "Could not change StitchedMosaic")
             return HttpResponseRedirect("..")
     
     def changelist_view(self, request, extra_context=None):
         try:
-            return super(EOxSRectifiedStitchedMosaicAdmin, self).changelist_view(request, extra_context)
+            return super(RectifiedStitchedMosaicAdmin, self).changelist_view(request, extra_context)
         except:
             messages.error(request, "Could not change StitchedMosaic")
             return HttpResponseRedirect("..")
     
     def delete_view(self, request, object_id, extra_context=None):
         try:
-            return super(EOxSRectifiedStitchedMosaicAdmin, self).delete_view(request, object_id, extra_context)
+            return super(RectifiedStitchedMosaicAdmin, self).delete_view(request, object_id, extra_context)
         except:
             messages.error(request, "Could not delete StitchedMosaic")
             return HttpResponseRedirect("..")
             
-admin.site.register(EOxSRectifiedStitchedMosaicRecord, EOxSRectifiedStitchedMosaicAdmin)
+admin.site.register(RectifiedStitchedMosaicRecord, RectifiedStitchedMosaicAdmin)
 
-class EOxSDataDirInline(admin.TabularInline):
-    model = EOxSDataDirRecord
+class DataDirInline(admin.TabularInline):
+    model = DataDirRecord
     extra = 1
     
     def save_model(self, request, obj, form, change):
         raise # TODO
     
-class EOxSRectifiedDatasetSeriesAdmin(admin.ModelAdmin):
+class RectifiedDatasetSeriesAdmin(admin.ModelAdmin):
     list_display = ('eo_id', 'eo_metadata', 'image_pattern')
     list_editable = ('eo_metadata', 'image_pattern')
     list_filter = ('image_pattern', )
     ordering = ('eo_id', )
     search_fields = ('eo_id', )
-    inlines = (EOxSDataDirInline, )
+    inlines = (DataDirInline, )
     filter_horizontal = ('rect_stitched_mosaics', 'rect_datasets', )
     
 
     # We need to override the bulk delete function of the admin to make
-    # sure the overrode delete() method of EOxSEOCoverageRecord is
+    # sure the overrode delete() method of EOCoverageRecord is
     # called.
     actions = ['really_delete_selected', ]
     
@@ -254,14 +258,14 @@ class EOxSRectifiedDatasetSeriesAdmin(admin.ModelAdmin):
         if db_field.name == "rect_datasets":
             pass
             #raise
-            #data_dirs = EOxSDataDirRecord.objects.get(dataset_series=
+            #data_dirs = DataDirRecord.objects.get(dataset_series=
             #TODO: get all data dirs
             # exclude all datasets from the query that are included in the dir
-            #kwargs["queryset"] = EOxSRectifiedDatasetRecord.objects.get(file__path__istartswith="")
-        return super(EOxSRectifiedDatasetSeriesAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
+            #kwargs["queryset"] = RectifiedDatasetRecord.objects.get(file__path__istartswith="")
+        return super(RectifiedDatasetSeriesAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
     
     def get_actions(self, request):
-        actions = super(EOxSRectifiedDatasetSeriesAdmin, self).get_actions(request)
+        actions = super(RectifiedDatasetSeriesAdmin, self).get_actions(request)
         del actions['delete_selected']
         return actions
         
@@ -292,7 +296,7 @@ class EOxSRectifiedDatasetSeriesAdmin(admin.ModelAdmin):
         #raise
         
         if not error:
-            super(EOxSRectifiedDatasetSeriesAdmin, self).save_model(request, obj, form, change)
+            super(RectifiedDatasetSeriesAdmin, self).save_model(request, obj, form, change)
 
     def save_formset(self, request, form, formset, change):
         # the reason why the synchronization method is placed here
@@ -302,10 +306,10 @@ class EOxSRectifiedDatasetSeriesAdmin(admin.ModelAdmin):
         # is not yet saved and thus not available. We need the data dirs
         # however for synchronization.
         
-        if formset.model == EOxSRectifiedDatasetRecord:
+        if formset.model == RectifiedDatasetRecord:
             changed_datasets = formset.save(commit=False)
             
-            synchronizer = EOxSRectifiedDatasetSeriesSynchronizer(self.dataset_series)
+            synchronizer = RectifiedDatasetSeriesSynchronizer(self.dataset_series)
             
             try:
                 if change:
@@ -323,40 +327,40 @@ class EOxSRectifiedDatasetSeriesAdmin(admin.ModelAdmin):
                 if not dataset.automatic:
                     dataset.save()
         else:
-            super(EOxSRectifiedDatasetSeriesAdmin, self).save_formset(request, form, formset, change)
+            super(RectifiedDatasetSeriesAdmin, self).save_formset(request, form, formset, change)
         
     def add_view(self, request, form_url="", extra_context=None):
         try:
-            return super(EOxSRectifiedDatasetSeriesAdmin, self).add_view(request, form_url, extra_context)
+            return super(RectifiedDatasetSeriesAdmin, self).add_view(request, form_url, extra_context)
         except:
             messages.error(request, "Could not create DatasetSeries")
             return HttpResponseRedirect("..")
     
     def change_view(self, request, object_id, extra_context=None):
         try:
-            return super(EOxSRectifiedDatasetSeriesAdmin, self).change_view(request, object_id, extra_context)
+            return super(RectifiedDatasetSeriesAdmin, self).change_view(request, object_id, extra_context)
         except:
             messages.error(request, "Could not change DatasetSeries")
             return HttpResponseRedirect("..")
     
     def changelist_view(self, request, extra_context=None):
         try:
-            return super(EOxSRectifiedDatasetSeriesAdmin, self).changelist_view(request, extra_context)
+            return super(RectifiedDatasetSeriesAdmin, self).changelist_view(request, extra_context)
         except:
             messages.error(request, "Could not change DatasetSeries")
             return HttpResponseRedirect("..")
     
     def delete_view(self, request, object_id, extra_context=None):
         try:
-            return super(EOxSRectifiedDatasetSeriesAdmin, self).delete_view(request, object_id, extra_context)
+            return super(RectifiedDatasetSeriesAdmin, self).delete_view(request, object_id, extra_context)
         except:
             messages.error(request, "Could not delete DatasetSeries")
             return HttpResponseRedirect("..")
 
-admin.site.register(EOxSRectifiedDatasetSeriesRecord, EOxSRectifiedDatasetSeriesAdmin)
+admin.site.register(RectifiedDatasetSeriesRecord, RectifiedDatasetSeriesAdmin)
 
 
-class EOxSEOMetadataAdmin(admin.GeoModelAdmin):
+class EOMetadataAdmin(admin.GeoModelAdmin):
     def save_model(self, request, obj, form, change):
         # steps:
         # 1. retrieve EO GML from obj
@@ -364,7 +368,7 @@ class EOxSEOMetadataAdmin(admin.GeoModelAdmin):
         # 3. validate against schema
         
         self.metadata_object = obj
-        super(EOxSEOMetadataAdmin, self).save_model(request, obj, form, change)
+        super(EOMetadataAdmin, self).save_model(request, obj, form, change)
         """
         if len(self.metadata_object.eo_gml) > 0:
             # not sure about this:
@@ -378,10 +382,10 @@ class EOxSEOMetadataAdmin(admin.GeoModelAdmin):
     
     def save_formset(self, request, form, formset, change):
         """raise
-        if formset.model == EOxSEOMetadataRecord:
+        if formset.model == EOMetadataRecord:
             changed_datasets = formset.save(commit=False)
             
-            synchronizer = EOxSEOxSEOMetadataSynchronizer(self.metadata_object)
+            synchronizer = EOMetadataSynchronizer(self.metadata_object)
             
             try:
                 if change:
@@ -399,20 +403,20 @@ class EOxSEOMetadataAdmin(admin.GeoModelAdmin):
                 if not dataset.automatic:
                     dataset.save()
         else:
-            super(EOxSEOMetadataAdmin, self).save_formset(request, form, formset, change)
+            super(EOMetadataAdmin, self).save_formset(request, form, formset, change)
         """
         # SK: don't think we need to override this method, as it should
         # not be called; see also the explanation in the save_formset()
-        # method of EOxSRectifiedStitchedMosaicAdmin,
-        # EOxSRectifiedDatasetSeriesAdmin
+        # method of RectifiedStitchedMosaicAdmin,
+        # RectifiedDatasetSeriesAdmin
         
-        super(EOxSEOMetadataAdmin, self).save_formset(request, form, formset, change)
+        super(EOMetadataAdmin, self).save_formset(request, form, formset, change)
     
-admin.site.register(EOxSEOMetadataRecord, EOxSEOMetadataAdmin)
+admin.site.register(EOMetadataRecord, EOMetadataAdmin)
 
-class EOxSLayerMetadataAdmin(admin.ModelAdmin):
-    inlines = (EOxSSingleFileLayerMetadataInline, )
-admin.site.register(EOxSLayerMetadataRecord, EOxSLayerMetadataAdmin)
+class LayerMetadataAdmin(admin.ModelAdmin):
+    inlines = (SingleFileLayerMetadataInline, )
+admin.site.register(LayerMetadataRecord, LayerMetadataAdmin)
 
-admin.site.register(EOxSFileRecord)
-admin.site.register(EOxSLineageRecord)
+admin.site.register(FileRecord)
+admin.site.register(LineageRecord)

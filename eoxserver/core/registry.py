@@ -24,11 +24,12 @@
 #-----------------------------------------------------------------------
 
 import os.path
-from threading import RLock
 import logging
 
-from eoxserver.core.config import Config
-from eoxserver.core.exceptions import (InternalError,
+from django.conf import settings
+
+from eoxserver.core.models import Component
+from eoxserver.core.exceptions import (InternalError, ConfigError,
     ImplementationNotFound, ImplementationAmbiguous,
     ImplementationDisabled, BindingMethodError
 )
@@ -137,7 +138,7 @@ class Registry(object):
         else:
             raise InternalError("Unknown interface ID '%s'" % intf_id)
 
-    def load(cls):
+    def load(self):
         # get module directories from config
         reader = RegistryConfigReader(self.config)
         reader.validate()
@@ -150,14 +151,14 @@ class Registry(object):
         for module_dir in module_dirs:
             # find .py files
             # and append them to the modules list
-            modules.extend(cls.__find_modules(module_dir))
+            modules.extend(self.__find_modules(module_dir))
         
         # load modules; implementations will auto-register
         for module_name in system_modules:
-            cls.__load_module(module_name, strict=True)
+            self.__load_module(module_name, strict=True)
         
         for module_name in modules:
-            cls.__load_module(module_name)
+            self.__load_module(module_name)
             
         self.__synchronize()
         
@@ -438,9 +439,6 @@ class Registry(object):
                 # will be raised by the final validation routine
                 logging.warning("Could not load module '%s'" % module_name)
                 return
-        finally:
-            if f:
-                f.close()
         
         for attr in module.__dict__.values():
             if hasattr(attr, "__ifclass__") and\
@@ -614,17 +612,24 @@ class RegistryConfigReader(object):
     def getSystemModules(self):
         sys_mod_str = self.config.getDefaultConfigValue("core.registry", "system_modules")
         
-        return [name.strip() for name in sys_mod_str.split(",")]
+        if sys_mod_str:
+            return [name.strip() for name in sys_mod_str.split(",")]
+        else:
+            return []
     
-    @classmethod
     def getModuleDirectories(self):
         mod_dir_str = self.config.getConfigValue("core.registry", "module_dirs")
         
-        return [dir.strip() for dir in mod_dir_str.split(",")]
-    
-    @classmethod
+        if mod_dir_str:
+            return [dir.strip() for dir in mod_dir_str.split(",")]
+        else:
+            return []
+
     def getModules(self):
         mod_str = self.config.getConfigValue("core.registry", "modules")
         
-        return [name.strip() for name in mod_str.split(",")]
+        if mod_str:
+            return [name.strip() for name in mod_str.split(",")]
+        else:
+            return []
         

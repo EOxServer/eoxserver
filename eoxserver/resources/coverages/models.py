@@ -32,9 +32,9 @@ from django.contrib.contenttypes import generic
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
 
-from eoxserver.resources.coverages.validators import validateEOOM
 from eoxserver.core.util.xmltools import XMLDecoder
-from eoxserver.resources.coverages.metadata import EOxSMetadataInterfaceFactory
+from eoxserver.resources.coverages.validators import validateEOOM
+from eoxserver.resources.coverages.metadata import MetadataInterfaceFactory
 
 NCNameValidator = RegexValidator(re.compile(r'^[a-zA-z_][a-zA-Z0-9_.-]*$'), message="This field must contain a valid NCName.")
 
@@ -160,7 +160,7 @@ class EOMetadataRecord(models.Model):
         EPSILON = 1e-10
         
         if self.eo_gml:
-            md_int = EOxSMetadataInterfaceFactory.getMetadataInterface(self.eo_gml, "eogml")
+            md_int = MetadataInterfaceFactory.getMetadataInterface(self.eo_gml, "eogml")
             
             if self.timestamp_begin != md_int.getBeginTime().replace(tzinfo=None):
                 raise ValidationError("EO GML acquisition begin time does not match.")

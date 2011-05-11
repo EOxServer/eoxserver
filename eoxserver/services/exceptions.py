@@ -39,3 +39,9 @@ class InvalidRequestException(EOxSException):
 
 class VersionNegotiationException(EOxSException):
     pass
+
+class InvalidAxisLabelException(EOxSException):
+    pass
+
+class InvalidSubsettingException(EOxSException):
+    pass
