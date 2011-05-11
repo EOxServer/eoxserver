@@ -1,6 +1,471 @@
 [
     {
         "pk": 1, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wms1x.WMS111GetCapabilitiesHandler", 
+            "intf_id": "services.interfaces.OperationHandler"
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wms1x.WMS110GetCapabilitiesHandler", 
+            "intf_id": "services.interfaces.OperationHandler"
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wms1x.WMS111VersionHandler", 
+            "intf_id": "services.interfaces.VersionHandler"
+        }
+    }, 
+    {
+        "pk": 4, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wms1x.WMS11ExceptionEncoder", 
+            "intf_id": "services.interfaces.ExceptionEncoder"
+        }
+    }, 
+    {
+        "pk": 5, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wcs1x.WCS11DescribeCoverageHandler", 
+            "intf_id": "services.interfaces.OperationHandler"
+        }
+    }, 
+    {
+        "pk": 6, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wcs1x.WCS11VersionHandler", 
+            "intf_id": "services.interfaces.VersionHandler"
+        }
+    }, 
+    {
+        "pk": 7, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wms1x.WMS10ExceptionEncoder", 
+            "intf_id": "services.interfaces.ExceptionEncoder"
+        }
+    }, 
+    {
+        "pk": 8, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wcs1x.WCS10GetCoverageHandler", 
+            "intf_id": "services.interfaces.OperationHandler"
+        }
+    }, 
+    {
+        "pk": 9, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wcs20.WCS20GetCapabilitiesHandler", 
+            "intf_id": "services.interfaces.OperationHandler"
+        }
+    }, 
+    {
+        "pk": 10, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wcs20.WCS20VersionHandler", 
+            "intf_id": "services.interfaces.VersionHandler"
+        }
+    }, 
+    {
+        "pk": 11, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wcs1x.WCS10GetCapabilitiesHandler", 
+            "intf_id": "services.interfaces.OperationHandler"
+        }
+    }, 
+    {
+        "pk": 12, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wms1x.WMS111GetMapHandler", 
+            "intf_id": "services.interfaces.OperationHandler"
+        }
+    }, 
+    {
+        "pk": 13, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wms1x.WMSServiceHandler", 
+            "intf_id": "services.interfaces.ServiceHandler"
+        }
+    }, 
+    {
+        "pk": 14, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wcs1x.WCS10DescribeCoverageHandler", 
+            "intf_id": "services.interfaces.OperationHandler"
+        }
+    }, 
+    {
+        "pk": 15, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wcs1x.WCS11GetCapabilitiesHandler", 
+            "intf_id": "services.interfaces.OperationHandler"
+        }
+    }, 
+    {
+        "pk": 16, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wcs1x.WCSServiceHandler", 
+            "intf_id": "services.interfaces.ServiceHandler"
+        }
+    }, 
+    {
+        "pk": 17, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wms1x.WMS110VersionHandler", 
+            "intf_id": "services.interfaces.VersionHandler"
+        }
+    }, 
+    {
+        "pk": 18, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wms1x.WMS10VersionHandler", 
+            "intf_id": "services.interfaces.VersionHandler"
+        }
+    }, 
+    {
+        "pk": 19, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wms1x.WMS11ExceptionHandler", 
+            "intf_id": "services.interfaces.ExceptionHandler"
+        }
+    }, 
+    {
+        "pk": 20, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wms1x.WMS110GetMapHandler", 
+            "intf_id": "services.interfaces.OperationHandler"
+        }
+    }, 
+    {
+        "pk": 21, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wms1x.WMS13GetMapHandler", 
+            "intf_id": "services.interfaces.OperationHandler"
+        }
+    }, 
+    {
+        "pk": 22, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wms1x.WMS10ExceptionHandler", 
+            "intf_id": "services.interfaces.ExceptionHandler"
+        }
+    }, 
+    {
+        "pk": 23, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wcs20.WCS20GetCoverageHandler", 
+            "intf_id": "services.interfaces.OperationHandler"
+        }
+    }, 
+    {
+        "pk": 24, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wcs1x.WCS11GetCoverageHandler", 
+            "intf_id": "services.interfaces.OperationHandler"
+        }
+    }, 
+    {
+        "pk": 25, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wcs20.WCS20DescribeCoverageHandler", 
+            "intf_id": "services.interfaces.OperationHandler"
+        }
+    }, 
+    {
+        "pk": 26, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wms1x.WMS13GetCapabilitiesHandler", 
+            "intf_id": "services.interfaces.OperationHandler"
+        }
+    }, 
+    {
+        "pk": 27, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wcs1x.WCS10VersionHandler", 
+            "intf_id": "services.interfaces.VersionHandler"
+        }
+    }, 
+    {
+        "pk": 28, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wms1x.WMS130VersionHandler", 
+            "intf_id": "services.interfaces.VersionHandler"
+        }
+    }, 
+    {
+        "pk": 29, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wms1x.WMS10GetMapHandler", 
+            "intf_id": "services.interfaces.OperationHandler"
+        }
+    }, 
+    {
+        "pk": 30, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wms1x.WMS10GetCapabilitiesHandler", 
+            "intf_id": "services.interfaces.OperationHandler"
+        }
+    }, 
+    {
+        "pk": 31, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wcs20.WCS20DescribeEOCoverageSetHandler", 
+            "intf_id": "services.interfaces.OperationHandler"
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 4, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 5, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 6, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 7, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 8, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 9, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 10, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 11, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 12, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 13, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 14, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 15, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 16, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 17, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 18, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 19, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 20, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 21, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 22, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 23, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 24, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 25, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 26, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 27, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 28, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 29, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 30, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 31, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 1, 
         "model": "coverages.nilvaluerecord", 
         "fields": {
             "reason": "No Data", 
