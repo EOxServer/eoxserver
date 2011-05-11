@@ -94,7 +94,7 @@ class EOxSTestCase(TestCase):
         return os.path.join("../autotest","responses")
     
     def getResponseFileName(self):
-        return "response_%s.%s" % (self.__class__.__name__, self.getFileExtension())
+        return "%s.%s" % (self.__class__.__name__, self.getFileExtension())
     
     def testStatus(self):
         logging.info("Checking HTTP Status ...")
@@ -104,7 +104,7 @@ class EOxSTestCase(TestCase):
         return os.path.join("../autotest", "expected")
     
     def getExpectedFileName(self):
-        return "expected_%s.%s" % (self.__class__.__name__, self.getFileExtension())
+        return "%s.%s" % (self.__class__.__name__, self.getFileExtension())
     
     def testBinaryComparison(self):
         try:
@@ -231,10 +231,10 @@ class EOxSWCS20GetCoverageMultipartTestCase(EOxSWCS20GetCoverageTestCase):
             return "dat"
     
     def getResponseFileName(self,part):
-        return "response_%s.%s" % (self.__class__.__name__, self.getFileExtension(part))
+        return "%s.%s" % (self.__class__.__name__, self.getFileExtension(part))
     
     def getExpectedFileName(self,part):
-        return "expected_%s.%s" % (self.__class__.__name__, self.getFileExtension(part))
+        return "%s.%s" % (self.__class__.__name__, self.getFileExtension(part))
     
     def testBinaryComparison(self):
         self.assertTrue(self.response["Content-type"] == "multipart/mixed; boundary=wcs","Response returned '%s' is not of type multipart/mixed.")
