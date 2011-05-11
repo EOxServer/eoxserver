@@ -130,6 +130,7 @@ INSTALLED_APPS = (
     'django.contrib.databrowse',
     'django_extensions',
     'eoxserver.core',
+    'eoxserver.services',
     'eoxserver.resources.coverages',
     'eoxserver.testing',
 )
