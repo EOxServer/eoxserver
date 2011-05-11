@@ -240,7 +240,7 @@ class WCS20DescribeCoverageHandler(BaseRequestHandler):
         else:
             for coverage_id in coverage_ids:
                 try:
-                    req.coverages.append(EOxSCoverageInterfaceFactory.getCoverageInterface(coverage_id))
+                    req.coverages.append(CoverageInterfaceFactory.getCoverageInterface(coverage_id))
                 except NoSuchCoverageException, e:
                     raise InvalidRequestException(e.msg, "NoSuchCoverage", coverage_id)
 
@@ -341,12 +341,12 @@ class WCS20DescribeEOCoverageSetHandler(BaseRequestHandler):
             wcseo_objects = []
             for eo_id in eo_ids:
                 try:
-                    wcseo_objects.append(EOxSDatasetSeriesFactory.getDatasetSeriesInterface(eo_id))
+                    wcseo_objects.append(DatasetSeriesFactory.getDatasetSeriesInterface(eo_id))
                 except NoSuchDatasetSeriesException:
                     pass
                 
                 try:
-                    wcseo_objects.append(EOxSCoverageInterfaceFactory.getCoverageInterfaceByEOID(eo_id))
+                    wcseo_objects.append(CoverageInterfaceFactory.getCoverageInterfaceByEOID(eo_id))
                 except NoSuchCoverageException:
                     pass
                 

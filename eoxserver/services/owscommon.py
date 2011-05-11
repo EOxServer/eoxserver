@@ -222,7 +222,7 @@ class OWSCommonServiceHandler(BaseRequestHandler):
             if self._versionSupported(accept_version):
                 return accept_version
         
-        raise VersionNegotiationException("Version negotiation failed! Highest supported version: %s; Lowest supported version: %s" % (EOxSRegistry.getHighestVersion(self.SERVICE), EOxSRegistry.getLowestVersion(self.SERVICE)))
+        raise VersionNegotiationException("Version negotiation failed! Highest supported version: %s; Lowest supported version: %s" % (self._getHighestVersion(), self._getLowestVersion()))
     
     def _processRequest(self, req):
         req.setSchema(self.PARAM_SCHEMA)
