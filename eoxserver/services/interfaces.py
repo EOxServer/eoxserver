@@ -46,14 +46,14 @@ class ServiceHandlerInterface(RequestHandlerInterface):
         "intf_id": "services.interfaces.ServiceHandler",
         "binding_method": "kvp",
         "registry_keys": (
-            "services.interfaces.service"
+            "services.interfaces.service",
         )
     }
 
 class VersionHandlerInterface(RequestHandlerInterface):
     REGISTRY_CONF = {
         "name": "Service Handler Interface",
-        "intf_id": "services.interfaces.ServiceHandler",
+        "intf_id": "services.interfaces.VersionHandler",
         "binding_method": "kvp",
         "registry_keys": (
             "services.interfaces.service",
@@ -64,7 +64,7 @@ class VersionHandlerInterface(RequestHandlerInterface):
 class OperationHandlerInterface(RequestHandlerInterface):
     REGISTRY_CONF = {
         "name": "Service Handler Interface",
-        "intf_id": "services.interfaces.ServiceHandler",
+        "intf_id": "services.interfaces.OperationHandler",
         "binding_method": "kvp",
         "registry_keys": (
             "services.interfaces.service",
@@ -92,7 +92,7 @@ class ExceptionHandlerInterface(RegisteredInterface):
 class ExceptionEncoderInterface(RegisteredInterface):
     REGISTRY_CONF = {
         "name": "OWS Exception Report XML Encoder Interface",
-        "intf_id": "services.interfaces.OWSExceptionEncoder",
+        "intf_id": "services.interfaces.ExceptionEncoder",
         "binding_method": "kvp",
         "registry_keys": (
             "services.interfaces.exception_scheme",

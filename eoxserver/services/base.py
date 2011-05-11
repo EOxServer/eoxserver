@@ -92,9 +92,9 @@ class BaseExceptionHandler(object):
         raise EOxSInternalError("Not implemented.")
     
     def _getExceptionReport(self, req, exception, encoder):
-        if isinstance(exception, EOxSVersionNegotiationException):
+        if isinstance(exception, VersionNegotiationException):
             return DOMElementToXML(encoder.encodeVersionNegotiationException(exception))
-        elif isinstance(exception, EOxSInvalidRequestException):
+        elif isinstance(exception, InvalidRequestException):
             return DOMElementToXML(encoder.encodeInvalidRequestException(exception))
         
     def _getHTTPStatus(self, exception):

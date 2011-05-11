@@ -36,10 +36,15 @@ from django.conf import settings
 from eoxserver.core.util.xmltools import XMLEncoder, DOMtoXML, DOMElementToXML
 from eoxserver.core.util.timetools import isotime
 from eoxserver.core.exceptions import InternalError
-from eoxserver.resources.exceptions import (
+from eoxserver.resources.coverages.exceptions import (
     NoSuchCoverageException, SynchronizationError
 )
 from eoxserver.resources.coverages.domainset import Trim, Slice
+from eoxserver.services.interfaces import (
+    ServiceHandlerInterface, VersionHandlerInterface,
+    OperationHandlerInterface, ExceptionHandlerInterface,
+    ExceptionEncoderInterface
+)
 from eoxserver.services.mapserver import MapServerOperationHandler
 from eoxserver.services.base import (
     BaseRequestHandler, BaseExceptionHandler
@@ -50,7 +55,7 @@ from eoxserver.services.owscommon import (
 from eoxserver.services.ogc import OGCExceptionHandler
 from eoxserver.services.requests import Response
 from eoxserver.services.exceptions import InvalidRequestException
-from eoxserver.lib.interfaces import EOxSCoverageInterfaceFactory, EOxSDatasetSeriesFactory # TODO: correct imports
+from eoxserver.resources.coverages.interfaces import CoverageInterfaceFactory, DatasetSeriesFactory # TODO: correct imports
 
 from eoxserver.contrib import mapscript
 
@@ -137,7 +142,7 @@ class WMS13VersionHandler(OWSCommonVersionHandler):
     def _handleException(self, req, exception):
         return OGCExceptionHandler().handleException(req, exception)
 
-WMS130VersionHandlerImplementation = VersionHandlerInterface.implement(WMS130VersionHandler)
+WMS13VersionHandlerImplementation = VersionHandlerInterface.implement(WMS13VersionHandler)
 
 class WMSCommonHandler(MapServerOperationHandler):
     def addLayers(self, ms_req):
@@ -378,7 +383,7 @@ class WMS10_11GetMapHandler(WMS1XGetMapHandler):
     def configureMapObj(self, ms_req):
         super(WMS10_11GetMapHandler, self).configureMapObj(ms_req)
         
-        ms_req.map.setMetaData("wms_exceptions_format", "text/xml")#"application/vnd.ogc.se_xml")
+        ms_req.map.setMetaData("wms_exceptions_format", "text/xml")# TODO: "application/vnd.ogc.se_xml")
         
         srs = ms_req.getParamValue("srs")
         if srs is not None:
@@ -516,6 +521,9 @@ class WMS10ExceptionEncoder(XMLEncoder):
     
     def encodeInvalidRequestException(self, exception):
         return self.encodeExceptionReport(exception.msg, exception.error_code)
+    
+    def encodeVersionNegotiationException(self, exception):
+        return ""
 
 WMS10ExceptionEncoderImplementation = ExceptionEncoderInterface.implement(WMS10ExceptionEncoder)
 
@@ -543,9 +551,9 @@ WMS11ExceptionHandlerImplementation = ExceptionHandlerInterface.implement(WMS11E
 class WMS11ExceptionEncoder(XMLEncoder):
     REGISTRY_CONF = {
         "name": "WMS 1.0 Exception Report Encoder",
-        "impl_id": "services.ows.wms1x.WMS10ExceptionEncoder",
+        "impl_id": "services.ows.wms1x.WMS11ExceptionEncoder",
         "registry_values": {
-            "services.interfaces.exception_scheme": "wms_1.0"
+            "services.interfaces.exception_scheme": "wms_1.1"
         }
     }
 
@@ -560,5 +568,8 @@ class WMS11ExceptionEncoder(XMLEncoder):
     
     def encodeInvalidRequestException(self, exception):
         return self.encodeExceptionReport(exception.msg, exception.error_code)
+    
+    def encodeVersionNegotiationException(self, exception):
+        return ""
 
-WMS11ExceptionEncoderImplementation = ExceptionEncoderInterface.implement(WMS11ExceptionHandler)
+WMS11ExceptionEncoderImplementation = ExceptionEncoderInterface.implement(WMS11ExceptionEncoder)

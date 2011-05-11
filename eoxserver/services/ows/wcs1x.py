@@ -39,7 +39,7 @@ from eoxserver.services.owscommon import (
 from eoxserver.services.ogc import OGCExceptionHandler
 from eoxserver.services.exceptions import InvalidRequestException
 from eoxserver.services.ows.wcs.common import WCSCommonHandler
-from eoxserver.lib.interfaces import EOxSCoverageInterfaceFactory # TODO: correct imports
+from eoxserver.resources.coverages.interfaces import CoverageInterfaceFactory # TODO: correct imports
 
 class WCSServiceHandler(OWSCommonServiceHandler):
     REGISTRY_CONF = {
@@ -123,7 +123,7 @@ class WCS10GetCapabilitiesHandler(WCS1XOperationHandler):
         "registry_values": {
             "services.interfaces.service": "wcs",
             "services.interfaces.version": "1.0.0",
-            "servives.interfaces.operation": "getcapabilities"
+            "services.interfaces.operation": "getcapabilities"
         }
     }
     
@@ -136,7 +136,7 @@ class WCS11GetCapabilitiesHandler(WCS1XOperationHandler):
         "registry_values": {
             "services.interfaces.service": "wcs",
             "services.interfaces.version": "1.1.0",
-            "servives.interfaces.operation": "getcapabilities"
+            "services.interfaces.operation": "getcapabilities"
         }
     }
     
@@ -149,7 +149,7 @@ class WCS10DescribeCoverageHandler(WCS1XOperationHandler):
         "registry_values": {
             "services.interfaces.service": "wcs",
             "services.interfaces.version": "1.0.0",
-            "servives.interfaces.operation": "describecoverage"
+            "services.interfaces.operation": "describecoverage"
         }
     }
     
@@ -162,7 +162,7 @@ class WCS11DescribeCoverageHandler(WCS1XOperationHandler):
         "registry_values": {
             "services.interfaces.service": "wcs",
             "services.interfaces.version": "1.1.0",
-            "servives.interfaces.operation": "describecoverage"
+            "services.interfaces.operation": "describecoverage"
         }
     }
     
@@ -175,7 +175,7 @@ class WCS10GetCoverageHandler(WCS1XOperationHandler):
         "registry_values": {
             "services.interfaces.service": "wcs",
             "services.interfaces.version": "1.0.0",
-            "servives.interfaces.operation": "getcoverage"
+            "services.interfaces.operation": "getcoverage"
         }
     }
     
@@ -189,7 +189,7 @@ class WCS11GetCoverageHandler(WCS1XOperationHandler):
         "registry_values": {
             "services.interfaces.service": "wcs",
             "services.interfaces.version": "1.1.0",
-            "servives.interfaces.operation": "getcoverage"
+            "services.interfaces.operation": "getcoverage"
         }
     }
     

@@ -23,26 +23,23 @@
 #
 #-----------------------------------------------------------------------
 
-from eoxserver.core.exceptions import EOxSException
+from eoxserver.core.registry import Registry, RegisteredInterface
+from eoxserver.core.config import Config
+from eoxserver.core.interfaces import Method, ObjectArg
 
-class InvalidRequestException(EOxSException):
-    def __init__(self, msg, error_code, locator):
-        super(InvalidRequestException, self).__init__(msg)
-        
-        self.msg = msg
-        self.error_code = error_code
-        self.locator = locator
+class StartupHandlerInterface(RegisteredInterface):
+    REGISTRY_CONF = {
+        "name": "Startup Handler Interface",
+        "intf_id": "core.startup.StartupHandler",
+        "registry_keys": (),
+    }
+
+    startup = Method(
+        ObjectArg("config", arg_class=Config),
+        ObjectArg("registry", arg_class=Registry),
+    )
     
-    def __str__(self):
-        return "Invalid Request: ErrorCode: %s; Locator: %s; Message: '%s'" % (
-            self.error_code, self.locator, self.msg
-        )
-
-class VersionNegotiationException(EOxSException):
-    pass
-
-class InvalidAxisLabelException(EOxSException):
-    pass
-
-class InvalidSubsettingException(EOxSException):
-    pass
+    reset = Method(
+        ObjectArg("config", arg_class=Config),
+        ObjectArg("registry", arg_class=Registry),
+    )

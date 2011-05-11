@@ -51,7 +51,7 @@ class System(object):
     __state_cond = Condition()
     __state = UNCONFIGURED
     
-    __env = None
+    __thread_env = None
     __registry = None
     __config = None
     
@@ -249,7 +249,7 @@ class System(object):
 
     @classmethod
     def __startup_ext(cls, config, registry):
-        Handlers = Registry.findImplementations(intf_id="core.startup.StartupHandler")
+        Handlers = registry.findImplementations(intf_id="core.startup.StartupHandler")
         
         for Handler in Handlers:
             Handler().startup(config, registry)

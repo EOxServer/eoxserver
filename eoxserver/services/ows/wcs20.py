@@ -35,19 +35,20 @@ import logging
 
 from eoxserver.core.system import System
 from eoxserver.core.exceptions import( 
-    InternalErrorUnknown, CRSException, UnknownParameterFormatException
+    InternalError, UnknownCRSException, UnknownParameterFormatException
 )
 from eoxserver.core.util.xmltools import DOMtoXML, DOMElementToXML
 from eoxserver.core.util.timetools import getDateTime
 from eoxserver.core.util.geotools import getSRIDFromCRSURI
 from eoxserver.resources.coverages.domainset import Trim, Slice, RectifiedGrid
-from eoxserver.resources.exceptions import (
+from eoxserver.resources.coverages.exceptions import (
     NoSuchCoverageException, NoSuchDatasetSeriesException
 )
-from eoxserver.lib.interfaces import EOxSCoverageInterfaceFactory, EOxSDatasetSeriesFactory # TODO: correct imports
+from eoxserver.resources.coverages.interfaces import CoverageInterfaceFactory, DatasetSeriesFactory # TODO: correct imports
 from eoxserver.services.interfaces import (
     VersionHandlerInterface, OperationHandlerInterface
 )
+from eoxserver.services.base import BaseRequestHandler
 from eoxserver.services.requests import Response
 from eoxserver.services.owscommon import (
     OWSCommonVersionHandler, OWSCommonExceptionHandler
@@ -89,7 +90,7 @@ class WCS20GetCapabilitiesHandler(WCSCommonHandler):
         "name": "WCS 2.0 GetCapabilities Handler",
         "impl_id": "services.ows.wcs20.WCS20GetCapabilitiesHandler",
         "registry_values": {
-            "servives.interfaces.service": "wcs",
+            "services.interfaces.service": "wcs",
             "services.interfaces.version": "2.0.0",
             "services.interfaces.operation": "getcapabilities"
         }

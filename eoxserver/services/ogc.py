@@ -93,5 +93,8 @@ class OGCExceptionEncoder(XMLEncoder):
             exception.error_code,
             exception.locator
         )
+    
+    def encodeVersionNegotiationException(self, exception):
+        return "" # TODO: check against OWS Common
 
 OGCExceptionEncoderImplementation = ExceptionEncoderInterface.implement(OGCExceptionEncoder)
