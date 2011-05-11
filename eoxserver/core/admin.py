@@ -27,10 +27,20 @@ from django.contrib.gis import admin
 
 from eoxserver.core.models import *
 
+admin.site.disable_action('delete_selected')
+
 class ComponentAdmin(admin.ModelAdmin):
     list_display = ('impl_id', 'intf_id', 'enabled')
     list_editable = ('enabled', )
+    readonly_fields = ('impl_id', 'intf_id')
     ordering = ('impl_id', )
     search_fields = ('impl_id', 'intf_id')
+
+    def has_add_permission(self, request):
+        return False
+
+#    def has_delete_permission(self, request, obj):
+    def has_delete_permission(self, request): # TODO: Check update of admin.
+        return False
 
 admin.site.register(Component, ComponentAdmin)
