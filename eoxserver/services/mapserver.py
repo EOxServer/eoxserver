@@ -27,11 +27,13 @@
 This module contains the abstract base classes for request handling.
 """
 
-from django.conf import settings
-
+from email.parser import Parser as MIMEParser
+from email.message import Message
 import logging
 import os.path
 from cgi import escape
+
+from django.conf import settings
 
 from eoxserver.resources.coverages.domainset import Trim, Slice
 from eoxserver.services.base import BaseRequestHandler
