@@ -9,7 +9,7 @@ RFC 0: Project Steering Committee Guidelines
 
 :Author: Stephan Meißl
 :Created: 2011-03-02
-:Last Edit: 2011-05-04
+:Last Edit: 2011-05-13
 :Status: PENDING
 :Discussion: http://www.eoxserver.org/wiki/DiscussionRfc0
 
@@ -126,7 +126,7 @@ Stepping Down
 If, for any reason, a PSC member is not able to fully participate then they 
 certainly are free to step down. If a member is not active (e.g. no 
 voting, no IRC, or email participation) for a period of two months then 
-the committee reserves the right to seek nominations to fill that position.
+the committee reserves the right to vote to cease membership.
 Should that person become active again then they are certainly welcome, but 
 require a nomination.
 

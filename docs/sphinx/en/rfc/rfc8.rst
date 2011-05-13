@@ -94,8 +94,9 @@ project.
 * Significant changes to the main development version should be
   discussed on the dev maling list before making them, and larger changes will
   require an RFC approved by the PSC.
-* Do not create new branches without the approval of the PSC. Release
-  managers are assumed to have permission to create a branch.
+* Do not create new branches without the approval of the PSC. A Release 
+  manager designated under :doc:`rfc7` is automatically granted permission to 
+  create a branch, as defined by their role described in :doc:`rfc7`.
 * All source code in SVN should be in Unix text format as opposed to DOS
   text mode. 
 * When committing new features or significant changes to existing source
