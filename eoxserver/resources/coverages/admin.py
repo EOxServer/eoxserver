@@ -23,19 +23,24 @@
 #
 #-----------------------------------------------------------------------
 
-from django import forms
 from django.contrib.gis import admin
 from django.contrib import messages
-from django.db import transaction
 from django.conf import settings
 from django.http import HttpResponseRedirect
 
-from eoxserver.resources.coverages.models import *
+from eoxserver.resources.coverages.models import (
+    AxisRecord, ChannelRecord, DataDirRecord, EOMetadataRecord, FileRecord,
+    LayerMetadataRecord, LineageRecord, MosaicDataDirRecord, NilValueRecord,
+    RangeType, RangeType2Channel, RectifiedDatasetRecord,
+    RectifiedDatasetSeriesRecord, RectifiedGridRecord, 
+    RectifiedStitchedMosaicRecord, SingleFileCoverageRecord
+)
+
 from eoxserver.resources.coverages.synchronize import (
     RectifiedDatasetSeriesSynchronizer,
     RectifiedStitchedMosaicSynchronizer
 )
-from eoxserver.resources.coverages.metadata import MetadataInterfaceFactory
+
 import os.path
 import logging
 
@@ -56,7 +61,7 @@ admin.site.register(RectifiedGridRecord, RectifiedGridAdmin)
 
 # NilValue
 class NilValueInline(admin.TabularInline):
-    model = ChannelRecord.nil_values.through
+    model = ChannelRecord.nil_values.__getattribute__("through")
     extra = 1
 class NilValueAdmin(admin.ModelAdmin):
     inlines = (NilValueInline, )
@@ -77,7 +82,7 @@ admin.site.register(ChannelRecord, ChannelRecordAdmin)
 
 # SingleFile Coverage
 class SingleFileLayerMetadataInline(admin.TabularInline):
-    model = SingleFileCoverageRecord.layer_metadata.through
+    model = SingleFileCoverageRecord.layer_metadata.__getattribute__("through")
     extra = 1
 class CoverageSingleFileAdmin(admin.ModelAdmin):
     #list_display = ('coverage_id', 'filename', 'range_type')
@@ -90,12 +95,12 @@ class CoverageSingleFileAdmin(admin.ModelAdmin):
 admin.site.register(SingleFileCoverageRecord, CoverageSingleFileAdmin)
 
 class StitchedMosaic2DatasetInline(admin.TabularInline):
-    model = RectifiedStitchedMosaicRecord.rect_datasets.through
+    model = RectifiedStitchedMosaicRecord.rect_datasets.__getattribute__("through")
     verbose_name = "Stitched Mosaic to Dataset Relation"
     verbose_name_plural = "Stitched Mosaic to Dataset Relations"
     extra = 1
 class DatasetSeries2DatasetInline(admin.TabularInline):
-    model = RectifiedDatasetSeriesRecord.rect_datasets.through
+    model = RectifiedDatasetSeriesRecord.rect_datasets.__getattribute__("through")
     verbose_name = "Dataset Series to Dataset Relation"
     verbose_name_plural = "Dataset Series to Dataset Relations"
     extra = 1
@@ -113,7 +118,7 @@ class RectifiedDatasetAdmin(admin.ModelAdmin):
     actions = ['really_delete_selected', ]
     def get_actions(self, request):
         actions = super(RectifiedDatasetAdmin, self).get_actions(request)
-        del actions['delete_selected']
+        if 'delete_selected' in actions: del actions['delete_selected']
         return actions
     def really_delete_selected(self, request, queryset):
         for obj in queryset:
@@ -133,7 +138,7 @@ class MosaicDataDirInline(admin.TabularInline):
     verbose_name_plural = "Stitched Mosaic Data Directories"
     extra = 1
 class DatasetSeries2StichedMosaicInline(admin.TabularInline):
-    model = RectifiedDatasetSeriesRecord.rect_stitched_mosaics.through
+    model = RectifiedDatasetSeriesRecord.rect_stitched_mosaics.__getattribute__("through")
     verbose_name = "Dataset Series to Stitched Mosaic Relation"
     verbose_name_plural = "Dataset Series to Stitched Mosaic Relations"
     extra = 1
@@ -153,7 +158,7 @@ class RectifiedStitchedMosaicAdmin(admin.ModelAdmin):
 
     def get_actions(self, request):
         actions = super(RectifiedStitchedMosaicAdmin, self).get_actions(request)
-        del actions['delete_selected']
+        if 'delete_selected' in actions: del actions['delete_selected']
         return actions
 
     def really_delete_selected(self, request, queryset):
@@ -265,7 +270,7 @@ class RectifiedDatasetSeriesAdmin(admin.ModelAdmin):
     
     def get_actions(self, request):
         actions = super(RectifiedDatasetSeriesAdmin, self).get_actions(request)
-        del actions['delete_selected']
+        if 'delete_selected' in actions: del actions['delete_selected']
         return actions
         
     def really_delete_selected(self, request, queryset):
