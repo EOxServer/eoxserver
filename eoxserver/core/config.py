@@ -29,6 +29,8 @@ from ConfigParser import RawConfigParser
 
 from django.conf import settings
 
+from eoxserver.core.exceptions import InternalError
+
 class Config(object):
     def __init__(self):
         self.__eoxs_path = None
@@ -80,7 +82,7 @@ class Config(object):
     def getEOxSPath(self):
         if self.__eoxs_path is None:
             try:
-                f, eoxs_path, desc = imp.find_module("eoxserver")
+                _, eoxs_path, _ = imp.find_module("eoxserver")
             except ImportError:
                 raise InternalError("Something very strange is happening: cannot find 'eoxserver' module.")
             self.__eoxs_path = eoxs_path

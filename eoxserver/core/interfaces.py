@@ -1,8 +1,7 @@
 import types
 import logging
 
-from eoxserver.core.config import Config
-from eoxserver.core.exceptions import InternalError, TypeMismatch
+from eoxserver.core.exceptions import InternalError, TypeMismatch, ConfigError
 
 global RUNTIME_VALIDATION_LEVEL
 
@@ -197,10 +196,7 @@ class Method(object):
             else:
                 self.named_args.append(arg)
 
-        if "returns" in kwargs:
-            self.returns = kwargs["returns"]
-        else:
-            self.returns = None
+        self.returns = kwargs.get("returns", None)
             
     def validateArgs(self, args):
         opt_args_flag = False
@@ -232,7 +228,7 @@ class Method(object):
                 kwargs_flag = True
             
             if arg.name in names:
-                raise InternalError("Argument named '%s' appears multiple times." % name)
+                raise InternalError("Argument named '%s' appears multiple times." % arg.name)
             else:
                 names.append(arg.name)
 
@@ -355,15 +351,15 @@ class Method(object):
         ))
 
 class InterfaceMetaClass(type):
-    def __new__(mcls, name, bases, class_dict):
+    def __new__(cls, name, bases, class_dict):
         if "INTERFACE_CONF" in class_dict:
             local_conf = class_dict["INTERFACE_CONF"]
             
-            class_dict["__iconf__"] = mcls._mergeConfs(local_conf, bases, "__iconf__")
+            class_dict["__iconf__"] = cls._mergeConfs(local_conf, bases, "__iconf__")
         else:
             class_dict["__iconf__"] = {}
         
-        return type.__new__(mcls, name, bases, class_dict)
+        return type.__new__(cls, name, bases, class_dict)
     
     @classmethod
     def _mergeConfs(mcls, local_conf, bases, conf_name):
@@ -539,7 +535,7 @@ class WarningWrapper(ValidationWrapper):
         except TypeMismatch, e:
             logging.warn(str(e))
         
-        ret_value = self.func(instance, *args, **kwargs)
+        ret_value = self.func(self.instance, *args, **kwargs)
         
         try:
             self.method.validateReturnType(self.func.func_name, ret_value)
