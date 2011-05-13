@@ -9,7 +9,7 @@ RFC Policies
 ============
 
 :Author: Stephan Krause, Stephan Meißl
-:Date: 2011-05-02
+:Date: 2011-05-13
 
 This document contains the policies that govern the life cycle of
 Requests for Comments (RFCs). It may be changed by submitting an RFC for
@@ -70,10 +70,10 @@ Creation of RFCs
 ----------------
 
 Any one who has write access to the EOxServer SVN may submit an RFC. It
-shall obey to the rules of the :doc:`howto`. The initial status of the
+shall obey the rules of the :doc:`howto`. The initial status of the
 RFC is IN PREPARATION, lest the authors deem it to be mature for
 discussion from the start, in which case they may submit it as PENDING. The 
-RFC shall be assign the next possible consecutive number.
+RFC shall be assigned the next possible consecutive number.
 
 When beginning work on an RFC the authors shall inform the PSC chair.
 

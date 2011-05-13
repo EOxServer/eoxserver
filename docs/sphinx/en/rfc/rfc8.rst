@@ -9,7 +9,7 @@ RFC 8: SVN Commit Management
 
 :Author: Stephan Meißl
 :Created: 2011-05-04
-:Last Edit: 2011-05-04
+:Last Edit: 2011-05-13
 :Status: PENDING
 :Discussion: http://www.eoxserver.org/wiki/DiscussionRfc8
 
@@ -103,8 +103,8 @@ project.
   source code continues to work.
 * Include the standard EOxServer header in every new file and set the following 
   SVN properties:
-  * svn propset svn:keywords 'Author Date Id Revision' <new_file>
-  * svn propset svn:eol-style native <new_file>
+ * svn propset svn:keywords 'Author Date Id Revision' <new_file>
+ * svn propset svn:eol-style native <new_file>
 
 
 Legal
