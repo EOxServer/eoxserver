@@ -27,12 +27,9 @@ import re
 
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import GEOSGeometry
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes import generic
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
 
-from eoxserver.core.util.xmltools import XMLDecoder
 from eoxserver.resources.coverages.validators import validateEOOM
 from eoxserver.resources.coverages.metadata import MetadataInterfaceFactory
 

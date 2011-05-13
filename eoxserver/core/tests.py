@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 #-----------------------------------------------------------------------
+# $Id$
 #
 # This software is named EOxServer, a server for Earth Observation data.
 #
@@ -27,7 +28,12 @@ import logging
 
 from django.test import TestCase
 
-from eoxserver.core.interfaces import *
+from eoxserver.core.interfaces import (
+    Interface, Method, StrArg, StringArg, UnicodeArg, BoolArg, IntArg, LongArg,
+    FloatArg, RealArg, ComplexArg, ListArg, DictArg, ObjectArg, PosArgs, KwArgs
+)
+
+from eoxserver.core.exceptions import TypeMismatch, InternalError
 
 class TestInterface1(Interface):
     INTERFACE_CONF = {

@@ -28,17 +28,10 @@ import logging
 from lxml import etree
 from xml.dom import minidom
 
-import mimetypes
-
 import email
-from email.parser import Parser as MIMEParser
-from email.message import Message
-from email import message_from_string
 
 from django.test import TestCase, Client
 
-from eoxserver.core.system import System
-from eoxserver.services.owscommon import OWSCommonHandler
 from eoxserver.core.util.xmltools import XMLDecoder, DOMtoXML
 
 class TestSchemaFactory(object):
