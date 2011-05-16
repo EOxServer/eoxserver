@@ -1358,6 +1358,46 @@
         }
     }, 
     {
+        "pk": 1,
+        "model": "core.resource",
+        "fields": {}
+    },
+    {
+        "pk": 2,
+        "model": "core.resource",
+        "fields": {}
+    },
+    {
+        "pk": 3,
+        "model": "core.resource",
+        "fields": {}
+    },
+    {
+        "pk": 4,
+        "model": "core.resource",
+        "fields": {}
+    },
+    {
+        "pk": 5,
+        "model": "core.resource",
+        "fields": {}
+    },
+    {
+        "pk": 6,
+        "model": "core.resource",
+        "fields": {}
+    },
+    {
+        "pk": 7,
+        "model": "core.resource",
+        "fields": {}
+    },
+    {
+        "pk": 8,
+        "model": "core.resource",
+        "fields": {}
+    },
+    {
         "pk": 1, 
         "model": "coverages.rectifieddatasetrecord", 
         "fields": {
@@ -1454,7 +1494,7 @@
         }
     }, 
     {
-        "pk": 1, 
+        "pk": 7, 
         "model": "coverages.rectifiedstitchedmosaicrecord", 
         "fields": {
             "lineage": 4, 
@@ -1482,7 +1522,7 @@
         }
     }, 
     {
-        "pk": 1, 
+        "pk": 8, 
         "model": "coverages.rectifieddatasetseriesrecord", 
         "fields": {
             "image_pattern": "*_compressed.tif", 
