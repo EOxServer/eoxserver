@@ -32,6 +32,7 @@ from django.core.exceptions import ValidationError
 
 from eoxserver.resources.coverages.validators import validateEOOM
 from eoxserver.resources.coverages.metadata import MetadataInterfaceFactory
+from eoxserver.core.models import Resource
 
 NCNameValidator = RegexValidator(re.compile(r'^[a-zA-z_][a-zA-Z0-9_.-]*$'), message="This field must contain a valid NCName.")
 
@@ -167,7 +168,7 @@ class EOMetadataRecord(models.Model):
                 if not self.footprint.equals_exact(GEOSGeometry(md_int.getFootprint()), EPSILON * max(self.footprint.extent)): # compare the footprints with a tolerance in order to account for rounding and string conversion errors
                     raise ValidationError("EO GML footprint does not match.")
 
-class CoverageRecord(models.Model):
+class CoverageRecord(Resource):
     coverage_id = models.CharField(max_length=256, unique=True, validators=[NCNameValidator])
     range_type = models.ForeignKey(RangeType)
     layer_metadata = models.ManyToManyField(LayerMetadataRecord, null=True, blank=True)
@@ -242,7 +243,7 @@ class MosaicDataDirRecord(models.Model):
         verbose_name = "Mosaic Data Directory"
         verbose_name_plural = "Mosaic Data Directories"
 
-class RectifiedDatasetSeriesRecord(models.Model):
+class RectifiedDatasetSeriesRecord(Resource):
     eo_id = models.CharField(max_length=256, unique=True, validators=[NCNameValidator])
     eo_metadata = models.OneToOneField(EOMetadataRecord, related_name="rect_dataset_series_set")
     image_pattern = models.CharField(max_length=1024)
