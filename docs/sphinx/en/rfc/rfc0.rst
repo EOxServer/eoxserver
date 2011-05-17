@@ -9,8 +9,8 @@ RFC 0: Project Steering Committee Guidelines
 
 :Author: Stephan Meißl
 :Created: 2011-03-02
-:Last Edit: 2011-05-13
-:Status: PENDING
+:Last Edit: 2011-05-17
+:Status: ACCEPTED
 :Discussion: http://www.eoxserver.org/wiki/DiscussionRfc0
 
 
@@ -125,7 +125,7 @@ Stepping Down
 
 If, for any reason, a PSC member is not able to fully participate then they 
 certainly are free to step down. If a member is not active (e.g. no 
-voting, no IRC, or email participation) for a period of two months then 
+voting, no IRC, or e-mail participation) for a period of two months then 
 the committee reserves the right to vote to cease membership.
 Should that person become active again then they are certainly welcome, but 
 require a nomination.
@@ -167,8 +167,7 @@ place.
 List of Members
 ---------------
 
-Below is a preliminary list of charter members (in alphabetical order) - 
-participation needs to be confirmed by the individuals:
+Charter members are (in alphabetical order):
 
 * Arndt Bonitz
 * Peter Baumann
@@ -184,7 +183,7 @@ Stephan Meißl is declared initial Chair of the Project Steering Committee.
 Voting History
 --------------
 
-N/A
+:Acceptance: All charter members declared their availability via e-mail to the dev mailing list.
 
 
 Traceability
