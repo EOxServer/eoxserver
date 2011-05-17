@@ -7,7 +7,7 @@ RFC 2: Extension Mechanism for EOxServer
 
 :Author: Stephan Krause
 :Created: 2011-02-20
-:Last Edit: 2011-05-05
+:Last Edit: 2011-05-12
 :Status: IN PREPARATION
 :Discussion: http://www.eoxserver.org/wiki/DiscussionRfc2
 
@@ -168,19 +168,6 @@ assure that the dynamically configurable system is in a consistent
 state, the interdependencies between implementations need to be
 properly advertised and stored in the configuration data model.
 
-Another issue that arises when designing a dynamic extension mechanism
-is the possibility of conflicts between extending modules. Conflicts
-are more natural and frequent than one may assume at first. Take for
-example service extensions like EO-WCS that in certain cases need to
-override the implementation of the base service (WCS 2.0 in this case).
-Without further information the central registry cannot decide which
-implementation to bind to. This calls for a conflict resolution
-mechanism and for further metadata to be stored in the configuration
-data model.
-
-For more information see section :ref:`rfc2_dep_confl` below. For
-further details on service extensions please refer to :doc:`rfc3`.
-
 After this short overview, we will go more in depth in the following
 sections.
 
@@ -195,7 +182,7 @@ and implementations:
 * interfaces and implementations as conventional Python classes that
   are linked through inheritance
 * interfaces as special Python classes that are linked to
-  implementations by a special mechanism using metaclasses
+  implementations by a custom mechanism.
 
 Whereas the first approach is straightforward and easy to implement and
 handle it has also some serious drawbacks. Most importantly it does
@@ -210,7 +197,7 @@ defines concrete methods to override the "abstract" ones the interface
 class provides.
 
 So, there are also good reasons for the second approach although it is
-more challenging for developers. Using Python metaclasses allows to
+more challenging for developers. The approach proposed here allows to
 customize class generation and inheritance enabling validation at
 "compile time" (i.e. when classes are created) and runtime (i.e. when
 instance methods are invoked) as well as separation of interface
@@ -219,7 +206,7 @@ definition from implementation.
 How can this be achieved? The proposed mechanism relies on an
 interface base class called ``Interface`` that concrete interface
 declarations can derive from, implementing code contained in a
-conventional Python class and a function called ``implement()`` that
+conventional Python class and a method called ``implement()`` that
 generates a special  implementation class from the interface declaration
 and the class containing the implementing code.
 
@@ -359,6 +346,7 @@ where stricter settings override weaker ones.
 Data Model
 ----------
 
+The data model for 
 * Registry Model
 
   * Interfaces
@@ -380,20 +368,35 @@ Data Model
 * ComponentManager
 
   * Configuration Validation
-  * Relation Management
   * Dependency Management
-  * Conflict Resolution
+  * Relation Management
 
 .. _rfc2_registry:
 
 Registry
 --------
 
-* hooks
-* extension names
-* keys, values
-* naming conventions
-* proxy / persistence layer(s)
+* RegisteredInterface
+* automated detection
+* finding and binding
+
+.. _rfc2_detect
+
+Detection
+---------
+
+* RegisteredInterface
+* on a per module basis
+* whole directories
+
+.. _rfc2_binding
+
+Binding
+-------
+
+* KVP binding
+* test binding
+* factory binding
 
 ::
 
@@ -401,10 +404,10 @@ Registry
     
     def dispatch(service_name, req):
     
-        service = System.getRegistry().bind(
-            intf_id = "services.owscommon.ServiceInterface",
-            registry_values = {
-                "services.owscommon.service": service_name
+        service = System.getRegistry().findAndBind(
+            intf_id = "services.interfaces.ServiceHandler",
+            params = {
+                "services.interfaces.service": service_name.lower()
             }
         )
         
@@ -412,59 +415,6 @@ Registry
         
         return response
 
-* checks directories for classes derived from ExtensibleInterface base
-  class
-  
-    * layer root directory
-    * layer directories for implementations
-    * plugins directory of distribution
-    * plugins directory of instance
-
-* registers implementations
-
-    * only valid implementations, i.e.:
-
-      * all key-value-pairs provided
-      * valid values for all configuration parameters
-
-* enables search for implementations using:
-
-  * the interface hook
-  * the registry key-value-pairs stored with the request
-  * a test() function that returns if the implementation is applicable,
-    e.g. for data, metadata and packaging formats
-
-* tries to resolve conflicts
-
-  * based on subclass and superclass settings
-
-
-Detection
----------
-
-Binding
--------
-
-.. _rfc2_dep_confl:
-
-Dependencies and Conflicts
---------------------------
-
-* dependencies
-
-  * service extensions may depend on the service implementation and
-    other service extensions, see :doc:`rfc3`
-
-* conflict:
-
-  * more than one implementation for the same hook and
-    key-value-combination
-  * more than one implementation is applicable for testing
-    implementations
-  * default, recessive, dominant, levels
-  * more than on service extension may be applicable see :doc:`rfc3`
-
-* conflict resolution
 
 Voting History
 --------------
