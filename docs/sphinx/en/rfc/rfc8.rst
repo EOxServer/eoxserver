@@ -9,8 +9,8 @@ RFC 8: SVN Commit Management
 
 :Author: Stephan Meißl
 :Created: 2011-05-04
-:Last Edit: 2011-05-13
-:Status: PENDING
+:Last Edit: 2011-05-17
+:Status: ACCEPTED
 :Discussion: http://www.eoxserver.org/wiki/DiscussionRfc8
 
 
@@ -162,7 +162,7 @@ legally liable for improperly contributing code to the source repository:
 Voting History
 --------------
 
-N/A
+:Motion: Adopted on 2011-05-17 with +1 from Arndt Bonitz, Stephan Krause, Stephan Meißl, Milan Novacek, Martin Paces, Fabian Schindler
 
 Traceability
 ------------
