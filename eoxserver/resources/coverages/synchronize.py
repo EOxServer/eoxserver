@@ -46,7 +46,7 @@ from eoxserver.resources.coverages.models import (
 from eoxserver.resources.coverages.domainset import getGridFromFile
 from eoxserver.resources.coverages.metadata import MetadataInterfaceFactory
 from eoxserver.resources.coverages.interfaces import RectifiedStitchedMosaicRecordInterface
-from eoxserver.resources.coverages.exceptions import SynchronizationError
+from eoxserver.resources.coverages.exceptions import SynchronizationErrors
 from eoxserver.processing.mosaic import RectifiedMosaicStitcher
 
 class FileInfo(object):
@@ -94,7 +94,7 @@ class FileInfo(object):
         try:
             md_int = MetadataInterfaceFactory.getMetadataInterfaceForFile(self.md_filename)
         except Exception, e:
-            raise SynchronizationError(str(e))
+            raise SynchronizationErrors(str(e))
         
         try:
             self.eo_id = md_int.getEOID()
@@ -107,7 +107,7 @@ class FileInfo(object):
                 self.md_xml_text = md_int.getXMLText()
                 
         except XMLException, e:
-            raise SynchronizationError("Metadata XML Error: %s" % str(e))
+            raise SynchronizationErrors("Metadata XML Error: %s" % str(e))
 
         # TODO: provisional begin
         #minx, miny, maxx, maxy = self.grid.getExtent2D()
@@ -140,8 +140,9 @@ class FileInfo(object):
 class RectifiedCompositeObjectSynchronizer(object):
     def __init__(self, wcseo_object):
         super(RectifiedCompositeObjectSynchronizer, self).__init__()
-        
         self.wcseo_object = wcseo_object
+        self.errors = []
+        self.infos = []
         
     def _getRangeTypeName(self, filename):
         return "RGB" # TODO
@@ -218,11 +219,11 @@ class RectifiedCompositeObjectSynchronizer(object):
             eo_metadata = eo_metadata,
             lineage = lineage,
             automatic = True,
-            visible = False,
-            contained_in = self.wcseo_object
+            visible = False
         )
-
+        self.wcseo_object.rect_datasets.add(dataset)
         logging.info("Success.")
+        self.infos.append("RectifiedDataset has been created for file %s"%filename)
 
     def _updateRecord(self, dataset, filename):
         # TODO
@@ -242,10 +243,10 @@ class RectifiedCompositeObjectSynchronizer(object):
             grid_record.delete()
 
         logging.info("Success.")
+        self.infos.append("RectifiedDataset with ID %s has been deleted."%dataset.eo_id)
 
     def _createDataset(self, filename):
         file_info = self._getFileInfo(filename)
-        
         self._createRecord(filename, file_info)
     
     def _updateDataset(self, dataset, filename):
@@ -257,7 +258,12 @@ class RectifiedCompositeObjectSynchronizer(object):
     def _updateOrCreateDatasets(self, fs_files, db_files):
         for filename in fs_files:
             if filename not in db_files:
-                self._createDataset(filename)
+                try:
+                    dataset = RectifiedDatasetRecord.objects.get(file__path=filename)
+                    self.wcseo_object.rect_datasets.add(dataset)
+                    self.errors.append("RectifiedDataset with ID %s cannot be removed from the container."%dataset.eo_id)
+                except RectifiedDatasetRecord.DoesNotExist:
+                    self._createDataset(filename)
             else:
                 self._updateDataset(self.wcseo_object.rect_datasets.get(file__path=filename), filename)
     
@@ -275,6 +281,9 @@ class RectifiedCompositeObjectSynchronizer(object):
         
         for filename in fs_files and filename not in db_files:
             self._createDataset(filename)
+            
+        if len(self.errors):
+            raise SynchronizationErrors(*self.errors)
     
     def _create(self):
         fs_files = self._findAllFiles()
@@ -284,6 +293,9 @@ class RectifiedCompositeObjectSynchronizer(object):
         for filename in fs_files:
             if filename not in db_files:
                 self._createDataset(filename)
+                
+        if len(self.errors):
+            raise SynchronizationErrors(*self.errors)
             
     def _updateDir(self, data_dir):
         fs_files = self._findFiles(data_dir)
@@ -292,6 +304,9 @@ class RectifiedCompositeObjectSynchronizer(object):
         self._updateOrCreateDatasets(fs_files, db_files)
         
         self._deleteNotCompliant()
+        
+        if len(self.errors):
+            raise SynchronizationErrors(*self.errors)
     
     def _update(self):
         fs_files = self._findAllFiles()
@@ -300,6 +315,9 @@ class RectifiedCompositeObjectSynchronizer(object):
         self._updateOrCreateDatasets(fs_files, db_files)
         
         self._deleteNotCompliant(fs_files)
+        
+        if len(self.errors):
+            raise SynchronizationErrors(*self.errors)
     
     def _logError(self, e):
         logging.error(str(e))
@@ -388,7 +406,7 @@ class RectifiedStitchedMosaicSynchronizer(RectifiedCompositeObjectSynchronizer):
         if file_info.grid.isSubGrid(self.grid):
             self._createRecord(filename, file_info)
         else:
-            raise SynchronizationError("Dataset '%s': Grid does not match mosaic grid." % file_info.eo_id)
+            raise SynchronizationErrors("Dataset '%s': Grid does not match mosaic grid." % file_info.eo_id)
     
     def createDir(self, data_dir):
         try:

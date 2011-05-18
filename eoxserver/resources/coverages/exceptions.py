@@ -34,12 +34,11 @@ class NoSuchCoverageException(EOxSException):
 class NoSuchDatasetSeriesException(EOxSException):
     pass
 
-class SynchronizationError(EOxSException):
-    pass
-
 class SynchronizationErrors(EOxSException):
     def __init__(self, *errors):
         self.errors = errors
+        if len(errors):
+            self.msg = errors[0]
     
     def __iter__(self):
         return iter(self.errors)

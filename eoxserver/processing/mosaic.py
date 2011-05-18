@@ -35,7 +35,7 @@ import logging
 from django.conf import settings
 from django.contrib.gis.geos import Polygon
 
-from eoxserver.resources.coverages.exceptions import SynchronizationError
+from eoxserver.resources.coverages.exceptions import SynchronizationErrors
 
 class MosaicContribution(object):
     def __init__(self, dataset, contributing_footprint):
@@ -352,7 +352,7 @@ class TileIndex(object):
         
         self.layer = self.shapefile.CreateLayer("file_locations", self.srs, ogr.wkbPolygon)
         if self.layer is None:
-            raise SynchronizationError("Cannot create layer 'file_locations' in shapefile '%s'" % self.path)
+            raise SynchronizationError("Cannot create layer 'file_locations' in shapefile '%s' with SRS %s" %(self.path, str(self.srs)))
         
         location_defn = ogr.FieldDefn("location", ogr.OFTString)
         location_defn.SetWidth(256) # TODO: make this configurable

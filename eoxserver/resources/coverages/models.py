@@ -213,10 +213,13 @@ class RectifiedDatasetRecord(EOCoverageRecord):
         verbose_name_plural = "Datasets"
 
 class RectifiedStitchedMosaicRecord(EOCoverageRecord):
-    grid = models.ForeignKey(RectifiedGridRecord, related_name="rect_stitched_mosaics")
+    grid = models.ForeignKey(RectifiedGridRecord,
+                             related_name="rect_stitched_mosaics")
     image_pattern = models.CharField(max_length=1024)
     shape_file_path = models.CharField(max_length=1024, blank=True)
-    rect_datasets = models.ManyToManyField(RectifiedDatasetRecord, related_name = "rect_stitched_mosaics")
+    rect_datasets = models.ManyToManyField(RectifiedDatasetRecord,
+                                           null=True, blank=True,
+                                           related_name="rect_stitched_mosaics")
 
     def __unicode__(self):
         return self.eo_id
@@ -245,10 +248,15 @@ class MosaicDataDirRecord(models.Model):
 
 class RectifiedDatasetSeriesRecord(Resource):
     eo_id = models.CharField(max_length=256, unique=True, validators=[NCNameValidator])
-    eo_metadata = models.OneToOneField(EOMetadataRecord, related_name="rect_dataset_series_set")
+    eo_metadata = models.OneToOneField(EOMetadataRecord,
+                                       related_name="rect_dataset_series_set")
     image_pattern = models.CharField(max_length=1024)
-    rect_stitched_mosaics = models.ManyToManyField(RectifiedStitchedMosaicRecord, blank=True, null=True, related_name="dataset_series")
-    rect_datasets = models.ManyToManyField(RectifiedDatasetRecord, blank=True, null=True, related_name="rect_dataset_series_set")
+    rect_stitched_mosaics = models.ManyToManyField(RectifiedStitchedMosaicRecord,
+                                                   blank=True, null=True,
+                                                   related_name="dataset_series")
+    rect_datasets = models.ManyToManyField(RectifiedDatasetRecord,
+                                           blank=True, null=True,
+                                           related_name="rect_dataset_series_set")
 
     def __unicode__(self):
         return self.eo_id
