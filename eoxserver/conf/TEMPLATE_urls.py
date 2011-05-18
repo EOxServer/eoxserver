@@ -47,7 +47,7 @@ from django.conf import settings
 #databrowse.site.register(EOxSRangeType2Channel)
 
 urlpatterns = patterns('',
-    (r'^'+settings.PROJECT_URL_PREFIX+'ows', 'eoxserver.server.views.ows'),
+    (r'^ows', 'eoxserver.services.views.ows'),
     # Example:
     # (r'^eoxserver/', include('eoxserver.foo.urls')),
 
@@ -56,7 +56,7 @@ urlpatterns = patterns('',
     # (r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
     # Uncomment the next line to enable the admin:
-    (r'^'+settings.PROJECT_URL_PREFIX+r'admin/', include(admin.site.urls)),
-    (r'^'+settings.PROJECT_URL_PREFIX+r'databrowse/(.*)', databrowse.site.root),
-    (r'^'+settings.PROJECT_URL_PREFIX+r'files/(?P<path>.*)$', serve, {'document_root': 'eoxserver'}) # TODO: do not use in production setting
+    (r'^admin/', include(admin.site.urls)),
+    (r'^databrowse/(.*)', databrowse.site.root),
+    (r'^files/(?P<path>.*)$', serve, {'document_root': 'eoxserver'}) # TODO: do not use in production setting
 )
