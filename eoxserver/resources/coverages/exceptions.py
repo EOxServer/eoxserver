@@ -36,3 +36,10 @@ class NoSuchDatasetSeriesException(EOxSException):
 
 class SynchronizationError(EOxSException):
     pass
+
+class SynchronizationErrors(EOxSException):
+    def __init__(self, *errors):
+        self.errors = errors
+    
+    def __iter__(self):
+        return iter(self.errors)
