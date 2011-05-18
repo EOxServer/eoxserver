@@ -5,8 +5,8 @@ RFC 9: SOAP Binding of WCS GetCoverage Response
 
 :Author:     Milan Novacek
 :Created:    2011-05-17
-:Last Edit:  2011-05-17
-:Status:     IN PREPARATION
+:Last Edit:  2011-05-18
+:Status:     PENDING
 :Discussion: http://www.eoxserver.org/wiki/DiscussionRfc9
 
 Introduction
@@ -18,8 +18,8 @@ includes a binary file.
 This RFC proposes an update to OGC 09-149r1 to resolve the inconsistencies:  
 Requirements 5 and 6 should be changed to use SOAP MTOM where the entire
 coverage response comprises the attachment.  This coverage attachment is
-referred to from within a new element 'Coverage' which is also defined in 
-this RFC.
+referred to from within a new element 'Coverage' which is also defined as part
+of this RFC.
 
 
 Problem Description
@@ -49,18 +49,23 @@ Proposed Changes to OGC 09-149r1
 To resolve the problem, we propose to update two requirements of OGC 09-149r1
 as follows:
 
-Requirement 5
-~~~~~~~~~~~~~
-A GetCoverage SOAP response **shall** be encoded according to the W3C SOAP 1.2
-standard [http://www.w3.org/TR/soap12-part1/] using MTOM
-[http://www.w3.org/TR/soap12-mtom/].
+  **Requirement 5:**
+  A GetCoverage SOAP response **shall** be encoded according to the W3C SOAP 1.2
+  standard [http://www.w3.org/TR/soap12-part1/] using MTOM
+  [http://www.w3.org/TR/soap12-mtom/].
 
-Requirement 6
-~~~~~~~~~~~~~
-In a GetCoverage response, the SOAP Body **shall** contain one element.
-"Coverage" of type "SoapCoverageType", defined in the namespace 
-http://www.opengis.net/wcs/2.0, according to the schema definition
-in http://www.opengis.net/wcs/2.0/wcsSoapCoverage.xsd.
+  **Requirement 6**                                                                                                                         
+  In a GetCoverage response, the SOAP Body **shall** contain one element,
+  "Coverage" of type "SoapCoverageType", defined in the namespace 
+  http://www.opengis.net/wcs/2.0, according to the schema definition
+  in http://www.opengis.net/wcs/2.0/wcsSoapCoverage.xsd.
+
+Schema Location
+^^^^^^^^^^^^^^^
+For discussion purposes of this RFC, the schema is available under
+*sandbox/sandbox_wcs_soap_proxy/schemas/wcs/2.0/wcsSoapCoverage.xsd*
+For convenience, *wcsCommon.xsd* in the same directory includes
+*wcsSoapCoverage.xsd*.
 
 
 References
