@@ -31,7 +31,7 @@
             <documentation>XML encoded WCS operation request base, for all operations except GetCapabilities. In this XML encoding, no "request" parameter is included, since the element name specifies the specific operation. 'Extension' elements allow WCS extension standards to define their individual extra request parameters. </documentation>
         </annotation>
         <sequence>
-            <any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+            <element name="requestParameters" type="wcs:requestParametersType" minOccurs="0"/>
         </sequence>
         <attribute name="service" type="string" use="required" fixed="WCS">
             <annotation>
@@ -43,6 +43,11 @@
                 <documentation>Specification version for WCS version and operation. See Version parameter Subclause 7.3.1 of OWS Common for more information. </documentation>
             </annotation>
         </attribute>
+    </complexType>
+    <complexType name="requestParametersType">
+        <sequence>
+            <any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+        </sequence>
     </complexType>
     <simpleType name="VersionStringType">
         <restriction base="string">
