@@ -38,7 +38,8 @@ from eoxserver.resources.coverages.models import (
 
 from eoxserver.resources.coverages.synchronize import (
     RectifiedDatasetSeriesSynchronizer,
-    RectifiedStitchedMosaicSynchronizer
+    RectifiedStitchedMosaicSynchronizer,
+    SynchronizationErrors
 )
 
 import os.path
@@ -179,7 +180,26 @@ class RectifiedStitchedMosaicAdmin(admin.ModelAdmin):
         # is not yet saved and thus not available. We need the data dirs
         # however for synchronization.
         
-        if formset.model == RectifiedDatasetRecord:
+        super(RectifiedStitchedMosaicAdmin, self).save_formset(request, form, formset, change)
+        
+        synchronizer = RectifiedStitchedMosaicSynchronizer(self.mosaic)
+        try:
+            if change:
+                synchronizer.update()
+            else:
+                synchronizer.create()
+        except SynchronizationErrors, errors:
+            for error in errors:
+                messages.error(request, error)
+            raise
+        except Exception, e:
+            messages.error(request, "An unexpected error (%s) occurred during synchronization."%e.__class__.__name__)
+            raise
+        
+        for info in synchronizer.infos:
+            messages.info(request, info)
+        
+        """if formset.model == RectifiedDatasetRecord:
             changed_datasets = formset.save(commit=False)
             
             synchronizer = RectifiedStitchedMosaicSynchronizer(self.mosaic)
@@ -200,7 +220,7 @@ class RectifiedStitchedMosaicAdmin(admin.ModelAdmin):
                 if not dataset.automatic:
                     dataset.save()
         else:
-            super(RectifiedStitchedMosaicAdmin, self).save_formset(request, form, formset, change)
+            super(RectifiedStitchedMosaicAdmin, self).save_formset(request, form, formset, change)"""
         
     def add_view(self, request, form_url="", extra_context=None):
         try:
@@ -246,7 +266,7 @@ class RectifiedDatasetSeriesAdmin(admin.ModelAdmin):
     ordering = ('eo_id', )
     search_fields = ('eo_id', )
     inlines = (DataDirInline, )
-    filter_horizontal = ('rect_stitched_mosaics', 'rect_datasets', )
+    filter_vertical = ('rect_stitched_mosaics', 'rect_datasets', )
     
 
     # We need to override the bulk delete function of the admin to make
@@ -310,56 +330,55 @@ class RectifiedDatasetSeriesAdmin(admin.ModelAdmin):
         # is not yet saved and thus not available. We need the data dirs
         # however for synchronization.
         
-        if formset.model == RectifiedDatasetRecord:
-            changed_datasets = formset.save(commit=False)
-            
-            synchronizer = RectifiedDatasetSeriesSynchronizer(self.dataset_series)
-            
-            try:
-                if change:
-                    synchronizer.update()
-                else:
-                    synchronizer.create()
-            except:
-                logging.error("Error when synchronizing.")
-                #transaction.rollback()
-                messages.error(request, "Error when synchronizing with file system.")
-                #return
-                raise
-            
-            for dataset in changed_datasets:
-                if not dataset.automatic:
-                    dataset.save()
-        else:
-            super(RectifiedDatasetSeriesAdmin, self).save_formset(request, form, formset, change)
+        #if formset.model == DataDirRecord:
+        
+        super(RectifiedDatasetSeriesAdmin, self).save_formset(request, form, formset, change)
+        
+        synchronizer = RectifiedDatasetSeriesSynchronizer(self.dataset_series)
+        try:
+            if change:
+                synchronizer.update()
+            else:
+                synchronizer.create()
+        except SynchronizationErrors, errors:
+            for error in errors:
+                messages.error(request, error)
+            raise
+        except:
+            messages.error(request, "An unexpected error occurred during synchronization")
+            raise
+        
+        for info in synchronizer.infos:
+            messages.info(request, info)
         
     def add_view(self, request, form_url="", extra_context=None):
         try:
             return super(RectifiedDatasetSeriesAdmin, self).add_view(request, form_url, extra_context)
         except:
+            raise
             messages.error(request, "Could not create DatasetSeries")
-            return HttpResponseRedirect("..")
+            return HttpResponseRedirect(".")
     
     def change_view(self, request, object_id, extra_context=None):
         try:
             return super(RectifiedDatasetSeriesAdmin, self).change_view(request, object_id, extra_context)
         except:
             messages.error(request, "Could not change DatasetSeries")
-            return HttpResponseRedirect("..")
+            return HttpResponseRedirect(".")
     
     def changelist_view(self, request, extra_context=None):
         try:
             return super(RectifiedDatasetSeriesAdmin, self).changelist_view(request, extra_context)
         except:
             messages.error(request, "Could not change DatasetSeries")
-            return HttpResponseRedirect("..")
+            return HttpResponseRedirect(".")
     
     def delete_view(self, request, object_id, extra_context=None):
         try:
             return super(RectifiedDatasetSeriesAdmin, self).delete_view(request, object_id, extra_context)
         except:
             messages.error(request, "Could not delete DatasetSeries")
-            return HttpResponseRedirect("..")
+            return HttpResponseRedirect(".")
 
 admin.site.register(RectifiedDatasetSeriesRecord, RectifiedDatasetSeriesAdmin)
 
