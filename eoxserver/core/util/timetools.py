@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------
-# $Id: xmltools.py 115 2011-05-09 14:50:10Z krauses $
+# $Id$
 #
 # This software is named EOxServer, a server for Earth Observation data.
 #

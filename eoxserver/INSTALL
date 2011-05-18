@@ -23,11 +23,15 @@
 
 ------------------------------------------------------------------------
 
-###############################################
-# Quick installation guide for the unpatient: #
-###############################################
+##############################################
+# Quick installation guide for the unpatient #
+##############################################
 
-Copy directory "eoxserver" to destiniation.
++--------------------------------------------+
+| Running from the command-line
++--------------------------------------------+
+
+Copy directory "eoxserver" to destination.
 Change to "eoxserver" directory.
 Copy or move "TEMPLATE_settings.py" to "settings.py" and adjust settings.
 Optional: Add link "initial_data.json" to "eoxserver/server/fixtures/" pointing to either "template_initial_data.json" or "../../../autotest/data/meris/meris_data.json" in order to add test data.
@@ -35,7 +39,30 @@ Run: "python manage.py syncdb"
 Run: "python manage.py runserver"
 Point your browser to "http://localhost:8000/ows?" (e.g. "http://localhost:8000/ows?service=wcs&version=2.0.0&request=GetCapabilities") or "http://localhost:8000/admin/".
 
-###############################################
-# Installation guide:                         #
-###############################################
++--------------------------------------------+
+| Running via WSGI interface
++--------------------------------------------+
+
+Copy directory "eoxserver" to destination.
+Change to "eoxserver" directory.
+Copy or move "TEMPLATE_settings.py" to "settings.py" and adjust settings.
+Optional: Add link "initial_data.json" to "eoxserver/server/fixtures/" pointing to either "template_initial_data.json" or "../../../autotest/data/meris/meris_data.json" in order to add test data.
+Run: "python manage.py syncdb"
+Adjust "deployment/wsgi.py" to your environment.
+Add the following to your Apache web server configuration (e.g. /etc/apache2/sites-enabled/eoxserver):
+-----------------------------------------------------------------
+Alias /eoxserver <path_to_eoxserver>/eoxserver/deployment/wsgi.py
+<Directory "<path_to_eoxserver>/eoxserver/deployment">
+    AllowOverride None
+    Options +ExecCGI -MultiViews
+    AddHandler wsgi-script .py
+</Directory>
+-----------------------------------------------------------------
+Restart Apache web server and point your browser to "http://<url-to-your-server/eoxserver/ows?" (e.g. "http://<url-to-your-server/eoxserver/ows?service=wcs&version=2.0.0&request=GetCapabilities") or "http://<url-to-your-server/eoxserver/admin/".
+
+
+##############################################
+# Installation guide                         #
+##############################################
 A comprehensive installation guide will be provided separately.
+
