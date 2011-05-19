@@ -92,11 +92,14 @@ class System(object):
                 try:
                     config, registry = cls.__load(reset=True)
                     cls.__state_cond.acquire()
-                    cls.__state = cls.CONFIGURED
                     cls.__config = config
                     cls.__registry = registry
-                    cls.__thread_env.config = config
-                    cls.__thread_env.registry = registry
+                    if cls.__thread_env is None:
+                        cls.__thread_env = Environment(config, registry)
+                    else:
+                        cls.__thread_env.config = config
+                        cls.__thread_env.registry = registry
+                    cls.__state = cls.CONFIGURED
                 except:
                     cls.__state_cond.acquire()
                     cls.__state = cls.ERROR
@@ -122,10 +125,10 @@ class System(object):
                 try:
                     config, registry = cls.__load()
                     cls.__state_cond.acquire()
-                    cls.__state = cls.CONFIGURED
                     cls.__config = config
                     cls.__registry = registry
                     cls.__thread_env = Environment(cls.__config, cls.__registry)
+                    cls.__state = cls.CONFIGURED
                 except:
                     cls.__state_cond.acquire()
                     cls.__state = cls.ERROR
@@ -143,11 +146,14 @@ class System(object):
                 try:
                     config, registry = cls.__load(reset=True)
                     cls.__state_cond.acquire()
-                    cls.__state = cls.CONFIGURED
                     cls.__config = config
                     cls.__registry = registry
-                    cls.__thread_env.config = config
-                    cls.__thread_env.registry = registry
+                    if cls.__thread_env is None:
+                        cls.__thread_env = Environment(config, registry)
+                    else:
+                        cls.__thread_env.config = config
+                        cls.__thread_env.registry = registry
+                    cls.__state = cls.CONFIGURED
                 except:
                     cls.__state_cond.acquire()
                     cls.__state = prev_state
