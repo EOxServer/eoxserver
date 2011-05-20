@@ -62,9 +62,9 @@ as follows:
 
 Schema Location
 ^^^^^^^^^^^^^^^
-For discussion purposes of this RFC, the schema is available under
-*sandbox/sandbox_wcs_soap_proxy/schemas/wcs/2.0/wcsSoapCoverage.xsd*
-For convenience, *wcsCommon.xsd* in the same directory includes
+For discussion purposes of this RFC, the schema *wcsSoapCoverage.xsd* is available
+in the sandbox [3].
+For convenience, *wcsCommon.xsd* in the same directory has been modified to include
 *wcsSoapCoverage.xsd*.
 
 
@@ -73,7 +73,7 @@ References
 
 :[1]: http://www.w3.org/TR/soap12-part0/
 :[2]: http://www.w3.org/TR/soap12-mtom/
-
+:[3]: sandbox/sandbox_wcs_soap_proxy/schemas/wcs/2.0/wcsSoapCoverage.xsd
 
 Voting History
 --------------
