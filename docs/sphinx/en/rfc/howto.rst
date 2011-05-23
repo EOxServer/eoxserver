@@ -10,7 +10,7 @@ Guidelines for Requests for Comments
 
 :Author: Stephan Krause
 :Date: 2011-02-19
-:Last Edit: 2011-03-02
+:Last Edit: $Date$
 :Discussion: http://www.eoxserver.org/wiki/DiscussionRfcTemplate
 
 This document contains instructions for writing RFCs as well as a
@@ -57,7 +57,7 @@ like in the following example:
 
   :Author: John Doe
   :Created: 2011-02-18
-  :Last Edit: 2011-02-19
+  :Last Edit: $Date$
   :Status: PENDING
   :Discussion: http://www.eoxserver.org/wiki/DiscussionRfcTemplate
   
@@ -138,7 +138,7 @@ items in brackets <> by the appropriate text::
 
   :Author: <author name>
   :Created: <date when RFC was created: YYYY-MM-DD>
-  :Last Edit: <date of last edit: YYYY-MM-DD>
+  :Last Edit: <date of last edit: YYYY-MM-DD, please use subversion keyword "Date">
   :Status: <one of: IN PREPARATION, PENDING, WITHDRWAWN, VOTING ACTIVE,
             ACCEPTED, REJECTED, POSTPONED, OBSOLETE>
   :Discussion: <external link to discussion page on EOxServer Trac>
