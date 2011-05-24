@@ -95,6 +95,8 @@ class XMLEncoder(object):
             
         return element
 
+# safe split 
+
 class XPath(object):
     def __init__(self, init_data):
         if isinstance(init_data, list):
@@ -106,14 +108,29 @@ class XPath(object):
 
     @classmethod
     def XPathExprToList(cls, xpath_expr):
-        if xpath_expr.startswith("/"):
-            xpath = ["/"]
-        else:
-            xpath = []
         
-        if xpath_expr.lstrip("/"):
-            xpath.extend(xpath_expr.lstrip("/").split("/"))
-        
+        d , e0 , e1 = "/" , "{" , "}"
+
+        tmp   = xpath_expr
+        xpath = []
+
+        if tmp[0] == d :    # leading slash 
+            xpath.append(d)
+            tmp = tmp[1:]
+
+        while tmp :         # splitting path but preserving namespaces 
+            head0 = ""
+            if tmp[0] == e0 :
+                idx = tmp.find(e1)
+                if ( idx > 0 ) :
+                    head0 = tmp[:(idx+1)]
+                    tmp   = tmp[(idx+1):]
+                else :
+                    head0 = tmp
+                    tmp   = ""
+            head1 , sep , tmp = tmp.partition(d)
+            xpath.append( head0 + head1 )
+
         return xpath
 
     @classmethod
@@ -155,7 +172,7 @@ class XPath(object):
             return other
 
     def _getNodesXPath(self, element, xpath):
-        logging.debug("Element: %s:%s XPath: %s" % (element.prefix, element.localName, str(xpath)))
+        logging.debug("Element: {%s}%s XPath: %s" % (element.namespaceURI, element.localName, str(xpath)))
         
         if len(xpath) == 0:
             return [element]
@@ -194,9 +211,33 @@ class XPath(object):
                     else:
                         return [attr]
             else:
+
+                # split name and namespace 
+                if locator.startswith("{") : 
+                    namespace , lname = locator[1:].split("}")[:2]
+                else : 
+                    namespace , lname = "" , locator 
+               
                 nodes = []
                 
-                child_elements = filter(lambda node: isinstance(node, xml.dom.minidom.Element) and node.tagName == locator, element.childNodes)
+                # filter child elements 
+
+                child_elements = filter(lambda node: isinstance(node, xml.dom.minidom.Element) , element.childNodes )
+
+                if namespace == ""  : # unqualified match 
+                    child_elements = filter(lambda node: node.tagName == lname , child_elements )
+
+                else : # qualified match 
+                    if namespace == "*" and lname == "*" : 
+                        pass 
+                    elif namespace == "*" :
+                        child_elements = filter( lambda node: node.localName == lname , child_elements ) 
+                    elif lname == "*" :
+                        child_elements = filter( lambda node: node.namespaceURI == namespace , child_elements ) 
+                    else : 
+                        child_elements = filter( lambda node: node.localName == lname and node.namespaceURI == namespace , child_elements )
+
+                # process the matched elements 
                 for child_element in child_elements:
                     nodes.extend(self._getNodesXPath(child_element, xpath[1:]))
                 
