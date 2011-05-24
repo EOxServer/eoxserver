@@ -93,7 +93,7 @@ class EOxSWCS20GetCapabilitiesHandler(EOxSWCSCommonHandler):
                 #raise EOxSInvalidRequestException("Unknown coverage subtype '%s'" % cov_subtype, "InvalidParameterValue", "coverageSubtype")
         #else:
         ms_req.coverages = EOxSCoverageInterfaceFactory.getVisibleCoverageInterfaces()
-            
+    
     def getMapServerLayer(self, coverage, **kwargs):
         layer = super(EOxSWCS20GetCapabilitiesHandler, self).getMapServerLayer(coverage, **kwargs)
         
@@ -107,60 +107,79 @@ class EOxSWCS20GetCapabilitiesHandler(EOxSWCSCommonHandler):
         return layer
 
     def postprocess(self, ms_req, resp):
+        logging.debug("sys.path: %s" % str(sys.path))
+        logging.debug("mapscript version: %s" % mapscript.msGetVersion())
+        
         dom = minidom.parseString(resp.content)
         
-        encoder = EOxSWCS20EOAPEncoder()
-
-        svc_identification = dom.getElementsByTagName("ows:ServiceIdentification").item(0)
-        
         # change xsi:schemaLocation
-        
         schema_location_attr = dom.documentElement.getAttributeNode("xsi:schemaLocation")
         schema_location_attr.nodeValue = "http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd"
         
-        # append EO Profile to ServiceIdentification
+        # we are finished if the response is an ows:ExceptionReport
+        # proceed otherwise
+        if dom.documentElement.localName != "ExceptionReport":
         
-        if svc_identification is not None:
-            eo_profile = encoder.encodeEOProfile()
+            encoder = EOxSWCS20EOAPEncoder()
+
+            svc_identification = dom.getElementsByTagName("ows:ServiceIdentification").item(0)
             
-            profiles = svc_identification.getElementsByTagName("ows:Profile")
-            if len(profiles) == 0:
-                svc_identification.appendChild(eo_profile)
-            else:
-                svc_identification.insertBefore(eo_profile, profiles.item(0))
+            
+            # append EO Profile to ServiceIdentification
+            
+            if svc_identification is not None:
+                eo_profile = encoder.encodeEOProfile()
                 
-        # append DescribeEOCoverageSet
-        
-        op_metadata = dom.getElementsByTagName("ows:OperationsMetadata").item(0)
-        
-        if op_metadata is not None:
-            desc_eo_cov_set_op = encoder.encodeDescribeEOCoverageSetOperation(self.config.http_service_url)
-
-            op_metadata.appendChild(desc_eo_cov_set_op)
+                profiles = svc_identification.getElementsByTagName("ows:Profile")
+                if len(profiles) == 0:
+                    svc_identification.appendChild(eo_profile)
+                else:
+                    svc_identification.insertBefore(eo_profile, profiles.item(0))
+                    
+            # append DescribeEOCoverageSet
             
-            op_metadata.appendChild(encoder.encodeCountDefaultConstraint(100)) # TODO remove hardcoded number and make it configurable
-
-
-        # rewrite wcs:Contents
-        # append wcseo:EOCoverageSubtype to wcs:CoverageSummary
-        
-        contents_old = dom.getElementsByTagName("wcs:Contents").item(0) 
-
-        if contents_old is not None:
-            contents_new = encoder.encodeContents()
+            op_metadata = dom.getElementsByTagName("ows:OperationsMetadata").item(0)
             
-            for coverage in EOxSCoverageInterfaceFactory.getVisibleCoverageInterfaces():
-                cov_summary = encoder.encodeCoverageSummary(coverage)
-                contents_new.appendChild(cov_summary)
+            if op_metadata is not None:
+                desc_eo_cov_set_op = encoder.encodeDescribeEOCoverageSetOperation(self.config.http_service_url)
 
-            # append dataset series summaries
-            for dataset_series in EOxSDatasetSeriesFactory.getAllDatasetSeriesInterfaces():
-                dss_summary = encoder.encodeDatasetSeriesSummary(dataset_series)
-                contents_new.appendChild(dss_summary)
+                op_metadata.appendChild(desc_eo_cov_set_op)
+                
+                op_metadata.appendChild(encoder.encodeCountDefaultConstraint(100)) # TODO remove hardcoded number and make it configurable
 
-            contents_old.parentNode.replaceChild(contents_new, contents_old)
-#        else:
-#            raise EOxSInternalError("Internal error.")
+
+            # rewrite wcs:Contents
+            # append wcseo:EOCoverageSubtype to wcs:CoverageSummary
+            
+            sections = ms_req.getParamValue("sections")
+            
+            if sections is None or len(sections) == 0 or "Contents" in sections or\
+               "CoverageSummary" in sections or\
+               "DatasetSeriesSummary" in sections:
+                
+                contents_new = encoder.encodeContents()
+                
+                if sections is None or len(sections) == 0 or "Contents" in sections or\
+                   "CoverageSummary" in sections:
+                    
+                    for coverage in EOxSCoverageInterfaceFactory.getVisibleCoverageInterfaces():
+                        cov_summary = encoder.encodeCoverageSummary(coverage)
+                        contents_new.appendChild(cov_summary)
+
+                # append dataset series summaries
+                if sections is None or len(sections) == 0 or "Contents" in sections or\
+                   "DatasetSeriesSummary" in sections:
+                    
+                    for dataset_series in EOxSDatasetSeriesFactory.getAllDatasetSeriesInterfaces():
+                        dss_summary = encoder.encodeDatasetSeriesSummary(dataset_series)
+                        contents_new.appendChild(dss_summary)
+
+                contents_old = dom.getElementsByTagName("wcs:Contents").item(0) 
+
+                if contents_old is None:
+                    dom.documentElement.appendChild(contents_new)
+                else:
+                    contents_old.parentNode.replaceChild(contents_new, contents_old)
         
         # rewrite XML and replace it in the response
         resp.content = DOMtoXML(dom)
