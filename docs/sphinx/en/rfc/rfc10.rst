@@ -1,7 +1,7 @@
 .. _rfc_10:
 
-RFC 10: SOAP Binding of WCS GetCoverage Response
-================================================
+RFC 10: SOAP Proxy
+==================
 
 :Author:     Milan Novacek
 :Created:    2011-05-18
