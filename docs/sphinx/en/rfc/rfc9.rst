@@ -5,8 +5,8 @@ RFC 9: SOAP Binding of WCS GetCoverage Response
 
 :Author:     Milan Novacek
 :Created:    2011-05-17
-:Last Edit:  2011-05-18
-:Status:     PENDING
+:Last Edit:  2011-05-25
+:Status:     VOTING ACTIVE
 :Discussion: http://www.eoxserver.org/wiki/DiscussionRfc9
 
 Introduction
