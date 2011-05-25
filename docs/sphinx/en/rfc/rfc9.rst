@@ -54,7 +54,7 @@ as follows:
   standard [http://www.w3.org/TR/soap12-part1/] using MTOM
   [http://www.w3.org/TR/soap12-mtom/].
 
-  **Requirement 6**                                                                                                                         
+  **Requirement 6:**                                                                                                                         
   In a GetCoverage response, the SOAP Body **shall** contain one element,
   "Coverage" of type "SoapCoverageType", defined in the namespace 
   http://www.opengis.net/wcs/2.0, according to the schema definition
@@ -62,7 +62,7 @@ as follows:
 
 Schema Location
 ^^^^^^^^^^^^^^^
-For discussion purposes of this RFC, the schema *wcsSoapCoverage.xsd* is available
+For discussion purposes of this RFC, the proposed schema *wcsSoapCoverage.xsd* is available
 in the sandbox [3].
 For convenience, *wcsCommon.xsd* in the same directory has been modified to include
 *wcsSoapCoverage.xsd*.
