@@ -412,6 +412,9 @@ class RectifiedStitchedMosaicSynchronizer(RectifiedCompositeObjectSynchronizer):
         try:
             self._createDir(data_dir)
             
+            if not len(self.wcseo_object.rect_datasets.all()):
+                raise SynchronizationErrors("The RectifiedStitchedMosaic must contain RectifiedDatasets")
+            
             self.stitcher.generate()
         except Exception, e:
             self._logError(e)
@@ -420,6 +423,9 @@ class RectifiedStitchedMosaicSynchronizer(RectifiedCompositeObjectSynchronizer):
     def create(self):
         try:
             self._create()
+            
+            if not len(self.wcseo_object.rect_datasets.all()):
+                raise SynchronizationErrors("The RectifiedStitchedMosaic must contain RectifiedDatasets")
             
             self.stitcher.generate()
         except Exception, e:
@@ -430,6 +436,9 @@ class RectifiedStitchedMosaicSynchronizer(RectifiedCompositeObjectSynchronizer):
         try:
             self._updateDir(data_dir)
             
+            if not len(self.wcseo_object.rect_datasets.all()):
+                raise SynchronizationErrors("The RectifiedStitchedMosaic must contain RectifiedDatasets")
+            
             self.stitcher.generate()
         except Exception, e:
             self._logError(e)
@@ -439,6 +448,9 @@ class RectifiedStitchedMosaicSynchronizer(RectifiedCompositeObjectSynchronizer):
         try:
             self._update()
             
+            if not len(self.wcseo_object.rect_datasets.all()):
+                raise SynchronizationErrors("The RectifiedStitchedMosaic must contain RectifiedDatasets")
+            
             self.stitcher.generate()
         except Exception, e:
             self._logError(e)
@@ -447,6 +459,9 @@ class RectifiedStitchedMosaicSynchronizer(RectifiedCompositeObjectSynchronizer):
     def deleteDir(self, data_dir):
         try:
             self._deleteNotCompliant()
+            
+            if not len(self.wcseo_object.rect_datasets.all()):
+                raise SynchronizationErrors("The RectifiedStitchedMosaic must contain RectifiedDatasets")
 
             self.stitcher.generate()
         except Exception, e:
