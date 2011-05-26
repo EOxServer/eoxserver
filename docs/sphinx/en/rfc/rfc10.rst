@@ -5,7 +5,7 @@ RFC 10: SOAP Proxy
 
 :Author:     Milan Novacek
 :Created:    2011-05-18
-:Last Edit:  2011-05-25
+:Last Edit:  2011-05-27
 :Status:     VOTING ACTIVE
 :Discussion: http://www.eoxserver.org/wiki/DiscussionRfc10
 
