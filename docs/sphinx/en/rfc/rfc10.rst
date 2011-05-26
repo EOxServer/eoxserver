@@ -33,7 +33,7 @@ of this standard (which is OGC 09-149r1).
 Initially it is planned that *soap_proxy* supports WCS 2.0.  WCS 1.1 is
 a low priority.
 The possibility should be investigated to generalize *soap_proxy* to 
-enable support of other protocols such as WPS .
+enable support of other protocols such as WPS.
 
 *Soap_proxy* is implemented as a Web Service using the Axis2/C 
 framework [AXIS], plugged into a standard Apache HTTP server via its 
