@@ -19,3 +19,4 @@ formats for instance.
    processes
    data_formats
    metadata_formats
+   modules
