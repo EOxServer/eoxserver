@@ -64,6 +64,9 @@ class UnknownCRSException(EOxSException):
 
 class KVPException(EOxSException):
     pass
+    
+class MissingParameterException(EOxSException):
+    pass
 
 class XMLException(EOxSException):
     pass
