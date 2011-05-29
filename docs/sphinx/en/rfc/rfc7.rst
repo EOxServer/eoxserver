@@ -9,10 +9,10 @@ RFC 7: Release Guidelines
 
 :Author: Stephan Meißl
 :Created: 2011-05-04
-:Last Edit: 2011-05-04
+:Last Edit: $Date$
 :Status: PENDING
 :Discussion: http://www.eoxserver.org/wiki/DiscussionRfc7
-
+:Id: $Id$
 
 Overview
 --------
