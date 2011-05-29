@@ -168,7 +168,7 @@ class WCS20GetCapabilitiesHandler(WCSCommonHandler):
             
             if op_metadata is not None:
                 desc_eo_cov_set_op = encoder.encodeDescribeEOCoverageSetOperation(
-                    System.getRegistry().bind("services.owscommon.OWSCommonConfigReader").getHTTPServiceURL()
+                    OWSCommonConfigReader().getHTTPServiceURL()
                 )
 
                 op_metadata.appendChild(desc_eo_cov_set_op)
