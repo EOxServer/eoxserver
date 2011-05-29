@@ -27,7 +27,7 @@ import os
 import sys
 from django.core.handlers.wsgi import WSGIHandler
 
-path = "/data/ows/map/src/eoxserver/"
+path = "<PATH-TO-EOxServer-CODE>"
 if path not in sys.path:
     sys.path.append(path)
 
