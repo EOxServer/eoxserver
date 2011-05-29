@@ -28,10 +28,10 @@
 
 from os.path import join
 
-PROJECT_DIR = 'autotest'
+PROJECT_DIR = '<PATH-TO-EOxServer-INSTANCE>'
 PROJECT_URL_PREFIX = ''
 
-MAPSCRIPT_PATH = 'mapserver/mapscript/python/build'
+MAPSCRIPT_PATH = '<PATH-TO-MapServer-BUILD>/mapscript/python/build'
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -92,7 +92,7 @@ MEDIA_URL = ''
 ADMIN_MEDIA_PREFIX = '/media/'
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = 'c$i5sp)5%nk1*)j585eajbp6(p-dws9xxp8zk6abb2wwj)0tpn'
+SECRET_KEY = '<SECRET_KEY>'
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
@@ -104,7 +104,7 @@ TEMPLATE_LOADERS = (
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+# Commented because of POST requests:    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
 )
@@ -127,7 +127,7 @@ INSTALLED_APPS = (
     'django.contrib.gis',
     # Enable the admin:
     'django.contrib.admin',
-    'django.contrib.databrowse',
+#    'django.contrib.databrowse',
     'django_extensions',
     'eoxserver.core',
     'eoxserver.services',
