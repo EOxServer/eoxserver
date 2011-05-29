@@ -56,7 +56,13 @@
       <ows:DCP>
         <ows:HTTP>
           <ows:Get xlink:href="http://localhost:8000/ows?" xlink:type="simple"/>
-          <ows:Post xlink:href="http://localhost:8000/ows?" xlink:type="simple"/>
+          <ows:Post xlink:href="http://localhost:8000/ows?" xlink:type="simple">
+            <ows:Constraint name="PostEncoding">
+              <ows:AllowedValues>
+                <ows:Value>XML</ows:Value>
+              </ows:AllowedValues>
+            </ows:Constraint>
+          </ows:Post>
         </ows:HTTP>
       </ows:DCP>
     </ows:Operation>
@@ -64,7 +70,13 @@
       <ows:DCP>
         <ows:HTTP>
           <ows:Get xlink:href="http://localhost:8000/ows?" xlink:type="simple"/>
-          <ows:Post xlink:href="http://localhost:8000/ows?" xlink:type="simple"/>
+          <ows:Post xlink:href="http://localhost:8000/ows?" xlink:type="simple">
+            <ows:Constraint name="PostEncoding">
+              <ows:AllowedValues>
+                <ows:Value>XML</ows:Value>
+              </ows:AllowedValues>
+            </ows:Constraint>
+          </ows:Post>
         </ows:HTTP>
       </ows:DCP>
     </ows:Operation>
@@ -72,7 +84,13 @@
       <ows:DCP>
         <ows:HTTP>
           <ows:Get xlink:href="http://localhost:8000/ows?" xlink:type="simple"/>
-          <ows:Post xlink:href="http://localhost:8000/ows?" xlink:type="simple"/>
+          <ows:Post xlink:href="http://localhost:8000/ows?" xlink:type="simple">
+            <ows:Constraint name="PostEncoding">
+              <ows:AllowedValues>
+                <ows:Value>XML</ows:Value>
+              </ows:AllowedValues>
+            </ows:Constraint>
+          </ows:Post>
         </ows:HTTP>
       </ows:DCP>
     </ows:Operation>
