@@ -23,47 +23,51 @@
 #
 #-----------------------------------------------------------------------
 
-import os
-import os.path
-import xml.dom.minidom
+"""
+This module contains the parameter decoder implementation for
+key-value-pair encoded URL parameters. See also
+:ref:`module_core_util_decoders` for general information on parameter
+decoders.
+"""
+
 import re
-from fnmatch import fnmatch
-from datetime import datetime, tzinfo, timedelta
 from cgi import escape, parse_qs
-from sys import maxint
+import logging
 
 from django.http import QueryDict
 
-from eoxserver.core.exceptions import (InternalError, KVPException,
-    XMLException, XMLNodeNotFound, XMLContentTypeError,
-    UnknownParameterFormatException, XMLEncodingException,
-    XMLNodeOccurenceError
+from eoxserver.core.exceptions import (
+    InternalError, KVPDecoderException, KVPKeyNotFound,
+    KVPKeyOccurrenceError, KVPTypeError
 )
+from eoxserver.core.util.decoders import Decoder, DecoderInterface
 
-import logging
-
-class KVPDecoder(object):
-    def __init__(self, kvp, schema=None):
-        super(KVPDecoder, self).__init__()
-        
-        self.kvp = kvp
-        self.schema = schema
-        
-        self.param_dict = self._getParamDict()
-        
-    def _getParamDict(self):
-        if isinstance(self.kvp, QueryDict):
+class KVPDecoder(Decoder):
+    """
+    This class provides a parameter decoder for key-value-pair
+    parameters.
+    
+    See docs/sphinx/en/developers/core/util/kvptools.rst for
+    comprehensive documentation.
+    """
+    def _setParamsDefault(self):
+        self.kvp = None
+        self.param_dict = None
+    
+    def setParams(self, params):
+        if isinstance(params, QueryDict):
             param_dict = {}
-            for key, values in self.kvp.lists():
+            for key, values in params.lists():
                 param_dict[key.lower()] = values
         
         else:
-            tmp = parse_qs(self.kvp)
+            tmp = parse_qs(params)
             param_dict = {}
             for key, values in tmp.items():
                 param_dict[key.lower()] = values
         
-        return param_dict
+        self.kvp = params
+        self.param_dict = param_dict
     
     def setSchema(self, schema):
         self.schema = schema
@@ -72,66 +76,85 @@ class KVPDecoder(object):
         if key.lower() in self.param_dict:
             return self.param_dict[key.lower()][-1]
         else:
-            return None
+            raise KVPKeyNotFound("Could not find KVP key '%s'." % key)
     
     def _getValueSchema(self, key):
         if key in self.schema:
             if "kvp_key" in self.schema[key]:
                 kvp_key = self.schema[key]["kvp_key"]
             else:
-                kvp_key = key
+                raise InternalError("Parameter schema does not contain a 'kvp_key' entry for '%s'" % key)
             
             if "kvp_type" in self.schema[key]:
-                kvp_type = self.schema[key]["kvp_type"]
+                type_expr = self.schema[key]["kvp_type"]
             else:
-                kvp_type = "string"
-            
-            if kvp_key.lower() in self.param_dict:
-                values = self.param_dict[kvp_key.lower()]
+                raise InternalError("Parameter schema does not contain a 'kvp_type' entry for '%s'" % key)
+        else:
+            raise InternalError("Parameter schema has no entry for key '%s'" % key)
                 
-                if kvp_type.endswith("[]"):
-                    if kvp_type == "string[]":
-                        return values
-                    elif kvp_type == "int[]":
-                        return [int(value) for value in values]
-                    elif kvp_type == "float[]":
-                        return [float(value) for value in values]
-                    else:
-                        raise InternalError("Unknown KVP Item Type '%s'." % kvp_type)
+        type_name, min_occ, max_occ = self._parseTypeExpression(type_expr)
+            
+        if kvp_key.lower() in self.param_dict:
+            values = self.param_dict[kvp_key.lower()]
+        else:
+            if min_occ > 0:
+                raise KVPKeyNotFound("Parameter with key '%s' not found." % kvp_key)
+            else:
+                if max_occ <= 1:
+                    return None
                 else:
-                    if len(values) > 1:
-                        raise KVPException("Ambiguous result for KVP key '%s'. Single occurence expected." % kvp_key)
-                    else:
-                        raw_value = values[0]
-                    
-                        if kvp_type == "string":
-                            return raw_value
-                        elif kvp_type == "stringlist":
-                            return raw_value.split(",")
-                        elif kvp_type == "int":
-                            return int(raw_value)
-                        elif kvp_type == "intlist":
-                            return [int(i) for i in raw_value.split(",")]
-                        elif kvp_type == "float":
-                            return float(raw_value)
-                        elif kvp_type == "floatlist":
-                            return [float(f) for f in raw_value.split(",")]
-                        else:
-                            raise InternalError("Unknown KVP item type '%s'" % kvp_type)
+                    return []
+        
+        if len(values) < min_occ:
+            raise KVPKeyOccurrenceError("Parameter '%s' expected at least %d times. Found %d occurrences." % (
+                kvp_key, min_occ, len(values)
+            ))
+        elif len(values) > max_occ:
+            raise KVPKeyOccurrenceError("Parameter '%s' expected at most %d times. Found %d occurrences." % (
+                kvp_key, max_occ, len(values)
+            ))
+        
+        if max_occ > 1:
+            return [self._cast(value, type_name) for value in values]
+        else:
+            if len(values) == 1:
+                return self._cast(values[0], type_name)
             else:
                 return None
             
+
+    def _cast(self, raw_value, type_name):        
+        if type_name == "string":
+            return raw_value
+        elif type_name == "stringlist":
+            return raw_value.split(",")
+        elif type_name == "int":
+            try:
+                return int(raw_value)
+            except:
+                raise KVPTypeError("Could not convert '%s' to integer." % raw_value)
+        elif type_name == "intlist":
+            try:
+                return [int(i) for i in raw_value.split(",")]
+            except:
+                raise KVPTypeError("Could not convert '%s' to integer list." % raw_value)
+        elif type_name == "float":
+            try:
+                return float(raw_value)
+            except:
+                raise KVPTypeError("Could not convert '%s' to float." % raw_value)
+        elif type_name == "floatlist":
+            try:
+                return [float(f) for f in raw_value.split(",")]
+            except:
+                raise KVPTypeError("Could not convert '%s' to float list." % raw_value)
         else:
-            return None
-        
-    def getValue(self, key):
-        if self.schema is None:
-            return self._getValueDefault(key)
-        else:
-            return self._getValueSchema(key)
+            raise InternalError("Unknown KVP item type '%s'" % type_name)
     
     def getParams(self):
         return self.param_dict
     
     def getParamType(self):
         return "kvp"
+
+KVPDecoder = DecoderInterface.implement(KVPDecoder)

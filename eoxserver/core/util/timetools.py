@@ -24,21 +24,10 @@
 #-----------------------------------------------------------------------
 
 import os
-import os.path
-import xml.dom.minidom
 import re
-from fnmatch import fnmatch
 from datetime import datetime, tzinfo, timedelta
-from cgi import escape, parse_qs
-from sys import maxint
 
-from django.http import QueryDict
-
-from eoxserver.core.exceptions import (InternalError, KVPException,
-    XMLException, XMLNodeNotFound, XMLContentTypeError,
-    UnknownParameterFormatException, XMLEncodingException,
-    XMLNodeOccurenceError
-)
+from eoxserver.core.exceptions import UnknownParameterFormatException
 
 import logging
 
