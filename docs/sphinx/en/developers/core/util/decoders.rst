@@ -1,5 +1,7 @@
 .. Module eoxserver.core.util.decoders
 
+.. _module_core_util_decoders:
+
 Module eoxserver.core.util.decoders
 ===================================
 
