@@ -56,29 +56,42 @@ class IpcException(EOxSException):
 class UnknownParameterFormatException(EOxSException):
     pass
 
+class MissingParameterException(EOxSException):
+    pass
+
 class InvalidParameterException(EOxSException):
     pass
 
 class UnknownCRSException(EOxSException):
     pass
 
-class KVPException(EOxSException):
+class DecoderException(EOxSException):
+    pass
+
+class KVPDecoderException(DecoderException):
+    pass
+
+class KVPKeyNotFound(KVPDecoderException, MissingParameterException):
+    pass
+
+class KVPKeyOccurrenceError(KVPDecoderException, InvalidParameterException):
+    pass
+
+class KVPTypeError(KVPDecoderException, InvalidParameterException):
+    pass
+
+class XMLDecoderException(DecoderException):
+    pass
+
+class XMLNodeNotFound(XMLDecoderException, MissingParameterException):
+    pass
+
+class XMLNodeOccurrenceError(XMLDecoderException, InvalidParameterException):
     pass
     
-class MissingParameterException(EOxSException):
+class XMLTypeError(XMLDecoderException, InvalidParameterException):
     pass
 
-class XMLException(EOxSException):
+class XMLEncoderException(EOxSException):
     pass
 
-class XMLNodeNotFound(XMLException):
-    pass
-
-class XMLContentTypeError(XMLException):
-    pass
-
-class XMLEncodingException(XMLException):
-    pass
-
-class XMLNodeOccurenceError(XMLException):
-    pass

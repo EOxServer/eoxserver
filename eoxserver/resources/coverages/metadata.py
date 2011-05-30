@@ -25,11 +25,10 @@
 
 from xml.dom import minidom
 
-from eoxserver.resources.coverages.exceptions import MetadataException
-from eoxserver.core.exceptions import XMLException
 from eoxserver.core.util.xmltools import XMLDecoder
 from eoxserver.core.util.timetools import getDateTime
 from eoxserver.core.util.geotools import posListToWkt
+from eoxserver.resources.coverages.exceptions import MetadataException
 
 class MetadataInterface(object):
     

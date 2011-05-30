@@ -35,7 +35,7 @@ from django.conf import settings
 from django.db.models.signals import post_save, post_delete
 from django.contrib.gis.geos import Point, Polygon, GEOSGeometry
 
-from eoxserver.core.exceptions import InternalError, XMLException
+from eoxserver.core.exceptions import InternalError, XMLDecoderException
 from eoxserver.core.util.filetools import findFiles
 from eoxserver.resources.coverages.models import (
     RectifiedDatasetSeriesRecord, RectifiedDatasetRecord,
@@ -106,7 +106,7 @@ class FileInfo(object):
             if self.md_format == "eogml":
                 self.md_xml_text = md_int.getXMLText()
                 
-        except XMLException, e:
+        except XMLDecoderException, e:
             raise SynchronizationErrors("Metadata XML Error: %s" % str(e))
 
         # TODO: provisional begin

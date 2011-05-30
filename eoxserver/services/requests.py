@@ -53,8 +53,11 @@ class OWSRequest(object):
     def setSchema(self, schema):
         self.decoder.setSchema(schema)
     
-    def getParamValue(self, key):
-        return self.decoder.getValue(key)
+    def getParamValue(self, key, default=None):
+        return self.decoder.getValue(key, default)
+    
+    def getParamValueStrict(self, key):
+        return self.decoder.getValueStrict(key)
     
     def getParams(self):
         return self.decoder.getParams()

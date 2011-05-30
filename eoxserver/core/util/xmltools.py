@@ -23,22 +23,15 @@
 #
 #-----------------------------------------------------------------------
 
-import os
-import os.path
 import xml.dom.minidom
 import re
-from fnmatch import fnmatch
-from datetime import datetime, tzinfo, timedelta
-from cgi import escape, parse_qs
 from sys import maxint
 
-from django.http import QueryDict
-
-from eoxserver.core.exceptions import (InternalError, KVPException,
-    XMLException, XMLNodeNotFound, XMLContentTypeError,
-    UnknownParameterFormatException, XMLEncodingException,
-    XMLNodeOccurenceError
+from eoxserver.core.exceptions import (
+    InternalError, XMLDecoderException, XMLNodeNotFound,
+    XMLNodeOccurrenceError, XMLTypeError,  XMLEncoderException
 )
+from eoxserver.core.util.decoders import Decoder, DecoderInterface
 
 import logging
 
@@ -81,7 +74,7 @@ class XMLEncoder(object):
                             if attr_prefix in self.ns_dict:
                                 element.setAttributeNS(self.ns_dict[attr_prefix], "%s:%s" % (attr_prefix, attr_name), str(child_content))
                             else:
-                                raise XMLEncodingException("Encoding error: unknown namespace prefix '%s'" % attr_prefix)
+                                raise XMLEncoderException("Encoding error: unknown namespace prefix '%s'" % attr_prefix)
                         else:
                             element.setAttribute(attr_name, str(child_content))
                     else:
@@ -280,11 +273,11 @@ class XMLNode(object):
         elif len(nodes) == 0:
             raise XMLNodeNotFound("Node '%s' not found." % XPath.reverse(context_element).append(self.xpath).xpath_expr)
         elif len(nodes) < self.min_occ:
-            raise XMLNodeOccurenceError("Expected at least %d results for node '%s'. Found %d matching nodes." % (
+            raise XMLNodeOccurrenceError("Expected at least %d results for node '%s'. Found %d matching nodes." % (
                 self.min_occ, XPath.reverse(context_element).append(self.xpath).xpath_expr, len(nodes)
             ))
         elif len(nodes) > self.max_occ:
-            raise XMLNodeOccurenceError("Expected no more than %d results for node '%s'. Found %d matching nodes." % (
+            raise XMLNodeOccurrenceError("Expected no more than %d results for node '%s'. Found %d matching nodes." % (
                 self.max_occ, XPath.reverse(context_element).append(self.xpath).xpath_expr, len(nodes)
             ))
 
@@ -322,7 +315,7 @@ class XMLIntNode(XMLSimpleNode):
             try:
                 return int(element.firstChild.data)
             except:
-                raise XMLContentTypeError("Element '%s' value not of type int." % element.tagName)
+                raise XMLTypeError("Element '%s' value not of type int." % element.tagName)
         else:
             return self._failNoTextValue(element)
     
@@ -330,7 +323,7 @@ class XMLIntNode(XMLSimpleNode):
         try:
             return int(attr.value)
         except:
-            raise XMLContentTypeError("Attribute '%s' value not of type int." % attr.name)
+            raise XMLTypeError("Attribute '%s' value not of type int." % attr.name)
 
 class XMLFloatNode(XMLSimpleNode):
     def _getValueFromElement(self, element):
@@ -338,7 +331,7 @@ class XMLFloatNode(XMLSimpleNode):
             try:
                 return float(element.firstChild.data)
             except:
-                raise XMLContentTypeError("Element '%s' value not of type float." % element.tagName)
+                raise XMLTypeError("Element '%s' value not of type float." % element.tagName)
         else:
             return self._failNoTextValue(element)
     
@@ -346,7 +339,7 @@ class XMLFloatNode(XMLSimpleNode):
         try:
             return float(attr.value)
         except:
-            raise XMLContentTypeError("Attribute '%s' value not of type float." % attr.name)
+            raise XMLTypeError("Attribute '%s' value not of type float." % attr.name)
             
 class XMLIntListNode(XMLSimpleNode):
     def _getValueFromElement(self, element):
@@ -356,7 +349,7 @@ class XMLIntListNode(XMLSimpleNode):
                 try:
                     value = int(i)
                 except:
-                    raise XMLContentTypeError("Element '%s' value not of type intlist" % element.tagName)
+                    raise XMLTypeError("Element '%s' value not of type intlist" % element.tagName)
                 values.append(value)
             return values
         else:
@@ -369,7 +362,7 @@ class XMLIntListNode(XMLSimpleNode):
             try:
                 value = int(i)
             except:
-                raise XMLContentTypeError("Attribute '%s' value not of type intlist" % attr.name)
+                raise XMLTypeError("Attribute '%s' value not of type intlist" % attr.name)
             
             values.append(value)
         
@@ -383,7 +376,7 @@ class XMLFloatListNode(XMLSimpleNode):
                 try:
                     value = float(f)
                 except:
-                    raise XMLContentTypeError("Element '%s' value not of type floatlist" % element.tagName)
+                    raise XMLTypeError("Element '%s' value not of type floatlist" % element.tagName)
                 values.append(value)
             return values
         else:
@@ -396,7 +389,7 @@ class XMLFloatListNode(XMLSimpleNode):
             try:
                 value = float(f)
             except:
-                raise XMLContentTypeError("Attribute '%s' value not of type floatlist" % attr.name)
+                raise XMLTypeError("Attribute '%s' value not of type floatlist" % attr.name)
             
             values.append(value)
         
@@ -460,18 +453,19 @@ class XMLNodeDict(XMLComplexNode):
         
         return values
 
-class XMLDecoder(object):
-    def __init__(self, input_xml, schema=None):
-        super(XMLDecoder, self).__init__()
+class XMLDecoder(Decoder):
+    def _setParamsDefault(self):
+        self.input_xml = ""
+        self.dom = None
+    
+    def setParams(self, params):
+        self.input_xml = params
         
-        self.input_xml = input_xml
         try:
             self.dom = xml.dom.minidom.parseString(self.input_xml)
         except Exception, e:
-            raise XMLException("Could not parse input XML. Exception was '%s'" % str(e))
+            raise XMLDecoderException("Could not parse input XML. Exception was '%s'" % str(e))
         
-        self.setSchema(schema)
-    
     def setSchema(self, schema):
         self.schema = schema
         
@@ -479,36 +473,6 @@ class XMLDecoder(object):
             self.nodes = self._getNodesFromSchema(schema)
         else:
             self.nodes = {}
-
-    def _parseTypeExpression(self, type_expr):
-        match = re.match(r'([A-Za-z]+)(\[(\d+)?(:(\d+)?)?\])?', type_expr)
-        
-        if match is None:
-            raise InternalError("Invalid XML decoding schema type expression '%s'" % type_expr)
-        
-        type_expr = match.group(1)
-        
-        if match.group(2):
-            if match.group(3) and match.group(5):
-                min_occ = int(match.group(3))
-                max_occ = int(match.group(5))
-            elif match.group(3) and match.group(4):
-                min_occ = int(match.group(3))
-                max_occ = maxint
-            elif match.group(3):
-                min_occ = int(match.group(3))
-                max_occ = min_occ
-            elif match.group(5):
-                min_occ = 0
-                max_occ = int(match.group(5))
-            else:
-                min_occ = 0
-                max_occ = maxint
-        else:
-            min_occ = 1
-            max_occ = 1
-        
-        return (type_expr, min_occ, max_occ)
             
     def _getNodeFromConf(self, key, conf):
         if "xml_location" in conf:
@@ -556,11 +520,17 @@ class XMLDecoder(object):
         return nodes
    
     def _getValueDefault(self, xpath_expr):
+        if self.dom is None:
+            raise InternalError("No input XML given.")
+        
         node = XMLStringNode(xpath_expr, 1, 1)
         
         return node.getValue(self.dom.documentElement)
 
     def _getValueSchema(self, key):
+        if self.dom is None:
+            raise InternalError("No input XML given.")
+        
         if key in self.nodes:
             node = self.nodes[key]
             
@@ -568,17 +538,13 @@ class XMLDecoder(object):
         else:
             raise InternalError("No schema entry for key '%s'." % key)
     
-    def getValue(self, expr):
-        if self.schema is None:
-            return self._getValueDefault(expr)
-        else:
-            return self._getValueSchema(expr)
-    
     def getParams(self):
         return self.input_xml
     
     def getParamType(self):
         return "xml"
+        
+XMLDecoder = DecoderInterface.implement(XMLDecoder)
 
 def _getChildNamespaces(node):
     nsmap = {}
