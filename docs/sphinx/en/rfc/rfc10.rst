@@ -5,8 +5,8 @@ RFC 10: SOAP Proxy
 
 :Author:     Milan Novacek
 :Created:    2011-05-18
-:Last Edit:  2011-05-27
-:Status:     VOTING ACTIVE
+:Last Edit:  2011-05-30
+:Status:     ACCEPTED
 :Discussion: http://www.eoxserver.org/wiki/DiscussionRfc10
 
 Introduction
@@ -86,7 +86,7 @@ References
 Voting History
 --------------
 
-"N/A"
+:Motion: Adopted on 2011-05-30 with +1 Martin Paces, Stephan Meißl, Fabian Schindler, Milan Novacek
 
 Traceability
 ------------
