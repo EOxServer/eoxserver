@@ -12,6 +12,45 @@ Module eoxserver.core.util.kvptools
 Decoding Schemas
 ----------------
 
+KVP decoding schemas can be defined following the general rules for
+schemas defined in the :ref:`module_core_util_decoders`. The KVP
+decoder expects ``kvp_key`` for the location parameter and ``kvp_type``
+for the type definition parameter. That means, KVP decoding schemas
+generally have the form::
+
+    PARAM_SCHEMA = {
+        "<parameter_name>": {
+            "kvp_key": "<kvp_key>",
+            "kvp_type": "<type_definition>"
+        },
+        ...
+    }
+
+where
+
+* ``kvp_key`` designates the KVP key to be looked for,
+* ``type_definition`` is a valid type definition as defined in
+  :ref:`module_core_util_decoders`.
+
+The valid base type names for KVP decoders are:
+
+* ``string``: the string value of the parameter is returned as is,
+* ``int``: the value will be typecasted to an integer; an exception is
+  raised if the cast fails
+* ``float``: the value will be typecasted to a float; an exception is
+  raised if the cast fails
+* ``stringlist``: the value is expected to be a comma separated list;
+  a list of strings will be returned
+* ``intlist``: the value is expected to be a comma separated list of 
+  integers; a list of integers will be returned; if typecasting fails,
+  an exception is raised
+* ``floatlist``: the value is expected to be a comma separated list of
+  floats; a list of floats will be returned; if typecasting fails, an
+  exception is raised.
+
+Minimum and maximum occurrences can be defined as described for the 
+:ref:`module_core_util_decoders` and will be validated.
+
 Classes
 -------
 
@@ -62,9 +101,41 @@ Classes
       If a schema has been defined, ``expr`` will be looked up in the
       schema, and the according value will be returned. If it is not
       found, ``default`` will be returned.
+      
+      This method raises a :exc:`~.KVPKeyOccurrenceError` if the
+      minimum or maximum occurrence bounds for the given KVP key are
+      violated. In case the raw value of the KVP could not be casted to
+      the expected type :exc:`~.KVPTypeError` is raised. In case 
+      ``expr`` is not defined in the schema or an error in the schema
+      definition is detected, :exc:`~.InternalError` is raised.
   
    .. method:: getValueStrict(expr)
-  
+   
+      This method accepts an expression ``expr`` as input. 
+
+      If no schema has been defined, ``expr`` will be interpreted as being
+      the key of a key-value-pair. The string value of the last
+      occurrence of the key will be returned; if the value is missing
+      :exc:`~.KVPKeyNotFound` will be raised.
+      
+      If a schema has been defined, ``expr`` will be looked up in the
+      schema, and the according value will be returned. If it is not
+      found, :exc:`~.KVPKeyNotFound` will be raised.
+      
+      This method raises a :exc:`~.KVPKeyOccurrenceError` if the
+      minimum or maximum occurrence bounds for the given KVP key are
+      violated. In case the raw value of the KVP could not be casted to
+      the expected type :exc:`~.KVPTypeError` is raised. In case 
+      ``expr`` is not defined in the schema or an error in the schema
+      definition is detected, :exc:`~.InternalError` is raised.
+      
    .. method:: getParams
+   
+      Returns a dictionary of params. The keys of the dictionary
+      correspond to the KVP keys provided, the values are lists of
+      KVP values (this is to account for multiple definitions for the
+      same KVP key).
   
    .. method:: getParamType
+
+      Returns ``"kvp"``.
