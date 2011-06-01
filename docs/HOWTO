@@ -49,8 +49,8 @@ epydoc --name=EOxServer --output=../docs/epydoc/ --html --docformat=javadoc --gr
 Run
 
 cd <path_to_autotest_directory>
-python manage.py graph_models --output=../docs/model_core.png core
-python manage.py graph_models --output=../docs/model_services.png services
-python manage.py graph_models --output=../docs/model_coverages.png coverages
+python manage.py graph_models --output=../docs/sphinx/en/developers/images/model_core.png core
+python manage.py graph_models --output=../docs/sphinx/en/developers/images/model_services.png services
+python manage.py graph_models --output=../docs/sphinx/en/developers/images/model_coverages.png coverages
 
 ------------------------------------------------------------------------
