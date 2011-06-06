@@ -91,7 +91,7 @@ Discussion Pages
 ----------------
 
 Any RFC, especially those still IN PREPARATION, shall have a discussion page
-on the EOxServer Trac Wiki (http://www.eoxserver.org/wiki). The design
+on the EOxServer Trac Wiki (http://eoxserver.org/wiki). The design
 and the location of the discussion page is detailed in the :doc:`howto`.
 
 The discussion page may include links to preliminary implementations 

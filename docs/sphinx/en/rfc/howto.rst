@@ -11,7 +11,7 @@ Guidelines for Requests for Comments
 :Author: Stephan Krause
 :Date: 2011-02-19
 :Last Edit: $Date$
-:Discussion: http://www.eoxserver.org/wiki/DiscussionRfcTemplate
+:Discussion: http://eoxserver.org/wiki/DiscussionRfcTemplate
 
 This document contains instructions for writing RFCs as well as a
 template for RFCs. Please read it carefully before submitting your own
@@ -59,7 +59,7 @@ like in the following example:
   :Created: 2011-02-18
   :Last Edit: $Date$
   :Status: PENDING
-  :Discussion: http://www.eoxserver.org/wiki/DiscussionRfcTemplate
+  :Discussion: http://eoxserver.org/wiki/DiscussionRfcTemplate
   
 Description of the RFC
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -188,8 +188,8 @@ Template for RFC Discussion Pages
 ---------------------------------
 
 RFC Discussion pages shall have the URL
-``http://www.eoxserver.org/wiki/DiscussionRfc<number>``. They shall be
-referenced on the page http://www.eoxserver.org/wiki/RfcDiscussions.
+``http://eoxserver.org/wiki/DiscussionRfc<number>``. They shall be
+referenced on the page http://eoxserver.org/wiki/RfcDiscussions.
 
 ::
 
