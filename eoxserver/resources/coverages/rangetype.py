@@ -6,7 +6,7 @@
 # Copyright (C) 2011 EOX IT Services GmbH
 # Authors: Stephan Krause, Stephan Meissl
 #
-# This file is part of EOxServer <http://www.eoxserver.org>.
+# This file is part of EOxServer <http://eoxserver.org>.
 #
 #    EOxServer is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published
