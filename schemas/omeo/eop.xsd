@@ -1,10 +1,10 @@
-<schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://www.opengis.net/eop/2.0" version="2.0.0" xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0" xmlns:om="http://www.opengis.net/om/2.0" xmlns:ows="http://www.opengis.net/ows/2.0" xmlns:swe="http://www.opengis.net/swe/1.0" xmlns="http://www.w3.org/2001/XMLSchema">
+<schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://www.opengis.net/eop/2.0" version="2.0.0" xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:om="http://www.opengis.net/om/2.0" xmlns:ows="http://www.opengis.net/ows/2.0" xmlns:swe="http://www.opengis.net/swe/1.0" xmlns:wcs="http://www.opengis.net/wcs/1.0" xmlns="http://www.w3.org/2001/XMLSchema">
     <annotation>
         <documentation>Earth Observation Products application schema, also the base schema which other products, OPT, ATM etc., extend.</documentation>
     </annotation>
     <import namespace="http://www.opengis.net/gml/3.2" schemaLocation="http://schemas.opengis.net/gml/3.2.1/gml.xsd" />
     <import namespace="http://www.opengis.net/ows/2.0" schemaLocation="http://schemas.opengis.net/ows/2.0/owsAll.xsd" />
-    <import namespace="http://www.opengis.net/om/2.0" schemaLocation="om/2.0/observation.xsd" />
+    <import namespace="http://www.opengis.net/om/2.0" schemaLocation="http://schemas.opengis.net/om/2.0/observation.xsd" />
     <import namespace="http://www.opengis.net/swe/1.0" schemaLocation="http://schemas.opengis.net/sweCommon/1.0.0/phenomenon.xsd" />
     <element name="EarthObservation" substitutionGroup="om:OM_Observation" type="eop:EarthObservationType">
         <annotation>
@@ -64,9 +64,9 @@ The ParameterInformation class is used to allow grouping of units of measure wit
                     <element maxOccurs="unbounded" minOccurs="0" name="coverage" type="gml:ReferenceType">
                         <annotation>
                             <appinfo>
-                                <gml:targetElement xmlns:gml="http://www.opengis.net/gml/3.2">gmlcov:DescribeCoverage</gml:targetElement>
+                                <gml:targetElement xmlns:gml="http://www.opengis.net/gml/3.2">wcs:CoverageDescriptions</gml:targetElement>
                             </appinfo>
-                            <documentation>Contains mask information</documentation>
+                            <documentation>Reference to coverage exploitation metadata (domainSet, RangeType, ...) as offered by a corresponding WCS using a HTTP GET encoded DescribeCoverage Request.</documentation>
                         </annotation>
                     </element>
                 </sequence>
@@ -125,7 +125,7 @@ The ParameterInformation class is used to allow grouping of units of measure wit
                     </element>
                     <element maxOccurs="1" minOccurs="0" name="orientation" type="eop:PolygonOrientationValueType">
                         <annotation>
-                            <documentation>Determines the orientation of the polygon coordinates for the exterior boundary.  Possible values are CW (clockwise) or counter-clockwise (CCW).  Default value is counter clockwise.  Element is only to be provided for products that do not follow the OGC simple features convention. </documentation>
+                            <documentation>Determines the orientation of the polygon coordinates for the exterior boundary. Possible values are CW (clockwise) or CCW (counter-clockwise) or OTHER (unspecified). Default value is counter clockwise. Element is only to be provided for products that do not follow the OGC simple features convention.</documentation>
                         </annotation>
                     </element>
                 </sequence>
@@ -828,6 +828,7 @@ Value : AUTOMATIC, MANUAL
                     <documentation>Vendor specific information</documentation>
                 </annotation>
             </element>
+            <element maxOccurs="1" minOccurs="0" name="creationDate" type="dateTime" />
         </sequence>
     </complexType>
     <complexType name="EarthObservationMetaDataPropertyType">
