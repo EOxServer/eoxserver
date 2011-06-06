@@ -82,17 +82,18 @@
     <simpleType name="PolarisationChannelsValueEnumerationType">
         <restriction base="string">
             <enumeration value="HH"/>
-            <enumeration value="UNDEFINED"/>
-            <enumeration value="VV, HV"/>
-            <enumeration value="VV"/>
-            <enumeration value="VH, VV"/>
-            <enumeration value="VH, HV"/>
-            <enumeration value="VH"/>
             <enumeration value="HV"/>
-            <enumeration value="HH, VV, HV, VH"/>
-            <enumeration value="HH, VV"/>
+            <enumeration value="UNDEFINED"/>
+            <enumeration value="HV, VH"/>
+            <enumeration value="VV, VH"/>
+            <enumeration value="VV, HV"/>
+            <enumeration value="VH, HV"/>
+            <enumeration value="VH, VV"/>
             <enumeration value="HH, HV"/>
             <enumeration value="HH, VH"/>
+            <enumeration value="HH, VV"/>
+            <enumeration value="VH"/>
+            <enumeration value="VV"/>
         </restriction>
     </simpleType>
     <simpleType name="PolarisationChannelsValueOtherType">
