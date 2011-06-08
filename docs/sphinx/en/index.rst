@@ -12,8 +12,9 @@ Implementation Specifications EO-WCS and EO-WMS on top of
 `WCS <http://www.opengeospatial.org/standards/wcs>`_ and 
 `WMS <http://www.opengeospatial.org/standards/wms>`_ implementations.
 
-EOxServer is released under the EOxServer Open License a MIT-style license
-and written in `Python <http://www.python.org/>`_ and entirely based on 
+EOxServer is released under the 
+:ref:`EOxServer Open License <EOxServer Open License>` a MIT-style 
+license and written in `Python <http://www.python.org/>`_ and entirely based on 
 Open Source software including `MapServer <http://www.mapserver.org>`_, 
 `Django/GeoDjango <http://www.djangoproject.com>`_, 
 `GDAL <http://www.gdal.org>`_, 
