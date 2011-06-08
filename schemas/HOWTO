@@ -27,14 +27,9 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from eoxserver.core.interfaces import Method, ObjectArg
-from eoxserver.core.config import Config
-from eoxserver.core.registry import RegisteredInterface
+#######################
+# Schema HowTo        #
+#######################
 
-class ConfigReaderInterface(RegisteredInterface):
-    REGISTRY_CONF = {
-        "name": "Config Reader Interface",
-        "intf_id": "core.readers.ConfigReader"
-    }
-    
-    validate = Method(ObjectArg("config", arg_class=Config))
+For validation in Eclipse comment attribute definition in 
+"schemas/SCHEMAS_OPENGIS_NET/gml/3.1.1/smil/xml-mod.xsd".
