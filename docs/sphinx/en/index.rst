@@ -29,6 +29,7 @@ Here you find the English documentation for users and developers of EOxServer.
    users/index
    developers/index
    rfc/index
+   license
 
 Indices and tables
 ==================
