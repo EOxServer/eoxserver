@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
 <!--
-#-------------------------------------------------------------------------------
+################################################################################
 # $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
 #
-#-------------------------------------------------------------------------------
+################################################################################
 # Copyright (C) 2011 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -27,15 +27,15 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+################################################################################
 
-########################################################################
+################################################################################
 Usage: Set XML_CATALOG_FILES variable.
 
 export XML_CATALOG_FILES="<PATH-TO-CATALOG-FILE>"
 
 Unset: export -n XML_CATALOG_FILES (use standard catalog at /etc/xml/)
-########################################################################
+################################################################################
  -->
 <!DOCTYPE catalog PUBLIC "-//OASIS//DTD Entity Resolution XML Catalog V1.0//EN" "http://www.oasis-open.org/committees/entity/release/1.0/catalog.dtd">
 <catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
