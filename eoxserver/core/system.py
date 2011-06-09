@@ -5,10 +5,10 @@
 # Authors: Stephan Krause <stephan.krause@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
 #
+# This source code is release under the EOxServer Open License.
+#
 #-------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
-#
-# This file is released under the EOxServer Open License:
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
