@@ -2,7 +2,9 @@
 
 .. index::
    single: Demonstration
-   
+
+.. _EOxServer Demonstration:
+
 EOxServer Demonstration
 =======================
 
@@ -20,8 +22,11 @@ combining the three available datasets:
 
 Note, the data has been reduced from 300m resolution to 3000m.
 
+The demonstration tries to show the usage of all available 
+:ref:`EO-WCS request parameters <EO-WCS Request Parameters>`.
+
 .. index::
-   single: GetCapabilities
+   single: GetCapabilities (Demonstration)
 
 GetCapabilities
 ---------------
@@ -89,7 +94,7 @@ Interesting parts of the repsonse:
     </wcseo:DatasetSeriesSummary>
 
 .. index::
-   single: DescribeCoverage
+   single: DescribeCoverage (Demonstration)
 
 DescribeCoverage
 ----------------
@@ -111,7 +116,7 @@ DescribeCoverage
         coverageid=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed
 
 .. index::
-   single: DescribeEOCoverageSet
+   single: DescribeEOCoverageSet (Demonstration)
 
 DescribeEOCoverageSet
 ---------------------
@@ -228,7 +233,7 @@ DatasetSeries
         containment=contains
 
 .. index::
-   single: GetCoverage
+   single: GetCoverage (Demonstration)
 
 GetCoverage
 -----------

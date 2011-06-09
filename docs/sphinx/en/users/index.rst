@@ -14,4 +14,5 @@ have their data quickly presented to the public.
    mailing_lists
    demonstration
    install
+   EO-WCS_request_parameters
    admin_tutorial
