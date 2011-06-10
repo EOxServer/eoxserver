@@ -434,7 +434,10 @@ class WCS20GetCoverageHandler(WCSCommonHandler):
 
     def _setParameter(self, ms_req, key, value):
         if key.lower() == "format" and len(ms_req.coverages[0].getRangeType()) > 3: # TODO
-            super(WCS20GetCoverageHandler, self)._setParameter(ms_req, "format", "GTiff16")
+            if value.lower() == "image/tiff":
+                super(WCS20GetCoverageHandler, self)._setParameter(ms_req, "format", "GTiff16")
+            else:
+                raise InvalidRequestException("Invalid or unsupported value '%s' for 'format' parameter." % value, "InvalidParameterValue", key)
         else:
             super(WCS20GetCoverageHandler, self)._setParameter(ms_req, key, value)
     

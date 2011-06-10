@@ -339,6 +339,22 @@ class WCS20GetCoverageFormatMissingFaultTestCase(eoxstest.ExceptionTestCase):
     def getExpectedExceptionCode(self):
         return "MissingParameterValue"
 
+class WCS20GetCoverageFormatUnsupportedFaultTestCase(eoxstest.ExceptionTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/jpeg"
+        return (params, "kvp")
+    
+    def getExpectedExceptionCode(self):
+        return "InvalidParameterValue"
+
+class WCS20GetCoverageFormatUnknownFaultTestCase(eoxstest.ExceptionTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=unknown"
+        return (params, "kvp")
+    
+    def getExpectedExceptionCode(self):
+        return "InvalidParameterValue"
+
 # Simple requests
 
 class WCS20GetCoverageMosaicTestCase(eoxstest.WCS20GetCoverageTestCase):
