@@ -1,3 +1,6 @@
+Copyright (C) European Space Agency - ESA
+
+The MERIS test data is produced from the following ESA remote sensing data:
 MERIS L1b sample data available at: http://earth.esa.int/object/index.cfm?fobjectid=4320
 
 The following configuration is provided with the fixture "meris_data.json":
