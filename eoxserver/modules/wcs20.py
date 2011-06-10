@@ -382,10 +382,13 @@ class EOxSWCS20GetCoverageHandler(EOxSWCSCommonHandler):
 
     def _setParameter(self, ms_req, key, value):
         if key.lower() == "format" and len(ms_req.coverages[0].getRangeType()) > 3: # TODO
-            super(EOxSWCS20GetCoverageHandler, self)._setParameter(ms_req, "format", "GTiff16")
+            if value.lower() == "image/tiff":
+                super(EOxSWCS20GetCoverageHandler, self)._setParameter(ms_req, "format", "GTiff16")
+            else:
+                raise EOxSInvalidRequestException("Invalid or unsupported value '%s' for 'format' parameter." % value, "InvalidParameterValue", key)
         else:
             super(EOxSWCS20GetCoverageHandler, self)._setParameter(ms_req, key, value)
-    
+
     def configureMapObj(self, ms_req):
         super(EOxSWCS20GetCoverageHandler, self).configureMapObj(ms_req)
         
