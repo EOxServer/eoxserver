@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <wcs:Capabilities updateSequence="20110104T160000Z" version="2.0.0"
     xmlns:gml="http://www.opengis.net/gml/3.2"
     xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0"
@@ -13,12 +13,25 @@
     <ows:ServiceIdentification>
         <ows:Title>Title</ows:Title>
         <ows:Abstract>Abstract</ows:Abstract>
+        <ows:Keywords>
+            <ows:Keyword>EO-WCS</ows:Keyword>
+            <ows:Keyword>WCS 2.0</ows:Keyword>
+            <ows:Keyword>WCS</ows:Keyword>
+            <ows:Keyword>Keyword</ows:Keyword>
+        </ows:Keywords>
         <ows:ServiceType codeSpace="OGC">OGC WCS</ows:ServiceType>
         <ows:ServiceTypeVersion>2.0.0</ows:ServiceTypeVersion>
         <ows:Profile>http://www.opengis.net/spec/WCS/2.0/conf/core</ows:Profile>
         <ows:Profile>http://www.opengis.net/spec/WCS_protocol-binding_get-kvp/1.0/conf/get-kvp</ows:Profile>
         <ows:Profile>http://www.opengis.net/spec/WCS_protocol-binding_post-xml/1.0/conf/post-xml</ows:Profile>
         <ows:Profile>http://www.opengis.net/spec/WCS_profile_earth-observation/1.0/conf/ap-eo</ows:Profile>
+        <ows:Profile>http://www.opengis.net/spec/WCS_coverage-encoding_geotiff/1.0/</ows:Profile>
+        <ows:Profile>http://www.placeholder.com/EPSG</ows:Profile>
+        <ows:Profile>http://www.placeholder.com/IMAGECRS</ows:Profile>
+        <ows:Profile>http://www.placeholder.com/GML_and_GeoTIFF</ows:Profile>
+        <ows:Profile>http://www.placeholder.com/SCALING</ows:Profile>
+        <ows:Profile>http://www.placeholder.com/INTERPOLATION</ows:Profile>
+        <ows:Profile>http://www.placeholder.com/RANGESUBSET</ows:Profile>
     </ows:ServiceIdentification>
 
     <ows:OperationsMetadata>
@@ -26,7 +39,13 @@
             <ows:DCP>
                 <ows:HTTP>
                     <ows:Get xlink:href="http://www.someu.rl?" xlink:type="simple"/>
-                    <ows:Post xlink:href="http://www.someu.rl?" xlink:type="simple"/>
+                    <ows:Post xlink:href="http://www.someu.rl?" xlink:type="simple">
+                        <ows:Constraint name="PostEncoding">
+                            <ows:AllowedValues>
+                                <ows:Value>XML</ows:Value>
+                            </ows:AllowedValues>
+                        </ows:Constraint>
+                    </ows:Post>
                 </ows:HTTP>
             </ows:DCP>
         </ows:Operation>
@@ -34,7 +53,13 @@
             <ows:DCP>
                 <ows:HTTP>
                     <ows:Get xlink:href="http://www.someu.rl?" xlink:type="simple"/>
-                    <ows:Post xlink:href="http://www.someu.rl?" xlink:type="simple"/>
+                    <ows:Post xlink:href="http://www.someu.rl?" xlink:type="simple">
+                        <ows:Constraint name="PostEncoding">
+                            <ows:AllowedValues>
+                                <ows:Value>XML</ows:Value>
+                            </ows:AllowedValues>
+                        </ows:Constraint>
+                    </ows:Post>
                 </ows:HTTP>
             </ows:DCP>
         </ows:Operation>
@@ -42,7 +67,13 @@
             <ows:DCP>
                 <ows:HTTP>
                     <ows:Get xlink:href="http://www.someu.rl?" xlink:type="simple"/>
-                    <ows:Post xlink:href="http://www.someu.rl?" xlink:type="simple"/>
+                    <ows:Post xlink:href="http://www.someu.rl?" xlink:type="simple">
+                        <ows:Constraint name="PostEncoding">
+                            <ows:AllowedValues>
+                                <ows:Value>XML</ows:Value>
+                            </ows:AllowedValues>
+                        </ows:Constraint>
+                    </ows:Post>
                 </ows:HTTP>
             </ows:DCP>
         </ows:Operation>
@@ -50,7 +81,13 @@
             <ows:DCP>
                 <ows:HTTP>
                     <ows:Get xlink:href="http://www.someu.rl?" xlink:type="simple"/>
-                    <ows:Post xlink:href="http://www.someu.rl?" xlink:type="simple"/>
+                    <ows:Post xlink:href="http://www.someu.rl?" xlink:type="simple">
+                        <ows:Constraint name="PostEncoding">
+                            <ows:AllowedValues>
+                                <ows:Value>XML</ows:Value>
+                            </ows:AllowedValues>
+                        </ows:Constraint>
+                    </ows:Post>
                 </ows:HTTP>
             </ows:DCP>
         </ows:Operation>

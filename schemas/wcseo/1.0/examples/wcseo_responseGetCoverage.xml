@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <wcseo:RectifiedDataset
     xmlns:ows="http://www.opengis.net/ows/2.0"
     xmlns:gml="http://www.opengis.net/gml/3.2"
@@ -11,7 +11,7 @@
     xmlns:xlink="http://www.w3.org/1999/xlink"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOGetCoverage.xsd"
-    gml:id="c1">
+    gml:id="someEOCoverage1">
     <gml:boundedBy>
         <gml:Envelope srsName="http://www.opengis.net/def/crs/EPSG/0/4326" axisLabels="Lat Long" srsDimension="2" uomLabels="deg deg">
             <gml:lowerCorner>42.862778 1.896944</gml:lowerCorner>
@@ -19,7 +19,7 @@
         </gml:Envelope>
     </gml:boundedBy>
     <gml:domainSet>
-        <gml:RectifiedGrid dimension="2" gml:id="c1_rgb_grid">
+        <gml:RectifiedGrid dimension="2" gml:id="someEOCoverage1_grid">
             <gml:limits>
                 <gml:GridEnvelope>
                     <gml:low>0 0</gml:low>
@@ -28,7 +28,7 @@
             </gml:limits>
             <gml:axisLabels>y x</gml:axisLabels>
             <gml:origin>
-                <gml:Point gml:id="c1_grid_origin" srsName="http://www.opengis.net/def/crs/EPSG/0/3035">
+                <gml:Point gml:id="someEOCoverage1_grid_origin" srsName="http://www.opengis.net/def/crs/EPSG/0/3035">
                     <gml:pos>2690925.0 4742525.0</gml:pos>
                 </gml:Point>
             </gml:origin>
@@ -64,20 +64,20 @@
     </gmlcov:rangeType>
     <gmlcov:metadata>
         <wcseo:EOMetadata>
-            <eop:EarthObservation gml:id="c1_metadata">
+            <eop:EarthObservation gml:id="someEOCoverage1_metadata">
                 <om:phenomenonTime>
-                    <gml:TimePeriod gml:id="c1_tp">
+                    <gml:TimePeriod gml:id="someEOCoverage1_tp">
                         <gml:beginPosition>2008-03-13T10:00:06.000</gml:beginPosition>
                         <gml:endPosition>2008-03-13T10:20:26.000</gml:endPosition>
                     </gml:TimePeriod>
                 </om:phenomenonTime>
                 <om:resultTime>
-                    <gml:TimeInstant gml:id="c1_archivingdate">
+                    <gml:TimeInstant gml:id="someEOCoverage1_archivingdate">
                         <gml:timePosition>2001-08-22T11:02:47.999</gml:timePosition>
                     </gml:TimeInstant>
                 </om:resultTime>
                 <om:procedure>
-                    <eop:EarthObservationEquipment gml:id="c1_eoe">
+                    <eop:EarthObservationEquipment gml:id="someEOCoverage1_eoe">
                         <eop:platform>
                             <eop:Platform>
                                 <eop:shortName>PHR</eop:shortName>
@@ -113,11 +113,11 @@
                 </om:procedure>
                 <om:observedProperty xlink:href="#phenom1"></om:observedProperty>
                 <om:featureOfInterest>
-                    <eop:Footprint gml:id="c1_fp">
+                    <eop:Footprint gml:id="someEOCoverage1_fp">
                         <eop:multiExtentOf>
-                            <gml:MultiSurface gml:id="c1_ms" srsName="EPSG:4326">
+                            <gml:MultiSurface gml:id="someEOCoverage1_ms" srsName="EPSG:4326">
                                 <gml:surfaceMembers>
-                                    <gml:Polygon gml:id="c1_fppoly">
+                                    <gml:Polygon gml:id="someEOCoverage1_fppoly">
                                         <gml:exterior>
                                             <gml:LinearRing>
                                                 <gml:posList>43.516667 2.1025 43.381667 2.861667 42.862778 2.65 42.996389 1.896944 43.516667 2.1025</gml:posList>
@@ -128,14 +128,14 @@
                             </gml:MultiSurface>
                         </eop:multiExtentOf>
                         <eop:centerOf>
-                            <gml:Point gml:id="c1_p" srsName="EPSG:4326">
+                            <gml:Point gml:id="someEOCoverage1_p" srsName="EPSG:4326">
                                 <gml:pos>43.190833 2.374167</gml:pos>
                             </gml:Point>
                         </eop:centerOf>
                     </eop:Footprint>
                 </om:featureOfInterest>
                 <om:result>
-                    <eop:EarthObservationResult gml:id="c1_eor">
+                    <eop:EarthObservationResult gml:id="someEOCoverage1_eor">
                         <eop:browse>
                             <eop:BrowseInformation>
                                 <eop:type>QUICKLOOK</eop:type>
@@ -163,7 +163,7 @@
                 </om:result>
                 <eop:metaDataProperty>
                     <eop:EarthObservationMetaData>
-                        <eop:identifier>c1</eop:identifier>
+                        <eop:identifier>someEOCoverage1</eop:identifier>
                         <eop:acquisitionType>NOMINAL</eop:acquisitionType>
                         <eop:productType>TBD</eop:productType>
                         <eop:status>ARCHIVED</eop:status>
@@ -187,7 +187,7 @@
             <wcseo:lineage>
                 <!-- GetCoverage request via KVP -->
                 <wcseo:referenceGetCoverage>
-                    <ows:Reference xlink:href="http://www.someWCS.org?SERVICE=WCS&amp;VERSION=2.0.0&amp;REQUEST=GetCoverage&amp;COVERAGEID=c1&amp;FORMAT=application/gml+xml"/>
+                    <ows:Reference xlink:href="http://www.someWCS.org?SERVICE=WCS&amp;VERSION=2.0.0&amp;REQUEST=GetCoverage&amp;COVERAGEID=someEOCoverage1&amp;FORMAT=application/gml+xml"/>
                 </wcseo:referenceGetCoverage>
                 <gml:timePosition>2011-02-04T15:45:52Z</gml:timePosition>
             </wcseo:lineage>
@@ -203,7 +203,7 @@
                                 xsi:schemaLocation="http://www.opengis.net/wcs/2.0 http://schemas.opengis.net/wcs/2.0/wcsAll.xsd"
                                 service="WCS" version="2.0.0">
                                 <wcs:format>application/gml+xml</wcs:format>
-                                <wcs:CoverageId>c1</wcs:CoverageId>
+                                <wcs:CoverageId>someEOCoverage1</wcs:CoverageId>
                             </wcs:GetCoverage>
                         </ows:RequestMessage>
                     </ows:ServiceReference>

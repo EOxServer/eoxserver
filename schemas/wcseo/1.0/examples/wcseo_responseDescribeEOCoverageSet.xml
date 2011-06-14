@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='ISO-8859-1'?>
+<?xml version="1.0" encoding="UTF-8"?>
 <wcseo:EOCoverageSetDescription
     numberMatched="1"
     numberReturned="1"
@@ -14,30 +14,30 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd">
     <wcs:CoverageDescriptions>
-        <wcs:CoverageDescription gml:id="collection_080313P600320035L0040S4_rgb">
+        <wcs:CoverageDescription gml:id="someEOCoverage1">
             <gml:boundedBy>
                 <gml:Envelope axisLabels="Lat Long" srsDimension="2" srsName="http://www.opengis.net/def/crs/EPSG/0/4326" uomLabels="deg deg">
-                    <gml:lowerCorner>4742525.000000 2665950.000000</gml:lowerCorner>
-                    <gml:upperCorner>4767500.000000 2690925.000000</gml:upperCorner>
+                    <gml:lowerCorner>42.996389 1.896944</gml:lowerCorner>
+                    <gml:upperCorner>43.516667 2.861667</gml:upperCorner>
                 </gml:Envelope>
             </gml:boundedBy>
-            <wcs:CoverageId>collection_080313P600320035L0040S4_rgb</wcs:CoverageId>
+            <wcs:CoverageId>someEOCoverage1</wcs:CoverageId>
             <gmlcov:metadata>
                 <wcseo:EOMetadata>
-                    <eop:EarthObservation gml:id="collection_080313P600320035L0040S4_rgb_metadata">
+                    <eop:EarthObservation gml:id="someEOCoverage1_metadata">
                         <om:phenomenonTime>
-                            <gml:TimePeriod gml:id="tp_1">
+                            <gml:TimePeriod gml:id="someEOCoverage1_tp">
                                 <gml:beginPosition>2008-03-13T10:00:06.000</gml:beginPosition>
                                 <gml:endPosition>2008-03-13T10:20:26.000</gml:endPosition>
                             </gml:TimePeriod>
                         </om:phenomenonTime>
                         <om:resultTime>
-                            <gml:TimeInstant gml:id="archivingdate_1">
+                            <gml:TimeInstant gml:id="someEOCoverage1_archivingdate">
                                 <gml:timePosition>2001-08-22T11:02:47.999</gml:timePosition>
                             </gml:TimeInstant>
                         </om:resultTime>
                         <om:procedure>
-                            <eop:EarthObservationEquipment gml:id="eoe_1">
+                            <eop:EarthObservationEquipment gml:id="someEOCoverage1_eoe">
                                 <eop:platform>
                                     <eop:Platform>
                                         <eop:shortName>PHR</eop:shortName>
@@ -73,14 +73,14 @@
                         </om:procedure>
                         <om:observedProperty xlink:href="#phenom1"></om:observedProperty>
                         <om:featureOfInterest>
-                            <eop:Footprint gml:id="fp_1">
+                            <eop:Footprint gml:id="someEOCoverage1_fp">
                                 <eop:multiExtentOf>
-                                    <gml:MultiSurface gml:id="ms_1" srsName="EPSG:4326">
+                                    <gml:MultiSurface gml:id="someEOCoverage1_ms" srsName="EPSG:4326">
                                         <gml:surfaceMembers>
-                                            <gml:Polygon gml:id="fppoly_1">
+                                            <gml:Polygon gml:id="someEOCoverage1_fppoly">
                                                 <gml:exterior>
                                                     <gml:LinearRing>
-                                                        <gml:posList>2.1025 43.516667 2.861667 43.381667 2.65 42.862778 1.896944 42.996389 2.1025 43.516667</gml:posList>
+                                                        <gml:posList>43.516667 2.1025 43.381667 2.861667 42.862778 2.65 42.996389 1.896944 43.516667 2.1025</gml:posList>
                                                     </gml:LinearRing>
                                                 </gml:exterior>
                                             </gml:Polygon>
@@ -88,14 +88,14 @@
                                     </gml:MultiSurface>
                                 </eop:multiExtentOf>
                                 <eop:centerOf>
-                                    <gml:Point gml:id="p1" srsName="EPSG:4326">
-                                        <gml:pos>2.374167 43.190833</gml:pos>
+                                    <gml:Point gml:id="someEOCoverage1_p" srsName="EPSG:4326">
+                                        <gml:pos>43.190833 2.374167</gml:pos>
                                     </gml:Point>
                                 </eop:centerOf>
                             </eop:Footprint>
                         </om:featureOfInterest>
                         <om:result>
-                            <eop:EarthObservationResult gml:id="eor_1">
+                            <eop:EarthObservationResult gml:id="someEOCoverage1_eor">
                                 <eop:browse>
                                     <eop:BrowseInformation>
                                         <eop:type>QUICKLOOK</eop:type>
@@ -123,7 +123,7 @@
                         </om:result>
                         <eop:metaDataProperty>
                             <eop:EarthObservationMetaData>
-                                <eop:identifier>collection_080313P600320035L0040S4_rgb</eop:identifier>
+                                <eop:identifier>someEOCoverage1</eop:identifier>
                                 <eop:acquisitionType>NOMINAL</eop:acquisitionType>
                                 <eop:productType>TBD</eop:productType>
                                 <eop:status>ARCHIVED</eop:status>
@@ -147,7 +147,7 @@
                 </wcseo:EOMetadata>
             </gmlcov:metadata>
             <gml:domainSet>
-                <gml:RectifiedGrid dimension="2" gml:id="collection_080313P600320035L0040S4_rgb_grid">
+                <gml:RectifiedGrid dimension="2" gml:id="someEOCoverage1_grid">
                     <gml:limits>
                         <gml:GridEnvelope>
                             <gml:low>0 0</gml:low>
@@ -156,7 +156,7 @@
                     </gml:limits>
                     <gml:axisLabels>x y</gml:axisLabels>
                     <gml:origin>
-                        <gml:Point gml:id="collection_080313P600320035L0040S4_rgb_grid_origin" srsName="http://www.opengis.net/def/crs/EPSG/0/3035">
+                        <gml:Point gml:id="someEOCoverage1_grid_origin" srsName="http://www.opengis.net/def/crs/EPSG/0/3035">
                             <gml:pos>4742525.0 2690925.0</gml:pos>
                         </gml:Point>
                     </gml:origin>
@@ -166,35 +166,9 @@
             </gml:domainSet>
             <gmlcov:rangeType>
                 <swe:DataRecord>
-                    <swe:field name="red">
+                    <swe:field name="gray">
                         <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
-                            <swe:description>Red Channel</swe:description>
-                            <swe:nilValues/>
-                            <swe:uom code="W.m-2.Sr-1"/>
-                            <swe:constraint>
-                                <swe:AllowedValues>
-                                    <swe:interval>0 255</swe:interval>
-                                    <swe:significantFigures>3</swe:significantFigures>
-                                </swe:AllowedValues>
-                            </swe:constraint>
-                        </swe:Quantity>
-                    </swe:field>
-                    <swe:field name="green">
-                        <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
-                            <swe:description>Green Channel</swe:description>
-                            <swe:nilValues/>
-                            <swe:uom code="W.m-2.Sr-1"/>
-                            <swe:constraint>
-                                <swe:AllowedValues>
-                                    <swe:interval>0 255</swe:interval>
-                                    <swe:significantFigures>3</swe:significantFigures>
-                                </swe:AllowedValues>
-                            </swe:constraint>
-                        </swe:Quantity>
-                    </swe:field>
-                    <swe:field name="blue">
-                        <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
-                            <swe:description>Blue Channel</swe:description>
+                            <swe:description>Gray Channel</swe:description>
                             <swe:nilValues/>
                             <swe:uom code="W.m-2.Sr-1"/>
                             <swe:constraint>
