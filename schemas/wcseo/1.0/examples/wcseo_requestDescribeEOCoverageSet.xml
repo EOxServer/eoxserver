@@ -1,11 +1,11 @@
-<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <wcseo:DescribeEOCoverageSet
     xmlns:wcseo="http://www.opengis.net/wcseo/1.0"
     xmlns:wcs="http://www.opengis.net/wcs/2.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd"
     service="WCS" version="2.0.0" count="100">
-    <wcseo:eoId>DS1</wcseo:eoId>
+    <wcseo:eoId>someDatasetSeries</wcseo:eoId>
     <wcseo:containment>OVERLAPS</wcseo:containment>
     <wcseo:Sections>
         <wcseo:Section>All</wcseo:Section>

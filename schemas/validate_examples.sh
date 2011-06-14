@@ -41,6 +41,7 @@ xmllint --noout --schema http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd \
     wcseo/1.0/examples/wcseo_requestDescribeEOCoverageSet.xml \
     wcseo/1.0/examples/wcseo_responseDescribeEOCoverageSet_minimal.xml \
     wcseo/1.0/examples/wcseo_responseDescribeEOCoverageSet.xml \
+    wcseo/1.0/examples/wcseo_requestGetCoverage.xml \
     wcseo/1.0/examples/wcseo_responseGetCoverage.xml \
     wcseo/1.0/examples/wcseo_responseGetCoverage_StitchedMosaic.xml
 echo "\n"
@@ -52,6 +53,7 @@ xsltproc schematron_xslt1/iso_dsdl_include.xsl wcseo/1.0/wcsEOSchematron.sch | x
     wcseo/1.0/examples/wcseo_requestDescribeEOCoverageSet.xml \
     wcseo/1.0/examples/wcseo_responseDescribeEOCoverageSet_minimal.xml \
     wcseo/1.0/examples/wcseo_responseDescribeEOCoverageSet.xml \
+    wcseo/1.0/examples/wcseo_requestGetCoverage.xml \
     wcseo/1.0/examples/wcseo_responseGetCoverage.xml \
     wcseo/1.0/examples/wcseo_responseGetCoverage_StitchedMosaic.xml
 
@@ -61,8 +63,15 @@ echo "Validating against wcs/2.0/wcsAll.xsd"
 echo "\n"
 xmllint --noout --schema http://schemas.opengis.net/wcs/2.0/wcsAll.xsd \
     wcseo/1.0/examples/wcseo_requestGetCapabilities.xml \
-    wcseo/1.0/examples/wcseo_responseGetCapabilities.xml
+    wcseo/1.0/examples/wcseo_responseGetCapabilities.xml \
+    wcseo/1.0/examples/wcseo_requestGetCoverage.xml
 
+echo "########################################################################"
+echo "\n"
+echo "Validating against http://schemas.xmlsoap.org/soap/envelope/"
+echo "\n"
+xmllint --noout --schema http://schemas.xmlsoap.org/soap/envelope/ \
+    wcseo/1.0/examples/wcseo_requestGetCoverage_SOAP.xml \
 
 
 ## Not backwards compatible like used below:
