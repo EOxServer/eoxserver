@@ -101,11 +101,8 @@
 
     <wcs:ServiceMetadata>
         <wcs:formatsSupported>
-            <ows:Profile>http://www.opengis.net/spec/GMLCOV/1.0/conf/gml-coverage</ows:Profile> <!-- TODO: How to correctly specify the GMLCOV conformance classes? -->
-            <ows:Profile>http://www.opengis.net/spec/GMLCOV/1.1/conf/gml-coverage</ows:Profile>
-            <ows:Profile>http://www.opengis.net/spec/GMLCOV/1.1/conf/multipart</ows:Profile>
-            <ows:Profile>http://www.opengis.net/spec/GMLCOV/1.1/conf/special-format</ows:Profile>
-            <ows:Profile>http://www.opengis.net/spec/WCS_coverage-encoding_geotiff/1.0/conf/baseline</ows:Profile>
+            <wcs:formatSupported>application/gml+xml</wcs:formatSupported>
+            <wcs:formatSupported>image/tiff</wcs:formatSupported>
         </wcs:formatsSupported>
     </wcs:ServiceMetadata>
 

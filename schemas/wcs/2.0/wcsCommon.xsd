@@ -93,7 +93,7 @@
     </element>
     <complexType name="formatsSupportedType">
         <sequence>
-            <element ref="ows:Profile" minOccurs="0" maxOccurs="unbounded"/>
+            <element name="formatSupported" type="anyURI" minOccurs="0" maxOccurs="unbounded"/>
         </sequence>
     </complexType>
     <!-- =========================================================== -->
