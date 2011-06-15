@@ -16,7 +16,11 @@ The most current schema are available at http://schemas.opengis.net/ .
 
 -----------------------------------------------------------------------
 
-2011-0614 Stephan Meissl
+2011-06-15 Stephan Meissl
+  * Corrected "ServiceMetadataType" to not extend "ows:CapabilitiesBaseType".
+  * Added "formatsSupported" to "ServiceMetadata" (see CR OGC 11-050).
+
+2011-06-14 Stephan Meissl
   * Added wcsExtensions.xsd including reference from wcsCommon.xsd
   * Added "requestParameters" element in "RequestBaseType".
   * Corrected "Extension" elements to "any" elements.
