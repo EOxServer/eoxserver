@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schema targetNamespace="http://www.opengis.net/wcs/2.0" 
-    xmlns="http://www.w3.org/2001/XMLSchema" 
     xmlns:ows="http://www.opengis.net/ows/2.0" 
     xmlns:gml="http://www.opengis.net/gml/3.2" 
     xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0"
     xmlns:wcs="http://www.opengis.net/wcs/2.0"
+    xmlns="http://www.w3.org/2001/XMLSchema" 
     elementFormDefault="qualified" version="2.0.0" xml:lang="en">
     <annotation>
         <appinfo>wcsCommon.xsd</appinfo>
@@ -93,7 +93,7 @@
     </element>
     <complexType name="formatsSupportedType">
         <sequence>
-            <element name="formatSupported" type="anyURI"/>
+            <element ref="ows:Profile" minOccurs="0" maxOccurs="unbounded"/>
         </sequence>
     </complexType>
     <!-- =========================================================== -->
