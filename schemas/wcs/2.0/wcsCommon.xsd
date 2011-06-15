@@ -80,13 +80,21 @@
         </annotation>
     </element>
     <complexType name="ServiceMetadataType">
-        <complexContent>
-            <extension base="ows:CapabilitiesBaseType">
-                <sequence>
-                    <any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
-                </sequence>
-            </extension>
-        </complexContent>
+        <sequence>
+            <element ref="wcs:formatsSupported"/>
+            <any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+        </sequence>
+    </complexType>
+    <!-- =========================================================== -->
+    <element name="formatsSupported" type="wcs:formatsSupportedType">
+        <annotation>
+            <documentation>List of all formats supported by the service instance.</documentation>
+        </annotation>
+    </element>
+    <complexType name="formatsSupportedType">
+        <sequence>
+            <element name="formatSupported" type="anyURI"/>
+        </sequence>
     </complexType>
     <!-- =========================================================== -->
     <element name="OfferedCoverage" type="wcs:OfferedCoverageType">
