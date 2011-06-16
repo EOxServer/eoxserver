@@ -124,20 +124,19 @@ class EOxSWCS20GetCapabilitiesHandler(EOxSWCSCommonHandler):
 
             svc_identification = dom.getElementsByTagName("ows:ServiceIdentification").item(0)
             
-            
-            # append EO Profile to ServiceIdentification
-            
+            # append EOs Profile to ServiceIdentification
             if svc_identification is not None:
-                eo_profile = encoder.encodeEOProfile()
+                eo_profiles = encoder.encodeEOProfiles()
                 
                 profiles = svc_identification.getElementsByTagName("ows:Profile")
                 if len(profiles) == 0:
-                    svc_identification.appendChild(eo_profile)
+                    for eo_profile in eo_profiles:
+                        svc_identification.appendChild(eo_profile)
                 else:
-                    svc_identification.insertBefore(eo_profile, profiles.item(0))
+                    for eo_profile in eo_profiles:
+                        svc_identification.insertBefore(eo_profile, profiles.item(0))
                     
             # append DescribeEOCoverageSet
-            
             op_metadata = dom.getElementsByTagName("ows:OperationsMetadata").item(0)
             
             if op_metadata is not None:
@@ -149,8 +148,7 @@ class EOxSWCS20GetCapabilitiesHandler(EOxSWCSCommonHandler):
 
 
             # rewrite wcs:Contents
-            # append wcseo:EOCoverageSubtype to wcs:CoverageSummary
-            
+            # adjust wcs:CoverageSubtype and add wcseo:DatasetSeriesSummary
             sections = ms_req.getParamValue("sections")
             
             if sections is None or len(sections) == 0 or "Contents" in sections or\
@@ -158,7 +156,8 @@ class EOxSWCS20GetCapabilitiesHandler(EOxSWCSCommonHandler):
                "DatasetSeriesSummary" in sections:
                 
                 contents_new = encoder.encodeContents()
-                
+
+                # adjust wcs:CoverageSubtype
                 if sections is None or len(sections) == 0 or "Contents" in sections or\
                    "CoverageSummary" in sections:
                     
