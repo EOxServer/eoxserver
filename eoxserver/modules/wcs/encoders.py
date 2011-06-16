@@ -423,8 +423,8 @@ class EOxSWCS20EOAPEncoder(EOxSWCS20Encoder):
         ])
 
     def encodeEOProfiles(self):
-        return [self._makeElement("ows", "Profile", "http://www.opengis.net/spec/WCS_profile_earth-observation/1.0/conf/ap-eo"),
-                self._makeElement("ows", "Profile", "http://www.opengis.net/spec/WCS_profile_earth-observation/1.0/conf/ap-eo_get-kvp")]
+        return [self._makeElement("ows", "Profile", "http://www.opengis.net/spec/WCS_application-profile_earth-observation/1.0/conf/eowcs"),
+                self._makeElement("ows", "Profile", "http://www.opengis.net/spec/WCS_application-profile_earth-observation/1.0/conf/eowcs_get-kvp")]
 
     def encodeDescribeEOCoverageSetOperation(self, http_service_url):
         return self._makeElement("ows", "Operation", [
