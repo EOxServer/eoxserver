@@ -27,6 +27,10 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+"""
+This module contains utility functions for file operations.
+"""
+
 import sys
 import os
 import os.path
@@ -35,17 +39,33 @@ from fnmatch import fnmatch
 from eoxserver.core.exceptions import InternalError
 
 def findFiles(dir, pattern):
+    """
+    This function mimicks the behaviour of the ``find`` shell command.
+    It expects a directory path ``dir`` and a file name pattern
+    ``pattern`` which may contain wildcards as accepted by the
+    :func:`fnmatch.fnmatch` function. It returns a list of paths to
+    matching files in ``dir`` and its subdirectories.
+    
+    If ``dir`` does not exist or does not point to a directory or if no
+    matching files are found an empty list is returned.
+    """
     filenames = []
     
-    for path in os.listdir(dir):
-        if os.path.isdir(os.path.join(dir, path)):
-            filenames.extend(findFiles(os.path.join(dir, path), pattern))
-        elif fnmatch(path, pattern):
-            filenames.append(os.path.join(dir, path))
+    if os.path.exists(dir) and os.path.isdir(dir):
+        for path in os.listdir(dir):
+            if os.path.isdir(os.path.join(dir, path)):
+                filenames.extend(findFiles(os.path.join(dir, path), pattern))
+            elif fnmatch(path, pattern):
+                filenames.append(os.path.join(dir, path))
     
     return filenames
 
 def pathToModuleName(path):
+    """
+    This function takes a module path ``path``as argument and returns
+    the corresponding dotted name of the module.
+    """
+    
     module_name = [os.path.splitext(os.path.basename(path))[0]]
     tmp_path = os.path.abspath(os.path.dirname(path))
     
