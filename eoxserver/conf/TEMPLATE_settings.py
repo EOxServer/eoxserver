@@ -34,10 +34,10 @@ Django settings for EOxServer.
 
 from os.path import join
 
-PROJECT_DIR = '<PATH-TO-EOxServer-INSTANCE>'
+PROJECT_DIR = '<$PATH_DST$>'
 PROJECT_URL_PREFIX = ''
 
-MAPSCRIPT_PATH = '<PATH-TO-MapServer-BUILD>/mapscript/python/build'
+MAPSCRIPT_PATH = '<$MAPSCRIPT_PATH$>/mapscript/python/build'
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
