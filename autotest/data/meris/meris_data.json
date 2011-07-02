@@ -248,6 +248,414 @@
         }
     }, 
     {
+        "pk": 32, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.owscommon.OWSCommonExceptionHandler", 
+            "intf_id": "services.interfaces.ExceptionHandler"
+        }
+    }, 
+    {
+        "pk": 33, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.owscommon.OWSCommonConfigReader", 
+            "intf_id": "core.readers.ConfigReader"
+        }
+    }, 
+    {
+        "pk": 34, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.owscommon.OWSCommon", 
+            "intf_id": "services.interfaces.RequestHandler"
+        }
+    }, 
+    {
+        "pk": 35, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.owscommon.OWSCommonExceptionEncoder", 
+            "intf_id": "services.interfaces.ExceptionEncoder"
+        }
+    }, 
+    {
+        "pk": 36, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.OrphanedCoverageExpression", 
+            "intf_id": "core.filters.FilterExpression"
+        }
+    }, 
+    {
+        "pk": 37, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.ReferenceableDatasetFootprintIntersectsArea", 
+            "intf_id": "core.filters.Filter"
+        }
+    }, 
+    {
+        "pk": 38, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.RectifiedDatasetIntersectingTimeInterval", 
+            "intf_id": "core.filters.Filter"
+        }
+    }, 
+    {
+        "pk": 39, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.wrappers.RectifiedDatasetWrapper", 
+            "intf_id": "resources.coverages.interfaces.RectifiedDataset"
+        }
+    }, 
+    {
+        "pk": 40, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.RectifiedDatasetContainingTimeInterval", 
+            "intf_id": "core.filters.Filter"
+        }
+    }, 
+    {
+        "pk": 41, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.RectifiedStitchedMosaicFootprintIntersectsArea", 
+            "intf_id": "core.filters.Filter"
+        }
+    }, 
+    {
+        "pk": 42, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.RectifiedStitchedMosaicSpatialSlice", 
+            "intf_id": "core.filters.Filter"
+        }
+    }, 
+    {
+        "pk": 43, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.ReferenceableDatasetContainingTimeInterval", 
+            "intf_id": "core.filters.Filter"
+        }
+    }, 
+    {
+        "pk": 44, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.ContainedRectifiedStitchedMosaicFilter", 
+            "intf_id": "core.filters.Filter"
+        }
+    }, 
+    {
+        "pk": 45, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.OrphanedRectifiedDataset", 
+            "intf_id": "core.filters.Filter"
+        }
+    }, 
+    {
+        "pk": 46, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.RectifiedDatasetAttribute", 
+            "intf_id": "core.filters.Filter"
+        }
+    }, 
+    {
+        "pk": 47, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.RectifiedDatasetSpatialSlice", 
+            "intf_id": "core.filters.Filter"
+        }
+    }, 
+    {
+        "pk": 48, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.wrappers.ReferenceableDataset", 
+            "intf_id": "resources.coverages.interfaces.ReferenceableDataset"
+        }
+    }, 
+    {
+        "pk": 49, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.CoverageExpressionFactory", 
+            "intf_id": "core.registry.Factory"
+        }
+    }, 
+    {
+        "pk": 50, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.TimeSliceExpression", 
+            "intf_id": "core.filters.FilterExpression"
+        }
+    }, 
+    {
+        "pk": 51, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.ContainedReferenceableDatasetFilter", 
+            "intf_id": "core.filters.Filter"
+        }
+    }, 
+    {
+        "pk": 52, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.ReferenceableDatasetAttribute", 
+            "intf_id": "core.filters.Filter"
+        }
+    }, 
+    {
+        "pk": 53, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.RectifiedDatasetFootprintIntersectsArea", 
+            "intf_id": "core.filters.Filter"
+        }
+    }, 
+    {
+        "pk": 54, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.wrappers.DatasetSeriesWrapper", 
+            "intf_id": "resources.coverages.interfaces.DatasetSeries"
+        }
+    }, 
+    {
+        "pk": 55, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.FootprintWithinAreaExpression", 
+            "intf_id": "core.filters.FilterExpression"
+        }
+    }, 
+    {
+        "pk": 56, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.RectifiedDatasetFootprintWithinArea", 
+            "intf_id": "core.filters.Filter"
+        }
+    }, 
+    {
+        "pk": 57, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.OrphanedReferenceableDataset", 
+            "intf_id": "core.filters.Filter"
+        }
+    }, 
+    {
+        "pk": 58, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.RectifiedStitchedMosaicAttribute", 
+            "intf_id": "core.filters.Filter"
+        }
+    }, 
+    {
+        "pk": 59, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.ReferenceableDatasetFootprintWithinArea", 
+            "intf_id": "core.filters.Filter"
+        }
+    }, 
+    {
+        "pk": 60, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.ReferenceableDatasetIntersectingTimeInterval", 
+            "intf_id": "core.filters.Filter"
+        }
+    }, 
+    {
+        "pk": 61, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.wrappers.RectifiedStitchedMosaic", 
+            "intf_id": "resources.coverages.interfaces.RectifiedStitchedMosaic"
+        }
+    }, 
+    {
+        "pk": 62, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.wrappers.DatasetSeriesFactory", 
+            "intf_id": "core.resources.ResourceFactoryInterface"
+        }
+    }, 
+    {
+        "pk": 63, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.RectifiedStitchedMosaicContainingTimeInterval", 
+            "intf_id": "core.filters.Filter"
+        }
+    }, 
+    {
+        "pk": 64, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.RectifiedStitchedMosaicTimeSlice", 
+            "intf_id": "core.filters.Filter"
+        }
+    }, 
+    {
+        "pk": 65, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.ContainedCoverageExpression", 
+            "intf_id": "core.filters.FilterExpression"
+        }
+    }, 
+    {
+        "pk": 66, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.DatasetSeriesContains", 
+            "intf_id": "core.filters.Filter"
+        }
+    }, 
+    {
+        "pk": 67, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.ContainingTimeIntervalExpression", 
+            "intf_id": "core.filters.FilterExpression"
+        }
+    }, 
+    {
+        "pk": 68, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.RectifiedStitchedMosaicContains", 
+            "intf_id": "core.filters.Filter"
+        }
+    }, 
+    {
+        "pk": 69, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.ReferenceableDatasetSpatialSlice", 
+            "intf_id": "core.filters.Filter"
+        }
+    }, 
+    {
+        "pk": 70, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.wrappers.EOCoverageFactory", 
+            "intf_id": "core.resources.ResourceFactoryInterface"
+        }
+    }, 
+    {
+        "pk": 71, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.RectifiedDatasetTimeSlice", 
+            "intf_id": "core.filters.Filter"
+        }
+    }, 
+    {
+        "pk": 72, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.FootprintIntersectsAreaExpression", 
+            "intf_id": "core.filters.FilterExpression"
+        }
+    }, 
+    {
+        "pk": 73, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.ReferenceableDatasetTimeSlice", 
+            "intf_id": "core.filters.Filter"
+        }
+    }, 
+    {
+        "pk": 74, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.SpatialSliceExpression", 
+            "intf_id": "core.filters.FilterExpression"
+        }
+    }, 
+    {
+        "pk": 75, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.IntersectingTimeIntervalExpression", 
+            "intf_id": "core.filters.FilterExpression"
+        }
+    }, 
+    {
+        "pk": 76, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.OrphanedRectifiedStitchedMosaic", 
+            "intf_id": "core.filters.Filter"
+        }
+    }, 
+    {
+        "pk": 77, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.RectifiedStitchedMosaicFootprintWithinArea", 
+            "intf_id": "core.filters.Filter"
+        }
+    }, 
+    {
+        "pk": 78, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.RectifiedStitchedMosaicIntersectingTimeInterval", 
+            "intf_id": "core.filters.Filter"
+        }
+    }, 
+    {
+        "pk": 79, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.ContainedRectifiedDataset", 
+            "intf_id": "core.filters.Filter"
+        }
+    }, 
+    {
+        "pk": 80, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.AttributeExpression", 
+            "intf_id": "core.filters.FilterExpression"
+        }
+    }, 
+    {
+        "pk": 81, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.wrappers.ReferenceableDatasetWrapper", 
+            "intf_id": "resources.coverages.interfaces.ReferenceableDataset"
+        }
+    }, 
+    {
+        "pk": 82, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.wrappers.RectifiedStitchedMosaicWrapper", 
+            "intf_id": "resources.coverages.interfaces.RectifiedStitchedMosaic"
+        }
+    }, 
+    {
         "pk": 1, 
         "model": "core.component", 
         "fields": {
@@ -465,6 +873,363 @@
         }
     }, 
     {
+        "pk": 32, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 33, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 34, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 35, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 36, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 37, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 38, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 39, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 40, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 41, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 42, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 43, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 44, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 45, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 46, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 47, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 48, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 49, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 50, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 51, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 52, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 53, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 54, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 55, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 56, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 57, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 58, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 59, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 60, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 61, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 62, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 63, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 64, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 65, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 66, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 67, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 68, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 69, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 70, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 71, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 72, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 73, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 74, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 75, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 76, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 77, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 78, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 79, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 80, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": false
+        }
+    }, 
+    {
+        "pk": 81, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": false
+        }
+    }, 
+    {
+        "pk": 82, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": false
+        }
+    }, 
+    {
         "pk": 1, 
         "model": "coverages.nilvaluerecord", 
         "fields": {
@@ -474,714 +1239,507 @@
     }, 
     {
         "pk": 1, 
-        "model": "coverages.channelrecord", 
+        "model": "coverages.bandrecord", 
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
             "name": "red", 
-            "allowed_values_end": 255, 
-            "nil_values": [], 
-            "allowed_values_significant_figures": 3, 
+            "nil_values": [],
             "identifier": "red", 
-            "allowed_values_start": 0, 
             "uom": "W.m-2.Sr-1", 
             "description": "Red Channel"
         }
     }, 
     {
         "pk": 2, 
-        "model": "coverages.channelrecord", 
+        "model": "coverages.bandrecord", 
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
             "name": "green", 
-            "allowed_values_end": 255, 
             "nil_values": [], 
-            "allowed_values_significant_figures": 3, 
-            "identifier": "green", 
-            "allowed_values_start": 0, 
+            "identifier": "green",
             "uom": "W.m-2.Sr-1", 
             "description": "Green Channel"
         }
     }, 
     {
         "pk": 3, 
-        "model": "coverages.channelrecord", 
+        "model": "coverages.bandrecord", 
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
-            "name": "blue", 
-            "allowed_values_end": 255, 
-            "nil_values": [], 
-            "allowed_values_significant_figures": 3, 
+            "name": "blue",
+            "nil_values": [],
             "identifier": "blue", 
-            "allowed_values_start": 0, 
             "uom": "W.m-2.Sr-1", 
             "description": "Blue Channel"
         }
     }, 
     {
         "pk": 4, 
-        "model": "coverages.channelrecord", 
+        "model": "coverages.bandrecord", 
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
-            "name": "gray", 
-            "allowed_values_end": 255, 
+            "name": "gray",
             "nil_values": [
                 1
-            ], 
-            "allowed_values_significant_figures": 3, 
+            ],
             "identifier": "blue", 
-            "allowed_values_start": 0, 
             "uom": "W.m-2.Sr-1", 
             "description": "Gray Channel"
         }
     }, 
     {
         "pk": 5, 
-        "model": "coverages.channelrecord", 
+        "model": "coverages.bandrecord", 
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
-            "name": "MERIS_radiance_01_uint16", 
-            "allowed_values_end": 65535, 
-            "nil_values": [], 
-            "allowed_values_significant_figures": 5, 
-            "identifier": "MERIS_radiance_01_uint16", 
-            "allowed_values_start": 0, 
+            "name": "MERIS_radiance_01_uint16",
+            "nil_values": [],
+            "identifier": "MERIS_radiance_01_uint16",
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS first band"
         }
     }, 
     {
         "pk": 6, 
-        "model": "coverages.channelrecord", 
+        "model": "coverages.bandrecord", 
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
             "name": "MERIS_radiance_02_uint16", 
-            "allowed_values_end": 65535, 
             "nil_values": [], 
-            "allowed_values_significant_figures": 5, 
             "identifier": "MERIS_radiance_02_uint16", 
-            "allowed_values_start": 0, 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint16 second band"
         }
     }, 
     {
         "pk": 7, 
-        "model": "coverages.channelrecord", 
+        "model": "coverages.bandrecord", 
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
             "name": "MERIS_radiance_03_uint16", 
-            "allowed_values_end": 65535, 
             "nil_values": [], 
-            "allowed_values_significant_figures": 5, 
             "identifier": "MERIS_radiance_03_uint16", 
-            "allowed_values_start": 0, 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint16 third band"
         }
     }, 
     {
         "pk": 8, 
-        "model": "coverages.channelrecord", 
+        "model": "coverages.bandrecord", 
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
             "name": "MERIS_radiance_04_uint16", 
-            "allowed_values_end": 65535, 
             "nil_values": [], 
-            "allowed_values_significant_figures": 5, 
             "identifier": "MERIS_radiance_04_uint16", 
-            "allowed_values_start": 0, 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint16 fourth band"
         }
     }, 
     {
         "pk": 9, 
-        "model": "coverages.channelrecord", 
+        "model": "coverages.bandrecord", 
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
             "name": "MERIS_radiance_05_uint16", 
-            "allowed_values_end": 65535, 
             "nil_values": [], 
-            "allowed_values_significant_figures": 5, 
             "identifier": "MERIS_radiance_05_uint16", 
-            "allowed_values_start": 0, 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint16 fifth band"
         }
     }, 
     {
         "pk": 10, 
-        "model": "coverages.channelrecord", 
+        "model": "coverages.bandrecord", 
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
             "name": "MERIS_radiance_06_uint16", 
-            "allowed_values_end": 65535, 
             "nil_values": [], 
-            "allowed_values_significant_figures": 5, 
             "identifier": "MERIS_radiance_06_uint16", 
-            "allowed_values_start": 0, 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint16 sixth band"
         }
     }, 
     {
         "pk": 11, 
-        "model": "coverages.channelrecord", 
+        "model": "coverages.bandrecord", 
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
             "name": "MERIS_radiance_07_uint16", 
-            "allowed_values_end": 65535, 
             "nil_values": [], 
-            "allowed_values_significant_figures": 5, 
             "identifier": "MERIS_radiance_07_uint16", 
-            "allowed_values_start": 0, 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint16 seventh band"
         }
     }, 
     {
         "pk": 12, 
-        "model": "coverages.channelrecord", 
+        "model": "coverages.bandrecord", 
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
             "name": "MERIS_radiance_08_uint16", 
-            "allowed_values_end": 65535, 
             "nil_values": [], 
-            "allowed_values_significant_figures": 5, 
             "identifier": "MERIS_radiance_08_uint16", 
-            "allowed_values_start": 0, 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint16 eighth band"
         }
     }, 
     {
         "pk": 13, 
-        "model": "coverages.channelrecord", 
+        "model": "coverages.bandrecord", 
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
             "name": "MERIS_radiance_09_uint16", 
-            "allowed_values_end": 65535, 
             "nil_values": [], 
-            "allowed_values_significant_figures": 5, 
             "identifier": "MERIS_radiance_09_uint16", 
-            "allowed_values_start": 0, 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint16 ninth band"
         }
     }, 
     {
         "pk": 14, 
-        "model": "coverages.channelrecord", 
+        "model": "coverages.bandrecord", 
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
             "name": "MERIS_radiance_10_uint16", 
-            "allowed_values_end": 65535, 
             "nil_values": [], 
-            "allowed_values_significant_figures": 5, 
             "identifier": "MERIS_radiance_10_uint16", 
-            "allowed_values_start": 0, 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint16 tenth band"
         }
     }, 
     {
         "pk": 15, 
-        "model": "coverages.channelrecord", 
+        "model": "coverages.bandrecord", 
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
             "name": "MERIS_radiance_11_uint16", 
-            "allowed_values_end": 65535, 
             "nil_values": [], 
-            "allowed_values_significant_figures": 5, 
             "identifier": "MERIS_radiance_11_uint16", 
-            "allowed_values_start": 0, 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint16 eleventh band"
         }
     }, 
     {
         "pk": 16, 
-        "model": "coverages.channelrecord", 
+        "model": "coverages.bandrecord", 
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
             "name": "MERIS_radiance_12_uint16", 
-            "allowed_values_end": 65535, 
             "nil_values": [], 
-            "allowed_values_significant_figures": 5, 
             "identifier": "MERIS_radiance_12_uint16", 
-            "allowed_values_start": 0, 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint16 twelfth band"
         }
     }, 
     {
         "pk": 17, 
-        "model": "coverages.channelrecord", 
+        "model": "coverages.bandrecord", 
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
             "name": "MERIS_radiance_13_uint16", 
-            "allowed_values_end": 65535, 
             "nil_values": [], 
-            "allowed_values_significant_figures": 5, 
             "identifier": "MERIS_radiance_13_uint16", 
-            "allowed_values_start": 0, 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint 16 thirteenth band"
         }
     }, 
     {
         "pk": 18, 
-        "model": "coverages.channelrecord", 
+        "model": "coverages.bandrecord", 
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
             "name": "MERIS_radiance_14_uint16", 
-            "allowed_values_end": 65535, 
             "nil_values": [], 
-            "allowed_values_significant_figures": 5, 
             "identifier": "MERIS_radiance_14_uint16", 
-            "allowed_values_start": 0, 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint16 fourteenth band"
         }
     }, 
     {
         "pk": 19, 
-        "model": "coverages.channelrecord", 
+        "model": "coverages.bandrecord", 
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
             "name": "MERIS_radiance_15_uint16", 
-            "allowed_values_end": 65535, 
             "nil_values": [], 
-            "allowed_values_significant_figures": 5, 
             "identifier": "MERIS_radiance_15_uint16", 
-            "allowed_values_start": 0, 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint16 fifteenth band"
         }
     }, 
     {
         "pk": 1, 
-        "model": "coverages.rangetype", 
+        "model": "coverages.rangetyperecord", 
         "fields": {
-            "name": "RGB"
+            "name": "RGB",
+            "data_type": 1
         }
     }, 
     {
         "pk": 2, 
-        "model": "coverages.rangetype", 
+        "model": "coverages.rangetyperecord", 
         "fields": {
-            "name": "Grayscale"
+            "name": "Grayscale",
+            "data_type": 1
         }
     }, 
     {
         "pk": 3, 
-        "model": "coverages.rangetype", 
+        "model": "coverages.rangetyperecord", 
         "fields": {
-            "name": "MERIS_uint16"
+            "name": "MERIS_uint16",
+            "data_type": 2
         }
     }, 
     {
         "pk": 1, 
-        "model": "coverages.rangetype2channel", 
+        "model": "coverages.rangetype2band", 
         "fields": {
             "range_type": 1, 
-            "channel": 1, 
+            "band": 1, 
             "no": 1
         }
     }, 
     {
         "pk": 2, 
-        "model": "coverages.rangetype2channel", 
+        "model": "coverages.rangetype2band", 
         "fields": {
             "range_type": 1, 
-            "channel": 2, 
+            "band": 2, 
             "no": 2
         }
     }, 
     {
         "pk": 3, 
-        "model": "coverages.rangetype2channel", 
+        "model": "coverages.rangetype2band", 
         "fields": {
             "range_type": 1, 
-            "channel": 3, 
+            "band": 3, 
             "no": 3
         }
     }, 
     {
         "pk": 4, 
-        "model": "coverages.rangetype2channel", 
+        "model": "coverages.rangetype2band", 
         "fields": {
             "range_type": 2, 
-            "channel": 4, 
+            "band": 4, 
             "no": 1
         }
     }, 
     {
         "pk": 5, 
-        "model": "coverages.rangetype2channel", 
+        "model": "coverages.rangetype2band", 
         "fields": {
             "range_type": 3, 
-            "channel": 5, 
+            "band": 5, 
             "no": 1
         }
     }, 
     {
         "pk": 6, 
-        "model": "coverages.rangetype2channel", 
+        "model": "coverages.rangetype2band", 
         "fields": {
             "range_type": 3, 
-            "channel": 6, 
+            "band": 6, 
             "no": 2
         }
     }, 
     {
         "pk": 7, 
-        "model": "coverages.rangetype2channel", 
+        "model": "coverages.rangetype2band", 
         "fields": {
             "range_type": 3, 
-            "channel": 7, 
+            "band": 7, 
             "no": 3
         }
     }, 
     {
         "pk": 8, 
-        "model": "coverages.rangetype2channel", 
+        "model": "coverages.rangetype2band", 
         "fields": {
             "range_type": 3, 
-            "channel": 8, 
+            "band": 8, 
             "no": 4
         }
     }, 
     {
         "pk": 9, 
-        "model": "coverages.rangetype2channel", 
+        "model": "coverages.rangetype2band", 
         "fields": {
             "range_type": 3, 
-            "channel": 9, 
+            "band": 9, 
             "no": 5
         }
     }, 
     {
         "pk": 10, 
-        "model": "coverages.rangetype2channel", 
+        "model": "coverages.rangetype2band", 
         "fields": {
             "range_type": 3, 
-            "channel": 10, 
+            "band": 10, 
             "no": 6
         }
     }, 
     {
         "pk": 11, 
-        "model": "coverages.rangetype2channel", 
+        "model": "coverages.rangetype2band", 
         "fields": {
             "range_type": 3, 
-            "channel": 11, 
+            "band": 11, 
             "no": 7
         }
     }, 
     {
         "pk": 12, 
-        "model": "coverages.rangetype2channel", 
+        "model": "coverages.rangetype2band", 
         "fields": {
             "range_type": 3, 
-            "channel": 12, 
+            "band": 12, 
             "no": 8
         }
     }, 
     {
         "pk": 13, 
-        "model": "coverages.rangetype2channel", 
+        "model": "coverages.rangetype2band", 
         "fields": {
             "range_type": 3, 
-            "channel": 13, 
+            "band": 13, 
             "no": 9
         }
     }, 
     {
         "pk": 14, 
-        "model": "coverages.rangetype2channel", 
+        "model": "coverages.rangetype2band", 
         "fields": {
             "range_type": 3, 
-            "channel": 14, 
+            "band": 14, 
             "no": 10
         }
     }, 
     {
         "pk": 15, 
-        "model": "coverages.rangetype2channel", 
+        "model": "coverages.rangetype2band", 
         "fields": {
             "range_type": 3, 
-            "channel": 15, 
+            "band": 15, 
             "no": 11
         }
     }, 
     {
         "pk": 16, 
-        "model": "coverages.rangetype2channel", 
+        "model": "coverages.rangetype2band", 
         "fields": {
             "range_type": 3, 
-            "channel": 16, 
+            "band": 16, 
             "no": 12
         }
     }, 
     {
         "pk": 17, 
-        "model": "coverages.rangetype2channel", 
+        "model": "coverages.rangetype2band", 
         "fields": {
             "range_type": 3, 
-            "channel": 17, 
+            "band": 17, 
             "no": 13
         }
     }, 
     {
         "pk": 18, 
-        "model": "coverages.rangetype2channel", 
+        "model": "coverages.rangetype2band", 
         "fields": {
             "range_type": 3, 
-            "channel": 18, 
+            "band": 18, 
             "no": 14
         }
     }, 
     {
         "pk": 19, 
-        "model": "coverages.rangetype2channel", 
+        "model": "coverages.rangetype2band", 
         "fields": {
             "range_type": 3, 
-            "channel": 19, 
+            "band": 19, 
             "no": 15
         }
-    }, 
+    },
     {
         "pk": 1, 
-        "model": "coverages.rectifiedgridrecord", 
+        "model": "coverages.extentrecord", 
         "fields": {
-            "srid": 4326
+            "srid": 4326,
+            "size_x": 539, 
+            "size_y": 448,
+            "minx": -3.7272687, 
+            "miny": 32.1923908, 
+            "maxx": 13.1920351,
+            "maxy": 46.2458229
         }
-    }, 
+    },
     {
         "pk": 2, 
-        "model": "coverages.rectifiedgridrecord", 
+        "model": "coverages.extentrecord", 
         "fields": {
-            "srid": 4326
+            "srid": 4326,
+            "size_x": 539, 
+            "size_y": 448,
+            "minx": 11.3610659, 
+            "miny": 32.2014463, 
+            "maxx": 28.2838457,
+            "maxy": 46.2520256
         }
-    }, 
+    },
     {
         "pk": 3, 
-        "model": "coverages.rectifiedgridrecord", 
+        "model": "coverages.extentrecord", 
         "fields": {
-            "srid": 4326
+            "srid": 4326,
+            "size_x": 539, 
+            "size_y": 448,
+            "minx": 8.4877558, 
+            "miny": 32.1953166, 
+            "maxx": 25.4074867,
+            "maxy": 46.2491035
         }
-    }, 
+    },
     {
         "pk": 4, 
-        "model": "coverages.rectifiedgridrecord", 
+        "model": "coverages.extentrecord", 
         "fields": {
-            "srid": 4326
+            "srid": 4326,
+            "size_x": 541, 
+            "size_y": 449,
+            "minx": 11.3317550, 
+            "miny": 32.1902500, 
+            "maxx": 28.2948100,
+            "maxy": 46.2686450
         }
-    }, 
+    },
     {
         "pk": 5, 
-        "model": "coverages.rectifiedgridrecord", 
+        "model": "coverages.extentrecord", 
         "fields": {
-            "srid": 4326
+            "srid": 4326,
+            "size_x": 541, 
+            "size_y": 449,
+            "minx": -3.7500000, 
+            "miny": 32.1902500, 
+            "maxx": 13.2130550,
+            "maxy": 46.2686450
         }
-    }, 
+    },
     {
         "pk": 6, 
-        "model": "coverages.rectifiedgridrecord", 
+        "model": "coverages.extentrecord", 
         "fields": {
-            "srid": 4326
+            "srid": 4326,
+            "size_x": 540, 
+            "size_y": 449,
+            "minx": 8.4784500, 
+            "miny": 32.1902500, 
+            "maxx": 25.4101500,
+            "maxy": 46.2686450
         }
-    }, 
-    {
-        "pk": 7, 
-        "model": "coverages.rectifiedgridrecord", 
-        "fields": {
-            "srid": 4326
-        }
-    }, 
-    {
-        "pk": 1, 
-        "model": "coverages.axisrecord", 
-        "fields": {
-            "offset_vector_component": 0.031390174010384943, 
-            "label": "lon", 
-            "high": 538, 
-            "grid": 1, 
-            "low": 0, 
-            "origin_component": -3.7272686958312988, 
-            "dimension_idx": 1
-        }
-    }, 
-    {
-        "pk": 2, 
-        "model": "coverages.axisrecord", 
-        "fields": {
-            "offset_vector_component": -0.031369268073051772, 
-            "label": "lat", 
-            "high": 447, 
-            "grid": 1, 
-            "low": 0, 
-            "origin_component": 46.245822906494141, 
-            "dimension_idx": 2
-        }
-    }, 
-    {
-        "pk": 3, 
-        "model": "coverages.axisrecord", 
-        "fields": {
-            "offset_vector_component": 0.03139662310517357, 
-            "label": "lon", 
-            "high": 538, 
-            "grid": 2, 
-            "low": 0, 
-            "origin_component": 11.361065864562988, 
-            "dimension_idx": 1
-        }
-    }, 
-    {
-        "pk": 4, 
-        "model": "coverages.axisrecord", 
-        "fields": {
-            "offset_vector_component": -0.031362900240700195, 
-            "label": "lat", 
-            "high": 447, 
-            "grid": 2, 
-            "low": 0, 
-            "origin_component": 46.252025604248047, 
-            "dimension_idx": 2
-        }
-    }, 
-    {
-        "pk": 5, 
-        "model": "coverages.axisrecord", 
-        "fields": {
-            "offset_vector_component": 0.031390966515787676, 
-            "label": "lon", 
-            "high": 538, 
-            "grid": 3, 
-            "low": 0, 
-            "origin_component": 8.4877557754516602, 
-            "dimension_idx": 1
-        }
-    }, 
-    {
-        "pk": 6, 
-        "model": "coverages.axisrecord", 
-        "fields": {
-            "offset_vector_component": -0.031370060050643848, 
-            "label": "lat", 
-            "high": 447, 
-            "grid": 3, 
-            "low": 0, 
-            "origin_component": 46.249103546142578, 
-            "dimension_idx": 2
-        }
-    }, 
-    {
-        "pk": 7, 
-        "model": "coverages.axisrecord", 
-        "fields": {
-            "offset_vector_component": 0.031355000000000001, 
-            "label": "long", 
-            "high": 1022, 
-            "grid": 4, 
-            "low": 0, 
-            "origin_component": -3.75, 
-            "dimension_idx": 1
-        }
-    }, 
-    {
-        "pk": 8, 
-        "model": "coverages.axisrecord", 
-        "fields": {
-            "offset_vector_component": -0.031355000000000001, 
-            "label": "lat", 
-            "high": 450, 
-            "grid": 4, 
-            "low": 0, 
-            "origin_component": 46.299999999999997, 
-            "dimension_idx": 2
-        }
-    }, 
-    {
-        "pk": 9, 
-        "model": "coverages.axisrecord", 
-        "fields": {
-            "offset_vector_component": 0.031355000000000001, 
-            "label": "lon", 
-            "high": 540, 
-            "grid": 5, 
-            "low": 0, 
-            "origin_component": 11.331755000000001, 
-            "dimension_idx": 1
-        }
-    }, 
-    {
-        "pk": 10, 
-        "model": "coverages.axisrecord", 
-        "fields": {
-            "offset_vector_component": -0.031355000000000001, 
-            "label": "lat", 
-            "high": 448, 
-            "grid": 5, 
-            "low": 0, 
-            "origin_component": 46.268644999999999, 
-            "dimension_idx": 2
-        }
-    }, 
-    {
-        "pk": 11, 
-        "model": "coverages.axisrecord", 
-        "fields": {
-            "offset_vector_component": 0.031355000000000001, 
-            "label": "lon", 
-            "high": 540, 
-            "grid": 6, 
-            "low": 0, 
-            "origin_component": -3.75, 
-            "dimension_idx": 1
-        }
-    }, 
-    {
-        "pk": 12, 
-        "model": "coverages.axisrecord", 
-        "fields": {
-            "offset_vector_component": -0.031355000000000001, 
-            "label": "lat", 
-            "high": 448, 
-            "grid": 6, 
-            "low": 0, 
-            "origin_component": 46.268644999999999, 
-            "dimension_idx": 2
-        }
-    }, 
-    {
-        "pk": 13, 
-        "model": "coverages.axisrecord", 
-        "fields": {
-            "offset_vector_component": 0.031355000000000001, 
-            "label": "lon", 
-            "high": 539, 
-            "grid": 7, 
-            "low": 0, 
-            "origin_component": 8.4784500000000005, 
-            "dimension_idx": 1
-        }
-    }, 
-    {
-        "pk": 14, 
-        "model": "coverages.axisrecord", 
-        "fields": {
-            "offset_vector_component": -0.031355000000000001, 
-            "label": "lat", 
-            "high": 448, 
-            "grid": 7, 
-            "low": 0, 
-            "origin_component": 46.268644999999999, 
-            "dimension_idx": 2
-        }
-    }, 
+    },
     {
         "pk": 1, 
         "model": "coverages.filerecord", 
@@ -1406,8 +1964,8 @@
             "range_type": 3, 
             "visible": false, 
             "eo_metadata": 2, 
-            "grid": 1, 
             "file": 1, 
+            "extent": 1,
             "layer_metadata": [], 
             "automatic": true, 
             "coverage_id": "MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed"
@@ -1422,8 +1980,8 @@
             "range_type": 3, 
             "visible": false, 
             "eo_metadata": 3, 
-            "grid": 2, 
             "file": 2, 
+            "extent": 2,
             "layer_metadata": [], 
             "automatic": true, 
             "coverage_id": "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed"
@@ -1438,8 +1996,8 @@
             "range_type": 3, 
             "visible": false, 
             "eo_metadata": 4, 
-            "grid": 3, 
             "file": 3, 
+            "extent": 3,
             "layer_metadata": [], 
             "automatic": true, 
             "coverage_id": "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"
@@ -1454,8 +2012,8 @@
             "range_type": 1, 
             "visible": false, 
             "eo_metadata": 6, 
-            "grid": 5, 
             "file": 4, 
+            "extent": 4,
             "layer_metadata": [], 
             "automatic": true, 
             "coverage_id": "mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced"
@@ -1470,8 +2028,8 @@
             "range_type": 1, 
             "visible": false, 
             "eo_metadata": 7, 
-            "grid": 6, 
             "file": 5, 
+            "extent": 5,
             "layer_metadata": [], 
             "automatic": true, 
             "coverage_id": "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced"
@@ -1486,8 +2044,8 @@
             "range_type": 1, 
             "visible": false, 
             "eo_metadata": 8, 
-            "grid": 7, 
             "file": 6, 
+            "extent": 6,
             "layer_metadata": [], 
             "automatic": true, 
             "coverage_id": "mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced"
@@ -1503,14 +2061,14 @@
                 5, 
                 6
             ], 
-            "shape_file_path": "../autotest/data/meris/mosaic_cache/mosaic_MER_FRS_1P_RGB_reduced/tindex.shp", 
+            "storage_dir": "../autotest/data/meris/mosaic_cache/mosaic_MER_FRS_1P_RGB_reduced/", 
             "eo_id": "mosaic_MER_FRS_1P_RGB_reduced", 
             "range_type": 1, 
             "image_pattern": "*.tif", 
             "eo_metadata": 5, 
-            "grid": 4, 
             "layer_metadata": [], 
-            "coverage_id": "mosaic_MER_FRS_1P_RGB_reduced"
+            "coverage_id": "mosaic_MER_FRS_1P_RGB_reduced",
+            "extent": 1
         }
     }, 
     {
@@ -1523,7 +2081,7 @@
     }, 
     {
         "pk": 8, 
-        "model": "coverages.rectifieddatasetseriesrecord", 
+        "model": "coverages.datasetseriesrecord", 
         "fields": {
             "image_pattern": "*_compressed.tif", 
             "rect_stitched_mosaics": [
