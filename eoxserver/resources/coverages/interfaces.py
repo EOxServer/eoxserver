@@ -32,636 +32,527 @@ This module contains the definition of coverage and dataset series
 interfaces. These provide a harmonized interface to coverage data that
 can be stored in different formats and has different types.
 """
-import logging
 
-from eoxserver.core.exceptions import (
-    InternalError, InvalidParameterException, UnknownCRSException
-)
-from eoxserver.core.util.filetools import findFiles
-from eoxserver.core.util.timetools import getDateTime
-from eoxserver.resources.coverages.models import (
-    SingleFileCoverageRecord, RectifiedDatasetRecord,
-    RectifiedDatasetSeriesRecord, RectifiedStitchedMosaicRecord,
-    RectifiedGridRecord
-)
-from eoxserver.resources.coverages.domainset import (
-    RectifiedGrid, getGridFromFile
-)
-from eoxserver.resources.coverages.rangetype import (
-    Channel, NilValue, getRangeTypeFromFile
-)
-from eoxserver.resources.coverages.metadata import MetadataInterfaceFactory
-from eoxserver.resources.coverages.exceptions import (
-    NoSuchCoverageException, NoSuchDatasetSeriesException
-)
+from datetime import datetime
 
+from django.contrib.gis.geos import GEOSGeometry
+
+from eoxserver.core.interfaces import *
+from eoxserver.core.registry import RegisteredInterface
+from eoxserver.core.resources import ResourceInterface
+from eoxserver.resources.coverages.rangetype import RangeType
 
 #-----------------------------------------------------------------------
 # Abstract Interface Definitions
 #-----------------------------------------------------------------------
 
-class CoverageInterface(object):
+class CoverageInterface(ResourceInterface):
     """
     The parent class of all coverage interfaces. It defines methods for
-    access to coverage data.
+    access to coverage data. It inherits from
+    :class:`~.ResourceInterface`.
+    
+    :Interface ID: resources.coverages.interfaces.Coverage
+    
+    .. method:: getCoverageId
+    
+       This method shall return the coverage id of the coverage resource
+       wrapped by the implementation
+    
+    .. method:: getCoverageSubtype
+    
+       This method shall return the GML coverage subtype of the coverage
+       resource wrapped by the implementation
+       
+    .. method:: getType
+    
+       This method shall return the EOxServer coverage type of the
+       coverage wrapped by the implementation. Current choices are:
+    
+       * ``file``
+       * ``eo.rect_dataset``
+       * ``eo.ref_dataset``
+       * ``eo.rect_stitched_mosaic``
+       * ``eo.ref_stitched_mosaic``
+    
+    .. method:: getSize
+    
+       This method shall return the size of the coverage wrapped by the
+       implementation. The return value is expected to be a 2-tuple
+       of integers ``(xsize, ysize)``.
+       
+    .. method:: getRangeType
+    
+       This method shall return a :class:`~.RangeType` instance
+       containing the data type and band structure of the coverage
+       wrapped by the implementation
+    
+    .. method:: getLayerMetadata
+    
+       This method shall return a list containing 2-tuples of MapServer
+       metadata key-value-pairs that will be tagged on the MapServer
+       layer representing this coverage.
     """
-    def __init__(self, wcseo_object):
-        self.wcseo_object = wcseo_object
-
-    def getCoverageId(self):
-        """
-        Returns the coverage id.
-        
-        @return A string representing the coverage id
-        """
-        return None
     
-    def getCoverageSubtype(self):
-        """
-        Returns the GML coverage subtype.
-        
-        @return A string representing the coverage subtype
-        """
-        return None
-    
-    def getEOCoverageSubtype(self):
-        """
-        Returns the EO coverage subtype.
-        
-        @return A string representing the EO coverage subtype
-        """
-        return None
-    
-    def getType(self):
-        """
-        Returns the EOxServer coverage type. Current choices are
-        <ul>
-        <li><tt>"file"</tt></li>
-        <li><tt>"eo.rect_dataset"</tt></li>
-        <li><tt>"eo.ref_dataset"</tt></li>
-        <li><tt>"eo.rect_stitched_mosaic"</tt></li>
-        <li><tt>"eo.ref_stitched_mosaic"</tt></li>
-        </ul>
-        
-        @return A string representing the coverage type
-        """
-        return None
-
-    def getDatasets(self, **kwargs):
-        """
-        Returns the EO datasets contained in this coverage; if this
-        coverage is a dataself itself, returns a reference to this 
-        coverage interface. If provided, the filenames are selected
-        according to the keyword arguments included in the request; the
-        specific behaviour depends on the type of coverage.
-        
-        @param  kwargs  keyword arguments for selection of datasets
-        @return         a list of {@link eoxserver.lib.interfaces.EOxSDatasetInterface} objects
-        """
-        
-        return None
-    
-    def getGrid(self):
-        """
-        Return the coverage's GML Grid information
-        
-        @return an {@link eoxserver.lib.domainset.EOxSRectifiedGrid} object
-        """
-        return None
-    
-    def getRangeType(self):
-        """
-        Return the GML RangeType information for the coverage
-        
-        @return a list of {@link eoxserver.lib.rangetype.EOxSChannel} objects
-        """
-        
-        return None
-    
-    def getLayerMetadata(self):
-        """
-        Returns metadata key-value-pairs to configure
-        the MapServer layer with.
-        
-        @return a list of tuples of metadata key-value-pairs
-        """
-        return None
-
-class EOMetadataInterface(object):
-    def getEOID(self):
-        """
-        Returns the EO ID of the EO Coverage or EO Dataset Series.
-        
-        @return a string representing the EO ID
-        """
-        return None
-
-    def getBeginTime(self):
-        """
-        Returns the acquisition begin time of the EO Coverage or
-        EO Dataset Series.
-        
-        @ return a <tt>datetime</tt> object representing the begin time
-        """
-        return None
-        
-    def getEndTime(self):
-        """
-        Returns the acquisition end time of the EO Coverage or
-        EO Dataset Series.
-        
-        @ return a <tt>datetime</tt> object representing the end time
-        """
-        return None
-        
-    def getFootprint(self):
-        """
-        Returns the footprint of the EO Coverage or EO Dataset Series.
-        
-        @return a <tt>django.contrib.gis.geos.Polygon</tt> object
-                containing the footprint
-        """
-        return None
-    
-    def getWGS84Extent(self):
-        """
-        Returns the extent of the EO Coverage or EO Dataset Series
-        
-        @return a 4-tuple of (minx, miny, maxx, maxy)
-        """
-        return None
-        
-    def getEOGML(self):
-        """
-        Returns the EO GML associated with the coverage
-        
-        @return a string containing the EO GML
-        """
-        return None
-    
-class DatasetInterface(CoverageInterface):
-    def getFilename(self):
-        return None
-    
-    def getQuicklookPath(self):
-        return None
-        
-    def getMetadataPath(self):
-        return None
-    
-    def getMetadataFormat(self):
-        return None
-
-class EODatasetInterface(DatasetInterface, EOMetadataInterface):
-    def getLineage(self):
-        return None
-
-class StitchedMosaicInterface(CoverageInterface, EOMetadataInterface):
-    def getLineage(self):
-        return None
-    
-    def getShapeFilePath(self):
-        return None
-
-class DatasetSeriesInterface(EOMetadataInterface):
-    def __init__(self, wcseo_object):
-        self.wcseo_object = wcseo_object
-    
-    def getType(self):
-        """
-        Returns the dataset series type. Current choices are
-        <ul>
-        <li><tt>"eo.rect_dataset_series"</tt></li>
-        <li><tt>"eo.ref_dataset_series"</tt></li>
-        </ul>
-        
-        @return A string representing the dataset series type
-        """
-        return None
-    
-    def getDatasets(self, **kwargs):
-        """
-        Returns the EO datasets contained in the dataset series. If
-        provided, the filenames are selected according to the keyword
-        arguments included in the request.
-        
-        @param  kwargs  keyword arguments for selection of datasets
-        @return         a list of {@link eoxserver.lib.interfaces.EOxSEODatasetInterface} objects
-        """
-        return None
-        
-#-----------------------------------------------------------------------
-# Implementation of model interfaces
-#-----------------------------------------------------------------------
-
-class CoverageRecordInterface(object):
-    def getCoverageId(self):
-        return self.wcseo_object.coverage_id
-            
-    def _getRectifiedGrid(self):
-        offset_vectors = []
-        dim = self.wcseo_object.grid.axis_set.count()
-        i = 0
-        for axis in self.wcseo_object.grid.axis_set.order_by('dimension_idx'):
-            offset_vectors.append(tuple([0.0 for j in range(0,i)] + [axis.offset_vector_component] + [0.0 for j in range(i+1, dim)]))
-            i += 1
-
-        return RectifiedGrid(
-            dim = self.wcseo_object.grid.axis_set.count(),
-            low = tuple([axis.low for axis in self.wcseo_object.grid.axis_set.order_by('dimension_idx')]),
-            high = tuple([axis.high for axis in self.wcseo_object.grid.axis_set.order_by('dimension_idx')]),
-            axis_labels = tuple([axis.label for axis in self.wcseo_object.grid.axis_set.order_by('dimension_idx')]),
-            srid = self.wcseo_object.grid.srid,
-            origin = tuple([axis.origin_component for axis in self.wcseo_object.grid.axis_set.order_by('dimension_idx')]),
-            offsets = offset_vectors
-        )
-    
-    def _getReferenceableGrid(self):
-        raise InternalError("Referenceable grids are not implemented")
-
-    def getGrid(self):
-        if isinstance(self.wcseo_object.grid, RectifiedGridRecord):
-            return self._getRectifiedGrid()
-        else:
-            return self._getReferenceableGrid()
-
-    def getRangeType(self):
-        range_type = []
-        
-        for channel in self.wcseo_object.range_type.channels.order_by('rangetype2channel__no'):
-            range_type.append(Channel(
-                name = channel.name,
-                identifier = channel.identifier,
-                description = channel.description,
-                definition = channel.definition,
-                quality=None,
-                nil_values = [NilValue(reason=nil_value.reason, value=nil_value.value) for nil_value in channel.nil_values.all()],
-                uom = channel.uom,
-                allowed_values_start = channel.allowed_values_start,
-                allowed_values_end = channel.allowed_values_end,
-                allowed_values_significant_figures = channel.allowed_values_significant_figures
-            ))
-        
-        return range_type
-    
-    def getLayerMetadata(self):
-        return [(kvp.key, kvp.value) for kvp in self.wcseo_object.layer_metadata.all()]
-        
-class EOMetadataRecordInterface(object):
-    def getBeginTime(self):
-        return self.wcseo_object.eo_metadata.timestamp_begin
-    
-    def getEndTime(self):
-        return self.wcseo_object.eo_metadata.timestamp_end
-    
-    def getFootprint(self):
-        return self.wcseo_object.eo_metadata.footprint
-    
-    def getWGS84Extent(self):
-        return self.wcseo_object.eo_metadata.footprint.extent
-        
-    def getEOGML(self):
-        return self.wcseo_object.eo_metadata.eo_gml
-
-class EOCoverageRecordInterface(CoverageRecordInterface, EOMetadataRecordInterface):
-    def getEOID(self):
-        return self.wcseo_object.eo_id
-    
-    def getLineage(self):
-        return None # TODO: Lineage
+    REGISTRY_CONF = {
+        "name": "Coverage Interface",
+        "intf_id": "resources.coverages.interfaces.Coverage"
+    }
 
 
-class FileRecordInterface(object):
-    def getFilename(self):
-        return self.wcseo_object.file.path
+    getCoverageId = Method(
+        returns=StringArg("@return")
+    )
     
-    def getQuicklookPath(self):
-        return self.wcseo_object.file.quicklook_path
-    
-    def getMetadataPath(self):
-        return self.wcseo_object.file.metadata_path
+    getCoverageSubtype = Method(
+        returns=StringArg("@return")
+    )
 
-    def getMetadataFormat(self):
-        return self.wcseo_object.file.metadata_format
+    getType = Method(
+        returns=StringArg("@return")
+    )
 
-class RectifiedCompositeObjectInterface(object):
-    def getDatasets(self, **kwargs):
-        if "containment" in kwargs:
-            containment = kwargs["containment"].lower()
-            if containment not in ("overlaps", "contains"):
-                raise InvalidParameterException("The 'containment' must be either 'overlaps' or 'contains', but is '%s'" % containment)
-        else:
-            containment = "overlaps"
-        
-        if "slices" in kwargs:
-            slices = kwargs["slices"]
-        else:
-            slices = []
-
-        if "trims" in kwargs:
-            trims = kwargs["trims"]
-        else:
-            trims = []
-
-        spatial_slices = []
-        spatial_trims = []
-        
-        query_set = self.wcseo_object.rect_datasets.all()
-        
-        for slice in slices:
-            if slice.dimension in ("t", "time", "phenomenonTime"): # TODO
-                if slice.crs is None or slice.crs == "http://www.opengis.net/def/trs/ISO-8601/0/Gregorian+UTC":
-                    query_set = query_set.filter(
-                        eo_metadata__timestamp_begin__lte=slice.slice_point,
-                        eo_metadata__timestamp_end__gte=slice.slice_point
-                    )
-                else:
-                    raise UnknownCRSException("Time reference system '%s' not recognized. Please use UTC." % slice.crs)
-            elif slice.dimension in ("x", "long", "Long"): # TODO
-                spatial_slices.append(slice)
-            elif slice.dimension in ("y", "lat", "Lat"): # TODO
-                spatial_slices.append(slice)
-
-        for trim in trims:
-            if trim.dimension in ("t", "time", "phenomenonTime"): # TODO
-                if trim.crs is None or trim.crs == "http://www.opengis.net/def/trs/ISO-8601/0/Gregorian+UTC":
-                    if trim.trim_low is not None:
-                        dt_low = trim.trim_low
-                    else:
-                        dt_low = self.getBeginTime()
-                        
-                    if trim.trim_high is not None:
-                        dt_high = trim.trim_high
-                    else:
-                        dt_high = self.getEndTime()
-                    
-                    if containment == "overlaps":
-                        query_set = query_set.exclude(
-                            eo_metadata__timestamp_begin__gt=dt_high
-                        ).exclude(
-                            eo_metadata__timestamp_end__lt=dt_low
-                        )
-                    elif containment == "contains":
-                        query_set = query_set.filter(
-                            eo_metadata__timestamp_begin__gte=dt_low,
-                            eo_metadata__timestamp_end__lte=dt_high
-                        )
-                else:
-                    raise UnknownCRSException("Time reference system '%s' not recognized. Please use UTC." % trim.crs)
-            elif trim.dimension in ("x", "long", "Long", "y", "lat", "Lat"): # TODO
-                spatial_trims.append(trim)
-                
-        datasets = []
-        for dataset_record in query_set:
-            dataset = RectifiedDatasetRecordInterface(dataset_record)
-            datasets.extend(dataset.getDatasets(containment=containment, slices=spatial_slices, trims=spatial_trims))
-        
-        return datasets
+    getSize = Method(
+        returns=ObjectArg("@return", arg_class=tuple)
+    )
     
 
-class SingleFileCoverageRecordInterface(CoverageRecordInterface, FileRecordInterface, DatasetInterface):
-    def getCoverageSubtype(self):
-        return "RectifiedGridCoverage"
+    getRangeType = Method(
+        returns=ObjectArg("@return", arg_class=RangeType)
+    )
     
-    def getEOCoverageSubtype(self):
-        return "RectifiedDataset"
-    
-    def getType(self):
-        return "file"
-    
-    def getDatasets(self, **kwargs):
-        return [self]
+    getLayerMetadata = Method(
+        returns=ListArg("@return", arg_class=tuple)
+    )
 
-class RectifiedDatasetRecordInterface(EOCoverageRecordInterface, FileRecordInterface, EODatasetInterface):
-    def getCoverageSubtype(self):
-        return "RectifiedGridCoverage"
-        
-    def getEOCoverageSubtype(self):
-        return "RectifiedDataset"
-        
-    def getType(self):
-        return "eo.rect_dataset"
+class RectifiedGridInterface(RegisteredInterface):
+    """
+    This interface defines methods to access rectified grid information,
+    namely the coordinate reference system ID and the geographical
+    extent of the coverage. It is intended to be used as mix-in for
+    coverage interfaces.
     
-    def getDatasets(self, **kwargs):
-        if "containment" in kwargs:
-            containment = kwargs["containment"].lower()
-            if containment not in ("overlaps", "contains"):
-                raise InvalidParameterException("The 'containment' must be either 'overlaps' or 'contains', but is '%s'" % containment)
-        else:
-            containment = "overlaps"
+    :Interface ID: resources.coverages.interfaces.RectifiedGrid
+    
+    .. method:: getSRID
+    
+       This method shall return the EPSG SRID of the coverage's
+       coordinate reference system (CRS)
+    
+    .. method:: getExtent
+    
+       This method shall return the extent of the coverage wrapped by
+       the implementation. The return value is expected to be a 4-tuple
+       of floating point coordinates (minx, miny, maxx, maxy) expressed
+       in the CRS described by the SRID returned with :meth:`getSRID`.
+    """
+    
+    REGISTRY_CONF = {
+        "name": "Rectified Grid Interface (mix-in for coverages)",
+        "intf_id": "resources.coverages.interfaces.RectifiedGrid"
+    }
+    
+    getSRID = Method(
+        returns=IntArg("@return")
+    )
         
-        if "slices" in kwargs:
-            slices = kwargs["slices"]
-        else:
-            slices = []
+    getExtent = Method(
+        returns=ObjectArg("@return", arg_class=tuple)
+    )
 
-        if "trims" in kwargs:
-            trims = kwargs["trims"]
-        else:
-            trims = []
-            
-        for slice in slices:
-            if slice.dimension in ("t", "time", "phenomenonTime") and not self.timeSliceWithin(slice): # TODO
-                return []
-            elif not self.spatialSliceWithin(slice):
-                return []
-        
-        for trim in trims:
-            if trim.dimension in ("t", "time", "phenomenonTime"): # TODO
-                if containment == "overlaps" and not self.timeOverlaps(trim):
-                    return []
-                elif containment == "contains" and not self.timeWithin(trim):
-                    return []
-            
-            else:
-                if containment == "overlaps" and not self.spatiallyOverlaps(trim):
-                    return []
-                elif containment == "contains" and not self.spatiallyWithin(trim):
-                    return []
-        
-        return [self]
+class ReferenceableGridInterface(RegisteredInterface):
+    """
+    This interface defines methods for access to referenceable grid
+    information.
     
-    def timeSliceWithin(self, slice):
-        if slice.crs is None or slice.crs == "http://www.opengis.net/def/trs/ISO-8601/0/Gregorian+UTC":
-            return (self.getBeginTime() <= slice.slice_point and\
-                    slice.slice_point <= self.getEndTime())
-        else:
-            raise UnknownCRSException("Time reference system '%s' not recognized. Please use UTC." % slice.crs)
+    .. note:: the design of this interface is still TBD
     
-    def timeOverlaps(self, trim):
-        if trim.crs is None or trim.crs == "http://www.opengis.net/def/trs/ISO-8601/0/Gregorian+UTC":
-            if trim.trim_low is not None:
-                dt_low = trim.trim_low
-            else:
-                dt_low = self.getBeginTime()
-                
-            if trim.trim_high is not None:
-                dt_high = trim.trim_high
-            else:
-                dt_high = self.getEndTime()
-            
-            return ((dt_low <= self.getBeginTime() and self.getBeginTime() <= dt_high) or\
-                    (dt_low <= self.getEndTime() and self.getEndTime() <= dt_high))
-        else:
-            raise UnknownCRSException("Time reference system '%s' not recognized. Please use UTC." % trim.crs)
+    :Interface ID: resources.coverages.interfaces.ReferenceableGrid
+    """
+    
+    REGISTRY_CONF = {
+        "name": "Referenceable Grid Interface (mix-in for coverages)",
+        "intf_id": "resources.coverages.interfaces.ReferenceableGrid"
+    }
+    
+    pass # TODO: methods for access to referenceable grid information
+    
+class DatasetInterface(RegisteredInterface):
+    """
+    This interface shall wrap Datasets that are stored in data
+    packages together with metadata and quicklooks.
+    
+    :Interface ID: resources.coverages.interfaces.Dataset
+    
+    .. method:: getFilename
 
-    def timeWithin(self, trim):
-        if trim.crs is None or trim.crs == "http://www.opengis.net/def/trs/ISO-8601/0/Gregorian+UTC":
-            if trim.trim_low is not None:
-                dt_low = trim.trim_low
-            else:
-                dt_low = self.getBeginTime()
-                
-            if trim.trim_high is not None:
-                dt_high = trim.trim_high
-            else:
-                dt_high = self.getEndTime()
-            
-            return (dt_low <= self.getBeginTime() and self.getEndTime() <= dt_high)
-        else:
-            raise UnknownCRSException("Time reference system '%s' not recognized. Please use UTC." % trim.crs)
+       This method shall return the file name of the dataset wrapped by
+       the implementation
     
-    def spatialSliceWithin(self, slice):
-        grid = self.getGrid()
-        
-        return slice.crosses(grid)
-    
-    def spatiallyOverlaps(self, trim):
-        return trim.overlaps(self.getFootprint())
-    
-    def spatiallyWithin(self, trim):
-        return trim.contains(self.getFootprint())
+    .. method:: getQuicklookPath
 
-class RectifiedStitchedMosaicRecordInterface(EOCoverageRecordInterface, RectifiedCompositeObjectInterface, StitchedMosaicInterface):
-    def getCoverageSubtype(self):
-        return "RectifiedGridCoverage"
+       This method shall return the path to the quicklook of a dataset
+       wrapped by the implementation. In case there is no quicklook
+       defined the empty string shall be returned.
     
-    def getEOCoverageSubtype(self):
-        return "RectifiedStitchedMosaic"
+    .. method:: getMetadataPath
     
-    def getType(self):
-        return "eo.rect_mosaic"
-        
-    def getShapeFilePath(self):
-        return self.wcseo_object.shape_file_path
+       This method shall return the path to the metadata file of the
+       dataset wrapped by the implementation
+
+    .. method:: getMetadataFormat
+
+       This method shall return the name of the format of the metadata
+       file associated with the dataset.
+
+    """
     
-class RectifiedDatasetSeriesRecordInterface(EOMetadataRecordInterface, RectifiedCompositeObjectInterface, DatasetSeriesInterface):
-    def getEOID(self):
-        return self.wcseo_object.eo_id
-        
-    def getType(self):
-        return "eo.rect_dataset_series"
+    REGISTRY_CONF = {
+        "name": "Dataset Interface",
+        "intf_id": "resources.coverages.interfaces.Dataset"
+    }
     
+    getFilename = Method(
+        returns=StringArg("@return")
+    )
+    
+    getQuicklookPath = Method(
+        returns=StringArg("@return")
+    )
+    
+    getMetadataPath = Method(
+        returns=StringArg("@return")
+    )
+    
+    getMetadataFormat = Method(
+        returns=StringArg("@return")
+    )
 
-#-----------------------------------------------------------------------
-# Factories
-#-----------------------------------------------------------------------
+class TileIndexInterface(RegisteredInterface):
+    """
+    This interface provides the methods necessary to access tile index
+    information for coverages.
+    
+    :Interface ID: resources.coverages.interfaces.TileIndex
+    
+    .. method:: getShapeFilePath
+    
+       This method shall return the path to the shape file that holds
+       information about the tiles the coverage is split up into.
+    """
+    REGISTRY_CONF = {
+        "name": "Tile Index Interface",
+        "intf_id": "resources.coverages.interfaces.TileIndex"
+    }
+    
+    getShapeFilePath = Method(
+        returns=StringArg("@return")
+    )
 
-class CoverageInterfaceFactory(object):
-    @classmethod
-    def getCoverageInterface(cls, coverage_id):
-        try:
-            coverage = SingleFileCoverageRecord.objects.get(coverage_id=coverage_id)
-            return SingleFileCoverageRecordInterface(coverage)
-        except Exception, e:
-            if isinstance(e, SingleFileCoverageRecord.DoesNotExist):
-                pass
-            elif isinstance(e, SingleFileCoverageRecord.MultipleObjectsReturned):
-                raise InternalError("Multiple single file coverages with coverage id '%s'." % coverage_id)
-            else:
-                raise
-        
-        try:
-            coverage = RectifiedDatasetRecord.objects.get(coverage_id=coverage_id)
-            return RectifiedDatasetRecordInterface(coverage)
-        except Exception, e:
-            if isinstance(e, RectifiedDatasetRecord.DoesNotExist):
-                pass
-            elif isinstance(e, RectifiedDatasetRecord.MultipleObjectsReturned):
-                raise InternalError("Multiple rectified datasets with coverage id '%s'." % coverage_id)
-            else:
-                raise
-        
-        try:
-            coverage = RectifiedStitchedMosaicRecord.objects.get(coverage_id=coverage_id)
-            return RectifiedStitchedMosaicRecordInterface(coverage)
-        except Exception, e:
-            if isinstance(e, RectifiedStitchedMosaicRecord.DoesNotExist):
-                pass
-            elif isinstance(e, RectifiedStitchedMosaicRecord.MultipleObjectsReturned):
-                raise InternalError("Multiple rectified stitched mosaics with coverage id '%s'." % coverage_id)
-            else:
-                raise
-                
-        # TODO: configuration file coverages
-        
-        raise NoSuchCoverageException("No coverage with coverage id '%s' found" % coverage_id)
-        
-    @classmethod
-    def getCoverageInterfaceByEOID(cls, eo_id):
-        try:
-            coverage = RectifiedDatasetRecord.objects.get(eo_id=eo_id)
-            return RectifiedDatasetRecordInterface(coverage)
-        except Exception, e:
-            if isinstance(e, RectifiedDatasetRecord.DoesNotExist):
-                pass
-            elif isinstance(e, RectifiedDatasetRecord.MultipleObjectsReturned):
-                raise InternalError("Multiple rectified datasets with EO id '%s'." % eo_id)
-            else:
-                raise
-        
-        try:
-            coverage = RectifiedStitchedMosaicRecord.objects.get(eo_id=eo_id)
-            return RectifiedStitchedMosaicRecordInterface(coverage)
-        except Exception, e:
-            if isinstance(e, RectifiedStitchedMosaicRecord.DoesNotExist):
-                pass
-            elif isinstance(e, RectifiedStitchedMosaicRecord.MultipleObjectsReturned):
-                raise InternalError("Multiple rectified stitched mosaics with EO id '%s'." % eo_id)
-            else:
-                raise
-        
-        raise NoSuchCoverageException("No coverage with EO id '%s' found" % eo_id)
+class EOMetadataInterface(RegisteredInterface):
+    """
+    This is the interface for EO Coverage subtypes as defined by the
+    Earth Observation Application Profile for WCS 2.0. It should not be
+    implemented directly; you'd rather use its descendants.
+    
+    :Interface ID: resources.coverages.interfaces.EOMetadata
+    
+    .. method:: getEOID
+    
+       This method shall return the EO ID of the coverage wrapped by the
+       implementation
+    
+    .. method:: getBeginTime
+    
+       This method shall return the acquisition begin date and time of
+       the EO coverage wrapped by the implementation. The type of the
+       return value is expected to be :class:`datetime.datetime`.
 
-    @classmethod
-    def getVisibleCoverageInterfaces(cls):
-        cov_ints = []
-        
-        for coverage in SingleFileCoverageRecord.objects.all():
-            cov_ints.append(SingleFileCoverageRecordInterface(coverage))
-        
-        for coverage in RectifiedDatasetRecord.objects.filter(visible=True):
-            cov_ints.append(RectifiedDatasetRecordInterface(coverage))
-        
-        for coverage in RectifiedStitchedMosaicRecord.objects.all():
-            cov_ints.append(RectifiedStitchedMosaicRecordInterface(coverage))
-        
-        return cov_ints
+    .. method:: getEndTime
 
-class DatasetSeriesFactory(object):
-    @classmethod
-    def getDatasetSeriesInterface(cls, eo_id):
-        try:
-            series = RectifiedDatasetSeriesRecord.objects.get(eo_id=eo_id)
-            return RectifiedDatasetSeriesRecordInterface(series)
-        except Exception, e:
-            if isinstance(e, RectifiedDatasetSeriesRecord.DoesNotExist):
-                pass
-            elif isinstance(e, RectifiedDatasetSeriesRecord.MultipleObjectsReturned):
-                raise InternalError("Multiple rectified dataset series with EO id '%s'." % eo_id)
-            else:
-                raise
-        
-        # TODO: configuration file series
-        
-        raise NoSuchDatasetSeriesException("No dataset series with EO id '%s' found." % eo_id)
-                
-    @classmethod
-    def getAllDatasetSeriesInterfaces(cls):
-        series_ints = []
-        
-        for series in RectifiedDatasetSeriesRecord.objects.all():
-            series_ints.append(RectifiedDatasetSeriesRecordInterface(series))
-        
-        return series_ints
+       This method shall return the acquisition end date and time of the
+       EO coverage wrapped by the implementation. The type of the return
+       value is expected to be :class:`datetime.datetime`.
+    
+    .. method:: getFootprint
 
+       This method shall return the acquisition footprint of the EO
+       coverage wrapped by the implementation. The type of the return
+       value is expected to be ``django.contrib.gis.geos.GEOSGeometry``
+    
+    .. method:: getWGS84Extent
+    
+       This method shall return the WGS 84 extent of the EO coverage
+       wrapped by the implementation. The return value shall be a 4-tuple
+       of floating point coordinates (minlon, minlat, maxlon, maxlat)
+       given in the WGS 84 coordinate system (EPSG:4326).
+
+    .. method:: getEOGML
+
+       This method shall return the EO GML (EO O&M) conformant metadata
+       stored with the EO coverage. If no EO O&M metadata is available,
+       the empty string will be returned
+
+    """
+    
+    REGISTRY_CONF = {
+        "name": "EO Coverage Interface",
+        "intf_id": "resources.coverages.interfaces.EOMetadata"
+    }
+    
+    getEOID = Method(
+        returns=StringArg("@return")
+    )
+
+    getBeginTime = Method(
+        returns=ObjectArg("@return", arg_class=datetime)
+    )
+    
+    getEndTime = Method(
+        returns=ObjectArg("@return", arg_class=datetime)
+    )
+    
+    getFootprint = Method(
+        returns=ObjectArg("@return", arg_class=GEOSGeometry)
+    )
+    
+    getWGS84Extent = Method(
+        returns=ObjectArg("@return", arg_class=tuple)
+    )
+    
+    getEOGML = Method(
+        returns=StringArg("@return")
+    )
+
+class EOCoverageInterface(CoverageInterface, EOMetadataInterface):
+    """
+    This interface is the base interface for implementations of EO
+    Coverages according to the WCS 2.0 EO-AP. It is not intended to
+    be implemented directly; rather one of its descendants shall
+    be used.
+    
+    :Interface ID: resources.coverages.interfaces.EOCoverage
+    
+    .. method:: getEOCoverageSubtype
+    
+       This method shall return the EO coverage subtype of the coverage
+       wrapped by the implementation
+       
+    .. method:: getDatasets(filter_exprs=None)
+    
+       This method shall return a list of dataset wrappers for the
+       datasets contained in the coverage wrapped by the implemention.
+       The optional ``filter_exprs`` argument is expected to be a list
+       of filter expressions to be applied to the datasets or ``None``.
+       In case no contained dataset matches the filter expressions an
+       empty list shall be returned.
+    
+       In case of atomic coverages which do not contain any datasets
+       (e.g. RectifiedDatasets themselves) a list containing the
+       coverage wrapper itself shall be returned. In case filter
+       expressions are provided with the call these shall be applied;
+       if the coverage does not match them an empty list shall be
+       returned.
+    
+    .. method:: getLineage
+    
+       This method shall return the content of the lineage object stored
+       with the EO coverage wrapped by the implementation. Note that this
+       element is not yet specified in detail in the specification at
+       the moment (2011-05-26). If no lineage is available, None shall
+       be returned.
+    
+    .. method:: getContainers
+    
+       This method shall return a list of container wrappers (Stitched
+       Mosaic or Dataset Series wrappers) the coverage is contained in.
+       The empty list shall be returned if the coverage is not related
+       to any container object.
+       
+    .. method:: getContainerCount
+    
+       This method shall return the number of container objects the
+       EO Coverage is contained in.
+    
+    .. method:: containedIn(res_id)
+    
+       This method shall return ``True`` if the EO coverage is
+       contained in the container object (Stitched Mosaic or Dataset
+       Series) with resource primary key ``res_id``, ``False``
+       otherwise.
+    
+    .. method:: contains(res_id)
+    
+       This method shall return ``True`` if the EO coverage is a
+       container object and contains the coverage with resource
+       primary key ``res_id``, ``False`` otherwise.
+    """
+    REGISTRY_CONF = {
+        "name": "EO Coverage Interface",
+        "intf_id": "resources.coverages.interfaces.EOCoverage"
+    }
+
+
+    getEOCoverageSubtype = Method(
+        returns=StringArg("@return")
+    )
+
+    getDatasets = Method(
+        ListArg("filter_exprs", default=None),
+        returns=ListArg("@return")
+    )
+    
+    getLineage = Method(
+        returns=ObjectArg("@return")
+    )
+    
+    getContainers = Method(
+        returns=ListArg("@return")
+    )
+    
+    getContainerCount = Method(
+        returns=IntArg("@return")
+    )
+    
+    containedIn = Method(
+        IntArg("res_id"),
+        returns=BoolArg("@return")
+    )
+    
+    contains = Method(
+        IntArg("res_id"),
+        returns=BoolArg("@return")
+    )
+    
+class EODatasetInterface(EOCoverageInterface, DatasetInterface):
+    """
+    This is the base interface for EO Dataset implementations according
+    to WCS 2.0 EO-AP. It is not intended to be implemented directly;
+    rather one of its descendants shall be used. It inherits from
+    :class:`~.EOCoverageInterface` and :class:`~.DatasetInterface`.
+    
+    :Interface ID: resources.coverages.interfaces.EODataset
+    """
+    REGISTRY_CONF = {
+        "name": "EO Dataset Interface",
+        "intf_id": "resources.coverages.interfaces.EODataset"
+    }
+
+class RectifiedDatasetInterface(EODatasetInterface, RectifiedGridInterface):
+    """
+    This class is intended for implementations of RectifiedDataset
+    objects according to the WCS 2.0 EO-AP. It inherits from
+    :class:`~.EODatasetInterface` and :class:`~.RectifiedGridInterface`.
+    
+    :Interface ID: resources.coverages.interfaces.RectifiedDataset
+    """
+    REGISTRY_CONF = {
+        "name": "Rectified Dataset Interface",
+        "intf_id": "resources.coverages.interfaces.RectifiedDataset"
+    }
+
+class ReferenceableDatasetInterface(EODatasetInterface, ReferenceableGridInterface):
+    """
+    This class is intended for implementations of RectifiedDataset
+    objects according to the WCS 2.0 EO-AP. It inherits from
+    :class:`~.EODatasetInterface` and
+    :class:`ReferenceableGridInterface`.
+
+    .. note:: the design of this interface is still TBD
+    
+    :Interface ID: resources.coverages.interfaces.ReferenceableDataset
+    
+    """
+    REGISTRY_CONF = {
+        "name": "Referenceable Dataset Interface",
+        "intf_id": "resources.coverages.interfaces.ReferenceableDataset"
+    }
+
+class RectifiedStitchedMosaicInterface(EOCoverageInterface, RectifiedGridInterface, TileIndexInterface):
+    """
+    This class is intended for implementations of Rectified Stitched
+    Mosaic objects according to WCS 2.0 EO-AP. It inherits from
+    :class:`~.EOCoverageInterface`, :class:`~.RectifiedGridInterface`
+    and :class:`~.TileIndexInterface`.
+    
+    :Interface ID: resources.coverages.interfaces.RectifiedStitchedMosaic
+    
+    .. method:: getDataDirs:
+    
+       This method shall return a list of directories which hold the
+       stitched mosaic data.
+
+    .. method:: getImagePattern
+    
+       This method shall return the filename pattern for image files
+       to be included in the stitched mosaic.
+    """
+    REGISTRY_CONF = {
+        "name": "Rectified Stitched Mosaic Interface",
+        "intf_id": "resources.coverages.interfaces.RectifiedStitchedMosaic"
+    }
+    
+    getDataDirs = Method(
+        returns=ListArg("@return")
+    )
+    
+    getImagePattern = Method(
+        returns=StringArg("@return")
+    )
+
+class DatasetSeriesInterface(ResourceInterface, EOMetadataInterface):
+    """
+    This interface is intended for implementations of Dataset Series
+    according to the WCS 2.0 EO-AP. It inherits from 
+    :class:`~.ResourceInterface` and :class:`~.EOMetadataInterface`.
+    
+    :Interface ID: resources.coverages.interfaces.DatasetSeries
+    
+    .. method:: getEOCoverages(filter_exprs=None)
+
+       This method shall return a list of EOCoverage wrappers for the
+       datasets and stitched mosaics contained in the dataset series
+       wrapped by the implementation. The optional ``filter_exprs``
+       argument is expected to be a list of filter expressions to be
+       applied to the datasets or ``None``. In case no contained dataset
+       matches the filter expressions an empty list shall be returned.
+
+    .. method:: contains(res_id)
+    
+       This method shall return ``True`` if the EO Coverage with
+       resource primary key ``res_id`` is contained in the Dataset
+       Series, ``False`` otherwise.
+    
+    .. method:: getDataDirs
+    
+       This method shall return a list of directories which hold the
+       dataset series data.
+    
+    .. method:: getImagePattern
+    
+       This method shall return the filename pattern for image files
+       to be included in the dataset series.
+    """
+    REGISTRY_CONF = {
+        "name": "Dataset Series Interface",
+        "intf_id": "resources.coverages.interfaces.DatasetSeries"
+    }
+        
+
+    getEOCoverages = Method(
+        ListArg("filter_exprs", default=None),
+        returns=ListArg("@return")
+    )
+    
+    contains = Method(
+        IntArg("res_id"),
+        returns=BoolArg("@return")
+    )
+    
+    getDataDirs = Method(
+        returns=ListArg("@return")
+    )
+    
+    getImagePattern = Method(
+        returns=StringArg("@return")
+    )

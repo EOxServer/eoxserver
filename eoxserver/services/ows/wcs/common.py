@@ -42,10 +42,10 @@ class WCSCommonHandler(MapServerOperationHandler):
         layer.type = mapscript.MS_LAYER_RASTER
         layer.dump = mapscript.MS_TRUE
         layer.setConnectionType(mapscript.MS_RASTER, '')
-        layer.setMetaData("ows_srs", "EPSG:%d" % int(coverage.getGrid().srid)) # TODO: What about additional SRSs?
+        layer.setMetaData("ows_srs", "EPSG:%d" % int(coverage.getSRID())) # TODO: What about additional SRSs?; TODO: getSRID is defined for rectified coverages only
         
         layer.setMetaData("wcs_label", coverage.getCoverageId())
         
-        layer.setExtent(*coverage.getGrid().getExtent2D())
+        layer.setExtent(*coverage.getExtent()) # TODO: getExtent is defined for rectified coverages only
         
         return layer

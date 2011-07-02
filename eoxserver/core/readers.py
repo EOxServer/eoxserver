@@ -34,7 +34,8 @@ from eoxserver.core.registry import RegisteredInterface
 class ConfigReaderInterface(RegisteredInterface):
     REGISTRY_CONF = {
         "name": "Config Reader Interface",
-        "intf_id": "core.readers.ConfigReader"
+        "intf_id": "core.readers.ConfigReader",
+        "binding_method": "direct"
     }
     
     validate = Method(ObjectArg("config", arg_class=Config))

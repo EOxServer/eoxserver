@@ -43,7 +43,6 @@ from eoxserver.services.owscommon import (
 from eoxserver.services.ogc import OGCExceptionHandler
 from eoxserver.services.exceptions import InvalidRequestException
 from eoxserver.services.ows.wcs.common import WCSCommonHandler
-from eoxserver.resources.coverages.interfaces import CoverageInterfaceFactory # TODO: correct imports
 
 class WCSServiceHandler(OWSCommonServiceHandler):
     SERVICE = "wcs"
@@ -87,7 +86,13 @@ WCS11VersionHandlerImplementation = VersionHandlerInterface.implement(WCS11Versi
     
 class WCS1XOperationHandler(WCSCommonHandler):
     def createCoverages(self, ms_req):
-        for coverage in EOxSCoverageInterfaceFactory.getVisibleCoverageInterfaces():
+        visible_expr = System.getRegistry().getFromFactory(
+            "resources.coverages.filters.CoverageExpressionFactory",
+            {"op_name": "attr", "operands": ("visible", "=", True)}
+        )
+        factory = System.getRegistry().bind("resources.coverages.wrappers.EOCoverageFactory")
+        
+        for coverage in factory.find(filter_exprs=[visible_expr]):
             if coverage.getType() in ("file", "eo.rect_dataset", "eo.rect_mosaic"):
                 ms_req.coverages.append(coverage)
 
@@ -105,7 +110,7 @@ class WCS1XOperationHandler(WCSCommonHandler):
             else:
                 raise InternalError("A single file or EO dataset should never return more than one dataset.")
             
-            layer.setProjection("+init=epsg:%d" % coverage.getGrid().srid)
+            layer.setProjection("+init=epsg:%d" % coverage.getSRID())
 
         elif coverage.getType() == "eo.rect_mosaic":
             
@@ -114,11 +119,17 @@ class WCS1XOperationHandler(WCSCommonHandler):
             
             grid = coverage.getGrid()
             
-            layer.setMetaData("wcs_extent", "%f %f %f %f" % grid.getExtent2D())
-            layer.setMetaData("wcs_resolution", "%f %f" % (grid.offsets[0][0], grid.offsets[1][1]))
-            layer.setMetaData("wcs_size", "%d %d" % (grid.high[0] - grid.low[0] + 1, grid.high[1] - grid.low[1] + 1))
+            grid = coverage.getGrid()
+            extent = coverage.getExtent()
+            srid = coverage.getSRID()
+            size_x, size_y = coverage.getSize()
+            rangetype = coverage.getRangeType()
+            
+            layer.setMetaData("wcs_extent", "%.10f %.10f %.10f %.10f" % extent)
+            layer.setMetaData("wcs_resolution", "%f %f" % ((extent[2]-extent[0]) / float(size_x), (extent[3]-extent[1]) / float(size_y)))
+            layer.setMetaData("wcs_size", "%d %d" % (size_x, size_y))
             layer.setMetaData("wcs_nativeformat", "GTiff")
-            layer.setMetaData("wcs_bandcount", "3")
+            layer.setMetaData("wcs_bandcount", "%d"%len(rangetype.bands))
         
         return layer
 

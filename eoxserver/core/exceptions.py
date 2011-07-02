@@ -99,3 +99,8 @@ class XMLTypeError(XMLDecoderException, InvalidParameterException):
 class XMLEncoderException(EOxSException):
     pass
 
+class InvalidExpressionError(EOxSException):
+    pass
+
+class UnknownAttribute(EOxSException):
+    pass

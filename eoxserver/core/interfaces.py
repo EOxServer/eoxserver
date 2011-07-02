@@ -383,10 +383,10 @@ class InterfaceMetaClass(type):
     def __new__(cls, name, bases, class_dict):
         if "INTERFACE_CONF" in class_dict:
             local_conf = class_dict["INTERFACE_CONF"]
-            
-            class_dict["__iconf__"] = cls._mergeConfs(local_conf, bases, "__iconf__")
         else:
-            class_dict["__iconf__"] = {}
+            local_conf = {}
+            
+        class_dict["__iconf__"] = cls._mergeConfs(local_conf, bases, "__iconf__")
         
         return type.__new__(cls, name, bases, class_dict)
     
@@ -424,11 +424,7 @@ class Interface(object):
     
     @classmethod
     def _getBases(InterfaceCls, ImplementationCls):
-        DefaultImplementationCls = InterfaceCls.getDefaultImplementation()
-        if DefaultImplementationCls is None:
-            bases = (ImplementationCls,)
-        else:
-            bases = (ImplementationCls, DefaultImplementationCls)
+        bases = (ImplementationCls,)
         
         return bases
     
@@ -529,10 +525,6 @@ class Interface(object):
         else:
             return "trust"
             
-    @classmethod
-    def getDefaultImplementation(cls):
-        return cls.__iconf__.get("default_implementation")
-
 class ValidationDescriptor(object):
     def __init__(self, method, func):
         self.method = method

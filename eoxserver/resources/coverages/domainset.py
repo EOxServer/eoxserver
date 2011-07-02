@@ -254,29 +254,6 @@ class Trim(Subsetting):
         return poly.contains(footprint)
 
 def getGridFromFile(filename, collection_srid=None):
-    ds = gdal.Open(str(filename))
-
-    gt = ds.GetGeoTransform()
-    
-    srs = SpatialReference()
-    srs.ImportFromWkt(ds.GetProjection())
-
-    srs.AutoIdentifyEPSG()
-    if srs.IsProjected():
-        axis_labels = ('x', 'y')
-        if collection_srid is None:
-            srid = srs.GetAuthorityCode("PROJCS")
-        else:
-            srid = collection_srid
-    elif srs.IsGeographic():
-        axis_labels = ('lon', 'lat')
-        if collection_srid is None:
-            srid = srs.GetAuthorityCode("GEOGCS")
-        else:
-            srid = collection_srid
-    else:
-        axis_labels = ('x', 'y')
-        srid = collection_srid
     #logging.debug("CoverageInterface._getGridFromFile: SRID: %s" % str(srid))
 
     return RectifiedGrid(

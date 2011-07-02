@@ -41,7 +41,7 @@ from eoxserver.core.util.xmltools import XMLEncoder, DOMtoXML, DOMElementToXML
 from eoxserver.core.util.timetools import isotime
 from eoxserver.core.exceptions import InternalError
 from eoxserver.resources.coverages.exceptions import (
-    NoSuchCoverageException, SynchronizationError
+    NoSuchCoverageException, SynchronizationErrors
 )
 from eoxserver.resources.coverages.domainset import Trim, Slice
 from eoxserver.services.interfaces import (
@@ -59,7 +59,6 @@ from eoxserver.services.owscommon import (
 from eoxserver.services.ogc import OGCExceptionHandler
 from eoxserver.services.requests import Response
 from eoxserver.services.exceptions import InvalidRequestException
-from eoxserver.resources.coverages.interfaces import CoverageInterfaceFactory, DatasetSeriesFactory # TODO: correct imports
 
 from eoxserver.contrib import mapscript
 
@@ -176,10 +175,10 @@ class WMSCommonHandler(MapServerOperationHandler):
 
         else:
             layer = super(WMSCommonHandler, self).getMapServerLayer(coverage, **kwargs)
-            layer.setMetaData("ows_srs", "EPSG:%d" % int(coverage.getGrid().srid))
+            layer.setMetaData("ows_srs", "EPSG:%d" % int(coverage.getSRID()))
             layer.setMetaData("wms_label", coverage.getCoverageId())
-            layer.setMetaData("wms_extent", "%f %f %f %f" % coverage.getGrid().getExtent2D())
-            layer.setExtent(*coverage.getGrid().getExtent2D())
+            layer.setMetaData("wms_extent", "%f %f %f %f" % coverage.getExtent())
+            layer.setExtent(*coverage.getExtent())
         
         layer.type = mapscript.MS_LAYER_RASTER
         #layer.dump = mapscript.MS_TRUE
@@ -204,17 +203,16 @@ class WMSCommonHandler(MapServerOperationHandler):
                     raise InternalError("Cannot handle empty coverages")
                 
                 elif len(datasets) == 1:
-                    layer.setExtent(*datasets[0].getGrid().getExtent2D())
-                    layer.setProjection("EPSG:%d"%datasets[0].getGrid().srid)
-                    layer.setMetaData("wms_srs", "EPSG:%d"%int(datasets[0].getGrid().srid))
-                    #layer.setMetaData("wms_crs", "EPSG:%d"%datasets[0].getGrid().srid)
+                    layer.setExtent(*datasets[0].getExtent())
+                    layer.setProjection("EPSG:%d"%datasets[0].getSRID())
+                    layer.setMetaData("wms_srs", "EPSG:%d"%int(datasets[0].getSRID()))
                     layer.data = datasets[0].getFilename() # TODO: Show all requested files. (Default without time parameter to all.)
                 
                 else: # we have multiple datasets
                     # set projection to the first datasets projection
                     # TODO: dataset projections can differ
-                    layer.setProjection("EPSG:%d" % datasets[0].getGrid().srid)
-                    layer.setMetaData("wms_srs", "EPSG:%d" % int(datasets[0].getGrid().srid))
+                    layer.setProjection("EPSG:%d" % datasets[0].getSRID())
+                    layer.setMetaData("wms_srs", "EPSG:%d" % int(datasets[0].getSRID()))
                     
                     # initialize OGR driver
                     driver = ogr.GetDriverByName('ESRI Shapefile')
@@ -233,7 +231,7 @@ class WMSCommonHandler(MapServerOperationHandler):
                     
                     # create a new srs object
                     srs = osr.SpatialReference()
-                    srs.ImportFromEPSG(datasets[0].getGrid().srid) # TODO: srids can differ 
+                    srs.ImportFromEPSG(datasets[0].getSRID()) # TODO: srids can differ 
                     
                     # create a new shapefile layer
                     shapefile_layer = shapefile.CreateLayer("file_locations", srs, ogr.wkbPolygon)
@@ -250,7 +248,7 @@ class WMSCommonHandler(MapServerOperationHandler):
                     for dataset in datasets:
                         feature = ogr.Feature(shapefile_layer.GetLayerDefn())
                         
-                        extent = dataset.getGrid().getExtent2D()
+                        extent = dataset.getExtent()
                         
                         geom = ogr.CreateGeometryFromWkt("POLYGON((%f %f, %f %f, %f %f, %f %f, %f %f))" % (
                             extent[0], extent[1],
@@ -284,9 +282,15 @@ class WMSCommonHandler(MapServerOperationHandler):
 
 class WMS1XGetCapabilitiesHandler(WMSCommonHandler):
     def createCoverages(self, ms_req):
-        #ms_req.coverages = EOxSCoverageInterfaceFactory.getAllCoverageInterfaces()
-        ms_req.coverages = EOxSCoverageInterfaceFactory.getVisibleCoverageInterfaces()
-        ms_req.coverages.extend(EOxSDatasetSeriesFactory.getAllDatasetSeriesInterfaces())
+        visible_expr = System.getRegistry().getFromFactory(
+            "resources.coverages.filters.CoverageExpressionFactory",
+            {"op_name": "attr", "operands": ("visible", "=", True)}
+        )
+        factory = System.getRegistry().bind("resources.coverages.wrappers.EOCoverageFactory")
+        ms_req.coverages = factory.find(filter_exprs=[visible_expr])
+        
+        factory = System.getRegistry().bind("resources.coverages.wrappers.DatasetSeriesFactory")
+        ms_req.coverages.append(factory.find())
         
     def getMapServerLayer(self, coverage, **kwargs):
         layer = super(WMS1XGetCapabilitiesHandler, self).getMapServerLayer(coverage, **kwargs)
@@ -366,13 +370,22 @@ class WMS1XGetMapHandler(WMSCommonHandler):
             raise InvalidRequestException("Missing 'LAYERS' parameter", "MissingParameterValue", "layers")
         else:
             for layer in layers:
-                try:
-                    ms_req.coverages.append(EOxSCoverageInterfaceFactory.getCoverageInterface(layer))
-                except NoSuchCoverageException:
-                    try:
-                        ms_req.coverages.append(EOxSDatasetSeriesFactory.getDatasetSeriesInterface(layer))
-                    except NoSuchCoverageException, e:
-                        raise InvalidRequestException(e.msg, "LayerNotDefined", "layers")
+                for eo_id in eo_ids:
+                    obj = System.getRegistry().getFromFactory(
+                        "resources.coverages.wrappers.DatasetSeriesFactory",
+                        {"obj_id": layer}
+                    )
+                    if obj is not None:
+                        wcseo_objects.append(obj)
+                    else:
+                        obj = System.getRegistry().getFromFactory(
+                            "resources.coverages.wrappers.EOCoverageFactory",
+                            {"obj_id": layer}
+                        )
+                        if obj is not None:
+                            wcseo_objects.append(obj)
+                        else:
+                            raise InvalidRequestException("No coverage or dataset series with EO ID '%s' found" % eo_id, "LayerNotDefined", "layers")
 
 class WMS10_11GetMapHandler(WMS1XGetMapHandler):
     PARAM_SCHEMA = {

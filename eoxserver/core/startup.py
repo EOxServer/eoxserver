@@ -35,7 +35,7 @@ class StartupHandlerInterface(RegisteredInterface):
     REGISTRY_CONF = {
         "name": "Startup Handler Interface",
         "intf_id": "core.startup.StartupHandler",
-        "registry_keys": (),
+        "binding_method": "direct"
     }
 
     startup = Method(
