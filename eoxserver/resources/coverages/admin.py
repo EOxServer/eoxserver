@@ -33,15 +33,14 @@ from django.conf import settings
 from django.http import HttpResponseRedirect
 
 from eoxserver.resources.coverages.models import (
-    AxisRecord, ChannelRecord, DataDirRecord, EOMetadataRecord, FileRecord,
+    DataDirRecord, EOMetadataRecord, FileRecord,
     LayerMetadataRecord, LineageRecord, MosaicDataDirRecord, NilValueRecord,
-    RangeType, RangeType2Channel, RectifiedDatasetRecord,
-    RectifiedDatasetSeriesRecord, RectifiedGridRecord, 
-    RectifiedStitchedMosaicRecord, SingleFileCoverageRecord
+    RectifiedDatasetRecord, BandRecord, RangeType2Band, RangeTypeRecord,
+    RectifiedStitchedMosaicRecord, SingleFileCoverageRecord,
+    DatasetSeriesRecord
 )
-
 from eoxserver.resources.coverages.synchronize import (
-    RectifiedDatasetSeriesSynchronizer,
+    DatasetSeriesSynchronizer,
     RectifiedStitchedMosaicSynchronizer,
     SynchronizationErrors
 )
@@ -57,32 +56,32 @@ logging.basicConfig(
 )
 
 # Grid
-class AxisInline(admin.TabularInline):
-    model = AxisRecord
-    extra = 1
-class RectifiedGridAdmin(admin.ModelAdmin):
-    inlines = (AxisInline, )
-admin.site.register(RectifiedGridRecord, RectifiedGridAdmin)
+#~ class AxisInline(admin.TabularInline):
+    #~ model = AxisRecord
+    #~ extra = 1
+#~ class RectifiedGridAdmin(admin.ModelAdmin):
+    #~ inlines = (AxisInline, )
+#~ admin.site.register(RectifiedGridRecord, RectifiedGridAdmin)
 
 # NilValue
 class NilValueInline(admin.TabularInline):
-    model = ChannelRecord.nil_values.__getattribute__("through")
+    model = BandRecord.nil_values.__getattribute__("through")
     extra = 1
 class NilValueAdmin(admin.ModelAdmin):
     inlines = (NilValueInline, )
 admin.site.register(NilValueRecord, NilValueAdmin)
 
 # RangeType
-class RangeType2ChannelInline(admin.TabularInline):
-    model = RangeType2Channel
+class RangeType2BandInline(admin.TabularInline):
+    model = RangeType2Band
     extra = 1
 class RangeTypeAdmin(admin.ModelAdmin):
-    inlines = (RangeType2ChannelInline, )
-class ChannelRecordAdmin(admin.ModelAdmin):
-    inlines = (RangeType2ChannelInline, NilValueInline)
+    inlines = (RangeType2BandInline, )
+class BandRecordAdmin(admin.ModelAdmin):
+    inlines = (RangeType2BandInline, NilValueInline)
     exclude = ('nil_values', )
-admin.site.register(RangeType, RangeTypeAdmin)
-admin.site.register(ChannelRecord, ChannelRecordAdmin)
+admin.site.register(RangeTypeRecord, RangeTypeAdmin)
+admin.site.register(BandRecord, BandRecordAdmin)
 #admin.site.register(RangeType2Channel)
 
 # SingleFile Coverage
@@ -105,13 +104,13 @@ class StitchedMosaic2DatasetInline(admin.TabularInline):
     verbose_name_plural = "Stitched Mosaic to Dataset Relations"
     extra = 1
 class DatasetSeries2DatasetInline(admin.TabularInline):
-    model = RectifiedDatasetSeriesRecord.rect_datasets.__getattribute__("through")
+    model = DatasetSeriesRecord.rect_datasets.__getattribute__("through")
     verbose_name = "Dataset Series to Dataset Relation"
     verbose_name_plural = "Dataset Series to Dataset Relations"
     extra = 1
 class RectifiedDatasetAdmin(admin.ModelAdmin):
-    list_display = ('coverage_id', 'eo_id', 'file', 'range_type', 'grid')
-    list_editable = ('file', 'range_type', 'grid')
+    list_display = ('coverage_id', 'eo_id', 'file', 'range_type', 'extent')
+    list_editable = ('file', 'range_type', 'extent')
     list_filter = ('range_type', )
     ordering = ('coverage_id', )
     search_fields = ('coverage_id', )
@@ -143,7 +142,7 @@ class MosaicDataDirInline(admin.TabularInline):
     verbose_name_plural = "Stitched Mosaic Data Directories"
     extra = 1
 class DatasetSeries2StichedMosaicInline(admin.TabularInline):
-    model = RectifiedDatasetSeriesRecord.rect_stitched_mosaics.__getattribute__("through")
+    model = DatasetSeriesRecord.rect_stitched_mosaics.__getattribute__("through")
     verbose_name = "Dataset Series to Stitched Mosaic Relation"
     verbose_name_plural = "Dataset Series to Stitched Mosaic Relations"
     extra = 1
@@ -338,7 +337,7 @@ class RectifiedDatasetSeriesAdmin(admin.ModelAdmin):
         
         super(RectifiedDatasetSeriesAdmin, self).save_formset(request, form, formset, change)
         
-        synchronizer = RectifiedDatasetSeriesSynchronizer(self.dataset_series)
+        synchronizer = DatasetSeriesSynchronizer(self.dataset_series)
         try:
             if change:
                 synchronizer.update()
@@ -384,7 +383,7 @@ class RectifiedDatasetSeriesAdmin(admin.ModelAdmin):
             messages.error(request, "Could not delete DatasetSeries")
             return HttpResponseRedirect(".")
 
-admin.site.register(RectifiedDatasetSeriesRecord, RectifiedDatasetSeriesAdmin)
+admin.site.register(DatasetSeriesRecord, RectifiedDatasetSeriesAdmin)
 
 
 class EOMetadataAdmin(admin.GeoModelAdmin):

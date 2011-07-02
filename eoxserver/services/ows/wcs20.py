@@ -39,16 +39,18 @@ import logging
 
 from eoxserver.core.system import System
 from eoxserver.core.exceptions import( 
-    InternalError, UnknownCRSException, UnknownParameterFormatException
+    InternalError, UnknownCRSException, UnknownParameterFormatException,
+    InvalidExpressionError
 )
 from eoxserver.core.util.xmltools import DOMtoXML, DOMElementToXML
 from eoxserver.core.util.timetools import getDateTime
 from eoxserver.core.util.geotools import getSRIDFromCRSURI
-from eoxserver.resources.coverages.domainset import Trim, Slice, RectifiedGrid
+from eoxserver.resources.coverages.filters import (
+    BoundedArea, Slice, TimeInterval
+)
 from eoxserver.resources.coverages.exceptions import (
     NoSuchCoverageException, NoSuchDatasetSeriesException
 )
-from eoxserver.resources.coverages.interfaces import CoverageInterfaceFactory, DatasetSeriesFactory # TODO: correct imports
 from eoxserver.services.interfaces import (
     VersionHandlerInterface, OperationHandlerInterface
 )
@@ -57,6 +59,9 @@ from eoxserver.services.requests import Response
 from eoxserver.services.owscommon import (
     OWSCommonVersionHandler, OWSCommonExceptionHandler,
     OWSCommonConfigReader
+)
+from eoxserver.services.mapserver import (
+    gdalconst_to_imagemode, gdalconst_to_imagemode_string
 )
 from eoxserver.services.exceptions import (
     InvalidRequestException, InvalidAxisLabelException,
@@ -125,12 +130,18 @@ class WCS20GetCapabilitiesHandler(WCSCommonHandler):
             #else:
                 #raise EOxSInvalidRequestException("Unknown coverage subtype '%s'" % cov_subtype, "InvalidParameterValue", "coverageSubtype")
         #else:
-        ms_req.coverages = CoverageInterfaceFactory.getVisibleCoverageInterfaces()
+        visible_expr = System.getRegistry().getFromFactory(
+            "resources.coverages.filters.CoverageExpressionFactory",
+            {"op_name": "attr", "operands": ("visible", "=", True)}
+        )
+        
+        factory = System.getRegistry().bind("resources.coverages.wrappers.EOCoverageFactory")
+        ms_req.coverages = factory.find(filter_exprs=[visible_expr])
     
     def getMapServerLayer(self, coverage, **kwargs):
         layer = super(WCS20GetCapabilitiesHandler, self).getMapServerLayer(coverage, **kwargs)
         
-        datasets = coverage.getDatasets(**kwargs)
+        datasets = coverage.getDatasets()
         
         if len(datasets) == 0:
             raise InternalError("Misconfigured coverage '%s' has no file data." % coverage.getCoverageId())
@@ -193,7 +204,7 @@ class WCS20GetCapabilitiesHandler(WCSCommonHandler):
                 if sections is None or len(sections) == 0 or "Contents" in sections or\
                    "CoverageSummary" in sections:
                     
-                    for coverage in CoverageInterfaceFactory.getVisibleCoverageInterfaces():
+                    for coverage in ms_req.coverages:
                         cov_summary = encoder.encodeCoverageSummary(coverage)
                         contents_new.appendChild(cov_summary)
 
@@ -201,7 +212,11 @@ class WCS20GetCapabilitiesHandler(WCSCommonHandler):
                 if sections is None or len(sections) == 0 or "Contents" in sections or\
                    "DatasetSeriesSummary" in sections:
                     
-                    for dataset_series in DatasetSeriesFactory.getAllDatasetSeriesInterfaces():
+                    dss_factory = System.getRegistry().bind(
+                        "resources.coverages.wrappers.DatasetSeriesFactory"
+                    )
+                    
+                    for dataset_series in dss_factory.find():
                         dss_summary = encoder.encodeDatasetSeriesSummary(dataset_series)
                         contents_new.appendChild(dss_summary)
 
@@ -258,10 +273,18 @@ class WCS20DescribeCoverageHandler(BaseRequestHandler):
             raise InvalidRequestException("Missing 'coverageid' parameter.", "MissingParameterValue", "coverageid")
         else:
             for coverage_id in coverage_ids:
-                try:
-                    req.coverages.append(CoverageInterfaceFactory.getCoverageInterface(coverage_id))
-                except NoSuchCoverageException, e:
-                    raise InvalidRequestException(e.msg, "NoSuchCoverage", coverage_id)
+                coverage = System.getRegistry().getFromFactory(
+                    "resources.coverages.wrappers.EOCoverageFactory",
+                    {"obj_id": coverage_id}
+                )
+                if coverage is None:
+                    raise InvalidRequestException(
+                        "No coverage with coverage id '%s' found" % coverage_id,
+                        "NoSuchCoverage",
+                        coverage_id
+                    )
+                
+                req.coverages.append(coverage)
 
 WCS20DescribeCoverageHandlerImplementation = OperationHandlerInterface.implement(WCS20DescribeCoverageHandler)
 
@@ -290,42 +313,29 @@ class WCS20DescribeEOCoverageSetHandler(BaseRequestHandler):
     def _processRequest(self, req):
         req.setSchema(self.PARAM_SCHEMA)
         
-        wcseo_objects = self.createWCSEOObject(req)
+        dataset_series_set, req_coverages = self.createWCSEOObjects(req)
         
         try:
-            slices, trims = WCS20Utils.getSubsetting(req)
-        except UnknownParameterFormatException, e:
-            raise InvalidRequestException(e.msg, "InvalidSubsetting", "subset")
+            filter_exprs = \
+                WCS20SubsetDecoder(req, 4326).getFilterExpressions()
         except InvalidSubsettingException, e:
             raise InvalidRequestException(e.msg, "InvalidSubsetting", "subset")
+        except InvalidAxisLabelException, e:
+            raise InvalidRequestException(e.msg, "InvalidAxisLabel", "subset")
         
-        coverages = []
-        dataset_series = []
+        output_coverages = []
+        output_coverages.extend(req_coverages)
         
-        containment = req.getParamValue("containment")
-        if containment is None:
-            containment = "overlaps"
-        elif containment.lower() not in ("overlaps", "contains"):
-            raise InvalidRequestException("'containment' parameter must be either 'overlaps' or 'contains'", "InvalidParameterValue", "containment")
+        for coverage in req_coverages:
+            if coverage.getType() == "eo.rect_stitched_mosaic":
+                output_coverages.extend(
+                    coverage.getDatasets(filter_exprs=filter_exprs)
+                )
         
-        for wcseo_object in wcseo_objects:
-            for slice in slices:
-                self.validateSlice(slice, wcseo_object)
-            for trim in trims:
-                self.validateTrim(trim, wcseo_object)
-                
-            if wcseo_object.getType() in ("eo.rect_dataset", "eo.rect_mosaic"):
-                coverages.append(wcseo_object)
-            else:
-                dataset_series.append(wcseo_object)
-            
-            if wcseo_object.getType() in ("eo.rect_dataset_series", "eo.rect_mosaic"):
-                try:
-                    coverages.extend(wcseo_object.getDatasets(containment=containment.lower(), slices=slices, trims=trims))
-                except UnknownCRSException, e:
-                    raise InvalidRequestException(e.msg, "NoApplicableCode", None)
-                except InvalidAxisLabelException, e:
-                    raise InvalidRequestException(e.msg, "InvalidAxisLabel", None)
+        for dataset_series in dataset_series_set:
+            output_coverages.extend(
+                dataset_series.getEOCoverages(filter_exprs=filter_exprs)
+            )
 
         # TODO: find out config value 'count'
         # subset returned dataset series/coverages to min(count from config, count from req)
@@ -337,68 +347,68 @@ class WCS20DescribeEOCoverageSetHandler(BaseRequestHandler):
         count_default = WCS20ConfigReader().getPagingCountDefault()
         count_used = min(count_req, count_default)
         
-        count_all_coverages = len(coverages)
+        count_all_coverages = len(output_coverages)
         if count_used < count_all_coverages:
-            coverages = coverages[:count_used]
+            output_coverages = output_coverages[:count_used]
         else:
             count_used = count_all_coverages
  
         encoder = WCS20EOAPEncoder()
         
         return Response(
-            content=DOMElementToXML(encoder.encodeEOCoverageSetDescription(dataset_series, coverages, count_all_coverages, count_used)), #TODO: Invoke with all datasetseries and EOCoverage elements.
+            content=DOMElementToXML(
+                encoder.encodeEOCoverageSetDescription(
+                    dataset_series_set,
+                    output_coverages,
+                    count_all_coverages,
+                    count_used
+                )
+            ), #TODO: Invoke with all datasetseries and EOCoverage elements.
             content_type="text/xml",
             status=200
         )
 
-    def createWCSEOObject(self, req):
+    def createWCSEOObjects(self, req):
         eo_ids = req.getParamValue("eoid")
             
         if eo_ids is None:
-            raise InvalidRequestException("Missing 'eoid' parameter", "MissingParameterValue", "eoid")
+            raise InvalidRequestException(
+                "Missing 'eoid' parameter",
+                "MissingParameterValue",
+                "eoid"
+            )
         else:
-            wcseo_objects = []
+            dataset_series_set = []
+            coverages = []
+            
             for eo_id in eo_ids:
-                try:
-                    wcseo_objects.append(DatasetSeriesFactory.getDatasetSeriesInterface(eo_id))
-                except NoSuchDatasetSeriesException:
-                    pass
+                dataset_series = System.getRegistry().getFromFactory(
+                    "resources.coverages.wrappers.DatasetSeriesFactory",
+                    {"obj_id": eo_id}
+                )
                 
-                try:
-                    wcseo_objects.append(CoverageInterfaceFactory.getCoverageInterfaceByEOID(eo_id))
-                except NoSuchCoverageException:
-                    pass
-                
-                if len(wcseo_objects) == 0:
-                    raise InvalidRequestException("No coverage or dataset series with EO ID '%s' found" % eo_id, "NoSuchCoverage", "eoid")
-            return wcseo_objects
+                if dataset_series is not None:
+                    dataset_series_set.append(dataset_series)
+                else:
+                    coverage = System.getRegistry().getFromFactory(
+                        "resources.coverages.wrappers.EOCoverageFactory",
+                        {"obj_id": eo_id}
+                    )
+                    
+                    if coverage is not None:
+                        coverages.append(coverage)
+                    else:
+                        raise InvalidRequestException(
+                            "No coverage or dataset series with EO ID '%s' found" % eo_id,
+                            "NoSuchCoverage",
+                            "eoid"
+                        )
+                        
+            return (dataset_series_set, coverages)
     
-    def validateSlice(self, slice, wcseo_object):
-        try:
-            if hasattr(wcseo_object, "getGrid"):
-                slice.validate(wcseo_object.getGrid())
-            else:
-                slice.validate()
-        except InvalidAxisLabelException, e:
-            raise InvalidRequestException(e.msg, "InvalidAxisLabel", "subset")
-        except InvalidSubsettingException, e:
-            raise InvalidRequestException(e.msg, "InvalidSubsetting", "subset")
-
-    def validateTrim(self, trim, wcseo_object):
-        try:
-            if hasattr(wcseo_object, "getGrid"):
-                trim.validate(wcseo_object.getGrid())
-            else:
-                trim.validate()
-        except InvalidAxisLabelException, e:
-            raise InvalidRequestException(e.msg, "InvalidAxisLabel", "subset")
-        except InvalidSubsettingException, e:
-            raise InvalidRequestException(e.msg, "InvalidSubsetting", "subset")
-
 WCS20DescribeEOCoverageSetHandlerImplementation = OperationHandlerInterface.implement(WCS20DescribeEOCoverageSetHandler)
 
 class WCS20GetCoverageHandler(WCSCommonHandler):
-    # TODO: override createCoverages, configureRequest, configureMapObj
     REGISTRY_CONF = {
         "name": "WCS 2.0 GetCoverage Handler",
         "impl_id": "services.ows.wcs20.WCS20GetCoverageHandler",
@@ -426,15 +436,22 @@ class WCS20GetCoverageHandler(WCSCommonHandler):
         if coverage_id is None:
             raise InvalidRequestException("Missing 'coverageid' parameter", "MissingParameterValue", "coverageid")
         else:
-            try:
-                ms_req.coverages.append(CoverageInterfaceFactory.getCoverageInterface(coverage_id))
-            except NoSuchCoverageException, e:
-                raise InvalidRequestException(e.msg, "NoSuchCoverage", coverage_id)
+            coverage = System.getRegistry().getFromFactory(
+                "resources.coverages.wrappers.EOCoverageFactory",
+                {"obj_id": coverage_id}
+            )
+            
+            if coverage is not None:
+                ms_req.coverages.append(coverage)
+            else:
+                raise InvalidRequestException(
+                    e.msg, "NoSuchCoverage", coverage_id
+                )
 
     def _setParameter(self, ms_req, key, value):
-        if key.lower() == "format" and len(ms_req.coverages[0].getRangeType()) > 3: # TODO
+        if key.lower() == "format" and len(ms_req.coverages[0].getRangeType().bands) > 3:
             if value.lower() == "image/tiff":
-                super(WCS20GetCoverageHandler, self)._setParameter(ms_req, "format", "GTiff16")
+                super(WCS20GetCoverageHandler, self)._setParameter(ms_req, "format", "GTiff_")
             else:
                 raise InvalidRequestException("Invalid or unsupported value '%s' for 'format' parameter." % value, "InvalidParameterValue", key)
         else:
@@ -443,29 +460,37 @@ class WCS20GetCoverageHandler(WCSCommonHandler):
     def configureMapObj(self, ms_req):
         super(WCS20GetCoverageHandler, self).configureMapObj(ms_req)
         
-        if len(ms_req.coverages[0].getRangeType()) > 3: # TODO see eoxserver.org ticket #3
-            output_format = mapscript.outputFormatObj("GDAL/GTiff", "GTiff16")
-            output_format.mimetype = "image/tiff"
-            output_format.extension = "tif"
-            output_format.imagemode = mapscript.MS_IMAGEMODE_INT16
+        output_format = mapscript.outputFormatObj("GDAL/GTiff", "GTiff_")
+        output_format.mimetype = "image/tiff"
+        output_format.extension = "tif"
         
-            ms_req.map.appendOutputFormat(output_format)
-            ms_req.map.setOutputFormat(output_format)
-            
-            logging.debug("WCS20GetCoverageHandler.configureMapObj: %s" % ms_req.map.imagetype)
+        coverage = ms_req.coverages[0]
+        rangetype = coverage.getRangeType()
+        
+        output_format.imagemode = gdalconst_to_imagemode(
+            ms_req.coverages[0].getRangeType().data_type
+        )
+        
+        ms_req.map.appendOutputFormat(output_format)
+        ms_req.map.setOutputFormat(output_format)
+        
+        logging.debug("WCS20GetCoverageHandler.configureMapObj: %s" % ms_req.map.imagetype)
 
     def addLayers(self, ms_req):
-        slices, trims = WCS20Utils.getSubsetting(ms_req)
+        decoder = WCS20SubsetDecoder(ms_req, "imageCRS")
+        filter_exprs = decoder.getFilterExpressions()
 
         for coverage in ms_req.coverages:
-            ms_req.map.insertLayer(self.getMapServerLayer(coverage, slices=slices, trims=trims))
+            ms_req.map.insertLayer(self.getMapServerLayer(coverage, filter_exprs=filter_exprs))
 
     def getMapServerLayer(self, coverage, **kwargs):
         layer = super(WCS20GetCoverageHandler, self).getMapServerLayer(coverage, **kwargs)
         
         if coverage.getType() in ("file", "eo.rect_dataset"):
 
-            datasets = coverage.getDatasets()
+            datasets = coverage.getDatasets(
+                filter_exprs=kwargs.get("filter_exprs", [])
+            )
             
             if len(datasets) == 0:
                 raise InvalidRequestException("Image extent does not intersect with desired region.", "ExtentError", "extent") # TODO: check if this is the right exception report
@@ -486,40 +511,45 @@ class WCS20GetCoverageHandler(WCSCommonHandler):
         # this was under the "eo.rect_mosaic"-path. minor accurracy issues
         # have evolved since making it accissible to all paths
              
-        grid = coverage.getGrid()
+        extent = coverage.getExtent()
+        srid = coverage.getSRID()
+        size = coverage.getSize()
+        rangetype = coverage.getRangeType()
+        resolution = ((extent[2]-extent[0]) / float(size[0]),
+                      (extent[3]-extent[1]) / float(size[1]))
         
-        layer.setMetaData("wcs_extent", "%.10f %.10f %.10f %.10f" % grid.getExtent2D())
-        layer.setMetaData("wcs_resolution", "%f %f" % (grid.offsets[0][0], grid.offsets[1][1]))
-        layer.setMetaData("wcs_size", "%d %d" % (grid.high[0] - grid.low[0] + 1, grid.high[1] - grid.low[1] + 1))
+        layer.setMetaData("wcs_extent", "%.10f %.10f %.10f %.10f" % extent)
+        layer.setMetaData("wcs_resolution", "%f %f" % resolution)
+        layer.setMetaData("wcs_size", "%d %d" % size)
         layer.setMetaData("wcs_nativeformat", "GTiff")
-        layer.setMetaData("wcs_bandcount", "%d"%len(coverage.getRangeType()))
+        layer.setMetaData("wcs_bandcount", "%d" % len(rangetype.bands))
 
-        channels = " ".join(channel.name for channel in coverage.getRangeType())
-        layer.setMetaData("wcs_band_names", channels)
+        bands = " ".join(band.name for band in rangetype.bands)
+        layer.setMetaData("wcs_band_names", bands)
+        
+        layer.setMetaData("wcs_interval",
+                          "%g %g" % rangetype.getAllowedValues())
+            
+        layer.setMetaData("wcs_significant_figures",
+                          "%d" % rangetype.getSignificantFigures())
         
         # set layer depending metadata
-        for channel in coverage.getRangeType():
+        for band in rangetype.bands:
             axis_metadata = {
-                "%s_band_description"%channel.name: channel.description,
-                "%s_band_definition"%channel.name: channel.definition,
-                "%s_band_uom"%channel.name: channel.uom
+                "%s_band_description" % band.name: band.description,
+                "%s_band_definition" % band.name: band.definition,
+                "%s_band_uom" % band.name: band.uom
             }
             for key, value in axis_metadata.items():
                 if value != '':
                     layer.setMetaData(key, value)
-            
-            layer.setMetaData("%s_interval"%channel.name,
-                              "%g %g"%(channel.allowed_values_start,
-                                       channel.allowed_values_end))
-            
-            layer.setMetaData("%s_significant_figures"%channel.name,
-                              "%d"%channel.allowed_values_significant_figures)
-            
-        if len(coverage.getRangeType()) > 3: # TODO make this dependent on actual data type
-            layer.setMetaData("wcs_formats", "GTiff16")
-            layer.setMetaData("wcs_imagemode", "INT16")
-        else:
-            layer.setMetaData("wcs_imagemode", "BYTE")
+        
+        
+        layer.setMetaData("wcs_formats", "GTiff_")
+        layer.setMetaData(
+            "wcs_imagemode", 
+            gdalconst_to_imagemode_string(rangetype.data_type)
+        )
         
         return layer
 
@@ -548,15 +578,16 @@ class WCS20GetCoverageHandler(WCSCommonHandler):
                         req = ms_req,
                         nodes = rectified_grid_coverage.childNodes
                     )
-                elif ms_req.coverages[0].getType() == "eo.rect_mosaic":
-                    slices, trims = WCS20Utils.getSubsetting(ms_req)
-
-                    if len(trims) > 0:
-                        poly = WCS20Utils.getPolygon(trims,
-                                                         ms_req.coverages[0].getFootprint(),
-                                                         ms_req.coverages[0].getGrid())
-                    else:
-                        poly = None
+                elif ms_req.coverages[0].getType() == "eo.rect_stitched_mosaic":
+                    decoder = WCS20SubsetDecoder(ms_req, "imageCRS")
+                    
+                    poly = decoder.getBoundingPolygon(
+                         ms_req.coverages[0].getFootprint(),
+                         ms_req.coverages[0].getSRID(),
+                         ms_req.coverages[0].getSize()[0],
+                         ms_req.coverages[0].getSize()[1],
+                         ms_req.coverages[0].getExtent()
+                    )
 
                     resp_xml = encoder.encodeRectifiedStitchedMosaic(
                         ms_req.coverages[0],
@@ -573,144 +604,409 @@ class WCS20GetCoverageHandler(WCSCommonHandler):
 
 WCS20GetCoverageHandlerImplementation = OperationHandlerInterface.implement(WCS20GetCoverageHandler)
 
-class WCS20Utils(object):
-    @classmethod
-    def _getSubsettingKVP(cls, req):
-        #extract slicing and trimming parameters
-        slices = []
-        trims = []
+class WCS20SubsetDecoder(object):
+    def __init__(self, req, default_crs_id=None):
+        self.req = req
+        self.default_crs_id = default_crs_id
         
-        for key, values in req.getParams().items():
+        self.slices = None
+        self.trims = None
+        
+        self.containment = "overlaps"
+    
+    def _decodeKVPExpression(self, key, value):
+        match = re.match(
+            r'(\w+)(,([^(]+))?\(([^,]*)(,([^)]*))?\)', value
+        )
+        if match is None:
+            raise InvalidRequestException(
+                "Invalid subsetting operation '%s=%s'" % (key, value),
+                "InvalidSubsetting",
+                key
+            )
+        else:
+            axis_label = match.group(1)
+            crs = match.group(3)
+            
+            if match.group(6) is not None:
+                subset = (axis_label, crs, match.group(4), match.group(6))
+                subset_type = "trim"
+            else:
+                subset = (axis_label, crs, match.group(4))
+                subset_type = "slice"
+
+        return (subset, subset_type)
+    
+    def _decodeKVP(self):
+        trims = []
+        slices = []
+        
+        for key, values in self.req.getParams().items():
             if key.startswith("subset"):
                 for value in values:
-                    match = re.match(r'(\w+)(,([^(]+))?\(([^,]*)(,([^)]*))?\)', value)
-                    if match is None:
-                        raise InvalidRequestException("Invalid subsetting operation '%s=%s'" % (key, value), "InvalidSubsetting", key)
+                    subset, subset_type = \
+                        self._decodeKVPExpression(key, value)
+                    
+                    if subset_type == "trim":
+                        trims.append(subset)
                     else:
-                        dimension = match.group(1)
-                        crs = match.group(3)
-                        if match.group(6) is not None:
-                            trim = Trim(dimension, crs, match.group(4), match.group(6))
-                            trims.append(trim)
-                            logging.debug("WCS20Utils.getSubsetting: trim: dimension: %s; crs: %s; low: %s; high: %s" % (dimension, str(crs), match.group(4), match.group(6)))
-                        else:
-                            slice = Slice(dimension, crs, match.group(4))
-                            slices.append(slice)
-                            logging.debug("WCS20Utils.getSubsetting: slice: dimension: %s; crs: %s; slicePoint: %s" % (dimension, str(crs), match.group(4)))
-
-        return (slices, trims)
-    
-    @classmethod
-    def _getSubsettingXML(cls, req):
-        slice_elements = req.getParamValue("slices")
-        trim_elements = req.getParamValue("trims")
+                        slices.append(subset)
         
-        slices = []
+        self.trims = trims
+        self.slices = slices
+    
+    def _decodeXML(self):
         trims = []
+        slices = []
+        
+        slice_elements = self.req.getParamValue("slices")
+        trim_elements = self.req.getParamValue("trims")
         
         for slice_element in slice_elements:
-            slice = Slice(
-                dimension=slice_element.getElementsByTagName("wcs:Dimension")[0].firstChild.data,
-                crs=None,
-                slice_point=slice_element.getElementsByTagName("wcs:SlicePoint")[0].firstChild.data
-            )
-            slices.append(slice)
+            axis_label = slice_element.getElementsByTagName("wcs:Dimension")[0].firstChild.data
+            crs = None
+            slice_point = slice_element.getElementsByTagName("wcs:SlicePoint")[0].firstChild.data
+            
+            slices.append((axis_label, crs, slice_point))
             
         for trim_element in trim_elements:
-            trim = Trim(
-                dimension=trim_element.getElementsByTagName("wcs:Dimension")[0].firstChild.data,
-                crs=None,
-                trim_low=trim_element.getElementsByTagName("wcs:TrimLow")[0].firstChild.data,
-                trim_high=trim_element.getElementsByTagName("wcs:TrimHigh")[0].firstChild.data
-            )
-            trims.append(trim)
+            axis_label = trim_element.getElementsByTagName("wcs:Dimension")[0].firstChild.data
+            crs = None
+            trim_low = trim_element.getElementsByTagName("wcs:TrimLow")[0].firstChild.data
+            trim_high = trim_element.getElementsByTagName("wcs:TrimHigh")[0].firstChild.data
+        
+            trims.append((axis_label, crs, trim_low, trim_high))
             
-        return (slices, trims)
+        self.slices = slices
+        self.trims = trims
     
-    @classmethod
-    def getSubsetting(cls, req):
-        if req.getParamType() == "kvp":
-            return cls._getSubsettingKVP(req)
+    def _decode(self):
+        if self.req.getParamType() == "kvp":
+            self._decodeKVP()
         else:
-            return cls._getSubsettingXML(req)
+            self._decodeXML()
+        
+        try:
+            self.containment = \
+                self.req.getParamValue("containment", "overlaps")
+        except:
+            pass
     
-    @classmethod
-    def getPolygon(cls, trims, footprint, grid):
-        crs = trims[0].crs
+    def _getSliceExpression(self, slice):
+        if axis_label in ("t", "time", "phenomenonTime"):
+            return self._getTimeSliceExpression(slice)
+        else:
+            return self._getSpatialSliceExpression(slice)
         
-        for trim in trims[1:]:
-            if trim.crs != crs:
-                raise InvalidRequestException("All subsets must be expressed in the same CRS.")
+    def _getTimeSliceExpression(self, slice):
+        axis_label = slice[0]
         
-        if crs is not None:
-            srid = getSRIDFromCRSURI(crs)
-            fp_minx, fp_miny, fp_maxx, fp_maxy = footprint.transform(srid, True).extent
-            minx = None
-            miny = None
-            maxx = None
-            maxy = None
+        if slice[1] is not None and \
+           slice[1] != "http://www.opengis.net/def/trs/ISO-8601/0/Gregorian+UTC":
+            raise InvalidSubsettingException(
+                "Time reference system '%s' not recognized. Please use UTC." %\
+                slice[1]
+            )
+        
+        if not slice[2].startswith('"') and slice[2].endswith('"'):
+            raise InvalidSubsettingException(
+                "Date/Time tokens have to be enclosed in quotation marks (\")"
+            )
+        else:
+            dt_str = slice[2].strip('"')
+        
+        try:
+            slice_point = getDateTime(dt_str)
+        except:
+            raise InvalidSubsettingException(
+                "Could not convert slice point token '%s' to date/time." %\
+                dt_str
+            )
+        
+        return System.getRegistry().getFromFactory(
+            "resources.coverages.filters.CoverageExpressionFactory",
+            {"op_name": "time_slice", "operands": (slice_point,)}
+        )
+        
+    def _getSpatialSliceExpression(self, slice):
+        axis_label = slice[0]
+        
+        if slice[1] is None:
+            crs_id = self.default_crs_id
+        else:
+            try:
+                crs_id = getSRIDFromCRSURI(slice[1])
+            except:
+                raise InvalidSubsettingException(
+                    "Unrecognized CRS URI '%s'" % slice[1]
+                )
+        
+        try:
+            slice_point = float(slice[2])
+        except:
+            raise InvalidSubsettingException(
+                "Could not convert slice point token '%s' to number." %\
+                slice[2]
+            )
+        
+        return System.getRegistry().getFromFactory(
+            "resources.coverages.filters.CoverageExpressionFactory",
+            {
+                "op_name": "spatial_slice",
+                "operands": (Slice(
+                    axis_label = axis_label,
+                    crs_id = crs_id,
+                    slice_point = slice_point
+                ),)
+            }
+        )
+    
+    def _getTrimExpressions(self, trims):
+        time_intv, crs_id, x_bounds, y_bounds = self._decodeTrims(trims)
+        
+        if self.containment == "overlaps":
+            op_part = "intersects"
+        elif self.containment == "contains":
+            op_part = "within"
+        else:
+            raise InvalidParameterException(
+                "Unknown containment mode '%s'."
+            )
+        
+        filter_exprs = []
             
-            for trim in trims:
-                if trim.dimension in ("x", "long"):
-                    if trim.trim_low is None:
-                        minx = fp_minx 
-                    else:
-                        minx = max(fp_minx, trim.trim_low)
+        if time_intv is not None:
+            filter_exprs.append(System.getRegistry().getFromFactory(
+                "resources.coverages.filters.CoverageExpressionFactory",
+                {
+                    "op_name": "time_%s" % op_part,
+                    "operands": (time_intv,)
+                }
+            ))
+        
+        if x_bounds is None and y_bounds is None:
+            pass
+        else:
+            # NOTE: cannot filter w.r.t. imageCRS
+            if crs_id != "imageCRS":
+                if x_bounds is None:
+                    x_bounds = ("unbounded", "unbounded")
+                
+                if y_bounds is None:
+                    y_bounds = ("unbounded", "unbounded")
+                
+                try:
+                    area = BoundedArea(
+                        crs_id,
+                        x_bounds[0],
+                        y_bounds[0],
+                        x_bounds[1],
+                        y_bounds[1]
+                    )
+                except InvalidExpressionError, e:
+                    raise InvalidSubsettingException(str(e))
                     
-                    if trim.trim_high is None:
-                        maxx = fp_maxx
-                    else:
-                        maxx = min(fp_maxx, trim.trim_high)
-                elif trim.dimension in ("y", "lat"):
-                    if trim.trim_low is None:
-                        miny = fp_miny
-                    else:
-                        miny = max(fp_miny, trim.trim_low)
+                filter_exprs.append(System.getRegistry().getFromFactory(
+                    "resources.coverages.filters.CoverageExpressionFactory",
+                    {
+                        "op_name": "footprint_%s_area" % op_part,
+                        "operands": (area,)
+                    }
+                ))
+        
+        return filter_exprs
+
+    def _decodeTrims(self, trims):
+        time_intv = None
+        crs_id = None
+        x_bounds = None
+        y_bounds = None
+        
+        for trim in trims:
+            if trim[0] in ("t", "time", "phenomenonTime"):
+                if time_intv is None:
+                    begin = self._getDateTimeBound(trim[2])
+                    end = self._getDateTimeBound(trim[3])
                     
-                    if trim.trim_high is None:
-                        maxy = fp_maxy
-                    else:
-                        maxy = min(fp_maxy, trim.trim_high)
+                    try:
+                        time_intv = TimeInterval(begin, end)
+                    except Exception, e:
+                        raise InvalidSubsettingException(str(e))
+                else:
+                    raise InvalidSubsettingException(
+                        "Multiple definitions for time subsetting."
+                    )
+            elif trim[0] in ("x", "lon", "long", "Long"):
+                if x_bounds is None:
+                    new_crs_id = self._getCRSID(trim[1])
+                    
+                    if crs_id is None:
+                        crs_id = new_crs_id
+                    elif crs_id != new_crs_id:
+                        raise InvalidSubsettingException(
+                            "CRSs for multiple spatial trims must be the same."
+                        )
+                        
+                    x_bounds = (
+                        self._getCoordinateBound(trim[2]),
+                        self._getCoordinateBound(trim[3])
+                    )
+                else:
+                    raise InvalidSubsettingException(
+                        "Multiple definitions for first spatial axis subsetting."
+                    )
+            elif trim[0] in ("y", "lat", "Lat"):
+                if y_bounds is None:
+                    new_crs_id = self._getCRSID(trim[1])
+                    
+                    if crs_id is None:
+                        crs_id = new_crs_id
+                    elif crs_id != new_crs_id:
+                        raise InvalidSubsettingException(
+                            "CRSs for multiple spatial trims must be the same."
+                        )
+                    
+                    y_bounds = (
+                        self._getCoordinateBound(trim[2]),
+                        self._getCoordinateBound(trim[3])
+                    )
+                else:
+                    raise InvalidSubsettingException(
+                        "Multiple definitions for second spatial axis subsetting."
+                    )
+            else:
+                raise InvalidAxisLabelException(
+                    "Invalid axis label '%s'." % trim[0]
+                )
+        
+        return (time_intv, crs_id, x_bounds, y_bounds)
+        
+    
+    def _getDateTimeBound(self, token):
+        if token is None:
+            return "unbounded"
+        else:
+            if not token.startswith('"') or not token.endswith('"'):
+                raise InvalidSubsettingException(
+                    "Date/Time tokens have to be enclosed in quotation marks (\")"
+                )
+            else:
+                dt_str = token.strip('"')
             
-            if minx is None:
-                minx = fp_minx
-            if miny is None:
-                miny = fp_miny
-            if maxx is None:
-                maxx = fp_maxx
-            if maxy is None:
-                maxy = fp_maxy
+            try:
+                return getDateTime(dt_str)
+            except:
+                raise InvalidSubsettingException(
+                    "Cannot convert token '%s' to Date/Time." % token
+                )
+    
+    def _getCoordinateBound(self, token):
+        if token is None:
+            return "unbounded"
+        else:
+            try:
+                return float(token)
+            except:
+                raise InvalidSubsettingException(
+                    "Cannot convert token '%s' to number." % token
+                )
+    
+    def _getCRSID(self, crs_expr):
+        if crs_expr is None:
+            return self.default_crs_id
+        else:
+            try:
+                return getSRIDFromCRSURI(crs_expr)
+            except Exception, e:
+                raise InvalidSubsettingException(e.msg)
+    
+    def getFilterExpressions(self):
+        self._decode()
+        
+        filter_exprs = []
+        
+        for slice in self.slices:
+            filter_exprs.append(self._getSliceExpression(slice))
+            
+        filter_exprs.extend(self._getTrimExpressions(self.trims))
+        
+        return filter_exprs
+    
+    def getBoundingPolygon(self, footprint, srid, size_x, size_y, extent):
+        self._decode()
+        
+        time_intv, crs_id, x_bounds, y_bounds = \
+            self._decodeTrims(self.trims)
+        
+        if x_bounds is None and y_bounds is None:
+            return None
+        
+        if x_bounds is None:
+            x_bounds = ("unbounded", "unbounded")
+        if y_bounds is None:
+            y_bounds = ("unbounded", "unbounded")
+        
+        if crs_id == "imageCRS":
+            if x_bounds[0] == "unbounded":
+                minx = extent[0]
+            else:
+                l = max(float(x_bounds[0]) / float(size_x), 0.0)
+                minx = extent[0] + l * (extent[2] - extent[0])
+            
+            if y_bounds[0] == "unbounded":
+                miny = extent[1]
+            else:
+                l = max(float(y_bounds[0]) / float(size_y), 0.0)
+                miny = extent[3] - l * (extent[3] - extent[1])
+            
+            if x_bounds[1] == "unbounded":
+                maxx = extent[2]
+            else:
+                l = min(float(x_bounds[1]) / float(size_x), 1.0)
+                maxx = extent[0] + l * (extent[2] - extent[0])
+            
+            if y_bounds[1] == "unbounded":
+                maxy = extent[3]
+            else:
+                l = min(float(y_bounds[1]) / float(size_y), 1.0)
+                maxy = extent[3] - l * (extent[3] - extent[1])
             
             poly = Polygon.from_bbox((minx, miny, maxx, maxy))
             poly.srid = srid
+        
+        else:
+            fp_minx, fp_miny, fp_maxx, fp_maxy = \
+                footprint.transform(crs_id, True).extent
             
-        else: # if no CRS is given, imageCRS is assumed
-            srid = footprint.srid
+            if x_bounds[0] == "unbounded":
+                minx = fp_minx
+            else:
+                minx = max(fp_minx, x_bounds[0])
             
-            imageCRSgrid = RectifiedGrid(dim=grid.dim, spatial_dim=grid.spatial_dim,low=grid.low,high=grid.high,axis_labels=grid.axis_labels,srid=grid.srid,origin=grid.origin,offsets=grid.offsets)
+            if y_bounds[0] == "unbounded":
+                miny = fp_miny
+            else:
+                miny = max(fp_miny, y_bounds[0])
             
-            for trim in trims:
-                if trim.dimension in ("x", "long"):
-                    if trim.trim_low is not None:
-                        imageCRSgrid.low = (trim.trim_low, imageCRSgrid.low[1])
-                    if trim.trim_high is not None:
-                        imageCRSgrid.high = (trim.trim_high, imageCRSgrid.high[1])
-                
-                elif trim.dimension in ("y", "lat"):        
-                    if trim.trim_low is not None:
-                        imageCRSgrid.low = (imageCRSgrid.low[0], trim.trim_low)
-                    if trim.trim_high is not None:
-                        imageCRSgrid.high = (imageCRSgrid.high[0], trim.trim_high)
+            if x_bounds[1] == "unbounded":
+                maxx = fp_maxx
+            else:
+                maxx = min(fp_maxx, x_bounds[1])
             
-            poly = imageCRSgrid.getBBOX()
+            if y_bounds[1] == "unbounded":
+                maxy = fp_maxy
+            else:
+                maxy = min(fp_maxy, y_bounds[1])
+            
+            poly = Polygon.from_bbox((minx, miny, maxx, maxy))
+            poly.srid = crs_id
             
         return poly
 
 class WCS20ConfigReader(object):
     REGISTRY_CONF = {
         "name": "WCS 2.0 Configuration Reader",
-        "impl_id": "services.ows.wcs20.WCS20ConfigReader",
-        "registry_values": {}
+        "impl_id": "services.ows.wcs20.WCS20ConfigReader"
     }
 
     def validate(self, config):

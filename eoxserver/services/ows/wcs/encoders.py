@@ -133,7 +133,7 @@ class EOPEncoder(GMLEncoder):
         result_time_iso = isotime(eo_metadata.getEndTime()) # TODO isotime(datetime.now())
         
         footprint = None
-        if eo_metadata.getType() == "eo.rect_mosaic":
+        if eo_metadata.getType() == "eo.rect_stitched_mosaic":
             for ds in eo_metadata.getDatasets():
                 if footprint is None:
                     footprint = ds.getFootprint()
@@ -183,36 +183,51 @@ class CoverageGML10Encoder(XMLEncoder):
         else:
             return id
     
+    #TODO grid does not exist anymore
     def encodeDomainSet(self, coverage):
         return self._makeElement("gml", "domainSet", [
-            (self.encodeGrid(coverage.getGrid(), "%s_grid" % coverage.getCoverageId()),)
+            (self.encodeGrid(coverage.getSize(),
+                             coverage.getExtent(),
+                             coverage.getSRID(),
+                             "%s_grid" % coverage.getCoverageId()),)
         ])
     
-    def encodeGrid(self, grid, id):
+    def encodeGrid(self, size, extent, srid, id):
+        sr = SpatialReference()
+        sr.ImportFromEPSG(srid)
+        
+        if sr.IsProjected():
+            axisLabels = "x y"
+        else:
+            axisLabels = "lon lat"
+        
         grid_element = self._makeElement("gml", "RectifiedGrid", [
-            ("", "@dimension", grid.dim),
+            ("", "@dimension", 2),
             ("@gml", "id", self._getGMLId(id)),
             ("gml", "limits", [
                 ("gml", "GridEnvelope", [
-                    ("gml", "low", " ".join([str(c) for c in grid.low])),
-                    ("gml", "high", " ".join([str(c) for c in grid.high]))
+                    ("gml", "low", "0 0"),
+                    ("gml", "high", "%d %d" % (size[0]-1, size[1]-1))
                 ])
             ]),
-            ("gml", "axisLabels", " ".join(grid.axis_labels)),
+            ("gml", "axisLabels", axisLabels),
             ("gml", "origin", [
                 ("gml", "Point", [
-                    ("", "@srsName", "http://www.opengis.net/def/crs/EPSG/0/%s" % grid.srid),
+                    ("", "@srsName", "http://www.opengis.net/def/crs/EPSG/0/%s" % srid),
                     ("@gml", "id", self._getGMLId("%s_origin" % id)),
-                    ("gml", "pos", " ".join([str(c) for c in grid.origin]))
+                    ("gml", "pos", "%f %f"%(extent[0], extent[3]))
                 ])
             ])
         ])
         
-        for offset_vector in grid.offsets:
-            grid_element.appendChild(self._makeElement("gml", "offsetVector", [
-                ("", "@srsName", "http://www.opengis.net/def/crs/EPSG/0/%s" % grid.srid),
-                ("", "@@", " ".join([str(c) for c in offset_vector]))
-            ]))
+        grid_element.appendChild(self._makeElement("gml", "offsetVector", [
+            ("", "@srsName", "http://www.opengis.net/def/crs/EPSG/0/%s" % srid),
+            ("", "@@", "%f 0"%((extent[2]-extent[0]) / float(size[0])))
+        ]))
+        grid_element.appendChild(self._makeElement("gml", "offsetVector", [
+            ("", "@srsName", "http://www.opengis.net/def/crs/EPSG/0/%s" % srid),
+            ("", "@@", "0 %f"%((extent[1]-extent[3]) / float(size[1])))
+        ]))
                     
         return grid_element
     
@@ -233,26 +248,31 @@ class CoverageGML10Encoder(XMLEncoder):
         ])
 
     def encodeRangeType(self, coverage):
+        range_type = coverage.getRangeType()
+        
         return self._makeElement("gmlcov", "rangeType", [
-            ("swe", "DataRecord", [(self.encodeRangeTypeField(channel),) for channel in coverage.getRangeType()])
+            ("swe", "DataRecord", [
+                (self.encodeRangeTypeField(range_type, band),)
+                for band in range_type.bands
+            ])
         ])
     
-    def encodeRangeTypeField(self, channel):
+    def encodeRangeTypeField(self, range_type, band):
         return self._makeElement("swe", "field", [
-            ("", "@name", channel.name),
+            ("", "@name", band.name),
             ("swe", "Quantity", [
-                ("", "@definition", channel.definition),
-                ("swe", "description", channel.description),
+                ("", "@definition", band.definition),
+                ("swe", "description", band.description),
 # TODO: Not in sweCommon anymore
-#                ("swe", "name", channel.name),
-                ("swe", "nilValues", [(self.encodeNilValue(nil_value),) for nil_value in channel.nil_values]),
+#                ("swe", "name", band.name),
+                ("swe", "nilValues", [(self.encodeNilValue(nil_value),) for nil_value in band.nil_values]),
                 ("swe", "uom", [
-                    ("", "@code", channel.uom)
+                    ("", "@code", band.uom)
                 ]),
                 ("swe", "constraint", [
                     ("swe", "AllowedValues", [
-                        ("swe", "interval", "%s %s" % (channel.allowed_values_start, channel.allowed_values_end)),
-                        ("swe", "significantFigures", channel.allowed_values_significant_figures)
+                        ("swe", "interval", "%s %s" % range_type.getAllowedValues()),
+                        ("swe", "significantFigures", range_type.getSignificantFigures())
                     ])
                 ])
             ])

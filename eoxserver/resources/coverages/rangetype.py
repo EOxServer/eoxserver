@@ -29,18 +29,31 @@
 
 from osgeo import gdal
 
-class Channel(object):
+class Band(object):
     """\
-    Channel represents a channel or band configuration.
+    Band represents a band configuration.
     
-    The fields of EOxSChannel correspond to a subset of the elements of
-    the swe:Quantity class of SWE Common 2.0. Notably, the 'optional',
-    'updatable', 'referenceFrame' and 'axisID' elements of swe:Quantity
-    have been left out; in conformance to SWE Common 2.0, 'optional' and
-    'updatable' are considered to be 'false'; 'referenceFrame' and
-    'axisID' are not applicable to EO coverages (they would allow to
-    interpret the values of the coverage as coordinates w.r.t. a given
-    CRS).
+    The ``gdal_interpretation`` parameter contains the GDAL
+    BandInterpretation value which may be assigned to a band. It may
+    be set to one of the following constants defined in
+    :mod:`osgeo.gdalconst`:
+    
+    * ``GCI_Undefined``
+    * ``GCI_GrayIndex``
+    * ``GCI_PaletteIndex``
+    * ``GCI_RedBand``
+    * ``GCI_GreenBand``
+    * ``GCI_BlueBand``
+    * ``GCI_AlphaBand``
+    * ``GCI_HueBand``
+    * ``GCI_SaturationBand``
+    * ``GCI_LightnessBand``
+    * ``GCI_CyanBand``
+    * ``GCI_MagentaBand``
+    * ``GCI_YellowBand``
+    * ``GCI_BlackBand``
+    
+    It defaults to ``GCI_Undefined``.
     """
 
     def __init__(self,
@@ -48,31 +61,110 @@ class Channel(object):
         identifier='',
         description='',
         definition='http://opengis.net/def/property/OGC/0/Radiance',
-        quality=None,
-        nil_values=[],
-        uom='W/cm2',
-        allowed_values_start=0,
-        allowed_values_end=255,
-        allowed_values_significant_figures=3
+        nil_values=None,
+        uom='W.m-2.sr-1.nm-1',
+        gdal_interpretation=gdal.GCI_Undefined
     ):
-        super(Channel, self).__init__()
         self.name = name
         self.identifier = identifier
         self.description = description
         self.definition = definition
-        self.quality = quality # currently unused
-        self.nil_values = nil_values # an array of EOxSNilValue objects
+        if nil_values is None:
+            self.nil_values = []
+        else:
+            self.nil_values = nil_values
         self.uom = uom
-        self.allowed_values_start = allowed_values_start
-        self.allowed_values_end = allowed_values_end
-        self.allowed_values_significant_figures = allowed_values_significant_figures
+        self.gdal_interpretation = gdal_interpretation
 
 class NilValue(object):
+    """
+    This class represents nil values of a coverage band.
+    
+    The constructor accepts the nil value itself and a reason. The
+    reason shall be one of:
+    
+    * ``http://www.opengis.net/def/nil/OGC/0/inapplicable``
+    * ``http://www.opengis.net/def/nil/OGC/0/missing``
+    * ``http://www.opengis.net/def/nil/OGC/0/template``
+    * ``http://www.opengis.net/def/nil/OGC/0/unknown``
+    * ``http://www.opengis.net/def/nil/OGC/0/withheld``
+    * ``http://www.opengis.net/def/nil/OGC/0/AboveDetectionRange``
+    * ``http://www.opengis.net/def/nil/OGC/0/BelowDetectionRange``
+    
+    See http://www.opengis.net/def/nil/ for the official description
+    of the meanings of these values.
+    """
+    
     def __init__(self, reason, value):
-        super(EOxSNilValue, self).__init__()
         self.reason = reason
         self.value = value
 
+class RangeType(object):
+    """
+    RangeType contains range type information of a coverage. The
+    constructor accepts the mandatory ``name`` and ``data_type``
+    parameters as well as an optional ``bands`` parameter. If no bands
+    are specified they shall be added with :meth:`addBands`.
+    
+    The ``data_type`` parameter may be set to one of the following
+    constants defined in :mod:`osgeo.gdalconst`:
+    
+    * ``GDT_Byte``
+    * ``GDT_UInt16``
+    * ``GDT_Int16``
+    * ``GDT_UInt32``
+    * ``GDT_Int32``
+    * ``GDT_Float32``
+    * ``GDT_Float64``
+    * ``GDT_CInt16``
+    * ``GDT_CInt32``
+    * ``GDT_CFloat32``
+    * ``GDT_CFloat64``
+    """
+    
+    def __init__(self, name, data_type, bands=None):
+        self.name = name
+        self.data_type = data_type
+        if bands is None:
+            self.bands = []
+        else:
+            self.bands = bands
+    
+    def addBand(self, band):
+        self.bands.append(band)
+        
+    def getSignificantFigures(self):
+        dt = self.data_type
+        if dt == gdal.GDT_Byte:
+            return 3
+        elif dt == gdal.GDT_UInt16 or dt == gdal.GDT_Int16:
+            return 5
+        elif dt == gdal.GDT_UInt32 or dt == gdal.GDT_Int32:
+            return 10
+        elif dt == gdal.GDT_Float32:
+            return 38
+        else:
+            raise NotImplemented()
+        
+    def getAllowedValues(self):
+        dt = self.data_type
+        if dt == gdal.GDT_Byte:
+            return (0, 255)
+        elif dt == gdal.GDT_UInt16:
+            return (0, 65535)
+        elif dt == gdal.GDT_Int16:
+            return (-32768, 32767)
+        elif dt == gdal.GDT_UInt32:
+            return (0, 4294967295)
+        elif dt == gdal.GDT_Int32:
+            return (-2147483648, 2147483647)
+        elif dt == gdal.GDT_Float32:
+            return (-3.40282e+38, 3.40282e+38)
+        else:
+            raise NotImplemented()
+    
+
+# TODO: rewrite this function according to new RangeType definition
 def getRangeTypeFromFile(filename):
     ds = gdal.Open(str(filename))
     

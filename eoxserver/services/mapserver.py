@@ -36,6 +36,7 @@ from email.message import Message
 import logging
 import os.path
 from cgi import escape
+from osgeo.gdalconst import GDT_Byte, GDT_Int16, GDT_UInt16, GDT_Float32
 
 from django.conf import settings
 
@@ -318,7 +319,8 @@ class MapServerOperationHandler(BaseRequestHandler):
         layer.name = coverage.getCoverageId()
         layer.status = mapscript.MS_ON
 
-        layer.setProjection("+init=epsg:%d" % int(coverage.getGrid().srid))
+        # TODO: getSRID is defined for rectified coverages only
+        layer.setProjection("+init=epsg:%d" % int(coverage.getSRID()))
 
         for key, value in coverage.getLayerMetadata():
             layer.setMetaData(key, value)
@@ -373,3 +375,21 @@ class MapServerOperationHandler(BaseRequestHandler):
     def postprocessFault(self, ms_req, resp):
         return resp
 
+def gdalconst_to_imagemode(const):
+    if const == GDT_Byte:
+        return mapscript.MS_IMAGEMODE_BYTE
+    elif const == GDT_Int16 or const == GDT_UInt16:
+        return mapscript.MS_IMAGEMODE_INT16
+    elif const == GDT_Float32:
+        return mapscript.MS_IMAGEMODE_FLOAT32
+    else:
+        raise InternalError("MapServer is not capable to process the datatype %d" % rangetype.data_type)
+
+def gdalconst_to_imagemode_string(const):
+    if const == GDT_Byte:
+        return "BYTE"
+    elif const == GDT_Int16 or const == GDT_UInt16:
+        return "INT16"
+    elif const == GDT_Float32:
+        return "FLOAT32"
+    

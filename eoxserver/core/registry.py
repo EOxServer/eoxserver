@@ -49,7 +49,7 @@ class Registry(object):
         self.__intf_index = {}
         self.__impl_index = {}
         self.__kvp_index = {}
-        self.__res_index = {}
+        self.__fact_index = {}
     
     def bind(self, impl_id, include_disabled=False):
         if impl_id in self.__impl_index:
@@ -60,7 +60,7 @@ class Registry(object):
         else:
             raise ImplementationNotFound("")
     
-    def getResource(self, factory_id, params):
+    def getFromFactory(self, factory_id, params):
         factory = self.bind(factory_id)
         
         return factory.get(**params)
@@ -68,7 +68,9 @@ class Registry(object):
     def findAndBind(self, intf_id, params, include_disabled=False):
         if intf_id in self.__intf_index:
             InterfaceCls = self.__intf_index[intf_id]["intf"]
-            if InterfaceCls.getBindingMethod() == "kvp":
+            if InterfaceCls.getBindingMethod() == "direct":
+                raise BindingMethodError("You have to bind directly to implementations of '%s'" % intf_id)
+            elif InterfaceCls.getBindingMethod() == "kvp":
                 ImplementationCls = self.__find_by_values(
                     InterfaceCls, params, include_disabled
                 )
@@ -79,7 +81,7 @@ class Registry(object):
                     include_disabled
                 )
             elif InterfaceCls.getBindingMethod() == "factory":
-                raise BindingMethodError("Cannot bind directly to '%s' implementations. Use getResource() instead.")
+                raise BindingMethodError("The registry cannot generate '%s' implementations. Use getFromFactory() instead." % intf_id)
             
             return ImplementationCls()
         else:
@@ -93,7 +95,13 @@ class Registry(object):
             else:
                 _params = {}
             
-            if InterfaceCls.getBindingMethod() == "kvp":
+            if InterfaceCls.getBindingMethod() == "direct" or \
+               InterfaceCls.getBindingMethod() == "factory":
+                impls = self.__find_all_impls(
+                    self.__intf_index[intf_id]["impls"],
+                    include_disabled
+                )
+            elif InterfaceCls.getBindingMethod() == "kvp":
                 impls = self.__find_all_by_values(
                     self.__intf_index[intf_id]["impls"],
                     _params,
@@ -118,6 +126,7 @@ class Registry(object):
     def getRegistryValues(self, intf_id, registry_key, filter=None, include_disabled=False):
         if intf_id in self.__intf_index:
             InterfaceCls = self.__intf_index[intf_id]["intf"]
+            
             if InterfaceCls.getBindingMethod() == "kvp":
                 if registry_key not in InterfaceCls.getRegistryKeys():
                     raise InternalError("Interface '%s' has no registry key '%s'" % (
@@ -143,6 +152,14 @@ class Registry(object):
                 ))
         else:
             raise InternalError("Unknown interface ID '%s'" % intf_id)
+        
+    def getFactoryImplementations(self, factory):
+        factory_id = factory.__get_impl_id__()
+        
+        if factory_id in self.__fact_index:
+            return [entry["cls"] for entry in self.__fact_index[factory_id]]
+        else:
+            raise InternalError("Unknown Factory ID '%s'." % factory_id)
 
     def load(self):
         # get module directories from config
@@ -159,7 +176,7 @@ class Registry(object):
             # and append them to the modules list
             modules.extend(self.__find_modules(module_dir))
         
-        # load modules; implementations will auto-register
+        # load modules
         for module_name in system_modules:
             self.__load_module(module_name, strict=True)
         
@@ -214,6 +231,7 @@ class Registry(object):
         registry.__impl_index = self.__impl_index
         registry.__intf_index = self.__intf_index
         registry.__kvp_index = self.__kvp_index
+        registry.__fact_index = self.__fact_index
         
         return registry
 
@@ -277,6 +295,14 @@ class Registry(object):
                     intf_id=self.__impl_index[impl_id]["cls"].__get_intf_id__(),
                     enabled=self.__impl_index[impl_id]["enabled"]
                 )
+
+    def __find_all_impls(self, entries, include_disabled=False):
+        if include_disabled:
+            return [entry["cls"] for entry in entries]
+        else:
+            return [entry["cls"] for entry in filter(
+                lambda entry: entry["enabled"], entries
+            )]
 
     def __find_by_values(self, InterfaceCls, kvp_dict, include_disabled=False):
         key = self.__make_kvp_index_key(
@@ -350,6 +376,9 @@ class Registry(object):
         
         # update KVP index
         self.__add_to_kvp_index(ImplementationCls)
+        
+        # update factory index
+        self.__add_to_fact_index(ImplementationCls)
     
     def __register_interface(self, InterfaceCls):
         logging.debug("Registry.__register_interface(): intf_id: %s" % InterfaceCls.getInterfaceId())
@@ -431,7 +460,26 @@ class Registry(object):
                         self.__kvp_index[key]["cls"].__get_impl_id__(),
                         self.__kvp_index[key]["cls"].__module__
                     ))
-                    
+    
+    def __add_to_fact_index(self, ImplementationCls):
+        if ImplementationCls.__ifclass__.getBindingMethod() == "factory":
+
+            
+            for factory_id in ImplementationCls.__get_factory_ids__():
+                logging.debug("Registry.__add_to_fact_index(): adding '%s' to '%s'" % (
+                    ImplementationCls.__get_impl_id__(),
+                    factory_id
+                ))
+                
+                if factory_id in self.__fact_index:
+                    self.__fact_index[factory_id].append(
+                        self.__get_index_entry(ImplementationCls)
+                    )
+                else:
+                    self.__fact_index[factory_id] = [
+                        self.__get_index_entry(ImplementationCls)
+                    ]
+    
     def __get_index_entry(self, ImplementationCls, enabled=False):
         return {
             "cls": ImplementationCls,
@@ -549,19 +597,21 @@ class RegisteredInterface(Interface):
         if hasattr(ImplementationCls, "REGISTRY_CONF"):
             conf = ImplementationCls.REGISTRY_CONF
         else:
-            raise InternalError("Missing 'REGISTRY_CONF' configuration dictionary in implementing class.")
+            raise InternalError("Missing 'REGISTRY_CONF' configuration dictionary in implementing class '%s'." % ImplementationCls.__name__)
         
         InterfaceCls._validateImplementationConf(conf)
 
         intf_id = InterfaceCls.getInterfaceId()
         impl_id = conf["impl_id"]
         kvps = conf.get("registry_values")
+        factory_ids = conf.get("factory_ids", ())
 
         class_dict.update({
             "__rconf__": conf,
             "__get_intf_id__": classmethod(lambda cls: intf_id),
             "__get_impl_id__": classmethod(lambda cls: impl_id),
-            "__get_kvps__": classmethod(lambda cls: kvps)
+            "__get_kvps__": classmethod(lambda cls: kvps),
+            "__get_factory_ids__": classmethod(lambda cls: factory_ids)
         })
         
         return class_dict
@@ -617,17 +667,16 @@ class TestingInterface(RegisteredInterface):
 class FactoryInterface(RegisteredInterface):
     REGISTRY_CONF = {
         "name": "Registered Factory Interface",
-        "intf_id": "core.registry.Factory"
+        "intf_id": "core.registry.Factory",
+        "binding_method": "direct"
     }
 
     get = Method(
-        PosArgs("args"),
         KwArgs("kwargs"),
         returns=Arg("@return")
     )
     
     find = Method(
-        PosArgs("args"),
         KwArgs("kwargs"),
         returns=ListArg("@return")
     )
@@ -635,7 +684,8 @@ class FactoryInterface(RegisteredInterface):
 class ComponentManagerInterface(RegisteredInterface):
     REGISTRY_CONF = {
         "name": "Component Manager Interface",
-        "intf_id": "core.registry.ComponentManager"
+        "intf_id": "core.registry.ComponentManager",
+        "binding_method": "direct"
     }
     
     getName = Method(
@@ -664,6 +714,11 @@ class ComponentManagerInterface(RegisteredInterface):
     
     disableRelation = Method(
         StringArg("obj_id")
+    )
+    
+    notify = Method(
+        ObjectArg("resource"),
+        StringArg("event")
     )
 
 class RegistryConfigReader(object):
