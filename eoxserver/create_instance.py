@@ -6,39 +6,32 @@ import shutil
 import os
 import sys
 
+# tags to be replaced in the template files
 TAG_PATH_SRC = "<$PATH_SRC$>"
 TAG_PATH_DST = "<$PATH_DST$>"
 TAG_INSTANCE_ID = "<$INSTANCE_ID$>"
 TAG_MAPSCRIPT = "<$MAPSCRIPT_PATH$>"
 
-"""def copy_file(src_pth, dst_pth):
-    dirname, filename = os.path.split(dst_pth)
-    print(dirname, filename)
-    shutil.copy(src_pth, dirname)
-    os.rename(os.path.join(dirname, os.path.basename(src_pth)),
-              os.path.join(dirname, filename))
-    
-"""
-def copy_and_replace_tags(src_pth, dst_pth, replacements):
+def copy_and_replace_tags(src_pth, dst_pth, replacements={}):
     """Helper function to copy a file and replace tags within a file."""
-    
     new_file = open(dst_pth,'w')
     old_file = open(src_pth)
     for line in old_file:
-        for pattern, subst in replacements.items():
+        for pattern, subst in replacements.iteritems():
             line = line.replace(pattern, subst)
         new_file.write(line)
-
     new_file.close()
     old_file.close()
 
 def create_file(dir_or_path, file=None):
+    """Helper function to create a new empty file at a given location."""
     if file is not None:
         dir_or_path = os.path.join(dir_or_path, file)
     f = open(dir_or_path, 'w')
     f.close()
 
 def run(args):
+    # set up a parser for command line arguments
     parser = argparse.ArgumentParser()
     parser.description = """Create a new EOxServer instance. This instance 
                          will create a root directory with the instance name in
@@ -47,11 +40,12 @@ def run(args):
                          If the --init_spatialite flag is set, then the initial
                          database will be created and initialized.
                          """
-                         
+
+    # set up possible command line arguments
     parser.add_argument('-d', '--dir', default='.',
                         help='Optional base directory. Defaults to the current directory.')
     parser.add_argument('--initial_data', metavar='DIR', default=False,
-                        help='Not yet used')
+                        help='Location of the initial data. Must be JSON.')
     parser.add_argument('--init_spatialite', action='store_true',
                         help='Flag to initialize the sqlite database.')
     parser.add_argument('--mapscript-dir', default=False,
@@ -59,10 +53,11 @@ def run(args):
                         help='Optional path to the MapServer mapscript library.')
     parser.add_argument('instance_id', nargs=1, action='store',
                         metavar='INSTANCE_ID',
-                        help='Mandatory name of the eoxserver instance')
+                        help='Mandatory name of the eoxserver instance.')
     
     args = parser.parse_args(args)
 
+    
     instance_id = args.instance_id[0]
     dst_root_dir = os.path.abspath(args.dir)
     dst_inst_dir = os.path.join(dst_root_dir, instance_id)
@@ -84,12 +79,13 @@ def run(args):
     print("Initializing django project.")
     assert(os.system("django-admin.py startproject %s" % instance_id) == 0)
 
-    # create the `conf` subdirectory
+    # create the `conf`, `data`, `logs` and `fixtures` subdirectories
     os.mkdir(dst_conf_dir)
     os.mkdir(dst_data_dir)
     os.mkdir(dst_logs_dir)
     os.mkdir(dst_fixtures_dir)
-    
+
+    # create an empty logfile
     create_file(dst_logs_dir, "eoxserver.log")
     
     tags = {
