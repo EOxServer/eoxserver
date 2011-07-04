@@ -51,7 +51,7 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.spatialite',
-        'NAME': 'data/config.sqlite',    # Or path to database file if using sqlite3.
+        'NAME': '<$PATH_DST$>/data/config.sqlite',    # Or path to database file if using sqlite3.
         'USER': '',                      # Not used with sqlite3.
         'PASSWORD': '',                  # Not used with sqlite3.
         'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
@@ -142,5 +142,5 @@ INSTALLED_APPS = (
 )
 
 FIXTURE_DIRS = (
-    join(PROJECT_DIR, 'data/fixtures'),
+    join(PROJECT_DIR, '<$PATH_DST$>/data/fixtures'),
 )
