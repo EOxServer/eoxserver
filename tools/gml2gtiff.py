@@ -254,6 +254,7 @@ if options.map is not None:
     layer.setMetaData("wcs_srs", "epsg:%d" % epsg)
     layer.setMetaData("wcs_extent", extent)
     layer.setMetaData("wcs_size", "%d %d" % (width, height))
+    layer.setMetaData("wcs_default_format", "application/gml+xml")
     
     # set band metadata
     layer.setMetaData("wcs_bandcount", str(len(bands)))
