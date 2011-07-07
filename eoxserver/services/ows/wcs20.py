@@ -453,7 +453,7 @@ class WCS20GetCoverageHandler(WCSCommonHandler):
             if value.lower() == "image/tiff":
                 super(WCS20GetCoverageHandler, self)._setParameter(ms_req, "format", "GTiff_")
             else:
-                raise InvalidRequestException("Invalid or unsupported value '%s' for 'format' parameter." % value, "InvalidParameterValue", key)
+                raise InvalidRequestException("Format '%s' is not allowed in coverages with more than three bands." % value, "InvalidParameterValue", key)
         else:
             super(WCS20GetCoverageHandler, self)._setParameter(ms_req, key, value)
     
@@ -489,19 +489,16 @@ class WCS20GetCoverageHandler(WCSCommonHandler):
         if coverage.getType() in ("file", "eo.rect_dataset"):
 
             datasets = coverage.getDatasets(
-                filter_exprs=kwargs.get("filter_exprs", [])
+                filter_exprs = kwargs.get("filter_exprs", [])
             )
             
             if len(datasets) == 0:
                 raise InvalidRequestException("Image extent does not intersect with desired region.", "ExtentError", "extent") # TODO: check if this is the right exception report
             elif len(datasets) == 1:
                 layer.data = os.path.abspath(datasets[0].getFilename())
-                #TODO: set layer metadata
                 
             else:
                 raise InternalError("A single file or EO dataset should never return more than one dataset.")
-                
-            #layer.setMetaData("wcs_bandcount", str(len(coverage.getRangeType())))
             
         elif coverage.getType() == "eo.rect_mosaic":
            
