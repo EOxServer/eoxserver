@@ -693,6 +693,8 @@ class WCS20SubsetDecoder(object):
             pass
     
     def _getSliceExpression(self, slice):
+        axis_label = slice[0]
+        
         if axis_label in ("t", "time", "phenomenonTime"):
             return self._getTimeSliceExpression(slice)
         else:

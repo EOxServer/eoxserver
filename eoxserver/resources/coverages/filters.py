@@ -634,8 +634,8 @@ class TimeSliceFilter(object):
     def applyToQuerySet(self, expr, qs):
         timestamp = expr.getOperands()[0]
         
-        qs = qs.exclude(eo_metadata__timestamp_begin__gt=time)
-        qs = qs.exclude(eo_metadata__timestamp_end__lt=time)
+        qs = qs.exclude(eo_metadata__timestamp_begin__gt=timestamp)
+        qs = qs.exclude(eo_metadata__timestamp_end__lt=timestamp)
         
         return qs
     
