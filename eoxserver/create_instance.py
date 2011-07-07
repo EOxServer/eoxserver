@@ -116,12 +116,22 @@ def run(args):
         shutil.copy(initial_data, os.path.join(dst_fixtures_dir,
                                                "initial_data.json"))
     
-    # initialize the spatialite database file
     if args.init_spatialite:
-        print("Setting up initial database.")
+        # initialize the spatialite database file
         os.chdir(dst_data_dir)
-        init_sql = os.path.join(src_conf_dir, "init_spatialite-2.3.sql")
-        os.system("spatialite conf.sqlite < %s" % init_sql)
+        db_name = "conf.sqlite"
+        init_sql_path = os.path.join(src_conf_dir, "init_spatialite-2.3.sql")
+        print("Setting up initial database.")
+        try:
+            from pyspatialite import dbapi2 as db
+            conn = db.connect(db_name)
+            #f = open(init_sql_path)
+            #sql = f.read()
+            conn.execute("SELECT InitSpatialMetadata()")
+            conn.commit()
+            conn.close()
+        except ImportError:
+            os.system("spatialite conf.sqlite < %s" % init_sql_path)
 
 if __name__ == "__main__":
     run(sys.argv[1:])
