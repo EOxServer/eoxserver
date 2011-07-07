@@ -222,7 +222,7 @@ class MapServerOperationHandler(BaseRequestHandler):
         pass
     
     def _setParameter(self, ms_req, key, value):
-        ms_req.ows_req.setParameter(key, value)
+        ms_req.ows_req.addParameter(key, value)
 
     def configureRequest(self, ms_req):
         """
@@ -236,12 +236,17 @@ class MapServerOperationHandler(BaseRequestHandler):
         @return         None
         """
         
+        
+        #TODO recode this
+        
         ms_req.ows_req = mapscript.OWSRequest()
         if ms_req.getParamType() == "kvp":
             for key, values in ms_req.getParams().items():
                 try: # first try 'addParameter'
+                    raise AttributeError
                     for value in values:
-                        ms_req.ows_req.addParameter(key, value)
+                        #ms_req.ows_req.addParameter(key, value)
+                        self._setParameter(ms_req, key.lower(), value)
                 except AttributeError:
                     if len(values) == 1:
                         self._setParameter(ms_req, key.lower(), escape(values[0]))
@@ -258,7 +263,8 @@ class MapServerOperationHandler(BaseRequestHandler):
                             while "%s_%d" % (key.lower(), c) in ms_req.getParams():
                                 c += 1
 
-            self._setParameter(ms_req, "version", ms_req.getVersion())
+            #ms_req.ows_req.setParameter("version", ms_req.getVersion())
+            #self._setParameter(ms_req, "version", ms_req.getVersion())
         elif ms_req.getParamType() == "xml":
             ms_req.ows_req.type = mapscript.MS_POST_REQUEST
             ms_req.ows_req.postrequest = ms_req.getParams()
