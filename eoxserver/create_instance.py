@@ -1,4 +1,38 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+#-------------------------------------------------------------------------------
+# $Id$
+#
+# Project: EOxServer <http://eoxserver.org>
+# Authors: Fabian Schindler <fabian.schindler@eox.at>
+#          Stephan Krause <stephan.krause@eox.at>
+#          Stephan Meissl <stephan.meissl@eox.at>
+#
+#-------------------------------------------------------------------------------
+# Copyright (C) 2011 EOX IT Services GmbH
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+# copies of the Software, and to permit persons to whom the Software is 
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies of this Software or works derived from this Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#-------------------------------------------------------------------------------
+
+"""
+Create a new EOxServer instance. This instance will create a root directory 
+with the instance name in the given (optional) directory.
+"""
 
 import argparse
 import tempfile
@@ -76,8 +110,10 @@ def run(args):
 
     os.chdir(dst_root_dir)
 
-    print("Initializing django project.")
-    assert(os.system("django-admin.py startproject %s" % instance_id) == 0)
+    print("Initializing django project.\n\n")
+    print("Please ignore error the following line if it contains a message like 'sh: django-admin.py: not found'.")
+    assert((os.system("django-admin.py startproject %s" % instance_id) == 0) or
+           (os.system("django-admin startproject %s" % instance_id) == 0))
 
     # create the `conf`, `data`, `logs` and `fixtures` subdirectories
     os.mkdir(dst_conf_dir)
