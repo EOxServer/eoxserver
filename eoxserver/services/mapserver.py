@@ -222,7 +222,7 @@ class MapServerOperationHandler(BaseRequestHandler):
         pass
     
     def _setParameter(self, ms_req, key, value):
-        ms_req.ows_req.addParameter(key, value)
+        ms_req.ows_req.setParameter(key, value)
 
     def configureRequest(self, ms_req):
         """
