@@ -500,7 +500,7 @@ class WCS20GetCoverageHandler(WCSCommonHandler):
             else:
                 raise InternalError("A single file or EO dataset should never return more than one dataset.")
             
-        elif coverage.getType() == "eo.rect_mosaic":
+        elif coverage.getType() == "eo.rect_stitched_mosaic":
            
             layer.tileindex = os.path.abspath(coverage.getShapeFilePath())
             layer.tileitem = "location"
@@ -513,7 +513,7 @@ class WCS20GetCoverageHandler(WCSCommonHandler):
         size = coverage.getSize()
         rangetype = coverage.getRangeType()
         resolution = ((extent[2]-extent[0]) / float(size[0]),
-                      (extent[3]-extent[1]) / float(size[1]))
+                      (extent[1]-extent[3]) / float(size[1]))
         
         layer.setMetaData("wcs_extent", "%.10f %.10f %.10f %.10f" % extent)
         layer.setMetaData("wcs_resolution", "%f %f" % resolution)
@@ -521,11 +521,11 @@ class WCS20GetCoverageHandler(WCSCommonHandler):
         layer.setMetaData("wcs_nativeformat", "GTiff")
         layer.setMetaData("wcs_bandcount", "%d" % len(rangetype.bands))
 
-        bands = " ".join(band.name for band in rangetype.bands)
+        bands = " ".join([band.name for band in rangetype.bands])
         layer.setMetaData("wcs_band_names", bands)
         
         layer.setMetaData("wcs_interval",
-                          "%g %g" % rangetype.getAllowedValues())
+                          "%f %f" % rangetype.getAllowedValues())
             
         layer.setMetaData("wcs_significant_figures",
                           "%d" % rangetype.getSignificantFigures())
@@ -553,7 +553,7 @@ class WCS20GetCoverageHandler(WCSCommonHandler):
     def postprocess(self, ms_req, resp):
         coverage_id = ms_req.getParamValue("coverageid")
         
-        if ms_req.coverages[0].getType() == "eo.rect_mosaic":
+        if ms_req.coverages[0].getType() == "eo.rect_stitched_mosaic":
             include_composed_of = False #True
 
         else:
