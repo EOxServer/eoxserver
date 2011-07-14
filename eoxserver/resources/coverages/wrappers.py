@@ -1075,7 +1075,7 @@ class RectifiedStitchedMosaicWrapper(EOCoverageWrapper, RectifiedGridWrapper):
         """
         Returns the path to the shape file.
         """
-        return os.path.join(self.__model.storage_dir, "tiles.shp")
+        return os.path.join(self.__model.storage_dir, "tindex.shp")
     
     def getDataDirs(self):
         """
