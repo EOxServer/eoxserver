@@ -199,7 +199,7 @@ class CoverageGML10Encoder(XMLEncoder):
         if sr.IsProjected():
             axisLabels = "x y"
         else:
-            axisLabels = "lon lat"
+            axisLabels = "long lat"
         
         grid_element = self._makeElement("gml", "RectifiedGrid", [
             ("", "@dimension", 2),
@@ -222,11 +222,11 @@ class CoverageGML10Encoder(XMLEncoder):
         
         grid_element.appendChild(self._makeElement("gml", "offsetVector", [
             ("", "@srsName", "http://www.opengis.net/def/crs/EPSG/0/%s" % srid),
-            ("", "@@", "%f 0"%((extent[2]-extent[0]) / float(size[0])))
+            ("", "@@", "%f 0.0"%((extent[2]-extent[0]) / float(size[0])))
         ]))
         grid_element.appendChild(self._makeElement("gml", "offsetVector", [
             ("", "@srsName", "http://www.opengis.net/def/crs/EPSG/0/%s" % srid),
-            ("", "@@", "0 %f"%((extent[1]-extent[3]) / float(size[1])))
+            ("", "@@", "0.0 %f"%((extent[1]-extent[3]) / float(size[1])))
         ]))
                     
         return grid_element
