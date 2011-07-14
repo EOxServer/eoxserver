@@ -1741,6 +1741,19 @@
         }
     },
     {
+        "pk": 7, 
+        "model": "coverages.extentrecord", 
+        "fields": {
+            "srid": 4326,
+            "size_x": 1023, 
+            "size_y": 451,
+            "minx": -3.75, 
+            "miny": 32.158895, 
+            "maxx": 28.326165,
+            "maxy": 46.3
+        }
+    },
+    {
         "pk": 1, 
         "model": "coverages.filerecord", 
         "fields": {
@@ -2068,7 +2081,7 @@
             "eo_metadata": 5, 
             "layer_metadata": [], 
             "coverage_id": "mosaic_MER_FRS_1P_RGB_reduced",
-            "extent": 1
+            "extent": 7
         }
     }, 
     {
