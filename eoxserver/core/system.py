@@ -35,6 +35,7 @@ import logging
 from django.conf import settings
 
 from eoxserver.core.config import Config
+from eoxserver.core.exceptions import InternalError, ConfigError  
 from eoxserver.core.registry import Registry, RegistryConfigReader
 from eoxserver.core.interfaces import RUNTIME_VALIDATION_LEVEL, IntfConfigReader
 
