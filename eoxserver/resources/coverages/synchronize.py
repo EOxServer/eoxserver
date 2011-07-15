@@ -40,6 +40,8 @@ from osgeo import ogr, osr
 import logging
 from traceback import format_exc
 
+from eoxserver.core.system import System
+
 from django.conf import settings
 from django.db.models.signals import post_save, post_delete
 from django.contrib.gis.geos import Point, Polygon, GEOSGeometry
