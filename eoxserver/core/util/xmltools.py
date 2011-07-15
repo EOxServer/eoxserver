@@ -687,10 +687,10 @@ def _getChildNamespaces(node):
     if node.attributes is not None:
         for i in range(0, node.attributes.length):
             attr = node.attributes.item(i)
-            if attr.namespaceURI is not None and not attr.prefix.startswith("xml"):
+            if attr.namespaceURI is not None and (node.prefix is None or not attr.prefix.startswith("xml")):
                 nsmap[attr.prefix] = attr.namespaceURI
     
-    if node.namespaceURI is not None and not node.prefix.startswith("xml"):
+    if node.namespaceURI is not None and (node.prefix is None or not node.prefix.startswith("xml")):
         nsmap[node.prefix] = node.namespaceURI
     
     return nsmap
