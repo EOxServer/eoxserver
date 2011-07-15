@@ -31,6 +31,8 @@ import os.path
 
 import logging
 
+from eoxserver.core.system import System
+
 from eoxserver.core.util.xmltools import DOMElementToXML
 from eoxserver.core.exceptions import InternalError
 from eoxserver.services.interfaces import (
@@ -58,6 +60,8 @@ class WCSServiceHandler(OWSCommonServiceHandler):
 WCSServiceHandlerImplementation = ServiceHandlerInterface.implement(WCSServiceHandler)
 
 class WCS10VersionHandler(OWSCommonVersionHandler):
+    SERVICE = "wcs"
+    
     REGISTRY_CONF = {
         "name": "WCS 1.0 Version Handler",
         "impl_id": "services.ows.wcs1x.WCS10VersionHandler",
@@ -73,6 +77,8 @@ class WCS10VersionHandler(OWSCommonVersionHandler):
 WCS10VersionHandlerImplementation = VersionHandlerInterface.implement(WCS10VersionHandler)
 
 class WCS11VersionHandler(OWSCommonVersionHandler):
+    SERVICE = "wcs"
+    
     REGISTRY_CONF = {
         "name": "WCS 1.1 Version Handler",
         "impl_id": "services.ows.wcs1x.WCS11VersionHandler",
