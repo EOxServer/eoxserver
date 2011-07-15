@@ -242,6 +242,7 @@ class MapServerOperationHandler(BaseRequestHandler):
         ms_req.ows_req = mapscript.OWSRequest()
         if ms_req.getParamType() == "kvp":
             for key, values in ms_req.getParams().items():
+                self._setParameter(ms_req, "version", ms_req.version)
                 try: # first try 'addParameter'
                     raise AttributeError
                     for value in values:
