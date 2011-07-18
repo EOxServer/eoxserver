@@ -169,7 +169,7 @@ class RectifiedGridWrapper(object):
     def __model(self):
         return self._ResourceWrapper__model
         
-    def _createExtent(self, file_info):
+    def _createExtentRecord(self, file_info):
         return ExtentRecord.objects.create(
             srid = file_info.srid,
             size_x = file_info.size_x,
