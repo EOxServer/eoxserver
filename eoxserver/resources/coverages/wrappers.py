@@ -34,6 +34,8 @@ import os.path
 
 import logging
 
+from django.contrib.gis.geos import GEOSGeometry
+
 from eoxserver.core.system import System
 from eoxserver.core.resources import (
     ResourceFactoryInterface, ResourceWrapper, ResourceFactory
