@@ -257,6 +257,15 @@ class ResourceFactoryInterface(FactoryInterface):
        contents of the resource model's ``id_field`` field, see
        :class:`ResourceInterface`) for the resources given by the
        
+    .. method:: getAttrValues(**kwargs)
+    
+       This method shall return the values of a given attribute for a
+       selection of resources.
+    
+    .. method:: exists(**kwargs)
+    
+       This method shall return ``True`` if there are resources matching
+       the given search criteria, ``False`` otherwise.
     """
     REGISTRY_CONF = {
         "name": "Resource factory interface",
@@ -283,7 +292,13 @@ class ResourceFactoryInterface(FactoryInterface):
     )
     
     getAttrValues = Method(
-        KwArgs("kwargs")
+        KwArgs("kwargs"),
+        returns=ListArg("@return")
+    )
+    
+    exists = Method(
+        KwArgs("kwargs"),
+        returns=BoolArg("@return")    
     )
 
 #-----------------------------------------------------------------------
@@ -864,6 +879,34 @@ class ResourceFactory(object):
             ))
         
         return attr_values
+    
+    def exists(self, **kwargs):
+        """
+        Returns ``True`` if there are resources matching the given
+        criteria, or ``False`` otherwise.
+        
+        * ``subj_id``: the id of the calling component
+        * ``impl_ids``: the implementation IDs of the resource classes
+          to be taken into account
+        * ``filter_exprs``: a list of filter expressions that constrain
+          the resources
+        
+        The ``subj_id`` argument will be used to check for relations to
+        the resources (not yet implemented).
+        """
+        
+        subj_id = kwargs.get("subj_id") # TODO: relation management
+        
+        impl_ids = kwargs.get("impl_ids")
+        filter_exprs = kwargs.get("filter_exprs", [])
+        
+        for ImplementationCls in self._getImplementationClasses(impl_ids):
+            models = self._filter(ImplementationCls, filter_exprs)
+            
+            if models.count() > 0:
+                return True
+        
+        return False
         
     def _getById(self, ImplementationCls, obj_id):
         ModelClass = ImplementationCls.__get_model_class__()
