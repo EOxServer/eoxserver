@@ -31,6 +31,7 @@ import os
 import re
 from threading import RLock, Condition, local
 import logging
+import warnings
 
 from django.conf import settings
 
@@ -62,6 +63,11 @@ class System(object):
     
     @classmethod
     def startRequest(cls):
+        warnings.warn("Use of System.startRequest() is deprecated use System.init() instead.", DeprecationWarning)
+        return cls.init() 
+    
+    @classmethod
+    def init(cls):
         cls.__state_cond.acquire()
         
         try:
