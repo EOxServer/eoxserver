@@ -35,7 +35,7 @@ database content with data stored in the file system.
 import os.path
 from fnmatch import fnmatch
 from datetime import datetime
-from osgeo import ogr, osr
+from osgeo import ogr, osr, gdal 
 
 import logging
 from traceback import format_exc
@@ -123,7 +123,7 @@ class FileInfo(object):
 
         gt = ds.GetGeoTransform()
         
-        srs = SpatialReference()
+        srs = osr.SpatialReference()
         srs.ImportFromWkt(ds.GetProjection())
 
         srs.AutoIdentifyEPSG()
