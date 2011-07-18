@@ -70,7 +70,7 @@ def ows(request):
     else:
         raise Exception("Unsupported request method '%s'" % request.method)
 
-    System.startRequest()
+    System.init()
     
     handler = OWSCommonHandler()
 
