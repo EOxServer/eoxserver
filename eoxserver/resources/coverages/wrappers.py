@@ -46,7 +46,7 @@ from eoxserver.core.util.timetools import getDateTime
 from eoxserver.resources.coverages.models import (
     SingleFileCoverageRecord, RectifiedDatasetRecord,
     ReferenceableDatasetRecord, RectifiedStitchedMosaicRecord,
-    DatasetSeriesRecord
+    DatasetSeriesRecord, FileRecord, EOMetadataRelcord
 )
 from eoxserver.resources.coverages.interfaces import (
     CoverageInterface, RectifiedDatasetInterface,
