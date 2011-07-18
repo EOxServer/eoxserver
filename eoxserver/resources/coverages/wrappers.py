@@ -48,7 +48,8 @@ from eoxserver.core.util.timetools import getDateTime
 from eoxserver.resources.coverages.models import (
     SingleFileCoverageRecord, RectifiedDatasetRecord,
     ReferenceableDatasetRecord, RectifiedStitchedMosaicRecord,
-    DatasetSeriesRecord, FileRecord, EOMetadataRecord
+    DatasetSeriesRecord, FileRecord, EOMetadataRecord, 
+    ExtentRecord, LineageRecord, RangeTypeRecord
 )
 from eoxserver.resources.coverages.interfaces import (
     CoverageInterface, RectifiedDatasetInterface,
@@ -483,7 +484,7 @@ class RectifiedDatasetWrapper(EODatasetWrapper, RectifiedGridWrapper):
         lineage_record = self._createLineageRecord(file_info)
         
         range_type_record = RangeTypeRecord.objects.get(
-            name = file_info.range_type_name
+            name = file_info.range_type
         )
         
         dataset = RectifiedDatasetRecord.objects.create(
@@ -501,7 +502,8 @@ class RectifiedDatasetWrapper(EODatasetWrapper, RectifiedGridWrapper):
         if container is not None:
             container.add(self.__model)
         
-        self.__model = dataset
+        #self.__model = dataset
+        self._ResourceWrapper__model = dataset 
 
     def _updateModel(self, params):
         file_info = params.get("file_info")
@@ -520,7 +522,7 @@ class RectifiedDatasetWrapper(EODatasetWrapper, RectifiedGridWrapper):
             self._updateLineageRecord(file_info)
             
             range_type_record = RangeTypeRecord.objects.get(
-                name = file_info.range_type_name
+                name = file_info.range_type
             )
             
             dataset.coverage_id = file_info.eo_id,
