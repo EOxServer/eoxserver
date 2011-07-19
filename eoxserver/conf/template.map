@@ -30,9 +30,9 @@ MAP
     WEB
         METADATA
             "ows_updatesequence"                "20110223T120000Z"
-            "wcs_title"                         "Test configuration of MapServer used to demonstrate EOxServer"
-            "wcs_abstract"                      "Test configuration of MapServer used to demonstrate EOxServer"
-            "ows_service_onlineresource"        "http://localhost:8000/ows?"
+            "ows_title"                         "Test configuration of MapServer used to demonstrate EOxServer"
+            "ows_abstract"                      "Test configuration of MapServer used to demonstrate EOxServer"
+            "ows_service_onlineresource"        "http://www.eox.at"
             "ows_accessconstraints"             "None"
             "ows_fees"                          "None"
             "ows_addresstype"                   "postal"
