@@ -91,6 +91,7 @@ class EOxSWMSCommonHandler(EOxSMapServerOperationHandler):
             layer = mapscript.layerObj()
             
             layer.name = coverage.getEOID()
+            layer.setMetaData("wms_title", coverage.getEOID())
             layer.status = mapscript.MS_ON
             layer.setMetaData("wms_label", coverage.getEOID())
             
@@ -117,6 +118,7 @@ class EOxSWMSCommonHandler(EOxSMapServerOperationHandler):
                     raise EOxSInternalError("Cannot handle empty coverages")
                 elif len(datasets) == 1:
                     layer.data = os.path.abspath(datasets[0].getFilename())
+                    logging.debug("EOxSWMSCommonHandler.getMapServerLayer: filename: %s" % layer.data)
                 else:
                     raise EOxSInternalError("A single file or EO dataset should never return more than one dataset.")
                 
@@ -131,7 +133,7 @@ class EOxSWMSCommonHandler(EOxSMapServerOperationHandler):
                 
                 elif len(datasets) == 1:
                     layer.setExtent(*datasets[0].getGrid().getExtent2D())
-                    layer.setProjection("EPSG:%d"%datasets[0].getGrid().srid)
+                    layer.setProjection("+init=epsg:%d" % datasets[0].getGrid().srid)
                     layer.setMetaData("wms_srs", "EPSG:%d"%int(datasets[0].getGrid().srid))
                     #layer.setMetaData("wms_crs", "EPSG:%d"%datasets[0].getGrid().srid)
                     layer.data = datasets[0].getFilename() # TODO: Show all requested files. (Default without time parameter to all.)
@@ -139,7 +141,7 @@ class EOxSWMSCommonHandler(EOxSMapServerOperationHandler):
                 else: # we have multiple datasets
                     # set projection to the first datasets projection
                     # TODO: dataset projections can differ
-                    layer.setProjection("EPSG:%d" % datasets[0].getGrid().srid)
+                    layer.setProjection("+init=epsg:%d" % datasets[0].getGrid().srid)
                     layer.setMetaData("wms_srs", "EPSG:%d" % int(datasets[0].getGrid().srid))
                     
                     # initialize OGR driver
@@ -203,7 +205,7 @@ class EOxSWMSCommonHandler(EOxSMapServerOperationHandler):
         except EOxSInternalError:
             # create "no data" layer
             logging.debug(layer.data)
-            layer.setProjection("EPSG:4326")
+            layer.setProjection("+init=epsg:4326")
             layer.setMetaData("wms_srs", "EPSG:3035 EPSG:4326 EPSG:900913") # TODO find out possible projections
 
         return layer
@@ -233,7 +235,7 @@ class EOxSWMS1XGetCapabilitiesHandler(EOxSWMSCommonHandler):
         else:
             layer.data = os.path.abspath(datasets[0].getFilename())
             
-        logging.debug("EOxSWMSCommonHandler.getMapServerLayer: filename: %s" % layer.data)
+        logging.debug("EOxSWMS1XGetCapabilitiesHandler.getMapServerLayer: filename: %s" % layer.data)
         
         return layer
 
@@ -286,7 +288,7 @@ class EOxSWMS10_11GetMapHandler(EOxSWMS1XGetMapHandler):
             try:
                 ms_req.map.setProjection(srs)
             except:
-                ms_req.map.setProjection("EPSG:4326")
+                ms_req.map.setProjection("+init=epsg:4326")
         else:
             raise EOxSInvalidRequestException("Mandatory 'SRS' parameter missing.", "MissingParameterValue", "srs")
     
@@ -323,14 +325,13 @@ class EOxSWMS13GetMapHandler(EOxSWMS1XGetMapHandler):
             try:        
                 ms_req.map.setProjection(crs)
             except:
-                ms_req.map.setProjection("EPSG:4326")
+                ms_req.map.setProjection("+init=epsg:4326")
         else:
             raise EOxSInvalidRequestException("Mandatory 'CRS' parameter missing", "MissingParameterValue", "crs")
     
     def getMapServerLayer(self, coverage, **kwargs):
         layer = super(EOxSWMS13GetMapHandler, self).getMapServerLayer(coverage, **kwargs)
         layer.setMetaData("wms_exceptions_format","xml")
-        
 
         return layer
 
