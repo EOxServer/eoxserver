@@ -467,8 +467,57 @@ class ReferenceableDatasetInterface(EODatasetInterface, ReferenceableGridInterfa
         "name": "Referenceable Dataset Interface",
         "intf_id": "resources.coverages.interfaces.ReferenceableDataset"
     }
+    
+class ContainerInterface(RegisteredInterface):
+    """
+    This is the common interface for coverages and series containing
+    EO Coverages.
+    
+    .. method:: addCoverage(res_type, res_id)
+    
+       Add resource with type ``res_type`` and primary key ``res_id``
+       to container.
+    
+    .. method:: removeCoverage(res_type, res_id)
+    
+       Remove resource with type ``res_type`` and primary key
+       ``res_id``
+    
+    .. method:: getDataDirs
+    
+       This method shall return a list of directories which hold the
+       dataset series data.
+    
+    .. method:: getImagePattern
+    
+       This method shall return the filename pattern for image files
+       to be included in the dataset series.
+    """
+    
+    REGISTRY_CONF = {
+        "name": "Container Interface",
+        "intf_id": "resources.coverages.interfaces.Container"
+    }
+    
+    addCoverage = Method(
+        StringArg("res_type"),
+        IntArg("res_id")
+    )
+    
+    removeCoverage = Method(
+        StringArg("res_type"),
+        IntArg("res_id")
+    )
+    
+    getDataDirs = Method(
+        returns=ListArg("@return")
+    )
+    
+    getImagePattern = Method(
+        returns=StringArg("@return")
+    )
 
-class RectifiedStitchedMosaicInterface(EOCoverageInterface, RectifiedGridInterface, TileIndexInterface):
+class RectifiedStitchedMosaicInterface(EOCoverageInterface, RectifiedGridInterface, ContainerInterface, TileIndexInterface):
     """
     This class is intended for implementations of Rectified Stitched
     Mosaic objects according to WCS 2.0 EO-AP. It inherits from
@@ -491,14 +540,6 @@ class RectifiedStitchedMosaicInterface(EOCoverageInterface, RectifiedGridInterfa
         "name": "Rectified Stitched Mosaic Interface",
         "intf_id": "resources.coverages.interfaces.RectifiedStitchedMosaic"
     }
-    
-    getDataDirs = Method(
-        returns=ListArg("@return")
-    )
-    
-    getImagePattern = Method(
-        returns=StringArg("@return")
-    )
 
 class DatasetSeriesInterface(ResourceInterface, EOMetadataInterface):
     """
@@ -523,15 +564,7 @@ class DatasetSeriesInterface(ResourceInterface, EOMetadataInterface):
        resource primary key ``res_id`` is contained in the Dataset
        Series, ``False`` otherwise.
     
-    .. method:: getDataDirs
-    
-       This method shall return a list of directories which hold the
-       dataset series data.
-    
-    .. method:: getImagePattern
-    
-       This method shall return the filename pattern for image files
-       to be included in the dataset series.
+
     """
     REGISTRY_CONF = {
         "name": "Dataset Series Interface",
@@ -547,12 +580,4 @@ class DatasetSeriesInterface(ResourceInterface, EOMetadataInterface):
     contains = Method(
         IntArg("res_id"),
         returns=BoolArg("@return")
-    )
-    
-    getDataDirs = Method(
-        returns=ListArg("@return")
-    )
-    
-    getImagePattern = Method(
-        returns=StringArg("@return")
     )

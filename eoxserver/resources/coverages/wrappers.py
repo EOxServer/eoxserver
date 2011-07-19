@@ -527,7 +527,7 @@ class RectifiedDatasetWrapper(EODatasetWrapper, RectifiedGridWrapper):
         )
         
         if container is not None:
-            container.add(self.__model)
+            container.addCoverage(self.getType(), self.__model.pk)
         
         self.__model = dataset
         
@@ -562,10 +562,10 @@ class RectifiedDatasetWrapper(EODatasetWrapper, RectifiedGridWrapper):
             dataset.visible = visible
         
         if add_container is not None:
-            add_container.addCoverage(self.__model.pk)
+            add_container.addCoverage(self.getType(), self.__model.pk)
         
         if rm_container is not None:
-            rm_container.removeCoverage(self.__model.pk)
+            rm_container.removeCoverage(self.getType(), self.__model.pk)
     
     def _getAttrValue(self, attr_name):
         if attr_name == "eo_id":
@@ -1107,6 +1107,34 @@ class RectifiedStitchedMosaicWrapper(EOCoverageWrapper, RectifiedGridWrapper):
         """
         return os.path.join(self.__model.storage_dir, "tindex.shp")
     
+    def addCoverage(self, res_type, res_id):
+        """
+        Adds a Rectified Dataset with primary key ``res_id`` to the
+        Rectified Stitched Mosaic. An :exc:`InternalError` is raised if
+        the ``res_type`` is not equal to ``eo.rect_dataset``.
+        """
+        if res_type != "eo.rect_dataset":
+            raise InternalError(
+                "Cannot add coverages of type '%s' to Rectified Stitched Mosaics" %\
+                res_type
+            )
+        else:
+            self.rect_datasets.add(res_id)
+    
+    def removeCoverage(self, res_type, res_id):
+        """
+        Removes a Rectified Dataset with primary key ``res_id`` from the
+        Rectified Stitched Mosaic. An :exc:`InternalError` is raised if
+        the ``res_type`` is not equal to ``eo.rect_dataset``.
+        """
+        if res_type != "eo.rect_dataset":
+            raise InternalError(
+                "Cannot remove coverages of type '%s' from Rectified Stitched Mosaics" %\
+                res_type
+            )
+        else:
+            self.rect_datasets.remove(res_id)
+    
     def getDataDirs(self):
         """
         This method returns a list of directories which hold the 
@@ -1210,6 +1238,52 @@ class DatasetSeriesWrapper(ResourceWrapper, EOMetadataWrapper):
         return self.__model.rect_datasets.filter(pk=res_id).count() > 0 or \
                self.__model.ref_datasets.filter(pk=res_id).count() > 0 or \
                self.__model.rect_stitched_mosaics.filter(pk=res_id).count() > 0
+    
+    def addCoverage(self, res_type, res_id):
+        """
+        Adds the EO coverage of type ``res_type`` with primary key
+        ``res_id`` to the dataset series. An :exc:`InternalError` is
+        raised if the type cannot be handled by Dataset Series.
+        Supported types are:
+        
+        * ``eo.rect_dataset``
+        * ``eo.ref_dataset``
+        * ``eo.rect_stitched_mosaic``
+        """
+        if res_type == "eo.rect_dataset":
+            self.rect_datasets.add(res_id)
+        elif res_type == "eo.ref_dataset":
+            self.ref_datasets.add(res_id)
+        elif res_type == "eo.rect_stitched_mosaic":
+            self.rect_stitched_mosaics.add(res_id)
+        else:
+            raise InternalError(
+                "Cannot add coverages of type '%s' to Dataset Series" %\
+                res_type
+            )
+
+    def removeCoverage(self, res_type, res_id):
+        """
+        Removes the EO coverage of type ``res_type`` with primary key
+        ``res_id`` from the dataset series. An :exc:`InternalError` is
+        raised if the type cannot be handled by Dataset Series.
+        Supported types are:
+        
+        * ``eo.rect_dataset``
+        * ``eo.ref_dataset``
+        * ``eo.rect_stitched_mosaic``
+        """
+        if res_type == "eo.rect_dataset":
+            self.rect_datasets.remove(res_id)
+        elif res_type == "eo.ref_dataset":
+            self.ref_datasets.remove(res_id)
+        elif res_type == "eo.rect_stitched_mosaic":
+            self.rect_stitched_mosaics.remove(res_id)
+        else:
+            raise InternalError(
+                "Cannot add coverages of type '%s' to Dataset Series" %\
+                res_type
+            )
     
     def getDataDirs(self):
         """
