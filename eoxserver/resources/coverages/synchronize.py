@@ -36,6 +36,8 @@ import os.path
 from fnmatch import fnmatch
 from datetime import datetime
 from osgeo import ogr, osr, gdal 
+#make sure osgeo modules throw exceptions 
+for mod in (ogr,osr,gdal) : mod.UseExceptions()
 
 import logging
 from traceback import format_exc
