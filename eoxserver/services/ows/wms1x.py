@@ -164,6 +164,7 @@ class WMSCommonHandler(MapServerOperationHandler):
             layer = mapscript.layerObj()
             
             layer.name = coverage.getEOID()
+            layer.setMetaData("wms_title", coverage.getEOID()) 
             layer.status = mapscript.MS_ON
             layer.setMetaData("wms_label", coverage.getEOID())
             
@@ -190,6 +191,7 @@ class WMSCommonHandler(MapServerOperationHandler):
                     raise InternalError("Cannot handle empty coverages")
                 elif len(datasets) == 1:
                     layer.data = os.path.abspath(datasets[0].getFilename())
+                    logging.debug("EOxSWMSCommonHandler.getMapServerLayer: filename: %s" % layer.data) 
                 else:
                     raise InternalError("A single file or EO dataset should never return more than one dataset.")
                 
@@ -204,14 +206,14 @@ class WMSCommonHandler(MapServerOperationHandler):
                 
                 elif len(datasets) == 1:
                     layer.setExtent(*datasets[0].getExtent())
-                    layer.setProjection("EPSG:%d"%datasets[0].getSRID())
+                    layer.setProjection("+init=epsg:%d" % datasets[0].getSRID())
                     layer.setMetaData("wms_srs", "EPSG:%d"%int(datasets[0].getSRID()))
                     layer.data = datasets[0].getFilename() # TODO: Show all requested files. (Default without time parameter to all.)
                 
                 else: # we have multiple datasets
                     # set projection to the first datasets projection
                     # TODO: dataset projections can differ
-                    layer.setProjection("EPSG:%d" % datasets[0].getSRID())
+                    layer.setProjection("+init=epsg:%d" % datasets[0].getSRID())
                     layer.setMetaData("wms_srs", "EPSG:%d" % int(datasets[0].getSRID()))
                     
                     # initialize OGR driver
@@ -275,7 +277,7 @@ class WMSCommonHandler(MapServerOperationHandler):
         except InternalError:
             # create "no data" layer
             logging.debug(layer.data)
-            layer.setProjection("EPSG:4326")
+            layer.setProjection("+init=epsg:4326")
             layer.setMetaData("wms_srs", "EPSG:3035 EPSG:4326 EPSG:900913") # TODO find out possible projections
 
         return layer
@@ -306,7 +308,7 @@ class WMS1XGetCapabilitiesHandler(WMSCommonHandler):
         else:
             layer.data = os.path.abspath(datasets[0].getFilename())
             
-        logging.debug("WMSCommonHandler.getMapServerLayer: filename: %s" % layer.data)
+        logging.debug("WMS1XGetCapabilitiesHandler.getMapServerLayer: filename: %s" % layer.data)
         
         return layer
 
@@ -407,7 +409,7 @@ class WMS10_11GetMapHandler(WMS1XGetMapHandler):
             try:
                 ms_req.map.setProjection(srs)
             except:
-                ms_req.map.setProjection("EPSG:4326")
+                ms_req.map.setProjection("+init=epsg:4326")
         else:
             raise InvalidRequestException("Mandatory 'SRS' parameter missing.", "MissingParameterValue", "srs")
     
@@ -487,7 +489,7 @@ class WMS13GetMapHandler(WMS1XGetMapHandler):
             try:        
                 ms_req.map.setProjection(crs)
             except:
-                ms_req.map.setProjection("EPSG:4326")
+                ms_req.map.setProjection("+init=epsg:4326")
         else:
             raise InvalidRequestException("Mandatory 'CRS' parameter missing", "MissingParameterValue", "crs")
     
@@ -495,7 +497,6 @@ class WMS13GetMapHandler(WMS1XGetMapHandler):
         layer = super(WMS13GetMapHandler, self).getMapServerLayer(coverage, **kwargs)
         layer.setMetaData("wms_exceptions_format","xml")
         
-
         return layer
 
 WMS13GetMapHandlerImplementation = OperationHandlerInterface.implement(WMS13GetMapHandler)
