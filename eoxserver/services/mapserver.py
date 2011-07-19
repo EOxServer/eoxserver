@@ -289,6 +289,8 @@ class MapServerOperationHandler(BaseRequestHandler):
         ms_req.map.setMetaData("ows_onlineresource", OWSCommonConfigReader().getHTTPServiceURL() + "?")
         ms_req.map.setMetaData("wcs_label", "EOxServer WCS") # TODO: to WCS
         
+        ms_req.map.setProjection("+init=epsg:4326") #TODO: Set correct projection!
+        
         #ms_req.map.debug = 5
         #ms_req.map.setConfigOption("MS_ERRORFILE", "stderr")
         
@@ -324,7 +326,9 @@ class MapServerOperationHandler(BaseRequestHandler):
         layer = mapscript.layerObj()
         
         layer.name = coverage.getCoverageId()
+        layer.setMetaData("ows_title", coverage.getCoverageId())
         layer.status = mapscript.MS_ON
+        #layer.debug = 5
 
         # TODO: getSRID is defined for rectified coverages only
         layer.setProjection("+init=epsg:%d" % int(coverage.getSRID()))
