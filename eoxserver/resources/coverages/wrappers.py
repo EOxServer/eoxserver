@@ -181,6 +181,15 @@ class RectifiedGridWrapper(object):
             maxy = file_info.extent[3]
         )
     
+    def _updateExtentRecord(self, file_info):
+        self.__model.extent.srid = file_info.srid
+        self.__model.extent.size_x = file_info.size_x
+        self.__model.extent.size_y = file_info.size_y
+        self.__model.extent.minx = file_info.extent[0]
+        self.__model.extent.miny = file_info.extent[1]
+        self.__model.extent.maxx = file_info.extent[2]
+        self.__model.extent.maxy = file_info.extent[3]
+    
     def getSRID(self):
         """
         Returns the SRID of the coverage CRS.
@@ -229,6 +238,11 @@ class DatasetWrapper(object):
             metadata_format = file_info.md_format
         )
     
+    def _updateFileRecord(self, file_info):
+        self.__model.file.path = file_info.filename
+        self.__model.file.metadata_path = file_info.md_filename
+        self.__model.file.metadata_format = file_info.md_format
+    
     def getFilename(self):
         """
         Returns the file name that relates to the dataset.
@@ -274,6 +288,15 @@ class EOMetadataWrapper(object):
             footprint = GEOSGeometry(file_info.footprint_wkt),
             eo_gml = file_info.md_xml_text
         )
+    
+    def _updateEOMetadataRecord(self, file_info):
+        self.__model.eo_metadata.timestamp_begin = \
+            file_info.timestamp_begin
+        self.__model.eo_metadata.timestamp_end = \
+            file_info.timestamp_end
+        self.__model.eo_metadata.footprint = \
+            GEOSGeometry(file_info.footprint_wkt)
+        self.__model.eo_metadata.eo_gml = file_info.md_xml_text
     
     def getEOID(self):
         """
@@ -331,6 +354,9 @@ class EOCoverageWrapper(CoverageWrapper, EOMetadataWrapper):
     
     def _createLineageRecord(self, file_info):
         return LineageRecord.objects.create()
+    
+    def _updateLineageRecord(self, file_info):
+        pass
     
     def getEOCoverageSubtype(self):
         """
@@ -451,14 +477,15 @@ class RectifiedDatasetWrapper(EODatasetWrapper, RectifiedGridWrapper):
     
     # NOTE: partially implemented in ResourceWrapper
     
-    @property
-    def __model(self):
+    def __get_model(self):
         return self._ResourceWrapper__model
     
-    def _createModel(self, params):
-        """
+    def __set_model(self, model):
+        self._ResourceWrapper__model = model
         
-        """
+    __model = property(__get_model, __set_model)
+    
+    def _createModel(self, params):
         if "file_info" in params:
             file_info = params["file_info"]
         else:
@@ -502,9 +529,8 @@ class RectifiedDatasetWrapper(EODatasetWrapper, RectifiedGridWrapper):
         if container is not None:
             container.add(self.__model)
         
-        #self.__model = dataset
-        self._ResourceWrapper__model = dataset 
-
+        self.__model = dataset
+        
     def _updateModel(self, params):
         file_info = params.get("file_info")
         automatic = params.get("automatic")
