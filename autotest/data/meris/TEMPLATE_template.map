@@ -35,8 +35,8 @@ MAP
     WEB
         METADATA
             "ows_updatesequence"                "20110610T153000Z"
-            "wcs_title"                         "Test configuration of MapServer used to demonstrate EOxServer"
-            "wcs_abstract"
+            "ows_title"                         "Test configuration of MapServer used to demonstrate EOxServer"
+            "ows_abstract"
 "
 Test configuration of MapServer used to demonstrate EOxServer
 The MERIS test data is produced from the following ESA remote sensing data:
@@ -44,7 +44,7 @@ MERIS L1b sample data available at: http://earth.esa.int/object/index.cfm?fobjec
 
 Copyright (C) European Space Agency - ESA
 "
-            "ows_service_onlineresource"        "http://localhost:8000/ows?"
+            "ows_service_onlineresource"        "http://www.eox.at"
             "ows_accessconstraints"             "None"
             "ows_fees"                          "None"
             "ows_addresstype"                   "postal"
