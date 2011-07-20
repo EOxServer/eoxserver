@@ -35,6 +35,8 @@
 
 Run
 cd <path_to_docs_directory>/sphinx
+export PYTHONPATH="<PATH-TO-EOxServer-CODE>"
+export DJANGO_SETTINGS_MODULE="autotest.settings" # Use a valid EOxServer settings file here. Note that the configured database needs to be synced.
 make html
 
 The documentation is generated in _build/html.
