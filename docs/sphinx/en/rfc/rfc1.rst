@@ -11,8 +11,8 @@ RFC 1: An Extensible Software Architecture for EOxServer
 
 :Author: Stephan Krause
 :Created: 2011-02-18
-:Last Edit: 2011-04-06
-:Status: PENDING
+:Last Edit: 2011-07-20
+:Status: ACCEPTED
 :Discussion: http://www.eoxserver.org/wiki/DiscussionRfc1
 
 This RFC proposes an extensible software architecture for EOxServer that
@@ -804,7 +804,8 @@ views in the urlconf is sufficient.
 Voting History
 --------------
 
-N/A
+Moved to ACCEPTED by unanimous consent without a formal vote on July
+20th, 2011.
 
 Traceability
 ------------
