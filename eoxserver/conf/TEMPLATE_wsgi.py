@@ -31,10 +31,10 @@ import os
 import sys
 from django.core.handlers.wsgi import WSGIHandler
 
-path = "<PATH-TO-EOxServer-CODE>"
+path = "<path-to-instance-parent-dir>"
 if path not in sys.path:
     sys.path.append(path)
 
-os.environ["DJANGO_SETTINGS_MODULE"] = "eoxserver.settings"
+os.environ["DJANGO_SETTINGS_MODULE"] = "<instance name>.settings"
 
 application = WSGIHandler()
