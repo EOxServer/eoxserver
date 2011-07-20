@@ -7,7 +7,7 @@ RFC 2: Extension Mechanism for EOxServer
 
 :Author: Stephan Krause
 :Created: 2011-02-20
-:Last Edit: 2011-05-12
+:Last Edit: 2011-07-20
 :Status: IN PREPARATION
 :Discussion: http://www.eoxserver.org/wiki/DiscussionRfc2
 
@@ -341,59 +341,111 @@ where stricter settings override weaker ones.
   throughout the development process. In a production setting ``trust``
   should be used.
 
-.. _rfc2_model:
-
-Data Model
-----------
-
-The data model for 
-* Registry Model
-
-  * Interfaces
-  * Implementations
-
-* Database Model
-
-  * Implementation
-
-    * Component
-    * ResourceClass
-
-  * Resources
-
-  * Relations
-
-    * ClassRelations
-
-* ComponentManager
-
-  * Configuration Validation
-  * Dependency Management
-  * Relation Management
-
 .. _rfc2_registry:
 
 Registry
 --------
 
-* RegisteredInterface
-* automated detection
-* finding and binding
+The Registry is the core component for managing the extension mechanism
+of EOxServer. It is the central entry point for:
+
+* automated detection of registered interfaces and implementations
+* dynamical binding to the implementations
+* configuration of components and relations between them
+
+Its functionality shall be discussed in further detail in the following
+subsections: 
+
+* :ref:`rfc2_model`
+* :ref:`rfc2_detect`
+* :ref:`rfc2_binding`
+
+.. _rfc2_model:
+
+Data Model
+----------
+
+The data model for the Extension Mechanism including dynamic binding is
+implemented primarily by the :ref:`rfc2_registry`; for persistent
+information it relies on the configuration files and the database.
+
+As you'd expect, the Registry data model relies on interfaces and
+implementations. However, not all of them are registered, but only 
+descendants of :class:`RegisteredInterface` and their respective
+implementations. :class:`RegisteredInterface` extends the configuration
+model for interfaces with information relevant to the registration and
+dynamic binding processes. This is an example for a valid
+configuration::
+
+    class SomeInterface(RegisteredInterface):
+    
+        REGISTRY_CONF = {
+            "name": "Some Interface",
+            "intf_id": "somemodule.SomeInterface",
+            "binding_method": "direct"
+        }
+
+The most important parts are the interface ID ``intf_id`` and the
+``binding_method`` settings which will be used by the registry to find
+implementations of the interface and to determine how to bind to them.
+For more information see the :ref:`rfc2_binding` section below.
+
+The registry model is accompanied by a database model that allows to
+store persistently which parts of the system (services, plugins, etc.)
+are enabled and which resources they have access to.
+
+.. figure:: ../developers/images/model_core.png
+   :align: center
+   
+   *Database Model for the Registry*
+
+For every registered implementation an :class:`Implementation` instance
+and database record are created. Implementations are subdivided into
+components and resource classes, each with their respective model
+deriving from :class:`Implementation`. Components stand for the active
+parts of the system like Service Handlers. They can be enabled or
+disabled. Resource classes relate to a specific resource wrapper which
+in turn relate to some specific model derived from :class:`Resource`.
+
+Furthermore, there is the possibility to create, enable and disable
+relations between components and  specific resource instances or
+resource classes. These relations are used to determine whether a given
+component has access to a given resource or resource class. They allow
+to configure the behaviour e.g. of certain services and protect parts
+of an EOxServer instance from unwanted access.
+
+As the number of registered components is quite large and as there are
+many interdependencies between them and to resource classes specific
+Component Managers shall be introduced in order to:
+
+* group them to larger entities which are more easy to handle
+* validate the configuration with respect to these interdependencies
+* facilitate relation management
+* automatically create the needed relations
+
+These managers shall implement the common
+:class:`ComponentManagerInterface`.
+
 
 .. _rfc2_detect
 
 Detection
 ---------
 
+
+
 * RegisteredInterface
 * on a per module basis
 * whole directories
+
+
 
 .. _rfc2_binding
 
 Binding
 -------
 
+* direct binding
 * KVP binding
 * test binding
 * factory binding

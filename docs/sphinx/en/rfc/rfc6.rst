@@ -7,7 +7,7 @@ RFC 6: Directory Structure
 
 :Author: Stephan Krause
 :Created: 2011-02-24
-:Last Edit: 2011-02-28
+:Last Edit: 2011-07-20
 :Status: IN PREPARATION
 :Discussion: http://www.eoxserver.org/wiki/DiscussionRfc6
 
@@ -27,7 +27,7 @@ Directory Structure
   * ``core``
   * ``resources``
   
-    * ``coverage``
+    * ``coverages``
     
       * ``formats``
     
