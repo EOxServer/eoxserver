@@ -41,9 +41,11 @@ Copy directory "eoxserver" to destination.
 Change to "eoxserver" directory.
 Copy or move "TEMPLATE_settings.py" to "settings.py" and adjust settings.
 Optional: Add link "initial_data.json" to "eoxserver/server/fixtures/" pointing to either "template_initial_data.json" or "../../../autotest/data/meris/meris_data.json" in order to add test data.
+Add the parent directory of eoxserver to the Python path: export PYTHONPATH=<eoxserver-parent-dir>
 Run: "python manage.py syncdb"
 Run: "python manage.py runserver"
 Point your browser to "http://localhost:8000/ows?" (e.g. "http://localhost:8000/ows?service=wcs&version=2.0.0&request=GetCapabilities") or "http://localhost:8000/admin/".
+
 
 +--------------------------------------------+
 | Running via WSGI interface
@@ -71,4 +73,35 @@ Restart Apache web server and point your browser to "http://<url-to-your-server/
 # Installation guide                         #
 ##############################################
 A comprehensive installation guide will be provided separately.
+
+
+##############################################
+# OpenSuse Notes                             #
+##############################################
+A few pointers on getting things running on OpenSuse.
+Based on 11.4, might apply to future versions as well.
+
+1. system software
+-------------------
+Make sure the following are installed (e.g. via yast2):
+    gdal-python
+    apache2-mod-wsgi
+
+2. pysqlite
+-----------
+By default, pysqlite2 on OpenSuse comes with SQLITE_OMIT_LOAD_EXTENSION
+defined; therefore to allow enable_load_extension() it is necessary to rebiuld
+from the source, not omitting it ::
+
+   Download the source from http://code.google.com/p/pysqlite/
+   edit setup.cfg to comment out SQLITE_OMIT_LOAD_EXENSION:
+      #define=SQLITE_OMIT_LOAD_EXTENSION
+   sudo python setup.py install --prefix=/usr
+
+Note the use of the --prefix option. Adjust as appropriate.
+
+3. django_extensions
+--------------------
+
+  sudo easy_install django_extensions
 
