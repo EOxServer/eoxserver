@@ -7,8 +7,8 @@ RFC 2: Extension Mechanism for EOxServer
 
 :Author: Stephan Krause
 :Created: 2011-02-20
-:Last Edit: 2011-07-20
-:Status: IN PREPARATION
+:Last Edit: 2011-07-21
+:Status: PENDING
 :Discussion: http://www.eoxserver.org/wiki/DiscussionRfc2
 
 This RFC proposes an extension mechanism that allows to integrate
@@ -18,9 +18,25 @@ distribution and instances.
 Introduction
 ------------
 
-* motivation
-* addressed problems
-* proposed solution
+:doc:`rfc1` proposes an extensible architecture for EOxServer in order
+to ensure
+
+* modularity
+* extensibility
+* flexibility
+
+of the design. It establishes the need for an extension mechanism which
+acts as a sort of "glue" between different parts of the architecture
+and enables dynamic binding to these components.
+
+This RFC discusses the extension mechanism in further detail and
+identifies the architectural principles and components needed to
+implement it.
+
+The constituent components of the extension mechanism design are
+interface declarations, the respective implementations and a central
+registry that contains metadata about interfaces and implementations
+and enables dynamic binding to the latter ones.
 
 Requirements
 ------------
@@ -363,7 +379,7 @@ subsections:
 .. _rfc2_model:
 
 Data Model
-----------
+~~~~~~~~~~
 
 The data model for the Extension Mechanism including dynamic binding is
 implemented primarily by the :ref:`rfc2_registry`; for persistent
@@ -376,7 +392,9 @@ implementations. :class:`RegisteredInterface` extends the configuration
 model for interfaces with information relevant to the registration and
 dynamic binding processes. This is an example for a valid
 configuration::
-
+    
+    from eoxserver.core.registry import RegisteredInterface
+    
     class SomeInterface(RegisteredInterface):
     
         REGISTRY_CONF = {
@@ -426,31 +444,59 @@ Component Managers shall be introduced in order to:
 These managers shall implement the common
 :class:`ComponentManagerInterface`.
 
-
-.. _rfc2_detect
+.. _rfc2_detect:
 
 Detection
----------
+~~~~~~~~~
 
+The first step in the dynamic binding process provided by the registry
+is the detection of interfaces and implementations to be registered.
+For this end the registry loads the modules defined in the configuration
+files and searches them for descendants of :class:`RegisteredInterface`
+and their implementations. The metadata of the detected interfaces and
+implementations (the contents of``REGISTRY_CONF``) is ingested into the
+registry. This metadata is used for binding to the implementations,
+see the following subsection :ref:`rfc2_binding` for details.
 
+The main EOxServer configuration file ``eoxserver.conf`` contains
+options for determining which modules shall be scanned during the
+detection phase. The user can define single modules and whole
+directories to be searched for modules there.
 
-* RegisteredInterface
-* on a per module basis
-* whole directories
-
-
-
-.. _rfc2_binding
+.. _rfc2_binding:
 
 Binding
--------
+~~~~~~~
+
+The registry provides four binding methods:
 
 * direct binding
 * KVP binding
 * test binding
 * factory binding
 
-::
+Direct binding means that the implementation to bind to is directly
+referenced by the caller using its implementation ID::
+
+    from eoxserver.core.system import System
+    
+    impl = System.getRegistry().bind(
+        "somemodule.SomeImplementation"
+    )
+
+Direct binding is available for every implementation. You can also set
+the ``binding_method`` in the ``REGISTRY_CONF`` of an interface to
+``direct``, meaning that its implementations are reachable only by
+this method. This is used e.g. for component managers and factories.
+
+The easiest method for parametrized dynamic binding is key-value-pair
+matching, or KVP binding. It is used if an interface defines ``kvp`` as
+its ``binding_method``. The interface must then define in its
+``REGISTRY_CONF`` one or more ``registry_keys``, the implementations
+in turn must define ``registry_values`` for these keys. When looking
+up a matching implementation, the parameters given with the request
+are matched against these key-value-pairs. Finally, the registry returns
+an instance of the matching implementation::
 
     from eoxserver.core.system import System
     
@@ -467,6 +513,56 @@ Binding
         
         return response
 
+This binding method is used e.g. for binding to service, version
+and operation handlers for OGC Web Services based on the parameters
+sent with the request.
+
+A more flexible way to determine which implementation to bind to is
+the test binding method (``"binding_method": "testing"``). In this case,
+the interface must be derived from :class:`TestingInterface`. The
+implementation must provide a :meth:`test` method which will be invoked
+by the registry in order to determine if it is suitable for a given set
+of parameters. This can be used e.g. to determine which format handler
+to use for a given dataset::
+
+    from eoxserver.core.system import System
+    
+    format = System.getRegistry().findAndBind(
+        intf_id = "resources.coverages.formats.FormatInterface",
+        params = {
+            "filename": filename
+        }
+    )
+    
+    ...
+    
+The fourth binding method is factory binding (
+``"binding_method": "factory"``). In this case the registry invokes a
+factory that returns an instance of the desired implementation.
+Factories must be implementations of a descendant of
+:class:`FactoryInterface`. Implementations and factories are linked
+together only at runtime, based on the metadata collected during the
+detection phase. This binding method is used e.g. for binding to
+instances of a resource wrapper::
+
+    from eoxserver.core.system import System
+    
+    resource = System.getRegistry().getFromFactory(
+        factory_id = "resources.coverages.wrappers.SomeResourceFactory",
+        obj_id = "some_resource_id"
+    )
+
+In order to access other functions of the factory you can bind to it
+directly. For retrieving all resources that are accessible through a
+factory you would use code like this::
+
+    from eoxserver.core.system import System
+    
+    resource_factory = System.getRegistry().bind(
+        "resources.coverages.wrappers.SomeResourceFactory"
+    )
+    
+    resources = resource_factory.find()
 
 Voting History
 --------------

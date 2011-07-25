@@ -7,58 +7,72 @@ RFC 6: Directory Structure
 
 :Author: Stephan Krause
 :Created: 2011-02-24
-:Last Edit: 2011-07-20
-:Status: IN PREPARATION
+:Last Edit: 2011-07-25
+:Status: PENDING
 :Discussion: http://www.eoxserver.org/wiki/DiscussionRfc6
 
-<short description of the RFC>
+This RFC proposes a directory structure for the EOxServer distribution
+as well as EOxServer instances.
 
 Introduction
 ------------
 
-<Mandatory. Overview of motivation, addressed problems and proposed
- solution>
- 
+:doc:`rfc1` introduces a layered architecture for EOxServer as well as
+a separation of EOxServer distribution and instances. This RFC lays
+out a directory structure that is in line with this architecture.
+
 Directory Structure
 -------------------
 
-* distribution
+Distribution
+~~~~~~~~~~~~
 
-  * ``core``
-  * ``resources``
+  * ``core``: contains the modules of the Core
+
+    * ``util``: contains utility modules to be used throughout the
+      project
+
+  * ``services``: contains the modules of the Service Layer
   
-    * ``coverages``
-    
-      * ``formats``
-    
-    * ``vector``
-    
-      * ``formats``
+    * ``ows``: contains implementations of OGC Web Services
 
-  * ``processing``
+  * ``processing``: contains the modules of the Processing Layer
 
-    * ``processes``
+    * ``processes``: contains processes
 
-  * ``services``
+  * ``resources``: contains the modules of the Data Integration Layer
   
-    * ``ows``
+    * ``coverages``: contains the modules related to coverage resources
+    
+      * ``formats``: contains the modules related to coverage formats
+    
+    * ``vector``: contains the modules related to vector data
+    
+      * ``formats``: contains the modules related to vector data formats
 
-  * ``contrib``
-  * ``plugins``
+  * ``contrib``: contains (links to) third party modules
   
-* instance
+  * ``conf``: contains the default configuration
+  
+Instance
+~~~~~~~~
+
+The instance directory contains the three Django project modules:
 
   * ``settings.py``
   * ``manage.py``
   * ``urls.py``
-  * ``conf``
   
-    * ``eoxserver.conf``
-    * ``template.map``
+And the following subdirectories
+
+  * ``conf``: configuration files
   
-  * ``data``
-  * ``db``
-  * ``plugins``
+    * ``eoxserver.conf``: the central EOxServer configuration
+    * ``template.map``: template MapFile for OWS requests
+  
+  * ``data``: database files
+
+    * ``config.sqlite``: SQLite database
 
 Voting History
 --------------
