@@ -93,6 +93,9 @@ class EOxSTestCase(TestCase):
     def getResponseFileName(self):
         return "%s.%s" % (self.__class__.__name__, self.getFileExtension())
     
+    def getResponseData(self):
+        return self.response.content
+    
     def testStatus(self):
         logging.info("Checking HTTP Status ...")
         self.assertEqual(self.response.status_code, 200)
@@ -111,9 +114,9 @@ class EOxSTestCase(TestCase):
         except:
             expected = ""
         
-        if expected != self.response.content:
+        if expected != self.getResponseData():
             f = open(os.path.join(self.getResponseFileDir(), self.getResponseFileName()), 'w')
-            f.write(self.response.content)
+            f.write(self.getResponseData())
             f.close()
             
             if expected == "":
@@ -130,12 +133,15 @@ class XMLTestCase(EOxSTestCase):
     def getSchemaLocation(self):
         return "../schemas/wcseo/1.0/wcsEOAll.xsd"
     
+    def getXMLData(self):
+        return self.response.content
+    
     def testValidate(self):
         logging.info("Validating XML ...")
         schema = TestSchemaFactory.getSchema(self.getSchemaLocation())
         
         try:
-            schema.assertValid(etree.fromstring(self.response.content))
+            schema.assertValid(etree.fromstring(self.getXMLData()))
         except etree.Error as e:
             self.fail(str(e))
 
@@ -157,7 +163,7 @@ class WCS20DescribeEOCoverageSetSubsettingTestCase(WCS20DescribeEOCoverageSetTes
     
     def testCoverageIds(self):
         logging.info("Checking Coverage Ids ...")
-        decoder = XMLDecoder(self.response.content, {
+        decoder = XMLDecoder(self.getXMLData(), {
             "coverageids": {"xml_location": "/wcs:CoverageDescriptions/wcs:CoverageDescription/wcs:CoverageId", "xml_type": "string[]"}
         })
         
@@ -187,7 +193,7 @@ class WCS20DescribeEOCoverageSetPagingTestCase(WCS20DescribeEOCoverageSetTestCas
 #        return System.getConfig().getConfigValue("services.ows.wcs20", "paging_count_default")
     
     def testCoverageCount(self):
-        decoder = XMLDecoder(self.response.content, {
+        decoder = XMLDecoder(self.getXMLData(), {
             "coverageids": {"xml_location": "/wcs:CoverageDescriptions/wcs:CoverageDescription/wcs:CoverageId", "xml_type": "string[]"}
         })
         coverage_ids = decoder.getValue("coverageids")
@@ -209,7 +215,7 @@ class ExceptionTestCase(XMLTestCase):
     
     def testExceptionCode(self):
         logging.info("Checking OWS Exception Code ...")
-        decoder = XMLDecoder(self.response.content, {
+        decoder = XMLDecoder(self.getXMLData(), {
             "exceptionCode": {"xml_location": "/ows:Exception/@exceptionCode", "xml_type": "string"}
         })
         
@@ -219,7 +225,20 @@ class WCS20GetCoverageTestCase(EOxSTestCase):
     def getFileExtension(self):
         return "tif"
     
-class WCS20GetCoverageMultipartTestCase(WCS20GetCoverageTestCase):
+class WCS20GetCoverageMultipartTestCase(WCS20GetCoverageTestCase, XMLTestCase):
+    def setUp(self):
+        super(WCS20GetCoverageMultipartTestCase, self).setUp()
+        response_msg = email.message_from_string("Content-type: multipart/mixed; boundary=wcs\n\n"
+                                                 + self.response.content)
+        
+        for part in response_msg.walk():
+            if part['Content-type'] == "multipart/mixed; boundary=wcs":
+                continue
+            elif part['Content-type'] == "text/xml":
+                self.xmlData = part.get_payload()
+            else:
+                self.imageData = part.get_payload()
+    
     def getFileExtension(self,part=None):
         if part == "xml":
             return "xml"
@@ -231,82 +250,80 @@ class WCS20GetCoverageMultipartTestCase(WCS20GetCoverageTestCase):
     def getResponseFileName(self,part):
         return "%s.%s" % (self.__class__.__name__, self.getFileExtension(part))
     
+    def getXMLData(self):
+        return self.xmlData
+    
+    def getResponseData(self):
+        return self.imageData
+        
     def getExpectedFileName(self,part):
         return "%s.%s" % (self.__class__.__name__, self.getFileExtension(part))
     
-    def testBinaryComparison(self):
-        self.assertTrue(self.response["Content-type"] == "multipart/mixed; boundary=wcs","Response returned '%s' is not of type multipart/mixed.")
+    def testValidate(self):
+        logging.info("Validating XML ...")
+        schema = TestSchemaFactory.getSchema("../schemas/wcseo/1.0/wcsEOCoverage.xsd")
+        try:
+            schema.assertValid(etree.fromstring(self.getXMLData()))
+        except etree.Error as e:
+            f = open(os.path.join(self.getResponseFileDir(), self.getResponseFileName("xml")), 'w')
+            f.write(self.getXMLData())
+            f.close()
+            self.fail(str(e))
         
-        response_msg = email.message_from_string("Content-type: multipart/mixed; boundary=wcs\n\n"+self.response.content)
+        logging.info("Comparing actual and expected XML responses.")
         
-        for part in response_msg.walk():
-            if part['Content-type'] == "multipart/mixed; boundary=wcs":
-                continue
-            elif part['Content-type'] == "text/xml":
-                logging.info("Validating XML ...")
-                schema = TestSchemaFactory.getSchema("../schemas/wcseo/1.0/wcsEOCoverage.xsd")
-                try:
-                    schema.assertValid(etree.fromstring(part.get_payload()))
-                except etree.Error as e:
-                    f = open(os.path.join(self.getResponseFileDir(), self.getResponseFileName("xml")), 'w')
-                    f.write(part.get_payload())
-                    f.close()
-                    self.fail(str(e))
-                
-                logging.info("Comparing actual and expected XML responses.")
-                
-                try:
-                    f = open(os.path.join(self.getExpectedFileDir(), self.getExpectedFileName("xml")), 'r')
-                    expected = f.read()
-                    f.close()
-                except:
-                    expected = ""
-                
-                result_dom = minidom.parseString(part.get_payload())
-                lineage_date = result_dom.getElementsByTagName("wcseo:lineage").item(0)
-                for node in lineage_date.childNodes:
-                    if node.tagName == "gml:timePosition":
-                        logging.info("Normalizing timePosition in lineage")
-                        node.firstChild.data = "2011-01-01T00:00:00Z"
-                result_cleared = DOMtoXML(result_dom)
-                result_dom.unlink()
-                
-                if expected != result_cleared:
-                    f = open(os.path.join(self.getResponseFileDir(), self.getResponseFileName("xml")), 'w')
-                    f.write(result_cleared)
-                    f.close()
-                    
-                    if expected == "":
-                        self.fail("Expected response '%s' not present" % 
-                                   os.path.join(self.getExpectedFileDir(), self.getExpectedFileName("xml"))
-                        )
-                    else:
-                        self.fail("Response returned '%s' is not equal to expected response '%s'." % (
-                                   os.path.join(self.getResponseFileDir(), self.getResponseFileName("xml")),
-                                   os.path.join(self.getExpectedFileDir(), self.getExpectedFileName("xml")))
-                        )
+        try:
+            f = open(os.path.join(self.getExpectedFileDir(), self.getExpectedFileName("xml")), 'r')
+            expected = f.read()
+            f.close()
+        except:
+            expected = ""
+        
+        result_dom = minidom.parseString(self.getXMLData())
+        lineage_date = result_dom.getElementsByTagName("wcseo:lineage").item(0)
+        for node in lineage_date.childNodes:
+            if node.tagName == "gml:timePosition":
+                logging.info("Normalizing timePosition in lineage")
+                node.firstChild.data = "2011-01-01T00:00:00Z"
+        result_cleared = DOMtoXML(result_dom)
+        result_dom.unlink()
+        
+        if expected != result_cleared:
+            f = open(os.path.join(self.getResponseFileDir(), self.getResponseFileName("xml")), 'w')
+            f.write(result_cleared)
+            f.close()
             
+            if expected == "":
+                self.fail("Expected response '%s' not present" % 
+                           os.path.join(self.getExpectedFileDir(), self.getExpectedFileName("xml"))
+                )
             else:
-                logging.info("Comparing actual and expected GeoTIFF responses.")
-                
-                try:
-                    f = open(os.path.join(self.getExpectedFileDir(), self.getExpectedFileName("tif")), 'r')
-                    expected = f.read()
-                    f.close()
-                except:
-                    expected = ""
-                
-                if expected != part.get_payload():
-                    f = open(os.path.join(self.getResponseFileDir(), self.getResponseFileName("tif")), 'w')
-                    f.write(part.get_payload())
-                    f.close()
-                    
-                    if expected == "":
-                        self.fail("Expected response '%s' not present" % 
-                                   os.path.join(self.getExpectedFileDir(), self.getExpectedFileName("tif"))
-                        )
-                    else:
-                        self.fail("Response returned '%s' is not equal to expected response '%s'." % (
-                                   os.path.join(self.getResponseFileDir(), self.getResponseFileName("tif")),
-                                   os.path.join(self.getExpectedFileDir(), self.getExpectedFileName("tif")))
-                        )
+                self.fail("Response returned '%s' is not equal to expected response '%s'." % (
+                           os.path.join(self.getResponseFileDir(), self.getResponseFileName("xml")),
+                           os.path.join(self.getExpectedFileDir(), self.getExpectedFileName("xml")))
+                )
+    
+    def testBinaryComparison(self):
+        logging.info("Comparing actual and expected GeoTIFF responses.")
+        
+        try:
+            f = open(os.path.join(self.getExpectedFileDir(), self.getExpectedFileName("tif")), 'r')
+            expected = f.read()
+            f.close()
+        except:
+            expected = ""
+        
+        if expected != self.getResponseData():
+            f = open(os.path.join(self.getResponseFileDir(), self.getResponseFileName("tif")), 'w')
+            f.write(self.getResponseData())
+            f.close()
+            
+            if expected == "":
+                self.fail("Expected response '%s' not present" % 
+                           os.path.join(self.getExpectedFileDir(), self.getExpectedFileName("tif"))
+                )
+            else:
+                self.fail("Response returned '%s' is not equal to expected response '%s'." % (
+                           os.path.join(self.getResponseFileDir(), self.getResponseFileName("tif")),
+                           os.path.join(self.getExpectedFileDir(), self.getExpectedFileName("tif")))
+                )
