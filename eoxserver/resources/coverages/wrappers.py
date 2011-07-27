@@ -535,6 +535,7 @@ class RectifiedDatasetWrapper(EODatasetWrapper, RectifiedGridWrapper):
         
         self.__model = dataset
         
+
     def _updateModel(self, params):
         file_info = params.get("file_info")
         automatic = params.get("automatic")
@@ -543,6 +544,7 @@ class RectifiedDatasetWrapper(EODatasetWrapper, RectifiedGridWrapper):
         rm_container = params.get("rm_container")
 
         if file_info is not None:
+
             self._updateFileRecord(file_info)
 
             self._updateEOMetadataRecord(file_info)
@@ -554,22 +556,26 @@ class RectifiedDatasetWrapper(EODatasetWrapper, RectifiedGridWrapper):
             range_type_record = RangeTypeRecord.objects.get(
                 name = file_info.range_type
             )
-            
-            dataset.coverage_id = file_info.eo_id,
-            dataset.eo_id = file_info.eo_id,
-            dataset.range_type = range_type_record,
+
+            self.__model.coverage_id = file_info.eo_id
+            self.__model.eo_id = file_info.eo_id
+            self.__model.range_type = range_type_record
         
         if automatic is not None:
-            dataset.automatic = automatic
+            self.__model.automatic = automatic
         
         if visible is not None:
-            dataset.visible = visible
+            self.__model.visible = visible
         
         if add_container is not None:
             add_container.addCoverage(self.getType(), self.__model.pk)
         
         if rm_container is not None:
             rm_container.removeCoverage(self.getType(), self.__model.pk)
+
+        # commit update 
+        self.__model.save()
+
     
     def _getAttrValue(self, attr_name):
         if attr_name == "eo_id":
