@@ -1040,6 +1040,8 @@ class ResourceFactory(object):
         return resources
 
     def _updateByParams(self, impl_ids, filter_exprs, params):
+        resources = []
+        
         for ImplementationCls in self._getImplementationClasses(impl_ids):
             models = self._filter(ImplementationCls, filter_exprs)
             
