@@ -35,6 +35,8 @@ from eoxserver.core.util.xmltools import XMLEncoder
 from eoxserver.core.util.timetools import isotime
 from eoxserver.processing.mosaic import MosaicContribution
 
+def _adjustPrecision(string, is_projected=False):
+    return string.replace("%f", "%.3f" if is_projected else "%.8f")
 
 class GMLEncoder(XMLEncoder):
     def _initializeNamespaces(self):
@@ -43,10 +45,15 @@ class GMLEncoder(XMLEncoder):
         }
     
     def encodeLinearRing(self, ring, srid):
+        sr = SpatialReference()
+        sr.ImportFromEPSG(srid)
+        
+        format = _adjustPrecision("%f %f", sr.IsProjected())
+        
         if srid == 4326:
-            pos_list = " ".join(["%f %f" % (point[1], point[0]) for point in ring])
+            pos_list = " ".join([format % (point[1], point[0]) for point in ring])
         else:
-            pos_list = " ".join(["%f %f" % point for point in ring])
+            pos_list = " ".join([format % point for point in ring])
         
         return self._makeElement(
             "gml", "LinearRing", [
@@ -201,6 +208,9 @@ class CoverageGML10Encoder(XMLEncoder):
         else:
             axisLabels = "long lat"
         
+        # TODO make precision adjustable (3 decimal digits for projected axes)
+        pos_format = _adjustPrecision("%f %f", sr.IsProjected())
+        
         grid_element = self._makeElement("gml", "RectifiedGrid", [
             ("", "@dimension", 2),
             ("@gml", "id", self._getGMLId(id)),
@@ -215,18 +225,18 @@ class CoverageGML10Encoder(XMLEncoder):
                 ("gml", "Point", [
                     ("", "@srsName", "http://www.opengis.net/def/crs/EPSG/0/%s" % srid),
                     ("@gml", "id", self._getGMLId("%s_origin" % id)),
-                    ("gml", "pos", "%f %f"%(extent[0], extent[3]))
+                    ("gml", "pos", _adjustPrecision("%f %f", sr.IsProjected()) % (extent[0], extent[3])) 
                 ])
             ])
         ])
         
         grid_element.appendChild(self._makeElement("gml", "offsetVector", [
             ("", "@srsName", "http://www.opengis.net/def/crs/EPSG/0/%s" % srid),
-            ("", "@@", "%f 0.0"%((extent[2]-extent[0]) / float(size[0])))
+            ("", "@@", _adjustPrecision("%f 0.0", sr.IsProjected()) % ((extent[2] - extent[0]) / float(size[0])))
         ]))
         grid_element.appendChild(self._makeElement("gml", "offsetVector", [
             ("", "@srsName", "http://www.opengis.net/def/crs/EPSG/0/%s" % srid),
-            ("", "@@", "0.0 %f"%((extent[1]-extent[3]) / float(size[1])))
+            ("", "@@", _adjustPrecision("0.0 %f", sr.IsProjected()) % ((extent[1] - extent[3]) / float(size[1])))
         ]))
                     
         return grid_element
@@ -242,8 +252,8 @@ class CoverageGML10Encoder(XMLEncoder):
                 ("", "@axisLabels", "lat long"),
                 ("", "@uomLabels", "deg deg"),
                 ("", "@srsDimension", 2),
-                ("gml", "lowerCorner", "%f %f" % (miny, minx)),
-                ("gml", "upperCorner", "%f %f" % (maxy, maxx))
+                ("gml", "lowerCorner", _adjustPrecision("%f %f") % (miny, minx)),
+                ("gml", "upperCorner", _adjustPrecision("%f %f") % (maxy, maxx))
             ])
         ])
 
@@ -432,7 +442,9 @@ class WCS20EOAPEncoder(WCS20Encoder):
         ])
 
     def encodeDatasetSeriesDescriptions(self, datasetseriess):
-        return self._makeElement("wcseo", "DatasetSeriesDescriptions", [(self.encodeDatasetSeriesDescription(datasetseries),) for datasetseries in datasetseriess])
+        return self._makeElement("wcseo", "DatasetSeriesDescriptions", [
+            (self.encodeDatasetSeriesDescription(datasetseries),) for datasetseries in datasetseriess
+        ])
         
     def encodeEOCoverageSetDescription(self, datasetseriess, coverages, numberMatched=None, numberReturned=None):
         if numberMatched is None:
@@ -473,8 +485,8 @@ class WCS20EOAPEncoder(WCS20Encoder):
         minx, miny, maxx, maxy = dataset_series.getWGS84Extent()
         
         return self._makeElement("ows", "WGS84BoundingBox", [
-            ("ows", "LowerCorner", "%f %f" % (minx, miny)),
-            ("ows", "UpperCorner", "%f %f" % (maxx, maxy))
+            ("ows", "LowerCorner", _adjustPrecision("%f %f") % (minx, miny)),
+            ("ows", "UpperCorner", _adjustPrecision("%f %f") % (maxx, maxy))
         ])
     
     def encodeTimePeriod(self, dataset_series):
