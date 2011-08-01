@@ -475,7 +475,13 @@ class WCS20EOAPEncoder(WCS20Encoder):
                     ]),
                     ("ows", "Post", [
                         ("@xlink", "href", "%s?" % http_service_url),
-                        ("@xlink", "type", "simple")
+                        ("@xlink", "type", "simple"),
+                        ("ows", "Constraint", [
+                            ("@", "name", "PostEncoding"),
+                            ("ows", "AllowedValues", [
+                                ("ows", "Value", "XML")
+                            ])
+                        ])
                     ])
                 ])
             ])
