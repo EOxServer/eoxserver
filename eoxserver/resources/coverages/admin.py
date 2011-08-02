@@ -37,7 +37,7 @@ from eoxserver.resources.coverages.models import (
     LayerMetadataRecord, LineageRecord, MosaicDataDirRecord, NilValueRecord,
     RectifiedDatasetRecord, BandRecord, RangeType2Band, RangeTypeRecord,
     RectifiedStitchedMosaicRecord, SingleFileCoverageRecord,
-    DatasetSeriesRecord
+    DatasetSeriesRecord, ExtentRecord
 )
 from eoxserver.resources.coverages.synchronize import (
     DatasetSeriesSynchronizer,
@@ -45,8 +45,12 @@ from eoxserver.resources.coverages.synchronize import (
     SynchronizationErrors
 )
 
+from eoxserver.core.system import System
+
 import os.path
 import logging
+
+
 
 # TODO: harmonize with core.system
 logging.basicConfig(
@@ -184,7 +188,7 @@ class RectifiedStitchedMosaicAdmin(admin.ModelAdmin):
         # however for synchronization.
         
         super(RectifiedStitchedMosaicAdmin, self).save_formset(request, form, formset, change)
-        
+        System.init()
         synchronizer = RectifiedStitchedMosaicSynchronizer(self.mosaic)
         try:
             if change:
@@ -336,8 +340,13 @@ class RectifiedDatasetSeriesAdmin(admin.ModelAdmin):
         #if formset.model == DataDirRecord:
         
         super(RectifiedDatasetSeriesAdmin, self).save_formset(request, form, formset, change)
+        System.init()
         
-        synchronizer = DatasetSeriesSynchronizer(self.dataset_series)
+        wrapper = System.getRegistry().bind("resources.coverages.wrappers.DatasetSeriesWrapper")
+        wrapper.setModel(self.dataset_series)
+        wrapper.setMutable()
+        
+        synchronizer = DatasetSeriesSynchronizer(wrapper)
         try:
             if change:
                 synchronizer.update()
@@ -446,3 +455,4 @@ admin.site.register(LayerMetadataRecord, LayerMetadataAdmin)
 
 admin.site.register(FileRecord)
 admin.site.register(LineageRecord)
+admin.site.register(ExtentRecord)
