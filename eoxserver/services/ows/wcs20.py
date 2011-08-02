@@ -111,25 +111,15 @@ class WCS20GetCapabilitiesHandler(WCSCommonHandler):
     }
     
     PARAM_SCHEMA = {
-        "service": {"xml_location": "/@ows:service", "xml_type": "string", "kvp_key": "service", "kvp_type": "string"},
-        "version": {"xml_location": "/@ows:version", "xml_type": "string", "kvp_key": "version", "kvp_type": "string"},
+        "service": {"xml_location": "/@service", "xml_type": "string", "kvp_key": "service", "kvp_type": "string"},
+        "version": {"xml_location": "/@version", "xml_type": "string", "kvp_key": "version", "kvp_type": "string"},
         "operation": {"xml_location": "/", "xml_type": "localName", "kvp_key": "request", "kvp_type": "string"},
-        "updatesequence": {"xml_location": "/@ows:updateSequence", "xml_type": "string", "kvp_key": "updatesequence", "kvp_type": "string"},
-        #"coveragesubtype": {"xml_location": "/@wcseo:coverageSubtype", "xml_type": "string", "kvp_key": "coveragesubtype", "kvp_type": "string"},
-        "sections": {"xml_location": "/ows:section", "xml_type": "string[]", "kvp_key": "sections", "kvp_type": "stringlist"}
+        "updatesequence": {"xml_location": "/@updateSequence", "xml_type": "string", "kvp_key": "updatesequence", "kvp_type": "string"},
+        "sections": {"xml_location": "/{http://www.opengis.net/ows/2.0}section", "xml_type": "string[]", "kvp_key": "sections", "kvp_type": "stringlist"}
     }
     
     # TODO: override createCoverages, configureRequest, configureMapObj
     def createCoverages(self, ms_req):
-        #cov_subtype = ms_req.getParamValue("coveragesubtype")
-        #if cov_subtype is not None:
-            #if cov_subtype.lower() == "scene":
-                #ms_req.coverages = EOxSCoverageInterfaceFactory.getCoverageInterfacesByType("file")
-            #elif cov_subtype.lower() == "datasetseries":
-                #ms_req.coverages = EOxSCoverageInterfaceFactory.getCoverageInterfacesByType("eo.collection")
-            #else:
-                #raise EOxSInvalidRequestException("Unknown coverage subtype '%s'" % cov_subtype, "InvalidParameterValue", "coverageSubtype")
-        #else:
         visible_expr = System.getRegistry().getFromFactory(
             "resources.coverages.filters.CoverageExpressionFactory",
             {"op_name": "attr", "operands": ("visible", "=", True)}
@@ -247,10 +237,10 @@ class WCS20DescribeCoverageHandler(BaseRequestHandler):
     }
     
     PARAM_SCHEMA = {
-        "service": {"xml_location": "/@ows:service", "xml_type": "string", "kvp_key": "service", "kvp_type": "string"},
-        "version": {"xml_location": "/@ows:version", "xml_type": "string", "kvp_key": "version", "kvp_type": "string"},
+        "service": {"xml_location": "/@service", "xml_type": "string", "kvp_key": "service", "kvp_type": "string"},
+        "version": {"xml_location": "/@version", "xml_type": "string", "kvp_key": "version", "kvp_type": "string"},
         "operation": {"xml_location": "/", "xml_type": "localName", "kvp_key": "request", "kvp_type": "string"},
-        "coverageids": {"xml_location": "/wcs:CoverageId", "xml_type": "string[]", "kvp_key": "coverageid", "kvp_type": "stringlist"}
+        "coverageids": {"xml_location": "/{http://www.opengis.net/wcs/2.0}CoverageId", "xml_type": "string[]", "kvp_key": "coverageid", "kvp_type": "stringlist"}
     }
     
     def _processRequest(self, req):
@@ -300,13 +290,13 @@ class WCS20DescribeEOCoverageSetHandler(BaseRequestHandler):
     }
 
     PARAM_SCHEMA = {
-        "service": {"xml_location": "/@ows:service", "xml_type": "string", "kvp_key": "service", "kvp_type": "string"},
-        "version": {"xml_location": "/@ows:version", "xml_type": "string", "kvp_key": "version", "kvp_type": "string"},
+        "service": {"xml_location": "/service", "xml_type": "string", "kvp_key": "service", "kvp_type": "string"},
+        "version": {"xml_location": "/version", "xml_type": "string", "kvp_key": "version", "kvp_type": "string"},
         "operation": {"xml_location": "/", "xml_type": "localName", "kvp_key": "request", "kvp_type": "string"},
-        "eoid": {"xml_location": "/wcseo:eoId", "xml_type": "string[]", "kvp_key": "eoid", "kvp_type": "stringlist"}, # TODO: what about multiple ids 
-        "containment": {"xml_location": "/wcseo:containment", "xml_type": "string", "kvp_key": "containment", "kvp_type": "string"},
-        "trims": {"xml_location": "/wcs:DimensionTrim", "xml_type": "element[]"},
-        "slices": {"xml_location": "/wcs:DimensionSlice", "xml_type": "element[]"},
+        "eoid": {"xml_location": "/{http://www.opengis.net/wcseo/1.0}eoId", "xml_type": "string[]", "kvp_key": "eoid", "kvp_type": "stringlist"}, # TODO: what about multiple ids 
+        "containment": {"xml_location": "/{http://www.opengis.net/wcseo/1.0}containment", "xml_type": "string", "kvp_key": "containment", "kvp_type": "string"},
+        "trims": {"xml_location": "/{http://www.opengis.net/wcs/2.0}DimensionTrim", "xml_type": "element[]"},
+        "slices": {"xml_location": "/{http://www.opengis.net/wcs/2.0}DimensionSlice", "xml_type": "element[]"},
         "count": {"xml_location": "/@count", "xml_type": "string", "kvp_key": "count", "kvp_type": "string"} #TODO: kvp location
     }
 
@@ -420,14 +410,14 @@ class WCS20GetCoverageHandler(WCSCommonHandler):
     }
 
     PARAM_SCHEMA = {
-        "service": {"xml_location": "/@ows:service", "xml_type": "string", "kvp_key": "service", "kvp_type": "string"},
-        "version": {"xml_location": "/@ows:version", "xml_type": "string", "kvp_key": "version", "kvp_type": "string"},
+        "service": {"xml_location": "/service", "xml_type": "string", "kvp_key": "service", "kvp_type": "string"},
+        "version": {"xml_location": "/version", "xml_type": "string", "kvp_key": "version", "kvp_type": "string"},
         "operation": {"xml_location": "/", "xml_type": "localName", "kvp_key": "request", "kvp_type": "string"},
-        "coverageid": {"xml_location": "/wcs:CoverageId", "xml_type": "string", "kvp_key": "coverageid", "kvp_type": "string"},
-        "trims": {"xml_location": "/wcs:DimensionTrim", "xml_type": "element[]"},
-        "slices": {"xml_location": "/wcs:DimensionSlice", "xml_type": "element[]"},
-        "format": {"xml_location": "/wcs:Format", "xml_type": "string", "kvp_key": "format", "kvp_type": "string"},
-        "mediatype": {"xml_location": "/wcs:Mediatype", "xml_type": "string", "kvp_key": "mediatype", "kvp_type": "string"}
+        "coverageid": {"xml_location": "/{http://www.opengis.net/wcs/2.0}CoverageId", "xml_type": "string", "kvp_key": "coverageid", "kvp_type": "string"},
+        "trims": {"xml_location": "/{http://www.opengis.net/wcs/2.0}DimensionTrim", "xml_type": "element[]"},
+        "slices": {"xml_location": "/{http://www.opengis.net/wcs/2.0}DimensionSlice", "xml_type": "element[]"},
+        "format": {"xml_location": "/{http://www.opengis.net/wcs/2.0}Format", "xml_type": "string", "kvp_key": "format", "kvp_type": "string"},
+        "mediatype": {"xml_location": "/{http://www.opengis.net/wcs/2.0}Mediatype", "xml_type": "string", "kvp_key": "mediatype", "kvp_type": "string"}
     }
     
     def createCoverages(self, ms_req):
