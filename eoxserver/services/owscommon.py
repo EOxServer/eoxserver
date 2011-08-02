@@ -59,8 +59,8 @@ class OWSCommonHandler(BaseRequestHandler):
     }
     
     PARAM_SCHEMA = {
-        "service": {"xml_location": "/@ows:service", "xml_type": "string", "kvp_key": "service", "kvp_type": "string"},
-        "version": {"xml_location": "/@ows:version", "xml_type": "string", "kvp_key": "version", "kvp_type": "string"},
+        "service": {"xml_location": "/@service", "xml_type": "string", "kvp_key": "service", "kvp_type": "string"},
+        "version": {"xml_location": "/@version", "xml_type": "string", "kvp_key": "version", "kvp_type": "string"},
         "operation": {"xml_location": "/", "xml_type": "localName", "kvp_key": "request", "kvp_type": "string"}
     }
     
@@ -113,10 +113,10 @@ class OWSCommonServiceHandler(BaseRequestHandler):
     SERVICE = ""
     
     PARAM_SCHEMA = {
-        "service": {"xml_location": "/@ows:service", "xml_type": "string", "kvp_key": "service", "kvp_type": "string"},
-        "version": {"xml_location": "/@ows:version", "xml_type": "string", "kvp_key": "version", "kvp_type": "string"},
+        "service": {"xml_location": "/@service", "xml_type": "string", "kvp_key": "service", "kvp_type": "string"},
+        "version": {"xml_location": "/@version", "xml_type": "string", "kvp_key": "version", "kvp_type": "string"},
         "operation": {"xml_location": "/", "xml_type": "localName", "kvp_key": "request", "kvp_type": "string"},
-        "acceptversions": {"xml_location": "/ows:AcceptVersions/Version", "xml_type": "string[]", "kvp_key": "acceptversions", "kvp_type": "stringlist"}
+        "acceptversions": {"xml_location": "/{http://www.opengis.net/ows/2.0}AcceptVersions/{http://www.opengis.net/ows/2.0}Version", "xml_type": "string[]", "kvp_key": "acceptversions", "kvp_type": "stringlist"}
     }
     
     def _handleException(self, req, exception):
@@ -281,8 +281,8 @@ class OWSCommonVersionHandler(BaseRequestHandler):
     VERSION = ""
     
     PARAM_SCHEMA = {
-        "service": {"xml_location": "/@ows:service", "xml_type": "string", "kvp_key": "service", "kvp_type": "string"},
-        "version": {"xml_location": "/@ows:version", "xml_type": "string", "kvp_key": "version", "kvp_type": "string"},
+        "service": {"xml_location": "/@service", "xml_type": "string", "kvp_key": "service", "kvp_type": "string"},
+        "version": {"xml_location": "/@version", "xml_type": "string", "kvp_key": "version", "kvp_type": "string"},
         "operation": {"xml_location": "/", "xml_type": "localName", "kvp_key": "request", "kvp_type": "string"}
     }
     
