@@ -22,7 +22,7 @@ GetCapabilities
 Request a Capabilities document.
 
 +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
-| Parameter                 | Description / Subparameter                                | Value / Example                  | Mandatory (M) / Optional (O)   |
+| Parameter                 | Description / Subparameter                                | Allowed value(s) / Example       | Mandatory (M) / Optional (O)   |
 +===========================+===========================================================+==================================+================================+
 | → service                 | Requested service                                         |   WCS                            | M                              |
 +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
@@ -30,7 +30,7 @@ Request a Capabilities document.
 +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
 | → version [1]_            | Version number                                            |   2.0.0                          | O                              |
 +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
-| → acceptVersions [1]_     | Prioritized sequence of one or more specification         |   2.0.0,1.1.2,1.0.0              | O                              |
+| → acceptVersions [1]_     | Prioritized sequence of one or more specification         |   2.0.0, 1.1.2, 1.0.0            | O                              |
 |                           | versions accepted by the client, with preferred versions  |                                  |                                |
 |                           | listed first (first supported version will be used)       |                                  |                                |
 |                           | version1[,version2[,...]]                                 |                                  |                                |
@@ -57,7 +57,7 @@ DescribeCoverage
 Request a coverage metadata document.
 
 +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
-| Parameter                 | Description / Subparameter                                | Value / Example                  | Mandatory (M) / Optional (O)   |
+| Parameter                 | Description / Subparameter                                | Allowed value(s) / Example       | Mandatory (M) / Optional (O)   |
 +===========================+===========================================================+==================================+================================+
 | → service                 | Requested service                                         |   WCS                            | M                              |
 +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
@@ -65,7 +65,7 @@ Request a coverage metadata document.
 +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
 | → version [1]_            | Version number                                            |   2.0.0                          | M                              |
 +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
-| → coverageId              | NCName (s):                                               |                                  | M                              |
+| → coverageId              | NCName(s):                                                |                                  | M                              |
 |                           |                                                           |                                  |                                |
 |                           | - valid coverageID of a Dataset                           |                                  |                                |
 |                           | - valid coverageID of a StichedMosaic                     |                                  |                                |
@@ -80,7 +80,7 @@ DescribeEOCoverageSet
 Request a CoverageDescriptions document.
 
 +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
-| Parameter                 | Description / Subparameter                                | Value / Example                  | Mandatory (M) / Optional (O)   |
+| Parameter                 | Description / Subparameter                                | Allowed value(s) / Example       | Mandatory (M) / Optional (O)   |
 +===========================+===========================================================+==================================+================================+
 | → service                 | Requested service                                         |   WCS                            | M                              |
 +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
@@ -97,19 +97,18 @@ Request a CoverageDescriptions document.
 | → subset                  | Allows to constrain the request in each dimensions and    |- Lat,http://www.opengis.net/def/ | O                              |
 |                           | define how these  parameters are applied.                 |  crs/EPSG/0/4326(32,47)          |                                |
 |                           |                                                           |- Long,http://www.opengis.net/def/|                                |
-|                           | The spatial constraint is expressed in WGS84, the         |  crs/EPSG/0/4326(32,47)&         |                                |
-|                           | temporal constraint in ISO 8601.                          |  Long,http://www.opengis.net/def/|                                |
+|                           | The spatial constraint is expressed in WGS84, the         |  crs/EPSG/0/4326(11,33)&         |                                |
+|                           | temporal constraint in ISO 8601.                          |- phenomenonTime("2006-08-01",    |                                |
+|                           |                                                           |  "2006-08-22T09:22:00Z")         |                                |
+|                           | Spatial trimming:  Name of an coverage axis (Long or Lat) |- Lat,http://www.opengis.net/def/ |                                |
+|                           | Temporal trimming: phenomenonTime                         |  crs/EPSG/0/4326(32,47)&         |                                |
+|                           | Plus optional either:                                     |  Long,http://www.opengis.net/def/|                                |
 |                           |                                                           |  crs/EPSG/0/4326(11,33)&         |                                |
-|                           | Spatial trimming:  Name of an coverage axis (Long or Lat) |  containment=overlaps            |                                |
-|                           | Temporal trimming: phenomenonTime                         |- phenomenonTime("2006-08-01",    |                                |
-|                           | Plus optional either:                                     |  "2006-08-22T09:22:00Z")         |                                |
-|                           |                                                           |- Lat,http://www.opengis.net/def/ |                                |
-|                           | - containment = overlaps (default)                        |  crs/EPSG/0/4326(32,47)&         |                                |
-|                           | - cotainment = contains                                   |  Long,http://www.opengis.net/def/|                                |
-|                           |                                                           |  crs/EPSG/0/4326(11,33)&         |                                |
-|                           | Any combination thereof (but each value only once per     |  phenomenonTime("2006-08-01",    |                                |
-|                           | request)                                                  |  "2006-08-22T09:22:00Z")&        |                                |
+|                           | - containment = overlaps (default)                        |  phenomenonTime("2006-08-01",    |                                |
+|                           | - cotainment = contains                                   |  "2006-08-22T09:22:00Z")&        |                                |
 |                           |                                                           |  containment=contains            |                                |
+|                           | Any combination thereof (but each value only once per     |                                  |                                |
+|                           | request)                                                  |                                  |                                |
 +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
 | → section                 | see GetCapabilities                                       | - DatasetSeriesSummary           | O                              |
 |                           |                                                           | - CoverageSummary                |                                |
@@ -125,7 +124,7 @@ GetCoverage
 Request a coverage (for download).
 
 +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
-| Parameter                 | Description / Subparameter                                | Value / Example                  | Mandatory (M) / Optional (O)   |
+| Parameter                 | Description / Subparameter                                | Allowed value(s) / Example       | Mandatory (M) / Optional (O)   |
 +===========================+===========================================================+==================================+================================+
 | → service                 | Requested service                                         |   WCS                            | M                              |
 +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
@@ -133,7 +132,7 @@ Request a coverage (for download).
 +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
 | → version [1]_            | Version number                                            |   2.0.0                          | M                              |
 +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
-| → coverageId              | NCName (s):                                               |                                  | M                              |
+| → coverageId              | NCName(s):                                                |                                  | M                              |
 |                           |                                                           |                                  |                                |
 |                           | - valid coverageID of a Dataset                           |                                  |                                |
 |                           | - valid coverageID of a StichedMosaic                     |                                  |                                |
@@ -146,7 +145,7 @@ Request a coverage (for download).
 |                           | - image/gif                                               |                                  |                                |
 +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
 | → mediatype               | Coverage delivered directly as image file or enclosed in  | mediatype=multipart/mixed        | O                              |
-|                           | in GML structure                                          |                                  |                                |
+|                           | GML structure                                             |                                  |                                |
 |                           |                                                           |                                  |                                |
 |                           | - not present or                                          |                                  |                                |
 |                           | - multipart/mixed                                         |                                  |                                |
