@@ -243,10 +243,10 @@ class OWSCommonServiceHandler(BaseRequestHandler):
         elif operation.lower() == "getcapabilities":
             accept_versions = req.getParamValue("acceptversions")
             
-            if accept_versions is None:
-                version = self._negotiateVersionOldStyle(input_version)
-            else:
+            if accept_versions:
                 version = self._negotiateVersionOWSCommon(accept_versions)
+            else:
+                version = self._negotiateVersionOldStyle(input_version)
         else:
             if input_version is None:
                 raise InvalidRequestException(
