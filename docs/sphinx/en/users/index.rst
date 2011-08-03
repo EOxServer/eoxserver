@@ -16,3 +16,4 @@ have their data quickly presented to the public.
    install
    EO-WCS_request_parameters
    admin_tutorial
+   idm
