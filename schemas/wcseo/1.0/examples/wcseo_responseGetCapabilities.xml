@@ -32,6 +32,8 @@
         <ows:Profile>http://www.placeholder.com/SCALING</ows:Profile>
         <ows:Profile>http://www.placeholder.com/INTERPOLATION</ows:Profile>
         <ows:Profile>http://www.placeholder.com/RANGESUBSET</ows:Profile>
+        <ows:Profile>http://www.opengis.net/spec/WCS_application-profile_earth-observation/1.0/conf/eowcs</ows:Profile>
+        <ows:Profile>http://www.opengis.net/spec/WCS_application-profile_earth-observation/1.0/conf/eowcs_get-kvp</ows:Profile>
     </ows:ServiceIdentification>
 
     <ows:OperationsMetadata>

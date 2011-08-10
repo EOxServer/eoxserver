@@ -13,7 +13,6 @@
         <ows:Title>Title</ows:Title>
         <ows:Abstract>Abstract</ows:Abstract>
         <ows:Keywords>
-            <ows:Keyword>EO-WCS</ows:Keyword>
             <ows:Keyword>WCS 2.0</ows:Keyword>
             <ows:Keyword>WCS</ows:Keyword>
             <ows:Keyword>Keyword</ows:Keyword>
@@ -78,25 +77,6 @@
                 </ows:HTTP>
             </ows:DCP>
         </ows:Operation>
-        <ows:Operation name="DescribeEOCoverageSet">
-            <ows:DCP>
-                <ows:HTTP>
-                    <ows:Get xlink:href="http://www.someu.rl?" xlink:type="simple"/>
-                    <ows:Post xlink:href="http://www.someu.rl?" xlink:type="simple">
-                        <ows:Constraint name="PostEncoding">
-                            <ows:AllowedValues>
-                                <ows:Value>XML</ows:Value>
-                            </ows:AllowedValues>
-                        </ows:Constraint>
-                    </ows:Post>
-                </ows:HTTP>
-            </ows:DCP>
-        </ows:Operation>
-        <!-- CountDefault is used to limit the number of coverageDescriptions returned with DescribeEOCoverageSet operations by the server. -->
-        <ows:Constraint name="CountDefault">
-            <ows:NoValues/>
-            <ows:DefaultValue>100</ows:DefaultValue>
-        </ows:Constraint>
     </ows:OperationsMetadata>
 
     <wcs:ServiceMetadata>
@@ -119,7 +99,7 @@
                 <ows:UpperCorner>180 90</ows:UpperCorner>
             </ows:WGS84BoundingBox>
             <wcs:CoverageId>someCoverage</wcs:CoverageId>
-            <wcs:CoverageSubtype>RectifiedDataset</wcs:CoverageSubtype>
+            <wcs:CoverageSubtype>RectifiedGridCoverage</wcs:CoverageSubtype>
             <ows:BoundingBox crs="http://www.opengis.net/def/crs/EPSG/0/3035" dimensions="2">
                 <ows:LowerCorner>4742525 2665925</ows:LowerCorner>
                 <ows:UpperCorner>4767525 2690925</ows:UpperCorner>

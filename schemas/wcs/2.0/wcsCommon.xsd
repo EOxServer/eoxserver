@@ -117,6 +117,7 @@
     <complexType name="ServiceParametersType">
         <sequence>
             <element ref="wcs:CoverageSubtype"/>
+            <!-- TODO: Add embracing element. -->
             <any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
         </sequence>
     </complexType>
