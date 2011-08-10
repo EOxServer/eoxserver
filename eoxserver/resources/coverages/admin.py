@@ -273,9 +273,8 @@ class RectifiedDatasetSeriesAdmin(admin.ModelAdmin):
     ordering = ('eo_id', )
     search_fields = ('eo_id', )
     inlines = (DataDirInline, )
-    filter_vertical = ('rect_stitched_mosaics', 'rect_datasets', )
+    filter_horizontal = ('rect_stitched_mosaics', 'rect_datasets', 'ref_datasets')
     
-
     # We need to override the bulk delete function of the admin to make
     # sure the overrode delete() method of EOCoverageRecord is
     # called.
