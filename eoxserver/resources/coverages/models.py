@@ -57,16 +57,16 @@ class NilValueRecord(models.Model):
         return self.reason+" "+str(self.value)
 
     class Meta:
-        verbose_name = "NilValue"
+        verbose_name = "Nil Value"
 
 class BandRecord(models.Model):
     name = models.CharField(max_length=256)
     identifier = models.CharField(max_length=256)
     description = models.TextField()
     definition = models.CharField(max_length=256)
-    uom = models.CharField(max_length=16)
-    nil_values = models.ManyToManyField(NilValueRecord, null=True, blank=True)
-    gdal_interpretation = models.IntegerField(default=GCI_Undefined,
+    uom = models.CharField("UOM", max_length=16)
+    nil_values = models.ManyToManyField(NilValueRecord, null=True, blank=True, verbose_name="Nil Value")
+    gdal_interpretation = models.IntegerField("GDAL Interpretation", default=GCI_Undefined,
         choices=(
             (GCI_Undefined, 'Undefined'),
             (GCI_GrayIndex, 'Grayscale'),
@@ -120,13 +120,16 @@ class RangeType2Band(models.Model):
     range_type = models.ForeignKey(RangeTypeRecord)
     no = models.PositiveIntegerField()
 
+    class Meta:
+        verbose_name = "Band in Range type"
+
 class ExtentRecord(models.Model):
     def __unicode__(self):
         return "Extent (SRID=%d; %f, %f, %f, %f)" % (
             self.srid, self.minx, self.miny, self.maxx, self.maxy
         )
 
-    srid = models.IntegerField()
+    srid = models.IntegerField("SRID")
     size_x = models.IntegerField()
     size_y = models.IntegerField()
     minx = models.FloatField()
@@ -169,10 +172,10 @@ class LineageRecord(models.Model):
         verbose_name_plural = "Lineage Entries"
 
 class EOMetadataRecord(models.Model):
-    timestamp_begin = models.DateTimeField()
-    timestamp_end = models.DateTimeField()
+    timestamp_begin = models.DateTimeField("Begin of acquisition")
+    timestamp_end = models.DateTimeField("End of acquisition")
     footprint = models.PolygonField(srid=4326, geography=True)
-    eo_gml = models.TextField(blank=True, validators=[validateEOOM]) # validate against schema
+    eo_gml = models.TextField("EO O&M", blank=True, validators=[validateEOOM]) # validate against schema
     objects = models.GeoManager()
 
     class Meta:
@@ -206,7 +209,7 @@ class EOMetadataRecord(models.Model):
                     raise ValidationError("EO GML footprint does not match.")
 
 class CoverageRecord(Resource):
-    coverage_id = models.CharField(max_length=256, unique=True, validators=[NCNameValidator])
+    coverage_id = models.CharField("Coverage ID", max_length=256, unique=True, validators=[NCNameValidator])
     range_type = models.ForeignKey(RangeTypeRecord)
     layer_metadata = models.ManyToManyField(LayerMetadataRecord, null=True, blank=True)
 
@@ -222,8 +225,10 @@ class SingleFileCoverageRecord(CoverageRecord):
         verbose_name_plural = "Single File Coverages"
 
 class EOCoverageRecord(CoverageRecord):
-    eo_id = models.CharField(max_length=256, unique=True, validators=[NCNameValidator])
-    eo_metadata = models.OneToOneField(EOMetadataRecord, related_name="%(class)s_set")
+    eo_id = models.CharField("EO ID", max_length=256, unique=True, validators=[NCNameValidator])
+    eo_metadata = models.OneToOneField(EOMetadataRecord,
+                                       related_name="%(class)s_set",
+                                       verbose_name="EO Metadata Entry")
     lineage = models.OneToOneField(LineageRecord, related_name="%(class)s_set")
     
     class Meta:
@@ -265,17 +270,20 @@ class ReferenceableDatasetRecord(EODatasetRecord):
 class RectifiedStitchedMosaicRecord(EOCoverageRecord):
     extent = models.ForeignKey(ExtentRecord, related_name="rect_stitched_mosaics")
     image_pattern = models.CharField(max_length=1024)
-    storage_dir = models.CharField(max_length=1024)
+    storage_dir = models.CharField("Storage directory",
+                                   max_length=1024,
+                                   help_text="Directory where cached data will be stored.")
     rect_datasets = models.ManyToManyField(RectifiedDatasetRecord,
                                            null=True, blank=True,
-                                           related_name="rect_stitched_mosaics")
+                                           related_name="rect_stitched_mosaics",
+                                           verbose_name="Rectified Dataset(s)")
 
     def __unicode__(self):
         return self.eo_id
 
     class Meta:
-        verbose_name = "StitchedMosaic"
-        verbose_name_plural = "StitchedMosaics"
+        verbose_name = "Stitched Mosaic"
+        verbose_name_plural = "Stitched Mosaics"
 
     def delete(self):
         eo_metadata = self.eo_metadata
@@ -286,7 +294,7 @@ class RectifiedStitchedMosaicRecord(EOCoverageRecord):
 
 class MosaicDataDirRecord(models.Model):
     mosaic = models.ForeignKey(RectifiedStitchedMosaicRecord, related_name = "data_dirs")
-    dir = models.CharField(max_length=1024)
+    dir = models.CharField("Directory", max_length=1024)
 
     def __unicode__(self):
         return self.dir
@@ -296,26 +304,30 @@ class MosaicDataDirRecord(models.Model):
         verbose_name_plural = "Mosaic Data Directories"
 
 class DatasetSeriesRecord(Resource):
-    eo_id = models.CharField(max_length=256, unique=True, validators=[NCNameValidator])
+    eo_id = models.CharField("EO ID", max_length=256, unique=True, validators=[NCNameValidator])
     eo_metadata = models.OneToOneField(EOMetadataRecord,
-                                       related_name="dataset_series_set")
+                                       related_name="dataset_series_set",
+                                       verbose_name="EO Metadata Entry")
     image_pattern = models.CharField(max_length=1024)
     rect_stitched_mosaics = models.ManyToManyField(RectifiedStitchedMosaicRecord,
                                                    blank=True, null=True,
-                                                   related_name="dataset_series_set")
+                                                   related_name="dataset_series_set",
+                                                   verbose_name="Stitched Mosaic(s)")
     rect_datasets = models.ManyToManyField(RectifiedDatasetRecord,
                                            blank=True, null=True,
-                                           related_name="dataset_series_set")
+                                           related_name="dataset_series_set",
+                                           verbose_name="Rectified Dataset(s)")
     ref_datasets = models.ManyToManyField(ReferenceableDatasetRecord,
                                           blank=True, null=True,
-                                          related_name="dataset_series_set")
+                                          related_name="dataset_series_set",
+                                           verbose_name="Referenceable Dataset(s)")
 
     def __unicode__(self):
         return self.eo_id
 
     class Meta:
-        verbose_name = "DatasetSeries"
-        verbose_name_plural = "DatasetSeries"
+        verbose_name = "Dataset Series"
+        verbose_name_plural = "Dataset Series"
 
     def delete(self):
         eo_metadata = self.eo_metadata
@@ -331,7 +343,7 @@ class DatasetSeriesRecord(Resource):
 
 class DataDirRecord(models.Model):
     dataset_series = models.ForeignKey(DatasetSeriesRecord, related_name="data_dirs")
-    dir = models.CharField(max_length=1024)
+    dir = models.CharField("Directory", max_length=1024)
 
     def __unicode__(self):
         return self.dir
