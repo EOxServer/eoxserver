@@ -33,11 +33,8 @@ from django.conf.urls.defaults import *
 from django.contrib import admin
 admin.autodiscover()
 
-from django.contrib import databrowse
-from django.views.static import serve
+#from django.contrib import databrowse
 from django.conf import settings
-
-from eoxserver.services import views
 
 #from eoxserver.server.models import *
 
@@ -52,7 +49,7 @@ from eoxserver.services import views
 #databrowse.site.register(EOxSRangeType2Channel)
 
 urlpatterns = patterns('',
-    (r'^ows', views.ows),
+    (r'^ows', 'eoxserver.services.views.ows'),
     # Example:
     # (r'^eoxserver/', include('eoxserver.foo.urls')),
 
@@ -64,3 +61,9 @@ urlpatterns = patterns('',
     (r'^admin/', include(admin.site.urls)),
 #    (r'^databrowse/(.*)', databrowse.site.root)
 )
+
+if settings.DEBUG:
+    urlpatterns += patterns('',
+        (r'^'+settings.MEDIA_URL+'/(?P<path>.*)$', 'django.views.static.serve',
+            {'document_root': settings.MEDIA_ROOT}),
+    )
