@@ -34,8 +34,7 @@ from django.conf.urls.defaults import *
 from django.contrib import admin
 admin.autodiscover()
 
-from django.contrib import databrowse
-from django.views.static import serve
+#from django.contrib import databrowse
 from django.conf import settings
 
 #from eoxserver.server.models import *
@@ -61,6 +60,11 @@ urlpatterns = patterns('',
 
     # Uncomment the next line to enable the admin:
     (r'^admin/', include(admin.site.urls)),
-    (r'^databrowse/(.*)', databrowse.site.root),
-    (r'^files/(?P<path>.*)$', serve, {'document_root': 'eoxserver'}) # TODO: do not use in production setting
+#    (r'^databrowse/(.*)', databrowse.site.root),
 )
+
+if settings.DEBUG:
+    urlpatterns += patterns('',
+        (r'^'+settings.MEDIA_URL+'/(?P<path>.*)$', 'django.views.static.serve',
+            {'document_root': settings.MEDIA_ROOT}),
+    )
