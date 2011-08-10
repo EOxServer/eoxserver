@@ -149,6 +149,7 @@ class DatasetSeries2StichedMosaicInline(admin.TabularInline):
     model = DatasetSeriesRecord.rect_stitched_mosaics.__getattribute__("through")
     verbose_name = "Dataset Series to Stitched Mosaic Relation"
     verbose_name_plural = "Dataset Series to Stitched Mosaic Relations"
+    can_delete = False
     extra = 1
 class RectifiedStitchedMosaicAdmin(admin.ModelAdmin):
     list_display = ('eo_id', 'eo_metadata', 'image_pattern')
@@ -271,7 +272,7 @@ class DataDirInline(admin.TabularInline):
     
     def save_model(self, request, obj, form, change):
         raise # TODO
-    
+
 class DatasetSeriesAdmin(admin.ModelAdmin):
     list_display = ('eo_id', 'eo_metadata', 'image_pattern')
     list_editable = ('eo_metadata', 'image_pattern')
@@ -279,6 +280,15 @@ class DatasetSeriesAdmin(admin.ModelAdmin):
     ordering = ('eo_id', )
     search_fields = ('eo_id', )
     inlines = (DataDirInline, )
+    fieldsets = (
+        (None, {
+            'fields': ('eo_id', 'eo_metadata', 'image_pattern')
+        }),
+        ('Advanced coverage handling', {
+            'classes': ('collapse',),
+            'fields': ('rect_stitched_mosaics', 'rect_datasets', 'ref_datasets')
+        }),
+    )
     filter_horizontal = ('rect_stitched_mosaics', 'rect_datasets', 'ref_datasets')
 
     # Increase the width of the select boxes of the horizontal filter.
