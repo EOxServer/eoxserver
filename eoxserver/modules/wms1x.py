@@ -212,7 +212,7 @@ class EOxSWMSCommonHandler(EOxSMapServerOperationHandler):
 
 class EOxSWMS1XGetCapabilitiesHandler(EOxSWMSCommonHandler):
     SERVICE = "WMS"
-    VERSIONS = ("1.0", "1.0.0", "1.1", "1.1.0", "1.3", "1.3.0")
+    VERSIONS = ("1.0", "1.0.0", "1.1", "1.1.0", "1.1.1", "1.3", "1.3.0")
     OPERATIONS = ("getcapabilities")
     ABSTRACT = False
     
@@ -244,7 +244,7 @@ class EOxSWMS1XGetCapabilitiesHandler(EOxSWMSCommonHandler):
 
 class EOxSWMS1XGetMapHandler(EOxSWMSCommonHandler):
     SERVICE = "WMS"
-    VERSIONS = ("1.0", "1.0.0", "1.1", "1.1.0", "1.3", "1.3.0")
+    VERSIONS = ("1.0", "1.0.0", "1.1", "1.1.0", "1.1.1", "1.3", "1.3.0")
     OPERATIONS = ("getmap")
     ABSTRACT = True
     
@@ -265,7 +265,7 @@ class EOxSWMS1XGetMapHandler(EOxSWMSCommonHandler):
 
 class EOxSWMS10_11GetMapHandler(EOxSWMS1XGetMapHandler):
     SERVICE = "WMS"
-    VERSIONS = ("1.0", "1.0.0", "1.1", "1.1.0")
+    VERSIONS = ("1.0", "1.0.0", "1.1", "1.1.0", "1.1.1")
     OPERATIONS = ("getmap")
     ABSTRACT = False
     
