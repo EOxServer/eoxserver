@@ -40,7 +40,7 @@ import logging
 from eoxserver.core.system import System
 from eoxserver.core.exceptions import( 
     InternalError, UnknownCRSException, UnknownParameterFormatException,
-    InvalidExpressionError
+    InvalidExpressionError, InvalidParameterException
 )
 from eoxserver.core.util.xmltools import DOMtoXML, DOMElementToXML
 from eoxserver.core.util.timetools import getDateTime
@@ -697,12 +697,15 @@ class WCS20SubsetDecoder(object):
                 slice[1]
             )
         
-        if not slice[2].startswith('"') and slice[2].endswith('"'):
-            raise InvalidSubsettingException(
-                "Date/Time tokens have to be enclosed in quotation marks (\")"
-            )
+        if self.req.getParamType() == "kvp":
+            if not slice[2].startswith('"') and slice[2].endswith('"'):
+                raise InvalidSubsettingException(
+                    "Date/Time tokens have to be enclosed in quotation marks (\")"
+                )
+            else:
+                dt_str = slice[2].strip('"')
         else:
-            dt_str = slice[2].strip('"')
+            dt_str = token
         
         try:
             slice_point = getDateTime(dt_str)
@@ -752,14 +755,14 @@ class WCS20SubsetDecoder(object):
     
     def _getTrimExpressions(self, trims):
         time_intv, crs_id, x_bounds, y_bounds = self._decodeTrims(trims)
-        
-        if self.containment == "overlaps":
+
+        if self.containment.lower() == "overlaps":
             op_part = "intersects"
-        elif self.containment == "contains":
+        elif self.containment.lower() == "contains":
             op_part = "within"
         else:
             raise InvalidParameterException(
-                "Unknown containment mode '%s'."
+                "Unknown containment mode '%s'." % self.containment
             )
         
         filter_exprs = []
@@ -875,12 +878,15 @@ class WCS20SubsetDecoder(object):
         if token is None:
             return "unbounded"
         else:
-            if not token.startswith('"') or not token.endswith('"'):
-                raise InvalidSubsettingException(
-                    "Date/Time tokens have to be enclosed in quotation marks (\")"
-                )
+            if self.req.getParamType() == "kvp":
+                if not token.startswith('"') or not token.endswith('"'):
+                    raise InvalidSubsettingException(
+                        "Date/Time tokens have to be enclosed in quotation marks (\")"
+                    )
+                else:
+                    dt_str = token.strip('"')
             else:
-                dt_str = token.strip('"')
+                dt_str = token
             
             try:
                 return getDateTime(dt_str)
