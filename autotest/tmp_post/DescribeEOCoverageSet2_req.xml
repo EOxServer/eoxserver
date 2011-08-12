@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wcseo:DescribeEOCoverageSet 
+    service="WCS" version="2.0.0" count="100"
+    xmlns:wcseo="http://www.opengis.net/wcseo/1.0" 
+    xmlns:wcs="http://www.opengis.net/wcs/2.0">
+    <wcseo:eoId>MER_FRS_1P_reduced</wcseo:eoId>
+    <wcseo:containment>OVERLAPS</wcseo:containment>
+    <wcseo:Sections>
+       <wcseo:Section>All</wcseo:Section>
+    </wcseo:Sections>
+    <wcs:DimensionTrim>
+       <wcs:Dimension>Long</wcs:Dimension>
+       <wcs:TrimLow>16</wcs:TrimLow>
+       <wcs:TrimHigh>18</wcs:TrimHigh>
+    </wcs:DimensionTrim>
+    <wcs:DimensionTrim>
+       <wcs:Dimension>Lat</wcs:Dimension>
+       <wcs:TrimLow>46</wcs:TrimLow>
+       <wcs:TrimHigh>48</wcs:TrimHigh>
+    </wcs:DimensionTrim>
+    <wcs:DimensionTrim>
+        <wcs:Dimension>phenomenonTime</wcs:Dimension>
+        <wcs:TrimLow>2006-01-01T00:01:00Z</wcs:TrimLow>
+        <wcs:TrimHigh>2006-12-01T23:59:55Z</wcs:TrimHigh>
+    </wcs:DimensionTrim>
+</wcseo:DescribeEOCoverageSet>
+
+

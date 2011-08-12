@@ -1,0 +1,19 @@
+#!/bin/sh
+
+# config here:
+SERVER_URL=http://127.0.0.1/wcseo/ows
+
+#For each test ('xx') listed, there should be a corresponding file
+#  xx_req.xml
+tests=(
+  "GetCapabilities"
+  "DescribeEOCoverageSet"
+  "DescribeEOCoverageSet2")
+
+dd=$(date +%j%H%M)
+
+echo output suffix is $dd
+for tt in ${tests[*]} ; do
+    echo ${tt}
+    curl -s -S -o ${tt}_resp_${dd}.xml --data-binary @${tt}_req.xml $SERVER_URL
+done
