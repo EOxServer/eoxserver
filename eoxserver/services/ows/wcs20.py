@@ -394,6 +394,13 @@ class WCS20DescribeEOCoverageSetHandler(BaseRequestHandler):
                             "eoid"
                         )
                         
+            # Don't return coverages that are included in a dataset series:
+            for coverage in coverages:
+                for dataset_series in dataset_series_set:
+                    for c in dataset_series.getEOCoverages():
+                        if c.getCoverageId() == coverage.getCoverageId():
+                            coverages.remove(coverage)
+            
             return (dataset_series_set, coverages)
     
 WCS20DescribeEOCoverageSetHandlerImplementation = OperationHandlerInterface.implement(WCS20DescribeEOCoverageSetHandler)
