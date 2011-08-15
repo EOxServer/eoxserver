@@ -21,7 +21,6 @@
     <import namespace="http://www.opengis.net/gml/3.2" schemaLocation="http://schemas.opengis.net/gml/3.2.1/gml.xsd"/>
     <import namespace="http://www.opengis.net/ows/2.0" schemaLocation="http://schemas.opengis.net/ows/2.0/owsAll.xsd"/>
     <import namespace="http://www.opengis.net/gmlcov/1.0" schemaLocation="http://schemas.opengis.net/gmlcov/1.0/gmlcovAll.xsd"/>
-    <include schemaLocation="wcsExtensions.xsd"/>
 
     <!-- ============================================================== -->
     <!-- elements and types                                             -->
@@ -81,19 +80,7 @@
     </element>
     <complexType name="ServiceMetadataType">
         <sequence>
-            <element ref="wcs:formatsSupported"/>
             <any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
-        </sequence>
-    </complexType>
-    <!-- =========================================================== -->
-    <element name="formatsSupported" type="wcs:formatsSupportedType">
-        <annotation>
-            <documentation>List of all formats supported by the service instance.</documentation>
-        </annotation>
-    </element>
-    <complexType name="formatsSupportedType">
-        <sequence>
-            <element name="formatSupported" type="anyURI" minOccurs="0" maxOccurs="unbounded"/>
         </sequence>
     </complexType>
     <!-- =========================================================== -->
