@@ -186,13 +186,14 @@ class WCS20GetCapabilitiesHandler(WCSCommonHandler):
             
             if sections is None or len(sections) == 0 or "Contents" in sections or\
                "CoverageSummary" in sections or\
-               "DatasetSeriesSummary" in sections:
+               "DatasetSeriesSummary" in sections or\
+               "All" in sections:
                 
                 contents_new = encoder.encodeContents()
 
                 # adjust wcs:CoverageSubtype
                 if sections is None or len(sections) == 0 or "Contents" in sections or\
-                   "CoverageSummary" in sections:
+                   "CoverageSummary" in sections or "All" in sections:
                     
                     for coverage in ms_req.coverages:
                         cov_summary = encoder.encodeCoverageSummary(coverage)
@@ -200,7 +201,7 @@ class WCS20GetCapabilitiesHandler(WCSCommonHandler):
 
                 # append dataset series summaries
                 if sections is None or len(sections) == 0 or "Contents" in sections or\
-                   "DatasetSeriesSummary" in sections:
+                   "DatasetSeriesSummary" in sections or "All" in sections:
                     
                     dss_factory = System.getRegistry().bind(
                         "resources.coverages.wrappers.DatasetSeriesFactory"
