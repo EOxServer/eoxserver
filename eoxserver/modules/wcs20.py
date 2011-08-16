@@ -153,13 +153,14 @@ class EOxSWCS20GetCapabilitiesHandler(EOxSWCSCommonHandler):
             
             if sections is None or len(sections) == 0 or "Contents" in sections or\
                "CoverageSummary" in sections or\
-               "DatasetSeriesSummary" in sections:
+               "DatasetSeriesSummary" in sections or\
+               "All" in sections:
                 
                 contents_new = encoder.encodeContents()
 
                 # adjust wcs:CoverageSubtype
                 if sections is None or len(sections) == 0 or "Contents" in sections or\
-                   "CoverageSummary" in sections:
+                   "CoverageSummary" in sections or "All" in sections:
                     
                     for coverage in EOxSCoverageInterfaceFactory.getVisibleCoverageInterfaces():
                         cov_summary = encoder.encodeCoverageSummary(coverage)
@@ -167,7 +168,7 @@ class EOxSWCS20GetCapabilitiesHandler(EOxSWCSCommonHandler):
 
                 # append dataset series summaries
                 if sections is None or len(sections) == 0 or "Contents" in sections or\
-                   "DatasetSeriesSummary" in sections:
+                   "DatasetSeriesSummary" in sections or "All" in sections:
                     
                     for dataset_series in EOxSDatasetSeriesFactory.getAllDatasetSeriesInterfaces():
                         dss_summary = encoder.encodeDatasetSeriesSummary(dataset_series)
