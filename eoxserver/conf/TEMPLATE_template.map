@@ -29,6 +29,7 @@
 
 MAP
     IMAGECOLOR 0 0 0
+#    MAXSIZE 2048 # Defaults to 2048 in MapServer
    
 #    CONFIG "MS_ERRORFILE" "stderr"
 
