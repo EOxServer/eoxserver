@@ -34,7 +34,7 @@ For more information on filters, see :mod:`eoxserver.core.filters`.
 
 from datetime import datetime
 
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.contrib.gis.geos import (
     fromstr as geos_fromstr, Polygon
 )
@@ -1430,9 +1430,13 @@ class OrphanedRectifiedDatasetFilter(object):
     }
     
     def applyToQuerySet(self, expr, qs):
-        return qs.filter(
-            dataset_series_set__count=0,
-            rect_stitched_mosaics__count=0
+        return qs.annotate(
+            dataset_series_count=Count('dataset_series_set')
+        ).annotate(
+            rect_stitched_mosaics_count=Count('rect_stitched_mosaics')
+        ).filter(
+            dataset_series_count=0,
+            rect_stitched_mosaics_count=0
         )
     
     def resourceMatches(self, expr, res):
@@ -1457,7 +1461,11 @@ class OrphanedReferenceableDatasetFilter(object):
     }
     
     def applyToQuerySet(self, expr, qs):
-        return qs.filter(dataset_series_set__count=0)
+        return qs.annotate(
+            dataset_series_count=Count('dataset_series_set')
+        ).filter(
+            dataset_series_count=0
+        )
     
     def resourceMatches(self, expr, res):
         return res.getContainerCount() == 0
@@ -1481,7 +1489,11 @@ class OrphanedRectifiedStitchedMosaicFilter(object):
     }
     
     def applyToQuerySet(self, expr, qs):
-        return qs.filter(dataset_series_set__count=0)
+        return qs.annotate(
+            dataset_series_count=Count('dataset_series_set')
+        ).filter(
+            dataset_series_count=0
+        )
     
     def resourceMatches(self, expr, res):
         return res.getContainerCount() == 0
