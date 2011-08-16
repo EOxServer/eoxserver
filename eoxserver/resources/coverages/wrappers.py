@@ -1261,11 +1261,11 @@ class DatasetSeriesWrapper(ResourceWrapper, EOMetadataWrapper):
         * ``eo.rect_stitched_mosaic``
         """
         if res_type == "eo.rect_dataset":
-            self.rect_datasets.add(res_id)
+            self.__model.rect_datasets.add(res_id)
         elif res_type == "eo.ref_dataset":
-            self.ref_datasets.add(res_id)
+            self.__model.ref_datasets.add(res_id)
         elif res_type == "eo.rect_stitched_mosaic":
-            self.rect_stitched_mosaics.add(res_id)
+            self.__model.rect_stitched_mosaics.add(res_id)
         else:
             raise InternalError(
                 "Cannot add coverages of type '%s' to Dataset Series" %\
@@ -1284,11 +1284,11 @@ class DatasetSeriesWrapper(ResourceWrapper, EOMetadataWrapper):
         * ``eo.rect_stitched_mosaic``
         """
         if res_type == "eo.rect_dataset":
-            self.rect_datasets.remove(res_id)
+            self.__model.rect_datasets.remove(res_id)
         elif res_type == "eo.ref_dataset":
-            self.ref_datasets.remove(res_id)
+            self.__model.ref_datasets.remove(res_id)
         elif res_type == "eo.rect_stitched_mosaic":
-            self.rect_stitched_mosaics.remove(res_id)
+            self.__model.rect_stitched_mosaics.remove(res_id)
         else:
             raise InternalError(
                 "Cannot add coverages of type '%s' to Dataset Series" %\
