@@ -72,7 +72,7 @@ class FileInfo(object):
     The constructor expects two mandatory arguments ``filename`` and
     ``range_type_name`` and an optional ``default_srid``. The
     ``range_type_name`` should refer to a range type known to the
-    system; otherwise subsequent processing steps may fail. The
+    system;                                                       otherwise subsequent processing steps may fail. The
     ``default_srid`` is used to set the SRID in case it cannot be
     retrieved from the file.
     """
@@ -457,20 +457,7 @@ class ContainerSynchronizer(Synchronizer):
         )
     
     def _getFiles(self):
-        expr_factory = System.getRegistry().bind(
-            "resources.coverages.filters.CoverageExpressionFactory"
-        )
-        
-        contained_expr = expr_factory.get(
-            op_name = "contained_in",
-            operands = (self.container,)
-        )
-        
-        return self.factory.getAttrValues(
-            attr_name = "filename",
-            impl_ids = ["resources.coverages.wrappers.RectifiedDatasetWrapper"],
-            filter_exprs = [contained_expr]
-        )
+        raise InternalError("Not Implemented")
     
     def _create(self):
         fs_files = self._findAllFiles()
@@ -525,7 +512,23 @@ class DatasetSeriesSynchronizer(ContainerSynchronizer):
                 self.range_type_names[dir_name] = \
                     self.default_range_type_name
                 return self.default_range_type_name
-    
+
+    def _getFiles(self):
+        #===============================================================
+        # TODO: provisional, inefficient
+        
+        eo_coverages = self.container.getEOCoverages()
+        
+        filenames = []
+        for eo_coverage in eo_coverages:
+            if eo_coverage.__get_impl_id__() == "resources.coverages.wrappers.RectifiedDatasetWrapper":
+                filenames.append(eo_coverage.getAttrValue("filename"))
+        
+        return filenames
+            
+        # END TODO 
+        #===============================================================
+
     def create(self):
         try:
             self._create()
@@ -560,6 +563,22 @@ class RectifiedStitchedMosaicSynchronizer(ContainerSynchronizer):
     
     def _getDefaultSRID(self, filename):
         return self.container.getSRID()
+    
+    def _getFiles(self):
+        #===============================================================
+        # TODO: provisional, inefficient
+        
+        datasets = self.container.getDatasets()
+        
+        filenames = []
+        for dataset in datasets:
+            if dataset.__get_impl_id__() == "resources.coverages.wrappers.RectifiedDatasetWrapper":
+                filenames.append(dataset.getAttrValue("filename"))
+        
+        return filenames
+            
+        # END TODO 
+        #===============================================================
             
     def create(self):
         try:
