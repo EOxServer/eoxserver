@@ -443,7 +443,7 @@ class WCS20GetCoverageHandler(WCSCommonHandler):
                 ms_req.coverages.append(coverage)
             else:
                 raise InvalidRequestException(
-                    e.msg, "NoSuchCoverage", coverage_id
+                    "No coverage with id '%s' found" % coverage_id, "NoSuchCoverage", coverage_id
                 )
 
     def _setParameter(self, ms_req, key, value):
