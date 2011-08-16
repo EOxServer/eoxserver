@@ -440,7 +440,7 @@ class ContainerSynchronizer(Synchronizer):
         self.factory.update(
             impl_ids = ["resources.coverages.wrappers.RectifiedDatasetWrapper"],
             filter_exprs = [auto_expr, file_expr],
-            rm_container = self.container
+            params = {"rm_container": self.container}
         )
         
         orphan_expr = expr_factory.get(
