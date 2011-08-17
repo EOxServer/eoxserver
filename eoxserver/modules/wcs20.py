@@ -312,21 +312,30 @@ class EOxSWCS20DescribeEOCoverageSetHandler(EOxSOperationHandler):
         if eo_ids is None:
             raise EOxSInvalidRequestException("Missing 'eoid' parameter", "MissingParameterValue", "eoid")
         else:
-            wcseo_objects = []
+            wcseo_objects_datasetseries_set = []
+            wcseo_objects_coverages = []
             for eo_id in eo_ids:
                 try:
-                    wcseo_objects.append(EOxSDatasetSeriesFactory.getDatasetSeriesInterface(eo_id))
+                    wcseo_objects_datasetseries_set.append(EOxSDatasetSeriesFactory.getDatasetSeriesInterface(eo_id))
                 except EOxSNoSuchDatasetSeriesException:
                     pass
                 
                 try:
-                    wcseo_objects.append(EOxSCoverageInterfaceFactory.getCoverageInterfaceByEOID(eo_id))
+                    wcseo_objects_coverages.append(EOxSCoverageInterfaceFactory.getCoverageInterfaceByEOID(eo_id))
                 except EOxSNoSuchCoverageException:
                     pass
                 
-                if len(wcseo_objects) == 0:
+                if len(wcseo_objects_datasetseries_set) == 0 and len(wcseo_objects_coverages) == 0:
                     raise EOxSInvalidRequestException("No coverage or dataset series with EO ID '%s' found" % eo_id, "NoSuchCoverage", "eoid")
-            return wcseo_objects
+
+            # Don't return coverages that are included in a dataset series:
+            for coverage in wcseo_objects_coverages:
+                for dataset_series in wcseo_objects_datasetseries_set:
+                    for c in dataset_series.getDatasets():
+                        if c.getCoverageId() == coverage.getCoverageId():
+                            wcseo_objects_coverages.remove(coverage)
+
+            return wcseo_objects_datasetseries_set + wcseo_objects_coverages
     
     def validateSlice(self, slice, wcseo_object):
         try:
