@@ -289,9 +289,11 @@ class CoverageGML10Encoder(XMLEncoder):
         ])
     
     def encodeNilValue(self, nil_value):
-        return self._makeElement("swe", "NilValue", [
-            ("", "@reason", nil_value.reason),
-            ("", "@@", nil_value.value)
+        return self._makeElement("swe", "NilValues", [
+            ("swe", "nilValue", [
+                ("", "@reason", nil_value.reason),
+                ("", "@@", nil_value.value)
+            ])
         ])
 
 
