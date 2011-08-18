@@ -530,12 +530,12 @@ class RectifiedDatasetWrapper(EODatasetWrapper, RectifiedGridWrapper):
             visible = visible
         )
         
+        self.__model = dataset
+        
         if container is not None:
             container.addCoverage(self.getType(), self.__model.pk)
         
-        self.__model = dataset
         
-
     def _updateModel(self, params):
         file_info = params.get("file_info")
         automatic = params.get("automatic")
