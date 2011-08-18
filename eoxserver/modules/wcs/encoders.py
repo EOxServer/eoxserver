@@ -416,13 +416,18 @@ class EOxSWCS20EOAPEncoder(EOxSWCS20Encoder):
         if numberReturned is None:
             numberReturned = len(coverages)
             
-        return self._makeElement("wcseo", "EOCoverageSetDescription", [
+        root_element = self._makeElement("wcseo", "EOCoverageSetDescription", [
             ("@xsi", "schemaLocation", "http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd"),
             ("", "@numberMatched", str(numberMatched)),
             ("", "@numberReturned", str(numberReturned)),
-            (self.encodeCoverageDescriptions(coverages),),
-            (self.encodeDatasetSeriesDescriptions(datasetseriess),),
         ])
+        
+        if coverages is not None and len(coverages) != 0:
+            root_element.appendChild(self.encodeCoverageDescriptions(coverages))
+        if datasetseriess is not None and len(datasetseriess) != 0:
+            root_element.appendChild(self.encodeDatasetSeriesDescriptions(datasetseriess))
+        
+        return root_element
 
     def encodeEOProfiles(self):
         return [self._makeElement("ows", "Profile", "http://www.opengis.net/spec/WCS_application-profile_earth-observation/1.0/conf/eowcs"),

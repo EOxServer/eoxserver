@@ -239,7 +239,8 @@ class EOxSWCS20DescribeEOCoverageSetHandler(EOxSOperationHandler):
         "containment": {"xml_location": "/wcseo:containment", "xml_type": "string", "kvp_key": "containment", "kvp_type": "string"},
         "trims": {"xml_location": "/wcs:DimensionTrim", "xml_type": "element[]"},
         "slices": {"xml_location": "/wcs:DimensionSlice", "xml_type": "element[]"},
-        "count": {"xml_location": "/@count", "xml_type": "string", "kvp_key": "count", "kvp_type": "string"} #TODO: kvp location
+        "count": {"xml_location": "/@count", "xml_type": "string", "kvp_key": "count", "kvp_type": "string"}, #TODO: kvp location
+        "sections": {"xml_location": "/ows:section", "xml_type": "string[]", "kvp_key": "sections", "kvp_type": "stringlist"}
     }
 
     def handle(self, req):
@@ -300,12 +301,24 @@ class EOxSWCS20DescribeEOCoverageSetHandler(EOxSOperationHandler):
  
         encoder = EOxSWCS20EOAPEncoder()
         
-        return EOxSResponse(
-            content=DOMElementToXML(encoder.encodeEOCoverageSetDescription(dataset_series, coverages, count_all_coverages, count_used)), #TODO: Invoke with all datasetseries and EOCoverage elements.
-            content_type="text/xml",
-            status=200
-        )
-
+        # "sections" parameter can be on of: CoverageDescriptions, DatasetSeriesDescriptions, or All.
+        sections = req.getParamValue("sections")
+        if sections is None or len(sections) == 0 or\
+            "CoverageDescriptions" in sections or\
+            "DatasetSeriesDescriptions" in sections or\
+            "All" in sections:
+            if "DatasetSeriesDescriptions" not in sections and "All" not in sections:
+                dataset_series = None
+            if "CoverageDescriptions" not in sections and "All" not in sections:
+                coverages = None
+            return EOxSResponse(
+                content=DOMElementToXML(encoder.encodeEOCoverageSetDescription(dataset_series, coverages, count_all_coverages, count_used)), #TODO: Invoke with all datasetseries and EOCoverage elements.
+                content_type="text/xml",
+                status=200
+            )
+        else:
+            raise EOxSInvalidRequestException("'sections' parameter must be either 'CoverageDescriptions', 'DatasetSeriesDescriptions', or 'All'.", "InvalidParameterValue", "sections")
+    
     def createWCSEOObject(self, req):
         eo_ids = req.getParamValue("eoid")
             
