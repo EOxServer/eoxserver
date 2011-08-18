@@ -307,9 +307,11 @@ class EOxSWCS20DescribeEOCoverageSetHandler(EOxSOperationHandler):
             "CoverageDescriptions" in sections or\
             "DatasetSeriesDescriptions" in sections or\
             "All" in sections:
-            if "DatasetSeriesDescriptions" not in sections and "All" not in sections:
+            if sections is not None and len(sections) == 0  and\
+                "DatasetSeriesDescriptions" not in sections and "All" not in sections:
                 dataset_series = None
-            if "CoverageDescriptions" not in sections and "All" not in sections:
+            if sections is not None and len(sections) == 0  and\
+                "CoverageDescriptions" not in sections and "All" not in sections:
                 coverages = None
             return EOxSResponse(
                 content=DOMElementToXML(encoder.encodeEOCoverageSetDescription(dataset_series, coverages, count_all_coverages, count_used)), #TODO: Invoke with all datasetseries and EOCoverage elements.
