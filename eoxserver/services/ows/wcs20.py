@@ -353,9 +353,11 @@ class WCS20DescribeEOCoverageSetHandler(BaseRequestHandler):
             "CoverageDescriptions" in sections or\
             "DatasetSeriesDescriptions" in sections or\
             "All" in sections:
-            if "DatasetSeriesDescriptions" not in sections and "All" not in sections:
+            if sections is not None and len(sections) == 0  and\
+                "DatasetSeriesDescriptions" not in sections and "All" not in sections:
                 dataset_series_set = None
-            if "CoverageDescriptions" not in sections and "All" not in sections:
+            if sections is not None and len(sections) == 0  and\
+                "CoverageDescriptions" not in sections and "All" not in sections:
                 output_coverages = None
 
             return Response(
