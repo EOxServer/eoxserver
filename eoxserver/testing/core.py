@@ -36,7 +36,14 @@ import email
 
 from django.test import TestCase, Client
 
+from eoxserver.core.system import System
 from eoxserver.core.util.xmltools import XMLDecoder, DOMtoXML
+from eoxserver.resources.coverages.synchronize import DatasetSeriesSynchronizer,\
+    RectifiedStitchedMosaicSynchronizer
+
+System.init()
+
+BASE_FIXTURES = ["base_data.json", "../meris/meris_base.json"]
 
 class TestSchemaFactory(object):
     schemas = {}
@@ -64,9 +71,57 @@ class TestSchemaFactory(object):
         f.close()
         
         return schema
+    
+class EOxServerTestCase(TestCase):
+    fixtures = BASE_FIXTURES
+
+class SynchronizationTestCase(EOxServerTestCase):
+    """ Base class for test cases targeting the 
+        synchronization functionalities.
+    """
+    # Additional fixtures can be loaded with this statement:
+    # fixtures = BASE_FIXTURES + ['additional_fixtures.json']
+    
+    def synchronize(self, model, synchronizerCls):
+        synchronizer = synchronizerCls(model)
+        synchronizer.update()
+
+class DatasetSeriesSynchronizationTestCase(SynchronizationTestCase):
+    """ Base class for synchronization test cases 
+        for DatasetSeries. 
+    """
+    
+    def synchronize(self, model, synchronizerCls=None, wrapperId=None):
+        if wrapperId is None:
+            wrapperId = "resources.coverages.wrappers.DatasetSeriesWrapper"
+        
+        wrapper = System.getRegistry().bind(wrapperId)
+        wrapper.setModel(model)
+        wrapper.setMutable()
+        
+        if synchronizerCls is None:
+            synchronizerCls = DatasetSeriesSynchronizer
+        
+        super(DatasetSeriesSynchronizationTestCase, self).synchronize(wrapper, synchronizerCls) 
+        
+
+class RectifiedStitchedMosaicSynchronizationTestCase(SynchronizationTestCase):
+    """
+    """
+    
+    def synchronize(self, model, synchronizerCls=RectifiedStitchedMosaicSynchronizer):
+        
+        wrapperId = "resources.coverages.wrappers.RectifiedStitchedMosaicWrapper"
+        
+        wrapper = System.getRegistry().bind(wrapperId)
+        wrapper.setModel(model)
+        wrapper.setMutable()
+        
+        super(RectifiedStitchedMosaicSynchronizationTestCase, self).synchronize(wrapper, synchronizerCls)
 
 
-class EOxSTestCase(TestCase):
+class OWSTestCase(EOxServerTestCase):
+    
     def setUp(self):
         logging.info("Starting Test Case: %s" % self.__class__.__name__)
         
@@ -129,7 +184,7 @@ class EOxSTestCase(TestCase):
                            os.path.join(self.getExpectedFileDir(), self.getExpectedFileName()))
                 )
 
-class XMLTestCase(EOxSTestCase):
+class XMLTestCase(OWSTestCase):
     def getSchemaLocation(self):
         return "../schemas/wcseo/1.0/wcsEOAll.xsd"
     
@@ -221,7 +276,7 @@ class ExceptionTestCase(XMLTestCase):
         
         self.assertEqual(decoder.getValue("exceptionCode"), self.getExpectedExceptionCode())
 
-class WCS20GetCoverageTestCase(EOxSTestCase):    
+class WCS20GetCoverageTestCase(OWSTestCase):    
     def getFileExtension(self):
         return "tif"
     
