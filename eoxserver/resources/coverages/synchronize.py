@@ -398,7 +398,6 @@ class ContainerSynchronizer(Synchronizer):
         for filename in fs_files:
             try:
                 if filename not in db_files:
-
                     if self._rectifiedDatasetExists(filename):
 
                         self._updateRectifiedDataset(
@@ -584,7 +583,7 @@ class RectifiedStitchedMosaicSynchronizer(ContainerSynchronizer):
         try:
             self._create()
             
-            if not len(self.wcseo_object.rect_datasets.all()):
+            if not len(self.container.getDatasets()):
                 raise SynchronizationErrors("The RectifiedStitchedMosaic must contain RectifiedDatasets")
             
             self.stitcher.generate()
@@ -596,7 +595,7 @@ class RectifiedStitchedMosaicSynchronizer(ContainerSynchronizer):
         try:
             self._update()
             
-            if not len(self.wcseo_object.rect_datasets.all()):
+            if not len(self.container.getDatasets()):
                 raise SynchronizationErrors("The RectifiedStitchedMosaic must contain RectifiedDatasets")
             
             self.stitcher.generate()

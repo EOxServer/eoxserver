@@ -93,10 +93,11 @@ class RectifiedMosaicStitcher(object):
     def __init__(self, mosaic_int):
         self.mosaic_int = mosaic_int
         
-        self.grid = mosaic_int.getGrid()
-        self.minx, self.miny, self.maxx, self.maxy = self.grid.getExtent2D()
-        self.xres = math.fabs(self.grid.offsets[0][0])
-        self.yres = math.fabs(self.grid.offsets[1][1])
+        self.srid = mosaic_int.getSRID()
+        self.minx, self.miny, self.maxx, self.maxy = mosaic_int.getExtent()
+        self.size_x, self.size_y = mosaic_int.getSize()
+        self.xres = math.fabs((self.maxx - self.minx) / self.size_x)
+        self.yres = math.fabs((self.maxy - self.miny) / self.size_y)
         
         self.band_count = 3 # TODO
         self.nodata = 0 # TODO
@@ -123,7 +124,7 @@ class RectifiedMosaicStitcher(object):
             raise StopIteration
         else:
             #reproject footprint
-            ref_area = contributing_footprint.transform(self.grid.srid, True)
+            ref_area = contributing_footprint.transform(self.srid, True)
             
             minx, miny, maxx, maxy = ref_area.extent
             
@@ -162,7 +163,7 @@ class RectifiedMosaicStitcher(object):
         
         tile_minx, tile_miny, tile_maxx, tile_maxy = self._getTileExtent(x_index, y_index)
         
-        ds_minx, ds_miny, ds_maxx, ds_maxy = dataset.getGrid().getExtent2D()
+        ds_minx, ds_miny, ds_maxx, ds_maxy = dataset.getExtent()
         
         minx = max(ds_minx, tile_minx)
         miny = max(ds_miny, tile_miny)
@@ -264,7 +265,7 @@ class RectifiedMosaicStitcher(object):
     def _createTileIndex(self, result_tiles):
         path = os.path.join(self.target_dir, "tindex_%s.shp" % self.create_time.strftime("%Y%m%dT%H%M%S"))
         
-        tile_index = TileIndex(path, self.grid.srid)
+        tile_index = TileIndex(path, self.srid)
         
         tile_index.open()
         
@@ -276,8 +277,8 @@ class RectifiedMosaicStitcher(object):
         return tile_index
         
     def _save(self, result_tiles, tile_index):
-        self.mosaic_int.wcseo_object.shape_file_path = tile_index.path
-        self.mosaic_int.wcseo_object.save()
+        self.mosaic_int.getModel().shape_file_path = tile_index.path
+        self.mosaic_int.getModel().save()
     
     def _cleanup(self, tmp_tiles, result_tiles):
         driver = gdal.GetDriverByName('GTiff')
