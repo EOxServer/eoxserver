@@ -43,7 +43,7 @@ from eoxserver.resources.coverages.synchronize import DatasetSeriesSynchronizer,
 
 System.init()
 
-BASE_FIXTURES = ["base_data.json", "../meris/meris_base.json"]
+BASE_FIXTURES = ["initial_rangetypes.json", "testing_base.json"]
 
 class TestSchemaFactory(object):
     schemas = {}
