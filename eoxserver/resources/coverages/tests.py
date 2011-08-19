@@ -57,7 +57,7 @@ class DatasetSeriesRemoveDataDirTestCase(DatasetSeriesSynchronizationTestCase):
         DatasetSeries.
     """
     
-    fixtures = BASE_FIXTURES + ["../meris/meris_coverages.json"]
+    fixtures = BASE_FIXTURES + ["testing_coverages.json"]
     
     def setUp(self):
         dss = DatasetSeriesRecord.objects.get(pk=1)
@@ -79,7 +79,7 @@ class DatasetSeriesRemoveDatasetFromDataDirTestCase(DatasetSeriesSynchronization
         should be re-inserted in the DatasetSeries. 
     """
     
-    fixtures = BASE_FIXTURES + ["../meris/meris_coverages.json"]
+    fixtures = BASE_FIXTURES + ["testing_coverages.json"]
     
     def setUp(self):
         coverage_id = "MER_FRS_1PNPDE20060830_100949_000001972050_"\
@@ -100,7 +100,7 @@ class DatasetSeriesAddAutomaticDatasetTestCase(DatasetSeriesSynchronizationTestC
         be removed again.
     """
     
-    fixtures = BASE_FIXTURES + ["../meris/meris_coverages.json"]
+    fixtures = BASE_FIXTURES + ["testing_coverages.json"]
     
     def setUp(self):
         self.coverage_id = "mosaic_MER_FRS_1PNPDE20060822_092058_"\
@@ -122,7 +122,7 @@ class DatasetSeriesAddManualDatasetTestCase(DatasetSeriesSynchronizationTestCase
         after the synchronization.
     """
     
-    fixtures = BASE_FIXTURES + ["../meris/meris_coverages.json"]
+    fixtures = BASE_FIXTURES + ["testing_coverages.json"]
     
     def setUp(self):
         self.coverage_id = "mosaic_MER_FRS_1PNPDE20060822_092058_"\
@@ -176,7 +176,7 @@ class RectifiedStitchedMosaicNewDatasetTestCase(RectifiedStitchedMosaicSynchroni
         mosaic
     """
     
-    fixtures = BASE_FIXTURES + ["../meris/meris_coverages.json"]
+    fixtures = BASE_FIXTURES + ["testing_coverages.json"]
     
     def setUp(self):
         rsm = RectifiedStitchedMosaicRecord.objects.get(pk=1)
