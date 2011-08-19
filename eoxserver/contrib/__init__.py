@@ -35,5 +35,5 @@ import sys, os, distutils.util
 # Put local build directory on head of python path
 platformdir = '-'.join((distutils.util.get_platform(), '.'.join(map(str, sys.version_info[0:2]))))
 sys.path.insert(0, os.path.join(settings.MAPSCRIPT_PATH, 'lib.' + platformdir))
-print sys.path[0]
+
 import mapscript

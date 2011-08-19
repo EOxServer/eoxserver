@@ -46,3 +46,6 @@ class SynchronizationErrors(EOxSException):
     
     def __iter__(self):
         return iter(self.errors)
+
+    def __str__(self):
+        return str(self.errors)

@@ -320,7 +320,7 @@ class DatasetSeriesRecord(Resource):
     ref_datasets = models.ManyToManyField(ReferenceableDatasetRecord,
                                           blank=True, null=True,
                                           related_name="dataset_series_set",
-                                           verbose_name="Referenceable Dataset(s)")
+                                          verbose_name="Referenceable Dataset(s)")
 
     def __unicode__(self):
         return self.eo_id
