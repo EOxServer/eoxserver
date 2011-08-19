@@ -45,6 +45,8 @@ from eoxserver.resources.coverages.synchronize import (
     SynchronizationErrors
 )
 
+from eoxserver.core.exceptions import InternalError
+
 from eoxserver.core.system import System
 
 import os.path
@@ -376,6 +378,8 @@ class DatasetSeriesAdmin(admin.ModelAdmin):
         except SynchronizationErrors, errors:
             for error in errors:
                 messages.error(request, error)
+            raise
+        except InternalError:
             raise
         except:
             messages.error(request, "An unexpected error occurred during synchronization")
