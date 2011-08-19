@@ -1129,7 +1129,7 @@ class RectifiedStitchedMosaicWrapper(EOCoverageWrapper, RectifiedGridWrapper):
                 res_type
             )
         else:
-            self.rect_datasets.add(res_id)
+            self.__model.rect_datasets.add(res_id)
     
     def removeCoverage(self, res_type, res_id):
         """
@@ -1143,7 +1143,7 @@ class RectifiedStitchedMosaicWrapper(EOCoverageWrapper, RectifiedGridWrapper):
                 res_type
             )
         else:
-            self.rect_datasets.remove(res_id)
+            self.__model.rect_datasets.remove(res_id)
     
     def getDataDirs(self):
         """
