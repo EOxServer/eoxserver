@@ -530,7 +530,7 @@ class WCS20GetCoverageHandler(WCSCommonHandler):
                       (extent[1]-extent[3]) / float(size[1]))
         
         layer.setMetaData("wcs_extent", "%.10f %.10f %.10f %.10f" % extent)
-        layer.setMetaData("wcs_resolution", "%f %f" % resolution)
+        layer.setMetaData("wcs_resolution", "%.10f %.10f" % resolution)
         layer.setMetaData("wcs_size", "%d %d" % size)
         layer.setMetaData("wcs_nativeformat", "GTiff")
         layer.setMetaData("wcs_bandcount", "%d" % len(rangetype.bands))
