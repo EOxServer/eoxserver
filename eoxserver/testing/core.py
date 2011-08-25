@@ -79,6 +79,7 @@ class SynchronizationTestCase(EOxServerTestCase):
     """ Base class for test cases targeting the 
         synchronization functionalities.
     """
+    
     # Additional fixtures can be loaded with this statement:
     # fixtures = BASE_FIXTURES + ['additional_fixtures.json']
     
@@ -106,11 +107,11 @@ class DatasetSeriesSynchronizationTestCase(SynchronizationTestCase):
         
 
 class RectifiedStitchedMosaicSynchronizationTestCase(SynchronizationTestCase):
-    """
+    """ Base class for synchronization test cases
+        involving RectifiedStitchedMoaics.
     """
     
     def synchronize(self, model, synchronizerCls=RectifiedStitchedMosaicSynchronizer):
-        
         wrapperId = "resources.coverages.wrappers.RectifiedStitchedMosaicWrapper"
         
         wrapper = System.getRegistry().bind(wrapperId)
@@ -121,6 +122,11 @@ class RectifiedStitchedMosaicSynchronizationTestCase(SynchronizationTestCase):
 
 
 class OWSTestCase(EOxServerTestCase):
+    """ Main base class for testing the OWS interface
+        of EOxServer.
+    """
+    
+    fixtures = BASE_FIXTURES + ["testing_coverages.json"]
     
     def setUp(self):
         logging.info("Starting Test Case: %s" % self.__class__.__name__)

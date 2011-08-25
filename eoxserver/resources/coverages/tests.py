@@ -40,6 +40,7 @@ from eoxserver.resources.coverages.models import (
 , RectifiedStitchedMosaicRecord)
 from django.utils.datetime_safe import datetime
 from django.contrib.gis.geos import GEOSGeometry
+from django.conf import settings
 
 import logging
 import os.path
@@ -163,17 +164,53 @@ class DatsetSeriesNewDataDirTestCase(DatasetSeriesSynchronizationTestCase):
         
         DataDirRecord.objects.create(dataset_series=dss,
                                      # TODO: get path from config!!!
-                                     dir="../autotest/data/meris/MER_FRS_1P_reduced")
+                                     dir=os.path.abspath(os.path.join(settings.PROJECT_DIR,
+                                                                      "data/meris/MER_FRS_1P_reduced")))
         
         self.synchronize(dss)
         
     def testNumberOfDatasets(self):
         dss = DatasetSeriesRecord.objects.get(eo_id="testDatasetSeries")
         self.assertEqual(len(dss.rect_datasets.all()), 3)
+
+class DatasetSeriesNewDataDirReservedTestCase(DatasetSeriesSynchronizationTestCase):
+    """ Add a DataDir to a newly created DatasetSeries.
+        The same DataDir is already included with another
+        DatasetSeries.
+    """
+    
+    fixtures = BASE_FIXTURES + ["testing_coverages.json"]
+    
+    def setUp(self):
+        dss = DatasetSeriesRecord.objects.create(
+            eo_id="testDatasetSeries",
+            image_pattern="*.tif",
+            
+            eo_metadata=EOMetadataRecord.objects.create(
+                timestamp_begin=datetime(year=2011, month=1, day=1),
+                timestamp_end=datetime(year=2011, month=1, day=1),
+                footprint=GEOSGeometry('POLYGON(( 10 10, 10 20, 20 20, 20 15, 10 10))')
+            )
+        )
         
+        dd = DataDirRecord.objects.create(dataset_series=dss,
+                                          dir=os.path.abspath(os.path.join(settings.PROJECT_DIR,
+                                                                           "data/meris/MER_FRS_1P_reduced")))
+        
+        self.synchronize(dss)
+        
+        dd.remove()
+        
+        self.synchronize(dss)
+
+    def testNumberOfDatasets(self):
+        dss = DatasetSeriesRecord.objects.get(eo_id="testDatasetSeries")
+        self.assertEqual(len(dss.rect_datasets.all()), 3)
+            
+            
 class RectifiedStitchedMosaicNewDatasetTestCase(RectifiedStitchedMosaicSynchronizationTestCase):
-    """ Add a newly created Dataset to the stitched
-        mosaic
+    """ Add a newly created Dataset to the 
+        RectifiedStitchedMosaic.
     """
     
     fixtures = BASE_FIXTURES + ["testing_coverages.json"]
@@ -218,4 +255,5 @@ class RectifiedStitchedMosaicNewDatasetTestCase(RectifiedStitchedMosaicSynchroni
     def testNumberOfDatasets(self):
         rsm = RectifiedStitchedMosaicRecord.objects.get(pk=1)
         self.assertEqual(len(rsm.rect_datasets.all()), 4)
+        
         
