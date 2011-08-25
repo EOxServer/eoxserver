@@ -390,7 +390,8 @@ class EOxSWCS20GetCoverageHandler(EOxSWCSCommonHandler):
         "trims": {"xml_location": "/wcs:DimensionTrim", "xml_type": "element[]"},
         "slices": {"xml_location": "/wcs:DimensionSlice", "xml_type": "element[]"},
         "format": {"xml_location": "/wcs:Format", "xml_type": "string", "kvp_key": "format", "kvp_type": "string"},
-        "mediatype": {"xml_location": "/wcs:Mediatype", "xml_type": "string", "kvp_key": "mediatype", "kvp_type": "string"}
+        "mediatype": {"xml_location": "/wcs:Mediatype", "xml_type": "string", "kvp_key": "mediatype", "kvp_type": "string"},
+        "rangesubset": {"xml_location": "/wcs:RangeSubset", "xml_type": "string", "kvp_key": "rangesubset", "kvp_type": "stringlist"}
     }
     
     def createCoverages(self, ms_req):
@@ -410,13 +411,24 @@ class EOxSWCS20GetCoverageHandler(EOxSWCSCommonHandler):
                 super(EOxSWCS20GetCoverageHandler, self)._setParameter(ms_req, "format", "GTiff16")
             else:
                 raise EOxSInvalidRequestException("Invalid or unsupported value '%s' for 'format' parameter." % value, "InvalidParameterValue", key)
+        elif key.lower() == "format" and (len(ms_req.coverages[0].getRangeType()) == 1 or (ms_req.getParamValue("rangesubset") and len(ms_req.getParamValue("rangesubset")) == 1)):
+            super(EOxSWCS20GetCoverageHandler, self)._setParameter(ms_req, "format", "GTiffByte")
         else:
             super(EOxSWCS20GetCoverageHandler, self)._setParameter(ms_req, key, value)
 
     def configureMapObj(self, ms_req):
         super(EOxSWCS20GetCoverageHandler, self).configureMapObj(ms_req)
         
-        if len(ms_req.coverages[0].getRangeType()) > 3: # TODO see eoxserver.org ticket #3
+        if len(ms_req.coverages[0].getRangeType()) == 1 or (ms_req.getParamValue("rangesubset") and len(ms_req.getParamValue("rangesubset")) == 1):
+            output_format = mapscript.outputFormatObj("GDAL/GTiff", "GTiffByte")
+            output_format.mimetype = "image/tiff"
+            output_format.extension = "tif"
+            output_format.imagemode = mapscript.MS_IMAGEMODE_BYTE
+        
+            ms_req.map.appendOutputFormat(output_format)
+            ms_req.map.setOutputFormat(output_format)
+        
+        elif len(ms_req.coverages[0].getRangeType()) > 3: # TODO see eoxserver.org ticket #3
             output_format = mapscript.outputFormatObj("GDAL/GTiff", "GTiff16")
             output_format.mimetype = "image/tiff"
             output_format.extension = "tif"
