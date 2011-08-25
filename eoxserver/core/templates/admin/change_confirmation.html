@@ -1,0 +1,29 @@
+{% extends "admin/change_form.html" %}
+
+
+{% block content %}
+
+	{% block confirmationmessage %}
+	{# this block can be overridden in base forms #}
+	<a>{{ confirmation }}</a>
+	{% endblock %}
+	
+	<form action="" method="post">{% csrf_token %}
+    {% for key, value in post %}
+	<input type="hidden" name="{{ key }}" value="{{value}}" />
+	{% endfor %}
+    <div>
+    <input type="hidden" name="post" value="yes" />
+    <input type="submit" value="Yes, I'm sure" />
+    </div>
+    
+    {# check-variable that confirmation is done #}
+    <input type="hidden" name="confirmation" value="done" />
+    
+    </form>
+    
+    <form method="get">
+    <input type="submit" value="No, reset changes" />
+    </form>
+	
+{% endblock %}

@@ -32,6 +32,9 @@ This module provides the admin for the core.
 """
 
 from django.contrib.gis import admin
+from django.contrib.admin.util import unquote
+from django import template
+from django.shortcuts import render_to_response
 
 from eoxserver.core.models import Component
 
@@ -48,6 +51,101 @@ class ComponentAdmin(admin.ModelAdmin):
         return False
 
     def has_delete_permission(self, request, obj=None):
+        return False
+
+
+class ConfirmationAdmin(admin.ModelAdmin):
+    """
+    Specialized :class:`django.contrib.admin.ModelAdmin`.
+    The :class:`ConfirmationAdmin` allows to request a
+    confirmation from the user when certain changes
+    are made to the underlying :class:`Model`.
+    """
+    
+    # template path for the confirmation form
+    confirmation_form_template = None
+    
+    def change_view(self, request, object_id, extra_context=None):
+        """
+        This method overrides the :class:`django.contrib.admin.ModelAdmin`s
+        `change_view` method to hook in a confirmation page.
+        """
+        
+        if request.method == 'POST' and request.POST.get('confirmation') != "done":
+            obj = self.get_object(request, unquote(object_id))
+            old_values = dict([(field.name, field.value_from_object(obj)) for field in obj._meta.fields])
+            
+            new_obj = self.get_new_object(request, obj)
+                
+            new_values = dict([(field.name, field.value_from_object(obj)) for field in new_obj._meta.fields])
+            
+            # get the changes from the model
+            diff = self.get_differences(old_values, new_values)
+            
+            # hook if the confirmation is required
+            msg = self.require_confirmation(diff)
+            
+            if msg:
+                opts = self.model._meta
+                context = {
+                    'post': request.POST.items(),
+                    'opts': opts,
+                    'root_path': self.admin_site.root_path,
+                    'app_label': opts.app_label,
+                    'original': obj,
+                    'object_id': object_id,
+                    'has_change_permission': self.has_change_permission(request, obj),
+                    'confirmation': msg
+                }
+                context_instance = template.RequestContext(request)
+                return render_to_response(self.confirmation_form_template or [
+                    "admin/%s/%s/change_confirmation.html" % (opts.app_label, opts.object_name.lower()),
+                    "admin/%s/change_confirmation.html" % opts.app_label,
+                    "admin/change_confirmation.html",
+                ], context, context_instance=context_instance)
+        
+        # Here we build the "normal GUI"
+        return super(ConfirmationAdmin, self).change_view(request, object_id, extra_context)
+    
+    def get_new_object(self, request, instance):
+        """
+        Get the changed model with the data from the form.
+        Convenience method.
+        """
+        ModelForm = self.get_form(request, instance)
+        form = ModelForm(request.POST, request.FILES, instance=instance)
+        
+        if form.is_valid():
+            return self.save_form(request, form, change=True)
+        else:
+            return instance
+    
+    def get_differences(self, first, second):
+        """
+        Convenience method to get the differences
+        between two dict-like objects.
+        """
+        diff = {}
+        for key, value2 in second.iteritems():
+            value1 = first.get(key)
+            if value1 != value2:
+                diff[key] = (value1, value2)
+        return diff
+    
+    def require_confirmation(self, diff):
+        """
+        Hook to check if a confirmation is required.
+        Override this method in subclasses to enable
+        or disable the confirmation.
+        * ``diff`` is a dictionary where the keys are 
+            the names of the changed fields and the values
+            are tuples with two entries: the old and the 
+            new value.
+            
+        To enable the confirmation return a string message
+        which is shown to the user. 
+        Otherwise return False.
+        """
         return False
 
 admin.site.register(Component, ComponentAdmin)
