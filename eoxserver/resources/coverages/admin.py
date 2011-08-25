@@ -31,6 +31,7 @@ from django.contrib.gis import admin
 from django.contrib import messages
 from django.conf import settings
 from django.http import HttpResponseRedirect
+from django.contrib.admin.util import unquote
 
 from eoxserver.resources.coverages.models import (
     DataDirRecord, EOMetadataRecord, FileRecord,
@@ -44,15 +45,12 @@ from eoxserver.resources.coverages.synchronize import (
     RectifiedStitchedMosaicSynchronizer,
     SynchronizationErrors
 )
-
 from eoxserver.core.exceptions import InternalError
-
 from eoxserver.core.system import System
+from eoxserver.core.admin import ConfirmationAdmin
 
 import os.path
 import logging
-
-
 
 # TODO: harmonize with core.system
 logging.basicConfig(
@@ -104,24 +102,46 @@ class CoverageSingleFileAdmin(admin.ModelAdmin):
     exclude = ('layer_metadata',)
 admin.site.register(SingleFileCoverageRecord, CoverageSingleFileAdmin)
 
+
 class StitchedMosaic2DatasetInline(admin.TabularInline):
     model = RectifiedStitchedMosaicRecord.rect_datasets.__getattribute__("through")
     verbose_name = "Stitched Mosaic to Dataset Relation"
     verbose_name_plural = "Stitched Mosaic to Dataset Relations"
     extra = 1
+    can_delete = False
+    
+    # TODO: this is causing an exception
+    '''def get_readonly_fields(self, request, obj=None):
+        if obj is not None and obj.automatic:
+            return self.readonly_fields + (
+                'rectifiedstitchedmosaicrecord', #'rectifieddatasetrecord'
+            )
+        return super(StitchedMosaic2DatasetInline, self).get_readonly_fields(request, obj)'''
+    
 class DatasetSeries2DatasetInline(admin.TabularInline):
     model = DatasetSeriesRecord.rect_datasets.__getattribute__("through")
     verbose_name = "Dataset Series to Dataset Relation"
     verbose_name_plural = "Dataset Series to Dataset Relations"
     extra = 1
-class RectifiedDatasetAdmin(admin.ModelAdmin):
+    
+    can_delete = False
+    
+    # TODO: this is causing an exception
+    '''def get_readonly_fields(self, request, obj=None):
+        if obj is not None and obj.automatic:
+            return self.readonly_fields + (
+                'datasetseriesrecord', #'rectifieddatasetrecord'
+            )
+        return super(DatasetSeries2DatasetInline, self).get_readonly_fields(request, obj)'''
+
+class RectifiedDatasetAdmin(ConfirmationAdmin):
     list_display = ('coverage_id', 'eo_id', 'file', 'range_type', 'extent')
     list_editable = ('file', 'range_type', 'extent')
     list_filter = ('range_type', )
     ordering = ('coverage_id', )
     search_fields = ('coverage_id', )
     inlines = (StitchedMosaic2DatasetInline, DatasetSeries2DatasetInline)
-
+    
     # We need to override the bulk delete function of the admin to make
     # sure the overrode delete() method of EOCoverageRecord is
     # called.
@@ -140,6 +160,41 @@ class RectifiedDatasetAdmin(admin.ModelAdmin):
         self.message_user(request, "%s successfully deleted." % message_bit)
     really_delete_selected.short_description = "Delete selected Dataset(s) entries"
 
+    def change_view(self, request, object_id, extra_context=None):
+        
+        obj = self.get_object(request, unquote(object_id))
+        new_obj = self.get_new_object(request, obj)
+        if obj.automatic and new_obj.automatic:
+            messages.warning(request, "This rectified dataset cannot be changed "
+                             "because is marked as 'automatic'.")
+        
+        return super(RectifiedDatasetAdmin, self).change_view(request, object_id, extra_context)
+
+    def get_readonly_fields(self, request, obj=None):
+        """
+        If the instance is automatic, this method will return a 
+        list of disabled fields.
+        These cannot be changed by the user, unless he disables
+        the `automatic` field.
+        """
+        if obj is not None and obj.automatic:
+            return self.readonly_fields + (
+                'coverage_id', 'eo_id', 'eo_metadata',
+                'lineage', 'file', 'extent',
+                'layer_metadata', 
+            )
+            
+        return self.readonly_fields
+    
+    def require_confirmation(self, diff):
+        try:
+            old_automatic, new_automatic = diff['automatic']
+            if not old_automatic and new_automatic:
+                return "You are marking the rectified dataset as automatic. All manual changes will be reset."
+        except KeyError:
+            pass
+        return False  
+        
 admin.site.register(RectifiedDatasetRecord, RectifiedDatasetAdmin)
 
 class MosaicDataDirInline(admin.TabularInline):
@@ -284,7 +339,8 @@ class DatasetSeriesAdmin(admin.ModelAdmin):
     inlines = (DataDirInline, )
     fieldsets = (
         (None, {
-            'fields': ('eo_id', 'eo_metadata', 'image_pattern')
+            'fields': ('eo_id', 'eo_metadata', 'image_pattern'),
+            'description': 'Demo DatasetSeries description.',
         }),
         ('Advanced coverage handling', {
             'classes': ('collapse',),
@@ -471,6 +527,21 @@ class EOMetadataAdmin(admin.GeoModelAdmin):
         # DatasetSeriesAdmin
         
         super(EOMetadataAdmin, self).save_formset(request, form, formset, change)
+    
+    def change_view(self, request, object_id, extra_context=None):
+        obj = self.get_object(request, unquote(object_id))
+        if obj.rectifieddatasetrecord_set.automatic:
+            messages.warning(request, "This EO Metadata record cannot be changed because "
+                             "the associated dataset is marked as 'automatic'.")
+        return super(EOMetadataAdmin, self).change_view(request, object_id, extra_context)
+    
+    def get_readonly_fields(self, request, obj=None):
+        if obj is not None and obj.rectifieddatasetrecord_set.automatic:
+            return self.readonly_fields + (
+                'timestamp_begin', 'timestamp_end',
+                'footprint', 'eo_gml', 'objects'
+            )
+        return self.readonly_fields
     
 admin.site.register(EOMetadataRecord, EOMetadataAdmin)
 
