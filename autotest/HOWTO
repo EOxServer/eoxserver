@@ -31,7 +31,17 @@
 # Autotest HowTo #
 ##################
 
-1. How to update fixtures
+1. How to run test instance
+
+cd <path_to_eoxserver_directory>
+python manage.py loaddata data/fixtures/some_fixture.json ...
+python manage.py runserver
+
+# To load all fixtures type:
+python manage.py loaddata auth_data.json initial_rangetypes.json testing_base.json testing_coverages.json
+
+
+2. How to update fixtures
 
 Run
 
