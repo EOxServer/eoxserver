@@ -62,7 +62,7 @@
             <extension base="ows:ContentsBaseType">
                 <sequence>
                     <element ref="wcs:CoverageSummary" minOccurs="0" maxOccurs="unbounded"/>
-                    <any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+                    <any minOccurs="0" maxOccurs="unbounded" processContents="lax" namespace="##other"/>
                 </sequence>
             </extension>
         </complexContent>
