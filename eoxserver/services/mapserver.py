@@ -224,6 +224,9 @@ class MapServerOperationHandler(BaseRequestHandler):
     def _setParameter(self, ms_req, key, value):
         ms_req.ows_req.setParameter(key, value)
 
+    def _addParameter(self, ms_req, key, value):
+        ms_req.ows_req.addParameter(key, value)
+
     def configureRequest(self, ms_req):
         """
         This method configures the <tt>ms_req.ows_req</tt> object (an
@@ -235,37 +238,15 @@ class MapServerOperationHandler(BaseRequestHandler):
         
         @return         None
         """
-        
-        
-        #TODO recode this
-        
         ms_req.ows_req = mapscript.OWSRequest()
         if ms_req.getParamType() == "kvp":
             for key, values in ms_req.getParams().items():
-                self._setParameter(ms_req, "version", ms_req.version)
-                try: # first try 'addParameter'
-                    raise AttributeError
+                if len(values) == 1:
+                    self._setParameter(ms_req, key.lower(), escape(values[0]))
+                else:
                     for value in values:
-                        #ms_req.ows_req.addParameter(key, value)
-                        self._setParameter(ms_req, key.lower(), value)
-                except AttributeError:
-                    if len(values) == 1:
-                        self._setParameter(ms_req, key.lower(), escape(values[0]))
-                    else:
-                        c = 0
-                        for value in values:
-                            if c == 0:
-                                new_key = key
-                            else:
-                                new_key = "%s_%d" % (key.lower(), c)
-                            self._setParameter(ms_req, new_key, escape(value))
-                            
-                            c += 1
-                            while "%s_%d" % (key.lower(), c) in ms_req.getParams():
-                                c += 1
-
-            #ms_req.ows_req.setParameter("version", ms_req.getVersion())
-            #self._setParameter(ms_req, "version", ms_req.getVersion())
+                        self._addParameter(ms_req, key.lower(), escape(value))
+            self._setParameter(ms_req, "version", ms_req.getVersion())
         elif ms_req.getParamType() == "xml":
             ms_req.ows_req.type = mapscript.MS_POST_REQUEST
             ms_req.ows_req.postrequest = ms_req.getParams()
