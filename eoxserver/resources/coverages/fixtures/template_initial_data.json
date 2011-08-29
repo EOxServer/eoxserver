@@ -3,7 +3,7 @@
         "pk": 1, 
         "model": "coverages.nilvaluerecord", 
         "fields": {
-            "reason": "("http://www.opengis.net/def/nil/OGC/0/unknown", "Unknown")", 
+            "reason": "http://www.opengis.net/def/nil/OGC/0/unknown", 
             "value": 255
         }
     }, 
@@ -14,10 +14,10 @@
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
             "name": "red", 
             "nil_values": [],
+            "gdal_interpretation": 3, 
             "identifier": "red", 
             "uom": "W.m-2.Sr-1", 
-            "description": "Red Channel",
-            "gdal_interpretation": 4
+            "description": "Red Channel"
         }
     }, 
     {
@@ -27,6 +27,7 @@
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
             "name": "green", 
             "nil_values": [], 
+            "gdal_interpretation": 4, 
             "identifier": "green",
             "uom": "W.m-2.Sr-1", 
             "description": "Green Channel"
@@ -39,6 +40,7 @@
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
             "name": "blue",
             "nil_values": [],
+            "gdal_interpretation": 5, 
             "identifier": "blue", 
             "uom": "W.m-2.Sr-1", 
             "description": "Blue Channel"
@@ -53,7 +55,8 @@
             "nil_values": [
                 1
             ],
-            "identifier": "blue", 
+            "gdal_interpretation": 1, 
+            "identifier": "gray", 
             "uom": "W.m-2.Sr-1", 
             "description": "Gray Channel"
         }
