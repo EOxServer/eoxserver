@@ -48,20 +48,17 @@ class WCS20GetCapabilitiesValidTestCase(eoxstest.WCS20GetCapabilitiesTestCase):
         params = "service=WCS&version=2.0.0&request=GetCapabilities"
         return (params, "kvp")
 
-########################################################################
-#TODO: Commented because of Segfault in libxml2:
-#class WCSVersionNegotiationOldStyleTestCase(eoxstest.WCS20GetCapabilitiesTestCase):
-#    """This test shall check old style version negotiation. A valid WCS 2.0 EO-AP GetCapabilities response shall be returned"""
-#    def getRequest(self):
-#        params = "service=wcs&version=3.0.0&request=GetCapabilities"
-#        return (params, "kvp")
-#
-#class WCSVersionNegotiationNewStyleTestCase(eoxstest.WCS20GetCapabilitiesTestCase):
-#    """This test shall check new style version negotiation. A valid WCS 2.0 EO-AP GetCapabilities response shall be returned"""
-#    def getRequest(self):
-#        params = "service=wcs&acceptversions=2.0.0,1.1.0&request=GetCapabilities"
-#        return (params, "kvp")
-########################################################################
+class WCSVersionNegotiationOldStyleTestCase(eoxstest.WCS20GetCapabilitiesTestCase):
+    """This test shall check old style version negotiation. A valid WCS 2.0 EO-AP GetCapabilities response shall be returned"""
+    def getRequest(self):
+        params = "service=wcs&version=3.0.0&request=GetCapabilities"
+        return (params, "kvp")
+
+class WCSVersionNegotiationNewStyleTestCase(eoxstest.WCS20GetCapabilitiesTestCase):
+    """This test shall check new style version negotiation. A valid WCS 2.0 EO-AP GetCapabilities response shall be returned"""
+    def getRequest(self):
+        params = "service=wcs&acceptversions=2.0.0,1.1.0&request=GetCapabilities"
+        return (params, "kvp")
 
 class WCSVersionNegotiationFaultTestCase(eoxstest.ExceptionTestCase):
     """This test shall check new style version negotiation. A valid ows:ExceptionReport shall be returned"""
