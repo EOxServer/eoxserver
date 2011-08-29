@@ -65,7 +65,7 @@ epydoc --name=EOxServer --output=../docs/epydoc/ --html --docformat=javadoc --gr
 
 ------------------------------------------------------------------------
 
-2. How to update model graph (docs/model.png)
+2. How to update model graphs
 
 Run
 
@@ -73,5 +73,10 @@ cd <path_to_autotest_directory>
 python manage.py graph_models --output=../docs/sphinx/en/developers/images/model_core.png core
 python manage.py graph_models --output=../docs/sphinx/en/developers/images/model_services.png services
 python manage.py graph_models --output=../docs/sphinx/en/developers/images/model_coverages.png coverages
+python manage.py graph_models --output=../docs/sphinx/en/developers/images/model_backends.png backends
+
+python manage.py graph_models coverages > tmp.dot
+dot -Tsvg tmp.dot  -otmp.svg
+# Edit tmp.svg e.g. with Inkscape
 
 ------------------------------------------------------------------------
