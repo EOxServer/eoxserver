@@ -53,6 +53,7 @@ class ComponentAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
+admin.site.register(Component, ComponentAdmin)
 
 class ConfirmationAdmin(admin.ModelAdmin):
     """
@@ -147,5 +148,3 @@ class ConfirmationAdmin(admin.ModelAdmin):
         Otherwise return False.
         """
         return False
-
-admin.site.register(Component, ComponentAdmin)
