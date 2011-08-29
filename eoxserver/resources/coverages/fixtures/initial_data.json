@@ -3,7 +3,7 @@
         "pk": 1, 
         "model": "coverages.nilvaluerecord", 
         "fields": {
-            "reason": "No Data", 
+            "reason": "("http://www.opengis.net/def/nil/OGC/0/unknown", "Unknown")", 
             "value": 255
         }
     }, 
@@ -16,7 +16,8 @@
             "nil_values": [],
             "identifier": "red", 
             "uom": "W.m-2.Sr-1", 
-            "description": "Red Channel"
+            "description": "Red Channel",
+            "gdal_interpretation": 4
         }
     }, 
     {
