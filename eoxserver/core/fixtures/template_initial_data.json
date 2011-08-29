@@ -1212,14 +1212,14 @@
         "pk": 80, 
         "model": "core.component", 
         "fields": {
-            "enabled": false
+            "enabled": true
         }
     }, 
     {
         "pk": 81, 
         "model": "core.component", 
         "fields": {
-            "enabled": false
+            "enabled": true
         }
     }, 
     {
