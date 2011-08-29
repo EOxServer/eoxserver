@@ -84,8 +84,8 @@ class EOxSWCS1XOperationHandler(EOxSWCSCommonHandler):
             
             grid = coverage.getGrid()
             
-            layer.setMetaData("wcs_extent", "%f %f %f %f" % grid.getExtent2D())
-            layer.setMetaData("wcs_resolution", "%f %f" % (grid.offsets[0][0], grid.offsets[1][1]))
+            layer.setMetaData("wcs_extent", "%.10f %.10f %.10f %.10f" % grid.getExtent2D())
+            layer.setMetaData("wcs_resolution", "%.10f %.10f" % (grid.offsets[0][0], grid.offsets[1][1]))
             layer.setMetaData("wcs_size", "%d %d" % (grid.high[0] - grid.low[0] + 1, grid.high[1] - grid.low[1] + 1))
             layer.setMetaData("wcs_nativeformat", "GTiff")
             layer.setMetaData("wcs_bandcount", "3")
