@@ -402,7 +402,7 @@
         }
     }, 
     {
-        "pk": 1, 
+        "pk": 7, 
         "model": "coverages.rectifiedstitchedmosaicrecord", 
         "fields": {
             "lineage": 4, 
@@ -430,7 +430,7 @@
         }
     }, 
     {
-        "pk": 1, 
+        "pk": 8, 
         "model": "coverages.datasetseriesrecord", 
         "fields": {
             "image_pattern": "*_compressed.tif", 
