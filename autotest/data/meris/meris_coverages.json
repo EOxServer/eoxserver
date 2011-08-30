@@ -426,7 +426,7 @@
         "model": "coverages.mosaicdatadirrecord", 
         "fields": {
             "dir": "../autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced", 
-            "mosaic": 1
+            "mosaic": 7
         }
     }, 
     {
@@ -435,7 +435,7 @@
         "fields": {
             "image_pattern": "*_compressed.tif", 
             "rect_stitched_mosaics": [
-                1
+                7
             ], 
             "eo_metadata": 1, 
             "eo_id": "MER_FRS_1P_reduced", 
@@ -451,7 +451,7 @@
         "model": "coverages.datadirrecord", 
         "fields": {
             "dir": "../autotest/data/meris/MER_FRS_1P_reduced", 
-            "dataset_series": 1
+            "dataset_series": 8
         }
     }
 ]
