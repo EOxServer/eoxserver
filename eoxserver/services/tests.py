@@ -317,6 +317,83 @@ class WCS20DescribeEOCoverageSetDatasetPagingCountTestCase(eoxstest.WCS20Describ
         params = "service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=MER_FRS_1P_reduced&count=2"
         return (params, "kvp")
 
+# Section test cases
+
+class WCS20DescribeEOCoverageSetSectionsAllTestCase(eoxstest.WCS20DescribeEOCoverageSetSectionsTestCase):
+    def getExpectedSections(self):
+        return [
+            "wcs:CoverageDescriptions",
+            "wcseo:DatasetSeriesDescriptions"
+        ]
+        
+    def getRequest(self):
+        params = "service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=MER_FRS_1P_reduced&sections=All"
+        return (params, "kvp")
+
+class WCS20DescribeEOCoverageSetSectionsAll2TestCase(eoxstest.WCS20DescribeEOCoverageSetSectionsTestCase):
+    def getExpectedSections(self):
+        return [
+            "wcs:CoverageDescriptions",
+            "wcseo:DatasetSeriesDescriptions"
+        ]
+        
+    def getRequest(self):
+        params = "service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=MER_FRS_1P_reduced&sections=CoverageDescriptions,DatasetSeriesDescriptions"
+        return (params, "kvp")
+    
+class WCS20DescribeEOCoverageSetSectionsAll3TestCase(eoxstest.WCS20DescribeEOCoverageSetSectionsTestCase):
+    def getExpectedSections(self):
+        return [
+            "wcs:CoverageDescriptions",
+            "wcseo:DatasetSeriesDescriptions"
+        ]
+        
+    def getRequest(self):
+        params = "service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=MER_FRS_1P_reduced&sections=All,DatasetSeriesDescriptions"
+        return (params, "kvp")
+
+class WCS20DescribeEOCoverageSetSectionsAll4TestCase(eoxstest.WCS20DescribeEOCoverageSetSectionsTestCase):
+    def getExpectedSections(self):
+        return [
+            "wcs:CoverageDescriptions",
+            "wcseo:DatasetSeriesDescriptions"
+        ]
+        
+    def getRequest(self):
+        params = "service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=MER_FRS_1P_reduced&sections=CoverageDescriptions,All"
+        return (params, "kvp")
+
+class WCS20DescribeEOCoverageSetSectionsCoverageDescriptionsTestCase(eoxstest.WCS20DescribeEOCoverageSetSectionsTestCase):
+    def getExpectedSections(self):
+        return [
+            "wcs:CoverageDescriptions"
+        ]
+        
+    def getRequest(self):
+        params = "service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=MER_FRS_1P_reduced&sections=CoverageDescriptions"
+        return (params, "kvp")
+
+class WCS20DescribeEOCoverageSetSectionsDatasetSeriesDescriptionsTestCase(eoxstest.WCS20DescribeEOCoverageSetSectionsTestCase):
+    def getExpectedSections(self):
+        return [
+            "wcseo:DatasetSeriesDescriptions"
+        ]
+        
+    def getRequest(self):
+        params = "service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=MER_FRS_1P_reduced&sections=DatasetSeriesDescriptions"
+        return (params, "kvp")
+
+class WCS20DescribeEOCoverageSetSectionsFaultTestCase(eoxstest.ExceptionTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced&sections=WrongSection"
+        return (params, "kvp")
+    
+    def getExpectedHTTPStatus(self):
+        return 400
+    
+    def getExpectedExceptionCode(self):
+        return "InvalidParameterValue"
+
 #class WCS20DescribeEOCoverageSetDatasetPagingConfigTestCase(eoxstest.WCS20DescribeEOCoverageSetPagingTestCase):
 #    def getConfigCountOverride(self):
 #        return 2
