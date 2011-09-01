@@ -226,7 +226,10 @@ class WCS20DescribeEOCoverageSetSpatioTemporalSubsetTestCase(eoxstest.WCS20Descr
     def getExpectedCoverageIds(self):
         return [
             "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed",
-            "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"
+            "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed",
+            "mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced",
+            "mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced",
+            "mosaic_MER_FRS_1P_RGB_reduced"
         ]
 
 class WCS20DescribeEOCoverageSetSpatioTemporalSubsetOverlapsTestCase(eoxstest.WCS20DescribeEOCoverageSetSubsettingTestCase):
