@@ -161,7 +161,11 @@ class WCS20DescribeEOCoverageSetTwoSpatialSubsetsTestCase(eoxstest.WCS20Describe
         return [
             "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed",
             "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed",
-            "MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed"
+            "MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed",
+            "mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced",
+            "mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced",
+            "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced",
+            "mosaic_MER_FRS_1P_RGB_reduced"
         ]
 
 class WCS20DescribeEOCoverageSetTwoSpatialSubsetsOverlapsTestCase(eoxstest.WCS20DescribeEOCoverageSetSubsettingTestCase):
@@ -173,7 +177,11 @@ class WCS20DescribeEOCoverageSetTwoSpatialSubsetsOverlapsTestCase(eoxstest.WCS20
         return [
             "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed",
             "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed",
-            "MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed"
+            "MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed",
+            "mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced",
+            "mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced",
+            "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced",
+            "mosaic_MER_FRS_1P_RGB_reduced"
         ]
 
 class WCS20DescribeEOCoverageSetTwoSpatialSubsetsContainsTestCase(eoxstest.WCS20DescribeEOCoverageSetSubsettingTestCase):
@@ -194,7 +202,10 @@ class WCS20DescribeEOCoverageSetTemporalSubsetTestCase(eoxstest.WCS20DescribeEOC
     def getExpectedCoverageIds(self):
         return [
             "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed",
-            "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"
+            "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed",
+            "mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced",
+            "mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced",
+            "mosaic_MER_FRS_1P_RGB_reduced"
         ]
 
 class WCS20DescribeEOCoverageSetTemporalSubsetOverlapsTestCase(eoxstest.WCS20DescribeEOCoverageSetSubsettingTestCase):
@@ -205,7 +216,10 @@ class WCS20DescribeEOCoverageSetTemporalSubsetOverlapsTestCase(eoxstest.WCS20Des
     def getExpectedCoverageIds(self):
         return [
             "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed",
-            "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"
+            "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed",
+            "mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced",
+            "mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced",
+            "mosaic_MER_FRS_1P_RGB_reduced"
         ]
 
 class WCS20DescribeEOCoverageSetTemporalSubsetContainsTestCase(eoxstest.WCS20DescribeEOCoverageSetSubsettingTestCase):
