@@ -33,6 +33,9 @@
 
 1. How to run test instance
 
+cp data/meris/TEMPLATE_template.map conf/template.map
+cp ../eoxserver/conf/TEMPLATE_eoxserver.conf conf/eoxserver.conf
+
 cd <path_to_eoxserver_directory>
 python manage.py loaddata data/fixtures/some_fixture.json ...
 python manage.py runserver
