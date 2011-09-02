@@ -30,6 +30,7 @@
 import re
 import os.path
 import sys
+from copy import deepcopy
 from xml.dom import minidom
 
 from django.conf import settings
@@ -39,8 +40,7 @@ import logging
 
 from eoxserver.core.system import System
 from eoxserver.core.exceptions import( 
-    InternalError, UnknownCRSException, UnknownParameterFormatException,
-    InvalidExpressionError, InvalidParameterException
+    InternalError, InvalidExpressionError, InvalidParameterException
 )
 from eoxserver.core.util.xmltools import DOMtoXML, DOMElementToXML
 from eoxserver.core.util.timetools import getDateTime
@@ -48,8 +48,8 @@ from eoxserver.core.util.geotools import getSRIDFromCRSURI
 from eoxserver.resources.coverages.filters import (
     BoundedArea, Slice, TimeInterval
 )
-from eoxserver.resources.coverages.exceptions import (
-    NoSuchCoverageException, NoSuchDatasetSeriesException
+from eoxserver.resources.coverages.helpers import (
+    CoverageSet, expandDatasetSeries, expandRectifiedStitchedMosaic
 )
 from eoxserver.services.interfaces import (
     VersionHandlerInterface, OperationHandlerInterface
@@ -68,9 +68,15 @@ from eoxserver.services.exceptions import (
     InvalidSubsettingException
 )
 from eoxserver.services.ows.wcs.common import WCSCommonHandler
-from eoxserver.services.ows.wcs.encoders import WCS20Encoder, WCS20EOAPEncoder
+from eoxserver.services.ows.wcs.encoders import WCS20EOAPEncoder
 
 from eoxserver.contrib import mapscript
+
+logging.basicConfig(
+    filename=os.path.join(settings.PROJECT_DIR, 'logs', 'eoxserver.log'),
+    level=logging.INFO,
+    format="[%(asctime)s][%(levelname)s] %(message)s"
+)
 
 class WCS20VersionHandler(OWSCommonVersionHandler):
     SERVICE = "wcs"
@@ -303,34 +309,10 @@ class WCS20DescribeEOCoverageSetHandler(BaseRequestHandler):
     }
 
     def _processRequest(self, req):
+        
         req.setSchema(self.PARAM_SCHEMA)
         
-        dataset_series_set, req_coverages = self.createWCSEOObjects(req)
-        
-        try:
-            filter_exprs = \
-                WCS20SubsetDecoder(req, 4326).getFilterExpressions()
-        except InvalidSubsettingException, e:
-            raise InvalidRequestException(e.msg, "InvalidSubsetting", "subset")
-        except InvalidAxisLabelException, e:
-            raise InvalidRequestException(e.msg, "InvalidAxisLabel", "subset")
-        
-        output_coverages = []
-        output_coverages.extend(req_coverages)
-        
-        for coverage in req_coverages:
-            if coverage.getType() == "eo.rect_stitched_mosaic":
-                output_coverages.extend(
-                    coverage.getDatasets(filter_exprs=filter_exprs)
-                )
-        
-        for dataset_series in dataset_series_set:
-            output_coverages.extend(
-                dataset_series.getEOCoverages(filter_exprs=filter_exprs)
-            )
-
-        # TODO: find out config value 'count'
-        # subset returned dataset series/coverages to min(count from config, count from req)
+        dataset_series_set, coverages = self.createWCSEOObjects(req)
         
         count_req = sys.maxint
         if req.getParamValue("count") is not None:
@@ -339,9 +321,9 @@ class WCS20DescribeEOCoverageSetHandler(BaseRequestHandler):
         count_default = WCS20ConfigReader().getPagingCountDefault()
         count_used = min(count_req, count_default)
         
-        count_all_coverages = len(output_coverages)
+        count_all_coverages = len(coverages)
         if count_used < count_all_coverages:
-            output_coverages = output_coverages[:count_used]
+            coverages = coverages[:count_used]
         else:
             count_used = count_all_coverages
  
@@ -353,22 +335,22 @@ class WCS20DescribeEOCoverageSetHandler(BaseRequestHandler):
             "CoverageDescriptions" in sections or\
             "DatasetSeriesDescriptions" in sections or\
             "All" in sections:
-            if sections is not None and len(sections) == 0  and\
+            if sections is not None and len(sections) != 0 and\
                 "DatasetSeriesDescriptions" not in sections and "All" not in sections:
                 dataset_series_set = None
-            if sections is not None and len(sections) == 0  and\
+            if sections is not None and len(sections) != 0 and\
                 "CoverageDescriptions" not in sections and "All" not in sections:
-                output_coverages = None
+                coverages = None
 
             return Response(
                 content=DOMElementToXML(
                     encoder.encodeEOCoverageSetDescription(
                         dataset_series_set,
-                        output_coverages,
+                        coverages,
                         count_all_coverages,
                         count_used
                     )
-                ), #TODO: Invoke with all datasetseries and EOCoverage elements.
+                ),
                 content_type="text/xml",
                 status=200
             )
@@ -378,6 +360,14 @@ class WCS20DescribeEOCoverageSetHandler(BaseRequestHandler):
     def createWCSEOObjects(self, req):
         eo_ids = req.getParamValue("eoid")
             
+        try:
+            filter_exprs = \
+                WCS20SubsetDecoder(req, 4326).getFilterExpressions()
+        except InvalidSubsettingException, e:
+            raise InvalidRequestException(e.msg, "InvalidSubsetting", "subset")
+        except InvalidAxisLabelException, e:
+            raise InvalidRequestException(e.msg, "InvalidAxisLabel", "subset")
+        
         if eo_ids is None:
             raise InvalidRequestException(
                 "Missing 'eoid' parameter",
@@ -386,16 +376,16 @@ class WCS20DescribeEOCoverageSetHandler(BaseRequestHandler):
             )
         else:
             dataset_series_set = []
-            coverages = []
+            coverages = CoverageSet()
             
             for eo_id in eo_ids:
                 dataset_series = System.getRegistry().getFromFactory(
                     "resources.coverages.wrappers.DatasetSeriesFactory",
                     {"obj_id": eo_id}
                 )
-                
                 if dataset_series is not None:
                     dataset_series_set.append(dataset_series)
+                    coverages.union(expandDatasetSeries(dataset_series, filter_exprs))
                 else:
                     coverage = System.getRegistry().getFromFactory(
                         "resources.coverages.wrappers.EOCoverageFactory",
@@ -403,22 +393,20 @@ class WCS20DescribeEOCoverageSetHandler(BaseRequestHandler):
                     )
                     
                     if coverage is not None:
-                        coverages.append(coverage)
+                        if coverage.getType() == "eo.rect_stitched_mosaic":
+                            coverages.add(coverage)
+                            coverages.union(expandRectifiedStitchedMosaic(coverage, filter_exprs))
+                        else:
+                            if coverage.getDatasets(deepcopy(filter_exprs)):
+                                coverages.add(coverage)
                     else:
                         raise InvalidRequestException(
                             "No coverage or dataset series with EO ID '%s' found" % eo_id,
                             "NoSuchCoverage",
                             "eoid"
                         )
-                        
-            # Don't return coverages that are included in a dataset series:
-            for coverage in coverages:
-                for dataset_series in dataset_series_set:
-                    for c in dataset_series.getEOCoverages():
-                        if c.getCoverageId() == coverage.getCoverageId():
-                            coverages.remove(coverage)
             
-            return (dataset_series_set, coverages)
+            return (dataset_series_set, coverages.to_sorted_list())
     
 WCS20DescribeEOCoverageSetHandlerImplementation = OperationHandlerInterface.implement(WCS20DescribeEOCoverageSetHandler)
 
@@ -946,9 +934,8 @@ class WCS20SubsetDecoder(object):
         
         for slice in self.slices:
             filter_exprs.append(self._getSliceExpression(slice))
-            
-        filter_exprs.extend(self._getTrimExpressions(self.trims))
         
+        filter_exprs.extend(self._getTrimExpressions(self.trims))
         return filter_exprs
     
     def getBoundingPolygon(self, footprint, srid, size_x, size_y, extent):
