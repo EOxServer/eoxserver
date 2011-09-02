@@ -31,6 +31,8 @@ import os.path
 import logging
 from lxml import etree
 from xml.dom import minidom
+import tempfile
+from osgeo import gdal, gdalconst
 
 import email
 
@@ -230,11 +232,7 @@ class WCS20DescribeEOCoverageSetSubsettingTestCase(WCS20DescribeEOCoverageSetTes
         
         result_coverage_ids = decoder.getValue("coverageids")
         expected_coverage_ids = self.getExpectedCoverageIds()
-        
-        for result_coverage_id in result_coverage_ids:
-            self.assertTrue(result_coverage_id in expected_coverage_ids)
-        for expected_coverage_id in expected_coverage_ids:
-            self.assertTrue(expected_coverage_id in result_coverage_ids)
+        self.assertItemsEqual(result_coverage_ids, expected_coverage_ids)
 
 class WCS20DescribeEOCoverageSetPagingTestCase(WCS20DescribeEOCoverageSetTestCase):
 # TODO
@@ -260,6 +258,17 @@ class WCS20DescribeEOCoverageSetPagingTestCase(WCS20DescribeEOCoverageSetTestCas
         coverage_ids = decoder.getValue("coverageids")
         self.assertEqual(len(coverage_ids), self.getExpectedCoverageCount())
 
+class WCS20DescribeEOCoverageSetSectionsTestCase(WCS20DescribeEOCoverageSetTestCase):
+    def getExpectedSections(self):
+        return []
+    
+    def testSections(self):
+        decoder = XMLDecoder(self.getXMLData(), {
+            "sections": {"xml_location": "/*", "xml_type": "tagName[]"}
+        })
+        sections = decoder.getValue("sections")
+        self.assertItemsEqual(sections, self.getExpectedSections())
+
 class ExceptionTestCase(XMLTestCase):
     def getSchemaLocation(self):
         return "../schemas/ows/2.0/owsExceptionReport.xsd"
@@ -282,16 +291,92 @@ class ExceptionTestCase(XMLTestCase):
         
         self.assertEqual(decoder.getValue("exceptionCode"), self.getExpectedExceptionCode())
 
-class WCS20GetCoverageTestCase(OWSTestCase):    
+class WCS20GetCoverageTestCase(OWSTestCase):
+    def setUp(self):
+        super(WCS20GetCoverageTestCase, self).setUp()
+        _, self.tmppath = tempfile.mkstemp("." + self.getFileExtension())
+        f = open(self.tmppath, "w")
+        f.write(self.getResponseData())
+        f.close()
+        gdal.AllRegister()
+        self.ds = gdal.Open(self.tmppath, gdalconst.GA_ReadOnly)
+        
+    def tearDown(self):
+        del self.ds
+        os.remove(self.tmppath)
+    
     def getFileExtension(self):
         return "tif"
     
+
+class TestMixin(object):
+    def __init__(self, *args, **kwargs):
+        super(TestMixin, self).__init__(*args, **kwargs)
+        self.has_mixin = True    
+
+class WCS20GetCoverageSizeTestMixin(TestMixin):
+    expected_size = None        # (sizex, sizey)
+    
+    def testSize(self):
+        if not self.expected_size:
+            self.skipTest("Expected size not set.")
+        
+        self.assertEqual((self.ds.RasterXSize, self.ds.RasterYSize),
+                         self.expected_size)
+
+class WCS20GetCoverageExtentTestMixin(TestMixin):
+    expected_extent = None      # (minx, miny, maxx, maxy)
+    
+    def testExtent(self):
+        if not self.expected_extent:
+            self.skipTest("Expected extent not set.")
+        
+        gt = self.ds.GetGeoTransform()
+        extent = (gt[0],                                # minx
+                  gt[3] + self.ds.RasterYSize * gt[5],  # miny
+                  gt[0] + self.ds.RasterXSize * gt[1],  # maxx
+                  gt[3])                                # maxy
+        self.assertEqual(extent, self.expected_extent)
+
+class WCS20GetCoverageResolutionTestMixin(TestMixin):
+    expected_resolution = None  # (resx, abs(resy))
+    
+    def testResolution(self):
+        if not self.expected_resolution:
+            self.skipTest("Expected resolution not set.")
+            
+        gt = self.ds.GetGeoTransform()
+        resolution = (gt[1], abs(gt[5]))
+        
+        self.assertAlmostEqual(resolution[0], self.expected_resolution[0], delta=self.expected_resolution[0]/10)
+        self.assertAlmostEqual(resolution[1], self.expected_resolution[1], delta=self.expected_resolution[1]/10)
+
+class WCS20GetCoverageBandCountTestMixin(TestMixin):
+    expected_bandcount = None   # num
+    
+    def testBandCount(self):
+        if not self.expected_bandcount:
+            self.skipTest("Expected band count not set.")
+            
+        self.assertEqual(self.ds.RasterCount, self.expected_bandcount)
+    
 class WCS20GetCoverageMultipartTestCase(WCS20GetCoverageTestCase, XMLTestCase):
     def setUp(self):
+        self.xmlData = None
+        self.imageData = None
+        self.isSetUp = False
+        
         super(WCS20GetCoverageMultipartTestCase, self).setUp()
+        
+        
+        self._setUpMultiparts()
+        
+        
+    
+    def _setUpMultiparts(self):
+        if self.isSetUp: return
         response_msg = email.message_from_string("Content-type: multipart/mixed; boundary=wcs\n\n"
                                                  + self.response.content)
-        
         for part in response_msg.walk():
             if part['Content-type'] == "multipart/mixed; boundary=wcs":
                 continue
@@ -299,6 +384,8 @@ class WCS20GetCoverageMultipartTestCase(WCS20GetCoverageTestCase, XMLTestCase):
                 self.xmlData = part.get_payload()
             else:
                 self.imageData = part.get_payload()
+        
+        self.isSetUp = True
     
     def getFileExtension(self,part=None):
         if part == "xml":
@@ -312,9 +399,11 @@ class WCS20GetCoverageMultipartTestCase(WCS20GetCoverageTestCase, XMLTestCase):
         return "%s.%s" % (self.__class__.__name__, self.getFileExtension(part))
     
     def getXMLData(self):
+        self._setUpMultiparts()
         return self.xmlData
     
     def getResponseData(self):
+        self._setUpMultiparts()
         return self.imageData
         
     def getExpectedFileName(self,part):
