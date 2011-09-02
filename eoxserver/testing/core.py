@@ -233,6 +233,10 @@ class WCS20DescribeEOCoverageSetSubsettingTestCase(WCS20DescribeEOCoverageSetTes
         result_coverage_ids = decoder.getValue("coverageids")
         expected_coverage_ids = self.getExpectedCoverageIds()
         self.assertItemsEqual(result_coverage_ids, expected_coverage_ids)
+        
+        # assert that every coverage ID is unique in the respinse
+        for coverage_id in result_coverage_ids:
+            self.assertTrue(result_coverage_ids.count(coverage_id) == 1, "CoverageID %s is not unique." % coverage_id)
 
 class WCS20DescribeEOCoverageSetPagingTestCase(WCS20DescribeEOCoverageSetTestCase):
 # TODO
