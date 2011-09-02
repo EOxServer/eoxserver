@@ -78,11 +78,14 @@ class EOxSWMSCommonHandler(EOxSMapServerOperationHandler):
     def addLayers(self, ms_req):
         time_param = ms_req.getParamValue("time")
         slices = []
-        if time_param:
+        trims = []
+        if time_param and len(time_param.split("/")) == 2:
+            trims.append(EOxSTrim("time", None, "\"%s\"" % time_param.split("/")[0], "\"%s\"" % time_param.split("/")[1]))
+        elif time_param:
             slices.append(EOxSSlice("time", None, "\"%s\"" % time_param))
         
         for coverage in ms_req.coverages:
-            ms_req.map.insertLayer(self.getMapServerLayer(coverage, slices=slices))
+            ms_req.map.insertLayer(self.getMapServerLayer(coverage, slices=slices, trims=trims))
 
     def getMapServerLayer(self, coverage, **kwargs):
         logging.debug("EOxSWMSCommonHandler.getMapServerLayer")
