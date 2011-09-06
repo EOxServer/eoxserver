@@ -85,11 +85,11 @@ cleanup process.
 Storages
 --------
 
-The :class:`Storage` subclasses represent different types of storage facilities.
-In the database model, only FTP and rasdaman backends have their own models
-defined that contain the information how to connect to the server. This is not
-needed for locally mounted file systems, so the local backend does not have a
-representation in the database.
+The :class:`~.Storage` subclasses represent different types of storage
+facilities. In the database model, only FTP and rasdaman backends have their own
+models defined that contain the information how to connect to the server. This
+is not needed for locally mounted file systems, so the local backend does not
+have a representation in the database.
 
 The wrapper layer constructed on top of the database model on the other hand
 knows three classes of storages that provide a common interface to access their
@@ -97,8 +97,10 @@ data:
 
 * :class:`~.LocalStorage` which implements access to locally mounted file
   systems
-* :class:`~.FTPStorage` which implements access to a remote FTP server
-* :class:`~.RasdamanStorage` which implements access to a rasdaman database
+* :class:`~eoxserver.backends.ftp.FTPStorage` which implements access to a
+  remote FTP server
+* :class:`~eoxserver.backends.rasdaman.RasdamanStorage` which implements access
+  to a rasdaman database
 
 Each of these storage classes is associated to a certain type of location.
 
@@ -107,7 +109,7 @@ capabilities. Depending on these capabilities the storage classes also
 provide methods for getting a local copy of the data and retrieving the size
 of an object as well as scanning a directory for files. At the moment these
 three methods are implemented by file-based backends only
-(:class:`~.LocalStorage` and :class:`~.FTPStorage`).
+(:class:`~.LocalStorage` and :class:`~eoxserver.backends.ftp.FTPStorage`).
 
 .. _rfc12_dal_locations:
 
