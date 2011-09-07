@@ -34,6 +34,15 @@ from eoxserver.core.util.timetools import getDateTime
 from eoxserver.core.util.geotools import posListToWkt
 from eoxserver.resources.coverages.exceptions import MetadataException
 
+#-------------------------------------------------------------------------------
+# defining namespaces 
+
+NS_EOP="http://www.opengis.net/eop/2.0"
+NS_OMD="http://www.opengis.net/om/2.0"
+NS_GML="http://www.opengis.net/gml/3.2"
+
+#-------------------------------------------------------------------------------
+
 class MetadataInterface(object):
     
     def getEOID(self):
@@ -113,12 +122,12 @@ class DIMAPMetadataInterface(XMLMetadataInterface):
     
 class EOGMLMetadataInterface(XMLMetadataInterface):
     PARAM_SCHEMA = {
-        "eoid": {"xml_location": "/eop:metaDataProperty/eop:EarthObservationMetaData/eop:identifier", "xml_type": "string"},
-        "begintime": {"xml_location": "/om:phenomenonTime/gml:TimePeriod/gml:beginPosition", "xml_type": "string"},
-        "endtime": {"xml_location": "/om:phenomenonTime/gml:TimePeriod/gml:endPosition", "xml_type": "string"},
-        "footprint": {"xml_location": "/om:featureOfInterest/eop:Footprint/eop:multiExtentOf/gml:MultiSurface/gml:surfaceMember/gml:Polygon", "xml_type": "dict[1:]", "xml_dict_elements": {
-            "exterior_ring": {"xml_location": "gml:exterior/gml:LinearRing/gml:posList", "xml_type": "floatlist"},
-            "interior_rings": {"xml_location": "gml:interior/gml:LinearRing/gml:posList", "xml_type": "floatlist[]"}
+        "eoid": {"xml_location": "/{%s}metaDataProperty/{%s}EarthObservationMetaData/{%s}identifier"%(NS_EOP,NS_EOP,NS_EOP), "xml_type": "string"},
+        "begintime": {"xml_location": "/{%s}phenomenonTime/{%s}TimePeriod/{%s}beginPosition"%(NS_OMD,NS_GML,NS_GML), "xml_type": "string"},
+        "endtime": {"xml_location": "/{%s}phenomenonTime/{%s}TimePeriod/{%s}endPosition"%(NS_OMD,NS_GML,NS_GML), "xml_type": "string"},
+        "footprint": {"xml_location": "/{%s}featureOfInterest/{%s}Footprint/{%s}multiExtentOf/{%s}MultiSurface/{%s}surfaceMember/{%s}Polygon"%(NS_OMD,NS_EOP,NS_EOP,NS_GML,NS_GML,NS_GML), "xml_type": "dict[1:]", "xml_dict_elements": {
+            "exterior_ring": {"xml_location": "{%s}exterior/{%s}LinearRing/{%s}posList"%(NS_GML,NS_GML,NS_GML), "xml_type": "floatlist"},
+            "interior_rings": {"xml_location": "{%s}interior/{%s}LinearRing/{%s}posList"%(NS_GML,NS_GML,NS_GML), "xml_type": "floatlist[]"}
         }}
     }
     
