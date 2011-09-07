@@ -22,11 +22,11 @@ The following software is needed to build the IDMS components:
 General Configuration for CHARON services:
 
 - The Charon services need the ``acs-xbeans-1.0.jar`` dependency in the ``\lib`` folder of your  Axis2 installation (presumably the ``webapps/axis2`` of your Apache Tomcat installation). 
-- Furthermore, you have to activate the EIGSecurityHandler in the **Globale Modules** section of your axis2 configuration (``${AXIS2_HOME}/WEB-INF/conf/axis2.xml``) 
+- Furthermore, you have to activate the EIGSecurityHandler in the **Global Modules** section of your axis2 configuration (``${AXIS2_HOME}/WEB-INF/conf/axis2.xml``) 
 - You may configure the logging for the services in the Log4J configuration file (``${AXIS2_HOME}/WEB-INF/classes/log4j.properties``)  
 
 
-Both, the Security Token Service and the PEP service make use of Java keystores: The IDMS uses  Keystores to store a) the certificate used by the Security Token Service for signing SAML tokens and b) the public keys of those authenticating authorities trusted by the Policy Enforcement Point. The ``keytool`` of the Java distribution can be used to create and manipulate Java Keystores:
+Both, the Security Token Service and the PEP service make use of Java Keystores: The IDMS uses  Keystores to store a) the certificate used by the Security Token Service for signing SAML tokens and b) the public keys of those authenticating authorities trusted by the Policy Enforcement Point. The ``keytool`` of the Java distribution can be used to create and manipulate Java Keystores:
 
 -  The following command creates a new Keystore with the password :secret: and a suitable key pair with the alias :authenticate: for the Security Token Service:
     ``keytool -genkey -alias authenticate -keyalg RSA -keystore keystore.jks -storepass secret -validity 360``
@@ -54,7 +54,7 @@ Security Token Service
 
 The Security Token Service (STS) is responsible for the authentication of users  and  is documented and specified in the OASIS `WS-Trust <http://docs.oasis-open.org/ws-sx/ws-trust/200512/ws-trust-1.3-os.html>`_ specification. The authentication assertion produced by the STS is formulated in the `Security Assertion Markup Language <http://www.oasis-open.org/committees/download.php/3406/oasis-sstc-saml-core-1.1.pdf>`_. A client trying to access a service secured by the IDMS has to embed this assertion in every service request.
 
-The STS implementation used by the IDMS is the `HMA Authentication Service <http://wiki.services.eoportal.org/tiki-index.php?page=HMA+Authentication+Service>`_. Please refer to the documentation inncluded in the  ``\docs`` folder of the HMA Authentication Service package how to compile the service. This document will only deal on how to install the service. To deploy the service successfully, you first have to install and confugure an LDAP service. Then proceed with the following steps:
+The STS implementation used by the IDMS is the `HMA Authentication Service <http://wiki.services.eoportal.org/tiki-index.php?page=HMA+Authentication+Service>`_. Please refer to the documentation included in the ``\docs`` folder of the HMA Authentication Service package how to compile the service. This document will only deal on how to install the service. To deploy the service successfully, you first have to install and confugure an LDAP service. Then proceed with the following steps:
 
 * Put the ``authentication_v2.1.aar`` folder in the ``${AXIS2_HOME}/WEB-INF/services/`` folder. The ``authentication_v2.1.aar`` folder contains all configuration files for the STS.
 * The main configuration of the service takes place in the ``authentication-service.properties``
@@ -138,14 +138,14 @@ SOAP Proxy
 
 The SOAP Proxy is used as a proxy for a secured service. This means a user client does not communicate directly with a secured service, instead it sends all requests to the proxy service.  
 
-First, you have to generate the proxy service. In order to do this, open a shell and navigate to the ``${ProxyCodeGen_HOME}/bin`` directory. Run the script to gegenerate the proxy service:
+First, you have to generate the proxy service. In order to do this, open a shell and navigate to the ``${ProxyCodeGen_HOME}/bin`` directory. Run the script to generate the proxy service:
 
 * Linux, Unices:
     ``./ProxyGen.sh -wsdl path/to/wsdl``
 * Windows:
     ``.\ProxyGen.bat -wsdl path\to\wsdl``
 
-The parameter ``-wsdl`` has to point to the WSDL of the secured service.
+The parameter ``-wsdl`` points to a file with the WSDL of the secured service.
  
 After a successful service generation, the folder ``${ProxyCodeGen_HOME}/tmp/dist`` contains the new proxy service. Take the service zip and deploy it by unpacking its content to the ``${AXIS2_HOME}`` folder. 
 
