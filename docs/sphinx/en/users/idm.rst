@@ -46,7 +46,7 @@ Known working implementations are:
 * `Apache Directory Service <http://directory.apache.org/>`_
 * `OpenLDAP <http://openldap.org>`_
 
-A good graphical client for LDAP directories is the `Apache Directory Studio <http://directory.apache.org/studio/>`_
+A good graphical client for LDAP directories is the `Apache Directory Studio <http://directory.apache.org/studio/>`_.
 
 
 Security Token Service
