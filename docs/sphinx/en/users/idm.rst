@@ -10,6 +10,7 @@ The following software is needed to run the IDMS:
 - `Apache Tomcat <http://tomcat.apache.org/>`_ 6 or higher
 - `Apache Axis2 <http://axis.apache.org/axis2/java/core/>`_ 1.4.1 or higher
 - `MySQL <http://dev.mysql.com/downloads/>`_ 5 
+- `Apache HTTP Server`<http://httpd.apache.org/<_` 2.x
 
 
 The following software is needed to build the IDMS components:
@@ -34,6 +35,26 @@ Both, the Security Token Service and the PEP service make use of Java Keystores:
     ``keytool -export -alias authenticate -file authn.crt -keystore keystore.jks``
 - The following command imports a certificate to a Keystore:
     ``keytool -import -alias trusted_sts -file authn.crt -keystore keystore.jks``
+    
+You can use the Apache HTTP Server as a proxy, it will enable your services running in Tomcat to be accessible over the Apache server. This can be usefull when your services have to be accessible over the HTTP standard port *80*:
+
+- First you have to enable ``mod_proxy_ajp`` and ``mod_proxy``.
+- Create a virtual host in your ``httpd.conf`` ::
+
+    <VirtualHost *:80>
+       ServerName server.example.com
+    
+       <Proxy *>
+         AddDefaultCharset Off
+         Order deny,allow
+         Allow from all
+       </Proxy>
+    
+       ProxyPass /services/AuthenticationService ajp://localhost:8009/axis2/services/AuthenticationService
+       ProxyPassReverse /services/AuthenticationService ajp://localhost:8009/axis2/services/AuthenticationService 
+       
+    </VirtualHost>
+  The ``ProxyPass`` and ``ProxyPassReverse`` have to point to your services. Please note that the Tomcat server hosting your services must have the AJP interface enabled.  
  
 
  
