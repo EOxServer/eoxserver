@@ -27,7 +27,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from django.contrib.gis import admin
+from django.contrib.gis import admin, forms
 from django.contrib import messages
 from django.conf import settings
 from django.http import HttpResponseRedirect
@@ -72,6 +72,7 @@ class NilValueInline(admin.TabularInline):
     model = BandRecord.nil_values.__getattribute__("through")
     extra = 1
 class NilValueAdmin(admin.ModelAdmin):
+    radio_fields = {"reason": admin.VERTICAL}
     inlines = (NilValueInline, )
 admin.site.register(NilValueRecord, NilValueAdmin)
 
@@ -134,13 +135,23 @@ class DatasetSeries2DatasetInline(admin.TabularInline):
             )
         return super(DatasetSeries2DatasetInline, self).get_readonly_fields(request, obj)'''
 
+class RectifiedDatasetForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(RectifiedDatasetForm, self).__init__(*args, **kwargs)
+        if 'eo_metadata' in self.fields:
+            self.fields['eo_metadata'].queryset = EOMetadataRecord.objects.filter(pk=self.instance.eo_metadata.pk)
+        if 'lineage' in self.fields:
+            self.fields['lineage'].queryset = LineageRecord.objects.filter(pk=self.instance.lineage.pk)
+
 class RectifiedDatasetAdmin(ConfirmationAdmin):
+    form = RectifiedDatasetForm
     list_display = ('coverage_id', 'eo_id', 'file', 'range_type', 'extent')
     list_editable = ('file', 'range_type', 'extent')
     list_filter = ('range_type', )
     ordering = ('coverage_id', )
     search_fields = ('coverage_id', )
     inlines = (StitchedMosaic2DatasetInline, DatasetSeries2DatasetInline)
+    raw_id_fields = ('extent', )
     
     # We need to override the bulk delete function of the admin to make
     # sure the overrode delete() method of EOCoverageRecord is

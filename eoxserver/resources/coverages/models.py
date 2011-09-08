@@ -42,15 +42,17 @@ from eoxserver.resources.coverages.metadata import MetadataInterfaceFactory
 NCNameValidator = RegexValidator(re.compile(r'^[a-zA-z_][a-zA-Z0-9_.-]*$'), message="This field must contain a valid NCName.")
 
 class NilValueRecord(models.Model):
-    reason = models.CharField(max_length=128, choices=(
-        ("http://www.opengis.net/def/nil/OGC/0/inapplicable", "Inapplicable (There is no value)"),
-        ("http://www.opengis.net/def/nil/OGC/0/missing", "Missing"),
-        ("http://www.opengis.net/def/nil/OGC/0/template", "Template (The value will be available later)"),
-        ("http://www.opengis.net/def/nil/OGC/0/unknown", "Unknown"),
-        ("http://www.opengis.net/def/nil/OGC/0/withheld", "Withheld (The value is not divulged)"),
-        ("http://www.opengis.net/def/nil/OGC/0/AboveDetectionRange", "Above detection range"),
-        ("http://www.opengis.net/def/nil/OGC/0/BelowDetectionRange", "Below detection range")
-    ))
+    reason = models.CharField(max_length=128, default="http://www.opengis.net/def/nil/OGC/0/unknown", 
+        choices=(
+            ("http://www.opengis.net/def/nil/OGC/0/inapplicable", "Inapplicable (There is no value)"),
+            ("http://www.opengis.net/def/nil/OGC/0/missing", "Missing"),
+            ("http://www.opengis.net/def/nil/OGC/0/template", "Template (The value will be available later)"),
+            ("http://www.opengis.net/def/nil/OGC/0/unknown", "Unknown"),
+            ("http://www.opengis.net/def/nil/OGC/0/withheld", "Withheld (The value is not divulged)"),
+            ("http://www.opengis.net/def/nil/OGC/0/AboveDetectionRange", "Above detection range"),
+            ("http://www.opengis.net/def/nil/OGC/0/BelowDetectionRange", "Below detection range")
+        )
+    )
     value = models.IntegerField()
 
     def __unicode__(self):
@@ -333,7 +335,7 @@ class DatasetSeriesRecord(Resource):
         eo_metadata = self.eo_metadata
         for dataset in self.rect_datasets.filter(automatic=True):
             if dataset.dataset_series_set.count() == 1 and \
-               dataset.rect_stitched_mosaics.count() == 1:
+               dataset.rect_stitched_mosaics.count() == 0:
                 dataset.delete()
         for dataset in self.ref_datasets.filter(automatic=True):
             if dataset.dataset_series_set.count() == 1:
