@@ -127,8 +127,8 @@ class RangeType2Band(models.Model):
 
 class ExtentRecord(models.Model):
     def __unicode__(self):
-        return "Extent (SRID=%d; %f, %f, %f, %f)" % (
-            self.srid, self.minx, self.miny, self.maxx, self.maxy
+        return "Extent (SRID=%d; %f, %f, %f, %f; Size: %d x %d)" % (
+            self.srid, self.minx, self.miny, self.maxx, self.maxy, self.size_x, self.size_y
         )
 
     srid = models.IntegerField("SRID")
