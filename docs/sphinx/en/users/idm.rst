@@ -1,6 +1,16 @@
 Identity Management System
 ==========================
 
+The Identity Management System (IDMS) provides access control capabilities for  security relevant data. The current IDMS supports SOAP Services and is based on other free and open software projects, namely the `Charon Project <http://www.enviromatics.net/charon/>`_ and the `HMA Authentication Service <http://wiki.services.eoportal.org/tiki-index.php?page=HMA+Authentication+Service>`_. The approach follows the OGC best practise document `User Management Interfaces for Earth Observation Services <http://portal.opengeospatial.org/files/?artifact_id=40677>`_ for the authentication concept. The authentication part is following the ideas of the `XACML <http://docs.oasis-open.org/xacml/2.0/access_control-xacml-2.0-core-spec-os.pdf>`_ data flow pattern: The IDMS authorisation part consists of a Policy Decision Point (PDP, here represented through the Charon Policy Management And Authentication Service) and the Policy Enforcement Point (PEP, represented through the Charon PEP Service). The following figure gives an overview of the IDMS SOAP part:
+
+.. figure:: img/IDM_SOAP_Components.png
+   :align: center
+
+   *IDMS SOAP Access Control Overview*
+
+
+The HMA Authentication Service, or Security Token Service (STS), and the Charon PEP components were both modified in order to be compatible. This is a result of the ESA project `Open-standard Online Observation Service <http://wiki.services.eoportal.org/tiki-index.php?page=O3S>`_ (O3S). The STS now also supports SAML 2.0 security tokens, which the PEP components can interprete and validate. The IDMS supports trust relationships between identity providers and enforecement components on the basis of certificate stores.   
+
 Prerequisites
 -------------
 
@@ -10,7 +20,7 @@ The following software is needed to run the IDMS:
 - `Apache Tomcat <http://tomcat.apache.org/>`_ 6 or higher
 - `Apache Axis2 <http://axis.apache.org/axis2/java/core/>`_ 1.4.1 or higher
 - `MySQL <http://dev.mysql.com/downloads/>`_ 5 
-- `Apache HTTP Server`<http://httpd.apache.org/<_` 2.x
+- `Apache HTTP Server <http://httpd.apache.org/>_` 2.x
 
 
 The following software is needed to build the IDMS components:
