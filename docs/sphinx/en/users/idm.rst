@@ -20,7 +20,7 @@ The following software is needed to run the IDMS:
 - `Apache Tomcat <http://tomcat.apache.org/>`_ 6 or higher
 - `Apache Axis2 <http://axis.apache.org/axis2/java/core/>`_ 1.4.1 or higher
 - `MySQL <http://dev.mysql.com/downloads/>`_ 5 
-- `Apache HTTP Server <http://httpd.apache.org/>_` 2.x
+- `Apache HTTP Server <http://httpd.apache.org/>`_ 2.x
 
 
 The following software is needed to build the IDMS components:
