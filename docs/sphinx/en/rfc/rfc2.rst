@@ -139,7 +139,7 @@ The basic questions for the design of the extension mechanism are:
 * how to advertise them
 * how to bind to them
 
-Other than Java or C++, Python does not have a built-in mechanism to
+Unlike Java or C++, Python does not have a built-in mechanism to
 declare interfaces. A method definition always comes with an
 implementation. With Python 2.6 support for abstract base classes and
 abstract methods was added, but at the moment it is not an option to use
