@@ -17,3 +17,4 @@ have their data quickly presented to the public.
    EO-WCS_request_parameters
    admin_tutorial
    idm
+   soap_proxy

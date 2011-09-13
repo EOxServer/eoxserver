@@ -20,3 +20,4 @@ formats for instance.
    data_formats
    metadata_formats
    modules
+   soap_proxy
