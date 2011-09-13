@@ -35,7 +35,7 @@ from django.conf import settings
 from eoxserver.core.system import System
 from eoxserver.core.readers import ConfigReaderInterface
 from eoxserver.core.exceptions import (
-    ConfigError, ImplementationNotFound
+    ConfigError, ImplementationNotFound, ImplementationDisabled
 )
 from eoxserver.core.util.xmltools import XMLEncoder, DOMElementToXML
 from eoxserver.services.interfaces import (
@@ -101,6 +101,12 @@ class OWSCommonHandler(BaseRequestHandler):
         except ImplementationNotFound, e:
             raise InvalidRequestException(
                 "Service '%s' not supported." % service,
+                "InvalidParameterValue",
+                "service"
+            )
+        except ImplementationDisabled, e:
+            raise InvalidRequestException(
+                "Service '%s' disabled." % service,
                 "InvalidParameterValue",
                 "service"
             )
