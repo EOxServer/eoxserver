@@ -314,9 +314,26 @@ class WCS20DescribeEOCoverageSetHandler(BaseRequestHandler):
         
         dataset_series_set, coverages = self.createWCSEOObjects(req)
         
-        count_req = sys.maxint
         if req.getParamValue("count") is not None:
-            count_req = int(req.getParamValue("count"))
+            try:
+                count_req = int(req.getParamValue("count"))
+            except:
+                raise InvalidRequestException(
+                    "Non-integer 'count' parameter.",
+                    "InvalidParameterValue",
+                    "count"
+                )
+            
+            if count_req < 0:
+                raise InvalidRequestException(
+                    "Negative 'count' parameter.",
+                    "InvalidParameterValue",
+                    "count"
+                )
+                
+        else:
+            count_req = sys.maxint
+        
         
         count_default = WCS20ConfigReader().getPagingCountDefault()
         count_used = min(count_req, count_default)
