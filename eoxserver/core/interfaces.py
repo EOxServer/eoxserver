@@ -36,10 +36,6 @@ global RUNTIME_VALIDATION_LEVEL
 
 RUNTIME_VALIDATION_LEVEL = "trust"
 
-class Constant(object):
-    def __init__(self, value):
-        self.value = value
-
 class Arg(object):
     def __init__(self, name, **kwargs):
         self.name = name
