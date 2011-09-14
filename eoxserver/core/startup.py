@@ -27,11 +27,41 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+"""
+This module defines an interface for startup handlers that are called during
+system startup or reset.
+"""
+
 from eoxserver.core.registry import Registry, RegisteredInterface
 from eoxserver.core.config import Config
 from eoxserver.core.interfaces import Method, ObjectArg
 
 class StartupHandlerInterface(RegisteredInterface):
+    """
+    This is an interface for startup handlers. These handlers are called
+    automatically in the startup sequence; see the :mod:`eoxserver.core.system`
+    module documentation. It is intended to be implemented by modules or
+    components that need additional global system setup operations.
+    
+    .. method:: startup(config, registry)
+    
+       This method is called in the startup sequence after the configuration
+       has been validated and the registry has been set up. Those are passed
+       as ``config`` and ``registry`` parameters respectively.
+       
+       It may perform any additional logic needed for the setup of the
+       components concerned by the implementation.
+    
+    .. method:: reset(config, registry)
+    
+       This method is called in the reset sequence after the new configuration
+       has been validated and the registry has been set up. Those are passed
+       as ``config`` and ``registry`` parameters respectively.
+       
+       It may perform any additional logic needed by the components concerned
+       by the implementation for switching to the new configuration.
+    """
+    
     REGISTRY_CONF = {
         "name": "Startup Handler Interface",
         "intf_id": "core.startup.StartupHandler",

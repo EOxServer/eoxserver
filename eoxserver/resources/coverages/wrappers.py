@@ -45,7 +45,7 @@ from eoxserver.core.resources import (
     ResourceFactoryInterface, ResourceWrapper, ResourceFactory
 )
 from eoxserver.core.exceptions import (
-    InternalError, InvalidParameterException, UnknownCRSException
+    InternalError, InvalidParameterException
 )
 from eoxserver.core.util.filetools import findFiles
 from eoxserver.core.util.timetools import getDateTime
