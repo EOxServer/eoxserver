@@ -27,6 +27,12 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+"""
+This module provides an implementation of a system configuration that relies
+on different configuration files. It is used by :mod:`eoxserver.core.system` to
+store the current system configuration.
+"""
+
 import imp
 import os.path
 from ConfigParser import RawConfigParser
@@ -36,6 +42,17 @@ from django.conf import settings
 from eoxserver.core.exceptions import InternalError
 
 class Config(object):
+    """
+    The :class:`Config` class represents a system configuration. Internally,
+    it relies on two configuration files:
+    
+    * the default configuration file (``eoxserver/conf/default.conf``)
+    * the instance configuration file (``conf/eoxserver.conf`` in the instance
+      directory)
+    
+    Configuration values are read from these files.
+    """
+    
     def __init__(self):
         self.__eoxs_path = None
         self.__default_conf = None
@@ -58,6 +75,13 @@ class Config(object):
             raise InternalError("Improperly configured: could not find instance configuration file.")
     
     def getConfigValue(self, section, key):
+        """
+        Returns a configuration parameter value. The ``section`` and ``key``
+        arguments denote the parameter to be looked up. The value is searched
+        for first in the instance configuration file; if it is not found there
+        the value is read from the default configuration file.
+        """
+        
         inst_value = self.getInstanceConfigValue(section, key)
         if inst_value is None:
             return self.getDefaultConfigValue(section, key)
@@ -65,12 +89,38 @@ class Config(object):
             return inst_value
     
     def getDefaultConfigValue(self, section, key):
+        """
+        Returns a configuration parameter default value (read from the default
+        configuration file). The ``section`` and ``key`` arguments denote the
+        parameter to be looked up.
+        """
+        
         return self.__default_conf.get(section, key)
         
     def getInstanceConfigValue(self, section, key):
+        """
+        Returns a configuration parameter value as defined in the instance
+        configuration file, or ``None`` if it is not found there. The
+        ``section`` and ``key`` arguments denote the parameter to be looked up.
+        """
+        
         return self.__instance_conf.get(section, key)
     
     def getConcurringConfigValues(self, section, key):
+        """
+        Returns a dictionary od concurring configuration parameter values. It
+        may have two entries
+        
+        * ``default``: the default configuration parameter value
+        * ``instance``: the instance configuration value
+        
+        If there is no configuration parameter value defined in the respective
+        configuration file, the entry is omitted.
+        
+        The ``section`` and ``key`` arguments denote the parameter to be looked
+        up.
+        """
+        
         concurring_values = {}
         
         def_value = self.getDefaultConfigValue(section, key)
@@ -84,6 +134,10 @@ class Config(object):
         return concurring_values
     
     def getEOxSPath(self):
+        """
+        Returns the path to the EOxServer installation (not to the instance).
+        """
+        
         if self.__eoxs_path is None:
             try:
                 _, eoxs_path, _ = imp.find_module("eoxserver")
@@ -94,6 +148,11 @@ class Config(object):
         return self.__eoxs_path
 
 class ConfigFile(object):
+    """
+    This is a wrapper for a configuration file. It is based on the Python
+    builtin :mod:`ConfigParser` module.
+    """
+    
     def __init__(self, config_filename):
         self.config_filename = config_filename
 
@@ -101,6 +160,16 @@ class ConfigFile(object):
         self._parser.read(config_filename)
 
     def get(self, section, key):
+        """
+        Return the configuration parameter value, or ``None`` if it is not
+        defined.
+        
+        The ``section`` argument denotes the section of the configuration file
+        where to look for the parameter named ``key``. See the
+        :mod:`ConfigParser` module documentation for details on the config file
+        syntax.
+        """
+        
         if self._parser.has_option(section, key):
             return self._parser.get(section, key)
         else:
