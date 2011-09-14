@@ -27,6 +27,10 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+"""
+This module contains the core logic for interface declaration and validation.
+"""
+
 import types
 import logging
 
@@ -35,6 +39,10 @@ from eoxserver.core.exceptions import InternalError, TypeMismatch, ConfigError
 global RUNTIME_VALIDATION_LEVEL
 
 RUNTIME_VALIDATION_LEVEL = "trust"
+
+#-------------------------------------------------------------------------------
+# Argument classes
+#-------------------------------------------------------------------------------
 
 class Arg(object):
     def __init__(self, name, **kwargs):
