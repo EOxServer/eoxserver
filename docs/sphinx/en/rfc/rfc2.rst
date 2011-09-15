@@ -7,8 +7,8 @@ RFC 2: Extension Mechanism for EOxServer
 
 :Author: Stephan Krause
 :Created: 2011-02-20
-:Last Edit: 2011-07-21
-:Status: PENDING
+:Last Edit: 2011-09-15
+:Status: ACCEPTED
 :Discussion: http://www.eoxserver.org/wiki/DiscussionRfc2
 
 This RFC proposes an extension mechanism that allows to integrate
@@ -567,7 +567,10 @@ factory you would use code like this::
 Voting History
 --------------
 
-N/A
+:Motion: To accept RFC 2
+:Voting Start: 2011-07-25
+:Voting End: 2011-09-15
+:Result: +6 for ACCEPTED
 
 Traceability
 ------------

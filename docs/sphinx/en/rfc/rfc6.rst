@@ -7,8 +7,8 @@ RFC 6: Directory Structure
 
 :Author: Stephan Krause
 :Created: 2011-02-24
-:Last Edit: 2011-07-25
-:Status: PENDING
+:Last Edit: 2011-09-15
+:Status: ACCEPTED
 :Discussion: http://www.eoxserver.org/wiki/DiscussionRfc6
 
 This RFC proposes a directory structure for the EOxServer distribution
@@ -77,7 +77,10 @@ And the following subdirectories
 Voting History
 --------------
 
-N/A
+:Motion: To accept RFC 6
+:Voting Start: 2011-07-25
+:Voting End: 2011-09-15
+:Result: +6 for ACCEPTED
 
 Traceability
 ------------
