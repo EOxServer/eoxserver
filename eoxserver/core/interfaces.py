@@ -45,6 +45,25 @@ RUNTIME_VALIDATION_LEVEL = "trust"
 #-------------------------------------------------------------------------------
 
 class Arg(object):
+    """
+    This is the common base class for arguments of any kind; it can be used
+    in interface declarations as well to represent an argument of arbitrary
+    type.
+    
+    The constructor requires a ``name`` argument which denotes the argument
+    name. The validation will check at class creation time if the method of an
+    implementing class defines an argument of the given name, so you should
+    always use valid Python variable names here (you can use arbitrary strings
+    for return value declarations though).
+    
+    Furthermore, the constructor accepts a ``default`` keyword argument which
+    defines a default value for the declared argument. The validation will
+    check at class creation time if this default value is present in the
+    implementing class and fail if it is not.
+    
+    Its methods are intended for internal use in runtime validation.
+    """
+    
     def __init__(self, name, **kwargs):
         self.name = name
         
@@ -56,19 +75,47 @@ class Arg(object):
             self.optional = False
     
     def isOptional(self):
+        """
+        Returns ``True`` if the argument is optional, meaning that a default
+        value has been defined for it, ``False`` otherwise.
+        """
+        
         return self.optional
     
     def isValid(self, arg_value):
+        """
+        Returns ``True`` if ``arg_value`` is an acceptable value for the
+        argument, ``False`` otherwise. Acceptable values are either the default
+        value if it has been defined or values of the expected type.
+        """
+        
         return (self.optional and self.default == arg_value) or \
                self.isValidType(arg_value)
     
     def isValidType(self, arg_value):
+        """
+        Returns ``True`` if the argument value ``arg_value`` has a valid type,
+        ``False`` otherwise. This method is overridden by :class:`Arg`
+        subclasses in order to check for individual types. The base class
+        implementation always returns ``True`` meaning that all types of
+        argument values are accepted.
+        """
+        
         return True
         
     def getExpectedType(self):
+        """
+        Returns the expected type name; used in error messages only. This
+        method is overridden by :class:`Arg` subclasses in order to customize
+        error reporting. The base class implementation returns ``""``.
+        """
+        
         return ""
 
 class StrArg(Arg):
+    """
+    Represents an argument of type :class:`str`.
+    """
     def isValidType(self, arg_value):
         return isinstance(arg_value, str)
             
@@ -76,6 +123,9 @@ class StrArg(Arg):
         return "str"
         
 class UnicodeArg(Arg):
+    """
+    Represents an argument of type :class:`unicode`.
+    """
     def isValidType(self, arg_value):
         return isinstance(arg_value, unicode)
         
@@ -83,6 +133,9 @@ class UnicodeArg(Arg):
         return "unicode"
     
 class StringArg(Arg):
+    """
+    Represents an argument of types :class:`str` or :class:`unicode`.
+    """
     def isValidType(self, arg_value):
         return (isinstance(arg_value, str) or isinstance(arg_value, unicode))
     
@@ -90,6 +143,9 @@ class StringArg(Arg):
         return "str' or 'unicode"
         
 class BoolArg(Arg):
+    """
+    Represents an argument of type :class:`bool`.
+    """
     def isValidType(self, arg_value):
         return isinstance(arg_value, bool)
         
@@ -97,6 +153,9 @@ class BoolArg(Arg):
         return "bool"
         
 class IntArg(Arg):
+    """
+    Represents an argument of type :class:`int`.
+    """
     def isValidType(self, arg_value):
         return isinstance(arg_value, int)
     
@@ -104,6 +163,9 @@ class IntArg(Arg):
         return "int"
 
 class LongArg(Arg):
+    """
+    Represents an argument of type :class:`long`.
+    """
     def isValidType(self, arg_value):
         return isinstance(arg_value, long)
     
@@ -111,6 +173,9 @@ class LongArg(Arg):
         return "long"
 
 class FloatArg(Arg):
+    """
+    Represents an argument of type :class:`float`.
+    """
     def isValidType(self, arg_value):
         return isinstance(arg_value, float)
 
@@ -118,6 +183,10 @@ class FloatArg(Arg):
         return "float"
 
 class RealArg(Arg):
+    """
+    Represents a real number argument, i.e. an argument of types :class:`int`,
+    :class:`long` or :class:`float`.
+    """
     def isValidType(self, arg_value):
         return isinstance(arg_value, int) or \
                isinstance(arg_value, long) or \
@@ -127,6 +196,9 @@ class RealArg(Arg):
         return "int', 'long' or 'float"
 
 class ComplexArg(Arg):
+    """
+    Represents a complex number argument of type :class:`complex`.
+    """
     def isValidType(self, arg_value):
         return isinstance(arg_value, complex)
     
@@ -134,6 +206,9 @@ class ComplexArg(Arg):
         return "complex"
 
 class IterableArg(Arg):
+    """
+    Represents an iterable argument.
+    """
     def isValidType(self, arg_value):
         return hasattr(arg_value, "__iter__")
     
@@ -141,6 +216,9 @@ class IterableArg(Arg):
         return "iterable (pseudo-type)"
     
 class SubscriptableArg(Arg):
+    """
+    Represents a subscriptable argument.
+    """
     def isValidType(self, arg_value):
         return hasattr(arg_value, "__getitem__")
     
@@ -148,6 +226,9 @@ class SubscriptableArg(Arg):
         return "subscriptable (pseudo-type)"
 
 class ListArg(IterableArg, SubscriptableArg):
+    """
+    Represents an argument of type :class:`list`.
+    """
     def isValidType(self, arg_value):
         return isinstance(arg_value, list)
     
@@ -155,6 +236,10 @@ class ListArg(IterableArg, SubscriptableArg):
         return "list"
 
 class DictArg(IterableArg, SubscriptableArg):
+    """
+    Represents an argument of type :class:`dict`.
+    """
+    
     def isValidType(self, arg_value):
         return isinstance(arg_value, dict)
         
@@ -162,6 +247,13 @@ class DictArg(IterableArg, SubscriptableArg):
         return "dict"
 
 class ObjectArg(Arg):
+    """
+    Represents an new-style class argument. The range of accepted objects can
+    be restricted by providing the ``arg_class`` keyword argument to the
+    constructor. Runtime validation will then check if the argument value is
+    an instance of ``arg_class`` (or one of its subclasses) and fail otherwise.
+    """
+    
     def __init__(self, name, **kwargs):
         super(ObjectArg, self).__init__(name, **kwargs)
         
@@ -182,6 +274,16 @@ class ObjectArg(Arg):
         return self.arg_class.__name__
 
 class PosArgs(Arg):
+    """
+    Represents arbitrary positional arguments as supported by Python with
+    the ``method(self, *args)`` syntax. The range of accepted objects can
+    be restricted by providing the ``arg_class`` keyword argument to the
+    constructor. Runtime validation will then check if the argument value is
+    an instance of ``arg_class`` (or one of its subclasses) and fail otherwise.
+    
+    Note that a :class:`PosArgs` argument declaration can only be followed by
+    a :class:`KwArgs` declaration, otherwise validation will fail.
+    """
     def __init__(self, name, **kwargs):
         self.name = name
         self.optional = True
@@ -208,11 +310,20 @@ class PosArgs(Arg):
             return self.arg_class.__name__
 
 class KwArgs(Arg):
+    """
+    Represents arbitrary keyword arguments as supported by Python with the
+    ``method(self, **kwargs)`` syntax. Note that this must always be the
+    last input argument declaration in a method, otherwise validation will fail.
+    """
     def __init__(self, name, **kwargs):
         self.name = name
         self.optional = True
         self.default = None
-    
+
+#-------------------------------------------------------------------------------
+# Method class
+#-------------------------------------------------------------------------------
+
 class Method(object):
     def __init__(self, *args, **kwargs):
         self.validateArgs(args)
@@ -382,6 +493,10 @@ class Method(object):
             prefix,
             argcount
         ))
+
+#-------------------------------------------------------------------------------
+# Interface class
+#-------------------------------------------------------------------------------
 
 class InterfaceMetaClass(type):
     def __new__(cls, name, bases, class_dict):
