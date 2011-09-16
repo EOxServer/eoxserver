@@ -325,6 +325,17 @@ class KwArgs(Arg):
 #-------------------------------------------------------------------------------
 
 class Method(object):
+    """
+    The :class:`Method` is used for method declarations in interfaces. Its
+    constructor accepts an arbitrary number of positional arguments representing
+    input arguments to the method to be defined, and one optional keyword
+    argument ``returns`` which represents the methods return value, if any.
+    
+    All arguments must be instances of :class:`Arg` or one of its subclasses.
+    
+    The methods of the :class:`Method` class are intended for internal use by
+    the :class:`Interface` validation algorithms only.
+    """
     def __init__(self, *args, **kwargs):
         self.validateArgs(args)
         
@@ -343,6 +354,13 @@ class Method(object):
         self.returns = kwargs.get("returns", None)
             
     def validateArgs(self, args):
+        """
+        Validate the input arguments. That is, check if they are in the 
+        right order and no argument is defined more than once. Raises
+        :exc:`~.InternalError` if the arguments do not validate.
+        
+        Used internally by the constructor during instance creation.
+        """
         opt_args_flag = False
         pos_args_flag = False
         kwargs_flag = False
@@ -377,6 +395,16 @@ class Method(object):
                 names.append(arg.name)
 
     def validateImplementation(self, impl_method):
+        """
+        This method is at implementation class creation time to check if the
+        implementing class method conforms to the method declaration. It expects
+        the corresponding method as its single input argument ``impl_method``.
+        It makes extensive use of Python's great introspection capabilities.
+        
+        Raises :exc:`~.InternalError` in case the implementation does not
+        validate.
+        """
+        
         if len(self.named_args) != impl_method.func_code.co_argcount - 1:
             raise InternalError("Number of arguments does not match")
         
@@ -391,6 +419,14 @@ class Method(object):
             raise InternalError("Expected keyword argument block.")
 
     def validateType(self, method_name, *args, **kwargs):
+        """
+        This method is called for runtime argument type validation. It gets the
+        input of the implementing method and checks it against the argument
+        declarations.
+        
+        Raises :exc:`~.TypeMismatch` if validation fails.
+        """
+        
         # map arguments to self.named_args, self.pos_args and
         # self.kwargs
         
@@ -461,6 +497,15 @@ class Method(object):
             raise TypeMismatch("\n".join(msgs))
     
     def validateReturnType(self, method_name, ret_value):
+        """
+        This method is called for runtime argument type validation. It expects
+        the method name ``method_name`` and the return value ``ret_value`` as
+        input and checks the return value against the return value declaration,
+        if any.
+        
+        Raises :exc:`~.TypeMismatch` if validation fails.
+        """
+        
         if self.returns is not None and \
            not self.returns.isValid(ret_value):
             raise TypeMismatch("%s(): Invalid return type. Expected '%s', got '%s'" % (
@@ -524,10 +569,37 @@ class InterfaceMetaClass(type):
         return conf
 
 class Interface(object):
+    """
+    This is the base class for all interface declarations. Derive from it or
+    one of its subclasses to create your own interface declaration.
+    
+    The :class:`Interface` class has only class variables (the method
+    declarations) and class methods.
+    """
+    
     __metaclass__ = InterfaceMetaClass
     
     @classmethod
     def implement(InterfaceCls, ImplementationCls):
+        """
+        This method takes an implementing class as input, validates it, and
+        returns the implementation.
+        
+        In the validation step, :meth:`Method.validateImplementation`
+        is called for each method declared in the interface.
+        :exc:`~.InternalError` is raised if a method is not found or if
+        the method signature does not match the declaration.
+        
+        If validation has passed, the implementation is getting prepared. The
+        implementation inherits from the implementing class. The ``__ifclass__``
+        magic attribute is added to the class dictionary. If runtime
+        validation has been enabled, the methods of the implementing class
+        defined in the interface are replaced by descriptors (instances of
+        :class:`WarningDescriptor` or  :class:`FailingDescriptor`).
+        
+        Finally, the implementation class is generated and returned.
+        """
+        
         name = InterfaceCls._getName(ImplementationCls)
         bases = InterfaceCls._getBases(ImplementationCls)
         
@@ -643,8 +715,23 @@ class Interface(object):
             return "warn"
         else:
             return "trust"
-            
+
+#-------------------------------------------------------------------------------
+# Descriptors and Wrappers
+#-------------------------------------------------------------------------------
+
 class ValidationDescriptor(object):
+    """
+    This is the common base class for :class:`WarningDescriptor` and
+    :class:`FailingDescriptor`. The constructor expects the method declaration
+    ``method`` and the implementing function ``func`` as input.
+    
+    The :meth:`__get__` method returns a callable wrapper around the 
+    instance it is called with, the method declaration and the function that
+    implements the method. It is that object
+    that gets finally invoked when runtime validation is enabled.
+    """
+    
     def __init__(self, method, func):
         self.method = method
         self.func = func
@@ -659,6 +746,11 @@ class ValidationDescriptor(object):
         return None
 
 class ValidationWrapper(object):
+    """
+    This is the common base class for :class:`WarningWrapper` and
+    :class:`FailingWrapper`. Its constructor expects the method declaration,
+    the implementing function and the instance as input.
+    """
     def __init__(self, method, func, instance):
         self.method = method
         self.func = func
@@ -669,18 +761,29 @@ class WarningDescriptor(ValidationDescriptor):
         return WarningWrapper(self.method, self.func, instance)
 
 class WarningWrapper(ValidationWrapper):
+    """
+    This wrapper is callable. Its :meth:`__call__` method expects arbitrary
+    positional and keyword arguments, validates them against the method
+    declaration using :meth:`Method.validateType`, calls the implementing
+    function with these arguments and returns whatever it returns, calling
+    :meth:`Method.validateReturnType`.
+    
+    If the validation methods raise a :exc:`~.TypeMismatch` exception the
+    exception text is logged as a warning, but the normal process of execution
+    goes on.
+    """
     def __call__(self, *args, **kwargs):
         try:
             self.method.validateType(self.func.func_name, *args, **kwargs)
         except TypeMismatch, e:
-            logging.warn(str(e))
+            logging.warning(str(e))
         
         ret_value = self.func(self.instance, *args, **kwargs)
         
         try:
             self.method.validateReturnType(self.func.func_name, ret_value)
         except TypeMismatch, e:
-            logging.warn(str(e))
+            logging.warning(str(e))
         
         return ret_value
 
@@ -689,6 +792,16 @@ class FailingDescriptor(ValidationDescriptor):
         return FailingWrapper(self.method, self.func, instance)
 
 class FailingWrapper(ValidationWrapper):
+    """
+    This wrapper is callable. Its :meth:`__call__` method expects arbitrary
+    positional and keyword arguments, validates them against the method
+    declaration using :meth:`Method.validateType`, calls the implementing
+    function with these arguments and returns whatever it returns, calling
+    :meth:`Method.validateReturnType`.
+    
+    If the validation methods raise a :exc:`~.TypeMismatch` exception it will
+    not be caught and thus cause the program to fail.
+    """
     def __call__(self, *args, **kwargs):
         self.method.validateType(self.func.func_name, *args, **kwargs)
     
@@ -697,16 +810,35 @@ class FailingWrapper(ValidationWrapper):
         self.method.validateReturnType(self.func.func_name, ret_value)
         
         return ret_value
+        
+#-------------------------------------------------------------------------------
+# Config Reader
+#-------------------------------------------------------------------------------
 
 class IntfConfigReader(object):
+    """
+    This is the configuration reader for :mod:`eoxserver.core.interfaces`.
+    
+    Its constructor expects a :class:`Config` instance ``config`` as input.
+    """
+    
     def __init__(self, config):
         self.config = config
         
     def validate(self):
+        """
+        Validates the configuration. Raises :exc:`~.ConfigError` if the
+        ``runtime_validation_level`` configuration setting in the
+        ``core.interfaces`` section contains an invalid value.
+        """
         value = self.getRuntimeValidationLevel()
         
         if value and value not in ("trust", "warn", "fail"):
             raise ConfigError("'runtime_validation_level' parameter must be one of: 'trust', 'warn' or 'fail'.")
 
     def getRuntimeValidationLevel(self):
+        """
+        Returns the global runtime validation level setting or ``None`` if it
+        is not defined.
+        """
         self.config.getConfigValue("core.interfaces", "runtime_validation_level")
