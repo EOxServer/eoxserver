@@ -234,6 +234,16 @@ where stricter settings override weaker ones.
 Reference
 ---------
 
+This documentation concentrates on the public methods of the involved classes.
+Actually, there is only one public method you will need to invoke and that is
+:meth:`Interface.implement`; all others are public only to
+the extent that they are invoked by other objects defined in this module.
+   
+The implementation of :mod:`eoxserver.core.interfaces` involves some deep and
+beautiful Python magic. We skip most of these details here, only in the
+:ref:`module_core_interfaces_descriptors` sections you will find a reference to
+some of it.
+
 Interfaces
 ~~~~~~~~~~
 
@@ -312,6 +322,11 @@ Config Reader
 
 Descriptors
 ~~~~~~~~~~~
+
+Descriptors are used to customize method access in Python. They are some of the
+more advanced Python language features; if you want to know more about them,
+please refer to the `Python Language Reference
+<http://docs.python.org/reference/datamodel.html#invoking-descriptors>`_.
 
 .. autoclass:: ValidationDescriptor
    :members:
