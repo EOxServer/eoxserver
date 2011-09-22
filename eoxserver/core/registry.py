@@ -27,6 +27,14 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+"""
+This module contains the implementation of the registry as well as associated
+interface declarations. The registry is the core component of EOxServer that
+links different parts of the system together. The registry allows for
+components to bind to implementations of registered interfaces. It supports
+modularity, extensibility and flexibility of EOxServer.
+"""
+
 import imp
 import os.path
 import logging
