@@ -85,8 +85,10 @@ and deploy axis2::
 3. Verify the deployment of axis2
 .................................
 
-Resart the webserver (``httpd2``) and open the following page:
+Resart the webserver (``httpd2``) and open the following page::
+
  http://127.0.0.1/o3s_axis/services
+
 You should get a page that displays the text "Deployed Services" and is otherwise blank.
 
 
@@ -111,7 +113,6 @@ execute::
 
  make inst
 
-Restart you httpd server and check that 
- http://127.0.0.1/o3s_axis/services
+Restart you httpd server and check that http://127.0.0.1/o3s_axis/services
 shows the soapProxy service offering the four EO-WCS operations.
 
