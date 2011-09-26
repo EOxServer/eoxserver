@@ -385,7 +385,7 @@ class WCS20EOAPEncoder(WCS20Encoder):
                                 ("@xlink", "href", req.http_req.build_absolute_uri()),
                                 ("ows", "RequestMessage", post_xml)
                             ])
-                        ])
+                        ]),
                         ("gml", "timePosition", isotime(datetime.now()))
                     ]
                 )
