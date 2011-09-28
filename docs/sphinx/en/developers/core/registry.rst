@@ -49,10 +49,37 @@ speek of dynamic binding.
 Registered Interfaces and Implementations
 -----------------------------------------
 
+* RegisteredInterface
+* REGISTRY_CONF
+* implement() method
 
+The registry is a repository for interfaces and implementations. Only
+interfaces derived from :class:`RegisteredInterface` and their respective
+implementations will be included in the registry.
+
+:class:`RegisteredInterface` adds some features and requirements to the
+:class:`~.Interface` base class. First of all, it expects a ``REGISTRY_CONF``
+dictionary class variable for the interface declaration. The following keys are
+accepted or required at least:
+
+* ``name``: The name of the interface (mandatory)
+* ``intf_id``: The unique ID of the interface; by convention this should include
+  the dotted module name (mandatory)
+* ``binding_method``: The name of the binding method (optional, defaults to
+  ``direct``)
+
+Depending on the binding method additional parameters may be required. See the
+:ref:`module_core_registry_bind` section.
 
 Detection and Registration
 --------------------------
+
+* config settings
+* loading of modules
+* searching of implementations
+* registration
+
+.. _module_core_registry_bind:
 
 Dynamic Binding
 ---------------
