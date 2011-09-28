@@ -37,6 +37,7 @@ from osgeo import gdal, ogr, osr
 
 from django.conf import settings
 
+from eoxserver.core.system import System
 from eoxserver.core.util.xmltools import XMLEncoder, DOMtoXML, DOMElementToXML
 from eoxserver.core.util.timetools import isotime
 from eoxserver.core.exceptions import InternalError
@@ -148,19 +149,10 @@ class WMS13VersionHandler(OWSCommonVersionHandler):
 WMS13VersionHandlerImplementation = VersionHandlerInterface.implement(WMS13VersionHandler)
 
 class WMSCommonHandler(MapServerOperationHandler):
-    def addLayers(self, ms_req):
-        time_param = ms_req.getParamValue("time")
-        slices = []
-        if time_param:
-            slices.append(Slice("time", None, "\"%s\"" % time_param))
-        
-        for coverage in ms_req.coverages:
-            ms_req.map.insertLayer(self.getMapServerLayer(coverage, slices=slices))
-
     def getMapServerLayer(self, coverage, **kwargs):
         logging.debug("WMSCommonHandler.getMapServerLayer")
         
-        if coverage.getType() == "eo.rect_dataset_series":
+        if coverage.getType() == "eo.dataset_series":
             layer = mapscript.layerObj()
             
             layer.name = coverage.getEOID()
@@ -168,7 +160,7 @@ class WMSCommonHandler(MapServerOperationHandler):
             layer.status = mapscript.MS_ON
             layer.setMetaData("wms_label", coverage.getEOID())
             
-            time_extent = ",".join([isotime(dataset.getBeginTime()) for dataset in coverage.getDatasets()])
+            time_extent = ",".join([isotime(dataset.getBeginTime()) for dataset in coverage.getEOCoverages()])
             
             layer.setMetaData("wms_timeextent", time_extent)
             #layer.setMetaData("wms_timeitem", "valid_time_begin")
@@ -199,8 +191,8 @@ class WMSCommonHandler(MapServerOperationHandler):
                 layer.tileindex = os.path.abspath(coverage.getShapeFilePath())
                 layer.tileitem = "location"
                 
-            elif coverage.getType() == "eo.rect_dataset_series":
-                datasets = coverage.getDatasets(**kwargs)
+            elif coverage.getType() == "eo.dataset_series":
+                datasets = coverage.getEOCoverages(**kwargs)
                 if len(datasets) == 0:
                     raise InternalError("Cannot handle empty coverages")
                 
@@ -261,7 +253,7 @@ class WMSCommonHandler(MapServerOperationHandler):
                         ), srs)
                         
                         feature.SetGeometry(geom)
-                        feature.SetField("location", os.path.abspath(dataset.getFilename()))
+                        feature.SetField("location", str(os.path.abspath(dataset.getFilename())))
                         if shapefile_layer.CreateFeature(feature) != 0:
                             raise InternalError("Could not create shapefile entry for file '%s'" % path)
                         feature = None
@@ -292,14 +284,17 @@ class WMS1XGetCapabilitiesHandler(WMSCommonHandler):
         ms_req.coverages = factory.find(filter_exprs=[visible_expr])
         
         factory = System.getRegistry().bind("resources.coverages.wrappers.DatasetSeriesFactory")
-        ms_req.coverages.append(factory.find())
+        ms_req.coverages.extend(factory.find())
         
     def getMapServerLayer(self, coverage, **kwargs):
         layer = super(WMS1XGetCapabilitiesHandler, self).getMapServerLayer(coverage, **kwargs)
         
-        datasets = coverage.getDatasets(**kwargs)
+        if coverage.getType() == "eo.dataset_series":
+            datasets = coverage.getEOCoverages(**kwargs)
+        else:
+            datasets = coverage.getDatasets(**kwargs)
         
-        if coverage.getType() == "eo.rect_dataset_series":
+        if coverage.getType() == "eo.dataset_series":
             layer.setMetaData("wms_extent", "%f %f %f %f" % coverage.getWGS84Extent())
             layer.setExtent(*coverage.getWGS84Extent())
         
@@ -365,6 +360,18 @@ class WMS13GetCapabilitiesHandler(WMS1XGetCapabilitiesHandler):
 WMS13GetCapabilitiesHandlerImplementation = OperationHandlerInterface.implement(WMS13GetCapabilitiesHandler)
 
 class WMS1XGetMapHandler(WMSCommonHandler):
+    def addLayers(self, ms_req):
+        time_param = ms_req.getParamValue("time")
+        slices = []
+        trims = []
+        if time_param and len(time_param.split("/")) == 2:
+            trims.append(EOxSTrim("time", None, "\"%s\"" % time_param.split("/")[0], "\"%s\"" % time_param.split("/")[1]))
+        elif time_param:
+            slices.append(EOxSSlice("time", None, "\"%s\"" % time_param))
+        
+        for coverage in ms_req.coverages:
+            ms_req.map.insertLayer(self.getMapServerLayer(coverage, slices=slices, trims=trims))
+
     def createCoverages(self, ms_req):
         layers = ms_req.getParamValue("layers")
         
@@ -372,22 +379,21 @@ class WMS1XGetMapHandler(WMSCommonHandler):
             raise InvalidRequestException("Missing 'LAYERS' parameter", "MissingParameterValue", "layers")
         else:
             for layer in layers:
-                for eo_id in eo_ids:
+                obj = System.getRegistry().getFromFactory(
+                    "resources.coverages.wrappers.DatasetSeriesFactory",
+                    {"obj_id": layer}
+                )
+                if obj is not None:
+                    wcseo_objects.append(obj)
+                else:
                     obj = System.getRegistry().getFromFactory(
-                        "resources.coverages.wrappers.DatasetSeriesFactory",
+                        "resources.coverages.wrappers.EOCoverageFactory",
                         {"obj_id": layer}
                     )
                     if obj is not None:
                         wcseo_objects.append(obj)
                     else:
-                        obj = System.getRegistry().getFromFactory(
-                            "resources.coverages.wrappers.EOCoverageFactory",
-                            {"obj_id": layer}
-                        )
-                        if obj is not None:
-                            wcseo_objects.append(obj)
-                        else:
-                            raise InvalidRequestException("No coverage or dataset series with EO ID '%s' found" % eo_id, "LayerNotDefined", "layers")
+                        raise InvalidRequestException("No coverage or dataset series with EO ID '%s' found" % layer, "LayerNotDefined", "layers")
 
 class WMS10_11GetMapHandler(WMS1XGetMapHandler):
     PARAM_SCHEMA = {
