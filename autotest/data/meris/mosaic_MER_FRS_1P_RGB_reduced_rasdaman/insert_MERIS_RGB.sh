@@ -93,7 +93,7 @@ fi
 
 # insert images
 echo -n "MERIS..."
-for i in $IMAGEDIR/mosaic_ENVISAT-MER_FRS_?.ppm;
+for i in $IMAGEDIR/mosaic_ENVISAT-MER_FRS_*.ppm;
 do
   $INSERTPPM $INSERTPPM_ARGS --type color --collection MERIS $i || exit 1
 done
