@@ -549,6 +549,10 @@ class DatasetSeriesInterface(ResourceInterface, EOMetadataInterface):
     
     :Interface ID: resources.coverages.interfaces.DatasetSeries
     
+    .. method:: getType
+    
+       Shall return ``"eo.dataset_series"``.
+    
     .. method:: getEOCoverages(filter_exprs=None)
 
        This method shall return a list of EOCoverage wrappers for the
@@ -570,7 +574,10 @@ class DatasetSeriesInterface(ResourceInterface, EOMetadataInterface):
         "name": "Dataset Series Interface",
         "intf_id": "resources.coverages.interfaces.DatasetSeries"
     }
-        
+    
+    getType = Method(
+        returns=StringArg("@return")
+    )
 
     getEOCoverages = Method(
         ListArg("filter_exprs", default=None),

@@ -1210,6 +1210,13 @@ class DatasetSeriesWrapper(ResourceWrapper, EOMetadataWrapper):
     # DatasetSeriesInterface methods
     #-------------------------------------------------------------------
     
+    def getType(self):
+        """
+        Returns ``"eo.dataset_series"``.
+        """
+        
+        return "eo.dataset_series"
+    
     def getEOCoverages(self, filter_exprs=None):
         """
         This method returns a list of EOCoverage wrappers (for datasets
