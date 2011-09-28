@@ -378,6 +378,7 @@ class WMS1XGetMapHandler(WMSCommonHandler):
         if layers is None:
             raise InvalidRequestException("Missing 'LAYERS' parameter", "MissingParameterValue", "layers")
         else:
+            wcseo_objects = []
             for layer in layers:
                 obj = System.getRegistry().getFromFactory(
                     "resources.coverages.wrappers.DatasetSeriesFactory",
