@@ -481,3 +481,7 @@ class WCS20GetCoverageMultipartTestCase(WCS20GetCoverageTestCase, XMLTestCase):
                            os.path.join(self.getResponseFileDir(), self.getResponseFileName("tif")),
                            os.path.join(self.getExpectedFileDir(), self.getExpectedFileName("tif")))
                 )
+
+class WMS13GetCapabilitiesTestCase(XMLTestCase):
+    def getSchemaLocation(self):
+        return "../schemas/SCHEMAS_OPENGIS_NET/wms/1.3.0/capabilities_1_3_0.xsd"
