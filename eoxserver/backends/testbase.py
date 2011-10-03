@@ -40,6 +40,8 @@ class BackendTestCase(EOxServerTestCase):
 
 class LocationWrapperTestCase(BackendTestCase):
     def setUp(self):
+        super(LocationWrapperTestCase,self).setUp()
+        
         logging.info("Starting test case: %s" % self.__class__.__name__)
         
         self.record = self._get_record()

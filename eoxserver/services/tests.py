@@ -36,12 +36,6 @@ from osgeo import gdal
 from osgeo.gdalconst import GA_ReadOnly
 import os, sys
 
-logging.basicConfig(
-    filename=os.path.join('logs', 'test.log'),
-    level=logging.DEBUG,
-    format="[%(asctime)s][%(levelname)s] %(message)s"
-)
-
 class WCS20GetCapabilitiesValidTestCase(eoxstest.WCS20GetCapabilitiesTestCase):
     """This test shall retrieve a valid WCS 2.0 EO-AP GetCapabilities response"""
     def getRequest(self):
