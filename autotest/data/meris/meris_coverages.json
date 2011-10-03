@@ -89,65 +89,313 @@
             "maxx": 28.326165,
             "maxy": 46.3
         }
-    },
+    }, 
     {
         "pk": 1, 
-        "model": "coverages.filerecord", 
+        "model": "coverages.datapackage", 
         "fields": {
-            "quicklook_path": "", 
-            "path": "../autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed.tif", 
-            "metadata_path": "../autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed.xml", 
-            "metadata_format": "eogml"
+            "data_package_type": "local", 
+            "metadata_format_name": "eogml" 
         }
     }, 
     {
         "pk": 2, 
-        "model": "coverages.filerecord", 
+        "model": "coverages.datapackage", 
         "fields": {
-            "quicklook_path": "", 
-            "path": "../autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.tif", 
-            "metadata_path": "../autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.xml", 
-            "metadata_format": "eogml"
+            "data_package_type": "local", 
+            "metadata_format_name": "eogml" 
         }
     }, 
     {
         "pk": 3, 
-        "model": "coverages.filerecord", 
+        "model": "coverages.datapackage", 
         "fields": {
-            "quicklook_path": "", 
-            "path": "../autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif", 
-            "metadata_path": "../autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.xml", 
-            "metadata_format": "eogml"
+            "data_package_type": "local", 
+            "metadata_format_name": "eogml" 
         }
     }, 
     {
         "pk": 4, 
-        "model": "coverages.filerecord", 
+        "model": "coverages.datapackage", 
         "fields": {
-            "quicklook_path": "", 
-            "path": "../autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif", 
-            "metadata_path": "../autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.xml", 
-            "metadata_format": "eogml"
+            "data_package_type": "local", 
+            "metadata_format_name": "eogml" 
         }
     }, 
     {
         "pk": 5, 
-        "model": "coverages.filerecord", 
+        "model": "coverages.datapackage", 
         "fields": {
-            "quicklook_path": "", 
-            "path": "../autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RBG_reduced.tif", 
-            "metadata_path": "../autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RBG_reduced.xml", 
-            "metadata_format": "eogml"
+            "data_package_type": "local", 
+            "metadata_format_name": "eogml" 
         }
     }, 
     {
         "pk": 6, 
-        "model": "coverages.filerecord", 
+        "model": "coverages.datapackage", 
         "fields": {
-            "quicklook_path": "", 
-            "path": "../autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced.tif", 
-            "metadata_path": "../autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced.xml", 
-            "metadata_format": "eogml"
+            "data_package_type": "local", 
+            "metadata_format_name": "eogml" 
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "coverages.localdatapackage", 
+        "fields": {
+            "data_location": 1, 
+            "metadata_location": 7 
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "coverages.localdatapackage", 
+        "fields": {
+            "data_location": 2, 
+            "metadata_location": 8 
+        }
+    },  
+    {
+        "pk": 3, 
+        "model": "coverages.localdatapackage", 
+        "fields": {
+            "data_location": 3, 
+            "metadata_location": 9 
+        }
+    },  
+    {
+        "pk": 4, 
+        "model": "coverages.localdatapackage", 
+        "fields": {
+            "data_location": 4, 
+            "metadata_location": 10 
+        }
+    },  
+    {
+        "pk": 5, 
+        "model": "coverages.localdatapackage", 
+        "fields": { 
+            "data_location": 5, 
+            "metadata_location": 11 
+        }
+    },  
+    {
+        "pk": 6, 
+        "model": "coverages.localdatapackage", 
+        "fields": { 
+            "data_location": 6, 
+            "metadata_location": 12 
+        }
+    }, 
+    {
+        "pk": 1,
+        "model": "backends.location",
+        "fields": {
+            "location_type": "local"
+        }
+    },
+    {
+        "pk": 2,
+        "model": "backends.location",
+        "fields": {
+            "location_type": "local"
+        }
+    },
+    {
+        "pk": 3,
+        "model": "backends.location",
+        "fields": {
+            "location_type": "local"
+        }
+    },
+    {
+        "pk": 4,
+        "model": "backends.location",
+        "fields": {
+            "location_type": "local"
+        }
+    },
+    {
+        "pk": 5,
+        "model": "backends.location",
+        "fields": {
+            "location_type": "local"
+        }
+    },
+    {
+        "pk": 6,
+        "model": "backends.location",
+        "fields": {
+            "location_type": "local"
+        }
+    },
+    {
+        "pk": 7,
+        "model": "backends.location",
+        "fields": {
+            "location_type": "local"
+        }
+    },
+    {
+        "pk": 8,
+        "model": "backends.location",
+        "fields": {
+            "location_type": "local"
+        }
+    },
+    {
+        "pk": 9,
+        "model": "backends.location",
+        "fields": {
+            "location_type": "local"
+        }
+    },
+    {
+        "pk": 10,
+        "model": "backends.location",
+        "fields": {
+            "location_type": "local"
+        }
+    },
+    {
+        "pk": 11,
+        "model": "backends.location",
+        "fields": {
+            "location_type": "local"
+        }
+    },
+    {
+        "pk": 12,
+        "model": "backends.location",
+        "fields": {
+            "location_type": "local"
+        }
+    },
+    {
+        "pk": 13,
+        "model": "backends.location",
+        "fields": {
+            "location_type": "local"
+        }
+    },
+    {
+        "pk": 14,
+        "model": "backends.location",
+        "fields": {
+            "location_type": "local"
+        }
+    },
+    {
+        "pk": 1,
+        "model": "backends.localpath",
+        "fields": {
+            "path": "../autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed.tif" 
+        }
+    }, 
+    {
+        "pk": 2,
+        "model": "backends.localpath", 
+        "fields": {
+            "path": "../autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.tif" 
+        }
+    }, 
+    {
+        "pk": 3,
+        "model": "backends.localpath", 
+        "fields": {
+            "path": "../autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif" 
+        }
+    }, 
+    {
+        "pk": 4, 
+        "model": "backends.localpath", 
+        "fields": {
+            "path": "../autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif" 
+        }
+    }, 
+    {
+        "pk": 5, 
+        "model": "backends.localpath", 
+        "fields": {
+            "path": "../autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RBG_reduced.tif" 
+        }
+    }, 
+    {
+        "pk": 6, 
+        "model": "backends.localpath", 
+        "fields": {
+            "path": "../autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced.tif" 
+        }
+    }, 
+    {
+        "pk": 7,
+        "model": "backends.localpath",
+        "fields": {
+            "path": "../autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed.xml" 
+        }
+    }, 
+    {
+        "pk": 8,
+        "model": "backends.localpath", 
+        "fields": {
+            "path": "../autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.xml" 
+        }
+    }, 
+    {
+        "pk": 9,
+        "model": "backends.localpath", 
+        "fields": {
+            "path": "../autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.xml" 
+        }
+    }, 
+    {
+        "pk": 10, 
+        "model": "backends.localpath", 
+        "fields": {
+            "path": "../autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.xml" 
+        }
+    }, 
+    {
+        "pk": 11, 
+        "model": "backends.localpath", 
+        "fields": {
+            "path": "../autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RBG_reduced.xml" 
+        }
+    }, 
+    {
+        "pk": 12, 
+        "model": "backends.localpath", 
+        "fields": {
+            "path": "../autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced.xml" 
+        }
+    }, 
+    {
+        "pk": 13, 
+        "model": "backends.localpath", 
+        "fields": {
+            "path": "../autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced" 
+        }
+    }, 
+    {
+        "pk": 14, 
+        "model": "backends.localpath", 
+        "fields": {
+            "path": "../autotest/data/meris/MER_FRS_1P_reduced"
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "coverages.datasource", 
+        "fields": {
+            "location": 13, 
+            "search_pattern": "*.tif"
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "coverages.datasource", 
+        "fields": {
+            "location": 14, 
+            "search_pattern": "*_compressed.tif"
         }
     }, 
     {
@@ -306,19 +554,84 @@
         "fields": {}
     },
     {
+        "pk": 1,
+        "model": "coverages.coveragerecord",
+        "fields": {
+            "coverage_id": "MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed",
+            "range_type": 3, 
+            "layer_metadata": [], 
+            "automatic": true
+        }
+    },
+    {
+        "pk": 2,
+        "model": "coverages.coveragerecord",
+        "fields": {
+            "coverage_id": "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed",
+            "range_type": 3, 
+            "layer_metadata": [], 
+            "automatic": true
+        }
+    },
+    {
+        "pk": 3,
+        "model": "coverages.coveragerecord",
+        "fields": {
+            "coverage_id": "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed",
+            "range_type": 3, 
+            "layer_metadata": [], 
+            "automatic": true 
+        }
+    },
+    {
+        "pk": 4,
+        "model": "coverages.coveragerecord",
+        "fields": {
+            "coverage_id": "mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced",
+            "range_type": 1, 
+            "layer_metadata": [], 
+            "automatic": true
+        }
+    },
+    {
+        "pk": 5,
+        "model": "coverages.coveragerecord",
+        "fields": {
+            "coverage_id": "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced",
+            "range_type": 1, 
+            "layer_metadata": [], 
+            "automatic": true
+        }
+    },
+    {
+        "pk": 6,
+        "model": "coverages.coveragerecord",
+        "fields": {
+            "coverage_id": "mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced",
+            "range_type": 1, 
+            "layer_metadata": [], 
+            "automatic": true
+        }
+    },
+    {
+        "pk": 7,
+        "model": "coverages.coveragerecord",
+        "fields": {
+            "coverage_id": "mosaic_MER_FRS_1P_RGB_reduced",
+            "range_type": 1, 
+            "layer_metadata": []
+        }
+    },
+    {
         "pk": 1, 
         "model": "coverages.rectifieddatasetrecord", 
         "fields": {
             "lineage": 1, 
             "eo_id": "MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed", 
-            "range_type": 3, 
             "visible": false, 
             "eo_metadata": 2, 
-            "file": 1, 
-            "extent": 1,
-            "layer_metadata": [], 
-            "automatic": true, 
-            "coverage_id": "MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed"
+            "data_package": 1, 
+            "extent": 1
         }
     }, 
     {
@@ -327,14 +640,10 @@
         "fields": {
             "lineage": 2, 
             "eo_id": "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed", 
-            "range_type": 3, 
             "visible": true, 
             "eo_metadata": 3, 
-            "file": 2, 
-            "extent": 2,
-            "layer_metadata": [], 
-            "automatic": true, 
-            "coverage_id": "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed"
+            "data_package": 2, 
+            "extent": 2
         }
     }, 
     {
@@ -343,14 +652,10 @@
         "fields": {
             "lineage": 3, 
             "eo_id": "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed", 
-            "range_type": 3, 
             "visible": false, 
             "eo_metadata": 4, 
-            "file": 3, 
-            "extent": 3,
-            "layer_metadata": [], 
-            "automatic": true, 
-            "coverage_id": "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"
+            "data_package": 3, 
+            "extent": 3
         }
     }, 
     {
@@ -359,30 +664,22 @@
         "fields": {
             "lineage": 5, 
             "eo_id": "mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced", 
-            "range_type": 1, 
             "visible": true, 
             "eo_metadata": 6, 
-            "file": 4, 
-            "extent": 4,
-            "layer_metadata": [], 
-            "automatic": true, 
-            "coverage_id": "mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced"
+            "data_package": 4, 
+            "extent": 4
         }
-    }, 
+    },
     {
         "pk": 5, 
         "model": "coverages.rectifieddatasetrecord", 
         "fields": {
             "lineage": 6, 
             "eo_id": "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced", 
-            "range_type": 1, 
             "visible": false, 
             "eo_metadata": 7, 
-            "file": 5, 
-            "extent": 5,
-            "layer_metadata": [], 
-            "automatic": true, 
-            "coverage_id": "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced"
+            "data_package": 5, 
+            "extent": 5
         }
     }, 
     {
@@ -391,16 +688,19 @@
         "fields": {
             "lineage": 7, 
             "eo_id": "mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced", 
-            "range_type": 1, 
             "visible": false, 
             "eo_metadata": 8, 
-            "file": 6, 
-            "extent": 6,
-            "layer_metadata": [], 
-            "automatic": true, 
-            "coverage_id": "mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced"
+            "data_package": 6, 
+            "extent": 6
         }
     }, 
+    {
+        "pk": 1,
+        "model": "coverages.tileindex",
+        "fields": {
+            "storage_dir": "../autotest/data/meris/mosaic_cache/mosaic_MER_FRS_1P_RGB_reduced/"
+        }
+    },
     {
         "pk": 7, 
         "model": "coverages.rectifiedstitchedmosaicrecord", 
@@ -411,29 +711,22 @@
                 5, 
                 6
             ], 
-            "storage_dir": "../autotest/data/meris/mosaic_cache/mosaic_MER_FRS_1P_RGB_reduced/", 
+            "data_sources": [
+                1
+            ], 
+            "tile_index": 1,
             "eo_id": "mosaic_MER_FRS_1P_RGB_reduced", 
-            "range_type": 1, 
-            "image_pattern": "*.tif", 
-            "eo_metadata": 5, 
-            "layer_metadata": [], 
-            "coverage_id": "mosaic_MER_FRS_1P_RGB_reduced",
+            "eo_metadata": 5,
             "extent": 7
-        }
-    }, 
-    {
-        "pk": 1, 
-        "model": "coverages.mosaicdatadirrecord", 
-        "fields": {
-            "dir": "../autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced", 
-            "mosaic": 7
         }
     }, 
     {
         "pk": 8, 
         "model": "coverages.datasetseriesrecord", 
         "fields": {
-            "image_pattern": "*_compressed.tif", 
+            "data_sources": [
+                2
+            ], 
             "rect_stitched_mosaics": [
                 7
             ], 
@@ -442,16 +735,9 @@
             "rect_datasets": [
                 1, 
                 2, 
-                3
+                3,
+                4
             ]
-        }
-    }, 
-    {
-        "pk": 1, 
-        "model": "coverages.datadirrecord", 
-        "fields": {
-            "dir": "../autotest/data/meris/MER_FRS_1P_reduced", 
-            "dataset_series": 8
         }
     }
 ]

@@ -53,4 +53,16 @@ python manage.py dumpdata --format=json --indent=4 > tmp.json
 Inspect file e.g. with: meld tmp.json server/fixtures/initial_data.json
 mv tmp.json server/fixtures/initial_data.json
 
+3. How to run unittests
+
+# services only
+python manage.py test services
+
+# for all modules
+python manage.py test services coverages backends 
+
+# or simply
+python manage.py test
+# this will also make some django tests.
+
 ------------------------------------------------------------------------
