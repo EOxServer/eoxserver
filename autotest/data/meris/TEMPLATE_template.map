@@ -44,7 +44,7 @@ MERIS L1b sample data available at: http://earth.esa.int/object/index.cfm?fobjec
 
 Copyright (C) European Space Agency - ESA
 "
-            "ows_service_onlineresource"        "http://www.eox.at"
+            "ows_service_onlineresource"        "http://eoxserver.org/ows?"
             "ows_accessconstraints"             "None"
             "ows_fees"                          "None"
             "ows_addresstype"                   "postal"

@@ -59,7 +59,7 @@ mv tmp.json server/fixtures/initial_data.json
 python manage.py test services
 
 # for all modules
-python manage.py test services coverages backends 
+python manage.py test services coverages backends core
 
 # or simply
 python manage.py test
