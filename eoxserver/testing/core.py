@@ -43,8 +43,6 @@ from eoxserver.core.util.xmltools import XMLDecoder, DOMtoXML
 #from eoxserver.resources.coverages.synchronize import DatasetSeriesSynchronizer,\
 #    RectifiedStitchedMosaicSynchronizer
 
-System.init()
-
 BASE_FIXTURES = ["initial_rangetypes.json", "testing_base.json"]
 
 class TestSchemaFactory(object):
@@ -76,6 +74,9 @@ class TestSchemaFactory(object):
     
 class EOxServerTestCase(TestCase):
     fixtures = BASE_FIXTURES
+    
+    def setUp(self):
+        System.init()
 
 class OWSTestCase(EOxServerTestCase):
     """ Main base class for testing the OWS interface
@@ -85,6 +86,8 @@ class OWSTestCase(EOxServerTestCase):
     fixtures = BASE_FIXTURES + ["testing_coverages.json"]
     
     def setUp(self):
+        super(OWSTestCase,self).setUp()
+        
         logging.info("Starting Test Case: %s" % self.__class__.__name__)
         
         request, type = self.getRequest()

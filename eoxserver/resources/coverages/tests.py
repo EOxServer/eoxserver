@@ -47,17 +47,11 @@ from django.conf import settings
 import logging
 import os.path
 
-
-logging.basicConfig(
-    filename=os.path.join('logs', 'test.log'),
-    level=logging.DEBUG,
-    format="[%(asctime)s][%(levelname)s] %(message)s"
-)
-
 # create new rectified dataset from a local path
 
 class DatasetCreateWithLocalPathTestCase(RectifiedDatasetCreateTestCase):
     def setUp(self):
+        super(DatasetCreateWithLocalPathTestCase,self).setUp()
         args = {
             "local_path": os.path.join(settings.PROJECT_DIR,
                           "data/meris/MER_FRS_1P_reduced", 
@@ -73,6 +67,7 @@ class DatasetCreateWithLocalPathTestCase(RectifiedDatasetCreateTestCase):
 
 class DatasetCreateWithLocalPathAndMetadataTestCase(RectifiedDatasetCreateTestCase):
     def setUp(self):
+        super(DatasetCreateWithLocalPathAndMetadataTestCase,self).setUp()
         args = {
             "local_path": os.path.join(
                 settings.PROJECT_DIR,
@@ -101,6 +96,7 @@ class DatasetCreateWithLocalPathAndMetadataTestCase(RectifiedDatasetCreateTestCa
 
 class MosaicCreateWithLocalPathTestCase(RectifiedStitchedMosaicCreateTestCase):
     def setUp(self):
+        super(MosaicCreateWithLocalPathTestCase,self).setUp()
         args = {
             "data_dirs": [{
                 "path": os.path.join(settings.PROJECT_DIR,
@@ -133,6 +129,7 @@ class MosaicCreateWithLocalPathTestCase(RectifiedStitchedMosaicCreateTestCase):
 # create new mosaic and add a remote path to locations
 class MosaicCreateWithRemotePathTestCase(RectifiedStitchedMosaicCreateTestCase):
     def setUp(self):
+        super(MosaicCreateWithRemotePathTestCase,self).setUp()
         args = {
             "data_dirs": [{
                 "path": "test/MER_FRS_1P_reduced",
@@ -192,6 +189,7 @@ class DatasetSeriesCreateWithLocalPathTestCase(DatasetSeriesCreateTestCase):
     fixtures = BASE_FIXTURES
     
     def setUp(self):
+        super(DatasetSeriesCreateWithLocalPathTestCase,self).setUp()
         args = {
             "data_dirs": [{
                 "path": os.path.join(settings.PROJECT_DIR,
@@ -220,7 +218,7 @@ class DatasetSeriesRemoveLocationTestCase(DatasetSeriesUpdateTestCase):
     fixtures = BASE_FIXTURES + ["testing_coverages.json"]
     
     def setUp(self):
-        pass
+        super(DatasetSeriesRemoveLocationTestCase,self).setUp()
     
     def testContents(self):
         pass
