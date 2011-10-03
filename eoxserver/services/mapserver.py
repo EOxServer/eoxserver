@@ -40,6 +40,8 @@ from osgeo.gdalconst import GDT_Byte, GDT_Int16, GDT_UInt16, GDT_Float32
 
 from django.conf import settings
 
+from eoxserver.core.interfaces import *
+from eoxserver.core.registry import RegisteredInterface
 from eoxserver.resources.coverages.domainset import Trim, Slice
 from eoxserver.services.base import BaseRequestHandler
 from eoxserver.services.owscommon import OWSCommonConfigReader
@@ -140,6 +142,40 @@ class MapServerResponse(Response):
         else:
             return self.status
 
+class MapServerLayerGeneratorInterface(RegisteredInterface):
+    REGISTRY_CONF = {
+        "name": "MapServer Layer Generator Interface",
+        "intf_id": "services.mapserver.MapServerLayerGeneratorInterface",
+        "binding_method": "kvp",
+        "registry_keys": (
+            "services.mapserver.service",
+            "services.mapserver.version",
+            "services.mapserver.eo_object_type",
+        )
+    }
+    
+    configure = Method(
+        ObjectArg("ms_req", arg_class=MapServerRequest),
+        ObjectArg("eo_object"),
+        returns=ObjectArg("@return", arg_class=mapscript.layerObj)
+    )
+
+class MapServerDataConnectorInterface(RegisteredInterface):
+    REGISTRY_CONF = {
+        "name": "MapServer Data Connector Interface",
+        "intf_id": "services.mapserver.MapServerDataConnectorInterface",
+        "binding_method": "kvp",
+        "registry_keys": (
+            "services.mapserver.data_structure_type",
+        )
+    }
+    
+    configure = Method(
+        ObjectArg("layer", arg_class=mapscript.layerObj),
+        ObjectArg("eo_object"),
+        ListArg("filter_exprs", default=None),
+        returns=ObjectArg("@return", arg_class=mapscript.layerObj)
+    )
         
 class MapServerOperationHandler(BaseRequestHandler):
     """\

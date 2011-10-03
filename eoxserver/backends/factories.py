@@ -27,37 +27,36 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from eoxserver.core.exceptions import EOxSException
- 
-class MetadataException(EOxSException):
-    pass
+"""
+This module provides factories for the Data Access Layer.
+"""
 
-class NoSuchCoverageException(EOxSException):
-    pass
+from eoxserver.core.system import System
+from eoxserver.core.records import (
+    RecordWrapperFactoryInterface, RecordWrapperFactory
+)
+from eoxserver.core.exceptions import InternalError
+from eoxserver.backends.models import Location
 
-class NoSuchDatasetSeriesException(EOxSException):
-    pass
-
-class SynchronizationErrors(EOxSException):
-    def __init__(self, *errors):
-        self.errors = errors
-        if len(errors):
-            self.msg = errors[0]
+class LocationFactory(RecordWrapperFactory):
+    """
+    This is a factory for location wrappers. It inherits from
+    :class:`~.RecordWrapperFactory`.
+    """
+    REGISTRY_CONF = {
+        "name": "LocationFactory",
+        "impl_id": "backends.factories.LocationFactory",
+        "binding_method": "direct"
+    }
     
-    def __iter__(self):
-        return iter(self.errors)
-
-    def __str__(self):
-        return str(self.errors)
-
-class EngineError(EOxSException):
-    """
-    This error shall be raised when a coverage engine (e.g. GDAL) fails.
-    """
-    pass
-
-class ManagerError(EOxSException):
-    """
-    This error shall be raised when the Manager has encountered an error.
-    """
-    pass
+    def _get_record_by_pk(self, pk):
+        return Location.objects.get(pk=pk)
+        
+    def _get_record_wrapper(self, record):
+        wrapper = self.impls[record.location_type]()
+        wrapper.setRecord(record)
+        
+        return wrapper
+        
+LocationFactoryImplementation = \
+RecordWrapperFactoryInterface.implement(LocationFactory)

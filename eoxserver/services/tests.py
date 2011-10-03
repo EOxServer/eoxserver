@@ -163,8 +163,6 @@ class WCS20DescribeEOCoverageSetTwoSpatialSubsetsTestCase(eoxstest.WCS20Describe
             "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed",
             "MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed",
             "mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced",
-            "mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced",
-            "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced",
             "mosaic_MER_FRS_1P_RGB_reduced"
         ]
 
@@ -179,8 +177,6 @@ class WCS20DescribeEOCoverageSetTwoSpatialSubsetsOverlapsTestCase(eoxstest.WCS20
             "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed",
             "MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed",
             "mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced",
-            "mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced",
-            "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced",
             "mosaic_MER_FRS_1P_RGB_reduced"
         ]
 
@@ -191,7 +187,8 @@ class WCS20DescribeEOCoverageSetTwoSpatialSubsetsContainsTestCase(eoxstest.WCS20
     
     def getExpectedCoverageIds(self):
         return [
-            "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed"
+            "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed",
+            "mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced"
         ]
 
 class WCS20DescribeEOCoverageSetTemporalSubsetTestCase(eoxstest.WCS20DescribeEOCoverageSetSubsettingTestCase):
@@ -204,7 +201,6 @@ class WCS20DescribeEOCoverageSetTemporalSubsetTestCase(eoxstest.WCS20DescribeEOC
             "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed",
             "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed",
             "mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced",
-            "mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced",
             "mosaic_MER_FRS_1P_RGB_reduced"
         ]
 
@@ -218,7 +214,6 @@ class WCS20DescribeEOCoverageSetTemporalSubsetOverlapsTestCase(eoxstest.WCS20Des
             "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed",
             "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed",
             "mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced",
-            "mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced",
             "mosaic_MER_FRS_1P_RGB_reduced"
         ]
 
@@ -229,7 +224,8 @@ class WCS20DescribeEOCoverageSetTemporalSubsetContainsTestCase(eoxstest.WCS20Des
     
     def getExpectedCoverageIds(self):
         return [
-            "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed"
+            "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed",
+            "mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced"
         ]
 
 class WCS20DescribeEOCoverageSetSpatioTemporalSubsetTestCase(eoxstest.WCS20DescribeEOCoverageSetSubsettingTestCase):
@@ -242,7 +238,6 @@ class WCS20DescribeEOCoverageSetSpatioTemporalSubsetTestCase(eoxstest.WCS20Descr
             "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed",
             "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed",
             "mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced",
-            "mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced",
             "mosaic_MER_FRS_1P_RGB_reduced"
         ]
 
@@ -256,7 +251,6 @@ class WCS20DescribeEOCoverageSetSpatioTemporalSubsetOverlapsTestCase(eoxstest.WC
             "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed",
             "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed",
             "mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced",
-            "mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced",
             "mosaic_MER_FRS_1P_RGB_reduced"
         ]
 
@@ -267,7 +261,8 @@ class WCS20DescribeEOCoverageSetSpatioTemporalSubsetContainsTestCase(eoxstest.WC
         
     def getExpectedCoverageIds(self):
         return [
-            "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed"
+            "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed",
+            "mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced"
         ]
 
 class WCS20DescribeEOCoverageSetIncorrectTemporalSubsetFaultTestCase(eoxstest.ExceptionTestCase):
@@ -542,14 +537,12 @@ class WCS20GetCoverageMultipartSubsetDatasetTestCase(eoxstest.WCS20GetCoverageMu
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/mixed&subset=x(100,200)&subset=y(200,300)"
         return (params, "kvp")
 
-class WCS20GetCoverageSubsetEPSG4326DatasetTestCase(eoxstest.WCS20GetCoverageTestCase, eoxstest.WCS20GetCoverageExtentTestMixin):
-    expected_extent = (20, 38, 22, 40)
+class WCS20GetCoverageSubsetEPSG4326DatasetTestCase(eoxstest.WCS20GetCoverageTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(38,40)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(20,22)"
         return (params, "kvp")
 
-class WCS20GetCoverageSubsetEPSG4326MosaicTestCase(eoxstest.WCS20GetCoverageTestCase, eoxstest.WCS20GetCoverageExtentTestMixin):
-    expected_extent = (0, 38, 28.326165, 40)
+class WCS20GetCoverageSubsetEPSG4326MosaicTestCase(eoxstest.WCS20GetCoverageTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=image/tiff&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(38,40)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(0,30)"
         return (params, "kvp")
@@ -586,8 +579,7 @@ class WCS20GetCoverageSubsetSizeDatasetTestCase(eoxstest.WCS20GetCoverageTestCas
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=x(100,200)&subset=y(200,300)&size=x(20)&size=y(20)"
         return (params, "kvp")
 
-class WCS20GetCoverageSubsetEPSG4326SizeDatasetTestCase(eoxstest.WCS20GetCoverageTestCase, eoxstest.WCS20GetCoverageSizeTestMixin):
-    expected_size = (20, 20)
+class WCS20GetCoverageSubsetEPSG4326SizeDatasetTestCase(eoxstest.WCS20GetCoverageTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(38,40)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(20,22)&size=lat(20)&size=long(20)"
         return (params, "kvp")
@@ -602,26 +594,22 @@ class WCS20GetCoverageInvalidSizeFaultTestCase(eoxstest.ExceptionTestCase):
 
 # RESOLUTION
 
-class WCS20GetCoverageResolutionDatasetTestCase(eoxstest.WCS20GetCoverageTestCase, eoxstest.WCS20GetCoverageResolutionTestMixin):
-    expected_resolution = (0.1, 0.1)
+class WCS20GetCoverageResolutionDatasetTestCase(eoxstest.WCS20GetCoverageTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&resolution=x(0.1)&resolution=y(0.1)"
         return (params, "kvp")
     
-class WCS20GetCoverageResolutionMosaicTestCase(eoxstest.WCS20GetCoverageTestCase, eoxstest.WCS20GetCoverageResolutionTestMixin):
-    expected_resolution = (0.1, 0.1)
+class WCS20GetCoverageResolutionMosaicTestCase(eoxstest.WCS20GetCoverageTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=image/tiff&resolution=x(0.1)&resolution=y(0.1)"
         return (params, "kvp")
 
-class WCS20GetCoverageSubsetResolutionDatasetTestCase(eoxstest.WCS20GetCoverageTestCase, eoxstest.WCS20GetCoverageResolutionTestMixin):
-    expected_resolution = (0.1, 0.1)
+class WCS20GetCoverageSubsetResolutionDatasetTestCase(eoxstest.WCS20GetCoverageTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=x(100,200)&subset=y(200,300)&resolution=x(0.1)&resolution=y(0.1)"
         return (params, "kvp")
 
-class WCS20GetCoverageSubsetEPSG4326ResolutionLatLonDatasetTestCase(eoxstest.WCS20GetCoverageTestCase, eoxstest.WCS20GetCoverageResolutionTestMixin):
-    expected_resolution = (0.01, 0.01)
+class WCS20GetCoverageSubsetEPSG4326ResolutionLatLonDatasetTestCase(eoxstest.WCS20GetCoverageTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(38,40)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(20,22)&resolution=lat(0.01)&resolution=long(0.01)"
         return (params, "kvp")
@@ -636,20 +624,17 @@ class WCS20GetCoverageSubsetEPSG4326ResolutionInvalidAxisDatasetFaultTestCase(eo
 
 # RANGESUBSET
 
-class WCS20GetCoverageRangeSubsetIndicesDatasetTestCase(eoxstest.WCS20GetCoverageTestCase, eoxstest.WCS20GetCoverageBandCountTestMixin):
-    expected_bandcount = 3
+class WCS20GetCoverageRangeSubsetIndicesDatasetTestCase(eoxstest.WCS20GetCoverageTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&rangesubset=1,2,3"
         return (params, "kvp")
 
-class WCS20GetCoverageRangeSubsetNamesDatasetTestCase(eoxstest.WCS20GetCoverageTestCase, eoxstest.WCS20GetCoverageBandCountTestMixin):
-    expected_bandcount = 3
+class WCS20GetCoverageRangeSubsetNamesDatasetTestCase(eoxstest.WCS20GetCoverageTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&rangesubset=MERIS_radiance_04_uint16,MERIS_radiance_05_uint16,MERIS_radiance_06_uint16"
         return (params, "kvp")
 
-class WCS20GetCoverageMultipartRangeSubsetNamesDatasetTestCase(eoxstest.WCS20GetCoverageMultipartTestCase, eoxstest.WCS20GetCoverageBandCountTestMixin):
-    expected_bandcount = 3
+class WCS20GetCoverageMultipartRangeSubsetNamesDatasetTestCase(eoxstest.WCS20GetCoverageMultipartTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/mixed&rangesubset=MERIS_radiance_04_uint16,MERIS_radiance_05_uint16,MERIS_radiance_06_uint16"
         return (params, "kvp")

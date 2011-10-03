@@ -27,37 +27,23 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+"""
+This module contains exception definitions for the storage backends.
+"""
+
 from eoxserver.core.exceptions import EOxSException
- 
-class MetadataException(EOxSException):
-    pass
 
-class NoSuchCoverageException(EOxSException):
-    pass
+class DataAccessError(EOxSException):
+    """
+    This exception shall be raised if any data access error occurs.
+    """
 
-class NoSuchDatasetSeriesException(EOxSException):
     pass
-
-class SynchronizationErrors(EOxSException):
-    def __init__(self, *errors):
-        self.errors = errors
-        if len(errors):
-            self.msg = errors[0]
     
-    def __iter__(self):
-        return iter(self.errors)
+class CacheOverflow(EOxSException):
+    """
+    This exception shall be raised it the cache cannot accomodate for new
+    incoming data despite attempts to free space.
+    """
 
-    def __str__(self):
-        return str(self.errors)
-
-class EngineError(EOxSException):
-    """
-    This error shall be raised when a coverage engine (e.g. GDAL) fails.
-    """
-    pass
-
-class ManagerError(EOxSException):
-    """
-    This error shall be raised when the Manager has encountered an error.
-    """
     pass

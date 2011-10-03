@@ -120,6 +120,21 @@ class UnknownAttribute(EOxSException):
     """
     
     pass
+    
+class IDInUse(EOxSException):
+    """
+    This exception shall be raised if a requested unique ID is already in use.
+    """
+    
+    pass
+    
+class UniquenessViolation(EOxSException):
+    """
+    This excetion shall be raised if a database record cannot be created due
+    to uniqueness constraints.
+    """
+    
+    pass
 
 class IpcException(EOxSException):
     """
@@ -230,4 +245,10 @@ class XMLEncoderException(EOxSException):
     encoding schema.
     """
     
+    pass
+
+class FactoryQueryAmbiguous(EOxSException):
+    """
+    This exception shall be raised when ... TODO
+    """
     pass

@@ -48,15 +48,18 @@ def findFiles(dir, pattern):
     
     If ``dir`` does not exist or does not point to a directory or if no
     matching files are found an empty list is returned.
+    
+    Directories and files whose name starts with "." are omitted.
     """
     filenames = []
     
     if os.path.exists(dir) and os.path.isdir(dir):
         for path in os.listdir(dir):
-            if os.path.isdir(os.path.join(dir, path)):
-                filenames.extend(findFiles(os.path.join(dir, path), pattern))
-            elif fnmatch(path, pattern):
-                filenames.append(os.path.join(dir, path))
+            if not path.startswith("."):
+                if os.path.isdir(os.path.join(dir, path)):
+                    filenames.extend(findFiles(os.path.join(dir, path), pattern))
+                elif fnmatch(path, pattern):
+                    filenames.append(os.path.join(dir, path))
     
     return filenames
 

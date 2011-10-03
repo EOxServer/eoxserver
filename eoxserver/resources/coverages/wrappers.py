@@ -50,10 +50,11 @@ from eoxserver.core.exceptions import (
 from eoxserver.core.util.filetools import findFiles
 from eoxserver.core.util.timetools import getDateTime
 from eoxserver.resources.coverages.models import (
-    SingleFileCoverageRecord, RectifiedDatasetRecord,
+    PlainCoverageRecord, RectifiedDatasetRecord,
     ReferenceableDatasetRecord, RectifiedStitchedMosaicRecord,
-    DatasetSeriesRecord, FileRecord, EOMetadataRecord, 
-    ExtentRecord, LineageRecord, RangeTypeRecord
+    DatasetSeriesRecord, EOMetadataRecord, 
+    ExtentRecord, LineageRecord, RangeTypeRecord,
+    LayerMetadataRecord
 )
 from eoxserver.resources.coverages.interfaces import (
     CoverageInterface, RectifiedDatasetInterface,
@@ -63,7 +64,6 @@ from eoxserver.resources.coverages.interfaces import (
 from eoxserver.resources.coverages.rangetype import (
     Band, NilValue, RangeType
 )
-from eoxserver.resources.coverages.metadata import MetadataInterfaceFactory
 
 #-----------------------------------------------------------------------
 # Wrapper implementations
@@ -156,6 +156,20 @@ class CoverageWrapper(ResourceWrapper):
         
         return range_type
     
+    def getDataStructureType(self):
+        """
+        Returns the data structure type of the coverage. To be implemented
+        by subclasses, raises :exc:`~.InternalError` by default.
+        """
+        raise InternalError("Not implemented.")
+        
+    def getData(self):
+        """
+        Returns the a :class:`~.CoverageDataWrapper` object that wraps the
+        coverage data, raises :exc:`~.InternalError` by default.
+        """
+        raise InternalError("Not implemented.")
+    
     def getLayerMetadata(self):
         """
         Returns a list of ``(metadata_key, metadata_value)`` pairs
@@ -164,6 +178,71 @@ class CoverageWrapper(ResourceWrapper):
         """
         
         return self.__model.layer_metadata.values_list("key", "value")
+    
+    def matches(self, filter_exprs):
+        """
+        Returns True if the Coverage matches the given filter
+        expressions and False otherwise.
+        """
+        
+        for filter_expr in filter_exprs:
+            filter = System.getRegistry().findAndBind(
+                intf_id = "core.filters.Filter",
+                params = {
+                    "core.filters.res_class_id": self.__class__.__get_impl_id__(),
+                    "core.filters.expr_class_id": filter_expr.__class__.__get_impl_id__(),
+                }
+            )
+            
+            if not filter.resourceMatches(filter_expr, self):
+                return False
+    
+        return True
+    
+    def _get_create_dict(self, params):
+        create_dict = super(CoverageWrapper, self)._get_create_dict(params)
+        
+        if "coverage_id" not in params:
+            raise InternalError(
+                "Missing mandatory 'coverage_id' parameter for RectifiedDataset creation."
+            )
+        
+        if "range_type_name" not in params:
+            raise InternalError(
+                "Missing mandatory 'range_type_name' parameter for RectifiedDataset creation."
+            )
+        
+        create_dict["coverage_id"] = params["coverage_id"]
+        
+        try:
+            create_dict["range_type"] = RangeTypeRecord.objects.get(
+                name=params["range_type_name"]
+            )
+        except RangeTypeRecord.DoesNotExist:
+            raise InternalError(
+                "Unknown range type name '%s'" % params["range_type_name"]
+            )
+            
+        if "data_source" in params and params["data_source"] is not None:
+            create_dict["automatic"] = params.get("automatic", True)
+            create_dict["data_source"] = params["data_source"].getRecord()
+        else:
+            create_dict["automatic"] = False
+            create_dict["data_source"] = None
+        
+        layer_metadata = params.get("layer_metadata")
+
+        if layer_metadata:
+            create_dict["layer_metadata"] = []
+            
+            for key, value in layer_metadata.items():
+                create_dict["layer_metadata"].append(
+                    LayerMetadataRecord.objects.get_or_create(
+                        key=key, value=value
+                    )[0]
+                )
+                
+        return create_dict
 
 class RectifiedGridWrapper(object):
     """
@@ -174,26 +253,28 @@ class RectifiedGridWrapper(object):
     def __model(self):
         return self._ResourceWrapper__model
         
-    def _createExtentRecord(self, file_info):
-        return ExtentRecord.objects.create(
-            srid = file_info.srid,
-            size_x = file_info.size_x,
-            size_y = file_info.size_y,
-            minx = file_info.extent[0],
-            miny = file_info.extent[1],
-            maxx = file_info.extent[2],
-            maxy = file_info.extent[3]
+    def _get_create_dict(self, params):
+        create_dict = super(RectifiedGridWrapper, self)._get_create_dict(params)
+        
+        if "geo_metadata" not in params:
+            raise InternalError(
+                "Missing mandatory 'coverage_id' parameter for RectifiedDataset creation."
+            )
+        
+        geo_metadata = params["geo_metadata"]
+        
+        create_dict["extent"] = ExtentRecord.objects.create(
+            srid = geo_metadata.srid,
+            size_x = geo_metadata.size_x,
+            size_y = geo_metadata.size_y,
+            minx = geo_metadata.extent[0],
+            miny = geo_metadata.extent[1],
+            maxx = geo_metadata.extent[2],
+            maxy = geo_metadata.extent[3]
         )
-    
-    def _updateExtentRecord(self, file_info):
-        self.__model.extent.srid = file_info.srid
-        self.__model.extent.size_x = file_info.size_x
-        self.__model.extent.size_y = file_info.size_y
-        self.__model.extent.minx = file_info.extent[0]
-        self.__model.extent.miny = file_info.extent[1]
-        self.__model.extent.maxx = file_info.extent[2]
-        self.__model.extent.maxy = file_info.extent[3]
-    
+        
+        return create_dict
+
     def getSRID(self):
         """
         Returns the SRID of the coverage CRS.
@@ -225,57 +306,78 @@ class ReferenceableGridWrapper(object):
     
     pass
 
-class DatasetWrapper(object):
+class PackagedDataWrapper(object):
     """
-    This wrapper is intended as a mix-in for coverages that are stored
-    as single files (to be correct: GDAL datasets) together with
-    quicklooks and metadata files.
+    This wrapper is intended as a mix-in for coverages that are stored as
+    data packages.
     """    
     @property
     def __model(self):
         return self._ResourceWrapper__model
     
-    def _createFileRecord(self, file_info):
-        return FileRecord.objects.create(
-            path = file_info.filename,
-            metadata_path = file_info.md_filename,
-            metadata_format = file_info.md_format
+    # TODO: replace by appropriate data package implementation
+    
+    #def _createFileRecord(self, file_info):
+        #return FileRecord.objects.create(
+            #path = file_info.filename,
+            #metadata_path = file_info.md_filename,
+            #metadata_format = file_info.md_format
+        #)
+    
+    #def _updateFileRecord(self, file_info):
+        #self.__model.file.path = file_info.filename
+        #self.__model.file.metadata_path = file_info.md_filename
+        #self.__model.file.metadata_format = file_info.md_format
+    
+    def getDataStructureType(self):
+        """
+        Returns the data structure type of the underlying data package
+        """
+        # TODO: this implementation is inefficient as the data package wrapper
+        # is discarded and cannot be reused, thus forcing a second database hit
+        # when accessing the actual data
+        return self.getData().getDataStructureType()
+    
+    def getData(self):
+        """
+        Return the data package wrapper associated with the coverage, i.e. an
+        instance of a subclass of :class:`~.DataPackageWrapper`.
+        """
+        return System.getRegistry().getFromFactory(
+            factory_id = "resources.coverages.data.DataPackageFactory",
+            params = {
+                "record": self.__model.data_package
+            }
         )
-    
-    def _updateFileRecord(self, file_info):
-        self.__model.file.path = file_info.filename
-        self.__model.file.metadata_path = file_info.md_filename
-        self.__model.file.metadata_format = file_info.md_format
-    
-    def getFilename(self):
-        """
-        Returns the file name that relates to the dataset.
+
+class TiledDataWrapper(object):
+    """
+    This wrapper is intended as a mix-in for coverages that are stored in tile
+    indices.
+    """
+    @property
+    def __model(self):
+        return self._ResourceWrapper__model
         
-        .. note:: A GDAL dataset can consist of more than one file. This
-                  path points to the "main" data file.
+    def getDataStructureType(self):
         """
-        return self.__model.file.path
-        
-    def getQuicklookPath(self):
+        Returns ``"index"``.
         """
-        Returns the path to a quicklook of the data, if defined.
-        """
-        return self.__model.file.quicklook_path
+        # this is a shortcut; it has to be overridden if any time different
+        # data structure types for tiled data should be implemented
+        return "index"
     
-    def getMetadataPath(self):
+    def getData(self):
         """
-        Returns the path to the metadata file.
+        Returns a :class:`TileIndexWrapper` instance.
         """
-        return self.__model.file.metadata_path
-    
-    def getMetadataFormat(self):
-        """
-        Returns the metadata format code as defined by the ...
-        """
-        # TODO: finish documentation
-        
-        return self.__model.file.metadata_format
-        
+        return System.getRegistry().getFromFactory(
+            factory_id = "resources.coverages.data.TileIndexFactory",
+            params = {
+                "record": self.__model.tile_index
+            }
+        )
+
 class EOMetadataWrapper(object):
     """
     This wrapper class is intended as a mix-in for EO coverages and 
@@ -301,6 +403,33 @@ class EOMetadataWrapper(object):
         self.__model.eo_metadata.footprint = \
             GEOSGeometry(file_info.footprint_wkt)
         self.__model.eo_metadata.eo_gml = file_info.md_xml_text
+    
+    def _get_create_dict(self, params):
+        create_dict = super(EOMetadataWrapper, self)._get_create_dict(params)
+        
+        if "eo_metadata" not in params:
+            raise InternalError(
+                "Missing mandatory 'eo_metadata' parameter for RectifiedDataset creation."
+            )
+        
+        eo_metadata = params["eo_metadata"]
+        
+        create_dict["eo_id"] = eo_metadata.getEOID()
+        
+        md_format = eo_metadata.getMetadataFormat()
+        if md_format and md_format.getName() == "eogml":
+            eo_gml = eo_metadata.getRawMetadata()
+        else:
+            eo_gml = ""
+        
+        create_dict["eo_metadata"] = EOMetadataRecord.objects.create(
+            timestamp_begin = eo_metadata.getBeginTime(),
+            timestamp_end = eo_metadata.getEndTime(),
+            footprint = eo_metadata.getFootprint(),
+            eo_gml = eo_gml
+        )
+        
+        return create_dict
     
     def getEOID(self):
         """
@@ -349,18 +478,20 @@ class EOMetadataWrapper(object):
         
         return self.__model.eo_metadata.eo_gml
 
-class EOCoverageWrapper(CoverageWrapper, EOMetadataWrapper):
+class EOCoverageWrapper(EOMetadataWrapper, CoverageWrapper):
     """
     This is a partial implementation of :class:`~.EOCoverageInterface`.
     It inherits from :class:`CoverageWrapper` and
     :class:`EOMetadataWrapper`.
     """
     
-    def _createLineageRecord(self, file_info):
-        return LineageRecord.objects.create()
-    
-    def _updateLineageRecord(self, file_info):
-        pass
+    def _get_create_dict(self, params):
+        create_dict = super(EOCoverageWrapper, self)._get_create_dict(params)
+        
+        create_dict["lineage"] = LineageRecord.objects.create()
+        
+        return create_dict
+        
     
     def getEOCoverageSubtype(self):
         """
@@ -391,12 +522,29 @@ class EOCoverageWrapper(CoverageWrapper, EOMetadataWrapper):
         
         return None
 
-class EODatasetWrapper(EOCoverageWrapper, DatasetWrapper):
+class EODatasetWrapper(PackagedDataWrapper, EOCoverageWrapper):
     """
     This is the base class for EO Dataset wrapper implementations. It
     inherits from :class:`EOCoverageWrapper` and
-    :class:`DatasetWrapper`.
+    :class:`PackagedDataWrapper`.
     """
+    
+    def _get_create_dict(self, params):
+        create_dict = super(EODatasetWrapper, self)._get_create_dict(params)
+        
+        if "data_package" not in params:
+            raise InternalError(
+                "Missing mandatory 'data_package' parameter for RectifiedDataset creation."
+            )
+        
+        create_dict["data_package"] = params["data_package"].getRecord()
+        
+        if "container" in params:
+            create_dict["visible"] = params.get("visible", False)
+        else:
+            create_dict["visible"] = params.get("visible", True)
+        
+        return create_dict
     
     def getDatasets(self, filter_exprs=None):
         """
@@ -406,21 +554,12 @@ class EODatasetWrapper(EOCoverageWrapper, DatasetWrapper):
         """
         
         if filter_exprs is not None:
-            for filter_expr in filter_exprs:
-                filter = System.getRegistry().findAndBind(
-                    intf_id = "core.filters.Filter",
-                    params = {
-                        "core.filters.res_class_id": self.__class__.__get_impl_id__(),
-                        "core.filters.expr_class_id": filter_expr.__class__.__get_impl_id__(),
-                    }
-                )
-                
-                if not filter.resourceMatches(filter_expr, self):
-                    return []
+            if not self.matches(filter_exprs):
+                return []
         
         return [self]
 
-class RectifiedDatasetWrapper(EODatasetWrapper, RectifiedGridWrapper):
+class RectifiedDatasetWrapper(RectifiedGridWrapper, EODatasetWrapper):
     """
     This is the wrapper for Rectified Datasets. It inherits from
     :class:`EODatasetWrapper` and :class:`RectifiedGridWrapper`. It
@@ -429,9 +568,6 @@ class RectifiedDatasetWrapper(EODatasetWrapper, RectifiedGridWrapper):
     The following attributes are recognized:
     
     * ``eo_id``: the EO ID of the dataset; value must be a string
-    * ``filename``: the path to the dataset; value must be a string
-    * ``metadata_filename``: the path to the accompanying metadata
-      file; value must be a string
     * ``srid``: the SRID of the dataset's CRS; value must be an integer
     * ``size_x``: the width of the coverage in pixels; value must be
       an integer
@@ -461,9 +597,7 @@ class RectifiedDatasetWrapper(EODatasetWrapper, RectifiedGridWrapper):
     
     FIELDS = {
         "eo_id": "eo_id",
-        "filename": "file__path",
-        "metadata_filename": "file__metadata_path",
-        "metadata_format": "file__metadata_format",
+        "data_package": "data_package",
         "srid": "extent__srid",
         "size_x": "extent__size_x",
         "size_y": "extent__size_y",
@@ -488,54 +622,22 @@ class RectifiedDatasetWrapper(EODatasetWrapper, RectifiedGridWrapper):
         self._ResourceWrapper__model = model
         
     __model = property(__get_model, __set_model)
-    
-    def _createModel(self, params):
-        if "file_info" in params:
-            file_info = params["file_info"]
-        else:
-            raise InternalError(
-                "Missing mandatory 'file_info' parameter."
+
+    # _get_create_dict inherited from superclasses and mix-ins
+
+    def _create_model(self, create_dict):
+        self.__model = RectifiedDatasetRecord.objects.create(**create_dict)
+        
+    def _post_create(self, params):
+        if "container" in params and params["container"]:
+            params["container"].addCoverage(
+                res_type = self.getType(),
+                res_id = self.__model.pk
             )
         
-        container = params.get("container")
-        
-        if container is None:
-            automatic = params.get("automatic", False)
-            visible = params.get("visible", True)
-        else:
-            automatic = params.get("automatic", True)
-            visible = params.get("visible", False)
-            
-        file_record = self._createFileRecord(file_info)
+    # ==========================================================================
+    # TODO: update this part according to new data model
 
-        eo_metadata_record = self._createEOMetadataRecord(file_info)
-            
-        extent_record = self._createExtentRecord(file_info)
-        
-        lineage_record = self._createLineageRecord(file_info)
-        
-        range_type_record = RangeTypeRecord.objects.get(
-            name = file_info.range_type
-        )
-        
-        dataset = RectifiedDatasetRecord.objects.create(
-            file = file_record,
-            coverage_id = file_info.eo_id,
-            eo_id = file_info.eo_id,
-            extent = extent_record,
-            range_type = range_type_record,
-            eo_metadata = eo_metadata_record,
-            lineage = lineage_record,
-            automatic = automatic,
-            visible = visible
-        )
-        
-        self.__model = dataset
-        
-        if container is not None:
-            container.addCoverage(self.getType(), self.__model.pk)
-        
-        
     def _updateModel(self, params):
         file_info = params.get("file_info")
         automatic = params.get("automatic")
@@ -580,12 +682,8 @@ class RectifiedDatasetWrapper(EODatasetWrapper, RectifiedGridWrapper):
     def _getAttrValue(self, attr_name):
         if attr_name == "eo_id":
             return self.__model.eo_id
-        elif attr_name == "filename":
-            return self.__model.file.path
-        elif attr_name == "metadata_filename":
-            return self.__model.file.metadata_path
-        elif attr_name == "metadata_format":
-            return self.__model.file.metadata_format
+        elif attr_name == "data_package":
+            return self.__model.data_package
         elif attr_name == "srid":
             return self.__model.extent.srid
         elif attr_name == "size_x":
@@ -608,12 +706,8 @@ class RectifiedDatasetWrapper(EODatasetWrapper, RectifiedGridWrapper):
     def _setAttrValue(self, attr_name, value):
         if attr_name == "eo_id":
             self.__model.eo_id = value
-        elif attr_name == "filename":
-            self.__model.file.path = value
-        elif attr_name == "metadata_filename":
-            self.__model.file.metadata_path = value
-        elif attr_name == "metadata_format":
-            self.__model.file.metadata_format = value
+        elif attr_name == "data_package":
+            self.__model.data_package = value
         elif attr_name == "srid":
             self.__model.extent.srid = value
         elif attr_name == "size_x":
@@ -632,6 +726,9 @@ class RectifiedDatasetWrapper(EODatasetWrapper, RectifiedGridWrapper):
             self.__model.visible = value
         elif attr_name == "automatic":
             self.__model.automatic = value
+
+    # END TODO
+    #===========================================================================
     
     #-------------------------------------------------------------------
     # CoverageInterface implementations
@@ -779,6 +876,9 @@ class ReferenceableDatasetWrapper(EODatasetWrapper, ReferenceableGridWrapper):
     def __model(self):
         return self._ResourceWrapper__model
     
+    #===========================================================================
+    # TODO: update and extend this according to new data model
+    
     def _createModel(self, params):
         pass # TODO
     
@@ -820,6 +920,9 @@ class ReferenceableDatasetWrapper(EODatasetWrapper, ReferenceableGridWrapper):
             self.__model.visible = value
         elif attr_name == "automatic":
             self.__model.automatic = value
+    
+    # END TODO
+    #===========================================================================
     
     #-------------------------------------------------------------------
     # CoverageInterface implementations
@@ -901,7 +1004,7 @@ class ReferenceableDatasetWrapper(EODatasetWrapper, ReferenceableGridWrapper):
 ReferenceableDatasetWrapperImplementation = \
 ReferenceableDatasetInterface.implement(ReferenceableDatasetWrapper)
 
-class RectifiedStitchedMosaicWrapper(EOCoverageWrapper, RectifiedGridWrapper):
+class RectifiedStitchedMosaicWrapper(TiledDataWrapper, RectifiedGridWrapper, EOCoverageWrapper):
     """
     This is the wrapper for Rectified Stitched Mosaics. It inherits
     from :class:`EOCoverageWrapper` and :class:`RectifiedGridWrapper`.
@@ -948,14 +1051,46 @@ class RectifiedStitchedMosaicWrapper(EOCoverageWrapper, RectifiedGridWrapper):
     # ResourceInterface implementations
     #-------------------------------------------------------------------
     
-    @property
-    def __model(self):
+    def __get_model(self):
         return self._ResourceWrapper__model
+    
+    def __set_model(self, model):
+        self._ResourceWrapper__model = model
+        
+    __model = property(__get_model, __set_model)
     
     # NOTE: partially implemented in ResourceWrapper
     
-    def _createModel(self, params):
-        pass # TODO
+    def _get_create_dict(self, params):
+        create_dict = super(RectifiedStitchedMosaicWrapper, self)._get_create_dict(params)
+        
+        if "tile_index" not in params:
+            raise InternalError(
+                "Missing mandatory 'tile_index' parameter for RectifiedStitchedMosaic creation."
+            )
+        
+        create_dict["tile_index"] = params["tile_index"].getRecord()
+        
+        
+        
+        return create_dict
+    
+    def _create_model(self, create_dict):
+        self.__model = RectifiedStitchedMosaicRecord.objects.create(
+            **create_dict
+        )
+        
+    def _post_create(self, params):
+        container = params.get("container")
+        if container is not None:
+            container.addCoverage(
+                res_type=self.getType(),
+                res_id=self.__model.pk
+            )
+            
+        if "data_sources" in params:
+            for data_source in params["data_sources"]:
+                self.__model.data_sources.add(data_source.getRecord())
     
     def _updateModel(self, params):
         pass # TODO
@@ -1046,11 +1181,11 @@ class RectifiedStitchedMosaicWrapper(EOCoverageWrapper, RectifiedGridWrapper):
         returned; in case no matching coverages are found an empty list
         will be returned.
         """
+
+        _filter_exprs = []
         
-        if filter_exprs is None:
-            _filter_exprs = []
-        else:
-            _filter_exprs = filter_exprs
+        if filter_exprs is not None:
+            _filter_exprs.extend(filter_exprs)
         
         self_expr = System.getRegistry().getFromFactory(
             "resources.coverages.filters.CoverageExpressionFactory",
@@ -1154,6 +1289,11 @@ class RectifiedStitchedMosaicWrapper(EOCoverageWrapper, RectifiedGridWrapper):
         return list(
             self.__model.data_dirs.values_list('dir', flat=True)
         )
+
+    def getDataSources(self):
+        return list(
+            self.__model.data_sources.values_list('data_sources', flat=True)
+        )
     
     def getImagePattern(self):
         """
@@ -1167,7 +1307,7 @@ class RectifiedStitchedMosaicWrapper(EOCoverageWrapper, RectifiedGridWrapper):
 RectifiedStitchedMosaicWrapperImplementation = \
 RectifiedStitchedMosaicInterface.implement(RectifiedStitchedMosaicWrapper)
 
-class DatasetSeriesWrapper(ResourceWrapper, EOMetadataWrapper):
+class DatasetSeriesWrapper(EOMetadataWrapper, ResourceWrapper):
     """
     This is the wrapper for Dataset Series. It inherits from
     :class:`EOMetadataWrapper`. It implements
@@ -1190,12 +1330,42 @@ class DatasetSeriesWrapper(ResourceWrapper, EOMetadataWrapper):
     
     # NOTE: partially implemented by ResourceWrapper
     
-    @property
-    def __model(self):
+    def __get_model(self):
         return self._ResourceWrapper__model
     
-    def _createModel(self, params):
-        pass # TODO
+    def __set_model(self, model):
+        self._ResourceWrapper__model = model
+        
+    __model = property(__get_model, __set_model)
+        
+    def _get_create_dict(self, params):
+        create_dict = super(DatasetSeriesWrapper, self)._get_create_dict(params)
+        
+        layer_metadata = params.get("layer_metadata")
+        
+        if layer_metadata:
+            create_dict["layer_metadata"] = []
+            
+            for key, value in layer_metadata.items():
+                create_dict["layer_metadata"].append(
+                    LayerMetadataRecord.objects.get_or_create(
+                        key=key, value=value
+                    )[0]
+                )
+        
+        return create_dict
+    
+    def _create_model(self, create_dict):
+        self.__model = DatasetSeriesRecord.objects.create(**create_dict)
+    
+    def _post_create(self, params):
+        try:
+            for data_source in params["data_sources"]:
+                self.__model.data_sources.add(data_source.getRecord())
+        except KeyError:
+            pass
+    
+    # use default _post_create() which does nothing
         
     def _updateModel(self, params):
         pass # TODO
@@ -1229,10 +1399,10 @@ class DatasetSeriesWrapper(ResourceWrapper, EOMetadataWrapper):
         will be returned.
         """
         
-        if filter_exprs is None:
-            _filter_exprs = []
-        else:
-            _filter_exprs = filter_exprs
+        _filter_exprs = []
+
+        if filter_exprs is not None:
+            _filter_exprs.extend(filter_exprs)
         
         self_expr = System.getRegistry().getFromFactory(
             "resources.coverages.filters.CoverageExpressionFactory",

@@ -4,6 +4,7 @@
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
+#          Fabian Schindler <fabian.schindler@eox.at>
 #
 #-------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
@@ -27,37 +28,45 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from eoxserver.core.exceptions import EOxSException
- 
-class MetadataException(EOxSException):
+from eoxserver.backends.models import (
+    FTPStorage, RasdamanStorage, LocalPath, 
+    RemotePath, RasdamanLocation, CacheFile
+) 
+
+from django.contrib import admin
+
+#===============================================================================
+# FTP Storage Admin
+#===============================================================================
+
+class RemotePathInline(admin.TabularInline):
+    model = RemotePath
+class FTPStorageAdmin(admin.ModelAdmin):
+    inlines = (RemotePathInline, )
+
+admin.site.register(FTPStorage, FTPStorageAdmin)
+
+#===============================================================================
+# Rasdaman Storage Admin
+#===============================================================================
+
+class RasdamanLocationInline(admin.TabularInline):
+    model = (RasdamanLocation, )
+class RasdamanStorageAdmin(admin.ModelAdmin):
     pass
 
-class NoSuchCoverageException(EOxSException):
+admin.site.register(RasdamanStorage, RasdamanStorageAdmin)
+
+#===============================================================================
+# 
+#===============================================================================
+
+class LocalPathAdmin(admin.ModelAdmin):
     pass
 
-class NoSuchDatasetSeriesException(EOxSException):
+admin.site.register(LocalPath, LocalPathAdmin)
+
+class CacheFileAdmin(admin.ModelAdmin):
     pass
 
-class SynchronizationErrors(EOxSException):
-    def __init__(self, *errors):
-        self.errors = errors
-        if len(errors):
-            self.msg = errors[0]
-    
-    def __iter__(self):
-        return iter(self.errors)
-
-    def __str__(self):
-        return str(self.errors)
-
-class EngineError(EOxSException):
-    """
-    This error shall be raised when a coverage engine (e.g. GDAL) fails.
-    """
-    pass
-
-class ManagerError(EOxSException):
-    """
-    This error shall be raised when the Manager has encountered an error.
-    """
-    pass
+admin.site.register(CacheFile, CacheFileAdmin)
