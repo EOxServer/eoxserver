@@ -36,8 +36,11 @@ from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
 
 from eoxserver.core.models import Resource
+from eoxserver.backends.models import (
+    Storage, Location, LocalPath, RemotePath,
+    RasdamanLocation, CacheFile
+)
 from eoxserver.resources.coverages.validators import validateEOOM
-from eoxserver.resources.coverages.metadata import MetadataInterfaceFactory
 
 NCNameValidator = RegexValidator(re.compile(r'^[a-zA-z_][a-zA-Z0-9_.-]*$'), message="This field must contain a valid NCName.")
 
@@ -153,20 +156,6 @@ class LayerMetadataRecord(models.Model):
         verbose_name = "Layer Metadata"
         verbose_name_plural = "Layer Metadata"
 
-class FileRecord(models.Model):
-    path = models.CharField(max_length=1024)
-    #file = models.FileField(upload_to='files') # TODO
-    quicklook_path = models.CharField(max_length=1024, blank=True)
-    metadata_path = models.CharField(max_length=1024, blank=True)
-    metadata_format = models.CharField(max_length=64, blank=True)
-
-    def __unicode__(self):
-        return self.path
-
-    class Meta:
-        verbose_name = "File"
-        verbose_name_plural = "Files"
-
 class LineageRecord(models.Model):
 
     class Meta:
@@ -197,36 +186,83 @@ class EOMetadataRecord(models.Model):
           GML
         * check that the footprint is the same as in EO GML
         """
-        EPSILON = 1e-10
+        # TODO
         
-        if self.eo_gml:
-            md_int = MetadataInterfaceFactory.getMetadataInterface(self.eo_gml, "eogml")
+        #EPSILON = 1e-10
+        
+        #if self.eo_gml:
+            #md_int = MetadataInterfaceFactory.getMetadataInterface(self.eo_gml, "eogml")
             
-            if self.timestamp_begin != md_int.getBeginTime().replace(tzinfo=None):
-                raise ValidationError("EO GML acquisition begin time does not match.")
-            if self.timestamp_end != md_int.getEndTime().replace(tzinfo=None):
-                raise ValidationError("EO GML acquisition end time does not match.")
-            if self.footprint is not None:
-                if not self.footprint.equals_exact(GEOSGeometry(md_int.getFootprint()), EPSILON * max(self.footprint.extent)): # compare the footprints with a tolerance in order to account for rounding and string conversion errors
-                    raise ValidationError("EO GML footprint does not match.")
+            #if self.timestamp_begin != md_int.getBeginTime().replace(tzinfo=None):
+                #raise ValidationError("EO GML acquisition begin time does not match.")
+            #if self.timestamp_end != md_int.getEndTime().replace(tzinfo=None):
+                #raise ValidationError("EO GML acquisition end time does not match.")
+            #if self.footprint is not None:
+                #if not self.footprint.equals_exact(GEOSGeometry(md_int.getFootprint()), EPSILON * max(self.footprint.extent)): # compare the footprints with a tolerance in order to account for rounding and string conversion errors
+                    #raise ValidationError("EO GML footprint does not match.")
+        
+        pass
+
+class DataSource(models.Model): # Maybe make two sub models for local and remote storages.
+    """
+    
+    """
+    location = models.ForeignKey(Location, related_name="data_sources")
+    search_pattern = models.CharField(max_length=1024, null=True)
+    
+    class Meta:
+        unique_together = ('location', 'search_pattern')
+
+class DataPackage(models.Model):
+    data_package_type = models.CharField(max_length=32)
+    metadata_format_name = models.CharField(max_length=128, null=True, blank=True)
+    
+class LocalDataPackage(DataPackage):
+    DATA_PACKAGE_TYPE = "local"
+    
+    data_location = models.ForeignKey(LocalPath, related_name="data_file_packages")
+    metadata_location = models.ForeignKey(LocalPath, related_name="metadata_file_packages", null=True)
+    
+    def __unicode__(self):
+        return ("Local Data Package: %s" % self.data_location)
+
+class RemoteDataPackage(DataPackage):
+    DATA_PACKAGE_TYPE = "remote"
+    
+    data_location = models.ForeignKey(RemotePath, related_name="data_file_packages")
+    metadata_location = models.ForeignKey(RemotePath, related_name="metadata_file_packages", null=True)
+    
+    cache_file = models.ForeignKey(CacheFile, related_name="remote_data_packages", null=True)
+
+class RasdamanDataPackage(DataPackage):
+    DATA_PACKAGE_TYPE = "rasdaman"
+    
+    data_location = models.ForeignKey(RasdamanLocation, related_name="data_packages")
+    metadata_location = models.ForeignKey(LocalPath, related_name="rasdaman_metadata_file_packages", null=True)
+
+class TileIndex(models.Model):
+    storage_dir = models.CharField(max_length=1024)
 
 class CoverageRecord(Resource):
     coverage_id = models.CharField("Coverage ID", max_length=256, unique=True, validators=[NCNameValidator])
     range_type = models.ForeignKey(RangeTypeRecord)
     layer_metadata = models.ManyToManyField(LayerMetadataRecord, null=True, blank=True)
+    automatic = models.BooleanField(default=False) # True means that the dataset was automatically generated from a dataset series's data dir
+    data_source = models.ForeignKey(DataSource, related_name="%(class)s_set", null=True) # Has to be set if automatic is true.
 
-    class Meta:
-        abstract = True
+    def clean(self):
+        if self.automatic and self.data_source is None:
+            raise ValidationError('DataSource has to be set if automatic is true.')
 
-class SingleFileCoverageRecord(CoverageRecord):
+class PlainCoverageRecord(CoverageRecord):
     extent = models.ForeignKey(ExtentRecord, related_name = "single_file_coverages")
-    file = models.ForeignKey(FileRecord, related_name = "single_file_coverages")
+    data_package = models.ForeignKey(DataPackage, related_name="plain_coverages")
 
     class Meta:
         verbose_name = "Single File Coverage"
         verbose_name_plural = "Single File Coverages"
 
-class EOCoverageRecord(CoverageRecord):
+class EOCoverageMixIn(models.Model):
     eo_id = models.CharField("EO ID", max_length=256, unique=True, validators=[NCNameValidator])
     eo_metadata = models.OneToOneField(EOMetadataRecord,
                                        related_name="%(class)s_set",
@@ -239,13 +275,12 @@ class EOCoverageRecord(CoverageRecord):
     def delete(self):
         eo_metadata = self.eo_metadata
         lineage = self.lineage
-        super(EOCoverageRecord, self).delete()
+        super(EOCoverageMixIn, self).delete()
         eo_metadata.delete()
         lineage.delete()
 
-class EODatasetRecord(EOCoverageRecord):
-    file = models.ForeignKey(FileRecord, related_name="%(class)s_set")
-    automatic = models.BooleanField(default=False) # True means that the dataset was automatically generated from a dataset series's data dir
+class EODatasetMixIn(EOCoverageMixIn):
+    data_package = models.ForeignKey(DataPackage, related_name="%(class)s_set")
     visible = models.BooleanField(default=False) # True means that the dataset is visible in the GetCapabilities response
 
     def __unicode__(self):
@@ -254,14 +289,14 @@ class EODatasetRecord(EOCoverageRecord):
     class Meta:
         abstract=True
         
-class RectifiedDatasetRecord(EODatasetRecord):
+class RectifiedDatasetRecord(CoverageRecord, EODatasetMixIn):
     extent = models.ForeignKey(ExtentRecord, related_name="rect_datasets")
     
     class Meta:
         verbose_name = "Rectified Dataset"
         verbose_name_plural = "Rectified Datasets"
 
-class ReferenceableDatasetRecord(EODatasetRecord):
+class ReferenceableDatasetRecord(CoverageRecord, EODatasetMixIn):
     size_x = models.IntegerField()
     size_y = models.IntegerField()
     
@@ -269,12 +304,10 @@ class ReferenceableDatasetRecord(EODatasetRecord):
         verbose_name = "Referenceable Dataset"
         verbose_name_plural = "Referenceable Datasets"
 
-class RectifiedStitchedMosaicRecord(EOCoverageRecord):
+class RectifiedStitchedMosaicRecord(CoverageRecord, EOCoverageMixIn):
     extent = models.ForeignKey(ExtentRecord, related_name="rect_stitched_mosaics")
-    image_pattern = models.CharField(max_length=1024)
-    storage_dir = models.CharField("Storage directory",
-                                   max_length=1024,
-                                   help_text="Directory where cached data will be stored.")
+    data_sources = models.ManyToManyField(DataSource, related_name="rect_stitched_mosaics", null=True)
+    tile_index = models.ForeignKey(TileIndex, related_name="rect_stitched_mosaics")
     rect_datasets = models.ManyToManyField(RectifiedDatasetRecord,
                                            null=True, blank=True,
                                            related_name="rect_stitched_mosaics",
@@ -294,23 +327,12 @@ class RectifiedStitchedMosaicRecord(EOCoverageRecord):
         super(RectifiedStitchedMosaicRecord, self).delete()
         eo_metadata.delete()
 
-class MosaicDataDirRecord(models.Model):
-    mosaic = models.ForeignKey(RectifiedStitchedMosaicRecord, related_name = "data_dirs")
-    dir = models.CharField("Directory", max_length=1024)
-
-    def __unicode__(self):
-        return self.dir
-
-    class Meta:
-        verbose_name = "Mosaic Data Directory"
-        verbose_name_plural = "Mosaic Data Directories"
-
 class DatasetSeriesRecord(Resource):
     eo_id = models.CharField("EO ID", max_length=256, unique=True, validators=[NCNameValidator])
     eo_metadata = models.OneToOneField(EOMetadataRecord,
                                        related_name="dataset_series_set",
                                        verbose_name="EO Metadata Entry")
-    image_pattern = models.CharField(max_length=1024)
+    data_sources = models.ManyToManyField(DataSource, related_name="dataset_series_set", null=True)    
     rect_stitched_mosaics = models.ManyToManyField(RectifiedStitchedMosaicRecord,
                                                    blank=True, null=True,
                                                    related_name="dataset_series_set",
@@ -342,14 +364,3 @@ class DatasetSeriesRecord(Resource):
                 dataset.delete()
         super(DatasetSeriesRecord, self).delete()
         eo_metadata.delete()
-
-class DataDirRecord(models.Model):
-    dataset_series = models.ForeignKey(DatasetSeriesRecord, related_name="data_dirs")
-    dir = models.CharField("Directory", max_length=1024)
-
-    def __unicode__(self):
-        return self.dir
-
-    class Meta:
-        verbose_name = "Data Directory"
-        verbose_name_plural = "Data Directories"

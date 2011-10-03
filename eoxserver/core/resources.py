@@ -32,8 +32,12 @@ from eoxserver.core.registry import (
     RegisteredInterface, FactoryInterface
 )
 from eoxserver.core.interfaces import *
-from eoxserver.core.models import *
-from eoxserver.core.exceptions import InternalError, UnknownAttribute
+from eoxserver.core.models import (
+    Resource, ClassRelation
+)
+from eoxserver.core.exceptions import (
+    InternalError, UnknownAttribute, FactoryQueryAmbiguous
+)
 
 #-----------------------------------------------------------------------
 # Interfaces
@@ -349,7 +353,11 @@ class ResourceWrapper(object):
         """
         
         if self.__mutable:
-            self._createModel(params)
+            create_dict = self._get_create_dict(params)
+            
+            self._create_model(create_dict)
+            
+            self._post_create(params)
         else:
             raise InternalError(
                 "Cannot create model for immutable resource."
@@ -468,8 +476,14 @@ class ResourceWrapper(object):
                 "Cannot set attributes on immutable resources."
             )
     
-    def _createModel(self, params):
+    def _get_create_dict(self, params):
+        return {}
+    
+    def _create_model(self, create_dict):
         raise InternalError("Not implemented.")
+        
+    def _post_create(self, params):
+        pass
     
     def _updateModel(self, params):
         raise InternalError("Not implemented.")
@@ -886,10 +900,14 @@ class ResourceFactory(object):
         criteria, or ``False`` otherwise.
         
         * ``subj_id``: the id of the calling component
+        * ``obj_id``: the id of the requested resource
         * ``impl_ids``: the implementation IDs of the resource classes
           to be taken into account
         * ``filter_exprs``: a list of filter expressions that constrain
           the resources
+        
+        Note that ``filter_exprs`` will not be taken into account when
+        ``obj_id`` is given.
         
         The ``subj_id`` argument will be used to check for relations to
         the resources (not yet implemented).
@@ -897,8 +915,15 @@ class ResourceFactory(object):
         
         subj_id = kwargs.get("subj_id") # TODO: relation management
         
+        obj_id = kwargs.get("obj_id")
         impl_ids = kwargs.get("impl_ids")
         filter_exprs = kwargs.get("filter_exprs", [])
+        
+        if obj_id is not None:
+            return any([
+                self._getById(ImplementationCls, obj_id) is not None
+                for ImplementationCls in self._getImplementationClasses(impl_ids)
+            ])
         
         for ImplementationCls in self._getImplementationClasses(impl_ids):
             models = self._filter(ImplementationCls, filter_exprs)
@@ -964,9 +989,9 @@ class ResourceFactory(object):
                 ImplClasses
             )
             if len(matching_classes) == 0:
-                raise InternalError("Unknown or incompatible resource class '%s'" % res_class_id)
+                raise InternalError("Unknown or incompatible resource class '%s'" % impl_id)
             elif len(matching_classes) > 1:
-                raise InternalError("Ambiguous implementation id '%s'" % res_class_id)
+                raise InternalError("Ambiguous implementation id '%s'" % impl_id)
             else:
                 return matching_classes[0]
         elif len(ImplClasses) == 1:

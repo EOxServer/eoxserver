@@ -34,7 +34,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 
 class EOOMSchema(object):
-    SCHEMA_LOCATION = os.path.join(settings.PROJECT_DIR, "testing", "schemas", "omeo", "eop.xsd")
+    SCHEMA_LOCATION = os.path.join(settings.PROJECT_DIR, "..", "schemas", "omeo", "eop.xsd")
     schema = None
     
     @classmethod

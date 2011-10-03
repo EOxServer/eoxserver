@@ -138,6 +138,7 @@ INSTALLED_APPS = (
     'eoxserver.core',
     'eoxserver.services',
     'eoxserver.resources.coverages',
+    'eoxserver.backends',
     'eoxserver.testing',
 )
 

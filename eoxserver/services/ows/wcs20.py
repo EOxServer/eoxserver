@@ -30,7 +30,6 @@
 import re
 import os.path
 import sys
-from copy import deepcopy
 from xml.dom import minidom
 
 from django.conf import settings
@@ -49,7 +48,7 @@ from eoxserver.resources.coverages.filters import (
     BoundedArea, Slice, TimeInterval
 )
 from eoxserver.resources.coverages.helpers import (
-    CoverageSet, expandDatasetSeries, expandRectifiedStitchedMosaic
+    CoverageSet
 )
 from eoxserver.services.interfaces import (
     VersionHandlerInterface, OperationHandlerInterface
@@ -142,7 +141,15 @@ class WCS20GetCapabilitiesHandler(WCSCommonHandler):
         if len(datasets) == 0:
             raise InternalError("Misconfigured coverage '%s' has no file data." % coverage.getCoverageId())
         else:
-            layer.data = os.path.abspath(datasets[0].getFilename()) # we just need an arbitrary file here
+            connector = System.getRegistry().findAndBind(
+                intf_id = "services.mapserver.MapServerDataConnectorInterface",
+                params = {
+                    "services.mapserver.data_structure_type": \
+                        coverage.getDataStructureType()
+                }
+            )
+            
+            layer = connector.configure(layer, coverage)
         
         return layer
 
@@ -402,20 +409,18 @@ class WCS20DescribeEOCoverageSetHandler(BaseRequestHandler):
                 )
                 if dataset_series is not None:
                     dataset_series_set.append(dataset_series)
-                    coverages.union(expandDatasetSeries(dataset_series, filter_exprs))
+                    coverages.union(dataset_series.getEOCoverages(filter_exprs))
+                    
                 else:
                     coverage = System.getRegistry().getFromFactory(
                         "resources.coverages.wrappers.EOCoverageFactory",
                         {"obj_id": eo_id}
                     )
-                    
                     if coverage is not None:
-                        if coverage.getType() == "eo.rect_stitched_mosaic":
+                        if coverage.matches(filter_exprs):
                             coverages.add(coverage)
-                            coverages.union(expandRectifiedStitchedMosaic(coverage, filter_exprs))
-                        else:
-                            if coverage.getDatasets(deepcopy(filter_exprs)):
-                                coverages.add(coverage)
+                        for dataset in coverage.getDatasets(filter_exprs):
+                            coverages.add(dataset)
                     else:
                         raise InvalidRequestException(
                             "No coverage or dataset series with EO ID '%s' found" % eo_id,
@@ -513,31 +518,25 @@ class WCS20GetCoverageHandler(WCSCommonHandler):
             
             if len(datasets) == 0:
                 raise InvalidRequestException("Image extent does not intersect with desired region.", "ExtentError", "extent") # TODO: check if this is the right exception report
-            elif len(datasets) == 1:
-                layer.data = os.path.abspath(datasets[0].getFilename())
-                
-            else:
+            elif len(datasets) > 1:
                 raise InternalError("A single file or EO dataset should never return more than one dataset.")
-            
-        elif coverage.getType() == "eo.rect_stitched_mosaic":
-           
-            layer.tileindex = os.path.abspath(coverage.getShapeFilePath())
-            layer.tileitem = "location"
+
+        connector = System.getRegistry().findAndBind(
+            intf_id = "services.mapserver.MapServerDataConnectorInterface",
+            params = {
+                "services.mapserver.data_structure_type": \
+                    coverage.getDataStructureType()
+            }
+        )
         
+        layer = connector.configure(layer, coverage)
+
         # this was under the "eo.rect_mosaic"-path. minor accurracy issues
         # have evolved since making it accissible to all paths
-             
-        extent = coverage.getExtent()
-        srid = coverage.getSRID()
-        size = coverage.getSize()
         rangetype = coverage.getRangeType()
-        resolution = ((extent[2]-extent[0]) / float(size[0]),
-                      (extent[1]-extent[3]) / float(size[1]))
-        
-        layer.setMetaData("wcs_extent", "%.10f %.10f %.10f %.10f" % extent)
-        layer.setMetaData("wcs_resolution", "%.10f %.10f" % resolution)
-        layer.setMetaData("wcs_size", "%d %d" % size)
-        layer.setMetaData("wcs_nativeformat", "GTiff")
+
+        #layer.setMetaData("wcs_nativeformat", coverage.getDataFormat().getDriverName())
+        layer.setMetaData("wcs_nativeformat", "GTiff") # TODO: make this configurable like in the line above
         layer.setMetaData("wcs_bandcount", "%d" % len(rangetype.bands))
 
         bands = " ".join([band.name for band in rangetype.bands])
@@ -734,7 +733,7 @@ class WCS20SubsetDecoder(object):
             else:
                 dt_str = slice[2].strip('"')
         else:
-            dt_str = token
+            dt_str = slice[0] # TODO: FIXME
         
         try:
             slice_point = getDateTime(dt_str)

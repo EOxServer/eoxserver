@@ -28,16 +28,18 @@
 # THE SOFTWARE.
 #-----------------------------------------------------------------------
 
-from eoxserver.testing.core import (
-    DatasetSeriesSynchronizationTestCase, 
-    RectifiedStitchedMosaicSynchronizationTestCase,
-    BASE_FIXTURES
+from eoxserver.core.system import System
+from eoxserver.testing.core import BASE_FIXTURES
+from eoxserver.resources.coverages.testbase import (
+    RectifiedDatasetCreateTestCase, RectifiedDatasetUpdateTestCase,
+    RectifiedDatasetDeleteTestCase, RectifiedStitchedMosaicCreateTestCase,
+    RectifiedStitchedMosaicUpdateTestCase, RectifiedStitchedMosaicDeleteTestCase,
+    DatasetSeriesCreateTestCase, DatasetSeriesUpdateTestCase,
+    DatasetSeriesDeleteTestCase
 )
-from eoxserver.resources.coverages.models import (
-    DatasetSeriesRecord, EOMetadataRecord, DataDirRecord,
-    RectifiedDatasetRecord, RangeTypeRecord,
-    LineageRecord, FileRecord, ExtentRecord
-, RectifiedStitchedMosaicRecord)
+from eoxserver.resources.coverages.geo import GeospatialMetadata
+from eoxserver.resources.coverages.metadata import EOMetadata
+
 from django.utils.datetime_safe import datetime
 from django.contrib.gis.geos import GEOSGeometry
 from django.conf import settings
@@ -45,215 +47,181 @@ from django.conf import settings
 import logging
 import os.path
 
+
 logging.basicConfig(
     filename=os.path.join('logs', 'test.log'),
     level=logging.DEBUG,
     format="[%(asctime)s][%(levelname)s] %(message)s"
 )
 
-class DatasetSeriesRemoveDataDirTestCase(DatasetSeriesSynchronizationTestCase):
-    """ Remove the DataDir from a DatasetSeries. After
-        the synchronization, all Datasets in that 
-        directory should be removed from the
-        DatasetSeries.
-    """
-    
-    fixtures = BASE_FIXTURES + ["testing_coverages.json"]
-    
-    def setUp(self):
-        dss = DatasetSeriesRecord.objects.get(pk=1)
-        dss.data_dirs.all()[0].delete()
-        
-        self.synchronize(dss)
-    
-    def testNumberOfDatasets(self):
-        dss = DatasetSeriesRecord.objects.get(pk=1)
-        self.assertEqual(len(dss.rect_datasets.all()), 0)
-        
-    def testNumberOfMosaics(self):
-        dss = DatasetSeriesRecord.objects.get(pk=1)
-        self.assertEqual(len(dss.rect_stitched_mosaics.all()), 1)
+# create new rectified dataset from a local path
 
-class DatasetSeriesRemoveDatasetFromDataDirTestCase(DatasetSeriesSynchronizationTestCase):
-    """ Remove a Dataset which is included in a DataDir.
-        Upon removal and synchronization, this Dataset 
-        should be re-inserted in the DatasetSeries. 
-    """
-    
-    fixtures = BASE_FIXTURES + ["testing_coverages.json"]
-    
+class DatasetCreateWithLocalPathTestCase(RectifiedDatasetCreateTestCase):
     def setUp(self):
-        coverage_id = "MER_FRS_1PNPDE20060830_100949_000001972050_"\
-                      "00423_23523_0079_uint16_reduced_compressed"
-        dss = DatasetSeriesRecord.objects.get(pk=1)
-        ds = RectifiedDatasetRecord.objects.get(coverage_id=coverage_id)
-        dss.rect_datasets.remove(ds)
-        
-        self.synchronize(dss)
-        
-    def testNumberOfDatasets(self):
-        dss = DatasetSeriesRecord.objects.get(pk=1)
-        self.assertEqual(len(dss.rect_datasets.all()), 3)
-        
-class DatasetSeriesAddAutomaticDatasetTestCase(DatasetSeriesSynchronizationTestCase):
-    """ Add an automatic Dataset to the DatasetSeries. 
-        After the synchronization, the Dataset should
-        be removed again.
-    """
-    
-    fixtures = BASE_FIXTURES + ["testing_coverages.json"]
-    
-    def setUp(self):
-        self.coverage_id = "mosaic_MER_FRS_1PNPDE20060822_092058_"\
-                           "000001972050_00308_23408_0077_RGB_reduced"
-        dss = DatasetSeriesRecord.objects.get(pk=1)
-        ds = RectifiedDatasetRecord.objects.get(coverage_id=self.coverage_id)
-        dss.rect_datasets.through.objects.create(datasetseriesrecord=dss,
-                                                 rectifieddatasetrecord=ds)
-        
-        self.synchronize(dss)
-    
-    def testNumberOfDatasets(self):
-        dss = DatasetSeriesRecord.objects.get(pk=1)
-        self.assertEqual(len(dss.rect_datasets.all()), 3)
-        
-class DatasetSeriesAddManualDatasetTestCase(DatasetSeriesSynchronizationTestCase):
-    """ Add a manual Dataset to the DatasetSeries. 
-        It should still be linked to the DatasetSeries
-        after the synchronization.
-    """
-    
-    fixtures = BASE_FIXTURES + ["testing_coverages.json"]
-    
-    def setUp(self):
-        self.coverage_id = "mosaic_MER_FRS_1PNPDE20060822_092058_"\
-                           "000001972050_00308_23408_0077_RGB_reduced"
-        dss = DatasetSeriesRecord.objects.get(pk=1)
-        
-        # set to manually created Dataset
-        ds = RectifiedDatasetRecord.objects.get(coverage_id=self.coverage_id)
-        ds.automatic = False
-        ds.save()
-        
-        dss.rect_datasets.through.objects.create(datasetseriesrecord=dss,
-                                                 rectifieddatasetrecord=ds)
-        
-        self.synchronize(dss)
-    
-    def testNumberOfDatasets(self):
-        dss = DatasetSeriesRecord.objects.get(pk=1)
-        self.assertEqual(len(dss.rect_datasets.all()), 4)
+        args = {
+            "local_path": os.path.join(settings.PROJECT_DIR,
+                          "data/meris/MER_FRS_1P_reduced", 
+                          "ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.tif"),
+            "range_type_name": "RGB",
+        }
+        self.wrapper = self.create(**args)
 
-class DatsetSeriesNewDataDirTestCase(DatasetSeriesSynchronizationTestCase):
-    """ Create an empty DatasetSeries and add a DataDir.
-        Upon synchronization, the DatasetSeries should 
-        contain 3 Datasets.
-    """
+    def testContents(self):
+        pass
     
-    def setUp(self):
-        dss = DatasetSeriesRecord.objects.create(
-            eo_id="testDatasetSeries",
-            image_pattern="*.tif",
-            
-            eo_metadata=EOMetadataRecord.objects.create(
-                timestamp_begin=datetime(year=2011, month=1, day=1),
-                timestamp_end=datetime(year=2011, month=1, day=1),
-                footprint=GEOSGeometry('POLYGON(( 10 10, 10 20, 20 20, 20 15, 10 10))')
-            )
-        )
-        
-        DataDirRecord.objects.create(dataset_series=dss,
-                                     # TODO: get path from config!!!
-                                     dir=os.path.abspath(os.path.join(settings.PROJECT_DIR,
-                                                                      "data/meris/MER_FRS_1P_reduced")))
-        
-        self.synchronize(dss)
-        
-    def testNumberOfDatasets(self):
-        dss = DatasetSeriesRecord.objects.get(eo_id="testDatasetSeries")
-        self.assertEqual(len(dss.rect_datasets.all()), 3)
+# create new rectified dataset from a local path with metadata
 
-class DatasetSeriesNewDataDirReservedTestCase(DatasetSeriesSynchronizationTestCase):
-    """ Add a DataDir to a newly created DatasetSeries.
-        The same DataDir is already included with another
-        DatasetSeries.
-    """
-    
-    fixtures = BASE_FIXTURES + ["testing_coverages.json"]
-    
+class DatasetCreateWithLocalPathAndMetadataTestCase(RectifiedDatasetCreateTestCase):
     def setUp(self):
-        dss = DatasetSeriesRecord.objects.create(
-            eo_id="testDatasetSeries",
-            image_pattern="*.tif",
-            
-            eo_metadata=EOMetadataRecord.objects.create(
-                timestamp_begin=datetime(year=2011, month=1, day=1),
-                timestamp_end=datetime(year=2011, month=1, day=1),
-                footprint=GEOSGeometry('POLYGON(( 10 10, 10 20, 20 20, 20 15, 10 10))')
-            )
-        )
-        
-        dd = DataDirRecord.objects.create(dataset_series=dss,
-                                          dir=os.path.abspath(os.path.join(settings.PROJECT_DIR,
-                                                                           "data/meris/MER_FRS_1P_reduced")))
-        
-        self.synchronize(dss)
-        
-        dd.remove()
-        
-        self.synchronize(dss)
-
-    def testNumberOfDatasets(self):
-        dss = DatasetSeriesRecord.objects.get(eo_id="testDatasetSeries")
-        self.assertEqual(len(dss.rect_datasets.all()), 3)
-            
-            
-class RectifiedStitchedMosaicNewDatasetTestCase(RectifiedStitchedMosaicSynchronizationTestCase):
-    """ Add a newly created Dataset to the 
-        RectifiedStitchedMosaic.
-    """
-    
-    fixtures = BASE_FIXTURES + ["testing_coverages.json"]
-    
-    def setUp(self):
-        rsm = RectifiedStitchedMosaicRecord.objects.get(pk=1)
-        ds = RectifiedDatasetRecord.objects.create(
-            range_type=RangeTypeRecord.objects.get(name="RGB"),
-            eo_metadata=EOMetadataRecord.objects.create(
-                timestamp_begin=datetime(year=2011, month=1, day=1),
-                timestamp_end=datetime(year=2011, month=1, day=1),
-                footprint=GEOSGeometry('POLYGON(( 10 10, 10 20, 20 20, 20 15, 10 10))')
+        args = {
+            "local_path": os.path.join(
+                settings.PROJECT_DIR,
+                "data/meris/MER_FRS_1P_reduced", 
+                "ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.tif"
             ),
-            lineage=LineageRecord.objects.create(),
-            file=FileRecord.objects.create(
-                                           # Get path from config
-                path="data/meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_"\
-                     "1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif"
-            ),
-            extent=ExtentRecord.objects.create(
-                srid=4326,
-                minx=10,
-                miny=10,
-                maxx=20,
-                maxy=20,
-                size_x=10,
-                size_y=10
+            "range_type_name": "RGB",
+            "md_local_path": os.path.join(
+                settings.PROJECT_DIR,
+                "data/meris/MER_FRS_1P_reduced", 
+                "ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.xml"
             )
-        )
+        }
+        self.wrapper = self.create(**args)
+
+    def testContents(self):
+        pass
+
+# create new rectified dataset from a ftp path
+
+# create new rectified dataset from a rasdaman location 
+
+
+
+# create new mosaic and add a local path to locations
+
+class MosaicCreateWithLocalPathTestCase(RectifiedStitchedMosaicCreateTestCase):
+    def setUp(self):
+        args = {
+            "data_dirs": [{
+                "path": os.path.join(settings.PROJECT_DIR,
+                                     "data/meris/MER_FRS_1P_reduced"),
+                "search_pattern": "*.tif",
+                "type": "local"
+            }],
+            "geo_metadata": GeospatialMetadata(
+                srid=4326, size_x=100, size_y=100,
+                extent=(1, 2, 3, 4)
+            ),
+            "range_type_name": "RGB",
+            "eo_metadata": EOMetadata(
+                "SOMEEOID",
+                datetime.now(),
+                datetime.now(),
+                GEOSGeometry("POLYGON((1 2, 3 2, 3 4, 1 4, 1 2))")
+            ),
+            "storage_dir": "/some/storage/dir"
+        }
+        self.wrapper = self.create(**args)
         
-        rsm.rect_datasets.through.objects.create(rectifiedstitchedmosaicrecord=rsm,
-                                                 rectifieddatasetrecord=ds)
+    def testContents(self):
+        # test the number of datasets
+        self.assertEqual(len(self.wrapper.getDatasets()), 3)
         
-        # Enable the RectifiedStitchedMosaicWrapper interface, as it is normally disabled
-        # TODO: remove this, if the interface is enabled by default
-        from eoxserver.core.system import System
-        id = "resources.coverages.wrappers.RectifiedStitchedMosaicWrapper"
-        System.getRegistry().enableImplementation(id)
+        # test validity of datasets
+
+
+# create new mosaic and add a remote path to locations
+class MosaicCreateWithRemotePathTestCase(RectifiedStitchedMosaicCreateTestCase):
+    def setUp(self):
+        args = {
+            "data_dirs": [{
+                "path": "test/MER_FRS_1P_reduced",
+                "search_pattern": "*.tif",
+                "type": "ftp",
+                
+                "host": "hma.eox.at",
+                "user": "anonymous",
+                "password": ""
+            }],
+            "geo_metadata": GeospatialMetadata(
+                srid=4326, size_x=100, size_y=100,
+                extent=(1, 2, 3, 4)
+            ),
+            "range_type_name": "RGB",
+            "eo_metadata": EOMetadata(
+                "SOMEEOID",
+                datetime.now(),
+                datetime.now(),
+                GEOSGeometry("POLYGON((1 2, 3 2, 3 4, 1 4, 1 2))")
+            ),
+            "storage_dir": "/some/storage/dir"
+        }
+        self.wrapper = self.create(**args)
         
-        self.synchronize(rsm)
+    def testContents(self):
+        self.assertEqual(len(self.wrapper.getDatasets()), 3)
+
+# create new mosaic and add a rasdaman location to locations
+
+#class MosaicCreateWithRasdamanLocationTestCase(RectifiedStitchedMosaicCreateTestCase):
+    #def setUp(self):
+        #args = {
+            #"data_dirs": [],
+            #"geo_metadata": GeospatialMetadata(
+                #srid=4326, size_x=100, size_y=100,
+                #extent=(1, 2, 3, 4)
+            #),
+            #"range_type_name": "RGB",
+            #"eo_metadata": EOMetadata(
+                #"SOMEEOID",
+                #datetime.now(),
+                #datetime.now(),
+                #GEOSGeometry("POLYGON((1 2, 3 2, 3 4, 1 4, 1 2))")
+            #),
+            #"storage_dir": "/some/storage/dir"
+        #}
+        #self.wrapper = self.create(**args)
         
-    def testNumberOfDatasets(self):
-        rsm = RectifiedStitchedMosaicRecord.objects.get(pk=1)
-        self.assertEqual(len(rsm.rect_datasets.all()), 4)
         
+    #def testContents(self):
+        #pass
+
+# create dataset series with a local path
+
+class DatasetSeriesCreateWithLocalPathTestCase(DatasetSeriesCreateTestCase):
+    fixtures = BASE_FIXTURES
+    
+    def setUp(self):
+        args = {
+            "data_dirs": [{
+                "path": os.path.join(settings.PROJECT_DIR,
+                                     "data/meris/MER_FRS_1P_reduced"),
+                "search_pattern": "*.tif",
+                "type": "local"
+            }],
+            "eo_metadata": EOMetadata(
+                "SOMEEOID",
+                datetime.now(),
+                datetime.now(),
+                GEOSGeometry("POLYGON((1 2, 3 2, 3 4, 1 4, 1 2))")
+            ),
+        }
+        self.wrapper = self.create(**args)
         
+    def testContents(self):
+        self.assertEqual(len(self.wrapper.getEOCoverages()), 3)
+        
+
+# create dataset series with a remote path
+
+# alter dataset series to remove a location
+
+class DatasetSeriesRemoveLocationTestCase(DatasetSeriesUpdateTestCase):
+    fixtures = BASE_FIXTURES + ["testing_coverages.json"]
+    
+    def setUp(self):
+        pass
+    
+    def testContents(self):
+        pass
+

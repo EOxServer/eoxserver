@@ -656,6 +656,214 @@
         }
     }, 
     {
+        "pk": 83, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.data.LocalDataPackageWrapper", 
+            "intf_id": "resources.coverages.interfaces.DataPackage"
+        }
+    }, 
+    {
+        "pk": 84, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.data.RemoteDataPackageWrapper", 
+            "intf_id": "resources.coverages.interfaces.DataPackage"
+        }
+    }, 
+    {
+        "pk": 85, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.data.RasdamanDataPackageWrapper", 
+            "intf_id": "resources.coverages.interfaces.DataPackage"
+        }
+    }, 
+    {
+        "pk": 86, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.data.TileIndexWrapper", 
+            "intf_id": "resources.coverages.interfaces.TileIndex"
+        }
+    }, 
+    {
+        "pk": 87, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.data.DataPackageFactory", 
+            "intf_id": "core.registry.Factory"
+        }
+    }, 
+    {
+        "pk": 88, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.data.TileIndexFactory", 
+            "intf_id": "core.registry.Factory"
+        }
+    }, 
+    {
+        "pk": 89, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.metadata.NativeMetadataFormat", 
+            "intf_id": "resources.coverages.interfaces.EOMetadataFormat"
+        }
+    }, 
+    {
+        "pk": 90, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.metadata.EOOMFormat", 
+            "intf_id": "resources.coverages.interfaces.EOMetadataFormat"
+        }
+    }, 
+    {
+        "pk": 91, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.metadata.EOMetadata", 
+            "intf_id": "resources.coverages.interfaces.GenericEOMetadata"
+        }
+    }, 
+    {
+        "pk": 92, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.metadata.XMLEOMetadataFileReader", 
+            "intf_id": "resources.coverages.interfaces.EOMetadataReader"
+        }
+    }, 
+    {
+        "pk": 93, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.connectors.LocalFileConnector", 
+            "intf_id": "services.mapserver.MapServerDataConnectorInterface"
+        }
+    }, 
+    {
+        "pk": 94, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.connectors.TiledPackageConnector", 
+            "intf_id": "services.mapserver.MapServerDataConnectorInterface"
+        }
+    }, 
+    {
+        "pk": 95, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.connectors.RasdamanArrayConnector", 
+            "intf_id": "services.mapserver.MapServerDataConnectorInterface"
+        }
+    },
+    {
+        "pk": 96, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "backends.local.LocalStorage", 
+            "intf_id": "backends.interfaces.Storage"
+        }
+    },
+    {
+        "pk": 97, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "backends.local.LocalPathWrapper", 
+            "intf_id": "backends.interfaces.LocalPath"
+        }
+    },
+    {
+        "pk": 98, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "backends.ftp.FTPStorage", 
+            "intf_id": "backends.interfaces.Storage"
+        }
+    },
+    {
+        "pk": 99, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "backends.ftp.RemotePathWrapper", 
+            "intf_id": "backends.interfaces.RemotePath"
+        }
+    },
+    {
+        "pk": 100, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "backends.rasdaman.RasdamanStorage", 
+            "intf_id": "backends.interfaces.Storage"
+        }
+    },
+    {
+        "pk": 101, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "backends.rasdaman.RasdamanArrayWrapper", 
+            "intf_id": "backends.interfaces.RasdamanArray"
+        }
+    },
+    {
+        "pk": 102, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "backends.factories.LocationFactory", 
+            "intf_id": "core.registry.Factory"
+        }
+    },
+    {
+        "pk": 103, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "backends.cache.CacheConfigReader", 
+            "intf_id": "core.readers.ConfigReader"
+        }
+    }, 
+    {
+        "pk": 104, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.data.DataSourceFactory", 
+            "intf_id": "core.records.RecordWrapperFactoryInterface"
+        }
+    }, 
+    {
+        "pk": 105, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.data.DataSourceWrapper", 
+            "intf_id": "backends.interfaces.DataSource"
+        }
+    }, 
+    {
+        "pk": 106, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.covmgrs.DatasetSeriesManager", 
+            "intf_id": "resources.coverages.interfaces.Manager"
+        }
+    }, 
+    {
+        "pk": 107, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.covmgrs.RectifiedStitchedMosaicManager", 
+            "intf_id": "resources.coverages.interfaces.Manager"
+        }
+    }, 
+    {
+        "pk": 108, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.covmgrs.RectifiedDatasetManager", 
+            "intf_id": "resources.coverages.interfaces.Manager"
+        }
+    }, 
+    {
         "pk": 1, 
         "model": "core.component", 
         "fields": {
@@ -1224,6 +1432,188 @@
     }, 
     {
         "pk": 82, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 83, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 84, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 85, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 86, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 87, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 88, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 89, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 90, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 91, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 92, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 93, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 94, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 95, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 96, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 97, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 98, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 99, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 100, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 101, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 102, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 103, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 104, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 105, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 106, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 107, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 108, 
         "model": "core.component", 
         "fields": {
             "enabled": true

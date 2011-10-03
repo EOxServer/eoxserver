@@ -27,24 +27,24 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from django.contrib.gis import admin, forms
+from django.contrib.gis import admin
 from django.contrib import messages
 from django.conf import settings
 from django.http import HttpResponseRedirect
 from django.contrib.admin.util import unquote
 
 from eoxserver.resources.coverages.models import (
-    DataDirRecord, EOMetadataRecord, FileRecord,
-    LayerMetadataRecord, LineageRecord, MosaicDataDirRecord, NilValueRecord,
+    EOMetadataRecord, DataSource,
+    LayerMetadataRecord, LineageRecord, NilValueRecord,
     RectifiedDatasetRecord, BandRecord, RangeType2Band, RangeTypeRecord,
-    RectifiedStitchedMosaicRecord, SingleFileCoverageRecord,
-    DatasetSeriesRecord, ExtentRecord
+    RectifiedStitchedMosaicRecord, PlainCoverageRecord,
+    DatasetSeriesRecord, ExtentRecord, DataPackage
 )
-from eoxserver.resources.coverages.synchronize import (
-    DatasetSeriesSynchronizer,
-    RectifiedStitchedMosaicSynchronizer,
-    SynchronizationErrors
-)
+
+# TODO: replace with CoverageManagers
+
+#from eoxserver.resources.coverages.synchronize import (
+#)
 from eoxserver.core.exceptions import InternalError
 from eoxserver.core.system import System
 from eoxserver.core.admin import ConfirmationAdmin
@@ -59,20 +59,11 @@ logging.basicConfig(
     format="[%(asctime)s][%(levelname)s] %(message)s"
 )
 
-# Grid
-#~ class AxisInline(admin.TabularInline):
-    #~ model = AxisRecord
-    #~ extra = 1
-#~ class RectifiedGridAdmin(admin.ModelAdmin):
-    #~ inlines = (AxisInline, )
-#~ admin.site.register(RectifiedGridRecord, RectifiedGridAdmin)
-
 # NilValue
 class NilValueInline(admin.TabularInline):
     model = BandRecord.nil_values.__getattribute__("through")
     extra = 1
 class NilValueAdmin(admin.ModelAdmin):
-    radio_fields = {"reason": admin.VERTICAL}
     inlines = (NilValueInline, )
 admin.site.register(NilValueRecord, NilValueAdmin)
 
@@ -87,21 +78,20 @@ class BandRecordAdmin(admin.ModelAdmin):
     exclude = ('nil_values', )
 admin.site.register(RangeTypeRecord, RangeTypeAdmin)
 admin.site.register(BandRecord, BandRecordAdmin)
-#admin.site.register(RangeType2Channel)
 
 # SingleFile Coverage
-class SingleFileLayerMetadataInline(admin.TabularInline):
-    model = SingleFileCoverageRecord.layer_metadata.__getattribute__("through")
+class PlainCoverageLayerMetadataInline(admin.TabularInline):
+    model = PlainCoverageRecord.layer_metadata.__getattribute__("through")
     extra = 1
-class CoverageSingleFileAdmin(admin.ModelAdmin):
+class PlainCoverageAdmin(admin.ModelAdmin):
     #list_display = ('coverage_id', 'filename', 'range_type')
     #list_editable = ('filename', 'range_type')
     list_filter = ('range_type', )
     ordering = ('coverage_id', )
     search_fields = ('coverage_id', )
-    inlines = (SingleFileLayerMetadataInline, )
+    inlines = (PlainCoverageLayerMetadataInline, )
     exclude = ('layer_metadata',)
-admin.site.register(SingleFileCoverageRecord, CoverageSingleFileAdmin)
+admin.site.register(PlainCoverageRecord, PlainCoverageAdmin)
 
 
 class StitchedMosaic2DatasetInline(admin.TabularInline):
@@ -135,23 +125,22 @@ class DatasetSeries2DatasetInline(admin.TabularInline):
             )
         return super(DatasetSeries2DatasetInline, self).get_readonly_fields(request, obj)'''
 
-class RectifiedDatasetForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super(RectifiedDatasetForm, self).__init__(*args, **kwargs)
-        if 'eo_metadata' in self.fields:
-            self.fields['eo_metadata'].queryset = EOMetadataRecord.objects.filter(pk=self.instance.eo_metadata.pk)
-        if 'lineage' in self.fields:
-            self.fields['lineage'].queryset = LineageRecord.objects.filter(pk=self.instance.lineage.pk)
+class DataPackageInline(admin.StackedInline):
+    model = DataPackage
+    
+class LineageInline(admin.StackedInline):
+    model = LineageRecord
 
 class RectifiedDatasetAdmin(ConfirmationAdmin):
-    form = RectifiedDatasetForm
-    list_display = ('coverage_id', 'eo_id', 'file', 'range_type', 'extent')
-    list_editable = ('file', 'range_type', 'extent')
+    #list_display = ('coverage_id', 'eo_id', 'data_package', 'range_type', 'extent')
+    list_display = ('coverage_id', 'eo_id', 'range_type', 'extent')
+    #list_editable = ('data_package', 'range_type', 'extent')
+    list_editable = ('range_type', 'extent', )
     list_filter = ('range_type', )
+    
     ordering = ('coverage_id', )
     search_fields = ('coverage_id', )
     inlines = (StitchedMosaic2DatasetInline, DatasetSeries2DatasetInline)
-    raw_id_fields = ('extent', )
     
     # We need to override the bulk delete function of the admin to make
     # sure the overrode delete() method of EOCoverageRecord is
@@ -191,7 +180,7 @@ class RectifiedDatasetAdmin(ConfirmationAdmin):
         if obj is not None and obj.automatic:
             return self.readonly_fields + (
                 'coverage_id', 'eo_id', 'eo_metadata',
-                'lineage', 'file', 'extent',
+                'lineage', 'data_package', 'extent',
                 'layer_metadata', 
             )
             
@@ -208,11 +197,12 @@ class RectifiedDatasetAdmin(ConfirmationAdmin):
         
 admin.site.register(RectifiedDatasetRecord, RectifiedDatasetAdmin)
 
-class MosaicDataDirInline(admin.TabularInline):
-    model = MosaicDataDirRecord
+class DataSourceInline(admin.TabularInline):
+    model = DataSource
     verbose_name = "Stitched Mosaic Data Directory"
     verbose_name_plural = "Stitched Mosaic Data Directories"
     extra = 1
+    fields = ("location", "search_pattern")
 class DatasetSeries2StichedMosaicInline(admin.TabularInline):
     model = DatasetSeriesRecord.rect_stitched_mosaics.__getattribute__("through")
     verbose_name = "Dataset Series to Stitched Mosaic Relation"
@@ -220,13 +210,12 @@ class DatasetSeries2StichedMosaicInline(admin.TabularInline):
     can_delete = False
     extra = 1
 class RectifiedStitchedMosaicAdmin(admin.ModelAdmin):
-    list_display = ('eo_id', 'eo_metadata', 'image_pattern')
-    list_editable = ('eo_metadata', 'image_pattern')
-    list_filter = ('image_pattern', )
+    list_display = ('eo_id', 'eo_metadata', )
+    list_editable = ('eo_metadata', )
     ordering = ('eo_id', )
     search_fields = ('eo_id', )
     filter_horizontal = ('rect_datasets', )
-    inlines = (MosaicDataDirInline, DatasetSeries2StichedMosaicInline, )
+    inlines = (DataSourceInline, DatasetSeries2StichedMosaicInline, )
 
     # Increase the width of the select boxes of the horizontal filter.
     class Media:
@@ -264,8 +253,10 @@ class RectifiedStitchedMosaicAdmin(admin.ModelAdmin):
         
         super(RectifiedStitchedMosaicAdmin, self).save_formset(request, form, formset, change)
         System.init()
-        synchronizer = RectifiedStitchedMosaicSynchronizer(self.mosaic)
-        try:
+        
+        #replace with covmgrs 
+        #synchronizer = RectifiedStitchedMosaicSynchronizer(self.mosaic)
+        """try:
             if change:
                 synchronizer.update()
             else:
@@ -277,9 +268,10 @@ class RectifiedStitchedMosaicAdmin(admin.ModelAdmin):
         except Exception, e:
             messages.error(request, "An unexpected error (%s) occurred during synchronization."%e.__class__.__name__)
             raise
+        """
         
-        for info in synchronizer.infos:
-            messages.info(request, info)
+        #for info in synchronizer.infos:
+        #    messages.info(request, info)
         
         """if formset.model == RectifiedDatasetRecord:
             changed_datasets = formset.save(commit=False)
@@ -334,23 +326,23 @@ class RectifiedStitchedMosaicAdmin(admin.ModelAdmin):
             
 admin.site.register(RectifiedStitchedMosaicRecord, RectifiedStitchedMosaicAdmin)
 
-class DataDirInline(admin.TabularInline):
+"""class DataDirInline(admin.TabularInline):
     model = DataDirRecord
     extra = 1
     
     def save_model(self, request, obj, form, change):
-        raise # TODO
+        raise # TODO"""
 
 class DatasetSeriesAdmin(admin.ModelAdmin):
-    list_display = ('eo_id', 'eo_metadata', 'image_pattern')
-    list_editable = ('eo_metadata', 'image_pattern')
-    list_filter = ('image_pattern', )
+    list_display = ('eo_id', 'eo_metadata', )
+    list_editable = ('eo_metadata', )
+    #list_filter = ('image_pattern', )
     ordering = ('eo_id', )
     search_fields = ('eo_id', )
-    inlines = (DataDirInline, )
+    inlines = (DataSourceInline, )
     fieldsets = (
         (None, {
-            'fields': ('eo_id', 'eo_metadata', 'image_pattern'),
+            'fields': ('eo_id', 'eo_metadata', ),
             'description': 'Demo DatasetSeries description.',
         }),
         ('Advanced coverage handling', {
@@ -436,7 +428,8 @@ class DatasetSeriesAdmin(admin.ModelAdmin):
         wrapper.setModel(self.dataset_series)
         wrapper.setMutable()
         
-        synchronizer = DatasetSeriesSynchronizer(wrapper)
+        #replace with covmgrs
+        """synchronizer = DatasetSeriesSynchronizer(wrapper)
         try:
             if change:
                 synchronizer.update()
@@ -453,7 +446,7 @@ class DatasetSeriesAdmin(admin.ModelAdmin):
             raise
         
         for info in synchronizer.infos:
-            messages.info(request, info)
+            messages.info(request, info)"""
         
     def add_view(self, request, form_url="", extra_context=None):
         try:
@@ -557,9 +550,15 @@ class EOMetadataAdmin(admin.GeoModelAdmin):
 admin.site.register(EOMetadataRecord, EOMetadataAdmin)
 
 class LayerMetadataAdmin(admin.ModelAdmin):
-    inlines = (SingleFileLayerMetadataInline, )
+    inlines = (PlainCoverageLayerMetadataInline, )
 admin.site.register(LayerMetadataRecord, LayerMetadataAdmin)
 
-admin.site.register(FileRecord)
-admin.site.register(LineageRecord)
+
+class RectifiedDatasetInline(admin.StackedInline):
+    model = RectifiedDatasetRecord
+
+class LineageAdmin(admin.ModelAdmin):
+    inlines = (RectifiedDatasetInline,)
+
+admin.site.register(LineageRecord, LineageAdmin)
 admin.site.register(ExtentRecord)

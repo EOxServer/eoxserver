@@ -40,8 +40,8 @@ from django.test import TestCase, Client
 
 from eoxserver.core.system import System
 from eoxserver.core.util.xmltools import XMLDecoder, DOMtoXML
-from eoxserver.resources.coverages.synchronize import DatasetSeriesSynchronizer,\
-    RectifiedStitchedMosaicSynchronizer
+#from eoxserver.resources.coverages.synchronize import DatasetSeriesSynchronizer,\
+#    RectifiedStitchedMosaicSynchronizer
 
 System.init()
 
@@ -76,52 +76,6 @@ class TestSchemaFactory(object):
     
 class EOxServerTestCase(TestCase):
     fixtures = BASE_FIXTURES
-
-class SynchronizationTestCase(EOxServerTestCase):
-    """ Base class for test cases targeting the 
-        synchronization functionalities.
-    """
-    
-    # Additional fixtures can be loaded with this statement:
-    # fixtures = BASE_FIXTURES + ['additional_fixtures.json']
-    
-    def synchronize(self, model, synchronizerCls):
-        synchronizer = synchronizerCls(model)
-        synchronizer.update()
-
-class DatasetSeriesSynchronizationTestCase(SynchronizationTestCase):
-    """ Base class for synchronization test cases 
-        for DatasetSeries. 
-    """
-    
-    def synchronize(self, model, synchronizerCls=None, wrapperId=None):
-        if wrapperId is None:
-            wrapperId = "resources.coverages.wrappers.DatasetSeriesWrapper"
-        
-        wrapper = System.getRegistry().bind(wrapperId)
-        wrapper.setModel(model)
-        wrapper.setMutable()
-        
-        if synchronizerCls is None:
-            synchronizerCls = DatasetSeriesSynchronizer
-        
-        super(DatasetSeriesSynchronizationTestCase, self).synchronize(wrapper, synchronizerCls) 
-        
-
-class RectifiedStitchedMosaicSynchronizationTestCase(SynchronizationTestCase):
-    """ Base class for synchronization test cases
-        involving RectifiedStitchedMoaics.
-    """
-    
-    def synchronize(self, model, synchronizerCls=RectifiedStitchedMosaicSynchronizer):
-        wrapperId = "resources.coverages.wrappers.RectifiedStitchedMosaicWrapper"
-        
-        wrapper = System.getRegistry().bind(wrapperId)
-        wrapper.setModel(model)
-        wrapper.setMutable()
-        
-        super(RectifiedStitchedMosaicSynchronizationTestCase, self).synchronize(wrapper, synchronizerCls)
-
 
 class OWSTestCase(EOxServerTestCase):
     """ Main base class for testing the OWS interface
@@ -303,66 +257,58 @@ class WCS20GetCoverageTestCase(OWSTestCase):
         f.write(self.getResponseData())
         f.close()
         gdal.AllRegister()
-        self.ds = gdal.Open(self.tmppath, gdalconst.GA_ReadOnly)
+
+        exp_path = os.path.join(self.getExpectedFileDir(), self.getExpectedFileName())
+        
+        self.res_ds = gdal.Open(self.tmppath, gdalconst.GA_ReadOnly)
+        self.exp_ds = gdal.Open(exp_path, gdalconst.GA_ReadOnly)
         
     def tearDown(self):
-        del self.ds
+        del self.res_ds
+        del self.exp_ds
         os.remove(self.tmppath)
     
     def getFileExtension(self):
         return "tif"
-    
 
-class TestMixin(object):
-    def __init__(self, *args, **kwargs):
-        super(TestMixin, self).__init__(*args, **kwargs)
-        self.has_mixin = True    
-
-class WCS20GetCoverageSizeTestMixin(TestMixin):
-    expected_size = None        # (sizex, sizey)
-    
     def testSize(self):
-        if not self.expected_size:
-            self.skipTest("Expected size not set.")
-        
-        self.assertEqual((self.ds.RasterXSize, self.ds.RasterYSize),
-                         self.expected_size)
+        self.assertEqual((self.res_ds.RasterXSize, self.res_ds.RasterYSize),
+                         (self.exp_ds.RasterXSize, self.exp_ds.RasterYSize))
 
-class WCS20GetCoverageExtentTestMixin(TestMixin):
-    expected_extent = None      # (minx, miny, maxx, maxy)
-    
     def testExtent(self):
-        if not self.expected_extent:
-            self.skipTest("Expected extent not set.")
+        EPSILON = 1e-8
         
-        gt = self.ds.GetGeoTransform()
-        extent = (gt[0],                                # minx
-                  gt[3] + self.ds.RasterYSize * gt[5],  # miny
-                  gt[0] + self.ds.RasterXSize * gt[1],  # maxx
-                  gt[3])                                # maxy
-        self.assertEqual(extent, self.expected_extent)
+        res_extent = extent_from_ds(self.res_ds)
+        exp_extent = extent_from_ds(self.exp_ds)
+        
+        self.assert_(
+            max([
+                abs(res_extent[i] - exp_extent[i]) for i in range(0, 4)
+            ]) < EPSILON
+        )
 
-class WCS20GetCoverageResolutionTestMixin(TestMixin):
-    expected_resolution = None  # (resx, abs(resy))
-    
     def testResolution(self):
-        if not self.expected_resolution:
-            self.skipTest("Expected resolution not set.")
-            
-        gt = self.ds.GetGeoTransform()
-        resolution = (gt[1], abs(gt[5]))
-        
-        self.assertAlmostEqual(resolution[0], self.expected_resolution[0], delta=self.expected_resolution[0]/10)
-        self.assertAlmostEqual(resolution[1], self.expected_resolution[1], delta=self.expected_resolution[1]/10)
+        res_resolution = resolution_from_ds(self.res_ds)
+        exp_resolution = resolution_from_ds(self.exp_ds)
+        self.assertAlmostEqual(res_resolution[0], exp_resolution[0], delta=exp_resolution[0]/10)
+        self.assertAlmostEqual(res_resolution[1], exp_resolution[1], delta=exp_resolution[1]/10)
 
-class WCS20GetCoverageBandCountTestMixin(TestMixin):
-    expected_bandcount = None   # num
-    
     def testBandCount(self):
-        if not self.expected_bandcount:
-            self.skipTest("Expected band count not set.")
-            
-        self.assertEqual(self.ds.RasterCount, self.expected_bandcount)
+        self.assertEqual(self.res_ds.RasterCount, self.exp_ds.RasterCount)
+
+def extent_from_ds(ds):
+    gt = ds.GetGeoTransform()
+    size_x = ds.RasterXSize
+    size_y = ds.RasterYSize
+    
+    return (gt[0],                   # minx
+            gt[3] + size_x * gt[5],  # miny
+            gt[0] + size_y * gt[1],  # maxx
+            gt[3])                   # maxy
+
+def resolution_from_ds(ds):
+    gt = ds.GetGeoTransform()
+    return (gt[1], abs(gt[5]))
     
 class WCS20GetCoverageMultipartTestCase(WCS20GetCoverageTestCase, XMLTestCase):
     def setUp(self):
@@ -374,8 +320,6 @@ class WCS20GetCoverageMultipartTestCase(WCS20GetCoverageTestCase, XMLTestCase):
         
         
         self._setUpMultiparts()
-        
-        
     
     def _setUpMultiparts(self):
         if self.isSetUp: return
@@ -399,7 +343,7 @@ class WCS20GetCoverageMultipartTestCase(WCS20GetCoverageTestCase, XMLTestCase):
         else:
             return "dat"
     
-    def getResponseFileName(self,part):
+    def getResponseFileName(self, part="tif"):
         return "%s.%s" % (self.__class__.__name__, self.getFileExtension(part))
     
     def getXMLData(self):
@@ -410,7 +354,7 @@ class WCS20GetCoverageMultipartTestCase(WCS20GetCoverageTestCase, XMLTestCase):
         self._setUpMultiparts()
         return self.imageData
         
-    def getExpectedFileName(self,part):
+    def getExpectedFileName(self, part="tif"):
         return "%s.%s" % (self.__class__.__name__, self.getFileExtension(part))
     
     def testValidate(self):

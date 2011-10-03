@@ -64,9 +64,9 @@ class Registry(object):
             if self.__impl_index[impl_id]["enabled"]:
                 return self.__impl_index[impl_id]["cls"]()
             else:
-                raise ImplementationDisabled("")
+                raise ImplementationDisabled(impl_id)
         else:
-            raise ImplementationNotFound("")
+            raise ImplementationNotFound(impl_id)
     
     def getFromFactory(self, factory_id, params):
         factory = self.bind(factory_id)
@@ -246,6 +246,12 @@ class Registry(object):
     def __synchronize(self):
         qs = self.__get_from_db()
         
+        for impl_id, entry in self.__impl_index.items():
+            if entry["enabled"]:
+                logging.debug("%s: enabled" % impl_id)
+            else:
+                logging.debug("%s: disabled" % impl_id)
+        
         self.__save_diff_to_db(qs)
     
     def __get_from_db(self):
@@ -370,7 +376,7 @@ class Registry(object):
         
         for entry in entries:
             if entry["enabled"] or include_disabled:
-                if entry["cls"].test(test_params):
+                if entry["cls"]().test(test_params):
                     impls.append(entry["cls"])
         
         return impls
@@ -560,21 +566,21 @@ class Registry(object):
                 self.__register_implementation(attr)
 
 class RegisteredInterfaceMetaClass(InterfaceMetaClass):    
-    def __new__(mcls, name, bases, class_dict):
+    def __new__(cls, name, bases, class_dict):
         if "REGISTRY_CONF" in class_dict:
             local_conf = class_dict["REGISTRY_CONF"]
         else:
             raise InternalError("Every interface needs a 'REGISTRY_CONF' dictionary.")
         
-        mcls._validateLocalRegistryConf(local_conf)
+        cls._validateLocalRegistryConf(local_conf)
         
-        conf = mcls._mergeConfs(local_conf, bases, "__rconf__")
+        conf = cls._mergeConfs(local_conf, bases, "__rconf__")
         
-        mcls._validateRegistryConf(conf)
+        cls._validateRegistryConf(conf)
         
         class_dict["__rconf__"] = conf
 
-        return InterfaceMetaClass.__new__(mcls, name, bases, class_dict)
+        return InterfaceMetaClass.__new__(cls, name, bases, class_dict)
     
     @classmethod
     def _validateLocalRegistryConf(mcls, local_conf):

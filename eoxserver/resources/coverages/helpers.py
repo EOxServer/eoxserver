@@ -79,19 +79,3 @@ class CoverageSet(object):
         For `in` operator.
         """
         return item.getCoverageId() in self._coverages
-
-""" 
-Two helper functions to expand the contents of a dataset
-series or a stitched mosaic to linear lists.
-"""
-def expandDatasetSeries(dataset_series, filter_exprs):
-    coverages = []
-    for coverage in dataset_series.getEOCoverages(filter_exprs=deepcopy(filter_exprs)):
-        coverages.append(coverage)
-        if coverage.getType() == "eo.rect_stitched_mosaic":
-            coverages.extend(expandRectifiedStitchedMosaic(coverage, deepcopy(filter_exprs)))
-    return coverages
-
-def expandRectifiedStitchedMosaic(mosaic, filter_exprs):
-    return mosaic.getDatasets(filter_exprs=deepcopy(filter_exprs))
-

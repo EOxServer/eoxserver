@@ -38,6 +38,17 @@ from eoxserver.contrib import mapscript
 class WCSCommonHandler(MapServerOperationHandler):
     def getMapServerLayer(self, coverage, **kwargs):
         layer = super(WCSCommonHandler, self).getMapServerLayer(coverage, **kwargs)
+
+        extent = coverage.getExtent()
+        srid = coverage.getSRID()
+        size = coverage.getSize()
+        rangetype = coverage.getRangeType()
+        resolution = ((extent[2]-extent[0]) / float(size[0]),
+                      (extent[1]-extent[3]) / float(size[1]))
+        
+        layer.setMetaData("wcs_extent", "%.10f %.10f %.10f %.10f" % extent)
+        layer.setMetaData("wcs_resolution", "%.10f %.10f" % resolution)
+        layer.setMetaData("wcs_size", "%d %d" % size)
         
         layer.type = mapscript.MS_LAYER_RASTER
         layer.dump = mapscript.MS_TRUE
