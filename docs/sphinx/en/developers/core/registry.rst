@@ -49,10 +49,6 @@ speek of dynamic binding.
 Registered Interfaces and Implementations
 -----------------------------------------
 
-* RegisteredInterface
-* REGISTRY_CONF
-* implement() method
-
 The registry is a repository for interfaces and implementations. Only
 interfaces derived from :class:`RegisteredInterface` and their respective
 implementations will be included in the registry.
@@ -60,7 +56,7 @@ implementations will be included in the registry.
 :class:`RegisteredInterface` adds some features and requirements to the
 :class:`~.Interface` base class. First of all, it expects a ``REGISTRY_CONF``
 dictionary class variable for the interface declaration. The following keys are
-accepted or required at least:
+accepted or required:
 
 * ``name``: The name of the interface (mandatory)
 * ``intf_id``: The unique ID of the interface; by convention this should include
@@ -71,6 +67,11 @@ accepted or required at least:
 Depending on the binding method additional parameters may be required. See the
 :ref:`module_core_registry_bind` section.
 
+The :meth:`~RegisteredInterface.implement` method of
+:class:`RegisteredInterface` validates the ``REGISTRY_CONF`` and adds "magic"
+methods and attributes to the interface class that can be queried at runtime in
+order to retrieve information about the interface.
+
 Detection and Registration
 --------------------------
 
@@ -78,6 +79,35 @@ Detection and Registration
 * loading of modules
 * searching of implementations
 * registration
+
+At startup the registry is initialized by the :class:`System` class in
+:mod:`eoxserver.core.system`. It calls the registry's :meth:`~Registry.load`
+method which automatically detects registered interfaces and their
+implementations in certain modules. Configuration settings define which modules
+will be scanned.
+
+The settings for the registry can be found in the ``[core.registry]`` section
+of ``default.conf`` and ``eoxserver.conf``. The following settings are
+recognized:
+
+* ``system_modules`` (in ``default.conf`` only): system modules that will always
+  be scanned for registered interfaces and their implementations
+* ``module_dirs``: a comma separated list of directories; every Python module in
+  these directories will be scanned
+* ``modules``: a comma separated list of modules that shall be scanned
+
+The settings in ``eoxserver.conf`` can be customized by the user in order to
+leave out certain parts of the EOxServer distribution or to load additional
+extensions (plugins).
+
+When loading modules, the registry looks for classes that implement certain
+magic functions which are tagged onto them by the
+:meth:`RegisteredInterface.implement` method. These implementation classes are
+registered together with the interfaces they implement.
+
+In the registration process, the implementation and interface classes are
+stored in indexes where they can be looked up in the finding and binding
+process.
 
 .. _module_core_registry_bind:
 
