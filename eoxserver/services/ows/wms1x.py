@@ -176,13 +176,22 @@ class WMSCommonHandler(MapServerOperationHandler):
         layer.type = mapscript.MS_LAYER_RASTER
         #layer.dump = mapscript.MS_TRUE
         layer.setConnectionType(mapscript.MS_RASTER, '')
+        layer.setMetaData("wms_enable_request", "*")
+        
         try:
-            if coverage.getType() in ("file", "eo.rect_dataset"):
+            if coverage.getType() in ("plain", "eo.rect_dataset"):
                 datasets = coverage.getDatasets(**kwargs)
                 if len(datasets) == 0:
                     raise InternalError("Cannot handle empty coverages")
                 elif len(datasets) == 1:
-                    layer.data = os.path.abspath(datasets[0].getFilename())
+                    connector = System.getRegistry().findAndBind(
+                        intf_id = "services.mapserver.MapServerDataConnectorInterface",
+                        params = {
+                            "services.mapserver.data_structure_type": \
+                                coverage.getDataStructureType()
+                        }
+                    ) 
+                    layer = connector.configure(layer, coverage)
                     logging.debug("EOxSWMSCommonHandler.getMapServerLayer: filename: %s" % layer.data) 
                 else:
                     raise InternalError("A single file or EO dataset should never return more than one dataset.")
@@ -200,7 +209,16 @@ class WMSCommonHandler(MapServerOperationHandler):
                     layer.setExtent(*datasets[0].getExtent())
                     layer.setProjection("+init=epsg:%d" % datasets[0].getSRID())
                     layer.setMetaData("wms_srs", "EPSG:%d"%int(datasets[0].getSRID()))
-                    layer.data = datasets[0].getFilename() # TODO: Show all requested files. (Default without time parameter to all.)
+                    connector = System.getRegistry().findAndBind(
+                        intf_id = "services.mapserver.MapServerDataConnectorInterface",
+                        params = {
+                            "services.mapserver.data_structure_type": \
+                                coverage.getDataStructureType()
+                        }
+                    ) 
+                    layer = connector.configure(layer, coverage)
+                    
+                    # TODO: Show all requested files. (Default without time parameter to all.)
                 
                 else: # we have multiple datasets
                     # set projection to the first datasets projection
@@ -283,8 +301,8 @@ class WMS1XGetCapabilitiesHandler(WMSCommonHandler):
         factory = System.getRegistry().bind("resources.coverages.wrappers.EOCoverageFactory")
         ms_req.coverages = factory.find(filter_exprs=[visible_expr])
         
-        factory = System.getRegistry().bind("resources.coverages.wrappers.DatasetSeriesFactory")
-        ms_req.coverages.extend(factory.find())
+        #factory = System.getRegistry().bind("resources.coverages.wrappers.DatasetSeriesFactory")
+        #ms_req.coverages.extend(factory.find())
         
     def getMapServerLayer(self, coverage, **kwargs):
         layer = super(WMS1XGetCapabilitiesHandler, self).getMapServerLayer(coverage, **kwargs)
@@ -301,7 +319,14 @@ class WMS1XGetCapabilitiesHandler(WMSCommonHandler):
         if len(datasets) == 0:
             raise InternalError("Misconfigured coverage '%s' has no file data." % coverage.getCoverageId())
         else:
-            layer.data = os.path.abspath(datasets[0].getFilename())
+            connector = System.getRegistry().findAndBind(
+                intf_id = "services.mapserver.MapServerDataConnectorInterface",
+                params = {
+                    "services.mapserver.data_structure_type": \
+                        coverage.getDataStructureType()
+                }
+            ) 
+            layer = connector.configure(layer, coverage)
             
         logging.debug("WMS1XGetCapabilitiesHandler.getMapServerLayer: filename: %s" % layer.data)
         
@@ -365,36 +390,38 @@ class WMS1XGetMapHandler(WMSCommonHandler):
         slices = []
         trims = []
         if time_param and len(time_param.split("/")) == 2:
-            trims.append(EOxSTrim("time", None, "\"%s\"" % time_param.split("/")[0], "\"%s\"" % time_param.split("/")[1]))
+            trims.append(Trim("time", None, "\"%s\"" % time_param.split("/")[0], "\"%s\"" % time_param.split("/")[1]))
         elif time_param:
-            slices.append(EOxSSlice("time", None, "\"%s\"" % time_param))
+            slices.append(Slice("time", None, "\"%s\"" % time_param))
         
         for coverage in ms_req.coverages:
-            ms_req.map.insertLayer(self.getMapServerLayer(coverage, slices=slices, trims=trims))
+            ms_req.map.insertLayer(self.getMapServerLayer(coverage))#, slices=slices, trims=trims))
 
     def createCoverages(self, ms_req):
         layers = ms_req.getParamValue("layers")
         
         if layers is None:
             raise InvalidRequestException("Missing 'LAYERS' parameter", "MissingParameterValue", "layers")
-        else:
-            wcseo_objects = []
-            for layer in layers:
+
+        coverages = []
+        for layer in layers:
+            obj = System.getRegistry().getFromFactory(
+                "resources.coverages.wrappers.DatasetSeriesFactory",
+                {"obj_id": layer}
+            )
+            if obj is not None:
+                coverages.append(obj)
+            else:
                 obj = System.getRegistry().getFromFactory(
-                    "resources.coverages.wrappers.DatasetSeriesFactory",
+                    "resources.coverages.wrappers.EOCoverageFactory",
                     {"obj_id": layer}
                 )
                 if obj is not None:
-                    wcseo_objects.append(obj)
+                    coverages.append(obj)
                 else:
-                    obj = System.getRegistry().getFromFactory(
-                        "resources.coverages.wrappers.EOCoverageFactory",
-                        {"obj_id": layer}
-                    )
-                    if obj is not None:
-                        wcseo_objects.append(obj)
-                    else:
-                        raise InvalidRequestException("No coverage or dataset series with EO ID '%s' found" % layer, "LayerNotDefined", "layers")
+                    raise InvalidRequestException("No coverage or dataset series with EO ID '%s' found" % layer, "LayerNotDefined", "layers")
+        
+        ms_req.coverages = coverages
 
 class WMS10_11GetMapHandler(WMS1XGetMapHandler):
     PARAM_SCHEMA = {
