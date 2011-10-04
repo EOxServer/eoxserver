@@ -276,6 +276,7 @@ class MapServerOperationHandler(BaseRequestHandler):
         """
         ms_req.ows_req = mapscript.OWSRequest()
         if ms_req.getParamType() == "kvp":
+            ms_req.ows_req.type = mapscript.MS_GET_REQUEST
             for key, values in ms_req.getParams().items():
                 if len(values) == 1:
                     self._setParameter(ms_req, key.lower(), escape(values[0]))
@@ -411,7 +412,7 @@ def gdalconst_to_imagemode(const):
     elif const == GDT_Float32:
         return mapscript.MS_IMAGEMODE_FLOAT32
     else:
-        raise InternalError("MapServer is not capable to process the datatype %d" % rangetype.data_type)
+        raise InternalError("MapServer is not capable to process the datatype %d" % const)
 
 def gdalconst_to_imagemode_string(const):
     if const == GDT_Byte:
