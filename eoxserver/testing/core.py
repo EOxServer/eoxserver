@@ -32,6 +32,7 @@ import logging
 from lxml import etree
 from xml.dom import minidom
 import tempfile
+import mimetypes
 from osgeo import gdal, gdalconst
 
 import email
@@ -432,3 +433,26 @@ class WCS20GetCoverageMultipartTestCase(WCS20GetCoverageTestCase, XMLTestCase):
 class WMS13GetCapabilitiesTestCase(XMLTestCase):
     def getSchemaLocation(self):
         return "../schemas/SCHEMAS_OPENGIS_NET/wms/1.3.0/capabilities_1_3_0.xsd"
+
+class WMS13GetMapTestCase(OWSTestCase):
+    layers = []
+    styles = []
+    crs = "epsg:4326"
+    bbox = (0,0,1,1)
+    width = 100
+    height = 100
+    frmt = "image/jpeg"
+    
+    def getFileExtension(self):
+        mimetypes.init()
+        return mimetypes.guess_extension(self.frmt, False)[1:]
+    
+    def getRequest(self):
+        params = "service=WMS&request=GetMap&version=1.3.0&" \
+                 "layers=%s&styles=%s&crs=%s&bbox=%s&" \
+                 "width=%d&height=%d&format=%s" % (
+                     ",".join(self.layers), ",".join(self.styles),
+                     self.crs, ",".join(map(str, self.bbox)),
+                     self.width, self.height, self.frmt
+                 )
+        return (params, "kvp")

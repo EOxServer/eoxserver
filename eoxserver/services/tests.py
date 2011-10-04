@@ -633,8 +633,14 @@ class WCS20GetCoverageMultipartRangeSubsetNamesDatasetTestCase(eoxstest.WCS20Get
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/mixed&rangesubset=MERIS_radiance_04_uint16,MERIS_radiance_05_uint16,MERIS_radiance_06_uint16"
         return (params, "kvp")
 
+# WMS
+
 class WMS13GetCapabilitiesValidTestCase(eoxstest.WMS13GetCapabilitiesTestCase):
     """This test shall retrieve a valid WMS 1.3 GetCapabilities response"""
     def getRequest(self):
         params = "service=WMS&version=1.3.0&request=GetCapabilities"
         return (params, "kvp")
+
+class WMS13GetMapDatasetTestCase(eoxstest.WMS13GetMapTestCase):
+    layers = ("MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed",)
+    bbox = (8.487755775451660, 32.195316643454134, 25.407486727461219, 46.249103546142578)
