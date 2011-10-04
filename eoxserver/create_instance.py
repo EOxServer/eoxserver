@@ -89,7 +89,7 @@ def parse_arguments(argv):
     
     try:
         # first try with argparse
-        import argparseX
+        import argparse
         parser = argparse.ArgumentParser()
         parser.description = description
 
