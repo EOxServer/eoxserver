@@ -162,7 +162,7 @@ class MosaicCreateWithRemotePathTestCase(RectifiedStitchedMosaicCreateTestCase):
 
 class MosaicCreateWithRasdamanLocationTestCase(RectifiedStitchedMosaicCreateTestCase):
     def setUp(self):
-        super(DatasetSeriesCreateWithLocalPathTestCase,self).setUp()
+        super(MosaicCreateWithRasdamanLocationTestCase, self).setUp()
         args = {
             "data_dirs": [{
                 "oid": 9217, 
