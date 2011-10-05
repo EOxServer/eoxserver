@@ -443,16 +443,23 @@ class WMS13GetMapTestCase(OWSTestCase):
     height = 100
     frmt = "image/jpeg"
     
+    swap_axes = True
+    
     def getFileExtension(self):
         mimetypes.init()
         return mimetypes.guess_extension(self.frmt, False)[1:]
     
     def getRequest(self):
+        bbox = self.bbox if not self.swap_axes else (
+            self.bbox[1], self.bbox[0],
+            self.bbox[3], self.bbox[2]
+        )
+        
         params = "service=WMS&request=GetMap&version=1.3.0&" \
                  "layers=%s&styles=%s&crs=%s&bbox=%s&" \
                  "width=%d&height=%d&format=%s" % (
-                     ",".join(self.layers), ",".join(self.styles),
-                     self.crs, ",".join(map(str, self.bbox)),
+                     ",".join(self.layers), ",".join(self.styles), self.crs,
+                     ",".join(map(str, bbox)),
                      self.width, self.height, self.frmt
                  )
         return (params, "kvp")
