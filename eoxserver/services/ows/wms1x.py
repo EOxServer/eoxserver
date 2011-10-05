@@ -161,7 +161,6 @@ class WMSCommonHandler(MapServerOperationHandler):
             layer.setMetaData("wms_label", coverage.getEOID())
             
             time_extent = ",".join([isotime(dataset.getBeginTime()) for dataset in coverage.getEOCoverages()])
-            
             layer.setMetaData("wms_timeextent", time_extent)
             #layer.setMetaData("wms_timeitem", "valid_time_begin")
             #layer.setMetaData("wms_timedefault", time_layer["default"])
@@ -172,9 +171,20 @@ class WMSCommonHandler(MapServerOperationHandler):
             layer.setMetaData("wms_label", coverage.getCoverageId())
             layer.setMetaData("wms_extent", "%f %f %f %f" % coverage.getExtent())
             layer.setExtent(*coverage.getExtent())
+            
+            # set up the no-data value
+            range_type = coverage.getRangeType()
+            nil_values = []
+            for band in range_type.bands:
+                try: 
+                    nil_values.append(int(band.nil_values[0]))
+                except IndexError:
+                    nil_values.append(0)
+            
+            #layer.offsite = mapscript.colorObj(*nil_values[:3])
         
         layer.type = mapscript.MS_LAYER_RASTER
-        #layer.dump = mapscript.MS_TRUE
+        
         layer.setConnectionType(mapscript.MS_RASTER, '')
         layer.setMetaData("wms_enable_request", "*")
         
@@ -422,6 +432,7 @@ class WMS1XGetMapHandler(WMSCommonHandler):
                     raise InvalidRequestException("No coverage or dataset series with EO ID '%s' found" % layer, "LayerNotDefined", "layers")
         
         ms_req.coverages = coverages
+        
 
 class WMS10_11GetMapHandler(WMS1XGetMapHandler):
     PARAM_SCHEMA = {
@@ -508,13 +519,13 @@ class WMS13GetMapHandler(WMS1XGetMapHandler):
         "version": {"xml_location": "/@version", "xml_type": "string", "kvp_key": "version", "kvp_type": "string"},
         "operation": {"xml_location": "/", "xml_type": "localName", "kvp_key": "request", "kvp_type": "string"},
         "crs": {"xml_location": "/crs", "xml_type": "string", "kvp_key": "crs", "kvp_type": "string"}, # TODO: check XML location
-        "layers": {"xml_location": "/layer", "xml_type": "string[]", "kvp_key": "layers", "kvp_type": "string[]"}, # TODO: check XML location
+        "layers": {"xml_location": "/layer", "xml_type": "string[]", "kvp_key": "layers", "kvp_type": "stringlist"}, # TODO: check XML location
         "time": {"xml_location": "/time", "xml_type": "string", "kvp_key": "time", "kvp_type": "string"}
     }
     
     def configureMapObj(self, ms_req):
         super(WMS13GetMapHandler, self).configureMapObj(ms_req)
-
+        
         ms_req.map.setMetaData("wms_exceptions_format", "xml")
         ms_req.map.setMetaData("ows_srs","EPSG:4326")
         
