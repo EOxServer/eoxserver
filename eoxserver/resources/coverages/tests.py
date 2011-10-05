@@ -160,28 +160,31 @@ class MosaicCreateWithRemotePathTestCase(RectifiedStitchedMosaicCreateTestCase):
 
 # create new mosaic and add a rasdaman location to locations
 
-#class MosaicCreateWithRasdamanLocationTestCase(RectifiedStitchedMosaicCreateTestCase):
-    #def setUp(self):
-        #args = {
-            #"data_dirs": [],
-            #"geo_metadata": GeospatialMetadata(
-                #srid=4326, size_x=100, size_y=100,
-                #extent=(1, 2, 3, 4)
-            #),
-            #"range_type_name": "RGB",
-            #"eo_metadata": EOMetadata(
-                #"SOMEEOID",
-                #datetime.now(),
-                #datetime.now(),
-                #GEOSGeometry("POLYGON((1 2, 3 2, 3 4, 1 4, 1 2))")
-            #),
-            #"storage_dir": "/some/storage/dir"
-        #}
-        #self.wrapper = self.create(**args)
+class MosaicCreateWithRasdamanLocationTestCase(RectifiedStitchedMosaicCreateTestCase):
+    def setUp(self):
+        args = {
+            "data_dirs": [{
+                "oid": 9217, 
+                "ras_host": "localhost",   
+            }],
+            "geo_metadata": GeospatialMetadata(
+                srid=4326, size_x=100, size_y=100,
+                extent=(1, 2, 3, 4)
+            ),
+            "range_type_name": "RGB",
+            "eo_metadata": EOMetadata(
+                "SOMEEOID",
+                datetime.now(),
+                datetime.now(),
+                GEOSGeometry("POLYGON((1 2, 3 2, 3 4, 1 4, 1 2))")
+            ),
+            "storage_dir": "/some/storage/dir"
+        }
+        self.wrapper = self.create(**args)
         
         
-    #def testContents(self):
-        #pass
+    def testContents(self):
+        pass
 
 # create dataset series with a local path
 
