@@ -61,7 +61,7 @@ class Band(object):
         identifier='',
         description='',
         definition='http://opengis.net/def/property/OGC/0/Radiance',
-        nil_values=None,
+        nil_values=[],
         uom='W.m-2.sr-1.nm-1',
         gdal_interpretation=gdal.GCI_Undefined
     ):
@@ -69,10 +69,7 @@ class Band(object):
         self.identifier = identifier
         self.description = description
         self.definition = definition
-        if nil_values is None:
-            self.nil_values = []
-        else:
-            self.nil_values = nil_values
+        self.nil_values = nil_values
         self.uom = uom
         self.gdal_interpretation = gdal_interpretation
 
@@ -122,13 +119,10 @@ class RangeType(object):
     * ``GDT_CFloat64``
     """
     
-    def __init__(self, name, data_type, bands=None):
+    def __init__(self, name, data_type, bands=[]):
         self.name = name
         self.data_type = data_type
-        if bands is None:
-            self.bands = []
-        else:
-            self.bands = bands
+        self.bands = bands
     
     def addBand(self, band):
         self.bands.append(band)
@@ -168,7 +162,7 @@ class RangeType(object):
 def getRangeTypeFromFile(filename):
     ds = gdal.Open(str(filename))
     
-    range_type = []
+    range_type = RangeType("", ds.GetRasterBand(1).DataType)
     
     for i in range(1, ds.RasterCount + 1):
         band = ds.GetRasterBand(i)
@@ -186,25 +180,16 @@ def getRangeTypeFromFile(filename):
             name = "unknown_band_%d" % i
             description = "Unknown Band"
 
-        no_data_value = band.GetNoDataValue()
-        nil_values = [EOxSNilValue(
-            reason="http://www.opengis.net/def/nil/OGC/1.0/unknown",
-            value=no_data_value
-        )]
-
-        #allowed_values_start = band.GetMinimum()
-        #allowed_values_end = band.GetMaximum()
-        #allowed_values_significant_figures = int(math.log10(allowed_values_end)) + 1
-
-        range_type.append(
-            Channel(
-                name=name,
-                description=description,
-                nil_values=nil_values#,
-                #allowed_values_start=allowed_values_start,
-                #allowed_values_end=allowed_values_end,
-                #allowed_values_significant_figures=allowed_values_significant_figures
+        range_type.addBand(Band(
+            name, name, description, 
+            nil_values=[
+                    NilValue(
+                        value=band.GetNoDataValue(),
+                        reason="http://www.opengis.net/def/nil/OGC/1.0/unknown"
+                    )
+                ],
+                gdal_interpretation = color_intp
             )
         )
-    
+         
     return range_type
