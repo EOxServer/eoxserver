@@ -133,6 +133,7 @@ class LineageInline(admin.StackedInline):
 
 class RectifiedDatasetAdmin(ConfirmationAdmin):
     #list_display = ('coverage_id', 'eo_id', 'data_package', 'range_type', 'extent')
+    fields = ('coverage_id', 'eo_id', 'range_type', 'extent')
     list_display = ('coverage_id', 'eo_id', 'range_type', 'extent')
     #list_editable = ('data_package', 'range_type', 'extent')
     list_editable = ('range_type', 'extent', )
