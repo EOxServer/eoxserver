@@ -801,7 +801,7 @@ class RasdamanDataPackageWrapper(DataPackageWrapper):
         
         location = self.getLocation()
         
-        rasdaman_strs = []
+        rasdaman_strs = ["rasdaman:"]
 
         rasdaman_strs.append("host='%s'" % location.getHost())
 
