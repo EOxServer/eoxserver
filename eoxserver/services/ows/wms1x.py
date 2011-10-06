@@ -206,9 +206,33 @@ class WMSCommonHandler(MapServerOperationHandler):
                 else:
                     raise InternalError("A single file or EO dataset should never return more than one dataset.")
                 
-            elif coverage.getType() == "eo.rect_mosaic":
-                layer.tileindex = os.path.abspath(coverage.getShapeFilePath())
-                layer.tileitem = "location"
+            elif coverage.getType() == "eo.rect_stitched_mosaic":
+                connector = System.getRegistry().findAndBind(
+                    intf_id = "services.mapserver.MapServerDataConnectorInterface",
+                    params = {
+                        "services.mapserver.data_structure_type": \
+                            coverage.getDataStructureType()
+                    }
+                ) 
+                
+                layer = connector.configure(layer, coverage)
+                
+                extent = coverage.getExtent()
+                srid = coverage.getSRID()
+                size = coverage.getSize()
+                rangetype = coverage.getRangeType()
+                resolution = ((extent[2]-extent[0]) / float(size[0]),
+                              (extent[1]-extent[3]) / float(size[1]))
+                
+                layer.setExtent(*coverage.getExtent())
+                layer.setMetaData("wms_extent", "%.10f %.10f %.10f %.10f" % extent)
+                layer.setMetaData("wms_resolution", "%.10f %.10f" % resolution)
+                layer.setMetaData("wms_size", "%d %d" % size)
+                
+                layer.type = mapscript.MS_LAYER_RASTER
+                layer.setConnectionType(mapscript.MS_RASTER, '')
+                layer.setMetaData("wms_srs", "EPSG:%d" % srid)
+                layer.setProjection("+init=epsg:%d" % srid)
                 
             elif coverage.getType() == "eo.dataset_series":
                 datasets = coverage.getEOCoverages(**kwargs)
