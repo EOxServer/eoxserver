@@ -121,12 +121,12 @@ class DatasetCreateWithRasdamanLocationTestCase(RectifiedDatasetCreateTestCase):
                 srid=4326,
                 size_x=541,
                 size_y=449,
-                extent=(11.331755,32.19025,28.29481,46.268645)
+                extent=(11.331755, 32.19025, 28.29481, 46.268645)
             ),
             "md_local_path": os.path.join(
                 settings.PROJECT_DIR,
-                "data/meris/MER_FRS_1P_reduced", 
-                "ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.xml"
+                "data/meris/mosaic_MER_FRS_1P_RGB_reduced", 
+                "mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.xml"
             )
         }
         self.wrapper = self.create(**args)

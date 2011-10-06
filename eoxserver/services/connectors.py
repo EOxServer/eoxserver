@@ -30,6 +30,7 @@
 import os.path
 
 from eoxserver.services.mapserver import MapServerDataConnectorInterface
+from osgeo import osr
 
 class FileConnector(object):
     REGISTRY_CONF = {

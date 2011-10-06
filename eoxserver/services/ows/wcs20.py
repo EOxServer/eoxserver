@@ -528,7 +528,6 @@ class WCS20GetCoverageHandler(WCSCommonHandler):
                     coverage.getDataStructureType()
             }
         )
-        
         layer = connector.configure(layer, coverage)
 
         # this was under the "eo.rect_mosaic"-path. minor accurracy issues
