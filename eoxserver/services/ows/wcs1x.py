@@ -121,6 +121,10 @@ class WCS1XOperationHandler(WCSCommonHandler):
                     }
                 ) 
                 layer = connector.configure(layer, coverage)
+                
+                rangetype = coverage.getRangeType()
+                layer.setMetaData("wcs_bandcount", "%d"%len(rangetype.bands))
+                
             else:
                 raise InternalError("A single file or EO dataset should never return more than one dataset.")
             
