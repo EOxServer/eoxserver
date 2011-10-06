@@ -88,6 +88,25 @@ class DatasetCreateWithLocalPathAndMetadataTestCase(RectifiedDatasetCreateTestCa
 
 # create new rectified dataset from a ftp path
 
+class DatasetCreateWithRemothePathTestCase(RectifiedDatasetCreateTestCase):
+    def setUp(self):
+        super(DatasetCreateWithLocalPathAndMetadataTestCase, self).setUp()
+        args = {
+            "local_path": os.path.join(
+                settings.PROJECT_DIR,
+                "data/meris/MER_FRS_1P_reduced", 
+                "ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.tif"
+            ),
+            "range_type_name": "RGB",
+            "md_local_path": os.path.join(
+                settings.PROJECT_DIR,
+                "data/meris/MER_FRS_1P_reduced", 
+                "ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.xml"
+            )
+        }
+        self.wrapper = self.create(**args)
+
+
 # create new rectified dataset from a rasdaman location 
 
 class DatasetCreateWithRasdamanLocationTestCase(RectifiedDatasetCreateTestCase):
@@ -97,11 +116,13 @@ class DatasetCreateWithRasdamanLocationTestCase(RectifiedDatasetCreateTestCase):
             "collection": "MERIS",
             "oid": 9217,
             "ras_host": "localhost",
-            "ras_port": None,
-            "ras_user": None,
-            "ras_passwd": None,
-            "ras_db": "RASBASE",
             "range_type_name": "RGB",
+            "geo_metadata": GeospatialMetadata(
+                srid=4326,
+                size_x=541,
+                size_y=449,
+                extent=(11.331755,32.19025,28.29481,46.268645)
+            ),
             "md_local_path": os.path.join(
                 settings.PROJECT_DIR,
                 "data/meris/MER_FRS_1P_reduced", 
