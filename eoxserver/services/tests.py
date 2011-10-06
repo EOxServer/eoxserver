@@ -642,5 +642,31 @@ class WMS13GetCapabilitiesValidTestCase(eoxstest.WMS13GetCapabilitiesTestCase):
         return (params, "kvp")
 
 class WMS13GetMapDatasetTestCase(eoxstest.WMS13GetMapTestCase):
+    """ Test a GetMap request with a simple dataset. """
+    layers = ("mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced",)
+    bbox = (8.487755775451660, 32.195316643454134, 25.407486727461219, 46.249103546142578)
+
+class WMS13GetMapMultipleDatasetsTestCase(eoxstest.WMS13GetMapTestCase):
+    """ Test a GetMap request with two datasets. """
+    layers = ("mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced",
+              "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced",
+              )
+    width = 200 
+    bbox = (-3.75, 32.19025, 28.29481, 46.268645)
+    
+class WMS13GetMapDatasetMultispectralTestCase(eoxstest.WMS13GetMapTestCase):
+    """ Test a GetMap request with a dataset containing 15 bands. """
     layers = ("MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed",)
     bbox = (8.487755775451660, 32.195316643454134, 25.407486727461219, 46.249103546142578)
+
+class WMS13GetMapMosaicTestCase(eoxstest.WMS13GetMapTestCase):
+    """ Test a GetMap request with a stitched mosaic. """
+    layers = ("mosaic_MER_FRS_1P_RGB_reduced",)
+    bbox = (-3.75, 32.158895, 28.326165, 46.3)
+    
+class WMS13GetMapDatasetSeriesTestCase(eoxstest.WMS13GetMapTestCase):
+    """ Test a GetMap request with a dataset series. """
+    layers = ("MER_FRS_1P_reduced",)
+    width = 200
+    bbox = (-3.75, 32.158895, 28.326165, 46.3)
+    
