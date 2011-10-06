@@ -35,6 +35,7 @@ from eoxserver.core.system import System
 
 from eoxserver.core.util.xmltools import DOMElementToXML
 from eoxserver.core.exceptions import InternalError
+from eoxserver.contrib import mapscript
 from eoxserver.services.interfaces import (
     ServiceHandlerInterface, VersionHandlerInterface,
     OperationHandlerInterface
@@ -43,6 +44,9 @@ from eoxserver.services.owscommon import (
     OWSCommonServiceHandler, OWSCommonVersionHandler
 )
 from eoxserver.services.ogc import OGCExceptionHandler
+from eoxserver.services.mapserver import (
+    gdalconst_to_imagemode, gdalconst_to_imagemode_string
+)
 from eoxserver.services.exceptions import InvalidRequestException
 from eoxserver.services.ows.wcs.common import WCSCommonHandler
 
@@ -101,6 +105,34 @@ class WCS1XOperationHandler(WCSCommonHandler):
         for coverage in factory.find(filter_exprs=[visible_expr]):
             if coverage.getType() in ("plain", "eo.rect_dataset", "eo.rect_stitched_mosaic"):
                 ms_req.coverages.append(coverage)
+                
+    def _setParameter(self, ms_req, key, value):
+        if key.lower() == "format" and len(ms_req.coverages[0].getRangeType().bands) > 3:
+            if value.lower() == "image/tiff":
+                super(WCS1XOperationHandler, self)._setParameter(ms_req, "format", "GTiff_")
+            else:
+                raise InvalidRequestException("Format '%s' is not allowed in coverages with more than three bands." % value, "InvalidParameterValue", key)
+        else:
+            super(WCS1XOperationHandler, self)._setParameter(ms_req, key, value)
+            
+    def configureMapObj(self, ms_req):
+        super(WCS1XOperationHandler, self).configureMapObj(ms_req)
+        
+        output_format = mapscript.outputFormatObj("GDAL/GTiff", "GTiff_")
+        output_format.mimetype = "image/tiff"
+        output_format.extension = "tif"
+        
+        coverage = ms_req.coverages[0]
+        rangetype = coverage.getRangeType()
+        
+        output_format.imagemode = gdalconst_to_imagemode(
+            ms_req.coverages[0].getRangeType().data_type
+        )
+        
+        ms_req.map.appendOutputFormat(output_format)
+        ms_req.map.setOutputFormat(output_format)
+        
+        logging.debug("WCS20GetCoverageHandler.configureMapObj: %s" % ms_req.map.imagetype)
 
     def getMapServerLayer(self, coverage, **kwargs):
         layer = super(WCS1XOperationHandler, self).getMapServerLayer(coverage, **kwargs)
@@ -122,8 +154,8 @@ class WCS1XOperationHandler(WCSCommonHandler):
                 ) 
                 layer = connector.configure(layer, coverage)
                 
-                rangetype = coverage.getRangeType()
-                layer.setMetaData("wcs_bandcount", "%d"%len(rangetype.bands))
+                #rangetype = coverage.getRangeType()
+                #layer.setMetaData("wcs_bandcount", "%d"%len(rangetype.bands))
                 
             else:
                 raise InternalError("A single file or EO dataset should never return more than one dataset.")
@@ -140,13 +172,46 @@ class WCS1XOperationHandler(WCSCommonHandler):
             
             extent = coverage.getExtent()
             size_x, size_y = coverage.getSize()
-            rangetype = coverage.getRangeType()
+            #rangetype = coverage.getRangeType()
             
             layer.setMetaData("wcs_extent", "%.10f %.10f %.10f %.10f" % extent)
             layer.setMetaData("wcs_resolution", "%.10f %.10f" % ((extent[2]-extent[0]) / float(size_x), (extent[3]-extent[1]) / float(size_y)))
             layer.setMetaData("wcs_size", "%d %d" % (size_x, size_y))
             layer.setMetaData("wcs_nativeformat", "GTiff")
-            layer.setMetaData("wcs_bandcount", "%d"%len(rangetype.bands))
+            #layer.setMetaData("wcs_bandcount", "%d"%len(rangetype.bands))
+
+        rangetype = coverage.getRangeType()
+
+        #layer.setMetaData("wcs_nativeformat", coverage.getDataFormat().getDriverName())
+        layer.setMetaData("wcs_nativeformat", "GTiff") # TODO: make this configurable like in the line above
+        layer.setMetaData("wcs_bandcount", "%d" % len(rangetype.bands))
+
+        bands = " ".join([band.name for band in rangetype.bands])
+        layer.setMetaData("wcs_band_names", bands)
+        
+        layer.setMetaData("wcs_interval",
+                          "%f %f" % rangetype.getAllowedValues())
+            
+        layer.setMetaData("wcs_significant_figures",
+                          "%d" % rangetype.getSignificantFigures())
+        
+        # set layer depending metadata
+        for band in rangetype.bands:
+            axis_metadata = {
+                "%s_band_description" % band.name: band.description,
+                "%s_band_definition" % band.name: band.definition,
+                "%s_band_uom" % band.name: band.uom
+            }
+            for key, value in axis_metadata.items():
+                if value != '':
+                    layer.setMetaData(key, value)
+        
+        
+        layer.setMetaData("wcs_formats", "GTiff_")
+        layer.setMetaData(
+            "wcs_imagemode", 
+            gdalconst_to_imagemode_string(rangetype.data_type)
+        )
         
         return layer
 
