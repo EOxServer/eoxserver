@@ -67,7 +67,7 @@ class DatasetCreateWithLocalPathTestCase(RectifiedDatasetCreateTestCase):
 
 class DatasetCreateWithLocalPathAndMetadataTestCase(RectifiedDatasetCreateTestCase):
     def setUp(self):
-        super(DatasetCreateWithLocalPathAndMetadataTestCase,self).setUp()
+        super(DatasetCreateWithLocalPathAndMetadataTestCase, self).setUp()
         args = {
             "local_path": os.path.join(
                 settings.PROJECT_DIR,
@@ -90,7 +90,30 @@ class DatasetCreateWithLocalPathAndMetadataTestCase(RectifiedDatasetCreateTestCa
 
 # create new rectified dataset from a rasdaman location 
 
+class DatasetCreateWithRasdamanLocationTestCase(RectifiedDatasetCreateTestCase):
+    def setUp(self):
+        super(DatasetCreateWithRasdamanLocationTestCase, self).setUp()
+        args = {
+            "collection": "MERIS",
+            "oid": 9217,
+            "ras_host": "localhost",
+            "ras_port": None,
+            "ras_user": None,
+            "ras_passwd": None,
+            "ras_db": "RASBASE",
+            "range_type_name": "RGB",
+            "md_local_path": os.path.join(
+                settings.PROJECT_DIR,
+                "data/meris/MER_FRS_1P_reduced", 
+                "ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.xml"
+            )
+        }
+        self.wrapper = self.create(**args)
 
+    def testType(self):
+        self.assertEqual(self.wrapper.getType(), "eo.rect_dataset")
+    
+    
 
 # create new mosaic and add a local path to locations
 
