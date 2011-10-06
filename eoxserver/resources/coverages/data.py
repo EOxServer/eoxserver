@@ -822,7 +822,8 @@ class RasdamanDataPackageWrapper(DataPackageWrapper):
             )
         
         rasdaman_strs.append(
-            "query='select ( a [$x_lo:$x_hi,$y_lo:$y_hi] ) from %s as a where oid(a)=%f'" %\
+            #"query='select ( a [$x_lo:$x_hi,$y_lo:$y_hi] ) from %s as a where oid(a)=%f'" %\
+            "query='select ( a ) from %s as a where oid(a)=%f'" %\
             (location.getCollection(), location.getOID())
         )
         
