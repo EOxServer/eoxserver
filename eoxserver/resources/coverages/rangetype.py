@@ -61,7 +61,7 @@ class Band(object):
         identifier='',
         description='',
         definition='http://opengis.net/def/property/OGC/0/Radiance',
-        nil_values=[],
+        nil_values=None,
         uom='W.m-2.sr-1.nm-1',
         gdal_interpretation=gdal.GCI_Undefined
     ):
@@ -69,7 +69,10 @@ class Band(object):
         self.identifier = identifier
         self.description = description
         self.definition = definition
-        self.nil_values = nil_values
+        if nil_values is None:
+            self.nil_values = []
+        else:
+            self.nil_values = nil_values
         self.uom = uom
         self.gdal_interpretation = gdal_interpretation
 
@@ -119,10 +122,13 @@ class RangeType(object):
     * ``GDT_CFloat64``
     """
     
-    def __init__(self, name, data_type, bands=[]):
+    def __init__(self, name, data_type, bands=None):
         self.name = name
         self.data_type = data_type
-        self.bands = bands
+        if bands is None:
+            self.bands = []
+        else:
+            self.bands = bands
     
     def addBand(self, band):
         self.bands.append(band)

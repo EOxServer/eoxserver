@@ -99,35 +99,42 @@ class WCS1XOperationHandler(WCSCommonHandler):
         factory = System.getRegistry().bind("resources.coverages.wrappers.EOCoverageFactory")
         
         for coverage in factory.find(filter_exprs=[visible_expr]):
-            if coverage.getType() in ("file", "eo.rect_dataset", "eo.rect_mosaic"):
+            if coverage.getType() in ("plain", "eo.rect_dataset", "eo.rect_stitched_mosaic"):
                 ms_req.coverages.append(coverage)
 
     def getMapServerLayer(self, coverage, **kwargs):
         layer = super(WCS1XOperationHandler, self).getMapServerLayer(coverage, **kwargs)
         
-        if coverage.getType() in ("file", "eo.rect_dataset"):
-
+        layer.setProjection("+init=epsg:%d" % coverage.getSRID())
+        
+        if coverage.getType() in ("plain", "eo.rect_dataset"):
             datasets = coverage.getDatasets()
             
             if len(datasets) == 0:
                 raise InvalidRequestException("Image extent does not intersect with desired region.", "ExtentError", "extent") # TODO: check if this is the right exception report
             elif len(datasets) == 1:
-                layer.data = os.path.abspath(datasets[0].getFilename())
+                connector = System.getRegistry().findAndBind(
+                    intf_id = "services.mapserver.MapServerDataConnectorInterface",
+                    params = {
+                        "services.mapserver.data_structure_type": \
+                            coverage.getDataStructureType()
+                    }
+                ) 
+                layer = connector.configure(layer, coverage)
             else:
                 raise InternalError("A single file or EO dataset should never return more than one dataset.")
             
-            layer.setProjection("+init=epsg:%d" % coverage.getSRID())
-
-        elif coverage.getType() == "eo.rect_mosaic":
+        elif coverage.getType() == "eo.rect_stitched_mosaic":
+            connector = System.getRegistry().findAndBind(
+                intf_id = "services.mapserver.MapServerDataConnectorInterface",
+                params = {
+                    "services.mapserver.data_structure_type": \
+                        coverage.getDataStructureType()
+                }
+            ) 
+            layer = connector.configure(layer, coverage)
             
-            layer.tileindex = os.path.abspath(coverage.getShapeFilePath())
-            layer.tileitem = "location"
-            
-            grid = coverage.getGrid()
-            
-            grid = coverage.getGrid()
             extent = coverage.getExtent()
-            srid = coverage.getSRID()
             size_x, size_y = coverage.getSize()
             rangetype = coverage.getRangeType()
             
