@@ -53,7 +53,7 @@ class WCS10DescribeCoverageMosaicTestCase(eoxstest.WCS10DescribeCoverageTestCase
 
 class WCS10GetCoverageDatasetTestCase(eoxstest.WCS10GetCoverageTestCase):
     def getRequest(self):
-        params = "service=WCS&version=1.0.0&request=GetCoverage&coverage=mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced"
+        params = "service=WCS&version=1.0.0&request=GetCoverage&coverage=mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced&crs=epsg:4326&bbox=-4,32,28,46.5&width=640&height=290&format=image/tiff"
         return (params, "kvp")
 
 #===============================================================================
