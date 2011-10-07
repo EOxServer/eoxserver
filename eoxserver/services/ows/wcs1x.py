@@ -153,10 +153,6 @@ class WCS1XOperationHandler(WCSCommonHandler):
                     }
                 ) 
                 layer = connector.configure(layer, coverage)
-                
-                #rangetype = coverage.getRangeType()
-                #layer.setMetaData("wcs_bandcount", "%d"%len(rangetype.bands))
-                
             else:
                 raise InternalError("A single file or EO dataset should never return more than one dataset.")
             
@@ -172,41 +168,23 @@ class WCS1XOperationHandler(WCSCommonHandler):
             
             extent = coverage.getExtent()
             size_x, size_y = coverage.getSize()
-            #rangetype = coverage.getRangeType()
             
             layer.setMetaData("wcs_extent", "%.10f %.10f %.10f %.10f" % extent)
             layer.setMetaData("wcs_resolution", "%.10f %.10f" % ((extent[2]-extent[0]) / float(size_x), (extent[3]-extent[1]) / float(size_y)))
             layer.setMetaData("wcs_size", "%d %d" % (size_x, size_y))
             layer.setMetaData("wcs_nativeformat", "GTiff")
-            #layer.setMetaData("wcs_bandcount", "%d"%len(rangetype.bands))
 
+        # set up rangetype metadata information
         rangetype = coverage.getRangeType()
+        layer.setMetaData("wcs_bandcount", "%d"%len(rangetype.bands))
+        layer.setMetaData("wcs_rangeset_name", rangetype.name)
+        layer.setMetaData("wcs_rangeset_label", rangetype.name)
+        layer.setMetaData("wcs_rangeset_axes", "bands")
+        layer.setMetaData("wcs_bands_values", ",".join(band.name for band in rangetype.bands))
+        layer.setMetaData("wcs_bands_label", "Band")
 
-        #layer.setMetaData("wcs_nativeformat", coverage.getDataFormat().getDriverName())
         layer.setMetaData("wcs_nativeformat", "GTiff") # TODO: make this configurable like in the line above
-        layer.setMetaData("wcs_bandcount", "%d" % len(rangetype.bands))
 
-        bands = " ".join([band.name for band in rangetype.bands])
-        layer.setMetaData("wcs_band_names", bands)
-        
-        layer.setMetaData("wcs_interval",
-                          "%f %f" % rangetype.getAllowedValues())
-            
-        layer.setMetaData("wcs_significant_figures",
-                          "%d" % rangetype.getSignificantFigures())
-        
-        # set layer depending metadata
-        for band in rangetype.bands:
-            axis_metadata = {
-                "%s_band_description" % band.name: band.description,
-                "%s_band_definition" % band.name: band.definition,
-                "%s_band_uom" % band.name: band.uom
-            }
-            for key, value in axis_metadata.items():
-                if value != '':
-                    layer.setMetaData(key, value)
-        
-        
         layer.setMetaData("wcs_formats", "GTiff_")
         layer.setMetaData(
             "wcs_imagemode", 
