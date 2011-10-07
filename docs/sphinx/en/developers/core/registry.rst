@@ -75,11 +75,6 @@ order to retrieve information about the interface.
 Detection and Registration
 --------------------------
 
-* config settings
-* loading of modules
-* searching of implementations
-* registration
-
 At startup the registry is initialized by the :class:`System` class in
 :mod:`eoxserver.core.system`. It calls the registry's :meth:`~Registry.load`
 method which automatically detects registered interfaces and their
@@ -210,8 +205,35 @@ factory you would use code like this::
     
     resources = resource_factory.find()
 
-Components
-----------
+Components and Resources
+------------------------
+
+The registry has its own data model which distinguishes between components (the
+active parts of the system, like OWS handlers etc.) and resources (the data
+components deal with, like coverages etc.).
+
+.. figure:: ../images/model_core.png
+   :align: center
+   
+   *Database Model for the Registry*
+
+At the moment, the registry itself does not detect if a given implementation is
+a resource class or a component, but this will change in future versions of the
+software.
+
+Components have a status, i.e. they can be enabled or disabled. That status
+is a configuration parameter stored in the database. At system startup the
+registry will synchronize the status of the implementations it detects with the
+status in the database. If a given implementation is not found in the database,
+a new :class:`~.Implementation` record will be generated, with its status set
+to disabled.
+
+If some component is trying to get a disabled component from the registry an
+:exc:`~.ImplementationDisabled` exception will be raised.
+
+:doc:`/en/rfc/rfc2` proposes a far more sophisticated system for dealing with
+resources and components. This will be implemented step by step in future
+versions.
 
 Reference
 ---------
