@@ -158,7 +158,7 @@ class WCS1XOperationHandler(WCSCommonHandler):
 
         layer.setMetaData("wcs_nativeformat", "GTiff") # TODO: make this configurable like in the line above
 
-        layer.setMetaData("wcs_formats", "GTiff_")
+        layer.setMetaData("wcs_formats", "GTiff GTiff_")
         layer.setMetaData(
             "wcs_imagemode", 
             gdalconst_to_imagemode_string(rangetype.data_type)

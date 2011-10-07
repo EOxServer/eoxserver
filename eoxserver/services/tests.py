@@ -60,24 +60,24 @@ class WCS10GetCoverageDatasetTestCase(eoxstest.WCS10GetCoverageTestCase):
 # WCS 1.1
 #===============================================================================
 
-class WCS11GetCapabilitiesValidTestCase(eoxstest.WCS10GetCapabilitiesTestCase):
+class WCS11GetCapabilitiesValidTestCase(eoxstest.WCS11GetCapabilitiesTestCase):
     def getRequest(self):
         params = "service=WCS&version=1.1.0&request=GetCapabilities"
         return (params, "kvp")
 
-class WCS11DescribeCoverageDatasetTestCase(eoxstest.WCS10DescribeCoverageTestCase):
+class WCS11DescribeCoverageDatasetTestCase(eoxstest.WCS11DescribeCoverageTestCase):
     def getRequest(self):
-        params = "service=WCS&version=1.1.0&request=DescribeCoverage&coverage=mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced"
+        params = "service=WCS&version=1.1.0&request=DescribeCoverage&identifier=mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced"
         return (params, "kvp")
 
-class WCS11DescribeCoverageMosaicTestCase(eoxstest.WCS10DescribeCoverageTestCase):
+class WCS11DescribeCoverageMosaicTestCase(eoxstest.WCS11DescribeCoverageTestCase):
     def getRequest(self):
-        params = "service=WCS&version=1.1.0&request=DescribeCoverage&coverage=mosaic_MER_FRS_1P_RGB_reduced"
+        params = "service=WCS&version=1.1.0&request=DescribeCoverage&identifier=mosaic_MER_FRS_1P_RGB_reduced"
         return (params, "kvp")
 
-class WCS11GetCoverageDatasetTestCase(eoxstest.WCS10GetCoverageTestCase):
+class WCS11GetCoverageDatasetTestCase(eoxstest.WCS11GetCoverageTestCase):
     def getRequest(self):
-        params = "service=WCS&version=1.0.0&request=GetCoverage&coverage=mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced"
+        params = "service=WCS&version=1.1.0&request=GetCoverage&identifier=mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced&crs=epsg:4326&bbox=-4,32,28,46.5&width=640&height=290&format=image/tiff"
         return (params, "kvp")
 
 #===============================================================================
