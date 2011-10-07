@@ -27,14 +27,62 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-import logging
-
-from eoxserver.services.requests import OWSRequest
-import eoxserver.testing.core as eoxstest
-
 from osgeo import gdal
 from osgeo.gdalconst import GA_ReadOnly
-import os, sys
+
+import eoxserver.services.testbase as eoxstest
+
+#===============================================================================
+# WCS 1.0
+#===============================================================================
+
+class WCS10GetCapabilitiesValidTestCase(eoxstest.WCS10GetCapabilitiesTestCase):
+    def getRequest(self):
+        params = "service=WCS&version=1.0.0&request=GetCapabilities"
+        return (params, "kvp")
+
+class WCS10DescribeCoverageDatasetTestCase(eoxstest.WCS10DescribeCoverageTestCase):
+    def getRequest(self):
+        params = "service=WCS&version=1.0.0&request=DescribeCoverage&coverage=mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced"
+        return (params, "kvp")
+
+class WCS10DescribeCoverageMosaicTestCase(eoxstest.WCS10DescribeCoverageTestCase):
+    def getRequest(self):
+        params = "service=WCS&version=1.0.0&request=DescribeCoverage&coverage=mosaic_MER_FRS_1P_RGB_reduced"
+        return (params, "kvp")
+
+class WCS10GetCoverageDatasetTestCase(eoxstest.WCS10GetCoverageTestCase):
+    def getRequest(self):
+        params = "service=WCS&version=1.0.0&request=GetCoverage&coverage=mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced"
+        return (params, "kvp")
+
+#===============================================================================
+# WCS 1.1
+#===============================================================================
+
+class WCS11GetCapabilitiesValidTestCase(eoxstest.WCS10GetCapabilitiesTestCase):
+    def getRequest(self):
+        params = "service=WCS&version=1.1.0&request=GetCapabilities"
+        return (params, "kvp")
+
+class WCS11DescribeCoverageDatasetTestCase(eoxstest.WCS10DescribeCoverageTestCase):
+    def getRequest(self):
+        params = "service=WCS&version=1.1.0&request=DescribeCoverage&coverage=mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced"
+        return (params, "kvp")
+
+class WCS11DescribeCoverageMosaicTestCase(eoxstest.WCS10DescribeCoverageTestCase):
+    def getRequest(self):
+        params = "service=WCS&version=1.1.0&request=DescribeCoverage&coverage=mosaic_MER_FRS_1P_RGB_reduced"
+        return (params, "kvp")
+
+class WCS11GetCoverageDatasetTestCase(eoxstest.WCS10GetCoverageTestCase):
+    def getRequest(self):
+        params = "service=WCS&version=1.0.0&request=GetCoverage&coverage=mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced"
+        return (params, "kvp")
+
+#===============================================================================
+# WCS 2.0
+#===============================================================================
 
 class WCS20GetCapabilitiesValidTestCase(eoxstest.WCS20GetCapabilitiesTestCase):
     """This test shall retrieve a valid WCS 2.0 EO-AP GetCapabilities response"""
