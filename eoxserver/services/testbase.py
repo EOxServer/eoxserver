@@ -155,13 +155,13 @@ class WCS10GetCoverageTestCase(OWSTestCase):
 
 class WCS11GetCapabilitiesTestCase(XMLTestCase):
     def getSchemaLocation(self):
-            return "../schemas/wcs/1.1.3/wcsAll.xsd"
+            return "../schemas/wcs/1.1/wcsAll.xsd"
 
 class WCS11DescribeCoverageTestCase(XMLTestCase):
     def getSchemaLocation(self):
-            return "../schemas/wcs/1.1.3/wcsDescribeCoverage.xsd"
+            return "../schemas/wcs/1.1/wcsDescribeCoverage.xsd"
 
-class WCS11GetCoverageTestCase():
+class WCS11GetCoverageTestCase(OWSTestCase):
     pass
 
 #
