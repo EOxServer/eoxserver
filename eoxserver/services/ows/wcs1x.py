@@ -151,9 +151,10 @@ class WCS1XOperationHandler(WCSCommonHandler):
         layer.setMetaData("wcs_bandcount", "%d"%len(rangetype.bands))
         layer.setMetaData("wcs_rangeset_name", rangetype.name)
         layer.setMetaData("wcs_rangeset_label", rangetype.name)
-        layer.setMetaData("wcs_rangeset_axes", "bands")
-        layer.setMetaData("wcs_bands_values", ",".join(band.name for band in rangetype.bands))
-        layer.setMetaData("wcs_bands_label", "Band")
+        layer.setMetaData("wcs_rangeset_axes", ",".join(band.name for band in rangetype.bands))
+        for band in rangetype.bands:
+            layer.setMetaData("wcs_%s_label" % band.name, band.name)
+            layer.setMetaData("wcs_%s_interval" % band.name, "%d %d" % rangetype.getAllowedValues())
 
         layer.setMetaData("wcs_nativeformat", "GTiff") # TODO: make this configurable like in the line above
 
