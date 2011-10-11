@@ -27,10 +27,8 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from osgeo import gdal
-from osgeo.gdalconst import GA_ReadOnly
-
 import eoxserver.services.testbase as eoxstest
+import unittest
 
 #===============================================================================
 # WCS 1.0
@@ -78,6 +76,11 @@ class WCS11DescribeCoverageMosaicTestCase(eoxstest.WCS11DescribeCoverageTestCase
 class WCS11GetCoverageDatasetTestCase(eoxstest.WCS11GetCoverageTestCase):
     def getRequest(self):
         params = "service=WCS&version=1.1.0&request=GetCoverage&identifier=mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced&crs=epsg:4326&bbox=-4,32,28,46.5&width=640&height=290&format=image/tiff"
+        return (params, "kvp")
+
+class WCS11GetCoverageDatasetComplexTestCase(eoxstest.WCS11GetCoverageTestCase):
+    def getRequest(self):
+        params = "service=WCS&version=1.1.0&request=GetCoverage&identifier=mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced&boundingbox=-4,32,28,46.5,urn:ogc:def:crs:EPSG::4326&format=image/tiff&GridBaseCRS=urn:ogc:def:crs:EPSG::4326&GridCS=urn:ogc:def:crs:EPSG::4326&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=33,11.4&GridOffsets=1,1"
         return (params, "kvp")
 
 #===============================================================================
@@ -538,7 +541,7 @@ class WCS20GetCoverageJPEGTestCase(eoxstest.WCS20GetCoverageTestCase):
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=image/jpeg"
         return (params, "kvp")
     
-    def getFileExtension(self):
+    def getFileExtension(self, part=None):
         return "jpg"
 
 # MEDIATYPE
@@ -717,4 +720,40 @@ class WMS13GetMapDatasetSeriesTestCase(eoxstest.WMS13GetMapTestCase):
     layers = ("MER_FRS_1P_reduced",)
     width = 200
     bbox = (-3.75, 32.158895, 28.326165, 46.3)
+
+#===============================================================================
+# Test suite
+#===============================================================================
+def get_tests_by_prefix(prefix, loader=None):
+    if loader is None:
+        loader = unittest.TestLoader()
+    result = []
+    for key, value in globals().iteritems():
+        #print key, value
+        if key.startswith(prefix):# and isinstance(value, unittest.TestCase):
+            result.extend(loader.loadTestsFromTestCase(value))
+            
+    return result
+
+def suite():
+    wcs_version_tests = unittest.TestSuite(get_tests_by_prefix("WCSVersionNegotiation"))
     
+    wcs10_tests = unittest.TestSuite(get_tests_by_prefix("WCS10"))
+    wcs11_tests = unittest.TestSuite(get_tests_by_prefix("WCS10"))
+    
+    wcs20_tests = unittest.TestSuite()
+    wcs20_tests.addTests(get_tests_by_prefix("WCS20GetCapabilities"))
+    wcs20_tests.addTests(get_tests_by_prefix("WCS20DescribeCoverage"))
+    #wcs20_tests.addTests(get_tests_by_prefix("WCS20DescribeEOCoverageSet"))
+    wcs20_tests.addTests(get_tests_by_prefix("WCS20GetCoverage"))
+    
+    wms13_tests = unittest.TestSuite(get_tests_by_prefix("WMS13"))
+    
+    all_tests = unittest.TestSuite()
+    all_tests.addTests(wcs_version_tests)
+    all_tests.addTests(wcs10_tests)
+    all_tests.addTests(wcs11_tests)
+    all_tests.addTests(wcs20_tests)
+    all_tests.addTests(wms13_tests)
+    
+    return all_tests
