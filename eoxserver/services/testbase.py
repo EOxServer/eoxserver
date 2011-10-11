@@ -43,8 +43,29 @@ from eoxserver.testing.core import (
     EOxServerTestCase, BASE_FIXTURES,
     TestSchemaFactory
 )
-from eoxserver.core.util.xmltools import XMLDecoder, DOMtoXML
+from eoxserver.core.util.xmltools import XMLDecoder
 
+#===============================================================================
+# Helper functions
+#===============================================================================
+
+def extent_from_ds(ds):
+    gt = ds.GetGeoTransform()
+    size_x = ds.RasterXSize
+    size_y = ds.RasterYSize
+    
+    return (gt[0],                   # minx
+            gt[3] + size_x * gt[5],  # miny
+            gt[0] + size_y * gt[1],  # maxx
+            gt[3])                   # maxy
+
+def resolution_from_ds(ds):
+    gt = ds.GetGeoTransform()
+    return (gt[1], abs(gt[5]))
+
+#===============================================================================
+# Common classes
+#===============================================================================
 
 class OWSTestCase(EOxServerTestCase):
     """ Main base class for testing the OWS interface
@@ -58,66 +79,139 @@ class OWSTestCase(EOxServerTestCase):
         
         logging.info("Starting Test Case: %s" % self.__class__.__name__)
         
-        request, type = self.getRequest()
+        request, req_type = self.getRequest()
         
         client = Client()
         
-        if type == "kvp":
+        if req_type == "kvp":
             self.response = client.get('/ows?%s' % request)
-        elif type == "xml":
+        elif req_type == "xml":
             self.response = client.post('/ows', request, "text/xml")
         else:
-            raise Exception("Invalid request type '%s'." % type)
+            raise Exception("Invalid request type '%s'." % req_type)
     
     def getRequest(self):
         raise Exception("Not implemented.")
     
-    def getFileExtension(self):
+    def getFileExtension(self, file_type):
         return "xml"
     
     def getResponseFileDir(self):
         return os.path.join("../autotest","responses")
     
-    def getResponseFileName(self):
-        return "%s.%s" % (self.__class__.__name__, self.getFileExtension())
+    def getResponseFileName(self, file_type):
+        return "%s.%s" % (self.__class__.__name__, self.getFileExtension(file_type))
     
     def getResponseData(self):
         return self.response.content
+    
+    def getExpectedFileDir(self):
+        return os.path.join("../autotest", "expected")
+    
+    def getExpectedFileName(self, file_type):
+        return "%s.%s" % (self.__class__.__name__, self.getFileExtension(file_type))
+    
+    def _testBinaryComparison(self, file_type):
+        """
+        Helper function for the `testBinaryComparisonXML` and
+        `testBinaryComparisonRaster` functions.
+        """
+        try:
+            f = open(os.path.join(self.getExpectedFileDir(), self.getExpectedFileName(file_type)), 'r')
+            expected = f.read()
+            f.close()
+        except IOError:
+            expected = None
+        
+        if expected != self.getResponseData():
+            logging.debug("Writing result for %s." % file_type)
+            f = open(os.path.join(self.getResponseFileDir(), self.getResponseFileName(file_type)), 'w')
+            if file_type == "raster":
+                f.write(self.getResponseData())
+            elif file_type == "xml":
+                f.write(self.getXMLData())
+            f.close()
+            
+            if expected is None:
+                self.skipTest("Expected response in '%s' is not present" % 
+                           os.path.join(self.getExpectedFileDir(), self.getExpectedFileName(file_type))
+                )
+            
+            self.fail("Response returned in '%s' is not equal to expected response in '%s'." % (
+                       os.path.join(self.getResponseFileDir(), self.getResponseFileName(file_type)),
+                       os.path.join(self.getExpectedFileDir(), self.getExpectedFileName(file_type)))
+            )
     
     def testStatus(self):
         logging.info("Checking HTTP Status ...")
         self.assertEqual(self.response.status_code, 200)
 
-    def getExpectedFileDir(self):
-        return os.path.join("../autotest", "expected")
+class RasterTestCase(OWSTestCase):
+    """
+    Base class for test cases that expect a raster as response.
+    """
     
-    def getExpectedFileName(self):
-        return "%s.%s" % (self.__class__.__name__, self.getFileExtension())
+    def getFileExtension(self, file_type):
+        return "tif"
     
-    def testBinaryComparison(self):
-        try:
-            f = open(os.path.join(self.getExpectedFileDir(), self.getExpectedFileName()), 'r')
-            expected = f.read()
-            f.close()
-        except:
-            expected = ""
+    def testBinaryComparisonRaster(self):
+        self._testBinaryComparison("raster")
+
+class GDALDatasetTestCase(RasterTestCase):
+    """
+    Extended RasterTestCases that open the result with GDAL and
+    perform several tests.
+    """
+    
+    def setUp(self):
+        super(GDALDatasetTestCase, self).setUp()
+        _, self.tmppath = tempfile.mkstemp("." + self.getFileExtension("raster"))
+        f = open(self.tmppath, "w")
+        f.write(self.getResponseData())
+        f.close()
+        gdal.AllRegister()
+
+        exp_path = os.path.join(self.getExpectedFileDir(), self.getExpectedFileName("raster"))
         
-        if expected != self.getResponseData():
-            f = open(os.path.join(self.getResponseFileDir(), self.getResponseFileName()), 'w')
-            f.write(self.getResponseData())
-            f.close()
-            
-            if expected == "":
-                self.fail("Expected response in '%s' is not present" % 
-                           os.path.join(self.getExpectedFileDir(), self.getExpectedFileName())
-                )
-            else:
-                self.fail("Response returned in '%s' is not equal to expected response in '%s'." % (
-                           os.path.join(self.getResponseFileDir(), self.getResponseFileName()),
-                           os.path.join(self.getExpectedFileDir(), self.getExpectedFileName()))
-                )
+        self.res_ds = gdal.Open(self.tmppath, gdalconst.GA_ReadOnly)
+        self.exp_ds = gdal.Open(exp_path, gdalconst.GA_ReadOnly)
+        
+    def tearDown(self):
+        super(GDALDatasetTestCase, self).tearDown()
+        del self.res_ds
+        del self.exp_ds
+        os.remove(self.tmppath)
+
+    def testSize(self):
+        self.assertEqual((self.res_ds.RasterXSize, self.res_ds.RasterYSize),
+                         (self.exp_ds.RasterXSize, self.exp_ds.RasterYSize))
+
+    def testExtent(self):
+        EPSILON = 1e-8
+        
+        res_extent = extent_from_ds(self.res_ds)
+        exp_extent = extent_from_ds(self.exp_ds)
+        
+        self.assert_(
+            max([
+                abs(res_extent[i] - exp_extent[i]) for i in range(0, 4)
+            ]) < EPSILON
+        )
+
+    def testResolution(self):
+        res_resolution = resolution_from_ds(self.res_ds)
+        exp_resolution = resolution_from_ds(self.exp_ds)
+        self.assertAlmostEqual(res_resolution[0], exp_resolution[0], delta=exp_resolution[0]/10)
+        self.assertAlmostEqual(res_resolution[1], exp_resolution[1], delta=exp_resolution[1]/10)
+
+    def testBandCount(self):
+        self.assertEqual(self.res_ds.RasterCount, self.exp_ds.RasterCount)
 
 class XMLTestCase(OWSTestCase):
+    """
+    Base class for test cases that expec XML output, which is parsed
+    and validated against a schema defintion.
+    """
     def getSchemaLocation(self):
         return "../schemas/wcseo/1.0/wcsEOAll.xsd"
     
@@ -132,41 +226,116 @@ class XMLTestCase(OWSTestCase):
             schema.assertValid(etree.fromstring(self.getXMLData()))
         except etree.Error as e:
             self.fail(str(e))
+        
+    def testBinaryComparisonXML(self):
+        self._testBinaryComparison("xml")
 
-#
+class ExceptionTestCase(XMLTestCase):
+    """
+    Exception test cases expect the request to fail and examine the 
+    exception response.
+    """
+    
+    def getSchemaLocation(self):
+        return "../schemas/ows/2.0/owsExceptionReport.xsd"
+    
+    def getExpectedHTTPStatus(self):
+        return 400
+    
+    def getExpectedExceptionCode(self):
+        return ""
+        
+    def testStatus(self):
+        logging.info("Checking HTTP Status ...")
+        self.assertEqual(self.response.status_code, self.getExpectedHTTPStatus())
+    
+    def testExceptionCode(self):
+        logging.info("Checking OWS Exception Code ...")
+        decoder = XMLDecoder(self.getXMLData(), {
+            "exceptionCode": {"xml_location": "/ows:Exception/@exceptionCode", "xml_type": "string"}
+        })
+        
+        self.assertEqual(decoder.getValue("exceptionCode"), self.getExpectedExceptionCode())      
+
+class MultipartTestCase(XMLTestCase, GDALDatasetTestCase):
+    """
+    Multipart tests combine XML and raster tests and split the response
+    into a xml and a raster part which are examined separately. 
+    """
+    
+    def setUp(self):
+        self.xmlData = None
+        self.imageData = None
+        self.isSetUp = False
+        super(MultipartTestCase, self).setUp()
+        
+        self._setUpMultiparts()
+    
+    def _setUpMultiparts(self):
+        if self.isSetUp: return
+        response_msg = email.message_from_string("Content-type: multipart/mixed; boundary=wcs\n\n"
+                                                 + self.response.content)
+        
+        for part in response_msg.walk():
+            if part['Content-type'] == "multipart/mixed; boundary=wcs":
+                continue
+            elif part['Content-type'] == "text/xml":
+                self.xmlData = part.get_payload()
+            else:
+                self.imageData = part.get_payload()
+        
+        self.isSetUp = True
+    
+    def getFileExtension(self, part=None):
+        if part == "xml":
+            return "xml"
+        elif part == "raster":
+            return "tif"
+        else:
+            return "dat"
+    
+    def getXMLData(self):
+        self._setUpMultiparts()
+        return self.xmlData
+    
+    def getResponseData(self):
+        self._setUpMultiparts()
+        return self.imageData
+    
+#===============================================================================
 # WCS 1.0
-#
+#===============================================================================
 
 class WCS10GetCapabilitiesTestCase(XMLTestCase):
     def getSchemaLocation(self):
-            return "../schemas/wcs/1.0.0/wcsCapabilities.xsd"
+        return "../schemas/SCHEMAS_OPENGIS_NET/wcs/1.0.0/wcsCapabilities.xsd"
 
 class WCS10DescribeCoverageTestCase(XMLTestCase):
     def getSchemaLocation(self):
-            return "../schemas/wcs/1.0.0/describeCoverage.xsd"
+        return "../schemas/SCHEMAS_OPENGIS_NET/wcs/1.0.0/describeCoverage.xsd"
 
 class WCS10GetCoverageTestCase(OWSTestCase):
     pass
 
-
-#
+#===============================================================================
 # WCS 1.1
-#
+#===============================================================================
 
 class WCS11GetCapabilitiesTestCase(XMLTestCase):
     def getSchemaLocation(self):
-            return "../schemas/wcs/1.1/wcsAll.xsd"
+        return "../schemas/SCHEMAS_OPENGIS_NET/wcs/1.1/wcsAll.xsd"
 
 class WCS11DescribeCoverageTestCase(XMLTestCase):
     def getSchemaLocation(self):
-            return "../schemas/wcs/1.1/wcsDescribeCoverage.xsd"
+        return "../schemas/SCHEMAS_OPENGIS_NET/wcs/1.1/wcsDescribeCoverage.xsd"
 
-class WCS11GetCoverageTestCase(OWSTestCase):
-    pass
+class WCS11GetCoverageTestCase(MultipartTestCase):
+    def getSchemaLocation(self):
+        return "../schemas/SCHEMAS_OPENGIS_NET/wcs/1.1/wcsCoverages.xsd"
 
-#
+#===============================================================================
 # WCS 2.0
-#
+#===============================================================================
 
 class WCS20GetCapabilitiesTestCase(XMLTestCase):
     def getSchemaLocation(self):
@@ -233,157 +402,13 @@ class WCS20DescribeEOCoverageSetSectionsTestCase(WCS20DescribeEOCoverageSetTestC
         sections = decoder.getValue("sections")
         self.assertItemsEqual(sections, self.getExpectedSections())
 
-class ExceptionTestCase(XMLTestCase):
-    def getSchemaLocation(self):
-        return "../schemas/ows/2.0/owsExceptionReport.xsd"
+class WCS20GetCoverageTestCase(GDALDatasetTestCase):
+    pass
     
-    def getExpectedHTTPStatus(self):
-        return 400
-    
-    def getExpectedExceptionCode(self):
-        return ""
-        
-    def testStatus(self):
-        logging.info("Checking HTTP Status ...")
-        self.assertEqual(self.response.status_code, self.getExpectedHTTPStatus())
-    
-    def testExceptionCode(self):
-        logging.info("Checking OWS Exception Code ...")
-        decoder = XMLDecoder(self.getXMLData(), {
-            "exceptionCode": {"xml_location": "/ows:Exception/@exceptionCode", "xml_type": "string"}
-        })
-        
-        self.assertEqual(decoder.getValue("exceptionCode"), self.getExpectedExceptionCode())
-
-class WCS20GetCoverageTestCase(OWSTestCase):
-    def setUp(self):
-        super(WCS20GetCoverageTestCase, self).setUp()
-        _, self.tmppath = tempfile.mkstemp("." + self.getFileExtension())
-        f = open(self.tmppath, "w")
-        f.write(self.getResponseData())
-        f.close()
-        gdal.AllRegister()
-
-        exp_path = os.path.join(self.getExpectedFileDir(), self.getExpectedFileName())
-        
-        self.res_ds = gdal.Open(self.tmppath, gdalconst.GA_ReadOnly)
-        self.exp_ds = gdal.Open(exp_path, gdalconst.GA_ReadOnly)
-        
-    def tearDown(self):
-        del self.res_ds
-        del self.exp_ds
-        os.remove(self.tmppath)
-    
-    def getFileExtension(self):
-        return "tif"
-
-    def testSize(self):
-        self.assertEqual((self.res_ds.RasterXSize, self.res_ds.RasterYSize),
-                         (self.exp_ds.RasterXSize, self.exp_ds.RasterYSize))
-
-    def testExtent(self):
-        EPSILON = 1e-8
-        
-        res_extent = extent_from_ds(self.res_ds)
-        exp_extent = extent_from_ds(self.exp_ds)
-        
-        self.assert_(
-            max([
-                abs(res_extent[i] - exp_extent[i]) for i in range(0, 4)
-            ]) < EPSILON
-        )
-
-    def testResolution(self):
-        res_resolution = resolution_from_ds(self.res_ds)
-        exp_resolution = resolution_from_ds(self.exp_ds)
-        self.assertAlmostEqual(res_resolution[0], exp_resolution[0], delta=exp_resolution[0]/10)
-        self.assertAlmostEqual(res_resolution[1], exp_resolution[1], delta=exp_resolution[1]/10)
-
-    def testBandCount(self):
-        self.assertEqual(self.res_ds.RasterCount, self.exp_ds.RasterCount)
-
-def extent_from_ds(ds):
-    gt = ds.GetGeoTransform()
-    size_x = ds.RasterXSize
-    size_y = ds.RasterYSize
-    
-    return (gt[0],                   # minx
-            gt[3] + size_x * gt[5],  # miny
-            gt[0] + size_y * gt[1],  # maxx
-            gt[3])                   # maxy
-
-def resolution_from_ds(ds):
-    gt = ds.GetGeoTransform()
-    return (gt[1], abs(gt[5]))
-    
-class WCS20GetCoverageMultipartTestCase(WCS20GetCoverageTestCase, XMLTestCase):
-    def setUp(self):
-        self.xmlData = None
-        self.imageData = None
-        self.isSetUp = False
-        
-        super(WCS20GetCoverageMultipartTestCase, self).setUp()
-        
-        
-        self._setUpMultiparts()
-    
-    def _setUpMultiparts(self):
-        if self.isSetUp: return
-        response_msg = email.message_from_string("Content-type: multipart/mixed; boundary=wcs\n\n"
-                                                 + self.response.content)
-        for part in response_msg.walk():
-            if part['Content-type'] == "multipart/mixed; boundary=wcs":
-                continue
-            elif part['Content-type'] == "text/xml":
-                self.xmlData = part.get_payload()
-            else:
-                self.imageData = part.get_payload()
-        
-        self.isSetUp = True
-    
-    def getFileExtension(self,part=None):
-        if part == "xml":
-            return "xml"
-        elif part == "tif":
-            return "tif"
-        else:
-            return "dat"
-    
-    def getResponseFileName(self, part="tif"):
-        return "%s.%s" % (self.__class__.__name__, self.getFileExtension(part))
-    
-    def getXMLData(self):
-        self._setUpMultiparts()
-        return self.xmlData
-    
-    def getResponseData(self):
-        self._setUpMultiparts()
-        return self.imageData
-        
-    def getExpectedFileName(self, part="tif"):
-        return "%s.%s" % (self.__class__.__name__, self.getFileExtension(part))
-    
-    def testValidate(self):
-        logging.info("Validating XML ...")
-        schema = TestSchemaFactory.getSchema("../schemas/wcseo/1.0/wcsEOCoverage.xsd")
-        try:
-            schema.assertValid(etree.fromstring(self.getXMLData()))
-        except etree.Error as e:
-            f = open(os.path.join(self.getResponseFileDir(), self.getResponseFileName("xml")), 'w')
-            f.write(self.getXMLData())
-            f.close()
-            self.fail(str(e))
-        
-        logging.info("Comparing actual and expected XML responses.")
-        
-        try:
-            f = open(os.path.join(self.getExpectedFileDir(), self.getExpectedFileName("xml")), 'r')
-            expected = f.read()
-            f.close()
-        except:
-            expected = ""
-        
-        
+class WCS20GetCoverageMultipartTestCase(MultipartTestCase, GDALDatasetTestCase):
+    def testBinaryComparisonXML(self):
+        # the timePosition tag depends on the actual time the
+        # request was answered. It has to be explicitly unified
         tree = etree.fromstring(self.getXMLData())
         for node in tree.findall("{http://www.opengis.net/gmlcov/1.0}metadata/" \
                                  "{http://www.opengis.net/wcseo/1.0}EOMetadata/" \
@@ -391,54 +416,19 @@ class WCS20GetCoverageMultipartTestCase(WCS20GetCoverageTestCase, XMLTestCase):
                                  "{http://www.opengis.net/gml/3.2}timePosition"):
             node.text = "2011-01-01T00:00:00Z"
             
-        result_cleared = etree.tostring(tree, encoding="ISO-8859-1")
-        print result_cleared
+        self.xmlData = etree.tostring(tree, encoding="ISO-8859-1")
         
-        if expected != result_cleared:
-            f = open(os.path.join(self.getResponseFileDir(), self.getResponseFileName("xml")), 'w')
-            f.write(result_cleared)
-            f.close()
-            
-            if expected == "":
-                self.fail("Expected response '%s' not present" % 
-                           os.path.join(self.getExpectedFileDir(), self.getExpectedFileName("xml"))
-                )
-            else:
-                self.fail("Response returned '%s' is not equal to expected response '%s'." % (
-                           os.path.join(self.getResponseFileDir(), self.getResponseFileName("xml")),
-                           os.path.join(self.getExpectedFileDir(), self.getExpectedFileName("xml")))
-                )
-    
-    def testBinaryComparison(self):
-        logging.info("Comparing actual and expected GeoTIFF responses.")
-        
-        try:
-            f = open(os.path.join(self.getExpectedFileDir(), self.getExpectedFileName("tif")), 'r')
-            expected = f.read()
-            f.close()
-        except:
-            expected = ""
-        
-        if expected != self.getResponseData():
-            f = open(os.path.join(self.getResponseFileDir(), self.getResponseFileName("tif")), 'w')
-            f.write(self.getResponseData())
-            f.close()
-            
-            if expected == "":
-                self.fail("Expected response '%s' not present" % 
-                           os.path.join(self.getExpectedFileDir(), self.getExpectedFileName("tif"))
-                )
-            else:
-                self.fail("Response returned '%s' is not equal to expected response '%s'." % (
-                           os.path.join(self.getResponseFileDir(), self.getResponseFileName("tif")),
-                           os.path.join(self.getExpectedFileDir(), self.getExpectedFileName("tif")))
-                )
+        super(WCS20GetCoverageMultipartTestCase, self).testBinaryComparisonXML()
+
+#===============================================================================
+# WMS 1.3 test classes
+#===============================================================================
 
 class WMS13GetCapabilitiesTestCase(XMLTestCase):
     def getSchemaLocation(self):
         return "../schemas/SCHEMAS_OPENGIS_NET/wms/1.3.0/capabilities_1_3_0.xsd"
 
-class WMS13GetMapTestCase(OWSTestCase):
+class WMS13GetMapTestCase(RasterTestCase):
     layers = []
     styles = []
     crs = "epsg:4326"
@@ -449,7 +439,7 @@ class WMS13GetMapTestCase(OWSTestCase):
     
     swap_axes = True
     
-    def getFileExtension(self):
+    def getFileExtension(self, part=None):
         mimetypes.init()
         return mimetypes.guess_extension(self.frmt, False)[1:]
     
