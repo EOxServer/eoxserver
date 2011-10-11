@@ -51,6 +51,16 @@ from eoxserver.core.interfaces import *
 from eoxserver.core.util.filetools import findFiles, pathToModuleName
 
 class Registry(object):
+    """
+    The :class:`Registry` class implements the functionalities for detecting,
+    registering, finding and binding to implementations of registered
+    interfaces. It is instantiated by :class:`eoxserver.core.system.System`
+    during the startup process.
+    
+    The constructor expects a :class:`~.Config` instance as input. The values
+    will be validate and read using a :class:`RegistryConfigReader` instance.
+    """
+    
     def __init__(self, config):
         self.config = config
 
@@ -59,34 +69,80 @@ class Registry(object):
         self.__kvp_index = {}
         self.__fact_index = {}
     
-    def bind(self, impl_id, include_disabled=False):
+    def bind(self, impl_id):
+        """
+        Bind to the implementation with ID ``impl_id``. This method returns
+        a new instance of the requested implementation if it is enabled.
+        
+        If the implementation is disabled :exc:`~.ImplementationDisabled` will
+        be raised. If the ID ``impl_id`` is not known to the registry
+        :exc:`ImplementationNotFound` will be raised.
+        """
+        
         if impl_id in self.__impl_index:
             if self.__impl_index[impl_id]["enabled"]:
                 return self.__impl_index[impl_id]["cls"]()
             else:
-                raise ImplementationDisabled(impl_id)
+                raise ImplementationDisabled(
+                    "Implementation '%s' is disabled." % impl_id
+                )
         else:
             raise ImplementationNotFound(impl_id)
     
     def getFromFactory(self, factory_id, params):
+        """
+        Get an implementation instance from the factory with ID ``factory_id``
+        using the parameter dictionary ``params``. This is a shortcut which
+        binds to the factory and calls its :meth:`~FactoryInterface.get` method
+        then.
+        
+        :exc:`~.InternalError` will be raised if required arguments are missing
+        in the ``params`` dictionary. :exc:`~.ImplementationDisabled` will be
+        raised if either the factory or the appropriate implementation are
+        disabled. :exc:`~.ImplementationNotFound` will be raised if either
+        the factory or the appropriate implementation are unknown to the
+        registry.
+        """
+        
         factory = self.bind(factory_id)
         
         return factory.get(**params)
     
-    def findAndBind(self, intf_id, params, include_disabled=False):
+    def findAndBind(self, intf_id, params):
+        """
+        This method finds implementations based of a registered interface
+        with ID ``intf_id`` using the parameter dictionary ``params`` and
+        returns an instance of the matching implementation. This
+        works only for the ``kvp`` and ``testing`` binding methods, in other
+        cases :exc:`~.BindingMethodError` will be raised.
+        
+        If the binding method of the interface is ``kvp`` the ``params``
+        dictionary must map the registry keys defined in the interface
+        declaration to values. The KVP combination will be compared with the
+        values given in the respective implementations. If a matching
+        implementation is found an instance will be returned, otherwise
+        :exc:`~.ImplementationNotFound` is raised. If the class found is
+        disabled :exc:`~.ImplementationDisabled` is raised.
+        
+        If the binding method of the interface is ``testing`` the ``params``
+        dictionary will be passed to the :meth:`~TestingInterface.test` method
+        of the respective implementations. If no implementation matches
+        :exc:`~.ImplementationNotFound` will be raised. If more than one are
+        found :exc:`~.ImplementationAmbiguous` will be raised.
+        """
+        
         if intf_id in self.__intf_index:
             InterfaceCls = self.__intf_index[intf_id]["intf"]
             if InterfaceCls.getBindingMethod() == "direct":
                 raise BindingMethodError("You have to bind directly to implementations of '%s'" % intf_id)
             elif InterfaceCls.getBindingMethod() == "kvp":
                 ImplementationCls = self.__find_by_values(
-                    InterfaceCls, params, include_disabled
+                    InterfaceCls, params
                 )
             elif InterfaceCls.getBindingMethod() == "testing":
                 ImplementationCls = self.__find_by_test(
                     self.__intf_index[intf_id]["impls"],
-                    params,
-                    include_disabled
+                    params
                 )
             elif InterfaceCls.getBindingMethod() == "factory":
                 raise BindingMethodError("The registry cannot generate '%s' implementations. Use getFromFactory() instead." % intf_id)
@@ -96,6 +152,10 @@ class Registry(object):
             raise InternalError("Unknown interface ID '%s'" % intf_id)
 
     def findImplementations(self, intf_id, params=None, include_disabled=False):
+        """
+        
+        """
+        
         if intf_id in self.__intf_index:
             InterfaceCls = self.__intf_index[intf_id]["intf"]
             if params is not None:
