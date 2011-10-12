@@ -220,8 +220,36 @@ class XMLTestCase(OWSTestCase):
     
     def testValidate(self):
         logging.info("Validating XML ...")
-        schema = TestSchemaFactory.getSchema(self.getSchemaLocation())
         
+        doc = etree.XML(self.getXMLData())
+        schema_locations = doc.get("{http://www.w3.org/2001/XMLSchema-instance}schemaLocation")
+        
+        if schema_locations is None:
+            # fallback solution
+            schema = TestSchemaFactory.getSchema(self.getSchemaLocation())
+        
+        else:
+            locations = schema_locations.split()
+            
+            # get schema locations
+            schema_def = etree.Element("schema", attrib={
+                    "elementFormDefault": "qualified",
+                    "version": "1.0.0",
+                }, nsmap={
+                    None: "http://www.w3.org/2001/XMLSchema"
+                }
+            )
+            
+            for ns, location in zip(locations[::2], locations[1::2]):
+                etree.SubElement(schema_def, "import", attrib={
+                        "namespace": ns,
+                        "schemaLocation": location
+                    }
+                )
+            
+            # TODO: ugly workaround. But otherwise, the doc is not recognized as schema
+            schema = etree.XMLSchema(etree.XML(etree.tostring(schema_def)))
+            
         try:
             schema.assertValid(etree.fromstring(self.getXMLData()))
         except etree.Error as e:
@@ -426,7 +454,7 @@ class WCS20GetCoverageMultipartTestCase(MultipartTestCase, GDALDatasetTestCase):
 
 class WMS13GetCapabilitiesTestCase(XMLTestCase):
     def getSchemaLocation(self):
-        return "../schemas/SCHEMAS_OPENGIS_NET/wms/1.3.0/capabilities_1_3_0.xsd"
+        return "../schemas/SCHEMAS_OPENGIS_NET/sld/1.1.0/sld_capabilities.xsd"
 
 class WMS13GetMapTestCase(RasterTestCase):
     layers = []
