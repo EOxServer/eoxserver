@@ -54,6 +54,11 @@ Unset: export -n XML_CATALOG_FILES (use standard catalog at /etc/xml/)
 <!-- schemas.opengis.net -->
   <rewriteSystem systemIdStartString="http://schemas.opengis.net/" rewritePrefix="SCHEMAS_OPENGIS_NET/"/>
   <rewriteURI uriStartString="http://schemas.opengis.net/" rewritePrefix="SCHEMAS_OPENGIS_NET/"/>
+<!-- mapserver -->
+  <!--<rewriteSystem systemIdStartString="http://localhost:8000/ows?service=WMS&version=1.3.0&request=" rewritePrefix="mapserver/"/>
+  <rewriteURI uriStartString="http://localhost:8000/ows?service=WMS&version=1.3.0&request=" rewritePrefix="mapserver/"/>-->
+  <rewriteSystem systemIdStartString="http://localhost:8000/ows?service=WMS&amp;version=1.3.0&amp;request=" rewritePrefix="mapserver/"/>
+  <rewriteURI uriStartString="http://localhost:8000/ows?service=WMS&amp;version=1.3.0&amp;request=" rewritePrefix="mapserver/"/>
 <!-- www.w3.org -->
   <rewriteSystem systemIdStartString="http://www.w3.org/2001/" rewritePrefix="WWW_W3_ORG/"/>
   <rewriteURI uriStartString="http://www.w3.org/2001/" rewritePrefix="WWW_W3_ORG/"/>
