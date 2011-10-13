@@ -36,7 +36,7 @@
 ---------------------------------
 
 cd <path_to_eoxserver_directory>
-svn co http://eoxserver.org/svn/trunk .
+svn co http://eoxserver.org/svn/trunk . # Note that the directories should not be moved or renamed because of relative paths.
 cd autotest
 cp data/meris/TEMPLATE_template.map conf/template.map
 cp ../eoxserver/conf/TEMPLATE_eoxserver.conf conf/eoxserver.conf
