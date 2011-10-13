@@ -42,6 +42,7 @@ cp data/meris/TEMPLATE_template.map conf/template.map
 cp ../eoxserver/conf/TEMPLATE_eoxserver.conf conf/eoxserver.conf
 cp ../eoxserver/conf/TEMPLATE_config.sqlite data/config.sqlite
 cp ../eoxserver/conf/TEMPLATE_settings.py settings.py
+cp ../eoxserver/conf/init_spatialite-2.3.sql data/
 
 vi conf/eoxserver.conf
 #--------
@@ -49,6 +50,7 @@ vi conf/eoxserver.conf
 #--------
 # instance_id=
 # logging_filename=<path_to_eoxserver_directory>/logs/eoxserver.log
+# module_dirs=../eoxserver/services/ows
 
 vi settings.py
 #--------
