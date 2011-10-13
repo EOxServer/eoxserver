@@ -31,29 +31,86 @@
 # Autotest HowTo #
 ##################
 
-1. How to run test instance
-
-cp data/meris/TEMPLATE_template.map conf/template.map
-cp ../eoxserver/conf/TEMPLATE_eoxserver.conf conf/eoxserver.conf
+---------------------------------
+1. How to configure test instance
+---------------------------------
 
 cd <path_to_eoxserver_directory>
-python manage.py loaddata data/fixtures/some_fixture.json ...
-python manage.py runserver
+svn co http://eoxserver.org/svn/trunk .
+cd autotest
+cp data/meris/TEMPLATE_template.map conf/template.map
+cp ../eoxserver/conf/TEMPLATE_eoxserver.conf conf/eoxserver.conf
+cp ../eoxserver/conf/TEMPLATE_config.sqlite data/config.sqlite
+cp ../eoxserver/conf/TEMPLATE_settings.py settings.py
 
-# To load all fixtures type:
+vi conf/eoxserver.conf
+#--------
+# Adjust:
+#--------
+# instance_id=
+# logging_filename=<path_to_eoxserver_directory>/logs/eoxserver.log
+
+vi settings.py
+#--------
+# Adjust:
+#--------
+# PROJECT_DIR = '<path_to_eoxserver_directory>/autotest'
+# MAPSCRIPT_PATH = '<path_to_mapscript>/mapscript/python/build'
+# DATABASES -> 'NAME': '<path_to_eoxserver_directory>/autotest/data/config.sqlite',
+# MEDIA_ROOT = join('../eoxserver/', 'media')
+# TEMPLATE_DIRS -> join('../eoxserver/', 'templates'),
+# FIXTURE_DIRS -> join(PROJECT_DIR, 'data/fixtures'),
+
+# Obtain manage.py from installed version of django:
+django-admin.py startproject tmp
+cp tmp/manage.py .
+rm -r tmp/
+
+export PYTHONPATH="<path_to_eoxserver_directory>"
+python manage.py syncdb
+
+
+------------------------
+2. How to load test data
+------------------------
+
+cd <path_to_eoxserver_directory>/autotest
+export PYTHONPATH="<path_to_eoxserver_directory>"
+python manage.py loaddata data/fixtures/some_fixture.json ...
+
+# To load all test fixtures:
 python manage.py loaddata auth_data.json initial_rangetypes.json testing_base.json testing_coverages.json
 
 
-2. How to update fixtures
+---------------------------
+3. How to run test instance
+---------------------------
 
-Run
+# Perform steps in "1. How to configure test instance"
+# Optionally perform steps in "2. How to load test data"
+cd <path_to_eoxserver_directory>/autotest
+export PYTHONPATH="<path_to_eoxserver_directory>"
+python manage.py runserver
 
-cd <path_to_eoxserver_directory>
+
+-------------------------
+4. How to update fixtures
+-------------------------
+
+cd <path_to_eoxserver_directory>/autotest
+export PYTHONPATH="<path_to_eoxserver_directory>"
 python manage.py dumpdata --format=json --indent=4 > tmp.json
-Inspect file e.g. with: meld tmp.json server/fixtures/initial_data.json
-mv tmp.json server/fixtures/initial_data.json
+# Inspect file e.g. with: meld tmp.json data/fixtures/initial_data.json
+mv tmp.json data/fixtures/<json-file>
 
-3. How to run unittests
+
+-----------------------
+5. How to run unittests
+-----------------------
+
+cd <path_to_eoxserver_directory>/autotest
+export PYTHONPATH="<path_to_eoxserver_directory>"
+export XML_CATALOG_FILES="<path_to_eoxserver_directory>/schemas/catalog.xml"
 
 # services only
 python manage.py test services
@@ -63,6 +120,6 @@ python manage.py test services coverages backends core
 
 # or simply
 python manage.py test
-# this will also make some django tests.
+# this also runs some django tests.
 
-------------------------------------------------------------------------
+--------------------------------------------------------------------------------
