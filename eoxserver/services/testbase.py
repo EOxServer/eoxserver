@@ -40,8 +40,7 @@ from osgeo import gdal, gdalconst
 from django.test import Client
 
 from eoxserver.testing.core import (
-    EOxServerTestCase, BASE_FIXTURES,
-    TestSchemaFactory
+    EOxServerTestCase, BASE_FIXTURES
 )
 from eoxserver.core.util.xmltools import XMLDecoder
 
@@ -174,8 +173,11 @@ class GDALDatasetTestCase(RasterTestCase):
         exp_path = os.path.join(self.getExpectedFileDir(), self.getExpectedFileName("raster"))
         
         self.res_ds = gdal.Open(self.tmppath, gdalconst.GA_ReadOnly)
-        self.exp_ds = gdal.Open(exp_path, gdalconst.GA_ReadOnly)
-        
+        try:
+            self.exp_ds = gdal.Open(exp_path, gdalconst.GA_ReadOnly)
+        except RuntimeError:
+            self.skipTest("Expected response in '%s' is not present" % exp_path)
+    
     def tearDown(self):
         super(GDALDatasetTestCase, self).tearDown()
         del self.res_ds
@@ -209,11 +211,9 @@ class GDALDatasetTestCase(RasterTestCase):
 
 class XMLTestCase(OWSTestCase):
     """
-    Base class for test cases that expec XML output, which is parsed
-    and validated against a schema defintion.
+    Base class for test cases that expects XML output, which is parsed
+    and validated against a schema definition.
     """
-    def getSchemaLocation(self):
-        return "../schemas/wcseo/1.0/wcsEOAll.xsd"
     
     def getXMLData(self):
         return self.response.content
@@ -224,31 +224,26 @@ class XMLTestCase(OWSTestCase):
         doc = etree.XML(self.getXMLData())
         schema_locations = doc.get("{http://www.w3.org/2001/XMLSchema-instance}schemaLocation")
         
-        if schema_locations is None:
-            # fallback solution
-            schema = TestSchemaFactory.getSchema(self.getSchemaLocation())
+        locations = schema_locations.split()
         
-        else:
-            locations = schema_locations.split()
-            
-            # get schema locations
-            schema_def = etree.Element("schema", attrib={
-                    "elementFormDefault": "qualified",
-                    "version": "1.0.0",
-                }, nsmap={
-                    None: "http://www.w3.org/2001/XMLSchema"
+        # get schema locations
+        schema_def = etree.Element("schema", attrib={
+                "elementFormDefault": "qualified",
+                "version": "1.0.0",
+            }, nsmap={
+                None: "http://www.w3.org/2001/XMLSchema"
+            }
+        )
+        
+        for ns, location in zip(locations[::2], locations[1::2]):
+            etree.SubElement(schema_def, "import", attrib={
+                    "namespace": ns,
+                    "schemaLocation": location
                 }
             )
-            
-            for ns, location in zip(locations[::2], locations[1::2]):
-                etree.SubElement(schema_def, "import", attrib={
-                        "namespace": ns,
-                        "schemaLocation": location
-                    }
-                )
-            
-            # TODO: ugly workaround. But otherwise, the doc is not recognized as schema
-            schema = etree.XMLSchema(etree.XML(etree.tostring(schema_def)))
+        
+        # TODO: ugly workaround. But otherwise, the doc is not recognized as schema
+        schema = etree.XMLSchema(etree.XML(etree.tostring(schema_def)))
             
         try:
             schema.assertValid(etree.fromstring(self.getXMLData()))
@@ -263,9 +258,6 @@ class ExceptionTestCase(XMLTestCase):
     Exception test cases expect the request to fail and examine the 
     exception response.
     """
-    
-    def getSchemaLocation(self):
-        return "../schemas/ows/2.0/owsExceptionReport.xsd"
     
     def getExpectedHTTPStatus(self):
         return 400
@@ -334,14 +326,6 @@ class MultipartTestCase(XMLTestCase, GDALDatasetTestCase):
 # WCS 1.0
 #===============================================================================
 
-class WCS10GetCapabilitiesTestCase(XMLTestCase):
-    def getSchemaLocation(self):
-        return "../schemas/SCHEMAS_OPENGIS_NET/wcs/1.0.0/wcsCapabilities.xsd"
-
-class WCS10DescribeCoverageTestCase(XMLTestCase):
-    def getSchemaLocation(self):
-        return "../schemas/SCHEMAS_OPENGIS_NET/wcs/1.0.0/describeCoverage.xsd"
-
 class WCS10GetCoverageTestCase(OWSTestCase):
     pass
 
@@ -349,35 +333,11 @@ class WCS10GetCoverageTestCase(OWSTestCase):
 # WCS 1.1
 #===============================================================================
 
-class WCS11GetCapabilitiesTestCase(XMLTestCase):
-    def getSchemaLocation(self):
-        return "../schemas/SCHEMAS_OPENGIS_NET/wcs/1.1/wcsAll.xsd"
-
-class WCS11DescribeCoverageTestCase(XMLTestCase):
-    def getSchemaLocation(self):
-        return "../schemas/SCHEMAS_OPENGIS_NET/wcs/1.1/wcsDescribeCoverage.xsd"
-
-class WCS11GetCoverageTestCase(MultipartTestCase):
-    def getSchemaLocation(self):
-        return "../schemas/SCHEMAS_OPENGIS_NET/wcs/1.1/wcsCoverages.xsd"
-
 #===============================================================================
 # WCS 2.0
 #===============================================================================
-
-class WCS20GetCapabilitiesTestCase(XMLTestCase):
-    def getSchemaLocation(self):
-        return "../schemas/wcseo/1.0/wcsEOGetCapabilities.xsd"
-
-class WCS20DescribeCoverageTestCase(XMLTestCase):
-    def getSchemaLocation(self):
-        return "../schemas/wcs/2.0/wcsDescribeCoverage.xsd"
-
-class WCS20DescribeEOCoverageSetTestCase(XMLTestCase):
-    def getSchemaLocation(self):
-        return "../schemas/wcseo/1.0/wcsEODescribeEOCoverageSet.xsd"
     
-class WCS20DescribeEOCoverageSetSubsettingTestCase(WCS20DescribeEOCoverageSetTestCase):
+class WCS20DescribeEOCoverageSetSubsettingTestCase(XMLTestCase):
     def getExpectedCoverageIds(self):
         return []
     
@@ -395,7 +355,7 @@ class WCS20DescribeEOCoverageSetSubsettingTestCase(WCS20DescribeEOCoverageSetTes
         for coverage_id in result_coverage_ids:
             self.assertTrue(result_coverage_ids.count(coverage_id) == 1, "CoverageID %s is not unique." % coverage_id)
 
-class WCS20DescribeEOCoverageSetPagingTestCase(WCS20DescribeEOCoverageSetTestCase):
+class WCS20DescribeEOCoverageSetPagingTestCase(XMLTestCase):
 # TODO
 #    def setUp(self):
 #        self.saved_paging_default = System.getConfig().getConfigValue("services.ows.wcs20", "paging_count_default")
@@ -419,7 +379,7 @@ class WCS20DescribeEOCoverageSetPagingTestCase(WCS20DescribeEOCoverageSetTestCas
         coverage_ids = decoder.getValue("coverageids")
         self.assertEqual(len(coverage_ids), self.getExpectedCoverageCount())
 
-class WCS20DescribeEOCoverageSetSectionsTestCase(WCS20DescribeEOCoverageSetTestCase):
+class WCS20DescribeEOCoverageSetSectionsTestCase(XMLTestCase):
     def getExpectedSections(self):
         return []
     
@@ -429,9 +389,6 @@ class WCS20DescribeEOCoverageSetSectionsTestCase(WCS20DescribeEOCoverageSetTestC
         })
         sections = decoder.getValue("sections")
         self.assertItemsEqual(sections, self.getExpectedSections())
-
-class WCS20GetCoverageTestCase(GDALDatasetTestCase):
-    pass
     
 class WCS20GetCoverageMultipartTestCase(MultipartTestCase, GDALDatasetTestCase):
     def testBinaryComparisonXML(self):
@@ -451,10 +408,6 @@ class WCS20GetCoverageMultipartTestCase(MultipartTestCase, GDALDatasetTestCase):
 #===============================================================================
 # WMS 1.3 test classes
 #===============================================================================
-
-class WMS13GetCapabilitiesTestCase(XMLTestCase):
-    def getSchemaLocation(self):
-        return "../schemas/SCHEMAS_OPENGIS_NET/sld/1.1.0/sld_capabilities.xsd"
 
 class WMS13GetMapTestCase(RasterTestCase):
     layers = []
