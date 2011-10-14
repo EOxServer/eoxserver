@@ -795,8 +795,7 @@ def suite():
     wcs20_tests.addTests(get_tests_by_prefix("WCS20GetCoverage"))
     
     wcs20_post_tests = unittest.TestSuite()
-    wcs20_post_tests.addTests(get_tests_by_prefix("WCS20PostGetCapabilities"))
-    wcs20_post_tests.addTests(get_tests_by_prefix("WCS20PostDescribeCoverage"))
+    wcs20_post_tests.addTests(get_tests_by_prefix("WCS20Post"))
    
     wms13_tests = unittest.TestSuite(get_tests_by_prefix("WMS13"))
     
