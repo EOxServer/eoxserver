@@ -768,6 +768,22 @@ class WMS13GetMapDatasetSeriesTestCase(eoxstest.WMS13GetMapTestCase):
     width = 200
     bbox = (-3.75, 32.158895, 28.326165, 46.3)
 
+class WMS13GetMapLayerNotDefinedFaultTestCase(eoxstest.WMS13ExceptionTestCase):
+    def getRequest(self):
+        params = "service=WMS&version=1.3.0&request=GetMap&layers=INVALIDLAYER&bbox=0,0,1,1&crs=EPSG:4326&width=10&height=10"
+        return (params, "kvp")
+    
+    def getExpectedExceptionCode(self):
+        return "LayerNotDefined"
+
+class WMS13GetMapFormatUnknownFaultTestCase(eoxstest.WMS13ExceptionTestCase):
+    def getRequest(self):
+        params = "service=WMS&version=1.3.0&request=GetMap&layers=MER_FRS_1P_reduced&bbox=0,0,1,1&crs=EPSG:4326&width=100&height=100&format=image/INVALID&exceptions=application/vnd.ogc.se_xml"
+        return (params, "kvp")
+    
+    def getExpectedExceptionCode(self):
+        return "LayerNotDefined"
+
 #===============================================================================
 # Test suite
 #===============================================================================

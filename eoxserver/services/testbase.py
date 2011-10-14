@@ -44,6 +44,10 @@ from eoxserver.testing.core import (
 )
 from eoxserver.core.util.xmltools import XMLDecoder
 
+# THIS IS INTENTIONALLY DOUBLED DUE TO A BUG IN MIMETYPES!
+mimetypes.init()
+mimetypes.init()
+
 #===============================================================================
 # Helper functions
 #===============================================================================
@@ -115,8 +119,10 @@ class OWSTestCase(EOxServerTestCase):
         Helper function for the `testBinaryComparisonXML` and
         `testBinaryComparisonRaster` functions.
         """
+        expected_path = os.path.join(self.getExpectedFileDir(), self.getExpectedFileName(file_type))
+        response_path = os.path.join(self.getResponseFileDir(), self.getResponseFileName(file_type))
         try:
-            f = open(os.path.join(self.getExpectedFileDir(), self.getExpectedFileName(file_type)), 'r')
+            f = open(expected_path, 'r')
             expected = f.read()
             f.close()
         except IOError:
@@ -124,7 +130,7 @@ class OWSTestCase(EOxServerTestCase):
         
         if expected != self.getResponseData():
             logging.debug("Writing result for %s." % file_type)
-            f = open(os.path.join(self.getResponseFileDir(), self.getResponseFileName(file_type)), 'w')
+            f = open(response_path, 'w')
             if file_type == "raster":
                 f.write(self.getResponseData())
             elif file_type == "xml":
@@ -132,13 +138,10 @@ class OWSTestCase(EOxServerTestCase):
             f.close()
             
             if expected is None:
-                self.skipTest("Expected response in '%s' is not present" % 
-                           os.path.join(self.getExpectedFileDir(), self.getExpectedFileName(file_type))
-                )
+                self.skipTest("Expected response in '%s' is not present" % expected_path)
             
             self.fail("Response returned in '%s' is not equal to expected response in '%s'." % (
-                       os.path.join(self.getResponseFileDir(), self.getResponseFileName(file_type)),
-                       os.path.join(self.getExpectedFileDir(), self.getExpectedFileName(file_type)))
+                       response_path, expected_path)
             )
     
     def testStatus(self):
@@ -223,7 +226,6 @@ class XMLTestCase(OWSTestCase):
         
         doc = etree.XML(self.getXMLData())
         schema_locations = doc.get("{http://www.w3.org/2001/XMLSchema-instance}schemaLocation")
-        
         locations = schema_locations.split()
         
         # get schema locations
@@ -264,6 +266,9 @@ class ExceptionTestCase(XMLTestCase):
     
     def getExpectedExceptionCode(self):
         return ""
+    
+    def getExceptionCodeLocation(self):
+        return "/ows:Exception/@exceptionCode"
         
     def testStatus(self):
         logging.info("Checking HTTP Status ...")
@@ -272,7 +277,7 @@ class ExceptionTestCase(XMLTestCase):
     def testExceptionCode(self):
         logging.info("Checking OWS Exception Code ...")
         decoder = XMLDecoder(self.getXMLData(), {
-            "exceptionCode": {"xml_location": "/ows:Exception/@exceptionCode", "xml_type": "string"}
+            "exceptionCode": {"xml_location": self.getExceptionCodeLocation(), "xml_type": "string"}
         })
         
         self.assertEqual(decoder.getValue("exceptionCode"), self.getExpectedExceptionCode())      
@@ -321,17 +326,6 @@ class MultipartTestCase(XMLTestCase, GDALDatasetTestCase):
     def getResponseData(self):
         self._setUpMultiparts()
         return self.imageData
-    
-#===============================================================================
-# WCS 1.0
-#===============================================================================
-
-class WCS10GetCoverageTestCase(OWSTestCase):
-    pass
-
-#===============================================================================
-# WCS 1.1
-#===============================================================================
 
 #===============================================================================
 # WCS 2.0
@@ -413,7 +407,7 @@ class WMS13GetMapTestCase(RasterTestCase):
     layers = []
     styles = []
     crs = "epsg:4326"
-    bbox = (0,0,1,1)
+    bbox = (0, 0, 1, 1)
     width = 100
     height = 100
     frmt = "image/jpeg"
@@ -421,7 +415,6 @@ class WMS13GetMapTestCase(RasterTestCase):
     swap_axes = True
     
     def getFileExtension(self, part=None):
-        mimetypes.init()
         return mimetypes.guess_extension(self.frmt, False)[1:]
     
     def getRequest(self):
@@ -438,3 +431,7 @@ class WMS13GetMapTestCase(RasterTestCase):
                      self.width, self.height, self.frmt
                  )
         return (params, "kvp")
+
+class WMS13ExceptionTestCase(ExceptionTestCase):
+    def getExceptionCodeLocation(self):
+        return "/ogc:ServiceException/@code"
