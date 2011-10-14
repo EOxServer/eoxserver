@@ -54,11 +54,12 @@ class XMLEncoder(object):
     utility methods to compose XML documents.
     """
     
-    def __init__(self):
+    def __init__(self, schemas=None):
         super(XMLEncoder, self).__init__()
         
         self.ns_dict = self._initializeNamespaces()
         self.dom = self._createDOM()
+        self.schemas = schemas
     
     def _initializeNamespaces(self):
         """

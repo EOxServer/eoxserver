@@ -144,7 +144,10 @@ class WMS13VersionHandler(OWSCommonVersionHandler):
     VERSION = "1.3.0"
         
     def _handleException(self, req, exception):
-        return OGCExceptionHandler().handleException(req, exception)
+        schemas = {
+            "http://www.opengis.net/ogc": "http://schemas.opengis.net/wms/1.3.0/exceptions_1_3_0.xsd"
+        }
+        return OGCExceptionHandler(schemas).handleException(req, exception)
 
 WMS13VersionHandlerImplementation = VersionHandlerInterface.implement(WMS13VersionHandler)
 
@@ -181,7 +184,7 @@ class WMSCommonHandler(MapServerOperationHandler):
                 except IndexError:
                     nil_values.append(0)
             
-            #layer.offsite = mapscript.colorObj(*nil_values[:3])
+            layer.offsite = mapscript.colorObj(*nil_values[:3])
         
         layer.type = mapscript.MS_LAYER_RASTER
         
@@ -647,6 +650,7 @@ class WMS11ExceptionEncoder(XMLEncoder):
     def encodeExceptionReport(self, exception_text, exception_code):
         return self._makeElement("", "ServiceExceptionReport", [
             ("", "@version", "1.1.1"),
+            ("xsd", "schemaLocation", "http://www.opengis.net/ogc http://schemas.opengis.net/wms/1.1.1/OGC-exception.xsd"),
             ("", "ServiceException", [
                 ("", "@code", exception_code),
                 ("", "@@", exception_text)

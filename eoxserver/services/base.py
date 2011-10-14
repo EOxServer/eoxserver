@@ -89,11 +89,14 @@ class BaseRequestHandler(object):
             return self._handleException(req, e)
 
 class BaseExceptionHandler(object):
+    def __init__(self, schemas=None):
+        self.schemas = schemas
+    
     def _filterExceptions(self, exception):
         raise
     
     def _getEncoder(self):
-        raise EOxSInternalError("Not implemented.")
+        raise InternalError("Not implemented.")
     
     def _getExceptionReport(self, req, exception, encoder):
         if isinstance(exception, VersionNegotiationException):
@@ -117,6 +120,7 @@ class BaseExceptionHandler(object):
         encoder = self._getEncoder()
         
         content = self._getExceptionReport(req, exception, encoder)
+        
         status = self._getHTTPStatus(exception)
         
         self._logError(req, exception)
