@@ -53,7 +53,7 @@ class OGCExceptionHandler(BaseExceptionHandler):
             raise
     
     def _getEncoder(self):
-        return OGCExceptionEncoder()
+        return OGCExceptionEncoder(self.schemas)
     
     def _getContentType(self, exception):
         return "application/vnd.ogs.se_xml"
@@ -70,11 +70,14 @@ class OGCExceptionEncoder(XMLEncoder):
     }
     
     def _initializeNamespaces(self):
-        return {"ogc": "http://www.opengis.net/ogc"}
+        return {
+            "ogc": "http://www.opengis.net/ogc",
+            "xsd": "http://www.w3.org/2001/XMLSchema-instance"
+        }
     
     def encodeExceptionReport(self, exception_text, exception_code, locator=None):
         if locator is None:
-            return self._makeElement("ogc", "ServiceExceptionReport", [
+            element = self._makeElement("ogc", "ServiceExceptionReport", [
                 ("", "@version", "1.2.0"),
                 ("ogc", "ServiceException", [
                     ("", "@code", exception_code),
@@ -82,7 +85,7 @@ class OGCExceptionEncoder(XMLEncoder):
                 ])
             ])
         else:
-            return self._makeElement("ogc", "ServiceExceptionReport", [
+            element = self._makeElement("ogc", "ServiceExceptionReport", [
                 ("", "@version", "1.2.0"),
                 ("ogc", "ServiceException", [
                     ("", "@code", exception_code),
@@ -90,6 +93,12 @@ class OGCExceptionEncoder(XMLEncoder):
                     ("", "@@", exception_text)
                 ])
             ])
+        
+        if self.schemas is not None:
+            schemas_location = " ".join(["%s %s"%(ns, location) for ns, location in self.schemas.iteritems()])
+            element.setAttributeNS(self.ns_dict["xsd"], "%s:%s" % ("xsd", "schemaLocation"), schemas_location)
+        
+        return element
     
     def encodeInvalidRequestException(self, exception):
         return self.encodeExceptionReport(

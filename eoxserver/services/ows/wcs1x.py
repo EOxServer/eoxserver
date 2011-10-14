@@ -76,7 +76,11 @@ class WCS10VersionHandler(OWSCommonVersionHandler):
     }
     
     def _handleException(self, req, exception):
-        return OGCExceptionHandler().handleException(req, exception)
+        schema_locations = {
+            "http://www.opengis.net/ogc": "http://schemas.opengis.net/wcs/1.0.0/OGC-exception.xsd"
+        }
+        
+        return OGCExceptionHandler().handleException(req, exception, schema_locations)
 
 WCS10VersionHandlerImplementation = VersionHandlerInterface.implement(WCS10VersionHandler)
 

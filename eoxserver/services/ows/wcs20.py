@@ -90,7 +90,10 @@ class WCS20VersionHandler(OWSCommonVersionHandler):
     }
     
     def _handleException(self, req, exception):
-        handler = OWSCommonExceptionHandler()
+        schemas = {
+            "http://www.opengis.net/wcseo/1.0": "http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd"
+        }
+        handler = OWSCommonExceptionHandler(schemas)
         
         handler.setHTTPStatusCodes({
                 "NoSuchCoverage": 404,
