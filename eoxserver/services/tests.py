@@ -699,7 +699,39 @@ class WCS20GetCoverageMultipartRangeSubsetNamesDatasetTestCase(eoxstest.WCS20Get
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/mixed&rangesubset=MERIS_radiance_04_uint16,MERIS_radiance_05_uint16,MERIS_radiance_06_uint16"
         return (params, "kvp")
 
+#===============================================================================
+# WCS 2.0 - POST
+#===============================================================================
+
+class WCS20PostGetCapabilitiesValidTestCase(eoxstest.XMLTestCase):
+    """This test shall retrieve a valid WCS 2.0 EO-AP GetCapabilities response
+       via POST.
+    """
+    def getRequest(self):
+        params = """<ns:GetCapabilities updateSequence="u2001" service="WCS"
+          xmlns:ns="http://www.opengis.net/wcs/2.0"
+          xmlns:ns1="http://www.opengis.net/ows/2.0">
+            <ns1:AcceptVersions><ns1:Version>2.0.0</ns1:Version></ns1:AcceptVersions>
+          </ns:GetCapabilities>
+        """        
+        return (params, "xml")
+
+class WCS20PostDescribeCoverageDatasetTestCase(eoxstest.XMLTestCase):
+    """This test shall retrieve a valid WCS 2.0 EO-AP DescribeCoverage response 
+       for a wcseo:RectifiedDataset via POST.
+    """
+    def getRequest(self):
+    # A possible alternative: "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"
+        params = """<ns:DescribeCoverage 
+           xmlns:ns="http://www.opengis.net/wcs/2.0" service="WCS" version="2.0.0">
+         <ns:CoverageId>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</ns:CoverageId>
+        </ns:DescribeCoverage>
+        """
+        return (params, "xml")
+
+#===============================================================================
 # WMS
+#===============================================================================
 
 class WMS13GetCapabilitiesValidTestCase(eoxstest.XMLTestCase):
     """This test shall retrieve a valid WMS 1.3 GetCapabilities response"""
@@ -762,6 +794,10 @@ def suite():
     #wcs20_tests.addTests(get_tests_by_prefix("WCS20DescribeEOCoverageSet"))
     wcs20_tests.addTests(get_tests_by_prefix("WCS20GetCoverage"))
     
+    wcs20_post_tests = unittest.TestSuite()
+    wcs20_post_tests.addTests(get_tests_by_prefix("WCS20PostGetCapabilities"))
+    wcs20_post_tests.addTests(get_tests_by_prefix("WCS20PostDescribeCoverage"))
+   
     wms13_tests = unittest.TestSuite(get_tests_by_prefix("WMS13"))
     
     all_tests = unittest.TestSuite()
@@ -769,6 +805,7 @@ def suite():
     all_tests.addTests(wcs10_tests)
     all_tests.addTests(wcs11_tests)
     all_tests.addTests(wcs20_tests)
+    all_tests.addTests(wcs20_post_tests)
     all_tests.addTests(wms13_tests)
     
     return all_tests
