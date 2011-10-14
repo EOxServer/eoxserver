@@ -37,7 +37,7 @@ from eoxserver.core.readers import ConfigReaderInterface
 from eoxserver.core.exceptions import (
     ConfigError, ImplementationNotFound, ImplementationDisabled
 )
-from eoxserver.core.util.xmltools import XMLEncoder, DOMElementToXML
+from eoxserver.core.util.xmltools import XMLEncoder
 from eoxserver.services.interfaces import (
     RequestHandlerInterface, ExceptionHandlerInterface,
     ExceptionEncoderInterface
@@ -65,8 +65,11 @@ class OWSCommonHandler(BaseRequestHandler):
     }
     
     def _handleException(self, req, exception):
+        schemas = {
+            "http://www.opengis.net/ows/2.0": "http://schemas.opengis.net/ows/2.0/owsAll.xsd"
+        }
         try:
-            return OWSCommonExceptionHandler().handleException(req, exception)
+            return OWSCommonExceptionHandler(schemas).handleException(req, exception)
         except Exception, e:
             logging.error(str(req.getParams()))
             logging.error(str(e))
@@ -98,13 +101,13 @@ class OWSCommonHandler(BaseRequestHandler):
                 intf_id = "services.interfaces.ServiceHandler",
                 params = {"services.interfaces.service": service.lower()}
             )
-        except ImplementationNotFound, e:
+        except ImplementationNotFound:
             raise InvalidRequestException(
                 "Service '%s' not supported." % service,
                 "InvalidParameterValue",
                 "service"
             )
-        except ImplementationDisabled, e:
+        except ImplementationDisabled:
             raise InvalidRequestException(
                 "Service '%s' disabled." % service,
                 "InvalidParameterValue",
@@ -126,7 +129,10 @@ class OWSCommonServiceHandler(BaseRequestHandler):
     }
     
     def _handleException(self, req, exception):
-        return OWSCommonExceptionHandler().handleException(req, exception)
+        schemas = {
+            "http://www.opengis.net/ows/2.0": "http://schemas.opengis.net/ows/2.0/owsAll.xsd"
+        }
+        return OWSCommonExceptionHandler(schemas).handleException(req, exception)
 
     def _normalizeVersion(self, input_version):
         if input_version is not None:
@@ -273,7 +279,7 @@ class OWSCommonServiceHandler(BaseRequestHandler):
                     "services.interfaces.version": version
                 }
             )
-        except ImplementationNotFound, e:
+        except ImplementationNotFound:
             raise InvalidRequestException(
                 "Service '%s', version '%s' not supported." % (self.SERVICE, version),
                 "InvalidParameterValue",
@@ -293,7 +299,10 @@ class OWSCommonVersionHandler(BaseRequestHandler):
     }
     
     def _handleException(self, req, exception):
-        return OWSCommonExceptionHandler().handleException(req, exception)
+        schemas = {
+            "http://www.opengis.net/ows/2.0": "http://schemas.opengis.net/ows/2.0/owsAll.xsd"
+        }
+        return OWSCommonExceptionHandler(schemas).handleException(req, exception)
 
     def _processRequest(self, req):
         req.setSchema(self.PARAM_SCHEMA)
@@ -316,7 +325,7 @@ class OWSCommonVersionHandler(BaseRequestHandler):
                     "services.interfaces.operation": operation.lower()
                 }
             )
-        except ImplementationNotFound, e:
+        except ImplementationNotFound:
             raise InvalidRequestException(
                 "Service '%s', version '%s' does not support operation '%s'." % (
                     self.SERVICE, version, operation
@@ -343,9 +352,8 @@ class OWSCommonExceptionHandler(BaseExceptionHandler):
         "NoApplicableCode": 500
     }
     
-    def __init__(self):
-        super(OWSCommonExceptionHandler, self).__init__()
-        
+    def __init__(self, *args):
+        super(OWSCommonExceptionHandler, self).__init__(*args)
         self.additional_http_status_codes = {}
     
     def setHTTPStatusCodes(self, additional_http_status_codes):
@@ -357,7 +365,7 @@ class OWSCommonExceptionHandler(BaseExceptionHandler):
             raise
         
     def _getEncoder(self):
-        return OWSCommonExceptionEncoder()
+        return OWSCommonExceptionEncoder(self.schemas)
     
     def _getHTTPStatus(self, exception):
         if isinstance(exception, InvalidRequestException):
@@ -387,11 +395,14 @@ class OWSCommonExceptionEncoder(XMLEncoder):
     }
     
     def _initializeNamespaces(self):
-        return {"ows": "http://www.opengis.net/ows/2.0"}
+        return {
+            "ows": "http://www.opengis.net/ows/2.0",
+            "xsd": "http://www.w3.org/2001/XMLSchema-instance"
+        }
     
     def encodeExceptionReport(self, exception_text, exception_code, locator=None):
         if locator is None:
-            return self._makeElement("ows", "ExceptionReport", [
+            element = self._makeElement("ows", "ExceptionReport", [
                 ("", "@version", "2.0.0"),
                 ("", "@xml:lang", "en"),
                 ("ows", "Exception", [
@@ -400,7 +411,7 @@ class OWSCommonExceptionEncoder(XMLEncoder):
                 ])
             ])
         else:
-            return self._makeElement("ows", "ExceptionReport", [
+            element = self._makeElement("ows", "ExceptionReport", [
                 ("", "@version", "2.0.0"),
                 ("", "@xml:lang", "en"),
                 ("ows", "Exception", [
@@ -409,6 +420,12 @@ class OWSCommonExceptionEncoder(XMLEncoder):
                     ("ows", "ExceptionText", exception_text)
                 ])
             ])
+        
+        if self.schemas is not None:
+            schemas_location = " ".join(["%s %s"%(ns, location) for ns, location in self.schemas.iteritems()])
+            element.setAttributeNS(self.ns_dict["xsd"], "%s:%s" % ("xsd", "schemaLocation"), schemas_location)
+        
+        return element
     
     def encodeInvalidRequestException(self, exception):
         return self.encodeExceptionReport(exception.msg, exception.error_code, exception.locator)
