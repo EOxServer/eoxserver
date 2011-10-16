@@ -725,8 +725,56 @@ class WCS20PostDescribeCoverageDatasetTestCase(eoxstest.XMLTestCase):
         params = """<ns:DescribeCoverage 
            xmlns:ns="http://www.opengis.net/wcs/2.0" service="WCS" version="2.0.0">
          <ns:CoverageId>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</ns:CoverageId>
-        </ns:DescribeCoverage>
-        """
+        </ns:DescribeCoverage>"""
+        return (params, "xml")
+
+class WCS20PostDescribeEOCoverageSetDatasetSeriesTestCase(eoxstest.XMLTestCase):
+    """This test shall retrieve a valid WCS 2.0 EO-AP DescribeEOCoverageSet response
+    for a wcseo:RectifiedDatasetSeries via POST.
+    """
+    def getRequest(self):
+        params = """<wcseo:DescribeEOCoverageSet service="WCS" version="2.0.0" count="100"
+           xmlns:wcseo="http://www.opengis.net/wcseo/1.0"
+           xmlns:wcs="http://www.opengis.net/wcs/2.0">     
+          <wcseo:eoId>MER_FRS_1P_reduced</wcseo:eoId>
+          <wcseo:containment>OVERLAPS</wcseo:containment>
+          <wcseo:Sections>
+            <wcseo:Section>All</wcseo:Section>
+          </wcseo:Sections>
+          <wcs:DimensionTrim>
+            <wcs:Dimension>Long</wcs:Dimension>
+            <wcs:TrimLow>16</wcs:TrimLow>
+            <wcs:TrimHigh>18</wcs:TrimHigh>
+          </wcs:DimensionTrim>
+          <wcs:DimensionTrim>
+            <wcs:Dimension>Lat</wcs:Dimension>
+            <wcs:TrimLow>46</wcs:TrimLow>
+            <wcs:TrimHigh>48</wcs:TrimHigh>
+          </wcs:DimensionTrim>
+        </wcseo:DescribeEOCoverageSet>"""
+        return (params, "xml")
+
+class WCS20xPostGetCoverageMultipartDatasetTestCase(eoxstest.WCS20GetCoverageMultipartTestCase):
+    # Not operational, so is temporarily disabled via the 'x' contained in the name.
+    def getRequest(self):
+        # <wcs:CoverageId>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</wcs:CoverageId>
+        #<wcs:CoverageId>MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed</wcs:CoverageId>
+        params = """<wcs:GetCoverage service="WCS" version="2.0.0"
+           xmlns:wcs="http://www.opengis.net/wcs/2.0">
+          <wcs:mediatype>multipart/mixed</wcs:mediatype>
+          <wcs:Format>image/tiff</wcs:Format>
+          <wcs:CoverageId>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</wcs:CoverageId>
+          <wcs:DimensionTrim>
+            <wcs:Dimension>Long</wcs:Dimension>
+            <wcs:TrimLow>16</wcs:TrimLow>
+            <wcs:TrimHigh>18</wcs:TrimHigh>
+          </wcs:DimensionTrim>
+          <wcs:DimensionTrim>
+            <wcs:Dimension>Lat</wcs:Dimension>
+            <wcs:TrimLow>46</wcs:TrimLow>
+            <wcs:TrimHigh>48</wcs:TrimHigh>
+          </wcs:DimensionTrim>
+        </wcs:GetCoverage>"""
         return (params, "xml")
 
 #===============================================================================
