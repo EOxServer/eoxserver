@@ -754,11 +754,8 @@ class WCS20PostDescribeEOCoverageSetDatasetSeriesTestCase(eoxstest.XMLTestCase):
         </wcseo:DescribeEOCoverageSet>"""
         return (params, "xml")
 
-class WCS20xPostGetCoverageMultipartDatasetTestCase(eoxstest.WCS20GetCoverageMultipartTestCase):
-    # Not operational, so is temporarily disabled via the 'x' contained in the name.
+class WCS20PostGetCoverageMultipartDatasetTestCase(eoxstest.WCS20GetCoverageMultipartTestCase):
     def getRequest(self):
-        # <wcs:CoverageId>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</wcs:CoverageId>
-        #<wcs:CoverageId>MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed</wcs:CoverageId>
         params = """<wcs:GetCoverage service="WCS" version="2.0.0"
            xmlns:wcs="http://www.opengis.net/wcs/2.0">
           <wcs:mediatype>multipart/mixed</wcs:mediatype>
@@ -860,7 +857,7 @@ def suite():
     
     wcs20_post_tests = unittest.TestSuite()
     wcs20_post_tests.addTests(get_tests_by_prefix("WCS20Post"))
-   
+
     wms13_tests = unittest.TestSuite(get_tests_by_prefix("WMS13"))
     
     all_tests = unittest.TestSuite()

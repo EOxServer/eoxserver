@@ -121,6 +121,7 @@ class OWSTestCase(EOxServerTestCase):
         """
         expected_path = os.path.join(self.getExpectedFileDir(), self.getExpectedFileName(file_type))
         response_path = os.path.join(self.getResponseFileDir(), self.getResponseFileName(file_type))
+
         try:
             f = open(expected_path, 'r')
             expected = f.read()
@@ -128,21 +129,22 @@ class OWSTestCase(EOxServerTestCase):
         except IOError:
             expected = None
         
-        if expected != self.getResponseData():
-            logging.debug("Writing result for %s." % file_type)
+        if expected is None:
+            self.skipTest("Expected response in '%s' is not present" % expected_path)
+            
+        if (file_type == "raster" and expected != self.getResponseData()) or \
+           (file_type == "xml"    and expected != self.getXMLData()):
             f = open(response_path, 'w')
             if file_type == "raster":
                 f.write(self.getResponseData())
             elif file_type == "xml":
                 f.write(self.getXMLData())
-            f.close()
-            
-            if expected is None:
-                self.skipTest("Expected response in '%s' is not present" % expected_path)
-            
+
             self.fail("Response returned in '%s' is not equal to expected response in '%s'." % (
                        response_path, expected_path)
             )
+            f.close()
+            
     
     def testStatus(self):
         logging.info("Checking HTTP Status ...")
