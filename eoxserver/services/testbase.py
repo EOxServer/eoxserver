@@ -132,18 +132,21 @@ class OWSTestCase(EOxServerTestCase):
         if expected is None:
             self.skipTest("Expected response in '%s' is not present" % expected_path)
             
-        if (file_type == "raster" and expected != self.getResponseData()) or \
-           (file_type == "xml"    and expected != self.getXMLData()):
-            f = open(response_path, 'w')
-            if file_type == "raster":
-                f.write(self.getResponseData())
-            elif file_type == "xml":
-                f.write(self.getXMLData())
+        actual_response = None
+        if file_type == "raster":
+            actual_response = self.getResponseData()
+        elif file_type == "xml":
+            actual_response = self.getXMLData()
+        else:
+            self.fail("Unknown file_type '%s'." % file_type)
 
+        if expected != actual_response:
+            f = open(response_path, 'w')
+            f.write(actual_response)
+            f.close()
             self.fail("Response returned in '%s' is not equal to expected response in '%s'." % (
                        response_path, expected_path)
             )
-            f.close()
             
     
     def testStatus(self):
