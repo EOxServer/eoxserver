@@ -29,11 +29,52 @@
 #-------------------------------------------------------------------------------
 
 from eoxserver.backends.models import (
-    FTPStorage, RasdamanStorage, LocalPath, 
+    Location, FTPStorage, RasdamanStorage, LocalPath, 
     RemotePath, RasdamanLocation, CacheFile
 ) 
 
 from django.contrib import admin
+
+class AbstractLocationAdmin(admin.ModelAdmin):
+    #readonly_fields = ("location_type", )
+    
+    def save_model(self, request, obj, form, change):
+        obj.location_type = self.model.LOCATION_TYPE
+        obj.save()
+
+#===============================================================================
+# Simplified Location Admin, use with caution
+#===============================================================================
+
+class LocationAdmin(admin.ModelAdmin):
+    model = Location
+    
+    def has_add_permission(self, request):
+        return False
+    
+admin.site.register(Location, LocationAdmin)
+
+#===============================================================================
+# Generic Storage Admin (Abstract!)
+#===============================================================================
+
+class StorageAdmin(admin.ModelAdmin):
+    def save_model(self, request, obj, form, change):
+        obj.storage_type = self.model.STORAGE_TYPE
+        obj.save()
+
+#===============================================================================
+# Local Path
+#===============================================================================
+
+class LocalPathAdmin(AbstractLocationAdmin):
+    model = LocalPath
+    
+    list_display = ("location_type", "path",)
+    list_editable = ("path",)
+    
+
+admin.site.register(LocalPath, LocalPathAdmin)
 
 #===============================================================================
 # FTP Storage Admin
@@ -41,30 +82,41 @@ from django.contrib import admin
 
 class RemotePathInline(admin.TabularInline):
     model = RemotePath
-class FTPStorageAdmin(admin.ModelAdmin):
+    extra = 1
+class FTPStorageAdmin(StorageAdmin):
     inlines = (RemotePathInline, )
 
+class RemotePathAdmin(AbstractLocationAdmin):
+    model = RemotePath
+    
+    list_display = ("location_type", "path",)
+    list_editable = ("path",)
+
 admin.site.register(FTPStorage, FTPStorageAdmin)
+admin.site.register(RemotePath, RemotePathAdmin)
 
 #===============================================================================
 # Rasdaman Storage Admin
 #===============================================================================
 
 class RasdamanLocationInline(admin.TabularInline):
-    model = (RasdamanLocation, )
-class RasdamanStorageAdmin(admin.ModelAdmin):
-    pass
+    model = RasdamanLocation
+    extra = 1
+class RasdamanStorageAdmin(StorageAdmin):
+    inlines = (RasdamanLocationInline,)
 
+class RasdamanLocationAdmin(AbstractLocationAdmin):
+    model = RasdamanLocation
+    
+    list_display = ("location_type", "collection", "oid")
+    list_editable = ("collection", "oid")
+    
 admin.site.register(RasdamanStorage, RasdamanStorageAdmin)
+admin.site.register(RasdamanLocation, RasdamanLocationAdmin)
 
 #===============================================================================
-# 
+# Cache File Admin
 #===============================================================================
-
-class LocalPathAdmin(admin.ModelAdmin):
-    pass
-
-admin.site.register(LocalPath, LocalPathAdmin)
 
 class CacheFileAdmin(admin.ModelAdmin):
     pass
