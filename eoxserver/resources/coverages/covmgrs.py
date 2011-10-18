@@ -78,13 +78,13 @@ class BaseManager(object):
                         "The desired coverage ID (%s) is already in use." % obj_id
                     )
                 else:
-                    id = self._generate_id()
+                    new_id = self._generate_id()
             else:
-                id = obj_id
+                new_id = obj_id
         else:
-            id = self._generate_id()
+            new_id = self._generate_id()
         
-        return id
+        return new_id
         
     def releaseID(self, obj_id):
         pass
@@ -323,29 +323,29 @@ class CoverageManagerDatasetMixIn(object):
                     passwd=params.get("ftp_passwd")
                 )
         
-        if "collection" in params and "oid" in params:
+        if "collection" in params:
             if location:
                 raise InternalError(
                     "Parameters defining the data location must be unambiguous."
                 )
             elif "ras_host" not in params:
                 raise InternalError(
-                    "If specifying 'collection' and 'oid' the 'ras_host' argument is required."
+                    "If specifying 'collection' the 'ras_host' argument is required."
                 )
             else:
                 location = self.location_factory.create(
                     type="rasdaman",
                     collection=params["collection"],
-                    oid=params["oid"],
+                    oid=params.get("oid"),
                     host=params["ras_host"],
                     port=params.get("ras_port"),
                     user=params.get("ras_user"),
                     passwd=params.get("ras_passwd"),
                     db_name=params.get("ras_db")
                 )
-        elif "collection" in params or "oid" in params:
+        elif "oid" in params:
             raise InternalError(
-                "You must specify 'collection' and 'oid' to specify a valid rasdaman array location."
+                "You must specify a 'collection' to specify a valid rasdaman array location."
             )
         
         if not location:
