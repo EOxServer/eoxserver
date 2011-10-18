@@ -115,15 +115,23 @@ class DatasetSeries2DatasetInline(admin.TabularInline):
     verbose_name_plural = "Dataset Series to Dataset Relations"
     extra = 1
     
+    template ="admin/tabularX.html"
+    
+    #readonly_fields = ('datasetseriesrecord', )
+    
     can_delete = False
     
     # TODO: this is causing an exception
-    '''def get_readonly_fields(self, request, obj=None):
-        if obj is not None and obj.automatic:
-            return self.readonly_fields + (
-                'datasetseriesrecord', #'rectifieddatasetrecord'
-            )
-        return super(DatasetSeries2DatasetInline, self).get_readonly_fields(request, obj)'''
+    #def get_readonly_fields(self, request, obj=None):
+        #return super(DatasetSeries2DatasetInline, self).get_readonly_fields(request, obj)
+        #if obj is not None and obj.automatic:
+        #    return self.readonly_fields + ('datasetseriesrecord', )
+        #
+        #    return self.readonly_fields + (
+        #        'datasetseriesrecord', #'rectifieddatasetrecord'
+        #    )
+        #raise
+        #return self.readonly_fields#
 
 class DataPackageInline(admin.StackedInline):
     model = DataPackage
@@ -133,7 +141,7 @@ class LineageInline(admin.StackedInline):
 
 class RectifiedDatasetAdmin(ConfirmationAdmin):
     #list_display = ('coverage_id', 'eo_id', 'data_package', 'range_type', 'extent')
-    fields = ('coverage_id', 'eo_id', 'range_type', 'extent')
+    fields = ('automatic', 'coverage_id', 'eo_id', 'range_type', 'extent', 'data_package', 'lineage')
     list_display = ('coverage_id', 'eo_id', 'range_type', 'extent')
     #list_editable = ('data_package', 'range_type', 'extent')
     list_editable = ('range_type', 'extent', )
@@ -141,7 +149,7 @@ class RectifiedDatasetAdmin(ConfirmationAdmin):
     
     ordering = ('coverage_id', )
     search_fields = ('coverage_id', )
-    inlines = (StitchedMosaic2DatasetInline, DatasetSeries2DatasetInline)
+    inlines = (StitchedMosaic2DatasetInline, DatasetSeries2DatasetInline, )
     
     # We need to override the bulk delete function of the admin to make
     # sure the overrode delete() method of EOCoverageRecord is
@@ -162,13 +170,14 @@ class RectifiedDatasetAdmin(ConfirmationAdmin):
     really_delete_selected.short_description = "Delete selected Dataset(s) entries"
 
     def change_view(self, request, object_id, extra_context=None):
+        obj = self.get_object(request, object_id)
+        diff = self.get_changes(request, object_id)
+        old_automatic, new_automatic = diff.get('automatic', (False, False))
         
-        obj = self.get_object(request, unquote(object_id))
-        new_obj = self.get_new_object(request, obj)
-        if obj.automatic and new_obj.automatic:
+        if (old_automatic and new_automatic) or obj.automatic:
             messages.warning(request, "This rectified dataset cannot be changed "
-                             "because is marked as 'automatic'.")
-        
+                             "because it is marked as 'automatic'.")
+            
         return super(RectifiedDatasetAdmin, self).change_view(request, object_id, extra_context)
 
     def get_readonly_fields(self, request, obj=None):
@@ -198,133 +207,121 @@ class RectifiedDatasetAdmin(ConfirmationAdmin):
         
 admin.site.register(RectifiedDatasetRecord, RectifiedDatasetAdmin)
 
-class DataSourceInline(admin.TabularInline):
-    model = DataSource
-    verbose_name = "Stitched Mosaic Data Directory"
-    verbose_name_plural = "Stitched Mosaic Data Directories"
-    extra = 1
-    fields = ("location", "search_pattern")
-class DatasetSeries2StichedMosaicInline(admin.TabularInline):
-    model = DatasetSeriesRecord.rect_stitched_mosaics.__getattribute__("through")
-    verbose_name = "Dataset Series to Stitched Mosaic Relation"
-    verbose_name_plural = "Dataset Series to Stitched Mosaic Relations"
-    can_delete = False
-    extra = 1
-class RectifiedStitchedMosaicAdmin(admin.ModelAdmin):
-    list_display = ('eo_id', 'eo_metadata', )
-    list_editable = ('eo_metadata', )
-    ordering = ('eo_id', )
-    search_fields = ('eo_id', )
-    filter_horizontal = ('rect_datasets', )
-    inlines = (DataSourceInline, DatasetSeries2StichedMosaicInline, )
-
-    # Increase the width of the select boxes of the horizontal filter.
-    class Media:
-        css = {
-            'all': ('/'+settings.MEDIA_URL+'/admin/widgets.css',)
-        }
-
+class AbstractContainerAdmin(admin.ModelAdmin):
     # We need to override the bulk delete function of the admin to make
     # sure the overrode delete() method of EOCoverageRecord is
     # called.
     actions = ['really_delete_selected', ]
+    coverage_manager_intf_id = ""
+    
+    def get_manager(self):
+        System.init()
+        
+        return System.getRegistry().findAndBind(
+            intf_id="resources.coverages.interfaces.Manager",
+            params={
+                "resources.coverages.interfaces.res_type": self.coverage_manager_intf_id
+            }
+        )
 
     def get_actions(self, request):
-        actions = super(RectifiedStitchedMosaicAdmin, self).get_actions(request)
+        actions = super(AbstractContainerAdmin, self).get_actions(request)
         if 'delete_selected' in actions: del actions['delete_selected']
         return actions
 
     def really_delete_selected(self, request, queryset):
         for obj in queryset:
             obj.delete()
-        self.message_user(request, "%s StitchedMosaics were successfully deleted." % queryset.count())
+        
+        count = queryset.count()
+        self.message_user(request, "%d %s were successfully deleted." % (
+               count,
+               self.model.Meta.verbose_name if count == 1 else self.model._meta.verbose_name_plural
+           )
+        )
     really_delete_selected.short_description = "Delete selected entries"
-
-    def save_model(self, request, obj, form, change):
-        self.mosaic = obj
-        super(RectifiedStitchedMosaicAdmin, self).save_model(request, obj, form, change)
-        
-    def save_formset(self, request, form, formset, change):
-        # the reason why the synchronization method is placed here
-        # instead of the save_model() method is that this is the last step
-        # in saving the data filled in in the admin view.
-        # At the time the save_model() method is called, the data dir
-        # is not yet saved and thus not available. We need the data dirs
-        # however for synchronization.
-        
-        super(RectifiedStitchedMosaicAdmin, self).save_formset(request, form, formset, change)
-        System.init()
-        
-        #replace with covmgrs 
-        #synchronizer = RectifiedStitchedMosaicSynchronizer(self.mosaic)
-        """try:
-            if change:
-                synchronizer.update()
-            else:
-                synchronizer.create()
-        except SynchronizationErrors, errors:
-            for error in errors:
-                messages.error(request, error)
-            raise
-        except Exception, e:
-            messages.error(request, "An unexpected error (%s) occurred during synchronization."%e.__class__.__name__)
-            raise
-        """
-        
-        #for info in synchronizer.infos:
-        #    messages.info(request, info)
-        
-        """if formset.model == RectifiedDatasetRecord:
-            changed_datasets = formset.save(commit=False)
-            
-            synchronizer = RectifiedStitchedMosaicSynchronizer(self.mosaic)
-            
-            try:
-                if change:
-                    synchronizer.update()
-                else:
-                    synchronizer.create()
-            except:
-                logging.error("Error when synchronizing.")
-                #transaction.rollback()
-                messages.error(request, "Error when synchronizing with file system.")
-                #return
-                raise
-            
-            for dataset in changed_datasets:
-                if not dataset.automatic:
-                    dataset.save()
-        else:
-            super(RectifiedStitchedMosaicAdmin, self).save_formset(request, form, formset, change)"""
-        
+    
+    
     def add_view(self, request, form_url="", extra_context=None):
         try:
-            return super(RectifiedStitchedMosaicAdmin, self).add_view(request, form_url, extra_context)
+            ret = super(AbstractContainerAdmin, self).add_view(request, form_url, extra_context)
+            
+            mgr = self.get_manager()
+            #mgr.synchronize()
+            
+            return ret
         except:
-            messages.error(request, "Could not create StitchedMosaic")
+            raise
+            messages.error(request, "Could not create %s" % self.model._meta.verbose_name)
             return HttpResponseRedirect("..")
     
     def change_view(self, request, object_id, extra_context=None):
         try:
-            return super(RectifiedStitchedMosaicAdmin, self).change_view(request, object_id, extra_context)
+            ret = super(AbstractContainerAdmin, self).change_view(request, object_id, extra_context)
+            
+            mgr = self.get_manager()
+            #mgr.synchronize(object_id)
+            
+            return ret
         except:
-            messages.error(request, "Could not change StitchedMosaic")
+            raise
+            messages.error(request, "Could not change %s" % self.model._meta.verbose_name)
             return HttpResponseRedirect("..")
     
     def changelist_view(self, request, extra_context=None):
         try:
-            return super(RectifiedStitchedMosaicAdmin, self).changelist_view(request, extra_context)
+            ret = super(AbstractContainerAdmin, self).changelist_view(request, extra_context)
+            
+            mgr = self.get_manager()
+            #mgr.synchronize()
+            
+            return ret
         except:
-            messages.error(request, "Could not change StitchedMosaic")
+            raise
+            messages.error(request, "Could not change %s" % self.model._meta.verbose_name)
             return HttpResponseRedirect("..")
     
     def delete_view(self, request, object_id, extra_context=None):
         try:
-            return super(RectifiedStitchedMosaicAdmin, self).delete_view(request, object_id, extra_context)
-        except:
-            messages.error(request, "Could not delete StitchedMosaic")
-            return HttpResponseRedirect("..")
+            ret = super(AbstractContainerAdmin, self).delete_view(request, object_id, extra_context)
             
+            mgr = self.get_manager()
+            #mgr.synchronize()
+            
+            return ret
+        except:
+            raise
+            messages.error(request, "Could not delete %s" % self.model._meta.verbose_name)
+            return HttpResponseRedirect("..")
+
+class DataSourceInline(admin.TabularInline):
+    model = RectifiedStitchedMosaicRecord.data_sources.through
+    verbose_name = "Data Source Directory"
+    verbose_name_plural = "Data Source Directories"
+    extra = 1
+    fields = ('datasource',)
+class DatasetSeries2StichedMosaicInline(admin.TabularInline):
+    model = DatasetSeriesRecord.rect_stitched_mosaics.__getattribute__("through")
+    verbose_name = "Dataset Series to Stitched Mosaic Relation"
+    verbose_name_plural = "Dataset Series to Stitched Mosaic Relations"
+    can_delete = False
+    extra = 1
+class RectifiedStitchedMosaicAdmin(AbstractContainerAdmin):
+    list_display = ('eo_id', 'eo_metadata', )
+    list_editable = ('eo_metadata', )
+    ordering = ('eo_id', )
+    search_fields = ('eo_id', )
+    filter_horizontal = ('rect_datasets', )
+    inlines = (DataSourceInline, DatasetSeries2StichedMosaicInline, )
+    
+    coverage_manager_intf_id = "eo.rect_stitched_mosaic"
+    
+    # Increase the width of the select boxes of the horizontal filter.
+    class Media:
+        css = {
+            'all': ('/'+settings.MEDIA_URL+'/admin/widgets.css',)
+        }
+     
 admin.site.register(RectifiedStitchedMosaicRecord, RectifiedStitchedMosaicAdmin)
 
 """class DataDirInline(admin.TabularInline):
@@ -340,7 +337,7 @@ class DatasetSeriesAdmin(admin.ModelAdmin):
     #list_filter = ('image_pattern', )
     ordering = ('eo_id', )
     search_fields = ('eo_id', )
-    inlines = (DataSourceInline, )
+    #inlines = (, )
     fieldsets = (
         (None, {
             'fields': ('eo_id', 'eo_metadata', ),
@@ -352,131 +349,14 @@ class DatasetSeriesAdmin(admin.ModelAdmin):
         }),
     )
     filter_horizontal = ('rect_stitched_mosaics', 'rect_datasets', 'ref_datasets')
+    
+    coverage_manager_intf_id = "eo.dataset_series"
 
     # Increase the width of the select boxes of the horizontal filter.
     class Media:
         css = {
             'all': ('/'+settings.MEDIA_URL+'/admin/widgets.css',)
         }
-
-    # We need to override the bulk delete function of the admin to make
-    # sure the overrode delete() method of EOCoverageRecord is
-    # called.
-    actions = ['really_delete_selected', ]
-    
-    """
-        TODO here
-    """
-    
-    def formfield_for_manytomany(self, db_field, request, **kwargs):
-        if db_field.name == "rect_datasets":
-            pass
-            #raise
-            #data_dirs = DataDirRecord.objects.get(dataset_series=
-            #TODO: get all data dirs
-            # exclude all datasets from the query that are included in the dir
-            #kwargs["queryset"] = RectifiedDatasetRecord.objects.get(file__path__istartswith="")
-        return super(DatasetSeriesAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
-    
-    def get_actions(self, request):
-        actions = super(DatasetSeriesAdmin, self).get_actions(request)
-        if 'delete_selected' in actions: del actions['delete_selected']
-        return actions
-        
-    def really_delete_selected(self, request, queryset):
-        for obj in queryset:
-            obj.delete()
-        self.message_user(request, "%s DatasetSeries were successfully deleted." % queryset.count())
-    really_delete_selected.short_description = "Delete selected entries"
-    
-    def save_model(self, request, obj, form, change):
-        self.dataset_series = obj
-        error = False
-        
-        
-        #TODO
-        """for data_dir in obj.data_dirs.all():
-            try:
-                files = findFiles(data_dir.dir, obj.image_pattern)
-            except OSError, e:
-                messages.error(request, "%s: %s"%(e.strerror, e.filename))
-                continue
-            
-            for dataset in obj.rect_datasets.all():
-                if dataset.file.path in files:
-                    messages.error(request, "The dataset with the id %s is already included in the data directory %s"%(dataset.eo_id, data_dir.dir))
-                    error = True"""
-        
-        #raise
-        
-        if not error:
-            super(DatasetSeriesAdmin, self).save_model(request, obj, form, change)
-
-    def save_formset(self, request, form, formset, change):
-        # the reason why the synchronization method is placed here
-        # instead of the save_model() method is that this is the last step
-        # in saving the data filled in in the admin view.
-        # At the time the save_model() method is called, the data dir
-        # is not yet saved and thus not available. We need the data dirs
-        # however for synchronization.
-        
-        #if formset.model == DataDirRecord:
-        
-        super(DatasetSeriesAdmin, self).save_formset(request, form, formset, change)
-        System.init()
-        
-        wrapper = System.getRegistry().bind("resources.coverages.wrappers.DatasetSeriesWrapper")
-        wrapper.setModel(self.dataset_series)
-        wrapper.setMutable()
-        
-        #replace with covmgrs
-        """synchronizer = DatasetSeriesSynchronizer(wrapper)
-        try:
-            if change:
-                synchronizer.update()
-            else:
-                synchronizer.create()
-        except SynchronizationErrors, errors:
-            for error in errors:
-                messages.error(request, error)
-            raise
-        except InternalError:
-            raise
-        except:
-            messages.error(request, "An unexpected error occurred during synchronization")
-            raise
-        
-        for info in synchronizer.infos:
-            messages.info(request, info)"""
-        
-    def add_view(self, request, form_url="", extra_context=None):
-        try:
-            return super(DatasetSeriesAdmin, self).add_view(request, form_url, extra_context)
-        except:
-            raise
-            messages.error(request, "Could not create DatasetSeries")
-            return HttpResponseRedirect(".")
-    
-    def change_view(self, request, object_id, extra_context=None):
-        try:
-            return super(DatasetSeriesAdmin, self).change_view(request, object_id, extra_context)
-        except:
-            messages.error(request, "Could not change DatasetSeries")
-            return HttpResponseRedirect(".")
-    
-    def changelist_view(self, request, extra_context=None):
-        try:
-            return super(DatasetSeriesAdmin, self).changelist_view(request, extra_context)
-        except:
-            messages.error(request, "Could not change DatasetSeries")
-            return HttpResponseRedirect(".")
-    
-    def delete_view(self, request, object_id, extra_context=None):
-        try:
-            return super(DatasetSeriesAdmin, self).delete_view(request, object_id, extra_context)
-        except:
-            messages.error(request, "Could not delete DatasetSeries")
-            return HttpResponseRedirect(".")
 
 admin.site.register(DatasetSeriesRecord, DatasetSeriesAdmin)
 
@@ -563,3 +443,11 @@ class LineageAdmin(admin.ModelAdmin):
 
 admin.site.register(LineageRecord, LineageAdmin)
 admin.site.register(ExtentRecord)
+
+class DataSourceAdmin(admin.ModelAdmin):
+    model = DataSource
+    raw_id_fields=("location",)
+
+admin.site.register(DataSource, DataSourceAdmin)
+
+
