@@ -37,7 +37,7 @@ class Storage(models.Model):
     * ``storage_type``: a string denoting the storage type
     * ``name``: a string denoting the name of the storage
     """
-    storage_type = models.CharField(max_length=32)
+    storage_type = models.CharField(max_length=32, editable=False)
     name = models.CharField(max_length=256)
 
 class FTPStorage(Storage):
@@ -85,7 +85,17 @@ class Location(models.Model):
     
     * ``location_type``: a string denoting the type of location
     """
-    location_type = models.CharField(max_length=32)
+    location_type = models.CharField(max_length=32, editable=False)
+    
+    def __unicode__(self):
+        if self.location_type == "local":
+            return self.localpath.path
+        elif self.location_type == "rasdaman":
+            return "rasdaman:%s:%s" % (self.rasdamanlocation.collection, self.rasdamanlocation.oid)
+        elif self.location_type == "ftp":
+            return "ftp://%s/%s" % (self.remotepath.storage.host, self.remotepath.path)
+        else:
+            return "Unknown location type"
     
 class LocalPath(Location):
     """
@@ -127,7 +137,7 @@ class RasdamanLocation(Location):
     
     storage = models.ForeignKey(RasdamanStorage, related_name="rasdaman_locations")
     collection = models.CharField(max_length=1024)  # comparable to table
-    oid = models.FloatField(null=True) # float due to rasdaman architecture; comparable to array
+    oid = models.FloatField(null=True, blank=True) # float due to rasdaman architecture; comparable to array
     
 class CacheFile(models.Model):
     """
