@@ -74,14 +74,9 @@ class ConfirmationAdmin(admin.ModelAdmin):
         
         if request.method == 'POST' and request.POST.get('confirmation') != "done":
             obj = self.get_object(request, unquote(object_id))
-            old_values = dict([(field.name, field.value_from_object(obj)) for field in obj._meta.fields])
-            
-            new_obj = self.get_new_object(request, obj)
-                
-            new_values = dict([(field.name, field.value_from_object(obj)) for field in new_obj._meta.fields])
             
             # get the changes from the model
-            diff = self.get_differences(old_values, new_values)
+            diff = self.get_changes(request, object_id)#self.get_differences(old_values, new_values)
             
             # hook if the confirmation is required
             msg = self.require_confirmation(diff)
@@ -120,6 +115,14 @@ class ConfirmationAdmin(admin.ModelAdmin):
             return self.save_form(request, form, change=True)
         else:
             return instance
+    
+    def get_changes(self, request, object_id):
+        obj = self.get_object(request, unquote(object_id))
+        old_values = dict([(field.name, field.value_from_object(obj)) for field in obj._meta.fields])
+        new_obj = self.get_new_object(request, obj)
+        new_values = dict([(field.name, field.value_from_object(obj)) for field in new_obj._meta.fields])
+        
+        return self.get_differences(old_values, new_values)
     
     def get_differences(self, first, second):
         """
