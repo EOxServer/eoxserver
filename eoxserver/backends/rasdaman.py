@@ -222,7 +222,7 @@ class RasdamanArrayWrapper(LocationWrapper):
             self.record = record.rasdamanlocation
     
     def _validate_attrs(self, **kwargs):
-        if "host" not in kwargs or "collection" not in kwargs or "oid" not in kwargs:
+        if "host" not in kwargs or "collection" not in kwargs:
             raise InternalError(
                 "The 'host', 'collection' and 'oid' are needed to initialize a rasdaman location instance."
             )
@@ -230,7 +230,7 @@ class RasdamanArrayWrapper(LocationWrapper):
     def _set_attrs(self, **kwargs):
         self.host = kwargs["host"]
         self.collection = kwargs["collection"]
-        self.oid = kwargs["oid"]
+        self.oid = kwargs.get("oid")
             
         self.port = kwargs.get("port")
         self.db_name = kwargs.get("db_name")
