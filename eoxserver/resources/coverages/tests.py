@@ -114,7 +114,6 @@ class DatasetCreateWithRasdamanLocationTestCase(RectifiedDatasetCreateTestCase):
         super(DatasetCreateWithRasdamanLocationTestCase, self).setUp()
         args = {
             "collection": "MERIS",
-            "oid": 9217,
             "ras_host": "localhost",
             "range_type_name": "RGB",
             "geo_metadata": GeospatialMetadata(
@@ -211,8 +210,7 @@ class MosaicCreateWithRasdamanLocationTestCase(RectifiedStitchedMosaicCreateTest
             "data_dirs": [{
                 "type": "rasdaman",
                 "host": "localhost",
-                "collection": "MERIS",
-                "oid": 9217,
+                "collection": "MERIS"
             }],
             "geo_metadata": GeospatialMetadata(
                 srid=4326, size_x=100, size_y=100,
