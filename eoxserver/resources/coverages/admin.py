@@ -27,11 +27,15 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+import os.path
+import logging
+
 from django.contrib.gis import admin
 from django.contrib import messages
 from django.conf import settings
 from django.http import HttpResponseRedirect
 from django.contrib.admin.util import unquote
+from django.core.exceptions import ObjectDoesNotExist
 
 from eoxserver.resources.coverages.models import (
     EOMetadataRecord, DataSource, TileIndex,
@@ -42,16 +46,9 @@ from eoxserver.resources.coverages.models import (
     LocalDataPackage, RemoteDataPackage, RasdamanDataPackage
 )
 
-# TODO: replace with CoverageManagers
-
-#from eoxserver.resources.coverages.synchronize import (
-#)
 from eoxserver.core.exceptions import InternalError
 from eoxserver.core.system import System
 from eoxserver.core.admin import ConfirmationAdmin
-
-import os.path
-import logging
 
 # TODO: harmonize with core.system
 logging.basicConfig(
@@ -416,17 +413,23 @@ class EOMetadataAdmin(admin.GeoModelAdmin):
     
     def change_view(self, request, object_id, extra_context=None):
         obj = self.get_object(request, unquote(object_id))
-        if obj.rectifieddatasetrecord_set.automatic:
-            messages.warning(request, "This EO Metadata record cannot be changed because "
-                             "the associated dataset is marked as 'automatic'.")
+        try:
+            if obj.rectifieddatasetrecord_set.automatic:
+                messages.warning(request, "This EO Metadata record cannot be changed because "
+                                 "the associated dataset is marked as 'automatic'.")
+        except ObjectDoesNotExist:
+            pass
         return super(EOMetadataAdmin, self).change_view(request, object_id, extra_context)
     
     def get_readonly_fields(self, request, obj=None):
-        if obj is not None and obj.rectifieddatasetrecord_set.automatic:
-            return self.readonly_fields + (
-                'timestamp_begin', 'timestamp_end',
-                'footprint', 'eo_gml', 'objects'
-            )
+        try:
+            if obj is not None and obj.rectifieddatasetrecord_set.automatic:
+                return self.readonly_fields + (
+                    'timestamp_begin', 'timestamp_end',
+                    'footprint', 'eo_gml', 'objects'
+                )
+        except ObjectDoesNotExist:
+            pass
         return self.readonly_fields
     
 admin.site.register(EOMetadataRecord, EOMetadataAdmin)
