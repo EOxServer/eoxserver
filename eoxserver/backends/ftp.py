@@ -138,7 +138,7 @@ class FTPStorage(object):
         cmd = "RETR %s" % location.getPath()
         
         try:
-            file = open(dest_path, 'wb')
+            local_file = open(dest_path, 'wb')
         except Exception, e:
             raise DataAccessError(
                 "Could not open destination file '%s'. Error message: '%s'" % (
@@ -159,7 +159,7 @@ class FTPStorage(object):
             )
         
         # we have successfully written the file; clean up
-        file.close()
+        local_file.close()
         
         # return the file location
         return System.getRegistry().bind(
