@@ -27,16 +27,8 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-
-import os.path
 from django.db import models
-from django.core.exceptions import ValidationError
-
-def validate_path(path):
-    if not os.path.exists(path):
-        raise ValidationError("Path '%s' does not reference a path "
-                              "in the file system." % path)
-
+from eoxserver.backends.validators import validate_path
 
 class Storage(models.Model):
     """
