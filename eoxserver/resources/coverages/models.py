@@ -212,9 +212,12 @@ class DataSource(models.Model): # Maybe make two sub models for local and remote
     
     class Meta:
         unique_together = ('location', 'search_pattern')
+        
+    def __unicode__(self):
+        return "%s: %s" % (str(self.location), self.search_pattern)
 
 class DataPackage(models.Model):
-    data_package_type = models.CharField(max_length=32)
+    data_package_type = models.CharField(max_length=32, editable=False)
     metadata_format_name = models.CharField(max_length=128, null=True, blank=True)
     
 class LocalDataPackage(DataPackage):
@@ -242,6 +245,10 @@ class RasdamanDataPackage(DataPackage):
 
 class TileIndex(models.Model):
     storage_dir = models.CharField(max_length=1024)
+    
+    class Meta:
+        verbose_name = "Tile Index"
+        verbose_name_plural = "Tile Indices"
 
 class CoverageRecord(Resource):
     coverage_id = models.CharField("Coverage ID", max_length=256, unique=True, validators=[NCNameValidator])
@@ -332,7 +339,7 @@ class DatasetSeriesRecord(Resource):
     eo_metadata = models.OneToOneField(EOMetadataRecord,
                                        related_name="dataset_series_set",
                                        verbose_name="EO Metadata Entry")
-    data_sources = models.ManyToManyField(DataSource, related_name="dataset_series_set", null=True)    
+    data_sources = models.ManyToManyField(DataSource, related_name="dataset_series_set", null=True)
     rect_stitched_mosaics = models.ManyToManyField(RectifiedStitchedMosaicRecord,
                                                    blank=True, null=True,
                                                    related_name="dataset_series_set",
