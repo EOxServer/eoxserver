@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<ns:GetCapabilities xmlns:ns="http://www.opengis.net/wcs/2.0" version="2.0.0" updateSequence="u2001" service="WCS">
-</ns:GetCapabilities>
-
