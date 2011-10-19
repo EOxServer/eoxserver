@@ -34,11 +34,12 @@ from django.http import HttpResponseRedirect
 from django.contrib.admin.util import unquote
 
 from eoxserver.resources.coverages.models import (
-    EOMetadataRecord, DataSource,
+    EOMetadataRecord, DataSource, TileIndex,
     LayerMetadataRecord, LineageRecord, NilValueRecord,
     RectifiedDatasetRecord, BandRecord, RangeType2Band, RangeTypeRecord,
     RectifiedStitchedMosaicRecord, PlainCoverageRecord,
-    DatasetSeriesRecord, ExtentRecord, DataPackage
+    DatasetSeriesRecord, ExtentRecord, DataPackage,
+    LocalDataPackage, RemoteDataPackage, RasdamanDataPackage
 )
 
 # TODO: replace with CoverageManagers
@@ -340,7 +341,7 @@ class DatasetSeriesAdmin(admin.ModelAdmin):
     #inlines = (, )
     fieldsets = (
         (None, {
-            'fields': ('eo_id', 'eo_metadata', ),
+            'fields': ('eo_id', 'eo_metadata', 'data_sources' ),
             'description': 'Demo DatasetSeries description.',
         }),
         ('Advanced coverage handling', {
@@ -434,20 +435,42 @@ class LayerMetadataAdmin(admin.ModelAdmin):
     inlines = (PlainCoverageLayerMetadataInline, )
 admin.site.register(LayerMetadataRecord, LayerMetadataAdmin)
 
-
-class RectifiedDatasetInline(admin.StackedInline):
-    model = RectifiedDatasetRecord
-
-class LineageAdmin(admin.ModelAdmin):
-    inlines = (RectifiedDatasetInline,)
-
-admin.site.register(LineageRecord, LineageAdmin)
+admin.site.register(LineageRecord)
 admin.site.register(ExtentRecord)
+admin.site.register(TileIndex)
 
 class DataSourceAdmin(admin.ModelAdmin):
     model = DataSource
-    raw_id_fields=("location",)
+    #raw_id_fields=("location",)
 
 admin.site.register(DataSource, DataSourceAdmin)
 
+#===============================================================================
+# Data Packages for Datasets
+#===============================================================================
+
+class DataPackageAdmin(admin.ModelAdmin):
+    model = DataPackage
+    
+    def has_add_permission(self, request):
+        return False
+    
+class AbstractDataPackageAdmin(admin.ModelAdmin):
+    def save_model(self, request, obj, form, change):
+        obj.data_package_type = self.model.DATA_PACKAGE_TYPE
+        obj.save()
+
+class LocalDataPackageAdmin(AbstractDataPackageAdmin):
+    model = LocalDataPackage
+
+class RemoteDataPackageAdmin(AbstractDataPackageAdmin):
+    model = RemoteDataPackage
+
+class RasdamanDataPackageAdmin(AbstractDataPackageAdmin):
+    model = RasdamanDataPackage
+
+admin.site.register(DataPackage, DataPackageAdmin)
+admin.site.register(LocalDataPackage, LocalDataPackageAdmin)
+admin.site.register(RemoteDataPackage, RemoteDataPackageAdmin)
+admin.site.register(RasdamanDataPackage, RasdamanDataPackageAdmin)
 

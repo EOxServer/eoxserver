@@ -30,7 +30,7 @@
 
 from eoxserver.backends.models import (
     Location, FTPStorage, RasdamanStorage, LocalPath, 
-    RemotePath, RasdamanLocation, CacheFile
+    RemotePath, RasdamanLocation, CacheFile, 
 ) 
 
 from django.contrib import admin

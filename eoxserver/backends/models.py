@@ -27,7 +27,16 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+
+import os.path
 from django.db import models
+from django.core.exceptions import ValidationError
+
+def validate_path(path):
+    if not os.path.exists(path):
+        raise ValidationError("Path '%s' does not reference a path "
+                              "in the file system." % path)
+
 
 class Storage(models.Model):
     """
@@ -106,8 +115,8 @@ class LocalPath(Location):
     """
     LOCATION_TYPE = "local"
     
-    path = models.CharField(max_length=1024)
-
+    path = models.CharField(max_length=1024, validators=[validate_path])
+    
 class RemotePath(Location):
     """
     :class:`RemotePath` describes a path on an FTP repository. It
