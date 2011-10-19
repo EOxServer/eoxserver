@@ -4,6 +4,7 @@
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
+#          Fabian Schindler <fabian.schindler@eox.at>
 #
 #-------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
@@ -27,22 +28,12 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-import os.path
 import logging
 from lxml import etree
-from xml.dom import minidom
-import tempfile
-import mimetypes
-from osgeo import gdal, gdalconst
 
-import email
-
-from django.test import TestCase, Client
+from django.test import TestCase
 
 from eoxserver.core.system import System
-from eoxserver.core.util.xmltools import XMLDecoder, DOMtoXML
-#from eoxserver.resources.coverages.synchronize import DatasetSeriesSynchronizer,\
-#    RectifiedStitchedMosaicSynchronizer
 
 BASE_FIXTURES = ["initial_rangetypes.json", "testing_base.json"]
 
@@ -51,21 +42,6 @@ class TestSchemaFactory(object):
     
     @classmethod
     def getSchema(cls, schema_location):
-#        # Singleton version for usage with remote schemas:
-#        # This version provides hugh performance advantages but 
-#        # also random segfaults in libxml2.
-#        if schema_location in cls.schemas:
-#            return cls.schemas[schema_location]
-#        else:
-#            logging.info("Opening schema: %s" % schema_location)
-#            f = open(schema_location)
-#            schema = etree.XMLSchema(etree.parse(f))
-#            f.close()
-#            
-#            cls.schemas[schema_location] = schema
-#            
-#            return schema
-        # Non singleton version for usage with locally stored schemas:
         logging.info("Opening schema: %s" % schema_location)
         f = open(schema_location)
         schema = etree.XMLSchema(etree.parse(f))
