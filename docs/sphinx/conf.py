@@ -170,7 +170,7 @@ htmlhelp_basename = 'EOxServerdoc'
 # -- Options for LaTeX output --------------------------------------------------
 
 # The paper size ('letter' or 'a4').
-#latex_paper_size = 'letter'
+latex_paper_size = 'a4'
 
 # The font size ('10pt', '11pt' or '12pt').
 #latex_font_size = '10pt'
@@ -178,13 +178,14 @@ htmlhelp_basename = 'EOxServerdoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'EOxServer.tex', u'EOxServer Documentation',
-   u'Stephan Meissl, Stephan Krause, Fabian Schindler-Strauss', 'manual'),
+  ('en/index', 'EOxServer.tex', u'EOxServer Documentation',
+   u'Stephan Meissl \\and Stephan Krause \\and Fabian Schindler-Strauss \\and Milan Novacek \\and Arndt Bonitz \\and Martin Paces',
+   'manual', True),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.
-#latex_logo = None
+latex_logo = 'logo/EOxServer_logo_big.png'
 
 # For "manual" documents, if this is true, then toplevel headings are parts,
 # not chapters.
@@ -196,5 +197,7 @@ latex_documents = [
 # Documents to append as an appendix to all manuals.
 #latex_appendices = []
 
-# If false, no module index is generated.
-#latex_use_modindex = True
+latex_domain_indices = False
+latex_use_modindex = False
+latex_show_pagerefs = True
+latex_show_urls = 'footnote'

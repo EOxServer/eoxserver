@@ -132,38 +132,45 @@ The following OGC Web Services shall be implemented:
 `Web Coverage Service (WCS)
 <http://www.opengeospatial.org/standards/wcs>`_ (requirement 
 `O3S_CAP_001 <https://o3s.eox.at/requirements/ticket/7>`_)
+
   The Web Coverage Service shall be able to present Earth Observation
   data, e.g. optical satellite imagery, SAR data, etc. The following
   extensions shall be implemented:
 
   Earth Observation Application Profile for WCS (EO-WCS) (requirement
   `O3S_CAP_100 <https://o3s.eox.at/requirements/ticket/8>`_)
+
     This application profile is intended to ease access to large
     collections of Earth Observation data.
 
   Transactional WCS (WCS-T) (requirement
   `O3S_CAP_150 <https://o3s.eox.at/requirements/ticket/198>`_)
+
     This extension of WCS introduces a Transaction operation that
     supports transfer of data *to* a WCS server.
 
 `Web Map Service (WMS) <http://www.opengeospatial.org/standards/wms>`_
 (requirement
 `O3S_CAP_220 <https://o3s.eox.at/requirements/ticket/204>`_)
+
   This service shall be used to give to portrayals of the coverages
   the system presents. The following extension shall be implemented:
   
   WMS Profile for EO Products (EO-WMS) (requirement
   `O3S_CAP_240 <https://o3s.eox.at/requirements/ticket/210>`_)
+
     The extension allows access to portrayals of large dataset series.
 
 `Web Feature Service (WFS)
 <http://www.opengeospatial.org/standards/wfs>`_ (requirement
 `O3S_CAP_260 <https://o3s.eox.at/requirements/ticket/214>`_)
+
   This service shall be used to present vector data.
 
 `Web Processing Service (WPS)
 <http://www.opengeospatial.org/standards/wps>`_ (requirement 
 `O3S_CAP_200 <https://o3s.eox.at/requirements/ticket/9>`_)
+
   This service shall be used to make processing resources accessible
   online.
 

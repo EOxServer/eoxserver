@@ -62,7 +62,7 @@ we simply ignore presence or absence of these infomration.
 Currently only the rectified data-set coverages can be ingested (old Synchronizer API). 
 
 WCS-T and Earth Observation Application Profile
----------------
+-----------------------------------------------
 
 In order to be able to ingest additional meta-data defined by the  *Earth Observation Application Profile* [ref.TBD]
 we allow ingestion of client-defined EOP profile attached to the ingested pixel data. The EOP XML is passed 
