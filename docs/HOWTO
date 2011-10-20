@@ -36,25 +36,31 @@
 UNIX
 ----
 
-	Run
-	cd <path_to_docs_directory>/sphinx
-	export PYTHONPATH="<PATH-TO-EOxServer-CODE>"
-	export DJANGO_SETTINGS_MODULE="autotest.settings" # Use a valid EOxServer settings file here. Note that the configured database needs to be synced.
-	make html
+    Run
+    cd <path_to_docs_directory>/sphinx
+    export PYTHONPATH="<PATH-TO-EOxServer-CODE>"
+    export DJANGO_SETTINGS_MODULE="autotest.settings" # Use a valid EOxServer settings file here. Note that the configured database needs to be synced.
+    make html
 
-	The documentation is generated in _build/html.
-	
+    The documentation is generated in _build/html.
+
+    # For pdf output run:
+    make pdf
+    cd _build/latex/
+    make all-pdf
+    # The pdf documentation is generated as EOxServer.pdf
+
 Windows
 --------
 
-	Run
-	cd <path_to_docs_directory>/sphinx
-	set PYTHONPATH="<PATH-TO-EOxServer-CODE>"
-	set DJANGO_SETTINGS_MODULE="autotest.settings" # Use a valid EOxServer settings file here. Note that the configured database needs to be synced.
-	sphinx-build.exe -b html -d _build\doctrees -D latex_paper_size=a4 . _build/html  #Note that the "sphinx-build.exe" has to be set in your path
+    Run
+    cd <path_to_docs_directory>/sphinx
+    set PYTHONPATH="<PATH-TO-EOxServer-CODE>"
+    set DJANGO_SETTINGS_MODULE="autotest.settings" # Use a valid EOxServer settings file here. Note that the configured database needs to be synced.
+    sphinx-build.exe -b html -d _build\doctrees -D latex_paper_size=a4 . _build/html  #Note that the "sphinx-build.exe" has to be set in your path
 
-	The documentation is generated in _build/html.
-	
+    The documentation is generated in _build/html.
+
 
 1b. How to generate the epydoc documentation
 
