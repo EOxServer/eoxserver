@@ -775,6 +775,77 @@ class WCS20PostGetCoverageMultipartDatasetTestCase(eoxstest.WCS20GetCoverageMult
         return (params, "xml")
 
 #===============================================================================
+# WCS 1.1 - POST
+#===============================================================================
+
+class WCS11PostGetCapabilitiesValidTestCase(eoxstest.XMLTestCase):
+    """This test shall retrieve a valid WCS 1.1 GetCapabilities response via POST.
+    """
+    def getRequest(self):
+        params = """<ns:GetCapabilities xmlns:ns="http://www.opengis.net/wcs/1.1" 
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+          xsi:schemaLocation="http://www.opengis.net/wcs/1.1 ../wcsGetCapabilities.xsd" 
+          service="WCS"/>"""        
+        return (params, "xml")
+        
+class WCS11PostDescribeCoverageDatasetTestCase(eoxstest.XMLTestCase):
+    def getRequest(self):
+        params = """<DescribeCoverage xmlns="http://www.opengis.net/wcs/1.1" 
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+          xsi:schemaLocation="http://www.opengis.net/wcs/1.1 ../wcsDescribeCoverage.xsd" 
+          service="WCS" version="1.1.2">
+            <Identifier>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</Identifier>
+          </DescribeCoverage>"""
+        return (params, "xml")
+
+class WCS11PostDescribeCoverageMosaicTestCase(eoxstest.XMLTestCase):
+    def getRequest(self):
+        params = """<DescribeCoverage xmlns="http://www.opengis.net/wcs/1.1" 
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+          xsi:schemaLocation="http://www.opengis.net/wcs/1.1 ../wcsDescribeCoverage.xsd" 
+          service="WCS" version="1.1.2">
+            <Identifier>mosaic_MER_FRS_1P_RGB_reduced</Identifier>
+          </DescribeCoverage>"""
+        return (params, "xml")
+
+# Not impleneted yet:
+# class WCS11xPostGetCoverageDatasetTestCase(eoxstest.GDALDatasetTestCase):
+#     def getRequest(self):
+#         params = "service=WCS&version=1.1.0&request=GetCoverage&identifier=mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced&crs=epsg:4326&bbox=-4,32,28,46.5&width=640&height=290&format=image/tiff"
+#         return (params, "xml")
+
+class WCS11PostGetCoverageMosaicTestCase(eoxstest.GDALDatasetTestCase):
+    def getRequest(self):
+        #service=WCS&version=1.1.0&request=GetCoverage&identifier=mosaic_MER_FRS_1P_RGB_reduced&crs=epsg:4326&bbox=-4,32,28,46.5&width=640&height=290&format=image/tiff
+        params = """<GetCoverage xmlns="http://www.opengis.net/wcs/1.1" 
+          xmlns:ows="http://www.opengis.net/ows/1.1" 
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+          xsi:schemaLocation="http://www.opengis.net/wcs/1.1 ../wcsGetCoverage.xsd" 
+          service="WCS" version="1.1.0">
+          <ows:Identifier>mosaic_MER_FRS_1P_RGB_reduced</ows:Identifier>
+          <DomainSubset>
+            <ows:BoundingBox crs="epsg:4326">
+            <ows:LowerCorner>-4 32</ows:LowerCorner>
+            <ows:UpperCorner>28 46</ows:UpperCorner>
+          </ows:BoundingBox>
+          </DomainSubset>
+          <Output format="image/tiff"/>
+          </GetCoverage>"""
+        return (params, "xml")
+
+# Not impleneted yet:
+# class WCS11xPostGetCoverageDatasetComplexTestCase(eoxstest.GDALDatasetTestCase):
+#     def getRequest(self):
+#         params = "service=WCS&version=1.1.0&request=GetCoverage&identifier=mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced&boundingbox=-4,32,28,46.5,urn:ogc:def:crs:EPSG::4326&format=image/tiff&GridBaseCRS=urn:ogc:def:crs:EPSG::4326&GridCS=urn:ogc:def:crs:EPSG::4326&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=33,11.4&GridOffsets=1,1"
+#         return (params, "xml")
+
+# Not impleneted yet:
+# class WCS11xPostGetCoverageMosaicComplexTestCase(eoxstest.GDALDatasetTestCase):
+#     def getRequest(self):
+#         params = "service=WCS&version=1.1.0&request=GetCoverage&identifier=mosaic_MER_FRS_1P_RGB_reduced&boundingbox=-4,32,28,46.5,urn:ogc:def:crs:EPSG::4326&format=image/tiff&GridBaseCRS=urn:ogc:def:crs:EPSG::4326&GridCS=urn:ogc:def:crs:EPSG::4326&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=33,11.4&GridOffsets=1,1"
+#         return (params, "xml")
+
+#===============================================================================
 # WMS
 #===============================================================================
 
@@ -858,6 +929,9 @@ def suite():
     wcs20_post_tests = unittest.TestSuite()
     wcs20_post_tests.addTests(get_tests_by_prefix("WCS20Post"))
 
+    wcs11_post_tests = unittest.TestSuite()
+    wcs11_post_tests.addTests(get_tests_by_prefix("WCS11Post"))
+
     wms13_tests = unittest.TestSuite(get_tests_by_prefix("WMS13"))
     
     all_tests = unittest.TestSuite()
@@ -865,7 +939,8 @@ def suite():
     all_tests.addTests(wcs10_tests)
     all_tests.addTests(wcs11_tests)
     all_tests.addTests(wcs20_tests)
-    all_tests.addTests(wcs20_post_tests)
     all_tests.addTests(wms13_tests)
+    all_tests.addTests(wcs20_post_tests)
+    all_tests.addTests(wcs11_post_tests)
     
     return all_tests
