@@ -5,8 +5,9 @@ Data Model
 
 The core resources in EOxServer are coverages, more precisely GridCoverages. 
 The EOxServer data model adopts and strongly relates to the data model from 
-EO-WCS (OGC 10-140) as shown below.
+EO-WCS (OGC 10-140) as shown below in :ref:`fig_eo-wcs_data_model`.
 
+.. _fig_eo-wcs_data_model:
 .. figure:: images/EO-WCS_Data_Model.png
    :align: center
 
@@ -16,8 +17,9 @@ EO-WCS (OGC 10-140) as shown below.
 EOxServer Core
 --------------
 
-Below the data model of the EOxServer core is shown.
+:ref:`fig_model_core` below shows the data model of the EOxServer core.
 
+.. _fig_model_core:
 .. figure:: images/model_core.png
    :align: center
 
@@ -26,9 +28,10 @@ Below the data model of the EOxServer core is shown.
 Data Integration Layer
 ----------------------
 
-The data model of the coverage resources is shown below. Note the correlation 
-with the EO-WCS data model as shown above.
+:ref:`fig_model_coverages` below shows the data model of the coverage resources.
+Note the correlation with the EO-WCS data model as shown above.
 
+.. _fig_model_coverages:
 .. figure:: images/model_coverages.png
    :align: center
 
@@ -37,8 +40,9 @@ with the EO-WCS data model as shown above.
 Data Access Layer
 -----------------
 
-The data model of the back-ends is shown below.
+:ref:`fig_model_backends` below shows the data model of the back-ends layer.
 
+.. _fig_model_backends:
 .. figure:: images/model_backends.png
    :align: center
 
