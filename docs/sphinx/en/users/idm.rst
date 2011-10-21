@@ -1,11 +1,13 @@
+.. _Identity Management System:
+
 Identity Management System
 ==========================
 
 The Identity Management System (IDMS) provides access control capabilities for security relevant data. The current IDMS supports SOAP Services and is based on other free and open software projects, namely the `Charon Project <http://www.enviromatics.net/charon/>`_ and the `HMA Authentication Service <http://wiki.services.eoportal.org/tiki-index.php?page=HMA+Authentication+Service>`_. In the context of the EOxServer, the IDMS can be used  to provide authentication and authorisation capabilities for the `WCS-EO SOAP Proxy <http://eoxserver.org/doc/en/users/soap_proxy.html>`_. 
 
-The approach chosed for the IDMS follows the OGC best practise document `User Management Interfaces for Earth Observation Services <http://portal.opengeospatial.org/files/?artifact_id=40677>`_ for the authentication concept. The authentication part is following the ideas of the `XACML <http://docs.oasis-open.org/xacml/2.0/access_control-xacml-2.0-core-spec-os.pdf>`_ data flow pattern: The IDMS authorisation part consists of a Policy Decision Point (PDP, here represented through the Charon Policy Management And Authentication Service) and the Policy Enforcement Point (PEP, represented through the Charon PEP Service). The following figure gives an overview of the IDMS SOAP part:
+The approach chosed for the IDMS follows the OGC best practise document `User Management Interfaces for Earth Observation Services <http://portal.opengeospatial.org/files/?artifact_id=40677>`_ for the authentication concept. The authentication part is following the ideas of the `XACML data flow pattern <http://docs.oasis-open.org/xacml/2.0/access_control-xacml-2.0-core-spec-os.pdf>`_: The IDMS authorisation part consists of a Policy Decision Point (PDP, here represented through the Charon Policy Management And Authentication Service) and the Policy Enforcement Point (PEP, represented through the Charon PEP Service). The following figure gives an overview of the IDMS SOAP part:
 
-.. figure:: img/IDM_SOAP_Components.png
+.. figure:: images/IDM_SOAP_Components.png
    :align: center
 
    *IDMS SOAP Access Control Overview*
@@ -66,9 +68,8 @@ You can use the Apache HTTP Server as a proxy, it will enable your services runn
        ProxyPassReverse /services/AuthenticationService ajp://localhost:8009/axis2/services/AuthenticationService 
        
     </VirtualHost>
-  The ``ProxyPass`` and ``ProxyPassReverse`` have to point to your services. Please note that the Tomcat server hosting your services must have the AJP interface enabled.  
- 
 
+  The ``ProxyPass`` and ``ProxyPassReverse`` have to point to your services. Please note that the Tomcat server hosting your services must have the AJP interface enabled.  
  
 LDAP Directory
 --------------
