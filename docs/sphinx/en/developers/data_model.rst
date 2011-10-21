@@ -33,3 +33,13 @@ with the EO-WCS data model as shown above.
    :align: center
 
    *EOxServer Data Model for Coverage Resources*
+
+Data Access Layer
+-----------------
+
+The data model of the back-ends is shown below.
+
+.. figure:: images/model_backends.png
+   :align: center
+
+   *EOxServer Data Model for Back-ends*

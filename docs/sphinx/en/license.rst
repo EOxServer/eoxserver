@@ -44,4 +44,4 @@ in the frame of the HMA-FO_ and O3S_ projects.
 
 .. _European Space Agency (ESA): http://www.esa.int/esaMI/ESRIN_SITE/
 .. _HMA-FO: http://wiki.services.eoportal.org/tiki-index.php?page=HMA-FO
-.. _O3S: O3S http://wiki.services.eoportal.org/tiki-index.php?page=O3S
+.. _O3S: http://wiki.services.eoportal.org/tiki-index.php?page=O3S
