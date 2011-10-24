@@ -47,12 +47,12 @@ class BaseRequestHandler(object):
         cannot be generated in this specific handler, the exception
         should be re-raised. This is also the default behaviour.
         
-        @param  req     The {@link eoxserver.lib.requests.EOxSOWSRequest}
+        @param  req     The {@link eoxserver.services.requests.OWSRequest}
                         object that was being processed when the
                         exception was raised
         @param  exception The <tt>Exception</tt> raised by the request
                         handling method
-        @return         An {@link eoxserver.lib.requests.EOxSResponse}
+        @return         An {@link eoxserver.services.requests.Response}
                         object containing an exception report
         """
         raise
@@ -63,10 +63,10 @@ class BaseRequestHandler(object):
         request handling logic. Should not be invoked from external code,
         use the {@link #handle handle} method instead.
         
-        @param  req An {@link eoxserver.lib.requests.EOxSOWSRequest} object
+        @param  req An {@link eoxserver.services.requests.OWSRequest} object
                     containing the request parameters
         
-        @return     An {@link eoxserver.lib.requests.EOxSResponse} object
+        @return     An {@link eoxserver.services.requests.Response} object
                     containing the response content, headers and status
         """
         pass
@@ -76,10 +76,10 @@ class BaseRequestHandler(object):
         Basic request handling method which should be invoked from
         external code.
         
-        @param  req An {@link eoxserver.lib.requests.EOxSOWSRequest} object
+        @param  req An {@link eoxserver.services.requests.OWSRequest} object
                     containing the request parameters
         
-        @return     An {@link eoxserver.lib.requests.EOxSResponse} object
+        @return     An {@link eoxserver.services.requests.Response} object
                     containing the response content, headers and status
         """
 
