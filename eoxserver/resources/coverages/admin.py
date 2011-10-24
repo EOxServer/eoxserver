@@ -36,7 +36,11 @@ from django.conf import settings
 from django.http import HttpResponseRedirect
 from django.contrib.admin.util import unquote
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Q
 
+from eoxserver.backends.models import (
+    Location, LocalPath, RemotePath, RasdamanLocation
+)
 from eoxserver.resources.coverages.models import (
     EOMetadataRecord, DataSource, TileIndex,
     LayerMetadataRecord, LineageRecord, NilValueRecord,
@@ -292,12 +296,6 @@ class AbstractContainerAdmin(admin.ModelAdmin):
             messages.error(request, "Could not delete %s" % self.model._meta.verbose_name)
             return HttpResponseRedirect("..")
 
-class DataSourceInline(admin.TabularInline):
-    model = RectifiedStitchedMosaicRecord.data_sources.through
-    verbose_name = "Data Source Directory"
-    verbose_name_plural = "Data Source Directories"
-    extra = 1
-    fields = ('datasource',)
 class DatasetSeries2StichedMosaicInline(admin.TabularInline):
     model = DatasetSeriesRecord.rect_stitched_mosaics.__getattribute__("through")
     verbose_name = "Dataset Series to Stitched Mosaic Relation"
@@ -310,7 +308,7 @@ class RectifiedStitchedMosaicAdmin(AbstractContainerAdmin):
     ordering = ('eo_id', )
     search_fields = ('eo_id', )
     filter_horizontal = ('rect_datasets', )
-    inlines = (DataSourceInline, DatasetSeries2StichedMosaicInline, )
+    inlines = (DatasetSeries2StichedMosaicInline, )
     
     coverage_manager_intf_id = "eo.rect_stitched_mosaic"
     
@@ -332,10 +330,8 @@ admin.site.register(RectifiedStitchedMosaicRecord, RectifiedStitchedMosaicAdmin)
 class DatasetSeriesAdmin(admin.ModelAdmin):
     list_display = ('eo_id', 'eo_metadata', )
     list_editable = ('eo_metadata', )
-    #list_filter = ('image_pattern', )
     ordering = ('eo_id', )
     search_fields = ('eo_id', )
-    #inlines = (, )
     fieldsets = (
         (None, {
             'fields': ('eo_id', 'eo_metadata', 'data_sources' ),
@@ -444,7 +440,19 @@ admin.site.register(TileIndex)
 
 class DataSourceAdmin(admin.ModelAdmin):
     model = DataSource
-    #raw_id_fields=("location",)
+    
+    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
+        """ exclude all locations from the query that
+        are used within DataPackages.
+        """
+        
+        if db_field.name == 'location':
+            kwargs['queryset'] = Location.objects.filter(
+                localpath__data_file_packages=None, localpath__metadata_file_packages=None,
+                remotepath__data_file_packages=None, remotepath__metadata_file_packages=None,
+                rasdamanlocation__data_packages=None, localpath__rasdaman_metadata_file_packages=None
+            )
+        return super(DataSourceAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 admin.site.register(DataSource, DataSourceAdmin)
 
@@ -465,12 +473,37 @@ class AbstractDataPackageAdmin(admin.ModelAdmin):
 
 class LocalDataPackageAdmin(AbstractDataPackageAdmin):
     model = LocalDataPackage
+    
+    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
+        if db_field.name in ('data_location', 'metadata_location'): 
+            kwargs['queryset'] = LocalPath.objects.filter(
+                data_sources=None
+            )
+        return super(AbstractDataPackageAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 class RemoteDataPackageAdmin(AbstractDataPackageAdmin):
     model = RemoteDataPackage
 
+    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
+        if db_field.name in ('data_location', 'metadata_location'): 
+            kwargs['queryset'] = RemotePath.objects.filter(
+                data_sources=None
+            )
+        return super(AbstractDataPackageAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+
 class RasdamanDataPackageAdmin(AbstractDataPackageAdmin):
     model = RasdamanDataPackage
+    
+    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
+        if db_field.name == 'data_location': 
+            kwargs['queryset'] = RasdamanLocation.objects.filter(
+                data_sources=None
+            )
+        elif db_field.name == 'metadata_location':
+            kwargs['queryset'] = LocalPath.objects.filter(
+                data_sources=None
+            )
+        return super(AbstractDataPackageAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 admin.site.register(DataPackage, DataPackageAdmin)
 admin.site.register(LocalDataPackage, LocalDataPackageAdmin)

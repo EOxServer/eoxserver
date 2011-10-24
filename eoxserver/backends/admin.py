@@ -36,11 +36,15 @@ from eoxserver.backends.models import (
 from django.contrib import admin
 
 class AbstractLocationAdmin(admin.ModelAdmin):
-    #readonly_fields = ("location_type", )
-    
     def save_model(self, request, obj, form, change):
         obj.location_type = self.model.LOCATION_TYPE
         obj.save()
+
+class AbstractLocationInline(admin.TabularInline):
+    def save_model(self, request, obj, form, change):
+        obj.location_type = self.model.LOCATION_TYPE
+        obj.save()
+    
 
 #===============================================================================
 # Simplified Location Admin, use with caution
@@ -80,7 +84,7 @@ admin.site.register(LocalPath, LocalPathAdmin)
 # FTP Storage Admin
 #===============================================================================
 
-class RemotePathInline(admin.TabularInline):
+class RemotePathInline(AbstractLocationInline):
     model = RemotePath
     extra = 1
 class FTPStorageAdmin(StorageAdmin):
@@ -99,7 +103,7 @@ admin.site.register(RemotePath, RemotePathAdmin)
 # Rasdaman Storage Admin
 #===============================================================================
 
-class RasdamanLocationInline(admin.TabularInline):
+class RasdamanLocationInline(AbstractLocationInline):
     model = RasdamanLocation
     extra = 1
 class RasdamanStorageAdmin(StorageAdmin):
