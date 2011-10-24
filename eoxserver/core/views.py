@@ -27,7 +27,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from django.shotcuts import render_to_response
+from django.shortcuts import render_to_response
 
 def index(request):
     # show overview with links to active components, resources
