@@ -389,7 +389,7 @@ class WCS20DescribeEOCoverageSetSectionsTestCase(XMLTestCase):
         sections = decoder.getValue("sections")
         self.assertItemsEqual(sections, self.getExpectedSections())
     
-class WCS20GetCoverageMultipartTestCase(MultipartTestCase, GDALDatasetTestCase):
+class WCS20GetCoverageMultipartTestCase(MultipartTestCase):
     def testBinaryComparisonXML(self):
         # the timePosition tag depends on the actual time the
         # request was answered. It has to be explicitly unified

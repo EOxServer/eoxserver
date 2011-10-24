@@ -99,7 +99,7 @@ class WCS11GetCoverageMosaicComplexTestCase(eoxstest.GDALDatasetTestCase):
         return (params, "kvp")
 
 #===============================================================================
-# WCS 2.0
+# WCS 2.0 Get Capabilities
 #===============================================================================
 
 class WCS20GetCapabilitiesValidTestCase(eoxstest.XMLTestCase):
@@ -128,6 +128,10 @@ class WCSVersionNegotiationFaultTestCase(eoxstest.ExceptionTestCase):
 
     def getExpectedExceptionCode(self):
         return "VersionNegotiationFailed"
+
+#===============================================================================
+# WCS 2.0 DescribeCoverage
+#===============================================================================
     
 class WCS20DescribeCoverageDatasetTestCase(eoxstest.XMLTestCase):
     """This test shall retrieve a valid WCS 2.0 EO-AP DescribeCoverage response for a wcseo:RectifiedDataset."""
@@ -173,6 +177,10 @@ class WCS20DescribeCoverageMissingParameterFaultTestCase(eoxstest.ExceptionTestC
     
     def getExpectedExceptionCode(self):
         return "MissingParameterValue"
+
+#===============================================================================
+# WCS 2.0 DescribeEOCoverageSet 
+#===============================================================================
 
 class WCS20DescribeEOCoverageSetDatasetTestCase(eoxstest.XMLTestCase):
     """This test shall retrieve a valid WCS 2.0 EO-AP DescribeEOCoverageSet response for a wcseo:RectifiedDataset"""
@@ -470,7 +478,7 @@ class WCS20DescribeEOCoverageSetSectionsFaultTestCase(eoxstest.ExceptionTestCase
         return "InvalidParameterValue"
 
 
-class WCS20DescribeEOCoverageSetDatasetUniqueTestCase(eoxstest.XMLTestCase): 
+class WCS20DescribeEOCoverageSetDatasetUniqueTestCase(eoxstest.WCS20DescribeEOCoverageSetSubsettingTestCase): 
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed,MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed"
         return (params, "kvp")
@@ -480,7 +488,7 @@ class WCS20DescribeEOCoverageSetDatasetUniqueTestCase(eoxstest.XMLTestCase):
             "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed"
         ]
 
-class WCS20DescribeEOCoverageSetDatasetOutOfSubsetTestCase(eoxstest.XMLTestCase):
+class WCS20DescribeEOCoverageSetDatasetOutOfSubsetTestCase(eoxstest.WCS20DescribeEOCoverageSetSubsettingTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed&ubset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(0,1)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(0,1)"
         return (params, "kvp")
@@ -488,7 +496,7 @@ class WCS20DescribeEOCoverageSetDatasetOutOfSubsetTestCase(eoxstest.XMLTestCase)
     def getExpectedCoverageIds(self):
         return []
     
-class WCS20DescribeEOCoverageSetDatasetSeriesStitchedMosaicTestCase(eoxstest.XMLTestCase):
+class WCS20DescribeEOCoverageSetDatasetSeriesStitchedMosaicTestCase(eoxstest.WCS20DescribeEOCoverageSetSubsettingTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced,mosaic_MER_FRS_1P_RGB_reduced"
         return (params, "kvp")
