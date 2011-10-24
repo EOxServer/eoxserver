@@ -44,7 +44,7 @@ def ows(request):
     """
     This function handles all incoming OWS requests. It configures basic
     settings e.g. for the logging module, triggers reading of the config
-    file and passes on the request to eoxserver.lib.ows.EOxSOWSHandler.
+    file and passes on the request to eoxserver.services.owscommon.OWSCommonHandler.
     
     @param  request     A django.http.HttpRequest object containing the
                         request parameters and data
@@ -52,7 +52,7 @@ def ows(request):
     @return             A django.http.HttpResponse object containing the
                         response content, headers and status
     
-    @see                eoxserver.lib.ows.EOxSOWSHandler
+    @see                eoxserver.services.owscommon.OWSCommonHandler
     """
 
     if request.method == 'GET':

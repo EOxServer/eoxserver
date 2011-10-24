@@ -224,13 +224,13 @@ class MapServerOperationHandler(BaseRequestHandler):
         
         First it creates a MapServerRequest object and passes the
         request data to it. Then it invokes the methods in the order
-        defined above and finally returns an {@link eoxserver.lib.requests.MapServerResponse}
+        defined above and finally returns an {@link eoxserver.services.requests.MapServerResponse}
         object. It is not recommended to override this method.
         
-        @param  req An {@link eoxserver.lib.requests.EOxSOWSRequest}
+        @param  req An {@link eoxserver.services.requests.OWSRequest}
                     object containing the request parameters and data
         
-        @return     An {@link eoxserver.lib.requests.EOxSMapServerResponse}
+        @return     An {@link eoxserver.services.requests.MapServerResponse}
                     object containing the response content, headers and
                     status as well as the status code returned by
                     MapServer
@@ -251,7 +251,7 @@ class MapServerOperationHandler(BaseRequestHandler):
         does nothing at all, so you will have to override this method to
         meet your needs. 
         
-        @param  ms_req  An {@link eoxserver.lib.requests.EOxSMapServerRequest} object
+        @param  ms_req  An {@link eoxserver.services.requests.MapServerRequest} object
         
         @return         None
         """
@@ -270,7 +270,7 @@ class MapServerOperationHandler(BaseRequestHandler):
         passed in with the user request. This method can be overridden
         in order to change the treatment of parameters.
         
-        @param  ms_req  An {@link eoxserver.lib.requests.EOxSMapServerRequest} object
+        @param  ms_req  An {@link eoxserver.services.requests.MapServerRequest} object
         
         @return         None
         """
@@ -297,7 +297,7 @@ class MapServerOperationHandler(BaseRequestHandler):
         config. This method can be overridden in order to implement more
         sophisticated behaviour. 
         
-        @param  ms_req  An {@link eoxserver.lib.requests.EOxSMapServerRequest} object
+        @param  ms_req  An {@link eoxserver.services.requests.MapServerRequest} object
         
         @return         None
         """
@@ -320,7 +320,7 @@ class MapServerOperationHandler(BaseRequestHandler):
         coverage defined. This method can be overridden in order to
         customize the way layers are inserted into the map object.
         
-        @param  ms_req  An {@link eoxserver.lib.requests.EOxSMapServerRequest} object
+        @param  ms_req  An {@link eoxserver.services.requests.MapServerRequest} object
         
         @return         None
         """
@@ -335,7 +335,7 @@ class MapServerOperationHandler(BaseRequestHandler):
         will have to override this method in order to define e.g. the
         data sources for the layer.
         
-        @param  coverage    An {@link eoxserver.lib.interfaces.EOxSCoverageInterface}
+        @param  coverage    An {@link eoxserver.services.interfaces.CoverageInterface}
                             object giving access to the coverage data
         
         @return             A <tt>mapscribt.layerObj</tt> object
@@ -363,10 +363,10 @@ class MapServerOperationHandler(BaseRequestHandler):
         <tt>ms_req.map.OWSDispatch()</tt>. This method should not be
         overridden by child classes.
         
-        @param  ms_req  An {@link eoxserver.lib.requests.EOxSMapServerRequest}
+        @param  ms_req  An {@link eoxserver.services.requests.MapServerRequest}
                         object
         
-        @return         An {@link eoxserver.lib.requests.EOxSMapServerResponse}
+        @return         An {@link eoxserver.services.requests.MapServerResponse}
                         object containing the content, headers and status
                         of the request as well as the status code
                         returned by MapServer
@@ -394,9 +394,9 @@ class MapServerOperationHandler(BaseRequestHandler):
         response unchanged. If postprocessing is needed, you should
         override this method. 
         
-        @param  ms_req  An {@link eoxserver.lib.requests.EOxSMapServerRequest}
+        @param  ms_req  An {@link eoxserver.services.requests.MapServerRequest}
                         object
-        @param  resp    An {@link eoxserver.lib.requests.EOxSMapServerResponse}
+        @param  resp    An {@link eoxserver.services.requests.MapServerResponse}
                         object.
         """
         return resp
