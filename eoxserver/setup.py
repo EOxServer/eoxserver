@@ -1,4 +1,6 @@
-from setuptools import setup, find_packages
+#from setuptools import setup, find_packages
+
+from distutils.core import setup
 setup(
     name = 'EOxServer',
     version = '1.0',
