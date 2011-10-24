@@ -18,8 +18,8 @@ and APIs please refer to the :ref:`EOxServer Developers' Guide`.
    getting_started
    mailing_lists
    demonstration
-   install
    EO-WCS_request_parameters
+   install
    admin_tutorial
    idm
    soap_proxy
