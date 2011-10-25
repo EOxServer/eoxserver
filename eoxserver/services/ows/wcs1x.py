@@ -80,7 +80,7 @@ class WCS10VersionHandler(OWSCommonVersionHandler):
             "http://www.opengis.net/ogc": "http://schemas.opengis.net/wcs/1.0.0/OGC-exception.xsd"
         }
         
-        return OGCExceptionHandler().handleException(req, exception, schema_locations)
+        return OGCExceptionHandler(schema_locations).handleException(req, exception)
 
 WCS10VersionHandlerImplementation = VersionHandlerInterface.implement(WCS10VersionHandler)
 
