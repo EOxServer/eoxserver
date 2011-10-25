@@ -40,8 +40,8 @@ These features result in the general benefit for the provider to be more attract
 
 The following sub-sections provide details from the provider and user point of view highlighting the possible usage of the EOxServer software stack.
 
-The *Provider* View
--------------------
+The General *Provider* View
+---------------------------
 
 The provider operates an archive of EO data with different ways of actually accessing the data. For simplicity let's assume the data archived in this legacy system can be accessed in two ways. First there is the local access directly to the file system via operating system capabilities. Second there is an online access by exposing certain directories via FTP.
 
@@ -146,8 +146,8 @@ A comparable synchronization process is available for FTP and rasdaman back-ends
 
    *Admin app - Add/Change Dataset Series Advanced*
 
-The *User* View
----------------
+The General *User* View
+-----------------------
 
 The user needs certain EO data as input to some processing. This processing ranges from simply viewing certain parameters of EO data to complex data analysis and generation of derived data. The user has an environment with the software installed needed for the processing. For simplicity let's assume the user has two different software tools installed to process the data. First there is a standard web browser which manages the HTTP protocol and is capable of viewing HTML web pages. Second there is a GIS software which shall be QGis in our example.
 
