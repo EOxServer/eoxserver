@@ -390,7 +390,9 @@ class WCS20DescribeEOCoverageSetInvalidAxisLabelFaultTestCase(eoxstest.Exception
         return "InvalidAxisLabel"
     
     
-# Paging testcases
+#===============================================================================
+# WCS 2.0: Paging testcases
+#===============================================================================
 
 class WCS20DescribeEOCoverageSetDatasetPagingCountTestCase(eoxstest.WCS20DescribeEOCoverageSetPagingTestCase):
     def getExpectedCoverageCount(self):
@@ -400,7 +402,9 @@ class WCS20DescribeEOCoverageSetDatasetPagingCountTestCase(eoxstest.WCS20Describ
         params = "service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=MER_FRS_1P_reduced&count=2"
         return (params, "kvp")
 
-# Section test cases
+#===============================================================================
+# WCS 2.0: Section test cases
+#===============================================================================
 
 class WCS20DescribeEOCoverageSetSectionsAllTestCase(eoxstest.WCS20DescribeEOCoverageSetSectionsTestCase):
     def getExpectedSections(self):
@@ -521,6 +525,10 @@ class WCS20DescribeEOCoverageSetDatasetSeriesStitchedMosaicTestCase(eoxstest.WCS
 #        params = "service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=MER_FRS_1P_reduced"
 #        return (params, "kvp")
 
+#===============================================================================
+# WCS 2.0: Exceptions
+#===============================================================================
+
 class WCS20GetCoverageFormatMissingFaultTestCase(eoxstest.ExceptionTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced"
@@ -545,7 +553,9 @@ class WCS20GetCoverageFormatUnknownFaultTestCase(eoxstest.ExceptionTestCase):
     def getExpectedExceptionCode(self):
         return "InvalidParameterValue"
 
-# Simple requests
+#===============================================================================
+# WCS 2.0: Simple requests
+#===============================================================================
 
 class WCS20GetCoverageMosaicTestCase(eoxstest.GDALDatasetTestCase):
     def getRequest(self):
@@ -557,7 +567,9 @@ class WCS20GetCoverageDatasetTestCase(eoxstest.GDALDatasetTestCase):
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff"
         return (params, "kvp")
 
-# FORMAT
+#==============================================================================
+# WCS 2.0: Formats
+#==============================================================================
 
 class WCS20GetCoverageJPEGTestCase(eoxstest.GDALDatasetTestCase):
     def getRequest(self):
@@ -567,7 +579,50 @@ class WCS20GetCoverageJPEGTestCase(eoxstest.GDALDatasetTestCase):
     def getFileExtension(self, part=None):
         return "jpg"
 
-# MEDIATYPE
+class WCS20GetCoverageJPEG2000TestCase(eoxstest.GDALDatasetTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=image/jp2"
+        return (params, "kvp")
+    
+    def getFileExtension(self, part=None):
+        return "jp2"
+
+class WCS20GetCoverageNetCDFTestCase(eoxstest.GDALDatasetTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=application/netcdf"
+        return (params, "kvp")
+    
+    def getFileExtension(self, part=None):
+        return "nc"
+
+# TODO: These requests are not yet working
+
+class WCS20GetCoverageCompressionLZWTestCase(eoxstest.GDALDatasetTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=image/tiff;compression=LZW"
+        return (params, "kvp")
+
+class WCS20GetCoverageCompressionJPEGTestCase(eoxstest.GDALDatasetTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=image/tiff;compression=jpeg"
+        return (params, "kvp")
+
+
+class WCS20GetCoverageFloat32TestCase(eoxstest.GDALDatasetTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=image/tiff;mode=float32"
+        return (params, "kvp")
+
+class WCS20GetCoverageTiledTestCase(eoxstest.GDALDatasetTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=image/tiff;mode=tiled"
+        return (params, "kvp")
+
+# END TODO
+
+#===============================================================================
+# WCS 2.0: Multipart requests
+#===============================================================================
 
 class WCS20GetCoverageMultipartMosaicTestCase(eoxstest.WCS20GetCoverageMultipartTestCase):
     def getRequest(self):
@@ -588,7 +643,9 @@ class WCS20GetCoverageMultipartDatasetTestCase(eoxstest.WCS20GetCoverageMultipar
 #    def getExpectedExceptionCode(self):
 #        return "InvalidParameterValue"
 
-# SUBSET
+#===============================================================================
+# WCS 2.0: Subset requests
+#===============================================================================
 
 class WCS20GetCoverageSubsetDatasetTestCase(eoxstest.GDALDatasetTestCase):
     def getRequest(self):
@@ -623,14 +680,18 @@ class WCS20GetCoverageSubsetInvalidEPSGFaultTestCase(eoxstest.ExceptionTestCase)
     def getExpectedExceptionCode(self):
         return "InvalidParameterValue"
 
-# OUTPUTCRS
+#===============================================================================
+# WCS 2.0: OutputCRS
+#===============================================================================
 
 class WCS20GetCoverageOutputCRSDatasetTestCase(eoxstest.GDALDatasetTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&outputcrs=http://www.opengis.net/def/crs/EPSG/0/3035"
         return (params, "kvp")
 
-# SIZE
+#===============================================================================
+# WCS 2.0: Size
+#===============================================================================
 
 class WCS20GetCoverageSizeDatasetTestCase(eoxstest.GDALDatasetTestCase):
     def getRequest(self):
@@ -660,7 +721,9 @@ class WCS20GetCoverageInvalidSizeFaultTestCase(eoxstest.ExceptionTestCase):
     def getExpectedExceptionCode(self):
         return "InvalidParameterValue"
 
-# RESOLUTION
+#===============================================================================
+# WCS 2.0: Resolution
+#===============================================================================
 
 class WCS20GetCoverageResolutionDatasetTestCase(eoxstest.GDALDatasetTestCase):
     def getRequest(self):
@@ -690,7 +753,9 @@ class WCS20GetCoverageSubsetEPSG4326ResolutionInvalidAxisDatasetFaultTestCase(eo
     def getExpectedExceptionCode(self):
         return "InvalidParameterValue"
 
-# RANGESUBSET
+#===============================================================================
+# WCS 2.0: Rangesubset
+#===============================================================================
 
 class WCS20GetCoverageRangeSubsetIndicesDatasetTestCase(eoxstest.GDALDatasetTestCase):
     def getRequest(self):
@@ -797,6 +862,9 @@ class WCS11PostGetCapabilitiesValidTestCase(eoxstest.XMLTestCase):
         return (params, "xml")
         
 class WCS11PostDescribeCoverageDatasetTestCase(eoxstest.XMLTestCase):
+    """This test shall retrieve a valid WCS 1.1 DescribeCoverage response for a 
+       wcseo:RectifiedDataset via POST.
+    """
     def getRequest(self):
         params = """<DescribeCoverage xmlns="http://www.opengis.net/wcs/1.1" 
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
@@ -807,6 +875,9 @@ class WCS11PostDescribeCoverageDatasetTestCase(eoxstest.XMLTestCase):
         return (params, "xml")
 
 class WCS11PostDescribeCoverageMosaicTestCase(eoxstest.XMLTestCase):
+    """This test shall retrieve a valid WCS 1.1 DescribeCoverage response for a 
+       wcseo:RectifiedStitchedMosaic via POST.
+    """
     def getRequest(self):
         params = """<DescribeCoverage xmlns="http://www.opengis.net/wcs/1.1" 
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
@@ -873,7 +944,7 @@ class WMS13GetMapMultipleDatasetsTestCase(eoxstest.WMS13GetMapTestCase):
     layers = ("mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced",
               "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced",
               )
-    width = 200 
+    width = 200
     bbox = (-3.75, 32.19025, 28.29481, 46.268645)
     
 class WMS13GetMapDatasetMultispectralTestCase(eoxstest.WMS13GetMapTestCase):
@@ -891,10 +962,28 @@ class WMS13GetMapDatasetSeriesTestCase(eoxstest.WMS13GetMapTestCase):
     layers = ("MER_FRS_1P_reduced",)
     width = 200
     bbox = (-3.75, 32.158895, 28.326165, 46.3)
+    
+class WMS13GetMapPNGDatasetTestCase(eoxstest.WMS13GetMapTestCase):
+    """ Test a GetMap request with a dataset series. """
+    layers = ("mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced",)
+    bbox = (8.5, 32.2, 25.4, 46.3)
+    frmt = "image/png"
+
+class WMS13GetMapGIFDatasetTestCase(eoxstest.WMS13GetMapTestCase):
+    """ Test a GetMap request with a dataset series. """
+    layers = ("mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced",)
+    bbox = (8.5, 32.2, 25.4, 46.3)
+    frmt = "image/gif"
+
+class WMS13GetMapTIFFDatasetTestCase(eoxstest.WMS13GetMapTestCase):
+    """ Test a GetMap request with a dataset series. """
+    layers = ("mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced",)
+    bbox = (8.5, 32.2, 25.4, 46.3)
+    frmt = "image/tiff"
 
 class WMS13GetMapLayerNotDefinedFaultTestCase(eoxstest.WMS13ExceptionTestCase):
     def getRequest(self):
-        params = "service=WMS&version=1.3.0&request=GetMap&layers=INVALIDLAYER&bbox=0,0,1,1&crs=EPSG:4326&width=10&height=10"
+        params = "service=WMS&version=1.3.0&request=GetMap&layers=INVALIDLAYER&bbox=0,0,1,1&crs=EPSG:4326&width=10&height=10&exceptions=XML"
         return (params, "kvp")
     
     def getExpectedExceptionCode(self):
