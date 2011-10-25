@@ -129,9 +129,6 @@ class OWSTestCase(EOxServerTestCase):
         except IOError:
             expected = None
         
-        if expected is None:
-            self.skipTest("Expected response in '%s' is not present" % expected_path)
-            
         actual_response = None
         if file_type == "raster":
             actual_response = self.getResponseData()
@@ -144,9 +141,13 @@ class OWSTestCase(EOxServerTestCase):
             f = open(response_path, 'w')
             f.write(actual_response)
             f.close()
-            self.fail("Response returned in '%s' is not equal to expected response in '%s'." % (
-                       response_path, expected_path)
-            )
+            
+            if expected is None:
+                self.skipTest("Expected response in '%s' is not present" % expected_path)
+            else:
+                self.fail("Response returned in '%s' is not equal to expected response in '%s'." % (
+                           response_path, expected_path)
+                )
             
     
     def testStatus(self):
@@ -170,33 +171,36 @@ class GDALDatasetTestCase(RasterTestCase):
     perform several tests.
     """
     
-    def setUp(self):
-        super(GDALDatasetTestCase, self).setUp()
+    def tearDown(self):
+        super(GDALDatasetTestCase, self).tearDown()
+        try:
+            del self.res_ds
+            del self.exp_ds
+            os.remove(self.tmppath)
+        except AttributeError:
+            pass
+
+    def _openDatasets(self):
         _, self.tmppath = tempfile.mkstemp("." + self.getFileExtension("raster"))
         f = open(self.tmppath, "w")
         f.write(self.getResponseData())
         f.close()
         gdal.AllRegister()
-
-        exp_path = os.path.join(self.getExpectedFileDir(), self.getExpectedFileName("raster"))
         
+        exp_path = os.path.join(self.getExpectedFileDir(), self.getExpectedFileName("raster"))
         self.res_ds = gdal.Open(self.tmppath, gdalconst.GA_ReadOnly)
         try:
             self.exp_ds = gdal.Open(exp_path, gdalconst.GA_ReadOnly)
         except RuntimeError:
             self.skipTest("Expected response in '%s' is not present" % exp_path)
-    
-    def tearDown(self):
-        super(GDALDatasetTestCase, self).tearDown()
-        del self.res_ds
-        del self.exp_ds
-        os.remove(self.tmppath)
-
+            
     def testSize(self):
+        self._openDatasets()
         self.assertEqual((self.res_ds.RasterXSize, self.res_ds.RasterYSize),
                          (self.exp_ds.RasterXSize, self.exp_ds.RasterYSize))
 
     def testExtent(self):
+        self._openDatasets()
         EPSILON = 1e-8
         
         res_extent = extent_from_ds(self.res_ds)
@@ -209,12 +213,14 @@ class GDALDatasetTestCase(RasterTestCase):
         )
 
     def testResolution(self):
+        self._openDatasets()
         res_resolution = resolution_from_ds(self.res_ds)
         exp_resolution = resolution_from_ds(self.exp_ds)
         self.assertAlmostEqual(res_resolution[0], exp_resolution[0], delta=exp_resolution[0]/10)
         self.assertAlmostEqual(res_resolution[1], exp_resolution[1], delta=exp_resolution[1]/10)
 
     def testBandCount(self):
+        self._openDatasets()
         self.assertEqual(self.res_ds.RasterCount, self.exp_ds.RasterCount)
 
 class XMLTestCase(OWSTestCase):
