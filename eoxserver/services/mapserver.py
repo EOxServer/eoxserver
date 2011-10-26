@@ -52,6 +52,9 @@ from eoxserver.services.exceptions import (
 from eoxserver.contrib import mapscript
 
 class MapServerRequest(OWSRequest):
+    """
+    MapServerRequest object
+    """
     def __init__(self, req):
         super(MapServerRequest, self).__init__(req.http_req, params=req.params, decoder=req.decoder)
         
@@ -61,6 +64,9 @@ class MapServerRequest(OWSRequest):
         self.ows_req = mapscript.OWSRequest()
 
 class MapServerResponse(Response):
+    """
+    MapServerResponse object
+    """
     def __init__(self, ms_response, ms_content_type, ms_status, headers={}, status=None):
         super(MapServerResponse, self).__init__(content=ms_response, content_type=ms_content_type, headers=headers, status=status)
         self.ms_status = ms_status
@@ -178,32 +184,26 @@ class MapServerDataConnectorInterface(RegisteredInterface):
     )
         
 class MapServerOperationHandler(BaseRequestHandler):
-    """\
+    """
     MapServerOperationHandler serves as parent class for all operations
     involving calls to MapServer. It is not an abstract class, but implements
     the most basic functionality, i.e. simply passing on a request to
     MapServer as it comes in.
 
-
     This class implements a workflow for request handling that
     involves calls to MapServer using its Python binding (mapscript).
     Requests are processed in six steps:
     
-    <ol>
-    <li>retrieve coverage information ({@link #createCoverages} method)</li>
-    <li>configure a MapServer <tt>OWSRequest</tt> object with
-        parameters from the request ({@link #configureRequest}
-        method)</li>
-    <li>configure a MapServer <tt>mapObj</tt> object with
-        parameters from the request and the config
-        ({@link #configureMapObj} method)</li>
-    <li>add layers to the MapServer <tt>mapObj</tt>
-        ({@link #addLayers} method)</li>
-    <li>dispatch the request, i.e. let MapServer actually do its
-        work; return the result ({@link dispatch} method)</li>
-    <li>postprocess the MapServer response ({@link postprocess}
-        method)</li>
-    </ol>
+    * retrieve coverage information (:meth:`createCoverages` method)
+    * configure a MapServer ``OWSRequest`` object with
+      parameters from the request (:meth:`configureRequest` method)
+    * configure a MapServer ``mapObj`` object with
+      parameters from the request and the config
+      (:meth:`configureMapObj` method)
+    * add layers to the MapServer ``mapObj`` (:meth:`addLayers` method)
+    * dispatch the request, i.e. let MapServer actually do its
+      work; return the result (:meth:`dispatch` method)
+    * postprocess the MapServer response (:meth:`postprocess` method)
     
     Child classes may override the configureRequest, configureMap,
     postprocess and postprocessFault methods in order to customize
@@ -222,15 +222,15 @@ class MapServerOperationHandler(BaseRequestHandler):
         This method implements the workflow described in the class
         documentation.
         
-        First it creates a MapServerRequest object and passes the
+        First it creates a :class:``MapServerRequest`` object and passes the
         request data to it. Then it invokes the methods in the order
-        defined above and finally returns an {@link eoxserver.services.requests.MapServerResponse}
+        defined above and finally returns an :class:`MapServerResponse`
         object. It is not recommended to override this method.
         
-        @param  req An {@link eoxserver.services.requests.OWSRequest}
+        @param  req An :class:`~.OWSRequest`
                     object containing the request parameters and data
         
-        @return     An {@link eoxserver.services.requests.MapServerResponse}
+        @return     An :class:`MapServerResponse`
                     object containing the response content, headers and
                     status as well as the status code returned by
                     MapServer
@@ -247,11 +247,11 @@ class MapServerOperationHandler(BaseRequestHandler):
     def createCoverages(self, ms_req):
         """
         This method creates coverages, i.e. it adds coverage objects to
-        the <tt>ms_req.coverages</tt> list. The default implementation
+        the ``ms_req.coverages`` list. The default implementation
         does nothing at all, so you will have to override this method to
         meet your needs. 
         
-        @param  ms_req  An {@link eoxserver.services.requests.MapServerRequest} object
+        @param  ms_req  An :class:`MapServerRequest` object
         
         @return         None
         """
@@ -265,12 +265,12 @@ class MapServerOperationHandler(BaseRequestHandler):
 
     def configureRequest(self, ms_req):
         """
-        This method configures the <tt>ms_req.ows_req</tt> object (an
-        instance of <tt>mapscript.OWSRequest</tt>) with the parameters
+        This method configures the ``ms_req.ows_req`` object (an
+        instance of ``mapscript.OWSRequest``) with the parameters
         passed in with the user request. This method can be overridden
         in order to change the treatment of parameters.
         
-        @param  ms_req  An {@link eoxserver.services.requests.MapServerRequest} object
+        @param  ms_req  An :class:`MapServerRequest` object
         
         @return         None
         """
@@ -292,12 +292,12 @@ class MapServerOperationHandler(BaseRequestHandler):
 
     def configureMapObj(self, ms_req):
         """
-        This method configures the <tt>ms_req.map</tt> object (an
-        instance of <tt>mapscript.mapObj</tt>) with parameters from the
+        This method configures the ``ms_req.map`` object (an
+        instance of ``mapscript.mapObj``) with parameters from the
         config. This method can be overridden in order to implement more
         sophisticated behaviour. 
         
-        @param  ms_req  An {@link eoxserver.services.requests.MapServerRequest} object
+        @param  ms_req  An :class:`MapServerRequest` object
         
         @return         None
         """
@@ -314,13 +314,13 @@ class MapServerOperationHandler(BaseRequestHandler):
         
     def addLayers(self, ms_req):
         """
-        This method adds layers to the <tt>ms_req.map</tt> object based
-        on the coverages defined in <tt>ms_req.coverages</tt>. The
+        This method adds layers to the ``ms_req.map`` object based
+        on the coverages defined in ``ms_req.coverages``. The
         default is to unconditionally add a single layer for each
         coverage defined. This method can be overridden in order to
         customize the way layers are inserted into the map object.
         
-        @param  ms_req  An {@link eoxserver.services.requests.MapServerRequest} object
+        @param  ms_req  An :class:`MapServerRequest` object
         
         @return         None
         """
@@ -330,7 +330,7 @@ class MapServerOperationHandler(BaseRequestHandler):
     def getMapServerLayer(self, coverage, **kwargs):
         """
         This method is invoked by the {@link #addLayers} method in order
-        to generate <tt>mapscript.layerObj</tt> instances for each
+        to generate ``mapscript.layerObj`` instances for each
         coverage. The basic configuration is done here, but subclasses
         will have to override this method in order to define e.g. the
         data sources for the layer.
@@ -338,7 +338,7 @@ class MapServerOperationHandler(BaseRequestHandler):
         @param  coverage    An {@link eoxserver.services.interfaces.CoverageInterface}
                             object giving access to the coverage data
         
-        @return             A <tt>mapscribt.layerObj</tt> object
+        @return             A ``mapscribt.layerObj`` object
                             representing the layer to be inserted
         """
         layer = mapscript.layerObj()
@@ -360,13 +360,12 @@ class MapServerOperationHandler(BaseRequestHandler):
     def dispatch(self, ms_req):
         """
         This method actually executes the MapServer request by calling
-        <tt>ms_req.map.OWSDispatch()</tt>. This method should not be
+        ``ms_req.map.OWSDispatch()``. This method should not be
         overridden by child classes.
         
-        @param  ms_req  An {@link eoxserver.services.requests.MapServerRequest}
-                        object
+        @param  ms_req  An :class:`MapServerRequest` object
         
-        @return         An {@link eoxserver.services.requests.MapServerResponse}
+        @return         An :class:`MapServerResponse`
                         object containing the content, headers and status
                         of the request as well as the status code
                         returned by MapServer
@@ -394,10 +393,9 @@ class MapServerOperationHandler(BaseRequestHandler):
         response unchanged. If postprocessing is needed, you should
         override this method. 
         
-        @param  ms_req  An {@link eoxserver.services.requests.MapServerRequest}
-                        object
-        @param  resp    An {@link eoxserver.services.requests.MapServerResponse}
-                        object.
+        @param  ms_req  An :class:`MapServerRequest` object
+        
+        @param  resp    An :class:`MapServerResponse` object.
         """
         return resp
         
