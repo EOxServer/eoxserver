@@ -14,8 +14,8 @@ and APIs please refer to the :ref:`EOxServer Developers' Guide`.
 .. toctree::
    :maxdepth: 2
    
-   global_use_case
    getting_started
+   global_use_case
    mailing_lists
    demonstration
    EO-WCS_request_parameters

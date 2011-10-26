@@ -1,7 +1,7 @@
 .. _rfc_14:
 
-RFC 14: Asynchronous Task Processing (ATP) 
-=========================================
+RFC 14: Asynchronous Task Processing (ATP)
+==========================================
 
 :Author:     Martin Paces 
 :Created:    2011-10-25

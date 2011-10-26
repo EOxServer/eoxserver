@@ -1,10 +1,10 @@
-.. EOxServer Mailing Lists
-
 .. index::
    single: Mailing List
 
-EOxServer Mailing Lists
-=======================
+.. _Mailing Lists:
+
+Mailing Lists
+=============
 
 Users Mailing List
 ------------------

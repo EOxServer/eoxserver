@@ -1,4 +1,4 @@
-.. soap proxy
+.. _soap proxy:
 
 SOAP Proxy
 ==========

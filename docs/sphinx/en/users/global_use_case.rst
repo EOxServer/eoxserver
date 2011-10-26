@@ -1,7 +1,11 @@
-.. _EOxServer Global Use Case:
+.. index::
+   single: Global Use Case
+   single: Use Case
 
-EOxServer Global Use Case
-=========================
+.. _Global Use Case:
+
+Global Use Case
+===============
 
 This section describes the global Use Case of EOxServer including concrete usage scenarios as examples.
 
@@ -89,7 +93,7 @@ The EOxServer software stack consists of the EOxServer, the Identity Management,
 
 The Identity Management layer is an optional layer on top of EOxServer. Thus and because its configuration is extensively discussed in section :ref:`Identity Management System` we skip it here.
 
-The Applications Interface software components are discussed in detail in section `The User View`_ below.
+The Applications Interface software components are discussed in detail in section `The General User View`_ below.
 
 As EOxServer is based on Python, MapServer, GDAL/OGR, and Django these software components need to be installed first. The base configuration of EOxServer consists of the generation of an EOxServer instance and registering it in a web server.
 

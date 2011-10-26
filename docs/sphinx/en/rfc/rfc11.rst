@@ -25,6 +25,7 @@ Description
 
 The implementation extends the set of EOX-Server's OWS service handlers 
 by the WPS specific interface. Namely, it ads following handlers
+
 	* WPS service handler
 	* WPS 1.0.0 version handler 
 	* WPS *GetCapabilities* operation handler 
@@ -33,11 +34,12 @@ by the WPS specific interface. Namely, it ads following handlers
 
 The added WPS functionality could be split three (currently separated) 
 logical parts:
+
 	* WPS interface and operation logic (subject to this RFC)
 	* WPS data model and generic process class (loosely based on
-	PyWPS, currently separated from the interface and operation logic) 
+	  PyWPS, currently separated from the interface and operation logic) 
 	* WPS process instances – user defined processes, ancestors of the generic 
-	service class (completely independent of the EOX-Server, not subject to this RFC)
+	  service class (completely independent of the EOX-Server, not subject to this RFC)
 
 WPS Interface and Operation Logic
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -93,12 +95,12 @@ Transition to Operation - Issues to be resolved
 The existing prototype has still a couple issues to be resolved before operational deployment. 
 
 	* licence issues - the WPS Process's data model and parent Process's class shall be merged 
-	with the WPS Interface and Operation logic and distributed together under the same licence terms 
+	  with the WPS Interface and Operation logic and distributed together under the same licence terms 
 
 	* resource tracker - there should be a resource tracker looking after the used resources, 
-	i.e., stored files and executed asynhronous processes. Each of these resources shall be monitored 
-	and released (deleted in case of unused files, properly killed in case of "zombie" processes) once 
-	is not usefull anymore. 
+	  i.e., stored files and executed asynhronous processes. Each of these resources shall be monitored 
+	  and released (deleted in case of unused files, properly killed in case of "zombie" processes) once 
+	  is not usefull anymore. 
 
 Governance
 ----------

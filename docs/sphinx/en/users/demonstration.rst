@@ -1,12 +1,10 @@
-.. EOxServer Demonstration
-
 .. index::
    single: Demonstration
 
-.. _EOxServer Demonstration:
+.. _Demonstration:
 
-EOxServer Demonstration
-=======================
+Demonstration
+=============
 
 The EOxServer demonstration is based on the Envisat MERIS sample data
 available `here <http://earth.esa.int/object/index.cfm?fobjectid=4320>`_.

@@ -1,4 +1,8 @@
-.. _EOxServer Administration Web Application Tutorial:
+.. index::
+   single: Administration Web Application Tutorial
+   single: Administration Web Application
 
-EOxServer Administration Web Application Tutorial
-=================================================
+.. _Administration Web Application Tutorial:
+
+Administration Web Application Tutorial
+=======================================
