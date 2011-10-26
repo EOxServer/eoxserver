@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------
-# $Id: wrappers.py 210 2011-05-26 16:22:21Z krauses $
+# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>

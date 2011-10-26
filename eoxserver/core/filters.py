@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------
-# $Id: registry.py 188 2011-05-19 15:57:03Z krauses $
+# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>
