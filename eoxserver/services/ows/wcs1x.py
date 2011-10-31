@@ -97,6 +97,20 @@ class WCS11VersionHandler(OWSCommonVersionHandler):
     }
 
 WCS11VersionHandlerImplementation = VersionHandlerInterface.implement(WCS11VersionHandler)
+
+class WCS112VersionHandler(OWSCommonVersionHandler):
+    SERVICE = "wcs"
+    
+    REGISTRY_CONF = {
+        "name": "WCS 1.1 Version Handler",
+        "impl_id": "services.ows.wcs1x.WCS112VersionHandler",
+        "registry_values": {
+            "services.interfaces.service": "wcs",
+            "services.interfaces.version": "1.1.2"
+        }
+    }
+
+WCS112VersionHandlerImplementation = VersionHandlerInterface.implement(WCS112VersionHandler)
     
 class WCS1XOperationHandler(WCSCommonHandler):
     def createCoverages(self, ms_req):
@@ -252,6 +266,19 @@ class WCS11GetCapabilitiesHandler(WCS1XOperationHandler):
     
 WCS11GetCapabilitiesHandlerImplementation = OperationHandlerInterface.implement(WCS11GetCapabilitiesHandler)
 
+class WCS112GetCapabilitiesHandler(WCS1XOperationHandler):
+    REGISTRY_CONF = {
+        "name": "WCS 1.1 GetCapabilities Handler",
+        "impl_id": "services.ows.wcs1x.WCS112GetCapabilitiesHandler",
+        "registry_values": {
+            "services.interfaces.service": "wcs",
+            "services.interfaces.version": "1.1.2",
+            "services.interfaces.operation": "getcapabilities"
+        }
+    }
+    
+WCS112GetCapabilitiesHandlerImplementation = OperationHandlerInterface.implement(WCS112GetCapabilitiesHandler)
+
 class WCS10DescribeCoverageHandler(WCS1XDescribeCoverageHandler):
     REGISTRY_CONF = {
         "name": "WCS 1.0 DescribeCoverage Handler",
@@ -264,7 +291,7 @@ class WCS10DescribeCoverageHandler(WCS1XDescribeCoverageHandler):
     }
     
     PARAM_SCHEMA = {
-        "coverageids": {"xml_location": "/{http://www.opengis.net/wcs/2.0}CoverageId", "xml_type": "string", "kvp_key": "coverage", "kvp_type": "stringlist"},
+        "coverageids": {"xml_location": "/{http://www.opengis.net/wcs/1.0.0}Coverage", "xml_type": "string[]", "kvp_key": "coverage", "kvp_type": "stringlist"},
     }
     
 WCS10DescribeCoverageHandlerImplementation = OperationHandlerInterface.implement(WCS10DescribeCoverageHandler)
@@ -281,10 +308,27 @@ class WCS11DescribeCoverageHandler(WCS1XDescribeCoverageHandler):
     }
     
     PARAM_SCHEMA = {
-        "coverageids": {"xml_location": "/{http://www.opengis.net/wcs/2.0}CoverageId", "xml_type": "string", "kvp_key": "identifier", "kvp_type": "stringlist"},
+        "coverageids": {"xml_location": "/{http://www.opengis.net/wcs/1.1}Identifier", "xml_type": "string[]", "kvp_key": "identifier", "kvp_type": "stringlist"},
     }
     
 WCS11DescribeCoverageHandlerImplementation = OperationHandlerInterface.implement(WCS11DescribeCoverageHandler)
+
+class WCS112DescribeCoverageHandler(WCS1XDescribeCoverageHandler):
+    REGISTRY_CONF = {
+        "name": "WCS 1.1 DescribeCoverage Handler",
+        "impl_id": "services.ows.wcs1x.WCS112DescribeCoverageHandler",
+        "registry_values": {
+            "services.interfaces.service": "wcs",
+            "services.interfaces.version": "1.1.2",
+            "services.interfaces.operation": "describecoverage"
+        }
+    }
+    
+    PARAM_SCHEMA = {
+        "coverageids": {"xml_location": "/{http://www.opengis.net/wcs/1.1}Identifier", "xml_type": "string[]", "kvp_key": "identifier", "kvp_type": "stringlist"},
+    }
+    
+WCS112DescribeCoverageHandlerImplementation = OperationHandlerInterface.implement(WCS112DescribeCoverageHandler)
 
 class WCS10GetCoverageHandler(WCS1XGetCoverageHandler):
     REGISTRY_CONF = {
@@ -298,7 +342,7 @@ class WCS10GetCoverageHandler(WCS1XGetCoverageHandler):
     }
     
     PARAM_SCHEMA = {
-        "coverageid": {"xml_location": "/{http://www.opengis.net/wcs/2.0}CoverageId", "xml_type": "string", "kvp_key": "coverage", "kvp_type": "string"},
+        "coverageid": {"xml_location": "/{http://www.opengis.net/wcs/1.0.0}sourceCoverage", "xml_type": "string", "kvp_key": "coverage", "kvp_type": "string"},
     }
     
 WCS10GetCoverageHandlerImplementation = OperationHandlerInterface.implement(WCS10GetCoverageHandler)
@@ -316,7 +360,24 @@ class WCS11GetCoverageHandler(WCS1XGetCoverageHandler):
     }
     
     PARAM_SCHEMA = {
-        "coverageid": {"xml_location": "/{http://www.opengis.net/wcs/2.0}CoverageId", "xml_type": "string", "kvp_key": "identifier", "kvp_type": "string"},
+        "coverageid": {"xml_location": "/{http://www.opengis.net/ows/1.1}Identifier", "xml_type": "string", "kvp_key": "identifier", "kvp_type": "string"},
     }
     
 WCS11GetCoverageHandlerImplementation = OperationHandlerInterface.implement(WCS11GetCoverageHandler)
+
+class WCS112GetCoverageHandler(WCS1XGetCoverageHandler):
+    REGISTRY_CONF = {
+        "name": "WCS 1.1 GetCoverage Handler",
+        "impl_id": "services.ows.wcs1x.WCS112GetCoverageHandler",
+        "registry_values": {
+            "services.interfaces.service": "wcs",
+            "services.interfaces.version": "1.1.2",
+            "services.interfaces.operation": "getcoverage"
+        }
+    }
+    
+    PARAM_SCHEMA = {
+        "coverageid": {"xml_location": "/{http://www.opengis.net/ows/1.1}Identifier", "xml_type": "string", "kvp_key": "identifier", "kvp_type": "string"},
+    }
+    
+WCS112GetCoverageHandlerImplementation = OperationHandlerInterface.implement(WCS112GetCoverageHandler)
