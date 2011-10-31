@@ -31,6 +31,7 @@ import re
 import os.path
 import sys
 from xml.dom import minidom
+from urllib import unquote
 
 from django.conf import settings
 from django.contrib.gis.geos import Polygon
@@ -476,26 +477,81 @@ class WCS20GetCoverageHandler(WCSCommonHandler):
                 )
 
     def _setParameter(self, ms_req, key, value):
-        if key.lower() == "format" and len(ms_req.coverages[0].getRangeType().bands) > 3:
-            if value.lower() == "image/tiff":
-                super(WCS20GetCoverageHandler, self)._setParameter(ms_req, "format", "GTiff_")
-            else:
-                raise InvalidRequestException("Format '%s' is not allowed in coverages with more than three bands." % value, "InvalidParameterValue", key)
+        if key.lower() == "format":
+            super(WCS20GetCoverageHandler, self)._setParameter(ms_req, "format", "custom")
         else:
             super(WCS20GetCoverageHandler, self)._setParameter(ms_req, key, value)
+
+    def _getOutputFormat(self, format_param, coverage):
+        FORMAT_SETTINGS = {
+            "image/tiff": {
+                "driver": "GDAL/GTiff",
+                "mimetype": "image/tiff",
+                "extension": "tif"
+            },
+            "image/jp2": {
+                "driver": "GDAL/JPEG2000",
+                "mimetype": "image/jp2",
+                "extension": "jp2"
+            },
+            "application/x-netcdf": {
+                "driver": "GDAL/netCDF",
+                "mimetype": "application/x-netcdf",
+                "extension": "nc"
+            },
+            "application/x-hdf": {
+                "driver": "GDAL/HDF4Image",
+                "mimetype": "application/x-hdf",
+                "extension": "hdf"
+            }
+        }
+        
+        format_params = unquote(format_param).split(";")
+        format_name = format_params[0]
+        
+        if format_name in FORMAT_SETTINGS:
+            settings = FORMAT_SETTINGS[format_name]
+        else:
+            raise InvalidRequestException(
+                "Unsupported format '%s'. Known formats: %s" % (
+                    format_name,
+                    ", ".join(FORMAT_SETTINGS.keys())
+                ),
+                "InvalidParameterValue",
+                "format"
+            )
+        
+        output_format = mapscript.outputFormatObj(settings["driver"], "custom")
+        output_format.mimetype = settings["mimetype"]
+        output_format.extension = settings["extension"]
+        
+        rangetype = coverage.getRangeType()
+        
+        output_format.imagemode = gdalconst_to_imagemode(rangetype.data_type)
+        
+        if len(format_params) > 1:
+            for format_kvp in format_params[1:]:
+                key, value = format_kvp.split("=")
+                
+                output_format.setOption(str(key), str(value))
+        
+        return output_format
     
     def configureMapObj(self, ms_req):
         super(WCS20GetCoverageHandler, self).configureMapObj(ms_req)
         
-        output_format = mapscript.outputFormatObj("GDAL/GTiff", "GTiff_")
-        output_format.mimetype = "image/tiff"
-        output_format.extension = "tif"
         
-        coverage = ms_req.coverages[0]
-        rangetype = coverage.getRangeType()
+        format_name = ms_req.getParamValue("format")
+        if not format_name:
+            raise InvalidRequestException(
+                "Missing mandatory 'format' parameter",
+                "MissingParameterValue",
+                "format"
+            )
         
-        output_format.imagemode = gdalconst_to_imagemode(
-            ms_req.coverages[0].getRangeType().data_type
+        output_format = self._getOutputFormat(
+            format_name,
+            ms_req.coverages[0]
         )
         
         ms_req.map.appendOutputFormat(output_format)
