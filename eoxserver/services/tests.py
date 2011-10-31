@@ -4,6 +4,7 @@
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
+#          Fabian Schindler <fabian.schindler@eox.at>
 #
 #-------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
@@ -1024,7 +1025,10 @@ def suite():
     wcs20_tests.addTests(get_tests_by_prefix("WCS20GetCoverage"))
     
     wcs20_post_tests = unittest.TestSuite()
-    wcs20_post_tests.addTests(get_tests_by_prefix("WCS20Post"))
+    wcs20_tests.addTests(get_tests_by_prefix("WCS20PostGetCapabilities"))
+    wcs20_tests.addTests(get_tests_by_prefix("WCS20PostDescribeCoverage"))
+    #wcs20_tests.addTests(get_tests_by_prefix("WCS20PostDescribeEOCoverageSet"))
+    wcs20_tests.addTests(get_tests_by_prefix("WCS20PostGetCoverage"))
 
     wcs11_post_tests = unittest.TestSuite()
     wcs11_post_tests.addTests(get_tests_by_prefix("WCS11Post"))
