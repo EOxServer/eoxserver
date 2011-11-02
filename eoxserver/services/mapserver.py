@@ -374,7 +374,14 @@ class MapServerOperationHandler(BaseRequestHandler):
         mapscript.msIO_installStdoutToBuffer()
         # Execute the OWS request by mapserver, obtain the status in dispatch_status (==0 is OK)
         logging.debug("MapServerOperationHandler.dispatch: 2")
-        dispatch_status = ms_req.map.OWSDispatch(ms_req.ows_req)
+        try:
+            dispatch_status = ms_req.map.OWSDispatch(ms_req.ows_req)
+        except Exception, e:
+            raise InvalidRequestException(
+                str(e),
+                "NoApplicableCode",
+                None
+            )
         
         logging.debug("MapServerOperationHandler.dispatch: 3")
         content_type = mapscript.msIO_stripStdoutBufferContentType()

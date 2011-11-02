@@ -347,7 +347,6 @@ class WCS10GetCoverageHandler(WCS1XGetCoverageHandler):
     
 WCS10GetCoverageHandlerImplementation = OperationHandlerInterface.implement(WCS10GetCoverageHandler)
 
-
 class WCS11GetCoverageHandler(WCS1XGetCoverageHandler):
     REGISTRY_CONF = {
         "name": "WCS 1.1 GetCoverage Handler",
