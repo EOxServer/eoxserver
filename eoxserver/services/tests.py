@@ -517,16 +517,16 @@ class WCS20DescribeEOCoverageSetDatasetSeriesStitchedMosaicTestCase(eoxstest.WCS
             "mosaic_MER_FRS_1P_RGB_reduced"
         ]
 
-#class WCS20DescribeEOCoverageSetDatasetPagingConfigTestCase(eoxstest.WCS20DescribeEOCoverageSetPagingTestCase):
-#    def getConfigCountOverride(self):
-#        return 2
-#    
-#    def getExpectedCoverageCount(self):
-#        return 2
-#    
-#    def getRequest(self):
-#        params = "service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=MER_FRS_1P_reduced"
-#        return (params, "kvp")
+class WCS20DescribeEOCoverageSetDatasetPagingConfigTestCase(eoxstest.WCS20DescribeEOCoverageSetPagingTestCase):
+    def getConfigCountOverride(self):
+        return 2
+    
+    def getExpectedCoverageCount(self):
+        return 2
+    
+    def getRequest(self):
+        params = "service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=MER_FRS_1P_reduced"
+        return (params, "kvp")
 
 #===============================================================================
 # WCS 2.0: Exceptions
@@ -783,7 +783,6 @@ class WCS20PostDescribeCoverageDatasetTestCase(eoxstest.XMLTestCase):
        for a wcseo:RectifiedDataset via POST.
     """
     def getRequest(self):
-    # A possible alternative: "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"
         params = """<ns:DescribeCoverage 
            xmlns:ns="http://www.opengis.net/wcs/2.0" service="WCS" version="2.0.0">
          <ns:CoverageId>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</ns:CoverageId>
@@ -876,7 +875,7 @@ class WCS11PostDescribeCoverageMosaicTestCase(eoxstest.XMLTestCase):
           </DescribeCoverage>"""
         return (params, "xml")
 
-# Not impleneted yet:
+# TODO: Not implemented yet:
 # class WCS11xPostGetCoverageDatasetTestCase(eoxstest.GDALDatasetTestCase):
 #     def getRequest(self):
 #         params = "service=WCS&version=1.1.0&request=GetCoverage&identifier=mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced&crs=epsg:4326&bbox=-4,32,28,46.5&width=640&height=290&format=image/tiff"
@@ -901,13 +900,13 @@ class WCS11PostGetCoverageMosaicTestCase(eoxstest.MultipartTestCase):
           </GetCoverage>"""
         return (params, "xml")
 
-# Not impleneted yet:
+# TODO: Not implemented yet:
 # class WCS11xPostGetCoverageDatasetComplexTestCase(eoxstest.GDALDatasetTestCase):
 #     def getRequest(self):
 #         params = "service=WCS&version=1.1.0&request=GetCoverage&identifier=mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced&boundingbox=-4,32,28,46.5,urn:ogc:def:crs:EPSG::4326&format=image/tiff&GridBaseCRS=urn:ogc:def:crs:EPSG::4326&GridCS=urn:ogc:def:crs:EPSG::4326&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=33,11.4&GridOffsets=1,1"
 #         return (params, "xml")
 
-# Not impleneted yet:
+# TODO: Not implemented yet:
 # class WCS11xPostGetCoverageMosaicComplexTestCase(eoxstest.GDALDatasetTestCase):
 #     def getRequest(self):
 #         params = "service=WCS&version=1.1.0&request=GetCoverage&identifier=mosaic_MER_FRS_1P_RGB_reduced&boundingbox=-4,32,28,46.5,urn:ogc:def:crs:EPSG::4326&format=image/tiff&GridBaseCRS=urn:ogc:def:crs:EPSG::4326&GridCS=urn:ogc:def:crs:EPSG::4326&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=33,11.4&GridOffsets=1,1"
@@ -1003,8 +1002,15 @@ def get_tests_by_prefix(prefix, loader=None):
 def suite():
     wcs_version_tests = unittest.TestSuite(get_tests_by_prefix("WCSVersionNegotiation"))
     
-    wcs10_tests = unittest.TestSuite(get_tests_by_prefix("WCS10"))
-    wcs11_tests = unittest.TestSuite(get_tests_by_prefix("WCS10"))
+    wcs10_tests = unittest.TestSuite()
+    wcs10_tests.addTests(get_tests_by_prefix("WCS10GetCapabilities"))
+    wcs10_tests.addTests(get_tests_by_prefix("WCS10DescribeCoverage"))
+    wcs10_tests.addTests(get_tests_by_prefix("WCS10GetCoverage"))
+
+    wcs11_tests = unittest.TestSuite()
+    wcs11_tests.addTests(get_tests_by_prefix("WCS11GetCapabilities"))
+    wcs11_tests.addTests(get_tests_by_prefix("WCS11DescribeCoverage"))
+    wcs11_tests.addTests(get_tests_by_prefix("WCS11GetCoverage"))
     
     wcs20_tests = unittest.TestSuite()
     wcs20_tests.addTests(get_tests_by_prefix("WCS20GetCapabilities"))
