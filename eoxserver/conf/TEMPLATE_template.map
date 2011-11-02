@@ -67,4 +67,6 @@ MAP
 #            "ows_schemas_location"             "http://localhost/schemas"
         END
     END
+
+    CONFIG "GDAL_PAM_ENABLED" "No"
 END # MAP
