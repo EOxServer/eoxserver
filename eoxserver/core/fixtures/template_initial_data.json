@@ -864,6 +864,38 @@
         }
     }, 
     {
+        "pk": 109, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wcs1x.WCS112GetCapabilitiesHandler", 
+            "intf_id": "services.interfaces.OperationHandler"
+        }
+    }, 
+    {
+        "pk": 110, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wcs1x.WCS112DescribeCoverageHandler", 
+            "intf_id": "services.interfaces.OperationHandler"
+        }
+    }, 
+    {
+        "pk": 111, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wcs1x.WCS112GetCoverageHandler", 
+            "intf_id": "services.interfaces.OperationHandler"
+        }
+    }, 
+    {
+        "pk": 112, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wcs1x.WCS112VersionHandler", 
+            "intf_id": "services.interfaces.VersionHandler"
+        }
+    }, 
+    {
         "pk": 1, 
         "model": "core.component", 
         "fields": {
@@ -1614,6 +1646,34 @@
     }, 
     {
         "pk": 108, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    } , 
+    {
+        "pk": 109, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    } , 
+    {
+        "pk": 110, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    } , 
+    {
+        "pk": 111, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    } , 
+    {
+        "pk": 112, 
         "model": "core.component", 
         "fields": {
             "enabled": true
