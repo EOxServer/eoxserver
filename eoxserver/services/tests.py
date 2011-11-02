@@ -512,21 +512,12 @@ class WCS20DescribeEOCoverageSetDatasetSeriesStitchedMosaicTestCase(eoxstest.WCS
         return [
             "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed",
             "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed",
+            "MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed",
             "mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced",
             "mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced",
+            "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced",
             "mosaic_MER_FRS_1P_RGB_reduced"
         ]
-
-class WCS20DescribeEOCoverageSetDatasetPagingConfigTestCase(eoxstest.WCS20DescribeEOCoverageSetPagingTestCase):
-    def getConfigCountOverride(self):
-        return 2
-    
-    def getExpectedCoverageCount(self):
-        return 2
-    
-    def getRequest(self):
-        params = "service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=MER_FRS_1P_reduced"
-        return (params, "kvp")
 
 #===============================================================================
 # WCS 2.0: Exceptions
@@ -1015,13 +1006,13 @@ def suite():
     wcs20_tests = unittest.TestSuite()
     wcs20_tests.addTests(get_tests_by_prefix("WCS20GetCapabilities"))
     wcs20_tests.addTests(get_tests_by_prefix("WCS20DescribeCoverage"))
-    #wcs20_tests.addTests(get_tests_by_prefix("WCS20DescribeEOCoverageSet"))
+    wcs20_tests.addTests(get_tests_by_prefix("WCS20DescribeEOCoverageSet"))
     wcs20_tests.addTests(get_tests_by_prefix("WCS20GetCoverage"))
     
     wcs20_post_tests = unittest.TestSuite()
     wcs20_post_tests.addTests(get_tests_by_prefix("WCS20PostGetCapabilities"))
     wcs20_post_tests.addTests(get_tests_by_prefix("WCS20PostDescribeCoverage"))
-    #wcs20_post_tests.addTests(get_tests_by_prefix("WCS20PostDescribeEOCoverageSet"))
+    wcs20_post_tests.addTests(get_tests_by_prefix("WCS20PostDescribeEOCoverageSet"))
     wcs20_post_tests.addTests(get_tests_by_prefix("WCS20PostGetCoverage"))
 
     wcs11_post_tests = unittest.TestSuite()

@@ -361,21 +361,8 @@ class WCS20DescribeEOCoverageSetSubsettingTestCase(XMLTestCase):
             self.assertTrue(result_coverage_ids.count(coverage_id) == 1, "CoverageID %s is not unique." % coverage_id)
 
 class WCS20DescribeEOCoverageSetPagingTestCase(XMLTestCase):
-# TODO
-#    def setUp(self):
-#        self.saved_paging_default = System.getConfig().getConfigValue("services.ows.wcs20", "paging_count_default")
-#        System.getConfig().paging_count_default = self.getConfigCountOverride()
-#        super(WCS20DescribeEOCoverageSetPagingTestCase, self).setUp()
-    
-#    def tearDown(self):
-#        super(WCS20DescribeEOCoverageSetPagingTestCase, self).tearDown()
-#        System.getConfig().paging_count_default = self.saved_paging_default
-    
     def getExpectedCoverageCount(self):
         return 0
-    
-#    def getConfigCountOverride(self):
-#        return System.getConfig().getConfigValue("services.ows.wcs20", "paging_count_default")
     
     def testCoverageCount(self):
         decoder = XMLDecoder(self.getXMLData(), {
