@@ -581,7 +581,14 @@ class WCS20GetCoverageNetCDFTestCase(eoxstest.GDALDatasetTestCase):
     def getFileExtension(self, part=None):
         return "nc"
 
-# TODO: These requests are not yet working
+class WCS20GetCoverageHDFTestCase(eoxstest.GDALDatasetTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=application/x-hdf"
+        return (params, "kvp")
+    
+    def getFileExtension(self, part=None):
+        return "hdf"
+
 
 class WCS20GetCoverageCompressionLZWTestCase(eoxstest.GDALDatasetTestCase):
     def getRequest(self):
@@ -597,8 +604,6 @@ class WCS20GetCoverageTiledTestCase(eoxstest.GDALDatasetTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=%s" % quote ("image/tiff;tiled=YES")
         return (params, "kvp")
-
-# END TODO
 
 #===============================================================================
 # WCS 2.0: Multipart requests

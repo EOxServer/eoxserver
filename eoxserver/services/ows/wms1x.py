@@ -57,7 +57,7 @@ from eoxserver.services.base import (
 from eoxserver.services.owscommon import (
     OWSCommonServiceHandler, OWSCommonVersionHandler
 )
-from eoxserver.services.ogc import OGCExceptionHandler
+#from eoxserver.services.ogc import OGCExceptionHandler
 from eoxserver.services.requests import Response
 from eoxserver.services.exceptions import InvalidRequestException
 
@@ -147,7 +147,7 @@ class WMS13VersionHandler(OWSCommonVersionHandler):
         schemas = {
             "http://www.opengis.net/ogc": "http://schemas.opengis.net/wms/1.3.0/exceptions_1_3_0.xsd"
         }
-        return OGCExceptionHandler(schemas).handleException(req, exception)
+        return WMS13ExceptionHandler(schemas).handleException(req, exception)
 
 WMS13VersionHandlerImplementation = VersionHandlerInterface.implement(WMS13VersionHandler)
 
@@ -664,3 +664,77 @@ class WMS11ExceptionEncoder(XMLEncoder):
         return ""
 
 WMS11ExceptionEncoderImplementation = ExceptionEncoderInterface.implement(WMS11ExceptionEncoder)
+
+class WMS13ExceptionHandler(BaseExceptionHandler):
+    REGISTRY_CONF = {
+        "name": "OGC Namespace Exception Handler",
+        "impl_id": "services.ogc.WMS13ExceptionHandler",
+        "registry_values": {
+            "services.interfaces.exception_scheme": "ogc"
+        }
+    }
+    
+    def _filterExceptions(self, exception):
+        if not isinstance(exception, InvalidRequestException):
+            raise
+    
+    def _getEncoder(self):
+        return WMS13ExceptionEncoder(self.schemas)
+    
+    def _getContentType(self, exception):
+        return "application/vnd.ogc.se_xml"
+
+WMS13ExceptionHandlerImplementation = ExceptionHandlerInterface.implement(WMS13ExceptionHandler)
+
+class WMS13ExceptionEncoder(XMLEncoder):
+    REGISTRY_CONF = {
+        "name": "OGC Namespace Exception Report Encoder",
+        "impl_id": "services.ogc.WMS13ExceptionEncoder",
+        "registry_values": {
+            "services.interfaces.exception_scheme": "ogc"
+        }
+    }
+    
+    def _initializeNamespaces(self):
+        return {
+            "ogc": "http://www.opengis.net/ogc",
+            "xsi": "http://www.w3.org/2001/XMLSchema-instance"
+        }
+    
+    def encodeExceptionReport(self, exception_text, exception_code, locator=None):
+        if locator is None:
+            element = self._makeElement("ogc", "ServiceExceptionReport", [
+                ("", "@version", "1.3.0"),
+                ("ogc", "ServiceException", [
+                    ("", "@code", exception_code),
+                    ("", "@@", exception_text)
+                ])
+            ])
+        else:
+            element = self._makeElement("ogc", "ServiceExceptionReport", [
+                ("", "@version", "1.3.0"),
+                ("ogc", "ServiceException", [
+                    ("", "@code", exception_code),
+                    ("", "@locator", locator),
+                    ("", "@@", exception_text)
+                ])
+            ])
+        
+        if self.schemas is not None:
+            schemas_location = " ".join(["%s %s"%(ns, location) for ns, location in self.schemas.iteritems()])
+            element.setAttributeNS(self.ns_dict["xsi"], "%s:%s" % ("xsi", "schemaLocation"), schemas_location)
+        
+        return element
+    
+    def encodeInvalidRequestException(self, exception):
+        return self.encodeExceptionReport(
+            exception.msg,
+            exception.error_code,
+            exception.locator
+        )
+    
+    def encodeVersionNegotiationException(self, exception):
+        return "" # TODO: check against OWS Common
+
+WMS13ExceptionEncoderImplementation = ExceptionEncoderInterface.implement(WMS13ExceptionEncoder)
+
