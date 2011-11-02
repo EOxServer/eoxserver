@@ -397,7 +397,7 @@ class OWSCommonExceptionEncoder(XMLEncoder):
     def _initializeNamespaces(self):
         return {
             "ows": "http://www.opengis.net/ows/2.0",
-            "xsd": "http://www.w3.org/2001/XMLSchema-instance"
+            "xsi": "http://www.w3.org/2001/XMLSchema-instance"
         }
     
     def encodeExceptionReport(self, exception_text, exception_code, locator=None):
@@ -423,7 +423,7 @@ class OWSCommonExceptionEncoder(XMLEncoder):
         
         if self.schemas is not None:
             schemas_location = " ".join(["%s %s"%(ns, location) for ns, location in self.schemas.iteritems()])
-            element.setAttributeNS(self.ns_dict["xsd"], "%s:%s" % ("xsd", "schemaLocation"), schemas_location)
+            element.setAttributeNS(self.ns_dict["xsi"], "%s:%s" % ("xsi", "schemaLocation"), schemas_location)
         
         return element
     
