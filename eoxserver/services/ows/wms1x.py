@@ -547,8 +547,41 @@ class WMS13GetMapHandler(WMS1XGetMapHandler):
         "operation": {"xml_location": "/", "xml_type": "localName", "kvp_key": "request", "kvp_type": "string"},
         "crs": {"xml_location": "/crs", "xml_type": "string", "kvp_key": "crs", "kvp_type": "string"}, # TODO: check XML location
         "layers": {"xml_location": "/layer", "xml_type": "string[]", "kvp_key": "layers", "kvp_type": "stringlist"}, # TODO: check XML location
+        "format": {"xml_location": "/format", "xml_type": "string", "kvp_key": "format", "kvp_type": "string"},
         "time": {"xml_location": "/time", "xml_type": "string", "kvp_key": "time", "kvp_type": "string"}
     }
+    
+    def configureRequest(self, ms_req):
+        
+        # check if the format is known; if not MapServer will raise an 
+        # exception instead of returning the correct service exception report
+        # (bug)
+        if not ms_req.getParamValue("format"):
+            raise InvalidRequestException(
+                "Missing mandatory 'format' parameter",
+                "MissingParameterValue",
+                "format"
+            )
+        else:
+            format_name = ms_req.getParamValue("format")
+            
+            try:
+                output_format = ms_req.map.getOutputFormatByName(format_name)
+                
+                if not output_format:
+                    raise InvalidRequestException(
+                        "Unknown format name '%s'" % format_name,
+                        "InvalidFormat",
+                        "format"
+                    )
+            except Exception, e:
+                raise InvalidRequestException(
+                    str(e),
+                    "InvalidFormat",
+                    "format"
+                )
+        
+        super(WMS13GetMapHandler, self).configureRequest(ms_req)
     
     def configureMapObj(self, ms_req):
         super(WMS13GetMapHandler, self).configureMapObj(ms_req)
