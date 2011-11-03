@@ -404,11 +404,11 @@ class RasdamanTestCaseMixIn(object):
         # TODO check if connection to DB server is possible
         # TODO check if datasets are configured within the DB
 
+        gdal.AllRegister()
         if gdal.GetDriverByName("RASDAMAN") is None:
             self.skipTest("Rasdaman driver is not enabled.")
         
         super(RasdamanTestCaseMixIn, self).setUp()
-        
     
 #===============================================================================
 # WMS 1.3 test classes
