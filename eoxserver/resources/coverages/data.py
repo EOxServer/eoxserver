@@ -30,6 +30,8 @@
 import os.path
 
 from osgeo import gdal
+import logging
+
 from eoxserver.resources.coverages.metadata import MetadataFormat
 gdal.UseExceptions() # advise GDAL to raise Python exceptions
 
@@ -820,6 +822,8 @@ class RasdamanDataPackageWrapper(DataPackageWrapper):
             rasdaman_strs.append(
                 "password='%s'" % location.getPassword()
             )
+            
+        logging.debug("collection = %s" % self.getCollection())
         if location.getOID():
             rasdaman_strs.append(
                 #"query='select ( a [$x_lo:$x_hi,$y_lo:$y_hi] ) from %s as a where oid(a)=%f'" %\
