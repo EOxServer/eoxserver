@@ -758,6 +758,20 @@ class WCS20GetCoverageMultipartRangeSubsetNamesDatasetTestCase(eoxstest.WCS20Get
         return (params, "kvp")
 
 #===============================================================================
+# WCS 2.0 Rasdaman test cases
+#===============================================================================
+
+class WCS20GetCoverageRasdamanMultipartDatasetTestCase(eoxstest.RasdamanTestCaseMixIn, eoxstest.WCS20GetCoverageMultipartTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/mixed"
+        return (params, "kvp")   
+
+class WCS20GetCoverageRasdamanMultipartDatasetSubsetTestCase(eoxstest.RasdamanTestCaseMixIn, eoxstest.WCS20GetCoverageMultipartTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/mixed&subset=x(100,200)&subset=y(200,300)"
+        return (params, "kvp")
+
+#===============================================================================
 # WCS 2.0 - POST
 #===============================================================================
 
@@ -984,6 +998,7 @@ class WMS13GetMapFormatUnknownFaultTestCase(eoxstest.WMS13ExceptionTestCase):
 #===============================================================================
 # Test suite
 #===============================================================================
+
 def get_tests_by_prefix(prefix, loader=None):
     if loader is None:
         loader = unittest.TestLoader()

@@ -397,6 +397,19 @@ class WCS20GetCoverageMultipartTestCase(MultipartTestCase):
         
         super(WCS20GetCoverageMultipartTestCase, self).testBinaryComparisonXML()
 
+class RasdamanTestCaseMixIn(object):
+    fixtures = BASE_FIXTURES + ["testing_rasdaman_coverages.json"]
+    
+    def setUp(self):
+        # TODO check if connection to DB server is possible
+        # TODO check if datasets are configured within the DB
+
+        if gdal.GetDriverByName("RASDAMAN") is None:
+            self.skipTest("Rasdaman driver is not enabled.")
+        
+        super(RasdamanTestCaseMixIn, self).setUp()
+        
+    
 #===============================================================================
 # WMS 1.3 test classes
 #===============================================================================
