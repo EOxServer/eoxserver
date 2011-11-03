@@ -4,78 +4,49 @@
 <head profile="http://selenium-ide.openqa.org/profiles/test-case">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <link rel="selenium.base" href="http://localhost:8000/" />
-<title>create_remote_path_to_directory</title>
+<title>add_mosaic_to_dataset_series</title>
 </head>
 <body>
 <table cellpadding="1" cellspacing="1" border="1">
 <thead>
-<tr><td rowspan="1" colspan="3">create_remote_path_to_directory</td></tr>
+<tr><td rowspan="1" colspan="3">add_mosaic_to_dataset_series</td></tr>
 </thead><tbody>
 <tr>
 	<td>open</td>
-	<td>/admin/backends/</td>
+	<td>/admin/</td>
 	<td></td>
 </tr>
 <tr>
 	<td>clickAndWait</td>
-	<td>link=Remote paths</td>
+	<td>link=Dataset Series</td>
 	<td></td>
 </tr>
 <tr>
 	<td>clickAndWait</td>
-	<td>link=Add remote path</td>
+	<td>link=DATASET_SERIES</td>
 	<td></td>
 </tr>
 <tr>
 	<td>click</td>
-	<td>css=img[alt=&quot;Add Another&quot;]</td>
+	<td>id=fieldsetcollapser0</td>
 	<td></td>
 </tr>
 <tr>
-	<td>waitForPopUp</td>
-	<td>id_storage</td>
-	<td>30000</td>
-</tr>
-<tr>
-	<td>selectWindow</td>
-	<td>name=id_storage</td>
-	<td></td>
-</tr>
-<tr>
-	<td>type</td>
-	<td>id=id_name</td>
-	<td>HMA</td>
-</tr>
-<tr>
-	<td>type</td>
-	<td>id=id_host</td>
-	<td>hma.eox.at</td>
-</tr>
-<tr>
-	<td>type</td>
-	<td>id=id_port</td>
-	<td>21</td>
+	<td>addSelection</td>
+	<td>id=id_rect_stitched_mosaics_from</td>
+	<td>label=STITCHED_MOSAIC</td>
 </tr>
 <tr>
 	<td>click</td>
-	<td>name=_save</td>
+	<td>link=Add</td>
 	<td></td>
-</tr>
-<tr>
-	<td>selectWindow</td>
-	<td>null</td>
-	<td></td>
-</tr>
-<tr>
-	<td>type</td>
-	<td>id=id_path</td>
-	<td>/test/mosaic_MER_FRS_1P_RGB_reduced</td>
 </tr>
 <tr>
 	<td>clickAndWait</td>
 	<td>name=_save</td>
 	<td></td>
 </tr>
+
 </tbody></table>
 </body>
 </html>
