@@ -823,7 +823,7 @@ class RasdamanDataPackageWrapper(DataPackageWrapper):
                 "password='%s'" % location.getPassword()
             )
             
-        logging.debug("collection = %s" % self.getCollection())
+        logging.debug("collection = %s" % location.getCollection())
         if location.getOID():
             rasdaman_strs.append(
                 #"query='select ( a [$x_lo:$x_hi,$y_lo:$y_hi] ) from %s as a where oid(a)=%f'" %\
