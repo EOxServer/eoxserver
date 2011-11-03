@@ -220,14 +220,32 @@ class DataPackage(models.Model):
     data_package_type = models.CharField(max_length=32, editable=False)
     metadata_format_name = models.CharField(max_length=128, null=True, blank=True)
     
+    def __unicode__(self):
+        if self.data_package_type == "local":
+            return "Local Data Package: %s / %s" % (
+                self.localdatapackage.data_location,
+                self.localdatapackage.metadata_location,
+            )
+            
+        elif self.data_package_type == "remote":
+            return "Remote Data Package: %s / %s" % (
+                self.remotedatapackage.data_location,
+                self.remotedatapackage.metadata_location,
+            )
+        elif self.data_package_type == "rasdaman":
+            return "Rasdaman Data Package: %s / %s" % (
+                self.rasdamandatapackage.data_location,
+                self.rasdamandatapackage.metadata_location,
+            )
+        else:
+            return "Unknown location type"
+
+    
 class LocalDataPackage(DataPackage):
     DATA_PACKAGE_TYPE = "local"
     
     data_location = models.ForeignKey(LocalPath, related_name="data_file_packages")
     metadata_location = models.ForeignKey(LocalPath, related_name="metadata_file_packages", null=True)
-    
-    def __unicode__(self):
-        return ("Local Data Package: %s" % self.data_location)
 
 class RemoteDataPackage(DataPackage):
     DATA_PACKAGE_TYPE = "remote"
@@ -313,7 +331,9 @@ class ReferenceableDatasetRecord(CoverageRecord, EODatasetMixIn):
 
 class RectifiedStitchedMosaicRecord(CoverageRecord, EOCoverageMixIn):
     extent = models.ForeignKey(ExtentRecord, related_name="rect_stitched_mosaics")
-    data_sources = models.ManyToManyField(DataSource, related_name="rect_stitched_mosaics", null=True)
+    data_sources = models.ManyToManyField(DataSource,
+                                          null=True, blank=True,
+                                          related_name="rect_stitched_mosaics")
     tile_index = models.ForeignKey(TileIndex, related_name="rect_stitched_mosaics")
     rect_datasets = models.ManyToManyField(RectifiedDatasetRecord,
                                            null=True, blank=True,
@@ -339,7 +359,9 @@ class DatasetSeriesRecord(Resource):
     eo_metadata = models.OneToOneField(EOMetadataRecord,
                                        related_name="dataset_series_set",
                                        verbose_name="EO Metadata Entry")
-    data_sources = models.ManyToManyField(DataSource, related_name="dataset_series_set", null=True)
+    data_sources = models.ManyToManyField(DataSource,
+                                          null=True, blank=True,
+                                          related_name="dataset_series_set")
     rect_stitched_mosaics = models.ManyToManyField(RectifiedStitchedMosaicRecord,
                                                    blank=True, null=True,
                                                    related_name="dataset_series_set",
