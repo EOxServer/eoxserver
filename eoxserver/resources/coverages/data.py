@@ -774,7 +774,7 @@ class RasdamanDataPackageWrapper(DataPackageWrapper):
         Returns ``"rasdaman_array"``.
         """
         
-        return "rasdaman_array"
+        return "rasdaman"
 
     def prepareAccess(self):
         """
