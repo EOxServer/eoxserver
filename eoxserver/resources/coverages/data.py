@@ -810,10 +810,11 @@ class RasdamanDataPackageWrapper(DataPackageWrapper):
         if location.getPort() is not None:
             rasdaman_strs.append("port='%d'" % location.getPort())
 
-        if location.getDBName() is not None:
-            rasdaman_strs.append(
-                "dbname='%s'" % location.getDBName()
-            )
+        # TODO: check if this is a valid parameter
+        #if location.getDBName() is not None:
+        #    rasdaman_strs.append(
+        #        "dbname='%s'" % location.getDBName()
+        #    )
 
         if location.getUser() is not None:
             rasdaman_strs.append("user='%s'" % location.getUser())
@@ -822,8 +823,8 @@ class RasdamanDataPackageWrapper(DataPackageWrapper):
             rasdaman_strs.append(
                 "password='%s'" % location.getPassword()
             )
-            
-        logging.debug("collection = %s" % location.getCollection())
+        
+        
         if location.getOID():
             rasdaman_strs.append(
                 #"query='select ( a [$x_lo:$x_hi,$y_lo:$y_hi] ) from %s as a where oid(a)=%f'" %\
