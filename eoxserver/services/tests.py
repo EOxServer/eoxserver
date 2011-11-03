@@ -763,12 +763,12 @@ class WCS20GetCoverageMultipartRangeSubsetNamesDatasetTestCase(eoxstest.WCS20Get
 
 class WCS20GetCoverageRasdamanMultipartDatasetTestCase(eoxstest.RasdamanTestCaseMixIn, eoxstest.WCS20GetCoverageMultipartTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/mixed"
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/mixed"
         return (params, "kvp")   
 
 class WCS20GetCoverageRasdamanMultipartDatasetSubsetTestCase(eoxstest.RasdamanTestCaseMixIn, eoxstest.WCS20GetCoverageMultipartTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/mixed&subset=x(100,200)&subset=y(200,300)"
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/mixed&subset=x(100,200)&subset=y(200,300)"
         return (params, "kvp")
 
 #===============================================================================
