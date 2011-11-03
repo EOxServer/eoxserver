@@ -993,7 +993,7 @@ class WMS13GetMapFormatUnknownFaultTestCase(eoxstest.WMS13ExceptionTestCase):
         return (params, "kvp")
     
     def getExpectedExceptionCode(self):
-        return "LayerNotDefined"
+        return "InvalidFormat"
 
 #===============================================================================
 # Test suite
