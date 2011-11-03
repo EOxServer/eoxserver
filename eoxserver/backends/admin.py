@@ -35,17 +35,6 @@ from eoxserver.backends.models import (
 
 from django.contrib import admin
 
-class AbstractLocationAdmin(admin.ModelAdmin):
-    def save_model(self, request, obj, form, change):
-        obj.location_type = self.model.LOCATION_TYPE
-        obj.save()
-
-class AbstractLocationInline(admin.TabularInline):
-    def save_model(self, request, obj, form, change):
-        obj.location_type = self.model.LOCATION_TYPE
-        obj.save()
-    
-
 #===============================================================================
 # Simplified Location Admin, use with caution
 #===============================================================================
@@ -71,7 +60,7 @@ class StorageAdmin(admin.ModelAdmin):
 # Local Path
 #===============================================================================
 
-class LocalPathAdmin(AbstractLocationAdmin):
+class LocalPathAdmin(admin.ModelAdmin):
     model = LocalPath
     
     list_display = ("location_type", "path",)
@@ -84,13 +73,13 @@ admin.site.register(LocalPath, LocalPathAdmin)
 # FTP Storage Admin
 #===============================================================================
 
-class RemotePathInline(AbstractLocationInline):
+class RemotePathInline(admin.TabularInline):
     model = RemotePath
     extra = 1
 class FTPStorageAdmin(StorageAdmin):
     inlines = (RemotePathInline, )
 
-class RemotePathAdmin(AbstractLocationAdmin):
+class RemotePathAdmin(admin.ModelAdmin):
     model = RemotePath
     
     list_display = ("location_type", "path",)
@@ -103,13 +92,13 @@ admin.site.register(RemotePath, RemotePathAdmin)
 # Rasdaman Storage Admin
 #===============================================================================
 
-class RasdamanLocationInline(AbstractLocationInline):
+class RasdamanLocationInline(admin.TabularInline):
     model = RasdamanLocation
     extra = 1
 class RasdamanStorageAdmin(StorageAdmin):
     inlines = (RasdamanLocationInline,)
 
-class RasdamanLocationAdmin(AbstractLocationAdmin):
+class RasdamanLocationAdmin(admin.ModelAdmin):
     model = RasdamanLocation
     
     list_display = ("location_type", "collection", "oid")

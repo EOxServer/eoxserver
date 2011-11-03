@@ -40,6 +40,10 @@ class Storage(models.Model):
     """
     storage_type = models.CharField(max_length=32, editable=False)
     name = models.CharField(max_length=256)
+    
+    def save(self):
+        self.storage_type = self.STORAGE_TYPE
+        super(Storage, self).save()
 
 class FTPStorage(Storage):
     """
@@ -52,7 +56,7 @@ class FTPStorage(Storage):
     * ``passwd`` (optional): the password to use
     """
     
-    STORAGE_TYPE="ftp"
+    STORAGE_TYPE = "ftp"
     
     host = models.CharField(max_length=1024)
     port = models.IntegerField(null=True)
@@ -97,6 +101,10 @@ class Location(models.Model):
             return "ftp://%s/%s" % (self.remotepath.storage.host, self.remotepath.path)
         else:
             return "Unknown location type"
+        
+    def save(self):
+        self.location_type = self.LOCATION_TYPE
+        super(Location, self).save()
     
 class LocalPath(Location):
     """
