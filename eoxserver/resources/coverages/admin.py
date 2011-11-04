@@ -117,7 +117,7 @@ class DatasetSeries2DatasetInline(admin.TabularInline):
     verbose_name_plural = "Dataset Series to Dataset Relations"
     extra = 1
     
-    template ="admin/tabularX.html"
+    #template ="admin/tabular.html"
     
     #readonly_fields = ('datasetseriesrecord', )
     
