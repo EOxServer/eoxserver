@@ -108,7 +108,7 @@ class RasdamanArrayWrapper(LocationWrapper):
         * ``db_name`` (optional): the database name
         * ``passwd`` (optional): the password to be used for login
         * ``collection`` (required): the name of the collection in the database
-        * ``oid`` (required): the ``oid`` of the array within the collection
+        * ``oid`` (optional): the ``oid`` of the array within the collection
     """
     
     REGISTRY_CONF = {
@@ -224,7 +224,7 @@ class RasdamanArrayWrapper(LocationWrapper):
     def _validate_attrs(self, **kwargs):
         if "host" not in kwargs or "collection" not in kwargs:
             raise InternalError(
-                "The 'host', 'collection' and 'oid' are needed to initialize a rasdaman location instance."
+                "'host' and 'collection' are needed to initialize a rasdaman location instance."
             )
             
     def _set_attrs(self, **kwargs):
