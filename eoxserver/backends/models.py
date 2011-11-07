@@ -59,7 +59,7 @@ class FTPStorage(Storage):
     STORAGE_TYPE = "ftp"
     
     host = models.CharField(max_length=1024)
-    port = models.IntegerField(null=True)
+    port = models.IntegerField(null=True, blank=True)
     user = models.CharField(max_length=1024, null=True, blank=True)
     passwd = models.CharField(max_length=128, null=True, blank=True)
     
@@ -77,7 +77,7 @@ class RasdamanStorage(Storage):
     STORAGE_TYPE = "rasdaman"
     
     host = models.CharField(max_length=1024)
-    port = models.IntegerField(null=True)
+    port = models.IntegerField(null=True, blank=True)
     user = models.CharField(max_length=1024, null=True, blank=True)
     passwd = models.CharField(max_length=128, null=True, blank=True)
     db_name = models.CharField(max_length=128, null=True, blank=True)
