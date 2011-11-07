@@ -141,7 +141,7 @@ def create_file(dir_or_path, file=None):
     f = open(dir_or_path, 'w')
     f.close()
 
-def run(argv):
+def execute(argv):
     # parse command line arguments
     args = parse_arguments(argv)
 
@@ -219,4 +219,4 @@ def run(argv):
             os.system("spatialite conf.sqlite < %s" % init_sql_path)
 
 if __name__ == "__main__":
-    run(sys.argv[1:])
+    execute(sys.argv[1:])
