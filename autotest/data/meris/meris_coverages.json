@@ -316,7 +316,7 @@
         "pk": 5, 
         "model": "backends.localpath", 
         "fields": {
-            "path": "../autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RBG_reduced.tif" 
+            "path": "../autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced.tif" 
         }
     }, 
     {
@@ -358,7 +358,7 @@
         "pk": 11, 
         "model": "backends.localpath", 
         "fields": {
-            "path": "../autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RBG_reduced.xml" 
+            "path": "../autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced.xml" 
         }
     }, 
     {
