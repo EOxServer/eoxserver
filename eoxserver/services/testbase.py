@@ -188,7 +188,12 @@ class GDALDatasetTestCase(RasterTestCase):
         gdal.AllRegister()
         
         exp_path = os.path.join(self.getExpectedFileDir(), self.getExpectedFileName("raster"))
-        self.res_ds = gdal.Open(self.tmppath, gdalconst.GA_ReadOnly)
+        
+        try:
+            self.res_ds = gdal.Open(self.tmppath, gdalconst.GA_ReadOnly)
+        except RuntimeError, e:
+            self.fail("Response could not be opened with GDAL. Error was %s" % e)
+        
         try:
             self.exp_ds = gdal.Open(exp_path, gdalconst.GA_ReadOnly)
         except RuntimeError:
