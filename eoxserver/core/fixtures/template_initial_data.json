@@ -896,6 +896,22 @@
         }
     }, 
     {
+        "pk": 113, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ogc.WMS13ExceptionHandler", 
+            "intf_id": "services.interfaces.ExceptionHandler"
+        }
+    }, 
+    {
+        "pk": 114, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ogc.WMS13ExceptionEncoder", 
+            "intf_id": "services.interfaces.ExceptionEncoder"
+        }
+    }, 
+    {
         "pk": 1, 
         "model": "core.component", 
         "fields": {
@@ -1674,6 +1690,20 @@
     } , 
     {
         "pk": 112, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 113, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 114, 
         "model": "core.component", 
         "fields": {
             "enabled": true
