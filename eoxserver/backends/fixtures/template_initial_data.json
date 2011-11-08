@@ -27,11 +27,12 @@
         "pk": 2,
         "model": "backends.rasdamanstorage",
         "fields": {
+            "name": "RasdamanTestStorage",
             "host": "hma.eox.at",
             "port": null,
             "user": null,
             "passwd": null,
-            "db_name": "abstract_name"
+            "db_name": "RASBASE"
         }
     },
     {
