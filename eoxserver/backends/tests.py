@@ -185,7 +185,7 @@ class RemotePathCreateWithAttributesTestCase(testbase.RemotePathCreationTestCase
     def _get_wrapper(self):
         return self.factory.create(
             type="ftp",
-            host="ftp.example.com",
+            host="ftp.example.org",
             port=21,
             user="anonymous",
             passwd="anonymous",
@@ -194,7 +194,7 @@ class RemotePathCreateWithAttributesTestCase(testbase.RemotePathCreationTestCase
     
     def _get_values(self):
         return (
-            ("getHost", "ftp.example.com"),
+            ("getHost", "ftp.example.org"),
             ("getPort", 21),
             ("getUser", "anonymous"),
             ("getPassword", "anonymous"),
@@ -216,7 +216,7 @@ class RemotePathCreateAndSaveTestCase(testbase.RemotePathCreateAndSaveTestCase):
     
     def _get_arguments(self):
         return {
-            "host": "ftp.example.com",
+            "host": "ftp.example.org",
             "port": 21,
             "user": "anonymous",
             "passwd": "anonymous",
@@ -326,8 +326,8 @@ class RasdamanLocationCreateWithAttributesTestCase(testbase.RasdamanLocationCrea
     def _get_wrapper(self):
         return self.factory.create(
             type="rasdaman",
-            host="rasdaman.example.com",
-            port=21,
+            host="rasdaman.example.org",
+            port=7001,
             user="anonymous",
             passwd="anonymous",
             db_name="",
@@ -337,8 +337,8 @@ class RasdamanLocationCreateWithAttributesTestCase(testbase.RasdamanLocationCrea
     
     def _get_values(self):
         return (
-            ("getHost", "rasdaman.example.com"),
-            ("getPort", 21),
+            ("getHost", "rasdaman.example.org"),
+            ("getPort", 7001),
             ("getUser", "anonymous"),
             ("getPassword", "anonymous"),
             ("getCollection", "some_other_collection"),
@@ -361,8 +361,8 @@ class RasdamanLocationCreateAndSaveTestCase(testbase.RasdamanLocationCreateAndSa
     
     def _get_arguments(self):
         return {
-            "host": "rasdaman.example.com",
-            "port": 21,
+            "host": "rasdaman.example.org",
+            "port": 7001,
             "user": "anonymous",
             "passwd": "anonymous",
             "db_name": "",
