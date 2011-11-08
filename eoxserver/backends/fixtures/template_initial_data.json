@@ -29,8 +29,8 @@
         "fields": {
             "host": "hma.eox.at",
             "port": null,
-            "user": "anonymous",
-            "passwd": "",
+            "user": null,
+            "passwd": null,
             "db_name": "abstract_name"
         }
     },
