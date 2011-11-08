@@ -83,6 +83,18 @@ python manage.py loaddata data/fixtures/some_fixture.json ...
 # To load all test fixtures:
 python manage.py loaddata auth_data.json initial_rangetypes.json testing_base.json testing_coverages.json
 
+List of fixtures:
+ * initial_data.json - Base data to enable components. Loaded with syncdb.
+ * auth_data.json - An administration account.
+ * initial_rangetypes.json - Range types for RGB and gray-scale coverages.
+ * testing_base.json - Range type for the 15 band uint16 test data.
+ * testing_coverages.json - Metadata for the MERIS test data.
+ * testing_rasdaman_coverages.json - Use this fixtures in addition when
+                                     rasdaman is installed and configured.
+ * testing_backends.json - This fixtures are used for testing the backend
+                           layer only and shouldn't be loaded in the test
+                           instance.
+
 
 ---------------------------
 3. How to run test instance
