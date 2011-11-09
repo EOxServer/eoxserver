@@ -1,4 +1,11 @@
 import os
+
+# Hack to remove setuptools "feature" which resulted in
+# ignoring MANIFEST.in when code is in an svn repository.
+# TODO find a nicer solution
+from setuptools.command import sdist
+del sdist.finders[:]
+
 from setuptools import setup
 from eoxserver import get_version
 
@@ -30,7 +37,7 @@ for dirpath, dirnames, filenames in os.walk('eoxserver'):
 setup(
     name='EOxServer',
     version=version.replace(' ', '-'),
-    packages=packages,#find_packages("eoxserver"),
+    packages=packages,
     data_files=data_files,
     scripts=["eoxserver/scripts/eoxserver-admin.py"],
     
@@ -46,26 +53,33 @@ setup(
     description="",
     long_description="",
     
-    classifiers=[ #TODO
-          'Development Status :: 4 - Beta',
+    classifiers=[
+          'Development Status :: 3 - Alpha',
           'Environment :: Console',
           'Environment :: Web Environment',
+          'Framework :: Django',
           'Intended Audience :: End Users/Desktop',
-          'Intended Audience :: Developers',
+          'Intended Audience :: Other Audience',
           'Intended Audience :: System Administrators',
-          'License :: OSI Approved :: Python Software Foundation License',
-          'Operating System :: MacOS :: MacOS X',
-          'Operating System :: Microsoft :: Windows',
-          'Operating System :: POSIX',
+          'Intended Audience :: Science/Research',
+          'License :: OSI Approved :: MIT License',
+          'Natural Language :: English',
+          'Operating System :: OS Independent',
           'Programming Language :: Python',
-          'Topic :: Communications :: Email',
-          'Topic :: Office/Business',
-          'Topic :: Software Development :: Bug Tracking',
+          'Programming Language :: Python :: 2.5',
+          'Programming Language :: Python :: 2.6',
+          'Programming Language :: Python :: 2.7',
+          'Topic :: Database',
+          'Topic :: Internet',
+          'Topic :: Internet :: WWW/HTTP',
+          'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
+          'Topic :: Multimedia :: Graphics',
+          'Topic :: Scientific/Engineering :: GIS',
+          'Topic :: Scientific/Engineering :: Information Analysis',
+          'Topic :: Scientific/Engineering :: Visualization',
     ],
     
-    #package_dir={"eoxserver": "eoxserver"},
-    
-    license="MIT",
+    license="EOxServer Open License (MIT-style)",
     keywords="Earth Observation",
-    url="http://www.eoxserver.org/"
+    url="http://eoxserver.org/"
 )
