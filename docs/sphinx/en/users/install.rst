@@ -70,12 +70,22 @@ There are several easy options to install EOxServer:
 
 * Install an official release of EOxServer, the best approach for users who 
   want a stable version and aren't concerned about running a slightly older 
-  version of EOxServer. Install either from 
+  version of EOxServer. You can install EOxServer either from 
   
   * `PyPI - the Python Package Index <http://pypi.python.org/pypi>`_ using 
-    `pip <http://www.pip-installer.org/en/latest/index.html>`_ or from the 
-  * `EOxServer download page <http://eoxserver.org/wiki/Download>`_.
-  
+    `pip <http://www.pip-installer.org/en/latest/index.html>`_:
+    ::
+    
+      sudo pip install eoxserver
+    
+  * Or from the `EOxServer download page <http://eoxserver.org/wiki/Download>`_:
+    ::
+    
+      wget http://eoxserver.org/export/head/downloads/eoxserver-<version>-minimal.tar.gz .
+      tar xvfz eoxserver-<version>-minimal.tar.gz
+      cd eoxserver-<version>
+      sudo python setup.py install
+
 * Install the latest development version, the best option for users who 
   want the latest-and-greatest features and aren't afraid of running 
   brand-new code. Make sure you have `Subversion 
@@ -84,6 +94,13 @@ There are several easy options to install EOxServer:
   ::
   
     svn co http://eoxserver.org/svn/trunk/ eoxserver-trunk
+    cd eoxserver-trunk
+    sudo python setup.py install
+
+  Or using pip:
+  ::
+  
+    sudo pip install svn+http://eoxserver.org/svn/trunk
 
 If the directory EOxServer is installed to is not on the Python path, you will 
 have to configure the deployed instances accordingly, see 
@@ -101,10 +118,11 @@ implements the different services the software provides) and EOxServer
 instances (a collection of data and configuration files that enables deployment 
 of the software.
 
-We recommend to use the :file:`create_instance.py` script that comes with 
-EOxServer in order to create an EOxServer instance:
+We recommend to use the :file:`eoxserver-admin.py` script that comes with 
+EOxServer. It provides the command `create_instance` in order to create an
+EOxServer instance:
 
-    Usage: ``create_instance.py [options] INSTANCE_ID``
+    Usage: ``eoxserver-admin.py create_instance [options] INSTANCE_ID``
     
     Create a new EOxServer instance ``INSTANCE_ID`` in the root directory with 
     name ``INSTANCE_ID`` in the given (optional) directory. If the 
