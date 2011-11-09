@@ -1,6 +1,6 @@
 from django.utils.version import get_svn_revision
 
-VERSION = (0, 2, 0, 'alpha', 0)
+VERSION = (0, 2, 0, 'dev', 0)
 SVN_REV = '$Id$'
 
 def get_version():
