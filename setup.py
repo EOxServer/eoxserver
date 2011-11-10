@@ -115,6 +115,6 @@ setup(
     ],
     
     license="EOxServer Open License (MIT-style)",
-    keywords="Earth Observation",
+    keywords="Earth Observation, EO, OGC, WCS, WMS",
     url="http://eoxserver.org/"
 )
