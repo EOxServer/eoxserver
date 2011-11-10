@@ -158,9 +158,9 @@ Every EOxServer instance has three configuration files:
 
 For each of them there is a template in the ``eoxserver/conf`` directory of the 
 EOxServer distribution (referenced above) which is copied and adjusted by the 
-:file:`create_instance.py` script to the instance directory. If you create an 
-EOxServer instance without the script you can copy those files and edit them 
-yourself.
+`create_instance` command of the :file:`eoxserver-admin.py` script to the 
+instance directory. If you create an EOxServer instance without the script you 
+can copy those files and edit them yourself.
 
 The file ``settings.py`` contains the Django configuration. Settings that need 
 to be customized:
@@ -185,8 +185,9 @@ the `MapServer Mapfile documentation
 <http://mapserver.org/mapfile/index.html>`_.
 
 Once you have created an instance, you have to configure and synchronize the 
-database. If using the :file:`create_instance.py` script with the 
-``--init_spatialite`` flag, all you have to do is:
+database. If using the `create_instance` command of the 
+:file:`eoxserver-admin.py` script with the ``--init_spatialite`` flag, all you 
+have to do is:
 
 * Make sure EOxServer is on your ``PYTHONPATH`` environment variable
 * run ``python manage.py syncdb`` in your instance directory
