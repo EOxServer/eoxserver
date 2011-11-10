@@ -1,0 +1,10 @@
+include HOWTO
+include ftpcache
+include responses
+include conf
+include logs
+recursive-include expected *
+recursive-include data *
+recursive-include selenium *.html
+exclude data/config.sqlite
+recursive-exclude data .svn
