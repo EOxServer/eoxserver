@@ -78,29 +78,42 @@ There are several easy options to install EOxServer:
     
       sudo pip install eoxserver
     
-  * Or from the `EOxServer download page <http://eoxserver.org/wiki/Download>`_:
+  * Or from the `EOxServer download page <http://eoxserver.org/wiki/Download>`_ 
+    using pip:
     ::
     
-      wget http://eoxserver.org/export/head/downloads/eoxserver-<version>-minimal.tar.gz .
-      tar xvfz eoxserver-<version>-minimal.tar.gz
-      cd eoxserver-<version>
+      sudo pip install http://eoxserver.org/export/head/downloads/EOxServer-<version>.tar.gz
+    
+    or manual:
+    ::
+    
+      wget http://eoxserver.org/export/head/downloads/EOxServer-<version>.tar.gz .
+      tar xvfz EOxServer-<version>.tar.gz
+      cd EOxServer-<version>
       sudo python setup.py install
 
 * Install the latest development version, the best option for users who 
   want the latest-and-greatest features and aren't afraid of running 
   brand-new code. Make sure you have `Subversion 
-  <http://subversion.tigris.org/>`_ installed and check out EOxServer's 
-  main development branch (the trunk) with:
+  <http://subversion.tigris.org/>`_ installed and install EOxServer's 
+  main development branch (the trunk) using pip:
+  ::
+  
+    sudo pip install svn+http://eoxserver.org/svn/trunk
+    
+  or manual:
   ::
   
     svn co http://eoxserver.org/svn/trunk/ eoxserver-trunk
     cd eoxserver-trunk
     sudo python setup.py install
 
-  Or using pip:
-  ::
-  
-    sudo pip install svn+http://eoxserver.org/svn/trunk
+To upgrade an existing installation of EOxServer simply add the `--upgrade` 
+switch to your pip command e.g.:
+::
+
+  sudo pip install --upgrade eoxserver
+
 
 If the directory EOxServer is installed to is not on the Python path, you will 
 have to configure the deployed instances accordingly, see 
