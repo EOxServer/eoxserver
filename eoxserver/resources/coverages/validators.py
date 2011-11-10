@@ -34,6 +34,8 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 
 class EOOMSchema(object):
+    # TODO: Change to online schema once available. 
+    # Alternatively add configuration parameter to eoxserver.conf
     SCHEMA_LOCATION = os.path.join(settings.PROJECT_DIR, "..", "schemas", "omeo", "eop.xsd")
     schema = None
     
