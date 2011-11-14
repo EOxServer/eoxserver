@@ -1,8 +1,8 @@
-.. _rfc_0:
-
 .. index::
    single: Project Steering Committee (PSC) Guidelines
    single: RFC; RFC 0
+
+.. _rfc_0:
 
 RFC 0: Project Steering Committee Guidelines
 ============================================
