@@ -460,12 +460,6 @@ admin.site.register(DataSource, DataSourceAdmin)
 # Data Packages for Datasets
 #===============================================================================
 
-class DataPackageAdmin(admin.ModelAdmin):
-    model = DataPackage
-    
-    def has_add_permission(self, request):
-        return False
-    
 class AbstractDataPackageAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         obj.data_package_type = self.model.DATA_PACKAGE_TYPE
@@ -505,8 +499,6 @@ class RasdamanDataPackageAdmin(AbstractDataPackageAdmin):
             )
         return super(AbstractDataPackageAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
-admin.site.register(DataPackage, DataPackageAdmin)
 admin.site.register(LocalDataPackage, LocalDataPackageAdmin)
 admin.site.register(RemoteDataPackage, RemoteDataPackageAdmin)
 admin.site.register(RasdamanDataPackage, RasdamanDataPackageAdmin)
-
