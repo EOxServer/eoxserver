@@ -13,8 +13,8 @@
         "fields": {
             "host": "localhost",
             "port": null,
-            "user": "",
-            "passwd": "",
+            "user": null,
+            "passwd": null,
             "db_name": "RASBASE"
         }
     },
