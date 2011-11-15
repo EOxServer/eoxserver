@@ -107,7 +107,7 @@
         }
     }, 
     {
-        "pk": 1, 
+        "pk": 7, 
         "model": "coverages.rectifieddatasetrecord", 
         "fields": {
             "lineage": 8,
