@@ -19,14 +19,14 @@
         }
     },
     {
-        "pk": 13,
+        "pk": 15,
         "model": "backends.location",
         "fields": {
             "location_type": "rasdaman"
         }
     },
     {
-        "pk": 13,
+        "pk": 15,
         "model": "backends.rasdamanlocation",
         "fields": {
             "storage": 1,
@@ -34,14 +34,14 @@
         }
     }, 
     {
-        "pk": 14,
+        "pk": 16,
         "model": "backends.location",
         "fields": {
             "location_type": "local"
         }
     }, 
     {
-        "pk": 14,
+        "pk": 16,
         "model": "backends.localpath",
         "fields": {
             "path": "../autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced_rasdaman/mosaic_ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced.xml" 
@@ -59,8 +59,8 @@
         "pk": 7, 
         "model": "coverages.rasdamandatapackage", 
         "fields": {
-            "data_location": 13,
-            "metadata_location": 14
+            "data_location": 15,
+            "metadata_location": 16
         }
     }, 
     {
