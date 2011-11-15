@@ -39,7 +39,7 @@ then
   echo "   imagedir    source image directory"
   echo "   user        rasdaman database login name (needs write access)"
   echo "   passwd      rasdaman password"
-  echo "Example: $0 localhost 7001 /home/rasdaman/install/share/rasdaman/examples/images rasadmin rasadmin"
+  echo "Example: $0 localhost 7001 . rasadmin rasadmin"
   exit 0
 fi
 
@@ -67,21 +67,13 @@ echo "$PROG: using host $HOST, image directory $IMAGEDIR, and user/passwd $USER/
 
 # --- evaluate cmd line parameters ------------------------------------
 
-# is insertppm compiled already?
-if [ -f /home/rasdaman/install/bin/insertppm ]
+# is insertppm available?
+if [ -f /usr/bin/insertppm ]
 then
-  INSERTPPM="/home/rasdaman/install/bin/insertppm"
+  INSERTPPM="/usr/bin/insertppm"
 else
-  echo "$PROG: insertppm not found. Trying to compile it...\c"
-  make --directory=/home/rasdaman/install/share/rasdaman/examples/c++ insertppm
-  if [ -f /home/rasdaman/install/share/rasdaman/examples/c++/insertppm ]
-  then
-    echo "ok"
-    INSERTPPM="/home/rasdaman/install/share/rasdaman/examples/c++/insertppm"    
-  else
-    echo "$PROG: Error: Failed to compile insertppm."
-    exit 1
-  fi
+  echo "$PROG: insertppm not found."
+  exit 1
 fi
 
 # does $IMAGEDIR point to a good directory?
@@ -92,9 +84,9 @@ then
 fi
 
 # insert images
-echo -n "MERIS..."
-$INSERTPPM $INSERTPPM_ARGS --type color --collection mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced $IMAGEDIR/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.ppm || exit 1
-$INSERTPPM $INSERTPPM_ARGS --type color --collection mosaic_ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced $IMAGEDIR/mosaic_ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced.ppm || exit 1
-$INSERTPPM $INSERTPPM_ARGS --type color --collection mosaic_ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced $IMAGEDIR/mosaic_ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced.ppm || exit 1
+echo "MERIS..."
+$INSERTPPM $INSERTPPM_ARGS --type color --collection MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced $IMAGEDIR/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.ppm || exit 1
+$INSERTPPM $INSERTPPM_ARGS --type color --collection MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced $IMAGEDIR/mosaic_ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced.ppm || exit 1
+$INSERTPPM $INSERTPPM_ARGS --type color --collection MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced $IMAGEDIR/mosaic_ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced.ppm || exit 1
 
 echo "$PROG: done."
