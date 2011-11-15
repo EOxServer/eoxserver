@@ -100,18 +100,18 @@
         "pk": 9,
         "model": "coverages.coveragerecord",
         "fields": {
-            "coverage_id": "MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced_rasdaman",
+            "coverage_id": "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced_rasdaman",
             "range_type": 1, 
             "layer_metadata": [], 
             "automatic": true
         }
     }, 
     {
-        "pk": 8, 
+        "pk": 9, 
         "model": "coverages.rectifieddatasetrecord", 
         "fields": {
             "lineage": 8,
-            "eo_id": "MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced_rasdaman",
+            "eo_id": "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced_rasdaman",
             "visible": false, 
             "eo_metadata": 9,
             "data_package": 7,
