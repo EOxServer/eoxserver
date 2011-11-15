@@ -39,7 +39,7 @@ Credits
 Work on EOxServer has been partly funded by the `European Space Agency (ESA)`_ 
 in the frame of the HMA-FO_ and O3S_ projects.
 
-.. figure:: ./../_static/HMA_Logo.jpg
+.. figure:: ./_static/HMA_Logo.jpg
    :target: http://rssportal.esa.int/tiki-index.php?page=Open%20Software
 
 .. _European Space Agency (ESA): http://www.esa.int/esaMI/ESRIN_SITE/
