@@ -36,18 +36,6 @@ from eoxserver.backends.models import (
 from django.contrib import admin
 
 #===============================================================================
-# Simplified Location Admin, use with caution
-#===============================================================================
-
-class LocationAdmin(admin.ModelAdmin):
-    model = Location
-    
-    def has_add_permission(self, request):
-        return False
-    
-admin.site.register(Location, LocationAdmin)
-
-#===============================================================================
 # Generic Storage Admin (Abstract!)
 #===============================================================================
 
@@ -65,7 +53,6 @@ class LocalPathAdmin(admin.ModelAdmin):
     
     list_display = ("location_type", "path",)
     list_editable = ("path",)
-    
 
 admin.site.register(LocalPath, LocalPathAdmin)
 
