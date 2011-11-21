@@ -32,29 +32,39 @@ import os
 import sys
 
 from django.utils.importlib import import_module
+from optparse import make_option
+from django.core.management import BaseCommand
 
-class Command():
-    def execute(self):
-        raise NotImplementedError()
+import eoxserver
+
+class CommandNotFound(Exception):
+    def __init__(self, cmdname):
+        self.cmdname = cmdname
+
+class EOxServerAdminCommand(BaseCommand):
+    option_list = (
+        make_option('-v', '--verbosity', action='store', dest='verbosity', default='1',
+            type='choice', choices=['0', '1', '2', '3'],
+        ),
+    )
+    
+    def run_from_argv(self, argv):
+        self.parser = self.create_parser(argv[0], argv[1])
+        options, args = self.parser.parse_args(argv[2:])
+        self.handle(*args, **options.__dict__)
 
 def get_commands():
-    import eoxserver.core
-    command_dir = os.path.join(os.path.dirname(eoxserver.core.__file__), "commands")
+    import eoxserver.core.commands
+    command_dir = os.path.dirname(eoxserver.core.commands.__file__)
     command_names = [f[:-3] for f in os.listdir(command_dir)
                                 if not f.startswith('_') and f.endswith('.py')]
     
     commands = {}
     for name in command_names:
         try:
-            module = import_module("eoxserver.core.commands.%s"%name)
-            try:
-                commands[name] = module.__dict__['execute']
-            except KeyError:
-                print module.__dict__
-                raise 
-                for value in module.__dict__.values():
-                    if issubclass(value, Command):
-                        commands[name] = getattr(value(), 'execute')
+            module = import_module("eoxserver.core.commands.%s" % name)
+            commands[name] = module.Command()
+            
         except ImportError:
             raise
     
@@ -62,15 +72,35 @@ def get_commands():
     
 
 def execute_from_commandline():
-    commands = get_commands()
-    try:
-        commands[sys.argv[1]](sys.argv[2:])
-    except IndexError:
-        print "Usage: %s <command-name> [args]" % sys.argv[0]
-    except KeyError:
-        print("Command '%s' not found." % sys.argv[1])
-        print("Possible commands are:")
-        for name in commands.keys():
-            print("\t%s" % name)
-        
     
+    try:
+        subcommand = sys.argv[1]
+    except IndexError:
+        subcommand = 'help'
+    
+    commands = get_commands()
+    
+    try:
+        if subcommand in ('help', '--help'):
+            try:
+                cmd = commands[sys.argv[2]]
+                cmd.print_help(sys.argv[0], sys.argv[2])
+            except IndexError:
+                # TODO print general help
+                print "Usage: %s <command-name> [args]" % sys.argv[0]
+            except KeyError:
+                raise CommandNotFound(sys.argv[2])
+            
+        elif subcommand == '--version':
+            print eoxserver.get_version()
+        
+        else:
+            try:
+                commands[subcommand].run_from_argv(sys.argv)
+            except KeyError:
+                raise CommandNotFound(subcommand)
+            
+    except CommandNotFound, e:
+        print "Command '%s' not found.\n" % e.cmdname
+        print "Possible commands are:"
+        print "\t%s" % "\n\t".join(commands.keys())
