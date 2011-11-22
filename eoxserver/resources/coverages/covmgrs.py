@@ -411,7 +411,7 @@ class CoverageManagerEOMixIn(object):
     
     def _get_eo_metadata(self, data_package, params):
         if "eo_metadata" in params:
-            eo_metadata = params["ep_metadata"]
+            eo_metadata = params["eo_metadata"]
         elif data_package:
             eo_metadata = data_package.readEOMetadata()
         else:
