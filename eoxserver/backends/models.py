@@ -41,9 +41,9 @@ class Storage(models.Model):
     storage_type = models.CharField(max_length=32, editable=False)
     name = models.CharField(max_length=256)
     
-    def save(self):
+    def save(self, *args, **kwargs):
         self.storage_type = self.STORAGE_TYPE
-        super(Storage, self).save()
+        super(Storage, self).save(*args, **kwargs)
 
 class FTPStorage(Storage):
     """
@@ -102,9 +102,9 @@ class Location(models.Model):
         else:
             return "Unknown location type"
         
-    def save(self):
+    def save(self, *args, **kwargs):
         self.location_type = self.LOCATION_TYPE
-        super(Location, self).save()
+        super(Location, self).save(*args, **kwargs)
     
 class LocalPath(Location):
     """
