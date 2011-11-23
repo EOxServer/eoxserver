@@ -87,6 +87,7 @@ class Command(BaseCommand):
         make_option('-i', '--coverage-id', '--coverage-ids',
             dest='coverageids',
             action='callback', callback=_variable_args_cb,
+            default=[],
             help=('Optional. One or more coverage identifier for '
                   'each dataset that shall be added. Defaults to '
                   'the base filename without extension.')
