@@ -63,7 +63,7 @@ class Command(BaseCommand):
         make_option('-m', '--metadata-file', '--metadata-files',
             dest='metadatafiles',
             action='callback', callback=_variable_args_cb,
-            default=None,
+            default=[],
             help=('Optional. One or more paths to a local files '
                   'containing the image meta data. Defaults to '
                   'the same path as the data file with the '
