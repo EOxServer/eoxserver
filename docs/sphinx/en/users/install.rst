@@ -296,8 +296,8 @@ Data Registration
 ~~~~~~~~~~~~~~~~~
 
 To insert data into an EOxServer instance there are several ways. One is the
-admin interface, which is explained in detail in the `Administration Web
-Application Tutorial <./admin_tutorial.html>`_.
+admin interface, which is explained in detail in the :ref:`Administration Web
+Application Tutorial`.
 
 Another convenient way to register datasets is the command line interface to
 EOxServer. As a Django application, the instance can be configured using the
