@@ -450,4 +450,4 @@ class WMS13GetMapTestCase(RasterTestCase):
 
 class WMS13ExceptionTestCase(ExceptionTestCase):
     def getExceptionCodeLocation(self):
-        return "/ogc:ServiceException/@code"
+        return "/{http://www.opengis.net/ogc}ServiceException/@code"
