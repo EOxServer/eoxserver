@@ -770,6 +770,21 @@ class WCS20GetCoverageRasdamanMultipartDatasetSubsetTestCase(eoxstest.RasdamanTe
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced_rasdaman&format=image/tiff&mediatype=multipart/mixed&subset=x(100,200)&subset=y(200,300)"
         return (params, "kvp")
 
+class WCS20GetCoverageRasdamanMultipartDatasetSizeTestCase(eoxstest.RasdamanTestCaseMixIn, eoxstest.WCS20GetCoverageMultipartTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced_rasdaman&format=image/tiff&mediatype=multipart/mixed&size=x(100)&size=y(100)"
+        return (params, "kvp")
+
+class WCS20GetCoverageRasdamanMultipartDatasetResolutionTestCase(eoxstest.RasdamanTestCaseMixIn, eoxstest.WCS20GetCoverageMultipartTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced_rasdaman&format=image/tiff&mediatype=multipart/mixed&resolution=x(0.1)&resolution=y(0.1)"
+        return (params, "kvp")
+
+class WCS20GetCoverageRasdamanMultipartDatasetOutputCRSTestCase(eoxstest.RasdamanTestCaseMixIn, eoxstest.WCS20GetCoverageMultipartTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced_rasdaman&format=image/tiff&mediatype=multipart/mixed&outputcrs=http://www.opengis.net/def/crs/EPSG/0/3035"
+        return (params, "kvp")
+
 #===============================================================================
 # WCS 2.0 - POST
 #===============================================================================
@@ -993,7 +1008,22 @@ class WMS13GetMapFormatUnknownFaultTestCase(eoxstest.WMS13ExceptionTestCase):
     
     def getExpectedExceptionCode(self):
         return "InvalidFormat"
+    
+class WMS13GetMapInvalidBoundingBoxTestCase(eoxstest.WMS13ExceptionTestCase):
+    def getRequest(self):
+        params = "service=WMS&version=1.3.0&request=GetMap&layers=MER_FRS_1P_reduced&bbox=&crs=EPSG:4326&width=100&height=100&format=image/jpeg&exceptions=application/vnd.ogc.se_xml"
+        return (params, "kvp")
+    
+    def getExpectedExceptionCode(self):
+        return "InvalidBBOX"
 
+class WMS13GetMapInvalidCRSTestCase(eoxstest.WMS13ExceptionTestCase):
+    def getRequest(self):
+        params = "service=WMS&version=1.3.0&request=GetMap&layers=MER_FRS_1P_reduced&bbox=0,0,1,1&crs=INVALIDCRS&width=100&height=100&format=image/jpeg&exceptions=application/vnd.ogc.se_xml"
+        return (params, "kvp")
+    
+    def getExpectedExceptionCode(self):
+        return "InvalidBBOX"
 #===============================================================================
 # Test suite
 #===============================================================================
