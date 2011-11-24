@@ -291,3 +291,64 @@ In the Apache2 configuration file for your server, e.g.
 
 This setup will deploy your instance under the URL ``<url>`` and make it 
 publicly accessible.
+
+Data Registration
+~~~~~~~~~~~~~~~~~
+
+To insert data into an EOxServer instance there are several ways. One is the
+admin interface, which is explained in detail in the `Administration Web
+Application Tutorial`_.
+
+Another convenient way to register datasets is the command line interface to
+EOxServer. As a Django application, the instance can be configured using the
+`manage.py <https://docs.djangoproject.com/en/dev/ref/django-admin/>`_ script.
+
+EOxServer provides a specific command to insert datasets into the instance,
+called ``eoxs_register_dataset``. It is invoked from command line from your
+instance base folder:
+::
+
+    python manage.py eoxs_register_dataset --data-file DATAFILES --rangetype RANGETYPE
+
+The mandatory parameter `data-file` is a list of at least one path to a file
+containing the raster data for the datasets to be inserted. The files can be
+in any compliant (GDAL readable) format.
+
+For each data file there has to be one meta-data file containing earth
+observation specific meta-data. The optional parameter ``--metadata-file`` shall
+contain a list of paths to these files, where the items of this list refer to
+the data files with the same index of the according option. This parameter can
+also be omitted, in this case for each data file a metadata file is asumpted
+with the same path, but with an `.xml` extension. When inserting rasdaman
+datasets, this parameter is manadatory, since the meta-data cannot be retrieved
+from within the rasdaman database.
+
+For each dataset a coverage ID can be specified with the ``--coverage-id``
+parameter. As with the ``--metadata-file`` option, the items of the list refer
+to the items of the ``--data-file`` list. If omitted, an ID is generated using
+the data file name.
+
+Also mandatory is the parameter ``--rangetype``, the name of a range type which
+has to be already present in the instances database.
+
+The parameters ``--dataset-series`` and ``--stitched-mosaic`` allow the dataset
+to be inserted into all dataset series and rectified stitched mosaics specified
+by their EO IDs.
+
+The ``--mode`` parameter specifies the location of the data and metadata files.
+This can either be `local`, `ftp` or `rasdaman`, whereas the default is `local`.
+
+This is an example usage of the ``eoxs_register_dataset`` command:
+::
+
+    python manage.py eoxs_register_dataset --data-file data/meris/mosaic_MER_FRS_1P_RGB_reduced/*.tif --rangetype RGB --dataset-series MER_FRS_1P_reduced --stitched-mosaic mosaic_MER_FRS_1P_RGB_reduced -v3
+
+In this example, the parameter ``--metadata-file`` is omitted, since these files
+are in the same location as the data files and only differ in their extension.
+Also note that the ``--data-file`` parameter uses a shell wildcard `*.tif` which
+expands to all files with the `.tif` extension in that directory. This
+funcitonality is not provided by EOxServer but by the operating system or the
+executing shell and is most certainly platform dependant.
+
+The registered dataset is now inserted to each one dataset series and rectified
+stitched mosaic.
