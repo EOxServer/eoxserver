@@ -75,14 +75,20 @@ class Command(BaseCommand):
                   'the dataset.')
         ),
         make_option('--dataset-series',
-            dest='datasetseries_eoid',
-            help=('Optional eo id of a dataset series in which the '
-                  'dataset shall be added.')
+            dest='datasetseries_eoids',
+            action='callback', callback=_variable_args_cb,
+            default=[],
+            help=('Optional. One or more eo ids of a dataset '
+                  'series in which the created datasets shall be '
+                  'added.')
         ),
         make_option('--stitched-mosaic',
-            dest='stitchedmosaic_id',
-            help=('Optional coverage id of a rectified stitched '
-                  'mosaic in which the dataset shall be added.')
+            dest='stitchedmosaic_eoids',
+            action='callback', callback=_variable_args_cb,
+            default=[],
+            help=('Optional. One or more eo ids of a rectified '
+                  'stitched mosaic in which the dataset shall '
+                  'be added.')
         ),
         make_option('-i', '--coverage-id', '--coverage-ids',
             dest='coverageids',
@@ -91,10 +97,19 @@ class Command(BaseCommand):
             help=('Optional. One or more coverage identifier for '
                   'each dataset that shall be added. Defaults to '
                   'the base filename without extension.')
+        ),
+        make_option('--mode',
+            dest='mode',
+            choices=['local', 'ftp', 'rasdaman'],
+            default='local',
+            help=("Optional. Defines the location of the datasets "
+                  "to be registered. Can be 'local', 'ftp', or " 
+                  "'rasdaman'. Defaults to 'local'.")
         )
     )
     
-    help = 'Registers a dataset from a data and meta-data file.'
+    help = ('Registers one or more datasets from each a data and '
+            'meta-data file.')
     args = '--data-file DATAFILE --rangetype RANGETYPE'
 
     def print_msg(self, msg, level=0):
@@ -116,6 +131,10 @@ class Command(BaseCommand):
             raise CommandError(
                 "Mandatory parameter --data-file is not present."
             )
+        elif len(datafiles) == 0:
+            raise CommandError(
+                "At least one data-file must be specified."
+            )
         
         rangetype = options.get('rangetype')
         if rangetype is None:
@@ -126,20 +145,37 @@ class Command(BaseCommand):
         metadatafiles = options.get('metadatafiles')
         coverageids = options.get('coverageids')
         
+        containers = []
+        
         # check if insertion into a dataset series is requested.
         # if yes, get the correct wrapper
-        datasetseries_eoid = options.get('datasetseries_eoid')
-        if datasetseries_eoid is not None:
+        datasetseries_eoids = options.get('datasetseries_eoids', [])
+        for eoid in datasetseries_eoids:
             dataset_series = System.getRegistry().getFromFactory(
                 "resources.coverages.wrappers.DatasetSeriesFactory",
-                {"obj_id": datasetseries_eoid}
+                {"obj_id": eoid}
             )
             if dataset_series is None:
                 raise CommandError(
-                    "Invalid dataset series EO-ID '%s'." % datasetseries_eoid
+                    "Invalid dataset series EO-ID '%s'." % eoid
                 )
-        else:
-            dataset_series = None
+            containers.append(dataset_series)
+        
+        stitchedmosaic_eoids = options.get('stitchedmosaic_eoids', [])
+        for eoid in stitchedmosaic_eoids:
+            stitched_mosaic = System.getRegistry().getFromFactory(
+                "resources.coverages.wrappers.EOCoverageFactory",
+                {"obj_id": eoid}
+            )
+            if stitched_mosaic is None:
+                raise CommandError(
+                    "Invalid rectified stitched mosaic with coverage ID '%s'." % eoid
+                )
+            elif stitched_mosaic.getType() != "eo.rect_stitched_mosaic":
+                raise CommandError(
+                    "Coverage with ID '%s' is not a rectified stitched mosaic." % eoid
+                )
+            containers.append(stitched_mosaic)
         
         # get the right coverage manager
         mgr = System.getRegistry().findAndBind(
@@ -173,6 +209,8 @@ class Command(BaseCommand):
             self.print_msg("Inserting coverage with ID '%s'." % cid, 2)
             self.print_msg("\tFile: '%s'\n\tMeta-data: '%s'" % (df, mdf), 2)
             
+            # TODO use mode option to allow also ftp and rasdaman
+            
             wrapper = mgr.create(
                 cid,
                 local_path=df,
@@ -180,11 +218,16 @@ class Command(BaseCommand):
                 range_type_name=rangetype
             )
             
-            # add the dataset to the dataset series, if requested
-            if dataset_series is not None:
-                dataset_series.addCoverage("eo.rect_dataset", wrapper.getModel().pk)
-                self.print_msg("Added dataset '%s' to dataset series '%s'." % (
-                        wrapper.getCoverageId(), dataset_series.getEOID()
+            # add the dataset to the dataset series or mosaic, if requested
+            for container in containers:
+                container.addCoverage("eo.rect_dataset", wrapper.getModel().pk)
+                ctype = (
+                    "dataset series" 
+                    if container.getType() == "eo.dataset_series"
+                    else "rectified stitched mosaic"
+                )
+                self.print_msg("Added dataset '%s' to %s '%s'." % (
+                        wrapper.getCoverageId(), ctype, container.getEOID()
                     ), 2
                 )
         
