@@ -1030,7 +1030,7 @@ class WMS13GetMapInvalidBoundingBoxTestCase(eoxstest.WMS13ExceptionTestCase):
         return (params, "kvp")
     
     def getExpectedExceptionCode(self):
-        return "InvalidBBOX"
+        return None # attributes are optional by default; mapserver does not provide an exception code
 
 class WMS13GetMapInvalidCRSTestCase(eoxstest.WMS13ExceptionTestCase):
     def getRequest(self):
@@ -1038,7 +1038,7 @@ class WMS13GetMapInvalidCRSTestCase(eoxstest.WMS13ExceptionTestCase):
         return (params, "kvp")
     
     def getExpectedExceptionCode(self):
-        return "InvalidBBOX"
+        return "InvalidCRS"
 #===============================================================================
 # Test suite
 #===============================================================================
