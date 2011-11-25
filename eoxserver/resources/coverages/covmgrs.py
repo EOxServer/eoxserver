@@ -139,7 +139,7 @@ class BaseManager(object):
         elif location.getType() == "ftp":
             data_package_type = "remote"
         elif location.getType() == "rasdaman":
-            data_package_type = "rasdaman_array"
+            data_package_type = "rasdaman"
         
         return self.data_package_factory.getOrCreate(
             type=data_package_type,
