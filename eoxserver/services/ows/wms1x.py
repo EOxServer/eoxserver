@@ -180,7 +180,7 @@ class WMSCommonHandler(MapServerOperationHandler):
             nil_values = []
             for band in range_type.bands:
                 try: 
-                    nil_values.append(int(band.nil_values[0]))
+                    nil_values.append(int(band.nil_values[0].value))
                 except IndexError:
                     nil_values.append(0)
             
@@ -680,10 +680,16 @@ class WMS11ExceptionEncoder(XMLEncoder):
         }
     }
 
+    def _initializeNamespaces(self):
+        return {
+            "ogc": "http://www.opengis.net/ogc",
+            "xsi": "http://www.w3.org/2001/XMLSchema-instance"
+        }
+    
     def encodeExceptionReport(self, exception_text, exception_code):
         return self._makeElement("", "ServiceExceptionReport", [
             ("", "@version", "1.1.1"),
-            ("xsd", "schemaLocation", "http://www.opengis.net/ogc http://schemas.opengis.net/wms/1.1.1/OGC-exception.xsd"),
+            ("xsi", "schemaLocation", "http://www.opengis.net/ogc http://schemas.opengis.net/wms/1.1.1/OGC-exception.xsd"),
             ("", "ServiceException", [
                 ("", "@code", exception_code),
                 ("", "@@", exception_text)
