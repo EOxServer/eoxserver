@@ -54,11 +54,14 @@ def _variable_args_cb(option, opt_str, value, parser):
 class Command(BaseCommand):
     option_list = BaseCommand.option_list + (
         make_option('-d', '--data-file', '--data-files',
+                    '--collection', '--collections',
             dest='datafiles',
             action='callback', callback=_variable_args_cb,
             default=None,
-            help=('Mandatory. One or more paths to a local files '
-                  'containing the image data.')
+            help=('Mandatory. One or more paths to a files '
+                  'containing the image data. These paths can '
+                  'either be local, ftp paths, or rasdaman '
+                  'collection names.')
         ),
         make_option('-m', '--metadata-file', '--metadata-files',
             dest='metadatafiles',
@@ -105,7 +108,50 @@ class Command(BaseCommand):
             help=("Optional. Defines the location of the datasets "
                   "to be registered. Can be 'local', 'ftp', or " 
                   "'rasdaman'. Defaults to 'local'.")
-        )
+        ),
+        make_option('--host',
+            dest='host',
+            default=None,
+            help=("Mandatory when mode is not 'local'. Defines the "
+                  "ftp/rasdaman host to locate the dataset.")
+        ),
+        make_option('--port',
+            dest='port', type='int',
+            default=None,
+            help=("Optional. Defines the port for ftp/rasdaman host "
+                  "connections.")
+        ),
+        make_option('--user',
+            dest='user',
+            default=None,
+            help=("Optional. Defines the ftp/rasdaman user for the "
+                  "ftp/rasdaman connection.")
+        ),
+        make_option('--password',
+            dest='password',
+            default=None,
+            help=("Optional. Defines the ftp/rasdaman user password "
+                  "for the ftp/rasdaman connection.")
+        ),
+        make_option('--database',
+            dest='database',
+            default=None,
+            help=("Optional. Defines the rasdaman database containing "
+                  "the data.")
+        ),
+        make_option('--oid', '--oids',
+            dest='oids',
+            action='callback', callback=_variable_args_cb,
+            default=[],
+            help=("Optional. List of rasdaman oids for each dataset "
+                  "to be inserted.")
+        ),
+        make_option('--default-srid',
+            dest='default_srid',
+            default=None,
+            help=("Optional. Default SRID, needed if it cannot be " 
+                  "determined automatically by GDAL.")
+        ),
     )
     
     help = ('Registers one or more datasets from each a data and '
@@ -144,6 +190,8 @@ class Command(BaseCommand):
         
         metadatafiles = options.get('metadatafiles')
         coverageids = options.get('coverageids')
+        mode = options.get('mode', 'local')
+        default_srid = options.get("default_srid")
         
         containers = []
         
@@ -185,17 +233,44 @@ class Command(BaseCommand):
             }
         )
         
+        host = options.get("host")
+        port = options.get("port")
+        user = options.get("user")
+        password = options.get("password")
+        oids = options.get("oids")
+        database = options.get("database")
+        
+        if mode in ('rasdaman', 'ftp'):
+            if host is None:
+                raise CommandError(
+                    "The '--host' parameter is required when mode "
+                    "is 'ftp' or 'rasdaman'."
+                )
+            
+        
         #=======================================================================
         # Normalize metadata files and coverage id lists
         #=======================================================================
         
         if len(datafiles) > len(metadatafiles):
+            if mode == "rasdaman":
+                raise CommandError(
+                    "All rasdaman datasets require local metadata. "
+                    "Use the --metadata-files option."
+                )
+            
             metadatafiles.extend([
                 os.path.splitext(datafile)[0] + '.xml'
                 for datafile in datafiles[len(metadatafiles):]
             ])
         
         if len(datafiles) > len(coverageids):
+            if mode == "rasdaman":
+                raise CommandError(
+                    "All rasdaman datasets require a explicit IDs. "
+                    "Use the --coverage-id option."
+                )
+            
             coverageids.extend([
                 os.path.basename(os.path.splitext(datafile)[0])
                 for datafile in datafiles[len(coverageids):]
@@ -205,18 +280,72 @@ class Command(BaseCommand):
         # Execute creation and insertion
         #=======================================================================
         
+        if mode in ("ftp", "rasdaman"):
+            self.print_msg(
+                """Using %s-connection:
+                    Host: %s
+                    Port: %s
+                    User: %s
+                    Password: %s
+                    %s
+                """ % (
+                    mode, host, port, user, password,
+                    "Database: %s" % database
+                    if mode == 'rasdaman' else "" 
+                ), 2
+            )
+        
         for df, mdf, cid in zip(datafiles, metadatafiles, coverageids):
             self.print_msg("Inserting coverage with ID '%s'." % cid, 2)
-            self.print_msg("\tFile: '%s'\n\tMeta-data: '%s'" % (df, mdf), 2)
             
-            # TODO use mode option to allow also ftp and rasdaman
-            
-            wrapper = mgr.create(
-                cid,
-                local_path=df,
-                md_local_path=mdf,
-                range_type_name=rangetype
-            )
+            if mode == 'local':
+                self.print_msg("\tFile: '%s'\n\tMeta-data: '%s'" % (df, mdf), 2)
+                wrapper = mgr.create(
+                    cid,
+                    local_path=df,
+                    md_local_path=mdf,
+                    range_type_name=rangetype,
+                    default_srid=default_srid
+                )
+            elif mode == 'ftp':
+                self.print_msg("\tFile: '%s'\n\tMeta-data: '%s'" % (df, mdf), 2)
+                wrapper = mgr.create(
+                    cid,
+                    remote_path=df,
+                    md_remote_path=mdf,
+                    range_type_name=rangetype,
+                    default_srid=default_srid,
+                    
+                    ftp_host=host,
+                    ftp_port=port,
+                    ftp_user=user,
+                    ftp_passwd=password
+                )
+            elif mode == 'rasdaman':
+                try:
+                    oid = oids.pop(0)
+                except IndexError:
+                    oid=None
+                
+                self.print_msg(
+                    "\tCollection: '%s'\n\tOID:%s\n\tMeta-data: '%s'" % (
+                        df, oid, mdf
+                    ), 2
+                )
+                wrapper = mgr.create(
+                    cid,
+                    collection=df,
+                    oid=oid,
+                    md_local_path=mdf,
+                    range_type_name=rangetype,
+                    default_srid=default_srid,
+                    
+                    ras_host=host,
+                    ras_port=port,
+                    ras_user=user,
+                    ras_passwd=password,
+                    ras_db=database
+                )
             
             # add the dataset to the dataset series or mosaic, if requested
             for container in containers:
