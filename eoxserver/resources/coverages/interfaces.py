@@ -485,7 +485,6 @@ class CoverageInterface(ResourceInterface):
        * ``eo.rect_dataset``
        * ``eo.ref_dataset``
        * ``eo.rect_stitched_mosaic``
-       * ``eo.ref_stitched_mosaic``
     
     .. method:: getSize
     

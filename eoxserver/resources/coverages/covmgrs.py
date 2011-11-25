@@ -357,8 +357,11 @@ class CoverageManagerDatasetMixIn(object):
 
     def _get_geo_metadata(self, data_package, params):
         geo_metadata = params.get("geo_metadata")
+        
+        default_srid = params.get("default_srid")
+        
         if not geo_metadata and data_package:
-            geo_metadata = data_package.readGeospatialMetadata()
+            geo_metadata = data_package.readGeospatialMetadata(default_srid)
             
         return geo_metadata
 
