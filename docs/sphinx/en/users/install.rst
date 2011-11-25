@@ -310,9 +310,11 @@ instance base folder:
 
     python manage.py eoxs_register_dataset --data-file DATAFILES --rangetype RANGETYPE
 
-The mandatory parameter `data-file` is a list of at least one path to a file
-containing the raster data for the dataset to be inserted. The files can be
-in any compliant (GDAL readable) format.
+The mandatory parameter ``--data-file`` is a list of at least one path to a
+file containing the raster data for the dataset to be inserted. The files can
+be in any compliant (GDAL readable) format. When inserting datasets located in
+a Rasdaman database, this parameter defines the `collection` the dataset is
+contained in.
 
 Also mandatory is the parameter ``--rangetype``, the name of a range type which
 has to be already present in the instance's database.
@@ -322,9 +324,10 @@ observation specific metadata. The optional parameter ``--metadata-file`` shall
 contain a list of paths to these files, where the items of this list refer to
 the data files with the same index of the according option. This parameter can
 also be omitted, in this case for each data file a metadata file is assumed
-with the same path, but with an `.xml` extension. When inserting rasdaman
-datasets, this parameter is mandatory, since the metadata cannot be retrieved
-from within the rasdaman database.
+with the same path, but with an `.xml` extension. When inserting datasets
+located in a Rasdaman database, this parameter is mandatory, since the metadata
+cannot be retrieved from within the rasdaman database and must be locally
+accessible.
 
 For each dataset a coverage ID can be specified with the ``--coverage-id``
 parameter. As with the ``--metadata-file`` option, the items of the list refer
@@ -335,8 +338,17 @@ The parameters ``--dataset-series`` and ``--stitched-mosaic`` allow to insert
 the dataset into all dataset series and rectified stitched mosaics specified
 by their EO IDs.
 
-The ``--mode`` parameter specifies the location of the data and metadata files.
-This can either be `local`, `ftp` or `rasdaman`, whereas the default is `local`.
+The ``--mode`` parameter specifies the location of the data and metadata files
+as they may be located on a FTP server or in a Rasdaman database. This can
+either be `local`, `ftp` or `rasdaman`, whereas the default is `local`.
+
+When the mode is set to either `ftp` or `rasdaman` the following options define
+the location of the dataset and the connection to it more thoroughly: ``--host``,
+``--port``, ``--user``, ``--password``, and ``--database`` (only for `rasdaman`).
+Only the ``--host`` parameter is mandatory, all others are optional.
+
+The ``--default-srid`` parameter is required when the SRID cannot be determined
+automatically, as for example with rasdaman datasets.
 
 This is an example usage of the ``eoxs_register_dataset`` command:
 ::
