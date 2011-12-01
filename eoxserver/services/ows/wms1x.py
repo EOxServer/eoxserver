@@ -269,6 +269,8 @@ class WMSCommonHandler(MapServerOperationHandler):
                     #layer.setMetaData("wms_srs", "EPSG:%d" % int(datasets[0].getSRID()))
                     
                     srids = set([int(dataset.getSRID()) for dataset in datasets])
+                    srids.add(4326)
+                    srids.add(900913)
                     
                     layer.setMetaData("wms_srs", " ".join([
                         "EPSG:%d" % srid for srid in srids
