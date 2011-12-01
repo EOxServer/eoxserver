@@ -266,7 +266,15 @@ class WMSCommonHandler(MapServerOperationHandler):
                     # set projection to the first datasets projection
                     # TODO: dataset projections can differ
                     layer.setProjection("+init=epsg:%d" % datasets[0].getSRID())
-                    layer.setMetaData("wms_srs", "EPSG:%d" % int(datasets[0].getSRID()))
+                    #layer.setMetaData("wms_srs", "EPSG:%d" % int(datasets[0].getSRID()))
+                    
+                    srids = set([int(dataset.getSRID()) for dataset in datasets])
+                    
+                    layer.setMetaData("wms_srs", " ".join([
+                        "EPSG:%d" % srid for srid in srids
+                    ]))
+                    
+                    logging.info("Setting 'wms_srs': %s"% layer.getMetaData("wms_srs"))
                     
                     # initialize OGR driver
                     driver = ogr.GetDriverByName('ESRI Shapefile')
