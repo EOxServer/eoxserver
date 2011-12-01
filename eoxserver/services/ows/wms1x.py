@@ -32,6 +32,8 @@ import re
 import logging
 import os
 import os.path
+import tempfile
+import uuid
 
 from osgeo import gdal, ogr, osr
 
@@ -152,6 +154,9 @@ class WMS13VersionHandler(OWSCommonVersionHandler):
 WMS13VersionHandlerImplementation = VersionHandlerInterface.implement(WMS13VersionHandler)
 
 class WMSCommonHandler(MapServerOperationHandler):
+    def __init__(self):
+        self.shapefiles_to_delete = []
+    
     def getMapServerLayer(self, coverage, **kwargs):
         logging.debug("WMSCommonHandler.getMapServerLayer")
         
@@ -269,13 +274,16 @@ class WMSCommonHandler(MapServerOperationHandler):
                         raise InternalError("Cannot start GDAL Shapefile driver")
                     
                     # create path to temporary shapefile, if it already exists, delete it
-                    path = os.path.join(settings.PROJECT_DIR, "data", "tmp", "tmp.shp")
+                    path = os.path.join(tempfile.gettempdir(), "%s.shp" % uuid.uuid4().hex)
+                    self.shapefiles_to_delete.append(path)
+                    
                     if os.path.exists(path):
                         driver.DeleteDataSource(path)
                     
                     # create a new shapefile
                     shapefile = driver.CreateDataSource(path)
                     if shapefile is None:
+                        logging.error("Cannot create shapefile '%s'." % path)
                         raise InternalError("Cannot create shapefile '%s'." % path)
                     
                     # create a new srs object
@@ -294,6 +302,12 @@ class WMSCommonHandler(MapServerOperationHandler):
                         raise InternalError("Cannot create field 'location' on layer 'file_locations' in shapefile '%s'" % self.path)
                     
                     # add each dataset to the layer as a feature
+                    
+                    tmp = []
+                    for dataset in datasets:
+                        tmp.extend(dataset.getDatasets())
+                    datasets = tmp
+                    
                     for dataset in datasets:
                         feature = ogr.Feature(shapefile_layer.GetLayerDefn())
                         
@@ -308,7 +322,9 @@ class WMSCommonHandler(MapServerOperationHandler):
                         ), srs)
                         
                         feature.SetGeometry(geom)
-                        feature.SetField("location", str(os.path.abspath(dataset.getFilename())))
+                        
+                        feature.SetField("location", str(os.path.abspath(dataset.getData().getGDALDatasetIdentifier())))
+                        
                         if shapefile_layer.CreateFeature(feature) != 0:
                             raise InternalError("Could not create shapefile entry for file '%s'" % path)
                         feature = None
@@ -320,6 +336,10 @@ class WMSCommonHandler(MapServerOperationHandler):
                     #set mapserver layer information for the shapefile
                     layer.tileindex = os.path.abspath(path)
                     layer.tileitem = "location"
+                    
+                    # set offsite; TODO: make this dependant on nilvalues
+                    layer.offsite = mapscript.colorObj(0,0,0)
+                    
 
         except InternalError:
             # create "no data" layer
@@ -328,6 +348,14 @@ class WMSCommonHandler(MapServerOperationHandler):
             layer.setMetaData("wms_srs", "EPSG:3035 EPSG:4326 EPSG:900913") # TODO find out possible projections
 
         return layer
+    
+    def postprocess(self, ms_req, resp):
+        # delete temporary shapefiles used for dataset series
+        driver = ogr.GetDriverByName('ESRI Shapefile')
+        for path in self.shapefiles_to_delete:
+            driver.DeleteDataSource(path)
+        
+        return super(WMSCommonHandler, self).postprocess(ms_req, resp)
 
 class WMS1XGetCapabilitiesHandler(WMSCommonHandler):
     def createCoverages(self, ms_req):
