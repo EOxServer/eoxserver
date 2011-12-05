@@ -33,7 +33,10 @@ This module provides the implementation of the FTP remote file backend.
 
 import os.path
 from fnmatch import fnmatch
-from ftplib import FTP, error_perm as ftplib_error_perm
+from ftplib import (
+    FTP, error_perm as ftplib_error_perm,
+    error_temp as ftplib_error_temp
+)
 import logging
 
 from eoxserver.core.system import System
@@ -194,6 +197,21 @@ class FTPStorage(object):
             
             for path in paths
         ]
+    
+    def exists(self, location):
+        """
+        Checks the existance of a certain location within the storage.
+        Returns `True` if the location exists and `False` if not or the
+        location is not accessible.
+        """
+        try:
+            if self.ftp.nlst(location.getPath()):
+                return True
+            else:
+                return False
+        except ftplib_error_temp:
+            return False
+            
         
     def _recursive_nlst(self, search_path, search_pattern=None):
         # this does a recursive search of an FTP directory
