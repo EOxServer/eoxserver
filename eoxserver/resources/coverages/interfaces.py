@@ -70,6 +70,11 @@ class DataSourceInterface(RegisteredInterface):
     detect = Method(
         returns = ListArg("@return")
     )
+    
+    contains = Method(
+        IntArg("res_id"),
+        returns = BoolArg("@return")
+    )
 
 class CoverageDataInterface(RecordWrapperInterface):
     """
@@ -987,5 +992,9 @@ class ManagerInterface(RegisteredInterface):
     )
     
     delete = Method(
+        StringArg("obj_id")
+    )
+    
+    synchronize = Method(
         StringArg("obj_id")
     )
