@@ -88,3 +88,6 @@ class LocationWrapper(RecordWrapper):
         """
         return self.storage.detect(self, search_pattern)
     
+    def exists(self):
+        return self.storage.exists(self)
+    

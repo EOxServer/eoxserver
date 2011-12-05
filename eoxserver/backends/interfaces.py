@@ -183,6 +183,10 @@ class LocationInterface(RecordWrapperInterface):
         returns = ListArg("@return")
     )
     
+    exists = Method(
+        returns = BoolArg("@return")
+    )
+    
 class LocalPathInterface(LocationInterface):
     """
     This is the interface for locations on the local file system. It

@@ -144,6 +144,9 @@ class LocalStorage(object):
         return [
             factory.create(type="local", path=path) for path in paths
         ]
+    
+    def exists(self, location):
+        return os.path.exists(location.getPath())
         
 LocalStorageImplementation = StorageInterface.implement(LocalStorage)
 
@@ -215,7 +218,7 @@ class LocalPathWrapper(LocationWrapper):
             raise DataAccessError(
                 "Could not open file '%s'. Path does not exist." % path
             )
-        
+    
     def _bind_to_storage(self):
         return System.getRegistry().bind("backends.local.LocalStorage")
         

@@ -90,6 +90,11 @@ class RasdamanStorage(object):
             "The rasdaman storage does not support detection of datasets."
         )
         
+    def exists(self, location):
+        raise InternalError(
+            "The rasdaman storage does not support detection of datasets."
+        )
+        
 RasdamanStorageImplementation = \
 StorageInterface.implement(RasdamanStorage)
         
