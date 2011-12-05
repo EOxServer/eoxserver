@@ -165,7 +165,7 @@ class LineageRecord(models.Model):
 class EOMetadataRecord(models.Model):
     timestamp_begin = models.DateTimeField("Begin of acquisition")
     timestamp_end = models.DateTimeField("End of acquisition")
-    footprint = models.PolygonField(srid=4326, geography=True)
+    footprint = models.PolygonField(srid=4326)
     eo_gml = models.TextField("EO O&M", blank=True, validators=[validateEOOM]) # validate against schema
     objects = models.GeoManager()
 
@@ -254,6 +254,11 @@ class RemoteDataPackage(DataPackage):
     metadata_location = models.ForeignKey(RemotePath, related_name="metadata_file_packages", null=True)
     
     cache_file = models.ForeignKey(CacheFile, related_name="remote_data_packages", null=True)
+    
+    def delete(self):
+        cache_file = self.cache_file
+        super(RemoteDataPackage, self).delete()
+        cache_file.delete()
 
 class RasdamanDataPackage(DataPackage):
     DATA_PACKAGE_TYPE = "rasdaman"
@@ -270,10 +275,10 @@ class TileIndex(models.Model):
 
 class CoverageRecord(Resource):
     coverage_id = models.CharField("Coverage ID", max_length=256, unique=True, validators=[NCNameValidator])
-    range_type = models.ForeignKey(RangeTypeRecord)
+    range_type = models.ForeignKey(RangeTypeRecord, on_delete=models.PROTECT)
     layer_metadata = models.ManyToManyField(LayerMetadataRecord, null=True, blank=True)
     automatic = models.BooleanField(default=False) # True means that the dataset was automatically generated from a dataset series's data dir
-    data_source = models.ForeignKey(DataSource, related_name="%(class)s_set", null=True) # Has to be set if automatic is true.
+    data_source = models.ForeignKey(DataSource, related_name="%(class)s_set", null=True, blank=True, on_delete=models.SET_NULL) # Has to be set if automatic is true.
 
     def clean(self):
         if self.automatic and self.data_source is None:
@@ -286,6 +291,11 @@ class PlainCoverageRecord(CoverageRecord):
     class Meta:
         verbose_name = "Single File Coverage"
         verbose_name_plural = "Single File Coverages"
+        
+    def delete(self):
+        extent = self.extent
+        super(PlainCoverageRecord, self).delete()
+        extent.delete()
 
 class EOCoverageMixIn(models.Model):
     eo_id = models.CharField("EO ID", max_length=256, unique=True, validators=[NCNameValidator])
@@ -313,6 +323,11 @@ class EODatasetMixIn(EOCoverageMixIn):
 
     class Meta:
         abstract=True
+    
+    def delete(self):
+        data_package = self.data_package
+        super(EOCoverageMixIn, self).delete()
+        data_package.delete()
         
 class RectifiedDatasetRecord(CoverageRecord, EODatasetMixIn):
     extent = models.ForeignKey(ExtentRecord, related_name="rect_datasets")
@@ -320,6 +335,11 @@ class RectifiedDatasetRecord(CoverageRecord, EODatasetMixIn):
     class Meta:
         verbose_name = "Rectified Dataset"
         verbose_name_plural = "Rectified Datasets"
+        
+    def delete(self):
+        extent = self.extent
+        super(EOCoverageMixIn, self).delete()
+        extent.delete()
 
 class ReferenceableDatasetRecord(CoverageRecord, EODatasetMixIn):
     size_x = models.IntegerField()
@@ -348,11 +368,12 @@ class RectifiedStitchedMosaicRecord(CoverageRecord, EOCoverageMixIn):
         verbose_name_plural = "Stitched Mosaics"
 
     def delete(self):
-        eo_metadata = self.eo_metadata
+        tile_index = self.tile_index
+        # TODO maybe delete only automatic datasets?
         for dataset in self.rect_datasets.all():
             dataset.delete()
         super(RectifiedStitchedMosaicRecord, self).delete()
-        eo_metadata.delete()
+        tile_index.delete()
 
 class DatasetSeriesRecord(Resource):
     eo_id = models.CharField("EO ID", max_length=256, unique=True, validators=[NCNameValidator])
