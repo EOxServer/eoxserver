@@ -30,7 +30,6 @@
 import logging
 
 from eoxserver.core.system import System
-
 from eoxserver.testing.core import EOxServerTestCase, BASE_FIXTURES
 
 BACKEND_FIXTURES = ["testing_coverages.json", "testing_backends.json"]
