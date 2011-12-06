@@ -53,5 +53,15 @@ def getSRIDFromCRSURI(uri):
         else:
             return None
 
+def getSRIDFromCRSIdentifier(identifier):
+    ret = getSRIDFromCRSURI(identifier)
+    if not ret:
+        match = re.match(r"EPSG:(\d*)", identifier)
+        if match is not None:
+            return int(match.group(1))
+        else:
+            return None
+    return ret
+
 def posListToWkt(pos_list):
     return ",".join("%f %f" % (pos_list[2*c], pos_list[2*c+1]) for c in range(0, len(pos_list) / 2))
