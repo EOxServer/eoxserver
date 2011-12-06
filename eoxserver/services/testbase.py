@@ -264,7 +264,7 @@ class XMLTestCase(OWSTestCase):
         schema = etree.XMLSchema(etree.XML(etree.tostring(schema_def)))
             
         try:
-            schema.assertValid(etree.fromstring(self.getXMLData()))
+            schema.assertValid(doc)
         except etree.Error as e:
             self.fail(str(e))
         

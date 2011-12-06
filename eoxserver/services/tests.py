@@ -91,14 +91,24 @@ class WCS11GetCoverageMosaicTestCase(eoxstest.MultipartTestCase):
         params = "service=WCS&version=1.1.2&request=GetCoverage&identifier=mosaic_MER_FRS_1P_RGB_reduced&crs=epsg:4326&bbox=-4,32,28,46.5&format=image/tiff"
         return (params, "kvp")
 
-class WCS11GetCoverageDatasetComplexTestCase(eoxstest.MultipartTestCase):
+class WCS11GetCoverageDatasetSubsetTestCase(eoxstest.MultipartTestCase):
     def getRequest(self):
-        params = "service=WCS&version=1.1.2&request=GetCoverage&identifier=mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced&boundingbox=-4,32,28,46.5,urn:ogc:def:crs:EPSG::4326&format=image/tiff&GridBaseCRS=urn:ogc:def:crs:EPSG::4326&GridCS=urn:ogc:def:crs:EPSG::4326&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=33,11.4&GridOffsets=1,1"
+        params = "service=WCS&version=1.1.2&request=GetCoverage&identifier=mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced&boundingbox=0,0,550,440,urn:ogc:def:crs:OGC::imageCRS&format=image/tiff&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridBaseCRS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=0,0&GridOffsets=2,2"
         return (params, "kvp")
 
-class WCS11GetCoverageMosaicComplexTestCase(eoxstest.MultipartTestCase):
+class WCS11GetCoverageDatasetSubsetEPSG4326TestCase(eoxstest.MultipartTestCase):
     def getRequest(self):
-        params = "service=WCS&version=1.1.2&request=GetCoverage&identifier=mosaic_MER_FRS_1P_RGB_reduced&boundingbox=-4,32,28,46.5,urn:ogc:def:crs:EPSG::4326&format=image/tiff&GridBaseCRS=urn:ogc:def:crs:EPSG::4326&GridCS=urn:ogc:def:crs:EPSG::4326&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=33,11.4&GridOffsets=1,1"
+        params = "service=WCS&version=1.1.2&request=GetCoverage&identifier=mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced&boundingbox=32,12,46.5,28,urn:ogc:def:crs:EPSG::4326&format=image/tiff&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridBaseCRS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=46.5,12&GridOffsets=0.06,0.06"
+        return (params, "kvp")
+
+class WCS11GetCoverageMosaicSubsetTestCase(eoxstest.MultipartTestCase):
+    def getRequest(self):
+        params = "service=WCS&version=1.1.2&request=GetCoverage&identifier=mosaic_MER_FRS_1P_RGB_reduced&boundingbox=300,200,700,350,urn:ogc:def:crs:OGC::imageCRS&format=image/tiff&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridBaseCRS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=0,0&GridOffsets=2,2"
+        return (params, "kvp")
+
+class WCS11GetCoverageMosaicSubsetEPSG4326TestCase(eoxstest.MultipartTestCase):
+    def getRequest(self):
+        params = "service=WCS&version=1.1.2&request=GetCoverage&identifier=mosaic_MER_FRS_1P_RGB_reduced&boundingbox=35,10,42,20,urn:ogc:def:crs:EPSG::4326&format=image/tiff&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridBaseCRS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=40,10&GridOffsets=-0.06,0.06"
         return (params, "kvp")
 
 #===============================================================================
@@ -884,7 +894,7 @@ class WCS11PostGetCapabilitiesValidTestCase(eoxstest.XMLTestCase):
     def getRequest(self):
         params = """<ns:GetCapabilities xmlns:ns="http://www.opengis.net/wcs/1.1" 
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-          xsi:schemaLocation="http://www.opengis.net/wcs/1.1 ../wcsGetCapabilities.xsd" 
+          xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsGetCapabilities.xsd" 
           service="WCS" version="1.1.2"/>"""
         return (params, "xml")
         
@@ -895,7 +905,7 @@ class WCS11PostDescribeCoverageDatasetTestCase(eoxstest.XMLTestCase):
     def getRequest(self):
         params = """<DescribeCoverage xmlns="http://www.opengis.net/wcs/1.1" 
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-          xsi:schemaLocation="http://www.opengis.net/wcs/1.1 ../wcsDescribeCoverage.xsd" 
+          xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsDescribeCoverage.xsd" 
           service="WCS" version="1.1.2">
             <Identifier>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</Identifier>
           </DescribeCoverage>"""
@@ -908,27 +918,27 @@ class WCS11PostDescribeCoverageMosaicTestCase(eoxstest.XMLTestCase):
     def getRequest(self):
         params = """<DescribeCoverage xmlns="http://www.opengis.net/wcs/1.1" 
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-          xsi:schemaLocation="http://www.opengis.net/wcs/1.1 ../wcsDescribeCoverage.xsd" 
+          xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsDescribeCoverage.xsd" 
           service="WCS" version="1.1.2">
             <Identifier>mosaic_MER_FRS_1P_RGB_reduced</Identifier>
           </DescribeCoverage>"""
         return (params, "xml")
 
-class WCS11xPostGetCoverageDatasetTestCase(eoxstest.MultipartTestCase):
+class WCS11PostGetCoverageDatasetTestCase(eoxstest.MultipartTestCase):
     def getRequest(self):
         params = """<GetCoverage xmlns="http://www.opengis.net/wcs/1.1" 
           xmlns:ows="http://www.opengis.net/ows/1.1" 
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-          xsi:schemaLocation="http://www.opengis.net/wcs/1.1 ../wcsGetCoverage.xsd" 
+          xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsGetCoverage.xsd" 
           service="WCS" version="1.1.2">
-          <ows:Identifier>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</ows:Identifier>
-          <DomainSubset>
-            <ows:BoundingBox crs="epsg:4326">
-            <ows:LowerCorner>12 32</ows:LowerCorner>
-            <ows:UpperCorner>28 46.5</ows:UpperCorner>
-          </ows:BoundingBox>
-          </DomainSubset>
-          <Output format="image/tiff"/>
+            <ows:Identifier>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</ows:Identifier>
+            <DomainSubset>
+              <ows:BoundingBox crs="urn:ogc:def:crs:EPSG::4326">
+                <ows:LowerCorner>32 12</ows:LowerCorner>
+                <ows:UpperCorner>46.5 28</ows:UpperCorner>
+              </ows:BoundingBox>
+            </DomainSubset>
+            <Output format="image/tiff"/>
           </GetCoverage>"""
         return (params, "xml")
 
@@ -937,30 +947,63 @@ class WCS11PostGetCoverageMosaicTestCase(eoxstest.MultipartTestCase):
         params = """<GetCoverage xmlns="http://www.opengis.net/wcs/1.1" 
           xmlns:ows="http://www.opengis.net/ows/1.1" 
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-          xsi:schemaLocation="http://www.opengis.net/wcs/1.1 ../wcsGetCoverage.xsd" 
+          xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsGetCoverage.xsd" 
           service="WCS" version="1.1.2">
-          <ows:Identifier>mosaic_MER_FRS_1P_RGB_reduced</ows:Identifier>
-          <DomainSubset>
-            <ows:BoundingBox crs="epsg:4326">
-            <ows:LowerCorner>-4 32</ows:LowerCorner>
-            <ows:UpperCorner>28 46.5</ows:UpperCorner>
-          </ows:BoundingBox>
-          </DomainSubset>
-          <Output format="image/tiff"/>
+            <ows:Identifier>mosaic_MER_FRS_1P_RGB_reduced</ows:Identifier>
+            <DomainSubset>
+              <ows:BoundingBox crs="urn:ogc:def:crs:EPSG::4326">
+                <ows:LowerCorner>32 -4</ows:LowerCorner>
+                <ows:UpperCorner>46.5 28</ows:UpperCorner>
+              </ows:BoundingBox>
+            </DomainSubset>
+            <Output format="image/tiff"/>
           </GetCoverage>"""
         return (params, "xml")
 
-# TODO: Not implemented yet:
-# class WCS11xPostGetCoverageDatasetComplexTestCase(eoxstest.MultipartTestCase):
-#     def getRequest(self):
-#         params = "service=WCS&version=1.1.2&request=GetCoverage&identifier=mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced&boundingbox=-4,32,28,46.5,urn:ogc:def:crs:EPSG::4326&format=image/tiff&GridBaseCRS=urn:ogc:def:crs:EPSG::4326&GridCS=urn:ogc:def:crs:EPSG::4326&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=33,11.4&GridOffsets=1,1"
-#         return (params, "xml")
+# TODO: Not working because of a bug in MapServer
+#class WCS11PostGetCoverageDatasetSubsetTestCase(eoxstest.MultipartTestCase):
+    #def getRequest(self):
+        #params = """<GetCoverage xmlns="http://www.opengis.net/wcs/1.1" 
+          #xmlns:ows="http://www.opengis.net/ows/1.1" 
+          #xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+          #xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsGetCoverage.xsd" 
+          #service="WCS" version="1.1.2">
+            #<ows:Identifier>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</ows:Identifier>
+            #<DomainSubset>
+              #<ows:BoundingBox crs="urn:ogc:def:crs:OGC::imageCRS">
+                #<ows:LowerCorner>0 0</ows:LowerCorner>
+                #<ows:UpperCorner>550 440</ows:UpperCorner>
+              #</ows:BoundingBox>
+            #</DomainSubset>
+            #<Output format="image/tiff">
+              #<GridCRS>
+                #<GridBaseCRS>urn:ogc:def:crs:EPSG::4326</GridBaseCRS>
+                #<GridType>urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs</GridType>
+                #<GridOrigin>0 0</GridOrigin>
+                #<GridOffsets>2 2</GridOffsets>
+                #<GridCS>urn:ogc:def:crs:OGC::imageCRS</GridCS>
+              #</GridCRS>
+            #</Output>
+          #</GetCoverage>"""
+        #return (params, "xml")
 
-# TODO: Not implemented yet:
-# class WCS11xPostGetCoverageMosaicComplexTestCase(eoxstest.MultipartTestCase):
-#     def getRequest(self):
-#         params = "service=WCS&version=1.1.2&request=GetCoverage&identifier=mosaic_MER_FRS_1P_RGB_reduced&boundingbox=-4,32,28,46.5,urn:ogc:def:crs:EPSG::4326&format=image/tiff&GridBaseCRS=urn:ogc:def:crs:EPSG::4326&GridCS=urn:ogc:def:crs:EPSG::4326&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=33,11.4&GridOffsets=1,1"
-#         return (params, "xml")
+#class WCS11PostGetCoverageDatasetSubsetEPSG4326TestCase(eoxstest.MultipartTestCase):
+    #def getRequest(self):
+        #params = """"""
+##boundingbox=32,12,46.5,28,urn:ogc:def:crs:EPSG::4326&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=46.5,12&GridOffsets=0.06,0.06"
+        #return (params, "xml")
+
+#class WCS11PostGetCoverageMosaicSubsetTestCase(eoxstest.MultipartTestCase):
+    #def getRequest(self):
+        #params = """"""
+##boundingbox=300,200,700,350,urn:ogc:def:crs:OGC::imageCRS&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=0,0&GridOffsets=2,2"
+        #return (params, "xml")
+
+#class WCS11PostGetCoverageMosaicSubsetEPSG4326TestCase(eoxstest.MultipartTestCase):
+    #def getRequest(self):
+        #params = """"""
+##boundingbox=35,10,42,20,urn:ogc:def:crs:EPSG::4326&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=40,10&GridOffsets=-0.06,0.06"
+        #return (params, "xml")
 
 #===============================================================================
 # WMS
@@ -1000,6 +1043,8 @@ class WMS13GetMapDatasetSeriesTestCase(eoxstest.WMS13GetMapTestCase):
     layers = ("MER_FRS_1P_reduced",)
     width = 200
     bbox = (-3.75, 32.158895, 28.326165, 46.3)
+    
+# TODO: Add test cases with time parameter (point, interval, etc.)
     
 class WMS13GetMapPNGDatasetTestCase(eoxstest.WMS13GetMapTestCase):
     """ Test a GetMap request with a dataset series. """
