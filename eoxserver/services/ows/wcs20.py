@@ -72,12 +72,6 @@ from eoxserver.services.ows.wcs.encoders import WCS20EOAPEncoder
 
 from eoxserver.contrib import mapscript
 
-logging.basicConfig(
-    filename=os.path.join(settings.PROJECT_DIR, 'logs', 'eoxserver.log'),
-    level=logging.INFO,
-    format="[%(asctime)s][%(levelname)s] %(message)s"
-)
-
 class WCS20VersionHandler(OWSCommonVersionHandler):
     SERVICE = "wcs"
     
