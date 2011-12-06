@@ -285,7 +285,7 @@ In the Apache2 configuration file for your server, e.g.
             AllowOverride None 
             Options +ExecCGI -MultiViews +SymLinksIfOwnerMatch 
             AddHandler wsgi-script .py 
-            Order Allow, Deny
+            Order Allow,Deny
             Allow from all 
     </Directory>
 
