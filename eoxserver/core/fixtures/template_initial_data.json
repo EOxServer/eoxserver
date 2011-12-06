@@ -912,6 +912,30 @@
         }
     }, 
     {
+        "pk": 115, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.LocationReferencesRectifiedDatasetFilter", 
+            "intf_id": "core.filters.Filter"
+        }
+    }, 
+    {
+        "pk": 116, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.LocationReferencesDatasetExpression", 
+            "intf_id": "core.filters.FilterExpression"
+        }
+    }, 
+    {
+        "pk": 117, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.filters.LocationReferencesReferencableDatasetFilter", 
+            "intf_id": "core.filters.Filter"
+        }
+    }, 
+    {
         "pk": 1, 
         "model": "core.component", 
         "fields": {
@@ -1708,5 +1732,26 @@
         "fields": {
             "enabled": true
         }
-    } 
+    }, 
+    {
+        "pk": 115, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 116, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 117, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }
 ]
