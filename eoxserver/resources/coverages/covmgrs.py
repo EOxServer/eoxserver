@@ -34,24 +34,9 @@ updated and deleted, e.g. to stay in sync with data on a storage.
 """
 
 import os.path
-from datetime import datetime
-from traceback import format_exc
 from ConfigParser import RawConfigParser
 import logging
-
-# the uuid module is available only since Python 2.5; in order to stay
-# compatible with Python 2.4 the random.randint function is imported
-global USE_UUID
-try:
-    from uuid import uuid4
-    
-    USE_UUID = True
-except ImportError:
-    from random import randint
-    
-    USE_UUID = False
-
-from django.conf import settings
+from uuid import uuid4
 
 from eoxserver.core.system import System
 from eoxserver.core.exceptions import InternalError, IDInUse
@@ -112,23 +97,19 @@ class BaseManager(object):
             raise
             
     def update(self, obj_id, **kwargs):
-        pass
+        raise InternalError("Not implemented.")
     
     def delete(self, obj_id):
-        pass
+        raise InternalError("Not implemented.")
+    
+    def synchronize(self, obj_id):
+        raise InternalError("Not implemented.")
         
     def _get_id_factory(self):
         raise InternalError("Not implemented.")
     
     def _generate_id(self):
-        if USE_UUID:
-            return "%s_%s" % (self._get_id_prefix(), uuid4().hex)
-        else:
-            return "%s_%s_%04d" % (
-                self._get_id_prefix(),
-                datetime.strftime("%Y%m%d%H%M%S"),
-                randint(0, 9999)
-            )
+        return "%s_%s" % (self._get_id_prefix(), uuid4().hex)
     
     def _get_id_prefix(self):
         raise InternalError("Not implemented.")
@@ -184,21 +165,43 @@ class BaseManagerContainerMixIn(object):
         for data_source in data_sources:
             locations = data_source.detect()
             
+            logging.info("Detected locations: %s"%[location.getPath() for location in locations])
+            
             for location in locations:
                 md_location = self._guess_metadata_location(location)
             
                 data_package = self._create_data_package(location, md_location)
                 
-                existing_coverages = data_package.getCoverages()
+                coverage_factory = System.getRegistry().bind(
+                    "resources.coverages.wrappers.EOCoverageFactory"
+                )
+                
+                filter_exprs = [System.getRegistry().getFromFactory(
+                    "resources.coverages.filters.CoverageExpressionFactory", {
+                        "op_name": "referenced_by",
+                        "operands": (location,)
+                    }
+                )]
+                
+                existing_coverages = coverage_factory.find(
+                    impl_ids=["resources.coverages.wrappers.RectifiedDatasetWrapper",
+                              "resources.coverages.wrappers.ReferenceableDatasetWrapper"],
+                    filter_exprs=filter_exprs
+                )
                 
                 if len(existing_coverages) == 1:
+                    coverage = existing_coverages[0]
+                    logging.info("Add %s (%s) to %s."%(
+                            coverage.getCoverageId(), coverage.getType(),
+                            container.getType()
+                        )
+                    )
                     container.addCoverage(
                         existing_coverages[0].getType(),
                         existing_coverages[0].getModel().pk # TODO: this is an ugly hack
                     )
                     
                 else:
-                
                     eo_metadata = data_package.readEOMetadata()
                     
                     coverage_id = self.rect_dataset_mgr.acquireID(
@@ -208,6 +211,8 @@ class BaseManagerContainerMixIn(object):
                     range_type_name = self._get_contained_range_type_name(
                         container, location
                     )
+                    
+                    logging.info("Creating new coverage with ID %s." % coverage_id)
                     
                     # TODO: implement creation of ReferenceableDatasets,
                     # RectifiedStitchedMosaics for DatasetSeriesManager
@@ -221,7 +226,36 @@ class BaseManagerContainerMixIn(object):
                     )
                 
                     self.rect_dataset_mgr.releaseID(coverage_id)
+                    
+                    logging.info("Done creating new coverage with ID %s." % coverage_id)
+    
+    def _synchronize(self, container, data_sources, datasets):
+        self._create_contained(container, data_sources)
+        
+        # delete all datasets, which do not have a file
+        for dataset in datasets:
+            if not dataset.getData().getLocation().exists():
+                logging.info(
+                    "Location %s does not exist. Deleting dangling dataset with ID %s"%(
+                        dataset.getData().getLocation().getPath(),
+                        dataset.getCoverageId()
+                    )
+                )
+                
+                self.rect_dataset_mgr.delete(dataset.getCoverageId())
             
+            elif dataset.getAttrValue("automatic"):
+                # remove all automatic coverages from a mosaic/dataset series
+                # which are not contained in a data source.
+                contained = False
+                for data_source in container.getDataSources():
+                    if data_source.contains(dataset.getModel().pk):
+                        contained = True
+                        break
+                
+                if not contained:
+                    container.removeCoverage(dataset.getType(), dataset.getModel().pk)
+    
     def _guess_metadata_location(self, location):
         if location.getType() == "local":
             return self.location_factory.create(
@@ -423,6 +457,33 @@ class CoverageManagerEOMixIn(object):
             )
     
         return eo_metadata
+    
+    def _get_containers(self, params):
+        containers = params.get("container_ids", [])
+        wrappers = []
+        
+        for obj_id in containers:
+            wrapper = System.getRegistry().getFromFactory(
+                "resources.coverages.wrappers.DatasetSeriesFactory",
+                {"obj_id": obj_id}
+            )
+            
+            if not wrapper:
+                wrapper = System.getRegistry().getFromFactory(
+                    "resources.coverages.wrappers.EOCoverageFactory", {
+                        "impl_id":"resources.coverages.wrappers.RectifiedStitchedMosaicWrapper",
+                        "obj_id": obj_id
+                    }
+                )
+            
+            if not wrapper:
+                raise InternalError(
+                    "Dataset Series or Rectified Stitched Mosaic with ID %s not found." % obj_id
+                ) 
+            
+            wrappers.append(wrapper)
+        
+        return wrappers 
 
 class PlainCoverageManager(CoverageManager, CoverageManagerDatasetMixIn):
     # TODO: implement PlainCoverageWrapper, CoverageFactory
@@ -499,6 +560,8 @@ class EODatasetManager(CoverageManager, CoverageManagerDatasetMixIn, CoverageMan
             
             data_source = kwargs.get("data_source")
             
+            containers = self._get_containers(kwargs)
+            
             return self._create_coverage(
                 coverage_id,
                 data_package,
@@ -507,7 +570,8 @@ class EODatasetManager(CoverageManager, CoverageManagerDatasetMixIn, CoverageMan
                 range_type_name,
                 layer_metadata,
                 eo_metadata,
-                kwargs.get("container"),
+                container=kwargs.get("container"),
+                containers=containers
             )
 
 class RectifiedDatasetManager(EODatasetManager):
@@ -519,10 +583,17 @@ class RectifiedDatasetManager(EODatasetManager):
         }
     }
     
+    def delete(self, obj_id):
+        wrapper = self.coverage_factory.get(
+            impl_id="resources.coverages.wrappers.RectifiedDatasetWrapper",
+            obj_id=obj_id
+        )
+        wrapper.deleteModel()
+    
     def _validate_type(self, coverage):
         return coverage.getType() == "eo.rect_dataset"
     
-    def _create_coverage(self, coverage_id, data_package, data_source, geo_metadata, range_type_name, layer_metadata, eo_metadata, container):
+    def _create_coverage(self, coverage_id, data_package, data_source, geo_metadata, range_type_name, layer_metadata, eo_metadata, container, containers):
         return self.coverage_factory.create(
             impl_id="resources.coverages.wrappers.RectifiedDatasetWrapper",
             params={
@@ -533,7 +604,8 @@ class RectifiedDatasetManager(EODatasetManager):
                 "range_type_name": range_type_name,
                 "layer_metadata": layer_metadata,
                 "eo_metadata": eo_metadata,
-                "container": container
+                "container": container,
+                "containers": containers
             }
         )
     
@@ -556,6 +628,21 @@ class RectifiedStitchedMosaicManager(BaseManagerContainerMixIn, CoverageManager)
             "resources.coverages.interfaces.res_type": "eo.rect_stitched_mosaic"
         }
     }
+    
+    def delete(self, obj_id):
+        wrapper = self.coverage_factory.get(
+            impl_id="resources.coverages.wrappers.RectifiedStitchedMosaicWrapper",
+            obj_id=obj_id
+        )
+        wrapper.delete()
+    
+    def synchronize(self, obj_id):
+        container = self.coverage_factory.get(
+            impl_id="resources.coverages.wrappers.RectifiedStitchedMosaicWrapper",
+            obj_id=obj_id
+        )
+        
+        self._synchronize(container, container.getDataSources(), container.getDatasets())
     
     def __init__(self):
         super(RectifiedStitchedMosaicManager, self).__init__()
@@ -668,6 +755,13 @@ class DatasetSeriesManager(BaseManagerContainerMixIn, BaseManager):
         self.data_source_factory = System.getRegistry().bind(
             "resources.coverages.data.DataSourceFactory"
         )
+    
+    def synchronize(self, obj_id):
+        container = self.dataset_series_factory.get(
+            obj_id=obj_id
+        )
+        
+        self._synchronize(container, container.getDataSources(), container.getEOCoverages())
         
     def _get_id_factory(self):
         return System.getRegistry().bind(
