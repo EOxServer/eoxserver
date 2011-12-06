@@ -70,9 +70,18 @@ def get_commands():
     
     return commands
     
+def print_possible_commands(commands, stream=sys.stdout):
+    stream.write(
+        "Type 'eoxserver-admin.py help <subcommand>' "
+        "for help on a specific subcommand.\n\n"
+    )
+    stream.write(
+        "Possible commands are:\n" + 
+        "\t%s" % ("\n\t".join(commands.keys())) +
+        "\n"
+    )
 
 def execute_from_commandline():
-    
     try:
         subcommand = sys.argv[1]
     except IndexError:
@@ -80,27 +89,24 @@ def execute_from_commandline():
     
     commands = get_commands()
     
-    try:
-        if subcommand in ('help', '--help'):
-            try:
-                cmd = commands[sys.argv[2]]
-                cmd.print_help(sys.argv[0], sys.argv[2])
-            except IndexError:
-                # TODO print general help
-                print "Usage: %s <command-name> [args]" % sys.argv[0]
-            except KeyError:
-                raise CommandNotFound(sys.argv[2])
-            
-        elif subcommand == '--version':
-            print eoxserver.get_version()
+    if subcommand in ('help', '--help', '-h'):
+        try:
+            cmd = commands[sys.argv[2]]
+            cmd.print_help(sys.argv[0], sys.argv[2])
+        except IndexError:
+            # TODO print general help
+            print "Usage: %s <command-name> [args]" % sys.argv[0]
+            print_possible_commands(commands)
+        except KeyError:
+            print "Command '%s' not found.\n" % sys.argv[2]
+            print_possible_commands(commands)
         
-        else:
-            try:
-                commands[subcommand].run_from_argv(sys.argv)
-            except KeyError:
-                raise CommandNotFound(subcommand)
-            
-    except CommandNotFound, e:
-        print "Command '%s' not found.\n" % e.cmdname
-        print "Possible commands are:"
-        print "\t%s" % "\n\t".join(commands.keys())
+    elif subcommand == '--version':
+        print eoxserver.get_version()
+    
+    else:
+        try:
+            commands[subcommand].run_from_argv(sys.argv)
+        except KeyError:
+            print "Command '%s' not found.\n" % sys.argv[2]
+            print_possible_commands(commands)
