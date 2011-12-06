@@ -56,7 +56,7 @@ def getSRIDFromCRSURI(uri):
 def getSRIDFromCRSIdentifier(identifier):
     ret = getSRIDFromCRSURI(identifier)
     if not ret:
-        match = re.match(r"EPSG:(\d*)", identifier)
+        match = re.match(r"EPSG:(\d*)", identifier, re.I)
         if match is not None:
             return int(match.group(1))
         else:
