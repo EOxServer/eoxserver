@@ -1,10 +1,17 @@
+include README
+include MANIFEST.in
 include HOWTO
 include ftpcache
 include responses
 include conf
 include logs
+include __init__.py 
+include urls.py
 recursive-include expected *
+recursive-include selenium *
+recursive-include scripts *
 recursive-include data *
-recursive-include selenium *.html
 exclude data/config.sqlite
-recursive-exclude data .svn
+exclude data/init_spatialite-2.3.sql
+exclude data/tmp
+recursive-exclude . *.pyc
