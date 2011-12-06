@@ -193,45 +193,8 @@ class Command(BaseCommand):
         mode = options.get('mode', 'local')
         default_srid = options.get("default_srid")
         
-        containers = []
-        
-        # check if insertion into a dataset series is requested.
-        # if yes, get the correct wrapper
         datasetseries_eoids = options.get('datasetseries_eoids', [])
-        for eoid in datasetseries_eoids:
-            dataset_series = System.getRegistry().getFromFactory(
-                "resources.coverages.wrappers.DatasetSeriesFactory",
-                {"obj_id": eoid}
-            )
-            if dataset_series is None:
-                raise CommandError(
-                    "Invalid dataset series EO-ID '%s'." % eoid
-                )
-            containers.append(dataset_series)
-        
         stitchedmosaic_eoids = options.get('stitchedmosaic_eoids', [])
-        for eoid in stitchedmosaic_eoids:
-            stitched_mosaic = System.getRegistry().getFromFactory(
-                "resources.coverages.wrappers.EOCoverageFactory",
-                {"obj_id": eoid}
-            )
-            if stitched_mosaic is None:
-                raise CommandError(
-                    "Invalid rectified stitched mosaic with coverage ID '%s'." % eoid
-                )
-            elif stitched_mosaic.getType() != "eo.rect_stitched_mosaic":
-                raise CommandError(
-                    "Coverage with ID '%s' is not a rectified stitched mosaic." % eoid
-                )
-            containers.append(stitched_mosaic)
-        
-        # get the right coverage manager
-        mgr = System.getRegistry().findAndBind(
-            intf_id="resources.coverages.interfaces.Manager",
-            params={
-                "resources.coverages.interfaces.res_type": "eo.rect_dataset"
-            }
-        )
         
         host = options.get("host")
         port = options.get("port")
@@ -240,13 +203,11 @@ class Command(BaseCommand):
         oids = options.get("oids")
         database = options.get("database")
         
-        if mode in ('rasdaman', 'ftp'):
-            if host is None:
-                raise CommandError(
-                    "The '--host' parameter is required when mode "
-                    "is 'ftp' or 'rasdaman'."
-                )
-            
+        if mode in ('rasdaman', 'ftp') and host is None:
+            raise CommandError(
+                "The '--host' parameter is required when mode "
+                "is 'ftp' or 'rasdaman'."
+            )
         
         #=======================================================================
         # Normalize metadata files and coverage id lists
@@ -276,9 +237,6 @@ class Command(BaseCommand):
                 for datafile in datafiles[len(coverageids):]
             ])
         
-        #=======================================================================
-        # Execute creation and insertion
-        #=======================================================================
         
         if mode in ("ftp", "rasdaman"):
             self.print_msg(
@@ -295,32 +253,43 @@ class Command(BaseCommand):
                 ), 2
             )
         
+        mgr = System.getRegistry().findAndBind(
+            intf_id="resources.coverages.interfaces.Manager",
+            params={
+                "resources.coverages.interfaces.res_type": "eo.rect_dataset"
+            }
+        )
+        
+        #=======================================================================
+        # Execute creation and insertion
+        #=======================================================================
+        
         for df, mdf, cid in zip(datafiles, metadatafiles, coverageids):
             self.print_msg("Inserting coverage with ID '%s'." % cid, 2)
             
+            args = {
+                "obj_id": cid,
+                "range_type_name": rangetype,
+                "default_srid": default_srid,
+                "container_ids": datasetseries_eoids + stitchedmosaic_eoids 
+            }
             if mode == 'local':
                 self.print_msg("\tFile: '%s'\n\tMeta-data: '%s'" % (df, mdf), 2)
-                wrapper = mgr.create(
-                    cid,
-                    local_path=df,
-                    md_local_path=mdf,
-                    range_type_name=rangetype,
-                    default_srid=default_srid
-                )
+                args.update({
+                    "local_path": df,
+                    "md_local_path": mdf,
+                })
             elif mode == 'ftp':
                 self.print_msg("\tFile: '%s'\n\tMeta-data: '%s'" % (df, mdf), 2)
-                wrapper = mgr.create(
-                    cid,
-                    remote_path=df,
-                    md_remote_path=mdf,
-                    range_type_name=rangetype,
-                    default_srid=default_srid,
+                args.update({
+                    "remote_path": df,
+                    "md_remote_path": mdf,
                     
-                    ftp_host=host,
-                    ftp_port=port,
-                    ftp_user=user,
-                    ftp_passwd=password
-                )
+                    "ftp_host": host,
+                    "ftp_port": port,
+                    "ftp_user": user,
+                    "ftp_passwd": password
+                })
             elif mode == 'rasdaman':
                 try:
                     oid = oids.pop(0)
@@ -332,33 +301,19 @@ class Command(BaseCommand):
                         df, oid, mdf
                     ), 2
                 )
-                wrapper = mgr.create(
-                    cid,
-                    collection=df,
-                    oid=oid,
-                    md_local_path=mdf,
-                    range_type_name=rangetype,
-                    default_srid=default_srid,
+                args.update({
+                    "collection": df,
+                    "oid": oid,
+                    "md_local_path": mdf,
                     
-                    ras_host=host,
-                    ras_port=port,
-                    ras_user=user,
-                    ras_passwd=password,
-                    ras_db=database
-                )
-            
-            # add the dataset to the dataset series or mosaic, if requested
-            for container in containers:
-                container.addCoverage("eo.rect_dataset", wrapper.getModel().pk)
-                ctype = (
-                    "dataset series" 
-                    if container.getType() == "eo.dataset_series"
-                    else "rectified stitched mosaic"
-                )
-                self.print_msg("Added dataset '%s' to %s '%s'." % (
-                        wrapper.getCoverageId(), ctype, container.getEOID()
-                    ), 2
-                )
+                    "ras_host": host,
+                    "ras_port": port,
+                    "ras_user": user,
+                    "ras_passwd": password,
+                    "ras_db": database
+                })
+                
+            mgr.create(**args)
         
         self.print_msg("Successfully inserted %d dataset%s." % (
                 len(datafiles), "s" if len(datafiles) > 1 else ""
