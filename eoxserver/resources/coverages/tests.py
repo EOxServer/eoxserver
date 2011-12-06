@@ -28,30 +28,32 @@
 # THE SOFTWARE.
 #-----------------------------------------------------------------------
 
+import os.path
+import shutil
+import logging
+
+from django.utils.datetime_safe import datetime
+from django.contrib.gis.geos import GEOSGeometry
+from django.conf import settings
+
 from eoxserver.core.system import System
 from eoxserver.testing.core import BASE_FIXTURES
 from eoxserver.resources.coverages.testbase import (
     RectifiedDatasetCreateTestCase, RectifiedDatasetUpdateTestCase,
     RectifiedDatasetDeleteTestCase, RectifiedStitchedMosaicCreateTestCase,
     RectifiedStitchedMosaicUpdateTestCase, RectifiedStitchedMosaicDeleteTestCase,
+    RectifiedStitchedMosaicSynchronizeTestCase, 
     DatasetSeriesCreateTestCase, DatasetSeriesUpdateTestCase,
-    DatasetSeriesDeleteTestCase
+    DatasetSeriesDeleteTestCase, DatasetSeriesSynchronizeTestCase,
+    EXTENDED_FIXTURES
 )
 from eoxserver.resources.coverages.geo import GeospatialMetadata
 from eoxserver.resources.coverages.metadata import EOMetadata
 
-from django.utils.datetime_safe import datetime
-from django.contrib.gis.geos import GEOSGeometry
-from django.conf import settings
-
-import logging
-import os.path
-
 # create new rectified dataset from a local path
 
 class DatasetCreateWithLocalPathTestCase(RectifiedDatasetCreateTestCase):
-    def setUp(self):
-        super(DatasetCreateWithLocalPathTestCase,self).setUp()
+    def manage(self):
         args = {
             "local_path": os.path.join(settings.PROJECT_DIR,
                           "data/meris/MER_FRS_1P_reduced", 
@@ -66,8 +68,7 @@ class DatasetCreateWithLocalPathTestCase(RectifiedDatasetCreateTestCase):
 # create new rectified dataset from a local path with metadata
 
 class DatasetCreateWithLocalPathAndMetadataTestCase(RectifiedDatasetCreateTestCase):
-    def setUp(self):
-        super(DatasetCreateWithLocalPathAndMetadataTestCase, self).setUp()
+    def manage(self):
         args = {
             "local_path": os.path.join(
                 settings.PROJECT_DIR,
@@ -83,14 +84,114 @@ class DatasetCreateWithLocalPathAndMetadataTestCase(RectifiedDatasetCreateTestCa
         }
         self.wrapper = self.create(**args)
 
+class DatasetCreateWithContainerTestCase(RectifiedDatasetCreateTestCase):
+    fixtures = BASE_FIXTURES
+    
+    def _create_containers(self):
+        mosaic_mgr = System.getRegistry().findAndBind(
+            intf_id="resources.coverages.interfaces.Manager",
+            params={
+                "resources.coverages.interfaces.res_type": "eo.rect_stitched_mosaic"
+            }
+        )
+        
+        self.stitched_mosaic = mosaic_mgr.create(**{
+            "data_dirs": [],
+            "geo_metadata": GeospatialMetadata(
+                srid=4326, size_x=100, size_y=100,
+                extent=(1, 2, 3, 4)
+            ),
+            "range_type_name": "RGB",
+            "eo_metadata": EOMetadata(
+                "STITCHED_MOSAIC",
+                datetime.now(),
+                datetime.now(),
+                GEOSGeometry("POLYGON((1 2, 3 2, 3 4, 1 4, 1 2))")
+            ),
+            "storage_dir": "/some/storage/dir"
+        })
+        
+    def manage(self):
+        self._create_containers()
+        args = {
+            "local_path": os.path.join(settings.PROJECT_DIR,
+                          "data/meris/MER_FRS_1P_reduced", 
+                          "ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.tif"),
+            "range_type_name": "RGB",
+            "container": self.stitched_mosaic
+        }
+        self.wrapper = self.create(**args)
+
     def testContents(self):
-        pass
+        self.assertTrue(self.stitched_mosaic.contains(self.wrapper.getModel().pk), 
+                        "Stitched Mosaic has to contain the dataset.")
+    
+class DatasetCreateWithContainerIDsTestCase(RectifiedDatasetCreateTestCase):
+    fixtures = BASE_FIXTURES
+    
+    def _create_containers(self):
+        dss_mgr = System.getRegistry().findAndBind(
+            intf_id="resources.coverages.interfaces.Manager",
+            params={
+                "resources.coverages.interfaces.res_type": "eo.dataset_series"
+            }
+        )
+        
+        mosaic_mgr = System.getRegistry().findAndBind(
+            intf_id="resources.coverages.interfaces.Manager",
+            params={
+                "resources.coverages.interfaces.res_type": "eo.rect_stitched_mosaic"
+            }
+        )
+        
+        self.dataset_series = dss_mgr.create(**{
+            "data_dirs": [],
+            "eo_metadata": EOMetadata(
+                "DATASET_SERIES",
+                datetime.now(),
+                datetime.now(),
+                GEOSGeometry("POLYGON((1 2, 3 2, 3 4, 1 4, 1 2))")
+            )
+        })
+        
+        self.stitched_mosaic = mosaic_mgr.create(**{
+            "data_dirs": [],
+            "geo_metadata": GeospatialMetadata(
+                srid=4326, size_x=100, size_y=100,
+                extent=(1, 2, 3, 4)
+            ),
+            "range_type_name": "RGB",
+            "eo_metadata": EOMetadata(
+                "STITCHED_MOSAIC",
+                datetime.now(),
+                datetime.now(),
+                GEOSGeometry("POLYGON((1 2, 3 2, 3 4, 1 4, 1 2))")
+            ),
+            "storage_dir": "/some/storage/dir"
+        })
+    
+    def manage(self):
+        self._create_containers()
+        args = {
+            "local_path": os.path.join(settings.PROJECT_DIR,
+                          "data/meris/MER_FRS_1P_reduced", 
+                          "ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.tif"),
+            "range_type_name": "RGB",
+            "container_ids": [self.stitched_mosaic.getCoverageId(), self.dataset_series.getEOID()]
+        }
+        self.wrapper = self.create(**args)
+
+    def testContents(self):
+        self.assertTrue(self.stitched_mosaic.contains(self.wrapper.getModel().pk), 
+                        "Stitched Mosaic has to contain the dataset.")
+        
+        self.assertTrue(self.dataset_series.contains(self.wrapper.getModel().pk), 
+                        "Dataset Series has to contain the dataset.")
 
 # create new rectified dataset from a ftp path
 
 class DatasetCreateWithRemothePathTestCase(RectifiedDatasetCreateTestCase):
-    def setUp(self):
-        super(DatasetCreateWithLocalPathAndMetadataTestCase, self).setUp()
+    def manage(self):
         args = {
             "local_path": os.path.join(
                 settings.PROJECT_DIR,
@@ -110,8 +211,7 @@ class DatasetCreateWithRemothePathTestCase(RectifiedDatasetCreateTestCase):
 # create new rectified dataset from a rasdaman location 
 
 class DatasetCreateWithRasdamanLocationTestCase(RectifiedDatasetCreateTestCase):
-    def setUp(self):
-        super(DatasetCreateWithRasdamanLocationTestCase, self).setUp()
+    def manage(self):
         args = {
             "collection": "MERIS",
             "ras_host": "localhost",
@@ -138,8 +238,7 @@ class DatasetCreateWithRasdamanLocationTestCase(RectifiedDatasetCreateTestCase):
 # create new mosaic and add a local path to locations
 
 class MosaicCreateWithLocalPathTestCase(RectifiedStitchedMosaicCreateTestCase):
-    def setUp(self):
-        super(MosaicCreateWithLocalPathTestCase,self).setUp()
+    def manage(self):
         args = {
             "data_dirs": [{
                 "path": os.path.join(settings.PROJECT_DIR,
@@ -171,8 +270,7 @@ class MosaicCreateWithLocalPathTestCase(RectifiedStitchedMosaicCreateTestCase):
 
 # create new mosaic and add a remote path to locations
 class MosaicCreateWithRemotePathTestCase(RectifiedStitchedMosaicCreateTestCase):
-    def setUp(self):
-        super(MosaicCreateWithRemotePathTestCase,self).setUp()
+    def manage(self):
         args = {
             "data_dirs": [{
                 "path": "test/MER_FRS_1P_reduced",
@@ -204,8 +302,7 @@ class MosaicCreateWithRemotePathTestCase(RectifiedStitchedMosaicCreateTestCase):
 # create new mosaic and add a rasdaman location to locations
 
 class MosaicCreateWithRasdamanLocationTestCase(RectifiedStitchedMosaicCreateTestCase):
-    def setUp(self):
-        super(MosaicCreateWithRasdamanLocationTestCase, self).setUp()
+    def manage(self):
         args = {
             "data_dirs": [{
                 "type": "rasdaman",
@@ -226,18 +323,13 @@ class MosaicCreateWithRasdamanLocationTestCase(RectifiedStitchedMosaicCreateTest
             "storage_dir": "/some/storage/dir"
         }
         self.wrapper = self.create(**args)
-        
-        
-    def testContents(self):
-        pass
 
 # create dataset series with a local path
 
 class DatasetSeriesCreateWithLocalPathTestCase(DatasetSeriesCreateTestCase):
     fixtures = BASE_FIXTURES
     
-    def setUp(self):
-        super(DatasetSeriesCreateWithLocalPathTestCase,self).setUp()
+    def manage(self):
         args = {
             "data_dirs": [{
                 "path": os.path.join(settings.PROJECT_DIR,
@@ -250,7 +342,7 @@ class DatasetSeriesCreateWithLocalPathTestCase(DatasetSeriesCreateTestCase):
                 datetime.now(),
                 datetime.now(),
                 GEOSGeometry("POLYGON((1 2, 3 2, 3 4, 1 4, 1 2))")
-            ),
+            )
         }
         self.wrapper = self.create(**args)
         
@@ -263,11 +355,107 @@ class DatasetSeriesCreateWithLocalPathTestCase(DatasetSeriesCreateTestCase):
 # alter dataset series to remove a location
 
 class DatasetSeriesRemoveLocationTestCase(DatasetSeriesUpdateTestCase):
-    fixtures = BASE_FIXTURES + ["testing_coverages.json"]
+    fixtures = EXTENDED_FIXTURES
     
-    def setUp(self):
-        super(DatasetSeriesRemoveLocationTestCase,self).setUp()
+    def manage(self):
+        pass
     
     def testContents(self):
         pass
 
+class DatasetSeriesSynchronizeNewDirectoryTestCase(DatasetSeriesSynchronizeTestCase):
+    fixtures = BASE_FIXTURES
+    
+    def manage(self):
+        # create an empty series, with an unsynchronized data source
+        datasource_factory = System.getRegistry().bind(
+            "resources.coverages.data.DataSourceFactory"
+        )
+        location_factory = System.getRegistry().bind(
+            "backends.factories.LocationFactory"
+        )
+        
+        dataset_series_factory = System.getRegistry().bind(
+            "resources.coverages.wrappers.DatasetSeriesFactory"
+        )
+        self.wrapper = dataset_series_factory.create(
+            impl_id="resources.coverages.wrappers.DatasetSeriesWrapper",
+            params={
+                "data_sources": [datasource_factory.create(
+                    type="data_source",
+                    **{
+                        "location": location_factory.create(
+                            **{
+                                "path": os.path.join(settings.PROJECT_DIR,
+                                                     "data/meris/MER_FRS_1P_reduced"),
+                                "type": "local"
+                            }
+                        ),
+                       "search_pattern": "*.tif"
+                    }
+                )],
+                "eo_metadata": EOMetadata(
+                    "SOMEEOID",
+                    datetime.now(),
+                    datetime.now(),
+                    GEOSGeometry("POLYGON((1 2, 3 2, 3 4, 1 4, 1 2))")
+                )
+            }
+        )
+        
+        self.synchronize(self.wrapper.getEOID())
+    
+    def testContents(self):
+        # after sync, the datasets shall be registered.
+        self.assertEqual(len(self.wrapper.getEOCoverages()), 3)
+
+class DatasetSeriesSynchronizeFileRemovedTestCase(DatasetSeriesSynchronizeTestCase):
+    fixtures = BASE_FIXTURES
+    
+    def _create_files(self):
+        src = os.path.join(settings.PROJECT_DIR, 
+                           "data/meris/mosaic_MER_FRS_1P_RGB_reduced")
+        
+        self.dst = os.path.join(settings.PROJECT_DIR,
+                                "data/meris/TEMPORARY_mosaic_MER_FRS_1P_RGB_reduced")
+        shutil.copytree(src, self.dst)
+        
+    def manage(self):
+        self._create_files()
+        
+        args = {
+            "data_dirs": [{
+                "path": os.path.join(settings.PROJECT_DIR,
+                                     "data/meris/TEMPORARY_mosaic_MER_FRS_1P_RGB_reduced"),
+                "search_pattern": "*.tif",
+                "type": "local"
+            }],
+            "eo_metadata": EOMetadata(
+                "SOMEEOID",
+                datetime.now(),
+                datetime.now(),
+                GEOSGeometry("POLYGON((1 2, 3 2, 3 4, 1 4, 1 2))")
+            )
+        }
+        
+        mgr = self.getManager()
+        self.wrapper = mgr.create(**args)
+        
+        # delete one file
+        path = os.path.join(
+            settings.PROJECT_DIR,
+            "data/meris/TEMPORARY_mosaic_MER_FRS_1P_RGB_reduced",
+            "mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif"
+        )
+        logging.info("Deleting file at path: %s"%path)
+        os.remove(path)
+        
+        self.synchronize(self.wrapper.getEOID())
+    
+    def testContents(self):
+        # after sync, the datasets shall be registered.
+        self.assertEqual(len(self.wrapper.getEOCoverages()), 2)
+
+    def tearDown(self):
+        super(DatasetSeriesSynchronizeTestCase, self).tearDown()
+        shutil.rmtree(self.dst)

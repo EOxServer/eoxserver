@@ -29,12 +29,18 @@
 #-------------------------------------------------------------------------------
 
 from eoxserver.core.system import System
-from eoxserver.testing.core import EOxServerTestCase
+from eoxserver.testing.core import EOxServerTestCase, BASE_FIXTURES
+
+EXTENDED_FIXTURES = BASE_FIXTURES + ["testing_coverages.json"]
 
 class ManagementTestCase(EOxServerTestCase):
     """ Base class for test cases targeting the 
         synchronization functionalities.
     """
+    
+    def setUp(self):
+        super(ManagementTestCase, self).setUp()
+        self.manage()
     
     def getManager(self, mgrtype=None, intf_id=None):
         if mgrtype is None:
@@ -55,13 +61,16 @@ class ManagementTestCase(EOxServerTestCase):
     def getType(self):
         raise NotImplementedError()
     
-    # Additional fixtures can be loaded with this statement:
-    # fixtures = BASE_FIXTURES + ['additional_fixtures.json']
+    def manage(self):
+        """ Override this function to test management functions.
+        """
+        pass
     
-    def synchronize(self, model, synchronizerCls):
-        synchronizer = synchronizerCls(model)
-        synchronizer.update()
-
+    def testContents(self):
+        """ Stub testing method. Override this to make more
+            sophisticated checks for errors. 
+        """
+        pass
 
 class CreateTestCase(ManagementTestCase):
     def create(self, mgrtype=None, intf_id=None, **kwargs):
@@ -77,6 +86,11 @@ class DeleteTestCase(ManagementTestCase):
     def delete(self, obj_id, mgrtype=None, intf_id=None):
         mgr = self.getManager()
         mgr.delete(obj_id)
+        
+class SynchronizeTestCase(ManagementTestCase):
+    def synchronize(self, obj_id, mgrtype=None, intf_id=None, **kwargs):
+        mgr = self.getManager()
+        mgr.synchronize(obj_id, **kwargs)
 
 # rectified dataset test cases
 
@@ -106,6 +120,10 @@ class RectifiedStitchedMosaicDeleteTestCase(DeleteTestCase):
     def getType(self):
         return "eo.rect_stitched_mosaic"
 
+class RectifiedStitchedMosaicSynchronizeTestCase(SynchronizeTestCase):
+    def getType(self):
+        return "eo.rect_stitched_mosaic"
+
 # dataset series manager test cases
 
 class DatasetSeriesCreateTestCase(CreateTestCase):
@@ -116,7 +134,10 @@ class DatasetSeriesUpdateTestCase(UpdateTestCase):
     def getType(self):
         return "eo.dataset_series"
 
-
 class DatasetSeriesDeleteTestCase(DeleteTestCase):
+    def getType(self):
+        return "eo.dataset_series"
+
+class DatasetSeriesSynchronizeTestCase(SynchronizeTestCase):
     def getType(self):
         return "eo.dataset_series"
