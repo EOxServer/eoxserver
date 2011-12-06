@@ -123,6 +123,15 @@ class DataSourceWrapper(RecordWrapper):
         else:
             return []
     
+    def contains(self, res_id):
+        """
+        Check if the DataSource contains a coverage with a certain ID
+        """
+        if self.record:
+            return self.record.coveragerecord_set.filter(pk=res_id).count() > 0
+        else:
+            return False
+    
     def _validate_record(self, record):
         if not isinstance(record, DataSource):
             raise InternalError(

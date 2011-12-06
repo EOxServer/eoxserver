@@ -26,6 +26,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #-----------------------------------------------------------------------
+from eoxserver.backends.base import LocationWrapper
 
 """
 This module defines filters and filter expressions for EO Coverages.
@@ -453,6 +454,33 @@ class OrphanedCoverageExpression(SimpleExpression):
     
 OrphanedCoverageExpressionImplementation = \
 FilterExpressionInterface.implement(OrphanedCoverageExpression)
+
+
+class LocationReferencesDatasetExpression(SimpleExpression):
+    """
+    Filter expression that matches datasets which are referenced by a location.
+    """
+    
+    REGISTRY_CONF = {
+        "name": "Location References Dataset Expression",
+        "impl_id": "resources.coverages.filters.LocationReferencesDatasetExpression",
+        "factory_ids": ("resources.coverages.filters.CoverageExpressionFactory",)
+    }
+    
+    OP_NAME = "referenced_by"
+    NUM_OPS = 1
+
+    def _validateOperands(self, operands):
+        super(LocationReferencesDatasetExpression, self)._validateOperands(operands)
+        
+        if not isinstance(operands[0], LocationWrapper):
+            raise InternalError(
+                "Expected LocationWrapper, got '%s' object." %
+                operands[0].__class__.__name__
+            )
+
+LocationReferencesDatasetExpressionImplementation = \
+FilterExpressionInterface.implement(LocationReferencesDatasetExpression)
 
 #-----------------------------------------------------------------------
 # Filters
@@ -1095,7 +1123,7 @@ class FootprintIntersectsAreaFilter(FootprintFilter):
         
         # NOTE: this is a hack to account for bugs in GeoDjango
         # Should be:
-        # return qs.filter(eo_metadata__footprint__intersects=poly)
+        #return qs.filter(eo_metadata__footprint__intersects=poly)
         
         eoqs = EOMetadataRecord.objects.filter(
             footprint__intersects=poly
@@ -1500,6 +1528,142 @@ class OrphanedRectifiedStitchedMosaicFilter(object):
         
 OrphanedRectifiedStitchedMosaicFilterImplementation = \
 FilterInterface.implement(OrphanedRectifiedStitchedMosaicFilter)
+
+class LocationReferencesRectifiedDatasetFilter(object):
+    """
+    Filter which matches RectifiedDatasets which are referenced by a
+    specified location.
+    """
+    
+    REGISTRY_CONF = {
+        "name": "Location References Rectified Dataset Filter",
+        "impl_id": "resources.coverages.filters.LocationReferencesRectifiedDatasetFilter",
+        "registry_values": {
+            "core.filters.res_class_id": "resources.coverages.wrappers.RectifiedDatasetWrapper",
+            "core.filters.expr_class_id": "resources.coverages.filters.LocationReferencesDatasetExpression"
+        }
+    }
+
+    def applyToQuerySet(self, expr, qs):
+        location = expr.getOperands()[0]
+        
+        if location.getType() == "local":
+            return qs.filter(
+                data_package__localdatapackage__data_location__path=location.getPath()
+            )
+        elif location.getType() == "remote":
+            return qs.filter(
+                data_package__remotedatapackage__data_location__path=location.getPath()
+            ).filter(
+                data_package__remotedatapackage__data_location__storage__host=location.getHost(),
+                data_package__remotedatapackage__data_location__storage__port=location.getPort(),
+                data_package__remotedatapackage__data_location__storage__user=location.getUser(),
+                data_package__remotedatapackage__data_location__storage__passwd=location.getPassword()
+            )
+        elif location.getType() == "rasdaman":
+            return qs.filter(
+                data_package__rasdamandatapackage__data_location__collection=location.getCollection(),
+                data_package__rasdamandatapackage__data_location__oid=location.getOID()
+            ).filter(
+                data_package__rasdamandatapackage__data_location__storage__host=location.getHost(),
+                data_package__rasdamandatapackage__data_location__storage__port=location.getPort(),
+                data_package__rasdamandatapackage__data_location__storage__user=location.getUser(),
+                data_package__rasdamandatapackage__data_location__storage__passwd=location.getPassword()
+            )
+        
+    def resourceMatches(self, expr, res):
+        location = expr.getOperands()[0]
+        
+        if location.getType() == "local":
+            return location.getPath() == res.getData().getLocation().getPath()
+        elif location.getType() == "remote":
+            return (
+                location.getPath() == res.getData().getLocation().getPath() and
+                location.getHost() == res.getData().getLocation().getHost() and
+                location.getPort() == res.getData().getLocation().getPort() and
+                location.getUser() == res.getData().getLocation().getUser() and
+                location.getPassword() == res.getData().getLocation().getPassword()
+            )
+        elif location.getType() == "rasdaman":
+            return (
+                location.getCollection() == res.getData().getLocation().getCollection() and
+                location.getOID() == res.getData().getLocation().getOID() and
+                location.getHost() == res.getData().getLocation().getHost() and
+                location.getPort() == res.getData().getLocation().getPort() and
+                location.getUser() == res.getData().getLocation().getUser() and
+                location.getPassword() == res.getData().getLocation().getPassword()
+            )
+
+LocationReferencesRectifiedDatasetFilterImplementation = \
+FilterInterface.implement(LocationReferencesRectifiedDatasetFilter)
+
+class LocationReferencesReferencableDatasetFilter(object):
+    """
+    Filter which matches RectifiedDatasets which are referenced by a
+    specified location.
+    """
+    
+    REGISTRY_CONF = {
+        "name": "Location References Rectified Dataset Filter",
+        "impl_id": "resources.coverages.filters.LocationReferencesReferencableDatasetFilter",
+        "registry_values": {
+            "core.filters.res_class_id": "resources.coverages.wrappers.ReferenceableDatasetWrapper",
+            "core.filters.expr_class_id": "resources.coverages.filters.LocationReferencesDatasetExpression"
+        }
+    }
+
+    def applyToQuerySet(self, expr, qs):
+        location = expr.getOperands()[0]
+        
+        if location.getType() == "local":
+            return qs.filter(
+                data_package__localdatapackage__data_location__path=location.getPath()
+            )
+        elif location.getType() == "remote":
+            return qs.filter(
+                data_package__remotedatapackage__data_location__path=location.getPath()
+            ).filter(
+                data_package__remotedatapackage__data_location__storage__host=location.getHost(),
+                data_package__remotedatapackage__data_location__storage__port=location.getPort(),
+                data_package__remotedatapackage__data_location__storage__user=location.getUser(),
+                data_package__remotedatapackage__data_location__storage__passwd=location.getPassword()
+            )
+        elif location.getType() == "rasdaman":
+            return qs.filter(
+                data_package__rasdamandatapackage__data_location__collection=location.getCollection(),
+                data_package__rasdamandatapackage__data_location__oid=location.getOID()
+            ).filter(
+                data_package__rasdamandatapackage__data_location__storage__host=location.getHost(),
+                data_package__rasdamandatapackage__data_location__storage__port=location.getPort(),
+                data_package__rasdamandatapackage__data_location__storage__user=location.getUser(),
+                data_package__rasdamandatapackage__data_location__storage__passwd=location.getPassword()
+            )
+        
+    def resourceMatches(self, expr, res):
+        location = expr.getOperands()[0]
+        
+        if location.getType() == "local":
+            return location.getPath() == res.getData().getLocation().getPath()
+        elif location.getType() == "remote":
+            return (
+                location.getPath() == res.getData().getLocation().getPath() and
+                location.getHost() == res.getData().getLocation().getHost() and
+                location.getPort() == res.getData().getLocation().getPort() and
+                location.getUser() == res.getData().getLocation().getUser() and
+                location.getPassword() == res.getData().getLocation().getPassword()
+            )
+        elif location.getType() == "rasdaman":
+            return (
+                location.getCollection() == res.getData().getLocation().getCollection() and
+                location.getOID() == res.getData().getLocation().getOID() and
+                location.getHost() == res.getData().getLocation().getHost() and
+                location.getPort() == res.getData().getLocation().getPort() and
+                location.getUser() == res.getData().getLocation().getUser() and
+                location.getPassword() == res.getData().getLocation().getPassword()
+            )
+
+LocationReferencesReferencableDatasetFilterImplementation = \
+FilterInterface.implement(LocationReferencesReferencableDatasetFilter)
 
 #-----------------------------------------------------------------------
 # Factory
