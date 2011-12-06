@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<Capabilities xmlns="http://www.opengis.net/wcs/1.1" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ogc="http://www.opengis.net/ogc" version="1.1.0" updateSequence="20110610T153000Z" xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsGetCapabilities.xsd http://www.opengis.net/ows/1.1 http://schemas.opengis.net/ows/1.1.0/owsAll.xsd">
+<Capabilities xmlns="http://www.opengis.net/wcs/1.1" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ogc="http://www.opengis.net/ogc" version="1.1.2" updateSequence="20110610T153000Z" xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsGetCapabilities.xsd http://www.opengis.net/ows/1.1 http://schemas.opengis.net/ows/1.1.0/owsAll.xsd">
   <ows:ServiceIdentification>
     <ows:Title>Test configuration of MapServer used to demonstrate EOxServer</ows:Title>
     <ows:Abstract>
@@ -18,7 +18,7 @@ Copyright (C) European Space Agency - ESA
       <ows:Keyword>Envisat</ows:Keyword>
     </ows:Keywords>
     <ows:ServiceType codeSpace="OGC">OGC WCS</ows:ServiceType>
-    <ows:ServiceTypeVersion>1.1.0</ows:ServiceTypeVersion>
+    <ows:ServiceTypeVersion>1.1.2</ows:ServiceTypeVersion>
     <ows:Fees>None</ows:Fees>
     <ows:AccessConstraints>None</ows:AccessConstraints>
   </ows:ServiceIdentification>
@@ -63,7 +63,7 @@ Copyright (C) European Space Agency - ESA
       </ows:Parameter>
       <ows:Parameter name="version">
         <ows:AllowedValues>
-          <ows:Value>1.1.0</ows:Value>
+          <ows:Value>1.1.2</ows:Value>
         </ows:AllowedValues>
       </ows:Parameter>
     </ows:Operation>
@@ -81,7 +81,7 @@ Copyright (C) European Space Agency - ESA
       </ows:Parameter>
       <ows:Parameter name="version">
         <ows:AllowedValues>
-          <ows:Value>1.1.0</ows:Value>
+          <ows:Value>1.1.2</ows:Value>
         </ows:AllowedValues>
       </ows:Parameter>
       <ows:Parameter name="identifiers">
@@ -106,7 +106,7 @@ Copyright (C) European Space Agency - ESA
       </ows:Parameter>
       <ows:Parameter name="version">
         <ows:AllowedValues>
-          <ows:Value>1.1.0</ows:Value>
+          <ows:Value>1.1.2</ows:Value>
         </ows:AllowedValues>
       </ows:Parameter>
       <ows:Parameter name="Identifier">
