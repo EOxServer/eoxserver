@@ -27,40 +27,28 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-import re
-
 import logging
-import os
-import os.path
-import tempfile
-import uuid
 
-from osgeo import gdal, ogr, osr
-
-from django.conf import settings
-
+from osgeo import ogr
 from eoxserver.core.system import System
-from eoxserver.core.util.xmltools import XMLEncoder, DOMtoXML, DOMElementToXML
+from eoxserver.core.util.xmltools import XMLEncoder
 from eoxserver.core.util.timetools import isotime
+from eoxserver.core.util.geotools import getSRIDFromCRSIdentifier
 from eoxserver.core.exceptions import InternalError
-from eoxserver.resources.coverages.exceptions import (
-    NoSuchCoverageException, SynchronizationErrors
-)
 from eoxserver.resources.coverages.domainset import Trim, Slice
+from eoxserver.resources.coverages.filters import BoundedArea
+from eoxserver.resources.coverages.helpers import CoverageSet
+
 from eoxserver.services.interfaces import (
     ServiceHandlerInterface, VersionHandlerInterface,
     OperationHandlerInterface, ExceptionHandlerInterface,
     ExceptionEncoderInterface
 )
 from eoxserver.services.mapserver import MapServerOperationHandler
-from eoxserver.services.base import (
-    BaseRequestHandler, BaseExceptionHandler
-)
+from eoxserver.services.base import BaseExceptionHandler
 from eoxserver.services.owscommon import (
     OWSCommonServiceHandler, OWSCommonVersionHandler
 )
-#from eoxserver.services.ogc import OGCExceptionHandler
-from eoxserver.services.requests import Response
 from eoxserver.services.exceptions import InvalidRequestException
 
 from eoxserver.contrib import mapscript
@@ -161,6 +149,9 @@ class WMSCommonHandler(MapServerOperationHandler):
         logging.debug("WMSCommonHandler.getMapServerLayer")
         
         if coverage.getType() == "eo.dataset_series":
+            
+            # add a no data layer
+            
             layer = mapscript.layerObj()
             
             layer.name = coverage.getEOID()
@@ -170,6 +161,10 @@ class WMSCommonHandler(MapServerOperationHandler):
             
             time_extent = ",".join([isotime(dataset.getBeginTime()) for dataset in coverage.getEOCoverages()])
             layer.setMetaData("wms_timeextent", time_extent)
+            
+            layer.setProjection("+init=epsg:4326")
+            layer.setMetaData("wms_srs", "EPSG:3035 EPSG:4326 EPSG:900913") # TODO find out possible projections
+            
             #layer.setMetaData("wms_timeitem", "valid_time_begin")
             #layer.setMetaData("wms_timedefault", time_layer["default"])
 
@@ -195,6 +190,7 @@ class WMSCommonHandler(MapServerOperationHandler):
         
         layer.setConnectionType(mapscript.MS_RASTER, '')
         layer.setMetaData("wms_enable_request", "*")
+        layer.status = mapscript.MS_DEFAULT
         
         try:
             if coverage.getType() in ("plain", "eo.rect_dataset"):
@@ -228,7 +224,6 @@ class WMSCommonHandler(MapServerOperationHandler):
                 extent = coverage.getExtent()
                 srid = coverage.getSRID()
                 size = coverage.getSize()
-                rangetype = coverage.getRangeType()
                 resolution = ((extent[2]-extent[0]) / float(size[0]),
                               (extent[1]-extent[3]) / float(size[1]))
                 
@@ -241,114 +236,6 @@ class WMSCommonHandler(MapServerOperationHandler):
                 layer.setConnectionType(mapscript.MS_RASTER, '')
                 layer.setMetaData("wms_srs", "EPSG:%d" % srid)
                 layer.setProjection("+init=epsg:%d" % srid)
-                
-            elif coverage.getType() == "eo.dataset_series":
-                datasets = coverage.getEOCoverages(**kwargs)
-                if len(datasets) == 0:
-                    raise InternalError("Cannot handle empty coverages")
-                
-                elif len(datasets) == 1:
-                    layer.setExtent(*datasets[0].getExtent())
-                    layer.setProjection("+init=epsg:%d" % datasets[0].getSRID())
-                    layer.setMetaData("wms_srs", "EPSG:%d"%int(datasets[0].getSRID()))
-                    connector = System.getRegistry().findAndBind(
-                        intf_id = "services.mapserver.MapServerDataConnectorInterface",
-                        params = {
-                            "services.mapserver.data_structure_type": \
-                                coverage.getDataStructureType()
-                        }
-                    ) 
-                    layer = connector.configure(layer, coverage)
-                    
-                    # TODO: Show all requested files. (Default without time parameter to all.)
-                
-                else: # we have multiple datasets
-                    # set projection to the first datasets projection
-                    # TODO: dataset projections can differ
-                    layer.setProjection("+init=epsg:%d" % datasets[0].getSRID())
-                    #layer.setMetaData("wms_srs", "EPSG:%d" % int(datasets[0].getSRID()))
-                    
-                    srids = set([int(dataset.getSRID()) for dataset in datasets])
-                    srids.add(4326)
-                    srids.add(900913)
-                    
-                    layer.setMetaData("wms_srs", " ".join([
-                        "EPSG:%d" % srid for srid in srids
-                    ]))
-                    
-                    logging.info("Setting 'wms_srs': %s"% layer.getMetaData("wms_srs"))
-                    
-                    # initialize OGR driver
-                    driver = ogr.GetDriverByName('ESRI Shapefile')
-                    if driver is None:
-                        raise InternalError("Cannot start GDAL Shapefile driver")
-                    
-                    # create path to temporary shapefile, if it already exists, delete it
-                    path = os.path.join(tempfile.gettempdir(), "%s.shp" % uuid.uuid4().hex)
-                    self.shapefiles_to_delete.append(path)
-                    
-                    if os.path.exists(path):
-                        driver.DeleteDataSource(path)
-                    
-                    # create a new shapefile
-                    shapefile = driver.CreateDataSource(path)
-                    if shapefile is None:
-                        logging.error("Cannot create shapefile '%s'." % path)
-                        raise InternalError("Cannot create shapefile '%s'." % path)
-                    
-                    # create a new srs object
-                    srs = osr.SpatialReference()
-                    srs.ImportFromEPSG(datasets[0].getSRID()) # TODO: srids can differ 
-                    
-                    # create a new shapefile layer
-                    shapefile_layer = shapefile.CreateLayer("file_locations", srs, ogr.wkbPolygon)
-                    if shapefile_layer is None:
-                        raise InternalError("Cannot create layer 'file_locations' in shapefile '%s'" % path)
-                    
-                    # add a field definition for the file location
-                    location_defn = ogr.FieldDefn("location", ogr.OFTString)
-                    location_defn.SetWidth(256) # TODO: make this configurable
-                    if shapefile_layer.CreateField(location_defn) != 0:
-                        raise InternalError("Cannot create field 'location' on layer 'file_locations' in shapefile '%s'" % self.path)
-                    
-                    # add each dataset to the layer as a feature
-                    
-                    tmp = []
-                    for dataset in datasets:
-                        tmp.extend(dataset.getDatasets())
-                    datasets = tmp
-                    
-                    for dataset in datasets:
-                        feature = ogr.Feature(shapefile_layer.GetLayerDefn())
-                        
-                        extent = dataset.getExtent()
-                        
-                        geom = ogr.CreateGeometryFromWkt("POLYGON((%f %f, %f %f, %f %f, %f %f, %f %f))" % (
-                            extent[0], extent[1],
-                            extent[2], extent[1],
-                            extent[2], extent[3],
-                            extent[0], extent[3],
-                            extent[0], extent[1]
-                        ), srs)
-                        
-                        feature.SetGeometry(geom)
-                        
-                        feature.SetField("location", str(os.path.abspath(dataset.getData().getGDALDatasetIdentifier())))
-                        
-                        if shapefile_layer.CreateFeature(feature) != 0:
-                            raise InternalError("Could not create shapefile entry for file '%s'" % path)
-                        feature = None
-                    
-                    #save the shapefile
-                    shapefile_layer.SyncToDisk()
-                    shapefile = None
-                    
-                    #set mapserver layer information for the shapefile
-                    layer.tileindex = os.path.abspath(path)
-                    layer.tileitem = "location"
-                    
-                    # set offsite; TODO: make this dependant on nilvalues
-                    layer.offsite = mapscript.colorObj(0,0,0)
                     
 
         except InternalError:
@@ -460,6 +347,9 @@ class WMS13GetCapabilitiesHandler(WMS1XGetCapabilitiesHandler):
 WMS13GetCapabilitiesHandlerImplementation = OperationHandlerInterface.implement(WMS13GetCapabilitiesHandler)
 
 class WMS1XGetMapHandler(WMSCommonHandler):
+    def getSRSParameterName(self):
+        raise NotImplementedError()
+    
     def addLayers(self, ms_req):
         time_param = ms_req.getParamValue("time")
         slices = []
@@ -474,29 +364,59 @@ class WMS1XGetMapHandler(WMSCommonHandler):
 
     def createCoverages(self, ms_req):
         layers = ms_req.getParamValue("layers")
+        bbox = ms_req.getParamValue("bbox")
+        srs = ms_req.getParamValue(self.getSRSParameterName())
         
         if layers is None:
             raise InvalidRequestException("Missing 'LAYERS' parameter", "MissingParameterValue", "layers")
-
-        coverages = []
+        if bbox is None:
+            raise InvalidRequestException("Missing 'BBOX' parameter", "MissingParameterValue", "bbox")
+        if srs is None:
+            raise InvalidRequestException("Missing '%s' parameter"% self.getSRSParameterName().upper(), "MissingParameterValue" , self.getSRSParameterName())
+        
+        srid = getSRIDFromCRSIdentifier(srs)
+        if srid is None:
+            raise InvalidRequestException("Invalid '%s' parameter value"% self.getSRSParameterName().upper(), "InvalidParameterValue" , self.getSRSParameterName())
+        
+        area = BoundedArea(srid, bbox[1], bbox[0], bbox[3], bbox[2])
+        
+        #filter_exprs = []
+        
+        # TODO sqlite assert ahead `GEOSCoordSeq_setOrdinate_r`
+        filter_exprs=[System.getRegistry().getFromFactory(
+            "resources.coverages.filters.CoverageExpressionFactory",
+            {
+                "op_name": "footprint_intersects_area",
+                "operands": (area,)
+            }
+        )]
+        
+        coverages = CoverageSet()
+        dataset_series_set = []
+        
         for layer in layers:
-            obj = System.getRegistry().getFromFactory(
+            dataset_series = System.getRegistry().getFromFactory(
                 "resources.coverages.wrappers.DatasetSeriesFactory",
                 {"obj_id": layer}
             )
-            if obj is not None:
-                coverages.append(obj)
+            if dataset_series is not None:
+                coverages.union(dataset_series.getEOCoverages(filter_exprs))
+                dataset_series_set.append(dataset_series)
+                
             else:
-                obj = System.getRegistry().getFromFactory(
+                coverage = System.getRegistry().getFromFactory(
                     "resources.coverages.wrappers.EOCoverageFactory",
                     {"obj_id": layer}
                 )
-                if obj is not None:
-                    coverages.append(obj)
+                if coverage is not None:
+                    if coverage.matches(filter_exprs):
+                        coverages.add(coverage)
+                    for dataset in coverage.getDatasets(filter_exprs):
+                        coverages.add(dataset)
                 else:
                     raise InvalidRequestException("No coverage or dataset series with EO ID '%s' found" % layer, "LayerNotDefined", "layers")
         
-        ms_req.coverages = coverages
+        ms_req.coverages = coverages.to_sorted_list() + dataset_series_set
         
 
 class WMS10_11GetMapHandler(WMS1XGetMapHandler):
@@ -506,8 +426,12 @@ class WMS10_11GetMapHandler(WMS1XGetMapHandler):
         "operation": {"xml_location": "/", "xml_type": "localName", "kvp_key": "request", "kvp_type": "string"},
         "srs": {"xml_location": "/srs", "xml_type": "string", "kvp_key": "srs", "kvp_type": "string"}, # TODO: check XML location
         "layers": {"xml_location": "/layer", "xml_type": "string[]", "kvp_key": "layers", "kvp_type": "string[]"}, # TODO: check XML location
-        "time": {"xml_location": "/time", "xml_type": "string", "kvp_key": "time", "kvp_type": "string"}
+        "time": {"xml_location": "/time", "xml_type": "string", "kvp_key": "time", "kvp_type": "string"},
+        "bbox": {"xml_location": "/bbox", "xml_type": "floatlist", "kvp_key": "bbox", "kvp_type": "floatlist"}
     }
+    
+    def getSRSParameterName(self):
+        return "srs"
     
     def configureMapObj(self, ms_req):
         super(WMS10_11GetMapHandler, self).configureMapObj(ms_req)
@@ -586,8 +510,12 @@ class WMS13GetMapHandler(WMS1XGetMapHandler):
         "crs": {"xml_location": "/crs", "xml_type": "string", "kvp_key": "crs", "kvp_type": "string"}, # TODO: check XML location
         "layers": {"xml_location": "/layer", "xml_type": "string[]", "kvp_key": "layers", "kvp_type": "stringlist"}, # TODO: check XML location
         "format": {"xml_location": "/format", "xml_type": "string", "kvp_key": "format", "kvp_type": "string"},
-        "time": {"xml_location": "/time", "xml_type": "string", "kvp_key": "time", "kvp_type": "string"}
+        "time": {"xml_location": "/time", "xml_type": "string", "kvp_key": "time", "kvp_type": "string"},
+        "bbox": {"xml_location": "/bbox", "xml_type": "floatlist", "kvp_key": "bbox", "kvp_type": "floatlist"}
     }
+    
+    def getSRSParameterName(self):
+        return "crs"
     
     def configureRequest(self, ms_req):
         
