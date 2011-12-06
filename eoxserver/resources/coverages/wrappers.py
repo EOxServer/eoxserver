@@ -634,6 +634,12 @@ class RectifiedDatasetWrapper(RectifiedGridWrapper, EODatasetWrapper):
                 res_type = self.getType(),
                 res_id = self.__model.pk
             )
+        containers = params.get("containers", [])
+        for container in containers:
+            container.addCoverage(
+                res_type = self.getType(),
+                res_id = self.__model.pk
+            )
         
     # ==========================================================================
     # TODO: update this part according to new data model
@@ -1291,9 +1297,12 @@ class RectifiedStitchedMosaicWrapper(TiledDataWrapper, RectifiedGridWrapper, EOC
         )
 
     def getDataSources(self):
-        return list(
-            self.__model.data_sources.values_list('data_sources', flat=True)
+        data_source_factory = System.getRegistry().bind(
+            "resources.coverages.data.DataSourceFactory"
         )
+        return [data_source_factory.get(record=record) 
+                for record in self.__model.data_sources.all()]
+        
     
     def getImagePattern(self):
         """
@@ -1481,6 +1490,13 @@ class DatasetSeriesWrapper(EOMetadataWrapper, ResourceWrapper):
         return list(
             self.__model.data_dirs.values_list('dir', flat=True)
         )
+    
+    def getDataSources(self):
+        data_source_factory = System.getRegistry().bind(
+            "resources.coverages.data.DataSourceFactory"
+        )
+        return [data_source_factory.get(record=record) 
+                for record in self.__model.data_sources.all()]
     
     def getImagePattern(self):
         """
