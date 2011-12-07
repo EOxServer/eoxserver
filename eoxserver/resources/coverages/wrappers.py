@@ -1093,6 +1093,13 @@ class RectifiedStitchedMosaicWrapper(TiledDataWrapper, RectifiedGridWrapper, EOC
                 res_type=self.getType(),
                 res_id=self.__model.pk
             )
+        
+        containers = params.get("containers", [])
+        for container in containers:
+            container.addCoverage(
+                res_type=self.getType(),
+                res_id=self.__model.pk
+            )
             
         if "data_sources" in params:
             for data_source in params["data_sources"]:
