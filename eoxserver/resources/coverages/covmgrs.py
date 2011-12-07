@@ -41,7 +41,7 @@ from uuid import uuid4
 from eoxserver.core.system import System
 from eoxserver.core.exceptions import InternalError, IDInUse
 from eoxserver.resources.coverages.interfaces import ManagerInterface
-from eoxserver.resources.coverages.exceptions import ManagerError
+from eoxserver.resources.coverages.exceptions import ManagerError, NoSuchCoverageException
 
 class BaseManager(object):
     def __init__(self):
@@ -60,7 +60,7 @@ class BaseManager(object):
             if self.id_factory.exists(obj_id=obj_id):
                 if fail:
                     raise IDInUse(
-                        "The desired coverage ID (%s) is already in use." % obj_id
+                        "The desired ID (%s) is already in use." % obj_id
                     )
                 else:
                     new_id = self._generate_id()
@@ -75,6 +75,15 @@ class BaseManager(object):
         pass
         
     def create(self, obj_id=None, **kwargs):
+        """
+        Creates a new instance of the underlying type and returns an
+        according wrapper object.
+        The optional parameter ``obj_id`` is used as CoverageID/EOID
+        and is generated automatically when omitted. If the given ID
+        is already in use, an :exc:`~.IDinUse` exception is raised.
+        The other parameters depend on the actual coverage manager
+        type.
+        """
         if obj_id:
             _id = obj_id
             _release = False
@@ -137,27 +146,22 @@ class BaseManagerContainerMixIn(object):
         )
     
     def _get_data_sources(self, params):
-        data_sources = []
+        data_sources = params.get("data_sources", [])
         
-        if "data_sources" in params:
-            data_sources = params["data_sources"]
-        
-        if "data_dirs" in params:
-            for dir_dict in params["data_dirs"]:
-                location = self.location_factory.create(
-                    **dir_dict
+        for dir_dict in params.get("data_dirs", []):
+            location = self.location_factory.create(
+                **dir_dict
+            )
+            
+            search_pattern = dir_dict.get("search_pattern")
+            
+            data_sources.append(
+                self.data_source_factory.getOrCreate(
+                    type="data_source",
+                    location=location,
+                    search_pattern=search_pattern
                 )
-                
-                search_pattern = dir_dict.get("search_pattern")
-                
-                data_sources.append(
-                    self.data_source_factory.getOrCreate(
-                        type="data_source",
-                        location=location,
-                        search_pattern=search_pattern
-                    )
-                )
-        
+            )
         
         return data_sources
     
@@ -486,6 +490,9 @@ class CoverageManagerEOMixIn(object):
         return wrappers 
 
 class PlainCoverageManager(CoverageManager, CoverageManagerDatasetMixIn):
+    """
+    """
+    
     # TODO: implement PlainCoverageWrapper, CoverageFactory
     
     def _create(self, coverage_id, **kwargs):
@@ -575,6 +582,56 @@ class EODatasetManager(CoverageManager, CoverageManagerDatasetMixIn, CoverageMan
             )
 
 class RectifiedDatasetManager(EODatasetManager):
+    """
+    Coverage Manager for `RectifiedDatasets`
+    
+    .. method:: create(obj_id=None, **kwargs)
+    
+       This creates and returns a :class:`~.RectifiedDatasetWrapper`
+       from the attributes given in ``kwargs``. 
+       
+       If the ``obj_id`` argument is omitted a new object ID shall be generated
+       using the same mechanism as :meth:`acquireID`. If the provided object ID
+       is invalid or already in use, appropriate exceptions shall be raised.
+       
+       To define the data and metadata location, the ``location`` and ``md_location``
+       parameters can be used, where the value has to implement the 
+       :class:`~.LocationInterface`. Alternatively ``local_path`` and ``md_local_path`` 
+       can be used to define local locations. For when the data and metadata is 
+       located on an FTP server, use ``remote_path`` and ``md_remote_path`` instead,
+       which also requires the ``ftp_host`` parameter (``ftp_port``, ``ftp_user``
+       and ``ftp_passwd`` are optional). When the data is located in a rasdaman
+       database use the ``collection`` and ``ras_host`` parameters. ``oid``, 
+       ``ras_port``, ``ras_user``, ``ras_passwd``, and ``ras_db`` can be used
+       to further specify the location.
+       
+       To specify geospatial metadata use the ``geo_metadata`` parameter,
+       which has to be an instance of :class:`~.GeospatialMetadata`. Optionally
+       ``default_srid`` can be used to declare a default SRID.
+       
+       To specify earth observation related metadata use the ``eo_metadata``
+       parameter which has to be of the type :class:`~.EOMetadata`.
+       
+       The mandatory parameter ``range_type_name`` states which range type
+       this coverage is using.
+       
+       If the created dataset shall be inserted into a `DatasetSeries` or
+       `RectifiedStitchedMosaic` a wrapper instance can be passed with the
+       ``container`` parameter. Alternatively you can use the ``container_ids``
+       parameter, passing a list of IDs referencing either `DatasetSeries`
+       or `RectifiedStitchedMosaics`.
+       
+       Additional metadata can be added with the ``abstract``, ``title``,
+       and ``keywords`` parameters.
+       
+    .. method:: delete(obj_id)
+        
+        This deletes a `RectifiedDataset` record specified by its 
+        ``obj_id``. If no coverage with this ID can be found, an 
+        :exc:`~.NoSuchCoverage` exception will be raised.
+        
+    """
+    
     REGISTRY_CONF = {
         "name": "Rectified Dataset Manager",
         "impl_id": "resources.coverages.covmgrs.RectifiedDatasetManager",
@@ -588,6 +645,8 @@ class RectifiedDatasetManager(EODatasetManager):
             impl_id="resources.coverages.wrappers.RectifiedDatasetWrapper",
             obj_id=obj_id
         )
+        if not wrapper:
+            raise NoSuchCoverageException
         wrapper.deleteModel()
     
     def _validate_type(self, coverage):
@@ -616,11 +675,67 @@ RectifiedDatasetManagerImplementation = \
 ManagerInterface.implement(RectifiedDatasetManager)
 
 class ReferenceableDatasetManager(EODatasetManager):
+    """
+    """
     pass
     
     # TODO: implement referenceable grid coverages
     
 class RectifiedStitchedMosaicManager(BaseManagerContainerMixIn, CoverageManager):
+    """
+    Coverage Manager for `RectifiedStitchedMosaics`
+    
+    .. method:: create(obj_id=None, **kwargs)
+    
+       This creates and returns a :class:`~.RectifiedStitchedMosaicWrapper`
+       from the attributes given in ``kwargs``. 
+       
+       If the ``obj_id`` argument is omitted a new object ID shall be generated
+       using the same mechanism as :meth:`acquireID`. If the provided object ID
+       is invalid or already in use, appropriate exceptions shall be raised.
+       
+       To add data sources to the ``RectifiedStitchedMosaic`` at the time it is
+       created the ``data_sources`` and ``data_dirs`` parameters can be used. 
+       The ``data_sources`` parameter shall be a list of objects implementing 
+       the :class:``~.DataSourceInterface``. Alternatively the ``data_dirs`` 
+       parameter shall be a list of dictionaries consisting of the following
+       arguments:
+       
+       * ``search_pattern``: a regular expression to specify what files in the
+         directory are considered as data files.
+       
+       * ``path``: for local or FTP data sources, this parameter shall be a 
+         path to a valid directory, containing the data files.
+        
+       * ``type``: defines the type of the location describing the data source.
+         This can either be `local` or `remote`.
+       
+       To specify geospatial metadata use the ``geo_metadata`` parameter,
+       which has to be an instance of :class:`~.GeospatialMetadata`. Optionally
+       ``default_srid`` can be used to declare a default SRID.
+       
+       To specify earth observation related metadata use the ``eo_metadata``
+       parameter which has to be of the type :class:`~.EOMetadata`.
+       
+       The mandatory parameter ``range_type_name`` states which range type
+       this coverage is using.
+       
+       If the created dataset shall be inserted into a `DatasetSeries` or
+       `RectifiedStitchedMosaic` a wrapper instance can be passed with the
+       ``container`` parameter. Alternatively you can use the ``container_ids``
+       parameter, passing a list of IDs referencing either `DatasetSeries`
+       or `RectifiedStitchedMosaics`.
+       
+       Additional metadata can be added with the ``abstract``, ``title``,
+       and ``keywords`` parameters. 
+       
+    .. method:: delete(obj_id)
+        
+        This deletes a `RectifiedDataset` record specified by its 
+        ``obj_id``. If no coverage with this ID can be found, an 
+        :exc:`~.NoSuchCoverage` exception will be raised.
+        
+    """
     REGISTRY_CONF = {
         "name": "Rectified Stitched Mosaic Manager",
         "impl_id": "resources.coverages.covmgrs.RectifiedStitchedMosaicManager",
@@ -668,6 +783,8 @@ class RectifiedStitchedMosaicManager(BaseManagerContainerMixIn, CoverageManager)
         
         data_sources = self._get_data_sources(kwargs)
         
+        containers = self._get_containers(kwargs)
+        
         coverage = self._create_coverage(
             coverage_id,
             geo_metadata,
@@ -677,6 +794,7 @@ class RectifiedStitchedMosaicManager(BaseManagerContainerMixIn, CoverageManager)
             tile_index,
             data_sources,
             kwargs.get("container"),
+            containers
         )
         
         self._create_contained(coverage, data_sources)
@@ -685,7 +803,7 @@ class RectifiedStitchedMosaicManager(BaseManagerContainerMixIn, CoverageManager)
         
         return coverage
     
-    def _create_coverage(self, coverage_id, geo_metadata, range_type_name, layer_metadata, eo_metadata, tile_index, data_sources, container=None):
+    def _create_coverage(self, coverage_id, geo_metadata, range_type_name, layer_metadata, eo_metadata, tile_index, data_sources, container=None, containers=None):
         return self.coverage_factory.create(
             impl_id="resources.coverages.wrappers.RectifiedStitchedMosaicWrapper",
             params={
@@ -696,7 +814,8 @@ class RectifiedStitchedMosaicManager(BaseManagerContainerMixIn, CoverageManager)
                 "eo_metadata": eo_metadata,
                 "tile_index": tile_index,
                 "data_sources": data_sources,
-                "container": container
+                "container": container,
+                "containers": containers
             }
         )
     
@@ -732,6 +851,25 @@ class RectifiedStitchedMosaicManager(BaseManagerContainerMixIn, CoverageManager)
     def _get_contained_range_type_name(self, container, location=None):
         return container.getRangeType().name
     
+    def _get_containers(self, params):
+        containers = params.get("container_ids", [])
+        wrappers = []
+        
+        for obj_id in containers:
+            wrapper = System.getRegistry().getFromFactory(
+                "resources.coverages.wrappers.DatasetSeriesFactory",
+                {"obj_id": obj_id}
+            )
+            
+            if not wrapper:
+                raise InternalError(
+                    "Dataset Series or ID %s not found." % obj_id
+                ) 
+            
+            wrappers.append(wrapper)
+        
+        return wrappers 
+    
     def _make_mosaic(self, coverage):
         pass
 
@@ -739,6 +877,44 @@ RectifiedStitchedMosaicManagerImplementation = \
 ManagerInterface.implement(RectifiedStitchedMosaicManager)
 
 class DatasetSeriesManager(BaseManagerContainerMixIn, BaseManager):
+    """
+    This manager handles interactions with ``DatasetSeries``.
+    
+    .. method:: create(obj_id=None, **kwargs)
+    
+       This creates and returns a :class:`~.DatasetSeriesWrapper`
+       from the attributes given in ``kwargs``. 
+       
+       If the ``obj_id`` argument is omitted a new object ID shall be generated
+       using the same mechanism as :meth:`acquireID`. If the provided object ID
+       is invalid or already in use, appropriate exceptions shall be raised.
+       
+       To add data sources to the ``DatasetSeries`` at the time it is created 
+       the ``data_sources`` and ``data_dirs`` parameters can be used. The 
+       ``data_sources`` parameter shall be a list of objects implementing the 
+       :class:``~.DataSourceInterface``. Alternatively the ``data_dirs`` 
+       parameter shall be a list of dictionaries consisting of the following
+       arguments:
+       
+       * ``search_pattern``: a regular expression to specify what files in the
+         directory are considered as data files.
+       
+       * ``path``: for local or FTP data sources, this parameter shall be a 
+         path to a valid directory, containing the data files.
+        
+       * ``type``: defines the type of the location describing the data source.
+         This can either be `local` or `remote`.
+       
+       To specify earth observation related metadata use the ``eo_metadata``
+       parameter which has to be of the type :class:`~.EOMetadata`.
+       
+    .. method:: delete(obj_id)
+        
+        This deletes a `RectifiedDataset` record specified by its 
+        ``obj_id``. If no coverage with this ID can be found, an 
+        :exc:`~.NoSuchCoverage` exception will be raised.
+    """
+    
     REGISTRY_CONF = {
         "name": "Dataset Series Manager",
         "impl_id": "resources.coverages.covmgrs.DatasetSeriesManager",
