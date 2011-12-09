@@ -39,6 +39,8 @@ PROJECT_URL_PREFIX = ''
 
 MAPSCRIPT_PATH = '<$MAPSCRIPT_PATH$>/mapscript/python/build'
 
+TEST_RUNNER = 'eoxserver.testing.core.EOxServerTestRunner'
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
