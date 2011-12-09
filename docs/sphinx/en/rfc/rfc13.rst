@@ -93,7 +93,7 @@ The support for direct data passing via MIME/multi-part encoded requests is not 
 by the WCS-T standard.
 
 The format of the ingested coverage data is not considered by the WCS-T standard at all. 
-Neither it can be annotated by the WCS-T request or by the WCS-T *OperationMetadata*. Thus 
+Neither it can be annotated by the WCS-T request nor by the WCS-T *OperationMetadata*. Thus 
 we assume the format selection is left at discretion of the WCS-T implementation. 
 
 The WCS-T standard requires that certain metadata shall be provided by the client.
@@ -273,7 +273,7 @@ References
 ----------
 
 :[OGC 07-068r4]: http://portal.opengeospatial.org/files/?artifact_id=28506
-:[ATP-RFC]: *TBD*
+:[ATP-RFC]: http://eoxserver.org/doc/en/rfc/rfc14.html
 :[EO-WCS]:	*TBD* 
 
 Voting History
