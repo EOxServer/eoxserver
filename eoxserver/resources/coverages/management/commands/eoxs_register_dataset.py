@@ -294,7 +294,7 @@ class Command(BaseCommand):
                 try:
                     oid = oids.pop(0)
                 except IndexError:
-                    oid=None
+                    oid = None
                 
                 self.print_msg(
                     "\tCollection: '%s'\n\tOID:%s\n\tMeta-data: '%s'" % (
