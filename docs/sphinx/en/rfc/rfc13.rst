@@ -184,7 +184,7 @@ EOxServer Configuration
 
 The EOxServer's WCS-T implementation need to be configured prior to the operation. 
 The configuration is set in EOxServer's 'eoxserver.conf' file. 
-The WCS-T specific options are grouped together in the 'service.ows.wcst11' section. 
+The WCS-T specific options are grouped together in the 'services.ows.wcst11' section. 
 
 The WCS-T options are: 
 
@@ -201,7 +201,7 @@ Example:
 
     ...
     # WCS-T 1.1 settings
-    [service.ows.wcst11]
+    [services.ows.wcst11]
 
     # enble disable multiple actions per request 
     allow_multiple_actions=False
@@ -219,7 +219,7 @@ Example:
 Coverages, Data and Metadata
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Currently only rectified grid coverages can be ingested (old Synchronizer API). 
+Currently only rectified grid coverages can be ingested (Coverage Managers API). 
 
 The one and only currently supported format of pixel data is GeoTIFF. 
 
