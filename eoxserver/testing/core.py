@@ -29,9 +29,13 @@
 #-------------------------------------------------------------------------------
 
 import logging
+import re
+
 from lxml import etree
 
 from django.test import TestCase
+from django.test.simple import DjangoTestSuiteRunner, get_tests
+from django.db.models.loading import get_app 
 
 from eoxserver.core.system import System
 
@@ -55,3 +59,59 @@ class EOxServerTestCase(TestCase):
     def setUp(self):
         System.init()
         
+
+def _expand_regex_classes(module, regex):
+    ret = []
+    for item in dir(module):
+        match = re.match(regex, item)
+        if match:
+            ret.append(item)
+    if not ret:
+        raise ValueError("Expression %s did not match any test." % regex)
+    return ret
+
+def _expand_regex_method(module, klass, regex):
+    ret = []
+    for item in dir(getattr(module, klass)):
+        match = re.match(regex, item)
+        if match:
+            ret.append(item)
+    if not ret:
+        raise ValueError("Expression %s did not match any test." % regex)
+    return ret
+    
+
+class EOxServerTestRunner(DjangoTestSuiteRunner):
+    """ Custom test runner. It extends the standard :class:`~.DjangoTestRunner`
+        with automatic test case search for a given regular expression.
+        
+        For example `services.WCS20*` would get expanded to all test cases 
+        of the `service` app starting with `WCS20`.
+    """
+    def build_suite(self, test_labels, extra_tests=None, **kwargs):
+        new_labels = []
+        for test_label in test_labels:
+            parts = test_label.split('.')
+            
+            if len(parts) > 3 or len(parts) < 1:
+                new_labels.append(test_label)
+                continue
+            
+            app_module = get_app(parts[0])
+            test_module = get_tests(app_module)
+            
+            classes = None
+            
+            if len(parts) == 1:
+                new_labels.append(parts[0])
+            elif len(parts) == 2:
+                classes = _expand_regex_classes(test_module, parts[1])
+                new_labels.extend([".".join((parts[0], klass)) for klass in classes])
+            else:
+                classes = _expand_regex_classes(test_module, parts[1])
+                for klass in classes:
+                    methods = _expand_regex_method(test_module, klass, parts[2])
+                    new_labels.extend([".".join((parts[0], klass, method)) for method in methods])
+        
+        return super(EOxServerTestRunner, self).build_suite(new_labels, extra_tests, **kwargs)
+
