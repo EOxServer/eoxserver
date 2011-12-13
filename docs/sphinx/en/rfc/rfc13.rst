@@ -219,16 +219,22 @@ Example:
 Coverages, Data and Metadata
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Currently only rectified grid coverages can be ingested (Coverage Managers API). 
+The one and only currently supported format of pixel data is GeoTIFF.
 
-The one and only currently supported format of pixel data is GeoTIFF. 
+All the necessary meta-data required by the EOxServer are extracted from the GeoTIFF
+annotation and (optionally) from the provided EO meta-data (see section below). 
 
-As mentioned in the introduction WCS-T requires that certain metadata must be
-provided by the client. These are geo-transformation, coverage description, 
-and coverage summary. Since the current EOxServer API does not provide means 
-to ingest this information (note that this information is provided by the 
-GeoTIFF format and the EO-WCS metadata) we simply ignore presence or absence 
-of these metadata. 
+Due to the limitations of the current Coverage Managers' API of the EOxServer 
+the current WCS-T implementation has following restrictions: 
+ * only rectified grid coverages can be ingested;
+ * 'urn:ogc:def:role:WCS:1.1:CoverageDescription' metadata are ignored and even not required
+    as this information cannot be inserted to EOxServer anyway;
+ * 'urn:ogc:def:role:WCS:1.1:CoverageSummary' metadata are ignored 
+    as this information cannot be inserted to EOxServer anyway;
+ * 'urn:ogc:def:role:WCS:1.1:GeoreferencingTransform' metadata are ignored 
+    as this information is relevant to referenced data only 
+ *  'urn:ogc:def:role:WCS:1.1:OtherSource' metadata are ignored 
+    as this information cannot be inserted to EOxServer anyway.
 
 WCS-T and Earth Observation Application Profile
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -247,12 +253,6 @@ Source Code Location
 ~~~~~~~~~~~~~~~~~~~~
 
 http://eoxserver.org/svn/sandbox/sandbox_wcst
-
-Initial Code Base
-~~~~~~~~~~~~~~~~~
-
-A first prototype implementing parts of the functionality has been developed under
-the O3S project. 
 
 RFCs and Decision Process
 ~~~~~~~~~~~~~~~~~~~~~~~~~

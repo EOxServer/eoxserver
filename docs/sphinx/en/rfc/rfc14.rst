@@ -159,12 +159,6 @@ Source Code Location
 
 http://eoxserver.org/svn/sandbox/sandbox_wcst
 
-Initial Code Base
-~~~~~~~~~~~~~~~~~
-
-A first prototype implementing parts of the functionality has been developed under
-the O3S project. 
-
 RFCs and Decision Process
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
