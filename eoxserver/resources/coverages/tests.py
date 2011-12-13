@@ -31,6 +31,7 @@
 import os.path
 import shutil
 import logging
+from datetime import timedelta
 
 from django.utils.datetime_safe import datetime
 from django.contrib.gis.geos import GEOSGeometry
@@ -45,10 +46,11 @@ from eoxserver.resources.coverages.testbase import (
     RectifiedStitchedMosaicSynchronizeTestCase, 
     DatasetSeriesCreateTestCase, DatasetSeriesUpdateTestCase,
     DatasetSeriesDeleteTestCase, DatasetSeriesSynchronizeTestCase,
-    EXTENDED_FIXTURES
+    CoverageIdManagementTestCase, EXTENDED_FIXTURES
 )
 from eoxserver.resources.coverages.geo import GeospatialMetadata
 from eoxserver.resources.coverages.metadata import EOMetadata
+import eoxserver.resources.coverages.exceptions as exceptions
 
 # create new rectified dataset from a local path
 
@@ -378,6 +380,8 @@ class DatasetSeriesSynchronizeNewDirectoryTestCase(DatasetSeriesSynchronizeTestC
         dataset_series_factory = System.getRegistry().bind(
             "resources.coverages.wrappers.DatasetSeriesFactory"
         )
+        
+        # this code should not be duplicated; intentionally misused ;)
         self.wrapper = dataset_series_factory.create(
             impl_id="resources.coverages.wrappers.DatasetSeriesWrapper",
             params={
@@ -459,3 +463,91 @@ class DatasetSeriesSynchronizeFileRemovedTestCase(DatasetSeriesSynchronizeTestCa
     def tearDown(self):
         super(DatasetSeriesSynchronizeTestCase, self).tearDown()
         shutil.rmtree(self.dst)
+
+#===============================================================================
+# Coverage ID management
+#===============================================================================
+
+class CoverageIdReserveTestCase(CoverageIdManagementTestCase):
+    fixtures = BASE_FIXTURES
+    
+    def manage(self):    
+        self.mgr.reserve("SomeCoverageID", until=datetime.now() + timedelta(days=1))
+    
+    def testNotAvailable(self):
+        self.assertFalse(self.mgr.available("SomeCoverageID"))
+
+class CoverageIdReserveDefaultUntilTestCase(CoverageIdManagementTestCase):
+    fixtures = BASE_FIXTURES
+    
+    def manage(self):    
+        self.mgr.reserve("SomeCoverageID")
+    
+    def testNotAvailable(self):
+        self.assertFalse(self.mgr.available("SomeCoverageID"))
+
+
+class CoverageIdReleaseTestCase(CoverageIdManagementTestCase):
+    fixtures = BASE_FIXTURES
+    
+    def manage(self):
+        self.mgr.reserve("SomeCoverageID", until=datetime.now() + timedelta(days=1))
+        self.mgr.release("SomeCoverageID")
+    
+    def testAvailable(self):
+        self.assertTrue(self.mgr.available("SomeCoverageID"))
+    
+class CoverageIdAlreadyReservedTestCase(CoverageIdManagementTestCase):
+    fixtures = BASE_FIXTURES
+    
+    def manage(self):    
+        self.mgr.reserve("SomeCoverageID", until=datetime.now() + timedelta(days=1))
+    
+    def testReserved(self):
+        try:
+            self.mgr.reserve("SomeCoverageID")
+        except exceptions.CoverageIdReservedError:
+            pass
+        else:
+            self.fail("Reservation of reserved ID did not raise the according "
+                      "exception")
+
+class CoverageIdInUseTestCase(CoverageIdManagementTestCase):
+    fixtures = EXTENDED_FIXTURES
+    
+    def testIdInUseRectifiedDataset(self):
+        try:
+            self.mgr.reserve("mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced")
+        except exceptions.CoverageIdInUseError:
+            pass
+        else:
+            self.fail("Reservation of ID in use did not raise the according "
+                      "exception")
+    
+    def testIdInUseRectifiedStitchedMosaic(self):
+        try:
+            self.mgr.reserve("mosaic_MER_FRS_1P_RGB_reduced")
+        except exceptions.CoverageIdInUseError:
+            pass
+        else:
+            self.fail("Reservation of ID in use did not raise the according "
+                      "exception")
+
+class CoverageIdReleaseFailTestCase(CoverageIdManagementTestCase):
+    def testRelease(self):
+        try:
+            self.mgr.release("SomeID", True)
+        except exceptions.CoverageIdReleaseError:
+            pass
+        else:
+            self.fail("No exception thrown when unreserved ID was released.")
+
+class CoverageIdAvailableTestCase(CoverageIdManagementTestCase):
+    fixtures = EXTENDED_FIXTURES
+    
+    def testNotAvailable(self):
+        self.assertFalse(self.mgr.available("mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced"))
+
+    def testAvailable(self):
+        self.assertTrue(self.mgr.available("SomeID"))
+    

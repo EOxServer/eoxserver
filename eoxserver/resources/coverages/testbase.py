@@ -30,8 +30,21 @@
 
 from eoxserver.core.system import System
 from eoxserver.testing.core import EOxServerTestCase, BASE_FIXTURES
+from eoxserver.resources.coverages.covmgrs import CoverageIdManager
 
 EXTENDED_FIXTURES = BASE_FIXTURES + ["testing_coverages.json"]
+
+class CoverageIdManagementTestCase(EOxServerTestCase):
+    """ Base class for Coverage ID management test cases. """
+    
+    def setUp(self):
+        super(CoverageIdManagementTestCase, self).setUp()
+        self.mgr = CoverageIdManager()
+        self.manage()
+    
+    def manage(self):
+        """ Override this function to extend management before testing. """
+        pass
 
 class ManagementTestCase(EOxServerTestCase):
     """ Base class for test cases targeting the 
