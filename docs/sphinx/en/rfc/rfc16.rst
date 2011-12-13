@@ -6,11 +6,14 @@ RFC 16: Referenceable Grid Coverages
 :Authors: Stephan Krause, Stephan Meissl, Fabian Schindler
 :Created: 2011-11-24
 :Last Edit: $Date$
-:Status: IN PREPARATION
+:Status: PENDING
 :Discussion: http://www.eoxserver.org/wiki/DiscussionRfc16
 
 This RFC proposes an implementation for Referenceable Grid Coverages as
 well as for the WCS 2.0 operations working on them.
+
+The implementation is available in the SVN under
+http://eoxserver.org/svn/sandbox/sandbox_ref.
 
 Introduction
 ------------
