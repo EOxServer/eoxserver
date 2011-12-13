@@ -75,6 +75,7 @@ to run EOxServer.
     |           |                  | used by EOxServer.                        |
     +-----------+------------------+-------------------------------------------+
 
+
 EOxServer is written in `Python <http://www.python.org/>`_ and uses the 
 `Django <https://www.djangoproject.com>`_ framework which requires a 
 Python version from 2.4 to 2.7. Due to backwards incompatibilities in Python 
@@ -83,15 +84,38 @@ Python version from 2.4 to 2.7. Due to backwards incompatibilities in Python
 EOxServer makes heavy usage of the `OSGeo <http://osgeo.org>`_ projects 
 `GDAL <http://www.gdal.org>`_ and `MapServer <http://mapserver.org>`_.
 
-EOxServer additionally needs a database but since Python 2.5 or later 
-is required which includes a lightweight database called 
-`SQLite <http://sqlite.org/>`_, you can skip this step for now. However, if 
-you'd like to work with a "large" database engine in an operational environment 
-we recommend installing `PostgreSQL <http://www.postgresql.org/>`_ 
-and its extension `PostGIS <http://postgis.refractions.net/>`_ (see 
+EOxServer also requires a database to store its internal data objects. Since it
+is built on Django, EOxServer is mostly database agnostic, which means you can
+choose from various database systems. Since EOxServer requires the database to
+have geospatial enablement, the according extensions to that database have to
+be installed. We suggest you use one of the following:
+
+ * For testing environments or small amounts of data, the `SQLite
+   <http://sqlite.org/>`_ database provides a lightweight and easy-to-use
+   system.
+ * However, if you'd like to work with a "large" database engine in an 
+   operational environment we recommend installing `PostgreSQL
+   <http://www.postgresql.org/>`_.
+
+For more and detailed information about database backends please refer to 
 `Django database notes <https://docs.djangoproject.com/en/1.3/ref/databases/>`_ 
-and `GeoDjango installation 
-<https://docs.djangoproject.com/en/1.3/ref/contrib/gis/install/>`_).
+and `GeoDjango installation
+<https://docs.djangoproject.com/en/1.3/ref/contrib/gis/install/>`_.
+
+.. _table_eoxserver_db_dependencies:
+.. table:: Database Dependencies
+
+    +------------+------------------+------------------------------------------+
+    | Backend    | Required Version | Required extensions/software             |
+    +============+==================+==========================================+
+    | SQLite     | >= 3.6           | spatialite (>= 2.3), pysqlite2 (>= 2.5), |
+    |            |                  | GEOS (>= 3.0), GDAL (>= 1.4),            |
+    |            |                  | PROJ.4 (>= 4.4)                          |
+    +------------+------------------+------------------------------------------+
+    | PostgreSQL | >= 8.1           | PostGIS (>= 1.3), GEOS (>= 3.0),         |
+    |            |                  | PROJ.4 (>= 4.4), psycopg2 (== 2.4.1)     |
+    +------------+------------------+------------------------------------------+
+
 
 Installing EOxServer
 --------------------
@@ -212,8 +236,8 @@ to be customized:
 * ``MAPSCRIPT_PATH``: (Optional) Absolute path to the Python MapScript build 
   directory. Set this if you want to use a custom MapScript version (e.g. 
   generated from the MapServer trunk).
-* ``DATABASES``: The database connection details. If using SQLite (the default) 
-  be sure to use the absolute path to the ``config.sqlite`` file (see below).
+* ``DATABASES``: The database connection details. For detailed information see
+  `Database Setup`_
 
 You can also customize further settings, for a complete reference please refer 
 to the `Django settings overview 
@@ -238,7 +262,9 @@ have to do is:
 Using a PostgreSQL/PostGIS database back-end configuration is a little bit more 
 complex. Please refer to `GeoDjango Database API 
 <https://docs.djangoproject.com/en/1.3/ref/contrib/gis/db-api/>`_ for more 
-instructions.
+instructions. On a *NIX system, the setup process might look like this:
+
+    # first a template 
 
 .. TODO: Logfile handling:
     configuration in settings.py and eoxserver.conf
@@ -248,8 +274,60 @@ instructions.
     single: EOxServer Deployment
     single: Deployment
 
-.. _EOxServer Deployment:
+Database Setup
+~~~~~~~~~~~~~~
 
+Before proceeding, please be sure that you have installed all required software
+for the database system of your choice. Please refer to  TODO 
+
+Using a SQLite database, all you have to do is to copy the
+``TEMPLATE_config.sqlite`` and place it somewhere in your instance directory.
+Now you have to edit the ``DATABASES`` your ``settings.py`` file with the
+following lines:
+::
+
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.contrib.gis.db.backends.spatialite',
+            'NAME': '/path/to/config.sqlite',
+        }
+    }
+
+Setting up a PostgreSQL database for EOxServer requires also installing the
+PostGIS extensions (the following example is an installation based on a Debian
+system):
+::
+
+    sudo su - postgres
+    POSTGIS_DB_NAME=eoxserver_db
+    POSTGIS_SQL_PATH=`pg_config --sharedir`/contrib/postgis-1.5
+    createdb $POSTGIS_DB_NAME
+    psql -d $POSTGIS_DB_NAME -f $POSTGIS_SQL_PATH/postgis.sql
+    psql -d $POSTGIS_DB_NAME -f $POSTGIS_SQL_PATH/spatial_ref_sys.sql
+    psql -d $POSTGIS_DB_NAME -f `pg_config --sharedir`/contrib/hstore-new.sql
+
+This creates the database and installs the PostGIS extensions within the
+database. Now a user with password can be set with the following line:
+::
+
+    createuser -d -R -P -S eoxserver-admin
+
+In the ``settings.py`` the following entry has to be added:
+::
+
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.contrib.gis.db.backends.postgis',
+            'NAME': 'eoxserver_db',
+            'USER': 'eoxserver-admin',
+            'PASSWORD': 'eoxserver',
+            'HOST': 'localhost',    # or the URL of your server hosting the DB
+            'PORT': '',
+        }
+    }
+
+
+.. _EOxServer Deployment:
 Deployment
 ~~~~~~~~~~
 
