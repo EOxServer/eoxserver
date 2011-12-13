@@ -469,8 +469,6 @@ class DatasetSeriesSynchronizeFileRemovedTestCase(DatasetSeriesSynchronizeTestCa
 #===============================================================================
 
 class CoverageIdReserveTestCase(CoverageIdManagementTestCase):
-    fixtures = BASE_FIXTURES
-    
     def manage(self):    
         self.mgr.reserve("SomeCoverageID", until=datetime.now() + timedelta(days=1))
     
@@ -478,8 +476,6 @@ class CoverageIdReserveTestCase(CoverageIdManagementTestCase):
         self.assertFalse(self.mgr.available("SomeCoverageID"))
 
 class CoverageIdReserveDefaultUntilTestCase(CoverageIdManagementTestCase):
-    fixtures = BASE_FIXTURES
-    
     def manage(self):    
         self.mgr.reserve("SomeCoverageID")
     
@@ -488,8 +484,6 @@ class CoverageIdReserveDefaultUntilTestCase(CoverageIdManagementTestCase):
 
 
 class CoverageIdReleaseTestCase(CoverageIdManagementTestCase):
-    fixtures = BASE_FIXTURES
-    
     def manage(self):
         self.mgr.reserve("SomeCoverageID", until=datetime.now() + timedelta(days=1))
         self.mgr.release("SomeCoverageID")
@@ -498,8 +492,6 @@ class CoverageIdReleaseTestCase(CoverageIdManagementTestCase):
         self.assertTrue(self.mgr.available("SomeCoverageID"))
     
 class CoverageIdAlreadyReservedTestCase(CoverageIdManagementTestCase):
-    fixtures = BASE_FIXTURES
-    
     def manage(self):    
         self.mgr.reserve("SomeCoverageID", until=datetime.now() + timedelta(days=1))
     
@@ -550,4 +542,18 @@ class CoverageIdAvailableTestCase(CoverageIdManagementTestCase):
 
     def testAvailable(self):
         self.assertTrue(self.mgr.available("SomeID"))
+        
+class CoverageIdRequestIdTestCase(CoverageIdManagementTestCase):
+    def manage(self):    
+        self.mgr.reserve("SomeCoverageID", "SomeRequestID", until=datetime.now() + timedelta(days=1))
+        self.mgr.reserve("SomeCoverageID2", "SomeRequestID", until=datetime.now() + timedelta(days=1))
+        
+    def testCoverageIds(self):
+        self.assertItemsEqual(
+            ["SomeCoverageID", "SomeCoverageID2"],
+            self.mgr.getCoverageIds("SomeRequestID") 
+        )
     
+    def testRequestId(self):
+        self.assertEqual("SomeRequestID", self.mgr.getRequestId("SomeCoverageID"))
+        self.assertEqual("SomeRequestID", self.mgr.getRequestId("SomeCoverageID2"))
