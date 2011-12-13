@@ -121,7 +121,7 @@ The ``rangesubset`` parameter is foreseen for implementation.
 In order to be able to serve referenceable grid data, the original
 :class:`~.WCS20GetCoverageHandler` was split up into
 :class:`~.WCS20GetReferenceableCoverageHandler` and
-:class`WCS20GetRectifiedCoverageHandler`. While the latter one still relies
+:class:`~.WCS20GetRectifiedCoverageHandler`. While the latter one still relies
 on MapServer, the one for referenceable grid data uses the vanilla GDAL Python 
 bindings as well as additional GDAL-based extensions written for the
 EOxServer project.
