@@ -275,7 +275,7 @@ class TileIndex(models.Model):
 
 class ReservedCoverageIdRecord(models.Model):
     until = models.DateTimeField()
-    request_id = models.CharField(max_length=256)
+    request_id = models.CharField(max_length=256, null=True)
     coverage_id = models.CharField("Coverage ID", max_length=256, unique=True, validators=[NCNameValidator])
 
 class CoverageRecord(Resource):

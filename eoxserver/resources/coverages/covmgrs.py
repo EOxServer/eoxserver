@@ -1054,7 +1054,7 @@ class CoverageIdManager(BaseManager):
     Manager for Coverage IDs.
     """
     
-    def reserve(self, coverage_id, until=None):
+    def reserve(self, coverage_id, request_id=None, until=None):
         """
         Tries to reserve a ``coverage_id`` until a given datetime. If ``until``
         is omitted, the configuration value 
@@ -1091,6 +1091,7 @@ class CoverageIdManager(BaseManager):
         elif CoverageRecord.objects.filter(coverage_id=coverage_id).count() > 0:
             raise CoverageIdInUseError("Coverage ID %s is already in use")
         
+        obj.request_id = request_id
         obj.until = until
         obj.save()
         
@@ -1128,6 +1129,31 @@ class CoverageIdManager(BaseManager):
             ).count() > 0 or
             CoverageRecord.objects.filter(coverage_id=coverage_id).count() > 0
         )
+    
+    def getRequestId(self, coverage_id):
+        """
+        Returns the request ID associated with a :class:
+        `~.ReservedCoverageIdRecord` or `None` if the no record with that ID is
+        available.
+        """
+        
+        try:
+            obj = ReservedCoverageIdRecord.objects.get(coverage_id=coverage_id)
+            return obj.request_id
+        except ReservedCoverageIdRecord.DoesNotExist:
+            return None
+        
+    def getCoverageIds(self, request_id):
+        """
+        Returns a list of all coverage IDs associated with a specific request
+        ID.
+        """
+        return [
+            obj.coverage_id
+            for obj in ReservedCoverageIdRecord.objects.filter(
+                request_id=request_id
+            )
+        ]
         
     def _get_id_factory(self):
         # Unused, but would raise an exception.
