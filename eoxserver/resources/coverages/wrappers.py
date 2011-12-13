@@ -630,16 +630,10 @@ class RectifiedDatasetWrapper(RectifiedGridWrapper, EODatasetWrapper):
         
     def _post_create(self, params):
         if "container" in params and params["container"]:
-            params["container"].addCoverage(
-                res_type = self.getType(),
-                res_id = self.__model.pk
-            )
+            params["container"].addCoverage(self)
         containers = params.get("containers", [])
         for container in containers:
-            container.addCoverage(
-                res_type = self.getType(),
-                res_id = self.__model.pk
-            )
+            container.addCoverage(self)
         
     # ==========================================================================
     # TODO: update this part according to new data model
@@ -676,10 +670,10 @@ class RectifiedDatasetWrapper(RectifiedGridWrapper, EODatasetWrapper):
             self.__model.visible = visible
         
         if add_container is not None:
-            add_container.addCoverage(self.getType(), self.__model.pk)
+            add_container.addCoverage(self)
         
         if rm_container is not None:
-            rm_container.removeCoverage(self.getType(), self.__model.pk)
+            rm_container.removeCoverage(self)
 
         # commit update 
         self.__model.save()
@@ -811,19 +805,21 @@ class RectifiedDatasetWrapper(RectifiedGridWrapper, EODatasetWrapper):
         return self.__model.dataset_series_set.count() + \
                self.__model.rect_stitched_mosaics.count()
         
-    def contains(self, res_id):
+    def contains(self, wrapper):
         """
         Always returns ``False``. A Dataset does not contain other
         Datasets.
         """
         return False
     
-    def containedIn(self, res_id):
+    def containedIn(self, wrapper):
         """
         Returns ``True`` if this Rectified Dataset is contained in the
-        Rectified Stitched Mosaic or Dataset Series with the resource
-        primary key ``res_id``, ``False`` otherwise.
+        Rectified Stitched Mosaic or Dataset Series specified by its
+        ``wrapper``, ``False`` otherwise.
         """
+        res_id = wrapper.getModel().pk
+        
         return self.__model.dataset_series_set.filter(pk=res_id).count() > 0 or \
                self.__model.rect_stitched_mosaics.filter(pk=res_id).count() > 0
     
@@ -992,19 +988,21 @@ class ReferenceableDatasetWrapper(EODatasetWrapper, ReferenceableGridWrapper):
         """
         return self.__model.dataset_series_set.count()
         
-    def contains(self, res_id):
+    def contains(self, wrapper):
         """
         Always returns ``False``. A Dataset cannot contain other
         Datasets.
         """
         return False
     
-    def containedIn(self, res_id):
+    def containedIn(self, wrapper):
         """
         This method returns ``True`` if this Referenceable Dataset is
-        contained in the Dataset Series with the given resource
-        primary key ``res_id``, ``False`` otherwise.
+        contained in the Dataset Series specified by its ``wrapper``,
+        ``False`` otherwise.
         """
+        res_id = wrapper.getModel().pk
+        
         return self.__model.dataset_series_set.filter(pk=res_id).count() > 0
 
 ReferenceableDatasetWrapperImplementation = \
@@ -1077,8 +1075,6 @@ class RectifiedStitchedMosaicWrapper(TiledDataWrapper, RectifiedGridWrapper, EOC
         
         create_dict["tile_index"] = params["tile_index"].getRecord()
         
-        
-        
         return create_dict
     
     def _create_model(self, create_dict):
@@ -1089,17 +1085,11 @@ class RectifiedStitchedMosaicWrapper(TiledDataWrapper, RectifiedGridWrapper, EOC
     def _post_create(self, params):
         container = params.get("container")
         if container is not None:
-            container.addCoverage(
-                res_type=self.getType(),
-                res_id=self.__model.pk
-            )
+            container.addCoverage(self)
         
         containers = params.get("containers", [])
         for container in containers:
-            container.addCoverage(
-                res_type=self.getType(),
-                res_id=self.__model.pk
-            )
+            container.addCoverage(self)
             
         if "data_sources" in params:
             for data_source in params["data_sources"]:
@@ -1239,20 +1229,24 @@ class RectifiedStitchedMosaicWrapper(TiledDataWrapper, RectifiedGridWrapper, EOC
         """
         return self.__model.dataset_series_set.count()
         
-    def contains(self, res_id):
+    def contains(self, wrapper):
         """
-        This method returns ``True`` if the a Rectified Dataset with
-        resource primary key ``res_id`` is contained within this
-        Stitched Mosaic, ``False`` otherwise.
+        This method returns ``True`` if the a Rectified Dataset specified
+        by its ``wrapper`` is contained within this Stitched Mosaic, 
+        ``False`` otherwise.
         """
+        res_id = wrapper.getModel().pk
+        
         return self.__model.rect_datasets.filter(pk=res_id).count() > 0
     
-    def containedIn(self, res_id):
+    def containedIn(self, wrapper):
         """
         This method returns ``True`` if this Stitched Mosaic is 
-        contained in the Dataset Series with resource primary key
-        ``res_id``, ``False`` otherwise.
+        contained in the Dataset Series specified by its ``wrapper``, 
+        ``False`` otherwise.
         """
+        res_id = wrapper.getModel().pk
+        
         return self.__model.dataset_series_set.filter(pk=res_id).count() > 0
     
     #-------------------------------------------------------------------
@@ -1265,12 +1259,15 @@ class RectifiedStitchedMosaicWrapper(TiledDataWrapper, RectifiedGridWrapper, EOC
         """
         return os.path.join(self.__model.storage_dir, "tindex.shp")
     
-    def addCoverage(self, res_type, res_id):
+    def addCoverage(self, wrapper):
         """
-        Adds a Rectified Dataset with primary key ``res_id`` to the
-        Rectified Stitched Mosaic. An :exc:`InternalError` is raised if
-        the ``res_type`` is not equal to ``eo.rect_dataset``.
+        Adds a Rectified Dataset specified by its wrapper. An 
+        :exc:`InternalError` is raised if the wrapper type is not equal to
+        ``eo.rect_dataset``.
         """
+        res_type = wrapper.getType()
+        res_id = wrapper.getModel().pk
+        
         if res_type != "eo.rect_dataset":
             raise InternalError(
                 "Cannot add coverages of type '%s' to Rectified Stitched Mosaics" %\
@@ -1279,12 +1276,15 @@ class RectifiedStitchedMosaicWrapper(TiledDataWrapper, RectifiedGridWrapper, EOC
         else:
             self.__model.rect_datasets.add(res_id)
     
-    def removeCoverage(self, res_type, res_id):
+    def removeCoverage(self, wrapper):
         """
-        Removes a Rectified Dataset with primary key ``res_id`` from the
-        Rectified Stitched Mosaic. An :exc:`InternalError` is raised if
-        the ``res_type`` is not equal to ``eo.rect_dataset``.
+        Removes a Rectified Dataset specified by its wrapper. An 
+        :exc:`InternalError` is raised if the wrapper type is not equal to
+        ``eo.rect_dataset``.
         """
+        res_type = wrapper.getType()
+        res_id = wrapper.getModel().pk
+        
         if res_type != "eo.rect_dataset":
             raise InternalError(
                 "Cannot remove coverages of type '%s' from Rectified Stitched Mosaics" %\
@@ -1432,27 +1432,32 @@ class DatasetSeriesWrapper(EOMetadataWrapper, ResourceWrapper):
         
         return factory.find(filter_exprs=_filter_exprs)
         
-    def contains(self, res_id):
+    def contains(self, wrapper):
         """
         This method returns ``True`` if the Dataset Series contains
-        the EO Coverage with resource primary key ``res_id``, ``False``
+        the EO Coverage specifiec by its ``wrapper``, ``False``
         otherwise.
         """
+        res_id = wrapper.getModel().pk
+        
         return self.__model.rect_datasets.filter(pk=res_id).count() > 0 or \
                self.__model.ref_datasets.filter(pk=res_id).count() > 0 or \
                self.__model.rect_stitched_mosaics.filter(pk=res_id).count() > 0
     
-    def addCoverage(self, res_type, res_id):
+    def addCoverage(self, wrapper):
         """
         Adds the EO coverage of type ``res_type`` with primary key
         ``res_id`` to the dataset series. An :exc:`InternalError` is
         raised if the type cannot be handled by Dataset Series.
-        Supported types are:
+        Supported wrapper types are:
         
         * ``eo.rect_dataset``
         * ``eo.ref_dataset``
         * ``eo.rect_stitched_mosaic``
         """
+        res_type = wrapper.getType()
+        res_id = wrapper.getModel().pk
+        
         if res_type == "eo.rect_dataset":
             self.__model.rect_datasets.add(res_id)
         elif res_type == "eo.ref_dataset":
@@ -1465,17 +1470,20 @@ class DatasetSeriesWrapper(EOMetadataWrapper, ResourceWrapper):
                 res_type
             )
 
-    def removeCoverage(self, res_type, res_id):
+    def removeCoverage(self, wrapper):
         """
-        Removes the EO coverage of type ``res_type`` with primary key
-        ``res_id`` from the dataset series. An :exc:`InternalError` is
+        Removes the EO coverage specified by its ``wrapper`` from the
+        dataset series. An :exc:`InternalError` is
         raised if the type cannot be handled by Dataset Series.
-        Supported types are:
+        Supported wrapper types are:
         
         * ``eo.rect_dataset``
         * ``eo.ref_dataset``
         * ``eo.rect_stitched_mosaic``
         """
+        res_type = wrapper.getType()
+        res_id = wrapper.getModel().pk
+        
         if res_type == "eo.rect_dataset":
             self.__model.rect_datasets.remove(res_id)
         elif res_type == "eo.ref_dataset":

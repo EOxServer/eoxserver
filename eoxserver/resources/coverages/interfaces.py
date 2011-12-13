@@ -58,6 +58,11 @@ class DataSourceInterface(RegisteredInterface):
        This method shall return a list of Data Packages, i.e. objects
        implementing :class:`DataPackageInterface`, related to the
        Data Source.
+       
+    .. method:: contains
+    
+       This method shall return ``True`` if a data source references
+       a dataset, ``False`` otherwise.
     
     """
     
@@ -72,7 +77,7 @@ class DataSourceInterface(RegisteredInterface):
     )
     
     contains = Method(
-        IntArg("res_id"),
+        ObjectArg("wrapper"),
         returns = BoolArg("@return")
     )
 
@@ -708,14 +713,13 @@ class EOCoverageInterface(CoverageInterface, EOWCSObjectInterface):
     
        This method shall return ``True`` if the EO coverage is
        contained in the container object (Stitched Mosaic or Dataset
-       Series) with resource primary key ``res_id``, ``False``
-       otherwise.
+       Series) specified by the ``wrapper``, ``False`` otherwise.
     
     .. method:: contains(res_id)
     
        This method shall return ``True`` if the EO coverage is a
        container object and contains the coverage with resource
-       primary key ``res_id``, ``False`` otherwise.
+       specified by the ``wrapper``, ``False`` otherwise.
     """
     REGISTRY_CONF = {
         "name": "EO Coverage Interface",
@@ -745,12 +749,12 @@ class EOCoverageInterface(CoverageInterface, EOWCSObjectInterface):
     )
     
     containedIn = Method(
-        IntArg("res_id"),
+        ObjectArg("wrapper"),
         returns=BoolArg("@return")
     )
     
     contains = Method(
-        IntArg("res_id"),
+        ObjectArg("wrapper"),
         returns=BoolArg("@return")
     )
 
@@ -789,15 +793,18 @@ class ContainerInterface(RegisteredInterface):
     This is the common interface for coverages and series containing
     EO Coverages.
     
-    .. method:: addCoverage(res_type, res_id)
+    .. method:: contains(wrapper)
     
-       Add resource with type ``res_type`` and primary key ``res_id``
-       to container.
+       Returns a boolean value describing if the container contains the resource
+       specified by the given ``wrapper``.
     
-    .. method:: removeCoverage(res_type, res_id)
+    .. method:: addCoverage(wrapper)
     
-       Remove resource with type ``res_type`` and primary key
-       ``res_id``
+       Add resource specified by the given ``wrapper``.
+    
+    .. method:: removeCoverage(wrapper)
+    
+       Remove resource specified by the given ``wrapper``.
     
     .. method:: getDataSources
     
@@ -812,14 +819,17 @@ class ContainerInterface(RegisteredInterface):
         "intf_id": "resources.coverages.interfaces.Container"
     }
     
+    contains = Method(
+        ObjectArg("wrapper"),
+        returns=BoolArg("@return")
+    )
+    
     addCoverage = Method(
-        StringArg("res_type"),
-        IntArg("res_id")
+        ObjectArg("wrapper")
     )
     
     removeCoverage = Method(
-        StringArg("res_type"),
-        IntArg("res_id")
+        ObjectArg("wrapper")
     )
     
     getDataSources = Method(
@@ -871,13 +881,11 @@ class DatasetSeriesInterface(ResourceInterface, EOWCSObjectInterface):
        applied to the datasets or ``None``. In case no contained dataset
        matches the filter expressions an empty list shall be returned.
 
-    .. method:: contains(res_id)
+    .. method:: contains(wrapper)
     
-       This method shall return ``True`` if the EO Coverage with
-       resource primary key ``res_id`` is contained in the Dataset
-       Series, ``False`` otherwise.
+       This method shall return ``True`` if the EO Coverage specified by 
+       ``wrapper`` is contained in the Dataset Series, ``False`` otherwise.
     
-
     """
     REGISTRY_CONF = {
         "name": "Dataset Series Interface",
@@ -892,9 +900,9 @@ class DatasetSeriesInterface(ResourceInterface, EOWCSObjectInterface):
         ListArg("filter_exprs", default=None),
         returns=ListArg("@return")
     )
-    
+
     contains = Method(
-        IntArg("res_id"),
+        ObjectArg("wrapper"),
         returns=BoolArg("@return")
     )
 

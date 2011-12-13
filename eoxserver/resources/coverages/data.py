@@ -123,10 +123,12 @@ class DataSourceWrapper(RecordWrapper):
         else:
             return []
     
-    def contains(self, res_id):
+    def contains(self, wrapper):
         """
         Check if the DataSource contains a coverage with a certain ID
         """
+        res_id = wrapper.getModel().pk
+        
         if self.record:
             return self.record.coveragerecord_set.filter(pk=res_id).count() > 0
         else:
