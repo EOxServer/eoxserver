@@ -273,8 +273,14 @@ class TileIndex(models.Model):
         verbose_name = "Tile Index"
         verbose_name_plural = "Tile Indices"
 
+class ReservedCoverageIdRecord(models.Model):
+    until = models.DateTimeField()
+    request_id = models.CharField(max_length=256)
+    coverage_id = models.CharField("Coverage ID", max_length=256, unique=True, validators=[NCNameValidator])
+
 class CoverageRecord(Resource):
     coverage_id = models.CharField("Coverage ID", max_length=256, unique=True, validators=[NCNameValidator])
+
     range_type = models.ForeignKey(RangeTypeRecord, on_delete=models.PROTECT)
     layer_metadata = models.ManyToManyField(LayerMetadataRecord, null=True, blank=True)
     automatic = models.BooleanField(default=False) # True means that the dataset was automatically generated from a dataset series's data dir

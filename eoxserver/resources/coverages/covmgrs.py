@@ -27,6 +27,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+
 """
 This module implements coverage managers that can be used to read data from GDAL
 datasets and to register coverages automatically. Furthermore, coverages can be
@@ -37,11 +38,18 @@ import os.path
 from ConfigParser import RawConfigParser
 import logging
 from uuid import uuid4
+from datetime import datetime, timedelta
 
 from eoxserver.core.system import System
 from eoxserver.core.exceptions import InternalError, IDInUse
 from eoxserver.resources.coverages.interfaces import ManagerInterface
-from eoxserver.resources.coverages.exceptions import ManagerError, NoSuchCoverageException
+from eoxserver.resources.coverages.exceptions import (
+    ManagerError, NoSuchCoverageException, CoverageIdReservedError,
+    CoverageIdInUseError, CoverageIdReleaseError
+)
+from eoxserver.resources.coverages.models import (
+    ReservedCoverageIdRecord, CoverageRecord
+)
 
 class BaseManager(object):
     def __init__(self):
@@ -200,10 +208,7 @@ class BaseManagerContainerMixIn(object):
                             container.getType()
                         )
                     )
-                    container.addCoverage(
-                        existing_coverages[0].getType(),
-                        existing_coverages[0].getModel().pk # TODO: this is an ugly hack
-                    )
+                    container.addCoverage(existing_coverages[0])
                     
                 else:
                     eo_metadata = data_package.readEOMetadata()
@@ -253,12 +258,12 @@ class BaseManagerContainerMixIn(object):
                 # which are not contained in a data source.
                 contained = False
                 for data_source in container.getDataSources():
-                    if data_source.contains(dataset.getModel().pk):
+                    if data_source.contains(dataset):
                         contained = True
                         break
                 
                 if not contained:
-                    container.removeCoverage(dataset.getType(), dataset.getModel().pk)
+                    container.removeCoverage(dataset)
     
     def _guess_metadata_location(self, location):
         if location.getType() == "local":
@@ -490,8 +495,6 @@ class CoverageManagerEOMixIn(object):
         return wrappers 
 
 class PlainCoverageManager(CoverageManager, CoverageManagerDatasetMixIn):
-    """
-    """
     
     # TODO: implement PlainCoverageWrapper, CoverageFactory
     
@@ -594,16 +597,17 @@ class RectifiedDatasetManager(EODatasetManager):
        using the same mechanism as :meth:`acquireID`. If the provided object ID
        is invalid or already in use, appropriate exceptions shall be raised.
        
-       To define the data and metadata location, the ``location`` and ``md_location``
-       parameters can be used, where the value has to implement the 
-       :class:`~.LocationInterface`. Alternatively ``local_path`` and ``md_local_path`` 
+       To define the data and metadata location, the ``location`` and 
+       ``md_location`` parameters can be used, where the value has to implement 
+       the :class:`~.LocationInterface`. 
+       Alternatively ``local_path`` and ``md_local_path`` 
        can be used to define local locations. For when the data and metadata is 
-       located on an FTP server, use ``remote_path`` and ``md_remote_path`` instead,
-       which also requires the ``ftp_host`` parameter (``ftp_port``, ``ftp_user``
-       and ``ftp_passwd`` are optional). When the data is located in a rasdaman
-       database use the ``collection`` and ``ras_host`` parameters. ``oid``, 
-       ``ras_port``, ``ras_user``, ``ras_passwd``, and ``ras_db`` can be used
-       to further specify the location.
+       located on an FTP server, use ``remote_path`` and ``md_remote_path``
+       instead, which also requires the ``ftp_host`` parameter (``ftp_port``, 
+       ``ftp_user`` and ``ftp_passwd`` are optional). When the data is located
+       in a rasdaman database use the ``collection`` and ``ras_host`` parameters. 
+       ``oid``, ``ras_port``, ``ras_user``, ``ras_passwd``, and ``ras_db`` can 
+       be used to further specify the location.
        
        To specify geospatial metadata use the ``geo_metadata`` parameter,
        which has to be an instance of :class:`~.GeospatialMetadata`. Optionally
@@ -675,8 +679,6 @@ RectifiedDatasetManagerImplementation = \
 ManagerInterface.implement(RectifiedDatasetManager)
 
 class ReferenceableDatasetManager(EODatasetManager):
-    """
-    """
     pass
     
     # TODO: implement referenceable grid coverages
@@ -728,7 +730,27 @@ class RectifiedStitchedMosaicManager(BaseManagerContainerMixIn, CoverageManager)
        
        Additional metadata can be added with the ``abstract``, ``title``,
        and ``keywords`` parameters. 
-       
+    
+    .. method:: synchronize(obj_id)
+    
+        This method synchronizes a :class:`~.RectifiedStitchedMosaicRecord`
+        identified by the ``obj_id`` with the file system. It does three tasks:
+        
+        * It scans through all directories specified by its data sources and
+          checks if data files exist which do not yet have an according record.
+          For each, a :class:`~.RectifiedDatasetRecord` is created and linked
+          with the :class:`~.RectifiedStitchedMosaicRecord`. Also all existing,
+          but previously not contained datasets are linked to the `Rectified 
+          Stitched Mosaic`.
+        
+        * All contained instances of :class:`~.RectifiedDatasetRecord` are
+          checked if their data file still exists. If not, the according record
+          is unlinked from the `Rectified Stitched Mosaic` and deleted.
+        
+        * All instances of :class:`~.RectifiedDatasetRecord` associated with the
+          :class:`~.RectifiedStitchedMosaicRecord` which are not referenced by a
+          data source anymore are unlinked from the `Rectified Stitched Mosaic`.
+    
     .. method:: delete(obj_id)
         
         This deletes a `RectifiedDataset` record specified by its 
@@ -907,7 +929,27 @@ class DatasetSeriesManager(BaseManagerContainerMixIn, BaseManager):
        
        To specify earth observation related metadata use the ``eo_metadata``
        parameter which has to be of the type :class:`~.EOMetadata`.
-       
+
+    .. method:: synchronize(obj_id)
+    
+        This method synchronizes a :class:`~.DatasetSeriesRecord` identified by
+        the ``obj_id`` with the file system. It does three tasks:
+        
+        * It scans through all directories specified by its data sources and
+          checks if data files exist which do not yet have an according record.
+          For each, a :class:`~.RectifiedDatasetRecord` is created and linked
+          with the :class:`~.DatasetSeriesRecord`. Also all existing,
+          but previously not contained datasets are linked to the `Dataset
+          Series`.
+        
+        * All contained instances of :class:`~.RectifiedDatasetRecord` are
+          checked if their data file still exists. If not, the according record
+          is unlinked from the `Dataset Series` and deleted.
+        
+        * All instances of :class:`~.RectifiedDatasetRecord` associated with the
+          :class:`~.DatasetSeriesRecord` which are not referenced by a
+          data source anymore are unlinked from the `Dataset Series`.
+
     .. method:: delete(obj_id)
         
         This deletes a `RectifiedDataset` record specified by its 
@@ -1006,3 +1048,87 @@ class DatasetSeriesManager(BaseManagerContainerMixIn, BaseManager):
 
 DatasetSeriesManagerImplementation = \
 ManagerInterface.implement(DatasetSeriesManager)
+
+class CoverageIdManager(BaseManager):
+    """
+    Manager for Coverage IDs.
+    """
+    
+    def reserve(self, coverage_id, until=None):
+        """
+        Tries to reserve a ``coverage_id`` until a given datetime. If ``until``
+        is omitted, the configuration value 
+        ``resources.coverages.coverage_id.reservation_time`` is used.
+        
+        If the ID is already reserved, a :class:`~.CoverageIdReservedError` is
+        raised. If the ID is already taken by an existing coverage a :class:
+        `~.CoverageIdInUseError` is raised.
+        """
+        
+        obj, _ = ReservedCoverageIdRecord.objects.get_or_create(
+            coverage_id=coverage_id,
+            defaults={
+                "until": datetime.now()
+            }
+        )
+        
+        if not until:
+            values = System.getConfig().getConfigValue(
+                "resources.coverages.coverage_id", "reservation_time"
+            ).split(":")
+            
+            for _ in xrange(len(values[:4]) - 4):
+                values.insert(0, 0)
+            
+            dt = timedelta(days=int(values[0]), hours=int(values[1]),
+                           minutes=int(values[2]), seconds=int(values[3]))
+            until = datetime.now() + dt
+        
+        if datetime.now() < obj.until:
+            raise CoverageIdReservedError(
+                "Coverage ID '%s' is reserved until %s"%(coverage_id, obj.until)
+            )
+        elif CoverageRecord.objects.filter(coverage_id=coverage_id).count() > 0:
+            raise CoverageIdInUseError("Coverage ID %s is already in use")
+        
+        obj.until = until
+        obj.save()
+        
+    def release(self, coverage_id, fail=False):
+        """
+        Releases a previously reserved ``coverage_id``.
+        
+        If ``fail`` is set to ``True``, an exception is raised when the ID was 
+        not previously reserved.
+        """
+        
+        try: 
+            obj = ReservedCoverageIdRecord.objects.get(coverage_id=coverage_id)
+            obj.delete()
+            
+        except ReservedCoverageIdRecord.DoesNotExist:
+            if fail:
+                raise CoverageIdReleaseError(
+                    "Coverage ID '%s' was not reserved" % coverage_id
+                )
+    
+    def available(self, coverage_id):
+        """
+        Returns a boolean value, indicating if a ``coverage_id`` is still 
+        available.
+        
+        A coverage ID is considered available if no :class:`~.CoverageRecord` 
+        and :class:`~.ReservedCoverageIdRecord` with that ID exists.
+        """
+        
+        return not (
+            ReservedCoverageIdRecord.objects.filter(
+                coverage_id=coverage_id,
+                until__gte=datetime.now()
+            ).count() > 0 or
+            CoverageRecord.objects.filter(coverage_id=coverage_id).count() > 0
+        )
+        
+    def _get_id_factory(self):
+        # Unused, but would raise an exception.
+        return None
