@@ -61,3 +61,31 @@ class ManagerError(EOxSException):
     This error shall be raised when the Manager has encountered an error.
     """
     pass
+
+class CoverageIdError(EOxSException):
+    """
+    Subclasses of this error shall be raised when errors with Coverage IDs are
+    encountered.
+    """
+    pass
+
+class CoverageIdReservedError(CoverageIdError):
+    """
+    This error shall be raised when a Coverage ID is already reserved and tried
+    to be reserved again.
+    """
+    pass
+
+class CoverageIdInUseError(CoverageIdError):
+    """
+    This error shall be raised when a Coverage ID is already used by an existing
+    coverage and tried to be reserved.
+    """
+    pass
+
+class CoverageIdReleaseError(CoverageIdError):
+    """
+    This error shall be raised when a Coverage ID is released which was not 
+    previously reserved.
+    """
+    pass    
