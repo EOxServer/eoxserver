@@ -26,9 +26,9 @@ is not necessarily affine.
 In the context of Earth Observation, raw satellite data can be seen as
 referenceable grid coverages. They are typically delivered as image files but
 do not have an affine transformation from the image geometry to a georeferenced
-coordinate system. The referencing or geocoding of the data is a very complex
-task involving Earth Observation metadata, such as orbit data of the satellite,
-as well as additional input such as Digital Elevation Models (DEMs).
+coordinate system. Depending on the desired geocoding precision, the
+referencing transformation can be very complex involving additional data (DEMs)
+and orbit metadata.
 
 EOxServer shall be able to deliver (subsets of) Earth Observation raw data in
 its original (referenceable grid) geometry using WCS 2.0 and EO-WCS.
@@ -129,19 +129,26 @@ on MapServer, the one for referenceable grid data uses the vanilla GDAL Python
 bindings as well as additional GDAL-based extensions written for the
 EOxServer project.
 
+Metadata is read from the original dataset and tagged onto the result dataset
+using the capabilities of the respective GDAL format drivers. Depending on
+the driver implementation, the way the metadata is stored may be specific to
+GDAL.
+
 Coverage Metadata Tayloring
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-As already stated earlier, the georeferencing transformation
-is not known for Earth Observation products in general. This is a major
-problem with respect to the WCS 2.0 implementation as this standard specifies
-that the complete referencing transformation be described in the coverage
-metadata.
+The WCS 2.0 standard specifies that the complete referencing transformation be
+described in the metadata of a referenceable grid coverage. This is a major
+problem for Earth Observation data as in general there is no predefined
+transformation; rather there are several different possible algorithms of
+varying complexity that can be used for georeferencing the image, possibly
+involving Earth Observation metadata such as orbit information, GCPs and 
+additional data such as DEMs.
 
-Furthermore, there is no way to define an algorithm and describe its parameters
-(e.g. the GCPs), but only the outcome of the algorithm, i.e. a pixel-by-pixel
-mapping to geographic coordinates. This would produce a tremendous amount of
-mostly useless metadata and blow up the XML descriptions
+Furthermore there is no way to define an algorithm and describe its
+parameters (e.g. the GCPs) in GML, but only the outcome of the algorithm, i.e. a
+pixel-by-pixel mapping to geographic coordinates. This would produce a
+tremendous amount of mostly useless metadata and blow up the XML descriptions
 of coverage metadata to hundreds of megabytes for typical Earth Observation
 products.
 
@@ -187,7 +194,10 @@ for
 * creating a rectified GDAL VRT from referenceable grid data
 
 All functions use a simple GCP-based referencing algorithm as indicated above.
-   
+
+The GDAL Extension was made necessary because the standard GDAL Python bindings
+do not support GCP based coordinate transformations.
+  
 Voting History
 --------------
   
