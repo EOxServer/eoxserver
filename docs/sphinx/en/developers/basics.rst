@@ -32,3 +32,71 @@
 
 Basics
 ======
+
+As described thouroughly in RFC 1 and RFC 2, EOxServer seperates between
+interface and implementation
+
+
+Models
+------
+
+Models are the primary source for the application data. They are an abstraction
+for commonly relational database tables (`Object-Relational mapping
+<http://en.wikipedia.org/wiki/Object-relational_mapping>`_).
+
+Each model contains a certain amount of fields, storing the necessary
+information or describing relations to other models.
+
+Models provide means to create, alter, delete and search for objects of its
+type.
+
+However, working with EOxServer and its internal data structures it is *not*
+encouraged to work with its models directly, but with higher layers such as
+their wrappers and managers. # TODO: references
+
+
+Wrappers
+--------
+
+To ease the use of database models, wrappers provide the functionality to
+obtain required information from the models and do specific tasks. Wrappers are
+usually afiliated with one model, but in some occasions provide an abstraction
+for multiple models.
+
+In EOxServer you obtain a wrapper by using factories or the registry.
+
+Each wrapper type must implement the according interface.
+
+
+Factories
+---------
+
+Factories are objects to create instances of specific types depending on the
+given parameters. The parameters may be the type ID or object ID of the object
+to be obtained, but can also include filter expressions, to exactly specify
+the desired object.
+
+Factories themselves can be obtained through the registry.
+
+Managers
+--------
+
+Managers provide high level management utilities for creating, updateing,
+synchronizing and deleting database objects. Managers are the preferred way to
+manipulate data within EOxServer.
+
+Filters
+-------
+
+Filter Expressions
+------------------
+
+
+The Registry
+------------
+
+
+
+
+
+

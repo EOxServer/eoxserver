@@ -56,3 +56,4 @@ to end users consuming the registered data.
    metadata_formats
    modules
    soap_proxy
+   handling_coverages
