@@ -1085,9 +1085,10 @@ class CoverageIdManager(BaseManager):
             until = datetime.now() + dt
         
         if datetime.now() < obj.until:
-            raise CoverageIdReservedError(
-                "Coverage ID '%s' is reserved until %s"%(coverage_id, obj.until)
-            )
+            if not (obj.request_id == request_id and obj.request_id is not None):
+                raise CoverageIdReservedError(
+                    "Coverage ID '%s' is reserved until %s" % (coverage_id, obj.until)
+                )
         elif CoverageRecord.objects.filter(coverage_id=coverage_id).count() > 0:
             raise CoverageIdInUseError("Coverage ID %s is already in use")
         

@@ -475,13 +475,22 @@ class CoverageIdReserveTestCase(CoverageIdManagementTestCase):
     def testNotAvailable(self):
         self.assertFalse(self.mgr.available("SomeCoverageID"))
 
+class CoverageIdReserveWithSameRequestIdTestCase(CoverageIdManagementTestCase):
+    def manage(self):    
+        self.mgr.reserve("SomeCoverageID", "RequestID", until=datetime.now() + timedelta(days=1))
+    
+    def testReserveAgain(self):
+        try:
+            self.mgr.reserve("SomeCoverageID", "RequestID", until=datetime.now() + timedelta(days=2))
+        except exceptions.CoverageIdReservedError:
+            self.fail("Reserving with same request ID should not raise.")
+    
 class CoverageIdReserveDefaultUntilTestCase(CoverageIdManagementTestCase):
     def manage(self):    
         self.mgr.reserve("SomeCoverageID")
     
     def testNotAvailable(self):
         self.assertFalse(self.mgr.available("SomeCoverageID"))
-
 
 class CoverageIdReleaseTestCase(CoverageIdManagementTestCase):
     def manage(self):
