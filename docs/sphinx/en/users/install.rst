@@ -262,7 +262,7 @@ have to do is:
 Using a PostgreSQL/PostGIS database back-end configuration is a little bit more 
 complex. Please refer to `GeoDjango Database API 
 <https://docs.djangoproject.com/en/1.3/ref/contrib/gis/db-api/>`_ for more 
-instructions. On a *NIX system, the setup process might look like this:
+instructions. On a \*NIX system, the setup process might look like this:
 
     # first a template 
 
@@ -328,6 +328,7 @@ In the ``settings.py`` the following entry has to be added:
 
 
 .. _EOxServer Deployment:
+
 Deployment
 ~~~~~~~~~~
 

@@ -29,11 +29,16 @@
   # IN THE SOFTWARE.
   #-----------------------------------------------------------------------------
 
-Creating coverages
+.. _Handling Coverages:
+
+Handling Coverages
 ==================
 
+Creating coverages
+------------------
+
 Coverage IDs
-------------
+~~~~~~~~~~~~
 
 To handle the reservation of Coverage IDs the :class:`~.CoverageIdManager` can
 be used.
@@ -73,15 +78,15 @@ thrown if the ID was not previously reserved.
 
 
 Finding Coverages
-=================
+-----------------
 
 There are several techniques to search for coverages in the system, depending
 what information is desired and what information is provided. Typically a
-factory is used to get the correct wrapper of a coverage, namely the :class:
-`~.EOCoverageFactory`.
+factory is used to get the correct wrapper of a coverage, namely the 
+:class:`~.EOCoverageFactory`.
 
 The simplest case is to find a coverage according to its Coverage ID:
-..
+::
 
     from eoxserver.core.system import System
 
@@ -98,7 +103,7 @@ coverage filters, the :class:`~.CoverageExpressionFactory` creates the required
 expressions. In the following example, we create a filter expression to get
 all coverages whose footprint intersects with the area defined by the :class:
 `~.BoundedArea`:
-..
+::
 
     from eoxserver.resources.coverages.filters import BoundedArea
 
@@ -114,7 +119,7 @@ all coverages whose footprint intersects with the area defined by the :class:
 With our filter expressions, we are now able to get the list of coverages
 complying to our filters with the ``find`` method of the :class:
 `~.EOCoverageFactory`:
-..
+::
 
     factory = System.getRegistry().bind(
         "resources.coverages.wrappers.EOCoverageFactory"
@@ -123,4 +128,4 @@ complying to our filters with the ``find`` method of the :class:
 
 
 Updating Coverages
-==================
+------------------

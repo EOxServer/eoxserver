@@ -225,16 +225,17 @@ All the necessary meta-data required by the EOxServer are extracted from the Geo
 annotation and (optionally) from the provided EO meta-data (see section below). 
 
 Due to the limitations of the current Coverage Managers' API of the EOxServer 
-the current WCS-T implementation has following restrictions: 
- * only rectified grid coverages can be ingested;
- * 'urn:ogc:def:role:WCS:1.1:CoverageDescription' metadata are ignored and even not required
-    as this information cannot be inserted to EOxServer anyway;
- * 'urn:ogc:def:role:WCS:1.1:CoverageSummary' metadata are ignored 
-    as this information cannot be inserted to EOxServer anyway;
- * 'urn:ogc:def:role:WCS:1.1:GeoreferencingTransform' metadata are ignored 
-    as this information is relevant to referenced data only 
- *  'urn:ogc:def:role:WCS:1.1:OtherSource' metadata are ignored 
-    as this information cannot be inserted to EOxServer anyway.
+the current WCS-T implementation has following restrictions:
+
+* only rectified grid coverages can be ingested;
+* ``urn:ogc:def:role:WCS:1.1:CoverageDescription`` metadata are ignored and 
+  even not required as this information cannot be inserted to EOxServer anyway;
+* ``urn:ogc:def:role:WCS:1.1:CoverageSummary`` metadata are ignored 
+  as this information cannot be inserted to EOxServer anyway;
+* ``urn:ogc:def:role:WCS:1.1:GeoreferencingTransform`` metadata are ignored 
+  as this information is relevant to referenced data only 
+* ``urn:ogc:def:role:WCS:1.1:OtherSource`` metadata are ignored 
+  as this information cannot be inserted to EOxServer anyway.
 
 WCS-T and Earth Observation Application Profile
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
