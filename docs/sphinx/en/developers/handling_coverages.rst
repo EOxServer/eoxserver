@@ -42,13 +42,13 @@ Coverage IDs
 
 To handle the reservation of Coverage IDs the :class:`~.CoverageIdManager` can
 be used.
+::
 
-..
     from eoxserver.resources.coverages.covmgrs import CoverageIDManager
     mgr = CoverageIDManager()
 
 Checking if a coverage ID is still available is done like this: 
-..
+::
 
     if mgr.available(someID):
         ...
@@ -59,7 +59,7 @@ reserved. With the ``request_id`` parameter an additional ID can be associated
 with the reserved coverage. This is especially useful for asynchronous
 situations. The ``until`` parameter defines for how long the reservation will
 be valid:
-..
+::
 
     from datetime import datetime, timedelta
 
