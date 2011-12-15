@@ -37,6 +37,38 @@ Handling Coverages
 Creating coverages
 ------------------
 
+The best (and suggested) way to create a coverage is to use a coverage manager.
+For each type of coverage there is the according coverage manager. As usual in,
+EOxServer the correct coverage manager can be retrieved by the systems registry,
+using the interface ID of the manager and the type of the coverages to identify
+and find the correct manager:
+::
+
+    mgr = System.getRegistry().findAndBind(
+        intf_id="resources.coverages.interfaces.Manager",
+        params={
+            "resources.coverages.interfaces.res_type": "eo.rect_dataset"
+        }
+    )
+
+The managers ``create`` method can now be used to create a new record of the
+requested coverage. Since the possible arguments vary for each coverage type
+and use case, please refer to the actual implementation documentation of the
+manager for the complete list of possible parameters.
+
+The following example creates a rectified dataset as simple as passing a local
+path to a data file and a metadatafile and the name of the range type, which
+unfortunately cannot be identified otherwise at the time being.
+::
+
+    mgr.create(
+        "SomeCoverageID",
+        local_path="path/to/data.tif",
+        md_local_path="path/to/metadata.xml",
+        range_type_name="RGB"
+    )
+
+
 Coverage IDs
 ~~~~~~~~~~~~
 
@@ -70,6 +102,7 @@ modules documentation.
 
 When the Coverage ID is not being used anymore it can be released with the
 ``release`` method:
+::
 
     mgr.release("SomeCoverageID")
 
@@ -101,8 +134,8 @@ no such coverage exists.
 For more sophisticated searches, filter expressions have to be used. In case of
 coverage filters, the :class:`~.CoverageExpressionFactory` creates the required
 expressions. In the following example, we create a filter expression to get
-all coverages whose footprint intersects with the area defined by the :class:
-`~.BoundedArea`:
+all coverages whose footprint intersects with the area defined by the
+:class:`~.BoundedArea`:
 ::
 
     from eoxserver.resources.coverages.filters import BoundedArea
@@ -117,8 +150,9 @@ all coverages whose footprint intersects with the area defined by the :class:
     ))
 
 With our filter expressions, we are now able to get the list of coverages
-complying to our filters with the ``find`` method of the :class:
-`~.EOCoverageFactory`:
+complying to our filters with the ``find`` method of the
+:class:`~.EOCoverageFactory` which returns a list of all objects intersecting
+with our region.:
 ::
 
     factory = System.getRegistry().bind(
@@ -129,3 +163,6 @@ complying to our filters with the ``find`` method of the :class:
 
 Updating Coverages
 ------------------
+
+Implementation in progress
+
