@@ -53,8 +53,9 @@ and find the correct manager:
 
 The managers ``create`` method can now be used to create a new record of the
 requested coverage. Since the possible arguments vary for each coverage type
-and use case, please refer to the actual implementation documentation of the
-manager for the complete list of possible parameters.
+and use case, please refer to the actual :mod:`implementation documentation 
+<eoxserver.resources.coverages.covmgrs>` of the manager for the complete list 
+of possible parameters.
 
 The following example creates a rectified dataset as simple as passing a local
 path to a data file and a metadatafile and the name of the range type, which
