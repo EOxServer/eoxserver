@@ -58,13 +58,11 @@ class EOxServerTestCase(TestCase):
     
     def setUp(self):
         System.init()
-        
 
 def _expand_regex_classes(module, regex):
     ret = []
     for item in dir(module):
-        match = re.match(regex, item)
-        if match:
+        if re.match(regex, item):
             ret.append(item)
     if not ret:
         raise ValueError("Expression %s did not match any test." % regex)
@@ -73,20 +71,26 @@ def _expand_regex_classes(module, regex):
 def _expand_regex_method(module, klass, regex):
     ret = []
     for item in dir(getattr(module, klass)):
-        match = re.match(regex, item)
-        if match:
+        if re.match(regex, item):
             ret.append(item)
     if not ret:
         raise ValueError("Expression %s did not match any test." % regex)
     return ret
-    
 
 class EOxServerTestRunner(DjangoTestSuiteRunner):
-    """ Custom test runner. It extends the standard :class:`~.DjangoTestRunner`
-        with automatic test case search for a given regular expression.
-        
-        For example `services.WCS20*` would get expanded to all test cases 
-        of the `service` app starting with `WCS20`.
+    """ 
+    Custom test runner. It extends the standard :class:`~.DjangoTestRunner` 
+    with automatic test case search for a given regular expression.
+    
+    Activate by including ``TEST_RUNNER = 
+    'eoxserver.testing.core.EOxServerTestRunner'`` in `settings.py`.
+    
+    For example `services.WCS20` would get expanded to all test cases of the 
+    `service` app starting with `WCS20`.
+    
+    Note that we're using regex and thus `services.WCS20\*` would get expanded 
+    to all test cases of the `services` app starting with `WCS2` and followed 
+    by any number of `0`\ s.
     """
     def build_suite(self, test_labels, extra_tests=None, **kwargs):
         new_labels = []
@@ -114,4 +118,3 @@ class EOxServerTestRunner(DjangoTestSuiteRunner):
                     new_labels.extend([".".join((parts[0], klass, method)) for method in methods])
         
         return super(EOxServerTestRunner, self).build_suite(new_labels, extra_tests, **kwargs)
-
