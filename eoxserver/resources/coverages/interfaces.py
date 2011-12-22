@@ -989,6 +989,7 @@ class ManagerInterface(RegisteredInterface):
     
     create = Method(
         StringArg("obj_id", default=None),
+        StringArg("request_id", default=None),
         KwArgs("kwargs"),
         returns = ObjectArg("@return")
     )
