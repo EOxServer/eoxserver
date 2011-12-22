@@ -153,7 +153,7 @@ class FTPStorage(object):
         logging.info("Write to local path '%s'" % dest_path)
         
         try:
-            self.ftp.retrbinary(cmd, file.write)
+            self.ftp.retrbinary(cmd, local_file.write)
         except Exception, e:
             raise DataAccessError(
                 "Retrieving data for file '%s' on '%s' via FTP failed. Error message: '%s'" % (
