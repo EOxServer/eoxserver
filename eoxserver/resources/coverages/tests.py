@@ -54,7 +54,7 @@ import eoxserver.resources.coverages.exceptions as exceptions
 
 # create new rectified dataset from a local path
 
-class DatasetCreateWithLocalPathTestCase(RectifiedDatasetCreateTestCase):
+class RectifiedDatasetCreateWithLocalPathTestCase(RectifiedDatasetCreateTestCase):
     def manage(self):
         args = {
             "local_path": os.path.join(settings.PROJECT_DIR,
@@ -69,7 +69,7 @@ class DatasetCreateWithLocalPathTestCase(RectifiedDatasetCreateTestCase):
     
 # create new rectified dataset from a local path with metadata
 
-class DatasetCreateWithLocalPathAndMetadataTestCase(RectifiedDatasetCreateTestCase):
+class RectifiedDatasetCreateWithLocalPathAndMetadataTestCase(RectifiedDatasetCreateTestCase):
     def manage(self):
         args = {
             "local_path": os.path.join(
@@ -86,7 +86,7 @@ class DatasetCreateWithLocalPathAndMetadataTestCase(RectifiedDatasetCreateTestCa
         }
         self.wrapper = self.create(**args)
 
-class DatasetCreateWithContainerTestCase(RectifiedDatasetCreateTestCase):
+class RectifiedDatasetCreateWithContainerTestCase(RectifiedDatasetCreateTestCase):
     fixtures = BASE_FIXTURES
     
     def _create_containers(self):
@@ -125,10 +125,10 @@ class DatasetCreateWithContainerTestCase(RectifiedDatasetCreateTestCase):
         self.wrapper = self.create(**args)
 
     def testContents(self):
-        self.assertTrue(self.stitched_mosaic.contains(self.wrapper.getModel().pk), 
+        self.assertTrue(self.stitched_mosaic.contains(self.wrapper), 
                         "Stitched Mosaic has to contain the dataset.")
     
-class DatasetCreateWithContainerIDsTestCase(RectifiedDatasetCreateTestCase):
+class RectifiedDatasetCreateWithContainerIDsTestCase(RectifiedDatasetCreateTestCase):
     fixtures = BASE_FIXTURES
     
     def _create_containers(self):
@@ -184,15 +184,15 @@ class DatasetCreateWithContainerIDsTestCase(RectifiedDatasetCreateTestCase):
         self.wrapper = self.create(**args)
 
     def testContents(self):
-        self.assertTrue(self.stitched_mosaic.contains(self.wrapper.getModel().pk), 
+        self.assertTrue(self.stitched_mosaic.contains(self.wrapper), 
                         "Stitched Mosaic has to contain the dataset.")
         
-        self.assertTrue(self.dataset_series.contains(self.wrapper.getModel().pk), 
+        self.assertTrue(self.dataset_series.contains(self.wrapper), 
                         "Dataset Series has to contain the dataset.")
 
 # create new rectified dataset from a ftp path
 
-class DatasetCreateWithRemothePathTestCase(RectifiedDatasetCreateTestCase):
+class RectifiedDatasetCreateWithRemothePathTestCase(RectifiedDatasetCreateTestCase):
     def manage(self):
         args = {
             "local_path": os.path.join(
@@ -212,7 +212,7 @@ class DatasetCreateWithRemothePathTestCase(RectifiedDatasetCreateTestCase):
 
 # create new rectified dataset from a rasdaman location 
 
-class DatasetCreateWithRasdamanLocationTestCase(RectifiedDatasetCreateTestCase):
+class RectifiedDatasetCreateWithRasdamanLocationTestCase(RectifiedDatasetCreateTestCase):
     def manage(self):
         args = {
             "collection": "MERIS",
@@ -235,11 +235,197 @@ class DatasetCreateWithRasdamanLocationTestCase(RectifiedDatasetCreateTestCase):
     def testType(self):
         self.assertEqual(self.wrapper.getType(), "eo.rect_dataset")
     
+
+class RectifiedDatasetUpdateGeoMetadataTestCase(RectifiedDatasetUpdateTestCase):
+    fixtures = EXTENDED_FIXTURES
     
+    def manage(self):
+        args = {
+            "obj_id": "MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed",
+            "set": {
+                "geo_metadata": GeospatialMetadata(
+                    srid=3035,
+                    size_x=100,
+                    size_y=100,
+                    extent=(0,0,1,1)
+                )
+            }
+        }
+        self.update(**args)
+    
+    def testContents(self):
+        coverage = System.getRegistry().getFromFactory(
+            "resources.coverages.wrappers.EOCoverageFactory",
+            {"obj_id": "MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed"}
+        )
+        
+        self.assertEqual(3035, coverage.getAttrValue("srid"))
+        self.assertEqual((100, 100), (coverage.getAttrValue("size_x"), coverage.getAttrValue("size_y")))
+        self.assertEqual((0, 0, 1, 1),( 
+            coverage.getAttrValue("minx"),
+            coverage.getAttrValue("miny"),
+            coverage.getAttrValue("maxx"),
+            coverage.getAttrValue("maxy")
+        ))
+    
+class RectifiedDatasetUpdateGeoMetadataViaSetAttrMetadataTestCase(RectifiedDatasetUpdateTestCase):
+    fixtures = EXTENDED_FIXTURES
+    
+    def manage(self):
+        args = {
+            "obj_id": "MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed",
+            "set": {
+                "srid": 3035,
+                "size_x": 100,
+                "size_y": 100,
+                "minx": 0,
+                "miny": 0,
+                "maxx": 1,
+                "maxy": 1
+            }
+        }
+        self.update(**args)
+    
+    def testContents(self):
+        coverage = System.getRegistry().getFromFactory(
+            "resources.coverages.wrappers.EOCoverageFactory",
+            {"obj_id": "MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed"}
+        )
+        
+        self.assertEqual(3035, coverage.getAttrValue("srid"))
+        self.assertEqual((100, 100), (coverage.getAttrValue("size_x"), coverage.getAttrValue("size_y")))
+        self.assertEqual((0, 0, 1, 1),( 
+            coverage.getAttrValue("minx"),
+            coverage.getAttrValue("miny"),
+            coverage.getAttrValue("maxx"),
+            coverage.getAttrValue("maxy")
+        ))
+
+class RectifiedDatasetUpdateEOMetadataTestCase(RectifiedDatasetUpdateTestCase):
+    fixtures = EXTENDED_FIXTURES
+    
+    def manage(self):
+        self.begin_time = datetime.now()
+        self.end_time = datetime.now()
+        self.footprint = GEOSGeometry("POLYGON((1 2, 3 2, 3 4, 1 4, 1 2))")
+        args = {
+            "obj_id": "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced",
+            "set": {
+                "eo_metadata": EOMetadata(
+                    "SomeEOID",
+                    self.begin_time,
+                    self.end_time,
+                    self.footprint
+                )
+            }
+        }
+        self.update(**args)
+        
+    def testContents(self):
+        coverage = System.getRegistry().getFromFactory(
+            "resources.coverages.wrappers.EOCoverageFactory",
+            {"obj_id": "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced"}
+        )
+        
+        self.assertEqual("SomeEOID", coverage.getEOID())
+        self.assertEqual(self.begin_time, coverage.getBeginTime())
+        self.assertEqual(self.end_time, coverage.getEndTime())
+        self.assertEqual(self.footprint, coverage.getFootprint())
+        
+class RectifiedDatasetUpdateEOMetadataViaSetAttrTestCase(RectifiedDatasetUpdateTestCase):
+    fixtures = EXTENDED_FIXTURES
+    
+    def manage(self):
+        self.begin_time = datetime.now()
+        self.end_time = datetime.now()
+        self.footprint = GEOSGeometry("POLYGON((1 2, 3 2, 3 4, 1 4, 1 2))")
+        args = {
+            "obj_id": "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced",
+            "set": {
+                "eo_id": "SomeEOID",
+                "footprint": self.footprint,
+                "begin_time": self.begin_time,
+                "end_time": self.end_time
+            }
+        }
+        self.update(**args)
+        
+    def testContents(self):
+        coverage = System.getRegistry().getFromFactory(
+            "resources.coverages.wrappers.EOCoverageFactory",
+            {"obj_id": "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced"}
+        )
+        
+        self.assertEqual("SomeEOID", coverage.getEOID())
+        self.assertEqual(self.begin_time, coverage.getBeginTime())
+        self.assertEqual(self.end_time, coverage.getEndTime())
+        self.assertEqual(self.footprint, coverage.getFootprint())
+
+class RectifiedDatasetUpdateLinkContainersTestCase(RectifiedDatasetUpdateTestCase):
+    fixtures = EXTENDED_FIXTURES
+    
+    def manage(self):
+        args = {
+            "obj_id": "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced",
+            "link": {
+                "container_ids": ["MER_FRS_1P_reduced"]
+            }
+        }
+        self.update(**args)
+        
+    def testContents(self):
+        coverage = System.getRegistry().getFromFactory(
+            "resources.coverages.wrappers.EOCoverageFactory",
+            {"obj_id": "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced"}
+        )
+        
+        self.assertIn("MER_FRS_1P_reduced", [container.getEOID() for container in coverage.getContainers()])
+        
+class RectifiedDatasetUpdateUnlinkContainersTestCase(RectifiedDatasetUpdateTestCase):
+    fixtures = EXTENDED_FIXTURES
+    
+    def manage(self):
+        args = {
+            "obj_id": "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced",
+            "unlink": {
+                "container_ids": ["mosaic_MER_FRS_1P_RGB_reduced"]
+            }
+        }
+        self.update(**args)
+        
+    def testContents(self):
+        coverage = System.getRegistry().getFromFactory(
+            "resources.coverages.wrappers.EOCoverageFactory",
+            {"obj_id": "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced"}
+        )
+        
+        self.assertNotIn("mosaic_MER_FRS_1P_RGB_reduced", [container.getEOID() for container in coverage.getContainers()])
+
+class RectifiedDatasetUpdateCoverageAndEOIDTestCase(RectifiedDatasetUpdateTestCase):
+    fixtures = EXTENDED_FIXTURES
+    
+    def manage(self):
+        args = {
+            "obj_id": "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced",
+            "set": {
+                "coverage_id": "SomeCoverageID",
+                "eo_id": "SomeEOID"
+            }
+        }
+        self.update(**args)
+    
+    def testContents(self):
+        coverage = System.getRegistry().getFromFactory(
+            "resources.coverages.wrappers.EOCoverageFactory",
+            {"obj_id": "SomeCoverageID"}
+        )
+        
+        self.assertEqual("SomeCoverageID", coverage.getCoverageId())
+        self.assertEqual("SomeEOID", coverage.getEOID())
 
 # create new mosaic and add a local path to locations
 
-class MosaicCreateWithLocalPathTestCase(RectifiedStitchedMosaicCreateTestCase):
+class RectifiedStitchedMosaicCreateWithLocalPathTestCase(RectifiedStitchedMosaicCreateTestCase):
     def manage(self):
         args = {
             "data_dirs": [{
@@ -271,7 +457,7 @@ class MosaicCreateWithLocalPathTestCase(RectifiedStitchedMosaicCreateTestCase):
 
 
 # create new mosaic and add a remote path to locations
-class MosaicCreateWithRemotePathTestCase(RectifiedStitchedMosaicCreateTestCase):
+class RectifiedStitchedMosaicCreateWithRemotePathTestCase(RectifiedStitchedMosaicCreateTestCase):
     def manage(self):
         args = {
             "data_dirs": [{
@@ -303,7 +489,7 @@ class MosaicCreateWithRemotePathTestCase(RectifiedStitchedMosaicCreateTestCase):
 
 # create new mosaic and add a rasdaman location to locations
 
-class MosaicCreateWithRasdamanLocationTestCase(RectifiedStitchedMosaicCreateTestCase):
+class RectifiedStitchedMosaicCreateWithRasdamanLocationTestCase(RectifiedStitchedMosaicCreateTestCase):
     def manage(self):
         args = {
             "data_dirs": [{
@@ -325,6 +511,62 @@ class MosaicCreateWithRasdamanLocationTestCase(RectifiedStitchedMosaicCreateTest
             "storage_dir": "/some/storage/dir"
         }
         self.wrapper = self.create(**args)
+
+
+class RectifiedStitchedMosaicUpdateLinkDataSourcesTestCase(RectifiedStitchedMosaicUpdateTestCase):
+    fixtures = EXTENDED_FIXTURES
+    
+    def manage(self):
+        args = {
+            "obj_id": "mosaic_MER_FRS_1P_RGB_reduced",
+            "link": {
+                "data_dirs": [{
+                    "type": "local",
+                    "path": os.path.join(
+                        settings.PROJECT_DIR,
+                        "data/meris/MER_FRS_1P_reduced", 
+                        "ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.tif"
+                    ),
+                    "md_path": os.path.join(
+                        settings.PROJECT_DIR,
+                        "data/meris/MER_FRS_1P_reduced", 
+                        "ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.xml"
+                    )
+                }]
+            }
+        }
+        
+        self.update(**args)
+    
+    def testContents(self):
+        pass
+
+
+class RectifiedStitchedMosaicUpdateUnlinkDatasetsTestCase(RectifiedStitchedMosaicUpdateTestCase):
+    fixtures = EXTENDED_FIXTURES
+    
+    def manage(self):
+        args = {
+            "obj_id": "mosaic_MER_FRS_1P_RGB_reduced",
+            "unlink": {
+                "coverage_ids": [
+                    "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced"
+                ]  
+            }
+        }
+        
+        self.update(**args)
+    
+    def testContents(self):
+        mosaic = System.getRegistry().getFromFactory(
+            "resources.coverages.wrappers.EOCoverageFactory",
+            {"obj_id": "mosaic_MER_FRS_1P_RGB_reduced"}
+        )
+        
+        self.assertNotIn("mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced",
+                         [coverage.getCoverageId() for coverage in mosaic.getDatasets()])
+        
+
 
 # create dataset series with a local path
 
@@ -463,6 +705,55 @@ class DatasetSeriesSynchronizeFileRemovedTestCase(DatasetSeriesSynchronizeTestCa
     def tearDown(self):
         super(DatasetSeriesSynchronizeTestCase, self).tearDown()
         shutil.rmtree(self.dst)
+
+class DatasetSeriesUpdateLinkCoveragesTestCase(DatasetSeriesUpdateTestCase):
+    fixtures = EXTENDED_FIXTURES
+    
+    def manage(self):
+        args = {
+            "obj_id": "MER_FRS_1P_reduced",
+            "link": {
+                "coverage_ids": [
+                    "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced"
+                ]
+            }
+        }
+        
+        self.update(**args)
+        
+    def testContents(self):
+        dataset_series = System.getRegistry().getFromFactory(
+            "resources.coverages.wrappers.DatasetSeriesFactory",
+            {"obj_id": "MER_FRS_1P_reduced"}
+        )
+        
+        self.assertIn("mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced",
+                      [coverage.getCoverageId() for coverage in dataset_series.getEOCoverages()])
+
+
+class DatasetSeriesUpdateUnlinkCoveragesTestCase(DatasetSeriesUpdateTestCase):
+    fixtures = EXTENDED_FIXTURES
+    
+    def manage(self):
+        args = {
+            "obj_id": "MER_FRS_1P_reduced",
+            "unlink": {
+                "coverage_ids": [
+                    "MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed"
+                ]
+            }
+        }
+        
+        self.update(**args)
+        
+    def testContents(self):
+        dataset_series = System.getRegistry().getFromFactory(
+            "resources.coverages.wrappers.DatasetSeriesFactory",
+            {"obj_id": "MER_FRS_1P_reduced"}
+        )
+        
+        self.assertNotIn("MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed",
+                         [coverage.getCoverageId() for coverage in dataset_series.getEOCoverages()])
 
 #===============================================================================
 # Coverage ID management
