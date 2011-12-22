@@ -664,26 +664,29 @@ class RectifiedDatasetWrapper(RectifiedGridWrapper, EODatasetWrapper):
     :class:`EODatasetWrapper` and :class:`RectifiedGridWrapper`. It
     implements :class:`~.RectifiedDatasetInterface`.
     
-    The following attributes are recognized:
-    
-    * ``eo_id``: the EO ID of the dataset; value must be a string
-    * ``srid``: the SRID of the dataset's CRS; value must be an integer
-    * ``size_x``: the width of the coverage in pixels; value must be
-      an integer
-    * ``size_y``: the height of the coverage in pixels; value must be
-      an integer
-    * ``minx``: the left hand bound of the dataset's extent; value must
-      be numeric
-    * ``miny``: the lower bound of the dataset's extent; value must be
-      numeric
-    * ``maxx``: the right hand bound of the dataset's extent; value must
-      be numeric
-    * ``maxy``: the upper bound of the dataset's extent; value must be
-      numeric
-    * ``visible``: the ``visible`` attribute of the dataset; value must
-      be boolean
-    * ``automatic``: the ``automatic`` attribute of the dataset; value
-      must be boolean
+    .. attribute:: FIELDS
+      
+        * ``eo_id``: the EO ID of the mosaic; value must be a string
+        * ``begin_time``: the begin time of the eo metadata entry
+        * ``end_time``: the end time of the eo metadata entry
+        * ``footprint``: the footprint of the mosaic
+        * ``srid``: the SRID of the mosaic's CRS; value must be an integer
+        * ``size_x``: the width of the coverage in pixels; value must be
+          an integer
+        * ``size_y``: the height of the coverage in pixels; value must be
+          an integer
+        * ``minx``: the left hand bound of the mosaic's extent; value must
+          be numeric
+        * ``miny``: the lower bound of the mosaic's extent; value must be
+          numeric
+        * ``maxx``: the right hand bound of the mosaic's extent; value must
+          be numeric
+        * ``maxy``: the upper bound of the mosaic's extent; value must be
+          numeric
+        * ``visible``: the visibility of the coverage (for DescribeCoverage
+          requests); boolean
+        * ``automatic``: if the dataset was automatically created or by hand;
+          boolean
     """
     
     REGISTRY_CONF = {
@@ -978,22 +981,25 @@ class RectifiedStitchedMosaicWrapper(TiledDataWrapper, RectifiedGridWrapper, EOC
     from :class:`EOCoverageWrapper` and :class:`RectifiedGridWrapper`.
     It implements :class:`~.RectifiedStitchedMosaicInterface`.
     
-    The following attributes are recognized:
-    
-    * ``eo_id``: the EO ID of the mosaic; value must be a string
-    * ``srid``: the SRID of the mosaic's CRS; value must be an integer
-    * ``size_x``: the width of the coverage in pixels; value must be
-      an integer
-    * ``size_y``: the height of the coverage in pixels; value must be
-      an integer
-    * ``minx``: the left hand bound of the mosaic's extent; value must
-      be numeric
-    * ``miny``: the lower bound of the mosaic's extent; value must be
-      numeric
-    * ``maxx``: the right hand bound of the mosaic's extent; value must
-      be numeric
-    * ``maxy``: the upper bound of the mosaic's extent; value must be
-      numeric
+    .. attribute:: FIELDS
+      
+        * ``eo_id``: the EO ID of the mosaic; value must be a string
+        * ``begin_time``: the begin time of the eo metadata entry
+        * ``end_time``: the end time of the eo metadata entry
+        * ``footprint``: the footprint of the mosaic
+        * ``srid``: the SRID of the mosaic's CRS; value must be an integer
+        * ``size_x``: the width of the coverage in pixels; value must be
+          an integer
+        * ``size_y``: the height of the coverage in pixels; value must be
+          an integer
+        * ``minx``: the left hand bound of the mosaic's extent; value must
+          be numeric
+        * ``miny``: the lower bound of the mosaic's extent; value must be
+          numeric
+        * ``maxx``: the right hand bound of the mosaic's extent; value must
+          be numeric
+        * ``maxy``: the upper bound of the mosaic's extent; value must be
+          numeric
     """
 
     REGISTRY_CONF = {
@@ -1275,9 +1281,15 @@ RectifiedStitchedMosaicInterface.implement(RectifiedStitchedMosaicWrapper)
 
 class DatasetSeriesWrapper(EOMetadataWrapper, ResourceWrapper):
     """
-    This is the wrapper for Dataset Series. It inherits from
-    :class:`EOMetadataWrapper`. It implements
-    :class:`DatasetSeriesInterface`.
+    This is the wrapper for Dataset Series. It inherits from 
+    :class:`EOMetadataWrapper`. It implements :class:`DatasetSeriesInterface`.
+    
+    .. attribute:: FIELDS
+    
+        * ``eo_id``: the EO ID of the dataset series; value must be a string
+        * ``begin_time``: the begin time of the eo metadata entry
+        * ``end_time``: the end time of the eo metadata entry
+        * ``footprint``: the footprint of the mosaic
     """
     
     REGISTRY_CONF = {
