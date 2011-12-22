@@ -436,6 +436,33 @@ class ContainedCoverageExpression(SimpleExpression):
 ContainedCoverageExpressionImplementation = \
 FilterExpressionInterface.implement(ContainedCoverageExpression)
 
+class ContainsCoverageExpression(SimpleExpression):
+    """
+    Filter expression referring to the coverages containing a
+    StitchedMosaic or Dataset. Expects one operand, namely an integer resource
+    ID relating to the contained object.
+    """
+    REGISTRY_CONF = {
+        "name": "Contains Coverage Expression",
+        "impl_id": "resources.coverages.filters.ContainsCoverageExpression",
+        "factory_ids": ("resources.coverages.filters.CoverageExpressionFactory",)
+    }
+    
+    OP_NAME = "contains"
+    NUM_OPS = 1
+    
+    def _validateOperands(self, operands):
+        super(ContainsCoverageExpression, self)._validateOperands(operands)
+        
+        if not isinstance(operands[0], int):
+            raise InternalError(
+                "Expected integer resource ID, got '%s' object." %
+                operands[0].__class__.__name__
+            )
+
+ContainsCoverageExpressionImplementation = \
+FilterExpressionInterface.implement(ContainsCoverageExpression)
+
 class OrphanedCoverageExpression(SimpleExpression):
     """
     Filter expression implementation that matches coverages which are
