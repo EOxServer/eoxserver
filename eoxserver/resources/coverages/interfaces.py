@@ -995,7 +995,9 @@ class ManagerInterface(RegisteredInterface):
     
     update = Method(
         StringArg("obj_id"),
-        KwArgs("kwargs"),
+        DictArg("link"),
+        DictArg("unlink"),
+        DictArg("set"),
         returns = ObjectArg("@return")
     )
     
