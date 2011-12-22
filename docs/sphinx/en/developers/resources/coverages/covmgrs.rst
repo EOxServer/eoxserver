@@ -34,4 +34,28 @@ Module eoxserver.resources.coverages.covmgrs
 ================================================
 
 .. automodule:: eoxserver.resources.coverages.covmgrs
+
+Abstract Manager
+----------------
+
+.. autoclass:: BaseManager
+   :members:
+
+Wrapper Manager Implementations
+-------------------------------
+
+.. autoclass:: RectifiedDatasetManager
+   :members:
+
+.. autoclass:: RectifiedStitchedMosaicManager
+   :members:
+
+.. autoclass:: DatasetSeriesManager
+   :members:
+
+
+Coverage ID Manager
+-------------------
+
+.. autoclass:: CoverageIdManager
    :members:

@@ -165,5 +165,81 @@ with our region.:
 Updating Coverages
 ------------------
 
-Implementation in progress
+Updating a coverage is either done by the wrappers or, on a more higher level,
+with the coverage manager.
 
+Updating with the wrappers is limited to several methods on the specific
+wrapper itself (e.g.: the
+:meth:`~eoxserver.resources.coverages.wrappers.RectifiedStitchedMosaicWrapper.addCoverage`
+method of the :class:`~.RectifiedStitchedMosaicWrapper`) or the
+:meth:`~eoxserver.core.resources.ResourceWrapper.setAttrValue` method. The
+latter one is directly coupled to the wrappers ``FIELDS`` lookup dictionary
+which expands to field lookup on the according model.
+
+The following example demonstrates either use:
+::
+
+    rect_stitched_mosaic_wrapper = System.getRegistry().getFromFactory(
+        "resources.coverages.wrappers.EOCoverageFactory",
+        {"obj_id": mosaic_coverage_id}
+    )
+
+    rect_stitched_mosaic_wrapper.addCoverage(
+        System.getRegistry().getFromFactory(
+            "resources.coverages.wrappers.EOCoverageFactory",
+            {"obj_id": coverage_id}
+        )
+    )
+
+    rect_stitched_mosaic_wrapper.setAttrValue("size_x", 1000)
+    rect_stitched_mosaic_wrapper.setAttrValue("size_y", 1000)
+
+To know what attributes are allowed in the `setAttrValue`, either look up the
+class variable ``FIELDS`` or call the
+:meth:`~eoxserver.core.wrappers.ResourceWrapper.getAttrNames` method of the
+wrapper .
+
+Another way to update existing coverages is to use the correct coverage manager.
+Its :meth:`~eoxserver.resources.coverages.covmgrs.BaseManager.update` method
+can be supplied three (optional) dict arguments:
+
+ * ``link``: adds a reference to another object in the database. This is used
+   for e.g ``container_ids``, ``coverages`` or ``data_sources``.
+ * ``unlink``: removes a reference to another object. It has the same arguments
+   as the ``link`` dict.
+ * ``set``: Sets an integral value or a collection of values in the database
+   object. Here are also keys from the ``FIELDS`` accepted.
+
+The usable arguments depend on the actually used coverage manager type, but are
+almost the same as the arguments available for the ``create`` method.
+
+The following example demonstrates the use of the coverage managers ``update``
+method with a rectified stitched mosaic:
+::
+
+    mgr = System.getRegistry().findAndBind(
+        intf_id="resources.coverages.interfaces.Manager",
+        params={
+            "resources.coverages.interfaces.res_type": "eo.rect_stitched_mosaic"
+        }
+    )
+
+    mgr.update(
+        obj_id=mosaic_coverage_id,
+        link={
+            "coverage_ids": ["RectifiedDatasetCoverageID"]
+        },
+        unlink={
+            "container_ids": ["DatasetSeriesEOID"]
+        }
+        set={
+            "size_x": 1000,
+            "size_y": 1000,
+            "eo_metadata": EOMetadata(
+                "NewEOID",
+                timestamp_begin,
+                timestamp_end,
+                GEOSGeometry(some_footprint)
+            )
+        }
+    )
