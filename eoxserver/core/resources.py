@@ -196,7 +196,9 @@ class ResourceInterface(RegisteredInterface):
     )
     
     updateModel = Method(
-        DictArg("params")
+        DictArg("link_kwargs"),
+        DictArg("unlink_kwargs"),
+        DictArg("set_kwargs")
     )
     
     saveModel = Method()
@@ -363,9 +365,10 @@ class ResourceWrapper(object):
                 "Cannot create model for immutable resource."
             )
     
-    def updateModel(self, params):
+    def updateModel(self, link_kwargs, unlink_kwargs, set_kwargs):
         if self.__mutable:
-            self._updateModel(params)
+            self._updateModel(link_kwargs, unlink_kwargs, set_kwargs)
+            self.__model.save()
         else:
             raise InternalError(
                 "Cannot update model for immutable resource."
@@ -446,7 +449,11 @@ class ResourceWrapper(object):
         no attribute with the given name.
         """
         if attr_name in self.__class__.FIELDS:
-            return self._getAttrValue(attr_name)
+            obj = self.__model
+            for item in self.FIELDS[attr_name].split("__"):
+                obj = getattr(obj, item)
+            return obj
+            
         else:
             raise UnknownAttribute(
                 "Unknown attribute '%s' for resource '%s'." % (
@@ -463,7 +470,13 @@ class ResourceWrapper(object):
         """
         if self.__mutable:
             if attr_name in self.__class__.FIELDS:
-                self._setAttrValue(attr_name, value)
+                obj = self.__model
+                parts = self.FIELDS[attr_name].split("__")
+                for item in parts[:-1]:
+                    obj = getattr(obj, item)
+                setattr(obj, parts[-1], value)
+                obj.save()
+            
             else:
                 raise UnknownAttribute(
                     "Unknown attribute '%s' for resource '%s'." % (
@@ -485,8 +498,8 @@ class ResourceWrapper(object):
     def _post_create(self, params):
         pass
     
-    def _updateModel(self, params):
-        raise InternalError("Not implemented.")
+    def _updateModel(self, link_kwargs, unlink_kwargs, set_kwargs):
+        pass
 
     def _getAttrValue(self, attr_name):
         raise InternalError("Not implemented.")
