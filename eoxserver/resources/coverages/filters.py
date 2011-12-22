@@ -1578,7 +1578,7 @@ class LocationReferencesRectifiedDatasetFilter(object):
             return qs.filter(
                 data_package__localdatapackage__data_location__path=location.getPath()
             )
-        elif location.getType() == "remote":
+        elif location.getType() == "ftp":
             return qs.filter(
                 data_package__remotedatapackage__data_location__path=location.getPath()
             ).filter(
@@ -1603,7 +1603,7 @@ class LocationReferencesRectifiedDatasetFilter(object):
         
         if location.getType() == "local":
             return location.getPath() == res.getData().getLocation().getPath()
-        elif location.getType() == "remote":
+        elif location.getType() == "ftp":
             return (
                 location.getPath() == res.getData().getLocation().getPath() and
                 location.getHost() == res.getData().getLocation().getHost() and
@@ -1646,7 +1646,7 @@ class LocationReferencesReferencableDatasetFilter(object):
             return qs.filter(
                 data_package__localdatapackage__data_location__path=location.getPath()
             )
-        elif location.getType() == "remote":
+        elif location.getType() == "ftp":
             return qs.filter(
                 data_package__remotedatapackage__data_location__path=location.getPath()
             ).filter(
@@ -1671,7 +1671,7 @@ class LocationReferencesReferencableDatasetFilter(object):
         
         if location.getType() == "local":
             return location.getPath() == res.getData().getLocation().getPath()
-        elif location.getType() == "remote":
+        elif location.getType() == "ftp":
             return (
                 location.getPath() == res.getData().getLocation().getPath() and
                 location.getHost() == res.getData().getLocation().getHost() and
