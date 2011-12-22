@@ -1057,6 +1057,9 @@ class RectifiedStitchedMosaicWrapper(TiledDataWrapper, RectifiedGridWrapper, EOC
         containers = params.get("containers", [])
         for container in containers:
             container.addCoverage(self)
+        
+        for coverage in params.get("coverages", []):
+            self.addCoverage(coverage)
             
         if "data_sources" in params:
             for data_source in params["data_sources"]:
@@ -1327,11 +1330,11 @@ class DatasetSeriesWrapper(EOMetadataWrapper, ResourceWrapper):
         self.__model = DatasetSeriesRecord.objects.create(**create_dict)
     
     def _post_create(self, params):
-        try:
-            for data_source in params["data_sources"]:
-                self.__model.data_sources.add(data_source.getRecord())
-        except KeyError:
-            pass
+        for data_source in params.get("data_sources", []):
+            self.__model.data_sources.add(data_source.getRecord())
+        
+        for coverage in params.get("coverages", []):
+            self.addCoverage(coverage)
     
     def _updateModel(self, link_kwargs, unlink_kwargs, set_kwargs):
         super(DatasetSeriesWrapper, self)._updateModel(link_kwargs, unlink_kwargs, set_kwargs)
