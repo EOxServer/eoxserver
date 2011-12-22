@@ -39,6 +39,7 @@ from ConfigParser import RawConfigParser
 import logging
 from uuid import uuid4
 from datetime import datetime, timedelta
+from copy import copy
 
 from eoxserver.core.system import System
 from eoxserver.core.exceptions import InternalError, IDInUse
@@ -114,7 +115,32 @@ class BaseManager(object):
             raise
             
     def update(self, obj_id, **kwargs):
-        raise InternalError("Not implemented.")
+        # get the three update dicts
+        link_kwargs = kwargs.get("link", {})
+        unlink_kwargs = kwargs.get("unlink", {})
+        set_kwargs = kwargs.get("set", {})
+        
+        # prepare the update dicts
+        self._prepare_update_dicts(link_kwargs, unlink_kwargs, set_kwargs)
+        
+        # get the correct wrapper
+        wrapper = self.id_factory.get(obj_id=obj_id)
+        
+        if wrapper is None:
+            raise NoSuchCoverageException(obj_id)
+        
+        wrapper.updateModel(link_kwargs, unlink_kwargs, set_kwargs)
+        
+        # update the fields
+        keys = wrapper.getAttrNames()
+        for key, value in set_kwargs.items():
+            if key in keys:
+                wrapper.setAttrValue(key, value)
+        
+    def _prepare_update_dicts(self, link_kwargs, unlink_kwargs, set_kwargs):
+        # Override this function to prepare the three dictionaries
+        # prior to the update of the model
+        pass
     
     def delete(self, obj_id):
         raise InternalError("Not implemented.")
@@ -172,6 +198,20 @@ class BaseManagerContainerMixIn(object):
             )
         
         return data_sources
+    
+    def _get_coverages(self, params):
+        coverages = params.get("coverages", [])
+        
+        coverage_factory = System.getRegistry().bind(
+            "resources.coverages.wrappers.EOCoverageFactory"
+        )
+        for cid in params.get("coverage_ids", []):
+            coverage = coverage_factory.get(obj_id=cid)
+            if not coverage:
+                raise NoSuchCoverageException(cid)
+            coverages.append(coverage)
+        
+        return coverages
     
     def _create_contained(self, container, data_sources):
         for data_source in data_sources:
@@ -285,7 +325,13 @@ class BaseManagerContainerMixIn(object):
     
     def _get_contained_range_type_name(self, container, location=None):
         raise InternalError("Not implemented.")
-
+    
+    def _prepare_update_dicts(self, link_kwargs, unlink_kwargs, set_kwargs):
+        super(BaseManagerContainerMixIn, self)._prepare_update_dicts(link_kwargs, unlink_kwargs, set_kwargs)
+        link_kwargs["coverages"] = self._get_coverages(link_kwargs)
+        unlink_kwargs["coverages"] = self._get_coverages(unlink_kwargs)
+        
+        
 class CoverageManager(BaseManager):
     def __init__(self):
         super(CoverageManager, self).__init__()
@@ -583,6 +629,14 @@ class EODatasetManager(CoverageManager, CoverageManagerDatasetMixIn, CoverageMan
                 container=kwargs.get("container"),
                 containers=containers
             )
+    
+    
+    def _prepare_update_dicts(self, link_kwargs, unlink_kwargs, set_kwargs):
+        super(EODatasetManager, self)._prepare_update_dicts(link_kwargs, unlink_kwargs, set_kwargs) 
+    
+        link_kwargs["containers"] = self._get_containers(link_kwargs)
+        unlink_kwargs["containers"] = self._get_containers(unlink_kwargs)
+    
 
 class RectifiedDatasetManager(EODatasetManager):
     """
@@ -650,7 +704,7 @@ class RectifiedDatasetManager(EODatasetManager):
             obj_id=obj_id
         )
         if not wrapper:
-            raise NoSuchCoverageException
+            raise NoSuchCoverageException(obj_id)
         wrapper.deleteModel()
     
     def _validate_type(self, coverage):
@@ -771,7 +825,9 @@ class RectifiedStitchedMosaicManager(BaseManagerContainerMixIn, CoverageManager)
             impl_id="resources.coverages.wrappers.RectifiedStitchedMosaicWrapper",
             obj_id=obj_id
         )
-        wrapper.delete()
+        if not wrapper:
+            raise NoSuchCoverageException(obj_id)
+        wrapper.deleteModel()
     
     def synchronize(self, obj_id):
         container = self.coverage_factory.get(
@@ -895,6 +951,10 @@ class RectifiedStitchedMosaicManager(BaseManagerContainerMixIn, CoverageManager)
     def _make_mosaic(self, coverage):
         pass
 
+    def _prepare_update_dicts(self, link_kwargs, unlink_kwargs, set_kwargs):
+        super(RectifiedStitchedMosaicManager, self)._prepare_update_dicts(link_kwargs, unlink_kwargs, set_kwargs)
+        link_kwargs["data_sources"] = self._get_data_sources(link_kwargs)
+
 RectifiedStitchedMosaicManagerImplementation = \
 ManagerInterface.implement(RectifiedStitchedMosaicManager)
 
@@ -980,7 +1040,11 @@ class DatasetSeriesManager(BaseManagerContainerMixIn, BaseManager):
         )
         
         self._synchronize(container, container.getDataSources(), container.getEOCoverages())
-        
+    
+    def _prepare_update_dicts(self, link_kwargs, unlink_kwargs, set_kwargs):
+        super(DatasetSeriesManager, self)._prepare_update_dicts(link_kwargs, unlink_kwargs, set_kwargs)
+        link_kwargs["data_sources"] = self._get_data_sources(link_kwargs)
+    
     def _get_id_factory(self):
         return System.getRegistry().bind(
             "resources.coverages.wrappers.DatasetSeriesFactory"
@@ -1061,8 +1125,8 @@ class CoverageIdManager(BaseManager):
         ``resources.coverages.coverage_id.reservation_time`` is used.
         
         If the ID is already reserved, a :class:`~.CoverageIdReservedError` is
-        raised. If the ID is already taken by an existing coverage a :class:
-        `~.CoverageIdInUseError` is raised.
+        raised. If the ID is already taken by an existing coverage a 
+        :class:`~.CoverageIdInUseError` is raised.
         """
         
         obj, _ = ReservedCoverageIdRecord.objects.get_or_create(
@@ -1133,9 +1197,9 @@ class CoverageIdManager(BaseManager):
     
     def getRequestId(self, coverage_id):
         """
-        Returns the request ID associated with a :class:
-        `~.ReservedCoverageIdRecord` or `None` if the no record with that ID is
-        available.
+        Returns the request ID associated with a 
+        :class:`~.ReservedCoverageIdRecord` or `None` if the no record with that
+        ID is available.
         """
         
         try:

@@ -243,6 +243,33 @@ class CoverageWrapper(ResourceWrapper):
                 )
                 
         return create_dict
+    
+    def _updateModel(self, link_kwargs, unlink_kwargs, set_kwargs):
+        super(CoverageWrapper, self)._updateModel(link_kwargs, unlink_kwargs, set_kwargs)
+        
+        coverage_id = set_kwargs.get("coverage_id")
+        range_type_name = set_kwargs.get("range_type_name")
+        layer_metadata = set_kwargs.get("layer_metadata", {})
+        automatic = set_kwargs.get("automatic")
+        data_source = set_kwargs.get("data_source")
+        
+        if coverage_id is not None:
+            self.__model.coverage_id = coverage_id
+        
+        if range_type_name is not None:
+            self.__model.range_type = RangeTypeRecord.objects.get(
+                name=range_type_name
+            )
+            
+        for key, value in layer_metadata:
+            pass # TODO implement setting
+        
+        if automatic is not None:
+            self.__model.automatic = automatic
+        
+        if data_source:
+            pass # TODO
+        
 
 class RectifiedGridWrapper(object):
     """
@@ -274,6 +301,22 @@ class RectifiedGridWrapper(object):
         )
         
         return create_dict
+
+    def _updateModel(self, link_kwargs, unlink_kwargs, set_kwargs):
+        super(RectifiedGridWrapper, self)._updateModel(link_kwargs, unlink_kwargs, set_kwargs)
+        
+        geo_md = set_kwargs.get("geo_metadata")
+        if geo_md:
+            extent = self.__model.extent
+            extent.srid = geo_md.srid
+            extent.size_x = geo_md.size_x
+            extent.size_y = geo_md.size_y
+            extent.minx = geo_md.extent[0]
+            extent.miny = geo_md.extent[1]
+            extent.maxx = geo_md.extent[2]
+            extent.maxy = geo_md.extent[3]
+            
+            extent.save()
 
     def getSRID(self):
         """
@@ -431,6 +474,31 @@ class EOMetadataWrapper(object):
         
         return create_dict
     
+    def _updateModel(self, link_kwargs, unlink_kwargs, set_kwargs):
+        super(EOMetadataWrapper, self)._updateModel(link_kwargs, unlink_kwargs, set_kwargs)
+        
+        eo_id = set_kwargs.get("eo_id")
+        eo_md = set_kwargs.get("eo_metadata")
+        if eo_md:
+            record = self.__model.eo_metadata
+            record.timestamp_begin = eo_md.getBeginTime()
+            record.timestamp_end = eo_md.getEndTime()
+            record.footprint = eo_md.getFootprint()
+            
+            md_format = eo_md.getMetadataFormat()
+            if md_format and md_format.getName() == "eogml":
+                record.eo_gml = eo_md.getRawMetadata()
+            else:
+                record.eo_gml = ""
+            
+            self.__model.eo_id = eo_md.getEOID()
+            
+            record.save()
+        
+        if eo_id is not None:
+            self.__model.eo_id = eo_id
+        
+    
     def getEOID(self):
         """
         Returns the EO ID of the object.
@@ -491,7 +559,26 @@ class EOCoverageWrapper(EOMetadataWrapper, CoverageWrapper):
         create_dict["lineage"] = LineageRecord.objects.create()
         
         return create_dict
+    
+    def _updateModel(self, link_kwargs, unlink_kwargs, set_kwargs):
+        super(EOCoverageWrapper, self)._updateModel(link_kwargs, unlink_kwargs, set_kwargs)
+    
+        containers = link_kwargs.get("containers", [])
+        if "container" in link_kwargs:
+            containers.append(link_kwargs["container"])
         
+        for container in containers:
+            container.addCoverage(self)
+        
+        containers = unlink_kwargs.get("containers", [])
+        if "container" in unlink_kwargs:
+            containers.append(unlink_kwargs["container"])
+        
+        for container in containers:
+            container.removeCoverage(self)
+        
+        # TODO lineage update?
+    
     
     def getEOCoverageSubtype(self):
         """
@@ -545,6 +632,18 @@ class EODatasetWrapper(PackagedDataWrapper, EOCoverageWrapper):
             create_dict["visible"] = params.get("visible", True)
         
         return create_dict
+    
+    def _updateModel(self, link_kwargs, unlink_kwargs, set_kwargs):
+        super(EODatasetWrapper, self)._updateModel(link_kwargs, unlink_kwargs, set_kwargs)
+        
+        visible = set_kwargs.get("visible")
+        if visible is not None:
+            self.__model.visible = visible
+        
+        data_package = set_kwargs.get("data_package")
+        if data_package:
+            # TODO implement
+            pass
     
     def getDatasets(self, filter_exprs=None):
         """
@@ -606,7 +705,12 @@ class RectifiedDatasetWrapper(RectifiedGridWrapper, EODatasetWrapper):
         "maxx": "extent__maxx",
         "maxy": "extent__maxy",
         "visible": "visible",
-        "automatic": "automatic"
+        "automatic": "automatic",
+        "begin_time": "eo_metadata__timestamp_begin",
+        "end_time": "eo_metadata__timestamp_end",
+        "footprint": "eo_metadata__footprint"
+    
+        # TODO layer metadata?
     }
     
     #-------------------------------------------------------------------
@@ -634,101 +738,6 @@ class RectifiedDatasetWrapper(RectifiedGridWrapper, EODatasetWrapper):
         containers = params.get("containers", [])
         for container in containers:
             container.addCoverage(self)
-        
-    # ==========================================================================
-    # TODO: update this part according to new data model
-
-    def _updateModel(self, params):
-        file_info = params.get("file_info")
-        automatic = params.get("automatic")
-        visible = params.get("visible")
-        add_container = params.get("add_container")
-        rm_container = params.get("rm_container")
-
-        if file_info is not None:
-
-            self._updateFileRecord(file_info)
-
-            self._updateEOMetadataRecord(file_info)
-                
-            self._updateExtentRecord(file_info)
-            
-            self._updateLineageRecord(file_info)
-            
-            range_type_record = RangeTypeRecord.objects.get(
-                name = file_info.range_type
-            )
-
-            self.__model.coverage_id = file_info.eo_id
-            self.__model.eo_id = file_info.eo_id
-            self.__model.range_type = range_type_record
-        
-        if automatic is not None:
-            self.__model.automatic = automatic
-        
-        if visible is not None:
-            self.__model.visible = visible
-        
-        if add_container is not None:
-            add_container.addCoverage(self)
-        
-        if rm_container is not None:
-            rm_container.removeCoverage(self)
-
-        # commit update 
-        self.__model.save()
-
-    
-    def _getAttrValue(self, attr_name):
-        if attr_name == "eo_id":
-            return self.__model.eo_id
-        elif attr_name == "data_package":
-            return self.__model.data_package
-        elif attr_name == "srid":
-            return self.__model.extent.srid
-        elif attr_name == "size_x":
-            return self.__model.extent.size_x
-        elif attr_name == "size_y":
-            return self.__model.extent.size_y
-        elif attr_name == "minx":
-            return self.__model.extent.minx
-        elif attr_name == "miny":
-            return self.__model.extent.miny
-        elif attr_name == "maxx":
-            return self.__model.extent.maxx
-        elif attr_name == "maxy":
-            return self.__model.extent.maxy
-        elif attr_name == "visible":
-            return self.__model.visible
-        elif attr_name == "automatic":
-            return self.__model.automatic
-    
-    def _setAttrValue(self, attr_name, value):
-        if attr_name == "eo_id":
-            self.__model.eo_id = value
-        elif attr_name == "data_package":
-            self.__model.data_package = value
-        elif attr_name == "srid":
-            self.__model.extent.srid = value
-        elif attr_name == "size_x":
-            self.__model.extent.size_x = value
-        elif attr_name == "size_y":
-            self.__model.extent.size_y = value
-        elif attr_name == "minx":
-            self.__model.extent.minx = value
-        elif attr_name == "miny":
-            self.__model.extent.miny = value
-        elif attr_name == "maxx":
-            self.__model.extent.maxx = value
-        elif attr_name == "maxy":
-            self.__model.extent.maxy = value
-        elif attr_name == "visible":
-            self.__model.visible = value
-        elif attr_name == "automatic":
-            self.__model.automatic = value
-
-    # END TODO
-    #===========================================================================
     
     #-------------------------------------------------------------------
     # CoverageInterface implementations
@@ -878,53 +887,8 @@ class ReferenceableDatasetWrapper(EODatasetWrapper, ReferenceableGridWrapper):
     def __model(self):
         return self._ResourceWrapper__model
     
-    #===========================================================================
-    # TODO: update and extend this according to new data model
-    
     def _createModel(self, params):
         pass # TODO
-    
-    def _updateModel(self, params):
-        pass # TODO
-    
-    def _getAttrValue(self, attr_name):
-        if attr_name == "eo_id":
-            return self.__model.eo_id
-        elif attr_name == "filename":
-            return self.__model.file.path
-        elif attr_name == "metadata_filename":
-            return self.__model.file.metadata_path
-        elif attr_name == "metadata_format":
-            return self.__model.file.metadata_format
-        elif attr_name == "size_x":
-            return self.__model.size_x
-        elif attr_name == "size_y":
-            return self.__model.size_y
-        elif attr_name == "visible":
-            return self.__model.visible
-        elif attr_name == "automatic":
-            return self.__model.automatic
-    
-    def _setAttrValue(self, attr_name, value):
-        if attr_name == "eo_id":
-            self.__model.eo_id = value
-        elif attr_name == "filename":
-            self.__model.file.path = value
-        elif attr_name == "metadata_filename":
-            self.__model.file.metadata_path = value
-        elif attr_name == "metadata_format":
-            self.__model.file.metadata_format = value
-        elif attr_name == "size_x":
-            self.__model.size_x = value
-        elif attr_name == "size_y":
-            self.__model.size_y = value
-        elif attr_name == "visible":
-            self.__model.visible = value
-        elif attr_name == "automatic":
-            self.__model.automatic = value
-    
-    # END TODO
-    #===========================================================================
     
     #-------------------------------------------------------------------
     # CoverageInterface implementations
@@ -1049,6 +1013,9 @@ class RectifiedStitchedMosaicWrapper(TiledDataWrapper, RectifiedGridWrapper, EOC
         "miny": "extent__miny",
         "maxx": "extent__maxx",
         "maxy": "extent__maxy",
+        "begin_time": "eo_metadata__timestamp_begin",
+        "end_time": "eo_metadata__timestamp_end",
+        "footprint": "eo_metadata__footprint"
     }
 
     #-------------------------------------------------------------------
@@ -1095,44 +1062,24 @@ class RectifiedStitchedMosaicWrapper(TiledDataWrapper, RectifiedGridWrapper, EOC
             for data_source in params["data_sources"]:
                 self.__model.data_sources.add(data_source.getRecord())
     
-    def _updateModel(self, params):
-        pass # TODO
-    
-    def _getAttrValue(self, attr_name):
-        if attr_name == "eo_id":
-            return self.__model.eo_id
-        elif attr_name == "srid":
-            return self.__model.extent.srid
-        elif attr_name == "size_x":
-            return self.__model.extent.size_x
-        elif attr_name == "size_y":
-            return self.__model.extent.size_y
-        elif attr_name == "minx":
-            return self.__model.extent.minx
-        elif attr_name == "miny":
-            return self.__model.extent.miny
-        elif attr_name == "maxx":
-            return self.__model.extent.maxx
-        elif attr_name == "maxy":
-            return self.__model.extent.maxy
-    
-    def _setAttrValue(self, attr_name, value):
-        if attr_name == "eo_id":
-            self.__model.eo_id = value
-        elif attr_name == "srid":
-            self.__model.extent.srid = value
-        elif attr_name == "size_x":
-            self.__model.extent.size_x = value
-        elif attr_name == "size_y":
-            self.__model.extent.size_y = value
-        elif attr_name == "minx":
-            self.__model.extent.minx = value
-        elif attr_name == "miny":
-            self.__model.extent.miny = value
-        elif attr_name == "maxx":
-            self.__model.extent.maxx = value
-        elif attr_name == "maxy":
-            self.__model.extent.maxy = value
+    def _updateModel(self, link_kwargs, unlink_kwargs, set_kwargs):
+        super(RectifiedStitchedMosaicWrapper, self)._updateModel(link_kwargs, unlink_kwargs, set_kwargs)
+        
+        data_sources = link_kwargs.get("data_sources", [])
+        coverages = link_kwargs.get("coverages", [])
+        for data_source in data_sources:
+            self.__model.data_sources.add(data_source.getRecord())
+        for coverage in coverages:
+            self.addCoverage(coverage)
+        
+        data_sources = unlink_kwargs.get("data_sources", [])
+        coverages = unlink_kwargs.get("coverages", [])
+        for data_source in data_sources:
+            self.__model.data_sources.remove(data_source.getRecord())
+        for coverage in coverages:
+            self.removeCoverage(coverage)
+            
+        # TODO: tile_index
     
     #-------------------------------------------------------------------
     # CoverageInterface implementations
@@ -1338,7 +1285,12 @@ class DatasetSeriesWrapper(EOMetadataWrapper, ResourceWrapper):
         "factory_ids": ("resources.coverages.wrappers.DatasetSeriesFactory", )
     }
     
-    FIELDS = {}
+    FIELDS = {
+        "eo_id": "eo_id",
+        "begin_time": "eo_metadata__timestamp_begin",
+        "end_time": "eo_metadata__timestamp_end",
+        "footprint": "eo_metadata__footprint"
+    }
     
     #-------------------------------------------------------------------
     # ResourceInterface methods
@@ -1381,16 +1333,25 @@ class DatasetSeriesWrapper(EOMetadataWrapper, ResourceWrapper):
         except KeyError:
             pass
     
-    # use default _post_create() which does nothing
+    def _updateModel(self, link_kwargs, unlink_kwargs, set_kwargs):
+        super(DatasetSeriesWrapper, self)._updateModel(link_kwargs, unlink_kwargs, set_kwargs)
         
-    def _updateModel(self, params):
-        pass # TODO
+        # link
+        data_sources = link_kwargs.get("data_sources", [])
+        coverages = link_kwargs.get("coverages", [])
+        for data_source in data_sources:
+            self.__model.data_sources.add(data_source.getRecord())
+        for coverage in coverages:
+            self.addCoverage(coverage)
         
-    def _getAttrValue(self, attr_name):
-        pass # TODO
+        # unlink
+        data_sources = unlink_kwargs.get("data_sources", [])
+        coverages = unlink_kwargs.get("coverages", [])
+        for data_source in data_sources:
+            self.__model.data_sources.remove(data_source.getRecord())
+        for coverage in coverages:
+            self.removeCoverage(coverage)
         
-    def _setAttrValue(self, attr_name, value):
-        pass # TODO
     
     #-------------------------------------------------------------------
     # DatasetSeriesInterface methods
