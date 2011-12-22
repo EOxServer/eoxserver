@@ -863,6 +863,8 @@ class RectifiedStitchedMosaicManager(BaseManagerContainerMixIn, CoverageManager)
         
         containers = self._get_containers(kwargs)
         
+        coverages = self._get_coverages(kwargs)
+        
         coverage = self._create_coverage(
             coverage_id,
             geo_metadata,
@@ -872,7 +874,8 @@ class RectifiedStitchedMosaicManager(BaseManagerContainerMixIn, CoverageManager)
             tile_index,
             data_sources,
             kwargs.get("container"),
-            containers
+            containers,
+            coverages
         )
         
         self._create_contained(coverage, data_sources)
@@ -881,7 +884,7 @@ class RectifiedStitchedMosaicManager(BaseManagerContainerMixIn, CoverageManager)
         
         return coverage
     
-    def _create_coverage(self, coverage_id, geo_metadata, range_type_name, layer_metadata, eo_metadata, tile_index, data_sources, container=None, containers=None):
+    def _create_coverage(self, coverage_id, geo_metadata, range_type_name, layer_metadata, eo_metadata, tile_index, data_sources, container=None, containers=None, coverages=None):
         return self.coverage_factory.create(
             impl_id="resources.coverages.wrappers.RectifiedStitchedMosaicWrapper",
             params={
@@ -893,7 +896,8 @@ class RectifiedStitchedMosaicManager(BaseManagerContainerMixIn, CoverageManager)
                 "tile_index": tile_index,
                 "data_sources": data_sources,
                 "container": container,
-                "containers": containers
+                "containers": containers,
+                "coverages": coverages
             }
         )
     
@@ -1060,13 +1064,16 @@ class DatasetSeriesManager(BaseManagerContainerMixIn, BaseManager):
         
         data_sources = self._get_data_sources(kwargs)
         
+        coverages = self._get_coverages(kwargs)
+        
         dataset_series = self.dataset_series_factory.create(
             impl_id="resources.coverages.wrappers.DatasetSeriesWrapper",
             params={
                 "eo_id": eo_id,
                 #"layer_metadata": layer_metadata,
                 "eo_metadata": eo_metadata,
-                "data_sources": data_sources
+                "data_sources": data_sources,
+                "coverages": coverages
             }
         )
         
