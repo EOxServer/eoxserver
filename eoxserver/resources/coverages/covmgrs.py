@@ -55,6 +55,7 @@ from eoxserver.resources.coverages.models import (
 class BaseManager(object):
     """
     """
+    
     def __init__(self):
         self.id_factory = self._get_id_factory()
         
@@ -85,7 +86,7 @@ class BaseManager(object):
     def releaseID(self, obj_id):
         pass
         
-    def create(self, obj_id=None, **kwargs):
+    def create(self, obj_id=None, request_id=None, **kwargs):
         """
         Creates a new instance of the underlying type and returns an according
         wrapper object. The optional parameter ``obj_id`` is used as 
@@ -95,29 +96,34 @@ class BaseManager(object):
         
         :param obj_id: the ID (CoverageID or EOID) of the object to be created
         :type obj_id: string
+        :param request_id: an optional request ID for the acquisition of the 
+        CoverageID/EOID.
+        :type request_id: string
         :param kwargs: the arguments 
         :rtype: a wrapper of the created object
         """
-        if obj_id:
-            _id = obj_id
-            _release = False
-        else:
-            _id = self.acquireID()
-            _release = True
-
+        
+        id_mgr = CoverageIdManager()
+        
+        if obj_id is None:
+            # generate a new ID
+            for _ in range(3):
+                new_id = self._generate_id()
+                if id_mgr.available(new_id):
+                    obj_id = new_id
+                    break
+            else:
+                raise InternalError("Could not generate a unique identifier.")
+            
+        id_mgr.reserve(obj_id, request_id)
+        
         try:
-            coverage = self._create(_id, **kwargs)
-            
-            if _release:
-                self.releaseID(_id)
-            
-            return coverage
-            
-        except:
-            if _release:
-                self.releaseID(_id)
-                
-            raise
+            coverage = self._create(obj_id, **kwargs)
+        
+        finally:
+            id_mgr.release(obj_id, fail=True)
+        
+        return coverage
             
     def update(self, obj_id, link=None, unlink=None, set=None):
         """
@@ -1161,7 +1167,8 @@ class CoverageIdManager(BaseManager):
         is omitted, the configuration value 
         ``resources.coverages.coverage_id.reservation_time`` is used.
         
-        If the ID is already reserved, a :class:`~.CoverageIdReservedError` is
+        If the ID is already reserved and the ``resource_id`` is not equal to
+        the reserved ``resource_id``, a :class:`~.CoverageIdReservedError` is
         raised. If the ID is already taken by an existing coverage a 
         :class:`~.CoverageIdInUseError` is raised.
         """
