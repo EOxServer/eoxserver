@@ -35,7 +35,7 @@ RFC 13: WCS-T 1.1 Interface Prototype
 :Author:     Martin Paces 
 :Created:    2011-09-13
 :Last Edit:  $Date$
-:Status:     DRAFT 
+:Status:     ACCEPTED
 :Discussion: http://www.eoxserver.org/wiki/DiscussionRfc13
 
 Introduction
@@ -280,7 +280,10 @@ References
 Voting History
 --------------
 
-*N/A*
+:Motion: To accept RFC 13
+:Voting Start: 2011-12-15 
+:Voting End: 2011-12-22
+:Result: +3 for ACCEPTED
 
 Traceability
 ------------

@@ -35,7 +35,7 @@ RFC 14: Asynchronous Task Processing (ATP)
 :Author:     Martin Paces 
 :Created:    2011-10-25
 :Last Edit:  2011-12-09 
-:Status:     DRAFT 
+:Status:     ACCEPTED
 :Discussion: http://www.eoxserver.org/wiki/DiscussionRfc14
 
 This RFC describes the Asynchronous Task Processing subsystem of the *EOxServer*. 
@@ -181,7 +181,10 @@ References
 Voting History
 --------------
 
-*N/A*
+:Motion: To accept RFC 14 
+:Voting Start: 2011-12-15 
+:Voting End: 2011-12-22
+:Result: +4 for ACCEPTED
 
 Traceability
 ------------
