@@ -53,6 +53,8 @@ from eoxserver.resources.coverages.models import (
 )
 
 class BaseManager(object):
+    """
+    """
     def __init__(self):
         self.id_factory = self._get_id_factory()
         
@@ -85,13 +87,16 @@ class BaseManager(object):
         
     def create(self, obj_id=None, **kwargs):
         """
-        Creates a new instance of the underlying type and returns an
-        according wrapper object.
-        The optional parameter ``obj_id`` is used as CoverageID/EOID
-        and is generated automatically when omitted. If the given ID
-        is already in use, an :exc:`~.IDinUse` exception is raised.
-        The other parameters depend on the actual coverage manager
-        type.
+        Creates a new instance of the underlying type and returns an according
+        wrapper object. The optional parameter ``obj_id`` is used as 
+        CoverageID/EOID and is generated automatically when omitted. If the 
+        given ID is already in use, an :exc:`~.IDinUse` exception is raised. The
+        other parameters depend on the actual coverage manager type.
+        
+        :param obj_id: the ID (CoverageID or EOID) of the object to be created
+        :type obj_id: string
+        :param kwargs: the arguments 
+        :rtype: a wrapper of the created object
         """
         if obj_id:
             _id = obj_id
@@ -114,11 +119,31 @@ class BaseManager(object):
                 
             raise
             
-    def update(self, obj_id, **kwargs):
+    def update(self, obj_id, link=None, unlink=None, set=None):
+        """
+        Updates the coverage/dataset series identified by ``obj_id``. The 
+        ``link`` and ``unlink`` dicts are used to add or remove references to
+        other objects, whereas the ``set`` dict values are used to set 
+        attributes of the objects. This can be either a set of values (like
+        ``geo_metadata`` or ``eo_metadata``) or single values as defined in the
+        ``FIELDS`` dict of the according wrapper.
+        
+        For all supported attributes please refer to the actually used manager.
+        
+        :param obj_id: the ID (CoverageID or EOID) of the object to be updated
+        :type obj_id: string
+        :param link: objects to be linked with
+        :type link: dict or None
+        :param unlink: objects to be unlinked
+        :type unlink: dict or None
+        :param set: attributes to be set
+        :type set: dict or None
+        :rtype: a wrapper of the altered object
+        """
         # get the three update dicts
-        link_kwargs = kwargs.get("link", {})
-        unlink_kwargs = kwargs.get("unlink", {})
-        set_kwargs = kwargs.get("set", {})
+        link_kwargs = link if link is not None else {}
+        unlink_kwargs = unlink if unlink is not None else {}
+        set_kwargs = set if set is not None else {}
         
         # prepare the update dicts
         self._prepare_update_dicts(link_kwargs, unlink_kwargs, set_kwargs)
@@ -136,6 +161,8 @@ class BaseManager(object):
         for key, value in set_kwargs.items():
             if key in keys:
                 wrapper.setAttrValue(key, value)
+        
+        return wrapper
         
     def _prepare_update_dicts(self, link_kwargs, unlink_kwargs, set_kwargs):
         # Override this function to prepare the three dictionaries
@@ -640,54 +667,51 @@ class EODatasetManager(CoverageManager, CoverageManagerDatasetMixIn, CoverageMan
 
 class RectifiedDatasetManager(EODatasetManager):
     """
-    Coverage Manager for `RectifiedDatasets`
+    Coverage Manager for `RectifiedDatasets`. The following parameters can be
+    used for the :meth:`~BaseManager.create` and :meth:`~BaseManager.update`
+    methods.
     
-    .. method:: create(obj_id=None, **kwargs)
+    To define the data and metadata location, the ``location`` and 
+    ``md_location`` parameters can be used, where the value has to implement the
+    :class:`~.LocationInterface`. Alternatively ``local_path`` and 
+    ``md_local_path`` can be used to define local locations. For when the data 
+    and metadata is located on an FTP server, use ``remote_path`` and 
+    ``md_remote_path`` instead, which also requires the ``ftp_host`` parameter 
+    (``ftp_port``, ``ftp_user`` and ``ftp_passwd`` are optional). When the data 
+    is located in a rasdaman database use the ``collection`` and ``ras_host``
+    parameters. ``oid``, ``ras_port``, ``ras_user``, ``ras_passwd``, and 
+    ``ras_db`` can be used to further specify the location.
+    Currently, these parameters can only be used within the
+    :meth:`~BaseManager.create` method and not within the 
+    :meth:`~BaseManager.update` method 
     
-       This creates and returns a :class:`~.RectifiedDatasetWrapper`
-       from the attributes given in ``kwargs``. 
-       
-       If the ``obj_id`` argument is omitted a new object ID shall be generated
-       using the same mechanism as :meth:`acquireID`. If the provided object ID
-       is invalid or already in use, appropriate exceptions shall be raised.
-       
-       To define the data and metadata location, the ``location`` and 
-       ``md_location`` parameters can be used, where the value has to implement 
-       the :class:`~.LocationInterface`. 
-       Alternatively ``local_path`` and ``md_local_path`` 
-       can be used to define local locations. For when the data and metadata is 
-       located on an FTP server, use ``remote_path`` and ``md_remote_path``
-       instead, which also requires the ``ftp_host`` parameter (``ftp_port``, 
-       ``ftp_user`` and ``ftp_passwd`` are optional). When the data is located
-       in a rasdaman database use the ``collection`` and ``ras_host`` parameters. 
-       ``oid``, ``ras_port``, ``ras_user``, ``ras_passwd``, and ``ras_db`` can 
-       be used to further specify the location.
-       
-       To specify geospatial metadata use the ``geo_metadata`` parameter,
-       which has to be an instance of :class:`~.GeospatialMetadata`. Optionally
-       ``default_srid`` can be used to declare a default SRID.
-       
-       To specify earth observation related metadata use the ``eo_metadata``
-       parameter which has to be of the type :class:`~.EOMetadata`.
-       
-       The mandatory parameter ``range_type_name`` states which range type
-       this coverage is using.
-       
-       If the created dataset shall be inserted into a `DatasetSeries` or
-       `RectifiedStitchedMosaic` a wrapper instance can be passed with the
-       ``container`` parameter. Alternatively you can use the ``container_ids``
-       parameter, passing a list of IDs referencing either `DatasetSeries`
-       or `RectifiedStitchedMosaics`.
-       
-       Additional metadata can be added with the ``abstract``, ``title``,
-       and ``keywords`` parameters.
-       
-    .. method:: delete(obj_id)
-        
-        This deletes a `RectifiedDataset` record specified by its 
-        ``obj_id``. If no coverage with this ID can be found, an 
-        :exc:`~.NoSuchCoverage` exception will be raised.
-        
+    To specify geospatial metadata use the ``geo_metadata`` parameter,
+    which has to be an instance of :class:`~.GeospatialMetadata`. Optionally
+    ``default_srid`` can be used to declare a default SRID. When updating,
+    it has to be placed within the ``set`` dict.
+    
+    To specify earth observation related metadata use the ``eo_metadata``
+    parameter which has to be of the type :class:`~.EOMetadata`. When updating,
+    it has to be placed within the ``set`` dict.
+    
+    The mandatory parameter ``range_type_name`` states which range type
+    this coverage is using.
+    
+    If the created dataset shall be inserted into a `DatasetSeries` or 
+    `RectifiedStitchedMosaic` a wrapper instance can be passed with the
+    ``container`` parameter. Alternatively you can use the ``container_ids``
+    parameter, passing a list of IDs referencing either `DatasetSeries` or 
+    `RectifiedStitchedMosaics`. When used in the context of an
+    :meth:`~BaseManager.update`, both parameters can be placed within the
+    ``link`` or the ``unlink`` dict, to either add or remove a reference to the
+    container.
+    
+    Additional metadata can be added with the ``abstract``, ``title``,
+    and ``keywords`` parameters.
+    
+    For additional ``set`` parameters for the :meth:`~BaseManager.update` method
+    please refer to the :attr:`~.RectifiedDatasetWrapper.FIELDS` attribute of 
+    the according wrapper.
     """
     
     REGISTRY_CONF = {
@@ -740,50 +764,52 @@ class ReferenceableDatasetManager(EODatasetManager):
 class RectifiedStitchedMosaicManager(BaseManagerContainerMixIn, CoverageManager):
     """
     Coverage Manager for `RectifiedStitchedMosaics`
+       
+    To add data sources to the ``RectifiedStitchedMosaic`` at the time it is
+    created the ``data_sources`` and ``data_dirs`` parameters can be used. 
+    The ``data_sources`` parameter shall be a list of objects implementing 
+    the :class:`~.DataSourceInterface`. Alternatively the ``data_dirs`` 
+    parameter shall be a list of dictionaries consisting of the following
+    arguments:
+       
+    * ``search_pattern``: a regular expression to specify what files in the
+      directory are considered as data files.
+   
+    * ``path``: for local or FTP data sources, this parameter shall be a 
+      path to a valid directory, containing the data files.
     
-    .. method:: create(obj_id=None, **kwargs)
+    * ``type``: defines the type of the location describing the data source.
+      This can either be `local` or `remote`.
+      
+    These parameters can also be used in the context of an 
+    :meth:`~BaseManager.update` within the `link` or `unlink` dict.
     
-       This creates and returns a :class:`~.RectifiedStitchedMosaicWrapper`
-       from the attributes given in ``kwargs``. 
-       
-       If the ``obj_id`` argument is omitted a new object ID shall be generated
-       using the same mechanism as :meth:`acquireID`. If the provided object ID
-       is invalid or already in use, appropriate exceptions shall be raised.
-       
-       To add data sources to the ``RectifiedStitchedMosaic`` at the time it is
-       created the ``data_sources`` and ``data_dirs`` parameters can be used. 
-       The ``data_sources`` parameter shall be a list of objects implementing 
-       the :class:``~.DataSourceInterface``. Alternatively the ``data_dirs`` 
-       parameter shall be a list of dictionaries consisting of the following
-       arguments:
-       
-       * ``search_pattern``: a regular expression to specify what files in the
-         directory are considered as data files.
-       
-       * ``path``: for local or FTP data sources, this parameter shall be a 
-         path to a valid directory, containing the data files.
-        
-       * ``type``: defines the type of the location describing the data source.
-         This can either be `local` or `remote`.
-       
-       To specify geospatial metadata use the ``geo_metadata`` parameter,
-       which has to be an instance of :class:`~.GeospatialMetadata`. Optionally
-       ``default_srid`` can be used to declare a default SRID.
-       
-       To specify earth observation related metadata use the ``eo_metadata``
-       parameter which has to be of the type :class:`~.EOMetadata`.
-       
-       The mandatory parameter ``range_type_name`` states which range type
-       this coverage is using.
-       
-       If the created dataset shall be inserted into a `DatasetSeries` or
-       `RectifiedStitchedMosaic` a wrapper instance can be passed with the
-       ``container`` parameter. Alternatively you can use the ``container_ids``
-       parameter, passing a list of IDs referencing either `DatasetSeries`
-       or `RectifiedStitchedMosaics`.
-       
-       Additional metadata can be added with the ``abstract``, ``title``,
-       and ``keywords`` parameters. 
+    To specify geospatial metadata use the ``geo_metadata`` parameter,
+    which has to be an instance of :class:`~.GeospatialMetadata`. Optionally
+    ``default_srid`` can be used to declare a default SRID. When updating,
+    it has to be placed within the ``set`` dict.
+    
+    To specify earth observation related metadata use the ``eo_metadata``
+    parameter which has to be of the type :class:`~.EOMetadata`. When updating,
+    it has to be placed within the ``set`` dict.
+    
+    The mandatory parameter ``range_type_name`` states which range type
+    this coverage is using.
+    
+    If the created dataset shall be inserted into a `DatasetSeries` or
+    `RectifiedStitchedMosaic` a wrapper instance can be passed with the
+    ``container`` parameter. Alternatively you can use the ``container_ids``
+    parameter, passing a list of IDs referencing either `DatasetSeries`
+    or `RectifiedStitchedMosaics`. These parameters can also be used in the 
+    context of an :meth:`~BaseManager.update` within the `link` or `unlink`
+    dict.
+    
+    Additional metadata can be added with the ``abstract``, ``title``,
+    and ``keywords`` parameters.
+    
+    For additional ``set`` parameters for the :meth:`~BaseManager.update` method
+    please refer to the :attr:`~.RectifiedStitchedMosaicWrapper.FIELDS` 
+    attribute of the according wrapper.
     
     .. method:: synchronize(obj_id)
     
@@ -966,33 +992,37 @@ class DatasetSeriesManager(BaseManagerContainerMixIn, BaseManager):
     """
     This manager handles interactions with ``DatasetSeries``.
     
-    .. method:: create(obj_id=None, **kwargs)
+       
+    If the ``obj_id`` argument is omitted a new object ID shall be generated
+    using the same mechanism as :meth:`acquireID`. If the provided object ID
+    is invalid or already in use, appropriate exceptions shall be raised.
     
-       This creates and returns a :class:`~.DatasetSeriesWrapper`
-       from the attributes given in ``kwargs``. 
+    To add data sources to the ``DatasetSeries`` at the time it is created 
+    the ``data_sources`` and ``data_dirs`` parameters can be used. The 
+    ``data_sources`` parameter shall be a list of objects implementing the 
+    :class:``~.DataSourceInterface``. Alternatively the ``data_dirs`` 
+    parameter shall be a list of dictionaries consisting of the following
+    arguments:
+    
+    * ``search_pattern``: a regular expression to specify what files in the
+      directory are considered as data files.
+    
+    * ``path``: for local or FTP data sources, this parameter shall be a 
+      path to a valid directory, containing the data files.
+     
+    * ``type``: defines the type of the location describing the data source.
+      This can either be `local` or `remote`.
+          
+    These parameters can also be used in the context of an 
+    :meth:`~BaseManager.update` within the `link` or `unlink` dict.
        
-       If the ``obj_id`` argument is omitted a new object ID shall be generated
-       using the same mechanism as :meth:`acquireID`. If the provided object ID
-       is invalid or already in use, appropriate exceptions shall be raised.
-       
-       To add data sources to the ``DatasetSeries`` at the time it is created 
-       the ``data_sources`` and ``data_dirs`` parameters can be used. The 
-       ``data_sources`` parameter shall be a list of objects implementing the 
-       :class:``~.DataSourceInterface``. Alternatively the ``data_dirs`` 
-       parameter shall be a list of dictionaries consisting of the following
-       arguments:
-       
-       * ``search_pattern``: a regular expression to specify what files in the
-         directory are considered as data files.
-       
-       * ``path``: for local or FTP data sources, this parameter shall be a 
-         path to a valid directory, containing the data files.
-        
-       * ``type``: defines the type of the location describing the data source.
-         This can either be `local` or `remote`.
-       
-       To specify earth observation related metadata use the ``eo_metadata``
-       parameter which has to be of the type :class:`~.EOMetadata`.
+    To specify earth observation related metadata use the ``eo_metadata``
+    parameter which has to be of the type :class:`~.EOMetadata`. When updating,
+    it has to be placed within the ``set`` dict.
+    
+    For additional ``set`` parameters for the :meth:`~BaseManager.update` method
+    please refer to the :attr:`~.DatasetSeriesWrapper.FIELDS` attribute of the
+    according wrapper.
 
     .. method:: synchronize(obj_id)
     
