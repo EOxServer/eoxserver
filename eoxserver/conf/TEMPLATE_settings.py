@@ -37,8 +37,6 @@ from os.path import join
 PROJECT_DIR = '<$PATH_DST$>'
 PROJECT_URL_PREFIX = ''
 
-MAPSCRIPT_PATH = '<$MAPSCRIPT_PATH$>/mapscript/python/build'
-
 TEST_RUNNER = 'eoxserver.testing.core.EOxServerTestRunner'
 
 DEBUG = True

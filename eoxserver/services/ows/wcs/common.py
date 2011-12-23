@@ -27,13 +27,13 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-import logging
-
 import os.path
 
-from eoxserver.services.mapserver import MapServerOperationHandler
+import mapscript
 
-from eoxserver.contrib import mapscript
+import logging
+
+from eoxserver.services.mapserver import MapServerOperationHandler
 
 class WCSCommonHandler(MapServerOperationHandler):
     def getMapServerLayer(self, coverage, **kwargs):

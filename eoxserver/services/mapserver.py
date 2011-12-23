@@ -40,6 +40,8 @@ from osgeo.gdalconst import GDT_Byte, GDT_Int16, GDT_UInt16, GDT_Float32
 
 from django.conf import settings
 
+import mapscript
+
 from eoxserver.core.interfaces import *
 from eoxserver.core.registry import RegisteredInterface
 from eoxserver.resources.coverages.domainset import Trim, Slice
@@ -49,7 +51,6 @@ from eoxserver.services.requests import OWSRequest, Response
 from eoxserver.services.exceptions import (
     InvalidRequestException, VersionNegotiationException
 )
-from eoxserver.contrib import mapscript
 
 class MapServerRequest(OWSRequest):
     """

@@ -29,13 +29,14 @@
 
 import os.path
 
+import mapscript
+
 import logging
 
 from eoxserver.core.system import System
 
 from eoxserver.core.util.xmltools import DOMElementToXML
 from eoxserver.core.exceptions import InternalError
-from eoxserver.contrib import mapscript
 from eoxserver.services.interfaces import (
     ServiceHandlerInterface, VersionHandlerInterface,
     OperationHandlerInterface

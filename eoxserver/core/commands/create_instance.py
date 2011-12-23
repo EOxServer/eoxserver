@@ -46,7 +46,6 @@ from eoxserver.core.management import EOxServerAdminCommand
 TAG_PATH_SRC = "<$PATH_SRC$>"
 TAG_PATH_DST = "<$PATH_DST$>"
 TAG_INSTANCE_ID = "<$INSTANCE_ID$>"
-TAG_MAPSCRIPT = "<$MAPSCRIPT_PATH$>"
 
 class Command(EOxServerAdminCommand):
     option_list = EOxServerAdminCommand.option_list + (                                             
@@ -61,9 +60,6 @@ class Command(EOxServerAdminCommand):
         ),
         make_option('--init_spatialite', action='store_true',
             help='Flag to initialize the sqlite database.'
-        ),
-        make_option('--mapscript-dir', default=False, metavar='DIR',
-            help='Optional path to the MapServer mapscript library.'
         )
     )
     
@@ -113,9 +109,6 @@ class Command(EOxServerAdminCommand):
             TAG_PATH_DST: dst_inst_dir,
             TAG_INSTANCE_ID: instance_id
         }
-    
-        if options['mapscript_dir']:
-            tags[TAG_MAPSCRIPT] = options['mapscript_dir']
     
         # copy the template settings file and replace its tags
         copy_and_replace_tags(os.path.join(src_conf_dir, "TEMPLATE_settings.py"),
