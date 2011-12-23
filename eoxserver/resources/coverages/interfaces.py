@@ -977,16 +977,6 @@ class ManagerInterface(RegisteredInterface):
         )
     }
     
-    acquireID = Method(
-        StringArg("obj_id", default=None),
-        BoolArg("fail", default=False),
-        returns = StringArg("@return")
-    )
-    
-    releaseID = Method(
-        StringArg("obj_id")
-    )
-    
     create = Method(
         StringArg("obj_id", default=None),
         StringArg("request_id", default=None),
