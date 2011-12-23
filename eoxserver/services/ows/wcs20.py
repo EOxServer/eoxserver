@@ -36,6 +36,8 @@ from urllib import unquote
 from django.conf import settings
 from django.contrib.gis.geos import Polygon
 
+import mapscript
+
 import logging
 
 from eoxserver.core.system import System
@@ -69,8 +71,6 @@ from eoxserver.services.exceptions import (
 )
 from eoxserver.services.ows.wcs.common import WCSCommonHandler
 from eoxserver.services.ows.wcs.encoders import WCS20EOAPEncoder
-
-from eoxserver.contrib import mapscript
 
 class WCS20VersionHandler(OWSCommonVersionHandler):
     SERVICE = "wcs"

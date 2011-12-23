@@ -51,7 +51,7 @@ from eoxserver.services.owscommon import (
 )
 from eoxserver.services.exceptions import InvalidRequestException
 
-from eoxserver.contrib import mapscript
+import mapscript
 
 class WMSServiceHandler(OWSCommonServiceHandler):
     REGISTRY_CONF = {
