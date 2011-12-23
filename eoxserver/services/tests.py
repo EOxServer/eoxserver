@@ -1034,6 +1034,14 @@ class WMS13GetCapabilitiesValidTestCase(eoxstest.XMLTestCase):
         params = "service=WMS&version=1.3.0&request=GetCapabilities"
         return (params, "kvp")
 
+class WMS13GetCapabilitiesEmptyTestCase(eoxstest.XMLTestCase):
+    """This test shall retrieve a valid but empty WMS 1.3 GetCapabilities response (see #41)"""
+    fixtures = BASE_FIXTURES
+    
+    def getRequest(self):
+        params = "service=WMS&version=1.3.0&request=GetCapabilities"
+        return (params, "kvp")
+
 class WMS13GetMapDatasetTestCase(eoxstest.WMS13GetMapTestCase):
     """ Test a GetMap request with a simple dataset. """
     layers = ("mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced",)
