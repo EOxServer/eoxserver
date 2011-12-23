@@ -29,6 +29,7 @@
 #-------------------------------------------------------------------------------
 
 import eoxserver.services.testbase as eoxstest
+from eoxserver.testing.core import BASE_FIXTURES
 import unittest
 
 from urllib import quote
@@ -117,6 +118,14 @@ class WCS11GetCoverageMosaicSubsetEPSG4326TestCase(eoxstest.MultipartTestCase):
 
 class WCS20GetCapabilitiesValidTestCase(eoxstest.XMLTestCase):
     """This test shall retrieve a valid WCS 2.0 EO-AP GetCapabilities response"""
+    def getRequest(self):
+        params = "service=WCS&version=2.0.0&request=GetCapabilities"
+        return (params, "kvp")
+
+class WCS20GetCapabilitiesEmptyTestCase(eoxstest.XMLTestCase):
+    """This test shall retrieve a valid but empty WCS 2.0 EO-AP GetCapabilities response (see #41)"""
+    fixtures = BASE_FIXTURES
+    
     def getRequest(self):
         params = "service=WCS&version=2.0.0&request=GetCapabilities"
         return (params, "kvp")
@@ -1135,20 +1144,14 @@ def suite():
     wcs20_tests = unittest.TestSuite()
     wcs20_tests.addTests(get_tests_by_prefix("WCS20GetCapabilities"))
     wcs20_tests.addTests(get_tests_by_prefix("WCS20DescribeCoverage"))
-    #wcs20_tests.addTests(get_tests_by_prefix("WCS20DescribeEOCoverageSet"))
+    wcs20_tests.addTests(get_tests_by_prefix("WCS20DescribeEOCoverageSet"))
     wcs20_tests.addTests(get_tests_by_prefix("WCS20GetCoverage"))
     
     wcs20_post_tests = unittest.TestSuite()
     wcs20_post_tests.addTests(get_tests_by_prefix("WCS20PostGetCapabilities"))
     wcs20_post_tests.addTests(get_tests_by_prefix("WCS20PostDescribeCoverage"))
-    #wcs20_post_tests.addTests(get_tests_by_prefix("WCS20PostDescribeEOCoverageSet"))
+    wcs20_post_tests.addTests(get_tests_by_prefix("WCS20PostDescribeEOCoverageSet"))
     wcs20_post_tests.addTests(get_tests_by_prefix("WCS20PostGetCoverage"))
-
-    # TODO: Resolve bug in GEOS:
-    wcs20_describeeocoverageset_tests = unittest.TestSuite()
-    wcs20_describeeocoverageset_tests.addTests(get_tests_by_prefix("WCS20DescribeEOCoverageSet"))
-    wcs20_describeeocoverageset_tests.addTests(get_tests_by_prefix("WCS20PostDescribeEOCoverageSet"))
-#    return wcs20_describeeocoverageset_tests
 
     wcs11_post_tests = unittest.TestSuite()
     wcs11_post_tests.addTests(get_tests_by_prefix("WCS11Post"))
