@@ -42,7 +42,7 @@ from datetime import datetime, timedelta
 from copy import copy
 
 from eoxserver.core.system import System
-from eoxserver.core.exceptions import InternalError, IDInUse
+from eoxserver.core.exceptions import InternalError
 from eoxserver.resources.coverages.interfaces import ManagerInterface
 from eoxserver.resources.coverages.exceptions import (
     ManagerError, NoSuchCoverageException, CoverageIdReservedError,
@@ -66,33 +66,22 @@ class BaseManager(object):
         self.data_package_factory = System.getRegistry().bind(
             "resources.coverages.data.DataPackageFactory"
         )
-    
-    def acquireID(self, obj_id=None, fail=False):
-        if obj_id:
-            if self.id_factory.exists(obj_id=obj_id):
-                if fail:
-                    raise IDInUse(
-                        "The desired ID (%s) is already in use." % obj_id
-                    )
-                else:
-                    new_id = self._generate_id()
-            else:
-                new_id = obj_id
-        else:
-            new_id = self._generate_id()
-        
-        return new_id
-        
-    def releaseID(self, obj_id):
-        pass
         
     def create(self, obj_id=None, request_id=None, **kwargs):
         """
         Creates a new instance of the underlying type and returns an according
         wrapper object. The optional parameter ``obj_id`` is used as 
-        CoverageID/EOID and is generated automatically when omitted. If the 
-        given ID is already in use, an :exc:`~.IDinUse` exception is raised. The
-        other parameters depend on the actual coverage manager type.
+        CoverageID/EOID and a UUID is generated automatically when omitted.
+        
+        If the ID was previously reserved by a specific ``request_id`` this 
+        parameter must be set.
+        
+        The other parameters depend on the actual coverage manager type and will
+        be documented there.
+        
+        If the given ID is already in use, an :exc:`~.CoverageIdInUseError`
+        exception is raised. If the ID is already reserved by another
+        ``request_id``, an :exc:`~.CoverageIdReservedError` is raised.
         
         :param obj_id: the ID (CoverageID or EOID) of the object to be created
         :type obj_id: string
@@ -1222,7 +1211,7 @@ class CoverageIdManager(BaseManager):
                     "Coverage ID '%s' was not reserved" % coverage_id
                 )
     
-    def available(self, coverage_id):
+    def available(self, coverage_id): # TODO available for a specific request_id
         """
         Returns a boolean value, indicating if a ``coverage_id`` is still 
         available.
