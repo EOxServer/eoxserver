@@ -57,7 +57,6 @@ vi settings.py
 # Adjust:
 #--------
 # PROJECT_DIR = '<path_to_eoxserver_directory>/autotest'
-# MAPSCRIPT_PATH = '<path_to_mapscript>/mapscript/python/build'
 # DATABASES -> 'NAME': '<path_to_eoxserver_directory>/autotest/data/config.sqlite',
 # MEDIA_ROOT = join('../eoxserver/', 'media')
 # TEMPLATE_DIRS -> join('../eoxserver/', 'templates'),
