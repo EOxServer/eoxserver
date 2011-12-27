@@ -203,9 +203,6 @@ EOxServer instance:
                          directory.
     --initial_data=DIR   Location of the initial data. Must be JSON.
     --init_spatialite    Flag to initialize the sqlite database.
-    --mapscript-dir=DIR  Optional path to the MapServer mapscript library. Set 
-                         this to use a customized mapscript version instead of 
-                         the one on the regular Python path.
 
 .. index::
     single: EOxServer Configuration
@@ -233,9 +230,6 @@ The file ``settings.py`` contains the Django configuration. Settings that need
 to be customized:
 
 * ``PROJECT_DIR``: Absolute path to the instance directory.
-* ``MAPSCRIPT_PATH``: (Optional) Absolute path to the Python MapScript build 
-  directory. Set this if you want to use a custom MapScript version (e.g. 
-  generated from the MapServer trunk).
 * ``DATABASES``: The database connection details. For detailed information see
   `Database Setup`_
 
