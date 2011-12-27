@@ -4,6 +4,7 @@
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
+#          Martin Paces <martin.paces@iguassu.cz>
 #
 #-------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
@@ -51,6 +52,11 @@ from eoxserver.services.mapserver import (
 from eoxserver.services.exceptions import InvalidRequestException
 from eoxserver.services.ows.wcs.common import WCSCommonHandler
 
+
+# following import is needed by WCS-T 
+from eoxserver.services.ows.wcst.wcstAlterCapabilities import wcst11AlterCapabilities11
+
+
 class WCSServiceHandler(OWSCommonServiceHandler):
     SERVICE = "wcs"
     
@@ -68,7 +74,7 @@ class WCS10VersionHandler(OWSCommonVersionHandler):
     SERVICE = "wcs"
     
     REGISTRY_CONF = {
-        "name": "WCS 1.0 Version Handler",
+        "name": "WCS 1.0.0 Version Handler",
         "impl_id": "services.ows.wcs1x.WCS10VersionHandler",
         "registry_values": {
             "services.interfaces.service": "wcs",
@@ -89,7 +95,7 @@ class WCS11VersionHandler(OWSCommonVersionHandler):
     SERVICE = "wcs"
     
     REGISTRY_CONF = {
-        "name": "WCS 1.1 Version Handler",
+        "name": "WCS 1.1.0 Version Handler",
         "impl_id": "services.ows.wcs1x.WCS11VersionHandler",
         "registry_values": {
             "services.interfaces.service": "wcs",
@@ -103,7 +109,7 @@ class WCS112VersionHandler(OWSCommonVersionHandler):
     SERVICE = "wcs"
     
     REGISTRY_CONF = {
-        "name": "WCS 1.1 Version Handler",
+        "name": "WCS 1.1.2 Version Handler",
         "impl_id": "services.ows.wcs1x.WCS112VersionHandler",
         "registry_values": {
             "services.interfaces.service": "wcs",
@@ -243,7 +249,7 @@ class WCS1XGetCoverageHandler(WCS1XOperationHandler):
 
 class WCS10GetCapabilitiesHandler(WCS1XOperationHandler):
     REGISTRY_CONF = {
-        "name": "WCS 1.0 GetCapabilities Handler",
+        "name": "WCS 1.0.0 GetCapabilities Handler",
         "impl_id": "services.ows.wcs1x.WCS10GetCapabilitiesHandler",
         "registry_values": {
             "services.interfaces.service": "wcs",
@@ -256,7 +262,7 @@ WCS10GetCapabilitiesHandlerImplementation = OperationHandlerInterface.implement(
 
 class WCS11GetCapabilitiesHandler(WCS1XOperationHandler):
     REGISTRY_CONF = {
-        "name": "WCS 1.1 GetCapabilities Handler",
+        "name": "WCS 1.1.0 GetCapabilities Handler",
         "impl_id": "services.ows.wcs1x.WCS11GetCapabilitiesHandler",
         "registry_values": {
             "services.interfaces.service": "wcs",
@@ -264,12 +270,23 @@ class WCS11GetCapabilitiesHandler(WCS1XOperationHandler):
             "services.interfaces.operation": "getcapabilities"
         }
     }
+
+    # GetCapabilities() response altering
+    def _processRequest(self, req):
+
+        # call the original method 
+        response = WCS1XOperationHandler._processRequest( self , req ) 
+
+        # alter the capabilities response
+        response = wcst11AlterCapabilities11( response ) 
+
+        return response 
     
 WCS11GetCapabilitiesHandlerImplementation = OperationHandlerInterface.implement(WCS11GetCapabilitiesHandler)
 
 class WCS112GetCapabilitiesHandler(WCS1XOperationHandler):
     REGISTRY_CONF = {
-        "name": "WCS 1.1 GetCapabilities Handler",
+        "name": "WCS 1.1.2 GetCapabilities Handler",
         "impl_id": "services.ows.wcs1x.WCS112GetCapabilitiesHandler",
         "registry_values": {
             "services.interfaces.service": "wcs",
@@ -277,12 +294,23 @@ class WCS112GetCapabilitiesHandler(WCS1XOperationHandler):
             "services.interfaces.operation": "getcapabilities"
         }
     }
-    
+
+    # GetCapabilities() response altering
+    def _processRequest(self, req):
+
+        # call the original method 
+        response = WCS1XOperationHandler._processRequest( self , req ) 
+
+        # alter the capabilities response
+        response = wcst11AlterCapabilities11( response ) 
+
+        return response 
+
 WCS112GetCapabilitiesHandlerImplementation = OperationHandlerInterface.implement(WCS112GetCapabilitiesHandler)
 
 class WCS10DescribeCoverageHandler(WCS1XDescribeCoverageHandler):
     REGISTRY_CONF = {
-        "name": "WCS 1.0 DescribeCoverage Handler",
+        "name": "WCS 1.0.0 DescribeCoverage Handler",
         "impl_id": "services.ows.wcs1x.WCS10DescribeCoverageHandler",
         "registry_values": {
             "services.interfaces.service": "wcs",
@@ -299,7 +327,7 @@ WCS10DescribeCoverageHandlerImplementation = OperationHandlerInterface.implement
 
 class WCS11DescribeCoverageHandler(WCS1XDescribeCoverageHandler):
     REGISTRY_CONF = {
-        "name": "WCS 1.1 DescribeCoverage Handler",
+        "name": "WCS 1.1.0 DescribeCoverage Handler",
         "impl_id": "services.ows.wcs1x.WCS11DescribeCoverageHandler",
         "registry_values": {
             "services.interfaces.service": "wcs",
@@ -316,7 +344,7 @@ WCS11DescribeCoverageHandlerImplementation = OperationHandlerInterface.implement
 
 class WCS112DescribeCoverageHandler(WCS1XDescribeCoverageHandler):
     REGISTRY_CONF = {
-        "name": "WCS 1.1 DescribeCoverage Handler",
+        "name": "WCS 1.1.2 DescribeCoverage Handler",
         "impl_id": "services.ows.wcs1x.WCS112DescribeCoverageHandler",
         "registry_values": {
             "services.interfaces.service": "wcs",
@@ -333,7 +361,7 @@ WCS112DescribeCoverageHandlerImplementation = OperationHandlerInterface.implemen
 
 class WCS10GetCoverageHandler(WCS1XGetCoverageHandler):
     REGISTRY_CONF = {
-        "name": "WCS 1.0 GetCoverage Handler",
+        "name": "WCS 1.0.0 GetCoverage Handler",
         "impl_id": "services.ows.wcs1x.WCS10GetCoverageHandler",
         "registry_values": {
             "services.interfaces.service": "wcs",
@@ -350,7 +378,7 @@ WCS10GetCoverageHandlerImplementation = OperationHandlerInterface.implement(WCS1
 
 class WCS11GetCoverageHandler(WCS1XGetCoverageHandler):
     REGISTRY_CONF = {
-        "name": "WCS 1.1 GetCoverage Handler",
+        "name": "WCS 1.1.0 GetCoverage Handler",
         "impl_id": "services.ows.wcs1x.WCS11GetCoverageHandler",
         "registry_values": {
             "services.interfaces.service": "wcs",
@@ -367,7 +395,7 @@ WCS11GetCoverageHandlerImplementation = OperationHandlerInterface.implement(WCS1
 
 class WCS112GetCoverageHandler(WCS1XGetCoverageHandler):
     REGISTRY_CONF = {
-        "name": "WCS 1.1 GetCoverage Handler",
+        "name": "WCS 1.1.2 GetCoverage Handler",
         "impl_id": "services.ows.wcs1x.WCS112GetCoverageHandler",
         "registry_values": {
             "services.interfaces.service": "wcs",

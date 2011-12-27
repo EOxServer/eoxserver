@@ -152,7 +152,14 @@ class WCS20GetCapabilitiesHandler(WCSCommonHandler):
         return layer
 
     def postprocess(self, ms_req, resp):
+
+        # debug  PB
+        logging.debug("WCS20GetCapabilitiesHandler:postprocess  respone content  %s" % str( resp.content  )   )
+
+
         dom = minidom.parseString(resp.content)
+
+
         
         # change xsi:schemaLocation
         schema_location_attr = dom.documentElement.getAttributeNode("xsi:schemaLocation")

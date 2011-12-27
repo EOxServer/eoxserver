@@ -61,6 +61,11 @@ urlpatterns = patterns('',
     # Uncomment the next line to enable the admin:
     (r'^admin/', include(admin.site.urls)),
 #    (r'^databrowse/(.*)', databrowse.site.root),
+# uncomment following lines to enable the ATP views 
+#    (r'^process/status$', procViews.status ),
+#    (r'^process/status/(?P<requestType>[^/]{,64})/(?P<requestID>[^/]{,64})$', procViews.status ),
+#    (r'^process/task$', procViews.task ),
+#    (r'^process/response/(?P<requestType>[^/]{,64})/(?P<requestID>[^/]{,64})', procViews.response ),
 )
 
 if settings.DEBUG:
