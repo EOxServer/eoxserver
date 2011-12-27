@@ -936,6 +936,22 @@
         }
     }, 
     {
+        "pk": 118, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wcs11Transaction.WCS11VersionHandler", 
+            "intf_id": "services.interfaces.VersionHandler"
+        }
+    }, 
+    {
+        "pk": 119, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wcs11Transaction.WCS11TransactionHandler",
+            "intf_id": "services.interfaces.OperationHandler"
+        }
+    }, 
+    {
         "pk": 1, 
         "model": "core.component", 
         "fields": {
@@ -1753,5 +1769,19 @@
         "fields": {
             "enabled": true
         }
-    }
+    },
+    {
+        "pk": 118, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true 
+        }
+    }, 
+    {
+        "pk": 119, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    } 
 ]
