@@ -69,7 +69,7 @@ if __name__ == "__main__" :
                     "schemaLocation": location
                 }
             )
-            print "Schema: %s:%s" % (ns, location)
+            print "Schema: Namespace: %s, Location: %s" % (ns, location)
         
         # TODO: Workaround, but otherwise the doc is not recognized as schema
         schema = etree.XMLSchema(etree.XML(etree.tostring(schema_def)))
