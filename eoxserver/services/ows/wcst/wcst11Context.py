@@ -83,14 +83,14 @@ def contextCreate( requestId = None , reponseHandler = None , maxAttempts = 3 ) 
         try : 
             os.mkdir( path_temp )
         except Exception as e : 
-            logging.warning( "Failed to create the temporary storage directory! %s" % str(s) ) 
+            logging.warning( "Failed to create the temporary storage directory! %s" % str(path_temp) ) 
             continue # try another process ID
 
         try : 
             os.mkdir( path_perm )
         except Exception as e : 
-            os.rmdir( dir_out ) 
-            logging.warning( "Failed to create the permanent storage directory! %s" % str(s) ) 
+            os.rmdir( dir_temp ) 
+            logging.warning( "Failed to create the permanent storage directory! %s" % str(path_perm) ) 
             continue # try another process ID
 
         # store the values 
