@@ -39,7 +39,7 @@ import datetime
 try:    import cPickle as pickle
 except: import pickle
 
-from eoxserver.resources.processes.models import Type, Instance, Task, LogRecord, Response, Inputs
+from eoxserver.resources.processes.models import Type, Instance, Task, LogRecord, Response, Input
 from eoxserver.resources.processes.models import STATUS2TEXT, TEXT2STATUS
 
 #-------------------------------------------------------------------------------
@@ -241,7 +241,7 @@ def deleteTask( identifier ) :
 
 #-------------------------------------------------------------------------------
 
-def enqueueTask( type , identifier , inputs , message = "" ) :
+def enqueueTask( type , identifier , input , message = "" ) :
     """ create a new task Instance of the 'type' (Type identifier)
         using the given identifier and inputs and enqueue the 
         task for processing. The task status is set to ACCEPTED.  
@@ -264,7 +264,7 @@ def enqueueTask( type , identifier , inputs , message = "" ) :
     _logStatusChange( _inst , message )
  
     # insert input picked inputs 
-    _inst.inputs_set.create( inputs = base64.b64encode( zlib.compress( pickle.dumps( inputs ) ) ) )  
+    _inst.input_set.create( input = base64.b64encode( zlib.compress( pickle.dumps( input ) ) ) )  
       
     # enqueue task 
     _inst.task_set.create( lock = 0 , time = _inst.timeInsert ) 
@@ -357,7 +357,7 @@ def startTask( task_id , message = "" ) :
     typeID = _inst.type.identifier 
     typeHn = _inst.type.handler
     instID = _inst.identifier
-    inputs =  pickle.loads( zlib.decompress( base64.b64decode( _inst.inputs_set.get().inputs ) ) )  
+    input  =  pickle.loads( zlib.decompress( base64.b64decode( _inst.input_set.get().input ) ) )  
     
     # change objects status 
     _inst.status = TaskStatus.RUNNING 
@@ -366,7 +366,7 @@ def startTask( task_id , message = "" ) :
     # log status change 
     _logStatusChange( Instance.objects.get( id = task_id ) , message )  
 
-    return ( typeID , instID , typeHn , inputs )
+    return ( typeID , instID , typeHn , input )
 
 
 #-------------------------------------------------------------------------------
