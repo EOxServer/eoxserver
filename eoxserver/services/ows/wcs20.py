@@ -72,6 +72,11 @@ from eoxserver.services.exceptions import (
 from eoxserver.services.ows.wcs.common import WCSCommonHandler
 from eoxserver.services.ows.wcs.encoders import WCS20EOAPEncoder
 
+
+# following import is needed by WCS-T 
+from eoxserver.services.ows.wcst.wcstAlterCapabilities import wcst11AlterCapabilities20
+
+
 class WCS20VersionHandler(OWSCommonVersionHandler):
     SERVICE = "wcs"
     
@@ -152,14 +157,7 @@ class WCS20GetCapabilitiesHandler(WCSCommonHandler):
         return layer
 
     def postprocess(self, ms_req, resp):
-
-        # debug  PB
-        logging.debug("WCS20GetCapabilitiesHandler:postprocess  respone content  %s" % str( resp.content  )   )
-
-
         dom = minidom.parseString(resp.content)
-
-
         
         # change xsi:schemaLocation
         schema_location_attr = dom.documentElement.getAttributeNode("xsi:schemaLocation")
@@ -241,6 +239,17 @@ class WCS20GetCapabilitiesHandler(WCSCommonHandler):
         dom.unlink()
         
         return resp
+
+    # a hack smugling in the WCS Transaction operation
+    def _processRequest(self, req):
+
+        # call the original method 
+        response = WCSCommonHandler._processRequest( self , req ) 
+
+        # alter response to contain get capabilities operation 
+        response = wcst11AlterCapabilities20( response ) 
+
+        return response 
 
 WCS20GetCapabilitiesHandlerImplementation = OperationHandlerInterface.implement(WCS20GetCapabilitiesHandler)
 

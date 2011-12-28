@@ -164,7 +164,7 @@ class Response( models.Model ):
     class Admin : pass
 
 
-class Inputs( models.Model ): 
+class Input( models.Model ): 
     """ 
         Process Input Store 
 
@@ -173,7 +173,7 @@ class Inputs( models.Model ):
     """
 
     instance    = models.ForeignKey( Instance , blank=False , null=False , editable = False , unique = True )
-    inputs      = models.TextField( editable = False ) # store the data as Base64 encoded pickle object
+    input       = models.TextField( editable = False ) # store the data as Base64 encoded pickle object
 
     def __unicode__( self ) : return unicode( self.instance )  
 

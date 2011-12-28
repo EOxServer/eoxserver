@@ -32,7 +32,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from eoxserver.resources.processes.models import Type, Instance, Task, LogRecord, Response, Inputs
+from eoxserver.resources.processes.models import Type, Instance, Task, LogRecord, Response, Input
 from django.contrib import admin
 
 admin.site.register( Type ) 
@@ -40,4 +40,4 @@ admin.site.register( Instance )
 admin.site.register( Task ) 
 admin.site.register( LogRecord ) 
 admin.site.register( Response ) 
-admin.site.register( Inputs ) 
+admin.site.register( Input ) 
