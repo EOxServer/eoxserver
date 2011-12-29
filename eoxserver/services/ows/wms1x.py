@@ -190,7 +190,7 @@ class WMSCommonHandler(MapServerOperationHandler):
         
         layer.setConnectionType(mapscript.MS_RASTER, '')
         layer.setMetaData("wms_enable_request", "*")
-        layer.status = mapscript.MS_ON
+        layer.status = mapscript.MS_DEFAULT
         
         try:
             if coverage.getType() in ("plain", "eo.rect_dataset"):
