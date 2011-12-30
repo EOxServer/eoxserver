@@ -289,7 +289,9 @@ class WMS1XGetCapabilitiesHandler(WMSCommonHandler):
                 }
             ) 
             layer = connector.configure(layer, coverage)
-            
+        
+        layer.status = mapscript.MS_ON
+        
         logging.debug("WMS1XGetCapabilitiesHandler.getMapServerLayer: filename: %s" % layer.data)
         
         return layer
