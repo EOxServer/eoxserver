@@ -180,12 +180,12 @@ def unregisterTaskType( identifier , force = False ) :
         to True.  
     """
 
-    # by default protect existing Type Instances from accidental delete 
-    if not force : 
-        if 0 < Instance.objects.filter( type = Type.objects.get( identifier=identifier ) ).count() : 
-            raise TaskTypeHasInstances , "Cannot delete task type when its instances exist!"  
+    # MP: the instances are now protected against the cascade delete 
 
-    Type.objects.filter( identifier=identifier ).delete() 
+    if force : # remove all type instances 
+        Type.objects.get( identifier=identifier ).instance_set.all().delete()  
+
+    Type.objects.get( identifier=identifier ).delete() 
 
 #-------------------------------------------------------------------------------
 # Task Status Log Record creation 
