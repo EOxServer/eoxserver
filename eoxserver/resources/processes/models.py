@@ -84,7 +84,7 @@ class Instance( models.Model ) :
             timeInsert   - instance creation time (aka enqueue or insert time ) 
             timeUpdate   - instance last status update time 
     """
-    type        = models.ForeignKey( Type , blank=False , null=False , editable = False )
+    type        = models.ForeignKey( Type , blank=False , null=False , editable = False , on_delete = models.PROTECT ) 
     identifier  = models.CharField( max_length=64 , blank=False , null=False, editable = False )
     timeInsert  = models.DateTimeField( auto_now_add=True , editable = False )
     timeUpdate  = models.DateTimeField( auto_now=True , editable = False )
