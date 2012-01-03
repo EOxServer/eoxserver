@@ -39,6 +39,7 @@ gdal.UseExceptions()
 import logging
 
 from eoxserver.core.system import System
+from eoxserver.core.readers import ConfigReaderInterface
 from eoxserver.core.exceptions import InternalError, InvalidExpressionError
 from eoxserver.core.util.xmltools import DOMElementToXML
 from eoxserver.processing.gdal.reftools import rect_from_subset
@@ -87,8 +88,12 @@ class WCS20GetCoverageHandler(WCSCommonHandler):
             handler = WCS20GetRectifiedCoverageHandler()
             return handler.handle(req)
         elif coverage.getType() == "eo.ref_dataset":
-            handler = WCS20GetReferenceableCoverageHandler()
-            return handler.handle(req, coverage)
+            if WCS20GetCoverageConfigReader().useNest():
+                handler = WCS20GetReferenceableCoverageNESTHandler()
+                return handler.handle(req, coverage)
+            else:
+                handler = WCS20GetReferenceableCoverageGDALHandler()
+                return handler.handle(req, coverage)
     
     def _get_coverage(self, req):
         coverage_id = req.getParamValue("coverageid")
@@ -108,7 +113,268 @@ class WCS20GetCoverageHandler(WCSCommonHandler):
                     "No coverage with id '%s' found" % coverage_id, "NoSuchCoverage", coverage_id
                 )
 
-class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
+class WCS20GetReferenceableCoverageGDALHandler(BaseRequestHandler):
+    PARAM_SCHEMA = {
+        "service": {"xml_location": "/service", "xml_type": "string", "kvp_key": "service", "kvp_type": "string"},
+        "version": {"xml_location": "/version", "xml_type": "string", "kvp_key": "version", "kvp_type": "string"},
+        "operation": {"xml_location": "/", "xml_type": "localName", "kvp_key": "request", "kvp_type": "string"},
+        "coverageid": {"xml_location": "/{http://www.opengis.net/wcs/2.0}CoverageId", "xml_type": "string", "kvp_key": "coverageid", "kvp_type": "string"},
+        "trims": {"xml_location": "/{http://www.opengis.net/wcs/2.0}DimensionTrim", "xml_type": "element[]"},
+        "slices": {"xml_location": "/{http://www.opengis.net/wcs/2.0}DimensionSlice", "xml_type": "element[]"},
+        "format": {"xml_location": "/{http://www.opengis.net/wcs/2.0}Format", "xml_type": "string", "kvp_key": "format", "kvp_type": "string"},
+        "mediatype": {"xml_location": "/{http://www.opengis.net/wcs/2.0}Mediatype", "xml_type": "string", "kvp_key": "mediatype", "kvp_type": "string"}
+    }
+    
+    def handle(self, req, coverage):
+        req.setSchema(self.PARAM_SCHEMA)
+        
+        cov_x_size, cov_y_size = coverage.getSize()
+        
+        # get subsetting
+        decoder = WCS20SubsetDecoder(req, "imageCRS")
+        
+        try:
+            subset = decoder.getSubset(cov_x_size, cov_y_size, coverage.getFootprint())
+        except InvalidSubsettingException, e:
+            raise InvalidRequestException(
+                str(e), "InvalidSubsetting", "subset"
+            )
+        except InvalidAxisLabelException, e:
+            raise InvalidRequestException(
+                str(e), "InvalidAxisLabel", "subset"
+            )
+        
+        if subset is None:
+            x_off = 0
+            y_off = 0
+            x_size = cov_x_size
+            y_size = cov_y_size
+        elif subset.crs_id != "imageCRS":
+            x_off, y_off, x_size, y_size = rect_from_subset(
+                coverage.getData().getGDALDatasetIdentifier(),
+                subset.crs_id,
+                subset.minx,
+                subset.miny,
+                subset.maxx,
+                subset.maxy
+            )
+        else:
+            x_off = subset.minx
+            y_off = subset.miny
+            x_size = subset.maxx - subset.minx
+            y_size = subset.maxy - subset.miny
+            
+        # calculate effective offsets and buffer size
+        
+        src_x_off = max(0, x_off)
+        src_y_off = max(0, y_off)
+        
+        dst_x_off = max(0, -x_off)
+        dst_y_off = max(0, -y_off)
+        
+        buffer_x_size = max(min(x_off + x_size, cov_x_size) - src_x_off, 0)
+        buffer_y_size = max(min(y_off + y_size, cov_y_size) - src_y_off, 0)
+        
+        if buffer_x_size == 0 or buffer_y_size == 0:
+            raise InvalidRequestException(
+                "Subset outside coverage extent.",
+                "InvalidParameterValue",
+                "subset"
+            )
+
+        # get format
+        format_param = req.getParamValue("format")
+        
+        if format_param is None:
+            raise InvalidRequestException(
+                "Missing mandatory 'format' parameter.",
+                "MissingParameterValue",
+                "format"
+            )
+        
+        mime_type, format_options = parse_format_param(format_param)
+        
+        #
+        
+        FORMAT_MAPPING = {
+            "image/tiff": "GTiff",
+            "image/jp2": "JPEG2000",
+            "application/x-netcdf": "NetCDF",
+            "application/x-hdf": "HDF4Image"
+        }
+        
+        EXT_MAPPING = {
+            "image/tiff": "tif",
+            "image/jp2": "jp2",
+            "application/x-netcdf": "nc",
+            "application/x-hdf": "hdf"
+        }
+        
+        if mime_type not in FORMAT_MAPPING:
+            raise InvalidRequestException(
+                "Unknown or unsupported format '%s'" % mime_type,
+                "InvalidParameterValue",
+                "format"
+            )
+            
+        range_type = coverage.getRangeType()
+        
+        handle, dst_filename = mkstemp(
+            prefix = "tmp",
+            suffix = ".%s" % EXT_MAPPING[mime_type]
+        )
+        
+        gdal_driver = gdal.GetDriverByName(FORMAT_MAPPING[mime_type])
+        
+        if gdal_driver is None:
+            raise InternalError(
+                "Could not retrieve GDAL Driver '%s'" % FORMAT_MAPPING[mime_type]
+            )
+    
+        dst_ds = gdal_driver.Create(
+            dst_filename, x_size, y_size, len(range_type.bands),
+            range_type.data_type, ",".join(format_options)
+        )
+        
+        if dst_ds is None:
+            raise InternalError("Could not create output dataset.")
+        
+        src_ds = coverage.getData().open()
+        
+        if src_ds is None:
+            raise InternalError("Could not open input dataset.")
+        
+        raster_buffer = src_ds.ReadRaster(
+            src_x_off,
+            src_y_off,
+            buffer_x_size,
+            buffer_y_size
+        )
+        
+        dst_ds.WriteRaster(
+            dst_x_off,
+            dst_y_off,
+            buffer_x_size,
+            buffer_y_size,
+            raster_buffer
+        )
+        
+        # tag metadata onto raster buffer
+        md_dict = src_ds.GetMetadata()
+        
+        for key, value in md_dict.items():
+            dst_ds.SetMetadataItem(key, value)
+        
+        # save GCPs
+        src_gcp_proj = src_ds.GetGCPProjection()
+        src_gcps = src_ds.GetGCPs()
+        
+        dst_gcps = []
+        for src_gcp in src_gcps:
+            dst_gcps.append(gdal.GCP(
+                src_gcp.GCPX,
+                src_gcp.GCPY,
+                src_gcp.GCPZ,
+                src_gcp.GCPPixel + src_x_off - dst_x_off,
+                src_gcp.GCPLine + src_y_off - dst_y_off,
+                src_gcp.Info,
+                src_gcp.Id
+            ))
+        
+        dst_ds.SetGCPs(dst_gcps, src_gcp_proj)
+        
+        # close datasets
+        del src_ds
+        del dst_ds
+        
+        # prepare response
+        media_type = req.getParamValue("mediatype")
+        
+        if media_type is None:
+            resp = self._get_default_response(dst_filename, mime_type)
+        elif media_type == "multipart/related":
+            encoder = WCS20EOAPEncoder()
+            
+            if subset is not None:
+                if subset.crs_id != "imageCRS":
+                    cov_desc = encoder.encodeSubsetCoverageDescription(
+                        coverage,
+                        subset.crs_id,
+                        (x_size, y_size),
+                        (subset.minx, subset.miny, subset.maxx, subset.maxy)
+                    )
+                else:
+                    cov_desc = encoder.encodeCoverageDescription(coverage)
+# TODO: this should read as follows
+#                    cov_desc = encoder.encodeSubsetCoverageDescription(
+#                        coverage,
+#                        4326,
+#                        (x_size, y_size),
+#                        ...
+#                    
+#                    )
+            else:
+                cov_desc = encoder.encodeCoverageDescription(coverage)
+            
+            resp = self._get_multipart_response(
+                dst_filename, mime_type, cov_desc
+            )
+        else:
+            raise InvalidRequestException(
+                "Unknown media type '%s'" % media_type,
+                "InvalidParameterValue",
+                "mediatype"
+            )
+            
+        #clean up
+        os.remove(dst_filename)
+        
+        return resp
+    
+    def _get_default_response(self, dst_filename, mime_type):
+        f = open(dst_filename)
+        
+        resp = Response(
+            content_type = mime_type,
+            content = f.read(),
+            headers = {},
+            status = 200
+        )
+        
+        f.close()
+        
+        return resp
+    
+    def _get_multipart_response(self, coverage, dst_filename, mime_type, cov_desc):
+        
+        xml_msg = Message()
+        
+        xml_msg.set_payload(cov_desc)
+        xml_msg.add_header("Content-type", "text/xml")
+        
+        f = open(dst_filename)
+        
+        data = f.read()
+        
+        data_msg = Message()
+        
+        data_msg.set_payload(data)
+        data_msg.add_header("Content-type", mime_type)
+        
+        content = "--wcs\n%s\n--wcs\n%s\n--wcs--" % (xml_msg.as_string(), data_msg.as_string())
+        
+        resp = Response(
+            content = content,
+            content_type = "multipart/mixed; boundary=wcs",
+            headers = {},
+            status = 200
+        )
+        
+        f.close()
+        
+        return resp
+
+class WCS20GetReferenceableCoverageNESTHandler(BaseRequestHandler):
     PARAM_SCHEMA = {
         "service": {"xml_location": "/service", "xml_type": "string", "kvp_key": "service", "kvp_type": "string"},
         "version": {"xml_location": "/version", "xml_type": "string", "kvp_key": "version", "kvp_type": "string"},
@@ -545,4 +811,19 @@ class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
 
         return resp
 
+class WCS20GetCoverageConfigReader(object):
+    REGISTRY_CONF = {
+        "name": "WCS 2.0 GetCoverage Configuration Reader",
+        "impl_id": "services.ows.wcs20.WCS20GetCoverageConfigReader"
+    }
+    
+    def validate(self, config):
+        pass
+    
+    def useNest(self):
+        conf_value = System.getConfig().getConfigValue("services.ows.wcs20", "use_nest")
+        
+        return conf_value is not None and conf_value.lower() == "true"
 
+WCS20GetCoverageConfigReaderImplementation = \
+ConfigReaderInterface.implement(WCS20GetCoverageConfigReader)
