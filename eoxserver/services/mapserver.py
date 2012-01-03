@@ -218,6 +218,16 @@ class MapServerOperationHandler(BaseRequestHandler):
         "operation": {"xml_location": "/", "xml_type": "localName", "kvp_key": "request", "kvp_type": "string"}
     }
     
+    def __init__(self):
+        super(MapServerOperationHandler, self).__init__()
+        
+        self.req = None
+        self.map = mapscript.mapObj(os.path.join(settings.PROJECT_DIR, "conf", "template.map"))
+        self.ows_req = mapscript.OWSRequest()
+        
+        self.coverages = []
+        self.temp_files = []
+    
     def _processRequest(self, req):
         """
         This method implements the workflow described in the class
@@ -236,16 +246,28 @@ class MapServerOperationHandler(BaseRequestHandler):
                     status as well as the status code returned by
                     MapServer
         """
-        ms_req = MapServerRequest(req)
-        ms_req.setSchema(self.PARAM_SCHEMA)
-        self.createCoverages(ms_req)
-        self.configureRequest(ms_req)
-        self.configureMapObj(ms_req)
-        self.addLayers(ms_req)
-        response = self.dispatch(ms_req)
-        return self.postprocess(ms_req, response)
+        self.req = req
+        self.req.setSchema(self.PARAM_SCHEMA)
+
+        try:
+            self.validateParams()
+            self.createCoverages()
+            self.configureRequest()
+            self.configureMapObj()
+            self.addLayers()
+            response = self.postprocess(self.dispatch())
+        finally:
+            self.cleanup()
+        
+        return response
     
-    def createCoverages(self, ms_req):
+    def _addTempFile(self, temp_file_path):
+        self.temp_files.append(temp_file_path)
+        
+    def validateParams(self):
+        pass
+    
+    def createCoverages(self):
         """
         This method creates coverages, i.e. it adds coverage objects to
         the ``ms_req.coverages`` list. The default implementation
@@ -258,13 +280,13 @@ class MapServerOperationHandler(BaseRequestHandler):
         """
         pass
     
-    def _setParameter(self, ms_req, key, value):
-        ms_req.ows_req.setParameter(key, value)
+    def _setParameter(self, key, value):
+        self.ows_req.setParameter(key, value)
 
-    def _addParameter(self, ms_req, key, value):
-        ms_req.ows_req.addParameter(key, value)
+    def _addParameter(self, key, value):
+        self.ows_req.addParameter(key, value)
 
-    def configureRequest(self, ms_req):
+    def configureRequest(self):
         """
         This method configures the ``ms_req.ows_req`` object (an
         instance of ``mapscript.OWSRequest``) with the parameters
@@ -275,23 +297,22 @@ class MapServerOperationHandler(BaseRequestHandler):
         
         @return         None
         """
-        ms_req.ows_req = mapscript.OWSRequest()
-        if ms_req.getParamType() == "kvp":
-            ms_req.ows_req.type = mapscript.MS_GET_REQUEST
-            for key, values in ms_req.getParams().items():
+        if self.req.getParamType() == "kvp":
+            self.ows_req.type = mapscript.MS_GET_REQUEST
+            for key, values in self.req.getParams().items():
                 if len(values) == 1:
-                    self._setParameter(ms_req, key.lower(), escape(values[0]))
+                    self._setParameter(key.lower(), escape(values[0]))
                 else:
                     for value in values:
-                        self._addParameter(ms_req, key.lower(), escape(value))
-            self._setParameter(ms_req, "version", ms_req.getVersion())
-        elif ms_req.getParamType() == "xml":
-            ms_req.ows_req.type = mapscript.MS_POST_REQUEST
-            ms_req.ows_req.postrequest = ms_req.getParams()
+                        self._addParameter(key.lower(), escape(value))
+            self._setParameter("version", self.req.getVersion())
+        elif self.req.getParamType() == "xml":
+            self.ows_req.type = mapscript.MS_POST_REQUEST
+            self.ows_req.postrequest = self.req.getParams()
         else:
-            raise Exception("Unknown parameter type '%s'." % ms_req.getParamType())
+            raise Exception("Unknown parameter type '%s'." % self.req.getParamType())
 
-    def configureMapObj(self, ms_req):
+    def configureMapObj(self):
         """
         This method configures the ``ms_req.map`` object (an
         instance of ``mapscript.mapObj``) with parameters from the
@@ -302,18 +323,16 @@ class MapServerOperationHandler(BaseRequestHandler):
         
         @return         None
         """
-        ms_req.map = mapscript.mapObj(os.path.join(settings.PROJECT_DIR, "conf", "template.map")) # TODO: Store information in database??? (title, abstract, etc.)
-        #ms_req.map.loadOWSParameters(ms_req.ows_req)
         
-        ms_req.map.setMetaData("ows_onlineresource", OWSCommonConfigReader().getHTTPServiceURL() + "?")
-        ms_req.map.setMetaData("wcs_label", "EOxServer WCS") # TODO: to WCS
+        self.map.setMetaData("ows_onlineresource", OWSCommonConfigReader().getHTTPServiceURL() + "?")
+        self.map.setMetaData("wcs_label", "EOxServer WCS") # TODO: to WCS
         
-        ms_req.map.setProjection("+init=epsg:4326") #TODO: Set correct projection!
+        self.map.setProjection("+init=epsg:4326") #TODO: Set correct projection!
         
         #ms_req.map.debug = 5
         #ms_req.map.setConfigOption("MS_ERRORFILE", "stderr")
         
-    def addLayers(self, ms_req):
+    def addLayers(self):
         """
         This method adds layers to the ``ms_req.map`` object based
         on the coverages defined in ``ms_req.coverages``. The
@@ -325,10 +344,10 @@ class MapServerOperationHandler(BaseRequestHandler):
         
         @return         None
         """
-        for coverage in ms_req.coverages:
-            ms_req.map.insertLayer(self.getMapServerLayer(coverage))
+        for coverage in self.coverages:
+            self.map.insertLayer(self.getMapServerLayer(coverage))
     
-    def getMapServerLayer(self, coverage, **kwargs):
+    def getMapServerLayer(self, coverage):
         """
         This method is invoked by the {@link #addLayers} method in order
         to generate ``mapscript.layerObj`` instances for each
@@ -349,8 +368,8 @@ class MapServerOperationHandler(BaseRequestHandler):
         layer.status = mapscript.MS_ON
         #layer.debug = 5
 
-        # TODO: getSRID is defined for rectified coverages only
-        layer.setProjection("+init=epsg:%d" % int(coverage.getSRID()))
+        if coverage.getType() != "eo.ref_dataset":
+            layer.setProjection("+init=epsg:%d" % int(coverage.getSRID()))
 
         for key, value in coverage.getLayerMetadata():
             layer.setMetaData(key, value)
@@ -358,7 +377,7 @@ class MapServerOperationHandler(BaseRequestHandler):
         return layer
 
 
-    def dispatch(self, ms_req):
+    def dispatch(self):
         """
         This method actually executes the MapServer request by calling
         ``ms_req.map.OWSDispatch()``. This method should not be
@@ -376,7 +395,7 @@ class MapServerOperationHandler(BaseRequestHandler):
         # Execute the OWS request by mapserver, obtain the status in dispatch_status (==0 is OK)
         logging.debug("MapServerOperationHandler.dispatch: 2")
         try:
-            dispatch_status = ms_req.map.OWSDispatch(ms_req.ows_req)
+            dispatch_status = self.map.OWSDispatch(self.ows_req)
         except Exception, e:
             raise InvalidRequestException(
                 str(e),
@@ -394,7 +413,7 @@ class MapServerOperationHandler(BaseRequestHandler):
         
         return MapServerResponse(result, content_type, dispatch_status)
         
-    def postprocess(self, ms_req, resp):
+    def postprocess(self, resp):
         """
         This method operates on the MapServer response. The default
         behaviour is to do nothing at all, i.e. return the input
@@ -409,6 +428,13 @@ class MapServerOperationHandler(BaseRequestHandler):
         
     def postprocessFault(self, ms_req, resp):
         return resp
+    
+    def cleanup(self):
+        for temp_file in self.temp_files:
+            try:
+                os.remove(temp_file)
+            except:
+                logging.warning("Could not remove temporary file '%s'" % temp_file)
 
 def gdalconst_to_imagemode(const):
     if const == GDT_Byte:

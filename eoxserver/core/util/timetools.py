@@ -31,7 +31,7 @@ import os
 import re
 from datetime import datetime, tzinfo, timedelta
 
-from eoxserver.core.exceptions import UnknownParameterFormatException
+from eoxserver.core.exceptions import InvalidParameterException
 
 import logging
 
@@ -95,7 +95,7 @@ def getDateTime(s):
     try:
         dt = datetime(year, month, day, hour, minute, second, 0, tzi)
     except ValueError, e:
-        raise UnknownParameterFormatException("Invalid date/time '%s'" % s) # TODO: change to InvalidParameterException
+        raise InvalidParameterException("Invalid date/time '%s'" % s)
     
     utc = UTCOffsetTimeZoneInfo()
     utct = dt.astimezone(utc)

@@ -955,7 +955,12 @@ class SpatialFilter(object):
             # reproject max extent to bounded area CRS
             max_poly = Polygon.from_bbox(max_extent)
             max_poly.srid = 4326
-            max_poly.transform(crs_id)
+            try:
+                max_poly.transform(crs_id)
+            except Exception, e:
+                raise InvalidExpressionError(
+                    "Error when processing expression: %s" % str(e)
+                )
             
             return max_poly.extent
         else:

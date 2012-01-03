@@ -75,7 +75,7 @@ class OWSTestCase(EOxServerTestCase):
         of EOxServer.
     """
     
-    fixtures = BASE_FIXTURES + ["testing_coverages.json"]
+    fixtures = BASE_FIXTURES + ["testing_coverages.json", "testing_asar.json"]
     
     def setUp(self):
         super(OWSTestCase,self).setUp()
