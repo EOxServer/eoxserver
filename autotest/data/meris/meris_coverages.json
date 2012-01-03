@@ -560,7 +560,8 @@
             "coverage_id": "MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed",
             "range_type": 3, 
             "layer_metadata": [], 
-            "automatic": true
+            "automatic": true,
+            "data_source": 2 
         }
     },
     {
@@ -570,7 +571,8 @@
             "coverage_id": "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed",
             "range_type": 3, 
             "layer_metadata": [], 
-            "automatic": true
+            "automatic": true, 
+            "data_source": 2 
         }
     },
     {
@@ -580,7 +582,8 @@
             "coverage_id": "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed",
             "range_type": 3, 
             "layer_metadata": [], 
-            "automatic": true 
+            "automatic": true, 
+            "data_source": 2 
         }
     },
     {
@@ -590,7 +593,8 @@
             "coverage_id": "mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced",
             "range_type": 1, 
             "layer_metadata": [], 
-            "automatic": true
+            "automatic": true, 
+            "data_source": 1 
         }
     },
     {
@@ -600,7 +604,8 @@
             "coverage_id": "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced",
             "range_type": 1, 
             "layer_metadata": [], 
-            "automatic": true
+            "automatic": true, 
+            "data_source": 1 
         }
     },
     {
@@ -610,7 +615,8 @@
             "coverage_id": "mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced",
             "range_type": 1, 
             "layer_metadata": [], 
-            "automatic": true
+            "automatic": true, 
+            "data_source": 1 
         }
     },
     {
