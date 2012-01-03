@@ -31,6 +31,8 @@ from osgeo.osr import SpatialReference
 from datetime import datetime
 from xml.dom import minidom
 
+from django.contrib.gis.geos import Polygon
+
 from eoxserver.core.util.xmltools import XMLEncoder
 from eoxserver.core.util.timetools import isotime
 from eoxserver.processing.mosaic import MosaicContribution
@@ -190,16 +192,44 @@ class CoverageGML10Encoder(XMLEncoder):
         else:
             return id
     
-    #TODO grid does not exist anymore
     def encodeDomainSet(self, coverage):
-        return self._makeElement("gml", "domainSet", [
-            (self.encodeGrid(coverage.getSize(),
-                             coverage.getExtent(),
-                             coverage.getSRID(),
-                             "%s_grid" % coverage.getCoverageId()),)
-        ])
+        if coverage.getType() == "eo.ref_dataset":
+            return self._makeElement("gml", "domainSet", [
+                (self.encodeReferenceableGrid(
+                    coverage.getSize(),
+                    "%s_grid" % coverage.getCoverageId()
+                ),)
+            ])
+        else:
+            return self._makeElement("gml", "domainSet", [
+                (self.encodeRectifiedGrid(
+                    coverage.getSize(),
+                    coverage.getExtent(),
+                    coverage.getSRID(),
+                    "%s_grid" % coverage.getCoverageId()
+                ),)
+            ])
     
-    def encodeGrid(self, size, extent, srid, id):
+    def encodeSubsetDomainSet(self, coverage, srid, size, extent):
+        if coveragge.getType() == "eo.ref_dataset":
+            return self._makeElement("gml", "domainSet", [
+                (self.encodeReferenceableGrid(
+                    size,
+                    "%s_grid" % coverage.getCoverageId()
+                ),)
+            ])
+        else:
+            return self._makeElement("gml", "DomainSet", [
+                (self.encodeRectifiedGrid(
+                    size,
+                    extent,
+                    srid,
+                    "%s_grid" % coverage.getCoverageId()
+                ),)
+            ])
+
+    
+    def encodeRectifiedGrid(self, size, extent, srid, id):
         sr = SpatialReference()
         sr.ImportFromEPSG(srid)
         
@@ -239,6 +269,23 @@ class CoverageGML10Encoder(XMLEncoder):
             ("", "@@", _adjustPrecision("0.0 %f", sr.IsProjected()) % ((extent[1] - extent[3]) / float(size[1])))
         ]))
                     
+        return grid_element
+    
+    def encodeReferenceableGrid(self, size, id):
+        axisLabels = "x y" # TODO
+        
+        grid_element = self._makeElement("gml", "ReferenceableGrid", [
+            ("", "@dimension", 2),
+            ("@gml", "id", self._getGMLId(id)),
+            ("gml", "limits", [
+                ("gml", "GridEnvelope", [
+                    ("gml", "low", "0 0"),
+                    ("gml", "high", "%d %d" % (size[0]-1, size[1]-1))
+                ])
+            ]),
+            ("gml", "axisLabels", axisLabels)
+        ])
+        
         return grid_element
     
     def encodeBoundedBy(self, minx, miny, maxx, maxy):
@@ -422,6 +469,25 @@ class WCS20EOAPEncoder(WCS20Encoder):
             ("wcs", "CoverageId", coverage.getCoverageId()),
             (self.encodeEOMetadata(coverage),),
             (self.encodeDomainSet(coverage),),
+            (self.encodeRangeType(coverage),),
+            ("wcs", "ServiceParameters", [
+                ("wcs", "CoverageSubtype", coverage.getEOCoverageSubtype()),
+            ])
+        ])
+    
+    def encodeSubsetCoverageDescription(self, coverage, srid, size, extent):
+        poly = Polygon.from_bbox(extent)
+        poly.srid = srid
+        poly.transform(4326)
+        
+        wgs84_extent = poly.extent
+        
+        return self._makeElement("wcs", "CoverageDescription", [
+            ("@gml", "id", self._getGMLId(coverage.getCoverageId())),
+            (self.encodeBoundedBy(wgs84_extent),),
+            ("wcs", "CoverageId", coverage.getCoverageId()),
+            (self.encodeEOMetadata(coverage),),
+            (self.encodeSubsetDomainSet(coverage, srid, size, extent),),
             (self.encodeRangeType(coverage),),
             ("wcs", "ServiceParameters", [
                 ("wcs", "CoverageSubtype", coverage.getEOCoverageSubtype()),

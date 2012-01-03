@@ -830,6 +830,25 @@ class WCS20GetCoverageRasdamanSubsetSizeResolutionOutputCRSRangeSubsetIndicesDat
         return (params, "kvp")
 
 #===============================================================================
+# WCS 2.0 Referenceable Grid Coverages
+#===============================================================================
+
+#class WCS20GetCoverageReferenceableDatasetTestCase(eoxstest.GDALDatasetTestCase):
+#    def getRequest(self):
+#        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775&format=image/tiff"
+#        return (params, "kvp")
+
+#class WCS20GetCoverageReferenceableDatasetImageCRSSubsetTestCase(eoxstest.GDALDatasetTestCase):
+#    def getRequest(self):
+#        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775&format=image/tiff&subset=x(0,99)&subset=y(0,99)"
+#        return (params, "kvp")
+
+#class WCS20GetCoverageReferenceableDatasetGeogCRSSubsetTestCase(eoxstest.GDALDatasetTestCase):
+#    def getRequest(self):
+#        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775&format=image/tiff&subset=x,http://www.opengis.net/def/crs/EPSG/0/4326(17,22)&subset=y,http://www.opengis.net/def/crs/EPSG/0/4326(-36,-32)"
+#        return (params, "kvp")
+
+#===============================================================================
 # WCS 2.0 - POST
 #===============================================================================
 
@@ -1065,11 +1084,11 @@ class WMS13GetMapMosaicTestCase(eoxstest.WMS13GetMapTestCase):
     layers = ("mosaic_MER_FRS_1P_RGB_reduced",)
     bbox = (-3.75, 32.158895, 28.326165, 46.3)
     
-class WMS13GetMapDatasetSeriesTestCase(eoxstest.WMS13GetMapTestCase):
-    """ Test a GetMap request with a dataset series. """
-    layers = ("MER_FRS_1P_reduced",)
-    width = 200
-    bbox = (-3.75, 32.158895, 28.326165, 46.3)
+#class WMS13GetMapDatasetSeriesTestCase(eoxstest.WMS13GetMapTestCase):
+#    """ Test a GetMap request with a dataset series. """
+#    layers = ("MER_FRS_1P_reduced",)
+#    width = 200
+#    bbox = (-3.75, 32.158895, 28.326165, 46.3)
     
 # TODO: Add test cases with time parameter (point, interval, etc.)
     
@@ -1101,7 +1120,7 @@ class WMS13GetMapLayerNotDefinedFaultTestCase(eoxstest.WMS13ExceptionTestCase):
 
 class WMS13GetMapFormatUnknownFaultTestCase(eoxstest.WMS13ExceptionTestCase):
     def getRequest(self):
-        params = "service=WMS&version=1.3.0&request=GetMap&layers=MER_FRS_1P_reduced&bbox=0,0,1,1&crs=EPSG:4326&width=100&height=100&format=image/INVALID&exceptions=application/vnd.ogc.se_xml"
+        params = "service=WMS&version=1.3.0&request=GetMap&layers=MER_FRS_1P_reduced&bbox=-32,-4,46,28&crs=EPSG:4326&width=100&height=100&format=image/INVALID&exceptions=application/vnd.ogc.se_xml"
         return (params, "kvp")
     
     def getExpectedExceptionCode(self):
@@ -1113,7 +1132,7 @@ class WMS13GetMapInvalidBoundingBoxTestCase(eoxstest.WMS13ExceptionTestCase):
         return (params, "kvp")
     
     def getExpectedExceptionCode(self):
-        return None # attributes are optional by default; mapserver does not provide an exception code
+        return "InvalidParameterValue"
 
 class WMS13GetMapInvalidCRSTestCase(eoxstest.WMS13ExceptionTestCase):
     def getRequest(self):
@@ -1122,6 +1141,21 @@ class WMS13GetMapInvalidCRSTestCase(eoxstest.WMS13ExceptionTestCase):
     
     def getExpectedExceptionCode(self):
         return "InvalidCRS"
+
+class WMS13GetMapReferenceableGridTestCase(eoxstest.WMS13GetMapTestCase):
+    layers = ("ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775", )
+    bbox = (17.0, -36.0, 22.0, -32.0)
+    width = 500
+    height = 400
+
+class WMS13GetMapReferenceableGridReprojectionTestCase(eoxstest.WMS13GetMapTestCase):
+    layers = ("ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775", )
+    crs = "epsg:32734"
+    bbox = (122043.08622624225, 6008645.867004246, 594457.4634022854, 6459127.468615601)
+    width = 472
+    height = 451
+    swap_axes = False
+
 #===============================================================================
 # Test suite
 #===============================================================================

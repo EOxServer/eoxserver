@@ -50,7 +50,9 @@ from eoxserver.services.mapserver import (
     gdalconst_to_imagemode, gdalconst_to_imagemode_string
 )
 from eoxserver.services.exceptions import InvalidRequestException
-from eoxserver.services.ows.wcs.common import WCSCommonHandler
+from eoxserver.services.ows.wcs.common import (
+    WCSCommonHandler, get_output_format
+)
 
 
 # following import is needed by WCS-T 
@@ -120,49 +122,39 @@ class WCS112VersionHandler(OWSCommonVersionHandler):
 WCS112VersionHandlerImplementation = VersionHandlerInterface.implement(WCS112VersionHandler)
     
 class WCS1XOperationHandler(WCSCommonHandler):
-    def createCoverages(self, ms_req):
+    def createCoverages(self):
         visible_expr = System.getRegistry().getFromFactory(
             "resources.coverages.filters.CoverageExpressionFactory",
             {"op_name": "attr", "operands": ("visible", "=", True)}
         )
         factory = System.getRegistry().bind("resources.coverages.wrappers.EOCoverageFactory")
         
-        for coverage in factory.find(filter_exprs=[visible_expr]):
-            if coverage.getType() in ("plain", "eo.rect_dataset", "eo.rect_stitched_mosaic"):
-                ms_req.coverages.append(coverage)
-
-    def getMapServerLayer(self, coverage, **kwargs):
-        layer = super(WCS1XOperationHandler, self).getMapServerLayer(coverage, **kwargs)
+        # so far, we do not support referenceable grid coverages in WCS 1.X
+        
+        self.coverages = factory.find(
+            impl_ids = (
+                #"resources.coverages.wrappers.PlainCoverageWrapper",
+                "resources.coverages.wrappers.RectifiedDatasetWrapper",
+                "resources.coverages.wrappers.RectifiedStitchedMosaicWrapper"            
+            ),
+            filter_exprs=[visible_expr]
+        )
+            
+    def getMapServerLayer(self, coverage):
+        layer = super(WCS1XOperationHandler, self).getMapServerLayer(coverage)
         
         layer.setProjection("+init=epsg:%d" % coverage.getSRID())
         
-        if coverage.getType() in ("plain", "eo.rect_dataset"):
-            datasets = coverage.getDatasets()
-            
-            if len(datasets) == 0:
-                raise InvalidRequestException("Image extent does not intersect with desired region.", "ExtentError", "extent") # TODO: check if this is the right exception report
-            elif len(datasets) == 1:
-                connector = System.getRegistry().findAndBind(
-                    intf_id = "services.mapserver.MapServerDataConnectorInterface",
-                    params = {
-                        "services.mapserver.data_structure_type": \
-                            coverage.getDataStructureType()
-                    }
-                ) 
-                layer = connector.configure(layer, coverage)
-            else:
-                raise InternalError("A single file or EO dataset should never return more than one dataset.")
-            
-        elif coverage.getType() == "eo.rect_stitched_mosaic":
-            connector = System.getRegistry().findAndBind(
-                intf_id = "services.mapserver.MapServerDataConnectorInterface",
-                params = {
-                    "services.mapserver.data_structure_type": \
-                        coverage.getDataStructureType()
-                }
-            ) 
-            layer = connector.configure(layer, coverage)
-            
+        connector = System.getRegistry().findAndBind(
+            intf_id = "services.mapserver.MapServerDataConnectorInterface",
+            params = {
+                "services.mapserver.data_structure_type": \
+                    coverage.getDataStructureType()
+            }
+        )
+        layer = connector.configure(layer, coverage)
+        
+        if coverage.getType() == "eo.rect_stitched_mosaic":
             extent = coverage.getExtent()
             size_x, size_y = coverage.getSize()
             
@@ -192,10 +184,10 @@ class WCS1XOperationHandler(WCSCommonHandler):
         return layer
 
 class WCS1XDescribeCoverageHandler(WCS1XOperationHandler):
-    def createCoverages(self, ms_req):
+    def createCoverages(self):
         factory = System.getRegistry().bind("resources.coverages.wrappers.EOCoverageFactory")
         
-        obj_ids = ms_req.getParamValue("coverageids")
+        obj_ids = self.req.getParamValue("coverageids")
         if obj_ids is None:
             key = self.PARAM_SCHEMA["coverageids"]["kvp_key"]
             raise InvalidRequestException("Missing required parameter '%s'." % key, "ParameterError", key)
@@ -204,13 +196,13 @@ class WCS1XDescribeCoverageHandler(WCS1XOperationHandler):
             coverage = factory.get(obj_id=coverage_id)
             
             if coverage.getType() in ("plain", "eo.rect_dataset", "eo.rect_stitched_mosaic"):
-                ms_req.coverages.append(coverage)
+                self.coverages.append(coverage)
         
 class WCS1XGetCoverageHandler(WCS1XOperationHandler):
-    def createCoverages(self, ms_req):
+    def createCoverages(self):
         factory = System.getRegistry().bind("resources.coverages.wrappers.EOCoverageFactory")
         
-        obj_id = ms_req.getParamValue("coverageid")
+        obj_id = self.req.getParamValue("coverageid")
         
         if obj_id is None:
             key = self.PARAM_SCHEMA["coverageid"]["kvp_key"]
@@ -219,33 +211,34 @@ class WCS1XGetCoverageHandler(WCS1XOperationHandler):
         coverage = factory.get(obj_id=obj_id)
         
         if coverage.getType() in ("plain", "eo.rect_dataset", "eo.rect_stitched_mosaic"):
-            ms_req.coverages.append(coverage)
+            self.coverages.append(coverage)
     
-    def _setParameter(self, ms_req, key, value):
-        if key.lower() == "format" and len(ms_req.coverages[0].getRangeType().bands) > 3:
-            raise
-            if value.lower() == "image/tiff":
-                super(WCS1XOperationHandler, self)._setParameter(ms_req, "format", "GTiff_")
-            else:
-                raise InvalidRequestException("Format '%s' is not allowed in coverages with more than three bands." % value, "InvalidParameterValue", key)
+    def _setParameter(self, key, value):
+        if key.lower() == "format":
+            super(WCS1XGetCoverageHandler, self)._setParameter("format", "custom")
         else:
-            super(WCS1XGetCoverageHandler, self)._setParameter(ms_req, key, value)
+            super(WCS1XGetCoverageHandler, self)._setParameter(key, value)
             
-    def configureMapObj(self, ms_req):
-        super(WCS1XOperationHandler, self).configureMapObj(ms_req)
+    def configureMapObj(self):
+        super(WCS1XOperationHandler, self).configureMapObj()
         
-        output_format = mapscript.outputFormatObj("GDAL/GTiff", "GTiff_")
-        output_format.mimetype = "image/tiff"
-        output_format.extension = "tif"
+        format_param = self.req.getParamValue("format")
+        if not format_param:
+            raise InvalidRequestException(
+                "Missing mandatory 'format' parameter",
+                "MissingParameterValue",
+                "format"
+            )
         
-        output_format.imagemode = gdalconst_to_imagemode(
-            ms_req.coverages[0].getRangeType().data_type
+        output_format = get_output_format(
+            format_param,
+            self.coverages[0]
         )
         
-        ms_req.map.appendOutputFormat(output_format)
-        ms_req.map.setOutputFormat(output_format)
+        self.map.appendOutputFormat(output_format)
+        self.map.setOutputFormat(output_format)
         
-        logging.debug("WCS20GetCoverageHandler.configureMapObj: %s" % ms_req.map.imagetype)
+        logging.debug("WCS20GetCoverageHandler.configureMapObj: %s" % self.map.imagetype)
 
 class WCS10GetCapabilitiesHandler(WCS1XOperationHandler):
     REGISTRY_CONF = {
@@ -372,6 +365,7 @@ class WCS10GetCoverageHandler(WCS1XGetCoverageHandler):
     
     PARAM_SCHEMA = {
         "coverageid": {"xml_location": "/{http://www.opengis.net/wcs/1.0.0}sourceCoverage", "xml_type": "string", "kvp_key": "coverage", "kvp_type": "string"},
+        "format": {"xml_location": "/{http://www.opengis.net/wcs/1.0.0}output/{http://www.opengis.net/wcs/1.0.0}format", "xml_type": "string", "kvp_key": "format", "kvp_type": "string"}
     }
     
 WCS10GetCoverageHandlerImplementation = OperationHandlerInterface.implement(WCS10GetCoverageHandler)
@@ -389,6 +383,7 @@ class WCS11GetCoverageHandler(WCS1XGetCoverageHandler):
     
     PARAM_SCHEMA = {
         "coverageid": {"xml_location": "/{http://www.opengis.net/ows/1.1}Identifier", "xml_type": "string", "kvp_key": "identifier", "kvp_type": "string"},
+        "format": {"xml_location": "/{http://www.opengis.net/wcs/1.1}Output/@format", "xml_type": "string", "kvp_key": "format", "kvp_type": "string"}
     }
     
 WCS11GetCoverageHandlerImplementation = OperationHandlerInterface.implement(WCS11GetCoverageHandler)
@@ -406,6 +401,7 @@ class WCS112GetCoverageHandler(WCS1XGetCoverageHandler):
     
     PARAM_SCHEMA = {
         "coverageid": {"xml_location": "/{http://www.opengis.net/ows/1.1}Identifier", "xml_type": "string", "kvp_key": "identifier", "kvp_type": "string"},
+        "format": {"xml_location": "/{http://www.opengis.net/wcs/1.1}Output/@format", "xml_type": "string", "kvp_key": "format", "kvp_type": "string"}
     }
     
 WCS112GetCoverageHandlerImplementation = OperationHandlerInterface.implement(WCS112GetCoverageHandler)
