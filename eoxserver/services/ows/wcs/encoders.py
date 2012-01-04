@@ -50,12 +50,12 @@ class GMLEncoder(XMLEncoder):
         sr = SpatialReference()
         sr.ImportFromEPSG(srid)
         
-        format = _adjustPrecision("%f %f", sr.IsProjected())
+        frmt = _adjustPrecision("%f %f", sr.IsProjected())
         
         if srid == 4326:
-            pos_list = " ".join([format % (point[1], point[0]) for point in ring])
+            pos_list = " ".join([frmt % (point[1], point[0]) for point in ring])
         else:
-            pos_list = " ".join([format % point for point in ring])
+            pos_list = " ".join([frmt % point for point in ring])
         
         return self._makeElement(
             "gml", "LinearRing", [
@@ -86,6 +86,8 @@ class GMLEncoder(XMLEncoder):
             polygons = [self.encodePolygon(geom[c], "%s_%d" % (base_id, c+1)) for c in range(0, geom.num_geom)]
         elif geom.geom_type == "Polygon":
             polygons = [self.encodePolygon(geom, base_id)]
+        
+        
         
         sub_elements = [("@gml", "id", "multisurface_%s" % base_id)]
         sub_elements.extend([
@@ -211,7 +213,7 @@ class CoverageGML10Encoder(XMLEncoder):
             ])
     
     def encodeSubsetDomainSet(self, coverage, srid, size, extent):
-        if coveragge.getType() == "eo.ref_dataset":
+        if coverage.getType() == "eo.ref_dataset":
             return self._makeElement("gml", "domainSet", [
                 (self.encodeReferenceableGrid(
                     size,
