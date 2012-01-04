@@ -361,7 +361,7 @@ class WCS20DescribeEOCoverageSetSubsettingTestCase(XMLTestCase):
         expected_coverage_ids = self.getExpectedCoverageIds()
         self.assertItemsEqual(result_coverage_ids, expected_coverage_ids)
         
-        # assert that every coverage ID is unique in the respinse
+        # assert that every coverage ID is unique in the response
         for coverage_id in result_coverage_ids:
             self.assertTrue(result_coverage_ids.count(coverage_id) == 1, "CoverageID %s is not unique." % coverage_id)
 
