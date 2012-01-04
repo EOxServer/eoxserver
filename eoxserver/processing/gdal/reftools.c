@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <gdal.h>
-#include <gdal_alg.h>
-#include <gdalwarper.h>
-#include <ogr_srs_api.h>
+#include <gdal/gdal.h>
+#include <gdal/gdal_alg.h>
+#include <gdal/gdalwarper.h>
+#include <gdal/ogr_srs_api.h>
 
 typedef struct {
     size_t n_points;
@@ -349,7 +349,7 @@ int eoxs_create_rectified_vrt(const char *filename, const char *vrt_filename, in
         OSRRelease(dst_srs);
         free_dst_srs_wkt = TRUE;
     } else {
-        dst_srs_wkt = GDALGetGCPProjection(ds);
+        dst_srs_wkt = (char*)GDALGetGCPProjection(ds);
         free_dst_srs_wkt = FALSE;
     }
     

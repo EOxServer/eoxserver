@@ -7,7 +7,7 @@ from eoxserver.core.exceptions import InternalError
 
 _lib_path = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
-    "eoxs.so"
+    "_reftools.so"
 )
 _lib = C.LibraryLoader(C.CDLL).LoadLibrary(_lib_path)
 
