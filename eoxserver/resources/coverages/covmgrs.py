@@ -156,6 +156,8 @@ class BaseManager(object):
         for key, value in set_kwargs.items():
             if key in keys:
                 wrapper.setAttrValue(key, value)
+                
+        wrapper.saveModel()
         
         return wrapper
         
@@ -275,8 +277,10 @@ class BaseManagerContainerMixIn(object):
                 else:
                     eo_metadata = data_package.readEOMetadata()
                     
-                    coverage_id = self.rect_dataset_mgr.acquireID(
-                        eo_metadata.getEOID(), fail=True
+                    coverage_id_mgr = CoverageIdManager()
+                    
+                    coverage_id = coverage_id_mgr.reserve(
+                        eo_metadata.getEOID()
                     )
                     
                     range_type_name = self._get_contained_range_type_name(
@@ -296,7 +300,7 @@ class BaseManagerContainerMixIn(object):
                         container=container
                     )
                 
-                    self.rect_dataset_mgr.releaseID(coverage_id)
+                    coverage_id_mgr.release(coverage_id)
                     
                     logging.info("Done creating new coverage with ID %s." % coverage_id)
     
@@ -398,7 +402,7 @@ class CoverageManager(BaseManager):
             return existing_coverages[0]
 
 class CoverageManagerDatasetMixIn(object):
-    def _get_location(self, params):
+    def _get_location(self, params, fail=True):
         location = None
         
         if "location" in params:
@@ -459,7 +463,7 @@ class CoverageManagerDatasetMixIn(object):
                 "You must specify a 'collection' to specify a valid rasdaman array location."
             )
         
-        if not location:
+        if not location and fail:
             raise InternalError(
                 "You must specify a data location to create a coverage."
             )
@@ -477,7 +481,7 @@ class CoverageManagerDatasetMixIn(object):
         return geo_metadata
 
 class CoverageManagerEOMixIn(object):
-    def _get_metadata_location(self, location, params):
+    def _get_metadata_location(self, location, params, force=True):
         if "eo_metadata" in params:
             return None
         else:
@@ -512,7 +516,7 @@ class CoverageManagerEOMixIn(object):
                         passwd=location.getPassword()
                     )
             
-            if not md_location:
+            if not md_location and force:
                 md_path = "%s.xml" % os.path.splitext(location.getPath())[0]
                 
                 md_location = self.location_factory.create(
