@@ -88,6 +88,7 @@ List of fixtures:
  * initial_rangetypes.json - Range types for RGB and gray-scale coverages.
  * testing_base.json - Range type for the 15 band uint16 test data.
  * testing_coverages.json - Metadata for the MERIS test data.
+ * testing_asar.json - Metadata for the ASAR test data.
  * testing_rasdaman_coverages.json - Use this fixtures in addition when
                                      rasdaman is installed and configured.
  * testing_backends.json - This fixtures are used for testing the backend
