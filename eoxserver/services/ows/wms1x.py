@@ -422,8 +422,6 @@ class WMS1XGetMapHandler(WMSCommonHandler):
                     "time"
                 )
                 
-            
-            
             return System.getRegistry().getFromFactory(
                 "resources.coverages.filters.CoverageExpressionFactory",
                 {
@@ -449,14 +447,21 @@ class WMS1XGetMapHandler(WMSCommonHandler):
                 "InvalidParameterValue",
                 "bbox"
             )
+        if len(bbox) != 4:
+            raise InvalidRequestException("Wrong number of arguments for 'BBOX' parameter", "InvalidParameterValue", "bbox")
 
         if layers is None:
             raise InvalidRequestException("Missing 'LAYERS' parameter", "MissingParameterValue", "layers")
-        if bbox is None:
-            raise InvalidRequestException("Missing 'BBOX' parameter", "MissingParameterValue", "bbox")
-            
-        srid = self.getSRID()
+        
+        
+        srs = self.req.getParamValue(self.getSRSParameterName())
+        if srs is None:
+            raise InvalidRequestException("Missing '%s' parameter"% self.getSRSParameterName().upper(), "MissingParameterValue" , self.getSRSParameterName())
 
+        srid = getSRIDFromCRSIdentifier(srs)
+        if srid is None:
+            raise InvalidRequestException("Invalid '%s' parameter value"% self.getSRSParameterName().upper(), "InvalidCRS" , self.getSRSParameterName())
+        
         area = self.getBoundedArea(srid, bbox)
         
         filter_exprs = []
