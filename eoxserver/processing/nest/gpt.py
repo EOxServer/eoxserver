@@ -27,13 +27,58 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from os import system
+import os
+import os.path
+from subprocess import call
+from cStringIO import StringIO
 
-def convert_format(path, format):
+import logging
+
+from eoxserver.core.system import System
+from eoxserver.core.readers import ConfigReaderInterface
+from eoxserver.core.exceptions import EngineError
+
+def convert_format(src_path, dst_path, format=None):
+    gpt_path = NESTConfigReader().getGPTPath()
+    graph_path = os.path.join(
+        os.path.dirname(os.path.abspath(__FILE__)),
+        "Convert.xml"
+    )
+    
+    args = [
+        gpt_path,
+        graph_path,
+        "-Ssource=%s" % src_path,
+        "-t %s" % dst_path
+    ]
+    
+    if format is not None:
+        args.append("-f %s" % format)
+    
+    err_str = StringIO()
+    
+    returncode = call(args, stderr=err_str)
+    
+    if returncode:
+        logging.error(err_str.getvalue())
+        
+        err_str.close()
+        
+        raise EngineError(
+            "NEST Error: could not convert format."
+        )
+    else:
+        err_str.close()
+
+def create_geo_subset(src_path, dst_path, srid, extent, format=None):
     pass
 
-def create_geo_subset(path, format, srid, extent):
+def create_pixel_subset(src_path, dst_path, extent, format=None):
     pass
 
-def create_pixel_subset(path, format, extent);
-    pass
+class NESTConfigReader(object):
+    def validate(self, config):
+        pass
+    
+    def getGPTPath(self):
+        return System.getConfig().getConfigValue("processing.nest.gpt", "gpt_path")
