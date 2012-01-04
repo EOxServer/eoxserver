@@ -34,7 +34,7 @@ import logging
 from datetime import timedelta
 
 from django.utils.datetime_safe import datetime
-from django.contrib.gis.geos import GEOSGeometry
+from django.contrib.gis.geos import GEOSGeometry, Polygon
 from django.conf import settings
 
 from eoxserver.core.system import System
@@ -247,7 +247,7 @@ class RectifiedDatasetUpdateGeoMetadataTestCase(RectifiedDatasetUpdateTestCase):
                     srid=3035,
                     size_x=100,
                     size_y=100,
-                    extent=(0,0,1,1)
+                    extent=(0, 0, 100000000, 100000000)
                 )
             }
         }
@@ -261,7 +261,7 @@ class RectifiedDatasetUpdateGeoMetadataTestCase(RectifiedDatasetUpdateTestCase):
         
         self.assertEqual(3035, coverage.getAttrValue("srid"))
         self.assertEqual((100, 100), (coverage.getAttrValue("size_x"), coverage.getAttrValue("size_y")))
-        self.assertEqual((0, 0, 1, 1),( 
+        self.assertEqual((0, 0, 100000000, 100000000),( 
             coverage.getAttrValue("minx"),
             coverage.getAttrValue("miny"),
             coverage.getAttrValue("maxx"),
@@ -280,8 +280,8 @@ class RectifiedDatasetUpdateGeoMetadataViaSetAttrMetadataTestCase(RectifiedDatas
                 "size_y": 100,
                 "minx": 0,
                 "miny": 0,
-                "maxx": 1,
-                "maxy": 1
+                "maxx": 100000000,
+                "maxy": 100000000
             }
         }
         self.update(**args)
@@ -294,7 +294,7 @@ class RectifiedDatasetUpdateGeoMetadataViaSetAttrMetadataTestCase(RectifiedDatas
         
         self.assertEqual(3035, coverage.getAttrValue("srid"))
         self.assertEqual((100, 100), (coverage.getAttrValue("size_x"), coverage.getAttrValue("size_y")))
-        self.assertEqual((0, 0, 1, 1),( 
+        self.assertEqual((0, 0, 100000000, 100000000),( 
             coverage.getAttrValue("minx"),
             coverage.getAttrValue("miny"),
             coverage.getAttrValue("maxx"),
@@ -307,7 +307,8 @@ class RectifiedDatasetUpdateEOMetadataTestCase(RectifiedDatasetUpdateTestCase):
     def manage(self):
         self.begin_time = datetime.now()
         self.end_time = datetime.now()
-        self.footprint = GEOSGeometry("POLYGON((1 2, 3 2, 3 4, 1 4, 1 2))")
+        self.footprint = Polygon.from_bbox((-3, 33, 12, 46))
+        #GEOSGeometry("POLYGON((1 2, 3 2, 3 4, 1 4, 1 2))")
         args = {
             "obj_id": "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced",
             "set": {
