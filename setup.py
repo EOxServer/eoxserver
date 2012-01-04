@@ -34,9 +34,12 @@ import os
 # ignoring MANIFEST.in when code is in an svn repository.
 # TODO find a nicer solution
 from setuptools.command import sdist
+from distutils.extension import Extension
 del sdist.finders[:]
 
 from setuptools import setup
+from osgeo import gdal
+
 from eoxserver import get_version
 
 version = get_version()
@@ -73,6 +76,14 @@ setup(
     packages=packages,
     data_files=data_files,
     scripts=["eoxserver/scripts/eoxserver-admin.py"],
+    
+    ext_modules=[
+        Extension(
+            'eoxserver.processing.gdal._reftools',
+            sources=['eoxserver/processing/gdal/reftools.c'],
+            libraries=['gdal%s' % gdal.__version__]
+        ),
+    ],
     
     install_requires=[
         'django>=1.3',
