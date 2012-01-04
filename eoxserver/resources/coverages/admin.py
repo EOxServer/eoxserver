@@ -44,9 +44,9 @@ from eoxserver.backends.models import (
 from eoxserver.resources.coverages.models import (
     EOMetadataRecord, DataSource, TileIndex,
     LayerMetadataRecord, LineageRecord, NilValueRecord,
-    RectifiedDatasetRecord, BandRecord, RangeType2Band, RangeTypeRecord,
-    RectifiedStitchedMosaicRecord, PlainCoverageRecord,
-    DatasetSeriesRecord, ExtentRecord, DataPackage,
+    RectifiedDatasetRecord, ReferenceableDatasetRecord, BandRecord,
+    RangeType2Band, RangeTypeRecord, RectifiedStitchedMosaicRecord,
+    PlainCoverageRecord, DatasetSeriesRecord, ExtentRecord, DataPackage,
     LocalDataPackage, RemoteDataPackage, RasdamanDataPackage
 )
 
@@ -154,7 +154,7 @@ class RectifiedDatasetAdmin(ConfirmationAdmin):
     inlines = (StitchedMosaic2DatasetInline, DatasetSeries2DatasetInline, )
     
     # We need to override the bulk delete function of the admin to make
-    # sure the overrode delete() method of EOCoverageRecord is
+    # sure the overrode delete() method of EODatasetMixIn is
     # called.
     actions = ['really_delete_selected', ]
     def get_actions(self, request):
@@ -169,7 +169,7 @@ class RectifiedDatasetAdmin(ConfirmationAdmin):
         else:
             message_bit = "%s Datasets were" % queryset.count()
         self.message_user(request, "%s successfully deleted." % message_bit)
-    really_delete_selected.short_description = "Delete selected Dataset(s) entries"
+    really_delete_selected.short_description = "Delete selected Dataset entries"
 
     def change_view(self, request, object_id, extra_context=None):
         obj = self.get_object(request, object_id)
@@ -208,6 +208,74 @@ class RectifiedDatasetAdmin(ConfirmationAdmin):
         return False  
         
 admin.site.register(RectifiedDatasetRecord, RectifiedDatasetAdmin)
+
+class ReferenceableDatasetAdmin(ConfirmationAdmin):
+    #list_display = ('coverage_id', 'eo_id', 'data_package', 'range_type', 'size_x', 'size_y')
+    fields = ('automatic', 'visible', 'coverage_id', 'eo_id', 'range_type', 'size_x', 'size_y', 'eo_metadata', 'data_package', 'lineage')
+    list_display = ('coverage_id', 'eo_id', 'range_type', 'size_x', 'size_y')
+    #list_editable = ('data_package', 'range_type', 'extent')
+    list_editable = ('range_type', 'size_x', 'size_y', )
+    list_filter = ('range_type', )
+    
+    ordering = ('coverage_id', )
+    search_fields = ('coverage_id', )
+# TODO: Separate inline or rewrite existing one:    inlines = (DatasetSeries2DatasetInline, )
+
+    # We need to override the bulk delete function of the admin to make
+    # sure the overrode delete() method of EODatasetMixIn is
+    # called.
+    actions = ['really_delete_selected', ]
+    def get_actions(self, request):
+        actions = super(ReferenceableDatasetAdmin, self).get_actions(request)
+        if 'delete_selected' in actions: del actions['delete_selected']
+        return actions
+    def really_delete_selected(self, request, queryset):
+        for obj in queryset:
+            obj.delete()
+        if queryset.count() == 1:
+            message_bit = "1 Dataset was"
+        else:
+            message_bit = "%s Datasets were" % queryset.count()
+        self.message_user(request, "%s successfully deleted." % message_bit)
+    really_delete_selected.short_description = "Delete selected Dataset entries"
+
+    def change_view(self, request, object_id, extra_context=None):
+        obj = self.get_object(request, object_id)
+        diff = self.get_changes(request, object_id)
+        old_automatic, new_automatic = diff.get('automatic', (False, False))
+        
+        if (old_automatic and new_automatic) or obj.automatic:
+            messages.warning(request, "This referenceable dataset cannot be changed "
+                             "because it is marked as 'automatic'.")
+            
+        return super(ReferenceableDatasetAdmin, self).change_view(request, object_id, extra_context)
+
+    def get_readonly_fields(self, request, obj=None):
+        """
+        If the instance is automatic, this method will return a 
+        list of disabled fields.
+        These cannot be changed by the user, unless he disables
+        the `automatic` field.
+        """
+        if obj is not None and obj.automatic:
+            return self.readonly_fields + (
+                'coverage_id', 'eo_id', 'eo_metadata',
+                'lineage', 'data_package', 'size_x', 'size_y',
+                'layer_metadata', 
+            )
+            
+        return self.readonly_fields
+    
+    def require_confirmation(self, diff):
+        try:
+            old_automatic, new_automatic = diff['automatic']
+            if not old_automatic and new_automatic:
+                return "You are marking the referenceable dataset as automatic. All manual changes will be reset."
+        except KeyError:
+            pass
+        return False  
+
+admin.site.register(ReferenceableDatasetRecord, ReferenceableDatasetAdmin)
 
 class AbstractContainerAdmin(admin.ModelAdmin):
     # We need to override the bulk delete function of the admin to make
