@@ -63,7 +63,7 @@ class GeospatialMetadata(object):
         
         srs = osr.SpatialReference()
         srs.ImportFromWkt(ds.GetProjection())
-
+        
         srs.AutoIdentifyEPSG()
         if srs.IsProjected():
             srid = srs.GetAuthorityCode("PROJCS")
@@ -73,9 +73,9 @@ class GeospatialMetadata(object):
             srid = None
         
         if srid is None:
-            srid = default_srid
+            srid = int(default_srid)
         else:
-            srid = srid
+            srid = int(srid)
     
         size_x = ds.RasterXSize
         size_y = ds.RasterYSize
