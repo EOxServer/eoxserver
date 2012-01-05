@@ -49,8 +49,9 @@ website too.
 
 Here are some points to remember when posting to the list:
 
-* Search the archive at http://eoxserver.org/pipermail/users/ for your answer 
-  first, people get tired of answering the same questions over and over.
+* Search the archive at http://eoxserver.org/pipermail/users/ or 
+  http://eoxserver.2316974.n4.nabble.com/EOxServer-Users-f4264995.html for your 
+  answer first, people get tired of answering the same questions over and over.
 * Before posting subscribe to the list by following the procedure described 
   above.
 * Post questions to the list by sending an email message to users@eoxserver.org.
@@ -72,4 +73,5 @@ discuss issues that would not be of interest to the entire users mailing list.
 Subscribe at http://eoxserver.org/mailman/listinfo/dev/. You can later change 
 your subscription information or unsubscribe from the list at this website too.
 
-The archive is located at http://eoxserver.org/pipermail/dev/.
+The archive is located at http://eoxserver.org/pipermail/dev/ or 
+http://eoxserver.2316974.n4.nabble.com/EOxServer-Dev-f4265142.html.
