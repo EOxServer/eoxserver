@@ -26,6 +26,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
+from eoxserver.resources.coverages.metadata import EOMetadata
 
 
 """
@@ -238,6 +239,7 @@ class BaseManagerContainerMixIn(object):
         return coverages
     
     def _create_contained(self, container, data_sources):
+        new_datasets = []
         for data_source in data_sources:
             locations = data_source.detect()
             
@@ -273,6 +275,7 @@ class BaseManagerContainerMixIn(object):
                         )
                     )
                     container.addCoverage(existing_coverages[0])
+                    new_datasets.append(existing_coverages[0])
                     
                 else:
                     eo_metadata = data_package.readEOMetadata()
@@ -288,10 +291,9 @@ class BaseManagerContainerMixIn(object):
                     )
                     
                     logging.info("Creating new coverage with ID %s." % coverage_id)
-                    
                     # TODO: implement creation of ReferenceableDatasets,
                     # RectifiedStitchedMosaics for DatasetSeriesManager
-                    self.rect_dataset_mgr.create(
+                    new_dataset = self.rect_dataset_mgr.create(
                         coverage_id,
                         location=location,
                         md_location=md_location,
@@ -301,14 +303,21 @@ class BaseManagerContainerMixIn(object):
                     )
                 
                     coverage_id_mgr.release(coverage_id)
-                    
                     logging.info("Done creating new coverage with ID %s." % coverage_id)
+                    
+                    new_datasets.append(new_dataset)
+        
+        return new_datasets
     
     def _synchronize(self, container, data_sources, datasets):
-        self._create_contained(container, data_sources)
-        
+        new_datasets = self._create_contained(container, data_sources)
+            
         # delete all datasets, which do not have a file
         for dataset in datasets:
+            if dataset.getType() == "eo.rect_stitched_mosaic":
+                # do not delete the tile index from a stitched mosaic
+                continue
+            
             if not dataset.getData().getLocation().exists():
                 logging.info(
                     "Location %s does not exist. Deleting dangling dataset with ID %s"%(
@@ -318,6 +327,7 @@ class BaseManagerContainerMixIn(object):
                 )
                 
                 self.rect_dataset_mgr.delete(dataset.getCoverageId())
+                datasets.remove(dataset)
             
             elif dataset.getAttrValue("automatic"):
                 # remove all automatic coverages from a mosaic/dataset series
@@ -330,7 +340,31 @@ class BaseManagerContainerMixIn(object):
                 
                 if not contained:
                     container.removeCoverage(dataset)
-    
+                    datasets.remove(dataset)
+        
+        # update footprint and time extent according to contents of container
+        
+        datasets.extend(new_datasets)
+        if len(datasets) > 0:
+            begin_time = min([dataset.getBeginTime() for dataset in datasets])
+            end_time = max([dataset.getEndTime() for dataset in datasets])
+            footprint = datasets[0].getFootprint()
+            for dataset in datasets[1:]:
+                footprint = footprint.union(dataset.getFootprint())
+            
+            
+            self.update(
+                container.getEOID(), set={
+                    "eo_metadata": EOMetadata(
+                        container.getEOID(),
+                        begin_time, end_time,
+                        footprint,
+                        "eogml" if container.getEOGML() else None,
+                        container.getEOGML()
+                    )
+                }
+            )
+        
     def _guess_metadata_location(self, location):
         if location.getType() == "local":
             return self.location_factory.create(
