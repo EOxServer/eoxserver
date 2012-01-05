@@ -471,15 +471,15 @@ class RectifiedStitchedMosaicCreateWithRemotePathTestCase(RectifiedStitchedMosai
                 "password": ""
             }],
             "geo_metadata": GeospatialMetadata(
-                srid=4326, size_x=100, size_y=100,
-                extent=(1, 2, 3, 4)
+                srid=4326, size_x=1023, size_y=451,
+                extent=(-3.75, 32.158895, 28.326165, 46.3)
             ),
             "range_type_name": "RGB",
             "eo_metadata": EOMetadata(
                 "SOMEEOID",
                 datetime.now(),
                 datetime.now(),
-                GEOSGeometry("POLYGON((1 2, 3 2, 3 4, 1 4, 1 2))")
+                GEOSGeometry("POLYGON((-3 33, 27 33, 27 45, -3 45, -3 33))")
             ),
             "storage_dir": "/some/storage/dir"
         }
@@ -653,8 +653,27 @@ class DatasetSeriesSynchronizeNewDirectoryTestCase(DatasetSeriesSynchronizeTestC
         self.synchronize(self.wrapper.getEOID())
     
     def testContents(self):
+        wrapper = System.getRegistry().getFromFactory(
+            "resources.coverages.wrappers.DatasetSeriesFactory",
+            {"obj_id": "SOMEEOID"}
+        )
+        
         # after sync, the datasets shall be registered.
-        self.assertEqual(len(self.wrapper.getEOCoverages()), 3)
+        self.assertEqual(len(wrapper.getEOCoverages()), 3)
+        
+        self.assertEqual(wrapper.getBeginTime(), 
+                         min([dataset.getBeginTime() 
+                              for dataset in wrapper.getEOCoverages()]))
+        
+        self.assertEqual(wrapper.getEndTime(), 
+                         max([dataset.getEndTime() 
+                              for dataset in wrapper.getEOCoverages()]))
+        
+        footprint = wrapper.getEOCoverages()[0].getFootprint()
+        for dataset in wrapper.getEOCoverages()[1:]:
+            footprint = footprint.union(dataset.getFootprint())
+        self.assertTrue(wrapper.getFootprint().equals_exact(footprint, 0.001),
+                        "Footprints mismatch.")
 
 class DatasetSeriesSynchronizeFileRemovedTestCase(DatasetSeriesSynchronizeTestCase):
     fixtures = BASE_FIXTURES
@@ -701,7 +720,27 @@ class DatasetSeriesSynchronizeFileRemovedTestCase(DatasetSeriesSynchronizeTestCa
     
     def testContents(self):
         # after sync, the datasets shall be registered.
-        self.assertEqual(len(self.wrapper.getEOCoverages()), 2)
+        
+        wrapper = System.getRegistry().getFromFactory(
+            "resources.coverages.wrappers.DatasetSeriesFactory",
+            {"obj_id": "SOMEEOID"}
+        )
+        
+        self.assertEqual(len(wrapper.getEOCoverages()), 2)
+        
+        self.assertEqual(wrapper.getBeginTime(), 
+                         min([dataset.getBeginTime() 
+                              for dataset in wrapper.getEOCoverages()]))
+        
+        self.assertEqual(wrapper.getEndTime(), 
+                         max([dataset.getEndTime() 
+                              for dataset in wrapper.getEOCoverages()]))
+        
+        footprint = wrapper.getEOCoverages()[0].getFootprint()
+        for dataset in wrapper.getEOCoverages()[1:]:
+            footprint = footprint.union(dataset.getFootprint())
+        self.assertTrue(wrapper.getFootprint().equals_exact(footprint, 0.001),
+                        "Footprints mismatch.")
 
     def tearDown(self):
         super(DatasetSeriesSynchronizeTestCase, self).tearDown()
