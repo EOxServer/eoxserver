@@ -38,44 +38,82 @@ from eoxserver.core.system import System
 from eoxserver.core.readers import ConfigReaderInterface
 from eoxserver.core.exceptions import EngineError
 
-def convert_format(src_path, dst_path, format=None):
+def _call_gpt(graph_path, src_path, dst_path, options, format=None):
     gpt_path = NESTConfigReader().getGPTPath()
-    graph_path = os.path.join(
-        os.path.dirname(os.path.abspath(__FILE__)),
-        "Convert.xml"
-    )
     
     args = [
         gpt_path,
-        graph_path,
-        "-Ssource=%s" % src_path,
-        "-t %s" % dst_path
+        graph_path
     ]
+    
+    args.extend(options)
     
     if format is not None:
         args.append("-f %s" % format)
     
+    args.append("-t %s" % dst_path)
+    args.append(src_path)
+        
     err_str = StringIO()
     
     returncode = call(args, stderr=err_str)
     
-    if returncode:
+    if returncode or not os.path.exists(dst_path):
         logging.error(err_str.getvalue())
         
         err_str.close()
         
         raise EngineError(
-            "NEST Error: could not convert format."
+            "NEST Error: could not create coverage."
         )
     else:
         err_str.close()
+    
+def convert_format(src_path, dst_path, format=None):
+    graph_path = os.path.join(
+        os.path.dirname(os.path.abspath(__FILE__)),
+        "ConvertGraph.xml"
+    )
+
+    _call_gpt(graph_path, src_path, dst_path, [], format)
+
 
 def create_geo_subset(src_path, dst_path, srid, extent, format=None):
-    pass
+    poly = Polygon.from_bbox(extent)
+    poly.srid = srid
+    poly.transform(4326)
+    
+    graph_path = os.path.join(
+        os.path.dirname(os.path.abspath(__FILE__)),
+        "GeoSubsetGraph.xml"
+    )
+    
+    options = [
+        "-PgeoRegion=%s" % poly.wkt
+    ]
+    
+    _call_gpt(graph_path, src_path, dst_path, options, format)
 
 def create_pixel_subset(src_path, dst_path, extent, format=None):
-    pass
-
+    regionX = extent[0]
+    regionY = extent[1]
+    width = extent[2] - extent[0]
+    height = extent[3] - extent[1]
+    
+    graph_path = os.path.join(
+        os.path.dirname(os.path.abspath(__FILE__)),
+        "PixelSubsetGraph.xml"
+    )
+    
+    options = [
+        "-PregionX=%d" % regionX,
+        "-PregionY=%d" % regionY,
+        "-Pwidth=%d" % width,
+        "-Pheight=%d" % height
+    ]
+    
+    _call_gpt(graph_path, src_path, dst_path, options, format)
+    
 class NESTConfigReader(object):
     def validate(self, config):
         pass
