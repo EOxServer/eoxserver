@@ -34,24 +34,11 @@ from optparse import make_option
 from django.core.management.base import BaseCommand, CommandError
 
 from eoxserver.core.system import System
+from eoxserver.resources.coverages.management.commands import (
+    CommandOutputMixIn, _variable_args_cb
+)
 
-def _variable_args_cb(option, opt_str, value, parser):
-    """ Helper function for optparse module. Allows
-        variable number of option values when used
-        as a callback.
-    """
-    args = []
-    for arg in parser.rargs:
-        if not arg.startswith('-'):
-            args.append(arg)
-        else:
-            del parser.rargs[:len(args)]
-            break
-    if getattr(parser.values, option.dest):
-        args.extend(getattr(parser.values, option.dest))
-    setattr(parser.values, option.dest, args)
-
-class Command(BaseCommand):
+class Command(CommandOutputMixIn, BaseCommand):
     option_list = BaseCommand.option_list + (
         make_option('-d', '--data-file', '--data-files',
                     '--collection', '--collections',
@@ -157,11 +144,6 @@ class Command(BaseCommand):
     help = ('Registers one or more datasets from each a data and '
             'meta-data file.')
     args = '--data-file DATAFILE --rangetype RANGETYPE'
-
-    def print_msg(self, msg, level=0):
-        if self.verbosity > level:
-            self.stdout.write(msg)
-            self.stdout.write("\n")
 
     def handle(self, *args, **options):
         System.init()
