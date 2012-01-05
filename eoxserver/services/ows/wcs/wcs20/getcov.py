@@ -515,31 +515,31 @@ class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
                 
                 coverage = self.coverages[0]
                 
+                decoder = WCS20SubsetDecoder(self.req, "imageCRS")
+                    
+                poly = decoder.getBoundingPolygon(
+                     coverage.getFootprint(),
+                     coverage.getSRID(),
+                     coverage.getSize()[0],
+                     coverage.getSize()[1],
+                     coverage.getExtent()
+                )
+                
                 if coverage.getType() == "eo.rect_dataset":
                     resp_xml = encoder.encodeRectifiedDataset(
                         coverage,
-                        req = self.req,
-                        nodes = rectified_grid_coverage.childNodes
+                        req=self.req,
+                        nodes=rectified_grid_coverage.childNodes,
+                        poly=poly
                     )
                 elif coverage.getType() == "eo.rect_stitched_mosaic":
-                    decoder = WCS20SubsetDecoder(self.req, "imageCRS")
-                    
-                    poly = decoder.getBoundingPolygon(
-                         coverage.getFootprint(),
-                         coverage.getSRID(),
-                         coverage.getSize()[0],
-                         coverage.getSize()[1],
-                         coverage.getExtent()
-                    )
-
                     resp_xml = encoder.encodeRectifiedStitchedMosaic(
                         coverage,
-                        req = self.req,
-                        nodes = rectified_grid_coverage.childNodes,
-                        poly = poly
+                        req=self.req,
+                        nodes=rectified_grid_coverage.childNodes,
+                        poly=poly
                     )
                     
-
                 resp = resp.getProcessedResponse(DOMElementToXML(resp_xml))
                 dom.unlink()
 
