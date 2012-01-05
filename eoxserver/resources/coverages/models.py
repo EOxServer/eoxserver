@@ -396,9 +396,6 @@ class RectifiedStitchedMosaicRecord(CoverageRecord, EOCoverageMixIn):
         super(RectifiedStitchedMosaicRecord, self).delete()
         tile_index.delete()
     
-    def clean(self):
-        import pdb; pdb.set_trace()
-
 class DatasetSeriesRecord(Resource):
     eo_id = models.CharField("EO ID", max_length=256, unique=True, validators=[NCNameValidator])
     eo_metadata = models.OneToOneField(EOMetadataRecord,
