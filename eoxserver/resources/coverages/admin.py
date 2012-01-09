@@ -54,12 +54,7 @@ from eoxserver.core.exceptions import InternalError
 from eoxserver.core.system import System
 from eoxserver.core.admin import ConfirmationAdmin
 
-# TODO: harmonize with core.system
-logging.basicConfig(
-    filename=os.path.join(settings.PROJECT_DIR, 'logs', 'eoxserver.log'),
-    level=logging.DEBUG,
-    format="[%(asctime)s][%(levelname)s] %(message)s"
-)
+System.init()
 
 # NilValue
 class NilValueInline(admin.TabularInline):
@@ -283,6 +278,7 @@ class AbstractContainerAdmin(admin.ModelAdmin):
     # called.
     actions = ['really_delete_selected', ]
     coverage_manager_intf_id = ""
+    container_wrapper_factory_id = ""
     
     def get_manager(self):
         System.init()
@@ -293,6 +289,9 @@ class AbstractContainerAdmin(admin.ModelAdmin):
                 "resources.coverages.interfaces.res_type": self.coverage_manager_intf_id
             }
         )
+    
+    def get_wrapper(self, pk):
+        raise NotImplementedError()
 
     def get_actions(self, request):
         actions = super(AbstractContainerAdmin, self).get_actions(request)
@@ -312,12 +311,23 @@ class AbstractContainerAdmin(admin.ModelAdmin):
     really_delete_selected.short_description = "Delete selected entries"
     
     
+    def save_model(self, request, obj, form, change):
+        super(AbstractContainerAdmin, self).save_model(request, obj, form, change)
+        self.obj_to_sync = obj
+    
+    def try_synchronize(self):
+        obj_to_sync = getattr(self, "obj_to_sync")
+        if obj_to_sync is not None:
+            System.init()
+            mgr = self.get_manager()
+            obj_id = self.get_obj_id(pk=obj_to_sync.pk)
+            mgr.synchronize(obj_id)
+    
     def add_view(self, request, form_url="", extra_context=None):
         try:
             ret = super(AbstractContainerAdmin, self).add_view(request, form_url, extra_context)
             
-            mgr = self.get_manager()
-            #mgr.synchronize()
+            self.try_synchronize()
             
             return ret
         except:
@@ -329,8 +339,7 @@ class AbstractContainerAdmin(admin.ModelAdmin):
         try:
             ret = super(AbstractContainerAdmin, self).change_view(request, object_id, extra_context)
             
-            mgr = self.get_manager()
-            #mgr.synchronize(object_id)
+            self.try_synchronize()
             
             return ret
         except:
@@ -342,8 +351,7 @@ class AbstractContainerAdmin(admin.ModelAdmin):
         try:
             ret = super(AbstractContainerAdmin, self).changelist_view(request, extra_context)
             
-            mgr = self.get_manager()
-            #mgr.synchronize()
+            self.try_synchronize()
             
             return ret
         except:
@@ -355,15 +363,14 @@ class AbstractContainerAdmin(admin.ModelAdmin):
         try:
             ret = super(AbstractContainerAdmin, self).delete_view(request, object_id, extra_context)
             
-            mgr = self.get_manager()
-            #mgr.synchronize()
+            # TODO: need synchronization here?
             
             return ret
         except:
             raise
             messages.error(request, "Could not delete %s" % self.model._meta.verbose_name)
             return HttpResponseRedirect("..")
-
+    
 class DatasetSeries2StichedMosaicInline(admin.TabularInline):
     model = DatasetSeriesRecord.rect_stitched_mosaics.__getattribute__("through")
     verbose_name = "Dataset Series to Stitched Mosaic Relation"
@@ -386,6 +393,14 @@ class RectifiedStitchedMosaicAdmin(AbstractContainerAdmin):
             'all': ('/'+settings.MEDIA_URL+'/admin/widgets.css',)
         }
      
+    def get_obj_id(self, pk):
+        wrapper = System.getRegistry().bind("resources.coverages.wrappers.RectifiedStitchedMosaicWrapper")
+        wrapper.setModel(
+            RectifiedStitchedMosaicRecord.objects.get(pk=pk)
+        )
+        wrapper.setMutable()
+        return wrapper.getCoverageId()
+     
 admin.site.register(RectifiedStitchedMosaicRecord, RectifiedStitchedMosaicAdmin)
 
 """class DataDirInline(admin.TabularInline):
@@ -395,7 +410,7 @@ admin.site.register(RectifiedStitchedMosaicRecord, RectifiedStitchedMosaicAdmin)
     def save_model(self, request, obj, form, change):
         raise # TODO"""
 
-class DatasetSeriesAdmin(admin.ModelAdmin):
+class DatasetSeriesAdmin(AbstractContainerAdmin):
     list_display = ('eo_id', 'eo_metadata', )
     list_editable = ('eo_metadata', )
     ordering = ('eo_id', )
@@ -419,6 +434,17 @@ class DatasetSeriesAdmin(admin.ModelAdmin):
         css = {
             'all': ('/'+settings.MEDIA_URL+'/admin/widgets.css',)
         }
+        
+    def get_obj_id(self, pk):
+        wrapper = System.getRegistry().bind(
+            "resources.coverages.wrappers.DatasetSeriesWrapper"
+        )
+        
+        wrapper.setModel(
+            DatasetSeriesRecord.objects.get(pk=pk)
+        )
+        wrapper.setMutable()
+        return wrapper.getEOID()
 
 admin.site.register(DatasetSeriesRecord, DatasetSeriesAdmin)
 
