@@ -43,6 +43,13 @@ In the context of EOxServer, synchronization is the process of updating the
 database models for container objects (such as RectifiedStitchedMosaics or
 DatasetSeries) according to changes in the file system.
 
+Automatic datasets are deleted from the database, when their data files cannot
+be found in the file system. Similar, new datasets will be created when new
+files matching the search pattern in the subscripted directories are found.
+
+When datasets are added to or deleted from a container object, the metadata
+(e.g the footprint of the features of interest or the time extent of the image)
+of the container is also likely to be adjusted. 
 
 Reasons for Synchronization
 ---------------------------
