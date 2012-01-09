@@ -604,6 +604,10 @@ class RectifiedGridInterface(RegisteredInterface):
     getExtent = Method(
         returns=ObjectArg("@return", arg_class=tuple)
     )
+    
+    getResolution = Method(
+        returns=ObjectArg("@return", arg_class=tuple)
+    )
 
 class ReferenceableGridInterface(RegisteredInterface):
     """
