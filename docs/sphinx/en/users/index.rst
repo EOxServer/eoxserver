@@ -51,5 +51,6 @@ and APIs please refer to the :ref:`EOxServer Developers' Guide`.
    EO-WCS_request_parameters
    install
    admin_tutorial
+   synchronization
    idm
    soap_proxy
