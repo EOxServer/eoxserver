@@ -29,14 +29,16 @@
 
 import os
 import os.path
-from subprocess import call
-from cStringIO import StringIO
+from subprocess import call, STDOUT
+from tempfile import NamedTemporaryFile
 
 import logging
 
+from django.contrib.gis.geos import Polygon
+
 from eoxserver.core.system import System
 from eoxserver.core.readers import ConfigReaderInterface
-from eoxserver.core.exceptions import EngineError
+from eoxserver.resources.coverages.exceptions import EngineError
 
 def _call_gpt(graph_path, src_path, dst_path, options, format=None):
     gpt_path = NESTConfigReader().getGPTPath()
@@ -49,29 +51,29 @@ def _call_gpt(graph_path, src_path, dst_path, options, format=None):
     args.extend(options)
     
     if format is not None:
-        args.append("-f %s" % format)
+        args.extend(["-f", format])
     
-    args.append("-t %s" % dst_path)
+    args.extend(["-t", dst_path])
     args.append(src_path)
         
-    err_str = StringIO()
+    err_file = NamedTemporaryFile()
     
-    returncode = call(args, stderr=err_str)
+    returncode = call(args, stdout=err_file, stderr=STDOUT)
     
     if returncode or not os.path.exists(dst_path):
-        logging.error(err_str.getvalue())
+        err_file.seek(0)
         
-        err_str.close()
+        logging.error("NEST GPT Return Code: %d" % returncode)
+        
+        logging.error(err_file.read())
         
         raise EngineError(
             "NEST Error: could not create coverage."
         )
-    else:
-        err_str.close()
     
 def convert_format(src_path, dst_path, format=None):
     graph_path = os.path.join(
-        os.path.dirname(os.path.abspath(__FILE__)),
+        os.path.dirname(os.path.abspath(__file__)),
         "ConvertGraph.xml"
     )
 
@@ -84,7 +86,7 @@ def create_geo_subset(src_path, dst_path, srid, extent, format=None):
     poly.transform(4326)
     
     graph_path = os.path.join(
-        os.path.dirname(os.path.abspath(__FILE__)),
+        os.path.dirname(os.path.abspath(__file__)),
         "GeoSubsetGraph.xml"
     )
     
@@ -97,11 +99,11 @@ def create_geo_subset(src_path, dst_path, srid, extent, format=None):
 def create_pixel_subset(src_path, dst_path, extent, format=None):
     regionX = extent[0]
     regionY = extent[1]
-    width = extent[2] - extent[0]
-    height = extent[3] - extent[1]
+    width = extent[2] - extent[0] + 1
+    height = extent[3] - extent[1] + 1
     
     graph_path = os.path.join(
-        os.path.dirname(os.path.abspath(__FILE__)),
+        os.path.dirname(os.path.abspath(__file__)),
         "PixelSubsetGraph.xml"
     )
     

@@ -28,7 +28,7 @@
 #-------------------------------------------------------------------------------
 
 import os
-from tempfile import mkstemp
+from tempfile import mkstemp, mkdtemp
 from xml.dom import minidom
 from email.message import Message
 
@@ -43,6 +43,9 @@ from eoxserver.core.readers import ConfigReaderInterface
 from eoxserver.core.exceptions import InternalError, InvalidExpressionError
 from eoxserver.core.util.xmltools import DOMElementToXML
 from eoxserver.processing.gdal.reftools import rect_from_subset
+from eoxserver.processing.nest.gpt import (
+    convert_format, create_geo_subset, create_pixel_subset
+)
 from eoxserver.services.base import BaseRequestHandler
 from eoxserver.services.requests import Response
 from eoxserver.services.mapserver import (
@@ -164,12 +167,20 @@ class WCS20GetReferenceableCoverageBaseHandler(object):
             return (mime_type, format_options)
     
     def _get_temp_file(self, mime_type):
-        handle, dst_filename = mkstemp(
-            prefix = "tmp",
-            suffix = ".%s" % self.EXT_MAPPING[mime_type]
+        return os.path.join(
+            mkdtemp(),
+            "tmp.%s" % self.EXT_MAPPING[mime_type]
         )
+
+    def _remove_temp_file(self, dst_filename):
+        if os.path.exists(dst_filename):
+            os.remove(dst_filename)
         
-        return dst_filename
+        dirname = os.path.dirname(dst_filename)
+        
+        if os.path.exists(dirname):
+            os.rmdir(dirname)
+        
 
     def _get_default_response(self, dst_filename, mime_type):
         f = open(dst_filename)
@@ -185,7 +196,7 @@ class WCS20GetReferenceableCoverageBaseHandler(object):
         
         return resp
     
-    def _get_multipart_response(self, coverage, dst_filename, mime_type, cov_desc):
+    def _get_multipart_response(self, dst_filename, mime_type, cov_desc):
         
         xml_msg = Message()
         
@@ -355,14 +366,14 @@ class WCS20GetReferenceableCoverageGDALHandler(WCS20GetReferenceableCoverageBase
             
             if subset is not None:
                 if subset.crs_id != "imageCRS":
-                    cov_desc = encoder.encodeSubsetCoverageDescription(
+                    cov_desc_el = encoder.encodeSubsetCoverageDescription(
                         coverage,
                         subset.crs_id,
                         (x_size, y_size),
                         (subset.minx, subset.miny, subset.maxx, subset.maxy)
                     )
                 else:
-                    cov_desc = encoder.encodeCoverageDescription(coverage)
+                    cov_desc_el = encoder.encodeCoverageDescription(coverage)
 # TODO: this should read as follows
 #                    cov_desc = encoder.encodeSubsetCoverageDescription(
 #                        coverage,
@@ -372,10 +383,10 @@ class WCS20GetReferenceableCoverageGDALHandler(WCS20GetReferenceableCoverageBase
 #                    
 #                    )
             else:
-                cov_desc = encoder.encodeCoverageDescription(coverage)
+                cov_desc_el = encoder.encodeCoverageDescription(coverage)
             
             resp = self._get_multipart_response(
-                dst_filename, mime_type, cov_desc
+                dst_filename, mime_type, DOMElementToXML(cov_desc_el)
             )
         else:
             raise InvalidRequestException(
@@ -385,7 +396,7 @@ class WCS20GetReferenceableCoverageGDALHandler(WCS20GetReferenceableCoverageBase
             )
             
         #clean up
-        os.remove(dst_filename)
+        self._remove_temp_file(dst_filename)
         
         return resp
     
@@ -443,16 +454,16 @@ class WCS20GetReferenceableCoverageNESTHandler(WCS20GetReferenceableCoverageBase
         elif media_type == "multipart/related":
             encoder = WCS20EOAPEncoder()
             
-            if subset is not None:
-                if subset.crs_id != "imageCRS":
-                    cov_desc = encoder.encodeSubsetCoverageDescription(
-                        coverage,
-                        subset.crs_id,
-                        (x_size, y_size), # TODO!
-                        (subset.minx, subset.miny, subset.maxx, subset.maxy)
-                    )
-                else:
-                    cov_desc = encoder.encodeCoverageDescription(coverage)
+#            if subset is not None:
+#                if subset.crs_id != "imageCRS":
+#                    cov_desc = encoder.encodeSubsetCoverageDescription(
+#                        coverage,
+#                        subset.crs_id,
+#                        (x_size, y_size), # TODO!
+#                        (subset.minx, subset.miny, subset.maxx, subset.maxy)
+#                    )
+#                else:
+#                    cov_desc = encoder.encodeCoverageDescription(coverage)
 # TODO: this should read as follows
 #                    cov_desc = encoder.encodeSubsetCoverageDescription(
 #                        coverage,
@@ -461,11 +472,13 @@ class WCS20GetReferenceableCoverageNESTHandler(WCS20GetReferenceableCoverageBase
 #                        ...
 #                    
 #                    )
-            else:
-                cov_desc = encoder.encodeCoverageDescription(coverage)
+#            else:
+#                cov_desc = encoder.encodeCoverageDescription(coverage)
+            
+            cov_desc_el = encoder.encodeCoverageDescription(coverage)
             
             resp = self._get_multipart_response(
-                dst_filename, mime_type, cov_desc
+                dst_filename, mime_type, DOMElementToXML(cov_desc_el)
             )
         else:
             raise InvalidRequestException(
@@ -473,52 +486,9 @@ class WCS20GetReferenceableCoverageNESTHandler(WCS20GetReferenceableCoverageBase
                 "InvalidParameterValue",
                 "mediatype"
             )
-            
+        
         #clean up
-        os.remove(dst_filename)
-        
-        return resp
-    
-    def _get_default_response(self, dst_filename, mime_type):
-        f = open(dst_filename)
-        
-        resp = Response(
-            content_type = mime_type,
-            content = f.read(),
-            headers = {},
-            status = 200
-        )
-        
-        f.close()
-        
-        return resp
-    
-    def _get_multipart_response(self, coverage, dst_filename, mime_type, cov_desc):
-        
-        xml_msg = Message()
-        
-        xml_msg.set_payload(cov_desc)
-        xml_msg.add_header("Content-type", "text/xml")
-        
-        f = open(dst_filename)
-        
-        data = f.read()
-        
-        data_msg = Message()
-        
-        data_msg.set_payload(data)
-        data_msg.add_header("Content-type", mime_type)
-        
-        content = "--wcs\n%s\n--wcs\n%s\n--wcs--" % (xml_msg.as_string(), data_msg.as_string())
-        
-        resp = Response(
-            content = content,
-            content_type = "multipart/mixed; boundary=wcs",
-            headers = {},
-            status = 200
-        )
-        
-        f.close()
+        self._remove_temp_file(dst_filename)
         
         return resp
 
