@@ -35,7 +35,6 @@ with additional application logic.
 """
 
 import os.path
-import numpy
 import operator
 
 from django.contrib.gis.geos import GEOSGeometry
@@ -44,11 +43,7 @@ from eoxserver.core.system import System
 from eoxserver.core.resources import (
     ResourceFactoryInterface, ResourceWrapper, ResourceFactory
 )
-from eoxserver.core.exceptions import (
-    InternalError, InvalidParameterException
-)
-from eoxserver.core.util.filetools import findFiles
-from eoxserver.core.util.timetools import getDateTime
+from eoxserver.core.exceptions import InternalError
 from eoxserver.resources.coverages.models import (
     PlainCoverageRecord, RectifiedDatasetRecord,
     ReferenceableDatasetRecord, RectifiedStitchedMosaicRecord,
