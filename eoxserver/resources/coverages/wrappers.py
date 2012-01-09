@@ -36,6 +36,7 @@ with additional application logic.
 
 import os.path
 import numpy
+import operator
 
 from django.contrib.gis.geos import GEOSGeometry
 
@@ -336,6 +337,19 @@ class RectifiedGridWrapper(object):
             self.__model.extent.miny,
             self.__model.extent.maxx,
             self.__model.extent.maxy
+        )
+        
+    def getResolution(self):
+        """
+        Returns the coverage resolution as a 2-tuple of float values for the 
+        x and y axes ``(resx, resy)`` expressed in the unit of measure of the
+        coverage CRS as defined by the SRID returned by :meth:`getSRID`.
+        """
+        extent = self.getExtent()
+        size = self.getSize()
+        return (
+            (extent[2] - extent[0]) / float(size[0]),
+            (extent[3] - extent[1]) / float(size[1])
         )
 
 class ReferenceableGridWrapper(object):
@@ -1219,7 +1233,8 @@ class RectifiedStitchedMosaicWrapper(TiledDataWrapper, RectifiedGridWrapper, EOC
         """
         Adds a Rectified Dataset specified by its wrapper. An 
         :exc:`InternalError` is raised if the wrapper type is not equal to
-        ``eo.rect_dataset``.
+        ``eo.rect_dataset`` or if the grids of the dataset is not compatible to
+        the grid of the Rectified Stitched Mosaic.
         """
         res_type = wrapper.getType()
         res_id = wrapper.getModel().pk
@@ -1229,48 +1244,48 @@ class RectifiedStitchedMosaicWrapper(TiledDataWrapper, RectifiedGridWrapper, EOC
                 "Cannot add coverages of type '%s' to Rectified Stitched Mosaics" %\
                 res_type
             )
-        else:
-            if self.getSRID() != wrapper.getSRID():
-                raise InternalError(
-                    "Cannot add coverage: SRID mismatch (%d != %s)" % (
-                        self.getSRID(), wrapper.getSRID()
-                    )
+        
+        # check if SRIDs are equal
+        if self.getSRID() != wrapper.getSRID():
+            raise InternalError(
+                "Cannot add coverage: SRID mismatch (%d != %s)" % (
+                    self.getSRID(), wrapper.getSRID()
                 )
-            
-            cov_size = wrapper.getSize()
-            this_size = self.getSize()
-            
-            cov_extent = wrapper.getExtent()
-            this_extent = self.getExtent()
-            
-            cov_offsets = ((cov_extent[0] - cov_extent[2]) / float(cov_size[0]),
-                           (cov_extent[1] - cov_extent[3]) / float(cov_size[1]))
-            
-            this_offsets = ((this_extent[0] - this_extent[2]) / float(this_size[0]),
-                            (this_extent[1] - this_extent[3]) / float(this_size[1]))
-            
-            if this_offsets != cov_offsets:
-                raise InternalError(
-                    "Cannot add coverage: offset vector mismatch (%s != %s)" % (
-                        this_offsets, cov_offsets
-                    )
+            )
+        
+        EPSILON = 1e-10
+        
+        cov_extent = wrapper.getExtent()
+        this_extent = self.getExtent()
+        
+        cov_offsets = wrapper.getResolution()
+        this_offsets = self.getResolution()
+        
+        # check if offset vectors are the same
+        if (abs(this_offsets[0] - cov_offsets[0]) > EPSILON
+            or abs(this_offsets[1] - cov_offsets[1]) > EPSILON):
+            raise InternalError(
+                "Cannot add coverage: offset vector mismatch (%s != %s)" % (
+                    this_offsets, cov_offsets
                 )
-            
-            v = numpy.linalg.solve(this_offsets, numpy.array((cov_extent[:2])) - numpy.array(this_extent[:2]))
-            
-            EPSILON = 1e-10
-            
-            if not numpy.all(numpy.less(numpy.absolute((numpy.rint(v) - v) / numpy.maximum(v, 1)), EPSILON)):
-                raise InternalError("Cannot add coverage: grid mismatch.")
-            
-            if self.getRangeType() != wrapper.getRangeType():
-                raise InternalError(
-                    "Cannot add coverage: range type mismatch (%s, %s)." % (
-                        self.getRangeType().name, wrapper.getRangeType().name
-                    )
+            )
+        
+        # check if grids are the same
+        diff_origins = tuple(map(operator.sub, this_extent[:2], cov_extent[:2]))
+        v = tuple(map(operator.div, diff_origins, cov_offsets))
+        if (abs(v[0] - round(v[0])) > EPSILON
+            or abs(v[1] - round(v[1])) > EPSILON):
+            raise InternalError("Cannot add coverage: grid mismatch.")
+        
+        # check if range types are the same
+        if self.getRangeType() != wrapper.getRangeType():
+            raise InternalError(
+                "Cannot add coverage: range type mismatch (%s, %s)." % (
+                    self.getRangeType().name, wrapper.getRangeType().name
                 )
-            
-            self.__model.rect_datasets.add(res_id)
+            )
+        
+        self.__model.rect_datasets.add(res_id)
     
     def removeCoverage(self, wrapper):
         """

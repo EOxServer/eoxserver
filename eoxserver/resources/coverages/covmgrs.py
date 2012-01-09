@@ -343,7 +343,6 @@ class BaseManagerContainerMixIn(object):
                     datasets.remove(dataset)
         
         # update footprint and time extent according to contents of container
-        
         datasets.extend(new_datasets)
         if len(datasets) > 0:
             begin_time = min([dataset.getBeginTime() for dataset in datasets])
