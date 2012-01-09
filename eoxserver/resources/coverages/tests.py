@@ -100,15 +100,15 @@ class RectifiedDatasetCreateWithContainerTestCase(RectifiedDatasetCreateTestCase
         self.stitched_mosaic = mosaic_mgr.create(**{
             "data_dirs": [],
             "geo_metadata": GeospatialMetadata(
-                srid=4326, size_x=100, size_y=100,
-                extent=(1, 2, 3, 4)
+                srid=4326, size_x=1023, size_y=451,
+                extent=(-3.75, 32.158895, 28.326165, 46.3)
             ),
             "range_type_name": "RGB",
             "eo_metadata": EOMetadata(
                 "STITCHED_MOSAIC",
                 datetime.now(),
                 datetime.now(),
-                GEOSGeometry("POLYGON((1 2, 3 2, 3 4, 1 4, 1 2))")
+                GEOSGeometry("POLYGON((-3 33, 27 33, 27 45, -3 45, -3 33))")
             ),
             "storage_dir": "/some/storage/dir"
         })
@@ -117,8 +117,8 @@ class RectifiedDatasetCreateWithContainerTestCase(RectifiedDatasetCreateTestCase
         self._create_containers()
         args = {
             "local_path": os.path.join(settings.PROJECT_DIR,
-                          "data/meris/MER_FRS_1P_reduced", 
-                          "ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.tif"),
+                          "data/meris/mosaic_MER_FRS_1P_RGB_reduced", 
+                          "mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif"),
             "range_type_name": "RGB",
             "container": self.stitched_mosaic
         }
@@ -152,22 +152,22 @@ class RectifiedDatasetCreateWithContainerIDsTestCase(RectifiedDatasetCreateTestC
                 "DATASET_SERIES",
                 datetime.now(),
                 datetime.now(),
-                GEOSGeometry("POLYGON((1 2, 3 2, 3 4, 1 4, 1 2))")
+                GEOSGeometry("POLYGON((-3 33, 27 33, 27 45, -3 45, -3 33))")
             )
         })
         
         self.stitched_mosaic = mosaic_mgr.create(**{
             "data_dirs": [],
             "geo_metadata": GeospatialMetadata(
-                srid=4326, size_x=100, size_y=100,
-                extent=(1, 2, 3, 4)
+                srid=4326, size_x=1023, size_y=451,
+                extent=(-3.75, 32.158895, 28.326165, 46.3)
             ),
             "range_type_name": "RGB",
             "eo_metadata": EOMetadata(
                 "STITCHED_MOSAIC",
                 datetime.now(),
                 datetime.now(),
-                GEOSGeometry("POLYGON((1 2, 3 2, 3 4, 1 4, 1 2))")
+                GEOSGeometry("POLYGON((-3 33, 27 33, 27 45, -3 45, -3 33))")
             ),
             "storage_dir": "/some/storage/dir"
         })
@@ -176,8 +176,8 @@ class RectifiedDatasetCreateWithContainerIDsTestCase(RectifiedDatasetCreateTestC
         self._create_containers()
         args = {
             "local_path": os.path.join(settings.PROJECT_DIR,
-                          "data/meris/MER_FRS_1P_reduced", 
-                          "ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.tif"),
+                          "data/meris/mosaic_MER_FRS_1P_RGB_reduced", 
+                          "mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif"),
             "range_type_name": "RGB",
             "container_ids": [self.stitched_mosaic.getCoverageId(), self.dataset_series.getEOID()]
         }
@@ -339,7 +339,7 @@ class RectifiedDatasetUpdateEOMetadataViaSetAttrTestCase(RectifiedDatasetUpdateT
     def manage(self):
         self.begin_time = datetime.now()
         self.end_time = datetime.now()
-        self.footprint = GEOSGeometry("POLYGON((1 2, 3 2, 3 4, 1 4, 1 2))")
+        self.footprint = GEOSGeometry("POLYGON((-3 33, 12 33, 12 45, -3 45, -3 33))")
         args = {
             "obj_id": "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced",
             "set": {
@@ -431,20 +431,20 @@ class RectifiedStitchedMosaicCreateWithLocalPathTestCase(RectifiedStitchedMosaic
         args = {
             "data_dirs": [{
                 "path": os.path.join(settings.PROJECT_DIR,
-                                     "data/meris/MER_FRS_1P_reduced"),
+                                     "data/meris/mosaic_MER_FRS_1P_RGB_reduced"),
                 "search_pattern": "*.tif",
                 "type": "local"
             }],
             "geo_metadata": GeospatialMetadata(
-                srid=4326, size_x=100, size_y=100,
-                extent=(1, 2, 3, 4)
+                srid=4326, size_x=1023, size_y=451,
+                extent=(-3.75, 32.158895, 28.326165, 46.3)
             ),
             "range_type_name": "RGB",
             "eo_metadata": EOMetadata(
-                "SOMEEOID",
+                "STITCHED_MOSAIC",
                 datetime.now(),
                 datetime.now(),
-                GEOSGeometry("POLYGON((1 2, 3 2, 3 4, 1 4, 1 2))")
+                GEOSGeometry("POLYGON((-3 33, 27 33, 27 45, -3 45, -3 33))")
             ),
             "storage_dir": "/some/storage/dir"
         }
@@ -462,7 +462,7 @@ class RectifiedStitchedMosaicCreateWithRemotePathTestCase(RectifiedStitchedMosai
     def manage(self):
         args = {
             "data_dirs": [{
-                "path": "test/MER_FRS_1P_reduced",
+                "path": "test/mosaic_MER_FRS_1P_RGB_reduced",
                 "search_pattern": "*.tif",
                 "type": "ftp",
                 
