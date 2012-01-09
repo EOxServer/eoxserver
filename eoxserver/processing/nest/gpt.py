@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# $Id: getcov.py 1051 2012-01-03 15:52:45Z krauses $
+# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>

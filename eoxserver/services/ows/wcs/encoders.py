@@ -211,7 +211,7 @@ class CoverageGML10Encoder(XMLEncoder):
             ])
     
     def encodeSubsetDomainSet(self, coverage, srid, size, extent):
-        if coveragge.getType() == "eo.ref_dataset":
+        if coverage.getType() == "eo.ref_dataset":
             return self._makeElement("gml", "domainSet", [
                 (self.encodeReferenceableGrid(
                     size,
@@ -484,7 +484,7 @@ class WCS20EOAPEncoder(WCS20Encoder):
         
         return self._makeElement("wcs", "CoverageDescription", [
             ("@gml", "id", self._getGMLId(coverage.getCoverageId())),
-            (self.encodeBoundedBy(wgs84_extent),),
+            (self.encodeBoundedBy(*wgs84_extent),),
             ("wcs", "CoverageId", coverage.getCoverageId()),
             (self.encodeEOMetadata(coverage),),
             (self.encodeSubsetDomainSet(coverage, srid, size, extent),),
