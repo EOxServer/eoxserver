@@ -82,8 +82,8 @@ class GeospatialMetadata(object):
         
         xl = gt[0]
         yl = gt[3]
-        xh = gt[0] + (ds.RasterXSize - 1) * gt[1]
-        yh = gt[3] + (ds.RasterYSize - 1) * gt[5]
+        xh = gt[0] + ds.RasterXSize * gt[1]
+        yh = gt[3] + ds.RasterYSize * gt[5]
         
         extent = (
             min(xl, xh), min(yl, yh), max(xl, xh), max(yl, yh)
