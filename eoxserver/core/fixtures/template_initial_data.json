@@ -758,7 +758,7 @@
             "impl_id": "services.connectors.RasdamanArrayConnector", 
             "intf_id": "services.mapserver.MapServerDataConnectorInterface"
         }
-    },
+    }, 
     {
         "pk": 96, 
         "model": "core.implementation", 
@@ -766,7 +766,7 @@
             "impl_id": "backends.local.LocalStorage", 
             "intf_id": "backends.interfaces.Storage"
         }
-    },
+    }, 
     {
         "pk": 97, 
         "model": "core.implementation", 
@@ -774,7 +774,7 @@
             "impl_id": "backends.local.LocalPathWrapper", 
             "intf_id": "backends.interfaces.LocalPath"
         }
-    },
+    }, 
     {
         "pk": 98, 
         "model": "core.implementation", 
@@ -782,7 +782,7 @@
             "impl_id": "backends.ftp.FTPStorage", 
             "intf_id": "backends.interfaces.Storage"
         }
-    },
+    }, 
     {
         "pk": 99, 
         "model": "core.implementation", 
@@ -790,7 +790,7 @@
             "impl_id": "backends.ftp.RemotePathWrapper", 
             "intf_id": "backends.interfaces.RemotePath"
         }
-    },
+    }, 
     {
         "pk": 100, 
         "model": "core.implementation", 
@@ -798,7 +798,7 @@
             "impl_id": "backends.rasdaman.RasdamanStorage", 
             "intf_id": "backends.interfaces.Storage"
         }
-    },
+    }, 
     {
         "pk": 101, 
         "model": "core.implementation", 
@@ -806,7 +806,7 @@
             "impl_id": "backends.rasdaman.RasdamanArrayWrapper", 
             "intf_id": "backends.interfaces.RasdamanArray"
         }
-    },
+    }, 
     {
         "pk": 102, 
         "model": "core.implementation", 
@@ -814,7 +814,7 @@
             "impl_id": "backends.factories.LocationFactory", 
             "intf_id": "core.registry.Factory"
         }
-    },
+    }, 
     {
         "pk": 103, 
         "model": "core.implementation", 
@@ -923,28 +923,36 @@
         "pk": 116, 
         "model": "core.implementation", 
         "fields": {
-            "impl_id": "resources.coverages.filters.LocationReferencesDatasetExpression", 
-            "intf_id": "core.filters.FilterExpression"
+            "impl_id": "resources.coverages.filters.LocationReferencesReferencableDatasetFilter", 
+            "intf_id": "core.filters.Filter"
         }
     }, 
     {
         "pk": 117, 
         "model": "core.implementation", 
         "fields": {
-            "impl_id": "resources.coverages.filters.LocationReferencesReferencableDatasetFilter", 
-            "intf_id": "core.filters.Filter"
+            "impl_id": "resources.coverages.filters.LocationReferencesDatasetExpression", 
+            "intf_id": "core.filters.FilterExpression"
         }
     }, 
     {
         "pk": 118, 
         "model": "core.implementation", 
         "fields": {
-            "impl_id": "services.ows.wcs11Transaction.WCS11VersionHandler", 
-            "intf_id": "services.interfaces.VersionHandler"
+            "impl_id": "resources.coverages.filters.ContainsCoverageExpression", 
+            "intf_id": "core.filters.FilterExpression"
         }
     }, 
     {
         "pk": 119, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.covmgrs.ReferenceableDatasetManager", 
+            "intf_id": "resources.coverages.interfaces.Manager"
+        }
+    }, 
+    {
+        "pk": 120, 
         "model": "core.implementation", 
         "fields": {
             "impl_id": "services.ows.wcs11Transaction.WCS11TransactionHandler",
@@ -1706,28 +1714,28 @@
         "fields": {
             "enabled": true
         }
-    } , 
+    }, 
     {
         "pk": 109, 
         "model": "core.component", 
         "fields": {
             "enabled": true
         }
-    } , 
+    }, 
     {
         "pk": 110, 
         "model": "core.component", 
         "fields": {
             "enabled": true
         }
-    } , 
+    }, 
     {
         "pk": 111, 
         "model": "core.component", 
         "fields": {
             "enabled": true
         }
-    } , 
+    }, 
     {
         "pk": 112, 
         "model": "core.component", 
@@ -1783,5 +1791,12 @@
         "fields": {
             "enabled": true
         }
-    } 
+    }, 
+    {
+        "pk": 120, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }
 ]
