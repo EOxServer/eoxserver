@@ -65,17 +65,18 @@ class GeospatialMetadata(object):
         """
         gt = ds.GetGeoTransform()
         
-        srs = osr.SpatialReference()
-        srs.ImportFromWkt(ds.GetProjection())
-        
-        srs.AutoIdentifyEPSG()
-        if srs.IsProjected():
-            srid = srs.GetAuthorityCode("PROJCS")
-        elif srs.IsGeographic():
-            srid = srs.GetAuthorityCode("GEOGCS")
-        else:
-            srid = None
-        
+        srid = None
+        projection = ds.GetProjection()
+        if projection is not None and len(projection) != 0:
+            srs = osr.SpatialReference()
+            srs.ImportFromWkt(projection)
+            
+            srs.AutoIdentifyEPSG()
+            if srs.IsProjected():
+                srid = srs.GetAuthorityCode("PROJCS")
+            elif srs.IsGeographic():
+                srid = srs.GetAuthorityCode("GEOGCS")
+            
         if srid is None and default_srid is not None:
             srid = int(default_srid)
         elif srid is None:
