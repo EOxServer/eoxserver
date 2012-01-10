@@ -510,6 +510,9 @@ class CoverageManagerDatasetMixIn(object):
         
         if not geo_metadata and data_package:
             geo_metadata = data_package.readGeospatialMetadata(default_srid)
+            if geo_metadata is None:
+                raise InternalError("Geospatial Metadata could not be read from "
+                                    "the dataset.")
             
         return geo_metadata
 
@@ -789,9 +792,51 @@ RectifiedDatasetManagerImplementation = \
 ManagerInterface.implement(RectifiedDatasetManager)
 
 class ReferenceableDatasetManager(EODatasetManager):
-    pass
+    # TODO documentation
+    """
     
-    # TODO: implement referenceable grid coverages
+    """
+    REGISTRY_CONF = {
+        "name": "Referenceable Dataset Manager",
+        "impl_id": "resources.coverages.covmgrs.ReferenceableDatasetManager",
+        "registry_values": {
+            "resources.coverages.interfaces.res_type": "eo.ref_dataset"
+        }
+    }
+    
+    def delete(self, obj_id):
+        wrapper = self.coverage_factory.get(
+            impl_id="resources.coverages.wrappers.ReferenceableDatasetWrapper",
+            obj_id=obj_id
+        )
+        if not wrapper:
+            raise NoSuchCoverageException(obj_id)
+        wrapper.deleteModel()
+    
+    def _validate_type(self, coverage):
+        return coverage.getType() == "eo.ref_dataset"
+    
+    def _create_coverage(self, coverage_id, data_package, data_source, geo_metadata, range_type_name, layer_metadata, eo_metadata, container, containers):
+        return self.coverage_factory.create(
+            impl_id="resources.coverages.wrappers.ReferenceableDatasetWrapper",
+            params={
+                "coverage_id": coverage_id,
+                "data_package": data_package,
+                "data_source": data_source,
+                "geo_metadata": geo_metadata,
+                "range_type_name": range_type_name,
+                "layer_metadata": layer_metadata,
+                "eo_metadata": eo_metadata,
+                "container": container,
+                "containers": containers
+            }
+        )
+    
+    def _get_id_prefix(self):
+        return "ref_dataset"
+    
+ReferenceableDatasetManagerImplementation = \
+ManagerInterface.implement(ReferenceableDatasetManager)
     
 class RectifiedStitchedMosaicManager(BaseManagerContainerMixIn, CoverageManager):
     """
