@@ -53,7 +53,7 @@ class WCS20VersionHandler(OWSCommonVersionHandler):
     
     def _handleException(self, req, exception):
         schemas = {
-            "http://www.opengis.net/wcseo/1.0": "http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd"
+            "http://www.opengis.net/ows/2.0": "http://schemas.opengis.net/ows/2.0/owsAll.xsd"
         }
         handler = OWSCommonExceptionHandler(schemas)
         
