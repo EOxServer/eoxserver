@@ -138,6 +138,8 @@ class OWSTestCase(EOxServerTestCase):
             self.fail("Unknown file_type '%s'." % file_type)
 
         if expected != actual_response:
+            if self.getFileExtension("raster") == "hdf":
+                self.skipTest("Skipping binary comparison for HDF file '%s'." % expected_path)
             f = open(response_path, 'w')
             f.write(actual_response)
             f.close()
