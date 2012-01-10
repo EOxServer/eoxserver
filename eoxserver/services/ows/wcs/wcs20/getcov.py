@@ -340,7 +340,7 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
         
         return resp
     
-    def _get_multipart_response(self, coverage, dst_filename, mime_type, cov_desc):
+    def _get_multipart_response(self, dst_filename, mime_type, cov_desc):
         
         xml_msg = Message()
         
