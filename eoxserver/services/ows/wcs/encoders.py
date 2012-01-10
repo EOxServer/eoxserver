@@ -89,7 +89,10 @@ class GMLEncoder(XMLEncoder):
         
         
         
-        sub_elements = [("@gml", "id", "multisurface_%s" % base_id)]
+        sub_elements = [
+            ("@gml", "id", "multisurface_%s" % base_id),
+            ("@", "srsName", "EPSG:4326")
+        ]
         sub_elements.extend([
             ("gml", "surfaceMember", [
                 (poly_element,)
