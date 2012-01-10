@@ -39,7 +39,7 @@ from django.db.models.loading import get_app
 
 from eoxserver.core.system import System
 
-BASE_FIXTURES = ["initial_rangetypes.json", "testing_base.json"]
+BASE_FIXTURES = ["initial_rangetypes.json", "testing_base.json", "testing_asar_base.json"]
 
 class TestSchemaFactory(object):
     schemas = {}
