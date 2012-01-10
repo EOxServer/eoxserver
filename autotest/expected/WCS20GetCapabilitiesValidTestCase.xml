@@ -13,7 +13,10 @@ Copyright (C) European Space Agency - ESA
       <ows:Keyword>WCS EO-AP</ows:Keyword>
       <ows:Keyword>WCS 2.0</ows:Keyword>
       <ows:Keyword>WCS</ows:Keyword>
+      <ows:Keyword>WMS</ows:Keyword>
+      <ows:Keyword>EO-WMS</ows:Keyword>
       <ows:Keyword>MERIS</ows:Keyword>
+      <ows:Keyword>ASAR</ows:Keyword>
       <ows:Keyword>Envisat</ows:Keyword>
     </ows:Keywords>
     <ows:ServiceType codeSpace="OGC">OGC WCS</ows:ServiceType>
