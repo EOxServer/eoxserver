@@ -32,6 +32,7 @@ MAP
 #    MAXSIZE 2048 # Defaults to 2048 in MapServer
    
 #    CONFIG "MS_ERRORFILE" "stderr"
+#    DEBUG 5
 
     WEB
         METADATA
@@ -45,7 +46,7 @@ MERIS L1b sample data available at: http://earth.esa.int/object/index.cfm?fobjec
 
 Copyright (C) European Space Agency - ESA
 "
-            "ows_service_onlineresource"        "http://eoxserver.org/ows?"
+            "ows_service_onlineresource"        "http://eoxserver.org"
             "ows_accessconstraints"             "None"
             "ows_fees"                          "None"
             "ows_addresstype"                   "postal"

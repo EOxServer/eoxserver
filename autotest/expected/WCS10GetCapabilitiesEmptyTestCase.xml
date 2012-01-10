@@ -35,7 +35,7 @@
     <country>Austria</country>
     <electronicMailAddress>office@eox.at</electronicMailAddress>
     </address>
-    <onlineResource xlink:type="simple" xlink:href="http://eoxserver.org/ows?"/>
+    <onlineResource xlink:type="simple" xlink:href="http://eoxserver.org"/>
   </contactInfo>
 </responsibleParty>
   <fees>None</fees>

@@ -21,7 +21,7 @@ Copyright (C) European Space Agency - ESA
           <Keyword>MERIS</Keyword>
           <Keyword>Envisat</Keyword>
         </KeywordList>
-  <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://eoxserver.org/ows?"/>
+  <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://eoxserver.org"/>
   <ContactInformation>
     <ContactPersonPrimary>
       <ContactPerson>Stephan Meissl</ContactPerson>

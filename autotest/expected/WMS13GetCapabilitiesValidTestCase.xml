@@ -21,7 +21,7 @@ Copyright (C) European Space Agency - ESA
           <Keyword>MERIS</Keyword>
           <Keyword>Envisat</Keyword>
         </KeywordList>
-  <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://eoxserver.org/ows?"/>
+  <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://eoxserver.org"/>
   <ContactInformation>
     <ContactPersonPrimary>
       <ContactPerson>Stephan Meissl</ContactPerson>
@@ -151,6 +151,19 @@ Copyright (C) European Space Agency - ESA
     <BoundingBox CRS="EPSG:4326"
                 minx="-1" miny="-1" maxx="-1" maxy="-1" />
     <Layer queryable="0" opaque="0" cascaded="0">
+        <Name>ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775</Name>
+        <Title>ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775</Title>
+        <CRS>EPSG:4326</CRS>
+    <EX_GeographicBoundingBox>
+        <westBoundLongitude>16.7276</westBoundLongitude>
+        <eastBoundLongitude>22.3018</eastBoundLongitude>
+        <southBoundLatitude>-36.2591</southBoundLatitude>
+        <northBoundLatitude>-31.9849</northBoundLatitude>
+    </EX_GeographicBoundingBox>
+        <BoundingBox CRS="EPSG:4326"
+                    minx="-36.2591" miny="16.7276" maxx="-31.9849" maxy="22.3018" />
+    </Layer>
+    <Layer queryable="0" opaque="0" cascaded="0">
         <Name>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</Name>
         <Title>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</Title>
         <CRS>EPSG:4326</CRS>
@@ -188,6 +201,20 @@ Copyright (C) European Space Agency - ESA
     </EX_GeographicBoundingBox>
         <BoundingBox CRS="EPSG:4326"
                     minx="32.1589" miny="-3.75" maxx="46.3" maxy="28.3262" />
+    </Layer>
+    <Layer queryable="0" opaque="0" cascaded="0">
+        <Name>MER_FRS_1P_reduced</Name>
+        <Title>MER_FRS_1P_reduced</Title>
+        <CRS>EPSG:4326</CRS>
+    <EX_GeographicBoundingBox>
+        <westBoundLongitude>-4.04297</westBoundLongitude>
+        <eastBoundLongitude>33.1348</eastBoundLongitude>
+        <southBoundLatitude>32.0801</southBoundLatitude>
+        <northBoundLatitude>45.1758</northBoundLatitude>
+    </EX_GeographicBoundingBox>
+        <BoundingBox CRS="EPSG:4326"
+                    minx="32.0801" miny="-4.04297" maxx="45.1758" maxy="33.1348" />
+        <Dimension name="time" units="ISO8601" nearestValue="0">2008-08-30T10:09:49Z,2006-08-16T09:09:29Z,2006-08-22T09:20:58Z,2006-08-16T09:09:29Z,2006-08-16T00:00:00Z</Dimension>
     </Layer>
   </Layer>
 </Capability>

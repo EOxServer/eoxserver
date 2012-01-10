@@ -32,7 +32,7 @@ Copyright (C) European Space Agency - ESA
   </ows:ServiceIdentification>
   <ows:ServiceProvider>
     <ows:ProviderName>EOX IT Services GmbH - HG Wien - FN 312068z - UID ATU64265057</ows:ProviderName>
-    <ows:ProviderSite xlink:href="http://eoxserver.org/ows?" xlink:type="simple"/>
+    <ows:ProviderSite xlink:href="http://eoxserver.org" xlink:type="simple"/>
     <ows:ServiceContact>
       <ows:IndividualName>Stephan Meissl</ows:IndividualName>
       <ows:PositionName>Senior IT Consultant</ows:PositionName>
@@ -49,7 +49,7 @@ Copyright (C) European Space Agency - ESA
           <ows:Country>Austria</ows:Country>
           <ows:ElectronicMailAddress>office@eox.at</ows:ElectronicMailAddress>
         </ows:Address>
-        <ows:OnlineResource xlink:href="http://eoxserver.org/ows?" xlink:type="simple"/>
+        <ows:OnlineResource xlink:href="http://eoxserver.org" xlink:type="simple"/>
         <ows:HoursOfService>Mon - Fri 10:30 - 17:00 CET and CEST respectively excl. Austrian holidays</ows:HoursOfService>
         <ows:ContactInstructions>E-mails are usually answered within 3 working days.</ows:ContactInstructions>
       </ows:ContactInfo>
