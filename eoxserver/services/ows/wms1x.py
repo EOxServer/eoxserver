@@ -158,7 +158,11 @@ class WMSCommonHandler(MapServerOperationHandler):
         layer = super(WMSCommonHandler, self).getMapServerLayer(coverage)
         layer.setMetaData("wms_label", coverage.getCoverageId())
         
-        if coverage.getType() != "eo.ref_dataset":
+        if coverage.getType() == "eo.ref_dataset":
+            layer.setMetaData("ows_srs", "EPSG:4326")
+            layer.setMetaData("wms_extent", "%f %f %f %f" % coverage.getFootprint().extent)
+            layer.setExtent(*coverage.getFootprint().extent)
+        else:
             layer.setMetaData("ows_srs", "EPSG:%d" % int(coverage.getSRID()))
             layer.setMetaData("wms_extent", "%f %f %f %f" % coverage.getExtent())
             layer.setExtent(*coverage.getExtent())
@@ -195,6 +199,7 @@ class WMSCommonHandler(MapServerOperationHandler):
                 vrt_path = self.rectify(coverage)
                 
                 layer.data = vrt_path
+                layer.addProcessing("SCALE=1,2000") # TODO: Make the scale configurable.
                 
                 logging.debug("EOxSWMSCommonHandler.getMapServerLayer: filename: %s" % layer.data)
                 
@@ -307,7 +312,7 @@ class WMS1XGetCapabilitiesHandler(WMSCommonHandler):
         
         layer.setConnectionType(mapscript.MS_RASTER, '')
         layer.setMetaData("wms_enable_request", "*")
-        layer.status = mapscript.MS_DEFAULT
+        layer.status = mapscript.MS_ON
 
         # use a dummy coverage to connect to
         
