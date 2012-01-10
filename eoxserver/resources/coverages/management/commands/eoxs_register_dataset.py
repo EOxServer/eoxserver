@@ -31,9 +31,11 @@
 import os.path
 from optparse import make_option
 
+from osgeo import gdal
 from django.core.management.base import BaseCommand, CommandError
 
 from eoxserver.core.system import System
+from eoxserver.resources.coverages.geo import GeospatialMetadata
 from eoxserver.resources.coverages.management.commands import (
     CommandOutputMixIn, _variable_args_cb
 )
@@ -235,10 +237,17 @@ class Command(CommandOutputMixIn, BaseCommand):
                 ), 2
             )
         
-        mgr = System.getRegistry().findAndBind(
+        rect_mgr = System.getRegistry().findAndBind(
             intf_id="resources.coverages.interfaces.Manager",
             params={
                 "resources.coverages.interfaces.res_type": "eo.rect_dataset"
+            }
+        )
+        
+        ref_mgr = System.getRegistry().findAndBind(
+            intf_id="resources.coverages.interfaces.Manager",
+            params={
+                "resources.coverages.interfaces.res_type": "eo.ref_dataset"
             }
         )
         
@@ -255,6 +264,7 @@ class Command(CommandOutputMixIn, BaseCommand):
                 "default_srid": default_srid,
                 "container_ids": datasetseries_eoids + stitchedmosaic_eoids 
             }
+            
             if mode == 'local':
                 self.print_msg("\tFile: '%s'\n\tMeta-data: '%s'" % (df, mdf), 2)
                 args.update({
@@ -294,8 +304,21 @@ class Command(CommandOutputMixIn, BaseCommand):
                     "ras_passwd": password,
                     "ras_db": database
                 })
+            
+            #===================================================================
+            # Get the right manager
+            #===================================================================
+            mgr_to_use = rect_mgr
+            
+            geo_metadata = GeospatialMetadata.readFromDataset(gdal.Open(df))
+            if geo_metadata is not None:
+                args["geo_metadata"] = geo_metadata
                 
-            mgr.create(**args)
+                if geo_metadata.is_referenceable:
+                    mgr_to_use = ref_mgr
+                    self.print_msg("\t'%s' is referenceable." % df, 2)
+                
+            mgr_to_use.create(**args)
         
         self.print_msg("Successfully inserted %d dataset%s." % (
                 len(datafiles), "s" if len(datafiles) > 1 else ""

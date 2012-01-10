@@ -355,7 +355,20 @@ class ReferenceableGridWrapper(object):
     .. note:: The design for referenceable grids is yet TBD.
     """
     
-    pass
+    def _get_create_dict(self, params):
+        create_dict = super(ReferenceableGridWrapper, self)._get_create_dict(params)
+        
+        if "geo_metadata" not in params:
+            raise InternalError(
+                "Missing mandatory 'coverage_id' parameter for RectifiedDataset creation."
+            )
+        
+        geo_metadata = params["geo_metadata"]
+        
+        create_dict["size_x"] = geo_metadata.size_x
+        create_dict["size_y"] = geo_metadata.size_y
+
+        return create_dict
 
 class PackagedDataWrapper(object):
     """
@@ -847,7 +860,7 @@ class RectifiedDatasetWrapper(RectifiedGridWrapper, EODatasetWrapper):
 RectifiedDatasetWrapperImplementation = \
 RectifiedDatasetInterface.implement(RectifiedDatasetWrapper)
 
-class ReferenceableDatasetWrapper(EODatasetWrapper, ReferenceableGridWrapper):
+class ReferenceableDatasetWrapper(ReferenceableGridWrapper, EODatasetWrapper):
     """
     This is the wrapper for Referenceable Datasets. It inherits from
     :class:`EODatasetWrapper` and :class:`ReferenceableGridWrapper`.
@@ -901,12 +914,23 @@ class ReferenceableDatasetWrapper(EODatasetWrapper, ReferenceableGridWrapper):
     
     # NOTE: partially implemented in ResourceWrapper
     
-    @property
-    def __model(self):
+    def __get_model(self):
         return self._ResourceWrapper__model
     
-    def _createModel(self, params):
-        pass # TODO
+    def __set_model(self, model):
+        self._ResourceWrapper__model = model
+        
+    __model = property(__get_model, __set_model)
+    
+    def _create_model(self, create_dict):
+        self.__model = ReferenceableDatasetRecord.objects.create(**create_dict)
+        
+    def _post_create(self, params):
+        if "container" in params and params["container"]:
+            params["container"].addCoverage(self)
+        containers = params.get("containers", [])
+        for container in containers:
+            container.addCoverage(self)
     
     #-------------------------------------------------------------------
     # CoverageInterface implementations
