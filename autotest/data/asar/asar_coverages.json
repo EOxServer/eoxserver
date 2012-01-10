@@ -69,42 +69,5 @@
         "fields": {
             "path": "../autotest/data/asar/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.N1"
         }
-    },
-    {
-        "pk": 4, 
-        "model": "coverages.rangetyperecord", 
-        "fields": {
-            "name": "ASAR",
-            "data_type": 2
-        }
-    }, 
-    {
-        "pk": 20, 
-        "model": "coverages.bandrecord", 
-        "fields": {
-            "definition": "http://www.opengis.net/def/property/OGC/0/Amplitude", 
-            "name": "ASAR_Amplitude", 
-            "nil_values": [2], 
-            "identifier": "ASAR_Amplitude", 
-            "uom": "?", 
-            "description": "ASAR Amplitude Band"
-        }
-    }, 
-    {
-        "pk": 2, 
-        "model": "coverages.nilvaluerecord", 
-        "fields": {
-            "reason": "http://www.opengis.net/def/nil/OGC/0/unknown", 
-            "value": 0
-        }
-    },  
-    {
-        "pk": 20, 
-        "model": "coverages.rangetype2band", 
-        "fields": {
-            "range_type": 4, 
-            "band": 20, 
-            "no": 1
-        }
     }
 ]
