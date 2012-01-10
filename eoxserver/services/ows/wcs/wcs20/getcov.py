@@ -292,16 +292,16 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
             
             if subset is not None:
                 if subset.crs_id != "imageCRS":
-                    cov_desc = encoder.encodeSubsetCoverageDescription(
+                    cov_desc_el = encoder.encodeSubsetCoverageDescription(
                         coverage,
                         subset.crs_id,
                         (x_size, y_size),
                         (subset.minx, subset.miny, subset.maxx, subset.maxy)
                     )
                 else:
-                    cov_desc = encoder.encodeCoverageDescription(coverage)
+                    cov_desc_el = encoder.encodeCoverageDescription(coverage)
 # TODO: this should read as follows
-#                    cov_desc = encoder.encodeSubsetCoverageDescription(
+#                    cov_desc_el = encoder.encodeSubsetCoverageDescription(
 #                        coverage,
 #                        4326,
 #                        (x_size, y_size),
@@ -309,10 +309,10 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
 #                    
 #                    )
             else:
-                cov_desc = encoder.encodeCoverageDescription(coverage)
+                cov_desc_el = encoder.encodeCoverageDescription(coverage)
             
             resp = self._get_multipart_response(
-                dst_filename, mime_type, cov_desc
+                dst_filename, mime_type, DOMElementToXML(cov_desc_el)
             )
         else:
             raise InvalidRequestException(
