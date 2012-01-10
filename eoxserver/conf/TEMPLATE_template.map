@@ -32,13 +32,14 @@ MAP
 #    MAXSIZE 2048 # Defaults to 2048 in MapServer
    
 #    CONFIG "MS_ERRORFILE" "stderr"
+#    DEBUG 5
 
     WEB
         METADATA
             "ows_updatesequence"                "20110529T133000Z"
             "ows_title"                         "Test configuration of MapServer used to demonstrate EOxServer"
             "ows_abstract"                      "Test configuration of MapServer used to demonstrate EOxServer"
-            "ows_service_onlineresource"        "http://localhost:8000/ows?"
+            "ows_service_onlineresource"        "http://eoxserver.org"
             "ows_accessconstraints"             "None"
             "ows_fees"                          "None"
             "ows_addresstype"                   "postal"
