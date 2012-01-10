@@ -287,7 +287,7 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
         
         if media_type is None:
             resp = self._get_default_response(dst_filename, mime_type)
-        elif media_type == "multipart/related":
+        elif media_type == "multipart/related" or media_type == "multipart/mixed":
             encoder = WCS20EOAPEncoder()
             
             if subset is not None:
