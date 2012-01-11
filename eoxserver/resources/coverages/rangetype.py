@@ -170,7 +170,7 @@ class RangeType(object):
         elif dt == gdal.GDT_Float32:
             return 38
         else:
-            raise NotImplemented()
+            raise NotImplemented
         
     def getAllowedValues(self):
         dt = self.data_type
@@ -187,7 +187,7 @@ class RangeType(object):
         elif dt == gdal.GDT_Float32:
             return (-3.40282e+38, 3.40282e+38)
         else:
-            raise NotImplemented()
+            raise NotImplemented
     
 
 # TODO: rewrite this function according to new RangeType definition
