@@ -35,8 +35,7 @@ with additional application logic.
 """
 
 import os.path
-
-import logging
+import operator
 
 from django.contrib.gis.geos import GEOSGeometry
 
@@ -44,11 +43,7 @@ from eoxserver.core.system import System
 from eoxserver.core.resources import (
     ResourceFactoryInterface, ResourceWrapper, ResourceFactory
 )
-from eoxserver.core.exceptions import (
-    InternalError, InvalidParameterException
-)
-from eoxserver.core.util.filetools import findFiles
-from eoxserver.core.util.timetools import getDateTime
+from eoxserver.core.exceptions import InternalError
 from eoxserver.resources.coverages.models import (
     PlainCoverageRecord, RectifiedDatasetRecord,
     ReferenceableDatasetRecord, RectifiedStitchedMosaicRecord,
@@ -338,6 +333,19 @@ class RectifiedGridWrapper(object):
             self.__model.extent.maxx,
             self.__model.extent.maxy
         )
+        
+    def getResolution(self):
+        """
+        Returns the coverage resolution as a 2-tuple of float values for the 
+        x and y axes ``(resx, resy)`` expressed in the unit of measure of the
+        coverage CRS as defined by the SRID returned by :meth:`getSRID`.
+        """
+        extent = self.getExtent()
+        size = self.getSize()
+        return (
+            (extent[2] - extent[0]) / float(size[0]),
+            (extent[3] - extent[1]) / float(size[1])
+        )
 
 class ReferenceableGridWrapper(object):
     """
@@ -347,7 +355,20 @@ class ReferenceableGridWrapper(object):
     .. note:: The design for referenceable grids is yet TBD.
     """
     
-    pass
+    def _get_create_dict(self, params):
+        create_dict = super(ReferenceableGridWrapper, self)._get_create_dict(params)
+        
+        if "geo_metadata" not in params:
+            raise InternalError(
+                "Missing mandatory 'coverage_id' parameter for RectifiedDataset creation."
+            )
+        
+        geo_metadata = params["geo_metadata"]
+        
+        create_dict["size_x"] = geo_metadata.size_x
+        create_dict["size_y"] = geo_metadata.size_y
+
+        return create_dict
 
 class PackagedDataWrapper(object):
     """
@@ -493,7 +514,8 @@ class EOMetadataWrapper(object):
             
             self.__model.eo_id = eo_md.getEOID()
             
-            record.save()
+            self.__model.eo_metadata = record
+            self.__model.eo_metadata.save()
         
         if eo_id is not None:
             self.__model.eo_id = eo_id
@@ -666,22 +688,22 @@ class RectifiedDatasetWrapper(RectifiedGridWrapper, EODatasetWrapper):
     
     .. attribute:: FIELDS
       
-        * ``eo_id``: the EO ID of the mosaic; value must be a string
+        * ``eo_id``: the EO ID of the dataset; value must be a string
         * ``begin_time``: the begin time of the eo metadata entry
         * ``end_time``: the end time of the eo metadata entry
-        * ``footprint``: the footprint of the mosaic
-        * ``srid``: the SRID of the mosaic's CRS; value must be an integer
+        * ``footprint``: the footprint of the dataset
+        * ``srid``: the SRID of the dataset's CRS; value must be an integer
         * ``size_x``: the width of the coverage in pixels; value must be
           an integer
         * ``size_y``: the height of the coverage in pixels; value must be
           an integer
-        * ``minx``: the left hand bound of the mosaic's extent; value must
+        * ``minx``: the left hand bound of the dataset's extent; value must
           be numeric
-        * ``miny``: the lower bound of the mosaic's extent; value must be
+        * ``miny``: the lower bound of the dataset's extent; value must be
           numeric
-        * ``maxx``: the right hand bound of the mosaic's extent; value must
+        * ``maxx``: the right hand bound of the dataset's extent; value must
           be numeric
-        * ``maxy``: the upper bound of the mosaic's extent; value must be
+        * ``maxy``: the upper bound of the dataset's extent; value must be
           numeric
         * ``visible``: the visibility of the coverage (for DescribeCoverage
           requests); boolean
@@ -838,25 +860,28 @@ class RectifiedDatasetWrapper(RectifiedGridWrapper, EODatasetWrapper):
 RectifiedDatasetWrapperImplementation = \
 RectifiedDatasetInterface.implement(RectifiedDatasetWrapper)
 
-class ReferenceableDatasetWrapper(EODatasetWrapper, ReferenceableGridWrapper):
+class ReferenceableDatasetWrapper(ReferenceableGridWrapper, EODatasetWrapper):
     """
     This is the wrapper for Referenceable Datasets. It inherits from
     :class:`EODatasetWrapper` and :class:`ReferenceableGridWrapper`.
     
-    The following attributes are recognized:
+    .. attribute:: FIELDS
     
-    * ``eo_id``: the EO ID of the dataset; value must be a string
-    * ``filename``: the path to the dataset; value must be a string
-    * ``metadata_filename``: the path to the accompanying metadata
-      file; value must be a string
-    * ``size_x``: the width of the coverage in pixels; value must be
-      an integer
-    * ``size_y``: the height of the coverage in pixels; value must be
-      an integer
-    * ``visible``: the ``visible`` attribute of the dataset; value must
-      be boolean
-    * ``automatic``: the ``automatic`` attribute of the dataset; value
-      must be boolean
+        * ``eo_id``: the EO ID of the dataset; value must be a string
+        * ``begin_time``: the begin time of the eo metadata entry
+        * ``end_time``: the end time of the eo metadata entry
+        * ``footprint``: the footprint of the dataset
+        * ``filename``: the path to the dataset; value must be a string
+        * ``metadata_filename``: the path to the accompanying metadata
+          file; value must be a string
+        * ``size_x``: the width of the coverage in pixels; value must be
+          an integer
+        * ``size_y``: the height of the coverage in pixels; value must be
+          an integer
+        * ``visible``: the ``visible`` attribute of the dataset; value must
+          be boolean
+        * ``automatic``: the ``automatic`` attribute of the dataset; value
+          must be boolean
     
     .. note:: The design of Referenceable Datasets is still TBD.
     """
@@ -877,7 +902,10 @@ class ReferenceableDatasetWrapper(EODatasetWrapper, ReferenceableGridWrapper):
         "size_x": "size_x",
         "size_y": "size_y",
         "visible": "visible",
-        "automatic": "automatic"
+        "automatic": "automatic",
+        "begin_time": "eo_metadata__timestamp_begin",
+        "end_time": "eo_metadata__timestamp_end",
+        "footprint": "eo_metadata__footprint"
     }
     
     #-------------------------------------------------------------------
@@ -886,12 +914,23 @@ class ReferenceableDatasetWrapper(EODatasetWrapper, ReferenceableGridWrapper):
     
     # NOTE: partially implemented in ResourceWrapper
     
-    @property
-    def __model(self):
+    def __get_model(self):
         return self._ResourceWrapper__model
     
-    def _createModel(self, params):
-        pass # TODO
+    def __set_model(self, model):
+        self._ResourceWrapper__model = model
+        
+    __model = property(__get_model, __set_model)
+    
+    def _create_model(self, create_dict):
+        self.__model = ReferenceableDatasetRecord.objects.create(**create_dict)
+        
+    def _post_create(self, params):
+        if "container" in params and params["container"]:
+            params["container"].addCoverage(self)
+        containers = params.get("containers", [])
+        for container in containers:
+            container.addCoverage(self)
     
     #-------------------------------------------------------------------
     # CoverageInterface implementations
@@ -1219,7 +1258,8 @@ class RectifiedStitchedMosaicWrapper(TiledDataWrapper, RectifiedGridWrapper, EOC
         """
         Adds a Rectified Dataset specified by its wrapper. An 
         :exc:`InternalError` is raised if the wrapper type is not equal to
-        ``eo.rect_dataset``.
+        ``eo.rect_dataset`` or if the grids of the dataset is not compatible to
+        the grid of the Rectified Stitched Mosaic.
         """
         res_type = wrapper.getType()
         res_id = wrapper.getModel().pk
@@ -1229,8 +1269,48 @@ class RectifiedStitchedMosaicWrapper(TiledDataWrapper, RectifiedGridWrapper, EOC
                 "Cannot add coverages of type '%s' to Rectified Stitched Mosaics" %\
                 res_type
             )
-        else:
-            self.__model.rect_datasets.add(res_id)
+        
+        # check if SRIDs are equal
+        if self.getSRID() != wrapper.getSRID():
+            raise InternalError(
+                "Cannot add coverage: SRID mismatch (%d != %s)" % (
+                    self.getSRID(), wrapper.getSRID()
+                )
+            )
+        
+        EPSILON = 1e-10
+        
+        cov_extent = wrapper.getExtent()
+        this_extent = self.getExtent()
+        
+        cov_offsets = wrapper.getResolution()
+        this_offsets = self.getResolution()
+        
+        # check if offset vectors are the same
+        if (abs(this_offsets[0] - cov_offsets[0]) > EPSILON
+            or abs(this_offsets[1] - cov_offsets[1]) > EPSILON):
+            raise InternalError(
+                "Cannot add coverage: offset vector mismatch (%s != %s)" % (
+                    this_offsets, cov_offsets
+                )
+            )
+        
+        # check if grids are the same
+        diff_origins = tuple(map(operator.sub, this_extent[:2], cov_extent[:2]))
+        v = tuple(map(operator.div, diff_origins, cov_offsets))
+        if (abs(v[0] - round(v[0])) > EPSILON
+            or abs(v[1] - round(v[1])) > EPSILON):
+            raise InternalError("Cannot add coverage: grid mismatch.")
+        
+        # check if range types are the same
+        if self.getRangeType() != wrapper.getRangeType():
+            raise InternalError(
+                "Cannot add coverage: range type mismatch (%s, %s)." % (
+                    self.getRangeType().name, wrapper.getRangeType().name
+                )
+            )
+        
+        self.__model.rect_datasets.add(res_id)
     
     def removeCoverage(self, wrapper):
         """

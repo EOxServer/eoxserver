@@ -36,21 +36,17 @@ from email.message import Message
 import logging
 import os.path
 from cgi import escape
-from osgeo.gdalconst import GDT_Byte, GDT_Int16, GDT_UInt16, GDT_Float32
 
 from django.conf import settings
-
+from osgeo.gdalconst import GDT_Byte, GDT_Int16, GDT_UInt16, GDT_Float32
 import mapscript
 
 from eoxserver.core.interfaces import *
 from eoxserver.core.registry import RegisteredInterface
-from eoxserver.resources.coverages.domainset import Trim, Slice
 from eoxserver.services.base import BaseRequestHandler
 from eoxserver.services.owscommon import OWSCommonConfigReader
 from eoxserver.services.requests import OWSRequest, Response
-from eoxserver.services.exceptions import (
-    InvalidRequestException, VersionNegotiationException
-)
+from eoxserver.services.exceptions import InvalidRequestException
 
 class MapServerRequest(OWSRequest):
     """

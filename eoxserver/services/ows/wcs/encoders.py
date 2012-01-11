@@ -50,12 +50,12 @@ class GMLEncoder(XMLEncoder):
         sr = SpatialReference()
         sr.ImportFromEPSG(srid)
         
-        format = _adjustPrecision("%f %f", sr.IsProjected())
+        frmt = _adjustPrecision("%f %f", sr.IsProjected())
         
         if srid == 4326:
-            pos_list = " ".join([format % (point[1], point[0]) for point in ring])
+            pos_list = " ".join([frmt % (point[1], point[0]) for point in ring])
         else:
-            pos_list = " ".join([format % point for point in ring])
+            pos_list = " ".join([frmt % point for point in ring])
         
         return self._makeElement(
             "gml", "LinearRing", [
@@ -87,7 +87,12 @@ class GMLEncoder(XMLEncoder):
         elif geom.geom_type == "Polygon":
             polygons = [self.encodePolygon(geom, base_id)]
         
-        sub_elements = [("@gml", "id", "multisurface_%s" % base_id)]
+        
+        
+        sub_elements = [
+            ("@gml", "id", "multisurface_%s" % base_id),
+            ("@", "srsName", "EPSG:4326")
+        ]
         sub_elements.extend([
             ("gml", "surfaceMember", [
                 (poly_element,)
@@ -135,7 +140,7 @@ class EOPEncoder(GMLEncoder):
             ]
         )
     
-    def encodeEarthObservation(self, eo_metadata, contributing_datasets=None):
+    def encodeEarthObservation(self, eo_metadata, contributing_datasets=None, poly=None):
         eo_id = eo_metadata.getEOID()
         begin_time_iso = isotime(eo_metadata.getBeginTime())
         end_time_iso = isotime(eo_metadata.getEndTime())
@@ -151,6 +156,9 @@ class EOPEncoder(GMLEncoder):
             
         else:
             footprint = eo_metadata.getFootprint()
+            
+        if poly is not None:
+            footprint = footprint.intersection(poly)
         
         return self._makeElement(
             "eop", "EarthObservation", [
@@ -400,12 +408,21 @@ class WCS20EOAPEncoder(WCS20Encoder):
         ]
     
     def encodeEOMetadata(self, coverage, req=None, include_composed_of=False, poly=None): # TODO include_composed_of and poly are currently ignored
+        poly_intersection = None
+        if poly is not None:
+            poly_intersection = coverage.getFootprint().intersection(poly)
+        
+        eop_encoder = EOPEncoder()
+        
         if coverage.getEOGML():
             dom = minidom.parseString(coverage.getEOGML())
             earth_observation = dom.documentElement
+            if poly_intersection is not None:
+                new_footprint = eop_encoder.encodeFootprint(poly_intersection, coverage.getEOID())
+                old_footprint = dom.getElementsByTagNameNS(eop_encoder.ns_dict["eop"], "Footprint")[0]
+                old_footprint.parentNode.replaceChild(new_footprint, old_footprint)
         else:
-            eop_encoder = EOPEncoder()
-            earth_observation = eop_encoder.encodeEarthObservation(coverage)
+            earth_observation = eop_encoder.encodeEarthObservation(coverage, poly=poly_intersection)
         
         if req is None:
             lineage = None
@@ -582,7 +599,7 @@ class WCS20EOAPEncoder(WCS20Encoder):
             (self.encodeTimePeriod(dataset_series),)
         ])
 
-    def encodeRectifiedDataset(self, dataset, req=None, nodes=None):
+    def encodeRectifiedDataset(self, dataset, req=None, nodes=None, poly=None):
         root_element = self._makeElement("wcseo", "RectifiedDataset", [
             ("@xsi", "schemaLocation", "http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd"),
             ("@gml", "id", dataset.getCoverageId())
@@ -593,7 +610,7 @@ class WCS20EOAPEncoder(WCS20Encoder):
                 root_element.appendChild(node.cloneNode(deep=True))
         #else: TODO
                 
-        root_element.appendChild(self.encodeEOMetadata(dataset, req))
+        root_element.appendChild(self.encodeEOMetadata(dataset, req, poly=poly))
         
         return root_element
         
@@ -608,7 +625,7 @@ class WCS20EOAPEncoder(WCS20Encoder):
                 root_element.appendChild(node.cloneNode(deep=True))
         #else: TODO
         
-        root_element.appendChild(self.encodeEOMetadata(mosaic, req))
+        root_element.appendChild(self.encodeEOMetadata(mosaic, req, poly=poly))
         
         root_element.appendChild(self._makeElement(
             "wcseo", "datasets", self.encodeContributingDatasets(mosaic, poly)

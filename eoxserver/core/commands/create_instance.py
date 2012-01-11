@@ -132,7 +132,7 @@ class Command(EOxServerAdminCommand):
         if options.get('init_spatialite'):
             # initialize the spatialite database file
             os.chdir(dst_data_dir)
-            db_name = "conf.sqlite"
+            db_name = "config.sqlite"
             print("Setting up initial database.")
             try:
                 from pyspatialite import dbapi2 as db

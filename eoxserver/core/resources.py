@@ -356,10 +356,9 @@ class ResourceWrapper(object):
         
         if self.__mutable:
             create_dict = self._get_create_dict(params)
-            
             self._create_model(create_dict)
-            
             self._post_create(params)
+            self.saveModel()
         else:
             raise InternalError(
                 "Cannot create model for immutable resource."
@@ -368,7 +367,7 @@ class ResourceWrapper(object):
     def updateModel(self, link_kwargs, unlink_kwargs, set_kwargs):
         if self.__mutable:
             self._updateModel(link_kwargs, unlink_kwargs, set_kwargs)
-            self.__model.save()
+            self.saveModel()
         else:
             raise InternalError(
                 "Cannot update model for immutable resource."
@@ -379,6 +378,7 @@ class ResourceWrapper(object):
         Save the coverage model to the database.
         """
         if self.__mutable:
+            self.__model.full_clean()
             self.__model.save()
         else:
             raise InternalError(

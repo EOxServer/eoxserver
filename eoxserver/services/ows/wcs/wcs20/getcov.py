@@ -361,7 +361,7 @@ class WCS20GetReferenceableCoverageGDALHandler(WCS20GetReferenceableCoverageBase
         
         if media_type is None:
             resp = self._get_default_response(dst_filename, mime_type)
-        elif media_type == "multipart/related":
+        elif media_type == "multipart/related" or media_type == "multipart/mixed":
             encoder = WCS20EOAPEncoder()
             
             if subset is not None:
@@ -375,7 +375,7 @@ class WCS20GetReferenceableCoverageGDALHandler(WCS20GetReferenceableCoverageBase
                 else:
                     cov_desc_el = encoder.encodeCoverageDescription(coverage)
 # TODO: this should read as follows
-#                    cov_desc = encoder.encodeSubsetCoverageDescription(
+#                    cov_desc_el = encoder.encodeSubsetCoverageDescription(
 #                        coverage,
 #                        4326,
 #                        (x_size, y_size),
@@ -417,7 +417,7 @@ class WCS20GetReferenceableCoverageNESTHandler(WCS20GetReferenceableCoverageBase
     
     def handle(self, req, coverage):
         req.setSchema(self.PARAM_SCHEMA)
-        
+                
         mime_type, format_options = self._parse_format_param(req)
         
         subset = self._get_subset(req, coverage)
@@ -451,7 +451,7 @@ class WCS20GetReferenceableCoverageNESTHandler(WCS20GetReferenceableCoverageBase
         
         if media_type is None:
             resp = self._get_default_response(dst_filename, mime_type)
-        elif media_type == "multipart/related":
+        elif media_type == "multipart/related" or media_type == "multipart/mixed":
             encoder = WCS20EOAPEncoder()
             
 #            if subset is not None:
@@ -638,31 +638,31 @@ class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
                 
                 coverage = self.coverages[0]
                 
+                decoder = WCS20SubsetDecoder(self.req, "imageCRS")
+                    
+                poly = decoder.getBoundingPolygon(
+                     coverage.getFootprint(),
+                     coverage.getSRID(),
+                     coverage.getSize()[0],
+                     coverage.getSize()[1],
+                     coverage.getExtent()
+                )
+                
                 if coverage.getType() == "eo.rect_dataset":
                     resp_xml = encoder.encodeRectifiedDataset(
                         coverage,
-                        req = self.req,
-                        nodes = rectified_grid_coverage.childNodes
+                        req=self.req,
+                        nodes=rectified_grid_coverage.childNodes,
+                        poly=poly
                     )
                 elif coverage.getType() == "eo.rect_stitched_mosaic":
-                    decoder = WCS20SubsetDecoder(self.req, "imageCRS")
-                    
-                    poly = decoder.getBoundingPolygon(
-                         coverage.getFootprint(),
-                         coverage.getSRID(),
-                         coverage.getSize()[0],
-                         coverage.getSize()[1],
-                         coverage.getExtent()
-                    )
-
                     resp_xml = encoder.encodeRectifiedStitchedMosaic(
                         coverage,
-                        req = self.req,
-                        nodes = rectified_grid_coverage.childNodes,
-                        poly = poly
+                        req=self.req,
+                        nodes=rectified_grid_coverage.childNodes,
+                        poly=poly
                     )
                     
-
                 resp = resp.getProcessedResponse(DOMElementToXML(resp_xml))
                 dom.unlink()
 

@@ -34,7 +34,7 @@ import logging
 from datetime import timedelta
 
 from django.utils.datetime_safe import datetime
-from django.contrib.gis.geos import GEOSGeometry
+from django.contrib.gis.geos import GEOSGeometry, Polygon
 from django.conf import settings
 
 from eoxserver.core.system import System
@@ -100,15 +100,15 @@ class RectifiedDatasetCreateWithContainerTestCase(RectifiedDatasetCreateTestCase
         self.stitched_mosaic = mosaic_mgr.create(**{
             "data_dirs": [],
             "geo_metadata": GeospatialMetadata(
-                srid=4326, size_x=100, size_y=100,
-                extent=(1, 2, 3, 4)
+                srid=4326, size_x=1023, size_y=451,
+                extent=(-3.75, 32.158895, 28.326165, 46.3)
             ),
             "range_type_name": "RGB",
             "eo_metadata": EOMetadata(
                 "STITCHED_MOSAIC",
                 datetime.now(),
                 datetime.now(),
-                GEOSGeometry("POLYGON((1 2, 3 2, 3 4, 1 4, 1 2))")
+                GEOSGeometry("POLYGON((-3 33, 27 33, 27 45, -3 45, -3 33))")
             ),
             "storage_dir": "/some/storage/dir"
         })
@@ -117,8 +117,8 @@ class RectifiedDatasetCreateWithContainerTestCase(RectifiedDatasetCreateTestCase
         self._create_containers()
         args = {
             "local_path": os.path.join(settings.PROJECT_DIR,
-                          "data/meris/MER_FRS_1P_reduced", 
-                          "ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.tif"),
+                          "data/meris/mosaic_MER_FRS_1P_RGB_reduced", 
+                          "mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif"),
             "range_type_name": "RGB",
             "container": self.stitched_mosaic
         }
@@ -152,22 +152,22 @@ class RectifiedDatasetCreateWithContainerIDsTestCase(RectifiedDatasetCreateTestC
                 "DATASET_SERIES",
                 datetime.now(),
                 datetime.now(),
-                GEOSGeometry("POLYGON((1 2, 3 2, 3 4, 1 4, 1 2))")
+                GEOSGeometry("POLYGON((-3 33, 27 33, 27 45, -3 45, -3 33))")
             )
         })
         
         self.stitched_mosaic = mosaic_mgr.create(**{
             "data_dirs": [],
             "geo_metadata": GeospatialMetadata(
-                srid=4326, size_x=100, size_y=100,
-                extent=(1, 2, 3, 4)
+                srid=4326, size_x=1023, size_y=451,
+                extent=(-3.75, 32.158895, 28.326165, 46.3)
             ),
             "range_type_name": "RGB",
             "eo_metadata": EOMetadata(
                 "STITCHED_MOSAIC",
                 datetime.now(),
                 datetime.now(),
-                GEOSGeometry("POLYGON((1 2, 3 2, 3 4, 1 4, 1 2))")
+                GEOSGeometry("POLYGON((-3 33, 27 33, 27 45, -3 45, -3 33))")
             ),
             "storage_dir": "/some/storage/dir"
         })
@@ -176,8 +176,8 @@ class RectifiedDatasetCreateWithContainerIDsTestCase(RectifiedDatasetCreateTestC
         self._create_containers()
         args = {
             "local_path": os.path.join(settings.PROJECT_DIR,
-                          "data/meris/MER_FRS_1P_reduced", 
-                          "ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.tif"),
+                          "data/meris/mosaic_MER_FRS_1P_RGB_reduced", 
+                          "mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif"),
             "range_type_name": "RGB",
             "container_ids": [self.stitched_mosaic.getCoverageId(), self.dataset_series.getEOID()]
         }
@@ -247,7 +247,7 @@ class RectifiedDatasetUpdateGeoMetadataTestCase(RectifiedDatasetUpdateTestCase):
                     srid=3035,
                     size_x=100,
                     size_y=100,
-                    extent=(0,0,1,1)
+                    extent=(0, 0, 100000000, 100000000)
                 )
             }
         }
@@ -261,7 +261,7 @@ class RectifiedDatasetUpdateGeoMetadataTestCase(RectifiedDatasetUpdateTestCase):
         
         self.assertEqual(3035, coverage.getAttrValue("srid"))
         self.assertEqual((100, 100), (coverage.getAttrValue("size_x"), coverage.getAttrValue("size_y")))
-        self.assertEqual((0, 0, 1, 1),( 
+        self.assertEqual((0, 0, 100000000, 100000000),( 
             coverage.getAttrValue("minx"),
             coverage.getAttrValue("miny"),
             coverage.getAttrValue("maxx"),
@@ -280,8 +280,8 @@ class RectifiedDatasetUpdateGeoMetadataViaSetAttrMetadataTestCase(RectifiedDatas
                 "size_y": 100,
                 "minx": 0,
                 "miny": 0,
-                "maxx": 1,
-                "maxy": 1
+                "maxx": 100000000,
+                "maxy": 100000000
             }
         }
         self.update(**args)
@@ -294,7 +294,7 @@ class RectifiedDatasetUpdateGeoMetadataViaSetAttrMetadataTestCase(RectifiedDatas
         
         self.assertEqual(3035, coverage.getAttrValue("srid"))
         self.assertEqual((100, 100), (coverage.getAttrValue("size_x"), coverage.getAttrValue("size_y")))
-        self.assertEqual((0, 0, 1, 1),( 
+        self.assertEqual((0, 0, 100000000, 100000000),( 
             coverage.getAttrValue("minx"),
             coverage.getAttrValue("miny"),
             coverage.getAttrValue("maxx"),
@@ -307,7 +307,8 @@ class RectifiedDatasetUpdateEOMetadataTestCase(RectifiedDatasetUpdateTestCase):
     def manage(self):
         self.begin_time = datetime.now()
         self.end_time = datetime.now()
-        self.footprint = GEOSGeometry("POLYGON((1 2, 3 2, 3 4, 1 4, 1 2))")
+        self.footprint = Polygon.from_bbox((-3, 33, 12, 46))
+        #GEOSGeometry("POLYGON((1 2, 3 2, 3 4, 1 4, 1 2))")
         args = {
             "obj_id": "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced",
             "set": {
@@ -338,7 +339,7 @@ class RectifiedDatasetUpdateEOMetadataViaSetAttrTestCase(RectifiedDatasetUpdateT
     def manage(self):
         self.begin_time = datetime.now()
         self.end_time = datetime.now()
-        self.footprint = GEOSGeometry("POLYGON((1 2, 3 2, 3 4, 1 4, 1 2))")
+        self.footprint = GEOSGeometry("POLYGON((-3 33, 12 33, 12 45, -3 45, -3 33))")
         args = {
             "obj_id": "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced",
             "set": {
@@ -430,20 +431,20 @@ class RectifiedStitchedMosaicCreateWithLocalPathTestCase(RectifiedStitchedMosaic
         args = {
             "data_dirs": [{
                 "path": os.path.join(settings.PROJECT_DIR,
-                                     "data/meris/MER_FRS_1P_reduced"),
+                                     "data/meris/mosaic_MER_FRS_1P_RGB_reduced"),
                 "search_pattern": "*.tif",
                 "type": "local"
             }],
             "geo_metadata": GeospatialMetadata(
-                srid=4326, size_x=100, size_y=100,
-                extent=(1, 2, 3, 4)
+                srid=4326, size_x=1023, size_y=451,
+                extent=(-3.75, 32.158895, 28.326165, 46.3)
             ),
             "range_type_name": "RGB",
             "eo_metadata": EOMetadata(
-                "SOMEEOID",
+                "STITCHED_MOSAIC",
                 datetime.now(),
                 datetime.now(),
-                GEOSGeometry("POLYGON((1 2, 3 2, 3 4, 1 4, 1 2))")
+                GEOSGeometry("POLYGON((-3 33, 27 33, 27 45, -3 45, -3 33))")
             ),
             "storage_dir": "/some/storage/dir"
         }
@@ -461,7 +462,7 @@ class RectifiedStitchedMosaicCreateWithRemotePathTestCase(RectifiedStitchedMosai
     def manage(self):
         args = {
             "data_dirs": [{
-                "path": "test/MER_FRS_1P_reduced",
+                "path": "test/mosaic_MER_FRS_1P_RGB_reduced",
                 "search_pattern": "*.tif",
                 "type": "ftp",
                 
@@ -470,15 +471,15 @@ class RectifiedStitchedMosaicCreateWithRemotePathTestCase(RectifiedStitchedMosai
                 "password": ""
             }],
             "geo_metadata": GeospatialMetadata(
-                srid=4326, size_x=100, size_y=100,
-                extent=(1, 2, 3, 4)
+                srid=4326, size_x=1023, size_y=451,
+                extent=(-3.75, 32.158895, 28.326165, 46.3)
             ),
             "range_type_name": "RGB",
             "eo_metadata": EOMetadata(
                 "SOMEEOID",
                 datetime.now(),
                 datetime.now(),
-                GEOSGeometry("POLYGON((1 2, 3 2, 3 4, 1 4, 1 2))")
+                GEOSGeometry("POLYGON((-3 33, 27 33, 27 45, -3 45, -3 33))")
             ),
             "storage_dir": "/some/storage/dir"
         }
@@ -652,8 +653,27 @@ class DatasetSeriesSynchronizeNewDirectoryTestCase(DatasetSeriesSynchronizeTestC
         self.synchronize(self.wrapper.getEOID())
     
     def testContents(self):
+        wrapper = System.getRegistry().getFromFactory(
+            "resources.coverages.wrappers.DatasetSeriesFactory",
+            {"obj_id": "SOMEEOID"}
+        )
+        
         # after sync, the datasets shall be registered.
-        self.assertEqual(len(self.wrapper.getEOCoverages()), 3)
+        self.assertEqual(len(wrapper.getEOCoverages()), 3)
+        
+        self.assertEqual(wrapper.getBeginTime(), 
+                         min([dataset.getBeginTime() 
+                              for dataset in wrapper.getEOCoverages()]))
+        
+        self.assertEqual(wrapper.getEndTime(), 
+                         max([dataset.getEndTime() 
+                              for dataset in wrapper.getEOCoverages()]))
+        
+        footprint = wrapper.getEOCoverages()[0].getFootprint()
+        for dataset in wrapper.getEOCoverages()[1:]:
+            footprint = footprint.union(dataset.getFootprint())
+        self.assertTrue(wrapper.getFootprint().equals_exact(footprint, 0.001),
+                        "Footprints mismatch.")
 
 class DatasetSeriesSynchronizeFileRemovedTestCase(DatasetSeriesSynchronizeTestCase):
     fixtures = BASE_FIXTURES
@@ -700,7 +720,27 @@ class DatasetSeriesSynchronizeFileRemovedTestCase(DatasetSeriesSynchronizeTestCa
     
     def testContents(self):
         # after sync, the datasets shall be registered.
-        self.assertEqual(len(self.wrapper.getEOCoverages()), 2)
+        
+        wrapper = System.getRegistry().getFromFactory(
+            "resources.coverages.wrappers.DatasetSeriesFactory",
+            {"obj_id": "SOMEEOID"}
+        )
+        
+        self.assertEqual(len(wrapper.getEOCoverages()), 2)
+        
+        self.assertEqual(wrapper.getBeginTime(), 
+                         min([dataset.getBeginTime() 
+                              for dataset in wrapper.getEOCoverages()]))
+        
+        self.assertEqual(wrapper.getEndTime(), 
+                         max([dataset.getEndTime() 
+                              for dataset in wrapper.getEOCoverages()]))
+        
+        footprint = wrapper.getEOCoverages()[0].getFootprint()
+        for dataset in wrapper.getEOCoverages()[1:]:
+            footprint = footprint.union(dataset.getFootprint())
+        self.assertTrue(wrapper.getFootprint().equals_exact(footprint, 0.001),
+                        "Footprints mismatch.")
 
     def tearDown(self):
         super(DatasetSeriesSynchronizeTestCase, self).tearDown()

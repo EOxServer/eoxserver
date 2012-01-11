@@ -41,6 +41,7 @@ from eoxserver.backends.models import (
     RasdamanLocation, CacheFile
 )
 from eoxserver.resources.coverages.validators import validateEOOM
+from django.contrib.gis.geos.polygon import Polygon
 
 NCNameValidator = RegexValidator(re.compile(r'^[a-zA-z_][a-zA-Z0-9_.-]*$'), message="This field must contain a valid NCName.")
 
@@ -341,7 +342,21 @@ class RectifiedDatasetRecord(CoverageRecord, EODatasetMixIn):
     class Meta:
         verbose_name = "Rectified Dataset"
         verbose_name_plural = "Rectified Datasets"
+    
+    def clean(self):
+        super(RectifiedDatasetRecord, self).clean()
         
+        footprint = self.eo_metadata.footprint
+        bbox = Polygon.from_bbox((self.extent.minx, self.extent.miny, 
+                                 self.extent.maxx, self.extent.maxy))
+        bbox.set_srid(int(self.extent.srid))
+        
+        if footprint.srid != bbox.srid:
+            footprint.transform(bbox.srs)
+        
+        if not bbox.contains(footprint):
+            raise ValidationError("Extent does not surround footprint.")
+    
     def delete(self):
         extent = self.extent
         super(EOCoverageMixIn, self).delete()
@@ -372,6 +387,20 @@ class RectifiedStitchedMosaicRecord(CoverageRecord, EOCoverageMixIn):
     class Meta:
         verbose_name = "Stitched Mosaic"
         verbose_name_plural = "Stitched Mosaics"
+        
+    def clean(self):
+        super(RectifiedStitchedMosaicRecord, self).clean()
+        
+        footprint = self.eo_metadata.footprint
+        bbox = Polygon.from_bbox((self.extent.minx, self.extent.miny, 
+                                 self.extent.maxx, self.extent.maxy))
+        bbox.set_srid(int(self.extent.srid))
+        
+        if footprint.srid != bbox.srid:
+            footprint.transform(bbox.srs)
+        
+        if not bbox.contains(footprint):
+            raise ValidationError("Extent does not surround footprint.")
 
     def delete(self):
         tile_index = self.tile_index
@@ -380,7 +409,7 @@ class RectifiedStitchedMosaicRecord(CoverageRecord, EOCoverageMixIn):
             dataset.delete()
         super(RectifiedStitchedMosaicRecord, self).delete()
         tile_index.delete()
-
+    
 class DatasetSeriesRecord(Resource):
     eo_id = models.CharField("EO ID", max_length=256, unique=True, validators=[NCNameValidator])
     eo_metadata = models.OneToOneField(EOMetadataRecord,

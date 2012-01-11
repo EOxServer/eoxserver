@@ -26,6 +26,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
+from eoxserver.resources.coverages.metadata import EOMetadata
 
 
 """
@@ -156,6 +157,8 @@ class BaseManager(object):
         for key, value in set_kwargs.items():
             if key in keys:
                 wrapper.setAttrValue(key, value)
+                
+        wrapper.saveModel()
         
         return wrapper
         
@@ -236,6 +239,7 @@ class BaseManagerContainerMixIn(object):
         return coverages
     
     def _create_contained(self, container, data_sources):
+        new_datasets = []
         for data_source in data_sources:
             locations = data_source.detect()
             
@@ -271,12 +275,15 @@ class BaseManagerContainerMixIn(object):
                         )
                     )
                     container.addCoverage(existing_coverages[0])
+                    new_datasets.append(existing_coverages[0])
                     
                 else:
                     eo_metadata = data_package.readEOMetadata()
                     
-                    coverage_id = self.rect_dataset_mgr.acquireID(
-                        eo_metadata.getEOID(), fail=True
+                    coverage_id_mgr = CoverageIdManager()
+                    
+                    coverage_id = coverage_id_mgr.reserve(
+                        eo_metadata.getEOID()
                     )
                     
                     range_type_name = self._get_contained_range_type_name(
@@ -284,10 +291,9 @@ class BaseManagerContainerMixIn(object):
                     )
                     
                     logging.info("Creating new coverage with ID %s." % coverage_id)
-                    
                     # TODO: implement creation of ReferenceableDatasets,
                     # RectifiedStitchedMosaics for DatasetSeriesManager
-                    self.rect_dataset_mgr.create(
+                    new_dataset = self.rect_dataset_mgr.create(
                         coverage_id,
                         location=location,
                         md_location=md_location,
@@ -296,15 +302,22 @@ class BaseManagerContainerMixIn(object):
                         container=container
                     )
                 
-                    self.rect_dataset_mgr.releaseID(coverage_id)
-                    
+                    coverage_id_mgr.release(coverage_id)
                     logging.info("Done creating new coverage with ID %s." % coverage_id)
+                    
+                    new_datasets.append(new_dataset)
+        
+        return new_datasets
     
     def _synchronize(self, container, data_sources, datasets):
-        self._create_contained(container, data_sources)
-        
+        new_datasets = self._create_contained(container, data_sources)
+            
         # delete all datasets, which do not have a file
         for dataset in datasets:
+            if dataset.getType() == "eo.rect_stitched_mosaic":
+                # do not delete the tile index from a stitched mosaic
+                continue
+            
             if not dataset.getData().getLocation().exists():
                 logging.info(
                     "Location %s does not exist. Deleting dangling dataset with ID %s"%(
@@ -314,6 +327,7 @@ class BaseManagerContainerMixIn(object):
                 )
                 
                 self.rect_dataset_mgr.delete(dataset.getCoverageId())
+                datasets.remove(dataset)
             
             elif dataset.getAttrValue("automatic"):
                 # remove all automatic coverages from a mosaic/dataset series
@@ -326,7 +340,30 @@ class BaseManagerContainerMixIn(object):
                 
                 if not contained:
                     container.removeCoverage(dataset)
-    
+                    datasets.remove(dataset)
+        
+        # update footprint and time extent according to contents of container
+        datasets.extend(new_datasets)
+        if len(datasets) > 0:
+            begin_time = min([dataset.getBeginTime() for dataset in datasets])
+            end_time = max([dataset.getEndTime() for dataset in datasets])
+            footprint = datasets[0].getFootprint()
+            for dataset in datasets[1:]:
+                footprint = footprint.union(dataset.getFootprint())
+            
+            
+            self.update(
+                container.getEOID(), set={
+                    "eo_metadata": EOMetadata(
+                        container.getEOID(),
+                        begin_time, end_time,
+                        footprint,
+                        "eogml" if container.getEOGML() else None,
+                        container.getEOGML()
+                    )
+                }
+            )
+        
     def _guess_metadata_location(self, location):
         if location.getType() == "local":
             return self.location_factory.create(
@@ -398,7 +435,7 @@ class CoverageManager(BaseManager):
             return existing_coverages[0]
 
 class CoverageManagerDatasetMixIn(object):
-    def _get_location(self, params):
+    def _get_location(self, params, fail=True):
         location = None
         
         if "location" in params:
@@ -459,7 +496,7 @@ class CoverageManagerDatasetMixIn(object):
                 "You must specify a 'collection' to specify a valid rasdaman array location."
             )
         
-        if not location:
+        if not location and fail:
             raise InternalError(
                 "You must specify a data location to create a coverage."
             )
@@ -473,11 +510,14 @@ class CoverageManagerDatasetMixIn(object):
         
         if not geo_metadata and data_package:
             geo_metadata = data_package.readGeospatialMetadata(default_srid)
+            if geo_metadata is None:
+                raise InternalError("Geospatial Metadata could not be read from "
+                                    "the dataset.")
             
         return geo_metadata
 
 class CoverageManagerEOMixIn(object):
-    def _get_metadata_location(self, location, params):
+    def _get_metadata_location(self, location, params, force=True):
         if "eo_metadata" in params:
             return None
         else:
@@ -512,7 +552,7 @@ class CoverageManagerEOMixIn(object):
                         passwd=location.getPassword()
                     )
             
-            if not md_location:
+            if not md_location and force:
                 md_path = "%s.xml" % os.path.splitext(location.getPath())[0]
                 
                 md_location = self.location_factory.create(
@@ -752,9 +792,51 @@ RectifiedDatasetManagerImplementation = \
 ManagerInterface.implement(RectifiedDatasetManager)
 
 class ReferenceableDatasetManager(EODatasetManager):
-    pass
+    # TODO documentation
+    """
     
-    # TODO: implement referenceable grid coverages
+    """
+    REGISTRY_CONF = {
+        "name": "Referenceable Dataset Manager",
+        "impl_id": "resources.coverages.covmgrs.ReferenceableDatasetManager",
+        "registry_values": {
+            "resources.coverages.interfaces.res_type": "eo.ref_dataset"
+        }
+    }
+    
+    def delete(self, obj_id):
+        wrapper = self.coverage_factory.get(
+            impl_id="resources.coverages.wrappers.ReferenceableDatasetWrapper",
+            obj_id=obj_id
+        )
+        if not wrapper:
+            raise NoSuchCoverageException(obj_id)
+        wrapper.deleteModel()
+    
+    def _validate_type(self, coverage):
+        return coverage.getType() == "eo.ref_dataset"
+    
+    def _create_coverage(self, coverage_id, data_package, data_source, geo_metadata, range_type_name, layer_metadata, eo_metadata, container, containers):
+        return self.coverage_factory.create(
+            impl_id="resources.coverages.wrappers.ReferenceableDatasetWrapper",
+            params={
+                "coverage_id": coverage_id,
+                "data_package": data_package,
+                "data_source": data_source,
+                "geo_metadata": geo_metadata,
+                "range_type_name": range_type_name,
+                "layer_metadata": layer_metadata,
+                "eo_metadata": eo_metadata,
+                "container": container,
+                "containers": containers
+            }
+        )
+    
+    def _get_id_prefix(self):
+        return "ref_dataset"
+    
+ReferenceableDatasetManagerImplementation = \
+ManagerInterface.implement(ReferenceableDatasetManager)
     
 class RectifiedStitchedMosaicManager(BaseManagerContainerMixIn, CoverageManager):
     """

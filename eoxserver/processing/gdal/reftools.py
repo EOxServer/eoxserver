@@ -7,7 +7,7 @@ from eoxserver.core.exceptions import InternalError
 
 _lib_path = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
-    "eoxs.so"
+    "_reftools.so"
 )
 _lib = C.LibraryLoader(C.CDLL).LoadLibrary(_lib_path)
 
@@ -70,8 +70,8 @@ def create_rectified_vrt(path, vrt_path, srid=None):
         )
 
 def create_temporary_vrt(path, srid=None):
-    handle, vrt_path = mkstemp(
-        dir = "/tmp", # TODO: make this configurable
+    _, vrt_path = mkstemp(
+        dir = System.getConfig().getConfigValue("processing.gdal.reftools", "vrt_tmp_dir"),
         suffix = ".vrt"
     )
     

@@ -43,6 +43,14 @@ class WCS10GetCapabilitiesValidTestCase(eoxstest.XMLTestCase):
         params = "service=WCS&version=1.0.0&request=GetCapabilities"
         return (params, "kvp")
 
+class WCS10GetCapabilitiesEmptyTestCase(eoxstest.XMLTestCase):
+    """This test shall retrieve a valid but empty WCS 1.0 GetCapabilities response (see #41)"""
+    fixtures = BASE_FIXTURES
+    
+    def getRequest(self):
+        params = "service=WCS&version=1.0.0&request=GetCapabilities"
+        return (params, "kvp")
+
 class WCS10DescribeCoverageDatasetTestCase(eoxstest.XMLTestCase):
     def getRequest(self):
         params = "service=WCS&version=1.0.0&request=DescribeCoverage&coverage=mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced"
@@ -68,6 +76,14 @@ class WCS10GetCoverageMosaicTestCase(eoxstest.GDALDatasetTestCase):
 #===============================================================================
 
 class WCS11GetCapabilitiesValidTestCase(eoxstest.XMLTestCase):
+    def getRequest(self):
+        params = "service=WCS&version=1.1.2&request=GetCapabilities"
+        return (params, "kvp")
+    
+class WCS11GetCapabilitiesEmptyTestCase(eoxstest.XMLTestCase):
+    """This test shall retrieve a valid but empty WCS 1.1 GetCapabilities response (see #41)"""
+    fixtures = BASE_FIXTURES
+    
     def getRequest(self):
         params = "service=WCS&version=1.1.2&request=GetCapabilities"
         return (params, "kvp")
@@ -1128,7 +1144,7 @@ class WMS13GetMapFormatUnknownFaultTestCase(eoxstest.WMS13ExceptionTestCase):
     
 class WMS13GetMapInvalidBoundingBoxTestCase(eoxstest.WMS13ExceptionTestCase):
     def getRequest(self):
-        params = "service=WMS&version=1.3.0&request=GetMap&layers=MER_FRS_1P_reduced&bbox=&crs=EPSG:4326&width=100&height=100&format=image/jpeg&exceptions=application/vnd.ogc.se_xml"
+        params = "service=WMS&version=1.3.0&request=GetMap&layers=MER_FRS_1P_reduced&bbox=1,2,3&crs=EPSG:4326&width=100&height=100&format=image/jpeg&exceptions=application/vnd.ogc.se_xml"
         return (params, "kvp")
     
     def getExpectedExceptionCode(self):

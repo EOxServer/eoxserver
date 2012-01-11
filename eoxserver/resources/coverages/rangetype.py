@@ -75,6 +75,17 @@ class Band(object):
             self.nil_values = nil_values
         self.uom = uom
         self.gdal_interpretation = gdal_interpretation
+    
+    def __eq__(self, other):
+        if (self.name != other.name
+            or self.identifier != other.identifier
+            or self.description != other.description
+            or self.definition != other.definition
+            or self.nil_values != other.nil_values
+            or self.uom != other.uom
+            or self.gdal_interpretation != other.gdal_interpretation):
+            return False
+        return True
 
 class NilValue(object):
     """
@@ -98,6 +109,11 @@ class NilValue(object):
     def __init__(self, reason, value):
         self.reason = reason
         self.value = value
+        
+    def __eq__(self, other):
+        if self.reason != other.reason or self.value != other.value:
+            return False
+        return True
 
 class RangeType(object):
     """
@@ -130,6 +146,16 @@ class RangeType(object):
         else:
             self.bands = bands
     
+    def __eq__(self, other):
+        if (self.name != other.name
+            or self.data_type != other.data_type 
+            or self.bands != other.bands):
+            return False
+        return True
+    
+    def __ne__(self, other):
+        return not (self == other)
+    
     def addBand(self, band):
         self.bands.append(band)
         
@@ -144,7 +170,7 @@ class RangeType(object):
         elif dt == gdal.GDT_Float32:
             return 38
         else:
-            raise NotImplemented()
+            raise NotImplemented
         
     def getAllowedValues(self):
         dt = self.data_type
@@ -161,7 +187,7 @@ class RangeType(object):
         elif dt == gdal.GDT_Float32:
             return (-3.40282e+38, 3.40282e+38)
         else:
-            raise NotImplemented()
+            raise NotImplemented
     
 
 # TODO: rewrite this function according to new RangeType definition
