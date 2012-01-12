@@ -169,6 +169,8 @@ class RangeType(object):
             return 10
         elif dt == gdal.GDT_Float32:
             return 38
+        elif dt == gdal.GDT_CInt16:
+            return "Complex Int16" # TODO: How to encode GDT_CInt16 in SWE (see #103)?
         else:
             raise NotImplementedError()
         
@@ -186,6 +188,8 @@ class RangeType(object):
             return (-2147483648, 2147483647)
         elif dt == gdal.GDT_Float32:
             return (-3.40282e+38, 3.40282e+38)
+        elif dt == gdal.GDT_CInt16:
+            return ("Complex Int16", "Complex Int16") # TODO: How to encode GDT_CInt16 in SWE (see #103)?
         else:
             raise NotImplementedError()
     
