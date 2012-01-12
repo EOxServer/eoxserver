@@ -729,6 +729,9 @@ class WMS10ExceptionEncoder(XMLEncoder):
     def encodeVersionNegotiationException(self, exception):
         return ""
 
+    def encodeException(self, exception):
+        return self.encodeExceptionReport("Internal Server Error", "NoApplicableCode")
+
 WMS10ExceptionEncoderImplementation = ExceptionEncoderInterface.implement(WMS10ExceptionEncoder)
 
 class WMS11ExceptionHandler(BaseExceptionHandler):
@@ -782,6 +785,9 @@ class WMS11ExceptionEncoder(XMLEncoder):
     
     def encodeVersionNegotiationException(self, exception):
         return ""
+
+    def encodeException(self, exception):
+        return self.encodeExceptionReport("Internal Server Error", "NoApplicableCode")
 
 WMS11ExceptionEncoderImplementation = ExceptionEncoderInterface.implement(WMS11ExceptionEncoder)
 
@@ -855,6 +861,9 @@ class WMS13ExceptionEncoder(XMLEncoder):
     
     def encodeVersionNegotiationException(self, exception):
         return "" # TODO: check against OWS Common
+
+    def encodeException(self, exception):
+        return self.encodeExceptionReport("Internal Server Error", "NoApplicableCode")
 
 WMS13ExceptionEncoderImplementation = ExceptionEncoderInterface.implement(WMS13ExceptionEncoder)
 
