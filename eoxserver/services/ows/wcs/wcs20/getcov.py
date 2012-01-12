@@ -265,8 +265,8 @@ class WCS20GetReferenceableCoverageGDALHandler(WCS20GetReferenceableCoverageBase
         else:
             x_off = subset.minx
             y_off = subset.miny
-            x_size = subset.maxx - subset.minx
-            y_size = subset.maxy - subset.miny
+            x_size = subset.maxx - subset.minx + 1
+            y_size = subset.maxy - subset.miny + 1
             
         # calculate effective offsets and buffer size
         

@@ -319,8 +319,8 @@ int eoxs_rect_from_subset(const char *filename, eoxs_subset *subset, eoxs_rect *
     
     out_rect->x_off = minx;
     out_rect->y_off = miny;
-    out_rect->x_size = maxx - minx;
-    out_rect->y_size = maxy - miny;
+    out_rect->x_size = maxx - minx + 1;
+    out_rect->y_size = maxy - miny + 1;
     
     free(x); free(y); free(z); free(success);
     eoxs_destroy_referenceable_grid_transformer(transformer);
