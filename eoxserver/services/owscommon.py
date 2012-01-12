@@ -27,10 +27,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from traceback import format_exc
 import logging
-
-from django.conf import settings
 
 from eoxserver.core.system import System
 from eoxserver.core.readers import ConfigReaderInterface
@@ -50,7 +47,6 @@ from eoxserver.services.exceptions import (
     InvalidRequestException, VersionNegotiationException
 )
 
-
 class OWSCommonHandler(BaseRequestHandler):
     REGISTRY_CONF = {
         "name": "OWS Common base handler",
@@ -68,22 +64,7 @@ class OWSCommonHandler(BaseRequestHandler):
         schemas = {
             "http://www.opengis.net/ows/2.0": "http://schemas.opengis.net/ows/2.0/owsAll.xsd"
         }
-        try:
-            return OWSCommonExceptionHandler(schemas).handleException(req, exception)
-        except Exception, e:
-            logging.error(str(req.getParams()))
-            logging.error(str(e))
-            logging.error(format_exc())
-            
-            if settings.DEBUG:
-                raise
-            else:
-                return Response(
-                    content = "Internal Server Error",
-                    content_type = "text/plain",
-                    headers = {},
-                    status = 500
-                )
+        return OWSCommonExceptionHandler(schemas).handleException(req, exception)
 
     def _processRequest(self, req):
         req.setSchema(self.PARAM_SCHEMA)
@@ -379,6 +360,8 @@ class OWSCommonExceptionHandler(BaseExceptionHandler):
                 return self.OWS_COMMON_HTTP_STATUS_CODES["_default"]
         elif isinstance(exception, VersionNegotiationException):
             return 400
+        else:
+            return 500
 
     def _getContentType(self, exception):
         return "text/xml"
@@ -432,6 +415,9 @@ class OWSCommonExceptionEncoder(XMLEncoder):
     
     def encodeVersionNegotiationException(self, exception):
         return self.encodeExceptionReport(exception.msg, "VersionNegotiationFailed")
+
+    def encodeException(self, exception):
+        return self.encodeExceptionReport("Internal Server Error", "NoApplicableCode")
 
 OWSCommonExceptionEncoderImplementation = ExceptionEncoderInterface.implement(OWSCommonExceptionEncoder)
 

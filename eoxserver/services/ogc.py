@@ -110,4 +110,7 @@ class OGCExceptionEncoder(XMLEncoder):
     def encodeVersionNegotiationException(self, exception):
         return "" # TODO: check against OWS Common
 
+    def encodeException(self, exception):
+        return self.encodeExceptionReport("Internal Server Error", "NoApplicableCode")
+
 OGCExceptionEncoderImplementation = ExceptionEncoderInterface.implement(OGCExceptionEncoder)

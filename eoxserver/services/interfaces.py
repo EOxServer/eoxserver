@@ -112,3 +112,8 @@ class ExceptionEncoderInterface(RegisteredInterface):
         ObjectArg("exception", arg_class=Exception),
         returns = StringArg("@return")
     )
+
+    encodeException = Method(
+        ObjectArg("exception", arg_class=Exception),
+        returns = StringArg("@return")
+    )

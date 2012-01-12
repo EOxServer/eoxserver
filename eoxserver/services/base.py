@@ -27,7 +27,10 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+from traceback import format_exc
 import logging
+
+from django.conf import settings
 
 from eoxserver.core.exceptions import InternalError
 from eoxserver.core.util.xmltools import DOMElementToXML
@@ -103,6 +106,8 @@ class BaseExceptionHandler(object):
             return DOMElementToXML(encoder.encodeVersionNegotiationException(exception))
         elif isinstance(exception, InvalidRequestException):
             return DOMElementToXML(encoder.encodeInvalidRequestException(exception))
+        else:
+            return DOMElementToXML(encoder.encodeException(exception))
         
     def _getHTTPStatus(self, exception):
         return 400
@@ -110,20 +115,23 @@ class BaseExceptionHandler(object):
     def _logError(self, req, exception):
         logging.error(str(req.getParams()))
         logging.error(str(exception))
-        
+        if settings.DEBUG:
+            logging.error(format_exc())
+
     def _getContentType(self, exception):
         raise InternalError("Not implemented.")
     
     def handleException(self, req, exception):
-        self._filterExceptions(exception)
+        self._logError(req, exception)
+        
+        if settings.DEBUG:
+            self._filterExceptions(exception)
         
         encoder = self._getEncoder()
         
         content = self._getExceptionReport(req, exception, encoder)
         
         status = self._getHTTPStatus(exception)
-        
-        self._logError(req, exception)
         
         return Response(
             content = content,
