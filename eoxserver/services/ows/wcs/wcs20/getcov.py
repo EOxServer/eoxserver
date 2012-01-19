@@ -219,6 +219,7 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
             suffix = ".%s" % EXT_MAPPING[mime_type]
         )
         
+        gdal.AllRegister()
         gdal_driver = gdal.GetDriverByName(FORMAT_MAPPING[mime_type])
         
         if gdal_driver is None:
