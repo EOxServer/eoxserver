@@ -159,7 +159,7 @@ def copy_and_replace_tags(src_pth, dst_pth, replacements={}):
 
 def create_file(dir_or_path, filename=None):
     """Helper function to create a new empty file at a given location."""
-    if file is not None:
+    if filename is not None:
         dir_or_path = os.path.join(dir_or_path, filename)
     f = open(dir_or_path, 'w')
     f.close()

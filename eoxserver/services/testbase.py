@@ -35,7 +35,7 @@ import tempfile
 import mimetypes
 import email
 
-from osgeo import gdal, gdalconst
+from osgeo import gdal, gdalconst, osr
 
 from django.test import Client
 
@@ -200,7 +200,8 @@ class GDALDatasetTestCase(RasterTestCase):
             self.exp_ds = gdal.Open(exp_path, gdalconst.GA_ReadOnly)
         except RuntimeError:
             self.skipTest("Expected response in '%s' is not present" % exp_path)
-            
+
+class RectifiedGridCoverageTestCase(GDALDatasetTestCase):
     def testSize(self):
         self._openDatasets()
         self.assertEqual((self.res_ds.RasterXSize, self.res_ds.RasterYSize),
@@ -229,6 +230,35 @@ class GDALDatasetTestCase(RasterTestCase):
     def testBandCount(self):
         self._openDatasets()
         self.assertEqual(self.res_ds.RasterCount, self.exp_ds.RasterCount)
+
+class ReferenceableGridCoverageTestCase(GDALDatasetTestCase):
+    def testSize(self):
+        self._openDatasets()
+        self.assertEqual((self.res_ds.RasterXSize, self.res_ds.RasterYSize),
+                         (self.exp_ds.RasterXSize, self.exp_ds.RasterYSize))
+    
+    def testBandCount(self):
+        self._openDatasets()
+        self.assertEqual(self.res_ds.RasterCount, self.exp_ds.RasterCount)
+        
+    def testGCPs(self):
+        self._openDatasets()
+        self.assertEqual(self.res_ds.GetGCPCount(), self.exp_ds.GetGCPCount())
+        
+    def testGCPProjection(self):
+        self._openDatasets()
+        
+        res_proj = self.res_ds.GetGCPProjection()
+        if not res_proj:
+            self.fail("Response Dataset has no GCP Projection defined")
+        res_srs = osr.SpatialReference(res_proj)
+        
+        exp_proj = self.exp_ds.GetGCPProjection()
+        if not exp_proj:
+            self.fail("Expected Dataset has no GCP Projection defined")
+        exp_srs = osr.SpatialReference(exp_proj)
+        
+        self.assert_(res_srs.IsSame(exp_srs))
 
 class XMLTestCase(OWSTestCase):
     """
@@ -300,7 +330,7 @@ class ExceptionTestCase(XMLTestCase):
         
         self.assertEqual(decoder.getValue("exceptionCode"), self.getExpectedExceptionCode())      
 
-class MultipartTestCase(XMLTestCase, GDALDatasetTestCase):
+class MultipartTestCase(XMLTestCase, RectifiedGridCoverageTestCase):
     """
     Multipart tests combine XML and raster tests and split the response
     into a xml and a raster part which are examined separately. 
