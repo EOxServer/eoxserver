@@ -49,10 +49,10 @@ vi conf/eoxserver.conf
 # Adjust:
 #--------
 # instance_id=
-# logging_filename=<path_to_eoxserver_directory>/logs/eoxserver.log
+# logging_filename=<path_to_eoxserver_directory>/autotest/logs/eoxserver.log
 # module_dirs=
-# path_wcst_temp=<path_to_eoxserver_directory>/wcst_remp 
-# path_wcst_perm=<path_to_eoxserver_directory>/wcst_perm 
+# path_wcst_temp=<path_to_eoxserver_directory>/autotest/wcst_remp 
+# path_wcst_perm=<path_to_eoxserver_directory>/autotest/wcst_perm 
 
 vi settings.py
 #--------
