@@ -50,7 +50,9 @@ vi conf/eoxserver.conf
 #--------
 # instance_id=
 # logging_filename=<path_to_eoxserver_directory>/logs/eoxserver.log
-# module_dirs=../eoxserver/services/ows
+# module_dirs=
+# path_wcst_temp=<path_to_eoxserver_directory>/wcst_remp 
+# path_wcst_perm=<path_to_eoxserver_directory>/wcst_perm 
 
 vi settings.py
 #--------
