@@ -33,6 +33,7 @@ from optparse import make_option
 
 from osgeo import gdal
 from django.core.management.base import BaseCommand, CommandError
+from django.db import transaction
 
 from eoxserver.core.system import System
 from eoxserver.resources.coverages.geo import GeospatialMetadata
@@ -212,7 +213,7 @@ class Command(CommandOutputMixIn, BaseCommand):
         if len(datafiles) > len(coverageids):
             if mode == "rasdaman":
                 raise CommandError(
-                    "All rasdaman datasets require a explicit IDs. "
+                    "All rasdaman datasets require an explicit ID. "
                     "Use the --coverage-id option."
                 )
             
@@ -317,8 +318,9 @@ class Command(CommandOutputMixIn, BaseCommand):
                 if geo_metadata.is_referenceable:
                     mgr_to_use = ref_mgr
                     self.print_msg("\t'%s' is referenceable." % df, 2)
-                
-            mgr_to_use.create(**args)
+            
+            with transaction.commit_on_success():
+                mgr_to_use.create(**args)
         
         self.print_msg("Successfully inserted %d dataset%s." % (
                 len(datafiles), "s" if len(datafiles) > 1 else ""
