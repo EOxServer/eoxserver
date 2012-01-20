@@ -29,6 +29,7 @@
 #-------------------------------------------------------------------------------
 
 import os.path
+import logging
 from optparse import make_option
 
 from osgeo import gdal
@@ -144,7 +145,7 @@ class Command(CommandOutputMixIn, BaseCommand):
         ),
     )
     
-    help = ('Registers one or more datasets from each a data and '
+    help = ('Registers one or more datasets from each data and '
             'meta-data file.')
     args = '--data-file DATAFILE --rangetype RANGETYPE'
 
@@ -258,6 +259,7 @@ class Command(CommandOutputMixIn, BaseCommand):
         
         for df, mdf, cid in zip(datafiles, metadatafiles, coverageids):
             self.print_msg("Inserting coverage with ID '%s'." % cid, 2)
+            logging.info("Inserting coverage with ID '%s'." % cid, 2)
             
             args = {
                 "obj_id": cid,
@@ -268,12 +270,14 @@ class Command(CommandOutputMixIn, BaseCommand):
             
             if mode == 'local':
                 self.print_msg("\tFile: '%s'\n\tMeta-data: '%s'" % (df, mdf), 2)
+                logging.info("\tFile: '%s'\n\tMeta-data: '%s'" % (df, mdf), 2)
                 args.update({
                     "local_path": df,
                     "md_local_path": mdf,
                 })
             elif mode == 'ftp':
                 self.print_msg("\tFile: '%s'\n\tMeta-data: '%s'" % (df, mdf), 2)
+                logging.info("\tFile: '%s'\n\tMeta-data: '%s'" % (df, mdf), 2)
                 args.update({
                     "remote_path": df,
                     "md_remote_path": mdf,
@@ -290,6 +294,11 @@ class Command(CommandOutputMixIn, BaseCommand):
                     oid = None
                 
                 self.print_msg(
+                    "\tCollection: '%s'\n\tOID:%s\n\tMeta-data: '%s'" % (
+                        df, oid, mdf
+                    ), 2
+                )
+                logging.info(
                     "\tCollection: '%s'\n\tOID:%s\n\tMeta-data: '%s'" % (
                         df, oid, mdf
                     ), 2
@@ -311,18 +320,25 @@ class Command(CommandOutputMixIn, BaseCommand):
             #===================================================================
             mgr_to_use = rect_mgr
             
-            geo_metadata = GeospatialMetadata.readFromDataset(gdal.Open(df))
+            geo_metadata = GeospatialMetadata.readFromDataset(
+                gdal.Open(df),
+                default_srid
+            )
             if geo_metadata is not None:
                 args["geo_metadata"] = geo_metadata
                 
                 if geo_metadata.is_referenceable:
                     mgr_to_use = ref_mgr
                     self.print_msg("\t'%s' is referenceable." % df, 2)
+                    logging.info("\t'%s' is referenceable." % df, 2)
             
             with transaction.commit_on_success():
                 mgr_to_use.create(**args)
         
         self.print_msg("Successfully inserted %d dataset%s." % (
+                len(datafiles), "s" if len(datafiles) > 1 else ""
+            )
+        logging.info("Successfully inserted %d dataset%s." % (
                 len(datafiles), "s" if len(datafiles) > 1 else ""
             )
         )

@@ -1269,7 +1269,9 @@ class CoverageIdManager(BaseManager):
                     "Coverage ID '%s' is reserved until %s" % (coverage_id, obj.until)
                 )
         elif CoverageRecord.objects.filter(coverage_id=coverage_id).count() > 0:
-            raise CoverageIdInUseError("Coverage ID %s is already in use")
+            raise CoverageIdInUseError("Coverage ID '%s' is already in use."
+                % coverage_id
+            )
         
         obj.request_id = request_id
         obj.until = until
