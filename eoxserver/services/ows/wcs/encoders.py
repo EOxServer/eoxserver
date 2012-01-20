@@ -227,7 +227,7 @@ class CoverageGML10Encoder(XMLEncoder):
                 ),)
             ])
         else:
-            return self._makeElement("gml", "DomainSet", [
+            return self._makeElement("gml", "domainSet", [
                 (self.encodeRectifiedGrid(
                     size,
                     extent,
