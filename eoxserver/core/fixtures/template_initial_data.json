@@ -1811,7 +1811,7 @@
         "pk": 121, 
         "model": "core.component", 
         "fields": {
-            "enabled": false
+            "enabled": true
         }
     }
 ]
