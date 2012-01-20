@@ -259,7 +259,7 @@ class Command(CommandOutputMixIn, BaseCommand):
         
         for df, mdf, cid in zip(datafiles, metadatafiles, coverageids):
             self.print_msg("Inserting coverage with ID '%s'." % cid, 2)
-            logging.info("Inserting coverage with ID '%s'." % cid, 2)
+            logging.info("Inserting coverage with ID '%s'." % cid)
             
             args = {
                 "obj_id": cid,
@@ -270,14 +270,14 @@ class Command(CommandOutputMixIn, BaseCommand):
             
             if mode == 'local':
                 self.print_msg("\tFile: '%s'\n\tMeta-data: '%s'" % (df, mdf), 2)
-                logging.info("\tFile: '%s'\n\tMeta-data: '%s'" % (df, mdf), 2)
+                logging.info("\tFile: '%s'\n\tMeta-data: '%s'" % (df, mdf))
                 args.update({
                     "local_path": df,
                     "md_local_path": mdf,
                 })
             elif mode == 'ftp':
                 self.print_msg("\tFile: '%s'\n\tMeta-data: '%s'" % (df, mdf), 2)
-                logging.info("\tFile: '%s'\n\tMeta-data: '%s'" % (df, mdf), 2)
+                logging.info("\tFile: '%s'\n\tMeta-data: '%s'" % (df, mdf))
                 args.update({
                     "remote_path": df,
                     "md_remote_path": mdf,
@@ -301,7 +301,7 @@ class Command(CommandOutputMixIn, BaseCommand):
                 logging.info(
                     "\tCollection: '%s'\n\tOID:%s\n\tMeta-data: '%s'" % (
                         df, oid, mdf
-                    ), 2
+                    )
                 )
                 args.update({
                     "collection": df,
@@ -330,7 +330,7 @@ class Command(CommandOutputMixIn, BaseCommand):
                 if geo_metadata.is_referenceable:
                     mgr_to_use = ref_mgr
                     self.print_msg("\t'%s' is referenceable." % df, 2)
-                    logging.info("\t'%s' is referenceable." % df, 2)
+                    logging.info("\t'%s' is referenceable." % df)
             
             with transaction.commit_on_success():
                 mgr_to_use.create(**args)
@@ -338,6 +338,7 @@ class Command(CommandOutputMixIn, BaseCommand):
         self.print_msg("Successfully inserted %d dataset%s." % (
                 len(datafiles), "s" if len(datafiles) > 1 else ""
             )
+        )
         logging.info("Successfully inserted %d dataset%s." % (
                 len(datafiles), "s" if len(datafiles) > 1 else ""
             )
