@@ -960,6 +960,14 @@
         }
     }, 
     {
+        "pk": 121, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wcs11Transaction.WCS11VersionHandler", 
+            "intf_id": "services.interfaces.VersionHandler"
+        }
+    }, 
+    {
         "pk": 1, 
         "model": "core.component", 
         "fields": {
@@ -1797,6 +1805,13 @@
         "model": "core.component", 
         "fields": {
             "enabled": true
+        }
+    },
+    {
+        "pk": 121, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": false
         }
     }
 ]
