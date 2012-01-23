@@ -7,7 +7,7 @@
 #-------------------------------------------------------------------------------
 # Copyright (C) 2011 Iguassu Software Systems a.s. 
 #
-# Permission is hereby granted, free of charge, to any person obtaining a copy
+# MEPermission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
@@ -42,12 +42,27 @@ ACTIONS_UPPER=map( lambda s : s.upper() , ACTIONS )
 ACTIONS_U2N= dict( zip( ACTIONS_UPPER , ACTIONS ) ) 
 
 #-------------------------------------------------------------------------------
+# explicite namespace prefix registration 
+
+try:
+    # works for Python >= 2.7 ( ElementTree >= 1.3 ) 
+    register_namespace = etree.register_namespace
+except AttributeError:
+    # falback for older Python versions 
+    def register_namespace(prefix, uri):
+        etree._namespace_map[uri] = prefix
+
+
+#-------------------------------------------------------------------------------
 
 # namespaces 
 
+NS_WCS11="http://www.opengis.net/wcs/1.1"
 NS_OWS11="http://www.opengis.net/ows/1.1"
+NS_WCS20="http://www.opengis.net/wcs/2.0"
 NS_OWS20="http://www.opengis.net/ows/2.0"
 NS_XLN="http://www.w3.org/1999/xlink"
+NS_XSI="http://www.w3.org/2001/XMLSchema-instance"
 
 # attribute names 
 
@@ -101,9 +116,23 @@ def splitQN( qname ) :
 #-------------------------------------------------------------------------------
 
 def wcst11AlterCapabilities11( respSrc ) : 
+
+    # register namespace prefixes 
+    register_namespace("wcs",NS_WCS11)
+    register_namespace("ows",NS_OWS11)
+    register_namespace("xsi",NS_XSI) 
+    register_namespace("xlink",NS_XLN) 
+
     return _wcst11AlterCapabilities( respSrc , OWS11 ) 
 
 def wcst11AlterCapabilities20( respSrc ) : 
+
+    # register namespace prefixes 
+    register_namespace("wcs",NS_WCS20)
+    register_namespace("ows",NS_OWS20)
+    register_namespace("xsi",NS_XSI) 
+    register_namespace("xlink",NS_XLN) 
+
     return _wcst11AlterCapabilities( respSrc , OWS20 ) 
 
 #-------------------------------------------------------------------------------
