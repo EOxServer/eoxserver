@@ -2,10 +2,10 @@ CC= gcc
 LD= gcc
 LD_SHARED = $(LD) -shared 
 
-INCLUDES= -I "/usr/include/"
+INCLUDES=`gdal-config --cflags`
 CCFLAGS= -c -g -Wall -fPIC $(INCLUDES)
 
-LIBS= -lgdal1.7.0
+LIBS=`gdal-config --libs`
 
 OBJS= reftools.o
 
