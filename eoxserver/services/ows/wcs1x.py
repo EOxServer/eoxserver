@@ -56,7 +56,7 @@ from eoxserver.services.ows.wcs.common import (
 
 
 # following import is needed by WCS-T 
-from eoxserver.services.ows.wcst.wcstAlterCapabilities import wcst11AlterCapabilities11
+from eoxserver.services.ows.wcst.wcst11AlterCapabilities import wcst11AlterCapabilities11
 
 
 class WCSServiceHandler(OWSCommonServiceHandler):
