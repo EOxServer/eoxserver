@@ -27,20 +27,26 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+from xml.dom import minidom
+
 import mapscript
 
 import logging
 
 from eoxserver.core.system import System
-from eoxserver.core.util.xmltools import XMLEncoder
+from eoxserver.core.util.xmltools import XMLEncoder, DOMtoXML
+from eoxserver.core.exceptions import InternalError
 from eoxserver.resources.coverages.filters import BoundedArea
-from eoxserver.services.exceptions import InvalidRequestException
 from eoxserver.services.base import BaseExceptionHandler
+from eoxserver.services.requests import Response
 from eoxserver.services.interfaces import (
     ExceptionHandlerInterface, ExceptionEncoderInterface
 )
 from eoxserver.services.owscommon import OWSCommonVersionHandler
-from eoxserver.services.ows.wms.common import WMS1XGetMapHandler
+from eoxserver.services.ows.wms.common import (
+    WMS1XGetCapabilitiesHandler, WMS1XGetMapHandler
+)
+from eoxserver.services.exceptions import InvalidRequestException
 
 class WMS13VersionHandler(OWSCommonVersionHandler):
     REGISTRY_CONF = {
@@ -60,6 +66,147 @@ class WMS13VersionHandler(OWSCommonVersionHandler):
             "http://www.opengis.net/ogc": "http://schemas.opengis.net/wms/1.3.0/exceptions_1_3_0.xsd"
         }
         return WMS13ExceptionHandler(schemas).handleException(req, exception)
+        
+class WMS13GetCapabilitiesHandler(WMS1XGetCapabilitiesHandler):
+    REGISTRY_CONF = {
+        "name": "WMS 1.3 GetCapabilities Handler",
+        "impl_id": "services.ows.wms1x.WMS13GetCapabilitiesHandler",
+        "registry_values": {
+            "services.interfaces.service": "wms",
+            "services.interfaces.version": "1.3.0",
+            "services.interfaces.operation": "getcapabilities"
+        }
+    }
+    
+    def addLayers(self):
+        super(WMS13GetCapabilitiesHandler, self).addLayers()
+        
+        for coverage in self.coverages:
+            if coverage.getType() == "eo.rect_stitched_mosaic":
+                self.map.insertLayer(
+                    self.getMapServerMosaicOutlinesLayer(coverage)
+                )
+    
+        for dataset_series in self.dataset_series_set:
+            self.map.insertLayer(
+                self.getMapServerDatasetSeriesOutlinesLayer(dataset_series)
+            )
+    
+    def getMapServerOutlinesLayer(self, base_name):
+        layer = mapscript.layerObj()
+        
+        layer_name = "%s_outlines" % base_name
+        
+        layer.name = layer_name
+        layer.setMetaData("ows_title", layer_name)
+        layer.setMetaData("wms_group", layer_name)
+        layer.setMetaData("wms_layer_group", "/%s" % base_name)
+        
+        layer.setMetaData("wms_enable_request", "*")
+
+        layer.setProjection("+init=epsg:4326")
+        layer.setMetaData("wms_srs", "EPSG:4326")
+        
+        layer.type = mapscript.MS_LAYER_POLYGON
+        
+        layer.setConnectionType(mapscript.MS_INLINE, "")
+        
+        return layer
+        
+    def getMapServerMosaicOutlinesLayer(self, mosaic):
+        layer = self.getMapServerOutlinesLayer(mosaic.getCoverageId())
+        
+        layer.setMetaData("wms_extent", "%f %f %f %f" % mosaic.getWGS84Extent())
+        
+        shape = mapscript.shapeObj().fromWKT(
+            mosaic.getFootprint().wkt
+        )
+
+        layer.addFeature(shape)
+        
+        layer.status = mapscript.MS_ON
+        
+        return layer
+
+    def getMapServerDatasetSeriesOutlinesLayer(self, dataset_series):
+        layer = self.getMapServerOutlinesLayer(dataset_series.getEOID())
+        
+        layer.setMetaData("wms_extent", "%f %f %f %f" % dataset_series.getWGS84Extent())
+        
+        shape = mapscript.shapeObj().fromWKT(
+            dataset_series.getFootprint().wkt
+        )
+        
+        layer.addFeature(shape)
+        
+        layer.status = mapscript.MS_ON
+        
+        return layer
+    
+    def getMapServerLayer(self, coverage):
+        layer = super(WMS13GetCapabilitiesHandler, self).getMapServerLayer(coverage)
+        
+        if coverage.getType() == "eo.rect_stitched_mosaic":
+            layer.setMetaData("wms_layer_group", "/%s" % coverage.getCoverageId())
+        
+        return layer
+    
+    def getDatasetSeriesMapServerLayer(self, dataset_series):
+        layer = super(WMS13GetCapabilitiesHandler, self).getDatasetSeriesMapServerLayer(dataset_series)
+        
+        layer.setMetaData("wms_layer_group", "/%s" % dataset_series.getEOID())
+        
+        return layer
+    
+    def postprocess(self, resp):
+        # if the content cannot be parsed, return the response unchanged
+        try:
+            xml = minidom.parseString(resp.getContent())
+        except:
+            return resp
+        
+        # Exception reports are not changed
+        if xml.documentElement.localName == "ExceptionReport":
+            return resp
+
+        layer_els = xml.getElementsByTagNameNS(
+            "http://www.opengis.net/wms", "Layer"
+        )
+        
+        encoder = EOWMSEncoder()
+        
+        # add _bands and _outlines layers to EO Coverages
+        for coverage in self.coverages:
+            layer_el = self._get_layer_element(
+                layer_els, coverage.getCoverageId()
+            )
+            
+            layer_el.appendChild(encoder.encodeBandsLayer(
+                "%s_bands" % coverage.getCoverageId(),
+                coverage.getRangeType()
+            ))
+            
+        return Response(
+            content = DOMtoXML(xml),
+            content_type = resp.getContentType(),
+            status = 200,
+            headers = resp.getHeaders()
+        )
+
+    def _get_layer_element(self, layer_els, layer_name):
+        for layer_el in layer_els:
+            for node in layer_el.childNodes:
+                if node.localName == "Name":
+                    if node.firstChild.data == layer_name:
+                        return layer_el
+                    else:
+                        break
+        
+        raise InternalError(
+            "Could not find 'Layer' element with name '%s' in WMS 1.3 GetCapabilities response" %\
+            layer_name
+        )
+    
 
 class WMS13GetMapHandler(WMS1XGetMapHandler):
     REGISTRY_CONF = {
@@ -73,7 +220,7 @@ class WMS13GetMapHandler(WMS1XGetMapHandler):
     }
     
     PARAM_SCHEMA = {
-        "service": {"xml_location": "/@service", "xml_type": "string", "kvp_key": "service", "kvp_type": "string"},
+        "service": {"xml_location": "/@service",     "xml_type": "string", "kvp_key": "service", "kvp_type": "string"},
         "version": {"xml_location": "/@version", "xml_type": "string", "kvp_key": "version", "kvp_type": "string"},
         "operation": {"xml_location": "/", "xml_type": "localName", "kvp_key": "request", "kvp_type": "string"},
         "crs": {"xml_location": "/crs", "xml_type": "string", "kvp_key": "crs", "kvp_type": "string"}, # TODO: check XML location
@@ -214,3 +361,32 @@ class WMS13ExceptionEncoder(XMLEncoder):
         return self.encodeExceptionReport("Internal Server Error", "NoApplicableCode")
 
 WMS13ExceptionEncoderImplementation = ExceptionEncoderInterface.implement(WMS13ExceptionEncoder)
+
+class EOWMSEncoder(XMLEncoder):
+    def _initializeNamespaces(self):
+        ns_dict = super(EOWMSEncoder, self)._initializeNamespaces()
+        
+        ns_dict.update({
+            "wms": "http://www.opengis.net/wms"
+        })
+        
+        return ns_dict
+    
+    def encodeBandsLayer(self, layer_name, range_type):
+        band_name_list = ",".join(
+            [normalize_band_name(band.name) for band in range_type.bands]
+        )
+        
+        return self._makeElement("wms", "Layer", [
+            ("wms", "Name", layer_name),
+            ("wms", "Title", layer_name),
+            ("wms", "Dimension", [
+                ("", "@name", "band"),
+                ("", "@units", ""),
+                ("", "@multipleValues", "1"),
+                ("", "@@", band_name_list)
+            ])
+        ])
+
+def normalize_band_name(band_name):
+    return band_name.replace(" ", "_")

@@ -42,6 +42,7 @@ from eoxserver.services.ows.wms.wms1011 import (
 )
 from eoxserver.services.ows.wms.wms13 import (
     WMS13VersionHandler,
+    WMS13GetCapabilitiesHandler,
     WMS13GetMapHandler
 )
 
@@ -104,17 +105,6 @@ class WMS111GetCapabilitiesHandler(WMS1XGetCapabilitiesHandler):
     }
 
 WMS111GetCapabilitiesHandlerImplementation = OperationHandlerInterface.implement(WMS111GetCapabilitiesHandler)
-
-class WMS13GetCapabilitiesHandler(WMS1XGetCapabilitiesHandler):
-    REGISTRY_CONF = {
-        "name": "WMS 1.3 GetCapabilities Handler",
-        "impl_id": "services.ows.wms1x.WMS13GetCapabilitiesHandler",
-        "registry_values": {
-            "services.interfaces.service": "wms",
-            "services.interfaces.version": "1.3.0",
-            "services.interfaces.operation": "getcapabilities"
-        }
-    }
 
 WMS13GetCapabilitiesHandlerImplementation = OperationHandlerInterface.implement(WMS13GetCapabilitiesHandler)
 
