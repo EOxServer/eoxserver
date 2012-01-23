@@ -303,13 +303,7 @@ class WMS1XGetMapHandler(WMSCommonHandler):
             raise InvalidRequestException("Missing 'LAYERS' parameter", "MissingParameterValue", "layers")
         
         
-        srs = self.req.getParamValue(self.getSRSParameterName())
-        if srs is None:
-            raise InvalidRequestException("Missing '%s' parameter"% self.getSRSParameterName().upper(), "MissingParameterValue" , self.getSRSParameterName())
-
-        srid = getSRIDFromCRSIdentifier(srs)
-        if srid is None:
-            raise InvalidRequestException("Invalid '%s' parameter value"% self.getSRSParameterName().upper(), "InvalidCRS" , self.getSRSParameterName())
+        srid = self.getSRID()
         
         area = self.getBoundedArea(srid, bbox)
         
