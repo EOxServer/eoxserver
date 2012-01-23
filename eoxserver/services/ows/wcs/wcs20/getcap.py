@@ -35,7 +35,7 @@ from eoxserver.core.exceptions import InternalError
 from eoxserver.services.owscommon import OWSCommonConfigReader
 from eoxserver.services.ows.wcs.common import WCSCommonHandler
 from eoxserver.services.ows.wcs.encoders import WCS20EOAPEncoder
-from eoxserver.services.ows.wcst.wcstAlterCapabilities import wcst11AlterCapabilities20
+from eoxserver.services.ows.wcst.wcst11AlterCapabilities import wcst11AlterCapabilities20
 
 class WCS20GetCapabilitiesHandler(WCSCommonHandler):
     SERVICE = "wcs"
