@@ -32,10 +32,14 @@ import mapscript
 import logging
 
 from eoxserver.core.system import System
-from eoxserver.core.util.timetools import isotime
+from eoxserver.core.util.timetools import (
+    isotime, getDateTime
+)
 from eoxserver.core.util.geotools import getSRIDFromCRSIdentifier
 from eoxserver.core.exceptions import InternalError, InvalidParameterException
-from eoxserver.resources.coverages.filters import BoundedArea
+from eoxserver.resources.coverages.filters import (
+    BoundedArea, TimeInterval
+)
 from eoxserver.resources.coverages.helpers import CoverageSet
 from eoxserver.processing.gdal.reftools import (
     create_rectified_vrt, create_temporary_vrt
