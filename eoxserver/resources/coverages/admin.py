@@ -316,12 +316,14 @@ class AbstractContainerAdmin(admin.ModelAdmin):
         self.obj_to_sync = obj
     
     def try_synchronize(self):
-        obj_to_sync = getattr(self, "obj_to_sync")
-        if obj_to_sync is not None:
+        try:
+            obj_to_sync = getattr(self, "obj_to_sync")
             System.init()
             mgr = self.get_manager()
             obj_id = self.get_obj_id(pk=obj_to_sync.pk)
             mgr.synchronize(obj_id)
+        except AttributeError:
+            pass
     
     def add_view(self, request, form_url="", extra_context=None):
         try:
