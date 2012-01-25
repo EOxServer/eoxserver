@@ -16,7 +16,7 @@
   <om:featureOfInterest>
     <eop:Footprint gml:id="footprint_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775">
       <eop:multiExtentOf>
-        <gml:MultiSurface gml:id="multisurface_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775">
+        <gml:MultiSurface gml:id="multisurface_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775" srsName="http://www.opengis.net/def/crs/EPSG/0/4326">
           <gml:surfaceMember>
             <gml:Polygon gml:id="polygon_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775">
               <gml:exterior>
