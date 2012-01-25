@@ -33,6 +33,8 @@ import mapscript
 
 import logging
 
+from django.conf import settings
+
 from eoxserver.core.system import System
 from eoxserver.core.util.xmltools import XMLEncoder, DOMtoXML
 from eoxserver.core.exceptions import InternalError
@@ -44,9 +46,195 @@ from eoxserver.services.interfaces import (
 )
 from eoxserver.services.owscommon import OWSCommonVersionHandler
 from eoxserver.services.ows.wms.common import (
+    WMSLayer, WMSCoverageLayer, WMSDatasetSeriesLayer,
     WMS1XGetCapabilitiesHandler, WMS1XGetMapHandler
 )
 from eoxserver.services.exceptions import InvalidRequestException
+
+class EOWMSOutlinesLayer(WMSLayer):
+    def configureConnection(self, layer):
+        db_conf = settings.DATABASES["default"]
+        
+        if db_conf["ENGINE"] == "django.contrib.gis.db.backends.postgis":
+            layer.setConnectionType(mapscript.MS_POSTGIS, "")
+            
+            conn_params = []
+            
+            if db_conf["HOST"]:
+                conn_params.append("host=%s" % db_conf["HOST"])
+            
+            if db_conf["PORT"]:
+                conn_params.append("port=%s" % db_conf["PORT"])
+                
+            conn_params.append("dbname=%s" % db_conf["NAME"])
+            
+            conn_params.append("user=%s" % db_conf["USER"])
+            
+            if db_conf["PASSWORD"]:
+                conn_params.append("passwd=%s" % db_conf["PASSWORD"])
+            
+            layer.connection = " ".join(conn_params)
+            
+            layer.data = "footprint from (%s) sq USING SRID=4326 USING UNIQUE oid" % self.getSubQuery()
+            
+        elif db_conf["ENGINE"] == "django.contrib.gis.db.backends.spatialite":
+            layer.setConnectionType(mapscript.MS_OGR, "")
+            
+            layer.connection = db_conf["NAME"]
+            
+            layer.data = self.getSubQuery()
+    
+    def getMapServerLayer(self, req):
+        layer = super(EOWMSOutlinesLayer, self).getMapServerLayer(req)
+        
+        layer.setMetaData("wms_enable_request", "getcapabilities,getmap,getfeatureinfo")
+
+        layer.setProjection("+init=epsg:4326")
+        layer.setMetaData("wms_srs", "EPSG:4326")
+        
+        layer.type = mapscript.MS_LAYER_POLYGON
+        
+        self.configureConnection(layer)
+        
+        return layer
+
+class EOWMSRectifiedStitchedMosaicOutlinesLayer(EOWMSOutlinesLayer):
+    def __init__(self, mosaic):
+        super(EOWMSRectifiedStitchedMosaicOutlinesLayer, self).__init__()
+        
+        self.mosaic = mosaic
+    
+    def getName(self):
+        return "%s_outlines" % self.mosaic.getCoverageId()
+    
+    def getSubQuery(self):
+        return "SELECT eomd.id AS oid, eomd.footprint FROM coverages_eometadatarecord AS eomd, coverages_rectifieddatasetrecord AS rd, coverages_rectifiedstitchedmosaicrecord_rect_datasets AS rsm2rd WHERE rsm2rd.rectifiedstitchedmosaicrecord_id = %d AND rsm2rd.rectifieddatasetrecord_id = rd.id AND rd.eo_metadata_id = eomd.id" % self.mosaic.getModel().pk
+    
+    def getMapServerLayer(self, req):
+        layer = super(EOWMSRectifiedStitchedMosaicOutlinesLayer, self).getMapServerLayer(req)
+        
+        layer.setMetaData("wms_extent", "%f %f %f %f" % self.mosaic.getWGS84Extent())
+        
+        return layer
+
+class EOWMSDatasetSeriesOutlinesLayer(EOWMSOutlinesLayer):
+    def __init__(self, dataset_series):
+        super(EOWMSDatasetSeriesOutlinesLayer, self).__init__()
+        
+        self.dataset_series = dataset_series
+        
+    def getName(self):
+        return "%s_outlines" % self.dataset_series.getEOID()
+    
+    def getSubQuery(self):
+        return "SELECT eomd.id AS oid, eomd.footprint FROM coverages_eometadatarecord AS eomd, coverages_rectifieddatasetrecord AS rd, coverages_datasetseriesrecord_rect_datasets AS ds2rd WHERE ds2rd.datasetseriesrecord_id = %d AND ds2rd.rectifieddatasetrecord_id = rd.id AND rd.eo_metadata_id = eomd.id" % self.dataset_series.getModel().pk
+    
+    def getMapServerLayer(self, req):
+        layer = super(EOWMSDatasetSeriesOutlinesLayer, self).getMapServerLayer(req)
+        
+        layer.setMetaData("wms_extent", "%f %f %f %f" % self.dataset_series.getWGS84Extent())
+
+        return layer
+
+class EOWMSBandsLayer(WMSCoverageLayer):
+    def isRGB(self):
+        return False
+        
+    def isGrayscale(self):
+        return False
+    
+    def getName(self):
+        return "%s_bands" % self.coverage.getCoverageId()
+    
+    def _get_band_index(self, band_name):
+        c = 0
+        for band in self.coverage.getRangeType().bands:
+            c += 1
+            if normalize_band_name(band.name) == band_name:
+                return c
+
+        raise InvalidRequestException(
+            "Unknown band name '%s'." % band_name,
+            "InvalidDimensionValue",
+            "dim_band"
+        )
+
+    def _get_band(self, band_name):
+        for band in self.coverage.getRangeType().bands:
+            if normalize_band_name(band.name) == band_name:
+                return band
+                
+        raise InvalidRequestException(
+            "Unknown band name '%s'." % band_name,
+            "InvalidDimensionValue",
+            "dim_band"
+        )
+        
+    def getBandIndices(self, req):
+        band_list = req.getParamValue("dim_band")
+        
+        if not band_list or len(band_list) not in (1, 3):
+            raise InvalidRequestException(
+                "Exactly one or three band names need to be provided in DIM_BAND parameter.",
+                "InvalidDimensionValue",
+                "dim_band"            
+            )
+        
+        if len(band_list) == 1:
+            c = self._get_band_index(band_list[0])
+            
+            return [c, c, c]
+            
+        elif len(band_list) == 3:
+            band_indices = []
+            
+            for band_name in band_list:
+                band_indices.append(self._get_band_index(band_name))
+            
+            return band_indices
+        
+    def getBandSelection(self, req):
+        band_list = req.getParamValue("dim_band")
+        
+        if not band_list or len(band_list) not in (1, 3):
+            raise InvalidRequestException(
+                "Exactly one or three band names need to be provided in DIM_BAND parameter.",
+                "InvalidDimensionValue",
+                "dim_band"            
+            )
+        
+        if len(band_list) == 1:
+            return [self._get_band(band_list[0])]
+        elif len(band_list) == 3:
+            bands = []
+            
+            for band_name in band_list:
+                bands.append(self._get_band(band_name))
+            
+            return bands
+        
+    def getMapServerLayer(self, req):
+        ms_layer = super(EOWMSBandsLayer, self).getMapServerLayer(req)
+        
+        return ms_layer
+
+class EOWMSRectifiedDatasetBandsLayer(EOWMSBandsLayer):
+    def getMapServerLayer(self, req):
+        ms_layer = super(EOWMSRectifiedDatasetBandsLayer, self).getMapServerLayer(req)
+        
+        return ms_layer
+
+class EOWMSReferenceableDatasetBandsLayer(EOWMSBandsLayer):
+    def getMapServerLayer(self, req):
+        ms_layer = super(EOWMSReferenceableDatasetBandsLayer, self).getMapServerLayer(req)
+        
+        return ms_layer
+
+class EOWMSRectifiedStitchedMosaicBandsLayer(EOWMSBandsLayer):
+    def getMapServerLayer(self, req):
+        ms_layer = super(EOWMSRectifiedStitchedMosaicBandsLayer, self).getMapServerLayer(req)
+        
+        return ms_layer
 
 class WMS13VersionHandler(OWSCommonVersionHandler):
     REGISTRY_CONF = {
@@ -78,85 +266,38 @@ class WMS13GetCapabilitiesHandler(WMS1XGetCapabilitiesHandler):
         }
     }
     
-    def addLayers(self):
-        super(WMS13GetCapabilitiesHandler, self).addLayers()
+    def createLayers(self):
+        visible_expr = System.getRegistry().getFromFactory(
+            "resources.coverages.filters.CoverageExpressionFactory",
+            {"op_name": "attr", "operands": ("visible", "=", True)}
+        )
         
-        for coverage in self.coverages:
+        cov_factory = System.getRegistry().bind("resources.coverages.wrappers.EOCoverageFactory")
+        
+        for coverage in cov_factory.find(filter_exprs=[visible_expr]):
+            layer = self.createCoverageLayer(coverage)
             if coverage.getType() == "eo.rect_stitched_mosaic":
-                self.map.insertLayer(
-                    self.getMapServerMosaicOutlinesLayer(coverage)
-                )
-    
-        for dataset_series in self.dataset_series_set:
-            self.map.insertLayer(
-                self.getMapServerDatasetSeriesOutlinesLayer(dataset_series)
-            )
-    
-    def getMapServerOutlinesLayer(self, base_name):
-        layer = mapscript.layerObj()
+                layer.setGroup(coverage.getCoverageId())
+                self.addLayer(layer)
+                
+                outlines_layer = EOWMSRectifiedStitchedMosaicOutlinesLayer(coverage)
+                outlines_layer.setGroup(coverage.getCoverageId())
+                self.addLayer(outlines_layer)
+            else:
+                self.addLayer(layer)
         
-        layer_name = "%s_outlines" % base_name
+        dss_factory = System.getRegistry().bind("resources.coverages.wrappers.DatasetSeriesFactory")
         
-        layer.name = layer_name
-        layer.setMetaData("ows_title", layer_name)
-        layer.setMetaData("wms_group", layer_name)
-        layer.setMetaData("wms_layer_group", "/%s" % base_name)
-        
-        layer.setMetaData("wms_enable_request", "*")
-
-        layer.setProjection("+init=epsg:4326")
-        layer.setMetaData("wms_srs", "EPSG:4326")
-        
-        layer.type = mapscript.MS_LAYER_POLYGON
-        
-        layer.setConnectionType(mapscript.MS_INLINE, "")
-        
-        return layer
-        
-    def getMapServerMosaicOutlinesLayer(self, mosaic):
-        layer = self.getMapServerOutlinesLayer(mosaic.getCoverageId())
-        
-        layer.setMetaData("wms_extent", "%f %f %f %f" % mosaic.getWGS84Extent())
-        
-        shape = mapscript.shapeObj().fromWKT(
-            mosaic.getFootprint().wkt
-        )
-
-        layer.addFeature(shape)
-        
-        layer.status = mapscript.MS_ON
-        
-        return layer
-
-    def getMapServerDatasetSeriesOutlinesLayer(self, dataset_series):
-        layer = self.getMapServerOutlinesLayer(dataset_series.getEOID())
-        
-        layer.setMetaData("wms_extent", "%f %f %f %f" % dataset_series.getWGS84Extent())
-        
-        shape = mapscript.shapeObj().fromWKT(
-            dataset_series.getFootprint().wkt
-        )
-        
-        layer.addFeature(shape)
-        
-        layer.status = mapscript.MS_ON
-        
-        return layer
-    
-    def getMapServerLayer(self, coverage):
-        layer = super(WMS13GetCapabilitiesHandler, self).getMapServerLayer(coverage)
-        
-        if coverage.getType() == "eo.rect_stitched_mosaic":
-            layer.setMetaData("wms_layer_group", "/%s" % coverage.getCoverageId())
-        
-        return layer
-    
-    def getDatasetSeriesMapServerLayer(self, dataset_series):
-        layer = super(WMS13GetCapabilitiesHandler, self).getDatasetSeriesMapServerLayer(dataset_series)
-        
-        layer.setMetaData("wms_layer_group", "/%s" % dataset_series.getEOID())
-        
-        return layer
+        # TODO: find a more efficient way to do this check
+        for dataset_series in dss_factory.find():
+            if len(dataset_series.getEOCoverages()) > 0:
+                layer = WMSDatasetSeriesLayer(dataset_series)
+                layer.setGroup(dataset_series.getEOID())
+                self.addLayer(layer)
+                
+                outlines_layer = EOWMSDatasetSeriesOutlinesLayer(dataset_series)
+                outlines_layer.setGroup(dataset_series.getEOID())
+                self.addLayer(outlines_layer)
     
     def postprocess(self, resp):
         # if the content cannot be parsed, return the response unchanged
@@ -175,16 +316,18 @@ class WMS13GetCapabilitiesHandler(WMS1XGetCapabilitiesHandler):
         
         encoder = EOWMSEncoder()
         
-        # add _bands and _outlines layers to EO Coverages
-        for coverage in self.coverages:
-            layer_el = self._get_layer_element(
-                layer_els, coverage.getCoverageId()
-            )
-            
-            layer_el.appendChild(encoder.encodeBandsLayer(
-                "%s_bands" % coverage.getCoverageId(),
-                coverage.getRangeType()
-            ))
+        # add _bands layers
+        # TODO: this solution really is not nice
+        for layer in self.layers:
+            if not isinstance(layer, EOWMSOutlinesLayer) and not isinstance(layer, WMSDatasetSeriesLayer):
+                layer_el = self._get_layer_element(
+                    layer_els, layer.getName()
+                )
+                
+                layer_el.appendChild(encoder.encodeBandsLayer(
+                    "%s_bands" % layer.getName(),
+                    layer.coverage.getRangeType()
+                ))
             
         return Response(
             content = DOMtoXML(xml),
@@ -227,7 +370,8 @@ class WMS13GetMapHandler(WMS1XGetMapHandler):
         "layers": {"xml_location": "/layer", "xml_type": "string[]", "kvp_key": "layers", "kvp_type": "stringlist"}, # TODO: check XML location
         "format": {"xml_location": "/format", "xml_type": "string", "kvp_key": "format", "kvp_type": "string"},
         "time": {"xml_location": "/time", "xml_type": "string", "kvp_key": "time", "kvp_type": "string"},
-        "bbox": {"xml_location": "/bbox", "xml_type": "floatlist", "kvp_key": "bbox", "kvp_type": "floatlist"}
+        "bbox": {"xml_location": "/bbox", "xml_type": "floatlist", "kvp_key": "bbox", "kvp_type": "floatlist"},
+        "dim_band": {"kvp_key": "dim_band", "kvp_type": "stringlist"}
     }
     
     def getSRSParameterName(self):
@@ -277,14 +421,100 @@ class WMS13GetMapHandler(WMS1XGetMapHandler):
         self.map.setMetaData("wms_exceptions_format", "xml")
         self.map.setMetaData("ows_srs","EPSG:4326")
         
-        srid = self.getSRID()
-        self.map.setProjection("+init=epsg:%d" % srid)
+    def createLayersForName(self, layer_name, filter_exprs):
+        if layer_name.endswith("_outlines"):
+            self.createOutlinesLayer(layer_name[:-9])
+        elif layer_name.endswith("_bands"):
+            self.createBandsLayers(layer_name[:-6], filter_exprs)
+        else:
+            super(WMS13GetMapHandler, self).createLayersForName(
+                layer_name, filter_exprs
+            )
     
-    def getMapServerLayer(self, coverage):
-        layer = super(WMS13GetMapHandler, self).getMapServerLayer(coverage)
-        layer.setMetaData("wms_exceptions_format","xml")
+    def createOutlinesLayer(self, base_name):
+        dataset_series = System.getRegistry().getFromFactory(
+            "resources.coverages.wrappers.DatasetSeriesFactory",
+            {"obj_id": base_name}
+        )
+        if dataset_series is not None:
+            outlines_layer = EOWMSDatasetSeriesOutlinesLayer(dataset_series)
+            
+            self.addLayer(outlines_layer)
+        else:
+            coverage = System.getRegistry().getFromFactory(
+                "resources.coverages.wrappers.EOCoverageFactory",
+                {"obj_id": base_name}
+            )
+            if coverage is not None and coverage.getType() == "eo.rect_stitched_mosaic":
+                outlines_layer = EOWMSRectifiedStitchedMosaicOutlinesLayer(coverage)
+                
+                self.addLayer(outlines_layer)
+            else:
+                raise InvalidRequestException(
+                    "No coverage or dataset series with EO ID '%s' found" % base_name,
+                    "LayerNotDefined",
+                    "layers"
+                )
+    
+    def createBandsLayers(self, base_name, filter_exprs):
+        dataset_series = System.getRegistry().getFromFactory(
+            "resources.coverages.wrappers.DatasetSeriesFactory",
+            {"obj_id": base_name}
+        )
+        if dataset_series is not None:
+            self.createDatasetSeriesBandsLayers(dataset_series, filter_exprs)
+        else:
+            coverage = System.getRegistry().getFromFactory(
+                "resources.coverages.wrappers.EOCoverageFactory",
+                {"obj_id": base_name}
+            )
+            if coverage is not None:
+                if coverage.matches(filter_exprs):
+                    self.addLayer(self.createCoverageBandsLayer(coverage))
+                else:
+                    pass # TODO: check WMS spec for correct handling
+            else:
+                raise InvalidRequestException(
+                    "No coverage or dataset series with EO ID '%s' found" % base_name,
+                    "LayerNotDefined",
+                    "layers"
+                )
+
+    def createCoverageBandsLayer(self, coverage):
+        if coverage.getType() == "plain":
+            raise InternalError(
+                "Plain coverages are not yet supported"
+            )
+        elif coverage.getType() == "eo.rect_dataset":
+            return EOWMSRectifiedDatasetBandsLayer(coverage)
+        elif coverage.getType() == "eo.ref_dataset":
+            return EOWMSReferenceableDatasetBandsLayer(coverage)
+        elif coverage.getType() == "eo.rect_stitched_mosaic":
+            return EOWMSRectifiedStitchedMosaicBandsLayer(coverage)
+    
+    def createDatasetSeriesBandsLayers(self, dataset_series, filter_exprs):
+        def _get_begin_time(coverage):
+            return coverage.getBeginTime()
         
-        return layer
+        coverages = dataset_series.getEOCoverages(filter_exprs)
+        
+        if len(coverages) == 0:
+            return # TODO: this will cause errors because of missing layers
+            
+        coverages.sort(key=_get_begin_time)
+        
+        for coverage in coverage:
+            layer = self.createCoverageBandsLayer(coverage)
+            
+            layer.setGroup("%s_bands" % dataset_series.getEOID())
+            
+            self.addLayer(layer)
+        
+    def getMapServerLayer(self, layer):
+        ms_layer = super(WMS13GetMapHandler, self).getMapServerLayer(layer)
+        ms_layer.setMetaData("wms_exceptions_format","xml")
+        
+        return ms_layer
 
 class WMS13ExceptionHandler(BaseExceptionHandler):
     REGISTRY_CONF = {
