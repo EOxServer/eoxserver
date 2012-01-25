@@ -106,16 +106,12 @@ class WMS10_11GetMapHandler(WMS1XGetMapHandler):
         super(WMS10_11GetMapHandler, self).configureMapObj()
         
         self.map.setMetaData("wms_exceptions_format", "application/vnd.ogc.se_xml")
-        
-        srid = self.getSRID()
-        self.map.setProjection("+init=epsg:%d" % srid)
     
-    def getMapServerLayer(self, coverage):
-        layer = super(WMS10_11GetMapHandler, self).getMapServerLayer(coverage)
-        layer.setMetaData("wms_exceptions_format","application/vnd.ogc.se_xml")
+    def getMapServerLayer(self, layer):
+        ms_layer = super(WMS10_11GetMapHandler, self).getMapServerLayer(layer)
+        ms_layer.setMetaData("wms_exceptions_format","application/vnd.ogc.se_xml")
         
-        return layer
-
+        return ms_layer
 
 class WMS10ExceptionHandler(BaseExceptionHandler):
     REGISTRY_CONF = {

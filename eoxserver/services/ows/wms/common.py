@@ -44,162 +44,218 @@ from eoxserver.resources.coverages.helpers import CoverageSet
 from eoxserver.processing.gdal.reftools import (
     create_rectified_vrt, create_temporary_vrt
 )
+from eoxserver.services.owscommon import OWSCommonConfigReader
 from eoxserver.services.mapserver import MapServerOperationHandler
 from eoxserver.services.exceptions import InvalidRequestException
 
-class WMSCommonHandler(MapServerOperationHandler):
+class WMSLayer(object):
     def __init__(self):
-        super(WMSCommonHandler, self).__init__()
+        self.group_name = None
+                
+        self.temp_files = []
         
-        self.dataset_series_set = []
+    def getName(self):
+        raise NotImplementedError
+        
+    def setGroup(self, group_name):
+        self.group_name = group_name
     
-    def getMapServerLayer(self, coverage):
-        logging.debug("WMSCommonHandler.getMapServerLayer")
+    def getGroup(self):
+        return self.group_name
+    
+    def getMapServerLayer(self, req):
+        layer = mapscript.layerObj()
         
-        layer = super(WMSCommonHandler, self).getMapServerLayer(coverage)
-        layer.setMetaData("wms_label", coverage.getCoverageId())
+        layer.name = self.getName()
+        layer.setMetaData("ows_title", self.getName())
+        layer.setMetaData("wms_label", self.getName())
+    
+        if self.group_name:
+            layer.setMetaData("wms_layer_group", "/%s" % self.group_name)
         
-        if coverage.getType() == "eo.ref_dataset":
-            layer.setMetaData("ows_srs", "EPSG:4326")
-            layer.setMetaData("wms_extent", "%f %f %f %f" % coverage.getFootprint().extent)
-            layer.setExtent(*coverage.getFootprint().extent)
-        else:
-            layer.setMetaData("ows_srs", "EPSG:%d" % int(coverage.getSRID()))
-            layer.setMetaData("wms_extent", "%f %f %f %f" % coverage.getExtent())
-            layer.setExtent(*coverage.getExtent())
-                    
-        # set up the no-data value
-        range_type = coverage.getRangeType()
-        nil_values = []
-        for band in range_type.bands:
-            try: 
-                nil_values.append(int(band.nil_values[0].value))
-            except IndexError:
-                nil_values.append(0)
-        
-        layer.offsite = mapscript.colorObj(*nil_values[:3])
-        
-        layer.type = mapscript.MS_LAYER_RASTER
-        
-        layer.setConnectionType(mapscript.MS_RASTER, '')
-        layer.setMetaData("wms_enable_request", "*")
-        layer.status = mapscript.MS_DEFAULT
-        
-        try:
-            if coverage.getType() in ("plain", "eo.rect_dataset"):
-                connector = System.getRegistry().findAndBind(
-                    intf_id = "services.mapserver.MapServerDataConnectorInterface",
-                    params = {
-                        "services.mapserver.data_structure_type": \
-                            coverage.getDataStructureType()
-                    }
-                ) 
-                layer = connector.configure(layer, coverage)
-                logging.debug("EOxSWMSCommonHandler.getMapServerLayer: filename: %s" % layer.data) 
-            elif coverage.getType() == "eo.ref_dataset":
-                vrt_path = self.rectify(coverage)
-                
-                layer.data = vrt_path
-                layer.addProcessing("SCALE=1,2000") # TODO: Make the scale configurable.
-                
-                logging.debug("EOxSWMSCommonHandler.getMapServerLayer: filename: %s" % layer.data)
-                
-                self.temp_files.append(vrt_path)
-            elif coverage.getType() == "eo.rect_stitched_mosaic":
-                connector = System.getRegistry().findAndBind(
-                    intf_id = "services.mapserver.MapServerDataConnectorInterface",
-                    params = {
-                        "services.mapserver.data_structure_type": \
-                            coverage.getDataStructureType()
-                    }
-                ) 
-                
-                layer = connector.configure(layer, coverage)
-                
-                extent = coverage.getExtent()
-                srid = coverage.getSRID()
-                size = coverage.getSize()
-                resolution = ((extent[2]-extent[0]) / float(size[0]),
-                              (extent[1]-extent[3]) / float(size[1]))
-                
-                layer.setExtent(*coverage.getExtent())
-                layer.setMetaData("wms_extent", "%.10f %.10f %.10f %.10f" % extent)
-                layer.setMetaData("wms_resolution", "%.10f %.10f" % resolution)
-                layer.setMetaData("wms_size", "%d %d" % size)
-                
-                layer.type = mapscript.MS_LAYER_RASTER
-                layer.setConnectionType(mapscript.MS_RASTER, '')
-                layer.setMetaData("wms_srs", "EPSG:%d" % srid)
-                layer.setProjection("+init=epsg:%d" % srid)
-                    
+        return layer
 
-        except InternalError:
-            # create "no data" layer
-            logging.debug(layer.data)
-            layer.setProjection("+init=epsg:4326")
-            layer.setMetaData("wms_srs", "EPSG:3035 EPSG:4326 EPSG:900913") # TODO find out possible projections
+    def cleanup(self):
+        for temp_file in self.temp_files:
+            try:
+                os.remove(temp_file)
+            except:
+                logging.warning("Could not remove temporary file '%s'" % temp_file)
+
+class WMSCoverageLayer(WMSLayer):
+    def __init__(self, coverage):
+        super(WMSCoverageLayer, self).__init__()
+        
+        self.coverage = coverage
+        
+    def getName(self):
+        return self.coverage.getCoverageId()
+        
+    def isRGB(self):
+        return self.coverage.getRangeType().name == "RGB"
+    
+    def isGrayscale(self):
+        return self.coverage.getRangeType().name == "Grayscale"
+        
+    def getBandIndices(self, req):
+        if len(self.coverage.getRangeType().bands) >= 3:
+            return [1, 2, 3]
+        else:
+            return [1, 1, 1]
+
+    def getBandSelection(self, req):
+        bands = self.coverage.getRangeType().bands
+        
+        if len(bands) == 1 or len(bands) == 3:
+            return bands
+        elif len(bands) == 2:
+            return bands
+        else:
+            return bands[:3]
+        
+    def setOffsiteColor(self, layer, bands):
+        nil_values = []
+        
+        if len(bands) == 1:
+            if len(bands[0].nil_values) > 0:
+                nil_values = [
+                    int(bands[0].nil_values[0].value),
+                    int(bands[0].nil_values[0].value),
+                    int(bands[0].nil_values[0].value)
+                ]
+                
+                layer.offsite = mapscript.colorObj(*nil_values)
+
+        if len(bands) == 3:
+            for band in bands:
+                if len(band.nil_values) > 0:
+                    nil_values.append(int(band.nil_values[0].value))
+                else:
+                    return
+                
+            layer.offsite = mapscript.colorObj(*nil_values)
+            
+    
+    def configureBands(self, layer, req):
+        bands = self.getBandSelection(req)
+        
+        if not self.isRGB() and not self.isGrayscale():
+            layer.setProcessingKey("BANDS", "%d,%d,%d" % tuple(self.getBandIndices(req)))
+        
+        self.setOffsiteColor(layer, bands)
+
+    def getMapServerLayer(self, req):
+        layer = super(WMSCoverageLayer, self).getMapServerLayer(req)
+        
+        layer.setMetaData("wms_enable_request", "getcapabilities,getmap")
+
+        for key, value in self.coverage.getLayerMetadata():
+            layer.setMetaData(key, value)
+
+        layer.type = mapscript.MS_LAYER_RASTER
+        layer.setConnectionType(mapscript.MS_RASTER, '')
+        
+        self.configureBands(layer, req)
 
         return layer
-        
-        def rectify(self, coverage):
-            return create_temporary_vrt(
-                coverage.getData().getGDALDatasetIdentifier()
-            )
 
-class WMS1XGetCapabilitiesHandler(WMSCommonHandler):
-    def createCoverages(self):
-        visible_expr = System.getRegistry().getFromFactory(
-            "resources.coverages.filters.CoverageExpressionFactory",
-            {"op_name": "attr", "operands": ("visible", "=", True)}
-        )
-        
-        cov_factory = System.getRegistry().bind("resources.coverages.wrappers.EOCoverageFactory")
-        
-        self.coverages = cov_factory.find(filter_exprs=[visible_expr])
-        
-        dss_factory = System.getRegistry().bind("resources.coverages.wrappers.DatasetSeriesFactory")
-        
-        # TODO: find a more efficient way to do this check
-        for dataset_series in dss_factory.find():
-            if len(dataset_series.getEOCoverages()) > 0:
-                self.dataset_series_set.append(dataset_series)
-                
-    
-    def addLayers(self):
-        super(WMS1XGetCapabilitiesHandler, self).addLayers()
-    
-        for dataset_series in self.dataset_series_set:
-            self.map.insertLayer(self.getDatasetSeriesMapServerLayer(dataset_series))
-    
-    def getMapServerLayer(self, coverage):
-        layer = super(WMS1XGetCapabilitiesHandler, self).getMapServerLayer(coverage)
-        
+class WMSRectifiedDatasetLayer(WMSCoverageLayer):
+    def getMapServerLayer(self, req):
+        layer = super(WMSRectifiedDatasetLayer, self).getMapServerLayer(req)
+
+        # general rectified coverage stuff
+        layer.setProjection("+init=epsg:%d" % int(self.coverage.getSRID()))
+        layer.setMetaData("ows_srs", "EPSG:%d" % int(self.coverage.getSRID()))
+        layer.setMetaData("wms_extent", "%f %f %f %f" % self.coverage.getExtent())
+        layer.setExtent(*self.coverage.getExtent())
+
+        # rectified dataset stuff
         connector = System.getRegistry().findAndBind(
             intf_id = "services.mapserver.MapServerDataConnectorInterface",
             params = {
                 "services.mapserver.data_structure_type": \
-                    coverage.getDataStructureType()
+                    self.coverage.getDataStructureType()
+            }
+        )
+        
+        layer = connector.configure(layer, self.coverage)
+
+        return layer
+        
+class WMSReferenceableDatasetLayer(WMSCoverageLayer):
+    def getMapServerLayer(self, req):
+        layer = super(WMSReferenceableDatasetLayer, self).getMapServerLayer(req)
+
+        layer.setMetaData("ows_srs", "EPSG:4326")
+        layer.setMetaData("wms_extent", "%f %f %f %f" % self.coverage.getWGS84Extent())
+        layer.setExtent(*self.coverage.getWGS84Extent())
+
+        vrt_path = self.rectify()
+        
+        layer.data = vrt_path
+        layer.addProcessing("SCALE=1,2000") # TODO: Make the scale configurable.
+        
+        self.temp_files.append(vrt_path)
+
+        return layer
+
+    def rectify(self):
+        return create_temporary_vrt(
+            self.coverage.getData().getGDALDatasetIdentifier()
+        )
+
+class WMSRectifiedStitchedMosaicLayer(WMSCoverageLayer):
+    def getMapServerLayer(self, req):
+        layer = super(WMSRectifiedStitchedMosaicLayer, self).getMapServerLayer(req)
+        
+        layer.setProjection("+init=epsg:%d" % int(self.coverage.getSRID()))
+        layer.setMetaData("ows_srs", "EPSG:%d" % int(self.coverage.getSRID()))
+
+        #
+        connector = System.getRegistry().findAndBind(
+            intf_id = "services.mapserver.MapServerDataConnectorInterface",
+            params = {
+                "services.mapserver.data_structure_type": \
+                    self.coverage.getDataStructureType()
             }
         ) 
-        layer = connector.configure(layer, coverage)
         
-        layer.status = mapscript.MS_ON
+        layer = connector.configure(layer, self.coverage)
         
-        logging.debug("WMS1XGetCapabilitiesHandler.getMapServerLayer: filename: %s" % layer.data)
+        extent = self.coverage.getExtent()
+        srid = self.coverage.getSRID()
+        size = self.coverage.getSize()
+        resolution = ((extent[2]-extent[0]) / float(size[0]),
+                      (extent[1]-extent[3]) / float(size[1]))
         
-        return layer
-    
-    def getDatasetSeriesMapServerLayer(self, dataset_series):
-        layer = mapscript.layerObj()
+        layer.setExtent(*self.coverage.getExtent())
+        layer.setMetaData("wms_extent", "%.10f %.10f %.10f %.10f" % extent)
+        layer.setMetaData("wms_resolution", "%.10f %.10f" % resolution)
+        layer.setMetaData("wms_size", "%d %d" % size)
         
-        layer.name = dataset_series.getEOID()
-        layer.setMetaData("wms_title", dataset_series.getEOID()) 
-        layer.setMetaData("wms_label", dataset_series.getEOID())
-        
-        coverages = dataset_series.getEOCoverages()
+        layer.type = mapscript.MS_LAYER_RASTER
+        layer.setConnectionType(mapscript.MS_RASTER, '')
+        layer.setMetaData("wms_srs", "EPSG:%d" % srid)
+        layer.setProjection("+init=epsg:%d" % srid)
 
-        layer.setMetaData("wms_extent", "%f %f %f %f" % dataset_series.getWGS84Extent())
-        layer.setExtent(*dataset_series.getWGS84Extent())
+        return layer
+
+class WMSDatasetSeriesLayer(WMSLayer):
+    def __init__(self, dataset_series):
+        super(WMSDatasetSeriesLayer, self).__init__()
+        
+        self.dataset_series = dataset_series
+        
+    def getName(self):
+        return self.dataset_series.getEOID()
+        
+    def getMapServerLayer(self, req):
+        layer = super(WMSDatasetSeriesLayer, self).getMapServerLayer(req)
+        
+        coverages = self.dataset_series.getEOCoverages()
+
+        layer.setMetaData("wms_extent", "%f %f %f %f" % self.dataset_series.getWGS84Extent())
+        layer.setExtent(*self.dataset_series.getWGS84Extent())
         
         time_extent = ",".join(
             [isotime(coverage.getBeginTime()) for coverage in coverages]
@@ -226,18 +282,134 @@ class WMS1XGetCapabilitiesHandler(WMSCommonHandler):
         )
         
         layer = connector.configure(layer, coverages[0])
-        
-        return layer
-    
-    def rectify(self, coverage):
-        return create_temporary_vrt(
-            coverage.getData().getGDALDatasetIdentifier()
-        )
 
+        return layer
+
+class WMSCommonHandler(MapServerOperationHandler):
+    PARAM_SCHEMA = {
+        "service": {"xml_location": "/@service", "xml_type": "string", "kvp_key": "service", "kvp_type": "string"},
+        "version": {"xml_location": "/@version", "xml_type": "string", "kvp_key": "version", "kvp_type": "string"},
+        "operation": {"xml_location": "/", "xml_type": "localName", "kvp_key": "request", "kvp_type": "string"}
+    }
+    
+    def __init__(self):
+        super(WMSCommonHandler, self).__init__()
+        
+        self.req = None
+        
+        self.layers = []
+        
+        self.temp_files = []
+        
+    def _processRequest(self, req):
+        self.req = req
+        self.req.setSchema(self.PARAM_SCHEMA)
+
+        try:
+            self.validateParams()
+            self.configureRequest()
+            self.configureMapObj()
+            self.createLayers()
+            self.addMapServerLayers()
+            response = self.postprocess(self.dispatch())
+        finally:
+            self.cleanup()
+        
+        return response
+
+    def validateParams(self):
+        pass
+        
+    def _setMapProjection(self):
+        pass
+        
+    def configureMapObj(self):
+        """
+        This method configures the ``ms_req.map`` object (an
+        instance of ``mapscript.mapObj``) with parameters from the
+        config. This method can be overridden in order to implement more
+        sophisticated behaviour. 
+        
+        @param  ms_req  An :class:`MapServerRequest` object
+        
+        @return         None
+        """
+        
+        self.map.setMetaData("ows_onlineresource", OWSCommonConfigReader().getHTTPServiceURL() + "?")
+        
+        self._setMapProjection()
+    
+    def createLayers(self):
+        pass
+        
+    def createCoverageLayer(self, coverage):
+        if coverage.getType() == "plain":
+            raise InternalError(
+                "Plain coverage WMS views are not yet implemented."
+            )        
+        elif coverage.getType() == "eo.rect_dataset":
+            return WMSRectifiedDatasetLayer(coverage)
+        elif coverage.getType()  == "eo.ref_dataset":
+            return WMSReferenceableDatasetLayer(coverage)
+        elif coverage.getType() == "eo.rect_stitched_mosaic":
+            return WMSRectifiedStitchedMosaicLayer(coverage)
+
+    def addLayer(self, layer):
+        self.layers.append(layer)
+        
+    def addMapServerLayers(self):
+        for layer in self.layers:
+            self.map.insertLayer(self.getMapServerLayer(layer))
+    
+    def getMapServerLayer(self, layer):
+        return layer.getMapServerLayer(self.req)
+        
+    def postprocess(self, resp):
+        return resp
+
+    def cleanup(self):
+        super(WMSCommonHandler, self).cleanup()
+        
+        for layer in self.layers:
+            layer.cleanup()
+
+class WMS1XGetCapabilitiesHandler(WMSCommonHandler):
+    def _setMapProjection(self):
+        self.map.setProjection("+init=epsg:4326")
+    
+    def createLayers(self):
+        visible_expr = System.getRegistry().getFromFactory(
+            "resources.coverages.filters.CoverageExpressionFactory",
+            {"op_name": "attr", "operands": ("visible", "=", True)}
+        )
+        
+        cov_factory = System.getRegistry().bind("resources.coverages.wrappers.EOCoverageFactory")
+        
+        for coverage in cov_factory.find(filter_exprs=[visible_expr]):
+            self.addLayer(self.createCoverageLayer(coverage))
+        
+        dss_factory = System.getRegistry().bind("resources.coverages.wrappers.DatasetSeriesFactory")
+        
+        # TODO: find a more efficient way to do this check
+        for dataset_series in dss_factory.find():
+            if len(dataset_series.getEOCoverages()) > 0:
+                self.layers.append(WMSDatasetSeriesLayer(dataset_series))
+
+    def getMapServerLayer(self, layer):
+        ms_layer = super(WMS1XGetCapabilitiesHandler, self).getMapServerLayer(layer)
+                
+        ms_layer.status = mapscript.MS_ON
+        
+        return ms_layer
+    
 class WMS1XGetMapHandler(WMSCommonHandler):
+    def _setMapProjection(self):
+        srid = self.getSRID()
+        self.map.setProjection("+init=epsg:%d" % srid)
+
     def getSRSParameterName(self):
         raise NotImplementedError()
-    
+
     def getBoundedArea(self, srid, bbox):
         return BoundedArea(srid, *bbox)
         
@@ -288,10 +460,8 @@ class WMS1XGetMapHandler(WMSCommonHandler):
                 "InvalidParameterValue",
                 "time"
             )
-
-    def createCoverages(self):
-        layers = self.req.getParamValue("layers")
-        
+    
+    def getFilterExpressions(self):
         try:
             bbox = self.req.getParamValue("bbox")
         except InvalidParameterException:
@@ -300,17 +470,18 @@ class WMS1XGetMapHandler(WMSCommonHandler):
                 "InvalidParameterValue",
                 "bbox"
             )
-        if len(bbox) != 4:
-            raise InvalidRequestException("Wrong number of arguments for 'BBOX' parameter", "InvalidParameterValue", "bbox")
-
-        if layers is None:
-            raise InvalidRequestException("Missing 'LAYERS' parameter", "MissingParameterValue", "layers")
         
+        if len(bbox) != 4:
+            raise InvalidRequestException(
+                "Wrong number of arguments for 'BBOX' parameter",
+                "InvalidParameterValue",
+                "bbox"
+            )
         
         srid = self.getSRID()
         
         area = self.getBoundedArea(srid, bbox)
-        
+
         filter_exprs = []
         
         # TODO sqlite assert ahead `GEOSCoordSeq_setOrdinate_r`
@@ -329,38 +500,72 @@ class WMS1XGetMapHandler(WMSCommonHandler):
         if time_param is not None:
             filter_exprs.append(self.getTimeFilterExpr(time_param))
         
-        coverages = CoverageSet()
+        return filter_exprs
+
+    def createLayers(self):
+        layer_names = self.req.getParamValue("layers")
         
-        for layer_name in layers:
-            dataset_series = System.getRegistry().getFromFactory(
-                "resources.coverages.wrappers.DatasetSeriesFactory",
+        if layer_names is None:
+            raise InvalidRequestException(
+                "Missing 'LAYERS' parameter",
+                "MissingParameterValue",
+                "layers"
+            )
+        
+        filter_exprs = self.getFilterExpressions()
+        
+        for layer_name in layer_names:
+            self.createLayersForName(layer_name, filter_exprs)
+    
+    def createLayersForName(self, layer_name, filter_exprs):
+        dataset_series = System.getRegistry().getFromFactory(
+            "resources.coverages.wrappers.DatasetSeriesFactory",
+            {"obj_id": layer_name}
+        )
+        if dataset_series is not None:
+            self.createDatasetSeriesLayers(dataset_series, filter_exprs)
+        else:
+            coverage = System.getRegistry().getFromFactory(
+                "resources.coverages.wrappers.EOCoverageFactory",
                 {"obj_id": layer_name}
             )
-            if dataset_series is not None:
-                coverages.union(dataset_series.getEOCoverages(filter_exprs))
-            else:
-                coverage = System.getRegistry().getFromFactory(
-                    "resources.coverages.wrappers.EOCoverageFactory",
-                    {"obj_id": layer_name}
-                )
-                if coverage is not None:
-                    if coverage.matches(filter_exprs):
-                        coverages.add(coverage)
+            if coverage is not None:
+                if coverage.matches(filter_exprs):
+                    self.addLayer(self.createCoverageLayer(coverage))
                 else:
-                    raise InvalidRequestException(
-                        "No coverage or dataset series with EO ID '%s' found" % layer_name,
-                        "LayerNotDefined",
-                        "layers"
-                    )
+                    pass # TODO: check WMS spec for correct handling
+            else:
+                raise InvalidRequestException(
+                    "No coverage or dataset series with EO ID '%s' found" % layer_name,
+                    "LayerNotDefined",
+                    "layers"
+                )
         
-        self.coverages = coverages.to_sorted_list()
+    def createDatasetSeriesLayers(self, dataset_series, filter_exprs):
+        def _get_begin_time(coverage):
+            return coverage.getBeginTime()
         
-        if len(self.coverages) == 0:
-            raise InvalidRequestException(
-                "No coverages with the given spatiotemporal extent found.",
-                "ExtentError", # TODO: check error code
-                None
-            )
+        coverages = dataset_series.getEOCoverages(filter_exprs)
+        
+        if len(coverages) == 0:
+            return # TODO: this will cause errors because of missing layers
+            
+        coverages.sort(key=_get_begin_time)
+        
+        for coverage in coverage:
+            layer = self.createCoverageLayer(coverage)
+            
+            layer.setGroup(dataset_series.getEOID())
+            
+            self.addLayer(layer)
+            
+    def addLayer(self, layer):
+        # TODO: more performant solution based on hashes
+        for other_layer in self.layers:
+            if other_layer.getName() == layer.getName():
+                return
+                
+        self.layers.append(layer)
             
     def getSRID(self):
         srs = self.req.getParamValue(self.getSRSParameterName())
@@ -373,10 +578,10 @@ class WMS1XGetMapHandler(WMSCommonHandler):
             raise InvalidRequestException("Invalid '%s' parameter value"% self.getSRSParameterName().upper(), "InvalidCRS" , self.getSRSParameterName())
             
         return srid
-
     
-    def rectify(self, coverage):
-        return create_temporary_vrt(
-            coverage.getData().getGDALDatasetIdentifier(),
-            self.getSRID()
-        )
+    def getMapServerLayer(self, layer):
+        ms_layer = super(WMS1XGetMapHandler, self).getMapServerLayer(layer)
+        
+        ms_layer.status = mapscript.MS_DEFAULT
+        
+        return ms_layer
