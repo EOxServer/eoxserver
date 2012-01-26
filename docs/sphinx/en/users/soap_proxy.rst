@@ -68,10 +68,30 @@ The following is required before you can proceed with installing soap_proxy:
 
 * ``mapserver`` installed & configured.
 * Apache ``httpd2`` server installed and running
+* ``eoxserver`` installed if using the rpms
 
 
-1. Install and configure axis2/c.
-.................................
+1. Install for eoxserver on CentOS via RPM.
+...........................................
+
+Obtain rpms from ``packages.eox.at``
+
+As root::
+
+  rpm -i axis2c_eo-1.6.0-3.x86_64.rpm
+  rpm -i eo_soap_proxy-1.0.0-1.x86_64.rpm
+  /etc/init.d/httpd restart
+ 
+
+2. Old Non-rpm installation
+...........................
+
+This is suitable for general installation e.g. if you are not using
+eoxerver but wish to use mapserver direcly.
+
+Warning: some of the configuration details are out of date, but
+the changes are not stuctural.
+
 Download from http://ws.apache.org/axis2/c/download.cgi
 
 Make a directory for the code::
