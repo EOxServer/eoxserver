@@ -47,11 +47,37 @@ from eoxserver.services.interfaces import (
 from eoxserver.services.owscommon import OWSCommonVersionHandler
 from eoxserver.services.ows.wms.common import (
     WMSLayer, WMSCoverageLayer, WMSDatasetSeriesLayer,
+    WMSRectifiedDatasetLayer, WMSReferenceableDatasetLayer,
+    WMSRectifiedStitchedMosaicLayer,
     WMS1XGetCapabilitiesHandler, WMS1XGetMapHandler
 )
 from eoxserver.services.exceptions import InvalidRequestException
 
 class EOWMSOutlinesLayer(WMSLayer):
+    STYLES = (
+        ("red", 255, 0, 0),
+        ("green", 0, 128, 0),
+        ("blue", 0, 0, 255),
+        ("white", 255, 255, 255),
+        ("black", 0, 0, 0),
+        ("yellow", 255, 255, 0),
+        ("orange", 255, 165, 0),
+        ("magenta", 255, 0, 255),
+        ("cyan", 0, 255, 255),
+        ("brown", 165, 42, 42)
+    )
+    
+    DEFAULT_STYLE = "red"
+    
+    def createOutlineClass(self, name, r, g, b):
+        outline_class = mapscript.classObj()
+        outline_style = mapscript.styleObj()
+        outline_style.outlinecolor = mapscript.colorObj(r, g, b)
+        outline_class.insertStyle(outline_style)
+        outline_class.group = name
+        
+        return outline_class
+    
     def configureConnection(self, layer):
         db_conf = settings.DATABASES["default"]
         
@@ -96,6 +122,13 @@ class EOWMSOutlinesLayer(WMSLayer):
         
         self.configureConnection(layer)
         
+        layer.offsite = mapscript.colorObj(0, 0, 0)
+        
+        for style_info in self.STYLES:
+            layer.insertClass(self.createOutlineClass(*style_info))
+
+        layer.classgroup = self.DEFAULT_STYLE
+
         return layer
 
 class EOWMSRectifiedStitchedMosaicOutlinesLayer(EOWMSOutlinesLayer):
@@ -108,7 +141,7 @@ class EOWMSRectifiedStitchedMosaicOutlinesLayer(EOWMSOutlinesLayer):
         return "%s_outlines" % self.mosaic.getCoverageId()
     
     def getSubQuery(self):
-        return "SELECT eomd.id AS oid, eomd.footprint FROM coverages_eometadatarecord AS eomd, coverages_rectifieddatasetrecord AS rd, coverages_rectifiedstitchedmosaicrecord_rect_datasets AS rsm2rd WHERE rsm2rd.rectifiedstitchedmosaicrecord_id = %d AND rsm2rd.rectifieddatasetrecord_id = rd.id AND rd.eo_metadata_id = eomd.id" % self.mosaic.getModel().pk
+        return "SELECT eomd.id AS oid, eomd.footprint AS geometry FROM coverages_eometadatarecord AS eomd, coverages_rectifieddatasetrecord AS rd, coverages_rectifiedstitchedmosaicrecord_rect_datasets AS rsm2rd WHERE rsm2rd.rectifiedstitchedmosaicrecord_id = %d AND rsm2rd.rectifieddatasetrecord_id = rd.coveragerecord_ptr_id AND rd.eo_metadata_id = eomd.id" % self.mosaic.getModel().pk
     
     def getMapServerLayer(self, req):
         layer = super(EOWMSRectifiedStitchedMosaicOutlinesLayer, self).getMapServerLayer(req)
@@ -127,7 +160,7 @@ class EOWMSDatasetSeriesOutlinesLayer(EOWMSOutlinesLayer):
         return "%s_outlines" % self.dataset_series.getEOID()
     
     def getSubQuery(self):
-        return "SELECT eomd.id AS oid, eomd.footprint FROM coverages_eometadatarecord AS eomd, coverages_rectifieddatasetrecord AS rd, coverages_datasetseriesrecord_rect_datasets AS ds2rd WHERE ds2rd.datasetseriesrecord_id = %d AND ds2rd.rectifieddatasetrecord_id = rd.id AND rd.eo_metadata_id = eomd.id" % self.dataset_series.getModel().pk
+        return "SELECT eomd.id AS oid, eomd.footprint AS geometry FROM coverages_eometadatarecord AS eomd, coverages_rectifieddatasetrecord AS rd, coverages_datasetseriesrecord_rect_datasets AS ds2rd WHERE ds2rd.datasetseriesrecord_id = %d AND ds2rd.rectifieddatasetrecord_id = rd.coveragerecord_ptr_id AND rd.eo_metadata_id = eomd.id" % self.dataset_series.getModel().pk
     
     def getMapServerLayer(self, req):
         layer = super(EOWMSDatasetSeriesOutlinesLayer, self).getMapServerLayer(req)
@@ -136,7 +169,7 @@ class EOWMSDatasetSeriesOutlinesLayer(EOWMSOutlinesLayer):
 
         return layer
 
-class EOWMSBandsLayer(WMSCoverageLayer):
+class EOWMSBandsLayerMixIn(object):
     def isRGB(self):
         return False
         
@@ -212,30 +245,16 @@ class EOWMSBandsLayer(WMSCoverageLayer):
                 bands.append(self._get_band(band_name))
             
             return bands
-        
-    def getMapServerLayer(self, req):
-        ms_layer = super(EOWMSBandsLayer, self).getMapServerLayer(req)
-        
-        return ms_layer
 
-class EOWMSRectifiedDatasetBandsLayer(EOWMSBandsLayer):
-    def getMapServerLayer(self, req):
-        ms_layer = super(EOWMSRectifiedDatasetBandsLayer, self).getMapServerLayer(req)
-        
-        return ms_layer
-
-class EOWMSReferenceableDatasetBandsLayer(EOWMSBandsLayer):
-    def getMapServerLayer(self, req):
-        ms_layer = super(EOWMSReferenceableDatasetBandsLayer, self).getMapServerLayer(req)
-        
-        return ms_layer
-
-class EOWMSRectifiedStitchedMosaicBandsLayer(EOWMSBandsLayer):
-    def getMapServerLayer(self, req):
-        ms_layer = super(EOWMSRectifiedStitchedMosaicBandsLayer, self).getMapServerLayer(req)
-        
-        return ms_layer
-
+class EOWMSRectifiedDatasetBandsLayer(EOWMSBandsLayerMixIn, WMSRectifiedDatasetLayer):
+    pass
+    
+class EOWMSReferenceableDatasetBandsLayer(EOWMSBandsLayerMixIn, WMSReferenceableDatasetLayer):
+    pass
+    
+class EOWMSRectifiedStitchedMosaicBandsLayer(EOWMSBandsLayerMixIn, WMSRectifiedStitchedMosaicLayer):
+    pass
+    
 class WMS13VersionHandler(OWSCommonVersionHandler):
     REGISTRY_CONF = {
         "name": "WMS 1.3.0 Version Handler",
