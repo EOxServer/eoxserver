@@ -27,6 +27,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+import os.path
 from xml.dom import minidom
 
 import mapscript
@@ -48,7 +49,7 @@ from eoxserver.services.owscommon import OWSCommonVersionHandler
 from eoxserver.services.ows.wms.common import (
     WMSLayer, WMSCoverageLayer, WMSDatasetSeriesLayer,
     WMSRectifiedDatasetLayer, WMSReferenceableDatasetLayer,
-    WMSRectifiedStitchedMosaicLayer,
+    WMSRectifiedStitchedMosaicLayer, WMSCommonHandler,
     WMS1XGetCapabilitiesHandler, WMS1XGetMapHandler
 )
 from eoxserver.services.exceptions import InvalidRequestException
@@ -122,6 +123,14 @@ class EOWMSOutlinesLayer(WMSLayer):
         
         self.configureConnection(layer)
         
+        # TODO: make this configurable
+        layer.header = os.path.join(settings.PROJECT_DIR, "conf", "outline_template_header.html")
+        layer.template = os.path.join(settings.PROJECT_DIR, "conf", "outline_template_dataset.html")
+        layer.footer = os.path.join(settings.PROJECT_DIR, "conf", "outline_template_footer.html")
+        
+        #layer.tolerance = 10.0
+        #layer.toleranceunits = mapscript.MS_PIXELS
+        
         layer.offsite = mapscript.colorObj(0, 0, 0)
         
         for style_info in self.STYLES:
@@ -141,7 +150,7 @@ class EOWMSRectifiedStitchedMosaicOutlinesLayer(EOWMSOutlinesLayer):
         return "%s_outlines" % self.mosaic.getCoverageId()
     
     def getSubQuery(self):
-        return "SELECT eomd.id AS oid, eomd.footprint AS geometry FROM coverages_eometadatarecord AS eomd, coverages_rectifieddatasetrecord AS rd, coverages_rectifiedstitchedmosaicrecord_rect_datasets AS rsm2rd WHERE rsm2rd.rectifiedstitchedmosaicrecord_id = %d AND rsm2rd.rectifieddatasetrecord_id = rd.coveragerecord_ptr_id AND rd.eo_metadata_id = eomd.id" % self.mosaic.getModel().pk
+        return "SELECT eomd.id AS oid, eomd.footprint AS geometry, cov.coverage_id FROM coverages_eometadatarecord AS eomd, coverages_coveragerecord AS cov, coverages_rectifieddatasetrecord AS rd, coverages_rectifiedstitchedmosaicrecord_rect_datasets AS rsm2rd WHERE rsm2rd.rectifiedstitchedmosaicrecord_id = %d AND rsm2rd.rectifieddatasetrecord_id = rd.coveragerecord_ptr_id AND cov.resource_ptr_id = rd.coveragerecord_ptr_id AND rd.eo_metadata_id = eomd.id" % self.mosaic.getModel().pk
     
     def getMapServerLayer(self, req):
         layer = super(EOWMSRectifiedStitchedMosaicOutlinesLayer, self).getMapServerLayer(req)
@@ -160,7 +169,7 @@ class EOWMSDatasetSeriesOutlinesLayer(EOWMSOutlinesLayer):
         return "%s_outlines" % self.dataset_series.getEOID()
     
     def getSubQuery(self):
-        return "SELECT eomd.id AS oid, eomd.footprint AS geometry FROM coverages_eometadatarecord AS eomd, coverages_rectifieddatasetrecord AS rd, coverages_datasetseriesrecord_rect_datasets AS ds2rd WHERE ds2rd.datasetseriesrecord_id = %d AND ds2rd.rectifieddatasetrecord_id = rd.coveragerecord_ptr_id AND rd.eo_metadata_id = eomd.id" % self.dataset_series.getModel().pk
+        return "SELECT eomd.id AS oid, eomd.footprint AS geometry, cov.coverage_id FROM coverages_eometadatarecord AS eomd, coverages_rectifieddatasetrecord AS rd, coverages_datasetseriesrecord_rect_datasets AS ds2rd WHERE ds2rd.datasetseriesrecord_id = %d AND ds2rd.rectifieddatasetrecord_id = rd.coveragerecord_ptr_id AND cov.resource_ptr_id = rd.coveragerecord_ptr_id AND rd.eo_metadata_id = eomd.id" % self.dataset_series.getModel().pk
     
     def getMapServerLayer(self, req):
         layer = super(EOWMSDatasetSeriesOutlinesLayer, self).getMapServerLayer(req)
@@ -284,6 +293,12 @@ class WMS13GetCapabilitiesHandler(WMS1XGetCapabilitiesHandler):
             "services.interfaces.operation": "getcapabilities"
         }
     }
+    
+    def configureMapObj(self):
+        super(WMS13GetCapabilitiesHandler, self).configureMapObj()
+        
+        self.map.setMetaData("wms_enable_requests", "getcapabilities,getmap,getfeatureinfo")
+        self.map.setMetaData("wms_feature_info_mime_type", "text/html")
     
     def createLayers(self):
         visible_expr = System.getRegistry().getFromFactory(
@@ -440,6 +455,9 @@ class WMS13GetMapHandler(WMS1XGetMapHandler):
         self.map.setMetaData("wms_exceptions_format", "xml")
         self.map.setMetaData("ows_srs","EPSG:4326")
         
+        self.map.setMetaData("wms_enable_requests", "getcapabilities,getmap,getfeatureinfo")
+        self.map.setMetaData("wms_feature_info_mime_type", "text/html")
+        
     def createLayersForName(self, layer_name, filter_exprs):
         if layer_name.endswith("_outlines"):
             self.createOutlinesLayer(layer_name[:-9])
@@ -531,6 +549,95 @@ class WMS13GetMapHandler(WMS1XGetMapHandler):
         
     def getMapServerLayer(self, layer):
         ms_layer = super(WMS13GetMapHandler, self).getMapServerLayer(layer)
+        ms_layer.setMetaData("wms_exceptions_format","xml")
+        
+        return ms_layer
+
+class WMS13GetFeatureInfoHandler(WMSCommonHandler):
+    REGISTRY_CONF = {
+        "name": "WMS 1.3 GetFeatureInfo Handler",
+        "impl_id": "services.ows.wms1x.WMS13GetFeatureInfoHandler",
+        "registry_values": {
+            "services.interfaces.service": "wms",
+            "services.interfaces.version": "1.3.0",
+            "services.interfaces.operation": "getfeatureinfo"
+        }
+    }
+    
+    PARAM_SCHEMA = {
+        "service": {"xml_location": "/@service",     "xml_type": "string", "kvp_key": "service", "kvp_type": "string"},
+        "version": {"xml_location": "/@version", "xml_type": "string", "kvp_key": "version", "kvp_type": "string"},
+        "operation": {"xml_location": "/", "xml_type": "localName", "kvp_key": "request", "kvp_type": "string"},
+        "crs": {"xml_location": "/crs", "xml_type": "string", "kvp_key": "crs", "kvp_type": "string"}, # TODO: check XML location
+        "query_layers": {"xml_location": "/query_layer", "xml_type": "string[]", "kvp_key": "query_layers", "kvp_type": "stringlist"}, # TODO: check XML location
+        "info_format": {"xml_location": "/info_format", "xml_type": "string", "kvp_key": "info_format", "kvp_type": "string"},
+        "bbox": {"xml_location": "/bbox", "xml_type": "floatlist", "kvp_key": "bbox", "kvp_type": "floatlist"},
+        "i": {"kvp_key": "i", "kvp_type": "int"},
+        "j": {"kvp_key": "j", "kvp_type": "int"}
+    }
+    
+    def _setMapProjection(self):
+        self.map.setProjection("+init=epsg:4326")
+        self.map.setMetaData("ows_srs", "EPSG:4326")
+    
+    def configureMapObj(self):
+        super(WMS13GetFeatureInfoHandler, self).configureMapObj()
+        
+        self.map.setMetaData("wms_exceptions_format", "xml")
+        self.map.setMetaData("ows_srs","EPSG:4326")
+        
+        self.map.setMetaData("wms_enable_requests", "getcapabilities,getmap,getfeatureinfo")
+        self.map.setMetaData("wms_feature_info_mime_type", "text/html")
+
+    def createLayers(self):
+        layer_names = self.req.getParamValue("query_layers")
+        
+        if layer_names is None:
+            raise InvalidRequestException(
+                "Missing 'QUERY_LAYERS' parameter",
+                "MissingParameterValue",
+                "layers"
+            )
+        
+        for layer_name in layer_names:
+            self.createLayerForName(layer_name)
+    
+    def createLayerForName(self, layer_name):
+        if not layer_name.endswith("_outlines"):
+            raise InternalError(
+                "Cannot query layer '%s'" % layer_name,
+                "LayerNotDefined",
+                "query_layers"
+            )
+        
+        base_name = layer_name[:-9]
+        
+        dataset_series = System.getRegistry().getFromFactory(
+            "resources.coverages.wrappers.DatasetSeriesFactory",
+            {"obj_id": base_name}
+        )
+        if dataset_series is not None:
+            outlines_layer = EOWMSDatasetSeriesOutlinesLayer(dataset_series)
+            
+            self.addLayer(outlines_layer)
+        else:
+            coverage = System.getRegistry().getFromFactory(
+                "resources.coverages.wrappers.EOCoverageFactory",
+                {"obj_id": base_name}
+            )
+            if coverage is not None and coverage.getType() == "eo.rect_stitched_mosaic":
+                outlines_layer = EOWMSRectifiedStitchedMosaicOutlinesLayer(coverage)
+                
+                self.addLayer(outlines_layer)
+            else:
+                raise InvalidRequestException(
+                    "No coverage or dataset series with EO ID '%s' found" % base_name,
+                    "LayerNotDefined",
+                    "layers"
+                )
+
+    def getMapServerLayer(self, layer):
+        ms_layer = super(WMS13GetFeatureInfoHandler, self).getMapServerLayer(layer)
         ms_layer.setMetaData("wms_exceptions_format","xml")
         
         return ms_layer
