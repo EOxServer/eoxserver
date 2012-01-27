@@ -87,7 +87,7 @@ class BaseManager(object):
         :param obj_id: the ID (CoverageID or EOID) of the object to be created
         :type obj_id: string
         :param request_id: an optional request ID for the acquisition of the 
-        CoverageID/EOID.
+                           CoverageID/EOID.
         :type request_id: string
         :param kwargs: the arguments 
         :rtype: a wrapper of the created object
