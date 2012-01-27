@@ -58,30 +58,35 @@ Installation
 A quick-intall quide is provided below.  For a full installation guide see the
 INSTALL file in the source tree.
 
-Quick installation guide for eoxserver on CentOS
+Quick installation guide for EOxServer on CentOS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 0. Prerequisites:
 .................
 
-* ``eoxserver`` installed and configured, including 
-``mapserver``, and Apache ``httpd``
-
-Obtain rpms from ``packages.eox.at``
+* :ref:`EOxServer <Installation>` installed and configured, including 
+  MapServer and Apache HTTP Server
+* Add the yum repository available at http://packages.eox.at (recommended) or
+  obtain the RPM packages from http://packages.eox.at/centos/x86_64/.
 
 1. Install:
 ...........
 
-As root::
+Via the repository::
 
-  rpm -i axis2c_eo-1.6.0-3.x86_64.rpm
-  rpm -i eo_soap_proxy-1.0.0-1.x86_64.rpm
-  /etc/init.d/httpd restart
+  sudo yum install axis2c_eo eo_soap_proxy
+  sudo /etc/init.d/httpd restart
+
+or the packages::
+
+  sudo rpm -i axis2c_eo-1.6.0-3.x86_64.rpm
+  sudo rpm -i eo_soap_proxy-1.0.0-1.x86_64.rpm
+  sudo /etc/init.d/httpd restart
 
 2. Test:
 ........
 
-Test: open a webbrowser to the page::
+To test open a webbrowser to the page:
 
 http://<your_server>/sp_eowcs?wsdl 
 
