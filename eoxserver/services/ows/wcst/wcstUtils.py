@@ -46,6 +46,10 @@ import urlparse
 
 try :       from cStringIO import StringIO 
 except :    from StringIO import StringIO 
+#-------------------------------------------------------------------------------
+
+import wcst11Exception 
+#import ExInvalidURI, ExServerBusy
 
 #-------------------------------------------------------------------------------
 
@@ -132,6 +136,9 @@ def guessExtension( mimeType ) :
 class HTTPError( Exception ) : pass  
 
 def downloadReference( url , basename ) : 
+    """
+        donwload reference - baseline 
+    """
 
     # open the URL and get info 
     sock = urllib.urlopen( url )
@@ -162,6 +169,19 @@ def downloadReference( url , basename ) :
     sock.close() 
 
     return filename , contentType
+
+
+def wcst11DownloadReference( url , basename ) :
+    """
+        donwload reference - throwing proper OWS 1.1 exception in case of error 
+    """
+    try: 
+        return downloadReference( url , basename )
+    except Exception as e : 
+        # keep track of the errors 
+        logging.error( str(e) ) 
+        raise wcst11Exception.ExInvalidURI( url ) 
+
 
 #-------------------------------------------------------------------------------
 
