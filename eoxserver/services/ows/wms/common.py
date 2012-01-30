@@ -71,7 +71,8 @@ class WMSLayer(object):
         layer.setMetaData("wms_label", self.getName())
     
         if self.group_name:
-            layer.setMetaData("wms_layer_group", "/%s" % self.group_name)
+            layer.group = self.group_name
+            #layer.setMetaData("wms_layer_group", "/%s" % self.group_name)
         
         return layer
 
@@ -418,7 +419,7 @@ class WMS1XGetMapHandler(WMSCommonHandler):
         
         if len(timestamps) == 1:
             try:
-                timestamp = getDateTime(timestamps[1])
+                timestamp = getDateTime(timestamps[0])
             except InvalidParameterException:
                 raise InvalidRequestException(
                     "Invalid 'TIME' parameter format.",
@@ -552,7 +553,7 @@ class WMS1XGetMapHandler(WMSCommonHandler):
             
         coverages.sort(key=_get_begin_time)
         
-        for coverage in coverage:
+        for coverage in coverages:
             layer = self.createCoverageLayer(coverage)
             
             layer.setGroup(dataset_series.getEOID())
