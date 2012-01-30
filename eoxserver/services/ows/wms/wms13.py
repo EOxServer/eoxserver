@@ -128,9 +128,11 @@ class EOWMSOutlinesLayer(WMSLayer):
         layer.template = os.path.join(settings.PROJECT_DIR, "conf", "outline_template_dataset.html")
         layer.footer = os.path.join(settings.PROJECT_DIR, "conf", "outline_template_footer.html")
         
+        layer.setMetaData("gml_include_items", "all")
+        
         #layer.tolerance = 10.0
         #layer.toleranceunits = mapscript.MS_PIXELS
-        
+            
         layer.offsite = mapscript.colorObj(0, 0, 0)
         
         for style_info in self.STYLES:
@@ -169,7 +171,7 @@ class EOWMSDatasetSeriesOutlinesLayer(EOWMSOutlinesLayer):
         return "%s_outlines" % self.dataset_series.getEOID()
     
     def getSubQuery(self):
-        return "SELECT eomd.id AS oid, eomd.footprint AS geometry, cov.coverage_id FROM coverages_eometadatarecord AS eomd, coverages_rectifieddatasetrecord AS rd, coverages_datasetseriesrecord_rect_datasets AS ds2rd WHERE ds2rd.datasetseriesrecord_id = %d AND ds2rd.rectifieddatasetrecord_id = rd.coveragerecord_ptr_id AND cov.resource_ptr_id = rd.coveragerecord_ptr_id AND rd.eo_metadata_id = eomd.id" % self.dataset_series.getModel().pk
+        return "SELECT eomd.id AS oid, eomd.footprint AS geometry, cov.coverage_id FROM coverages_eometadatarecord AS eomd, coverages_coveragerecord AS cov, coverages_rectifieddatasetrecord AS rd, coverages_datasetseriesrecord_rect_datasets AS ds2rd WHERE ds2rd.datasetseriesrecord_id = %d AND ds2rd.rectifieddatasetrecord_id = rd.coveragerecord_ptr_id AND cov.resource_ptr_id = rd.coveragerecord_ptr_id AND rd.eo_metadata_id = eomd.id" % self.dataset_series.getModel().pk
     
     def getMapServerLayer(self, req):
         layer = super(EOWMSDatasetSeriesOutlinesLayer, self).getMapServerLayer(req)
