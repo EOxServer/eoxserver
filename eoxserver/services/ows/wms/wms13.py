@@ -171,7 +171,7 @@ class EOWMSDatasetSeriesOutlinesLayer(EOWMSOutlinesLayer):
         return "%s_outlines" % self.dataset_series.getEOID()
     
     def getSubQuery(self):
-        return "SELECT eomd.id AS oid, eomd.footprint AS geometry, cov.coverage_id FROM coverages_eometadatarecord AS eomd, coverages_coveragerecord AS cov, coverages_rectifieddatasetrecord AS rd, coverages_datasetseriesrecord_rect_datasets AS ds2rd WHERE ds2rd.datasetseriesrecord_id = %d AND ds2rd.rectifieddatasetrecord_id = rd.coveragerecord_ptr_id AND cov.resource_ptr_id = rd.coveragerecord_ptr_id AND rd.eo_metadata_id = eomd.id" % self.dataset_series.getModel().pk
+        return "SELECT eomd.id AS oid, eomd.footprint AS geometry, cov.coverage_id FROM coverages_eometadatarecord AS eomd, coverages_coveragerecord AS cov, coverages_rectifieddatasetrecord AS rectd, coverages_datasetseriesrecord_rect_datasets AS ds2rectd WHERE ds2rectd.datasetseriesrecord_id = %d AND ds2rectd.rectifieddatasetrecord_id = rectd.coveragerecord_ptr_id AND cov.resource_ptr_id = rectd.coveragerecord_ptr_id AND rectd.eo_metadata_id = eomd.id UNION SELECT eomd.id AS oid, eomd.footprint AS geometry, cov.coverage_id FROM coverages_eometadatarecord AS eomd, coverages_coveragerecord AS cov, coverages_referenceabledatasetrecord AS refd, coverages_datasetseriesrecord_ref_datasets AS ds2refd WHERE ds2refd.datasetseriesrecord_id = %d AND ds2refd.referenceabledatasetrecord_id = refd.coveragerecord_ptr_id AND cov.resource_ptr_id = refd.coveragerecord_ptr_id AND refd.eo_metadata_id = eomd.id" % (self.dataset_series.getModel().pk, self.dataset_series.getModel().pk)
     
     def getMapServerLayer(self, req):
         layer = super(EOWMSDatasetSeriesOutlinesLayer, self).getMapServerLayer(req)
