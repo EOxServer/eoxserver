@@ -1100,11 +1100,7 @@ class WMS13GetMapMosaicTestCase(eoxstest.WMS13GetMapTestCase):
     layers = ("mosaic_MER_FRS_1P_RGB_reduced",)
     bbox = (-3.75, 32.158895, 28.326165, 46.3)
     
-#class WMS13GetMapDatasetSeriesTestCase(eoxstest.WMS13GetMapTestCase):
-#    """ Test a GetMap request with a dataset series. """
-#    layers = ("MER_FRS_1P_reduced",)
-#    width = 200
-#    bbox = (-3.75, 32.158895, 28.326165, 46.3)
+
     
 # TODO: Add test cases with time parameter (point, interval, etc.)
     
@@ -1171,3 +1167,51 @@ class WMS13GetMapReferenceableGridReprojectionTestCase(eoxstest.WMS13GetMapTestC
     width = 472
     height = 451
     swap_axes = False
+
+class WMS13GetMapDatasetSeriesTestCase(eoxstest.WMS13GetMapTestCase):
+    """ Test a GetMap request with a dataset series. """
+    layers = ("MER_FRS_1P_reduced",)
+    width = 200
+    bbox = (-3.75, 32.158895, 28.326165, 46.3)
+
+class WMS13GetMapDatasetSeriesTimePointTestCase(eoxstest.WMS13GetMapTestCase):
+    layers = ("MER_FRS_1P_reduced",)
+    width = 200
+    bbox = (-3.75, 32.158895, 28.326165, 46.3)
+    time = "2008-08-30T10:09:49Z"
+    
+class WMS13GetMapDatasetSeriesTimeIntervalTestCase(eoxstest.WMS13GetMapTestCase):
+    layers = ("MER_FRS_1P_reduced",)
+    width = 200
+    bbox = (-3.75, 32.158895, 28.326165, 46.3)
+    time = "2006-08-01T00:00:00Z/2006-08-16T23:59:59Z"
+    
+# NOTE: there seems to be a database problem which prevents these test cases
+# from working correctly; the requests do work (tested with browser)
+#class WMS13GetMapDatasetSeriesOutlinesTestCase(eoxstest.WMS13GetMapTestCase):
+#    layers = ("MER_FRS_1P_reduced_outlines",)
+#    width = 200
+#    bbox = (-3.75, 32.158895, 28.326165, 46.3)
+
+#class WMS13GetMapRectifiedStitchedMosaicOutlinesTestCase(eoxstest.WMS13GetMapTestCase):
+#    layers = ("mosaic_MER_FRS_1P_RGB_reduced_outlines",)
+#    width = 200
+#    bbox = (-3.75, 32.158895, 28.326165, 46.3)
+
+#class WMS13GetMapRectifiedStitchedMosaicOutlinesWhiteTestCase(eoxstest.WMS13GetMapTestCase):
+#    layers = ("mosaic_MER_FRS_1P_RGB_reduced_outlines",)
+#    width = 200
+#    bbox = (-3.75, 32.158895, 28.326165, 46.3)
+#    styles = "white"
+
+class WMS13GetMapDatasetOneBandTestCase(eoxstest.WMS13GetMapTestCase):
+    """ Test a GetMap request with a dataset containing 15 bands. """
+    layers = ("MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed_bands",)
+    bbox = (8.487755775451660, 32.195316643454134, 25.407486727461219, 46.249103546142578)
+    dim_band = "MERIS_radiance_01_uint16"
+
+class WMS13GetMapDatasetThreeBandsTestCase(eoxstest.WMS13GetMapTestCase):
+    """ Test a GetMap request with a dataset containing 15 bands. """
+    layers = ("MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed_bands",)
+    bbox = (8.487755775451660, 32.195316643454134, 25.407486727461219, 46.249103546142578)
+    dim_band = "MERIS_radiance_02_uint16,MERIS_radiance_08_uint16,MERIS_radiance_12_uint16"
