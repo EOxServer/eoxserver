@@ -47,7 +47,7 @@ from eoxserver.services.interfaces import (
 )
 from eoxserver.services.owscommon import OWSCommonVersionHandler
 from eoxserver.services.ows.wms.common import (
-    WMSLayer, WMSCoverageLayer, WMSDatasetSeriesLayer,
+    WMSLayer, WMSEmptyLayer, WMSCoverageLayer, WMSDatasetSeriesLayer,
     WMSRectifiedDatasetLayer, WMSReferenceableDatasetLayer,
     WMSRectifiedStitchedMosaicLayer, WMSCommonHandler,
     WMS1XGetCapabilitiesHandler, WMS1XGetMapHandler
@@ -511,7 +511,7 @@ class WMS13GetMapHandler(WMS1XGetMapHandler):
                 if coverage.matches(filter_exprs):
                     self.addLayer(self.createCoverageBandsLayer(coverage))
                 else:
-                    pass # TODO: check WMS spec for correct handling
+                    self.addLayer(WMSEmptyLayer("%s_bands" % base_name))
             else:
                 raise InvalidRequestException(
                     "No coverage or dataset series with EO ID '%s' found" % base_name,

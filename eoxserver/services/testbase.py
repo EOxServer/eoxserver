@@ -459,6 +459,8 @@ class WMS13GetMapTestCase(RasterTestCase):
     width = 100
     height = 100
     frmt = "image/jpeg"
+    time = None
+    dim_band = None
     
     swap_axes = True
     
@@ -478,6 +480,13 @@ class WMS13GetMapTestCase(RasterTestCase):
                      ",".join(map(str, bbox)),
                      self.width, self.height, self.frmt
                  )
+        
+        if self.time:
+            params += "&time=%s" % self.time
+            
+        if self.dim_band:
+            params += "&dim_band=%s" % self.dim_band
+            
         return (params, "kvp")
 
 class WMS13ExceptionTestCase(ExceptionTestCase):

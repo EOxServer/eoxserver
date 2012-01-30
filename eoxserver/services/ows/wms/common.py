@@ -27,6 +27,8 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+from osgeo.gdalconst import GDT_Byte
+
 import mapscript
 
 import logging
@@ -82,6 +84,22 @@ class WMSLayer(object):
                 os.remove(temp_file)
             except:
                 logging.warning("Could not remove temporary file '%s'" % temp_file)
+                
+class WMSEmptyLayer(WMSLayer):
+    def __init__(self, layer_name):
+        super(WMSEmptyLayer, self).__init__()
+        
+        self.layer_name = layer_name
+        
+    def getName(self):
+        return self.layer_name
+    
+    def getMapServerLayer(self, req):
+        layer = super(WMSEmptyLayer, self).getMapServerLayer(req)
+        
+        layer.setMetaData("wms_enable_request", "getmap")
+                
+        return layer
 
 class WMSCoverageLayer(WMSLayer):
     def __init__(self, coverage):
@@ -135,7 +153,10 @@ class WMSCoverageLayer(WMSLayer):
                     return
                 
             layer.offsite = mapscript.colorObj(*nil_values)
-            
+    
+    def setScale(self, layer):
+        if self.coverage.getRangeType().data_type != GDT_Byte:
+            layer.setProcessingKey("SCALE", "AUTO")
     
     def configureBands(self, layer, req):
         bands = self.getBandSelection(req)
@@ -144,6 +165,8 @@ class WMSCoverageLayer(WMSLayer):
             layer.setProcessingKey("BANDS", "%d,%d,%d" % tuple(self.getBandIndices(req)))
         
         self.setOffsiteColor(layer, bands)
+        
+        self.setScale(layer)
 
     def getMapServerLayer(self, req):
         layer = super(WMSCoverageLayer, self).getMapServerLayer(req)
@@ -184,17 +207,21 @@ class WMSRectifiedDatasetLayer(WMSCoverageLayer):
         return layer
         
 class WMSReferenceableDatasetLayer(WMSCoverageLayer):
+    def setScale(self, layer):
+        layer.setProcessingKey("SCALE", "1,2000") # TODO: make this configurable
+    
     def getMapServerLayer(self, req):
         layer = super(WMSReferenceableDatasetLayer, self).getMapServerLayer(req)
 
         layer.setMetaData("ows_srs", "EPSG:4326")
         layer.setMetaData("wms_extent", "%f %f %f %f" % self.coverage.getWGS84Extent())
         layer.setExtent(*self.coverage.getWGS84Extent())
+        
+        layer.setProjection("+init=epsg:4326") # TODO: read this from dataset or database
 
         vrt_path = self.rectify()
         
         layer.data = vrt_path
-        layer.addProcessing("SCALE=1,2000") # TODO: Make the scale configurable.
         
         self.temp_files.append(vrt_path)
 
@@ -534,7 +561,7 @@ class WMS1XGetMapHandler(WMSCommonHandler):
                 if coverage.matches(filter_exprs):
                     self.addLayer(self.createCoverageLayer(coverage))
                 else:
-                    pass # TODO: check WMS spec for correct handling
+                    self.addLayer(WMSEmptyLayer(coverage.getCoverageId()))
             else:
                 raise InvalidRequestException(
                     "No coverage or dataset series with EO ID '%s' found" % layer_name,
@@ -549,7 +576,9 @@ class WMS1XGetMapHandler(WMSCommonHandler):
         coverages = dataset_series.getEOCoverages(filter_exprs)
         
         if len(coverages) == 0:
-            return # TODO: this will cause errors because of missing layers
+            layer = WMSEmptyLayer(dataset_series.getEOID())
+            
+            self.addLayer(layer)
             
         coverages.sort(key=_get_begin_time)
         
