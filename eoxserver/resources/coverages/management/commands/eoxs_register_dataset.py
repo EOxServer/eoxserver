@@ -246,13 +246,6 @@ class Command(CommandOutputMixIn, BaseCommand):
             }
         )
         
-        ref_mgr = System.getRegistry().findAndBind(
-            intf_id="resources.coverages.interfaces.Manager",
-            params={
-                "resources.coverages.interfaces.res_type": "eo.ref_dataset"
-            }
-        )
-        
         #=======================================================================
         # Execute creation and insertion
         #=======================================================================
@@ -328,6 +321,12 @@ class Command(CommandOutputMixIn, BaseCommand):
                 args["geo_metadata"] = geo_metadata
                 
                 if geo_metadata.is_referenceable:
+                    ref_mgr = System.getRegistry().findAndBind(
+                        intf_id="resources.coverages.interfaces.Manager",
+                        params={
+                            "resources.coverages.interfaces.res_type": "eo.ref_dataset"
+                        }
+                    )
                     mgr_to_use = ref_mgr
                     self.print_msg("\t'%s' is referenceable." % df, 2)
                     logging.info("\t'%s' is referenceable." % df)
