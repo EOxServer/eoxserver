@@ -154,11 +154,8 @@ def taskDispatch( taskID , threadID ) :
         handler( pStatus , inputs ) 
 
         # if no terminating status has been set do it right now 
-        pStatus.setSuccessIfNotFinished() 
+        dbLocker( dbLock , stopTaskSuccessIfNotFinished , taskID )
 
-        #DEBUG 
-
-        # finish the task 
         info( "[%3.3i] PROCESS: %s %s is finished ... " % ( threadID , requestType , requestID ) ) 
 
     except (KeyboardInterrupt,SystemExit): raise 
@@ -375,7 +372,7 @@ if __name__ == "__main__" :
     # once the search path is set -> load the required modules
     from eoxserver.core.system import System
     from eoxserver.resources.processes.tracker import TaskStatus, QueueEmpty, \
-            dequeueTask , startTask , stopTaskSuccess , stopTaskFailure, reenqueueTask, \
+            dequeueTask, startTask, reenqueueTask, stopTaskSuccessIfNotFinished, \
             reenqueueZombieTasks, deleteRetiredTasks, dbLocker 
 
     # initialize the system 
