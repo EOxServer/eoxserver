@@ -347,8 +347,11 @@ class RectifiedDatasetRecord(CoverageRecord, EODatasetMixIn):
         super(RectifiedDatasetRecord, self).clean()
         
         footprint = self.eo_metadata.footprint
-        bbox = Polygon.from_bbox((self.extent.minx, self.extent.miny,
-                                 self.extent.maxx, self.extent.maxy)) # TODO: Adjust according to axis order of SRID.
+        EPSILON = abs((self.extent.maxx - self.extent.minx) / self.extent.size_x)
+        bbox = Polygon.from_bbox((self.extent.minx - EPSILON,
+                                 self.extent.miny - EPSILON,
+                                 self.extent.maxx + EPSILON,
+                                 self.extent.maxy + EPSILON)) # TODO: Adjust according to axis order of SRID.
         bbox.set_srid(int(self.extent.srid))
         
         if footprint.srid != bbox.srid:
