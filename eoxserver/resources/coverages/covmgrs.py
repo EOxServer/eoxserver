@@ -680,6 +680,8 @@ class EODatasetManager(CoverageManager, CoverageManagerDatasetMixIn, CoverageMan
             
             containers = self._get_containers(kwargs)
             
+            visible = kwargs.get("visible", True)
+            
             return self._create_coverage(
                 coverage_id,
                 data_package,
@@ -689,7 +691,8 @@ class EODatasetManager(CoverageManager, CoverageManagerDatasetMixIn, CoverageMan
                 layer_metadata,
                 eo_metadata,
                 container=kwargs.get("container"),
-                containers=containers
+                containers=containers,
+                visible=visible
             )
     
     
@@ -769,7 +772,7 @@ class RectifiedDatasetManager(EODatasetManager):
     def _validate_type(self, coverage):
         return coverage.getType() == "eo.rect_dataset"
     
-    def _create_coverage(self, coverage_id, data_package, data_source, geo_metadata, range_type_name, layer_metadata, eo_metadata, container, containers):
+    def _create_coverage(self, coverage_id, data_package, data_source, geo_metadata, range_type_name, layer_metadata, eo_metadata, container, containers, visible):
         return self.coverage_factory.create(
             impl_id="resources.coverages.wrappers.RectifiedDatasetWrapper",
             params={
@@ -781,7 +784,8 @@ class RectifiedDatasetManager(EODatasetManager):
                 "layer_metadata": layer_metadata,
                 "eo_metadata": eo_metadata,
                 "container": container,
-                "containers": containers
+                "containers": containers,
+                "visible": visible
             }
         )
     
@@ -816,7 +820,7 @@ class ReferenceableDatasetManager(EODatasetManager):
     def _validate_type(self, coverage):
         return coverage.getType() == "eo.ref_dataset"
     
-    def _create_coverage(self, coverage_id, data_package, data_source, geo_metadata, range_type_name, layer_metadata, eo_metadata, container, containers):
+    def _create_coverage(self, coverage_id, data_package, data_source, geo_metadata, range_type_name, layer_metadata, eo_metadata, container, containers, visible):
         return self.coverage_factory.create(
             impl_id="resources.coverages.wrappers.ReferenceableDatasetWrapper",
             params={
@@ -828,7 +832,8 @@ class ReferenceableDatasetManager(EODatasetManager):
                 "layer_metadata": layer_metadata,
                 "eo_metadata": eo_metadata,
                 "container": container,
-                "containers": containers
+                "containers": containers,
+                "visible": visible
             }
         )
     
