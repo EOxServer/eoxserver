@@ -143,6 +143,12 @@ class Command(CommandOutputMixIn, BaseCommand):
             help=("Optional. Default SRID, needed if it cannot be " 
                   "determined automatically by GDAL.")
         ),
+        make_option('--visible',
+            dest='visible',
+            default=True,
+            help=("Optional. Sets the visibility status of all datasets to the"
+                  "given boolean value. Defaults to 'True'.")
+        )
     )
     
     help = ('Registers one or more datasets from each data and '
@@ -178,6 +184,7 @@ class Command(CommandOutputMixIn, BaseCommand):
         coverageids = options.get('coverageids')
         mode = options.get('mode', 'local')
         default_srid = options.get("default_srid")
+        visible = options.get("visible", True)
         
         datasetseries_eoids = options.get('datasetseries_eoids', [])
         stitchedmosaic_eoids = options.get('stitchedmosaic_eoids', [])
@@ -258,7 +265,8 @@ class Command(CommandOutputMixIn, BaseCommand):
                 "obj_id": cid,
                 "range_type_name": rangetype,
                 "default_srid": default_srid,
-                "container_ids": datasetseries_eoids + stitchedmosaic_eoids 
+                "container_ids": datasetseries_eoids + stitchedmosaic_eoids,
+                "visible": visible
             }
             
             if mode == 'local':
