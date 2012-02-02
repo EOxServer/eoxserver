@@ -929,43 +929,6 @@ class SpatialFilter(object):
     """
     Common base class for spatial filters.
     """
-    def _getMaxExtent(self, qs):
-        eoqs = EOMetadataRecord.objects.filter(
-            **{"%s__in" % self._getRelationName(): qs}
-        )
-        
-        envs = eoqs.envelope().values_list("envelope", flat=True)
-        
-        if len(envs) > 0:
-            common_env = geos_fromstr("POLYGON EMPTY", srid=4326)
-            
-            for env in envs:
-                common_env = common_env.union(env).envelope
-            
-            return common_env.extent
-        else:
-            return (-180.0, -90.0, 180.0, 90.0)
-    
-    def _transformMaxExtent(self, crs_id, max_extent):
-        if crs_id == "imageCRS":
-            # cannot handle image CRS here
-            raise InvalidExpressionError(
-                "Expected projected CRS, not pixel coordinates."
-            )
-        elif crs_id != 4326:
-            # reproject max extent to bounded area CRS
-            max_poly = Polygon.from_bbox(max_extent)
-            max_poly.srid = 4326
-            try:
-                max_poly.transform(crs_id)
-            except Exception, e:
-                raise InvalidExpressionError(
-                    "Error when processing expression: %s" % str(e)
-                )
-            
-            return max_poly.extent
-        else:
-            return max_extent
             
     def _getSRS(self, crs_id):
         if crs_id == "imageCRS":
