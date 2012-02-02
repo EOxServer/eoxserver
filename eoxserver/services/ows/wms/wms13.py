@@ -37,6 +37,7 @@ import logging
 from django.conf import settings
 
 from eoxserver.core.system import System
+from eoxserver.core.util.timetools import getDateTime, isotime
 from eoxserver.core.util.xmltools import XMLEncoder, DOMtoXML
 from eoxserver.core.exceptions import InternalError
 from eoxserver.resources.coverages.filters import BoundedArea
@@ -79,7 +80,60 @@ class EOWMSOutlinesLayer(WMSLayer):
         
         return outline_class
     
-    def configureConnection(self, layer):
+    def _get_sql_timestamp(self, timestamp):
+        return timestamp.strftime("%Y-%m-%d %H:%M:%S")
+
+    def _get_query_with_timestamp(self, timestamp):
+        time_clause = " AND eomd.timestamp_begin = '%s'" % self._get_sql_timestamp(timestamp)
+        
+        return self._get_base_query(time_clause)
+        
+    def _get_query_with_time_interval(self, begin_time, end_time):
+        time_clause = " AND eomd.timestamp_begin BETWEEN '%s' AND '%s'" % (
+            self._get_sql_timestamp(begin_time), self._get_sql_timestamp(end_time)
+        )
+        
+        return self._get_base_query(time_clause)
+    
+    def _get_query_without_time(self):
+        return self._get_base_query()
+
+
+    def getSubQuery(self, req):
+        time_param = req.getParamValue("time")
+        
+        if time_param:
+            timestamps = time_param.split("/")
+            
+            if len(timestamps) == 1:
+                try:
+                    timestamp = getDateTime(timestamps[0])
+                except InvalidParameterException:
+                    raise InvalidRequestException(
+                        "Invalid TIME parameter format.",
+                        "InvalidParameterValue",
+                        "time"
+                    )
+                
+                return self._get_query_with_timestamp(timestamp)
+            elif len(timestamps) == 2:
+                try:
+                    begin_time = getDateTime(timestamps[0])
+                    end_time = getDateTime(timestamps[1])
+                except InvalidParameterException:
+                    raise InvalidRequestException(
+                        "Invalid TIME parameter format.",
+                        "InvalidParameterValue",
+                        "time"
+                    )
+                    
+                return self._get_query_with_time_interval(begin_time, end_time)
+            
+        else:
+            return self._get_query_without_time()
+            
+    
+    def configureConnection(self, layer, req):
         db_conf = settings.DATABASES["default"]
         
         if db_conf["ENGINE"] == "django.contrib.gis.db.backends.postgis":
@@ -102,14 +156,14 @@ class EOWMSOutlinesLayer(WMSLayer):
             
             layer.connection = " ".join(conn_params)
             
-            layer.data = "footprint from (%s) sq USING SRID=4326 USING UNIQUE oid" % self.getSubQuery()
+            layer.data = "geometry from (%s) sq USING SRID=4326 USING UNIQUE oid" % self.getSubQuery(req)
             
         elif db_conf["ENGINE"] == "django.contrib.gis.db.backends.spatialite":
             layer.setConnectionType(mapscript.MS_OGR, "")
             
             layer.connection = db_conf["NAME"]
             
-            layer.data = self.getSubQuery()
+            layer.data = self.getSubQuery(req)
     
     def getMapServerLayer(self, req):
         layer = super(EOWMSOutlinesLayer, self).getMapServerLayer(req)
@@ -121,7 +175,7 @@ class EOWMSOutlinesLayer(WMSLayer):
         
         layer.type = mapscript.MS_LAYER_POLYGON
         
-        self.configureConnection(layer)
+        self.configureConnection(layer, req)
         
         # TODO: make this configurable
         layer.header = os.path.join(settings.PROJECT_DIR, "conf", "outline_template_header.html")
@@ -151,8 +205,8 @@ class EOWMSRectifiedStitchedMosaicOutlinesLayer(EOWMSOutlinesLayer):
     def getName(self):
         return "%s_outlines" % self.mosaic.getCoverageId()
     
-    def getSubQuery(self):
-        return "SELECT eomd.id AS oid, eomd.footprint AS geometry, cov.coverage_id FROM coverages_eometadatarecord AS eomd, coverages_coveragerecord AS cov, coverages_rectifieddatasetrecord AS rd, coverages_rectifiedstitchedmosaicrecord_rect_datasets AS rsm2rd WHERE rsm2rd.rectifiedstitchedmosaicrecord_id = %d AND rsm2rd.rectifieddatasetrecord_id = rd.coveragerecord_ptr_id AND cov.resource_ptr_id = rd.coveragerecord_ptr_id AND rd.eo_metadata_id = eomd.id" % self.mosaic.getModel().pk
+    def _get_base_query(self, time_clause=""):            
+        return "SELECT eomd.id AS oid, eomd.footprint AS geometry, cov.coverage_id FROM coverages_eometadatarecord AS eomd, coverages_coveragerecord AS cov, coverages_rectifieddatasetrecord AS rd, coverages_rectifiedstitchedmosaicrecord_rect_datasets AS rsm2rd WHERE rsm2rd.rectifiedstitchedmosaicrecord_id = %d AND rsm2rd.rectifieddatasetrecord_id = rd.coveragerecord_ptr_id AND cov.resource_ptr_id = rd.coveragerecord_ptr_id AND rd.eo_metadata_id = eomd.id%s" % (self.mosaic.getModel().pk, time_clause)
     
     def getMapServerLayer(self, req):
         layer = super(EOWMSRectifiedStitchedMosaicOutlinesLayer, self).getMapServerLayer(req)
@@ -160,7 +214,7 @@ class EOWMSRectifiedStitchedMosaicOutlinesLayer(EOWMSOutlinesLayer):
         layer.setMetaData("wms_extent", "%f %f %f %f" % self.mosaic.getWGS84Extent())
         
         return layer
-
+    
 class EOWMSDatasetSeriesOutlinesLayer(EOWMSOutlinesLayer):
     def __init__(self, dataset_series):
         super(EOWMSDatasetSeriesOutlinesLayer, self).__init__()
@@ -170,8 +224,8 @@ class EOWMSDatasetSeriesOutlinesLayer(EOWMSOutlinesLayer):
     def getName(self):
         return "%s_outlines" % self.dataset_series.getEOID()
     
-    def getSubQuery(self):
-        return "SELECT eomd.id AS oid, eomd.footprint AS geometry, cov.coverage_id FROM coverages_eometadatarecord AS eomd, coverages_coveragerecord AS cov, coverages_rectifieddatasetrecord AS rectd, coverages_datasetseriesrecord_rect_datasets AS ds2rectd WHERE ds2rectd.datasetseriesrecord_id = %d AND ds2rectd.rectifieddatasetrecord_id = rectd.coveragerecord_ptr_id AND cov.resource_ptr_id = rectd.coveragerecord_ptr_id AND rectd.eo_metadata_id = eomd.id UNION SELECT eomd.id AS oid, eomd.footprint AS geometry, cov.coverage_id FROM coverages_eometadatarecord AS eomd, coverages_coveragerecord AS cov, coverages_referenceabledatasetrecord AS refd, coverages_datasetseriesrecord_ref_datasets AS ds2refd WHERE ds2refd.datasetseriesrecord_id = %d AND ds2refd.referenceabledatasetrecord_id = refd.coveragerecord_ptr_id AND cov.resource_ptr_id = refd.coveragerecord_ptr_id AND refd.eo_metadata_id = eomd.id" % (self.dataset_series.getModel().pk, self.dataset_series.getModel().pk)
+    def _get_base_query(self, time_clause=""):
+        return "SELECT eomd.id AS oid, eomd.footprint AS geometry, cov.coverage_id FROM coverages_eometadatarecord AS eomd, coverages_coveragerecord AS cov, coverages_rectifieddatasetrecord AS rectd, coverages_datasetseriesrecord_rect_datasets AS ds2rectd WHERE ds2rectd.datasetseriesrecord_id = %d AND ds2rectd.rectifieddatasetrecord_id = rectd.coveragerecord_ptr_id AND cov.resource_ptr_id = rectd.coveragerecord_ptr_id AND rectd.eo_metadata_id = eomd.id %s UNION SELECT eomd.id AS oid, eomd.footprint AS geometry, cov.coverage_id FROM coverages_eometadatarecord AS eomd, coverages_coveragerecord AS cov, coverages_referenceabledatasetrecord AS refd, coverages_datasetseriesrecord_ref_datasets AS ds2refd WHERE ds2refd.datasetseriesrecord_id = %d AND ds2refd.referenceabledatasetrecord_id = refd.coveragerecord_ptr_id AND cov.resource_ptr_id = refd.coveragerecord_ptr_id AND refd.eo_metadata_id = eomd.id%s" % (self.dataset_series.getModel().pk, time_clause, self.dataset_series.getModel().pk, time_clause)
     
     def getMapServerLayer(self, req):
         layer = super(EOWMSDatasetSeriesOutlinesLayer, self).getMapServerLayer(req)
