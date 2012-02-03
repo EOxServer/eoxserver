@@ -100,34 +100,37 @@ class EOWMSOutlinesLayer(WMSLayer):
 
 
     def getSubQuery(self, req):
-        time_param = req.getParamValue("time")
+        if req.getParamValue("operation").lower() in ("getmap", "getfeatureinfo"):
+            time_param = req.getParamValue("time")
         
-        if time_param:
-            timestamps = time_param.split("/")
-            
-            if len(timestamps) == 1:
-                try:
-                    timestamp = getDateTime(timestamps[0])
-                except InvalidParameterException:
-                    raise InvalidRequestException(
-                        "Invalid TIME parameter format.",
-                        "InvalidParameterValue",
-                        "time"
-                    )
+            if time_param:
+                timestamps = time_param.split("/")
                 
-                return self._get_query_with_timestamp(timestamp)
-            elif len(timestamps) == 2:
-                try:
-                    begin_time = getDateTime(timestamps[0])
-                    end_time = getDateTime(timestamps[1])
-                except InvalidParameterException:
-                    raise InvalidRequestException(
-                        "Invalid TIME parameter format.",
-                        "InvalidParameterValue",
-                        "time"
-                    )
+                if len(timestamps) == 1:
+                    try:
+                        timestamp = getDateTime(timestamps[0])
+                    except InvalidParameterException:
+                        raise InvalidRequestException(
+                            "Invalid TIME parameter format.",
+                            "InvalidParameterValue",
+                            "time"
+                        )
                     
-                return self._get_query_with_time_interval(begin_time, end_time)
+                    return self._get_query_with_timestamp(timestamp)
+                elif len(timestamps) == 2:
+                    try:
+                        begin_time = getDateTime(timestamps[0])
+                        end_time = getDateTime(timestamps[1])
+                    except InvalidParameterException:
+                        raise InvalidRequestException(
+                            "Invalid TIME parameter format.",
+                            "InvalidParameterValue",
+                            "time"
+                        )
+                        
+                    return self._get_query_with_time_interval(begin_time, end_time)
+            else:
+                return self._get_query_without_time()
             
         else:
             return self._get_query_without_time()
@@ -525,23 +528,33 @@ class WMS13GetMapHandler(WMS1XGetMapHandler):
             )
     
     def createOutlinesLayer(self, base_name):
+        filter_exprs = self.getFilterExpressions()
+                
         dataset_series = System.getRegistry().getFromFactory(
             "resources.coverages.wrappers.DatasetSeriesFactory",
             {"obj_id": base_name}
         )
+        
         if dataset_series is not None:
-            outlines_layer = EOWMSDatasetSeriesOutlinesLayer(dataset_series)
-            
-            self.addLayer(outlines_layer)
+            if len(dataset_series.getEOCoverages(filter_exprs)) > 0:
+                outlines_layer = EOWMSDatasetSeriesOutlinesLayer(dataset_series)
+                
+                self.addLayer(outlines_layer)
+            else:
+                self.addLayer(WMSEmptyLayer("%s_outlines" % base_name))
+    
         else:
             coverage = System.getRegistry().getFromFactory(
                 "resources.coverages.wrappers.EOCoverageFactory",
                 {"obj_id": base_name}
             )
             if coverage is not None and coverage.getType() == "eo.rect_stitched_mosaic":
-                outlines_layer = EOWMSRectifiedStitchedMosaicOutlinesLayer(coverage)
-                
-                self.addLayer(outlines_layer)
+                if len(coverage.getDatasets(filter_exprs)) > 0:
+                    outlines_layer = EOWMSRectifiedStitchedMosaicOutlinesLayer(coverage)
+                    
+                    self.addLayer(outlines_layer)
+                else:
+                    self.addLayer(WMSEmptyLayer("%s_outlines" % base_name))
             else:
                 raise InvalidRequestException(
                     "No coverage or dataset series with EO ID '%s' found" % base_name,
