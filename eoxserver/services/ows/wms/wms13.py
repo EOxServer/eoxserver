@@ -84,13 +84,13 @@ class EOWMSOutlinesLayer(WMSLayer):
         return timestamp.strftime("%Y-%m-%d %H:%M:%S")
 
     def _get_query_with_timestamp(self, timestamp):
-        time_clause = " AND eomd.timestamp_begin = '%s'" % self._get_sql_timestamp(timestamp)
+        time_clause = " AND '%s' BETWEEN eomd.timestamp_begin AND eomd.timestamp_end" % self._get_sql_timestamp(timestamp)
         
         return self._get_base_query(time_clause)
         
     def _get_query_with_time_interval(self, begin_time, end_time):
-        time_clause = " AND eomd.timestamp_begin BETWEEN '%s' AND '%s'" % (
-            self._get_sql_timestamp(begin_time), self._get_sql_timestamp(end_time)
+        time_clause = " AND NOT (eomd.timestamp_begin > '%s' OR eomd.timestamp_end < '%s')" % (
+            self._get_sql_timestamp(end_time), self._get_sql_timestamp(begin_time)
         )
         
         return self._get_base_query(time_clause)
@@ -536,7 +536,7 @@ class WMS13GetMapHandler(WMS1XGetMapHandler):
         )
         
         if dataset_series is not None:
-            if len(dataset_series.getEOCoverages(filter_exprs)) > 0:
+            if len(dataset_series.getDatasets(filter_exprs)) > 0:
                 outlines_layer = EOWMSDatasetSeriesOutlinesLayer(dataset_series)
                 
                 self.addLayer(outlines_layer)
