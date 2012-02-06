@@ -32,9 +32,11 @@
 Identity Management System
 ==========================
 
-The Identity Management System (IDMS) provides access control capabilities for security relevant data. The current IDMS supports SOAP Services and is based on other free and open software projects, namely the `Charon Project <http://www.enviromatics.net/charon/>`_ and the `HMA Authentication Service <http://wiki.services.eoportal.org/tiki-index.php?page=HMA+Authentication+Service>`_. In the context of the EOxServer, the IDMS can be used  to provide authentication and authorisation capabilities for the `WCS-EO SOAP Proxy <http://eoxserver.org/doc/en/users/soap_proxy.html>`_. 
+The Identity Management System (IDMS) provides access control capabilities for security relevant data. The current IDMS supports the EOxServer with a native security component and other SOAP Services. The system is based on other free and open software projects, namely the `Charon Project <http://www.enviromatics.net/charon/>`_, `the Shibboleth framwork<http://shibboleth.internet2.edu/>`_ and  the `HMA Authentication Service <http://wiki.services.eoportal.org/tiki-index.php?page=HMA+Authentication+Service>`_. In the context of the EOxServer, the SOAP support in the IDMS can be used to provide authentication and authorisation capabilities for the `WCS-EO SOAP Proxy <http://eoxserver.org/doc/en/users/soap_proxy.html>`_. 
 
-The approach chosed for the IDMS follows the OGC best practise document `User Management Interfaces for Earth Observation Services <http://portal.opengeospatial.org/files/?artifact_id=40677>`_ for the authentication concept. The authentication part is following the ideas of the `XACML data flow pattern <http://docs.oasis-open.org/xacml/2.0/access_control-xacml-2.0-core-spec-os.pdf>`_: The IDMS authorisation part consists of a Policy Decision Point (PDP, here represented through the Charon Policy Management And Authentication Service) and the Policy Enforcement Point (PEP, represented through the Charon PEP Service). The following figure gives an overview of the IDMS SOAP part:
+The IDMS uses to different schemes for authentication: The native EOxServer component relies on Shibboleth for Authentication, the SOAP components use the Charon framework. 
+
+The approach chosed for the SOAP part of the IDMS follows the OGC best practise document `User Management Interfaces for Earth Observation Services <http://portal.opengeospatial.org/files/?artifact_id=40677>`_ for the authentication concept. The authentication part is following the ideas of the `XACML data flow pattern <http://docs.oasis-open.org/xacml/2.0/access_control-xacml-2.0-core-spec-os.pdf>`_: The IDMS authorisation part consists of a Policy Decision Point (PDP, here represented through the Charon Policy Management And Authentication Service) and the Policy Enforcement Point (PEP, represented through the Charon PEP Service). The following figure gives an overview of the IDMS SOAP part:
 
 .. figure:: images/IDM_SOAP_Components.png
    :align: center
@@ -43,6 +45,28 @@ The approach chosed for the IDMS follows the OGC best practise document `User Ma
 
 
 The HMA Authentication Service, or Security Token Service (STS), and the Charon PEP components were both modified in order to be compatible. This is a result of the ESA project `Open-standard Online Observation Service <http://wiki.services.eoportal.org/tiki-index.php?page=O3S>`_ (O3S). The STS now also supports SAML 2.0 security tokens, which the PEP components can interprete and validate. The IDMS supports trust relationships between identity providers and enforecement components on the basis of certificate stores.   
+
+The HTTP or native EOxServer part of the IDMS uses exactly the same scheme for authorisation as the SOAP part, but uses the Shibboleth federated identity management system for authentication.
+
+.. figure:: images/IDM_HTTP_Components.png
+   :align: center
+   
+   *IDMS EOxServer Access Control Overview* 
+
+Two requirements must be met to use the IDMS in this case:
+
+* A Shibboleth Identity Provider (IdP) must be available for authentication
+* A Shibboleth Service Provider must be installed and configured in an `Apache 
+  HTTP Server <http://httpd.apache.org/>`_ to protect the EOxServer resource.
+
+A user has to authenticate at an IdP in order to perform requests to an 
+EOxServer with access control enabled. The IdP issues a SAML token which will 
+be validated by the SP.
+
+Is the user valid, the SP adds the user attributes by the IdP to the HTTP 
+Header of the original service requests and conveys it to the protected 
+EOxServer instance. The whole process ensures, that only authenticated users 
+can access the EOxServer. The attributes from Shibboleth are used by the EOxServer security components to make a XACMLAuthzDecisionQuery to the Charon Authorisation Service. 
 
 Prerequisites
 -------------
@@ -82,7 +106,9 @@ Both, the Security Token Service and the PEP service make use of Java Keystores:
 You can use the Apache HTTP Server as a proxy, it will enable your services running in Tomcat to be accessible over the Apache server. This can be usefull when your services have to be accessible over the HTTP standard port *80*:
 
 - First you have to enable ``mod_proxy_ajp`` and ``mod_proxy``.
-- Create a virtual host in your ``httpd.conf`` ::
+- Create a virtual host in your ``httpd.conf`` 
+
+.. code-block:: apache
 
     <VirtualHost *:80>
        ServerName server.example.com
@@ -98,7 +124,7 @@ You can use the Apache HTTP Server as a proxy, it will enable your services runn
        
     </VirtualHost>
 
-  The ``ProxyPass`` and ``ProxyPassReverse`` have to point to your services. Please note that the Tomcat server hosting your services must have the AJP interface enabled.  
+- The ``ProxyPass`` and ``ProxyPassReverse`` have to point to your services. Please note that the Tomcat server hosting your services must have the AJP interface enabled.  
  
 LDAP Directory
 --------------
@@ -225,6 +251,7 @@ The Shibboleth IdP is implemented as an Java Servlet, thus it needs an installed
 * Follow the on-screen instructions of the script. 
 
 Your ``${IDP_HOME}`` directory contains the following directories:
+
 * ``bin``:  This directory contains various tools useful in running, testing, or deploying the IdP
 * ``conf``: This directory contains all the configuration files for the IdP
 * ``credentials``: This is were the IdP's signing and encryption credential, called idp.key and idp.crt, is stored
@@ -234,8 +261,11 @@ Your ``${IDP_HOME}`` directory contains the following directories:
 * ``war``: This contains the web application archive (war) file that you will deploy into the servlet container
 
 The next step is to deploy the Idp into your Tomcat:
+
 * Create a new XML document ``idp.xml`` in ``${TOMCAT_HOME}\conf\Catalina\localhost\``.
-* Insert the following content: ::  
+* Insert the following content:  
+
+.. code-block:: xml
 
     <Context docBase="${IDP_HOME}/war/idp.war"
              privileged="true"
@@ -259,9 +289,12 @@ To use the Apache HTTP server as an proxy for your IdP, you have to generate a c
     ``openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt``
 
 The next step is to configure your Apache HTTP Server:
+
 - First you have to enable ``mod_proxy_ajp``, ``mod_proxy`` and ``mod_ssl``
 - Create a new configuration file for your SSL hosts (for example ``ssl_hosts.conf``).
-- Add a new virtual host in your new hosts file. Please note the comments in the virtual host configuration. ::
+- Add a new virtual host in your new hosts file. Please note the comments in the virtual host configuration. 
+
+.. code-block:: apache
 
     <VirtualHost _default_:443>
 
@@ -313,11 +346,16 @@ The next step is to configure your Apache HTTP Server:
 The next step is to configure our IdP Service with an LDAP service. Please mind that this documentation can only give a small insight into all configuration possibilities of Shibboleth. 
 
 Open the ``handler.xml``
+
 * Add a new LoginHandler
+               
+.. code-block:: xml
+
     <LoginHandler xsi:type="UsernamePassword" 
                   jaasConfigurationLocation="file://${IDP_HOME}/conf/login.config">
                   <AuthenticationMethod>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport</AuthenticationMethod>
     </LoginHandler>
+    
 * Remove (or comment out) the LoginHandler element of type RemoteUser.
 
 Open the ``login.config`` and comment out or delete the other entries that might exist. Add your own LDAP configuration: ::
@@ -335,11 +373,14 @@ Open the ``login.config`` and comment out or delete the other entries that might
     };
 
 Enable your LDAP directory as attribute provider:
+
 * Open the ``attribute-resolver.xml``.
-* Add your LDAP: ::
+* Add your LDAP: 
+
+.. code-block:: xml
 
     <resolver:DataConnector id="localLDAP" xsi:type="LDAPDirectory" 
-              xmlns="urn:mace:shibboleth:2.0:resolver:dc" ldapURL="ldap://$${LDAP_HOST}:${LDAP_PORT}" 
+              xmlns="urn:mace:shibboleth:2.0:resolver:dc" ldapURL="ldap://${LDAP_HOST}:${LDAP_PORT}" 
               baseDN="${LDAP_USER_BASE}" principal="${LDAP_ADMIN}" 
               principalCredential="${LDAP_ADMIN_PASSWORD}">
     <FilterTemplate>
@@ -349,7 +390,9 @@ Enable your LDAP directory as attribute provider:
     </FilterTemplate> 
     </resolver:DataConnector>
     
-* Configure the IdP to retrieve the attributes by adding new attribute definitions:  ::
+* Configure the IdP to retrieve the attributes by adding new attribute definitions:
+
+.. code-block:: xml
 
     <resolver:AttributeDefinition id="transientId" xsi:type="ad:TransientId">
         <resolver:AttributeEncoder xsi:type="enc:SAML1StringNameIdentifier"
@@ -421,7 +464,9 @@ Enable your LDAP directory as attribute provider:
             friendlyName="uid"/>
     </resolver:AttributeDefinition>
 
-Add the new attributes to your ``attribute-filter.xml`` by adding a new AttributeFilterPolicy: ::   
+Add the new attributes to your ``attribute-filter.xml`` by adding a new AttributeFilterPolicy: 
+
+.. code-block:: xml 
    
     <afp:AttributeFilterPolicy id="attribFilter">
         <afp:PolicyRequirementRule xsi:type="basic:ANY"/>
@@ -453,8 +498,9 @@ Add the new attributes to your ``attribute-filter.xml`` by adding a new Attribut
     </afp:AttributeFilterPolicy>
 
 Now you have to check if the generated metadata is correct. To do this, open the ``idp-metadata.xml`` file. Known issues are:
+
 * Incorrect ports: For example port 8443 at the AttributeService Bindings instead of no specific port.
-* Wrong X509Certificate for Attribute Resolver. Use your previously generated SSL/TLS ${IDP_HOST_CERTIFICATE} instead.     
+* Wrong X509Certificate for Attribute Resolver. Use your previously generated SSL/TLS ``${IDP_HOST_CERTIFICATE}`` instead.     
 
 After this, restart your Shibboleth IdP.
 
@@ -464,7 +510,11 @@ Shibboleth Service Provider
 
 The installation procedure for the Shibboleth SP is different for all supported Operating Systems. The project describes the different installation methods in an `own installation manual <https://wiki.shibboleth.net/confluence/display/SHIB2/Installation>`_. This documentation will provide help for the basic configuration to get the authentication process working with your EOxServer instance. 
 
-The Shibboleth SP has two relevant configuration files. We begin with the ``attribute-map.xml`` file, where we configure the mapping of the attributes received from the IdP to the secured service (in our case the EOxServer): ::
+**STEP 1**
+
+The Shibboleth SP has two relevant configuration files. We begin with the ``attribute-map.xml`` file, where we configure the mapping of the attributes received from the IdP to the secured service (in our case the EOxServer): 
+
+.. code-block:: xml
 
     <Attributes xmlns="urn:mace:shibboleth:2.0:attribute-map" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     
@@ -577,11 +627,14 @@ The Shibboleth SP has two relevant configuration files. We begin with the ``attr
         <Attribute name="urn:oid:2.5.4.45" id="uid"/>
     </Attributes>
 
-The next step is to edit the  ``shibboleth2.xml`` file:
+The next step is to edit the  ``shibboleth2.xml`` file: Find the element ``ApplicationDefaults`` and set the value of the attribute ``entityID`` to your ``${IDP_HOST}``  
 
-*  
+**STEP 2**
 
-The next step is to configure your Apache HTTP Server. To do this, you have to generate a certificate and a key file for your SSL/TLS Shibboleth SP Host first (see Shibboleth IdP section). Then add a virtual host to your Apache HTTP Server:
+The next step is to configure your Apache HTTP Server. To do this, you have to generate a certificate and a key file for your SSL/TLS Shibboleth SP Host first (see Shibboleth IdP section). Then add a virtual host to your Apache HTTP Server: 
+
+.. code-block:: apache
+
      <VirtualHost _default_:443>
      
         # Include the apache22.conf from Shibboleth
@@ -628,14 +681,19 @@ The next step is to configure your Apache HTTP Server. To do this, you have to g
 
     </VirtualHost>   
 
-Then open ``shibboleth2.xml`` the and change the ``entityID`` in the element ``ApplicationDefaults`` to your ${SP_HOST}. 
+
+**STEP 3**
+
+Open ``shibboleth2.xml`` the and change the ``entityID`` in the element ``ApplicationDefaults`` to your ``${SP_HOST}``. 
  
 
 Configure Shibboleth SP and IdP
 -------------------------------
 
-* Download SP Metadata and store it localy as ${SP_METADATA_FILE}.
-* Open the ``relying-party.xml`` of the Shibboleth IdP and change the Metadata Provider entry to ::
+* Download SP Metadata and store it localy as ``${SP_METADATA_FILE}``.
+* Open the ``relying-party.xml`` of the Shibboleth IdP and change the Metadata Provider entry to 
+
+.. code-block:: xml
 
     <!-- MetadataProvider the combining other MetadataProviders -->
     <metadata:MetadataProvider id="ShibbolethMetadata" xsi:type="metadata:ChainingMetadataProvider">
@@ -663,9 +721,11 @@ Configure Shibboleth SP and IdP
 
     </metadata:MetadataProvider>
 
-* Add the  ${SP_HOST_CERTIFICATE} to your Java Keystore:
+* Add the  ``${SP_HOST_CERTIFICATE}`` to your Java Keystore:
     ``keytool -import -file ${SP_HOST_CERTIFICATE} -alias ${SP_HOST}  -keystore ${JAVA_JRE_HOME}\lib\security\cacerts ``
  * Open ``shibboleth2.xml`` of your Shibboleth SP add a new SessionInitiator to the ``Sessions`` element:
+
+.. code-block:: xml
 
     <!-- Default example directs to a specific IdP's SSO service (favoring SAML 2 over Shib 1). -->
     <SessionInitiator type="Chaining" Location="/Login"
@@ -678,6 +738,8 @@ Configure Shibboleth SP and IdP
 
 * Then add a new MetadataProvider:
 
+.. code-block:: xml
+
     <!-- Chains together all your metadata sources. -->
     <MetadataProvider type="Chaining">
                 <MetadataProvider type="XML"
@@ -686,4 +748,70 @@ Configure Shibboleth SP and IdP
                             reloadInterval="7200">
                 </MetadataProvider>
     </MetadataProvider>
+    
 * Restart your IdP, the SP and the Apache HTTPD
+
+
+Configure the EOxServer Security Components
+-------------------------------------------
+
+The configuration of the EOxServer security components is done in the ``eoxserver.conf`` configuration file oy your service instance. All security related configuration is done in the section ``[services.auth.base]``:
+
+* ``pdp_type``: Determines the Policy Decision Point type; defaults to ``none`` which deactives authorization. Currently, only the type ``charonpdp`` is implemented.
+* ``authz_service``: The URL of the Authorisation Service.
+* ``attribute_mapping``: The file path to a dictionary with a mapping from identity attributes received from the Shibboleth IdP to a XACMLAuthzDecisionQuery. If the key ist set to ``default``, a standard dictionary is used.
+* ``serviceID``: Identifier for the EOxServer instance to an external Authorisation Service. Is used as resource ID in an XACMLAuthzDecisionQuery. If the key ist set to ``default``, the host name will be used.
+   
+   
+Adding new Subject attributes to the EOxServer Security Components
+---------------------------------------------------------------
+
+In order to register new Subject attributes from your LDAP to the IDMS, you have to configure the Shibboleth IdP, the Shibboleth SP and the EOxServer. Let's asume we want to add the new attribute `foo`.
+
+**Shibboleth IdP**
+
+Add a new AttributeResolver to your ``attribute-resolver.xml`` configuration file:    
+
+.. code-block:: xml
+
+    <resolver:AttributeDefinition id="foo" xsi:type="Simple"
+        xmlns="urn:mace:shibboleth:2.0:resolver:ad" sourceAttributeID="description">
+        <resolver:Dependency ref="localLDAP"/>
+        <resolver:AttributeEncoder xsi:type="SAML1String"
+            xmlns="urn:mace:shibboleth:2.0:attribute:encoder"
+            name="urn:mace:dir:attribute-def:description"/>
+        <resolver:AttributeEncoder xsi:type="SAML2String"
+            xmlns="urn:mace:shibboleth:2.0:attribute:encoder" name="foo"
+            friendlyName="foo"/>
+    </resolver:AttributeDefinition>
+    
+Add or extend a AttributeFilterPolicy in your ``attribute-filter.xml`` configuration file: 
+
+.. code-block:: xml
+
+    <afp:AttributeFilterPolicy id="fooFilter">
+        <afp:PolicyRequirementRule xsi:type="basic:ANY"/>
+    
+        <afp:AttributeRule attributeID="foo">
+            <afp:PermitValueRule xsi:type="basic:ANY"/>
+        </afp:AttributeRule>
+        
+    </afp:AttributeFilterPolicy>   
+          
+**Shibboleth SP**
+
+Add the new attribute to the ``attribute-map.xml``
+
+.. code-block:: xml
+
+    <Attribute name="foo" id="foo"/>
+
+**EOxServer**
+
+* Make a copy of the default attribute dictionary (``{$EOXSERVER_CODE_DIRECTORY)/conf/defaultAttributeDictionary``.
+* Add the attribute: ::
+    
+    foo=foo
+    
+* Register the new dictionary in the EOxServer configuration.
+
