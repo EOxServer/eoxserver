@@ -896,9 +896,7 @@ class ReferenceableDatasetWrapper(ReferenceableGridWrapper, EODatasetWrapper):
     
     FIELDS = {
         "eo_id": "eo_id",
-        "filename": "file__path",
-        "metadata_filename": "file__metadata_path",
-        "metadata_format": "file__metadata_format",
+        "data_package": "data_package",
         "size_x": "size_x",
         "size_y": "size_y",
         "visible": "visible",
