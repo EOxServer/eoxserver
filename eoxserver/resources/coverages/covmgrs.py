@@ -52,6 +52,18 @@ from eoxserver.resources.coverages.exceptions import (
 from eoxserver.resources.coverages.models import (
     ReservedCoverageIdRecord, CoverageRecord
 )
+from eoxserver.resources.coverages.models import (
+    PlainCoverageRecord, RectifiedDatasetRecord, 
+    ReferenceableDatasetRecord, RectifiedStitchedMosaicRecord
+) 
+
+COVERAGE_TYPES = { 
+        "PlainCoverage" : PlainCoverageRecord ,
+        "RectifiedDataset" : RectifiedDatasetRecord , 
+        "ReferenceableDataset" : ReferenceableDatasetRecord , 
+        "RectifiedStitchedMosaic" : RectifiedStitchedMosaicRecord ,
+}
+
 
 class BaseManager(object):
     """
@@ -1299,7 +1311,43 @@ class CoverageIdManager(BaseManager):
                 raise CoverageIdReleaseError(
                     "Coverage ID '%s' was not reserved" % coverage_id
                 )
+
     
+    def check( self , coverage_id ): 
+        """
+        Returns a boolean value, indicating if a ``coverage_id`` is id of an existing 
+        coverage. 
+        
+        In other words there must be an instance of :class:`~.CoverageRecord` class 
+        named by the  given ID.
+        """
+
+        return ( CoverageRecord.objects.filter(coverage_id=coverage_id).count() > 0 ) 
+
+
+    def getCoverageType( self , coverage_id ): 
+        """
+        Returns string, coverage type name of the coverage identified by the given 
+        coverage ID. In case there is no coverage of the given ID None is returned
+
+        Possible return values are:
+            None , 'PlainCoverage' , 'RectifiedDataset', 
+            'ReferenceableDatase', 'RectifiedStitchedMosaic'
+
+        """
+
+        if not self.check( coverage_id ) : return None ; 
+
+        for ct in COVERAGE_TYPES : 
+
+            if COVERAGE_TYPES[ct].objects.filter(coverage_id=coverage_id).count() > 0 : 
+                return ct 
+
+        # This error should never happen. But if it happens check COVERAGE_TYPES 
+        # to hold all possible coverage types 
+        raise ManagerError , "Failed to determine the type of coverage! coverage_id=%s" % str(coverage_id) 
+
+
     def available(self, coverage_id): # TODO available for a specific request_id
         """
         Returns a boolean value, indicating if a ``coverage_id`` is still 
@@ -1313,8 +1361,9 @@ class CoverageIdManager(BaseManager):
             ReservedCoverageIdRecord.objects.filter(
                 coverage_id=coverage_id,
                 until__gte=datetime.now()
-            ).count() > 0 or
-            CoverageRecord.objects.filter(coverage_id=coverage_id).count() > 0
+            ).count() > 0 
+            or 
+            self.check( coverage_id ) 
         )
     
     def getRequestId(self, coverage_id):

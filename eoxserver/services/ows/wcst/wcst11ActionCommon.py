@@ -38,8 +38,6 @@ import logging
 from eoxserver.resources.coverages.covmgrs import CoverageIdManager
 from eoxserver.resources.coverages.covmgrs import CoverageIdReservedError, CoverageIdReleaseError, CoverageIdInUseError
 
-from eoxserver.core.system import System
-
 #-------------------------------------------------------------------------------
 
 def reserveCoverageId( covIdManager , coverage_id , request_id , until=None ) : 
@@ -59,27 +57,6 @@ def releaseCoverageId( covIdManager , coverage_id ) :
 def releaseCoverageIds( covIdManager , cids ) : 
     for cid in set( cids ) : 
         releaseCoverageId( covIdManager , cid ) 
-
-#-------------------------------------------------------------------------------
-
-# utility - check whether coverage exists 
-
-def checkExistingCoverageId( coverageId , actionID ) : 
-
-    cid_factory = System.getRegistry().bind("resources.coverages.wrappers.EOCoverageFactory")
-
-    # check whether the coverage exists - if not stop 
-
-    if cid_factory.exists( obj_id = coverageId ) : 
-        msg = "WCSt11:%s: Invalid coverage ID!" % actionID 
-        logging.error( msg ) 
-        raise Exception , msg 
-
-    # determine the coverage type (model class - PlainCoverage, RectifiedDataset, ReferencedDatasets etc.) 
-
-    coverageType = "N/A"
-
-    return coverageId , coverageType
 
 #-------------------------------------------------------------------------------
 
