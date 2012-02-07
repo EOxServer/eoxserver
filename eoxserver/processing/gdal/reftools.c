@@ -268,6 +268,10 @@ int eoxs_rect_from_subset(const char *filename, eoxs_subset *subset, eoxs_rect *
     OSRImportFromEPSG(subset_srs, subset->srid);
     
     ct = OCTNewCoordinateTransformation(subset_srs, gcp_srs);
+    if (!ct) {
+        eoxs_destroy_referenceable_grid_transformer(transformer);
+        return 0;
+    }
     
     eoxs_get_intermediate_point_count(&n_x, &n_y, ds_x_size, ds_y_size, subset, transformer, ct);
     
