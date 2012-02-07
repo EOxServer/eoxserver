@@ -41,22 +41,91 @@ import logging
 import shutil
 
 from wcst11ActionCommon import ExActionFailed
-from wcst11ActionCommon import checkExistingCoverageId 
+
+#-------------------------------------------------------------------------------
+
+from eoxserver.resources.coverages.covmgrs import CoverageIdManager
+from eoxserver.resources.coverages.covmgrs import RectifiedDatasetManager
+from eoxserver.resources.coverages.covmgrs import ReferenceableDatasetManager
+
+from eoxserver.resources.coverages.models import RectifiedDatasetRecord
+from eoxserver.resources.coverages.models import ReferenceableDatasetRecord
 
 #-------------------------------------------------------------------------------
 
 # ACTION: DELETE 
+#
+# NOTE: WCS-T Delete action, as currently implemented, can remove only those 
+#       coverages which have been inserted via the WCS-T Add action. 
+#
 
 def wcst11ActionDelete( action , context ) : 
 
-    # extract and check the user provided coverage ID ... 
+    aname = action["Action"]
+    logging.debug( "WCSt11:%s: START" % aname ) 
 
-    coverageId , coverageType = checkExistingCoverageId( action["Identifier"] , action["Action"] ) 
+    # extract permanet storage 
+    pathPerm = os.path.abspath( "%s/.."%context['pathPerm'] ) 
 
-    # action not implemented 
+    # extract user provided CID 
+    coverageId = action["Identifier"] 
 
-    msg = "WCSt11:%s: Action not implemented!" % action["Action"]
-    logging.error( msg ) 
-    raise ExActionFailed , msg 
+    if not coverageId: raise ExActionFailed , "WCSt11:%s: Missing the required coverage identifier!" % aname 
+
+    # check the covergae type 
+    coverageType = CoverageIdManager().getCoverageType( coverageId )
+
+    if not coverageType: raise ExActionFailed , "WCSt11:%s: Invalid coverage identifier! Identifier=%s" % ( aname , repr( coverageId ) )  
+    
+    # process the supproted coverage types 
+
+    if coverageType == "RectifiedDataset":
+        cls = RectifiedDatasetRecord
+        mng = RectifiedDatasetManager() 
+
+    elif coverageType == "ReferenceableDataset": 
+        cls = ReferenceableDatasetRecord
+        mng = ReferenceableDatasetManager()  
+
+    else : # unsupproted coverage types 
+        raise ExActionFailed , "WCSt11:%s: Unsupported coverage type! Type=%s ; Identifier=%s" % ( aname , repr(coverageType) , repr( coverageId ) )  
+
+    # check the location 
+
+    obj = cls.objects.get( coverage_id = coverageId ) 
+    pck = obj.data_package
+
+    if pck.data_package_type == 'local' : 
+
+        logging.debug( dir( pck.localdatapackage ) ) 
+
+        lpath = pck.localdatapackage.data_location.path
+        mpath = pck.localdatapackage.metadata_location.path
+
+        # let only the covergas inserted via the WCS-T to be deletable via this interface 
+        if not ( lpath.startswith( pathPerm ) and mpath.startswith( pathPerm ) ) : 
+            raise ExActionFailed , "WCSt11:%s: No permission to remove the coverage! Identifier=%s" % ( aname , repr(coverageId) )  
+
+        # delete the coverage 
+        logging.info( "WCSt11:%s: Removing coverage: %s " % ( aname , coverageId ) ) 
+        mng.delete( coverageId ) 
+
+        # delete the coverage data 
+        for f in ( lpath , mpath ) : 
+            try : 
+                logging.info( "WCSt11:%s: Removing file: %s " % ( aname , f ) )
+                os.remove( f ) 
+            except Exception as e :
+                logging.warn( "WCSt11:%s: Failed to remove file! path=%s " % ( aname , f ) ) 
+                logging.warn( "WCSt11:%s: Reason: %s %s" % ( aname , str(type(e)) , str(e) ) )  
+
+        # delete directories if empty 
+        for d in set( ( os.path.dirname( lpath ) , os.path.dirname( mpath ) ) ) : 
+            try : 
+                logging.info( "WCSt11:%s: Removing directory: %s " % ( aname , d ) )
+                os.rmdir( d ) 
+            except Exception as e :
+                logging.warn( "WCSt11:%s: Failed to remove directory! path=%s " % ( aname , d ) ) 
+                logging.warn( "WCSt11:%s: Reason: %s %s" % ( aname , str(type(e)) , str(e) ) )
 
     return coverageId

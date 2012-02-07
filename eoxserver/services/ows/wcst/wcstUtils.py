@@ -135,10 +135,11 @@ def guessExtension( mimeType ) :
 
 class HTTPError( Exception ) : pass  
 
-def downloadReference( url , basename ) : 
+def downloadReference( url , basename , prefix = "" ) : 
     """
         donwload reference - baseline 
     """
+    if prefix : prefix = "%s: " % prefix 
 
     # open the URL and get info 
     sock = urllib.urlopen( url )
@@ -146,7 +147,7 @@ def downloadReference( url , basename ) :
     #check the HTTP error code 
     httpCode = sock.getcode()
     if ( httpCode is not None ) and ( int(httpCode) != 200 ) :  
-        raise HTTPError , "Code: %s\tURL: %s" % ( str(httpCode) , url ) 
+        raise HTTPError , "%sCode: %s\tURL: %s" % ( prefix , str(httpCode) , url ) 
     
     # guess file extension 
     info = sock.info() 
@@ -155,7 +156,7 @@ def downloadReference( url , basename ) :
     # prepare filename 
     filename = "%s%s" %( basename , ext ) 
 
-    logging.debug( "WCSt11: Downloading: [%s] %s --> %s " % ( str(contentType) , url , filename ) ) 
+    logging.info( "%sDownloading: [%s] %s --> %s " % ( prefix , str(contentType) , url , filename ) ) 
 
     # download the file 
     fid = file( filename , "w" ) 
@@ -171,12 +172,12 @@ def downloadReference( url , basename ) :
     return filename , contentType
 
 
-def wcst11DownloadReference( url , basename ) :
+def wcst11DownloadReference( url , basename , prefix = "" ) :
     """
         donwload reference - throwing proper OWS 1.1 exception in case of error 
     """
     try: 
-        return downloadReference( url , basename )
+        return downloadReference( url , basename , prefix )
     except Exception as e : 
         # keep track of the errors 
         logging.error( str(e) ) 

@@ -41,7 +41,6 @@ import logging
 import shutil
 
 from wcst11ActionCommon import ExActionFailed
-from wcst11ActionCommon import checkExistingCoverageId 
 
 #-------------------------------------------------------------------------------
 
@@ -49,13 +48,12 @@ from wcst11ActionCommon import checkExistingCoverageId
 
 def wcst11ActionUpdateMetadata( action , context ) : 
 
-    # extract and check the user provided coverage ID ... 
-
-    coverageId , coverageType = checkExistingCoverageId( action["Identifier"] , action["Action"] ) 
+    aname = action["Action"]
+    logging.debug( "WCSt11:%s: START" % aname ) 
 
     # action not implemented 
 
-    msg = "WCSt11:%s: Action not implemented!" % action["Action"]
+    msg = "WCSt11:%s: Action not implemented!" % aname 
     logging.error( msg ) 
     raise ExActionFailed , msg 
 
