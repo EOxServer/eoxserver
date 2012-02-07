@@ -50,12 +50,10 @@ from eoxserver.resources.coverages.exceptions import (
     CoverageIdInUseError, CoverageIdReleaseError
 )
 from eoxserver.resources.coverages.models import (
-    ReservedCoverageIdRecord, CoverageRecord
-)
-from eoxserver.resources.coverages.models import (
     PlainCoverageRecord, RectifiedDatasetRecord, 
     ReferenceableDatasetRecord, RectifiedStitchedMosaicRecord
 ) 
+from eoxserver.processing.mosaic import make_mosaic
 
 COVERAGE_TYPES = { 
         "PlainCoverage" : PlainCoverageRecord ,
@@ -1073,7 +1071,7 @@ class RectifiedStitchedMosaicManager(BaseManagerContainerMixIn, CoverageManager)
         return wrappers 
     
     def _make_mosaic(self, coverage):
-        pass
+        make_mosaic(coverage)
 
     def _prepare_update_dicts(self, link_kwargs, unlink_kwargs, set_kwargs):
         super(RectifiedStitchedMosaicManager, self)._prepare_update_dicts(link_kwargs, unlink_kwargs, set_kwargs)
