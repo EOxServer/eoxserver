@@ -37,20 +37,9 @@ admin.autodiscover()
 #from django.contrib import databrowse
 from django.conf import settings
 
-#from eoxserver.server.models import *
-
-#databrowse.site.register(EOxSCoverageEOCollectionRecord)
-#databrowse.site.register(EOxSCoverageSingleFileRecord)
-#databrowse.site.register(EOxSCoverageSingleFileNonGeoRecord)
-#databrowse.site.register(EOxSRangeType)
-#databrowse.site.register(EOxSRectifiedGridRecord)
-#databrowse.site.register(EOxSChannelRecord)
-#databrowse.site.register(EOxSDataDirRecord)
-#databrowse.site.register(EOxSLayerMetadataRecord)
-#databrowse.site.register(EOxSRangeType2Channel)
-
 urlpatterns = patterns('',
     (r'^ows', 'eoxserver.services.views.ows'),
+    (r'^logview', 'eoxserver.logging.views.logview'),
     # Example:
     # (r'^eoxserver/', include('eoxserver.foo.urls')),
 
