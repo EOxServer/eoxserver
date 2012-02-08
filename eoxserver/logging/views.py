@@ -37,7 +37,7 @@ from django.shortcuts import render_to_response
 from eoxserver.core.system import System
 
 
-LEVELS = ["DEBUG", "INFO", "WARN", "ERROR", "CRITICAL"]
+LEVELS = [None, "DEBUG", "INFO", "WARN", "ERROR", "CRITICAL"]
 
 def logview(request):
     System.init()
@@ -45,14 +45,16 @@ def logview(request):
     logfile_path = os.path.abspath(logfile_path)
     
     count_logs = int(request.GET.get("count", 50))
-    level = request.GET.get("level", "INFO").upper()
+    level = request.GET.get("level")
     if level not in LEVELS:
         level = LEVELS[1]
     
     with open(logfile_path) as f:
-        
-        rex = re.compile(r".*\[(%s)\].*" % "|".join(LEVELS[LEVELS.index(level):]),
-                         re.IGNORECASE)
-        lines = [line for line in f if rex.match(line)]
+        if level is not None:
+            rex = re.compile(r".*\[(%s)\].*" % "|".join(LEVELS[LEVELS.index(level):]),
+                             re.IGNORECASE)
+            lines = [line for line in f if rex.match(line)]
+        else:
+            lines = f.readlines()
         
     return render_to_response('logging/logview.html', {"lines": lines[-count_logs:]})
