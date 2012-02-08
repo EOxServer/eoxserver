@@ -29,18 +29,30 @@
 #-------------------------------------------------------------------------------
 
 import os.path
+import logging
+import re
 
 from django.shortcuts import render_to_response
 
 from eoxserver.core.system import System
 
 
-def logview(request, num_logs=50):
+LEVELS = ["DEBUG", "INFO", "WARN", "ERROR", "CRITICAL"]
+
+def logview(request):
     System.init()
     logfile_path = System.getConfig().getConfigValue("core.system", "logging_filename")
     logfile_path = os.path.abspath(logfile_path)
-    with open(logfile_path) as f:
-        lines = f.readlines()
-        
     
-    return render_to_response('logging/logview.html', {"lines": lines[-num_logs:]})
+    count_logs = int(request.GET.get("count", 50))
+    level = request.GET.get("level", "INFO").upper()
+    if level not in LEVELS:
+        level = LEVELS[1]
+    
+    with open(logfile_path) as f:
+        
+        rex = re.compile(r".*\[(%s)\].*" % "|".join(LEVELS[LEVELS.index(level):]),
+                         re.IGNORECASE)
+        lines = [line for line in f if rex.match(line)]
+        
+    return render_to_response('logging/logview.html', {"lines": lines[-count_logs:]})
