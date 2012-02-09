@@ -1,6 +1,6 @@
-<?xml version="1.0" encoding="ISO-8859-1"?>
-<Capabilities xmlns="http://www.opengis.net/wcs/1.1" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ogc="http://www.opengis.net/ogc" version="1.1.2" updateSequence="20110610T153000Z" xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsGetCapabilities.xsd http://www.opengis.net/ows/1.1 http://schemas.opengis.net/ows/1.1.0/owsAll.xsd">
-  <ows:ServiceIdentification>
+<?xml version='1.0' encoding='UTF-8'?>
+<wcs:Capabilities updateSequence="20110610T153000Z" version="1.1.2" xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsGetCapabilities.xsd http://www.opengis.net/ows/1.1 http://schemas.opengis.net/ows/1.1.0/owsAll.xsd" xmlns:wcs="http://www.opengis.net/wcs/1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ows:ServiceIdentification xmlns:ows="http://www.opengis.net/ows/1.1">
     <ows:Title>Test configuration of MapServer used to demonstrate EOxServer</ows:Title>
     <ows:Abstract>
 Test configuration of MapServer used to demonstrate EOxServer
@@ -14,7 +14,10 @@ Copyright (C) European Space Agency - ESA
       <ows:Keyword>WCS EO-AP</ows:Keyword>
       <ows:Keyword>WCS 2.0</ows:Keyword>
       <ows:Keyword>WCS</ows:Keyword>
+      <ows:Keyword>WMS</ows:Keyword>
+      <ows:Keyword>EO-WMS</ows:Keyword>
       <ows:Keyword>MERIS</ows:Keyword>
+      <ows:Keyword>ASAR</ows:Keyword>
       <ows:Keyword>Envisat</ows:Keyword>
     </ows:Keywords>
     <ows:ServiceType codeSpace="OGC">OGC WCS</ows:ServiceType>
@@ -22,9 +25,9 @@ Copyright (C) European Space Agency - ESA
     <ows:Fees>None</ows:Fees>
     <ows:AccessConstraints>None</ows:AccessConstraints>
   </ows:ServiceIdentification>
-  <ows:ServiceProvider>
+  <ows:ServiceProvider xmlns:ows="http://www.opengis.net/ows/1.1">
     <ows:ProviderName>EOX IT Services GmbH - HG Wien - FN 312068z - UID ATU64265057</ows:ProviderName>
-    <ows:ProviderSite xlink:type="simple" xlink:href="http://eoxserver.org"/>
+    <ows:ProviderSite xlink:href="http://eoxserver.org" xlink:type="simple" xmlns:xlink="http://www.w3.org/1999/xlink" />
     <ows:ServiceContact>
       <ows:IndividualName>Stephan Meissl</ows:IndividualName>
       <ows:PositionName>Senior IT Consultant</ows:PositionName>
@@ -41,19 +44,19 @@ Copyright (C) European Space Agency - ESA
           <ows:Country>Austria</ows:Country>
           <ows:ElectronicMailAddress>office@eox.at</ows:ElectronicMailAddress>
         </ows:Address>
-        <ows:OnlineResource xlink:type="simple" xlink:href="http://eoxserver.org"/>
+        <ows:OnlineResource xlink:href="http://eoxserver.org" xlink:type="simple" xmlns:xlink="http://www.w3.org/1999/xlink" />
         <ows:HoursOfService>Mon - Fri 10:30 - 17:00 CET and CEST respectively excl. Austrian holidays</ows:HoursOfService>
         <ows:ContactInstructions>E-mails are usually answered within 3 working days.</ows:ContactInstructions>
       </ows:ContactInfo>
       <ows:Role>Service provider</ows:Role>
     </ows:ServiceContact>
   </ows:ServiceProvider>
-  <ows:OperationsMetadata>
+  <ows:OperationsMetadata xmlns:ows="http://www.opengis.net/ows/1.1">
     <ows:Operation name="GetCapabilities">
       <ows:DCP>
         <ows:HTTP>
-          <ows:Get xlink:type="simple" xlink:href="http://localhost:8000/ows?"/>
-          <ows:Post xlink:type="simple" xlink:href="http://localhost:8000/ows?"/>
+          <ows:Get xlink:href="http://localhost:8000/ows?" xlink:type="simple" xmlns:xlink="http://www.w3.org/1999/xlink" />
+          <ows:Post xlink:href="http://localhost:8000/ows?" xlink:type="simple" xmlns:xlink="http://www.w3.org/1999/xlink" />
         </ows:HTTP>
       </ows:DCP>
       <ows:Parameter name="service">
@@ -70,8 +73,8 @@ Copyright (C) European Space Agency - ESA
     <ows:Operation name="DescribeCoverage">
       <ows:DCP>
         <ows:HTTP>
-          <ows:Get xlink:type="simple" xlink:href="http://localhost:8000/ows?"/>
-          <ows:Post xlink:type="simple" xlink:href="http://localhost:8000/ows?"/>
+          <ows:Get xlink:href="http://localhost:8000/ows?" xlink:type="simple" xmlns:xlink="http://www.w3.org/1999/xlink" />
+          <ows:Post xlink:href="http://localhost:8000/ows?" xlink:type="simple" xmlns:xlink="http://www.w3.org/1999/xlink" />
         </ows:HTTP>
       </ows:DCP>
       <ows:Parameter name="service">
@@ -95,8 +98,8 @@ Copyright (C) European Space Agency - ESA
     <ows:Operation name="GetCoverage">
       <ows:DCP>
         <ows:HTTP>
-          <ows:Get xlink:type="simple" xlink:href="http://localhost:8000/ows?"/>
-          <ows:Post xlink:type="simple" xlink:href="http://localhost:8000/ows?"/>
+          <ows:Get xlink:href="http://localhost:8000/ows?" xlink:type="simple" xmlns:xlink="http://www.w3.org/1999/xlink" />
+          <ows:Post xlink:href="http://localhost:8000/ows?" xlink:type="simple" xmlns:xlink="http://www.w3.org/1999/xlink" />
         </ows:HTTP>
       </ows:DCP>
       <ows:Parameter name="service">
@@ -142,40 +145,40 @@ Copyright (C) European Space Agency - ESA
         </ows:AllowedValues>
       </ows:Parameter>
     </ows:Operation>
-  </ows:OperationsMetadata>
-  <Contents>
-    <CoverageSummary>
-      <ows:Title>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</ows:Title>
-      <ows:Abstract/>
-      <ows:WGS84BoundingBox dimensions="2">
+  <ows:Operation name="transaction"><ows:DCP><ows:HTTP><ows:Post xlink:href="http://localhost:8000/ows" xlink:type="simple" xmlns:xlink="http://www.w3.org/1999/xlink" /></ows:HTTP></ows:DCP><ows:Parameter name="service"><ows:AllowedValues><ows:Value>WCS</ows:Value></ows:AllowedValues></ows:Parameter><ows:Parameter name="version"><ows:AllowedValues><ows:Value>1.1</ows:Value></ows:AllowedValues></ows:Parameter></ows:Operation></ows:OperationsMetadata>
+  <wcs:Contents>
+    <wcs:CoverageSummary>
+      <ows:Title xmlns:ows="http://www.opengis.net/ows/1.1">MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</ows:Title>
+      <ows:Abstract xmlns:ows="http://www.opengis.net/ows/1.1" />
+      <ows:WGS84BoundingBox dimensions="2" xmlns:ows="http://www.opengis.net/ows/1.1">
         <ows:LowerCorner>11.3610658646 32.2014462964</ows:LowerCorner>
         <ows:UpperCorner>28.2838457183 46.2520256042</ows:UpperCorner>
       </ows:WGS84BoundingBox>
-      <SupportedCRS>urn:ogc:def:crs:EPSG::4326</SupportedCRS>
-      <SupportedFormat>image/tiff</SupportedFormat>
-      <Identifier>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</Identifier>
-    </CoverageSummary>
-    <CoverageSummary>
-      <ows:Title>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</ows:Title>
-      <ows:Abstract/>
-      <ows:WGS84BoundingBox dimensions="2">
+      <wcs:SupportedCRS>urn:ogc:def:crs:EPSG::4326</wcs:SupportedCRS>
+      <wcs:SupportedFormat>image/tiff</wcs:SupportedFormat>
+      <wcs:Identifier>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</wcs:Identifier>
+    </wcs:CoverageSummary>
+    <wcs:CoverageSummary>
+      <ows:Title xmlns:ows="http://www.opengis.net/ows/1.1">mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</ows:Title>
+      <ows:Abstract xmlns:ows="http://www.opengis.net/ows/1.1" />
+      <ows:WGS84BoundingBox dimensions="2" xmlns:ows="http://www.opengis.net/ows/1.1">
         <ows:LowerCorner>11.331755 32.19025</ows:LowerCorner>
         <ows:UpperCorner>28.29481 46.268645</ows:UpperCorner>
       </ows:WGS84BoundingBox>
-      <SupportedCRS>urn:ogc:def:crs:EPSG::4326</SupportedCRS>
-      <SupportedFormat>image/tiff</SupportedFormat>
-      <Identifier>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</Identifier>
-    </CoverageSummary>
-    <CoverageSummary>
-      <ows:Title>mosaic_MER_FRS_1P_RGB_reduced</ows:Title>
-      <ows:Abstract/>
-      <ows:WGS84BoundingBox dimensions="2">
+      <wcs:SupportedCRS>urn:ogc:def:crs:EPSG::4326</wcs:SupportedCRS>
+      <wcs:SupportedFormat>image/tiff</wcs:SupportedFormat>
+      <wcs:Identifier>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</wcs:Identifier>
+    </wcs:CoverageSummary>
+    <wcs:CoverageSummary>
+      <ows:Title xmlns:ows="http://www.opengis.net/ows/1.1">mosaic_MER_FRS_1P_RGB_reduced</ows:Title>
+      <ows:Abstract xmlns:ows="http://www.opengis.net/ows/1.1" />
+      <ows:WGS84BoundingBox dimensions="2" xmlns:ows="http://www.opengis.net/ows/1.1">
         <ows:LowerCorner>-3.75 32.158895</ows:LowerCorner>
         <ows:UpperCorner>28.326165 46.3</ows:UpperCorner>
       </ows:WGS84BoundingBox>
-      <SupportedCRS>urn:ogc:def:crs:EPSG::4326</SupportedCRS>
-      <SupportedFormat>image/tiff</SupportedFormat>
-      <Identifier>mosaic_MER_FRS_1P_RGB_reduced</Identifier>
-    </CoverageSummary>
-  </Contents>
-</Capabilities>
+      <wcs:SupportedCRS>urn:ogc:def:crs:EPSG::4326</wcs:SupportedCRS>
+      <wcs:SupportedFormat>image/tiff</wcs:SupportedFormat>
+      <wcs:Identifier>mosaic_MER_FRS_1P_RGB_reduced</wcs:Identifier>
+    </wcs:CoverageSummary>
+  </wcs:Contents>
+</wcs:Capabilities>
