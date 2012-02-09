@@ -34,9 +34,9 @@ RFC 15: Access Control Support
 
 :Author:     Arndt Bonitz
 :Created:    2011-11-14
-:Last Edit:  2011-11-15
-:Status:     DRAFT 
-:Discussion: http://eoxserver.org/wiki/DiscussionRfc15
+:Last Edit:  2011-02-09
+:Status:     ACCEPTED 
+:Discussion: http://eoxserver.org/wiki/DiscussionRfc15  
 
 Overview
 --------
@@ -102,7 +102,7 @@ EOxServer Security Component
 The EOxServer security component is located in the package 
 ``eoxserver.services.auth.base`` in the EOxServer source code directory. The 
 implementation of the ``PolicyDecisionPointInterface`` for the proposed setup 
-is included in ``eoxserver.services.auth.o3spdp.py``, which is a wrapper for 
+is included in ``eoxserver.services.auth.charonpdp.py``, which is a wrapper for 
 the CHARON Authorisation Service client. Every request for authorisation is 
 encoded into a XACML Authorization Query and sent to the Authorisation Service. 
 The decision (permit, deny) of the service is then enforced by the EOxServer.
@@ -115,7 +115,8 @@ about this in the dev mailing list archives.
 Voting History
 --------------
 
-N/A
+:Motion: Adopted on  2011-02-09 with +1 from Arndt Bonitz, Fabian Schindler, Stephan Meißl
+and +0 from Milan Novacek, Martin Paces
 
 Traceability
 ------------
