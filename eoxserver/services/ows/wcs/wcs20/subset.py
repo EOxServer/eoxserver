@@ -279,9 +279,13 @@ class WCS20SubsetDecoder(object):
                     raise InvalidSubsettingException(
                         "Multiple definitions for time subsetting."
                     )
-            elif trim[0] in ("x", "lon", "long", "Long"):
+            elif trim[0] in ("x", "lon", "Lon", "long", "Long"):
+                
                 if x_bounds is None:
-                    new_crs_id = self._getCRSID(trim[1])
+                    if trim[1] is None and trim[0] != "x":
+                        new_crs_id = 4326
+                    else:
+                        new_crs_id = self._getCRSID(trim[1])
                     
                     if crs_id is None:
                         crs_id = new_crs_id
@@ -300,7 +304,10 @@ class WCS20SubsetDecoder(object):
                     )
             elif trim[0] in ("y", "lat", "Lat"):
                 if y_bounds is None:
-                    new_crs_id = self._getCRSID(trim[1])
+                    if trim[1] is None and trim[0] != "y":
+                        new_crs_id = 4326
+                    else:
+                        new_crs_id = self._getCRSID(trim[1])
                     
                     if crs_id is None:
                         crs_id = new_crs_id
