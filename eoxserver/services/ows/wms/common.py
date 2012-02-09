@@ -74,7 +74,7 @@ class WMSLayer(object):
     
         if self.group_name:
             layer.group = self.group_name
-            layer.setMetaData("wms_group_title", "self.group_name")
+            layer.setMetaData("wms_group_title", self.group_name)
         
         return layer
 
