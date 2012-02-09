@@ -51,6 +51,7 @@ from django.conf import settings
 
 urlpatterns = patterns('',
     (r'^ows', 'eoxserver.services.views.ows'),
+    (r'^logview', 'eoxserver.logging.views.logview'),
     # Example:
     # (r'^eoxserver/', include('eoxserver.foo.urls')),
 
