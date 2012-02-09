@@ -968,6 +968,14 @@
         }
     }, 
     {
+        "pk": 122, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wms1x.WMS13GetFeatureInfoHandler", 
+            "intf_id": "services.interfaces.OperationHandler"
+        }
+    }, 
+    {
         "pk": 1, 
         "model": "core.component", 
         "fields": {
@@ -1809,6 +1817,13 @@
     },
     {
         "pk": 121, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    },
+    {
+        "pk": 122, 
         "model": "core.component", 
         "fields": {
             "enabled": true
