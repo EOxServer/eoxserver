@@ -72,6 +72,28 @@ class OWSRequest(object):
     
     def getVersion(self):
         return self.version
+    
+    def getHeader(self, header_name):
+        META_WITHOUT_HTTP = (
+            "CONTENT_LENGTH",
+            "CONTENT_TYPE",
+            "QUERY_STRING",
+            "REMOTE_ADDR",
+            "REMOTE_HOST",
+            "REMOTE_USER",
+            "REQUEST_METHOD",
+            "SERVER_NAME",
+            "SERVER_PORT"
+        )
+        
+        tmp = header_name.upper().replace('-', '_')
+        
+        if tmp in META_WITHOUT_HTTP:
+            header_key = tmp
+        else:
+            header_key = "HTTP_%s" % tmp
+        
+        return self.http_req.META.get(header_key)
 
 
 class Response(object):

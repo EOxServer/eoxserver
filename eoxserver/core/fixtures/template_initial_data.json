@@ -976,6 +976,22 @@
         }
     }, 
     {
+        "pk": 123, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.auth.charonpdp.CharonPDP", 
+            "intf_id": "services.auth.base.PolicyDecisionPointInterface"
+        }
+    }, 
+    {
+        "pk": 124, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.auth.base.AuthConfigReader", 
+            "intf_id": "core.readers.ConfigReader"
+        }
+    }, 
+    {
         "pk": 1, 
         "model": "core.component", 
         "fields": {
@@ -1824,6 +1840,20 @@
     },
     {
         "pk": 122, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 123, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 124, 
         "model": "core.component", 
         "fields": {
             "enabled": true
