@@ -20,14 +20,6 @@
         }
     }, 
     {
-        "pk": 2, 
-        "model": "coverages.nilvaluerecord", 
-        "fields": {
-            "reason": "http://www.opengis.net/def/nil/OGC/0/unknown", 
-            "value": 0
-        }
-    }, 
-    {
         "pk": 20, 
         "model": "coverages.rangetype2band", 
         "fields": {
