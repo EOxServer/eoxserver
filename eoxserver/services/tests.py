@@ -727,9 +727,9 @@ class WCS20GetCoverageSubsetSizeDatasetTestCase(eoxstest.RectifiedGridCoverageTe
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=x(100,200)&subset=y(200,300)&size=x(20)&size=y(20)"
         return (params, "kvp")
 
-class WCS20GetCoverageSubsetEPSG4326SizeDatasetTestCase(eoxstest.RectifiedGridCoverageTestCase):
+class WCS20GetCoverageSubsetEPSG4326SizeDatasetTestCase(eoxstest.WCS20GetCoverageMultipartTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(38,40)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(20,22)&size=lat(20)&size=long(20)"
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/mixed&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(38,40)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(20,22)&size=lat(20)&size=long(20)"
         return (params, "kvp")
 
 class WCS20GetCoverageInvalidSizeFaultTestCase(eoxstest.ExceptionTestCase):
@@ -927,13 +927,13 @@ class WCS20PostGetCoverageMultipartDatasetTestCase(eoxstest.WCS20GetCoverageMult
           <wcs:CoverageId>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</wcs:CoverageId>
           <wcs:DimensionTrim>
             <wcs:Dimension>Long</wcs:Dimension>
-            <wcs:TrimLow>16</wcs:TrimLow>
-            <wcs:TrimHigh>18</wcs:TrimHigh>
+            <wcs:TrimLow>20</wcs:TrimLow>
+            <wcs:TrimHigh>22</wcs:TrimHigh>
           </wcs:DimensionTrim>
           <wcs:DimensionTrim>
             <wcs:Dimension>Lat</wcs:Dimension>
-            <wcs:TrimLow>46</wcs:TrimLow>
-            <wcs:TrimHigh>48</wcs:TrimHigh>
+            <wcs:TrimLow>36</wcs:TrimLow>
+            <wcs:TrimHigh>38</wcs:TrimHigh>
           </wcs:DimensionTrim>
         </wcs:GetCoverage>"""
         return (params, "xml")
@@ -1099,11 +1099,7 @@ class WMS13GetMapMosaicTestCase(eoxstest.WMS13GetMapTestCase):
     """ Test a GetMap request with a stitched mosaic. """
     layers = ("mosaic_MER_FRS_1P_RGB_reduced",)
     bbox = (-3.75, 32.158895, 28.326165, 46.3)
-    
 
-    
-# TODO: Add test cases with time parameter (point, interval, etc.)
-    
 class WMS13GetMapPNGDatasetTestCase(eoxstest.WMS13GetMapTestCase):
     """ Test a GetMap request with a dataset series. """
     layers = ("mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced",)
@@ -1124,7 +1120,7 @@ class WMS13GetMapTIFFDatasetTestCase(eoxstest.WMS13GetMapTestCase):
 
 class WMS13GetMapLayerNotDefinedFaultTestCase(eoxstest.WMS13ExceptionTestCase):
     def getRequest(self):
-        params = "service=WMS&version=1.3.0&request=GetMap&layers=INVALIDLAYER&bbox=0,0,1,1&crs=EPSG:4326&width=10&height=10&exceptions=XML"
+        params = "service=WMS&version=1.3.0&request=GetMap&layers=INVALIDLAYER&bbox=0,0,1,1&crs=EPSG:4326&width=10&height=10&exceptions=XML&format=image/png"
         return (params, "kvp")
     
     def getExpectedExceptionCode(self):
