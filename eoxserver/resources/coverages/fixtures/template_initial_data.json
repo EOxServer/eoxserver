@@ -8,12 +8,22 @@
         }
     }, 
     {
+        "pk": 2, 
+        "model": "coverages.nilvaluerecord", 
+        "fields": {
+            "reason": "http://www.opengis.net/def/nil/OGC/0/unknown", 
+            "value": 0
+        }
+    }, 
+    {
         "pk": 1, 
         "model": "coverages.bandrecord", 
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
             "name": "red", 
-            "nil_values": [],
+            "nil_values": [
+                2
+            ],
             "gdal_interpretation": 3, 
             "identifier": "red", 
             "uom": "W.m-2.Sr-1", 
@@ -26,7 +36,9 @@
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
             "name": "green", 
-            "nil_values": [], 
+            "nil_values": [
+                2
+            ],
             "gdal_interpretation": 4, 
             "identifier": "green",
             "uom": "W.m-2.Sr-1", 
@@ -39,7 +51,9 @@
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
             "name": "blue",
-            "nil_values": [],
+            "nil_values": [
+                2
+            ],
             "gdal_interpretation": 5, 
             "identifier": "blue", 
             "uom": "W.m-2.Sr-1", 
