@@ -1,0 +1,19 @@
+.container {
+	display: table;
+}
+
+.row {
+	display: table-row;
+}
+
+.cell {
+	display: table-cell;
+}
+
+.header {
+	font-weight: bold;
+}
+
+#dialog_main .ui-dialog-titlebar-close {
+	display: none;
+}

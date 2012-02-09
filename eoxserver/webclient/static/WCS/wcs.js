@@ -1,0 +1,84 @@
+(function() {
+	window.WCS = function () {
+		return {
+			describeEOCoverageSetURL: function (baseurl, eoid, params) {
+				params = params || {};
+				subsetCRS = params.subsetCRS || "http://www.opengis.net/def/crs/EPSG/0/4326";
+				if (baseurl.charAt(baseurl.length-1) !== "?")
+					baseurl += "?";
+				baseurl += "service=wcs&version=2.0.0&request=describeeocoverageset&eoid=" + eoid;
+				
+				if (params.bbox && !params.subsetX && !params.subsetY) {
+					params.subsetX = [params.bbox[0], params.bbox[2]];
+					params.subsetY = [params.bbox[1], params.bbox[3]];
+				}
+				if (params.subsetX) {
+					baseurl += "&subset=x," + subsetCRS + "("
+							+ params.subsetX[0] + "," + params.subsetX[1] + ")";
+				}
+				if (params.subsetY) {
+					baseurl += "&subset=y," + subsetCRS + "("
+							+ params.subsetY[0] + "," + params.subsetY[1] + ")";
+				}
+				
+				if (params.subsetTime) {
+				    baseurl += "&subset=phenomenonTime(\"" + params.subsetTime[0] 
+				    		+ "\",\"" + params.subsetTime[1] + "\")";
+				}
+				if (params.containment) {
+					baseurl += "&containment=" + params.containment; 
+				}
+				if (params.count) 
+					baseurl += "&count=" + params.count;
+				if (params.sections)
+					baseurl += "&sections=" + params.sections;
+				
+				return baseurl;
+			},
+			getCoverageURL: function(baseurl, coverageid, format, params) {
+				params = params || {};
+				subsetCRS = params.subsetCRS || "http://www.opengis.net/def/crs/EPSG/0/4326";
+				if (baseurl.charAt(baseurl.length-1) !== "?")
+					baseurl += "?";
+				baseurl += "service=wcs&version=2.0.0&request=getcoverage";
+				baseurl += "&coverageid=" + coverageid + "&format=" + format;
+
+				if (params.bbox && !params.subsetX && !params.subsetY) {
+					params.subsetX = [params.bbox[0], params.bbox[2]];
+					params.subsetY = [params.bbox[1], params.bbox[3]];
+				}
+				if (params.subsetX)
+					baseurl += "&subset=x," + subsetCRS + "("
+							+ params.subsetX[0] + "," + params.subsetX[1] + ")";
+				if (params.subsetY)
+					baseurl += "&subset=y," + subsetCRS + "("
+							+ params.subsetY[0] + "," + params.subsetY[1] + ")";
+				if (params.size && !params.sizeX && !params.sizeY) {
+					params.sizeX = params.size[0];
+					params.sizeY = params.size[1];
+				}
+				if (params.sizeX)
+					baseurl += "&size=x(" + sizeX + ")";
+				if (params.sizeY)
+					baseurl += "&size=y(" + sizeY + ")";
+				if (params.resolution && !params.resolutionX && !params.resolutionY) {
+					params.resolutionX = params.resolution[0];
+					params.resolutionY = params.resolution[1];
+				}
+				if (params.resolutionX)
+					baseurl += "&resolution=x(" + params.resolutionX + ")";
+				if (params.resolutionY)
+					baseurl += "&resolution=y(" + params.resolutionY + ")";
+				if (params.outputCRS)
+					baseurl += "&outputcrs=" + params.outputCRS;
+				if (params.multipart)
+					baseurl += "&mediatype=multipart/mixed";
+				
+				if (params.rangeSubset)
+					baseurl += "&rangesubset=" + params.rangeSubset.join(",");
+				
+				return baseurl;
+			}
+		}
+	}();
+}) ();

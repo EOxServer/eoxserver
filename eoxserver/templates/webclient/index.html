@@ -1,0 +1,8 @@
+<h1>EOxServer - WebClient</h1>
+
+<h2>Available Dataset Series:</h2>
+<ul>
+{% for eoid in eoids %}
+    <li><a href="{{path}}{{eoid}}">{{ eoid }}</a></li>
+{% endfor %}
+</ul>
