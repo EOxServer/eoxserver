@@ -88,12 +88,12 @@ or the packages::
 
 To test open a webbrowser to the page:
 
-http://<your_server>/sp_eowcs?wsdl 
+  http://<your_server>/sp_eowcs?wsdl
 
 You should see the wsdl.
 
 Further testing may be done via soapui.  See the file 
-``soap_proxy/test/README.txt``.
+``soap_proxy/test/README.txt`` in the source tree.
 
 Old installation guide without rpms
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -112,10 +112,10 @@ The following is required before you can proceed with installing soap_proxy:
 This is suitable for general installation e.g. if you are not using
 eoxerver but wish to use mapserver direcly.
 
-Warning: some of the configuration details are out of date, but
-the changes are not stuctural.
+**Warning**: some of the configuration details are out of date, but
+the changes are not structural.
 
-Also see INSTALL file in the source tree.
+Also see the INSTALL file in the source tree.
 
 Download from http://ws.apache.org/axis2/c/download.cgi
 
@@ -214,4 +214,4 @@ Restart you httpd server and check that http://127.0.0.1/o3s_axis/services
 shows the soapProxy service offering the four EO-WCS operations.
 
 Further testing may be done via soapui.  See the file 
-``soap_proxy/test/README.txt``.
+``soap_proxy/test/README.txt`` in the source tree.
