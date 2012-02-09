@@ -45,7 +45,7 @@ UNIX
     The documentation is generated in _build/html.
 
     # For pdf output run:
-    make pdf
+    make latex
     cd _build/latex/
     make all-pdf
     # The pdf documentation is generated as EOxServer.pdf
