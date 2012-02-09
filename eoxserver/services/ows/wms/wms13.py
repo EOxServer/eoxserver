@@ -370,11 +370,11 @@ class WMS13GetCapabilitiesHandler(WMS1XGetCapabilitiesHandler):
         for coverage in cov_factory.find(filter_exprs=[visible_expr]):
             layer = self.createCoverageLayer(coverage)
             if coverage.getType() == "eo.rect_stitched_mosaic":
-                layer.setGroup(coverage.getCoverageId())
+                layer.setGroup("%s_group" % coverage.getCoverageId())
                 self.addLayer(layer)
                 
                 outlines_layer = EOWMSRectifiedStitchedMosaicOutlinesLayer(coverage)
-                outlines_layer.setGroup(coverage.getCoverageId())
+                outlines_layer.setGroup("%s_group" % coverage.getCoverageId())
                 self.addLayer(outlines_layer)
             else:
                 self.addLayer(layer)
@@ -385,11 +385,11 @@ class WMS13GetCapabilitiesHandler(WMS1XGetCapabilitiesHandler):
         for dataset_series in dss_factory.find():
             if len(dataset_series.getEOCoverages()) > 0:
                 layer = WMSDatasetSeriesLayer(dataset_series)
-                layer.setGroup(dataset_series.getEOID())
+                layer.setGroup("%s_group" % dataset_series.getEOID())
                 self.addLayer(layer)
                 
                 outlines_layer = EOWMSDatasetSeriesOutlinesLayer(dataset_series)
-                outlines_layer.setGroup(dataset_series.getEOID())
+                outlines_layer.setGroup("%s_group" % dataset_series.getEOID())
                 self.addLayer(outlines_layer)
     
     def postprocess(self, resp):
