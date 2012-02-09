@@ -1180,9 +1180,7 @@ class FootprintWithinAreaFilter(FootprintFilter):
     """
     
     def applyToQuerySet(self, expr, qs):
-        max_extent = self._getMaxExtent(qs)
-        
-        poly = self._getPolygon(expr.getOperands()[0], max_extent)
+        poly = self._getPolygon(expr.getOperands()[0])
         
         # NOTE: this is a hack to account for bugs in GeoDjango
         # Should be:
@@ -1199,9 +1197,7 @@ class FootprintWithinAreaFilter(FootprintFilter):
     def resourceMatches(self, expr, res):
         footprint = res.getFootprint()
         
-        max_extent = footprint.extent
-        
-        poly = self._getPolygon(expr.getOperands()[0], max_extent)
+        poly = self._getPolygon(expr.getOperands()[0])
         
         return footprint.within(poly)
 
