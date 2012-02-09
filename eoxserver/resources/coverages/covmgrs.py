@@ -51,7 +51,8 @@ from eoxserver.resources.coverages.exceptions import (
 )
 from eoxserver.resources.coverages.models import (
     PlainCoverageRecord, RectifiedDatasetRecord, 
-    ReferenceableDatasetRecord, RectifiedStitchedMosaicRecord
+    ReferenceableDatasetRecord, RectifiedStitchedMosaicRecord,
+    ReservedCoverageIdRecord
 ) 
 from eoxserver.processing.mosaic import make_mosaic
 
