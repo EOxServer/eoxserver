@@ -133,7 +133,7 @@ export XML_CATALOG_FILES="<path_to_eoxserver_directory>/schemas/catalog.xml"
 python manage.py test services
 
 # for all modules
-python manage.py test services coverages backends core
+python manage.py test services coverages backends processes core
 
 # or simply
 python manage.py test
