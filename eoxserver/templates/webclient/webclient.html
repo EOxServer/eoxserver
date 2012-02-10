@@ -410,7 +410,7 @@ function getAvailableCoverages() {
 	var url = WCS.describeEOCoverageSetURL(
 		//"http://puck.eox.at/eoxserver/ows?",
 		"{{ows_url}}",
-		"envisat", {
+		"{{eoid}}", {
 		bbox: bbox,
 		subsetTime: [dts[0] + "T" + dts[1] + "Z",
 		             dts[2] + "T" + dts[3] + "Z"]
