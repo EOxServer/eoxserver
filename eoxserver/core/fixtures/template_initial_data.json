@@ -955,7 +955,7 @@
         "pk": 120, 
         "model": "core.implementation", 
         "fields": {
-            "impl_id": "services.ows.wcs11Transaction.WCS11TransactionHandler",
+            "impl_id": "services.ows.wcs11Transaction.WCS11TransactionHandler", 
             "intf_id": "services.interfaces.OperationHandler"
         }
     }, 
@@ -1809,12 +1809,12 @@
         "fields": {
             "enabled": true
         }
-    },
+    }, 
     {
         "pk": 118, 
         "model": "core.component", 
         "fields": {
-            "enabled": true 
+            "enabled": true
         }
     }, 
     {
@@ -1830,14 +1830,14 @@
         "fields": {
             "enabled": true
         }
-    },
+    }, 
     {
         "pk": 121, 
         "model": "core.component", 
         "fields": {
             "enabled": true
         }
-    },
+    }, 
     {
         "pk": 122, 
         "model": "core.component", 
