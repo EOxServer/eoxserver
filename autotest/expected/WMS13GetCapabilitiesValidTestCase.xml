@@ -251,11 +251,49 @@ Copyright (C) European Space Agency - ESA
         <northBoundLatitude>45.1758</northBoundLatitude>
     </EX_GeographicBoundingBox>
         <BoundingBox CRS="EPSG:4326" maxx="45.1758" maxy="33.1348" minx="32.0801" miny="-4.04297"/>
-        <Dimension name="time" nearestValue="0" units="ISO8601">2008-08-30T10:09:49Z,2006-08-16T09:09:29Z,2006-08-22T09:20:58Z,2006-08-16T09:09:29Z,2006-08-16T00:00:00Z</Dimension>
+        <Dimension name="time" nearestValue="0" units="ISO8601">2006-08-30T10:09:49Z,2006-08-16T09:09:29Z,2006-08-22T09:20:58Z,2006-08-16T09:09:29Z,2006-08-16T00:00:00Z</Dimension>
       </Layer>
       <Layer cascaded="0" opaque="0" queryable="1">
         <Name>MER_FRS_1P_reduced_outlines</Name>
         <Title>MER_FRS_1P_reduced_outlines</Title>
+        <CRS>EPSG:4326</CRS>
+    <EX_GeographicBoundingBox>
+        <westBoundLongitude>-4.04297</westBoundLongitude>
+        <eastBoundLongitude>33.1348</eastBoundLongitude>
+        <southBoundLatitude>32.0801</southBoundLatitude>
+        <northBoundLatitude>45.1758</northBoundLatitude>
+    </EX_GeographicBoundingBox>
+        <BoundingBox CRS="EPSG:4326" maxx="45.1758" maxy="33.1348" minx="32.0801" miny="-4.04297"/>
+      </Layer>
+    </Layer>
+    <Layer>
+      <Name>MER_FRS_1P_RGB_reduced_group</Name>
+      <Title>MER_FRS_1P_RGB_reduced_group</Title>
+      <Abstract>MER_FRS_1P_RGB_reduced_group</Abstract>
+        <Style>
+          <Name>default</Name>
+          <Title>default</Title>
+          <LegendURL height="5" width="35">
+             <Format>image/png; mode=24bit</Format>
+             <OnlineResource xlink:href="http://localhost:8000/ows?version=1.3.0&amp;service=WMS&amp;request=GetLegendGraphic&amp;sld_version=1.1.0&amp;layer=MER_FRS_1P_RGB_reduced_group&amp;format=image/png; mode=24bit&amp;STYLE=default" xlink:type="simple" xmlns:xlink="http://www.w3.org/1999/xlink"/>
+          </LegendURL>
+        </Style>
+      <Layer cascaded="0" opaque="0" queryable="0">
+        <Name>MER_FRS_1P_RGB_reduced</Name>
+        <Title>MER_FRS_1P_RGB_reduced</Title>
+        <CRS>EPSG:4326</CRS>
+    <EX_GeographicBoundingBox>
+        <westBoundLongitude>-4.04297</westBoundLongitude>
+        <eastBoundLongitude>33.1348</eastBoundLongitude>
+        <southBoundLatitude>32.0801</southBoundLatitude>
+        <northBoundLatitude>45.1758</northBoundLatitude>
+    </EX_GeographicBoundingBox>
+        <BoundingBox CRS="EPSG:4326" maxx="45.1758" maxy="33.1348" minx="32.0801" miny="-4.04297"/>
+        <Dimension name="time" nearestValue="0" units="ISO8601">2006-08-16T09:09:29Z,2006-08-30T10:09:49Z,2006-08-22T09:20:58Z</Dimension>
+      </Layer>
+      <Layer cascaded="0" opaque="0" queryable="1">
+        <Name>MER_FRS_1P_RGB_reduced_outlines</Name>
+        <Title>MER_FRS_1P_RGB_reduced_outlines</Title>
         <CRS>EPSG:4326</CRS>
     <EX_GeographicBoundingBox>
         <westBoundLongitude>-4.04297</westBoundLongitude>
