@@ -1,71 +1,75 @@
 [
     {
-        "pk": 10,
-        "model": "core.resource",
+        "pk": 10, 
+        "model": "core.resource", 
         "fields": {}
-    },
+    }, 
     {
-        "pk": 10,
-        "model": "coverages.coveragerecord",
-        "fields": {
-            "coverage_id": "ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775",
-            "range_type": 4, 
-            "layer_metadata": []
-        }
-    },
+        "pk": 9, 
+        "model": "coverages.lineagerecord", 
+        "fields": {}
+    }, 
     {
-       "pk": 10,
-       "model": "coverages.referenceabledatasetrecord",
-       "fields": {
-            "eo_id": "ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775",
-            "eo_metadata": 10,
-            "lineage": 9,
-            "data_package": 8,
-            "visible": true,
-            "size_x": 569,
-            "size_y": 486
-        }
-    },
-    {
-        "pk": 10,
-        "model": "coverages.eometadatarecord",
+        "pk": 10, 
+        "model": "coverages.eometadatarecord", 
         "fields": {
             "footprint": "POLYGON ((22.301754 -33.039026,20.099457 -32.530560,17.925622 -31.984922,16.727605 -35.166903,18.976948 -35.733683,21.262123 -36.259107,22.301754 -33.039026))",
-            "timestamp_begin": "2005-03-31 07:59:36.409059",
-            "timestamp_end": "2005-03-31 08:00:36.342970",
+            "timestamp_end": "2005-03-31 08:00:36.342970", 
+            "timestamp_begin": "2005-03-31 07:59:36.409059", 
             "eo_gml": ""
         }
-    },
+    }, 
     {
-        "pk": 9,
-        "model": "coverages.lineagerecord",
-        "fields": {}
-    },
-    {
-        "pk": 8,
-        "model": "coverages.datapackage",
+        "pk": 8, 
+        "model": "coverages.datapackage", 
         "fields": {
+            "metadata_format_name": null, 
             "data_package_type": "local"
         }
-    },
+    }, 
     {
-        "pk": 8,
-        "model": "coverages.localdatapackage",
+        "pk": 8, 
+        "model": "coverages.localdatapackage", 
         "fields": {
-            "data_location": 15,
-            "metadata_location": 15
+            "metadata_location": 15, 
+            "data_location": 15
         }
-    },
+    }, 
     {
-        "pk": 15,
-        "model": "backends.location",
+        "pk": 10, 
+        "model": "coverages.coveragerecord", 
+        "fields": {
+            "range_type": 4, 
+            "data_source": null, 
+            "automatic": false, 
+            "coverage_id": "ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775", 
+            "layer_metadata": []
+        }
+    }, 
+    {
+        "pk": 10, 
+        "model": "coverages.referenceabledatasetrecord", 
+        "fields": {
+            "lineage": 9, 
+            "data_package": 8, 
+            "visible": true, 
+            "eo_metadata": 10, 
+            "size_x": 569, 
+            "size_y": 486, 
+            "layer_metadata": [], 
+            "eo_id": "ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775"
+        }
+    }, 
+    {
+        "pk": 15, 
+        "model": "backends.location", 
         "fields": {
             "location_type": "local"
         }
-    },
+    }, 
     {
-        "pk": 15,
-        "model": "backends.localpath",
+        "pk": 15, 
+        "model": "backends.localpath", 
         "fields": {
             "path": "../autotest/data/asar/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tiff"
         }

@@ -4,11 +4,12 @@
         "model": "coverages.bandrecord", 
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
-            "name": "MERIS_radiance_01_uint16",
+            "name": "MERIS_radiance_01_uint16", 
             "nil_values": [
                 2
             ], 
-            "identifier": "MERIS_radiance_01_uint16",
+            "gdal_interpretation": 0, 
+            "identifier": "MERIS_radiance_01_uint16", 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS first band"
         }
@@ -22,6 +23,7 @@
             "nil_values": [
                 2
             ], 
+            "gdal_interpretation": 0, 
             "identifier": "MERIS_radiance_02_uint16", 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint16 second band"
@@ -36,6 +38,7 @@
             "nil_values": [
                 2
             ], 
+            "gdal_interpretation": 0, 
             "identifier": "MERIS_radiance_03_uint16", 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint16 third band"
@@ -50,6 +53,7 @@
             "nil_values": [
                 2
             ], 
+            "gdal_interpretation": 0, 
             "identifier": "MERIS_radiance_04_uint16", 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint16 fourth band"
@@ -64,6 +68,7 @@
             "nil_values": [
                 2
             ], 
+            "gdal_interpretation": 0, 
             "identifier": "MERIS_radiance_05_uint16", 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint16 fifth band"
@@ -78,6 +83,7 @@
             "nil_values": [
                 2
             ], 
+            "gdal_interpretation": 0, 
             "identifier": "MERIS_radiance_06_uint16", 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint16 sixth band"
@@ -92,6 +98,7 @@
             "nil_values": [
                 2
             ], 
+            "gdal_interpretation": 0, 
             "identifier": "MERIS_radiance_07_uint16", 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint16 seventh band"
@@ -106,6 +113,7 @@
             "nil_values": [
                 2
             ], 
+            "gdal_interpretation": 0, 
             "identifier": "MERIS_radiance_08_uint16", 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint16 eighth band"
@@ -120,6 +128,7 @@
             "nil_values": [
                 2
             ], 
+            "gdal_interpretation": 0, 
             "identifier": "MERIS_radiance_09_uint16", 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint16 ninth band"
@@ -134,6 +143,7 @@
             "nil_values": [
                 2
             ], 
+            "gdal_interpretation": 0, 
             "identifier": "MERIS_radiance_10_uint16", 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint16 tenth band"
@@ -148,6 +158,7 @@
             "nil_values": [
                 2
             ], 
+            "gdal_interpretation": 0, 
             "identifier": "MERIS_radiance_11_uint16", 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint16 eleventh band"
@@ -162,6 +173,7 @@
             "nil_values": [
                 2
             ], 
+            "gdal_interpretation": 0, 
             "identifier": "MERIS_radiance_12_uint16", 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint16 twelfth band"
@@ -176,6 +188,7 @@
             "nil_values": [
                 2
             ], 
+            "gdal_interpretation": 0, 
             "identifier": "MERIS_radiance_13_uint16", 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint 16 thirteenth band"
@@ -190,6 +203,7 @@
             "nil_values": [
                 2
             ], 
+            "gdal_interpretation": 0, 
             "identifier": "MERIS_radiance_14_uint16", 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint16 fourteenth band"
@@ -204,6 +218,7 @@
             "nil_values": [
                 2
             ], 
+            "gdal_interpretation": 0, 
             "identifier": "MERIS_radiance_15_uint16", 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint16 fifteenth band"
@@ -213,7 +228,7 @@
         "pk": 3, 
         "model": "coverages.rangetyperecord", 
         "fields": {
-            "name": "MERIS_uint16",
+            "name": "MERIS_uint16", 
             "data_type": 2
         }
     }, 
