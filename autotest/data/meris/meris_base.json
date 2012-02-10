@@ -5,7 +5,9 @@
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
             "name": "MERIS_radiance_01_uint16",
-            "nil_values": [],
+            "nil_values": [
+                2
+            ], 
             "identifier": "MERIS_radiance_01_uint16",
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS first band"
@@ -17,7 +19,9 @@
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
             "name": "MERIS_radiance_02_uint16", 
-            "nil_values": [], 
+            "nil_values": [
+                2
+            ], 
             "identifier": "MERIS_radiance_02_uint16", 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint16 second band"
@@ -29,7 +33,9 @@
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
             "name": "MERIS_radiance_03_uint16", 
-            "nil_values": [], 
+            "nil_values": [
+                2
+            ], 
             "identifier": "MERIS_radiance_03_uint16", 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint16 third band"
@@ -41,7 +47,9 @@
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
             "name": "MERIS_radiance_04_uint16", 
-            "nil_values": [], 
+            "nil_values": [
+                2
+            ], 
             "identifier": "MERIS_radiance_04_uint16", 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint16 fourth band"
@@ -53,7 +61,9 @@
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
             "name": "MERIS_radiance_05_uint16", 
-            "nil_values": [], 
+            "nil_values": [
+                2
+            ], 
             "identifier": "MERIS_radiance_05_uint16", 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint16 fifth band"
@@ -65,7 +75,9 @@
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
             "name": "MERIS_radiance_06_uint16", 
-            "nil_values": [], 
+            "nil_values": [
+                2
+            ], 
             "identifier": "MERIS_radiance_06_uint16", 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint16 sixth band"
@@ -77,7 +89,9 @@
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
             "name": "MERIS_radiance_07_uint16", 
-            "nil_values": [], 
+            "nil_values": [
+                2
+            ], 
             "identifier": "MERIS_radiance_07_uint16", 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint16 seventh band"
@@ -89,7 +103,9 @@
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
             "name": "MERIS_radiance_08_uint16", 
-            "nil_values": [], 
+            "nil_values": [
+                2
+            ], 
             "identifier": "MERIS_radiance_08_uint16", 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint16 eighth band"
@@ -101,7 +117,9 @@
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
             "name": "MERIS_radiance_09_uint16", 
-            "nil_values": [], 
+            "nil_values": [
+                2
+            ], 
             "identifier": "MERIS_radiance_09_uint16", 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint16 ninth band"
@@ -113,7 +131,9 @@
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
             "name": "MERIS_radiance_10_uint16", 
-            "nil_values": [], 
+            "nil_values": [
+                2
+            ], 
             "identifier": "MERIS_radiance_10_uint16", 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint16 tenth band"
@@ -125,7 +145,9 @@
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
             "name": "MERIS_radiance_11_uint16", 
-            "nil_values": [], 
+            "nil_values": [
+                2
+            ], 
             "identifier": "MERIS_radiance_11_uint16", 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint16 eleventh band"
@@ -137,7 +159,9 @@
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
             "name": "MERIS_radiance_12_uint16", 
-            "nil_values": [], 
+            "nil_values": [
+                2
+            ], 
             "identifier": "MERIS_radiance_12_uint16", 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint16 twelfth band"
@@ -149,7 +173,9 @@
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
             "name": "MERIS_radiance_13_uint16", 
-            "nil_values": [], 
+            "nil_values": [
+                2
+            ], 
             "identifier": "MERIS_radiance_13_uint16", 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint 16 thirteenth band"
@@ -161,7 +187,9 @@
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
             "name": "MERIS_radiance_14_uint16", 
-            "nil_values": [], 
+            "nil_values": [
+                2
+            ], 
             "identifier": "MERIS_radiance_14_uint16", 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint16 fourteenth band"
@@ -173,7 +201,9 @@
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
             "name": "MERIS_radiance_15_uint16", 
-            "nil_values": [], 
+            "nil_values": [
+                2
+            ], 
             "identifier": "MERIS_radiance_15_uint16", 
             "uom": "W.m-2.sr-1.nm-1", 
             "description": "MERIS uint16 fifteenth band"
