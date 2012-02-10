@@ -30,7 +30,7 @@
 import os
 from tempfile import mkstemp
 from xml.dom import minidom
-from email.message import Message
+from datetime import datetime
 
 import mapscript
 from osgeo import gdal
@@ -312,8 +312,14 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
             else:
                 cov_desc_el = encoder.encodeCoverageDescription(coverage)
             
+            filename = "%s_%s.%s" % (
+                coverage.getCoverageId(),
+                datetime.now().strftime("%Y%m%d%H%M%S"),
+                EXT_MAPPING[mime_type]
+            )
+            
             resp = self._get_multipart_response(
-                dst_filename, mime_type, DOMElementToXML(cov_desc_el)
+                dst_filename, mime_type, DOMElementToXML(cov_desc_el), filename
             )
         else:
             raise InvalidRequestException(
@@ -341,23 +347,19 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
         
         return resp
     
-    def _get_multipart_response(self, dst_filename, mime_type, cov_desc):
+    def _get_multipart_response(self, dst_filename, mime_type, cov_desc, filename):
         
-        xml_msg = Message()
-        
-        xml_msg.set_payload(cov_desc)
-        xml_msg.add_header("Content-type", "text/xml")
-        
+        xml_msg = "Content-Type: text/xml\n\n%s" % cov_desc
+                
         f = open(dst_filename)
         
         data = f.read()
         
-        data_msg = Message()
-        
-        data_msg.set_payload(data)
-        data_msg.add_header("Content-type", mime_type)
-        
-        content = "--wcs\n%s\n--wcs\n%s\n--wcs--" % (xml_msg.as_string(), data_msg.as_string())
+        data_msg = "Content-Type: %s\nContent-Disposition: attachment; filename=\"%s\"\n\n%s" % (
+            str(mime_type), str(filename), data
+        )
+
+        content = "--wcs\n%s\n--wcs\n%s\n--wcs--" % (xml_msg, data_msg)
         
         resp = Response(
             content = content,
