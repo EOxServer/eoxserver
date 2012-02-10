@@ -330,7 +330,7 @@ function setBBOXValues(bbox, reset_marker) {
     
     bboxLayer.clearMarkers();
     if (reset_marker) {
-        var box = new OpenLayers.Marker.Box(OpenLayers.Bounds.fromArray([minx, miny, maxx, maxy]));
+        var box = new OpenLayers.Marker.Box(OpenLayers.Bounds.fromArray(bbox));
         box.setBorder("lightgreen", 2);
     	bboxLayer.addMarker(box)
     }
