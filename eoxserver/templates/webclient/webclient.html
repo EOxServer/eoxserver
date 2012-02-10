@@ -93,7 +93,7 @@ function initMap() {
 		{layers: 'basic'}
 	);
 	
-	{% if outline_service == "wms" %}
+	{% if preview_service == "wms" %}
 	layer_preview = new OpenLayers.Layer.WMS(
 		"{{eoid}} preview",
 		"{{preview_url}}",
@@ -102,7 +102,7 @@ function initMap() {
 	);
 	{% endif %}
 	
-	{% if outline_service == "wmts" %}
+	{% if preview_service == "wmts" %}
 	layer_preview = new OpenLayers.Layer.WMTS({
 		name: "{{eoid}} preview",
 		url: "{{preview_url}}",
@@ -451,8 +451,8 @@ function onAvailableCoverages(request) {
 		);
 		
 		$(".coverageid", html).attr("coveragesubtype", type);
-		$(".sizex", html).val(size[0]).mask("9999");
-		$(".sizey", html).val(size[1]).mask("9999");
+		$(".sizex", html).mask("9999");
+		$(".sizey", html).mask("9999");
 		
 		var fields = cov_description.find("field");
 		for (var j = 0; j < fields.length; j++) {
@@ -462,6 +462,8 @@ function onAvailableCoverages(request) {
 		
 		if (type == "ReferenceableDataset") {
 			$(".sizex,.sizey", html).attr("disabled", "true");
+			$(".sizex", html).val(size[0]);
+			$(".sizey", html).val(size[1]);
 		}
 		$("#coverages").append(html);
 	}
