@@ -2,16 +2,16 @@
   <head>
     <title>EOxServer Demonstration for OWS-8 by EOX</title>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8"></meta>
-    <link href="{{STATIC_URL}}webclient/static/style.css" rel="stylesheet" type="text/css"></link>
-    <link href="{{STATIC_URL}}webclient/static/OpenLayers/style.css" rel="stylesheet" type="text/css">
-    <link href="{{STATIC_URL}}webclient/static/jquery/jquery-ui-1.8.17.custom.css" rel="stylesheet" type="text/css"/>
-    <link href="{{STATIC_URL}}webclient/static/jquery/jquery.tooltip.css" rel="stylesheet" type="text/css"/>
-    <script src="{{STATIC_URL}}webclient/static/OpenLayers/OpenLayers.js"></script>
-    <script src="{{STATIC_URL}}webclient/static/jquery/jquery.min.js"></script>
-    <script src="{{STATIC_URL}}webclient/static/jquery/jquery-ui.min.js"></script>
-    <script src="{{STATIC_URL}}webclient/static/jquery/jquery.tooltip.js"></script>
-    <script src="{{STATIC_URL}}webclient/static/jquery/jquery.maskedinput.min.js"></script>
-    <script src="{{STATIC_URL}}webclient/static/WCS/wcs.js" type="text/javascript"></script>
+    <link href="{{STATIC_URL}}style.css" rel="stylesheet" type="text/css"></link>
+    <link href="{{STATIC_URL}}OpenLayers/style.css" rel="stylesheet" type="text/css">
+    <link href="{{STATIC_URL}}jquery/jquery-ui-1.8.17.custom.css" rel="stylesheet" type="text/css"/>
+    <link href="{{STATIC_URL}}jquery/jquery.tooltip.css" rel="stylesheet" type="text/css"/>
+    <script src="{{STATIC_URL}}OpenLayers/OpenLayers.js"></script>
+    <script src="{{STATIC_URL}}jquery/jquery.min.js"></script>
+    <script src="{{STATIC_URL}}jquery/jquery-ui.min.js"></script>
+    <script src="{{STATIC_URL}}jquery/jquery.tooltip.js"></script>
+    <script src="{{STATIC_URL}}jquery/jquery.maskedinput.min.js"></script>
+    <script src="{{STATIC_URL}}WCS/wcs.js" type="text/javascript"></script>
     <script type="text/javascript">
 $(document).ready(function() {
 	requestInProgress = false;
@@ -92,30 +92,58 @@ function initMap() {
 		"http://labs.metacarta.com/wms/vmap0",
 		{layers: 'basic'}
 	);
-
-	layer_ofc = new OpenLayers.Layer.WMS(
-		"{{eoid}}",
-		//"http://puck.eox.at/eoxserver/ows",
-		"{{ows_url}}",
+	
+	{% if outline_service == "wms" %}
+	layer_preview = new OpenLayers.Layer.WMS(
+		"{{eoid}} preview",
+		"{{preview_url}}",
 		{layers: "{{eoid}}", transparent: true},
 		{maxExtent:bounds, displayOutsideMaxExtent:true, visibility: false, gutter: 5}
 	);
-	layer_ofc.setOpacity(0.8);
-
-	layer_ofc_fp = new OpenLayers.Layer.WMS(
+	{% endif %}
+	
+	{% if outline_service == "wmts" %}
+	layer_preview = new OpenLayers.Layer.WMTS({
+		name: "{{eoid}} preview",
+		url: "{{preview_url}}",
+		layer: "{{eoid}}",
+		transparent: true,
+		maxExtent:bounds,
+		displayOutsideMaxExtent: true,
+		visibility: true,
+		gutter: 5
+	});
+	{% endif %}
+	layer_preview.setOpacity(0.8);
+	
+	{% if outline_service == "wms" %}
+	layer_outlines = new OpenLayers.Layer.WMS(
 		"{{eoid}} outlines",
-		"{{ows_url}}",
+		"{{outline_url}}",
 		{layers: "{{eoid}}_outlines", transparent: true, version: "1.3.0"},
 		{maxExtent:bounds, displayOutsideMaxExtent: true, visibility: true, gutter: 5}
 	);
-	layer_ofc_fp.setOpacity(0.8);
+	{% endif %}
+	{% if outline_service == "wmts" %}
+	layer_outlines = new OpenLayers.Layer.WMTS({
+		name: "{{eoid}} outlines",
+		url: "{{outline_url}}",
+		layer: "{{eoid}}_outlines",
+		transparent: true,
+		maxExtent:bounds,
+		displayOutsideMaxExtent: true,
+		visibility: true,
+		gutter: 5
+	});
+	{% endif %}
+	layer_outlines.setOpacity(0.8);
 
 	map.addLayers([
 		//tms_layer,
 		//mapnik,
 		wms_layer,
-		layer_ofc,
-		layer_ofc_fp,
+		layer_preview,
+		layer_outlines,
 		//polygonLayer, 
 		bboxLayer
 	]);
@@ -124,12 +152,12 @@ function initMap() {
 
 function initGUI() {
 	// initializes the GUI
-	var minDate = $.datepicker.parseDate("yy-mm-dd", "2011-08-18");
-	var maxDate = $.datepicker.parseDate("yy-mm-dd", "2011-10-22");
+	var minDate = $.datepicker.parseDate("yy-mm-dd", "{{begin.date}}");
+	var maxDate = $.datepicker.parseDate("yy-mm-dd", "{{end.date}}");
 	
 	$('#dialog_main').dialog({
 		create: function (event, ui) {
-	       $(".ui-widget-header").append('<img src="{{STATIC_URL}}webclient/static/EOxServer_logo_small.png" style="align: center;"/>');
+	       $(".ui-widget-header").append('<img src="{{STATIC_URL}}EOxServer_logo_small.png" style="align: center;"/>');
 		},
 		open: function(event, ui) {
 	       $("#dialog_main").parent().find(".ui-dialog-titlebar-close").hide();
@@ -366,8 +394,8 @@ function updateWMSParams() {
 	if (dts == null)
 		return;
 	var time = dts[0] + "T" + dts[1] + "Z/" + dts[2] + "T" + dts[3] + "Z";
-	layer_ofc.mergeNewParams({time: time});
-	layer_ofc_fp.mergeNewParams({time: time});
+	layer_preview.mergeNewParams({time: time});
+	layer_outlines.mergeNewParams({time: time});
 }
 
 function getAvailableCoverages() {

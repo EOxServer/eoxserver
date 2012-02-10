@@ -32,6 +32,7 @@ from django.conf.urls.defaults import *
 
 # Enable the admin:
 from django.contrib import admin
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 admin.autodiscover()
 
 #from django.contrib import databrowse
@@ -40,6 +41,9 @@ from django.conf import settings
 urlpatterns = patterns('',
     (r'^ows', 'eoxserver.services.views.ows'),
     (r'^logview', 'eoxserver.logging.views.logview'),
+    (r'^client/$', 'eoxserver.webclient.views.index'),
+    (r'^client/(.*)', 'eoxserver.webclient.views.webclient'),
+    
     # Example:
     # (r'^eoxserver/', include('eoxserver.foo.urls')),
 
@@ -56,6 +60,8 @@ urlpatterns = patterns('',
 #    (r'^process/task$', procViews.task ),
 #    (r'^process/response/(?P<requestType>[^/]{,64})/(?P<requestID>[^/]{,64})', procViews.response ),
 )
+
+urlpatterns += staticfiles_urlpatterns()
 
 if settings.DEBUG:
     urlpatterns += patterns('',
