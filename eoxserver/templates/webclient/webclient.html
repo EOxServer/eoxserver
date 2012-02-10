@@ -108,10 +108,9 @@ function initMap() {
 		url: "{{preview_url}}",
 		layer: "{{eoid}}",
 		transparent: true,
-		maxExtent:bounds,
-		displayOutsideMaxExtent: true,
 		visibility: true,
 		gutter: 5,
+		isBaseLayer: false,
 		style: 'default',
 		matrixSet: 'WGS84',
 		zoomOffset:-1
@@ -133,10 +132,9 @@ function initMap() {
 		url: "{{outline_url}}",
 		layer: "{{eoid}}_outlines",
 		transparent: true,
-		maxExtent:bounds,
-		displayOutsideMaxExtent: true,
 		visibility: true,
 		gutter: 5,
+		isBaseLayer: false,
 		style: 'default',
 		matrixSet: 'WGS84',
 		zoomOffset:-1
