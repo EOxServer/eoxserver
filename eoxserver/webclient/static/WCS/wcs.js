@@ -58,9 +58,9 @@
 					params.sizeY = params.size[1];
 				}
 				if (params.sizeX)
-					baseurl += "&size=x(" + sizeX + ")";
+					baseurl += "&size=x(" + params.sizeX + ")";
 				if (params.sizeY)
-					baseurl += "&size=y(" + sizeY + ")";
+					baseurl += "&size=y(" + params.sizeY + ")";
 				if (params.resolution && !params.resolutionX && !params.resolutionY) {
 					params.resolutionX = params.resolution[0];
 					params.resolutionY = params.resolution[1];
