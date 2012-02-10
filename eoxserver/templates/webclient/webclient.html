@@ -111,7 +111,9 @@ function initMap() {
 		maxExtent:bounds,
 		displayOutsideMaxExtent: true,
 		visibility: true,
-		gutter: 5
+		gutter: 5,
+		style: 'default',
+		zoomOffset:-1
 	});
 	{% endif %}
 	layer_preview.setOpacity(0.8);
@@ -133,7 +135,9 @@ function initMap() {
 		maxExtent:bounds,
 		displayOutsideMaxExtent: true,
 		visibility: true,
-		gutter: 5
+		gutter: 5,
+		style: 'default',
+		zoomOffset:-1
 	});
 	{% endif %}
 	layer_outlines.setOpacity(0.8);
