@@ -326,7 +326,10 @@ function updateBBOXFromTextInput() {
 }
 
 function setBBOXValues(bbox, reset_marker) {
-	$("#minx, #miny, #maxx, #maxy").each(function(index, domElement) { $(this).val(bbox[index]); });
+	$("#minx").val(bbox[0]);
+	$("#miny").val(bbox[1]);
+	$("#maxx").val(bbox[2]);
+	$("#maxy").val(bbox[3]);
     
     bboxLayer.clearMarkers();
     if (reset_marker) {
