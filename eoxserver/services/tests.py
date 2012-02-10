@@ -918,12 +918,17 @@ class WCS20PostDescribeEOCoverageSetDatasetSeriesTestCase(eoxstest.XMLTestCase):
         </wcseo:DescribeEOCoverageSet>"""
         return (params, "xml")
 
+# TODO: Adjust to final namespace maybe "http://www.opengis.net/wcs_service-extension_crs/1.0"
 class WCS20PostGetCoverageMultipartDatasetTestCase(eoxstest.WCS20GetCoverageMultipartTestCase):
     def getRequest(self):
         params = """<wcs:GetCoverage service="WCS" version="2.0.0"
-           xmlns:wcs="http://www.opengis.net/wcs/2.0">
-          <wcs:mediatype>multipart/mixed</wcs:mediatype>
-          <wcs:Format>image/tiff</wcs:Format>
+           xmlns:wcs="http://www.opengis.net/wcs/2.0" 
+           xmlns:wcscrs="http://www.opengis.net/wcs/extensions/crs/1.0">
+          <wcs:Extension>
+            <wcscrs:GetCoverageCrs>
+              <wcscrs:subsettingCrs>http://www.opengis.net/def/crs/EPSG/0/4326</wcscrs:subsettingCrs>
+            </wcscrs:GetCoverageCrs>
+          </wcs:Extension>
           <wcs:CoverageId>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</wcs:CoverageId>
           <wcs:DimensionTrim>
             <wcs:Dimension>Long</wcs:Dimension>
@@ -935,6 +940,8 @@ class WCS20PostGetCoverageMultipartDatasetTestCase(eoxstest.WCS20GetCoverageMult
             <wcs:TrimLow>36</wcs:TrimLow>
             <wcs:TrimHigh>38</wcs:TrimHigh>
           </wcs:DimensionTrim>
+          <wcs:format>image/tiff</wcs:format>
+          <wcs:mediaType>multipart/mixed</wcs:mediaType>
         </wcs:GetCoverage>"""
         return (params, "xml")
 
