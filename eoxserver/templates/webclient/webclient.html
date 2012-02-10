@@ -113,7 +113,13 @@ function initMap() {
 		isBaseLayer: false,
 		style: 'default',
 		matrixSet: 'WGS84',
-		zoomOffset:-1
+		zoomOffset:-1,
+		
+		transitionEffect:'resize',
+		units:"dd",
+		projection: new OpenLayers.Projection("EPSG:4326".toUpperCase()),
+		sphericalMercator: false
+
 	});
 	{% endif %}
 	layer_preview.setOpacity(0.8);
