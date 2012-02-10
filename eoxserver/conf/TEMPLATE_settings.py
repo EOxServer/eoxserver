@@ -92,6 +92,8 @@ MEDIA_ROOT = join('<$PATH_SRC$>', 'media')
 # Examples: "http://media.lawrence.com", "http://example.com/media/"
 MEDIA_URL = 'eoxserver_media'
 
+STATIC_URL = '/static/'
+
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.
 # Examples: "http://foo.com/media/", "/media/".
@@ -131,6 +133,7 @@ INSTALLED_APPS = (
 #    'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.gis',
+    'django.contrib.staticfiles',
     # Enable the admin:
     'django.contrib.admin',
 #    'django.contrib.databrowse',
@@ -141,6 +144,7 @@ INSTALLED_APPS = (
     'eoxserver.resources.processes',
     'eoxserver.backends',
     'eoxserver.testing',
+    'eoxserver.webclient'
 )
 
 FIXTURE_DIRS = (

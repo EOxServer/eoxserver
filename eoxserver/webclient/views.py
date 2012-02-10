@@ -52,6 +52,14 @@ def index(request):
 
 
 def webclient(request, eoid):
+    """
+    View for webclient interface.
+    
+    Uses `webclient.preview_service`, `webclient.outline_service`,
+    `webclient.preview_url`
+    """
+    
+    
     System.init()
     dataset_series = System.getRegistry().getFromFactory(
         "resources.coverages.wrappers.DatasetSeriesFactory",
@@ -60,16 +68,45 @@ def webclient(request, eoid):
     if dataset_series is None:
         raise Http404
     
+    begin = dataset_series.getBeginTime()
+    end = dataset_series.getEndTime()
+    
     # TODO set static resources
-    
-    
     http_ows_url = System.getConfig().getConfigValue(
         "services.owscommon", "http_service_url"
     )
+    
+    preview_service = System.getConfig().getConfigValue(
+        "webclient", "preview_service"
+    ) or "wms"
+    
+    outline_service = System.getConfig().getConfigValue(
+        "webclient", "outline_service"
+    ) or "wms"
+    
+    assert (preview_service in ("wms", "wmts") and 
+            outline_service in ("wms", "wmts"))
+    
+    preview_url = System.getConfig().getConfigValue(
+        "webclient", "preview_url"
+    ) or http_ows_url
+    
+    outline_url = System.getConfig().getConfigValue(
+        "webclient", "outline_url"
+    ) or http_ows_url
+    
     return render_to_response(
         'webclient/webclient.html', {
             "eoid": eoid,
-            "ows_url": http_ows_url
+            #"ows_url": http_ows_url,
+            "preview_service": preview_service,
+            "outline_service": outline_service,
+            "preview_url": preview_url,
+            "outline_url": outline_url,
+            "begin" : {"date": begin.strftime("%Y-%m-%d"),
+                       "time": begin.strftime("%H:%M")},
+            "end" : {"date": end.strftime("%Y-%m-%d"),
+                     "time": end.strftime("%H:%M")}
         },
         context_instance=RequestContext(request)
     )
