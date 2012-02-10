@@ -98,7 +98,7 @@ def webclient(request, eoid):
     return render_to_response(
         'webclient/webclient.html', {
             "eoid": eoid,
-            #"ows_url": http_ows_url,
+            "ows_url": http_ows_url,
             "preview_service": preview_service,
             "outline_service": outline_service,
             "preview_url": preview_url,
