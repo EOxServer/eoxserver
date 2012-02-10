@@ -23,7 +23,7 @@
             "name": "red", 
             "nil_values": [
                 2
-            ],
+            ], 
             "gdal_interpretation": 3, 
             "identifier": "red", 
             "uom": "W.m-2.Sr-1", 
@@ -38,9 +38,9 @@
             "name": "green", 
             "nil_values": [
                 2
-            ],
+            ], 
             "gdal_interpretation": 4, 
-            "identifier": "green",
+            "identifier": "green", 
             "uom": "W.m-2.Sr-1", 
             "description": "Green Channel"
         }
@@ -50,10 +50,10 @@
         "model": "coverages.bandrecord", 
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
-            "name": "blue",
+            "name": "blue", 
             "nil_values": [
                 2
-            ],
+            ], 
             "gdal_interpretation": 5, 
             "identifier": "blue", 
             "uom": "W.m-2.Sr-1", 
@@ -65,10 +65,10 @@
         "model": "coverages.bandrecord", 
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
-            "name": "gray",
+            "name": "gray", 
             "nil_values": [
                 1
-            ],
+            ], 
             "gdal_interpretation": 1, 
             "identifier": "gray", 
             "uom": "W.m-2.Sr-1", 
@@ -79,7 +79,7 @@
         "pk": 1, 
         "model": "coverages.rangetyperecord", 
         "fields": {
-            "name": "RGB",
+            "name": "RGB", 
             "data_type": 1
         }
     }, 
@@ -87,7 +87,7 @@
         "pk": 2, 
         "model": "coverages.rangetyperecord", 
         "fields": {
-            "name": "Grayscale",
+            "name": "Grayscale", 
             "data_type": 1
         }
     }, 
