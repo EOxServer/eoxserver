@@ -433,7 +433,7 @@ function onAvailableCoverages(request) {
 	if (cov_descriptions.length == 0)
 		return showFailure("Nothing found", "No coverage matched the given parameters.");
 	
-	$("#coverages").find(".coverageentry").remove();
+	$("#coverages .coverageentry").remove();
 	
 	for (var i = 0; i < cov_descriptions.length; i++) {
 		var cov_description = $(cov_descriptions[i]);
@@ -442,7 +442,7 @@ function onAvailableCoverages(request) {
 		var type = cov_description.find("CoverageSubtype")[0].textContent;
 		
 		var html = $(
-			'<div class="row" class="coverageentry"><div class="cell"><input type="checkbox" checked="true" class="selected"/></div>' +
+			'<div class="row coverageentry"><div class="cell"><input type="checkbox" checked="true" class="selected"/></div>' +
 			'<div class="cell"><div class="coverageid">' + id + '</div></div>' + 
 			'<div class="cell"><input type="text" class="sizex" size="5" maxlength="5"/></div>' + 
 			'<div class="cell"><input type="text" class="sizey" size="5" maxlength="5"/></div>' + 
