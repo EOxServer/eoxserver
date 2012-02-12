@@ -115,8 +115,8 @@ about this in the dev mailing list archives.
 Voting History
 --------------
 
-:Motion: Adopted on  2011-02-09 with +1 from Arndt Bonitz, Fabian Schindler, Stephan Meißl
-and +0 from Milan Novacek, Martin Paces
+:Motion: Adopted on  2011-02-09 with +1 from Arndt Bonitz, Fabian Schindler, 
+         Stephan Meißl and +0 from Milan Novacek, Martin Paces
 
 Traceability
 ------------
