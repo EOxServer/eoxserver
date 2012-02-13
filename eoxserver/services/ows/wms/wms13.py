@@ -676,8 +676,10 @@ class WMS13GetFeatureInfoHandler(WMSCommonHandler):
     
     def createLayerForName(self, layer_name):
         if not layer_name.endswith("_outlines"):
-            raise InternalError(
+            raise InvalidRequestException(
                 "Cannot query layer '%s'" % layer_name,
+                "LayerNotDefined",
+                "query_layer"
             )
         
         base_name = layer_name[:-9]
