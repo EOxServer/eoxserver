@@ -39,7 +39,7 @@ from django.conf import settings
 from eoxserver.core.system import System
 from eoxserver.core.util.timetools import getDateTime, isotime
 from eoxserver.core.util.xmltools import XMLEncoder, DOMtoXML
-from eoxserver.core.exceptions import InternalError
+from eoxserver.core.exceptions import InternalError, InvalidParameterException
 from eoxserver.resources.coverages.filters import BoundedArea
 from eoxserver.services.base import BaseExceptionHandler
 from eoxserver.services.requests import Response
@@ -186,6 +186,8 @@ class EOWMSOutlinesLayer(WMSLayer):
         layer.footer = os.path.join(settings.PROJECT_DIR, "conf", "outline_template_footer.html")
         
         layer.setMetaData("gml_include_items", "all")
+        layer.setMetaData("wms_include_items", "all")
+        layer.dump = True
         
         #layer.tolerance = 10.0
         #layer.toleranceunits = mapscript.MS_PIXELS
@@ -641,6 +643,7 @@ class WMS13GetFeatureInfoHandler(WMSCommonHandler):
         "query_layers": {"xml_location": "/query_layer", "xml_type": "string[]", "kvp_key": "query_layers", "kvp_type": "stringlist"}, # TODO: check XML location
         "info_format": {"xml_location": "/info_format", "xml_type": "string", "kvp_key": "info_format", "kvp_type": "string"},
         "bbox": {"xml_location": "/bbox", "xml_type": "floatlist", "kvp_key": "bbox", "kvp_type": "floatlist"},
+        "time": {"xml_location": "/time", "1xxml_type": "string", "kvp_key": "time", "kvp_type": "string"},
         "i": {"kvp_key": "i", "kvp_type": "int"},
         "j": {"kvp_key": "j", "kvp_type": "int"}
     }
@@ -675,8 +678,6 @@ class WMS13GetFeatureInfoHandler(WMSCommonHandler):
         if not layer_name.endswith("_outlines"):
             raise InternalError(
                 "Cannot query layer '%s'" % layer_name,
-                "LayerNotDefined",
-                "query_layers"
             )
         
         base_name = layer_name[:-9]
@@ -687,6 +688,8 @@ class WMS13GetFeatureInfoHandler(WMSCommonHandler):
         )
         if dataset_series is not None:
             outlines_layer = EOWMSDatasetSeriesOutlinesLayer(dataset_series)
+            
+            logging.debug("Found dataset series with ID %s"%base_name)
             
             self.addLayer(outlines_layer)
         else:
