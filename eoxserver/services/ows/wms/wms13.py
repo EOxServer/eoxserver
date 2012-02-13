@@ -155,7 +155,7 @@ class EOWMSOutlinesLayer(WMSLayer):
             conn_params.append("user=%s" % db_conf["USER"])
             
             if db_conf["PASSWORD"]:
-                conn_params.append("passwd=%s" % db_conf["PASSWORD"])
+                conn_params.append("password=%s" % db_conf["PASSWORD"])
             
             layer.connection = " ".join(conn_params)
             
