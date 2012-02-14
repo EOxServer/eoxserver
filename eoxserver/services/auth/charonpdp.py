@@ -139,7 +139,7 @@ class CharonPDP(BasePDP):
         httpHeader = ows_req.http_req.META
         attributes = {}
 
-        attributes[REMOTE_ADDR] = httpHeader[REMOTE_ADDR]
+        attributes['REMOTE_ADDR'] = httpHeader['REMOTE_ADDR']
 
         for key, value in self.attribMapping.iteritems():
             attributes[key] = httpHeader[value]
@@ -239,7 +239,7 @@ class AuthorisationClient:
 
 
         message = response.read()
-        logging.info("Received the following response from server:\n" + message)
+        logging.debug("Received the following response from server:\n" + message)
         dom = xml.dom.minidom.parseString(message)
         decision = dom.getElementsByTagNameNS('urn:oasis:names:tc:xacml:2.0:context:schema:os','Decision')
 
