@@ -68,6 +68,10 @@ class AuthConfigReader(object):
         return \
             System.getConfig().getConfigValue("services.auth.base", "serviceID")
 
+    def getAllowLocal(self):
+        return \
+            System.getConfig().getConfigValue("services.auth.base", "allowLocal")
+
     def getPDPType(self):
         return \
             System.getConfig().getConfigValue("services.auth.base", "pdp_type")
@@ -140,6 +144,9 @@ class BasePDP(object):
     authorization request handling.
     """
 
+    def __init__(self):
+        self.isAllowLocal = AuthConfigReader().getAllowLocal()
+
     PARAM_SCHEMA = {
         "service": {"xml_location": "/@service", "xml_type": "string", "kvp_key": "service", "kvp_type": "string"},
         "version": {"xml_location": "/@version", "xml_type": "string", "kvp_key": "version", "kvp_type": "string"},
@@ -158,6 +165,16 @@ class BasePDP(object):
         """
 
         ows_req.setSchema(self.PARAM_SCHEMA)
+
+        # This code segment allows local clients bypassing the
+        # Authorisation process.
+        if (self.isAllowLocal):
+            remoteAddress = ows_req.http_req.META['REMOTE_ADDR']
+            # Check all possibilities, also IPv6
+            if remoteAddress == '127.0.0.1' or \
+               remoteAddress == 'localhost' or \
+               remoteAddress == '::1' :
+                return AuthorizationResponse(authorized = True)
 
         try:
             authorized, message = self._decide(ows_req)
