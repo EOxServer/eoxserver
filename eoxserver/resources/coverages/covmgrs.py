@@ -316,7 +316,7 @@ class BaseManagerContainerMixIn(object):
                         range_type_name=range_type_name,
                         data_source=data_source,
                         container=container,
-                        default_srid
+                        default_srid=default_srid
                     )
                 
                     coverage_id_mgr.release(coverage_id)
