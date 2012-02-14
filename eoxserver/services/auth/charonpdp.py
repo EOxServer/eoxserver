@@ -218,7 +218,7 @@ class AuthorisationClient:
         if (self.hostname is None or self.port is None):
             raise AuthorisationClientException("Invalid argument in constructor: "+str(url)+\
                                                " is not a valid URL.")
-        logging.info("Created instance of AuthorisationClient with the URL "+str(url))
+        logging.debug("Created instance of AuthorisationClient with the URL "+str(url))
 
 
     def authorize(self, userAttributes, resourceAttributes, action):
@@ -243,6 +243,7 @@ class AuthorisationClient:
 
 
         message = response.read()
+        connection.close()
         logging.debug("Received the following response from server:\n" + message)
         dom = xml.dom.minidom.parseString(message)
         decision = dom.getElementsByTagNameNS('urn:oasis:names:tc:xacml:2.0:context:schema:os','Decision')
