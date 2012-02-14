@@ -60,7 +60,7 @@ function initMap() {
 			new OpenLayers.Control.WMSGetFeatureInfo(),
 			new OpenLayers.Control.LayerSwitcher({'ascending': false}),
 			new OpenLayers.Control.Permalink(),
-			new OpenLayers.Control.ScaleLine(),
+//			new OpenLayers.Control.ScaleLine(),
 			new OpenLayers.Control.Permalink('permalink'),
 			new OpenLayers.Control.MousePosition(),
 			new OpenLayers.Control.KeyboardDefaults(),
@@ -687,17 +687,21 @@ function osm_getTileURL(bounds) {
 					<h3><a href="#">General</a></h3>
 				    <div>
 				    	<p>Click and drag the map to view the area of interest. Use the 
-				    	scroll wheel or the </p>
+				    	scroll wheel or hold shift and draw a zoom box to zoom.</p>
+                        <p>To switch the outlines or the preview layers on or off
+                        expand the plus icon on the upper right corner.</p>
+                        <p>Simply clicking on the map will open a window showing 
+                        information about the dataset(s) available at this position.</p>
 				    </div>
 				    <h3><a href="#">Selection of Date and Time</a></h3>
 				    <div>
 				    	<p>The begin and end date and time values are used for visualizing
 				    	datasets which lie within that time period. It is used for both footprint
 				    	overlays and also for the actual download.</p>
-				    	<p>With the slider handles, the begin and the end date can be adjusted.
-				    	Alternatively, in the tab "Date/Time" the dates can be adjusted via a
+				    	<p>The slider handles can be used to adjust the begin and the end date.
+				    	Alternatively, in the tab "Date/Time" the dates can be selected via a
 				    	date picking widget which can be activated by clicking in the date field.</p>
-				    	<p>Also the begin and end time parameters can be adjusted in the according time
+				    	<p>Also the begin and end time parameters can be set in the according time
 				    	input fields.</p>
 				    </div>
 				    <h3><a href="#">Selection of Bounds</a></h3>
@@ -706,7 +710,7 @@ function osm_getTileURL(bounds) {
 				    	tab of the control panel. You can either manually set the values
 				    	of the bounding box, or you can use the "Draw BBOX" function.</p>
 				    	<p>Once the "Draw BBOX" button is clicked, the bounding box
-				    	can be drawed directly in the map. It can be adjusted afterwards
+				    	can be drawed directly in the map. Alternatively it can be adjusted afterwards
 				    	in the according input fields.</p>
 				    	<p>The Bounding Box can be removed by clicking on the 
 				    	"Clear BBOX" button.</p>
