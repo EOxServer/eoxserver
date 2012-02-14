@@ -301,6 +301,11 @@ class BaseManagerContainerMixIn(object):
                         container, location
                     )
                     
+                    if container.getType() == "eo.rect_stitched_mosaic":
+                        default_srid = container.getSRID()
+                    else:
+                        default_srid = None
+                    
                     logging.info("Creating new coverage with ID %s." % coverage_id)
                     # TODO: implement creation of ReferenceableDatasets,
                     # RectifiedStitchedMosaics for DatasetSeriesManager
@@ -310,7 +315,8 @@ class BaseManagerContainerMixIn(object):
                         md_location=md_location,
                         range_type_name=range_type_name,
                         data_source=data_source,
-                        container=container
+                        container=container,
+                        default_srid
                     )
                 
                     coverage_id_mgr.release(coverage_id)
