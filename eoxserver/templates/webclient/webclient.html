@@ -437,7 +437,9 @@ function updateWMSParams() {
 	if (dts == null)
 		return;
 	var time = dts[0] + "T" + dts[1] + "Z/" + dts[2] + "T" + dts[3] + "Z";
+	{% if preview_service == "wms" %}
 	layer_preview.mergeNewParams({time: time});
+	{% endif %}
 	layer_outlines.mergeNewParams({time: time});
 }
 
