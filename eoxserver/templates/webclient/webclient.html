@@ -49,7 +49,7 @@ function initMap() {
 	var map_params = {
 		projection: new OpenLayers.Projection("EPSG:4326"),
 		displayProjection: new OpenLayers.Projection("EPSG:4326"),
-		numZoomLevels:15,
+		numZoomLevels:13,
 		//maxResolution:156543.0339,
 		units: "d",
 		maxExtent: bounds,
@@ -468,7 +468,7 @@ function getAvailableCoverages() {
 
 function onAvailableCoverages(request) {
 	requestInProgress = false;
-	var cov_descriptions = $(request.responseXML).find("CoverageDescription");
+	var cov_descriptions = findNodesNS(request.responseXML, "wcs", "CoverageDescription");
 	
 	if (cov_descriptions.length == 0)
 		return showFailure("Nothing found", "No coverage matched the given parameters.");
@@ -477,9 +477,9 @@ function onAvailableCoverages(request) {
 	
 	for (var i = 0; i < cov_descriptions.length; i++) {
 		var cov_description = $(cov_descriptions[i]);
-		var id = cov_description.find("CoverageId")[0].textContent;
-		var size = cov_description.find("high")[0].textContent.split(" ");
-		var type = cov_description.find("CoverageSubtype")[0].textContent;
+		var id = findNodesNS(cov_description, "wcs", "CoverageId")[0].textContent;
+		var size = findNodesNS(cov_description, "gml", "high")[0].textContent.split(" ");
+		var type = findNodesNS(cov_description, "wcs", "CoverageSubtype")[0].textContent;
 		
 		var html = $(
 			'<div class="row coverageentry"><div class="cell"><input type="checkbox" checked="true" class="selected"/></div>' +
@@ -491,10 +491,10 @@ function onAvailableCoverages(request) {
 		);
 		
 		$(".coverageid", html).attr("coveragesubtype", type);
-		$(".sizex", html).mask("9999");
-		$(".sizey", html).mask("9999");
+//		$(".sizex", html).mask("9999");
+//		$(".sizey", html).mask("9999");
 		
-		var fields = cov_description.find("field");
+		var fields = findNodesNS(cov_description, "swe", "field");
 		for (var j = 0; j < fields.length; j++) {
 			var name = $(fields[j]).attr("name");
 			$(".rangetype", html).append($('<option value="' + name + '" selected>' + name + '</option>')); 
@@ -585,6 +585,7 @@ function startDownload() {
 }
 
 function reallyStartDownload(params) {
+	$("#dialog_download").dialog("close");
 	for(var i = 0; i < params.urls.length; i++)
 		$("#download_iframes").append($('<iframe style="display:none" src="' + params.urls[i] + '"></iframe>'));
 }
@@ -627,6 +628,13 @@ function osm_getTileURL(bounds) {
 		x = ((x % limit) + limit) % limit;
 		return this.url + z + "/" + x + "/" + y + "." + this.type;
 	}	
+}
+function findNodesNS(node, ns, tagName) {
+	var res = $(node).find(tagName);
+	if (res.length > 0) {
+		return res;
+	}
+	return $(node).find(ns + "\\:" + tagName);
 }
 	</script>
 	</head>
