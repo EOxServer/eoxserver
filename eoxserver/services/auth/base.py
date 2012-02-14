@@ -144,9 +144,6 @@ class BasePDP(object):
     authorization request handling.
     """
 
-    def __init__(self):
-        self.isAllowLocal = AuthConfigReader().getAllowLocal()
-
     PARAM_SCHEMA = {
         "service": {"xml_location": "/@service", "xml_type": "string", "kvp_key": "service", "kvp_type": "string"},
         "version": {"xml_location": "/@version", "xml_type": "string", "kvp_key": "version", "kvp_type": "string"},
@@ -168,7 +165,7 @@ class BasePDP(object):
 
         # This code segment allows local clients bypassing the
         # Authorisation process.
-        if (self.isAllowLocal):
+        if (AuthConfigReader().getAllowLocal()):
             remoteAddress = ows_req.http_req.META['REMOTE_ADDR']
             # Check all possibilities, also IPv6
             if remoteAddress == '127.0.0.1' or \
