@@ -142,9 +142,13 @@ class CharonPDP(BasePDP):
         attributes['REMOTE_ADDR'] = httpHeader['REMOTE_ADDR']
 
         for key, value in self.attribMapping.iteritems():
-            attributes[key] = httpHeader[value]
-            logging.debug("Found SAML attribute "+str(key)+" with value "+\
-                          str(httpHeader[value])+" in incoming request.")
+            if key in httpHeader:
+                attributes[key] = httpHeader[value]
+                logging.debug("Found SAML attribute "+str(key)+" with value "+\
+                              str(httpHeader[value])+" in incoming request.")
+            else:
+                logging.INFO('The key \''+key+'\' specified in the mapping ' +\
+                             'dictionary was not found in the HTTP headers.')
 
         return attributes
 
