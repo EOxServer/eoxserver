@@ -932,6 +932,8 @@ related configuration is done in the section ``[services.auth.base]``:
 * ``serviceID``: Identifier for the EOxServer instance to an external 
   Authorisation Service. Is used as resource ID in an XACMLAuthzDecisionQuery. 
   If the key is set to ``default``, the host name will be used.
+* ``allowLocal``: If set to ``True``, the security components will alloways allow
+  access to requests from the local machine. *Use with care!*
 
 
 Adding new Subject attributes to the EOxServer Security Components
