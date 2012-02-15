@@ -367,9 +367,9 @@ servlet container and install and configure an LDAP service.
 
 Important URLs for your Shibboleth IDP:
  
-- Status message: https://${IDPHOST}/idp/profile/Status
-- Information page: https://${IDPHOST}/idp/status
-- Metadata: https://${IDPHOST}/idp/profile/Metadata/SAML 
+- Status message: ``https://${IDPHOST}/idp/profile/Status ``
+- Information page: ``https://${IDPHOST}/idp/status``
+- Metadata: ``https://${IDPHOST}/idp/profile/Metadata/SAML`` 
 
 `Warning: IdP resource paths are case sensitive!`
 
@@ -677,10 +677,10 @@ EOxServer instance.
 
 Important URLs for your Shibboleth SP:
  
-- Status page: https://${SPHOST}/Shibboleth.sso/Status
-- Metadata: https://${SPHOST}/Shibboleth.sso/Metadata
-- Session summary: https://${SPHOST}/Shibboleth.sso/Session
-- Local logout: https://${SPHOST}/Shibboleth.sso/Logout 
+- Status page: ``https://${SPHOST}/Shibboleth.sso/Status``
+- Metadata: ``https://${SPHOST}/Shibboleth.sso/Metadata``
+- Session summary: ``https://${SPHOST}/Shibboleth.sso/Session``
+- Local logout: ``https://${SPHOST}/Shibboleth.sso/Logout`` 
 
 `Warning: SP resource paths are case sensitive!`
 
@@ -820,7 +820,7 @@ Server:
      <VirtualHost _default_:443>
      
         # Include the apache22.conf from Shibboleth
-        import ${SP_HOME}/apache22.conf 
+        import ${SP_HOME}/apache22.config 
         
         # Set appropriate document root here
         DocumentRoot "/var/www/"
@@ -864,7 +864,8 @@ Server:
 **STEP 3**
 
 Open ``shibboleth2.xml`` and change the ``entityID`` in the element 
-``ApplicationDefaults`` to your ``${SP_HOST}``. 
+``ApplicationDefaults`` to your ``${SP_HOST}``. Restart your SP and try to access 
+your SP Metadata ``https://${SPHOST}/Shibboleth.sso/Metadata``
  
 
 Configure Shibboleth SP and IdP
