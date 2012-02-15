@@ -805,7 +805,7 @@ received from the IdP to the secured service (in our case the EOxServer):
     </Attributes>
 
 The next step is to edit the ``shibboleth2.xml`` file: Locate the element 
-``ApplicationDefaults`` and set the value of the attribute ``entityID`` to your 
+``ApplicationDefaults`` and set the value of the attribute ``entityID`` to  
 ``${SP_HOST}\Shibboleth``.
 
 **STEP 2**
