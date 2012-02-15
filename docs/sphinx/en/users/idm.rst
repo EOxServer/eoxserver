@@ -389,7 +389,10 @@ Your ``${IDP_HOME}`` directory contains the following directories:
   deploy into the servlet container
 
 The next step is to deploy the IdP into your Tomcat:
-
+* Increase the memory reserved for Tomcat. Recommended values are 
+  ``-Xmx512m -XX:MaxPermSize=128m``.
+* Add the libraries endorsed by the Shibboleth project to your endorsed Tomcat 
+  directories: ``-Djava.endorsed.dirs=${IDP_HOME}/lib/endorsed/`` 
 * Create a new XML document ``idp.xml`` in ``${TOMCAT_HOME}/conf/Catalina/
   localhost/``.
 * Insert the following content:  
