@@ -365,6 +365,15 @@ EOxServer instance and also the installation process for the use with Tomcat
 and Apache HTTPD. Before you begin with your installation, set up your Tomcat 
 servlet container and install and configure an LDAP service.
 
+Important URLs for your Shibboleth IDP:
+ 
+- Status message: https://${IDPHOST}/idp/profile/Status
+- Information page: https://${IDPHOST}/idp/status
+- Metadata: https://${IDPHOST}/idp/profile/Metadata/SAML 
+
+`Warning: IdP resource paths are case sensitive!`
+
+
 * `Download <http://shibboleth.internet2.edu/downloads.html>`_ the IdP and 
   unzip the archive.
 * Run either ./install.sh (on Linxu/Unix systems) or install.bat (on Windows 
@@ -666,6 +675,16 @@ display/SHIB2/Installation>`_. This documentation will provide help for the
 basic configuration to get the authentication process working with your 
 EOxServer instance. 
 
+Important URLs for your Shibboleth SP:
+ 
+- Status page: https://${SPHOST}/Shibboleth.sso/Status
+- Metadata: https://${SPHOST}/Shibboleth.sso/Metadata
+- Session summary: https://${SPHOST}/Shibboleth.sso/Session
+- Local logout: https://${SPHOST}/Shibboleth.sso/Logout 
+
+`Warning: SP resource paths are case sensitive!`
+
+
 **STEP 1**
 
 The Shibboleth SP has two relevant configuration files. We begin with the 
@@ -787,7 +806,7 @@ received from the IdP to the secured service (in our case the EOxServer):
 
 The next step is to edit the ``shibboleth2.xml`` file: Locate the element 
 ``ApplicationDefaults`` and set the value of the attribute ``entityID`` to your 
-``${IDP_HOST}``.
+``${SP_HOST}\Shibboleth``.
 
 **STEP 2**
 
