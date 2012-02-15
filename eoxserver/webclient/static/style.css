@@ -17,3 +17,7 @@
 #dialog_main .ui-dialog-titlebar-close {
 	display: none;
 }
+
+.ui-dialog {
+      opacity: 0.9;
+}
