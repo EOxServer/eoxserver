@@ -820,7 +820,7 @@ Server:
      <VirtualHost _default_:443>
      
         # Include the apache22.conf from Shibboleth
-        import ${SP_HOME}/apache22.config 
+        include ${SP_HOME}/apache22.config 
         
         # Set appropriate document root here
         DocumentRoot "/var/www/"
