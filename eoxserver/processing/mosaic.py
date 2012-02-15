@@ -248,7 +248,7 @@ class SynchronousRectifiedStitchedMosaicGenerator(object):
             dst_path = str(self._getTilePath("merged", x_index, y_index))
             
             driver = gdal.GetDriverByName('MEM')
-            tmp = driver.Create(dst_path, x_size, y_size, len(self.bands))
+            tmp = driver.Create(dst_path, x_size, y_size, len(self.bands), self.data_type)
 
             
             # initialize arrays
@@ -400,7 +400,7 @@ class TileIndex(object):
             raise ProcessingError("Cannot create layer 'file_locations' in shapefile '%s' with SRS %s" %(self.path, str(self.srs)))
         
         location_defn = ogr.FieldDefn("location", ogr.OFTString)
-        location_defn.SetWidth(256) # TODO: make this configurable
+        location_defn.SetWidth(255) # TODO: make this configurable
         if self.layer.CreateField(location_defn) != 0:
             raise ProcessingError("Cannot create field 'location' on layer 'file_locations' in shapefile '%s'" % self.path)
 
