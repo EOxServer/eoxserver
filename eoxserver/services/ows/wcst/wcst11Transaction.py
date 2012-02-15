@@ -249,7 +249,7 @@ def createXML_WCSt11TResponse( coverageIDs , context ) :
     xml.append( u' xmlns:ows="http://www.opengis.net/ows/1.1"' )
     xml.append( u' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"' )
     xml.append( u' xsi:schemaLocation="http://www.opengis.net/wcs/1.1/wcst ' ) 
-    xml.append( u' http://www.opengis.net/wcs/1.1/wcst/wcstTransaction.xsd">\n' ) 
+    xml.append( u' http://schemas.opengis.net/wcst/1.1/wcstTransaction.xsd">\n' ) 
     xml.append( u'<RequestId>%s</RequestId>\n' % context['requestId'] )
     for cid in coverageIDs :
          xml.append( u'<ows:Identifier>%s</ows:Identifier>\n' % cid )
@@ -270,7 +270,7 @@ def createXML_WCSt11Ack( context ) :
     xml.append( u' xmlns:ows="http://www.opengis.net/ows/1.1"' )
     xml.append( u' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"' )
     xml.append( u' xsi:schemaLocation="http://www.opengis.net/wcs/1.1/wcst ' ) 
-    xml.append( u' http://www.opengis.net/wcs/1.1/wcst/wcstTransaction.xsd">\n' ) 
+    xml.append( u' http://schemas.opengis.net/wcst/1.1/wcstTransaction.xsd">\n' ) 
     xml.append( u'<TimeStamp>%s</TimeStamp>\n' % timeStampUTC() )
     xml.append( u'<RequestId>%s</RequestId>\n' % context['requestId'] )
     xml.append( u'</Acknowledgement>\n' ) 
