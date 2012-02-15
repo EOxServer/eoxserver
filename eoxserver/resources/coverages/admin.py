@@ -324,13 +324,13 @@ class AbstractContainerAdmin(admin.ModelAdmin):
             mgr.synchronize(obj_id)
         except AttributeError:
             pass
+        except obj_to_sync.DoesNotExist:
+            pass
     
     def add_view(self, request, form_url="", extra_context=None):
         try:
             ret = super(AbstractContainerAdmin, self).add_view(request, form_url, extra_context)
-            
             self.try_synchronize()
-            
             return ret
         except:
             raise
@@ -340,9 +340,7 @@ class AbstractContainerAdmin(admin.ModelAdmin):
     def change_view(self, request, object_id, extra_context=None):
         try:
             ret = super(AbstractContainerAdmin, self).change_view(request, object_id, extra_context)
-            
             self.try_synchronize()
-            
             return ret
         except:
             raise
@@ -352,9 +350,7 @@ class AbstractContainerAdmin(admin.ModelAdmin):
     def changelist_view(self, request, extra_context=None):
         try:
             ret = super(AbstractContainerAdmin, self).changelist_view(request, extra_context)
-            
             self.try_synchronize()
-            
             return ret
         except:
             raise
@@ -364,9 +360,7 @@ class AbstractContainerAdmin(admin.ModelAdmin):
     def delete_view(self, request, object_id, extra_context=None):
         try:
             ret = super(AbstractContainerAdmin, self).delete_view(request, object_id, extra_context)
-            
             # TODO: need synchronization here?
-            
             return ret
         except:
             raise
