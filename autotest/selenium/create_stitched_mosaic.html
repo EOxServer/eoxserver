@@ -37,41 +37,6 @@
 	<td>label=RGB</td>
 </tr>
 <tr>
-	<td>click</td>
-	<td>css=#add_id_data_source &gt; img[alt=&quot;Add Another&quot;]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>waitForPopUp</td>
-	<td>id_data_source</td>
-	<td>30000</td>
-</tr>
-<tr>
-	<td>selectWindow</td>
-	<td>name=id_data_source</td>
-	<td></td>
-</tr>
-<tr>
-	<td>select</td>
-	<td>id=id_location</td>
-	<td>label=../autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced/</td>
-</tr>
-<tr>
-	<td>type</td>
-	<td>id=id_search_pattern</td>
-	<td>*.tif</td>
-</tr>
-<tr>
-	<td>click</td>
-	<td>name=_save</td>
-	<td></td>
-</tr>
-<tr>
-	<td>selectWindow</td>
-	<td>null</td>
-	<td></td>
-</tr>
-<tr>
 	<td>type</td>
 	<td>id=id_eo_id</td>
 	<td>STITCHED_MOSAIC</td>
@@ -123,7 +88,7 @@
 </tr>
 <tr>
 	<td>runScript</td>
-	<td>geodjango_footprint.map.setCenter(new OpenLayers.LonLat(19,40), 7);</td>
+	<td>geodjango_footprint.map.setCenter(new OpenLayers.LonLat(19,40), 8);</td>
 	<td></td>
 </tr>
 <tr>
@@ -219,32 +184,32 @@
 <tr>
 	<td>type</td>
 	<td>id=id_size_x</td>
-	<td>541</td>
+	<td>1023</td>
 </tr>
 <tr>
 	<td>type</td>
 	<td>id=id_size_y</td>
-	<td>449</td>
+	<td>451</td>
 </tr>
 <tr>
 	<td>type</td>
 	<td>id=id_minx</td>
-	<td>11.3317550</td>
+	<td>-3.75</td>
 </tr>
 <tr>
 	<td>type</td>
 	<td>id=id_miny</td>
-	<td>32.1902500</td>
+	<td>32.158895000000001</td>
 </tr>
 <tr>
 	<td>type</td>
 	<td>id=id_maxx</td>
-	<td>28.2948100</td>
+	<td>28.326165</td>
 </tr>
 <tr>
 	<td>type</td>
 	<td>id=id_maxy</td>
-	<td>46.2686450</td>
+	<td>46.3</td>
 </tr>
 <tr>
 	<td>click</td>
@@ -289,6 +254,16 @@
 <tr>
 	<td>clickAndWait</td>
 	<td>name=_save</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>css=li.info</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementNotPresent</td>
+	<td>css=p.errornote</td>
 	<td></td>
 </tr>
 </tbody></table>

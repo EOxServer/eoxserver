@@ -12,28 +12,93 @@
 <tr><td rowspan="1" colspan="3">add_rasdaman_data_source_to_dataset_series</td></tr>
 </thead><tbody>
 <tr>
-	<td>clickAndWait</td>
-	<td>link=Home</td>
+	<td>open</td>
+	<td>/admin/</td>
 	<td></td>
 </tr>
 <tr>
 	<td>clickAndWait</td>
-	<td>link=Rasdaman storages</td>
+	<td>link=Rasdaman locations</td>
 	<td></td>
 </tr>
 <tr>
 	<td>clickAndWait</td>
-	<td>link=RasdamanStorage object</td>
+	<td>link=Add rasdaman location</td>
+	<td></td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>id=id_storage</td>
+	<td>label=RasdamanStorage object</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_collection</td>
+	<td>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>name=_save</td>
 	<td></td>
 </tr>
 <tr>
 	<td>clickAndWait</td>
-	<td>css=img.attachment-thumbnail</td>
+	<td>link=Dataset Series</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>link=DATASET_SERIES</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=#add_id_data_sources &gt; img[alt=&quot;Add Another&quot;]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForPopUp</td>
+	<td>id_data_sources</td>
+	<td>30000</td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>name=id_data_sources</td>
+	<td></td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>id=id_location</td>
+	<td>label=ftp://hma.eox.at//test/MER_FRS_1P_reduced</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_search_pattern</td>
+	<td>*.tif</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>name=_save</td>
 	<td></td>
 </tr>
 <tr>
 	<td>selectWindow</td>
 	<td>null</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>name=_save</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>css=li.info</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementNotPresent</td>
+	<td>css=p.errornote</td>
 	<td></td>
 </tr>
 </tbody></table>
