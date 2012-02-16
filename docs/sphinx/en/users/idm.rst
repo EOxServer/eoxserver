@@ -486,6 +486,7 @@ The next step is to configure your Apache HTTP Server:
 
             # AJP Proxy to your IDP servlet
             ProxyPass /idp/ ajp://localhost:8009/idp/ 
+            ProxyPassReverse /idp ajp://localhost:8009/idp
 
             SetEnvIf User-Agent ".*MSIE.*" nokeepalive ssl-unclean-shutdown downgrade-1.0 force-response-1.0
 
@@ -880,15 +881,17 @@ Configure Shibboleth SP and IdP
         <!-- MetadataProvider the combining other MetadataProviders -->
         <metadata:MetadataProvider id="ShibbolethMetadata" xsi:type="metadata:ChainingMetadataProvider">
 
-            <!-- Load the IdP's own metadata.  This is necessary for artifact support. -->
+            
             <metadata:MetadataProvider id="IdPMD" xsi:type="metadata:ResourceBackedMetadataProvider">
+                <!-- This is usually set correctly by the IdP installation script -->
                 <metadata:MetadataResource xsi:type="resource:FilesystemResource"
-                    file="${SP_METADATA_FILE}"/>
+                    file="${IDP_METADATA_FILE}"/>
             </metadata:MetadataProvider>
 
+             <!-- This is the new MetadataProvider for your SP metadata -->
             <MetadataProvider id="URLMD" xsi:type="FilesystemMetadataProvider"
                 xmlns="urn:mace:shibboleth:2.0:metadata"
-                metadataFile="/opt/shibboleth-idp/conf/sp-metadata.xml">
+                metadataFile="${SP_METADATA_FILE}">
 
 
                 <MetadataFilter xsi:type="ChainingFilter" xmlns="urn:mace:shibboleth:2.0:metadata">
@@ -932,7 +935,19 @@ Configure Shibboleth SP and IdP
                                 backingFilePath="federation-metadata.xml"
                                 reloadInterval="7200">
                     </MetadataProvider>
+        </MetadataProvider>     
+        
+    Alternatively you can reference the metadata from your local IdP:
+    
+    .. code-block:: xml
+
+        <!-- Chains together all your metadata sources. -->
+        <MetadataProvider type="Chaining">
+                    <MetadataProvider type="XML"
+                                path="${IDP_HOME}/metadata/idp-metadata.xml"
+                    </MetadataProvider>
         </MetadataProvider>
+        
     
 * Restart your IdP, the SP and the Apache HTTPD
 
