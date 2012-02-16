@@ -37,6 +37,7 @@ import email
 from osgeo import gdal, gdalconst, osr
 
 from django.test import Client
+from django.conf import settings
 
 from eoxserver.testing.core import (
     EOxServerTestCase, BASE_FIXTURES
@@ -75,6 +76,7 @@ class OWSTestCase(EOxServerTestCase):
     """
     
     fixtures = BASE_FIXTURES + ["testing_coverages.json", "testing_asar.json"]
+    requires_fixed_db = False
     
 
     def setUp(self):
@@ -82,6 +84,10 @@ class OWSTestCase(EOxServerTestCase):
 
         
         logging.info("Starting Test Case: %s" % self.__class__.__name__)
+        
+        if settings.DATABASES["default"]["NAME"] == ":memory:" and self.requires_fixed_db:
+            self.skipTest("This test requires a file database; set 'TEST_NAME' "
+                          "in your default database settings to enable this test.")
         
         request, req_type = self.getRequest()
         
@@ -135,7 +141,7 @@ class OWSTestCase(EOxServerTestCase):
             expected = None
         
         actual_response = None
-        if file_type == "raster":
+        if file_type in ("raster", "html"):
             actual_response = self.getResponseData()
         elif file_type == "xml":
             actual_response = self.getXMLData()
@@ -411,6 +417,14 @@ class ExceptionTestCase(XMLTestCase):
         })
         
         self.assertEqual(decoder.getValue("exceptionCode"), self.getExpectedExceptionCode())      
+
+class HTMLTestCase(OWSTestCase):
+    """
+    HTML test cases expect to receive HTML text.
+    """
+    
+    def testBinaryComparisonRaster(self):
+        self._testBinaryComparison("html")
 
 class MultipartTestCase(XMLTestCase, RectifiedGridCoverageTestCase):
     """
