@@ -1343,25 +1343,26 @@ class WMS13GetMapDatasetSeriesTimeIntervalTestCase(eoxstest.WMS13GetMapTestCase)
     width = 200
     bbox = (-3.75, 32.158895, 28.326165, 46.3)
     time = "2006-08-01T00:00:00Z/2006-08-16T23:59:59Z"
-    
-# NOTE: there seems to be a database problem which prevents these test cases
-# from working correctly; the requests do work (tested with browser)
-#class WMS13GetMapDatasetSeriesOutlinesTestCase(eoxstest.WMS13GetMapTestCase):
-#    layers = ("MER_FRS_1P_reduced_outlines",)
-#    width = 200
-#    bbox = (-3.75, 32.158895, 28.326165, 46.3)
 
-#class WMS13GetMapRectifiedStitchedMosaicOutlinesTestCase(eoxstest.WMS13GetMapTestCase):
-#    layers = ("mosaic_MER_FRS_1P_RGB_reduced_outlines",)
-#    width = 200
-#    bbox = (-3.75, 32.158895, 28.326165, 46.3)
+class WMS13GetMapDatasetSeriesOutlinesTestCase(eoxstest.WMS13GetMapTestCase):
+    requires_fixed_db = False
+    layers = ("MER_FRS_1P_reduced_outlines",)
+    width = 200
+    bbox = (-3.75, 32.158895, 28.326165, 46.3)
 
-#class WMS13GetMapRectifiedStitchedMosaicOutlinesWhiteTestCase(eoxstest.WMS13GetMapTestCase):
-#    layers = ("mosaic_MER_FRS_1P_RGB_reduced_outlines",)
-#    width = 200
-#    bbox = (-3.75, 32.158895, 28.326165, 46.3)
-#    styles = "white"
+class WMS13GetMapRectifiedStitchedMosaicOutlinesTestCase(eoxstest.WMS13GetMapTestCase):
+    requires_fixed_db = False
+    layers = ("mosaic_MER_FRS_1P_RGB_reduced_outlines",)
+    width = 200
+    bbox = (-3.75, 32.158895, 28.326165, 46.3)
 
+class WMS13GetMapRectifiedStitchedMosaicOutlinesWhiteTestCase(eoxstest.WMS13GetMapTestCase):
+    requires_fixed_db = False
+    layers = ("mosaic_MER_FRS_1P_RGB_reduced_outlines",)
+    width = 200
+    bbox = (-3.75, 32.158895, 28.326165, 46.3)
+    styles = "white"
+        
 class WMS13GetMapDatasetOneBandTestCase(eoxstest.WMS13GetMapTestCase):
     """ Test a GetMap request with a dataset containing 15 bands. """
     layers = ("MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed_bands",)
