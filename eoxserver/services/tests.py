@@ -128,6 +128,146 @@ class WCS11GetCoverageMosaicSubsetEPSG4326TestCase(eoxstest.MultipartTestCase):
         params = "service=WCS&version=1.1.2&request=GetCoverage&identifier=mosaic_MER_FRS_1P_RGB_reduced&boundingbox=35,10,42,20,urn:ogc:def:crs:EPSG::4326&format=image/tiff&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridBaseCRS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=40,10&GridOffsets=-0.06,0.06"
         return (params, "kvp")
 
+
+#===============================================================================
+# WCS 1.1 WCSTransaction tests
+#===============================================================================
+
+
+class WCS11TransactionRectifiedDatasetAdd(eoxstest.WCS11TestCaseID):
+    """ This test case shall test the synchronous inserting of 
+        a new rectified dataset coverage by means of the WCS 1.1 
+        Transaction operation ("Add" action). 
+    """
+
+    
+    def getRequest(self):
+
+        tiffFile= self.getDataFullPath( "meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif" )
+        xmlFile= self.getDataFullPath( "meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.xml" )
+        self.ID = 'RECTIFIED_MERIS_ID' 
+
+        requestBegin = """<wcst:Transaction xmlns:wcst="http://www.opengis.net/wcs/1.1/wcst" 
+                      xmlns:ows="http://www.opengis.net/ows/1.1" 
+                      xmlns:xlink="http://www.w3.org/1999/xlink" 
+                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+                      xsi:schemaLocation="http://www.opengis.net/wcs/1.1/wcst http://schemas.opengis.net/wcst/1.1/wcstTransaction.xsd"  service="WCS" version="1.1">
+                      <wcst:InputCoverages>
+                            <wcst:Coverage> """
+      
+        requestIdentifier = '           <ows:Identifier>' +  self.ID + '</ows:Identifier>' 
+        requestTiff = '                 <ows:Reference  xlink:href="file:///' + tiffFile + '"  xlink:role="urn:ogc:def:role:WCS:1.1:Pixels"/> '
+        requestMeta = '                 <ows:Metadata  xlink:href="file:///' + xmlFile + '"   xlink:role="http://www.opengis.net/eop/2.0/EarthObservation"/> '
+        requestAction ='                <wcst:Action codeSpace="http://schemas.opengis.net/wcs/1.1.0/actions.xml">Add</wcst:Action> '
+
+
+        requestEnd =    """          </wcst:Coverage>
+                          </wcst:InputCoverages>
+                     </wcst:Transaction>
+                   """        
+        params =  requestBegin + requestIdentifier +  requestTiff + requestMeta +  requestAction + requestEnd
+        return (params, "xml")
+
+
+
+class WCS11TransactionReferencedDatasetAdd(eoxstest.WCS11TestCaseID):
+    """ This test case shall test the synchronous inserting of 
+        a new rectified dataset coverage by means of the WCS 1.1 
+        Transaction operation ("Add" action). 
+    """
+
+    
+    def getRequest(self):
+
+        tiffFile= self.getDataFullPath( "asar/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tiff"  )
+        xmlFile= self.getDataFullPath( "asar/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.xml"  )
+        self.ID = 'REFERENCED_ASAR_ID' 
+
+        requestBegin = """<wcst:Transaction xmlns:wcst="http://www.opengis.net/wcs/1.1/wcst" 
+                      xmlns:ows="http://www.opengis.net/ows/1.1" 
+                      xmlns:xlink="http://www.w3.org/1999/xlink" 
+                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+                      xsi:schemaLocation="http://www.opengis.net/wcs/1.1/wcst http://schemas.opengis.net/wcst/1.1/wcstTransaction.xsd"  service="WCS" version="1.1">
+                      <wcst:InputCoverages>
+                            <wcst:Coverage> """
+      
+        requestIdentifier = '           <ows:Identifier>' + self.ID + '</ows:Identifier>' 
+        requestTiff = '                 <ows:Reference  xlink:href="file:///' + tiffFile + '"  xlink:role="urn:ogc:def:role:WCS:1.1:Pixels"/> '
+        requestMeta = '                 <ows:Metadata  xlink:href="file:///' + xmlFile + '"   xlink:role="http://www.opengis.net/eop/2.0/EarthObservation"/> '
+        requestAction ='                <wcst:Action codeSpace="http://schemas.opengis.net/wcs/1.1.0/actions.xml">Add</wcst:Action> '
+
+
+        requestEnd =    """          </wcst:Coverage>
+                          </wcst:InputCoverages>
+                     </wcst:Transaction>
+                   """        
+        params =  requestBegin + requestIdentifier +  requestTiff + requestMeta +  requestAction + requestEnd
+        return (params, "xml")
+
+
+
+class WCS11TransactionRectifiedDatasetDelete(eoxstest.WCS11TestCase):
+    """ This test case shall test the synchronous inserting of 
+        a new rectified dataset coverage by means of the WCS 1.1 
+        Transaction operation ("Add" action). 
+    """
+
+    
+    def getRequest(self):
+        self.ID = 'RECTIFIED_MERIS_ID' 
+
+        print "getRequest WCS11TransactionRectifiedDatasetDelete"
+        requestBegin = """<wcst:Transaction xmlns:wcst="http://www.opengis.net/wcs/1.1/wcst" 
+                      xmlns:ows="http://www.opengis.net/ows/1.1" 
+                      xmlns:xlink="http://www.w3.org/1999/xlink" 
+                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+                      xsi:schemaLocation="http://www.opengis.net/wcs/1.1/wcst http://schemas.opengis.net/wcst/1.1/wcstTransaction.xsd"  service="WCS" version="1.1">
+                      <wcst:InputCoverages>
+                            <wcst:Coverage> """
+      
+        requestIdentifier = '           <ows:Identifier>' +  self.ID + '</ows:Identifier>' 
+        requestAction ='                <wcst:Action codeSpace="http://schemas.opengis.net/wcs/1.1.0/actions.xml">Delete</wcst:Action> '
+        requestEnd =    """          </wcst:Coverage>
+                          </wcst:InputCoverages>
+                     </wcst:Transaction>
+                   """        
+        params =  requestBegin + requestIdentifier +   requestAction + requestEnd
+        return (params, "xml")
+
+
+
+
+class WCS11TransactionReferencedDatasetDelete(eoxstest.WCS11TestCase):
+    """ This test case shall test the synchronous inserting of 
+        a new rectified dataset coverage by means of the WCS 1.1 
+        Transaction operation ("Add" action). 
+    """
+
+    
+    def getRequest(self):
+
+        self.ID =  'REFERENCED_ASAR_ID'
+
+        print "getRequest WCS11TransactionRectifiedDatasetDelete"
+        requestBegin = """<wcst:Transaction xmlns:wcst="http://www.opengis.net/wcs/1.1/wcst" 
+                      xmlns:ows="http://www.opengis.net/ows/1.1" 
+                      xmlns:xlink="http://www.w3.org/1999/xlink" 
+                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+                      xsi:schemaLocation="http://www.opengis.net/wcs/1.1/wcst http://schemas.opengis.net/wcst/1.1/wcstTransaction.xsd"  service="WCS" version="1.1">
+                      <wcst:InputCoverages>
+                            <wcst:Coverage> """
+      
+        requestIdentifier = '           <ows:Identifier>' +  self.ID + '</ows:Identifier>' 
+        requestAction ='                <wcst:Action codeSpace="http://schemas.opengis.net/wcs/1.1.0/actions.xml">Delete</wcst:Action> '
+        requestEnd =    """          </wcst:Coverage>
+                          </wcst:InputCoverages>
+                     </wcst:Transaction>
+                   """        
+        params =  requestBegin + requestIdentifier +   requestAction + requestEnd
+        return (params, "xml")
+
+
+
 #===============================================================================
 # WCS 2.0 Get Capabilities
 #===============================================================================
@@ -166,6 +306,11 @@ class WCSVersionNegotiationFaultTestCase(eoxstest.ExceptionTestCase):
 
     def getExpectedExceptionCode(self):
         return "VersionNegotiationFailed"
+
+
+    
+
+
 
 #===============================================================================
 # WCS 2.0 DescribeCoverage
