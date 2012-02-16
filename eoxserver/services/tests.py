@@ -1345,19 +1345,19 @@ class WMS13GetMapDatasetSeriesTimeIntervalTestCase(eoxstest.WMS13GetMapTestCase)
     time = "2006-08-01T00:00:00Z/2006-08-16T23:59:59Z"
 
 class WMS13GetMapDatasetSeriesOutlinesTestCase(eoxstest.WMS13GetMapTestCase):
-    requires_fixed_db = False
+    requires_fixed_db = True
     layers = ("MER_FRS_1P_reduced_outlines",)
     width = 200
     bbox = (-3.75, 32.158895, 28.326165, 46.3)
 
 class WMS13GetMapRectifiedStitchedMosaicOutlinesTestCase(eoxstest.WMS13GetMapTestCase):
-    requires_fixed_db = False
+    requires_fixed_db = True
     layers = ("mosaic_MER_FRS_1P_RGB_reduced_outlines",)
     width = 200
     bbox = (-3.75, 32.158895, 28.326165, 46.3)
 
 class WMS13GetMapRectifiedStitchedMosaicOutlinesWhiteTestCase(eoxstest.WMS13GetMapTestCase):
-    requires_fixed_db = False
+    requires_fixed_db = True
     layers = ("mosaic_MER_FRS_1P_RGB_reduced_outlines",)
     width = 200
     bbox = (-3.75, 32.158895, 28.326165, 46.3)
@@ -1377,7 +1377,7 @@ class WMS13GetMapDatasetThreeBandsTestCase(eoxstest.WMS13GetMapTestCase):
     
 class WMS13GetFeatureInfoTestCase(eoxstest.HTMLTestCase):
     """ Test a GetFeatureInfo on an outline layer. """
-    requires_fixed_db = False
+    requires_fixed_db = True
     def getRequest(self):
         params = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&LAYERS=MER_FRS_1P_RGB_reduced_outlines&QUERY_LAYERS=MER_FRS_1P_RGB_reduced_outlines&STYLES=&BBOX=40.261322,13.269653,42.098785,18.543091&FEATURE_COUNT=10&HEIGHT=669&WIDTH=1920&FORMAT=image%2Fpng&INFO_FORMAT=text/html&CRS=EPSG:4326&I=1173&J=543";
         return (params, "kvp") 

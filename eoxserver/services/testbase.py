@@ -81,7 +81,6 @@ class OWSTestCase(EOxServerTestCase):
 
     def setUp(self):
         super(OWSTestCase,self).setUp()
-
         
         logging.info("Starting Test Case: %s" % self.__class__.__name__)
         
