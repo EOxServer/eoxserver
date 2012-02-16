@@ -830,7 +830,7 @@ class WCS20GetCoverageSubsetEPSG4326DatasetTestCase(eoxstest.RectifiedGridCovera
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(38,40)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(20,22)"
         return (params, "kvp")
-
+    
 class WCS20GetCoverageSubsetEPSG4326MosaicTestCase(eoxstest.RectifiedGridCoverageTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=image/tiff&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(38,40)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(0,30)"
@@ -875,6 +875,11 @@ class WCS20GetCoverageSubsetSizeDatasetTestCase(eoxstest.RectifiedGridCoverageTe
 class WCS20GetCoverageSubsetEPSG4326SizeDatasetTestCase(eoxstest.WCS20GetCoverageMultipartTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/mixed&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(38,40)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(20,22)&size=lat(20)&size=long(20)"
+        return (params, "kvp")
+    
+class WCS20GetCoverageSubsetEPSG4326SizeExceedsExtentDatasetTestCase(eoxstest.WCS20GetCoverageMultipartTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(10,50)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(0,50)&size=lat(100)&size=long(100)&mediatype=multipart/mixed"
         return (params, "kvp")
 
 class WCS20GetCoverageInvalidSizeFaultTestCase(eoxstest.ExceptionTestCase):
@@ -1007,6 +1012,11 @@ class WCS20GetCoverageReferenceableDatasetImageCRSSubsetTestCase(eoxstest.Refere
 class WCS20GetCoverageReferenceableDatasetGeogCRSSubsetTestCase(eoxstest.ReferenceableGridCoverageTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775&format=image/tiff&subset=x,http://www.opengis.net/def/crs/EPSG/0/4326(19,20)&subset=y,http://www.opengis.net/def/crs/EPSG/0/4326(-35,-33)"
+        return (params, "kvp")
+    
+class WCS20GetCoverageReferenceableDatasetGeogCRSSubsetExceedsExtentTestCase(eoxstest.ReferenceableGridCoverageTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775&format=image/tiff&subset=x,http://www.opengis.net/def/crs/EPSG/0/4326(0,50)&subset=y,http://www.opengis.net/def/crs/EPSG/0/4326(-50,0)"
         return (params, "kvp")
 
 #===============================================================================
@@ -1363,3 +1373,10 @@ class WMS13GetMapDatasetThreeBandsTestCase(eoxstest.WMS13GetMapTestCase):
     layers = ("MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed_bands",)
     bbox = (8.487755775451660, 32.195316643454134, 25.407486727461219, 46.249103546142578)
     dim_band = "MERIS_radiance_02_uint16,MERIS_radiance_08_uint16,MERIS_radiance_12_uint16"
+    
+class WMS13GetFeatureInfoTestCase(eoxstest.HTMLTestCase):
+    """ Test a GetFeatureInfo on an outline layer. """
+    requires_fixed_db = False
+    def getRequest(self):
+        params = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&LAYERS=MER_FRS_1P_RGB_reduced_outlines&QUERY_LAYERS=MER_FRS_1P_RGB_reduced_outlines&STYLES=&BBOX=40.261322,13.269653,42.098785,18.543091&FEATURE_COUNT=10&HEIGHT=669&WIDTH=1920&FORMAT=image%2Fpng&INFO_FORMAT=text/html&CRS=EPSG:4326&I=1173&J=543";
+        return (params, "kvp") 

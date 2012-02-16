@@ -52,6 +52,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.spatialite',
         'NAME': '<$PATH_DST$>/data/config.sqlite',    # Or path to database file if using sqlite3.
+        #'TEST_NAME': '<$PATH_DST$>/data/test-config.sqlite', # Required for certain test cases, but slower!
         'USER': '',                      # Not used with sqlite3.
         'PASSWORD': '',                  # Not used with sqlite3.
         'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
