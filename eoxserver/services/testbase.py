@@ -34,7 +34,6 @@ from lxml import etree
 import tempfile
 import mimetypes
 import email
-
 from osgeo import gdal, gdalconst, osr
 
 from django.test import Client
@@ -77,8 +76,10 @@ class OWSTestCase(EOxServerTestCase):
     
     fixtures = BASE_FIXTURES + ["testing_coverages.json", "testing_asar.json"]
     
+
     def setUp(self):
         super(OWSTestCase,self).setUp()
+
         
         logging.info("Starting Test Case: %s" % self.__class__.__name__)
         
@@ -89,6 +90,7 @@ class OWSTestCase(EOxServerTestCase):
         if req_type == "kvp":
             self.response = client.get('/ows?%s' % request)
         elif req_type == "xml":
+            logging.info("POST %s " % request )
             self.response = client.post('/ows', request, "text/xml")
         else:
             raise Exception("Invalid request type '%s'." % req_type)
@@ -101,6 +103,9 @@ class OWSTestCase(EOxServerTestCase):
     
     def getResponseFileDir(self):
         return os.path.join("../autotest","responses")
+
+    def getDataFileDir(self):
+        return os.path.join("../autotest","data")
     
     def getResponseFileName(self, file_type):
         return "%s.%s" % (self.__class__.__name__, self.getFileExtension(file_type))
@@ -167,6 +172,9 @@ class RasterTestCase(OWSTestCase):
     def testBinaryComparisonRaster(self):
         self._testBinaryComparison("raster")
 
+
+
+
 class GDALDatasetTestCase(RasterTestCase):
     """
     Extended RasterTestCases that open the result with GDAL and
@@ -200,6 +208,7 @@ class GDALDatasetTestCase(RasterTestCase):
             self.exp_ds = gdal.Open(exp_path, gdalconst.GA_ReadOnly)
         except RuntimeError:
             self.skipTest("Expected response in '%s' is not present" % exp_path)
+
 
 class RectifiedGridCoverageTestCase(GDALDatasetTestCase):
     def testSize(self):
@@ -294,7 +303,7 @@ class XMLTestCase(OWSTestCase):
         
         # TODO: ugly workaround. But otherwise, the doc is not recognized as schema
         schema = etree.XMLSchema(etree.XML(etree.tostring(schema_def)))
-            
+                    
         try:
             schema.assertValid(doc)
         except etree.Error as e:
@@ -302,6 +311,79 @@ class XMLTestCase(OWSTestCase):
         
     def testBinaryComparisonXML(self):
         self._testBinaryComparison("xml")
+
+
+
+class WCS11TestCase(OWSTestCase):
+    """
+    Base class for all  WCS11Transaction test cases 
+    """
+
+    def getDataFullPath(self , path_to):
+        return os.path.abspath(  os.path.join(  self.getDataFileDir() ,  path_to)  )
+
+    def getXMLData(self):
+        coverage_test_ID='MY_TEST_ID_'+ 'XMLDATA'   
+        logging.info("getXMLData XML %s "  % str( self.response.content ) )
+        return self.response.content
+    
+    def testValidate(self):
+        coverage_test_ID='MY_TEST_ID_'+ 'VALIDATE'   
+        logging.info("Validating testValidate XML => %s" % str( self.getXMLData()  ) )
+        
+        doc = etree.XML(self.getXMLData())
+        schema_locations = doc.get("{http://www.w3.org/2001/XMLSchema-instance}schemaLocation")
+        locations = schema_locations.split()
+        
+        # get schema locations
+        schema_def = etree.Element("schema", attrib={
+                "elementFormDefault": "qualified",
+                "version": "1.0.0",
+            }, nsmap={
+                None: "http://www.w3.org/2001/XMLSchema"
+            }
+        )
+        
+        for ns, location in zip(locations[::2], locations[1::2]):
+            etree.SubElement(schema_def, "import", attrib={
+                    "namespace": ns,
+                    "schemaLocation": location
+                }
+            )
+        
+        # TODO: ugly workaround. But otherwise, the doc is not recognized as schema
+	logging.info( "XMLSchema etree.XML: %s" %  etree.tostring(schema_def) )        
+
+        schema = etree.XMLSchema(etree.XML(etree.tostring(schema_def)))
+                    
+        try:
+            schema.assertValid(doc)
+        except etree.Error as e:
+            self.fail(str(e))
+        
+#    def testBinaryComparisonXML(self):
+#        logging.info("testBinaryComparisonXML XML ...")
+#        self._testBinaryComparison("xml")
+
+
+class WCS11TestCaseID( WCS11TestCase ):
+    """
+     WCS11TestCaseID class for test cases that expects same ID on XML output
+    """
+
+    def testReponseID(self):
+        logging.info("testComparison ID in request = %s response xml %s"  % (  self.ID ,   str( self.getXMLData() )  )  )
+        root = etree.XML(self.getXMLData())
+
+        testID=False
+        for child in root.getchildren():
+            if child.tag == '{http://www.opengis.net/ows/1.1}Identifier' :
+               if  child.text == self.ID :  testID=True
+
+        self.assertEqual( testID , True)              
+
+
+
 
 class ExceptionTestCase(XMLTestCase):
     """
