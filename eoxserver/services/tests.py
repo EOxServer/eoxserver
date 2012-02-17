@@ -134,7 +134,7 @@ class WCS11GetCoverageMosaicSubsetEPSG4326TestCase(eoxstest.MultipartTestCase):
 #===============================================================================
 
 
-class WCS11TransactionRectifiedDatasetAdd(eoxstest.WCS11TestCaseID):
+class WCS11TransactionRectifiedDatasetAdd(eoxstest.WCSTransactionTestCaseAdd):
     """ This test case shall test the synchronous inserting of 
         a new rectified dataset coverage by means of the WCS 1.1 
         Transaction operation ("Add" action). 
@@ -170,7 +170,7 @@ class WCS11TransactionRectifiedDatasetAdd(eoxstest.WCS11TestCaseID):
 
 
 
-class WCS11TransactionReferencedDatasetAdd(eoxstest.WCS11TestCaseID):
+class WCS11TransactionReferencedDatasetAdd(eoxstest.WCSTransactionTestCaseAdd):
     """ This test case shall test the synchronous inserting of 
         a new rectified dataset coverage by means of the WCS 1.1 
         Transaction operation ("Add" action). 
@@ -206,7 +206,7 @@ class WCS11TransactionReferencedDatasetAdd(eoxstest.WCS11TestCaseID):
 
 
 
-class WCS11TransactionRectifiedDatasetDelete(eoxstest.WCS11TestCase):
+class WCS11TransactionRectifiedDatasetDelete(eoxstest.WCSTransactionTestCaseDel):
     """ This test case shall test the synchronous inserting of 
         a new rectified dataset coverage by means of the WCS 1.1 
         Transaction operation ("Add" action). 
@@ -237,7 +237,7 @@ class WCS11TransactionRectifiedDatasetDelete(eoxstest.WCS11TestCase):
 
 
 
-class WCS11TransactionReferencedDatasetDelete(eoxstest.WCS11TestCase):
+class WCS11TransactionReferencedDatasetDelete(eoxstest.WCSTransactionTestCaseDel):
     """ This test case shall test the synchronous inserting of 
         a new rectified dataset coverage by means of the WCS 1.1 
         Transaction operation ("Add" action). 
