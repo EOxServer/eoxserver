@@ -319,65 +319,45 @@ class XMLTestCase(OWSTestCase):
 
 
 
-class WCS11TestCase(OWSTestCase):
+class WCSTransactionTestCase(XMLTestCase):
     """
-    Base class for all  WCS11Transaction test cases 
+    Base class for  WCSTransactionTestCase  test cases 
     """
+
+    def testBinaryComparisonXML(self):
+        logging.info("overwrite: testBinaryComparisonXML " );
 
     def getDataFullPath(self , path_to):
         return os.path.abspath(  os.path.join(  self.getDataFileDir() ,  path_to)  )
 
-    def getXMLData(self):
-        coverage_test_ID='MY_TEST_ID_'+ 'XMLDATA'   
-        logging.info("getXMLData XML %s "  % str( self.response.content ) )
-        return self.response.content
-    
-    def testValidate(self):
-        coverage_test_ID='MY_TEST_ID_'+ 'VALIDATE'   
-        logging.info("Validating testValidate XML => %s" % str( self.getXMLData()  ) )
-        
-        doc = etree.XML(self.getXMLData())
-        schema_locations = doc.get("{http://www.w3.org/2001/XMLSchema-instance}schemaLocation")
-        locations = schema_locations.split()
-        
-        # get schema locations
-        schema_def = etree.Element("schema", attrib={
-                "elementFormDefault": "qualified",
-                "version": "1.0.0",
-            }, nsmap={
-                None: "http://www.w3.org/2001/XMLSchema"
-            }
-        )
-        
-        for ns, location in zip(locations[::2], locations[1::2]):
-            etree.SubElement(schema_def, "import", attrib={
-                    "namespace": ns,
-                    "schemaLocation": location
-                }
-            )
-        
-        # TODO: ugly workaround. But otherwise, the doc is not recognized as schema
-	logging.info( "XMLSchema etree.XML: %s" %  etree.tostring(schema_def) )        
-
-        schema = etree.XMLSchema(etree.XML(etree.tostring(schema_def)))
-                    
-        try:
-            schema.assertValid(doc)
-        except etree.Error as e:
-            self.fail(str(e))
-        
-#    def testBinaryComparisonXML(self):
-#        logging.info("testBinaryComparisonXML XML ...")
-#        self._testBinaryComparison("xml")
 
 
-class WCS11TestCaseID( WCS11TestCase ):
+class WCSTransactionTestCaseAdd(WCSTransactionTestCase):
     """
-     WCS11TestCaseID class for test cases that expects same ID on XML output
+    Base class for  WCSTransactionTestCaseAdd  adding coverage 
     """
 
-    def testReponseID(self):
-        logging.info("testComparison ID in request = %s response xml %s"  % (  self.ID ,   str( self.getXMLData() )  )  )
+    def testWCS11TransactionAdd(self):
+        """
+        check if coverage was preriously added to server
+        """
+        # request = "service=WCS&amp;version=2.0.0&amp;request=getCoverage&amp;format=image/tiff&amp;coverageid=%s" % str(  self.ID ) 
+        request = "service=WCS&version=1.1.2&request=DescribeCoverage&identifier=%s" % str(  self.ID )
+        logging.info("testWCS11TransactionAdd test for ID %s : request %s" % (  self.ID ,  request  )  );
+        c = Client()
+        r = c.get('/ows?%s' % request) 
+        logging.info("testWCS11TransactionAdd  Checking HTTP Status %d " ,  r.status_code)
+        # show  what is wrong
+        if  r.status_code != 200 : logging.debug("testWCS11TransactionAdd content %s " % str( r.content ) )
+
+        self.assertEqual(r.status_code, 200)
+
+
+    def testResponseIdComparison(self):
+        """
+        Tests that the <ows:Identifier> in the XML request and response is the same
+        """
+        logging.info("testResponseIdComparison in requestID = %s response xml %s"  % (  self.ID ,   str( self.getXMLData() )  )  )
         root = etree.XML(self.getXMLData())
 
         testID=False
@@ -388,7 +368,16 @@ class WCS11TestCaseID( WCS11TestCase ):
         self.assertEqual( testID , True)              
 
 
+class WCSTransactionTestCaseDel(WCSTransactionTestCase):
+    """
+    Base class for  WCSTransactionTestCaseDel  deletrin previosly added  coverages and test if is deleted  
+    """
 
+    def testWCS11TransactionDel(self):
+        """
+        TODO check if was succesfuly deleted
+        """
+        self.assertEqual( False , True)              
 
 class ExceptionTestCase(XMLTestCase):
     """
