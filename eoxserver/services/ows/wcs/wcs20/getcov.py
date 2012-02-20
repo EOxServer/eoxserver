@@ -57,6 +57,20 @@ from eoxserver.services.ows.wcs.common import (
 from eoxserver.services.ows.wcs.encoders import WCS20EOAPEncoder
 from eoxserver.services.ows.wcs.wcs20.subset import WCS20SubsetDecoder
 
+FORMAT_MAPPING = {
+    "image/tiff": "GTiff",
+    "image/jp2": "JPEG2000",
+    "application/x-netcdf": "NetCDF",
+    "application/x-hdf": "HDF4Image"
+}
+
+EXT_MAPPING = {
+    "image/tiff": "tif",
+    "image/jp2": "jp2",
+    "application/x-netcdf": "nc",
+    "application/x-hdf": "hdf"
+}
+
 class WCS20GetCoverageHandler(WCSCommonHandler):
     REGISTRY_CONF = {
         "name": "WCS 2.0 GetCoverage Handler",
@@ -189,22 +203,6 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
         
         mime_type, format_options = parse_format_param(format_param)
         
-        #
-        
-        FORMAT_MAPPING = {
-            "image/tiff": "GTiff",
-            "image/jp2": "JPEG2000",
-            "application/x-netcdf": "NetCDF",
-            "application/x-hdf": "HDF4Image"
-        }
-        
-        EXT_MAPPING = {
-            "image/tiff": "tif",
-            "image/jp2": "jp2",
-            "application/x-netcdf": "nc",
-            "application/x-hdf": "hdf"
-        }
-        
         if mime_type not in FORMAT_MAPPING:
             raise InvalidRequestException(
                 "Unknown or unsupported format '%s'" % mime_type,
@@ -214,7 +212,7 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
             
         range_type = coverage.getRangeType()
         
-        handle, dst_filename = mkstemp(
+        _, dst_filename = mkstemp(
             prefix = "tmp",
             suffix = ".%s" % EXT_MAPPING[mime_type]
         )
