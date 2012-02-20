@@ -53,6 +53,7 @@ from eoxserver.resources.coverages.models import (
 from eoxserver.core.exceptions import InternalError
 from eoxserver.core.system import System
 from eoxserver.core.admin import ConfirmationAdmin
+from eoxserver.core.util.timetools import UTCOffsetTimeZoneInfo
 
 System.init()
 
@@ -453,7 +454,14 @@ class EOMetadataAdmin(admin.GeoModelAdmin):
         # 3. validate against schema
         
         self.metadata_object = obj
+        
+        if change is False:
+            obj.timestamp_begin = obj.timestamp_begin.replace(tzinfo=UTCOffsetTimeZoneInfo())
+            obj.timestamp_end = obj.timestamp_begin.replace(tzinfo=UTCOffsetTimeZoneInfo())
+        
         super(EOMetadataAdmin, self).save_model(request, obj, form, change)
+        
+        
         """
         if len(self.metadata_object.eo_gml) > 0:
             # not sure about this:
