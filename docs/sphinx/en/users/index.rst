@@ -54,3 +54,4 @@ and APIs please refer to the :ref:`EOxServer Developers' Guide`.
    synchronization
    idm
    soap_proxy
+   webclient
