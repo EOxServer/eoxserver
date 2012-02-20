@@ -33,7 +33,6 @@ This module contains the abstract base classes for request handling.
 
 from email.parser import Parser as MIMEParser
 from email.message import Message
-import logging
 import os.path
 from cgi import escape
 
@@ -44,8 +43,7 @@ import mapscript
 from eoxserver.core.interfaces import *
 from eoxserver.core.registry import RegisteredInterface
 from eoxserver.services.base import BaseRequestHandler
-from eoxserver.services.owscommon import OWSCommonConfigReader
-from eoxserver.services.requests import OWSRequest, Response
+from eoxserver.services.requests import OWSRequest, Response, encode_message
 from eoxserver.services.exceptions import InvalidRequestException
 
 class MapServerRequest(OWSRequest):
@@ -117,7 +115,7 @@ class MapServerResponse(Response):
                 for name, value in self.headers.items():
                     data_msg.add_header(name, value)
                 
-            content = "--wcs\n%s\n--wcs\n%s\n--wcs--" % (xml_msg.as_string(), data_msg.as_string())
+            content = "--wcs\n%s\n--wcs\n%s\n--wcs--" % (encode_message(xml_msg), encode_message(data_msg))
             content_type = "multipart/mixed; boundary=wcs"
             headers = {}
         else:

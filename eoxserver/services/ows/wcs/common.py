@@ -29,7 +29,7 @@
 
 import mapscript
 
-import logging
+import datetime
 
 from urllib import unquote
 
@@ -211,8 +211,15 @@ def get_output_format(format_param, coverage):
     
     for format_option in format_options:
         key, value = format_option.split("=")
-        
         output_format.setOption(str(key), str(value))
+    
+    # set the filename for multipart responses
+    filename = "%s_%s.%s" % (
+        coverage.getCoverageId(),
+        datetime.datetime.now().strftime("%Y%m%d%H%M%S"),
+        settings["extension"]
+    )
+    output_format.setOption("FILENAME", str(filename))
     
     return output_format
 
