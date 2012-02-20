@@ -27,6 +27,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 from eoxserver.resources.coverages.metadata import EOMetadata
+from eoxserver.core.util.timetools import UTCOffsetTimeZoneInfo
 
 
 """
@@ -297,32 +298,36 @@ class BaseManagerContainerMixIn(object):
                         eo_metadata.getEOID()
                     )
                     
-                    range_type_name = self._get_contained_range_type_name(
-                        container, location
-                    )
+                    try:
+                        range_type_name = self._get_contained_range_type_name(
+                            container, location
+                        )
+                        
+                        if container.getType() == "eo.rect_stitched_mosaic":
+                            default_srid = container.getSRID()
+                        else:
+                            default_srid = None
+                        
+                        logging.info("Creating new coverage with ID %s." % coverage_id)
+                        # TODO: implement creation of ReferenceableDatasets,
+                        # RectifiedStitchedMosaics for DatasetSeriesManager
+                        new_dataset = self.rect_dataset_mgr.create(
+                            coverage_id,
+                            location=location,
+                            md_location=md_location,
+                            range_type_name=range_type_name,
+                            data_source=data_source,
+                            container=container,
+                            default_srid=default_srid
+                        )
+                        
+                        logging.info("Done creating new coverage with ID %s." % coverage_id)
+                        
+                        new_datasets.append(new_dataset)
+                        
+                    finally:
+                        coverage_id_mgr.release(coverage_id)
                     
-                    if container.getType() == "eo.rect_stitched_mosaic":
-                        default_srid = container.getSRID()
-                    else:
-                        default_srid = None
-                    
-                    logging.info("Creating new coverage with ID %s." % coverage_id)
-                    # TODO: implement creation of ReferenceableDatasets,
-                    # RectifiedStitchedMosaics for DatasetSeriesManager
-                    new_dataset = self.rect_dataset_mgr.create(
-                        coverage_id,
-                        location=location,
-                        md_location=md_location,
-                        range_type_name=range_type_name,
-                        data_source=data_source,
-                        container=container,
-                        default_srid=default_srid
-                    )
-                
-                    coverage_id_mgr.release(coverage_id)
-                    logging.info("Done creating new coverage with ID %s." % coverage_id)
-                    
-                    new_datasets.append(new_dataset)
         
         return new_datasets
     
@@ -362,12 +367,14 @@ class BaseManagerContainerMixIn(object):
         # update footprint and time extent according to contents of container
         datasets.extend(new_datasets)
         if len(datasets) > 0:
-            begin_time = min([dataset.getBeginTime() for dataset in datasets])
-            end_time = max([dataset.getEndTime() for dataset in datasets])
+            # TODO ugly hack. provide a tzinfo, for datetimes which don't have one.
+            # The error occurs for datasets added in the admin, as no tzinfo is set there
+            begin_time = min(map(lambda dt: dt.replace(tzinfo=UTCOffsetTimeZoneInfo()) if dt.tzinfo is None else dt, [dataset.getBeginTime() for dataset in datasets]))
+            end_time = min(map(lambda dt: dt.replace(tzinfo=UTCOffsetTimeZoneInfo()) if dt.tzinfo is None else dt, [dataset.getEndTime() for dataset in datasets]))
+            
             footprint = datasets[0].getFootprint()
             for dataset in datasets[1:]:
                 footprint = footprint.union(dataset.getFootprint())
-            
             
             self.update(
                 container.getEOID(), set={
