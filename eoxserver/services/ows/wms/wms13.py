@@ -473,7 +473,7 @@ class WMS13GetMapHandler(WMS1XGetMapHandler):
         return "crs"
         
     def getBoundedArea(self, srid, bbox):
-        if srid == 4326:
+        if srid in (3035, 4326): # TODO: implement comprehensive list of EPSG definitions with reversed axis orders
             return BoundedArea(srid, bbox[1], bbox[0], bbox[3], bbox[2])
         else:
             return BoundedArea(srid, *bbox)
