@@ -38,6 +38,7 @@ from osgeo import gdal, gdalconst, osr
 
 from django.test import Client
 from django.conf import settings
+from django.db import connection
 
 from eoxserver.testing.core import (
     EOxServerTestCase, BASE_FIXTURES
@@ -87,6 +88,9 @@ class OWSTestCase(EOxServerTestCase):
         if settings.DATABASES["default"]["NAME"] == ":memory:" and self.requires_fixed_db:
             self.skipTest("This test requires a file database; set 'TEST_NAME' "
                           "in your default database settings to enable this test.")
+        elif self.requires_fixed_db:
+            cursor = connection.cursor()
+            cursor.execute("PRAGMA SYNCHRONOUS;")
         
         request, req_type = self.getRequest()
         
