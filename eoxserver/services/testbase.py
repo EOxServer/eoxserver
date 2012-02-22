@@ -97,10 +97,15 @@ class OWSTestCase(EOxServerTestCase):
         client = Client()
         
         if req_type == "kvp":
+            logging.info("GET %s " % request )
             self.response = client.get('/ows?%s' % request)
+            logging.info("Response %s " % str(  self.response  ) )
+
         elif req_type == "xml":
             logging.info("POST %s " % request )
             self.response = client.post('/ows', request, "text/xml")
+            logging.info("Response %s " % str(  self.response  ) )
+
         else:
             raise Exception("Invalid request type '%s'." % req_type)
     
@@ -377,11 +382,48 @@ class WCSTransactionTestCaseDel(WCSTransactionTestCase):
     Base class for  WCSTransactionTestCaseDel  deletrin previosly added  coverages and test if is deleted  
     """
 
+
+
     def testWCS11TransactionDel(self):
         """
-        TODO check if was succesfuly deleted
+        TODO check if was succesfuly deleted        
+        FIRST need add  coverage  first        
         """
-        self.assertEqual( False , True)              
+
+        logging.info("WCSTransactionTestCaseDel FOR ID: %s "  % self.ID )
+        logging.debug("WCSTransactionTestCaseDel add TIFF : %s "  % self.ADDtiffFile )
+        logging.debug("WCSTransactionTestCaseDel add META : %s "  % self.ADDmetaFile )
+        
+        
+
+        requestBegin = """<wcst:Transaction xmlns:wcst="http://www.opengis.net/wcs/1.1/wcst" 
+                      xmlns:ows="http://www.opengis.net/ows/1.1" 
+                      xmlns:xlink="http://www.w3.org/1999/xlink" 
+                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+                      xsi:schemaLocation="http://www.opengis.net/wcs/1.1/wcst http://schemas.opengis.net/wcst/1.1/wcstTransaction.xsd"  service="WCS" version="1.1">
+                      <wcst:InputCoverages>
+                            <wcst:Coverage> """
+
+        requestIdentifier = '           <ows:Identifier>' +  self.ID + '</ows:Identifier>'
+        requestTiff = '                 <ows:Reference  xlink:href="file:///' + self.ADDtiffFile + '"  xlink:role="urn:ogc:def:role:WCS:1.1:Pixels"/> '
+        requestMeta = '                 <ows:Metadata  xlink:href="file:///' + self.ADDmetaFile + '"   xlink:role="http://www.opengis.net/eop/2.0/EarthObservation"/> '
+        requestAction ='                <wcst:Action codeSpace="http://schemas.opengis.net/wcs/1.1.0/actions.xml">Add</wcst:Action> '
+
+
+        requestEnd =    """          </wcst:Coverage>
+                          </wcst:InputCoverages>
+                     </wcst:Transaction>
+                   """        
+        addreq =  requestBegin + requestIdentifier +  requestTiff + requestMeta +  requestAction + requestEnd
+
+        logging.info("WCSTransactionTestCaseDel POST %s " ,  str( addreq  ) )
+        c = Client()
+        r = c.post('/ows' ,  addreq , "text/xml" )
+        logging.info("WCSTransactionTestCaseDel  Checking HTTP Status %d " ,  r.status_code)
+        # show  what is wrong
+        logging.info("WCSTransactionTestCaseDel content %s " % str( r.content ) )
+
+
 
 class ExceptionTestCase(XMLTestCase):
     """

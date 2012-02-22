@@ -144,7 +144,7 @@ class WCS11TransactionRectifiedDatasetAdd(eoxstest.WCSTransactionTestCaseAdd):
     def getRequest(self):
 
         tiffFile= self.getDataFullPath( "meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif" )
-        xmlFile= self.getDataFullPath( "meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.xml" )
+        metaFile= self.getDataFullPath( "meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.xml" )
         self.ID = 'RECTIFIED_MERIS_ID' 
 
         requestBegin = """<wcst:Transaction xmlns:wcst="http://www.opengis.net/wcs/1.1/wcst" 
@@ -157,7 +157,7 @@ class WCS11TransactionRectifiedDatasetAdd(eoxstest.WCSTransactionTestCaseAdd):
       
         requestIdentifier = '           <ows:Identifier>' +  self.ID + '</ows:Identifier>' 
         requestTiff = '                 <ows:Reference  xlink:href="file:///' + tiffFile + '"  xlink:role="urn:ogc:def:role:WCS:1.1:Pixels"/> '
-        requestMeta = '                 <ows:Metadata  xlink:href="file:///' + xmlFile + '"   xlink:role="http://www.opengis.net/eop/2.0/EarthObservation"/> '
+        requestMeta = '                 <ows:Metadata  xlink:href="file:///' + metaFile + '"   xlink:role="http://www.opengis.net/eop/2.0/EarthObservation"/> '
         requestAction ='                <wcst:Action codeSpace="http://schemas.opengis.net/wcs/1.1.0/actions.xml">Add</wcst:Action> '
 
 
@@ -178,9 +178,8 @@ class WCS11TransactionReferencedDatasetAdd(eoxstest.WCSTransactionTestCaseAdd):
 
     
     def getRequest(self):
-
         tiffFile= self.getDataFullPath( "asar/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tiff"  )
-        xmlFile= self.getDataFullPath( "asar/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.xml"  )
+        metaFile= self.getDataFullPath( "asar/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.xml"  )
         self.ID = 'REFERENCED_ASAR_ID' 
 
         requestBegin = """<wcst:Transaction xmlns:wcst="http://www.opengis.net/wcs/1.1/wcst" 
@@ -193,7 +192,7 @@ class WCS11TransactionReferencedDatasetAdd(eoxstest.WCSTransactionTestCaseAdd):
       
         requestIdentifier = '           <ows:Identifier>' + self.ID + '</ows:Identifier>' 
         requestTiff = '                 <ows:Reference  xlink:href="file:///' + tiffFile + '"  xlink:role="urn:ogc:def:role:WCS:1.1:Pixels"/> '
-        requestMeta = '                 <ows:Metadata  xlink:href="file:///' + xmlFile + '"   xlink:role="http://www.opengis.net/eop/2.0/EarthObservation"/> '
+        requestMeta = '                 <ows:Metadata  xlink:href="file:///' + metaFile + '"   xlink:role="http://www.opengis.net/eop/2.0/EarthObservation"/> '
         requestAction ='                <wcst:Action codeSpace="http://schemas.opengis.net/wcs/1.1.0/actions.xml">Add</wcst:Action> '
 
 
@@ -206,17 +205,15 @@ class WCS11TransactionReferencedDatasetAdd(eoxstest.WCSTransactionTestCaseAdd):
 
 
 
-class WCS11TransactionRectifiedDatasetDelete(eoxstest.WCSTransactionTestCaseDel):
-    """ This test case shall test the synchronous inserting of 
-        a new rectified dataset coverage by means of the WCS 1.1 
-        Transaction operation ("Add" action). 
-    """
+class WCS11TransactionRectifiedDatasetDelete(eoxstest.WCSTransactionTestCaseDel ):
 
     
     def getRequest(self):
-        self.ID = 'RECTIFIED_MERIS_ID' 
+        self.ID = 'RECTIFIED_MERIS_ID'
 
-        print "getRequest WCS11TransactionRectifiedDatasetDelete"
+        self.ADDtiffFile= self.getDataFullPath( "meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif" )
+        self.ADDmetaFile= self.getDataFullPath( "meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.xml" )
+       
         requestBegin = """<wcst:Transaction xmlns:wcst="http://www.opengis.net/wcs/1.1/wcst" 
                       xmlns:ows="http://www.opengis.net/ows/1.1" 
                       xmlns:xlink="http://www.w3.org/1999/xlink" 
@@ -232,6 +229,7 @@ class WCS11TransactionRectifiedDatasetDelete(eoxstest.WCSTransactionTestCaseDel)
                      </wcst:Transaction>
                    """        
         params =  requestBegin + requestIdentifier +   requestAction + requestEnd
+       
         return (params, "xml")
 
 
@@ -245,10 +243,11 @@ class WCS11TransactionReferencedDatasetDelete(eoxstest.WCSTransactionTestCaseDel
 
     
     def getRequest(self):
-
+          
         self.ID =  'REFERENCED_ASAR_ID'
-
-        print "getRequest WCS11TransactionRectifiedDatasetDelete"
+        self.ADDtiffFile= self.getDataFullPath( "asar/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tiff"  )
+        self.ADDmetaFile= self.getDataFullPath( "asar/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.xml"  )
+         
         requestBegin = """<wcst:Transaction xmlns:wcst="http://www.opengis.net/wcs/1.1/wcst" 
                       xmlns:ows="http://www.opengis.net/ows/1.1" 
                       xmlns:xlink="http://www.w3.org/1999/xlink" 
@@ -265,6 +264,9 @@ class WCS11TransactionReferencedDatasetDelete(eoxstest.WCSTransactionTestCaseDel
                    """        
         params =  requestBegin + requestIdentifier +   requestAction + requestEnd
         return (params, "xml")
+
+
+
 
 
 
