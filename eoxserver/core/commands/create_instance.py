@@ -115,11 +115,15 @@ class Command(EOxServerAdminCommand):
                               os.path.join(dst_inst_dir, "settings.py"),
                               tags)
     
+        # copy the template urls file and replace its tags
+        shutil.copy(os.path.join(src_conf_dir, "TEMPLATE_urls.py"),
+                    os.path.join(dst_inst_dir, "urls.py"))
+        
         # copy the template config file and replace its tags
         copy_and_replace_tags(os.path.join(src_conf_dir, "TEMPLATE_eoxserver.conf"),
                               os.path.join(dst_conf_dir, "eoxserver.conf"),
                               tags)
-    
+        
         shutil.copy(os.path.join(src_conf_dir, "TEMPLATE_template.map"),
                     os.path.join(dst_conf_dir, "template.map"))
     
