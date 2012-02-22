@@ -427,6 +427,11 @@ Only the ``--host`` parameter is mandatory, all others are optional.
 The ``--default-srid`` parameter is required when the SRID cannot be determined
 automatically, as for example with rasdaman datasets.
 
+With the ``--visible`` option, all registered datasets can be marked as either
+visible (``true``) or invisible (``false``). This effects the advertisment of
+the dataset in e.g: GetCapabilities responses. By default, all datasets are
+visible.
+
 This is an example usage of the ``eoxs_register_dataset`` command:
 ::
 
