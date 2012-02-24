@@ -346,27 +346,46 @@ class WCSTransactionTestCaseAdd(WCSTransactionTestCase):
     Base class for  WCSTransactionTestCaseAdd  adding coverage 
     """
 
+
+       
     def testWCS11TransactionAdd(self):
         """
         check if coverage was preriously added to server
         """
         # request = "service=WCS&amp;version=2.0.0&amp;request=getCoverage&amp;format=image/tiff&amp;coverageid=%s" % str(  self.ID ) 
         request = "service=WCS&version=1.1.2&request=DescribeCoverage&identifier=%s" % str(  self.ID )
-        logging.info("testWCS11TransactionAdd test for ID %s : request %s" % (  self.ID ,  request  )  );
+        logging.debug("testWCS11TransactionAdd test for ID %s : request %s" % (  self.ID ,  request  )  );
+        logging.debug("testWCS11TransactionAdd test tiff %s : meta %s" % (  self.ADDtiffFile ,  self.ADDmetaFile  )  );
         c = Client()
         r = c.get('/ows?%s' % request) 
-        logging.info("testWCS11TransactionAdd  Checking HTTP Status %d " ,  r.status_code)
-        # show  what is wrong
-        if  r.status_code != 200 : logging.debug("testWCS11TransactionAdd content %s " % str( r.content ) )
-
+        logging.debug("testWCS11TransactionAdd  Checking HTTP Status %d " ,  r.status_code)
         self.assertEqual(r.status_code, 200)
 
+        # show  what is wrong
+        if  r.status_code != 200 : 
+            self.fail("testWCS11TransactionAdd fail  content %s " % str( r.content ) ) 
+        else :    
+            logging.debug( "testWCS11TransactionAdd test read file  %s "  %  self.ADDtiffFile )
+            try:
+                t = open(   self.ADDtiffFile , 'r')
+                tiff = t.read()
+                t.close()
+            except IOError:
+                tiff = None
+
+            if tiff is None:
+                self.skipTest("Can not open file '%s' " %  self.ADDtiffFile )
+                
+                self.fail("Get coverage tiff n '%s' is not equal to get request %s ." % ( self.ADDtiffFile , request ) )
+                       
+             
+        # test binary compare with orginal file
 
     def testResponseIdComparison(self):
         """
         Tests that the <ows:Identifier> in the XML request and response is the same
         """
-        logging.info("testResponseIdComparison in requestID = %s response xml %s"  % (  self.ID ,   str( self.getXMLData() )  )  )
+        logging.debug("testResponseIdComparison in requestID = %s response xml %s"  % (  self.ID ,   str( self.getXMLData() )  )  )
         root = etree.XML(self.getXMLData())
 
         testID=False
@@ -382,20 +401,44 @@ class WCSTransactionTestCaseDel(WCSTransactionTestCase):
     Base class for  WCSTransactionTestCaseDel  deletrin previosly added  coverages and test if is deleted  
     """
 
+    def setUp(self):
+
+        req, rtyp = self.getRequest()
+
+        logging.debug("WCSTransactionTestCaseDel request: %s "  % str( req ) )
+
+        root = etree.XML( req )
+
+        # get Identifier  from XML request
+        for child in root.getchildren():
+            for ch in child.getchildren():
+                    for c in ch.getchildren():
+                        if c.tag  == '{http://www.opengis.net/ows/1.1}Identifier' : getID= c.text
 
 
-    def testWCS11TransactionDel(self):
-        """
-        TODO check if was succesfuly deleted        
-        FIRST need add  coverage  first        
-        """
+        # 
+        if getID is  None :   self.fail( "WCSTransactionTestCaseDel can not find Identifier tag in  request:  %s "  % str( req ) )      
 
-        logging.info("WCSTransactionTestCaseDel FOR ID: %s "  % self.ID )
-        logging.debug("WCSTransactionTestCaseDel add TIFF : %s "  % self.ADDtiffFile )
-        logging.debug("WCSTransactionTestCaseDel add META : %s "  % self.ADDmetaFile )
-        
-        
 
+
+
+
+        self.addID = getID
+        if  getID ==  'RECTIFIED_MERIS_ID' :
+               self.ADDtiffFile= self.getDataFullPath( "meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif" )
+               self.ADDmetaFile= self.getDataFullPath( "meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.xml" )
+
+        if  getID ==  'REFERENCED_ASAR_ID' :
+               self.ADDtiffFile= self.getDataFullPath( "asar/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tiff"  )
+               self.ADDmetaFile= self.getDataFullPath( "asar/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.xml"  )
+         
+             
+
+        logging.debug("WCSTransactionTestCaseDel setUp ID: %s "  % self.addID )
+        logging.debug("WCSTransactionTestCaseDel add TIFF: %s "  % self.ADDtiffFile )
+        logging.debug("WCSTransactionTestCaseDel add META: %s "  % self.ADDmetaFile )
+                
+        # make ADD request
         requestBegin = """<wcst:Transaction xmlns:wcst="http://www.opengis.net/wcs/1.1/wcst" 
                       xmlns:ows="http://www.opengis.net/ows/1.1" 
                       xmlns:xlink="http://www.w3.org/1999/xlink" 
@@ -404,11 +447,10 @@ class WCSTransactionTestCaseDel(WCSTransactionTestCase):
                       <wcst:InputCoverages>
                             <wcst:Coverage> """
 
-        requestIdentifier = '           <ows:Identifier>' +  self.ID + '</ows:Identifier>'
+        requestIdentifier = '           <ows:Identifier>' +  self.addID + '</ows:Identifier>'
         requestTiff = '                 <ows:Reference  xlink:href="file:///' + self.ADDtiffFile + '"  xlink:role="urn:ogc:def:role:WCS:1.1:Pixels"/> '
         requestMeta = '                 <ows:Metadata  xlink:href="file:///' + self.ADDmetaFile + '"   xlink:role="http://www.opengis.net/eop/2.0/EarthObservation"/> '
         requestAction ='                <wcst:Action codeSpace="http://schemas.opengis.net/wcs/1.1.0/actions.xml">Add</wcst:Action> '
-
 
         requestEnd =    """          </wcst:Coverage>
                           </wcst:InputCoverages>
@@ -420,8 +462,18 @@ class WCSTransactionTestCaseDel(WCSTransactionTestCase):
         c = Client()
         r = c.post('/ows' ,  addreq , "text/xml" )
         logging.info("WCSTransactionTestCaseDel  Checking HTTP Status %d " ,  r.status_code)
-        # show  what is wrong
+        # show  response content
         logging.info("WCSTransactionTestCaseDel content %s " % str( r.content ) )
+
+        # das ist super ich liebe python
+        super(WCSTransactionTestCase, self).setUp()
+
+    def testWCS11TransactionDel(self):
+        """
+        TODO check if was succesfuly deleted        
+        FIRST need add  coverage  first        
+        """
+
 
 
 

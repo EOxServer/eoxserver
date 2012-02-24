@@ -143,8 +143,8 @@ class WCS11TransactionRectifiedDatasetAdd(eoxstest.WCSTransactionTestCaseAdd):
     
     def getRequest(self):
 
-        tiffFile= self.getDataFullPath( "meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif" )
-        metaFile= self.getDataFullPath( "meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.xml" )
+        self.ADDtiffFile= self.getDataFullPath( "meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif" )
+        self.ADDmetaFile= self.getDataFullPath( "meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.xml" )
         self.ID = 'RECTIFIED_MERIS_ID' 
 
         requestBegin = """<wcst:Transaction xmlns:wcst="http://www.opengis.net/wcs/1.1/wcst" 
@@ -156,8 +156,8 @@ class WCS11TransactionRectifiedDatasetAdd(eoxstest.WCSTransactionTestCaseAdd):
                             <wcst:Coverage> """
       
         requestIdentifier = '           <ows:Identifier>' +  self.ID + '</ows:Identifier>' 
-        requestTiff = '                 <ows:Reference  xlink:href="file:///' + tiffFile + '"  xlink:role="urn:ogc:def:role:WCS:1.1:Pixels"/> '
-        requestMeta = '                 <ows:Metadata  xlink:href="file:///' + metaFile + '"   xlink:role="http://www.opengis.net/eop/2.0/EarthObservation"/> '
+        requestTiff = '                 <ows:Reference  xlink:href="file:///' + self.ADDtiffFile + '"  xlink:role="urn:ogc:def:role:WCS:1.1:Pixels"/> '
+        requestMeta = '                 <ows:Metadata  xlink:href="file:///' + self.ADDmetaFile + '"   xlink:role="http://www.opengis.net/eop/2.0/EarthObservation"/> '
         requestAction ='                <wcst:Action codeSpace="http://schemas.opengis.net/wcs/1.1.0/actions.xml">Add</wcst:Action> '
 
 
@@ -178,8 +178,8 @@ class WCS11TransactionReferencedDatasetAdd(eoxstest.WCSTransactionTestCaseAdd):
 
     
     def getRequest(self):
-        tiffFile= self.getDataFullPath( "asar/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tiff"  )
-        metaFile= self.getDataFullPath( "asar/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.xml"  )
+        self.ADDtiffFile= self.getDataFullPath( "asar/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tiff"  )
+        self.ADDmetaFile= self.getDataFullPath( "asar/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.xml"  )
         self.ID = 'REFERENCED_ASAR_ID' 
 
         requestBegin = """<wcst:Transaction xmlns:wcst="http://www.opengis.net/wcs/1.1/wcst" 
@@ -191,8 +191,8 @@ class WCS11TransactionReferencedDatasetAdd(eoxstest.WCSTransactionTestCaseAdd):
                             <wcst:Coverage> """
       
         requestIdentifier = '           <ows:Identifier>' + self.ID + '</ows:Identifier>' 
-        requestTiff = '                 <ows:Reference  xlink:href="file:///' + tiffFile + '"  xlink:role="urn:ogc:def:role:WCS:1.1:Pixels"/> '
-        requestMeta = '                 <ows:Metadata  xlink:href="file:///' + metaFile + '"   xlink:role="http://www.opengis.net/eop/2.0/EarthObservation"/> '
+        requestTiff = '                 <ows:Reference  xlink:href="file:///' + self.ADDtiffFile + '"  xlink:role="urn:ogc:def:role:WCS:1.1:Pixels"/> '
+        requestMeta = '                 <ows:Metadata  xlink:href="file:///' + self.ADDmetaFile + '"   xlink:role="http://www.opengis.net/eop/2.0/EarthObservation"/> '
         requestAction ='                <wcst:Action codeSpace="http://schemas.opengis.net/wcs/1.1.0/actions.xml">Add</wcst:Action> '
 
 
@@ -210,7 +210,6 @@ class WCS11TransactionRectifiedDatasetDelete(eoxstest.WCSTransactionTestCaseDel 
     
     def getRequest(self):
         self.ID = 'RECTIFIED_MERIS_ID'
-
         self.ADDtiffFile= self.getDataFullPath( "meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif" )
         self.ADDmetaFile= self.getDataFullPath( "meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.xml" )
        
@@ -229,7 +228,7 @@ class WCS11TransactionRectifiedDatasetDelete(eoxstest.WCSTransactionTestCaseDel 
                      </wcst:Transaction>
                    """        
         params =  requestBegin + requestIdentifier +   requestAction + requestEnd
-       
+             
         return (params, "xml")
 
 
