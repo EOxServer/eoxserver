@@ -140,9 +140,9 @@ class LineageInline(admin.StackedInline):
 class RectifiedDatasetAdmin(ConfirmationAdmin):
     #list_display = ('coverage_id', 'eo_id', 'data_package', 'range_type', 'extent')
     fields = ('automatic', 'visible', 'coverage_id', 'eo_id', 'range_type', 'extent', 'eo_metadata', 'data_package', 'lineage')
-    list_display = ('coverage_id', 'eo_id', 'range_type', 'extent')
+    list_display = ('coverage_id', 'eo_id', 'range_type', 'extent', 'visible')
     #list_editable = ('data_package', 'range_type', 'extent')
-    list_editable = ('range_type', 'extent', )
+    list_editable = ('range_type', 'extent', 'visible')
     list_filter = ('range_type', )
     
     ordering = ('coverage_id', )
@@ -208,9 +208,9 @@ admin.site.register(RectifiedDatasetRecord, RectifiedDatasetAdmin)
 class ReferenceableDatasetAdmin(ConfirmationAdmin):
     #list_display = ('coverage_id', 'eo_id', 'data_package', 'range_type', 'size_x', 'size_y')
     fields = ('automatic', 'visible', 'coverage_id', 'eo_id', 'range_type', 'size_x', 'size_y', 'eo_metadata', 'data_package', 'lineage')
-    list_display = ('coverage_id', 'eo_id', 'range_type', 'size_x', 'size_y')
+    list_display = ('coverage_id', 'eo_id', 'range_type', 'size_x', 'size_y', 'visible')
     #list_editable = ('data_package', 'range_type', 'extent')
-    list_editable = ('range_type', 'size_x', 'size_y', )
+    list_editable = ('range_type', 'size_x', 'size_y', 'visible')
     list_filter = ('range_type', )
     
     ordering = ('coverage_id', )
