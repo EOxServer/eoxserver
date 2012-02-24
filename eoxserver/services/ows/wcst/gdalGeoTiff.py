@@ -86,6 +86,7 @@ class GDalInfo( object ) :
     def __init__( self , fname ) : 
 
         # get the dataset and its params
+        gdal.AllRegister()
         ds = gdal.Open(fname)
     
         self.fileName = fname 
