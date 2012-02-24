@@ -79,7 +79,6 @@ class OWSTestCase(EOxServerTestCase):
     fixtures = BASE_FIXTURES + ["testing_coverages.json", "testing_asar.json"]
     requires_fixed_db = False
     
-
     def setUp(self):
         super(OWSTestCase,self).setUp()
         
@@ -169,7 +168,6 @@ class OWSTestCase(EOxServerTestCase):
                 self.fail("Response returned in '%s' is not equal to expected response in '%s'." % (
                            response_path, expected_path)
                 )
-            
     
     def testStatus(self):
         logging.info("Checking HTTP Status ...")
@@ -185,9 +183,6 @@ class RasterTestCase(OWSTestCase):
     
     def testBinaryComparisonRaster(self):
         self._testBinaryComparison("raster")
-
-
-
 
 class GDALDatasetTestCase(RasterTestCase):
     """
@@ -222,7 +217,6 @@ class GDALDatasetTestCase(RasterTestCase):
             self.exp_ds = gdal.Open(exp_path, gdalconst.GA_ReadOnly)
         except RuntimeError:
             self.skipTest("Expected response in '%s' is not present" % exp_path)
-
 
 class RectifiedGridCoverageTestCase(GDALDatasetTestCase):
     def testSize(self):
@@ -326,157 +320,6 @@ class XMLTestCase(OWSTestCase):
     def testBinaryComparisonXML(self):
         self._testBinaryComparison("xml")
 
-
-
-class WCSTransactionTestCase(XMLTestCase):
-    """
-    Base class for  WCSTransactionTestCase  test cases 
-    """
-
-    def testBinaryComparisonXML(self):
-        logging.info("overwrite: testBinaryComparisonXML " );
-
-    def getDataFullPath(self , path_to):
-        return os.path.abspath(  os.path.join(  self.getDataFileDir() ,  path_to)  )
-
-
-
-class WCSTransactionTestCaseAdd(WCSTransactionTestCase):
-    """
-    Base class for  WCSTransactionTestCaseAdd  adding coverage 
-    """
-
-
-       
-    def testWCS11TransactionAdd(self):
-        """
-        check if coverage was preriously added to server
-        """
-        # request = "service=WCS&amp;version=2.0.0&amp;request=getCoverage&amp;format=image/tiff&amp;coverageid=%s" % str(  self.ID ) 
-        request = "service=WCS&version=1.1.2&request=DescribeCoverage&identifier=%s" % str(  self.ID )
-        logging.debug("testWCS11TransactionAdd test for ID %s : request %s" % (  self.ID ,  request  )  );
-        logging.debug("testWCS11TransactionAdd test tiff %s : meta %s" % (  self.ADDtiffFile ,  self.ADDmetaFile  )  );
-        c = Client()
-        r = c.get('/ows?%s' % request) 
-        logging.debug("testWCS11TransactionAdd  Checking HTTP Status %d " ,  r.status_code)
-        self.assertEqual(r.status_code, 200)
-
-        # show  what is wrong
-        if  r.status_code != 200 : 
-            self.fail("testWCS11TransactionAdd fail  content %s " % str( r.content ) ) 
-        else :    
-            logging.debug( "testWCS11TransactionAdd test read file  %s "  %  self.ADDtiffFile )
-            try:
-                t = open(   self.ADDtiffFile , 'r')
-                tiff = t.read()
-                t.close()
-            except IOError:
-                tiff = None
-
-            if tiff is None:
-                self.skipTest("Can not open file '%s' " %  self.ADDtiffFile )
-                
-                self.fail("Get coverage tiff n '%s' is not equal to get request %s ." % ( self.ADDtiffFile , request ) )
-                       
-             
-        # test binary compare with orginal file
-
-    def testResponseIdComparison(self):
-        """
-        Tests that the <ows:Identifier> in the XML request and response is the same
-        """
-        logging.debug("testResponseIdComparison in requestID = %s response xml %s"  % (  self.ID ,   str( self.getXMLData() )  )  )
-        root = etree.XML(self.getXMLData())
-
-        testID=False
-        for child in root.getchildren():
-            if child.tag == '{http://www.opengis.net/ows/1.1}Identifier' :
-               if  child.text == self.ID :  testID=True
-
-        self.assertEqual( testID , True)              
-
-
-class WCSTransactionTestCaseDel(WCSTransactionTestCase):
-    """
-    Base class for  WCSTransactionTestCaseDel  deletrin previosly added  coverages and test if is deleted  
-    """
-
-    def setUp(self):
-
-        req, rtyp = self.getRequest()
-
-        logging.debug("WCSTransactionTestCaseDel request: %s "  % str( req ) )
-
-        root = etree.XML( req )
-
-        # get Identifier  from XML request
-        for child in root.getchildren():
-            for ch in child.getchildren():
-                    for c in ch.getchildren():
-                        if c.tag  == '{http://www.opengis.net/ows/1.1}Identifier' : getID= c.text
-
-
-        # 
-        if getID is  None :   self.fail( "WCSTransactionTestCaseDel can not find Identifier tag in  request:  %s "  % str( req ) )      
-
-
-
-
-
-        self.addID = getID
-        if  getID ==  'RECTIFIED_MERIS_ID' :
-               self.ADDtiffFile= self.getDataFullPath( "meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif" )
-               self.ADDmetaFile= self.getDataFullPath( "meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.xml" )
-
-        if  getID ==  'REFERENCED_ASAR_ID' :
-               self.ADDtiffFile= self.getDataFullPath( "asar/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tiff"  )
-               self.ADDmetaFile= self.getDataFullPath( "asar/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.xml"  )
-         
-             
-
-        logging.debug("WCSTransactionTestCaseDel setUp ID: %s "  % self.addID )
-        logging.debug("WCSTransactionTestCaseDel add TIFF: %s "  % self.ADDtiffFile )
-        logging.debug("WCSTransactionTestCaseDel add META: %s "  % self.ADDmetaFile )
-                
-        # make ADD request
-        requestBegin = """<wcst:Transaction xmlns:wcst="http://www.opengis.net/wcs/1.1/wcst" 
-                      xmlns:ows="http://www.opengis.net/ows/1.1" 
-                      xmlns:xlink="http://www.w3.org/1999/xlink" 
-                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-                      xsi:schemaLocation="http://www.opengis.net/wcs/1.1/wcst http://schemas.opengis.net/wcst/1.1/wcstTransaction.xsd"  service="WCS" version="1.1">
-                      <wcst:InputCoverages>
-                            <wcst:Coverage> """
-
-        requestIdentifier = '           <ows:Identifier>' +  self.addID + '</ows:Identifier>'
-        requestTiff = '                 <ows:Reference  xlink:href="file:///' + self.ADDtiffFile + '"  xlink:role="urn:ogc:def:role:WCS:1.1:Pixels"/> '
-        requestMeta = '                 <ows:Metadata  xlink:href="file:///' + self.ADDmetaFile + '"   xlink:role="http://www.opengis.net/eop/2.0/EarthObservation"/> '
-        requestAction ='                <wcst:Action codeSpace="http://schemas.opengis.net/wcs/1.1.0/actions.xml">Add</wcst:Action> '
-
-        requestEnd =    """          </wcst:Coverage>
-                          </wcst:InputCoverages>
-                     </wcst:Transaction>
-                   """        
-        addreq =  requestBegin + requestIdentifier +  requestTiff + requestMeta +  requestAction + requestEnd
-
-        logging.info("WCSTransactionTestCaseDel POST %s " ,  str( addreq  ) )
-        c = Client()
-        r = c.post('/ows' ,  addreq , "text/xml" )
-        logging.info("WCSTransactionTestCaseDel  Checking HTTP Status %d " ,  r.status_code)
-        # show  response content
-        logging.info("WCSTransactionTestCaseDel content %s " % str( r.content ) )
-
-        # das ist super ich liebe python
-        super(WCSTransactionTestCase, self).setUp()
-
-    def testWCS11TransactionDel(self):
-        """
-        TODO check if was succesfuly deleted        
-        FIRST need add  coverage  first        
-        """
-
-
-
-
 class ExceptionTestCase(XMLTestCase):
     """
     Exception test cases expect the request to fail and examine the 
@@ -556,6 +399,158 @@ class MultipartTestCase(XMLTestCase, RectifiedGridCoverageTestCase):
     def getResponseData(self):
         self._setUpMultiparts()
         return self.imageData
+
+#===============================================================================
+# WCS-T
+#===============================================================================
+
+class WCSTransactionTestCase(XMLTestCase):
+    """
+    Base class for WCS Transactional test cases.
+    """
+################################################################################
+# TODO: Add tests for binary comparison and validation of:
+#   self.responseDescribeCoverage
+#   self.responseGetCoverage
+#   self.responseDeleteCoverage
+#   self.responseDescribeCoverageDeleted
+################################################################################
+
+    def setUp(self):
+        super(WCSTransactionTestCase, self).setUp()
+        logging.debug("WCSTransactionTestCase for ID: %s" % self.ID)
+        
+        # Add DescribeCoverage request/response
+        request = "service=WCS&version=2.0.0&request=DescribeCoverage&coverageid=%s" % str( self.ID )
+        self.responseDescribeCoverage = self.client.get('/ows?%s' % request)
+
+        # Add GetCoverage request/response
+        request = "service=WCS&version=2.0.0&request=GetCoverage&format=image/tiff&coverageid=%s" % str( self.ID )
+        self.responseGetCoverage = self.client.get('/ows?%s' % request)
+        
+        # Add delete coverage request/response
+        requestBegin = """<wcst:Transaction service="WCS" version="1.1"
+            xmlns:wcst="http://www.opengis.net/wcs/1.1/wcst" 
+            xmlns:ows="http://www.opengis.net/ows/1.1" 
+            xmlns:xlink="http://www.w3.org/1999/xlink" 
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+            xsi:schemaLocation="http://www.opengis.net/wcs/1.1/wcst http://schemas.opengis.net/wcst/1.1/wcstTransaction.xsd">
+            <wcst:InputCoverages>
+                <wcst:Coverage>
+                    <ows:Identifier>"""
+        requestEnd = """</ows:Identifier>
+                    <wcst:Action codeSpace=\"http://schemas.opengis.net/wcs/1.1.0/actions.xml\">
+                        Delete
+                    </wcst:Action>"
+                </wcst:Coverage>
+            </wcst:InputCoverages>
+        </wcst:Transaction>"""
+        request =  requestBegin + self.ID + requestEnd
+        self.responseDeleteCoverage = self.client.post('/ows', request, "text/xml")
+
+        # Add DescribeCoverage request/response after delete
+        request = "service=WCS&version=2.0.0&request=DescribeCoverage&coverageid=%s" % str( self.ID )
+        self.responseDescribeCoverageDeleted = self.client.get('/ows?%s' % request)
+
+    def getRequest(self):
+        requestBegin = """<wcst:Transaction service="WCS" version="1.1"
+            xmlns:wcst="http://www.opengis.net/wcs/1.1/wcst" 
+            xmlns:ows="http://www.opengis.net/ows/1.1" 
+            xmlns:xlink="http://www.w3.org/1999/xlink" 
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+            xsi:schemaLocation="http://www.opengis.net/wcs/1.1/wcst http://schemas.opengis.net/wcst/1.1/wcstTransaction.xsd">
+            <wcst:InputCoverages>
+                <wcst:Coverage>
+                    <ows:Identifier>"""
+        requestMid1 = """</ows:Identifier>
+                    <ows:Reference  xlink:href="file:///"""
+        requestMid2 = """" xlink:role="urn:ogc:def:role:WCS:1.1:Pixels"/>
+                    <ows:Metadata  xlink:href="file:///"""
+        requestEnd = """" xlink:role="http://www.opengis.net/eop/2.0/EarthObservation"/>
+                    <wcst:Action codeSpace="http://schemas.opengis.net/wcs/1.1.0/actions.xml">Add</wcst:Action>
+                </wcst:Coverage>
+            </wcst:InputCoverages>
+        </wcst:Transaction>
+        """        
+        params =  requestBegin + self.ID + requestMid1 + self.getDataFullPath(self.ADDtiffFile) + requestMid2 + self.getDataFullPath(self.ADDmetaFile) + requestEnd
+        return (params, "xml")
+
+    def getDataFullPath(self , path_to):
+        return os.path.abspath( os.path.join( self.getDataFileDir() , path_to) )
+
+    def getXMLData(self):
+        return self.response.content
+
+    def testBinaryComparisonXML(self):
+        # the RequestId element is set during ingestion and has thus to be 
+        # explicitly unified
+        tree = etree.fromstring(self.getXMLData())
+        for node in tree.findall("{http://www.opengis.net/wcs/1.1/wcst}RequestId"):
+            node.text = "identifier"
+        self.response.content = etree.tostring(tree, encoding="ISO-8859-1")
+        super(WCSTransactionTestCase, self).testBinaryComparisonXML()
+
+    def testResponseIdComparison(self):
+        """
+        Tests that the <ows:Identifier> in the XML request and response is the 
+        same
+        """
+        logging.debug("testResponseIdComparison for ID: %s" % self.ID)
+        tree = etree.fromstring(self.getXMLData())
+        for node in tree.findall("{http://www.opengis.net/ows/1.1}Identifier"):
+            self.assertEqual( node.text, self.ID)
+
+    def testStatusDescribeCoverage(self):
+        """
+        Tests that the inserted coverage is available in a DescribeCoverage
+        request
+        """
+        self.assertEqual(self.responseDescribeCoverage.status_code, 200)
+
+    def testStatusGetCoverage(self):
+        """
+        Validate the inserted coverage via a GetCoverage request
+        """
+        self.assertEqual(self.responseGetCoverage.status_code, 200)
+        
+    def testStatusDeleteCoverage(self):
+        """
+        Test to delete the previously inserted coaverage
+        """
+        self.assertEqual(self.responseDeleteCoverage.status_code, 200)
+
+    def testStatusDescribeCoverageDeleted(self):
+        """
+        Tests that the deletec coverage is not longer available in a 
+        DescribeCoverage request
+        """
+        self.assertEqual(self.responseDescribeCoverageDeleted.status_code, 404)
+
+class WCSTransactionRectifiedGridCoverageTestCase(WCSTransactionTestCase, MultipartTestCase):
+    """
+    WCS-T test cases for RectifiedGridCoverages
+    """
+    # Overwrite getResponseData() to return the GetCoverage response to be used
+    # in MultipartTestCase tests
+    def getResponseData(self):
+        return self.responseGetCoverage.content
+
+class WCSTransactionReferenceableGridCoverageTestCase(WCSTransactionTestCase, ReferenceableGridCoverageTestCase):
+    """
+    WCS-T test cases for ReferenceableGridCoverages
+    """
+    # Overwrite getResponseData() to return the GetCoverage response to be used
+    # in MultipartTestCase tests
+    def getResponseData(self):
+        return self.responseGetCoverage.content
+
+    def getFileExtension(self, file_type=None):
+        if file_type == "xml":
+            return "xml"
+        elif file_type == "raster":
+            return "tif"
+        else:
+            return "dat"
 
 #===============================================================================
 # WCS 2.0
