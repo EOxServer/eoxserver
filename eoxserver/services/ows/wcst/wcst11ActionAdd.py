@@ -232,7 +232,7 @@ def wcst11ActionAdd( action , context , maxAttempts = 3 ) :
         
             rdm.create( coverageId , context['requestId'] , 
                 local_path = os.path.abspath( dstTIFfile ) , 
-                range_type_name = "Grayscale" )  # TODO: proper Range Type selection
+                range_type_name = "RGB" )  # TODO: proper Range Type selection
             
             
         # referencable dataset 
@@ -244,7 +244,7 @@ def wcst11ActionAdd( action , context , maxAttempts = 3 ) :
 
             rdm.create( coverageId , context['requestId'] , 
                 local_path = os.path.abspath( dstTIFfile ) , 
-                range_type_name = "Grayscale" )  # TODO: proper Range Type selection
+                range_type_name = "ASAR" )  # TODO: proper Range Type selection
 
         # ------------------------------------------------------------------------------
 
