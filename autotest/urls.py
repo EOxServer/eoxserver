@@ -52,15 +52,19 @@ urlpatterns = patterns('',
     # (r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
     # Uncomment the next line to enable the admin:
-    (r'^admin/', include(admin.site.urls))#,
+    (r'^admin/', include(admin.site.urls)),
 #    (r'^databrowse/(.*)', databrowse.site.root),
-#    (r'^files/(?P<path>.*)$', serve, {'document_root': 'eoxserver'}) # TODO: do not use in production setting
+# uncomment following lines to enable the ATP views 
+#    (r'^process/status$', procViews.status ),
+#    (r'^process/status/(?P<requestType>[^/]{,64})/(?P<requestID>[^/]{,64})$', procViews.status ),
+#    (r'^process/task$', procViews.task ),
+#    (r'^process/response/(?P<requestType>[^/]{,64})/(?P<requestID>[^/]{,64})', procViews.response ),
 )
 
 urlpatterns += staticfiles_urlpatterns()
 
 if settings.DEBUG:
     urlpatterns += patterns('',
-        (r'^' + settings.MEDIA_URL + '/(?P<path>.*)$', 'django.views.static.serve',
-            {'document_root': settings.MEDIA_ROOT})
+        (r'^'+settings.MEDIA_URL+'/(?P<path>.*)$', 'django.views.static.serve',
+            {'document_root': settings.MEDIA_ROOT}),
     )
