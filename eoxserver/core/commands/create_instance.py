@@ -55,7 +55,7 @@ class Command(EOxServerAdminCommand):
         make_option('-d', '--dir', default='.', 
             help='Optional base directory. Defaults to the current directory.'
         ),
-        make_option('--initial_data', metavar='DIR', default=False,
+        make_option('--initial_data', metavar='filename', default=False,
             help='Location of the initial data. Must be in JSON format.'
         ),
         make_option('--init_spatialite', action='store_true',
@@ -127,8 +127,9 @@ class Command(EOxServerAdminCommand):
         shutil.copy(os.path.join(src_conf_dir, "TEMPLATE_template.map"),
                     os.path.join(dst_conf_dir, "template.map"))
     
-        if options.get('initial_data'):
-            if os.path.splitext(args.initial_data)[1].lower() != ".json":
+    
+        if initial_data:
+            if os.path.splitext(initial_data)[1].lower() != ".json":
                 raise Exception("Initial data must be a JSON file.")
             shutil.copy(initial_data, os.path.join(dst_fixtures_dir,
                                                    "initial_data.json"))
@@ -141,12 +142,17 @@ class Command(EOxServerAdminCommand):
             try:
                 from pyspatialite import dbapi2 as db
                 conn = db.connect(db_name)
-                conn.execute("SELECT InitSpatialMetadata()")
+                rs = conn.execute('SELECT spatialite_version()')
+                if int(rs.fetchone()[0].split(".")[0]) < 3:
+                    init_sql_path = os.path.join(src_conf_dir, "init_spatialite-2.3.sql")
+                    os.system("spatialite %s < %s" % (db_name, init_sql_path))
+                else:
+                    conn.execute("SELECT InitSpatialMetadata()")
                 conn.commit()
                 conn.close()
             except ImportError:
                 init_sql_path = os.path.join(src_conf_dir, "init_spatialite-2.3.sql")
-                os.system("spatialite conf.sqlite < %s" % init_sql_path)
+                os.system("spatialite %s < %s" % (db_name, init_sql_path))
 
 
 # TODO maybe use django templating library?
