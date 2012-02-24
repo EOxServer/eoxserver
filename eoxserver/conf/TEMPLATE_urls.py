@@ -39,6 +39,7 @@ admin.autodiscover()
 from django.conf import settings
 
 urlpatterns = patterns('',
+    (r'^$', 'eoxserver.views.index'),
     (r'^ows', 'eoxserver.services.views.ows'),
     (r'^logview', 'eoxserver.logging.views.logview'),
     (r'^client/$', 'eoxserver.webclient.views.index'),
