@@ -35,13 +35,16 @@ from datetime import datetime
 import mapscript
 from osgeo import gdal
 gdal.UseExceptions()
+from django.contrib.gis.geos import GEOSGeometry
 
 import logging
 
 from eoxserver.core.system import System
 from eoxserver.core.exceptions import InternalError, InvalidExpressionError
 from eoxserver.core.util.xmltools import DOMElementToXML
-from eoxserver.processing.gdal.reftools import rect_from_subset
+from eoxserver.processing.gdal.reftools import (
+    rect_from_subset, get_footprint_wkt
+)
 from eoxserver.services.base import BaseRequestHandler
 from eoxserver.services.requests import Response
 from eoxserver.services.mapserver import (
@@ -130,8 +133,8 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
         "coverageid": {"xml_location": "/{http://www.opengis.net/wcs/2.0}CoverageId", "xml_type": "string", "kvp_key": "coverageid", "kvp_type": "string"},
         "trims": {"xml_location": "/{http://www.opengis.net/wcs/2.0}DimensionTrim", "xml_type": "element[]"},
         "slices": {"xml_location": "/{http://www.opengis.net/wcs/2.0}DimensionSlice", "xml_type": "element[]"},
-        "format": {"xml_location": "/{http://www.opengis.net/wcs/2.0}Format", "xml_type": "string", "kvp_key": "format", "kvp_type": "string"},
-        "mediatype": {"xml_location": "/{http://www.opengis.net/wcs/2.0}Mediatype", "xml_type": "string", "kvp_key": "mediatype", "kvp_type": "string"}
+        "format": {"xml_location": "/{http://www.opengis.net/wcs/2.0}format", "xml_type": "string", "kvp_key": "format", "kvp_type": "string"},
+        "mediatype": {"xml_location": "/{http://www.opengis.net/wcs/2.0}mediaType", "xml_type": "string", "kvp_key": "mediatype", "kvp_type": "string"}
     }
     
     def handle(self, req, coverage):
@@ -290,25 +293,28 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
             encoder = WCS20EOAPEncoder()
             
             if subset is not None:
+                # get new footprint
+                footprint = GEOSGeometry(get_footprint_wkt(dst_filename))
                 if subset.crs_id != "imageCRS":
                     cov_desc_el = encoder.encodeSubsetCoverageDescription(
                         coverage,
                         subset.crs_id,
                         (x_size, y_size),
-                        (subset.minx, subset.miny, subset.maxx, subset.maxy)
+                        (subset.minx, subset.miny, subset.maxx, subset.maxy),
+                        footprint,
+                        True
                     )
                 else:
-                    cov_desc_el = encoder.encodeCoverageDescription(coverage)
-# TODO: this should read as follows
-#                    cov_desc_el = encoder.encodeSubsetCoverageDescription(
-#                        coverage,
-#                        4326,
-#                        (x_size, y_size),
-#                        ...
-#                    
-#                    )
+                    cov_desc_el = encoder.encodeSubsetCoverageDescription(
+                        coverage,
+                        4326,
+                        (x_size, y_size),
+                        footprint.extent,
+                        footprint,
+                        True
+                    )
             else:
-                cov_desc_el = encoder.encodeCoverageDescription(coverage)
+                cov_desc_el = encoder.encodeCoverageDescription(coverage, True)
             
             filename = "%s_%s.%s" % (
                 coverage.getCoverageId(),
@@ -378,8 +384,8 @@ class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
         "coverageid": {"xml_location": "/{http://www.opengis.net/wcs/2.0}CoverageId", "xml_type": "string", "kvp_key": "coverageid", "kvp_type": "string"},
         "trims": {"xml_location": "/{http://www.opengis.net/wcs/2.0}DimensionTrim", "xml_type": "element[]"},
         "slices": {"xml_location": "/{http://www.opengis.net/wcs/2.0}DimensionSlice", "xml_type": "element[]"},
-        "format": {"xml_location": "/{http://www.opengis.net/wcs/2.0}Format", "xml_type": "string", "kvp_key": "format", "kvp_type": "string"},
-        "mediatype": {"xml_location": "/{http://www.opengis.net/wcs/2.0}Mediatype", "xml_type": "string", "kvp_key": "mediatype", "kvp_type": "string"}
+        "format": {"xml_location": "/{http://www.opengis.net/wcs/2.0}format", "xml_type": "string", "kvp_key": "format", "kvp_type": "string"},
+        "mediatype": {"xml_location": "/{http://www.opengis.net/wcs/2.0}mediaType", "xml_type": "string", "kvp_key": "mediatype", "kvp_type": "string"}
     }
     
     def createCoverages(self):
