@@ -66,12 +66,12 @@ setup(
     maintainer="EOX IT Services GmbH",
     maintainer_email="packages@eox.at",
     
-    description="EOxServer is a server for Earth Observation (EO) data",
-    long_description=read("README"),
+    description="Autotest instance for EOxServer",
+    long_description="",
     
     license="EOxServer Open License (MIT-style)",
     keywords="Earth Observation, EO, OGC, WCS, WMS",
-    url="http://eoxserver.org/"
+    url="http://eoxserver.org/",
     
     cmdclass={'install': install},
 )
