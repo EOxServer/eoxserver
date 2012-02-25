@@ -2,8 +2,8 @@
 <wcseo:RectifiedStitchedMosaic xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0" xmlns:om="http://www.opengis.net/om/2.0" xmlns:ows="http://www.opengis.net/ows/2.0" xmlns:swe="http://www.opengis.net/swe/2.0" xmlns:wcs="http://www.opengis.net/wcs/2.0" xmlns:wcseo="http://www.opengis.net/wcseo/1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" gml:id="mosaic_MER_FRS_1P_RGB_reduced" xsi:schemaLocation="http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd">
   <gml:boundedBy>
     <gml:Envelope axisLabels="lat long" srsDimension="2" srsName="http://www.opengis.net/def/crs/EPSG/0/4326" uomLabels="deg deg">
-      <gml:lowerCorner>-3.75 32.158895</gml:lowerCorner>
-      <gml:upperCorner>28.326165 46.3</gml:upperCorner>
+      <gml:lowerCorner>32.158895 -3.75</gml:lowerCorner>
+      <gml:upperCorner>46.3 28.326165</gml:upperCorner>
     </gml:Envelope>
   </gml:boundedBy>
   <gml:domainSet>
@@ -17,17 +17,17 @@
       <gml:axisLabels>lat long</gml:axisLabels>
       <gml:origin>
         <gml:Point gml:id="grid_origin_mosaic_MER_FRS_1P_RGB_reduced" srsName="http://www.opengis.net/def/crs/EPSG/0/4326">
-          <gml:pos>-3.750000 46.300000</gml:pos>
+          <gml:pos>46.300000 -3.750000</gml:pos>
         </gml:Point>
       </gml:origin>
-      <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/4326">0.031355 0</gml:offsetVector>
       <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/4326">0 -0.031355</gml:offsetVector>
+      <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/4326">0.031355 0</gml:offsetVector>
     </gml:RectifiedGrid>
   </gml:domainSet>
   <gml:rangeSet>
     <gml:File>
-      <gml:rangeParameters xlink:arcrole="fileReference" xlink:href="coverage/out.tif" xlink:role="image/tiff"/>
-      <gml:fileReference>coverage/out.tif</gml:fileReference>
+      <gml:rangeParameters xlink:arcrole="fileReference" xlink:href="coverage/mosaic_MER_FRS_1P_RGB_reduced.tif" xlink:role="image/tiff"/>
+      <gml:fileReference>coverage/mosaic_MER_FRS_1P_RGB_reduced.tif</gml:fileReference>
       <gml:fileStructure/>
       <gml:mimeType>image/tiff</gml:mimeType>
     </gml:File>
