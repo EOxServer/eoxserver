@@ -355,7 +355,7 @@ class HTMLTestCase(OWSTestCase):
     def testBinaryComparisonRaster(self):
         self._testBinaryComparison("html")
 
-class MultipartTestCase(XMLTestCase, RectifiedGridCoverageTestCase):
+class MultipartTestCase(XMLTestCase):
     """
     Multipart tests combine XML and raster tests and split the response
     into a xml and a raster part which are examined separately. 
@@ -399,6 +399,18 @@ class MultipartTestCase(XMLTestCase, RectifiedGridCoverageTestCase):
     def getResponseData(self):
         self._setUpMultiparts()
         return self.imageData
+        
+class RectifiedGridCoverageMultipartTestCase(
+    MultipartTestCase, 
+    RectifiedGridCoverageTestCase
+):
+    pass
+
+class ReferenceableGridCoverageMultipartTestCase(
+    MultipartTestCase, 
+    ReferenceableGridCoverageTestCase
+):
+    pass
 
 #===============================================================================
 # WCS-T
@@ -425,7 +437,7 @@ class WCSTransactionTestCase(XMLTestCase):
         self.responseDescribeCoverage = self.client.get('/ows?%s' % request)
 
         # Add GetCoverage request/response
-        request = "service=WCS&version=2.0.0&request=GetCoverage&format=image/tiff&coverageid=%s" % str( self.ID )
+        request = "service=WCS&version=2.0.0&request=GetCoverage&format=image/tiff&mediatype=multipart/mixed&coverageid=%s" % str( self.ID )
         self.responseGetCoverage = self.client.get('/ows?%s' % request)
         
         # Add delete coverage request/response
@@ -478,9 +490,6 @@ class WCSTransactionTestCase(XMLTestCase):
     def getDataFullPath(self , path_to):
         return os.path.abspath( os.path.join( self.getDataFileDir() , path_to) )
 
-    def getXMLData(self):
-        return self.response.content
-
     def testBinaryComparisonXML(self):
         # the RequestId element is set during ingestion and has thus to be 
         # explicitly unified
@@ -526,32 +535,60 @@ class WCSTransactionTestCase(XMLTestCase):
         """
         self.assertEqual(self.responseDescribeCoverageDeleted.status_code, 404)
 
-class WCSTransactionRectifiedGridCoverageTestCase(WCSTransactionTestCase, MultipartTestCase):
+class WCSTransactionRectifiedGridCoverageTestCase(
+    RectifiedGridCoverageMultipartTestCase,
+    WCSTransactionTestCase
+):
     """
     WCS-T test cases for RectifiedGridCoverages
     """
-    # Overwrite getResponseData() to return the GetCoverage response to be used
+    # Overwrite _setUpMultiparts() to return the GetCoverage response to be used
     # in MultipartTestCase tests
-    def getResponseData(self):
-        return self.responseGetCoverage.content
+    def _setUpMultiparts(self):
+        if self.isSetUp: return
+        response_msg = email.message_from_string("Content-type: multipart/mixed; boundary=wcs\n\n"
+                                                 + self.responseGetCoverage.content)
+        
+        for part in response_msg.walk():
+            if part['Content-type'] == "multipart/mixed; boundary=wcs":
+                continue
+            elif part['Content-type'] == "text/xml":
+                self.xmlData = part.get_payload()
+            else:
+                self.imageData = part.get_payload()
 
-class WCSTransactionReferenceableGridCoverageTestCase(WCSTransactionTestCase, ReferenceableGridCoverageTestCase):
+        self.isSetUp = True
+
+    def getXMLData(self):
+        return self.response.content
+    
+class WCSTransactionReferenceableGridCoverageTestCase(
+    ReferenceableGridCoverageMultipartTestCase,
+    WCSTransactionTestCase
+):
     """
     WCS-T test cases for ReferenceableGridCoverages
     """
-    # Overwrite getResponseData() to return the GetCoverage response to be used
+    # Overwrite _setUpMultiparts() to return the GetCoverage response to be used
     # in MultipartTestCase tests
-    def getResponseData(self):
-        return self.responseGetCoverage.content
+    def _setUpMultiparts(self):
+        if self.isSetUp: return
+        response_msg = email.message_from_string("Content-type: multipart/mixed; boundary=wcs\n\n"
+                                                 + self.responseGetCoverage.content)
+        
+        for part in response_msg.walk():
+            if part['Content-type'] == "multipart/mixed; boundary=wcs":
+                continue
+            elif part['Content-type'] == "text/xml":
+                self.xmlData = part.get_payload()
+            else:
+                self.imageData = part.get_payload()
 
-    def getFileExtension(self, file_type=None):
-        if file_type == "xml":
-            return "xml"
-        elif file_type == "raster":
-            return "tif"
-        else:
-            return "dat"
+        self.isSetUp = True
 
+    def getXMLData(self):
+        return self.response.content
+    
 #===============================================================================
 # WCS 2.0
 #===============================================================================
@@ -598,18 +635,41 @@ class WCS20DescribeEOCoverageSetSectionsTestCase(XMLTestCase):
     
 class WCS20GetCoverageMultipartTestCase(MultipartTestCase):
     def testBinaryComparisonXML(self):
-        # the timePosition tag depends on the actual time the
-        # request was answered. It has to be explicitly unified
+        # The timePosition tag as well as the filename used in the rangeSet 
+        # depends on the actual time the request was answered. It has to be 
+        # explicitly unified.
         tree = etree.fromstring(self.getXMLData())
         for node in tree.findall("{http://www.opengis.net/gmlcov/1.0}metadata/" \
                                  "{http://www.opengis.net/wcseo/1.0}EOMetadata/" \
                                  "{http://www.opengis.net/wcseo/1.0}lineage/" \
                                  "{http://www.opengis.net/gml/3.2}timePosition"):
             node.text = "2011-01-01T00:00:00Z"
-            
+
+        node = tree.find("{http://www.opengis.net/gml/3.2}rangeSet/" \
+                         "{http://www.opengis.net/gml/3.2}File/" \
+                         "{http://www.opengis.net/gml/3.2}rangeParameters")
+        filename = node.get("{http://www.w3.org/1999/xlink}href").rsplit("_",1)[0] + ".tif"
+        node.set("{http://www.w3.org/1999/xlink}href", filename)
+        node = tree.find("{http://www.opengis.net/gml/3.2}rangeSet/" \
+                         "{http://www.opengis.net/gml/3.2}File/" \
+                         "{http://www.opengis.net/gml/3.2}fileReference")
+        node.text = filename
+        
         self.xmlData = etree.tostring(tree, encoding="ISO-8859-1")
         
         super(WCS20GetCoverageMultipartTestCase, self).testBinaryComparisonXML()
+
+class WCS20GetCoverageRectifiedGridCoverageMultipartTestCase(
+    WCS20GetCoverageMultipartTestCase, 
+    RectifiedGridCoverageTestCase
+):
+    pass
+
+class WCS20GetCoverageReferenceableGridCoverageMultipartTestCase(
+    WCS20GetCoverageMultipartTestCase, 
+    ReferenceableGridCoverageTestCase
+):
+    pass
 
 class RasdamanTestCaseMixIn(object):
     fixtures = BASE_FIXTURES + ["testing_rasdaman_coverages.json"]
