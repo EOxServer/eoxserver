@@ -30,8 +30,8 @@
 
 from django.utils.version import get_svn_revision
 
-VERSION = (0, 2, 0, 'dev', 0)
-#VERSION = (0, 2, 0, 'alpha', 1)
+#VERSION = (0, 2, 0, 'dev', 0)
+VERSION = (0, 2, 0, 'alpha', 1)
 #VERSION = (0, 2, 0, 'beta', 1)
 #VERSION = (0, 2, 0, 'rc', 1)
 #VERSION = (0, 2, 0, 'final', 0)
