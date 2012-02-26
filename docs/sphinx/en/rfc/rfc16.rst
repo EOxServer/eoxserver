@@ -6,7 +6,7 @@ RFC 16: Referenceable Grid Coverages
 :Authors: Stephan Krause, Stephan Meissl, Fabian Schindler
 :Created: 2011-11-24
 :Last Edit: $Date$
-:Status: PENDING
+:Status: ACCEPTED
 :Discussion: http://www.eoxserver.org/wiki/DiscussionRfc16
 
 This RFC proposes an implementation for Referenceable Grid Coverages as
@@ -201,15 +201,11 @@ do not support GCP based coordinate transformations.
 Voting History
 --------------
   
-<Voting Records or "N/A">
-  
-:Motion: <Text of the motion>
-:Voting Start: <YYYY-MM-DD>
-:Voting End: <YYYY-MM-DD>
-:Result: <Result>
+:Motion: Adopted on  2012-01-03 with +1 from Arndt Bonitz, Martin Paces, 
+         Fabian Schindler, Stephan Meißl and +0 from Milan Novacek
   
 Traceability
 ------------
   
-:Requirements: <links to requirements or "N/A">
-:Tickets: <links to tickets or "N/A">
+:Requirements: "N/A"
+:Tickets: "N/A"
