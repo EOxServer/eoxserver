@@ -33,6 +33,7 @@ import logging
 import re
 
 from django.shortcuts import render_to_response
+from django.template import RequestContext
 
 from eoxserver.core.system import System
 
@@ -57,4 +58,8 @@ def logview(request):
         else:
             lines = f.readlines()
         
-    return render_to_response('logging/logview.html', {"lines": lines[-count_logs:]})
+    return render_to_response(
+        'logging/logview.html',
+        {"lines": lines[-count_logs:]},
+        context_instance=RequestContext(request)
+    )
