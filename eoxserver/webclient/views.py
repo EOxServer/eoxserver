@@ -47,7 +47,8 @@ def index(request):
         'webclient/index.html', {
             "eoids": dataset_series_ids,
             "path": request.path
-        }
+        },
+        context_instance=RequestContext(request)
     )
 
 
