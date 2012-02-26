@@ -367,7 +367,7 @@ servlet container and install and configure an LDAP service.
 
 Important URLs for your Shibboleth IDP:
  
-- Status message: ``https://${IDPHOST}/idp/profile/Status ``
+- Status message: ``https://${IDPHOST}/idp/profile/Status``
 - Information page: ``https://${IDPHOST}/idp/status``
 - Metadata: ``https://${IDPHOST}/idp/profile/Metadata/SAML`` 
 
@@ -398,6 +398,7 @@ Your ``${IDP_HOME}`` directory contains the following directories:
   deploy into the servlet container
 
 The next step is to deploy the IdP into your Tomcat:
+
 * Increase the memory reserved for Tomcat. Recommended values are 
   ``-Xmx512m -XX:MaxPermSize=128m``.
 * Add the libraries endorsed by the Shibboleth project to your endorsed Tomcat 
