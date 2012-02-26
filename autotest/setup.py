@@ -53,7 +53,7 @@ for dirpath, dirnames, filenames in os.walk('data'):
     data_files.append([dirpath, [os.path.join(dirpath, f) for f in filenames]])
 
 setup(
-    name='EOxServer Autotest',
+    name='EOxServer_autotest',
     version=version.replace(' ', '-'),
     
     data_files=data_files,
