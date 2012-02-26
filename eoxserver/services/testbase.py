@@ -96,14 +96,10 @@ class OWSTestCase(EOxServerTestCase):
         client = Client()
         
         if req_type == "kvp":
-            logging.info("GET %s " % request )
             self.response = client.get('/ows?%s' % request)
-            logging.info("Response %s " % str(  self.response  ) )
 
         elif req_type == "xml":
-            logging.info("POST %s " % request )
             self.response = client.post('/ows', request, "text/xml")
-            logging.info("Response %s " % str(  self.response  ) )
 
         else:
             raise Exception("Invalid request type '%s'." % req_type)
