@@ -46,6 +46,7 @@ from eoxserver.core.filters import (
     FilterExpressionInterface, FilterInterface, SimpleExpression,
     SimpleExpressionFactory
 )
+from eoxserver.core.util.timetools import UTCOffsetTimeZoneInfo
 from eoxserver.core.exceptions import (
     InternalError, InvalidExpressionError, UnknownAttribute
 )
@@ -787,8 +788,16 @@ class IntersectingTimeIntervalFilter(object):
         begin = expr.getOperands()[0].begin
         end = expr.getOperands()[0].end
         
-        return not end < res.getBeginTime() and \
-               not res.getEndTime() < begin
+        res_begin = res.getBeginTime() 
+        res_end = res.getEndTime()
+        
+        if res_begin.tzinfo is None and begin.tzinfo is not None:
+            res_begin = res_begin.replace(tzinfo=UTCOffsetTimeZoneInfo())
+        if res_end.tzinfo is None and end.tzinfo is not None:
+            res_end = res_end.replace(tzinfo=UTCOffsetTimeZoneInfo())
+        
+        return not end < res_begin and \
+               not res_end < begin
 
 class RectifiedDatasetIntersectingTimeIntervalFilter(IntersectingTimeIntervalFilter):
     """
