@@ -28,6 +28,8 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+import logging
+
 from django.shortcuts import render_to_response
 from django.http import Http404
 from django.conf import settings
@@ -85,8 +87,12 @@ def webclient(request, eoid):
         "webclient", "outline_service"
     ) or "wms"
     
-    assert (preview_service in ("wms", "wmts") and 
-            outline_service in ("wms", "wmts"))
+    if preview_service not in ("wms", "wmts"): 
+        logging.error("Unsupported service type '%s'" % preview_service)
+        preview_service = "wms"
+    if outline_service not in ("wms", "wmts"):
+        logging.error("Unsupported service type '%s'" % outline_service)
+        outline_service = "wms"
     
     preview_url = System.getConfig().getConfigValue(
         "webclient", "preview_url"
