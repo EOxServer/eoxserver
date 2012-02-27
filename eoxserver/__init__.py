@@ -30,17 +30,17 @@
 
 from django.utils.version import get_svn_revision
 
-#VERSION = (0, 2, 0, 'dev', 0)
-VERSION = (0, 2, 0, 'alpha', 1)
-#VERSION = (0, 2, 0, 'beta', 1)
-#VERSION = (0, 2, 0, 'rc', 1)
+#VERSION = (0, 2, None, 'dev', 0)
+VERSION = (0, 2, None, 'alpha', 1)
+#VERSION = (0, 2, None, 'beta', 1)
+#VERSION = (0, 2, None, 'rc', 1)
 #VERSION = (0, 2, 0, 'final', 0)
 SVN_REV = '$Id$'
 
 def get_version():
-    version = '%s.%s' % (VERSION[0], VERSION[1]) 
-    if VERSION[2]: 
-        version = '%s.%s' % (version, VERSION[2]) 
+    version = '%s.%s' % (VERSION[0], VERSION[1])
+    if VERSION[2] != None:
+        version = '%s.%s' % (version, VERSION[2])
     if VERSION[3:] == ('dev', 0):
         svn_rev = get_svn_revision(".")
         if svn_rev != u'SVN-unknown':
