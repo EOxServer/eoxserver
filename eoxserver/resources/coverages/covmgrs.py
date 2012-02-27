@@ -41,7 +41,6 @@ from ConfigParser import RawConfigParser
 import logging
 from uuid import uuid4
 from datetime import datetime, timedelta
-from copy import copy
 
 from eoxserver.core.system import System
 from eoxserver.core.exceptions import InternalError
@@ -370,7 +369,7 @@ class BaseManagerContainerMixIn(object):
             # TODO ugly hack. provide a tzinfo, for datetimes which don't have one.
             # The error occurs for datasets added in the admin, as no tzinfo is set there
             begin_time = min(map(lambda dt: dt.replace(tzinfo=UTCOffsetTimeZoneInfo()) if dt.tzinfo is None else dt, [dataset.getBeginTime() for dataset in datasets]))
-            end_time = min(map(lambda dt: dt.replace(tzinfo=UTCOffsetTimeZoneInfo()) if dt.tzinfo is None else dt, [dataset.getEndTime() for dataset in datasets]))
+            end_time = max(map(lambda dt: dt.replace(tzinfo=UTCOffsetTimeZoneInfo()) if dt.tzinfo is None else dt, [dataset.getEndTime() for dataset in datasets]))
             
             footprint = datasets[0].getFootprint()
             for dataset in datasets[1:]:
