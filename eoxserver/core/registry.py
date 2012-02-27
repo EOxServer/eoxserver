@@ -425,11 +425,11 @@ class Registry(object):
         impls = self.__find_all_by_test(entries, test_params, include_disabled)
         
         if len(impls) == 0:
-            raise ImplementationNotFound
+            raise ImplementationNotFound("")
         elif len(impls) == 1:
             return impls[0]
         else:
-            raise ImplementationAmbiguous
+            raise ImplementationAmbiguous("")
     
     def __find_all_by_test(self, entries, test_params, include_disabled=False):
         impls = []
