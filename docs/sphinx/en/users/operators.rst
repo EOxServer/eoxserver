@@ -92,10 +92,21 @@ FTP repository.
 An FTP Storage record - as it is called in EOxServer - contains the URL of the
 server and optional port, username and password entries.
 
-Resources stored on an FTP ...
+Resources stored on an FTP server are transferred only when they are needed.
+There is however a cache for transferred files on the machine EOxServer runs on.
 
 Rasdaman Databases
 ~~~~~~~~~~~~~~~~~~
+
+The third backend supported at the moment are
+`rasdaman <http://www.rasdaman.org>`_ databases. A rasdaman location consists
+of rasdaman database connection information and the collection of the
+corresponding resource.
+
+The rasdaman storage records contain hostname, port, database name, user and
+password entries.
+
+The data is retrieved from the database using the rasdaman GDAL driver.
 
 .. _ops_coverages:
 
