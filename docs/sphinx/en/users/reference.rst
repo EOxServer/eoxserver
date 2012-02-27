@@ -1,4 +1,4 @@
-.. EOxServer Users' Guide
+.. EOxServer Reference
   #-----------------------------------------------------------------------------
   # $Id$
   #
@@ -28,29 +28,8 @@
   # IN THE SOFTWARE.
   #-----------------------------------------------------------------------------
 
-.. _EOxServer Users' Guide:
+.. _EOxServer Reference:
 
-EOxServer Users' Guide
-======================
+EOxServer Reference
+===================
 
-This section is intended for users of the EOxServer software stack. Users range 
-from administrators installing and configuring the software stack over 
-operators registering the available data to end users consuming the registered 
-data.
-
-Developers needing to know all the nitty-gritty about EOxServer implementation 
-and APIs please refer to the :ref:`EOxServer Developers' Guide`.
-
-Structure of the Documentation
-------------------------------
-
-.. toctree::
-   :maxdepth: 2
-   
-   basics
-   global_use_case
-   install
-   idm
-   operators
-   users
-   reference
