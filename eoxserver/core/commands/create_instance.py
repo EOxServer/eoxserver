@@ -127,8 +127,7 @@ class Command(EOxServerAdminCommand):
         shutil.copy(os.path.join(src_conf_dir, "TEMPLATE_template.map"),
                     os.path.join(dst_conf_dir, "template.map"))
     
-    
-        if initial_data:
+        if options.get('initial_data') is not None:
             if os.path.splitext(initial_data)[1].lower() != ".json":
                 raise Exception("Initial data must be a JSON file.")
             shutil.copy(initial_data, os.path.join(dst_fixtures_dir,
