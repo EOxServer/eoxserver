@@ -982,6 +982,26 @@ class WCS20PostGetCoverageMultipartDatasetTestCase(eoxstest.WCS20GetCoverageRect
         </wcs:GetCoverage>"""
         return (params, "xml")
 
+class WCS20PostGetCoverageReferenceableMultipartDatasetTestCase(eoxstest.WCS20GetCoverageReferenceableGridCoverageMultipartTestCase):
+    def getRequest(self):
+        params = """<wcs:GetCoverage service="WCS" version="2.0.0"
+           xmlns:wcs="http://www.opengis.net/wcs/2.0">
+          <wcs:CoverageId>ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775</wcs:CoverageId>
+          <wcs:DimensionTrim>
+            <wcs:Dimension>x</wcs:Dimension>
+            <wcs:TrimLow>0</wcs:TrimLow>
+            <wcs:TrimHigh>100</wcs:TrimHigh>
+          </wcs:DimensionTrim>
+          <wcs:DimensionTrim>
+            <wcs:Dimension>y</wcs:Dimension>
+            <wcs:TrimLow>0</wcs:TrimLow>
+            <wcs:TrimHigh>100</wcs:TrimHigh>
+          </wcs:DimensionTrim>
+          <wcs:format>image/tiff</wcs:format>
+          <wcs:mediaType>multipart/mixed</wcs:mediaType>
+        </wcs:GetCoverage>"""
+        return (params, "xml")
+
 #===============================================================================
 # WCS 1.1 - POST
 #===============================================================================

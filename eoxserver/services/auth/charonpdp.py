@@ -147,7 +147,7 @@ class CharonPDP(BasePDP):
                 logging.debug("Found SAML attribute "+str(key)+" with value "+\
                               str(httpHeader[value])+" in incoming request.")
             else:
-                logging.INFO('The key \''+key+'\' specified in the mapping ' +\
+                logging.info('The key \''+key+'\' specified in the mapping ' +\
                              'dictionary was not found in the HTTP headers.')
 
         return attributes

@@ -644,12 +644,13 @@ class WCS20GetCoverageMultipartTestCase(MultipartTestCase):
         node = tree.find("{http://www.opengis.net/gml/3.2}rangeSet/" \
                          "{http://www.opengis.net/gml/3.2}File/" \
                          "{http://www.opengis.net/gml/3.2}rangeParameters")
-        filename = node.get("{http://www.w3.org/1999/xlink}href").rsplit("_",1)[0] + ".tif"
-        node.set("{http://www.w3.org/1999/xlink}href", filename)
-        node = tree.find("{http://www.opengis.net/gml/3.2}rangeSet/" \
-                         "{http://www.opengis.net/gml/3.2}File/" \
-                         "{http://www.opengis.net/gml/3.2}fileReference")
-        node.text = filename
+        if node != None:
+            filename = node.get("{http://www.w3.org/1999/xlink}href").rsplit("_",1)[0] + ".tif"
+            node.set("{http://www.w3.org/1999/xlink}href", filename)
+            node = tree.find("{http://www.opengis.net/gml/3.2}rangeSet/" \
+                             "{http://www.opengis.net/gml/3.2}File/" \
+                             "{http://www.opengis.net/gml/3.2}fileReference")
+            node.text = filename
         
         self.xmlData = etree.tostring(tree, encoding="ISO-8859-1")
         
