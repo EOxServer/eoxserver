@@ -43,11 +43,17 @@ def index(request):
     dss_factory = System.getRegistry().bind("resources.coverages.wrappers.DatasetSeriesFactory")
     dataset_series_ids = [obj.getEOID() for obj in dss_factory.find()] 
     
+    mosaic_factory = System.getRegistry().bind("resources.coverages.wrappers.EOCoverageFactory")
+    stitched_mosaic_ids = [obj.getEOID() for obj in mosaic_factory.find(
+                           impl_ids=["resources.coverages.wrappers.RectifiedStitchedMosaicWrapper"]
+                           )]
+    
     # TODO get server URL
     
     return render_to_response(
         'webclient/index.html', {
-            "eoids": dataset_series_ids,
+            "datasetseries_eoids": dataset_series_ids,
+            "stitchedmosaic_eoids": stitched_mosaic_ids,
             "path": request.path
         },
         context_instance=RequestContext(request)
@@ -64,15 +70,21 @@ def webclient(request, eoid):
     
     
     System.init()
-    dataset_series = System.getRegistry().getFromFactory(
+    eo_obj = System.getRegistry().getFromFactory(
         "resources.coverages.wrappers.DatasetSeriesFactory",
         {"obj_id": eoid}
     )
-    if dataset_series is None:
-        raise Http404
+    if eo_obj is None:
+        eo_obj = System.getRegistry().getFromFactory(
+            "resources.coverages.wrappers.EOCoverageFactory",
+            {"obj_id": eoid}
+        )
+        if eo_obj is None:
+            raise Http404
     
-    begin = dataset_series.getBeginTime()
-    end = dataset_series.getEndTime()
+    begin = eo_obj.getBeginTime()
+    end = eo_obj.getEndTime()
+    center = eo_obj.getFootprint().centroid
     
     # TODO set static resources
     http_ows_url = System.getConfig().getConfigValue(
@@ -110,10 +122,11 @@ def webclient(request, eoid):
             "outline_service": outline_service,
             "preview_url": preview_url,
             "outline_url": outline_url,
-            "begin" : {"date": begin.strftime("%Y-%m-%d"),
-                       "time": begin.strftime("%H:%M")},
-            "end" : {"date": end.strftime("%Y-%m-%d"),
-                     "time": end.strftime("%H:%M")}
+            "begin": {"date": begin.strftime("%Y-%m-%d"),
+                      "time": begin.strftime("%H:%M")},
+            "end": {"date": end.strftime("%Y-%m-%d"),
+                    "time": end.strftime("%H:%M")},
+            "center": "%f, %f" % (center.x, center.y)
         },
         context_instance=RequestContext(request)
     )

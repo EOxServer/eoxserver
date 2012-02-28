@@ -190,7 +190,7 @@ function initMap() {
 		//polygonLayer, 
 		bboxLayer
 	]);
-	map.setCenter(new OpenLayers.LonLat(15, 36), zoom, true, true);
+	map.setCenter(new OpenLayers.LonLat({{center}}), zoom, true, true);
 	
 	
 	var infoControl = new OpenLayers.Control.WMSGetFeatureInfo({

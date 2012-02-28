@@ -33,7 +33,13 @@
 
 <h2>Available Dataset Series:</h2>
 <ul>
-{% for eoid in eoids %}
+{% for eoid in datasetseries_eoids %}
+    <li><a href="{{path}}{{eoid}}">{{ eoid }}</a></li>
+{% endfor %}
+</ul>
+<h2>Available Rectified Stitched Mosaics:</h2>
+<ul>
+{% for eoid in stitchedmosaic_eoids %}
     <li><a href="{{path}}{{eoid}}">{{ eoid }}</a></li>
 {% endfor %}
 </ul>
