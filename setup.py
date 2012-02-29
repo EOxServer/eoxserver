@@ -33,12 +33,12 @@ import os
 # Hack to remove setuptools "feature" which resulted in
 # ignoring MANIFEST.in when code is in an svn repository.
 # TODO find a nicer solution
+import subprocess
 from setuptools.command import sdist
 from distutils.extension import Extension
 del sdist.finders[:]
 
 from setuptools import setup
-from osgeo import gdal
 
 from eoxserver import get_version
 
@@ -61,6 +61,25 @@ def fullsplit(path, result=None):
         return result
     return fullsplit(head, [tail] + result)
 
+def get_gdal_libs(default=None):
+    if default is None:
+        default = ("", "")
+    
+    p = subprocess.Popen(["gdal-config", "--libs"], stdout=subprocess.PIPE)
+    if p.wait() != 0:
+        return default
+    output = p.stdout.read().strip().split(" ")
+    lib = ""
+    libdir = ""
+    for part in output:
+        if part.startswith("-L"):
+            libdir = part[2:]
+        elif part.startswith("-l"):
+            lib = part[2:]
+
+    return libdir, lib
+
+gdal_libdir, gdal_lib = get_gdal_libs()
 packages, data_files = [], []
 for dirpath, dirnames, filenames in os.walk('eoxserver'):
     for i, dirname in enumerate(dirnames):
@@ -81,7 +100,8 @@ setup(
         Extension(
             'eoxserver.processing.gdal._reftools',
             sources=['eoxserver/processing/gdal/reftools.c'],
-            libraries=['gdal%s' % gdal.__version__]
+            libraries=[gdal_lib],
+            library_dirs=[gdal_libdir],
         ),
     ],
     
