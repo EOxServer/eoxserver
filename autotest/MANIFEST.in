@@ -1,17 +1,19 @@
 include README
 include MANIFEST.in
 include HOWTO
-include ftpcache
-include responses
-include conf
-include logs
 include __init__.py 
 include urls.py
-recursive-include expected *
-recursive-include selenium *
-recursive-include scripts *
-recursive-include data *
+graft conf
+graft expected
+graft responses
+graft selenium
+graft scripts
+graft data
+graft logs
+graft ftpcache
+graft wcst_perm
+graft wcst_temp
 exclude data/config.sqlite
 exclude data/init_spatialite-2.3.sql
-exclude data/tmp
+prune data/tmp
 recursive-exclude . *.pyc
