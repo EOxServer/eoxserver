@@ -36,6 +36,9 @@ import mimetypes
 import email
 from osgeo import gdal, gdalconst, osr
 
+
+from django.http import HttpResponse
+
 from django.test import Client
 from django.conf import settings
 from django.db import connection
@@ -408,9 +411,12 @@ class ReferenceableGridCoverageMultipartTestCase(
 ):
     pass
 
+
+
 #===============================================================================
 # WCS-T
 #===============================================================================
+
 
 class WCSTransactionTestCase(XMLTestCase):
     """
@@ -422,6 +428,7 @@ class WCSTransactionTestCase(XMLTestCase):
 #   self.responseGetCoverage
 #   self.responseDeleteCoverage
 #   self.responseDescribeCoverageDeleted
+# DONE:  testValidate and testBinaryComparisonXML ( need how to name files in  "Expected response in ../autotest/expected/ " )
 ################################################################################
 
     def setUp(self):
@@ -480,7 +487,11 @@ class WCSTransactionTestCase(XMLTestCase):
             </wcst:InputCoverages>
         </wcst:Transaction>
         """        
+
         params =  requestBegin + self.ID + requestMid1 + self.getDataFullPath(self.ADDtiffFile) + requestMid2 + self.getDataFullPath(self.ADDmetaFile) + requestEnd
+
+        logging.debug("PARAM getRequest  %s" % params )
+
         return (params, "xml")
 
     def getDataFullPath(self , path_to):
@@ -489,10 +500,13 @@ class WCSTransactionTestCase(XMLTestCase):
     def testBinaryComparisonXML(self):
         # the RequestId element is set during ingestion and has thus to be 
         # explicitly unified
+        logging.debug("BINCompare   %s" % str( self.getXMLData() )  )
+
         tree = etree.fromstring(self.getXMLData())
         for node in tree.findall("{http://www.opengis.net/wcs/1.1/wcst}RequestId"):
             node.text = "identifier"
         self.response.content = etree.tostring(tree, encoding="ISO-8859-1")
+        logging.debug("BINCompare self.response.content  %s" % str( self.response.content )  ) 
         super(WCSTransactionTestCase, self).testBinaryComparisonXML()
 
     def testResponseIdComparison(self):
@@ -500,28 +514,59 @@ class WCSTransactionTestCase(XMLTestCase):
         Tests that the <ows:Identifier> in the XML request and response is the 
         same
         """
-        logging.debug("testResponseIdComparison for ID: %s" % self.ID)
-        tree = etree.fromstring(self.getXMLData())
-        for node in tree.findall("{http://www.opengis.net/ows/1.1}Identifier"):
-            self.assertEqual( node.text, self.ID)
+        logging.debug("IDCompare testResponseIdComparison for ID: %s" % self.ID)
+        self._testResponseIdComparison( self.ID  , self.getXMLData()  )
 
     def testStatusDescribeCoverage(self):
         """
         Tests that the inserted coverage is available in a DescribeCoverage
         request
         """
+        logging.debug("testStatusDescribeCoveragereponse content  %s " %   self.responseDescribeCoverage.content )
+        xmlTest = XMLTestCase(  methodName="testValidate" )
+        xmlTest.response =  self.responseDescribeCoverage
+        xmlTest.testValidate()
+        xmlTest.testBinaryComparisonXML() 
         self.assertEqual(self.responseDescribeCoverage.status_code, 200)
 
     def testStatusGetCoverage(self):
         """
         Validate the inserted coverage via a GetCoverage request
         """
+
+        response_msg = email.message_from_string("Content-type: multipart/mixed; boundary=wcs\n\n"
+                                                 + self.responseGetCoverage.content )
+
+        for part in response_msg.walk():
+            if part['Content-type'] == "multipart/mixed; boundary=wcs":
+                continue
+            elif part['Content-type'] == "text/xml":
+                # validate XML
+                xmlData = part.get_payload()                   
+                logging.debug("testStatusGetCoverage xmlData: %s"  %  xmlData )
+                xmlTest = XMLTestCase(  methodName="testValidate" )
+                # is it OK  create HttpResponse for this purpose ?
+                xmlTest.response=HttpResponse( xmlData )
+                xmlTest.testValidate()
+                xmlTest.testBinaryComparisonXML()
+            else:
+                self.imageData = part.get_payload()
+         
         self.assertEqual(self.responseGetCoverage.status_code, 200)
+
+
         
     def testStatusDeleteCoverage(self):
         """
         Test to delete the previously inserted coaverage
         """
+        logging.debug("testStatusGetCoverage TODO: reponse content %s " % self.responseDeleteCoverage.content  )
+        xmlTest = XMLTestCase(  methodName="testValidate" )
+        xmlTest.response =  self.responseDeleteCoverage
+        xmlTest.testValidate()
+        xmlTest.testBinaryComparisonXML()
+
+        self._testResponseIdComparison(  self.ID  ,   self.responseDeleteCoverage.content  )
         self.assertEqual(self.responseDeleteCoverage.status_code, 200)
 
     def testStatusDescribeCoverageDeleted(self):
@@ -529,7 +574,31 @@ class WCSTransactionTestCase(XMLTestCase):
         Tests that the deletec coverage is not longer available in a 
         DescribeCoverage request
         """
+        logging.debug("testStatusDescribeCoverageDeleted reponse content %s " %   self.responseDescribeCoverageDeleted.content )
+        xmlTest = XMLTestCase(  methodName="testValidate" )
+        xmlTest.response =  self.responseDescribeCoverageDeleted
+        xmlTest.testValidate()
+        xmlTest.testBinaryComparisonXML() 
+
+
         self.assertEqual(self.responseDescribeCoverageDeleted.status_code, 404)
+                  
+
+    def _testResponseIdComparison(self , id , rcontent ):
+        """
+        Tests that the <ows:Identifier> in the XML request and response is the 
+        same
+        """
+        logging.debug("_testResponseIdComparison for ID: %s" % id)
+        logging.debug("_testResponseIdComparison for content: %s" % rcontent )
+        tree = etree.fromstring( rcontent )
+        for node in tree.findall("{http://www.opengis.net/ows/1.1}Identifier"):
+            self.assertEqual( node.text, id )
+
+
+
+
+
 
 class WCSTransactionRectifiedGridCoverageTestCase(
     RectifiedGridCoverageMultipartTestCase,
