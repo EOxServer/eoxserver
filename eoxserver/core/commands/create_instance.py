@@ -85,10 +85,7 @@ class Command(EOxServerAdminCommand):
         
         src_root_dir = os.path.dirname(eoxserver.__file__)
         src_conf_dir = os.path.join(src_root_dir, "conf")
-    
-        if options['initial_data']:
-            initial_data = os.path.abspath(options['initial_data'])
-    
+        
         os.chdir(dst_root_dir)
     
         # create the initial django folder structure
@@ -130,7 +127,8 @@ class Command(EOxServerAdminCommand):
         shutil.copy(os.path.join(src_conf_dir, "init_spatialite-2.3.sql"),
                     os.path.join(dst_data_dir, "init_spatialite-2.3.sql"))
         
-        if options.get('initial_data') is not None:
+        if options.get('initial_data'):
+            initial_data = os.path.abspath(options['initial_data'])
             if os.path.splitext(initial_data)[1].lower() != ".json":
                 raise Exception("Initial data must be a JSON file.")
             shutil.copy(initial_data, os.path.join(dst_fixtures_dir,
