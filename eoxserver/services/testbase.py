@@ -36,9 +36,6 @@ import mimetypes
 import email
 from osgeo import gdal, gdalconst, osr
 
-
-from django.http import HttpResponse
-
 from django.test import Client
 from django.conf import settings
 from django.db import connection
@@ -131,7 +128,7 @@ class OWSTestCase(EOxServerTestCase):
     def getExpectedFileName(self, file_type):
         return "%s.%s" % (self.__class__.__name__, self.getFileExtension(file_type))
     
-    def _testBinaryComparison(self, file_type):
+    def _testBinaryComparison(self, file_type, Data=None):
         """
         Helper function for the `testBinaryComparisonXML` and
         `testBinaryComparisonRaster` functions.
@@ -147,12 +144,15 @@ class OWSTestCase(EOxServerTestCase):
             expected = None
         
         actual_response = None
-        if file_type in ("raster", "html"):
-            actual_response = self.getResponseData()
-        elif file_type == "xml":
-            actual_response = self.getXMLData()
+        if Data is None:
+            if file_type in ("raster", "html"):
+                actual_response = self.getResponseData()
+            elif file_type == "xml":
+                actual_response = self.getXMLData()
+            else:
+                self.fail("Unknown file_type '%s'." % file_type)
         else:
-            self.fail("Unknown file_type '%s'." % file_type)
+            actual_response = Data
 
         if expected != actual_response:
             if self.getFileExtension("raster") == "hdf":
@@ -285,10 +285,13 @@ class XMLTestCase(OWSTestCase):
     def getXMLData(self):
         return self.response.content
     
-    def testValidate(self):
+    def testValidate(self, XMLData=None):
         logging.info("Validating XML ...")
         
-        doc = etree.XML(self.getXMLData())
+        if XMLData is None:
+            doc = etree.XML(self.getXMLData())
+        else:
+            doc = etree.XML(XMLData)
         schema_locations = doc.get("{http://www.w3.org/2001/XMLSchema-instance}schemaLocation")
         locations = schema_locations.split()
         
@@ -388,6 +391,12 @@ class MultipartTestCase(XMLTestCase):
             return "xml"
         elif part == "raster":
             return "tif"
+        elif part == "TransactionDescribeCoverage":
+            return "TransactionDescribeCoverage.xml"
+        elif part == "TransactionDeleteCoverage":
+            return "TransactionDeleteCoverage.xml"
+        elif part == "TransactionDescribeCoverageDeleted":
+            return "TransactionDescribeCoverageDeleted.xml"
         else:
             return "dat"
     
@@ -411,12 +420,9 @@ class ReferenceableGridCoverageMultipartTestCase(
 ):
     pass
 
-
-
 #===============================================================================
 # WCS-T
 #===============================================================================
-
 
 class WCSTransactionTestCase(XMLTestCase):
     """
@@ -424,11 +430,8 @@ class WCSTransactionTestCase(XMLTestCase):
     """
 ################################################################################
 # TODO: Add tests for binary comparison and validation of:
-#   self.responseDescribeCoverage
-#   self.responseGetCoverage
 #   self.responseDeleteCoverage
 #   self.responseDescribeCoverageDeleted
-# DONE:  testValidate and testBinaryComparisonXML ( need how to name files in  "Expected response in ../autotest/expected/ " )
 ################################################################################
 
     def setUp(self):
@@ -489,9 +492,6 @@ class WCSTransactionTestCase(XMLTestCase):
         """        
 
         params =  requestBegin + self.ID + requestMid1 + self.getDataFullPath(self.ADDtiffFile) + requestMid2 + self.getDataFullPath(self.ADDmetaFile) + requestEnd
-
-        logging.debug("PARAM getRequest  %s" % params )
-
         return (params, "xml")
 
     def getDataFullPath(self , path_to):
@@ -500,16 +500,13 @@ class WCSTransactionTestCase(XMLTestCase):
     def testBinaryComparisonXML(self):
         # the RequestId element is set during ingestion and has thus to be 
         # explicitly unified
-        logging.debug("BINCompare   %s" % str( self.getXMLData() )  )
-
         tree = etree.fromstring(self.getXMLData())
         for node in tree.findall("{http://www.opengis.net/wcs/1.1/wcst}RequestId"):
             node.text = "identifier"
         self.response.content = etree.tostring(tree, encoding="ISO-8859-1")
-        logging.debug("BINCompare self.response.content  %s" % str( self.response.content )  ) 
         super(WCSTransactionTestCase, self).testBinaryComparisonXML()
 
-    def testResponseIdComparison(self):
+    def testResponseIdComparisonAdd(self):
         """
         Tests that the <ows:Identifier> in the XML request and response is the 
         same
@@ -522,67 +519,55 @@ class WCSTransactionTestCase(XMLTestCase):
         Tests that the inserted coverage is available in a DescribeCoverage
         request
         """
-        logging.debug("testStatusDescribeCoveragereponse content  %s " %   self.responseDescribeCoverage.content )
-        xmlTest = XMLTestCase(  methodName="testValidate" )
-        xmlTest.response =  self.responseDescribeCoverage
-        xmlTest.testValidate()
-        xmlTest.testBinaryComparisonXML() 
         self.assertEqual(self.responseDescribeCoverage.status_code, 200)
+
+    def testValidateDescribeCoverage(self):
+        self.testValidate(self.responseDescribeCoverage.content)
+
+    def testBinaryComparisonXMLDescribeCoverage(self):
+        self._testBinaryComparison("TransactionDescribeCoverage", self.responseDescribeCoverage.content)
 
     def testStatusGetCoverage(self):
         """
         Validate the inserted coverage via a GetCoverage request
         """
-
-        response_msg = email.message_from_string("Content-type: multipart/mixed; boundary=wcs\n\n"
-                                                 + self.responseGetCoverage.content )
-
-        for part in response_msg.walk():
-            if part['Content-type'] == "multipart/mixed; boundary=wcs":
-                continue
-            elif part['Content-type'] == "text/xml":
-                # validate XML
-                xmlData = part.get_payload()                   
-                logging.debug("testStatusGetCoverage xmlData: %s"  %  xmlData )
-                xmlTest = XMLTestCase(  methodName="testValidate" )
-                # is it OK  create HttpResponse for this purpose ?
-                xmlTest.response=HttpResponse( xmlData )
-                xmlTest.testValidate()
-                xmlTest.testBinaryComparisonXML()
-            else:
-                self.imageData = part.get_payload()
-         
         self.assertEqual(self.responseGetCoverage.status_code, 200)
 
-
-        
     def testStatusDeleteCoverage(self):
         """
         Test to delete the previously inserted coaverage
         """
-        logging.debug("testStatusGetCoverage TODO: reponse content %s " % self.responseDeleteCoverage.content  )
-        xmlTest = XMLTestCase(  methodName="testValidate" )
-        xmlTest.response =  self.responseDeleteCoverage
-        xmlTest.testValidate()
-        xmlTest.testBinaryComparisonXML()
-
-        self._testResponseIdComparison(  self.ID  ,   self.responseDeleteCoverage.content  )
         self.assertEqual(self.responseDeleteCoverage.status_code, 200)
+
+    def testValidateDeleteCoverage(self):
+        self.testValidate(self.responseDeleteCoverage.content)
+
+    def testBinaryComparisonXMLDeleteCoverage(self):
+        tree = etree.fromstring(self.responseDeleteCoverage.content)
+        for node in tree.findall("{http://www.opengis.net/wcs/1.1/wcst}RequestId"):
+            node.text = "identifier"
+        self._testBinaryComparison("TransactionDeleteCoverage", etree.tostring(tree, encoding="ISO-8859-1"))
+
+    def testResponseIdComparisonDelete(self):
+        """
+        Tests that the <ows:Identifier> in the XML request and response is the 
+        same
+        """
+        logging.debug("IDCompare testResponseIdComparison for ID: %s" % self.ID)
+        self._testResponseIdComparison( self.ID , self.responseDeleteCoverage.content )
 
     def testStatusDescribeCoverageDeleted(self):
         """
         Tests that the deletec coverage is not longer available in a 
         DescribeCoverage request
         """
-        logging.debug("testStatusDescribeCoverageDeleted reponse content %s " %   self.responseDescribeCoverageDeleted.content )
-        xmlTest = XMLTestCase(  methodName="testValidate" )
-        xmlTest.response =  self.responseDescribeCoverageDeleted
-        xmlTest.testValidate()
-        xmlTest.testBinaryComparisonXML() 
-
-
         self.assertEqual(self.responseDescribeCoverageDeleted.status_code, 404)
-                  
+
+    def testValidateDescribeCoverageDeleted(self):
+        self.testValidate(self.responseDescribeCoverageDeleted.content)
+
+    def testBinaryComparisonXMLDescribeCoverageDeleted(self):
+        self._testBinaryComparison("TransactionDescribeCoverageDeleted", self.responseDescribeCoverageDeleted.content)
 
     def _testResponseIdComparison(self , id , rcontent ):
         """
@@ -590,15 +575,9 @@ class WCSTransactionTestCase(XMLTestCase):
         same
         """
         logging.debug("_testResponseIdComparison for ID: %s" % id)
-        logging.debug("_testResponseIdComparison for content: %s" % rcontent )
         tree = etree.fromstring( rcontent )
         for node in tree.findall("{http://www.opengis.net/ows/1.1}Identifier"):
             self.assertEqual( node.text, id )
-
-
-
-
-
 
 class WCSTransactionRectifiedGridCoverageTestCase(
     RectifiedGridCoverageMultipartTestCase,
@@ -626,7 +605,7 @@ class WCSTransactionRectifiedGridCoverageTestCase(
 
     def getXMLData(self):
         return self.response.content
-    
+
 class WCSTransactionReferenceableGridCoverageTestCase(
     ReferenceableGridCoverageMultipartTestCase,
     WCSTransactionTestCase
@@ -653,7 +632,7 @@ class WCSTransactionReferenceableGridCoverageTestCase(
 
     def getXMLData(self):
         return self.response.content
-    
+
 #===============================================================================
 # WCS 2.0
 #===============================================================================
