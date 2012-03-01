@@ -126,7 +126,10 @@ class Command(EOxServerAdminCommand):
         
         shutil.copy(os.path.join(src_conf_dir, "TEMPLATE_template.map"),
                     os.path.join(dst_conf_dir, "template.map"))
-    
+        
+        shutil.copy(os.path.join(src_conf_dir, "init_spatialite-2.3.sql"),
+                    os.path.join(dst_data_dir, "init_spatialite-2.3.sql"))
+        
         if options.get('initial_data') is not None:
             if os.path.splitext(initial_data)[1].lower() != ".json":
                 raise Exception("Initial data must be a JSON file.")
