@@ -324,7 +324,7 @@ class EOWMSReferenceableDatasetBandsLayer(EOWMSBandsLayerMixIn, WMSReferenceable
     
 class EOWMSRectifiedStitchedMosaicBandsLayer(EOWMSBandsLayerMixIn, WMSRectifiedStitchedMosaicLayer):
     pass
-    
+
 class WMS13VersionHandler(OWSCommonVersionHandler):
     REGISTRY_CONF = {
         "name": "WMS 1.3.0 Version Handler",
@@ -712,6 +712,120 @@ class WMS13GetFeatureInfoHandler(WMSCommonHandler):
 
     def getMapServerLayer(self, layer):
         ms_layer = super(WMS13GetFeatureInfoHandler, self).getMapServerLayer(layer)
+        ms_layer.setMetaData("wms_exceptions_format","xml")
+        
+        return ms_layer
+    
+class WMS13GetLegendGraphicHandler(WMSCommonHandler):
+    REGISTRY_CONF = {
+        "name": "WMS 1.3 GetLegendGraphic Handler",
+        "impl_id": "services.ows.wms1x.WMS13GetLegendGraphicHandler",
+        "registry_values": {
+            "services.interfaces.service": "wms",
+            "services.interfaces.version": "1.3.0",
+            "services.interfaces.operation": "getlegendgraphic"
+        }
+    }
+    
+    # TODO: check XML locations
+    PARAM_SCHEMA = {
+        "service": {"xml_location": "/@service", "xml_type": "string", "kvp_key": "service", "kvp_type": "string"},
+        "version": {"xml_location": "/@version", "xml_type": "string", "kvp_key": "version", "kvp_type": "string"},
+        "operation": {"xml_location": "/", "xml_type": "localName", "kvp_key": "request", "kvp_type": "string"},
+        "layer": {"xml_location": "/layer", "xml_type": "string", "kvp_key": "layer", "kvp_type": "string"},
+        "format": {"xml_location": "/format", "xml_type": "string", "kvp_key": "format", "kvp_type": "string"},
+        "width": {"kvp_key": "width", "kvp_type": "int"},
+        "height": {"kvp_key": "height", "kvp_type": "int"},
+        "style": {"kvp_key": "style", "kvp_type": "string"},
+        # TODO SLD, SLD_BODY, SLD_VERSION, SCALE, STYLE, RULE
+        
+    }
+    
+    def _setMapProjection(self):
+        self.map.setProjection("+init=epsg:4326")
+        self.map.setMetaData("ows_srs", "EPSG:4326")
+    
+    def configureMapObj(self):
+        super(WMS13GetLegendGraphicHandler, self).configureMapObj()
+        
+        self.map.setMetaData("wms_exceptions_format", "xml")
+        self.map.setMetaData("ows_srs","EPSG:4326")
+        
+        self.map.setMetaData("wms_enable_requests", "getcapabilities,getmap,getfeatureinfo,getlegendgraphic")
+
+    def createLayers(self):
+        layer_name = self.req.getParamValue("layer")
+        
+        if layer_name is None:
+            raise InvalidRequestException(
+                "Missing 'LAYER' parameter",
+                "MissingParameterValue",
+                "layer"
+            )
+        self.createLayersForName(layer_name, [])
+                
+    def createLayersForName(self, layer_name, filter_exprs):
+        dataset_series = System.getRegistry().getFromFactory(
+            "resources.coverages.wrappers.DatasetSeriesFactory",
+            {"obj_id": layer_name}
+        )
+        if dataset_series is not None:
+            self.createDatasetSeriesLayers(dataset_series, filter_exprs)
+        else:
+            coverage = System.getRegistry().getFromFactory(
+                "resources.coverages.wrappers.EOCoverageFactory",
+                {"obj_id": layer_name}
+            )
+            if coverage is not None:
+                if coverage.matches(filter_exprs):
+                    self.addLayer(self.createCoverageLayer(coverage))
+                else:
+                    self.addLayer(WMSEmptyLayer(coverage.getCoverageId()))
+            else:
+                raise InvalidRequestException(
+                    "No coverage or dataset series with EO ID '%s' found" % layer_name,
+                    "LayerNotDefined",
+                    "layer"
+                )
+        
+    def createDatasetSeriesLayers(self, dataset_series, filter_exprs):
+        def _get_begin_time(coverage):
+            return coverage.getBeginTime()
+        
+        coverages = dataset_series.getEOCoverages(filter_exprs)
+        
+        if len(coverages) == 0:
+            layer = WMSEmptyLayer(dataset_series.getEOID())
+            
+            self.addLayer(layer)
+            
+        coverages.sort(key=_get_begin_time)
+        
+        for coverage in coverages:
+            layer = self.createCoverageLayer(coverage)
+            
+            layer.setGroup(dataset_series.getEOID())
+            
+            self.addLayer(layer)
+    
+    def getMapServerLayer(self, layer):
+        sld_enabled = System.getConfig().getConfigValue(
+            "services.ows.wms13", "enable_sld"
+        ) or "false"
+        style = self.req.getParamValue("style")
+        
+        if sld_enabled.lower() == "true" and style is not None:
+            sld_dir = System.getConfig().getConfigValue(
+                "services.ows.wms13", "sld_dir"
+            ) or "."
+            
+            pth = os.path.join(sld_dir, style + ".sld")
+            
+            if os.path.exists(pth):
+                with open(pth) as f:
+                    layer.addSLD(f.read())
+            
+        ms_layer = super(WMS13GetLegendGraphicHandler, self).getMapServerLayer(layer)
         ms_layer.setMetaData("wms_exceptions_format","xml")
         
         return ms_layer

@@ -44,7 +44,8 @@ from eoxserver.services.ows.wms.wms13 import (
     WMS13VersionHandler,
     WMS13GetCapabilitiesHandler,
     WMS13GetMapHandler,
-    WMS13GetFeatureInfoHandler
+    WMS13GetFeatureInfoHandler,
+    WMS13GetLegendGraphicHandler
 )
 
 class WMSServiceHandler(OWSCommonServiceHandler):
@@ -151,3 +152,5 @@ WMS111GetMapHandlerImplementation = OperationHandlerInterface.implement(WMS111Ge
 WMS13GetMapHandlerImplementation = OperationHandlerInterface.implement(WMS13GetMapHandler)
 
 WMS13GetFeatureInfoHandlerImplementation = OperationHandlerInterface.implement(WMS13GetFeatureInfoHandler)
+
+WMS13GetLegendGraphicHandlerImplementation = OperationHandlerInterface.implement(WMS13GetLegendGraphicHandler)
