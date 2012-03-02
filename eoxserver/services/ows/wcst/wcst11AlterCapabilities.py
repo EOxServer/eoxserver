@@ -213,7 +213,7 @@ def _wcst11AlterCapabilities( respSrc , OWS ) :
                 e = etree.Element( src ) 
 
                 # insert element at the desired position 
-                dst.insert( idx , src ) 
+                dst.insert( idx , e ) 
 
             except: 
             
@@ -225,7 +225,7 @@ def _wcst11AlterCapabilities( respSrc , OWS ) :
         before = ( OWS11.E_Fees , OWS11.E_AccessConstraints ) ; 
 
         # ows:Profile - WCSt >>Multiple Actions<< 
-        if ( "True" == congf.getConfigValue("services.ows.wcst11","allow_multiple_actions") ) : 
+        if ( "True" == conf.getConfigValue("services.ows.wcst11","allow_multiple_actions") ) : 
             #etree.SubElement( eSI , OWS.E_Profile ).text = "urn:ogc:extension:WCS:1.1:TransactionMultipleActions"
             insertBefore( eSI , OWS.E_Profile , before ).text = "urn:ogc:extension:WCS:1.1:TransactionMultipleActions"
 
