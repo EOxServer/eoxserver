@@ -50,6 +50,9 @@ Structure of the Documentation
    basics
    global_use_case
    install
+   centos_installation
+   admin_tutorial
+   synchronization
    idm
    operators
    users

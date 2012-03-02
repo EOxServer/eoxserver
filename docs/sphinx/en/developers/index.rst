@@ -58,3 +58,4 @@ to end users consuming the registered data.
    soap_proxy
    handling_coverages
    testing
+   autotest
