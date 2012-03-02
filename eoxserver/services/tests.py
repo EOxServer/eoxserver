@@ -893,12 +893,12 @@ class WCS20GetCoverageReferenceableDatasetImageCRSSubsetTestCase(eoxstest.WCS20G
 
 class WCS20GetCoverageReferenceableDatasetGeogCRSSubsetTestCase(eoxstest.WCS20GetCoverageReferenceableGridCoverageMultipartTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775&format=image/tiff&mediatype=multipart/mixed&subset=x,http://www.opengis.net/def/crs/EPSG/0/4326(19,20)&subset=y,http://www.opengis.net/def/crs/EPSG/0/4326(-35,-33)"
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775&format=image/tiff&mediatype=multipart/mixed&subset=x,http://www.opengis.net/def/crs/EPSG/0/4326(19.1,20.1)&subset=y,http://www.opengis.net/def/crs/EPSG/0/4326(-35,-32.9)"
         return (params, "kvp")
     
 class WCS20GetCoverageReferenceableDatasetGeogCRSSubsetExceedsExtentTestCase(eoxstest.WCS20GetCoverageReferenceableGridCoverageMultipartTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775&format=image/tiff&mediatype=multipart/mixed&subset=x,http://www.opengis.net/def/crs/EPSG/0/4326(0,50)&subset=y,http://www.opengis.net/def/crs/EPSG/0/4326(-50,0)"
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775&format=image/tiff&mediatype=multipart/mixed&subset=x,http://www.opengis.net/def/crs/EPSG/0/4326(14,16.4)&subset=y,http://www.opengis.net/def/crs/EPSG/0/4326(-39.5,-35.1)"
         return (params, "kvp")
 
 #===============================================================================
