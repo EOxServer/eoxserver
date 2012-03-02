@@ -955,32 +955,63 @@ class WCS20PostDescribeEOCoverageSetDatasetSeriesTestCase(eoxstest.XMLTestCase):
         </wcseo:DescribeEOCoverageSet>"""
         return (params, "xml")
 
-# TODO: Adjust to final namespace maybe "http://www.opengis.net/wcs_service-extension_crs/1.0"
 class WCS20PostGetCoverageMultipartDatasetTestCase(eoxstest.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
     def getRequest(self):
         params = """<wcs:GetCoverage service="WCS" version="2.0.0"
-           xmlns:wcs="http://www.opengis.net/wcs/2.0" 
-           xmlns:wcscrs="http://www.opengis.net/wcs/extensions/crs/1.0">
-          <wcs:Extension>
-            <wcscrs:GetCoverageCrs>
-              <wcscrs:subsettingCrs>http://www.opengis.net/def/crs/EPSG/0/4326</wcscrs:subsettingCrs>
-            </wcscrs:GetCoverageCrs>
-          </wcs:Extension>
+           xmlns:wcs="http://www.opengis.net/wcs/2.0">
+          <wcs:CoverageId>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</wcs:CoverageId>
+          <wcs:format>image/tiff</wcs:format>
+          <wcs:mediaType>multipart/mixed</wcs:mediaType>
+        </wcs:GetCoverage>"""
+        return (params, "xml")
+
+class WCS20PostGetCoverageSubsetMultipartDatasetTestCase(eoxstest.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
+    def getRequest(self):
+        params = """<wcs:GetCoverage service="WCS" version="2.0.0"
+           xmlns:wcs="http://www.opengis.net/wcs/2.0">
           <wcs:CoverageId>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</wcs:CoverageId>
           <wcs:DimensionTrim>
-            <wcs:Dimension>Long</wcs:Dimension>
-            <wcs:TrimLow>20</wcs:TrimLow>
-            <wcs:TrimHigh>22</wcs:TrimHigh>
+            <wcs:Dimension>x</wcs:Dimension>
+            <wcs:TrimLow>0</wcs:TrimLow>
+            <wcs:TrimHigh>99</wcs:TrimHigh>
           </wcs:DimensionTrim>
           <wcs:DimensionTrim>
-            <wcs:Dimension>Lat</wcs:Dimension>
-            <wcs:TrimLow>36</wcs:TrimLow>
-            <wcs:TrimHigh>38</wcs:TrimHigh>
+            <wcs:Dimension>y</wcs:Dimension>
+            <wcs:TrimLow>0</wcs:TrimLow>
+            <wcs:TrimHigh>99</wcs:TrimHigh>
           </wcs:DimensionTrim>
           <wcs:format>image/tiff</wcs:format>
           <wcs:mediaType>multipart/mixed</wcs:mediaType>
         </wcs:GetCoverage>"""
         return (params, "xml")
+
+# TODO: Enable once CRS handling with POST requests is implemented in MapServer
+# TODO: Adjust to final namespace maybe "http://www.opengis.net/wcs_service-extension_crs/1.0"
+#class WCS20PostGetCoverageSubsetEPSG4326MultipartDatasetTestCase(eoxstest.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
+#    def getRequest(self):
+#        params = """<wcs:GetCoverage service="WCS" version="2.0.0"
+#           xmlns:wcs="http://www.opengis.net/wcs/2.0" 
+#           xmlns:wcscrs="http://www.opengis.net/wcs/extensions/crs/1.0">
+#          <wcs:Extension>
+#            <wcscrs:GetCoverageCrs>
+#              <wcscrs:subsettingCrs>http://www.opengis.net/def/crs/EPSG/0/4326</wcscrs:subsettingCrs>
+#            </wcscrs:GetCoverageCrs>
+#          </wcs:Extension>
+#          <wcs:CoverageId>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</wcs:CoverageId>
+#          <wcs:DimensionTrim>
+#            <wcs:Dimension>Long</wcs:Dimension>
+#            <wcs:TrimLow>20</wcs:TrimLow>
+#            <wcs:TrimHigh>22</wcs:TrimHigh>
+#          </wcs:DimensionTrim>
+#          <wcs:DimensionTrim>
+#            <wcs:Dimension>Lat</wcs:Dimension>
+#            <wcs:TrimLow>36</wcs:TrimLow>
+#            <wcs:TrimHigh>38</wcs:TrimHigh>
+#          </wcs:DimensionTrim>
+#          <wcs:format>image/tiff</wcs:format>
+#          <wcs:mediaType>multipart/mixed</wcs:mediaType>
+#        </wcs:GetCoverage>"""
+#        return (params, "xml")
 
 class WCS20PostGetCoverageReferenceableMultipartDatasetTestCase(eoxstest.WCS20GetCoverageReferenceableGridCoverageMultipartTestCase):
     def getRequest(self):
@@ -1228,11 +1259,12 @@ class WMS13GetMapReferenceableGridReprojectionTestCase(eoxstest.WMS13GetMapTestC
     height = 451
     swap_axes = False
 
-class WMS13GetMapDatasetSeriesTestCase(eoxstest.WMS13GetMapTestCase):
-    """ Test a GetMap request with a dataset series. """
-    layers = ("MER_FRS_1P_reduced",)
-    width = 200
-    bbox = (-3.75, 32.158895, 28.326165, 46.3)
+# TODO: Enable once GEOSS exception is fixed
+#class WMS13GetMapDatasetSeriesTestCase(eoxstest.WMS13GetMapTestCase):
+#    """ Test a GetMap request with a dataset series. """
+#    layers = ("MER_FRS_1P_reduced",)
+#    width = 200
+#    bbox = (-3.75, 32.158895, 28.326165, 46.3)
 
 class WMS13GetMapDatasetSeriesTimePointTestCase(eoxstest.WMS13GetMapTestCase):
     layers = ("MER_FRS_1P_reduced",)
