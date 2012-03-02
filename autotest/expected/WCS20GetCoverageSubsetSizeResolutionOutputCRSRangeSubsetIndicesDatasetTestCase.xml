@@ -1,9 +1,9 @@
 <?xml version='1.0' encoding='ISO-8859-1'?>
 <wcseo:RectifiedDataset xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0" xmlns:om="http://www.opengis.net/om/2.0" xmlns:ows="http://www.opengis.net/ows/2.0" xmlns:swe="http://www.opengis.net/swe/2.0" xmlns:wcseo="http://www.opengis.net/wcseo/1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" gml:id="MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed" xsi:schemaLocation="http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd">
   <gml:boundedBy>
-    <gml:Envelope axisLabels="x y" srsDimension="2" srsName="http://www.opengis.net/def/crs/EPSG/0/3035" uomLabels="m m">
-      <gml:lowerCorner>4465026.00074872 1529799.2922196</gml:lowerCorner>
-      <gml:upperCorner>4747861.09984518 1886694.46817361</gml:upperCorner>
+    <gml:Envelope axisLabels="y x" srsDimension="2" srsName="http://www.opengis.net/def/crs/EPSG/0/3035" uomLabels="m m">
+      <gml:lowerCorner>1529799.2922196 4465026.00074872</gml:lowerCorner>
+      <gml:upperCorner>1886694.46817361 4747861.09984518</gml:upperCorner>
     </gml:Envelope>
   </gml:boundedBy>
   <gml:domainSet>
@@ -14,20 +14,20 @@
           <gml:high>31 99</gml:high>
         </gml:GridEnvelope>
       </gml:limits>
-      <gml:axisLabels>x y</gml:axisLabels>
+      <gml:axisLabels>y x</gml:axisLabels>
       <gml:origin>
         <gml:Point gml:id="grid_origin_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed" srsName="http://www.opengis.net/def/crs/EPSG/0/3035">
-          <gml:pos>4465026.000749 1886694.468174</gml:pos>
+          <gml:pos>1886694.468174 4465026.000749</gml:pos>
         </gml:Point>
       </gml:origin>
-      <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/3035">0.100000 0</gml:offsetVector>
       <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/3035">0 -0.031684</gml:offsetVector>
+      <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/3035">0.100000 0</gml:offsetVector>
     </gml:RectifiedGrid>
   </gml:domainSet>
   <gml:rangeSet>
     <gml:File>
-      <gml:rangeParameters xlink:arcrole="fileReference" xlink:href="coverage/out.tif" xlink:role="image/tiff"/>
-      <gml:fileReference>coverage/out.tif</gml:fileReference>
+      <gml:rangeParameters xlink:arcrole="fileReference" xlink:href="coverage/MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif" xlink:role="image/tiff"/>
+      <gml:fileReference>coverage/MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif</gml:fileReference>
       <gml:fileStructure/>
       <gml:mimeType>image/tiff</gml:mimeType>
     </gml:File>
