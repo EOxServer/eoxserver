@@ -1259,24 +1259,24 @@ class WMS13GetMapReferenceableGridReprojectionTestCase(eoxstest.WMS13GetMapTestC
     height = 451
     swap_axes = False
 
-# TODO: Enable once GEOSS exception is fixed
+# TODO: Enable test cases once GEOSS exception is fixed
 #class WMS13GetMapDatasetSeriesTestCase(eoxstest.WMS13GetMapTestCase):
 #    """ Test a GetMap request with a dataset series. """
 #    layers = ("MER_FRS_1P_reduced",)
 #    width = 200
 #    bbox = (-3.75, 32.158895, 28.326165, 46.3)
-
-class WMS13GetMapDatasetSeriesTimePointTestCase(eoxstest.WMS13GetMapTestCase):
-    layers = ("MER_FRS_1P_reduced",)
-    width = 200
-    bbox = (-3.75, 32.158895, 28.326165, 46.3)
-    time = "2008-08-30T10:09:49Z"
-    
-class WMS13GetMapDatasetSeriesTimeIntervalTestCase(eoxstest.WMS13GetMapTestCase):
-    layers = ("MER_FRS_1P_reduced",)
-    width = 200
-    bbox = (-3.75, 32.158895, 28.326165, 46.3)
-    time = "2006-08-01T00:00:00Z/2006-08-16T23:59:59Z"
+#
+#class WMS13GetMapDatasetSeriesTimePointTestCase(eoxstest.WMS13GetMapTestCase):
+#    layers = ("MER_FRS_1P_reduced",)
+#    width = 200
+#    bbox = (-3.75, 32.158895, 28.326165, 46.3)
+#    time = "2008-08-30T10:09:49Z"
+#    
+#class WMS13GetMapDatasetSeriesTimeIntervalTestCase(eoxstest.WMS13GetMapTestCase):
+#    layers = ("MER_FRS_1P_reduced",)
+#    width = 200
+#    bbox = (-3.75, 32.158895, 28.326165, 46.3)
+#    time = "2006-08-01T00:00:00Z/2006-08-16T23:59:59Z"
 
 class WMS13GetMapDatasetSeriesOutlinesTestCase(eoxstest.WMS13GetMapTestCase):
     requires_fixed_db = True
