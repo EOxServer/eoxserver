@@ -40,10 +40,11 @@ from django.test import Client
 from django.conf import settings
 from django.db import connection
 
+from eoxserver.core.system import System
+from eoxserver.core.util.xmltools import XMLDecoder
 from eoxserver.testing.core import (
     EOxServerTestCase, BASE_FIXTURES
 )
-from eoxserver.core.util.xmltools import XMLDecoder
 
 # THIS IS INTENTIONALLY DOUBLED DUE TO A BUG IN MIMETYPES!
 mimetypes.init()
@@ -103,6 +104,17 @@ class OWSTestCase(EOxServerTestCase):
 
         else:
             raise Exception("Invalid request type '%s'." % req_type)
+    
+    def isRequestConfigEnabled(self, config_key, default=False):
+        value = System.getConfig().getConfigValue("testing", config_key)
+        if value is None:
+            return default
+        elif value.lower() in ("yes", "y", "true", "on"):
+            return True
+        elif value.lower() in ("no", "n", "false", "off"):
+            return False
+        else:
+            return default
     
     def getRequest(self):
         raise Exception("Not implemented.")
@@ -181,6 +193,8 @@ class RasterTestCase(OWSTestCase):
         return "tif"
     
     def testBinaryComparisonRaster(self):
+        if not self.isRequestConfigEnabled("binary_raster_comparison_enabled", True):
+            self.skipTest("Binary raster comparison is explicitly disabled.")
         self._testBinaryComparison("raster")
 
 class GDALDatasetTestCase(RasterTestCase):
@@ -726,6 +740,11 @@ class RasdamanTestCaseMixIn(object):
         gdal.AllRegister()
         if gdal.GetDriverByName("RASDAMAN") is None:
             self.skipTest("Rasdaman driver is not enabled.")
+        
+        if not self.isRequestConfigEnabled("rasdaman_enabled"):
+            self.skipTest("Rasdaman tests are not enabled. Use the "
+                          "configuration option 'rasdaman_enabled' to allow "
+                          "rasdaman tests.")
         
         super(RasdamanTestCaseMixIn, self).setUp()
     
