@@ -207,7 +207,8 @@ def _wcst11AlterCapabilities( respSrc , OWS ) :
 
             try: 
                 # locate firts sublelemet 
-                idx = min( map( lambda e : dst.index( e ) , elements ) )
+                dl  = list( dst ) 
+                idx = min( map( lambda e : dl.index( e ) , elements ) )
 
                 # create element 
                 e = etree.Element( src ) 
