@@ -75,16 +75,19 @@ A_name      = 'name'
 
 class OWS11: pass 
 
+
 OWS11.version     = '1.1' 
 OWS11.E_DCP       = '{%s}DCP'%NS_OWS11
 OWS11.E_HTTP      = '{%s}HTTP'%NS_OWS11
 OWS11.E_Post      = '{%s}Post'%NS_OWS11 
+OWS11.E_Fees      = '{%s}Fees'%NS_OWS11 
 OWS11.E_Value     = '{%s}Value'%NS_OWS11
 OWS11.E_Profile   = '{%s}Profile'%NS_OWS11
 OWS11.E_Operation = '{%s}Operation'%NS_OWS11 
 OWS11.E_Parameter = '{%s}Parameter'%NS_OWS11 
 OWS11.E_Constraint = '{%s}Constraint'%NS_OWS11
 OWS11.E_AllowedValues = '{%s}AllowedValues'%NS_OWS11 
+OWS11.E_AccessConstraints = '{%s}AccessConstraints'%NS_OWS11 
 OWS11.E_OperationsMetadata = '{%s}OperationsMetadata'%NS_OWS11 
 OWS11.E_ServiceIdentification = '{%s}ServiceIdentification'%NS_OWS11
 
@@ -94,12 +97,14 @@ OWS20.version     = '2.0'
 OWS20.E_DCP       = '{%s}DCP'%NS_OWS20
 OWS20.E_HTTP      = '{%s}HTTP'%NS_OWS20
 OWS20.E_Post      = '{%s}Post'%NS_OWS20 
+OWS20.E_Fees      = '{%s}Fees'%NS_OWS20 
 OWS20.E_Value     = '{%s}Value'%NS_OWS20
 OWS20.E_Profile   = '{%s}Profile'%NS_OWS20
 OWS20.E_Operation = '{%s}Operation'%NS_OWS20 
 OWS20.E_Parameter = '{%s}Parameter'%NS_OWS20 
 OWS20.E_Constraint = '{%s}Constraint'%NS_OWS20
 OWS20.E_AllowedValues = '{%s}AllowedValues'%NS_OWS20 
+OWS11.E_AccessConstraints = '{%s}AccessConstraints'%NS_OWS11 
 OWS20.E_OperationsMetadata = '{%s}OperationsMetadata'%NS_OWS20 
 OWS20.E_ServiceIdentification = '{%s}ServiceIdentification'%NS_OWS20
 
@@ -191,12 +196,38 @@ def _wcst11AlterCapabilities( respSrc , OWS ) :
     # insert new Profile element to ServiceIdentification
 
     conf = System.getConfig()
-
+ 
     if eOM is not None :
 
+        #insert sub-element before the selected elements 
+        def insertBefore( dst , src , before ) : 
+
+            # get the sublelements  
+            elements = filter( lambda e : ( e is not None ) , map( lambda tag : dst.find( tag ) , before ) ) 
+
+            try: 
+                # locate firts sublelemet 
+                idx = min( map( lambda e : dst.index( e ) , elements ) )
+
+                # create element 
+                e = etree.Element( src ) 
+
+                # insert element at the desired position 
+                dst.insert( idx , src ) 
+
+            except: 
+            
+                # simply append elemet at the end 
+                e = etree.SubElement( dst , src ) 
+
+            return e 
+
+        before = ( OWS11.E_Fees , OWS11.E_AccessConstraints ) ; 
+
         # ows:Profile - WCSt >>Multiple Actions<< 
-        if ( "True" == conf.getConfigValue("services.ows.wcst11","allow_multiple_actions") ) : 
-            etree.SubElement( eSI , OWS.E_Profile ).text = "urn:ogc:extension:WCS:1.1:TransactionMultipleActions"
+        if ( "True" == congf.getConfigValue("services.ows.wcst11","allow_multiple_actions") ) : 
+            #etree.SubElement( eSI , OWS.E_Profile ).text = "urn:ogc:extension:WCS:1.1:TransactionMultipleActions"
+            insertBefore( eSI , OWS.E_Profile , before ).text = "urn:ogc:extension:WCS:1.1:TransactionMultipleActions"
 
         # unpack the allowed actions 
         allowedActions = conf.getConfigValue("services.ows.wcst11","allowed_actions")
@@ -205,7 +236,8 @@ def _wcst11AlterCapabilities( respSrc , OWS ) :
         # annotate allowd actions 
         for action in allowedActions : 
             # ows:Profile - WCSt allowed action action
-            etree.SubElement( eSI , OWS.E_Profile ).text = "urn:ogc:extension:WCS:1.1:Transaction%s" % ACTIONS_U2N[action] 
+            #etree.SubElement( eSI , OWS.E_Profile ).text = "urn:ogc:extension:WCS:1.1:Transaction%s" % ACTIONS_U2N[action] 
+            insertBefore( eSI , OWS.E_Profile , before ).text = "urn:ogc:extension:WCS:1.1:Transaction%s" % ACTIONS_U2N[action] 
 
     # =====================================================================
     # insert new Operation element to OperationMetadata 
