@@ -394,7 +394,28 @@ class MultipartTestCase(XMLTestCase):
             if part['Content-type'] == "multipart/mixed; boundary=wcs":
                 continue
             elif part['Content-type'] == "text/xml":
-                self.xmlData = part.get_payload()
+                # The filename depends on the actual time the request was 
+                # answered. It has to be explicitly unified.
+                tree = etree.fromstring(part.get_payload())
+                # WCS 2.0
+                node = tree.find("{http://www.opengis.net/gml/3.2}rangeSet/" \
+                                 "{http://www.opengis.net/gml/3.2}File/" \
+                                 "{http://www.opengis.net/gml/3.2}rangeParameters")
+                # WCS 11
+                if node is None:
+                    node = tree.find("{http://www.opengis.net/wcs/1.1}Coverage/" \
+                                     "{http://www.opengis.net/ows/1.1}Reference")
+
+                if node is not None:
+                    filename = node.get("{http://www.w3.org/1999/xlink}href").rsplit("_",1)[0] + ".tif"
+                    node.set("{http://www.w3.org/1999/xlink}href", filename)
+                    node2 = tree.find("{http://www.opengis.net/gml/3.2}rangeSet/" \
+                                     "{http://www.opengis.net/gml/3.2}File/" \
+                                     "{http://www.opengis.net/gml/3.2}fileReference")
+                    if node2 is not None:
+                        node2.text = filename
+
+                self.xmlData = etree.tostring(tree, encoding="ISO-8859-1")
             else:
                 self.imageData = part.get_payload()
         
@@ -693,27 +714,14 @@ class WCS20DescribeEOCoverageSetSectionsTestCase(XMLTestCase):
     
 class WCS20GetCoverageMultipartTestCase(MultipartTestCase):
     def testBinaryComparisonXML(self):
-        # The timePosition tag as well as the filename used in the rangeSet 
-        # depends on the actual time the request was answered. It has to be 
-        # explicitly unified.
+        # The timePosition tag depends on the actual time the request was 
+        # answered. It has to be explicitly unified.
         tree = etree.fromstring(self.getXMLData())
         for node in tree.findall("{http://www.opengis.net/gmlcov/1.0}metadata/" \
                                  "{http://www.opengis.net/wcseo/1.0}EOMetadata/" \
                                  "{http://www.opengis.net/wcseo/1.0}lineage/" \
                                  "{http://www.opengis.net/gml/3.2}timePosition"):
             node.text = "2011-01-01T00:00:00Z"
-
-        node = tree.find("{http://www.opengis.net/gml/3.2}rangeSet/" \
-                         "{http://www.opengis.net/gml/3.2}File/" \
-                         "{http://www.opengis.net/gml/3.2}rangeParameters")
-        if node != None:
-            filename = node.get("{http://www.w3.org/1999/xlink}href").rsplit("_",1)[0] + ".tif"
-            node.set("{http://www.w3.org/1999/xlink}href", filename)
-            node = tree.find("{http://www.opengis.net/gml/3.2}rangeSet/" \
-                             "{http://www.opengis.net/gml/3.2}File/" \
-                             "{http://www.opengis.net/gml/3.2}fileReference")
-            node.text = filename
-        
         self.xmlData = etree.tostring(tree, encoding="ISO-8859-1")
         
         super(WCS20GetCoverageMultipartTestCase, self).testBinaryComparisonXML()
