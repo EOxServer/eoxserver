@@ -22,7 +22,7 @@ Copyright (C) European Space Agency - ESA
     </ows:Keywords>
     <ows:ServiceType codeSpace="OGC">OGC WCS</ows:ServiceType>
     <ows:ServiceTypeVersion>1.1.2</ows:ServiceTypeVersion>
-    <ows:Fees>None</ows:Fees>
+    <ows:Profile>urn:ogc:extension:WCS:1.1:TransactionAdd</ows:Profile><ows:Profile>urn:ogc:extension:WCS:1.1:TransactionDelete</ows:Profile><ows:Fees>None</ows:Fees>
     <ows:AccessConstraints>None</ows:AccessConstraints>
   </ows:ServiceIdentification>
   <ows:ServiceProvider xmlns:ows="http://www.opengis.net/ows/1.1">
