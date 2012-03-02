@@ -41,11 +41,8 @@ data.
 Developers needing to know all the nitty-gritty about EOxServer implementation 
 and APIs please refer to the :ref:`EOxServer Developers' Guide`.
 
-Structure of the Documentation
-------------------------------
-
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    
    basics
    global_use_case

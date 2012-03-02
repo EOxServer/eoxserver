@@ -53,7 +53,7 @@ Open Source software including `MapServer <http://mapserver.org>`_,
 Here you find the documentation for users and developers of EOxServer.
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
    
    en/index
 

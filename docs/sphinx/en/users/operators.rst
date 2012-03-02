@@ -106,24 +106,111 @@ corresponding resource.
 The rasdaman storage records contain hostname, port, database name, user and
 password entries.
 
-The data is retrieved from the database using the rasdaman GDAL driver.
+The data is retrieved from the database using the rasdaman GDAL driver (see
+:doc:`install` for further information).
 
 .. _ops_coverages:
 
 Coverages
 ---------
 
+EOxServer coverages fall into three main categories:
+
+* :ref:`ops_rect_ds`
+* :ref:`ops_ref_ds`
+* :ref:`ops_rect_mosaics`
+
+In addition there is the :ref:`ops_ds_series` type which corresponds to an
+inhomogeneous collection of coverages.
+
+.. _ops_range_types:
+
 Range Types
 ~~~~~~~~~~~
+
+Every coverage has a ramge type that describes the structure of the data.
+Each range type has a given data type; the following data types are supported:
+
+============== ===============
+Data Type Name Data Type Value
+============== ===============
+Unknown        0
+Byte           1
+UInt16         2
+Int16          3
+UInt32         4
+Int32          5
+Float32        6
+Float64        7
+CInt16         8
+CInt32         9
+CFloat32       10
+CFloat64       11
+============== ===============
+
+A range type contains one or more bands. For each band you may specify a name,
+an identifier and a definition that describes the property measured
+(e.g. radiation). Furthermore, you can define nil values for each band (i.e.
+values that indicate that there is no measurement at the given position).
+
+This range type metadata is used in the coverage description metadata that is
+returned by WCS operations and for configuring WMS layers.
+
+.. _ops_eo_md:
+
+EO Metadata
+~~~~~~~~~~~
+
+Earth Observation (EO) metadata records are stored for each EO coverage
+and Dataset Series. They contain the acquisition begin and end time as well
+as the footprint of the coverage. The footprint is a polygon that describes the
+outlines of the area covered by the coverage.
+
+.. _ops_rect_ds:
 
 Rectified Datasets
 ~~~~~~~~~~~~~~~~~~
 
+Rectified Datasets are EO coverages whose domain set is a rectified grid. In
+practice, this applies to ortho-rectified satellite data. The rectified grid
+is described by the EPSG SRID of the coordinate reference system, the extent
+and pixel size of the coverage.
+
+Rectified Datasets can be added to Dataset Series and Rectified Stitched
+Mosaics.
+
+.. _ops_ref_ds:
+
 Referenceable Datasets
 ~~~~~~~~~~~~~~~~~~~~~~
 
+Referenceale Datasets are EO coverages whose domain set is a referenceable grid.
+That means that there is some general transformation betweem the grid cell
+coordinates and coordinates in an earth-bound spatial reference system. This
+applies for satellite data in its original geometry.
+
+At the moment, EOxServer supports only referenceable datasets that contain
+ground control points (GCPs) in the data files. Simple approximative
+transformations based on these GCPs are used to generate rectified views on the
+data for WMS and to calculate subset bounds for WCS GetCoverage requests. Note
+that these transformations can be very inaccurate in comparison to an actual
+ortho-rectification of the coverage.
+
+.. _ops_rect_mosaics:
+
 Rectified Stitched Mosaics
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Rectified Stitched Mosaics are EO coverages that are composed of a set of
+homogeneous Rectified Datasets. That means, the datasets must have the same
+range type and their domain sets must be subsets of the same rectified grid.
+
+When creating a Rectified Stitched Mosaic a homogeneous coverage is generated
+from the contained Rectified Datasets. Where datasets overlap the most recent
+one as indicated by the acquisition timestamps in the EO metadata is shown on
+top hiding the others.
+
+.. ops_ds_series:
 
 Dataset Series
 ~~~~~~~~~~~~~~
