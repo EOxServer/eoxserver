@@ -34,15 +34,15 @@
 
 .. _CentOSInstallation:
 
-Example Installation on a CentOS system
-=======================================
+Installation on CentOS
+======================
 
-This article describes an example installation of EOxServer on a `CentOS
+This article describes the installation procedure for EOxServer on a `CentOS
 <http://www.centos.org/>`_ system. In this example, a raw CentOS 6.2 minimal
-image was used.
+image is used.
 
-This installation example is complementary to the standard installation manual.
-#### TODO link
+This installation example is complementary to the standard :ref:`Installation`
+manual.
 
 
 Prerequisites
@@ -68,45 +68,45 @@ added with the following `yum` command:
     sudo rpm -Uvh http://elgis.argeo.org/repos/5/elgis-release-5-5_0.noarch.rpm
 
 The second repository to be added is `EPEL (Extra Packages for Enterprise
-Linux) <http://fedoraproject.org/wiki/EPEL>`_ which can also be added by a
-simple `yum` command:
+Linux) <http://fedoraproject.org/wiki/EPEL>`_ again via a simple `yum` command:
 ::
 
-    rpm -Uvh http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-5.noarch.rpm
+    sudo rpm -Uvh http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-5.noarch.rpm
 
-Since EOxServer requires several adjustments to existing packages to work
-correctly, eoxserver.org provides its own software package repository. It
-contains the latest versions of packages like `MapServer
-<http://mapserver.org/>`_, offers custom built `GDAL <http://gdal.org/>`_
-packages with extra drivers enabled and provides bug-fixes for some libraries
-including `libxml2 <http://xmlsoft.org/>`_. This repository is not mandatory,
-but is highly recommended for all features of EOxServer to work correctly.
+EOxServer requires several adjustments to existing packages to work correctly 
+which can be easily obtained from the yum repository at `packages.eox.at 
+<http://packages.eox.at>`_. This repository offers current versions of packages 
+like `MapServer <http://mapserver.org/>`_ as well as custom built ones with 
+extra drivers enabled like `GDAL <http://gdal.org/>`_ and/or with patches 
+applied like `libxml2 <http://xmlsoft.org/>`_. It is not mandatory to use this
+repository but it is highly recommended in order for all features of EOxServer 
+to work correctly.
 
-The repository is installed with the following commands:
+The repository is easily installed:
 ::
 
     cd /etc/yum.repos.d/
-    wget http://packages.eox.at/eox.repo
-    rpm --import http://packages.eox.at/eox-package-maintainers.gpg
-    yum update
+    sudo wget http://packages.eox.at/eox.repo
+    sudo rpm --import http://packages.eox.at/eox-package-maintainers.gpg
+    sudo yum update
 
 
 Installation of required software packages
 ------------------------------------------
 
-Now the required packages can be installed with this command:
+Now the required packages can be installed with only one command:
 ::
 
-    yum install gcc gdal gdal-devel gdal-python mapserver mapserver-python \
-                libxml2 libxml2-python python-lxml sqlite sqlite-devel \
-                python-pip
+    sudo yum install gcc gdal gdal-devel gdal-python mapserver mapserver-python \
+                     libxml2 libxml2-python python-lxml sqlite sqlite-devel \
+                     python-pip
 
 Further packages may be required if additional features (e.g: a full DBMS) are
 desired.
 
 When used with `spatialite <http://www.gaia-gis.it/spatialite/>`_ EOxServer
 also requires `pysqlite <http://code.google.com/p/pysqlite/>`_. Unfortunately
-pysqlite is built by default without a required parameter, thus it has to be
+pysqlite is built by default without a required parameter. Thus it has to be
 installed manually:
 ::
 
@@ -122,21 +122,16 @@ Now `setup.cfg` needs to be opened with a text editor (like `vi`) and the line
 has to be deleted or commented. Pysqlite can now be installed with:
 ::
 
-    python setup.py install
+    sudo python setup.py install
 
 For installation of Python packages `pip <www.pip-installer.org/>`_ is used,
 which iself was installed in the previous step. It automatically resolves and
-installs all of its dependencies, so a simple
+installs all dependencies. So a simple
 ::
 
-    pip-python install eoxserver
+    sudo pip-python install eoxserver
 
 suffices to install EOxServer itself.
 
-
-Further Reading
----------------
-
-#### link to autotest installation
-
-
+Now that EOxServer is properly install the next step is to :ref:`create and configure
+an instance <Creating an Instance>`. 
