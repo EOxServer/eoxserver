@@ -97,6 +97,10 @@ class Command(EOxServerAdminCommand):
         os.mkdir(dst_data_dir)
         os.mkdir(dst_logs_dir)
         os.mkdir(dst_fixtures_dir)
+
+        # create the WCS-T subdirectories
+        os.mkdir(os.path.join(dst_inst_dir, "wcst_perm"))
+        os.mkdir(os.path.join(dst_inst_dir, "wcst_temp"))
     
         # create an empty logfile
         create_file(dst_logs_dir, "eoxserver.log")

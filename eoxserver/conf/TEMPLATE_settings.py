@@ -161,7 +161,7 @@ INSTALLED_APPS = (
     # Enable the admin:
     'django.contrib.admin',
 #    'django.contrib.databrowse',
-    'django_extensions',
+#    'django_extensions',
     'eoxserver.core',
     'eoxserver.services',
     'eoxserver.resources.coverages',
