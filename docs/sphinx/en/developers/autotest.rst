@@ -67,14 +67,6 @@ the previously created instance:
 
 The autotest instance is now installed and is ready for some testing!
 
-
-Loading data
-
-Running instance
-
-login admin password admin
-
-
 Running tests
 -------------
 
@@ -89,14 +81,101 @@ To run tests against a component of EOxServer simply run:
     cd autotest
     python manage.py test <component>
 
-where `<component>` is one of `core`, `backends`, `coverages` and `services`.
-If all components shall be tested in one pass, just the `<component>` parameter
-has to be omitted. Detailed information about running Django tests can be found
-in the `according chapter of the Django documentation
+where `<component>` is one of `services`, `core`, `backends`, `coverages` and 
+`processes`. If all components shall be tested in one pass, just the 
+`<component>` parameter has to be omitted. Detailed information about running 
+Django tests can be found in the `according chapter of the Django documentation 
 <https://docs.djangoproject.com/en/1.3/topics/testing/#running-tests>`_.
 
+Due to some behaviour of underlying software such as GEOSS the tests for the 
+`services` component need to be split up. The following splitting is known to 
+work:
+::
 
+    python manage.py test services.WCS1
+    python manage.py test services.WCS20GetCap
+    python manage.py test services.WCSVersion
+    python manage.py test services.WCS20DescribeCoverage
+    python manage.py test services.WCS20DescribeEOCoverageSet
+    python manage.py test services.WCS20GetCoverage
+    python manage.py test services.WCS20Post
+    python manage.py test services.WMS
 
+Running single tests
+~~~~~~~~~~~~~~~~~~~~
 
+Single tests or groups of tests can be run by appending the test name or 
+beginning of the test name to the component:
+::
 
+    python manage.py test services.WCS20GetCapabilities
+
+XML Validation
+~~~~~~~~~~~~~~
+
+In order to speed up the tests and also to pass certain tests it is highly 
+recommended to make usage of locally stored schemas via XML Catalog:
+::
+
+    wget http://eoxserver.org/export/head/downloads/EOxServer_schemas-0.2-alpha1.tar.gz
+    tar xvfz EOxServer_schemas-0.2-alpha1.tar.gz
+    export XML_CATALOG_FILES=`pwd`"/EOxServer-0.2-alpha1/schemas/catalog.xml"
+
+Running the *autotest* instance
+-------------------------------
+
+First the configuration of the instance has to be finalized. After the 
+successful :ref:`Database Setup` it needs to be initialized:
+::
+
+    cd autotest
+    python manage.py syncdb
+
+Either a Django superuser needs to be defined while running the command or the 
+``auth_data.json`` loaded as described in the next section.
+
+Loading test data 
+~~~~~~~~~~~~~~~~~
+
+Test data is provided as fixtures plus image files. To register all available 
+test data simply run:
+::
+
+    cd autotest
+    python manage.py loaddata auth_data.json initial_rangetypes.json \
+                              testing_base.json testing_coverages.json \
+                              testing_asar_base.json testing_asar.json 
+
+The following fixtures are provided:
+
+* initial_data.json - Base data to enable components. Loaded with syncdb.
+* auth_data.json - An administration account.
+* initial_rangetypes.json - Range types for RGB and gray-scale coverages.
+* testing_base.json - Range type for the 15 band uint16 test data.
+* testing_coverages.json - Metadata for the MERIS test data.
+* testing_asar_base.json - Range type for the ASAR test data.
+* testing_asar.json - Metadata for the ASAR test data.
+* testing_rasdaman_coverages.json - Use this fixtures in addition when
+  rasdaman is installed and configured.
+* testing_backends.json - This fixtures are used for testing the backend
+  layer only and shouldn't be loaded in the test instance.
+
+Running the development web server
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Django provides a `lightweight development web server <https://docs.djangoprojec
+t.com/en/dev/ref/django-admin/#runserver-port-or-address-port>`_ which can be 
+used to run the *autotest* instance:
+::
+
+    cd autotest
+    python manage.py runserver
+
+The *autotest* instance is now available via a standard web browser at 
+http://localhost:8000/
+
+The :ref:`ops_admin` is available at http://localhost:8000/admin or via the 
+*Admin Client* link from the start page. Note that if the ``auth_data.json`` 
+has been loaded there is a superuser login available with username and password 
+"login".
 
