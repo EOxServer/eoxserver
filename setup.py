@@ -84,7 +84,7 @@ packages, data_files = [], []
 for dirpath, dirnames, filenames in os.walk('eoxserver'):
     for i, dirname in enumerate(dirnames):
         if dirname.startswith('.'): del dirnames[i]
-    if '__init__.py' in filenames:
+    if '__init__.py' in filenames or 'initial_data.json' in filenames:
         packages.append('.'.join(fullsplit(dirpath)))
     elif filenames:
         data_files.append([dirpath, [os.path.join(dirpath, f) for f in filenames]])
@@ -94,6 +94,7 @@ setup(
     version=version.replace(' ', '-'),
     packages=packages,
     data_files=data_files,
+    include_package_data=True,
     scripts=["eoxserver/scripts/eoxserver-admin.py"],
     
     ext_modules=[
