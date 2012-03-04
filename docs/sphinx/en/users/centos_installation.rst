@@ -108,9 +108,9 @@ Now the required packages can be installed with only one command:
 Further packages may be required if additional features (e.g: a full DBMS) are
 desired.
 
-For installation of Python packages `pip <www.pip-installer.org/>`_ is used,
-which iself was installed in the previous step. It automatically resolves and
-installs all dependencies. So a simple
+For installation of Python packages `pip <http://www.pip-installer.org/>`_ is 
+used, which iself was installed in the previous step. It automatically resolves 
+and installs all dependencies. So a simple
 ::
 
     sudo pip-python install eoxserver
