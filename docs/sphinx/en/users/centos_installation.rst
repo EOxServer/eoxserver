@@ -108,6 +108,15 @@ Now the required packages can be installed with only one command:
 Further packages may be required if additional features (e.g: a full DBMS) are
 desired.
 
+For installation of Python packages `pip <www.pip-installer.org/>`_ is used,
+which iself was installed in the previous step. It automatically resolves and
+installs all dependencies. So a simple
+::
+
+    sudo pip-python install eoxserver
+
+suffices to install EOxServer itself.
+
 When used with `spatialite <http://www.gaia-gis.it/spatialite/>`_ EOxServer
 also requires `pysqlite <http://code.google.com/p/pysqlite/>`_. Unfortunately
 pysqlite is built by default without a required parameter. Thus it has to be
@@ -128,14 +137,13 @@ has to be deleted or commented. Pysqlite can now be installed with:
 
     sudo python setup.py install
 
-For installation of Python packages `pip <www.pip-installer.org/>`_ is used,
-which iself was installed in the previous step. It automatically resolves and
-installs all dependencies. So a simple
+The ``--init_spatialite`` flag of the ``create_instance`` command of the 
+``eoxserver-admin.py`` script used to initialize a sqlite database needs 
+pyspatialite:
 ::
 
-    sudo pip-python install eoxserver
-
-suffices to install EOxServer itself.
+    sudo yum install libspatialite-devel geos-devel proj-devel
+    sudo pip-python install pyspatialite
 
 Now that EOxServer is properly install the next step is to :ref:`create and configure
 an instance <Creating an Instance>`. 

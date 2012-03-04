@@ -58,7 +58,8 @@ and APIs please refer to the :ref:`EOxServer Developers' Guide`.
    webclient
    idm
    soap_proxy
+   presentations
 
 .. TODO
-   users
-   reference
+   users     - empty
+   reference - empty

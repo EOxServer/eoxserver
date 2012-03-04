@@ -33,6 +33,10 @@
 Modules
 =======
 
+.. contents:: Table of Contents
+    :depth: 3
+    :backlinks: top
+
 EOxServer Core
 --------------
 

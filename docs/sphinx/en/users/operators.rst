@@ -306,12 +306,12 @@ running, typically apache, has read access.
 ..
   # Linking to a FTP Storage
   # ~~~~~~~~~~~~~~~~~~~~~~~~
-  # TBD
+  # TODO
 
 ..
   # Linking to a rasdaman Storage
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # TBD
+  # TODO
 
 Creating a Data Package
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -327,7 +327,7 @@ XML metadata file using the WCS 2.0 Earth Observation Application Profile
 ..
   # Adding a single Rectified Dataset
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # TBD
+  # TODO
 
 Adding Data Sources
 ~~~~~~~~~~~~~~~~~~~
@@ -345,7 +345,7 @@ a XML file with the exact same name holding the EO-Metadata.
 .. 
   # Creating a Stitched Mosaic
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # TBD
+  # TODO
 
 Creating a Dataset Series
 ~~~~~~~~~~~~~~~~~~~~~~~~~

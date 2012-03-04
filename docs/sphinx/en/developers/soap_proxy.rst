@@ -32,6 +32,10 @@
 SOAP Proxy 
 ==========
 
+.. contents:: Table of Contents
+    :depth: 3
+    :backlinks: top
+
 Architecture
 ------------
 

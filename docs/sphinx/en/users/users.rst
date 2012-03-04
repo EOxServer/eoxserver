@@ -33,3 +33,6 @@
 EOxServer Application Users' Guide
 ==================================
 
+.. contents:: Table of Contents
+    :depth: 3
+    :backlinks: top

@@ -33,7 +33,11 @@
 Basics
 ======
 
-As described thouroughly in RFC 1 and RFC 2, EOxServer seperates between
+.. contents:: Table of Contents
+    :depth: 3
+    :backlinks: top
+
+As described thoroughly in RFC 1 and RFC 2, EOxServer separates between
 interface and implementation
 
 

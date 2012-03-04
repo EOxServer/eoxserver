@@ -1,4 +1,4 @@
-.. Webclient
+.. Webclient Interface
   #-----------------------------------------------------------------------------
   # $Id$
   #
@@ -29,9 +29,14 @@
   # IN THE SOFTWARE.
   #-----------------------------------------------------------------------------
 
+.. _The Webclient Interface:
 
-The webclient interface
+The Webclient Interface
 =======================
+
+.. contents:: Table of Contents
+    :depth: 3
+    :backlinks: top
 
 The webclient interface is an application running in the browser and provides a
 preview of all Datasets in a specified Dataset Series. It uses an
@@ -42,7 +47,7 @@ datasets within a map context. The background map tiles are provided by
 It can further be used to provide a download mechanism for registered datasets.
 
 
-Enable the webclient interface
+Enable the Webclient Interface
 ------------------------------
 
 To enable the webclient interface, several adjustments have to be made to the

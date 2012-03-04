@@ -48,18 +48,20 @@ on the *User* side.
    :align: center
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    
    basics
    core
    data_model
    plugins
    services
-   processes
    data_formats
    metadata_formats
-   modules
+   autotest
    soap_proxy
    handling_coverages
+   modules
    testing
-   autotest
+
+.. TODO
+   processes
