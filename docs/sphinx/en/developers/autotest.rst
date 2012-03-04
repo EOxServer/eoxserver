@@ -65,6 +65,15 @@ the previously created instance:
     tar xvfz EOxServer_autotest-0.2-alpha1.tar.gz
     cp -Rf EOxServer_autotest-0.2-alpha1/* autotest
 
+There are two configuration directives available in *conf/eoxserver.conf* to 
+control the behaviour of the testing:
+
+* binary_raster_comparison_enabled=True - Set to false if binary comparison 
+  tests shall be skipped. Needed if testing is performed on different 
+  architectures.
+* rasdaman_enabled=False - Set to true if rasdaman is installed and the test 
+  data loaded. rasdaman tests are skipped otherwise.
+
 The autotest instance is now installed and is ready for some testing!
 
 Running tests
