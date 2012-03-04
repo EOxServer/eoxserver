@@ -266,6 +266,8 @@ have to do is:
 
 .. TODO: Logfile handling: configuration in settings.py and eoxserver.conf logrotate, etc.
 
+.. _Database Setup:
+
 Database Setup
 ~~~~~~~~~~~~~~
 
@@ -457,3 +459,47 @@ executing shell and is most certainly platform dependant.
 
 The registered dataset is also inserted to the given dataset series and 
 rectified stitched mosaic.
+
+Here is the full list of available options:
+
+    -d, --data-file, --data-files, --collection, --collections
+                        Mandatory. One or more paths to a files containing the
+                        image data. These paths can either be local, ftp
+                        paths, or rasdaman collection names.
+    -m, --metadata-file, --metadata-files
+                        Optional. One or more paths to a local files
+                        containing the image meta data. Defaults to the same
+                        path as the data file with the ".xml" extension.
+    -r RANGETYPE, --rangetype=RANGETYPE
+                        Mandatory identifier of the rangetype used in the
+                        dataset.
+    --dataset-series      Optional. One or more eo ids of a dataset series in
+                        which the created datasets shall be added.
+    --stitched-mosaic     Optional. One or more eo ids of a rectified stitched
+                        mosaic in which the dataset shall be added.
+    -i, --coverage-id, --coverage-ids
+                        Optional. One or more coverage identifier for each
+                        dataset that shall be added. Defaults to the base
+                        filename without extension.
+    --mode=MODE           Optional. Defines the location of the datasets to be
+                        registered. Can be 'local', 'ftp', or 'rasdaman'.
+                        Defaults to 'local'.
+    --host=HOST           Mandatory when mode is not 'local'. Defines the
+                        ftp/rasdaman host to locate the dataset.
+    --port=PORT           Optional. Defines the port for ftp/rasdaman host
+                        connections.
+    --user=USER           Optional. Defines the ftp/rasdaman user for the
+                        ftp/rasdaman connection.
+    --password=PASSWORD   Optional. Defines the ftp/rasdaman user password for
+                        the ftp/rasdaman connection.
+    --database=DATABASE   Optional. Defines the rasdaman database containing the
+                        data.
+    --oid, --oids         Optional. List of rasdaman oids for each dataset to be
+                        inserted.
+    --default-srid=DEFAULT_SRID
+                        Optional. Default SRID, needed if it cannot be
+                        determined automatically by GDAL.
+    --visible=VISIBLE     Optional. Sets the visibility status of all datasets
+                        to thegiven boolean value. Defaults to 'True'.
+    --version             show program's version number and exit
+    -h, --help            show this help message and exit
