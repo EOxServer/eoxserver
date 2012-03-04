@@ -334,7 +334,7 @@ Adding Data Sources
 
 After adding a Local Path or location (pointing to a single directory, not a
 specific file) you can combine this with a search pattern and create a Data
-Source. A viable search pattern would be something like "*.tif" to add all TIFF
+Source. A viable search pattern would be something like "\*.tif" to add all TIFF
 files stored in that directory. Please note that in this case, every TIFF needs
 a XML file with the exact same name holding the EO-Metadata.
 
