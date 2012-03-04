@@ -61,9 +61,9 @@ download page <http://http://eoxserver.org/wiki/Download>`_ and unpacked into
 the previously created instance:
 ::
 
-    wget http://eoxserver.org/export/head/downloads/EOxServer_autotest-0.2-alpha1.tar.gz
-    tar xvfz EOxServer_autotest-0.2-alpha1.tar.gz
-    cp -Rf EOxServer_autotest-0.2-alpha1/* autotest
+    wget http://eoxserver.org/export/head/downloads/EOxServer_autotest-0.2-alpha2.tar.gz
+    tar xvfz EOxServer_autotest-0.2-alpha2.tar.gz
+    cp -Rf EOxServer_autotest-0.2-alpha2/* autotest
 
 There are two configuration directives available in *conf/eoxserver.conf* to 
 control the behaviour of the testing:
@@ -126,9 +126,9 @@ In order to speed up the tests and also to pass certain tests it is highly
 recommended to make usage of locally stored schemas via XML Catalog:
 ::
 
-    wget http://eoxserver.org/export/head/downloads/EOxServer_schemas-0.2-alpha1.tar.gz
-    tar xvfz EOxServer_schemas-0.2-alpha1.tar.gz
-    export XML_CATALOG_FILES=`pwd`"/EOxServer-0.2-alpha1/schemas/catalog.xml"
+    wget http://eoxserver.org/export/head/downloads/EOxServer_schemas-0.2-alpha2.tar.gz
+    tar xvfz EOxServer_schemas-0.2-alpha2.tar.gz
+    export XML_CATALOG_FILES=`pwd`"/EOxServer-0.2-alpha2/schemas/catalog.xml"
 
 Running the *autotest* instance
 -------------------------------
