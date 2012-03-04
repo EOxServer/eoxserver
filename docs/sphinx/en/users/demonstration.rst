@@ -40,11 +40,11 @@ Demonstration
     :depth: 3
     :backlinks: top
 
-The EOxServer demonstration is based on the Envisat MERIS sample data
-available `here <http://earth.esa.int/object/index.cfm?fobjectid=4320>`_.
+The EOxServer demonstration is an instantiation of the :ref:`autotest instance 
+<Autotest>` and is based on the Envisat MERIS sample data available `here 
+<http://earth.esa.int/object/index.cfm?fobjectid=4320>`_.
 
-The configuration which is also shipped together with EOxServer for the
-unit tests includes one DatasetSeries and one StitchedMosaic both
+The configuration includes one DatasetSeries and one StitchedMosaic both
 combining the three available datasets:
 
 * DatasetSeries (EOId: MER_FRS_1P_reduced) containing the 3 MERIS sample

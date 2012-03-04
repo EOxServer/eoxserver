@@ -188,3 +188,4 @@ The :ref:`ops_admin` is available at http://localhost:8000/admin or via the
 has been loaded there is a superuser login available with username and password 
 "login".
 
+Sample service requests are described in the :ref:`Demonstration` section.
