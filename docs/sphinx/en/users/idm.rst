@@ -32,6 +32,10 @@
 Identity Management System
 ==========================
 
+.. contents:: Table of Contents
+    :depth: 3
+    :backlinks: top
+
 The Identity Management System (IDMS) provides access control capabilities for 
 security relevant data. The current IDMS supports EOxServer with a native 
 security component for HTTP KVP and POST/XML protocol binding as well as 

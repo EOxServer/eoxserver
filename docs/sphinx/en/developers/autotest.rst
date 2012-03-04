@@ -34,10 +34,14 @@
 
 .. _Autotest:
 
-The 'autotest' instance
+The *autotest* instance
 =======================
 
-The `autotest` package is a minimal EOxServer instance to run tests against
+.. contents:: Table of Contents
+    :depth: 3
+    :backlinks: top
+
+The *autotest* package is a minimal EOxServer instance to run tests against
 the basic functionality of EOxServer. It provides test data and expected
 results for various components.
 
@@ -45,7 +49,7 @@ results for various components.
 Installation
 ------------
 
-For the `autotest` instance to work, a new EOxServer instance has to be created
+For the *autotest* instance to work, a new EOxServer instance has to be created
 with the `eoxserver-admin.py` script which creates a basic directory and file
 structure for a new instance:
 ::
@@ -63,6 +67,14 @@ the previously created instance:
 
 The autotest instance is now installed and is ready for some testing!
 
+
+Loading data
+
+Running instance
+
+login admin password admin
+
+
 Running tests
 -------------
 
@@ -71,7 +83,7 @@ Most of the tests in EOxServer use the `Django test framework
 built upon `Python's unittest framework
 <http://docs.python.org/library/unittest.html>`_.
 
-To run tests against a component of EOxServer you have to type:
+To run tests against a component of EOxServer simply run:
 ::
 
     cd autotest

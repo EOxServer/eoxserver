@@ -36,6 +36,10 @@
 Mailing Lists
 =============
 
+.. contents:: Table of Contents
+    :depth: 3
+    :backlinks: top
+
 Users Mailing List
 ------------------
 

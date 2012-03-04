@@ -37,8 +37,14 @@
 Installation
 ============
 
+.. contents:: Table of Contents
+    :depth: 3
+    :backlinks: top
+
 Before you can use EOxServer, you’ll need to get it installed. Following this 
 guide will give you a simple, minimal though working installation.
+
+A guide for the :ref:`CentOSInstallation` is also available.
 
 .. index::
     single: EOxServer Dependencies
@@ -168,14 +174,19 @@ switch to your pip command e.g.:
 
   sudo pip install --upgrade eoxserver
 
-
 If the directory EOxServer is installed to is not on the Python path, you will 
 have to configure the deployed instances accordingly, see 
 :ref:`EOxServer Deployment` below.
 
+The successful installation of EOxServer can be tested using the 
+:ref:`autotest instance <Autotest>` which is described in more detail in the 
+:ref:`EOxServer Developers' Guide`.
+
 .. index::
     single: EOxServer Instance Creation
     single: Instance Creation
+
+.. _Creating an Instance:
 
 Creating an Instance
 --------------------
@@ -253,30 +264,19 @@ have to do is:
 * Make sure EOxServer is on your ``PYTHONPATH`` environment variable
 * run ``python manage.py syncdb`` in your instance directory
 
-Using a PostgreSQL/PostGIS database back-end configuration is a little bit more 
-complex. Please refer to `GeoDjango Database API 
-<https://docs.djangoproject.com/en/1.3/ref/contrib/gis/db-api/>`_ for more 
-instructions. On a \*NIX system, the setup process might look like this:
-
-    # first a template 
-
-.. TODO: Logfile handling:
-    configuration in settings.py and eoxserver.conf
-    logrotate, etc.
-
-.. index::
-    single: EOxServer Deployment
-    single: Deployment
+.. TODO: Logfile handling: configuration in settings.py and eoxserver.conf logrotate, etc.
 
 Database Setup
 ~~~~~~~~~~~~~~
 
-Before proceeding, please be sure that you have installed all required software
-for the database system of your choice. Please refer to  TODO 
+This section is only needed if the ``--init_spatialite`` flag was not used 
+during instance creation or a PostgreSQL/PostGIS database back-end shall be 
+used. Before proceeding, please make sure that you have installed all required 
+software for the database system of your choice.
 
 Using a SQLite database, all you have to do is to copy the
 ``TEMPLATE_config.sqlite`` and place it somewhere in your instance directory.
-Now you have to edit the ``DATABASES`` your ``settings.py`` file with the
+Now you have to edit the ``DATABASES`` of your ``settings.py`` file with the
 following lines:
 ::
 
@@ -287,9 +287,11 @@ following lines:
         }
     }
 
-Setting up a PostgreSQL database for EOxServer requires also installing the
-PostGIS extensions (the following example is an installation based on a Debian
-system):
+
+Using a PostgreSQL/PostGIS database back-end configuration for EOxServer is a 
+little bit more complex. Setting up a PostgreSQL database requires also 
+installing the PostGIS extensions (the following example is an installation 
+based on a Debian system):
 ::
 
     sudo su - postgres
@@ -324,6 +326,13 @@ In the ``settings.py`` the following entry has to be added:
         }
     }
 
+Please refer to `GeoDjango Database API 
+<https://docs.djangoproject.com/en/1.3/ref/contrib/gis/db-api/>`_ for more 
+instructions.
+
+.. index::
+    single: EOxServer Deployment
+    single: Deployment
 
 .. _EOxServer Deployment:
 
@@ -369,12 +378,13 @@ In the Apache2 configuration file for your server, e.g.
 This setup will deploy your instance under the URL ``<url>`` and make it 
 publicly accessible.
 
+.. _Data Registration:
+
 Data Registration
 ~~~~~~~~~~~~~~~~~
 
 To insert data into an EOxServer instance there are several ways. One is the
-admin interface, which is explained in detail in the :ref:`Administration Web
-Application Tutorial`.
+admin interface, which is explained in detail in the :ref:`ops_admin` section.
 
 Another convenient way to register datasets is the command line interface to
 EOxServer. As a Django application, the instance can be configured using the

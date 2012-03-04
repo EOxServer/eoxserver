@@ -33,6 +33,10 @@
 EOxServer Basics
 ================
 
+.. contents:: Table of Contents
+    :depth: 3
+    :backlinks: top
+
 Introduction
 ------------
 
@@ -68,7 +72,7 @@ Where can I get it?
 You can get the EOxServer source from
 
 * the `EOxServer Download page <http://eoxserver.org/wiki/Download>`_
-* the `Python Package Index (PyPi) <http://pypi.python.org>`_
+* the `Python Package Index (PyPi) <http://pypi.python.org/pypi/EOxServer/>`_
 * the `EOxServer SVN repository <http://eoxserver.org/svn/trunk>`_
 
 The recommended way to install EOxServer on your system is to use the
@@ -113,10 +117,7 @@ The EOxServer data model describes which data can be handled by the software
 and how this is done. This section gives you a short overview about the
 basic components of the data model.
 
-Coverages
-~~~~~~~~~
-
-The term coverage was introduced by the OGC Abstract Specification. There,
+The term coverage is introduced by the OGC Abstract Specification. There,
 coverages are defined as a mapping between a domain set that can be referenced
 to some region of the earth to a range set which describes the possible values
 of the coverage. This is, of course, a very abstract definition. It comprises
@@ -148,11 +149,6 @@ Datasets, Stitched Mosaics and Dataset Series are accompanyed by Earth
 Observation metadata. At the moment, EOxServer supports a limited subset of
 metadata items, such as the identifier of the Earth Observation product, the
 acquisition time and the acquisistion footprint.
-
-Processes
-~~~~~~~~~
-
-...
 
 Service Model
 -------------
@@ -186,6 +182,9 @@ The WCS 2.0 EO-AP adds an additional operation:
 * DescribeEOCoverageSet - returns an XML document describing (a subset of) the
   datasets contained in a Rectified Stitched Mosaic or Dataset Series
   
+For detailed lists of supported parameters for each of the operations see 
+:ref:`EO-WCS Request Parameters` .
+
 In addition, EOxServer supports the WCS 1.1 Transaction operation which provides
 an interface to ingest coverages and metadata into an existing server.
 
@@ -218,18 +217,19 @@ that allows to select and view a subset of the coverage bands only. Furthermore,
 queryable "outlines" layers are added for Rectified Stitched Mosaics and Dataset
 Series which show the footprints of the Datasets they contain.
 
-Web Processing Service
-~~~~~~~~~~~~~~~~~~~~~~
+.. TODO: Include once implementation is available.
+    Web Processing Service
+    ~~~~~~~~~~~~~~~~~~~~~~
 
-The OGC `Web Processing Service <http://www.opengeospatial.org/standards/wps>`_
-(WPS) is intended to make processing resources for geospatial data available
-online. EOxServer features an implementation of this standard as well.
+    The OGC `Web Processing Service <http://www.opengeospatial.org/standards/wps>`_
+    (WPS) is intended to make processing resources for geospatial data available
+    online. EOxServer features an implementation of this standard as well.
 
-The WPS server provides three operations:
+    The WPS server provides three operations:
 
-* GetCapabilities - returns an XML document describing the available processes
-* DescribeProcess - returns an XML document describing a specific process
-* Execute - allows to invoke a process
+    * GetCapabilities - returns an XML document describing the available processes
+    * DescribeProcess - returns an XML document describing a specific process
+    * Execute - allows to invoke a process
 
 Security Architecture
 ---------------------

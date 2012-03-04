@@ -40,8 +40,12 @@ formats for instance.
 
 Users of the EOxServer software stack please refer to the 
 :ref:`EOxServer Users' Guide`. Users range from administrators installing and 
-configuring the software stack over operators registering the available data 
-to end users consuming the registered data.
+configuring the software stack and operators registering the available *EO 
+Data* on the *Provider* side to end users consuming the registered *EO Data* 
+on the *User* side.
+
+.. figure:: ../users/images/Global_Use_Case.png
+   :align: center
 
 .. toctree::
    :maxdepth: 2

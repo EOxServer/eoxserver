@@ -36,6 +36,10 @@
 Demonstration
 =============
 
+.. contents:: Table of Contents
+    :depth: 3
+    :backlinks: top
+
 The EOxServer demonstration is based on the Envisat MERIS sample data
 available `here <http://earth.esa.int/object/index.cfm?fobjectid=4320>`_.
 

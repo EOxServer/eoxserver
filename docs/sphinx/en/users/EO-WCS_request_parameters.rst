@@ -36,6 +36,10 @@
 EO-WCS Request Parameters
 =========================
 
+.. contents:: Table of Contents
+    :depth: 3
+    :backlinks: top
+
 The following tables provide an overview over the available EO-WCS request 
 parameters for each operation supported by EOxServer.
 

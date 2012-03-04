@@ -37,9 +37,15 @@
 Global Use Case
 ===============
 
-This section describes the global Use Case of EOxServer including concrete usage scenarios as examples.
+.. contents:: Table of Contents
+    :depth: 3
+    :backlinks: top
 
-Figure: ":ref:`fig_global_use_case_1`" introduces the involved parties in this global Use Case.
+This section describes the global Use Case of EOxServer including concrete 
+usage scenarios as examples.
+
+Figure: ":ref:`fig_global_use_case_1`" introduces the involved parties in this 
+global Use Case.
 
 .. _fig_global_use_case_1:
 .. figure:: images/Global_Use_Case.png

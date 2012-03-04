@@ -37,6 +37,10 @@
 Installation on CentOS
 ======================
 
+.. contents:: Table of Contents
+    :depth: 3
+    :backlinks: top
+
 This article describes the installation procedure for EOxServer on a `CentOS
 <http://www.centos.org/>`_ system. In this example, a raw CentOS 6.2 minimal
 image is used.
@@ -65,7 +69,7 @@ The first one is the `ELGIS (Enterprise Linux GIS)
 added with the following `yum` command:
 ::
 
-    sudo rpm -Uvh http://elgis.argeo.org/repos/5/elgis-release-5-5_0.noarch.rpm
+    sudo rpm -Uvh http://elgis.argeo.org/repos/6/elgis-release-6-6_0.noarch.rpm
 
 The second repository to be added is `EPEL (Extra Packages for Enterprise
 Linux) <http://fedoraproject.org/wiki/EPEL>`_ again via a simple `yum` command:
@@ -97,9 +101,9 @@ Installation of required software packages
 Now the required packages can be installed with only one command:
 ::
 
-    sudo yum install gcc gdal gdal-devel gdal-python mapserver mapserver-python \
-                     libxml2 libxml2-python python-lxml sqlite sqlite-devel \
-                     python-pip
+    sudo yum install gcc gdal gdal-devel gdal-python libxml2 libxml2-python \
+                     mapserver mapserver-python sqlite sqlite-devel \
+                     python-lxml python-pip python-devel
 
 Further packages may be required if additional features (e.g: a full DBMS) are
 desired.
