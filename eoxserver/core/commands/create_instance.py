@@ -35,7 +35,7 @@ with the instance name in the given (optional) directory.
 """
 
 import shutil
-import os
+import os, sys
 import django.core.management
 from optparse import make_option
 
@@ -81,10 +81,13 @@ class Command(EOxServerAdminCommand):
         dst_data_dir = os.path.join(dst_inst_dir, "data")
         dst_logs_dir = os.path.join(dst_inst_dir, "logs")
         dst_fixtures_dir = os.path.join(dst_data_dir, "fixtures")
-    
-        
+
         src_root_dir = os.path.dirname(eoxserver.__file__)
         src_conf_dir = os.path.join(src_root_dir, "conf")
+        if not os.path.isfile(os.path.join(src_conf_dir, "TEMPLATE_eoxserver.conf")):
+            src_conf_dir = os.path.join(sys.prefix, "eoxserver/conf")
+            if not os.path.isfile(os.path.join(src_conf_dir, "TEMPLATE_eoxserver.conf")):
+                sys.exit("Error: EOxServer config files not found.")
         
         os.chdir(dst_root_dir)
     

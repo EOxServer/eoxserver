@@ -35,6 +35,7 @@ store the current system configuration.
 
 import imp
 import os.path
+from sys import prefix
 from ConfigParser import RawConfigParser
 
 from django.conf import settings
@@ -61,9 +62,12 @@ class Config(object):
         eoxs_path = self.getEOxSPath()
         
         default_conf_path = os.path.join(eoxs_path, "conf", "default.conf")
+        default_conf_path_alt = os.path.join(prefix, "eoxserver/conf/default.conf")
         
         if os.path.exists(default_conf_path):
             self.__default_conf = ConfigFile(default_conf_path)
+        elif os.path.exists(default_conf_path_alt):
+            self.__default_conf = ConfigFile(default_conf_path_alt)
         else:
             raise InternalError("Improperly installed: could not find default configuration file.")
         
