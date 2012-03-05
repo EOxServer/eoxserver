@@ -59,6 +59,7 @@ and APIs please refer to the :ref:`EOxServer Developers' Guide`.
    idm
    soap_proxy
    presentations
+   configuration_options
 
 .. TODO
    users     - empty
