@@ -174,6 +174,9 @@ class BasePDP(object):
                remoteAddress == '::1' :
                 return AuthorizationResponse(authorized = True)
 
+        schemas = {
+            "http://www.opengis.net/ows/2.0": "http://schemas.opengis.net/ows/2.0/owsAll.xsd"
+        }
         try:
             authorized, message = self._decide(ows_req)
             if authorized:
@@ -181,7 +184,7 @@ class BasePDP(object):
             else:
                 return AuthorizationResponse(
                     content = DOMElementToXML(
-                                    OWSCommonExceptionEncoder().encodeExceptionReport(
+                                    OWSCommonExceptionEncoder(schemas).encodeExceptionReport(
                                         message, "AccessForbidden"
                                     )),
                                     content_type = "text/xml",
@@ -192,7 +195,7 @@ class BasePDP(object):
             logging.error(str(e))
             return AuthorizationResponse(
                 content =  DOMElementToXML(
-                                    OWSCommonExceptionEncoder().encodeExceptionReport(
+                                    OWSCommonExceptionEncoder(schemas).encodeExceptionReport(
                                          "Internal Server Error", "NoApplicableCode"
                                     )),
                                     content_type = "text/xml",

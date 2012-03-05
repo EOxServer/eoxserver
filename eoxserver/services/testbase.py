@@ -778,6 +778,8 @@ class WMS13GetMapTestCase(RasterTestCase):
     
     swap_axes = True
     
+    httpHeaders = None
+    
     def getFileExtension(self, part=None):
         return mimetypes.guess_extension(self.frmt, False)[1:]
     
@@ -800,8 +802,11 @@ class WMS13GetMapTestCase(RasterTestCase):
             
         if self.dim_band:
             params += "&dim_band=%s" % self.dim_band
-            
-        return (params, "kvp")
+        
+        if self.httpHeaders is None:
+            return (params, "kvp")
+        else:
+            return (params, "kvp", self.httpHeaders)
 
 class WMS13ExceptionTestCase(ExceptionTestCase):
     def getExceptionCodeLocation(self):
