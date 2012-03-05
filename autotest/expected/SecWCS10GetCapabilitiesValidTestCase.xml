@@ -90,6 +90,29 @@
   </Exception>
 </Capability>
 <ContentMetadata>
-  <!-- WARNING: No WCS layers are enabled. Check wcs/ows_enable_request settings. -->
+  <CoverageOfferingBrief>
+    <name>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</name>
+    <label>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</label>
+    <lonLatEnvelope srsName="urn:ogc:def:crs:OGC:1.3:CRS84">
+      <gml:pos>11.3610658646 32.2014462964</gml:pos>
+      <gml:pos>28.2838457183 46.2520256042</gml:pos>
+    </lonLatEnvelope>
+  </CoverageOfferingBrief>
+  <CoverageOfferingBrief>
+    <name>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</name>
+    <label>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</label>
+    <lonLatEnvelope srsName="urn:ogc:def:crs:OGC:1.3:CRS84">
+      <gml:pos>11.331755 32.19025</gml:pos>
+      <gml:pos>28.29481 46.268645</gml:pos>
+    </lonLatEnvelope>
+  </CoverageOfferingBrief>
+  <CoverageOfferingBrief>
+    <name>mosaic_MER_FRS_1P_RGB_reduced</name>
+    <label>mosaic_MER_FRS_1P_RGB_reduced</label>
+    <lonLatEnvelope srsName="urn:ogc:def:crs:OGC:1.3:CRS84">
+      <gml:pos>-3.75 32.158895</gml:pos>
+      <gml:pos>28.326165 46.3</gml:pos>
+    </lonLatEnvelope>
+  </CoverageOfferingBrief>
 </ContentMetadata>
 </WCS_Capabilities>
