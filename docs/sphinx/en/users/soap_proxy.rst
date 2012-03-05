@@ -73,8 +73,11 @@ Quick installation guide for EOxServer on CentOS
 * Add the yum repository available at http://packages.eox.at (recommended) or
   obtain the RPM packages from http://packages.eox.at/centos/x86_64/.
 
-1. Install:
-...........
+1. Basic install:
+.................
+
+The following standard installation sets up soap_proxy for an installed eoxserver
+service accessible at http://127.0.0.1/eoxserver/ows
 
 Via the repository::
 
@@ -98,6 +101,48 @@ You should see the wsdl.
 
 Further testing may be done via soapui.  See the file 
 ``soap_proxy/test/README.txt`` in the source tree.
+
+
+3. Add another service:
+.......................
+
+To add another service to the basic installation, perform the following steps
+as root:
+
+By way of example let us say our new soap_proxy service shall be available at
+http://example.org/sp_foo, and the corresponding backend eoxserver is
+accessible at  http://127.0.0.1/eoxs_foo
+
+First, in the directory ``/usr/local/share/axis2c/services`` recursively copy
+the subdirectory ``soapProxy`` to ``soapFoo``::
+
+  cp -r soapProxy soapFoo
+  cd soapFoo
+
+In ``soapFoo`` rename ``libsoapProxy.so`` and ``soapProxy.wsdl``::
+
+  mv libsoapProxy.so libsoapFoo.so
+  mv soapProxy.wsdl soapFoo.wsdl
+
+Note that if selinux is enabled you may need adjust the object type of
+``libsoapFoo.so``.
+
+edit ``soapFoo.wsdl`` - at the bottom of the file chage  ``soap:address location``
+to the new endpoint::
+
+  <soap:address location="http://example.org/sp_foo"/>
+
+edit ``services.xml`` - change BackendURL to the backend eoxserver address::
+
+  <parameter name="BackendURL">http://127.0.0.1/eoxs_foo/ows</parameter>
+
+Edit the file ``/etc/httpd/conf.d/030_axis2c.conf``:  In the block ``<IfModule
+mod_proxy.c>``, add 'ProxyPass' and 'ProxyPassReverse' lines corresponding to
+your new service::
+
+  ProxyPass         /sp_foo  http://127.0.0.1/sp_axis/services/soapFoo
+  ProxyPassReverse  /sp_foo  http://127.0.0.1/sp_axis/services/soapFoo
+
 
 Old installation guide without rpms
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
