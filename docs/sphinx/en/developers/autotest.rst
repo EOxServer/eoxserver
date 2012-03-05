@@ -109,6 +109,7 @@ work:
     python manage.py test services.WCS20GetCoverage
     python manage.py test services.WCS20Post
     python manage.py test services.WMS
+    python manage.py test services.Sec
 
 Running single tests
 ~~~~~~~~~~~~~~~~~~~~
