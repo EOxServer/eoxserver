@@ -181,7 +181,8 @@ latex_paper_size = 'a4'
 latex_documents = [
   ('en/index', 'EOxServer.tex', u'EOxServer Documentation',
    u'Stephan Meissl \\and Stephan Krause \\and Fabian Schindler \\and \
-   Gerhard Triebnig \\and Milan Novacek \\and Arndt Bonitz \\and Martin Paces',
+   Gerhard Triebnig \\and Milan Novacek \\and Arndt Bonitz \\and Martin Paces \
+   \\and Joachim Ungar',
    'manual', True),
 ]
 
