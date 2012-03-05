@@ -132,9 +132,13 @@ to the new endpoint::
 
   <soap:address location="http://example.org/sp_foo"/>
 
-edit ``services.xml`` - change BackendURL to the backend eoxserver address::
+edit ``services.xml`` - change ServiceClass, BackendURL, and SOAPOperationsURL::
 
+  <parameter name="ServiceClass" locked="xsd:false">soapFoo</parameter>
   <parameter name="BackendURL">http://127.0.0.1/eoxs_foo/ows</parameter>
+  <parameter name="SOAPOperationsURL">http://example.org/sp_foo</parameter>
+
+Optionally, you may consider updating the ``<description>``.
 
 Edit the file ``/etc/httpd/conf.d/030_axis2c.conf``:  In the block ``<IfModule
 mod_proxy.c>``, add 'ProxyPass' and 'ProxyPassReverse' lines corresponding to
