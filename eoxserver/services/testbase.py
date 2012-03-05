@@ -91,16 +91,22 @@ class OWSTestCase(EOxServerTestCase):
         elif self.requires_fixed_db:
             cursor = connection.cursor()
             cursor.execute("PRAGMA SYNCHRONOUS;")
-        
+
         request, req_type = self.getRequest()
-        
+
+        if ( len(rq) == 2 ):
+            request, req_type = rq
+            headers = {}
+        else:
+            request, req_type, headers = rq
+
         client = Client()
-        
+
         if req_type == "kvp":
-            self.response = client.get('/ows?%s' % request)
+            self.response = client.get('/ows?%s' % request, {}, **headers)
 
         elif req_type == "xml":
-            self.response = client.post('/ows', request, "text/xml")
+            self.response = client.post('/ows', request, "text/xml", {}, **headers)
 
         else:
             raise Exception("Invalid request type '%s'." % req_type)
@@ -360,7 +366,6 @@ class ExceptionTestCase(XMLTestCase):
         decoder = XMLDecoder(self.getXMLData(), {
             "exceptionCode": {"xml_location": self.getExceptionCodeLocation(), "xml_type": "string"}
         })
-        
         self.assertEqual(decoder.getValue("exceptionCode"), self.getExpectedExceptionCode())      
 
 class HTMLTestCase(OWSTestCase):
@@ -374,7 +379,7 @@ class HTMLTestCase(OWSTestCase):
 class MultipartTestCase(XMLTestCase):
     """
     Multipart tests combine XML and raster tests and split the response
-    into a xml and a raster part which are examined separately. 
+    into a xml and a raster part which are examined separately.
     """
     
     def setUp(self):
@@ -444,13 +449,13 @@ class MultipartTestCase(XMLTestCase):
         return self.imageData
         
 class RectifiedGridCoverageMultipartTestCase(
-    MultipartTestCase, 
+    MultipartTestCase,
     RectifiedGridCoverageTestCase
 ):
     pass
 
 class ReferenceableGridCoverageMultipartTestCase(
-    MultipartTestCase, 
+    MultipartTestCase,
     ReferenceableGridCoverageTestCase
 ):
     pass
