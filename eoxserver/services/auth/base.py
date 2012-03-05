@@ -69,8 +69,9 @@ class AuthConfigReader(object):
             System.getConfig().getConfigValue("services.auth.base", "serviceID")
 
     def getAllowLocal(self):
-        return \
-            System.getConfig().getConfigValue("services.auth.base", "allowLocal")
+        if System.getConfig().getConfigValue("services.auth.base", "allowLocal") == 'True':
+            return True
+        return False
 
     def getPDPType(self):
         return \
@@ -181,7 +182,7 @@ class BasePDP(object):
                 return AuthorizationResponse(
                     content = DOMElementToXML(
                                     OWSCommonExceptionEncoder().encodeExceptionReport(
-                                        message, "NoApplicableCode"
+                                        message, "AccessForbidden"
                                     )),
                                     content_type = "text/xml",
                                     status = 403,

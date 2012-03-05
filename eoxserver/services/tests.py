@@ -1315,3 +1315,136 @@ class WMS13GetFeatureInfoTestCase(eoxstest.HTMLTestCase):
     def getRequest(self):
         params = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&LAYERS=MER_FRS_1P_RGB_reduced_outlines&QUERY_LAYERS=MER_FRS_1P_RGB_reduced_outlines&STYLES=&BBOX=32.158895,-3.75,46.3,28.326165&FEATURE_COUNT=10&HEIGHT=100&WIDTH=200&FORMAT=image%2Fpng&INFO_FORMAT=text/html&CRS=EPSG:4326&I=100&J=50";
         return (params, "kvp") 
+
+#===============================================================================
+# Authorisation Components
+#===============================================================================
+
+httpHeadersAuthnInvalid = {'AUTH_TYPE': 'shibboleth', \
+               'uid': 'nclue', \
+               'cn': 'Clue Norman', \
+               'description': 'Unauthorized User', \
+               'Shib-AuthnContext-Class': 'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport',  \
+               'Shib-Authentication-Method': 'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport', \
+               'Shib-Authentication-Instant': '2012-01-01T01:01:01.000Z', \
+               'HTTP_HOST': 'sp.c3ttv042.d03.arc.local', \
+               'Shib-Session-Index': '509d42a63423976dc7b0a91d6ac10ee3d15f21b8133c6b8b82216997875945e4', \
+               'displayName': 'Norman Clue', \
+               'Shib-Application-ID': 'default',
+               'Shib-Identity-Provider': 'https://idp.c3ttv042.d03.arc.local/idp/shibboleth', \
+               'sn': 'Clue',  \
+               'Shib-Session-ID': '_7e0d42381af797d3f69b06d7473455ff', \
+               'givenName': 'Norman', \
+               'DUMMY_MODE': 'DUMMY_MODE' \
+               }
+
+httpHeadersAuthnValid = {'AUTH_TYPE': 'shibboleth', \
+               'uid': 'jdoe', \
+               'cn': 'Doe John', \
+               'description': 'Authorized User', \
+               'Shib-AuthnContext-Class': 'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport',  \
+               'Shib-Authentication-Method': 'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport', \
+               'Shib-Authentication-Instant': '2012-01-01T01:01:01.000Z', \
+               'HTTP_HOST': 'sp.c3ttv042.d03.arc.local', \
+               'Shib-Session-Index': '509d42a63423976dc7b0a91d6ac10ee3d15f21b8133c6b8b82216997875945e4', \
+               'Shib-Application-ID': 'default',
+               'Shib-Identity-Provider': 'https://idp.c3ttv042.d03.arc.local/idp/shibboleth', \
+               'sn': 'Doe',  \
+               'Shib-Session-ID': '_7e0d42381af797d3f69b06d7473455ff', \
+               'givenName': 'John', \
+               'DUMMY_MODE': 'DUMMY_MODE' \
+               }
+
+class SecWCS10GetCapabilitiesValidTestCase(eoxstest.XMLTestCase):
+    def getRequest(self):
+        params = "service=WCS&version=1.0.0&request=GetCapabilities"
+        return (params, "kvp", httpHeadersAuthnValid)
+
+class SecWCS20GetCapabilitiesValidAuthorizedTestCase(eoxstest.XMLTestCase):
+    """This test shall retrieve a valid WCS 2.0 EO-AP GetCapabilities response"""
+    def getRequest(self):
+        params = "service=WCS&version=2.0.0&request=GetCapabilities"
+        return (params, "kvp", httpHeadersAuthnValid)
+
+class SecWCS20PostGetCapabilitiesValidTestCase(eoxstest.XMLTestCase):
+    """This test shall retrieve a valid WCS 2.0 EO-AP GetCapabilities response
+       via POST.
+    """
+    def getRequest(self):
+        params = """<ns:GetCapabilities updateSequence="u2001" service="WCS"
+          xmlns:ns="http://www.opengis.net/wcs/2.0"
+          xmlns:ns1="http://www.opengis.net/ows/2.0">
+            <ns1:AcceptVersions><ns1:Version>2.0.0</ns1:Version></ns1:AcceptVersions>
+          </ns:GetCapabilities>
+        """
+        return (params, "xml", httpHeadersAuthnValid)
+
+class SecWCS20GetCapabilitiesValidNotAuthorizedTestCase(eoxstest.ExceptionTestCase):
+    """This test shall retrieve a valid WCS 2.0 EO-AP GetCapabilities response without privileges"""
+    def getRequest(self):
+        params = "service=WCS&version=2.0.0&request=GetCapabilities"
+        return (params, "kvp", httpHeadersAuthnInvalid)
+
+    def getExpectedExceptionCode(self):
+        return "AccessForbidden"
+
+    def getExpectedHTTPStatus(self):
+        return 403
+
+class SecWCS20GetCoverageMosaicTestCase(eoxstest.RectifiedGridCoverageTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=image/tiff"
+        return (params, "kvp", httpHeadersAuthnValid)
+
+class SecWCS20GetCoverageCompressionJPEGTestCase(eoxstest.RectifiedGridCoverageTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=%s" % quote("image/tiff;compress=JPEG;jpeg_quality=50")
+        return (params, "kvp", httpHeadersAuthnValid)
+
+class SecWMS13GetCapabilitiesValidTestCase(eoxstest.XMLTestCase):
+    """This test shall retrieve a valid WMS 1.3 GetCapabilities response"""
+    def getRequest(self):
+        params = "service=WMS&version=1.3.0&request=GetCapabilities"
+        return (params, "kvp", httpHeadersAuthnValid)
+
+class SecWMS13GetMapPNGDatasetTestCase(eoxstest.WMS13GetMapTestCase):
+    """ Test a GetMap request with a dataset series. """
+    layers = ("mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced",)
+    bbox = (8.5, 32.2, 25.4, 46.3)
+    frmt = "image/png"
+
+    styles = []
+    crs = "epsg:4326"
+    width = 100
+    height = 100
+
+    time = None
+    dim_band = None
+
+    swap_axes = True
+
+    def getFileExtension(self, part=None):
+        return mimetypes.guess_extension(self.frmt, False)[1:]
+
+    def getRequest(self):
+        bbox = self.bbox if not self.swap_axes else (
+            self.bbox[1], self.bbox[0],
+            self.bbox[3], self.bbox[2]
+        )
+
+        params = "service=WMS&request=GetMap&version=1.3.0&" \
+                 "layers=%s&styles=%s&crs=%s&bbox=%s&" \
+                 "width=%d&height=%d&format=%s" % (
+                     ",".join(self.layers), ",".join(self.styles), self.crs,
+                     ",".join(map(str, bbox)),
+                     self.width, self.height, self.frmt
+                 )
+
+        if self.time:
+            params += "&time=%s" % self.time
+
+        if self.dim_band:
+            params += "&dim_band=%s" % self.dim_band
+
+        return (params, "kvp", httpHeadersAuthnValid)
+

@@ -139,6 +139,7 @@ class CharonPDP(BasePDP):
         httpHeader = ows_req.http_req.META
         attributes = {}
 
+        # adding the REMOTE_ADDR from HTTP header to subject attributes
         attributes['REMOTE_ADDR'] = httpHeader['REMOTE_ADDR']
 
         for key, value in self.attribMapping.iteritems():
