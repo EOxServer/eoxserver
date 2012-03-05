@@ -992,6 +992,14 @@
         }
     }, 
     {
+        "pk": 125, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.auth.dummypdp.DummyPDP", 
+            "intf_id": "services.auth.base.PolicyDecisionPointInterface"
+        }
+    }, 
+    {
         "pk": 1, 
         "model": "core.component", 
         "fields": {
@@ -1854,6 +1862,13 @@
     }, 
     {
         "pk": 124, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 125, 
         "model": "core.component", 
         "fields": {
             "enabled": true
