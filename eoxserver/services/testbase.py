@@ -92,7 +92,7 @@ class OWSTestCase(EOxServerTestCase):
             cursor = connection.cursor()
             cursor.execute("PRAGMA SYNCHRONOUS;")
 
-        request, req_type = self.getRequest()
+        rq = self.getRequest()
 
         if ( len(rq) == 2 ):
             request, req_type = rq
