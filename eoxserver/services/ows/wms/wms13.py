@@ -762,7 +762,30 @@ class WMS13GetLegendGraphicHandler(WMSCommonHandler):
                 "MissingParameterValue",
                 "layer"
             )
-        self.createLayersForName(layer_name, [])
+        
+        obj = System.getRegistry().getFromFactory(
+            "resources.coverages.wrappers.DatasetSeriesFactory",
+            {"obj_id": layer_name}
+        )
+        
+        if obj is None:
+            obj = System.getRegistry().getFromFactory(
+                "resources.coverages.wrappers.EOCoverageFactory",
+                {"obj_id": layer_name}
+            )
+        
+        # TODO find layer
+        
+        if obj is None:
+            raise InvalidRequestException(
+                "No coverage or dataset series with EO ID '%s' found" % layer_name,
+                "LayerNotDefined",
+                "layer"
+            )
+        
+        self.addLayer(WMSEmptyLayer(obj.getEOID()))
+        
+        #self.createLayersForName(layer_name, [])
                 
     def createLayersForName(self, layer_name, filter_exprs):
         dataset_series = System.getRegistry().getFromFactory(
