@@ -139,7 +139,7 @@ class LineageInline(admin.StackedInline):
 
 class RectifiedDatasetAdmin(ConfirmationAdmin):
     #list_display = ('coverage_id', 'eo_id', 'data_package', 'range_type', 'extent')
-    fields = ('automatic', 'visible', 'coverage_id', 'eo_id', 'range_type', 'extent', 'eo_metadata', 'data_package', 'lineage')
+    fields = ('automatic', 'visible', 'coverage_id', 'eo_id', 'range_type', 'extent', 'eo_metadata', 'data_package', 'data_source', 'lineage')
     list_display = ('coverage_id', 'eo_id', 'range_type', 'extent', 'visible')
     #list_editable = ('data_package', 'range_type', 'extent')
     list_editable = ('range_type', 'extent', 'visible')
@@ -455,13 +455,21 @@ class EOMetadataAdmin(admin.GeoModelAdmin):
         
         self.metadata_object = obj
         
-        if change is False:
-            obj.timestamp_begin = obj.timestamp_begin.replace(tzinfo=UTCOffsetTimeZoneInfo())
-            obj.timestamp_end = obj.timestamp_begin.replace(tzinfo=UTCOffsetTimeZoneInfo())
+        tzi = UTCOffsetTimeZoneInfo()
+        tzi.setOffsets("+", 0, 0)
+        
+        if obj.timestamp_begin.tzinfo is None:
+            dt = obj.timestamp_begin.replace(tzinfo=UTCOffsetTimeZoneInfo())
+            obj.timestamp_begin = dt.astimezone(UTCOffsetTimeZoneInfo())
+            
+        if obj.timestamp_end.tzinfo is None:
+            dt = obj.timestamp_end.replace(tzinfo=UTCOffsetTimeZoneInfo())
+            obj.timestamp_end = dt.astimezone(UTCOffsetTimeZoneInfo())
         
         super(EOMetadataAdmin, self).save_model(request, obj, form, change)
         
-        
+        if obj.timestamp_begin.tzinfo is None:
+            raise
         """
         if len(self.metadata_object.eo_gml) > 0:
             # not sure about this:
