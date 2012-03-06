@@ -123,9 +123,9 @@ pysqlite is built by default without a required parameter. Thus it has to be
 installed manually:
 ::
 
-    wget http://pysqlite.googlecode.com/files/pysqlite-2.6.0.tar.gz
-    tar xzf pysqlite-2.6.0.tar.gz
-    cd pysqlite-2.6.0
+    wget https://pysqlite.googlecode.com/files/pysqlite-2.6.3.tar.gz
+    tar xzf pysqlite-2.6.3.tar.gz
+    cd pysqlite-2.6.3
 
 Now `setup.cfg` needs to be opened with a text editor (like `vi`) and the line
 ::

@@ -262,7 +262,10 @@ database. If using the `create_instance` command of the
 have to do is:
 
 * Make sure EOxServer is on your ``PYTHONPATH`` environment variable
-* run ``python manage.py syncdb`` in your instance directory
+* run in your instance directory
+  ::
+
+    python manage.py syncdb
 
 .. TODO: Logfile handling: configuration in settings.py and eoxserver.conf logrotate, etc.
 

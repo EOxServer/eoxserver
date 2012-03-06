@@ -50,15 +50,21 @@ Installation
 ------------
 
 For the *autotest* instance to work, a new EOxServer instance has to be created
-with the `eoxserver-admin.py` script which creates a basic directory and file
+with the ``eoxserver-admin.py`` script which creates a basic directory and file
 structure for a new instance:
 ::
 
     eoxserver-admin.py create_instance --id autotest
 
+Use the ``--init_spatialite`` to initialize a SQLite database needed for 
+:ref:`running <Running the autotest instance>` the *autotest* instance:
+::
+
+    eoxserver-admin.py create_instance --id autotest --init_spatialite
+
 Now it can be filled with its content, downloaded from the `EOxServer project
 download page <http://http://eoxserver.org/wiki/Download>`_ and unpacked into
-the previously created instance:
+the previously created instance (say yes if asked to overwrite):
 ::
 
     wget http://eoxserver.org/export/head/downloads/EOxServer_autotest-0.2-alpha2.tar.gz
@@ -130,6 +136,8 @@ recommended to make usage of locally stored schemas via XML Catalog:
     wget http://eoxserver.org/export/head/downloads/EOxServer_schemas-0.2-alpha2.tar.gz
     tar xvfz EOxServer_schemas-0.2-alpha2.tar.gz
     export XML_CATALOG_FILES=`pwd`"/EOxServer-0.2-alpha2/schemas/catalog.xml"
+
+.. _Running the autotest instance:
 
 Running the *autotest* instance
 -------------------------------
