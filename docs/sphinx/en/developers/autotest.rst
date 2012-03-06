@@ -34,6 +34,7 @@
 
 .. _Autotest:
 
+
 The *autotest* instance
 =======================
 
@@ -71,16 +72,13 @@ the previously created instance (say yes if asked to overwrite):
     tar xvfz EOxServer_autotest-0.2-alpha2.tar.gz
     cp -Rf EOxServer_autotest-0.2-alpha2/* autotest
 
-There are two configuration directives available in *conf/eoxserver.conf* to 
-control the behaviour of the testing:
-
-* binary_raster_comparison_enabled=True - Set to false if binary comparison 
-  tests shall be skipped. Needed if testing is performed on different 
-  architectures.
-* rasdaman_enabled=False - Set to true if rasdaman is installed and the test 
-  data loaded. rasdaman tests are skipped otherwise.
+Currently there are two configuration directives which influence the testing
+procedure and allow to skip certain test cases know to be problematic on some
+systems. Please refer to the :ref:`corresponding section in the configuration
+options documentation <config-testing>`.
 
 The autotest instance is now installed and is ready for some testing!
+
 
 Running tests
 -------------
@@ -117,6 +115,7 @@ work:
     python manage.py test services.WMS
     python manage.py test services.Sec
 
+
 Running single tests
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -125,6 +124,7 @@ beginning of the test name to the component:
 ::
 
     python manage.py test services.WCS20GetCapabilities
+
 
 XML Validation
 ~~~~~~~~~~~~~~
@@ -136,6 +136,13 @@ recommended to make usage of locally stored schemas via XML Catalog:
     wget http://eoxserver.org/export/head/downloads/EOxServer_schemas-0.2-alpha2.tar.gz
     tar xvfz EOxServer_schemas-0.2-alpha2.tar.gz
     export XML_CATALOG_FILES=`pwd`"/EOxServer-0.2-alpha2/schemas/catalog.xml"
+
+This allows the underlying libxml2 to vastly improve the performance of parsing
+schemas and the validation of XML trees against them. Also, several schemas
+contain small errors which makes it impossible to correctly use them in a real
+validation scenario. The self contained schemas package provides only
+useable schemas.
+
 
 .. _Running the autotest instance:
 
@@ -178,11 +185,12 @@ The following fixtures are provided:
 * testing_backends.json - This fixtures are used for testing the backend
   layer only and shouldn't be loaded in the test instance.
 
+
 Running the development web server
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Django provides a `lightweight development web server <https://docs.djangoprojec
-t.com/en/dev/ref/django-admin/#runserver-port-or-address-port>`_ which can be 
+Django provides a `lightweight development web server <https://docs.djangoproje
+ct.com/en/dev/ref/django-admin/#runserver-port-or-address-port>`_ which can be 
 used to run the *autotest* instance:
 ::
 
@@ -198,3 +206,50 @@ has been loaded there is a superuser login available with username and password
 "login".
 
 Sample service requests are described in the :ref:`Demonstration` section.
+
+
+Selenium
+~~~~~~~~
+
+The `Selenium testing framework <http://seleniumhq.org/>`_
+is a powerful tool to create and run GUI test cases for any browser and HTML
+based application. It uses low-level mechanisms, such as simulating simple user
+input, to automate the browser and to test the application.
+
+Currently the only browser supported is `Firefox <http://www.mozilla.org/en-US/
+firefox/new/>`_ using the `Selenium IDE <http://seleniumhq.org/projects/ide/>`_
+plugin. It is basically a tool to record and play test cases and it also
+supports exporting the test scripts to several scripting languages as Java,
+Ruby, Python and *Selenese*, a basic HTML encoding.
+
+.. _fig_selenium-ide:
+.. figure:: images/selenium-ide.png
+   :align: center
+
+Before the test cases can be run, ensure that the databases `backends` and
+`coverages` are empty and the EOxServer is run by either its developement
+server or within a webserver environment. To clear the databases in question
+type:
+::
+
+    python manage.py reset coverages backends
+
+and confirm the deletion. But be aware that this deletes all data previously
+entered in the database.
+
+The autotest instance provides two test suites, one for the :ref:`Admin
+interface <ops_admin>` and one for the :ref:`Webclient interface
+<The Webclient Interface>`. To open a testsuite with Selenium IDE navigate to
+`File->Open Test Suite...` and open the suite of your choice.
+
+To start the test run click on the `Play entire test suite` button.
+Alternatively, you can choose a single test case by double clicking it and then
+press the `Play current test case button`. Note: especially in the admin test
+suite several test cases have dependencies on other test cases to be run first,
+so many test cases will fail when its dependencies are not fullfilled. The best
+option is to play the entire test suite as a whole and view the results
+afterwards.
+
+Unfortunately when testing the admin interface, before the tests can be rerun,
+the database has to be emptied, as explained in the example above.
+

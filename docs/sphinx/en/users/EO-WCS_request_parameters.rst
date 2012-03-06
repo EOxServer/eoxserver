@@ -149,15 +149,22 @@ lists all parameters that are available with DescribeEOCoverageSet requests.
     |                           | Plus optional either:                                     |  Long,http://www.opengis.net/def/|                                |
     |                           |                                                           |  crs/EPSG/0/4326(11,33)&         |                                |
     |                           | - containment = overlaps (default)                        |  phenomenonTime("2006-08-01",    |                                |
-    |                           | - cotainment = contains                                   |  "2006-08-22T09:22:00Z")&        |                                |
+    |                           | - containment = contains                                  |  "2006-08-22T09:22:00Z")&        |                                |
     |                           |                                                           |  containment=contains            |                                |
     |                           | Any combination thereof (but each value only once per     |                                  |                                |
     |                           | request)                                                  |                                  |                                |
+    +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
+    | → containment             | see `subset` parameter                                    | - overlaps (default)             | O                              |
+    |                           |                                                           | - contains                       |                                |
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
     | → section                 | see GetCapabilities                                       | - DatasetSeriesSummary           | O                              |
     |                           |                                                           | - CoverageSummary                |                                |
     |                           |                                                           | - All                            |                                |
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
+    | → count                   | Limits the maximum number of DatasetDescriptions returned |   10                             | O                              |
+    |                           | in the EOCoverageSetDescription.                          |                                  |                                |
+    +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
+
 
 .. index::
    single: GetCoverage (EO-WCS Request Parameters)
@@ -185,14 +192,14 @@ parameters that are available with GetCoverage requests.
     |                           | - valid coverageID of a Dataset                           |                                  |                                |
     |                           | - valid coverageID of a StichedMosaic                     |                                  |                                |
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
-    | → format                  | Requested format of coverage to be returned, currently:   |  format=image/tiff               | M                              |
+    | → format                  | Requested format of coverage to be returned, currently:   |   image/tiff                     | M                              |
     |                           |                                                           |                                  |                                |
     |                           | - image/tiff                                              |                                  |                                |
     |                           | - image/jpeg                                              |                                  |                                |
     |                           | - image/png                                               |                                  |                                |
     |                           | - image/gif                                               |                                  |                                |
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
-    | → mediatype               | Coverage delivered directly as image file or enclosed in  | mediatype=multipart/mixed        | O                              |
+    | → mediatype               | Coverage delivered directly as image file or enclosed in  |   multipart/mixed                | O                              |
     |                           | GML structure                                             |                                  |                                |
     |                           |                                                           |                                  |                                |
     |                           | - not present or                                          |                                  |                                |
@@ -208,10 +215,11 @@ parameters that are available with GetCoverage requests.
     |                           |     * without CRS (→ original projection)                 |                                  |                                |
     |                           |     * with CRS (→ reprojecting)                           |                                  |                                |
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
-    | → rangesubset             | Subsetting in the range domain (e.g. Band-Subsetting)     | rangesubset=1,2,3                | O                              |
+    | → rangesubset             | Subsetting in the range domain (e.g. Band-Subsetting).    | - 1,2,3                          | O                              |
+    |                           |                                                           | - Blue,Green,Red                 |                                |
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
-    | → outputcrs               | CRS for the requested output coverage                     | outputcrs=http://www.opengis.net/| O                              |
-    |                           |                                                           | def/crs/EPSG/0/3035              |                                |
+    | → outputcrs               | CRS for the requested output coverage                     | http://www.opengis.net/def/      | O                              |
+    |                           |                                                           | crs/EPSG/0/3035                  |                                |
     |                           | - not present or                                          |                                  |                                |
     |                           | - CRS                                                     |                                  |                                |
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
@@ -220,7 +228,7 @@ parameters that are available with GetCoverage requests.
     |                           | - integer dimension of the requested coverage (per axis)  |- resolution=long(0.01)           |                                | 
     |                           | - resolution of one pixel (per axis)                      |- resolution=y(0.3)               |                                |
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
-    |→ interpolation [2]_       | Interpolation method to be used                           | interpolation=bilinear           | O                              |
+    | → interpolation [2]_      | Interpolation method to be used                           | bilinear                         | O                              |
     |                           |                                                           |                                  |                                | 
     |                           | - nearest (default)                                       |                                  |                                |
     |                           | - bilinear                                                |                                  |                                |

@@ -113,7 +113,7 @@ runtime. Possible values are 'trust', 'warn', 'fail'. Defaults to 'trust'.
     modules
 
 Mandatory. A comma-separated list of modules that contain implementations of
-EOxServer interfaces. Use module identifiers as with normal python `import
+EOxServer interfaces. Use module identifiers as with normal Python `import
 statements
 <http://docs.python.org/reference/simple_stmts.html#the-import-statement>`_.
 
@@ -173,7 +173,8 @@ and is also included in several OWS service responses.
     paging_count_default
 
 The maximum number of `wcs:coverageDescription` elements returned in a WCS 2.0
-`EOCoverageSetDescription`. Defaults to 10.
+`EOCoverageSetDescription`. This also limits the :ref:`count parameter
+<table_eo-wcs_request_parameters_describeeocoverageset>`. Defaults to 10.
 
 
 [services.ows.wcst11]
@@ -198,17 +199,23 @@ allowed and each needs to be explicitly activated.
 
     path_wcst_temp
 
-Mandatory. A path to a directory for temporary storage of data.
+Mandatory. A path to an existing directory for temporary storage of data. This
+should be a directory which is not used in any other context, since it might be
+cleared under certain circumstances.
 
 ::
 
     path_wcst_perm
 
-Mandatory. A path to a directory for permanent storage of transacted data.
+Mandatory. A path to a directory for permanent storage of transacted data. This
+is the final location where transacted datasets will be stored.
 
 
 [services.auth.base]
 --------------------
+
+For detailed information about authorization refer to the documentation of the
+:ref:`Identity Management System`.
 
 ::
 
@@ -246,6 +253,9 @@ Allows full local access to the EOxServer. Use with care!
 [webclient]
 -----------
 
+The following configuration options affect the behavior of the :ref:`Webclient
+interface <webclient>`.
+
 ::
 
     preview_service
@@ -263,20 +273,25 @@ The URL of the preview and outline service. Defaults to the vaule of the
 `services.owscommon.http_service_url` configuration option.
 
 
+.. _config-testing:
+
 [testing]
 ---------
+
+These configuration options are used within the context of the :ref:`Autotest
+instance <Autotest>`.
 
 ::
 
     binary_raster_comparison_enabled
 
-Enable/disable the comparison of binary rasters in test runs. By default this
-feature is activated but might be turned off in order to prevent test failures
-originating on platform differences.
+Enable/disable the comparison of binary rasters in test runs. If disabled these
+tests will be skipped. By default this feature is activated but might be turned
+off in order to prevent test failures originating on platform differences.
 
 ::
 
     rasdaman_enabled
 
-Enable/disable rasdaman test cases. Defaults to `false`.
-
+Enable/disable rasdaman test cases. If disabled these tests will be skipped.
+Defaults to `false`.

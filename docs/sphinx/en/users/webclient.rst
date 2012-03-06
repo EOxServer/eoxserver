@@ -29,7 +29,7 @@
   # IN THE SOFTWARE.
   #-----------------------------------------------------------------------------
 
-.. _The Webclient Interface:
+.. _webclient:
 
 The Webclient Interface
 =======================
