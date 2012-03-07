@@ -389,7 +389,7 @@ online data access to the EO data archive.
 
    *Browser app featuring EOxServer's Web API*
 
-:ref:`The Webclient Interface` section of the documentation provides more 
+:ref:`webclient` section of the documentation provides more 
 details about the Web API.
 
 GIS Tool

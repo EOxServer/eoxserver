@@ -239,7 +239,7 @@ entered in the database.
 
 The autotest instance provides two test suites, one for the :ref:`Admin
 interface <ops_admin>` and one for the :ref:`Webclient interface
-<The Webclient Interface>`. To open a testsuite with Selenium IDE navigate to
+<webclient>`. To open a testsuite with Selenium IDE navigate to
 `File->Open Test Suite...` and open the suite of your choice.
 
 To start the test run click on the `Play entire test suite` button.
