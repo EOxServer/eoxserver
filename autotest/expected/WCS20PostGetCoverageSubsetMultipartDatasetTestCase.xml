@@ -131,7 +131,6 @@
         </eop:EarthObservationMetaData>
     </eop:metaDataProperty>
 </eop:EarthObservation><wcseo:lineage><wcseo:referenceGetCoverage><ows:ServiceReference xlink:href="http://testserver/ows"><ows:RequestMessage><wcs:GetCoverage xmlns:wcs="http://www.opengis.net/wcs/2.0" service="WCS" version="2.0.0">
-          <wcs:CoverageId>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</wcs:CoverageId>
           <wcs:DimensionTrim>
             <wcs:Dimension>x</wcs:Dimension>
             <wcs:TrimLow>0</wcs:TrimLow>
@@ -144,4 +143,5 @@
           </wcs:DimensionTrim>
           <wcs:format>image/tiff</wcs:format>
           <wcs:mediaType>multipart/mixed</wcs:mediaType>
+          <wcs:CoverageId>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</wcs:CoverageId>
         </wcs:GetCoverage></ows:RequestMessage></ows:ServiceReference></wcseo:referenceGetCoverage><gml:timePosition>2011-01-01T00:00:00Z</gml:timePosition></wcseo:lineage></wcseo:EOMetadata></gmlcov:metadata></wcseo:RectifiedDataset>
