@@ -209,7 +209,7 @@ Sample service requests are described in the :ref:`Demonstration` section.
 
 
 Selenium
-~~~~~~~~
+--------
 
 The `Selenium testing framework <http://seleniumhq.org/>`_
 is a powerful tool to create and run GUI test cases for any browser and HTML
@@ -237,7 +237,7 @@ type:
 and confirm the deletion. But be aware that this deletes all data previously
 entered in the database.
 
-The autotest instance provides two test suites, one for the :ref:`Admin
+The *autotest* instance provides two test suites, one for the :ref:`Admin
 interface <ops_admin>` and one for the :ref:`Webclient interface
 <webclient>`. To open a testsuite with Selenium IDE navigate to
 `File->Open Test Suite...` and open the suite of your choice.
@@ -250,6 +250,11 @@ so many test cases will fail when its dependencies are not fullfilled. The best
 option is to play the entire test suite as a whole and view the results
 afterwards.
 
-Unfortunately when testing the admin interface, before the tests can be rerun,
-the database has to be emptied, as explained in the example above.
+Note that the test speed should be decreased in order to allow enough time to 
+fill the pages and thus pass the tests.
 
+Don't forget to adjust the base URL when the *autotest* instance is not run 
+locally.
+
+Note that when testing the admin interface, before the tests can be rerun,
+the database has to be emptied, as explained in the example above.
