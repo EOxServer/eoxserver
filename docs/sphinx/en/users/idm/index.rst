@@ -105,8 +105,8 @@ can access the data and services provided by EOxServer. The attributes from
 Shibboleth are used by the EOxServer security components to make a 
 XACMLAuthzDecisionQuery to the Charon Authorisation Service.
 
-Installation and Configuration
-==============================
+Identity Management System: Installation and Configuration
+==========================================================
 
 The following services are needed both for the HTTP and the SOAP security part:
 
