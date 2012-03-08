@@ -129,9 +129,9 @@ Prerequisites
 Download locations for the IDMS components:
 
 * Shibboleth: http://shibboleth.internet2.edu/downloads.html
-* CHARON Authorisation Service: http://www.enviromatics.net/charon/ or http://eox.at 
-* Security Token Service: http://eox.at    
-* PEP Service: http://eox.at 
+* CHARON Authorisation Service: http://www.enviromatics.net/charon/ or http://packages.eox.at/idm/
+* Security Token Service: http://packages.eox.at/idm/
+* PEP Service: http://packages.eox.at/idm/
 * EOxServer: http://eoxserver.org/wiki/Download
 
 
