@@ -442,6 +442,12 @@ Only the ``--host`` parameter is mandatory, all others are optional.
 The ``--default-srid`` parameter is required when the SRID cannot be determined
 automatically, as for example with rasdaman datasets.
 
+For when you explicitly want to override the geospatial metadata of a dataset
+you can use ``--default-size`` and ``--default-extent``. Both parameters need
+to be used together and in combination with ``--default-srid``. This is
+required for datasets registered in a rasdaman database or for any other
+input method where the geospatial metadata cannot be retrieved.
+
 With the ``--visible`` option, all registered datasets can be marked as either
 visible (``true``) or invisible (``false``). This effects the advertisment of
 the dataset in e.g: GetCapabilities responses. By default, all datasets are
@@ -465,44 +471,63 @@ rectified stitched mosaic.
 
 Here is the full list of available options:
 
-    -d, --data-file, --data-files, --collection, --collections
+  -v VERBOSITY, --verbosity=VERBOSITY
+                        Verbosity level; 0=minimal output, 1=normal output,
+                        2=all output
+  --settings=SETTINGS   The Python path to a settings module, e.g.
+                        "myproject.settings.main". If this isn't provided, the
+                        DJANGO_SETTINGS_MODULE environment variable will be
+                        used.
+  --pythonpath=PYTHONPATH
+                        A directory to add to the Python path, e.g.
+                        "/home/djangoprojects/myproject".
+  --traceback           Print traceback on exception
+  -d, --data-file, --data-files, --collection, --collections
                         Mandatory. One or more paths to a files containing the
                         image data. These paths can either be local, ftp
                         paths, or rasdaman collection names.
-    -m, --metadata-file, --metadata-files
+  -m, --metadata-file, --metadata-files
                         Optional. One or more paths to a local files
                         containing the image meta data. Defaults to the same
                         path as the data file with the ".xml" extension.
-    -r RANGETYPE, --rangetype=RANGETYPE
+  -r RANGETYPE, --rangetype=RANGETYPE
                         Mandatory identifier of the rangetype used in the
                         dataset.
-    --dataset-series      Optional. One or more eo ids of a dataset series in
+  --dataset-series      Optional. One or more eo ids of a dataset series in
                         which the created datasets shall be added.
-    --stitched-mosaic     Optional. One or more eo ids of a rectified stitched
+  --stitched-mosaic     Optional. One or more eo ids of a rectified stitched
                         mosaic in which the dataset shall be added.
-    -i, --coverage-id, --coverage-ids
+  -i, --coverage-id, --coverage-ids
                         Optional. One or more coverage identifier for each
                         dataset that shall be added. Defaults to the base
                         filename without extension.
-    --mode=MODE           Optional. Defines the location of the datasets to be
+  --mode=MODE           Optional. Defines the location of the datasets to be
                         registered. Can be 'local', 'ftp', or 'rasdaman'.
                         Defaults to 'local'.
-    --host=HOST           Mandatory when mode is not 'local'. Defines the
+  --host=HOST           Mandatory when mode is not 'local'. Defines the
                         ftp/rasdaman host to locate the dataset.
-    --port=PORT           Optional. Defines the port for ftp/rasdaman host
+  --port=PORT           Optional. Defines the port for ftp/rasdaman host
                         connections.
-    --user=USER           Optional. Defines the ftp/rasdaman user for the
+  --user=USER           Optional. Defines the ftp/rasdaman user for the
                         ftp/rasdaman connection.
-    --password=PASSWORD   Optional. Defines the ftp/rasdaman user password for
+  --password=PASSWORD   Optional. Defines the ftp/rasdaman user password for
                         the ftp/rasdaman connection.
-    --database=DATABASE   Optional. Defines the rasdaman database containing the
+  --database=DATABASE   Optional. Defines the rasdaman database containing the
                         data.
-    --oid, --oids         Optional. List of rasdaman oids for each dataset to be
+  --oid, --oids         Optional. List of rasdaman oids for each dataset to be
                         inserted.
-    --default-srid=DEFAULT_SRID
+  --default-srid=DEFAULT_SRID
                         Optional. Default SRID, needed if it cannot be
                         determined automatically by GDAL.
-    --visible=VISIBLE     Optional. Sets the visibility status of all datasets
+  --default-size=DEFAULT_SIZE
+                        Optional. Default size, needed if it cannot be
+                        determined automatically by GDAL. Format:
+                        <sizex>,<sizey>
+  --default-extent=DEFAULT_EXTENT
+                        Optional. Default extent, needed if it cannot be
+                        determined automatically by GDAL. Format:
+                        <minx>,<miny>,<maxx>,<maxy>
+  --visible=VISIBLE     Optional. Sets the visibility status of all datasets
                         to thegiven boolean value. Defaults to 'True'.
-    --version             show program's version number and exit
-    -h, --help            show this help message and exit
+  --version             show program's version number and exit
+  -h, --help            show this help message and exit

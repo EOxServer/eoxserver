@@ -95,8 +95,8 @@ runtime. Possible values are 'trust', 'warn', 'fail'. Defaults to 'trust'.
 [core.ipc]
 ----------
 
-
-### TODO: is it implemented?
+In this section, options for controlling inter process communication will be
+added, once it is implemented.
 
 
 [core.registry]
@@ -106,7 +106,7 @@ runtime. Possible values are 'trust', 'warn', 'fail'. Defaults to 'trust'.
 
     module_dirs
 
-### TODO: is it still used?
+This parameter is currently not used.
 
 ::
 
@@ -121,7 +121,7 @@ statements
 
     system_modules
 
-### TODO: still used?
+This parameter is currently not used.
 
 
 [processing.gdal.reftools]
@@ -138,7 +138,8 @@ standard <http://docs.python.org/library/tempfile.html#tempfile.mkstemp>`_.
 [backends.cache]
 ----------------
 
-### TODO: not yet implemented?
+In future, options in this section will influence the behavior of caching of
+FTP and rasdaman data.
 
 
 [resources.coverages.coverage_id]
