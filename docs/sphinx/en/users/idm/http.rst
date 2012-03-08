@@ -27,7 +27,7 @@
   # IN THE SOFTWARE.
   #-----------------------------------------------------------------------------
 
-.. _Identity Management System:
+.. _Identity Management System HTTP:
 
 Identity Management System: HTTP Components
 ===========================================

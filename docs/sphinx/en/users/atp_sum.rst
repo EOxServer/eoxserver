@@ -30,7 +30,7 @@
 .. _atp_sum:
 
 Asynchronous Task Processing 
-===========================
+============================
 
 .. contents:: Table of Contents
    :depth: 3
@@ -233,7 +233,7 @@ demo application can be executed as follows::
     ENQUEUE: test_6be7ea23f0984efbb09181503aa1a974 000007
  
 Performance considerations 
--------------------------
+--------------------------
  
 The ATP is designed for resource demanding longer running tasks (10 seconds and
 more) which in case of synchronous operation could clog the system or lead to

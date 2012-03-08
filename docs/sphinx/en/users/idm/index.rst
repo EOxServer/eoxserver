@@ -31,7 +31,7 @@
 .. _Identity Management System:
 
 Identity Management System
-===========================
+==========================
 
 .. contents:: Table of Contents
     :depth: 4
@@ -108,7 +108,7 @@ XACMLAuthzDecisionQuery to the Charon Authorisation Service.
 Installation and Configuration
 ==============================
 
-The following services are needed for the both the HTTP and SOAP security part:
+The following services are needed both for the HTTP and the SOAP security part:
 
 * Charon :ref:`Authorisation_Service`.
 * :ref:`LDAP_Directory`.
@@ -214,9 +214,10 @@ Now you have to configure the service. All configuration files are in the
 - You can change the database connection in the ``config/GeoPDP.xml`` 
   configuration file if necessary. 
 
-To add new XACML policies to the Authorisation Service, refer to the :ref:`XACML `.
+To add new XACML policies to the Authorisation Service, refer to the 
+:ref:`XACML Policies`.
 
-.. _XACML:    
+.. _XACML Policies:    
 
 XACML Policies for the Authorisation Service
 ````````````````````````````````````````````
