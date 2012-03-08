@@ -313,10 +313,18 @@ class Command(CommandOutputMixIn, BaseCommand):
             #===================================================================
             mgr_to_use = rect_mgr
             
-            geo_metadata = GeospatialMetadata.readFromDataset(
-                gdal.Open(df),
-                default_srid
-            )
+            
+            geo_metadata = None
+            try:
+                # TODO: for rasdaman build identifiers
+                # for FTP not possible?
+                geo_metadata = GeospatialMetadata.readFromDataset(
+                    gdal.Open(df),
+                    default_srid
+                )
+            except RuntimeError:
+                pass
+            
             if geo_metadata is not None:
                 args["geo_metadata"] = geo_metadata
                 
