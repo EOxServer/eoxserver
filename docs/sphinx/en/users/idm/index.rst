@@ -216,76 +216,6 @@ Now you have to configure the service. All configuration files are in the
 
 To add new XACML policies to the Authorisation Service, refer to the :ref:`XACML `.
 
-
-.. _CHARON_Configuration:
-
-General Configuration for CHARON services
-`````````````````````````````````````````
-
-- The Charon services need the ``acs-xbeans-1.0.jar`` dependency in the 
-  ``\lib`` folder of your Axis2 installation (presumably the ``webapps/axis2`` 
-  of your Apache Tomcat installation).
-- Furthermore, you have to activate the EIGSecurityHandler in the 
-  **Global Modules** section of your axis2 configuration 
-  (``${AXIS2_HOME}/WEB-INF/conf/axis2.xml``).
-- You may configure the logging for the services in the Log4J configuration 
-  file (``${AXIS2_HOME}/WEB-INF/classes/log4j.properties``).
-
-
-Both, the Security Token Service and the PEP service make use of Java 
-Keystores: The IDMS uses  Keystores to store a) the certificate used by the 
-Security Token Service for signing SAML tokens and b) the public keys of those 
-authenticating authorities trusted by the Policy Enforcement Point. The 
-``keytool`` of the Java distribution can be used to create and manipulate 
-Java Keystores:
-
-- The following command creates a new Keystore with the password :secret: and 
-  a suitable key pair with the alias :authenticate: for the Security Token 
-  Service:
-  
-    ``keytool -genkey -alias authenticate -keyalg RSA -keystore keystore.jks 
-    -storepass secret -validity 360``
-
-- The following command exports the public certificate from a key pair 
-  :authenticate: to the file ``authn.crt``:
-  
-    ``keytool -export -alias authenticate -file authn.crt -keystore 
-    keystore.jks``
-
-- The following command imports a certificate to a Keystore:
-
-    ``keytool -import -alias trusted_sts -file authn.crt -keystore 
-    keystore.jks``
-
-You can use the Apache HTTP Server as a proxy, it will enable your services 
-running in Tomcat to be accessible over the Apache server. This can be useful 
-when your services have to be accessible over the HTTP standard port *80*:
-
-- First you have to enable ``mod_proxy_ajp`` and ``mod_proxy``.
-- Create a virtual host in your ``httpd.conf``:
-
-    .. code-block:: apache
-
-        <VirtualHost *:80>
-           ServerName server.example.com
-        
-           <Proxy *>
-             AddDefaultCharset Off
-             Order deny,allow
-             Allow from all
-           </Proxy>
-        
-           ProxyPass /services/AuthenticationService ajp://localhost:8009/axis2/services/AuthenticationService
-           ProxyPassReverse /services/AuthenticationService ajp://localhost:8009/axis2/services/AuthenticationService 
-           
-        </VirtualHost>
-
-- The ``ProxyPass`` and ``ProxyPassReverse`` directives have to point to your 
-  services. Please note that the Tomcat server hosting your services must have 
-  the AJP interface enabled.  
-
-
-
 .. _XACML:    
 
 XACML Policies for the Authorisation Service
@@ -706,3 +636,72 @@ A XACML policy to permit a user "wcs_user" full accesss to the EOxServer WCS:
 
 	</Policy>
  
+
+
+
+.. _CHARON_Configuration:
+
+General Configuration for CHARON services
+-----------------------------------------
+
+- The Charon services need the ``acs-xbeans-1.0.jar`` dependency in the 
+  ``\lib`` folder of your Axis2 installation (presumably the ``webapps/axis2`` 
+  of your Apache Tomcat installation).
+- Furthermore, you have to activate the EIGSecurityHandler in the 
+  **Global Modules** section of your axis2 configuration 
+  (``${AXIS2_HOME}/WEB-INF/conf/axis2.xml``).
+- You may configure the logging for the services in the Log4J configuration 
+  file (``${AXIS2_HOME}/WEB-INF/classes/log4j.properties``).
+
+
+Both, the Security Token Service and the PEP service make use of Java 
+Keystores: The IDMS uses  Keystores to store a) the certificate used by the 
+Security Token Service for signing SAML tokens and b) the public keys of those 
+authenticating authorities trusted by the Policy Enforcement Point. The 
+``keytool`` of the Java distribution can be used to create and manipulate 
+Java Keystores:
+
+- The following command creates a new Keystore with the password :secret: and 
+  a suitable key pair with the alias :authenticate: for the Security Token 
+  Service:
+  
+    ``keytool -genkey -alias authenticate -keyalg RSA -keystore keystore.jks 
+    -storepass secret -validity 360``
+
+- The following command exports the public certificate from a key pair 
+  :authenticate: to the file ``authn.crt``:
+  
+    ``keytool -export -alias authenticate -file authn.crt -keystore 
+    keystore.jks``
+
+- The following command imports a certificate to a Keystore:
+
+    ``keytool -import -alias trusted_sts -file authn.crt -keystore 
+    keystore.jks``
+
+You can use the Apache HTTP Server as a proxy, it will enable your services 
+running in Tomcat to be accessible over the Apache server. This can be useful 
+when your services have to be accessible over the HTTP standard port *80*:
+
+- First you have to enable ``mod_proxy_ajp`` and ``mod_proxy``.
+- Create a virtual host in your ``httpd.conf``:
+
+    .. code-block:: apache
+
+        <VirtualHost *:80>
+           ServerName server.example.com
+        
+           <Proxy *>
+             AddDefaultCharset Off
+             Order deny,allow
+             Allow from all
+           </Proxy>
+        
+           ProxyPass /services/AuthenticationService ajp://localhost:8009/axis2/services/AuthenticationService
+           ProxyPassReverse /services/AuthenticationService ajp://localhost:8009/axis2/services/AuthenticationService 
+           
+        </VirtualHost>
+
+- The ``ProxyPass`` and ``ProxyPassReverse`` directives have to point to your 
+  services. Please note that the Tomcat server hosting your services must have 
+  the AJP interface enabled.  
