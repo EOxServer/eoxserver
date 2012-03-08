@@ -56,7 +56,7 @@ and APIs please refer to the :ref:`EOxServer Developers' Guide`.
    EO-WCS_request_parameters
    operators
    webclient
-   idm
+   idm/index
    soap_proxy
    presentations
    configuration_options
