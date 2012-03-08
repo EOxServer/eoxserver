@@ -88,8 +88,8 @@ eoxs_footprint *eoxs_calculate_footprint(const char *filename) {
         return NULL;
     }
     
-    x_e = x_size / 100 - 1;
-    y_e = y_size / 100 - 1;
+    x_e = x_size / 100 - 1; if (x_e < 0) x_e = 0;
+    y_e = y_size / 100 - 1; if (y_e < 0) y_e = 0;
     n_points = 4 + 2 * x_e + 2 * y_e;
     
     x = malloc(sizeof(double) * n_points);
