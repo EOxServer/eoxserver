@@ -142,6 +142,20 @@ class Command(CommandOutputMixIn, BaseCommand):
             help=("Optional. Default SRID, needed if it cannot be " 
                   "determined automatically by GDAL.")
         ),
+        make_option('--default-size',
+            dest='default_size',
+            default=None,
+            help=("Optional. Default size, needed if it cannot " 
+                  "be determined automatically by GDAL. "
+                  "Format: <sizex>,<sizey>")
+        ),
+        make_option('--default-extent',
+            dest='default_extent',
+            default=None,
+            help=("Optional. Default extent, needed if it cannot be determined " 
+                  "automatically by GDAL. "
+                  "Format: <minx>,<miny>,<maxx>,<maxy>")
+        ),
         make_option('--visible',
             dest='visible',
             default=True,
@@ -183,6 +197,8 @@ class Command(CommandOutputMixIn, BaseCommand):
         coverageids = options.get('coverageids')
         mode = options.get('mode', 'local')
         default_srid = options.get("default_srid")
+        default_size = options.get("default_size")
+        default_extent = options.get("default_extent")
         visible = options.get("visible", True)
         
         datasetseries_eoids = options.get('datasetseries_eoids', [])
@@ -199,6 +215,36 @@ class Command(CommandOutputMixIn, BaseCommand):
             raise CommandError(
                 "The '--host' parameter is required when mode "
                 "is 'ftp' or 'rasdaman'."
+            )
+        
+        #=======================================================================
+        # Setupt default geo metadata
+        #=======================================================================
+        
+        default_geo_metadata = None
+        if (any((default_size, default_extent, default_srid)) 
+            and not all((default_size, default_extent, default_srid))):
+            raise CommandError(
+                "Use either both of '--default-size' and '--default-extent' "
+                "or none."
+            )
+        elif default_size is not None and default_extent is not None:
+            if default_srid is None:
+                raise CommandError(
+                    "When setting '--default-size' and '--default-extent' the "
+                    "parameter '--default-srid' is mandatory."
+                )
+            
+            sizes = [int(size) for size in default_size.split(",")]
+            extent = [float(bound) for bound in default_extent.split(",")]
+            
+            if len(sizes) != 2: 
+                raise CommandError("Wrong format for '--default-size' parameter.")
+            if len(extent) != 4: 
+                raise CommandError("Wrong format for '--default-extent' parameter.")
+            
+            default_geo_metadata = GeospatialMetadata(
+                default_srid, sizes[0], sizes[1], extent
             )
         
         #=======================================================================
@@ -313,17 +359,17 @@ class Command(CommandOutputMixIn, BaseCommand):
             #===================================================================
             mgr_to_use = rect_mgr
             
-            
-            geo_metadata = None
-            try:
-                # TODO: for rasdaman build identifiers
-                # for FTP not possible?
-                geo_metadata = GeospatialMetadata.readFromDataset(
-                    gdal.Open(df),
-                    default_srid
-                )
-            except RuntimeError:
-                pass
+            geo_metadata = default_geo_metadata
+            if geo_metadata is None:
+                try:
+                    # TODO: for rasdaman build identifiers
+                    # for FTP not possible?
+                    geo_metadata = GeospatialMetadata.readFromDataset(
+                        gdal.Open(df),
+                        default_srid
+                    )
+                except RuntimeError:
+                    pass
             
             if geo_metadata is not None:
                 args["geo_metadata"] = geo_metadata
