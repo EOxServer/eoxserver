@@ -222,8 +222,8 @@ class Command(CommandOutputMixIn, BaseCommand):
         #=======================================================================
         
         default_geo_metadata = None
-        if (any((default_size, default_extent, default_srid)) 
-            and not all((default_size, default_extent, default_srid))):
+        if ((default_size is None and default_extent is not None) or
+            (default_size is not None and default_extent is None)):
             raise CommandError(
                 "Use either both of '--default-size' and '--default-extent' "
                 "or none."
