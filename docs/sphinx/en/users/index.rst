@@ -60,6 +60,7 @@ and APIs please refer to the :ref:`EOxServer Developers' Guide`.
    soap_proxy
    presentations
    configuration_options
+   atp_sum 
 
 .. TODO
    users     - empty
