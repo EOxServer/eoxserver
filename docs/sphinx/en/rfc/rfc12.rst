@@ -87,7 +87,7 @@ Data Access Layer Data Model
 
 The new database model for the Data Access Layer is shown in the figure below:
 
-.. figure:: ../developers/images/model_backends.png
+.. figure:: resources/rfc12/model_backends.png
    :width: 75%
    
    Data Access Layer Database Model

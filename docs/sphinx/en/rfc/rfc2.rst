@@ -439,7 +439,7 @@ The registry model is accompanied by a database model that allows to
 store persistently which parts of the system (services, plugins, etc.)
 are enabled and which resources they have access to.
 
-.. figure:: ../developers/images/model_core.png
+.. figure:: resources/rfc2/model_core.png
    :align: center
    
    *Database Model for the Registry*

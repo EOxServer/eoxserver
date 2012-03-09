@@ -81,9 +81,9 @@ python manage.py graph_models --output=../docs/sphinx/en/developers/images/model
 python manage.py graph_models --output=../docs/sphinx/en/developers/images/model_coverages.png coverages
 python manage.py graph_models --output=../docs/sphinx/en/developers/images/model_backends.png backends
 
-python manage.py graph_models coverages > tmp.dot
+python manage.py graph_models coverages --output=./tmp.dot
 # Edit tmp.dot and remove top lines up to "digraph name {".
-dot -Tsvg tmp.dot -otmp.svg
+dot -Tsvg ./tmp.dot -o./tmp.svg
 # Edit tmp.svg e.g. with Inkscape
 
 --------------------------------------------------------------------------------
