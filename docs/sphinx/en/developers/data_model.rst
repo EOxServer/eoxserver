@@ -5,6 +5,7 @@
   # Project: EOxServer <http://eoxserver.org>
   # Authors: Stephan Krause <stephan.krause@eox.at>
   #          Stephan Meissl <stephan.meissl@eox.at>
+  #          Martin Paces <martin.paces@eox.at>
   #
   #-----------------------------------------------------------------------------
   # Copyright (C) 2011 EOX IT Services GmbH
@@ -79,3 +80,17 @@ Figure: ":ref:`fig_model_backends`" below shows the data model of the back-ends 
    :align: center
 
    *EOxServer Data Model for Back-ends*
+
+Asynchronous Task Processing - Task Tracker
+-------------------------------------------
+
+Asynchrounous Task Processing uses its own DB model displayed in Figure:
+":ref:`fig_model_processes`" to implement the task queueu, store the task inputs
+and outputs and track the tasks' status. (For more detail on ATP subsystem see
+":ref:`atp_sum`").
+
+.. _fig_model_processes:
+.. figure:: images/model_processes.png
+   :align: center
+
+   *EOxServer Data Model of ATP Task Tracker*
