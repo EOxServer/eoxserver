@@ -876,16 +876,34 @@ class WCS20GetCoverageRasdamanSubsetSizeResolutionOutputCRSRangeSubsetIndicesDat
 # WCS 2.0: GetCov with EPSG:3035 input images 
 #===============================================================================
 
+class WCS20DescribeCoverageReprojectedDatasetTestCase(eoxstest.XMLTestCase):
+    fixtures = eoxstest.OWSTestCase.fixtures + ["testing_reprojected_coverages.json"]
+    def getRequest(self):
+        params = "service=WCS&version=2.0.0&request=DescribeCoverage&CoverageId=MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected"
+        return (params, "kvp")
+
 class WCS20GetCoverageReprojectedDatasetTestCase(eoxstest.RectifiedGridCoverageTestCase):
     fixtures = eoxstest.OWSTestCase.fixtures + ["testing_reprojected_coverages.json"]
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected&format=image/tiff"
         return (params, "kvp")
 
-class WCS20GetCoverageReprojectedDatasetSubsetTestCase(eoxstest.RectifiedGridCoverageTestCase):
+class WCS20GetCoverageReprojectedSubsetDatasetTestCase(eoxstest.RectifiedGridCoverageTestCase):
     fixtures = eoxstest.OWSTestCase.fixtures + ["testing_reprojected_coverages.json"]
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected&format=image/tiff&subset=x(100,200)&subset=y(200,300)"
+        return (params, "kvp")
+    
+class WCS20GetCoverageReprojectedSubsetEPSG4326DatasetTestCase(eoxstest.RectifiedGridCoverageTestCase):
+    fixtures = eoxstest.OWSTestCase.fixtures + ["testing_reprojected_coverages.json"]
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected&format=image/tiff&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(38,40)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(20,22)"
+        return (params, "kvp")
+
+class WCS20GetCoverageReprojectedMultipartDatasetTestCase(eoxstest.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
+    fixtures = eoxstest.OWSTestCase.fixtures + ["testing_reprojected_coverages.json"]
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected&format=image/tiff&mediatype=multipart/mixed"
         return (params, "kvp")
 
 #===============================================================================
