@@ -53,6 +53,7 @@ from eoxserver.resources.coverages.models import (
 from eoxserver.core.exceptions import InternalError
 from eoxserver.core.system import System
 from eoxserver.core.admin import ConfirmationAdmin
+from eoxserver.core.util.timetools import UTCOffsetTimeZoneInfo
 
 System.init()
 
@@ -138,10 +139,10 @@ class LineageInline(admin.StackedInline):
 
 class RectifiedDatasetAdmin(ConfirmationAdmin):
     #list_display = ('coverage_id', 'eo_id', 'data_package', 'range_type', 'extent')
-    fields = ('automatic', 'visible', 'coverage_id', 'eo_id', 'range_type', 'extent', 'eo_metadata', 'data_package', 'lineage')
-    list_display = ('coverage_id', 'eo_id', 'range_type', 'extent')
+    fields = ('automatic', 'visible', 'coverage_id', 'eo_id', 'range_type', 'extent', 'eo_metadata', 'data_package', 'data_source', 'lineage')
+    list_display = ('coverage_id', 'eo_id', 'range_type', 'extent', 'visible')
     #list_editable = ('data_package', 'range_type', 'extent')
-    list_editable = ('range_type', 'extent', )
+    list_editable = ('range_type', 'extent', 'visible')
     list_filter = ('range_type', )
     
     ordering = ('coverage_id', )
@@ -207,9 +208,9 @@ admin.site.register(RectifiedDatasetRecord, RectifiedDatasetAdmin)
 class ReferenceableDatasetAdmin(ConfirmationAdmin):
     #list_display = ('coverage_id', 'eo_id', 'data_package', 'range_type', 'size_x', 'size_y')
     fields = ('automatic', 'visible', 'coverage_id', 'eo_id', 'range_type', 'size_x', 'size_y', 'eo_metadata', 'data_package', 'lineage')
-    list_display = ('coverage_id', 'eo_id', 'range_type', 'size_x', 'size_y')
+    list_display = ('coverage_id', 'eo_id', 'range_type', 'size_x', 'size_y', 'visible')
     #list_editable = ('data_package', 'range_type', 'extent')
-    list_editable = ('range_type', 'size_x', 'size_y', )
+    list_editable = ('range_type', 'size_x', 'size_y', 'visible')
     list_filter = ('range_type', )
     
     ordering = ('coverage_id', )
@@ -316,19 +317,21 @@ class AbstractContainerAdmin(admin.ModelAdmin):
         self.obj_to_sync = obj
     
     def try_synchronize(self):
-        obj_to_sync = getattr(self, "obj_to_sync")
-        if obj_to_sync is not None:
+        try:
+            obj_to_sync = getattr(self, "obj_to_sync")
             System.init()
             mgr = self.get_manager()
             obj_id = self.get_obj_id(pk=obj_to_sync.pk)
             mgr.synchronize(obj_id)
+        except AttributeError:
+            pass
+        except obj_to_sync.DoesNotExist:
+            pass
     
     def add_view(self, request, form_url="", extra_context=None):
         try:
             ret = super(AbstractContainerAdmin, self).add_view(request, form_url, extra_context)
-            
             self.try_synchronize()
-            
             return ret
         except:
             raise
@@ -338,9 +341,7 @@ class AbstractContainerAdmin(admin.ModelAdmin):
     def change_view(self, request, object_id, extra_context=None):
         try:
             ret = super(AbstractContainerAdmin, self).change_view(request, object_id, extra_context)
-            
             self.try_synchronize()
-            
             return ret
         except:
             raise
@@ -350,9 +351,7 @@ class AbstractContainerAdmin(admin.ModelAdmin):
     def changelist_view(self, request, extra_context=None):
         try:
             ret = super(AbstractContainerAdmin, self).changelist_view(request, extra_context)
-            
             self.try_synchronize()
-            
             return ret
         except:
             raise
@@ -362,9 +361,7 @@ class AbstractContainerAdmin(admin.ModelAdmin):
     def delete_view(self, request, object_id, extra_context=None):
         try:
             ret = super(AbstractContainerAdmin, self).delete_view(request, object_id, extra_context)
-            
             # TODO: need synchronization here?
-            
             return ret
         except:
             raise
@@ -457,7 +454,22 @@ class EOMetadataAdmin(admin.GeoModelAdmin):
         # 3. validate against schema
         
         self.metadata_object = obj
+        
+        tzi = UTCOffsetTimeZoneInfo()
+        tzi.setOffsets("+", 0, 0)
+        
+        if obj.timestamp_begin.tzinfo is None:
+            dt = obj.timestamp_begin.replace(tzinfo=UTCOffsetTimeZoneInfo())
+            obj.timestamp_begin = dt.astimezone(UTCOffsetTimeZoneInfo())
+            
+        if obj.timestamp_end.tzinfo is None:
+            dt = obj.timestamp_end.replace(tzinfo=UTCOffsetTimeZoneInfo())
+            obj.timestamp_end = dt.astimezone(UTCOffsetTimeZoneInfo())
+        
         super(EOMetadataAdmin, self).save_model(request, obj, form, change)
+        
+        if obj.timestamp_begin.tzinfo is None:
+            raise
         """
         if len(self.metadata_object.eo_gml) > 0:
             # not sure about this:

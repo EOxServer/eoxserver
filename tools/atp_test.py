@@ -61,12 +61,14 @@ os.environ["DJANGO_SETTINGS_MODULE"] = os.environ.get("DJANGO_SETTINGS_MODULE",D
 
 # setup search paths 
 
-paths = [] 
+#paths = [] 
 #paths = [ 
 #    "/home/test/o3s/sandbox_wcst" ,
 #    "/home/test/o3s/sandbox_wcst_instance" ] 
+#for path in paths : 
 
-for path in paths : 
+for path in sys.argv[1:] : 
+    print path 
     if path not in sys.path:
         sys.path.append(path)
 

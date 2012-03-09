@@ -26,19 +26,19 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #-----------------------------------------------------------------------
-from eoxserver.backends.base import LocationWrapper
-
 """
 This module defines filters and filter expressions for EO Coverages.
 For more information on filters, see :mod:`eoxserver.core.filters`.
 """
 
+import math
 from datetime import datetime
 
 from django.db.models import Q, Count
 from django.contrib.gis.geos import (
     fromstr as geos_fromstr, Polygon
 )
+from django.contrib.gis.gdal import SpatialReference
 
 from eoxserver.core.system import System
 from eoxserver.core.registry import FactoryInterface
@@ -46,9 +46,11 @@ from eoxserver.core.filters import (
     FilterExpressionInterface, FilterInterface, SimpleExpression,
     SimpleExpressionFactory
 )
+from eoxserver.core.util.timetools import UTCOffsetTimeZoneInfo
 from eoxserver.core.exceptions import (
     InternalError, InvalidExpressionError, UnknownAttribute
 )
+from eoxserver.backends.base import LocationWrapper
 from eoxserver.resources.coverages.models import EOMetadataRecord
 from eoxserver.resources.coverages.wrappers import (
     RectifiedDatasetWrapper, ReferenceableDatasetWrapper,
@@ -786,8 +788,16 @@ class IntersectingTimeIntervalFilter(object):
         begin = expr.getOperands()[0].begin
         end = expr.getOperands()[0].end
         
-        return not end < res.getBeginTime() and \
-               not res.getEndTime() < begin
+        res_begin = res.getBeginTime() 
+        res_end = res.getEndTime()
+        
+        if res_begin.tzinfo is None and begin.tzinfo is not None:
+            res_begin = res_begin.replace(tzinfo=UTCOffsetTimeZoneInfo())
+        if res_end.tzinfo is None and end.tzinfo is not None:
+            res_end = res_end.replace(tzinfo=UTCOffsetTimeZoneInfo())
+        
+        return not end < res_begin and \
+               not res_end < begin
 
 class RectifiedDatasetIntersectingTimeIntervalFilter(IntersectingTimeIntervalFilter):
     """
@@ -928,51 +938,53 @@ class SpatialFilter(object):
     """
     Common base class for spatial filters.
     """
-    def _getMaxExtent(self, qs):
-        eoqs = EOMetadataRecord.objects.filter(
-            **{"%s__in" % self._getRelationName(): qs}
-        )
-        
-        envs = eoqs.envelope().values_list("envelope", flat=True)
-        
-        if len(envs) > 0:
-            common_env = geos_fromstr("POLYGON EMPTY", srid=4326)
             
-            for env in envs:
-                common_env = common_env.union(env).envelope
-            
-            return common_env.extent
-        else:
-            return (-180.0, -90.0, 180.0, 90.0)
-    
-    def _transformMaxExtent(self, crs_id, max_extent):
+    def _getSRS(self, crs_id):
         if crs_id == "imageCRS":
-            # cannot handle image CRS here
             raise InvalidExpressionError(
-                "Expected projected CRS, not pixel coordinates."
+                "Cannot use geospatial filters with pixel coordinates."
             )
-        elif crs_id != 4326:
-            # reproject max extent to bounded area CRS
-            max_poly = Polygon.from_bbox(max_extent)
-            max_poly.srid = 4326
-            try:
-                max_poly.transform(crs_id)
-            except Exception, e:
-                raise InvalidExpressionError(
-                    "Error when processing expression: %s" % str(e)
-                )
-            
-            return max_poly.extent
-        else:
-            return max_extent
 
+        try:
+            srs = SpatialReference(crs_id)
+        except Exception, e:
+            raise InvalidExpressionError(
+                "Unknown SRID %d." % crs_id
+            )
+            
+        return srs
+        
+    def _getCRSBounds(self, crs_id):
+        srs = self._getSRS(crs_id)
+        
+        if srs.geographic:
+            return (-180.0, -90.0, 180.0, 90.0)
+        else:
+            earth_circumference = 2*math.pi*srs.semi_major
+        
+            return (
+                -earth_circumference,
+                -earth_circumference,
+                earth_circumference,
+                earth_circumference
+            )
+            
+    def _getCRSTolerance(self, crs_id):
+        srs = self._getSRS(crs_id)
+        
+        if srs.geographic:
+            return 1e-8
+        else:
+            return 1e-2
+            
 class SpatialSliceFilter(SpatialFilter):
     """
     Common base class for spatial slice filters.
     """
     
     def _getLine(self, slice, max_extent):
-        _max_extent = self._transformMaxExtent(slice.crs_id, max_extent)
+        #_max_extent = self._transformMaxExtent(slice.crs_id, max_extent)
+        _max_extent = self._getCRSBounds(slice.crs_id)
         
         if slice.axis_label.lower() in ("x", "lon", "long"):
             line = Line(
@@ -999,9 +1011,7 @@ class SpatialSliceFilter(SpatialFilter):
     def applyToQuerySet(self, expr, qs):
         slice = expr.getOperands()[0]
         
-        max_extent = self._getMaxExtent(qs)
-    
-        line = self._getLine(slice, max_extent)
+        line = self._getLine(slice)
         
         # NOTE: this is a hack to account for bugs in GeoDjango
         # Should be:
@@ -1022,9 +1032,7 @@ class SpatialSliceFilter(SpatialFilter):
         
         footprint = res.getFootprint()
         
-        max_extent = footprint.extent
-        
-        line = self._getLine(slice, max_extent)
+        line = self._getLine(slice)
         
         return footprint.intersects(line)
 
@@ -1102,12 +1110,12 @@ class FootprintFilter(SpatialFilter):
     """
     Common base class for footprint-related filters.
     """    
-    def _getPolygon(self, bounded_area, max_extent):
-        EPSILON = 1e-10
+    def _getPolygon(self, bounded_area):
+        #_max_extent = self._transformMaxExtent(
+        #    bounded_area.crs_id, max_extent
+        #)
         
-        _max_extent = self._transformMaxExtent(
-            bounded_area.crs_id, max_extent
-        )
+        _max_extent = self._getCRSBounds(bounded_area.crs_id)
         
         if bounded_area.minx == "unbounded":
             minx = _max_extent[0]
@@ -1129,9 +1137,9 @@ class FootprintFilter(SpatialFilter):
         else:
             maxy = min(bounded_area.maxy, _max_extent[3])
         
-        # make the extent a little bit larger to account for rounding
-        # and string conversion errors
-        e = EPSILON * max([abs(c) for c in _max_extent])
+        # add a tolerance to the extent to account for string conversion and
+        # rounding errors
+        e = self._getCRSTolerance(bounded_area.crs_id)
         minx -= e; miny -= e; maxx += e; maxy += e
         
         poly = Polygon.from_bbox((minx, miny, maxx, maxy))
@@ -1149,9 +1157,9 @@ class FootprintIntersectsAreaFilter(FootprintFilter):
     given area.
     """
     def applyToQuerySet(self, expr, qs):
-        max_extent = self._getMaxExtent(qs)
-        
-        poly = self._getPolygon(expr.getOperands()[0], max_extent)
+        #max_extent = self._getMaxExtent(qs)
+                
+        poly = self._getPolygon(expr.getOperands()[0])
         
         # NOTE: this is a hack to account for bugs in GeoDjango
         # Should be:
@@ -1169,10 +1177,8 @@ class FootprintIntersectsAreaFilter(FootprintFilter):
     
     def resourceMatches(self, expr, res):
         footprint = res.getFootprint()
-        
-        max_extent = footprint.extent
-        
-        poly = self._getPolygon(expr.getOperands()[0], max_extent)
+
+        poly = self._getPolygon(expr.getOperands()[0])
         
         return footprint.intersects(poly)
 
@@ -1183,9 +1189,7 @@ class FootprintWithinAreaFilter(FootprintFilter):
     """
     
     def applyToQuerySet(self, expr, qs):
-        max_extent = self._getMaxExtent(qs)
-        
-        poly = self._getPolygon(expr.getOperands()[0], max_extent)
+        poly = self._getPolygon(expr.getOperands()[0])
         
         # NOTE: this is a hack to account for bugs in GeoDjango
         # Should be:
@@ -1202,9 +1206,7 @@ class FootprintWithinAreaFilter(FootprintFilter):
     def resourceMatches(self, expr, res):
         footprint = res.getFootprint()
         
-        max_extent = footprint.extent
-        
-        poly = self._getPolygon(expr.getOperands()[0], max_extent)
+        poly = self._getPolygon(expr.getOperands()[0])
         
         return footprint.within(poly)
 

@@ -36,5 +36,4 @@ PROCESS_CLASS = "WCST11_Transaction"
 
 #-------------------------------------------------------------------------------
 
-#ACTIONS =['Add','Delete', 'UpdateAll', 'UpdateMetadata', 'UpdateDataPart'] # all possible 
-ACTIONS =['Add'] # these actions are actually implemented
+ACTIONS =['Add','Delete', 'UpdateAll', 'UpdateMetadata', 'UpdateDataPart'] # all possible 

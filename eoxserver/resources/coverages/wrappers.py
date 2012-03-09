@@ -896,9 +896,7 @@ class ReferenceableDatasetWrapper(ReferenceableGridWrapper, EODatasetWrapper):
     
     FIELDS = {
         "eo_id": "eo_id",
-        "filename": "file__path",
-        "metadata_filename": "file__metadata_path",
-        "metadata_format": "file__metadata_format",
+        "data_package": "data_package",
         "size_x": "size_x",
         "size_y": "size_y",
         "visible": "visible",
@@ -1471,22 +1469,26 @@ class DatasetSeriesWrapper(EOMetadataWrapper, ResourceWrapper):
         will be returned.
         """
         
-        _filter_exprs = []
-
-        if filter_exprs is not None:
-            _filter_exprs.extend(filter_exprs)
+        return self._get_contained_coverages(filter_exprs=filter_exprs)
         
-        self_expr = System.getRegistry().getFromFactory(
-            "resources.coverages.filters.CoverageExpressionFactory",
-            {"op_name": "contained_in", "operands": (self.__model.pk,)}
+    
+    def getDatasets(self, filter_exprs=None):
+        """
+        This method returns a list of RectifiedDataset or ReferenceableDataset
+        wrappers associated with the dataset series. It accepts an optional
+        ``filter_exprs`` parameter which is expected to be a list of filter
+        expressions (see module :mod:`eoxserver.resources.coverages.filters`) or
+        ``None``. Only the Datasets matching the filters will be returned; in
+        case no matching Datasets are found an empty list will be returned.
+        """
+        
+        return self._get_contained_coverages(
+            impl_ids = [
+                "resources.coverages.wrappers.RectifiedDatasetWrapper",
+                "resources.coverages.wrappers.ReferenceableDatasetWrapper"
+            ],
+            filter_exprs = filter_exprs
         )
-        _filter_exprs.append(self_expr)
-        
-        factory = System.getRegistry().bind(
-            "resources.coverages.wrappers.EOCoverageFactory"
-        )
-        
-        return factory.find(filter_exprs=_filter_exprs)
         
     def contains(self, wrapper):
         """
@@ -1577,6 +1579,28 @@ class DatasetSeriesWrapper(EOMetadataWrapper, ResourceWrapper):
         """
         
         return self.__model.image_pattern
+        
+    def _get_contained_coverages(self, impl_ids=None, filter_exprs=None):
+        _filter_exprs = []
+
+        if filter_exprs is not None:
+            _filter_exprs.extend(filter_exprs)
+        
+        self_expr = System.getRegistry().getFromFactory(
+            "resources.coverages.filters.CoverageExpressionFactory",
+            {"op_name": "contained_in", "operands": (self.__model.pk,)}
+        )
+        _filter_exprs.append(self_expr)
+        
+        factory = System.getRegistry().bind(
+            "resources.coverages.wrappers.EOCoverageFactory"
+        )
+        
+        if impl_ids is None:
+            return factory.find(filter_exprs=_filter_exprs)
+        else:
+            return factory.find(impl_ids=impl_ids, filter_exprs=_filter_exprs)
+
 
 DatasetSeriesWrapperImplementation = \
 DatasetSeriesInterface.implement(DatasetSeriesWrapper)

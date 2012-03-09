@@ -35,6 +35,17 @@ from eoxserver.core.exceptions import InvalidParameterException
 
 import logging
 
+# pre-compile the regular expression for date/time matching
+
+date_regex = r"(?P<year>\d{4})[-]?(?P<month>\d{2})[-]?(?P<day>\d{2})"
+time_regex = r"(?P<hour>\d{2})(:?(?P<minute>\d{2})(:?(?P<second>\d{2}))?)?"
+tz_regex = r"(?P<tz_expr>Z|(?P<tz_sign>[+-])(?P<tz_hours>\d{2}):?(?P<tz_minutes>\d{2})?)?"
+datetime_regex = date_regex + r"(T" + time_regex + tz_regex + ")?"
+
+global datetime_regex_obj
+
+datetime_regex_obj = re.compile(datetime_regex)
+
 class UTCOffsetTimeZoneInfo(tzinfo):
     def __init__(self):
         super(UTCOffsetTimeZoneInfo, self).__init__
@@ -56,39 +67,36 @@ class UTCOffsetTimeZoneInfo(tzinfo):
     def tzname(self, dt):
         return None
 
+def _convert(s):
+    if s is None:
+        return 0
+    else:
+        return int(s)
+
 def getDateTime(s):
-    match = re.match(r"(\d{4})-(\d{2})-(\d{2})(T(\d{2}):(\d{2}):(\d{2})(Z|([+-])(\d{2}):?(\d{2})?)?)?", s)
+    match = datetime_regex_obj.match(s)
     if match is None:
-        raise UnknownParameterFormatException("'%s' does not match any known datetime format." % s)
+        raise InvalidParameterException(
+            "'%s' does not match any known datetime format." % s
+        )
     
-    year = int(match.group(1))
-    month = int(match.group(2))
-    day = int(match.group(3))
+    year = int(match.group("year"))
+    month = int(match.group("month"))
+    day = int(match.group("day"))
     
-    if match.group(4) is None:
-        hour = 0
-        minute = 0
-        second = 0
+    hour = _convert(match.group("hour"))
+    minute = _convert(match.group("minute"))
+    second = _convert(match.group("second"))
+    
+    if match.group("tz_expr") in (None, "Z"):
         offset_sign = "+"
         offset_hours = 0
         offset_minutes = 0
     else:
-        hour = int(match.group(5))
-        minute = int(match.group(6))
-        second = int(match.group(7))
+        offset_sign = match.group("tz_sign")
+        offset_hours = _convert(match.group("tz_hours"))
+        offset_minutes = _convert(match.group("tz_minutes"))
         
-        if match.group(8) is None or match.group(8) == "Z":
-            offset_sign = "+"
-            offset_hours = 0
-            offset_minutes = 0
-        else:
-            offset_sign = match.group(9)
-            offset_hours = int(match.group(10))
-            if match.group(11) is None:
-                offset_minutes = 0
-            else:
-                offset_minutes = int(match.group(11))
-    
     tzi = UTCOffsetTimeZoneInfo()
     tzi.setOffsets(offset_sign, offset_hours, offset_minutes)
     

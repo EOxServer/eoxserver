@@ -884,6 +884,15 @@ class DatasetSeriesInterface(ResourceInterface, EOWCSObjectInterface):
        argument is expected to be a list of filter expressions to be
        applied to the datasets or ``None``. In case no contained dataset
        matches the filter expressions an empty list shall be returned.
+       
+    .. method:: getDatasets(filter_exprs=None)
+    
+       This method shall return a list of RectifiedDataset and 
+       ReferenceableDataset wrappers contained in the dataset series. The
+       optional ``filter_exprs`` argument is expected to be a list of filter
+       expressions to be applied to the datasets or ``None``. In case no
+       contained dataset matches the filter expressions an empty list shall be
+       returned.
 
     .. method:: contains(wrapper)
     
@@ -901,6 +910,11 @@ class DatasetSeriesInterface(ResourceInterface, EOWCSObjectInterface):
     )
 
     getEOCoverages = Method(
+        ListArg("filter_exprs", default=None),
+        returns=ListArg("@return")
+    )
+    
+    getDatasets = Method(
         ListArg("filter_exprs", default=None),
         returns=ListArg("@return")
     )

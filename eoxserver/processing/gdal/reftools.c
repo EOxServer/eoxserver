@@ -88,8 +88,8 @@ eoxs_footprint *eoxs_calculate_footprint(const char *filename) {
         return NULL;
     }
     
-    x_e = x_size / 100 - 1;
-    y_e = y_size / 100 - 1;
+    x_e = x_size / 100 - 1; if (x_e < 0) x_e = 0;
+    y_e = y_size / 100 - 1; if (y_e < 0) y_e = 0;
     n_points = 4 + 2 * x_e + 2 * y_e;
     
     x = malloc(sizeof(double) * n_points);
@@ -233,7 +233,9 @@ int eoxs_rect_from_subset(const char *filename, eoxs_subset *subset, eoxs_rect *
     GDALDatasetH ds;
     void *transformer;
     
-    const char *gcp_proj_wkt;
+    const char *tmp;
+    char *gcp_proj_wkt;
+    
     OGRSpatialReferenceH gcp_srs, subset_srs;
     OGRCoordinateTransformationH ct;
     
@@ -256,18 +258,30 @@ int eoxs_rect_from_subset(const char *filename, eoxs_subset *subset, eoxs_rect *
     
     ds_x_size = GDALGetRasterXSize(ds);
     ds_y_size = GDALGetRasterYSize(ds);
-    gcp_proj_wkt = GDALGetGCPProjection(ds);
+    
+    tmp = GDALGetGCPProjection(ds);
+    gcp_proj_wkt = malloc(strlen(tmp));
+    strcpy(gcp_proj_wkt, tmp);
+    
     transformer = eoxs_get_referenceable_grid_transformer(ds);
     
     GDALClose(ds);
     
-    if (!transformer) return 0;
+    if (!transformer) {
+        free(gcp_proj_wkt);
+        return 0;
+    }
     
     gcp_srs = OSRNewSpatialReference(gcp_proj_wkt);
     subset_srs = OSRNewSpatialReference("");
     OSRImportFromEPSG(subset_srs, subset->srid);
     
     ct = OCTNewCoordinateTransformation(subset_srs, gcp_srs);
+    if (!ct) {
+        free(gcp_proj_wkt);
+        eoxs_destroy_referenceable_grid_transformer(transformer);
+        return 0;
+    }
     
     eoxs_get_intermediate_point_count(&n_x, &n_y, ds_x_size, ds_y_size, subset, transformer, ct);
     
@@ -322,6 +336,7 @@ int eoxs_rect_from_subset(const char *filename, eoxs_subset *subset, eoxs_rect *
     out_rect->x_size = maxx - minx + 1;
     out_rect->y_size = maxy - miny + 1;
     
+    free(gcp_proj_wkt);
     free(x); free(y); free(z); free(success);
     eoxs_destroy_referenceable_grid_transformer(transformer);
     

@@ -93,10 +93,15 @@ class TaskStatus :
         The dbLock must be a class instace providing two methos: 
         dbLock.acquire() and dbLock.release() 
     """ 
+    # --------------------
+    # constructor
 
     def __init__( self , task_id , dbLock = None ) : 
         self.task_id = task_id 
         self.dbLock  = dbLock if ( dbLock is not None ) else DummyLock() ; 
+
+    # --------------------
+    # info getters 
 
     def getInfo( self ) :
         """ get short info about the task - tuple of task Type and Instance identifiers, status, status string """
@@ -106,13 +111,15 @@ class TaskStatus :
         """ get tuple of task Type and Instance identifiers """
         return dbLocker( self.dbLock , getTaskIdentifier , self.task_id )
 
+    # --------------------
+    # status getter
+
     def getStatus( self ) : 
         """ get task status (tuple of the integer code and the string label) """
         return dbLocker( self.dbLock , getTaskStatus , self.task_id )
 
-    def setSuccessIfNotFinished( self , message = "" ) : 
-        """ if task status is neither FAILED nor FINISHED sets status to FINISHED (aka success) """ 
-        dbLocker( self.dbLock , stopTaskSuccessIfNotFinished , self.task_id , message )
+    # --------------------
+    # status setters
 
     def setSuccess( self , message = "" ) : 
         """ set task status to FINISHED (aka success) """
@@ -129,6 +136,9 @@ class TaskStatus :
     def setRunning( self , message = "" ) : 
         """ set task status to RUNNING """
         dbLocker( self.dbLock , resumeTask , self.task_id , message )
+
+    # --------------------
+    # response setters
 
     def storeResponse( self, response ) : 
         """ store the task response """

@@ -955,8 +955,48 @@
         "pk": 120, 
         "model": "core.implementation", 
         "fields": {
-            "impl_id": "services.ows.wcs11Transaction.WCS11TransactionHandler",
+            "impl_id": "services.ows.wcs11Transaction.WCS11TransactionHandler", 
             "intf_id": "services.interfaces.OperationHandler"
+        }
+    }, 
+    {
+        "pk": 121, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wcs11Transaction.WCS11VersionHandler", 
+            "intf_id": "services.interfaces.VersionHandler"
+        }
+    }, 
+    {
+        "pk": 122, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wms1x.WMS13GetFeatureInfoHandler", 
+            "intf_id": "services.interfaces.OperationHandler"
+        }
+    }, 
+    {
+        "pk": 123, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.auth.charonpdp.CharonPDP", 
+            "intf_id": "services.auth.base.PolicyDecisionPointInterface"
+        }
+    }, 
+    {
+        "pk": 124, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.auth.base.AuthConfigReader", 
+            "intf_id": "core.readers.ConfigReader"
+        }
+    }, 
+    {
+        "pk": 125, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.auth.dummypdp.DummyPDP", 
+            "intf_id": "services.auth.base.PolicyDecisionPointInterface"
         }
     }, 
     {
@@ -1777,12 +1817,12 @@
         "fields": {
             "enabled": true
         }
-    },
+    }, 
     {
         "pk": 118, 
         "model": "core.component", 
         "fields": {
-            "enabled": true 
+            "enabled": true
         }
     }, 
     {
@@ -1794,6 +1834,41 @@
     }, 
     {
         "pk": 120, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 121, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 122, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 123, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 124, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 125, 
         "model": "core.component", 
         "fields": {
             "enabled": true

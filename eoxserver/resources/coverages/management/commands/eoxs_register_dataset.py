@@ -33,6 +33,7 @@ from optparse import make_option
 
 from osgeo import gdal
 from django.core.management.base import BaseCommand, CommandError
+from django.db import transaction
 
 from eoxserver.core.system import System
 from eoxserver.resources.coverages.geo import GeospatialMetadata
@@ -141,9 +142,15 @@ class Command(CommandOutputMixIn, BaseCommand):
             help=("Optional. Default SRID, needed if it cannot be " 
                   "determined automatically by GDAL.")
         ),
+        make_option('--visible',
+            dest='visible',
+            default=True,
+            help=("Optional. Sets the visibility status of all datasets to the"
+                  "given boolean value. Defaults to 'True'.")
+        )
     )
     
-    help = ('Registers one or more datasets from each a data and '
+    help = ('Registers one or more datasets from each data and '
             'meta-data file.')
     args = '--data-file DATAFILE --rangetype RANGETYPE'
 
@@ -176,6 +183,7 @@ class Command(CommandOutputMixIn, BaseCommand):
         coverageids = options.get('coverageids')
         mode = options.get('mode', 'local')
         default_srid = options.get("default_srid")
+        visible = options.get("visible", True)
         
         datasetseries_eoids = options.get('datasetseries_eoids', [])
         stitchedmosaic_eoids = options.get('stitchedmosaic_eoids', [])
@@ -212,7 +220,7 @@ class Command(CommandOutputMixIn, BaseCommand):
         if len(datafiles) > len(coverageids):
             if mode == "rasdaman":
                 raise CommandError(
-                    "All rasdaman datasets require a explicit IDs. "
+                    "All rasdaman datasets require an explicit ID. "
                     "Use the --coverage-id option."
                 )
             
@@ -244,13 +252,6 @@ class Command(CommandOutputMixIn, BaseCommand):
             }
         )
         
-        ref_mgr = System.getRegistry().findAndBind(
-            intf_id="resources.coverages.interfaces.Manager",
-            params={
-                "resources.coverages.interfaces.res_type": "eo.ref_dataset"
-            }
-        )
-        
         #=======================================================================
         # Execute creation and insertion
         #=======================================================================
@@ -262,7 +263,8 @@ class Command(CommandOutputMixIn, BaseCommand):
                 "obj_id": cid,
                 "range_type_name": rangetype,
                 "default_srid": default_srid,
-                "container_ids": datasetseries_eoids + stitchedmosaic_eoids 
+                "container_ids": datasetseries_eoids + stitchedmosaic_eoids,
+                "visible": visible
             }
             
             if mode == 'local':
@@ -293,6 +295,7 @@ class Command(CommandOutputMixIn, BaseCommand):
                         df, oid, mdf
                     ), 2
                 )
+                
                 args.update({
                     "collection": df,
                     "oid": oid,
@@ -310,15 +313,33 @@ class Command(CommandOutputMixIn, BaseCommand):
             #===================================================================
             mgr_to_use = rect_mgr
             
-            geo_metadata = GeospatialMetadata.readFromDataset(gdal.Open(df))
+            
+            geo_metadata = None
+            try:
+                # TODO: for rasdaman build identifiers
+                # for FTP not possible?
+                geo_metadata = GeospatialMetadata.readFromDataset(
+                    gdal.Open(df),
+                    default_srid
+                )
+            except RuntimeError:
+                pass
+            
             if geo_metadata is not None:
                 args["geo_metadata"] = geo_metadata
                 
                 if geo_metadata.is_referenceable:
+                    ref_mgr = System.getRegistry().findAndBind(
+                        intf_id="resources.coverages.interfaces.Manager",
+                        params={
+                            "resources.coverages.interfaces.res_type": "eo.ref_dataset"
+                        }
+                    )
                     mgr_to_use = ref_mgr
                     self.print_msg("\t'%s' is referenceable." % df, 2)
-                
-            mgr_to_use.create(**args)
+            
+            with transaction.commit_on_success():
+                mgr_to_use.create(**args)
         
         self.print_msg("Successfully inserted %d dataset%s." % (
                 len(datafiles), "s" if len(datafiles) > 1 else ""

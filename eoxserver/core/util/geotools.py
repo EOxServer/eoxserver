@@ -64,4 +64,4 @@ def getSRIDFromCRSIdentifier(identifier):
     return ret
 
 def posListToWkt(pos_list):
-    return ",".join("%f %f" % (pos_list[2*c], pos_list[2*c+1]) for c in range(0, len(pos_list) / 2))
+    return ",".join("%f %f" % (pos_list[2*c+1], pos_list[2*c]) for c in range(0, len(pos_list) / 2)) # TODO: Adjust according to axis order of SRID.

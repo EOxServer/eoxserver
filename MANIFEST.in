@@ -1,6 +1,6 @@
 include README
 include MANIFEST.in
-recursive-include docs/sphinx *
-recursive-exclude docs/sphinx/_build/ *
-recursive-include eoxserver *
+graft docs/sphinx
+prune docs/sphinx/_build/
+graft eoxserver
 recursive-exclude eoxserver *.pyc

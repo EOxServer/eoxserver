@@ -32,12 +32,13 @@ This module supports reading of geospatial metadata from GDAL datasets.
 """
 
 from osgeo import osr
-
+import logging
 
 class GeospatialMetadata(object):
     """
     This class wraps geospatial metadata retrieved from a GDAL dataset. It has
-    four optional attributes which default to ``None``:
+    four optional attributes which default to ``None`` and one defaulting to
+    ``False``:
     
     * ``srid``: the SRID of the CRS of the dataset
     * ``size_x``, ``size_y``: the dimension of the dataset
@@ -71,11 +72,23 @@ class GeospatialMetadata(object):
             srs = osr.SpatialReference()
             srs.ImportFromWkt(projection)
             
-            srs.AutoIdentifyEPSG()
-            if srs.IsProjected():
-                srid = srs.GetAuthorityCode("PROJCS")
-            elif srs.IsGeographic():
-                srid = srs.GetAuthorityCode("GEOGCS")
+            try:
+                srs.AutoIdentifyEPSG()
+                if srs.IsProjected():
+                    srid = srs.GetAuthorityCode("PROJCS")
+                elif srs.IsGeographic():
+                    srid = srs.GetAuthorityCode("GEOGCS")
+            except RuntimeError, e:
+                logging.info("Can't identify SRS. Error was: RuntimeError: '%s'"
+                    % str(e)
+                )
+                if default_srid is not None:
+                    logging.info("Using given default_srid '%s' instead."
+                       %  default_srid
+                    )
+                    srid = int(default_srid)
+                else:
+                    raise RuntimeError("Unknown SRS and no default supplied")
             
         if srid is None and default_srid is not None:
             srid = int(default_srid)

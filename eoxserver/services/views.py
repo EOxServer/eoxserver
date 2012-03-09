@@ -36,9 +36,11 @@ from django.conf import settings
 import os.path
 import logging
 
+
+from eoxserver.core.system import System
 from eoxserver.services.owscommon import OWSCommonHandler
 from eoxserver.services.requests import OWSRequest
-from eoxserver.core.system import System
+from eoxserver.services.auth.base import getPDP
 
 def ows(request):
     """
@@ -72,14 +74,29 @@ def ows(request):
 
     System.init()
     
-    handler = OWSCommonHandler()
+    pdp = getPDP()
+    
+    if pdp:
+        auth_resp = pdp.authorize(ows_req)
+    
+    if not pdp or auth_resp.authorized:
+        
+        handler = OWSCommonHandler()
 
-    ows_resp = handler.handle(ows_req)
+        ows_resp = handler.handle(ows_req)
 
-    response = HttpResponse(
-        content=ows_resp.getContent(),
-        content_type=ows_resp.getContentType(),
-        status=ows_resp.getStatus()
-    )
+        response = HttpResponse(
+            content=ows_resp.getContent(),
+            content_type=ows_resp.getContentType(),
+            status=ows_resp.getStatus()
+        )
+
+    else:
+        response = HttpResponse(
+            content=auth_resp.getContent(),
+            content_type=auth_resp.getContentType(),
+            status=auth_resp.getStatus()
+        )
 
     return response
+

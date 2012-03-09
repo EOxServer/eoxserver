@@ -32,25 +32,19 @@ from django.conf.urls.defaults import *
 
 # Enable the admin:
 from django.contrib import admin
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 admin.autodiscover()
 
 #from django.contrib import databrowse
 from django.conf import settings
 
-#from eoxserver.server.models import *
-
-#databrowse.site.register(EOxSCoverageEOCollectionRecord)
-#databrowse.site.register(EOxSCoverageSingleFileRecord)
-#databrowse.site.register(EOxSCoverageSingleFileNonGeoRecord)
-#databrowse.site.register(EOxSRangeType)
-#databrowse.site.register(EOxSRectifiedGridRecord)
-#databrowse.site.register(EOxSChannelRecord)
-#databrowse.site.register(EOxSDataDirRecord)
-#databrowse.site.register(EOxSLayerMetadataRecord)
-#databrowse.site.register(EOxSRangeType2Channel)
-
 urlpatterns = patterns('',
+    (r'^$', 'eoxserver.views.index'),
     (r'^ows', 'eoxserver.services.views.ows'),
+    (r'^logview', 'eoxserver.logging.views.logview'),
+    (r'^client/$', 'eoxserver.webclient.views.index'),
+    (r'^client/(.*)', 'eoxserver.webclient.views.webclient'),
+    
     # Example:
     # (r'^eoxserver/', include('eoxserver.foo.urls')),
 
@@ -67,6 +61,8 @@ urlpatterns = patterns('',
 #    (r'^process/task$', procViews.task ),
 #    (r'^process/response/(?P<requestType>[^/]{,64})/(?P<requestID>[^/]{,64})', procViews.response ),
 )
+
+urlpatterns += staticfiles_urlpatterns()
 
 if settings.DEBUG:
     urlpatterns += patterns('',

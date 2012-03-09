@@ -28,18 +28,37 @@
 #-------------------------------------------------------------------------------
 
 from osgeo import gdal, ogr, osr
-from calendar import timegm
 from datetime import datetime
-import math
 import os, os.path
+import shutil
 import numpy
+import math
 
 import logging
 
 from django.conf import settings
 from django.contrib.gis.geos import Polygon
 
-from eoxserver.resources.coverages.exceptions import SynchronizationErrors
+from eoxserver.core.system import System
+from eoxserver.core.readers import ConfigReaderInterface
+from eoxserver.processing.exceptions import ProcessingError
+
+def make_mosaic(mosaic):
+#    if MosaicConfigReader().isAsynchronous():
+#        _make_mosaic_async(mosaic)
+#    else:
+#        _make_mosaic_sync(mosaic)
+    _make_mosaic_sync(mosaic)
+
+#def _make_mosaic_async(mosaic):
+#    generator = AsynchronousRectifiedStitchedMosaicGenerator(mosaic)
+#    
+#    generator.generate()
+
+def _make_mosaic_sync(mosaic):
+    generator = SynchronousRectifiedStitchedMosaicGenerator(mosaic)
+    
+    generator.generate()
 
 class MosaicContribution(object):
     def __init__(self, dataset, contributing_footprint):
@@ -53,18 +72,18 @@ class MosaicContribution(object):
         return self.contributing_footprint.empty or self.contributing_footprint.num_geom == 0
     
     @classmethod
-    def getContributions(cls, mosaic_int, poly=None):
+    def getContributions(cls, mosaic, poly=None):
         if poly is None:
-            datasets = mosaic_int.getDatasets()
+            datasets = mosaic.getDatasets()
         else:
             poly.transform(4326)
             
             datasets = filter(
                 lambda dataset: dataset.getFootprint().intersects(poly),
-                mosaic_int.getDatasets()
+                mosaic.getDatasets()
             )
         
-        datasets.sort(lambda a, b: timegm(a.getBeginTime().timetuple()) - timegm(b.getBeginTime().timetuple()))
+        datasets.sort(key=lambda dataset: dataset.getBeginTime())
         
         contributions = []
         
@@ -89,20 +108,22 @@ class MosaicContribution(object):
             contributions
         )
         
-class RectifiedMosaicStitcher(object):
-    def __init__(self, mosaic_int):
-        self.mosaic_int = mosaic_int
+class SynchronousRectifiedStitchedMosaicGenerator(object):
+    def __init__(self, mosaic):
+        self.mosaic = mosaic
         
-        self.srid = mosaic_int.getSRID()
-        self.minx, self.miny, self.maxx, self.maxy = mosaic_int.getExtent()
-        self.size_x, self.size_y = mosaic_int.getSize()
+        self.srid = mosaic.getSRID()
+        self.minx, self.miny, self.maxx, self.maxy = mosaic.getExtent()
+        self.size_x, self.size_y = mosaic.getSize()
         self.xres = math.fabs((self.maxx - self.minx) / self.size_x)
         self.yres = math.fabs((self.maxy - self.miny) / self.size_y)
+
+        range_type = mosaic.getRangeType()
         
-        self.band_count = 3 # TODO
-        self.nodata = 0 # TODO
+        self.bands = range_type.bands
+        self.data_type = range_type.data_type
         
-        self.target_dir = os.path.join(settings.PROJECT_DIR, "data", "mosaics", mosaic_int.getEOID())
+        self.target_dir = mosaic.getData().getStorageDir()
         self.create_time = datetime.now()
     
     def _roundint(self, f):
@@ -158,6 +179,12 @@ class RectifiedMosaicStitcher(object):
         
         return os.path.join(dst_dir, dst_filename)
 
+    def _getNoData(self, band):
+        if len(band.nil_values) > 0:
+            return band.nil_values[0].value
+        else:
+            return 0
+
     def _makeTile(self, tile_coords, dataset):
         x_index, y_index = tile_coords
         
@@ -181,13 +208,12 @@ class RectifiedMosaicStitcher(object):
         logging.debug("Final Extent: %f, %f, %f, %f" % (minx, miny, maxx, maxy))
         logging.debug("Offsets: %d, %d; Size: %d, %d" % (x_offset, y_offset, x_size, y_size))
         
-        src_path = str(dataset.getFilename())
+        src = dataset.getData().open()
+
         dst_path = str(self._getTilePath(dataset.getEOID(), x_index, y_index))
 
-        src = gdal.Open(src_path)
-
         driver = gdal.GetDriverByName('GTiff')
-        dst = driver.Create(dst_path, x_size, y_size, self.band_count)
+        dst = driver.Create(dst_path, x_size, y_size, len(self.bands), self.data_type)
         gt = [minx, self.xres, 0, maxy, 0, -self.yres]
         dst.SetGeoTransform(gt)
         dst.SetProjection(src.GetProjection())
@@ -199,7 +225,7 @@ class RectifiedMosaicStitcher(object):
         del dst
         
         return Tile(dst_path, x_index, y_index, minx, miny, maxx, maxy, x_size, y_size)
-
+        
     def _mergeTiles(self, tiles):
         if len(tiles) == 1:
             return tiles[0]
@@ -222,13 +248,14 @@ class RectifiedMosaicStitcher(object):
             dst_path = str(self._getTilePath("merged", x_index, y_index))
             
             driver = gdal.GetDriverByName('MEM')
-            tmp = driver.Create(dst_path, x_size, y_size, self.band_count)
+            tmp = driver.Create(dst_path, x_size, y_size, len(self.bands), self.data_type)
 
             
             # initialize arrays
-            for band_no in range(1, self.band_count+1):
-                band = tmp.GetRasterBand(band_no)
-                band.SetNoDataValue(self.nodata)
+            for band_no in xrange(len(self.bands)):
+                band = tmp.GetRasterBand(band_no + 1)
+                
+                band.SetNoDataValue(self._getNoData(self.bands[band_no]))
             
             for tile in tiles:
                 src = gdal.Open(tile.path)
@@ -239,14 +266,14 @@ class RectifiedMosaicStitcher(object):
                 logging.debug("Offsets: %d, %d" % (tile_x_offset, tile_y_offset))
                 logging.debug("Float Offsets: %f, %f" % ((tile.minx - minx) / self.xres, (maxy - tile.maxy) / self.yres))
 
-                for band_no in range(1, self.band_count + 1):
-                    src_band = src.GetRasterBand(band_no)
-                    tmp_band = tmp.GetRasterBand(band_no)
+                for band_no in xrange(len(self.bands)):
+                    src_band = src.GetRasterBand(band_no + 1)
+                    tmp_band = tmp.GetRasterBand(band_no + 1)
                     
                     tile_data = src_band.ReadAsArray(0, 0, tile.x_size, tile.y_size)
                     merged_data = tmp_band.ReadAsArray(tile_x_offset, tile_y_offset, tile.x_size, tile.y_size)
                     
-                    tile_nodata = numpy.equal(tile_data, self.nodata)
+                    tile_nodata = numpy.equal(tile_data, self._getNoData(self.bands[band_no]))
                     
                     to_write = numpy.choose(tile_nodata, (tile_data, merged_data))
                     
@@ -275,22 +302,35 @@ class RectifiedMosaicStitcher(object):
         tile_index.close()
         
         return tile_index
-        
-    def _save(self, result_tiles, tile_index):
-        self.mosaic_int.getModel().shape_file_path = tile_index.path
-        self.mosaic_int.getModel().save()
     
     def _cleanup(self, tmp_tiles, result_tiles):
         driver = gdal.GetDriverByName('GTiff')
         
         for tile_coords, tiles in tmp_tiles.items():
-            if len(tiles) > 1:
+            if len(tiles) > 1:      
                 for tile in tiles:
                     driver.Delete(tile.path)
+                    
+    def _finish(self, tile_index):
+        dst_path = os.path.join(self.target_dir, "tindex.shp")
+        
+        tile_index.move(dst_path)
+        
+        nodes = os.listdir(self.target_dir)
+
+        # remove previously created mosaic files
+        for node in nodes:
+            path = os.path.join(self.target_dir, node)
+            
+            if not node.startswith("tindex.") and node != "tiles_%s" % self.create_time.strftime("%Y%m%dT%H%M%S"):
+                if os.path.isdir(path):
+                    shutil.rmtree(path)
+                else:
+                    os.remove(path)
 
     def generate(self):
         # determine contributing footprints
-        contributions = MosaicContribution.getContributions(self.mosaic_int)
+        contributions = MosaicContribution.getContributions(self.mosaic)
         
         # tile datasets
         dataset_tiles = {}
@@ -312,12 +352,12 @@ class RectifiedMosaicStitcher(object):
         
         # create tileindex
         tile_index = self._createTileIndex(result_tiles)
-        
-        # save result tiles and tile index to their respective locations
-        self._save(result_tiles, tile_index)
-        
+                
         # cleanup
         self._cleanup(dataset_tiles, result_tiles)
+        
+        # move tile index to expected location and remove unused files
+        self._finish(tile_index)
         
 class Tile(object):
     def __init__(self, path, x_index, y_index, minx, miny, maxx, maxy, x_size, y_size):
@@ -347,28 +387,28 @@ class TileIndex(object):
     def _createShapeFile(self):
         driver = ogr.GetDriverByName('ESRI Shapefile')
         if driver is None:
-            raise SynchronizationError("Cannot start GDAL Shapefile driver")
+            raise ProcessingError("Cannot start GDAL Shapefile driver")
         
         logging.info("Creating shapefile '%s' ...")
         
         self.shapefile = driver.CreateDataSource(str(self.path))
         if self.shapefile is None:
-            raise SynchronizationError("Cannot create shapefile '%s'." % self.path)
+            raise ProcessingError("Cannot create shapefile '%s'." % self.path)
         
         self.layer = self.shapefile.CreateLayer("file_locations", self.srs, ogr.wkbPolygon)
         if self.layer is None:
-            raise SynchronizationError("Cannot create layer 'file_locations' in shapefile '%s' with SRS %s" %(self.path, str(self.srs)))
+            raise ProcessingError("Cannot create layer 'file_locations' in shapefile '%s' with SRS %s" %(self.path, str(self.srs)))
         
         location_defn = ogr.FieldDefn("location", ogr.OFTString)
-        location_defn.SetWidth(256) # TODO: make this configurable
+        location_defn.SetWidth(255) # TODO: make this configurable
         if self.layer.CreateField(location_defn) != 0:
-            raise SynchronizationError("Cannot create field 'location' on layer 'file_locations' in shapefile '%s'" % self.path)
+            raise ProcessingError("Cannot create field 'location' on layer 'file_locations' in shapefile '%s'" % self.path)
 
         if self.layer.CreateField(ogr.FieldDefn("x_index", ogr.OFTInteger)) != 0:
-            raise SynchronizationError("Cannot create field 'location' on layer 'file_locations' in shapefile '%s'" % self.path)
+            raise ProcessingError("Cannot create field 'location' on layer 'file_locations' in shapefile '%s'" % self.path)
 
         if self.layer.CreateField(ogr.FieldDefn("y_index", ogr.OFTInteger)) != 0:
-            raise SynchronizationError("Cannot create field 'location' on layer 'file_locations' in shapefile '%s'" % self.path)
+            raise ProcessingError("Cannot create field 'location' on layer 'file_locations' in shapefile '%s'" % self.path)
 
         logging.info("Success.")
                 
@@ -378,19 +418,39 @@ class TileIndex(object):
         else:
             logging.info("Opening shapefile '%s' ...")
             
-            self.shapefile = ogr.Open(self.path, True) # Open for updating
+            self.shapefile = ogr.Open(str(self.path), True) # Open for updating
             if self.shapefile is None:
-                raise SynchronizationError("Cannot open shapefile '%s'." % self.path)
+                raise ProcessingError("Cannot open shapefile '%s'." % self.path)
                 
             self.layer = self.shapefile.GetLayer(0)
             if self.layer is None:
-                raise SynchronizationError("Shapefile '%s' has wrong format." % self.path)
+                raise ProcessingError("Shapefile '%s' has wrong format." % self.path)
             
             logging.info("Success")
     
     def close(self):
         self.layer.SyncToDisk()
         self.shapefile = None
+    
+    def move(self, dst_path):
+        self.open()
+        
+        driver = self.shapefile.GetDriver()
+        
+        if os.path.exists(dst_path):
+            driver.DeleteDataSource(str(dst_path))
+        
+        new_ds = driver.CopyDataSource(self.shapefile, str(dst_path))
+        
+        new_ds.GetLayer().SyncToDisk()
+        
+        del new_ds
+        
+        self.close()
+        
+        driver.DeleteDataSource(str(self.path))
+        
+        self.path = dst_path
     
     def addTile(self, tile):
         logging.info("Creating shapefile entry for tile (%06d, %06d) ..." % (tile.x_index, tile.y_index))
@@ -406,13 +466,24 @@ class TileIndex(object):
         ), self.srs)
         
         feature.SetGeometry(geom)
-        feature.SetField("location", tile.path)
+        feature.SetField("location", os.path.relpath(tile.path, os.path.dirname(self.path)))
         feature.SetField("x_index", tile.x_index)
         feature.SetField("y_index", tile.y_index)
         if self.layer.CreateFeature(feature) != 0:
-            raise SynchronizationError("Could not create shapefile entry for file '%s'" % self.path)
+            raise ProcessingError("Could not create shapefile entry for file '%s'" % self.path)
         
         feature = None
         
         logging.info("Success.")
     
+#class MosaicConfigReader(object):
+#    def validate(self, config):
+#        pass
+#        
+#    def isAsynchronous(self):
+#        ret = System.getConfig().getConfigValue("processing.mosaic", "async")
+#        
+#        return ret and ret.lower() == "true"
+#        
+#MosaicConfigReaderImplementation = \
+#ConfigReaderInterface.implement(MosaicConfigReader)

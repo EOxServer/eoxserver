@@ -27,6 +27,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 from eoxserver.resources.coverages.metadata import EOMetadata
+from eoxserver.core.util.timetools import UTCOffsetTimeZoneInfo
 
 
 """
@@ -40,7 +41,6 @@ from ConfigParser import RawConfigParser
 import logging
 from uuid import uuid4
 from datetime import datetime, timedelta
-from copy import copy
 
 from eoxserver.core.system import System
 from eoxserver.core.exceptions import InternalError
@@ -50,8 +50,19 @@ from eoxserver.resources.coverages.exceptions import (
     CoverageIdInUseError, CoverageIdReleaseError
 )
 from eoxserver.resources.coverages.models import (
+    PlainCoverageRecord, RectifiedDatasetRecord, 
+    ReferenceableDatasetRecord, RectifiedStitchedMosaicRecord,
     ReservedCoverageIdRecord, CoverageRecord
-)
+) 
+from eoxserver.processing.mosaic import make_mosaic
+
+COVERAGE_TYPES = { 
+        "PlainCoverage" : PlainCoverageRecord ,
+        "RectifiedDataset" : RectifiedDatasetRecord , 
+        "ReferenceableDataset" : ReferenceableDatasetRecord , 
+        "RectifiedStitchedMosaic" : RectifiedStitchedMosaicRecord ,
+}
+
 
 class BaseManager(object):
     """
@@ -87,7 +98,7 @@ class BaseManager(object):
         :param obj_id: the ID (CoverageID or EOID) of the object to be created
         :type obj_id: string
         :param request_id: an optional request ID for the acquisition of the 
-        CoverageID/EOID.
+                           CoverageID/EOID.
         :type request_id: string
         :param kwargs: the arguments 
         :rtype: a wrapper of the created object
@@ -286,26 +297,36 @@ class BaseManagerContainerMixIn(object):
                         eo_metadata.getEOID()
                     )
                     
-                    range_type_name = self._get_contained_range_type_name(
-                        container, location
-                    )
+                    try:
+                        range_type_name = self._get_contained_range_type_name(
+                            container, location
+                        )
+                        
+                        if container.getType() == "eo.rect_stitched_mosaic":
+                            default_srid = container.getSRID()
+                        else:
+                            default_srid = None
+                        
+                        logging.info("Creating new coverage with ID %s." % coverage_id)
+                        # TODO: implement creation of ReferenceableDatasets,
+                        # RectifiedStitchedMosaics for DatasetSeriesManager
+                        new_dataset = self.rect_dataset_mgr.create(
+                            coverage_id,
+                            location=location,
+                            md_location=md_location,
+                            range_type_name=range_type_name,
+                            data_source=data_source,
+                            container=container,
+                            default_srid=default_srid
+                        )
+                        
+                        logging.info("Done creating new coverage with ID %s." % coverage_id)
+                        
+                        new_datasets.append(new_dataset)
+                        
+                    finally:
+                        coverage_id_mgr.release(coverage_id)
                     
-                    logging.info("Creating new coverage with ID %s." % coverage_id)
-                    # TODO: implement creation of ReferenceableDatasets,
-                    # RectifiedStitchedMosaics for DatasetSeriesManager
-                    new_dataset = self.rect_dataset_mgr.create(
-                        coverage_id,
-                        location=location,
-                        md_location=md_location,
-                        range_type_name=range_type_name,
-                        data_source=data_source,
-                        container=container
-                    )
-                
-                    coverage_id_mgr.release(coverage_id)
-                    logging.info("Done creating new coverage with ID %s." % coverage_id)
-                    
-                    new_datasets.append(new_dataset)
         
         return new_datasets
     
@@ -345,12 +366,14 @@ class BaseManagerContainerMixIn(object):
         # update footprint and time extent according to contents of container
         datasets.extend(new_datasets)
         if len(datasets) > 0:
-            begin_time = min([dataset.getBeginTime() for dataset in datasets])
-            end_time = max([dataset.getEndTime() for dataset in datasets])
+            # TODO ugly hack. provide a tzinfo, for datetimes which don't have one.
+            # The error occurs for datasets added in the admin, as no tzinfo is set there
+            begin_time = min(map(lambda dt: dt.replace(tzinfo=UTCOffsetTimeZoneInfo()) if dt.tzinfo is None else dt, [dataset.getBeginTime() for dataset in datasets]))
+            end_time = max(map(lambda dt: dt.replace(tzinfo=UTCOffsetTimeZoneInfo()) if dt.tzinfo is None else dt, [dataset.getEndTime() for dataset in datasets]))
+            
             footprint = datasets[0].getFootprint()
             for dataset in datasets[1:]:
                 footprint = footprint.union(dataset.getFootprint())
-            
             
             self.update(
                 container.getEOID(), set={
@@ -680,6 +703,8 @@ class EODatasetManager(CoverageManager, CoverageManagerDatasetMixIn, CoverageMan
             
             containers = self._get_containers(kwargs)
             
+            visible = kwargs.get("visible", True)
+            
             return self._create_coverage(
                 coverage_id,
                 data_package,
@@ -689,7 +714,8 @@ class EODatasetManager(CoverageManager, CoverageManagerDatasetMixIn, CoverageMan
                 layer_metadata,
                 eo_metadata,
                 container=kwargs.get("container"),
-                containers=containers
+                containers=containers,
+                visible=visible
             )
     
     
@@ -769,7 +795,7 @@ class RectifiedDatasetManager(EODatasetManager):
     def _validate_type(self, coverage):
         return coverage.getType() == "eo.rect_dataset"
     
-    def _create_coverage(self, coverage_id, data_package, data_source, geo_metadata, range_type_name, layer_metadata, eo_metadata, container, containers):
+    def _create_coverage(self, coverage_id, data_package, data_source, geo_metadata, range_type_name, layer_metadata, eo_metadata, container, containers, visible):
         return self.coverage_factory.create(
             impl_id="resources.coverages.wrappers.RectifiedDatasetWrapper",
             params={
@@ -781,7 +807,8 @@ class RectifiedDatasetManager(EODatasetManager):
                 "layer_metadata": layer_metadata,
                 "eo_metadata": eo_metadata,
                 "container": container,
-                "containers": containers
+                "containers": containers,
+                "visible": visible
             }
         )
     
@@ -816,7 +843,7 @@ class ReferenceableDatasetManager(EODatasetManager):
     def _validate_type(self, coverage):
         return coverage.getType() == "eo.ref_dataset"
     
-    def _create_coverage(self, coverage_id, data_package, data_source, geo_metadata, range_type_name, layer_metadata, eo_metadata, container, containers):
+    def _create_coverage(self, coverage_id, data_package, data_source, geo_metadata, range_type_name, layer_metadata, eo_metadata, container, containers, visible):
         return self.coverage_factory.create(
             impl_id="resources.coverages.wrappers.ReferenceableDatasetWrapper",
             params={
@@ -828,7 +855,8 @@ class ReferenceableDatasetManager(EODatasetManager):
                 "layer_metadata": layer_metadata,
                 "eo_metadata": eo_metadata,
                 "container": container,
-                "containers": containers
+                "containers": containers,
+                "visible": visible
             }
         )
     
@@ -1056,7 +1084,7 @@ class RectifiedStitchedMosaicManager(BaseManagerContainerMixIn, CoverageManager)
         return wrappers 
     
     def _make_mosaic(self, coverage):
-        pass
+        make_mosaic(coverage)
 
     def _prepare_update_dicts(self, link_kwargs, unlink_kwargs, set_kwargs):
         super(RectifiedStitchedMosaicManager, self)._prepare_update_dicts(link_kwargs, unlink_kwargs, set_kwargs)
@@ -1269,7 +1297,9 @@ class CoverageIdManager(BaseManager):
                     "Coverage ID '%s' is reserved until %s" % (coverage_id, obj.until)
                 )
         elif CoverageRecord.objects.filter(coverage_id=coverage_id).count() > 0:
-            raise CoverageIdInUseError("Coverage ID %s is already in use")
+            raise CoverageIdInUseError("Coverage ID '%s' is already in use."
+                % coverage_id
+            )
         
         obj.request_id = request_id
         obj.until = until
@@ -1292,7 +1322,43 @@ class CoverageIdManager(BaseManager):
                 raise CoverageIdReleaseError(
                     "Coverage ID '%s' was not reserved" % coverage_id
                 )
+
     
+    def check( self , coverage_id ): 
+        """
+        Returns a boolean value, indicating if a ``coverage_id`` is id of an existing 
+        coverage. 
+        
+        In other words there must be an instance of :class:`~.CoverageRecord` class 
+        named by the  given ID.
+        """
+
+        return ( CoverageRecord.objects.filter(coverage_id=coverage_id).count() > 0 ) 
+
+
+    def getCoverageType( self , coverage_id ): 
+        """
+        Returns string, coverage type name of the coverage identified by the given 
+        coverage ID. In case there is no coverage of the given ID None is returned
+
+        Possible return values are:
+            None , 'PlainCoverage' , 'RectifiedDataset', 
+            'ReferenceableDatase', 'RectifiedStitchedMosaic'
+
+        """
+
+        if not self.check( coverage_id ) : return None ; 
+
+        for ct in COVERAGE_TYPES : 
+
+            if COVERAGE_TYPES[ct].objects.filter(coverage_id=coverage_id).count() > 0 : 
+                return ct 
+
+        # This error should never happen. But if it happens check COVERAGE_TYPES 
+        # to hold all possible coverage types 
+        raise ManagerError , "Failed to determine the type of coverage! coverage_id=%s" % str(coverage_id) 
+
+
     def available(self, coverage_id): # TODO available for a specific request_id
         """
         Returns a boolean value, indicating if a ``coverage_id`` is still 
@@ -1306,8 +1372,9 @@ class CoverageIdManager(BaseManager):
             ReservedCoverageIdRecord.objects.filter(
                 coverage_id=coverage_id,
                 until__gte=datetime.now()
-            ).count() > 0 or
-            CoverageRecord.objects.filter(coverage_id=coverage_id).count() > 0
+            ).count() > 0 
+            or 
+            self.check( coverage_id ) 
         )
     
     def getRequestId(self, coverage_id):

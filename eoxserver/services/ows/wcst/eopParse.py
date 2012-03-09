@@ -35,15 +35,31 @@
 
 import os 
 import sys 
+
 try :       from cStringIO import StringIO
 except :    from StringIO import StringIO
 
 from xml.etree import ElementTree as etree
 
 #-------------------------------------------------------------------------------
+# explicite namespace prefix registration 
+
+try:
+    # works for Python >= 2.7 ( ElementTree >= 1.3 ) 
+    register_namespace = etree.register_namespace
+except AttributeError:
+    # falback for older Python versions 
+    def register_namespace(prefix, uri):
+        etree._namespace_map[uri] = prefix
+
+#-------------------------------------------------------------------------------
 
 # namespaces 
 NS_EOP20='http://www.opengis.net/eop/2.0'
+NS_GML32='http://www.opengis.net/gml/3.2' 
+NS_OM20='http://www.opengis.net/om/2.0'
+NS_XSI="http://www.w3.org/2001/XMLSchema-instance"
+NS_XLN="http://www.w3.org/1999/xlink"
 
 #tags 
 EOP="{%s}EarthObservation" % NS_EOP20
@@ -52,12 +68,21 @@ EOM="{%s}EarthObservationMetaData" % NS_EOP20
 IDN="{%s}identifier" % NS_EOP20
 
 #-------------------------------------------------------------------------------
+def _findElement( e0 , name ) : 
+    """ find the first occurence of the element of the given name in the whole element tree """
+    if e0.tag == name : return e0 
+    for e in e0 : 
+        rv = _findElement( e , name ) 
+        if rv : return rv 
+    return None 
 
 def eop20GetID( src ) :  
     """ get identifier from the EOP2.0 XML document """
 
-    # look up the identifier   
-    tmp = etree.parse( src ) 
+    # find the first occurence of the EOP element 
+    tmp = _findElement( etree.parse( src ).getroot() , EOP ) 
+
+    # find the identifier 
     tmp = tmp.find( MDP ) 
     tmp = tmp.find( EOM ) 
     tmp = tmp.find( IDN ) 
@@ -66,8 +91,9 @@ def eop20GetID( src ) :
 
 def eop20SetID( src , dst , eoid ) : 
 
-    # look up the identifier   
-    tmp = etree.parse( src ) ; root = tmp 
+    # find the first occurence of the EOP element 
+    tmp = _findElement( etree.parse( src ).getroot() , EOP ) 
+    root = tmp 
 
     tmp = tmp.find( MDP ) 
     tmp = tmp.find( EOM ) 
@@ -75,19 +101,25 @@ def eop20SetID( src , dst , eoid ) :
 
     tmp.text = eoid 
 
+    # set the namespaces' prefixes 
+
+    register_namespace( "eop" , NS_EOP20 )  
+    register_namespace( "om"  , NS_OM20 )  
+    register_namespace( "gml" , NS_GML32 )  
+    register_namespace( "xsi" , NS_XSI ) 
+    register_namespace( "xlink" , NS_XLN ) 
+
     # save the result 
-    root.write( dst , encoding='UTF-8' )
+    dst.write( etree.tostring( root , encoding='UTF-8' ) ) 
     dst.flush() 
 
-
+# simle test 
 if __name__ == "__main__" : 
         
     fname = os.path.abspath( sys.argv[1] ) 
-
     print "FNAME: " , fname 
-
     print "NAME " , eop20GetID( file( fname ) ) 
-
-    eop20SetID( StringIO( file(fname).read() ) , file(fname,"w") , "NEW_ID" ) 
-
-    print "NAME " , eop20GetID( file( fname ) ) 
+    #eop20SetID( StringIO( file(fname).read() ) , file(fname,"w") , "NEW_ID" ) 
+    eop20SetID( StringIO( file(fname).read() ) , sys.stdout , "NEW_ID" ) 
+    #eop20SetID( StringIO( file(fname).read() ) , file(fname,"w") , "NEW_ID" ) 
+    #print "NAME " , eop20GetID( file( fname ) ) 

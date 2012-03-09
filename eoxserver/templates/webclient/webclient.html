@@ -1,0 +1,809 @@
+<!--
+#-------------------------------------------------------------------------------
+# $Id$
+#
+# Project: EOxServer <http://eoxserver.org>
+# Authors: Fabian Schindler <fabian.schindler@eox.at>
+#          Stephan Krause <stephan.krause@eox.at>
+#          Stephan Meissl <stephan.meissl@eox.at>
+#
+#-------------------------------------------------------------------------------
+# Copyright (C) 2012 EOX IT Services GmbH
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+# copies of the Software, and to permit persons to whom the Software is 
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies of this Software or works derived from this Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#-------------------------------------------------------------------------------
+-->
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+	<title>EOxServer</title>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8"></meta>
+	<link href="{{STATIC_URL}}style.css" rel="stylesheet" type="text/css"></link>
+	<link href="{{STATIC_URL}}OpenLayers/style.css" rel="stylesheet" type="text/css">
+	<link href="{{STATIC_URL}}jquery/jquery-ui-1.8.17.custom.css" rel="stylesheet" type="text/css"/>
+	<link href="{{STATIC_URL}}jquery/jquery.tooltip.css" rel="stylesheet" type="text/css"/>
+	<script src="{{STATIC_URL}}OpenLayers/OpenLayers.js"></script>
+	<script src="{{STATIC_URL}}jquery/jquery.min.js"></script>
+	<script src="{{STATIC_URL}}jquery/jquery-ui.min.js"></script>
+	<script src="{{STATIC_URL}}jquery/jquery.maskedinput.min.js"></script>
+	<script src="{{STATIC_URL}}WCS/wcs.js" type="text/javascript"></script>
+	<script type="text/javascript">
+$(document).ready(function() {
+	requestInProgress = false;
+	initMap();
+	initGUI();
+});
+
+function initMap() {
+	var lon = -5500000;
+	var lat = -1000000;
+	var zoom = 5;
+	
+	var layer;
+	var bounds = OpenLayers.Bounds.fromString("-180,-90,180,90");
+
+	bboxLayer = new OpenLayers.Layer.Boxes("Bounding Box", {
+		displayInLayerSwitcher: false
+	});
+	
+	boxControl = new OpenLayers.Control();
+	OpenLayers.Util.extend(boxControl, {
+		handler: new OpenLayers.Handler.Box(boxControl, {
+			"done": function (bounds) {
+				$("#btn_draw_bbox").trigger("click");
+				
+				var ll = map.getLonLatFromPixel(new OpenLayers.Pixel(bounds.left, bounds.bottom)); 
+				var ur = map.getLonLatFromPixel(new OpenLayers.Pixel(bounds.right, bounds.top));
+				
+				setBBOXValues([ll.lon, ll.lat, ur.lon, ur.lat], true);
+			}
+		})
+	});
+	
+	
+	
+	var map_params = {
+		projection: new OpenLayers.Projection("EPSG:4326"),
+		displayProjection: new OpenLayers.Projection("EPSG:4326"),
+		numZoomLevels:13,
+		//maxResolution:156543.0339,
+		units: "d",
+		maxExtent: bounds,
+		restrictedExtent: bounds,
+		controls: [
+			new OpenLayers.Control.Navigation(),
+			new OpenLayers.Control.PanZoom(),
+			new OpenLayers.Control.WMSGetFeatureInfo(),
+			new OpenLayers.Control.LayerSwitcher({'ascending': false}),
+			new OpenLayers.Control.Permalink(),
+//			new OpenLayers.Control.ScaleLine(),
+			new OpenLayers.Control.Permalink('permalink'),
+			new OpenLayers.Control.MousePosition(),
+			new OpenLayers.Control.KeyboardDefaults(),
+			boxControl
+		]
+	};
+	map = new OpenLayers.Map('map_div', map_params);
+	if (!map) alert("Map not initialized");
+
+	var mapnik = new OpenLayers.Layer.TMS(
+		"OpenStreetMap",
+		"http://tile.openstreetmap.org/", 
+		{type: 'png', getURL: osm_getTileURL},
+		{displayOutsideMaxExtent: true}
+	);
+	
+	var tms_layer = new OpenLayers.Layer.TMS(
+		"TMS",
+		"http://tilecache.osgeo.org/wms-c/Basic.py/",
+		{layername: 'basic', type:'png'} 
+	);
+	
+	var wms_layer = new OpenLayers.Layer.WMS(
+		"OpenLayers WMS",
+		"http://labs.metacarta.com/wms/vmap0",
+		{layers: 'basic'}
+	);
+	
+	{% if preview_service == "wms" %}
+	layer_preview = new OpenLayers.Layer.WMS(
+		"{{eoid}} preview",
+		"{{preview_url}}",
+		{layers: "{{eoid}}", transparent: true, version: "1.3.0"},
+		{maxExtent:bounds, displayOutsideMaxExtent:true, visibility: false, gutter: 5}
+	);
+	{% endif %}
+	
+	{% if preview_service == "wmts" %}
+	layer_preview = new OpenLayers.Layer.WMTS({
+		name: "{{eoid}} preview",
+		url: "{{preview_url}}",
+		layer: "{{eoid}}",
+		transparent: true,
+		visibility: true,
+		gutter: 0,
+		isBaseLayer: false,
+		style: 'default',
+		matrixSet: 'WGS84',
+		zoomOffset:-1,
+		transitionEffect:'resize',
+		units:"dd",
+		projection: new OpenLayers.Projection("EPSG:4326".toUpperCase()),
+		sphericalMercator: false,
+		format: 'image/png',
+		resolutions:[0.70312500000000000000,0.35156250000000000000,0.17578125000000000000,0.08789062500000000000,0.04394531250000000000,0.02197265625000000000,0.01098632812500000000,0.00549316406250000000,0.00274658203125000000,0.00137329101562500000,0.00068664550781250000,0.00034332275390625000,0.00017166137695312500,0.00008583068847656250,0.00004291534423828120,0.00002145767211914060,0.00001072883605957030,0.00000536441802978516],
+	});
+	{% endif %}
+	layer_preview.setOpacity(0.8);
+	
+	{% if outline_service == "wms" %}
+	layer_outlines = new OpenLayers.Layer.WMS(
+		"{{eoid}} outlines",
+		"{{outline_url}}",
+		{layers: "{{eoid}}_outlines", transparent: true, version: "1.3.0"},
+		{maxExtent:bounds, displayOutsideMaxExtent: true, visibility: true, gutter: 5}
+	);
+	{% endif %}
+	{% if outline_service == "wmts" %}
+	layer_outlines = new OpenLayers.Layer.WMTS({
+		name: "{{eoid}} outlines",
+		url: "{{outline_url}}",
+		layer: "{{eoid}}_outlines",
+		transparent: true,
+		visibility: true,
+		gutter: 0,
+		isBaseLayer: false,
+		style: 'default',
+		matrixSet: 'WGS84',
+		zoomOffset:-1,
+		transitionEffect:'resize',
+		units:"dd",
+		projection: new OpenLayers.Projection("EPSG:4326".toUpperCase()),
+		sphericalMercator: false,
+		format: 'image/png',
+		resolutions:[0.70312500000000000000,0.35156250000000000000,0.17578125000000000000,0.08789062500000000000,0.04394531250000000000,0.02197265625000000000,0.01098632812500000000,0.00549316406250000000,0.00274658203125000000,0.00137329101562500000,0.00068664550781250000,0.00034332275390625000,0.00017166137695312500,0.00008583068847656250,0.00004291534423828120,0.00002145767211914060,0.00001072883605957030,0.00000536441802978516],
+	});
+	{% endif %}
+	layer_outlines.setOpacity(0.8);
+
+	map.addLayers([
+		//tms_layer,
+		//mapnik,
+		wms_layer,
+		layer_preview,
+		layer_outlines,
+		//polygonLayer, 
+		bboxLayer
+	]);
+	map.setCenter(new OpenLayers.LonLat({{center}}), zoom, true, true);
+	
+	
+	var infoControl = new OpenLayers.Control.WMSGetFeatureInfo({
+		url: "{{preview_url}}", 
+		title: 'Identify features by clicking',
+		queryVisible: true,
+		layers: [layer_outlines],
+		eventListeners: {
+			getfeatureinfo: function(event) {
+				//alert(event.text);
+				if (event.text) {
+					map.addPopup(new OpenLayers.Popup.FramedCloud(
+						"chicken", 
+						map.getLonLatFromPixel(event.xy),
+						null,
+						event.text,
+						null,
+						true
+					), true);
+				}
+			}
+		}
+	});
+	
+	map.addControl(infoControl);
+	infoControl.activate();
+}
+
+function initGUI() {
+	// initializes the GUI
+	var minDate = $.datepicker.parseDate("yy-mm-dd", "{{begin.date}}");
+	var maxDate = $.datepicker.parseDate("yy-mm-dd", "{{end.date}}");
+	
+	$('#dialog_main').dialog({
+		create: function (event, ui) {
+			$(".ui-widget-header").append('<img src="{{STATIC_URL}}EOxServer_logo_small.png" style="align: center;"/>');
+		},
+		open: function(event, ui) {
+			$("#dialog_main").parent().find(".ui-dialog-titlebar-close").hide();
+		},
+		closeOnEscape: false,
+		resizable: false,
+		width: 500,
+		height: 'auto',
+		position: 'top',
+		hide: 'slide'
+	});
+	
+	$("#form").tabs({
+		collapsible: true,
+		selected: -1
+	});
+	
+	$("#begin_date").datepicker({
+		showOn: 'focus',
+		minDate: minDate,
+		maxDate: maxDate,
+		dateFormat: 'yy-mm-dd',
+		onClose: function(dateText, inst) {
+			setDateValues(dateText, null);//$.datepicker.parseDate("yy-mm-dd", dateText), null);
+			updateWMSParams();
+		}
+	}).datepicker("setDate", minDate);
+	$("#end_date").datepicker({
+		showOn: 'focus',
+		minDate: minDate,
+		maxDate: maxDate,
+		dateFormat: 'yy-mm-dd',
+		onClose: function(dateText, inst) {
+			setDateValues(null, dateText);//$.datepicker.parseDate("yy-mm-dd", dateText));
+			updateWMSParams();
+		}
+	}).datepicker("setDate", maxDate);
+	
+	// set up input masks
+	// TODO: not ideal for 24h 
+	$.mask.definitions['2']='[0-2]';
+	$.mask.definitions['5']='[0-5]';
+	
+	$("#begin_time, #end_time").change(updateWMSParams).mask("29:59", {placeholder:" "});
+	$("#begin_time").val("00:00");
+	$("#end_time").val("23:59");
+	
+	$("#slider").slider({
+		range: true,
+		values: [minDate.getTime(), maxDate.getTime()],
+		min: minDate.getTime(),
+		max: maxDate.getTime(),
+		slide: function(event, ui) {
+			begin_date = $.datepicker.formatDate('yy-mm-dd', new Date(ui.values[0]));
+			end_date = $.datepicker.formatDate('yy-mm-dd', new Date(ui.values[1]));
+			setDateValues(begin_date, end_date);
+			return true;
+		},
+		stop: function(event, ui) {
+			updateWMSParams();
+		}
+	});
+	
+	setDateValues(minDate, maxDate);
+	
+	// setup slider handle tooltip
+	$("#slider .ui-slider-handle").hover(
+		function() {
+			$('#tooltip').show();
+		},
+		function() {
+			$('#tooltip').hide();
+		}
+	).mousemove(function(e) {
+		$('#tooltip').css({
+			'top': e.pageY + 10 + 'px',
+			'left': e.pageX + 10 + 'px',
+		}).find('a').text($(this).attr("tooltip"));
+	});
+	$('#tooltip').hide();
+	
+	$("#minx, #miny, #maxx, #maxy").change(updateBBOXFromTextInput).val("");
+	
+	$("#btn_download").button({
+		label: "Download",
+	}).click(getAvailableCoverages);
+	
+	$("#btn_draw_bbox").button({
+		label: "Draw BBOX",
+	}).click(function(){
+		if (boxControl.active)
+			boxControl.deactivate();
+		else
+			boxControl.activate();
+	});
+	$("#btn_clear_bbox").button({
+		label: "Clear BBOX"
+	}).click(function(){
+		bboxLayer.clearMarkers();
+		setBBOXValues(["", "", "", ""], false);
+	});
+	
+	$("#accordion-help").accordion({ 
+		autoHeight: false,
+	});
+	
+	$("#dialog_download").dialog({
+		autoOpen: false,
+		width: 'auto',
+		modal: true,
+		buttons: {
+			"Start Download": startDownload,
+		}
+	});
+	
+	$("#dialog_failure").dialog({
+		autoOpen: false,
+		resizable: false,
+		modal: true,
+		buttons: {
+			"OK": function() {
+				$(this).dialog("close");
+			}
+		}
+	});
+}
+
+function setDateValues(begin_date, end_date) {
+	// sets the date to all necessary locations
+	if (begin_date != null) {
+		try {
+			var date = $.datepicker.parseDate("yy-mm-dd", begin_date);
+		}
+		catch (err) {
+			return showFailure("Invalid Date", "Invalid date specified.");
+		}
+		$("#begin_date").datepicker("setDate", date);
+		$("#end_date").datepicker("option", "minDate", date);
+		$("#slider").slider("values", 0, date.getTime());
+		$("#slider .ui-slider-handle:first").attr("tooltip", begin_date);
+	}
+	if (end_date != null) {
+		try {
+			var date = $.datepicker.parseDate("yy-mm-dd", end_date);
+		}
+		catch (err) {
+			return showFailure("Invalid Date", "Invalid date specified.");
+		}
+		$("#end_date").datepicker("setDate", date);
+		$("#begin_date").datepicker("option", "maxDate", date);
+		$("#slider").slider("values", 1, date.getTime());
+		$("#slider .ui-slider-handle:last").attr("tooltip", end_date);
+	}
+}
+
+function updateBBOXFromTextInput() {
+	var bbox = [$("#minx").val(), $("#miny").val(), $("#maxx").val(), $("#maxy").val()];
+	
+	for (var i=0; i < bbox.length; i++) {
+		if (isNaN(bbox[i])) {
+			return;
+		}
+	}
+	
+	setBBOXValues(bbox, true);
+}
+
+function setBBOXValues(bbox, reset_marker) {
+	$("#minx").val(bbox[0]);
+	$("#miny").val(bbox[1]);
+	$("#maxx").val(bbox[2]);
+	$("#maxy").val(bbox[3]);
+    
+    bboxLayer.clearMarkers();
+    if (reset_marker) {
+        var box = new OpenLayers.Marker.Box(OpenLayers.Bounds.fromArray(bbox));
+        box.setBorder("lightgreen", 2);
+    	bboxLayer.addMarker(box)
+    }
+}
+
+function getBoundingBox() {
+	// returns the currently selected bounding box or the current map extent
+	var bbox = [$("#minx").val(), $("#miny").val(), $("#maxx").val(), $("#maxy").val()];
+	var isBBoxSet = true;
+	
+	for (var i=0; i < bbox.length; i++) {
+		if (isNaN(bbox[i]) && bbox[i] != "") {
+			if (bbox[i] != "*" && bbox[i] != "") {
+				return showFailure("Wrong BBOX", "Wrong bounding box value.");
+			}
+		}
+		else if(bbox[i] == "") {
+			isBBoxSet = false;
+			break;
+		}
+	}
+	
+	if (!isBBoxSet) {
+		return map.getExtent().toArray()
+	}
+	
+	return bbox;
+}
+
+function getDateTimes() {
+	// returns an array[begin_date, begin_time, end_date, end_time] or null
+	var begin_date = $("#begin_date").val();
+	var begin_time = $("#begin_time").val();
+	var end_date = $("#end_date").val();
+	var end_time = $("#end_time").val();
+	
+	try {
+		$.datepicker.parseDate("yy-mm-dd", begin_date);
+		$.datepicker.parseDate("yy-mm-dd", end_date);
+	}
+	catch(err) {
+		return showFailure("Invalid Date", "Invalid date specified.");
+	}
+	
+	var time_regex = new RegExp(/^([01][0-9]|2[0-3]):[0-5][0-9]$/);
+	if (!time_regex.test(begin_time)) {
+		$("#begin_time").val("00:00");
+		return showFailure("Invalid Time", "Invalid begin time specified.");
+	}
+	
+	if (!time_regex.test(end_time)) {
+		$("#begin_time").val("23:59");
+		return showFailure("Invalid Time", "Invalid end time specified.");
+	}
+	
+	return [begin_date, begin_time, end_date, end_time];
+}
+
+function updateWMSParams() {
+	var dts = getDateTimes();
+	if (dts == null)
+		return;
+	var time = dts[0] + "T" + dts[1] + "Z/" + dts[2] + "T" + dts[3] + "Z";
+	{% if preview_service == "wms" %}
+	layer_preview.mergeNewParams({time: time});
+	{% endif %}
+	layer_outlines.mergeNewParams({time: time});
+}
+
+function getAvailableCoverages() {
+	requestInProgress = true;
+	var bbox = getBoundingBox();
+	var dts = getDateTimes();
+	
+	if (bbox == null || dts == null) {
+		return;
+	}
+	
+	var url = WCS.describeEOCoverageSetURL(
+		//"http://puck.eox.at/eoxserver/ows?",
+		"{{ows_url}}",
+		"{{eoid}}", {
+		bbox: bbox,
+		subsetTime: [dts[0] + "T" + dts[1] + "Z",
+		             dts[2] + "T" + dts[3] + "Z"]
+	});
+	
+	// TODO: maybe use jquery for ajax (username, pw)
+	OpenLayers.Request.GET({
+		url: url,
+		callback: onAvailableCoverages,
+	});
+}
+
+function onAvailableCoverages(request) {
+	requestInProgress = false;
+	var cov_descriptions = findNodesNS(request.responseXML, "wcs", "CoverageDescription");
+	
+	if (cov_descriptions.length == 0)
+		return showFailure("Nothing found", "No coverage matched the given parameters.");
+	
+	$("#coverages .coverageentry").remove();
+	
+	for (var i = 0; i < cov_descriptions.length; i++) {
+		var cov_description = $(cov_descriptions[i]);
+		var id = findNodesNS(cov_description, "wcs", "CoverageId")[0].textContent;
+		var size = findNodesNS(cov_description, "gml", "high")[0].textContent.split(" ");
+		var type = findNodesNS(cov_description, "wcs", "CoverageSubtype")[0].textContent;
+		
+		var html = $(
+			'<div class="row coverageentry"><div class="cell"><input type="checkbox" checked="true" class="selected"/></div>' +
+			'<div class="cell"><div class="coverageid">' + id + '</div></div>' + 
+			'<div class="cell"><input type="text" class="sizex" size="5" maxlength="5"/></div>' + 
+			'<div class="cell"><input type="text" class="sizey" size="5" maxlength="5"/></div>' + 
+			'<div class="cell"><select class="rangetype" multiple="true" size="1"></select></div>' +
+			'</div>'
+		);
+		
+		$(".coverageid", html).attr("coveragesubtype", type);
+//		$(".sizex", html).mask("9999");
+//		$(".sizey", html).mask("9999");
+		
+		var fields = findNodesNS(cov_description, "swe", "field");
+		for (var j = 0; j < fields.length; j++) {
+			var name = $(fields[j]).attr("name");
+			$(".rangetype", html).append($('<option value="' + name + '" selected>' + name + '</option>')); 
+		}
+		
+		if (type == "ReferenceableDataset") {
+			$(".sizex,.sizey", html).attr("disabled", "true");
+			$(".sizex", html).val(size[0]);
+			$(".sizey", html).val(size[1]);
+		}
+		$("#coverages").append(html);
+	}
+	
+	$("#dialog_download").dialog("open");
+}
+
+function startDownload() {
+	// remove old iframes
+	$("#download_iframes").empty();
+	
+	var bbox = getBoundingBox();
+	
+	var crs = $("#projections").val();
+	var format = $("#formats").val();
+	
+	var urls = new Array();
+	var isConfirmationRequired = false;
+	
+	var coverages = $("#coverages").children();
+	for (var i = 0; i < coverages.length; i++){
+		// find out if checked
+		var coverage = $(coverages[i]);
+		var ch = coverage.find(".selected");
+		if (!ch.attr("checked"))
+			continue;
+		
+		// extract covID and size
+		var coverageid = coverage.find(".coverageid").text();
+		var type = coverage.find(".coverageid").attr("coveragesubtype");
+		var sizeX = coverage.find(".sizex").val();
+		var sizeY = coverage.find(".sizey").val();
+		var url;
+		
+		var urlparams = {
+			bbox: bbox,
+			outputCRS: crs
+		}
+		
+		// create GET string
+		if (type !== "ReferenceableDataset") {
+			if (sizeX != "" && !isNaN(sizeX)) urlparams.sizeX = sizeX;
+			if (sizeY != "" && !isNaN(sizeY)) urlparams.sizeY = sizeY;
+		}
+		
+		var rangeSubset = $.makeArray(coverage.find(".rangetype :selected").map(function() { return this.value; }));
+
+		if (rangeSubset.length == 0)
+			return showFailure("No Band selected",
+								"No band is selected for the coverage with ID " + coverageid);
+
+		// TODO: only if not all bands are selected
+		urlparams.rangeSubset = rangeSubset;
+		
+		url = WCS.getCoverageURL(
+			//"http://puck.eox.at/eoxserver/ows?",
+			"{{ows_url}}",
+			coverageid, format, urlparams 
+		);
+		
+		if (sizeX != "" && sizeY != "" && !isNaN(sizeX) && !isNaN(sizeY) 
+			&& (sizeX * sizeY) > 10000) {
+			isConfirmationRequired = true;
+		}
+		urls.push(url);	
+	}
+	
+	var params = {urls: urls};
+	if (isConfirmationRequired)
+		showConfirmation(
+			"Warning: Large Download(s)",
+			"At least of the requested images is potentially large. Do you wish to continue the download?",
+			reallyStartDownload,
+			function(params) {},
+			params
+		);
+	else
+		reallyStartDownload(params);
+}
+
+function reallyStartDownload(params) {
+	$("#dialog_download").dialog("close");
+	for(var i = 0; i < params.urls.length; i++)
+		$("#download_iframes").append($('<iframe style="display:none" src="' + params.urls[i] + '"></iframe>'));
+}
+
+function showFailure(title, msg) {
+	$("#dialog_failure").empty();
+	$("#dialog_failure").dialog("option", "title", title);
+	$("#dialog_failure").append("<a>" + msg + "</a>");
+	$("#dialog_failure").dialog("open");
+	return null;
+}
+
+function showConfirmation(title, msg, cbYes, cbNo, params) {
+	var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+	    var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+	    return v.toString(16);
+	});
+
+	$('<div id="' + uuid + '">' + msg + '</div>').dialog({
+		width: 400,
+		title: title,
+		resizable: false,
+		buttons: {
+			"Yes": function() { cbYes(params); $(this).dialog("destroy"); },
+			"No": function() { cbNo(params); $(this).dialog("destroy"); },
+		}
+	});
+}
+
+function osm_getTileURL(bounds) {
+	var res = this.map.getResolution();
+	var x = Math.round((bounds.left - this.maxExtent.left) / (res * this.tileSize.w));
+	var y = Math.round((this.maxExtent.top - bounds.top) / (res * this.tileSize.h));
+	var z = this.map.getZoom();
+	var limit = Math.pow(2, z);
+
+	if (y < 0 || y >= limit) {
+		return OpenLayers.Util.getImagesLocation() + "404.png";
+	} else {
+		x = ((x % limit) + limit) % limit;
+		return this.url + z + "/" + x + "/" + y + "." + this.type;
+	}	
+}
+function findNodesNS(node, ns, tagName) {
+	var res = $(node).find(tagName);
+	if (res.length > 0) {
+		return res;
+	}
+	return $(node).find(ns + "\\:" + tagName);
+}
+	</script>
+	</head>
+	<body style="margin:0px;padding:0px;height:100%;width:100%">
+	<!--<div style="position:absolute;top:8px;left:50%;margin:0 0 0 -130px;z-index:10;">
+		<img src="EOxServer_logo.png" style="width:300px;height:51px;" alt="EOxServer"/>
+	</div>-->
+	<div id="map_div" style="position:absolute;top:0px;left:0px;padding:0;margin:0;height:100%;width:100%;min-height:450px;min-width:600px;z-index:1;"></div>
+	<div id="dialog_main">
+		<div id="form">
+			<div class="container">
+				<div class="row">
+					<div class="cell">Date:</div>
+					<div class="cell" style="padding: 15px; width: 250px"><div id="slider"></div></div>
+					<div class="cell"><button id="btn_download" /></div>					
+				</div>
+			</div>
+		
+			<ul>
+				<li><a href="#fragment-date"><span>Date/Time</span></a></li>
+				<li><a href="#fragment-bbox"><span>Bounding Box</span></a></li>
+				<li><a href="#fragment-help"><span>Help</span></a></li>
+			</ul>
+			
+			<div id="fragment-date" class="container">
+				<div class="row">
+					<div class="cell"><a>Begin Date/Time: </a></div>
+					<div class="cell"><input type="text" id="begin_date" size="10" maxlength="10"></input></div>
+					<div class="cell"><input type="text" id="begin_time" size="10" maxlength="10"></input></div>
+				</div>
+				
+				<div class="row">
+					<div class="cell"><a>End Date/Time: </a></div>
+					<div class="cell"><input type="text" id="end_date" size="10" maxlength="10"></input></div>
+					<div class="cell"><input type="text" id="end_time" size="10" maxlength="10"></input></div>
+				</div>
+			</div>
+			<div id="fragment-bbox" class="container">
+				<div class="row">
+					<div class="cell"><label for="minx">Min X:</label><input type="text" id="minx" size="12" maxlength="12"></input></div>
+					<div class="cell"><label for="maxx">Max X:</label><input type="text" id="maxx" size="12" maxlength="12"></input></div>
+				</div>
+				<div class="row">
+					<div class="cell"><label for="miny">Min Y:</label><input type="text" id="miny" size="12" maxlength="12"></input></div>
+					<div class="cell"><label for="maxy">Max Y:</label><input type="text" id="maxy" size="12" maxlength="12"></input></div>
+				</div>
+				<div class="row">
+					<div class="cell"><label for="btn_draw_bbox">Draw BBOX</label>
+					<input type="checkbox" id="btn_draw_bbox"/></div>
+					<div class="cell"><button id="btn_clear_bbox" /></div>
+				</div>
+				<div class="row">
+					
+				</div>
+			</div>
+			<div id="fragment-help">
+				<div id="accordion-help">
+					<h3><a href="#">General</a></h3>
+				    <div>
+				    	<p>Click and drag the map to view the area of interest. Use the 
+				    	scroll wheel or hold shift and draw a zoom box to zoom.</p>
+                        <p>To switch the outlines or the preview layers on or off
+                        expand the plus icon on the upper right corner.</p>
+                        <p>Simply clicking on the map will open a window showing 
+                        information about the dataset(s) available at this position.</p>
+				    </div>
+				    <h3><a href="#">Selection of Date and Time</a></h3>
+				    <div>
+				    	<p>The begin and end date and time values are used for visualizing
+				    	datasets which lie within that time period. It is used for both footprint
+				    	overlays and also for the actual download.</p>
+				    	<p>The slider handles can be used to adjust the begin and the end date.
+				    	Alternatively, in the tab "Date/Time" the dates can be selected via a
+				    	date picking widget which can be activated by clicking in the date field.</p>
+				    	<p>Also the begin and end time parameters can be set in the according time
+				    	input fields.</p>
+				    </div>
+				    <h3><a href="#">Selection of Bounds</a></h3>
+				    <div>
+				    	<p>To subset the area of interest, use the "Bounding Box"
+				    	tab of the control panel. You can either manually set the values
+				    	of the bounding box, or you can use the "Draw BBOX" function.</p>
+				    	<p>Once the "Draw BBOX" button is clicked, the bounding box
+				    	can be drawed directly in the map. Alternatively it can be adjusted afterwards
+				    	in the according input fields.</p>
+				    	<p>The Bounding Box can be removed by clicking on the 
+				    	"Clear BBOX" button.</p>
+				    	<p>If no Bounding Box is given, the map extent of the current 
+				    	view is used.</p>
+				    </div>
+				    <h3><a href="#">Download of Coverages</a></h3>
+				    <div>
+				    	<p>When the "Download" button is clicked, the download dialog is opened.
+				    	It contains a list of all coverages that lie within the specified bounds
+				    	and time span.</p>
+				    	<p>All coverages that are checked will be downloaded upon a click on
+				    	"Start Download".</p>
+				    	<p>For Rectified Datasets, an optional size for each dimension can be
+				    	given. If left empty, the resulting image will not be scaled. Referenceable
+				    	Datasets cannot be scaled and the value in the size input fields only displays
+				    	their original size.</p>
+				    	<p>In the "Bands" dropdown box a number of bands can be selected, when 
+				    	downloading the image. Multiple bands can be selected by pressing the
+				    	"Control"-key while selecting the entries.</p>
+				    	<p>When the button "Start Download" is clicked, all selected coverages will be
+				    	downloaded with the given parameters. For large downloads (larger than 1000x1000
+				    	pixel) a warning will be shown.</p>
+				    </div>
+				</div>	
+			</div>
+		</div>
+	</div>
+	
+	<div id="dialog_download" title="Download">
+		<div id="coverages">
+			<div class="row header">
+				<div class="cell"></div>
+				<div class="cell">Coverage ID</div>
+				<div class="cell">Width</div>
+				<div class="cell">Height</div>
+				<div class="cell">Bands</div>
+			</div>
+		</div>
+		<label for="formats">Format:</label>
+		<select id="formats">
+			<option value="image/tiff">GeoTIFF</option>
+			<option value="image/jpeg">JPEG</option>
+		</select>
+		<label for="projections">Projection:</label>
+		<select id="projections">
+			<option value="epsg:4326">4326</option>
+			<option value="epsg:3857">3857</option>
+			<option value="epsg:3035">3035</option>
+		</select>
+	</div>
+	
+	<div id="dialog_failure" title="Failure"></div>
+	<div id="tooltip" class="ui-widget"><a></a></div>
+	<div id="download_iframes"></div>
+	</body>
+</html>

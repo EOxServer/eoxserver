@@ -215,14 +215,14 @@ class NativeMetadataFormat(XMLEOMetadataFormat):
     a testing environment. A template XML snippet looks like::
     
         <Metadata>
-            <EOID>some_eoid</EOID>
+            <EOID>some_unique_eoid</EOID>
             <BeginTime>YYYY-MM-DDTHH:MM:SSZ</BeginTime>
             <EndTime>YYYY-MM-DDTHH:MM:SSZ</EndTime>
             <Footprint>
                 <Polygon>
-                    <Exterior>some_pos_list</Exterior>
+                    <Exterior>Mandatory - some_pos_list as all-space-delimited Lat Lon pairs (closed polygon i.e. 5 coordinate pairs for a rectangle) in EPSG:4326</Exterior>
                     [
-                     <Interior>some_pos_list</Interior>
+                     <Interior>Optional - some_pos_list as all-space-delimited Lat Lon pairs (closed polygon) in EPSG:4326</Interior>
                      ...
                     ]
                 </Polygon>

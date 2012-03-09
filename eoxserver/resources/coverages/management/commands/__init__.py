@@ -28,6 +28,9 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+import logging
+
+
 def _variable_args_cb(option, opt_str, value, parser):
     """ Helper function for optparse module. Allows
         variable number of option values when used
@@ -49,4 +52,11 @@ class CommandOutputMixIn(object):
     def print_msg(self, msg, level=0):
         if self.verbosity > level:
             self.stdout.write(msg)
-        self.stdout.write("\n")
+            self.stdout.write("\n")
+        
+        if level == 0:
+            logging.critical(msg)
+        elif level in (1, 2):
+            logging.info(msg)
+        elif level > 2:
+            logging.debug(msg)

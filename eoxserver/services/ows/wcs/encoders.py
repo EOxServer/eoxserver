@@ -227,7 +227,7 @@ class CoverageGML10Encoder(XMLEncoder):
                 ),)
             ])
         else:
-            return self._makeElement("gml", "DomainSet", [
+            return self._makeElement("gml", "domainSet", [
                 (self.encodeRectifiedGrid(
                     size,
                     extent,
@@ -479,8 +479,12 @@ class WCS20EOAPEncoder(WCS20Encoder):
             ("wcs", "CoverageSubtype", coverage.getEOCoverageSubtype()),
         ])
 
-    def encodeCoverageDescription(self, coverage):
-        return self._makeElement("wcs", "CoverageDescription", [
+    def encodeCoverageDescription(self, coverage, is_root=False):
+        if is_root:
+            sub_nodes = [("@xsi", "schemaLocation", "http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd")]
+        else:
+            sub_nodes = []
+        sub_nodes.extend([
             ("@gml", "id", self._getGMLId(coverage.getCoverageId())),
             (self.encodeBoundedBy(*coverage.getWGS84Extent()),),
             ("wcs", "CoverageId", coverage.getCoverageId()),
@@ -491,25 +495,32 @@ class WCS20EOAPEncoder(WCS20Encoder):
                 ("wcs", "CoverageSubtype", coverage.getEOCoverageSubtype()),
             ])
         ])
+        return self._makeElement("wcs", "CoverageDescription", sub_nodes)
     
-    def encodeSubsetCoverageDescription(self, coverage, srid, size, extent):
+    def encodeSubsetCoverageDescription(self, coverage, srid, size, extent, footprint, is_root=False):
         poly = Polygon.from_bbox(extent)
         poly.srid = srid
         poly.transform(4326)
         
         wgs84_extent = poly.extent
         
-        return self._makeElement("wcs", "CoverageDescription", [
+        if is_root:
+            sub_nodes = [("@xsi", "schemaLocation", "http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd")]
+        else:
+            sub_nodes = []
+        sub_nodes.extend([
+            ("@xsi", "schemaLocation", "http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd"),
             ("@gml", "id", self._getGMLId(coverage.getCoverageId())),
             (self.encodeBoundedBy(*wgs84_extent),),
             ("wcs", "CoverageId", coverage.getCoverageId()),
-            (self.encodeEOMetadata(coverage),),
+            (self.encodeEOMetadata(coverage, poly=footprint),),
             (self.encodeSubsetDomainSet(coverage, srid, size, extent),),
             (self.encodeRangeType(coverage),),
             ("wcs", "ServiceParameters", [
                 ("wcs", "CoverageSubtype", coverage.getEOCoverageSubtype()),
             ])
         ])
+        return self._makeElement("wcs", "CoverageDescription", sub_nodes)
     
     def encodeDatasetSeriesDescription(self, dataset_series):
         return self._makeElement("wcseo", "DatasetSeriesDescription", [
