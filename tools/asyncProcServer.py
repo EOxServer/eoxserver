@@ -52,6 +52,7 @@ import struct
 import socket 
 from datetime import datetime, timedelta 
 
+
 from multiprocessing import Lock, Process, Queue , cpu_count 
 from multiprocessing.queues import Empty as MPQEmpty
 from multiprocessing.queues import Full as MPQFull
@@ -368,6 +369,13 @@ if __name__ == "__main__" :
     # django settings module 
     os.environ["DJANGO_SETTINGS_MODULE"] = DJANGO_SETTINGS 
     info("'%s' ... is set as the Django settings module " % DJANGO_SETTINGS )
+
+    usingDB='default'
+    from django.db import connections
+    for connect in connections:
+        if connect == 'atp' :
+           info("using preferable  database for testing purpose: '%s'" % connect )
+           usingDB=connect
 
     # once the search path is set -> load the required modules
     from eoxserver.core.system import System
