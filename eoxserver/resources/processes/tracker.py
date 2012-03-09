@@ -31,6 +31,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
+"""This module contains the process tracker API. Process tracker is an essential part 
+of the ATP (Asynchronous Task Processing) subsystem. """
+
+#-------------------------------------------------------------------------------
 import zlib
 import base64 
 import time 
@@ -45,15 +49,21 @@ from eoxserver.resources.processes.models import STATUS2TEXT, TEXT2STATUS
 #-------------------------------------------------------------------------------
 # Task Queue Exceptions 
 
-class QueueException( Exception ) : pass 
-class QueueEmpty( QueueException ) : pass 
-class QueueFull( QueueException ) : pass 
-class TaskTypeException( Exception ) : pass 
-class TaskTypeHasInstances( TaskTypeException ) : pass 
+class QueueException( Exception ) : 
+    """Task queue base exception.""" 
+
+class QueueEmpty( QueueException ) : 
+    """Queue exception signalising that the task queue is empty
+    and no task can be pulled from it.""" 
+
+class QueueFull( QueueException ) :
+    """Queue exception signalising that the task queue is full
+    and no task can be pushed to it.""" 
 
 #-------------------------------------------------------------------------------
 # define queue size - TODO: make this value configurable 
 
+#: Actual queue size limit.
 MAX_QUEUE_SIZE=64  
 
 #-------------------------------------------------------------------------------
@@ -61,7 +71,7 @@ MAX_QUEUE_SIZE=64
 # dummy lock class 
 
 class DummyLock : 
-    """ dummy lock class """ 
+    """ Dummy (default) lock class implementing lock interface.""" 
     def acquire( self ) : pass 
     def release( self ) : pass 
 
@@ -69,7 +79,14 @@ class DummyLock :
 # function wrapper guaranting exclusive access to the DB 
 
 def dbLocker( dbLock , func , *prm , **kprm ) :
-    """ grants exlusive DB access while executes the passed function """ 
+    """Grant exclusive DB access while executing the passed function.
+    The 'dbLocker' function executes the 'dbLock.acquire()' and 'dbLock.release()' 
+    methods on entry and exit, respectively, assuring the executed 
+    function 'func' has an exclusive access to the DB. 'prm' and 'kprm' 
+    are the optional 'func' function parameters. 
+    The 'dbLocker' function returns the returning value of the passed
+    'func' function. """ 
+
     dbLock.acquire()
     try: 
         rv = func( *prm , **kprm ) 
@@ -83,15 +100,14 @@ def dbLocker( dbLock , func , *prm , **kprm ) :
 # task status class 
 
 class TaskStatus : 
-    """ 
-        task status changing class passed to the ATP handler function
+    """ Task status class passed to a ATP handler function. 
 
-        the status setting internally lock the access to the DB using 
-        the user provided dbLock. In case the dbLock is not provided 
-        the locking is not performed.
+    The status setting internally lock the access to the DB using 
+    the user provided 'dbLock'. In case the 'dbLock' is not provided 
+    the locking is not performed (see 'DummyLock' class).
 
-        The dbLock must be a class instace providing two methos: 
-        dbLock.acquire() and dbLock.release() 
+    The 'dbLock' can be any class instance providing two methods: 
+    'dbLock.acquire()' and 'dbLock.release()'. 
     """ 
     # --------------------
     # constructor
@@ -104,44 +120,50 @@ class TaskStatus :
     # info getters 
 
     def getInfo( self ) :
-        """ get short info about the task - tuple of task Type and Instance identifiers, status, status string """
+        """Get short info about the task. Returns tuple of Type identifier,
+        Instance identifier, status, and status string."""
         return dbLocker( self.dbLock , getTaskInfo , self.task_id )
 
     def getIdentifier( self ) : 
-        """ get tuple of task Type and Instance identifiers """
+        """Get tuple of task Type and Instance identifiers."""
         return dbLocker( self.dbLock , getTaskIdentifier , self.task_id )
 
     # --------------------
     # status getter
 
     def getStatus( self ) : 
-        """ get task status (tuple of the integer code and the string label) """
+        """Get task status as tuple of the integer code and the string label."""
         return dbLocker( self.dbLock , getTaskStatus , self.task_id )
 
     # --------------------
     # status setters
 
     def setSuccess( self , message = "" ) : 
-        """ set task status to FINISHED (aka success) """
+        """Set task status to FINISHED (i.e., success)."""
         dbLocker( self.dbLock , stopTaskSuccess , self.task_id , message )
 
     def setFailure( self , message = "" ) : 
-        """ set task status to FAILED """
+        """Set task status to FAILED."""
         dbLocker( self.dbLock , stopTaskFailure , self.task_id , message )
 
     def setPaused( self , message = "" ) : 
-        """ set task status to FAILED """
+        """Set task status to PAUSED."""
         dbLocker( self.dbLock , pauseTask , self.task_id , message )
 
     def setRunning( self , message = "" ) : 
-        """ set task status to RUNNING """
+        """Set task status to RUNNING."""
         dbLocker( self.dbLock , resumeTask , self.task_id , message )
 
     # --------------------
     # response setters
 
     def storeResponse( self, response ) : 
-        """ store the task response """
+        """Store the task response.
+        
+        The response is expected to be python string (Text). However 
+        binary data (such as pickled data) may be used as well.
+        """
+
         dbLocker( self.dbLock , setTaskResponse , self.task_id , response )
 
 # define status constants 
@@ -153,16 +175,16 @@ for key , val in TEXT2STATUS.items() :
 # Task Type operations 
 
 def registerTaskType( identifier , handler , timeout = 3600 , timeret = -1 , maxstart = 3 ) : 
-    """ register new task Type, its handler (python dot path to subroutine) and optionally 
-        also the task timeout in sec. (after which the task is restarted; default 3600), 
-        retention time (time to keep finished task stored, for 0 or negative number the 
-        task is kept forever, default -1), and finally the max. number of attempts to start
-        the task including the initial start and timeout restarts (when exceeded, the task is 
-        labelled as FAILED and not restarted any more; default 3) 
+    """ Register new task Type. Identifier and handler subroutine must be specified.
 
-        When called repeatedly with the same task identifier, the first run creates new task types 
-        and the subsequent calls update the task type parameters.
-    """
+    Optionally the parameters such as: task timeout in sec. (after which the task is restarted; 
+    default 3600), retention time (time to keep finished task stored, for 0 or negative number 
+    the task is kept forever, default -1), and finally the max. number of attempts to start
+    the task including the initial start and timeout restarts (when exceeded, the task is 
+    labelled as FAILED and not restarted any more; default 3)
+
+    When called repeatedly with the same task identifier, the first run creates new task types 
+    and the subsequent calls update the task type parameters."""
 
     try: # update existing 
 
@@ -181,14 +203,14 @@ def registerTaskType( identifier , handler , timeout = 3600 , timeret = -1 , max
 
 
 def unregisterTaskType( identifier , force = False ) : 
-    """ unregister task Type 
+    """ Unregister (remove) an existing task Type.
 
-        By default the task Type removal will be blocked if there is any existing task 
-        Instance of this type throwing a TaskTypeHasInstances exception.
+    By default the task Type removal will be blocked as long there is any existing task
+    instance raising 'django.db.models.ProtectedError' Django exception (a subclass of 
+    django.db.IntegrityError). 
 
-        To force the Type removal wiping out the linked Instances set the 'force' parameter 
-        to True.  
-    """
+    To force the Type removal wiping out all the linked Instances set the 'force' parameter 
+    to True."""
 
     # MP: the instances are now protected against the cascade delete 
 
@@ -201,6 +223,7 @@ def unregisterTaskType( identifier , force = False ) :
 # Task Status Log Record creation 
 
 def _logStatusChange( obj , message ): 
+    """ auxiliary function """ 
 
     obj.logrecord_set.create( time=obj.timeUpdate , status=obj.status , message=message )
 
@@ -208,11 +231,11 @@ def _logStatusChange( obj , message ):
 # Task Queue Inspection 
 
 def getQueueSize() :
-    """ get number of enqueues tasks """ 
+    """Get number of enqueued tasks.""" 
     return Task.objects.filter(lock=0).count()
 
 def getMaxQueueSize() :
-    """ get the max. allowed number of task the queue hold""" 
+    """Get the maximum allowed number of task the queue can hold.""" 
     return MAX_QUEUE_SIZE
 
 #===============================================================================
@@ -222,17 +245,17 @@ def getMaxQueueSize() :
 # inspection 
 
 def getTaskInfo( task_id ) : 
-    """ for a task identified by the task_id get tuple of Type and Instance identifiers, Instance status and corresponding status string """   
+    """Get tuple of Type identifier, Instance identifiers, Instance status and corresponding status string """   
     _inst = Instance.objects.get( id = task_id )
     return ( _inst.type.identifier , _inst.identifier , _inst.status , STATUS2TEXT[_inst.status] ) 
 
 def getTaskIdentifier( task_id ) :
-    """ for a task identified by the task_id get tuple of Type and Instance identifiers """   
+    """Get tuple of Type and Instance identifiers."""   
     _inst = Instance.objects.get( id = task_id )
     return ( _inst.type.identifier , _inst.identifier ) 
 
 def getTaskStatus( task_id ) :
-    """ for a task identified by the task_id get tuple of Instance status and corresponding status string """   
+    """Get tuple of Instance status and corresponding status string."""   
     _inst = Instance.objects.get( id = task_id )
     return ( _inst.status , STATUS2TEXT[_inst.status] ) 
 
@@ -240,26 +263,24 @@ def getTaskStatus( task_id ) :
 # single task manipulations 
 
 def deleteTaskById( task_id ) : 
-    """ delete task Instance of the given record ID """ 
+    """Delete task Instance. 'task_id' is the DB record ID.""" 
    
     Instance.objects.filter( id = task_id ).delete()  
 
 def deleteTask( identifier ) : 
-    """ delete task Instance of the given task identifier """ 
+    """Delete task Instance. 'identifier' is the Instance string ID.'""" 
    
     Instance.objects.filter( identifier = identifier ).delete()  
 
 #-------------------------------------------------------------------------------
 
 def enqueueTask( type , identifier , input , message = "" ) :
-    """ create a new task Instance of the 'type' (Type identifier)
-        using the given identifier and inputs and enqueue the 
-        task for processing. The task status is set to ACCEPTED.  
-        The input can be anything serializable by the 'pickle' module. 
-        The optional log message can be specified.  
-
-        In case the actual queue size exceeds the queue size limit 
-        the QueueFull exception is thrown. 
+    """ Create new task Instance of the given Type using the given 
+    identifier and task inputs and enqueue this task for processing. 
+    The task status is set to ACCEPTED.  
+    The input can be anything serializable by the 'pickle' module. 
+    The optional log message can be specified.  
+    In case of full task queue QueueFull exception is risen.  
     """
 
     # check the queueu size 
@@ -281,12 +302,11 @@ def enqueueTask( type , identifier , input , message = "" ) :
 
 
 def reenqueueTask( task_id , message = "" ) : 
-    """ re-enqueue an existing task Instance identified by the given record ID 
-        and set its status to ACCEPTED. 
-        The optional log message can be specified.  
+    """ Re-enqueue an existing task Instance identified by the given DB record ID 
+    and set its status to ACCEPTED. The optional log message can be specified.  
 
-        The task enqueue is always performed and can possibly increase the task queue size 
-        beyond queue size limit. 
+    The task is always enqueued and can possibly increase the task queue size 
+    beyond queue size limit. 
     """
 
     _inst = Instance.objects.get( id = task_id ) 
@@ -305,20 +325,17 @@ def reenqueueTask( task_id , message = "" ) :
 #-------------------------------------------------------------------------------
 
 def dequeueTask( serverID , message = "" ) : 
-    """ 
-        try to dequeue a single task from the pending task queue. 
+    """ Attempt to dequeue a single task from the task queue. 
+    An unique serverID must be provided to prevent collisions with the other 
+    ATPDs pulling tasks from the same queue. 
 
-        An unique serverID must be provided to prevent collisions with the other 
-        servers pulling tasks from the queue. 
+    The function returns list of the dequeue tasks. There is rare but still 
+    possible chance that the function returns either zero or more than one 
+    tasks and the user must take this into consideration. 
 
-        The function returns list of the dequeue tasks. There is rare but still possible 
-        chance that the function returns either zero or more than one tasks and 
-        the user must take this into consideration. 
+    The returned dequeued tasks' status is set to SCHEDULED. 
 
-        The returned dequeued tasks are set to have status SCHEDULED. 
-
-        In case of an empty queue the QueueEmpty exception is risen. 
-    """
+    In case of an empty queue the QueueEmpty exception is risen."""
 
     while True : 
         # identify taks candidate 
@@ -356,10 +373,8 @@ def dequeueTask( serverID , message = "" ) :
 #-------------------------------------------------------------------------------
 
 def startTask( task_id , message = "" ) : 
-    """ 
-        get the inputs of the task Instance identified by the given record ID
-        and set the task's status to RUNNING 
-    """
+    """Get the inputs of the task Instance identified by the given DB record ID
+    and set the task's status to RUNNING"""
 
     _inst = Instance.objects.get( id = task_id ) 
 
@@ -383,6 +398,7 @@ def startTask( task_id , message = "" ) :
 # simple task status setting 
 
 def _setTaskStatus( task_id , message , status ) : 
+    """ auxiliary function """ 
 
     _inst = Instance.objects.get( id = task_id ) 
 
@@ -394,43 +410,43 @@ def _setTaskStatus( task_id , message , status ) :
     _logStatusChange( Instance.objects.get( id = task_id ) , message )  
 
 def _getTaskStatus( task_id ) : 
+    """ auxiliary function """ 
     
     return Instance.objects.get( id = task_id ).status 
 
 
 def stopTaskSuccessIfNotFinished( task_id , message = "" ) :
-    """ set status of task instance identified by the given record ID 
-        to FINISHED if its status has not been already set to FINISHED
-        or FAILED yet
-    """ 
+    """Set status of task Instance identified by the given DB record ID 
+    to FINISHED if its status has not been set to FINISHED
+    or FAILED yet.""" 
+
     if _getTaskStatus( task_id ) not in ( TaskStatus.FINISHED , TaskStatus.FAILED ) : 
         _setTaskStatus( task_id , message , TaskStatus.FINISHED ) 
 
 def stopTaskSuccess( task_id , message = "" ) : 
-    """ set status of task instance identified by the given record ID to FINISHED """
+    """Set status of task Instance identified by the given DB record ID to FINISHED."""
     _setTaskStatus( task_id , message , TaskStatus.FINISHED ) 
 
 def stopTaskFailure( task_id , message = "" ) : 
-    """ set status of task instance identified by the given record ID to FAILED """
+    """Set status of task instance identified by the given DB record ID to FAILED."""
     _setTaskStatus( task_id , message , TaskStatus.FAILED ) 
 
 def pauseTask( task_id , message = "" ) : 
-    """ set status of task instance identified by the given record ID to PAUSED """
+    """Set status of task instance identified by the given DB record ID to PAUSED."""
     _setTaskStatus( task_id , message , TaskStatus.PAUSED ) 
 
 def resumeTask( task_id , message = "" ) : 
-    """ set status of task instance identified by the given record ID to RUNNING """
+    """Set status of task instance identified by the given DB record ID to RUNNING."""
     _setTaskStatus( task_id , message , TaskStatus.RUNNING ) 
 
 #-------------------------------------------------------------------------------
 #task response manipulation 
 
 def setTaskResponse( task_id , response ) : 
-    """ for task Instance identified by the given record ID set the response data 
+    """Set response of task Instance identified by the given DB record ID.
         
-        The response is expected to be python string (Text). However binary data 
-        (such as pickled data) may be used as well
-    """
+    The response is expected to be python string (Text). However binary data 
+    (such as pickled data) may be used as well."""
 
     _inst = Instance.objects.get( id = task_id ) 
 
@@ -439,11 +455,10 @@ def setTaskResponse( task_id , response ) :
 
 
 def getTaskResponse( type , identifier ) : 
-    """ for task Instance identified by the given record ID return the response data 
+    """Get task response of task Instance identified by the string identifier.
         
-        The response is expected to be python string (Text). However binary data 
-        (such as pickled data) may be used as well
-    """
+    The response is expected to be python string (Text). However binary data 
+    (such as pickled data) may be used as well."""
 
     _type = Type.objects.get( identifier=type ) 
 
@@ -457,10 +472,8 @@ def getTaskResponse( type , identifier ) :
 # clean-up functions 
 
 def reenqueueZombieTasks( message = "" ) : 
-    """ find tasks exceeding their timeout and try to reenqueue them again 
-        for processing. Tasks exceeding the number of allowed start are rejected 
-        marking them as FAILED 
-    """
+    """Find all tasks exceeding their time-out and try to re-enqueue them again.
+    Tasks exceeding the number of allowed start are rejected and marked as FAILED."""
     
     # TODO restart limit 
 
@@ -483,11 +496,9 @@ def reenqueueZombieTasks( message = "" ) :
     return l 
 
 
-
 def deleteRetiredTasks() : 
-    """ find finished task Instances (FINISHED or FAILED) exceeding their retention
-        time and remove them 
-    """ 
+    """Find all FINISHED or FAILED task Instances exceeding their retention 
+    time and remove them.""" 
 
     STATUS = (TaskStatus.FINISHED,TaskStatus.FAILED)
 
