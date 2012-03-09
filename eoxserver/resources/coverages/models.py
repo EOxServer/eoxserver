@@ -28,20 +28,21 @@
 #-------------------------------------------------------------------------------
 
 import re
-from osgeo.gdalconst import *
 
-from django.contrib.gis.db import models
-from django.contrib.gis.geos import GEOSGeometry
+from osgeo import gdalconst
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
 
+from django.contrib.gis.db import models
+from django.contrib.gis.geos.polygon import Polygon
+from django.contrib.gis.geos.error import GEOSException
+
 from eoxserver.core.models import Resource
 from eoxserver.backends.models import (
-    Storage, Location, LocalPath, RemotePath,
+    Location, LocalPath, RemotePath,
     RasdamanLocation, CacheFile
 )
 from eoxserver.resources.coverages.validators import validateEOOM
-from django.contrib.gis.geos.polygon import Polygon
 
 NCNameValidator = RegexValidator(re.compile(r'^[a-zA-z_][a-zA-Z0-9_.-]*$'), message="This field must contain a valid NCName.")
 
@@ -72,22 +73,22 @@ class BandRecord(models.Model):
     definition = models.CharField(max_length=256)
     uom = models.CharField("UOM", max_length=16)
     nil_values = models.ManyToManyField(NilValueRecord, null=True, blank=True, verbose_name="Nil Value")
-    gdal_interpretation = models.IntegerField("GDAL Interpretation", default=GCI_Undefined,
+    gdal_interpretation = models.IntegerField("GDAL Interpretation", default=gdalconst.GCI_Undefined,
         choices=(
-            (GCI_Undefined, 'Undefined'),
-            (GCI_GrayIndex, 'Grayscale'),
-            (GCI_PaletteIndex, 'Palette Index'),
-            (GCI_RedBand, 'Red'),
-            (GCI_GreenBand, 'Green'),
-            (GCI_BlueBand, 'Blue'),
-            (GCI_AlphaBand, 'Alpha'),
-            (GCI_HueBand, 'Hue'),
-            (GCI_SaturationBand, 'Saturation'),
-            (GCI_LightnessBand, 'Lightness'),
-            (GCI_CyanBand, 'Cyan'),
-            (GCI_MagentaBand, 'Magenta'),
-            (GCI_YellowBand, 'Yellow'),
-            (GCI_BlackBand, 'Black')
+            (gdalconst.GCI_Undefined, 'Undefined'),
+            (gdalconst.GCI_GrayIndex, 'Grayscale'),
+            (gdalconst.GCI_PaletteIndex, 'Palette Index'),
+            (gdalconst.GCI_RedBand, 'Red'),
+            (gdalconst.GCI_GreenBand, 'Green'),
+            (gdalconst.GCI_BlueBand, 'Blue'),
+            (gdalconst.GCI_AlphaBand, 'Alpha'),
+            (gdalconst.GCI_HueBand, 'Hue'),
+            (gdalconst.GCI_SaturationBand, 'Saturation'),
+            (gdalconst.GCI_LightnessBand, 'Lightness'),
+            (gdalconst.GCI_CyanBand, 'Cyan'),
+            (gdalconst.GCI_MagentaBand, 'Magenta'),
+            (gdalconst.GCI_YellowBand, 'Yellow'),
+            (gdalconst.GCI_BlackBand, 'Black')
         )
     )
 
@@ -101,17 +102,17 @@ class BandRecord(models.Model):
 class RangeTypeRecord(models.Model):
     name = models.CharField(max_length=256)
     data_type = models.IntegerField(choices=(
-        (GDT_Byte, 'Byte'),
-        (GDT_UInt16, 'Unsigned Integer 16-bit'),
-        (GDT_Int16, 'Signed Integer 16-bit'),
-        (GDT_UInt32, 'Unsigned Integer 32-bit'),
-        (GDT_Int32, 'Signed Integer 32-bit'),
-        (GDT_Float32, 'Floating Point 32-bit'),
-        (GDT_Float64, 'Floating Point 64-bit'),
-        (GDT_CInt16, 'GDAL CInt 16-bit'),
-        (GDT_CInt32, 'GDAL CInt 32-bit'),
-        (GDT_CFloat32, 'GDAL CFloat 32-bit'),
-        (GDT_CFloat64, 'GDAL CFloat 64-bit')
+        (gdalconst.GDT_Byte, 'Byte'),
+        (gdalconst.GDT_UInt16, 'Unsigned Integer 16-bit'),
+        (gdalconst.GDT_Int16, 'Signed Integer 16-bit'),
+        (gdalconst.GDT_UInt32, 'Unsigned Integer 32-bit'),
+        (gdalconst.GDT_Int32, 'Signed Integer 32-bit'),
+        (gdalconst.GDT_Float32, 'Floating Point 32-bit'),
+        (gdalconst.GDT_Float64, 'Floating Point 64-bit'),
+        (gdalconst.GDT_CInt16, 'GDAL CInt 16-bit'),
+        (gdalconst.GDT_CInt32, 'GDAL CInt 32-bit'),
+        (gdalconst.GDT_CFloat32, 'GDAL CFloat 32-bit'),
+        (gdalconst.GDT_CFloat64, 'GDAL CFloat 64-bit')
     ))
     bands = models.ManyToManyField(BandRecord, through="RangeType2Band")
 
@@ -177,7 +178,19 @@ class EOMetadataRecord(models.Model):
     def __unicode__(self):
         return ("BeginTime: %s" % self.timestamp_begin)
     
-    def clean(self):
+    
+    def save(self, *args, **kwargs):
+        from eoxserver.core.util.timetools import UTCOffsetTimeZoneInfo
+        if self.timestamp_begin.tzinfo is None:
+            dt = self.timestamp_begin.replace(tzinfo=UTCOffsetTimeZoneInfo())
+            self.timestamp_begin = dt.astimezone(UTCOffsetTimeZoneInfo())
+            
+        if self.timestamp_end.tzinfo is None:
+            dt = self.timestamp_end.replace(tzinfo=UTCOffsetTimeZoneInfo())
+            self.timestamp_end = dt.astimezone(UTCOffsetTimeZoneInfo())
+        models.Model.save(self, *args, **kwargs)
+    
+    '''def clean(self):
         """
         This method validates the consistency of the EO Metadata record,
         i.e.:
@@ -202,7 +215,7 @@ class EOMetadataRecord(models.Model):
                 #if not self.footprint.equals_exact(GEOSGeometry(md_int.getFootprint()), EPSILON * max(self.footprint.extent)): # compare the footprints with a tolerance in order to account for rounding and string conversion errors
                     #raise ValidationError("EO GML footprint does not match.")
         
-        pass
+        pass'''
 
 class DataSource(models.Model): # Maybe make two sub models for local and remote storages.
     """
@@ -346,19 +359,24 @@ class RectifiedDatasetRecord(CoverageRecord, EODatasetMixIn):
     def clean(self):
         super(RectifiedDatasetRecord, self).clean()
         
-        footprint = self.eo_metadata.footprint
-        EPSILON = abs((self.extent.maxx - self.extent.minx) / self.extent.size_x)
-        bbox = Polygon.from_bbox((self.extent.minx - EPSILON,
-                                 self.extent.miny - EPSILON,
-                                 self.extent.maxx + EPSILON,
-                                 self.extent.maxy + EPSILON)) # TODO: Adjust according to axis order of SRID.
-        bbox.set_srid(int(self.extent.srid))
-        
-        if footprint.srid != bbox.srid:
-            footprint.transform(bbox.srs)
-        
-        if not bbox.contains(footprint):
-            raise ValidationError("Extent does not surround footprint. Extent: '%s' Footprint: '%s'" % (str(bbox), str(footprint)))
+        # TODO: this does not work in the admins changelist.save method
+        # A wrong WKB is inside the eo_metadata.footprint entry
+        try:
+            footprint = self.eo_metadata.footprint
+            EPSILON = abs((self.extent.maxx - self.extent.minx) / self.extent.size_x)
+            bbox = Polygon.from_bbox((self.extent.minx - EPSILON,
+                                     self.extent.miny - EPSILON,
+                                     self.extent.maxx + EPSILON,
+                                     self.extent.maxy + EPSILON)) # TODO: Adjust according to axis order of SRID.
+            bbox.set_srid(int(self.extent.srid))
+            
+            if footprint.srid != bbox.srid:
+                footprint.transform(bbox.srs)
+            
+            if not bbox.contains(footprint):
+                raise ValidationError("Extent does not surround footprint. Extent: '%s' Footprint: '%s'" % (str(bbox), str(footprint)))
+        except GEOSException:
+            pass
     
     def delete(self):
         extent = self.extent
