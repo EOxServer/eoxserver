@@ -27,11 +27,11 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from osgeo.gdalconst import GDT_Byte
-
-import mapscript
-
 import logging
+import os
+
+from osgeo.gdalconst import GDT_Byte
+import mapscript
 
 from eoxserver.core.system import System
 from eoxserver.core.util.timetools import (
@@ -42,10 +42,7 @@ from eoxserver.core.exceptions import InternalError, InvalidParameterException
 from eoxserver.resources.coverages.filters import (
     BoundedArea, TimeInterval
 )
-from eoxserver.resources.coverages.helpers import CoverageSet
-from eoxserver.processing.gdal.reftools import (
-    create_rectified_vrt, create_temporary_vrt
-)
+from eoxserver.processing.gdal.reftools import create_temporary_vrt
 from eoxserver.services.owscommon import OWSCommonConfigReader
 from eoxserver.services.mapserver import MapServerOperationHandler
 from eoxserver.services.exceptions import InvalidRequestException
