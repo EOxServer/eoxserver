@@ -317,6 +317,7 @@ def usage() :
     s.append( "    -p   append an addition Python search path (can be repeated)" ) 
     s.append( "    -n   number of worker instance to be started ( N >= 1 , number of CPUs used by default )" ) 
     s.append( "    -s   django settings module (default '%s')"%DJANGO_SETTINGS_DEFAULT ) 
+    s.append( "    -d   using other database " ) 
     s.append( "" ) 
     
     return "\n".join(s)
@@ -342,6 +343,8 @@ if __name__ == "__main__" :
 
     # parse commandline arguments 
 
+    usingDB='default'
+
     idx = 1 
     while idx < len(sys.argv) : 
         arg = sys.argv[idx] ; idx +=1 ; 
@@ -352,6 +355,10 @@ if __name__ == "__main__" :
         elif arg == '-s' : 
             DJANGO_SETTINGS = sys.argv[idx]
             idx += 1 
+        elif arg == '-d' : 
+            usingDB = sys.argv[idx]
+            idx += 1 
+
         elif arg == '-n' : 
             NTHREAD = max( 1 , int(sys.argv[idx]) )
             info("Setting number of working threads to: %i" % NTHREAD ) 
@@ -369,14 +376,19 @@ if __name__ == "__main__" :
     # django settings module 
     os.environ["DJANGO_SETTINGS_MODULE"] = DJANGO_SETTINGS 
     info("'%s' ... is set as the Django settings module " % DJANGO_SETTINGS )
-
-    usingDB='default'
+   
+    # Test if database is defined
+    findDB=False
     from django.db import connections
     for connect in connections:
-        if connect == 'atp' :
-           info("using preferable  database for testing purpose: '%s'" % connect )
-           usingDB=connect
+        if connect == usingDB :  findDB=True
 
+    if findDB  : 
+       info("'%s'... using database" %  usingDB )
+    else :
+       error("Can not find defined database '%s' in settings" % usingDB )
+       sys.exit(1)
+ 
     # once the search path is set -> load the required modules
     from eoxserver.core.system import System
     from eoxserver.resources.processes.tracker import TaskStatus, QueueEmpty, \
