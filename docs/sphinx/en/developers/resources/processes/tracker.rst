@@ -3,8 +3,7 @@
   # $Id$
   #
   # Project: EOxServer <http://eoxserver.org>
-  # Authors: Stephan Krause <stephan.krause@eox.at>
-  #          Stephan Meissl <stephan.meissl@eox.at>
+  # Authors: Martin Paces <martin.paces@eox.at>
   #
   #-----------------------------------------------------------------------------
   # Copyright (C) 2011 EOX IT Services GmbH
