@@ -73,6 +73,7 @@ Processing Layer
    :maxdepth: 1
    
    processing/*
+   resources/processes/*
 
 Data Integration Layer
 ----------------------
