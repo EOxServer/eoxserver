@@ -1,6 +1,6 @@
 .. Module eoxserver.resources.processes.tracker
   #-----------------------------------------------------------------------------
-  # $Id: covmgrs.rst 1018 2011-12-22 15:50:18Z schindlerf $
+  # $Id$
   #
   # Project: EOxServer <http://eoxserver.org>
   # Authors: Stephan Krause <stephan.krause@eox.at>
