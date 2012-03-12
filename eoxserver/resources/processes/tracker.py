@@ -63,17 +63,36 @@ class QueueFull( QueueException ) :
 #-------------------------------------------------------------------------------
 # define queue size - TODO: make this value configurable 
 
-#: Actual queue size limit.
-MAX_QUEUE_SIZE=64  
+#: Actual queue size limit. 
+#: Note may be removed in the future. Use 'getMaxQueueSize()' instead.
+MAX_QUEUE_SIZE=64
 
 #-------------------------------------------------------------------------------
+
+def dummyHandler( taskStatus , input ) :
+    """ Dummy ATP handler. No action implemented. 
+
+    Prototype for any ATP handler subroutine. 
+
+    Any ATP handler receives two parameters: 
+
+       * 'taskStatus' - an instance of TaskStatus class 
+         providing access the the actual task, 
+
+       * 'input' - input parameters specified during the 
+         task enqueueing. 
+    
+    """ 
 
 # dummy lock class 
 
 class DummyLock : 
     """ Dummy (default) lock class implementing lock interface.""" 
-    def acquire( self ) : pass 
-    def release( self ) : pass 
+    def acquire( self ) : 
+        """Acquire DB lock. No action impelemented!""" 
+
+    def release( self ) :
+        """Release DB lock. No action impelemented!""" 
 
 
 # function wrapper guaranting exclusive access to the DB 
@@ -100,19 +119,27 @@ def dbLocker( dbLock , func , *prm , **kprm ) :
 # task status class 
 
 class TaskStatus : 
-    """ Task status class passed to a ATP handler function. 
+    """ TaskStatus provides an interface to current asynchronous 
+    task. An instance of this class is exepected to be passed as 
+    an input parameter to the ATP handler function when executed 
+    by the ATPD. 
 
-    The status setting internally lock the access to the DB using 
-    the user provided 'dbLock'. In case the 'dbLock' is not provided 
-    the locking is not performed (see 'DummyLock' class).
+     * 'task_id' in an unique task identifier (string). 
 
-    The 'dbLock' can be any class instance providing two methods: 
-    'dbLock.acquire()' and 'dbLock.release()'. 
+     * dbLock' can be None or any class instance providing two members: 
+       'dbLock.acquire()' and 'dbLock.release()'. 
+
+    The status changing member function internally lock the access
+    to the DB using the user provided 'dbLock'. In case the 'dbLock' 
+    is not provided the locking is not performed (see also 'DummyLock' class).
     """ 
     # --------------------
     # constructor
 
     def __init__( self , task_id , dbLock = None ) : 
+        """ TaskStatus constructor 
+
+        """
         self.task_id = task_id 
         self.dbLock  = dbLock if ( dbLock is not None ) else DummyLock() ; 
 
@@ -175,13 +202,16 @@ for key , val in TEXT2STATUS.items() :
 # Task Type operations 
 
 def registerTaskType( identifier , handler , timeout = 3600 , timeret = -1 , maxstart = 3 ) : 
-    """ Register new task Type. Identifier and handler subroutine must be specified.
+    """ Register new task type. 
+    
+    The task type 'identifier' string and 'handler' subroutine must be specified.
+    The string identifier must uniquely identify the created task type.  
 
-    Optionally the parameters such as: task timeout in sec. (after which the task is restarted; 
-    default 3600), retention time (time to keep finished task stored, for 0 or negative number 
-    the task is kept forever, default -1), and finally the max. number of attempts to start
-    the task including the initial start and timeout restarts (when exceeded, the task is 
-    labelled as FAILED and not restarted any more; default 3)
+    Optionally, the parameters such as: task 'timeout' in sec. (after which the task is restarted; 
+    default 3600), retention time ('timeret'; time to keep finished task stored, for 0 or negative
+    number the task is kept forever, default -1), and finally the max. number of attempts to start
+    the task including the initial start and timeout restarts ('maxstart'; when exceeded, the task
+    is labelled as FAILED and not restarted any more; default 3)
 
     When called repeatedly with the same task identifier, the first run creates new task types 
     and the subsequent calls update the task type parameters."""
@@ -205,8 +235,8 @@ def registerTaskType( identifier , handler , timeout = 3600 , timeret = -1 , max
 def unregisterTaskType( identifier , force = False ) : 
     """ Unregister (remove) an existing task Type.
 
-    By default the task Type removal will be blocked as long there is any existing task
-    instance raising 'django.db.models.ProtectedError' Django exception (a subclass of 
+    By default, the task Type removal will fail as long as there is an existing task
+    Instance raising 'django.db.models.ProtectedError' exception (a subclass of 
     django.db.IntegrityError). 
 
     To force the Type removal wiping out all the linked Instances set the 'force' parameter 
@@ -278,9 +308,16 @@ def enqueueTask( type , identifier , input , message = "" ) :
     """ Create new task Instance of the given Type using the given 
     identifier and task inputs and enqueue this task for processing. 
     The task status is set to ACCEPTED.  
-    The input can be anything serializable by the 'pickle' module. 
-    The optional log message can be specified.  
-    In case of full task queue QueueFull exception is risen.  
+
+    The 'type' parameter should be the string identifier of a registered 
+    task type. The string 'identifier' shall uniquely identify the created 
+    task. 
+
+    The 'input' can be any Python object serializable by the 'pickle' module. 
+
+    The optional log 'message' can be specified.  
+
+    In case of full task queue the QueueFull exception is risen.  
     """
 
     # check the queueu size 
