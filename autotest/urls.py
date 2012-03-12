@@ -38,6 +38,9 @@ admin.autodiscover()
 #from django.contrib import databrowse
 from django.conf import settings
 
+# uncomment to enable the ATP auxiliary views 
+#from eoxserver.resources.processes import views as procViews
+
 urlpatterns = patterns('',
     (r'^$', 'eoxserver.views.index'),
     (r'^ows', 'eoxserver.services.views.ows'),
