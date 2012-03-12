@@ -1343,7 +1343,14 @@ class WMS13GetMapDatasetThreeBandsTestCase(eoxstest.WMS13GetMapTestCase):
     layers = ("MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed_bands",)
     bbox = (8.487755775451660, 32.195316643454134, 25.407486727461219, 46.249103546142578)
     dim_band = "MERIS_radiance_02_uint16,MERIS_radiance_08_uint16,MERIS_radiance_12_uint16"
+
+class WMS13GetMapReprojectedDatasetTestCase(eoxstest.WMS13GetMapTestCase):
+    """ Test a GetMap request with a reprojected dataset. """
+    fixtures = eoxstest.OWSTestCase.fixtures + ["testing_reprojected_coverages.json"]
     
+    layers = ("MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected",)
+    bbox = (8.487755775451660, 32.195316643454134, 25.407486727461219, 46.249103546142578)
+
 class WMS13GetFeatureInfoTestCase(eoxstest.HTMLTestCase):
     """ Test a GetFeatureInfo on an outline layer. """
     requires_fixed_db = True
@@ -1355,40 +1362,42 @@ class WMS13GetFeatureInfoTestCase(eoxstest.HTMLTestCase):
 # Authorisation Components
 #===============================================================================
 
-httpHeadersAuthnInvalid = {'AUTH_TYPE': 'shibboleth', \
-               'uid': 'nclue', \
-               'cn': 'Clue Norman', \
-               'description': 'Unauthorized User', \
-               'Shib-AuthnContext-Class': 'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport',  \
-               'Shib-Authentication-Method': 'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport', \
-               'Shib-Authentication-Instant': '2012-01-01T01:01:01.000Z', \
-               'HTTP_HOST': 'sp.c3ttv042.d03.arc.local', \
-               'Shib-Session-Index': '509d42a63423976dc7b0a91d6ac10ee3d15f21b8133c6b8b82216997875945e4', \
-               'displayName': 'Norman Clue', \
-               'Shib-Application-ID': 'default',
-               'Shib-Identity-Provider': 'https://idp.c3ttv042.d03.arc.local/idp/shibboleth', \
-               'sn': 'Clue',  \
-               'Shib-Session-ID': '_7e0d42381af797d3f69b06d7473455ff', \
-               'givenName': 'Norman', \
-               'DUMMY_MODE': 'DUMMY_MODE' \
-               }
+httpHeadersAuthnInvalid = {
+    'AUTH_TYPE': 'shibboleth',
+    'uid': 'nclue',
+    'cn': 'Clue Norman',
+    'description': 'Unauthorized User',
+    'Shib-AuthnContext-Class': 'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport',
+    'Shib-Authentication-Method': 'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport',
+    'Shib-Authentication-Instant': '2012-01-01T01:01:01.000Z',
+    'HTTP_HOST': 'sp.c3ttv042.d03.arc.local',
+    'Shib-Session-Index': '509d42a63423976dc7b0a91d6ac10ee3d15f21b8133c6b8b82216997875945e4',
+    'displayName': 'Norman Clue',
+    'Shib-Application-ID': 'default',
+    'Shib-Identity-Provider': 'https://idp.c3ttv042.d03.arc.local/idp/shibboleth',
+    'sn': 'Clue',
+    'Shib-Session-ID': '_7e0d42381af797d3f69b06d7473455ff',
+    'givenName': 'Norman',
+    'DUMMY_MODE': 'DUMMY_MODE'
+}
 
-httpHeadersAuthnValid = {'AUTH_TYPE': 'shibboleth', \
-               'uid': 'jdoe', \
-               'cn': 'Doe John', \
-               'description': 'Authorized User', \
-               'Shib-AuthnContext-Class': 'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport',  \
-               'Shib-Authentication-Method': 'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport', \
-               'Shib-Authentication-Instant': '2012-01-01T01:01:01.000Z', \
-               'HTTP_HOST': 'sp.c3ttv042.d03.arc.local', \
-               'Shib-Session-Index': '509d42a63423976dc7b0a91d6ac10ee3d15f21b8133c6b8b82216997875945e4', \
-               'Shib-Application-ID': 'default',
-               'Shib-Identity-Provider': 'https://idp.c3ttv042.d03.arc.local/idp/shibboleth', \
-               'sn': 'Doe',  \
-               'Shib-Session-ID': '_7e0d42381af797d3f69b06d7473455ff', \
-               'givenName': 'John', \
-               'DUMMY_MODE': 'DUMMY_MODE' \
-               }
+httpHeadersAuthnValid = {
+    'AUTH_TYPE': 'shibboleth',
+    'uid': 'jdoe',
+    'cn': 'Doe John',
+    'description': 'Authorized User',
+    'Shib-AuthnContext-Class': 'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport',
+    'Shib-Authentication-Method': 'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport',
+    'Shib-Authentication-Instant': '2012-01-01T01:01:01.000Z',
+    'HTTP_HOST': 'sp.c3ttv042.d03.arc.local',
+    'Shib-Session-Index': '509d42a63423976dc7b0a91d6ac10ee3d15f21b8133c6b8b82216997875945e4',
+    'Shib-Application-ID': 'default',
+    'Shib-Identity-Provider': 'https://idp.c3ttv042.d03.arc.local/idp/shibboleth',
+    'sn': 'Doe',
+    'Shib-Session-ID': '_7e0d42381af797d3f69b06d7473455ff',
+    'givenName': 'John',
+    'DUMMY_MODE': 'DUMMY_MODE'
+}
 
 class SecWCS10GetCapabilitiesValidTestCase(eoxstest.XMLTestCase):
     def getRequest(self):
