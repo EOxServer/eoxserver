@@ -32,8 +32,7 @@ This module contains utils for XML encoding, decoding and printing.
 """
 
 import xml.dom.minidom
-import re
-from sys import maxint
+import logging
 
 from eoxserver.core.exceptions import (
     InternalError, XMLDecoderException, XMLNodeNotFound,
@@ -41,7 +40,26 @@ from eoxserver.core.exceptions import (
 )
 from eoxserver.core.util.decoders import Decoder, DecoderInterface
 
-import logging
+try:
+    from lxml import etree
+except ImportError:
+    try:
+        # Python 2.5
+        import xml.etree.cElementTree as etree
+    except ImportError:
+        try:
+            # Python 2.5
+            import xml.etree.ElementTree as etree
+        except ImportError:
+            try:
+                # normal cElementTree install
+                import cElementTree as etree
+            except ImportError:
+                try:
+                    # normal ElementTree install
+                    import elementtree.ElementTree as etree
+                except ImportError:
+                    pass # could not get etree
 
 #-----------------------------------------------------------------------
 # XML Encoder
@@ -214,7 +232,7 @@ class XPath(object):
                 else :
                     head0 = tmp
                     tmp   = ""
-            head1 , sep , tmp = tmp.partition(d)
+            head1, _, tmp = tmp.partition(d)
             xpath.append( head0 + head1 )
 
         return xpath
