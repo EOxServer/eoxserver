@@ -258,10 +258,12 @@ class Command(CommandOutputMixIn, BaseCommand):
                     "Use the --metadata-files option."
                 )
             
-            metadatafiles.extend([
-                os.path.splitext(datafile)[0] + '.xml'
-                for datafile in datafiles[len(metadatafiles):]
-            ])
+            for datafile in datafiles[len(metadatafiles):]:
+                new_path = os.path.splitext(datafile)[0] + '.xml'
+                if os.path.exists(new_path):
+                    metadatafiles.append(new_path)
+                else:
+                    metadatafiles.append(datafile)
         
         if len(datafiles) > len(coverageids):
             if mode == "rasdaman":
