@@ -452,7 +452,8 @@ class EOMetadataReaderInterface(RegisteredInterface):
     REGISTRY_CONF = {
         "name": "EO Metadata Reader Interface",
         "intf_id": "resources.coverages.interfaces.EOMetadataReader",
-        "binding_method": "kvp",
+        #"binding_method": "kvp",
+        "binding_method": "testing",
         "registry_keys": (
             "resources.coverages.interfaces.location_type",
             "resources.coverages.interfaces.encoding_type"

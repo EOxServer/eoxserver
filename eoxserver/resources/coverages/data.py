@@ -356,8 +356,9 @@ class DataPackageWrapper(RecordWrapper):
                 md_reader = System.getRegistry().findAndBind(
                     intf_id = "resources.coverages.interfaces.EOMetadataReader",
                     params = {
-                        "resources.coverages.interfaces.location_type": md_location.getType(),
-                        "resources.coverages.interfaces.encoding_type": "xml" # TODO: make this configurable
+                        "location": md_location
+                        #"resources.coverages.interfaces.location_type": md_location.getType(),
+                        #"resources.coverages.interfaces.encoding_type": "xml" # TODO: make this configurable
                     }
                 )
             
