@@ -167,7 +167,7 @@ class LineageRecord(models.Model):
 class EOMetadataRecord(models.Model):
     timestamp_begin = models.DateTimeField("Begin of acquisition")
     timestamp_end = models.DateTimeField("End of acquisition")
-    footprint = models.PolygonField(srid=4326)
+    footprint = models.MultiPolygonField(srid=4326)
     eo_gml = models.TextField("EO O&M", blank=True, validators=[validateEOOM]) # validate against schema
     objects = models.GeoManager()
 
