@@ -27,13 +27,10 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-import os
 import re
 from datetime import datetime, tzinfo, timedelta
 
 from eoxserver.core.exceptions import InvalidParameterException
-
-import logging
 
 # pre-compile the regular expression for date/time matching
 
@@ -41,8 +38,6 @@ date_regex = r"(?P<year>\d{4})[-]?(?P<month>\d{2})[-]?(?P<day>\d{2})"
 time_regex = r"(?P<hour>\d{2})(:?(?P<minute>\d{2})(:?(?P<second>\d{2}))?)?"
 tz_regex = r"(?P<tz_expr>Z|(?P<tz_sign>[+-])(?P<tz_hours>\d{2}):?(?P<tz_minutes>\d{2})?)?"
 datetime_regex = date_regex + r"(T" + time_regex + tz_regex + ")?"
-
-global datetime_regex_obj
 
 datetime_regex_obj = re.compile(datetime_regex)
 
@@ -102,16 +97,11 @@ def getDateTime(s):
     
     try:
         dt = datetime(year, month, day, hour, minute, second, 0, tzi)
-    except ValueError, e:
+    except ValueError:
         raise InvalidParameterException("Invalid date/time '%s'" % s)
     
     utc = UTCOffsetTimeZoneInfo()
     utct = dt.astimezone(utc)
-    
-    #logging.debug("Original datetime: %s" % dt.strftime("%Y-%m-%dT%H:%M:%S"))
-    #logging.debug("UTC Offset: %s" % str(dt.utcoffset()))
-    #logging.debug("offset_sign: %s, offset_hours: %d, offset_minutes: %d" % (offset_sign, offset_hours, offset_minutes))
-    #logging.debug("UTC Time: %s" % utct.strftime("%Y-%m-%dT%H:%M:%S"))
     
     return utct
 
