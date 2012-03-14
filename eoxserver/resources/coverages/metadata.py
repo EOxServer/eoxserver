@@ -34,6 +34,7 @@ EO metadata objects.
 
 import re
 import datetime
+from os.path import splitext
 
 from osgeo import gdal
 from django.contrib.gis.geos import GEOSGeometry
@@ -181,8 +182,9 @@ class EnvisatDatasetMetadataFormat(MetadataFormat):
                 raw_metadata.__class__.__name__
             )
     
+        eoid = splitext(raw_metadata.GetMetadataItem("MPH_PRODUCT"))[0]
         return EOMetadata(
-            eo_id=raw_metadata.GetMetadataItem("MPH_PRODUCT"),
+            eo_id=eoid,
             begin_time=self._parse_timestamp(raw_metadata.GetMetadataItem("MPH_SENSING_START")),
             end_time=self._parse_timestamp(raw_metadata.GetMetadataItem("MPH_SENSING_STOP")),
             footprint=GEOSGeometry(reftools.get_footprint_wkt(raw_metadata)),
