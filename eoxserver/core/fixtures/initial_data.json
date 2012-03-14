@@ -1019,7 +1019,7 @@
         "pk": 128, 
         "model": "core.implementation", 
         "fields": {
-            "impl_id": "resources.coverages.metadata.N1DatasetMetadataFormat", 
+            "impl_id": "resources.coverages.metadata.EnvisatDatasetMetadataFormat", 
             "intf_id": "resources.coverages.interfaces.EOMetadataFormat"
         }
     }, 

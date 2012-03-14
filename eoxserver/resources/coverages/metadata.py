@@ -145,33 +145,39 @@ class XMLMetadataFormat(MetadataFormat):
         return ret_dict
 
         
-class N1DatasetMetadataFormat(MetadataFormat):
-    """ Metadata format for N1 datasets. """
+class EnvisatDatasetMetadataFormat(MetadataFormat):
+    """ Metadata format for ENVISAT datasets. """
     
     REGISTRY_CONF = {
-        "name": "N1 Dataset Metadata Format",
-        "impl_id": "resources.coverages.metadata.N1DatasetMetadataFormat"
+        "name": "ENVISAT Dataset Metadata Format",
+        "impl_id": "resources.coverages.metadata.EnvisatDatasetMetadataFormat"
     }
     
     METADATA_TAGS = ("MPH_PRODUCT", "MPH_SENSING_START", "MPH_SENSING_STOP")
     
     def test(self, test_params):
+        """
+        This metadata format is applicable, if all metadata tags (``MPH_PRODUCT``,
+        ``MPH_SENSING_START``, ``MPH_SENSING_STOP``) are found within the 
+        metadata entries of the dataset and the dataset contains at least one GCP.
+        """
         try:
-            md_dict = test_params["dataset"].GetMetadata_Dict()
-            if (test_params["driver"].ShortName == "ESAT"
-                and all([(md in md_dict) for md in self.METADATA_TAGS])):
+            ds = test_params["dataset"]
+            md_dict = ds.GetMetadata_Dict()
+            if (all([(md in md_dict) for md in self.METADATA_TAGS])
+                and len(ds.GetGCPs()) > 0):
                 return True
-        except KeyError:
+        except (KeyError, AttributeError):
             pass
         return False
     
     def getName(self):
-        return "n1"
+        return "envisat-dataset"
     
     def getEOMetadata(self, raw_metadata):
         if not isinstance(raw_metadata, gdal.Dataset):
             raise InternalError(
-                "N1 Dataset metadata formats cannot decode raw metadata of type '%s'." %\
+                "ENVISAT Dataset metadata formats cannot decode raw metadata of type '%s'." %\
                 raw_metadata.__class__.__name__
             )
     
@@ -216,8 +222,8 @@ class N1DatasetMetadataFormat(MetadataFormat):
         
         return self.METADATA_TAGS
         
-N1DatasetMetadataFormatImplementation = \
-EOMetadataFormatInterface.implement(N1DatasetMetadataFormat)
+EnvisatDatasetMetadataFormatImplementation = \
+EOMetadataFormatInterface.implement(EnvisatDatasetMetadataFormat)
 
 class XMLEOMetadataFormat(XMLMetadataFormat):
     """
