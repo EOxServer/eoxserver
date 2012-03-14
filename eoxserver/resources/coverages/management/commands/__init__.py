@@ -47,6 +47,25 @@ def _variable_args_cb(option, opt_str, value, parser):
         args.extend(getattr(parser.values, option.dest))
     setattr(parser.values, option.dest, args)
     
+class StringFormatCallback(object):
+    """ Small helper class to supply a variable number of arguments to a callback 
+        function and store the resulting value in the `dest` field of the parser. 
+    """
+    
+    def __init__(self, callback):
+        self.callback = callback
+        
+    def __call__(self, option, opt_str, value, parser):
+        args = []
+        for arg in parser.rargs:
+            if not arg.startswith('-'):
+                args.append(arg)
+            else:
+                del parser.rargs[:len(args)]
+                break
+        
+        setattr(parser.values, option.dest, self.callback(" ".join(args)))
+        
 
 class CommandOutputMixIn(object):
     def print_msg(self, msg, level=0):

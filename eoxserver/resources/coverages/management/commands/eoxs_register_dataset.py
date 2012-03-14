@@ -29,6 +29,9 @@
 #-------------------------------------------------------------------------------
 
 import os.path
+import datetime
+from copy import copy
+import traceback
 from optparse import make_option
 
 from osgeo import gdal
@@ -36,10 +39,17 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
 from eoxserver.core.system import System
+from eoxserver.core.util.geotools import extentFromDataset
+from eoxserver.core.util.timetools import getDateTime
 from eoxserver.resources.coverages.geo import GeospatialMetadata
+from eoxserver.resources.coverages.exceptions import MetadataException
 from eoxserver.resources.coverages.management.commands import (
-    CommandOutputMixIn, _variable_args_cb
+    CommandOutputMixIn, _variable_args_cb, StringFormatCallback
 )
+from eoxserver.resources.coverages.metadata import EOMetadata
+from django.contrib.gis.geos.geometry import GEOSGeometry
+from django.contrib.gis.geos.polygon import Polygon
+
 
 class Command(CommandOutputMixIn, BaseCommand):
     option_list = BaseCommand.option_list + (
@@ -156,6 +166,27 @@ class Command(CommandOutputMixIn, BaseCommand):
                   "automatically by GDAL. "
                   "Format: <minx>,<miny>,<maxx>,<maxy>")
         ),
+        make_option('--default-begin-time',
+            dest='default_begin_time',
+            action="callback", callback=StringFormatCallback(getDateTime),
+            default=None,
+            help=("Optional. Default begin timestamp when no other EO-metadata " 
+                  "is available. The format is ISO-8601.")
+        ),
+        make_option('--default-end-time',
+            dest='default_end_time',
+            action="callback", callback=StringFormatCallback(getDateTime),
+            default=None,
+            help=("Optional. Default end timestamp when no other EO-metadata " 
+                  "is available. The format is ISO-8601.")
+        ),
+        make_option('--default-footprint',
+            dest='default_footprint',
+            action="callback", callback=StringFormatCallback(str),
+            default=None,
+            help=("Optional. The default footprint in WKT format when no other " 
+                  "EO-metadata is available.")
+        ),
         make_option('--visible',
             dest='visible',
             default=True,
@@ -199,6 +230,9 @@ class Command(CommandOutputMixIn, BaseCommand):
         default_srid = options.get("default_srid")
         default_size = options.get("default_size")
         default_extent = options.get("default_extent")
+        default_begin_time = options.get("default_begin_time")
+        default_end_time = options.get("default_end_time")
+        default_footprint = options.get("default_footprint")
         visible = options.get("visible", True)
         
         datasetseries_eoids = options.get('datasetseries_eoids', [])
@@ -218,10 +252,11 @@ class Command(CommandOutputMixIn, BaseCommand):
             )
         
         #=======================================================================
-        # Setupt default geo metadata
+        # Setup default geo metadata
         #=======================================================================
         
         default_geo_metadata = None
+        extent = None
         if ((default_size is None and default_extent is not None) or
             (default_size is not None and default_extent is None)):
             raise CommandError(
@@ -245,6 +280,24 @@ class Command(CommandOutputMixIn, BaseCommand):
             
             default_geo_metadata = GeospatialMetadata(
                 default_srid, sizes[0], sizes[1], extent
+            )
+        
+        #=======================================================================
+        # Setup default EO metadata
+        #=======================================================================
+        
+        default_eo_metadata = None
+        if (default_begin_time is not None or default_end_time is not None
+            or default_footprint is not None):
+            
+            footprint = None
+            if default_footprint is not None:
+                footprint = GEOSGeometry(default_footprint)
+            elif extent is not None:
+                footprint = Polygon.from_bbox(tuple(extent))
+            
+            default_eo_metadata = EOMetadata(
+                None, default_begin_time, default_end_time, footprint, None
             )
         
         #=======================================================================
@@ -315,12 +368,22 @@ class Command(CommandOutputMixIn, BaseCommand):
                 "visible": visible
             }
             
+            eo_metadata = None
+            if default_eo_metadata is not None:
+                eo_metadata = copy(default_eo_metadata)
+                eo_metadata.eo_id = os.path.splitext(os.path.basename(df))[0]
+            
             if mode == 'local':
                 self.print_msg("\tFile: '%s'\n\tMeta-data: '%s'" % (df, mdf), 2)
                 args.update({
                     "local_path": df,
                     "md_local_path": mdf,
                 })
+                if eo_metadata is not None and eo_metadata.footprint is None:                
+                    ds = gdal.Open(df)
+                    if ds is not None:
+                        eo_metadata.footprint = Polygon.from_bbox(extentFromDataset(ds))
+            
             elif mode == 'ftp':
                 self.print_msg("\tFile: '%s'\n\tMeta-data: '%s'" % (df, mdf), 2)
                 args.update({
@@ -386,8 +449,23 @@ class Command(CommandOutputMixIn, BaseCommand):
                     mgr_to_use = ref_mgr
                     self.print_msg("\t'%s' is referenceable." % df, 2)
             
-            with transaction.commit_on_success():
-                mgr_to_use.create(**args)
+            if eo_metadata is not None:
+                if eo_metadata.footprint is None:
+                    raise CommandError("Default footprint could not be determined.")
+                if eo_metadata.begin_time is None:
+                    eo_metadata.begin_time = datetime.datetime.utcnow()
+                if eo_metadata.end_time is None:
+                    eo_metadata.end_time = datetime.datetime.utcnow()
+                
+                args["eo_metadata"] = eo_metadata
+                
+            try:
+                with transaction.commit_on_success():
+                    mgr_to_use.create(**args)
+            except MetadataException, e: #TODO here
+                self.print_msg("ERROR: registration of dataset failed, message was '%s'" % str(e))
+                if options.get("traceback", False):
+                    self.print_msg(traceback.format_exc())
         
         self.print_msg("Successfully inserted %d dataset%s." % (
                 len(datafiles), "s" if len(datafiles) > 1 else ""
