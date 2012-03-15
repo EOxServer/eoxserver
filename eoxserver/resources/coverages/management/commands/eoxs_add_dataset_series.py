@@ -32,15 +32,16 @@ import datetime
 from urlparse import urlparse
 from optparse import make_option
 
+from django.db import transaction
 from django.core.management.base import BaseCommand, CommandError
+from django.contrib.gis.geos.polygon import Polygon
+from django.contrib.gis.geos.geometry import GEOSGeometry
 
 from eoxserver.core.system import System
 from eoxserver.core.util.timetools import getDateTime
 from eoxserver.resources.coverages.management.commands import (
     CommandOutputMixIn, _variable_args_cb, StringFormatCallback
 )
-from django.contrib.gis.geos.polygon import Polygon
-from django.contrib.gis.geos.geometry import GEOSGeometry
 from eoxserver.resources.coverages.metadata import EOMetadata
 
 
@@ -60,6 +61,15 @@ class Command(CommandOutputMixIn, BaseCommand):
                   "a synchronization. For FTP data sources this has to be a "
                   "URL in this format: ftp://user:password@host:port/path")
         ),
+        make_option('-p', '--pattern', '--patterns',
+            dest='patterns',
+            action='callback', callback=_variable_args_cb,
+            default=[],
+            help=("Optional but highly recommended. A list of search "
+                  "patterns (regular expressions) to use to identify data "
+                  "files. When only one is given, it is used for all data "
+                  "sources.")
+        ),
         make_option('--add',
             dest='add',
             action='callback', callback=_variable_args_cb,
@@ -70,7 +80,7 @@ class Command(CommandOutputMixIn, BaseCommand):
         ),
         make_option('--no-sync',
             dest="no_sync",
-            action='store_true', default='False',
+            action='store_true', default=False,
             help=("Optional. This switch explicitly turns off the "
                   "synchronization when data sources were added.")
         ),
@@ -111,9 +121,10 @@ class Command(CommandOutputMixIn, BaseCommand):
         
         eoid = options.get("eoid")
         if eoid is None:
-            raise CommandError("Mandatory parameter `--eoid` not supllied.")
+            raise CommandError("Mandatory parameter `--eoid` not supplied.")
         
         data_sources = options.get("data_sources", [])
+        patterns = options.get("patterns", [])
         coverages = options.get("add", [])
         no_sync = options.get("no_sync", False)
         
@@ -127,6 +138,7 @@ class Command(CommandOutputMixIn, BaseCommand):
             footprint = GEOSGeometry(default_footprint)
         else:
             footprint = Polygon(((0, 0), (0, 1), (1, 1), (1, 0), (0, 0)))
+            self.print_msg("Using default footprint: %s" % footprint.wkt(), 2)
         
         #=======================================================================
         # Create Dataset Series
@@ -139,57 +151,95 @@ class Command(CommandOutputMixIn, BaseCommand):
             }
         )
         
-        dss_mgr.create(
-            eo_metadata=EOMetadata(
-                eoid,
-                default_begin_time or datetime.datetime.now(),
-                default_end_time or datetime.datetime.now(),
-                footprint
+        self.print_msg("Creating Dataset Series with ID '%s'." % eoid, 1)
+        
+        with transaction.commit_on_success():
+            dss_mgr.create(
+                eo_metadata=EOMetadata(
+                    eoid,
+                    default_begin_time or datetime.datetime.now(),
+                    default_end_time or datetime.datetime.now(),
+                    footprint
+                )
             )
-        )
-        
-        #=======================================================================
-        # Prepare data sources
-        #=======================================================================
-        
-        data_dirs = []
-        for data_source in data_sources:
-            opts = urlparse(data_source)
-            if opts.lower() == "ftp":
-                data_dirs.append({
-                    "type": "ftp",
-                    "host": opts.netloc,
-                    "port": opts.port,
-                    "user": opts.username,
-                    "passwd": opts.password,
-                    "path": opts.path,
-                })
-            else:
-                data_dirs.append({
-                    "type": "local",
-                    "path": data_source
-                })
-        
-        #=======================================================================
-        # Update the Dataset Series with data sources and coverages
-        #=======================================================================
-        
-        args = {}
-        if len(coverages) > 0:
-            args["coverage_ids"] = coverages
-        if len(data_dirs) > 0:
-            args["data_dirs"] = data_dirs
-        
-        if len(args) > 0:
-            dss_mgr.update(
-                obj_id=eoid,
-                link=args
-            )
-        
-        #=======================================================================
-        # Sync, if necessary/desired
-        #=======================================================================
-        
-        if do_sync:
-            dss_mgr.synchronize(obj_id=eoid)
+            
+            #===================================================================
+            # Prepare data sources
+            #===================================================================
+            
+            if len(data_sources) > 0:
+                if len(patterns) == 1:
+                    patterns *= len(data_sources)
+                elif len(patterns) == 0:
+                    self.print_msg(
+                        "WARNING: No `--pattern` option given. Using " 
+                        "default.", 2
+                    )
+                    patterns = [None] * len(data_sources)
+                elif len(patterns) != len(data_sources):
+                    raise CommandError(
+                        "Number of patterns given (%d) does not match number "
+                        "of data sources (%d)." % (len(patterns), len(data_sources)) 
+                    )
+            
+            data_dirs = []
+            for location, pattern in zip(data_sources, patterns):
+                opts = urlparse(location)
+                if opts.scheme.lower() == "ftp":
+                    args = {
+                        "type": "ftp",
+                        "host": opts.hostname,
+                        "port": opts.port,
+                        "user": opts.username,
+                        "passwd": opts.password,
+                        "path": opts.path,
+                    }
+                    
+                    self.print_msg(
+                        ("Adding FTP data source (host=%(host)s, "
+                         "port=%(port)s, path=%(path)s, user=%(user)s, "
+                         "password=%(passwd)s) to Dataset Series.") % args,
+                        2
+                    )
+                else:
+                    args = {
+                        "type": "local",
+                        "path": location
+                    }
+                    self.print_msg(
+                        "Adding local data source (path=%s) to Dataset Series" % location, 
+                        2
+                    )
+                
+                if pattern is not None:
+                    args["search_pattern"] = pattern
+                data_dirs.append(args)
+    
+            #===================================================================
+            # Update the Dataset Series with data sources and coverages
+            #===================================================================
+            
+            args = {}
+            if len(coverages) > 0:
+                self.print_msg(
+                    "Adding coverages (%s) to Dataset Series." % " , ".join(coverages),
+                    2
+                )
+                args["coverage_ids"] = coverages
+            if len(data_dirs) > 0:
+                args["data_dirs"] = data_dirs
+            
+            if len(args) > 0:
+                dss_mgr.update(
+                    obj_id=eoid,
+                    link=args
+                )
+            
+            #===================================================================
+            # Sync, if necessary/desired
+            #===================================================================
+            
+            if do_sync:
+                self.print_msg("Synchronizing Dataset Series.", 2)
+                dss_mgr.synchronize(obj_id=eoid)
         
