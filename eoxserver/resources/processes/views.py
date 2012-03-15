@@ -150,7 +150,8 @@ def response(request,requestType,requestID):
     """Task's response view."""
 
     try : 
-        return HttpResponse( getTaskResponse( requestType , requestID ) , content_type='text/xml' ) 
+        response , mimeType = getTaskResponse( requestType , requestID )
+        return HttpResponse( response , content_type= mimeType ) 
     except Exception as e : 
         return HttpResponse('ERROR: Response not available! requestClass="%s" ; requestID = "%s" '%\
                     (requestType,requestID),status=500,content_type='text/plain') 

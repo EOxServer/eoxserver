@@ -170,8 +170,9 @@ class Response( models.Model ):
             response   - process XML response (if not in plain text GZIP+BASE64 is applied).
 
     """
-    instance    = models.ForeignKey( Instance , blank=False , null=False , editable = False , unique = True )
-    response    = models.TextField( editable = False )
+    instance  = models.ForeignKey( Instance , blank=False , null=False , editable = False , unique = True )
+    response  = models.TextField( editable = False )
+    mimeType  = models.TextField( editable = True )
 
     def __unicode__( self ) : return unicode( self.instance )  
 

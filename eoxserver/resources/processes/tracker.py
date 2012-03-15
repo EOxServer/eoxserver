@@ -72,7 +72,7 @@ MAX_QUEUE_SIZE=64
 def dummyHandler( taskStatus , input ) :
     """ Dummy ATP handler. No action implemented. 
 
-    Prototype for any ATP handler subroutine. 
+    Prototype of an ATP handler subroutine. 
 
     Any ATP handler receives two parameters: 
 
@@ -184,14 +184,14 @@ class TaskStatus :
     # --------------------
     # response setters
 
-    def storeResponse( self, response ) : 
+    def storeResponse( self, response , mimeType = "text/xml" ) : 
         """Store the task response.
         
         The response is expected to be python string (Text). However 
         binary data (such as pickled data) may be used as well.
         """
 
-        dbLocker( self.dbLock , setTaskResponse , self.task_id , response )
+        dbLocker( self.dbLock , setTaskResponse , self.task_id , response , mimeType )
 
 # define status constants 
 
@@ -201,29 +201,34 @@ for key , val in TEXT2STATUS.items() :
 #-------------------------------------------------------------------------------
 # Task Type operations 
 
-def registerTaskType( identifier , handler , timeout = 3600 , timeret = -1 , maxstart = 3 ) : 
+def registerTaskType( identifier , handler , timeout = 3600 , timeret = -1 , maxrestart = 2 ) : 
     """ Register new task type. 
     
     The task type 'identifier' string and 'handler' subroutine must be specified.
     The string identifier must uniquely identify the created task type.  
 
-    Optionally, the parameters such as: task 'timeout' in sec. (after which the task is restarted; 
-    default 3600), retention time ('timeret'; time to keep finished task stored, for 0 or negative
-    number the task is kept forever, default -1), and finally the max. number of attempts to start
-    the task including the initial start and timeout restarts ('maxstart'; when exceeded, the task
-    is labelled as FAILED and not restarted any more; default 3)
+    Optionally, the parameters such as: task 'timeout' in sec. after which the task is restarted
+    (re-enqueued for new processing), retention time ('timeret'), i.e., the time to keep finished 
+    tasks stored in DB, for any non-positive number the task is kept forever), and finally the max.
+    allowed number of task's restarts caused by task time-out ('maxrestart').
+    When the number of restarts is exceeded, the task is labelled as FAILED and 
+    not re-enqueued any more).
 
     When called repeatedly with the same task identifier, the first run creates new task types 
     and the subsequent calls update the task type parameters."""
+
+    timeout  =max(0,timeout)
+    timeret  = timeret if ( timeret > 0 ) else -1
+    maxstart = 1 + max(0,int(maxrestart))
 
     try: # update existing 
 
         obj = Type.objects.get( identifier=identifier ) ; 
 
         obj.handler=handler 
-        obj.timeout=timeout 
+        obj.timeout=timeout
         obj.timeret=timeret
-        obj.maxstart=maxstart 
+        obj.maxstart=maxstart
 
     except Type.DoesNotExist : # insert new
 
@@ -285,22 +290,30 @@ def getTaskIdentifier( task_id ) :
     return ( _inst.type.identifier , _inst.identifier ) 
 
 def getTaskStatus( task_id ) :
-    """Get tuple of Instance status and corresponding status string."""   
+    """Get tuple of Instance status and corresponding status string.
+    'task_id' is the DB record ID."""   
     _inst = Instance.objects.get( id = task_id )
     return ( _inst.status , STATUS2TEXT[_inst.status] ) 
+
+def getTaskStatusByIdentifier( type , identifier ) : 
+    """Get tuple of Instance status and corresponding status string.
+    'type' is the Type string ID and 'identifier' is the Instance string ID."""
+    _type = Type.objects.get( identifier=type ) 
+    _inst = _type.instance_set.get( identifier=identifier )
+    return ( _inst.status , STATUS2TEXT[_inst.status] ) 
+
 
 #-------------------------------------------------------------------------------
 # single task manipulations 
 
-def deleteTaskById( task_id ) : 
+def deleteTask( task_id ) : 
     """Delete task Instance. 'task_id' is the DB record ID.""" 
-   
     Instance.objects.filter( id = task_id ).delete()  
 
-def deleteTask( identifier ) : 
-    """Delete task Instance. 'identifier' is the Instance string ID.'""" 
-   
-    Instance.objects.filter( identifier = identifier ).delete()  
+def deleteTaskByIdentifier( type , identifier ) : 
+    """Delete task Instance. 
+    'type' is the Type string ID and 'identifier' is the Instance string ID."""
+    Type.objects.get( identifier=type ).instance_set.filter( identifier=identifier ).delete() 
 
 #-------------------------------------------------------------------------------
 
@@ -479,7 +492,7 @@ def resumeTask( task_id , message = "" ) :
 #-------------------------------------------------------------------------------
 #task response manipulation 
 
-def setTaskResponse( task_id , response ) : 
+def setTaskResponse( task_id , response , mimeType = "text/xml" ) : 
     """Set response of task Instance identified by the given DB record ID.
         
     The response is expected to be python string (Text). However binary data 
@@ -488,22 +501,22 @@ def setTaskResponse( task_id , response ) :
     _inst = Instance.objects.get( id = task_id ) 
 
     # save the response  
-    _inst.response_set.create( response = base64.b64encode( zlib.compress( response ) ) )  
+    _inst.response_set.create( mimeType = mimeType , response = base64.b64encode( zlib.compress( response ) ) )  
 
 
 def getTaskResponse( type , identifier ) : 
-    """Get task response of task Instance identified by the string identifier.
+    """Return a tuple of task response and its MIME type. Task Instance
+    is identified by an unique pair of Type and Instance string identifiers 
+    'type' and 'identifier', respectively.
         
     The response is expected to be python string (Text). However binary data 
     (such as pickled data) may be used as well."""
 
     _type = Type.objects.get( identifier=type ) 
-
-    _inst = _type.instance_set.get( identifier=identifier ) 
-
+    _inst = _type.instance_set.get( identifier=identifier )
     _resp = _inst.response_set.get() 
 
-    return zlib.decompress( base64.b64decode( _resp.response ) ) 
+    return ( zlib.decompress( base64.b64decode( _resp.response ) ) , _resp.mimeType ) 
 
 #-------------------------------------------------------------------------------
 # clean-up functions 
@@ -553,7 +566,7 @@ def deleteRetiredTasks() :
 
             l.append( ( task.id , str(task) ) ) 
 
-            deleteTaskById( task.id ) 
+            deleteTask( task.id ) 
 
     return l 
 
