@@ -108,7 +108,7 @@ class Command(CommandOutputMixIn, BaseCommand):
     )
     
     help = ('Creates a new Dataset Series with initial data.')
-    args = '--data-file DATAFILE --rangetype RANGETYPE'
+    args = '--eoid EOID'
 
     def handle(self, *args, **options):
         System.init()

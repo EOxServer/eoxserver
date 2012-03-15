@@ -463,7 +463,10 @@ class Command(CommandOutputMixIn, BaseCommand):
                 with transaction.commit_on_success():
                     mgr_to_use.create(**args)
             except MetadataException, e: #TODO here
-                self.print_msg("ERROR: registration of dataset failed, message was '%s'" % str(e))
+                self.print_msg(
+                    "ERROR: registration of dataset failed, message was '%s'" % str(e),
+                    1, error=True
+                )
                 if options.get("traceback", False):
                     self.print_msg(traceback.format_exc())
         
