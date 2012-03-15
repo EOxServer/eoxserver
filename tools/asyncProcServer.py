@@ -38,6 +38,7 @@
 
 # default django settings module 
 DJANGO_SETTINGS_DEFAULT = "settings"
+DJANGO_DB_DEFAULT = "default"
 
 #-------------------------------------------------------------------------------
 
@@ -310,14 +311,14 @@ def usage() :
     """ print usage info """ 
 
     s = [] 
-    s.append( "USAGE: %s [-h][-p <directory>][-n <integer>] " % ( os.path.basename( sys.argv[0] ) ) ) 
+    s.append( "USAGE: %s [-h][-p <directory>][-s <module>][-d <db name>][-n <integer>] " % ( os.path.basename( sys.argv[0] ) ) ) 
     s.append( "" ) 
     s.append( "PARAMETERS: " ) 
     s.append( "    -h   print this info" ) 
     s.append( "    -p   append an addition Python search path (can be repeated)" ) 
     s.append( "    -n   number of worker instance to be started ( N >= 1 , number of CPUs used by default )" ) 
     s.append( "    -s   django settings module (default '%s')"%DJANGO_SETTINGS_DEFAULT ) 
-    s.append( "    -d   using other database " ) 
+    #s.append( "    -d   django DB name (default '%s')"%DJANGO_DB_DEFAULT ) 
     s.append( "" ) 
     
     return "\n".join(s)
@@ -330,6 +331,7 @@ if __name__ == "__main__" :
     # django settings module 
 
     DJANGO_SETTINGS = os.environ.get("DJANGO_SETTINGS_MODULE",DJANGO_SETTINGS_DEFAULT) 
+    DJANGO_DB       = DJANGO_DB_DEFAULT
 
     # try to get number of CPUs
 
@@ -343,8 +345,6 @@ if __name__ == "__main__" :
 
     # parse commandline arguments 
 
-    usingDB='default'
-
     idx = 1 
     while idx < len(sys.argv) : 
         arg = sys.argv[idx] ; idx +=1 ; 
@@ -356,9 +356,8 @@ if __name__ == "__main__" :
             DJANGO_SETTINGS = sys.argv[idx]
             idx += 1 
         elif arg == '-d' : 
-            usingDB = sys.argv[idx]
+            DJANGO_DB = sys.argv[idx]
             idx += 1 
-
         elif arg == '-n' : 
             NTHREAD = max( 1 , int(sys.argv[idx]) )
             info("Setting number of working threads to: %i" % NTHREAD ) 
@@ -376,19 +375,10 @@ if __name__ == "__main__" :
     # django settings module 
     os.environ["DJANGO_SETTINGS_MODULE"] = DJANGO_SETTINGS 
     info("'%s' ... is set as the Django settings module " % DJANGO_SETTINGS )
-   
-    # Test if database is defined
-    findDB=False
-    from django.db import connections
-    for connect in connections:
-        if connect == usingDB :  findDB=True
+    info("'%s' ... is set as the Django database " % DJANGO_DB )
 
-    if findDB  : 
-       info("'%s'... using database" %  usingDB )
-    else :
-       error("Can not find defined database '%s' in settings" % usingDB )
-       sys.exit(1)
- 
+    #usingDB = DJANGO_DB # ???
+
     # once the search path is set -> load the required modules
     from eoxserver.core.system import System
     from eoxserver.resources.processes.tracker import TaskStatus, QueueEmpty, \
