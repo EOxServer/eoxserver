@@ -68,14 +68,17 @@ class StringFormatCallback(object):
         
 
 class CommandOutputMixIn(object):
-    def print_msg(self, msg, level=0):
-        if self.verbosity > level:
+    def print_msg(self, msg, level=0, error=False):
+        verbosity = getattr(self, "verbosity", 1)
+        if verbosity > level:
             self.stdout.write(msg)
             self.stdout.write("\n")
         
-        if level == 0:
+        if level == 0 and error:
             logging.critical(msg)
-        elif level in (1, 2):
+        elif level == 1 and error:
+            logging.error(msg)
+        elif level in (0, 1, 2) and not error:
             logging.info(msg)
         elif level > 2:
             logging.debug(msg)
