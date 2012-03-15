@@ -81,10 +81,12 @@ Figure: ":ref:`fig_model_backends`" below shows the data model of the back-ends 
 
    *EOxServer Data Model for Back-ends*
 
-Asynchronous Task Processing - Task Tracker
--------------------------------------------
+.. _ATP Data Model:
 
-Asynchrounous Task Processing uses its own DB model displayed in Figure:
+Task Tracker Data Model 
+-----------------------
+
+*Asynchrounous Task Processing* (ATP) uses its own DB model displayed in Figure:
 ":ref:`fig_model_processes`" to implement the task queueu, store the task inputs
 and outputs and track the tasks' status. (For more detail on ATP subsystem see
 ":ref:`atp_sum`").
