@@ -392,7 +392,7 @@ which will be used for the data source of the same index. When only one
 ``--pattern`` is given, it is used for all data sources.
 
 Unless the ``--no-sync`` parameter is given, this also triggers a
-synchronization as explained in the chaper :ref:`What is synchronization?`. 
+synchronization as explained in the chaper :ref:`what_is_sync`. 
 
 Already registered datasets can be automatically added to the Dataset Series by
 using the ``--add`` option which takes a list of IDs referencing either
@@ -407,6 +407,8 @@ eoxs_synchronize
 ~~~~~~~~~~~~~~~~
 
 This command allows to synchronize an EOxServer instance with the file system.
+
+.. _what_is_sync:
 
 What is synchronization?
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -458,3 +460,4 @@ ensuring the databases consistency with the file system.
 
 The synchronization process may take some time, especially when FTP/Rasdaman
 storages are used and also depends on the number of synchronized objects.
+
