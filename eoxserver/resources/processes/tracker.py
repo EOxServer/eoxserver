@@ -519,6 +519,25 @@ def getTaskResponse( type , identifier ) :
     return ( zlib.decompress( base64.b64decode( _resp.response ) ) , _resp.mimeType ) 
 
 #-------------------------------------------------------------------------------
+# log message extraction 
+
+def getTaskLog( type , identifier ) : 
+    """Return list of log records sorted by time for the task identified by 
+    the task Type and Instance identifiers. Each log record is a tuple 
+    of three fields: time-stamp, status tuple (see get task status), and logged
+    message."""
+
+    _type = Type.objects.get( identifier=type ) 
+    _inst = _type.instance_set.get( identifier=identifier )
+
+    log = []
+
+    for item in LogRecord.objects.filter( instance = _inst ).select_related().order_by("time") :
+        log.append( ( item.time , ( item.status , STATUS2TEXT[item.status] ) , item.message ) ) 
+
+    return log 
+
+#-------------------------------------------------------------------------------
 # clean-up functions 
 
 def reenqueueZombieTasks( message = "" ) : 
