@@ -40,14 +40,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
-# imports 
-
-import time
-from eoxserver.resources.processes.tracker import \
-    registerTaskType, enqueueTask, QueueFull, \
-    getTaskStatusByIdentifier, getTaskResponse, deleteTaskByIdentifier
-
-#-------------------------------------------------------------------------------
 # Step 1 - Handler subroutine 
 
 def handler( taskStatus , input ) :
@@ -70,6 +62,14 @@ def handler( taskStatus , input ) :
 
 if __name__ == "__main__" : 
 
+    # imports 
+
+    import time
+    from eoxserver.resources.processes.tracker import \
+        registerTaskType, enqueueTask, QueueFull, \
+        getTaskStatusByIdentifier, getTaskLog, \
+        getTaskResponse, deleteTaskByIdentifier
+
     # delete previous task if exists 
     try : 
         deleteTaskByIdentifier( "SequenceSum" , "Task001" )
@@ -86,7 +86,7 @@ if __name__ == "__main__" :
  
     while True :
         try:
-            enqueueTask( "SequenceSum" , "Task001" , (1,2,3,4,5) )
+            enqueueTask( "SequenceSum" , "Task001" , (1,2,3,4,5,'a') )
             break
         except QueueFull : # retry if queue full
             print "QueueFull!"
@@ -102,14 +102,21 @@ if __name__ == "__main__" :
         time.sleep( 5 )
 
 #-------------------------------------------------------------------------------
-# Step 5 - getting result 
+# Step 5 - getting the logged task history 
+
+    print "Processing history:"
+    for rec in getTaskLog( "SequenceSum" , "Task001" ) :
+        print "-" , rec[0] , "Status: " , rec[1][1] , "\t Message: %s"%rec[2] if rec[2] else ""
+
+#-------------------------------------------------------------------------------
+# Step 6 - getting result 
 
     if status[1] == "FINISHED" :
         print "Result: " , getTaskResponse( "SequenceSum" , "Task001" )
 
 #-------------------------------------------------------------------------------
-# Step 6 - removing task 
+# Step 7 - removing task 
 
-    #deleteTaskByIdentifier( "SequenceSum" , "Task001" )
+    deleteTaskByIdentifier( "SequenceSum" , "Task001" )
 
 #-------------------------------------------------------------------------------
