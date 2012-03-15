@@ -92,6 +92,10 @@ through the 'dbLocker' wrapper.
 .. autofunction:: deleteTask
 .. autofunction:: deleteTaskByIdentifier
 
+Task Processing History 
+^^^^^^^^^^^^^^^^^^^^^^^
+.. autofunction:: getTaskLog 
+
 Task Response  
 ^^^^^^^^^^^^^
 .. autofunction:: setTaskResponse
