@@ -377,6 +377,32 @@ Besides this tool EOxServer adds some custom commands to Django's manage.py
 script. The ``eoxs_register_dataset`` command detailed in the :ref:`Data 
 Registration` section.
 
+eoxs_add_dataset_series
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``eoxs_add_dataset_series`` command allows the creation of a dataset series
+with initial data sources or coverages included. In it's simplest use case,
+only the ``--eoid`` parameter is required, which has to be a valid and not yet
+taken identifier for the Dataset Series.
+
+When supplied with the ``--data-sources`` parameter, given data sources will be
+added once the Dataset Series is created. When using the ``--data-sources`` it
+is highly recommended to also use ``--patterns``, a list of search patterns
+which will be used for the data source of the same index. When only one
+``--pattern`` is given, it is used for all data sources.
+
+Unless the ``--no-sync`` parameter is given, this also triggers a
+synchronization as explained in the chaper :ref:`What is synchronization?`. 
+
+Already registered datasets can be automatically added to the Dataset Series by
+using the ``--add`` option which takes a list of IDs referencing either
+Rectified Datasets, Referenceable Datasets and Rectified Stitched Mosaics.
+
+The optional ``--default-begin-time``, ``--default-end-time`` and
+``--default-footprint`` parameters can be used to supply some default metadata
+values. Note: once the Dataset Series is synchronized, these values are
+overridden.
+
 eoxs_synchronize
 ~~~~~~~~~~~~~~~~
 
