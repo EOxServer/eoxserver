@@ -60,6 +60,7 @@ on the *User* side.
    autotest
    soap_proxy
    handling_coverages
+   atp_dev_guide
    modules
    testing
 

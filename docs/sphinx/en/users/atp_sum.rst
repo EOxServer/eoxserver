@@ -239,3 +239,11 @@ The ATP is designed for resource demanding longer running tasks (10 seconds and
 more) which in case of synchronous operation could clog the system or lead to
 connection time-outs.  On contrary, *light* tasks (less than 1 sec.) should
 preferably be executed synchronously 
+
+Further reading 
+---------------
+
+The database model used in by the ATP subsystem is described in ":ref:`ATP Data
+Model`". The developers' guide helping with the creation of ATP based application can be
+found in ":ref:`atp_dev_guide`".  The complete API reference can be found in
+":ref:`module_resources_processes_tracker`".

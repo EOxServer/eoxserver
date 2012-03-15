@@ -80,6 +80,7 @@ through the 'dbLocker' wrapper.
 .. autofunction:: getTaskInfo
 .. autofunction:: getTaskIdentifier
 .. autofunction:: getTaskStatus
+.. autofunction:: getTaskStatusByIdentifier
 .. autofunction:: reenqueueTask
 .. autofunction:: dequeueTask
 .. autofunction:: startTask
@@ -88,8 +89,8 @@ through the 'dbLocker' wrapper.
 .. autofunction:: stopTaskSuccessIfNotFinished
 .. autofunction:: stopTaskSuccess
 .. autofunction:: stopTaskFailure
-.. autofunction:: deleteTaskById
 .. autofunction:: deleteTask
+.. autofunction:: deleteTaskByIdentifier
 
 Task Response  
 ^^^^^^^^^^^^^
