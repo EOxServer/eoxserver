@@ -168,7 +168,20 @@ NOTE: The task instance is guaratied to be unique for given task type
 identifier, i.e., there might be two task with the same instance identifier but
 different type identifier. 
 
-Step 5 - Getting the task results 
+Step 5 - Getting the logged task history 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The history of the task processing is logged and the log messages 
+can be extracted by :func:`~eoxserver.resources.processes.tracker.getTaskLog`
+function:: 
+
+    print "Processing history:"
+    for rec in getTaskLog( "SequenceSum" , "Task001" ) :
+        print "-" , rec[0] , "Status: " , rec[1][1] , "\t" , rec[2] 
+
+This function returns list of log records sorted by time (older first).
+
+Step 6 - Getting the task results 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Once the task has been finished the task response can be retrieved::
@@ -176,7 +189,7 @@ Once the task has been finished the task response can be retrieved::
     if status[1] == "FINISHED" :
         print "Result: " , getTaskResponse( "SequenceSum" , "Task001" ) 
 
-Step 6 - Removing the task  
+Step 7 - Removing the task  
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Finaly the result task is not needed anymore and can be removed from DB::
@@ -185,7 +198,93 @@ Finaly the result task is not needed anymore and can be removed from DB::
 
 Executing ATP Task 
 ------------------
-
-
-
  
+In this section we will briefly describe all the steps necessary to pull and
+execute task instance from the queue. As working example we encourage you the
+source Python code of the ATPD located at:: 
+
+    <EOxServer instal.dir.>/tools/asyncProcServer.py
+
+The invocation of the ATP server is described in ":ref:`atp_sum`".
+
+Initially the application must import the python objects
+from the :mod:`~eoxserver.resources.processes.tracker` module::
+
+    from eoxserver.resources.processes.tracker import * 
+
+For conviniece we have made available whole content of the module. 
+
+Pulling a task from queue 
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ATPD is expected to pull task from the queue repeatedly. For simplicity 
+we avoid the loop definition and we will rathe focus on the loop body.
+Following command pulls a list of tasks from queue::
+
+    try:
+        # get a pending task from the queue 
+        taskIds = dequeueTask( SERVER_ID )
+    except QueueEmpty : # no task to be processed 
+        # wait some ammount of time 
+        time.sleep( QUEUE_EMPTY_QUERY_DELAY )
+        continue
+
+This command tries to pull exacly one task at time from the DB queue but the 
+applied mechnism of pulling does not guarantie that none or more than one 
+task would be return. Thus the dequeueing function returns a list of tasks 
+and the implementation must take this fact into account. Further, the dequeue 
+function requires unique ATPD identifier (``SERVER_ID``). 
+
+The :func:`~eoxserver.resources.processes.tracker.dequeueTask` function 
+changes atomatically the status from ``ENQUEUED`` to ``SCHEDULED`` and 
+log the state transition. The optional logging message can be provided. 
+
+
+Task Execution  
+^^^^^^^^^^^^^^
+
+In case we have picked one of the pulled tasks and stored it to ``taskId``
+variable we can proceeed with the task execution::
+
+    # create instance of TaskStatus class 
+    pStatus = TaskStatus( taskId )
+    try:
+        # get task parameters and change status to STARTED
+        requestType , requestID , requestHandler , inputs = startTask( taskId )
+        # load the handler 
+        module , _ , funct = requestHandler.rpartition(".")
+        handler = getattr( __import__(module,fromlist=[funct]) , funct )
+        # execute handler 
+        handler( pStatus , inputs )
+        # if no terminating status has been set do it right now 
+        stopTaskSuccessIfNotFinished( taskId )
+    except Exception as e :
+        pStatus.setFailure( unicode(e) )
+
+In order to execute the task couple of actions must be performed. First an
+instance of the :class:`~eoxserver.resources.processes.tracker.TaskStatus` class
+must be created. 
+
+The parameters of the task (task type identifier, task instance identifier,
+request handler and task inputs) must be retrieved by the
+:func:`~eoxserver.resources.processes.tracker.dequeueTask` function. 
+The function allso changes the status of the task from ``SCHEDULED`` to
+``RUNNING`` and logs the state transition automatically. 
+
+The hadler "dot-path" must be split to module and function name and loaded
+dyanmically by the ``__import__()`` function. 
+
+Once imported the handler function is executed passing the TaskStatus and inputs 
+as the arguments. 
+
+The handler function is allowed but not required to set the successfull terminal state of
+the processing (``FINISHED``) and if not set it is done by the 
+:func:`~eoxserver.resources.processes.tracker.stopTaskSuccessIfNotFinished`
+function. 
+
+Obviously, the implementation must catch any possible Python exception and
+record the failure (``try-except`` block). 
+
+DB Cleanup 
+^^^^^^^^^^
+
