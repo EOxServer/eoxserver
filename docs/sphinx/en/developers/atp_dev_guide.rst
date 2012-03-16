@@ -42,7 +42,7 @@ This guide is intended to help with creation of applications using the
 *Asynchronous Task Processing* subsystem. 
 
 The first part is guiding creation of the simple task producer, i.e., an
-application needing the asynchrounous processing capabilities. 
+application needing the asynchronous processing capabilities. 
 
 The second part helps with creation of a task consumer, i.e., the part 
 of code pulling tasks from the work queue and executing them. The task  
@@ -57,7 +57,7 @@ Simple ATP Application
 ----------------------
 
 Here in this section we will prepare step-by-step a simple demo application 
-making use of the ATP subsystem. The complete application is avaliable at
+making use of the ATP subsystem. The complete application is available at
 location:: 
 
     <EOxServer instal.dir.>/tools/atp_demo.py 
@@ -77,7 +77,7 @@ By this command we imported following
 objects: i) task type registration function, ii) the task creation (enqueue)
 subroutine, iii) an exception class risen in case of full task queue unable
 to accept (most likely temporarily) new tasks, iv) task's status polling
-subroutine, v) the response getter function and finanlly vi) the subroutine 
+subroutine, v) the response getter function and finally vi) the subroutine 
 deleting an existing task. These are the ATP Python objects needed by our 
 little demo application. 
 
@@ -164,7 +164,7 @@ The task status is polled until the final status (``FINISHED`` or ``FAILED``) is
 reached. The task must be identified by unique pair of task type and task
 instance identifiers.
 
-NOTE: The task instance is guaratied to be unique for given task type
+NOTE: The task instance is guaranteed to be unique for given task type
 identifier, i.e., there might be two task with the same instance identifier but
 different type identifier. 
 
@@ -192,7 +192,7 @@ Once the task has been finished the task response can be retrieved::
 Step 7 - Removing the task  
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Finaly the result task is not needed anymore and can be removed from DB::
+Finally, the result task is not needed any more and can be removed from DB::
 
     deleteTaskByIdentifier( "SequenceSum" , "Task001" ) 
 
@@ -212,13 +212,13 @@ from the :mod:`~eoxserver.resources.processes.tracker` module::
 
     from eoxserver.resources.processes.tracker import * 
 
-For conviniece we have made available whole content of the module. 
+For convenience we have made available whole content of the module. 
 
 Pulling a task from queue 
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The ATPD is expected to pull task from the queue repeatedly. For simplicity 
-we avoid the loop definition and we will rathe focus on the loop body.
+we avoid the loop definition and we will rather focus on the loop body.
 Following command pulls a list of tasks from queue::
 
     try:
@@ -229,14 +229,14 @@ Following command pulls a list of tasks from queue::
         time.sleep( QUEUE_EMPTY_QUERY_DELAY )
         continue
 
-This command tries to pull exacly one task at time from the DB queue but the 
-applied mechnism of pulling does not guarantie that none or more than one 
-task would be return. Thus the dequeueing function returns a list of tasks 
+This command tries to pull exactly one task at time from the DB queue but the 
+applied mechanism of pulling does not guaranties that none or more than one 
+task would be return. Thus the dequeuing function returns a list of tasks 
 and the implementation must take this fact into account. Further, the dequeue 
 function requires unique ATPD identifier (``SERVER_ID``). 
 
 The :func:`~eoxserver.resources.processes.tracker.dequeueTask` function 
-changes atomatically the status from ``ENQUEUED`` to ``SCHEDULED`` and 
+changes automatically the status from ``ENQUEUED`` to ``SCHEDULED`` and 
 log the state transition. The optional logging message can be provided. 
 
 
@@ -244,7 +244,7 @@ Task Execution
 ^^^^^^^^^^^^^^
 
 In case we have picked one of the pulled tasks and stored it to ``taskId``
-variable we can proceeed with the task execution::
+variable we can proceed with the task execution::
 
     # create instance of TaskStatus class 
     pStatus = TaskStatus( taskId )
@@ -268,16 +268,16 @@ must be created.
 The parameters of the task (task type identifier, task instance identifier,
 request handler and task inputs) must be retrieved by the
 :func:`~eoxserver.resources.processes.tracker.dequeueTask` function. 
-The function allso changes the status of the task from ``SCHEDULED`` to
+The function also changes the status of the task from ``SCHEDULED`` to
 ``RUNNING`` and logs the state transition automatically. 
 
-The hadler "dot-path" must be split to module and function name and loaded
-dyanmically by the ``__import__()`` function. 
+The handler "dot-path" must be split to module and function name and loaded
+dynamically by the ``__import__()`` function. 
 
 Once imported the handler function is executed passing the TaskStatus and inputs 
 as the arguments. 
 
-The handler function is allowed but not required to set the successfull terminal state of
+The handler function is allowed but not required to set the successful terminal state of
 the processing (``FINISHED``) and if not set it is done by the 
 :func:`~eoxserver.resources.processes.tracker.stopTaskSuccessIfNotFinished`
 function. 
@@ -287,4 +287,12 @@ record the failure (``try-except`` block).
 
 DB Cleanup 
 ^^^^^^^^^^
+
+In addition to the normal operation each ATPD implementation is responsible for
+maintenance of the ATPD subsystem in a consistent state. Namely, i) the ATPD must
+repeatedly check for the abandoned "zombie" tasks and restart them by calling 
+:func:`~eoxserver.resources.processes.tracker.reenqueueZombieTasks` function
+and ii) the ATPD must remove DB records of the finished "retired" tasks by
+calling :func:`~eoxserver.resources.processes.tracker.deleteRetiredTasks`
+function. 
 
