@@ -86,7 +86,7 @@ if __name__ == "__main__" :
  
     while True :
         try:
-            enqueueTask( "SequenceSum" , "Task001" , (1,2,3,4,5,'a') )
+            enqueueTask( "SequenceSum" , "Task001" , (1,2,3,4,5) )
             break
         except QueueFull : # retry if queue full
             print "QueueFull!"
