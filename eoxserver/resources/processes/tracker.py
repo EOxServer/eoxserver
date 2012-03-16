@@ -398,7 +398,7 @@ def dequeueTask( serverID , message = "" ) :
             raise QueueEmpty 
     
         # lock candidate assuming atomicity of a single SQL UPDATE statement  
-        if ( Task.objects.filter( id=id , lock=0 ).update( lock=serverID ) ) :
+        if ( Task.objects.filter( id=id , lock=0 ).update( lock=serverID , time = datetime.datetime.now() ) ) :
             break 
             
     # Process locked objects 
@@ -546,6 +546,7 @@ def reenqueueZombieTasks( message = "" ) :
     
     # TODO restart limit 
 
+    PULL_TIMEOUT = 60 
     STATUS = (TaskStatus.PAUSED,TaskStatus.RUNNING,TaskStatus.SCHEDULED)
 
     l = [] 
@@ -555,12 +556,31 @@ def reenqueueZombieTasks( message = "" ) :
         # reference time to detect timedout tasks 
         timeRef = datetime.datetime.today() - datetime.timedelta(0,ttype.timeout)
         
-        for task in ttype.instance_set.filter( status__in = STATUS , timeUpdate__lt = timeRef ) : 
+        # detect tasks pulled by ATPD 
+        for _inst in ttype.instance_set.filter( status__in = STATUS , timeUpdate__lt = timeRef ) : 
 
-            l.append( ( task.id , str(task) ) ) 
+            l.append( ( _inst.id , str(_inst) ) ) 
 
             # reenqueue timed-out tasks 
-            reenqueueTask( task.id , message ) 
+            reenqueueTask( _inst.id , message ) 
+
+    # reference time to detect timedout tasks 
+    timeRef = datetime.datetime.today() - datetime.timedelta(0,PULL_TIMEOUT)
+
+    # detect tasks stacked during the pulling  
+    for _task in Task.objects.exclude( lock = 0 ).filter( time__lt = timeRef ) : 
+
+        id = _task.instance_id 
+        l.append( ( id , str(_task.instance) ) ) 
+
+        # set status to SCHEDULED 
+        Instance.objects.filter( id = id ).update( status = TaskStatus.SCHEDULED ) 
+
+        # remove queue entry 
+        _task.delete() 
+
+        # reenqueue timed-out tasks 
+        reenqueueTask( id , message ) 
 
     return l 
 
