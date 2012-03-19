@@ -416,10 +416,13 @@ observation specific metadata. The optional parameter ``--metadata-file`` shall
 contain a list of paths to these files, where the items of this list refer to
 the data files with the same index of the according option. This parameter can
 also be omitted, in this case for each data file a metadata file is assumed
-with the same path, but with an `.xml` extension. When inserting datasets
-located in a Rasdaman database, this parameter is mandatory, since the metadata
-cannot be retrieved from within the rasdaman database and must be locally
-accessible.
+with the same path, but with an `.xml` extension, although it is only used when
+this file actually exists. Otherwise the datafile itself is used to retrieve
+the metadata values.
+
+When inserting datasets located in a Rasdaman database, this parameter is
+mandatory, since the metadata cannot be retrieved from within the rasdaman
+database and must be locally accessible.
 
 For each dataset a coverage ID can be specified with the ``--coverage-id``
 parameter. As with the ``--metadata-file`` option, the items of the list refer
@@ -447,6 +450,15 @@ you can use ``--default-size`` and ``--default-extent``. Both parameters need
 to be used together and in combination with ``--default-srid``. This is
 required for datasets registered in a rasdaman database or for any other
 input method where the geospatial metadata cannot be retrieved.
+
+For datasets that do not have any EO metadata associated and want to be
+inserted anyways, the options ``--default-begin-time``, ``--default-end-time``
+and ``--default-footprint`` have to be used. When provided, these options will
+overrule any metadata located in data or metadata files. All three options have
+to be used in combination, so it is, for example, not possible to only provide
+the footprint via ``--default-footprint`` and let EOxServer gather the rest,
+with one exception: when only begin and end dates are given, the footprint is
+generated using the image extent.
 
 With the ``--visible`` option, all registered datasets can be marked as either
 visible (``true``) or invisible (``false``). This effects the advertisment of
@@ -527,6 +539,12 @@ Here is the full list of available options:
                         Optional. Default extent, needed if it cannot be
                         determined automatically by GDAL. Format:
                         <minx>,<miny>,<maxx>,<maxy>
+  --default-begin-time  Optional. Default begin timestamp when no other EO-
+                        metadata is available. The format is ISO-8601.
+  --default-end-time    Optional. Default end timestamp when no other EO-
+                        metadata is available. The format is ISO-8601.
+  --default-footprint   Optional. The default footprint in WKT format when no
+                        other EO-metadata is available.s
   --visible=VISIBLE     Optional. Sets the visibility status of all datasets
                         to thegiven boolean value. Defaults to 'True'.
   --version             show program's version number and exit
