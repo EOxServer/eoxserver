@@ -42,7 +42,9 @@ from eoxserver.backends.models import (
     Location, LocalPath, RemotePath,
     RasdamanLocation, CacheFile
 )
-from eoxserver.resources.coverages.validators import validateEOOM
+from eoxserver.resources.coverages.validators import (
+    validateEOOM, validateCoverageIDnotInEOOM
+)
 
 NCNameValidator = RegexValidator(re.compile(r'^[a-zA-z_][a-zA-Z0-9_.-]*$'), message="This field must contain a valid NCName.")
 
@@ -190,32 +192,8 @@ class EOMetadataRecord(models.Model):
             self.timestamp_end = dt.astimezone(UTCOffsetTimeZoneInfo())
         models.Model.save(self, *args, **kwargs)
     
-    '''def clean(self):
-        """
-        This method validates the consistency of the EO Metadata record,
-        i.e.:
-        * check that the begin time in timestamp_begin is the same as in
-          EO GML
-        * check that the end time in timestamp_end is the same as in EO
-          GML
-        * check that the footprint is the same as in EO GML
-        """
-        # TODO
-        
-        #EPSILON = 1e-10
-        
-        #if self.eo_gml:
-            #md_int = MetadataInterfaceFactory.getMetadataInterface(self.eo_gml, "eogml")
-            
-            #if self.timestamp_begin != md_int.getBeginTime().replace(tzinfo=None):
-                #raise ValidationError("EO GML acquisition begin time does not match.")
-            #if self.timestamp_end != md_int.getEndTime().replace(tzinfo=None):
-                #raise ValidationError("EO GML acquisition end time does not match.")
-            #if self.footprint is not None:
-                #if not self.footprint.equals_exact(GEOSGeometry(md_int.getFootprint()), EPSILON * max(self.footprint.extent)): # compare the footprints with a tolerance in order to account for rounding and string conversion errors
-                    #raise ValidationError("EO GML footprint does not match.")
-        
-        pass'''
+    def clean(self):
+        pass
 
 class DataSource(models.Model): # Maybe make two sub models for local and remote storages.
     """
@@ -301,6 +279,7 @@ class CoverageRecord(Resource):
     data_source = models.ForeignKey(DataSource, related_name="%(class)s_set", null=True, blank=True, on_delete=models.SET_NULL) # Has to be set if automatic is true.
 
     def clean(self):
+        super(CoverageRecord, self).clean()
         if self.automatic and self.data_source is None:
             raise ValidationError('DataSource has to be set if automatic is true.')
 
@@ -377,6 +356,8 @@ class RectifiedDatasetRecord(CoverageRecord, EODatasetMixIn):
                 raise ValidationError("Extent does not surround footprint. Extent: '%s' Footprint: '%s'" % (str(bbox), str(footprint)))
         except GEOSException:
             pass
+        
+        validateCoverageIDnotInEOOM(self.coverage_id, self.eo_metadata.eo_gml)
     
     def delete(self):
         extent = self.extent
@@ -390,6 +371,10 @@ class ReferenceableDatasetRecord(CoverageRecord, EODatasetMixIn):
     class Meta:
         verbose_name = "Referenceable Dataset"
         verbose_name_plural = "Referenceable Datasets"
+        
+    def clean(self):
+        super(ReferenceableDatasetRecord, self).clean()
+        validateCoverageIDnotInEOOM(self.coverage_id, self.eo_metadata.eo_gml)
 
 class RectifiedStitchedMosaicRecord(CoverageRecord, EOCoverageMixIn):
     extent = models.ForeignKey(ExtentRecord, related_name="rect_stitched_mosaics")
@@ -421,7 +406,12 @@ class RectifiedStitchedMosaicRecord(CoverageRecord, EOCoverageMixIn):
             footprint.transform(bbox.srs)
         
         if not bbox.contains(footprint):
-            raise ValidationError("Extent does not surround footprint. Extent: '%s' Footprint: '%s'" % (str(bbox), str(footprint)))
+            raise ValidationError(
+                "Extent does not surround footprint. Extent: '%s' Footprint: " 
+                "'%s'" % (str(bbox), str(footprint))
+            )
+        
+        validateCoverageIDnotInEOOM(self.coverage_id, self.eo_metadata.eo_gml)
 
     def delete(self):
         tile_index = self.tile_index
