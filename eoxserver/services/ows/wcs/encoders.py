@@ -33,6 +33,7 @@ from xml.dom import minidom
 
 from django.contrib.gis.geos import Polygon
 
+from eoxserver.core.util.geotools import reversedAxisOrder
 from eoxserver.core.util.xmltools import XMLEncoder
 from eoxserver.core.util.timetools import isotime
 from eoxserver.processing.mosaic import MosaicContribution
@@ -52,7 +53,7 @@ class GMLEncoder(XMLEncoder):
         
         frmt = _adjustPrecision("%f %f", sr.IsProjected())
         
-        if srid == 4326:
+        if reversedAxisOrder(srid):
             pos_list = " ".join([frmt % (point[1], point[0]) for point in ring])
         else:
             pos_list = " ".join([frmt % point for point in ring])
@@ -267,14 +268,21 @@ class CoverageGML10Encoder(XMLEncoder):
                 ])
             ])
         ])
-        
+
+        if reversedAxisOrder(srid):
+            x_offsets = _adjustPrecision("0.0 %f", sr.IsProjected()) % ((extent[2] - extent[0]) / float(size[0]))
+            y_offsets = _adjustPrecision("%f 0.0", sr.IsProjected()) % ((extent[1] - extent[3]) / float(size[1]))
+        else:
+            x_offsets = _adjustPrecision("%f 0.0", sr.IsProjected()) % ((extent[2] - extent[0]) / float(size[0]))
+            y_offsets = _adjustPrecision("0.0 %f", sr.IsProjected()) % ((extent[1] - extent[3]) / float(size[1]))  
+            
         grid_element.appendChild(self._makeElement("gml", "offsetVector", [
             ("", "@srsName", "http://www.opengis.net/def/crs/EPSG/0/%s" % srid),
-            ("", "@@", _adjustPrecision("%f 0.0", sr.IsProjected()) % ((extent[2] - extent[0]) / float(size[0])))
+            ("", "@@", x_offsets)
         ]))
         grid_element.appendChild(self._makeElement("gml", "offsetVector", [
             ("", "@srsName", "http://www.opengis.net/def/crs/EPSG/0/%s" % srid),
-            ("", "@@", _adjustPrecision("0.0 %f", sr.IsProjected()) % ((extent[1] - extent[3]) / float(size[1])))
+            ("", "@@", y_offsets)
         ]))
                     
         return grid_element

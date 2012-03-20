@@ -29,6 +29,9 @@
 
 import re
 
+def reversedAxisOrder(srid):
+    return srid in (3035, 4326)
+
 def getSRIDFromCRSURI(uri):
     match = re.match(r"urn:ogc:def:crs:EPSG:\d*\.?\d*:(\d+)", uri)
     
