@@ -51,6 +51,7 @@ vi conf/eoxserver.conf
 # instance_id=
 # logging_filename=<path_to_eoxserver_directory>/autotest/logs/eoxserver.log
 # module_dirs=
+# allowed_actions=Add,Delete
 # path_wcst_temp=<path_to_eoxserver_directory>/autotest/wcst_remp 
 # path_wcst_perm=<path_to_eoxserver_directory>/autotest/wcst_perm 
 
