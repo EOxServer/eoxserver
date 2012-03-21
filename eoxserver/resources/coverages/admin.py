@@ -447,6 +447,8 @@ admin.site.register(DatasetSeriesRecord, DatasetSeriesAdmin)
 
 
 class EOMetadataAdmin(admin.GeoModelAdmin):
+    wms_url = "http://vmap0.tiles.osgeo.org/wms/vmap0" # TODO: make this configurable
+    
     def save_model(self, request, obj, form, change):
         # steps:
         # 1. retrieve EO GML from obj
