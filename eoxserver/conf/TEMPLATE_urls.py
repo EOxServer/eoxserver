@@ -38,6 +38,9 @@ admin.autodiscover()
 #from django.contrib import databrowse
 from django.conf import settings
 
+# enable the ATP auxiliary views 
+from eoxserver.resources.processes import views as procViews
+
 urlpatterns = patterns('',
     (r'^$', 'eoxserver.views.index'),
     (r'^ows', 'eoxserver.services.views.ows'),
@@ -59,7 +62,7 @@ urlpatterns = patterns('',
 #    (r'^process/status$', procViews.status ),
 #    (r'^process/status/(?P<requestType>[^/]{,64})/(?P<requestID>[^/]{,64})$', procViews.status ),
 #    (r'^process/task$', procViews.task ),
-#    (r'^process/response/(?P<requestType>[^/]{,64})/(?P<requestID>[^/]{,64})', procViews.response ),
+    (r'^process/response/(?P<requestType>[^/]{,64})/(?P<requestID>[^/]{,64})', procViews.response ),
 )
 
 urlpatterns += staticfiles_urlpatterns()
