@@ -88,7 +88,7 @@ class TestSequenceFunctions(unittest.TestCase):
         # force  unregisterTaskType
         unregisterTaskType( PROCESS_CLASS , True )
         # delete  task
-        deleteTaskByIdentifier( PROCESS_CLASS , ID2 )
+        #deleteTaskByIdentifier( PROCESS_CLASS , ID2 )
 
     def test_unregistred_not_registred(self):
          self.assertRaises(     ObjectDoesNotExist  , unregisterTaskType ,  "TEST-PROCESS-NOT_REGISTRED" , True )
@@ -168,7 +168,7 @@ class TestSequenceFunctions(unittest.TestCase):
 
         response = getTaskResponse( PROCESS_CLASS , ID4 )[0]
         self.assertEqual( int(  response  )  , 123 )
-        deleteTaskByIdentifier( PROCESS_CLASS , D4 )
+        deleteTaskByIdentifier( PROCESS_CLASS , ID4 )
 
     def test_task_duplicity(self):
 
