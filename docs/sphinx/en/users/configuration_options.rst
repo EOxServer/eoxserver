@@ -185,8 +185,12 @@ The maximum number of `wcs:coverageDescription` elements returned in a WCS 2.0
 
     allow_multiple_actions
 
-This flag enables/disable mutiple actions per WCSt request. NOTE: it's much
-safer to keep this feature disabled. Defaults to `False`.
+This flag enables/disable mutiple actions per WCSt request. Defaults to `False`.
+
+NOTE: It is safer to keep this feature disabled. In case of a failure of one of
+the multiple actions, an OWS exception is returned without any notification which
+of the actions were actually performed, and which have not been performed at all.
+Therefore, we recomend to use only one action per request. 
 
 ::
 
@@ -194,22 +198,25 @@ safer to keep this feature disabled. Defaults to `False`.
 
 Comma-separated list of allowed actions. Each item is one of `Add`, `Delete`,
 `UpdateAll`, `UpdateMetadata` and `UpdateDataPart`. By default no action is
-allowed and each needs to be explicitly activated.
+allowed and each needs to be explicitly activated. Currently, only the `Add` and
+`Delete` actions are implemented by the EOxServer. 
 
 ::
 
     path_wcst_temp
 
-Mandatory. A path to an existing directory for temporary storage of data. This
-should be a directory which is not used in any other context, since it might be
-cleared under certain circumstances.
+Mandatory. A path to an existing directory for temporary data storage during the
+WCS-T request processing. This should be a directory which is not used in any
+other context, since it might be cleared under certain circumstances.
 
 ::
 
     path_wcst_perm
 
 Mandatory. A path to a directory for permanent storage of transacted data. This
-is the final location where transacted datasets will be stored.
+is the final location where transacted datasets will be stored. It is also a
+place where the `Delete` action (when enabled) is allowed to remove the stored
+data.
 
 
 [services.auth.base]

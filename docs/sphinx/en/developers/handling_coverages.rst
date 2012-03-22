@@ -6,6 +6,7 @@
   # Authors: Stephan Krause <stephan.krause@eox.at>
   #          Stephan Meissl <stephan.meissl@eox.at>
   #          Fabian Schindler <fabian.schindler@eox.at>
+  #          Martin Paces <martin.paces@eox.at>
   #
   #-----------------------------------------------------------------------------
   # Copyright (C) 2011 EOX IT Services GmbH
@@ -58,7 +59,7 @@ and use case, please refer to the actual :mod:`implementation documentation
 of possible parameters.
 
 The following example creates a rectified dataset as simple as passing a local
-path to a data file and a metadatafile and the name of the range type, which
+path to a data file and a meta-data-file and the name of the range type, which
 unfortunately cannot be identified otherwise at the time being.
 ::
 
@@ -70,57 +71,90 @@ unfortunately cannot be identified otherwise at the time being.
     )
 
 
-Coverage IDs
-~~~~~~~~~~~~
+Coverage ID Uniqueness 
+~~~~~~~~~~~~~~~~~~~~~~
 
-To handle the reservation of Coverage IDs the :class:`~.CoverageIdManager` can
-be used.
-::
+The :class:`~.CoverageIdManager` helps during creation of new, and querying
+existing Coverage IDs::
 
     from eoxserver.resources.coverages.covmgrs import CoverageIDManager
-    mgr = CoverageIDManager()
+    idmgr = CoverageIDManager()
 
-Checking if a coverage ID is still available is done like this: 
-::
-
-    if mgr.available(someID):
-        ...
-
-To reserve a specific Coverage ID for a certain amount of time, use the
-``reserve`` method. The first and only mandatory parameter is the ID to be
-reserved. With the ``request_id`` parameter an additional ID can be associated
-with the reserved coverage. This is especially useful for asynchronous
-situations. The ``until`` parameter defines for how long the reservation will
-be valid:
-::
+The Coverage ID must be unique for all types of coverages, such as, *Rectified*
+or *Referenceable* data-sets. This aspect is especially important for graceful
+handling of Coverage IDs' conflicts in case of concurrent inserts of new
+coverages. Once a new Coverage ID is approved by the EOxServer in course of the
+processing of an insert request, any other insert request must not be allowed 
+to use the same Coverage ID. Therefore the :class:`~.CoverageIdManager` allows
+Coverage ID *reservation* to grant the Coverage ID exclusivity during 
+of the actual coverage insert. The reservation is performed by the
+:func:`~eoxserver.resources.coverages.covmgrs.CoverageIdManager.reserve` method::
 
     from datetime import datetime, timedelta
+    idmgr.reserve("SomeCoverageID", until=datetime.now() + timedelta(days=1))
 
-    mgr.reserve("SomeCoverageID", until=datetime.now() + timedelta(days=1))
+If the Coverage ID cannot be reserved (most likely, because it is used by an
+existing coverage, or reserved by another insert request) an exception is raised,
+as described in the method's documentation.
 
-If the ID could not be reserved an exception is raised, as described in the
-modules documentation.
+The reservation is released automatically after expiration of the given time-out
+(the optional ``until`` parameter). The default time-out value can be configured 
+via EOxServer configuration file (section ``resources.coverages.coverage_id``,
+field ``reservation_time``, default value ``0:0:30:0``, i.e., 30 min.).
 
-When the Coverage ID is not being used anymore it can be released with the
-``release`` method:
-::
+The reservation can be revoked by the  
+:func:`~eoxserver.resources.coverages.covmgrs.CoverageIdManager.release`
+method::
 
-    mgr.release("SomeCoverageID")
+    idmgr.release("SomeCoverageID")
 
-When the optional ``fail`` parameter is set to true, an exception will be
-thrown if the ID was not previously reserved.
+Although it is not necessary to release a booked Coverage ID, we encourage
+to do so when possible. 
+
+Whether a Coverage ID is neither in use nor reserved can be checked by the 
+:func:`~eoxserver.resources.coverages.covmgrs.CoverageIdManager.available`
+method::
+
+    if idmgr.available(someID):
+        # there is neither coverage nor cov.ID reservation 
+        ...
 
 
 Finding Coverages
 -----------------
 
-There are several techniques to search for coverages in the system, depending
-what information is desired and what information is provided. Typically a
-factory is used to get the correct wrapper of a coverage, namely the 
-:class:`~.EOCoverageFactory`.
+There are several techniques to search for coverages in the system,
+depending on what information is desired and/or provided.
+In a case, when the Coverage ID is known, it is possible to use 
+:func:`~eoxserver.resources.coverages.covmgrs.CoverageIdManager.check` method 
+of :class:`~.CoverageIdManager` to check whether this ID is used by an existing 
+coverage::
 
-The simplest case is to find a coverage according to its Coverage ID:
-::
+    if idmgr.check(someID):
+        # there is an coverage with this ID 
+
+Once we know there is an existing coverage we can query type of the coverage 
+by the
+:func:`~eoxserver.resources.coverages.covmgrs.CoverageIdManager.getCoverageType`
+method in order to select the proper handling of the coverage type:: 
+
+    ctype = idmgr.getCoverageType(someID):
+
+    if   ctype == "PlainCoverage" : 
+        ...
+    elif ctype == "RectifiedDataset" : 
+        ...
+    elif ctype == "ReferenceableDataset" : 
+        ...
+    elif ctype == "RectifiedStitchedMosaic" : 
+        ...
+    else : 
+        # invalid coverage ID 
+        ...
+
+Alternatively, a factory can used to get the correct wrapper of a coverage, namely the
+:class:`~.EOCoverageFactory`. The simplest case is to find a coverage according 
+to its Coverage ID::
 
     from eoxserver.core.system import System
 
@@ -129,15 +163,14 @@ The simplest case is to find a coverage according to its Coverage ID:
         {"obj_id": coverage_id}
     )
 
-This returns the coverage wrapper according to the coverages type, or None, if
-no such coverage exists.
+This command returns the proper coverage wrapper according to the coverages type, 
+or None, if no such coverage exists.
 
 For more sophisticated searches, filter expressions have to be used. In case of
 coverage filters, the :class:`~.CoverageExpressionFactory` creates the required
 expressions. In the following example, we create a filter expression to get
 all coverages whose footprint intersects with the area defined by the
-:class:`~.BoundedArea`:
-::
+:class:`~.BoundedArea`::
 
     from eoxserver.resources.coverages.filters import BoundedArea
 
@@ -153,8 +186,7 @@ all coverages whose footprint intersects with the area defined by the
 With our filter expressions, we are now able to get the list of coverages
 complying to our filters with the ``find`` method of the
 :class:`~.EOCoverageFactory` which returns a list of all objects intersecting
-with our region.:
-::
+with our region.::
 
     factory = System.getRegistry().bind(
         "resources.coverages.wrappers.EOCoverageFactory"
@@ -176,8 +208,7 @@ method of the :class:`~.RectifiedStitchedMosaicWrapper`) or the
 latter one is directly coupled to the wrappers ``FIELDS`` lookup dictionary
 which expands to field lookup on the according model.
 
-The following example demonstrates either use:
-::
+The following example demonstrates either use::
 
     rect_stitched_mosaic_wrapper = System.getRegistry().getFromFactory(
         "resources.coverages.wrappers.EOCoverageFactory",
@@ -201,12 +232,12 @@ wrapper .
 
 Another way to update existing coverages is to use the correct coverage manager.
 Its :meth:`~eoxserver.resources.coverages.covmgrs.BaseManager.update` method
-can be supplied three (optional) dict arguments:
+can be supplied three (optional) dictionary arguments:
 
- * ``link``: adds a reference to another object in the database. This is used
-   for e.g ``container_ids``, ``coverages`` or ``data_sources``.
+ * ``link``: adds a reference to another object in the database. This is used,
+   e.g., ``container_ids``, ``coverages`` or ``data_sources``.
  * ``unlink``: removes a reference to another object. It has the same arguments
-   as the ``link`` dict.
+   as the ``link`` dictionary 
  * ``set``: Sets an integral value or a collection of values in the database
    object. Here are also keys from the ``FIELDS`` accepted.
 
@@ -214,8 +245,7 @@ The usable arguments depend on the actually used coverage manager type, but are
 almost the same as the arguments available for the ``create`` method.
 
 The following example demonstrates the use of the coverage managers ``update``
-method with a rectified stitched mosaic:
-::
+method with a rectified stitched mosaic::
 
     mgr = System.getRegistry().findAndBind(
         intf_id="resources.coverages.interfaces.Manager",
