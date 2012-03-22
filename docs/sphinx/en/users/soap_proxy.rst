@@ -79,6 +79,11 @@ Quick installation guide for EOxServer on CentOS
 The following standard installation sets up soap_proxy for an installed eoxserver
 service accessible at http://127.0.0.1/eoxserver/ows
 
+**Caution:** if upgrading an existing installation of soap_proxy, please be
+sure to make a backup of the directory
+`/usr/share/axis2c_eo/services/soapProxy`. The eo_soap_proxy-1.0.1-1 package
+does not correctly preserve this directory duing upgrading.
+
 Via the repository::
 
   sudo yum install axis2c_eo eo_soap_proxy
@@ -87,7 +92,7 @@ Via the repository::
 or the packages::
 
   sudo rpm -i axis2c_eo-1.6.0-3.x86_64.rpm
-  sudo rpm -i eo_soap_proxy-1.0.0-1.x86_64.rpm
+  sudo rpm -i eo_soap_proxy-1.0.1-1.x86_64.rpm
   sudo /etc/init.d/httpd restart
 
 2. Test:
