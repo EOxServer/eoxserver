@@ -615,3 +615,39 @@ ensuring the databases consistency with the file system.
 The synchronization process may take some time, especially when FTP/Rasdaman
 storages are used and also depends on the number of synchronized objects.
 
+Performance
+-----------
+
+The performance of different EOxServer tasks and services depends heavily on
+the hardware infrastructure and the data to be handled. Tests were made for
+two typical operator use cases:
+
+* registering a dataset
+* generating a mosaic
+
+The tests for registering datasets were performed on a quad-core machine
+with 4 GB of RAM and with a SQLite/SpatiaLite database. The test datasets
+were 58 IKONOS multispectral (4-band 16-bit), 58 IKONOS panchromatic (1-band
+16-bit) and 58 IKONOS pansharpened (3-band 8-bit) scenes in GeoTIFF format with
+file sizes ranging between 60 MB and 1.7 GB. The file size did not have any
+discernible impact on the time it took to register. The average registration
+took about 61 ms, meaning that ingesting nearly 1000 datasets per minute is
+possible.
+
+The generation of mosaics was performed on a virtual machine with one
+CPU core allocated and 4 GB of RAM. Yet again, the input data were IKONOS
+scenes in GeoTIFF format.
+
+==================== ============= ===== =============== =============== ======== ===============
+Datasets             Data Type     Files Input File Size Tiles Generated Time     GB per minute
+==================== ============= ===== =============== =============== ======== ===============
+IKONOS multispectral 4-band 16-bit 68    8.9 GB          8.819           10 m     0.89 GB
+IKONOS panchromatic  1-band 16-bit 68    35.1 GB         126.750         1:05 h   0.54 GB
+IKONOS pansharpened  3-band  8-bit 68    52.7 GB         126.750         1:46 h   0.49 GB
+==================== ============= ===== =============== =============== ======== ===============
+
+As the results show the file size of the input files has a certain impact on
+performance, but the effect seems to level off.
+
+For hints on improving performance of the services see :ref:`ops_data` and
+:ref:`webclient/mapcache`.
