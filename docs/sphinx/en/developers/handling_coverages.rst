@@ -235,7 +235,7 @@ Its :meth:`~eoxserver.resources.coverages.covmgrs.BaseManager.update` method
 can be supplied three (optional) dictionary arguments:
 
  * ``link``: adds a reference to another object in the database. This is used,
-   e.g., ``container_ids``, ``coverages`` or ``data_sources``.
+   e.g., for ``container_ids``, ``coverages`` or ``data_sources``.
  * ``unlink``: removes a reference to another object. It has the same arguments
    as the ``link`` dictionary 
  * ``set``: Sets an integral value or a collection of values in the database

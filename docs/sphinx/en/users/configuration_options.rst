@@ -185,7 +185,7 @@ The maximum number of `wcs:coverageDescription` elements returned in a WCS 2.0
 
     allow_multiple_actions
 
-This flag enables/disable mutiple actions per WCSt request. Defaults to `False`.
+This flag enables/disables mutiple actions per WCSt request. Defaults to `False`.
 
 NOTE: It is safer to keep this feature disabled. In case of a failure of one of
 the multiple actions, an OWS exception is returned without any notification which
