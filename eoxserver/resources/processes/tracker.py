@@ -496,12 +496,26 @@ def setTaskResponse( task_id , response , mimeType = "text/xml" ) :
     """Set response of task Instance identified by the given DB record ID.
         
     The response is expected to be python string (Text). However binary data 
-    (such as pickled data) may be used as well."""
+    (such as pickled data) may be used as well.
+    
+    It is safe to call this function repeatedly. First call creates a new Response 
+    record and the successive calls update the existing Response record. 
+    """
 
     _inst = Instance.objects.get( id = task_id ) 
 
-    # save the response  
-    _inst.response_set.create( mimeType = mimeType , response = base64.b64encode( zlib.compress( response ) ) )  
+    _tmp = base64.b64encode( zlib.compress( response ) )  
+
+    try: # try to update existing response first 
+
+        _resp = Response.objects.get( instance = _inst )
+        _resp.mineType = mimeType 
+        _resp.response = _tmp 
+        _resp.save() 
+
+    except Response.DoesNotExist : # create new response  
+
+        _inst.response_set.create( mimeType = mimeType , response = _tmp )  
 
 
 def getTaskResponse( type , identifier ) : 
