@@ -96,6 +96,7 @@ class BaseManager(object):
         If the given ID is already in use, an :exc:`~.CoverageIdInUseError`
         exception is raised. If the ID is already reserved by another
         ``request_id``, an :exc:`~.CoverageIdReservedError` is raised.
+        These exceptions are sub-classes of :exc:`~.CoverageIdError`.
         
         :param obj_id: the ID (CoverageID or EOID) of the object to be created
         :type obj_id: string
@@ -1275,6 +1276,7 @@ class CoverageIdManager(BaseManager):
         the reserved ``resource_id``, a :class:`~.CoverageIdReservedError` is
         raised. If the ID is already taken by an existing coverage a 
         :class:`~.CoverageIdInUseError` is raised.
+        These exceptions are sub-classes of :exc:`~.CoverageIdError`.
         """
         
         obj, _ = ReservedCoverageIdRecord.objects.get_or_create(
