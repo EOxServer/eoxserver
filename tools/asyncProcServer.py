@@ -121,16 +121,54 @@ def signal_handler_sigterm(sig, frm):
 
 #-------------------------------------------------------------------------------
 
-def objectImport( path ) : 
-    """ 
-        smart object import from a module 
-
+class Importer( object ) : 
+    """ smart importer of the handler subroutine 
+    
         E.g. function 'd()' in module 'a.b.c' 
             given by a path 'a.b.c.d' is imported
     """
-    module , _ , funct = path.rpartition(".")
-    return getattr( __import__(module,fromlist=[funct]) , funct ) 
- 
+
+    def __init__( self , path ) : 
+        """Initialize class from the given handler 
+        subroutine dot-path"""
+
+        self.path = path 
+        self.module , _ , self.func = path.rpartition(".")
+        self.modules = [] 
+        self.handler = None 
+
+    def loadHandler( self ) : 
+        """ load the handler subroutine """ 
+        
+        if not self.handler : 
+
+            # initial list of modules 
+            ml0 = set( sys.modules ) 
+            
+            # new list of modules 
+            ml1 = set( sys.modules ) 
+
+            self.handler = getattr( __import__( self.module , fromlist=[self.func] ) , self.func ) 
+
+            # store list of loaded modules 
+            self.modules = ml1 - ml0 
+
+        return self.handler 
+
+    def unloadHandler( self ) : 
+        """ unload the handler subroutine """ 
+
+        if self.handler : 
+
+            self.handler = None 
+
+            # unload the loaded modules 
+            for m in self.modules :  
+                del( sys.modules[m] ) 
+
+            # store list of loaded modules 
+            self.modules = [] 
+
 
 def taskDispatch( taskID , threadID ) : 
     """ 
@@ -149,11 +187,17 @@ def taskDispatch( taskID , threadID ) :
 
         info( "[%3.3i] PROCESS: %s %s is running ... " % ( threadID , requestType , requestID ) ) 
 
+        # create importer object 
+        imp = Importer( requestHandler ) 
+
         # try to load the right module and handler 
-        handler = objectImport( requestHandler ) 
+        imp.loadHandler() 
 
         # execute handler - proper status logging is duty of the callback 
-        handler( pStatus , inputs ) 
+        imp.handler( pStatus , inputs ) 
+
+        # try to unload the handler 
+        imp.unloadHandler() 
 
         # if no terminating status has been set do it right now 
         dbLocker( dbLock , stopTaskSuccessIfNotFinished , taskID )
