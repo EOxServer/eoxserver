@@ -189,24 +189,26 @@ def wcst11ActionAdd( action , context , maxAttempts = 3 ) :
         # in case of missing EO profile extract footprint 
 
         if not isEODataset : 
+        
+            if info.isRectified : 
 
-            # prepare coverage insert 
-            md_start     = timeStampUTC()
-            md_stop      = md_start
+                # prepare coverage insert 
+                md_start     = timeStampUTC()
+                md_stop      = md_start
 
-            md_footprint = getFootprint( info , repeatFirst = True )
+                md_footprint = getFootprint( info , repeatFirst = True )
 
-            logging.debug( str(info) ) 
-            logging.debug( md_footprint ) 
+                logging.debug( str(info) ) 
+                logging.debug( md_footprint ) 
 
-            logging.info( "WCSt11:%s: EOP2.0 XML not provided! Trying to extract information from the GeoTIFF image." % aname ) 
-            logging.debug( "WCSt11:%s: Generating EOP2.0 XML file: %s" % ( aname , srcXMLfile ) )
+                logging.info( "WCSt11:%s: EOP2.0 XML not provided! Trying to extract information from the GeoTIFF image." % aname ) 
+                logging.debug( "WCSt11:%s: Generating EOP2.0 XML file: %s" % ( aname , srcXMLfile ) )
 
-            fid = file( srcXMLfile , "w" ) 
-            fid.write( createXML_EOP20( coverageId , md_footprint , md_start , md_stop ) ) 
-            fid.close() 
+                fid = file( srcXMLfile , "w" ) 
+                fid.write( createXML_EOP20( coverageId , md_footprint , md_start , md_stop ) ) 
+                fid.close() 
 
-            isEODataset = True 
+                isEODataset = True 
 
         # ------------------------------------------------------------------------------
             
@@ -218,8 +220,9 @@ def wcst11ActionAdd( action , context , maxAttempts = 3 ) :
         logging.info( "WCSt11:%s: Coverage data location:      %s " % ( aname , dstTIFfile ) ) 
         shutil.move( srcTIFfile , dstTIFfile )                          
 
-        logging.info( "WCSt11:%s: Coverage metadata location:  %s " % ( aname , dstXMLfile ) ) 
-        shutil.move( srcXMLfile , dstXMLfile )  # ????                
+        if isEODataset : 
+            logging.info( "WCSt11:%s: Coverage metadata location:  %s " % ( aname , dstXMLfile ) ) 
+            shutil.move( srcXMLfile , dstXMLfile )  # ????                
 
 
         # ------------------------------------------------------------------------------
