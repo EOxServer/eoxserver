@@ -214,6 +214,7 @@ def wcst11ActionAdd( action , context , maxAttempts = 3 ) :
             
         dstXMLfile =  os.path.join( context['pathPerm'] , "%s.xml" % cid )
         dstTIFfile =  os.path.join( context['pathPerm'] , "%s.tif" % cid )
+        MDfile = os.path.abspath( dstTIFfile )
 
         # move the pixel data to the final destination 
 
@@ -222,7 +223,8 @@ def wcst11ActionAdd( action , context , maxAttempts = 3 ) :
 
         if isEODataset : 
             logging.info( "WCSt11:%s: Coverage metadata location:  %s " % ( aname , dstXMLfile ) ) 
-            shutil.move( srcXMLfile , dstXMLfile )  # ????                
+            shutil.move( srcXMLfile , dstXMLfile )
+            MDfile = dstXMLfile
 
 
         # ------------------------------------------------------------------------------
@@ -235,6 +237,7 @@ def wcst11ActionAdd( action , context , maxAttempts = 3 ) :
         
             rdm.create( coverageId , context['requestId'] , 
                 local_path = os.path.abspath( dstTIFfile ) , 
+                md_local_path = os.path.abspath( MDfile ) , 
                 range_type_name = "RGB" )  # TODO: proper Range Type selection
             
             
@@ -247,6 +250,7 @@ def wcst11ActionAdd( action , context , maxAttempts = 3 ) :
 
             rdm.create( coverageId , context['requestId'] , 
                 local_path = os.path.abspath( dstTIFfile ) , 
+                md_local_path = os.path.abspath( MDfile ) , 
                 range_type_name = "ASAR" )  # TODO: proper Range Type selection
 
         # ------------------------------------------------------------------------------

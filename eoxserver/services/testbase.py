@@ -522,16 +522,19 @@ class WCSTransactionTestCase(XMLTestCase):
                     <ows:Identifier>"""
         requestMid1 = """</ows:Identifier>
                     <ows:Reference  xlink:href="file:///"""
-        requestMid2 = """" xlink:role="urn:ogc:def:role:WCS:1.1:Pixels"/>
-                    <ows:Metadata  xlink:href="file:///"""
-        requestEnd = """" xlink:role="http://www.opengis.net/eop/2.0/EarthObservation"/>
-                    <wcst:Action codeSpace="http://schemas.opengis.net/wcs/1.1.0/actions.xml">Add</wcst:Action>
+        requestMid2 = """" xlink:role="urn:ogc:def:role:WCS:1.1:Pixels"/>"""
+        requestMid3 = """<ows:Metadata  xlink:href="file:///"""
+        requestMid4 = """" xlink:role="http://www.opengis.net/eop/2.0/EarthObservation"/>"""
+        requestEnd = """<wcst:Action codeSpace="http://schemas.opengis.net/wcs/1.1.0/actions.xml">Add</wcst:Action>
                 </wcst:Coverage>
             </wcst:InputCoverages>
         </wcst:Transaction>
         """        
 
-        params =  requestBegin + self.ID + requestMid1 + self.getDataFullPath(self.ADDtiffFile) + requestMid2 + self.getDataFullPath(self.ADDmetaFile) + requestEnd
+        params =  requestBegin + self.ID + requestMid1 + self.getDataFullPath(self.ADDtiffFile) + requestMid2
+        if self.ADDmetaFile is not None:
+            params += requestMid3 + self.getDataFullPath(self.ADDmetaFile) + requestMid4
+        params += requestEnd
         return (params, "xml")
 
     def getDataFullPath(self , path_to):
