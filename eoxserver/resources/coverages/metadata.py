@@ -517,12 +517,12 @@ class XMLEOMetadataFileReader(object):
     }
     
     def test(self, test_params):
-        with open(test_params["location"].getPath()) as f:
-            try:
+        try:
+            with open(test_params["location"].getPath()) as f:
                 etree.parse(f)
                 return True
-            except:
-                return False
+        except:
+            return False
     
     def readEOMetadata(self, location):
         """
