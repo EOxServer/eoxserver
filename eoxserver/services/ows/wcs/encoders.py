@@ -243,9 +243,15 @@ class CoverageGML10Encoder(XMLEncoder):
         sr.ImportFromEPSG(srid)
         
         if sr.IsProjected():
-            axisLabels = "x y"
+            if reversedAxisOrder(srid):
+                axisLabels = "y x"
+            else:
+                axisLabels = "x y"
         else:
-            axisLabels = "long lat"
+            if reversedAxisOrder(srid):
+                axisLabels = "lat long"
+            else:
+                axisLabels = "long lat"
         
         # TODO make precision adjustable (3 decimal digits for projected axes)
         pos_format = _adjustPrecision("%f %f", sr.IsProjected())
@@ -259,15 +265,21 @@ class CoverageGML10Encoder(XMLEncoder):
                     ("gml", "high", "%d %d" % (size[0]-1, size[1]-1))
                 ])
             ]),
-            ("gml", "axisLabels", axisLabels),
-            ("gml", "origin", [
-                ("gml", "Point", [
-                    ("", "@srsName", "http://www.opengis.net/def/crs/EPSG/0/%s" % srid),
-                    ("@gml", "id", self._getGMLId("%s_origin" % id)),
-                    ("gml", "pos", _adjustPrecision("%f %f", sr.IsProjected()) % (extent[0], extent[3])) 
-                ])
-            ])
+            ("gml", "axisLabels", axisLabels)
         ])
+
+        if reversedAxisOrder(srid):
+            origin = _adjustPrecision("%f %f", sr.IsProjected()) % (extent[3], extent[0])
+        else:
+            origin = _adjustPrecision("%f %f", sr.IsProjected()) % (extent[0], extent[3])
+
+        grid_element.appendChild(self._makeElement("gml", "origin", [
+            ("gml", "Point", [
+                ("", "@srsName", "http://www.opengis.net/def/crs/EPSG/0/%s" % srid),
+                ("@gml", "id", self._getGMLId("%s_origin" % id)),
+                ("gml", "pos", origin)
+            ])
+        ]))
 
         if reversedAxisOrder(srid):
             x_offsets = _adjustPrecision("0.0 %f", sr.IsProjected()) % ((extent[2] - extent[0]) / float(size[0]))
