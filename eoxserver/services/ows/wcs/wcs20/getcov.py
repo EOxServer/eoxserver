@@ -557,7 +557,7 @@ class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
             
             filename = "%s_%s.%s" % (
                 coverage.getCoverageId(),
-                datetime.datetime.now().strftime("%Y%m%d%H%M%S"),
+                datetime.now().strftime("%Y%m%d%H%M%S"),
                 EXT_MAPPING[mime_type]
             )
             
