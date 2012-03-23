@@ -660,7 +660,7 @@
         "fields": {
             "lineage": 11, 
             "data_package": 11, 
-            "visible": true, 
+            "visible": false, 
             "eo_metadata": 11, 
             "extent": 11, 
             "layer_metadata": [], 
@@ -673,7 +673,7 @@
         "fields": {
             "lineage": 12, 
             "data_package": 12, 
-            "visible": true, 
+            "visible": false, 
             "eo_metadata": 12, 
             "extent": 12, 
             "layer_metadata": [], 
