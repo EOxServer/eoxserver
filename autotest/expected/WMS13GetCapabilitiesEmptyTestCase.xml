@@ -12,17 +12,17 @@ MERIS L1b sample data available at: http://earth.esa.int/object/index.cfm?fobjec
 
 Copyright (C) European Space Agency - ESA
 </Abstract>
-        <KeywordList>
-          <Keyword>EO-WCS</Keyword>
-          <Keyword>WCS EO-AP</Keyword>
-          <Keyword>WCS 2.0</Keyword>
-          <Keyword>WCS</Keyword>
-          <Keyword>WMS</Keyword>
-          <Keyword>EO-WMS</Keyword>
-          <Keyword>MERIS</Keyword>
-          <Keyword>ASAR</Keyword>
-          <Keyword>Envisat</Keyword>
-        </KeywordList>
+  <KeywordList>
+      <Keyword>EO-WCS</Keyword>
+      <Keyword>WCS EO-AP</Keyword>
+      <Keyword>WCS 2.0</Keyword>
+      <Keyword>WCS</Keyword>
+      <Keyword>WMS</Keyword>
+      <Keyword>EO-WMS</Keyword>
+      <Keyword>MERIS</Keyword>
+      <Keyword>ASAR</Keyword>
+      <Keyword>Envisat</Keyword>
+  </KeywordList>
   <OnlineResource xlink:href="http://eoxserver.org" xmlns:xlink="http://www.w3.org/1999/xlink"/>
   <ContactInformation>
     <ContactPersonPrimary>
