@@ -187,34 +187,34 @@ def wcst11ActionAdd( action , context , maxAttempts = 3 ) :
 
         # ------------------------------------------------------------------------------
         # in case of missing EO profile extract footprint 
+        # temporary workarround - shall be removed in future 
+        # the XML metadata generation should be performed by the coverage manager only 
 
-        if not isEODataset : 
-        
-            if info.isRectified : 
+        if ( not isEODataset ) and info.isRectified : 
 
-                # prepare coverage insert 
-                md_start     = timeStampUTC()
-                md_stop      = md_start
+            # prepare coverage insert 
+            md_start     = timeStampUTC()
+            md_stop      = md_start
 
-                md_footprint = getFootprint( info , repeatFirst = True )
+            md_footprint = getFootprint( info , repeatFirst = True )
 
-                logging.debug( str(info) ) 
-                logging.debug( md_footprint ) 
+            logging.debug( str(info) ) 
+            logging.debug( md_footprint ) 
 
-                logging.info( "WCSt11:%s: EOP2.0 XML not provided! Trying to extract information from the GeoTIFF image." % aname ) 
-                logging.debug( "WCSt11:%s: Generating EOP2.0 XML file: %s" % ( aname , srcXMLfile ) )
+            logging.info( "WCSt11:%s: EOP2.0 XML not provided! Trying to extract information from the GeoTIFF image." % aname ) 
+            logging.debug( "WCSt11:%s: Generating EOP2.0 XML file: %s" % ( aname , srcXMLfile ) )
 
-                fid = file( srcXMLfile , "w" ) 
-                fid.write( createXML_EOP20( coverageId , md_footprint , md_start , md_stop ) ) 
-                fid.close() 
+            fid = file( srcXMLfile , "w" ) 
+            fid.write( createXML_EOP20( coverageId , md_footprint , md_start , md_stop ) ) 
+            fid.close() 
 
-                isEODataset = True 
+            isEODataset = True 
 
         # ------------------------------------------------------------------------------
             
-        dstXMLfile =  os.path.join( context['pathPerm'] , "%s.xml" % cid )
-        dstTIFfile =  os.path.join( context['pathPerm'] , "%s.tif" % cid )
-        MDfile = os.path.abspath( dstTIFfile )
+        dstXMLfile = os.path.join( context['pathPerm'] , "%s.xml" % cid )
+        dstTIFfile = os.path.join( context['pathPerm'] , "%s.tif" % cid )
+        dstMDfile  = dstTIFfile 
 
         # move the pixel data to the final destination 
 
@@ -224,8 +224,7 @@ def wcst11ActionAdd( action , context , maxAttempts = 3 ) :
         if isEODataset : 
             logging.info( "WCSt11:%s: Coverage metadata location:  %s " % ( aname , dstXMLfile ) ) 
             shutil.move( srcXMLfile , dstXMLfile )
-            MDfile = dstXMLfile
-
+            dstMDfile = dstXMLfile 
 
         # ------------------------------------------------------------------------------
         # rectified dataset 
@@ -237,7 +236,7 @@ def wcst11ActionAdd( action , context , maxAttempts = 3 ) :
         
             rdm.create( coverageId , context['requestId'] , 
                 local_path = os.path.abspath( dstTIFfile ) , 
-                md_local_path = os.path.abspath( MDfile ) , 
+                md_local_path = os.path.abspath( dstMDfile ) , 
                 range_type_name = "RGB" )  # TODO: proper Range Type selection
             
             
@@ -250,7 +249,7 @@ def wcst11ActionAdd( action , context , maxAttempts = 3 ) :
 
             rdm.create( coverageId , context['requestId'] , 
                 local_path = os.path.abspath( dstTIFfile ) , 
-                md_local_path = os.path.abspath( MDfile ) , 
+                md_local_path = os.path.abspath( dstMDfile ) , 
                 range_type_name = "ASAR" )  # TODO: proper Range Type selection
 
         # ------------------------------------------------------------------------------
