@@ -138,7 +138,7 @@ class Command(CommandOutputMixIn, BaseCommand):
             footprint = GEOSGeometry(default_footprint)
         else:
             footprint = Polygon(((0, 0), (0, 1), (1, 1), (1, 0), (0, 0)))
-            self.print_msg("Using default footprint: %s" % footprint.wkt(), 2)
+            self.print_msg("Using default footprint: %s" % footprint.wkt, 2)
         
         #=======================================================================
         # Create Dataset Series
