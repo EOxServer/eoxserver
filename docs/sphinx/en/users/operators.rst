@@ -649,5 +649,17 @@ IKONOS pansharpened  3-band  8-bit 68    52.7 GB         126.750         1:46 h 
 As the results show the file size of the input files has a certain impact on
 performance, but the effect seems to level off.
 
-For hints on improving performance of the services see :ref:`ops_data` and
-:ref:`webclient/mapcache`.
+Regarding the performance of the services there are many influence factors:
+
+* the hardware configuration of the machine
+* the network connection bandwith
+* the database configuration (SQLite or PostGIS)
+* the format and size of the raster data files
+* the processing steps necessary to fulfill the request (e.g. resampling,
+  reprojection)
+* the coverage type (processing referenceable grid coverages is considerably
+  more expensive than processing rectified grid coverages)
+* the setup of IDM components (if any)
+
+For hints on improving performance of the services see :ref:`install_hw`,
+:ref:`ops_data` and :ref:`webclient_mapcache`.

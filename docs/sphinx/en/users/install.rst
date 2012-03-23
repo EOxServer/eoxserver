@@ -50,6 +50,8 @@ A guide for the :ref:`CentOSInstallation` is also available.
     single: EOxServer Dependencies
     single: Dependencies
 
+.. _install_hw:
+
 Hardware Requirements
 ---------------------
 
@@ -74,6 +76,15 @@ the composing Rectified Datasets (depending on how much they overlap).
 
 EOxServer itself does not have any GUI other than the Web Administration Client
 and Web Map Client and thus no graphics support is required on the server.
+
+Running (parts of) the Identity Management System (see :doc:`idm/index`) on the
+same machine as EOxServer puts additional load on the server. Usually, running
+the Tomcat server will require about 512 MB of RAM. Note that the different
+components of the IDM may be deployed on different machines. The additional
+network latency for checking a remote PDP on every incoming request may have a
+considerable impact on the performance of the services (in particular WMS), 
+though, and thus it may be preferable to run the PDP on the same machine as
+EOxServer.
 
 Dependencies
 ------------

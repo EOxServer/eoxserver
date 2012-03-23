@@ -98,7 +98,7 @@ The `..._url` parameter defines the URL of the service providing the image
 tiles. This configuration defaults to the configuration given for the
 "http_service_url" setting in the "services.owscommon" section.
 
-.. _mapcache:
+.. _webclient_mapcache:
 
 Improving Performance with MapCache
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
