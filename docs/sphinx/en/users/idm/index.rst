@@ -1,6 +1,6 @@
 .. EOxServer English Documentation Index file
   #-----------------------------------------------------------------------------
-  # $Id: index.rst 1413 2012-03-02 17:41:31Z krauses $
+  # $Id$
   #
   # Project: EOxServer <http://eoxserver.org>
   # Authors: Stephan Krause <stephan.krause@eox.at>
