@@ -286,9 +286,16 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
         
         # prepare response
         media_type = req.getParamValue("mediatype")
+
+        filename = "%s_%s.%s" % (
+            coverage.getCoverageId(),
+            datetime.now().strftime("%Y%m%d%H%M%S"),
+            EXT_MAPPING[mime_type]
+        )
+
         
         if media_type is None:
-            resp = self._get_default_response(dst_filename, mime_type)
+            resp = self._get_default_response(dst_filename, mime_type, filename)
         elif media_type == "multipart/related" or media_type == "multipart/mixed":
             encoder = WCS20EOAPEncoder()
             
@@ -316,11 +323,6 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
             else:
                 cov_desc_el = encoder.encodeCoverageDescription(coverage, True)
             
-            filename = "%s_%s.%s" % (
-                coverage.getCoverageId(),
-                datetime.now().strftime("%Y%m%d%H%M%S"),
-                EXT_MAPPING[mime_type]
-            )
             
             resp = self._get_multipart_response(
                 dst_filename, mime_type, DOMElementToXML(cov_desc_el), filename
@@ -337,13 +339,13 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
         
         return resp
     
-    def _get_default_response(self, dst_filename, mime_type):
+    def _get_default_response(self, dst_filename, mime_type, filename):
         f = open(dst_filename)
         
         resp = Response(
             content_type = mime_type,
             content = f.read(),
-            headers = {},
+            headers = {'Content-Disposition': "attachment; filename=\"%s\"" % filename},
             status = 200
         )
         
@@ -549,6 +551,17 @@ class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
                     
                 resp = resp.getProcessedResponse(DOMElementToXML(resp_xml))
                 dom.unlink()
+        else: # coverage only
+            coverage = self.coverages[0]
+            mime_type = resp.getContentType()
+            
+            filename = "%s_%s.%s" % (
+                coverage.getCoverageId(),
+                datetime.datetime.now().strftime("%Y%m%d%H%M%S"),
+                EXT_MAPPING[mime_type]
+            )
+            
+            resp.headers.update({'Content-Disposition': "attachment; filename=\"%s\"" % filename})
 
         return resp
 
