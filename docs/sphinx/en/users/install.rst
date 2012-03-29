@@ -101,7 +101,7 @@ to run EOxServer.
     +===========+==================+===========================================+
     | Python    | >= 2.5, < 3.0    | Scripting language                        |
     +-----------+------------------+-------------------------------------------+
-    | Django    | >= 1.2           | Web development framework written in      |
+    | Django    | >= 1.3           | Web development framework written in      |
     |           |                  | Python including the GeoDjango extension  |
     |           |                  | for geospatial database back-ends.        |
     +-----------+------------------+-------------------------------------------+
