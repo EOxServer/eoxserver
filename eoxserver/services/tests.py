@@ -142,7 +142,7 @@ class WCS11TransactionRectifiedDatasetTestCase(eoxstest.WCSTransactionRectifiedG
     ADDtiffFile = "meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif"
     ADDmetaFile = "meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.xml"
 
-class WCS11TransactionRectifiedDatasetTestCase(eoxstest.WCSTransactionAsyncRectifiedGridCoverageTestCase):
+class WCS11TransactionAsyncRectifiedDatasetTestCase(eoxstest.WCSTransactionRectifiedGridCoverageTestCase):
     """ This test case shall test the asynchronous inserting of a new 
         RectifiedGridCoverage by means of the WCS 1.1 Transaction operation 
         ("Add" action). 
