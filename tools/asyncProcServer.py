@@ -38,6 +38,7 @@
 
 # default django settings module 
 DJANGO_SETTINGS_DEFAULT = "settings"
+DJANGO_DB_DEFAULT = "default"
 
 #-------------------------------------------------------------------------------
 
@@ -51,6 +52,7 @@ import time
 import struct
 import socket 
 from datetime import datetime, timedelta 
+
 
 from multiprocessing import Lock, Process, Queue , cpu_count 
 from multiprocessing.queues import Empty as MPQEmpty
@@ -119,16 +121,54 @@ def signal_handler_sigterm(sig, frm):
 
 #-------------------------------------------------------------------------------
 
-def objectImport( path ) : 
-    """ 
-        smart object import from a module 
-
+class Importer( object ) : 
+    """ smart importer of the handler subroutine 
+    
         E.g. function 'd()' in module 'a.b.c' 
             given by a path 'a.b.c.d' is imported
     """
-    module , _ , funct = path.rpartition(".")
-    return getattr( __import__(module,fromlist=[funct]) , funct ) 
- 
+
+    def __init__( self , path ) : 
+        """Initialize class from the given handler 
+        subroutine dot-path"""
+
+        self.path = path 
+        self.module , _ , self.func = path.rpartition(".")
+        self.modules = [] 
+        self.handler = None 
+
+    def loadHandler( self ) : 
+        """ load the handler subroutine """ 
+        
+        if not self.handler : 
+
+            # initial list of modules 
+            ml0 = set( sys.modules ) 
+            
+            # new list of modules 
+            ml1 = set( sys.modules ) 
+
+            self.handler = getattr( __import__( self.module , fromlist=[self.func] ) , self.func ) 
+
+            # store list of loaded modules 
+            self.modules = ml1 - ml0 
+
+        return self.handler 
+
+    def unloadHandler( self ) : 
+        """ unload the handler subroutine """ 
+
+        if self.handler : 
+
+            self.handler = None 
+
+            # unload the loaded modules 
+            for m in self.modules :  
+                del( sys.modules[m] ) 
+
+            # store list of loaded modules 
+            self.modules = [] 
+
 
 def taskDispatch( taskID , threadID ) : 
     """ 
@@ -147,11 +187,17 @@ def taskDispatch( taskID , threadID ) :
 
         info( "[%3.3i] PROCESS: %s %s is running ... " % ( threadID , requestType , requestID ) ) 
 
+        # create importer object 
+        imp = Importer( requestHandler ) 
+
         # try to load the right module and handler 
-        handler = objectImport( requestHandler ) 
+        imp.loadHandler() 
 
         # execute handler - proper status logging is duty of the callback 
-        handler( pStatus , inputs ) 
+        imp.handler( pStatus , inputs ) 
+
+        # try to unload the handler 
+        imp.unloadHandler() 
 
         # if no terminating status has been set do it right now 
         dbLocker( dbLock , stopTaskSuccessIfNotFinished , taskID )
@@ -309,13 +355,14 @@ def usage() :
     """ print usage info """ 
 
     s = [] 
-    s.append( "USAGE: %s [-h][-p <directory>][-n <integer>] " % ( os.path.basename( sys.argv[0] ) ) ) 
+    s.append( "USAGE: %s [-h][-p <directory>][-s <module>][-d <db name>][-n <integer>] " % ( os.path.basename( sys.argv[0] ) ) ) 
     s.append( "" ) 
     s.append( "PARAMETERS: " ) 
     s.append( "    -h   print this info" ) 
     s.append( "    -p   append an addition Python search path (can be repeated)" ) 
     s.append( "    -n   number of worker instance to be started ( N >= 1 , number of CPUs used by default )" ) 
     s.append( "    -s   django settings module (default '%s')"%DJANGO_SETTINGS_DEFAULT ) 
+    #s.append( "    -d   django DB name (default '%s')"%DJANGO_DB_DEFAULT ) 
     s.append( "" ) 
     
     return "\n".join(s)
@@ -328,6 +375,7 @@ if __name__ == "__main__" :
     # django settings module 
 
     DJANGO_SETTINGS = os.environ.get("DJANGO_SETTINGS_MODULE",DJANGO_SETTINGS_DEFAULT) 
+    DJANGO_DB       = DJANGO_DB_DEFAULT
 
     # try to get number of CPUs
 
@@ -351,6 +399,9 @@ if __name__ == "__main__" :
         elif arg == '-s' : 
             DJANGO_SETTINGS = sys.argv[idx]
             idx += 1 
+        elif arg == '-d' : 
+            DJANGO_DB = sys.argv[idx]
+            idx += 1 
         elif arg == '-n' : 
             NTHREAD = max( 1 , int(sys.argv[idx]) )
             info("Setting number of working threads to: %i" % NTHREAD ) 
@@ -368,6 +419,9 @@ if __name__ == "__main__" :
     # django settings module 
     os.environ["DJANGO_SETTINGS_MODULE"] = DJANGO_SETTINGS 
     info("'%s' ... is set as the Django settings module " % DJANGO_SETTINGS )
+    info("'%s' ... is set as the Django database " % DJANGO_DB )
+
+    #usingDB = DJANGO_DB # ???
 
     # once the search path is set -> load the required modules
     from eoxserver.core.system import System

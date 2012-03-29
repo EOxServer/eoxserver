@@ -54,49 +54,43 @@ void eoxs_destroy_referenceable_grid_transformer(void *transformer) {
     GDALDestroyGCPTransformer(transformer);
 }
 
-eoxs_footprint *eoxs_calculate_footprint(const char *filename) {
-    GDALDatasetH ds;
+eoxs_footprint *eoxs_calculate_footprint(GDALDatasetH ds) {
     void *transformer;
     int x_size, y_size;
     double *x, *y, *z;
-    
+
     int x_e, y_e;
     size_t n_points;
     int *success;
     int i;
-    
+
     eoxs_footprint *ret;
 
-    GDALAllRegister();
-    ds = GDALOpen(filename, GA_ReadOnly);
-    
     if (!ds) {
-        fprintf(stderr, "Could not open dataset '%s'.", filename);
+        fprintf(stderr, "Error processing dataset.");
         return NULL;
     }
-        
+
     x_size = GDALGetRasterXSize(ds);
     y_size = GDALGetRasterYSize(ds);
-    
+
     transformer = eoxs_get_referenceable_grid_transformer(ds);
-    
-    GDALClose(ds);
-    
+
     if (!transformer)
     {
         fprintf(stderr, "Could not create GCP transformer.");
         return NULL;
     }
-    
+
     x_e = x_size / 100 - 1; if (x_e < 0) x_e = 0;
     y_e = y_size / 100 - 1; if (y_e < 0) y_e = 0;
     n_points = 4 + 2 * x_e + 2 * y_e;
-    
+
     x = malloc(sizeof(double) * n_points);
     y = malloc(sizeof(double) * n_points);
     z = malloc(sizeof(double) * n_points);
     success = malloc(sizeof(int) * n_points);
-    
+
     x[0] = 0; y[0] = 0; z[0] = 0;
     for (i=1; i <= x_e; i++) {
         x[i] = (double) i * x_size / x_e;
@@ -121,30 +115,30 @@ eoxs_footprint *eoxs_calculate_footprint(const char *filename) {
         y[x_e+1+y_e+1+x_e+1+i] = (double) y_size - i * y_size / y_e;
         z[x_e+1+y_e+1+x_e+1+i] = 0;
     }
-    
+
     GDALGCPTransform(transformer, FALSE, n_points, x, y, z, success);
-    
+
     // discard unused information
     free(z);
     free(success);
     eoxs_destroy_referenceable_grid_transformer(transformer);
-    
+
     ret = malloc(sizeof(eoxs_footprint));
     ret->n_points = n_points;
     ret->x = x;
     ret->y = y;
-    
+
     return ret;
 }
 
-const char *eoxs_get_footprint_wkt(const char *filename) {
+const char *eoxs_get_footprint_wkt(GDALDatasetH ds) {
     eoxs_footprint *fp;
     char *wkt, buffer[256];
     int i;
-    fp = eoxs_calculate_footprint(filename);
-    
+    fp = eoxs_calculate_footprint(ds);
+
     if (!fp) return NULL;
-    
+
     wkt = calloc((fp->n_points + 1) * 100 + sizeof("POLYGON(())"), sizeof(char));
     sprintf(wkt, "POLYGON((");
 
@@ -159,10 +153,10 @@ const char *eoxs_get_footprint_wkt(const char *filename) {
     sprintf(buffer, ",%f %f", fp->x[0], fp->y[0]);
     strcat(wkt, buffer);
     strcat(wkt, "))");
-    
+
     // clean up
     eoxs_destroy_footprint(fp);
-    
+
     return wkt;
 }
 
@@ -229,8 +223,7 @@ void eoxs_get_intermediate_point_count(
     *n_y = (int) ceil((eoxs_array_max(4, y) - eoxs_array_min(4, y)) / dist);
 }
 
-int eoxs_rect_from_subset(const char *filename, eoxs_subset *subset, eoxs_rect *out_rect) {
-    GDALDatasetH ds;
+int eoxs_rect_from_subset(GDALDatasetH ds, eoxs_subset *subset, eoxs_rect *out_rect) {
     void *transformer;
     
     const char *tmp;
@@ -250,9 +243,6 @@ int eoxs_rect_from_subset(const char *filename, eoxs_subset *subset, eoxs_rect *
     
     int minx, miny, maxx, maxy;
     int i;
-
-    GDALAllRegister();
-    ds = GDALOpen(filename, GA_ReadOnly);
     
     if (!ds) return 0;
     
@@ -264,8 +254,6 @@ int eoxs_rect_from_subset(const char *filename, eoxs_subset *subset, eoxs_rect *
     strcpy(gcp_proj_wkt, tmp);
     
     transformer = eoxs_get_referenceable_grid_transformer(ds);
-    
-    GDALClose(ds);
     
     if (!transformer) {
         free(gcp_proj_wkt);
@@ -343,17 +331,14 @@ int eoxs_rect_from_subset(const char *filename, eoxs_subset *subset, eoxs_rect *
     return 1;
 }
 
-int eoxs_create_rectified_vrt(const char *filename, const char *vrt_filename, int srid) {
-    GDALDatasetH ds, vrt_ds;
+int eoxs_create_rectified_vrt(GDALDatasetH ds, const char *vrt_filename, int srid) {
+    GDALDatasetH vrt_ds;
     OGRSpatialReferenceH dst_srs;
     char *dst_srs_wkt;
     int free_dst_srs_wkt;
     
     void *transformer;
     GDALWarpOptions *warp_options;
-    
-    GDALAllRegister();
-    ds = GDALOpenShared(filename, GA_ReadOnly);
     
     if (!ds) return 0;
 
@@ -379,7 +364,6 @@ int eoxs_create_rectified_vrt(const char *filename, const char *vrt_filename, in
     );
     
     if (!transformer) {
-        GDALClose(ds);
         if (free_dst_srs_wkt) free(dst_srs_wkt);
         return 0;
     }
@@ -398,7 +382,6 @@ int eoxs_create_rectified_vrt(const char *filename, const char *vrt_filename, in
     );
     
     if (!vrt_ds) {
-        GDALClose(ds);
         GDALDestroyGenImgProjTransformer(transformer);
         GDALDestroyWarpOptions(warp_options);
         if (free_dst_srs_wkt) free(dst_srs_wkt);
@@ -409,7 +392,6 @@ int eoxs_create_rectified_vrt(const char *filename, const char *vrt_filename, in
     
     // clean up
     GDALClose(vrt_ds);
-    GDALClose(ds);
     GDALDestroyGenImgProjTransformer(transformer);
     GDALDestroyWarpOptions(warp_options);
     if (free_dst_srs_wkt) free(dst_srs_wkt);

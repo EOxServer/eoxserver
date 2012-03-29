@@ -47,16 +47,38 @@ def _variable_args_cb(option, opt_str, value, parser):
         args.extend(getattr(parser.values, option.dest))
     setattr(parser.values, option.dest, args)
     
+class StringFormatCallback(object):
+    """ Small helper class to supply a variable number of arguments to a callback 
+        function and store the resulting value in the `dest` field of the parser. 
+    """
+    
+    def __init__(self, callback):
+        self.callback = callback
+        
+    def __call__(self, option, opt_str, value, parser):
+        args = []
+        for arg in parser.rargs:
+            if not arg.startswith('-'):
+                args.append(arg)
+            else:
+                del parser.rargs[:len(args)]
+                break
+        
+        setattr(parser.values, option.dest, self.callback(" ".join(args)))
+        
 
 class CommandOutputMixIn(object):
-    def print_msg(self, msg, level=0):
-        if self.verbosity > level:
+    def print_msg(self, msg, level=0, error=False):
+        verbosity = getattr(self, "verbosity", 1)
+        if verbosity > level:
             self.stdout.write(msg)
             self.stdout.write("\n")
         
-        if level == 0:
+        if level == 0 and error:
             logging.critical(msg)
-        elif level in (1, 2):
+        elif level == 1 and error:
+            logging.error(msg)
+        elif level in (0, 1, 2) and not error:
             logging.info(msg)
         elif level > 2:
             logging.debug(msg)

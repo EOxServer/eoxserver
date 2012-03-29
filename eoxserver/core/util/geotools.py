@@ -27,18 +27,10 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-import os
-import os.path
-import xml.dom.minidom
 import re
-from fnmatch import fnmatch
-from datetime import datetime, tzinfo, timedelta
-from cgi import escape, parse_qs
-from sys import maxint
 
-from django.http import QueryDict
-
-import logging
+def reversedAxisOrder(srid):
+    return srid in (3035, 4326)
 
 def getSRIDFromCRSURI(uri):
     match = re.match(r"urn:ogc:def:crs:EPSG:\d*\.?\d*:(\d+)", uri)
@@ -65,3 +57,13 @@ def getSRIDFromCRSIdentifier(identifier):
 
 def posListToWkt(pos_list):
     return ",".join("%f %f" % (pos_list[2*c+1], pos_list[2*c]) for c in range(0, len(pos_list) / 2)) # TODO: Adjust according to axis order of SRID.
+
+def extentFromDataset(ds):
+    """ Returns the extent of a gdal.Dataset as a 4-tuple. """
+    geotransform = ds.GetGeoTransform()
+    x1 = geotransform[0]
+    y1 = geotransform[3]
+    x2 = (ds.RasterXSize * geotransform[1]) + x1
+    y2 = (ds.RasterYSize * geotransform[5]) + y1
+
+    return (min(x1, x2), min(y1, y2), max(x1, x2), max(y1, y2))

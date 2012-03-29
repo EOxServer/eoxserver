@@ -139,6 +139,9 @@ def wcst11EnqueueAsyncProc( actions , context ) :
 
     try : 
 
+        # register new task handler 
+        registerTaskType( PROCESS_CLASS , ASYNC_HANDLER , ASYNC_TIMEOUT ) 
+
         # enqueue task for execution 
         enqueueTask( PROCESS_CLASS , context['tid'] , (actions,context) ) 
 
@@ -147,10 +150,7 @@ def wcst11EnqueueAsyncProc( actions , context ) :
         raise ExServerBusy
 
 #-------------------------------------------------------------------------------
-# APT - task hadler - this subroutine is executed by the APT daemon 
-
-# register new task handler 
-registerTaskType( PROCESS_CLASS , ASYNC_HANDLER , ASYNC_TIMEOUT ) 
+# APT - task handler - this subroutine is executed by the APT daemon 
 
 def wcst11AsynchronousTransction( taskStatus , ( actions , context ) ) : 
     """ WCS-T 1.1 Asynchronous Transaction --- process class handler """

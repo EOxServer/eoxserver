@@ -30,6 +30,7 @@
 
 from optparse import make_option
 
+from django.db import transaction
 from django.core.management.base import BaseCommand, CommandError
 
 from eoxserver.core.system import System
@@ -148,7 +149,19 @@ class Command(CommandOutputMixIn, BaseCommand):
             )
         
         for eoid in mosaic_ids:
-            mosaic_mgr.synchronize(eoid)
+            try:
+                with transaction.commit_on_success():
+                    mosaic_mgr.synchronize(eoid)
+            except:
+                self.print_msg(
+                    "Synchronization of Recitified Stitched Mosaic '%s' failed." % eoid
+                )
         
         for eoid in series_ids:
-            series_mgr.synchronize(eoid)
+            try:
+                with transaction.commit_on_success():
+                    series_mgr.synchronize(eoid)
+            except:
+                self.print_msg(
+                    "Synchronization of Dataset Series '%s' failed." % eoid
+                )

@@ -31,35 +31,43 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
+"""This module contains the process tracker Django DB model. Process tracker 
+is an essential part of the ATP (Asynchronous Task Processing) subsystem. """
+
+#-------------------------------------------------------------------------------
 
 from django.db import models
 
 #-------------------------------------------------------------------------------
 
-# status to text conversion and back 
+#: status code to text conversion dictionary
 STATUS2TEXT  = { 0:"UNDEFINED", 1:"ACCEPTED", 2:"SCHEDULED", 3:"RUNNING", 4:"PAUSED", 5:"FINISHED", 6:"FAILED" } 
-STATUS2COLOR = { 0:"mangenta", 1:"brown", 2:"darkcyan", 3:"green", 4:"maroon", 5:"blue", 6:"red" } 
+
+#: status code to color conversion dictionary
+STATUS2COLOR = { 0:"magenta", 1:"brown", 2:"darkcyan", 3:"green", 4:"maroon", 5:"blue", 6:"red" } 
+
+#: status text to code reverse conversion dictionary (filled dynamically) 
 TEXT2STATUS  = dict( map( lambda item : ( item[1] , item[0] ) , STATUS2TEXT.items() ) )
 
 #-------------------------------------------------------------------------------
 
 class Type( models.Model ) : 
     """ 
-        Process Type (aka Class): 
-            identifier   - process class ID 
-            handler      - python dot path to handler function 
+        Task Type.
+        
+        DB fields: 
+            identifier   - process class ID; 
+            handler      - python dot path to handler function;
             timeout      - time in second after which the unfinished process is 
                            considered to be abandoned and it is restarted 
-                           (number of restarts is limited by maxstart, default timeout is 3600 s) 
+                           (number of restarts is limited by maxstart, default timeout is 3600 s);
             timeret      - retention time - period of time to keep finished processes
                            in case of zero or negative value the results will be kept forever 
-                           (default is -1) 
-            maxstart     - max. number of attemps to execute the task (first run and possible restarts)
+                           (default is -1);
+            maxstart     - max. number of attempt to execute the task (first run and possible restarts)
                            When the number of (re)starts is exceeded the task is marked as failed 
-                           and rejected from further processing. (default is 3)
-                           
-            ...  some human-friendly meta-data may be added in future  
-        
+                           and rejected from further processing. (default is 3).
+
     """
     identifier = models.CharField( max_length=64   , unique=True , blank=False , null=False, editable = False )
     handler    = models.CharField( max_length=1024 , blank=False , null=False, editable = False )
@@ -77,12 +85,15 @@ class Type( models.Model ) :
 
 class Instance( models.Model ) : 
     """ 
-        Process Type (aka Class): 
-            type         - process class of this instance 
-            identifier   - process instance ID 
-            status       - current status of the process 
-            timeInsert   - instance creation time (aka enqueue or insert time ) 
-            timeUpdate   - instance last status update time 
+        Task Instance.
+
+        DB fields: 
+            type         - process class of this instance;
+            identifier   - process instance ID;
+            status       - current status of the process; 
+            timeInsert   - instance creation time (aka enqueue or insert time );
+            timeUpdate   - instance last status update time.
+
     """
     type        = models.ForeignKey( Type , blank=False , null=False , editable = False , on_delete = models.PROTECT ) 
     identifier  = models.CharField( max_length=64 , blank=False , null=False, editable = False )
@@ -102,9 +113,10 @@ class Instance( models.Model ) :
 
 class Task( models.Model ): 
     """ 
-        Process Task Queue:
+        Task queue.
 
-            instance   - process instance 
+        DB fields: 
+            instance   - process instance.
     """
     instance     = models.ForeignKey( Instance , blank=False , null=False , editable = False )
     time         = models.DateTimeField( auto_now=True, editable = False )
@@ -120,12 +132,14 @@ class Task( models.Model ):
 
 class LogRecord( models.Model ): 
     """ 
-        Process Status Log:
+        Task status change Log.
 
-            instance   - process instance 
-            time       - time-stamp of the log reccord 
-            status     - status code of the process instance 
-            message    - text message associated to the log message 
+        DB fields: 
+            instance   - process instance;
+            time       - time-stamp of the log record;
+            status     - status code of the process instance;
+            message    - text message associated to the log message.
+
     """
     instance     = models.ForeignKey( Instance , blank=False , null=False , editable = False )
     time         = models.DateTimeField( auto_now=True, editable = False )
@@ -149,13 +163,16 @@ class LogRecord( models.Model ):
 
 class Response( models.Model ): 
     """ 
-        Process Response Store: 
+        Task Response storage.
 
-            instance   - process instance 
-            response   - process XML response (if not in plaintext GZIP+BASE64 is applied) 
+        DB fields: 
+            instance   - process instance;
+            response   - process XML response (if not in plain text GZIP+BASE64 is applied).
+
     """
-    instance    = models.ForeignKey( Instance , blank=False , null=False , editable = False , unique = True )
-    response    = models.TextField( editable = False )
+    instance  = models.ForeignKey( Instance , blank=False , null=False , editable = False , unique = True )
+    response  = models.TextField( editable = False )
+    mimeType  = models.TextField( editable = True )
 
     def __unicode__( self ) : return unicode( self.instance )  
 
@@ -166,12 +183,13 @@ class Response( models.Model ):
 
 class Input( models.Model ): 
     """ 
-        Process Input Store 
+        Process Input storage. 
 
-            instance   - process instance 
-            input      - task inputs 
+        DB fields: 
+            instance   - process instance;
+            input      - task inputs.
+
     """
-
     instance    = models.ForeignKey( Instance , blank=False , null=False , editable = False , unique = True )
     input       = models.TextField( editable = False ) # store the data as Base64 encoded pickle object
 

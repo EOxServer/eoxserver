@@ -187,8 +187,10 @@ def wcst11ActionAdd( action , context , maxAttempts = 3 ) :
 
         # ------------------------------------------------------------------------------
         # in case of missing EO profile extract footprint 
+        # temporary workarround - shall be removed in future 
+        # the XML metadata generation should be performed by the coverage manager only 
 
-        if not isEODataset : 
+        if ( not isEODataset ) and info.isRectified : 
 
             # prepare coverage insert 
             md_start     = timeStampUTC()
@@ -210,17 +212,19 @@ def wcst11ActionAdd( action , context , maxAttempts = 3 ) :
 
         # ------------------------------------------------------------------------------
             
-        dstXMLfile =  os.path.join( context['pathPerm'] , "%s.xml" % cid )
-        dstTIFfile =  os.path.join( context['pathPerm'] , "%s.tif" % cid )
+        dstXMLfile = os.path.join( context['pathPerm'] , "%s.xml" % cid )
+        dstTIFfile = os.path.join( context['pathPerm'] , "%s.tif" % cid )
+        dstMDfile  = dstTIFfile 
 
         # move the pixel data to the final destination 
 
         logging.info( "WCSt11:%s: Coverage data location:      %s " % ( aname , dstTIFfile ) ) 
         shutil.move( srcTIFfile , dstTIFfile )                          
 
-        logging.info( "WCSt11:%s: Coverage metadata location:  %s " % ( aname , dstXMLfile ) ) 
-        shutil.move( srcXMLfile , dstXMLfile )  # ????                
-
+        if isEODataset : 
+            logging.info( "WCSt11:%s: Coverage metadata location:  %s " % ( aname , dstXMLfile ) ) 
+            shutil.move( srcXMLfile , dstXMLfile )
+            dstMDfile = dstXMLfile 
 
         # ------------------------------------------------------------------------------
         # rectified dataset 
@@ -232,6 +236,7 @@ def wcst11ActionAdd( action , context , maxAttempts = 3 ) :
         
             rdm.create( coverageId , context['requestId'] , 
                 local_path = os.path.abspath( dstTIFfile ) , 
+                md_local_path = os.path.abspath( dstMDfile ) , 
                 range_type_name = "RGB" )  # TODO: proper Range Type selection
             
             
@@ -244,6 +249,7 @@ def wcst11ActionAdd( action , context , maxAttempts = 3 ) :
 
             rdm.create( coverageId , context['requestId'] , 
                 local_path = os.path.abspath( dstTIFfile ) , 
+                md_local_path = os.path.abspath( dstMDfile ) , 
                 range_type_name = "ASAR" )  # TODO: proper Range Type selection
 
         # ------------------------------------------------------------------------------

@@ -33,6 +33,7 @@ from xml.dom import minidom
 
 from django.contrib.gis.geos import Polygon
 
+from eoxserver.core.util.geotools import reversedAxisOrder
 from eoxserver.core.util.xmltools import XMLEncoder
 from eoxserver.core.util.timetools import isotime
 from eoxserver.processing.mosaic import MosaicContribution
@@ -52,7 +53,7 @@ class GMLEncoder(XMLEncoder):
         
         frmt = _adjustPrecision("%f %f", sr.IsProjected())
         
-        if srid == 4326:
+        if reversedAxisOrder(srid):
             pos_list = " ".join([frmt % (point[1], point[0]) for point in ring])
         else:
             pos_list = " ".join([frmt % point for point in ring])
@@ -242,9 +243,15 @@ class CoverageGML10Encoder(XMLEncoder):
         sr.ImportFromEPSG(srid)
         
         if sr.IsProjected():
-            axisLabels = "x y"
+            if reversedAxisOrder(srid):
+                axisLabels = "y x"
+            else:
+                axisLabels = "x y"
         else:
-            axisLabels = "long lat"
+            if reversedAxisOrder(srid):
+                axisLabels = "lat long"
+            else:
+                axisLabels = "long lat"
         
         # TODO make precision adjustable (3 decimal digits for projected axes)
         pos_format = _adjustPrecision("%f %f", sr.IsProjected())
@@ -258,23 +265,36 @@ class CoverageGML10Encoder(XMLEncoder):
                     ("gml", "high", "%d %d" % (size[0]-1, size[1]-1))
                 ])
             ]),
-            ("gml", "axisLabels", axisLabels),
-            ("gml", "origin", [
-                ("gml", "Point", [
-                    ("", "@srsName", "http://www.opengis.net/def/crs/EPSG/0/%s" % srid),
-                    ("@gml", "id", self._getGMLId("%s_origin" % id)),
-                    ("gml", "pos", _adjustPrecision("%f %f", sr.IsProjected()) % (extent[0], extent[3])) 
-                ])
-            ])
+            ("gml", "axisLabels", axisLabels)
         ])
-        
+
+        if reversedAxisOrder(srid):
+            origin = _adjustPrecision("%f %f", sr.IsProjected()) % (extent[3], extent[0])
+        else:
+            origin = _adjustPrecision("%f %f", sr.IsProjected()) % (extent[0], extent[3])
+
+        grid_element.appendChild(self._makeElement("gml", "origin", [
+            ("gml", "Point", [
+                ("", "@srsName", "http://www.opengis.net/def/crs/EPSG/0/%s" % srid),
+                ("@gml", "id", self._getGMLId("%s_origin" % id)),
+                ("gml", "pos", origin)
+            ])
+        ]))
+
+        if reversedAxisOrder(srid):
+            x_offsets = _adjustPrecision("0.0 %f", sr.IsProjected()) % ((extent[2] - extent[0]) / float(size[0]))
+            y_offsets = _adjustPrecision("%f 0.0", sr.IsProjected()) % ((extent[1] - extent[3]) / float(size[1]))
+        else:
+            x_offsets = _adjustPrecision("%f 0.0", sr.IsProjected()) % ((extent[2] - extent[0]) / float(size[0]))
+            y_offsets = _adjustPrecision("0.0 %f", sr.IsProjected()) % ((extent[1] - extent[3]) / float(size[1]))  
+            
         grid_element.appendChild(self._makeElement("gml", "offsetVector", [
             ("", "@srsName", "http://www.opengis.net/def/crs/EPSG/0/%s" % srid),
-            ("", "@@", _adjustPrecision("%f 0.0", sr.IsProjected()) % ((extent[2] - extent[0]) / float(size[0])))
+            ("", "@@", x_offsets)
         ]))
         grid_element.appendChild(self._makeElement("gml", "offsetVector", [
             ("", "@srsName", "http://www.opengis.net/def/crs/EPSG/0/%s" % srid),
-            ("", "@@", _adjustPrecision("0.0 %f", sr.IsProjected()) % ((extent[1] - extent[3]) / float(size[1])))
+            ("", "@@", y_offsets)
         ]))
                     
         return grid_element

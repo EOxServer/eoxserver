@@ -31,6 +31,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
+"""This module contains the auxilairy views of the tracked processes."""
+#-------------------------------------------------------------------------------
 
 from django.http import HttpResponse
 
@@ -38,13 +40,18 @@ from eoxserver.resources.processes.models import Type,Instance, LogRecord
 from eoxserver.resources.processes.tracker import TaskStatus, getTaskResponse
 from eoxserver.resources.processes.models import STATUS2TEXT , STATUS2COLOR , TEXT2STATUS 
 
+#-------------------------------------------------------------------------------
 
+#: Status to HTML colored text conversion dinctionary (filled dynamically). 
 STATUS2CTEXT = {} 
 
 for k in STATUS2TEXT : 
     STATUS2CTEXT[k] = '<span style="color:%s">%s</span>' % ( STATUS2COLOR[k] , STATUS2TEXT[k] ) 
 
+#-------------------------------------------------------------------------------
+
 def task(request): 
+    """Task auxiliary view."""
 
     status = request.GET.get('status',None) 
     rtype  = request.GET.get('type',None) 
@@ -97,8 +104,10 @@ def task(request):
     
     return HttpResponse("\n".join(r),content_type='text/html')
 
+#-------------------------------------------------------------------------------
 
 def status(request,requestType=None,requestID=None):
+    """Task's status auxiliary view."""
 
     _filter   = {} 
     _subtitle = "All Tasks' History "
@@ -135,11 +144,14 @@ def status(request,requestType=None,requestID=None):
 
     return HttpResponse("\n".join(r),content_type='text/html')
 
+#-------------------------------------------------------------------------------
 
 def response(request,requestType,requestID): 
+    """Task's response view."""
 
     try : 
-        return HttpResponse( getTaskResponse( requestType , requestID ) , content_type='text/xml' ) 
+        response , mimeType = getTaskResponse( requestType , requestID )
+        return HttpResponse( response , content_type= mimeType ) 
     except Exception as e : 
         return HttpResponse('ERROR: Response not available! requestClass="%s" ; requestID = "%s" '%\
                     (requestType,requestID),status=500,content_type='text/plain') 

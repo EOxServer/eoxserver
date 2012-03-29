@@ -32,14 +32,18 @@ This module contains the implementation of basic XML EO metadata formats and
 EO metadata objects.
 """
 
+import re
+import datetime
+from os.path import splitext
 
+from osgeo import gdal
 from django.contrib.gis.geos import GEOSGeometry
 
 from eoxserver.core.system import System
 from eoxserver.core.exceptions import (
     InternalError, ImplementationAmbiguous, ImplementationNotFound
 )
-from eoxserver.core.util.xmltools import XMLDecoder
+from eoxserver.core.util.xmltools import XMLDecoder, etree
 from eoxserver.core.util.timetools import getDateTime
 from eoxserver.core.util.geotools import posListToWkt
 from eoxserver.resources.coverages.interfaces import (
@@ -47,6 +51,7 @@ from eoxserver.resources.coverages.interfaces import (
     EOMetadataReaderInterface
 )
 from eoxserver.resources.coverages.exceptions import MetadataException
+from eoxserver.processing.gdal import reftools
 
 #-------------------------------------------------------------------------------
 # defining namespaces 
@@ -116,7 +121,7 @@ class XMLMetadataFormat(MetadataFormat):
         XML.
         """
         
-        if not isinstance(raw_metadata, str) or isinstance(raw_metadata, unicode):
+        if not isinstance(raw_metadata, (str, unicode)):
             raise InternalError(
                 "XML metadata formats cannot decode raw metadata of type '%s'." %\
                 raw_metadata.__class__.__name__
@@ -139,6 +144,88 @@ class XMLMetadataFormat(MetadataFormat):
                 ret_dict[key] = decoder.getValue(key)
         
         return ret_dict
+
+        
+class EnvisatDatasetMetadataFormat(MetadataFormat):
+    """ Metadata format for ENVISAT datasets. """
+    
+    REGISTRY_CONF = {
+        "name": "ENVISAT Dataset Metadata Format",
+        "impl_id": "resources.coverages.metadata.EnvisatDatasetMetadataFormat"
+    }
+    
+    METADATA_TAGS = ("MPH_PRODUCT", "MPH_SENSING_START", "MPH_SENSING_STOP")
+    
+    def test(self, test_params):
+        """
+        This metadata format is applicable, if all metadata tags (``MPH_PRODUCT``,
+        ``MPH_SENSING_START``, ``MPH_SENSING_STOP``) are found within the 
+        metadata entries of the dataset and the dataset contains at least one GCP.
+        """
+        try:
+            ds = test_params["dataset"]
+            md_dict = ds.GetMetadata_Dict()
+            if (all([(md in md_dict) for md in self.METADATA_TAGS])
+                and len(ds.GetGCPs()) > 0):
+                return True
+        except (KeyError, AttributeError):
+            pass
+        return False
+    
+    def getName(self):
+        return "envisat-dataset"
+    
+    def getEOMetadata(self, raw_metadata):
+        if not isinstance(raw_metadata, gdal.Dataset):
+            raise InternalError(
+                "ENVISAT Dataset metadata formats cannot decode raw metadata of type '%s'." %\
+                raw_metadata.__class__.__name__
+            )
+    
+        eoid = splitext(raw_metadata.GetMetadataItem("MPH_PRODUCT"))[0]
+        return EOMetadata(
+            eo_id=eoid,
+            begin_time=self._parse_timestamp(raw_metadata.GetMetadataItem("MPH_SENSING_START")),
+            end_time=self._parse_timestamp(raw_metadata.GetMetadataItem("MPH_SENSING_STOP")),
+            footprint=GEOSGeometry(reftools.get_footprint_wkt(raw_metadata)),
+            md_format=self,
+        )
+    
+    def _parse_timestamp(self, timestamp):
+        MONTHS = {
+            "JAN": 1,
+            "FEB": 2,
+            "MAR": 3,
+            "APR": 4,
+            "MAY": 5,
+            "JUN": 6,
+            "JUL": 7,
+            "AUG": 8,
+            "SEP": 9,
+            "OCT": 10,
+            "NOV": 11,
+            "DEC": 12
+        }
+        
+        m = re.match(r"(\d{2})-([A-Z]{3})-(\d{4}) (\d{2}):(\d{2}):(\d{2}).*", timestamp)
+        day = int(m.group(1))
+        month = MONTHS[m.group(2)]
+        year = int(m.group(3))
+        hour = int(m.group(4))
+        minute = int(m.group(5))
+        second = int(m.group(6))
+        
+        return datetime.datetime(year, month, day, hour, minute, second)
+    
+    def getMetadataKeys(self):
+        """
+        Returns the keys for key-value-pair metadata access.
+        """
+        
+        return self.METADATA_TAGS
+        
+EnvisatDatasetMetadataFormatImplementation = \
+EOMetadataFormatInterface.implement(EnvisatDatasetMetadataFormat)
 
 class XMLEOMetadataFormat(XMLMetadataFormat):
     """
@@ -429,6 +516,14 @@ class XMLEOMetadataFileReader(object):
         }
     }
     
+    def test(self, test_params):
+        try:
+            with open(test_params["location"].getPath()) as f:
+                etree.parse(f)
+                return True
+        except:
+            return False
+    
     def readEOMetadata(self, location):
         """
         Returns an :class:`EOMetadata` object for the XML file at the given
@@ -483,3 +578,76 @@ class XMLEOMetadataFileReader(object):
 
 XMLEOMetadataFileReaderImplementation = \
 EOMetadataReaderInterface.implement(XMLEOMetadataFileReader)
+
+class DatasetMetadataFileReader(object):
+    """
+    This is an implementation of :class:`~.EOMetadataReaderInterface` for
+    local dataset files, i.e. ``resources.coverages.interfaces.location_type``
+    is ``local`` and ``resources.coverages.interfaces.encoding_type`` is
+    ``dataset``.
+    """
+    
+    REGISTRY_CONF = {
+        "name": "Dataset Metadata File Reader",
+        "impl_id": "resources.coverages.metadata.DatasetMetadataFileReader",
+        "registry_values": {
+            "resources.coverages.interfaces.location_type": "local",
+            "resources.coverages.interfaces.encoding_type": "dataset"
+        }
+    }
+    
+    def test(self, test_params):
+        try:
+            gdal.Open(test_params["location"].getPath())
+            return True
+        except:
+            return False
+    
+    def readEOMetadata(self, location):
+        """
+        Returns an :class:`EOMetadata` object for the dataset file at the given
+        local path. Raises :exc:`~.InternalError` if the location is not a
+        path on the local file system or :exc:`~.DataAccessError` if it cannot
+        be opened. :exc:`~.MetadataException` is raised if the file content
+        is not valid or if the metadata format is unknown.
+        """
+        
+        if location.getType() != "local":
+            raise InternalError(
+                "Attempt to read metadata from non-local location."
+            )
+        
+        try:
+            ds = gdal.Open(location.getPath())
+            driver = ds.GetDriver()
+        except Exception, e: #TODO here! fill in exception class for failure in opening GDAL datasets
+            raise MetadataException(
+                "File at '%s' is not a valid GDAL dataset. Error message: '%s'" %\
+                location.getPath(), str(e)
+            )
+            
+        try:
+            md_format = System.getRegistry().findAndBind(
+                intf_id = "resources.coverages.interfaces.EOMetadataFormat",
+                params={
+                    "root_name": "",
+                    "dataset": ds,
+                    "driver": driver
+                }
+            )
+        except ImplementationNotFound:
+            raise MetadataException(
+                "Unknown Metadata format. Driver '%s' not recognized." %\
+                driver.ShortName
+            )
+        except ImplementationAmbiguous:
+            raise InternalError(
+                "Multiple EO Metadata Formats for driver '%s'." %\
+                driver.ShortName
+            )
+        
+        return md_format.getEOMetadata(ds)
+
+
+DatasetMetadataFileReaderImplementation = \
+EOMetadataReaderInterface.implement(DatasetMetadataFileReader)

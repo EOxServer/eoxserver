@@ -36,6 +36,7 @@ from django.conf import settings
 from django.http import HttpResponseRedirect
 from django.contrib.admin.util import unquote
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import transaction
 from django.db.models import Q
 
 from eoxserver.backends.models import (
@@ -321,8 +322,9 @@ class AbstractContainerAdmin(admin.ModelAdmin):
             obj_to_sync = getattr(self, "obj_to_sync")
             System.init()
             mgr = self.get_manager()
-            obj_id = self.get_obj_id(pk=obj_to_sync.pk)
-            mgr.synchronize(obj_id)
+            obj_id = self.get_obj_id(obj_to_sync)
+            with transaction.commit_on_success():
+                mgr.synchronize(obj_id)
         except AttributeError:
             pass
         except obj_to_sync.DoesNotExist:
@@ -334,7 +336,6 @@ class AbstractContainerAdmin(admin.ModelAdmin):
             self.try_synchronize()
             return ret
         except:
-            raise
             messages.error(request, "Could not create %s" % self.model._meta.verbose_name)
             return HttpResponseRedirect("..")
     
@@ -344,7 +345,6 @@ class AbstractContainerAdmin(admin.ModelAdmin):
             self.try_synchronize()
             return ret
         except:
-            raise
             messages.error(request, "Could not change %s" % self.model._meta.verbose_name)
             return HttpResponseRedirect("..")
     
@@ -354,7 +354,6 @@ class AbstractContainerAdmin(admin.ModelAdmin):
             self.try_synchronize()
             return ret
         except:
-            raise
             messages.error(request, "Could not change %s" % self.model._meta.verbose_name)
             return HttpResponseRedirect("..")
     
@@ -364,7 +363,6 @@ class AbstractContainerAdmin(admin.ModelAdmin):
             # TODO: need synchronization here?
             return ret
         except:
-            raise
             messages.error(request, "Could not delete %s" % self.model._meta.verbose_name)
             return HttpResponseRedirect("..")
     
@@ -390,14 +388,9 @@ class RectifiedStitchedMosaicAdmin(AbstractContainerAdmin):
             'all': ('/'+settings.MEDIA_URL+'/admin/widgets.css',)
         }
      
-    def get_obj_id(self, pk):
-        wrapper = System.getRegistry().bind("resources.coverages.wrappers.RectifiedStitchedMosaicWrapper")
-        wrapper.setModel(
-            RectifiedStitchedMosaicRecord.objects.get(pk=pk)
-        )
-        wrapper.setMutable()
-        return wrapper.getCoverageId()
-     
+    def get_obj_id(self, obj):
+        return obj.coverage_id
+        
 admin.site.register(RectifiedStitchedMosaicRecord, RectifiedStitchedMosaicAdmin)
 
 """class DataDirInline(admin.TabularInline):
@@ -432,21 +425,15 @@ class DatasetSeriesAdmin(AbstractContainerAdmin):
             'all': ('/'+settings.MEDIA_URL+'/admin/widgets.css',)
         }
         
-    def get_obj_id(self, pk):
-        wrapper = System.getRegistry().bind(
-            "resources.coverages.wrappers.DatasetSeriesWrapper"
-        )
-        
-        wrapper.setModel(
-            DatasetSeriesRecord.objects.get(pk=pk)
-        )
-        wrapper.setMutable()
-        return wrapper.getEOID()
+    def get_obj_id(self, obj):
+        return obj.eo_id
 
 admin.site.register(DatasetSeriesRecord, DatasetSeriesAdmin)
 
 
 class EOMetadataAdmin(admin.GeoModelAdmin):
+    wms_url = "http://vmap0.tiles.osgeo.org/wms/vmap0" # TODO: make this configurable
+    
     def save_model(self, request, obj, form, change):
         # steps:
         # 1. retrieve EO GML from obj

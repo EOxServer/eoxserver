@@ -37,6 +37,7 @@ import logging
 from django.conf import settings
 
 from eoxserver.core.system import System
+from eoxserver.core.util.geotools import reversedAxisOrder
 from eoxserver.core.util.timetools import getDateTime, isotime
 from eoxserver.core.util.xmltools import XMLEncoder, DOMtoXML
 from eoxserver.core.exceptions import InternalError, InvalidParameterException
@@ -473,7 +474,7 @@ class WMS13GetMapHandler(WMS1XGetMapHandler):
         return "crs"
         
     def getBoundedArea(self, srid, bbox):
-        if srid in (3035, 4326): # TODO: implement comprehensive list of EPSG definitions with reversed axis orders
+        if reversedAxisOrder(srid):
             return BoundedArea(srid, bbox[1], bbox[0], bbox[3], bbox[2])
         else:
             return BoundedArea(srid, *bbox)

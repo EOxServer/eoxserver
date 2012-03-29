@@ -26,9 +26,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
-from eoxserver.resources.coverages.metadata import EOMetadata
-from eoxserver.core.util.timetools import UTCOffsetTimeZoneInfo
-
 
 """
 This module implements coverage managers that can be used to read data from GDAL
@@ -42,8 +39,11 @@ import logging
 from uuid import uuid4
 from datetime import datetime, timedelta
 
+from django.contrib.gis.geos.geometry import MultiPolygon
+
 from eoxserver.core.system import System
 from eoxserver.core.exceptions import InternalError
+from eoxserver.core.util.timetools import UTCOffsetTimeZoneInfo
 from eoxserver.resources.coverages.interfaces import ManagerInterface
 from eoxserver.resources.coverages.exceptions import (
     ManagerError, NoSuchCoverageException, CoverageIdReservedError,
@@ -54,7 +54,9 @@ from eoxserver.resources.coverages.models import (
     ReferenceableDatasetRecord, RectifiedStitchedMosaicRecord,
     ReservedCoverageIdRecord, CoverageRecord
 ) 
+from eoxserver.resources.coverages.metadata import EOMetadata
 from eoxserver.processing.mosaic import make_mosaic
+
 
 COVERAGE_TYPES = { 
         "PlainCoverage" : PlainCoverageRecord ,
@@ -94,6 +96,7 @@ class BaseManager(object):
         If the given ID is already in use, an :exc:`~.CoverageIdInUseError`
         exception is raised. If the ID is already reserved by another
         ``request_id``, an :exc:`~.CoverageIdReservedError` is raised.
+        These exceptions are sub-classes of :exc:`~.CoverageIdError`.
         
         :param obj_id: the ID (CoverageID or EOID) of the object to be created
         :type obj_id: string
@@ -374,6 +377,9 @@ class BaseManagerContainerMixIn(object):
             footprint = datasets[0].getFootprint()
             for dataset in datasets[1:]:
                 footprint = footprint.union(dataset.getFootprint())
+            
+            if type(footprint) != MultiPolygon:
+                footprint = MultiPolygon(footprint)
             
             self.update(
                 container.getEOID(), set={
@@ -1270,6 +1276,7 @@ class CoverageIdManager(BaseManager):
         the reserved ``resource_id``, a :class:`~.CoverageIdReservedError` is
         raised. If the ID is already taken by an existing coverage a 
         :class:`~.CoverageIdInUseError` is raised.
+        These exceptions are sub-classes of :exc:`~.CoverageIdError`.
         """
         
         obj, _ = ReservedCoverageIdRecord.objects.get_or_create(

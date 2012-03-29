@@ -137,18 +137,30 @@ class WCS11TransactionRectifiedDatasetTestCase(eoxstest.WCSTransactionRectifiedG
         RectifiedGridCoverage by means of the WCS 1.1 Transaction operation 
         ("Add" action). 
     """
+    fixtures = BASE_FIXTURES
     ID = "RECTIFIED_MERIS_ID"
     ADDtiffFile = "meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif"
     ADDmetaFile = "meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.xml"
+
+class WCS11TransactionAsyncRectifiedDatasetTestCase(eoxstest.WCSTransactionRectifiedGridCoverageTestCase):
+    """ This test case shall test the asynchronous inserting of a new 
+        RectifiedGridCoverage by means of the WCS 1.1 Transaction operation 
+        ("Add" action). 
+    """
+    fixtures = BASE_FIXTURES
+    ID = "RECTIFIED_MERIS_ID"
+    ADDtiffFile = "meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif"
+    ADDmetaFile = "meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.xml"
+    isAsync = True
 
 class WCS11TransactionReferenceableDatasetTestCase(eoxstest.WCSTransactionReferenceableGridCoverageTestCase):
     """ This test case shall test the synchronous inserting of a new 
         ReferenceableGridCoverage by means of the WCS 1.1 Transaction operation 
         ("Add" action). 
     """
+    fixtures = BASE_FIXTURES
     ID = "REFERENCEABLE_ASAR_ID"
     ADDtiffFile = "asar/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tiff"
-    ADDmetaFile = "asar/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.xml"
 
 #===============================================================================
 # WCS 2.0 Get Capabilities
@@ -660,6 +672,16 @@ class WCS20GetCoverageTiledTestCase(eoxstest.RectifiedGridCoverageTestCase):
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=%s" % quote ("image/tiff;tiled=YES")
         return (params, "kvp")
 
+class WCS20GetCoverageNetCDFInputTestCase(eoxstest.RectifiedGridCoverageTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_netCDF&format=image/tiff"
+        return (params, "kvp")
+
+class WCS20GetCoverageJPEG2000InputTestCase(eoxstest.RectifiedGridCoverageTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced_JPEG2000&format=image/tiff"
+        return (params, "kvp")
+    
 #===============================================================================
 # WCS 2.0: Multipart requests
 #===============================================================================
@@ -871,6 +893,41 @@ class WCS20GetCoverageRasdamanSubsetSizeResolutionOutputCRSRangeSubsetIndicesDat
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced_rasdaman&format=image/tiff&subset=x(100,200)&subset=y(200,300)&size=y(100)&resolution=x(0.1)&outputcrs=http://www.opengis.net/def/crs/EPSG/0/3035&rangesubset=1,2,3&mediatype=multipart/mixed"
         return (params, "kvp")
 
+
+#===============================================================================
+# WCS 2.0: GetCov with EPSG:3035 input images 
+#===============================================================================
+
+class WCS20DescribeCoverageReprojectedDatasetTestCase(eoxstest.XMLTestCase):
+    fixtures = eoxstest.OWSTestCase.fixtures + ["testing_reprojected_coverages.json"]
+    def getRequest(self):
+        params = "service=WCS&version=2.0.0&request=DescribeCoverage&CoverageId=MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected"
+        return (params, "kvp")
+
+class WCS20GetCoverageReprojectedDatasetTestCase(eoxstest.RectifiedGridCoverageTestCase):
+    fixtures = eoxstest.OWSTestCase.fixtures + ["testing_reprojected_coverages.json"]
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected&format=image/tiff"
+        return (params, "kvp")
+
+class WCS20GetCoverageReprojectedSubsetDatasetTestCase(eoxstest.RectifiedGridCoverageTestCase):
+    fixtures = eoxstest.OWSTestCase.fixtures + ["testing_reprojected_coverages.json"]
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected&format=image/tiff&subset=x(100,200)&subset=y(200,300)"
+        return (params, "kvp")
+    
+class WCS20GetCoverageReprojectedSubsetEPSG4326DatasetTestCase(eoxstest.RectifiedGridCoverageTestCase):
+    fixtures = eoxstest.OWSTestCase.fixtures + ["testing_reprojected_coverages.json"]
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected&format=image/tiff&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(38,40)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(20,22)"
+        return (params, "kvp")
+
+class WCS20GetCoverageReprojectedMultipartDatasetTestCase(eoxstest.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
+    fixtures = eoxstest.OWSTestCase.fixtures + ["testing_reprojected_coverages.json"]
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected&format=image/tiff&mediatype=multipart/mixed"
+        return (params, "kvp")
+
 #===============================================================================
 # WCS 2.0 Referenceable Grid Coverages
 #===============================================================================
@@ -898,7 +955,7 @@ class WCS20GetCoverageReferenceableDatasetGeogCRSSubsetTestCase(eoxstest.WCS20Ge
     
 class WCS20GetCoverageReferenceableDatasetGeogCRSSubsetExceedsExtentTestCase(eoxstest.WCS20GetCoverageReferenceableGridCoverageMultipartTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775&format=image/tiff&mediatype=multipart/mixed&subset=x,http://www.opengis.net/def/crs/EPSG/0/4326(14,16.4)&subset=y,http://www.opengis.net/def/crs/EPSG/0/4326(-39.5,-35.1)"
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775&format=image/tiff&mediatype=multipart/mixed&subset=x,http://www.opengis.net/def/crs/EPSG/0/4326(20.0,21.0)&subset=y,http://www.opengis.net/def/crs/EPSG/0/4326(-36.0,-35.0)"
         return (params, "kvp")
 
 #===============================================================================
@@ -1308,7 +1365,14 @@ class WMS13GetMapDatasetThreeBandsTestCase(eoxstest.WMS13GetMapTestCase):
     layers = ("MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed_bands",)
     bbox = (8.487755775451660, 32.195316643454134, 25.407486727461219, 46.249103546142578)
     dim_band = "MERIS_radiance_02_uint16,MERIS_radiance_08_uint16,MERIS_radiance_12_uint16"
+
+class WMS13GetMapReprojectedDatasetTestCase(eoxstest.WMS13GetMapTestCase):
+    """ Test a GetMap request with a reprojected dataset. """
+    fixtures = eoxstest.OWSTestCase.fixtures + ["testing_reprojected_coverages.json"]
     
+    layers = ("MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected",)
+    bbox = (8.487755775451660, 32.195316643454134, 25.407486727461219, 46.249103546142578)
+
 class WMS13GetFeatureInfoTestCase(eoxstest.HTMLTestCase):
     """ Test a GetFeatureInfo on an outline layer. """
     requires_fixed_db = True
@@ -1320,40 +1384,42 @@ class WMS13GetFeatureInfoTestCase(eoxstest.HTMLTestCase):
 # Authorisation Components
 #===============================================================================
 
-httpHeadersAuthnInvalid = {'AUTH_TYPE': 'shibboleth', \
-               'uid': 'nclue', \
-               'cn': 'Clue Norman', \
-               'description': 'Unauthorized User', \
-               'Shib-AuthnContext-Class': 'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport',  \
-               'Shib-Authentication-Method': 'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport', \
-               'Shib-Authentication-Instant': '2012-01-01T01:01:01.000Z', \
-               'HTTP_HOST': 'sp.c3ttv042.d03.arc.local', \
-               'Shib-Session-Index': '509d42a63423976dc7b0a91d6ac10ee3d15f21b8133c6b8b82216997875945e4', \
-               'displayName': 'Norman Clue', \
-               'Shib-Application-ID': 'default',
-               'Shib-Identity-Provider': 'https://idp.c3ttv042.d03.arc.local/idp/shibboleth', \
-               'sn': 'Clue',  \
-               'Shib-Session-ID': '_7e0d42381af797d3f69b06d7473455ff', \
-               'givenName': 'Norman', \
-               'DUMMY_MODE': 'DUMMY_MODE' \
-               }
+httpHeadersAuthnInvalid = {
+    'AUTH_TYPE': 'shibboleth',
+    'uid': 'nclue',
+    'cn': 'Clue Norman',
+    'description': 'Unauthorized User',
+    'Shib-AuthnContext-Class': 'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport',
+    'Shib-Authentication-Method': 'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport',
+    'Shib-Authentication-Instant': '2012-01-01T01:01:01.000Z',
+    'HTTP_HOST': 'sp.c3ttv042.d03.arc.local',
+    'Shib-Session-Index': '509d42a63423976dc7b0a91d6ac10ee3d15f21b8133c6b8b82216997875945e4',
+    'displayName': 'Norman Clue',
+    'Shib-Application-ID': 'default',
+    'Shib-Identity-Provider': 'https://idp.c3ttv042.d03.arc.local/idp/shibboleth',
+    'sn': 'Clue',
+    'Shib-Session-ID': '_7e0d42381af797d3f69b06d7473455ff',
+    'givenName': 'Norman',
+    'DUMMY_MODE': 'DUMMY_MODE'
+}
 
-httpHeadersAuthnValid = {'AUTH_TYPE': 'shibboleth', \
-               'uid': 'jdoe', \
-               'cn': 'Doe John', \
-               'description': 'Authorized User', \
-               'Shib-AuthnContext-Class': 'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport',  \
-               'Shib-Authentication-Method': 'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport', \
-               'Shib-Authentication-Instant': '2012-01-01T01:01:01.000Z', \
-               'HTTP_HOST': 'sp.c3ttv042.d03.arc.local', \
-               'Shib-Session-Index': '509d42a63423976dc7b0a91d6ac10ee3d15f21b8133c6b8b82216997875945e4', \
-               'Shib-Application-ID': 'default',
-               'Shib-Identity-Provider': 'https://idp.c3ttv042.d03.arc.local/idp/shibboleth', \
-               'sn': 'Doe',  \
-               'Shib-Session-ID': '_7e0d42381af797d3f69b06d7473455ff', \
-               'givenName': 'John', \
-               'DUMMY_MODE': 'DUMMY_MODE' \
-               }
+httpHeadersAuthnValid = {
+    'AUTH_TYPE': 'shibboleth',
+    'uid': 'jdoe',
+    'cn': 'Doe John',
+    'description': 'Authorized User',
+    'Shib-AuthnContext-Class': 'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport',
+    'Shib-Authentication-Method': 'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport',
+    'Shib-Authentication-Instant': '2012-01-01T01:01:01.000Z',
+    'HTTP_HOST': 'sp.c3ttv042.d03.arc.local',
+    'Shib-Session-Index': '509d42a63423976dc7b0a91d6ac10ee3d15f21b8133c6b8b82216997875945e4',
+    'Shib-Application-ID': 'default',
+    'Shib-Identity-Provider': 'https://idp.c3ttv042.d03.arc.local/idp/shibboleth',
+    'sn': 'Doe',
+    'Shib-Session-ID': '_7e0d42381af797d3f69b06d7473455ff',
+    'givenName': 'John',
+    'DUMMY_MODE': 'DUMMY_MODE'
+}
 
 class SecWCS10GetCapabilitiesValidTestCase(eoxstest.XMLTestCase):
     def getRequest(self):

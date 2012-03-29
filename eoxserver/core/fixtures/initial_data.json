@@ -1000,6 +1000,30 @@
         }
     }, 
     {
+        "pk": 126, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wms1x.WMS13GetLegendGraphicHandler", 
+            "intf_id": "services.interfaces.OperationHandler"
+        }
+    }, 
+    {
+        "pk": 127, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.metadata.DatasetMetadataFileReader", 
+            "intf_id": "resources.coverages.interfaces.EOMetadataReader"
+        }
+    }, 
+    {
+        "pk": 128, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.metadata.EnvisatDatasetMetadataFormat", 
+            "intf_id": "resources.coverages.interfaces.EOMetadataFormat"
+        }
+    }, 
+    {
         "pk": 1, 
         "model": "core.component", 
         "fields": {
@@ -1873,5 +1897,26 @@
         "fields": {
             "enabled": true
         }
-    }
+    }, 
+    {
+        "pk": 126, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": false
+        }
+    }, 
+    {
+        "pk": 127, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 128, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    } 
 ]

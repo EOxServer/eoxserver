@@ -38,6 +38,7 @@ import os.path
 import operator
 
 from django.contrib.gis.geos import GEOSGeometry
+from django.contrib.gis.geos.geometry import MultiPolygon
 
 from eoxserver.core.system import System
 from eoxserver.core.resources import (
@@ -486,10 +487,14 @@ class EOMetadataWrapper(object):
         else:
             eo_gml = ""
         
+        footprint = eo_metadata.getFootprint()
+        if type(footprint) != MultiPolygon:
+            footprint = MultiPolygon(footprint)
+        
         create_dict["eo_metadata"] = EOMetadataRecord.objects.create(
             timestamp_begin = eo_metadata.getBeginTime(),
             timestamp_end = eo_metadata.getEndTime(),
-            footprint = eo_metadata.getFootprint(),
+            footprint = footprint,
             eo_gml = eo_gml
         )
         
@@ -501,10 +506,14 @@ class EOMetadataWrapper(object):
         eo_id = set_kwargs.get("eo_id")
         eo_md = set_kwargs.get("eo_metadata")
         if eo_md:
+            footprint = eo_md.getFootprint()
+            if type(footprint) != MultiPolygon:
+                footprint = MultiPolygon(footprint)
+            
             record = self.__model.eo_metadata
             record.timestamp_begin = eo_md.getBeginTime()
             record.timestamp_end = eo_md.getEndTime()
-            record.footprint = eo_md.getFootprint()
+            record.footprint = footprint
             
             md_format = eo_md.getMetadataFormat()
             if md_format and md_format.getName() == "eogml":

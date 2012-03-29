@@ -28,6 +28,8 @@
 #-------------------------------------------------------------------------------
 
 import os.path
+from cStringIO import StringIO
+
 from lxml import etree
 
 from django.conf import settings
@@ -55,3 +57,15 @@ def validateEOOM(xml):
         schema.assertValid(etree.fromstring(xml))
     except etree.Error as e:
         raise ValidationError(str(e))
+    
+def validateCoverageIDnotInEOOM(coverageID, xml):
+    if xml is None or len(xml) == 0:
+        return
+    
+    f = StringIO(xml)
+    for _, element in etree.iterparse(f, events=("end",)):
+        if element.get("{http://www.opengis.net/gml/3.2}id") == coverageID:
+            raise ValidationError("The XML element '%s' contains a gml:id "
+                                  "which is equal to the coverage ID '%s'." % 
+                                  (element.tag, coverageID))
+    

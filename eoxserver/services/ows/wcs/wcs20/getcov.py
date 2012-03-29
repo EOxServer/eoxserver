@@ -175,6 +175,13 @@ class WCS20GetReferenceableCoverageBaseHandler(object):
             "tmp.%s" % self.EXT_MAPPING[mime_type]
         )
 
+    def _get_output_filename(self, coverage, mime_type):
+        return "%s_%s.%s" % (
+            coverage.getCoverageId(),
+            datetime.now().strftime("%Y%m%d%H%M%S"),
+            self.EXT_MAPPING[mime_type]
+        )
+
     def _remove_temp_file(self, dst_filename):
         if os.path.exists(dst_filename):
             os.remove(dst_filename)
@@ -185,13 +192,13 @@ class WCS20GetReferenceableCoverageBaseHandler(object):
             os.rmdir(dirname)
         
 
-    def _get_default_response(self, dst_filename, mime_type):
+    def _get_default_response(self, dst_filename, mime_type, filename):
         f = open(dst_filename)
         
         resp = Response(
             content_type = mime_type,
             content = f.read(),
-            headers = {},
+            headers = {"Content-Dispostion": "attachment; filename=\"%s\"" % filename},
             status = 200
         )
         
@@ -358,8 +365,10 @@ class WCS20GetReferenceableCoverageGDALHandler(WCS20GetReferenceableCoverageBase
         # prepare response
         media_type = req.getParamValue("mediatype")
         
+        filename = self._get_output_filename(coverage, mime_type)
+        
         if media_type is None:
-            resp = self._get_default_response(dst_filename, mime_type)
+            resp = self._get_default_response(dst_filename, mime_type, filename)
         elif media_type == "multipart/related" or media_type == "multipart/mixed":
             encoder = WCS20EOAPEncoder()
             
@@ -386,13 +395,7 @@ class WCS20GetReferenceableCoverageGDALHandler(WCS20GetReferenceableCoverageBase
                     )
             else:
                 cov_desc_el = encoder.encodeCoverageDescription(coverage, True)
-            
-            filename = "%s_%s.%s" % (
-                coverage.getCoverageId(),
-                datetime.now().strftime("%Y%m%d%H%M%S"),
-                self.EXT_MAPPING[mime_type]
-            )
-            
+
             resp = self._get_multipart_response(
                 dst_filename, mime_type, DOMElementToXML(cov_desc_el), filename
             )
@@ -457,8 +460,10 @@ class WCS20GetReferenceableCoverageNESTHandler(WCS20GetReferenceableCoverageBase
         # prepare response
         media_type = req.getParamValue("mediatype")
         
+        filename = self._get_output_filename(coverage, mime_type)
+
         if media_type is None:
-            resp = self._get_default_response(dst_filename, mime_type)
+            resp = self._get_default_response(dst_filename, mime_type, filename)
         elif media_type == "multipart/related" or media_type == "multipart/mixed":
             encoder = WCS20EOAPEncoder()
             
@@ -485,11 +490,6 @@ class WCS20GetReferenceableCoverageNESTHandler(WCS20GetReferenceableCoverageBase
             
             cov_desc_el = encoder.encodeCoverageDescription(coverage, True)
             
-            filename = "%s_%s.%s" % (
-                coverage.getCoverageId(),
-                datetime.now().strftime("%Y%m%d%H%M%S"),
-                self.EXT_MAPPING[mime_type]
-            )
             
             resp = self._get_multipart_response(
                 dst_filename, mime_type, DOMElementToXML(cov_desc_el), filename
@@ -516,6 +516,20 @@ class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
         "slices": {"xml_location": "/{http://www.opengis.net/wcs/2.0}DimensionSlice", "xml_type": "element[]"},
         "format": {"xml_location": "/{http://www.opengis.net/wcs/2.0}format", "xml_type": "string", "kvp_key": "format", "kvp_type": "string"},
         "mediatype": {"xml_location": "/{http://www.opengis.net/wcs/2.0}mediaType", "xml_type": "string", "kvp_key": "mediatype", "kvp_type": "string"}
+    }
+
+    FORMAT_MAPPING = {
+        "image/tiff": "GTiff",
+        "image/jp2": "JPEG2000",
+        "application/x-netcdf": "NetCDF",
+        "application/x-hdf": "HDF4Image"
+    }
+    
+    EXT_MAPPING = {
+        "image/tiff": "tif",
+        "image/jp2": "jp2",
+        "application/x-netcdf": "nc",
+        "application/x-hdf": "hdf"
     }
     
     def createCoverages(self):
@@ -679,6 +693,17 @@ class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
                     
                 resp = resp.getProcessedResponse(DOMElementToXML(resp_xml))
                 dom.unlink()
+        else: # coverage only
+            coverage = self.coverages[0] 
+            mime_type = resp.getContentType() 
+
+            filename = "%s_%s.%s" % ( 
+                coverage.getCoverageId(), 
+                datetime.now().strftime("%Y%m%d%H%M%S"), 
+                self.EXT_MAPPING[mime_type] 
+            ) 
+
+            resp.headers.update({'Content-Disposition': "attachment; filename=\"%s\"" % filename}) 
 
         return resp
 

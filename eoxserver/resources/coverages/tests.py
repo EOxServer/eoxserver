@@ -34,7 +34,7 @@ import logging
 from datetime import timedelta
 
 from django.utils.datetime_safe import datetime
-from django.contrib.gis.geos import GEOSGeometry, Polygon
+from django.contrib.gis.geos import GEOSGeometry, Polygon, MultiPolygon
 from django.conf import settings
 
 from eoxserver.core.system import System
@@ -307,7 +307,7 @@ class RectifiedDatasetUpdateEOMetadataTestCase(RectifiedDatasetUpdateTestCase):
     def manage(self):
         self.begin_time = datetime.now()
         self.end_time = datetime.now()
-        self.footprint = Polygon.from_bbox((-3, 33, 12, 46))
+        self.footprint = MultiPolygon(Polygon.from_bbox((-3, 33, 12, 46)))
         #GEOSGeometry("POLYGON((1 2, 3 2, 3 4, 1 4, 1 2))")
         args = {
             "obj_id": "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced",

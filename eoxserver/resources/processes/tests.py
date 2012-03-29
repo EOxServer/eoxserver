@@ -76,7 +76,7 @@ class TestSequenceFunctions(unittest.TestCase):
         # can not  unregisterTaskType if task exist
         # self.assertRaises(  TaskTypeHasInstances , unregisterTaskType ,  PROCESS_CLASS  , True )
         self.assertRaises(  ProtectedError , unregisterTaskType ,  PROCESS_CLASS   )
-        deleteTask(ID1)
+        deleteTaskByIdentifier( PROCESS_CLASS , ID1 )
 
 
     def test_unregistred_taskType_force(self):
@@ -86,9 +86,9 @@ class TestSequenceFunctions(unittest.TestCase):
         enqueueTask( PROCESS_CLASS , ID2 , inputs , PARAM )        
 
         # force  unregisterTaskType
-        unregisterTaskType(   PROCESS_CLASS   , True )
+        unregisterTaskType( PROCESS_CLASS , True )
         # delete  task
-        deleteTask(ID2)
+        #deleteTaskByIdentifier( PROCESS_CLASS , ID2 )
 
     def test_unregistred_not_registred(self):
          self.assertRaises(     ObjectDoesNotExist  , unregisterTaskType ,  "TEST-PROCESS-NOT_REGISTRED" , True )
@@ -104,7 +104,7 @@ class TestSequenceFunctions(unittest.TestCase):
         # enqueue task for execution 
         enqueueTask( PROCESS_CLASS , ID2 , inputs , PARAM )        
 
-        deleteTask(ID2)
+        deleteTaskByIdentifier( PROCESS_CLASS , ID2)
         unregisterTaskType(  PROCESS_CLASS )
 
 
@@ -124,8 +124,8 @@ class TestSequenceFunctions(unittest.TestCase):
         # test for queue empty 
         self.assertRaises(  QueueEmpty ,  dequeueTask  ,  SERVER_ID  )
         # delete  tasks
-        deleteTask(ID2)
-        deleteTask(ID1)
+        deleteTaskByIdentifier( PROCESS_CLASS , ID2 )
+        deleteTaskByIdentifier( PROCESS_CLASS , ID1 )
 
 
     def test_full_empty_queue(self):
@@ -142,7 +142,7 @@ class TestSequenceFunctions(unittest.TestCase):
 
         
         # clean tasks
-        for t in range ( 0 ,  getMaxQueueSize() ) : deleteTask( t )
+        for t in range ( 0 ,  getMaxQueueSize() ) : deleteTaskByIdentifier( PROCESS_CLASS , t )
 
 
         # test for queue empty 
@@ -158,7 +158,7 @@ class TestSequenceFunctions(unittest.TestCase):
         # get the task ID and compare
         self.assertEqual( int( str(  start[1] ) )  , int(  ID3 )  )
         # delete task 
-        deleteTask(ID3)
+        deleteTaskByIdentifier( PROCESS_CLASS , ID3 )
 
     #  test both setTaskResponse and  getTaskResponse
     def test_responses(self):
@@ -166,9 +166,9 @@ class TestSequenceFunctions(unittest.TestCase):
         id = dequeueTask( SERVER_ID  )
         setTaskResponse( id[0] , "123" ) 
 
-        response = getTaskResponse(  PROCESS_CLASS , ID4 ) 
+        response = getTaskResponse( PROCESS_CLASS , ID4 )[0]
         self.assertEqual( int(  response  )  , 123 )
-        deleteTask(ID4)
+        deleteTaskByIdentifier( PROCESS_CLASS , ID4 )
 
     def test_task_duplicity(self):
 
@@ -176,7 +176,7 @@ class TestSequenceFunctions(unittest.TestCase):
         # again
         self.assertRaises(  IntegrityError  ,   enqueueTask ,   PROCESS_CLASS , ID5 ,  inputs , PARAM )
 
-        deleteTask(ID5)
+        deleteTaskByIdentifier( PROCESS_CLASS , ID5 )
 
     def test_running_task(self):
         enqueueTask(  PROCESS_CLASS , ID6 ,  inputs , PARAM )
@@ -188,13 +188,13 @@ class TestSequenceFunctions(unittest.TestCase):
 
         # status is  3:"RUNNING"
         self.assertEqual( status[0]   , 3  )
-        deleteTask(ID6)
+        deleteTaskByIdentifier( PROCESS_CLASS , ID6 )
 
     def test_reenqueue_task(self):
         enqueueTask(  PROCESS_CLASS , ID7 ,  inputs , PARAM )
         id = dequeueTask( SERVER_ID  )
-	reenqueueTask( id[0] , "Run now" )
-        deleteTask(ID7)
+        reenqueueTask( id[0] , "Run now" )
+        deleteTaskByIdentifier( PROCESS_CLASS , ID7 )
 
     def test_three_task_zombie(self):
 
@@ -226,11 +226,11 @@ class TestSequenceFunctions(unittest.TestCase):
         s3 =  getTaskStatus( id3[0] )
 
         # must be 1, 'ACCEPTED' 
-	self.assertEqual( int(s1[0]) +  int(s2[0]) +  int(s3[0])  , 3 )        
+        self.assertEqual( int(s1[0]) +  int(s2[0]) +  int(s3[0])  , 3 )        
 
-        deleteTask(ID1)
-        deleteTask(ID2)
-        deleteTask(ID3)
+        deleteTaskByIdentifier( PROCESS_CLASS , ID1 )
+        deleteTaskByIdentifier( PROCESS_CLASS , ID2 )
+        deleteTaskByIdentifier( PROCESS_CLASS , ID3 )
 
 
     def test_set_task_status_failed(self):
@@ -251,16 +251,16 @@ class TestSequenceFunctions(unittest.TestCase):
         s = taskStatus.getStatus()
 
         # must be 6, 'FAILED' 
-	self.assertEqual( int(s[0]) , 6 )        
+        self.assertEqual( int(s[0]) , 6 )        
 
-        deleteTask(ID7)
+        deleteTaskByIdentifier( PROCESS_CLASS , ID7 )
 
 
     def test_delete_retired_task(self):
         registerTaskType( FASTER_CLASS , ASYNC_HANDLER ,  2 , 2 )
-        enqueueTask(  FASTER_CLASS , ID8 , inputs , PARAM )        
+        enqueueTask( FASTER_CLASS , ID8 , inputs , PARAM )        
 
-        id = dequeueTask( SERVER_ID  )
+        id = dequeueTask( SERVER_ID )
 
         # second Task is starting
         startTask(  id[0] , "go" )
@@ -273,7 +273,7 @@ class TestSequenceFunctions(unittest.TestCase):
 
         r = deleteRetiredTasks()
        
-        self.assertRaises(    ObjectDoesNotExist  ,  taskStatus.getStatus  )
+        self.assertRaises( ObjectDoesNotExist , taskStatus.getStatus  )
 
-        deleteTask(ID8)
+        deleteTaskByIdentifier(	FASTER_CLASS , ID8 )
 
