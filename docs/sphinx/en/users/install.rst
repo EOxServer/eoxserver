@@ -439,22 +439,23 @@ instance base folder:
     python manage.py eoxs_register_dataset --data-file DATAFILES --rangetype RANGETYPE
 
 The mandatory parameter ``--data-file`` is a list of at least one path to a
-file containing the raster data for the dataset to be inserted. The files can
-be in any compliant (GDAL readable) format. When inserting datasets located in
-a Rasdaman database, this parameter defines the `collection` the dataset is
-contained in.
+file containing the raster data for the dataset to be inserted. The files
+can be in any compliant (GDAL readable) format. When inserting datasets
+located in a Rasdaman database, this parameter defines the `collection` the
+dataset is contained in.
 
-Also mandatory is the parameter ``--rangetype``, the name of a range type which
-has to be already present in the instance's database.
+Also mandatory is the parameter ``--rangetype``, the name of a range type
+which has to be already present in the instance's database.
 
-For each data file there has to be one metadata file containing earth
-observation specific metadata. The optional parameter ``--metadata-file`` shall
-contain a list of paths to these files, where the items of this list refer to
-the data files with the same index of the according option. This parameter can
-also be omitted, in this case for each data file a metadata file is assumed
-with the same path, but with an `.xml` extension, although it is only used when
-this file actually exists. Otherwise the datafile itself is used to retrieve
-the metadata values.
+For each data file there may be given one metadata file containing earth
+observation specific metadata. The optional parameter ``--metadata-file``
+shall contain a list of paths to these files, where the items of this list
+refer to the data files with the same index of the according option. A
+metadata file for each data file is assumed with the same path, but with an
+`.xml` extension when this parameter is omitted. However, it is only used
+when it actually exists. Otherwise the data file itself is used to retrieve
+the metadata values. When this is not possible either, the default values
+are used as described below or the insertion is aborted.
 
 When inserting datasets located in a Rasdaman database, this parameter is
 mandatory, since the metadata cannot be retrieved from within the rasdaman
@@ -473,10 +474,11 @@ The ``--mode`` parameter specifies the location of the data and metadata files
 as they may be located on a FTP server or in a Rasdaman database. This can
 either be `local`, `ftp` or `rasdaman`, whereas the default is `local`.
 
-When the mode is set to either `ftp` or `rasdaman` the following options define
-the location of the dataset and the connection to it more thoroughly: ``--host``,
-``--port``, ``--user``, ``--password``, and ``--database`` (only for `rasdaman`).
-Only the ``--host`` parameter is mandatory, all others are optional.
+When the mode is set to either `ftp` or `rasdaman` the following options
+define the location of the dataset and the connection to it more
+thoroughly: ``--host``, ``--port``, ``--user``, ``--password``, and
+``--database`` (only for `rasdaman`). Only the ``--host`` parameter is
+mandatory, all others are optional.
 
 The ``--default-srid`` parameter is required when the SRID cannot be determined
 automatically, as for example with rasdaman datasets.
