@@ -489,12 +489,12 @@ input method where the geospatial metadata cannot be retrieved.
 
 For datasets that do not have any EO metadata associated and want to be
 inserted anyways, the options ``--default-begin-time``, ``--default-end-time``
-and ``--default-footprint`` have to be used. When provided, these options will
-overrule any metadata located in data or metadata files. All three options have
-to be used in combination, so it is, for example, not possible to only provide
-the footprint via ``--default-footprint`` and let EOxServer gather the rest,
-with one exception: when only begin and end dates are given, the footprint is
-generated using the image extent.
+and ``--default-footprint`` have to be used. These meta data values will only
+be used when no local meta data file is found (remote files are not checked).
+All three options have to be used in combination, so it is, for example, not
+possible to only provide the footprint via ``--default-footprint`` and let
+EOxServer gather the rest. There is one exception: when only begin and end
+dates are given, the footprint is generated using the image extent.
 
 With the ``--visible`` option, all registered datasets can be marked as either
 visible (``true``) or invisible (``false``). This effects the advertisment of
