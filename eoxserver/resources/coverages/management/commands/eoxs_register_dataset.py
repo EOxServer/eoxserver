@@ -456,11 +456,11 @@ class Command(CommandOutputMixIn, BaseCommand):
                     if eo_metadata.footprint is None:
                         raise CommandError("Default footprint could not be determined.")
                     if eo_metadata.begin_time is None:
-                        eo_metadata.begin_time = datetime.datetime.utcnow()
+                        raise CommandError("No default begin time given.")
                     if eo_metadata.end_time is None:
-                        eo_metadata.end_time = datetime.datetime.utcnow()
+                        raise CommandError("No default end time given.")
                 
-                args["eo_metadata"] = eo_metadata
+                    args["eo_metadata"] = eo_metadata
                 
             try:
                 with transaction.commit_on_success():
