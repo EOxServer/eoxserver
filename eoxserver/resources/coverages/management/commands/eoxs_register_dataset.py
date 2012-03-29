@@ -450,12 +450,15 @@ class Command(CommandOutputMixIn, BaseCommand):
                     self.print_msg("\t'%s' is referenceable." % df, 2)
             
             if eo_metadata is not None:
-                if eo_metadata.footprint is None:
-                    raise CommandError("Default footprint could not be determined.")
-                if eo_metadata.begin_time is None:
-                    eo_metadata.begin_time = datetime.datetime.utcnow()
-                if eo_metadata.end_time is None:
-                    eo_metadata.end_time = datetime.datetime.utcnow()
+                # we cannot check at this point whether or not the file exists 
+                # on FTP. So we assume it does.
+                if mode != "ftp" and not os.path.exists(mdf):
+                    if eo_metadata.footprint is None:
+                        raise CommandError("Default footprint could not be determined.")
+                    if eo_metadata.begin_time is None:
+                        eo_metadata.begin_time = datetime.datetime.utcnow()
+                    if eo_metadata.end_time is None:
+                        eo_metadata.end_time = datetime.datetime.utcnow()
                 
                 args["eo_metadata"] = eo_metadata
                 
