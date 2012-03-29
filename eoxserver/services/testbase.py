@@ -468,15 +468,33 @@ class WCSTransactionTestCase(XMLTestCase):
     """
     Base class for WCS Transactional test cases.
     """
-################################################################################
-# TODO: Add tests for binary comparison and validation of:
-#   self.responseDeleteCoverage
-#   self.responseDescribeCoverageDeleted
-################################################################################
+    ADDmetaFile = None
+    isAsync = False
 
     def setUp(self):
         super(WCSTransactionTestCase, self).setUp()
         logging.debug("WCSTransactionTestCase for ID: %s" % self.ID)
+        
+        if self.isAsync:
+            from eoxserver.resources.processes.tracker import *
+
+            # get a pending task from the queue
+            taskId = dequeueTask(1)[0]
+
+            # create instance of TaskStatus class
+            pStatus = TaskStatus( taskId )
+            try:
+                # get task parameters and change status to STARTED
+                requestType , requestID , requestHandler , inputs = startTask( taskId )
+                # load the handler
+                module , _ , funct = requestHandler.rpartition(".")
+                handler = getattr( __import__(module,fromlist=[funct]) , funct )
+                # execute handler
+                handler( pStatus , inputs )
+                # if no terminating status has been set do it right now
+                stopTaskSuccessIfNotFinished( taskId )
+            except Exception as e :
+                pStatus.setFailure( unicode(e) )
         
         # Add DescribeCoverage request/response
         request = "service=WCS&version=2.0.0&request=DescribeCoverage&coverageid=%s" % str( self.ID )
@@ -525,15 +543,18 @@ class WCSTransactionTestCase(XMLTestCase):
         requestMid2 = """" xlink:role="urn:ogc:def:role:WCS:1.1:Pixels"/>"""
         requestMid3 = """<ows:Metadata  xlink:href="file:///"""
         requestMid4 = """" xlink:role="http://www.opengis.net/eop/2.0/EarthObservation"/>"""
-        requestEnd = """<wcst:Action codeSpace="http://schemas.opengis.net/wcs/1.1.0/actions.xml">Add</wcst:Action>
+        requestMid5 = """<wcst:Action codeSpace="http://schemas.opengis.net/wcs/1.1.0/actions.xml">Add</wcst:Action>
                 </wcst:Coverage>
-            </wcst:InputCoverages>
-        </wcst:Transaction>
-        """        
+            </wcst:InputCoverages>"""
+        requestAsync = """<wcst:ResponseHandler>http://NOTUSED</wcst:ResponseHandler>"""
+        requestEnd = """</wcst:Transaction>"""        
 
         params =  requestBegin + self.ID + requestMid1 + self.getDataFullPath(self.ADDtiffFile) + requestMid2
         if self.ADDmetaFile is not None:
             params += requestMid3 + self.getDataFullPath(self.ADDmetaFile) + requestMid4
+        params += requestMid5
+        if self.isAsync:
+            params += requestAsync
         params += requestEnd
         return (params, "xml")
 
@@ -541,11 +562,13 @@ class WCSTransactionTestCase(XMLTestCase):
         return os.path.abspath( os.path.join( self.getDataFileDir() , path_to) )
 
     def testBinaryComparisonXML(self):
-        # the RequestId element is set during ingestion and has thus to be 
-        # explicitly unified
+        # the TimeStamp and RequestId elements are set during ingestion and 
+        # thus have to be explicitly unified
         tree = etree.fromstring(self.getXMLData())
         for node in tree.findall("{http://www.opengis.net/wcs/1.1/wcst}RequestId"):
             node.text = "identifier"
+        for node in tree.findall("{http://www.opengis.net/wcs/1.1/wcst}TimeStamp"):
+            node.text = "2011-01-01T00:00:00Z"
         self.response.content = etree.tostring(tree, encoding="ISO-8859-1")
         super(WCSTransactionTestCase, self).testBinaryComparisonXML()
 

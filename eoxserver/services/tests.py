@@ -142,6 +142,17 @@ class WCS11TransactionRectifiedDatasetTestCase(eoxstest.WCSTransactionRectifiedG
     ADDtiffFile = "meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif"
     ADDmetaFile = "meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.xml"
 
+class WCS11TransactionRectifiedDatasetTestCase(eoxstest.WCSTransactionAsyncRectifiedGridCoverageTestCase):
+    """ This test case shall test the asynchronous inserting of a new 
+        RectifiedGridCoverage by means of the WCS 1.1 Transaction operation 
+        ("Add" action). 
+    """
+    fixtures = BASE_FIXTURES
+    ID = "RECTIFIED_MERIS_ID"
+    ADDtiffFile = "meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif"
+    ADDmetaFile = "meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.xml"
+    isAsync = True
+
 class WCS11TransactionReferenceableDatasetTestCase(eoxstest.WCSTransactionReferenceableGridCoverageTestCase):
     """ This test case shall test the synchronous inserting of a new 
         ReferenceableGridCoverage by means of the WCS 1.1 Transaction operation 
@@ -150,7 +161,6 @@ class WCS11TransactionReferenceableDatasetTestCase(eoxstest.WCSTransactionRefere
     fixtures = BASE_FIXTURES
     ID = "REFERENCEABLE_ASAR_ID"
     ADDtiffFile = "asar/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tiff"
-    ADDmetaFile = None
 
 #===============================================================================
 # WCS 2.0 Get Capabilities
