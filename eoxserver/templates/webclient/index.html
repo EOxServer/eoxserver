@@ -29,21 +29,27 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 -->
-<h1>EOxServer - Web Client</h1>
+<html>
+<head>
+</head>
+<body>
+    <h1>EOxServer - Web Client</h1>
 
-<h2>Available Dataset Series:</h2>
-<ul>
-{% for eoid in datasetseries_eoids %}
-    <li><a href="{{path}}{{eoid}}">{{ eoid }}</a></li>
-{% endfor %}
-</ul>
-<h2>Available Rectified Stitched Mosaics:</h2>
-<ul>
-{% for eoid in stitchedmosaic_eoids %}
-    <li><a href="{{path}}{{eoid}}">{{ eoid }}</a></li>
-{% endfor %}
-</ul>
+    <h2>Available Dataset Series:</h2>
+    <ul>
+    {% for eoid in datasetseries_eoids %}
+        <li><a href="{% url eoxserver.webclient.views.webclient eoid %}">{{ eoid }}</a></li>
+    {% endfor %}
+    </ul>
+    <h2>Available Rectified Stitched Mosaics:</h2>
+    <ul>
+    {% for eoid in stitchedmosaic_eoids %}
+        <li><a href="{% url eoxserver.webclient.views.webclient eoid %}">{{ eoid }}</a></li>
+    {% endfor %}
+    </ul>
 
-Powered by<br/>
-<a href="http://eoxserver.org" target="_blank"><img src="{{STATIC_URL}}EOxServer_logo_small.png" alt="EOxServer"/></a><br/>
-See <a href="http://eoxserver.org/doc" target="_blank">EOxServer documentation</a> for help.
+    Powered by<br/>
+    <a href="http://eoxserver.org" target="_blank"><img src="{{STATIC_URL}}EOxServer_logo_small.png" alt="EOxServer"/></a><br/>
+    See <a href="http://eoxserver.org/doc" target="_blank">EOxServer documentation</a> for help.
+</body>
+</html>

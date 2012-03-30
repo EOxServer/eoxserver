@@ -174,3 +174,7 @@ INSTALLED_APPS = (
 FIXTURE_DIRS = (
     join(PROJECT_DIR, '<$PATH_DST$>/data/fixtures'),
 )
+
+# Set this variable if the path to the instance cannot be resolved automatically,
+# e.g. in case of redirects
+#FORCE_SCRIPT_NAME="/path/to/instance/"
