@@ -38,13 +38,13 @@
     <h2>Available Dataset Series:</h2>
     <ul>
     {% for eoid in datasetseries_eoids %}
-        <li><a href="{ url eoxserver.webclient.views.webclient eoid }">{{ eoid }}</a></li>
+        <li><a href="{% url eoxserver.webclient.views.webclient eoid %}">{{ eoid }}</a></li>
     {% endfor %}
     </ul>
     <h2>Available Rectified Stitched Mosaics:</h2>
     <ul>
     {% for eoid in stitchedmosaic_eoids %}
-        <li><a href="{ url eoxserver.webclient.views.webclient eoid }">{{ eoid }}</a></li>
+        <li><a href="{% url eoxserver.webclient.views.webclient eoid %}">{{ eoid }}</a></li>
     {% endfor %}
     </ul>
 
