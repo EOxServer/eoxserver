@@ -419,6 +419,12 @@ In the Apache2 configuration file for your server, e.g.
 This setup will deploy your instance under the URL ``<url>`` and make it 
 publicly accessible.
 
+Now that the public URL is known don't forget to adjust the configuration in 
+``conf/eoxserver.conf``::
+
+    [services.owscommon]
+    http_service_url=http://<url>/ows
+
 .. _Data Registration:
 
 Data Registration

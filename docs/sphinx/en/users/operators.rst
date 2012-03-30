@@ -376,7 +376,7 @@ expect that the metadata file accompanying the data file has the same name with
 Metadata Preparation
 ~~~~~~~~~~~~~~~~~~~~
 
-EOxServer provides one tool to extract metadata from ENVISAT N1 files and
+EOxServer provides a tool to extract metadata from ENVISAT N1 files and
 convert it to EO O&M format. It can be found under ``tools/gen_envisat_md.py``.
 It accepts an input path to an N1 file and stores the resulting XML file under
 the same path with the appropriate file name (i.e. replacing the ``.N1``
