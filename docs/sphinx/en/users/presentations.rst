@@ -87,6 +87,9 @@ FOSSGIS 2012, Dessau
 `EOxServer, GDAL, MapServer - Zugang zu großen Archiven von Erdbeobachtungsdaten
 <http://www.fossgis.de/konferenz/2012/programm/events/379.de.html>`_
 
+:download:`Download the presentation 
+<presentations/20120322_fossgis_eoxserver_earthserver.pdf>`
+
 `Freie und Open Source Software für Geoinformationssysteme (FOSSGIS) 
 <http://www.fossgis.de/konferenz.html>`_ is the German speaking annual OSGeo 
 conference
