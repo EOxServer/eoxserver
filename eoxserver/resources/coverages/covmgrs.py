@@ -253,6 +253,8 @@ class BaseManagerContainerMixIn(object):
         return coverages
     
     def _create_contained(self, container, data_sources):
+        # TODO: make this more efficient by using updateModel()
+        
         new_datasets = []
         for data_source in data_sources:
             locations = data_source.detect()
@@ -334,6 +336,8 @@ class BaseManagerContainerMixIn(object):
         return new_datasets
     
     def _synchronize(self, container, data_sources, datasets):
+        # TODO: make this more efficient by using updateModel()
+        
         new_datasets = self._create_contained(container, data_sources)
             
         # delete all datasets, which do not have a file
@@ -351,7 +355,6 @@ class BaseManagerContainerMixIn(object):
                 )
                 
                 self.rect_dataset_mgr.delete(dataset.getCoverageId())
-                datasets.remove(dataset)
             
             elif dataset.getAttrValue("automatic"):
                 # remove all automatic coverages from a mosaic/dataset series
@@ -365,33 +368,6 @@ class BaseManagerContainerMixIn(object):
                 if not contained:
                     container.removeCoverage(dataset)
                     datasets.remove(dataset)
-        
-        # update footprint and time extent according to contents of container
-        datasets.extend(new_datasets)
-        if len(datasets) > 0:
-            # TODO ugly hack. provide a tzinfo, for datetimes which don't have one.
-            # The error occurs for datasets added in the admin, as no tzinfo is set there
-            begin_time = min(map(lambda dt: dt.replace(tzinfo=UTCOffsetTimeZoneInfo()) if dt.tzinfo is None else dt, [dataset.getBeginTime() for dataset in datasets]))
-            end_time = max(map(lambda dt: dt.replace(tzinfo=UTCOffsetTimeZoneInfo()) if dt.tzinfo is None else dt, [dataset.getEndTime() for dataset in datasets]))
-            
-            footprint = datasets[0].getFootprint()
-            for dataset in datasets[1:]:
-                footprint = footprint.union(dataset.getFootprint())
-            
-            if type(footprint) != MultiPolygon:
-                footprint = MultiPolygon(footprint)
-            
-            self.update(
-                container.getEOID(), set={
-                    "eo_metadata": EOMetadata(
-                        container.getEOID(),
-                        begin_time, end_time,
-                        footprint,
-                        "eogml" if container.getEOGML() else None,
-                        container.getEOGML()
-                    )
-                }
-            )
         
     def _guess_metadata_location(self, location):
         if location.getType() == "local":
