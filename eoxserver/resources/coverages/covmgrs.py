@@ -339,7 +339,11 @@ class BaseManagerContainerMixIn(object):
         # TODO: make this more efficient by using updateModel()
         
         new_datasets = self._create_contained(container, data_sources)
-            
+
+        # if new datasets have been created the container metadata
+        # have already been updated
+        do_md_update = not len(new_datasets)
+        
         # delete all datasets, which do not have a file
         for dataset in datasets:
             if dataset.getType() == "eo.rect_stitched_mosaic":
@@ -355,6 +359,9 @@ class BaseManagerContainerMixIn(object):
                 )
                 
                 self.rect_dataset_mgr.delete(dataset.getCoverageId())
+                
+                # force updating the metadata
+                do_md_update = True
             
             elif dataset.getAttrValue("automatic"):
                 # remove all automatic coverages from a mosaic/dataset series
@@ -367,7 +374,11 @@ class BaseManagerContainerMixIn(object):
                 
                 if not contained:
                     container.removeCoverage(dataset)
-                    datasets.remove(dataset)
+                    do_md_update = False
+
+        # if no update has been done do it now
+        if do_md_update:
+            container.updateModel({}, {}, {})
         
     def _guess_metadata_location(self, location):
         if location.getType() == "local":
