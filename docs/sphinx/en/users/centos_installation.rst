@@ -66,14 +66,12 @@ list.
 
 The first one is the `ELGIS (Enterprise Linux GIS)
 <http://wiki.osgeo.org/wiki/Enterprise_Linux_GIS>`_ repository which can be
-added with the following `yum` command:
-::
+added with the following `yum` command::
 
     sudo rpm -Uvh http://elgis.argeo.org/repos/6/elgis-release-6-6_0.noarch.rpm
 
 The second repository to be added is `EPEL (Extra Packages for Enterprise
-Linux) <http://fedoraproject.org/wiki/EPEL>`_ again via a simple `yum` command:
-::
+Linux) <http://fedoraproject.org/wiki/EPEL>`_ again via a simple `yum` command::
 
     sudo rpm -Uvh http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-5.noarch.rpm
 
@@ -86,8 +84,7 @@ applied like `libxml2 <http://xmlsoft.org/>`_. It is not mandatory to use this
 repository but it is highly recommended in order for all features of EOxServer 
 to work correctly.
 
-The repository is easily installed:
-::
+The repository is easily installed::
 
     cd /etc/yum.repos.d/
     sudo wget http://packages.eox.at/eox.repo
@@ -98,8 +95,7 @@ The repository is easily installed:
 Installation of required software packages
 ------------------------------------------
 
-Now the required packages can be installed with only one command:
-::
+Now the required packages can be installed with only one command::
 
     sudo yum install gcc gdal gdal-devel gdal-python libxml2 libxml2-python \
                      mapserver mapserver-python sqlite sqlite-devel \
@@ -107,6 +103,10 @@ Now the required packages can be installed with only one command:
 
 Further packages may be required if additional features (e.g: a full DBMS) are
 desired.
+
+
+Installing EOxServer
+--------------------
 
 For installation of Python packages `pip <http://www.pip-installer.org/>`_ is 
 used, which iself was installed in the previous step. It automatically resolves 
@@ -117,11 +117,32 @@ and installs all dependencies. So a simple
 
 suffices to install EOxServer itself.
 
+Upgrading EOxServer
+-------------------
+
+To upgrade an existing installation of EOxServer simply add the `--upgrade` 
+switch to your pip command::
+
+  sudo pip-python install --upgrade eoxserver
+
+When used with `spatialite <http://www.gaia-gis.it/spatialite/>`_ make sure 
+to rerun the manual pysqlite installation as explained below after every 
+upgrade.
+
+It might be a good idea to update the whole system which might include updates of required software packages such as MapServer::
+
+    sudo yum update
+
+Please follow the update procedure for any configured EOxServer instances in 
+case of a major version upgrade.
+
+spatialite usage
+----------------
+
 When used with `spatialite <http://www.gaia-gis.it/spatialite/>`_ EOxServer
 also requires `pysqlite <http://code.google.com/p/pysqlite/>`_. Unfortunately
 pysqlite is built by default without a required parameter. Thus it has to be
-installed manually:
-::
+installed manually::
 
     wget https://pysqlite.googlecode.com/files/pysqlite-2.6.3.tar.gz
     tar xzf pysqlite-2.6.3.tar.gz
@@ -132,15 +153,18 @@ Now `setup.cfg` needs to be opened with a text editor (like `vi`) and the line
 
     define=SQLITE_OMIT_LOAD_EXTENSION
 
-has to be deleted or commented. Pysqlite can now be installed with:
-::
+has to be deleted or commented. Pysqlite can now be installed with::
 
     sudo python setup.py install
 
+If the installation is rerun you will need to add the ``--force`` flag to 
+actually redo the installation::
+
+    sudo python setup.py install --force
+
 The ``--init_spatialite`` flag of the ``create_instance`` command of the 
 ``eoxserver-admin.py`` script used to initialize a sqlite database needs 
-pyspatialite:
-::
+pyspatialite::
 
     sudo yum install libspatialite-devel geos-devel proj-devel
     sudo pip-python install pyspatialite

@@ -204,12 +204,6 @@ There are several easy options to install EOxServer:
     cd eoxserver-trunk
     sudo python setup.py install
 
-To upgrade an existing installation of EOxServer simply add the `--upgrade` 
-switch to your pip command e.g.:
-::
-
-  sudo pip install --upgrade eoxserver
-
 If the directory EOxServer is installed to is not on the Python path, you will 
 have to configure the deployed instances accordingly, see 
 :ref:`EOxServer Deployment` below.
@@ -221,6 +215,20 @@ The successful installation of EOxServer can be tested using the
 .. index::
     single: EOxServer Instance Creation
     single: Instance Creation
+
+Upgrading EOxServer
+-------------------
+
+To upgrade an existing installation of EOxServer simply add the `--upgrade` 
+switch to your pip command e.g.:
+::
+
+  sudo pip install --upgrade eoxserver
+
+or rerun the manual installation as explained above.
+
+Please follow the update procedure for any configured EOxServer instances in 
+case of a major version upgrade.
 
 .. _Creating an Instance:
 
