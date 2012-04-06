@@ -167,7 +167,7 @@ three versions of the WCS specification:
 
 * version 1.0.0
 * version 1.1.0
-* version 2.0.0 including the Earth Observation Application Profile (EO-AP)
+* version 2.0.0 including the Earth Observation Application Profile (EO-WCS)
 
 Each of these versions supports three operations:
 
@@ -177,7 +177,7 @@ Each of these versions supports three operations:
   and its metadata
 * GetCoverage - returns (a subset of) the coverage data
 
-The WCS 2.0 EO-AP adds an additional operation:
+The WCS 2.0 EO-AP (EO-WCS) adds an additional operation:
 
 * DescribeEOCoverageSet - returns an XML document describing (a subset of) the
   datasets contained in a Rectified Stitched Mosaic or Dataset Series
@@ -217,7 +217,7 @@ that allows to select and view a subset of the coverage bands only. Furthermore,
 queryable "outlines" layers are added for Rectified Stitched Mosaics and Dataset
 Series which show the footprints of the Datasets they contain.
 
-.. TODO: Include once implementation is available.
+.. TODO: Web Processing Service: Include once implementation is available.
     Web Processing Service
     ~~~~~~~~~~~~~~~~~~~~~~
 
@@ -231,7 +231,8 @@ Series which show the footprints of the Datasets they contain.
     * DescribeProcess - returns an XML document describing a specific process
     * Execute - allows to invoke a process
 
-Security Architecture
----------------------
-
-...
+.. TODO: Security Architecture
+    Security Architecture
+    ---------------------
+    
+    ...
