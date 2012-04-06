@@ -167,13 +167,13 @@ class WCS11TransactionReferenceableDatasetTestCase(eoxstest.WCSTransactionRefere
 #===============================================================================
 
 class WCS20GetCapabilitiesValidTestCase(eoxstest.XMLTestCase):
-    """This test shall retrieve a valid WCS 2.0 EO-AP GetCapabilities response"""
+    """This test shall retrieve a valid WCS 2.0 EO-AP (EO-WCS) GetCapabilities response"""
     def getRequest(self):
         params = "service=WCS&version=2.0.0&request=GetCapabilities"
         return (params, "kvp")
 
 class WCS20GetCapabilitiesEmptyTestCase(eoxstest.XMLTestCase):
-    """This test shall retrieve a valid but empty WCS 2.0 EO-AP GetCapabilities response (see #41)"""
+    """This test shall retrieve a valid but empty WCS 2.0 EO-AP (EO-WCS) GetCapabilities response (see #41)"""
     fixtures = BASE_FIXTURES
     
     def getRequest(self):
@@ -181,13 +181,13 @@ class WCS20GetCapabilitiesEmptyTestCase(eoxstest.XMLTestCase):
         return (params, "kvp")
 
 class WCSVersionNegotiationOldStyleTestCase(eoxstest.XMLTestCase):
-    """This test shall check old style version negotiation. A valid WCS 2.0 EO-AP GetCapabilities response shall be returned"""
+    """This test shall check old style version negotiation. A valid WCS 2.0 EO-AP (EO-WCS) GetCapabilities response shall be returned"""
     def getRequest(self):
         params = "service=wcs&version=3.0.0&request=GetCapabilities"
         return (params, "kvp")
 
 class WCSVersionNegotiationNewStyleTestCase(eoxstest.XMLTestCase):
-    """This test shall check new style version negotiation. A valid WCS 2.0 EO-AP GetCapabilities response shall be returned"""
+    """This test shall check new style version negotiation. A valid WCS 2.0 EO-AP (EO-WCS) GetCapabilities response shall be returned"""
     def getRequest(self):
         params = "service=wcs&acceptversions=2.0.0,1.1.0&request=GetCapabilities"
         return (params, "kvp")
@@ -206,13 +206,13 @@ class WCSVersionNegotiationFaultTestCase(eoxstest.ExceptionTestCase):
 #===============================================================================
     
 class WCS20DescribeCoverageDatasetTestCase(eoxstest.XMLTestCase):
-    """This test shall retrieve a valid WCS 2.0 EO-AP DescribeCoverage response for a wcseo:RectifiedDataset."""
+    """This test shall retrieve a valid WCS 2.0 EO-AP (EO-WCS) DescribeCoverage response for a wcseo:RectifiedDataset."""
     def getRequest(self):
         params = "service=WCS&version=2.0.0&request=DescribeCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"
         return (params, "kvp")
 
 class WCS20DescribeCoverageMosaicTestCase(eoxstest.XMLTestCase):
-    """This test shall retrieve a valid WCS 2.0 EO-AP DescribeCoverage response for a wcseo:RectifiedStitchedMosaic."""
+    """This test shall retrieve a valid WCS 2.0 EO-AP (EO-WCS) DescribeCoverage response for a wcseo:RectifiedStitchedMosaic."""
     def getRequest(self):
         params = "service=WCS&version=2.0.0&request=DescribeCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced"
         return (params, "kvp")
@@ -255,19 +255,19 @@ class WCS20DescribeCoverageMissingParameterFaultTestCase(eoxstest.ExceptionTestC
 #===============================================================================
 
 class WCS20DescribeEOCoverageSetDatasetTestCase(eoxstest.XMLTestCase):
-    """This test shall retrieve a valid WCS 2.0 EO-AP DescribeEOCoverageSet response for a wcseo:RectifiedDataset"""
+    """This test shall retrieve a valid WCS 2.0 EO-AP (EO-WCS) DescribeEOCoverageSet response for a wcseo:RectifiedDataset"""
     def getRequest(self):
         params = "service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"
         return (params, "kvp")
 
 class WCS20DescribeEOCoverageSetMosaicTestCase(eoxstest.XMLTestCase):
-    """This test shall retrieve a valid WCS 2.0 EO-AP DescribeEOCoverageSet response for a wcseo:RectifiedStitchedMosaic"""
+    """This test shall retrieve a valid WCS 2.0 EO-AP (EO-WCS) DescribeEOCoverageSet response for a wcseo:RectifiedStitchedMosaic"""
     def getRequest(self):
         params = "service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=mosaic_MER_FRS_1P_RGB_reduced"
         return (params, "kvp")
 
 class WCS20DescribeEOCoverageSetDatasetSeriesTestCase(eoxstest.XMLTestCase):
-    """This test shall retrieve a valid WCS 2.0 EO-AP DescribeEOCoverageSet response for a wcseo:RectifiedDatasetSeries."""
+    """This test shall retrieve a valid WCS 2.0 EO-AP (EO-WCS) DescribeEOCoverageSet response for a wcseo:RectifiedDatasetSeries."""
     def getRequest(self):
         params = "service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=MER_FRS_1P_reduced"
         return (params, "kvp")
@@ -933,7 +933,7 @@ class WCS20GetCoverageReprojectedMultipartDatasetTestCase(eoxstest.WCS20GetCover
 #===============================================================================
 
 class WCS20DescribeCoverageReferenceableDatasetTestCase(eoxstest.XMLTestCase):
-    """This test shall retrieve a valid WCS 2.0 EO-AP DescribeCoverage response for a wcseo:ReferenceableDataset."""
+    """This test shall retrieve a valid WCS 2.0 EO-AP (EO-WCS) DescribeCoverage response for a wcseo:ReferenceableDataset."""
     def getRequest(self):
         params = "service=WCS&version=2.0.0&request=DescribeCoverage&CoverageId=ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775"
         return (params, "kvp")
@@ -963,7 +963,7 @@ class WCS20GetCoverageReferenceableDatasetGeogCRSSubsetExceedsExtentTestCase(eox
 #===============================================================================
 
 class WCS20PostGetCapabilitiesValidTestCase(eoxstest.XMLTestCase):
-    """This test shall retrieve a valid WCS 2.0 EO-AP GetCapabilities response
+    """This test shall retrieve a valid WCS 2.0 EO-AP (EO-WCS) GetCapabilities response
        via POST.
     """
     def getRequest(self):
@@ -976,7 +976,7 @@ class WCS20PostGetCapabilitiesValidTestCase(eoxstest.XMLTestCase):
         return (params, "xml")
 
 class WCS20PostDescribeCoverageDatasetTestCase(eoxstest.XMLTestCase):
-    """This test shall retrieve a valid WCS 2.0 EO-AP DescribeCoverage response 
+    """This test shall retrieve a valid WCS 2.0 EO-AP (EO-WCS) DescribeCoverage response 
        for a wcseo:RectifiedDataset via POST.
     """
     def getRequest(self):
@@ -987,7 +987,7 @@ class WCS20PostDescribeCoverageDatasetTestCase(eoxstest.XMLTestCase):
         return (params, "xml")
 
 class WCS20PostDescribeEOCoverageSetDatasetSeriesTestCase(eoxstest.XMLTestCase):
-    """This test shall retrieve a valid WCS 2.0 EO-AP DescribeEOCoverageSet response
+    """This test shall retrieve a valid WCS 2.0 EO-AP (EO-WCS) DescribeEOCoverageSet response
     for a wcseo:RectifiedDatasetSeries via POST.
     """
     def getRequest(self):
@@ -1427,13 +1427,13 @@ class SecWCS10GetCapabilitiesValidTestCase(eoxstest.XMLTestCase):
         return (params, "kvp", httpHeadersAuthnValid)
 
 class SecWCS20GetCapabilitiesValidAuthorizedTestCase(eoxstest.XMLTestCase):
-    """This test shall retrieve a valid WCS 2.0 EO-AP GetCapabilities response"""
+    """This test shall retrieve a valid WCS 2.0 EO-AP (EO-WCS) GetCapabilities response"""
     def getRequest(self):
         params = "service=WCS&version=2.0.0&request=GetCapabilities"
         return (params, "kvp", httpHeadersAuthnValid)
 
 class SecWCS20PostGetCapabilitiesValidTestCase(eoxstest.XMLTestCase):
-    """This test shall retrieve a valid WCS 2.0 EO-AP GetCapabilities response
+    """This test shall retrieve a valid WCS 2.0 EO-AP (EO-WCS) GetCapabilities response
        via POST.
     """
     def getRequest(self):
@@ -1446,7 +1446,7 @@ class SecWCS20PostGetCapabilitiesValidTestCase(eoxstest.XMLTestCase):
         return (params, "xml", httpHeadersAuthnValid)
 
 class SecWCS20GetCapabilitiesValidNotAuthorizedTestCase(eoxstest.ExceptionTestCase):
-    """This test shall retrieve a valid WCS 2.0 EO-AP GetCapabilities response without privileges"""
+    """This test shall retrieve a valid WCS 2.0 EO-AP (EO-WCS) GetCapabilities response without privileges"""
     def getRequest(self):
         params = "service=WCS&version=2.0.0&request=GetCapabilities"
         return (params, "kvp", httpHeadersAuthnInvalid)
