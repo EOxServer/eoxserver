@@ -58,6 +58,27 @@ def validateEOOM(xml):
     except etree.Error as e:
         raise ValidationError(str(e))
     
+#TODO:
+#def validateEOMetadata(...):
+#    """
+#    This method validates the consistency of the EO Metadata record, i.e.:
+#        * check that the begin time in timestamp_begin is the same as in EO GML
+#        * check that the end time in timestamp_end is the same as in EO GML
+#        * check that the footprint is the same as in EO GML
+#        """
+#        EPSILON = 1e-10
+#        
+#        if self.eo_gml:
+#            md_int = MetadataInterfaceFactory.getMetadataInterface(self.eo_gml, "eogml")
+#            
+#            if self.timestamp_begin != md_int.getBeginTime().replace(tzinfo=None):
+#                raise ValidationError("EO GML acquisition begin time does not match.")
+#            if self.timestamp_end != md_int.getEndTime().replace(tzinfo=None):
+#                raise ValidationError("EO GML acquisition end time does not match.")
+#            if self.footprint is not None:
+#                if not self.footprint.equals_exact(GEOSGeometry(md_int.getFootprint()), EPSILON * max(self.footprint.extent)): # compare the footprints with a tolerance in order to account for rounding and string conversion errors
+#                    raise ValidationError("EO GML footprint does not match.")
+
 def validateCoverageIDnotInEOOM(coverageID, xml):
     if xml is None or len(xml) == 0:
         return
