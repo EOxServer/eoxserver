@@ -631,7 +631,7 @@ were 58 IKONOS multispectral (4-band 16-bit), 58 IKONOS panchromatic (1-band
 16-bit) and 58 IKONOS pansharpened (3-band 8-bit) scenes in GeoTIFF format with
 file sizes ranging between 60 MB and 1.7 GB. The file size did not have any
 discernible impact on the time it took to register. The average registration
-took about 61 ms, meaning that ingesting nearly 1000 datasets per minute is
+took about 61 ms, meaning that registering nearly 1000 datasets per minute is
 possible.
 
 The generation of mosaics was performed on a virtual machine with one
