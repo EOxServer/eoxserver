@@ -92,7 +92,7 @@ class CoverageWrapper(ResourceWrapper):
     def getCoverageSubtype(self):
         """
         This method shall return the coverage subtype as defined in
-        the WCS 2.0 EO-AP. It must be overridden by concrete
+        the WCS 2.0 EO-AP (EO-WCS). It must be overridden by concrete
         coverage wrappers. By default this method raises
         :exc:`~.InternalError`.
         
@@ -448,7 +448,7 @@ class TiledDataWrapper(object):
 class EOMetadataWrapper(object):
     """
     This wrapper class is intended as a mix-in for EO coverages and 
-    dataset series as defined in the WCS 2.0 EO-AP.
+    dataset series as defined in the WCS 2.0 EO-AP (EO-WCS).
     """    
     @property
     def __model(self):
@@ -616,7 +616,7 @@ class EOCoverageWrapper(EOMetadataWrapper, CoverageWrapper):
     def getEOCoverageSubtype(self):
         """
         This method shall return the EO Coverage subtype according to
-        the WCS 2.0 EO-AP. It must be overridden by child
+        the WCS 2.0 EO-AP (EO-WCS). It must be overridden by child
         implementations. By default :exc:`~.InternalError` is raised.
         """
         
@@ -637,7 +637,7 @@ class EOCoverageWrapper(EOMetadataWrapper, CoverageWrapper):
         Returns ``None``.
         
         .. note:: The lineage element has yet to be specified in
-                  detail in the WCS 2.0 EO-AP.
+                  detail in the WCS 2.0 EO-AP (EO-WCS).
         """
         
         return None

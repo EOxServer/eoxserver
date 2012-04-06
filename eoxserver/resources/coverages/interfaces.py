@@ -666,7 +666,7 @@ class EOWCSObjectInterface(EOMetadataInterface):
 class EOCoverageInterface(CoverageInterface, EOWCSObjectInterface):
     """
     This interface is the base interface for implementations of EO
-    Coverages according to the WCS 2.0 EO-AP. It inherits from
+    Coverages according to the WCS 2.0 EO-AP (EO-WCS). It inherits from
     :class:`CoverageInterface` and class:`EOWCSObjectInterface`. It is not
     intended to be implemented directly; rather one of its descendants shall
     be used.
@@ -766,7 +766,7 @@ class EOCoverageInterface(CoverageInterface, EOWCSObjectInterface):
 class RectifiedDatasetInterface(EOCoverageInterface, RectifiedGridInterface):
     """
     This class is intended for implementations of RectifiedDataset
-    objects according to the WCS 2.0 EO-AP. It inherits from
+    objects according to the WCS 2.0 EO-AP (EO-WCS). It inherits from
     :class:`~.EODatasetInterface` and :class:`~.RectifiedGridInterface`.
     
     :Interface ID: resources.coverages.interfaces.RectifiedDataset
@@ -779,7 +779,7 @@ class RectifiedDatasetInterface(EOCoverageInterface, RectifiedGridInterface):
 class ReferenceableDatasetInterface(EOCoverageInterface, ReferenceableGridInterface):
     """
     This class is intended for implementations of RectifiedDataset
-    objects according to the WCS 2.0 EO-AP. It inherits from
+    objects according to the WCS 2.0 EO-AP (EO-WCS). It inherits from
     :class:`~.EODatasetInterface` and
     :class:`ReferenceableGridInterface`.
 
@@ -844,7 +844,7 @@ class ContainerInterface(RegisteredInterface):
 class RectifiedStitchedMosaicInterface(EOCoverageInterface, RectifiedGridInterface, ContainerInterface):
     """
     This class is intended for implementations of Rectified Stitched
-    Mosaic objects according to WCS 2.0 EO-AP. It inherits from
+    Mosaic objects according to WCS 2.0 EO-AP (EO-WCS). It inherits from
     :class:`~.EOCoverageInterface`, :class:`~.RectifiedGridInterface`
     and :class:`~.TileIndexInterface`.
     
@@ -868,7 +868,7 @@ class RectifiedStitchedMosaicInterface(EOCoverageInterface, RectifiedGridInterfa
 class DatasetSeriesInterface(ResourceInterface, EOWCSObjectInterface):
     """
     This interface is intended for implementations of Dataset Series
-    according to the WCS 2.0 EO-AP. It inherits from 
+    according to the WCS 2.0 EO-AP (EO-WCS). It inherits from 
     :class:`~.ResourceInterface` and :class:`~.EOWCSObjectInterface`.
     
     :Interface ID: resources.coverages.interfaces.DatasetSeries
