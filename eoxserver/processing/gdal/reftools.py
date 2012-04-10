@@ -57,7 +57,7 @@ def _open_ds(path_or_ds):
     if isinstance(path_or_ds, gdal.Dataset):
         return path_or_ds
     gdal.AllRegister()
-    return gdal.Open(path_or_ds)
+    return gdal.Open(str(path_or_ds))
 
 
 def get_footprint_wkt(path_or_ds):

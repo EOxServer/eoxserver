@@ -107,7 +107,7 @@ setup(
     ],
     
     install_requires=[
-        'django>=1.3',
+        'django==1.3.1',
         'pysqlite>=2.5',
     ],
     
@@ -121,7 +121,7 @@ setup(
     long_description=read("README"),
     
     classifiers=[
-          'Development Status :: 3 - Alpha',
+          'Development Status :: 4 - Beta',
           'Environment :: Console',
           'Environment :: Web Environment',
           'Framework :: Django',

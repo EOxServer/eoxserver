@@ -1,13 +1,13 @@
-=============== =====================  ===================================  ================================
+==============  =====================  ===================================  ==================================
  Login           Name                   Email / Contact                      Area(s)
-=============== =====================  ===================================  ================================
+==============  =====================  ===================================  ==================================
 meissls         Stephan Meissl         stephan.meissl at eox.at             Overall
 krauses         Stephan Krause         stephan.krause at eox.at             Overall
 schindlerf      Fabian Schindler       fabian.schindler at eox.at           OGC Services
 novacek         Milan Novacek          milan.novacek at siemens.com         S2P (WCS) Proxy
 martin.paces    Martin Paces           martin.paces at iguassu.cz           WPS
-abonitz         Arndt Bonitz           arndt.bonitz@ait.ac.at               IDM
+abonitz         Arndt Bonitz           arndt.bonitz at ait.ac.at            IDM
 MiroslavHoudek  Miroslav Houdek        miroslav.houdek at iguassu.cz        WPS
 ungarj          Joachim Ungar          joachim.ungar at eox.at              Usability & Testing
-schillerc       Christian Schiller     christian.schiller@eox.at            Documentation, Usability & Testing
-=============== =====================  ===================================  ================================
+schillerc       Christian Schiller     christian.schiller at eox.at         Documentation, Usability & Testing
+==============  =====================  ===================================  ==================================

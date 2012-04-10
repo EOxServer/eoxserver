@@ -37,8 +37,10 @@ with additional application logic.
 import os.path
 import operator
 
+from django.db.models import Min, Max
 from django.contrib.gis.geos import GEOSGeometry
 from django.contrib.gis.geos.geometry import MultiPolygon
+from django.contrib.gis.db.models import Union
 
 from eoxserver.core.system import System
 from eoxserver.core.resources import (
@@ -90,7 +92,7 @@ class CoverageWrapper(ResourceWrapper):
     def getCoverageSubtype(self):
         """
         This method shall return the coverage subtype as defined in
-        the WCS 2.0 EO-AP. It must be overridden by concrete
+        the WCS 2.0 EO-AP (EO-WCS). It must be overridden by concrete
         coverage wrappers. By default this method raises
         :exc:`~.InternalError`.
         
@@ -446,7 +448,7 @@ class TiledDataWrapper(object):
 class EOMetadataWrapper(object):
     """
     This wrapper class is intended as a mix-in for EO coverages and 
-    dataset series as defined in the WCS 2.0 EO-AP.
+    dataset series as defined in the WCS 2.0 EO-AP (EO-WCS).
     """    
     @property
     def __model(self):
@@ -614,7 +616,7 @@ class EOCoverageWrapper(EOMetadataWrapper, CoverageWrapper):
     def getEOCoverageSubtype(self):
         """
         This method shall return the EO Coverage subtype according to
-        the WCS 2.0 EO-AP. It must be overridden by child
+        the WCS 2.0 EO-AP (EO-WCS). It must be overridden by child
         implementations. By default :exc:`~.InternalError` is raised.
         """
         
@@ -635,7 +637,7 @@ class EOCoverageWrapper(EOMetadataWrapper, CoverageWrapper):
         Returns ``None``.
         
         .. note:: The lineage element has yet to be specified in
-                  detail in the WCS 2.0 EO-AP.
+                  detail in the WCS 2.0 EO-AP (EO-WCS).
         """
         
         return None
@@ -1082,6 +1084,11 @@ class RectifiedStitchedMosaicWrapper(TiledDataWrapper, RectifiedGridWrapper, EOC
         
     __model = property(__get_model, __set_model)
     
+    def __init__(self):
+        super(RectifiedStitchedMosaicWrapper, self).__init__()
+        
+        self.__block_md_update = False
+    
     # NOTE: partially implemented in ResourceWrapper
     
     def _get_create_dict(self, params):
@@ -1119,22 +1126,52 @@ class RectifiedStitchedMosaicWrapper(TiledDataWrapper, RectifiedGridWrapper, EOC
     
     def _updateModel(self, link_kwargs, unlink_kwargs, set_kwargs):
         super(RectifiedStitchedMosaicWrapper, self)._updateModel(link_kwargs, unlink_kwargs, set_kwargs)
-        
-        data_sources = link_kwargs.get("data_sources", [])
-        coverages = link_kwargs.get("coverages", [])
-        for data_source in data_sources:
-            self.__model.data_sources.add(data_source.getRecord())
-        for coverage in coverages:
-            self.addCoverage(coverage)
-        
-        data_sources = unlink_kwargs.get("data_sources", [])
-        coverages = unlink_kwargs.get("coverages", [])
-        for data_source in data_sources:
-            self.__model.data_sources.remove(data_source.getRecord())
-        for coverage in coverages:
-            self.removeCoverage(coverage)
+
+        try:
+            self.__block_md_update = True
             
+            data_sources = link_kwargs.get("data_sources", [])
+            coverages = link_kwargs.get("coverages", [])
+            for data_source in data_sources:
+                self.__model.data_sources.add(data_source.getRecord())
+            for coverage in coverages:
+                self.addCoverage(coverage)
+            
+            data_sources = unlink_kwargs.get("data_sources", [])
+            coverages = unlink_kwargs.get("coverages", [])
+            for data_source in data_sources:
+                self.__model.data_sources.remove(data_source.getRecord())
+            for coverage in coverages:
+                self.removeCoverage(coverage)
+                
+            self._updateMetadata()
+        finally:
+            self.__block_md_update = False
+
         # TODO: tile_index
+
+    def _updateMetadata(self):
+        qs = self.__model.rect_datasets.all()
+        
+        if len(qs):
+            eo_metadata_set = EOMetadataRecord.objects.filter(
+                rectifieddatasetrecord_set__in = qs
+            )
+            
+            begin_time = min(eo_metadata_set.values_list('timestamp_begin', flat=True))
+            end_time = max(eo_metadata_set.values_list('timestamp_end', flat=True))
+            footprint = eo_metadata_set.aggregate(
+                Union('footprint')
+            )["footprint__union"]
+            
+            if footprint.geom_type.upper() != "MULTIPOLYGON":
+                footprint = MultiPolygon(footprint)
+
+            self.__model.eo_metadata.timestamp_begin = begin_time
+            self.__model.eo_metadata.timestamp_end = end_time
+            self.__model.eo_metadata.footprint = footprint
+            
+            self.__model.eo_metadata.save()
     
     #-------------------------------------------------------------------
     # CoverageInterface implementations
@@ -1318,6 +1355,9 @@ class RectifiedStitchedMosaicWrapper(TiledDataWrapper, RectifiedGridWrapper, EOC
             )
         
         self.__model.rect_datasets.add(res_id)
+        
+        if not self.__block_md_update:
+            self._updateMetadata()
     
     def removeCoverage(self, wrapper):
         """
@@ -1335,6 +1375,9 @@ class RectifiedStitchedMosaicWrapper(TiledDataWrapper, RectifiedGridWrapper, EOC
             )
         else:
             self.__model.rect_datasets.remove(res_id)
+        
+        if not self.__block_md_update:
+            self._updateMetadata()
     
     def getDataDirs(self):
         """
@@ -1400,6 +1443,11 @@ class DatasetSeriesWrapper(EOMetadataWrapper, ResourceWrapper):
     
     # NOTE: partially implemented by ResourceWrapper
     
+    def __init__(self):
+        super(DatasetSeriesWrapper, self).__init__()
+        
+        self.__block_md_update = False
+    
     def __get_model(self):
         return self._ResourceWrapper__model
     
@@ -1437,24 +1485,102 @@ class DatasetSeriesWrapper(EOMetadataWrapper, ResourceWrapper):
     
     def _updateModel(self, link_kwargs, unlink_kwargs, set_kwargs):
         super(DatasetSeriesWrapper, self)._updateModel(link_kwargs, unlink_kwargs, set_kwargs)
-        
-        # link
-        data_sources = link_kwargs.get("data_sources", [])
-        coverages = link_kwargs.get("coverages", [])
-        for data_source in data_sources:
-            self.__model.data_sources.add(data_source.getRecord())
-        for coverage in coverages:
-            self.addCoverage(coverage)
-        
-        # unlink
-        data_sources = unlink_kwargs.get("data_sources", [])
-        coverages = unlink_kwargs.get("coverages", [])
-        for data_source in data_sources:
-            self.__model.data_sources.remove(data_source.getRecord())
-        for coverage in coverages:
-            self.removeCoverage(coverage)
-        
+
+        try:
+            self.__block_md_update = True
+            
+            # link
+            data_sources = link_kwargs.get("data_sources", [])
+            coverages = link_kwargs.get("coverages", [])
+            for data_source in data_sources:
+                self.__model.data_sources.add(data_source.getRecord())
+            for coverage in coverages:
+                self.addCoverage(coverage)
+            
+            # unlink
+            data_sources = unlink_kwargs.get("data_sources", [])
+            coverages = unlink_kwargs.get("coverages", [])
+            for data_source in data_sources:
+                self.__model.data_sources.remove(data_source.getRecord())
+            for coverage in coverages:
+                self.removeCoverage(coverage)
+                
+            self._updateMetadata()
+        finally:
+            self.__block_md_update = False
     
+    def _aggregateMetadata(self, eo_metadata_set):
+        begin_time = min(eo_metadata_set.values_list('timestamp_begin', flat=True))
+        end_time = max(eo_metadata_set.values_list('timestamp_end', flat=True))
+        footprint = eo_metadata_set.aggregate(
+            Union('footprint')
+        )["footprint__union"]
+        
+        return (begin_time, end_time, footprint)
+    
+    def _updateMetadata(self):
+        begin_time = None
+        footprint = None
+        
+        rect_qs = self.__model.rect_datasets.all()
+        if len(rect_qs):
+            eo_metadata_set = EOMetadataRecord.objects.filter(
+                rectifieddatasetrecord_set__in = rect_qs
+            )
+
+            begin_time, end_time, footprint = self._aggregateMetadata(
+                eo_metadata_set
+            )
+
+        ref_qs = self.__model.ref_datasets.all()
+        if len(ref_qs):
+            eo_metadata_set = EOMetadataRecord.objects.filter(
+                referenceabledatasetrecord_set__in = ref_qs
+            )
+            
+            begin_time_ref, end_time_ref, footprint_ref = self._aggregateMetadata(
+                eo_metadata_set
+            )
+            
+            if begin_time:
+                begin_time = min(begin_time, begin_time_ref)
+                end_time = max(end_time, end_time_ref)
+                footprint = footprint.union(footprint_ref)
+            else:
+                begin_time = begin_time_ref
+                end_time = end_time_ref
+                footprint = footprint_ref
+
+        mosaic_qs = self.__model.rect_stitched_mosaics.all()
+        if len(mosaic_qs):
+            eo_metadata_set = EOMetadataRecord.objects.filter(
+                rectifiedstitchedmosaicrecord_set__in = mosaic_qs
+            )
+        
+            begin_time_mosaics, end_time_mosaics, footprint_mosaics = self._aggregateMetadata(
+                eo_metadata_set
+            )
+            
+            if begin_time:
+                begin_time = min(begin_time, begin_time_mosaics)
+                end_time = max(end_time, end_time_mosaics)
+                footprint = footprint.union(footprint_mosaics)
+            else:
+                begin_time = begin_time_mosaics
+                end_time = end_time_mosaics
+                footprint = footprint_mosaics
+
+        if footprint.geom_type.upper() != "MULTIPOLYGON":
+            footprint = MultiPolygon(footprint)
+
+        # if there are no children do not update the metadata
+        if begin_time:
+            self.__model.eo_metadata.timestamp_begin = begin_time
+            self.__model.eo_metadata.timestamp_end = end_time
+            self.__model.eo_metadata.footprint = footprint
+            
+            self.__model.eo_metadata.save()
+            
     #-------------------------------------------------------------------
     # DatasetSeriesInterface methods
     #-------------------------------------------------------------------
@@ -1536,6 +1662,9 @@ class DatasetSeriesWrapper(EOMetadataWrapper, ResourceWrapper):
                 "Cannot add coverages of type '%s' to Dataset Series" %\
                 res_type
             )
+        
+        if not self.__block_md_update:
+            self._updateMetadata()
 
     def removeCoverage(self, wrapper):
         """
@@ -1562,6 +1691,9 @@ class DatasetSeriesWrapper(EOMetadataWrapper, ResourceWrapper):
                 "Cannot add coverages of type '%s' to Dataset Series" %\
                 res_type
             )
+    
+        if not self.__block_md_update:
+            self._updateMetadata()
     
     def getDataDirs(self):
         """
