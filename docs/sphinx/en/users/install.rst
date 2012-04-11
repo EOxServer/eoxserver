@@ -23,7 +23,7 @@
   # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
   # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
   # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+  # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
   # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
   # IN THE SOFTWARE.
   #-----------------------------------------------------------------------------
@@ -41,7 +41,7 @@ Installation
     :depth: 3
     :backlinks: top
 
-Before you can use EOxServer, you’ll need to get it installed. Following this 
+Before you can use EOxServer, you’ll need to get it installed. Following this
 guide will give you a simple, minimal though working installation.
 
 A guide for the :ref:`CentOSInstallation` is also available.
@@ -82,15 +82,15 @@ same machine as EOxServer puts additional load on the server. Usually, running
 the Tomcat server will require about 512 MB of RAM. Note that the different
 components of the IDM may be deployed on different machines. The additional
 network latency for checking a remote PDP on every incoming request may have a
-considerable impact on the performance of the services (in particular WMS), 
+considerable impact on the performance of the services (in particular WMS),
 though, and thus it may be preferable to run the PDP on the same machine as
 EOxServer.
 
 Dependencies
 ------------
 
-EOxServer depends on some external software. Table: 
-":ref:`table_eoxserver_dependencies`" below shows the minimal required software 
+EOxServer depends on some external software. Table:
+":ref:`table_eoxserver_dependencies`" below shows the minimal required software
 to run EOxServer.
 
 .. _table_eoxserver_dependencies:
@@ -118,12 +118,12 @@ to run EOxServer.
     +-----------+------------------+-------------------------------------------+
 
 
-EOxServer is written in `Python <http://www.python.org/>`_ and uses the 
-`Django <https://www.djangoproject.com>`_ framework which requires a 
-Python version from 2.4 to 2.7. Due to backwards incompatibilities in Python 
+EOxServer is written in `Python <http://www.python.org/>`_ and uses the
+`Django <https://www.djangoproject.com>`_ framework which requires a
+Python version from 2.4 to 2.7. Due to backwards incompatibilities in Python
 3.0, Django and thus EOxServer does not currently work with Python 3.0.
 
-EOxServer makes heavy usage of the `OSGeo <http://osgeo.org>`_ projects 
+EOxServer makes heavy usage of the `OSGeo <http://osgeo.org>`_ projects
 `GDAL <http://www.gdal.org>`_ and `MapServer <http://mapserver.org>`_.
 
 EOxServer also requires a database to store its internal data objects. Since it
@@ -135,12 +135,12 @@ be installed. We suggest you use one of the following:
  * For testing environments or small amounts of data, the `SQLite
    <http://sqlite.org/>`_ database provides a lightweight and easy-to-use
    system.
- * However, if you'd like to work with a "large" database engine in an 
+ * However, if you'd like to work with a "large" database engine in an
    operational environment we recommend installing `PostgreSQL
    <http://www.postgresql.org/>`_.
 
-For more and detailed information about database backends please refer to 
-`Django database notes <https://docs.djangoproject.com/en/1.3/ref/databases/>`_ 
+For more and detailed information about database backends please refer to
+`Django database notes <https://docs.djangoproject.com/en/1.3/ref/databases/>`_
 and `GeoDjango installation
 <https://docs.djangoproject.com/en/1.3/ref/contrib/gis/install/>`_.
 
@@ -164,52 +164,52 @@ Installing EOxServer
 
 There are several easy options to install EOxServer:
 
-* Install an official release of EOxServer, the best approach for users who 
-  want a stable version and aren't concerned about running a slightly older 
-  version of EOxServer. You can install EOxServer either from 
-  
-  * `PyPI - the Python Package Index <http://pypi.python.org/pypi>`_ using 
+* Install an official release of EOxServer, the best approach for users who
+  want a stable version and aren't concerned about running a slightly older
+  version of EOxServer. You can install EOxServer either from
+
+  * `PyPI - the Python Package Index <http://pypi.python.org/pypi>`_ using
     `pip <http://www.pip-installer.org/en/latest/index.html>`_:
     ::
-    
+
       sudo pip install eoxserver
-    
-  * Or from the `EOxServer download page <http://eoxserver.org/wiki/Download>`_ 
+
+  * Or from the `EOxServer download page <http://eoxserver.org/wiki/Download>`_
     using pip:
     ::
-    
+
       sudo pip install http://eoxserver.org/export/head/downloads/EOxServer-<version>.tar.gz
-    
+
     or manual:
     ::
-    
+
       wget http://eoxserver.org/export/head/downloads/EOxServer-<version>.tar.gz .
       tar xvfz EOxServer-<version>.tar.gz
       cd EOxServer-<version>
       sudo python setup.py install
 
-* Install the latest development version, the best option for users who 
-  want the latest-and-greatest features and aren't afraid of running 
-  brand-new code. Make sure you have `Subversion 
-  <http://subversion.tigris.org/>`_ installed and install EOxServer's 
+* Install the latest development version, the best option for users who
+  want the latest-and-greatest features and aren't afraid of running
+  brand-new code. Make sure you have `Subversion
+  <http://subversion.tigris.org/>`_ installed and install EOxServer's
   main development branch (the trunk) using pip:
   ::
-  
+
     sudo pip install svn+http://eoxserver.org/svn/trunk
-    
+
   or manual:
   ::
-  
+
     svn co http://eoxserver.org/svn/trunk/ eoxserver-trunk
     cd eoxserver-trunk
     sudo python setup.py install
 
-If the directory EOxServer is installed to is not on the Python path, you will 
-have to configure the deployed instances accordingly, see 
+If the directory EOxServer is installed to is not on the Python path, you will
+have to configure the deployed instances accordingly, see
 :ref:`EOxServer Deployment` below.
 
-The successful installation of EOxServer can be tested using the 
-:ref:`autotest instance <Autotest>` which is described in more detail in the 
+The successful installation of EOxServer can be tested using the
+:ref:`autotest instance <Autotest>` which is described in more detail in the
 :ref:`EOxServer Developers' Guide`.
 
 .. index::
@@ -219,7 +219,7 @@ The successful installation of EOxServer can be tested using the
 Upgrading EOxServer
 -------------------
 
-To upgrade an existing installation of EOxServer simply add the `--upgrade` 
+To upgrade an existing installation of EOxServer simply add the `--upgrade`
 switch to your pip command e.g.:
 ::
 
@@ -227,7 +227,7 @@ switch to your pip command e.g.:
 
 or rerun the manual installation as explained above.
 
-Please follow the update procedure for any configured EOxServer instances in 
+Please follow the update procedure for any configured EOxServer instances in
 case of a major version upgrade.
 
 .. _Creating an Instance:
@@ -235,26 +235,26 @@ case of a major version upgrade.
 Creating an Instance
 --------------------
 
-Speaking of EOxServer we distinguish the EOxServer distribution (the code that 
-implements the different services the software provides) and EOxServer 
-instances (a collection of data and configuration files that enables deployment 
+Speaking of EOxServer we distinguish the EOxServer distribution (the code that
+implements the different services the software provides) and EOxServer
+instances (a collection of data and configuration files that enables deployment
 of the software.
 
-We recommend to use the :file:`eoxserver-admin.py` script that comes with 
+We recommend to use the :file:`eoxserver-admin.py` script that comes with
 EOxServer. It provides the command `create_instance` in order to create an
 EOxServer instance:
 
     Usage: ``eoxserver-admin.py create_instance [options] INSTANCE_ID``
-    
-    Create a new EOxServer instance ``INSTANCE_ID`` in the root directory with 
-    name ``INSTANCE_ID`` in the given (optional) directory. If the 
-    ``--init_spatialite`` flag is set, then an initial sqlite database will be 
+
+    Create a new EOxServer instance ``INSTANCE_ID`` in the root directory with
+    name ``INSTANCE_ID`` in the given (optional) directory. If the
+    ``--init_spatialite`` flag is set, then an initial sqlite database will be
     created and initialized.
-    
+
     Options:
-    
+
     -h, --help           show help message and exit
-    -d DIR, --dir=DIR    Optional base directory. Defaults to the current 
+    -d DIR, --dir=DIR    Optional base directory. Defaults to the current
                          directory.
     --initial_data=DIR   Location of the initial data. Must be JSON.
     --init_spatialite    Flag to initialize the sqlite database.
@@ -268,41 +268,46 @@ Configuration
 
 Every EOxServer instance has three configuration files:
 
-* ``settings.py`` - `template 
+* ``settings.py`` - `template
   <http://eoxserver.org/browser/trunk/eoxserver/conf/TEMPLATE_settings.py>`__
-* ``conf/eoxserver.conf`` - `template 
+* ``conf/eoxserver.conf`` - `template
   <http://eoxserver.org/browser/trunk/eoxserver/conf/TEMPLATE_eoxserver.conf>`__
-* ``conf/template.map`` - `template 
+* ``conf/template.map`` - `template
   <http://eoxserver.org/browser/trunk/eoxserver/conf/TEMPLATE_template.map>`__
 
-For each of them there is a template in the ``eoxserver/conf`` directory of the 
-EOxServer distribution (referenced above) which is copied and adjusted by the 
-`create_instance` command of the :file:`eoxserver-admin.py` script to the 
-instance directory. If you create an EOxServer instance without the script you 
+For each of them there is a template in the ``eoxserver/conf`` directory of the
+EOxServer distribution (referenced above) which is copied and adjusted by the
+`create_instance` command of the :file:`eoxserver-admin.py` script to the
+instance directory. If you create an EOxServer instance without the script you
 can copy those files and edit them yourself.
 
-The file ``settings.py`` contains the Django configuration. Settings that need 
+The file ``settings.py`` contains the Django configuration. Settings that need
 to be customized:
 
 * ``PROJECT_DIR``: Absolute path to the instance directory.
 * ``DATABASES``: The database connection details. For detailed information see
   `Database Setup`_
 
-You can also customize further settings, for a complete reference please refer 
-to the `Django settings overview 
+You can also customize further settings, for a complete reference please refer
+to the `Django settings overview
 <https://docs.djangoproject.com/en/1.3/topics/settings/>`_.
 
-The file ``conf/eoxserver.conf`` contains EOxServer specific settings. Please 
+Please especially consider the setting of the 'TIME_ZONE
+<https://docs.djangoproject.com/en/1.3/ref/settings/#std:setting-TIME_ZONE>`_
+parameter and read the Notes provided in the ``settings.py`` file.
+
+
+The file ``conf/eoxserver.conf`` contains EOxServer specific settings. Please
 refer to the inline documentation for details.
 
-The file ``conf/template.map`` contains basic metadata for the OGC Web Services 
-used by MapServer. For more information on metadata supported please refer to 
-the `MapServer Mapfile documentation 
+The file ``conf/template.map`` contains basic metadata for the OGC Web Services
+used by MapServer. For more information on metadata supported please refer to
+the `MapServer Mapfile documentation
 <http://mapserver.org/mapfile/index.html>`_.
 
-Once you have created an instance, you have to configure and synchronize the 
-database. If using the `create_instance` command of the 
-:file:`eoxserver-admin.py` script with the ``--init_spatialite`` flag, all you 
+Once you have created an instance, you have to configure and synchronize the
+database. If using the `create_instance` command of the
+:file:`eoxserver-admin.py` script with the ``--init_spatialite`` flag, all you
 have to do is:
 
 * Make sure EOxServer is on your ``PYTHONPATH`` environment variable
@@ -318,9 +323,9 @@ have to do is:
 Database Setup
 ~~~~~~~~~~~~~~
 
-This section is only needed if the ``--init_spatialite`` flag was not used 
-during instance creation or a PostgreSQL/PostGIS database back-end shall be 
-used. Before proceeding, please make sure that you have installed all required 
+This section is only needed if the ``--init_spatialite`` flag was not used
+during instance creation or a PostgreSQL/PostGIS database back-end shall be
+used. Before proceeding, please make sure that you have installed all required
 software for the database system of your choice.
 
 Using a SQLite database, all you have to do is to copy the
@@ -337,9 +342,9 @@ following lines:
     }
 
 
-Using a PostgreSQL/PostGIS database back-end configuration for EOxServer is a 
-little bit more complex. Setting up a PostgreSQL database requires also 
-installing the PostGIS extensions (the following example is an installation 
+Using a PostgreSQL/PostGIS database back-end configuration for EOxServer is a
+little bit more complex. Setting up a PostgreSQL database requires also
+installing the PostGIS extensions (the following example is an installation
 based on a Debian system):
 ::
 
@@ -375,8 +380,8 @@ In the ``settings.py`` the following entry has to be added:
         }
     }
 
-Please refer to `GeoDjango Database API 
-<https://docs.djangoproject.com/en/1.3/ref/contrib/gis/db-api/>`_ for more 
+Please refer to `GeoDjango Database API
+<https://docs.djangoproject.com/en/1.3/ref/contrib/gis/db-api/>`_ for more
 instructions.
 
 .. index::
@@ -388,13 +393,13 @@ instructions.
 Deployment
 ~~~~~~~~~~
 
-EOxServer is deployed using the Python WSGI interface standard as any other 
+EOxServer is deployed using the Python WSGI interface standard as any other
 `Django application <https://docs.djangoproject.com/en/1.3/howto/deployment/>`_.
-The WSGI endpoint accepts HTTP requests passed from the web server and 
+The WSGI endpoint accepts HTTP requests passed from the web server and
 processes them synchronously. Each request is executed independently.
 
-In the following we present the way to deploy it using the `Apache2 Web Server 
-<http://httpd.apache.org>`_ and its `mod_wsgi 
+In the following we present the way to deploy it using the `Apache2 Web Server
+<http://httpd.apache.org>`_ and its `mod_wsgi
 <http://code.google.com/p/modwsgi/>`_ extension module.
 
 The deployment procedure consists of the following:
@@ -406,28 +411,28 @@ The deployment procedure consists of the following:
 * Customize the Apache2 configuration file
 * Restart the Web Server
 
-In ``wsgi.py``, two items need to be customized. First, the Python path has to 
-be set properly and second, the Django settings module (``settings.py``) has to 
-be configured. The places where to fill in the right names are indicated in the 
+In ``wsgi.py``, two items need to be customized. First, the Python path has to
+be set properly and second, the Django settings module (``settings.py``) has to
+be configured. The places where to fill in the right names are indicated in the
 file.
 
-In the Apache2 configuration file for your server, e.g. 
+In the Apache2 configuration file for your server, e.g.
 ``/etc/apache2/sites-enabled/000-default``, please add the following lines:
 ::
 
     Alias /<url> <absolute path to instance dir>/deployment/wsgi.py
-    <Directory "<absolute path to instance dir>/deployment"> 
-            AllowOverride None 
-            Options +ExecCGI -MultiViews +SymLinksIfOwnerMatch 
-            AddHandler wsgi-script .py 
+    <Directory "<absolute path to instance dir>/deployment">
+            AllowOverride None
+            Options +ExecCGI -MultiViews +SymLinksIfOwnerMatch
+            AddHandler wsgi-script .py
             Order Allow,Deny
-            Allow from all 
+            Allow from all
     </Directory>
 
-This setup will deploy your instance under the URL ``<url>`` and make it 
+This setup will deploy your instance under the URL ``<url>`` and make it
 publicly accessible.
 
-Now that the public URL is known don't forget to adjust the configuration in 
+Now that the public URL is known don't forget to adjust the configuration in
 ``conf/eoxserver.conf``::
 
     [services.owscommon]
@@ -480,7 +485,7 @@ parameter. As with the ``--metadata-file`` option, the items of the list refer
 to the items of the ``--data-file`` list. If omitted, an ID is generated using
 the data file name.
 
-The parameters ``--dataset-series`` and ``--stitched-mosaic`` allow to insert 
+The parameters ``--dataset-series`` and ``--stitched-mosaic`` allow to insert
 the dataset into all dataset series and rectified stitched mosaics specified
 by their EO IDs.
 
@@ -530,7 +535,7 @@ expands to all files with `.tif` extension in that directory. This
 funcitonality is not provided by EOxServer but by the operating system or the
 executing shell and is most certainly platform dependant.
 
-The registered dataset is also inserted to the given dataset series and 
+The registered dataset is also inserted to the given dataset series and
 rectified stitched mosaic.
 
 Here is the full list of available options:
