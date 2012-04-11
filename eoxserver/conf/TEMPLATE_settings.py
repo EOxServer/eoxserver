@@ -12,8 +12,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -62,12 +62,19 @@ DATABASES = {
 SPATIALITE_SQL='data/init_spatialite-2.3.sql'
 
 # Local time zone for this installation. Choices can be found here:
-# http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
-# although not all choices may be available on all operating systems.
+# http://en.wikipedia.org/wiki/List_of_tz_zones_by_name  or here:
+# http://www.postgresql.org/docs/8.1/static/datetime-keywords.html#DATETIME-TIMEZONE-SET-TABLE
+# Although not all choices may be available on all operating systems.
 # On Unix systems, a value of None will cause Django to use the same
 # timezone as the operating system.
 # If running in a Windows environment this must be set to the same as your
 # system time zone.
+# Note that this is the time zone to which Django will convert all
+# dates/times -- not necessarily the timezone of the server.
+# If you are using UTC (Zulu) time zone for your data (e.g. most
+# satellite imagery) it is highly recommended to use 'UTC' here. Otherwise
+# you will encounter time-shifts between your data, search request & the returned results.
+# TIME_ZONE = 'UTC'
 TIME_ZONE = 'Europe/Vienna'
 
 # Language code for this installation. All choices can be found here:
