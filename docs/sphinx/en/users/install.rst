@@ -183,7 +183,7 @@ There are several easy options to install EOxServer:
     or manual:
     ::
 
-      wget http://eoxserver.org/export/head/downloads/EOxServer-<version>.tar.gz .
+      wget http://eoxserver.org/export/head/downloads/EOxServer_full-<version>.tar.gz .
       tar xvfz EOxServer-<version>.tar.gz
       cd EOxServer-<version>
       sudo python setup.py install
