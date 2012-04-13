@@ -95,7 +95,11 @@ setup(
     packages=packages,
     data_files=data_files,
     include_package_data=True,
-    scripts=["eoxserver/scripts/eoxserver-admin.py"],
+    scripts=[
+        "eoxserver/scripts/eoxserver-admin.py",
+        "tools/eoxserver-atpd.py",
+        "tools/eoxserver-validate_xml.py"
+    ],
     
     ext_modules=[
         Extension(
