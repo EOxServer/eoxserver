@@ -61,6 +61,7 @@ and APIs please refer to the :ref:`EOxServer Developers' Guide`.
    presentations
    configuration_options
    atp_sum 
+   WCS-T_summary  
 
 .. TODO
    users     - empty
