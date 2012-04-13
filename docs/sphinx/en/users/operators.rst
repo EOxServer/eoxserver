@@ -163,6 +163,20 @@ values that indicate that there is no measurement at the given position).
 This range type metadata is used in the coverage description metadata that is
 returned by WCS operations and for configuring WMS layers.
 
+Note that WMS supports only one data type (Byte) and only Grayscale and RGB
+output. Any other range types will be mapped to these: for single-band coverages,
+Grayscale output is generated and RGB output using the first three bands for all
+others. Automatic scaling is applied when mapping from another data type to
+Byte. That means the minimum-maximum interval for the given subset of the
+coverage is computed and mapped to the 0-255 interval supported by the Byte
+data type.
+
+If you want to view other band combinations than the default ones, you can use
+the EO-WMS features implemented by EOxServer. For each coverage, an additional
+layers called ``<coverage id>_bands`` is provided for WMS 1.3. Using this
+layer and the ``DIM_BAND`` KVP parameter you can select another combination
+of bands (either 1 or 3 bands).
+
 .. _ops_eo_md:
 
 EO Metadata
