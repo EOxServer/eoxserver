@@ -2,8 +2,8 @@
 <wcseo:RectifiedDataset xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0" xmlns:om="http://www.opengis.net/om/2.0" xmlns:ows="http://www.opengis.net/ows/2.0" xmlns:swe="http://www.opengis.net/swe/2.0" xmlns:wcseo="http://www.opengis.net/wcseo/1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" gml:id="MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed" xsi:schemaLocation="http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd">
   <gml:boundedBy>
     <gml:Envelope axisLabels="y x" srsDimension="2" srsName="http://www.opengis.net/def/crs/EPSG/0/3035" uomLabels="m m">
-      <gml:lowerCorner>1528014.83234013 4460606.75388783</gml:lowerCorner>
-      <gml:upperCorner>1888478.92805308 4752280.34670607</gml:upperCorner>
+      <gml:lowerCorner>1527996.80733285 4460464.19592458</gml:lowerCorner>
+      <gml:upperCorner>1888496.95306036 4752422.90466932</gml:upperCorner>
     </gml:Envelope>
   </gml:boundedBy>
   <gml:domainSet>
@@ -17,11 +17,11 @@
       <gml:axisLabels>y x</gml:axisLabels>
       <gml:origin>
         <gml:Point gml:id="grid_origin_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed" srsName="http://www.opengis.net/def/crs/EPSG/0/3035">
-          <gml:pos>1888478.928053 4460606.753888</gml:pos>
+          <gml:pos>1888496.953060 4460464.195925</gml:pos>
         </gml:Point>
       </gml:origin>
-      <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/3035">0 8838.593722</gml:offsetVector>
-      <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/3035">-3568.951443 0</gml:offsetVector>
+      <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/3035">0 9123.709648</gml:offsetVector>
+      <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/3035">-3605.001457 0</gml:offsetVector>
     </gml:RectifiedGrid>
   </gml:domainSet>
   <gml:rangeSet>
