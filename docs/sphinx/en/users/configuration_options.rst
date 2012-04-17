@@ -177,6 +177,7 @@ The maximum number of `wcs:coverageDescription` elements returned in a WCS 2.0
 `EOCoverageSetDescription`. This also limits the :ref:`count parameter
 <table_eo-wcs_request_parameters_describeeocoverageset>`. Defaults to 10.
 
+.. _ConfigurationOptionsWCST11:
 
 [services.ows.wcst11]
 ---------------------
