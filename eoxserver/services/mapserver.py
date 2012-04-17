@@ -288,7 +288,7 @@ class MapServerOperationHandler(BaseRequestHandler):
         logging.debug("MapServerOperationHandler.dispatch: 4")
         result = mapscript.msIO_getStdoutBufferBytes()
         logging.debug("MapServerOperationHandler.dispatch: 5")
-        mapscript.msCleanup()
+        mapscript.msCleanup(1)
         
         return MapServerResponse(result, content_type, dispatch_status)
 
