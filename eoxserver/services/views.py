@@ -99,7 +99,7 @@ def ows(request):
             content_type=auth_resp.getContentType(),
             status=auth_resp.getStatus()
         )
-        for header_name, header_value in ows_resp.headers.items():
+        for header_name, header_value in auth_resp.headers.items():
             response[header_name] = header_value
 
     return response
