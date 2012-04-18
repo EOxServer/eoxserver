@@ -36,7 +36,7 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 
 from eoxserver.core.system import System
-
+from eoxserver import get_version
 
 LEVELS = [None, "DEBUG", "INFO", "WARN", "ERROR", "CRITICAL"]
 
@@ -60,6 +60,9 @@ def logview(request):
         
     return render_to_response(
         'logging/logview.html',
-        {"lines": lines[-count_logs:]},
+        {
+            "lines": lines[-count_logs:],
+            "version": get_version(),
+        },
         context_instance=RequestContext(request)
     )

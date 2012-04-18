@@ -36,7 +36,7 @@ from django.conf import settings
 from django.template import RequestContext
 
 from eoxserver.core.system import System
-
+from eoxserver import get_version
 
 def index(request):
     System.init()
@@ -54,7 +54,8 @@ def index(request):
         'webclient/index.html', {
             "datasetseries_eoids": dataset_series_ids,
             "stitchedmosaic_eoids": stitched_mosaic_ids,
-            "path": request.path
+            "path": request.path,
+            "version": get_version(),
         },
         context_instance=RequestContext(request)
     )
