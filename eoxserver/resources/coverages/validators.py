@@ -28,7 +28,7 @@
 #-------------------------------------------------------------------------------
 
 import os.path
-from cStringIO import StringIO
+from StringIO import StringIO
 
 from lxml import etree
 
@@ -83,10 +83,10 @@ def validateCoverageIDnotInEOOM(coverageID, xml):
     if xml is None or len(xml) == 0:
         return
     
-    f = StringIO(xml)
-    for _, element in etree.iterparse(f, events=("end",)):
-        if element.get("{http://www.opengis.net/gml/3.2}id") == coverageID:
-            raise ValidationError("The XML element '%s' contains a gml:id "
-                                  "which is equal to the coverage ID '%s'." % 
-                                  (element.tag, coverageID))
+    tree = etree.fromstring(xml.encode("ascii"))
+    element = tree.find(".//*[@{http://www.opengis.net/gml/3.2}id='%s']" % coverageID)
     
+    if element is not None:
+        raise ValidationError("The XML element '%s' contains a gml:id "
+                              "which is equal to the coverage ID '%s'." % 
+                              (element.tag, coverageID))
