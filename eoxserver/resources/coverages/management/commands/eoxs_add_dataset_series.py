@@ -34,7 +34,7 @@ from optparse import make_option
 
 from django.db import transaction
 from django.core.management.base import BaseCommand, CommandError
-from django.contrib.gis.geos.polygon import Polygon
+from django.contrib.gis.geos import MultiPolygon, Polygon
 from django.contrib.gis.geos.geometry import GEOSGeometry
 
 from eoxserver.core.system import System
@@ -137,7 +137,7 @@ class Command(CommandOutputMixIn, BaseCommand):
         if default_footprint is not None:
             footprint = GEOSGeometry(default_footprint)
         else:
-            footprint = Polygon(((0, 0), (0, 1), (1, 1), (1, 0), (0, 0)))
+            footprint = MultiPolygon(Polygon(((0, 0), (0, 1), (1, 1), (1, 0), (0, 0))))
             self.print_msg("Using default footprint: %s" % footprint.wkt, 2)
         
         #=======================================================================
