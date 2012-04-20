@@ -30,11 +30,7 @@
 
 import re
 
-VERSION = (0, 2, None, 'dev', 0)
-#VERSION = (0, 2, None, 'alpha', 1)
-#VERSION = (0, 2, None, 'beta', 1)
-#VERSION = (0, 2, None, 'rc', 1)
-#VERSION = (0, 2, 0, 'final', 0)
+VERSION = (0, 2, None, 'rc', 1)
 SVN_REV = '$Id$'
 
 def get_svn_revision(path=None):
