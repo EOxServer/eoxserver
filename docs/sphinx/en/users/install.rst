@@ -522,11 +522,10 @@ visible (``true``) or invisible (``false``). This effects the advertisment of
 the dataset in e.g: GetCapabilities responses. By default, all datasets are
 visible.
 
-This is an example usage of the ``eoxs_register_dataset`` command:
-::
+This is an example usage of the ``eoxs_register_dataset`` command::
 
     python manage.py eoxs_register_dataset --data-file data/meris/mosaic_MER_FRS_1P_RGB_reduced/*.tif --rangetype RGB \
-        --dataset-series MER_FRS_1P_reduced --stitched-mosaic mosaic_MER_FRS_1P_RGB_reduced -v3
+        --dataset-series MER_FRS_1P_RGB_reduced --stitched-mosaic mosaic_MER_FRS_1P_RGB_reduced -v3
 
 In this example, the parameter ``--metadata-file`` is omitted, since these files
 are in the same location as the data files and only differ in their extension.
@@ -534,6 +533,13 @@ Also note that the ``--data-file`` parameter uses a shell wildcard `*.tif` which
 expands to all files with `.tif` extension in that directory. This
 funcitonality is not provided by EOxServer but by the operating system or the
 executing shell and is most certainly platform dependant.
+
+Here is another example including the ``--coverage-ids`` parameter which 
+overwrites the default ids based on the data file names e.g. because they 
+are not valid ``NCNames`` which is needed by the XML schemas::
+
+    python manage.py eoxs_register_dataset --data-files 1.tif 2.tif 3.tif \
+        --coverage-ids a b c --rangetype RGB  -v3
 
 The registered dataset is also inserted to the given dataset series and
 rectified stitched mosaic.
