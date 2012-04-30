@@ -190,8 +190,7 @@ function initMap() {
 		//polygonLayer, 
 		bboxLayer
 	]);
-	map.setCenter(new OpenLayers.LonLat({{center}}), zoom, true, true);
-	
+	map.zoomToExtent(new OpenLayers.Bounds.fromString("{{extent}}"));
 	
 	var infoControl = new OpenLayers.Control.WMSGetFeatureInfo({
 		url: "{{outline_url}}", 
