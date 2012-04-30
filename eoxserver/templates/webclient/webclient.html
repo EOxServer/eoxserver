@@ -91,10 +91,9 @@ function initMap() {
 			new OpenLayers.Control.WMSGetFeatureInfo(),
 			new OpenLayers.Control.LayerSwitcher({'ascending': false}),
 			new OpenLayers.Control.Permalink(),
-//			new OpenLayers.Control.ScaleLine(),
 			new OpenLayers.Control.Permalink('permalink'),
 			new OpenLayers.Control.MousePosition(),
-			new OpenLayers.Control.KeyboardDefaults(),
+			new OpenLayers.Control.KeyboardDefaults({observeElement: "map_div"}),
 			boxControl
 		]
 	};
@@ -195,7 +194,7 @@ function initMap() {
 	
 	
 	var infoControl = new OpenLayers.Control.WMSGetFeatureInfo({
-		url: "{{preview_url}}", 
+		url: "{{outline_url}}", 
 		title: 'Identify features by clicking',
 		queryVisible: true,
 		layers: [layer_outlines],
@@ -204,7 +203,7 @@ function initMap() {
 				//alert(event.text);
 				if (event.text) {
 					map.addPopup(new OpenLayers.Popup.FramedCloud(
-						"chicken", 
+						"", 
 						map.getLonLatFromPixel(event.xy),
 						null,
 						event.text,
@@ -218,13 +217,19 @@ function initMap() {
 	
 	map.addControl(infoControl);
 	infoControl.activate();
+
+    // Attach to datetime_change event
+    $('#map_div').bind('datetime_change', function() {
+        
+    });
 }
 
 function initGUI() {
 	// initializes the GUI
 	var minDate = $.datepicker.parseDate("yy-mm-dd", "{{begin.date}}");
 	var maxDate = $.datepicker.parseDate("yy-mm-dd", "{{end.date}}");
-	
+
+    // Setup UI
 	$('#dialog_main').dialog({
 		create: function (event, ui) {
 			$(".ui-widget-header").append('<img src="{{STATIC_URL}}EOxServer_logo_small.png" style="align: center;"/>');
@@ -236,8 +241,7 @@ function initGUI() {
 		resizable: false,
 		width: 500,
 		height: 'auto',
-		position: 'top',
-		hide: 'slide'
+		position: 'top'
 	});
 	
 	$("#form").tabs({
@@ -251,20 +255,44 @@ function initGUI() {
 		maxDate: maxDate,
 		dateFormat: 'yy-mm-dd',
 		onClose: function(dateText, inst) {
-			setDateValues(dateText, null);//$.datepicker.parseDate("yy-mm-dd", dateText), null);
-			updateWMSParams();
+            // TODO get begin, end
+            var begin = $.datepicker.parseDate("yy-mm-dd", dateText);
+            var end = $(this).datepicker("option", "maxDate");
+            $.event.trigger(
+                'datetime_changed',
+                [begin, end]
+            );
+			/*setDateValues(dateText, null);//$.datepicker.parseDate("yy-mm-dd", dateText), null);
+			updateWMSParams();*/
 		}
-	}).datepicker("setDate", minDate);
+	}).datepicker("setDate", minDate)
+    .bind("begin_datetime_changing end_datetime_changing datetime_changed",
+        function(event, begin, end) {
+            $(this).datepicker("setDate", begin).datepicker("option", "maxDate", end);
+        }
+    );
 	$("#end_date").datepicker({
 		showOn: 'focus',
 		minDate: minDate,
 		maxDate: maxDate,
 		dateFormat: 'yy-mm-dd',
 		onClose: function(dateText, inst) {
-			setDateValues(null, dateText);//$.datepicker.parseDate("yy-mm-dd", dateText));
-			updateWMSParams();
+            // TODO get begin, end
+            var begin = $(this).datepicker("option", "minDate");
+            var end = $.datepicker.parseDate("yy-mm-dd", dateText);
+            $.event.trigger(
+                'datetime_changed',
+                [begin, end]
+            );
+			/*setDateValues(null, dateText);//$.datepicker.parseDate("yy-mm-dd", dateText));
+			updateWMSParams();*/
 		}
-	}).datepicker("setDate", maxDate);
+	}).datepicker("setDate", maxDate)
+    .bind("begin_datetime_changing end_datetime_changing datetime_changed",
+        function(event, begin, end) {
+            $(this).datepicker("setDate", end).datepicker("option", "minDate", begin);
+        }
+    );
 	
 	// set up input masks
 	// TODO: not ideal for 24h 
@@ -281,33 +309,76 @@ function initGUI() {
 		min: minDate.getTime(),
 		max: maxDate.getTime(),
 		slide: function(event, ui) {
-			begin_date = $.datepicker.formatDate('yy-mm-dd', new Date(ui.values[0]));
-			end_date = $.datepicker.formatDate('yy-mm-dd', new Date(ui.values[1]));
-			setDateValues(begin_date, end_date);
-			return true;
-		},
-		stop: function(event, ui) {
-			updateWMSParams();
-		}
-	});
-	
-	setDateValues(minDate, maxDate);
-	
-	// setup slider handle tooltip
-	$("#slider .ui-slider-handle").hover(
-		function() {
-			$('#tooltip').show();
-		},
-		function() {
-			$('#tooltip').hide();
-		}
-	).mousemove(function(e) {
-		$('#tooltip').css({
-			'top': e.pageY + 10 + 'px',
-			'left': e.pageX + 10 + 'px',
-		}).find('a').text($(this).attr("tooltip"));
-	});
-	$('#tooltip').hide();
+            //begin_date = $.datepicker.formatDate('yy-mm-dd', new Date(ui.values[0]));
+            //end_date = $.datepicker.formatDate('yy-mm-dd', new Date(ui.values[1]));
+            //setDateValues(begin_date, end_date);
+            var begin = new Date(ui.values[0]);
+            var end = new Date(ui.values[1]);
+            var pos = [event.pageX, event.pageY];
+            
+            if ($(ui.handle).index() == 1) {
+                $.event.trigger(
+                    'begin_datetime_changing',
+                    [begin, end, pos]
+                );
+            }
+            else if ($(ui.handle).index() == 2) {
+                $.event.trigger(
+                    'end_datetime_changing',
+                    [begin, end, pos]
+                );
+            }
+            
+            return true;
+        },
+        stop: function(event, ui) {
+            var begin = new Date(ui.values[0]);
+            var end = new Date(ui.values[1]);
+            $.event.trigger(
+                'datetime_changed',
+                [begin, end]
+            );
+        }
+    }).bind("datetime_changed begin_datetime_changing end_datetime_changing",
+        function(event, begin, end) {
+        $(this).slider("option", "values", [begin, end]);
+        /*$('#tooltip a').text($.datepicker.formatDate('yy-mm-dd', end));
+        $('#tooltip a').text($.datepicker.formatDate('yy-mm-dd', begin));*/
+    });
+
+    setDateValues(minDate, maxDate);
+
+    // setup slider handle tooltip
+    $("#slider .ui-slider-handle").bind({
+        mousedown: function() {
+            $('#tooltip').show();
+        },
+        mouseup: function() {
+            $('#tooltip').hide();
+        }
+    });
+
+    $('#tooltip').bind({
+        begin_datetime_changing: function(e, begin, end, pos) {
+            $(this).css({
+                'top': pos[1] + 10 + 'px',
+                'left': pos[0] + 10 + 'px',
+            }).text(
+                $.datepicker.formatDate('yy-mm-dd', begin)
+            );
+        },
+        end_datetime_changing: function(e, begin, end, pos) {
+            $(this).css({
+                'top': pos[1] + 10 + 'px',
+                'left': pos[0] + 10 + 'px',
+            }).text(
+                $.datepicker.formatDate('yy-mm-dd', end)
+            );
+        },
+        datetime_changed: function() {
+            $('#tooltip').hide();
+        }
+    }).hide();
 	
 	$("#minx, #miny, #maxx, #maxy").change(updateBBOXFromTextInput).val("");
 	
@@ -500,12 +571,14 @@ function getAvailableCoverages() {
 
 function onAvailableCoverages(request) {
 	requestInProgress = false;
+    var hasRectifiedCoverages = false,
+        hasReferenceableCoverages = false;
 	var cov_descriptions = findNodesNS(request.responseXML, "wcs", "CoverageDescription");
 	
 	if (cov_descriptions.length == 0)
 		return showFailure("Nothing found", "No coverage matched the given parameters.");
 	
-	$("#coverages .coverageentry").remove();
+	$("#rectified_coverages tr:gt(0),#referenceable_coverages tr:gt(0)").remove();
 	
 	for (var i = 0; i < cov_descriptions.length; i++) {
 		var cov_description = $(cov_descriptions[i]);
@@ -513,18 +586,20 @@ function onAvailableCoverages(request) {
 		var size = findNodesNS(cov_description, "gml", "high")[0].textContent.split(" ");
 		var type = findNodesNS(cov_description, "wcs", "CoverageSubtype")[0].textContent;
 		
-		var html = $(
-			'<div class="row coverageentry"><div class="cell"><input type="checkbox" checked="true" class="selected"/></div>' +
-			'<div class="cell"><div class="coverageid">' + id + '</div></div>' + 
-			'<div class="cell"><input type="text" class="sizex" size="5" maxlength="5"/></div>' + 
-			'<div class="cell"><input type="text" class="sizey" size="5" maxlength="5"/></div>' + 
-			'<div class="cell"><select class="rangetype" multiple="true" size="1"></select></div>' +
-			'</div>'
-		);
-		
+        var html = $(
+            '<tr class="coverageentry">' +
+            '   <td><input type="checkbox" checked="true" class="selected"/></td>' +
+            '   <td colspan="4"><div class="coverageid">' + id + '</div></td>' +
+            '</tr>' +
+            '<tr class="coverageentry">' +
+            '   <td></td>' +
+            '   <td>Width:<input type="text" class="sizex" size="5" maxlength="5"/></td>' +
+            '   <td>Height:<input type="text" class="sizey" size="5" maxlength="5"/></td>' +
+            '   <td>Bands:<select class="rangetype" multiple="true" size="1"></select></td>' +
+            '</tr>'
+        );
+
 		$(".coverageid", html).attr("coveragesubtype", type);
-//		$(".sizex", html).mask("9999");
-//		$(".sizey", html).mask("9999");
 		
 		var fields = findNodesNS(cov_description, "swe", "field");
 		for (var j = 0; j < fields.length; j++) {
@@ -536,11 +611,35 @@ function onAvailableCoverages(request) {
 			$(".sizex,.sizey", html).attr("disabled", "true");
 			$(".sizex", html).val(size[0]);
 			$(".sizey", html).val(size[1]);
-		}
-		$("#coverages").append(html);
-	}
-	
-	$("#dialog_download").dialog("open");
+            $("#referenceable_coverages").append(html);
+            hasReferenceableCoverages = true;
+        }
+        else {
+            html.last().append(
+                '   <td>Projection:' +
+                '        <select class="projection">' +
+                '            <option value="epsg:4326">4326</option>' +
+                '            <option value="epsg:3857">3857</option>' +
+                '            <option value="epsg:3035">3035</option>' +
+                '        </select>' +
+                '   </td>'
+            );
+            $("#rectified_coverages").append(html);
+            hasRectifiedCoverages = true;
+        }
+        
+        if(!hasRectifiedCoverages)
+            $("#rectified_coverages").hide();
+        else
+            $("#rectified_coverages").show();
+        
+        if(!hasReferenceableCoverages)
+            $("#referenceable_coverages").hide();
+        else
+            $("#referenceable_coverages").show();
+    }
+
+    $("#dialog_download").dialog("open");
 }
 
 function startDownload() {
@@ -549,36 +648,35 @@ function startDownload() {
 	
 	var bbox = getBoundingBox();
 	
-	var crs = $("#projections").val();
 	var format = $("#formats").val();
 	
 	var urls = new Array();
 	var isConfirmationRequired = false;
 	
-	var coverages = $("#coverages").children();
-	for (var i = 0; i < coverages.length; i++){
+	var coverages = $("#rectified_coverages .coverageentry,#referenceable_coverages .coverageentry");
+	for (var i = 0; i < coverages.length; i += 2){
 		// find out if checked
-		var coverage = $(coverages[i]);
-		var ch = coverage.find(".selected");
+		var coverage = $(coverages[i+1]);
+		var ch = $(coverages[i]).find(".selected");
 		if (!ch.attr("checked"))
 			continue;
 		
 		// extract covID and size
-		var coverageid = coverage.find(".coverageid").text();
-		var type = coverage.find(".coverageid").attr("coveragesubtype");
+		var coverageid = $(coverages[i]).find(".coverageid").text();
+		var type = $(coverages[i]).find(".coverageid").attr("coveragesubtype");
 		var sizeX = coverage.find(".sizex").val();
 		var sizeY = coverage.find(".sizey").val();
 		var url;
 		
 		var urlparams = {
 			bbox: bbox,
-			outputCRS: crs
 		}
 		
 		// create GET string
 		if (type !== "ReferenceableDataset") {
 			if (sizeX != "" && !isNaN(sizeX)) urlparams.sizeX = sizeX;
 			if (sizeY != "" && !isNaN(sizeY)) urlparams.sizeY = sizeY;
+            urlparams.outputCRS = coverage.find(".projection").val();
 		}
 		
 		var rangeSubset = $.makeArray(coverage.find(".rangetype :selected").map(function() { return this.value; }));
@@ -591,7 +689,6 @@ function startDownload() {
 		urlparams.rangeSubset = rangeSubset;
 		
 		url = WCS.getCoverageURL(
-			//"http://puck.eox.at/eoxserver/ows?",
 			"{{ows_url}}",
 			coverageid, format, urlparams 
 		);
@@ -781,27 +878,24 @@ function findNodesNS(node, ns, tagName) {
 	</div>
 	
 	<div id="dialog_download" title="Download">
-		<div id="coverages">
-			<div class="row header">
-				<div class="cell"></div>
-				<div class="cell">Coverage ID</div>
-				<div class="cell">Width</div>
-				<div class="cell">Height</div>
-				<div class="cell">Bands</div>
-			</div>
-		</div>
+        <table id="rectified_coverages">
+            <th>
+                <td class="header">Rectified Coverages</td>
+            </th>
+        </table>
+
+        <table id="referenceable_coverages">
+            <th>
+                <td class="header">Referenceable Coverages</td>
+            </th>
+        </table>
+        
 		<label for="formats">Format:</label>
 		<select id="formats">
 			<option value="image/tiff">GeoTIFF</option>
 			<option value="image/jp2">JPEG2000</option>
 			<option value="application/x-netcdf">NetCDF</option>
 			<option value="application/x-hdf">HDF</option>
-		</select>
-		<label for="projections">Projection:</label>
-		<select id="projections">
-			<option value="epsg:4326">4326</option>
-			<option value="epsg:3857">3857</option>
-			<option value="epsg:3035">3035</option>
 		</select>
 	</div>
 	
