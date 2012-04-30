@@ -85,7 +85,9 @@ def webclient(request, eoid):
     
     begin = eo_obj.getBeginTime()
     end = eo_obj.getEndTime()
-    center = eo_obj.getFootprint().centroid
+    
+    # TODO: remove center and add initial extent
+    extent = eo_obj.getFootprint().extent
     
     # TODO set static resources
     http_ows_url = System.getConfig().getConfigValue(
@@ -127,7 +129,7 @@ def webclient(request, eoid):
                       "time": begin.strftime("%H:%M")},
             "end": {"date": end.strftime("%Y-%m-%d"),
                     "time": end.strftime("%H:%M")},
-            "center": "%f, %f" % (center.x, center.y)
+            "extent": "%f,%f,%f,%f" % extent
         },
         context_instance=RequestContext(request)
     )
