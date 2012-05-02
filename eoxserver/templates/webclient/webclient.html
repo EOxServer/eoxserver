@@ -412,6 +412,18 @@ function initGUI() {
 			"Start Download": startDownload,
 		}
 	});
+
+    $("#dialog_select_rangetype").dialog({
+        autoOpen: false,
+        width: 'auto',
+        modal: true,
+        resizable: false,
+        buttons: {
+            "Ok": function() {
+                $(this).dialog("close");
+            }
+        }
+    });
 	
 	$("#dialog_failure").dialog({
 		autoOpen: false,
@@ -569,47 +581,100 @@ function getAvailableCoverages() {
 }
 
 function onAvailableCoverages(request) {
-	requestInProgress = false;
+    requestInProgress = false;
     var hasRectifiedCoverages = false,
         hasReferenceableCoverages = false;
-	var cov_descriptions = findNodesNS(request.responseXML, "wcs", "CoverageDescription");
-	
-	if (cov_descriptions.length == 0)
-		return showFailure("Nothing found", "No coverage matched the given parameters.");
-	
-	$("#rectified_coverages tr:gt(0),#referenceable_coverages tr:gt(0)").remove();
-	
-	for (var i = 0; i < cov_descriptions.length; i++) {
-		var cov_description = $(cov_descriptions[i]);
-		var id = findNodesNS(cov_description, "wcs", "CoverageId")[0].textContent;
-		var size = findNodesNS(cov_description, "gml", "high")[0].textContent.split(" ");
-		var type = findNodesNS(cov_description, "wcs", "CoverageSubtype")[0].textContent;
-		
+
+    // get coverage descriptions from returned XML
+    var cov_descriptions = findNodesNS(request.responseXML, "wcs", "CoverageDescription");
+
+    if (cov_descriptions.length == 0)
+        // TODO: maybe show the service exception message if found
+        return showFailure("Nothing found", "No coverage matched the given parameters.");
+
+    // reset the table, displaying the coverages
+    $("#rectified_coverages tr:gt(0),#referenceable_coverages tr:gt(0)").remove();
+
+    for (var i = 0; i < cov_descriptions.length; i++) {
+        var cov_description = $(cov_descriptions[i]);
+
+        // get the values for each description
+        var id = findNodesNS(cov_description, "wcs", "CoverageId")[0].textContent;
+        var size = findNodesNS(cov_description, "gml", "high")[0].textContent.split(" ");
+        var type = findNodesNS(cov_description, "wcs", "CoverageSubtype")[0].textContent;
+
+        // create a preliminary table entry, 2 rows
         var html = $(
             '<tr class="coverageentry">' +
-            '   <td><input type="checkbox" checked="true" class="selected"/></td>' +
+            '   <td><input type="checkbox" checked="true" class="selected"/></td>' + // rowspan?
             '   <td colspan="4"><div class="coverageid">' + id + '</div></td>' +
             '</tr>' +
             '<tr class="coverageentry">' +
             '   <td></td>' +
             '   <td>Width:<input type="text" class="sizex" size="5" maxlength="5"/></td>' +
             '   <td>Height:<input type="text" class="sizey" size="5" maxlength="5"/></td>' +
-            '   <td>Bands:<select class="rangetype" multiple="true" size="1"></select></td>' +
+            '   <td class="rangetype"><input type="button" class="select_rangetype" value="Select Bands"></input></td>' +
             '</tr>'
         );
 
-		$(".coverageid", html).attr("coveragesubtype", type);
-		
-		var fields = findNodesNS(cov_description, "swe", "field");
-		for (var j = 0; j < fields.length; j++) {
-			var name = $(fields[j]).attr("name");
-			$(".rangetype", html).append($('<option value="' + name + '" selected>' + name + '</option>')); 
-		}
-		
-		if (type == "ReferenceableDataset") {
-			$(".sizex,.sizey", html).attr("disabled", "true");
-			$(".sizex", html).val(size[0]);
-			$(".sizey", html).val(size[1]);
+        // add the "coveragesubtype" attribute to the coverageid node
+        $(".coverageid", html).attr("coveragesubtype", type);
+
+        // find out the bands and add a hidden div for each
+        var fields = findNodesNS(cov_description, "swe", "field");
+        for (var j = 0; j < fields.length; j++) {
+            var name = $(fields[j]).attr("name");
+            $(".select_rangetype", html).parent().append($(
+                '<div name="' + name + '" selected="true"></div>'
+            ));
+        }
+
+        // add a button handler
+        $(".select_rangetype", html).click(function() {
+            var thisRangeType = $(this);
+            // clear the dialogs internal table
+            $("#dialog_select_rangetype").empty().append($('<table></table>'));
+
+            // add a checkbox inside the dialog for each band (with selection)
+            $(this).parent().find("div").each(function() {
+                var name = $(this).attr("name");
+                var selected = $(this).attr("selected");
+                $("#dialog_select_rangetype table").append($(
+                    '<tr>' +
+                    '   <td><input type="checkbox" ' + (selected === "true" ? "checked" : "") + ' name="' + name + '">' + name + '</input></td>' +
+                    '</tr>'
+                ));
+            });
+
+            // bind a handler that gets triggered when the dialog is about to be closed
+            $("#dialog_select_rangetype").unbind("dialogbeforeclose");
+            $("#dialog_select_rangetype").bind("dialogbeforeclose", function() {
+                var anyBandSelected = false;
+
+                // iterate over all checkboxes, and reset the values in the range type divs
+                $("#dialog_select_rangetype input").each(function() {
+                    $this = $(this);
+                    var name = $this.attr("name");
+                    var checked = $this.attr("checked");
+                    var div = thisRangeType.parent().find("div[name=" + name + "]");
+                    div.attr("selected", checked);
+                    if (checked)
+                        anyBandSelected = true;
+                });
+                // raise an error when no band is selected
+                if (!anyBandSelected)
+                    showFailure("No band selected", "At least one band must be selected.");
+                return anyBandSelected;
+            });
+
+            // finally show the band selection dialog
+            $("#dialog_select_rangetype").dialog("open");
+        });
+        
+        if (type == "ReferenceableDataset") {
+            $(".sizex,.sizey", html).attr("disabled", "true");
+            $(".sizex", html).val(size[0]);
+            $(".sizey", html).val(size[1]);
             $("#referenceable_coverages").append(html);
             hasReferenceableCoverages = true;
         }
@@ -678,7 +743,7 @@ function startDownload() {
             urlparams.outputCRS = coverage.find(".projection").val();
 		}
 		
-		var rangeSubset = $.makeArray(coverage.find(".rangetype :selected").map(function() { return this.value; }));
+		var rangeSubset = $.makeArray(coverage.find(".rangetype div[selected=true]").map(function() { return $(this).attr("name"); }));
 
 		if (rangeSubset.length == 0)
 			return showFailure("No Band selected",
@@ -897,7 +962,7 @@ function findNodesNS(node, ns, tagName) {
 			<option value="application/x-hdf">HDF</option>
 		</select>
 	</div>
-	
+	<div id="dialog_select_rangetype" title="Select Bands"></div>
 	<div id="dialog_failure" title="Failure"></div>
 	<div id="tooltip" class="ui-widget"><a></a></div>
 	<div id="download_iframes"></div>
