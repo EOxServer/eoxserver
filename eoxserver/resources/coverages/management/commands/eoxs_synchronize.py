@@ -55,8 +55,18 @@ class Command(CommandOutputMixIn, BaseCommand):
         #),
     )
     
-    help = ('Synchronizes all specified containers (RectifiedStitchedMosaic or'
-            'DatasetSeries) with the file system.')
+    help = (
+    """
+    Synchronizes all specified containers (RectifiedStitchedMosaic or 
+    DatasetSeries) with the file system.
+    
+    Examples:
+        python manage.py %(name)s --all
+        
+        python manage.py %(name)s MER_FRS_1P_RGB_reduced \\
+            MER_FRS_1P_reduced
+    """ % ({"name": __name__.split(".")[-1]})
+    )
     args = '--all | EO-ID1 [EO-ID2 [...]]'
     
     def handle(self, *args, **options):
