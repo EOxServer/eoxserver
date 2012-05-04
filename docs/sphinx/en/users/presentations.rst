@@ -93,3 +93,25 @@ FOSSGIS 2012, Dessau
 `Freie und Open Source Software für Geoinformationssysteme (FOSSGIS) 
 <http://www.fossgis.de/konferenz.html>`_ is the German speaking annual OSGeo 
 conference
+
+Linuxwochen Wien 2012
+---------------------
+
+`EOxServer & Mapserver - Open Source Lösungen für Erdbeobachtungsdaten
+<http://linuxwochen.at/index.php?option=com_content&view=article&id=331&Itemid=8
+3>`_
+
+`Linuxwochen <http://linuxwochen.at/>`_ is Austria's biggest event series 
+dedicated to Open Source and Free Software.
+
+FOSS4G-CEE 2012, Prague
+-----------------------
+
+`EOxServer: A Solution for Online Access to Large Collections of Earth 
+Observation Data <http://foss4g-cee.org/program/presentations/eoxserver-a-soluti
+on-for-online-access-to-large-collections-of-earth-observation-data/>`_
+
+`FOSS4G-CEE <http://foss4g-cee.org/>`_ & Geoinformatics 2012 is the first 
+local conference focused on Free and Open Source Software for Geospatial in 
+Central and Eastern Europe. This year, it is organized together with the 
+traditional Geoinformatics FCE CTU conference in Prague.
