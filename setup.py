@@ -125,7 +125,7 @@ setup(
     long_description=read("README"),
     
     classifiers=[
-          'Development Status :: 4 - Beta',
+          'Development Status :: 1 - Planning',
           'Environment :: Console',
           'Environment :: Web Environment',
           'Framework :: Django',
