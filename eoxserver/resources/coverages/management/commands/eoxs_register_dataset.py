@@ -29,7 +29,6 @@
 #-------------------------------------------------------------------------------
 
 import os.path
-import datetime
 from copy import copy
 import traceback
 from optparse import make_option
@@ -195,8 +194,41 @@ class Command(CommandOutputMixIn, BaseCommand):
         )
     )
     
-    help = ('Registers one or more datasets from each data and '
-            'meta-data file.')
+    help = (
+    """
+    Registers one or more datasets from each data and meta-data file.
+    
+    Examples:
+    Using shell expansion of filenames and automatic metadata retrieval:
+        python manage.py %(name)s \\ 
+            --data-files data/meris/mosaic_MER_FRS_1P_RGB_reduced/*.tif \\
+            --rangetype RGB --dataset-series MER_FRS_1P_RGB_reduced \\
+            --stitched-mosaic mosaic_MER_FRS_1P_RGB_reduced -v3
+    
+    Manual selection of data/metadata files:
+        python manage.py %(name)s \\
+            --data-files 1.tif 2.tif 3.tif \\
+            --metadata-files 1.xml 2.xml 3.xml \\
+            --coverage-ids a b c --rangetype RGB -v3
+            
+    Registering a rasdaman coverage:
+        python manage.py %(name)s \\
+            --mode=rasdaman --host=some.host.com --port=8080 \\
+            --user=db_user --password=secret \\
+            --collection MER_FRS_1PNPDE..._reduced \\
+            --default-srid=4326 --default-size=539,448 \\ 
+            --default-extent=11.361066,32.201446,28.283846,46.252026 \\
+            --default-begin-time "`date -u --iso-8601=seconds`" \\
+            --default-end-time "`date -u --iso-8601=seconds`" \\
+            --default-footprint "POLYGON ((11.3610659999999992 
+                32.2014459999999971, 11.3610659999999992 
+                46.2520260000000007, 28.2838460000000005 
+                46.2520260000000007, 28.2838460000000005  
+                32.2014459999999971, 11.3610659999999992 
+                32.2014459999999971))" \\
+            --coverage-ids MER_FRS_1PNPDE..._reduced --rangetype RGB -v3
+    """ % ({"name": __name__.split(".")[-1]})
+    )
     args = '--data-file DATAFILE --rangetype RANGETYPE'
 
     def handle(self, *args, **options):

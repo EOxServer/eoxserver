@@ -1520,7 +1520,7 @@ class DatasetSeriesWrapper(EOMetadataWrapper, ResourceWrapper):
     
     def _updateMetadata(self):
         begin_time = None
-        footprint = None
+        footprint = self.__model.eo_metadata.footprint
         
         rect_qs = self.__model.rect_datasets.all()
         if len(rect_qs):
@@ -1570,7 +1570,7 @@ class DatasetSeriesWrapper(EOMetadataWrapper, ResourceWrapper):
                 end_time = end_time_mosaics
                 footprint = footprint_mosaics
 
-        if footprint.geom_type.upper() != "MULTIPOLYGON":
+        if footprint and footprint.geom_type.upper() != "MULTIPOLYGON":
             footprint = MultiPolygon(footprint)
 
         # if there are no children do not update the metadata

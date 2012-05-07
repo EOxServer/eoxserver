@@ -34,7 +34,7 @@ from optparse import make_option
 
 from django.db import transaction
 from django.core.management.base import BaseCommand, CommandError
-from django.contrib.gis.geos.polygon import Polygon
+from django.contrib.gis.geos import MultiPolygon, Polygon
 from django.contrib.gis.geos.geometry import GEOSGeometry
 
 from eoxserver.core.system import System
@@ -74,7 +74,7 @@ class Command(CommandOutputMixIn, BaseCommand):
             dest='add',
             action='callback', callback=_variable_args_cb,
             default=[],
-            help=("Optional. A list of Coverage IDs identifying Referential "
+            help=("Optional. A list of Coverage IDs identifying Referenceable "
                   "Datasets, Rectified Datasets or Stitched Mosaics. All "
                   "referenced datasets will be added to the Dataset Series.")
         ),
@@ -107,7 +107,34 @@ class Command(CommandOutputMixIn, BaseCommand):
         ),
     )
     
-    help = ('Creates a new Dataset Series with initial data.')
+    help = (
+    """
+    Creates a new Dataset Series with initial data.
+    
+    Examples:
+    With initial datasets:
+        python manage.py %(name)s \\
+            --id MER_FRS_1P_RGB_reduced --add MER_FRS_1PNPDE..._reduced
+    
+    With a local and a remote data source:
+        python manage.py %(name)s \\
+            --id MER_FRS_1P_RGB_reduced \\
+            --data-sources data/meris/mosaic_MER_FRS_1P_RGB_reduced/ \\
+            ftp://ftp_user:secret@some.host.com/data/meris/ \\
+            --patterns "*.tif" "*.tif"
+    
+    With default metadata values:
+        python manage.py %(name)s \\
+            --id MER_FRS_1P_RGB_reduced \\
+            --default-begin-time "`date -u --iso-8601=seconds`" \\
+            --default-end-time "`date -u --iso-8601=seconds`" \\
+            --default-footprint "POLYGON ((11.3610659999999992 
+                32.2014459999999971, 11.3610659999999992 
+                46.2520260000000007, 28.2838460000000005 
+                46.2520260000000007, 28.2838460000000005  
+                32.2014459999999971, 11.3610659999999992 
+                32.2014459999999971))"
+    """ % ({"name": __name__.split(".")[-1]}))
     args = '--eoid EOID'
 
     def handle(self, *args, **options):
@@ -137,7 +164,7 @@ class Command(CommandOutputMixIn, BaseCommand):
         if default_footprint is not None:
             footprint = GEOSGeometry(default_footprint)
         else:
-            footprint = Polygon(((0, 0), (0, 1), (1, 1), (1, 0), (0, 0)))
+            footprint = MultiPolygon(Polygon(((0, 0), (0, 1), (1, 1), (1, 0), (0, 0))))
             self.print_msg("Using default footprint: %s" % footprint.wkt, 2)
         
         #=======================================================================

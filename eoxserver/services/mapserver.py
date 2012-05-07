@@ -247,8 +247,23 @@ class MapServerOperationHandler(BaseRequestHandler):
                 if len(values) == 1:
                     self._setParameter(key.lower(), escape(values[0]))
                 else:
+                    c = 0 
                     for value in values:
-                        self._addParameter(key.lower(), escape(value))
+                        # addParameter() available in MapServer >= 6.2 
+                        # https://github.com/mapserver/mapserver/issues/3973
+                        try:
+                            self._addParameter(key.lower(), escape(value))
+                        # Workaround for MapServer 6.0
+                        except AttributeError:
+                            if c == 0: 
+                                new_key = key.lower()
+                            else: 
+                                new_key = "%s_%d" % (key.lower(), c) 
+                            self._setParameter(new_key, escape(value)) 
+                            c += 1 
+                            while "%s_%d" % (key.lower(), c) in self.req.getParams(): 
+                                c += 1 
+
             self._setParameter("version", self.req.getVersion())
         elif self.req.getParamType() == "xml":
             self.ows_req.type = mapscript.MS_POST_REQUEST
@@ -288,7 +303,12 @@ class MapServerOperationHandler(BaseRequestHandler):
         logging.debug("MapServerOperationHandler.dispatch: 4")
         result = mapscript.msIO_getStdoutBufferBytes()
         logging.debug("MapServerOperationHandler.dispatch: 5")
-        mapscript.msCleanup()
+        try:
+            # MapServer 6.0:
+            mapscript.msCleanup()
+        except TypeError:
+            # MapServer 6.2:
+            mapscript.msCleanup(1)
         
         return MapServerResponse(result, content_type, dispatch_status)
 
