@@ -203,8 +203,12 @@ e.g.::
 
   GTiff,image/tiff,rw,tiff
 
-Lines starting with ``#`` shall be ignored. A template shall be included in the
-``eoxserver/conf`` directory.
+Lines starting with ``#`` shall be ignored.
+
+A default configuration (``default_formats.conf``) and a template
+(``TEMPLATE_formats.conf``) shall be included in the ``eoxserver/conf``
+directory. The default configuration shall only be used as a fallback if no
+``formats.conf`` file is available in the instance ``conf`` directory.
 
 The other configuration settings shall be defined in ``conf/eoxserver.conf``::
 
@@ -229,6 +233,8 @@ The respective entries in ``conf/eoxserver.conf``::
   
   [services.ows.wms]
   supported_crs=<SRID>[,<SRID>,...]
+
+Default settings shall be defined in ``eoxserver/conf/default.conf``.
 
 Module eoxserver.resources.coverages.formats
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
