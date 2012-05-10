@@ -32,38 +32,43 @@
 RFC 17: Configuration of Supported Output Formats and CRSes
 ===========================================================
 
-:Author: Stephan Krauses
+:Author: Stephan Krauses, Martin Pačes
 :Created: 2012-05-08
 :Last Edit: $Date$
 :Status: PENDING
 :Discussion: n/a
 
-In this RFC, modifications to the EOxServer data model shall be discussed which
-allow to configure
+This RFC proposes modifications of the EOxServer allowing configuration of
 
 * the supported output formats for WMS and WCS
 * the supported CRSes for WMS and WCS
 
+The RFC presents the rationale and proposes data model changes and new global
+configuration options. 
 
 
 Introduction
 ------------
 
-The supported formats and CRSes shall be reported in the GetCapabilities metadata
-of the services and in coverage descriptions.
+The reason for preparation of this RFC is the need to change the way 
+how the supported (file) formats and CRSes (CRS - Coordinate Reference Systems) 
+for raster data are handled by the EOxServer's WCS, and WMS services to assure
+compliance to OGC standards, interoperability and configurability of the services. 
 
-At the moment, only the native CRS of a coverage is reported in the metadata,
-and only a few hard-coded output formats (JPEG2000, HDF4, netCDF and GeoTIFF for
-WCS) are supported. Note that MapServer does not return OWS exceptions, however,
-if a CRS is requested that has not been reported in the metadata; so the goal of
-this RFC is primarily to assure standards compliance, interoperability and
-configurability of the services.
-
-The proposed solution adds configuration items for global settings and some
-database fields for individual configuration of coverages.
-
+In case of WMS, the formats and CRSes shall be listed in the WMS Capabilities (both per
+service and per layer). 
+In case of WCS, the supported formats and CRSes shall be reported by the WCS Capabilities 
+(per service parameters) and by the Coverage Description (per coverage parameters).
 Compatibility with the WCS 2.0.1 corrigendum and the upcoming WCS 2.0 CRS
-extension shall be assured.
+Extension document shall be assured.
+
+Currently, only the native CRS of a dataset is reported in the metadata and 
+only a small hard-coded set output file format is announced as
+supported (JPEG2000, HDF4, netCDF and GeoTIFF for WCS). Hence, there is no way
+to configure these parameters. 
+
+Further, the underlying MapServer does not return proper OWS exception if
+invalid CRS requested (OGC standards non-conforming behaviour). 
 
 Supported CRSes and Output Formats in OGC Web Services
 ------------------------------------------------------
@@ -94,79 +99,81 @@ reporting CRSes for each coverage / layer individually; the CRS extension could
 still be amended, though.
 
 On the other hand, only WCS 1.1.2 allows output format specification on a per
-coverage basis whereas all others only report supported formats in the global
-service metadata.
+coverage basis whereas all others standards allow to report supported formats 
+in the global service metadata only.
 
-In WCS 2.0.1, there is also the concept of native CRSes and formats which are
-reported in the coverage descriptions. The native CRS is the one the domain set
-uses. The native format has been introduced with the corrigendum.
+The WCS 2.0.1 corrigendum introduces concept of native CRSes and formats which are
+reported in the coverage description. 
+The native CRS is the one the domain set uses. 
 
-Somewhat contrary to what one might expect, the WCS 2.0.1 native format is not
-necessarily the one stored on the disk as the WCS service might not be able to
-deliver the data in that format (e.g. ENVISAT .N1). Instead, it is  the default
-format in which the data will delivered if the ``FORMAT`` parameter is omitted.
-The standard states that this format should return the data unaltered.
+On contrary to common expectation, the WCS 2.0.1 native file format is not
+necessarily the same as the file format of the stored data. Since not all source
+file formats might be supported as the output file format (e.g., ENVISAT N1), it
+is rather the default format delivered when there is no specific file format
+requested (omitted ``FORMAT`` parameter). 
 
 Supported Output Formats and WCS 2.0.1 Native Format
 ----------------------------------------------------
 
-As most services (all but WCS 1.1.2) allow output format configuration only
-per service instance, the list of supported formats shall be kept in the
-global configuration. At the moment, this is most easily done by adding
-settings to the configuration file ``conf/eoxserver.conf``.
+As the most services (all but WCS 1.1.2, see the table above) allow output
+format configuration only per service instance, we propose that the list of
+supported formats shall be kept in the global configuration. This can be most
+easily done by adding new items to the global configuration file
+``conf/eoxserver.conf``.
 
-Due to the nature of the data transmitted by the different services, the
-configuration should be separate for WMS and WCS.
+The configuration should be separate for WMS and WCS, due to the nature
+of the data transmitted by these services.
 
-The EOxServer implementation for WCS 2.0 and EO-WCS expects three parameters
-for each output format:
+The EOxServer implementation for WCS 2.0 and EO-WCS requires the format to be
+specified by three parameters: 
 
 * the MIME type
 * the name of the GDAL driver
 * the default file extension
 
-The use of MapServer/GDAL restricts the possible choices to formats with
-write support in GDAL. These can be found at
+The possible format choices are restricted by the capabilities of the underlying
+SW components (MapServer and GDAL). The list of allowed formats can be fount at
 http://www.gdal.org/formats_list.html.
 
-The native format has to be determined for each coverage individually. Although
-this could be done at runtime, storing the native format in the database at
-registration time is preferrable for performance reasons. Note that the format
-stored in the database is not necessarily the one reported as native format
-in the WCS 2.0.1 coverage descriptions, as only writable formats can be
-reported. In case the original data format is read-only, a global default
-shall be used instead. This, too, shall be a configuration item in
-``conf/eoxserver.conf``.
+Although the source format (i.e., the actual format of the stored data) could be
+determined for each coverage individually at runtime it is preferable
+to store this information in the database for sake of the performance. 
+
+The actual native (default) format announced by the WCS 2.0.1 compliant coverage
+description can differ from the source format as not every source format can be
+used as output format. 
 
 The implementation of the native format reporting for WCS 2.0.1 requires that
-EOxServer know which formats are writable and which are read-only. This
-depends on the GDAL version used and also on the individual installation as
-some drivers are only optional and depend on external libraries. So, this
-list has to be configurable as well, but EOxServer should provide a default.
+EOxServer knows the mapping from the source to WCS 2.0.1 native format. As this
+mapping varies depending on the GDAL version, available external libraries or
+simply on the preference of the instance administrator the actual mapping shall
+be configurable, i.e., it shall be a configuration item in ``conf/eoxserver.conf``.
+
+For all the proposed configuration items reasonable default shall be provided. 
 
 Supported CRSes
 ---------------
 
 All services but WCS 2.0.1 support per-coverage or per-layer reporting of
-CRSes. The WCS 2.0 CRS extension is not yet finished and it is suggested that
-it, too, should allow for CRS metadata being reported in the coverage
-description.
+CRSes. Although the WCS 2.0 CRS extension has not been finished yet, according
+to the draft, it seems it will be possible to report CRS metadata in the
+coverage description as well.
 
-The EOxServer implementation of WMS and WCS does already set the
-``ows_srs`` MapServer parameter to the original CRS of a coverage. The question
-is which additional CRSes shall be supplied.
+Currently, the EOxServer implementation of WMS and WCS sets the ``ows_srs``
+MapServer parameter to the original CRS of a coverage. Thus the currently only announced
+CRS is the native CRS of the dataset.
 
-The proposed solution is to introduce global configuration items for WCS and WMS
-respectively that allow to define additional CRSes that are always reported
-alongside the native CRS. These should also be used for layers corresponding to
-DatasetSeries in the EO-WMS implementation.
+This RFC proposes to introduce global configuration items for WCS and WMS,
+respectively, allowing definition of additional CRSes to be reported in addition
+to the native CRS. These CRSes shall also be used for EO-WMS layers corresponding to
+DatasetSeries.
 
-In order to be able to report a native CRS for Referenceable Grid Coverages,
-the data model shall be changed to include the SRID of the GCP projection of
+In order to report a native CRS for Referenceable Grid Coverages
+the data model needs to be changed to include the SRID of the GCP projection of
 ReferenceableDatasets.
 
-Implementation Details
-----------------------
+Proposed Implementation
+-----------------------
 
 Changes to the Data Model
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -192,6 +199,7 @@ The following new configuration settings are needed for output format handling:
 * a list of MIME types to be reported as supported formats in WMS
 * a list of MIME types to be reported as supported formats in WCS
 * a default format MIME type to be used for native format reporting in WCS 2.0.1
+* optional a mapping of source format to for native format reporting in WCS 2.0.1
 
 The list of GDAL formats shall be configured in a CSV-like separate
 configuration file in ``conf/formats.conf``. Each line in the file shall
@@ -207,7 +215,7 @@ Lines starting with ``#`` shall be ignored.
 
 A default configuration (``default_formats.conf``) and a template
 (``TEMPLATE_formats.conf``) shall be included in the ``eoxserver/conf``
-directory. The default configuration shall only be used as a fallback if no
+directory. The default configuration shall only be used as a fall-back if no
 ``formats.conf`` file is available in the instance ``conf`` directory.
 
 The other configuration settings shall be defined in ``conf/eoxserver.conf``::
@@ -220,6 +228,7 @@ The other configuration settings shall be defined in ``conf/eoxserver.conf``::
 
   [services.ows.wcs.wcs20]
   default_native_format=<MIME type>
+  source_to_native_format_map=[<src MIME type>,<dst MIME type>[,<src MIME type>,<dst MIME type>,...] 
 
 The following new configuration settings are needed for CRS handling:
 
@@ -243,24 +252,23 @@ In order to support output format handling a dedicated module shall be
 implemented that
 
 * reads the list of GDAL formats from the configuration files
-* translates GDAL driver names to MIME types and vice versa
-* returns the default file extensions for a given MIME type / format
+* map GDAL driver names to MIME types and vice versa
+* map MIME type (i.e., format) to default file extensions 
+* map source format to WCS 2.0.1 native format 
 
 Changes to the Service Implementations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The WMS and WCS modules need to be altered to use the new global settings in
-the service and layer / coverage configuration. The hard-coded format settings
-in WCS 2.0
-(:mod:`eoxserver.services.ows.wcs.wcs20.getcov` module) need to be replaced.
+the service and layer / coverage configuration.
 
-For WCS 2.0.1 native format reporting the GDAL driver name obtained from the
-:class:`~.DataPackageWrapper` implementation should be translated at runtime to
-the respective MIME type reported in the service metadata using the global
-settings provided in the configuration file (and using the functions or methods
-defined in the :mod:`eoxserver.resources.coverages.formats` module). If it
-cannot be found there or if the format is read-only, the default format defined
-in the configuration file (``default_native_format`` setting) shall be used.
+The hard-coded format settings in WCS 2.0
+(:mod:`eoxserver.services.ows.wcs.wcs20.getcov` module) shall be removed. 
+GDAL driver name obtained from the :class:`~.DataPackageWrapper` implementation 
+shall be translated at runtime to the respective MIME type using the
+functionality provided by :mod:`eoxserver.resources.coverages.formats` module
+(inluding the translation from the source MIME type to the WCS 2.0.1 native MIME
+type). 
 
 Changes to the Administration Tools
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
