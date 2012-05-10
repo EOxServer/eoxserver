@@ -3,12 +3,23 @@ $(document).ready(function() {
 var views = namespace("App.Views");
 var models = namespace("App.Models");
 
+/**
+ *  view MapView
+ *
+ * A view responsible displaying the OpenLayers map with all its functionality.
+ * Receives two models on startup, a BoundingBoxSelectionModel and a
+ * DateTimeIntervalModel for which the map listens for changes and sets
+ * attributes.
+ */
+
 views.MapView = Backbone.View.extend({
     initialize: function(options) {
         this.bboxModel = options.bboxModel;
         this.dtModel = options.dtModel;
 
         this.bboxModel.on("change", this.onBBoxChange, this);
+        this.bboxModel.on("bboxSelect:start", this.onBBoxSelectStart, this);
+        this.bboxModel.on("bboxSelect:stop", this.onBBoxSelectStop, this);
         this.dtModel.on("change", this.onDateTimeChange, this);
     },
     events: {
@@ -25,16 +36,10 @@ views.MapView = Backbone.View.extend({
         var boxControl = new OpenLayers.Control();
         OpenLayers.Util.extend(boxControl, {
             handler: new OpenLayers.Handler.Box(boxControl, {
-                "done": function (bounds) {
-                    //$("#btn_draw_bbox").trigger("click");
-                    
-                    var ll = map.getLonLatFromPixel(new OpenLayers.Pixel(bounds.left, bounds.bottom)); 
-                    var ur = map.getLonLatFromPixel(new OpenLayers.Pixel(bounds.right, bounds.top));
-                    
-                    //setBBOXValues([ll.lon, ll.lat, ur.lon, ur.lat], true); // TODO:
-                }
+                "done": _.bind(this.onBoxSelected, this)
             })
         });
+        this.boxControl = boxControl;
 
         var wms_layer = new OpenLayers.Layer.WMS(
             "OpenLayers WMS",
@@ -61,7 +66,8 @@ views.MapView = Backbone.View.extend({
                 boxControl
             ],
             layers: [
-                wms_layer
+                wms_layer,
+                this.bboxLayer
             ]
         };
 
@@ -70,21 +76,56 @@ views.MapView = Backbone.View.extend({
         this.map.zoomToExtent(new OpenLayers.Bounds.fromArray(this.bboxModel.get("values")));
     },
 
-    /// event handler here
+    /// internal events
+
+    onBoxSelected: function(bounds) {
+        var ll = this.map.getLonLatFromPixel(new OpenLayers.Pixel(bounds.left, bounds.bottom)); 
+        var ur = this.map.getLonLatFromPixel(new OpenLayers.Pixel(bounds.right, bounds.top));
+
+        this.bboxModel.set({
+            values: [ll.lon, ll.lat, ur.lon, ur.lat],
+            isSet: true
+        });
+        this.bboxModel.trigger("bboxSelect:stop");
+    },
+
+    /// external events
 
     onBBoxChange: function() {
+        this.bboxLayer.clearMarkers();
         if (this.bboxModel.get("isSet")) {
-            // TODO: (re-)draw the bbox
+            var bounds = this.bboxModel.get("values")
+            var box = new OpenLayers.Marker.Box(OpenLayers.Bounds.fromArray(bounds));
+            box.setBorder("lightgreen", 2);
+            this.bboxLayer.addMarker(box);
         }
     },
+    onBBoxSelectStart: function() {
+        this.boxControl.activate();
+    },
+    onBBoxSelectStop: function() {
+        this.boxControl.deactivate();
+    },
     onDateTimeChange: function() {
-        
+        // TODO: set wms parameters here
     }
 });
+
+/**
+ *  view MainControlView
+ *
+ * This class inherits the main control dialog. It is responsible for the
+ * correct initialization of its subviews, as the DateSliderView,
+ * DateTimeSelectionView, BoundingBoxSelectionView, and the HelpView.
+ *
+ * Once the Download button is clicked, the application is navigated to the
+ * downloadSelection route.
+ */
 
 views.MainControlView = Backbone.View.extend({
     template: _.template($('#tpl-main-control').html()),
     initialize: function(options) {
+        this.router = options.router;
         this.dtModel = options.dtModel;
         this.bboxModel = options.bboxModel;
 
@@ -112,7 +153,7 @@ views.MainControlView = Backbone.View.extend({
         ];
     },
     events: {
-        "click #btn-download": function() {alert("Download clicked");}
+        "click #btn-download": "onDownloadClick"
     },
     render: function() {
         this.$el.html(this.template());
@@ -155,9 +196,20 @@ views.MainControlView = Backbone.View.extend({
 
         _.each(this.views, function(view) { view.render(); });
     },
+    onDownloadClick: function() {
+        this.router.navigate("select?", true);
+    },
     show: function() {}, // TODO
     hide: function() {},
 });
+
+/**
+ *  view DateSlider
+ *
+ * This view initializes and manages the date slider and its tooltips.
+ * Therefore it listenes on a DateTimeIntervalModel which it receives upon
+ * initialization and also sets values to it.
+ */
 
 views.DateSliderView = Backbone.View.extend({
     initialize: function(options) {
@@ -167,8 +219,8 @@ views.DateSliderView = Backbone.View.extend({
     events: {
         "slide": "onSlide",
         "slidestop": "onSlideStop",
-        "mousedown .ui-slider-handle": function() {}, // TODO: show tooltip
-        "mouseup .ui-slider-handle": function() {}, // TODO: hide tooltip
+        "mouseenter .ui-slider-handle": "onMouseEnterHandle",
+        "mouseleave .ui-slider-handle": "onMouseLeaveHandle"
     },
     render: function() {
         var minTime = this.model.get("min").getTime(),
@@ -183,7 +235,7 @@ views.DateSliderView = Backbone.View.extend({
             max: maxTime
         });
 
-        // TODO: setup tooltip
+        this.$tooltip = $("#div-tooltip");
     },
 
     /// event handlers
@@ -191,7 +243,14 @@ views.DateSliderView = Backbone.View.extend({
     onSlide: function(event, ui) {
         var begin = new Date(ui.values[0]);
         var end = new Date(ui.values[1]);
-        // TODO: set tooltip
+        this.$tooltip.css({
+            'top': event.pageY + 10 + 'px',
+            'left': event.pageX + 10 + 'px',
+        });
+        if (ui.values[0] != this.model.get("begin").getTime())
+            this.$tooltip.find("a").text($.datepicker.formatDate('yy-mm-dd', begin));
+        else if (ui.values[1] != this.model.get("end").getTime())
+            this.$tooltip.find("a").text($.datepicker.formatDate('yy-mm-dd', end));
     },
     onSlideStop: function(event, ui) {
         this.model.set({
@@ -199,15 +258,40 @@ views.DateSliderView = Backbone.View.extend({
             end: new Date(ui.values[1])
         });
     },
+
+    /// Tooltip specific events
+
+    onMouseEnterHandle: function(event) {
+        this.$tooltip.css({
+            'top': event.pageY + 10 + 'px',
+            'left': event.pageX + 10 + 'px',
+        }).fadeIn(100);
+        // TODO: set the value to the entered element
+    },
+    onMouseLeaveHandle: function(event) {
+        this.$tooltip.css({
+            'top': event.pageY + 10 + 'px',
+            'left': event.pageX + 10 + 'px',
+        }).fadeOut(100);
+    },
+
+    /// external events
+    
     onDateChange: function() {
         // don't rerender here, just set the values
         this.$el.slider(
             "option", "values",
-            [this.model.get("begin"), this.model.get("end")]
+            [this.model.get("begin").getTime(), this.model.get("end").getTime()]
         );
-        // TODO: set the values on the tooltip also
     }
 });
+
+/**
+ *  view DateTimeSelectionView
+ *
+ * This view visualizes two date pickers and two time pickers. It listens and
+ * writes to a DateTimeIntervalModel.
+ */
 
 views.DateTimeSelectionView = Backbone.View.extend({
     template: _.template($('#tpl-datetime-selection').html()),
@@ -216,84 +300,149 @@ views.DateTimeSelectionView = Backbone.View.extend({
         this.model.on("change", this.onDateTimeChange, this);
     },
     events: {
-        //"#begin_date #end_date": "" // TODO
+        "change #inp-begin-date": "onBeginDateTimeChange",
+        "change #inp-end-date": "onEndDateTimeChange"
     },
     render: function() {
-        this.$el.html(this.template(this.model.toJSON()));
+        this.$el.html(this.template());
+
+        this.$beginDate = this.$("#inp-begin-date");
+        this.$endDate = this.$("#inp-end-date");
+        this.$beginTime = this.$("#inp-begin-time");
+        this.$endTime = this.$("#inp-end-time");
 
         var minDate = this.model.get("min"),
             maxDate = this.model.get("max"),
             beginDate = this.model.get("begin"),
             endDate = this.model.get("end");
         
-        this.$("#begin_date #end_date").datepicker({
+        this.$("#inp-begin-date,#inp-end-date").datepicker({
             showOn: 'focus',
             minDate: minDate,
             maxDate: maxDate,
-            dateFormat: 'yy-mm-dd',
-            onClose: function(dateText, inst) {
-                // TODO: parse dates and set them to the datetime model
-
-                
-
-                
-                var begin = $.datepicker.parseDate("yy-mm-dd", dateText);
-                var end = $(this).datepicker("option", "maxDate");
-                $.event.trigger(
-                    'datetime_changed',
-                    [begin, end]
-                );
-            }
+            dateFormat: 'yy-mm-dd'
         });
-        this.$("#begin_date").datepicker("setDate", beginDate);
-        this.$("#end_date").datepicker("setDate", endDate);
+        this.$beginDate.datepicker("setDate", beginDate);
+        this.$endDate.datepicker("setDate", endDate);
     },
+
+    /// internal events
+    
+    onBeginDateTimeChange: function() {
+        try {
+            var date = $.datepicker.parseDate("yy-mm-dd", this.$beginDate.val());
+            this.model.set("begin", date);
+            this.$beginDate.removeClass("error");
+        }
+        catch(e) {
+            this.$beginDate.addClass("error");
+        }
+    },
+    onEndDateTimeChange: function() {
+        try {
+            var date = $.datepicker.parseDate("yy-mm-dd", this.$endDate.val());
+            this.model.set("end", date);
+            this.$endDate.removeClass("error");
+        }
+        catch(e) {
+            this.$endDate.addClass("error");
+        }
+    },
+
+    /// external events
+    
     onDateTimeChange: function() {
         var model = this.model;
         if (model.hasChanged("begin")) {
-            this.$("#begin_date").datepicker("setDate", model.get("begin"));
+            this.$beginDate.datepicker("setDate", model.get("begin"));
+            this.$endDate.datepicker("option", "minDate", model.get("begin"));
         }
         if (model.hasChanged("end")) {
-            this.$("#end_date").datepicker("setDate", model.get("end"));
+            this.$endDate.datepicker("setDate", model.get("end"));
+            this.$beginDate.datepicker("option", "maxDate", model.get("end"));
         }
-        // TODO: min/max
     }
 });
+
+/**
+ *  view BoundingBoxSelectionView
+ *
+ * This class is responsible for selecting a bounding box. This can either be
+ * achieved through the text input fields or via the Select BBOX button. This
+ * emits the event bboxSelect:start on the BoundingBoxSelectionModel other
+ * views might listen to (in this case the MapView to draw a bounding box).
+ * Once the selection process is finished, the bboxSelect:stop event shall be
+ * triggered.
+ */
 
 views.BoundingBoxSelectionView = Backbone.View.extend({
     template: _.template($('#tpl-bbox-selection').html()),
     initialize: function(options) {
         // bind events to member function
         this.model.on("change", this.onBBoxChange, this);
+        this.model.on("bboxSelect:stop", this.onBBoxSelectStop, this);
     },
     events: {
-        "change #minx,#miny,#maxx,#maxy": "onBBoxInput"
+        "change #minx,#miny,#maxx,#maxy": "onBBoxInputChange",
+        "change #chk-draw-bbox": "onDrawBBoxChange",
+        "click #btn-clear-bbox": "onClearBBoxClick"
     },
     render: function() {
         this.$el.html(this.template());
+
+        this.$inputs = this.$("#minx,#miny,#maxx,#maxy");
+        this.$drawBBox = this.$("#chk-draw-bbox");
+        this.$clearBBox = this.$("#btn-clear-bbox");
+
+        this.$drawBBox.button({label: "Draw BBOX"});
+        this.$clearBBox.button({label: "Clear BBOX"});
     },
-    onBBoxInput: function() {
-        var values = this.$("#minx,#miny,#maxx,#maxy").map(function(){
-            return parseFloat($(this).val());
-        }).get();
+
+    /// internal events
+    
+    onBBoxInputChange: function() {
+        var values = _.map(["#minx", "#miny", "#maxx", "#maxy"], function(id) {
+            return parseFloat($(id).val());
+        });
         
-        if(!_.any(values, isNaN)) {
-            this.model.set({
-                values: values,
-                isSet: true
-            });
-        }
+        this.model.set({
+            values: values,
+            isSet: true
+        });
     },
+    onDrawBBoxChange: function() {
+        if (this.$drawBBox.is(":checked"))
+            this.model.trigger("bboxSelect:start");
+        else
+            this.model.trigger("bboxSelect:stop");
+    },
+    onClearBBoxClick: function() {
+        this.model.set("isSet", false);
+        this.$inputs.val("");
+    },
+
+    /// external events
+    
     onBBoxChange: function() {
+        var $inputs = this.$inputs;
         if (this.model.get("isSet")) {
-            var $inputs = this.$("#minx,#miny,#maxx,#maxy");
-            
             _.each(this.model.get("values"), function(v, i) {
                 $($inputs[i]).val(v);
             });
         }
+    },
+    onBBoxSelectStop: function() {
+        if (this.$drawBBox.is(":checked")) {
+            this.$drawBBox.trigger("click");
+        }
     }
 });
+
+/**
+ *  view HelpView
+ *
+ * Simple view for displaying help.
+ */
 
 views.HelpView = Backbone.View.extend({
     template: _.template($('#tpl-help').html()),
@@ -302,23 +451,200 @@ views.HelpView = Backbone.View.extend({
     }
 });
 
+/**
+ *  view DownloadSelectionView
+ *
+ * This view displays all coverages associated with the currently viewed
+ * dataset series. The user can 
+ */
+
 views.DownloadSelectionView = Backbone.View.extend({
-    template: _.template($('#tpl-bbox-selection').html()),
+    template: _.template($('#tpl-download-selection').html()),
+    initialize: function(options) {
+        this.router = options.router;
+        this.itemViews = this.model.map(function(model) {
+            return new views.DownloadSelectionItemView({
+                model: model
+            });
+        });
+    },
     events: {
-        "click download": "", // TODO
-        "click cancel": ""
+        "dialogclose": "onDialogClose"
     },
     render: function() {
+        this.$el.html(this.template(this.model.toJSON()));
+        this.$el.dialog({
+            autoOpen: false,
+            width: 'auto',
+            modal: true,
+            buttons: {
+                "Start Download": _.bind(this.onStartDownloadClick, this)
+            }
+        });
         
+        _.each(this.itemViews, function(view) {
+            this.$el.append(view.render().$el);
+        }, this);
+
+        this.$el.dialog("open");
+    },
+    onDialogClose: function() {
+        this.router.navigate("", true);
+    },
+    onStartDownloadClick: function() {
+        var selected = _.filter(this.itemViews, function(view) {
+            return view.isSelected();
+        });
+
+        if (selected.length > 0) {
+            _.each(selected, function(view) {
+                var coverage = view.model;
+                var params = view.getParameters();
+                var url = coverage.getDownloadUrl(params);
+
+                // TODO apply bbox and format
+                // TODO make download link
+                // TODO add iframe to download
+            });
+            
+            this.$el.dialog("destroy");
+            this.router.navigate("", true);
+        }
     }
 });
 
+/**
+ *
+ *
+ *
+ *
+ *
+ */
+
 views.DownloadSelectionItemView = Backbone.View.extend({
-    
+    template: _.template($('#tpl-download-selection-item').html()),
+    tagName: "div",
+    initialize: function() {
+        this.rangetypeSelection = new models.RangeTypeSelectionCollection(
+            this.model.getRangeType()
+        );
+    },
+    events: {
+        "click .btn-select-rangetype": "onSelectRangeTypeClick",
+        "click .btn-show-info": "onShowInfoClick"
+    },
+    render: function() {
+        this.$el.html(this.template(this.model.toJSON()));
+        return this;
+    },
+    isSelected: function() {
+        return this.$(".chk-selected").is(":checked");
+    },
+    getParameters: function() {
+        var params = {};
+        
+        var sizex = parseInt(this.$(".sizex").val());
+        var sizey = parseInt(this.$(".sizey").val());
+        if(!isNaN(sizex)) params.sizeX = sizex;
+        if(!isNaN(sizey)) params.sizeY = sizey;
+
+        // TODO: get selected CRS
+        if(!this.rangetypeSelection.all(function(band) { return band.get("selected"); })) {
+            params.rangeSubset = this.rangetypeSelection.chain().filter(function(band) {
+                return band.get("selected");
+            }).map(function(band) {
+                return band.get("name")
+            }).value();
+        }
+
+        var selectedCRS = this.$(".crs").val(); // TODO: find out the correct one
+        if (this.model.get("nativeCRS") !== selectedCRS)
+            params.outputCRS = selectedCRS;
+        
+        return params;
+    },
+    onSelectRangeTypeClick: function() {
+        var rangeTypeView = new views.RangeTypeSelectionView({
+            model: this.rangetypeSelection
+        });
+        rangeTypeView.render();
+    },
+    onShowInfoClick: function() {
+        var infoView = new views.CoverageInfoView({
+            model: this.model,
+        });
+        infoView.render();
+    }
 });
 
-views.CoverageDetailView = Backbone.View.extend({
-    
+
+/**
+ *
+ *
+ */
+
+views.RangeTypeSelectionView = Backbone.View.extend({
+    template: _.template($('#tpl-rangetype-selection').html()),
+    tagName: "table",
+    render: function() {
+        this.$el.html(this.template({
+            rangeType: this.model.toJSON()
+        }));
+        
+        this.$el.dialog({
+            autoOpen: true,
+            width: 'auto',
+            modal: true,
+            resizable: false,
+            buttons: {
+                "Okay": _.bind(this.onOkayClick, this),
+                "Cancel": _.bind(this.onCancelClick, this)
+            }
+        });
+    },
+    onOkayClick: function() {
+        var selected = this.$("input").map(function() {
+            return $(this).is(":checked");
+        }).get();
+        
+        if (_.any(selected)) {
+            this.model.each(function(band, i) {
+                band.set("selected", selected[i]);
+            });
+            this.$el.dialog("destroy");
+            this.remove();
+            return;
+        }
+        // TODO: show better error here!
+        alert("At least one band has to be selected!");
+    },
+    onCancelClick: function() {
+        this.$el.dialog("destroy");
+        this.remove();
+    }
+});
+
+/**
+ *
+ *
+ *
+ *
+ *
+ */
+
+views.CoverageInfoView = Backbone.View.extend({
+    template: _.template($('#tpl-coverage-info').html()),
+    render: function() {
+        this.$el.html(this.template(this.model.toJSON()));
+        
+        this.$el.dialog({
+            autoOpen: true,
+            width: 'auto',
+            modal: true,
+            resizable: false
+        });
+        // TODO: show a small map with only the coverage in it
+    }
 });
 
 
@@ -330,6 +656,22 @@ models.DateTimeInterval = Backbone.Model.extend({
         end: new Date(),
         min: new Date(),
         max: new Date()
+    },
+    validate: function(attrs) {
+        var beginTime = attrs.begin.getTime(),
+            endTime = attrs.end.getTime(),
+            minTime = attrs.min.getTime(),
+            maxTime = attrs.max.getTime();
+
+        if (minTime > maxTime) {
+            return "wrong min/max"
+        }
+        else if (beginTime < minTime || beginTime > endTime) {
+            return "wrong begin"
+        }
+        else if (endTime > maxTime) {
+            return "wrong end"
+        }
     }
 });
 
@@ -337,7 +679,29 @@ models.BoundingBoxModel = Backbone.Model.extend({
     defaults: {
         isSet: false,
         values: [0, 0, 0, 0]
+    },
+    validate: function(attrs) {
+        var values = attrs.values;
+        if (values.length != 4) {
+            return "wrong number of values";
+        }
+        else if (_.any(values, isNaN)) {
+            return "values must be valid numbers";
+        }
+        else if (values[0] > values[2] || values[1] > values[3]) {
+            return "wrong values"
+        }
     }
+});
+
+models.BandSelectionModel = Backbone.Model.extend({
+    defaults: {
+        selected: true
+    }
+});
+
+models.RangeTypeSelectionCollection = Backbone.Collection.extend({
+    model: models.BandSelectionModel
 });
 
 /// ROUTER
@@ -365,31 +729,45 @@ app.Router = Backbone.Router.extend({
         this.controlView = new views.MainControlView({
             el: $("#div-main"),
             dtModel: this.dtModel,
-            bboxModel: this.bboxModel
+            bboxModel: this.bboxModel,
+            router: this
         });
 
         this.mapView.render();
         this.controlView.render();
+
+        this.eoid = options.eoid;
     },
     routes: {
         "": "main",
-        "/select": "downloadSelection"
+        "select?*kvp": "downloadSelection"
     },
     main: function() {
         this.controlView.show();
     },
-    downloadSelection: function() { // TODO: parameters
+    downloadSelection: function(kvp) {
+        var router = this;
+        // TODO: parse kvp
         var eoSet = new WCS.Backbone.Model.EOCoverageSet([], {
             type: "coverages",
+            urlRoot: "/ows",
+            eoid: this.eoid
+            
             // TODO fill in parameters
         });
-        eoSet.fetch({async: false});
-        
-        var downloadSelection = new DownloadSelectionView({
-            el: $("#div-download"),
-            model: eoSet
+        eoSet.fetch({
+            success: function() {
+                var downloadSelection = new views.DownloadSelectionView({
+                    el: $("#div-download"),
+                    model: eoSet,
+                    router: router
+                });
+                downloadSelection.render();
+            },
+            error: function(error) {
+                alert("An error occurred!"); // TODO: improve error message
+            }
         });
-        downloadSelection.render();
     }
 });
 

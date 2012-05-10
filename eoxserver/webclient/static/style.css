@@ -19,5 +19,20 @@
 }
 
 .ui-dialog {
-      opacity: 0.9;
+    opacity: 0.9;
 }
+
+.tooltip {
+    position: absolute;
+    z-index: 3000;
+    border: 1px solid #111;
+    background-color: #eee;
+    padding: 5px;
+    opacity: 0.85;
+    display: none;
+}
+.tooltip h3, .tooltip div { margin: 0; }
+
+.error {
+    background-color: #fcc;
+};
