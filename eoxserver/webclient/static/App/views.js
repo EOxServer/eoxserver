@@ -16,6 +16,7 @@ views.MapView = Backbone.View.extend({
     initialize: function(options) {
         this.bboxModel = options.bboxModel;
         this.dtModel = options.dtModel;
+        this.layerParams = options.layerParams;
 
         this.bboxModel.on("change", this.onBBoxChange, this);
         this.bboxModel.on("bboxSelect:start", this.onBBoxSelectStart, this);
@@ -73,6 +74,43 @@ views.MapView = Backbone.View.extend({
 
         this.map = new OpenLayers.Map(this.el, map_params);
 
+        this.layers = _.map(this.layerParams, function(params) {
+            if (params.service === "wms") {
+                return new OpenLayers.Layer.WMS( params.name, params.url, {
+                    layers: params.layerId,
+                    transparent: true,
+                    version: "1.3.0"
+                }, {
+                    maxExtent:bounds,
+                    displayOutsideMaxExtent:true,
+                    visibility: params.visible,
+                    gutter: 5
+                });
+            }
+            else if (params.service === "wmts") {
+                new OpenLayers.Layer.WMTS({
+                    name: params.name,
+                    url: params.url,
+                    layer: params.layerId,
+                    transparent: true,
+                    visibility: true,
+                    gutter: 0,
+                    isBaseLayer: false,
+                    style: 'default',
+                    matrixSet: 'WGS84',
+                    zoomOffset: -1,
+                    transitionEffect: 'resize',
+                    units: "dd",
+                    projection: new OpenLayers.Projection("EPSG:4326".toUpperCase()),
+                    sphericalMercator: false,
+                    format: 'image/png',
+                    resolutions:[0.70312500000000000000,0.35156250000000000000,0.17578125000000000000,0.08789062500000000000,0.04394531250000000000,0.02197265625000000000,0.01098632812500000000,0.00549316406250000000,0.00274658203125000000,0.00137329101562500000,0.00068664550781250000,0.00034332275390625000,0.00017166137695312500,0.00008583068847656250,0.00004291534423828120,0.00002145767211914060,0.00001072883605957030,0.00000536441802978516],
+                });
+            }
+        });
+
+        this.map.addLayers(this.layers);
+
         this.map.zoomToExtent(new OpenLayers.Bounds.fromArray(this.bboxModel.get("values")));
     },
 
@@ -107,7 +145,13 @@ views.MapView = Backbone.View.extend({
         this.boxControl.deactivate();
     },
     onDateTimeChange: function() {
-        // TODO: set wms parameters here
+        _.each(this.layers, function(layer) {
+            if(layer.mergeNewParams) {
+                var timeString = this.dtModel.getBeginString()
+                                 + "/" + this.dtModel.getEndString();
+                layer.mergeNewParams({time: timeString});
+            }
+        }, this);
     }
 });
 
@@ -128,6 +172,7 @@ views.MainControlView = Backbone.View.extend({
         this.router = options.router;
         this.dtModel = options.dtModel;
         this.bboxModel = options.bboxModel;
+        this.capsModel = options.capsModel;
 
         // set up subviews
 
@@ -142,6 +187,10 @@ views.MainControlView = Backbone.View.extend({
         this.bboxSelectionView = new views.BoundingBoxSelectionView({
             model: this.bboxModel
         });
+
+        this.serviceInfoView = new views.ServiceInfoView({
+            model: this.capsModel
+        });
         
         this.helpView = new views.HelpView();
 
@@ -149,6 +198,7 @@ views.MainControlView = Backbone.View.extend({
             this.dateSliderView,
             this.dtSelectionView,
             this.bboxSelectionView,
+            this.serviceInfoView,
             this.helpView
         ];
     },
@@ -171,7 +221,7 @@ views.MainControlView = Backbone.View.extend({
             },
             closeOnEscape: false,
             resizable: false,
-            width: 500,
+            width: 550,
             height: 'auto',
             position: 'top',
         });
@@ -192,12 +242,24 @@ views.MainControlView = Backbone.View.extend({
         this.dateSliderView.setElement(this.$("#slider"));
         this.dtSelectionView.setElement(this.$("#frg-date"));
         this.bboxSelectionView.setElement(this.$("#frg-bbox"));
+        this.serviceInfoView.setElement(this.$("#frg-info"));
         this.helpView.setElement(this.$("#frg-help"));
 
         _.each(this.views, function(view) { view.render(); });
     },
     onDownloadClick: function() {
-        this.router.navigate("select?", true);
+        var begin = this.dtModel.get("begin");
+        var end = this.dtModel.get("end");
+        var bbox = this.bboxModel.get("values");
+        var args = [];
+        
+        if (this.bboxModel.get("isSet")) {
+            args.push("bbox=" + bbox.join(","));
+        }
+        args.push("begin=" + this.dtModel.getBeginString());
+        args.push("end=" + this.dtModel.getEndString());
+        
+        this.router.navigate("select?" + args.join("&"), true);
     },
     show: function() {}, // TODO
     hide: function() {},
@@ -238,19 +300,29 @@ views.DateSliderView = Backbone.View.extend({
         this.$tooltip = $("#div-tooltip");
     },
 
+    setToolTipTextAndPosition: function(text, x, y) {
+        this.$tooltip.css({
+            'top': event.pageY + 10 + 'px',
+            'left': event.pageX + 10 + 'px',
+        });
+        this.$tooltip.find("a").text(text);
+    },
+    
     /// event handlers
 
     onSlide: function(event, ui) {
         var begin = new Date(ui.values[0]);
         var end = new Date(ui.values[1]);
-        this.$tooltip.css({
-            'top': event.pageY + 10 + 'px',
-            'left': event.pageX + 10 + 'px',
-        });
-        if (ui.values[0] != this.model.get("begin").getTime())
-            this.$tooltip.find("a").text($.datepicker.formatDate('yy-mm-dd', begin));
-        else if (ui.values[1] != this.model.get("end").getTime())
-            this.$tooltip.find("a").text($.datepicker.formatDate('yy-mm-dd', end));
+        var text;
+        
+        if (ui.values[0] != this.model.get("begin").getTime()) {
+            text = $.datepicker.formatDate('yy-mm-dd', begin);
+        }
+        else if (ui.values[1] != this.model.get("end").getTime()) {
+            text = $.datepicker.formatDate('yy-mm-dd', end)
+        }
+        
+        this.setToolTipTextAndPosition(text, event.pageX, event.pageY);
     },
     onSlideStop: function(event, ui) {
         this.model.set({
@@ -262,11 +334,11 @@ views.DateSliderView = Backbone.View.extend({
     /// Tooltip specific events
 
     onMouseEnterHandle: function(event) {
-        this.$tooltip.css({
-            'top': event.pageY + 10 + 'px',
-            'left': event.pageX + 10 + 'px',
-        }).fadeIn(100);
-        // TODO: set the value to the entered element
+        var idx = $(event.target).index();
+        var values = this.$el.slider("option", "values");
+        var text = $.datepicker.formatDate('yy-mm-dd', new Date(values[idx-1]));
+        this.setToolTipTextAndPosition(text, event.pageX, event.pageY);
+        this.$tooltip.fadeIn(100);
     },
     onMouseLeaveHandle: function(event) {
         this.$tooltip.css({
@@ -438,6 +510,16 @@ views.BoundingBoxSelectionView = Backbone.View.extend({
     }
 });
 
+views.ServiceInfoView = Backbone.View.extend({
+    template: _.template($('#tpl-server-info').html()),
+    render: function() {
+        this.$el.html(this.template(this.model.toJSON()));
+        this.$("#acc-info").accordion({ 
+            autoHeight: false,
+        });
+    }
+});
+
 /**
  *  view HelpView
  *
@@ -483,7 +565,7 @@ views.DownloadSelectionView = Backbone.View.extend({
         });
         
         _.each(this.itemViews, function(view) {
-            this.$el.append(view.render().$el);
+            this.$("#coverages").append(view.render().$el);
         }, this);
 
         this.$el.dialog("open");
@@ -523,7 +605,9 @@ views.DownloadSelectionView = Backbone.View.extend({
 
 views.DownloadSelectionItemView = Backbone.View.extend({
     template: _.template($('#tpl-download-selection-item').html()),
-    tagName: "div",
+    attributes: {
+        class: "ui-widget ui-widget-content ui-corner-all ui-coverage-item"
+    },
     initialize: function() {
         this.rangetypeSelection = new models.RangeTypeSelectionCollection(
             this.model.getRangeType()
@@ -672,6 +756,18 @@ models.DateTimeInterval = Backbone.Model.extend({
         else if (endTime > maxTime) {
             return "wrong end"
         }
+    },
+
+    _getString: function(date) {
+        return $.datepicker.formatDate('yy-mm-ddT', date)
+            + date.getHours() + ":" + date.getMinutes() + "Z";
+    },
+    getBeginString: function() {
+        return this._getString(this.get("begin"));
+        
+    },
+    getEndString: function() {
+        return this._getString(this.get("end"));
     }
 });
 
@@ -710,53 +806,77 @@ var app = namespace("App");
 
 app.Router = Backbone.Router.extend({
     initialize: function(options) {
-        this.dtModel = new models.DateTimeInterval({
-            min: options.minDate,
-            max: options.maxDate,
-            begin: options.minDate,
-            end: options.maxDate
-        });
-        this.bboxModel = new models.BoundingBoxModel({
-            values: options.extent
-        });
-        
-        this.mapView = new views.MapView({
-            el: $("#div-map"),
-            dtModel: this.dtModel,
-            bboxModel: this.bboxModel
-        });
+        var caps = new WCS.Backbone.Model.Service({urlRoot: "/ows"});
+        var router = this;
+        $("#div-busy-indicator").fadeIn();
+        caps.fetch({
+            success: function() {
+                $("#div-busy-indicator").fadeOut();
+                router.dtModel = new models.DateTimeInterval({
+                    min: options.minDate,
+                    max: options.maxDate,
+                    begin: options.minDate,
+                    end: options.maxDate
+                });
+                router.bboxModel = new models.BoundingBoxModel({
+                    values: options.extent
+                });
+                
+                router.mapView = new views.MapView({
+                    el: $("#div-map"),
+                    dtModel: router.dtModel,
+                    bboxModel: router.bboxModel,
+                    layerParams: options.layerParams
+                });
 
-        this.controlView = new views.MainControlView({
-            el: $("#div-main"),
-            dtModel: this.dtModel,
-            bboxModel: this.bboxModel,
-            router: this
-        });
+                router.controlView = new views.MainControlView({
+                    el: $("#div-main"),
+                    dtModel: router.dtModel,
+                    bboxModel: router.bboxModel,
+                    capsModel: caps,
+                    router: router
+                });
 
-        this.mapView.render();
-        this.controlView.render();
+                router.mapView.render();
+                router.controlView.render();
 
-        this.eoid = options.eoid;
+                router.eoid = options.eoid;
+            },
+            error: function() {
+                alert("An error occurred!");
+            }
+        })
     },
     routes: {
         "": "main",
         "select?*kvp": "downloadSelection"
     },
     main: function() {
-        this.controlView.show();
+        //this.controlView.show();
     },
     downloadSelection: function(kvp) {
         var router = this;
-        // TODO: parse kvp
-        var eoSet = new WCS.Backbone.Model.EOCoverageSet([], {
+        var options = {
             type: "coverages",
             urlRoot: "/ows",
             eoid: this.eoid
-            
-            // TODO fill in parameters
-        });
+        };
+
+        var kvps = parseKvp(Backbone.history.getFragment());
+        if (kvps.bbox) {
+            var values = kvps.bbox.split(",");
+            if (values.length == 4)
+                options.bbox =  values;
+        }
+        if (kvps.begin && kvps.end) {
+            options.subsetTime = [kvps.begin, kvps.end];
+        }
+        
+        var eoSet = new WCS.Backbone.Model.EOCoverageSet([], options);
+        $("#div-busy-indicator").fadeIn();
         eoSet.fetch({
             success: function() {
+                $("#div-busy-indicator").fadeOut();
                 var downloadSelection = new views.DownloadSelectionView({
                     el: $("#div-download"),
                     model: eoSet,
@@ -765,11 +885,29 @@ app.Router = Backbone.Router.extend({
                 downloadSelection.render();
             },
             error: function(error) {
+                $("#div-busy-indicator").hide();
                 alert("An error occurred!"); // TODO: improve error message
             }
         });
     }
 });
+
+/**
+ *  function parseKvp
+ *
+ * really, really simple KVP-URL parsing function.
+ */
+var parseKvp = function(string) {
+    var kvps = {};
+    var mainParts = string.split("?");
+    if (mainParts.length != 2) return {};
+    var parts = mainParts[1].split("&");
+    _.each(parts, function(part) {
+        var keyValue = part.split("=");
+        kvps[keyValue[0]] = keyValue[1];
+    });
+    return kvps;
+};
 
 
 });
