@@ -51,17 +51,19 @@
                 <div class="row">
                     <div class="cell">Date:</div>
                     <div class="cell" style="padding: 15px; width: 250px"><div id="slider"></div></div>
-                    <div class="cell"><button id="btn-download" /></div>                    
+                    <div class="cell"><button id="btn-download" /></div>
                 </div>
             </div>
         
             <ul>
                 <li><a href="#frg-date"><span>Date/Time</span></a></li>
                 <li><a href="#frg-bbox"><span>Bounding Box</span></a></li>
+                <li><a href="#frg-info"><span>Server Info</span></a></li>
                 <li><a href="#frg-help"><span>Help</span></a></li>
             </ul>
             <div id="frg-date" class="container"></div>
             <div id="frg-bbox" class="container"></div>
+            <div id="frg-info" class="container"></div>
             <div id="frg-help" class="container"></div>
         </div>
     </script>
@@ -105,26 +107,67 @@
 
     <script type="text/template" id="tpl-help">
     </script>
+
+    <script type="text/template" id="tpl-server-info">
+        <div id="acc-info">
+            <h3><a href="#">Service Identification</a></h3>
+            <div>
+                <% _.each(serviceIdentification, function(value, key) {%>
+                <div class="row">
+                    <div class="cell"><%= key %></div>
+                    <div class="cell"><p><%= value %></p></div>
+                </div>
+                <% }); %>
+            </div>
+            <h3><a href="#">Service Provider</a></h3>
+            <div>
+                <% _.each(serviceProvider, function(value, key) {%>
+                <div class="row">
+                    <div class="cell"><%= key %></div>
+                    <div class="cell"><p><%= value %></p></div>
+                </div>
+                <% }); %>
+            </div>
+        </div>
+    </script>
     
     <script type="text/template" id="tpl-download-selection">
-        
+        <div id="coverages"></div>
+        <select class="formats">
+            <!-- do this dynamically once the formatsSupported works -->
+            <option value="image/tiff" selected>image/tiff</option>
+            <option value="image/jp2">image/jp2</option>
+        </select>
     </script>
 
     <script type="text/template" id="tpl-download-selection-item">
+        <input type="checkbox" checked="true" class="chk-selected" style="float:left;"/>
+        <div style="clear:right;max-width:40em;overflow:hidden;"><%= coverageId %></div>
+        Width:<input type="text" class="sizex" size="5" maxlength="5" <%= (coverageSubtype === "ReferenceableDataset") ? 'disabled="disabled"' : "" %>/>
+        Height:<input type="text" class="sizey" size="5" maxlength="5" <%= (coverageSubtype === "ReferenceableDataset") ? 'disabled="disabled"' : "" %>/>
+        CRS:<select class="crs">
+            <option value="http://www.opengis.net/def/crs/EPSG/0/4326" selected>EPSG:4326</option>
+        </select>
+        
+        <input type="button" class="btn-select-rangetype" value="Select Bands"></input>
+        <input type="button" class="btn-show-info" value="Show Info"></input>
+    </script>
+
+    <!-- use this template once supportedCRSs are working as expected -->
+    <!--<script type="text/template" id="tpl-download-selection-item">
         <input type="checkbox" checked="true" class="chk-selected" style="float:left;"/>
         <div style="clear:right;"><%= coverageId %></div>
         Width:<input type="text" class="sizex" size="5" maxlength="5"/>
         Height:<input type="text" class="sizey" size="5" maxlength="5"/>
         CRS:<select class="crs">
             <% _.each(supportedCRSs, function(crs) { %>
-                <option value="<%= crs %>" <%= (crs === nativeCRS) ? "selected": "" %>>crs</option>
+                <option value="<%= crs %>" <%= (crs === nativeCRS) ? "selected": "" %>><%= crs %></option>
             <% }); %>
         </select>
         
-        <!-- select the native one also! -->
         <input type="button" class="btn-select-rangetype" value="Select Bands"></input>
         <input type="button" class="btn-show-info" value="Show Info"></input>
-    </script>
+    </script>-->
 
     <script type="text/template" id="tpl-rangetype-selection">
         <% _.each(rangeType, function(band) { %>
@@ -156,6 +199,9 @@
     <div id="div-main"></div>
     <div id="div-download"></div>
     <div id="div-tooltip" class="ui-widget tooltip"><a></a></div>
+    <div id="div-busy-indicator" class="ui-widget ui-widget-content ui-corner-all">
+        <img src="{{STATIC_URL}}ajax-loader.gif"></img>
+    </div>
 
     <script src="{{STATIC_URL}}OpenLayers/OpenLayers.js"></script>
     <script src="{{STATIC_URL}}jquery/jquery.min.js"></script>
@@ -179,7 +225,18 @@ $(document).ready(function() {
         minDate: minDate,
         maxDate: maxDate,
         extent: [{{extent}}],
-        eoid: "{{eoid}}"
+        eoid: "{{eoid}}",
+        layerParams: [{
+            name: "{{eoid}} Preview",
+            layerId: "{{eoid}}",
+            service: "{{preview_service}}",
+            url: "{{preview_url}}"
+        }, {
+            name: "{{eoid}} Outlines",
+            layerId: "{{eoid}}_outlines",
+            service: "{{outline_service}}",
+            url: "{{outline_url}}"
+        }]
     });
     Backbone.history.start();
 });
