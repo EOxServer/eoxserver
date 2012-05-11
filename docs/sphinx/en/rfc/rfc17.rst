@@ -213,7 +213,7 @@ correspond to a given format. The syntax is as follows::
   
 e.g.::
 
-  GTiff,image/tiff,rw,tiff
+  GTiff,image/tiff,rw,.tiff
 
 Lines starting with ``#`` shall be ignored.
 
