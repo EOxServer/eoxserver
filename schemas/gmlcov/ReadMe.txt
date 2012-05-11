@@ -11,8 +11,10 @@ The most current schema are available at http://schemas.opengis.net/ .
 
 -----------------------------------------------------------------------
 
-2011-06-14 Stephan Meissl
-  * Corrected metadata element to include processContents="lax".
+2012-02-06 Stephan Meissl
+  * Added reference to Extension element including processContents="lax" to 
+    metadata element.
+  * Adjusted examples to updated schema including metadata element usage.
 
 2010-11-05  Peter Baumann
   * v1.0: added gmlcov 1.0.0 (OGC 09-146r1)

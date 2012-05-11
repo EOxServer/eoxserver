@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schema targetNamespace="http://www.opengis.net/gmlcov/1.0" 
+    xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0"
     xmlns:gml="http://www.opengis.net/gml/3.2"
     xmlns="http://www.w3.org/2001/XMLSchema"
-    xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0"
-    elementFormDefault="qualified" version="1.0.0" xml:lang="en">
+    elementFormDefault="qualified" version="1.0.1" xml:lang="en">
     <annotation>
         <appinfo>grids.xsd</appinfo>
         <documentation>This XML Schema Document encodes extensions to GML 3.2.1 for grids that are referenced by a Transformation, named "ReferencedGridByTransformation". This document also extends the alternatives allowed in gml:ParameterValueType as expected to be needed by such Transformations.
-        Last updated: 2010-nov-05
-        Copyright (c) 2010 Open Geospatial Consortium, Inc. All Rights Reserved.
+        Last updated: 2012-feb-06
+        Copyright (c) 2012 Open Geospatial Consortium, Inc. All Rights Reserved.
         To obtain additional rights of use, visit http://www.opengeospatial.org/legal/.
         </documentation>
     </annotation>

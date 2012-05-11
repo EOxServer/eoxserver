@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schema targetNamespace="http://www.opengis.net/wcs/2.0" 
-    xmlns="http://www.w3.org/2001/XMLSchema" 
-    xmlns:ows="http://www.opengis.net/ows/2.0" 
-    xmlns:gml="http://www.opengis.net/gml/3.2" 
+<schema targetNamespace="http://www.opengis.net/wcs/extensions/DescribeCoverageUsability/1.0"
+    xmlns:wcs="http://www.opengis.net/wcs/extensions/DescribeCoverageUsability/1.0"
+    xmlns:ows="http://www.opengis.net/ows/2.0"
     xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0"
-    xmlns:wcs="http://www.opengis.net/wcs/2.0"
-    elementFormDefault="qualified" version="2.0.0" xml:lang="en">
+    xmlns:gml="http://www.opengis.net/gml/3.2"
+    xmlns="http://www.w3.org/2001/XMLSchema"
+    elementFormDefault="qualified" version="1.0.0" xml:lang="en">
     <annotation>
-        <appinfo>wcsCommon.xsd</appinfo>
-        <documentation>This XML Schema Document encodes the elements and types that are shared by multiple WCS operations.
-            Last updated: 2010-nov-05
-            Copyright (c) 2010 Open Geospatial Consortium, Inc. All Rights Reserved.
+        <appinfo>wcsDescribeCoverageUsability.xsd</appinfo>
+        <documentation>This XML Schema Document defines XML elements and types that are needed in the DescribeCoverageUsability WCS extension.
+            Last updated: 2012-feb-06
+            Copyright (c) 2012 Open Geospatial Consortium, Inc. All Rights Reserved.
             To obtain additional rights of use, visit http://www.opengeospatial.org/legal/.
         </documentation>
     </annotation>
@@ -25,14 +25,6 @@
     <!-- ============================================================== -->
     <!-- elements and types                                             -->
     <!-- ============================================================== -->
-    <element name="SupportedFormats" type="wcs:SupportedFormatsType"/>
-    <complexType name="SupportedFormatsType">
-        <sequence>
-            <element name="SupportedFormat" type="string" maxOccurs="unbounded"/>
-            <element name="NativeFormat" type="string" minOccurs="0"/>
-        </sequence>
-    </complexType>
-    <!-- =========================================================== -->
     <element name="SupportedCRSs" type="wcs:SupportedCRSsType"/>
     <complexType name="SupportedCRSsType">
         <sequence>

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<wsdl:definitions targetNamespace="http://www.opengis.net/wcs/wsdl"
+<wsdl:definitions targetNamespace="http://www.opengis.net/wcs/2.0"
     xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
-    xmlns:wcs="http://www.opengis.net/wcs"
-    xmlns:ows="http://www.opengis.net/ows"
-    xmlns:gml="http://www.opengis.net/gml"
-    xmlns:gmlcov="http://www.opengis.net/gmlcov"
+    xmlns:wcs="http://www.opengis.net/wcs/2.0"
+    xmlns:ows="http://www.opengis.net/ows/2.0"
+    xmlns:gml="http://www.opengis.net/gml/3.2"
+    xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0"
     xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema">
     <wsdl:documentation xmlns:dc="http://purl.org/dc/elements/1.1/">
@@ -29,10 +29,10 @@
     <!-- WCS request/response types                                     -->
     <!-- ============================================================== -->
     <wsdl:types>
-        <xsd:schema targetNamespace="http://www.opengis.net/wcs"
-            xmlns:wcs="http://www.opengis.net/wcs"
-            elementFormDefault="qualified" version="2.0.0">
-            <wsdl:import namespace="http://www.opengis.net/wcs" location="../wcsAll.xsd"/>
+        <xsd:schema targetNamespace="http://www.opengis.net/wcs/2.0"
+            xmlns:wcs="http://www.opengis.net/wcs/2.0"
+            elementFormDefault="qualified" version="2.0.1">
+            <xsd:include schemaLocation="http://schemas.opengis.net/wcs/2.0/wcsAll.xsd"/>
         </xsd:schema>
     </wsdl:types>
 
@@ -59,7 +59,7 @@
         <wsdl:part name="Body" element="wcs:CoverageDescriptions"/>
     </wsdl:message>
     <wsdl:message name="GetCoverageResponse">
-        <wsdl:part name="Body" element="gmlwcs:AbstractCoverage"/>
+        <wsdl:part name="Body" element="gmlcov:AbstractCoverage"/>
     </wsdl:message>
     <wsdl:message name="ServiceExceptionReport">
         <wsdl:part name="Body" element="ows:ExceptionReport"/>

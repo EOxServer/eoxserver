@@ -39,8 +39,8 @@
     </gml:domainSet>
     <gml:rangeSet>
         <gml:File>
-            <gml:rangeParameters xlink:href="grey.tif" xlink:role="http://www.opengis.net/spec/WCS_coverage-encoding_geotiff/1.0/" xlink:arcrole="fileReference"/>
-            <gml:fileReference>grey.tif</gml:fileReference>
+            <gml:rangeParameters xlink:href="cid:grey.tif" xlink:role="http://www.opengis.net/spec/WCS_coverage-encoding_geotiff/1.0/" xlink:arcrole="fileReference"/>
+            <gml:fileReference>cid:grey.tif</gml:fileReference>
             <gml:fileStructure/>
             <gml:mimeType>image/tiff</gml:mimeType>
         </gml:File>

@@ -7,7 +7,7 @@
     xmlns:gmlcov='http://www.opengis.net/gmlcov/1.0'
     xmlns:gmlwcs='http://www.opengis.net/gmlcov/1.0'
     xsi:schemaLocation='http://www.opengis.net/swe/2.0 http://schemas.opengis.net/sweCommon/2.0/swe.xsd
-                        http://www.opengis.net/gmlcov/1.0 ../../../../gmlcov/1.0/gmlcovAll.xsd'
+                        http://www.opengis.net/gmlcov/1.0 http://schemas.opengis.net/gmlcov/1.0/gmlcovAll.xsd'
     gml:id="C0004">
     <gml:boundedBy>
         <gml:Envelope srsName="http://www.opengis.net/def/crs/EPSG/0/4979" axisLabels="Lat Long h" uomLabels="deg deg m" srsDimension="3">
@@ -64,8 +64,7 @@
     <gmlcov:rangeType><swe:DataRecord>
         <swe:field name="SoilMoisture">
             <swe:Quantity>
-                <gml:description>Moisture</gml:description>
-                <gml:name>Temp</gml:name>
+                <swe:description>Moisture</swe:description>
                 <swe:uom code="Cel"></swe:uom>
                 <swe:constraint>
                     <swe:AllowedValues>

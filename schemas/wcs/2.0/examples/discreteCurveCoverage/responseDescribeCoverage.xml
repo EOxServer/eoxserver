@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <wcs:CoverageDescriptions
+    xmlns:wcs='http://www.opengis.net/wcs/2.0'
     xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
     xmlns='http://www.opengis.net/gml/3.2'
     xmlns:gml='http://www.opengis.net/gml/3.2'
     xmlns:gmlcov='http://www.opengis.net/gmlcov/1.0'
     xmlns:swe='http://www.opengis.net/swe/2.0'
-    xsi:schemaLocation='http://www.opengis.net/swe/2.0 http://schemas.opengis.net/sweCommon/2.0/swe.xsd http://www.opengis.net/wcs/2.0 ../../wcsAll.xsd'
-    xmlns:wcs='http://www.opengis.net/wcs/2.0'>
+    xsi:schemaLocation='http://www.opengis.net/swe/2.0 http://schemas.opengis.net/sweCommon/2.0/swe.xsd 
+                        http://www.opengis.net/wcs/2.0 http://schemas.opengis.net/wcs/2.0/wcsAll.xsd'>
     <wcs:CoverageDescription gml:id="CD0003">
         <gml:boundedBy>
             <gml:Envelope srsName="http://www.opengis.net/def/crs/EPSG/0/4326" axisLabels="Lat Long" srsDimension="2">
@@ -22,8 +23,7 @@
             <swe:DataRecord>
                 <swe:field name="Temperature">
                     <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Temperature">
-                        <gml:description>Temperature</gml:description>
-                        <gml:name>Temp</gml:name>
+                        <swe:description>Temperature</swe:description>
                         <swe:uom code="Cel"/>
                         <swe:constraint>
                             <swe:AllowedValues>
@@ -34,8 +34,7 @@
                 </swe:field>
                 <swe:field name="Pressure">
                     <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Pressure">
-                        <gml:description>pressure</gml:description>
-                        <gml:name>press</gml:name>
+                        <swe:description>pressure</swe:description>
                         <swe:uom code="HPa"/>
                     </swe:Quantity>
                 </swe:field>
@@ -43,6 +42,7 @@
         </gmlcov:rangeType>
         <wcs:ServiceParameters>
             <wcs:CoverageSubtype>MultiCurveCoverage</wcs:CoverageSubtype>
+            <wcs:nativeFormat>application/gml+xml</wcs:nativeFormat>
         </wcs:ServiceParameters>
     </wcs:CoverageDescription>
 </wcs:CoverageDescriptions>

@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schema targetNamespace="http://www.opengis.net/wcs/2.0" 
-    xmlns:wcs="http://www.opengis.net/wcs/2.0" 
+<schema targetNamespace="http://www.opengis.net/wcs/2.0"
+    xmlns:wcs="http://www.opengis.net/wcs/2.0"
     xmlns:ows="http://www.opengis.net/ows/2.0"
-    xmlns="http://www.w3.org/2001/XMLSchema" 
-    elementFormDefault="qualified" version="2.0.0" xml:lang="en">
+    xmlns="http://www.w3.org/2001/XMLSchema"
+    elementFormDefault="qualified" version="2.0.1" xml:lang="en">
     <annotation>
         <appinfo>wcsGetCapabilities.xsd</appinfo>
-        <documentation>This XML Schema Document encodes the GetCapabilities operation request and response used by the OGC Web Coverage Service (WCS).
-            Last updated: 2010-nov-05
-            Copyright (c) 2010 Open Geospatial Consortium, Inc. All Rights Reserved.
+        <documentation>This XML Schema Document defines the GetCapabilities operation request and response XML elements and types, used by the OGC Web Coverage Service (WCS).
+            Last updated: 2012-feb-06
+            Copyright (c) 2012 Open Geospatial Consortium, Inc. All Rights Reserved.
             To obtain additional rights of use, visit http://www.opengeospatial.org/legal/.
         </documentation>
     </annotation>
@@ -45,7 +45,11 @@
         <complexContent>
             <extension base="ows:CapabilitiesBaseType">
                 <sequence>
-                    <element ref="wcs:ServiceMetadata"/>
+                    <element ref="wcs:ServiceMetadata">
+                        <annotation>
+                            <documentation>Despite its name this element should not be confuse with the OWSServiceMetadata defined in OWS Common.</documentation>
+                        </annotation>
+                    </element>
                     <element ref="wcs:Contents" minOccurs="0"/>
                 </sequence>
             </extension>
@@ -54,7 +58,7 @@
     <!-- =========================================================== -->
     <element name="Contents" type="wcs:ContentsType">
         <annotation>
-            <documentation>This element redefines the OWS Common [OGC 06-121r9] Contents section with a COverageSummary, in accordance with the rules for modification laid down there. </documentation>
+            <documentation>This element redefines the OWS Common [OGC 06-121r9] Contents section with a CoverageSummary, in accordance with the rules for modification laid down there. In addition it allows WCS extensions or application profiles to extend its content.</documentation>
         </annotation>
     </element>
     <complexType name="ContentsType">
@@ -62,7 +66,7 @@
             <extension base="ows:ContentsBaseType">
                 <sequence>
                     <element ref="wcs:CoverageSummary" minOccurs="0" maxOccurs="unbounded"/>
-                    <any minOccurs="0" maxOccurs="unbounded" processContents="lax" namespace="##other"/>
+                    <element ref="wcs:Extension" minOccurs="0"/>
                 </sequence>
             </extension>
         </complexContent>
@@ -88,6 +92,7 @@
                         -->
                     <element ref="wcs:CoverageId"/>
                     <element ref="wcs:CoverageSubtype"/>
+                    <element ref="wcs:CoverageSubtypeParent" minOccurs="0"/>
                     <element ref="ows:BoundingBox" minOccurs="0" maxOccurs="unbounded"/>
                     <element ref="ows:Metadata" minOccurs="0" maxOccurs="unbounded"/>
                 </sequence>
