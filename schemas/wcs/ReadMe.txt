@@ -16,16 +16,23 @@ The most current schema are available at http://schemas.opengis.net/ .
 
 -----------------------------------------------------------------------
 
-2011-06-15 Stephan Meissl
-  * Corrected "ServiceMetadataType" to not extend "ows:CapabilitiesBaseType".
-  * Added "formatsSupported" to "ServiceMetadata" (see CR OGC 11-050).
+2012-02-06 Stephan Meissl
 
-2011-06-14 Stephan Meissl
-  * Added wcsExtensions.xsd including reference from wcsCommon.xsd
-  * Added "requestParameters" element in "RequestBaseType".
-  * Corrected "Extension" elements to "any" elements.
-  * Added "any" element in "ContentsType".
-  * Corrected tpye of "SlicePoint" and "TrimLow", "TrimHigh" elements to "string". 
+  * Adjusted examples to updated schema.
+  * Corrected tpye of "SlicePoint", "TrimLow", and "TrimHigh" elements to 
+    "string".
+  * Added "format" and "mediaType" elements to "GetCoverageType".
+  * Added reference to "CoverageSubtypeParent" to "CoverageSummaryType".
+  * Added reference to "Extension" element to "ContentsType".
+  * Added "CoverageSubtypeParent" and "Extension" elements and corresponding 
+    type definitions to wcsCommon.xsd
+  * Added "nativeFormat" element and reference to "CoverageSubtypeParent" 
+    element to "ServiceParametersType".
+  * Corrected "ServiceMetadataType" to not extend "ows:CapabilitiesBaseType".
+  * Added "formatSupported" element to "ServiceMetadataType".
+  * Corrected "Extension" element in "RequestBaseType", "ServiceMetadataType", 
+    and "ServiceParametersType".
+  * Including all schema files in wcsAll.xsd
 
 2010-11-05  Peter Baumann
   * v2.0: added WCS 2.0.0 (OGC 09-110r3)

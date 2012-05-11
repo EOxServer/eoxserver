@@ -6,7 +6,7 @@
     xmlns:gmlcov='http://www.opengis.net/gmlcov/1.0'
     xmlns:gmlwcs='http://www.opengis.net/gmlcov/1.0'
     xsi:schemaLocation='http://www.opengis.net/swe/2.0 http://schemas.opengis.net/sweCommon/2.0/swe.xsd
-                        http://www.opengis.net/gmlcov/1.0 ../../../../gmlcov/1.0/gmlcovAll.xsd'
+                        http://www.opengis.net/gmlcov/1.0 http://schemas.opengis.net/gmlcov/1.0/gmlcovAll.xsd'
     gml:id="C0043">
     <gml:boundedBy>
         <gml:Envelope srsName="http://www.opengis.net/def/crs/EPSG/0/4979" axisLabels="Lat Long h" uomLabels="deg deg m" srsDimension="3"> 

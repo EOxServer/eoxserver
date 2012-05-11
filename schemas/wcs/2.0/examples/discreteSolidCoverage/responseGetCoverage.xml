@@ -7,7 +7,7 @@
     xmlns:gmlcov='http://www.opengis.net/gmlcov/1.0'
     xmlns:gmlwcs='http://www.opengis.net/gmlcov/1.0'
     xsi:schemaLocation='http://www.opengis.net/swe/2.0 http://schemas.opengis.net/sweCommon/2.0/swe.xsd
-                        http://www.opengis.net/gmlcov/1.0 ../../../../gmlcov/1.0/gmlcovAll.xsd'
+                        http://www.opengis.net/gmlcov/1.0 http://schemas.opengis.net/gmlcov/1.0/gmlcovAll.xsd'
     gml:id="C0005">
     <!--The domain consists of one tetrahedron, and this tetrahedron has four triangular surfaces -->
     <gml:boundedBy>
@@ -90,8 +90,7 @@
         <swe:DataRecord>
             <swe:field name="Temperature">
                 <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Temperature">
-                    <gml:description>Temperature</gml:description>
-                    <gml:name>Temp</gml:name>
+                    <swe:description>Temperature</swe:description>
                     <swe:uom code="Cel"/>
                     <swe:constraint>
                         <swe:AllowedValues>

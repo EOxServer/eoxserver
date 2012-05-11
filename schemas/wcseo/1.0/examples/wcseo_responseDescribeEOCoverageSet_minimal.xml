@@ -107,7 +107,12 @@
                 </swe:DataRecord>
             </gmlcov:rangeType>
             <wcs:ServiceParameters>
-                <wcs:CoverageSubtype>RectifiedDataset</wcs:CoverageSubtype>
+                <wcs:CoverageSubtype>
+                    <wcs:CoverageSubtypeName>RectifiedDataset</wcs:CoverageSubtypeName>
+                    <wcs:CoverageSubtypeParent>
+                        <wcs:CoverageSubtypeName>RectifiedGridCoverage</wcs:CoverageSubtypeName>
+                    </wcs:CoverageSubtypeParent>
+                </wcs:CoverageSubtype>
             </wcs:ServiceParameters>
         </wcs:CoverageDescription>
 
@@ -161,7 +166,12 @@
                 </swe:DataRecord>
             </gmlcov:rangeType>
             <wcs:ServiceParameters>
-                <wcs:CoverageSubtype>RectifiedDataset</wcs:CoverageSubtype>
+                <wcs:CoverageSubtype>
+                    <wcs:CoverageSubtypeName>RectifiedDataset</wcs:CoverageSubtypeName>
+                    <wcs:CoverageSubtypeParent>
+                        <wcs:CoverageSubtypeName>RectifiedGridCoverage</wcs:CoverageSubtypeName>
+                    </wcs:CoverageSubtypeParent>
+                </wcs:CoverageSubtype>
             </wcs:ServiceParameters>
         </wcs:CoverageDescription>
     </wcs:CoverageDescriptions>

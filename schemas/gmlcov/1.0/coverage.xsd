@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schema targetNamespace="http://www.opengis.net/gmlcov/1.0"
-    xmlns="http://www.w3.org/2001/XMLSchema"
+    xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0"
+    xmlns:gml="http://www.opengis.net/gml/3.2"
     xmlns:xlink="http://www.w3.org/1999/xlink"
     xmlns:swe="http://www.opengis.net/swe/2.0"
-    xmlns:gml="http://www.opengis.net/gml/3.2"
-    xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0"
-    elementFormDefault="qualified" version="1.0.0">
+    xmlns="http://www.w3.org/2001/XMLSchema"
+    elementFormDefault="qualified" version="1.0.1">
     <annotation>
         <appinfo>coverage.xsd</appinfo>
         <documentation>Component of GML 3.2.1 Application Schema for Coverages.
-        Last updated: 2010-nov-05
-        Copyright (c) 2010 Open Geospatial Consortium, Inc. All Rights Reserved.
+        Last updated: 2012-feb-06
+        Copyright (c) 2012 Open Geospatial Consortium, Inc. All Rights Reserved.
         To obtain additional rights of use, visit http://www.opengeospatial.org/legal/.
         </documentation>
     </annotation>
@@ -57,13 +57,24 @@
             <complexContent>
                 <extension base="gml:AbstractMetadataPropertyType">
                     <sequence>
-                        <any namespace="##other" processContents="lax"/>    
+                        <element ref="gmlcov:Extension" minOccurs="0"/>
                     </sequence>
                     <attributeGroup ref="gml:AssociationAttributeGroup"/>
                 </extension>
             </complexContent>
         </complexType>
     </element>
+    <!-- =========================================================== -->
+    <element name="Extension" type="gmlcov:ExtensionType">
+        <annotation>
+            <documentation>Extension element used to hook in additional content e.g. in extensions or application profiles.</documentation>
+        </annotation>
+    </element>
+    <complexType name="ExtensionType">
+        <sequence>
+            <any minOccurs="0" maxOccurs="unbounded" processContents="lax" namespace="##other"/>
+        </sequence>
+    </complexType>
     <!-- ============================================================= -->
     <complexType name="AbstractDiscreteCoverageType">
         <annotation>
@@ -166,7 +177,7 @@ It is recommended that the more sensible provisions of the gmlcov:RectifiedGridC
     <element name="ReferenceableGridCoverage" type="gmlcov:AbstractDiscreteCoverageType" substitutionGroup="gmlcov:AbstractCoverage">
         <annotation>
             <documentation>A ReferenceableGridCoverage is an implementation of ISO 19123 CV_DiscreteGridPointCoverage for a CV_ReferenceableGrid domain. It is a coverage based on a referenceable grid and has a domain geometry that is in the substitution group of AbstractReferenceableGrid.</documentation>
-            <documentation>This equivalent of this element is being added to GML 3.2.1 by approved Change Request 07-112r3. </documentation>
+            <documentation>The equivalent of this element is being added to GML 3.2.1 as 3.3 by approved Change Request 07-112r3.</documentation>
             <documentation>Since this ReferenceableGridCoverage uses the gmlcov:AbstractCoverageType, it can be used for both discrete and continuous coverages. </documentation>
         </annotation>
     </element>

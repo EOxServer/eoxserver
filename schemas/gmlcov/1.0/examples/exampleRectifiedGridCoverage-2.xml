@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Example for a rectified grid coverage
      as defined in the GML 3.2.1 Application Schema for Coverages.
-     Last updated 2010-jul-01
+     Last updated 2012-feb-06
 -->
 <gmlcov:RectifiedGridCoverage 
     xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0"
-    xmlns:gml="http://www.opengis.net/gml/3.2" 
+    xmlns:gml="http://www.opengis.net/gml/3.2"
     xmlns:swe="http://www.opengis.net/swe/2.0"
-    xmlns:xlink="http://www.w3.org/1999/xlink" 
-    xmlns="http://www.w3.org/2001/XMLSchema" 
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-    xsi:schemaLocation="http://www.opengis.net/gmlcov/1.0 ../../../gmlcov/1.0/gmlcovAll.xsd"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    xmlns:myNS="myNS"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.w3.org/2001/XMLSchema"
+    xsi:schemaLocation="http://www.opengis.net/gmlcov/1.0 http://schemas.opengis.net/gmlcov/1.0/gmlcovAll.xsd"
     gml:id="C0002">
     <gml:boundedBy>
         <gml:Envelope srsName="http://www.opengis.net/def/crs/EPSG/0/4326" axisLabels="Lat Long" uomLabels="deg deg" srsDimension="2"> 
@@ -19,7 +20,7 @@
         </gml:Envelope>        
     </gml:boundedBy>
     <gml:domainSet>
-        <gml:RectifiedGrid gml:id="rg0001_C0002" dimension="2" srsName="http://www.opengis.net/def/crs/EPSG/0/4326">
+        <gml:RectifiedGrid gml:id="rg0001_C0002" dimension="2">
             <gml:limits>
                 <gml:GridEnvelope>
                     <gml:low>0 0</gml:low>
@@ -32,8 +33,8 @@
                     <gml:pos>9.9 9.9</gml:pos>
                 </gml:Point>
             </gml:origin>
-            <gml:offsetVector>1 0</gml:offsetVector>
-            <gml:offsetVector>0 1</gml:offsetVector>
+            <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/4326">1 0</gml:offsetVector>
+            <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/4326">0 1</gml:offsetVector>
         </gml:RectifiedGrid>
     </gml:domainSet>
     <gml:rangeSet>
@@ -51,27 +52,31 @@
         </gml:GridFunction>
     </gml:coverageFunction>
     <gmlcov:rangeType>
-     <swe:DataRecord>
-        <swe:field name="white">
-            <swe:Quantity definition="http://opengis.net/def/property/OGC/0/Radiance">
-                <gml:description>Panchromatic</gml:description>
-                <gml:name>White</gml:name>
-                <swe:nilValues>
-                    <swe:NilValues gml:id="NIL_VALUES">
-                        <swe:nilValue reason="http://www.opengis.net/def/nil/OGC/0/BelowDetectionRange">0</swe:nilValue>
-                        <swe:nilValue reason="http://www.opengis.net/def/nil/OGC/0/AboveDetectionRange">255</swe:nilValue>
-                    </swe:NilValues>
-                </swe:nilValues>
-                <swe:uom code="W/cm2"/>
-                <swe:constraint>
-                    <swe:AllowedValues gml:id="VALUE_SPACE">
-                        <swe:interval>0 255</swe:interval>
-                        <swe:significantFigures>3</swe:significantFigures>
-                    </swe:AllowedValues>
-                </swe:constraint>
-            </swe:Quantity>
-        </swe:field>
-       </swe:DataRecord>
+        <swe:DataRecord>
+            <swe:field name="white">
+                <swe:Quantity definition="http://opengis.net/def/property/OGC/0/Radiance">
+                    <swe:description>Panchromatic</swe:description>
+                    <swe:nilValues>
+                        <swe:NilValues>
+                            <swe:nilValue reason="http://www.opengis.net/def/nil/OGC/0/BelowDetectionRange">0</swe:nilValue>
+                            <swe:nilValue reason="http://www.opengis.net/def/nil/OGC/0/AboveDetectionRange">255</swe:nilValue>
+                        </swe:NilValues>
+                    </swe:nilValues>
+                    <swe:uom code="W.m-2.sr-1.nm-1"/>
+                    <swe:constraint>
+                        <swe:AllowedValues>
+                            <swe:interval>0 255</swe:interval>
+                            <swe:significantFigures>3</swe:significantFigures>
+                        </swe:AllowedValues>
+                    </swe:constraint>
+                </swe:Quantity>
+            </swe:field>
+        </swe:DataRecord>
     </gmlcov:rangeType>
+    <gmlcov:metadata>
+        <gmlcov:Extension>
+            <myNS:metadata>Some metadata ...</myNS:metadata>
+        </gmlcov:Extension>
+    </gmlcov:metadata>
 </gmlcov:RectifiedGridCoverage>
 

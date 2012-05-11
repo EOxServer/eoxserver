@@ -5,7 +5,7 @@
     xmlns:swe='http://www.opengis.net/swe/2.0'
     xmlns:gmlcov='http://www.opengis.net/gmlcov/1.0'
     xsi:schemaLocation='http://www.opengis.net/swe/2.0 http://schemas.opengis.net/sweCommon/2.0/swe.xsd
-                        http://www.opengis.net/gmlcov/1.0 ../../../../gmlcov/1.0/gmlcovAll.xsd'
+                        http://www.opengis.net/gmlcov/1.0 http://schemas.opengis.net/gmlcov/1.0/gmlcovAll.xsd'
     gml:id="C0001">
     <gml:boundedBy>
         <gml:Envelope srsName="http://www.opengis.net/def/crs/EPSG/0/4326" axisLabels="Lat Long" uomLabels="deg deg" srsDimension="2"> 
@@ -39,8 +39,7 @@
         <swe:DataRecord>
             <swe:field name="singleBand">
                <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
-                   <gml:description>Panchromatic Channel</gml:description>
-                   <gml:name>single band</gml:name>
+                   <swe:description>Panchromatic Channel</swe:description>
                    <swe:uom code="W/cm2"/>
                    <swe:constraint>
                        <swe:AllowedValues>

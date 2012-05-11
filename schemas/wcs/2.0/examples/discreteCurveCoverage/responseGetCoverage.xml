@@ -6,7 +6,8 @@
     xmlns:swe='http://www.opengis.net/swe/2.0'
     xmlns:gmlcov='http://www.opengis.net/gmlcov/1.0'
     xmlns:gmlwcs='http://www.opengis.net/gmlcov/1.0'
-    xsi:schemaLocation='http://www.opengis.net/swe/2.0 http://schemas.opengis.net/sweCommon/2.0/swe.xsd http://www.opengis.net/gmlcov/1.0 ../../../../gmlcov/1.0/gmlcovAll.xsd'
+    xsi:schemaLocation='http://www.opengis.net/swe/2.0 http://schemas.opengis.net/sweCommon/2.0/swe.xsd
+                        http://www.opengis.net/gmlcov/1.0 http://schemas.opengis.net/gmlcov/1.0/gmlcovAll.xsd'
     gml:id="C0003">
     <gml:boundedBy>
         <gml:Envelope srsName="http://www.opengis.net/def/crs/EPSG/0/4326" axisLabels="Lat Long" srsDimension="2">
@@ -48,8 +49,7 @@
     <swe:DataRecord>
         <swe:field name="Temperature">
             <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Temperature">
-                <gml:description>Temperature</gml:description>
-                <gml:name>Temp</gml:name>
+                <swe:description>Temperature</swe:description>
                 <swe:uom code="Cel"/>
                 <swe:constraint>
                     <swe:AllowedValues>
@@ -60,8 +60,7 @@
         </swe:field>
         <swe:field name="Pressure">
             <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Pressure">
-                <gml:description>pressure</gml:description>
-                <gml:name>press</gml:name>
+                <swe:description>pressure</swe:description>
                 <swe:uom code="HPa"/>
             </swe:Quantity>
         </swe:field>
