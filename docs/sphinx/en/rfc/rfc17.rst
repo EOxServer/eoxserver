@@ -215,7 +215,8 @@ e.g.::
 
   GTiff,image/tiff,rw,.tiff
 
-Lines starting with ``#`` shall be ignored.
+Empty lines shall be ignored as well as any comments started by single ``#``
+(hash) character and ended by the end of the line. 
 
 A default configuration (``default_formats.conf``) and a template
 (``TEMPLATE_formats.conf``) shall be included in the ``eoxserver/conf``
