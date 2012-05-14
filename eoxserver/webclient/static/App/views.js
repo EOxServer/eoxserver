@@ -3,6 +3,12 @@ $(document).ready(function() {
 var views = namespace("App.Views");
 var models = namespace("App.Models");
 
+var util = namespace("App.Util");
+
+util.zpad = function(a, b){
+    return(1e15 + a + "").slice(-b);
+}
+
 /**
  *  view MapView
  *
@@ -23,12 +29,8 @@ views.MapView = Backbone.View.extend({
         this.bboxModel.on("bboxSelect:stop", this.onBBoxSelectStop, this);
         this.dtModel.on("change", this.onDateTimeChange, this);
     },
-    events: {
-        // needed?
-    },
     render: function() {
         var bounds = OpenLayers.Bounds.fromString("-180,-90,180,90");
-
 
         this.bboxLayer = new OpenLayers.Layer.Boxes("Bounding Box", {
             displayInLayerSwitcher: false
@@ -55,6 +57,9 @@ views.MapView = Backbone.View.extend({
             units: "d",
             maxExtent: bounds,
             restrictedExtent: bounds,
+            events: {
+                
+            },
             controls: [
                 new OpenLayers.Control.Navigation(),
                 new OpenLayers.Control.PanZoom(),
@@ -67,13 +72,15 @@ views.MapView = Backbone.View.extend({
                 boxControl
             ],
             layers: [
-                wms_layer,
-                this.bboxLayer
+                wms_layer
             ]
         };
 
         this.map = new OpenLayers.Map(this.el, map_params);
 
+        // TODO: on mapmove update total extent
+        this.map.events.register("moveend", this, this.onMapMoveEnd);
+        
         this.layers = _.map(this.layerParams, function(params) {
             if (params.service === "wms") {
                 return new OpenLayers.Layer.WMS( params.name, params.url, {
@@ -104,12 +111,13 @@ views.MapView = Backbone.View.extend({
                     projection: new OpenLayers.Projection("EPSG:4326".toUpperCase()),
                     sphericalMercator: false,
                     format: 'image/png',
-                    resolutions:[0.70312500000000000000,0.35156250000000000000,0.17578125000000000000,0.08789062500000000000,0.04394531250000000000,0.02197265625000000000,0.01098632812500000000,0.00549316406250000000,0.00274658203125000000,0.00137329101562500000,0.00068664550781250000,0.00034332275390625000,0.00017166137695312500,0.00008583068847656250,0.00004291534423828120,0.00002145767211914060,0.00001072883605957030,0.00000536441802978516],
+                    resolutions: [0.70312500000000000000,0.35156250000000000000,0.17578125000000000000,0.08789062500000000000,0.04394531250000000000,0.02197265625000000000,0.01098632812500000000,0.00549316406250000000,0.00274658203125000000,0.00137329101562500000,0.00068664550781250000,0.00034332275390625000,0.00017166137695312500,0.00008583068847656250,0.00004291534423828120,0.00002145767211914060,0.00001072883605957030,0.00000536441802978516],
                 });
             }
         });
 
         this.map.addLayers(this.layers);
+        this.map.addLayer(this.bboxLayer);
 
         this.map.zoomToExtent(new OpenLayers.Bounds.fromArray(this.bboxModel.get("values")));
     },
@@ -125,6 +133,10 @@ views.MapView = Backbone.View.extend({
             isSet: true
         });
         this.bboxModel.trigger("bboxSelect:stop");
+    },
+
+    onMapMoveEnd: function() {
+        this.bboxModel.set("viewExtent", this.map.getExtent().toArray());
     },
 
     /// external events
@@ -250,19 +262,18 @@ views.MainControlView = Backbone.View.extend({
     onDownloadClick: function() {
         var begin = this.dtModel.get("begin");
         var end = this.dtModel.get("end");
-        var bbox = this.bboxModel.get("values");
+        var bbox = this.bboxModel.get("isSet") ?
+                    this.bboxModel.get("values") :
+                    this.bboxModel.get("viewExtent")
+                    
         var args = [];
         
-        if (this.bboxModel.get("isSet")) {
-            args.push("bbox=" + bbox.join(","));
-        }
+        args.push("bbox=" + bbox.join(","));
         args.push("begin=" + this.dtModel.getBeginString());
         args.push("end=" + this.dtModel.getEndString());
         
-        this.router.navigate("select?" + args.join("&"), true);
-    },
-    show: function() {}, // TODO
-    hide: function() {},
+        Backbone.history.navigate("select?" + args.join("&"), true);
+    }
 });
 
 /**
@@ -294,7 +305,9 @@ views.DateSliderView = Backbone.View.extend({
             range: true,
             values: [beginTime, endTime],
             min: minTime,
-            max: maxTime
+            max: maxTime,
+            step: 24 /* hours */ * 60 /* minutes */
+                * 60 /* seconds */ * 1000 /* milliseconds */
         });
 
         this.$tooltip = $("#div-tooltip");
@@ -323,6 +336,7 @@ views.DateSliderView = Backbone.View.extend({
         }
         
         this.setToolTipTextAndPosition(text, event.pageX, event.pageY);
+        return true;
     },
     onSlideStop: function(event, ui) {
         this.model.set({
@@ -372,8 +386,10 @@ views.DateTimeSelectionView = Backbone.View.extend({
         this.model.on("change", this.onDateTimeChange, this);
     },
     events: {
-        "change #inp-begin-date": "onBeginDateTimeChange",
-        "change #inp-end-date": "onEndDateTimeChange"
+        "change #inp-begin-date": "onBeginDateChange",
+        "change #inp-end-date": "onEndDateChange",
+        "change #inp-begin-time": "onBeginTimeChange",
+        "change #inp-end-time": "onEndTimeChange"
     },
     render: function() {
         this.$el.html(this.template());
@@ -396,28 +412,64 @@ views.DateTimeSelectionView = Backbone.View.extend({
         });
         this.$beginDate.datepicker("setDate", beginDate);
         this.$endDate.datepicker("setDate", endDate);
+        this.$beginTime.val("" + util.zpad(beginDate.getHours(), 2) + ":" + util.zpad(beginDate.getMinutes(), 2));
+        this.$endTime.val("" + util.zpad(endDate.getHours(), 2) + ":" + util.zpad(endDate.getMinutes(), 2));
+    },
+
+    parseDateTime: function($dateField, $timeField, $errorField) {
+        try {
+            var date = $.datepicker.parseDate("yy-mm-dd", $dateField.val());
+            var timeRex = /([0-9]{1,2}):([0-9]{1,2})/;
+
+            var match = timeRex.exec($timeField.val());
+            if (match.length != 3) throw new Error();
+
+            var hours = parseInt(match[1]);
+            var minutes = parseInt(match[2]);
+
+            if (hours > 23 || hours < 0
+                || minutes > 59 || minutes < 0) throw new Error();
+            
+            date.setHours(match[1]);
+            date.setMinutes(match[2]);
+
+            if ($errorField) {
+                $errorField.removeClass("error");
+            }
+
+            return date;
+        }
+        catch(e) {
+            if ($errorField) {
+                $errorField.addClass("error");
+            }
+        }
     },
 
     /// internal events
     
-    onBeginDateTimeChange: function() {
-        try {
-            var date = $.datepicker.parseDate("yy-mm-dd", this.$beginDate.val());
+    onBeginDateChange: function() {
+        var date = this.parseDateTime(this.$beginDate, this.$beginTime, this.$beginDate);
+        if (date) {
             this.model.set("begin", date);
-            this.$beginDate.removeClass("error");
-        }
-        catch(e) {
-            this.$beginDate.addClass("error");
         }
     },
-    onEndDateTimeChange: function() {
-        try {
-            var date = $.datepicker.parseDate("yy-mm-dd", this.$endDate.val());
+    onEndDateChange: function() {
+        var date = this.parseDateTime(this.$endDate, this.$endTime, this.$endDate);
+        if (date) {
             this.model.set("end", date);
-            this.$endDate.removeClass("error");
         }
-        catch(e) {
-            this.$endDate.addClass("error");
+    },
+    onBeginTimeChange: function() {
+        var date = this.parseDateTime(this.$beginDate, this.$beginTime, this.$beginTime);
+        if (date) {
+            this.model.set("begin", date);
+        }
+    },
+    onEndTimeChange: function() {
+        var date = this.parseDateTime(this.$endDate, this.$endTime, this.$endTime);
+        if (date) {
+            this.model.set("end", date);
         }
     },
 
@@ -543,12 +595,12 @@ views.HelpView = Backbone.View.extend({
 views.DownloadSelectionView = Backbone.View.extend({
     template: _.template($('#tpl-download-selection').html()),
     initialize: function(options) {
-        this.router = options.router;
         this.itemViews = this.model.map(function(model) {
             return new views.DownloadSelectionItemView({
                 model: model
             });
         });
+        this.bbox = options.bbox;
     },
     events: {
         "dialogclose": "onDialogClose"
@@ -571,7 +623,7 @@ views.DownloadSelectionView = Backbone.View.extend({
         this.$el.dialog("open");
     },
     onDialogClose: function() {
-        this.router.navigate("", true);
+        Backbone.history.navigate("", true);
     },
     onStartDownloadClick: function() {
         var selected = _.filter(this.itemViews, function(view) {
@@ -579,18 +631,20 @@ views.DownloadSelectionView = Backbone.View.extend({
         });
 
         if (selected.length > 0) {
+            var format = this.$(".formats").val();
+            var bbox = this.bbox;
             _.each(selected, function(view) {
                 var coverage = view.model;
                 var params = view.getParameters();
+                params.format = format;
+                params.bbox = bbox;
                 var url = coverage.getDownloadUrl(params);
 
-                // TODO apply bbox and format
-                // TODO make download link
-                // TODO add iframe to download
+                this.$("#div-downloads").append($('<iframe style="display:none" src="' + url + '"></iframe>'));
             });
             
             this.$el.dialog("destroy");
-            this.router.navigate("", true);
+            Backbone.history.navigate("", true);
         }
     }
 });
@@ -760,11 +814,10 @@ models.DateTimeInterval = Backbone.Model.extend({
 
     _getString: function(date) {
         return $.datepicker.formatDate('yy-mm-ddT', date)
-            + date.getHours() + ":" + date.getMinutes() + "Z";
+            + util.zpad(date.getHours(), 2) + ":" + util.zpad(date.getMinutes(), 2) + "Z";
     },
     getBeginString: function() {
         return this._getString(this.get("begin"));
-        
     },
     getEndString: function() {
         return this._getString(this.get("end"));
@@ -774,10 +827,13 @@ models.DateTimeInterval = Backbone.Model.extend({
 models.BoundingBoxModel = Backbone.Model.extend({
     defaults: {
         isSet: false,
-        values: [0, 0, 0, 0]
+        values: [0, 0, 0, 0],
+        viewExtent: [0, 0, 0, 0]
     },
     validate: function(attrs) {
         var values = attrs.values;
+        var viewExtent = attrs.viewExtent;
+        
         if (values.length != 4) {
             return "wrong number of values";
         }
@@ -785,6 +841,16 @@ models.BoundingBoxModel = Backbone.Model.extend({
             return "values must be valid numbers";
         }
         else if (values[0] > values[2] || values[1] > values[3]) {
+            return "wrong values"
+        }
+
+        if (viewExtent.length != 4) {
+            return "wrong number of values";
+        }
+        else if (_.any(viewExtent, isNaN)) {
+            return "values must be valid numbers";
+        }
+        else if (viewExtent[0] > viewExtent[2] || viewExtent[1] > viewExtent[3]) {
             return "wrong values"
         }
     }
@@ -806,21 +872,25 @@ var app = namespace("App");
 
 app.Router = Backbone.Router.extend({
     initialize: function(options) {
-        var caps = new WCS.Backbone.Model.Service({urlRoot: "/ows"});
+        this.owsUrl = options.owsUrl;
+        this.eoid = options.eoid;
+
+        this.dtModel = new models.DateTimeInterval({
+            min: options.minDate,
+            max: options.maxDate,
+            begin: options.minDate,
+            end: options.maxDate
+        });
+        this.bboxModel = new models.BoundingBoxModel({
+            values: options.extent
+        });
+        
+        var caps = new WCS.Backbone.Model.Service({urlRoot: this.owsUrl});
         var router = this;
         $("#div-busy-indicator").fadeIn();
         caps.fetch({
             success: function() {
                 $("#div-busy-indicator").fadeOut();
-                router.dtModel = new models.DateTimeInterval({
-                    min: options.minDate,
-                    max: options.maxDate,
-                    begin: options.minDate,
-                    end: options.maxDate
-                });
-                router.bboxModel = new models.BoundingBoxModel({
-                    values: options.extent
-                });
                 
                 router.mapView = new views.MapView({
                     el: $("#div-map"),
@@ -833,14 +903,11 @@ app.Router = Backbone.Router.extend({
                     el: $("#div-main"),
                     dtModel: router.dtModel,
                     bboxModel: router.bboxModel,
-                    capsModel: caps,
-                    router: router
+                    capsModel: caps
                 });
 
                 router.mapView.render();
                 router.controlView.render();
-
-                router.eoid = options.eoid;
             },
             error: function() {
                 alert("An error occurred!");
@@ -858,15 +925,16 @@ app.Router = Backbone.Router.extend({
         var router = this;
         var options = {
             type: "coverages",
-            urlRoot: "/ows",
+            urlRoot: this.owsUrl,
             eoid: this.eoid
         };
 
         var kvps = parseKvp(Backbone.history.getFragment());
         if (kvps.bbox) {
             var values = kvps.bbox.split(",");
-            if (values.length == 4)
-                options.bbox =  values;
+            if (values.length == 4) {
+                options.bbox = values;
+            }
         }
         if (kvps.begin && kvps.end) {
             options.subsetTime = [kvps.begin, kvps.end];
@@ -880,7 +948,7 @@ app.Router = Backbone.Router.extend({
                 var downloadSelection = new views.DownloadSelectionView({
                     el: $("#div-download"),
                     model: eoSet,
-                    router: router
+                    bbox: options.bbox
                 });
                 downloadSelection.render();
             },
