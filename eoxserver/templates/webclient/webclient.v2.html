@@ -49,9 +49,13 @@
         <div id="tabs-main">
             <div class="container">
                 <div class="row">
-                    <div class="cell">Date:</div>
+                    <!--<div class="cell">Date:</div>
                     <div class="cell" style="padding: 15px; width: 250px"><div id="slider"></div></div>
-                    <div class="cell"><button id="btn-download" /></div>
+                    <div class="cell"><button id="btn-download" /></div>-->
+                    
+                    <div style="float:left">Date:</div>
+                    <div style="padding: 15px; width: 250px; float:left;display:inline;"><div id="slider" style=""></div></div>
+                    <button id="btn-download" style="float:left;"/>
                 </div>
             </div>
         
@@ -138,6 +142,7 @@
             <option value="image/tiff" selected>image/tiff</option>
             <option value="image/jp2">image/jp2</option>
         </select>
+        <div id="div-downloads"></div>
     </script>
 
     <script type="text/template" id="tpl-download-selection-item">
@@ -218,14 +223,26 @@
     <script type="text/javascript">
 
 $(document).ready(function() {
+    var timeRex = /([0-9]{1,2}):([0-9]{1,2})/, match;
     var minDate = $.datepicker.parseDate("yy-mm-dd", "{{begin.date}}");
     var maxDate = $.datepicker.parseDate("yy-mm-dd", "{{end.date}}");
+
+    match = timeRex.exec("{{begin.time}}");
+
+    minDate.setHours(match[1]);
+    minDate.setMinutes(match[2]);
+
+    match = timeRex.exec("{{end.time}}");
+    
+    maxDate.setHours(match[1]);
+    maxDate.setMinutes(match[2]);
 
     var app = new App.Router({
         minDate: minDate,
         maxDate: maxDate,
         extent: [{{extent}}],
         eoid: "{{eoid}}",
+        owsUrl: "{{ows_url}}",
         layerParams: [{
             name: "{{eoid}} Preview",
             layerId: "{{eoid}}",
