@@ -1,0 +1,99 @@
+
+/// ROUTER
+
+var app = namespace("App");
+
+app.Router = Backbone.Router.extend({
+    initialize: function(options) {
+        this.owsUrl = options.owsUrl;
+        this.eoid = options.eoid;
+
+        this.dtModel = new models.DateTimeInterval({
+            min: options.minDate,
+            max: options.maxDate,
+            begin: options.minDate,
+            end: options.maxDate
+        });
+        this.bboxModel = new models.BoundingBoxModel({
+            values: options.extent
+        });
+        
+        var caps = new WCS.Backbone.Model.Service({urlRoot: this.owsUrl});
+        var router = this;
+        $("#div-busy-indicator").fadeIn();
+        caps.fetch({
+            success: function() {
+                $("#div-busy-indicator").fadeOut();
+                
+                router.mapView = new views.MapView({
+                    el: $("#div-map"),
+                    dtModel: router.dtModel,
+                    bboxModel: router.bboxModel,
+                    layerParams: options.layerParams
+                });
+
+                router.controlView = new views.MainControlView({
+                    el: $("#div-main"),
+                    dtModel: router.dtModel,
+                    bboxModel: router.bboxModel,
+                    capsModel: caps
+                });
+
+                router.mapView.render();
+                router.controlView.render();
+            },
+            error: function() {
+                alert("An error occurred!");
+            }
+        })
+    },
+    routes: {
+        "": "main",
+        "select?*kvp": "downloadSelection"
+    },
+    main: function() {
+        //this.controlView.show();
+    },
+    downloadSelection: function(kvp) {
+        var router = this;
+        var options = {
+            type: "coverages",
+            urlRoot: this.owsUrl,
+            eoid: this.eoid
+        };
+
+        var kvps = parseKvp(Backbone.history.getFragment());
+        if (kvps.bbox) {
+            var values = kvps.bbox.split(",");
+            if (values.length == 4) {
+                options.bbox = values;
+            }
+        }
+        if (kvps.begin && kvps.end) {
+            options.subsetTime = [kvps.begin, kvps.end];
+        }
+        
+        var eoSet = new WCS.Backbone.Model.EOCoverageSet([], options);
+        $("#div-busy-indicator").fadeIn();
+        eoSet.fetch({
+            success: function() {
+                $("#div-busy-indicator").fadeOut();
+                var downloadSelection = new views.DownloadSelectionView({
+                    el: $("#div-download"),
+                    model: eoSet,
+                    bbox: options.bbox
+                });
+                downloadSelection.render();
+            },
+            error: function(model, response) {
+                $("#div-busy-indicator").hide();
+                var exceptionReport = WCS.Core.Parse.parse(response.responseXML);
+                alert(
+                    "An Exception occurred. \n" +
+                    "Message: " + exceptionReport.text + " \n" +
+                    "Locator: " + exceptionReport.locator + "\n" +
+                    "Code: " + exceptionReport.code);
+            }
+        });
+    }
+});

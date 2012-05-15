@@ -218,7 +218,10 @@
     <script src="{{STATIC_URL}}libcoverage.js/libcoverage.wcs.js" type="text/javascript"></script>
     <script src="{{STATIC_URL}}libcoverage.js/libcoverage.eowcs.js" type="text/javascript"></script>
     <script src="{{STATIC_URL}}libcoverage.js/integrations/libcoverage.backbone.js" type="text/javascript"></script>
+    <script src="{{STATIC_URL}}App/templates.js" type="text/javascript"></script>
+    <script src="{{STATIC_URL}}App/models.js" type="text/javascript"></script>
     <script src="{{STATIC_URL}}App/views.js" type="text/javascript"></script>
+    <script src="{{STATIC_URL}}App/application.js" type="text/javascript"></script>
 
     <script type="text/javascript">
 
@@ -237,7 +240,7 @@ $(document).ready(function() {
     maxDate.setHours(match[1]);
     maxDate.setMinutes(match[2]);
 
-    var app = new App.Router({
+    var app = WebClient.Application.run({
         minDate: minDate,
         maxDate: maxDate,
         extent: [{{extent}}],
@@ -255,7 +258,6 @@ $(document).ready(function() {
             url: "{{outline_url}}"
         }]
     });
-    Backbone.history.start();
 });
 
     </script>
