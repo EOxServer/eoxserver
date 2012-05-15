@@ -1,6 +1,10 @@
 
 namespace("WebClient").Models = (function() {
 
+    var zpad = function(a, b){
+        return(1e15 + a + "").slice(-b);
+    }
+
     /**
      *  model DateTimeIntervalModel
      *
@@ -35,7 +39,7 @@ namespace("WebClient").Models = (function() {
 
         _getString: function(date) {
             return $.datepicker.formatDate('yy-mm-ddT', date)
-                + util.zpad(date.getHours(), 2) + ":" + util.zpad(date.getMinutes(), 2) + "Z";
+                + zpad(date.getHours(), 2) + ":" + zpad(date.getMinutes(), 2) + "Z";
         },
         getBeginString: function() {
             return this._getString(this.get("begin"));
