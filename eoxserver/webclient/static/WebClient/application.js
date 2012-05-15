@@ -127,15 +127,21 @@ namespace("WebClient").Application = (function() {
          * Callback function for a successful retrieval of an EOCoverageSet.
          */
         
-        onEoCoverageSetFetchSuccess: function(model) {
+        onEoCoverageSetFetchSuccess: function(collection) {
             this.ajaxEnd();
-            
-            var downloadSelection = new views.DownloadSelectionView({
-                el: $("#div-download"),
-                model: model,
-                bbox: model.options.bbox
-            });
-            downloadSelection.render();
+
+            if (collection.size() > 0) {
+                var downloadSelection = new views.DownloadSelectionView({
+                    el: $("#div-download"),
+                    model: collection,
+                    bbox: collection.options.bbox
+                });
+                downloadSelection.render();
+            }
+            else {
+                alert("Your search did not match any coverages.");
+                Backbone.history.navigate("", true);
+            }
         },
 
         /**

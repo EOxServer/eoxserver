@@ -74,7 +74,7 @@ namespace("WebClient").Views = (function() {
             this.map = new OpenLayers.Map(this.el, map_params);
 
             // TODO: on mapmove update total extent
-            this.map.events.register("moveend", this, this.onMapMoveEnd);
+            //this.map.events.register("moveend", this, this.onMapMoveEnd);
             
             this.layers = _.map(this.layerParams, function(params) {
                 if (params.service === "wms") {
