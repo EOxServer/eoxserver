@@ -6,17 +6,15 @@ namespace("WebClient").Templates = (function() {
         logo: _.template('<img src="/static/EOxServer_logo_small.png" style="align: center;"/>'),
         
         mainControl: _.template('\
+            <!--<div class="cell">Date:</div> \
+            <div class="cell" style="padding: 15px; width: 250px"><div id="slider"></div></div> \
+            <div class="cell"><button id="btn-download" /></div>--> \
+            <div class="ui-widget ui-widget-content ui-corner-all" style="height:3em;margin-bottom:5px;padding:3px;" > \
+                <div style="float:left">Date:</div> \
+                <div style="padding: 15px; width: 250px; float:left;display:inline;"><div id="slider" style=""></div></div> \
+                <button id="btn-download" style="right:0px"/> \
+            </div> \
             <div id="tabs-main"> \
-                <div class="container"> \
-                    <div class="row"> \
-                        <!--<div class="cell">Date:</div> \
-                        <div class="cell" style="padding: 15px; width: 250px"><div id="slider"></div></div> \
-                        <div class="cell"><button id="btn-download" /></div>--> \
-                        <div style="float:left">Date:</div> \
-                        <div style="padding: 15px; width: 250px; float:left;display:inline;"><div id="slider" style=""></div></div> \
-                        <button id="btn-download" style="float:left;"/> \
-                    </div> \
-                </div> \
                 <ul> \
                     <li><a href="#frg-date"><span>Date/Time</span></a></li> \
                     <li><a href="#frg-bbox"><span>Bounding Box</span></a></li> \
@@ -69,12 +67,43 @@ namespace("WebClient").Templates = (function() {
         
         serverInfo: _.template('\
             <div id="acc-info"> \
-                <h3><a href="#">Service Identification</a></h3> \
+                <% var headers = ["Service Identification", "Service Provider", "Service Metadata", "Operations"] %> \
+                <% _.each(["serviceIdentification", "serviceProvider", "serviceMetadata", "operations"], \
+                    function(name, idx) {\
+                    var section = sections[name] %> \
+                <h3><a href="#"><%= headers[idx] %></a></h3> \
                 <div> \
-                    <% _.each(serviceIdentification, function(value, key) {%> \
+                    <% _.each(section, function (value, key) { %> \
+                    <div class="row"> \
+                        <div class="cell"><%= (typeof key == "string") ? key : "" %></div> \
+                        <div class="cell"><p> \
+                            <% if (value instanceof Array) { %> \
+                                <%= value.join("\\n") %> \
+                            <% } else if (value instanceof Object) {%> \
+                                <% _.each(value, function (value, key) { %> \
+                                    <%= key %>: <%= value %>\
+                                <% }); %> \
+                            <% } else {%> \
+                                <%= value %> \
+                            <% } %> \
+                        </p></div> \
+                    </div> \
+                    <% }); %> \
+                </div> \
+                <% }); %> \
+            </div>'
+        ),
+        /*
+         <% _.each(serviceIdentification, function(value, key) {%> \
                     <div class="row"> \
                         <div class="cell"><%= key %></div> \
-                        <div class="cell"><p><%= value %></p></div> \
+                        <div class="cell"><p> \
+                        <% if (value instanceof Array) { %> \
+                            <%= value.join("\\n") %> \
+                        <% } else {%> \
+                            <%= value %> \
+                        <% } %> \
+                        </p></div> \
                     </div> \
                     <% }); %> \
                 </div> \
@@ -83,12 +112,12 @@ namespace("WebClient").Templates = (function() {
                     <% _.each(serviceProvider, function(value, key) {%> \
                     <div class="row"> \
                         <div class="cell"><%= key %></div> \
-                        <div class="cell"><p><%= value %></p></div> \
+                        <div class="cell"><p> \
+                            <%= value %> \
+                        </p></div> \
                     </div> \
                     <% }); %> \
-                </div> \
-            </div>'
-        ),
+         */
         
         downloadSelection: _.template('\
             <div id="coverages"></div> \
@@ -137,21 +166,41 @@ namespace("WebClient").Templates = (function() {
         ),
 
         coverageInfo: _.template('\
-            <table> \
+            <table style="border: 1px solid black;"> \
                 <tr> \
                     <td>Coverage ID</td> \
                     <td><%= coverageId %></td> \
                 </tr> \
                 <tr> \
-                    <td>Origin</td> \
-                    <td><%= origin[0] %> <%= origin[1] %></td> \
+                    <td>Subtype</td> \
+                    <td><%= coverageSubtype %></td> \
                 </tr> \
                 <tr> \
-                    <td></td> \
-                    <td><%= null%></td> \
+                    <td>Origin</td> \
+                    <td><%= origin[0] %>, <%= origin[1] %></td> \
                 </tr> \
-            </table>'
-        )
+                <tr> \
+                    <td>Image Size</td> \
+                    <td><%= size[0] %>px x <%= size[1] %>px</td> \
+                </tr> \
+                <tr> \
+                    <td>Time Period</td> \
+                    <td><%= timePeriod[0].toISOString() %> - <%= timePeriod[1].toISOString() %></td> \
+                </tr> \
+            </table> \
+            <%  var ratio = size[0]/size[1]; \
+                var width, height; \
+                if (size[0]>size[1]) { \
+                    width = 400; \
+                    height = 400 / ratio; \
+                } \
+                else { \
+                    width = 400 * ratio;  \
+                    height = 400; \
+                } \
+            %> \
+            <img style="margin:10px" alt="Preview Image" width="<%= width %>" height="<%= height %>" src="/ows?LAYERS=<%= coverageId %>&TRANSPARENT=true&VERSION=1.3.0&EXCEPTIONS=INIMAGE&SERVICE=WMS&REQUEST=GetMap&STYLES=&FORMAT=image%2Fpng&CRS=EPSG%3A4326&BBOX=<%= bounds.values %>&WIDTH=<%= width %>&HEIGHT=<%= height %>"></img> \
+        ')
     }
 
 }) ();

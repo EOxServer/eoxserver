@@ -234,7 +234,7 @@ namespace("WebClient").Views = (function() {
                 },
                 closeOnEscape: false,
                 resizable: false,
-                width: 550,
+                width: 560,
                 height: 'auto',
                 position: 'top',
             });
@@ -313,8 +313,8 @@ namespace("WebClient").Views = (function() {
 
         setToolTipTextAndPosition: function(text, x, y) {
             this.$tooltip.css({
-                'top': event.pageY + 10 + 'px',
-                'left': event.pageX + 10 + 'px',
+                'left': x + 10 + 'px',
+                'top': y + 10 + 'px'
             });
             this.$tooltip.find("a").text(text);
         },
@@ -332,7 +332,6 @@ namespace("WebClient").Views = (function() {
             else if (ui.values[1] != this.model.get("end").getTime()) {
                 text = $.datepicker.formatDate('yy-mm-dd', end)
             }
-            
             this.setToolTipTextAndPosition(text, event.pageX, event.pageY);
             return true;
         },
@@ -560,10 +559,16 @@ namespace("WebClient").Views = (function() {
         }
     });
 
+    /**
+     *  view ServiceInfoView
+     *
+     *
+     */
+     
     var ServiceInfoView = Backbone.View.extend({
         template: templates.serverInfo,
         render: function() {
-            this.$el.html(this.template(this.model.toJSON()));
+            this.$el.html(this.template({sections: this.model.toJSON()}));
             this.$("#acc-info").accordion({ 
                 autoHeight: false,
             });
@@ -610,6 +615,7 @@ namespace("WebClient").Views = (function() {
                 autoOpen: false,
                 width: 'auto',
                 modal: true,
+                resizable: false,
                 buttons: {
                     "Start Download": _.bind(this.onStartDownloadClick, this)
                 }
@@ -779,7 +785,6 @@ namespace("WebClient").Views = (function() {
                 modal: true,
                 resizable: false
             });
-            // TODO: show a small map with only the coverage in it
         }
     });
 
