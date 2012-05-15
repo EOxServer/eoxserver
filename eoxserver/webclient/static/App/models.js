@@ -53,18 +53,17 @@ namespace("WebClient").Models = (function() {
      *  model BoundingBoxModel
      *
      * Model for encapsuling a selected bounding box of the following form
-     * [minx, miny, maxx, maxy]. Also the currently viewed extent is saved.
+     * [minx, miny, maxx, maxy]. The flag "isSet" specifies if a valid bbox is
+     * set.
      */
     
     var BoundingBoxModel = Backbone.Model.extend({
         defaults: {
             isSet: false,
-            values: [0, 0, 0, 0],
-            viewExtent: [0, 0, 0, 0]
+            values: [0, 0, 0, 0]
         },
         validate: function(attrs) {
             var values = attrs.values;
-            var viewExtent = attrs.viewExtent;
             
             if (values.length != 4) {
                 return "wrong number of values";
@@ -73,16 +72,6 @@ namespace("WebClient").Models = (function() {
                 return "values must be valid numbers";
             }
             else if (values[0] > values[2] || values[1] > values[3]) {
-                return "wrong values"
-            }
-
-            if (viewExtent.length != 4) {
-                return "wrong number of values";
-            }
-            else if (_.any(viewExtent, isNaN)) {
-                return "values must be valid numbers";
-            }
-            else if (viewExtent[0] > viewExtent[2] || viewExtent[1] > viewExtent[3]) {
                 return "wrong values"
             }
         }
