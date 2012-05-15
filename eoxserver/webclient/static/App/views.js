@@ -55,9 +55,6 @@ namespace("WebClient").Views = (function() {
                 units: "d",
                 maxExtent: bounds,
                 restrictedExtent: bounds,
-                events: {
-                    
-                },
                 controls: [
                     new OpenLayers.Control.Navigation(),
                     new OpenLayers.Control.PanZoom(),
@@ -134,7 +131,9 @@ namespace("WebClient").Views = (function() {
         },
 
         onMapMoveEnd: function() {
-            this.bboxModel.set("viewExtent", this.map.getExtent().toArray());
+            if (!this.bboxModel.get("isSet")) {
+                this.bboxModel.set("values", this.map.getExtent().toArray());
+            }
         },
 
         /// external events
@@ -146,6 +145,10 @@ namespace("WebClient").Views = (function() {
                 var box = new OpenLayers.Marker.Box(OpenLayers.Bounds.fromArray(bounds));
                 box.setBorder("lightgreen", 2);
                 this.bboxLayer.addMarker(box);
+            }
+            else if(!this.bboxModel.get("isSet") && this.bboxModel.hasChanged("isSet")) {
+                // set the current view extend as bbox if no real bbox is set
+                this.bboxModel.set("values", this.map.getExtent().toArray());
             }
         },
         onBBoxSelectStart: function() {
@@ -177,7 +180,7 @@ namespace("WebClient").Views = (function() {
      */
 
     var MainControlView = Backbone.View.extend({
-        template: _.template($('#tpl-main-control').html()),
+        template: templates.mainControl,
         initialize: function(options) {
             this.router = options.router;
             this.dtModel = options.dtModel;
@@ -224,7 +227,7 @@ namespace("WebClient").Views = (function() {
             
             this.$el.dialog({
                 create: function (event, ui) {
-                    $(".ui-widget-header").append($("#tpl-logo").html());
+                    $(".ui-widget-header").append(templates.logo());
                 },
                 open: function(event, ui) {
                     that.$el.parent().find(".ui-dialog-titlebar-close").hide();
@@ -260,10 +263,7 @@ namespace("WebClient").Views = (function() {
         onDownloadClick: function() {
             var begin = this.dtModel.get("begin");
             var end = this.dtModel.get("end");
-            var bbox = this.bboxModel.get("isSet") ?
-                        this.bboxModel.get("values") :
-                        this.bboxModel.get("viewExtent")
-                        
+            var bbox = this.bboxModel.get("values");
             var args = [];
             
             args.push("bbox=" + bbox.join(","));
@@ -378,7 +378,7 @@ namespace("WebClient").Views = (function() {
      */
 
     var DateTimeSelectionView = Backbone.View.extend({
-        template: _.template($('#tpl-datetime-selection').html()),
+        template: templates.datetimeSelection,
         initialize: function(options) {
             // bind events to member function
             this.model.on("change", this.onDateTimeChange, this);
@@ -498,7 +498,7 @@ namespace("WebClient").Views = (function() {
      */
 
     var BoundingBoxSelectionView = Backbone.View.extend({
-        template: _.template($('#tpl-bbox-selection').html()),
+        template: templates.bboxSelection,
         initialize: function(options) {
             // bind events to member function
             this.model.on("change", this.onBBoxChange, this);
@@ -561,7 +561,7 @@ namespace("WebClient").Views = (function() {
     });
 
     var ServiceInfoView = Backbone.View.extend({
-        template: _.template($('#tpl-server-info').html()),
+        template: templates.serverInfo,
         render: function() {
             this.$el.html(this.template(this.model.toJSON()));
             this.$("#acc-info").accordion({ 
@@ -577,9 +577,9 @@ namespace("WebClient").Views = (function() {
      */
 
     var HelpView = Backbone.View.extend({
-        template: _.template($('#tpl-help').html()),
+        template: templates.help,
         render: function() {
-            this.$el.html(this.template());
+            this.$el.html(this.template);
         }
     });
 
@@ -591,7 +591,7 @@ namespace("WebClient").Views = (function() {
      */
 
     var DownloadSelectionView = Backbone.View.extend({
-        template: _.template($('#tpl-download-selection').html()),
+        template: templates.downloadSelection,
         initialize: function(options) {
             this.itemViews = this.model.map(function(model) {
                 return new DownloadSelectionItemView({
@@ -655,7 +655,7 @@ namespace("WebClient").Views = (function() {
      */
 
     var DownloadSelectionItemView = Backbone.View.extend({
-        template: _.template($('#tpl-download-selection-item').html()),
+        template: templates.downloadSelectionItem,
         attributes: {
             class: "ui-widget ui-widget-content ui-corner-all ui-coverage-item"
         },
@@ -720,7 +720,7 @@ namespace("WebClient").Views = (function() {
      */
 
     var RangeTypeSelectionView = Backbone.View.extend({
-        template: _.template($('#tpl-rangetype-selection').html()),
+        template: templates.rangeTypeSelection,
         tagName: "table",
         render: function() {
             this.$el.html(this.template({
@@ -768,12 +768,12 @@ namespace("WebClient").Views = (function() {
      */
 
     var CoverageInfoView = Backbone.View.extend({
-        template: _.template($('#tpl-coverage-info').html()),
+        template: templates.coverageInfo,
         render: function() {
             this.$el.html(this.template(this.model.toJSON()));
             
             this.$el.dialog({
-                title: "",
+                title: "Coverage Info",
                 autoOpen: true,
                 width: 'auto',
                 modal: true,
