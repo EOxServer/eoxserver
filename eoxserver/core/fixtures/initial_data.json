@@ -1024,6 +1024,14 @@
         }
     }, 
     {
+        "pk": 129,
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "resources.coverages.formats.FormatLoaderStartupHandler", 
+            "intf_id": "eoxserver.core.startup.StartupHandlerInterface"
+        }
+    }, 
+    {
         "pk": 1, 
         "model": "core.component", 
         "fields": {
@@ -1914,6 +1922,13 @@
     }, 
     {
         "pk": 128, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 129, 
         "model": "core.component", 
         "fields": {
             "enabled": true
