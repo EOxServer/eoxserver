@@ -134,6 +134,28 @@ def webclient(request, eoid):
         context_instance=RequestContext(request)
     )
 
+def index_v2(request):
+    System.init()
+    dss_factory = System.getRegistry().bind("resources.coverages.wrappers.DatasetSeriesFactory")
+    dataset_series_ids = [obj.getEOID() for obj in dss_factory.find()] 
+    
+    mosaic_factory = System.getRegistry().bind("resources.coverages.wrappers.EOCoverageFactory")
+    stitched_mosaic_ids = [obj.getEOID() for obj in mosaic_factory.find(
+                           impl_ids=["resources.coverages.wrappers.RectifiedStitchedMosaicWrapper"]
+                           )]
+    
+    
+    
+    return render_to_response(
+        'webclient/index.v2.html', {
+            "datasetseries_eoids": dataset_series_ids,
+            "stitchedmosaic_eoids": stitched_mosaic_ids,
+            "path": request.path,
+            "version": get_version(),
+        },
+        context_instance=RequestContext(request)
+    )
+
 def webclient_v2(request, eoid):
     """
     View for webclient interface.
@@ -202,7 +224,8 @@ def webclient_v2(request, eoid):
                       "time": begin.strftime("%H:%M")},
             "end": {"date": end.strftime("%Y-%m-%d"),
                     "time": end.strftime("%H:%M")},
-            "extent": "%f,%f,%f,%f" % extent
+            "extent": "%f,%f,%f,%f" % extent,
+            "debug": settings.DEBUG
         },
         context_instance=RequestContext(request)
     )
