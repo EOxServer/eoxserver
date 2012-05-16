@@ -167,9 +167,7 @@ namespace("WebClient").Views = (function() {
         },
 
         onFeatureInfo: function(event) {
-            
             if (event.text) {
-                
                 var popup = new OpenLayers.Popup.FramedCloud(
                     null, 
                     this.map.getLonLatFromPixel(event.xy),
@@ -178,9 +176,6 @@ namespace("WebClient").Views = (function() {
                     null,
                     true
                 );
-                // bug in OL 2.10? requires setting size beforehand
-                popup.setSize(new OpenLayers.Size(100, 200));
-                
                 this.map.addPopup(popup);
             }
         },
