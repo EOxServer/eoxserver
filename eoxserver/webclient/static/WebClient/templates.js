@@ -3,7 +3,7 @@ namespace("WebClient").Templates = (function() {
 
     return {
         
-        logo: _.template('<img src="/static/EOxServer_logo_small.png" style="align: center;"/>'),
+        logo: '<img src="/static/EOxServer_logo_small.png" style="align: center;"/>',
         
         mainControl: _.template('\
             <!--<div class="cell">Date:</div> \
@@ -63,7 +63,61 @@ namespace("WebClient").Templates = (function() {
             </div>'
         ),
         
-        help: '',
+        help: '\
+            <div id="div-acc-help"> \
+                <h3><a href="#">General</a></h3> \
+                <div> \
+                    <p>Click and drag the map to view the area of interest. Use the  \
+                    scroll wheel or hold shift and draw a zoom box to zoom.</p> \
+                    <p>To switch the outlines or the preview layers on or off \
+                    expand the plus icon on the upper right corner.</p> \
+                    <p>Simply clicking on the map will open a window showing  \
+                    information about the dataset(s) available at this position.</p> \
+                </div> \
+                <h3><a href="#">Selection of Date and Time</a></h3> \
+                <div> \
+                    <p>The begin and end date and time values are used for visualizing \
+                    datasets which lie within that time period. It is used for both footprint \
+                    overlays and also for the actual download.</p> \
+                    <p>The slider handles can be used to adjust the begin and the end date. \
+                    Alternatively, in the tab "Date/Time" the dates can be selected via a \
+                    date picking widget which can be activated by clicking in the date field.</p> \
+                    <p>Also the begin and end time parameters can be set in the according time \
+                    input fields.</p> \
+                </div> \
+                <h3><a href="#">Selection of Bounds</a></h3> \
+                <div> \
+                    <p>To subset the area of interest, use the "Bounding Box" \
+                    tab of the control panel. You can either manually set the values \
+                    of the bounding box, or you can use the "Draw BBOX" function.</p> \
+                    <p>Once the "Draw BBOX" button is clicked, the bounding box \
+                    can be drawed directly in the map. Alternatively it can be adjusted afterwards \
+                    in the according input fields.</p> \
+                    <p>The Bounding Box can be removed by clicking on the \
+                    "Clear BBOX" button.</p> \
+                    <p>If no Bounding Box is given, the map extent of the current  \
+                    view is used.</p> \
+                </div> \
+                <h3><a href="#">Download of Coverages</a></h3> \
+                <div> \
+                    <p>When the "Download" button is clicked, the download dialog is opened. \
+                    It contains a list of all coverages that lie within the specified bounds \
+                    and time span.</p> \
+                    <p>All coverages that are checked will be downloaded upon a click on \
+                    "Start Download".</p> \
+                    <p>For Rectified Datasets, an optional size for each dimension can be \
+                    given. If left empty, the resulting image will not be scaled. Referenceable \
+                    Datasets cannot be scaled and the value in the size input fields only displays \
+                    their original size.</p> \
+                    <p>In the "Bands" dropdown box a number of bands can be selected, when \
+                    downloading the image. Multiple bands can be selected by pressing the \
+                    "Control"-key while selecting the entries.</p> \
+                    <p>When the button "Start Download" is clicked, all selected coverages will be \
+                    downloaded with the given parameters. For large downloads (larger than 1000x1000 \
+                    pixel) a warning will be shown.</p> \
+                </div> \
+            </div> \
+        ',
         
         serverInfo: _.template('\
             <div id="acc-info"> \

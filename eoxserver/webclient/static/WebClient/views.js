@@ -20,6 +20,7 @@ namespace("WebClient").Views = (function() {
         initialize: function(options) {
             this.bboxModel = options.bboxModel;
             this.dtModel = options.dtModel;
+            this.mapParams = options.mapParams;
             this.layerParams = options.layerParams;
 
             this.bboxModel.on("change", this.onBBoxChange, this);
@@ -42,13 +43,13 @@ namespace("WebClient").Views = (function() {
             });
             this.boxControl = boxControl;
 
-            var wms_layer = new OpenLayers.Layer.WMS(
+            var wmsLayer = new OpenLayers.Layer.WMS(
                 "OpenLayers WMS",
                 "http://vmap0.tiles.osgeo.org/wms/vmap0",
                 {layers: 'basic'}
             );
 
-            var map_params = {
+            var mapParams = {
                 projection: new OpenLayers.Projection("EPSG:4326"),
                 displayProjection: new OpenLayers.Projection("EPSG:4326"),
                 numZoomLevels:13,
@@ -63,34 +64,38 @@ namespace("WebClient").Views = (function() {
                     new OpenLayers.Control.Permalink(),
                     new OpenLayers.Control.Permalink('permalink'),
                     new OpenLayers.Control.MousePosition(),
-                    new OpenLayers.Control.KeyboardDefaults({observeElement: "map_div"}),
+                    new OpenLayers.Control.KeyboardDefaults({observeElement: this.el}),
                     boxControl
                 ],
                 layers: [
-                    wms_layer
+                    wmsLayer
                 ]
             };
 
-            this.map = new OpenLayers.Map(this.el, map_params);
+            // allow overrides
+            _.extend(mapParams, this.mapParams);
 
-            // TODO: on mapmove update total extent
-            //this.map.events.register("moveend", this, this.onMapMoveEnd);
+            this.map = new OpenLayers.Map(this.el, mapParams);
+            this.map.events.register("moveend", this, this.onMapMoveEnd);
+
+            var useFeatureInfo;
             
             this.layers = _.map(this.layerParams, function(params) {
+                var layer;
                 if (params.service === "wms") {
-                    return new OpenLayers.Layer.WMS( params.name, params.url, {
+                    layer = new OpenLayers.Layer.WMS( params.name, params.url, {
                         layers: params.layerId,
                         transparent: true,
                         version: "1.3.0"
                     }, {
-                        maxExtent:bounds,
-                        displayOutsideMaxExtent:true,
+                        maxExtent: bounds,
+                        displayOutsideMaxExtent: true,
                         visibility: params.visible,
                         gutter: 5
                     });
                 }
                 else if (params.service === "wmts") {
-                    return new OpenLayers.Layer.WMTS({
+                    layer = new OpenLayers.Layer.WMTS({
                         name: params.name,
                         url: params.url,
                         layer: params.layerId,
@@ -109,10 +114,35 @@ namespace("WebClient").Views = (function() {
                         resolutions: [0.70312500000000000000,0.35156250000000000000,0.17578125000000000000,0.08789062500000000000,0.04394531250000000000,0.02197265625000000000,0.01098632812500000000,0.00549316406250000000,0.00274658203125000000,0.00137329101562500000,0.00068664550781250000,0.00034332275390625000,0.00017166137695312500,0.00008583068847656250,0.00004291534423828120,0.00002145767211914060,0.00001072883605957030,0.00000536441802978516],
                     });
                 }
+                else {
+                    throw new Error("Service type " + params.service + " is not supported");
+                }
+                if (params.featureInfo) {
+                    useFeatureInfo = {
+                        layer: layer,
+                        url: params.url
+                    }
+                }
+                return layer;
             });
 
             this.map.addLayers(this.layers);
             this.map.addLayer(this.bboxLayer);
+
+            if (useFeatureInfo) {
+                var infoControl = new OpenLayers.Control.WMSGetFeatureInfo({
+                    url: useFeatureInfo.url, 
+                    title: 'Identify features by clicking',
+                    queryVisible: true,
+                    layers: [useFeatureInfo.layer],
+                    eventListeners: {
+                        getfeatureinfo: _.bind(this.onFeatureInfo, this)
+                    }
+                });
+        
+                this.map.addControl(infoControl);
+                infoControl.activate();
+            }
 
             this.map.zoomToExtent(new OpenLayers.Bounds.fromArray(this.bboxModel.get("values")));
         },
@@ -133,6 +163,25 @@ namespace("WebClient").Views = (function() {
         onMapMoveEnd: function() {
             if (!this.bboxModel.get("isSet")) {
                 this.bboxModel.set("values", this.map.getExtent().toArray());
+            }
+        },
+
+        onFeatureInfo: function(event) {
+            
+            if (event.text) {
+                
+                var popup = new OpenLayers.Popup.FramedCloud(
+                    null, 
+                    this.map.getLonLatFromPixel(event.xy),
+                    null,
+                    event.text,
+                    null,
+                    true
+                );
+                // bug in OL 2.10? requires setting size beforehand
+                popup.setSize(new OpenLayers.Size(100, 200));
+                
+                this.map.addPopup(popup);
             }
         },
 
@@ -227,7 +276,7 @@ namespace("WebClient").Views = (function() {
             
             this.$el.dialog({
                 create: function (event, ui) {
-                    $(".ui-widget-header").append(templates.logo());
+                    $(".ui-widget-header").append(templates.logo);
                 },
                 open: function(event, ui) {
                     that.$el.parent().find(".ui-dialog-titlebar-close").hide();
@@ -585,6 +634,9 @@ namespace("WebClient").Views = (function() {
         template: templates.help,
         render: function() {
             this.$el.html(this.template);
+            this.$("#div-acc-help").accordion({ 
+                autoHeight: false,
+            });
         }
     });
 
