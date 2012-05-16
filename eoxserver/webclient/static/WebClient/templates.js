@@ -120,6 +120,148 @@ namespace("WebClient").Templates = (function() {
         ',
         
         serverInfo: _.template('\
+            <% var id = serviceIdentification, pr = serviceProvider, md = serviceMetadata, op = operations; %> \
+            <div id="acc-info"> \
+                <h3><a href="#">Service Identification</a></h3> \
+                <div> \
+                    <div class="row"> \
+                        <div class="cell">Title</div> \
+                        <div class="cell"><p><%= id.title %></p></div>\
+                    </div> \
+                    <div class="row"> \
+                        <div class="cell">Abstract</div> \
+                        <div class="cell"><p class="scrollable"><%= id.abstract %></p></div>\
+                    </div> \
+                    <div class="row"> \
+                        <div class="cell">Keywords</div> \
+                        <div class="cell"><p class="scrollable"><%= id.keywords.join(", ") %></p></div>\
+                    </div> \
+                    <div class="row"> \
+                        <div class="cell">Type</div> \
+                        <div class="cell"><p><%= id.serviceType %></p></div>\
+                    </div> \
+                    <div class="row"> \
+                        <div class="cell">Version</div> \
+                        <div class="cell"><p><%= id.serviceTypeVersion %></p></div>\
+                    </div> \
+                    <div class="row"> \
+                        <div class="cell">Profiles</div> \
+                        <div class="cell"><ul class="scrollable"> \
+                            <% _.each(id.profiles, function(profile) { %> \
+                                <li><%= profile %></li>\
+                            <% }); %> \
+                        </ul></div> \
+                    </div> \
+                    <div class="row"> \
+                        <div class="cell">Fees</div> \
+                        <div class="cell"><p><%= id.fees %></p></div>\
+                    </div> \
+                    <div class="row"> \
+                        <div class="cell">Constraints</div> \
+                        <div class="cell"><p><%= id.accessConstraints %></p></div>\
+                    </div> \
+                </div> \
+                <h3><a href="#">Service Provider</a></h3> \
+                <div> \
+                    <div class="row"> \
+                        <div class="cell">Name</div> \
+                        <div class="cell"><p><%= pr.providerName %></p></div>\
+                    </div> \
+                    <div class="row"> \
+                        <div class="cell">Site</div> \
+                        <div class="cell"><p><%= pr.providerSite %></p></div>\
+                    </div> \
+                    <div class="row"> \
+                        <div class="cell">Individual</div> \
+                        <div class="cell"><p><%= pr.individualName %></p></div>\
+                    </div> \
+                    <div class="row"> \
+                        <div class="cell">Role</div> \
+                        <div class="cell"><p><%= pr.role  %></p></div>\
+                    </div> \
+                    <div class="row"> \
+                        <div class="cell">Position</div> \
+                        <div class="cell"><p><%= pr.positionName  %></p></div>\
+                    </div> \
+                    <div class="row"> \
+                        <div class="cell">Voice</div> \
+                        <div class="cell"><p><%= pr.contactInfo.phone.voice %></p></div>\
+                    </div> \
+                    <div class="row"> \
+                        <div class="cell">Facsimile</div> \
+                        <div class="cell"><p><%= pr.contactInfo.phone.facsimile %></p></div>\
+                    </div> \
+                    <div class="row"> \
+                        <div class="cell">Address</div> \
+                        <div class="cell"><p><%= pr.contactInfo.address.deliveryPoint %></p></div>\
+                    </div> \
+                    <div class="row"> \
+                        <div class="cell">City</div> \
+                        <div class="cell"><p><%= pr.contactInfo.address.city %></p></div>\
+                    </div> \
+                    <div class="row"> \
+                        <div class="cell">Region</div> \
+                        <div class="cell"><p><%= pr.contactInfo.address.region %></p></div>\
+                    </div> \
+                    <div class="row"> \
+                        <div class="cell">Postal Code</div> \
+                        <div class="cell"><p><%= pr.contactInfo.address.postalCode %></p></div>\
+                    </div> \
+                    <div class="row"> \
+                        <div class="cell">Country</div> \
+                        <div class="cell"><p><%= pr.contactInfo.address.country %></p></div>\
+                    </div> \
+                    <div class="row"> \
+                        <div class="cell">E-Mail</div> \
+                        <div class="cell"><p><%= pr.contactInfo.address.electronicalMailAddress %></p></div>\
+                    </div> \
+                    <div class="row"> \
+                        <div class="cell">Homepage</div> \
+                        <div class="cell"><p><%= pr.contactInfo.onlineResource %></p></div>\
+                    </div> \
+                    <div class="row"> \
+                        <div class="cell">Hours</div> \
+                        <div class="cell"><p><%= pr.contactInfo.hoursOfService %></p></div>\
+                    </div> \
+                    <div class="row"> \
+                        <div class="cell">Contact</div> \
+                        <div class="cell"><p><%= pr.contactInfo.contactInstructions %></p></div>\
+                    </div> \
+                </div> \
+                <h3><a href="#">Service Metadata</a></h3> \
+                <div> \
+                    <div class="row"> \
+                        <div class="cell">Formats</div> \
+                        <div class="cell"><ul> \
+                            <% _.each(md.formatsSupported, function(format) { %> \
+                                <li><%= format %></li>\
+                            <% }); %> \
+                        </ul></div> \
+                    </div> \
+                    <div class="row"> \
+                        <div class="cell">CRSs</div> \
+                        <div class="cell"><ul> \
+                            <% _.each(md.crssSupported, function(crs) { %> \
+                                <li><%= crs %></li>\
+                            <% }); %> \
+                        </ul></div> \
+                    </div> \
+                </div> \
+                <h3><a href="#">Operations</a></h3> \
+                <div> \
+                    <% _.each(op, function(operation) { %> \
+                        <div class="row"> \
+                            <div class="cell"><%= operation.name %></div> \
+                            <div class="cell"> \
+                                GET: <%= operation.getUrl %> \
+                                POST: <%= operation.postUrl %> \
+                            </div> \
+                        </div> \
+                    <% }); %> \
+                </div> \
+            </div> \
+        '),
+        /*serverInfo: _.template('\
             <div id="acc-info"> \
                 <% var headers = ["Service Identification", "Service Provider", "Service Metadata", "Operations"] %> \
                 <% _.each(["serviceIdentification", "serviceProvider", "serviceMetadata", "operations"], \
@@ -146,7 +288,7 @@ namespace("WebClient").Templates = (function() {
                 </div> \
                 <% }); %> \
             </div>'
-        ),
+        ),*/
         /*
          <% _.each(serviceIdentification, function(value, key) {%> \
                     <div class="row"> \
@@ -175,6 +317,10 @@ namespace("WebClient").Templates = (function() {
         
         downloadSelection: _.template('\
             <div id="coverages"></div> \
+            <div id="div-select-buttons"> \
+            <button id="btn-select-all">Select All</button> \
+            <button id="btn-deselect-all">Deselect All</button> \
+            </div> \
             <select class="formats"> \
                 <!-- do this dynamically once the formatsSupported works --> \
                 <option value="image/tiff" selected>image/tiff</option> \
@@ -223,28 +369,28 @@ namespace("WebClient").Templates = (function() {
             <table style="border: 1px solid black;"> \
                 <tr> \
                     <td>Coverage ID</td> \
-                    <td><%= coverageId %></td> \
+                    <td><%= model.coverageId %></td> \
                 </tr> \
                 <tr> \
                     <td>Subtype</td> \
-                    <td><%= coverageSubtype %></td> \
+                    <td><%= model.coverageSubtype %></td> \
                 </tr> \
                 <tr> \
                     <td>Origin</td> \
-                    <td><%= origin[0] %>, <%= origin[1] %></td> \
+                    <td><%= model.origin[0] %>, <%= model.origin[1] %></td> \
                 </tr> \
                 <tr> \
                     <td>Image Size</td> \
-                    <td><%= size[0] %>px x <%= size[1] %>px</td> \
+                    <td><%= model.size[0] %>px x <%= model.size[1] %>px</td> \
                 </tr> \
                 <tr> \
                     <td>Time Period</td> \
-                    <td><%= timePeriod[0].toISOString() %> - <%= timePeriod[1].toISOString() %></td> \
+                    <td><%= model.timePeriod[0].toISOString() %> - <%= model.timePeriod[1].toISOString() %></td> \
                 </tr> \
             </table> \
-            <%  var ratio = size[0]/size[1]; \
+            <%  var ratio = model.size[0] / model.size[1]; \
                 var width, height; \
-                if (size[0]>size[1]) { \
+                if (model.size[0] > model.size[1]) { \
                     width = 400; \
                     height = 400 / ratio; \
                 } \
@@ -253,7 +399,7 @@ namespace("WebClient").Templates = (function() {
                     height = 400; \
                 } \
             %> \
-            <img style="margin:10px" alt="Preview Image" width="<%= width %>" height="<%= height %>" src="/ows?LAYERS=<%= coverageId %>&TRANSPARENT=true&VERSION=1.3.0&EXCEPTIONS=INIMAGE&SERVICE=WMS&REQUEST=GetMap&STYLES=&FORMAT=image%2Fpng&CRS=EPSG%3A4326&BBOX=<%= bounds.values %>&WIDTH=<%= width %>&HEIGHT=<%= height %>"></img> \
+            <img style="margin:10px" alt="Preview Image" width="<%= width %>" height="<%= height %>" src="<%= owsUrl%>?LAYERS=<%= model.coverageId %>&TRANSPARENT=true&VERSION=1.3.0&EXCEPTIONS=INIMAGE&SERVICE=WMS&REQUEST=GetMap&STYLES=&FORMAT=image%2Fpng&CRS=EPSG%3A4326&BBOX=<%= model.bounds.values %>&WIDTH=<%= width %>&HEIGHT=<%= height %>"></img> \
         ')
     }
 

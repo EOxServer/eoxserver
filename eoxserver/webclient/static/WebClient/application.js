@@ -134,7 +134,8 @@ namespace("WebClient").Application = (function() {
                 var downloadSelection = new views.DownloadSelectionView({
                     el: $("#div-download"),
                     model: collection,
-                    bbox: collection.options.bbox
+                    bbox: collection.options.bbox,
+                    owsUrl: this.owsUrl
                 });
                 downloadSelection.render();
             }

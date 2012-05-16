@@ -612,7 +612,7 @@ namespace("WebClient").Views = (function() {
     var ServiceInfoView = Backbone.View.extend({
         template: templates.serverInfo,
         render: function() {
-            this.$el.html(this.template({sections: this.model.toJSON()}));
+            this.$el.html(this.template(this.model.toJSON()));
             this.$("#acc-info").accordion({ 
                 autoHeight: false,
             });
@@ -647,13 +647,16 @@ namespace("WebClient").Views = (function() {
         initialize: function(options) {
             this.itemViews = this.model.map(function(model) {
                 return new DownloadSelectionItemView({
-                    model: model
+                    model: model,
+                    owsUrl: options.owsUrl
                 });
             });
             this.bbox = options.bbox;
         },
         events: {
-            "dialogclose": "onDialogClose"
+            "dialogclose": "onDialogClose",
+            "click #btn-select-all": "onSelectAllClick",
+            "click #btn-deselect-all": "onDeselectAllClick"
         },
         render: function() {
             this.$el.html(this.template(this.model.toJSON()));
@@ -667,6 +670,8 @@ namespace("WebClient").Views = (function() {
                     "Start Download": _.bind(this.onStartDownloadClick, this)
                 }
             });
+
+            this.$("#div-select-buttons").buttonset();
             
             _.each(this.itemViews, function(view) {
                 this.$("#coverages").append(view.render().$el);
@@ -674,9 +679,19 @@ namespace("WebClient").Views = (function() {
 
             this.$el.dialog("open");
         },
+
+        /// internal events
+        onSelectAllClick: function() {
+            this.$('.chk-selected:not(:checked)').trigger("click").trigger("change");
+        },
+        onDeselectAllClick: function() {
+            this.$('.chk-selected:checked').trigger("click").trigger("change");
+        },
+        
         onDialogClose: function() {
             Backbone.history.navigate("", true);
         },
+
         onStartDownloadClick: function() {
             var selected = _.filter(this.itemViews, function(view) {
                 return view.isSelected();
@@ -685,18 +700,27 @@ namespace("WebClient").Views = (function() {
             if (selected.length > 0) {
                 var format = this.$(".formats").val();
                 var bbox = this.bbox;
-                _.each(selected, function(view) {
+                var confirmationRequired = false;
+                var urls = _.map(selected, function(view) {
                     var coverage = view.model;
                     var params = view.getParameters();
                     params.format = format;
                     params.bbox = bbox;
-                    var url = coverage.getDownloadUrl(params);
 
-                    this.$("#div-downloads").append($('<iframe style="display:none" src="' + url + '"></iframe>'));
+                    if (((params.sizeX || coverage.get("size")[0])
+                        * (params.sizeY || coverage.get("size")[1])) > 10000)
+                        confirmationRequired = true;
+                    return coverage.getDownloadUrl(params);
                 });
-                
-                this.$el.dialog("destroy");
-                Backbone.history.navigate("", true);
+
+                if ((confirmationRequired && confirm("At least of the requested images is potentially large. Do you wish to continue the download?")) || !confirmationRequired) {
+                    _.each(urls, function(url) {
+                        this.$("#div-downloads").append($('<iframe style="display:none" src="' + url + '"></iframe>'));
+                    }, this);
+                    
+                    this.$el.dialog("destroy");
+                    Backbone.history.navigate("", true);
+                }
             }
         }
     });
@@ -712,7 +736,8 @@ namespace("WebClient").Views = (function() {
         attributes: {
             class: "ui-widget ui-widget-content ui-corner-all ui-coverage-item"
         },
-        initialize: function() {
+        initialize: function(options) {
+            this.owsUrl = options.owsUrl;
             this.rangetypeSelection = new models.RangeTypeSelectionCollection(
                 this.model.getRangeType()
             );
@@ -725,9 +750,42 @@ namespace("WebClient").Views = (function() {
             this.$el.html(this.template(this.model.toJSON()));
             return this;
         },
+
+        /// internal events
+        
+        onSelectRangeTypeClick: function() {
+            var rangeTypeView = new RangeTypeSelectionView({
+                model: this.rangetypeSelection
+            });
+            rangeTypeView.render();
+        },
+        onShowInfoClick: function() {
+            var infoView = new CoverageInfoView({
+                model: this.model,
+                owsUrl: this.owsUrl
+            });
+            infoView.render();
+        },
+
+        /// methods
+
+        /**
+         *  method isSelected
+         *
+         * Returns true if the associated coverage is selected for download.
+         */
+         
         isSelected: function() {
             return this.$(".chk-selected").is(":checked");
         },
+
+        /**
+         *  method getParameters
+         *
+         * Returns an object containing key-value pairs of options to be passed
+         * to the libcoverage.js functions according to the given inputs.
+         */
+        
         getParameters: function() {
             var params = {};
             
@@ -750,18 +808,6 @@ namespace("WebClient").Views = (function() {
                 params.outputCRS = selectedCRS;
             
             return params;
-        },
-        onSelectRangeTypeClick: function() {
-            var rangeTypeView = new RangeTypeSelectionView({
-                model: this.rangetypeSelection
-            });
-            rangeTypeView.render();
-        },
-        onShowInfoClick: function() {
-            var infoView = new CoverageInfoView({
-                model: this.model,
-            });
-            infoView.render();
         }
     });
 
@@ -792,6 +838,9 @@ namespace("WebClient").Views = (function() {
                 }
             });
         },
+
+        /// internal events
+
         onOkayClick: function() {
             var selected = this.$("input").map(function() {
                 return $(this).is(":checked");
@@ -821,9 +870,15 @@ namespace("WebClient").Views = (function() {
      */
 
     var CoverageInfoView = Backbone.View.extend({
+        initialize: function(options) {
+            this.owsUrl = options.owsUrl;
+        },
         template: templates.coverageInfo,
         render: function() {
-            this.$el.html(this.template(this.model.toJSON()));
+            this.$el.html(this.template({
+                model: this.model.toJSON(),
+                owsUrl: this.owsUrl
+            }));
             
             this.$el.dialog({
                 title: "Coverage Info",
