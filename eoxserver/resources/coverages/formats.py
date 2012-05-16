@@ -64,6 +64,12 @@ class FormatRecord(object) :
 
         return "%s,%s,%s #%s"%(self.gdalDriver,self.mimeType,self.defautExt,["ro","rw"][bool(self.isWriteable)],) 
 
+    def __eq__( self , other ) : 
+
+        return (( self.mimeType == other.mimeType ) \
+                and ( self.gdalDriver == other.gdalDriver ) \
+                and ( self.defautExt  == other.defautExt ))
+
 #-------------------------------------------------------------------------------
 
 class FormatRegistry(object):
@@ -118,13 +124,13 @@ class FormatRegistry(object):
     def getFormatsAll( self ) :  
         """ Get list of all registered formats """ 
 
-        return self.__gdal2format.values() 
+        return self.__driver2format.values() 
 
 
     def getFormatByDriver( self , gdal_driver_name ) :  
-        """ Get format record for the given gdal driver name. Incase of no match 'None' value is returned. """ 
+        """ Get format record for the given GDAL driver name. Incase of no match 'None' value is returned. """ 
 
-        return self.__gdal2format.get( valGdalDriver( dal_driver_name ) ) 
+        return self.__driver2format.get( valGdalDriver( gdal_driver_name ) ) 
 
 
     def getFormatByMIME( self , mime_type ) :  
@@ -212,8 +218,8 @@ class FormatRegistry(object):
         self.__wcs20_def_native_format = tmp 
 
         if ( tmp is None ) or ( tmp not in self.getSupportedFormatsWCS() ) : 
+            print ( tmp is None ) , ( tmp not in self.getSupportedFormatsWCS() )
             raise ValueError , "Invalid value of configuration option 'services.ows.wcs20' 'default_native_format'! mimeType=\"%s\""% src  
-
 
         tmp = config.getConfigValue("services.ows.wcs20","source_to_native_format_map")
         tmp = map( lambda m: self.getFormatByMIME(m.strip()), tmp.split(',') ) 
@@ -230,7 +236,7 @@ class FormatRegistry(object):
         """
 
         # reset iternall format storage 
-        self.__gdal2format = {} 
+        self.__driver2format = {} 
         self.__mime2format = {} 
             
         # read default configuration 
@@ -279,8 +285,8 @@ class FormatRegistry(object):
             frec = FormatRecord( gdal_driver , mime_type , extension , is_writeable )  
 
             # store format record  
-            self.__gdal2format[ gdal_driver ] = frec 
-            self.__mime2format[ mime_type ]   = frec 
+            self.__driver2format[ gdal_driver ] = frec 
+            self.__mime2format[ mime_type ]     = frec 
 
             logging.info( "Adding new file format: %s" % str( frec ) ) 
 
@@ -317,7 +323,7 @@ def valMimeType( string ):
 
 def valGdalDriver( string ):  
     """ 
-    GDAL driver dentifier reg.ex. validator. If pattern not matched 'None' is returned 
+    GDAL driver's identifier reg.ex. validator. If pattern not matched 'None' is returned 
     otherwise the input is returned.
     """ 
     rv = string if __gerexValDriv.match(string) else None 
