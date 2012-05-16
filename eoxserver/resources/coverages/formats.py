@@ -31,6 +31,7 @@
 """
 #-------------------------------------------------------------------------------
 
+import re
 import sys 
 import imp
 import logging
@@ -80,7 +81,7 @@ class FormatRegistry(object):
 
     #---------------------------------------------------------------------------
 
-    def __init__( self , config , registry ):
+    def __init__( self , config ):
  
         # get path to EOxServer installation 
         path_eoxs = self.__get_path_eoxs()
@@ -123,13 +124,13 @@ class FormatRegistry(object):
     def getFormatByDriver( self , gdal_driver_name ) :  
         """ Get format record for the given gdal driver name. Incase of no match 'None' value is returned. """ 
 
-        return self.__gdal2format.get( gdal_driver_name ) 
+        return self.__gdal2format.get( valGdalDriver( dal_driver_name ) ) 
 
 
     def getFormatByMIME( self , mime_type ) :  
         """ Get format record for the given MIME type. Incase of no match 'None' value is returned. """ 
 
-        return self.__mime2format.get( mime_type ) 
+        return self.__mime2format.get( valMimeType( mime_type ) ) 
 
     #---------------------------------------------------------------------------
     # OWS specific getters 
@@ -258,13 +259,16 @@ class FormatRegistry(object):
         
             ( gdal_driver , mime_type , extension ) = line.split(',')
 
-            gdal_driver = gdal_driver.strip() ; 
-            mime_type   = mime_type  .strip() ;
-            extension   = extension  .strip() ; 
+            gdal_driver = valGdalDriver(gdal_driver.strip()) ; 
+            mime_type   = valMimeType(mime_type.strip()) ;
+            extension   = extension.strip() ; 
+
+            if None in (gdal_driver,mime_type) : 
+                raise ValueError , "Invalid input format specification \"%s\"!" % line  
 
             # check the GDAL driver 
             driver = gdal.GetDriverByName( gdal_driver ) 
-
+ 
             if driver is None : 
                 raise ValueError , "Invalid GDAL driver \"%s\"!" % gdal_driver 
 
@@ -296,11 +300,37 @@ class FormatRegistry(object):
             raise InternalError("Filed to find the 'eoxserver' module! Check your modules' path!")
 
 #-------------------------------------------------------------------------------
+# regular expression validators 
+
+__gerexValMime = re.compile("^[-\w]*/[-+\w]*(;[-\w]*=[-\w]*)*$")
+__gerexValDriv = re.compile( "^[-\w]*$" ) 
+
+def valMimeType( string ):
+    """ 
+    MIME type reg.ex. validator. If pattern not matched 'None' is returned 
+    otherwise the input is returned.
+    """ 
+    rv = string if __gerexValMime.match(string) else None 
+    if None is rv :  
+        logging.warning( "Invalid MIME type \"%s\" ignored." % string ) 
+    return rv  
+
+def valGdalDriver( string ):  
+    """ 
+    GDAL driver dentifier reg.ex. validator. If pattern not matched 'None' is returned 
+    otherwise the input is returned.
+    """ 
+    rv = string if __gerexValDriv.match(string) else None 
+    if None is rv :  
+        logging.warning( "Invalid GDAL driver identifier \"%s\" ignored." % string ) 
+    return rv  
+
+#-------------------------------------------------------------------------------
 # 
 # EOxServer start-up handler 
 #
 
-FORMAT_REGISTRY = None
+__FORMAT_REGISTRY = None
 
 class FormatLoaderStartupHandler( object ) : 
 
@@ -320,9 +350,9 @@ class FormatLoaderStartupHandler( object ) :
 
         # instantiate format registry 
 
-        global FORMAT_REGISTRY
+        global __FORMAT_REGISTRY
 
-        FORMAT_REGISTRY = FormatRegistry( config , registry )
+        __FORMAT_REGISTRY = FormatRegistry( config )
 
 
     def startup( self , config , registry ) :
@@ -336,15 +366,20 @@ class FormatLoaderStartupHandler( object ) :
 FormatLoaderStartupHandlerImplementation = StartupHandlerInterface.implement( FormatLoaderStartupHandler ) 
     
 #-------------------------------------------------------------------------------
+# public API 
 
 def getFormatRegistry() : 
     """
         Get initialised format registry.
     """
 
-    if FORMAT_REGISTRY is None :  
-        raise InternalError , "An attempt to access non-initialised format registry!"
+    global __FORMAT_REGISTRY
 
-    return FORMAT_REGISTRY 
+    if __FORMAT_REGISTRY is None :  
+
+        # load configuration if not already loaded 
+        __FORMAT_REGISTRY = FormatRegistry( System.getConfig() ) 
+
+    return __FORMAT_REGISTRY 
 
 #-------------------------------------------------------------------------------
