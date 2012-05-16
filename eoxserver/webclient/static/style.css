@@ -54,4 +54,9 @@
     margin-bottom: 2px;
 }
 
-table.beautiful tr
+.scrollable {
+    max-height: 120px;
+    width: 280px;
+    overflow: scroll;
+}
+
