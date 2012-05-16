@@ -39,6 +39,8 @@ from eoxserver.services.mapserver import (
 )
 from eoxserver.services.exceptions import InvalidRequestException
 
+from eoxserver.resources.coverages.formats import getFormatRegistry
+
 class WCSCommonHandler(MapServerOperationHandler):
     def __init__(self):
         super(WCSCommonHandler, self).__init__()
@@ -163,67 +165,51 @@ class WCSCommonHandler(MapServerOperationHandler):
     def postprocess(self, resp):
         return resp
 
+
 def get_output_format(format_param, coverage):
-    FORMAT_SETTINGS = {
-        "image/tiff": {
-            "driver": "GDAL/GTiff",
-            "mimetype": "image/tiff",
-            "extension": "tif"
-        },
-        "image/jp2": {
-            "driver": "GDAL/JPEG2000",
-            "mimetype": "image/jp2",
-            "extension": "jp2"
-        },
-        "application/x-netcdf": {
-            "driver": "GDAL/netCDF",
-            "mimetype": "application/x-netcdf",
-            "extension": "nc"
-        },
-        "application/x-hdf": {
-            "driver": "GDAL/HDF4Image",
-            "mimetype": "application/x-hdf",
-            "extension": "hdf"
-        }
-    }
-    
+
+    #split MIME type to base MIME and format specific options 
     mime_type, format_options = parse_format_param(format_param)
-    
-    if mime_type in FORMAT_SETTINGS:
-        settings = FORMAT_SETTINGS[mime_type]
-    else:
-        raise InvalidRequestException(
-            "Unsupported format '%s'. Known formats: %s" % (
-                mime_type,
-                ", ".join(FORMAT_SETTINGS.keys())
-            ),
-            "InvalidParameterValue",
-            "format"
-        )
-    
-    output_format = mapscript.outputFormatObj(settings["driver"], "custom")
-    output_format.mimetype = settings["mimetype"]
-    output_format.extension = settings["extension"]
-    
+
+    # get coverage range type 
     rangetype = coverage.getRangeType()
-    
-    output_format.imagemode = gdalconst_to_imagemode(rangetype.data_type)
-    
-    for format_option in format_options:
-        key, value = format_option.split("=")
-        output_format.setOption(str(key), str(value))
+
+    # retrieve the format registry 
+    FormatRegistry = getFormatRegistry() 
+
+    # get format record  
+    frm = FormatRegistry.getFormatByMIME( mime_type ) 
+
+    if None is frm : 
+        sf = map( lambda f : f.mimeType , FormatRegistry.getSupportedFormatsWCS() )
+        raise InvalidRequestException(
+            "Unsupported format '%s'. Known formats: %s" % ( mime_type, ", ".join(sf) ) ,
+            "InvalidParameterValue", "format" )
+
+    # output format definition 
+    output_format = mapscript.outputFormatObj( "GDAL/%s"% frm.gdalDriver, "custom" )
+    output_format.mimetype  = frm.mimeType 
+    output_format.extension = frm.defautExt
+    output_format.imagemode = gdalconst_to_imagemode( rangetype.data_type )
+
+    # format specific options 
+    for fo in format_options:
+        key, value = map( lambda s : str(s.strip()) , fo.split("=") ) 
+        output_format.setOption( key, value )
     
     # set the filename for multipart responses
-    filename = "%s_%s.%s" % (
-        coverage.getCoverageId(),
-        datetime.datetime.now().strftime("%Y%m%d%H%M%S"),
-        settings["extension"]
-    )
-    output_format.setOption("FILENAME", str(filename))
-    
+
+    time_stamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+
+    filename   = "%s_%s%s" % ( coverage.getCoverageId(), time_stamp, frm.defautExt ) 
+
+    output_format.setOption( "FILENAME", str(filename) )
+
     return output_format
 
+
 def parse_format_param(format_param):
+
     parts = unquote(format_param).split(";")
     
     mime_type = parts[0]
