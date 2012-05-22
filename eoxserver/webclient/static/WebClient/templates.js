@@ -9,11 +9,13 @@ namespace("WebClient").Templates = (function() {
             <!--<div class="cell">Date:</div> \
             <div class="cell" style="padding: 15px; width: 250px"><div id="slider"></div></div> \
             <div class="cell"><button id="btn-download" /></div>--> \
-            <div class="ui-widget ui-widget-content ui-corner-all" style="height:3em;margin-bottom:5px;padding:3px;" > \
-                <div style="float:left">Date:</div> \
-                <div style="padding: 15px; width: 250px; float:left;display:inline;"><div id="slider" style=""></div></div> \
-                <button id="btn-download" style="right:0px"/> \
-            </div> \
+            <table class="ui-widget ui-widget-content ui-corner-all"> \
+                <tr> \
+                    <td style="vertical-align:middle">Date:</td> \
+                    <td style="vertical-align:middle;width:70%;padding:10px"><div id="slider"></div></td> \
+                    <td style="vertical-align:middle;width:20%;"><button id="btn-download"/></td> \
+                </tr> \
+            </table> \
             <div id="tabs-main"> \
                 <ul> \
                     <li><a href="#frg-date"><span>Date/Time</span></a></li> \
@@ -64,7 +66,7 @@ namespace("WebClient").Templates = (function() {
         ),
         
         help: '\
-            <div id="div-acc-help"> \
+            <div id="div-acc-help" style="width: 100%; max-height: 640px; overflow: auto;"> \
                 <h3><a href="#">General</a></h3> \
                 <div> \
                     <p>Click and drag the map to view the area of interest. Use the  \
@@ -121,7 +123,7 @@ namespace("WebClient").Templates = (function() {
         
         serverInfo: _.template('\
             <% var id = serviceIdentification, pr = serviceProvider, md = serviceMetadata, op = operations; %> \
-            <div id="acc-info"> \
+            <div id="acc-info" style="width: 100%; max-height: 640px; overflow: auto;"> \
                 <h3><a href="#">Service Identification</a></h3> \
                 <div> \
                     <div class="row"> \
@@ -213,7 +215,7 @@ namespace("WebClient").Templates = (function() {
                     </div> \
                     <div class="row"> \
                         <div class="cell">E-Mail</div> \
-                        <div class="cell"><p><%= pr.contactInfo.address.electronicalMailAddress %></p></div>\
+                        <div class="cell"><p><%= pr.contactInfo.address.electronicMailAddress %></p></div>\
                     </div> \
                     <div class="row"> \
                         <div class="cell">Homepage</div> \
