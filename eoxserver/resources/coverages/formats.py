@@ -53,21 +53,22 @@ class FormatRecord(object) :
     Single format record specification 
     """  
 
-    def __init__( self , gdal_driver , mime_type , extension , is_writeable ) :  
+    def __init__( self , mime_type , driver , extension , is_writeable ) :  
 
         self.mimeType    = mime_type 
-        self.gdalDriver  = gdal_driver 
+        self.driver      = driver 
         self.defautExt   = extension 
         self.isWriteable = is_writeable  
 
     def __str__( self ) : 
 
-        return "%s,%s,%s #%s"%(self.gdalDriver,self.mimeType,self.defautExt,["ro","rw"][bool(self.isWriteable)],) 
+        return "%s,%s,%s #%s"%(self.mimeType,self.driver,self.defautExt
+            ,["ro","rw"][bool(self.isWriteable)]) 
 
     def __eq__( self , other ) : 
 
-        return (( self.mimeType == other.mimeType ) \
-                and ( self.gdalDriver == other.gdalDriver ) \
+        return  (( self.mimeType == other.mimeType ) \
+                and ( self.driver == other.driver ) \
                 and ( self.defautExt  == other.defautExt ))
 
 #-------------------------------------------------------------------------------
@@ -124,19 +125,18 @@ class FormatRegistry(object):
     def getFormatsAll( self ) :  
         """ Get list of all registered formats """ 
 
-        return self.__driver2format.values() 
+        return self.__mime2format.values() 
 
+    def getFormatsByDriver( self , driver_name ) :  
+        """ Get format records for the given GDAL driver name. In case of no match empty list is returned. """ 
 
-    def getFormatByDriver( self , gdal_driver_name ) :  
-        """ Get format record for the given GDAL driver name. Incase of no match 'None' value is returned. """ 
-
-        return self.__driver2format.get( valGdalDriver( gdal_driver_name ) ) 
+        return self.__driver2format.get( valGdalDriver( driver_name ) , [] ) 
 
 
     def getFormatByMIME( self , mime_type ) :  
-        """ Get format record for the given MIME type. Incase of no match 'None' value is returned. """ 
+        """ Get format record for the given MIME type. In case of no match empty list is returned. """ 
 
-        return self.__mime2format.get( valMimeType( mime_type ) ) 
+        return self.__mime2format.get( valMimeType( mime_type ) , None ) 
 
     #---------------------------------------------------------------------------
     # OWS specific getters 
@@ -163,12 +163,15 @@ class FormatRegistry(object):
         """ 
         return self.__wms_supported_formats 
 
+
     def mapSourceToNativeWCS20( self , format ) :  
         """ Map source format to WCS 2.0 native format. 
 
         Both the input and output shall be instances of :class:`FormatRecords` class. 
         The input format can be obtained, e.g., by the `getFormatByDriver` or `getFormatByMIME` 
         method.
+
+        To force the default native format use None as the source format. 
 
         The format mapping follows these rules: 
         1. Mapping based on the explicite rules is applied if possible (defined in EOxServers
@@ -209,7 +212,6 @@ class FormatRegistry(object):
         self.__wms_supported_formats = filter( lambda f: f, map( lambda m: self.getFormatByMIME(m.strip()), wms.split(',') ) )
         self.__wcs_supported_formats = filter( lambda f: f, map( lambda m: self.getFormatByMIME(m.strip()), wcs.split(',') ) )
 
-        
         #  WCS 2.0.1 source to native format mapping 
  
         src = config.getConfigValue("services.ows.wcs20","default_native_format").strip() 
@@ -219,15 +221,14 @@ class FormatRegistry(object):
 
         if ( tmp is None ) or ( tmp not in self.getSupportedFormatsWCS() ) : 
             print ( tmp is None ) , ( tmp not in self.getSupportedFormatsWCS() )
-            raise ValueError , "Invalid value of configuration option 'services.ows.wcs20' 'default_native_format'! mimeType=\"%s\""% src  
+            raise ValueError , "Invalid value of configuration option 'services.ows.wcs20' 'default_native_format'! value=\"%s\""% src  
 
         tmp = config.getConfigValue("services.ows.wcs20","source_to_native_format_map")
         tmp = map( lambda m: self.getFormatByMIME(m.strip()), tmp.split(',') ) 
         tmp = [ (tmp[i],tmp[i+1]) for i in xrange(0,(len(tmp)>>1)<<1,2) ]
-        tmp = filter( lambda p: (p[0] is not None ) and ( p[1] is not None ) , tmp ) 
+        tmp = filter( lambda p: ( p[0] is not None ) and ( p[1] is not None ) , tmp ) 
 
         self.__wcs20_format_mapping = dict( tmp ) 
-
 
 
     def __load_formats( self , path_formats_def , path_formats_opt ):
@@ -250,6 +251,23 @@ class FormatRegistry(object):
             for ln,line in enumerate( file( path_formats_opt ) ) :
                 self.__parse_line( line , path_formats_opt , ln+1 ) 
 
+        # finalize format specification  
+        self.__postproc_formats() 
+
+
+    def __postproc_formats( self ) : 
+        """
+        Postprocess format specificaions after the loading was finished.  
+        """
+
+        for frec in self.__mime2format.values() :
+
+            # driver to format dictionary 
+            if self.__driver2format.has_key( frec.driver ) : 
+                self.__driver2format.append( frec ) 
+            else : 
+                self.__driver2format[frec.driver] = [ frec ] 
+
 
     def __parse_line( self , line , fname , lnum ) : 
         """
@@ -263,30 +281,39 @@ class FormatRegistry(object):
 
             if 0 == len(line) : return 
         
-            ( gdal_driver , mime_type , extension ) = line.split(',')
+            ( mime_type , driver , extension ) = line.split(',')
 
-            gdal_driver = valGdalDriver(gdal_driver.strip()) ; 
             mime_type   = valMimeType(mime_type.strip()) ;
+            driver      = valDriver(driver.strip()) ; 
             extension   = extension.strip() ; 
 
-            if None in (gdal_driver,mime_type) : 
+            if None in (driver,mime_type) : 
                 raise ValueError , "Invalid input format specification \"%s\"!" % line  
 
-            # check the GDAL driver 
-            driver = gdal.GetDriverByName( gdal_driver ) 
- 
-            if driver is None : 
-                raise ValueError , "Invalid GDAL driver \"%s\"!" % gdal_driver 
+            # check the check the driver 
+            backend , _ , ldriver = driver.partition("/")
 
-            #get the writebility 
-            is_writeable = ( driver.GetMetadataItem("DCAP_CREATECOPY") == "YES" ) 
+            # no-other backend than GDAL currently supported 
+
+            if ( backend == "GDAL" ) :
+
+                gdriver = gdal.GetDriverByName( ldriver ) 
+
+                if gdriver is None : 
+                    raise ValueError , "Invalid GDAL driver \"%s\"!" % driver 
+
+                #get the writebility 
+                is_writeable = ( gdriver.GetMetadataItem("DCAP_CREATECOPY") == "YES" ) 
+
+            else : 
+
+                raise ValueError , "Invalid driver backend \"%s\"!" % driver 
 
             # new format records 
-            frec = FormatRecord( gdal_driver , mime_type , extension , is_writeable )  
+            frec = FormatRecord( mime_type , driver , extension , is_writeable )  
 
             # store format record  
-            self.__driver2format[ gdal_driver ] = frec 
-            self.__mime2format[ mime_type ]     = frec 
+            self.__mime2format[ mime_type ] = frec 
 
             logging.info( "Adding new file format: %s" % str( frec ) ) 
 
@@ -308,8 +335,8 @@ class FormatRegistry(object):
 #-------------------------------------------------------------------------------
 # regular expression validators 
 
-__gerexValMime = re.compile("^[-\w]*/[-+\w]*(;[-\w]*=[-\w]*)*$")
-__gerexValDriv = re.compile( "^[-\w]*$" ) 
+__gerexValMime = re.compile("^[\w][-\w]*/[\w][-+\w]*(;[-\w]*=[-\w]*)*$")
+__gerexValDriv = re.compile( "^[\w][-\w]*/[\w][-\w]*$" ) 
 
 def valMimeType( string ):
     """ 
@@ -318,17 +345,17 @@ def valMimeType( string ):
     """ 
     rv = string if __gerexValMime.match(string) else None 
     if None is rv :  
-        logging.warning( "Invalid MIME type \"%s\" ignored." % string ) 
+        logging.warning( "Invalid MIME type \"%s\"." % string ) 
     return rv  
 
-def valGdalDriver( string ):  
+def valDriver( string ):  
     """ 
-    GDAL driver's identifier reg.ex. validator. If pattern not matched 'None' is returned 
+    Driver identifier reg.ex. validator. If pattern not matched 'None' is returned 
     otherwise the input is returned.
     """ 
     rv = string if __gerexValDriv.match(string) else None 
     if None is rv :  
-        logging.warning( "Invalid GDAL driver identifier \"%s\" ignored." % string ) 
+        logging.warning( "Invalid GDAL driver identifier \"%s\"." % string ) 
     return rv  
 
 #-------------------------------------------------------------------------------
@@ -351,8 +378,6 @@ class FormatLoaderStartupHandler( object ) :
         }
 
     def __loadFormats( self , config , registry ) : 
-
-        logging.debug(" --==@ FormatLoaderStartupHandler( StartupHandlerInterface ) @==-- ")
 
         # instantiate format registry 
 
