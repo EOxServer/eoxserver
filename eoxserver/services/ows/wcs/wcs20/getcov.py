@@ -60,6 +60,11 @@ from eoxserver.services.ows.wcs.common import (
 from eoxserver.services.ows.wcs.encoders import WCS20EOAPEncoder
 from eoxserver.services.ows.wcs.wcs20.subset import WCS20SubsetDecoder
 
+from eoxserver.resources.coverages.formats import getFormatRegistry
+
+# register all GDAL drivers 
+gdal.AllRegister()
+
 FORMAT_MAPPING = {
     "image/tiff": "GTiff",
     "image/jp2": "JPEG2000",
@@ -138,51 +143,43 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
     }
     
     def handle(self, req, coverage):
+
+        # set request schema 
         req.setSchema(self.PARAM_SCHEMA)
-        
-        cov_x_size, cov_y_size = coverage.getSize()
-        
+
+        #=============================================
         # get subsetting
+
         decoder = WCS20SubsetDecoder(req, "imageCRS")
+
+        cov_x_size, cov_y_size = coverage.getSize()
         
         try:
             subset = decoder.getSubset(cov_x_size, cov_y_size, coverage.getFootprint())
         except InvalidSubsettingException, e:
-            raise InvalidRequestException(
-                str(e), "InvalidSubsetting", "subset"
-            )
+            raise InvalidRequestException( str(e), "InvalidSubsetting", "subset")
         except InvalidAxisLabelException, e:
-            raise InvalidRequestException(
-                str(e), "InvalidAxisLabel", "subset"
-            )
+            raise InvalidRequestException( str(e), "InvalidAxisLabel", "subset" )
         
         if subset is None:
-            x_off = 0
-            y_off = 0
-            x_size = cov_x_size
-            y_size = cov_y_size
+
+            x_off, y_off, x_size, y_size = ( 0 , 0 , cov_x_size , cov_y_size ) 
+
         elif subset.crs_id != "imageCRS":
+
             x_off, y_off, x_size, y_size = rect_from_subset(
-                coverage.getData().getGDALDatasetIdentifier(),
-                subset.crs_id,
-                subset.minx,
-                subset.miny,
-                subset.maxx,
-                subset.maxy
-            )
+                coverage.getData().getGDALDatasetIdentifier(), subset.crs_id, 
+                subset.minx, subset.miny, subset.maxx, subset.maxy )
+
         else:
-            x_off = subset.minx
-            y_off = subset.miny
-            x_size = subset.maxx - subset.minx + 1
-            y_size = subset.maxy - subset.miny + 1
-            
-        # calculate effective offsets and buffer size
+
+            x_off, y_off   = ( subset.minx , subset.miny ) 
+            x_size, y_size = ( subset.maxx - subset.minx + 1 , subset.maxy - subset.miny + 1 ) 
+
+        # calculate effective offsets and buffer size  ) 
         
-        src_x_off = max(0, x_off)
-        src_y_off = max(0, y_off)
-        
-        dst_x_off = max(0, -x_off)
-        dst_y_off = max(0, -y_off)
+        src_x_off , src_y_off = ( max(0, x_off) , max(0, y_off) ) 
+        dst_x_off , dst_y_off = ( max(0,-x_off) , max(0,-y_off) ) 
         
         buffer_x_size = max(min(x_off + x_size, cov_x_size) - src_x_off, 0)
         buffer_y_size = max(min(y_off + y_size, cov_y_size) - src_y_off, 0)
@@ -194,67 +191,81 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
                 "subset"
             )
 
+        #======================================================================
+        # handling format 
+
+        # retrieve the format registry 
+        FormatRegistry = getFormatRegistry() 
+
+        # get the range type 
+        range_type = coverage.getRangeType()
+
         # get format
         format_param = req.getParamValue("format")
         
         if format_param is None:
-            raise InvalidRequestException(
-                "Missing mandatory 'format' parameter.",
-                "MissingParameterValue",
-                "format"
-            )
+
+            # TODO: change the data model to contain the source format 
+            # get the coverage's source format 
+            source_format = None
+
+            # map the source format to the native one 
+            format = FormatRegistry.mapSourceToNativeWCS20( source_format ) 
+
+            format_options = [] 
+
+        else :
         
-        mime_type, format_options = parse_format_param(format_param)
+            # unpack format specification  
+            mime_type, format_options = parse_format_param(format_param)
         
-        if mime_type not in FORMAT_MAPPING:
-            raise InvalidRequestException(
-                "Unknown or unsupported format '%s'" % mime_type,
-                "InvalidParameterValue",
-                "format"
-            )
-            
-        range_type = coverage.getRangeType()
-        
+            format = None 
+            for f in FormatRegistry.getFormatsByMIME( mime_type ) : 
+                # check if the required format is supported  
+                if ( format in FormatRegistry.getSupportedFormatsWCS() ) : 
+                    format = f 
+                    break
+
+            if format is None : 
+                raise InvalidRequestException(
+                    "Unknown or unsupported format '%s'" % mime_type,
+                    "InvalidParameterValue", "format" )
+
+
+        #======================================================================
+        # TODO: change GDAL.Create to GDAL.CreateCopy to be in-line  
+        #       with mapscript behaviour 
+
         _, dst_filename = mkstemp(
             prefix = "tmp",
-            suffix = ".%s" % EXT_MAPPING[mime_type]
+            suffix = format.defautExt
         )
+
+        backend_name , _ , driver_name = format.driver.partition("/") ; 
+
+        if  backend_name != "GDAL" : 
+            raise InternalError( "Unsupported format backend \"%s\"!" % backend_name ) 
         
-        gdal.AllRegister()
-        gdal_driver = gdal.GetDriverByName(FORMAT_MAPPING[mime_type])
+        gdal_driver = gdal.GetDriverByName( driver_name )
         
         if gdal_driver is None:
-            raise InternalError(
-                "Could not retrieve GDAL Driver '%s'" % FORMAT_MAPPING[mime_type]
-            )
-    
+            raise InternalError( "Invalid GDAL Driver identifier '%s'" % driver_name )
+
         dst_ds = gdal_driver.Create(
             dst_filename, x_size, y_size, len(range_type.bands),
-            range_type.data_type, ",".join(format_options)
-        )
-        
+            range_type.data_type, ",".join(format_options) )
+
         if dst_ds is None:
-            raise InternalError("Could not create output dataset.")
+            raise InternalError("Failed to create output dataset.")
         
         src_ds = coverage.getData().open()
         
         if src_ds is None:
-            raise InternalError("Could not open input dataset.")
+            raise InternalError("Failed to open input dataset.")
         
-        raster_buffer = src_ds.ReadRaster(
-            src_x_off,
-            src_y_off,
-            buffer_x_size,
-            buffer_y_size
-        )
+        raster_buffer = src_ds.ReadRaster( src_x_off, src_y_off, buffer_x_size, buffer_y_size )
         
-        dst_ds.WriteRaster(
-            dst_x_off,
-            dst_y_off,
-            buffer_x_size,
-            buffer_y_size,
-            raster_buffer
-        )
+        dst_ds.WriteRaster( dst_x_off, dst_y_off, buffer_x_size, buffer_y_size, raster_buffer )
         
         # tag metadata onto raster buffer
         md_dict = src_ds.GetMetadata()
@@ -268,38 +279,37 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
         
         dst_gcps = []
         for src_gcp in src_gcps:
-            dst_gcps.append(gdal.GCP(
-                src_gcp.GCPX,
-                src_gcp.GCPY,
-                src_gcp.GCPZ,
-                src_gcp.GCPPixel + src_x_off - dst_x_off,
-                src_gcp.GCPLine + src_y_off - dst_y_off,
-                src_gcp.Info,
-                src_gcp.Id
-            ))
+            dst_gcps.append( gdal.GCP( src_gcp.GCPX, src_gcp.GCPY, src_gcp.GCPZ,
+                src_gcp.GCPPixel+src_x_off-dst_x_off, src_gcp.GCPLine+src_y_off-dst_y_off,
+                src_gcp.Info, src_gcp.Id ) )
         
         dst_ds.SetGCPs(dst_gcps, src_gcp_proj)
         
         # close datasets
         del src_ds
         del dst_ds
-        
+
+        #======================================================================
         # prepare response
+
+        # set the response filename 
+        time_stamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        filename   = "%s_%s%s" % ( coverage.getCoverageId(), time_stamp, format.defautExt ) 
+
+
+        # check the media type 
         media_type = req.getParamValue("mediatype")
 
-        filename = "%s_%s.%s" % (
-            coverage.getCoverageId(),
-            datetime.now().strftime("%Y%m%d%H%M%S"),
-            EXT_MAPPING[mime_type]
-        )
-
-        
         if media_type is None:
-            resp = self._get_default_response(dst_filename, mime_type, filename)
+
+            resp = self._get_default_response(dst_filename, format.mimeType , filename)
+
         elif media_type == "multipart/related" or media_type == "multipart/mixed":
+
             encoder = WCS20EOAPEncoder()
             
             if subset is not None:
+
                 # get new footprint
                 footprint = GEOSGeometry(get_footprint_wkt(dst_filename))
                 if subset.crs_id != "imageCRS":
@@ -311,7 +321,9 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
                         footprint,
                         True
                     )
+
                 else:
+
                     cov_desc_el = encoder.encodeSubsetCoverageDescription(
                         coverage,
                         4326,
@@ -321,12 +333,13 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
                         True
                     )
             else:
+
                 cov_desc_el = encoder.encodeCoverageDescription(coverage, True)
             
             
             resp = self._get_multipart_response(
-                dst_filename, mime_type, DOMElementToXML(cov_desc_el), filename
-            )
+                dst_filename, mime_type, DOMElementToXML(cov_desc_el), filename )
+
         else:
             raise InvalidRequestException(
                 "Unknown media type '%s'" % media_type,
@@ -339,6 +352,7 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
         
         return resp
     
+
     def _get_default_response(self, dst_filename, mime_type, filename):
         f = open(dst_filename)
         
@@ -378,7 +392,9 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
         
         return resp
 
+
 class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
+
     PARAM_SCHEMA = {
         "service": {"xml_location": "/service", "xml_type": "string", "kvp_key": "service", "kvp_type": "string"},
         "version": {"xml_location": "/version", "xml_type": "string", "kvp_key": "version", "kvp_type": "string"},
@@ -432,29 +448,40 @@ class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
         else:
             super(WCS20GetRectifiedCoverageHandler, self)._setParameter(key, value)
 
+
     def configureMapObj(self):
         super(WCS20GetRectifiedCoverageHandler, self).configureMapObj()
         
-        
+        # retrieve the format registry 
+        FormatRegistry = getFormatRegistry() 
+
+        # get format
         format_param = self.req.getParamValue("format")
-        if not format_param:
-            raise InvalidRequestException(
-                "Missing mandatory 'format' parameter",
-                "MissingParameterValue",
-                "format"
-            )
         
-        output_format = get_output_format(
-            format_param,
-            self.coverages[0]
-        )
+        if format_param is None:
+            # no format specification 
+
+            # TODO: change the data model to contain the source format 
+            # get the coverage's source format 
+            source_format = None 
+
+            # map the source format to the native one 
+            format_param = FormatRegistry.mapSourceToNativeWCS20( source_format ).mimeType 
+
+        # prepare output format 
+        output_format = get_output_format( format_param, self.coverages[0] )
         
         self.map.appendOutputFormat(output_format)
         self.map.setOutputFormat(output_format)
         
         logging.debug("WCS20GetCoverageHandler.configureMapObj: %s" % self.map.imagetype)
 
+
     def getMapServerLayer(self, coverage):
+
+        # retrieve the format registry 
+        FormatRegistry = getFormatRegistry() 
+
         layer = super(WCS20GetRectifiedCoverageHandler, self).getMapServerLayer(coverage)
         
         connector = System.getRegistry().findAndBind(
@@ -470,8 +497,17 @@ class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
         # have evolved since making it accissible to all paths
         rangetype = coverage.getRangeType()
 
-        #layer.setMetaData("wcs_nativeformat", coverage.getDataFormat().getDriverName())
-        layer.setMetaData("wcs_nativeformat", "GTiff") # TODO: make this configurable like in the line above
+        # set native format of the coverage 
+
+        # TODO: change the data model to contain the source format 
+        # get the coverage's source format 
+        source_format = None 
+
+        # map the source format to the native one 
+        native_format = FormatRegistry.mapSourceToNativeWCS20( source_format ) 
+
+        layer.setMetaData("wcs_native_format", native_format.mimeType ) 
+
         layer.setMetaData("wcs_bandcount", "%d" % len(rangetype.bands))
 
         bands = " ".join([band.name for band in rangetype.bands])
@@ -504,6 +540,10 @@ class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
         return layer
 
     def postprocess(self, resp):
+
+        # retrieve the format registry 
+        FormatRegistry = getFormatRegistry() 
+
         coverage_id = self.req.getParamValue("coverageid")
         
         if self.coverages[0].getType() == "eo.rect_stitched_mosaic":
@@ -516,6 +556,7 @@ class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
         resp.splitResponse()
         
         if resp.ms_response_xml:
+
             dom = minidom.parseString(resp.ms_response_xml)
             rectified_grid_coverage = dom.getElementsByTagName("gmlcov:RectifiedGridCoverage").item(0)
             
@@ -551,18 +592,18 @@ class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
                     
                 resp = resp.getProcessedResponse(DOMElementToXML(resp_xml))
                 dom.unlink()
+
         else: # coverage only
+
             coverage = self.coverages[0]
             mime_type = resp.getContentType()
             
             filename = "%s_%s.%s" % (
                 coverage.getCoverageId(),
                 datetime.now().strftime("%Y%m%d%H%M%S"),
-                EXT_MAPPING[mime_type]
+                FormatRegistry.getFormatByMIME( mime_type ).defautExt
             )
             
             resp.headers.update({'Content-Disposition': "attachment; filename=\"%s\"" % filename})
 
         return resp
-
-

@@ -180,14 +180,18 @@ def get_output_format(format_param, coverage):
     # get format record  
     frm = FormatRegistry.getFormatByMIME( mime_type ) 
 
-    if None is frm : 
+    if ( frm not in FormatRegistry.getSupportedFormatsWCS() ) : 
         sf = map( lambda f : f.mimeType , FormatRegistry.getSupportedFormatsWCS() )
         raise InvalidRequestException(
             "Unsupported format '%s'. Known formats: %s" % ( mime_type, ", ".join(sf) ) ,
             "InvalidParameterValue", "format" )
 
+    # check the driver
+    if frm.driver.partition("/")[0] != "GDAL" : 
+        raise InternalError( "Unsupported format backend \"%s\"!" % frm.driver.partition("/")[0] ) 
+
     # output format definition 
-    output_format = mapscript.outputFormatObj( "GDAL/%s"% frm.gdalDriver, "custom" )
+    output_format = mapscript.outputFormatObj( frm.driver, "custom" )
     output_format.mimetype  = frm.mimeType 
     output_format.extension = frm.defautExt
     output_format.imagemode = gdalconst_to_imagemode( rangetype.data_type )
@@ -197,7 +201,7 @@ def get_output_format(format_param, coverage):
         key, value = map( lambda s : str(s.strip()) , fo.split("=") ) 
         output_format.setOption( key, value )
     
-    # set the filename for multipart responses
+    # set the response filename 
 
     time_stamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 
