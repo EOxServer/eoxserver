@@ -111,6 +111,9 @@ FOSS4G-CEE 2012, Prague
 Observation Data <http://foss4g-cee.org/program/presentations/eoxserver-a-soluti
 on-for-online-access-to-large-collections-of-earth-observation-data/>`_
 
+:download:`Download the presentation 
+<presentations/foss4g-cee_eoxserver_20120522.pdf>`
+
 `FOSS4G-CEE <http://foss4g-cee.org/>`_ & Geoinformatics 2012 is the first 
 local conference focused on Free and Open Source Software for Geospatial in 
 Central and Eastern Europe. This year, it is organized together with the 
