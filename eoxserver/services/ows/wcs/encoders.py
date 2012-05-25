@@ -505,9 +505,9 @@ class WCS20EOAPEncoder(WCS20Encoder):
         # retrieve the format registry 
         FormatRegistry = getFormatRegistry() 
 
-        # TODO: change the data model to contain the source format 
         # get the coverage's source format 
-        source_format = None 
+        source_mime   = coverage.getData().getSourceFormat() 
+        source_format = FormatRegistry.getFormatByMIME( source_mime ) 
 
         # map the source format to the native one 
         native_format = FormatRegistry.mapSourceToNativeWCS20( source_format ) 
