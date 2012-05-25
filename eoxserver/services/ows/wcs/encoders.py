@@ -38,6 +38,7 @@ from eoxserver.core.util.xmltools import XMLEncoder
 from eoxserver.core.util.timetools import isotime
 from eoxserver.processing.mosaic import MosaicContribution
 
+from eoxserver.resources.coverages.formats import getFormatRegistry
 def _adjustPrecision(string, is_projected=False):
     return string.replace("%f", "%.3f" if is_projected else "%.8f")
 
@@ -500,6 +501,17 @@ class WCS20EOAPEncoder(WCS20Encoder):
         ])
 
     def encodeCoverageDescription(self, coverage, is_root=False):
+
+        # retrieve the format registry 
+        FormatRegistry = getFormatRegistry() 
+
+        # TODO: change the data model to contain the source format 
+        # get the coverage's source format 
+        source_format = None 
+
+        # map the source format to the native one 
+        native_format = FormatRegistry.mapSourceToNativeWCS20( source_format ) 
+
         if is_root:
             sub_nodes = [("@xsi", "schemaLocation", "http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd")]
         else:
@@ -513,10 +525,28 @@ class WCS20EOAPEncoder(WCS20Encoder):
             (self.encodeRangeType(coverage),),
             ("wcs", "ServiceParameters", [
                 ("wcs", "CoverageSubtype", coverage.getEOCoverageSubtype()),
+                ("wcs", "nativeFormat" , native_format.mimeType ) 
             ])
         ])
         return self._makeElement("wcs", "CoverageDescription", sub_nodes)
     
+
+    def encodeSupportedFormats( self ) : 
+        
+        # retrieve the format registry 
+        FormatRegistry = getFormatRegistry() 
+
+        supported_formats = map( lambda f : f.mimeType , FormatRegistry.getSupportedFormatsWCS() ) 
+
+        el = [] 
+
+        for sf in supported_formats : 
+
+            el.append( self._makeElement( "wcs" , "formatSupported" , sf ) ) 
+
+        return el 
+
+
     def encodeSubsetCoverageDescription(self, coverage, srid, size, extent, footprint, is_root=False):
         poly = Polygon.from_bbox(extent)
         poly.srid = srid

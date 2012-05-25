@@ -236,6 +236,9 @@ class FormatRegistry(object):
         Load and parse the formats' configuration. 
         """
 
+        # register GDAL drivers 
+        gdal.AllRegister()
+
         # reset iternall format storage 
         self.__driver2format = {} 
         self.__mime2format = {} 
@@ -335,15 +338,15 @@ class FormatRegistry(object):
 #-------------------------------------------------------------------------------
 # regular expression validators 
 
-__gerexValMime = re.compile("^[\w][-\w]*/[\w][-+\w]*(;[-\w]*=[-\w]*)*$")
-__gerexValDriv = re.compile( "^[\w][-\w]*/[\w][-\w]*$" ) 
+_gerexValMime = re.compile("^[\w][-\w]*/[\w][-+\w]*(;[-\w]*=[-\w]*)*$")
+_gerexValDriv = re.compile( "^[\w][-\w]*/[\w][-\w]*$" ) 
 
 def valMimeType( string ):
     """ 
     MIME type reg.ex. validator. If pattern not matched 'None' is returned 
     otherwise the input is returned.
     """ 
-    rv = string if __gerexValMime.match(string) else None 
+    rv = string if _gerexValMime.match(string) else None 
     if None is rv :  
         logging.warning( "Invalid MIME type \"%s\"." % string ) 
     return rv  
@@ -353,7 +356,11 @@ def valDriver( string ):
     Driver identifier reg.ex. validator. If pattern not matched 'None' is returned 
     otherwise the input is returned.
     """ 
-    rv = string if __gerexValDriv.match(string) else None 
+    rv = string if _gerexValDriv.match(string) else None 
+    logging.debug( " -- rv     \"%s\"." % repr( rv ) ) 
+    logging.debug( " -- match  \"%s\"." % repr(_gerexValDriv.match(string)) ) 
+    logging.debug( " -- string \"%s\"." % string ) 
+    logging.debug( " -- regex  \"%s\"." % repr(_gerexValDriv) ) 
     if None is rv :  
         logging.warning( "Invalid GDAL driver identifier \"%s\"." % string ) 
     return rv  
@@ -382,8 +389,14 @@ class FormatLoaderStartupHandler( object ) :
         # instantiate format registry 
 
         global __FORMAT_REGISTRY
+        
+        logging.debug(" --- FormatLoaderStartupHandler --- ")
+        logging.debug( repr(_gerexValMime) )
+        logging.debug( repr(_gerexValDriv) )
 
         __FORMAT_REGISTRY = FormatRegistry( config )
+
+        logging.debug( repr(__FORMAT_REGISTRY) )
 
 
     def startup( self , config , registry ) :
@@ -408,8 +421,15 @@ def getFormatRegistry() :
 
     if __FORMAT_REGISTRY is None :  
 
+        logging.debug(" --- getFormatRegistry() --- ")
+        logging.debug( repr(__FORMAT_REGISTRY) )
+        logging.debug( repr(_gerexValMime) )
+        logging.debug( repr(_gerexValDriv) )
+
         # load configuration if not already loaded 
         __FORMAT_REGISTRY = FormatRegistry( System.getConfig() ) 
+
+        logging.debug( repr(__FORMAT_REGISTRY) )
 
     return __FORMAT_REGISTRY 
 
