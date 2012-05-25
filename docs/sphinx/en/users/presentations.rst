@@ -60,6 +60,9 @@ rasdaman, and EOxServer) enabling the Online Data Access to Heterogeneous
 Multidimensional Satellite Data <http://www.agit.at/index.php?option=com_content
 &task=view&id=132&Itemid=72>`_
 
+:download:`Download the presentation 
+<presentations/20110708_AGIT2011_EOX.pdf>`
+
 The `Angewandte Geoinformatik (AGIT) <http://agit.at>`_ is a conference for 
 applied geo-informatics held annually in Salzburg, Austria. Since 5 years it 
 includes the OSGeo Day where the presentation was given.
