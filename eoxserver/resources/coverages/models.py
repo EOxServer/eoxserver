@@ -46,6 +46,9 @@ from eoxserver.resources.coverages.validators import (
     validateEOOM, validateCoverageIDnotInEOOM
 )
 
+from eoxserver.resources.coverages.formats import _gerexValMime as regexMIMEType
+
+MIMETypeValidator = RegexValidator( regexMIMEType , message="The field must contain a valid MIME Type!" ) 
 NCNameValidator = RegexValidator(re.compile(r'^[a-zA-z_][a-zA-Z0-9_.-]*$'), message="This field must contain a valid NCName.")
 
 class NilValueRecord(models.Model):
@@ -238,13 +241,15 @@ class LocalDataPackage(DataPackage):
     
     data_location = models.ForeignKey(LocalPath, related_name="data_file_packages")
     metadata_location = models.ForeignKey(LocalPath, related_name="metadata_file_packages", null=True)
+    source_format = models.CharField( max_length=64, null=False, blank=False, validators = [ MIMETypeValidator ] ) 
 
 class RemoteDataPackage(DataPackage):
     DATA_PACKAGE_TYPE = "remote"
     
     data_location = models.ForeignKey(RemotePath, related_name="data_file_packages")
     metadata_location = models.ForeignKey(RemotePath, related_name="metadata_file_packages", null=True)
-    
+    source_format = models.CharField( max_length=64, null=False, blank=False, validators = [ MIMETypeValidator ] ) 
+
     cache_file = models.ForeignKey(CacheFile, related_name="remote_data_packages", null=True)
     
     def delete(self):
