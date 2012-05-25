@@ -101,6 +101,9 @@ Linuxwochen Wien 2012
 <http://linuxwochen.at/index.php?option=com_content&view=article&id=331&Itemid=8
 3>`_
 
+:download:`Download the presentation 
+<presentations/20120504_Linuxwochen_Wien.pdf>`
+
 `Linuxwochen <http://linuxwochen.at/>`_ is Austria's biggest event series 
 dedicated to Open Source and Free Software.
 
@@ -110,6 +113,9 @@ FOSS4G-CEE 2012, Prague
 `EOxServer: A Solution for Online Access to Large Collections of Earth 
 Observation Data <http://foss4g-cee.org/program/presentations/eoxserver-a-soluti
 on-for-online-access-to-large-collections-of-earth-observation-data/>`_
+
+:download:`Download the presentation 
+<presentations/foss4g-cee_eoxserver_20120522.pdf>`
 
 `FOSS4G-CEE <http://foss4g-cee.org/>`_ & Geoinformatics 2012 is the first 
 local conference focused on Free and Open Source Software for Geospatial in 
