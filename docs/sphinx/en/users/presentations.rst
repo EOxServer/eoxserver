@@ -101,6 +101,9 @@ Linuxwochen Wien 2012
 <http://linuxwochen.at/index.php?option=com_content&view=article&id=331&Itemid=8
 3>`_
 
+:download:`Download the presentation 
+<presentations/20120504_Linuxwochen_Wien.pdf>`
+
 `Linuxwochen <http://linuxwochen.at/>`_ is Austria's biggest event series 
 dedicated to Open Source and Free Software.
 
