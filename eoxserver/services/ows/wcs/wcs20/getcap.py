@@ -111,9 +111,19 @@ class WCS20GetCapabilitiesHandler(WCSCommonHandler):
         
             encoder = WCS20EOAPEncoder()
 
+            # append SupportedFormats to ServiceMetadata
+            svc_md = dom.getElementsByTagName("wcs:ServiceMetadata").item(0)
+
+            if svc_md is not None : 
+
+                supported_formats = encoder.encodeSupportedFormats() 
+
+                for sf in supported_formats : 
+                    svc_md.appendChild( sf )
+
+            # append EO Profiles to ServiceIdentification
             svc_identification = dom.getElementsByTagName("ows:ServiceIdentification").item(0)
             
-            # append EO Profiles to ServiceIdentification
             if svc_identification is not None:
                 eo_profiles = encoder.encodeEOProfiles()
                 
