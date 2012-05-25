@@ -32,7 +32,8 @@
         "model": "coverages.localdatapackage", 
         "fields": {
             "metadata_location": 15, 
-            "data_location": 15
+            "data_location": 15,
+	    "source_format": "image/tiff"
         }
     }, 
     {
