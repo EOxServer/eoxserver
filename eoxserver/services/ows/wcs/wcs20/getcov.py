@@ -205,9 +205,9 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
         
         if format_param is None:
 
-            # TODO: change the data model to contain the source format 
             # get the coverage's source format 
-            source_format = None
+            source_mime   = coverage.getData().getSourceFormat() 
+            source_format = FormatRegistry.getFormatByMIME( source_mime ) 
 
             # map the source format to the native one 
             format = FormatRegistry.mapSourceToNativeWCS20( source_format ) 
@@ -235,6 +235,8 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
         #======================================================================
         # TODO: change GDAL.Create to GDAL.CreateCopy to be in-line  
         #       with mapscript behaviour 
+
+        gdal.AllRegister()
 
         _, dst_filename = mkstemp(
             prefix = "tmp",
@@ -461,9 +463,9 @@ class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
         if format_param is None:
             # no format specification 
 
-            # TODO: change the data model to contain the source format 
             # get the coverage's source format 
-            source_format = None 
+            source_mime   = self.coverages[0].getData().getSourceFormat() 
+            source_format = FormatRegistry.getFormatByMIME( source_mime ) 
 
             # map the source format to the native one 
             format_param = FormatRegistry.mapSourceToNativeWCS20( source_format ).mimeType 
@@ -499,9 +501,9 @@ class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
 
         # set native format of the coverage 
 
-        # TODO: change the data model to contain the source format 
         # get the coverage's source format 
-        source_format = None 
+        source_mime   = coverage.getData().getSourceFormat() 
+        source_format = FormatRegistry.getFormatByMIME( source_mime ) 
 
         # map the source format to the native one 
         native_format = FormatRegistry.mapSourceToNativeWCS20( source_format ) 

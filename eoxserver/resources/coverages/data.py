@@ -257,6 +257,12 @@ class DataPackageWrapper(RecordWrapper):
                 )
             )
     
+    def getSourceFormat(self): 
+        """
+        Return the source data file format. 
+        """
+        return str( self.record.source_format )
+
     def getLocation(self):
         """
         Return the location of the data, i.e. an object implementing
@@ -776,6 +782,12 @@ class RasdamanDataPackageWrapper(DataPackageWrapper):
         )
     }
 
+    def getSourceFormat(self): 
+        """
+        Return the source data file format. 
+        """
+        return None 
+
     def getDataStructureType(self):
         """
         Returns ``"rasdaman_array"``.
@@ -937,6 +949,13 @@ class TileIndexWrapper(RecordWrapper):
         super(TileIndexWrapper, self).__init__()
         
         self.storage_dir = None
+
+    def getSourceFormat(self): 
+        """
+        Return the source data file format. 
+        """
+        # TODO: implement proper source format for tile arrays 
+        return "image/tiff"
     
     def getType(self):
         """
