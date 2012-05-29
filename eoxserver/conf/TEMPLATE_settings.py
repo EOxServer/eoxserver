@@ -74,8 +74,10 @@ SPATIALITE_SQL='data/init_spatialite-2.3.sql'
 # If you are using UTC (Zulu) time zone for your data (e.g. most
 # satellite imagery) it is highly recommended to use 'UTC' here. Otherwise
 # you will encounter time-shifts between your data, search request & the returned results.
-# TIME_ZONE = 'UTC'
-TIME_ZONE = 'Europe/Vienna'
+TIME_ZONE = 'UTC'
+
+# Django 1.4 feature. 
+USE_TZ = True
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
