@@ -47,7 +47,7 @@ from eoxserver.core.startup import StartupHandlerInterface
 
 #-------------------------------------------------------------------------------
 
-class FormatRecord(object) : 
+class Format(object) : 
 
     """ 
     Single format record specification 
@@ -130,7 +130,7 @@ class FormatRegistry(object):
     def getFormatsByDriver( self , driver_name ) :  
         """ Get format records for the given GDAL driver name. In case of no match empty list is returned. """ 
 
-        return self.__driver2format.get( valGdalDriver( driver_name ) , [] ) 
+        return self.__driver2format.get( valDriver( driver_name ) , [] ) 
 
 
     def getFormatByMIME( self , mime_type ) :  
@@ -167,7 +167,7 @@ class FormatRegistry(object):
     def mapSourceToNativeWCS20( self , format ) :  
         """ Map source format to WCS 2.0 native format. 
 
-        Both the input and output shall be instances of :class:`FormatRecords` class. 
+        Both the input and output shall be instances of :class:`Formats` class. 
         The input format can be obtained, e.g., by the `getFormatByDriver` or `getFormatByMIME` 
         method.
 
@@ -312,8 +312,8 @@ class FormatRegistry(object):
 
                 raise ValueError , "Invalid driver backend \"%s\"!" % driver 
 
-            # new format records 
-            frec = FormatRecord( mime_type , driver , extension , is_writeable )  
+            # create new format record
+            frec = Format( mime_type , driver , extension , is_writeable )  
 
             # store format record  
             self.__mime2format[ mime_type ] = frec 
@@ -357,10 +357,6 @@ def valDriver( string ):
     otherwise the input is returned.
     """ 
     rv = string if _gerexValDriv.match(string) else None 
-    logging.debug( " -- rv     \"%s\"." % repr( rv ) ) 
-    logging.debug( " -- match  \"%s\"." % repr(_gerexValDriv.match(string)) ) 
-    logging.debug( " -- string \"%s\"." % string ) 
-    logging.debug( " -- regex  \"%s\"." % repr(_gerexValDriv) ) 
     if None is rv :  
         logging.warning( "Invalid GDAL driver identifier \"%s\"." % string ) 
     return rv  
