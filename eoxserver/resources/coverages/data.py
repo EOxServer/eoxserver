@@ -52,6 +52,7 @@ from eoxserver.resources.coverages.interfaces import (
     TileIndexInterface
 )
 from eoxserver.resources.coverages.geo import GeospatialMetadata
+from eoxserver.resources.coverages.formats import getFormatRegistry
 
 #-------------------------------------------------------------------------------
 # Data source wrappers
@@ -485,6 +486,10 @@ class LocalDataPackageWrapper(DataPackageWrapper):
         )
     }
     
+    def __init__(self, **kwargs):
+        super(LocalDataPackageWrapper, self).__init__(**kwargs)
+        self.source_format = None
+    
     def getDataStructureType(self):
         """
         Returns ``"file"``.
@@ -541,6 +546,14 @@ class LocalDataPackageWrapper(DataPackageWrapper):
         else:
             self.record = record.localdatapackage
     
+    def _set_attrs(self, **kwargs):
+        super(LocalDataPackageWrapper, self)._set_attrs(**kwargs)
+        self.source_format = kwargs.get("source_format")
+        
+        if self.source_format is None:
+            driver_name = "GDAL/" + self.open().GetDriver().ShortName
+            frmt = getFormatRegistry().getFormatsByDriver(driver_name)[0]
+            self.source_format = frmt.mimeType
     
     def _get_query_set(self, query):
         return LocalDataPackage.objects.filter(**query)
@@ -557,7 +570,8 @@ class LocalDataPackageWrapper(DataPackageWrapper):
             data_package_type = LocalDataPackage.DATA_PACKAGE_TYPE,
             data_location = self.location.getRecord(),
             metadata_location = metadata_location_record,
-            metadata_format_name = self.metadata_format_name
+            metadata_format_name = self.metadata_format_name,
+            source_format = self.source_format
         )
         
     def _prepare_metadata_access(self):
@@ -698,6 +712,12 @@ class RemoteDataPackageWrapper(DataPackageWrapper):
         super(RemoteDataPackageWrapper, self)._set_attrs(**kwargs)
         
         self.cache_file = kwargs.get("cache_file")
+        self.source_format = kwargs.get("source_format")
+        
+        if self.source_format is None:
+            driver_name = "GDAL/" + self.open().GetDriver().ShortName
+            frmt = getFormatRegistry().getFormatsByDriver(driver_name)[0]
+            self.source_format = frmt.mimeType
 
     def _get_query(self, fields=None):
         query = super(RemoteDataPackageWrapper, self)._get_query(fields)
@@ -732,7 +752,8 @@ class RemoteDataPackageWrapper(DataPackageWrapper):
             data_location = self.location.getRecord(),
             metadata_location = metadata_location_record,
             metadata_format_name = self.metadata_format_name,
-            cache_file = cache_file_record
+            cache_file = cache_file_record,
+            source_format = self.source_format
         )
         
     def _prepare_metadata_access(self):
