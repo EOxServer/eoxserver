@@ -39,6 +39,10 @@ from eoxserver.core.util.timetools import isotime
 from eoxserver.processing.mosaic import MosaicContribution
 
 from eoxserver.resources.coverages.formats import getFormatRegistry
+from eoxserver.resources.coverages.crss import getSupportedCRS_WCS, asURL
+
+
+
 def _adjustPrecision(string, is_projected=False):
     return string.replace("%f", "%.3f" if is_projected else "%.8f")
 
@@ -219,7 +223,7 @@ class CoverageGML10Encoder(XMLEncoder):
                     "%s_grid" % coverage.getCoverageId()
                 ),)
             ])
-    
+     
     def encodeSubsetDomainSet(self, coverage, srid, size, extent):
         if coverage.getType() == "eo.ref_dataset":
             return self._makeElement("gml", "domainSet", [
@@ -238,7 +242,6 @@ class CoverageGML10Encoder(XMLEncoder):
                 ),)
             ])
 
-    
     def encodeRectifiedGrid(self, size, extent, srid, id):
         sr = SpatialReference()
         sr.ImportFromEPSG(srid)
@@ -408,6 +411,7 @@ class WCS20EOAPEncoder(WCS20Encoder):
         ns_dict = super(WCS20EOAPEncoder, self)._initializeNamespaces()
         ns_dict.update({
             "ows": "http://www.opengis.net/ows/2.0",
+            "crs": "http://www.opengis.net/wcs/service-extension/crs/1.0",
             "wcseo": "http://www.opengis.net/wcseo/1.0",
             "xlink": "http://www.w3.org/1999/xlink"
         })
@@ -531,6 +535,7 @@ class WCS20EOAPEncoder(WCS20Encoder):
         return self._makeElement("wcs", "CoverageDescription", sub_nodes)
     
 
+    #TODO: remove once fully supported by mapserver 
     def encodeSupportedFormats( self ) : 
         
         # retrieve the format registry 
@@ -545,6 +550,22 @@ class WCS20EOAPEncoder(WCS20Encoder):
             el.append( self._makeElement( "wcs" , "formatSupported" , sf ) ) 
 
         return el 
+
+
+    #TODO: remove once fully supported by mapserver 
+    def encodeSupportedCRSs( self ) : 
+
+        # get list of supported CRSes 
+        supported_crss = getSupportedCRS_WCS( None , asURL ) 
+
+        el = [] 
+
+        for sc in supported_crss : 
+
+            el.append( self._makeElement( "crs" , "crsSupported" , sc ) ) 
+
+        return el 
+
 
 
     def encodeSubsetCoverageDescription(self, coverage, srid, size, extent, footprint, is_root=False):
@@ -613,7 +634,8 @@ class WCS20EOAPEncoder(WCS20Encoder):
 
     def encodeEOProfiles(self):
         return [self._makeElement("ows", "Profile", "http://www.opengis.net/spec/WCS_application-profile_earth-observation/1.0/conf/eowcs"),
-                self._makeElement("ows", "Profile", "http://www.opengis.net/spec/WCS_application-profile_earth-observation/1.0/conf/eowcs_get-kvp")]
+                self._makeElement("ows", "Profile", "http://www.opengis.net/spec/WCS_application-profile_earth-observation/1.0/conf/eowcs_get-kvp"),
+                self._makeElement("ows", "Profile", "http://www.opengis.net/spec/WCS_service-extension_crs/1.0/conf/crs")] #TODO remove once fully supported by mapserver 
 
     def encodeDescribeEOCoverageSetOperation(self, http_service_url):
         return self._makeElement("ows", "Operation", [
