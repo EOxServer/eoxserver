@@ -101,9 +101,13 @@ class WCS20GetCapabilitiesHandler(WCSCommonHandler):
     def postprocess(self, resp):
         dom = minidom.parseString(resp.content)
         
+        # add the additional CRS namespace 
+
+
         # change xsi:schemaLocation
         schema_location_attr = dom.documentElement.getAttributeNode("xsi:schemaLocation")
         schema_location_attr.nodeValue = "http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd"
+
         
         # we are finished if the response is an ows:ExceptionReport
         # proceed otherwise
@@ -111,7 +115,7 @@ class WCS20GetCapabilitiesHandler(WCSCommonHandler):
         
             encoder = WCS20EOAPEncoder()
 
-            # append SupportedFormats to ServiceMetadata
+            # append SupportedFormats and SupportedCRSs to ServiceMetadata
             svc_md = dom.getElementsByTagName("wcs:ServiceMetadata").item(0)
 
             if svc_md is not None : 
@@ -120,6 +124,12 @@ class WCS20GetCapabilitiesHandler(WCSCommonHandler):
 
                 for sf in supported_formats : 
                     svc_md.appendChild( sf )
+
+                supported_crss = encoder.encodeSupportedCRSs() 
+
+                for sc in supported_crss : 
+                    svc_md.appendChild( sc )
+                
 
             # append EO Profiles to ServiceIdentification
             svc_identification = dom.getElementsByTagName("ows:ServiceIdentification").item(0)
