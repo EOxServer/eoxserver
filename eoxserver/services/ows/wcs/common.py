@@ -113,8 +113,6 @@ class WCSCommonHandler(MapServerOperationHandler):
         self.map.setMetaData("ows_onlineresource", OWSCommonConfigReader().getHTTPServiceURL() + "?")
         self.map.setMetaData("wcs_label", "EOxServer WCS")
         
-        self.map.setProjection("+init=epsg:4326") #TODO: Set correct projection!
-        
     def addLayers(self):
         """
         This method adds layers to the ``ms_req.map`` object based
