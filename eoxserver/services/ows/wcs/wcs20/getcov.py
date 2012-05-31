@@ -55,7 +55,9 @@ from eoxserver.services.exceptions import (
     InvalidAxisLabelException
 )
 from eoxserver.services.ows.wcs.common import (
-    WCSCommonHandler, get_output_format, parse_format_param
+    WCSCommonHandler, getMSOutputFormat, 
+    getWCSNativeFormat, getMSWCSFormatMD,
+    getMSWCSNativeFormat, parse_format_param
 )
 from eoxserver.services.ows.wcs.encoders import WCS20EOAPEncoder
 from eoxserver.services.ows.wcs.wcs20.subset import WCS20SubsetDecoder
@@ -64,20 +66,6 @@ from eoxserver.resources.coverages.formats import getFormatRegistry
 
 # register all GDAL drivers 
 gdal.AllRegister()
-
-FORMAT_MAPPING = {
-    "image/tiff": "GTiff",
-    "image/jp2": "JPEG2000",
-    "application/x-netcdf": "NetCDF",
-    "application/x-hdf": "HDF4Image"
-}
-
-EXT_MAPPING = {
-    "image/tiff": "tif",
-    "image/jp2": "jp2",
-    "application/x-netcdf": "nc",
-    "application/x-hdf": "hdf"
-}
 
 class WCS20GetCoverageHandler(WCSCommonHandler):
     REGISTRY_CONF = {
@@ -192,10 +180,6 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
             )
 
         #======================================================================
-        # handling format 
-
-        # retrieve the format registry 
-        FormatRegistry = getFormatRegistry() 
 
         # get the range type 
         range_type = coverage.getRangeType()
@@ -203,14 +187,11 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
         # get format
         format_param = req.getParamValue("format")
         
+        # handling format 
         if format_param is None:
 
-            # get the coverage's source format 
-            source_mime   = coverage.getData().getSourceFormat() 
-            source_format = FormatRegistry.getFormatByMIME( source_mime ) 
-
             # map the source format to the native one 
-            format = FormatRegistry.mapSourceToNativeWCS20( source_format ) 
+            format = getWCSNativeFormat( coverage.getData().getSourceFormat() )  
 
             format_options = [] 
 
@@ -219,12 +200,7 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
             # unpack format specification  
             mime_type, format_options = parse_format_param(format_param)
         
-            format = None 
-            for f in FormatRegistry.getFormatsByMIME( mime_type ) : 
-                # check if the required format is supported  
-                if ( format in FormatRegistry.getSupportedFormatsWCS() ) : 
-                    format = f 
-                    break
+            format = getFormatRegistry().getFormatByMIME( mime_type )
 
             if format is None : 
                 raise InvalidRequestException(
@@ -240,7 +216,7 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
 
         _, dst_filename = mkstemp(
             prefix = "tmp",
-            suffix = format.defautExt
+            suffix = format.defaultExt
         )
 
         backend_name , _ , driver_name = format.driver.partition("/") ; 
@@ -296,7 +272,7 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
 
         # set the response filename 
         time_stamp = datetime.now().strftime("%Y%m%d%H%M%S")
-        filename   = "%s_%s%s" % ( coverage.getCoverageId(), time_stamp, format.defautExt ) 
+        filename   = "%s_%s%s" % ( coverage.getCoverageId(), time_stamp, format.defaultExt ) 
 
 
         # check the media type 
@@ -454,24 +430,16 @@ class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
     def configureMapObj(self):
         super(WCS20GetRectifiedCoverageHandler, self).configureMapObj()
         
-        # retrieve the format registry 
-        FormatRegistry = getFormatRegistry() 
-
         # get format
         format_param = self.req.getParamValue("format")
         
         if format_param is None:
-            # no format specification 
+            # no format specification provided -> use the native one 
+            format_param = getMSWCSNativeFormat( self.coverages[0].getData().getSourceFormat() ) 
 
-            # get the coverage's source format 
-            source_mime   = self.coverages[0].getData().getSourceFormat() 
-            source_format = FormatRegistry.getFormatByMIME( source_mime ) 
-
-            # map the source format to the native one 
-            format_param = FormatRegistry.mapSourceToNativeWCS20( source_format ).mimeType 
-
-        # prepare output format 
-        output_format = get_output_format( format_param, self.coverages[0] )
+        # prepare output format (the subroutine checks format and throws proper exception 
+        # in case of an incorrect format parameter ) 
+        output_format = getMSOutputFormat( format_param, self.coverages[0] )
         
         self.map.appendOutputFormat(output_format)
         self.map.setOutputFormat(output_format)
@@ -480,9 +448,6 @@ class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
 
 
     def getMapServerLayer(self, coverage):
-
-        # retrieve the format registry 
-        FormatRegistry = getFormatRegistry() 
 
         layer = super(WCS20GetRectifiedCoverageHandler, self).getMapServerLayer(coverage)
         
@@ -498,17 +463,6 @@ class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
         # this was under the "eo.rect_mosaic"-path. minor accurracy issues
         # have evolved since making it accissible to all paths
         rangetype = coverage.getRangeType()
-
-        # set native format of the coverage 
-
-        # get the coverage's source format 
-        source_mime   = coverage.getData().getSourceFormat() 
-        source_format = FormatRegistry.getFormatByMIME( source_mime ) 
-
-        # map the source format to the native one 
-        native_format = FormatRegistry.mapSourceToNativeWCS20( source_format ) 
-
-        layer.setMetaData("wcs_native_format", native_format.mimeType ) 
 
         layer.setMetaData("wcs_bandcount", "%d" % len(rangetype.bands))
 
@@ -532,19 +486,17 @@ class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
                 if value != '':
                     layer.setMetaData(key, value)
         
-        
-        layer.setMetaData("wcs_formats", "GTiff_")
-        layer.setMetaData(
-            "wcs_imagemode", 
-            gdalconst_to_imagemode_string(rangetype.data_type)
-        )
+        # set the layer's native format 
+        layer.setMetaData("wcs_native_format", getMSWCSNativeFormat(coverage.getData().getSourceFormat()) ) 
+
+        # set per-layer supported formats (using the per-service global data)
+        layer.setMetaData("wcs_formats", getMSWCSFormatMD() )
+
+        layer.setMetaData( "wcs_imagemode", gdalconst_to_imagemode_string(rangetype.data_type) )
         
         return layer
 
     def postprocess(self, resp):
-
-        # retrieve the format registry 
-        FormatRegistry = getFormatRegistry() 
 
         coverage_id = self.req.getParamValue("coverageid")
         
@@ -603,7 +555,7 @@ class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
             filename = "%s_%s.%s" % (
                 coverage.getCoverageId(),
                 datetime.now().strftime("%Y%m%d%H%M%S"),
-                FormatRegistry.getFormatByMIME( mime_type ).defautExt
+                getFormatRegistry().getFormatByMIME( mime_type ).defaultExt
             )
             
             resp.headers.update({'Content-Disposition': "attachment; filename=\"%s\"" % filename})
