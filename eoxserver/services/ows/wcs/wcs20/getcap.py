@@ -95,8 +95,8 @@ class WCS20GetCapabilitiesHandler(WCSCommonHandler):
         self.map.setMetaData("wcs_formats",getMSWCSFormatMD()) 
 
         # set supported CRSes 
-        layer.setMetaData( 'ows_srs' , getMSWCSSRSMD() ) 
-        layer.setMetaData( 'wcs_srs' , getMSWCSSRSMD() ) 
+        self.map.setMetaData( 'ows_srs' , getMSWCSSRSMD() ) 
+        self.map.setMetaData( 'wcs_srs' , getMSWCSSRSMD() ) 
 
     
     def getMapServerLayer(self, coverage):

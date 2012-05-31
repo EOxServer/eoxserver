@@ -161,10 +161,6 @@ class WCS1XOperationHandler(WCSCommonHandler):
         # set all supported formats 
         for output_format in getMSOutputFormatsAll() :  
             self.map.appendOutputFormat(output_format)
-
-        # set the per-sever default projection 
-        self.map.setProjection("+init=epsg:4326") 
-
             
     def getMapServerLayer(self, coverage):
         layer = super(WCS1XOperationHandler, self).getMapServerLayer(coverage)
