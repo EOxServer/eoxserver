@@ -57,19 +57,19 @@ class Format(object) :
 
         self.mimeType    = mime_type 
         self.driver      = driver 
-        self.defautExt   = extension 
+        self.defaultExt  = extension 
         self.isWriteable = is_writeable  
 
     def __str__( self ) : 
 
-        return "%s,%s,%s #%s"%(self.mimeType,self.driver,self.defautExt
+        return "%s,%s,%s #%s"%(self.mimeType,self.driver,self.defaultExt
             ,["ro","rw"][bool(self.isWriteable)]) 
 
     def __eq__( self , other ) : 
 
         return  (( self.mimeType == other.mimeType ) \
                 and ( self.driver == other.driver ) \
-                and ( self.defautExt  == other.defautExt ))
+                and ( self.defaultExt == other.defaultExt ))
 
 #-------------------------------------------------------------------------------
 

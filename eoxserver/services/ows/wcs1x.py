@@ -51,13 +51,22 @@ from eoxserver.services.mapserver import (
 )
 from eoxserver.services.exceptions import InvalidRequestException
 from eoxserver.services.ows.wcs.common import (
-    WCSCommonHandler, get_output_format
+    WCSCommonHandler, getMSOutputFormat,
+    getMSOutputFormatsAll, getMSWCSFormatMD,
+    getMSWCSSRSMD, getMSWCSNativeFormat
 )
-
 
 # following import is needed by WCS-T 
 from eoxserver.services.ows.wcst.wcst11AlterCapabilities import wcst11AlterCapabilities11
 
+# format registry 
+from eoxserver.resources.coverages.formats import getFormatRegistry
+
+# crs utilities 
+from eoxserver.resources.coverages import crss
+
+#==============================================================================
+# WCS service handler (required by WCS 2.0 as well ) 
 
 class WCSServiceHandler(OWSCommonServiceHandler):
     SERVICE = "wcs"
@@ -71,6 +80,9 @@ class WCSServiceHandler(OWSCommonServiceHandler):
     }
 
 WCSServiceHandlerImplementation = ServiceHandlerInterface.implement(WCSServiceHandler)
+
+#==============================================================================
+# WCS 1.x version handlers
 
 class WCS10VersionHandler(OWSCommonVersionHandler):
     SERVICE = "wcs"
@@ -120,6 +132,9 @@ class WCS112VersionHandler(OWSCommonVersionHandler):
     }
 
 WCS112VersionHandlerImplementation = VersionHandlerInterface.implement(WCS112VersionHandler)
+
+#==============================================================================
+# WCS 1.x base operation handler  
     
 class WCS1XOperationHandler(WCSCommonHandler):
     def createCoverages(self):
@@ -129,7 +144,7 @@ class WCS1XOperationHandler(WCSCommonHandler):
         )
         factory = System.getRegistry().bind("resources.coverages.wrappers.EOCoverageFactory")
         
-        # so far, we do not support referenceable grid coverages in WCS 1.X
+        #NOTE: currently, we do not support referenceable grid coverages in WCS 1.X
         
         self.coverages = factory.find(
             impl_ids = (
@@ -139,12 +154,28 @@ class WCS1XOperationHandler(WCSCommonHandler):
             ),
             filter_exprs=[visible_expr]
         )
+
+    def configureMapObj(self):
+        super(WCS1XOperationHandler, self).configureMapObj()
+
+        # set all supported formats 
+        for output_format in getMSOutputFormatsAll() :  
+            self.map.appendOutputFormat(output_format)
+
+        # set the per-sever default projection 
+        self.map.setProjection("+init=epsg:4326") 
+
             
     def getMapServerLayer(self, coverage):
         layer = super(WCS1XOperationHandler, self).getMapServerLayer(coverage)
-        
-        layer.setProjection("+init=epsg:%d" % coverage.getSRID())
-        
+
+        # set the detaset projection 
+        layer.setProjection( crss.asProj4Str( coverage.getSRID() ))
+
+        # set per-layer supported CRSes 
+        layer.setMetaData( 'ows_srs' , getMSWCSSRSMD() ) 
+        layer.setMetaData( 'wcs_srs' , getMSWCSSRSMD() ) 
+
         connector = System.getRegistry().findAndBind(
             intf_id = "services.mapserver.MapServerDataConnectorInterface",
             params = {
@@ -161,7 +192,6 @@ class WCS1XOperationHandler(WCSCommonHandler):
             layer.setMetaData("wcs_extent", "%.10f %.10f %.10f %.10f" % extent)
             layer.setMetaData("wcs_resolution", "%.10f %.10f" % ((extent[2]-extent[0]) / float(size_x), (extent[3]-extent[1]) / float(size_y)))
             layer.setMetaData("wcs_size", "%d %d" % (size_x, size_y))
-            layer.setMetaData("wcs_nativeformat", "GTiff")
 
         # set up rangetype metadata information
         rangetype = coverage.getRangeType()
@@ -173,15 +203,18 @@ class WCS1XOperationHandler(WCSCommonHandler):
             layer.setMetaData("wcs_%s_label" % band.name, band.name)
             layer.setMetaData("wcs_%s_interval" % band.name, "%d %d" % rangetype.getAllowedValues())
 
-        layer.setMetaData("wcs_nativeformat", "GTiff") # TODO: make this configurable like in the line above
+        layer.setMetaData( "wcs_imagemode", gdalconst_to_imagemode_string(rangetype.data_type) )
 
-        layer.setMetaData("wcs_formats", "GTiff GTiff_")
-        layer.setMetaData(
-            "wcs_imagemode", 
-            gdalconst_to_imagemode_string(rangetype.data_type)
-        )
+        #set the layer's native format 
+        layer.setMetaData( 'wcs_nativeformat' , getMSWCSNativeFormat(coverage.getData().getSourceFormat()) ) 
+
+        #set the per-layer supported formats 
+        layer.setMetaData( 'wcs_formats' , getMSWCSFormatMD() )
         
         return layer
+
+#==============================================================================
+# WCS 1.x common operation handlers 
 
 class WCS1XDescribeCoverageHandler(WCS1XOperationHandler):
     def createCoverages(self):
@@ -230,10 +263,7 @@ class WCS1XGetCoverageHandler(WCS1XOperationHandler):
                 "format"
             )
         
-        output_format = get_output_format(
-            format_param,
-            self.coverages[0]
-        )
+        output_format = getMSOutputFormat( format_param, self.coverages[0] )
         
         self.map.appendOutputFormat(output_format)
         self.map.setOutputFormat(output_format)
@@ -252,6 +282,9 @@ class WCS10GetCapabilitiesHandler(WCS1XOperationHandler):
     }
     
 WCS10GetCapabilitiesHandlerImplementation = OperationHandlerInterface.implement(WCS10GetCapabilitiesHandler)
+
+#==============================================================================
+# WCS 1.x specific operation handlers 
 
 class WCS11GetCapabilitiesHandler(WCS1XOperationHandler):
     REGISTRY_CONF = {

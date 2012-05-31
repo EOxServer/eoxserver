@@ -33,7 +33,8 @@ from eoxserver.core.system import System
 from eoxserver.core.util.xmltools import DOMtoXML
 from eoxserver.core.exceptions import InternalError
 from eoxserver.services.owscommon import OWSCommonConfigReader
-from eoxserver.services.ows.wcs.common import WCSCommonHandler
+from eoxserver.services.ows.wcs.common import WCSCommonHandler, \
+            getMSOutputFormatsAll,getMSWCSFormatMD,getMSWCSSRSMD
 from eoxserver.services.ows.wcs.encoders import WCS20EOAPEncoder
 from eoxserver.services.ows.wcst.wcst11AlterCapabilities import wcst11AlterCapabilities20
 
@@ -82,6 +83,21 @@ class WCS20GetCapabilitiesHandler(WCSCommonHandler):
             )
         else:
             return factory.find(filter_exprs=[visible_expr])
+
+
+    def configureMapObj(self):
+        super(WCS20GetCapabilitiesHandler, self).configureMapObj()
+
+        # set all the supported formats 
+        for output_format in getMSOutputFormatsAll() :  
+            self.map.appendOutputFormat(output_format)
+
+        self.map.setMetaData("wcs_formats",getMSWCSFormatMD()) 
+
+        # set supported CRSes 
+        layer.setMetaData( 'ows_srs' , getMSWCSSRSMD() ) 
+        layer.setMetaData( 'wcs_srs' , getMSWCSSRSMD() ) 
+
     
     def getMapServerLayer(self, coverage):
         layer = super(WCS20GetCapabilitiesHandler, self).getMapServerLayer(coverage)
@@ -97,6 +113,7 @@ class WCS20GetCapabilitiesHandler(WCSCommonHandler):
         layer = connector.configure(layer, coverage)
         
         return layer
+
 
     def postprocess(self, resp):
         dom = minidom.parseString(resp.content)
@@ -115,15 +132,14 @@ class WCS20GetCapabilitiesHandler(WCSCommonHandler):
         
             encoder = WCS20EOAPEncoder()
 
-            # append SupportedFormats and SupportedCRSs to ServiceMetadata
+            #TODO: Following part should be handled by the MapServer. 
+            #      Remove the code when MapServer really does it. 
+            #NOTE: the 'wcs_srs' and 'ows_srs' lists of CRSes are already set 
+            #      but ignored by the MapServer.  
+            # append SupportedCRSs to ServiceMetadata
             svc_md = dom.getElementsByTagName("wcs:ServiceMetadata").item(0)
 
             if svc_md is not None : 
-
-                supported_formats = encoder.encodeSupportedFormats() 
-
-                for sf in supported_formats : 
-                    svc_md.appendChild( sf )
 
                 supported_crss = encoder.encodeSupportedCRSs() 
 

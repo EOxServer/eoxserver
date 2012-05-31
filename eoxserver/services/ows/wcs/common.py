@@ -29,6 +29,7 @@
 
 import mapscript
 
+import logging 
 import datetime
 
 from urllib import unquote
@@ -40,6 +41,7 @@ from eoxserver.services.mapserver import (
 from eoxserver.services.exceptions import InvalidRequestException
 
 from eoxserver.resources.coverages.formats import getFormatRegistry
+from eoxserver.resources.coverages import crss
 
 class WCSCommonHandler(MapServerOperationHandler):
     def __init__(self):
@@ -135,9 +137,10 @@ class WCSCommonHandler(MapServerOperationHandler):
         layer.setMetaData("ows_title", coverage.getCoverageId())
         layer.status = mapscript.MS_ON
 
-        if coverage.getType() != "eo.ref_dataset":
-            layer.setProjection("+init=epsg:%d" % int(coverage.getSRID()))
-            layer.setMetaData("ows_srs", "EPSG:%d" % int(coverage.getSRID())) # TODO: What about additional SRSs?
+        # TODO: check me / fix me 
+#        if coverage.getType() != "eo.ref_dataset":
+#            layer.setProjection("+init=epsg:%d" % int(coverage.getSRID()))
+#            layer.setMetaData("ows_srs", "EPSG:%d" % int(coverage.getSRID()))
 
         for key, value in coverage.getLayerMetadata():
             layer.setMetaData(key, value)
@@ -165,8 +168,81 @@ class WCSCommonHandler(MapServerOperationHandler):
     def postprocess(self, resp):
         return resp
 
+def getMSOutputFormatsAll( coverage = None ) : 
+    """ Setup all the supported MapServer output formats.
+        When the coverage parameter is provided than the 
+        range type is used to setup format's image mode.""" 
 
-def get_output_format(format_param, coverage):
+    # set image mode 
+    if coverage is not None : 
+        # set image mode based on the coverage's range type 
+        im = gdalconst_to_imagemode( coverage.getRangeType().data_type ) 
+    else : 
+        # default 
+        im = None 
+
+    # retrieve the format registry 
+    FormatRegistry = getFormatRegistry() 
+
+    # get the supported formats 
+    sfs = FormatRegistry.getSupportedFormatsWCS() 
+
+    #prepare list of output formats 
+    ofs = [] 
+
+    for sf in sfs : 
+    
+        # output format definition 
+        of = mapscript.outputFormatObj( sf.driver, "custom" )
+        of.name      = sf.mimeType 
+        of.mimetype  = sf.mimeType 
+        of.extension = sf.defaultExt 
+        if im is not None : 
+            of.imagemode = im 
+
+        ofs.append( of ) 
+
+    return ofs 
+
+def getWCSNativeFormat( source_mime ): 
+
+    # retrieve the format registry 
+    FormatRegistry = getFormatRegistry()
+
+    # get the coverage's source format 
+    source_format = FormatRegistry.getFormatByMIME( source_mime )
+
+    # map the source format to the native one 
+    native_format = FormatRegistry.mapSourceToNativeWCS20( source_format )
+
+    #return native format mime 
+    return native_format 
+
+
+def getMSWCSNativeFormat( source_mime ): 
+    return getWCSNativeFormat( source_mime ).mimeType
+
+
+def getMSWCSSRSMD(): 
+    """ get the space separated list of CRS EPSG codes to be passed 
+        to MapScript setMedata("wcs_srs",...) method """
+
+    return " ".join( crss.getSupportedCRS_WCS(None,crss.asShortCode) ) 
+
+def getMSWCSFormatMD():
+    """ get the space separated list of supported formats to be passed 
+        to MapScript setMedata("wcs_formats",...) method """
+
+    # retrieve the format registry 
+    FormatRegistry = getFormatRegistry() 
+
+    # get format record  
+    frm = FormatRegistry.getSupportedFormatsWCS() 
+
+    return " ".join( map( lambda f : f.mimeType , frm ) )  
+
+
+def getMSOutputFormat(format_param, coverage):
 
     #split MIME type to base MIME and format specific options 
     mime_type, format_options = parse_format_param(format_param)
@@ -193,7 +269,7 @@ def get_output_format(format_param, coverage):
     # output format definition 
     output_format = mapscript.outputFormatObj( frm.driver, "custom" )
     output_format.mimetype  = frm.mimeType 
-    output_format.extension = frm.defautExt
+    output_format.extension = frm.defaultExt
     output_format.imagemode = gdalconst_to_imagemode( rangetype.data_type )
 
     # format specific options 
@@ -205,7 +281,7 @@ def get_output_format(format_param, coverage):
 
     time_stamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 
-    filename   = "%s_%s%s" % ( coverage.getCoverageId(), time_stamp, frm.defautExt ) 
+    filename   = "%s_%s%s" % ( coverage.getCoverageId(), time_stamp, frm.defaultExt ) 
 
     output_format.setOption( "FILENAME", str(filename) )
 

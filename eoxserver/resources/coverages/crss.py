@@ -60,18 +60,19 @@ def __parseListOfCRS( config , section , field , format_function ) :
     return tmp1 
 
 #-------------------------------------------------------------------------------
-# format function 
+# format functions 
 
 asInteger = lambda v : int(v) 
-asShortCode = lambda v : "EPSG:%4.4d"%int(v)
-asURL = lambda v : "http://www.opengis.net/def/crs/EPSG/0/%4.4d"%int(v) 
+asShortCode = lambda v : "EPSG:%d"%int(v)
+asURL = lambda v : "http://www.opengis.net/def/crs/EPSG/0/%d"%int(v) 
+asURN = lambda v : "urn:ogc:def:crs:epsg::%d"%int(v) 
+asProj4Str = lambda v : "+init=epsg:%d"%int(v)
 
 #-------------------------------------------------------------------------------
-# conversion from text formats 
 
-_gerexValCRS_EPSGCode = re.compile( "^[1-9][0-9]{,4}$" ) 
-_gerexValCRS_URL = re.compile( "^http://www.opengis.net/def/crs/EPSG/0/[1-9][0-9]{,4}$" ) 
-_gerexValCRS_ShortCode = re.compile( "^EPSG:[1-9][0-9]{,4}$" ) 
+#_gerexValCRS_EPSGCode = re.compile( "^[1-9][0-9]{,6}$" ) 
+#_gerexValCRS_URL = re.compile( "^http://www.opengis.net/def/crs/EPSG/0/[1-9][0-9]{,6}$" ) 
+#_gerexValCRS_ShortCode = re.compile( "^EPSG:[1-9][0-9]{,6}$" ) 
 
 #-------------------------------------------------------------------------------
 
