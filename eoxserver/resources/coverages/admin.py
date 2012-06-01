@@ -330,7 +330,7 @@ class AbstractContainerAdmin(admin.ModelAdmin):
         except obj_to_sync.DoesNotExist:
             pass
     
-    def add_view(self, *args, **kwargs):
+    def add_view(self, request, *args, **kwargs):
         try:
             ret = super(AbstractContainerAdmin, self).add_view(*args, **kwargs)
             self.try_synchronize()
@@ -339,16 +339,17 @@ class AbstractContainerAdmin(admin.ModelAdmin):
             messages.error(request, "Could not create %s" % self.model._meta.verbose_name)
             return HttpResponseRedirect("..")
     
-    def change_view(self, *args, **kwargs):
+    def change_view(self, request, *args, **kwargs):
         try:
-            ret = super(AbstractContainerAdmin, self).change_view(*args, **kwargs)
+            ret = super(AbstractContainerAdmin, self).change_view(request, *args, **kwargs)
             self.try_synchronize()
             return ret
         except:
             messages.error(request, "Could not change %s" % self.model._meta.verbose_name)
+            raise
             return HttpResponseRedirect("..")
     
-    def changelist_view(self, *args, **kwargs):
+    def changelist_view(self, request, *args, **kwargs):
         try:
             ret = super(AbstractContainerAdmin, self).changelist_view(*args, **kwargs)
             self.try_synchronize()
@@ -357,7 +358,7 @@ class AbstractContainerAdmin(admin.ModelAdmin):
             messages.error(request, "Could not change %s" % self.model._meta.verbose_name)
             return HttpResponseRedirect("..")
     
-    def delete_view(self, *args, **kwargs):
+    def delete_view(self, request, *args, **kwargs):
         try:
             ret = super(AbstractContainerAdmin, self).delete_view(*args, **kwargs)
             # TODO: need synchronization here?
