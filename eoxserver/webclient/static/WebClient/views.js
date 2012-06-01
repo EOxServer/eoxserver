@@ -901,6 +901,10 @@ namespace("WebClient").Views = (function() {
             this.owsUrl = options.owsUrl;
         },
         template: templates.coverageInfo,
+        events: {
+            "dialogbeforeclose": "onDialogClose",
+            "change #div-coverage-info-bands input": "onChangeBandSelection"
+        },
         render: function() {
             this.$el.html(this.template({
                 model: this.model.toJSON(),
@@ -914,6 +918,65 @@ namespace("WebClient").Views = (function() {
                 modal: true,
                 resizable: false
             });
+
+            var bounds = new OpenLayers.Bounds.fromString(this.model.get("bounds").lower.join(",") + "," + this.model.get("bounds").upper.join(","), true);
+
+            var wmsLayer = new OpenLayers.Layer.WMS(
+                "OpenLayers WMS",
+                "http://vmap0.tiles.osgeo.org/wms/vmap0",
+                {layers: 'basic'}
+            );
+
+            var rangeType = this.model.get("rangeType");
+
+            var initialBands = (this.model.get("rangeType").length < 3) ? rangeType[0].name : _.pluck(_.first(rangeType, 3), "name").join(",");
+
+            this.layer = new OpenLayers.Layer.WMS(this.model.get("coverageId"), this.owsUrl, {
+                layers: this.model.get("coverageId") + "_bands",
+                transparent: true,
+                version: "1.3.0",
+                dim_band: initialBands
+            }, {
+                maxExtent: bounds,
+                displayOutsideMaxExtent: true,
+                gutter: 5
+            });
+            
+            this.map = new OpenLayers.Map({
+                div: this.$("#div-coverage-info-map").get(0),
+                projection: new OpenLayers.Projection("EPSG:4326"),
+                displayProjection: new OpenLayers.Projection("EPSG:4326"),
+                numZoomLevels:13,
+                units: "d",
+                layers: [
+                    wmsLayer, this.layer
+                ]
+            });
+            this.map.zoomToExtent(bounds);
+        },
+        onDialogClose: function() {
+            this.map.destroy();
+        },
+        onChangeBandSelection: function() {
+            var $checked = this.$("#div-coverage-info-bands input:checked");
+            var $notChecked = this.$("#div-coverage-info-bands input:not(:checked)");
+            if ($checked.size() >= 3) {
+                // deactivate all unchecked checkboxes
+                $notChecked.attr("disabled", true);
+            }
+            else {
+                // activate all checkboxes
+                $notChecked.attr("disabled", false);
+            }
+
+            if ($checked.size() == 1 || $checked.size() == 3) {
+                var bands = $checked.map(function() {
+                    return $(this).attr("band");
+                }).get().join(",");
+                this.layer.mergeNewParams({
+                    dim_band: bands
+                });
+            }
         }
     });
 
