@@ -201,13 +201,21 @@ namespace("WebClient").Views = (function() {
         onBBoxSelectStop: function() {
             this.boxControl.deactivate();
         },
+
+        /**
+         *  function onDateTimeChange
+         *
+         * Callbackfunction to be called when the selected date/time has
+         * changed. Updates all WMS layers (apart from the baselayers) with the
+         * new begin/end datetimes.
+         */
+
         onDateTimeChange: function() {
-            _.each(this.layers, function(layer) {
-                if(layer.mergeNewParams) {
-                    var timeString = this.dtModel.getBeginString()
-                                     + "/" + this.dtModel.getEndString();
-                    layer.mergeNewParams({time: timeString});
-                }
+            _.each(this.map.getLayersByClass("OpenLayers.Layer.WMS"), function(layer) {
+                if (layer.isBaseLayer) return;
+                var timeString = this.dtModel.getBeginString()
+                                 + "/" + this.dtModel.getEndString();
+                layer.mergeNewParams({time: timeString});
             }, this);
         }
     });
@@ -606,7 +614,8 @@ namespace("WebClient").Views = (function() {
     /**
      *  view ServiceInfoView
      *
-     *
+     * View to display the service details as extracted from the Capabilities
+     * response.
      */
      
     var ServiceInfoView = Backbone.View.extend({
@@ -645,9 +654,18 @@ namespace("WebClient").Views = (function() {
     var DownloadSelectionView = Backbone.View.extend({
         template: templates.downloadSelection,
         initialize: function(options) {
+            this.service = options.service;
+
+            var regex = new RegExp("http://www.opengis.net/def/crs/EPSG/0/([0-9]+)");
+
+            var srids = _.map(this.service.get("serviceMetadata").crssSupported, function(crs) {
+                return regex.exec(crs)[1];
+            });
+
             this.itemViews = this.model.map(function(model) {
                 return new DownloadSelectionItemView({
                     model: model,
+                    srids: srids,
                     owsUrl: options.owsUrl
                 });
             });
@@ -659,7 +677,11 @@ namespace("WebClient").Views = (function() {
             "click #btn-deselect-all": "onDeselectAllClick"
         },
         render: function() {
-            this.$el.html(this.template(this.model.toJSON()));
+            this.$el.html(this.template({
+                model: this.model.toJSON(),
+                service: this.service.toJSON()
+            }));
+            
             this.$el.dialog({
                 title: "Select Coverages for Download",
                 autoOpen: false,
@@ -738,6 +760,7 @@ namespace("WebClient").Views = (function() {
         },
         initialize: function(options) {
             this.owsUrl = options.owsUrl;
+            this.srids = options.srids;
             this.rangetypeSelection = new models.RangeTypeSelectionCollection(
                 this.model.getRangeType()
             );
@@ -747,7 +770,11 @@ namespace("WebClient").Views = (function() {
             "click .btn-show-info": "onShowInfoClick"
         },
         render: function() {
-            this.$el.html(this.template(this.model.toJSON()));
+            
+            this.$el.html(this.template({
+                model: this.model.toJSON(),
+                srids: this.srids
+            }));
             return this;
         },
 
