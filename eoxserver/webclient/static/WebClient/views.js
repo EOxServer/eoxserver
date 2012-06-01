@@ -903,7 +903,8 @@ namespace("WebClient").Views = (function() {
         template: templates.coverageInfo,
         events: {
             "dialogbeforeclose": "onDialogClose",
-            "change #div-coverage-info-bands input": "onChangeBandSelection"
+            "change #div-coverage-info-bands input": "onChangeBandSelection",
+            "sortstop #div-coverage-info-bands": "reloadBandParams"
         },
         render: function() {
             this.$el.html(this.template({
@@ -953,10 +954,12 @@ namespace("WebClient").Views = (function() {
                 ]
             });
             this.map.zoomToExtent(bounds);
+
+            this.$("#div-coverage-info-bands").sortable();
         },
-        onDialogClose: function() {
-            this.map.destroy();
-        },
+
+        /// internal events
+        
         onChangeBandSelection: function() {
             var $checked = this.$("#div-coverage-info-bands input:checked");
             var $notChecked = this.$("#div-coverage-info-bands input:not(:checked)");
@@ -969,6 +972,15 @@ namespace("WebClient").Views = (function() {
                 $notChecked.attr("disabled", false);
             }
 
+            this.reloadBandParams();
+        },
+        onSortStop: function() {
+        },
+
+        ///
+
+        reloadBandParams: function() {
+            var $checked = this.$("#div-coverage-info-bands input:checked");
             if ($checked.size() == 1 || $checked.size() == 3) {
                 var bands = $checked.map(function() {
                     return $(this).attr("band");
