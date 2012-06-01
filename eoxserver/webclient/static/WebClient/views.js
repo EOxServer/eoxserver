@@ -960,6 +960,9 @@ namespace("WebClient").Views = (function() {
 
         /// internal events
         
+        onDialogClose: function() {
+            this.map.destroy();
+        },
         onChangeBandSelection: function() {
             var $checked = this.$("#div-coverage-info-bands input:checked");
             var $notChecked = this.$("#div-coverage-info-bands input:not(:checked)");
@@ -973,8 +976,6 @@ namespace("WebClient").Views = (function() {
             }
 
             this.reloadBandParams();
-        },
-        onSortStop: function() {
         },
 
         ///
