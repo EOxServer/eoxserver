@@ -45,8 +45,8 @@ namespace("WebClient").Application = (function() {
             });
 
             this.ajaxBegin();
-            var caps = new WCS.Backbone.Model.Service({urlRoot: this.owsUrl});
-            caps.fetch({
+            this.serviceModel = new WCS.Backbone.Model.Service({urlRoot: this.owsUrl});
+            this.serviceModel.fetch({
                 success: _.bind(this.onServiceFetchSuccess, this),
                 error: _.bind(this.onAjaxError, this)
             })
@@ -133,6 +133,7 @@ namespace("WebClient").Application = (function() {
             if (collection.size() > 0) {
                 var downloadSelection = new views.DownloadSelectionView({
                     el: $("#div-download"),
+                    service: this.serviceModel,
                     model: collection,
                     bbox: collection.options.bbox,
                     owsUrl: this.owsUrl
