@@ -330,36 +330,36 @@ class AbstractContainerAdmin(admin.ModelAdmin):
         except obj_to_sync.DoesNotExist:
             pass
     
-    def add_view(self, request, form_url="", extra_context=None):
+    def add_view(self, *args, **kwargs):
         try:
-            ret = super(AbstractContainerAdmin, self).add_view(request, form_url, extra_context)
+            ret = super(AbstractContainerAdmin, self).add_view(*args, **kwargs)
             self.try_synchronize()
             return ret
         except:
             messages.error(request, "Could not create %s" % self.model._meta.verbose_name)
             return HttpResponseRedirect("..")
     
-    def change_view(self, request, object_id, extra_context=None):
+    def change_view(self, *args, **kwargs):
         try:
-            ret = super(AbstractContainerAdmin, self).change_view(request, object_id, extra_context)
+            ret = super(AbstractContainerAdmin, self).change_view(*args, **kwargs)
             self.try_synchronize()
             return ret
         except:
             messages.error(request, "Could not change %s" % self.model._meta.verbose_name)
             return HttpResponseRedirect("..")
     
-    def changelist_view(self, request, extra_context=None):
+    def changelist_view(self, *args, **kwargs):
         try:
-            ret = super(AbstractContainerAdmin, self).changelist_view(request, extra_context)
+            ret = super(AbstractContainerAdmin, self).changelist_view(*args, **kwargs)
             self.try_synchronize()
             return ret
         except:
             messages.error(request, "Could not change %s" % self.model._meta.verbose_name)
             return HttpResponseRedirect("..")
     
-    def delete_view(self, request, object_id, extra_context=None):
+    def delete_view(self, *args, **kwargs):
         try:
-            ret = super(AbstractContainerAdmin, self).delete_view(request, object_id, extra_context)
+            ret = super(AbstractContainerAdmin, self).delete_view(*args, **kwargs)
             # TODO: need synchronization here?
             return ret
         except:
