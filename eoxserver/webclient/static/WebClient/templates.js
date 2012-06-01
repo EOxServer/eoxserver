@@ -331,8 +331,8 @@ namespace("WebClient").Templates = (function() {
                     <td><%= model.coverageSubtype %></td> \
                 </tr> \
                 <tr> \
-                    <td>Origin</td> \
-                    <td><%= model.origin[0] %>, <%= model.origin[1] %></td> \
+                    <td>Envelope</td> \
+                    <td><%= model.bounds.lower.join(", ") %>, <%= model.bounds.upper.join(", ") %></td> \
                 </tr> \
                 <tr> \
                     <td>Image Size</td> \
@@ -354,7 +354,17 @@ namespace("WebClient").Templates = (function() {
                     height = 400; \
                 } \
             %> \
-            <img style="margin:10px" alt="Preview Image" width="<%= width %>" height="<%= height %>" src="<%= owsUrl%>?LAYERS=<%= model.coverageId %>&TRANSPARENT=true&VERSION=1.3.0&EXCEPTIONS=INIMAGE&SERVICE=WMS&REQUEST=GetMap&STYLES=&FORMAT=image%2Fpng&CRS=EPSG%3A4326&BBOX=<%= model.bounds.lower.join(",") %>,<%= model.bounds.upper.join(",") %>&WIDTH=<%= width %>&HEIGHT=<%= height %>"></img> \
+            <!--<img style="margin:10px" alt="Preview Image" width="<%= width %>" height="<%= height %>" src="<%= owsUrl%>?LAYERS=<%= model.coverageId %>&TRANSPARENT=true&VERSION=1.3.0&EXCEPTIONS=INIMAGE&SERVICE=WMS&REQUEST=GetMap&STYLES=&FORMAT=image%2Fpng&CRS=EPSG%3A4326&BBOX=<%= model.bounds.lower.join(",") %>,<%= model.bounds.upper.join(",") %>&WIDTH=<%= width %>&HEIGHT=<%= height %>"></img>--> \
+            <div id="div-coverage-info-map" style="width:500px;height:500px;float:left"></div> \
+            <div id="div-coverage-info-bands"> \
+            <table> \
+            <% _.each(model.rangeType, function(band) { %> \
+                <tr> \
+                <td><input type="checkbox" band="<%= band.name %>"></input><%= band.name %></td> \
+                </tr> \
+            <% }); %> \
+            </table> \
+            </div> \
         ')
     }
 
