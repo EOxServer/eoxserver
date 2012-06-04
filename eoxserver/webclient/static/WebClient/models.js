@@ -78,33 +78,25 @@ namespace("WebClient").Models = (function() {
     });
 
     /**
-     *  model BandSelectionModel
+     *  model RangeTypeSelectionModel
      *
-     * A model for a band selection.
+     * A model to administrate the selection of bands for either a range subset
+     * or other uses.
      */
-
-    var BandSelectionModel = Backbone.Model.extend({
+    
+    var RangeTypeSelectionModel = Backbone.Model.extend({
         defaults: {
-            selected: true
+            availableBands: [],
+            selectedBands: []
         }
-    });
-
-    /**
-     *  collection RangeTypeSelectionCollection
-     *
-     * A collection of BandSelectionModels. In conjunction it represents the
-     * range subset.
-     */
-
-    var RangeTypeSelectionCollection = Backbone.Collection.extend({
-        model: BandSelectionModel
     });
 
     return {
         DateTimeIntervalModel: DateTimeIntervalModel,
         BoundingBoxModel: BoundingBoxModel,
         BandSelectionModel: BandSelectionModel,
-        RangeTypeSelectionCollection: RangeTypeSelectionCollection
+        RangeTypeSelectionCollection: RangeTypeSelectionCollection,
+        RangeTypeSelectionModel: RangeTypeSelectionModel
     }
 
 })();
