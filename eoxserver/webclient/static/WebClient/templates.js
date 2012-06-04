@@ -296,53 +296,41 @@ namespace("WebClient").Templates = (function() {
             <input type="button" class="btn-show-info" value="Show Info"></input>'
         ),
 
-        /*<!-- use this template once supportedCRSs are working as expected -->
-        <!--<script type="text/template" id="tpl-download-selection-item">
-            <input type="checkbox" checked="true" class="chk-selected" style="float:left;"/>
-            <div style="clear:right;"><%= coverageId %></div>
-            Width:<input type="text" class="sizex" size="5" maxlength="5"/>
-            Height:<input type="text" class="sizey" size="5" maxlength="5"/>
-            CRS:<select class="crs">
-                <% _.each(supportedCRSs, function(crs) { %>
-                    <option value="<%= crs %>" <%= (crs === nativeCRS) ? "selected": "" %>><%= crs %></option>
-                <% }); %>
-            </select>
-            
-            <input type="button" class="btn-select-rangetype" value="Select Bands"></input>
-            <input type="button" class="btn-show-info" value="Show Info"></input>
-        </script>-->*/
-
         rangeTypeSelection: _.template('\
-            <% _.each(rangeType, function(band) { %> \
-                <tr> \
-                    <td><input type="checkbox" <%= (band.selected) ? "checked" : "" %>><%= band.name %> </input></td> \
-                </tr> \
-            <% }); %>'
-        ),
+            <div id="div-coverage-info-bands">\
+            <% _.each(availableBands, function(band) { %> \
+                <div class="ui-widget ui-widget-content ui-corner-all ui-band-item"> \
+                    <input type="checkbox" band="<%= band%>" <%= (_.contains(selectedBands, band))?"checked":""%>></input><%= band %> \
+                </div> \
+            <% }); %> \
+            </div> \
+        '),
 
         coverageInfo: _.template('\
-            <table style="border: 1px solid black;"> \
-                <tr> \
-                    <td>Coverage ID</td> \
-                    <td><%= model.coverageId %></td> \
-                </tr> \
-                <tr> \
-                    <td>Subtype</td> \
-                    <td><%= model.coverageSubtype %></td> \
-                </tr> \
-                <tr> \
-                    <td>Envelope</td> \
-                    <td><%= model.bounds.lower.join(", ") %>, <%= model.bounds.upper.join(", ") %></td> \
-                </tr> \
-                <tr> \
-                    <td>Image Size</td> \
-                    <td><%= model.size[0] %>px x <%= model.size[1] %>px</td> \
-                </tr> \
-                <tr> \
-                    <td>Time Period</td> \
-                    <td><%= model.timePeriod[0].toISOString() %> - <%= model.timePeriod[1].toISOString() %></td> \
-                </tr> \
-            </table> \
+            <div class="ui-widget ui-widget-content ui-corner-all ui-section"> \
+                <table> \
+                    <tr> \
+                        <td>Coverage ID</td> \
+                        <td style="max-width:620;overflow:hidden"><%= model.coverageId %></td> \
+                    </tr> \
+                    <tr> \
+                        <td>Subtype</td> \
+                        <td><%= model.coverageSubtype %></td> \
+                    </tr> \
+                    <tr> \
+                        <td>Envelope</td> \
+                        <td><%= model.bounds.lower.join(", ") %>, <%= model.bounds.upper.join(", ") %></td> \
+                    </tr> \
+                    <tr> \
+                        <td>Image Size</td> \
+                        <td><%= model.size[0] %>px x <%= model.size[1] %>px</td> \
+                    </tr> \
+                    <tr> \
+                        <td>Time Period</td> \
+                        <td><%= model.timePeriod[0].toISOString() %> - <%= model.timePeriod[1].toISOString() %></td> \
+                    </tr> \
+                </table> \
+            </div> \
             <%  var ratio = model.size[0] / model.size[1]; \
                 var width, height; \
                 if (model.size[0] > model.size[1]) { \
@@ -354,13 +342,13 @@ namespace("WebClient").Templates = (function() {
                     height = 400; \
                 } \
             %> \
-            <!--<img style="margin:10px" alt="Preview Image" width="<%= width %>" height="<%= height %>" src="<%= owsUrl%>?LAYERS=<%= model.coverageId %>&TRANSPARENT=true&VERSION=1.3.0&EXCEPTIONS=INIMAGE&SERVICE=WMS&REQUEST=GetMap&STYLES=&FORMAT=image%2Fpng&CRS=EPSG%3A4326&BBOX=<%= model.bounds.lower.join(",") %>,<%= model.bounds.upper.join(",") %>&WIDTH=<%= width %>&HEIGHT=<%= height %>"></img>--> \
-            <div id="div-coverage-info-map" style="width:500px;height:500px;float:left;display:inline"></div> \
-            <div id="div-coverage-info-bands"> \
-            <% _.each(model.rangeType, function(band) { %> \
-                <div><input type="checkbox" band="<%= band.name %>"></input><%= band.name %></div> \
-            <% }); %> \
-            </table> \
+            <div style="float:left;" class="ui-widget ui-widget-content ui-corner-all ui-section"> \
+                <div id="div-coverage-info-map" class="" style="width:500px;height:500px"></div>\
+                <table style="width:100%"><tr><td>Opacity:</td><td style="width:80%;padding-right:0.5em"><div id="div-coverage-info-opacity"></div></td></tr></table>\
+            </div> \
+            <div class="ui-widget ui-widget-content ui-corner-all ui-section" style="float:right"> \
+                Select Bands:\
+                <div id="div-coverage-info-bands"></div> \
             </div> \
         ')
     }
