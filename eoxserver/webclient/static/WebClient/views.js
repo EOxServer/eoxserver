@@ -761,16 +761,17 @@ namespace("WebClient").Views = (function() {
         initialize: function(options) {
             this.owsUrl = options.owsUrl;
             this.srids = options.srids;
-            this.rangetypeSelection = new models.RangeTypeSelectionCollection(
-                this.model.getRangeType()
-            );
+            var bands = _.pluck(this.model.getRangeType(), "name");
+            this.rangetypeSelection = new models.RangeTypeSelectionModel({
+                availableBands: bands,
+                selectedBands: bands
+            });
         },
         events: {
             "click .btn-select-rangetype": "onSelectRangeTypeClick",
             "click .btn-show-info": "onShowInfoClick"
         },
         render: function() {
-            
             this.$el.html(this.template({
                 model: this.model.toJSON(),
                 srids: this.srids
@@ -781,11 +782,20 @@ namespace("WebClient").Views = (function() {
         /// internal events
         
         onSelectRangeTypeClick: function() {
-            var rangeTypeView = new RangeTypeSelectionView({
+            var rangeTypeView = new RangeTypeSelectionDialogView({
                 model: this.rangetypeSelection
             });
             rangeTypeView.render();
         },
+        
+        /**
+         *  callback onShowInfoClick
+         *
+         * Function, that gets triggered when the show info button is clicked
+         * for the selected coverage. Opens a new CoverageInfoView and displays
+         * additional coverage information.
+         */
+
         onShowInfoClick: function() {
             var infoView = new CoverageInfoView({
                 model: this.model,
@@ -821,13 +831,10 @@ namespace("WebClient").Views = (function() {
             if(!isNaN(sizex)) params.sizeX = sizex;
             if(!isNaN(sizey)) params.sizeY = sizey;
 
-            // TODO: get selected CRS
-            if(!this.rangetypeSelection.all(function(band) { return band.get("selected"); })) {
-                params.rangeSubset = this.rangetypeSelection.chain().filter(function(band) {
-                    return band.get("selected");
-                }).map(function(band) {
-                    return band.get("name")
-                }).value();
+            /// get rangeSubset
+            if (!_.isEqual(this.rangetypeSelection.get("selectedBands"),
+                           this.rangetypeSelection.get("availableBands"))) {
+                params.rangeSubset = this.rangetypeSelection.get("selectedBands");
             }
 
             var selectedCRS = this.$(".crs").val(); // TODO: find out the correct one
@@ -838,20 +845,81 @@ namespace("WebClient").Views = (function() {
         }
     });
 
-
     /**
      *  view RangeTypeSelectionView
      *
-     * View to allow the selection of the range type (the bands) of a coverage.
+     * View to select a range subset from a coverages range type. 
      */
 
     var RangeTypeSelectionView = Backbone.View.extend({
+        initialize: function(options) {
+            this.limitTo = options.limitTo;
+        },
         template: templates.rangeTypeSelection,
-        tagName: "table",
+        events: {
+            "sortstop": "onSortStop",
+            "change input": "onChangeSelection",
+        },
         render: function() {
-            this.$el.html(this.template({
-                rangeType: this.model.toJSON()
-            }));
+            this.$el.html(this.template(this.model.toJSON()));
+
+            this.$el.sortable({
+                containment: "parent",
+                placeholder: "ui-state-highlight",
+                forcePlaceholderSize: true,
+                axis: "y",
+                helper: 'clone'
+            }).disableSelection();
+        },
+
+        /// internal events
+
+        onSortStop: function() {
+            this.resetBands();
+        },
+
+        onChangeSelection: function() {
+            var $checked = this.$("input:checked");
+            var $notChecked = this.$("input:not(:checked)");
+            if (this.limitTo && $checked.size() >= this.limitTo) {
+                // deactivate all unchecked checkboxes
+                $notChecked.attr("disabled", true);
+            }
+            else {
+                // activate all checkboxes
+                $notChecked.attr("disabled", false);
+            }
+
+            this.resetBands();
+        },
+
+        /// internal methods
+
+        resetBands: function() {
+            var $checked = this.$("input:checked");
+            var bands = $checked.map(function() {
+                return $(this).attr("band");
+            }).get();
+            this.model.set("selectedBands", bands);
+        }
+    });
+
+    /**
+     *  view RangeTypeSelectionDialogView
+     *
+     * Wraps the RangeTypeSelectionView in a dialog
+     */
+
+    var RangeTypeSelectionDialogView = Backbone.View.extend({
+        initialize: function() {
+            this.rangeTypeSelectionView = new RangeTypeSelectionView({
+                model: this.model
+            });
+        },
+        render: function() {
+            this.$el.html('<div id="div-coverage-info-bands"></div>');
+            this.rangeTypeSelectionView.setElement(this.$("#div-coverage-info-bands"));
+            this.rangeTypeSelectionView.render();
             
             this.$el.dialog({
                 title: "Select Bands for Range Subsetting",
@@ -864,27 +932,23 @@ namespace("WebClient").Views = (function() {
                     "Cancel": _.bind(this.onCancelClick, this)
                 }
             });
+
+            this.previousSelection = this.model.get("selectedBands");
         },
 
         /// internal events
 
         onOkayClick: function() {
-            var selected = this.$("input").map(function() {
-                return $(this).is(":checked");
-            }).get();
-            
-            if (_.any(selected)) {
-                this.model.each(function(band, i) {
-                    band.set("selected", selected[i]);
-                });
-                this.$el.dialog("destroy");
-                this.remove();
+            if (this.model.get("selectedBands").length == 0) {
+                alert("At least one band has to be selected!");
                 return;
             }
-            // TODO: show better error here!
-            alert("At least one band has to be selected!");
+            this.$el.dialog("destroy");
+            this.remove();
         },
+
         onCancelClick: function() {
+            this.model.set("selectedBands", this.previousSelection);
             this.$el.dialog("destroy");
             this.remove();
         }
@@ -899,28 +963,32 @@ namespace("WebClient").Views = (function() {
     var CoverageInfoView = Backbone.View.extend({
         initialize: function(options) {
             this.owsUrl = options.owsUrl;
+            this.rangeTypeModel = new models.RangeTypeSelectionModel({
+                availableBands: _.pluck(this.model.get("rangeType"), "name")
+            });
+            this.rangeTypeModel.on("change", this.onRangeTypeSelectionChange, this);
         },
         template: templates.coverageInfo,
         events: {
             "dialogbeforeclose": "onDialogClose",
-            "change #div-coverage-info-bands input": "onChangeBandSelection",
-            "sortstop #div-coverage-info-bands": "reloadBandParams"
+            "slide #div-coverage-info-opacity": "onOpacitySlide"
         },
         render: function() {
-            this.$el.html(this.template({
-                model: this.model.toJSON(),
-                owsUrl: this.owsUrl
-            }));
+            this.$el.html(this.template({model: this.model.toJSON()}));
+            this.$el.attr("id", "div-coverage-info");
             
             this.$el.dialog({
                 title: "Coverage Info",
                 autoOpen: true,
                 width: 'auto',
+                maxWidth: 600,
                 modal: true,
                 resizable: false
             });
 
             var bounds = new OpenLayers.Bounds.fromString(this.model.get("bounds").lower.join(",") + "," + this.model.get("bounds").upper.join(","), true);
+
+            /// background
 
             var wmsLayer = new OpenLayers.Layer.WMS(
                 "OpenLayers WMS",
@@ -928,9 +996,10 @@ namespace("WebClient").Views = (function() {
                 {layers: 'basic'}
             );
 
-            var rangeType = this.model.get("rangeType");
+            /// set up 'bands' eo-wms layer
 
-            var initialBands = (this.model.get("rangeType").length < 3) ? rangeType[0].name : _.pluck(_.first(rangeType, 3), "name").join(",");
+            var rangeType = this.model.get("rangeType");
+            var initialBands = (rangeType.length < 3) ? rangeType[0].name : _.pluck(_.first(rangeType, 3), "name").join(",");
 
             this.layer = new OpenLayers.Layer.WMS(this.model.get("coverageId"), this.owsUrl, {
                 layers: this.model.get("coverageId") + "_bands",
@@ -942,7 +1011,25 @@ namespace("WebClient").Views = (function() {
                 displayOutsideMaxExtent: true,
                 gutter: 5
             });
-            
+
+            /// footprint layer
+
+            var vectorLayer = new OpenLayers.Layer.Vector('Basic Vector Layer');
+
+            var footprint = this.model.get("footprint");
+            var points = [];
+            for(var i = 0; i < footprint.length; i += 2) {
+                points.push(new OpenLayers.Geometry.Point(footprint[i+1], footprint[i]));
+            }
+            points.push(points[0]);
+            vectorLayer.addFeatures([
+                new OpenLayers.Feature.Vector(
+                    new OpenLayers.Geometry.LineString(points)
+                )
+            ]);
+
+            /// map creation
+
             this.map = new OpenLayers.Map({
                 div: this.$("#div-coverage-info-map").get(0),
                 projection: new OpenLayers.Projection("EPSG:4326"),
@@ -950,12 +1037,28 @@ namespace("WebClient").Views = (function() {
                 numZoomLevels:13,
                 units: "d",
                 layers: [
-                    wmsLayer, this.layer
+                    wmsLayer, this.layer, vectorLayer
                 ]
             });
             this.map.zoomToExtent(bounds);
 
-            this.$("#div-coverage-info-bands").sortable();
+            /// setup range type selection
+
+            var rangeTypeSelectionView = new RangeTypeSelectionView({
+                model: this.rangeTypeModel,
+                limitTo: 3
+            });
+            rangeTypeSelectionView.setElement(this.$("#div-coverage-info-bands"));
+            rangeTypeSelectionView.render();
+
+            /// opacity slider
+            
+            this.$("#div-coverage-info-opacity").slider({
+                min: 0.,
+                max: 1.,
+                value: 1.,
+                step: 0.025
+            });
         },
 
         /// internal events
@@ -963,35 +1066,22 @@ namespace("WebClient").Views = (function() {
         onDialogClose: function() {
             this.map.destroy();
         },
-        onChangeBandSelection: function() {
-            var $checked = this.$("#div-coverage-info-bands input:checked");
-            var $notChecked = this.$("#div-coverage-info-bands input:not(:checked)");
-            if ($checked.size() >= 3) {
-                // deactivate all unchecked checkboxes
-                $notChecked.attr("disabled", true);
-            }
-            else {
-                // activate all checkboxes
-                $notChecked.attr("disabled", false);
-            }
 
-            this.reloadBandParams();
+        onOpacitySlide: function(evt, ui) {
+            this.layer.setOpacity(ui.value);
         },
 
-        ///
-
-        reloadBandParams: function() {
-            var $checked = this.$("#div-coverage-info-bands input:checked");
-            if ($checked.size() == 1 || $checked.size() == 3) {
-                var bands = $checked.map(function() {
-                    return $(this).attr("band");
-                }).get().join(",");
+        onRangeTypeSelectionChange: function() {
+            var bands = this.rangeTypeModel.get("selectedBands");
+            if(bands.length == 1 || bands.length == 3) {
                 this.layer.mergeNewParams({
-                    dim_band: bands
+                    dim_band: bands.join(",")
                 });
             }
         }
     });
+
+    
 
     return {
         MapView: MapView,
