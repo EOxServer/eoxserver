@@ -94,8 +94,6 @@ namespace("WebClient").Models = (function() {
     return {
         DateTimeIntervalModel: DateTimeIntervalModel,
         BoundingBoxModel: BoundingBoxModel,
-        BandSelectionModel: BandSelectionModel,
-        RangeTypeSelectionCollection: RangeTypeSelectionCollection,
         RangeTypeSelectionModel: RangeTypeSelectionModel
     }
 
