@@ -297,13 +297,13 @@ namespace("WebClient").Templates = (function() {
         ),
 
         rangeTypeSelection: _.template('\
-            <div id="div-coverage-info-bands">\
+            \
             <% _.each(availableBands, function(band) { %> \
                 <div class="ui-widget ui-widget-content ui-corner-all ui-band-item"> \
                     <input type="checkbox" band="<%= band%>" <%= (_.contains(selectedBands, band))?"checked":""%>></input><%= band %> \
                 </div> \
             <% }); %> \
-            </div> \
+            \
         '),
 
         coverageInfo: _.template('\

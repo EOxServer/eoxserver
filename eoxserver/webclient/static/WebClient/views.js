@@ -868,7 +868,7 @@ namespace("WebClient").Views = (function() {
                 placeholder: "ui-state-highlight",
                 forcePlaceholderSize: true,
                 axis: "y",
-                helper: 'clone'
+                tolerance: "pointer"
             }).disableSelection();
         },
 
