@@ -134,6 +134,9 @@ class Command(EOxServerAdminCommand):
         shutil.copy(os.path.join(src_conf_dir, "init_spatialite-2.3.sql"),
                     os.path.join(dst_data_dir, "init_spatialite-2.3.sql"))
         
+        shutil.copy(os.path.join(src_conf_dir, "TEMPLATE_formats.conf"),
+                    os.path.join(dst_conf_dir, "formats.conf"))
+        
         if options.get('initial_data'):
             initial_data = os.path.abspath(options['initial_data'])
             if os.path.splitext(initial_data)[1].lower() != ".json":
