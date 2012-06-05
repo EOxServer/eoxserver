@@ -202,7 +202,8 @@ series can be switched on or off. By default, the preview layer is switched
 off and only the outlines layer is visible.
 
 In the upper center the EOxServer panel can be seen. It is used to select
-temporal and spatial subsets for the dataset series.
+temporal and spatial subsets for the dataset series. It can be placed anywhere
+on the screen by dragging it like a window.
 
 The slider in the middle is used to select the spatial subset for datasets. The
 left slider handle determines the minimum date boundary and the right one the
@@ -229,6 +230,11 @@ Unlike the date/time selection, the bounding box has no affect on the preview
 or the outlines visible. It is only used for the offering of coverages at the
 final Download of data.
 
+The third tab, "Service Info" displays the visible meta-data about your WCS
+service as configured by your instance and shown via GetCapabilities. This
+meta-data includes information about the service itself (type, keywords,
+abstract etc.) and its provider.
+
 The "Download" dialog is shown after the "Download" button in the EOxServer
 panel is clicked. It displays a list of all datasets matching the give spatial
 and temporal subsets. If no datasets with the given parameters were found, an
@@ -237,13 +243,44 @@ error message is shown.
 Each coverage can be (de)selected using the checkbox. Only checked datasets
 will be downloaded when the "Start Download" button is clicked.
 
+.. _fig_webclient_autotest_download_view:
+.. figure:: images/webclient_autotest_download_view.png
+   :align: center
+
+   *The download selection view.*
+
 The meaning of the size input fields depends on the actual type of the dataset.
 Rectified datasets can be scaled to the given size after all subsets are
 applied. Referencable datasets cannot be scaled, and so the size input fields
 only hint the overall (not subsetted) size of the raster data.
 
-The multi-select box on the right displays the bands of the range type of the
-dataset. Here, the single bands can be (de)selected.
+When the "Select Bands" button is clicked, a dialog opens which allows the
+selecting and ordering of requested bands (range-subset). At least one band has
+to be selected. The ordering of the bands can be changed with dragging/dropping
+the bands on the desired index.
+
+.. _fig_webclient_autotest_select_bands:
+.. figure:: images/webclient_autotest_select_bands.png
+   :align: center
+
+   *A selection of bands for a soon-to-be downloaded coverage.*
+
+Each coverage can be further inspected with the Coverage Info View which shows
+once the button "Show Info" for a coverage is clicked. In this view,
+addictional meta-data of the coverage is displayed and the coverage bands can
+be further selected and ordered.
+
+Due to limitations of the nature of this preview, only one or three bands can
+be viewed at a time. The selection is done with the small checkboxes associated
+with every band. The order of the bands can be manipulated by dragging/dropping
+the bands on the desired index.
+
+.. _fig_webclient_autotest_coverage_info:
+.. figure:: images/webclient_autotest_coverage_info.png
+   :align: center
+
+   *The Coverage Info View displaying details of the coverage and selected
+   bands.*
 
 Once the "Start Download" Button is clicked, all selected coverages with the
 given spatial and temporal subsets and all given parameters are downloaded. The
