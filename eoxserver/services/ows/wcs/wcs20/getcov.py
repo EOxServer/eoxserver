@@ -57,12 +57,16 @@ from eoxserver.services.exceptions import (
 from eoxserver.services.ows.wcs.common import (
     WCSCommonHandler, getMSOutputFormat, 
     getWCSNativeFormat, getMSWCSFormatMD,
-    getMSWCSNativeFormat, parse_format_param
+    getMSWCSNativeFormat, getMSWCSSRSMD,
+    parse_format_param
 )
 from eoxserver.services.ows.wcs.encoders import WCS20EOAPEncoder
 from eoxserver.services.ows.wcs.wcs20.subset import WCS20SubsetDecoder
 
 from eoxserver.resources.coverages.formats import getFormatRegistry
+from eoxserver.resources.coverages import crss  
+
+_stripDot = lambda s : s[1:] if s[0] == '.' else s 
 
 # register all GDAL drivers 
 gdal.AllRegister()
@@ -441,16 +445,23 @@ class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
         # in case of an incorrect format parameter ) 
         output_format = getMSOutputFormat( format_param, self.coverages[0] )
         
+        # set only the currently requested output format 
         self.map.appendOutputFormat(output_format)
         self.map.setOutputFormat(output_format)
         
-        logging.debug("WCS20GetCoverageHandler.configureMapObj: %s" % self.map.imagetype)
+        # set supported CRSes 
+        self.map.setMetaData( 'ows_srs' , getMSWCSSRSMD() ) 
+        self.map.setMetaData( 'wcs_srs' , getMSWCSSRSMD() ) 
 
 
     def getMapServerLayer(self, coverage):
 
         layer = super(WCS20GetRectifiedCoverageHandler, self).getMapServerLayer(coverage)
-        
+
+        # set layer's supported CRSes (using the per-service global data) 
+        layer.setMetaData( 'ows_srs' , getMSWCSSRSMD() ) 
+        layer.setMetaData( 'wcs_srs' , getMSWCSSRSMD() ) 
+
         connector = System.getRegistry().findAndBind(
             intf_id = "services.mapserver.MapServerDataConnectorInterface",
             params = {
@@ -460,20 +471,15 @@ class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
         )
         layer = connector.configure(layer, coverage)
 
+        # TODO: Change the following comment to something making sense or remove it!
         # this was under the "eo.rect_mosaic"-path. minor accurracy issues
         # have evolved since making it accissible to all paths
         rangetype = coverage.getRangeType()
 
         layer.setMetaData("wcs_bandcount", "%d" % len(rangetype.bands))
-
-        bands = " ".join([band.name for band in rangetype.bands])
-        layer.setMetaData("wcs_band_names", bands)
-        
-        layer.setMetaData("wcs_interval",
-                          "%f %f" % rangetype.getAllowedValues())
-            
-        layer.setMetaData("wcs_significant_figures",
-                          "%d" % rangetype.getSignificantFigures())
+        layer.setMetaData("wcs_band_names", " ".join([band.name for band in rangetype.bands]) ) 
+        layer.setMetaData("wcs_interval", "%f %f" % rangetype.getAllowedValues())
+        layer.setMetaData("wcs_significant_figures", "%d" % rangetype.getSignificantFigures())
         
         # set layer depending metadata
         for band in rangetype.bands:
@@ -552,7 +558,7 @@ class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
             coverage = self.coverages[0]
             mime_type = resp.getContentType()
             
-            filename = "%s_%s.%s" % (
+            filename = "%s_%s%s" % (
                 coverage.getCoverageId(),
                 datetime.now().strftime("%Y%m%d%H%M%S"),
                 getFormatRegistry().getFormatByMIME( mime_type ).defaultExt

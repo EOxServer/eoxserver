@@ -43,6 +43,8 @@ from eoxserver.services.exceptions import InvalidRequestException
 from eoxserver.resources.coverages.formats import getFormatRegistry
 from eoxserver.resources.coverages import crss
 
+_stripDot = lambda s : s[1:] if s[0] == '.' else s 
+
 class WCSCommonHandler(MapServerOperationHandler):
     def __init__(self):
         super(WCSCommonHandler, self).__init__()
@@ -135,11 +137,6 @@ class WCSCommonHandler(MapServerOperationHandler):
         layer.setMetaData("ows_title", coverage.getCoverageId())
         layer.status = mapscript.MS_ON
 
-        # TODO: check me / fix me 
-#        if coverage.getType() != "eo.ref_dataset":
-#            layer.setProjection("+init=epsg:%d" % int(coverage.getSRID()))
-#            layer.setMetaData("ows_srs", "EPSG:%d" % int(coverage.getSRID()))
-
         for key, value in coverage.getLayerMetadata():
             layer.setMetaData(key, value)
 
@@ -194,7 +191,7 @@ def getMSOutputFormatsAll( coverage = None ) :
         of = mapscript.outputFormatObj( sf.driver, "custom" )
         of.name      = sf.mimeType 
         of.mimetype  = sf.mimeType 
-        of.extension = sf.defaultExt 
+        of.extension = _stripDot( sf.defaultExt ) 
         if im is not None : 
             of.imagemode = im 
 
@@ -220,11 +217,9 @@ def getWCSNativeFormat( source_mime ):
 def getMSWCSNativeFormat( source_mime ): 
     return getWCSNativeFormat( source_mime ).mimeType
 
-
 def getMSWCSSRSMD(): 
     """ get the space separated list of CRS EPSG codes to be passed 
         to MapScript setMedata("wcs_srs",...) method """
-
     return " ".join( crss.getSupportedCRS_WCS(None,crss.asShortCode) ) 
 
 def getMSWCSFormatMD():
@@ -267,7 +262,7 @@ def getMSOutputFormat(format_param, coverage):
     # output format definition 
     output_format = mapscript.outputFormatObj( frm.driver, "custom" )
     output_format.mimetype  = frm.mimeType 
-    output_format.extension = frm.defaultExt
+    output_format.extension = _stripDot( frm.defaultExt ) 
     output_format.imagemode = gdalconst_to_imagemode( rangetype.data_type )
 
     # format specific options 

@@ -32,6 +32,8 @@ import os.path
 from eoxserver.services.mapserver import MapServerDataConnectorInterface
 from osgeo import osr
 
+from eoxserver.resources.coverages import crss  
+
 class FileConnector(object):
     REGISTRY_CONF = {
         "name": "Local File Connector",
@@ -46,6 +48,9 @@ class FileConnector(object):
         data_package.prepareAccess()
         
         layer.data = data_package.getGDALDatasetIdentifier()
+
+        # set layer's projection 
+        layer.setProjection( crss.asProj4Str( eo_object.getSRID() ))
         
         return layer
 
@@ -67,6 +72,9 @@ class TiledPackageConnector(object):
         
         layer.tileindex = os.path.abspath(path)
         layer.tileitem = "location"
+
+        # set layer's projection 
+        layer.setProjection( crss.asProj4Str( eo_object.getSRID() ))
         
         return layer
 
