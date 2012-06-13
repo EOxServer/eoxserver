@@ -42,6 +42,7 @@ from eoxserver.core.util.timetools import getDateTime, isotime
 from eoxserver.core.util.xmltools import XMLEncoder, DOMtoXML
 from eoxserver.core.exceptions import InternalError, InvalidParameterException
 from eoxserver.resources.coverages.filters import BoundedArea
+from eoxserver.resources.coverages import crss
 from eoxserver.services.base import BaseExceptionHandler
 from eoxserver.services.requests import Response
 from eoxserver.services.interfaces import (
@@ -174,8 +175,11 @@ class EOWMSOutlinesLayer(WMSLayer):
         
         layer.setMetaData("wms_enable_request", "getcapabilities,getmap,getfeatureinfo")
 
-        layer.setProjection("+init=epsg:4326")
-        layer.setMetaData("wms_srs", "EPSG:4326")
+        # NOTE: outline projection always set to WSG84
+        srid = 4326 # TODO: Is that really correct? Check it.
+        layer.setProjection( crss.asProj4Str( srid ) )
+        layer.setMetaData("ows_srs", crss.asShortCode( srid ) ) 
+        layer.setMetaData("wms_srs", crss.asShortCode( srid ) ) 
         
         layer.type = mapscript.MS_LAYER_POLYGON
         
@@ -515,8 +519,6 @@ class WMS13GetMapHandler(WMS1XGetMapHandler):
         super(WMS13GetMapHandler, self).configureMapObj()
         
         self.map.setMetaData("wms_exceptions_format", "xml")
-        self.map.setMetaData("ows_srs","EPSG:4326")
-        
         self.map.setMetaData("wms_enable_requests", "getcapabilities,getmap,getfeatureinfo")
         self.map.setMetaData("wms_feature_info_mime_type", "text/html")
         
@@ -649,16 +651,10 @@ class WMS13GetFeatureInfoHandler(WMSCommonHandler):
         "j": {"kvp_key": "j", "kvp_type": "int"}
     }
     
-    def _setMapProjection(self):
-        self.map.setProjection("+init=epsg:4326")
-        self.map.setMetaData("ows_srs", "EPSG:4326")
-    
     def configureMapObj(self):
         super(WMS13GetFeatureInfoHandler, self).configureMapObj()
         
         self.map.setMetaData("wms_exceptions_format", "xml")
-        self.map.setMetaData("ows_srs","EPSG:4326")
-        
         self.map.setMetaData("wms_enable_requests", "getcapabilities,getmap,getfeatureinfo")
         self.map.setMetaData("wms_feature_info_mime_type", "text/html")
 
@@ -742,16 +738,10 @@ class WMS13GetLegendGraphicHandler(WMSCommonHandler):
         
     }
     
-    def _setMapProjection(self):
-        self.map.setProjection("+init=epsg:4326")
-        self.map.setMetaData("ows_srs", "EPSG:4326")
-    
     def configureMapObj(self):
         super(WMS13GetLegendGraphicHandler, self).configureMapObj()
         
         self.map.setMetaData("wms_exceptions_format", "xml")
-        self.map.setMetaData("ows_srs","EPSG:4326")
-        
         self.map.setMetaData("wms_enable_requests", "getcapabilities,getmap,getfeatureinfo,getlegendgraphic")
 
     def createLayers(self):

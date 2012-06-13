@@ -42,10 +42,21 @@ from eoxserver.core.exceptions import InternalError, InvalidParameterException
 from eoxserver.resources.coverages.filters import (
     BoundedArea, TimeInterval
 )
+from eoxserver.resources.coverages.formats import getFormatRegistry
+from eoxserver.resources.coverages import crss
+
 from eoxserver.processing.gdal.reftools import create_temporary_vrt
 from eoxserver.services.owscommon import OWSCommonConfigReader
 from eoxserver.services.mapserver import MapServerOperationHandler
 from eoxserver.services.exceptions import InvalidRequestException
+
+_stripDot = lambda s : s[1:] if s[0] == '.' else s 
+
+def getMSWMSSRSMD(): 
+    """ get the space separated list of CRS EPSG codes to be passed 
+        to MapScript setMedata("wms_srs",...) method 
+        """
+    return " ".join( crss.getSupportedCRS_WMS(None,crss.asShortCode) ) 
 
 class WMSLayer(object):
     def __init__(self):
@@ -185,8 +196,10 @@ class WMSRectifiedDatasetLayer(WMSCoverageLayer):
         layer = super(WMSRectifiedDatasetLayer, self).getMapServerLayer(req)
 
         # general rectified coverage stuff
-        layer.setProjection("+init=epsg:%d" % int(self.coverage.getSRID()))
-        layer.setMetaData("ows_srs", "EPSG:%d" % int(self.coverage.getSRID()))
+        srid = self.coverage.getSRID()
+        layer.setProjection( crss.asProj4Str( srid ) )
+        layer.setMetaData("ows_srs", crss.asShortCode( srid ) ) 
+        layer.setMetaData("wms_srs", crss.asShortCode( srid ) ) 
         layer.setMetaData("wms_extent", "%f %f %f %f" % self.coverage.getExtent())
         layer.setExtent(*self.coverage.getExtent())
 
@@ -210,11 +223,16 @@ class WMSReferenceableDatasetLayer(WMSCoverageLayer):
     def getMapServerLayer(self, req):
         layer = super(WMSReferenceableDatasetLayer, self).getMapServerLayer(req)
 
-        layer.setMetaData("ows_srs", "EPSG:4326")
+        # NOTE: we need to setup layer projection - in case of Dataset Series we set the WSG84  
+        srid = 4326 # TODO: read this from dataset or database 
+        layer.setProjection( crss.asProj4Str( srid ) )
+        layer.setMetaData("ows_srs", crss.asShortCode( srid ) ) 
+        layer.setMetaData("wms_srs", crss.asShortCode( srid ) ) 
+
+        # TODO: once CRS read from DB the WGS84 extent should be removed 
         layer.setMetaData("wms_extent", "%f %f %f %f" % self.coverage.getWGS84Extent())
         layer.setExtent(*self.coverage.getWGS84Extent())
         
-        layer.setProjection("+init=epsg:4326") # TODO: read this from dataset or database
 
         vrt_path = self.rectify()
         
@@ -233,10 +251,6 @@ class WMSRectifiedStitchedMosaicLayer(WMSCoverageLayer):
     def getMapServerLayer(self, req):
         layer = super(WMSRectifiedStitchedMosaicLayer, self).getMapServerLayer(req)
         
-        layer.setProjection("+init=epsg:%d" % int(self.coverage.getSRID()))
-        layer.setMetaData("ows_srs", "EPSG:%d" % int(self.coverage.getSRID()))
-
-        #
         connector = System.getRegistry().findAndBind(
             intf_id = "services.mapserver.MapServerDataConnectorInterface",
             params = {
@@ -252,6 +266,10 @@ class WMSRectifiedStitchedMosaicLayer(WMSCoverageLayer):
         size = self.coverage.getSize()
         resolution = ((extent[2]-extent[0]) / float(size[0]),
                       (extent[1]-extent[3]) / float(size[1]))
+
+        layer.setProjection( crss.asProj4Str( srid ) )
+        layer.setMetaData("ows_srs", crss.asShortCode( srid ) ) 
+        layer.setMetaData("wms_srs", crss.asShortCode( srid ) ) 
         
         layer.setExtent(*self.coverage.getExtent())
         layer.setMetaData("wms_extent", "%.10f %.10f %.10f %.10f" % extent)
@@ -260,8 +278,6 @@ class WMSRectifiedStitchedMosaicLayer(WMSCoverageLayer):
         
         layer.type = mapscript.MS_LAYER_RASTER
         layer.setConnectionType(mapscript.MS_RASTER, '')
-        layer.setMetaData("wms_srs", "EPSG:%d" % srid)
-        layer.setProjection("+init=epsg:%d" % srid)
 
         return layer
 
@@ -287,9 +303,12 @@ class WMSDatasetSeriesLayer(WMSLayer):
         )
         layer.setMetaData("wms_timeextent", time_extent)
         
-        layer.setProjection("+init=epsg:4326")
-        layer.setMetaData("wms_srs", "EPSG:4326")
+        srid = 4326 # TODO: source CRS of dataset series 
+        layer.setProjection( crss.asProj4Str( srid ) )
+        layer.setMetaData("ows_srs", crss.asShortCode( srid ) ) 
+        layer.setMetaData("wms_srs", crss.asShortCode( srid ) ) 
         
+
         layer.type = mapscript.MS_LAYER_RASTER
         
         layer.setConnectionType(mapscript.MS_RASTER, '')
@@ -346,7 +365,9 @@ class WMSCommonHandler(MapServerOperationHandler):
         pass
         
     def _setMapProjection(self):
-        pass
+        # set the default EPSG:4326 projection 
+        # TODO: check whether this is really correct 
+        self.map.setProjection( crss.asProj4Str( 4326 ) ) 
         
     def configureMapObj(self):
         """
@@ -362,8 +383,14 @@ class WMSCommonHandler(MapServerOperationHandler):
         
         self.map.setMetaData("ows_onlineresource", OWSCommonConfigReader().getHTTPServiceURL() + "?")
         
+        # set (per-service) map projection 
         self._setMapProjection()
-    
+
+        # set the (global) list of supported CRSes
+        self.map.setMetaData("ows_srs", getMSWMSSRSMD() ) 
+        self.map.setMetaData("wms_srs", getMSWMSSRSMD() ) 
+
+
     def createLayers(self):
         pass
         
@@ -399,8 +426,28 @@ class WMSCommonHandler(MapServerOperationHandler):
             layer.cleanup()
 
 class WMS1XGetCapabilitiesHandler(WMSCommonHandler):
-    def _setMapProjection(self):
-        self.map.setProjection("+init=epsg:4326")
+
+    def configureMapObj(self):
+        super(WMS1XGetCapabilitiesHandler, self).configureMapObj() 
+
+        # set all supported output formats 
+
+        # retrieve the format registry 
+        FormatRegistry = getFormatRegistry() 
+
+        # define the supported formats 
+        for sf in FormatRegistry.getSupportedFormatsWMS() :  
+    
+            # output format definition 
+            of = mapscript.outputFormatObj( sf.driver, "custom" )
+            of.name      = sf.mimeType 
+            of.mimetype  = sf.mimeType 
+            of.extension = _stripDot( sf.defaultExt ) 
+            of.imagemode = mapscript.MS_IMAGEMODE_BYTE
+
+            #add the format 
+            self.map.appendOutputFormat( of )
+
     
     def createLayers(self):
         visible_expr = System.getRegistry().getFromFactory(
@@ -428,9 +475,9 @@ class WMS1XGetCapabilitiesHandler(WMSCommonHandler):
         return ms_layer
     
 class WMS1XGetMapHandler(WMSCommonHandler):
+
     def _setMapProjection(self):
-        srid = self.getSRID()
-        self.map.setProjection("+init=epsg:%d" % srid)
+        self.map.setProjection( crss.asProj4Str( self.getSRID() ) )
 
     def getSRSParameterName(self):
         raise NotImplementedError()
