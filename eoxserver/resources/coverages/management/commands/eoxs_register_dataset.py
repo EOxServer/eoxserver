@@ -36,6 +36,8 @@ from optparse import make_option
 from osgeo import gdal
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
+from django.contrib.gis.geos.geometry import GEOSGeometry
+from django.contrib.gis.geos.polygon import Polygon
 
 from eoxserver.core.system import System
 from eoxserver.core.util.geotools import extentFromDataset
@@ -46,8 +48,6 @@ from eoxserver.resources.coverages.management.commands import (
     CommandOutputMixIn, _variable_args_cb, StringFormatCallback
 )
 from eoxserver.resources.coverages.metadata import EOMetadata
-from django.contrib.gis.geos.geometry import GEOSGeometry
-from django.contrib.gis.geos.polygon import Polygon
 
 
 class Command(CommandOutputMixIn, BaseCommand):

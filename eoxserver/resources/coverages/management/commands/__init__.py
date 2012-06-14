@@ -29,6 +29,18 @@
 #-------------------------------------------------------------------------------
 
 import logging
+from urlparse import urlparse
+from optparse import make_option
+
+from django.core.management.base import BaseCommand, CommandError
+from django.db import transaction
+
+from eoxserver.core.system import System
+from eoxserver.backends.local import LocalPath
+from eoxserver.backends.ftp import RemotePath
+from eoxserver.resources.coverages.models import LocalDataPackage,\
+    RemoteDataPackage
+from eoxserver.resources.coverages.exceptions import NoSuchCoverageException
 
 
 def _variable_args_cb(option, opt_str, value, parser):
@@ -47,9 +59,11 @@ def _variable_args_cb(option, opt_str, value, parser):
         args.extend(getattr(parser.values, option.dest))
     setattr(parser.values, option.dest, args)
     
+    
 class StringFormatCallback(object):
-    """ Small helper class to supply a variable number of arguments to a callback 
-        function and store the resulting value in the `dest` field of the parser. 
+    """ Small helper class to supply a variable number of arguments to a 
+    callback function and store the resulting value in the `dest` field of the 
+    parser. 
     """
     
     def __init__(self, callback):
@@ -82,3 +96,101 @@ class CommandOutputMixIn(object):
             logging.info(msg)
         elif level > 2:
             logging.debug(msg)
+
+
+class DatasetManagementCommand(BaseCommand, CommandOutputMixIn):
+    """ Base class for dataset management commands involving datasets and 
+    dataset series.
+    """
+    
+    option_list = BaseCommand.option_list + (
+        make_option("--dataset", "--datasets", dest="dataset_ids", 
+            action="callback", callback=_variable_args_cb, default=None,
+            help=("Optional. One or more IDs of Datasets (either the Coverage "
+                  "ID or the EO-ID).")
+        ),
+        make_option("--dataset-series", dest="datasetseries_ids", 
+            action="callback", callback=_variable_args_cb, default=None,
+            help=("Optional. One or more EO-IDs referencing Dataset Series.")
+        ),
+        make_option("--mode", dest="mode", default="id",
+            choices=("id", "filename"),
+            help=("Optional. This parameter defines how the datasets are " 
+                  "identified.")
+        )
+    )
+    
+    def handle(self, *args, **options):
+        System.init()
+        
+        self.verbosity = options["verbosity"]
+        mode = options["mode"]
+        
+        if ((options["dataset_ids"] is None or options["datasetseries_ids"] is None) and
+            len(args) < 2):
+            raise CommandError("Not enough arguments given.")
+            
+        
+        dataset_ids = options["dataset_ids"] or args[:-1]
+        datasetseries_ids = options["datasetseries_ids"] or args[-1:]
+        
+        if mode == "filename":
+            files = dataset_ids
+            dataset_ids = []
+            # TODO: find ids of datasets with those filenames
+            for path in files:
+                dataset_ids.extend(self.get_dataset_ids_for_path(path))
+        
+        with transaction.commit_on_success():
+            try:
+                self.manage_datasets(dataset_ids, datasetseries_ids)
+            except NoSuchCoverageException, e:
+                raise CommandError("No coverage with ID '%s' registered" % e.msg)
+
+    def manage_datasets(self, dataset_ids, datasetseries_ids):
+        """ Main method for dataset handling.
+        """
+        raise NotImplementedError()
+
+    def get_dataset_ids_for_path(self, path):
+        url = urlparse(path, "file")
+        
+        if url.scheme == "file":
+            datapackages = LocalDataPackage.objects.filter(
+                data_location__path=path
+            )
+        elif url.scheme == "ftp":
+            datapackages = RemoteDataPackage.objects.filter(
+                data_location__path=path,
+                data_location__storage__host=url.hostname,
+                data_location__storage__port=url.port,
+                data_location__storage__user=url.username,
+                data_location__storage__passwd=url.password
+            )
+        elif url.scheme == "rasdaman":
+            raise NotImplementedError()
+        else:
+            raise CommandError("Unknown location type '%s'." % url.scheme)
+        
+        #location_ids = locations.values_list("id", flat=True)
+        #if len(location_ids) == 0:
+        #    raise CommandError(
+        #        "Dataset with location '%s' is not registered." % path
+        #    )
+        
+        result = []
+        
+        for record in datapackages:
+            datapackage = System.getRegistry().getFromFactory(
+                factory_id="resources.coverages.data.DataPackageFactory",
+                params={
+                    "record": record
+                }
+            )
+        
+            result.extend([coverage.getCoverageId() for coverage in datapackage.getCoverages()])
+        
+        if len(result) == 0:
+            raise CommandError("No coverage with path '%s' found." % path)
+        
+        return result
