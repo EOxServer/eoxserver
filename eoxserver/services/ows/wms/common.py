@@ -390,6 +390,28 @@ class WMSCommonHandler(MapServerOperationHandler):
         self.map.setMetaData("ows_srs", getMSWMSSRSMD() ) 
         self.map.setMetaData("wms_srs", getMSWMSSRSMD() ) 
 
+        # set all supported output formats 
+
+        # retrieve the format registry 
+        FormatRegistry = getFormatRegistry() 
+
+        # define the supported formats 
+        for sf in FormatRegistry.getSupportedFormatsWMS() :  
+    
+            # output format definition 
+            of = mapscript.outputFormatObj( sf.driver, "custom" )
+            of.name      = sf.mimeType 
+            of.mimetype  = sf.mimeType 
+            of.extension = _stripDot( sf.defaultExt ) 
+            of.imagemode = mapscript.MS_IMAGEMODE_BYTE
+
+            #add the format 
+            self.map.appendOutputFormat( of )
+
+        # set the formats supported by getMap WMS operation 
+        self.map.setMetaData( "wms_getmap_formatlist" , 
+            ",".join( map( lambda f : f.mimeType , FormatRegistry.getSupportedFormatsWMS() ) ) ) 
+
 
     def createLayers(self):
         pass
@@ -430,23 +452,6 @@ class WMS1XGetCapabilitiesHandler(WMSCommonHandler):
     def configureMapObj(self):
         super(WMS1XGetCapabilitiesHandler, self).configureMapObj() 
 
-        # set all supported output formats 
-
-        # retrieve the format registry 
-        FormatRegistry = getFormatRegistry() 
-
-        # define the supported formats 
-        for sf in FormatRegistry.getSupportedFormatsWMS() :  
-    
-            # output format definition 
-            of = mapscript.outputFormatObj( sf.driver, "custom" )
-            of.name      = sf.mimeType 
-            of.mimetype  = sf.mimeType 
-            of.extension = _stripDot( sf.defaultExt ) 
-            of.imagemode = mapscript.MS_IMAGEMODE_BYTE
-
-            #add the format 
-            self.map.appendOutputFormat( of )
 
     
     def createLayers(self):
