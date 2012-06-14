@@ -28,14 +28,17 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+import sys
 import logging
 import re
+from StringIO import StringIO
 
 from lxml import etree
 
 from django.test import TestCase
 from django.test.simple import DjangoTestSuiteRunner, get_tests
 from django.db.models.loading import get_app 
+from django.core.management import execute_from_command_line
 
 from eoxserver.core.system import System
 
@@ -53,11 +56,83 @@ class TestSchemaFactory(object):
         
         return schema
     
+
 class EOxServerTestCase(TestCase):
     fixtures = BASE_FIXTURES
     
     def setUp(self):
         System.init()
+        
+
+class CommandTestCase(EOxServerTestCase):
+    """ Base class for testing CLI tools.
+    """
+    
+    name = ""
+    args = ()
+    kwargs = {}
+    
+    def setUp(self):
+        super(CommandTestCase, self).setUp()
+        
+        # construct command line parameters
+        
+        args = ["manage.py", self.name]
+        args.extend(self.args)
+        
+        for key, value in self.kwargs.items():
+            args.append("-%s" % key if len(key) == 1 else "--%s" % key)
+            args.append(value)
+        
+        # redirect stderr to buffer
+        sys.stderr = StringIO()
+        
+        # execute command
+        self.execute_command(args)
+        
+        # reset stderr
+        sys.stderr = sys.__stderr__    
+
+
+    def execute_command(self, args):
+        """ This function actually executes the given command. It raises a
+        failure if the command prematurely quits.
+        """
+        
+        try:
+            execute_from_command_line(args)
+        except SystemExit:
+            if not self.expect_failure:
+                self.fail("Command failed and exited. Message was: '%s'" %
+                          "".join(sys.stderr.getvalue().rsplit("\n", 1)))
+        
+
+class CommandFaultTestCase(CommandTestCase):
+    """ Base class for CLI tool tests that expect failures (CommandErrors) to
+    be raised.
+    """
+    
+    expected_error = None
+    
+    def execute_command(self, args):
+        """ Specialized implementation of the command execution. A failure is
+        raised if no error occurs.
+        """
+        
+        failure = False
+        try:
+            execute_from_command_line(args)
+        except SystemExit:
+            failure = True
+        
+        if not failure:
+            self.fail("Command did not fail as expected.")
+        
+        if self.expected_error:
+            self.assertEqual(sys.stderr.getvalue(), self.expected_error)
+    
+    def testFault(self):
+        pass
 
 def _expand_regex_classes(module, regex):
     ret = []
