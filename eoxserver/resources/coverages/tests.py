@@ -936,7 +936,7 @@ class RegisterLocalDatasetSimpleTestCase(CommandRegisterDatasetTestCase):
         "d": "data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif",
         "rangetype": "RGB"
     }
-    coverage_to_be_registered = {"eo_id": "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"}
+    coverage_to_be_registered = [{"eo_id": "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"}]
 
 
 class RegisterLocalDatasetWithCoverageIdTestCase(CommandRegisterDatasetTestCase):
@@ -946,6 +946,30 @@ class RegisterLocalDatasetWithCoverageIdTestCase(CommandRegisterDatasetTestCase)
         "i": "someCoverageID"
     }
     coverages_to_be_registered = [{"coverage_id": "someCoverageID"}]
+
+class RegisterLocalDatasetMultipleTestCase(CommandRegisterDatasetTestCase):
+    kwargs = {
+        "d": ("data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif",
+              "data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.tif",
+              "data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed.tif"),
+        "rangetype": "RGB"
+    }
+    coverages_to_be_registered = [
+        {"eo_id": "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed"},
+        {"eo_id": "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"},
+        {"eo_id": "MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed"}
+    ]
+    
+# TODO: TCs for remote and rasdaman
+
+# TODO: TCs for default-... and visible options
+
+# TODO: TCs for datasetseries/stitchedmosaic insertions
+
+# eoxs_add_dataset_series
+
+
+# eoxs_synchronize
 
 
 # eoxs_insert
@@ -1003,6 +1027,7 @@ class ExcludeByIdTestCase(CommandExcludeTestCase):
     
     datasets_to_be_excluded = ["mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced"]
 
+
 class ExcludeByIdExplicitTestCase(CommandExcludeTestCase):
     args = (
         "--datasets", 
@@ -1017,6 +1042,7 @@ class ExcludeByIdExplicitTestCase(CommandExcludeTestCase):
         "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced",
         "mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced"
     ]
+
 
 class ExcludeByFileTestCase(CommandExcludeTestCase):
     args = ("../autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif",
