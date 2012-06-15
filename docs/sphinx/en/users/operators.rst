@@ -538,6 +538,8 @@ The first important command line tool is used for :ref:`Creating an Instance`
 of EOxServer and is explained in the :ref:`Installation` section of this user' 
 guide.
 
+.. _eoxs-register-dataset:
+
 eoxs_register_dataset
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -647,6 +649,57 @@ ensuring the databases consistency with the file system.
 The synchronization process may take some time, especially when FTP/Rasdaman
 storages are used and also depends on the number of synchronized objects.
 
+.. _eoxs-insert:
+
+eoxs_insert
+~~~~~~~~~~~
+
+This command allows to insert any coverage into a dataset series. This is
+similar to the ``--dataset-series`` option of the :ref:`eoxs-register-dataset`
+option but can be used at any time not only during registration.
+
+To insert a coverage into a dataset series use this command:
+::
+
+    python manage.py eoxs_insert <CoverageID> <DatasetSeriesID>
+
+For convenience, multiple coverages can be inserted at once:
+::
+
+    python manage.py eoxs_insert <CoverageID1> <CoverageID2> ... <DatasetSeriesID>
+
+All given IDs but the last are interpreted as coverage IDs and the last as the
+ID for the dataset series.
+
+The IDs can also be set explicitly via the ``--dataset`` and
+``--dataset-series`` options, which also allows the insertion of datasets into
+multiple dataset series:
+::
+
+    python manage.py eoxs_insert --datasets <CoverageID1> <CoverageID2> \
+                                 --dataset-series <DatasetSeriesID1> <DatasetSeriesID2>
+
+With the ``--mode`` parameter also the lookup type of coverages can be altered.
+E.g with ``--mode=filename``, coverages can be inserted by their filename
+instead of their coverage ID. Use this with caution, as this may lead to
+unexpected results, as the data model allows multiple coverages with the same
+file name. Also the paths must completely match with the paths saved in the
+database, so an absolute path would not match a saved relative path.
+
+eoxs_exclude
+~~~~~~~~~~~~
+
+This command is somewhat the contrary to :ref:`eoxs-insert` as it removes
+coverages from a dataset series. As these two commands have a very similar
+semantic, the parameters are the same and have the same meaning.
+
+To remove a single coverage from a dataset series type:
+::
+
+    python manage.py eoxs_exclude <CoverageID> <DatasetSeriesID>
+
+Like :ref:`eoxs-insert` also multiple coverages can be excluded at once.
+
 Performance
 -----------
 
@@ -666,9 +719,9 @@ discernible impact on the time it took to register. The average registration
 took about 61 ms, meaning that registering nearly 1000 datasets per minute is
 possible.
 
-The tests for the **generation of mosaics** were performed on a virtual machine with one
-CPU core allocated and 4 GB of RAM. Yet again, the input data were IKONOS
-scenes in GeoTIFF format.
+The tests for the **generation of mosaics** were performed on a virtual machine
+with one CPU core allocated and 4 GB of RAM. Yet again, the input data were 
+IKONOS scenes in GeoTIFF format.
 
 ==================== ============= ===== =============== =============== ======== ===============
 Datasets             Data Type     Files Input File Size Tiles Generated Time     GB per minute
