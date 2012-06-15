@@ -78,11 +78,17 @@ class CommandTestCase(EOxServerTestCase):
         # construct command line parameters
         
         args = ["manage.py", self.name]
-        args.extend(self.args)
+        if isinstance(args, (list, tuple)):
+            args.extend(self.args)
+        elif isinstance(args, basestring):
+            args.extend(self.args.split(" "))
         
         for key, value in self.kwargs.items():
             args.append("-%s" % key if len(key) == 1 else "--%s" % key)
-            args.append(value)
+            if isinstance(value, (list, tuple)):
+                args.extend(value)
+            else: 
+                args.append(value)
         
         # redirect stderr to buffer
         sys.stderr = StringIO()
