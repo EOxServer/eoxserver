@@ -1,0 +1,113 @@
+<!--
+#-------------------------------------------------------------------------------
+# $Id: webclient.html 1653 2012-05-02 10:58:55Z schindlerf $
+#
+# Project: EOxServer <http://eoxserver.org>
+# Authors: Fabian Schindler <fabian.schindler@eox.at>
+#          Stephan Krause <stephan.krause@eox.at>
+#          Stephan Meissl <stephan.meissl@eox.at>
+#
+#-------------------------------------------------------------------------------
+# Copyright (C) 2012 EOX IT Services GmbH
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+# copies of the Software, and to permit persons to whom the Software is 
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies of this Software or works derived from this Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#-------------------------------------------------------------------------------
+-->
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>{% block title %}EOxServer Webclient{% endblock %}</title>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"></meta>
+    <link href="{{STATIC_URL}}OpenLayers/style.css" rel="stylesheet" type="text/css">
+    <link href="{{STATIC_URL}}jquery/jquery-ui-1.8.17.custom.css" rel="stylesheet" type="text/css"/>
+    <link href="{{STATIC_URL}}style.css" rel="stylesheet" type="text/css"></link>
+    <script src="{{STATIC_URL}}OpenLayers/OpenLayers.js"></script>
+    <script src="{{STATIC_URL}}jquery/jquery.min.js"></script>
+    <script src="{{STATIC_URL}}jquery/jquery.xmlns.js"></script>
+    <script src="{{STATIC_URL}}jquery/jquery-ui.min.js"></script>
+    <script src="{{STATIC_URL}}jquery/jquery.maskedinput.min.js"></script>
+    <script src="{{STATIC_URL}}underscore/underscore.min.js"></script>
+    <script src="{{STATIC_URL}}backbone/backbone.min.js"></script>
+    <script src="{{STATIC_URL}}libcoverage.js/libcoverage.complete.min.js" type="text/javascript"></script>
+    <script src="{{STATIC_URL}}WebClient/templates.js" type="text/javascript"></script>
+    <script src="{{STATIC_URL}}WebClient/models.js" type="text/javascript"></script>
+    <script src="{{STATIC_URL}}WebClient/views.js" type="text/javascript"></script>
+    <script src="{{STATIC_URL}}WebClient/application.js" type="text/javascript"></script>
+  </head>
+
+  <body style="margin:0px;padding:0px;height:100%;width:100%">
+
+    {% block map %}<div id="div-map" style="position:absolute;top:0px;left:0px;padding:0;margin:0;height:100%;width:100%;min-height:450px;min-width:600px;z-index:1;"></div>{% endblock %}
+    {% block main %}<div id="div-main"></div>{% endblock %}
+    <div id="div-download"></div>
+    <div id="div-tooltip" class="ui-widget tooltip"><a></a></div>
+    <div id="div-busy-indicator" class="ui-widget ui-widget-content ui-corner-all">
+        <img src="{{STATIC_URL}}ajax-loader.gif"></img>
+    </div>
+
+    {% block extra %}{% endblock %}
+
+    <script type="text/javascript">
+    namespace("WebClient.Templates").logo = '<img src="{{STATIC_URL}}EOxServer_logo_small.png" style="align: center;"/>';
+    </script>
+
+    {% block javascript_templates %}{% endblock %}
+
+    {% block initialization %}
+    <script type="text/javascript">
+
+$(document).ready(function() {
+    var timeRex = /([0-9]{1,2}):([0-9]{1,2})/, match;
+    var minDate = $.datepicker.parseDate("yy-mm-dd", "{{begin.date}}");
+    var maxDate = $.datepicker.parseDate("yy-mm-dd", "{{end.date}}");
+
+    match = timeRex.exec("{{begin.time}}");
+
+    minDate.setHours(match[1]);
+    minDate.setMinutes(match[2]);
+
+    match = timeRex.exec("{{end.time}}");
+    
+    maxDate.setHours(match[1]);
+    maxDate.setMinutes(match[2]);
+
+    var app = WebClient.Application.run({
+        minDate: minDate,
+        maxDate: maxDate,
+        extent: [{{extent}}],
+        eoid: "{{eoid}}",
+        owsUrl: "{{ows_url}}",
+        layerParams: [{
+            name: "{{eoid}} Preview",
+            layerId: "{{eoid}}",
+            service: "{{preview_service}}",
+            url: "{{preview_url}}"
+        }, {
+            name: "{{eoid}} Outlines",
+            layerId: "{{eoid}}_outlines",
+            service: "{{outline_service}}",
+            url: "{{outline_url}}",
+            featureInfo: true
+        }]
+    });
+});
+
+    </script>
+    {% endblock %}
+  </body>
+</html>
