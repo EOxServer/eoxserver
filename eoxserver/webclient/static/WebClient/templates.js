@@ -3,7 +3,7 @@ namespace("WebClient").Templates = (function() {
 
     return {
         
-        logo: '<img src="/static/EOxServer_logo_small.png" style="align: center;"/>',
+        logo: "", // to be overridden
         
         mainControl: _.template('\
             <table class="ui-widget ui-widget-content ui-corner-all"> \
