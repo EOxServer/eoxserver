@@ -166,6 +166,38 @@ served with the EOxServer instance. This parameter is used in various contexts
 and is also included in several OWS service responses.
 
 
+[services.ows.wms]
+------------------
+
+::
+
+    supported_formats=<MIME type>[,<MIME type>[,<MIME type> ... ]]
+
+A comma-separated list of MIME-types defining the raster file format supported
+by the WMS ``getMap()`` operation.  
+
+:: 
+
+    supported_crs= <EPSG-code>[,<EPSG-code>[,<EPSG-code> ... ]]
+
+List of common CRSes supported by the WMS ``getMap()`` operation.
+
+[services.ows.wcs]
+------------------
+
+::
+
+    supported_formats=<MIME type>[,<MIME type>[,<MIME type> ... ]]
+
+A comma-separated list of MIME-types defining the raster file format supported
+by the WCS ``getCoverage()`` operation.  
+
+:: 
+
+    supported_crs= <EPSG-code>[,<EPSG-code>[,<EPSG-code> ... ]]
+
+List of common CRSes supported by the WCS ``getMap()`` operation.
+
 [services.ows.wcs20]
 --------------------
 
@@ -177,6 +209,25 @@ The maximum number of `wcs:coverageDescription` elements returned in a WCS 2.0
 `EOCoverageSetDescription`. This also limits the :ref:`count parameter
 <table_eo-wcs_request_parameters_describeeocoverageset>`. Defaults to 10.
 
+:: 
+
+    default_native_format=<MIME-type>
+
+The default *native format* cases when the source format cannot be used
+(read-only GDAL driver) and  there is no explicit source-to-native format mapping. 
+This option must be always set to a valid format (GeoTIFF by default). 
+
+
+::
+
+    source_to_native_format_map=[<src.MIME-type,native-MIME-type>[,<src.MIME-type,native-MIME-type> ... ]]
+
+The explicit source to native format mapping. As the name suggests, it defines
+mapping of the (zero, one, or more) source formats to a non-defaults native
+formats. The source formats are not restricted to the read-only ones. This
+option accepts comma-separated list of MIME-type pairs.   
+
+    
 .. _ConfigurationOptionsWCST11:
 
 [services.ows.wcst11]

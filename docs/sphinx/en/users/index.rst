@@ -60,6 +60,7 @@ and APIs please refer to the :ref:`EOxServer Developers' Guide`.
    soap_proxy
    presentations
    configuration_options
+   formats  
    atp_sum 
    WCS-T_summary  
 

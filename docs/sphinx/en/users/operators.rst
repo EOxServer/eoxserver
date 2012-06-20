@@ -268,6 +268,9 @@ contain the data (e.g. ENVISAT N1, GeoTIFF, JPEG 2000). But some data formats
 moment these data formats are only supported for data output, but not for data
 input.
 
+For more information on configuration of supported raster file formats read  
+":ref:`FormatsConfiguration`".
+
 Raster Data Preparation
 ~~~~~~~~~~~~~~~~~~~~~~~
 
