@@ -47,22 +47,22 @@ Format Registry
 ---------------
 
 Format registry is the list of raster file formats recognised by EOxServer. The
-format registry holds definition of both the inputs and output formats. The each
+format registry holds definition of both the inputs and output formats. Each
 format record defines the MIME-type (unique, primary key), library, driver, and
 the default file extension. 
 
-Currently, the EOxServer handle the raster data exclusively by the `GDAL
-<http://www.gdal.org>`_ library. Thus, in principle, any raster file `format
-supported by GDAL <http://www.gdal.org/formats_list.html>`_ library can be
-supported by EOxServer. In particular, any raster file format readable by the
-GDAL library (provided that the file structure can be decomposed to one
+Currently, the EOxServer handles the raster data exclusively by means of the
+`GDAL <http://www.gdal.org>`_ library. Thus, in principle, any raster file
+`format supported by the GDAL <http://www.gdal.org/formats_list.html>`_ library
+is supported by the EOxServer. In particular, any raster file format readable by
+the GDAL library (provided that the file structure can be decomposed to one
 single-type, single- or multi-band image) can be used as the input and, vice
 versa, any raster file format writeable by the GDAL library can used as the
 output produced by WCS and WMS services. 
 
 Any raster file format intended to be used by the EOxServer must be defined in
-the format registry. The format registry provides unique mapping from
-MIME-type to the (GDAL) format driver format. 
+the format registry. The format registry then provides unique mapping from
+MIME-type to the (GDAL) format driver. 
 
 Format Configuration
 --------------------
@@ -94,7 +94,7 @@ available drivers provided by your GDAL installation use following command:::
     gdalinfo --formats
 
 The ``GDAL`` prefix is used as place-holder to allow future use of different
-library back-end.  The file extension shall be written including the separating
+library back-end. The file extension shall be written including the separating
 dot ``.``.  Any leading or trailing white-characters as well as the empty lines
 are ignored.  The ``#`` character is used as line-comment and any content
 between this character and the end of line is ignored. 
@@ -133,7 +133,8 @@ The use of in invalid MIME-type (not listed among the supported formats) by the
 Web Coverage Service - Native Format Configuration 
 --------------------------------------------------
 
-The *native format* (as defined by `WCS 2.0.1 `[OGC 07-068r4]`_) is the default
+The *native format* (as defined by `WCS 2.0.1 [OGC 09-110r4]
+<http://www.opengeospatial.org/standards/wcs>`_) is the default
 raster file format produced by the ``getCoverage()`` operation in case of
 missing explicit format specification. By default, the EOxServer sets the native
 format to the format of the stored source data (source format), however, in

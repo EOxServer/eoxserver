@@ -174,7 +174,8 @@ and is also included in several OWS service responses.
     supported_formats=<MIME type>[,<MIME type>[,<MIME type> ... ]]
 
 A comma-separated list of MIME-types defining the raster file format supported
-by the WMS ``getMap()`` operation.  
+by the WMS ``getMap()`` operation. The MIME-types used for this option must be
+defined in the *Format Registry* (see ":ref:`FormatsConfiguration`").
 
 :: 
 
@@ -190,8 +191,8 @@ List of common CRSes supported by the WMS ``getMap()`` operation.
     supported_formats=<MIME type>[,<MIME type>[,<MIME type> ... ]]
 
 A comma-separated list of MIME-types defining the raster file format supported
-by the WCS ``getCoverage()`` operation.  
-
+by the WCS ``getCoverage()`` operation. The MIME-types used for this option must
+be defined in the *Format Registry* (see  ":ref:`FormatsConfiguration`").
 :: 
 
     supported_crs= <EPSG-code>[,<EPSG-code>[,<EPSG-code> ... ]]
@@ -214,9 +215,10 @@ The maximum number of `wcs:coverageDescription` elements returned in a WCS 2.0
     default_native_format=<MIME-type>
 
 The default *native format* cases when the source format cannot be used
-(read-only GDAL driver) and  there is no explicit source-to-native format mapping. 
-This option must be always set to a valid format (GeoTIFF by default). 
-
+(read-only GDAL driver) and  there is no explicit source-to-native format
+mapping.  This option must be always set to a valid format (GeoTIFF by default).
+The MIME-type used for this option must be defined in the *Format Registry* (see
+":ref:`FormatsConfiguration`").
 
 ::
 
@@ -226,7 +228,8 @@ The explicit source to native format mapping. As the name suggests, it defines
 mapping of the (zero, one, or more) source formats to a non-defaults native
 formats. The source formats are not restricted to the read-only ones. This
 option accepts comma-separated list of MIME-type pairs.   
-
+The MIME-types used for this option must be defined in the *Format Registry* (see
+":ref:`FormatsConfiguration`").
     
 .. _ConfigurationOptionsWCST11:
 
