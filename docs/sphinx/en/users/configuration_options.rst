@@ -181,7 +181,8 @@ defined in the *Format Registry* (see ":ref:`FormatsConfiguration`").
 
     supported_crs= <EPSG-code>[,<EPSG-code>[,<EPSG-code> ... ]]
 
-List of common CRSes supported by the WMS ``getMap()`` operation.
+List of common CRSes supported by the WMS ``getMap()`` operation 
+(see also ":ref:`CRSConfiguration`").
 
 [services.ows.wcs]
 ------------------
@@ -198,6 +199,7 @@ be defined in the *Format Registry* (see  ":ref:`FormatsConfiguration`").
     supported_crs= <EPSG-code>[,<EPSG-code>[,<EPSG-code> ... ]]
 
 List of common CRSes supported by the WCS ``getMap()`` operation.
+(see also ":ref:`CRSConfiguration`").
 
 [services.ows.wcs20]
 --------------------
