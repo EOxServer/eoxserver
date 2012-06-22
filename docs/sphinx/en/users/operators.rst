@@ -411,6 +411,9 @@ The Admin Client is accessible via any standard web browser at the path
 *admin* link on the start page. :ref:`EOxServer Deployment` provides more 
 details.
 
+Use the username and password you provided during the `syncdb` step as 
+described in the :ref:`Creating an Instance` section.
+
 Creating a custom Range Type
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

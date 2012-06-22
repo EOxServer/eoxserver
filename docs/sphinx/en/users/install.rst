@@ -292,7 +292,7 @@ You can also customize further settings, for a complete reference please refer
 to the `Django settings overview
 <https://docs.djangoproject.com/en/1.3/topics/settings/>`_.
 
-Please especially consider the setting of the 'TIME_ZONE
+Please especially consider the setting of the `TIME_ZONE
 <https://docs.djangoproject.com/en/1.3/ref/settings/#std:setting-TIME_ZONE>`_
 parameter and read the Notes provided in the ``settings.py`` file.
 
@@ -315,6 +315,9 @@ have to do is:
   ::
 
     python manage.py syncdb
+
+Note down the username and password you provide. You'll need it to log in to 
+the admin client.
 
 .. TODO: Logfile handling: configuration in settings.py and eoxserver.conf logrotate, etc.
 
@@ -416,9 +419,8 @@ be set properly and second, the Django settings module (``settings.py``) has to
 be configured. The places where to fill in the right names are indicated in the
 file.
 
-In the Apache2 configuration file for your server, e.g.
-``/etc/apache2/sites-enabled/000-default``, please add the following lines:
-::
+In the Apache2 configuration file of your server, e.g.
+``/etc/apache2/sites-enabled/000-default``, please add the following lines::
 
     Alias /<url> <absolute path to instance dir>/deployment/wsgi.py
     <Directory "<absolute path to instance dir>/deployment">
@@ -437,6 +439,12 @@ Now that the public URL is known don't forget to adjust the configuration in
 
     [services.owscommon]
     http_service_url=http://<url>/ows
+
+Add the following line in the Apache2 configuration file of your server if 
+you want to load the media files, e.g. CSS, of the admin for a nice looking 
+GUI::
+
+    Alias /media <absolute path to django installation>/contrib/admin/media/
 
 .. _Data Registration:
 

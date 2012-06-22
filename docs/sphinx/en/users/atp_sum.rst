@@ -41,38 +41,43 @@ Introduction
 
 The *Asynchronous Task Processing* (ATP) subsystem, as the name suggests,
 extends the *EOxServer* functionality by the ability to process tasks
-asynchronously, i.e., on background independently of the default *EOxServer's*
-synchronous client requests processing.
+asynchronously, i.e., in background independently of the default *EOxServer's*
+synchronous client request processing.
 
-Although the ATP is designed primarily to support asynchronous request
-processing of OGC Web Services such as the Web Coverage Service transaction
-extension (WCS-T) and/or the Web Processing Service (WPS), it is not limited to
-these and other parts of the *EOxServer* may use it as well. 
+Although the ATP subsystem is primarily designed to support asynchronous 
+request processing of OGC Web Services such as the Web Coverage Service 
+transaction extension (WCS-T) and/or the Web Processing Service (WPS), it is 
+not limited to these and other parts of *EOxServer* may use it as well. 
 
-The ATP employs the model of a single shared task queue and one or more
-*Asynchronous Task Processing Daemons* (APTD) executing the pending tasks pulled
-from the task queue. A single ATPD is not restricted to a single processed task
-at time and it can internally process multiple tasks concurrently, e.g., by
-employing a pool of parallel worker threads assigned to multiple CPU cores. 
+The ATP subsystem employs the model of a single shared task queue and one or 
+more *Asynchronous Task Processing Daemons* (APTD) executing the pending 
+tasks pulled from the task queue. A single ATPD is not restricted to a 
+single processed task at time and it can internally process multiple tasks 
+concurrently, e.g., by employing a pool of parallel worker threads assigned 
+to multiple CPU cores. 
 
-The ATP subsystem is implemented as Django application using the DB model as the
-task queue.  Although the underlying DB storage may be seen as suboptimal in
-terms of the performance and latency it assures tolerance of the subsystem to
+The ATP subsystem is implemented as Django application using a DB model as the
+task queue. Although the underlying DB storage may be seen as suboptimal in
+terms of performance and latency it assures tolerance of the subsystem to
 possible failures or maintenance shut-downs of both *EOxServer* and/or APTDs. 
 
-Task
-----
+Tasks
+-----
 
-For the correct operation of the ATP subsystem it essential to understand the
-concept of a task and its life-cycle. 
+Introduction
+^^^^^^^^^^^^
 
-A *task* is an atomic and isolated action (amount of work) to be performed by
-the *EOxServer*.  When created, each task has a handler subroutine (python code
-to be executed) and set of task specific input parameters to be processed by the
-handler subroutine.  When finished, the tasks produce outputs. 
+For the correct operation of the ATP subsystem it is essential to understand the
+concept of a *task* and its life-cycle. 
+
+A *task* is an atomic and isolated action (amount of work) to be performed 
+by *EOxServer*. When created, each task has a handler subroutine (python 
+code to be executed) and a set of task specific input parameters to be 
+processed by the handler subroutine. When finished, the tasks produce 
+outputs. 
 
 The tasks may be created by different applications (*EOxServer's* apps and
-services).  The tasks sharing the same handler subroutine and generic parameters
+services). The tasks sharing the same handler subroutine and generic parameters
 belong to the same task *type*.
 
 The ATP is expected to be shared by multiple applications. APTDs pull the tasks
@@ -80,10 +85,10 @@ from the shared queue in First-In-First-Out fashion (regardless of the task
 type) and execute the given handler subroutines. Significant benefit of this
 shared nature of the APT subsystem is the control over the processing resources
 (pool of workers) and isolation of the execution details from the application
-(isolated from details such at the number of ATPD and working threads). 
+(isolated from details such as the number of ATPD and working threads). 
 
-Task's Life-cycle
-^^^^^^^^^^^^^^^^^
+Life-cycle
+^^^^^^^^^^
 
 The life-cycle of an asynchronous task, i.e., its possible states and state
 transitions are displayed in Fig.3. 
@@ -96,30 +101,33 @@ transitions are displayed in Fig.3.
 Any existing task can be in one of the following states: 
 
  * ACCEPTED  - a new enqueued task waiting to be pulled by an ATPD (initial
- * state) SCHEDULED - a task pulled (dequeued) by an ATPD but not yet started
- * RUNNING   - a task being processed by an ATPD PAUSED    - a task which has
- * been put on hold and which is waiting to be resumed FINISHED  - a task which
- * has been finished successfully (terminal state) FAILED    - a task which has
- * been finished by a failure (terminal state)
+   state)
+ * SCHEDULED - a task pulled (dequeued) by an ATPD but not yet started
+ * RUNNING   - a task being processed by an ATPD
+ * PAUSED    - a task which has been put on hold and which is waiting to be 
+   resumed
+ * FINISHED  - a task which has been finished successfully (terminal state)
+ * FAILED    - a task which has been finished by a failure (terminal state)
 
 When a task is created and enqueued for processing (ACCEPTED) it is stored in
 the DB task queue waiting for an ATPD to pull the task out. In this state, it is
 safely stored and protected against failures and shut-downs of both of the
 producer (ATPD can access the DB) and of the ATPD (producer can access the DB).
 
-When a task is in one of the intermediate states (SCHEDULED, RUNNING, or PAUSED)
-it is being processed by an ATPD and it is vulnerable to its possible failures.
-In these states, any unexpected crash of ATPD could leave a task in intermediate
-state forever. Therefore each task type has assigned security time-out after
-which the task is considered to be abandoned and shall be re-enqueued for new
-processing (ACCEPTED). A task, however, can be re-enqueued for limited times (3
-times by default).  After the number of restarts has been exceeded the task will
-be rejected (FAILED).  This mechanism ensures that no task would be abandoned
-unfinished after an occasional ATPD crash but also that a defective task would
-get stacked in the time-out loop. 
+When a task is in one of the intermediate states (SCHEDULED, RUNNING, or 
+PAUSED) it is being processed by an ATPD and it is vulnerable to possible 
+failures. In these states, any unexpected crash of the ATPD could leave a 
+task in an intermediate state forever. Therefore each task type has assigned 
+a security time-out after which the task is considered to be abandoned and 
+shall be re-enqueued for new processing (ACCEPTED). A task, however, can be 
+re-enqueued for limited times (3 times by default). After the number of 
+restarts has been exceeded the task will be rejected (FAILED). This 
+mechanism ensures that no task would be abandoned unfinished after an 
+occasional ATPD crash but also that a defective task would get stacked in 
+the time-out loop. 
 
 When a task is in one of the terminal states (FINISHED or FAILED) it is safely
-stored by the DB. By default a terminated task will be stored forever, however,
+stored in the DB. By default a terminated task will be stored forever, however,
 it is possible to specify an task type specific time-out after which the
 terminated tasks will be removed automatically. 
 
@@ -131,7 +139,7 @@ the basic *EOxServer* installation and configuration. The ATP is tightly coupled
 with *EOxServer* and works right out of box. 
 
 To track the status of the executed tasks and view the stored outputs auxiliary
-ATP HTML views can be enabled by adding following lines to URL patterns
+ATP HTML views can be enabled by adding following lines to the URL patterns
 ('url.py' configuration file) of the actual *EOxServer* instance::
 
     urlpatterns = patterns('',
@@ -149,14 +157,15 @@ ATP HTML views can be enabled by adding following lines to URL patterns
 ATP Operation 
 -------------
 
-ATP operation requires at least one ATPD to be running. Currently, there is only
-one ATPD implemented in EOxServer. This ATPD uses multiple sub-processes to
-process the tasks concurrently.  By default, the numbers of subprocesses equals
-to the number of available CPU cores. This ATPD can be executed as follows::
+The ATP operation requires at least one ATPD to be running. Currently, there 
+is only one ATPD implemented in EOxServer. This ATPD uses multiple 
+sub-processes to process the tasks concurrently. By default, the numbers of 
+sub-processes equals the number of available CPU cores. This ATPD can be 
+executed as follows::
 
-    $ export PYTHONPATH=<EOxServer instal.path>:<EOxServer instance path>
+    $ export PYTHONPATH=<EOxServer install.path>:<EOxServer instance path>
     $ export DJANGO_SETTINGS_MODULE=autotest.settings
-    $ <EOxServer instal.path>/tools/asyncProcServer.py
+    $ <EOxServer install.path>/tools/asyncProcServer.py
 
     [0x504DD5AE614D562C] INFO: Default number of working threads: 4
     [0x504DD5AE614D562C] INFO: 'autotest.settings' ... is set as the Django settings module 
@@ -180,7 +189,7 @@ The ``PYTHONPATH`` and ``DJANGO_SETTINGS_MODULE`` values can be passed as
 command line arguments by the '-p' and '-s' options, respectively. The default
 number of worker sub-processes can be overridden by the '-n' option::
 
-    $ <EOxServer instal.path>/tools/asyncProcServer.py -n 6 -s "autotest.settings" -p "<EOxServer instal.path>" -p "<EOxServer instance path>"
+    $ <EOxServer install.path>/tools/asyncProcServer.py -n 6 -s "autotest.settings" -p "<EOxServer install.path>" -p "<EOxServer instance path>"
 
     [0xADDB15DB482ED425] INFO: Default number of working threads: 4
     [0xADDB15DB482ED425] INFO: Setting number of working threads to: 6
@@ -201,17 +210,18 @@ number of worker sub-processes can be overridden by the '-n' option::
     [0xADDB15DB482ED425] INFO: ATPD: hostname=holly3
     [0xADDB15DB482ED425] INFO: ATPD: pid=3345
 
-The server can be gracefully terminated by the 'Ctrl-C' or by the TERM signal. 
+The server can be gracefully terminated by using 'Ctrl-C' or the TERM signal. 
 
-ATP Demo Application 
+ATP Demo Application
 --------------------
 
-There is a demo application of the running ATPD and of the ATP as such.  This
-demo application can be executed as follows::
+There is a demo application showing the running of the ATPD and the ATP as 
+such available in the default EOxServer installation. This demo application 
+can be executed as follows::
 
-    $ export PYTHONPATH=/home/pacesm/O3S/eoxserver/trunk
+    $ export PYTHONPATH=<EOxServer install.path>:<EOxServer instance path>
     $ export DJANGO_SETTINGS_MODULE=autotest.settings
-    $ <EOxServer instal.path>/atp_test.py
+    $ <EOxServer install.path>/atp_test.py
     SpatiaLite version ..: 2.4.0    Supported Extensions:
         - 'VirtualShape'    [direct Shapefile access]
         - 'VirtualDbf'      [direct Dbf access]
@@ -236,14 +246,15 @@ Performance considerations
 --------------------------
  
 The ATP is designed for resource demanding longer running tasks (10 seconds and
-more) which in case of synchronous operation could clog the system or lead to
-connection time-outs.  On contrary, *light* tasks (less than 1 sec.) should
-preferably be executed synchronously 
+more) which in case of a synchronous operation could clog the system or lead to
+connection time-outs. On contrary, *light* tasks (less than 1 sec.) should
+preferably be executed synchronously.
 
 Further reading 
 ---------------
 
-The database model used in by the ATP subsystem is described in ":ref:`ATP Data
-Model`". The developers' guide helping with the creation of ATP based application can be
-found in ":ref:`atp_dev_guide`".  The complete API reference can be found in
-":ref:`module_resources_processes_tracker`".
+The database model used in the ATP subsystem is described in the :ref:`ATP 
+Data Model` section. The developers' guide, helping with the creation of ATP 
+based applications, can be found in the :ref:`atp_dev_guide` section.  The 
+complete API reference can be found in 
+:ref:`module_resources_processes_tracker`.
