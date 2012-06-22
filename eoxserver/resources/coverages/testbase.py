@@ -235,8 +235,6 @@ class CommandRegisterDatasetTestCase(CoverageCommandTestCase, EODatasetMixIn):
             if coverage_id:
                 coverage = self.getDatasetById(coverage_id)
             
-            import pdb; pdb.set_trace()
-            
             if not coverage:
                 self.fail("Coverage with ID '%s' was not inserted." % 
                           eo_id or coverage_id)
