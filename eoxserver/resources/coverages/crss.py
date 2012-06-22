@@ -27,14 +27,32 @@
 #-------------------------------------------------------------------------------
 
 """
- This module CRS handling utilities.
+ This module provides CRS handling utilities.
 """
 
 #-------------------------------------------------------------------------------
 
-import re 
 import logging
 from eoxserver.core.system import System
+
+#-------------------------------------------------------------------------------
+# public API 
+
+def getSupportedCRS_WMS( config = None , format_function = asShortCode ) : 
+    """ Get list of CRSes supported by WMS. If ``config`` not provided the
+    default ``System.getConfig()`` is used. The ``format_function`` is used to
+    format individual list items.""" 
+    if config is None : config = System.getConfig()
+    return __parseListOfCRS(config,"services.ows.wms","supported_crs",format_function)
+
+def getSupportedCRS_WCS( config = None , format_function = asShortCode ) : 
+    """ Get list of CRSes supported by WCS. If ``config`` not provided the
+    default ``System.getConfig()`` is used. The ``format_function`` is used to
+    format individual list items.""" 
+    if config is None : config = System.getConfig()
+    return __parseListOfCRS(config,"services.ows.wcs","supported_crs",format_function)
+
+#-------------------------------------------------------------------------------
 
 def __parseListOfCRS( config , section , field , format_function ) : 
     """ parse CRS configuartion """ 
@@ -62,26 +80,25 @@ def __parseListOfCRS( config , section , field , format_function ) :
 #-------------------------------------------------------------------------------
 # format functions 
 
-asInteger = lambda v : int(v) 
-asShortCode = lambda v : "EPSG:%d"%int(v)
-asURL = lambda v : "http://www.opengis.net/def/crs/EPSG/0/%d"%int(v) 
-asURN = lambda v : "urn:ogc:def:crs:epsg::%d"%int(v) 
-asProj4Str = lambda v : "+init=epsg:%d"%int(v)
+def asInteger( v ): 
+    """ convert EPSG code to integer """
+    return int(v) 
+
+def asShortCode( v ):  
+    """ convert EPSG code to short CRS ``EPSG:<code>`` notation """
+    return "EPSG:%d"%int(v)
+
+def asURL( v ):  
+    """ convert EPSG code to OGC URL CRS notation ``http://www.opengis.net/def/crs/EPSG/0/<code>`` notation """
+    return "http://www.opengis.net/def/crs/EPSG/0/%d"%int(v) 
+
+def asURN( v ):
+    """ convert EPSG code to OGC URN CRS notation ``urn:ogc:def:crs:epsg::<code>`` notation """
+    return "urn:ogc:def:crs:epsg::%d"%int(v) 
+
+def asProj4Str( v ) : 
+    """ convert EPSG code to *proj4* ``+init=epsg:<code>`` notation """
+    return "+init=epsg:%d"%int(v)
 
 #-------------------------------------------------------------------------------
 
-#_gerexValCRS_EPSGCode = re.compile( "^[1-9][0-9]{,6}$" ) 
-#_gerexValCRS_URL = re.compile( "^http://www.opengis.net/def/crs/EPSG/0/[1-9][0-9]{,6}$" ) 
-#_gerexValCRS_ShortCode = re.compile( "^EPSG:[1-9][0-9]{,6}$" ) 
-
-#-------------------------------------------------------------------------------
-
-def getSupportedCRS_WMS( config = None , format_function = asShortCode ) : 
-    """ get list of CRSes supported by WMS """ 
-    if config is None : config = System.getConfig()
-    return __parseListOfCRS(config,"services.ows.wms","supported_crs",format_function)
-
-def getSupportedCRS_WCS( config = None , format_function = asShortCode ) : 
-    """ get list of CRSes supported by WCS """ 
-    if config is None : config = System.getConfig()
-    return __parseListOfCRS(config,"services.ows.wcs","supported_crs",format_function)
