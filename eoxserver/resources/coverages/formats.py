@@ -50,15 +50,22 @@ from eoxserver.core.startup import StartupHandlerInterface
 class Format(object) : 
 
     """ 
-    Single format record specification 
+    Format record class. 
+    The class is rather structure with read-only properties (below). 
+    The class implements ``__str__()`` and ``__eq__()`` methods.
     """  
+
+    mimeType     = property( fget = lambda self: self.__mimeType   , doc = "MIME-type" ) 
+    driver       = property( fget = lambda self: self.__driver     , doc = "library/driver identifier" )
+    defaultExt   = property( fget = lambda self: self.__defaultExt , doc = "default extension (including dot)" )
+    isWriteable  = property( fget = lambda self: self.__isWriteable, doc = "boolean flag indicating that output can be produced" )
 
     def __init__( self , mime_type , driver , extension , is_writeable ) :  
 
-        self.mimeType    = mime_type 
-        self.driver      = driver 
-        self.defaultExt  = extension 
-        self.isWriteable = is_writeable  
+        self.__mimeType    = mime_type 
+        self.__driver      = driver 
+        self.__defaultExt  = extension 
+        self.__isWriteable = is_writeable  
 
     def __str__( self ) : 
 
@@ -174,6 +181,7 @@ class FormatRegistry(object):
         To force the default native format use None as the source format. 
 
         The format mapping follows these rules: 
+
         1. Mapping based on the explicite rules is applied if possible (defined in EOxServers
            configuration, section "services.ows.wcs20", item "source_to_native_format_map").
            If there is no mapping available the source format is kept. 
@@ -338,7 +346,10 @@ class FormatRegistry(object):
 #-------------------------------------------------------------------------------
 # regular expression validators 
 
+#: MIME-type regular expression validator (compiled reg.ex. pattern)
 _gerexValMime = re.compile("^[\w][-\w]*/[\w][-+\w]*(;[-\w]*=[-\w]*)*$")
+
+#: library driver regular expression validator (compiled reg.ex. pattern)
 _gerexValDriv = re.compile( "^[\w][-\w]*/[\w][-\w]*$" ) 
 
 def valMimeType( string ):
@@ -403,6 +414,8 @@ class FormatLoaderStartupHandler( object ) :
         """ reset handler """ 
         return self.__loadFormats( config , registry )
 
+
+#: The actual FormatLoaderStartupHandler implementation. 
 FormatLoaderStartupHandlerImplementation = StartupHandlerInterface.implement( FormatLoaderStartupHandler ) 
     
 #-------------------------------------------------------------------------------
@@ -410,7 +423,8 @@ FormatLoaderStartupHandlerImplementation = StartupHandlerInterface.implement( Fo
 
 def getFormatRegistry() : 
     """
-        Get initialised format registry.
+        Get initialised instance of the FormatRegistry class.
+        This is the preferable way to get the Format Registry. 
     """
 
     global __FORMAT_REGISTRY
