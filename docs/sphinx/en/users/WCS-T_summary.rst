@@ -38,47 +38,51 @@ Web Coverage Service - Transaction Extension
 
 Introduction 
 ------------
-This text describes the *Web Coverage Service - Transaction* (WCS-T) extension
-as implemented in the *EOxServer*. The WCS-T interface is based on 
-*Open Geospatial Consortium* (OGC) Web Coverage Service - Transaction operation 
-extension (WCS-T) `[OGC 07-068r4]`_ standard which describe in detail
-the invocation of the service. The WCS-T functionality is closely related to the
-the data model of the WCS 2.0 *Earth Observation Application Profile* (EO-AP)
-employed by the *EOxServer* and allows specification of EO-AP metadata for the
-newly inserted EO datasets. 
+
+This section describes the *Web Coverage Service - Transaction* (WCS-T) 
+extension as implemented in *EOxServer*. The WCS-T interface is specified by 
+the *Open Geospatial Consortium* (OGC) Web Coverage Service - Transaction 
+operation extension (WCS-T) `[OGC 07-068r4]`_ standard which describes the 
+invocation of the service in detail. The WCS-T functionality is closely 
+related to the data model of the WCS 2.0 *Earth Observation Application 
+Profile* (EO-WCS) employed by *EOxServer* and allows the specification of 
+EO-WCS metadata for newly inserted EO datasets.
 
 Implementation Details 
 ----------------------
 
-The *EOxServer* provides to option to insert (*Add* action) and delete
-(*Delete*)coverages (datasets in EO-AP jargon) via the WCS-T service
-invocation. 
+*EOxServer* provides to option to insert (*Add* action) and delete 
+(*Delete*) coverages (datasets in EO-WCS jargon) via the WCS-T service. 
 
 Configuration 
 ^^^^^^^^^^^^^
 
-For details on WCS-T configuration see ":ref:`ConfigurationOptionsWCST11`"
+For details on the WCS-T configuration see :ref:`ConfigurationOptionsWCST11`.
 
 Adding New Coverages
 ^^^^^^^^^^^^^^^^^^^^
+
 Currently, it is possible to insert only *Rectified* and *Referenceable*
 datasets. It is beyond the capabilities of the WCS-T service to assign
 datasets to container coverage types such as the *Rectified Stitched Mosaic* or 
-*Dataset Series*. Neither it is possible to create plain (non-EO-AP) coverages.
+*Dataset Series*. Neither is it possible to create plain (non-EO-WCS) coverages.
 
-The input image data must in valid GeoTIFF file format. No other file format is
-currently supported. The input is passed to WCS-T service as a reference (URL, e.g.,
-the *GetCoverage* KVP encoded request). It is not possible to embed the input image
-data in the WCS-T request. 
+The input image data must be in valid GeoTIFF file format. No other file 
+format is currently supported. The input is passed to the WCS-T service as a 
+reference (URL, e.g., a *GetCoverage* KVP encoded request). It is not 
+possible to embed the input image data in the WCS-T request. 
 
-The creation of a new EO-AP dataset requires specification of the EO metadata.
-These metadata can be either passed by the user (recommended way) as a reference 
-using the ``ows:medatata`` XML element, or generated automatically by the WCS-T
-service guessing some of the parameters from the GeoTIFF annotation. 
+The creation of a new EO-WCS dataset requires the specification of EO 
+metadata. These metadata can be either passed by the user (recommended way) 
+as a reference using the ``ows:medatata`` XML element, or generated 
+automatically by the WCS-T service guessing some of the parameters from the 
+GeoTIFF annotation. 
 
-The user provided EO-AP metadata can be either in form of an EOM-XML document or
-arbitrary XML document with embedded EOM-XML fragment (such as the *DescribeCoverage*
-response). 
+The user provided EO-WCS metadata can be either in form of an EO-O&M XML 
+document or arbitrary XML document with embedded EO-O&M XML fragment (such 
+as the *DescribeCoverage* response of a WCS service). 
+
+The following is an example of a valid request to add a coverage:
 
 .. code-block:: xml
 
@@ -106,12 +110,12 @@ response).
         </wcst:InputCoverages>
     </wcst:Transaction>
 
-The coverage identifier specified by the ``ows:Identifier`` element is optional.
-When not specified or the identifier cannot be used (most likely because it is
-already in use by another coverage) a new, unique identifier is generated
-automatically. Thus the WCS-T service is not bound by the user provided
-identifier and the actual identifier shall be always read from the transaction
-response:
+The coverage identifier specified by the ``ows:Identifier`` element is 
+optional. When not specified or not usable (most likely because it is 
+already in use by another coverage) a new, unique identifier is generated 
+automatically. Thus the WCS-T service is not bound to the user provided 
+identifier and the actual identifier shall always be read from the 
+transaction response:
 
 .. code-block:: xml
 
@@ -125,19 +129,18 @@ response:
         <ows:Identifier>wcstCov_LoEYNGm3d10ZhUUGdlmm</ows:Identifier>
     </TransactionResponse>
 
-Unless the there is a need for specific coverage identifier we recommend to
-leave the identifier selection to be performed by the WCS-T service and omit the
-``ows:Identifier`` element in case of WCS-T coverage inserts. 
-
+Unless there is a need for a specific coverage identifier we recommend to 
+leave the identifier selection to be performed by the WCS-T service and omit 
+the ``ows:Identifier`` element in case of WCS-T coverage inserts. 
 
 Deleting Existing Coverages 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The coverages inserted via the WCS-T Add action can be removed by means of the
-WCS-T Delete action. For security reasons, only the coverages inserted via the
-WCS-T can be actually removed via the WCS-T. The only parameter required by the
-removal request is the coverage (dataset) identifier (``wcst:InputCoverages``
-XML element): 
+The coverages inserted via the WCS-T *Add* action can be removed by means of 
+the WCS-T *Delete* action. For security reasons, only the coverages inserted 
+via WCS-T can be actually removed via WCS-T. The only parameter required in 
+the removal request is the coverage (dataset) identifier 
+(``wcst:InputCoverages`` XML element): 
 
 .. code-block:: xml
 
@@ -159,11 +162,12 @@ XML element):
 
 Asynchronous Operation
 ^^^^^^^^^^^^^^^^^^^^^^
-EOxServer supports asynchronous WCS-T request as specified by the standard `[OGC
-07-068r4]`_ . Asynchronous request processing can be invoked by any WCS-T
-request including the ``wcst:ResponseHandler`` element. This element shall
-contain an URL of the remote response handler where the response shall be sent
-when the asynchronous processing is finished: 
+
+*EOxServer* supports asynchronous WCS-T requests as specified by the `[OGC 
+07-068r4]`_ standard. Asynchronous request processing can be invoked by any 
+WCS-T request including the ``wcst:ResponseHandler`` element. This element 
+shall contain an URL of the remote response handler where the response shall 
+be sent once the asynchronous processing is finished:
 
 .. code-block:: xml
 
@@ -182,10 +186,10 @@ when the asynchronous processing is finished:
         <wcst:ResponseHandler>http://foo.eox.at/WCSTResponseHandler</wcst:ResponseHandler>
     </wcst:Transaction>
 
-Currently, WCS-T implementaition supports HTTP and FTP URL schemas for the
+Currently, the WCS-T implementation supports HTTP and FTP URL schemas for the
 response handler. In the first case the response is delivered using HTTP/POST.
 In the latter case, the response is uploaded to a remote FTP server. In case of
-FTP, the user may specify a full filename of the delivered file or target
+FTP, the user may specify a full file-name of the delivered file or target
 directory. If the FTP target is a directory the file-name of the stored response
 is generated from the request ID returned by the acknowledgement response:
 
@@ -201,11 +205,11 @@ is generated from the request ID returned by the acknowledgement response:
         <RequestId>wcstReq_6syhsJbO2TtYwVxFHOur</RequestId>
     </Acknowledgement>
 
-It is worth to mention that request identifier can be specified in the WCS-T
-request however this identifier provides only hint to the WCS-T server and the
-server may change it to another value. Thus it is recommended to rely on the
-request identifier written the WCS-T response and better omit the optional 
-``wcst:RequestId`` XML element in the WCS-T request. 
+It is worth to mention that request identifiers can be specified in WCS-T 
+requests, however this identifier provides only a hint to the WCS-T server 
+and the server may change it to another value. Thus it is recommended to 
+rely on the request identifier written in the WCS-T response and better omit 
+the optional ``wcst:RequestId`` XML element in the WCS-T request. 
 
 It is possible to specify user/password for the response handler for both HTTP
 and FTP using the typical URL structure:: 
@@ -214,8 +218,9 @@ and FTP using the typical URL structure::
 
 No other authentication is currently supported. 
 
-The asynchronous WCS-T operation requires the ATP (Asynchronous Task Processing)subsystem and, in particular,
-an ATPD (ATP Daemon) running. For more info on the ATP subsystem see ":ref:`atp_sum`".
+The asynchronous WCS-T operation requires the ATP (Asynchronous Task 
+Processing) subsystem and, in particular, an ATPD (ATP Daemon) running. For 
+more info on the ATP subsystem see the :ref:`atp_sum` section.
 
 References
 ----------

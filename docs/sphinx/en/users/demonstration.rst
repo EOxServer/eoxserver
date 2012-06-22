@@ -76,7 +76,7 @@ Interesting parts of the repsonse:
 
   .. code-block:: xml
 
-    <ows:Profile>http://www.opengis.net/spec/WCS_profile_earth-observation/1.0/conf/ap-eo</ows:Profile>
+    <ows:Profile>http://www.opengis.net/spec/WCS_application-profile_earth-observation/1.0/conf/eowcs</ows:Profile>
 
 * The additional EO-WCS operation:
 
@@ -86,7 +86,13 @@ Interesting parts of the repsonse:
         <ows:DCP>
             <ows:HTTP>
                 <ows:Get xlink:href="http://eoxserver.org/demo_stable/ows?" xlink:type="simple"/>
-                <ows:Post xlink:href="http://eoxserver.org/demo_stable/ows?" xlink:type="simple"/>
+                <ows:Post xlink:href="http://eoxserver.org/demo_stable/ows?" xlink:type="simple">
+                    <ows:Constraint name="PostEncoding">
+                        <ows:AllowedValues>
+                            <ows:Value>XML</ows:Value>
+                        </ows:AllowedValues>
+                    </ows:Constraint>
+                </ows:Post>
             </ows:HTTP>
         </ows:DCP>
     </ows:Operation>
@@ -108,20 +114,20 @@ Interesting parts of the repsonse:
         <wcs:CoverageId>mosaic_MER_FRS_1P_RGB_reduced</wcs:CoverageId>
         <wcs:CoverageSubtype>RectifiedStitchedMosaic</wcs:CoverageSubtype>
     </wcs:CoverageSummary>
-        
+
 * There is a DatasetSeries available:
 
   .. code-block:: xml
 
     <wcseo:DatasetSeriesSummary>
         <ows:WGS84BoundingBox>
-            <ows:LowerCorner>-4.042969 32.080078</ows:LowerCorner>
-            <ows:UpperCorner>33.134766 45.175781</ows:UpperCorner>
+            <ows:LowerCorner>-3.43798100 32.26454100</ows:LowerCorner>
+            <ows:UpperCorner>27.96859100 46.21844500</ows:UpperCorner>
         </ows:WGS84BoundingBox>
         <wcseo:DatasetSeriesId>MER_FRS_1P_reduced</wcseo:DatasetSeriesId>
         <gml:TimePeriod gml:id="MER_FRS_1P_reduced_timeperiod">
-            <gml:beginPosition>2006-08-16T00:00:00</gml:beginPosition>
-            <gml:endPosition>2006-08-31T00:00:00</gml:endPosition>
+            <gml:beginPosition>2006-08-16T09:09:29</gml:beginPosition>
+            <gml:endPosition>2006-08-30T10:13:06</gml:endPosition>
         </gml:TimePeriod>
     </wcseo:DatasetSeriesSummary>
 
@@ -167,7 +173,7 @@ Dataset
 StitchedMosaic
 ~~~~~~~~~~~~~~
 
-`DescribeEOCoverageSet StitchedMosaic (3 Datasets returned) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOId=mosaic_MER_FRS_1P_RGB_reduced>`_::
+`DescribeEOCoverageSet StitchedMosaic (4 Datasets returned) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOId=mosaic_MER_FRS_1P_RGB_reduced>`_::
 
     http://eoxserver.org/demo_stable/ows?
         service=wcs&
@@ -175,7 +181,7 @@ StitchedMosaic
         request=DescribeEOCoverageSet&
         EOId=mosaic_MER_FRS_1P_RGB_reduced
 
-`DescribeEOCoverageSet StitchedMosaic, subset in time (2 Datasets returned) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOId=mosaic_MER_FRS_1P_RGB_reduced&subset=phenomenonTime(%222006-08-01%22,%222006-08-22T09:22:00Z%22)>`_::
+`DescribeEOCoverageSet StitchedMosaic, subset in time (3 Datasets returned) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOId=mosaic_MER_FRS_1P_RGB_reduced&subset=phenomenonTime(%222006-08-01%22,%222006-08-22T09:22:00Z%22)>`_::
 
     http://eoxserver.org/demo_stable/ows?
         service=wcs&
@@ -207,7 +213,7 @@ StitchedMosaic
 DatasetSeries
 ~~~~~~~~~~~~~~
 
-`DescribeEOCoverageSet DatasetSeries (3 Datasets returned) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=describeeocoverageset&eoid=MER_FRS_1P_reduced>`_::
+`DescribeEOCoverageSet DatasetSeries (5 Datasets returned) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=describeeocoverageset&eoid=MER_FRS_1P_reduced>`_::
 
     http://eoxserver.org/demo_stable/ows?
         service=wcs&
@@ -215,7 +221,7 @@ DatasetSeries
         request=describeeocoverageset&
         eoid=MER_FRS_1P_reduced
 
-`DescribeEOCoverageSet DatasetSeries, trim subset in time (2 Datasets returned) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=describeeocoverageset&eoid=MER_FRS_1P_reduced&subset=phenomenonTime(%222006-08-01%22,%222006-08-22T09:22:00Z%22)>`_::
+`DescribeEOCoverageSet DatasetSeries, trim subset in time (4 Datasets returned) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=describeeocoverageset&eoid=MER_FRS_1P_reduced&subset=phenomenonTime(%222006-08-01%22,%222006-08-22T09:22:00Z%22)>`_::
 
     http://eoxserver.org/demo_stable/ows?
         service=wcs&
@@ -224,7 +230,7 @@ DatasetSeries
         eoid=MER_FRS_1P_reduced&
         subset=phenomenonTime("2006-08-01","2006-08-22T09:22:00Z")
 
-`DescribeEOCoverageSet DatasetSeries, slice subset in time (1 Dataset returned) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=describeeocoverageset&eoid=MER_FRS_1P_reduced&subset=phenomenonTime(%222006-08-22T09:20:58Z%22)>`_::
+`DescribeEOCoverageSet DatasetSeries, slice subset in time (2 Dataset returned) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=describeeocoverageset&eoid=MER_FRS_1P_reduced&subset=phenomenonTime(%222006-08-22T09:20:58Z%22)>`_::
 
     http://eoxserver.org/demo_stable/ows?
         service=wcs&
@@ -233,7 +239,7 @@ DatasetSeries
         eoid=MER_FRS_1P_reduced&
         subset=phenomenonTime("2006-08-22T09:20:58Z")
 
-`DescribeEOCoverageSet DatasetSeries, trim subset in time trim, containment contains (1 Dataset returned) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=describeeocoverageset&eoid=MER_FRS_1P_reduced&subset=phenomenonTime(%222006-08-01%22,%222006-08-22T09:22:00Z%22)&containment=contains>`_::
+`DescribeEOCoverageSet DatasetSeries, trim subset in time trim, containment contains (2 Dataset returned) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=describeeocoverageset&eoid=MER_FRS_1P_reduced&subset=phenomenonTime(%222006-08-01%22,%222006-08-22T09:22:00Z%22)&containment=contains>`_::
 
     http://eoxserver.org/demo_stable/ows?
         service=wcs&
@@ -243,7 +249,7 @@ DatasetSeries
         subset=phenomenonTime("2006-08-01","2006-08-22T09:22:00Z")&
         containment=contains
 
-`DescribeEOCoverageSet DatasetSeries, subset in Lat and Long (3 Datasets returned) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=describeeocoverageset&eoid=MER_FRS_1P_reduced&subset=Lat,http://www.opengis.net/def/crs/EPSG/0/4326(32,47)&subset=Long,http://www.opengis.net/def/crs/EPSG/0/4326(11,33)>`_::
+`DescribeEOCoverageSet DatasetSeries, subset in Lat and Long (5 Datasets returned) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=describeeocoverageset&eoid=MER_FRS_1P_reduced&subset=Lat,http://www.opengis.net/def/crs/EPSG/0/4326(32,47)&subset=Long,http://www.opengis.net/def/crs/EPSG/0/4326(11,33)>`_::
 
     http://eoxserver.org/demo_stable/ows?
         service=wcs&
@@ -253,7 +259,7 @@ DatasetSeries
         subset=Lat,http://www.opengis.net/def/crs/EPSG/0/4326(32,47)&
         subset=Long,http://www.opengis.net/def/crs/EPSG/0/4326(11,33)
 
-`DescribeEOCoverageSet DatasetSeries, subset in Lat and Long, containment contains (1 Dataset returned) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=describeeocoverageset&eoid=MER_FRS_1P_reduced&subset=Lat,http://www.opengis.net/def/crs/EPSG/0/4326(32,47)&subset=Long,http://www.opengis.net/def/crs/EPSG/0/4326(11,33)&containment=contains>`_::
+`DescribeEOCoverageSet DatasetSeries, subset in Lat and Long, containment contains (2 Dataset returned) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=describeeocoverageset&eoid=MER_FRS_1P_reduced&subset=Lat,http://www.opengis.net/def/crs/EPSG/0/4326(32,47)&subset=Long,http://www.opengis.net/def/crs/EPSG/0/4326(11,33)&containment=contains>`_::
 
     http://eoxserver.org/demo_stable/ows?
         service=wcs&
