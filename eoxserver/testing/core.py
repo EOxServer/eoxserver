@@ -71,6 +71,7 @@ class CommandTestCase(EOxServerTestCase):
     name = ""
     args = ()
     kwargs = {}
+    expect_failure = False  
     
     def setUp(self):
         super(CommandTestCase, self).setUp()
@@ -109,8 +110,9 @@ class CommandTestCase(EOxServerTestCase):
             execute_from_command_line(args)
         except SystemExit:
             if not self.expect_failure:
-                self.fail("Command failed and exited. Message was: '%s'" %
-                          "".join(sys.stderr.getvalue().rsplit("\n", 1)))
+                self.fail("Command '%s' failed and exited. Message was: '%s'" % ( 
+                          " ".join( args ) , 
+                          "".join(sys.stderr.getvalue().rsplit("\n", 1)) ) ) 
         
 
 class CommandFaultTestCase(CommandTestCase):
