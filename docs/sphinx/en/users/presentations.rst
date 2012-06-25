@@ -67,12 +67,13 @@ The `Angewandte Geoinformatik (AGIT) <http://agit.at>`_ is a conference for
 applied geo-informatics held annually in Salzburg, Austria. Since 5 years it 
 includes the OSGeo Day where the presentation was given.
 
-HMA-AWG 2012, ESA ESRIN
------------------------
+.. _HMA-AWG February 2012, ESA ESRIN:
+
+HMA-AWG February 2012, ESA ESRIN
+--------------------------------
 
 `WCS Standardization & Reference Implementation <https://wiki.services.eoportal.
-org/tiki-download_wiki_attachment.php?attId=1452&page=HMA%20AWG%20Meeting%231%20
-2012%2015%20February%202012&download=y>`_
+org/tiki-index.php?page=HMA%20AWG%20Meeting%231%202012%2015%20February%202012>`_
 
 :download:`Download the presentation 
 <presentations/20120215_EOX_WCS_O3S_HMA-AWG.pdf>`
@@ -124,3 +125,14 @@ on-for-online-access-to-large-collections-of-earth-observation-data/>`_
 local conference focused on Free and Open Source Software for Geospatial in 
 Central and Eastern Europe. This year, it is organized together with the 
 traditional Geoinformatics FCE CTU conference in Prague.
+
+HMA-AWG June 2012, ESA ESRIN
+----------------------------
+
+`Web Coverage Service 2.0 MapServer Implementation <https://wiki.services.eoport
+al.org/tiki-index.php?page=HMA%20AWG%20Meeting%20no2%202012%208%20June%202012>`_
+
+:download:`Download the presentation 
+<presentations/20120608_EOX_WCS_O3S_HMA-AWG.pdf>`
+
+Description: See :ref:`HMA-AWG February 2012, ESA ESRIN` above
