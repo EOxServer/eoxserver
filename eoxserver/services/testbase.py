@@ -5,6 +5,7 @@
 # Authors: Stephan Krause <stephan.krause@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
 #          Fabian Schindler <fabian.schindler@eox.at>
+#          Martin Paces <martin.paces@eox.at>
 #
 #-------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
@@ -45,6 +46,7 @@ from eoxserver.core.util.xmltools import XMLDecoder
 from eoxserver.testing.core import (
     EOxServerTestCase, BASE_FIXTURES
 )
+from eoxserver.testing.xcomp import xmlCompareFiles
 
 # THIS IS INTENTIONALLY DOUBLED DUE TO A BUG IN MIMETYPES!
 mimetypes.init()
@@ -146,14 +148,37 @@ class OWSTestCase(EOxServerTestCase):
     def getExpectedFileName(self, file_type):
         return "%s.%s" % (self.__class__.__name__, self.getFileExtension(file_type))
     
+    def _testXMLComparison( self , suffix = "xml" , response = None ): 
+        """
+        Helper function for the basic XML tree comparison to be used by `testXMLComparison`.
+        """
+        expected_path = os.path.join( self.getExpectedFileDir(), self.getExpectedFileName(suffix) )
+        response_path = os.path.join( self.getResponseFileDir(), self.getResponseFileName(suffix) )
+
+        # check that the expected XML response exists 
+        if not os.path.isfile( response_path ) : 
+            self.skipTest( "Missing the expected XML response '%s'." % expected_path )
+
+        # store the XML response 
+        if response is None : response = self.getXMLData()
+        fid = file(response_path, 'w') ; fid.write(response) ; fid.close()
+            
+        # perform the actual comparison 
+        try: 
+            xmlCompareFiles( expected_path , response_path ) 
+        except Exception as e : 
+            self.fail( "Response returned in '%s' is not equal to expected response in '%s'. REASON: %s " % \
+                    ( response_path , expected_path , str(e) ) )
+
+
     def _testBinaryComparison(self, file_type, Data=None):
         """
-        Helper function for the `testBinaryComparisonXML` and
-        `testBinaryComparisonRaster` functions.
+        Helper function for the `testBinaryComparisonRaster` function.
         """
         expected_path = os.path.join(self.getExpectedFileDir(), self.getExpectedFileName(file_type))
         response_path = os.path.join(self.getResponseFileDir(), self.getResponseFileName(file_type))
 
+        
         try:
             f = open(expected_path, 'r')
             expected = f.read()
@@ -339,8 +364,8 @@ class XMLTestCase(OWSTestCase):
         except etree.Error as e:
             self.fail(str(e))
         
-    def testBinaryComparisonXML(self):
-        self._testBinaryComparison("xml")
+    def testXMLComparison(self):
+        self._testXMLComparison()
 
 class ExceptionTestCase(XMLTestCase):
     """
@@ -561,7 +586,7 @@ class WCSTransactionTestCase(XMLTestCase):
     def getDataFullPath(self , path_to):
         return os.path.abspath( os.path.join( self.getDataFileDir() , path_to) )
 
-    def testBinaryComparisonXML(self):
+    def testXMLComparison(self):
         # the TimeStamp and RequestId elements are set during ingestion and 
         # thus have to be explicitly unified
         tree = etree.fromstring(self.getXMLData())
@@ -570,7 +595,7 @@ class WCSTransactionTestCase(XMLTestCase):
         for node in tree.findall("{http://www.opengis.net/wcs/1.1/wcst}TimeStamp"):
             node.text = "2011-01-01T00:00:00Z"
         self.response.content = etree.tostring(tree, encoding="ISO-8859-1")
-        super(WCSTransactionTestCase, self).testBinaryComparisonXML()
+        super(WCSTransactionTestCase, self).testXMLComparison()
 
     def testResponseIdComparisonAdd(self):
         """
@@ -590,8 +615,9 @@ class WCSTransactionTestCase(XMLTestCase):
     def testValidateDescribeCoverage(self):
         self.testValidate(self.responseDescribeCoverage.content)
 
-    def testBinaryComparisonXMLDescribeCoverage(self):
-        self._testBinaryComparison("TransactionDescribeCoverage", self.responseDescribeCoverage.content)
+    def testXMLComparisonDescribeCoverage(self):
+        #self._testBinaryComparison("TransactionDescribeCoverage", self.responseDescribeCoverage.content)
+        self._testXMLComparison( "TransactionDescribeCoverage" , self.responseDescribeCoverage.content ) 
 
     def testStatusGetCoverage(self):
         """
@@ -608,11 +634,12 @@ class WCSTransactionTestCase(XMLTestCase):
     def testValidateDeleteCoverage(self):
         self.testValidate(self.responseDeleteCoverage.content)
 
-    def testBinaryComparisonXMLDeleteCoverage(self):
+    def testXMLComparisonDeleteCoverage(self):
         tree = etree.fromstring(self.responseDeleteCoverage.content)
         for node in tree.findall("{http://www.opengis.net/wcs/1.1/wcst}RequestId"):
             node.text = "identifier"
-        self._testBinaryComparison("TransactionDeleteCoverage", etree.tostring(tree, encoding="ISO-8859-1"))
+        #self._testBinaryComparison("TransactionDeleteCoverage", etree.tostring(tree, encoding="ISO-8859-1"))
+        self._testXMLComparison( "TransactionDeleteCoverage" , etree.tostring(tree, encoding="ISO-8859-1"))
 
     def testResponseIdComparisonDelete(self):
         """
@@ -632,8 +659,9 @@ class WCSTransactionTestCase(XMLTestCase):
     def testValidateDescribeCoverageDeleted(self):
         self.testValidate(self.responseDescribeCoverageDeleted.content)
 
-    def testBinaryComparisonXMLDescribeCoverageDeleted(self):
-        self._testBinaryComparison("TransactionDescribeCoverageDeleted", self.responseDescribeCoverageDeleted.content)
+    def testXMLComparisonDescribeCoverageDeleted(self):
+        #self._testBinaryComparison("TransactionDescribeCoverageDeleted", self.responseDescribeCoverageDeleted.content)
+        self._testXMLComparison( "TransactionDescribeCoverageDeleted" , self.responseDescribeCoverageDeleted.content )
 
     def _testResponseIdComparison(self , id , rcontent ):
         """
@@ -744,7 +772,7 @@ class WCS20DescribeEOCoverageSetSectionsTestCase(XMLTestCase):
         self.assertItemsEqual(sections, self.getExpectedSections())
     
 class WCS20GetCoverageMultipartTestCase(MultipartTestCase):
-    def testBinaryComparisonXML(self):
+    def testXMLComparison(self):
         # The timePosition tag depends on the actual time the request was 
         # answered. It has to be explicitly unified.
         tree = etree.fromstring(self.getXMLData())
@@ -755,7 +783,7 @@ class WCS20GetCoverageMultipartTestCase(MultipartTestCase):
             node.text = "2011-01-01T00:00:00Z"
         self.xmlData = etree.tostring(tree, encoding="ISO-8859-1")
         
-        super(WCS20GetCoverageMultipartTestCase, self).testBinaryComparisonXML()
+        super(WCS20GetCoverageMultipartTestCase, self).testXMLComparison()
 
 class WCS20GetCoverageRectifiedGridCoverageMultipartTestCase(
     WCS20GetCoverageMultipartTestCase, 
