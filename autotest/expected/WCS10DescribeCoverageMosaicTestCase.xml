@@ -1,15 +1,8 @@
-<?xml version='1.0' encoding="ISO-8859-1" ?>
-<CoverageDescription
-   version="1.0.0" 
-   updateSequence="20110610T153000Z" 
-   xmlns="http://www.opengis.net/wcs" 
-   xmlns:xlink="http://www.w3.org/1999/xlink" 
-   xmlns:gml="http://www.opengis.net/gml" 
-   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-   xsi:schemaLocation="http://www.opengis.net/wcs http://schemas.opengis.net/wcs/1.0.0/describeCoverage.xsd">
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<CoverageDescription xmlns="http://www.opengis.net/wcs" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:gml="http://www.opengis.net/gml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.0.0" updateSequence="20110610T153000Z" xsi:schemaLocation="http://www.opengis.net/wcs http://schemas.opengis.net/wcs/1.0.0/describeCoverage.xsd">
   <CoverageOffering>
-  <name>mosaic_MER_FRS_1P_RGB_reduced</name>
-  <label>mosaic_MER_FRS_1P_RGB_reduced</label>
+    <name>mosaic_MER_FRS_1P_RGB_reduced</name>
+    <label>mosaic_MER_FRS_1P_RGB_reduced</label>
     <lonLatEnvelope srsName="urn:ogc:def:crs:OGC:1.3:CRS84">
       <gml:pos>-3.75 32.158895</gml:pos>
       <gml:pos>28.326165 46.3</gml:pos>
@@ -50,9 +43,9 @@
             <name>red</name>
             <label>red</label>
             <values>
-            <interval>
-            <min>0 255</min>
-            </interval>
+              <interval>
+                <min>0 255</min>
+              </interval>
             </values>
           </AxisDescription>
         </axisDescription>
@@ -61,9 +54,9 @@
             <name>green</name>
             <label>green</label>
             <values>
-            <interval>
-            <min>0 255</min>
-            </interval>
+              <interval>
+                <min>0 255</min>
+              </interval>
             </values>
           </AxisDescription>
         </axisDescription>
@@ -72,9 +65,9 @@
             <name>blue</name>
             <label>blue</label>
             <values>
-            <interval>
-            <min>0 255</min>
-            </interval>
+              <interval>
+                <min>0 255</min>
+              </interval>
             </values>
           </AxisDescription>
         </axisDescription>
@@ -82,11 +75,15 @@
     </rangeSet>
     <supportedCRSs>
       <requestResponseCRSs>EPSG:4326</requestResponseCRSs>
+      <requestResponseCRSs>EPSG:3857</requestResponseCRSs>
+      <requestResponseCRSs>EPSG:900913</requestResponseCRSs>
       <nativeCRSs>EPSG:4326</nativeCRSs>
     </supportedCRSs>
-    <supportedFormats nativeFormat="GTiff">
-      <formats>GTiff</formats>
-      <formats>GTiff_</formats>
+    <supportedFormats nativeFormat="image/tiff">
+      <formats>image/tiff</formats>
+      <formats>image/jp2</formats>
+      <formats>application/x-netcdf</formats>
+      <formats>application/x-hdf</formats>
     </supportedFormats>
     <supportedInterpolations default="nearest neighbor">
       <interpolationMethod>nearest neighbor</interpolationMethod>
