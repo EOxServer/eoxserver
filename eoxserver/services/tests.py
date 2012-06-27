@@ -5,6 +5,7 @@
 # Authors: Stephan Krause <stephan.krause@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
 #          Fabian Schindler <fabian.schindler@eox.at>
+#          Martin Paces <martin.paces@eox.at>
 #
 #-------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
@@ -591,13 +592,14 @@ class WCS20DescribeEOCoverageSetDatasetSeriesStitchedMosaicTestCase(eoxstest.WCS
 # WCS 2.0: Exceptions
 #===============================================================================
 
-class WCS20GetCoverageFormatMissingFaultTestCase(eoxstest.ExceptionTestCase):
-    def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced"
-        return (params, "kvp")
-    
-    def getExpectedExceptionCode(self):
-        return "MissingParameterValue"
+# after WCS 2.0.1 implementation does not lead to an error anymore 
+#class WCS20GetCoverageFormatMissingFaultTestCase(eoxstest.ExceptionTestCase):
+#    def getRequest(self):
+#        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced"
+#        return (params, "kvp")
+#    
+#    def getExpectedExceptionCode(self):
+#        return "MissingParameterValue"
 
 class WCS20GetCoverageFormatUnsupportedFaultTestCase(eoxstest.ExceptionTestCase):
     def getRequest(self):
@@ -632,6 +634,15 @@ class WCS20GetCoverageDatasetTestCase(eoxstest.RectifiedGridCoverageTestCase):
 #==============================================================================
 # WCS 2.0: Formats
 #==============================================================================
+
+# WCS 2.0.1 introduced the native format, i.e., default format in case of missing format specification
+class WCS20GetCoverageNativeTestCase(eoxstest.RectifiedGridCoverageTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced"
+        return (params, "kvp")
+
+    def getFileExtension(self, part=None):
+        return "tif"
 
 class WCS20GetCoverageJPEG2000TestCase(eoxstest.RectifiedGridCoverageTestCase):
     def getRequest(self):
