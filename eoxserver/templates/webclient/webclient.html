@@ -218,9 +218,7 @@ function initMap() {
     infoControl.activate();
 
     // Attach to datetime_change event
-    $('#map_div').bind('datetime_change', function() {
-        
-    });
+    $('#map_div').bind('datetime_changed', updateWMSParams);
 }
 
 function initGUI() {
