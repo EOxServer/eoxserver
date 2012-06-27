@@ -1,4 +1,4 @@
-.. Module eoxserver.resources.coverages.covmgrs
+.. Module eoxserver.resources.coverages.crss
   #-----------------------------------------------------------------------------
   # $Id$
   #
