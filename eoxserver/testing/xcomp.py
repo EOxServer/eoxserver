@@ -29,7 +29,10 @@
 #-------------------------------------------------------------------------------
 #
 
+""" Simple XML documets' comparator. """
+
 import xml.dom.minidom as dom 
+import types 
 
 # define node types 
 ELEMENT_NODE                = dom.Element.ELEMENT_NODE
@@ -199,27 +202,27 @@ def _compareNode( n0 , n1 , level = 0 , path = "/" , verbose = False ) :
 #-------------------------------------------------------------------------------
 
 def xmlCompareDOMs( xml0 , xml1  , verbose = False ) : 
-    """ compare two xml documents passed as parsed xml.dom.minidom XML trees """
+    """ Compare two XML documents passed as DOM trees (xml.dom.minidom)."""
 
     return _compareNode( xml0 , xml1 , verbose = verbose ) 
 
 
 def xmlCompareStrings( str0 , str1  , verbose = False ) : 
-    """ compare XML strings """ 
+    """ Compare two XML documents passed as strings. """ 
 
-    def parse( src ) : 
+    def parse( src , label ) : 
         try : 
             return dom.parseString( src ) 
         except Exception as e : 
-            raise XMLParseError , "Failed to parse the XML string! %s" % ( src , str(e) ) 
+            raise XMLParseError , "Failed to parse %s XML string! %s" % ( label , str(e) ) 
 
-    return xmlCompareDOMs( parse(str0) , parse(str1) , verbose ) 
+    return xmlCompareDOMs( parse(str0,"the first") , parse(str1,"the second") , verbose ) 
 
 
 def xmlCompareFiles( src0 , src1 , verbose = False ) : 
-    """ compare XML files """ 
+    """ Compare two XML documents passed as filenames, file or file-like objects.""" 
 
-    def parse( src ) : 
+    def parseFileName( src ) : 
         fid = None 
         try : 
             fid = file( src )
@@ -232,7 +235,16 @@ def xmlCompareFiles( src0 , src1 , verbose = False ) :
             if fid is not None : fid.close()
             raise XMLParseError , "Failed to parse the \"%s\" file! %s" % ( src , str(e) ) 
 
-    return xmlCompareDOMs( parse(src0) , parse(src1) , verbose ) 
+    def parseFileObj( src , label ) : 
+        try : 
+            return dom.parse( src ) 
+        except Exception as e : 
+            raise XMLParseError , "Failed to parse %s XML string! %s" % ( label , str(e) ) 
+
+    def parse( src , label ) : 
+        return  parseFileName( src ) if ( type(src) in types.StringTypes ) else parseFileObj( src , label ) 
+
+    return xmlCompareDOMs( parse(src0,"the first") , parse(src1,"the second") , verbose ) 
 
 #-------------------------------------------------------------------------------
 
