@@ -74,9 +74,13 @@ class Format(object) :
 
     def __eq__( self , other ) : 
 
-        return  (( self.mimeType == other.mimeType ) \
-                and ( self.driver == other.driver ) \
-                and ( self.defaultExt == other.defaultExt ))
+        try :
+
+            return  (   ( self.mimeType == other.mimeType ) \
+                    and ( self.driver == other.driver ) \
+                    and ( self.defaultExt == other.defaultExt ))
+
+        except AttributeError : return False 
 
 #-------------------------------------------------------------------------------
 
