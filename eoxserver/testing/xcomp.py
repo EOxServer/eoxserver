@@ -150,7 +150,7 @@ def _compareNode( n0 , n1 , level = 0 , path = "/" , verbose = False ) :
     """ compare DOM node or element subtree """
     
     #nn0 , nn1 = _getNodeName( n0 ), _getNodeName( n1 )
-    nn0 , nn1 = n0.nodeName, n0.nodeName
+    nn0 , nn1 = n0.nodeName, n1.nodeName
 
     path0 = "%s/%s"%( path , nn0 ) if level > 1 else "/%s"%nn0 if level == 1 else _getNodeName( n0 )  
     path1 = "%s/%s"%( path , nn1 ) if level > 1 else "/%s"%nn1 if level == 1 else _getNodeName( n0 )
@@ -197,7 +197,7 @@ def _compareNode( n0 , n1 , level = 0 , path = "/" , verbose = False ) :
 
     # make sure there are no remaining nodes 
     if not (( nn0 is None ) and ( nn1 is None )) :  
-        raise XMLMismatchError , "Childern count mismatch! PATH=\"%s\""%path 
+        raise XMLMismatchError , "Childern count mismatch! PATH=\"%s\""%path0
 
 #-------------------------------------------------------------------------------
 
