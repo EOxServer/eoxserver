@@ -4,6 +4,7 @@
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
+#          Martin Paces <martin.paces@eox.at>
 #
 #-------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
@@ -40,8 +41,6 @@ from eoxserver.processing.mosaic import MosaicContribution
 
 from eoxserver.resources.coverages.formats import getFormatRegistry
 from eoxserver.resources.coverages.crss import getSupportedCRS_WCS, asURL
-
-
 
 def _adjustPrecision(string, is_projected=False):
     return string.replace("%f", "%.3f" if is_projected else "%.8f")
@@ -223,7 +222,7 @@ class CoverageGML10Encoder(XMLEncoder):
                     "%s_grid" % coverage.getCoverageId()
                 ),)
             ])
-     
+    
     def encodeSubsetDomainSet(self, coverage, srid, size, extent):
         if coverage.getType() == "eo.ref_dataset":
             return self._makeElement("gml", "domainSet", [
@@ -533,24 +532,6 @@ class WCS20EOAPEncoder(WCS20Encoder):
             ])
         ])
         return self._makeElement("wcs", "CoverageDescription", sub_nodes)
-    
-
-    #TODO: remove once fully supported by mapserver 
-    def encodeSupportedFormats( self ) : 
-        
-        # retrieve the format registry 
-        FormatRegistry = getFormatRegistry() 
-
-        supported_formats = map( lambda f : f.mimeType , FormatRegistry.getSupportedFormatsWCS() ) 
-
-        el = [] 
-
-        for sf in supported_formats : 
-
-            el.append( self._makeElement( "wcs" , "formatSupported" , sf ) ) 
-
-        return el 
-
 
     #TODO: remove once fully supported by mapserver 
     def encodeSupportedCRSs( self ) : 
@@ -565,7 +546,58 @@ class WCS20EOAPEncoder(WCS20Encoder):
             el.append( self._makeElement( "crs" , "crsSupported" , sc ) ) 
 
         return el 
+    
+    def encodeRangeSet( self , reference , mimeType ) :
 
+        return self._makeElement("gml", "rangeSet", 
+            [( "gml","File" , 
+                [("gml","rangeParameters",
+                    [( "@xlink" , "arcrole" , "fileReference" ), 
+                     ( "@xlink" , "href" , reference ), 
+                     ( "@xlink" , "role" , mimeType ), 
+                    ]),
+                 ("gml","fileReference",reference), 
+                 ("gml","fileStructure",[]), 
+                 ("gml","mimeType",mimeType), 
+                ]),
+            ]) 
+
+    def encodeReferenceableDataset( self , coverage , reference , mimeType , is_root = False , subset = None ) : 
+
+        # handle subset 
+
+        if subset is None : 
+            # whole area - no subset 
+            domain = self.encodeDomainSet(coverage)
+            eomd   = self.encodeEOMetadata(coverage)
+            wgs84_extent = coverage.getWGS84Extent()
+
+        else : 
+        
+            # subset is given 
+            srid, size, extent, footprint = subset 
+
+            domain = self.encodeSubsetDomainSet(coverage, srid, size, extent)
+            eomd   = self.encodeEOMetadata(coverage, poly=footprint)
+
+            # get the WGS84 extent
+            poly = Polygon.from_bbox(extent)
+            poly.srid = srid
+            poly.transform(4326)
+            wgs84_extent = poly.extent
+
+        sub_nodes = []  
+
+        if is_root:
+            sub_nodes.append( ("@xsi", "schemaLocation", "http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd") )
+
+        sub_nodes.extend([
+            ("@gml", "id", self._getGMLId(coverage.getCoverageId())),
+            (self.encodeBoundedBy(*wgs84_extent),),(domain,),
+            (self.encodeRangeSet( reference , mimeType ),),
+            (self.encodeRangeType(coverage),),(eomd,),])
+
+        return self._makeElement("wcseo", "ReferenceableDataset", sub_nodes)
 
 
     def encodeSubsetCoverageDescription(self, coverage, srid, size, extent, footprint, is_root=False):

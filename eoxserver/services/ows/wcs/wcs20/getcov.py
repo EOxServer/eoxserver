@@ -286,41 +286,30 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
 
             resp = self._get_default_response(dst_filename, format.mimeType , filename)
 
-        elif media_type == "multipart/related" or media_type == "multipart/mixed":
+        elif media_type in ( "multipart/related" , "multipart/mixed" ) :
 
             encoder = WCS20EOAPEncoder()
-            
-            if subset is not None:
 
-                # get new footprint
+            reference = "coverage/%s" % filename
+            mpsubtype = media_type.partition("/")[2]
+            
+            if subset is None : 
+                _subset = None
+            else : 
                 footprint = GEOSGeometry(get_footprint_wkt(dst_filename))
-                if subset.crs_id != "imageCRS":
-                    cov_desc_el = encoder.encodeSubsetCoverageDescription(
-                        coverage,
-                        subset.crs_id,
-                        (x_size, y_size),
-                        (subset.minx, subset.miny, subset.maxx, subset.maxy),
-                        footprint,
-                        True
-                    )
 
+                if subset.crs_id == "imageCRS":
+                    _subset = ( 4326, (x_size, y_size), footprint.extent, footprint ) 
                 else:
+                    _subset = ( subset.crs_id, (x_size, y_size),
+                        (subset.minx, subset.miny, subset.maxx, subset.maxy), footprint ) 
 
-                    cov_desc_el = encoder.encodeSubsetCoverageDescription(
-                        coverage,
-                        4326,
-                        (x_size, y_size),
-                        footprint.extent,
-                        footprint,
-                        True
-                    )
-            else:
-
-                cov_desc_el = encoder.encodeCoverageDescription(coverage, True)
+            cov_desc_el = encoder.encodeReferenceableDataset(coverage,reference,mime_type,True,_subset)
             
-            
-            resp = self._get_multipart_response(
-                dst_filename, mime_type, DOMElementToXML(cov_desc_el), filename )
+            # NOTE: the multipart subtype will be the same as the one requested 
+            resp = self._get_multipart_response( dst_filename, reference , 
+                        format.mimeType, DOMElementToXML(cov_desc_el), filename ,
+                        subtype = mpsubtype )
 
         else:
             raise InvalidRequestException(
@@ -349,7 +338,7 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
         
         return resp
     
-    def _get_multipart_response(self, dst_filename, mime_type, cov_desc, filename):
+    def _get_multipart_response(self, dst_filename, reference, mime_type, cov_desc, filename , subtype = "related" ):
         
         xml_msg = "Content-Type: text/xml\n\n%s" % cov_desc
                 
@@ -357,15 +346,18 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
         
         data = f.read()
         
-        data_msg = "Content-Type: %s\nContent-Disposition: attachment; filename=\"%s\"\n\n%s" % (
-            str(mime_type), str(filename), data
-        )
+        data_msg = "Content-Type: %s\n" \
+                   "Content-Description: coverage data\n" \
+                   "Content-Transfer-Encoding: binary\n" \
+                   "Content-ID: %s\n" \
+            "Content-Disposition: attachment; filename=\"%s\"\n\n%s" % (
+            str(mime_type), str(reference), str(filename), data )
 
         content = "--wcs\n%s\n--wcs\n%s\n--wcs--" % (xml_msg, data_msg)
-        
+
         resp = Response(
             content = content,
-            content_type = "multipart/mixed; boundary=wcs",
+            content_type = "multipart/%s; boundary=wcs"%subtype,
             headers = {},
             status = 200
         )
