@@ -40,6 +40,9 @@ if __name__ == "__main__" :
     try :
         src0 = sys.argv[1] 
         src1 = sys.argv[2] 
+        
+        print "< FILE: %s" % src0
+        print "> FILE: %s" % src1
     except :
         sys.stderr.write( "ERROR: Not enough input arguments!\n" ) 
         sys.stderr.write( "USAGE: %s <xml-file> <xml-file> \n" % sys.argv[0] ) 
