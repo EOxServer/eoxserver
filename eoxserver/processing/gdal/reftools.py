@@ -8,6 +8,9 @@ from osgeo import gdal
 from eoxserver.core.system import System
 from eoxserver.core.exceptions import InternalError
 
+ERROR_LABEL = "Referenceable grid handling is disabled!" \
+              " Did you compile the 'reftools' C module?!"
+
 class RECT(C.Structure):
     _fields_ = [("x_off", C.c_int),
                 ("y_off", C.c_int),
@@ -62,7 +65,7 @@ def _open_ds(path_or_ds):
 
 def get_footprint_wkt(path_or_ds):
     if not REFTOOLS_USABLE:
-        raise InternalError("Referenceable grid handling disabled")
+        raise InternalError(ERROR_LABEL)
     
     ds = _open_ds(path_or_ds)
     
@@ -74,7 +77,7 @@ def get_footprint_wkt(path_or_ds):
 
 def rect_from_subset(path_or_ds, srid, minx, miny, maxx, maxy):
     if not REFTOOLS_USABLE:
-        raise InternalError("Referenceable grid handling disabled")
+        raise InternalError(ERROR_LABEL)
 
     ds = _open_ds(path_or_ds)
     
@@ -91,7 +94,7 @@ def rect_from_subset(path_or_ds, srid, minx, miny, maxx, maxy):
 
 def create_rectified_vrt(path_or_ds, vrt_path, srid=None):
     if not REFTOOLS_USABLE:
-        raise InternalError("Referenceable grid handling disabled")
+        raise InternalError(ERROR_LABEL)
 
     ds = _open_ds(path_or_ds)
     ptr = C.c_void_p(long(ds.this))
@@ -108,7 +111,7 @@ def create_rectified_vrt(path_or_ds, vrt_path, srid=None):
 
 def create_temporary_vrt(path_or_ds, srid=None):
     if not REFTOOLS_USABLE:
-        raise InternalError("Referenceable grid handling disabled")
+        raise InternalError(ERROR_LABEL)
 
     _, vrt_path = mkstemp(
         dir = System.getConfig().getConfigValue("processing.gdal.reftools", "vrt_tmp_dir"),
