@@ -116,6 +116,95 @@ These include:
 Structure of the Operator Interface
 -----------------------------------
 
+.. _fig_opclient_uml:
+.. figure:: resources/rfc18/opclient_uml.png
+   :align: center
+
+   *The Operator Interface structure expressed in a UML class diagram.*
+
+The Operator Interface shall be organized in so called Operator Components,
+which represents a grouped set of user-interactions with the server. The
+components are individually accessible via an URL and usually only one
+component is visible at a time. A component may have dependencies to other
+components to be registered prior to its visualization.
+
+Each component allows access to a certain set of functionalites, called
+Resources and Actions. Resources are data models accessed via a REST interface,
+whereas Actions are methods to be executed on the server, either instantaneous
+or over time.
+
+To visualize Resources and Actions, each Component consists of Action Views
+which manage a set of Actions and Resources. An Action View is responsible to
+visualize data with widgets and perform required method calls as requested by
+the user.
+
+The communication between the Action Views and the underlying Actions and
+Resources is operated via certain Interfaces, namely the REST and the RPC
+interface. Interfaces are provided by the server via dynamically created URLs
+within the Operator Interface with the help of pythons standard library
+SimpleXMLRPCServer and the Django extension library django-rest-framework. The
+interfaces are consumed by the JavaScript client using the rpc.js and the
+Backbone.js libraries.
+
+Each visual representation of the Operator Interface, namely the Components and
+Action View, consists of three elements:
+
+* A Django HTML template
+* A JavaScript View class
+* A python class, entailing arbitrary information and "glue" between the other
+  two parts
+
+Only the third part needs to be adjusted when creating a new visual element,
+for both the template and the JavaScript class defaults shall help with the
+usage.
+
+Layout of Componets
+-------------------
+
+
+Required Components
+-------------------
+
+
+Access Controll
+---------------
+
+The Operator Interface itself, its Resources and its Actions shall only be
+accessible for authorized users. Also, the Interface shall distinguish between
+at least two types of users: administrative users and users that only have
+reading permissions and are not allowed to alter data. The permissions shall
+be able to be set fine-grained, on a per-action or per-resource basis.
+
+It is proposed to use the Django buil-in auth framework and its integrations in
+other software frameworks.
+
+
+Configuration and Registration of Components
+--------------------------------------------
+
+On the server side, the Operator Interface is set up similar to the Djangos
+built-in Admin Interface. To enable the Operator Interface, its app identifier
+has to be inserted in the `INSTALLED_APPS` list setting and its URLs have to be
+included in the URLs configuration file.
+
+Also similar to the Admin Interface, the Operator Interface provides an
+`autodiscover()` function, which sweeps through all `INSTALLED_APPS`
+directories in search of a `operator.py` module, which shall contain the apps
+setup of Components, Action Views, Actions and Resources.
+
+
+
+
+Technologies Used
+-----------------
+
+
+
+
+
+
+
+
 * index page: dashboard?
 * organisation: component -> action
 * customization: look and feel
