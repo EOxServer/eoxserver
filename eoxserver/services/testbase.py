@@ -34,8 +34,11 @@ import logging
 from lxml import etree
 import tempfile
 import mimetypes
-import email
+#import email
 from osgeo import gdal, gdalconst, osr
+
+try:     from cStringIO import StringIO
+except : from StringIO import StringIO
 
 from django.test import Client
 from django.conf import settings
@@ -43,6 +46,7 @@ from django.db import connection
 
 from eoxserver.core.system import System
 from eoxserver.core.util.xmltools import XMLDecoder
+from eoxserver.core.util.multiparttools import mpUnpack
 from eoxserver.testing.core import (
     EOxServerTestCase, BASE_FIXTURES
 )
@@ -415,41 +419,66 @@ class MultipartTestCase(XMLTestCase):
         
         self._setUpMultiparts()
     
+
+    def _mangleXML( self , cbuffer ) : 
+        """ remove variable parts of selected XML elements text and attributes """ 
+
+        #define XML names to be used 
+
+        N0 = "{http://www.opengis.net/gml/3.2}rangeSet/" \
+             "{http://www.opengis.net/gml/3.2}File/" \
+             "{http://www.opengis.net/gml/3.2}rangeParameters"
+
+        N1 = "{http://www.opengis.net/gml/3.2}rangeSet/" \
+             "{http://www.opengis.net/gml/3.2}File/" \
+             "{http://www.opengis.net/gml/3.2}fileReference"
+
+        N2 = "{http://www.opengis.net/wcs/1.1}Coverage/" \
+             "{http://www.opengis.net/ows/1.1}Reference"
+
+        HREF  = "{http://www.w3.org/1999/xlink}href"
+
+        # define handy closures 
+
+        def cropFileName( name ) : 
+            base , _ , ext = name.rpartition(".")
+            base , _ , _   = base.rpartition("_")
+            return "%s.%s"%(base,ext) 
+
+        def changeHref( e ) : 
+            if e is not None : e.set( HREF , cropFileName( e.get( HREF ) ) )
+                
+        def changeText( e ) : 
+            if e is not None: e.text = cropFileName( e.text )
+
+        # parse XML Note: etree.parse respects the encoding reported in XML delaration!
+        xml = etree.parse( StringIO( cbuffer ) )
+
+        # mangle XML content to get rid of variable content
+
+        # WCS 2.0.x - rangeSet/File
+        changeHref( xml.find( N0 ) ) 
+        changeText( xml.find( N1 ) )
+        # WCS 1.1.x - Coverage/Reference 
+        changeHref( xml.find( N2 ) ) 
+
+        # output xml - force UTF-8 encoding including the XML delaration 
+        return etree.tostring( xml , encoding="UTF-8" , xml_declaration=True )
+
+
     def _setUpMultiparts(self):
         if self.isSetUp: return
-        response_msg = email.message_from_string("Content-type: multipart/mixed; boundary=wcs\n\n"
-                                                 + self.response.content)
-        
-        for part in response_msg.walk():
-            if part['Content-type'] == "multipart/mixed; boundary=wcs":
-                continue
-            elif part['Content-type'] == "text/xml":
-                # The filename depends on the actual time the request was 
-                # answered. It has to be explicitly unified.
-                tree = etree.fromstring(part.get_payload())
-                # WCS 2.0
-                node = tree.find("{http://www.opengis.net/gml/3.2}rangeSet/" \
-                                 "{http://www.opengis.net/gml/3.2}File/" \
-                                 "{http://www.opengis.net/gml/3.2}rangeParameters")
-                # WCS 11
-                if node is None:
-                    node = tree.find("{http://www.opengis.net/wcs/1.1}Coverage/" \
-                                     "{http://www.opengis.net/ows/1.1}Reference")
 
-                if node is not None:
-                    filename = node.get("{http://www.w3.org/1999/xlink}href").rsplit("_",1)[0] + ".tif"
-                    node.set("{http://www.w3.org/1999/xlink}href", filename)
-                    node2 = tree.find("{http://www.opengis.net/gml/3.2}rangeSet/" \
-                                     "{http://www.opengis.net/gml/3.2}File/" \
-                                     "{http://www.opengis.net/gml/3.2}fileReference")
-                    if node2 is not None:
-                        node2.text = filename
-
-                self.xmlData = etree.tostring(tree, encoding="ISO-8859-1")
-            else:
-                self.imageData = part.get_payload()
+        for header,offset,size in mpUnpack(self.response.content,"wcs") :
+            if header['content-type'] in ( "text/xml" , "application/xml" ) :
+                # store XML response 
+                self.xmlData = self._mangleXML( self.response.content[offset:(offset+size)] )
+            else : 
+                # store coverage data 
+                self.imageData = self.response.content[offset:(offset+size)]
         
         self.isSetUp = True
+
     
     def getFileExtension(self, part=None):
         if part == "xml":

@@ -4,6 +4,7 @@
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
+#          Martin Paces <martin.paces@eox.at>
 #
 #-------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
@@ -42,6 +43,7 @@ import logging
 from eoxserver.core.system import System
 from eoxserver.core.exceptions import InternalError, InvalidExpressionError
 from eoxserver.core.util.xmltools import DOMElementToXML
+from eoxserver.core.util.multiparttools import mpPack
 from eoxserver.processing.gdal.reftools import (
     rect_from_subset, get_footprint_wkt
 )
@@ -278,13 +280,15 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
         time_stamp = datetime.now().strftime("%Y%m%d%H%M%S")
         filename   = "%s_%s%s" % ( coverage.getCoverageId(), time_stamp, format.defaultExt ) 
 
+        # load data 
+        f = open(dst_filename) ; data = f.read() ; f.close() 
 
         # check the media type 
         media_type = req.getParamValue("mediatype")
 
         if media_type is None:
 
-            resp = self._get_default_response(dst_filename, format.mimeType , filename)
+            resp = self._get_default_response( data, format.mimeType, filename)
 
         elif media_type in ( "multipart/related" , "multipart/mixed" ) :
 
@@ -304,12 +308,11 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
                     _subset = ( subset.crs_id, (x_size, y_size),
                         (subset.minx, subset.miny, subset.maxx, subset.maxy), footprint ) 
 
-            cov_desc_el = encoder.encodeReferenceableDataset(coverage,reference,mime_type,True,_subset)
+            cov_desc_el = encoder.encodeReferenceableDataset(coverage,reference,format.mimeType,True,_subset)
             
             # NOTE: the multipart subtype will be the same as the one requested 
-            resp = self._get_multipart_response( dst_filename, reference , 
-                        format.mimeType, DOMElementToXML(cov_desc_el), filename ,
-                        subtype = mpsubtype )
+            resp = self._get_multipart_response( data, format.mimeType, filename, reference,
+                    DOMElementToXML(cov_desc_el), boundary = "wcs" , subtype = mpsubtype )
 
         else:
             raise InvalidRequestException(
@@ -323,46 +326,38 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
         
         return resp
     
+    def _get_default_response(self, data, mime_type, filename):
 
-    def _get_default_response(self, dst_filename, mime_type, filename):
-        f = open(dst_filename)
-        
+        # create response 
         resp = Response(
             content_type = mime_type,
-            content = f.read(),
+            content = data, 
             headers = {'Content-Disposition': "attachment; filename=\"%s\"" % filename},
             status = 200
         )
         
-        f.close()
-        
         return resp
     
-    def _get_multipart_response(self, dst_filename, reference, mime_type, cov_desc, filename , subtype = "related" ):
-        
-        xml_msg = "Content-Type: text/xml\n\n%s" % cov_desc
-                
-        f = open(dst_filename)
-        
-        data = f.read()
-        
-        data_msg = "Content-Type: %s\n" \
-                   "Content-Description: coverage data\n" \
-                   "Content-Transfer-Encoding: binary\n" \
-                   "Content-ID: %s\n" \
-            "Content-Disposition: attachment; filename=\"%s\"\n\n%s" % (
-            str(mime_type), str(reference), str(filename), data )
+    def _get_multipart_response(self, data, mime_type, filename, 
+            reference, cov_desc, boundary = "wcs", subtype = "related" ):
 
-        content = "--wcs\n%s\n--wcs\n%s\n--wcs--" % (xml_msg, data_msg)
+        # prepare multipart package 
+        parts = [ # u
+            ( [( "Content-Type" , "text/xml" )] , cov_desc ) , 
+            ( [( "Content-Type" , str(mime_type) ) , 
+               ( "Content-Description" , "coverage data" ),
+               ( "Content-Transfer-Encoding" , "binary" ),
+               ( "Content-ID" , str(reference) ),
+               ( "Content-Disposition" , "attachment; filename=\"%s\"" % str(filename) ) ,
+              ] , data ) ] 
 
+        # create response 
         resp = Response(
-            content = content,
-            content_type = "multipart/%s; boundary=wcs"%subtype,
+            content = mpPack( parts , boundary ) ,
+            content_type = "multipart/%s; boundary=%s"%(subtype,boundary),
             headers = {},
             status = 200
         )
-        
-        f.close()
         
         return resp
 
