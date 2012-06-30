@@ -344,7 +344,7 @@ class CoverageGML10Encoder(XMLEncoder):
                 for band in range_type.bands
             ])
         ])
-    
+
     def encodeRangeTypeField(self, range_type, band):
         return self._makeElement("swe", "field", [
             ("", "@name", band.name),
@@ -519,6 +519,7 @@ class WCS20EOAPEncoder(WCS20Encoder):
             sub_nodes = [("@xsi", "schemaLocation", "http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd")]
         else:
             sub_nodes = []
+
         sub_nodes.extend([
             ("@gml", "id", self._getGMLId(coverage.getCoverageId())),
             (self.encodeBoundedBy(*coverage.getWGS84Extent()),),
