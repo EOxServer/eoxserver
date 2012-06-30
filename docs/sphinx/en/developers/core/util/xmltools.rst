@@ -1,4 +1,4 @@
-.. Module eoxserver.core.util.xmtools
+.. Module eoxserver.core.util.xmltools
   #-----------------------------------------------------------------------------
   # $Id$
   #
