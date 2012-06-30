@@ -27,28 +27,34 @@
 #-------------------------------------------------------------------------------
 
 """
-This module contains implementation of MIME multipart packing and unpacking utilities.
+This module contains implementation of MIME multipart packing and unpacking 
+utilities.
+
+The main benefit of the utilities over other methods of mutipart handling 
+is that the functions of this module do not manipulate the input data
+buffers and especially avoid any unnecessary data copying. 
 """
 
 #-------------------------------------------------------------------------------
 
 def mpPack( parts , boundary ) :
-    """Low-level memory-friendly MIME multipart packing.
+    """
+Low-level memory-friendly MIME multipart packing.
 
-       Note: the payload is not affected and the transport encoding 
-       of the payload is not performed. 
+Note: the data payload is passed untouched and no transport encoding 
+of the payload is performed. 
 
-       Inputs: 
+Inputs: 
 
-        - parts - list of part-tuples, each tuple shall have two elements 
-          the header list and (string) payload. The header itsels should be 
-          a sequence of key-value pairs (tuples). 
+ - parts - list of part-tuples, each tuple shall have two elements 
+    the header list and (string) payload. The header itsels should be 
+    a sequence of key-value pairs (tuples). 
 
-        - boundary - boundary string 
+ - boundary - boundary string 
 
-      Ouput: 
-        
-        - list of strings (which can be directly passsed as a Django response content)
+Ouput: 
+  
+ - list of strings (which can be directly passsed as a Django response content)
     """
 
     # empty multipart package 
@@ -76,25 +82,26 @@ def mpPack( parts , boundary ) :
     return pack
 
 def mpUnpack( cbuffer , boundary ) :
-    """Low-level memory-friendly MIME multipart unpacking.
+    """
+Low-level memory-friendly MIME multipart unpacking.
 
-       Note: the payload is not affected and the decodiing of the transport encoded
-       payload is not performed. 
+Note: The payload of the multipart package data is neaither modified nor copied. 
+No decoding of the transport encoded payload is performed. 
 
-       Inputs: 
+Inputs: 
 
-        - ``cbuffer`` - character buffer (string) containing the 
-          the header list and (string) payload. The header itsels should be 
-          a sequence of key-value pairs (tuples). 
+ - ``cbuffer`` - character buffer (string) containing the 
+   the header list and (string) payload. The header itsels should be 
+   a sequence of key-value pairs (tuples). 
 
-        - ``boundary`` - boundary string 
+ - ``boundary`` - boundary string 
 
-       Output: 
+Output: 
 
-        - list of parts - each part is a tuple of the header dictionary,
-          payload ``cbuffer`` offset and payload size.
+ - list of parts - each part is a tuple of the header dictionary,
+   payload ``cbuffer`` offset and payload size.
 
-       Note: The header keys are converted to lower-case.
+Note: The header keys are converted to lower-case.
     """
 
     def findBorder( offset = 0 ) :
@@ -146,5 +153,3 @@ def mpUnpack( cbuffer , boundary ) :
         parts.append( ( header , of0[2] , of1[0]-of0[2] ) )
 
     return parts
-
-    pass
