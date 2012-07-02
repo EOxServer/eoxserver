@@ -6,8 +6,8 @@
     <sch:ns uri="http://www.w3.org/1999/xlink" prefix="xlink"/>
     <sch:pattern>
         <sch:title>Req 3</sch:title>
-        <sch:rule context="//swe:Quantity | //swe:QuantityRange |//swe:Count|//swe:CountRange | //swe:Time | //swe:TimeRange | //swe:Boolean | //swe:Category | //swe:CategoryRange | //swe:Text">
-            <sch:assert test="count(//swe:value)=0">
+        <sch:rule context="//*[local-name()='DataRecord']//*[local-name()='Quantity']|//*[local-name()='DataRecord']//*[local-name()='QuantityRange']|//*[local-name()='DataRecord']//*[local-name()='Count']|//*[local-name()='DataRecord']//*[local-name()='CountRange'] |//*[local-name()='DataRecord']//*[local-name()='Time'] |//*[local-name()='DataRecord']//*[local-name()='TimeRange'] | //*[local-name()='DataRecord']//*[local-name()='Boolean'] | //*[local-name()='DataRecord']//*[local-name()='Category'] | //*[local-name()='DataRecord']//*[local-name()='CategoryRange'] | //*[local-name()='DataRecord']//*[local-name()='Text']">
+            <sch:assert test="count(//*[local-name()='value'])=0">
                 For all SWE Common AbstractSimpleComponent subtypes in a range type, instance multiplicity of the value component shall be zero.
             </sch:assert>
         </sch:rule>
