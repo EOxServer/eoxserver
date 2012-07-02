@@ -160,7 +160,7 @@ class OWSTestCase(EOxServerTestCase):
         response_path = os.path.join( self.getResponseFileDir(), self.getResponseFileName(suffix) )
 
         # check that the expected XML response exists 
-        if not os.path.isfile( response_path ) : 
+        if not os.path.isfile( expected_path ) : 
             self.skipTest( "Missing the expected XML response '%s'." % expected_path )
 
         # store the XML response 
