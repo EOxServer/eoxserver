@@ -36,6 +36,11 @@ buffers and especially avoid any unnecessary data copying.
 """
 
 #-------------------------------------------------------------------------------
+def _capitalize( s ) : 
+    """ Capitalize header field name."""
+    return "-".join([ f.capitalize() for f in s.split("-") ])
+
+#-------------------------------------------------------------------------------
 
 def mpPack( parts , boundary ) :
     """
@@ -81,7 +86,7 @@ Ouput:
     # return package 
     return pack
 
-def mpUnpack( cbuffer , boundary ) :
+def mpUnpack( cbuffer , boundary , capitalize = False ) :
     """
 Low-level memory-friendly MIME multipart unpacking.
 
@@ -96,12 +101,14 @@ Inputs:
 
  - ``boundary`` - boundary string 
 
+ - ``capitalize`` - by default the header keys are converted to lower-case (e.g., 'content-type'). 
+   To capitalize the names (e.g., 'Content-Type') set this option to true.
+
 Output: 
 
  - list of parts - each part is a tuple of the header dictionary,
    payload ``cbuffer`` offset and payload size.
 
-Note: The header keys are converted to lower-case.
     """
 
     def findBorder( offset = 0 ) :
@@ -130,7 +137,11 @@ Note: The header keys are converted to lower-case.
 
         return ( idx - dlen , idx , jdx )
 
-    def unpack( v ) :
+    def unpackCC( v ) :
+        key , _ , val  = v.partition(":")
+        return ( _capitalize(key) , val.strip() )
+
+    def unpackLC( v ) :
         key , _ , val  = v.partition(":")
         return ( key.lower() , val.strip() )
 
@@ -147,7 +158,7 @@ Note: The header keys are converted to lower-case.
     for of0 , of1 in zip( offsets[:-1] , offsets[1:] ) :
 
         # unpack header 
-        header = dict( map( unpack , cbuffer[of0[1]:(of0[2]-2)].split("\n") ) )
+        header = dict( map( (unpackLC,unpackCC)[capitalize] , cbuffer[of0[1]:(of0[2]-2)].split("\n") ) )
 
         # get the header and payload offset and size 
         parts.append( ( header , of0[2] , of1[0]-of0[2] ) )
