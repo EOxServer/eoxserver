@@ -6,9 +6,9 @@
     <sch:ns uri="http://www.w3.org/1999/xlink" prefix="xlink"/>
     <sch:pattern>
         <sch:title>Req 4</sch:title>
-        <sch:rule context="swe:DataRecord">
-            <sch:assert test="descendant-or-self::*[name()='swe:DataRecord' or name()='swe:Vector']">
-                Wherever the SWE Common XML schema allows an AbstractDataComponent in a coverage range type the concrete instance shall be one of the AbstractDataComponent subtypes DataRecord and Vector.
+        <sch:rule context="*[local-name()='rangeType']">
+            <sch:assert test="count(//*[local-name()='DataRecord']|//*[local-name()='DataArray'])!=0 and count(//*[local-name()='DataChoice']|//*[local-name()='Vector']|//*[local-name()='Matrix'])=0">
+                Wherever the SWE Common XML schema allows an AbstractDataComponent in a coverage range type the concrete instance shall be one of the AbstractDataComponent subtypes DataRecord, DataArray; options DataChoice and Vector and Matrix are disallowed.
             </sch:assert>
         </sch:rule>
     </sch:pattern>
