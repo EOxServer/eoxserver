@@ -223,23 +223,17 @@ def xmlCompareFiles( src0 , src1 , verbose = False ) :
     """ Compare two XML documents passed as filenames, file or file-like objects.""" 
 
     def parseFileName( src ) : 
-        fid = None 
         try : 
-            fid = file( src )
-            return dom.parse( fid ) 
-            fid.close() 
-        except IOError as e : 
-            if fid is not None : fid.close()
-            raise XMLParseError , str(e)
+            with file( src ) as fid : 
+                return dom.parse( fid ) 
         except Exception as e : 
-            if fid is not None : fid.close()
             raise XMLParseError , "Failed to parse the \"%s\" file! %s" % ( src , str(e) ) 
 
     def parseFileObj( src , label ) : 
         try : 
             return dom.parse( src ) 
         except Exception as e : 
-            raise XMLParseError , "Failed to parse %s XML string! %s" % ( label , str(e) ) 
+            raise XMLParseError , "Failed to parse the %s XML file(-like) object! %e" % ( label , str(e) ) 
 
     def parse( src , label ) : 
         return  parseFileName( src ) if ( type(src) in types.StringTypes ) else parseFileObj( src , label ) 

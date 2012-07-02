@@ -34,7 +34,6 @@ import logging
 from lxml import etree
 import tempfile
 import mimetypes
-#import email
 from osgeo import gdal, gdalconst, osr
 
 try:     from cStringIO import StringIO
@@ -74,6 +73,8 @@ def resolution_from_ds(ds):
     gt = ds.GetGeoTransform()
     return (gt[1], abs(gt[5]))
 
+def _getMime( s ) : 
+    return s.partition(';')[0].strip().lower() 
 #===============================================================================
 # Common classes
 #===============================================================================
@@ -165,12 +166,12 @@ class OWSTestCase(EOxServerTestCase):
 
         # store the XML response 
         if response is None : response = self.getXMLData()
-        fid = file(response_path, 'w') ; fid.write(response) ; fid.close()
             
         # perform the actual comparison 
         try: 
-            xmlCompareFiles( expected_path , response_path ) 
+            xmlCompareFiles( expected_path , StringIO(response) ) 
         except Exception as e : 
+            with file(response_path, 'w') as fid : fid.write(response)
             self.fail( "Response returned in '%s' is not equal to expected response in '%s'. REASON: %s " % \
                     ( response_path , expected_path , str(e) ) )
 
@@ -182,7 +183,6 @@ class OWSTestCase(EOxServerTestCase):
         expected_path = os.path.join(self.getExpectedFileDir(), self.getExpectedFileName(file_type))
         response_path = os.path.join(self.getResponseFileDir(), self.getResponseFileName(file_type))
 
-        
         try:
             f = open(expected_path, 'r')
             expected = f.read()
@@ -469,13 +469,15 @@ class MultipartTestCase(XMLTestCase):
     def _setUpMultiparts(self):
         if self.isSetUp: return
 
-        for header,offset,size in mpUnpack(self.response.content,"wcs") :
-            if header['content-type'] in ( "text/xml" , "application/xml" ) :
+        content = self.response.content
+
+        for header,offset,size in mpUnpack(content,"wcs") :
+            if _getMime(header['content-type']) in ( "text/xml" , "application/xml" ) :
                 # store XML response 
-                self.xmlData = self._mangleXML( self.response.content[offset:(offset+size)] )
+                self.xmlData = self._mangleXML( content[offset:(offset+size)] )
             else : 
                 # store coverage data 
-                self.imageData = self.response.content[offset:(offset+size)]
+                self.imageData = content[offset:(offset+size)]
         
         self.isSetUp = True
 
@@ -713,16 +715,17 @@ class WCSTransactionRectifiedGridCoverageTestCase(
     # in MultipartTestCase tests
     def _setUpMultiparts(self):
         if self.isSetUp: return
-        response_msg = email.message_from_string("Content-type: multipart/mixed; boundary=wcs\n\n"
-                                                 + self.responseGetCoverage.content)
-        
-        for part in response_msg.walk():
-            if part['Content-type'] == "multipart/mixed; boundary=wcs":
-                continue
-            elif part['Content-type'] == "text/xml":
-                self.xmlData = part.get_payload()
-            else:
-                self.imageData = part.get_payload()
+
+        content = self.responseGetCoverage.content
+
+        for header,offset,size in mpUnpack(content,"wcs") :
+            if _getMime(header['content-type']) in ( "text/xml" , "application/xml" ) :
+                # store XML response 
+                #self.xmlData = self._mangleXML( content[offset:(offset+size)] )
+                self.xmlData = content[offset:(offset+size)]
+            else : 
+                # store coverage data 
+                self.imageData = content[offset:(offset+size)]
 
         self.isSetUp = True
 
@@ -740,16 +743,17 @@ class WCSTransactionReferenceableGridCoverageTestCase(
     # in MultipartTestCase tests
     def _setUpMultiparts(self):
         if self.isSetUp: return
-        response_msg = email.message_from_string("Content-type: multipart/mixed; boundary=wcs\n\n"
-                                                 + self.responseGetCoverage.content)
-        
-        for part in response_msg.walk():
-            if part['Content-type'] == "multipart/mixed; boundary=wcs":
-                continue
-            elif part['Content-type'] == "text/xml":
-                self.xmlData = part.get_payload()
-            else:
-                self.imageData = part.get_payload()
+
+        content = self.responseGetCoverage.content
+
+        for header,offset,size in mpUnpack(content,"wcs") :
+            if header['content-type'] in ( "text/xml" , "application/xml" ) :
+                # store XML response 
+                #self.xmlData = self._mangleXML( content[offset:(offset+size)] )
+                self.xmlData = content[offset:(offset+size)]
+            else : 
+                # store coverage data 
+                self.imageData = content[offset:(offset+size)]
 
         self.isSetUp = True
 
