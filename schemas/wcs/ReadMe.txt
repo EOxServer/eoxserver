@@ -17,28 +17,28 @@ The most current schema are available at http://schemas.opengis.net/ .
 -----------------------------------------------------------------------
 
 2012-02-06 Stephan Meissl
-
-  * Adjusted examples to updated schema.
-  * Corrected tpye of "SlicePoint", "TrimLow", and "TrimHigh" elements to 
+  * v2.0: updates according to WCS 2.0.1
+    + Adjusted examples to updated schema.
+    + Corrected type of "SlicePoint", "TrimLow", and "TrimHigh" elements to 
     "string".
-  * Added "format" and "mediaType" elements to "GetCoverageType".
-  * Added reference to "CoverageSubtypeParent" to "CoverageSummaryType".
-  * Added reference to "Extension" element to "ContentsType".
-  * Added "CoverageSubtypeParent" and "Extension" elements and corresponding 
-    type definitions to wcsCommon.xsd
-  * Added "nativeFormat" element and reference to "CoverageSubtypeParent" 
-    element to "ServiceParametersType".
-  * Corrected "ServiceMetadataType" to not extend "ows:CapabilitiesBaseType".
-  * Added "formatSupported" element to "ServiceMetadataType".
-  * Corrected "Extension" element in "RequestBaseType", "ServiceMetadataType", 
-    and "ServiceParametersType".
-  * Including all schema files in wcsAll.xsd
+    + Added "format" and "mediaType" elements to "GetCoverageType".
+    + Added reference to "CoverageSubtypeParent" to "CoverageSummaryType".
+    + Added reference to "Extension" element to "ContentsType".
+    + Added "CoverageSubtypeParent" and "Extension" elements and corresponding 
+      type definitions to wcsCommon.xsd
+    + Added "nativeFormat" element and reference to "CoverageSubtypeParent" 
+      element to "ServiceParametersType".
+    + Corrected "ServiceMetadataType" to not extend "ows:CapabilitiesBaseType".
+    + Added "formatSupported" element to "ServiceMetadataType".
+    + Corrected "Extension" element in "RequestBaseType", "ServiceMetadataType",
+      and "ServiceParametersType".
+    + Corrected cardinality of "ServiceMetadata" element to follow OWS Common.
+    + Including all schema files in wcsAll.xsd
 
 2010-11-05  Peter Baumann
   * v2.0: added WCS 2.0.0 (OGC 09-110r3)
 
 2010-02-01  Kevin Stegemoller
-
   * v1.1, v1.1.0, 1.0.0:
     + updated xsd:schema:@version attribute (06-135r7 s#13.4)
     + update relative schema imports to absolute URLs (06-135r7 s#15)

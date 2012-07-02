@@ -45,7 +45,7 @@
         <complexContent>
             <extension base="ows:CapabilitiesBaseType">
                 <sequence>
-                    <element ref="wcs:ServiceMetadata">
+                    <element ref="wcs:ServiceMetadata" minOccurs="0">
                         <annotation>
                             <documentation>Despite its name this element should not be confuse with the OWSServiceMetadata defined in OWS Common.</documentation>
                         </annotation>

@@ -18,6 +18,6 @@
         <wcs:SlicePoint>1</wcs:SlicePoint>
     </wcs:DimensionSlice>
     <wcs:format>application/gml+xml</wcs:format>
-    <wcs:mediaType>multipart/mixed</wcs:mediaType>
+    <wcs:mediaType>multipart/related</wcs:mediaType>
 </wcs:GetCoverage>
 
