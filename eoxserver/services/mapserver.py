@@ -31,8 +31,7 @@
 This module contains the abstract base classes for request handling.
 """
 
-from email.parser import Parser as MIMEParser
-from email.message import Message
+from eoxserver.core.util.multiparttools import mpUnpack, mpPack, _capitalize
 import os.path
 from cgi import escape
 
@@ -43,8 +42,21 @@ import mapscript
 from eoxserver.core.interfaces import *
 from eoxserver.core.registry import RegisteredInterface
 from eoxserver.services.base import BaseRequestHandler
-from eoxserver.services.requests import OWSRequest, Response, encode_message
+from eoxserver.services.requests import OWSRequest, Response
 from eoxserver.services.exceptions import InvalidRequestException
+
+#-------------------------------------------------------------------------------
+# utilities 
+
+# content-type parsing  
+is_xml       = lambda ct : ( ct.partition(";")[0].strip().lower() in ("text/xml", "application/xml") ) 
+is_multipart = lambda ct : ( ct.partition("/")[0].lstrip().lower() == "multipart" ) 
+
+# capilatize header names 
+_headcap = lambda p : ( _capitalize(p[0]) , p[1] ) 
+headcap  = lambda h : dict( map( _headcap , h.items() ) )  
+
+#-------------------------------------------------------------------------------
 
 class MapServerRequest(OWSRequest):
     """
@@ -67,69 +79,64 @@ class MapServerResponse(Response):
         self.ms_status = ms_status
         
         self.ms_response_data = None
-        self.ms_response_xml = ''
+        self.ms_response_data_headers = {} 
+        self.ms_response_xml = None 
         self.ms_response_xml_headers = {}
         
-    def _isXML(self, content_type):
-        return content_type.split(";")[0].lower() in ("text/xml", "application/xml")
+    def splitResponse(self , boundary="wcs"):
+
+        if is_multipart( self.content_type ) : 
+
+            for headers,offset,size in mpUnpack(self.content,boundary,capitalize=True) :
+
+                if is_xml( headers['Content-Type'] ) : 
+                    self.ms_response_xml = self.content[offset:(offset+size)]
+                    self.ms_response_xml_headers = headers
+                else : 
+                    self.ms_response_data = self.content[offset:(offset+size)] 
+                    self.ms_response_data_headers = headers
+
+        else : # single part payload 
             
-    def _isMultipart(self, content_type):
-        return content_type.split("/")[0].lower() == "multipart"
-        
-    def splitResponse(self):
-        if self._isXML(self.content_type):
-            self.ms_response_xml = self.content
-            self.ms_response_xml_headers = {'Content-type': self.content_type}
-        elif self._isMultipart(self.content_type):
-            parts = MIMEParser().parsestr("Content-type:%s\n\n%s" % (self.content_type, self.content.rstrip("--wcs--\n\n"))).get_payload()
-            for part in parts:
-                if self._isXML(part.get_content_type()):
-                    self.ms_response_xml = part.get_payload()
-                    for header in part.keys():
-                        self.ms_response_xml_headers[header] = part[header]
-                else:
-                    self.ms_response_data = part
-        else:
-            self.ms_response_data = self.content
+            headers = headcap( self.headers )
+            headers['Content-Type'] = self.content_type 
+
+            if is_xml( self.content_type ) : 
+                self.ms_response_xml = self.content
+                self.ms_response_xml_headers = headers
+            else : 
+                self.ms_response_data = self.content 
+                self.ms_response_data_headers = headers
+
     
-    def getProcessedResponse(self, processed_xml, processed_xml_headers=None):
-        if self.ms_response_data is not None:
-            xml_msg = Message()
-            xml_msg.set_payload(processed_xml)
-            
-            if processed_xml_headers is not None:
-                xml_headers = processed_xml_headers
-            else:
-                xml_headers = self.ms_response_xml_headers
-            for name, value in xml_headers.items():
-                xml_msg.add_header(name, value)
-            
-            if isinstance(self.ms_response_data, Message):
-                data_msg = self.ms_response_data
-            else:
-                data_msg = Message()
-                
-                data_msg.set_payload(self.ms_response_data)
-                
-                data_msg.add_header('Content-type', self.content_type)
-                for name, value in self.headers.items():
-                    data_msg.add_header(name, value)
-                
-            content = "--wcs\n%s\n--wcs\n%s\n--wcs--" % (encode_message(xml_msg), encode_message(data_msg))
-            content_type = "multipart/mixed; boundary=wcs"
-            headers = {}
-        else:
-            content = processed_xml
-            content_type = self.content_type
-            if processed_xml_headers is None:
-                headers = self.headers
-            else:
-                headers = processed_xml_headers
-            
-        return Response(content, content_type, headers, self.getStatus())
-        
+    def getProcessedResponse(self, response_xml, headers_xml=None, boundary="wcs", subtype="mixed"):
+
+        if self.ms_response_data is not None: # mutipart response   
+
+            if headers_xml is None: headers_xml = self.ms_response_xml_headers
+
+            # normalize header content 
+            headers_xml  = headcap( headers_xml )
+            headers_data = headcap( self.ms_response_data_headers ) 
+
+            # prepare multipart package 
+            parts = [ 
+                  ( headers_xml.items() , response_xml ) , 
+                  ( headers_data.items() , self.ms_response_data ) ,
+                ] 
+           
+            content_type = "multipart/%s; boundary=%s"%(subtype,boundary) 
+
+            return Response(mpPack(parts,boundary),content_type,{},self.getStatus())
+ 
+        else : # pure XML response - currently not in use - possibly harmfull as there is no way to test it!  
+
+            if headers_xml is None: headers_xml = self.headers
+
+            return Response(response_xml,self.content_type,headcap(headers_xml),self.getStatus()) 
+
     def getContentType(self):
-        if "Content-type" in self.headers:
+        if "Content-type" in self.headers: #MP: Is the 'Content-type' case correct?
             return self.headers["Content-type"]
         else:
             return self.content_type # TODO: headers for multipart messages
