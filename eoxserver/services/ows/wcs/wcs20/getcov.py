@@ -347,7 +347,7 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
             ( [( "Content-Type" , str(mime_type) ) , 
                ( "Content-Description" , "coverage data" ),
                ( "Content-Transfer-Encoding" , "binary" ),
-               ( "Content-ID" , str(reference) ),
+               ( "Content-Id" , str(reference) ),
                ( "Content-Disposition" , "attachment; filename=\"%s\"" % str(filename) ) ,
               ] , data ) ] 
 
@@ -505,9 +505,11 @@ class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
         if resp.ms_response_xml:
 
             dom = minidom.parseString(resp.ms_response_xml)
+
             rectified_grid_coverage = dom.getElementsByTagName("gmlcov:RectifiedGridCoverage").item(0)
             
             if rectified_grid_coverage is not None:
+
                 encoder = WCS20EOAPEncoder()
                 
                 coverage = self.coverages[0]
@@ -536,10 +538,14 @@ class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
                         nodes=rectified_grid_coverage.childNodes,
                         poly=poly
                     )
-                    
-                resp = resp.getProcessedResponse(DOMElementToXML(resp_xml))
+
                 dom.unlink()
 
+                #TODO: MP: Set the subtype to 'related' for 'multipart/related' responses!
+                resp = resp.getProcessedResponse( DOMElementToXML(resp_xml) , subtype = "mixed" )
+
+            # else : pass - using the unchanged original response TODO: Is this correct? MP
+ 
         else: # coverage only
 
             coverage = self.coverages[0]
