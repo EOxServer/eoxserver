@@ -128,6 +128,8 @@ Copyright (C) European Space Agency - ESA
   <wcs:ServiceMetadata>
     <wcs:formatSupported>image/tiff</wcs:formatSupported>
     <wcs:formatSupported>image/jp2</wcs:formatSupported>
+    <wcs:formatSupported>application/x-netcdf</wcs:formatSupported>
+    <wcs:formatSupported>application/x-hdf</wcs:formatSupported>
     <crs:crsSupported>http://www.opengis.net/def/crs/EPSG/0/4326</crs:crsSupported>
     <crs:crsSupported>http://www.opengis.net/def/crs/EPSG/0/3857</crs:crsSupported>
     <crs:crsSupported>http://www.opengis.net/def/crs/EPSG/0/900913</crs:crsSupported>

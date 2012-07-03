@@ -362,7 +362,6 @@
     <wcs:ServiceParameters>
       <wcs:CoverageSubtype>RectifiedDataset</wcs:CoverageSubtype>
       <wcs:nativeFormat>image/tiff</wcs:nativeFormat>
-      <wcs:nativeFormat>image/tiff</wcs:nativeFormat>
     </wcs:ServiceParameters>
   </wcs:CoverageDescription>
 </wcs:CoverageDescriptions>
