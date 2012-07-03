@@ -469,9 +469,26 @@ class MultipartTestCase(XMLTestCase):
     def _setUpMultiparts(self):
         if self.isSetUp: return
 
+        # check the content type 
+        if self.response['Content-Type'].partition(";")[0].strip().lower() \
+            not in ( "multipart/mixed" , "multipart/related" ) : 
+            raise Exception , "Received content is neither mixed nor related multipart! Content-Type: %s" % \
+                self.response['Content-Type']
+
+        # extract multipart boundary  
+        for opt in self.response['Content-Type'].split(";") : 
+            key , _ , val = opt.partition("=")
+            if ( key.strip().lower() == "boundary" ) : 
+                boundary = val.strip() 
+                break 
+        else : 
+            raise Exception , "Failed to extract the mutipart boundary string! Content-Type: %s" % \
+                self.response['Content-Type']
+        
+        # unpack the multipart content 
         content = self.response.content
 
-        for header,offset,size in mpUnpack(content,"wcs") :
+        for header,offset,size in mpUnpack(content,boundary) :
             if _getMime(header['content-type']) in ( "text/xml" , "application/xml" ) :
                 # store XML response 
                 self.xmlData = self._mangleXML( content[offset:(offset+size)] )
@@ -716,9 +733,26 @@ class WCSTransactionRectifiedGridCoverageTestCase(
     def _setUpMultiparts(self):
         if self.isSetUp: return
 
+        # check the content type 
+        if self.response['Content-Type'].partition(";")[0].strip().lower() \
+            not in ( "multipart/mixed" , "multipart/related" ) : 
+            raise Exception , "Received content is neither mixed nor related multipart! Content-Type: %s" % \
+                self.response['Content-Type']
+
+        # extract multipart boundary  
+        for opt in self.response['Content-Type'].split(";") : 
+            key , _ , val = opt.partition("=")
+            if ( key.strip().lower() == "boundary" ) : 
+                boundary = val.strip() 
+                break 
+        else : 
+            raise Exception , "Failed to extract the mutipart boundary string! Content-Type: %s" % \
+                self.response['Content-Type']
+        
+        # unpack the multipart content 
         content = self.responseGetCoverage.content
 
-        for header,offset,size in mpUnpack(content,"wcs") :
+        for header,offset,size in mpUnpack(content,boundary) :
             if _getMime(header['content-type']) in ( "text/xml" , "application/xml" ) :
                 # store XML response 
                 #self.xmlData = self._mangleXML( content[offset:(offset+size)] )
