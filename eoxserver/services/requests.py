@@ -27,9 +27,6 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-import email.generator
-from cStringIO import StringIO
-
 from eoxserver.core.util.xmltools import XMLDecoder
 from eoxserver.core.util.kvptools import KVPDecoder
 
@@ -116,20 +113,3 @@ class Response(object):
         
     def getStatus(self):
         return self.status
-
-class _Generator(email.generator.Generator):
-    """ An adjusted version of the standard email.generator.Generator which adds
-    a new-line character after a ';' character, which is not desired. 
-    """
-    def _write_headers(self, msg):
-        for h, v in msg.items():
-            print >> self._fp, '%s: %s' % (h, v)
-        print >> self._fp
-
-def encode_message(msg):
-    """ Transform an email.message.Message to a string with out custom generator.
-    """
-    fp = StringIO()
-    g = _Generator(fp)
-    g.flatten(msg)
-    return fp.getvalue()
