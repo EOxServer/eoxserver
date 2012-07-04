@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schema targetNamespace="http://www.opengis.net/wcs/2.0" 
-    xmlns="http://www.w3.org/2001/XMLSchema" 
-    xmlns:gml="http://www.opengis.net/gml/3.2"
+    xmlns:wcs="http://www.opengis.net/wcs/2.0"
     xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0"
-    xmlns:wcs="http://www.opengis.net/wcs/2.0" 
-    elementFormDefault="qualified" version="2.0.0" xml:lang="en">
+    xmlns:gml="http://www.opengis.net/gml/3.2"
+    xmlns="http://www.w3.org/2001/XMLSchema"
+    elementFormDefault="qualified" version="2.0.1" xml:lang="en">
     <annotation>
         <appinfo>wcsDescribeCoverage.xsd</appinfo>
         <appinfo>
             <GMLProfileSchema>http://schemas.opengis.net/gmlcov/1.0/gmlcovAll.xsd</GMLProfileSchema>
         </appinfo>
         <documentation>This XML Schema Document defines the DescribeCoverage operation request and response XML elements and types, used by the OGC Web Coverage Service (WCS).
-            Last updated: 2010-nov-05
-            Copyright (c) 2010 Open Geospatial Consortium, Inc. All Rights Reserved.
+            Last updated: 2012-feb-06
+            Copyright (c) 2012 Open Geospatial Consortium, Inc. All Rights Reserved.
             To obtain additional rights of use, visit http://www.opengeospatial.org/legal/.
         </documentation>
     </annotation>
@@ -77,4 +77,3 @@
         </complexContent>
     </complexType>
 </schema>
-

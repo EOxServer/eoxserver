@@ -8,7 +8,9 @@
     xmlns:gml="http://www.opengis.net/gml/3.2"
     xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0"
     xmlns:swe="http://www.opengis.net/swe/2.0"
-    xsi:schemaLocation="http://www.opengis.net/wcs/2.0 http://schemas.opengis.net/wcs/2.0/wcsAll.xsd ">
+    xmlns:wcsusability="http://www.opengis.net/wcs/extensions/DescribeCoverageUsability/1.0"
+    xsi:schemaLocation="http://www.opengis.net/wcs/2.0 http://schemas.opengis.net/wcs/2.0/wcsAll.xsd 
+                        http://www.opengis.net/wcs/extensions/DescribeCoverageUsability/1.0 http://schemas.opengis.net/wcs/extensions/DescribeCoverageUsability/1.0/wcsDescribeCoverageUsability.xsd">
     <wcs:CoverageDescription gml:id="grey">
         <gml:boundedBy>
             <gml:Envelope srsName="http://www.opengis.net/def/crs/EPSG/0/32611" axisLabels="x y" uomLabels="m m" srsDimension="2">
@@ -53,16 +55,20 @@
         </gmlcov:rangeType>
         <wcs:ServiceParameters>
             <wcs:CoverageSubtype>RectifiedGridCoverage</wcs:CoverageSubtype>
-            <wcs:SupportedCRSs>
-                <wcs:SupportedCRS>http://www.opengis.net/def/crs/EPSG/0/32611</wcs:SupportedCRS>
-                <wcs:SupportedCRS>http://www.opengis.net/def/crs/EPSG/0/4326</wcs:SupportedCRS>
-                <wcs:NativeCRS>http://www.opengis.net/def/crs/EPSG/0/32611</wcs:NativeCRS>
-            </wcs:SupportedCRSs>
-            <wcs:SupportedFormats>
-                <wcs:SupportedFormat>image/tiff</wcs:SupportedFormat>
-                <wcs:SupportedFormat>image/png</wcs:SupportedFormat>
-                <wcs:SupportedFormat>image/x-aaigrid</wcs:SupportedFormat>
-            </wcs:SupportedFormats>
+            <wcs:CoverageSubtypeParent>
+                <wcs:CoverageSubtype>AbstractDiscreteCoverage</wcs:CoverageSubtype>
+                <wcs:CoverageSubtypeParent>
+                    <wcs:CoverageSubtype>AbstractCoverage</wcs:CoverageSubtype>
+                </wcs:CoverageSubtypeParent>
+            </wcs:CoverageSubtypeParent>
+            <wcs:nativeFormat>image/tiff</wcs:nativeFormat>
+            <wcs:Extension>
+                <wcsusability:SupportedCRSs>
+                    <wcsusability:SupportedCRS>http://www.opengis.net/def/crs/EPSG/0/32611</wcsusability:SupportedCRS>
+                    <wcsusability:SupportedCRS>http://www.opengis.net/def/crs/EPSG/0/4326</wcsusability:SupportedCRS>
+                    <wcsusability:NativeCRS>http://www.opengis.net/def/crs/EPSG/0/32611</wcsusability:NativeCRS>
+                </wcsusability:SupportedCRSs>
+            </wcs:Extension>
         </wcs:ServiceParameters>
     </wcs:CoverageDescription>
 </wcs:CoverageDescriptions>

@@ -6,7 +6,7 @@
     xmlns:gmlcov='http://www.opengis.net/gmlcov/1.0'
     xmlns:swe='http://www.opengis.net/swe/2.0'
     xsi:schemaLocation='http://www.opengis.net/swe/2.0 http://schemas.opengis.net/sweCommon/2.0/swe.xsd
-                        http://www.opengis.net/wcs/2.0 ../../wcsAll.xsd'
+                        http://www.opengis.net/wcs/2.0 http://schemas.opengis.net/wcs/2.0/wcsAll.xsd'
     xmlns:wcs='http://www.opengis.net/wcs/2.0'>
     <wcs:CoverageDescription gml:id="CD0005">
         <gml:boundedBy>
@@ -25,8 +25,7 @@
             <swe:DataRecord>
                 <swe:field name="Temperature">
                     <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Temperature">
-                        <gml:description>Temperature</gml:description>
-                        <gml:name>Temp</gml:name>
+                        <swe:description>Temperature</swe:description>
                         <swe:uom code="Cel"/>
                         <swe:constraint>
                             <swe:AllowedValues>
@@ -39,6 +38,7 @@
         </gmlcov:rangeType>
         <wcs:ServiceParameters>
             <wcs:CoverageSubtype>MultiSolidCoverage</wcs:CoverageSubtype>
+            <wcs:nativeFormat>application/gml+xml</wcs:nativeFormat>
         </wcs:ServiceParameters>
     </wcs:CoverageDescription>
 </wcs:CoverageDescriptions>

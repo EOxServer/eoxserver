@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <wcs:CoverageDescriptions
+    xmlns:wcs='http://www.opengis.net/wcs/2.0'
     xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
     xmlns='http://www.opengis.net/gml/3.2'
     xmlns:gml='http://www.opengis.net/gml/3.2'
     xmlns:gmlcov='http://www.opengis.net/gmlcov/1.0'
     xmlns:swe='http://www.opengis.net/swe/2.0'
     xsi:schemaLocation='http://www.opengis.net/swe/2.0 http://schemas.opengis.net/sweCommon/2.0/swe.xsd
-                        http://www.opengis.net/wcs/2.0 ../../wcsAll.xsd'
-    xmlns:wcs='http://www.opengis.net/wcs/2.0'>
+                        http://www.opengis.net/wcs/2.0 http://schemas.opengis.net/wcs/2.0/wcsAll.xsd'>
     <wcs:CoverageDescription gml:id="CD0004">
         <gml:boundedBy>
             <gml:Envelope srsName="http://www.opengis.net/def/crs/EPSG/0/4979" axisLabels="Lat Long h" uomLabels="deg deg m" srsDimension="3">
@@ -24,8 +24,7 @@
             <swe:DataRecord>
                 <swe:field name="SoilMoisture">
                     <swe:Quantity>
-                        <gml:description>Moisture</gml:description>
-                        <gml:name>Temp</gml:name>
+                        <swe:description>Moisture</swe:description>
                         <swe:uom code="None"/>
                         <swe:constraint>
                             <swe:AllowedValues>
@@ -38,6 +37,7 @@
         </gmlcov:rangeType>
         <wcs:ServiceParameters>
             <wcs:CoverageSubtype>MultiSurfaceCoverage</wcs:CoverageSubtype>
+            <wcs:nativeFormat>application/gml+xml</wcs:nativeFormat>
         </wcs:ServiceParameters>
     </wcs:CoverageDescription>
 </wcs:CoverageDescriptions>

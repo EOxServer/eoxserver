@@ -45,18 +45,16 @@ Unset: export -n XML_CATALOG_FILES (use standard catalog at /etc/xml/)
 <!-- eop 2.0 -->
   <rewriteSystem systemIdStartString="http://schemas.opengis.net/eop/2.0/" rewritePrefix="omeo/"/>
   <rewriteURI uriStartString="http://schemas.opengis.net/eop/2.0/" rewritePrefix="omeo/"/>
-<!-- gmlcov 1.0 -->
-  <rewriteSystem systemIdStartString="http://schemas.opengis.net/gmlcov/1.0/" rewritePrefix="gmlcov/1.0/"/>
-  <rewriteURI uriStartString="http://schemas.opengis.net/gmlcov/1.0/" rewritePrefix="gmlcov/1.0/"/>
 <!-- wcs/2.0 -->
   <rewriteSystem systemIdStartString="http://schemas.opengis.net/wcs/2.0/" rewritePrefix="wcs/2.0/"/>
   <rewriteURI uriStartString="http://schemas.opengis.net/wcs/2.0/" rewritePrefix="wcs/2.0/"/>
+<!-- wcs/extensions -->
+  <rewriteSystem systemIdStartString="http://schemas.opengis.net/wcs/extensions/" rewritePrefix="wcs/extensions/"/>
+  <rewriteURI uriStartString="http://schemas.opengis.net/wcs/extensions/" rewritePrefix="wcs/extensions/"/>
 <!-- schemas.opengis.net -->
   <rewriteSystem systemIdStartString="http://schemas.opengis.net/" rewritePrefix="SCHEMAS_OPENGIS_NET/"/>
   <rewriteURI uriStartString="http://schemas.opengis.net/" rewritePrefix="SCHEMAS_OPENGIS_NET/"/>
 <!-- mapserver -->
-  <!--<rewriteSystem systemIdStartString="http://localhost:8000/ows?service=WMS&version=1.3.0&request=" rewritePrefix="mapserver/"/>
-  <rewriteURI uriStartString="http://localhost:8000/ows?service=WMS&version=1.3.0&request=" rewritePrefix="mapserver/"/>-->
   <rewriteSystem systemIdStartString="http://localhost:8000/ows?service=WMS&amp;version=1.3.0&amp;request=" rewritePrefix="mapserver/"/>
   <rewriteURI uriStartString="http://localhost:8000/ows?service=WMS&amp;version=1.3.0&amp;request=" rewritePrefix="mapserver/"/>
 <!-- www.w3.org -->

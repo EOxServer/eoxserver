@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<wcs:Capabilities updateSequence="20110615T173000Z" version="2.0.0"
+<wcs:Capabilities updateSequence="20110615T173000Z" version="2.0.1"
     xmlns:wcs="http://www.opengis.net/wcs/2.0"
     xmlns:ows="http://www.opengis.net/ows/2.0"
     xmlns:ogc="http://www.opengis.net/ogc"
@@ -18,14 +18,14 @@
             <ows:Keyword>Keyword</ows:Keyword>
         </ows:Keywords>
         <ows:ServiceType codeSpace="OGC">OGC WCS</ows:ServiceType>
-        <ows:ServiceTypeVersion>2.0.0</ows:ServiceTypeVersion>
+        <ows:ServiceTypeVersion>2.0.1</ows:ServiceTypeVersion>
         <ows:Profile>http://www.opengis.net/spec/WCS/2.0/conf/core</ows:Profile>
         <ows:Profile>http://www.opengis.net/spec/WCS_protocol-binding_get-kvp/1.0/conf/get-kvp</ows:Profile>
         <ows:Profile>http://www.opengis.net/spec/WCS_protocol-binding_post-xml/1.0/conf/post-xml</ows:Profile>
         <ows:Profile>http://www.opengis.net/spec/GMLCOV/1.0/conf/gml-coverage</ows:Profile>
-        <ows:Profile>http://www.opengis.net/spec/GMLCOV/1.1/conf/gml-coverage</ows:Profile>
-        <ows:Profile>http://www.opengis.net/spec/GMLCOV/1.1/conf/multipart</ows:Profile>
-        <ows:Profile>http://www.opengis.net/spec/GMLCOV/1.1/conf/special-format</ows:Profile>
+        <ows:Profile>http://www.opengis.net/spec/GMLCOV/1.0/conf/gml-coverage</ows:Profile>
+        <ows:Profile>http://www.opengis.net/spec/GMLCOV/1.0/conf/multipart</ows:Profile>
+        <ows:Profile>http://www.opengis.net/spec/GMLCOV/1.0/conf/special-format</ows:Profile>
         <ows:Profile>http://www.opengis.net/spec/WCS_coverage-encoding_geotiff/1.0/conf/baseline</ows:Profile>
         <ows:Profile>http://www.placeholder.com/EPSG</ows:Profile>
         <ows:Profile>http://www.placeholder.com/IMAGECRS</ows:Profile>
@@ -80,10 +80,11 @@
     </ows:OperationsMetadata>
 
     <wcs:ServiceMetadata>
-        <wcs:formatsSupported>
-            <wcs:formatSupported>application/gml+xml</wcs:formatSupported>
-            <wcs:formatSupported>image/tiff</wcs:formatSupported>
-        </wcs:formatsSupported>
+        <wcs:formatSupported>application/gml+xml</wcs:formatSupported>
+        <wcs:formatSupported>image/tiff</wcs:formatSupported>
+        <wcs:Extension>
+            <gmlcov:metadata/>
+        </wcs:Extension>
     </wcs:ServiceMetadata>
 
     <wcs:Contents>
@@ -100,6 +101,12 @@
             </ows:WGS84BoundingBox>
             <wcs:CoverageId>someCoverage</wcs:CoverageId>
             <wcs:CoverageSubtype>RectifiedGridCoverage</wcs:CoverageSubtype>
+            <wcs:CoverageSubtypeParent>
+                <wcs:CoverageSubtype>AbstractDiscreteCoverage</wcs:CoverageSubtype>
+                <wcs:CoverageSubtypeParent>
+                    <wcs:CoverageSubtype>AbstractCoverage</wcs:CoverageSubtype>
+                </wcs:CoverageSubtypeParent>
+            </wcs:CoverageSubtypeParent>
             <ows:BoundingBox crs="http://www.opengis.net/def/crs/EPSG/0/3035" dimensions="2">
                 <ows:LowerCorner>4742525 2665925</ows:LowerCorner>
                 <ows:UpperCorner>4767525 2690925</ows:UpperCorner>
