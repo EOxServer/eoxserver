@@ -3,12 +3,12 @@
     xmlns:wcs="http://www.opengis.net/wcs/2.0"
     xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0"
     xmlns="http://www.w3.org/2001/XMLSchema" 
-    elementFormDefault="qualified" version="2.0.0" xml:lang="en">
+    elementFormDefault="qualified" version="2.0.1" xml:lang="en">
     <annotation>
         <appinfo>wcsAll.xsd</appinfo>
         <documentation>This XML Schema Document includes, directly and indirectly, all the XML Schema Documents defined by the OGC Web Coverage Service (WCS).
-            Last updated: 2010-nov-05
-            Copyright (c) 2010 Open Geospatial Consortium, Inc. All Rights Reserved.
+            Last updated: 2012-feb-06
+            Copyright (c) 2012 Open Geospatial Consortium, Inc. All Rights Reserved.
             To obtain additional rights of use, visit http://www.opengeospatial.org/legal/.
         </documentation>
     </annotation>
@@ -16,6 +16,7 @@
     <!-- includes and imports                                           -->
     <!-- ============================================================== -->
     <import namespace="http://www.opengis.net/gmlcov/1.0" schemaLocation="http://schemas.opengis.net/gmlcov/1.0/gmlcovAll.xsd"/>
+    <include schemaLocation="wcsCommon.xsd"/>
     <include schemaLocation="wcsGetCoverage.xsd"/>
     <include schemaLocation="wcsDescribeCoverage.xsd"/>
     <include schemaLocation="wcsGetCapabilities.xsd"/>

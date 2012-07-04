@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schema targetNamespace="http://www.opengis.net/wcs/2.0" 
-    xmlns:ows="http://www.opengis.net/ows/2.0" 
-    xmlns:gml="http://www.opengis.net/gml/3.2" 
-    xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0"
+<schema targetNamespace="http://www.opengis.net/wcs/2.0"
     xmlns:wcs="http://www.opengis.net/wcs/2.0"
-    xmlns="http://www.w3.org/2001/XMLSchema" 
-    elementFormDefault="qualified" version="2.0.0" xml:lang="en">
+    xmlns:ows="http://www.opengis.net/ows/2.0"
+    xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0"
+    xmlns:gml="http://www.opengis.net/gml/3.2"
+    xmlns="http://www.w3.org/2001/XMLSchema"
+    elementFormDefault="qualified" version="2.0.1" xml:lang="en">
     <annotation>
         <appinfo>wcsCommon.xsd</appinfo>
-        <documentation>This XML Schema Document encodes the elements and types that are shared by multiple WCS operations.
-            Last updated: 2010-nov-05
-            Copyright (c) 2010 Open Geospatial Consortium, Inc. All Rights Reserved.
+        <documentation>This XML Schema Document defines the XML elements and types that are shared by multiple WCS operations.
+            Last updated: 2012-feb-06
+            Copyright (c) 2012 Open Geospatial Consortium, Inc. All Rights Reserved.
             To obtain additional rights of use, visit http://www.opengeospatial.org/legal/.
         </documentation>
     </annotation>
@@ -30,8 +30,7 @@
             <documentation>XML encoded WCS operation request base, for all operations except GetCapabilities. In this XML encoding, no "request" parameter is included, since the element name specifies the specific operation. 'Extension' elements allow WCS extension standards to define their individual extra request parameters. </documentation>
         </annotation>
         <sequence>
-            <any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
-            <element name="requestParameters" type="wcs:requestParametersType" minOccurs="0"/>
+            <element ref="wcs:Extension" minOccurs="0"/>
         </sequence>
         <attribute name="service" type="string" use="required" fixed="WCS">
             <annotation>
@@ -43,11 +42,6 @@
                 <documentation>Specification version for WCS version and operation. See Version parameter Subclause 7.3.1 of OWS Common for more information. </documentation>
             </annotation>
         </attribute>
-    </complexType>
-    <complexType name="requestParametersType">
-        <sequence>
-            <any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
-        </sequence>
     </complexType>
     <simpleType name="VersionStringType">
         <restriction base="string">
@@ -80,7 +74,8 @@
     </element>
     <complexType name="ServiceMetadataType">
         <sequence>
-            <any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+            <element name="formatSupported" type="anyURI" maxOccurs="unbounded"/>
+            <element ref="wcs:Extension" minOccurs="0"/>
         </sequence>
     </complexType>
     <!-- =========================================================== -->
@@ -104,8 +99,9 @@
     <complexType name="ServiceParametersType">
         <sequence>
             <element ref="wcs:CoverageSubtype"/>
-            <!-- TODO: Add embracing element. -->
-            <any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+            <element ref="wcs:CoverageSubtypeParent" minOccurs="0"/>
+            <element name="nativeFormat" type="anyURI"/>
+            <element ref="wcs:Extension" minOccurs="0"/>
         </sequence>
     </complexType>
     <!-- =========================================================== -->
@@ -115,4 +111,27 @@
 This CoverageSubtype is delivered in GetCapabilities and DescribeCoverage to allow clients an estimation of the amount of data to be expected in the domain and range set. For example, a GridCoverage has a small domain set structure, but typically a large range set; a MultiSolidCoverage, on the other hand, tends to have large domain sets and small range sets. </documentation>
         </annotation>
     </element>
+    <!-- =========================================================== -->
+    <element name="CoverageSubtypeParent" type="wcs:CoverageSubtypeParentType">
+        <annotation>
+            <documentation></documentation>
+        </annotation>
+    </element>
+    <complexType name="CoverageSubtypeParentType">
+        <sequence>
+            <element ref="wcs:CoverageSubtype"/>
+            <element ref="wcs:CoverageSubtypeParent" minOccurs="0"/>
+        </sequence>
+    </complexType>
+    <!-- =========================================================== -->
+    <element name="Extension" type="wcs:ExtensionType">
+        <annotation>
+            <documentation>Extension element used to hook in additional content e.g. in extensions or application profiles.</documentation>
+        </annotation>
+    </element>
+    <complexType name="ExtensionType">
+        <sequence>
+            <any minOccurs="0" maxOccurs="unbounded" processContents="lax" namespace="##other"/>
+        </sequence>
+    </complexType>
 </schema>

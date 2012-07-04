@@ -2,8 +2,8 @@
 <wcs:GetCoverage xmlns:wcs="http://www.opengis.net/wcs/2.0"
     xmlns:gml="http://www.opengis.net/gml/3.2"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.opengis.net/wcs/2.0 ../../wcsAll.xsd"
-    service="WCS" version="2.0.0">
+    xsi:schemaLocation="http://www.opengis.net/wcs/2.0 http://schemas.opengis.net/wcs/2.0/wcsAll.xsd"
+    service="WCS" version="2.0.1">
     <wcs:CoverageId>C0002</wcs:CoverageId>
     <wcs:DimensionTrim>
         <wcs:Dimension>Long</wcs:Dimension>
@@ -20,4 +20,5 @@
         <wcs:TrimLow>1</wcs:TrimLow>
         <wcs:TrimHigh>3</wcs:TrimHigh>
     </wcs:DimensionTrim>
+    <wcs:format>application/gml+xml</wcs:format>
 </wcs:GetCoverage>

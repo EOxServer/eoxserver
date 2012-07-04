@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <wcs:CoverageDescriptions  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+    xmlns:wcs='http://www.opengis.net/wcs/2.0'
     xmlns='http://www.opengis.net/gml/3.2'
     xmlns:gml='http://www.opengis.net/gml/3.2'
     xmlns:gmlcov='http://www.opengis.net/gmlcov/1.0'
     xmlns:swe='http://www.opengis.net/swe/2.0'
     xsi:schemaLocation='http://www.opengis.net/swe/2.0 http://schemas.opengis.net/sweCommon/2.0/swe.xsd
-                        http://www.opengis.net/wcs/2.0 ../../wcsAll.xsd'
-    xmlns:wcs='http://www.opengis.net/wcs/2.0'>
+                        http://www.opengis.net/wcs/2.0 http://schemas.opengis.net/wcs/2.0/wcsAll.xsd'>
     <wcs:CoverageDescription gml:id="CD0001">
         <gml:boundedBy>
             <gml:Envelope srsName="http://www.opengis.net/def/crs/EPSG/0/4326" axisLabels="Lat Long" uomLabels="deg deg" srsDimension="2"> 
@@ -30,8 +30,7 @@
             <swe:DataRecord>
                 <swe:field name="singleBand">
                    <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
-                       <gml:description>Panchromatic Channel</gml:description>
-                       <gml:name>single band</gml:name>
+                       <swe:description>Panchromatic Channel</swe:description>
                        <swe:uom code="W/cm2"/>
                        <swe:constraint>
                            <swe:AllowedValues>
@@ -45,6 +44,7 @@
         </gmlcov:rangeType>
         <wcs:ServiceParameters>
             <wcs:CoverageSubtype>GridCoverage</wcs:CoverageSubtype>
+            <wcs:nativeFormat>application/gml+xml</wcs:nativeFormat>
         </wcs:ServiceParameters>
     </wcs:CoverageDescription>
 </wcs:CoverageDescriptions>

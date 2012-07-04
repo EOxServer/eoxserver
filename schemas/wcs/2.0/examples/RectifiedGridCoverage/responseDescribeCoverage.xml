@@ -53,6 +53,13 @@
         </gmlcov:rangeType>
         <wcs:ServiceParameters>
             <wcs:CoverageSubtype>RectifiedGridCoverage</wcs:CoverageSubtype>
+            <wcs:CoverageSubtypeParent>
+                <wcs:CoverageSubtype>AbstractDiscreteCoverage</wcs:CoverageSubtype>
+                <wcs:CoverageSubtypeParent>
+                    <wcs:CoverageSubtype>AbstractCoverage</wcs:CoverageSubtype>
+                </wcs:CoverageSubtypeParent>
+            </wcs:CoverageSubtypeParent>
+            <wcs:nativeFormat>image/tiff</wcs:nativeFormat>
         </wcs:ServiceParameters>
     </wcs:CoverageDescription>
 </wcs:CoverageDescriptions>
