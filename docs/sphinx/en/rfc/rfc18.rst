@@ -141,10 +141,7 @@ the user.
 The communication between the Action Views and the underlying Actions and
 Resources is operated via certain Interfaces, namely the REST and the RPC
 interface. Interfaces are provided by the server via dynamically created URLs
-within the Operator Interface with the help of pythons standard library
-SimpleXMLRPCServer and the Django extension library django-rest-framework. The
-interfaces are consumed by the JavaScript client using the rpc.js and the
-Backbone.js libraries.
+within the Operator Interface with.
 
 Each visual representation of the Operator Interface, namely the Components and
 Action View, consists of three elements:
@@ -161,9 +158,114 @@ usage.
 Layout of Componets
 -------------------
 
+# TBD
+
+
+Implementing Components
+-----------------------
+
+To create a component, one simply shall have to subclass the abstract base
+class provided by the Operator Interface API. It shall be easily adjustible
+by using either a custom JavaScript view class or a different django template.
+
+To further improve the handling of components, several default properties
+within the subclass can be used, like title, name, description or others. Of
+course default values shall be provided.
+
+Components are registered by the Operator Interface API function
+``register()``, which shall be sufficient to append it to the visualized
+components.
+
+Example Component definition
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    import operatorinterface as operator
+
+    class MyAComponent(operator.Component):
+        dependencies = [SomeOtherComponent]
+        name = "ComponentA"
+        javascript_class = "App.Views.MyAComponentView"
+
+    operator.site.register(MyAComponent)
+
+
+Implementing Action Views
+-------------------------
+
+The implementation of action views is very much like the implementation of
+components and should follow the same rules concerning JavaScript view classes
+and django templates.
+
+Additionally it shall have two fields named "Actions" and "Resources", each is 
+a list of Action or Resource classes.
+
+# TODO maybe adding widgets?
+
+Example Action View definition
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    class MyTestActionView(operator.ActionView):
+        actions = [MyTestAction]
+        name = "mytestactionview"
+        javascript_class = "App.Views.MyTestActionView"
+
+
+Implementing Actions
+--------------------
+
+Actions should not necessarily be accessible via RPC calls, but should be also
+be used in other contexts, like CLI tools or others.
+
+To create an Action, one simply has to subclass the abstract base class for
+actions and to implement the functionality as methods for this class. Either
+all public functions (as per `Python PEP 8 definition
+<http://www.python.org/dev/peps/pep-0008/#method-names-and-instance-variables>`_)
+are automatically registered or the method names to be exported have to be
+manually declared in a class property.
+
+
+Example Action definition
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    class ProgressAction(BaseAction):
+        name = "progressaction"
+        permissions = [ ... ]
+        
+        def start(self):
+            ...
+        
+        def status(self, obj_id):
+            ...
+        
+        def stop(self, obj_id):
+            ...
+
+Implementing Resources
+----------------------
+
+Implementing Resources should be as easy as implementing actions. As with
+Actions, Resources are implemented by subclassing the according abstract base
+class and providing several options. The only mandatory arguments shall be the
+Django model to be externalized, optional are the permissions required for this
+resource, maybe means to limit the acces to read-/write-only (maybe coupled
+to the provided permissions) and the inc-/exclusion of model fields.
+
+Example Resource definition
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    class MyResource(ModelResource):
+        model = MyModel
+        exclude = ( ... )
+        include = ( ... )
+        permissions = [ ... ]
+
 
 Required Components
 -------------------
+
+
+# TBD
+
 
 
 Access Controll
@@ -193,15 +295,46 @@ directories in search of a `operator.py` module, which shall contain the apps
 setup of Components, Action Views, Actions and Resources.
 
 
-
-
 Technologies Used
 -----------------
 
+On the server side, the Django framework shall be used to provide the basic
+functionality of the Operator Interface including specifically the URL setup,
+HTML templating and request dispatching.
+
+To help publishing RESTful resources, the django extension `Django REST
+framework <http://django-rest-framework.org/>`_ can be used. It provides a
+rather simple, yet customizeable access to database model. It also supports
+user authorization as required in the chapter `Access Controll`_.
+
+To provide the RPC interface, there are two possibilities. The first is a
+wrapped setup of the `SimpleXMLRPCServer module
+<http://docs.python.org/library/simplexmlrpcserver.html>`_, which would
+represent an abstraction of the XML to the actual entailed data and the
+dispatching of registered functions. As the module is already included in the
+standard library of recent Python versions, this approach would not impose an
+additional dependency. A drawback is the missing user authorization, which has
+to be implemented manually. Also, this method is only suitable for XML-RPC,
+which is more verbose than its JSON counterpart.
+
+The second option would be to use a django extension framework, e.g
+`rpc4django <http://davidfischer.name/rpc4django/>`_. This framework eases the
+setup of RPC enabled functions, provides user authorization an is agnostic to
+the RPC protocol used (either JSON- or XML-RPC).
+
+On the client side, several JavaScript libraries are required. For DOM
+manipulation and several utility functions `jQuery <http://jquery.com/>`_ and
+`Underscore <http://underscorejs.org/>`_ are beeing used. To implement a
+working MVC layout, `Backbone <http://backbonejs.org/>`_ is suggested. This
+library also abstracts the use of REST resources.
+
+For calling RPC functions and parsing the output, the library `rpc.js` is
+required. It adheres to either the JSON-RPC or the XML-RPC protocol.
 
 
 
 
+################## OLD 
 
 
 
