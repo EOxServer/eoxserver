@@ -45,7 +45,7 @@ from django.db import connection
 
 from eoxserver.core.system import System
 from eoxserver.core.util.xmltools import XMLDecoder
-from eoxserver.core.util.multiparttools import mpUnpack
+from eoxserver.core.util.multiparttools import mpUnpack, getMimeType, getMultipartBoundary 
 from eoxserver.testing.core import (
     EOxServerTestCase, BASE_FIXTURES
 )
@@ -470,20 +470,13 @@ class MultipartTestCase(XMLTestCase):
         if self.isSetUp: return
 
         # check the content type 
-        if self.response['Content-Type'].partition(";")[0].strip().lower() \
-            not in ( "multipart/mixed" , "multipart/related" ) : 
+        if getMimeType( self.response['Content-Type'] ) \
+            not in ( "multipart/mixed" , "multipart/related" ) :
             raise Exception , "Received content is neither mixed nor related multipart! Content-Type: %s" % \
                 self.response['Content-Type']
 
         # extract multipart boundary  
-        for opt in self.response['Content-Type'].split(";") : 
-            key , _ , val = opt.partition("=")
-            if ( key.strip().lower() == "boundary" ) : 
-                boundary = val.strip() 
-                break 
-        else : 
-            raise Exception , "Failed to extract the mutipart boundary string! Content-Type: %s" % \
-                self.response['Content-Type']
+        boundary = getMultipartBoundary( self.response['Content-Type'] ) 
         
         # unpack the multipart content 
         content = self.response.content

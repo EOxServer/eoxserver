@@ -31,7 +31,8 @@
 This module contains the abstract base classes for request handling.
 """
 
-from eoxserver.core.util.multiparttools import mpUnpack, mpPack, _capitalize
+from eoxserver.core.util.multiparttools import mpUnpack, mpPack, capitalize
+from eoxserver.core.util.multiparttools import getMimeType, getMultipartBoundary 
 import os.path
 from cgi import escape
 
@@ -49,11 +50,11 @@ from eoxserver.services.exceptions import InvalidRequestException
 # utilities 
 
 # content-type parsing  
-is_xml       = lambda ct : ( ct.partition(";")[0].strip().lower() in ("text/xml", "application/xml") ) 
-is_multipart = lambda ct : ( ct.partition("/")[0].lstrip().lower() == "multipart" ) 
+is_xml       = lambda ct : getMimeType(ct) in ("text/xml","application/xml")
+is_multipart = lambda ct : getMimeType(ct).startswith("multipart/") 
 
 # capilatize header names 
-_headcap = lambda p : ( _capitalize(p[0]) , p[1] ) 
+_headcap = lambda p : ( capitalize(p[0]) , p[1] ) 
 headcap  = lambda h : dict( map( _headcap , h.items() ) )  
 
 #-------------------------------------------------------------------------------
@@ -83,9 +84,12 @@ class MapServerResponse(Response):
         self.ms_response_xml = None 
         self.ms_response_xml_headers = {}
         
-    def splitResponse(self , boundary="wcs"):
+    def splitResponse(self):
 
         if is_multipart( self.content_type ) : 
+        
+            # extract multipart boundary  
+            boundary = getMultipartBoundary( self.content_type ) 
 
             for headers,offset,size in mpUnpack(self.content,boundary,capitalize=True) :
 

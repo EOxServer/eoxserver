@@ -36,9 +36,29 @@ buffers and especially avoid any unnecessary data copying.
 """
 
 #-------------------------------------------------------------------------------
-def _capitalize( s ) : 
-    """ Capitalize header field name."""
-    return "-".join([ f.capitalize() for f in s.split("-") ])
+
+def capitalize( header_name ) : 
+    """ Capitalize header field name. Eg., 'content-type' is capilalized to 'Content-Type'."""
+    return "-".join([ f.capitalize() for f in header_name.split("-") ])
+
+# local alias to prevent conflict with local variable
+__capitalize = capitalize
+
+#-------------------------------------------------------------------------------
+
+def getMimeType( content_type ) : 
+    """ Extract MIME-type from Content-Type string and convert it to lower-case."""
+    return content_type.partition(";")[0].strip().lower() 
+
+def getMultipartBoundary( content_type ) : 
+    """ Extract boundary string from mutipart Content-Type string."""
+
+    for opt in content_type.split(";")[1:] : 
+        key , _ , val = opt.partition("=")
+        if ( key.strip().lower() == "boundary" ) : 
+            return val.strip() 
+     
+    raise ValueError , "failed to extract the mutipart boundary string! content-type: %s" % ct 
 
 #-------------------------------------------------------------------------------
 
@@ -46,7 +66,7 @@ def mpPack( parts , boundary ) :
     """
 Low-level memory-friendly MIME multipart packing.
 
-Note: the data payload is passed untouched and no transport encoding 
+Note: The data payload is passed untouched and no transport encoding 
 of the payload is performed. 
 
 Inputs: 
@@ -90,8 +110,10 @@ def mpUnpack( cbuffer , boundary , capitalize = False ) :
     """
 Low-level memory-friendly MIME multipart unpacking.
 
-Note: The payload of the multipart package data is neaither modified nor copied. 
+Note: The payload of the multipart package data is neither modified nor copied. 
 No decoding of the transport encoded payload is performed. 
+
+Note: The subroutine does not unpack any nested mutipart content. 
 
 Inputs: 
 
@@ -139,7 +161,7 @@ Output:
 
     def unpackCC( v ) :
         key , _ , val  = v.partition(":")
-        return ( _capitalize(key) , val.strip() )
+        return ( __capitalize(key) , val.strip() )
 
     def unpackLC( v ) :
         key , _ , val  = v.partition(":")
