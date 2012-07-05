@@ -465,30 +465,37 @@ class MultipartTestCase(XMLTestCase):
         # output xml - force UTF-8 encoding including the XML delaration 
         return etree.tostring( xml , encoding="UTF-8" , xml_declaration=True )
 
+    def _unpackMultipartContent( self , response ) : 
+
+        content      = response.content
+        content_type = response['Content-Type']
+
+        # check the content type 
+        if getMimeType( content_type ) \
+            not in ( "multipart/mixed" , "multipart/related" ) :
+            raise Exception , "Received content is neither mixed nor related multipart! Content-Type: %s" % content_type 
+
+        # extract multipart boundary  
+        boundary = getMultipartBoundary( content_type ) 
+        
+        # unpack the multipart content 
+        for header,offset,size in mpUnpack(content,boundary) :
+            if _getMime(header['content-type']) in ( "text/xml" , "application/xml" ) :
+                # store XML response 
+                self.xmlData = content[offset:(offset+size)]
+            else : 
+                # store coverage data 
+                self.imageData = content[offset:(offset+size)]
+
 
     def _setUpMultiparts(self):
         if self.isSetUp: return
 
-        # check the content type 
-        if getMimeType( self.response['Content-Type'] ) \
-            not in ( "multipart/mixed" , "multipart/related" ) :
-            raise Exception , "Received content is neither mixed nor related multipart! Content-Type: %s" % \
-                self.response['Content-Type']
-
-        # extract multipart boundary  
-        boundary = getMultipartBoundary( self.response['Content-Type'] ) 
+        self._unpackMultipartContent( self.response ) 
         
-        # unpack the multipart content 
-        content = self.response.content
+        # mangle XML data 
+        if self.xmlData : self.xmlData = self._mangleXML( self.xmlData ) 
 
-        for header,offset,size in mpUnpack(content,boundary) :
-            if _getMime(header['content-type']) in ( "text/xml" , "application/xml" ) :
-                # store XML response 
-                self.xmlData = self._mangleXML( content[offset:(offset+size)] )
-            else : 
-                # store coverage data 
-                self.imageData = content[offset:(offset+size)]
-        
         self.isSetUp = True
 
     
@@ -726,33 +733,7 @@ class WCSTransactionRectifiedGridCoverageTestCase(
     def _setUpMultiparts(self):
         if self.isSetUp: return
 
-        # check the content type 
-        if self.response['Content-Type'].partition(";")[0].strip().lower() \
-            not in ( "multipart/mixed" , "multipart/related" ) : 
-            raise Exception , "Received content is neither mixed nor related multipart! Content-Type: %s" % \
-                self.response['Content-Type']
-
-        # extract multipart boundary  
-        for opt in self.response['Content-Type'].split(";") : 
-            key , _ , val = opt.partition("=")
-            if ( key.strip().lower() == "boundary" ) : 
-                boundary = val.strip() 
-                break 
-        else : 
-            raise Exception , "Failed to extract the mutipart boundary string! Content-Type: %s" % \
-                self.response['Content-Type']
-        
-        # unpack the multipart content 
-        content = self.responseGetCoverage.content
-
-        for header,offset,size in mpUnpack(content,boundary) :
-            if _getMime(header['content-type']) in ( "text/xml" , "application/xml" ) :
-                # store XML response 
-                #self.xmlData = self._mangleXML( content[offset:(offset+size)] )
-                self.xmlData = content[offset:(offset+size)]
-            else : 
-                # store coverage data 
-                self.imageData = content[offset:(offset+size)]
+        self._unpackMultipartContent( self.responseGetCoverage ) 
 
         self.isSetUp = True
 
@@ -771,16 +752,7 @@ class WCSTransactionReferenceableGridCoverageTestCase(
     def _setUpMultiparts(self):
         if self.isSetUp: return
 
-        content = self.responseGetCoverage.content
-
-        for header,offset,size in mpUnpack(content,"wcs") :
-            if header['content-type'] in ( "text/xml" , "application/xml" ) :
-                # store XML response 
-                #self.xmlData = self._mangleXML( content[offset:(offset+size)] )
-                self.xmlData = content[offset:(offset+size)]
-            else : 
-                # store coverage data 
-                self.imageData = content[offset:(offset+size)]
+        self._unpackMultipartContent( self.responseGetCoverage ) 
 
         self.isSetUp = True
 
