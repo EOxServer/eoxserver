@@ -66,7 +66,7 @@ def getText( node ) :
     # get text data 
     sel = filter( lambda n: n.nodeType in ( TXNODE , CDNONE ) , node.childNodes ) 
     # extract text 
-    return "".join( map( lambda n: n.data , sel ) ) 
+    return "".join( map( lambda n: n.data , sel ) )
     
 def getElemValue( node , name ) : 
     # get element by name 
@@ -168,7 +168,7 @@ def parseCoverageXML( element ) :
     # Action        1   (mandatory) 
 
     action = getSingleElement( element , "Action" )  
-    if action : action = getText( action )  
+    if action : action = getText( action ).strip()
 
     prm['Action'] = action if action else None 
 
@@ -176,7 +176,7 @@ def parseCoverageXML( element ) :
     # Identifier    0-1 
 
     identifier = getSingleElement( element , "Identifier" ) 
-    if identifier : identifier = getText( identifier )  
+    if identifier : identifier = getText( identifier ).strip()  
 
     prm['Identifier'] = identifier if identifier else None 
 
@@ -186,7 +186,7 @@ def parseCoverageXML( element ) :
 
     tmp = LangSelect() 
     for e in getElementList( element , "Title" ) : 
-        tmp[getAttrValue(e,"lang")] = getText(e)
+        tmp[getAttrValue(e,"lang")] = getText(e).strip()
     prm['Title']=tmp 
 
     #-----------------------------------------
@@ -194,7 +194,7 @@ def parseCoverageXML( element ) :
 
     tmp = LangSelect() 
     for e in getElementList( element , "Abstract" ) : 
-        tmp[getAttrValue(e,"lang")] = getText(e)
+        tmp[getAttrValue(e,"lang")] = getText(e).strip()
     prm['Abstract'] = tmp 
 
     #-----------------------------------------
