@@ -222,7 +222,7 @@ def wcst11ActionDispatch( actions , context ) :
 
     for action in actions :
 
-        actionName = str( action['Action'] ).strip()
+        actionName = action['Action'] 
 
         if actionName not in allowedActions : 
             raise Exception , "Action '%s' is not allowed!" % actionName 
