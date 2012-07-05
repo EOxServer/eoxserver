@@ -32,10 +32,16 @@
 .. _module_core_util_mutiparttools:
 
 Module eoxserver.core.util.multiparttools
-===================================
+=========================================
 
 .. automodule:: eoxserver.core.util.multiparttools
 
 .. autofunction:: mpPack 
 .. autofunction:: mpUnpack 
 
+Utilities
+---------
+
+.. autofunction:: getMimeType
+.. autofunction:: getMultipartBoundary
+.. autofunction:: capitalize 
