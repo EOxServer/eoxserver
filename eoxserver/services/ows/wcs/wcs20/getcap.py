@@ -134,8 +134,7 @@ class WCS20GetCapabilitiesHandler(WCSCommonHandler):
 
             #TODO: Following part should be handled by the MapServer. 
             #      Remove the code when MapServer really does it. 
-            #NOTE: the 'wcs_srs' and 'ows_srs' lists of CRSes are already set 
-            #      but ignored by the MapServer.  
+
             # append SupportedCRSs to ServiceMetadata
             svc_md = dom.getElementsByTagName("wcs:ServiceMetadata").item(0)
 
@@ -146,7 +145,6 @@ class WCS20GetCapabilitiesHandler(WCSCommonHandler):
                 for sc in supported_crss : 
                     svc_md.appendChild( sc )
                 
-
             # append EO Profiles to ServiceIdentification
             svc_identification = dom.getElementsByTagName("ows:ServiceIdentification").item(0)
             
