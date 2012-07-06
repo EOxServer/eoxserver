@@ -68,7 +68,8 @@ from eoxserver.services.ows.wcs.wcs20.subset import WCS20SubsetDecoder
 from eoxserver.resources.coverages.formats import getFormatRegistry
 from eoxserver.resources.coverages import crss  
 
-_stripDot = lambda s : s[1:] if s[0] == '.' else s 
+# stripping dot from file extension
+_stripDot = lambda ext : ext[1:] if ext.startswith('.') else ext 
 
 # register all GDAL drivers 
 gdal.AllRegister()
@@ -170,7 +171,7 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
             x_off, y_off   = ( subset.minx , subset.miny ) 
             x_size, y_size = ( subset.maxx - subset.minx + 1 , subset.maxy - subset.miny + 1 ) 
 
-        # calculate effective offsets and buffer size  ) 
+        # calculate effective offsets and buffer size
         
         src_x_off , src_y_off = ( max(0, x_off) , max(0, y_off) ) 
         dst_x_off , dst_y_off = ( max(0,-x_off) , max(0,-y_off) ) 
@@ -435,19 +436,10 @@ class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
         # set only the currently requested output format 
         self.map.appendOutputFormat(output_format)
         self.map.setOutputFormat(output_format)
-        
-        # set supported CRSes 
-        self.map.setMetaData( 'ows_srs' , getMSWCSSRSMD() ) 
-        self.map.setMetaData( 'wcs_srs' , getMSWCSSRSMD() ) 
-
 
     def getMapServerLayer(self, coverage):
 
         layer = super(WCS20GetRectifiedCoverageHandler, self).getMapServerLayer(coverage)
-
-        # set layer's supported CRSes (using the per-service global data) 
-        layer.setMetaData( 'ows_srs' , getMSWCSSRSMD() ) 
-        layer.setMetaData( 'wcs_srs' , getMSWCSSRSMD() ) 
 
         connector = System.getRegistry().findAndBind(
             intf_id = "services.mapserver.MapServerDataConnectorInterface",
