@@ -56,7 +56,7 @@ def getMSWMSSRSMD():
     """ get the space separated list of CRS EPSG codes to be passed 
         to MapScript setMedata("wms_srs",...) method 
         """
-    return " ".join( crss.getSupportedCRS_WMS(None,crss.asShortCode) ) 
+    return " ".join(crss.getSupportedCRS_WMS(format_function=crss.asShortCode)) 
 
 class WMSLayer(object):
     def __init__(self):

@@ -538,7 +538,7 @@ class WCS20EOAPEncoder(WCS20Encoder):
     def encodeSupportedCRSs( self ) : 
 
         # get list of supported CRSes 
-        supported_crss = getSupportedCRS_WCS( None , asURL ) 
+        supported_crss = getSupportedCRS_WCS( format_function = asURL ) 
 
         el = [] 
 
