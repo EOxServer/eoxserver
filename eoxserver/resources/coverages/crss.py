@@ -32,6 +32,7 @@
 
 #-------------------------------------------------------------------------------
 
+import pyproj
 import logging
 from eoxserver.core.system import System
 
@@ -47,11 +48,13 @@ def asShortCode( v ):
     return "EPSG:%d"%int(v)
 
 def asURL( v ):  
-    """ convert EPSG code to OGC URL CRS notation ``http://www.opengis.net/def/crs/EPSG/0/<code>`` notation """
+    """ convert EPSG code to OGC URL CRS 
+    ``http://www.opengis.net/def/crs/EPSG/0/<code>`` notation """
     return "http://www.opengis.net/def/crs/EPSG/0/%d"%int(v) 
 
 def asURN( v ):
-    """ convert EPSG code to OGC URN CRS notation ``urn:ogc:def:crs:epsg::<code>`` notation """
+    """ convert EPSG code to OGC URN CRS ``urn:ogc:def:crs:epsg::<code>`` 
+    notation """
     return "urn:ogc:def:crs:epsg::%d"%int(v) 
 
 def asProj4Str( v ) : 
@@ -61,19 +64,36 @@ def asProj4Str( v ) :
 #-------------------------------------------------------------------------------
 # public API 
 
-def getSupportedCRS_WMS( config = None , format_function = asShortCode ) : 
-    """ Get list of CRSes supported by WMS. If ``config`` not provided the
-    default ``System.getConfig()`` is used. The ``format_function`` is used to
-    format individual list items.""" 
-    if config is None : config = System.getConfig()
-    return __parseListOfCRS(config,"services.ows.wms","supported_crs",format_function)
+__SUPPORTED_CRS_WMS = None
+__SUPPORTED_CRS_WCS = None
 
-def getSupportedCRS_WCS( config = None , format_function = asShortCode ) : 
-    """ Get list of CRSes supported by WCS. If ``config`` not provided the
-    default ``System.getConfig()`` is used. The ``format_function`` is used to
+def getSupportedCRS_WMS( format_function = asShortCode ) : 
+    """ Get list of CRSes supported by WMS. The ``format_function`` is used to
     format individual list items.""" 
-    if config is None : config = System.getConfig()
-    return __parseListOfCRS(config,"services.ows.wcs","supported_crs",format_function)
+
+    global __SUPPORTED_CRS_WMS
+
+    if __SUPPORTED_CRS_WMS is None : 
+
+        __SUPPORTED_CRS_WMS = __parseListOfCRS( System.getConfig() , 
+                "services.ows.wms","supported_crs",format_function)
+
+    return __SUPPORTED_CRS_WMS
+
+
+def getSupportedCRS_WCS( format_function = asShortCode ) : 
+    """ Get list of CRSes supported by WCS. The ``format_function`` is used to
+    format individual list items.""" 
+
+    global __SUPPORTED_CRS_WCS
+
+    if __SUPPORTED_CRS_WCS is None : 
+
+        __SUPPORTED_CRS_WCS = __parseListOfCRS( System.getConfig() , 
+                "services.ows.wcs","supported_crs",format_function)
+
+    return __SUPPORTED_CRS_WCS
+
 
 #-------------------------------------------------------------------------------
 
@@ -90,11 +110,16 @@ def __parseListOfCRS( config , section , field , format_function ) :
 
     # validate and convert to EPSG code 
     def checkCode( v ) : 
-        try : 
-            return 0 < int(v) 
-        except ValueError : 
-            logging.warning( "Failed to convert \"%s\" to an EPSG code! This CRS will be ignored! section=\"%s\" item=\"%s\"" %( v , section , field ) )
+        try: 
+            # validate the input CRS whether recognized by Proj library 
+            pyproj.Proj(init='EPSG:%d'%(int(v)))
+        except Exception : 
+            logging.warning( "Invalid EPSG code \"%s\" ! This CRS will be " \
+                "ignored! section=\"%s\" item=\"%s\""%( str(v).strip() , 
+                section , field ) )
             return False 
+        else : 
+            return True 
 
     tmp1 = map( format_function , filter( checkCode , tmp0.split(",") ) ) 
 

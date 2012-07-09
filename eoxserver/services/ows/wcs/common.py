@@ -220,7 +220,7 @@ def getMSWCSNativeFormat( source_mime ):
 def getMSWCSSRSMD(): 
     """ get the space separated list of CRS EPSG codes to be passed 
         to MapScript setMedata("wcs_srs",...) method """
-    return " ".join( crss.getSupportedCRS_WCS(None,crss.asShortCode) ) 
+    return " ".join(crss.getSupportedCRS_WCS(format_function=crss.asShortCode)) 
 
 def getMSWCSFormatMD():
     """ get the space separated list of supported formats to be passed 
