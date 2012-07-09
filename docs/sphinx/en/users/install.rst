@@ -96,27 +96,33 @@ to run EOxServer.
 .. _table_eoxserver_dependencies:
 .. table:: EOxServer Dependencies
 
-    +-----------+------------------+-------------------------------------------+
-    | Software  | Required Version | Description                               |
-    +===========+==================+===========================================+
-    | Python    | >= 2.5, < 3.0    | Scripting language                        |
-    +-----------+------------------+-------------------------------------------+
-    | Django    | >= 1.3           | Web development framework written in      |
-    |           |                  | Python including the GeoDjango extension  |
-    |           |                  | for geospatial database back-ends.        |
-    +-----------+------------------+-------------------------------------------+
-    | GDAL      | >= 1.8.0         | Geospatial Data Abstraction Library       |
-    |           | (for rasdaman    | providing common interfaces for accessing |
-    |           | support)         | various kinds of raster and vector data   |
-    |           |                  | formats and including a Python binding    |
-    |           |                  | which is used by EOxServer                |
-    +-----------+------------------+-------------------------------------------+
-    | MapServer | >= 6.0           | Server software implementing various OGC  |
-    |           |                  | Web Service interfaces including WCS and  |
-    |           |                  | WMS. Includes a Python binding which is   |
-    |           |                  | used by EOxServer.                        |
-    +-----------+------------------+-------------------------------------------+
+  +-----------+------------------+---------------------------------------------+
+  | Software  | Required Version | Description                                 |
+  +===========+==================+=============================================+
+  | Python    | >= 2.5, < 3.0    | Scripting language                          |
+  +-----------+------------------+---------------------------------------------+
+  | Django    | >= 1.3           | Web development framework written in        |
+  |           |                  | Python including the GeoDjango extension    |
+  |           |                  | for geospatial database back-ends.          |
+  +-----------+------------------+---------------------------------------------+
+  | PROJ.4    | >= 4.4           | Cartographic Projections Library -          |
+  |           |                  | an esential componenet of any geo-spatial   |
+  |           |                  | SW.                                         |
+  +-----------+------------------+---------------------------------------------+
+  | GDAL      | >= 1.8.0         | Geospatial Data Abstraction Library         |
+  |           | (for rasdaman    | providing common interfaces for accessing   |
+  |           | support)         | various kinds of raster and vector data     |
+  |           |                  | formats and including a Python binding      |
+  |           |                  | which is used by EOxServer                  |
+  +-----------+------------------+---------------------------------------------+
+  | MapServer | >= 6.0           | Server software implementing various OGC    |
+  |           |                  | Web Service interfaces including WCS and    |
+  |           |                  | WMS. Includes a Python binding which is     |
+  |           |                  | used by EOxServer.                          |
+  +-----------+------------------+---------------------------------------------+
 
+The Python bindings of the PROJ.4 (PyProj), GDAL, and MapServer (MapScript) are
+required as well. 
 
 EOxServer is written in `Python <http://www.python.org/>`_ and uses the
 `Django <https://www.djangoproject.com>`_ framework which requires a
