@@ -32,7 +32,7 @@
 
 #-------------------------------------------------------------------------------
 
-import pyproj
+from osgeo import osr
 import logging
 from eoxserver.core.system import System
 
@@ -103,17 +103,15 @@ def __parseListOfCRS( config , section , field ) :
     """ parse CRS configuartion """ 
 
     # validate and convert to EPSG code 
-    def checkCode( v ) : 
-        try: 
-            # validate the input CRS whether recognized by Proj library 
-            pyproj.Proj(init='EPSG:%d'%(int(v)))
-        except Exception : 
+    def checkCode( v ) :
+        # validate the input CRS whether recognized by GDAL/Proj 
+        sr = osr.SpatialReference()
+        if sr.ImportFromEPSG(int(v)) != 0:
             logging.warning( "Invalid EPSG code \"%s\" ! This CRS will be " \
                 "ignored! section=\"%s\" item=\"%s\""%( str(v).strip() , 
                 section , field ) )
-            return False 
-        else : 
-            return True 
+            return False
+        return True
 
     # read the configuration 
     tmp = config.getConfigValue( section , field )
