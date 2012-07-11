@@ -179,6 +179,8 @@ components.
 Example Component definition
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Example::
+
     import operatorinterface as operator
 
     class MyAComponent(operator.Component):
@@ -204,6 +206,8 @@ a list of Action or Resource classes.
 Example Action View definition
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Example::
+
     class MyTestActionView(operator.ActionView):
         actions = [MyTestAction]
         name = "mytestactionview"
@@ -226,6 +230,8 @@ manually declared in a class property.
 
 Example Action definition
 ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Example::
 
     class ProgressAction(BaseAction):
         name = "progressaction"
@@ -252,6 +258,8 @@ to the provided permissions) and the inc-/exclusion of model fields.
 
 Example Resource definition
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Example::
 
     class MyResource(ModelResource):
         model = MyModel
@@ -332,12 +340,7 @@ For calling RPC functions and parsing the output, the library `rpc.js
 <https://github.com/westonruter/json-xml-rpc>`_ is required. It adheres to
 either the JSON-RPC or the XML-RPC protocol.
 
-
-
-
-################## OLD 
-
-
+################## OLD
 
 * index page: dashboard?
 * organisation: component -> action
