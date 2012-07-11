@@ -76,9 +76,10 @@ def getSupportedCRS_WMS( format_function = asShortCode ) :
     if __SUPPORTED_CRS_WMS is None : 
 
         __SUPPORTED_CRS_WMS = __parseListOfCRS( System.getConfig() , 
-                "services.ows.wms","supported_crs",format_function)
+                "services.ows.wms","supported_crs")
 
-    return __SUPPORTED_CRS_WMS
+    # return formated list of EPSG codes 
+    return map( format_function , __SUPPORTED_CRS_WMS ) 
 
 
 def getSupportedCRS_WCS( format_function = asShortCode ) : 
@@ -90,23 +91,16 @@ def getSupportedCRS_WCS( format_function = asShortCode ) :
     if __SUPPORTED_CRS_WCS is None : 
 
         __SUPPORTED_CRS_WCS = __parseListOfCRS( System.getConfig() , 
-                "services.ows.wcs","supported_crs",format_function)
+                "services.ows.wcs","supported_crs")
 
-    return __SUPPORTED_CRS_WCS
+    # return formated list of EPSG codes 
+    return map( format_function , __SUPPORTED_CRS_WCS ) 
 
 
 #-------------------------------------------------------------------------------
 
-def __parseListOfCRS( config , section , field , format_function ) : 
+def __parseListOfCRS( config , section , field ) : 
     """ parse CRS configuartion """ 
-
-    tmp0 = config.getConfigValue( section , field )
-
-    # strip comments 
-    tmp1 = [] 
-    for l in tmp0.split("\n") :
-        tmp1.append( l.partition("#")[0] ) 
-    tmp0 = "".join(tmp1) 
 
     # validate and convert to EPSG code 
     def checkCode( v ) : 
@@ -121,8 +115,13 @@ def __parseListOfCRS( config , section , field , format_function ) :
         else : 
             return True 
 
-    tmp1 = map( format_function , filter( checkCode , tmp0.split(",") ) ) 
+    # read the configuration 
+    tmp = config.getConfigValue( section , field )
 
-    return tmp1 
+    # strip comments 
+    tmp = "".join([ l.partition("#")[0] for l in tmp.split("\n") ])
+
+    # filter out invalid EPSG codes and covert them to integer 
+    return map( int , filter( checkCode , tmp.split(",") ) ) 
 
 #-------------------------------------------------------------------------------
