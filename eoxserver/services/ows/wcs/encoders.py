@@ -384,6 +384,9 @@ class WCS20Encoder(CoverageGML10Encoder):
         })
         return ns_dict
     
+    def encodeExtension(self):
+        return self._makeElement("wcs", "Extension", [])
+    
     def encodeCoverageDescription(self, coverage):
         return self._makeElement("wcs", "CoverageDescription", [
             ("@gml", "id", self._getGMLId(coverage.getCoverageId())),

@@ -197,13 +197,16 @@ class WCS20GetCapabilitiesHandler(WCSCommonHandler):
                 if sections is None or len(sections) == 0 or "Contents" in sections or\
                    "DatasetSeriesSummary" in sections or "All" in sections:
                     
+                    extension = encoder.encodeExtension()
+                    contents_new.appendChild(extension)
+                    
                     dss_factory = System.getRegistry().bind(
                         "resources.coverages.wrappers.DatasetSeriesFactory"
                     )
                     
                     for dataset_series in dss_factory.find():
                         dss_summary = encoder.encodeDatasetSeriesSummary(dataset_series)
-                        contents_new.appendChild(dss_summary)
+                        extension.appendChild(dss_summary)
 
                 contents_old = dom.getElementsByTagName("wcs:Contents").item(0) 
 
