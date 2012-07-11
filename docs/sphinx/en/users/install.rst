@@ -105,10 +105,6 @@ to run EOxServer.
   |           |                  | Python including the GeoDjango extension    |
   |           |                  | for geospatial database back-ends.          |
   +-----------+------------------+---------------------------------------------+
-  | PROJ.4    | >= 4.4           | Cartographic Projections Library -          |
-  |           |                  | an esential componenet of any geo-spatial   |
-  |           |                  | SW.                                         |
-  +-----------+------------------+---------------------------------------------+
   | GDAL      | >= 1.8.0         | Geospatial Data Abstraction Library         |
   |           | (for rasdaman    | providing common interfaces for accessing   |
   |           | support)         | various kinds of raster and vector data     |
@@ -121,7 +117,7 @@ to run EOxServer.
   |           |                  | used by EOxServer.                          |
   +-----------+------------------+---------------------------------------------+
 
-The Python bindings of the PROJ.4 (PyProj), GDAL, and MapServer (MapScript) are
+The Python bindings of the GDAL and MapServer (MapScript) libraries are
 required as well. 
 
 EOxServer is written in `Python <http://www.python.org/>`_ and uses the
