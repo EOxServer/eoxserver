@@ -328,8 +328,9 @@ manipulation and several utility functions `jQuery <http://jquery.com/>`_ and
 working MVC layout, `Backbone <http://backbonejs.org/>`_ is suggested. This
 library also abstracts the use of REST resources.
 
-For calling RPC functions and parsing the output, the library `rpc.js` is
-required. It adheres to either the JSON-RPC or the XML-RPC protocol.
+For calling RPC functions and parsing the output, the library `rpc.js
+<https://github.com/westonruter/json-xml-rpc>`_ is required. It adheres to
+either the JSON-RPC or the XML-RPC protocol.
 
 
 
