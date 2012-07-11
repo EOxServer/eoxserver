@@ -103,6 +103,12 @@ Copyright (C) European Space Agency - ESA
       </ows:DCP>
     </ows:Operation>
   <ows:Operation name="DescribeEOCoverageSet"><ows:DCP><ows:HTTP><ows:Get xlink:href="http://localhost:8000/ows?" xlink:type="simple"/><ows:Post xlink:href="http://localhost:8000/ows?" xlink:type="simple"><ows:Constraint name="PostEncoding"><ows:AllowedValues><ows:Value>XML</ows:Value></ows:AllowedValues></ows:Constraint></ows:Post></ows:HTTP></ows:DCP></ows:Operation><ows:Constraint name="CountDefault"><ows:NoValues></ows:NoValues><ows:DefaultValue>100</ows:DefaultValue></ows:Constraint></ows:OperationsMetadata>
-  <wcs:ServiceMetadata/>
-  <wcs:Contents/>
+  <wcs:ServiceMetadata>
+    <wcs:formatSupported>image/png</wcs:formatSupported>
+    <wcs:formatSupported>image/jpeg</wcs:formatSupported>
+    <wcs:formatSupported>image/gif</wcs:formatSupported>
+    <wcs:formatSupported>image/png; mode=8bit</wcs:formatSupported>
+    <wcs:formatSupported>image/tiff</wcs:formatSupported>
+  </wcs:ServiceMetadata>
+  <wcs:Contents><wcs:Extension/></wcs:Contents>
 </wcs:Capabilities>
