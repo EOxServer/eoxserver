@@ -139,11 +139,12 @@ class WCS20GetCapabilitiesHandler(WCSCommonHandler):
             svc_md = dom.getElementsByTagName("wcs:ServiceMetadata").item(0)
 
             if svc_md is not None : 
-
+                extension = encoder.encodeExtension()
+                svc_md.appendChild(extension)
                 supported_crss = encoder.encodeSupportedCRSs() 
 
                 for sc in supported_crss : 
-                    svc_md.appendChild( sc )
+                    extension.appendChild( sc )
                 
             # append EO Profiles to ServiceIdentification
             svc_identification = dom.getElementsByTagName("ows:ServiceIdentification").item(0)
