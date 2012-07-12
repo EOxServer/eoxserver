@@ -32,7 +32,7 @@
 RFC 18: Operator Interface Architecture
 =======================================
 
-:Author: Stephan Krause
+:Author: Stephan Krause, Fabian Schindler
 :Created: 2012-05-08
 :Last Edit: $Date$
 :Status: IN PREPARATION
@@ -113,8 +113,8 @@ These include:
 * enabling / disabling of components
 * user management
 
-Structure of the Operator Interface
------------------------------------
+Basic Concepts
+--------------
 
 .. _fig_opclient_uml:
 .. figure:: resources/rfc18/opclient_uml.png
@@ -122,29 +122,65 @@ Structure of the Operator Interface
 
    *The Operator Interface structure expressed in a UML class diagram.*
 
-The Operator Interface shall be organized in so called Operator Components,
-which represents a grouped set of user-interactions with the server. The
-components are individually accessible via an URL and usually only one
-component is visible at a time. A component may have dependencies to other
-components to be registered prior to its visualization.
+The Operator Interface shall be organized in so called Operator Components.
+Operator Components correspond to groups of related packages and modules of
+EOxServer or its extensions. The most important components at the moment
+are :mod:`eoxserver.core` and :mod:`eoxserver.resources.coverages`.
 
-Each component allows access to a certain set of functionalites, called
-Resources and Actions. Resources are data models accessed via a REST interface,
-whereas Actions are methods to be executed on the server, either instantaneous
-or over time.
+An Operator Component bundles Actions and Views related to the specific
+EOxServer component in the backend.
 
-To visualize Resources and Actions, each Component consists of Action Views
-which manage a set of Actions and Resources. An Action View is responsible to
-visualize data with widgets and perform required method calls as requested by
-the user.
+Actions provide an interface for operators to edit the system configuration
+including the data and metadata stored in the database. Most Actions are
+related to resources, e.g. coverages or Dataset Series.
 
-The communication between the Action Views and the underlying Actions and
-Resources is operated via certain Interfaces, namely the REST and the RPC
-interface. Interfaces are provided by the server via dynamically created URLs
-within the Operator Interface with.
+In order to make the functionality of these Actions available, the Operator
+Interface shall include Action Views. Action Views shall group actions and
+information that are closely related to each other.
 
-Each visual representation of the Operator Interface, namely the Components and
-Action View, consists of three elements:
+Each Operator Component may contain several Action Views. They represent a UI
+for access to the actions in the backend. Several Actions may be attached to a
+single Action View, and Actions may appear in several Action Views.
+
+For example, an Action View might show a list of Rectified Datasets with
+basic metadata which allows to create and delete items. Creation and deletion
+should each be modeled as Actions on the server side. Another Action View may
+show the whole information for a single Rectified Dataset and include
+forms and inputs to edit the metadata.
+
+As far as possible, the Action Views should be composed of reusable Widgets.
+Widgets consist of HTML and/or JavaScript. The aforementioned list of
+Rectified Datasets, would be a typical example. It could be used also in the
+Dataset Series View.
+
+The core implementation of the Operator Interface shall provide reusable
+components to build Widgets of (e.g. lists ...).
+
+The communication between the Action Views and the underlying Actions should
+be done via specific Interfaces. One REST-based interface shall be implemented
+whiche shall allow to read data and metadata to be displayed, and one
+RPC-based interface shall be implemented in order to trigger actions on the
+server side.
+
+Layout of the Operator Interface
+--------------------------------
+
+The entry point to the operator interface shall be a dashboard-like page. It is
+envisaged to present a tab for each Operator Component; this tab shall
+contain an overview of the Action Views the Operator Component exhibits.
+
+So, on the client side, each Operator Component should provide:
+
+* A name for the Operator Component that will be shown as caption of the
+  tab
+* the overview of the Operator Component, which links to the Action Views;
+  as an alternative the Action Views may be contained in sub-tabs
+* the Action Views
+* the Widgets used in the Action Views
+* a widget to be displayed on the entry page dashboard (optional)
+
+Each visual representation of the Operator Interface, namely the entry page
+dashboard, the Operator Component overview and the Action Views consist of:
 
 * A Django HTML template
 * A JavaScript View class
@@ -154,12 +190,6 @@ Action View, consists of three elements:
 Only the third part needs to be adjusted when creating a new visual element,
 for both the template and the JavaScript class defaults shall help with the
 usage.
-
-Layout of Componets
--------------------
-
-# TBD
-
 
 Implementing Components
 -----------------------
