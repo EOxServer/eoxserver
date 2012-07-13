@@ -4,6 +4,7 @@
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
+#          Martin Paces <martin.paces@eox.at>
 #
 #-------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
@@ -34,6 +35,7 @@ This module contains utility functions for file operations.
 import sys
 import os
 import os.path
+import tempfile 
 from fnmatch import fnmatch
 
 from eoxserver.core.exceptions import InternalError
@@ -85,3 +87,19 @@ def pathToModuleName(path):
         raise InternalError("'%s' not on Python path." % path)
     else:
         return ".".join(reversed(module_name))
+
+
+class TmpFile : 
+    """ temporary file object - ``with - as`` statement friendly """  
+    
+    def __init__( self , suffix , prefix = "" ) : 
+        _ , self.__fname = tempfile.mkstemp(suffix,prefix)
+
+    def __str__( self ) :
+        return self.__fname
+
+    def __enter__( self ) :
+        return self.fname 
+
+    def __exit__( self , type, value, traceback) :
+        os.remove(dst_filename)
