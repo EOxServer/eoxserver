@@ -150,7 +150,7 @@ forms and inputs to edit the metadata.
 
 As far as possible, the Action Views should be composed of reusable Widgets.
 Widgets consist of HTML and/or JavaScript. The aforementioned list of
-Rectified Datasets, would be a typical example. It could be used also in the
+Rectified Datasets would be a typical example. It could be used also in the
 Dataset Series View.
 
 The core implementation of the Operator Interface shall provide reusable
@@ -173,8 +173,7 @@ So, on the client side, each Operator Component should provide:
 
 * A name for the Operator Component that will be shown as caption of the
   tab
-* the overview of the Operator Component, which links to the Action Views;
-  as an alternative the Action Views may be contained in sub-tabs
+* the overview of the Operator Component, which links to the Action Views
 * the Action Views
 * the Widgets used in the Action Views
 * a widget to be displayed on the entry page dashboard (optional)
@@ -190,6 +189,143 @@ dashboard, the Operator Component overview and the Action Views consist of:
 Only the third part needs to be adjusted when creating a new visual element,
 for both the template and the JavaScript class defaults shall help with the
 usage.
+
+Action Views and Operator Component overviews should fit into the same basic
+layout; customizable CSS should be used for styling. The design of the entry
+page design (dashboard) may differ from the design of the sub-pages.
+
+Components and Operator Components
+----------------------------------
+
+Proposed Operator Components:
+
+* User Management
+* Configuration Management
+* Action Control Center
+* Coverages
+
+Action Views
+------------
+
+Proposed Action Views:
+
+* User Management
+
+  * add/delete users
+  * edit permissions
+
+* Configuration Management
+
+  * enable and disable components
+  * edit configuration settings
+
+* Action Control Center
+
+  * overview over running and completed actions
+  * individual views for actions, including status and logs
+
+* Coverages
+
+  * list view of Rectified Datasets, including create and delete actions
+  * individual view of Rectified Datasets, including create, update and
+    delete actions
+  * list view of Referenceable Datasets, including create and delete actions
+  * individual view of Referenceable Datasets, including create, update and
+    delete actions
+  * list view of Rectified Stitched Mosaics, including create, delete and
+    synchronize actions
+  * individual view of Rectified Stitched Mosaics, including create, update,
+    delete and synchronize actions, as well as a list view of contained
+    Rectified Datasets
+  * list view of Dataset Series, including create, delete and synchronize
+    actions
+  * individual view of Dataset Series, including create, delete, update and
+    synchronize actions, as well as list views of contained coverages
+
+Actions
+-------
+
+The Actions shall be represented by corresponding Python classes on the
+server side. Actions shall be reusable in the sense that they can also be
+invoked using a CLI command.
+
+Most Actions are tied to resources like coverages. Resources in that sense
+should not be confused with database models. In most cases, a resource will be
+tied to a higher-level object: coverage resources for instance shall be tied to
+the wrappers defined in :mod:`eoxserver.resources.coverages.wrappers`.
+
+An interface shall be defined for Actions using the mechanisms of
+:mod:`eoxserver.core.registry` and :mod:`eoxserver.core.interfaces`. It should
+be possible to invoke Actions in synchronous and asynchronous mode. For the
+asynchronous mode, the existing facilities of
+:mod:`eoxserver.resources.processes` shall be adapted and extended.
+
+Every Action shall expose methods to
+
+* validate the parameters
+* start the Action
+* stop the Action
+* check the status
+* check the log messages issued by the Action
+
+Example Action definition
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Example::
+
+    class ProgressAction(BaseAction):
+        name = "progressaction"
+        permissions = [ ... ]
+        
+        def validate(self, params):
+            ...
+        
+        def start(self):
+            ...
+        
+        def status(self, obj_id):
+            ...
+        
+        def stop(self, obj_id):
+            ...
+        
+        def view_logs(self, obj_id, timeframe=None):
+            ...
+
+RPC Interface
+-------------
+
+Actions shall be triggered via the RPC Interface. In general, invocation from
+the Operator Interface shall be asynchronous. Incoming requests from the
+Operator Interface shall be dispatched to the respective Actions using a
+common mechanism that implements the following workflow:
+
+* validate the parameters conveyed with the request, using the Action interface
+* in case they are invalid, return an error code
+* in case they are valid, proceed
+* queue the Action in the asynchronous processing queue
+* return a response that contains the Action ID
+
+Using the Action ID, the Operator Interface can
+
+* check the status of the Action
+* view the log messages issued by the Action
+* cancel the Action
+
+REST Interface
+--------------
+
+The REST Interface shall be used to retrieve resource data using HTTP GET. No
+Actions shall be triggered by the REST Interface. This restriction is due to
+the following considerations:
+
+* REST frameworks do not support asynchronous processing
+* REST frameworks do not support actions in addition to CRUD, e.g. synchronization
+* Actions shall expose reusable interfaces for CLI commands which would not be
+  feasible if they were tied to the resource objects most REST frameworks use
+
+################################################################################
+
 
 Implementing Components
 -----------------------
@@ -243,38 +379,6 @@ Example::
         name = "mytestactionview"
         javascript_class = "App.Views.MyTestActionView"
 
-
-Implementing Actions
---------------------
-
-Actions should not necessarily be accessible via RPC calls, but should be also
-be used in other contexts, like CLI tools or others.
-
-To create an Action, one simply has to subclass the abstract base class for
-actions and to implement the functionality as methods for this class. Either
-all public functions (as per `Python PEP 8 definition
-<http://www.python.org/dev/peps/pep-0008/#method-names-and-instance-variables>`_)
-are automatically registered or the method names to be exported have to be
-manually declared in a class property.
-
-
-Example Action definition
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Example::
-
-    class ProgressAction(BaseAction):
-        name = "progressaction"
-        permissions = [ ... ]
-        
-        def start(self):
-            ...
-        
-        def status(self, obj_id):
-            ...
-        
-        def stop(self, obj_id):
-            ...
 
 Implementing Resources
 ----------------------
@@ -369,93 +473,3 @@ library also abstracts the use of REST resources.
 For calling RPC functions and parsing the output, the library `rpc.js
 <https://github.com/westonruter/json-xml-rpc>`_ is required. It adheres to
 either the JSON-RPC or the XML-RPC protocol.
-
-################## OLD
-
-* index page: dashboard?
-* organisation: component -> action
-* customization: look and feel
-* widgets?
-  * log viewer -> internal logging framework
-  * confirmations
-  * model views
-  * use of ModelForm? -> probably not feasible if recurring to wrappers
-  * WMS viewing widget
-* interactive mode? -> future extension
-* HTML or JavaScript?
-  * Backbone.js?
-  * link between client views and server
-  * link between command line tools and client views?
-  * how to integrate components and additional extensions
-* core & extensions vs. universal plugging mechanism
-* how to refer to data models
-* access to the data model through wrappers and coverage managers
-* is listing records also an action?
-* integration with viewing service
-* review of the interface/implementation model of EOxServer w.r.t. model etc.
-* use of Django templates, forms?
-* adaptation to changes in data model, interfaces
-  * how to keep adaptation efforts minimal?
-* security issues?
-* integration with IDM?
-* relation to admin interface?
-  * abolish (in the long term)?
-  * keep (as a database editing tool only)?
-* read-only access for demonstration service?
-
-JavaScript/AJAX based option
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* Backbone.js
-* JSON exchange interface
-* asynchronous processing
-* Advantages:
-  * flexibility
-  * high usability
-  * rich client
-* Disadvantages:
-  * more difficult to implement
-  * difficult to maintain
-  * cannot reuse much of Django's web development framework
-
-HTML based option
-~~~~~~~~~~~~~~~~~
-
-* RESTful
-* Advantages:
-  * easier to implement
-  * reuse of Django templating system etc.
-* Disadvantage:
-  * static
-  * long waiting times with risk of timeouts
-  * low usability for long-running tasks
-
-Combinations
-~~~~~~~~~~~~
-
-* mainly HTML based with JavaScript/AJAX elements
-
-Interface
-~~~~~~~~~
-
-* JSON based
-* RESTful
-* single URL -> routes to others (extensibility)
-* presentation models?
-* actions
-
-Questions
-~~~~~~~~~
-
-* How to integrate server and client?
-  * REST?
-* How rich<* Which frameworks to use on the client side?
-  * jQuery
-  * Backbone.js?
-* How to model actions and bind them to views and interfaces?
-* How to use Django templating capabilities?
-* How to integrate asynchronous processing?
-* Architectural prerogatives on server side?
-* Changes to the core? ComponentManager and others ...
-* Refactoring the coverage managers?
-* Layout of components?
