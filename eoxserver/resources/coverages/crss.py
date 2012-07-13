@@ -102,11 +102,15 @@ def getSupportedCRS_WCS( format_function = asShortCode ) :
 def __parseListOfCRS( config , section , field ) : 
     """ parse CRS configuartion """ 
 
+    spat_ref = osr.SpatialReference() 
+
     # validate and convert to EPSG code 
     def checkCode( v ) :
         # validate the input CRS whether recognized by GDAL/Proj 
-        sr = osr.SpatialReference()
-        if sr.ImportFromEPSG(int(v)) != 0:
+        # NOTE: the try-except block catches also invalid non-iteger input
+        try : 
+            if spat_ref.ImportFromEPSG(int(v)) != 0 : raise ValueError 
+        except ValueError : 
             logging.warning( "Invalid EPSG code \"%s\" ! This CRS will be " \
                 "ignored! section=\"%s\" item=\"%s\""%( str(v).strip() , 
                 section , field ) )
