@@ -76,6 +76,7 @@
     </swe:DataRecord>
   </gmlcov:rangeType>
   <gmlcov:metadata>
+    <gmlcov:Extension>
     <wcseo:EOMetadata>
       <eop:EarthObservation gml:id="eop_mosaic_MER_FRS_1P_RGB_reduced">
         <om:phenomenonTime>
@@ -124,6 +125,7 @@
         <gml:timePosition>2011-01-01T00:00:00Z</gml:timePosition>
       </wcseo:lineage>
     </wcseo:EOMetadata>
+    </gmlcov:Extension>
   </gmlcov:metadata>
   <wcseo:datasets>
     <wcseo:dataset>
