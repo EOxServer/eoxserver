@@ -8,7 +8,7 @@
 		</documentation>
 	</annotation>
 	<import namespace="http://www.w3.org/1999/xlink" schemaLocation="http://schemas.opengis.net/xlink/1.0.0/xlinks.xsd"/>
-	<import namespace="http://www.w3.org/2001/SMIL20/" schemaLocation="http://schemas.opengis.net/gml/3.1.1/smil/smil20.xsd"/>
+	<!--<import namespace="http://www.w3.org/2001/SMIL20/" schemaLocation="http://schemas.opengis.net/gml/3.1.1/smil/smil20.xsd"/>-->
 	<import namespace="http://www.w3.org/2001/SMIL20/Language" schemaLocation="http://schemas.opengis.net/gml/3.1.1/smil/smil20-language.xsd"/>
 	<!-- ================================================= -->
 	<element name="_Feature" type="gml:AbstractFeatureType" abstract="true" substitutionGroup="gml:_GML"/>
