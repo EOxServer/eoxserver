@@ -488,9 +488,11 @@ class WCS20EOAPEncoder(WCS20Encoder):
             ])
         else:
             return self._makeElement("gmlcov", "metadata", [
-                ("wcseo", "EOMetadata", [
-                    (earth_observation,),
-                    (lineage,)
+                ("gmlcov", "Extension", [
+                    ("wcseo", "EOMetadata", [
+                        (earth_observation,),
+                        (lineage,)
+                    ]),
                 ]),
             ])
 
