@@ -173,7 +173,7 @@ class EOWMSOutlinesLayer(WMSLayer):
     def getMapServerLayer(self, req):
         layer = super(EOWMSOutlinesLayer, self).getMapServerLayer(req)
         
-        layer.setMetaData("wms_enable_request", "getcapabilities,getmap,getfeatureinfo")
+        layer.setMetaData("wms_enable_request", "getcapabilities getmap getfeatureinfo")
 
         # NOTE: outline projection always set to WSG84
         srid = 4326 # TODO: Is that really correct? Check it.
@@ -363,7 +363,7 @@ class WMS13GetCapabilitiesHandler(WMS1XGetCapabilitiesHandler):
     def configureMapObj(self):
         super(WMS13GetCapabilitiesHandler, self).configureMapObj()
         
-        self.map.setMetaData("wms_enable_requests", "getcapabilities,getmap,getfeatureinfo")
+        self.map.setMetaData("wms_enable_request", "getcapabilities getmap getfeatureinfo")
         self.map.setMetaData("wms_feature_info_mime_type", "text/html")
     
     def createLayers(self):
@@ -519,7 +519,7 @@ class WMS13GetMapHandler(WMS1XGetMapHandler):
         super(WMS13GetMapHandler, self).configureMapObj()
         
         self.map.setMetaData("wms_exceptions_format", "xml")
-        self.map.setMetaData("wms_enable_requests", "getcapabilities,getmap,getfeatureinfo")
+        self.map.setMetaData("wms_enable_request", "getcapabilities getmap getfeatureinfo")
         self.map.setMetaData("wms_feature_info_mime_type", "text/html")
         
     def createLayersForName(self, layer_name, filter_exprs):
@@ -655,7 +655,7 @@ class WMS13GetFeatureInfoHandler(WMSCommonHandler):
         super(WMS13GetFeatureInfoHandler, self).configureMapObj()
         
         self.map.setMetaData("wms_exceptions_format", "xml")
-        self.map.setMetaData("wms_enable_requests", "getcapabilities,getmap,getfeatureinfo")
+        self.map.setMetaData("wms_enable_request", "getcapabilities getmap getfeatureinfo")
         self.map.setMetaData("wms_feature_info_mime_type", "text/html")
 
     def createLayers(self):
@@ -742,7 +742,7 @@ class WMS13GetLegendGraphicHandler(WMSCommonHandler):
         super(WMS13GetLegendGraphicHandler, self).configureMapObj()
         
         self.map.setMetaData("wms_exceptions_format", "xml")
-        self.map.setMetaData("wms_enable_requests", "getcapabilities,getmap,getfeatureinfo,getlegendgraphic")
+        self.map.setMetaData("wms_enable_request", "getcapabilities getmap getfeatureinfo,getlegendgraphic")
 
     def createLayers(self):
         layer_name = self.req.getParamValue("layer")
