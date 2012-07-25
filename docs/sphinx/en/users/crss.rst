@@ -47,18 +47,18 @@ Coordinate Reference Systems
 ----------------------------
 
 The Coordinate Reference System (CRS) denotes the projection of coordinates to an
-actual position on the Earth. 
-The EOxServer allows configuration of supported CRSes for WMS and WCS services. 
-The CRSes used by the EOxServer are specified exlusively by means of the  
+actual position on Earth. 
+EOxServer allows the configuration of supported CRSes for WMS and WCS services. 
+The CRSes used by EOxServer are specified exclusively by means of 
 `EPSG numerical codes <http://www.epsg-registry.org>`_. 
 
 Web Map Service
 ---------------
 
-The EOxServer allows specification of the overal list of CRSes supported by all
-published map layers (listed at top layer of the WMS ``Capabilities`` XML
+EOxServer allows the specification of the overall list of CRSes supported by all
+published map layers (listed at the top layer of the WMS ``Capabilities`` XML
 document). In case of no common CRS the list can be empty. In addition to the
-list of the common CRSes each individual layer has its *native* CRS which need
+list of common CRSes each individual layer has its *native* CRS which need
 not to be necessarily listed among the common CRSes. The meaning of the *native*
 CRS changes based on the EO dataset:
  
@@ -73,7 +73,7 @@ This *native* CRS is also used as the CRS in which the geographic extent
 
 The list of WMS common CRSes is specified as a comma separated list of EPSG codes
 in the EOxServer's configuration (``<instance path>/conf/eoxserver.conf``) in
-section ``serices.ows.wms`` :: 
+section ``serices.ows.wms``::
 
     [services.ows.wms]
     supported_crs= <EPSG-code>[,<EPSG-code>[,<EPSG-code> ... ]]
@@ -82,19 +82,15 @@ section ``serices.ows.wms`` ::
 Web Coverage Service
 --------------------
 
-The EOxServer allow specification of list of CRCes to be used by the WCS. These
-CRSes can be used to select subset of the desired coverage or, in case of
+EOxServer allows the specification of a list of CRCes to be used by the WCS. 
+These CRSes can be used to select subsets of the desired coverage or, in case of
 rectified datasets (including rectified stitched mosaics) to specify the
 CRS of the output image data. The latter case is not applicabe to referenceable
 datasets as these are always returned in the original image geometry.
 
-The list of WCS supported CRSes is specified as a comma-separated list of EPSG codes
-in the EOxServer's configuration (``<instance path>/conf/eoxserver.conf``) in
-section ``serices.ows.wcs`` :: 
+The list of WCS supported CRSes is specified as a comma-separated list of EPSG 
+codes in the EOxServer configuration (``<instance path>/conf/eoxserver.conf``) 
+in section ``serices.ows.wcs``::
 
     [services.ows.wcs]
     supported_crs= <EPSG-code>[,<EPSG-code>[,<EPSG-code> ... ]]
-
-
-
-
