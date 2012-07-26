@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<wcseo:EOCoverageSetDescription xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:wcseo="http://www.opengis.net/wcseo/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" numberMatched="5" numberReturned="5" xsi:schemaLocation="http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd">
+<wcseo:EOCoverageSetDescription xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:wcs="http://www.opengis.net/wcs/2.0" xmlns:wcseo="http://www.opengis.net/wcseo/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" numberMatched="5" numberReturned="5" xsi:schemaLocation="http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd">
+  <wcs:CoverageDescriptions/>
   <wcseo:DatasetSeriesDescriptions>
     <wcseo:DatasetSeriesDescription gml:id="MER_FRS_1P_reduced">
       <gml:boundedBy>
