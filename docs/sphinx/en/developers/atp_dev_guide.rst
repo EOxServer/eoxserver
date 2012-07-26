@@ -1,4 +1,5 @@
 .. atp_dev_guide.rst
+  #-----------------------------------------------------------------------------
   # $Id$
   #
   # Project: EOxServer <http://eoxserver.org>
@@ -38,8 +39,8 @@ Asynchronous Task Processing - Developers Guide
 Introduction 
 ------------
 
-This guide is intended to help with creation of applications using the
-*Asynchronous Task Processing* subsystem. 
+This guide is intended to help with the creation of applications using the
+*Asynchronous Task Processing* subsystem of EOxServer. 
 
 The first part is guiding creation of the simple task producer, i.e., an
 application needing the asynchronous processing capabilities. 
@@ -277,8 +278,8 @@ dynamically by the ``__import__()`` function.
 Once imported the handler function is executed passing the TaskStatus and inputs 
 as the arguments. 
 
-The handler function is allowed but not required to set the successful terminal state of
-the processing (``FINISHED``) and if not set it is done by the 
+The handler function is allowed but not required to set the successful terminal 
+state of the processing (``FINISHED``) and if not set it is done by the 
 :func:`~eoxserver.resources.processes.tracker.stopTaskSuccessIfNotFinished`
 function. 
 
@@ -289,10 +290,10 @@ DB Cleanup
 ^^^^^^^^^^
 
 In addition to the normal operation each ATPD implementation is responsible for
-maintenance of the ATPD subsystem in a consistent state. Namely, i) the ATPD must
-repeatedly check for the abandoned "zombie" tasks and restart them by calling 
-:func:`~eoxserver.resources.processes.tracker.reenqueueZombieTasks` function
-and ii) the ATPD must remove DB records of the finished "retired" tasks by
-calling :func:`~eoxserver.resources.processes.tracker.deleteRetiredTasks`
-function. 
+maintenance of the ATPD subsystem in a consistent state. Namely, i) the ATPD 
+must repeatedly check for the abandoned "zombie" tasks and restart them by 
+calling :func:`~eoxserver.resources.processes.tracker.reenqueueZombieTasks` 
+function and ii) the ATPD must remove DB records of the finished "retired" 
+tasks by calling :func:`~eoxserver.resources.processes.tracker.deleteRetiredTask
+s` function. 
 

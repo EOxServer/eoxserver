@@ -448,6 +448,20 @@ GUI::
 
     Alias /media <absolute path to django installation>/contrib/admin/media/
 
+.. TODO:
+    Static files (more secure then pointing the static-dir towards /usr/lib/...
+
+    in the  settings.py   change the following to:
+      STATIC_ROOT = '/var/www/html/static/'
+    maybe also
+      ADMIN_MEDIA_PREFIX = '/static/admin/'
+
+    create a static/ directory in your web-servers document root eg. /var/www/html using the following from within your instance ::
+
+        python manage.py collectstatic ???
+
+    However, this needs to be repeated whenever some changes in css, js, etc. occur.
+
 .. _Data Registration:
 
 Data Registration
