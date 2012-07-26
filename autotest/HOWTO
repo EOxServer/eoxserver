@@ -140,4 +140,13 @@ python manage.py test services coverages backends processes core
 python manage.py test
 # this also runs some django tests.
 
+
+------------------------------
+6. How to add expected results
+------------------------------
+
+# To format XML files in a pretty way use the following command
+xmlling --format <filename> > <tmpfilename>
+mv <tmpfilename> <filename>
+
 --------------------------------------------------------------------------------
