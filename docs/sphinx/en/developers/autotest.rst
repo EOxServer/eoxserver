@@ -52,21 +52,18 @@ Installation
 
 For the *autotest* instance to work, a new EOxServer instance has to be created
 with the ``eoxserver-admin.py`` script which creates a basic directory and file
-structure for a new instance:
-::
+structure for a new instance::
 
     eoxserver-admin.py create_instance --id autotest
 
 Use the ``--init_spatialite`` to initialize a SQLite database needed for 
-:ref:`running <Running the autotest instance>` the *autotest* instance:
-::
+:ref:`running <Running the autotest instance>` the *autotest* instance::
 
     eoxserver-admin.py create_instance --id autotest --init_spatialite
 
 Now it can be filled with its content, downloaded from the `EOxServer project
 download page <http://http://eoxserver.org/wiki/Download>`_ and unpacked into
-the previously created instance (say yes if asked to overwrite):
-::
+the previously created instance (say yes if asked to overwrite)::
 
     wget http://eoxserver.org/export/head/downloads/EOxServer_autotest-0.2.0.tar.gz
     tar xvfz EOxServer_autotest-0.2.0.tar.gz
@@ -99,8 +96,7 @@ Most of the tests in EOxServer use the `Django test framework
 built upon `Python's unittest framework
 <http://docs.python.org/library/unittest.html>`_.
 
-To run tests against a component of EOxServer simply run:
-::
+To run tests against a component of EOxServer simply run::
 
     cd autotest
     python manage.py test <component>
@@ -113,8 +109,7 @@ Django tests can be found in the `according chapter of the Django documentation
 
 Due to some behaviour of underlying software such as GEOSS the tests for the 
 `services` component need to be split up. The following splitting is known to 
-work:
-::
+work::
 
     python manage.py test services.WCS1
     python manage.py test services.WCS20GetCap
@@ -131,8 +126,7 @@ Running single tests
 ~~~~~~~~~~~~~~~~~~~~
 
 Single tests or groups of tests can be run by appending the test name or 
-beginning of the test name to the component:
-::
+beginning of the test name to the component::
 
     python manage.py test services.WCS20GetCapabilities
 
@@ -141,8 +135,7 @@ XML Validation
 ~~~~~~~~~~~~~~
 
 In order to speed up the tests and also to pass certain tests it is highly 
-recommended to make usage of locally stored schemas via XML Catalog:
-::
+recommended to make usage of locally stored schemas via XML Catalog::
 
     wget http://eoxserver.org/export/head/downloads/EOxServer_schemas-0.2.0.tar.gz
     tar xvfz EOxServer_schemas-0.2.0.tar.gz
@@ -161,8 +154,7 @@ Running the *autotest* instance
 -------------------------------
 
 First the configuration of the instance has to be finalized. After the 
-successful :ref:`Database Setup` it needs to be initialized:
-::
+successful :ref:`Database Setup` it needs to be initialized::
 
     cd autotest
     python manage.py syncdb
@@ -174,8 +166,7 @@ Loading test data
 ~~~~~~~~~~~~~~~~~
 
 Test data is provided as fixtures plus image files. To register all available 
-test data simply run:
-::
+test data simply run::
 
     cd autotest
     python manage.py loaddata auth_data.json initial_rangetypes.json \
@@ -202,8 +193,7 @@ Running the development web server
 
 Django provides a `lightweight development web server <https://docs.djangoproje
 ct.com/en/dev/ref/django-admin/#runserver-port-or-address-port>`_ which can be 
-used to run the *autotest* instance:
-::
+used to run the *autotest* instance::
 
     cd autotest
     python manage.py runserver
@@ -214,7 +204,7 @@ http://localhost:8000/
 The :ref:`ops_admin` is available at http://localhost:8000/admin or via the 
 *Admin Client* link from the start page. Note that if the ``auth_data.json`` 
 has been loaded there is a superuser login available with username and password 
-"login".
+"admin".
 
 Sample service requests are described in the :ref:`Demonstration` section.
 
@@ -240,8 +230,7 @@ Ruby, Python and *Selenese*, a basic HTML encoding.
 Before the test cases can be run, ensure that the databases `backends` and
 `coverages` are empty and the EOxServer is run by either its developement
 server or within a webserver environment. To clear the databases in question
-type:
-::
+type::
 
     python manage.py reset coverages backends
 
