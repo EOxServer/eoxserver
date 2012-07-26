@@ -130,9 +130,11 @@ Copyright (C) European Space Agency - ESA
     <wcs:formatSupported>image/jp2</wcs:formatSupported>
     <wcs:formatSupported>application/x-netcdf</wcs:formatSupported>
     <wcs:formatSupported>application/x-hdf</wcs:formatSupported>
-    <crs:crsSupported>http://www.opengis.net/def/crs/EPSG/0/4326</crs:crsSupported>
-    <crs:crsSupported>http://www.opengis.net/def/crs/EPSG/0/3857</crs:crsSupported>
-    <crs:crsSupported>http://www.opengis.net/def/crs/EPSG/0/900913</crs:crsSupported>
+    <wcs:Extension>
+      <crs:crsSupported>http://www.opengis.net/def/crs/EPSG/0/4326</crs:crsSupported>
+      <crs:crsSupported>http://www.opengis.net/def/crs/EPSG/0/3857</crs:crsSupported>
+      <crs:crsSupported>http://www.opengis.net/def/crs/EPSG/0/900913</crs:crsSupported>
+    </wcs:Extension>
   </wcs:ServiceMetadata>
   <wcs:Contents>
     <wcs:CoverageSummary>
@@ -151,27 +153,29 @@ Copyright (C) European Space Agency - ESA
       <wcs:CoverageId>mosaic_MER_FRS_1P_RGB_reduced</wcs:CoverageId>
       <wcs:CoverageSubtype>RectifiedStitchedMosaic</wcs:CoverageSubtype>
     </wcs:CoverageSummary>
-    <wcseo:DatasetSeriesSummary>
-      <ows:WGS84BoundingBox>
-        <ows:LowerCorner>-4.04296900 32.08007800</ows:LowerCorner>
-        <ows:UpperCorner>33.13476600 45.17578100</ows:UpperCorner>
-      </ows:WGS84BoundingBox>
-      <wcseo:DatasetSeriesId>MER_FRS_1P_reduced</wcseo:DatasetSeriesId>
-      <gml:TimePeriod gml:id="MER_FRS_1P_reduced_timeperiod">
-        <gml:beginPosition>2006-08-16T00:00:00</gml:beginPosition>
-        <gml:endPosition>2006-08-31T00:00:00</gml:endPosition>
-      </gml:TimePeriod>
-    </wcseo:DatasetSeriesSummary>
-    <wcseo:DatasetSeriesSummary>
-      <ows:WGS84BoundingBox>
-        <ows:LowerCorner>-4.04296900 32.08007800</ows:LowerCorner>
-        <ows:UpperCorner>33.13476600 45.17578100</ows:UpperCorner>
-      </ows:WGS84BoundingBox>
-      <wcseo:DatasetSeriesId>MER_FRS_1P_RGB_reduced</wcseo:DatasetSeriesId>
-      <gml:TimePeriod gml:id="MER_FRS_1P_RGB_reduced_timeperiod">
-        <gml:beginPosition>2006-08-16T00:00:00</gml:beginPosition>
-        <gml:endPosition>2006-08-31T00:00:00</gml:endPosition>
-      </gml:TimePeriod>
-    </wcseo:DatasetSeriesSummary>
+    <wcs:Extension>
+      <wcseo:DatasetSeriesSummary>
+        <ows:WGS84BoundingBox>
+          <ows:LowerCorner>-4.04296900 32.08007800</ows:LowerCorner>
+          <ows:UpperCorner>33.13476600 45.17578100</ows:UpperCorner>
+        </ows:WGS84BoundingBox>
+        <wcseo:DatasetSeriesId>MER_FRS_1P_reduced</wcseo:DatasetSeriesId>
+        <gml:TimePeriod gml:id="MER_FRS_1P_reduced_timeperiod">
+          <gml:beginPosition>2006-08-16T00:00:00</gml:beginPosition>
+          <gml:endPosition>2006-08-31T00:00:00</gml:endPosition>
+        </gml:TimePeriod>
+      </wcseo:DatasetSeriesSummary>
+      <wcseo:DatasetSeriesSummary>
+        <ows:WGS84BoundingBox>
+          <ows:LowerCorner>-4.04296900 32.08007800</ows:LowerCorner>
+          <ows:UpperCorner>33.13476600 45.17578100</ows:UpperCorner>
+        </ows:WGS84BoundingBox>
+        <wcseo:DatasetSeriesId>MER_FRS_1P_RGB_reduced</wcseo:DatasetSeriesId>
+        <gml:TimePeriod gml:id="MER_FRS_1P_RGB_reduced_timeperiod">
+          <gml:beginPosition>2006-08-16T00:00:00</gml:beginPosition>
+          <gml:endPosition>2006-08-31T00:00:00</gml:endPosition>
+        </gml:TimePeriod>
+      </wcseo:DatasetSeriesSummary>
+    </wcs:Extension>
   </wcs:Contents>
 </wcs:Capabilities>
