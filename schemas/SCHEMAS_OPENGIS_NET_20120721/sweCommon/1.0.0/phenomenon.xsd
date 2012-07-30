@@ -14,7 +14,6 @@ To obtain additional rights of use, visit http://www.opengeospatial.org/legal/ .
 	<!-- ====================================================================== -->
 	<!-- bring in other schemas -->
 	<import namespace="http://www.opengis.net/gml" schemaLocation="http://schemas.opengis.net/gml/3.1.1/base/gml.xsd"/>
-	<include schemaLocation="./swe.xsd"/>
 	<include schemaLocation="./basicTypes.xsd"/>
 	<!-- ====================================================================== -->
 	<complexType name="PhenomenonType">
