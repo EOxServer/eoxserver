@@ -129,7 +129,6 @@ Copyright (C) European Space Agency - ESA
         <ows:AllowedValues>
           <ows:Value>image/png</ows:Value>
           <ows:Value>image/jpeg</ows:Value>
-          <ows:Value>image/gif</ows:Value>
           <ows:Value>image/png; mode=8bit</ows:Value>
           <ows:Value>image/tiff</ows:Value>
         </ows:AllowedValues>
