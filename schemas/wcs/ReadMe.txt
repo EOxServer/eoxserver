@@ -16,8 +16,9 @@ The most current schema are available at http://schemas.opengis.net/ .
 
 -----------------------------------------------------------------------
 
-2012-02-06 Stephan Meissl
-  * v2.0: updates according to WCS 2.0.1
+2012-07-21  Stephan Meissl
+  * v2.0: Updates according to WCS 2.0.1
+    + Updated xsd:schema/@version to 2.0.1
     + Adjusted examples to updated schema.
     + Corrected type of "SlicePoint", "TrimLow", and "TrimHigh" elements to 
     "string".
@@ -32,15 +33,31 @@ The most current schema are available at http://schemas.opengis.net/ .
     + Added "formatSupported" element to "ServiceMetadataType".
     + Corrected "Extension" element in "RequestBaseType", "ServiceMetadataType",
       and "ServiceParametersType".
-    + Corrected cardinality of "ServiceMetadata" element to follow OWS Common.
     + Including all schema files in wcsAll.xsd
+    + Added wcsAll.xsd as the all-components document
+
+2012-07-21  Kevin Stegemoller
+  * v1.0 - v1.1.0: WARNING XLink change is NOT BACKWARD COMPATIBLE.
+  * Changed OGC XLink (xlink:simpleLink) to W3C XLink (xlink:simpleAttrs)
+    per an approved TC and PC motion during the Dec. 2011 Brussels meeting.
+    See http://www.opengeospatial.org/blog/1597 
+  * wcs/1.1/GMLprofileForWCS: XLink changes 
+  * v1.1: No Changes
+  * v1.0.0, v1.1.0, v2.0: Per 11-025, all leaf documents of a namespace shall 
+    retroactively and explicitly require/add an <include/> of the all-components schema.
+  * v1.1.0: Updated xsd:schema/@version to 1.1.0.2
+  * v1.0.0: Updated xsd:schema/@version to 1.0.0.3
+  * v1.0.0: Added wcsAll.xsd as the all-components document
+  * v1.0 - v1.1.0: Removed date from xs:schema/xs:annotation/xs:appinfo
+  * wcs/1.1/GMLprofileForWCS: Updated xsd:schema/@version to 1.1.4 (3.1.1.2)
+  * v1.0 - v2.0: Updated copyright
 
 2010-11-05  Peter Baumann
   * v2.0: added WCS 2.0.0 (OGC 09-110r3)
 
 2010-02-01  Kevin Stegemoller
   * v1.1, v1.1.0, 1.0.0:
-    + updated xsd:schema:@version attribute (06-135r7 s#13.4)
+    + updated xsd:schema/@version attribute (06-135r7 s#13.4)
     + update relative schema imports to absolute URLs (06-135r7 s#15)
     + update/verify copyright (06-135r7 s#3.2)
     + add archives (.zip) files of previous versions
@@ -59,15 +76,26 @@ The most current schema are available at http://schemas.opengis.net/ .
   * v1.0.0: Updated ReadMe.txt
   * v1.0.0: Included OGC-exception.xsd from spec
 
-2007-02-07  
+2007-02-07  Arliss Whiteside, Steven Keens
   * v1.1: added WCS 1.1.0 (OGC 06-083r8)
 
 2006-10-11  Arliss Whiteside, Steven Keens
   * v1.0.0: The XML Schema Documents for the OpenGIS(r) Web Services
-  (OWS) Common Implementation Specification version 1.0.0 [OGC 05-008]
-  that are modified for use in WCS 1.1 have been moved into this WCS/1.1
+  (OWS) Common Implementation Specification version 1.0.0 (OGC 05-008)
+  that are modified for use in WCS 1.1 have been moved into this WCS/1.1.0
   directory and modified to use the www.opengis.net/wcs/1.1.0/ows
   namespace identifier.
+     The following XML Schema Document is essentially unchanged:
+       owsGetCapabilities.xsd
+     The following XML Schema Documents are changed some:
+       owsServiceIdentification.xsd
+       owsOperationsMetadata.xsd
+       owsDataIdentification.xsd
+     The following XML Schema Documents are added by WCS 1.1.0:
+       owsDomainType.xsd
+       owsManifest.xsd
+       owsCoverages.xsd
+       owsInterpolationMethod.xsd
 
 2005-11-22  Arliss Whiteside
   * v1.0.0: This set of XML Documents for WCS Version 1.0.0 has been
@@ -87,7 +115,7 @@ The most current schema are available at http://schemas.opengis.net/ .
 Policies, Procedures, Terms, and Conditions of OGC(r) are available
   http://www.opengeospatial.org/ogc/legal/ .
 
-Copyright (c) 2010 Open Geospatial Consortium, Inc. All Rights Reserved.
+Copyright (c) 2010 Open Geospatial Consortium.
 
 -----------------------------------------------------------------------
 

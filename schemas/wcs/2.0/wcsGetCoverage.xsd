@@ -9,7 +9,7 @@
         <documentation>This XML Schema Document defines the GetCoverage operation request elements and types, for the OGC Web Coverage Service (WCS).
             The GetCoverage request element is GetCoverage. The GetCoverage response is a gmlcov:AbstractCoverage.
             Last updated: 2012-feb-06
-            Copyright (c) 2012 Open Geospatial Consortium, Inc. All Rights Reserved.
+            Copyright (c) 2012 Open Geospatial Consortium.
             To obtain additional rights of use, visit http://www.opengeospatial.org/legal/.
         </documentation>
     </annotation>
