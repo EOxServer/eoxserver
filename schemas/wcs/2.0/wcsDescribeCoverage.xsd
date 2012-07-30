@@ -12,7 +12,7 @@
         </appinfo>
         <documentation>This XML Schema Document defines the DescribeCoverage operation request and response XML elements and types, used by the OGC Web Coverage Service (WCS).
             Last updated: 2012-feb-06
-            Copyright (c) 2012 Open Geospatial Consortium, Inc. All Rights Reserved.
+            Copyright (c) 2012 Open Geospatial Consortium.
             To obtain additional rights of use, visit http://www.opengeospatial.org/legal/.
         </documentation>
     </annotation>

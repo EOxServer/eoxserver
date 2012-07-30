@@ -20,7 +20,7 @@
             *-binding(s).wsdl files, depending on the interfaces that the implementation on
             hand supports.
 
-            Copyright (c) 2010 Open Geospatial Consortium, Inc. All Rights Reserved.
+            Copyright (c) 2010 Open Geospatial Consortium.
             To obtain additional rights of use, visit http://www.opengeospatial.org/legal/.
         </dc:description>
     </wsdl:documentation>

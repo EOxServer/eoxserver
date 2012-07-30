@@ -11,7 +11,7 @@
             properties of a WCS service based on the generic definitions provided
             with the WCS WSDL specification imported below.
 
-            Copyright (c) 2010 Open Geospatial Consortium, Inc. All Rights Reserved.
+            Copyright (c) 2010 Open Geospatial Consortium.
             To obtain additional rights of use, visit http://www.opengeospatial.org/legal/.
         </dc:description>
     </wsdl:documentation>
