@@ -394,6 +394,7 @@ class WCS20Encoder(CoverageGML10Encoder):
             (self.encodeRangeType(coverage),),
             ("wcs", "ServiceParameters", [
                 ("wcs", "CoverageSubtype", coverage.getCoverageSubtype()),
+                ("wcs", "nativeFormat", "image/tiff")
             ])
         ])
     
@@ -521,6 +522,7 @@ class WCS20EOAPEncoder(WCS20Encoder):
             (self.encodeRangeType(coverage),),
             ("wcs", "ServiceParameters", [
                 ("wcs", "CoverageSubtype", coverage.getEOCoverageSubtype()),
+                ("wcs", "nativeFormat", "image/tiff")
             ])
         ])
         return self._makeElement("wcs", "CoverageDescription", sub_nodes)
