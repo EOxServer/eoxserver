@@ -106,7 +106,6 @@ Copyright (C) European Space Agency - ESA
   <wcs:ServiceMetadata>
     <wcs:formatSupported>image/png</wcs:formatSupported>
     <wcs:formatSupported>image/jpeg</wcs:formatSupported>
-    <wcs:formatSupported>image/gif</wcs:formatSupported>
     <wcs:formatSupported>image/png; mode=8bit</wcs:formatSupported>
     <wcs:formatSupported>image/tiff</wcs:formatSupported>
   </wcs:ServiceMetadata>
