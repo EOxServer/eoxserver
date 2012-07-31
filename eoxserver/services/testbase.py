@@ -749,6 +749,7 @@ class WCS20GetCoverageMultipartTestCase(MultipartTestCase):
         # answered. It has to be explicitly unified.
         tree = etree.fromstring(self.getXMLData())
         for node in tree.findall("{http://www.opengis.net/gmlcov/1.0}metadata/" \
+                                 "{http://www.opengis.net/gmlcov/1.0}Extension/" \
                                  "{http://www.opengis.net/wcseo/1.0}EOMetadata/" \
                                  "{http://www.opengis.net/wcseo/1.0}lineage/" \
                                  "{http://www.opengis.net/gml/3.2}timePosition"):
