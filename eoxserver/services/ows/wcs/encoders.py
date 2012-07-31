@@ -403,8 +403,9 @@ class WCS20Encoder(CoverageGML10Encoder):
             sub_nodes = [("@xsi", "schemaLocation", "http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd")]
         else:
             sub_nodes = []
-            
-        sub_nodes.extend([(self.encodeCoverageDescription(coverage),) for coverage in coverages])
+        
+        if coverages is not None and len(coverages) != 0:
+          sub_nodes.extend([(self.encodeCoverageDescription(coverage),) for coverage in coverages])
         return self._makeElement("wcs", "CoverageDescriptions", sub_nodes)
 
 class WCS20EOAPEncoder(WCS20Encoder):
@@ -621,9 +622,11 @@ class WCS20EOAPEncoder(WCS20Encoder):
         ])
 
     def encodeDatasetSeriesDescriptions(self, datasetseriess):
-        return self._makeElement("wcseo", "DatasetSeriesDescriptions", [
-            (self.encodeDatasetSeriesDescription(datasetseries),) for datasetseries in datasetseriess
-        ])
+        if datasetseriess is not None and len(datasetseriess) != 0:
+            sub_nodes = [(self.encodeDatasetSeriesDescription(datasetseries),) for datasetseries in datasetseriess]
+        else:
+            sub_nodes = []
+        return self._makeElement("wcseo", "DatasetSeriesDescriptions", sub_nodes)
         
     def encodeEOCoverageSetDescription(self, datasetseriess, coverages, numberMatched=None, numberReturned=None):
         if numberMatched is None:
