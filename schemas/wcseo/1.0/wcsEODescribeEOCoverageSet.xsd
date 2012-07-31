@@ -86,8 +86,8 @@
     </element>
     <complexType name="EOCoverageSetDescriptionType">
         <sequence>
-            <element ref="wcs:CoverageDescriptions"/> <!-- WCS core schema allows zero CoverageDescription elements in CoverageDescriptions. -->
-            <element ref="wcseo:DatasetSeriesDescriptions"/>
+            <element ref="wcs:CoverageDescriptions" minOccurs="0"/> <!-- WCS core schema allows zero CoverageDescription elements in CoverageDescriptions but minOccurs needed for section parameter. -->
+            <element ref="wcseo:DatasetSeriesDescriptions" minOccurs="0"/> <!-- minOccurs needed for section parameter. -->
         </sequence>
         <attribute name="numberMatched" type="nonNegativeInteger" use="required"/>
         <attribute name="numberReturned" type="nonNegativeInteger" use="required"/>
