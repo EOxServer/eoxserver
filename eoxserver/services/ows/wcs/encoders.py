@@ -640,8 +640,10 @@ class WCS20EOAPEncoder(WCS20Encoder):
             ("", "@numberReturned", str(numberReturned)),
         ])
         
-        root_element.appendChild(self.encodeCoverageDescriptions(coverages))
-        root_element.appendChild(self.encodeDatasetSeriesDescriptions(datasetseriess))
+        if coverages is not None and len(coverages) != 0:
+            root_element.appendChild(self.encodeCoverageDescriptions(coverages))
+        if datasetseriess is not None and len(datasetseriess) != 0:
+            root_element.appendChild(self.encodeDatasetSeriesDescriptions(datasetseriess))
         
         return root_element
 
