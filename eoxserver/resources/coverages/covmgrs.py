@@ -40,7 +40,10 @@ from uuid import uuid4
 from datetime import timedelta
 
 from django.contrib.gis.geos.geometry import MultiPolygon
-from django.utils import timezone
+try:
+    from django.utils import timezone
+except ImportError:
+    from datetime import datetime as timezone
 
 from eoxserver.core.system import System
 from eoxserver.core.exceptions import InternalError
