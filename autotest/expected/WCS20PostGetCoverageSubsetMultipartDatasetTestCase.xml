@@ -75,7 +75,7 @@
       </swe:field>
     </swe:DataRecord>
   </gmlcov:rangeType>
-<gmlcov:metadata><wcseo:EOMetadata><eop:EarthObservation xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:om="http://www.opengis.net/om/2.0" xmlns:swe="http://www.opengis.net/swe/1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" gml:id="eop_mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced" xsi:schemaLocation="http://www.opengis.net/opt/2.0 ../xsd/opt.xsd">
+<gmlcov:metadata><gmlcov:Extension><wcseo:EOMetadata><eop:EarthObservation xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:om="http://www.opengis.net/om/2.0" xmlns:swe="http://www.opengis.net/swe/1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" gml:id="eop_mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced" xsi:schemaLocation="http://www.opengis.net/opt/2.0 ../xsd/opt.xsd">
     <om:phenomenonTime>
         <gml:TimePeriod gml:id="tp_mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced">
             <gml:beginPosition>2006-08-16T09:09:29Z</gml:beginPosition>
@@ -131,6 +131,7 @@
         </eop:EarthObservationMetaData>
     </eop:metaDataProperty>
 </eop:EarthObservation><wcseo:lineage><wcseo:referenceGetCoverage><ows:ServiceReference xlink:href="http://testserver/ows"><ows:RequestMessage><wcs:GetCoverage xmlns:wcs="http://www.opengis.net/wcs/2.0" service="WCS" version="2.0.0">
+          <wcs:CoverageId>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</wcs:CoverageId>
           <wcs:DimensionTrim>
             <wcs:Dimension>x</wcs:Dimension>
             <wcs:TrimLow>0</wcs:TrimLow>
@@ -143,5 +144,4 @@
           </wcs:DimensionTrim>
           <wcs:format>image/tiff</wcs:format>
           <wcs:mediaType>multipart/mixed</wcs:mediaType>
-          <wcs:CoverageId>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</wcs:CoverageId>
-        </wcs:GetCoverage></ows:RequestMessage></ows:ServiceReference></wcseo:referenceGetCoverage><gml:timePosition>2011-01-01T00:00:00Z</gml:timePosition></wcseo:lineage></wcseo:EOMetadata></gmlcov:metadata></wcseo:RectifiedDataset>
+        </wcs:GetCoverage></ows:RequestMessage></ows:ServiceReference></wcseo:referenceGetCoverage><gml:timePosition>2011-01-01T00:00:00Z</gml:timePosition></wcseo:lineage></wcseo:EOMetadata></gmlcov:Extension></gmlcov:metadata></wcseo:RectifiedDataset>
