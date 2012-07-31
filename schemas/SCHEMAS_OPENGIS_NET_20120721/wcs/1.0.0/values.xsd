@@ -12,8 +12,6 @@
 		<xs:documentation>JDE 2003-07-30 Removed empty "sequence" from valueEnumType</xs:documentation>
 		<xs:documentation>AEW 2005-07-15 Edited almost all documentation elements to remove TBRs and TBDs and to make them clearer. However, I do not know enough to resolve the TBD in the documentation of the "atomic" attribute in the valueRangeType. I also added documentation elements where I thought they were needed. </xs:documentation>
 	</xs:annotation>
-	<!-- ========= includes and imports ================================ -->
-	<xs:include schemaLocation="wcsAll.xsd"/>
 	<!-- ==============================================================
 		elements and types 		
 	============================================================== -->

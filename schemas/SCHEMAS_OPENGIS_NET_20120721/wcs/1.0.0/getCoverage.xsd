@@ -38,7 +38,6 @@
 	<!-- ==========================================================
            includes and imports
 	========================================================== -->
-	<xs:include schemaLocation="./wcsAll.xsd"/>
 	<xs:include schemaLocation="./describeCoverage.xsd"/>
 	<xs:import namespace="http://www.opengis.net/gml" schemaLocation="http://schemas.opengis.net/wcs/1.0.0/gml4wcs.xsd"/>
 	<!-- ==============================================================
