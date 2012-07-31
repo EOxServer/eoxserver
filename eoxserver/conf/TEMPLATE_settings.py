@@ -73,9 +73,12 @@ SPATIALITE_SQL='data/init_spatialite-2.3.sql'
 # dates/times -- not necessarily the timezone of the server.
 # If you are using UTC (Zulu) time zone for your data (e.g. most
 # satellite imagery) it is highly recommended to use 'UTC' here. Otherwise
-# you will encounter time-shifts between your data, search request & the returned results.
-# TIME_ZONE = 'UTC'
-TIME_ZONE = 'Europe/Vienna'
+# you will encounter time-shifts between your data, search request & the 
+# returned results.
+TIME_ZONE = 'UTC'
+
+# Django 1.4 feature.  
+USE_TZ = True
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
@@ -182,6 +185,6 @@ FIXTURE_DIRS = (
     join(PROJECT_DIR, '<$PATH_DST$>/data/fixtures'),
 )
 
-# Set this variable if the path to the instance cannot be resolved automatically,
-# e.g. in case of redirects
+# Set this variable if the path to the instance cannot be resolved 
+# automatically, e.g. in case of redirects
 #FORCE_SCRIPT_NAME="/path/to/instance/"
