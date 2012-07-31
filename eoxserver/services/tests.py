@@ -1027,9 +1027,9 @@ class WCS20PostGetCoverageMultipartDatasetTestCase(eoxstest.WCS20GetCoverageRect
     def getRequest(self):
         params = """<wcs:GetCoverage service="WCS" version="2.0.0"
            xmlns:wcs="http://www.opengis.net/wcs/2.0">
+          <wcs:CoverageId>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</wcs:CoverageId>
           <wcs:format>image/tiff</wcs:format>
           <wcs:mediaType>multipart/mixed</wcs:mediaType>
-          <wcs:CoverageId>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</wcs:CoverageId>
         </wcs:GetCoverage>"""
         return (params, "xml")
 
@@ -1037,6 +1037,7 @@ class WCS20PostGetCoverageSubsetMultipartDatasetTestCase(eoxstest.WCS20GetCovera
     def getRequest(self):
         params = """<wcs:GetCoverage service="WCS" version="2.0.0"
            xmlns:wcs="http://www.opengis.net/wcs/2.0">
+          <wcs:CoverageId>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</wcs:CoverageId>
           <wcs:DimensionTrim>
             <wcs:Dimension>x</wcs:Dimension>
             <wcs:TrimLow>0</wcs:TrimLow>
@@ -1049,7 +1050,6 @@ class WCS20PostGetCoverageSubsetMultipartDatasetTestCase(eoxstest.WCS20GetCovera
           </wcs:DimensionTrim>
           <wcs:format>image/tiff</wcs:format>
           <wcs:mediaType>multipart/mixed</wcs:mediaType>
-          <wcs:CoverageId>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</wcs:CoverageId>
         </wcs:GetCoverage>"""
         return (params, "xml")
 
