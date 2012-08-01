@@ -87,6 +87,6 @@ def get_version():
             version = "%s-dev-%s" % (version, svn_rev)
     else:
         if VERSION[3] != 'final':
-            version = '%s-%s%s' % (version, VERSION[3], VERSION[4])
+            version = '%s%s%s' % (version, VERSION[3], VERSION[4])
     
     return version
