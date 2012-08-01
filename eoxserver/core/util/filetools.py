@@ -101,8 +101,8 @@ class TmpFile :
 
     def __enter__( self ) :
         """Begin of ``with - as`` block - returns name of the temporary file.""" 
-        return self.fname 
+        return self.__fname 
 
     def __exit__( self , type, value, traceback) :
         """End of ``with - as`` block - discards the temporary file.""" 
-        os.remove(dst_filename)
+        os.remove(self.__fname)
