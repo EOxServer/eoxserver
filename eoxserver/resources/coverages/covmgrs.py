@@ -37,9 +37,13 @@ import os.path
 from ConfigParser import RawConfigParser
 import logging
 from uuid import uuid4
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from django.contrib.gis.geos.geometry import MultiPolygon
+try:
+    from django.utils import timezone
+except ImportError:
+    from datetime import datetime as timezone
 
 from eoxserver.core.system import System
 from eoxserver.core.exceptions import InternalError
@@ -1269,7 +1273,7 @@ class CoverageIdManager(BaseManager):
         obj, _ = ReservedCoverageIdRecord.objects.get_or_create(
             coverage_id=coverage_id,
             defaults={
-                "until": datetime.now()
+                "until": timezone.now()
             }
         )
         
@@ -1283,9 +1287,9 @@ class CoverageIdManager(BaseManager):
             
             dt = timedelta(days=int(values[0]), hours=int(values[1]),
                            minutes=int(values[2]), seconds=int(values[3]))
-            until = datetime.now() + dt
+            until = timezone.now() + dt
         
-        if datetime.now() < obj.until:
+        if timezone.now() < obj.until:
             if not (obj.request_id == request_id and obj.request_id is not None):
                 raise CoverageIdReservedError(
                     "Coverage ID '%s' is reserved until %s" % (coverage_id, obj.until)
@@ -1365,7 +1369,7 @@ class CoverageIdManager(BaseManager):
         return not (
             ReservedCoverageIdRecord.objects.filter(
                 coverage_id=coverage_id,
-                until__gte=datetime.now()
+                until__gte=timezone.now()
             ).count() > 0 
             or 
             self.check( coverage_id ) 
