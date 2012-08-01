@@ -67,7 +67,7 @@ def findFiles(dir, pattern):
 
 def pathToModuleName(path):
     """
-    This function takes a module path ``path``as argument and returns
+    This function takes a module path ``path`` as argument and returns
     the corresponding dotted name of the module.
     """
     
@@ -96,10 +96,13 @@ class TmpFile :
         _ , self.__fname = tempfile.mkstemp(suffix,prefix)
 
     def __str__( self ) :
+        """Converts class to name of the temporary file.""" 
         return self.__fname
 
     def __enter__( self ) :
+        """Begin of ``with - as`` block - returns name of the temporary file.""" 
         return self.fname 
 
     def __exit__( self , type, value, traceback) :
+        """End of ``with - as`` block - discards the temporary file.""" 
         os.remove(dst_filename)
