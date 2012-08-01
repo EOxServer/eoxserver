@@ -28,8 +28,6 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-import os
-from tempfile import mkstemp
 from xml.dom import minidom
 from datetime import datetime
 
@@ -44,6 +42,8 @@ from eoxserver.core.system import System
 from eoxserver.core.exceptions import InternalError, InvalidExpressionError
 from eoxserver.core.util.xmltools import DOMElementToXML
 from eoxserver.core.util.multiparttools import mpPack
+from eoxserver.core.util.bbox import BBox 
+from eoxserver.core.util.filetools import TmpFile 
 from eoxserver.processing.gdal.reftools import (
     rect_from_subset, get_footprint_wkt
 )
@@ -136,60 +136,61 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
         "format": {"xml_location": "/{http://www.opengis.net/wcs/2.0}format", "xml_type": "string", "kvp_key": "format", "kvp_type": "string"},
         "mediatype": {"xml_location": "/{http://www.opengis.net/wcs/2.0}mediaType", "xml_type": "string", "kvp_key": "mediatype", "kvp_type": "string"}
     }
-    
+
     def handle(self, req, coverage):
 
         # set request schema 
         req.setSchema(self.PARAM_SCHEMA)
 
         #=============================================
-        # get subsetting
+        # coverage subsetting
+
+        # get image bounds as a bounding box 
+        bb_img = BBox( *coverage.getSize() ) 
+
+        #decode subset 
 
         decoder = WCS20SubsetDecoder(req, "imageCRS")
-
-        cov_x_size, cov_y_size = coverage.getSize()
         
         try:
-            subset = decoder.getSubset(cov_x_size, cov_y_size, coverage.getFootprint())
+            subset = decoder.getSubset( bb_img.sx, bb_img.sy, coverage.getFootprint())
         except InvalidSubsettingException, e:
             raise InvalidRequestException( str(e), "InvalidSubsetting", "subset")
         except InvalidAxisLabelException, e:
             raise InvalidRequestException( str(e), "InvalidAxisLabel", "subset" )
-        
-        if subset is None:
 
-            x_off, y_off, x_size, y_size = ( 0 , 0 , cov_x_size , cov_y_size ) 
+        # convert subset to bounding box in image coordinates (bbox)
 
-        elif subset.crs_id != "imageCRS":
+        if subset is None: # whole coverage 
 
-            x_off, y_off, x_size, y_size = rect_from_subset(
-                coverage.getData().getGDALDatasetIdentifier(), subset.crs_id, 
-                subset.minx, subset.miny, subset.maxx, subset.maxy )
+            bbox = bb_img 
 
-        else:
+        elif subset.crs_id == "imageCRS" : # pixel subset 
 
-            x_off, y_off   = ( subset.minx , subset.miny ) 
-            x_size, y_size = ( subset.maxx - subset.minx + 1 , subset.maxy - subset.miny + 1 ) 
+            bbox = BBox( None, None, subset.minx, subset.miny,
+                         subset.maxx+1, subset.maxy+1 ) 
 
-        # calculate effective offsets and buffer size
-        
-        src_x_off , src_y_off = ( max(0, x_off) , max(0, y_off) ) 
-        dst_x_off , dst_y_off = ( max(0,-x_off) , max(0,-y_off) ) 
-        
-        buffer_x_size = max(min(x_off + x_size, cov_x_size) - src_x_off, 0)
-        buffer_y_size = max(min(y_off + y_size, cov_y_size) - src_y_off, 0)
-        
-        if buffer_x_size == 0 or buffer_y_size == 0:
-            raise InvalidRequestException(
-                "Subset outside coverage extent.",
-                "InvalidParameterValue",
-                "subset"
-            )
+        else : # otherwise let GDAL handle the projection
+
+            bbox = rect_from_subset(
+                coverage.getData().getGDALDatasetIdentifier(), subset.crs_id,
+                subset.minx, subset.miny, subset.maxx, subset.maxy )  
+
+        # calculate effective offsets and size of the overlapped area
+
+        bb_src = bbox & bb_img      # trim bounding box to match the coverage
+        bb_dst = bb_src - bbox.off  # adjust the output offset 
+
+        # check the extent of the effective area 
+
+        if 0 == bb_src.ext : 
+            raise InvalidRequestException( "Subset outside coverage extent.",
+                "InvalidParameterValue", "subset" )
 
         #======================================================================
 
         # get the range type 
-        range_type = coverage.getRangeType()
+        rtype = coverage.getRangeType()
 
         # get format
         format_param = req.getParamValue("format")
@@ -214,65 +215,90 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
                     "Unknown or unsupported format '%s'" % mime_type,
                     "InvalidParameterValue", "format" )
 
-
         #======================================================================
-        # TODO: change GDAL.Create to GDAL.CreateCopy to be in-line  
-        #       with mapscript behaviour 
+        # creating the output image 
 
-        gdal.AllRegister()
-
-        _, dst_filename = mkstemp(
-            prefix = "tmp",
-            suffix = format.defaultExt
-        )
-
+        # check anf get the output GDAL driver 
         backend_name , _ , driver_name = format.driver.partition("/") ; 
 
-        if  backend_name != "GDAL" : 
+        if backend_name != "GDAL" : 
             raise InternalError( "Unsupported format backend \"%s\"!" % backend_name ) 
         
-        gdal_driver = gdal.GetDriverByName( driver_name )
+        drv_dst = gdal.GetDriverByName( driver_name )
         
-        if gdal_driver is None:
+        if drv_dst is None:
             raise InternalError( "Invalid GDAL Driver identifier '%s'" % driver_name )
+        
+        # get the GDAL virtual driver 
+        drv_vrt = gdal.GetDriverByName( "VRT" )
 
-        dst_ds = gdal_driver.Create(
-            dst_filename, x_size, y_size, len(range_type.bands),
-            range_type.data_type, ",".join(format_options) )
+        #input DS - NOTE: GDAL is not capable to handle unicode filenames!
+        src_path = str( coverage.getData().getGDALDatasetIdentifier() ) 
+        ds_src = gdal.OpenShared( src_path )
 
-        if dst_ds is None:
-            raise InternalError("Failed to create output dataset.")
-        
-        src_ds = coverage.getData().open()
-        
-        if src_ds is None:
-            raise InternalError("Failed to open input dataset.")
-        
-        raster_buffer = src_ds.ReadRaster( src_x_off, src_y_off, buffer_x_size, buffer_y_size )
-        
-        dst_ds.WriteRaster( dst_x_off, dst_y_off, buffer_x_size, buffer_y_size, raster_buffer )
-        
-        # tag metadata onto raster buffer
-        md_dict = src_ds.GetMetadata()
-        
-        for key, value in md_dict.items():
-            dst_ds.SetMetadataItem(key, value)
-        
-        # save GCPs
-        src_gcp_proj = src_ds.GetGCPProjection()
-        src_gcps = src_ds.GetGCPs()
-        
-        dst_gcps = []
-        for src_gcp in src_gcps:
-            dst_gcps.append( gdal.GCP( src_gcp.GCPX, src_gcp.GCPY, src_gcp.GCPZ,
-                src_gcp.GCPPixel+src_x_off-dst_x_off, src_gcp.GCPLine+src_y_off-dst_y_off,
-                src_gcp.Info, src_gcp.Id ) )
-        
-        dst_ds.SetGCPs(dst_gcps, src_gcp_proj)
-        
-        # close datasets
-        del src_ds
-        del dst_ds
+        # create a new GDAL in-memory virtual DS 
+        ds_vrt = drv_vrt.Create( "", bbox.sx, bbox.sy, len(rtype.bands),
+                                rtype.data_type )
+
+        # set mapping from the source DS 
+
+        # simple source XML template 
+        tmp = []                                                                      
+        tmp.append( "<SimpleSource>" )                                                
+        tmp.append( "<SourceFilename>%s</SourceFilename>" % src_path )               
+        tmp.append( "<SourceBand>%d</SourceBand>" )                         
+        tmp.append( "<SrcRect xSize=\"%d\" ySize=\"%d\" xOff=\"%d\" yOff=\"%d\"/>" % bb_src.as_tuple() )
+        tmp.append( "<DstRect xSize=\"%d\" ySize=\"%d\" xOff=\"%d\" yOff=\"%d\"/>" % bb_dst.as_tuple() )
+        tmp.append( "</SimpleSource>" )                                               
+        tmp = "".join(tmp)  
+                                                                                
+        # raster data mapping  
+        for i in xrange(1,len(rtype.bands)+1) :                                                   
+            ds_vrt.GetRasterBand(i).SetMetadataItem( "source_0", tmp%i,
+                                                     "new_vrt_sources" ) 
+
+        # copy metadata 
+        for key, value in ds_src.GetMetadata().items() :
+            ds_vrt.SetMetadataItem(key, value)
+
+        # copy tie-points 
+
+        # tiepoint offset higher order function                                         
+        def _tpOff( ( ox , oy ) ) :                                                         
+            def function( p ) :                                                              
+                return gdal.GCP( p.GCPX, p.GCPY, p.GCPZ, p.GCPPixel + ox, 
+                                 p.GCPLine + oy, p.Info, p.Id )                                                  
+            return function                                                                  
+
+        # instantiate tiepoint offset function for current offset value 
+        tpOff = _tpOff( bbox.off )                                               
+
+        # copy tiepoints                                                                
+        ds_vrt.SetGCPs( [ tpOff(p) for p in ds_src.GetGCPs() ],
+                        ds_src.GetGCPProjection() )
+
+        #======================================================================
+        # create final DS 
+
+        # get the requested media type 
+        media_type = req.getParamValue("mediatype")
+
+        # NOTE: MP: Direct use of MIME params as GDAL param is quite smelly,
+        # thus I made decision to keep it away. (",".join(format_options))
+                
+        with TmpFile( format.defaultExt , "tmp_" ) as dst_path :
+
+            drv_dst.CreateCopy( dst_path , ds_vrt , True , "" ) 
+
+            # get footprint if needed 
+
+            if ( media_type is not None ) and ( subset is not None ) : 
+                footprint = GEOSGeometry(get_footprint_wkt(dst_path))
+            else : 
+                footprint = None 
+
+            # load data 
+            f = open(dst_path) ; data = f.read() ; f.close() 
 
         #======================================================================
         # prepare response
@@ -280,12 +306,6 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
         # set the response filename 
         time_stamp = datetime.now().strftime("%Y%m%d%H%M%S")
         filename   = "%s_%s%s" % ( coverage.getCoverageId(), time_stamp, format.defaultExt ) 
-
-        # load data 
-        f = open(dst_filename) ; data = f.read() ; f.close() 
-
-        # check the media type 
-        media_type = req.getParamValue("mediatype")
 
         if media_type is None:
 
@@ -301,12 +321,11 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
             if subset is None : 
                 _subset = None
             else : 
-                footprint = GEOSGeometry(get_footprint_wkt(dst_filename))
 
                 if subset.crs_id == "imageCRS":
-                    _subset = ( 4326, (x_size, y_size), footprint.extent, footprint ) 
+                    _subset = ( 4326, bbox.size, footprint.extent, footprint ) 
                 else:
-                    _subset = ( subset.crs_id, (x_size, y_size),
+                    _subset = ( subset.crs_id, bbox.size,
                         (subset.minx, subset.miny, subset.maxx, subset.maxy), footprint ) 
 
             cov_desc_el = encoder.encodeReferenceableDataset(coverage,reference,format.mimeType,True,_subset)
@@ -321,9 +340,6 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
                 "InvalidParameterValue",
                 "mediatype"
             )
-            
-        #clean up
-        os.remove(dst_filename)
         
         return resp
     

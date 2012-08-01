@@ -33,6 +33,7 @@ import logging
 
 from osgeo import gdal
 
+from eoxserver.core.util.bbox import BBox
 from eoxserver.core.system import System
 from eoxserver.core.exceptions import InternalError
 
@@ -118,7 +119,8 @@ def rect_from_subset(path_or_ds, srid, minx, miny, maxx, maxy):
     if not ret:
         return None
     
-    return (rect.x_off, rect.y_off, rect.x_size, rect.y_size)
+    #return (rect.x_off, rect.y_off, rect.x_size, rect.y_size)
+    return BBox(rect.x_size, rect.y_size, rect.x_off, rect.y_off)
 
 def create_rectified_vrt(path_or_ds, vrt_path, srid=None):
     if not REFTOOLS_USABLE:
