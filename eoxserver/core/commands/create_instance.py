@@ -76,7 +76,10 @@ class Command(EOxServerAdminCommand):
                 self.parser.error("Instance ID not given.")
         
         dst_root_dir = os.path.abspath(options['dir'])
-        dst_inst_dir = os.path.join(dst_root_dir, instance_id)
+        if django.VERSION[:2] >= (1, 4):
+            dst_inst_dir = os.path.join(dst_root_dir, instance_id, instance_id)
+        else:
+            dst_inst_dir = os.path.join(dst_root_dir, instance_id)
         dst_conf_dir = os.path.join(dst_inst_dir, "conf")
         dst_data_dir = os.path.join(dst_inst_dir, "data")
         dst_logs_dir = os.path.join(dst_inst_dir, "logs")
