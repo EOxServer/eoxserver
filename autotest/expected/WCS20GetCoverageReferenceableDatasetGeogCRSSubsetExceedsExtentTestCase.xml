@@ -19,8 +19,8 @@
   </gml:domainSet>
   <gml:rangeSet>
     <gml:File>
-      <gml:rangeParameters xlink:arcrole="fileReference" xlink:href="coverage/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tif" xlink:role="image/tiff"/>
-      <gml:fileReference>coverage/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tif</gml:fileReference>
+      <gml:rangeParameters xlink:arcrole="fileReference" xlink:href="cid:coverage/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tif" xlink:role="image/tiff"/>
+      <gml:fileReference>cid:coverage/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tif</gml:fileReference>
       <gml:fileStructure/>
       <gml:mimeType>image/tiff</gml:mimeType>
     </gml:File>
@@ -47,47 +47,49 @@
     </swe:DataRecord>
   </gmlcov:rangeType>
   <gmlcov:metadata>
-    <wcseo:EOMetadata>
-      <eop:EarthObservation gml:id="eop_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775">
-        <om:phenomenonTime>
-          <gml:TimePeriod gml:id="phen_time_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775">
-            <gml:beginPosition>2005-03-31T07:59:36Z</gml:beginPosition>
-            <gml:endPosition>2005-03-31T08:00:36Z</gml:endPosition>
-          </gml:TimePeriod>
-        </om:phenomenonTime>
-        <om:resultTime>
-          <gml:TimeInstant gml:id="res_time_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775">
-            <gml:timePosition>2005-03-31T08:00:36Z</gml:timePosition>
-          </gml:TimeInstant>
-        </om:resultTime>
-        <om:procedure/>
-        <om:observedProperty/>
-        <om:featureOfInterest>
-          <eop:Footprint gml:id="footprint_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775">
-            <eop:multiExtentOf>
-              <gml:MultiSurface gml:id="multisurface_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775" srsName="EPSG:4326">
-                <gml:surfaceMember>
-                  <gml:Polygon gml:id="polygon_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775">
-                    <gml:exterior>
-                      <gml:LinearRing>
-                        <gml:posList>-32.98832529 22.08215621 -33.03902600 22.30175400 -34.46942783 21.83993640 -34.40783100 21.58428300 -33.48662900 21.90738300 -32.98832529 22.08215621</gml:posList>
-                      </gml:LinearRing>
-                    </gml:exterior>
-                  </gml:Polygon>
-                </gml:surfaceMember>
-              </gml:MultiSurface>
-            </eop:multiExtentOf>
-          </eop:Footprint>
-        </om:featureOfInterest>
-        <om:result/>
-        <eop:metaDataProperty>
-          <eop:EarthObservationMetaData>
-            <eop:identifier>ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775</eop:identifier>
-            <eop:acquisitionType>NOMINAL</eop:acquisitionType>
-            <eop:status>ARCHIVED</eop:status>
-          </eop:EarthObservationMetaData>
-        </eop:metaDataProperty>
-      </eop:EarthObservation>
-    </wcseo:EOMetadata>
+    <gmlcov:Extension>
+      <wcseo:EOMetadata>
+        <eop:EarthObservation gml:id="eop_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775">
+          <om:phenomenonTime>
+            <gml:TimePeriod gml:id="phen_time_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775">
+              <gml:beginPosition>2005-03-31T07:59:36Z</gml:beginPosition>
+              <gml:endPosition>2005-03-31T08:00:36Z</gml:endPosition>
+            </gml:TimePeriod>
+          </om:phenomenonTime>
+          <om:resultTime>
+            <gml:TimeInstant gml:id="res_time_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775">
+              <gml:timePosition>2005-03-31T08:00:36Z</gml:timePosition>
+            </gml:TimeInstant>
+          </om:resultTime>
+          <om:procedure/>
+          <om:observedProperty/>
+          <om:featureOfInterest>
+            <eop:Footprint gml:id="footprint_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775">
+              <eop:multiExtentOf>
+                <gml:MultiSurface gml:id="multisurface_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775" srsName="EPSG:4326">
+                  <gml:surfaceMember>
+                    <gml:Polygon gml:id="polygon_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775">
+                      <gml:exterior>
+                        <gml:LinearRing>
+                          <gml:posList>-32.98832529 22.08215621 -33.03902600 22.30175400 -34.46942783 21.83993640 -34.40783100 21.58428300 -33.48662900 21.90738300 -32.98832529 22.08215621</gml:posList>
+                        </gml:LinearRing>
+                      </gml:exterior>
+                    </gml:Polygon>
+                  </gml:surfaceMember>
+                </gml:MultiSurface>
+              </eop:multiExtentOf>
+            </eop:Footprint>
+          </om:featureOfInterest>
+          <om:result/>
+          <eop:metaDataProperty>
+            <eop:EarthObservationMetaData>
+              <eop:identifier>ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775</eop:identifier>
+              <eop:acquisitionType>NOMINAL</eop:acquisitionType>
+              <eop:status>ARCHIVED</eop:status>
+            </eop:EarthObservationMetaData>
+          </eop:metaDataProperty>
+        </eop:EarthObservation>
+      </wcseo:EOMetadata>
+    </gmlcov:Extension>
   </gmlcov:metadata>
 </wcseo:ReferenceableDataset>
