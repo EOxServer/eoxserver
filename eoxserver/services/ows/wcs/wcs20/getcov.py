@@ -317,7 +317,8 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
                     _subset = ( subset.crs_id, (x_size, y_size),
                         (subset.minx, subset.miny, subset.maxx, subset.maxy), footprint ) 
 
-            cov_desc_el = encoder.encodeReferenceableDataset(coverage,reference,mime_type,True,_subset)
+            cov_desc_el = encoder.encodeReferenceableDataset(coverage,
+                            "cid:%s"%reference,mime_type,True,_subset)
             
             # NOTE: the multipart subtype will be the same as the one requested 
             resp = self._get_multipart_response( dst_filename, reference , 
