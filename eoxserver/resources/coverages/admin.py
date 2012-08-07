@@ -500,7 +500,7 @@ class EOMetadataAdmin(admin.GeoModelAdmin):
         
         super(EOMetadataAdmin, self).save_formset(request, form, formset, change)
     
-    def change_view(self, request, object_id, extra_context=None):
+    def change_view(self, request, object_id, *args, **kwarg):
         obj = self.get_object(request, unquote(object_id))
         try:
             if obj.rectifieddatasetrecord_set.automatic:
@@ -508,7 +508,7 @@ class EOMetadataAdmin(admin.GeoModelAdmin):
                                  "the associated dataset is marked as 'automatic'.")
         except ObjectDoesNotExist:
             pass
-        return super(EOMetadataAdmin, self).change_view(request, object_id, extra_context)
+        return super(EOMetadataAdmin, self).change_view(request, object_id, *args, **kwarg)
     
     def get_readonly_fields(self, request, obj=None):
         try:
