@@ -66,7 +66,7 @@ class ConfirmationAdmin(admin.ModelAdmin):
     # template path for the confirmation form
     confirmation_form_template = None
     
-    def change_view(self, request, object_id, extra_context=None):
+    def change_view(self, request, object_id, *args, **kwargs):
         """
         This method overrides the :class:`django.contrib.admin.ModelAdmin`s
         `change_view` method to hook in a confirmation page.
@@ -101,7 +101,7 @@ class ConfirmationAdmin(admin.ModelAdmin):
                 ], context, context_instance=context_instance)
         
         # Here we build the "normal GUI"
-        return super(ConfirmationAdmin, self).change_view(request, object_id, extra_context)
+        return super(ConfirmationAdmin, self).change_view(request, object_id, *args, **kwargs)
     
     def get_new_object(self, request, instance):
         """
