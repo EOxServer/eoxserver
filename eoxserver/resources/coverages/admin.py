@@ -168,7 +168,7 @@ class RectifiedDatasetAdmin(ConfirmationAdmin):
         self.message_user(request, "%s successfully deleted." % message_bit)
     really_delete_selected.short_description = "Delete selected Dataset entries"
 
-    def change_view(self, request, object_id, extra_context=None):
+    def change_view(self, request, object_id, *args, **kwargs):
         obj = self.get_object(request, object_id)
         diff = self.get_changes(request, object_id)
         old_automatic, new_automatic = diff.get('automatic', (False, False))
@@ -177,7 +177,7 @@ class RectifiedDatasetAdmin(ConfirmationAdmin):
             messages.warning(request, "This rectified dataset cannot be changed "
                              "because it is marked as 'automatic'.")
             
-        return super(RectifiedDatasetAdmin, self).change_view(request, object_id, extra_context)
+        return super(RectifiedDatasetAdmin, self).change_view(request, object_id, *args, **kwargs)
 
     def get_readonly_fields(self, request, obj=None):
         """
@@ -236,7 +236,7 @@ class ReferenceableDatasetAdmin(ConfirmationAdmin):
         self.message_user(request, "%s successfully deleted." % message_bit)
     really_delete_selected.short_description = "Delete selected Dataset entries"
 
-    def change_view(self, request, object_id, extra_context=None):
+    def change_view(self, request, object_id, *args, **kwargs):
         obj = self.get_object(request, object_id)
         diff = self.get_changes(request, object_id)
         old_automatic, new_automatic = diff.get('automatic', (False, False))
@@ -245,7 +245,7 @@ class ReferenceableDatasetAdmin(ConfirmationAdmin):
             messages.warning(request, "This referenceable dataset cannot be changed "
                              "because it is marked as 'automatic'.")
             
-        return super(ReferenceableDatasetAdmin, self).change_view(request, object_id, extra_context)
+        return super(ReferenceableDatasetAdmin, self).change_view(request, object_id, *args, **kwargs)
 
     def get_readonly_fields(self, request, obj=None):
         """
@@ -339,9 +339,9 @@ class AbstractContainerAdmin(admin.ModelAdmin):
             messages.error(request, "Could not create %s" % self.model._meta.verbose_name)
             return HttpResponseRedirect("..")
     
-    def change_view(self, request, *args, **kwargs):
+    def change_view(self, request, object_id, *args, **kwargs):
         try:
-            ret = super(AbstractContainerAdmin, self).change_view(request, *args, **kwargs)
+            ret = super(AbstractContainerAdmin, self).change_view(request, object_id, *args, **kwargs)
             self.try_synchronize()
             return ret
         except:
