@@ -35,7 +35,7 @@ RFC 17: Configuration of Supported Output Formats and CRSes
 :Author: Stephan Krauses, Martin Pačes
 :Created: 2012-05-08
 :Last Edit: $Date$
-:Status: PENDING
+:Status: ACCEPTED 
 :Discussion: n/a
 
 This RFC proposes modifications of the EOxServer allowing configuration of
@@ -288,7 +288,10 @@ the database.
 Voting History
 --------------
 
-N/A
+:Motion: To accept RFC 17
+:Voting Start: 2012-05-11 
+:Voting End: 2012-05-17
+:Result: +5 for ACCEPTED
 
 Traceability
 ------------
