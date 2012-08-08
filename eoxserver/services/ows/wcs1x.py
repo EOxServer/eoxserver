@@ -194,9 +194,13 @@ class WCS1XDescribeCoverageHandler(WCS1XOperationHandler):
         
         for coverage_id in obj_ids:
             coverage = factory.get(obj_id=coverage_id)
-            
-            if coverage.getType() in ("plain", "eo.rect_dataset", "eo.rect_stitched_mosaic"):
-                self.coverages.append(coverage)
+
+            if ( coverage is None ) or ( coverage.getType() not in ("plain",        
+                           "eo.rect_dataset", "eo.rect_stitched_mosaic") ):         
+                raise InvalidRequestException("No rectified coverage with id"\
+                    " '%s' found."%coverage_id, "NoSuchCoverage", coverage_id)                     
+
+            self.coverages.append(coverage)
         
 class WCS1XGetCoverageHandler(WCS1XOperationHandler):
     def createCoverages(self):
@@ -209,10 +213,14 @@ class WCS1XGetCoverageHandler(WCS1XOperationHandler):
             raise InvalidRequestException("Missing required parameter '%s.'" % key, "ParameterError", key)
         
         coverage = factory.get(obj_id=obj_id)
+
+        if ( coverage is None ) or ( coverage.getType() not in ("plain",        
+                       "eo.rect_dataset", "eo.rect_stitched_mosaic") ):         
+            raise InvalidRequestException("No rectified coverage with id '%s'"\
+                " found."%obj_id, "NoSuchCoverage", obj_id)                     
+                                                                                
+        self.coverages.append(coverage)
         
-        if coverage.getType() in ("plain", "eo.rect_dataset", "eo.rect_stitched_mosaic"):
-            self.coverages.append(coverage)
-    
     def _setParameter(self, key, value):
         if key.lower() == "format":
             super(WCS1XGetCoverageHandler, self)._setParameter("format", "custom")
