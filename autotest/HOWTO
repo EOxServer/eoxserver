@@ -154,18 +154,18 @@ mv <tmpfilename> <filename>
 
 
 -------------------------------
-6. How to compare XML documents 
+7. How to compare XML documents 
 -------------------------------
 
-# To compare the expected XML document with the actual XML response 
-# use the following command 
+# To compare an expected XML document with the actual XML response 
+# use the following command
 cd <path_to_eoxserver_directory>/autotest
 export PYTHONPATH="<path_to_eoxserver_directory>"
 ../tools/xcomp.py responses/<XML file> expected/<XML file> 
 
 #The XML comparator parses the XML files and compares 
-#the documents' trees, therefore the tool is able to coop with 
-#different formatting (including the different order of elements' 
-#attributes and various name-space prefixes) 
+#the documents' trees, therefore the tool is able to cope with 
+#different formatting (including different order of elements' 
+#attributes and various name-space prefixes).
 
 --------------------------------------------------------------------------------
