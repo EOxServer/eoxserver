@@ -1271,20 +1271,20 @@
       <wcs:CoverageId>mosaic_MER_FRS_1P_RGB_reduced</wcs:CoverageId>
       <gmlcov:metadata>
         <gmlcov:Extension>
-        <wcseo:EOMetadata>
-          <eop:EarthObservation gml:id="eop_mosaic_MER_FRS_1P_RGB_reduced">
-            <om:phenomenonTime>
-              <gml:TimePeriod gml:id="phen_time_mosaic_MER_FRS_1P_RGB_reduced">
-                <gml:beginPosition>2006-08-16T00:00:00Z</gml:beginPosition>
-                <gml:endPosition>2006-08-31T00:00:00Z</gml:endPosition>
-              </gml:TimePeriod>
-            </om:phenomenonTime>
-            <om:resultTime>
-              <gml:TimeInstant gml:id="res_time_mosaic_MER_FRS_1P_RGB_reduced">
-                <gml:timePosition>2006-08-31T00:00:00Z</gml:timePosition>
-              </gml:TimeInstant>
-            </om:resultTime>
-            <om:procedure/>
+          <wcseo:EOMetadata>
+            <eop:EarthObservation gml:id="eop_mosaic_MER_FRS_1P_RGB_reduced">
+              <om:phenomenonTime>
+                <gml:TimePeriod gml:id="phen_time_mosaic_MER_FRS_1P_RGB_reduced">
+                  <gml:beginPosition>2006-08-16T00:00:00Z</gml:beginPosition>
+                  <gml:endPosition>2006-08-31T00:00:00Z</gml:endPosition>
+                </gml:TimePeriod>
+              </om:phenomenonTime>
+              <om:resultTime>
+                <gml:TimeInstant gml:id="res_time_mosaic_MER_FRS_1P_RGB_reduced">
+                  <gml:timePosition>2006-08-31T00:00:00Z</gml:timePosition>
+                </gml:TimeInstant>
+              </om:resultTime>
+              <om:procedure/>
               <om:observedProperty/>
               <om:featureOfInterest>
                 <eop:Footprint gml:id="footprint_mosaic_MER_FRS_1P_RGB_reduced">

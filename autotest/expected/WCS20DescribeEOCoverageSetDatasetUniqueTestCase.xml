@@ -368,5 +368,4 @@
       </wcs:ServiceParameters>
     </wcs:CoverageDescription>
   </wcs:CoverageDescriptions>
-  <wcseo:DatasetSeriesDescriptions/>
 </wcseo:EOCoverageSetDescription>
