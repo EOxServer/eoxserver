@@ -350,7 +350,7 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
         resp = Response(
             content_type = mime_type,
             content = data, 
-            headers = {'Content-Disposition': "attachment; filename=\"%s\"" % filename},
+            headers = {'Content-Disposition': "inline; filename=\"%s\"" % filename},
             status = 200
         )
         
@@ -366,7 +366,7 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
                ( "Content-Description" , "coverage data" ),
                ( "Content-Transfer-Encoding" , "binary" ),
                ( "Content-Id" , str(reference) ),
-               ( "Content-Disposition" , "attachment; filename=\"%s\"" % str(filename) ) ,
+               ( "Content-Disposition" , "inline; filename=\"%s\"" % str(filename) ) ,
               ] , data ) ] 
 
         # create response 
@@ -566,6 +566,6 @@ class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
                 getFormatRegistry().getFormatByMIME( mime_type ).defaultExt
             )
             
-            resp.headers.update({'Content-Disposition': "attachment; filename=\"%s\"" % filename})
+            resp.headers.update({'Content-Disposition': "inline; filename=\"%s\"" % filename})
 
         return resp
