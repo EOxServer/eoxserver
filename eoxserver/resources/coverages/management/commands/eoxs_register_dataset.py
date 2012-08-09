@@ -389,6 +389,8 @@ class Command(CommandOutputMixIn, BaseCommand):
         # Execute creation and insertion
         #=======================================================================
         
+        error_count = 0 # error counter - counts failed inserts 
+
         for df, mdf, cid in zip(datafiles, metadatafiles, coverageids):
             self.print_msg("Inserting coverage with ID '%s'." % cid, 2)
             
@@ -494,18 +496,37 @@ class Command(CommandOutputMixIn, BaseCommand):
                 
                     args["eo_metadata"] = eo_metadata
                 
+            # ... finally create the actual dataset 
             try:
+
                 with transaction.commit_on_success():
+
                     mgr_to_use.create(**args)
-            except MetadataException, e: #TODO here
-                self.print_msg(
-                    "ERROR: registration of dataset failed, message was '%s'" % str(e),
-                    1, error=True
-                )
+
+            except Exception as e: 
+
                 if options.get("traceback", False):
                     self.print_msg(traceback.format_exc())
+
+                self.print_msg( "ERROR: Registration of dataset '%s' failed!"
+                    " %s:%s"%(cid, type(e).__name__, str(e)), 1, error=True)
+
+                error_count += 1 
+
+                continue # continue by next dataset 
+
+        #=======================================================================
+        # print the final info 
         
-        self.print_msg("Successfully inserted %d dataset%s." % (
-                len(datafiles), "s" if len(datafiles) > 1 else ""
-            )
-        )
+        count = len(datafiles) 
+        success_count = count - error_count
+
+        if ( error_count > 0 ) : 
+            self.print_msg( "Failed to insert %d dataset%s." % (
+                error_count , ("","s")[error_count!=1] ) )  
+
+        if ( success_count > 0 ) : 
+            self.print_msg( "Successfully inserted %d of %s dataset%s." % (
+                success_count , count , ("","s")[count!=1] ) )
+        else : 
+            self.print_msg( "No dataset inserted successfully." ) 
