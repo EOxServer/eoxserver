@@ -1,5 +1,18 @@
 [
     {
+        "pk": 9, 
+        "model": "coverages.extentrecord", 
+        "fields": {
+            "maxx":  22.301754, 
+            "maxy": -31.984922,  
+            "minx":  16.727605, 
+            "miny": -36.259107, 
+            "size_x": 569, 
+            "size_y": 486, 
+            "srid": 4326
+        }
+    },
+    {
         "pk": 10, 
         "model": "core.resource", 
         "fields": {}
@@ -55,8 +68,7 @@
             "data_package": 8, 
             "visible": true, 
             "eo_metadata": 13, 
-            "size_x": 569, 
-            "size_y": 486, 
+            "extent": 9, 
             "layer_metadata": [], 
             "eo_id": "ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775"
         }

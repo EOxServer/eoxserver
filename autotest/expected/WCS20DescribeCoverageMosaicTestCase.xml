@@ -68,8 +68,8 @@
             <gml:pos>46.30000000 -3.75000000</gml:pos>
           </gml:Point>
         </gml:origin>
-        <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/4326">0.0 0.03135500</gml:offsetVector>
-        <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/4326">-0.03135500 0.0</gml:offsetVector>
+        <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/4326">0.00000000 0.03135500</gml:offsetVector>
+        <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/4326">-0.03135500 0.00000000</gml:offsetVector>
       </gml:RectifiedGrid>
     </gml:domainSet>
     <gmlcov:rangeType>
