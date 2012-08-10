@@ -43,6 +43,13 @@ Getting List of Supported CRSes
 Utilities
 ---------
 
+.. autofunction:: hasSwappedAxes
+.. autofunction:: isProjected
+.. autofunction:: validateEPSGCode
+
+EPSG Code Formating
+-------------------
+
 These formating functions are used to get the CRSes in different notations. 
 
 .. autofunction:: asInteger
@@ -50,3 +57,8 @@ These formating functions are used to get the CRSes in different notations.
 .. autofunction:: asURL
 .. autofunction:: asURN
 .. autofunction:: asProj4Str
+
+Static Data 
+-----------
+
+.. autodata:: EPSG_AXES_REVERSED

@@ -5,6 +5,7 @@
   # Project: EOxServer <http://eoxserver.org>
   # Authors: Stephan Krause <stephan.krause@eox.at>
   #          Stephan Meissl <stephan.meissl@eox.at>
+  #          Martin Paces <martin.paces@eox.at>
   #
   #-----------------------------------------------------------------------------
   # Copyright (C) 2011 EOX IT Services GmbH
@@ -33,5 +34,86 @@
 Module eoxserver.resources.coverages.wrappers
 =============================================
 
+.. contents:: Table of Contents
+    :depth: 3
+    :backlinks: top
+
 .. automodule:: eoxserver.resources.coverages.wrappers
-   :members:
+
+Top Level Wrappers
+------------------
+
+The top level wrappers are displayed including the inherited members.
+
+Rectified Dataset
+^^^^^^^^^^^^^^^^^
+
+.. autoclass:: RectifiedDatasetWrapper
+    :members: 
+    :inherited-members: 
+
+Referenceable Datasets
+^^^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: ReferenceableDatasetWrapper
+    :members: 
+    :inherited-members: 
+
+Rectified Stitched Mosaic 
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: RectifiedStitchedMosaicWrapper
+    :members: 
+    :inherited-members: 
+
+Dataset Series 
+^^^^^^^^^^^^^^
+
+.. autoclass:: DatasetSeriesWrapper
+    :members: 
+    :inherited-members: 
+
+
+Factory Classes
+---------------
+
+.. autoclass:: EOCoverageFactory
+    :members: 
+    :inherited-members: 
+
+.. autoclass:: DatasetSeriesFactory
+    :members: 
+    :inherited-members: 
+
+Wrappers' Parent Classes
+------------------------
+
+.. autoclass:: EODatasetWrapper
+    :members: 
+
+.. autoclass:: EOCoverageWrapper
+    :members: 
+
+.. autoclass:: CoverageWrapper
+    :members: 
+
+Wrappers' Mix-In Classes
+------------------------
+
+.. autoclass:: EOMetadataWrapper
+    :members: 
+
+.. autoclass:: RectifiedGridWrapper
+    :members: 
+    :inherited-members: 
+
+.. autoclass:: ReferenceableGridWrapper
+    :members: 
+    :inherited-members: 
+
+.. autoclass:: PackagedDataWrapper
+    :members: 
+
+.. autoclass:: TiledDataWrapper
+    :members: 
+
