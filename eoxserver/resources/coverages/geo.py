@@ -4,6 +4,7 @@
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
+#          Martin Paces <martin.paces@eox.at>
 #
 #-------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
@@ -31,6 +32,9 @@
 This module supports reading of geospatial metadata from GDAL datasets.
 """
 
+from django.contrib.gis.geos import GEOSGeometry
+from eoxserver.processing.gdal.reftools import get_footprint_wkt
+from eoxserver.resources.coverages import crss 
 from osgeo import osr
 import logging
 
@@ -48,7 +52,8 @@ class GeospatialMetadata(object):
       grid coverage.
     """
     
-    def __init__(self, srid=None, size_x=None, size_y=None, extent=None, is_referenceable=False):
+    def __init__(self, srid, size_x, size_y, extent, is_referenceable=False):
+
         self.srid = srid
         self.size_x = size_x
         self.size_y = size_y
@@ -64,56 +69,78 @@ class GeospatialMetadata(object):
         it accepts an optional integer ``default_srid`` parameter that will be
         used to set the SRID if it cannot be retrieved from the dataset.
         """
-        gt = ds.GetGeoTransform()
-        
-        srid = None
-        projection = ds.GetProjection()
-        if projection is not None and len(projection) != 0:
-            srs = osr.SpatialReference()
-            srs.ImportFromWkt(projection)
-            
-            try:
-                srs.AutoIdentifyEPSG()
-                if srs.IsProjected():
-                    srid = srs.GetAuthorityCode("PROJCS")
-                elif srs.IsGeographic():
-                    srid = srs.GetAuthorityCode("GEOGCS")
-            except RuntimeError, e:
-                logging.info("Can't identify SRS. Error was: RuntimeError: '%s'"
-                    % str(e)
-                )
-                if default_srid is not None:
-                    logging.info("Using given default_srid '%s' instead."
-                       %  default_srid
-                    )
-                    srid = int(default_srid)
-                else:
-                    raise RuntimeError("Unknown SRS and no default supplied")
-            
-        if srid is None and default_srid is not None:
-            srid = int(default_srid)
-        elif srid is None:
-            pass
-        else:
-            srid = int(srid)
-    
+
         size_x = ds.RasterXSize
         size_y = ds.RasterYSize
         
-        if gt != (0.0, 1.0, 0.0, 0.0, 0.0, 1.0):
-            xl = gt[0]
-            yl = gt[3]
-            xh = gt[0] + size_x * gt[1]
-            yh = gt[3] + size_y * gt[5]
-            
-            extent = (
-                min(xl, xh), min(yl, yh), max(xl, xh), max(yl, yh)
-            )
-            return cls(srid, size_x, size_y, extent)
+        is_ref = ds.GetGCPCount() > 0 
+
+        proj   = ds.GetGCPProjection() if is_ref else ds.GetProjection() 
+                
+        # convert projection to EPSG code 
+        if isinstance(proj,basestring) and len(proj) > 0 : 
+
+            srs = osr.SpatialReference()
         
-        elif ds.GetGCPCount() > 0:
-            return cls(size_x=size_x, size_y=size_y, is_referenceable=True)
+            try:
+
+                srs.ImportFromWkt( proj )
+                srs.AutoIdentifyEPSG()
+
+            except RuntimeError, e:
+
+                logging.warn("Projection: %s" % projection ) 
+                logging.warn("Failed to identify projection's EPSG code."
+                    "%s:%s" % ( type(e).__name__ , str(e) ) ) 
+
+                if default_srid is not None:
+                    logging.warn("Using the provided SRID '%s' instead."
+                       % str(default_srid) )
+                else:
+                    raise RuntimeError("Unknown SRS and no default supplied.")
+
+                #validate the default SRID 
+                if not crss.validateEPSGCode( default_srid ) : 
+                    raise RuntimeError("The default SRID '%'s is not a valid" 
+                        " EPSG code." % str(default_srid) )
+
+                srid = int( default_srid ) 
+
+            else : 
+
+                ptype = ("GEOGCS","PROJCS")[srs.IsProjected()]
+                srid = srs.GetAuthorityCode( ptype )
+
+        # get the extent 
+
+        if is_ref : # Referenceable DS 
+
+            filelist = ds.GetFileList()
+
+            if 1 != len( filelist ) : 
+                RuntimeError( "Cannot get a single dataset filename!" ) 
+                
+            extent = GEOSGeometry(get_footprint_wkt(filelist[0])).extent 
+
+        else : # Rectified DS 
         
-        else:
-            return None
-        
+            x0 , dxx , dxy , y0 , dyx , dyy = ds.GetGeoTransform()
+
+            # relative threshold for non-zero values of non-diagonal terms 
+            eps = 1e-6 
+
+            if ( abs(eps*dxx) < abs(dxy) ) or ( abs(eps*dyy) < abs(dyx) ) :  
+                RuntimeError( "Rectified datasets with non-orthogonal or"
+                    " rotated axes are not supported" ) 
+
+            if ( dxx < 0 ) or ( dyy > 0 ) :  
+                RuntimeError( "Rectified datasets with flipped axes directions"
+                    " are not supported" ) 
+
+            x1 , y1 = ( x0 + size_x * dxx ) , ( y0 + size_y * dyy ) 
+
+            extent = ( x0 , y1 , x1 , y0 ) 
+
+        # instantiate the class 
+        return cls( srid, size_x, size_y, extent, is_ref )
+

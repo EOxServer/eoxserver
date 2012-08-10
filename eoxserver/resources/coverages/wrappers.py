@@ -4,6 +4,7 @@
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
+#          Martin Paces <martin.paces@eox.at>
 #
 #-------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
@@ -268,22 +269,22 @@ class CoverageWrapper(ResourceWrapper):
         if data_source:
             pass # TODO
         
-
-class RectifiedGridWrapper(object):
+class CommonGridWrapper(object): 
     """
-    This wrapper is intended as a mix-in for coverages that rely on a
-    rectified grid. It implements :class:`~.RectifiedGridInterface`.
-    """    
+    Common base class shared by :class:`~.RectifiedGridWrapper`
+    and :class:`~.ReferenceableGridWrapper`
+   """
+
     @property
     def __model(self):
         return self._ResourceWrapper__model
-        
+
     def _get_create_dict(self, params):
-        create_dict = super(RectifiedGridWrapper, self)._get_create_dict(params)
+        create_dict = super(CommonGridWrapper, self)._get_create_dict(params)
         
         if "geo_metadata" not in params:
             raise InternalError(
-                "Missing mandatory 'coverage_id' parameter for RectifiedDataset creation."
+                "Missing mandatory 'coverage_id' parameter for dataset creation."
             )
         
         geo_metadata = params["geo_metadata"]
@@ -336,7 +337,13 @@ class RectifiedGridWrapper(object):
             self.__model.extent.maxx,
             self.__model.extent.maxy
         )
-        
+
+class RectifiedGridWrapper(CommonGridWrapper):
+    """
+    This wrapper is intended as a mix-in for coverages that rely on a
+    rectified grid. It implements :class:`~.RectifiedGridInterface`.
+    """    
+
     def getResolution(self):
         """
         Returns the coverage resolution as a 2-tuple of float values for the 
@@ -350,28 +357,13 @@ class RectifiedGridWrapper(object):
             (extent[3] - extent[1]) / float(size[1])
         )
 
-class ReferenceableGridWrapper(object):
+class ReferenceableGridWrapper(CommonGridWrapper):
     """
     This wrapper is intended as a mix-in for coverages that rely on
-    referenceable grids. It has yet to be implemented.
-    
-    .. note:: The design for referenceable grids is yet TBD.
+    referenceable grids. It implements :class:`~.ReferenceableGridInterface`.
     """
+    pass 
     
-    def _get_create_dict(self, params):
-        create_dict = super(ReferenceableGridWrapper, self)._get_create_dict(params)
-        
-        if "geo_metadata" not in params:
-            raise InternalError(
-                "Missing mandatory 'coverage_id' parameter for RectifiedDataset creation."
-            )
-        
-        geo_metadata = params["geo_metadata"]
-        
-        create_dict["size_x"] = geo_metadata.size_x
-        create_dict["size_y"] = geo_metadata.size_y
-
-        return create_dict
 
 class PackagedDataWrapper(object):
     """
@@ -885,10 +877,18 @@ class ReferenceableDatasetWrapper(ReferenceableGridWrapper, EODatasetWrapper):
         * ``filename``: the path to the dataset; value must be a string
         * ``metadata_filename``: the path to the accompanying metadata
           file; value must be a string
+        * ``srid``: the SRID of the dataset's CRS; value must be an integer
         * ``size_x``: the width of the coverage in pixels; value must be
           an integer
         * ``size_y``: the height of the coverage in pixels; value must be
           an integer
+        * ``minx``: the left hand bound of the dataset's extent; value must
+          be numeric
+        * ``miny``: the lower bound of the dataset's extent; value must be
+          numeric
+        * ``maxx``: the right hand bound of the dataset's extent; value must
+          be numeric
+        * ``maxy``: the upper bound of the dataset's extent; value must be
         * ``visible``: the ``visible`` attribute of the dataset; value must
           be boolean
         * ``automatic``: the ``automatic`` attribute of the dataset; value
@@ -908,8 +908,13 @@ class ReferenceableDatasetWrapper(ReferenceableGridWrapper, EODatasetWrapper):
     FIELDS = {
         "eo_id": "eo_id",
         "data_package": "data_package",
-        "size_x": "size_x",
-        "size_y": "size_y",
+        "srid": "extent__srid",
+        "size_x": "extent__size_x",
+        "size_y": "extent__size_y",
+        "minx": "extent__minx",
+        "miny": "extent__miny",
+        "maxx": "extent__maxx",
+        "maxy": "extent__maxy",
         "visible": "visible",
         "automatic": "automatic",
         "begin_time": "eo_metadata__timestamp_begin",
@@ -967,7 +972,7 @@ class ReferenceableDatasetWrapper(ReferenceableGridWrapper, EODatasetWrapper):
         ``(size_x, size_y)``.
         """
         
-        return (self.__model.size_x, self.__model.size_y)
+        return (self.__model.extent.size_x, self.__model.extent.size_y)
 
     #-------------------------------------------------------------------
     #  EOCoverageInterface implementations
