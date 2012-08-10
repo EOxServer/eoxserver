@@ -146,8 +146,8 @@ class WCSCommonHandler(MapServerOperationHandler):
         resolution = ((extent[2]-extent[0]) / float(size[0]),
                       (extent[1]-extent[3]) / float(size[1]))
         
-        layer.setMetaData("wcs_extent", "%.10f %.10f %.10f %.10f" % extent)
-        layer.setMetaData("wcs_resolution", "%.10f %.10f" % resolution)
+        layer.setMetaData("wcs_extent", "%.10g %.10g %.10g %.10g" % extent)
+        layer.setMetaData("wcs_resolution", "%.10g %.10g" % resolution)
         layer.setMetaData("wcs_size", "%d %d" % size)
         
         layer.type = mapscript.MS_LAYER_RASTER

@@ -4,6 +4,7 @@
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
+#          Martin Paces <martin.paces@eox.at>
 #
 #-------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
@@ -333,6 +334,25 @@ class EODatasetMixIn(EOCoverageMixIn):
         super(EOCoverageMixIn, self).delete()
         data_package.delete()
         
+def _checkExtent( footprint , extent ) :
+    try:
+        EPSILON = abs((extent.maxx - extent.minx) / extent.size_x)
+        bbox = Polygon.from_bbox((extent.minx - EPSILON,
+                                 extent.miny - EPSILON,
+                                 extent.maxx + EPSILON,
+                                 extent.maxy + EPSILON)) # TODO: Adjust according to axis order of SRID.
+        bbox.set_srid(int(extent.srid))
+        
+        if footprint.srid != bbox.srid:
+            footprint.transform(bbox.srs)
+        
+        if not bbox.contains(footprint):
+            raise ValidationError("The datasets's extent does not surround its"\
+                " footprint. Extent: '%s' Footprint: '%s'" \
+                % (str(bbox), str(footprint)))
+    except GEOSException:
+        pass
+
 class RectifiedDatasetRecord(CoverageRecord, EODatasetMixIn):
     extent = models.ForeignKey(ExtentRecord, related_name="rect_datasets")
     
@@ -345,22 +365,7 @@ class RectifiedDatasetRecord(CoverageRecord, EODatasetMixIn):
         
         # TODO: this does not work in the admins changelist.save method
         # A wrong WKB is inside the eo_metadata.footprint entry
-        try:
-            footprint = self.eo_metadata.footprint
-            EPSILON = abs((self.extent.maxx - self.extent.minx) / self.extent.size_x)
-            bbox = Polygon.from_bbox((self.extent.minx - EPSILON,
-                                     self.extent.miny - EPSILON,
-                                     self.extent.maxx + EPSILON,
-                                     self.extent.maxy + EPSILON)) # TODO: Adjust according to axis order of SRID.
-            bbox.set_srid(int(self.extent.srid))
-            
-            if footprint.srid != bbox.srid:
-                footprint.transform(bbox.srs)
-            
-            if not bbox.contains(footprint):
-                raise ValidationError("Extent does not surround footprint. Extent: '%s' Footprint: '%s'" % (str(bbox), str(footprint)))
-        except GEOSException:
-            pass
+        _checkExtent( self.eo_metadata.footprint , self.extent ) 
         
         validateCoverageIDnotInEOOM(self.coverage_id, self.eo_metadata.eo_gml)
     
@@ -370,8 +375,7 @@ class RectifiedDatasetRecord(CoverageRecord, EODatasetMixIn):
         extent.delete()
 
 class ReferenceableDatasetRecord(CoverageRecord, EODatasetMixIn):
-    size_x = models.IntegerField()
-    size_y = models.IntegerField()
+    extent = models.ForeignKey(ExtentRecord, related_name="refa_datasets")
     
     class Meta:
         verbose_name = "Referenceable Dataset"
@@ -379,7 +383,18 @@ class ReferenceableDatasetRecord(CoverageRecord, EODatasetMixIn):
         
     def clean(self):
         super(ReferenceableDatasetRecord, self).clean()
+        
+        # TODO: taken from Rectified DS, check if applicable to Referenceable DS too
+        # TODO: this does not work in the admins changelist.save method
+        # A wrong WKB is inside the eo_metadata.footprint entry
+        _checkExtent( self.eo_metadata.footprint , self.extent ) 
+
         validateCoverageIDnotInEOOM(self.coverage_id, self.eo_metadata.eo_gml)
+
+    def delete(self):
+        extent = self.extent
+        super(EOCoverageMixIn, self).delete()
+        extent.delete()
 
 class RectifiedStitchedMosaicRecord(CoverageRecord, EOCoverageMixIn):
     extent = models.ForeignKey(ExtentRecord, related_name="rect_stitched_mosaics")

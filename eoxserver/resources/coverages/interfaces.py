@@ -4,6 +4,7 @@
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
+#          Martin Paces <martin.paces@eox.at>
 #
 #-------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
@@ -615,9 +616,19 @@ class ReferenceableGridInterface(RegisteredInterface):
     This interface defines methods for access to referenceable grid
     information.
     
-    .. note:: the design of this interface is still TBD
-    
     :Interface ID: resources.coverages.interfaces.ReferenceableGrid
+
+    .. method:: getSRID
+    
+       This method shall return the EPSG SRID of the coordinate reference 
+       system (CRS) of the coverages tie-points. 
+    
+    .. method:: getExtent
+    
+       This method shall return the extent of the coverage wrapped by
+       the implementation. The return value is expected to be a 4-tuple
+       of floating point coordinates (minx, miny, maxx, maxy) expressed
+       in the CRS described by the SRID returned with :meth:`getSRID`.
     """
     
     REGISTRY_CONF = {
@@ -625,7 +636,13 @@ class ReferenceableGridInterface(RegisteredInterface):
         "intf_id": "resources.coverages.interfaces.ReferenceableGrid"
     }
     
-    pass # TODO: methods for access to referenceable grid information
+    getSRID = Method(
+        returns=IntArg("@return")
+    )
+        
+    getExtent = Method(
+        returns=ObjectArg("@return", arg_class=tuple)
+    )
     
 
 class EOWCSObjectInterface(EOMetadataInterface):

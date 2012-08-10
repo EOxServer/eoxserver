@@ -181,12 +181,13 @@ class WCS1XOperationHandler(WCSCommonHandler):
         )
         layer = connector.configure(layer, coverage)
         
+        #TODO: Check why the following are set for mosaics only.
         if coverage.getType() == "eo.rect_stitched_mosaic":
             extent = coverage.getExtent()
             size_x, size_y = coverage.getSize()
             
-            layer.setMetaData("wcs_extent", "%.10f %.10f %.10f %.10f" % extent)
-            layer.setMetaData("wcs_resolution", "%.10f %.10f" % ((extent[2]-extent[0]) / float(size_x), (extent[3]-extent[1]) / float(size_y)))
+            layer.setMetaData("wcs_extent", "%.10g %.10g %.10g %.10g" % extent)
+            layer.setMetaData("wcs_resolution", "%.10g %.10g" % ((extent[2]-extent[0]) / float(size_x), (extent[3]-extent[1]) / float(size_y)))
             layer.setMetaData("wcs_size", "%d %d" % (size_x, size_y))
 
         # set up rangetype metadata information

@@ -28,22 +28,38 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from osgeo.osr import SpatialReference
 from datetime import datetime
 from xml.dom import minidom
 
 from django.contrib.gis.geos import Polygon
 
-from eoxserver.core.util.geotools import reversedAxisOrder
 from eoxserver.core.util.xmltools import XMLEncoder
 from eoxserver.core.util.timetools import isotime
 from eoxserver.processing.mosaic import MosaicContribution
 
 from eoxserver.resources.coverages.formats import getFormatRegistry
-from eoxserver.resources.coverages.crss import getSupportedCRS_WCS, asURL
+from eoxserver.resources.coverages import crss 
 
-def _adjustPrecision(string, is_projected=False):
-    return string.replace("%f", "%.3f" if is_projected else "%.8f")
+# TODO make precision adjustable (3 decimal digits for projected axes)
+
+PPREC1=("%.8f","%.3f") 
+PPREC2=("%s %s"%(PPREC1[0],PPREC1[0]),"%s %s"%(PPREC1[1],PPREC1[1])) 
+
+def _getUnitLabelAndFormat( epsg ) : 
+    """ auxiliary function """
+
+    is_projected = crss.isProjected( epsg )
+    is_reversed  = crss.hasSwappedAxes( epsg ) 
+
+    if is_projected : 
+        axes = "y x" if is_reversed else "x y" 
+        unit = "m m" 
+    else:
+        axes = "lat long" if is_reversed else "long lat" 
+        unit = "deg deg" 
+
+    return unit , axes , PPREC2[is_projected] , is_reversed , is_projected 
+
 
 class GMLEncoder(XMLEncoder):
     def _initializeNamespaces(self):
@@ -52,16 +68,14 @@ class GMLEncoder(XMLEncoder):
         }
     
     def encodeLinearRing(self, ring, srid):
-        sr = SpatialReference()
-        sr.ImportFromEPSG(srid)
-        
-        frmt = _adjustPrecision("%f %f", sr.IsProjected())
-        
-        if reversedAxisOrder(srid):
-            pos_list = " ".join([frmt % (point[1], point[0]) for point in ring])
-        else:
-            pos_list = " ".join([frmt % point for point in ring])
-        
+
+        floatFormat  = PPREC2[ crss.isProjected(srid) ] 
+        axesReversed = crss.hasSwappedAxes(srid) 
+
+        swap = (lambda x,y:(y,x)) if axesReversed else (lambda x,y:(x,y))
+
+        pos_list = " ".join([ floatFormat%swap(*point) for point in ring])
+
         return self._makeElement(
             "gml", "LinearRing", [
                 ("gml", "posList", pos_list)
@@ -208,17 +222,15 @@ class CoverageGML10Encoder(XMLEncoder):
     def encodeDomainSet(self, coverage):
         if coverage.getType() == "eo.ref_dataset":
             return self._makeElement("gml", "domainSet", [
-                (self.encodeReferenceableGrid(
-                    coverage.getSize(),
+                (self.encodeReferenceableGrid( coverage.getSize(), 
+                    coverage.getSRID(),
                     "%s_grid" % coverage.getCoverageId()
                 ),)
             ])
         else:
             return self._makeElement("gml", "domainSet", [
-                (self.encodeRectifiedGrid(
-                    coverage.getSize(),
-                    coverage.getExtent(),
-                    coverage.getSRID(),
+                (self.encodeRectifiedGrid( coverage.getSize(),
+                    coverage.getExtent(), coverage.getSRID(),
                     "%s_grid" % coverage.getCoverageId()
                 ),)
             ])
@@ -226,39 +238,29 @@ class CoverageGML10Encoder(XMLEncoder):
     def encodeSubsetDomainSet(self, coverage, srid, size, extent):
         if coverage.getType() == "eo.ref_dataset":
             return self._makeElement("gml", "domainSet", [
-                (self.encodeReferenceableGrid(
-                    size,
+                (self.encodeReferenceableGrid( size, srid, 
                     "%s_grid" % coverage.getCoverageId()
                 ),)
             ])
         else:
             return self._makeElement("gml", "domainSet", [
-                (self.encodeRectifiedGrid(
-                    size,
-                    extent,
-                    srid,
+                (self.encodeRectifiedGrid( size, extent, srid,
                     "%s_grid" % coverage.getCoverageId()
                 ),)
             ])
 
-    def encodeRectifiedGrid(self, size, extent, srid, id):
-        sr = SpatialReference()
-        sr.ImportFromEPSG(srid)
-        
-        if sr.IsProjected():
-            if reversedAxisOrder(srid):
-                axisLabels = "y x"
-            else:
-                axisLabels = "x y"
-        else:
-            if reversedAxisOrder(srid):
-                axisLabels = "lat long"
-            else:
-                axisLabels = "long lat"
-        
-        # TODO make precision adjustable (3 decimal digits for projected axes)
-        pos_format = _adjustPrecision("%f %f", sr.IsProjected())
-        
+
+    def encodeRectifiedGrid(self, size, (minx, miny, maxx, maxy), srid, id):
+
+        axesUnits, axesLabels, floatFormat , axesReversed , crsProjected = \
+            _getUnitLabelAndFormat( srid ) 
+
+        swap = (lambda x,y:(y,x)) if axesReversed else (lambda x,y:(x,y))
+
+        origin    = floatFormat % swap( minx, maxy )
+        x_offsets = floatFormat % swap( ( maxx - minx )/float( size[0] ) , 0 )
+        y_offsets = floatFormat % swap( 0 , ( miny - maxy )/float( size[1] ) )
+
         grid_element = self._makeElement("gml", "RectifiedGrid", [
             ("", "@dimension", 2),
             ("@gml", "id", self._getGMLId(id)),
@@ -268,29 +270,17 @@ class CoverageGML10Encoder(XMLEncoder):
                     ("gml", "high", "%d %d" % (size[0]-1, size[1]-1))
                 ])
             ]),
-            ("gml", "axisLabels", axisLabels)
+            ("gml", "axisLabels", axesLabels)
         ])
-
-        if reversedAxisOrder(srid):
-            origin = _adjustPrecision("%f %f", sr.IsProjected()) % (extent[3], extent[0])
-        else:
-            origin = _adjustPrecision("%f %f", sr.IsProjected()) % (extent[0], extent[3])
 
         grid_element.appendChild(self._makeElement("gml", "origin", [
             ("gml", "Point", [
-                ("", "@srsName", "http://www.opengis.net/def/crs/EPSG/0/%s" % srid),
+                ("", "@srsName", crss.asURL(srid) ),
                 ("@gml", "id", self._getGMLId("%s_origin" % id)),
                 ("gml", "pos", origin)
             ])
         ]))
 
-        if reversedAxisOrder(srid):
-            x_offsets = _adjustPrecision("0.0 %f", sr.IsProjected()) % ((extent[2] - extent[0]) / float(size[0]))
-            y_offsets = _adjustPrecision("%f 0.0", sr.IsProjected()) % ((extent[1] - extent[3]) / float(size[1]))
-        else:
-            x_offsets = _adjustPrecision("%f 0.0", sr.IsProjected()) % ((extent[2] - extent[0]) / float(size[0]))
-            y_offsets = _adjustPrecision("0.0 %f", sr.IsProjected()) % ((extent[1] - extent[3]) / float(size[1]))  
-            
         grid_element.appendChild(self._makeElement("gml", "offsetVector", [
             ("", "@srsName", "http://www.opengis.net/def/crs/EPSG/0/%s" % srid),
             ("", "@@", x_offsets)
@@ -301,10 +291,13 @@ class CoverageGML10Encoder(XMLEncoder):
         ]))
                     
         return grid_element
-    
-    def encodeReferenceableGrid(self, size, id):
-        axisLabels = "x y" # TODO
-        
+
+
+    def encodeReferenceableGrid(self, size, srid, id):
+
+        axesUnits, axesLabels, floatFormat , axesReversed , crsProjected = \
+            _getUnitLabelAndFormat( srid ) 
+
         grid_element = self._makeElement("gml", "ReferenceableGrid", [
             ("", "@dimension", 2),
             ("@gml", "id", self._getGMLId(id)),
@@ -314,24 +307,27 @@ class CoverageGML10Encoder(XMLEncoder):
                     ("gml", "high", "%d %d" % (size[0]-1, size[1]-1))
                 ])
             ]),
-            ("gml", "axisLabels", axisLabels)
+            ("gml", "axisLabels", axesLabels)
         ])
         
         return grid_element
-    
-    def encodeBoundedBy(self, minx, miny, maxx, maxy):
-        #bbox = grid.getBBOX()
-        
-        #minx, miny, maxx, maxy = bbox.transform(4326, True).extent
-        
+
+
+    def encodeBoundedBy(self, (minx, miny, maxx, maxy), srid = 4326 ):
+
+        axesUnits, axesLabels, floatFormat , axesReversed , crsProjected = \
+            _getUnitLabelAndFormat( srid ) 
+
+        swap = (lambda x,y:(y,x)) if axesReversed else (lambda x,y:(x,y))
+
         return self._makeElement("gml", "boundedBy", [
             ("gml", "Envelope", [
-                ("", "@srsName", "http://www.opengis.net/def/crs/EPSG/0/4326"),
-                ("", "@axisLabels", "lat long"),
-                ("", "@uomLabels", "deg deg"),
+                ("", "@srsName", crss.asURL( srid ) ),
+                ("", "@axisLabels", axesLabels ),
+                ("", "@uomLabels", axesUnits ),
                 ("", "@srsDimension", 2),
-                ("gml", "lowerCorner", _adjustPrecision("%f %f") % (miny, minx)),
-                ("gml", "upperCorner", _adjustPrecision("%f %f") % (maxy, maxx))
+                ("gml", "lowerCorner", floatFormat % swap(minx, miny) ),
+                ("gml", "upperCorner", floatFormat % swap(maxx, maxy) )
             ])
         ])
 
@@ -390,7 +386,7 @@ class WCS20Encoder(CoverageGML10Encoder):
     def encodeCoverageDescription(self, coverage):
         return self._makeElement("wcs", "CoverageDescription", [
             ("@gml", "id", self._getGMLId(coverage.getCoverageId())),
-            (self.encodeBoundedBy(*coverage.getWGS84Extent()),),
+            (self.encodeBoundedBy(coverage.getWGS84Extent()),),
             ("wcs", "CoverageId", coverage.getCoverageId()),
             (self.encodeDomainSet(coverage),),
             (self.encodeRangeType(coverage),),
@@ -530,7 +526,7 @@ class WCS20EOAPEncoder(WCS20Encoder):
 
         sub_nodes.extend([
             ("@gml", "id", self._getGMLId(coverage.getCoverageId())),
-            (self.encodeBoundedBy(*coverage.getWGS84Extent()),),
+            (self.encodeBoundedBy(coverage.getExtent(),coverage.getSRID()),),
             ("wcs", "CoverageId", coverage.getCoverageId()),
             (self.encodeEOMetadata(coverage),),
             (self.encodeDomainSet(coverage),),
@@ -546,7 +542,7 @@ class WCS20EOAPEncoder(WCS20Encoder):
     def encodeSupportedCRSs( self ) : 
 
         # get list of supported CRSes 
-        supported_crss = getSupportedCRS_WCS( format_function = asURL ) 
+        supported_crss = crss.getSupportedCRS_WCS(format_function=crss.asURL) 
 
         el = [] 
 
@@ -574,26 +570,27 @@ class WCS20EOAPEncoder(WCS20Encoder):
     def encodeReferenceableDataset( self , coverage , reference , mimeType , is_root = False , subset = None ) : 
 
         # handle subset 
+        dst_srid   = coverage.getSRID() 
 
         if subset is None : 
             # whole area - no subset 
             domain = self.encodeDomainSet(coverage)
             eomd   = self.encodeEOMetadata(coverage)
-            wgs84_extent = coverage.getWGS84Extent()
+            dst_extent = coverage.getExtent()
 
         else : 
         
             # subset is given 
-            srid, size, extent, footprint = subset 
+            _srid, size, _extent, footprint = subset 
 
-            domain = self.encodeSubsetDomainSet(coverage, srid, size, extent)
+            domain = self.encodeSubsetDomainSet(coverage, _srid, size, _extent)
             eomd   = self.encodeEOMetadata(coverage, poly=footprint)
 
             # get the WGS84 extent
-            poly = Polygon.from_bbox(extent)
-            poly.srid = srid
-            poly.transform(4326)
-            wgs84_extent = poly.extent
+            poly = Polygon.from_bbox(_extent)
+            poly.srid = _srid
+            poly.transform(dst_srid)
+            dst_extent = poly.extent
 
         sub_nodes = []  
 
@@ -602,7 +599,7 @@ class WCS20EOAPEncoder(WCS20Encoder):
 
         sub_nodes.extend([
             ("@gml", "id", self._getGMLId(coverage.getCoverageId())),
-            (self.encodeBoundedBy(*wgs84_extent),),(domain,),
+            (self.encodeBoundedBy(dst_extent,dst_srid),),(domain,),
             (self.encodeRangeSet( reference , mimeType ),),
             (self.encodeRangeType(coverage),),(eomd,),])
 
@@ -623,7 +620,7 @@ class WCS20EOAPEncoder(WCS20Encoder):
         sub_nodes.extend([
             ("@xsi", "schemaLocation", "http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd"),
             ("@gml", "id", self._getGMLId(coverage.getCoverageId())),
-            (self.encodeBoundedBy(*wgs84_extent),),
+            (self.encodeBoundedBy(wgs84_extent),),
             ("wcs", "CoverageId", coverage.getCoverageId()),
             (self.encodeEOMetadata(coverage, poly=footprint),),
             (self.encodeSubsetDomainSet(coverage, srid, size, extent),),
@@ -637,7 +634,7 @@ class WCS20EOAPEncoder(WCS20Encoder):
     def encodeDatasetSeriesDescription(self, dataset_series):
         return self._makeElement("wcseo", "DatasetSeriesDescription", [
             ("@gml", "id", self._getGMLId(dataset_series.getEOID())),
-            (self.encodeBoundedBy(*dataset_series.getWGS84Extent()),),
+            (self.encodeBoundedBy(dataset_series.getWGS84Extent()),),
             ("wcseo", "DatasetSeriesId", dataset_series.getEOID()),
             (self.encodeTimePeriod(dataset_series),),
 #            ("wcseo", "ServiceParameters", [
@@ -705,17 +702,26 @@ class WCS20EOAPEncoder(WCS20Encoder):
     
     def encodeWGS84BoundingBox(self, dataset_series):
         minx, miny, maxx, maxy = dataset_series.getWGS84Extent()
-        
+
+        floatFormat = PPREC2[False] 
+
         return self._makeElement("ows", "WGS84BoundingBox", [
-            ("ows", "LowerCorner", _adjustPrecision("%f %f") % (minx, miny)),
-            ("ows", "UpperCorner", _adjustPrecision("%f %f") % (maxx, maxy))
+            ("ows", "LowerCorner", floatFormat%(minx, miny)),
+            ("ows", "UpperCorner", floatFormat%(maxx, maxy))
         ])
     
     def encodeTimePeriod(self, dataset_series):
+
+        timeFormat = "%Y-%m-%dT%H:%M:%S"
+
+        teoid = "%s_timeperiod" % dataset_series.getEOID()
+        start = dataset_series.getBeginTime().strftime(timeFormat)
+        stop  = dataset_series.getEndTime().strftime(timeFormat)
+
         return self._makeElement("gml", "TimePeriod", [
-            ("@gml", "id", self._getGMLId("%s_timeperiod" % dataset_series.getEOID())),
-            ("gml", "beginPosition", dataset_series.getBeginTime().strftime("%Y-%m-%dT%H:%M:%S")),
-            ("gml", "endPosition", dataset_series.getEndTime().strftime("%Y-%m-%dT%H:%M:%S"))
+            ("@gml", "id", self._getGMLId(teoid) ),
+            ("gml", "beginPosition", start ), 
+            ("gml", "endPosition", stop ) 
         ])
 
     def encodeDatasetSeriesSummary(self, dataset_series):
@@ -758,6 +764,7 @@ class WCS20EOAPEncoder(WCS20Encoder):
         ))
         
         return root_element
+
     def encodeCountDefaultConstraint(self, count):
         return self._makeElement("ows", "Constraint", [
             ("", "@name", "CountDefault"),

@@ -4,6 +4,7 @@
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
+#          Martin Paces <martin.paces@eox.at>
 #
 #-------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
@@ -195,15 +196,16 @@ class WMSRectifiedDatasetLayer(WMSCoverageLayer):
     def getMapServerLayer(self, req):
         layer = super(WMSRectifiedDatasetLayer, self).getMapServerLayer(req)
 
-        # general rectified coverage stuff
+        # general rectified coverage metadata
         srid = self.coverage.getSRID()
         layer.setProjection( crss.asProj4Str( srid ) )
         layer.setMetaData("ows_srs", crss.asShortCode( srid ) ) 
         layer.setMetaData("wms_srs", crss.asShortCode( srid ) ) 
-        layer.setMetaData("wms_extent", "%f %f %f %f" % self.coverage.getExtent())
+        layer.setMetaData("wms_extent", "%.10g %.10g %.10g %.10g" \
+                                                   % self.coverage.getExtent())
         layer.setExtent(*self.coverage.getExtent())
 
-        # rectified dataset stuff
+        # bind rectified dataset
         connector = System.getRegistry().findAndBind(
             intf_id = "services.mapserver.MapServerDataConnectorInterface",
             params = {
@@ -223,21 +225,18 @@ class WMSReferenceableDatasetLayer(WMSCoverageLayer):
     def getMapServerLayer(self, req):
         layer = super(WMSReferenceableDatasetLayer, self).getMapServerLayer(req)
 
-        # NOTE: we need to setup layer projection - in case of Dataset Series we set the WSG84  
-        srid = 4326 # TODO: read this from dataset or database 
+        # general rectified coverage metadata
+        srid = self.coverage.getSRID()
         layer.setProjection( crss.asProj4Str( srid ) )
         layer.setMetaData("ows_srs", crss.asShortCode( srid ) ) 
         layer.setMetaData("wms_srs", crss.asShortCode( srid ) ) 
-
-        # TODO: once CRS read from DB the WGS84 extent should be removed 
-        layer.setMetaData("wms_extent", "%f %f %f %f" % self.coverage.getWGS84Extent())
-        layer.setExtent(*self.coverage.getWGS84Extent())
+        layer.setMetaData("wms_extent", "%.10g %.10g %.10g %.10g" \
+                                                   % self.coverage.getExtent())
+        layer.setExtent(*self.coverage.getExtent())
         
-
+        # project the dataset 
         vrt_path = self.rectify()
-        
         layer.data = vrt_path
-        
         self.temp_files.append(vrt_path)
 
         return layer
@@ -272,8 +271,8 @@ class WMSRectifiedStitchedMosaicLayer(WMSCoverageLayer):
         layer.setMetaData("wms_srs", crss.asShortCode( srid ) ) 
         
         layer.setExtent(*self.coverage.getExtent())
-        layer.setMetaData("wms_extent", "%.10f %.10f %.10f %.10f" % extent)
-        layer.setMetaData("wms_resolution", "%.10f %.10f" % resolution)
+        layer.setMetaData("wms_extent", "%.10g %.10g %.10g %.10g" % extent)
+        layer.setMetaData("wms_resolution", "%.10g %.10g" % resolution)
         layer.setMetaData("wms_size", "%d %d" % size)
         
         layer.type = mapscript.MS_LAYER_RASTER
@@ -295,7 +294,8 @@ class WMSDatasetSeriesLayer(WMSLayer):
         
         coverages = self.dataset_series.getEOCoverages()
 
-        layer.setMetaData("wms_extent", "%f %f %f %f" % self.dataset_series.getWGS84Extent())
+        layer.setMetaData("wms_extent", "%.10g %.10g %.10g %.10g" \
+                                        % self.dataset_series.getWGS84Extent())
         layer.setExtent(*self.dataset_series.getWGS84Extent())
         
         time_extent = ",".join(

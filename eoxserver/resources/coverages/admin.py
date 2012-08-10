@@ -4,6 +4,7 @@
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
+#          Martin Paces <martin.paces@eox.at>
 #
 #-------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
@@ -208,10 +209,10 @@ admin.site.register(RectifiedDatasetRecord, RectifiedDatasetAdmin)
 
 class ReferenceableDatasetAdmin(ConfirmationAdmin):
     #list_display = ('coverage_id', 'eo_id', 'data_package', 'range_type', 'size_x', 'size_y')
-    fields = ('automatic', 'visible', 'coverage_id', 'eo_id', 'range_type', 'size_x', 'size_y', 'eo_metadata', 'data_package', 'lineage')
-    list_display = ('coverage_id', 'eo_id', 'range_type', 'size_x', 'size_y', 'visible')
+    fields = ('automatic', 'visible', 'coverage_id', 'eo_id', 'range_type', 'extent', 'eo_metadata', 'data_package', 'lineage')
+    list_display = ('coverage_id', 'eo_id', 'range_type', 'extent', 'visible')
     #list_editable = ('data_package', 'range_type', 'extent')
-    list_editable = ('range_type', 'size_x', 'size_y', 'visible')
+    list_editable = ('range_type', 'extent', 'visible')
     list_filter = ('range_type', )
     
     ordering = ('coverage_id', )
@@ -257,9 +258,7 @@ class ReferenceableDatasetAdmin(ConfirmationAdmin):
         if obj is not None and obj.automatic:
             return self.readonly_fields + (
                 'coverage_id', 'eo_id', 'eo_metadata',
-                'lineage', 'data_package', 'size_x', 'size_y',
-                'layer_metadata', 
-            )
+                'lineage', 'data_package', 'extent', 'layer_metadata' )
             
         return self.readonly_fields
     
