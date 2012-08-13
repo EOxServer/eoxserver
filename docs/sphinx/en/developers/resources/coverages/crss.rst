@@ -44,8 +44,25 @@ Utilities
 ---------
 
 .. autofunction:: hasSwappedAxes
+.. autofunction:: getAxesSwapper
 .. autofunction:: isProjected
 .. autofunction:: validateEPSGCode
+
+EPSG Code Parsing 
+-----------------
+
+This is the top level EPSG parser able to use one or more elementary parsers 
+listed below. 
+
+.. autofunction:: parseEPSGCode
+
+These are the elementary EPSG code parser: 
+
+.. autofunction:: fromInteger
+.. autofunction:: fromShortCode
+.. autofunction:: fromURL
+.. autofunction:: fromURN
+.. autofunction:: fromProj4Str
 
 EPSG Code Formating
 -------------------
@@ -57,6 +74,7 @@ These formating functions are used to get the CRSes in different notations.
 .. autofunction:: asURL
 .. autofunction:: asURN
 .. autofunction:: asProj4Str
+
 
 Static Data 
 -----------
