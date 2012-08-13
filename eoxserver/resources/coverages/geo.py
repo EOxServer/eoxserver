@@ -48,6 +48,9 @@ def getExtentFromRectifiedDS( ds , eps=1e-6 ):
     non-diagonal terms of the GDAL's Geo-Transformation matrix.
     """
 
+    size_x = ds.RasterXSize
+    size_y = ds.RasterYSize
+
     x0 , dxx , dxy , y0 , dyx , dyy = ds.GetGeoTransform()
 
     if ( abs(eps*dxx) < abs(dxy) ) or ( abs(eps*dyy) < abs(dyx) ) :  
@@ -72,7 +75,7 @@ def getExtentFromReferenceableDS( ds ):
     if 1 != len( filelist ) : 
         RuntimeError( "Cannot get a single dataset filename!" ) 
         
-    return = GEOSGeometry(get_footprint_wkt(filelist[0])).extent 
+    return GEOSGeometry(get_footprint_wkt(filelist[0])).extent 
 
 
 class GeospatialMetadata(object):

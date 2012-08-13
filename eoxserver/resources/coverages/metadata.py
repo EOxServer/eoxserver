@@ -45,6 +45,7 @@ from eoxserver.core.exceptions import (
 )
 from eoxserver.core.util.xmltools import XMLDecoder, etree
 from eoxserver.core.util.timetools import getDateTime
+from eoxserver.resources.coverages import crss
 from eoxserver.resources.coverages.interfaces import (
     GenericEOMetadataInterface, EOMetadataFormatInterface,
     EOMetadataReaderInterface
