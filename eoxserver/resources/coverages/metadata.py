@@ -45,7 +45,6 @@ from eoxserver.core.exceptions import (
 )
 from eoxserver.core.util.xmltools import XMLDecoder, etree
 from eoxserver.core.util.timetools import getDateTime
-from eoxserver.core.util.geotools import posListToWkt
 from eoxserver.resources.coverages.interfaces import (
     GenericEOMetadataInterface, EOMetadataFormatInterface,
     EOMetadataReaderInterface
@@ -274,6 +273,21 @@ class XMLEOMetadataFormat(XMLMetadataFormat):
         return getDateTime(decoder.getValue("endtime"))
     
     def _get_footprint(self, decoder):
+
+        #footprint SRID 
+        srid = 4326
+        
+        # float format 
+        frm  = "%.10g %.10g"
+
+        #axes swapper 
+        swap = crss.getAxesSwapper( srid )
+
+        # WKT polygon packing closure 
+        def posListToWkt( pl ):
+            tmp = [ frm%swap(pl[i],pl[i+1]) for i in xrange(0,len(pl),2) ]
+            return ",".join( tmp )
+
         polygon_dicts = decoder.getValue("footprint")
         
         polygon_wkts = []

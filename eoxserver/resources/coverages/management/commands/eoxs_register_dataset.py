@@ -40,13 +40,12 @@ from django.contrib.gis.geos.geometry import GEOSGeometry
 from django.contrib.gis.geos.polygon import Polygon
 
 from eoxserver.core.system import System
-from eoxserver.core.util.geotools import extentFromDataset
 from eoxserver.core.util.timetools import getDateTime
-from eoxserver.resources.coverages.geo import GeospatialMetadata
+from eoxserver.resources.coverages.geo import ( 
+    GeospatialMetadata, getExtentFromRectifiedDS, getExtentFromReferenceableDS )
 from eoxserver.resources.coverages.exceptions import MetadataException
 from eoxserver.resources.coverages.management.commands import (
-    CommandOutputMixIn, _variable_args_cb, StringFormatCallback
-)
+    CommandOutputMixIn, _variable_args_cb, StringFormatCallback )
 from eoxserver.resources.coverages.metadata import EOMetadata
 
 
@@ -416,7 +415,7 @@ class Command(CommandOutputMixIn, BaseCommand):
                 if eo_metadata is not None and eo_metadata.footprint is None:                
                     ds = gdal.Open(df)
                     if ds is not None:
-                        eo_metadata.footprint = Polygon.from_bbox(extentFromDataset(ds))
+                        eo_metadata.footprint = Polygon.from_bbox(getExtentFromRectifiedDS(ds))
             
             elif mode == 'ftp':
                 self.print_msg("\tFile: '%s'\n\tMeta-data: '%s'" % (df, mdf), 2)
