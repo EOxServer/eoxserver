@@ -37,70 +37,68 @@ Basics
     :depth: 3
     :backlinks: top
 
-As described thoroughly in RFC 1 and RFC 2, EOxServer separates between
-interface and implementation
+The basic design of EOxServer has been proposed in :doc:`/en/rfc/rfc1` and
+:doc:`/en/rfc/rfc2`. Both are worth reading, although some of the concepts
+mentioned there have not (yet) been fully implemented.
 
+This is a short description of the basic elements of the EOxServer software
+architecture.
 
-Models
-------
+Architectural Layout
+--------------------
 
-Models are the primary source for the application data. They are an abstraction
-for commonly relational database tables (`Object-Relational mapping
-<http://en.wikipedia.org/wiki/Object-relational_mapping>`_).
+EOxServer is Python software that builds on a handful of external packages.
+Most of the description in the following sections is related to the structure
+of the Python code, but in this section we present the building blocks used
+for EOxServer.
 
-Each model contains a certain amount of fields, storing the necessary
-information or describing relations to other models.
+For further information on the dependencies please refer to the
+:doc:`/en/users/install` document in the :doc:`/en/users/index`.
 
-Models provide means to create, alter, delete and search for objects of its
-type.
+Django
+~~~~~~
 
-However, working with EOxServer and its internal data structures it is *not*
-encouraged to work with its models directly, but with higher layers such as
-their wrappers and managers. # TODO: references
+EOxServer is designed as a Django app. It reuses the object-relational mapping
+Django provides as an abstraction layer for database access. Therefore, it is
+not bound to a specific database application, but can be run with different
+backends.
 
+Database
+~~~~~~~~
 
-Wrappers
---------
+Metadata and part of the EOxServer configuration is stored in a database. A
+handful of geospatially enabled database systems is supported, though we
+recommend either PostGIS or SpatiaLite.
 
-To ease the use of database models, wrappers provide the functionality to
-obtain required information from the models and do specific tasks. Wrappers are
-usually afiliated with one model, but in some occasions provide an abstraction
-for multiple models.
+MapServer
+~~~~~~~~~
 
-In EOxServer you obtain a wrapper by using factories or the registry.
+One of the most important components is `MapServer <http://www.mapserver.org>`_
+which EOxServer uses through its Python bindings to handle certain OGC Web
+Service requests.
 
-Each wrapper type must implement the according interface.
+GDAL/OGR
+~~~~~~~~
 
+In some cases EOxServer uses the `GDAL/OGR <http://www.gdal.org>`_ library for
+access to geospatial data directly (rather than through MapServer).
 
-Factories
----------
+Software Architecture
+---------------------
 
-Factories are objects to create instances of specific types depending on the
-given parameters. The parameters may be the type ID or object ID of the object
-to be obtained, but can also include filter expressions, to exactly specify
-the desired object.
+The basic software architecture of EOxServer's Python code is layed out in
+:doc:`/en/rfc/rfc2`. The main intention of the design is to keep EOxServer
+modular and extensible.
 
-Factories themselves can be obtained through the registry.
+In order to reach that goal, EOxServer relies on a central registry of
+classes that implement certain behaviour. The registry allows to find
+appropriate implementations (e.g. for certain OGC Web Service operations)
+according to a set of parameters.
 
-Managers
---------
-
-Managers provide high level management utilities for creating, updateing,
-synchronizing and deleting database objects. Managers are the preferred way to
-manipulate data within EOxServer.
-
-Filters
--------
-
-Filter Expressions
-------------------
-
-
-The Registry
-------------
-
-
-
-
+* Registry
+* Factories
+* Wrappers
+* Resources
+* Records
 
 
