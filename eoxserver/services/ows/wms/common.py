@@ -38,7 +38,6 @@ from eoxserver.core.system import System
 from eoxserver.core.util.timetools import (
     isotime, getDateTime
 )
-from eoxserver.core.util.geotools import getSRIDFromCRSIdentifier
 from eoxserver.core.exceptions import InternalError, InvalidParameterException
 from eoxserver.resources.coverages.filters import (
     BoundedArea, TimeInterval
