@@ -334,24 +334,34 @@ class EODatasetMixIn(EOCoverageMixIn):
         super(EOCoverageMixIn, self).delete()
         data_package.delete()
         
-def _checkExtent( footprint , extent ) :
+def _checkFootprint( footprint , extent ) :
+    """ Check footprint to match the extent. """
+
     try:
-        EPSILON = abs((extent.maxx - extent.minx) / extent.size_x)
-        bbox = Polygon.from_bbox((extent.minx - EPSILON,
-                                 extent.miny - EPSILON,
-                                 extent.maxx + EPSILON,
-                                 extent.maxy + EPSILON)) # TODO: Adjust according to axis order of SRID.
-        bbox.set_srid(int(extent.srid))
+
+        #TODO: Make the rtol value configurable. 
+        # allow footprint to exceed extent by given % of smaller extent size
+        rtol = 0.005 # .5% 
+        difx = abs( extent.maxx - extent.minx )
+        dify = abs( extent.maxy - extent.miny )
+        atol = rtol * min( difx , dify ) 
+
+        bbox = Polygon.from_bbox( (
+                extent.minx - atol, extent.miny - atol,
+                extent.maxx + atol, extent.maxy + atol ) )
+
+        print "%s" % repr( extent.srid ) 
+
+        bbox.set_srid( extent.srid )
         
-        if footprint.srid != bbox.srid:
-            footprint.transform(bbox.srs)
+        if footprint.srid != bbox.srid : footprint.transform( bbox.srs )
         
         if not bbox.contains(footprint):
-            raise ValidationError("The datasets's extent does not surround its"\
-                " footprint. Extent: '%s' Footprint: '%s'" \
+            raise ValidationError("The datasets's extent does not surround its"
+                " footprint. Extent: '%s' Footprint: '%s'"
                 % (str(bbox), str(footprint)))
-    except GEOSException:
-        pass
+
+    except GEOSException: pass
 
 class RectifiedDatasetRecord(CoverageRecord, EODatasetMixIn):
     extent = models.ForeignKey(ExtentRecord, related_name="rect_datasets")
@@ -365,7 +375,7 @@ class RectifiedDatasetRecord(CoverageRecord, EODatasetMixIn):
         
         # TODO: this does not work in the admins changelist.save method
         # A wrong WKB is inside the eo_metadata.footprint entry
-        _checkExtent( self.eo_metadata.footprint , self.extent ) 
+        _checkFootprint( self.eo_metadata.footprint , self.extent ) 
         
         validateCoverageIDnotInEOOM(self.coverage_id, self.eo_metadata.eo_gml)
     
@@ -387,7 +397,7 @@ class ReferenceableDatasetRecord(CoverageRecord, EODatasetMixIn):
         # TODO: taken from Rectified DS, check if applicable to Referenceable DS too
         # TODO: this does not work in the admins changelist.save method
         # A wrong WKB is inside the eo_metadata.footprint entry
-        _checkExtent( self.eo_metadata.footprint , self.extent ) 
+        _checkFootprint( self.eo_metadata.footprint , self.extent ) 
 
         validateCoverageIDnotInEOOM(self.coverage_id, self.eo_metadata.eo_gml)
 
