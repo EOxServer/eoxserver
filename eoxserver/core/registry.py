@@ -153,7 +153,22 @@ class Registry(object):
 
     def findImplementations(self, intf_id, params=None, include_disabled=False):
         """
+        This method returns a list of implementations of a given interface.
+        It requires the interface ID as a parameter.
         
+        Furthermore, a parameter dictionary can be passed to the method. The
+        results will then be filtered according to these parameters. The
+        dictionary does not have to contain all the parameters defined by the
+        interface; in case some parameters are omitted, the result list may
+        contain several different implementations.
+        
+        Third is an optional ``include_disabled`` parameter with defaults to
+        ``False``. If ``True``, disabled implementations will be reported as
+        well.
+        
+        An :exc:`~.InternalError` is raised if parameters are passed to the
+        method that are not defined in the interface declaration or not
+        recognized by the interface :meth:`test` method.
         """
         
         if intf_id in self.__intf_index:
@@ -187,11 +202,44 @@ class Registry(object):
             raise InternalError("Unknown interface ID '%s'" % intf_id)
 
     def getImplementationIds(self, intf_id, params=None, include_disabled=False):
+        """
+        This method returns a list of implementation IDs for a given interface.
+        It requires the interface ID as a parameter.
+        
+        Furthermore, a parameter dictionary can be passed to the method. The
+        results will then be filtered according to these parameters. The
+        dictionary does not have to contain all the parameters defined by the
+        interface; in case some parameters are omitted, the result list may
+        contain several different implementations.
+        
+        Third is an optional ``include_disabled`` parameter with defaults to
+        ``False``. If ``True``, disabled implementations will be reported as
+        well.
+        
+        An :exc:`~.InternalError` is raised if parameters are passed to the
+        method that are not defined in the interface declaration or not
+        recognized by the interface :meth:`test` method.
+        """
         impls = self.findImplementations(intf_id, params, include_disabled)
         
         return [impl.__get_impl_id__() for impl in impls]
     
     def getRegistryValues(self, intf_id, registry_key, filter=None, include_disabled=False):
+        """
+        This method returns a list of registry values of implementations 
+        of an interface with ``interface_id`` and a registry key
+        ``registry_key`` defined in the interface declaration.
+        
+        With the ``filter`` argument you can impose certain restrictions on the
+        implementations (registry values) to be returned. It is expected to
+        contain a dictionary of registry keys and values that the implementation
+        must expose to be included.
+        
+        Using the ``include_disabled`` argument you can determine whether.
+        
+        This method raises :exc:`~.InternalError` if the interface ID is
+        unknown.
+        """
         if intf_id in self.__intf_index:
             InterfaceCls = self.__intf_index[intf_id]["intf"]
             
@@ -222,6 +270,12 @@ class Registry(object):
             raise InternalError("Unknown interface ID '%s'" % intf_id)
         
     def getFactoryImplementations(self, factory):
+        """
+        Returns a list of implementations for a given factory.
+        
+        Raises :exc:`~.InternalError` if the factory is not found in the
+        registry.
+        """
         factory_id = factory.__get_impl_id__()
         
         if factory_id in self.__fact_index:
@@ -230,6 +284,42 @@ class Registry(object):
             raise InternalError("Unknown Factory ID '%s'." % factory_id)
 
     def load(self):
+        """
+        This method loads the registry, i.e. it scans the modules specified
+        in the configuration for interfaces and implementations. It is
+        invoked by the ``~.System`` class upon initialization.
+
+        You should *never* invoke this method directly. Always use
+        :meth:`~.System.init` to initialize and :meth:`~.System.getRegistry` to
+        access the registry.
+        
+        There are three configuration settings taken into account.
+        
+        First, the ``system_modules`` setting in ``default.conf``. These
+        modules are always loaded and cannot be left aside in individual
+        instances.
+        
+        Second, the ``module_dirs`` setting in the local configuration of the
+        instance (``eoxserver.conf``) is taken into account. This expected to
+        be a comma-separated list of directories. These directories and all
+        the directory trees underneath them are searched for Python modules.
+        
+        Third, the ``modules`` setting in ``eoxserver.conf``. This is
+        expecte to be a comma-separated list of module names which shall be
+        loaded.
+        
+        All modules specified or detected by scanning directories will be
+        loaded and searched for interfaces descending from
+        :class:`RegisteredInterface` as well as their implementations. These
+        will be automatically included in the registry and accessible using
+        the different binding methods provided.
+        
+        As a last step, the registry is synchronized with the database. This
+        means that the implementation looks up the entries for the different
+        implementations in the database and determines whether they are
+        enabled or not. If it finds an implementation which has not yet been
+        registered it will be saved to the database but disabled by default.
+        """
         # get module directories from config
         reader = RegistryConfigReader(self.config)
         reader.validate()
@@ -256,6 +346,16 @@ class Registry(object):
         self.validate()
     
     def validate(self):
+        """
+        This method is intended to validate the component configuration.
+        
+        It looks up all implementations of :class:`ComponentManagerInterface`
+        and calls their respective :meth:`~ComponentManagerInterface.validate`
+        methods.
+        
+        At the moment, no component managers are implemented, so this
+        method does not have any effects.
+        """
         msgs = []
         
         Managers = self.findImplementations("core.registry.ComponentManager")
@@ -271,29 +371,59 @@ class Registry(object):
             raise ConfigError("\n".join(msgs))
     
     def save(self):
+        """
+        This saves the registry configuration to the database. This means
+        the status of the enabled / disabled flag for each implementation
+        will be saved overriding any previous settings stored.
+        """
         self.validate()
 
         self.__save_to_db()
     
     def getImplementationStatus(self, impl_id):
+        """
+        Returns the implementation status (``True`` for enabled, ``False`` for
+        disabled) for the given implementation ID ``impl_id``.
+        
+        Raises :exc:`~.InternalError` if the implementation ID is
+        unknown.
+        """
         if impl_id in self.__impl_index:
             return self.__impl_index[impl_id]["enabled"]
         else:
             raise InternalError("Unknown implementation ID '%s'" % impl_id)
     
     def enableImplementation(self, impl_id):
+        """
+        Changes the implementation status to enabled for implementation ID
+        ``impl_id``. Note that this change is not automatically stored to
+        the database (you have to call :meth:`save` to do that).
+        
+        Raises :exc:`~.InternalError` if the implementation ID is unknown.
+        """
         if impl_id in self.__impl_index:
             self.__impl_index[impl_id]["enabled"] = True
         else:
             raise InternalError("Unknown implementation ID '%s'" % impl_id)
 
     def disableImplementation(self, impl_id):
+        """
+        Changed the implementation status to disable for implementation ID
+        ``impl_id``. Note that this change is not automatically stored to
+        the database (you have to call :meth:`save` to do that).
+        
+        Raises :exc:`~.InternalError` if the implementation ID is unknown.
+        """
         if impl_id in self.__impl_index:
             self.__impl_index[impl_id]["enabled"] = False
         else:
             raise InternalError("Unknown implementation ID '%s'" % impl_id)
     
     def clone(self):
+        """
+        Returns an exact copy of the registry.
+        """
+        
         registry = Registry(self.config)
         
         registry.__impl_index = self.__impl_index
