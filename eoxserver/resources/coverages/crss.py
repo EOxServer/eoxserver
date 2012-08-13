@@ -32,6 +32,7 @@
 
 #-------------------------------------------------------------------------------
 
+import re 
 from osgeo import osr
 import logging
 from eoxserver.core.system import System
@@ -179,27 +180,83 @@ EPSG_AXES_REVERSED = set([ 2036, 2044, 2045, 2065, 2081, 2082, 2083, 2085,
 #-------------------------------------------------------------------------------
 # format functions 
 
-def asInteger( v ): 
+def asInteger( epsg ): 
     """ convert EPSG code to integer """
-    return int(v) 
+    return int(epsg) 
 
-def asShortCode( v ):  
+def asShortCode( epsg ):  
     """ convert EPSG code to short CRS ``EPSG:<code>`` notation """
-    return "EPSG:%d"%int(v)
+    return "EPSG:%d"%int(epsg)
 
-def asURL( v ):  
+def asURL( epsg ):  
     """ convert EPSG code to OGC URL CRS 
     ``http://www.opengis.net/def/crs/EPSG/0/<code>`` notation """
-    return "http://www.opengis.net/def/crs/EPSG/0/%d"%int(v) 
+    return "http://www.opengis.net/def/crs/EPSG/0/%d"%int(epsg) 
 
-def asURN( v ):
+def asURN( epsg ):
     """ convert EPSG code to OGC URN CRS ``urn:ogc:def:crs:epsg::<code>`` 
     notation """
-    return "urn:ogc:def:crs:epsg::%d"%int(v) 
+    return "urn:ogc:def:crs:epsg::%d"%int(epsg) 
 
-def asProj4Str( v ) : 
+def asProj4Str( epsg ) : 
     """ convert EPSG code to *proj4* ``+init=epsg:<code>`` notation """
-    return "+init=epsg:%d"%int(v)
+    return "+init=epsg:%d"%int(epsg)
+#
+
+#-------------------------------------------------------------------------------
+# format parsers  
+
+# compiled regular expesions 
+_gerexURL = re.compile(r"^http://www.opengis.net/def/crs/epsg/\d+\.?\d*/(\d+)$",re.IGNORECASE)
+_gerexURN = re.compile(r"^urn:ogc:def:crs:epsg:\d*\.?\d*:(\d+)$",re.IGNORECASE)
+_gerexShortCode = re.compile(r"^epsg:(\d+)$",re.IGNORECASE)
+_gerexProj4Str = re.compile(r"^\+init=epsg:(\d+)$")
+
+def validateEPSGCode( string ) : 
+    """Check whether the given string is a valid EPSG code (True) or not (False)""" 
+    try : 
+        if osr.SpatialReference().ImportFromEPSG(int(v)) != 0 : 
+            raise ValueError 
+    except ValueError : 
+        return False
+    return True
+
+def fromInteger( string ) :  
+    """ parse EPSG code from simple integer string """
+    return int( string ) if validateEPSGCode( string ) else None  
+
+def _fromRegEx( string , gerex ) : 
+    """ parser EPSG code from given string and compiled regular expression """
+    match = gerex.match( string ) 
+    if match is None: return None 
+    return fromInteger( match.group(1) )
+
+def fromURL( string ) : 
+    """ parse EPSG code from given string in OGC URL CRS 
+    ``http://www.opengis.net/def/crs/EPSG/0/<code>`` notation """
+    return _fromRegEx( string , _gerexURL ) 
+
+def fromURN( string ) : 
+    """ parse EPSG code from given string in OGC URN CRS 
+    ``urn:ogc:def:crs:epsg::<code>`` notation """
+    return _fromRegEx( string , _gerexURN ) 
+
+def fromShortCode( string ) : 
+    """ parse EPSG code from given string in short CRS 
+    ``EPSG:<code>`` notation """
+    return _fromRegEx( string , _gerexShortCode ) 
+
+def fromProj4Str( string ) : 
+    """ parse EPSG code from given string in OGC Proj4Str CRS 
+    ``+init=epsg:<code>`` notation """
+    return _fromRegEx( string , _gerexProj4Str ) 
+
+def parseEPSGCode( string , parsers ) :  
+    """ parse EPSG code using provided seqence of EPSG parsers """ 
+    for parser in parsers : 
+        epsg = parser( string ) 
+        if epsg is not None : return epsg 
+    return None 
 
 #-------------------------------------------------------------------------------
 # public API 
@@ -266,6 +323,19 @@ def hasSwappedAxes( epsg ) :
         return ( epsg in EPSG_AXES_REVERSED ) 
 
 
+def getAxesSwapper( epsg , swapAxes = None ) : 
+        """ 
+        Second order function returning point tuple axes swaper 
+        f(x,y) -> (x,y) or f(x,y) -> (y,x). The axes order is determined 
+        by the provided EPSG code. (Or exlicitely by the swapAxes boolean
+        flag.
+        """ 
+
+        if swapAxes not in (True,False) : 
+            swapAxes = hasSwappedAxes( epsg ) 
+
+        return (lambda x,y:(y,x)) if swapAxes else (lambda x,y:(x,y))
+
 def isProjected( epsg ) : 
     """Is the coordinate system projected (True) or Geographic (False)? """
 
@@ -276,19 +346,8 @@ def isProjected( epsg ) :
 
 #-------------------------------------------------------------------------------
 
-def validateEPSGCode( v ) : 
-    """Check whether the given string is a valid EPSG code (True) or not (False)""" 
-    try : 
-        if osr.SpatialReference().ImportFromEPSG(int(v)) != 0 : 
-            raise ValueError 
-    except ValueError : 
-        return False
-    return True
-
 def __parseListOfCRS( config , section , field ) : 
     """ parse CRS configuartion """ 
-
-    spat_ref = osr.SpatialReference() 
 
     # validate and convert to EPSG code 
     def checkCode( v ) :
