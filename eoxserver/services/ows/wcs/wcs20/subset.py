@@ -33,7 +33,7 @@ from django.contrib.gis.geos import Polygon
 from eoxserver.core.system import System
 from eoxserver.core.exceptions import InvalidExpressionError
 from eoxserver.core.util.timetools import getDateTime
-from eoxserver.core.util.geotools import getSRIDFromCRSURI
+from eoxserver.resources.coverages import crss 
 from eoxserver.resources.coverages.filters import (
     BoundedArea, Slice, TimeInterval
 )
@@ -172,25 +172,21 @@ class WCS20SubsetDecoder(object):
         )
         
     def _getSpatialSliceExpression(self, slice):
-        axis_label = slice[0]
-        
-        if slice[1] is None:
+        axis_label , crs_id_str , slice_point_str = slice[:3]
+
+        if crs_id_str is None:
             crs_id = self.default_crs_id
         else:
-            try:
-                crs_id = getSRIDFromCRSURI(slice[1])
-            except:
-                raise InvalidSubsettingException(
-                    "Unrecognized CRS URI '%s'" % slice[1]
-                )
-        
+            crs_id = crss.parseEPSGCode(crs_id_str,(crss.fromURL,crss.fromURN))
+            if crs_id is None:
+                raise InvalidSubsettingException( "Failed to extrac an EPSG"
+                    " code from the CRS URI '%s'!" % crs_id_str )
+                
         try:
-            slice_point = float(slice[2])
-        except:
-            raise InvalidSubsettingException(
-                "Could not convert slice point token '%s' to number." %\
-                slice[2]
-            )
+            slice_point = float(slice_point_str)
+        except ValueError:
+            raise InvalidSubsettingException( "Failed to convert slice point"
+                " '%s' to a real number." % slice_point_str )
         
         return System.getRegistry().getFromFactory(
             "resources.coverages.filters.CoverageExpressionFactory",
@@ -365,15 +361,16 @@ class WCS20SubsetDecoder(object):
                     "Cannot convert token '%s' to integer." % token
                 )
     
-    def _getCRSID(self, crs_expr):
-        if crs_expr is None:
-            return self.default_crs_id
+    def _getCRSID(self, crs_id_str):
+        if crs_id_str is None:
+            crs_id = self.default_crs_id
         else:
-            try:
-                return getSRIDFromCRSURI(crs_expr)
-            except Exception, e:
-                raise InvalidSubsettingException(e.msg)
-    
+            crs_id = crss.parseEPSGCode(crs_id_str,(crss.fromURL,crss.fromURN)) 
+            if crs_id is None:
+                raise InvalidSubsettingException( "Failed to extrac an EPSG"
+                    " code from the CRS URI '%s'!" % crs_id_str )
+        return crs_id 
+
     def _get_image_extent(self, x_bounds, y_bounds, x_size, y_size):
         if x_bounds[0] == "unbounded":
             minx = 0

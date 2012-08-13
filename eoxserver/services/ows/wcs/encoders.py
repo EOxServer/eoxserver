@@ -70,9 +70,9 @@ class GMLEncoder(XMLEncoder):
     def encodeLinearRing(self, ring, srid):
 
         floatFormat  = PPREC2[ crss.isProjected(srid) ] 
-        axesReversed = crss.hasSwappedAxes(srid) 
 
-        swap = (lambda x,y:(y,x)) if axesReversed else (lambda x,y:(x,y))
+        # get axes swapping function 
+        swap = crss.getAxesSwapper( srid ) 
 
         pos_list = " ".join([ floatFormat%swap(*point) for point in ring])
 
@@ -255,7 +255,8 @@ class CoverageGML10Encoder(XMLEncoder):
         axesUnits, axesLabels, floatFormat , axesReversed , crsProjected = \
             _getUnitLabelAndFormat( srid ) 
 
-        swap = (lambda x,y:(y,x)) if axesReversed else (lambda x,y:(x,y))
+        # get axes swapping function 
+        swap = crss.getAxesSwapper( srid , axesReversed ) 
 
         origin    = floatFormat % swap( minx, maxy )
         x_offsets = floatFormat % swap( ( maxx - minx )/float( size[0] ) , 0 )
@@ -318,7 +319,8 @@ class CoverageGML10Encoder(XMLEncoder):
         axesUnits, axesLabels, floatFormat , axesReversed , crsProjected = \
             _getUnitLabelAndFormat( srid ) 
 
-        swap = (lambda x,y:(y,x)) if axesReversed else (lambda x,y:(x,y))
+        # get axes swapping function 
+        swap = crss.getAxesSwapper( srid , axesReversed ) 
 
         return self._makeElement("gml", "boundedBy", [
             ("gml", "Envelope", [
