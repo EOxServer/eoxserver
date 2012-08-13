@@ -38,6 +38,43 @@ from eoxserver.resources.coverages import crss
 from osgeo import osr
 import logging
 
+# extent calculation 
+def getExtentFromRectifiedDS( ds , eps=1e-6 ):
+    """ Calculates the extent tuple of the given gdal.Dataset. The dataset 
+    must be rectified, i.e. projected to a recognized CRS, and the geocoding 
+    must be encoded by the GDAL's Geo-Transformation matrix.
+    
+    The ``eps`` parameter is the relative threshold for non-zero values of
+    non-diagonal terms of the GDAL's Geo-Transformation matrix.
+    """
+
+    x0 , dxx , dxy , y0 , dyx , dyy = ds.GetGeoTransform()
+
+    if ( abs(eps*dxx) < abs(dxy) ) or ( abs(eps*dyy) < abs(dyx) ) :  
+        RuntimeError( "Rectified datasets with non-orthogonal or"
+            " rotated axes are not supported" ) 
+
+    if ( dxx < 0 ) or ( dyy > 0 ) :  
+        RuntimeError( "Rectified datasets with flipped axes directions"
+            " are not supported" ) 
+
+    x1 , y1 = ( x0 + size_x * dxx ) , ( y0 + size_y * dyy ) 
+
+    return ( x0 , y1 , x1 , y0 ) 
+
+def getExtentFromReferenceableDS( ds ):
+    """ Calculates the extent tuple of the given gdal.Dataset. The dataset 
+    must be encoded using the tie-points. 
+    """
+
+    filelist = ds.GetFileList()
+
+    if 1 != len( filelist ) : 
+        RuntimeError( "Cannot get a single dataset filename!" ) 
+        
+    return = GEOSGeometry(get_footprint_wkt(filelist[0])).extent 
+
+
 class GeospatialMetadata(object):
     """
     This class wraps geospatial metadata retrieved from a GDAL dataset. It has
@@ -109,37 +146,17 @@ class GeospatialMetadata(object):
             else : 
 
                 ptype = ("GEOGCS","PROJCS")[srs.IsProjected()]
-                srid = srs.GetAuthorityCode( ptype )
+                srid = int( srs.GetAuthorityCode( ptype ) ) 
 
         # get the extent 
 
         if is_ref : # Referenceable DS 
 
-            filelist = ds.GetFileList()
-
-            if 1 != len( filelist ) : 
-                RuntimeError( "Cannot get a single dataset filename!" ) 
-                
-            extent = GEOSGeometry(get_footprint_wkt(filelist[0])).extent 
+            extent = getExtentFromReferenceableDS( ds )
 
         else : # Rectified DS 
         
-            x0 , dxx , dxy , y0 , dyx , dyy = ds.GetGeoTransform()
-
-            # relative threshold for non-zero values of non-diagonal terms 
-            eps = 1e-6 
-
-            if ( abs(eps*dxx) < abs(dxy) ) or ( abs(eps*dyy) < abs(dyx) ) :  
-                RuntimeError( "Rectified datasets with non-orthogonal or"
-                    " rotated axes are not supported" ) 
-
-            if ( dxx < 0 ) or ( dyy > 0 ) :  
-                RuntimeError( "Rectified datasets with flipped axes directions"
-                    " are not supported" ) 
-
-            x1 , y1 = ( x0 + size_x * dxx ) , ( y0 + size_y * dyy ) 
-
-            extent = ( x0 , y1 , x1 , y0 ) 
+            extent = getExtentFromRectifiedDS( ds )
 
         # instantiate the class 
         return cls( srid, size_x, size_y, extent, is_ref )
