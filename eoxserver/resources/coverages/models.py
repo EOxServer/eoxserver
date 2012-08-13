@@ -350,8 +350,6 @@ def _checkFootprint( footprint , extent ) :
                 extent.minx - atol, extent.miny - atol,
                 extent.maxx + atol, extent.maxy + atol ) )
 
-        print "%s" % repr( extent.srid ) 
-
         bbox.set_srid( extent.srid )
         
         if footprint.srid != bbox.srid : footprint.transform( bbox.srs )
