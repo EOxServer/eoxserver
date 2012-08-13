@@ -302,7 +302,7 @@ class CommonGridWrapper(object):
         return create_dict
 
     def _updateModel(self, link_kwargs, unlink_kwargs, set_kwargs):
-        super(RectifiedGridWrapper, self)._updateModel(link_kwargs, unlink_kwargs, set_kwargs)
+        super(CommonGridWrapper, self)._updateModel(link_kwargs, unlink_kwargs, set_kwargs)
         
         geo_md = set_kwargs.get("geo_metadata")
         if geo_md:
