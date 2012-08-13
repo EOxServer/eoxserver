@@ -215,7 +215,7 @@ _gerexProj4Str = re.compile(r"^\+init=epsg:(\d+)$")
 def validateEPSGCode( string ) : 
     """Check whether the given string is a valid EPSG code (True) or not (False)""" 
     try : 
-        if osr.SpatialReference().ImportFromEPSG(int(v)) != 0 : 
+        if osr.SpatialReference().ImportFromEPSG(int(string)) != 0 : 
             raise ValueError 
     except ValueError : 
         return False
