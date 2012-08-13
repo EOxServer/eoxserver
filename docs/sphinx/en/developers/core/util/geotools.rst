@@ -33,8 +33,3 @@ Module eoxserver.core.util.geotools
 ====================================
 
 .. automodule:: eoxserver.core.util.geotools
-
-.. autofunction:: eoxserver.core.util.geotools.getSRIDFromCRSURI
-.. autofunction:: eoxserver.core.util.geotools.getSRIDFromCRSIdentifier
-.. autofunction:: eoxserver.core.util.geotools.posListToWkt
-.. autofunction:: eoxserver.core.util.geotools.extentFromDataset
