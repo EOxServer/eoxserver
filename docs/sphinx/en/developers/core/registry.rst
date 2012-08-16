@@ -291,3 +291,4 @@ Config Reader
 ~~~~~~~~~~~~~
 
 .. autoclass:: RegistryConfigReader
+   :members:
