@@ -66,7 +66,8 @@ EOxServer-SoapProxy Open License
 ================================
 
 Soap Proxy is Copyright (C) 2011 ANF DATA Spol. s r.o. Prague.
-The terms of the license are otherwise identical to those of the main EOxServer Open License.
+The terms of the license are otherwise identical to those of the main
+EOxServer Open License.
 
 Credits
 =======
