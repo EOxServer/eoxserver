@@ -162,8 +162,11 @@ whiche shall allow to read data and metadata to be displayed, and one
 RPC-based interface shall be implemented in order to trigger actions on the
 server side.
 
+Detailed Concept Description
+----------------------------
+
 Layout of the Operator Interface
---------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The entry point to the operator interface shall be a dashboard-like page. It is
 envisaged to present a tab for each Operator Component; this tab shall
@@ -195,7 +198,7 @@ layout; customizable CSS should be used for styling. The design of the entry
 page design (dashboard) may differ from the design of the sub-pages.
 
 Components and Operator Components
-----------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Proposed Operator Components:
 
@@ -205,7 +208,8 @@ Proposed Operator Components:
 * Coverages
 
 Action Views
-------------
+~~~~~~~~~~~~
+
 
 Proposed Action Views:
 
@@ -243,7 +247,7 @@ Proposed Action Views:
     synchronize actions, as well as list views of contained coverages
 
 Actions
--------
+~~~~~~~
 
 The Actions shall be represented by corresponding Python classes on the
 server side. Actions shall be reusable in the sense that they can also be
@@ -254,22 +258,32 @@ should not be confused with database models. In most cases, a resource will be
 tied to a higher-level object: coverage resources for instance shall be tied to
 the wrappers defined in :mod:`eoxserver.resources.coverages.wrappers`.
 
-An interface shall be defined for Actions using the mechanisms of
-:mod:`eoxserver.core.registry` and :mod:`eoxserver.core.interfaces`. It should
-be possible to invoke Actions in synchronous and asynchronous mode. For the
-asynchronous mode, the existing facilities of
+It should be possible to invoke Actions in synchronous and asynchronous mode.
+For the asynchronous mode, the existing facilities of
 :mod:`eoxserver.resources.processes` shall be adapted and extended.
 
 Every Action shall expose methods to
 
 * validate the parameters
-* start the Action
+* start the Action and return the ID of that action 
 * stop the Action
-* check the status
-* check the log messages issued by the Action
+* check the status of the Action
+* check the log messages issued by the Action (maybe this is better implemented
+  using the Resource mechanism)
+
+On the client side, Actions are wrapped with ActionProxy objects that offer an
+easy API and abstraction for the remote invocation of the Actions methods. For
+Asynchronous Action the AsyncActionProxy offers a specialization.
+
+.. _fig_client_action_proxies:
+.. figure:: resources/rfc18/client_action_proxies.png
+   :align: center
+
+   *The two client side ActionProxy classes.*
+
 
 Example Action definition
-~~~~~~~~~~~~~~~~~~~~~~~~~
+.........................
 
 Example::
 
@@ -292,8 +306,26 @@ Example::
         def view_logs(self, obj_id, timeframe=None):
             ...
 
+Resources
+~~~~~~~~~
+
+Resources are an interface to the data stored as models in the database but
+also custom data sources are possible. When applied to models, a resource
+allows the create, read, update and delete (CRUD) methods, but this may be
+restricted per resource for certain models where the modification of data
+requires a more elaborate handling.
+
+On the client side, Resources are wrapped in Models and Collections, which
+provide a layer of abstraction and handle the communication with the server.
+Both Models and Collections offer certain events, to which the client can react
+in a suitable manner. This may trigger a synchronization of data with the
+server or a (re-)rendering of data on the client in an associated view.
+
+Interfaces
+~~~~~~~~~~
+
 RPC Interface
--------------
+.............
 
 Actions shall be triggered via the RPC Interface. In general, invocation from
 the Operator Interface shall be asynchronous. Incoming requests from the
@@ -313,22 +345,25 @@ Using the Action ID, the Operator Interface can
 * cancel the Action
 
 REST Interface
---------------
+..............
 
 The REST Interface shall be used to retrieve resource data using HTTP GET. No
 Actions shall be triggered by the REST Interface. This restriction is due to
 the following considerations:
 
 * REST frameworks do not support asynchronous processing
-* REST frameworks do not support actions in addition to CRUD, e.g. synchronization
+* REST frameworks do not support actions in addition to CRUD, e.g.
+  synchronization
 * Actions shall expose reusable interfaces for CLI commands which would not be
   feasible if they were tied to the resource objects most REST frameworks use
 
 ################################################################################
 
+Implementation Details
+----------------------
 
 Implementing Components
------------------------
+~~~~~~~~~~~~~~~~~~~~~~~
 
 To create a component, one simply shall have to subclass the abstract base
 class provided by the Operator Interface API. It shall be easily adjustible
@@ -343,7 +378,7 @@ Components are registered by the Operator Interface API function
 components.
 
 Example Component definition
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+............................
 
 Example::
 
@@ -358,7 +393,7 @@ Example::
 
 
 Implementing Action Views
--------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The implementation of action views is very much like the implementation of
 components and should follow the same rules concerning JavaScript view classes
@@ -370,7 +405,7 @@ a list of Action or Resource classes.
 # TODO maybe adding widgets?
 
 Example Action View definition
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+..............................
 
 Example::
 
@@ -381,7 +416,7 @@ Example::
 
 
 Implementing Resources
-----------------------
+~~~~~~~~~~~~~~~~~~~~~~
 
 Implementing Resources should be as easy as implementing actions. As with
 Actions, Resources are implemented by subclassing the according abstract base
@@ -391,7 +426,7 @@ resource, maybe means to limit the acces to read-/write-only (maybe coupled
 to the provided permissions) and the inc-/exclusion of model fields.
 
 Example Resource definition
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+...........................
 
 Example::
 
@@ -402,16 +437,8 @@ Example::
         permissions = [ ... ]
 
 
-Required Components
--------------------
-
-
-# TBD
-
-
-
 Access Controll
----------------
+~~~~~~~~~~~~~~~
 
 The Operator Interface itself, its Resources and its Actions shall only be
 accessible for authorized users. Also, the Interface shall distinguish between
@@ -424,7 +451,7 @@ other software frameworks.
 
 
 Configuration and Registration of Components
---------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 On the server side, the Operator Interface is set up similar to the Djangos
 built-in Admin Interface. To enable the Operator Interface, its app identifier
@@ -437,6 +464,138 @@ directories in search of a `operator.py` module, which shall contain the apps
 setup of Components, Action Views, Actions and Resources.
 
 
+Example Component: Coverage Component
+-------------------------------------
+
+This chapter explains an the example component to handle all kinds of
+interactions concerning coverages, mosaics and dataset series respectively all
+types of assorted metadata.
+
+Requirements
+~~~~~~~~~~~~
+
+As described earlier, the interactions shall entail creating/updating/deleting
+coverages and containers aswell inserting coverages into containers.
+Additionally users shall also trigger a synchronization process on rectified
+stitched mosaics and dataset series. As this may well be a time-consuming task,
+scanning through both the database and the (possibly remote) filesystem, it
+shall be handled asynchronously and output status messages.
+
+Last but not least, all coverage metadata shall also be handled, including
+geo-spatial, earth observational and raster specific metadata.
+
+The above requirements can be summarized in the following groups:
+
+  * Coverage Handling (also includes geospatial and EO-meta-data as the relation
+    is one-to-one)
+  * Container Handling (same as above)
+  * Range Type Handling (as other more tied meta-data is handled in the other
+    sections)
+
+The requirement groups will be implemented as Action Views on the client, using
+specific widgets to allow interaction.
+
+Server-Side implementation
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The identified requirements have several implications on the server side. First
+off the three Action Views need to be declared to implement the three groups of
+reqiurements listed above and suited with the needed resources and actions.
+
+Resources
+.........
+
+For simple access to the internally stored data, a list of Resources need to be
+defined: one for each coverage/container type, one for range types, bands and
+nil values and also for data sources.
+
+For asynchronous tasks, also the running tasks and their logs need to be
+exposed as resources.
+
+Actions
+.......
+
+The actions derived from the requirements can be summarized in the following
+list: add coverage to a container, remove a coverage from a container, add a
+data source to a container, remove a datasource from a container, manually
+start a synchronization process for a container. The first two actions can
+likely be handled synchronously as the management overhead is potentially not
+as high as with the latter three actions. Thus the introduced actions can be
+split into synchronous and asynchronous actions.
+
+Summary
+.......
+
+The following classes with their according hierarchical structure has been
+identified.
+
++-----------+--------------------+-------------------+-----------------------+
+| Component | Action Views       | Resources         | Actions               |
++===========+====================+===================+=======================+
+| Coverages | Coverage Handling  | Rect. Coverages   | Add to Container      |
+|           |                    +-------------------+-----------------------+
+|           |                    | Ref. Coverages    | Remove from Container |
+|           |                    +-------------------+-----------------------+
+|           |                    | Rect. Mosaics     |                       |
+|           |                    +-------------------+                       |
+|           |                    | Range Types       |                       |
+|           |                    +-------------------+                       |
+|           |                    | Bands             |                       |
+|           |                    +-------------------+                       |
+|           |                    | NilValues         |                       |
+|           +--------------------+-------------------+-----------------------+
+|           | Container Handling | Coverages         | Add Coverage          |
+|           |                    +-------------------+-----------------------+
+|           |                    | Rect. Mosaics     | Remove Coverage       |
+|           |                    +-------------------+-----------------------+
+|           |                    | Dataset Series    | Add Datasource        |
+|           |                    +-------------------+-----------------------+
+|           |                    |                   | Remove Datasource     |
+|           |                    |                   +-----------------------+
+|           |                    |                   | Synchronize           |
+|           +--------------------+-------------------+-----------------------+
+|           | RangeType Handling | Range Types       |                       |
+|           |                    +-------------------+                       |
+|           |                    | Bands             |                       |
+|           |                    +-------------------+                       |
+|           |                    | NilValues         |                       |
++-----------+--------------------+-------------------+-----------------------+
+
+Client-Side implementation
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+From the requirements we allready have designed three Action Views, which will
+be implemented as Backbone views. Each offered resource from the server will
+have a Backbone model/collection counterpart communicating with that interface.
+Similarily each action will have a proxy class on the client side.
+
+Views
+.....
+
+The hierarchy of the client views can be seen in the following figure.
+
+.. _fig_client_views:
+.. figure:: resources/rfc18/client_views.png
+   :align: center
+
+   *The client views/widget hierarchy.*
+
+
+Models/Collection
+.................
+
+Each offered resource is encapsulated in a model and collection. These classes
+also offer client side validation (which are easily implemented and allow
+immediate response in case of an error). 
+
+ActionProxies
+.............
+
+For each Action on the server, an ActionProxy has to be instantiated on the
+client which handle the communication with the server. For the three Actions
+that are running asynchronously, a special ActionProxy subclass is used.
+
+
 Technologies Used
 -----------------
 
@@ -447,7 +606,8 @@ HTML templating and request dispatching.
 To help publishing RESTful resources, the django extension `Django REST
 framework <http://django-rest-framework.org/>`_ can be used. It provides a
 rather simple, yet customizeable access to database model. It also supports
-user authorization as required in the chapter `Access Controll`_.
+user authorization as required in the chapter `Access Controll`_. The library
+is available under the BSD license.
 
 To provide the RPC interface, there are two possibilities. The first is a
 wrapped setup of the `SimpleXMLRPCServer module
@@ -462,14 +622,70 @@ which is more verbose than its JSON counterpart.
 The second option would be to use a django extension framework, e.g
 `rpc4django <http://davidfischer.name/rpc4django/>`_. This framework eases the
 setup of RPC enabled functions, provides user authorization an is agnostic to
-the RPC protocol used (either JSON- or XML-RPC).
+the RPC protocol used (either JSON- or XML-RPC). This library also uses the BSD
+license.
 
 On the client side, several JavaScript libraries are required. For DOM
 manipulation and several utility functions `jQuery <http://jquery.com/>`_ and
-`Underscore <http://underscorejs.org/>`_ are beeing used. To implement a
-working MVC layout, `Backbone <http://backbonejs.org/>`_ is suggested. This
-library also abstracts the use of REST resources.
+`jQueryUI <http://jqueryui.com/>`_ are used. The libraries are licensed under
+the GPL and MIT licenses.
+
+As a general utility library and dependency for other module comes `Underscore
+<http://underscorejs.org/>`_. To implement a working MVC layout,
+`Backbone <http://backbonejs.org/>`_ is suggested. This library also abstracts
+the use of REST resources. Both libraries are distributed under the MIT
+license.
 
 For calling RPC functions and parsing the output, the library `rpc.js
 <https://github.com/westonruter/json-xml-rpc>`_ is required. It adheres to
-either the JSON-RPC or the XML-RPC protocol.
+either the JSON-RPC or the XML-RPC protocol. The library is dual-licensed under
+the MIT and the GPL license.
+
+To display larger amounts of objects and to efficiently manipulate them, the
+`SlickGrid <https://github.com/mleibman/SlickGrid>`_ and its integration with
+Backbone, `Slickback <https://github.com/teleological/slickback>`_ are used.
+The two libraries are both licensed under the MIT license.
+
+For easy management of javascript files in conjunction with other resources the
+`requirejs <http://requirejs.org/>`_ framework is included. It provides means
+to modularize javascript code and resolve dependencies. The toolset also
+includes an optimizer which merges and minimizes all modules into a single
+javascript file with no changes to the client code. The framework is published
+under both MIT and BSD license.
+
+To avoid incompatibilities and third party server dependencies, all javascript
+libraries will be served from the EOxServer static files. This implies that for
+the operator client-side libraries no additional software needs to be installed
+as EOxServer ships with all requirements.
+
+On the server-side the two packages `rpc4django` and `djangorestframework` need
+to be installed for the operator to function. As both libraries can be found on
+the Python Package Index (PyPI) the installation procedure using `pip` is
+straightforward when both dependencies are added to the EOxServer `setup.py`.
+
+When EOxServer is installed using another technique than `pip` (like using the
+RPM or Debian packages), the libraries will likely have to be installed
+manually. For this reason they have to be listed in the dependencies page in
+the user manual aswell.
+
++-----------------------+--------+---------+---------------------------------+
+| Dependency            | Cat.   | License | Purpose                         |
++=======================+========+=========+=================================+
+| Django REST Framework | Server | BSD     | Expose server data via REST     |
++-----------------------+--------+---------+---------------------------------+
+| RPC 4 Django          | Server | BSD     | Expose server methods via RPC   |
++-----------------------+--------+---------+---------------------------------+
+| jQuery                | Client | GPL/MIT | DOM Manipulation/ AJAX Client   |
++-----------------------+--------+---------+---------------------------------+
+| UnderscoreJS          | Client | MIT     | General Javascript utilities    |
++-----------------------+--------+---------+---------------------------------+
+| BackboneJS            | Client | MIT     | MVC Framework, REST abstraction |
++-----------------------+--------+---------+---------------------------------+
+| json-xml-rpc          | Client | GPL/MIT | RPC client                      |
++-----------------------+--------+---------+---------------------------------+
+| SlickGrid             | Client | MIT     | Data Grid widget implementation |
++-----------------------+--------+---------+---------------------------------+
+| Slickback             | Client | MIT     | SlickGrid to Backbone bridge    |
++-----------------------+--------+---------+---------------------------------+
+| requirejs             | Client | MIT/BSD | Modularization and optimization |
++-----------------------+--------+---------+---------------------------------+
