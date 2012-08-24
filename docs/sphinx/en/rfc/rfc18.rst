@@ -464,6 +464,43 @@ directories in search of a `operator.py` module, which shall contain the apps
 setup of Components, Action Views, Actions and Resources.
 
 
+Directory Structure
+-------------------
+
+For the server part, the directory structure of the operator interface follows
+the standard guidelines for Django apps (as created with the `django-admin.py
+startapp` command):
+::
+
+    operator/
+    |-- action.py
+    |-- common.py
+    |-- component.py
+    |-- __init__.py
+    |-- resource.py
+    |-- sites.py
+    |-- static
+    |   `-- operator
+    |       |-- actions.js
+    |       |-- actionviews.js
+    |       |-- componentviews.js
+    |       |-- main.js
+    |       |-- router.js
+    |       `-- widgets.js
+    `-- templates
+        `-- operator
+            |-- base_actionview.html
+            |-- base_component.html
+            `-- operatorsite.html
+
+In the templates directory all Django templates are held. It is encouraged to
+use the same scheme for all components to be implemented.
+
+The static files are placed in the sub-folder "operator" which serves as a
+namespaces for javascript module retrieval. All components shall use an
+additional unique subfolder to avoid collision. For example:
+"operator/coverages".
+
 Example Component: Coverage Component
 -------------------------------------
 
