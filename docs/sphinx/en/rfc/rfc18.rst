@@ -259,8 +259,8 @@ tied to a higher-level object: coverage resources for instance shall be tied to
 the wrappers defined in :mod:`eoxserver.resources.coverages.wrappers`.
 
 It should be possible to invoke Actions in synchronous and asynchronous mode.
-For the asynchronous mode, the existing facilities of
-:mod:`eoxserver.resources.processes` shall be adapted and extended.
+For the asynchronous mode, the existing facilities of the :ref:`atp_sum`
+(the :mod:`eoxserver.resources.processes`) shall be adapted and extended.
 
 Every Action shall expose methods to
 
@@ -274,12 +274,6 @@ Every Action shall expose methods to
 On the client side, Actions are wrapped with ActionProxy objects that offer an
 easy API and abstraction for the remote invocation of the Actions methods. For
 Asynchronous Action the AsyncActionProxy offers a specialization.
-
-.. _fig_client_action_proxies:
-.. figure:: resources/rfc18/client_action_proxies.png
-   :align: center
-
-   *The two client side ActionProxy classes.*
 
 
 Example Action definition
@@ -320,6 +314,9 @@ provide a layer of abstraction and handle the communication with the server.
 Both Models and Collections offer certain events, to which the client can react
 in a suitable manner. This may trigger a synchronization of data with the
 server or a (re-)rendering of data on the client in an associated view.
+Additionally, models offer validation, which can be used for example to check
+if all mandatory fields are set, or inputs are syntactically correct.
+
 
 Interfaces
 ~~~~~~~~~~
@@ -347,15 +344,14 @@ Using the Action ID, the Operator Interface can
 REST Interface
 ..............
 
-The REST Interface shall be used to retrieve resource data using HTTP GET. No
-Actions shall be triggered by the REST Interface. This restriction is due to
-the following considerations:
+The REST interface shall be used for resource data retrieval and simple
+modification. Usually a REST interface is tightly bound to a database model
+and its fields. Thus modification of data via REST should only be possible
+in simple situations where there is no dependency tp other resources and no
+other synchronization mechanism necessary.
 
-* REST frameworks do not support asynchronous processing
-* REST frameworks do not support actions in addition to CRUD, e.g.
-  synchronization
-* Actions shall expose reusable interfaces for CLI commands which would not be
-  feasible if they were tied to the resource objects most REST frameworks use
+Where the REST interface is not applicable, the RPC interface shall be used.
+
 
 ################################################################################
 
@@ -523,8 +519,8 @@ geo-spatial, earth observational and raster specific metadata.
 
 The above requirements can be summarized in the following groups:
 
-  * Coverage Handling (also includes geospatial and EO-meta-data as the relation
-    is one-to-one)
+  * Coverage Handling (also includes geospatial and EO-meta-data as the
+    relation is one-to-one)
   * Container Handling (same as above)
   * Range Type Handling (as other more tied meta-data is handled in the other
     sections)
@@ -560,6 +556,11 @@ likely be handled synchronously as the management overhead is potentially not
 as high as with the latter three actions. Thus the introduced actions can be
 split into synchronous and asynchronous actions.
 
+Additionally, for creating/deleting coverages and containers is done by using
+Actions instead of their Resources, because it involves a higher order of
+validation and additional tasks to be done which are too complex and unreliable
+if controlled by the server.
+
 Summary
 .......
 
@@ -573,10 +574,10 @@ identified.
 |           |                    +-------------------+-----------------------+
 |           |                    | Ref. Coverages    | Remove from Container |
 |           |                    +-------------------+-----------------------+
-|           |                    | Rect. Mosaics     |                       |
-|           |                    +-------------------+                       |
-|           |                    | Range Types       |                       |
-|           |                    +-------------------+                       |
+|           |                    | Rect. Mosaics     | Create Coverage       |
+|           |                    +-------------------+-----------------------+
+|           |                    | Range Types       | Delete Coverage       |
+|           |                    +-------------------+-----------------------+
 |           |                    | Bands             |                       |
 |           |                    +-------------------+                       |
 |           |                    | NilValues         |                       |
@@ -590,6 +591,10 @@ identified.
 |           |                    |                   | Remove Datasource     |
 |           |                    |                   +-----------------------+
 |           |                    |                   | Synchronize           |
+|           |                    |                   +-----------------------+
+|           |                    |                   | Create Container      |
+|           |                    |                   +-----------------------+
+|           |                    |                   | Delete Container      |
 |           +--------------------+-------------------+-----------------------+
 |           | RangeType Handling | Range Types       |                       |
 |           |                    +-------------------+                       |
@@ -621,16 +626,29 @@ The hierarchy of the client views can be seen in the following figure.
 Models/Collection
 .................
 
-Each offered resource is encapsulated in a model and collection. These classes
-also offer client side validation (which are easily implemented and allow
-immediate response in case of an error). 
+Each offered resource is encapsulated in a model and collection. The following
+figure shows the relation of the model/collection layout:
+
+.. _fig_client_models:
+.. figure:: resources/rfc18/client_models.png
+   :align: center
+
+   *The models/collection hierarchy on the client.*
 
 ActionProxies
 .............
 
 For each Action on the server, an ActionProxy has to be instantiated on the
 client which handle the communication with the server. For the three Actions
-that are running asynchronously, a special ActionProxy subclass is used.
+that are running asynchronously, a special ActionProxy subclass is used. The
+following figure shows which actions are handled synchronously and which follow
+an asynchronous approach.
+
+.. _fig_client_action_proxies:
+.. figure:: resources/rfc18/client_action_proxies.png
+   :align: center
+
+   *The action proxies used on the client.*
 
 
 Technologies Used
