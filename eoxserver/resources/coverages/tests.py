@@ -961,7 +961,18 @@ class RegisterLocalDatasetMultipleTestCase(CommandRegisterDatasetTestCase):
     ]
     
 # TODO: TCs for remote and rasdaman
-
+class RegisterRemoteDatasetTestCase(CommandRegisterDatasetTestCase):
+    kwargs = {
+        "d": "test/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif",
+        "m": "test/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.xml", 
+        "mode": "ftp",
+        "host": "hma.eox.at",
+        "user": "anonymous",
+        "rangetype": "RGB"
+    }
+    coverages_to_be_registered = [
+        {"eo_id": "mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced_ftp"}
+    ]
 # TODO: TCs for default-... and visible options
 
 # TODO: TCs for datasetseries/stitchedmosaic insertions
