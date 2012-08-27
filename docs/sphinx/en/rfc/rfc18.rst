@@ -276,30 +276,6 @@ easy API and abstraction for the remote invocation of the Actions methods. For
 Asynchronous Action the AsyncActionProxy offers a specialization.
 
 
-Example Action definition
-.........................
-
-Example::
-
-    class ProgressAction(BaseAction):
-        name = "progressaction"
-        permissions = [ ... ]
-        
-        def validate(self, params):
-            ...
-        
-        def start(self):
-            ...
-        
-        def status(self, obj_id):
-            ...
-        
-        def stop(self, obj_id):
-            ...
-        
-        def view_logs(self, obj_id, timeframe=None):
-            ...
-
 Resources
 ~~~~~~~~~
 
@@ -383,7 +359,7 @@ Example::
     class MyAComponent(operator.Component):
         dependencies = [SomeOtherComponent]
         name = "ComponentA"
-        javascript_class = "App.Views.MyAComponentView"
+        javascript_class = "operator/component/MyAComponentView"
 
     operator.site.register(MyAComponent)
 
@@ -408,7 +384,7 @@ Example::
     class MyTestActionView(operator.ActionView):
         actions = [MyTestAction]
         name = "mytestactionview"
-        javascript_class = "App.Views.MyTestActionView"
+        javascript_class = "operator/component/MyTestActionView"
 
 
 Implementing Resources
@@ -431,6 +407,35 @@ Example::
         exclude = ( ... )
         include = ( ... )
         permissions = [ ... ]
+
+
+Implementing Actions
+~~~~~~~~~~~~~~~~~~~~
+
+To implement a new Action, it shall be enough to inherit from an abstract base
+class and implement the required methods. Once registered the operator
+framework shall handle the URL and method registration.
+
+Example::
+
+    class ProgressAction(BaseAction):
+        name = "progressaction"
+        permissions = [ ... ]
+        
+        def validate(self, params):
+            ...
+        
+        def start(self):
+            ...
+        
+        def status(self, obj_id):
+            ...
+        
+        def stop(self, obj_id):
+            ...
+        
+        def view_logs(self, obj_id, timeframe=None):
+            ...
 
 
 Access Controll
