@@ -51,6 +51,7 @@ from eoxserver.backends.models import (
     CacheFile, LocalPath
 )
 from eoxserver.backends.exceptions import DataAccessError
+from eoxserver.core.exceptions import ConfigError
 
 class Cache(object):
     # IMPORTANT: DO NOT USE THIS IMPLEMENTATION!
@@ -217,9 +218,14 @@ class CacheFileWrapper(object):
         """
         #=======================================================================
         # provisional solution
+        
+        cache_dir = System.getRegistry().bind("backends.cache.CacheConfigReader").getCacheDir()
+        
+        if cache_dir is None:
+            raise ConfigError("Cache directory is not configured.")
+        
         target_dir = os.path.join(
-            System.getRegistry().bind("backends.cache.CacheConfigReader").getCacheDir(),
-            "cache_%s" % datetime.now().strftime("%Y%m%d")
+            cache_dir, "cache_%s" % datetime.now().strftime("%Y%m%d")
         )
         
         if not os.path.exists(target_dir):
