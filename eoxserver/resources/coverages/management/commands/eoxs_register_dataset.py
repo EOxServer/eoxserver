@@ -508,7 +508,7 @@ class Command(CommandOutputMixIn, BaseCommand):
                     self.print_msg(traceback.format_exc())
 
                 self.print_msg( "ERROR: Registration of dataset '%s' failed!"
-                    " %s:%s"%(cid, type(e).__name__, str(e)), 1, error=True)
+                    " %s: %s"%(cid, type(e).__name__, str(e)), 1, error=True)
 
                 error_count += 1 
 

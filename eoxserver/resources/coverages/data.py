@@ -724,7 +724,7 @@ class RemoteDataPackageWrapper(DataPackageWrapper):
         
         if fields is None or "cache_file" in fields:
             if self.cache_file:
-                query["cache_file"] = self.cache_file.getRecord()
+                query["cache_file"] = self.cache_file.getModel()
             else:
                 query["cache_file"] = None
         
@@ -738,7 +738,7 @@ class RemoteDataPackageWrapper(DataPackageWrapper):
         
         
         if self.cache_file:
-            cache_file_record = self.cache_file.getRecord()
+            cache_file_record = self.cache_file.getModel()
         else:
             cache_file_record = None
         
