@@ -35,7 +35,7 @@ RFC 18: Operator Interface Architecture
 :Author: Stephan Krause, Fabian Schindler
 :Created: 2012-05-08
 :Last Edit: $Date$
-:Status: IN PREPARATION
+:Status: PENDING
 :Discussion: n/a
 
 The new Operator Interface of EOxServer shall become the main entrance point
@@ -45,6 +45,7 @@ shall focus on usability and support for frequent administration tasks.
 The architecture of the Operator Interface shall be modular and extensible in
 order to accomodate for future extension and facilitate the maintenance of the
 software.
+
 
 Introduction
 ------------
@@ -94,6 +95,7 @@ From the software point of view, the design shall focus on
   components should be concentrated on the server side and the view on the
   client side
 
+
 Requirements
 ------------
 
@@ -112,6 +114,7 @@ These include:
 * viewing the logs
 * enabling / disabling of components
 * user management
+
 
 Basic Concepts
 --------------
@@ -162,8 +165,12 @@ whiche shall allow to read data and metadata to be displayed, and one
 RPC-based interface shall be implemented in order to trigger actions on the
 server side.
 
+
 Detailed Concept Description
 ----------------------------
+
+In this chapter, the introduced concepts will be elaborated in detail.
+
 
 Layout of the Operator Interface
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -197,6 +204,7 @@ Action Views and Operator Component overviews should fit into the same basic
 layout; customizable CSS should be used for styling. The design of the entry
 page design (dashboard) may differ from the design of the sub-pages.
 
+
 Components and Operator Components
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -207,9 +215,9 @@ Proposed Operator Components:
 * Action Control Center
 * Coverages
 
+
 Action Views
 ~~~~~~~~~~~~
-
 
 Proposed Action Views:
 
@@ -245,6 +253,7 @@ Proposed Action Views:
     actions
   * individual view of Dataset Series, including create, delete, update and
     synchronize actions, as well as list views of contained coverages
+
 
 Actions
 ~~~~~~~
@@ -297,8 +306,12 @@ if all mandatory fields are set, or inputs are syntactically correct.
 Interfaces
 ~~~~~~~~~~
 
+The following interfaces will be used to exchange data between the server and
+the client:
+
+
 RPC Interface
-.............
+^^^^^^^^^^^^^
 
 Actions shall be triggered via the RPC Interface. In general, invocation from
 the Operator Interface shall be asynchronous. Incoming requests from the
@@ -317,8 +330,9 @@ Using the Action ID, the Operator Interface can
 * view the log messages issued by the Action
 * cancel the Action
 
+
 REST Interface
-..............
+^^^^^^^^^^^^^^
 
 The REST interface shall be used for resource data retrieval and simple
 modification. Usually a REST interface is tightly bound to a database model
@@ -329,10 +343,51 @@ other synchronization mechanism necessary.
 Where the REST interface is not applicable, the RPC interface shall be used.
 
 
+Directory Structure
+~~~~~~~~~~~~~~~~~~~
+
+For the server part, the directory structure of the operator interface follows
+the standard guidelines for Django apps (as created with the `django-admin.py
+startapp` command):
+::
+
+    operator/
+    |-- action.py
+    |-- common.py
+    |-- component.py
+    |-- __init__.py
+    |-- resource.py
+    |-- sites.py
+    |-- static
+    |   `-- operator
+    |       |-- actions.js
+    |       |-- actionviews.js
+    |       |-- componentviews.js
+    |       |-- main.js
+    |       |-- router.js
+    |       `-- widgets.js
+    `-- templates
+        `-- operator
+            |-- base_actionview.html
+            |-- base_component.html
+            `-- operatorsite.html
+
+In the templates directory all Django templates are held. It is encouraged to
+use the same scheme for all components to be implemented.
+
+The static files are placed in the sub-folder "operator" which serves as a
+namespaces for javascript module retrieval. All components shall use an
+additional unique subfolder to avoid collision. For example:
+"operator/coverages".
+
+
 ################################################################################
+
 
 Implementation Details
 ----------------------
+
+In this chapter, the proposed implementation API of components explained.
 
 Implementing Components
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -348,9 +403,6 @@ course default values shall be provided.
 Components are registered by the Operator Interface API function
 ``register()``, which shall be sufficient to append it to the visualized
 components.
-
-Example Component definition
-............................
 
 Example::
 
@@ -371,18 +423,14 @@ The implementation of action views is very much like the implementation of
 components and should follow the same rules concerning JavaScript view classes
 and django templates.
 
-Additionally it shall have two fields named "Actions" and "Resources", each is 
-a list of Action or Resource classes.
-
-# TODO maybe adding widgets?
-
-Example Action View definition
-..............................
+Additionally it shall have two fields named ``actions`` and ``resources``, each
+is a list of Action or Resource classes.
 
 Example::
 
     class MyTestActionView(operator.ActionView):
         actions = [MyTestAction]
+        resources = [ResourceA, ResourceB]
         name = "mytestactionview"
         javascript_class = "operator/component/MyTestActionView"
 
@@ -396,9 +444,6 @@ class and providing several options. The only mandatory arguments shall be the
 Django model to be externalized, optional are the permissions required for this
 resource, maybe means to limit the acces to read-/write-only (maybe coupled
 to the provided permissions) and the inc-/exclusion of model fields.
-
-Example Resource definition
-...........................
 
 Example::
 
@@ -465,49 +510,13 @@ directories in search of a `operator.py` module, which shall contain the apps
 setup of Components, Action Views, Actions and Resources.
 
 
-Directory Structure
--------------------
-
-For the server part, the directory structure of the operator interface follows
-the standard guidelines for Django apps (as created with the `django-admin.py
-startapp` command):
-::
-
-    operator/
-    |-- action.py
-    |-- common.py
-    |-- component.py
-    |-- __init__.py
-    |-- resource.py
-    |-- sites.py
-    |-- static
-    |   `-- operator
-    |       |-- actions.js
-    |       |-- actionviews.js
-    |       |-- componentviews.js
-    |       |-- main.js
-    |       |-- router.js
-    |       `-- widgets.js
-    `-- templates
-        `-- operator
-            |-- base_actionview.html
-            |-- base_component.html
-            `-- operatorsite.html
-
-In the templates directory all Django templates are held. It is encouraged to
-use the same scheme for all components to be implemented.
-
-The static files are placed in the sub-folder "operator" which serves as a
-namespaces for javascript module retrieval. All components shall use an
-additional unique subfolder to avoid collision. For example:
-"operator/coverages".
-
 Example Component: Coverage Component
 -------------------------------------
 
 This chapter explains an the example component to handle all kinds of
 interactions concerning coverages, mosaics and dataset series respectively all
 types of assorted metadata.
+
 
 Requirements
 ~~~~~~~~~~~~
@@ -533,6 +542,7 @@ The above requirements can be summarized in the following groups:
 The requirement groups will be implemented as Action Views on the client, using
 specific widgets to allow interaction.
 
+
 Server-Side implementation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -540,8 +550,9 @@ The identified requirements have several implications on the server side. First
 off the three Action Views need to be declared to implement the three groups of
 reqiurements listed above and suited with the needed resources and actions.
 
+
 Resources
-.........
+^^^^^^^^^
 
 For simple access to the internally stored data, a list of Resources need to be
 defined: one for each coverage/container type, one for range types, bands and
@@ -550,8 +561,9 @@ nil values and also for data sources.
 For asynchronous tasks, also the running tasks and their logs need to be
 exposed as resources.
 
+
 Actions
-.......
+^^^^^^^
 
 The actions derived from the requirements can be summarized in the following
 list: add coverage to a container, remove a coverage from a container, add a
@@ -566,8 +578,9 @@ Actions instead of their Resources, because it involves a higher order of
 validation and additional tasks to be done which are too complex and unreliable
 if controlled by the server.
 
+
 Summary
-.......
+^^^^^^^
 
 The following classes with their according hierarchical structure has been
 identified.
@@ -608,6 +621,7 @@ identified.
 |           |                    | NilValues         |                       |
 +-----------+--------------------+-------------------+-----------------------+
 
+
 Client-Side implementation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -616,8 +630,9 @@ be implemented as Backbone views. Each offered resource from the server will
 have a Backbone model/collection counterpart communicating with that interface.
 Similarily each action will have a proxy class on the client side.
 
+
 Views
-.....
+^^^^^
 
 The hierarchy of the client views can be seen in the following figure.
 
@@ -629,7 +644,7 @@ The hierarchy of the client views can be seen in the following figure.
 
 
 Models/Collection
-.................
+^^^^^^^^^^^^^^^^^
 
 Each offered resource is encapsulated in a model and collection. The following
 figure shows the relation of the model/collection layout:
@@ -640,8 +655,9 @@ figure shows the relation of the model/collection layout:
 
    *The models/collection hierarchy on the client.*
 
+
 ActionProxies
-.............
+^^^^^^^^^^^^^
 
 For each Action on the server, an ActionProxy has to be instantiated on the
 client which handle the communication with the server. For the three Actions
@@ -749,3 +765,16 @@ the user manual aswell.
 +-----------------------+--------+---------+---------------------------------+
 | requirejs             | Client | MIT/BSD | Modularization and optimization |
 +-----------------------+--------+---------+---------------------------------+
+
+
+Voting History
+--------------
+
+N/A
+
+
+Traceability
+------------
+
+:Requirements: N/A
+:Tickets: http://eoxserver.org/ticket/4
