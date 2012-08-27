@@ -126,18 +126,20 @@ class DatasetManagementCommand(BaseCommand, CommandOutputMixIn):
         self.verbosity = options["verbosity"]
         mode = options["mode"]
         
-        if ((options["dataset_ids"] is None or options["datasetseries_ids"] is None) and
+        if ((options["dataset_ids"] is None 
+             or options["datasetseries_ids"] is None) and
             len(args) < 2):
             raise CommandError("Not enough arguments given.")
-            
         
         dataset_ids = options["dataset_ids"] or args[:-1]
         datasetseries_ids = options["datasetseries_ids"] or args[-1:]
         
+        # TODO: make arbitrary insertions possible, like data sources, etc.
+        
         if mode == "filename":
             files = dataset_ids
             dataset_ids = []
-            # TODO: find ids of datasets with those filenames
+            
             for path in files:
                 dataset_ids.extend(self.get_dataset_ids_for_path(path))
         
@@ -147,12 +149,22 @@ class DatasetManagementCommand(BaseCommand, CommandOutputMixIn):
             except NoSuchCoverageException, e:
                 raise CommandError("No coverage with ID '%s' registered" % e.msg)
 
+
     def manage_datasets(self, dataset_ids, datasetseries_ids):
         """ Main method for dataset handling.
         """
         raise NotImplementedError()
+    
+    def manage(self, params):
+        """ Main method of dataset handling.
+        """
+        pass
 
     def get_dataset_ids_for_path(self, path):
+        """ Returns the coverage IDs of all coverages that are referencing this
+        exact path.
+        """
+        
         url = urlparse(path, "file")
         
         if url.scheme == "file":
@@ -171,12 +183,6 @@ class DatasetManagementCommand(BaseCommand, CommandOutputMixIn):
             raise NotImplementedError()
         else:
             raise CommandError("Unknown location type '%s'." % url.scheme)
-        
-        #location_ids = locations.values_list("id", flat=True)
-        #if len(location_ids) == 0:
-        #    raise CommandError(
-        #        "Dataset with location '%s' is not registered." % path
-        #    )
         
         result = []
         
