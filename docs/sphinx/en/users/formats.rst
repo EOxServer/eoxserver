@@ -135,11 +135,11 @@ Web Coverage Service - Native Format Configuration
 The *native format* (as defined by `WCS 2.0.1 [OGC 09-110r4]
 <http://www.opengeospatial.org/standards/wcs>`_) is the default
 raster file format returned by the ``getCoverage()`` operation in case of a 
-missing explicit format specification. By default, EOxServer sets the native
-format to the format of the stored source data (source format), however, in
+missing explicit format specification. By default, EOxServer sets the *native
+format* to the format of the stored source data (source format), however, in
 cases when the source format cannot be used ('read-only' source format) and/or
 another default format is desired, EOxServer allows the configuration of 
-WCS *native format*s (``<instance path>/conf/eoxserver.conf``, section
+WCS *native formats* (``<instance path>/conf/eoxserver.conf``, section
 ``services.ows.wcs20``)::
 
     [services.ows.wcs20]
