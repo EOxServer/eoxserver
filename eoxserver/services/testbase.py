@@ -371,6 +371,33 @@ class XMLTestCase(OWSTestCase):
     def testXMLComparison(self):
         self._testXMLComparison()
 
+class SchematronTestMixIn(object): # requires to be mixed in with XMLTestCase
+    """
+    Mixin class for XML test cases that uses XML schematrons for validation.
+    Use the `schematron_locations`
+    """
+    schematron_locations = ()
+    
+    def testSchematron(self):
+        errors = []
+        doc = etree.XML(self.getXMLData())
+        for location in self.schematron_locations:
+            location = os.path.join(settings.PROJECT_DIR, location)
+            
+            schematron = etree.Schematron(
+                etree.parse(open(location))
+            )
+            schematron.validate(doc)
+            
+            try:
+                schematron.assertValid(doc)
+            except etree.DocumentInvalid, e:
+                errors.append(str(e))
+
+        if len(errors):
+            self.fail(str(errors))
+
+
 class ExceptionTestCase(XMLTestCase):
     """
     Exception test cases expect the request to fail and examine the 
