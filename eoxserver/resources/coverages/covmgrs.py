@@ -52,7 +52,7 @@ from eoxserver.resources.coverages.interfaces import ManagerInterface
 from eoxserver.resources.coverages.exceptions import (
     ManagerError, NoSuchCoverageException, CoverageIdReservedError,
     CoverageIdInUseError, CoverageIdReleaseError
-)
+, MetadataException)
 from eoxserver.resources.coverages.models import (
     PlainCoverageRecord, RectifiedDatasetRecord, 
     ReferenceableDatasetRecord, RectifiedStitchedMosaicRecord,
@@ -538,62 +538,62 @@ class CoverageManagerDatasetMixIn(object):
 
 class CoverageManagerEOMixIn(object):
     def _get_metadata_location(self, location, params, force=True):
-        if "eo_metadata" in params:
-            return None
-        else:
-            md_location = None
-            
-            if "md_location" in params:
-                md_location = params["md_location"]
+        md_location = None
         
-            if "md_local_path" in params:
-                if md_location:
-                    raise InternalError(
-                        "Metadata location must be unambiguous."
-                    )
-                else:
-                    md_location = self.location_factory.create(
-                        type="local",
-                        path=params["md_local_path"]
-                    )
-            
-            if "md_remote_path" in params:
-                if md_location:
-                    raise InternalError(
-                        "Metadata location must be unambiguous."
-                    )
-                else:
-                    md_location = self.location_factory.create(
-                        type="ftp",
-                        path=params["md_remote_path"],
-                        host=location.getHost(),
-                        port=location.getPort(),
-                        user=location.getUser(),
-                        passwd=location.getPassword()
-                    )
-            
-            if not md_location and force:
-                md_path = "%s.xml" % os.path.splitext(location.getPath())[0]
-                
-                md_location = self.location_factory.create(
-                    type=location.getType(),
-                    path=md_path,
-                    
+        if "md_location" in params:
+            md_location = params["md_location"]
+    
+        if "md_local_path" in params:
+            if md_location:
+                raise InternalError(
+                    "Metadata location must be unambiguous."
                 )
+            else:
+                md_location = self.location_factory.create(
+                    type="local",
+                    path=params["md_local_path"]
+                )
+        
+        if "md_remote_path" in params:
+            if md_location:
+                raise InternalError(
+                    "Metadata location must be unambiguous."
+                )
+            else:
+                md_location = self.location_factory.create(
+                    type="ftp",
+                    path=params["md_remote_path"],
+                    host=location.getHost(),
+                    port=location.getPort(),
+                    user=location.getUser(),
+                    passwd=location.getPassword()
+                )
+        
+        if not md_location and force:
+            md_path = "%s.xml" % os.path.splitext(location.getPath())[0]
             
-            return md_location
+            md_location = self.location_factory.create(
+                type=location.getType(),
+                path=md_path,
+                
+            )
+        
+        return md_location
     
     def _get_eo_metadata(self, data_package, params):
+        try:
+            if data_package:
+                return data_package.readEOMetadata()
+        except MetadataException:
+            if "eo_metadata" in params:
+                return params["eo_metadata"]
+            else:
+                raise
+        
         if "eo_metadata" in params:
-            eo_metadata = params["eo_metadata"]
-        elif data_package:
-            eo_metadata = data_package.readEOMetadata()
-        else:
-            raise InternalError(
-                "Creating EO Coverages requires EO Metadata."
-            )
-    
-        return eo_metadata
+            return params["eo_metadata"]
+        
+        raise MetadataException("Creating EO Coverages requires EO Metadata.")
     
     def _get_containers(self, params):
         containers = params.get("container_ids", [])
