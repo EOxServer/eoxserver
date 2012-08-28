@@ -29,7 +29,8 @@
 #-------------------------------------------------------------------------------
 
 from eoxserver.core.system import System
-from eoxserver.testing.core import EOxServerTestCase, BASE_FIXTURES
+from eoxserver.testing.core import EOxServerTestCase, BASE_FIXTURES,\
+    CommandTestCase
 from eoxserver.resources.coverages.covmgrs import CoverageIdManager
 
 EXTENDED_FIXTURES = BASE_FIXTURES + ["testing_coverages.json"]
@@ -154,3 +155,118 @@ class DatasetSeriesDeleteTestCase(DeleteTestCase):
 class DatasetSeriesSynchronizeTestCase(SynchronizeTestCase):
     def getType(self):
         return "eo.dataset_series"
+
+
+
+
+class EODatasetMixIn(object):
+    def findDatasetsByFilters(self, *filters):
+        """ Convenience method to get a list of coverages by given filter
+        expressions.
+        """
+        filter_exprs = [
+            System.getRegistry().getFromFactory(
+                factory_id = "resources.coverages.filters.CoverageExpressionFactory",
+                params = filter_expr
+            )
+            for filter_expr in filters
+        ]
+        
+        return System.getRegistry().bind(
+            "resources.coverages.wrappers.EOCoverageFactory"
+        ).find(
+            impl_ids = [
+                "resources.coverages.wrappers.RectifiedDatasetWrapper",
+                "resources.coverages.wrappers.ReferenceableDatasetWrapper"
+            ],
+            filter_exprs = filter_exprs
+        )
+     
+    def getDatasetById(self, cid):
+        """ Convenience method to get a coverage by its ID.
+        """
+        return System.getRegistry().getFromFactory(
+            "resources.coverages.wrappers.EOCoverageFactory",
+            {"obj_id": cid}
+        )
+
+
+class RectifiedStitchedMosaicMixIn(object):
+    def getStitchedMosaicById(self, cid):
+        return System.getRegistry().getFromFactory(
+            "resources.coverages.wrappers.EOCoverageFactory",
+            {"obj_id": cid}
+        )
+
+
+class DatasetSeriesMixIn(object):
+    def getDatasetSeriesById(self, eoid):
+        return System.getRegistry().getFromFactory(
+            "resources.coverages.wrappers.DatasetSeriesFactory",
+            {"obj_id": eoid}
+        )
+
+
+class CoverageCommandTestCase(CommandTestCase):
+    fixtures = EXTENDED_FIXTURES
+
+
+class CommandRegisterDatasetTestCase(CoverageCommandTestCase, EODatasetMixIn):
+    fixtures = BASE_FIXTURES # normally we want an empty database
+    
+    name = "eoxs_register_dataset"
+    coverages_to_be_registered = [] # list of dicts with two keys allowed:
+                                    # 'eo_id', 'coverage_id'
+    
+    def getCoveragesToBeRegistered(self):
+        result = {}
+        for ctbr in self.coverages_to_be_registered:
+            eo_id = ctbr.get("eo_id")
+            coverage_id = ctbr.get("coverage_id")
+            coverage = None
+            
+            if eo_id:
+                try:
+                    coverage = self.findDatasetsByFilters({
+                        "op_name": "attr",
+                        "operands": ("eo_id", "=", eo_id)
+                    })[0]
+                except IndexError:
+                    pass
+            
+            if coverage_id:
+                coverage = self.getDatasetById(coverage_id)
+            result[eo_id or coverage_id] = coverage
+            
+        return result
+    
+    def testCoverageRegistered(self):
+        for cid, coverage in self.getCoveragesToBeRegistered().items():
+            if not coverage:
+                self.fail("Coverage with ID '%s' was not inserted." % cid)
+
+
+class CommandInsertTestCase(CoverageCommandTestCase, DatasetSeriesMixIn, EODatasetMixIn):
+    name = "eoxs_insert"
+    
+    datasets_to_be_inserted = []
+    dataset_series_id = "MER_FRS_1P_RGB_reduced"
+    
+    def testContents(self):
+        dss = self.getDatasetSeriesById(self.dataset_series_id)
+        for dataset_id in self.datasets_to_be_inserted:
+            self.assertIn(dataset_id, [coverage.getCoverageId() 
+                                       for coverage in dss.getEOCoverages()])
+
+ 
+class CommandExcludeTestCase(CoverageCommandTestCase, DatasetSeriesMixIn, EODatasetMixIn):
+    name = "eoxs_exclude"
+    
+    datasets_to_be_excluded = []
+    dataset_series_id = "MER_FRS_1P_RGB_reduced"
+    
+    def testContents(self):
+        dss = self.getDatasetSeriesById(self.dataset_series_id)
+        for dataset_id in self.datasets_to_be_excluded:
+            self.assertNotIn(dataset_id, [coverage.getCoverageId() 
+                                          for coverage in dss.getEOCoverages()])
