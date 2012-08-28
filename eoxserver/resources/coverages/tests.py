@@ -38,6 +38,7 @@ from django.contrib.gis.geos import GEOSGeometry, Polygon, MultiPolygon
 from django.conf import settings
 
 from eoxserver.core.system import System
+from eoxserver.core.util.timetools import UTCOffsetTimeZoneInfo, isotime
 from eoxserver.testing.core import BASE_FIXTURES, CommandFaultTestCase
 from eoxserver.resources.coverages.testbase import (
     RectifiedDatasetCreateTestCase, RectifiedDatasetUpdateTestCase,
@@ -46,10 +47,11 @@ from eoxserver.resources.coverages.testbase import (
     RectifiedStitchedMosaicSynchronizeTestCase, 
     DatasetSeriesCreateTestCase, DatasetSeriesUpdateTestCase,
     DatasetSeriesDeleteTestCase, DatasetSeriesSynchronizeTestCase,
-    CoverageIdManagementTestCase, EXTENDED_FIXTURES
-, DatasetSeriesMixIn, CoverageCommandTestCase,
+    CoverageIdManagementTestCase, EXTENDED_FIXTURES,
+    DatasetSeriesMixIn, CoverageCommandTestCase,
     CommandInsertTestCase, CommandExcludeTestCase,
-    CommandRegisterDatasetTestCase)
+    CommandRegisterDatasetTestCase
+)
 from eoxserver.resources.coverages.geo import GeospatialMetadata
 from eoxserver.resources.coverages.metadata import EOMetadata
 import eoxserver.resources.coverages.exceptions as exceptions
@@ -936,7 +938,9 @@ class RegisterLocalDatasetSimpleTestCase(CommandRegisterDatasetTestCase):
         "d": "data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif",
         "rangetype": "RGB"
     }
-    coverage_to_be_registered = [{"eo_id": "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"}]
+    coverages_to_be_registered = [
+        {"eo_id": "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"}
+    ]
 
 
 class RegisterLocalDatasetWithCoverageIdTestCase(CommandRegisterDatasetTestCase):
@@ -960,7 +964,7 @@ class RegisterLocalDatasetMultipleTestCase(CommandRegisterDatasetTestCase):
         {"eo_id": "MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed"}
     ]
     
-# TODO: TCs for remote and rasdaman
+
 class RegisterRemoteDatasetTestCase(CommandRegisterDatasetTestCase):
     kwargs = {
         "d": "test/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif",
@@ -973,7 +977,78 @@ class RegisterRemoteDatasetTestCase(CommandRegisterDatasetTestCase):
     coverages_to_be_registered = [
         {"eo_id": "mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced_ftp"}
     ]
+
+
+# TODO: TCs for rasdaman coverages
+
+# no rasdaman publicly available
+
 # TODO: TCs for default-... and visible options
+
+class RegisterLocalDatasetVisibleTestCase(CommandRegisterDatasetTestCase):
+    kwargs = {
+        "d": "data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif",
+        "rangetype": "RGB",
+        "visible": "True"
+    }
+    coverages_to_be_registered = [
+        {"eo_id": "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"}
+    ]
+
+    def testCoverageVisible(self):
+        coverage = self.getCoveragesToBeRegistered().values()[0]
+        self.assertTrue(coverage.getAttrValue("visible"))
+
+
+class RegisterLocalDatasetInvisibleTestCase(CommandRegisterDatasetTestCase):
+    kwargs = {
+        "d": "data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif",
+        "rangetype": "RGB",
+        "visible": "False"
+    }
+    coverages_to_be_registered = [
+        {"eo_id": "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"}
+    ]
+
+    def testCoverageInvisible(self):
+        coverage = self.getCoveragesToBeRegistered().values()[0]
+        self.assertFalse(coverage.getAttrValue("visible"))
+
+
+class RegisterLocalDatasetDefaultsTestCase(CommandRegisterDatasetTestCase):
+    srid = 3035
+    size = (100, 100)
+    extent = (3000000, -2400000, 4400000, -1200000)
+    poly = MultiPolygon([Polygon.from_bbox((0, 0, 10, 10))])
+    begin_time = datetime(2012, 06, 10, 12, 30, tzinfo=UTCOffsetTimeZoneInfo())
+    end_time = datetime(2012, 06, 10, 12, 45, tzinfo=UTCOffsetTimeZoneInfo())
+    
+    kwargs = {
+        "d": "data/meris/mosaic_cache/mosaic_MER_FRS_1P_RGB_reduced/tiles/000/000/tile_merged_000001_000000.tiff",
+        "rangetype": "RGB",
+        "default-srid": str(srid),
+        "default-size": "%s,%s" % size,
+        "default-extent": "%s,%s,%s,%s" % extent,
+        "default-begin-time": isotime(begin_time),
+        "default-end-time": isotime(end_time),
+        "default-footprint": poly.wkt,
+        "coverage-id": "A",
+        "traceback": "True"
+        
+    }
+    coverages_to_be_registered = [
+        {"coverage_id": "A"}
+    ]
+    
+    def testDefaults(self):
+        coverage = self.getDatasetById("A")
+        
+        self.assertEqual(self.srid, coverage.getSRID())
+        self.assertEqual(self.size, coverage.getSize())
+        self.assertEqual(self.extent, coverage.getExtent())
+        self.assertEqual(self.begin_time, coverage.getBeginTime())
+        self.assertEqual(self.end_time, coverage.getEndTime())
+        self.assertEqual(self.poly, coverage.getFootprint())
 
 # TODO: TCs for datasetseries/stitchedmosaic insertions
 
