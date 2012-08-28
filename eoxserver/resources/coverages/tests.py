@@ -38,7 +38,8 @@ from django.contrib.gis.geos import GEOSGeometry, Polygon, MultiPolygon
 from django.conf import settings
 
 from eoxserver.core.system import System
-from eoxserver.testing.core import BASE_FIXTURES
+from eoxserver.core.util.timetools import UTCOffsetTimeZoneInfo, isotime
+from eoxserver.testing.core import BASE_FIXTURES, CommandFaultTestCase
 from eoxserver.resources.coverages.testbase import (
     RectifiedDatasetCreateTestCase, RectifiedDatasetUpdateTestCase,
     RectifiedDatasetDeleteTestCase, RectifiedStitchedMosaicCreateTestCase,
@@ -46,7 +47,10 @@ from eoxserver.resources.coverages.testbase import (
     RectifiedStitchedMosaicSynchronizeTestCase, 
     DatasetSeriesCreateTestCase, DatasetSeriesUpdateTestCase,
     DatasetSeriesDeleteTestCase, DatasetSeriesSynchronizeTestCase,
-    CoverageIdManagementTestCase, EXTENDED_FIXTURES
+    CoverageIdManagementTestCase, EXTENDED_FIXTURES,
+    DatasetSeriesMixIn, CoverageCommandTestCase,
+    CommandInsertTestCase, CommandExcludeTestCase,
+    CommandRegisterDatasetTestCase
 )
 from eoxserver.resources.coverages.geo import GeospatialMetadata
 from eoxserver.resources.coverages.metadata import EOMetadata
@@ -897,3 +901,214 @@ class CoverageIdRequestIdTestCase(CoverageIdManagementTestCase):
     def testRequestId(self):
         self.assertEqual("SomeRequestID", self.mgr.getRequestId("SomeCoverageID"))
         self.assertEqual("SomeRequestID", self.mgr.getRequestId("SomeCoverageID2"))
+
+
+#===============================================================================
+# CLI Command tests
+#===============================================================================
+
+# eoxs_register_dataset
+
+class RegisterLocalDatasetSimpleTestCase(CommandRegisterDatasetTestCase):
+    kwargs = {
+        "d": "data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif",
+        "rangetype": "RGB"
+    }
+    coverages_to_be_registered = [
+        {"eo_id": "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"}
+    ]
+
+
+class RegisterLocalDatasetWithCoverageIdTestCase(CommandRegisterDatasetTestCase):
+    kwargs = {
+        "d": "data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif",
+        "rangetype": "RGB",
+        "i": "someCoverageID"
+    }
+    coverages_to_be_registered = [{"coverage_id": "someCoverageID"}]
+
+class RegisterLocalDatasetMultipleTestCase(CommandRegisterDatasetTestCase):
+    kwargs = {
+        "d": ("data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif",
+              "data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.tif",
+              "data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed.tif"),
+        "rangetype": "RGB"
+    }
+    coverages_to_be_registered = [
+        {"eo_id": "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed"},
+        {"eo_id": "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"},
+        {"eo_id": "MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed"}
+    ]
+    
+
+class RegisterRemoteDatasetTestCase(CommandRegisterDatasetTestCase):
+    kwargs = {
+        "d": "test/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif",
+        "m": "test/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.xml", 
+        "mode": "ftp",
+        "host": "hma.eox.at",
+        "user": "anonymous",
+        "rangetype": "RGB"
+    }
+    coverages_to_be_registered = [
+        {"eo_id": "mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced_ftp"}
+    ]
+
+
+# TODO: TCs for rasdaman coverages
+
+# no rasdaman publicly available
+
+# TODO: TCs for default-... and visible options
+
+class RegisterLocalDatasetVisibleTestCase(CommandRegisterDatasetTestCase):
+    kwargs = {
+        "d": "data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif",
+        "rangetype": "RGB",
+        "visible": "True"
+    }
+    coverages_to_be_registered = [
+        {"eo_id": "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"}
+    ]
+
+    def testCoverageVisible(self):
+        coverage = self.getCoveragesToBeRegistered().values()[0]
+        self.assertTrue(coverage.getAttrValue("visible"))
+
+
+class RegisterLocalDatasetInvisibleTestCase(CommandRegisterDatasetTestCase):
+    kwargs = {
+        "d": "data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif",
+        "rangetype": "RGB",
+        "visible": "False"
+    }
+    coverages_to_be_registered = [
+        {"eo_id": "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"}
+    ]
+
+    def testCoverageInvisible(self):
+        coverage = self.getCoveragesToBeRegistered().values()[0]
+        self.assertFalse(coverage.getAttrValue("visible"))
+
+
+class RegisterLocalDatasetDefaultsTestCase(CommandRegisterDatasetTestCase):
+    srid = 3035
+    size = (100, 100)
+    extent = (3000000, -2400000, 4400000, -1200000)
+    poly = MultiPolygon([Polygon.from_bbox((0, 0, 10, 10))])
+    begin_time = datetime(2012, 06, 10, 12, 30, tzinfo=UTCOffsetTimeZoneInfo())
+    end_time = datetime(2012, 06, 10, 12, 45, tzinfo=UTCOffsetTimeZoneInfo())
+    
+    kwargs = {
+        "d": "data/meris/mosaic_cache/mosaic_MER_FRS_1P_RGB_reduced/tiles/000/000/tile_merged_000001_000000.tiff",
+        "rangetype": "RGB",
+        "default-srid": str(srid),
+        "default-size": "%s,%s" % size,
+        "default-extent": "%s,%s,%s,%s" % extent,
+        "default-begin-time": isotime(begin_time),
+        "default-end-time": isotime(end_time),
+        "default-footprint": poly.wkt,
+        "coverage-id": "A",
+        "traceback": "True"
+        
+    }
+    coverages_to_be_registered = [
+        {"coverage_id": "A"}
+    ]
+    
+    def testDefaults(self):
+        coverage = self.getDatasetById("A")
+        
+        self.assertEqual(self.srid, coverage.getSRID())
+        self.assertEqual(self.size, coverage.getSize())
+        self.assertEqual(self.extent, coverage.getExtent())
+        self.assertEqual(self.begin_time, coverage.getBeginTime())
+        self.assertEqual(self.end_time, coverage.getEndTime())
+        self.assertEqual(self.poly, coverage.getFootprint())
+
+# TODO: TCs for datasetseries/stitchedmosaic insertions
+
+# eoxs_add_dataset_series
+
+
+# eoxs_synchronize
+
+
+# eoxs_insert
+
+class InsertByIdTestCase(CommandInsertTestCase):
+    args = ("MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed", 
+            "MER_FRS_1P_RGB_reduced")
+    
+    datasets_to_be_inserted = ["MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed"]
+
+class InsertByIdExplicitTestCase(CommandInsertTestCase):
+    args = (
+        "--datasets", 
+        "MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed",
+        "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed", 
+        "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed",
+        "--dataset-series",
+        "MER_FRS_1P_RGB_reduced"
+    )
+    datasets_to_be_inserted = [
+        "MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed",
+        "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed",
+        "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"
+    ]
+    
+
+class InsertByFileTestCase(CommandInsertTestCase):
+    args = ("../autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed.tif",
+            "MER_FRS_1P_RGB_reduced")
+    kwargs = {"mode": "filename"}
+    datasets_to_be_inserted = ["MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed"]
+
+
+class InsertByUnknownIdFaultTestCase(CommandFaultTestCase):
+    args = ("invalidID",  "MER_FRS_1P_RGB_reduced")
+
+
+class InsertByUnknownFileFaultTestCase(CommandFaultTestCase):
+    args = ("some/path",  "MER_FRS_1P_RGB_reduced")
+    kwargs = {"mode": "filename"}
+
+
+# TODO: not yet in fixtures
+#class InsertByRemoteFileTestCase(CommandInsertTestCase):
+#    args = ("../autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed.tif", 
+#            "MER_FRS_1P_RGB_reduced")
+#    kwargs = {"mode": "filename"}
+#    datasets_to_be_inserted
+
+# eoxs_exclude
+
+class ExcludeByIdTestCase(CommandExcludeTestCase):
+    args = ("mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced",
+            "MER_FRS_1P_RGB_reduced")
+    
+    datasets_to_be_excluded = ["mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced"]
+
+
+class ExcludeByIdExplicitTestCase(CommandExcludeTestCase):
+    args = (
+        "--datasets", 
+        "mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced",
+        "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced", 
+        "mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced",
+        "--dataset-series",
+        "MER_FRS_1P_RGB_reduced"
+    )
+    datasets_to_be_excluded = [
+        "mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced",
+        "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced",
+        "mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced"
+    ]
+
+
+class ExcludeByFileTestCase(CommandExcludeTestCase):
+    args = ("../autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif",
+            "MER_FRS_1P_RGB_reduced")
+    kwargs = {"mode": "filename"}
+    datasets_to_be_excluded = ["mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced"]
+

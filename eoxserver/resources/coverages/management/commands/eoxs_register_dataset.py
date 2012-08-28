@@ -394,7 +394,7 @@ class Command(CommandOutputMixIn, BaseCommand):
         for df, mdf, cid in zip(datafiles, metadatafiles, coverageids):
             self.print_msg("Inserting coverage with ID '%s'." % cid, 2)
             
-            args = {
+            mgrargs = {
                 "obj_id": cid,
                 "range_type_name": rangetype,
                 "default_srid": default_srid,
@@ -409,7 +409,7 @@ class Command(CommandOutputMixIn, BaseCommand):
             
             if mode == 'local':
                 self.print_msg("\tFile: '%s'\n\tMeta-data: '%s'" % (df, mdf), 2)
-                args.update({
+                mgrargs.update({
                     "local_path": df,
                     "md_local_path": mdf,
                 })
@@ -420,7 +420,7 @@ class Command(CommandOutputMixIn, BaseCommand):
             
             elif mode == 'ftp':
                 self.print_msg("\tFile: '%s'\n\tMeta-data: '%s'" % (df, mdf), 2)
-                args.update({
+                mgrargs.update({
                     "remote_path": df,
                     "md_remote_path": mdf,
                     
@@ -441,7 +441,7 @@ class Command(CommandOutputMixIn, BaseCommand):
                     ), 2
                 )
                 
-                args.update({
+                mgrargs.update({
                     "collection": df,
                     "oid": oid,
                     "md_local_path": mdf,
@@ -471,7 +471,7 @@ class Command(CommandOutputMixIn, BaseCommand):
                     pass
             
             if geo_metadata is not None:
-                args["geo_metadata"] = geo_metadata
+                mgrargs["geo_metadata"] = geo_metadata
                 
                 if geo_metadata.is_referenceable:
                     ref_mgr = System.getRegistry().findAndBind(
@@ -484,24 +484,21 @@ class Command(CommandOutputMixIn, BaseCommand):
                     self.print_msg("\t'%s' is referenceable." % df, 2)
             
             if eo_metadata is not None:
-                # we cannot check at this point whether or not the file exists 
-                # on FTP. So we assume it does.
-                if mode != "ftp" and not os.path.exists(mdf):
-                    if eo_metadata.footprint is None:
-                        raise CommandError("Default footprint could not be determined.")
-                    if eo_metadata.begin_time is None:
-                        raise CommandError("No default begin time given.")
-                    if eo_metadata.end_time is None:
-                        raise CommandError("No default end time given.")
+                if eo_metadata.footprint is None:
+                    raise CommandError("Default footprint could not be determined.")
+                if eo_metadata.begin_time is None:
+                    raise CommandError("No default begin time given.")
+                if eo_metadata.end_time is None:
+                    raise CommandError("No default end time given.")
+            
+                mgrargs["eo_metadata"] = eo_metadata
                 
-                    args["eo_metadata"] = eo_metadata
-                
-            # ... finally create the actual dataset 
+
             try:
 
                 with transaction.commit_on_success():
 
-                    mgr_to_use.create(**args)
+                    mgr_to_use.create(**mgrargs)
 
             except Exception as e: 
 
@@ -509,7 +506,7 @@ class Command(CommandOutputMixIn, BaseCommand):
                     self.print_msg(traceback.format_exc())
 
                 self.print_msg( "ERROR: Registration of dataset '%s' failed!"
-                    " %s:%s"%(cid, type(e).__name__, str(e)), 1, error=True)
+                    " %s: %s"%(cid, type(e).__name__, str(e)), 1, error=True)
 
                 error_count += 1 
 
