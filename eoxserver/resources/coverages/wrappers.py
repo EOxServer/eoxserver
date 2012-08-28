@@ -38,7 +38,6 @@ with additional application logic.
 import os.path
 import operator
 
-from django.db.models import Min, Max
 from django.contrib.gis.geos import GEOSGeometry
 from django.contrib.gis.geos.geometry import MultiPolygon
 from django.contrib.gis.db.models import Union
