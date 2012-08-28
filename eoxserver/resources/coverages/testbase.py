@@ -190,12 +190,14 @@ class EODatasetMixIn(object):
             {"obj_id": cid}
         )
 
+
 class RectifiedStitchedMosaicMixIn(object):
     def getStitchedMosaicById(self, cid):
         return System.getRegistry().getFromFactory(
             "resources.coverages.wrappers.EOCoverageFactory",
             {"obj_id": cid}
         )
+
 
 class DatasetSeriesMixIn(object):
     def getDatasetSeriesById(self, eoid):
@@ -216,11 +218,11 @@ class CommandRegisterDatasetTestCase(CoverageCommandTestCase, EODatasetMixIn):
     coverages_to_be_registered = [] # list of dicts with two keys allowed:
                                     # 'eo_id', 'coverage_id'
     
-    def testCoverageRegistered(self):
+    def getCoveragesToBeRegistered(self):
+        result = {}
         for ctbr in self.coverages_to_be_registered:
             eo_id = ctbr.get("eo_id")
             coverage_id = ctbr.get("coverage_id")
-            
             coverage = None
             
             if eo_id:
@@ -234,10 +236,15 @@ class CommandRegisterDatasetTestCase(CoverageCommandTestCase, EODatasetMixIn):
             
             if coverage_id:
                 coverage = self.getDatasetById(coverage_id)
+            result[eo_id or coverage_id] = coverage
             
+        return result
+    
+    def testCoverageRegistered(self):
+        for cid, coverage in self.getCoveragesToBeRegistered().items():
             if not coverage:
-                self.fail("Coverage with ID '%s' was not inserted." % 
-                          eo_id or coverage_id)
+                self.fail("Coverage with ID '%s' was not inserted." % cid)
+
 
 class CommandInsertTestCase(CoverageCommandTestCase, DatasetSeriesMixIn, EODatasetMixIn):
     name = "eoxs_insert"
@@ -250,7 +257,8 @@ class CommandInsertTestCase(CoverageCommandTestCase, DatasetSeriesMixIn, EODatas
         for dataset_id in self.datasets_to_be_inserted:
             self.assertIn(dataset_id, [coverage.getCoverageId() 
                                        for coverage in dss.getEOCoverages()])
-    
+
+ 
 class CommandExcludeTestCase(CoverageCommandTestCase, DatasetSeriesMixIn, EODatasetMixIn):
     name = "eoxs_exclude"
     
