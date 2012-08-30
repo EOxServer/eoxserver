@@ -331,7 +331,7 @@ class AbstractContainerAdmin(admin.ModelAdmin):
     
     def add_view(self, request, *args, **kwargs):
         try:
-            ret = super(AbstractContainerAdmin, self).add_view(*args, **kwargs)
+            ret = super(AbstractContainerAdmin, self).add_view(request, *args, **kwargs)
             self.try_synchronize()
             return ret
         except:
