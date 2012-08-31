@@ -786,6 +786,15 @@ class RegisteredInterfaceMetaClass(InterfaceMetaClass):
         pass
 
 class RegisteredInterface(Interface):
+    """
+    This class is the base class for all interfaces to be registered in the
+    registry. All interfaces whose implementations shall be registered must
+    be derived from :class:`RegisteredInterface`.
+    
+    All interfaces derived from :class:`RegisteredInterface` must contain a
+    ``REGISTRY_CONF`` dictionary. See the introduction for details.
+    """
+    
     __metaclass__ = RegisteredInterfaceMetaClass
 
     REGISTRY_CONF = {
@@ -857,6 +866,19 @@ class RegisteredInterface(Interface):
             return []
 
 class TestingInterface(RegisteredInterface):
+    """
+    This class is a descendant of :class:`RegisteredInterface` that adds
+    a single method. It is used for binding by test, which enables binding
+    decisions that cannot easily be implemented by key-value-pair comparisons.
+    
+    .. method:: test(params)
+    
+       This method is invoked by the registry when determining which
+       implementation to bind to. Based on the parameter dictionary ``params``
+       the method shall decide whether the implementation is applicable and
+       return ``True``. If it is not applicable the method shall return
+       ``False``.
+    """
     REGISTRY_CONF = {
         "name": "Registered Testing Interface",
         "intf_id": "core.registry.Testing",
@@ -869,6 +891,28 @@ class TestingInterface(RegisteredInterface):
     )
 
 class FactoryInterface(RegisteredInterface):
+    """
+    This is the basic interface for factories. It is a descendant of
+    :class:`RegisteredInterface`.
+    
+    .. method:: get(**kwargs)
+
+       This method shall return an instance of an implementation that matches
+       the parameters given as keyword arguments. The set of arguments
+       understood depends on the individual factory and can be found in the
+       respective documentation.
+       
+       The method shall raise an exception if no matching implementation or
+       instance thereof can be found, or if the choice is ambiguous.
+    
+    .. method:: find(**kwargs)
+    
+       This method shall return a list of implementation instances that
+       matches the parameters given as keyword arguments. The set of arguments
+       understood depends on the individual factory and can be found in the
+       respective documentation.
+    """
+    
     REGISTRY_CONF = {
         "name": "Registered Factory Interface",
         "intf_id": "core.registry.Factory",
@@ -886,6 +930,11 @@ class FactoryInterface(RegisteredInterface):
     )
     
 class ComponentManagerInterface(RegisteredInterface):
+    """
+    This interface is not in use at the moment. It was intended to provide
+    an API for controlling the status of a larger set of implementations and
+    their dependencies, though the concept has never been elaborated.
+    """
     REGISTRY_CONF = {
         "name": "Component Manager Interface",
         "intf_id": "core.registry.ComponentManager",
@@ -926,13 +975,28 @@ class ComponentManagerInterface(RegisteredInterface):
     )
 
 class RegistryConfigReader(object):
+    """
+    This class provides some functions for reading configuration settings used
+    by the :class:`Registry`. 
+    """
     def __init__(self, config):
         self.config = config
         
     def validate(self):
+        """
+        Validates the configuration; a no-op at the moment.
+        """
         pass
 
     def getSystemModules(self):
+        """
+        This method returns a list of dotted names of system modules. The
+        values are read from ``system_modules`` setting in the
+        ``[core.registry]`` section of the ``default.conf`` configuration file.
+        
+        The format of the setting is expected to be a comma-separated list of
+        the module names.
+        """
         sys_mod_str = self.config.getDefaultConfigValue("core.registry", "system_modules")
         
         if sys_mod_str:
@@ -941,6 +1005,15 @@ class RegistryConfigReader(object):
             return []
     
     def getModuleDirectories(self):
+        """
+        This method returns a list of directory paths where to look for
+        modules to load (see also :meth:`Registry.load`). The values are read
+        from the ``module_dirs`` setting in the ``[core.registry]`` section of
+        the instance specific ``eoxserver.conf`` configuration file.
+        
+        The format of the setting is expected to be a comma-separated list of
+        paths.
+        """
         mod_dir_str = self.config.getConfigValue("core.registry", "module_dirs")
         
         if mod_dir_str:
@@ -949,6 +1022,15 @@ class RegistryConfigReader(object):
             return []
 
     def getModules(self):
+        """
+        This method returs a list of dotted names of modules to be loaded (see
+        also :meth:`Registry.load`). The values are read from the ``modules``
+        setting in the ``[core.registry]`` section of the instance specific
+        ``eoxserver.conf`` configuration file.
+        
+        The format of the setting is expected to be a comma-separated list of
+        dotted module names.
+        """
         mod_str = self.config.getConfigValue("core.registry", "modules")
         
         if mod_str:

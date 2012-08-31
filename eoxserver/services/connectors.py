@@ -27,6 +27,12 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+"""
+Connectors are used to configure the data sources for MapServer requests.
+Because of the different nature of the data sources (files, tile indices,
+rasdaman databases) they have to be set up differently. Connectors allow to
+do this transparently.
+"""
 import os.path
 
 from eoxserver.services.mapserver import MapServerDataConnectorInterface
@@ -35,6 +41,10 @@ from osgeo import osr
 from eoxserver.resources.coverages import crss  
 
 class FileConnector(object):
+    """
+    The :class:`FileConnector` class is the most common connector. It
+    configures a file as data source for the MapServer request.
+    """
     REGISTRY_CONF = {
         "name": "Local File Connector",
         "impl_id": "services.connectors.LocalFileConnector", # TODO: change this to FileConnector
@@ -44,6 +54,20 @@ class FileConnector(object):
     }
     
     def configure(self, layer, eo_object, filter_exprs = None):
+        """
+        This method takes three arguments: ``layer`` is a MapServer
+        :class:`layerObj` instance, ``eo_object`` a EO-WCS object (either
+        a :class:`~.RectifiedDatasetWrapper` or
+        :class:`~.RectifiedStitchedMosaicWrapper` instance) and the optional
+        ``filter_exprs`` argument is currently not used.
+        
+        The method configures the MapServer layer by setting its ``data``
+        property to the path. It invokes the
+        :meth:`~.DataPackageWrapper.prepareData` method of the
+        :class:`~.DataPackageWrapper` instance related to the object.
+        
+        The method also sets the projection on the layer.
+        """
         data_package = eo_object.getData()
         data_package.prepareAccess()
         
@@ -58,6 +82,11 @@ FileConnectorImplementation = \
 MapServerDataConnectorInterface.implement(FileConnector)
 
 class TiledPackageConnector(object):
+    """
+    The :class:`TiledPackageConnector` class is intended for
+    :class:`~.RectifiedStitchedMosaicWrapper` instances that store their
+    data in tile indices.
+    """
     REGISTRY_CONF = {
         "name": "Tiled Package Connector",
         "impl_id": "services.connectors.TiledPackageConnector",
@@ -67,6 +96,17 @@ class TiledPackageConnector(object):
     }
     
     def configure(self, layer, eo_object, filter_exprs = None):
+        """
+        This method takes three arguments: ``layer`` is a MapServer
+        :class:`layerObj` instance, ``eo_object`` a 
+        :class:`~.RectifiedStitchedMosaicWrapper` instance and the optional
+        ``filter_exprs`` argument is currently not used.
+        
+        The method sets the ``tileindex`` property of the MapServer layer to
+        point to the shape file where the paths of the tiles are stored.
+        
+        The method also sets the projection on the layer.
+        """
         tile_index = eo_object.getData()
         path = tile_index.getShapeFilePath()
         
@@ -82,6 +122,11 @@ TiledPackageConnectorImplementation = \
 MapServerDataConnectorInterface.implement(TiledPackageConnector)
 
 class RasdamanArrayConnector(object):
+    """
+    The :class:`RasdamanArrayConnector` class is intended for
+    :class:`~.RectifiedDatasetWrapper` instances that store their
+    data in rasdaman arrays.
+    """
     REGISTRY_CONF = {
         "name": "Rasdaman Array Connector",
         "impl_id": "services.connectors.RasdamanArrayConnector",
@@ -91,6 +136,23 @@ class RasdamanArrayConnector(object):
     }
     
     def configure(self, layer, eo_object, filter_exprs = None):
+        """
+        This method takes three arguments: ``layer`` is a MapServer
+        :class:`layerObj` instance, ``eo_object`` a 
+        :class:`~.RectifiedDatasetWrapper` instance and the optional
+        ``filter_exprs`` argument is currently not used.
+        
+        The method sets the ``data`` property of the MapServer layer to the
+        connection string to the rasdaman database array, see the `GDAL
+        rasdaman format <http://http://www.gdal.org/frmt_rasdaman.html>`_
+        page for details.
+        
+        Furthermore, the projection settings on the layer are configured
+        according to the metadata in the EOxServer database. As the
+        rasdaman arrays have pixel coordinates only, the parameters for
+        conversion from pixel coordinates to the spatial reference system have
+        to be set explicitly.
+        """
         data_package = eo_object.getData()
         data_package.prepareAccess()
         

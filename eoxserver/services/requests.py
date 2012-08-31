@@ -27,10 +27,24 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+"""
+This module defines basic classes for OWS requests and responses to
+OWS requests.
+"""
+
 from eoxserver.core.util.xmltools import XMLDecoder
 from eoxserver.core.util.kvptools import KVPDecoder
 
 class OWSRequest(object):
+    """
+    This class is used to encapsulate information about an OWS request.
+    
+    The constructor expects one required parameter, a Django
+    :class:`HTTPRequest` object ``http_req``.
+    
+    The optional ``params`` argument shall contain the parameters sent with the
+    request. 
+    """
     def __init__(self, http_req, params='', param_type='kvp', decoder=None):
         super(OWSRequest, self).__init__()
         
