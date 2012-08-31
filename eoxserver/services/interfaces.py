@@ -27,11 +27,37 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+"""
+This module defines interfaces for service request handlers.
+
+EOxServer follows a cascaded approach for handling OWS requests: First, a
+service handler takes in all requests for a specific service, e.g. WMS or WCS.
+Second, the request gets passed on to the appropriate version handler. Last,
+the actual operation handler for that request is invoked.
+
+This cascaded approach shall ensure that features that relate to every operation
+of a service or service version (most importantly exception handling) can be
+implemented centrally.
+"""
+
 from eoxserver.core.interfaces import *
 from eoxserver.core.registry import RegisteredInterface
 from eoxserver.services.requests import OWSRequest, Response
 
 class RequestHandlerInterface(RegisteredInterface):
+    """
+    This is the basic interface for OWS request handling. It is the parent
+    class of the other handler interfaces. The binding method is KVP. The
+    interface does not define any keys though, which is done by the child
+    classes.
+    
+    .. method:: handle(req)
+    
+    This method shall be called for handling the request. It expects an
+    :class:`~.OWSRequest` object as input ``req`` and shall return a
+    :class:`~.Response` object.
+    
+    """
     REGISTRY_CONF = {
         "name": "Request Handler Interface",
         "intf_id": "services.interfaces.RequestHandler",
@@ -45,6 +71,11 @@ class RequestHandlerInterface(RegisteredInterface):
     )
 
 class ServiceHandlerInterface(RequestHandlerInterface):
+    """
+    This interface inherits from :class:`RequestHandlerInterface`. It adds
+    no methods, but a registry key ``services.interfaces.service`` which
+    allows to bind to an implementation given the name of the service.
+    """
     REGISTRY_CONF = {
         "name": "Service Handler Interface",
         "intf_id": "services.interfaces.ServiceHandler",
@@ -55,6 +86,13 @@ class ServiceHandlerInterface(RequestHandlerInterface):
     }
 
 class VersionHandlerInterface(RequestHandlerInterface):
+    """
+    This interface inherits from :class:`RequestHandlerInterface`. It adds
+    no methods, but the registry keys ``services.interfaces.service`` and 
+    ``services.interface.version`` which allow to bind to an implementation
+    given the name of the service and the version descriptor.
+    """
+
     REGISTRY_CONF = {
         "name": "Service Handler Interface",
         "intf_id": "services.interfaces.VersionHandler",
@@ -66,6 +104,14 @@ class VersionHandlerInterface(RequestHandlerInterface):
     }
 
 class OperationHandlerInterface(RequestHandlerInterface):
+    """
+    This interface inherits from :class:`RequestHandlerInterface`. It adds
+    no methods, but the registry keys ``services.interfaces.service``, 
+    ``services.interface.version`` and ``services.interfaces.operation`` which
+    allow to bind to an implementation given the name of the service, the
+    version descriptor and the operation name.
+    """
+
     REGISTRY_CONF = {
         "name": "Service Handler Interface",
         "intf_id": "services.interfaces.OperationHandler",
@@ -78,6 +124,22 @@ class OperationHandlerInterface(RequestHandlerInterface):
     }
 
 class ExceptionHandlerInterface(RegisteredInterface):
+    """
+    This interface is intended for exception handlers. These handlers shall
+    be invoked when an exception is raised during the processing of an OWS
+    request.
+    
+    .. method:: handleException(req, exception)
+    
+    This method shall handle an exception. It expects the original
+    :class:`~.OWSRequest` object ``req`` as well as the exception object as
+    input. The expected output is a :class:`~.Response` object which shall
+    contain an exception report and whose content will be sent to the client.
+    
+    In case the exception handler does not recognize a given type of exception
+    or cannot produce an appropriate exception report, the exception shall
+    be re-raised.
+    """
     REGISTRY_CONF = {
         "name": "Exception Handler Interface",
         "intf_id": "services.interfaces.ExceptionHandler",
@@ -94,6 +156,23 @@ class ExceptionHandlerInterface(RegisteredInterface):
     )
 
 class ExceptionEncoderInterface(RegisteredInterface):
+    """
+    This interface is intended for encoding OWS exception reports.
+    
+    .. method:: encodeInvalidRequestException(exception)
+    
+    This method shall return an exception report for an
+    :class:`~.InvalidRequestException`.
+    
+    .. method:: encodeVersionNegotiationException(exception)
+    
+    This method shall return an exception report for a
+    :class:`~.VersionNegotiationException`.
+    
+    .. method:: encodeException(exception)
+    
+    This method shall return an exception report for any kind of exception.
+    """
     REGISTRY_CONF = {
         "name": "OWS Exception Report XML Encoder Interface",
         "intf_id": "services.interfaces.ExceptionEncoder",
