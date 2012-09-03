@@ -36,6 +36,29 @@
 1. How to configure test instance
 ---------------------------------
 
+-----------------------------
+1.1. Using eoxserver-admin.py
+-----------------------------
+
+cd <path_to_eoxserver_directory>
+svn co http://eoxserver.org/svn/trunk . # Note that the directories should not be moved or renamed because of relative paths.
+mv autotest tmp1
+eoxserver-admin.py create_instance autotest
+mv autotest tmp2
+mv tmp1 autotest
+mv tmp2/settings.py autotest/
+mv tmp2/manage.py autotest/
+mv tmp2/conf/eoxserver.conf autotest/conf/
+rm -r tmp2
+
+export PYTHONPATH="<path_to_eoxserver_directory>"
+cd autotest
+python manage.py syncdb
+
+-------------------------
+1.2. Manual configuration
+-------------------------
+
 cd <path_to_eoxserver_directory>
 svn co http://eoxserver.org/svn/trunk . # Note that the directories should not be moved or renamed because of relative paths.
 cd autotest
@@ -143,6 +166,25 @@ python manage.py test services coverages backends processes core
 python manage.py test
 # this also runs some django tests.
 
+# Due to some behaviour of underlying software such as GEOSS the tests for the 
+#services component need to be split up. The following splitting is known to 
+# work:
+
+python manage.py test services.WCS1
+python manage.py test services.WCS20GetCap
+python manage.py test services.WCSVersion
+python manage.py test services.WCS20DescribeCoverage
+python manage.py test services.WCS20DescribeEOCoverageSet
+python manage.py test services.WCS20GetCoverage
+python manage.py test services.WCS20Post
+python manage.py test services.WMS
+python manage.py test services.Sec
+
+# Running single tests
+python manage.py test services.<beginnign-of-test-name>
+# e.g.
+python manage.py test services.WCS20GetCapabilities
+
 
 ------------------------------
 6. How to add expected results
@@ -161,11 +203,43 @@ mv <tmpfilename> <filename>
 # use the following command
 cd <path_to_eoxserver_directory>/autotest
 export PYTHONPATH="<path_to_eoxserver_directory>"
-../tools/xcomp.py responses/<XML file> expected/<XML file> 
+../tools/xcomp.py responses/<XML-document> expected/<XML-document> 
 
-#The XML comparator parses the XML files and compares 
+#The XML comparator parses the XML documents and compares 
 #the documents' trees, therefore the tool is able to cope with 
 #different formatting (including different order of elements' 
 #attributes and various name-space prefixes).
+
+
+--------------------------------
+8. How to validate XML documents
+--------------------------------
+
+export XML_CATALOG_FILES="<path_to_eoxserver_directory>/schemas/catalog.xml"
+
+xmllint --noout --schema http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd <XML-document>
+
+
+------------------------------
+9. How to run schematron tests
+------------------------------
+
+export XML_CATALOG_FILES="<path_to_eoxserver_directory>/schemas/catalog.xml"
+
+cd <path_to_eoxserver_directory>/schemas/
+xsltproc schematron_xslt1/iso_dsdl_include.xsl wcseo/1.0/wcsEOSchematron.sch | xsltproc schematron_xslt1/iso_abstract_expand.xsl - | xsltproc schematron_xslt1/iso_svrl_for_xslt1.xsl - | xsltproc - <XML-document>
+
+
+------------------------
+10. How to run all tests
+------------------------
+
+1. Run unit tests (see above)
+2. Run Selenium tests
+3. Run test instance, load data via CLI commands, run some requests, and 
+   compare responses with unit tests results
+4. If libxml isn't built with schematron support run schematron tests (see 
+   above)
+
 
 --------------------------------------------------------------------------------
