@@ -118,20 +118,20 @@ class GeospatialMetadata(object):
         proj   = ds.GetGCPProjection() if is_ref else ds.GetProjection() 
                 
         # convert projection to EPSG code 
-        if isinstance(proj,basestring) and len(proj) > 0 : 
+        if isinstance(proj, basestring) and len(proj) > 0 : 
 
             srs = osr.SpatialReference()
         
             try:
-
                 srs.ImportFromWkt( proj )
                 srs.AutoIdentifyEPSG()
+                ptype = "PROJCS" if srs.IsProjected() else "GEOGCS"
+                srid = int(srs.GetAuthorityCode(ptype))
 
             except RuntimeError, e:
-
-                logging.warn("Projection: %s" % projection ) 
+                logging.warn("Projection: %s" % proj) 
                 logging.warn("Failed to identify projection's EPSG code."
-                    "%s:%s" % ( type(e).__name__ , str(e) ) ) 
+                    "%s: %s" % ( type(e).__name__ , str(e) ) ) 
 
                 if default_srid is not None:
                     logging.warn("Using the provided SRID '%s' instead."
@@ -144,20 +144,16 @@ class GeospatialMetadata(object):
                     raise RuntimeError("The default SRID '%'s is not a valid" 
                         " EPSG code." % str(default_srid) )
 
-                srid = int( default_srid ) 
-
-            else : 
-
-                ptype = ("GEOGCS","PROJCS")[srs.IsProjected()]
-                srid = int( srs.GetAuthorityCode( ptype ) ) 
+                srid = int(default_srid)
+                 
 
         # get the extent 
 
-        if is_ref : # Referenceable DS 
+        if is_ref: # Referenceable DS 
 
             extent = getExtentFromReferenceableDS( ds )
 
-        else : # Rectified DS 
+        else: # Rectified DS 
         
             extent = getExtentFromRectifiedDS( ds )
 
