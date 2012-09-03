@@ -39,6 +39,9 @@
 License
 =======
 
+EOxServer Open License
+----------------------
+
 | EOxServer Open License
 | Version 1, 8 June 2011
 
@@ -62,8 +65,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
-EOxServer-SoapProxy Open License
-================================
+EOxServer-Soap Proxy Open License
+--------------------------------
 
 Soap Proxy is Copyright (C) 2011 ANF DATA Spol. s r.o. Prague.
 The terms of the license are otherwise identical to those of the main
