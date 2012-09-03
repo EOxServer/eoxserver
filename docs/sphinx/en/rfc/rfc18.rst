@@ -234,26 +234,28 @@ Proposed Action Views:
 * Action Control Center
 
   * overview over running and completed actions
-  * individual views for actions, including status and logs
+  * detail views for actions, including status and logs
 
 * Coverages
 
-  * list view of Rectified Datasets, including create and delete actions
-  * individual view of Rectified Datasets, including create, update and
-    delete actions
-  * list view of Referenceable Datasets, including create and delete actions
-  * individual view of Referenceable Datasets, including create, update and
-    delete actions
-  * list view of Rectified Stitched Mosaics, including create, delete and
-    synchronize actions
-  * individual view of Rectified Stitched Mosaics, including create, update,
-    delete and synchronize actions, as well as a list view of contained
-    Rectified Datasets
-  * list view of Dataset Series, including create, delete and synchronize
-    actions
-  * individual view of Dataset Series, including create, delete, update and
-    synchronize actions, as well as list views of contained coverages
+  * For both Rectified and Referenceable datasets:
+  
+    * list view including limited update and delete actions
+    * detail view including update and delete actions
+    * create view to create a new dataset
 
+  * For both Rectified Stitched Mosaics and Dataset Series
+
+    * list view including limited update and delete actions
+    * detail view including update, delete and synchronize actions and a
+      list display of all contained datasets and data sources including actions
+      to insert/remove data sources or datasets
+    * create view to create a new dataset
+
+  * list view of Range Types with create, limited update and delete actions
+  * detail view of Range Types with update and delete actions and a list
+    display of all included Bands with update actions
+  * list view of Nil Values with create, update and delete actions
 
 Actions
 ~~~~~~~
@@ -269,7 +271,11 @@ the wrappers defined in :mod:`eoxserver.resources.coverages.wrappers`.
 
 It should be possible to invoke Actions in synchronous and asynchronous mode.
 For the asynchronous mode, the existing facilities of the :ref:`atp_sum`
-(the :mod:`eoxserver.resources.processes`) shall be adapted and extended.
+(the :mod:`eoxserver.resources.processes`) shall be adapted and extended. For
+this purpose, the :class:`eoxserver.resources.processes.models.LogRecord` shall
+receive an additional field ``level``, which specifies the log level the log
+record was created with. This allows easy filtering for a minimum log level and
+e.g: only show errors and warnings raised during a process.
 
 Every Action shall expose methods to
 
@@ -295,7 +301,10 @@ restricted per resource for certain models where the modification of data
 requires a more elaborate handling.
 
 On the client side, Resources are wrapped in Models and Collections, which
-provide a layer of abstraction and handle the communication with the server.
+provide a layer of abstraction and handle the communication with and
+consume the REST interface offered by the server. A Model is the abstraction of
+a single dataset and a Collection is a set of models in a certain context.
+
 Both Models and Collections offer certain events, to which the client can react
 in a suitable manner. This may trigger a synchronization of data with the
 server or a (re-)rendering of data on the client in an associated view.
@@ -313,8 +322,8 @@ the client:
 RPC Interface
 ^^^^^^^^^^^^^
 
-Actions shall be triggered via the RPC Interface. In general, invocation from
-the Operator Interface shall be asynchronous. Incoming requests from the
+Actions shall be triggered via the RPC Interface. Invocation from the Operator
+Interface can be synchronous or asynchronous. Incoming requests from the
 Operator Interface shall be dispatched to the respective Actions using a
 common mechanism that implements the following workflow:
 
@@ -606,8 +615,8 @@ identified.
 |           |                    +-------------------+-----------------------+
 |           |                    | Dataset Series    | Add Datasource        |
 |           |                    +-------------------+-----------------------+
-|           |                    |                   | Remove Datasource     |
-|           |                    |                   +-----------------------+
+|           |                    | Logs              | Remove Datasource     |
+|           |                    +-------------------+-----------------------+
 |           |                    |                   | Synchronize           |
 |           |                    |                   +-----------------------+
 |           |                    |                   | Create Container      |
