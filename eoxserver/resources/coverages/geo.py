@@ -128,7 +128,7 @@ class GeospatialMetadata(object):
                 ptype = "PROJCS" if srs.IsProjected() else "GEOGCS"
                 srid = int(srs.GetAuthorityCode(ptype))
 
-            except RuntimeError, e:
+            except (RuntimeError, TypeError), e:
                 logging.warn("Projection: %s" % proj) 
                 logging.warn("Failed to identify projection's EPSG code."
                     "%s: %s" % ( type(e).__name__ , str(e) ) ) 
