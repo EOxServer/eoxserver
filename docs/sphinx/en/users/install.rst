@@ -346,6 +346,10 @@ following lines:
         }
     }
 
+Note: By default the number of SQL variables (SQLITE_MAX_VARIABLE_NUMBER) in SQL
+is limited to 999. This leads to problems when having inserted 1000 datasets or
+more. In this case the limit could either be increased or PostgreSQL/PostGIS
+must be used as a back-end database.
 
 Using a PostgreSQL/PostGIS database back-end configuration for EOxServer is a
 little bit more complex. Setting up a PostgreSQL database requires also
