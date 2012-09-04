@@ -387,12 +387,12 @@ class SchematronTestMixIn(object): # requires to be mixed in with XMLTestCase
             schematron = etree.Schematron(
                 etree.parse(open(location))
             )
-            schematron.validate(doc)
-            
             try:
                 schematron.assertValid(doc)
             except etree.DocumentInvalid, e:
                 errors.append(str(e))
+            except etree.SchematronValidateError:
+                self.skipTest("Schematron Testing is not enabled.")
 
         if len(errors):
             self.fail(str(errors))
