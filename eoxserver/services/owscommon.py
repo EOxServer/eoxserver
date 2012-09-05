@@ -48,6 +48,17 @@ from eoxserver.services.exceptions import (
 )
 
 class OWSCommonHandler(BaseRequestHandler):
+    """
+    This class is the entry point for all incoming OWS requests.
+    
+    It tries to determine the service the request and directed to and
+    invokes the appropriate service handler. An :exc:`~.InvalidRequestException`
+    is raised if the service is unknown.
+    
+    Due to a quirk in WMS where the service parameter is not mandatory, the
+    WMS service handler is called in the absence of an explicit service
+    parameter.
+    """
     REGISTRY_CONF = {
         "name": "OWS Common base handler",
         "impl_id": "services.owscommon.OWSCommon",
@@ -108,6 +119,44 @@ class OWSCommonHandler(BaseRequestHandler):
 OWSCommonHandlerImplementation = RequestHandlerInterface.implement(OWSCommonHandler)
 
 class OWSCommonServiceHandler(BaseRequestHandler):
+    """
+    This is the base class for OWS service handlers. It inherits from
+    :class:`~.BaseRequestHandler`.
+    
+    This handler parses the OWS request parameters for a service version. The
+    version parameter is mandatory for all OGC Web Services and operations
+    except for the respective "GetCapabilities" calls. So, if the request is
+    found to be "GetCapabilities" the version negotiation routines are started
+    in order to determine the actual OWS version handler to be called.
+    Otherwise the version parameter is read from the request or an
+    :exc:`~.InvalidRequestException` is raised if it is absent or relates to
+    an unknown or disabled version of the service.
+    
+    Version negotiation is implemented along the lines of OWS Common 2.0. This
+    means, the handler checks for the presence of an AcceptVersions parameter.
+    If it is present new-style version negotiation is triggered and old-style
+    version negotiation otherwise.
+    
+    Ǹew-style version negotiation will take the first version defined
+    in the AcceptVersion parameter that is implemented and raise an exception
+    if none of the versions is known. The version parameter is always
+    ignored.
+    
+    Old-style version negotiation will look for the version parameter and
+    chose the version indicated if it is implemented. If the version parameter
+    is lacking the highest implemented version of the service will be selected.
+    If the version parameter is present but refers to a version that is not
+    implemented, the highest version lower than that is selected. If that fails,
+    too, the lowest implemented version will be selected.
+    
+    Note that OWS Common 2.0 refers to old-style version negotiation as
+    deprecated and includes it only for backwards compatibility. But for
+    EOxServer which exhibits OWS versions relying on OWS Common as well as
+    versions prior to it, the fallback to old-style version negotiation is
+    always required. Binding to older versions would otherwise not be
+    possible.
+    """
+    
     SERVICE = ""
     
     PARAM_SCHEMA = {
@@ -278,6 +327,19 @@ class OWSCommonServiceHandler(BaseRequestHandler):
         return handler.handle(req)
 
 class OWSCommonVersionHandler(BaseRequestHandler):
+    """
+    This is the base class for OWS version handlers. It inherits from
+    :class:`~.BaseRequestHandler`.
+    
+    Based on the value of the request parameter, the appropriate operation
+    handler is chosen and invoked. An :exc:`~.InvalidRequestException` is
+    raised if the operation name is unknown or disabled.
+    
+    This class implements exception handling behaviour which is
+    common across the operations of each OWS version but not among
+    different versions of the same service.
+    """
+    
     SERVICE = ""
     VERSION = ""
     
@@ -326,6 +388,14 @@ class OWSCommonVersionHandler(BaseRequestHandler):
             return handler.handle(req)
 
 class OWSCommonExceptionHandler(BaseExceptionHandler):
+    """
+    This exception handler is intended for OWS Common 2.0 based exception
+    reports. Said standard defines a framework for exception reports that can
+    be extended by individual OWS standards with additional error codes, for
+    instance.
+    
+    This class inherits from :class:`~.BaseExceptionHandler`.
+    """
     REGISTRY_CONF = {
         "name": "OWS Common Exception Handler",
         "impl_id": "services.owscommon.OWSCommonExceptionHandler", 
@@ -346,6 +416,17 @@ class OWSCommonExceptionHandler(BaseExceptionHandler):
         self.additional_http_status_codes = {}
     
     def setHTTPStatusCodes(self, additional_http_status_codes):
+        """
+        In OWS Common 2.0 the HTTP status codes for exception reports can
+        differ depending on the error code. There are several exceptions
+        listed in the standard itself, but more can be added by OWS
+        standards relying on OWS Common 2.0.
+        
+        This method allows to configure the exception handler with
+        a dictionary of additional codes. The dictionary keys shall contain
+        the OWS error codes and the values the corresponding HTTP status
+        codes as integers.
+        """
         self.additional_http_status_codes = additional_http_status_codes
         
     def _filterExceptions(self, exception):
@@ -377,6 +458,10 @@ class OWSCommonExceptionHandler(BaseExceptionHandler):
 OWSCommonExceptionHandlerImplementation = ExceptionHandlerInterface.implement(OWSCommonExceptionHandler)
 
 class OWSCommonExceptionEncoder(XMLEncoder):
+    """
+    Encoder for OWS Common 2.0 compliant exception reports. Implements
+    :class:`~.ExceptionEncoderInterface`.
+    """
     REGISTRY_CONF = {
         "name": "OWS Common 2.0 Exception Report Encoder",
         "impl_id": "services.owscommon.OWSCommonExceptionEncoder",
@@ -430,6 +515,11 @@ class OWSCommonExceptionEncoder(XMLEncoder):
 OWSCommonExceptionEncoderImplementation = ExceptionEncoderInterface.implement(OWSCommonExceptionEncoder)
 
 class OWSCommonConfigReader(object):
+    """
+    This class implements the :class:`~.ConfigReaderInterface`. It provides
+    convenience functions for reading OWS related settings from the instance
+    configuration.
+    """
     REGISTRY_CONF = {
         "name": "OWS Common Config Reader",
         "impl_id": "services.owscommon.OWSCommonConfigReader",
@@ -437,10 +527,20 @@ class OWSCommonConfigReader(object):
     }
     
     def validate(self, config):
+        """
+        Raises :exc:`~.ConfigError` if the mandatory ``http_service_url``
+        setting is missing in the ``services.owscommon`` section of the
+        instance configuration.
+        """
         if config.getInstanceConfigValue("services.owscommon", "http_service_url") is None:
             raise ConfigError("Missing mandatory 'http_service_url' parameter")
     
     def getHTTPServiceURL(self):
+        """
+        Returns the value of the `http_service_url`` in the
+        ``services.owscommon`` section. This is used for reporting the
+        correct service address in the OWS capabilities.
+        """
         return System.getConfig().getInstanceConfigValue("services.owscommon", "http_service_url")
 
 OWSCommonConfigReaderImplementation = ConfigReaderInterface.implement(OWSCommonConfigReader)

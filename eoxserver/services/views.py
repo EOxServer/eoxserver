@@ -44,17 +44,16 @@ from eoxserver.services.auth.base import getPDP
 
 def ows(request):
     """
-    This function handles all incoming OWS requests. It configures basic
-    settings e.g. for the logging module, triggers reading of the config
-    file and passes on the request to eoxserver.services.owscommon.OWSCommonHandler.
+    This function handles all incoming OWS requests.
     
-    @param  request     A django.http.HttpRequest object containing the
-                        request parameters and data
+    It prepares the system by a call to :meth:`~.System.init` and generates
+    an :class:`~.OWSRequest` object containing the request parameters and
+    passes the handling on to an instance of :class:`~.OWSCommonHandler`.
     
-    @return             A django.http.HttpResponse object containing the
-                        response content, headers and status
-    
-    @see                eoxserver.services.owscommon.OWSCommonHandler
+    If security handling is enabled, the Policy Decision Point (PDP) is
+    called first in order to determine if the request is authorized. Otherwise
+    the response of the PDP is sent back to the client. See also
+    :mod:`eoxserver.services.auth.base`.
     """
 
     if request.method == 'GET':
