@@ -29,7 +29,7 @@
 
 """
 This module contains old style exception handlers that use the OGC
-namespace for exception reports
+namespace for exception reports (prior to OWS Common).
 """
 
 from eoxserver.core.util.xmltools import XMLEncoder
@@ -40,6 +40,9 @@ from eoxserver.services.interfaces import (
 )
 
 class OGCExceptionHandler(BaseExceptionHandler):
+    """
+    Handler class for the OGC namespace.
+    """
     REGISTRY_CONF = {
         "name": "OGC Namespace Exception Handler",
         "impl_id": "services.ogc.OGCExceptionHandler",
@@ -61,6 +64,9 @@ class OGCExceptionHandler(BaseExceptionHandler):
 OGCExceptionHandlerImplementation = ExceptionHandlerInterface.implement(OGCExceptionHandler)
 
 class OGCExceptionEncoder(XMLEncoder):
+    """
+    Encoder class for OGC namespace exception reports.
+    """
     REGISTRY_CONF = {
         "name": "OGC Namespace Exception Report Encoder",
         "impl_id": "services.ogc.OGCExceptionEncoder",

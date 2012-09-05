@@ -201,6 +201,9 @@ class MapServerResponse(Response):
             return self.status
 
 class MapServerLayerGeneratorInterface(RegisteredInterface):
+    """
+    This interface is not in use.
+    """
     REGISTRY_CONF = {
         "name": "MapServer Layer Generator Interface",
         "intf_id": "services.mapserver.MapServerLayerGeneratorInterface",
@@ -219,6 +222,25 @@ class MapServerLayerGeneratorInterface(RegisteredInterface):
     )
 
 class MapServerDataConnectorInterface(RegisteredInterface):
+    """
+    This interface is intended for objects that configure the input data for
+    a MapServer layer. The basic rationale for this is that there are at
+    least three different types of data sources that need differentt
+    treatment:
+    
+    * data stored in single plain files
+    * tiled data with references in a tile index (a shape file)
+    * rasdaman arrays
+    
+    Others might be added in the course of development of EOxServer.
+    
+    .. method:: congigure(layer, eo_object)
+    
+    This method takes a :class:`mapscript.layerObj` object and an ``eo_object``
+    as input and configures the MapServer layer according to the type of
+    data package used by the ``eo_object`` (RectifiedDataset,
+    ReferenceableDataset or RectifiedStitchedMosaic).
+    """
     REGISTRY_CONF = {
         "name": "MapServer Data Connector Interface",
         "intf_id": "services.mapserver.MapServerDataConnectorInterface",
@@ -293,10 +315,6 @@ class MapServerOperationHandler(BaseRequestHandler):
         instance of ``mapscript.OWSRequest``) with the parameters
         passed in with the user request. This method can be overridden
         in order to change the treatment of parameters.
-        
-        @param  ms_req  An :class:`MapServerRequest` object
-        
-        @return         None
         """
         if self.req.getParamType() == "kvp":
             self.ows_req.type = mapscript.MS_GET_REQUEST
@@ -333,13 +351,6 @@ class MapServerOperationHandler(BaseRequestHandler):
         This method actually executes the MapServer request by calling
         ``ms_req.map.OWSDispatch()``. This method should not be
         overridden by child classes.
-        
-        @param  ms_req  An :class:`MapServerRequest` object
-        
-        @return         An :class:`MapServerResponse`
-                        object containing the content, headers and status
-                        of the request as well as the status code
-                        returned by MapServer
         """
         logging.debug("MapServerOperationHandler.dispatch: 1")
         mapscript.msIO_installStdoutToBuffer()
@@ -377,6 +388,10 @@ class MapServerOperationHandler(BaseRequestHandler):
                 logging.warning("Could not remove temporary file '%s'" % temp_file)
 
 def gdalconst_to_imagemode(const):
+    """
+    This function translates a GDAL data type constant as defined in the
+    :mod:`gdalconst` module to a MapScript image mode constant.
+    """
     if const == GDT_Byte:
         return mapscript.MS_IMAGEMODE_BYTE
     elif const == GDT_Int16 or const == GDT_UInt16:
@@ -387,6 +402,11 @@ def gdalconst_to_imagemode(const):
         raise InternalError("MapServer is not capable to process the datatype %d" % const)
 
 def gdalconst_to_imagemode_string(const):
+    """
+    This function translates a GDAL data type constant as defined in the
+    :mod:`gdalconst` module to a string as used in the MapServer map file
+    to denote an image mode.
+    """
     if const == GDT_Byte:
         return "BYTE"
     elif const == GDT_Int16 or const == GDT_UInt16:

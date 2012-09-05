@@ -30,6 +30,18 @@
 from eoxserver.core.exceptions import EOxSException
 
 class InvalidRequestException(EOxSException):
+    """
+    This exception indicates that the request was invalid and an exception
+    report shall be returned to the client.
+    
+    The constructor takes three arguments, namely ``msg``, the error message,
+    ``error_code``, the error code, and ``locator``, which is needed in OWS
+    exception reports for indicating which part of the request produced the
+    error.
+    
+    How exactly the exception reports are constructed is not defined by the
+    exception, but by exception handlers.
+    """
     def __init__(self, msg, error_code, locator):
         super(InvalidRequestException, self).__init__(msg)
         
@@ -43,10 +55,22 @@ class InvalidRequestException(EOxSException):
         )
 
 class VersionNegotiationException(EOxSException):
+    """
+    This exception indicates that version negotiation fails. Such errors can
+    happen with OWS 2.0 compliant "new-style" version negotation.
+    """
     pass
 
 class InvalidAxisLabelException(EOxSException):
+    """
+    This exception indicates that an invalid axis name was chosen in a WCS
+    2.0 subsetting parameter.
+    """
     pass
 
 class InvalidSubsettingException(EOxSException):
+    """
+    This exception indicates an invalid WCS 2.0 subsetting parameter was
+    submitted.
+    """
     pass
