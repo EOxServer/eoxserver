@@ -27,6 +27,11 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+"""
+This module contains handlers and functions commonly used by the different WCS
+version implementations.
+"""
+
 import mapscript
 
 import logging 
@@ -46,29 +51,30 @@ from eoxserver.resources.coverages import crss
 _stripDot = lambda s : s[1:] if s[0] == '.' else s 
 
 class WCSCommonHandler(MapServerOperationHandler):
+    """
+    This class provides the common operation handler for handling WCS
+    operation requests using MapServer. It inherits from
+    :class:`~.MapServerOperationHandler`.
+    
+    The class implements a handling chain:
+    
+    * first, the request parameters are validated using :meth:`validateParams`
+    * then, the coverage(s) the request relates to are retrieved using
+      :meth:`createCoverages`
+    * then, the :class:`mapscript.OWSRequest` and :class:`mapscript.mapObj`
+      instances are configured using :meth:`configureRequest` and
+      :meth:`configureMapObj`
+    * then the layers are added using :meth:`addLayers`
+    * then the request is carried out by MapServer using :meth:`dispatch`
+    * finally, postprocessing steps on the response retrieved from MapServer
+      can be performed using :meth:`postprocess`
+    """
     def __init__(self):
         super(WCSCommonHandler, self).__init__()
         
         self.coverages = []
         
     def _processRequest(self, req):
-        """
-        This method implements the workflow described in the class
-        documentation.
-        
-        First it creates a :class:``MapServerRequest`` object and passes the
-        request data to it. Then it invokes the methods in the order
-        defined above and finally returns an :class:`MapServerResponse`
-        object. It is not recommended to override this method.
-        
-        @param  req An :class:`~.OWSRequest`
-                    object containing the request parameters and data
-        
-        @return     An :class:`MapServerResponse`
-                    object containing the response content, headers and
-                    status as well as the status code returned by
-                    MapServer
-        """
         self.req = req
         self.req.setSchema(self.PARAM_SCHEMA)
 
@@ -85,31 +91,26 @@ class WCSCommonHandler(MapServerOperationHandler):
         return response
     
     def validateParams(self):
+        """
+        This method is intended to validate the parameters. It has to be
+        overridden by child classes.
+        """
         pass
     
     def createCoverages(self):
         """
         This method creates coverages, i.e. it adds coverage objects to
-        the ``ms_req.coverages`` list. The default implementation
-        does nothing at all, so you will have to override this method to
-        meet your needs. 
-        
-        @param  ms_req  An :class:`MapServerRequest` object
-        
-        @return         None
+        the ``coverages`` list of the handler. It has to be overridden by
+        child classes.
         """
         pass
 
     def configureMapObj(self):
         """
-        This method configures the ``ms_req.map`` object (an
-        instance of ``mapscript.mapObj``) with parameters from the
+        This method configures the ``map`` property of the handler (an
+        instance of :class:`mapscript.mapObj`) with parameters from the
         config. This method can be overridden in order to implement more
-        sophisticated behaviour. 
-        
-        @param  ms_req  An :class:`MapServerRequest` object
-        
-        @return         None
+        sophisticated behaviour.
         """
         
         self.map.setMetaData("ows_onlineresource", OWSCommonConfigReader().getHTTPServiceURL() + "?")
@@ -117,20 +118,19 @@ class WCSCommonHandler(MapServerOperationHandler):
         
     def addLayers(self):
         """
-        This method adds layers to the ``ms_req.map`` object based
-        on the coverages defined in ``ms_req.coverages``. The
-        default is to unconditionally add a single layer for each
-        coverage defined. This method can be overridden in order to
-        customize the way layers are inserted into the map object.
-        
-        @param  ms_req  An :class:`MapServerRequest` object
-        
-        @return         None
+        This method adds layers to the :class:`mapscript.mapObj` stored by the
+        handler. By default it inserts a layer for every coverage. The layers
+        are retrieved by calls to :meth:`getMapServerLayer`.
         """
         for coverage in self.coverages:
             self.map.insertLayer(self.getMapServerLayer(coverage))
 
     def getMapServerLayer(self, coverage):
+        """
+        This method creates and returns a :class:`mapscript.layerObj` instance
+        and configures it according to the metadata stored in the ``coverage``
+        object.
+        """
         layer = mapscript.layerObj()
         
         layer.name = coverage.getCoverageId()
@@ -161,6 +161,11 @@ class WCSCommonHandler(MapServerOperationHandler):
         return layer
 
     def postprocess(self, resp):
+        """
+        This method postprocesses a :class:`~.MapServerResponse` object
+        ``resp``. By default the response is returned unchanged. The method
+        can be overridden by child classes.
+        """
         return resp
 
 def getMSOutputFormatsAll( coverage = None ) : 
@@ -282,7 +287,21 @@ def getMSOutputFormat(format_param, coverage):
 
 
 def parse_format_param(format_param):
-
+    """
+    This utility function is used to parse a MIME type expression
+    ``format_param`` into its parts. It returns a tuple
+    ``(mime_type, format_options)`` which contains the mime type as a string
+    as well as a list of format options. The input is expected as a MIME type
+    like string of the form::
+    
+      <type>/<subtype>[;<format_option_key>=<format_option_value>[;...]]
+    
+    This is used for an EOxServer specific extension of the WCS format parameter
+    which allows to tag additional format creation options such as compression
+    and others to format expressions, e.g.::
+    
+      image/tiff;compression=LZW
+    """
     parts = unquote(format_param).split(";")
     
     mime_type = parts[0]
