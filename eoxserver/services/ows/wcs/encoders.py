@@ -28,6 +28,12 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+"""
+This module contains XML encoders for WCS metadata based on GML, EO O&M,
+GMLCOV, WCS 2.0 and EO-WCS.
+"""
+
+
 from datetime import datetime
 from xml.dom import minidom
 
@@ -62,12 +68,30 @@ def _getUnitLabelAndFormat( epsg ) :
 
 
 class GMLEncoder(XMLEncoder):
+    """
+    This encoder provides methods for encoding basic GML objects.
+
+    Note that the axis order for the input point coordinates used in
+    geometry representations is always
+    (x, y) or (lon, lat). The axis order in the output coordinates on the
+    other hand will be the order as mandated by the EPSG definition of
+    the respective spatial reference system. This may be (y, x) for some
+    projected CRSes (e.g. EPSG:3035, the European Lambert Azimuthal Equal
+    Area projection used for many datasets covering Europe) and (lat,lon)
+    for most geographic CRSes including EPSG:4326 (WGS 84).
+    """
     def _initializeNamespaces(self):
         return {
             "gml": "http://www.opengis.net/gml/3.2"
         }
     
     def encodeLinearRing(self, ring, srid):
+        """
+        Returns the GML encoding of a linear ring. The ``ring`` argument is
+        expected to be a list of tuples which represent 2-D point coordinates
+        with (x,y)/(lon,lat) axis order. The ``srid`` argument shall contain the
+        EPSG ID of the spatial reference system as an integer.
+        """
 
         floatFormat  = PPREC2[ crss.isProjected(srid) ] 
 
@@ -83,6 +107,13 @@ class GMLEncoder(XMLEncoder):
         )
 
     def encodePolygon(self, poly, base_id):
+        """
+        This method returns the GML encoding of a polygon. The ``poly``
+        argument is expected to be a GeoDjango :class:`Polygon` or
+        :class:`GEOSGeometry` object containing a polygon. The ``base_id``
+        string is used to generate the required gml:id attributes on different
+        elements of the polygon encoding.
+        """
         ext_element = self.encodeLinearRing(poly[0], poly.srid)
         
         if len(poly) > 1:
@@ -101,6 +132,12 @@ class GMLEncoder(XMLEncoder):
         )
 
     def encodeMultiPolygon(self, geom, base_id):
+        """
+        This method returns the GML encoding of a multipolygon. The ``geom``
+        argument is expected to be a GeoDjango :class:`GEOSGeometry` object.
+        The ``base_id`` string is used to generate the required gml:id
+        attributes on different elements of the multipolygon encoding.
+        """
         if geom.geom_type in ("MultiPolygon", "GeometryCollection"):
             polygons = [self.encodePolygon(geom[c], "%s_%d" % (base_id, c+1)) for c in range(0, geom.num_geom)]
         elif geom.geom_type == "Polygon":
@@ -123,6 +160,10 @@ class GMLEncoder(XMLEncoder):
         )
 
 class EOPEncoder(GMLEncoder):
+    """
+    This encoder implements some encodings of EO O&M. It inherits from
+    :class:`GMLEncoder`.
+    """
     def _initializeNamespaces(self):
         ns_dict = super(EOPEncoder, self)._initializeNamespaces()
         ns_dict.update({
@@ -132,6 +173,13 @@ class EOPEncoder(GMLEncoder):
         return ns_dict
 
     def encodeFootprint(self, footprint, eo_id):
+        """
+        Returns the EO O&M encoding of a footprint. The ``footprint`` argument
+        shall contain a GeoDjango :class:`GEOSGeometry` object containing
+        the footprint as a polygon or multipolygon. The ``eo_id`` argument
+        is passed on to the GML encoder as a base ID for generating required
+        gml:id attributes.
+        """
         return self._makeElement(
             "eop", "Footprint", [
                 ("@gml", "id", "footprint_%s" % eo_id),
@@ -142,6 +190,13 @@ class EOPEncoder(GMLEncoder):
         )
     
     def encodeMetadataProperty(self, eo_id, contributing_datasets=None):
+        """
+        This method returns the EO O&M encoding of a metaDataProperty element.
+        
+        The ``eo_id`` element is reported in the eop:identifier element. If
+        provided, a list of ``contributing_datasets`` descriptions will be
+        included in the eop:composedOf element.
+        """
         sub_elements =  [
             ("eop", "identifier", eo_id),
             ("eop", "acquisitionType", "NOMINAL"), # TODO
@@ -160,6 +215,14 @@ class EOPEncoder(GMLEncoder):
         )
     
     def encodeEarthObservation(self, eo_metadata, contributing_datasets=None, poly=None):
+        """
+        This method returns the EO O&M encoding of an eop:EarthObservation
+        element. It takes an ``eo_metadata`` object as an input that implements
+        the :class:`~.EOMetadataInterface`.
+        
+        Note that the return value is only a minimal encoding with the
+        mandatory elements.
+        """
         eo_id = eo_metadata.getEOID()
         begin_time_iso = isotime(eo_metadata.getBeginTime())
         end_time_iso = isotime(eo_metadata.getEndTime())
@@ -206,6 +269,10 @@ class EOPEncoder(GMLEncoder):
         )
 
 class CoverageGML10Encoder(XMLEncoder):
+    """
+    This encoder provides methods for obtaining GMLCOV 1.0 compliant XML
+    encodings of coverage descriptions.
+    """
     def _initializeNamespaces(self):
         return {
             "gml": "http://www.opengis.net/gml/3.2",
@@ -220,6 +287,11 @@ class CoverageGML10Encoder(XMLEncoder):
             return id
     
     def encodeDomainSet(self, coverage):
+        """
+        This method encodes the gml:domainSet element for rectified or
+        referenceable datasets. The ``coverage`` argument is expected to
+        implement :class:`~.EOCoverageInterface`.
+        """
         if coverage.getType() == "eo.ref_dataset":
             return self._makeElement("gml", "domainSet", [
                 (self.encodeReferenceableGrid( coverage.getSize(), 
