@@ -289,8 +289,12 @@ class CoverageGML10Encoder(XMLEncoder):
     def encodeDomainSet(self, coverage):
         """
         This method encodes the gml:domainSet element for rectified or
-        referenceable datasets. The ``coverage`` argument is expected to
+        referenceable coverages. The ``coverage`` argument is expected to
         implement :class:`~.EOCoverageInterface`.
+        
+        The domain set can be represented by either a referenceable or
+        a rectified grid; :meth:`encodeReferenceableGrid` or
+        :meth:`encodeRectifiedGrid` are called accordingly.
         """
         if coverage.getType() == "eo.ref_dataset":
             return self._makeElement("gml", "domainSet", [
@@ -308,6 +312,21 @@ class CoverageGML10Encoder(XMLEncoder):
             ])
     
     def encodeSubsetDomainSet(self, coverage, srid, size, extent):
+        """
+        This method encodes the gml:domainSet element for subsets of
+        rectified or referenceable coverages. Whereas :meth:`encodeDomainSet`
+        computes the grid metadata based on the spatial reference system, extent
+        and pixel size of the whole coverage, this method can be customized
+        with parameters related to a subset of the coverage.
+        
+        The method expects four parameters: ``coverage`` shall be an object
+        implementing :class:`~.EOCoverageInterface`; ``srid`` shall be the
+        EPSG ID of the subset CRS (which does not have to be the same as the
+        coverage CRS); ``size`` shall be a 2-tuple of width and height of the
+        subset; finally the ``extent`` shall be represented by a 4-tuple
+        ``(minx, miny, maxx, maxy)``.
+
+        """
         if coverage.getType() == "eo.ref_dataset":
             return self._makeElement("gml", "domainSet", [
                 (self.encodeReferenceableGrid( size, srid, 
@@ -323,7 +342,15 @@ class CoverageGML10Encoder(XMLEncoder):
 
 
     def encodeRectifiedGrid(self, size, (minx, miny, maxx, maxy), srid, id):
-
+        """
+        This method returns the GML encoding of a rectified grid. It expects
+        four parameters as input: ``size`` shall be a 2-tuple of width and
+        height of the subset; the extent shall be represented by a 4-tuple
+        ``(minx, miny, maxx, maxy)``; the ``srid`` shall contain the EPSG ID
+        of the spatial reference system; finally, the ``id`` string is used to
+        generate gml:id attributes on certain elements that require it.
+        """
+        
         axesUnits, axesLabels, floatFormat , axesReversed , crsProjected = \
             _getUnitLabelAndFormat( srid ) 
 
@@ -367,7 +394,38 @@ class CoverageGML10Encoder(XMLEncoder):
 
 
     def encodeReferenceableGrid(self, size, srid, id):
-
+        """
+        This method returns an encoding of a referenceable grid. It expects
+        three parameters: ``size`` is a 2-tuple of width and height of the
+        grid, the ``srid`` is the EPSG ID of the spatial reference system
+        and the ``id`` string is used to generate gml:id attributes on
+        elements that require it.
+        
+        Note that the return value is a gml:ReferenceableGrid element that
+        actually does not exist in the GML standard.
+        
+        The reason is that EOxServer geo-references datasets using ground
+        control points (GCPs) provided with the dataset. With the current GML
+        implementations of gml:AbstractReferenceableGrid it is not possible
+        to specify only the GCPs in the description of the grid. You'd have to
+        calculate and encode the coordinates of every grid point instead. This
+        would blow up the XML descriptions of typical satellite scenes to
+        several 100 MB - which is clearly impractical.
+        
+        The current implementation returns a gml:RectifiedGrid pseudo-element
+        that is based on the gml:AbstractGrid structure and has about the
+        following structure::
+        
+            <gml:ReferenceableGrid dimension="2" gml:id="some_id">
+                <gml:limits>
+                    <gml:GridEnvelope>
+                        <gml:low>0 0</gml:low>
+                        <gml:high>999 999</gml:high>
+                    </gml:GridEnvelope>
+                </gml:limits>
+                <gml:axisLabels>lon lat</gml:axisLabels>
+            </gml:ReferenceableGrid>
+        """
         axesUnits, axesLabels, floatFormat , axesReversed , crsProjected = \
             _getUnitLabelAndFormat( srid ) 
 
@@ -387,7 +445,12 @@ class CoverageGML10Encoder(XMLEncoder):
 
 
     def encodeBoundedBy(self, (minx, miny, maxx, maxy), srid = 4326 ):
-
+        """
+        This method returns the encoding of the gml:boundedBy element. It
+        expects the extent as a 4-tuple ``(minx, miny, maxx, maxy)``. The
+        ``srid`` parameter is optional and represents the EPSG ID of the
+        spatial reference system as an integer; default is 4326.
+        """
         axesUnits, axesLabels, floatFormat , axesReversed , crsProjected = \
             _getUnitLabelAndFormat( srid ) 
 
@@ -406,6 +469,11 @@ class CoverageGML10Encoder(XMLEncoder):
         ])
 
     def encodeRangeType(self, coverage):
+        """
+        This method returns the range type XML encoding based on GMLCOV and
+        SWE Common. The ``coverage`` parameter shall implement
+        :class:`~.EOCoverageInterface`.
+        """
         range_type = coverage.getRangeType()
         
         return self._makeElement("gmlcov", "rangeType", [
@@ -416,6 +484,12 @@ class CoverageGML10Encoder(XMLEncoder):
         ])
 
     def encodeRangeTypeField(self, range_type, band):
+        """
+        This method returns the the encoding of a SWE Common field. This XML
+        structure represents a band in terms of typical EO data. The
+        ``range_type`` parameter shall be a :class:`~.RangeType` object, the
+        ``band`` parameter a :class:`~.Band` object.
+        """
         return self._makeElement("swe", "field", [
             ("", "@name", band.name),
             ("swe", "Quantity", [
@@ -437,6 +511,10 @@ class CoverageGML10Encoder(XMLEncoder):
         ])
     
     def encodeNilValue(self, nil_value):
+        """
+        This method returns the SWE Common encoding of a nil value; the
+        input parameter shall be of type :class:`~.NilValue`.
+        """
         return self._makeElement("swe", "NilValues", [
             ("swe", "nilValue", [
                 ("", "@reason", nil_value.reason),
