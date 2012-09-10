@@ -87,7 +87,8 @@ class GMLEncoder(XMLEncoder):
     
     def encodeLinearRing(self, ring, srid):
         """
-        Returns the GML encoding of a linear ring. The ``ring`` argument is
+        Returns a :mod:`xml.dom.minidom` element containing the GML
+        representation of a linear ring. The ``ring`` argument is
         expected to be a list of tuples which represent 2-D point coordinates
         with (x,y)/(lon,lat) axis order. The ``srid`` argument shall contain the
         EPSG ID of the spatial reference system as an integer.
@@ -108,11 +109,11 @@ class GMLEncoder(XMLEncoder):
 
     def encodePolygon(self, poly, base_id):
         """
-        This method returns the GML encoding of a polygon. The ``poly``
-        argument is expected to be a GeoDjango :class:`Polygon` or
-        :class:`GEOSGeometry` object containing a polygon. The ``base_id``
-        string is used to generate the required gml:id attributes on different
-        elements of the polygon encoding.
+        This method returns a :mod:`xml.dom.minidom` element containing the GML
+        representation of a polygon. The ``poly`` argument is expected to be a
+        GeoDjango :class:`Polygon` or :class:`GEOSGeometry` object containing a
+        polygon. The ``base_id`` string is used to generate the required gml:id
+        attributes on different elements of the polygon encoding.
         """
         ext_element = self.encodeLinearRing(poly[0], poly.srid)
         
@@ -133,10 +134,11 @@ class GMLEncoder(XMLEncoder):
 
     def encodeMultiPolygon(self, geom, base_id):
         """
-        This method returns the GML encoding of a multipolygon. The ``geom``
-        argument is expected to be a GeoDjango :class:`GEOSGeometry` object.
-        The ``base_id`` string is used to generate the required gml:id
-        attributes on different elements of the multipolygon encoding.
+        This method returns a :mod:`xml.dom.minidom` element containing the GML
+        represenation of a multipolygon. The ``geom`` argument is expected to be
+        a GeoDjango :class:`GEOSGeometry` object. The ``base_id`` string is used
+        to generate the required gml:id attributes on different elements of the
+        multipolygon encoding.
         """
         if geom.geom_type in ("MultiPolygon", "GeometryCollection"):
             polygons = [self.encodePolygon(geom[c], "%s_%d" % (base_id, c+1)) for c in range(0, geom.num_geom)]
@@ -174,11 +176,11 @@ class EOPEncoder(GMLEncoder):
 
     def encodeFootprint(self, footprint, eo_id):
         """
-        Returns the EO O&M encoding of a footprint. The ``footprint`` argument
-        shall contain a GeoDjango :class:`GEOSGeometry` object containing
-        the footprint as a polygon or multipolygon. The ``eo_id`` argument
-        is passed on to the GML encoder as a base ID for generating required
-        gml:id attributes.
+        Returns a :mod:`xml.dom.minidom` element containing the EO O&M
+        representation of a footprint. The ``footprint`` argument shall contain
+        a GeoDjango :class:`GEOSGeometry` object containing the footprint as a
+        polygon or multipolygon. The ``eo_id`` argument is passed on to the GML
+        encoder as a base ID for generating required gml:id attributes.
         """
         return self._makeElement(
             "eop", "Footprint", [
@@ -191,7 +193,8 @@ class EOPEncoder(GMLEncoder):
     
     def encodeMetadataProperty(self, eo_id, contributing_datasets=None):
         """
-        This method returns the EO O&M encoding of a metaDataProperty element.
+        This method returns a :mod:`xml.dom.minidom` element containing the
+        EO O&M representation of an eop:metaDataProperty element.
         
         The ``eo_id`` element is reported in the eop:identifier element. If
         provided, a list of ``contributing_datasets`` descriptions will be
@@ -216,9 +219,10 @@ class EOPEncoder(GMLEncoder):
     
     def encodeEarthObservation(self, eo_metadata, contributing_datasets=None, poly=None):
         """
-        This method returns the EO O&M encoding of an eop:EarthObservation
-        element. It takes an ``eo_metadata`` object as an input that implements
-        the :class:`~.EOMetadataInterface`.
+        This method returns a :mod:`xml.dom.minidom` element containing the
+        EO O&M representation of an Earth Observation. It takes an
+        ``eo_metadata`` object as an input that implements the
+        :class:`~.EOMetadataInterface`.
         
         Note that the return value is only a minimal encoding with the
         mandatory elements.
@@ -288,9 +292,10 @@ class CoverageGML10Encoder(XMLEncoder):
     
     def encodeDomainSet(self, coverage):
         """
-        This method encodes the gml:domainSet element for rectified or
-        referenceable coverages. The ``coverage`` argument is expected to
-        implement :class:`~.EOCoverageInterface`.
+        This method returns a :mod:`xml.dom.minidom` element containing the
+        GMLCOV represenation of the domain set for rectified or referenceable
+        coverages. The ``coverage`` argument is expected to implement
+        :class:`~.EOCoverageInterface`.
         
         The domain set can be represented by either a referenceable or
         a rectified grid; :meth:`encodeReferenceableGrid` or
@@ -313,8 +318,9 @@ class CoverageGML10Encoder(XMLEncoder):
     
     def encodeSubsetDomainSet(self, coverage, srid, size, extent):
         """
-        This method encodes the gml:domainSet element for subsets of
-        rectified or referenceable coverages. Whereas :meth:`encodeDomainSet`
+        This method returns a :mod:`xml.dom.minidom` element containing the
+        GMLCOV representation of a domain set for subsets of rectified or
+        referenceable coverages. Whereas :meth:`encodeDomainSet`
         computes the grid metadata based on the spatial reference system, extent
         and pixel size of the whole coverage, this method can be customized
         with parameters related to a subset of the coverage.
@@ -343,7 +349,8 @@ class CoverageGML10Encoder(XMLEncoder):
 
     def encodeRectifiedGrid(self, size, (minx, miny, maxx, maxy), srid, id):
         """
-        This method returns the GML encoding of a rectified grid. It expects
+        This method returns a :mod:`xml.dom.minidom` element containing the
+        GMLCOV representation of a rectified grid. It expects
         four parameters as input: ``size`` shall be a 2-tuple of width and
         height of the subset; the extent shall be represented by a 4-tuple
         ``(minx, miny, maxx, maxy)``; the ``srid`` shall contain the EPSG ID
@@ -395,7 +402,8 @@ class CoverageGML10Encoder(XMLEncoder):
 
     def encodeReferenceableGrid(self, size, srid, id):
         """
-        This method returns an encoding of a referenceable grid. It expects
+        This method returns a :mod:`xml.dom.minidom` element containig the
+        GMLCOV representation of a referenceable grid. It expects
         three parameters: ``size`` is a 2-tuple of width and height of the
         grid, the ``srid`` is the EPSG ID of the spatial reference system
         and the ``id`` string is used to generate gml:id attributes on
@@ -446,10 +454,11 @@ class CoverageGML10Encoder(XMLEncoder):
 
     def encodeBoundedBy(self, (minx, miny, maxx, maxy), srid = 4326 ):
         """
-        This method returns the encoding of the gml:boundedBy element. It
-        expects the extent as a 4-tuple ``(minx, miny, maxx, maxy)``. The
-        ``srid`` parameter is optional and represents the EPSG ID of the
-        spatial reference system as an integer; default is 4326.
+        This method returns a :mod:`xml.dom.minidom` element representing the
+        gml:boundedBy element. It expects the extent as a 4-tuple
+        ``(minx, miny, maxx, maxy)``. The ``srid`` parameter is optional and
+        represents the EPSG ID of the spatial reference system as an integer;
+        default is 4326.
         """
         axesUnits, axesLabels, floatFormat , axesReversed , crsProjected = \
             _getUnitLabelAndFormat( srid ) 
@@ -471,8 +480,8 @@ class CoverageGML10Encoder(XMLEncoder):
     def encodeRangeType(self, coverage):
         """
         This method returns the range type XML encoding based on GMLCOV and
-        SWE Common. The ``coverage`` parameter shall implement
-        :class:`~.EOCoverageInterface`.
+        SWE Common as an :mod:`xml.dom.minidom` element. The ``coverage``
+        parameter shall implement :class:`~.EOCoverageInterface`.
         """
         range_type = coverage.getRangeType()
         
@@ -485,10 +494,11 @@ class CoverageGML10Encoder(XMLEncoder):
 
     def encodeRangeTypeField(self, range_type, band):
         """
-        This method returns the the encoding of a SWE Common field. This XML
-        structure represents a band in terms of typical EO data. The
-        ``range_type`` parameter shall be a :class:`~.RangeType` object, the
-        ``band`` parameter a :class:`~.Band` object.
+        This method returns the the encoding of a SWE Common field as an
+        :mod:`xml.dom.minidom` element. This XML structure represents a band in
+        terms of typical EO data. The ``range_type`` parameter shall be a
+        :class:`~.RangeType` object, the ``band`` parameter a :class:`~.Band`
+        object.
         """
         return self._makeElement("swe", "field", [
             ("", "@name", band.name),
@@ -512,8 +522,9 @@ class CoverageGML10Encoder(XMLEncoder):
     
     def encodeNilValue(self, nil_value):
         """
-        This method returns the SWE Common encoding of a nil value; the
-        input parameter shall be of type :class:`~.NilValue`.
+        This method returns the SWE Common encoding of a nil value as an
+        :mod:`xml.dom.minidom` element; the input parameter shall be of type
+        :class:`~.NilValue`.
         """
         return self._makeElement("swe", "NilValues", [
             ("swe", "nilValue", [
@@ -524,6 +535,10 @@ class CoverageGML10Encoder(XMLEncoder):
 
 
 class WCS20Encoder(CoverageGML10Encoder):
+    """
+    This encoder class provides methods for generating XML needed by WCS 2.0.
+    It inherits from :class:`CoverageGML10Encoder`.
+    """
     def _initializeNamespaces(self):
         ns_dict = super(WCS20Encoder, self)._initializeNamespaces()
         ns_dict.update({
@@ -533,9 +548,18 @@ class WCS20Encoder(CoverageGML10Encoder):
         return ns_dict
     
     def encodeExtension(self):
+        """
+        Returns an empty wcs:Extension element as an :mod:`xml.dom.minidom`
+        element.
+        """
         return self._makeElement("wcs", "Extension", [])
     
     def encodeCoverageDescription(self, coverage):
+        """
+        Returns a :mod:`xml.dom.minidom` element representing a coverage
+        description. The method expects one parameter, ``coverage``, which
+        shall implement the :class:`~.EOCoverageInterface`.
+        """
         return self._makeElement("wcs", "CoverageDescription", [
             ("@gml", "id", self._getGMLId(coverage.getCoverageId())),
             (self.encodeBoundedBy(coverage.getWGS84Extent()),),
