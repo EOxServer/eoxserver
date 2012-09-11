@@ -572,6 +572,14 @@ class WCS20Encoder(CoverageGML10Encoder):
         ])
     
     def encodeCoverageDescriptions(self, coverages, is_root=False):
+        """
+        Returns a :mod:`xml.dom.minidom` element representing a
+        wcs:CoverageDescriptions element. The ``coverages`` argument shall be
+        a list of objects implementing :class:`~.EOCoverageInterface` whereas
+        the optional ``is_root`` flag indicates that the element will be the
+        document root and thus should include an xsi:schemaLocation attribute
+        pointing to the EO-WCS schema; it defaults to ``False``.
+        """
         if is_root:
             sub_nodes = [("@xsi", "schemaLocation", "http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd")]
         else:
@@ -582,6 +590,10 @@ class WCS20Encoder(CoverageGML10Encoder):
         return self._makeElement("wcs", "CoverageDescriptions", sub_nodes)
 
 class WCS20EOAPEncoder(WCS20Encoder):
+    """
+    This encoder provides methods for generating EO-WCS compliant XML
+    descriptions.
+    """
     def _initializeNamespaces(self):
         ns_dict = super(WCS20EOAPEncoder, self)._initializeNamespaces()
         ns_dict.update({
@@ -593,6 +605,16 @@ class WCS20EOAPEncoder(WCS20Encoder):
         return ns_dict
     
     def encodeContributingDatasets(self, coverage, poly=None):
+        """
+        This method returns a list of :mod:`xml.dom.minidom` elements containing
+        wcseo:dataset descriptions of contributing datasets. This is used for
+        coverage descriptions of Rectified Stitched Mosaics. The ``coverage``
+        parameter shall refer to a :class:`~.RectifiedStitchedMosaicWrapper`
+        object. The optional ``poly`` argument may contain a GeoDjango
+        :class:`GEOSGeometry` object describing the polygon. If it is
+        provided, the set of contributing datasets will be restricted to
+        those intersecting the given polygon.
+        """
         eop_encoder = EOPEncoder()
         
         contributions = MosaicContribution.getContributions(coverage, poly)
@@ -608,6 +630,20 @@ class WCS20EOAPEncoder(WCS20Encoder):
         ]
     
     def encodeEOMetadata(self, coverage, req=None, include_composed_of=False, poly=None): # TODO include_composed_of and poly are currently ignored
+        """
+        This method returns a :mod:`xml.dom.minidom` element containing the
+        EO Metadata description of a coverage as needed for EO-WCS descriptions.
+        The method requires one argument, ``coverage``, that shall implement
+        :class:`~.EOCoverageInterface`.
+        
+        Moreover, a :class:`~.OWSRequest` object ``req`` can be provided. If it
+        is present, a wcseo:lineage element that describes the request
+        arguments will be added to the metadata description.
+        
+        The ``include_composed_of`` and ``poly`` arguments are ignored at the
+        moment.
+        """
+        
         poly_intersection = None
         if poly is not None:
             poly_intersection = coverage.getFootprint().intersection(poly)
@@ -675,16 +711,35 @@ class WCS20EOAPEncoder(WCS20Encoder):
             ])
 
     def encodeContents(self):
+        """
+        Returns an empty wcs:Contents element as :mod:`xml.dom.minidom`
+        element.
+        """
         return self._makeElement("wcs", "Contents", [])
 
     def encodeCoverageSummary(self, coverage):
+        """
+        This method returns a wcs:CoverageSummary element as
+        :mod:`xml.dom.minidom` element. It expects a ``coverage`` object
+        implementing :class:`~.EOCoverageInterface` as input.
+        """
         return self._makeElement("wcs", "CoverageSummary", [
             ("wcs", "CoverageId", coverage.getCoverageId()),
             ("wcs", "CoverageSubtype", coverage.getEOCoverageSubtype()),
         ])
 
     def encodeCoverageDescription(self, coverage, is_root=False):
-
+        """
+        This method returns a wcs:CoverageDescription element including
+        EO Metadata as :mod:`xml.dom.minidom` element. It expects one
+        mandatory argument, ``coverage``, which shall implement
+        :class:`~.EOCoverageInterface`. The optional ``is_root`` flag indicates
+        whether the returned element will be the document root of the
+        response. If yes, a xsi:schemaLocation attribute pointing to the
+        EO-WCS schema will be added to the root element. It defaults to
+        ``False``.
+        """
+        
         # retrieve the format registry 
         FormatRegistry = getFormatRegistry() 
 
@@ -716,6 +771,13 @@ class WCS20EOAPEncoder(WCS20Encoder):
 
     #TODO: remove once fully supported by mapserver 
     def encodeSupportedCRSs( self ) : 
+        """
+        This method returns list of :mod:`xml.dom.minidom` elements containing
+        the supported CRSes for a service. The CRSes are retrieved using
+        :func:`eoxserver.resources.coverages.crss.getSupportedCRS_WCS`. They
+        are encoded as crsSupported elements in the namespace of the WCS 2.0
+        CRS extension.
+        """
 
         # get list of supported CRSes 
         supported_crss = crss.getSupportedCRS_WCS(format_function=crss.asURL) 
@@ -729,7 +791,12 @@ class WCS20EOAPEncoder(WCS20Encoder):
         return el 
     
     def encodeRangeSet( self , reference , mimeType ) :
-
+        """
+        This method returns a :mod:`xml.dom.minidom` element containing a
+        reference to the range set of the coverage. The ``reference`` parameter
+        shall refer to the file part of a multipart message. The ``mime_type``
+        shall contain the MIME type of the delivered coverage.
+        """
         return self._makeElement("gml", "rangeSet", 
             [( "gml","File" , 
                 [("gml","rangeParameters",
@@ -744,6 +811,26 @@ class WCS20EOAPEncoder(WCS20Encoder):
             ]) 
 
     def encodeReferenceableDataset( self , coverage , reference , mimeType , is_root = False , subset = None ) : 
+        """
+        This method returns the description of a Referenceable Dataset as a
+        :mod:`xml.dom.minidom` element. It expects three input arguments:
+        ``coverage`` shall be a :class:`~.ReferenceableDatasetWrapper` instance;
+        ``reference`` shall be a string containing a reference to the
+        coverage data; ``mime_type`` shall be a string containing the MIME type
+        of the coverage data.
+        
+        The ``is_root`` flag indicates that the returned element is the
+        document root and an xsi:schemaLocation attribute pointing to the
+        EO-WCS schemas shall be added. It defaults to ``False``. The
+        ``subset`` argument is optional. In case it is provided it indicates
+        that the description relates to a subset of the dataset only and thus
+        the metadata (domain set) shall be changed accordingly. It is expected
+        to be a 4-tuple of ``(srid, size, extent, footprint)``. The ``srid``
+        represents the integer EPSG ID of the CRS description. The ``size``
+        contains a 2-tuple of width and height. The ``extent`` is a 4-tuple
+        of ``(minx, miny, maxx, maxy)``; the coordinates shall be expressed
+        in the CRS denoted by ``srid``. The ``footprint`` part is not used.
+        """
 
         # handle subset 
         dst_srid   = coverage.getSRID() 
@@ -783,6 +870,21 @@ class WCS20EOAPEncoder(WCS20Encoder):
 
 
     def encodeSubsetCoverageDescription(self, coverage, srid, size, extent, footprint, is_root=False):
+        """
+        This method returns a :mod:`xml.dom.minidom` element containing a
+        coverage description for a subset of a coverage according to WCS 2.0.
+        The ``coverage`` parameter shall implement
+        :class:`~.EOCoverageInterface`. The ``srid`` shall contain the
+        integer EPSG ID of the output (subset) CRS. The ``size`` parameter
+        shall be a 2-tuple of width and height. The ``extent`` shall be a
+        4-tuple of ``(minx, miny, maxx, maxy)`` expressed in the CRS described
+        by ``srid``. The ``footprint`` argument shall be a GeoDjango
+        :class:`GEOSGeometry` object containing a polygon. The ``is_root``
+        flag indicates whether the resulting wcs:CoverageDescription element
+        is the document root of the response. In that case a xsi:schemaLocation
+        attribute pointing to the EO-WCS schema will be added. It defaults
+        to ``False``.
+        """
         poly = Polygon.from_bbox(extent)
         poly.srid = srid
         poly.transform(4326)
@@ -808,6 +910,12 @@ class WCS20EOAPEncoder(WCS20Encoder):
         return self._makeElement("wcs", "CoverageDescription", sub_nodes)
     
     def encodeDatasetSeriesDescription(self, dataset_series):
+        """
+        This method returns a :mod:`xml.dom.minidom` element representing
+        a Dataset Series description. The method expects a
+        :class:`~.DatasetSeriesWrapper` object ``dataset_series`` as its
+        only input.
+        """
         return self._makeElement("wcseo", "DatasetSeriesDescription", [
             ("@gml", "id", self._getGMLId(dataset_series.getEOID())),
             (self.encodeBoundedBy(dataset_series.getWGS84Extent()),),
@@ -823,6 +931,12 @@ class WCS20EOAPEncoder(WCS20Encoder):
         ])
 
     def encodeDatasetSeriesDescriptions(self, datasetseriess):
+        """
+        This method returns a wcs:DatasetSeriesDescriptions element as a
+        :mod:`xml.dom.minidom` element. The element contains the
+        descriptions of a list of Dataset Series contained in the
+        ``datasetseriess`` parameter.
+        """
         if datasetseriess is not None and len(datasetseriess) != 0:
             sub_nodes = [(self.encodeDatasetSeriesDescription(datasetseries),) for datasetseries in datasetseriess]
         else:
@@ -830,6 +944,17 @@ class WCS20EOAPEncoder(WCS20Encoder):
         return self._makeElement("wcseo", "DatasetSeriesDescriptions", sub_nodes)
         
     def encodeEOCoverageSetDescription(self, datasetseriess, coverages, numberMatched=None, numberReturned=None):
+        """
+        This method returns a wcseo:EOCoverageSetDescription element (the
+        response to a EO-WCS DescribeEOCoverageSet request) as a 
+        :mod:`xml.dom.minidom` element.
+        
+        ``datasetseriess`` shall be a list of :class:`~.DatasetSeriesWrapper`
+        objects. The ``coverages`` argument shall be a list of objects
+        implementing :class:`~.EOCoverageInterface`. The optional
+        ``numberMatched`` and ``numberReturned`` arguments are used in
+        responses for pagination.
+        """
         if numberMatched is None:
             numberMatched = len(coverages)
         if numberReturned is None:
@@ -849,11 +974,25 @@ class WCS20EOAPEncoder(WCS20Encoder):
         return root_element
 
     def encodeEOProfiles(self):
+        """
+        Returns a list of ows:Profile elements referring to the WCS 2.0 profiles
+        implemented by EOxServer (EO-WCS and its GET KVP binding as well as
+        the CRS extension of WCS 2.0). The resulting :mod:`xml.dom.minidom`
+        elements can be used in WCS 2.0 GetCapabilities responses.
+        """
         return [self._makeElement("ows", "Profile", "http://www.opengis.net/spec/WCS_application-profile_earth-observation/1.0/conf/eowcs"),
                 self._makeElement("ows", "Profile", "http://www.opengis.net/spec/WCS_application-profile_earth-observation/1.0/conf/eowcs_get-kvp"),
                 self._makeElement("ows", "Profile", "http://www.opengis.net/spec/WCS_service-extension_crs/1.0/conf/crs")] #TODO remove once fully supported by mapserver 
 
     def encodeDescribeEOCoverageSetOperation(self, http_service_url):
+        """
+        This method returns an ows:Operation element describing the
+        additional EO-WCS DescribeEOCoverageSet operation for use in the
+        WCS 2.0 GetCapabilities response. The return value is - as always -
+        a :mod:`xml.dom.minidom` element.
+        
+        The only parameter is the HTTP service URL of the EOxServer instance.
+        """
         return self._makeElement("ows", "Operation", [
             ("", "@name", "DescribeEOCoverageSet"),
             ("ows", "DCP", [
@@ -877,6 +1016,10 @@ class WCS20EOAPEncoder(WCS20Encoder):
         ])
     
     def encodeWGS84BoundingBox(self, dataset_series):
+        """
+        This element returns the ows:WGS84BoundingBox for a Dataset Series.
+        The input parameter shall be a :class:`~.DatasetSeriesWrapper` object.
+        """
         minx, miny, maxx, maxy = dataset_series.getWGS84Extent()
 
         floatFormat = PPREC2[False] 
@@ -887,7 +1030,11 @@ class WCS20EOAPEncoder(WCS20Encoder):
         ])
     
     def encodeTimePeriod(self, dataset_series):
-
+        """
+        This method returns a gml:TimePeriod element referring to the
+        time period of a Dataset Series. The input argument is expected to
+        be a :class:`~.DatasetSeriesWrapper` object.
+        """
         timeFormat = "%Y-%m-%dT%H:%M:%S"
 
         teoid = "%s_timeperiod" % dataset_series.getEOID()
@@ -901,6 +1048,10 @@ class WCS20EOAPEncoder(WCS20Encoder):
         ])
 
     def encodeDatasetSeriesSummary(self, dataset_series):
+        """
+        This method returns a wcseo:DatasetSeriesSummary element referring to
+        ``dataset_series``, a :class:`~.DatasetSeriesWrapper` object.
+        """
         return self._makeElement("wcseo", "DatasetSeriesSummary", [
             (self.encodeWGS84BoundingBox(dataset_series),),
             ("wcseo", "DatasetSeriesId", dataset_series.getEOID()),
@@ -908,6 +1059,13 @@ class WCS20EOAPEncoder(WCS20Encoder):
         ])
 
     def encodeRectifiedDataset(self, dataset, req=None, nodes=None, poly=None):
+        """
+        This method returns a wcseo:RectifiedDataset element describing the
+        ``dataset``  object of type :class:`~.RectifiedDatasetWrapper`. The
+        ``nodes`` parameter may contain a list of :mod:`xml.dom.minidom` nodes
+        to be appended to the root element. The ``req`` and ``poly`` arguments
+        are passed on to :meth:`encodeEOMetadata`.
+        """
         root_element = self._makeElement("wcseo", "RectifiedDataset", [
             ("@xsi", "schemaLocation", "http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd"),
             ("@gml", "id", dataset.getCoverageId())
@@ -923,6 +1081,14 @@ class WCS20EOAPEncoder(WCS20Encoder):
         return root_element
         
     def encodeRectifiedStitchedMosaic(self, mosaic, req=None, nodes=None, poly=None):
+        """
+        This method returns a wcseo:RectifiedStitchedMosaic element describing
+        the ``mosaic``  object of type
+        :class:`~.RectifiedStitchedMosaicWrapper`. The ``nodes`` parameter may
+        contain a list of :mod:`xml.dom.minidom` nodes to be appended to the
+        root element. The ``req`` and ``poly`` arguments are passed on to
+        :meth:`encodeEOMetadata`.
+        """
         root_element = self._makeElement("wcseo", "RectifiedStitchedMosaic", [
             ("@xsi", "schemaLocation", "http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd"),
             ("@gml", "id", mosaic.getCoverageId())
@@ -942,6 +1108,12 @@ class WCS20EOAPEncoder(WCS20Encoder):
         return root_element
 
     def encodeCountDefaultConstraint(self, count):
+        """
+        This method returns a ows:Constraint element representing the default
+        maximum of descriptions in an EO-WCS DescribeEOCoverage response for use
+        in WCS 2.0 GetCapabilities responses. The ``count`` argument is
+        expected to contain a positive integer.
+        """
         return self._makeElement("ows", "Constraint", [
             ("", "@name", "CountDefault"),
             ("ows", "NoValues", ""),
