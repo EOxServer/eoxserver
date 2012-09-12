@@ -27,6 +27,10 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+"""
+This module provides utilities for handling WCS 2.0 subset expressions.
+"""
+
 import re
 from django.contrib.gis.geos import Polygon
 
@@ -43,6 +47,19 @@ from eoxserver.services.exceptions import (
 )
 
 class WCS20SubsetDecoder(object):
+    """
+    This class provides methods for decoding a subset expression according
+    to WCS 2.0.0. Note that in WCS 2.0.1 the syntax and semantics of these
+    subset expressions have changed quite considerably, especially for the
+    GET KVP encoding. These are not yet supported.
+    
+    The constructor takes two arguments. The first one, ``req`` is required
+    and shall contain a :class:`~.OWSRequest` instance. The ``default_crs_id``
+    parameter is optional and may contain a CRS ID that will be used as
+    fallback if no CRS is specified in the subset expression itself. The
+    CRS ID can be either the string ``"imageCRS"`` or an integer EPSG ID of
+    a CRS.
+    """
     def __init__(self, req, default_crs_id=None):
         self.req = req
         self.default_crs_id = default_crs_id
@@ -421,6 +438,28 @@ class WCS20SubsetDecoder(object):
         return (minx, miny, maxx, maxy)
     
     def getFilterExpressions(self):
+        """
+        This method returns a list of filter expressions based on the subset
+        expression. These filter expressions can be used to select coverages
+        from the database.
+        
+        Depending on the types of the subset expressions
+        :class:`~.SpatialSliceExpression`,
+        :class:`~.FootprintIntersectsAreaExpression`,
+        :class:`~.FootprintWithinAreaExpression`,
+        :class:`~.TimeSliceExpression`,
+        :class:`~.IntersectingTimeIntervalExpression` or
+        :class:`~.ContainingTimeIntervalExpression` instances will be returned.
+        
+        The return values depend on the ``subset`` as well as the
+        ``containment`` parameters contained in the request.
+        
+        This method raises :exc:`~.InvalidRequestException` if the subset
+        expression syntax is found to be invalid. It raises
+        :exc:`~.InvalidSubsettingException` if the subset expression is
+        syntactically correct, but cannot be interpretated, e.g. because of
+        wrong date/time, number or spatial reference formats.
+        """
         self._decode()
         
         filter_exprs = []
@@ -432,6 +471,33 @@ class WCS20SubsetDecoder(object):
         return filter_exprs
     
     def getBoundingPolygon(self, footprint, srid, size_x, size_y, extent):
+        """
+        This method returns a GeoDjango :class:`Polygon` object computed from
+        the subset expression as well as the submitted parameters. The
+        ``footprint`` contains the footprint of the underlying coverage,
+        the ``srid`` is the integer EPSG ID of the coverage CRS, ``size_x`` and
+        ``size_y`` denote the size of the coverage in pixels and ``extent`` is
+        the well-known 4-tuple ``(minx, miny, maxx, maxy)``.
+        
+        In case the CRS ID of the subsets relates to the image CRS, the
+        bounding polygon is the intersection of the subset trims and the
+        coverage extent expressed in the coverage CRS denoted by ``srid``.
+        The pixel coordinates in the subset statements are computed using the
+        ``extent``, ``size_x`` and ``size_y`` parameters.
+        
+        In case the CRS ID of the subsets is an EPSG ID denoting a CRS the
+        bounding polygon is computed from the footprint and the subset trims.
+        The CRS of the polygon is the one used in the subset expressions, not
+        necessarily the native CRS of the coverage. It corresponds to the
+        intersection of the bounding box of the footprint transformed into the
+        subset CRS and the subset trims.
+        
+        This method raises :exc:`~.InvalidRequestException` if the subset
+        expression syntax is found to be invalid. It raises
+        :exc:`~.InvalidSubsettingException` if the subset expression is
+        syntactically correct, but cannot be interpretated, e.g. because of
+        wrong date/time, number or spatial reference formats.
+        """
         self._decode()
         
         time_intv, crs_id, x_bounds, y_bounds = \
@@ -503,6 +569,28 @@ class WCS20SubsetDecoder(object):
         return poly
 
     def getSubset(self, x_size, y_size, footprint):
+        """
+        This method returns a :class:`~.BoundedArea` object containing the
+        bounding coordinates described by the subsets. The ``x_size`` and
+        ``y_size`` parameters describe the pixel size of the coverage. The
+        ``footprint`` argument is the coverage footprint as GeoDjango geometry.
+        If there are no trim statements contained in the subset expressions
+        ``None`` is returned.
+        
+        Depending on the CRS ID used in the subset expressions, the result
+        may contain pixel coordinates (imageCRS) or coordinates expressed in
+        the CRS of the subset expression. In the former case, the returned area
+        corresponds to the intersection of the pixel ranges defined by the trims
+        and the size of the coverage. In the latter case the bounded area
+        corresponds to the intersection of the subset with the bounding box of
+        the footprint in the subset CRS.
+        
+        This method raises :exc:`~.InvalidRequestException` if the subset
+        expression syntax is found to be invalid. It raises
+        :exc:`~.InvalidSubsettingException` if the subset expression is
+        syntactically correct, but cannot be interpretated, e.g. because of
+        wrong date/time, number or spatial reference formats.
+        """
         self._decode()
         
         time_intv, crs_id, x_bounds, y_bounds = \
