@@ -27,6 +27,10 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+"""
+This module contains the handler for WCS 2.0 / EO-WCS DescribeCoverage requests.
+"""
+
 from eoxserver.core.system import System
 from eoxserver.core.util.xmltools import DOMElementToXML
 from eoxserver.services.base import BaseRequestHandler
@@ -35,6 +39,17 @@ from eoxserver.services.exceptions import InvalidRequestException
 from eoxserver.services.ows.wcs.encoders import WCS20EOAPEncoder
 
 class WCS20DescribeCoverageHandler(BaseRequestHandler):
+    """
+    This handler generates responses to WCS 2.0 / EO-WCS DescribeCoverage
+    requests. It inherits directly from :class:`~.BaseRequestHandler` and
+    does NOT reuse MapServer.
+    
+    The workflow implemented by the handler starts with the
+    :meth:`createCoverages` method and generates the coverage descriptions
+    using the :class:`~.WCS20EOAPEncoder` method
+    :meth:`~.WCS20EOAPEncoder.encodeCoverageDescriptions`.
+    """
+    
     REGISTRY_CONF = {
         "name": "WCS 2.0 DescribeCoverage Handler",
         "impl_id": "services.ows.wcs20.WCS20DescribeCoverageHandler",
@@ -66,6 +81,12 @@ class WCS20DescribeCoverageHandler(BaseRequestHandler):
         )
 
     def createCoverages(self, req):
+        """
+        This method retrieves the coverage metadata for the coverages denoted
+        by the coverageid parameter of the request. It raises an
+        :exc:`~.InvalidRequestException` if the coverageid parameter is
+        missing or if it contains an unknown coverage ID.
+        """
         coverage_ids = req.getParamValue("coverageids")
         
         if coverage_ids is None:

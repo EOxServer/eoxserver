@@ -27,6 +27,10 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+"""
+This method provides a handler for EO-WCS DescribeEOCoverageSet operations.
+"""
+
 import sys
 
 from eoxserver.core.system import System
@@ -43,6 +47,24 @@ from eoxserver.services.ows.wcs.wcs20.subset import WCS20SubsetDecoder
 
 
 class WCS20DescribeEOCoverageSetHandler(BaseRequestHandler):
+    """
+    This handler generates responses to EO-WCS DescribeEOCoverageSet requests.
+    It derives directly from :class:`~.BaseRequestHandler` and does not
+    reuse MapServer (as MapServer does not support EO-WCS).
+    
+    The implented workflow begins with a call to :meth:`createWCSEOObjects`
+    and then goes on to encode the EO coverage and Dataset Series metadata.
+    
+    The handler is aware of the count and sections parameters of
+    DescribeEOCoverageSet which allow to limit the number of coverage
+    and Dataset Series descriptions returned and the sections
+    (CoverageDescriptions, DatasetSeriesDescriptions, All) included in the
+    requests.
+    
+    An :exc:`~.InvalidRequestException` will be raised if incorrect parameters
+    are encountered or the mandatory eoid parameter is missing.
+    """
+
     REGISTRY_CONF = {
         "name": "WCS 2.0 EO-AP DescribeEOCoverageSet Handler",
         "impl_id": "services.ows.wcs20.WCS20DescribeEOCoverageSetHandler",
@@ -132,6 +154,22 @@ class WCS20DescribeEOCoverageSetHandler(BaseRequestHandler):
             raise InvalidRequestException("'sections' parameter must be either 'CoverageDescriptions', 'DatasetSeriesDescriptions', or 'All'.", "InvalidParameterValue", "sections")
 
     def createWCSEOObjects(self, req):
+        """
+        This method returns a tuple ``(dataset_series_set, coverages)`` of
+        two lists containing Dataset Series or EO Coverage objects respectively.
+        It parses the request parameters in ``req`` in order to determine the
+        subset of EO-WCS objects to be included.
+        
+        The method makes use of
+        :meth:`~.WCS20SubsetDecoder.getFilterExpressions` in order to parse
+        subset expressions sent with the request and to obtain filter
+        expressions that restrict the subset of EO-WCS objects to be included.
+        
+        The method will raise :exc:`~.InvalidRequestException` if parameters
+        are missing, subset expressions are invalid or if the eoid parameter
+        contains unknown names.
+        """
+        
         eo_ids = req.getParamValue("eoid")
             
         try:
