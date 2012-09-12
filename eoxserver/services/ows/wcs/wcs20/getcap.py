@@ -27,6 +27,10 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+"""
+This module provides handlers for WCS 2.0 / EO-WCS GetCapabilities requests.
+"""
+
 from xml.dom import minidom
 
 from eoxserver.core.system import System
@@ -39,6 +43,20 @@ from eoxserver.services.ows.wcs.encoders import WCS20EOAPEncoder
 from eoxserver.services.ows.wcst.wcst11AlterCapabilities import wcst11AlterCapabilities20
 
 class WCS20GetCapabilitiesHandler(WCSCommonHandler):
+    """
+    This is the handler for WCS 2.0 / EO-WCS GetCapabilities requests. It
+    inherits from :class:`~.WCSCommonHandler`.
+    
+    As for all handlers, the entry point is the :meth:`~.handle` method. The
+    handler then performs a workflow that is described in the
+    :class:`~.WCSCommonHandler` documentation.
+    
+    This handler follows this workflow with adaptations to the
+    :meth:`createCoverages`, :meth:`configureMapObj` and :meth:`postprocess`
+    methods. The latter one modifies the GetCapabilities response obtained by
+    MapServer to contain EO-WCS specific extensions.
+    """
+    
     SERVICE = "wcs"
     
     REGISTRY_CONF = {
@@ -61,6 +79,11 @@ class WCS20GetCapabilitiesHandler(WCSCommonHandler):
     
     # TODO: override createCoverages, configureRequest, configureMapObj
     def createCoverages(self):
+        """
+        This method adds all Rectified Datasets and Rectified Stitched Mosaics
+        to the ``coverages`` property of the handler. For each of these
+        coverages, a layer will be added to the MapScript :class:`mapObj`.
+        """
         self.coverages = self._get_coverages(
             [
                 "resources.coverages.wrappers.RectifiedDatasetWrapper",
@@ -86,6 +109,11 @@ class WCS20GetCapabilitiesHandler(WCSCommonHandler):
 
 
     def configureMapObj(self):
+        """
+        This method extends the :class:`~.WCSCommonHandler.configureMapObj`
+        method to include informations on the available output formats as
+        well as the supported CRSes.
+        """
         super(WCS20GetCapabilitiesHandler, self).configureMapObj()
 
         # set all the supported formats 
@@ -100,6 +128,13 @@ class WCS20GetCapabilitiesHandler(WCSCommonHandler):
 
     
     def getMapServerLayer(self, coverage):
+        """
+        This method returns a MapScript :class:`layerObj` for the input
+        ``coverage``. It extends the
+        :class:`~.WCSCommonHandler.getMapServerLayer` function by configuring
+        the input data using the appropriate connectors (see
+        :mod:`eoxserver.services.connectors`).
+        """
         layer = super(WCS20GetCapabilitiesHandler, self).getMapServerLayer(coverage)
         
         connector = System.getRegistry().findAndBind(
@@ -116,6 +151,35 @@ class WCS20GetCapabilitiesHandler(WCSCommonHandler):
 
 
     def postprocess(self, resp):
+        """
+        This method transforms the standard WCS 2.0 response ``resp`` obtained
+        from MapServer into an EO-WCS compliant GetCapabilities response and
+        returns the corresponding :class:`~.Response` object.
+        
+        Specifically,
+        
+        * the xsi:schemaLocation attribute of the document root is set
+          to the EO-WCS schema URL
+        * the extensions supported by EOxServer are added to the
+          wcs:ServiceMetadata element
+        * the supported EO-WCS profiles are added to the
+          wcs:ServiceIdentification element
+        * the metadata for the DescribeEOCoverageSet operation is added
+          to the ows:OperationsMetadata element
+        * the wcs:Contents section is replaced by an EO-WCS compliant
+          structure
+          
+        The wcs:Contents section is configured with the coverage summaries of
+        all visible Rectified and Referenceable Datasets, of all Rectified
+        Stitched Mosaics and the summaries of all Dataset Series. Note that
+        the handler is aware of the OWS Common sections parameter which allows
+        to deselect all or parts of the wcs:Contents section and acts
+        accordingly.
+        
+        Should MapServer return an exception report in ``resp``, it is
+        passed on unchanged except for the xsi:schemaLocation attribute.
+        """
+        
         dom = minidom.parseString(resp.content)
         
         # add the additional CRS namespace 
