@@ -137,7 +137,7 @@ class OWSCommonServiceHandler(BaseRequestHandler):
     If it is present new-style version negotiation is triggered and old-style
     version negotiation otherwise.
     
-    Ǹew-style version negotiation will take the first version defined
+    New-style version negotiation will take the first version defined
     in the AcceptVersion parameter that is implemented and raise an exception
     if none of the versions is known. The version parameter is always
     ignored.
