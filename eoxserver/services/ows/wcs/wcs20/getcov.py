@@ -560,12 +560,13 @@ class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
             coverage = self.coverages[0]
             mime_type = resp.getContentType()
             
-            filename = "%s_%s%s" % (
-                coverage.getCoverageId(),
-                datetime.now().strftime("%Y%m%d%H%M%S"),
-                getFormatRegistry().getFormatByMIME( mime_type ).defaultExt
-            )
-            
-            resp.headers.update({'Content-Disposition': "inline; filename=\"%s\"" % filename})
+            if not mime_type.lower().startswith("multipart/"):
+                filename = "%s_%s%s" % (
+                    coverage.getCoverageId(),
+                    datetime.now().strftime("%Y%m%d%H%M%S"),
+                    getFormatRegistry().getFormatByMIME( mime_type ).defaultExt
+                )
+                
+                resp.headers.update({'Content-Disposition': "inline; filename=\"%s\"" % filename})
 
         return resp
