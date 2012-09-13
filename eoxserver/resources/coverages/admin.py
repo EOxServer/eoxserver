@@ -350,16 +350,17 @@ class AbstractContainerAdmin(admin.ModelAdmin):
     
     def changelist_view(self, request, *args, **kwargs):
         try:
-            ret = super(AbstractContainerAdmin, self).changelist_view(*args, **kwargs)
+            ret = super(AbstractContainerAdmin, self).changelist_view(request, *args, **kwargs)
             self.try_synchronize()
             return ret
         except:
             messages.error(request, "Could not change %s" % self.model._meta.verbose_name)
+            raise
             return HttpResponseRedirect("..")
     
     def delete_view(self, request, *args, **kwargs):
         try:
-            ret = super(AbstractContainerAdmin, self).delete_view(*args, **kwargs)
+            ret = super(AbstractContainerAdmin, self).delete_view(request, *args, **kwargs)
             # TODO: need synchronization here?
             return ret
         except:
