@@ -50,13 +50,9 @@ class BaseRequestHandler(object):
         cannot be generated in this specific handler, the exception
         should be re-raised. This is also the default behaviour.
         
-        @param  req     The {@link eoxserver.services.requests.OWSRequest}
-                        object that was being processed when the
-                        exception was raised
-        @param  exception The <tt>Exception</tt> raised by the request
-                        handling method
-        @return         An {@link eoxserver.services.requests.Response}
-                        object containing an exception report
+        The method expects an :class:`~.OWSRequest` object ``req`` and
+        the exception that has been raised as input. It should return a 
+        :class:`~.Response` object containing the exception report.
         """
         raise
     
@@ -64,26 +60,20 @@ class BaseRequestHandler(object):
         """
         Abstract method which must be overridden to provide the specific
         request handling logic. Should not be invoked from external code,
-        use the {@link #handle handle} method instead.
-        
-        @param  req An {@link eoxserver.services.requests.OWSRequest} object
-                    containing the request parameters
-        
-        @return     An {@link eoxserver.services.requests.Response} object
-                    containing the response content, headers and status
+        use the :meth:`handle` method instead. It expects an
+        :class:`~.OWSRequest` object ``req`` as input and should return a
+        :class:`~.Response` object containing the response to the request.
+        The default method does not do anything.
         """
         pass
 
     def handle(self, req):
         """
         Basic request handling method which should be invoked from
-        external code.
-        
-        @param  req An {@link eoxserver.services.requests.OWSRequest} object
-                    containing the request parameters
-        
-        @return     An {@link eoxserver.services.requests.Response} object
-                    containing the response content, headers and status
+        external code. This method invokes the :meth:`_processRequest` method
+        and returns the resulting :class:`~.Response` object unless an
+        exception is raised. In the latter case :meth:`_handleException` is
+        called and the appropriate response is returned.
         """
 
         try:
@@ -92,6 +82,10 @@ class BaseRequestHandler(object):
             return self._handleException(req, e)
 
 class BaseExceptionHandler(object):
+    """
+    This is the basic handler for exceptions. It allows to generate exception
+    reports.
+    """
     def __init__(self, schemas=None):
         self.schemas = schemas
     
@@ -122,6 +116,16 @@ class BaseExceptionHandler(object):
         raise InternalError("Not implemented.")
     
     def handleException(self, req, exception):
+        """
+        This method can be invoked in order to handle an exception and produce
+        an exception report. It starts by logging the error to the default
+        log. Then the appropriate XML encoder is fetched (the
+        :meth:`_getEncoder` has to be overridden by the subclass). Finally,
+        the exception report itself is encoded and the appropriate HTTP status
+        code determined. The method returns a :class:`~.Response` object
+        containing this information.
+        """
+        
         self._logError(req, exception)
         
         if settings.DEBUG:

@@ -28,6 +28,10 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+"""
+This module contains handlers for WCS 2.0 / EO-WCS GetCoverage requests.
+"""
+
 from xml.dom import minidom
 from datetime import datetime
 
@@ -75,6 +79,17 @@ _stripDot = lambda ext : ext[1:] if ext.startswith('.') else ext
 gdal.AllRegister()
 
 class WCS20GetCoverageHandler(WCSCommonHandler):
+    """
+    This handler takes care of all WCS 2.0 / EO-WCS GetCoverage requests. It
+    inherits from :class:`~.WCSCommonHandler`.
+    
+    The main processing step is to determine the coverage concerned by the
+    request and delegate the request handling to the handlers for Referenceable
+    Datasets or other (rectified) coverages according to the coverage type.
+    
+    An :exc:`~.InvalidRequestException` is raised if the coverage ID parameter
+    is missing in the request or the coverage ID is unknown.
+    """
     REGISTRY_CONF = {
         "name": "WCS 2.0 GetCoverage Handler",
         "impl_id": "services.ows.wcs20.WCS20GetCoverageHandler",
@@ -126,6 +141,11 @@ class WCS20GetCoverageHandler(WCSCommonHandler):
                 )
 
 class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
+    """
+    This class handles WCS 2.0 / EO-WCS GetCoverage requests for Referenceable
+    datasets. It inherits from :class:`~.BaseRequestHandler`. It is instantiated
+    by :class:`WCS20GetCoverageHandler`.
+    """
     PARAM_SCHEMA = {
         "service": {"xml_location": "/service", "xml_type": "string", "kvp_key": "service", "kvp_type": "string"},
         "version": {"xml_location": "/version", "xml_type": "string", "kvp_key": "version", "kvp_type": "string"},
@@ -138,7 +158,49 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
     }
 
     def handle(self, req, coverage):
-
+        """
+        This method handles the GetCoverage request for Referenceable Datasets.
+        It takes two parameters: the :class:`~.OWSRequest` object ``req`` and
+        the :class:`~.ReferenceableDatasetWrapper` object ``coverage``.
+        
+        The method makes ample use of the functions in
+        :mod:`eoxserver.processing.gdal.reftools` in order to transform
+        the pixel coordinates to the underlying CRS.
+        
+        It starts by decoding the (optional) subset parameters using the
+        methods of :class:`~.WCS20SubsetDecoder`. There are two possible
+        meanings of the subset coordinates: absent a CRS definition, they are
+        assumed to be expressed in pixel coordinates (imageCRS); otherwise they
+        are treated as coordinates in the respective CRS.
+        
+        In the latter case, the subset is transformed to pixel coordinates
+        using :func:`eoxserver.processing.gdal.reftools.rect_from_subset`.
+        This results in a pixel subset that contains the whole area of the
+        subset taking into account the GCP information. See the function
+        docs for details.
+        
+        The next step is to determine the format of the response data. This
+        is done based on the format parameter and the format configurations
+        (see also :mod:`eoxserver.resources.coverages.formats`). The format
+        MIME type has to be known to the server and it has to be supported by
+        GDAL, otherwise an :exc:`~.InternalError` is raised.
+        
+        For technical reasons, though, the initial dataset is not created with
+        the output format driver, but as a virtual dataset in the memory. Only
+        later the dataset is copied using the :meth:`CreateCopy` method of
+        the GDAL driver.
+        
+        The method tags several metadata items on the output, most importantly
+        the GCPs. Note that all GCPs of the coverage are tagged on the
+        output dataset even if only a subset has been requested. This because
+        all of them may have influence on the computation of the coordinate
+        transformation in the subset even if they lie outside.
+        
+        Finally, the response is composed. According to the mediatype parameter,
+        either a multipart message containing the coverage description of the
+        output coverage and the output coverage data or just the data is
+        returned.
+        """
         # set request schema 
         req.setSchema(self.PARAM_SCHEMA)
 
@@ -381,7 +443,15 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
 
 
 class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
-
+    """
+    This is the handler for GetCoverage requests for Rectified Datasets
+    and Rectified Stitched Mosaics. It inherits from
+    :class:`~.WCSCommonHandler`.
+    
+    It follows the workflow of the base class and modifies the
+    :meth:`createCoverages`, :meth:`configureMapObj`, :meth:`getMapServerLayer`
+    and :meth:`postprocess` methods.
+    """
     PARAM_SCHEMA = {
         "service": {"xml_location": "/service", "xml_type": "string", "kvp_key": "service", "kvp_type": "string"},
         "version": {"xml_location": "/version", "xml_type": "string", "kvp_key": "version", "kvp_type": "string"},
@@ -394,6 +464,16 @@ class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
     }
     
     def createCoverages(self):
+        """
+        This method retrieves the coverage object denoted by the request and
+        stores it in the ``coverages`` property of the handler. The method
+        also checks if the subset expressions (if present) match with the
+        coverage extent.
+        
+        An :exc:`~.InvalidRequestException` is raised if the coverageid
+        parameter is missing or the coverage ID is unknown or the subset
+        expressions do not match with the coverage extent.
+        """
         coverage_id = self.req.getParamValue("coverageid")
         
         if coverage_id is None:
@@ -437,6 +517,11 @@ class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
 
 
     def configureMapObj(self):
+        """
+        This method extends the base method
+        (:meth:`~.WCSCommonHandler.configureMapObj`). The format configurations
+        are added to the MapScript :class:`mapObj`.
+        """
         super(WCS20GetRectifiedCoverageHandler, self).configureMapObj()
         
         # get format
@@ -455,7 +540,15 @@ class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
         self.map.setOutputFormat(output_format)
 
     def getMapServerLayer(self, coverage):
-
+        """
+        This method returns a MapServer :class:`layerObj` for the corresponding
+        coverage. It extends the base class method
+        :class:`~.WCSCommonHandler.getMapServerLayer`. The method configures
+        the input data for the layer using the appropriate connector for the
+        coverage (see :mod:`eoxserver.services.connectors`). Furthermore,
+        it sets WCS 2.0 specific metadata on the layer.
+        """
+        
         layer = super(WCS20GetRectifiedCoverageHandler, self).getMapServerLayer(coverage)
 
         connector = System.getRegistry().findAndBind(
@@ -499,7 +592,20 @@ class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
         return layer
 
     def postprocess(self, resp):
-
+        """
+        This method overrides the no-op method of the base class. It adds
+        EO-WCS specific metadata to the multipart messages that include an
+        XML coverage description part. It expects a :class:`~.MapServerResponse`
+        object ``resp`` as input and returns it either unchanged or a
+        new :class:`~.Response` object containing the modified multipart
+        message.
+        
+        MapServer returns a WCS 2.0 coverage description, but this does not
+        include EO-WCS specific parts like the coverage subtype (Rectified
+        Dataset or Rectified Stitched Mosaic) and EO-WCS metadata. Therefore
+        the description is replaced with the corresponding EO-WCS complient
+        XML.
+        """
         coverage_id = self.req.getParamValue("coverageid")
         
         if self.coverages[0].getType() == "eo.rect_stitched_mosaic":
