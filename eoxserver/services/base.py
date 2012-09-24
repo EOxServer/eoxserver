@@ -42,9 +42,11 @@ from eoxserver.services.exceptions import (
 class BaseRequestHandler(object):
     """
     Base class for all EOxServer Handler Implementations.
-    """
-    def _handleException(self, req, exception):
-        """
+    
+    There are two private methods that have to be overridden by child classes.
+    
+    .. method:: _handleException(req, exception)
+    
         Abstract method which must be overridden by child classes to
         provide specific exception reports. If the exception report
         cannot be generated in this specific handler, the exception
@@ -53,18 +55,20 @@ class BaseRequestHandler(object):
         The method expects an :class:`~.OWSRequest` object ``req`` and
         the exception that has been raised as input. It should return a 
         :class:`~.Response` object containing the exception report.
-        """
-        raise
     
-    def _processRequest(self, req):
-        """
+    .. method:: _processRequest(req)
+
         Abstract method which must be overridden to provide the specific
         request handling logic. Should not be invoked from external code,
         use the :meth:`handle` method instead. It expects an
         :class:`~.OWSRequest` object ``req`` as input and should return a
         :class:`~.Response` object containing the response to the request.
         The default method does not do anything.
-        """
+    """
+    def _handleException(self, req, exception):
+        raise
+    
+    def _processRequest(self, req):
         pass
 
     def handle(self, req):
@@ -120,9 +124,9 @@ class BaseExceptionHandler(object):
         This method can be invoked in order to handle an exception and produce
         an exception report. It starts by logging the error to the default
         log. Then the appropriate XML encoder is fetched (the
-        :meth:`_getEncoder` has to be overridden by the subclass). Finally,
-        the exception report itself is encoded and the appropriate HTTP status
-        code determined. The method returns a :class:`~.Response` object
+        :meth:`_getEncoder` method has to be overridden by the subclass).
+        Finally, the exception report itself is encoded and the appropriate HTTP
+        status code determined. The method returns a :class:`~.Response` object
         containing this information.
         """
         

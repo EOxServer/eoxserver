@@ -53,9 +53,9 @@ class RequestHandlerInterface(RegisteredInterface):
     
     .. method:: handle(req)
     
-    This method shall be called for handling the request. It expects an
-    :class:`~.OWSRequest` object as input ``req`` and shall return a
-    :class:`~.Response` object.
+        This method shall be called for handling the request. It expects an
+        :class:`~.OWSRequest` object as input ``req`` and shall return a
+        :class:`~.Response` object.
     
     """
     REGISTRY_CONF = {
@@ -131,14 +131,14 @@ class ExceptionHandlerInterface(RegisteredInterface):
     
     .. method:: handleException(req, exception)
     
-    This method shall handle an exception. It expects the original
-    :class:`~.OWSRequest` object ``req`` as well as the exception object as
-    input. The expected output is a :class:`~.Response` object which shall
-    contain an exception report and whose content will be sent to the client.
-    
-    In case the exception handler does not recognize a given type of exception
-    or cannot produce an appropriate exception report, the exception shall
-    be re-raised.
+        This method shall handle an exception. It expects the original
+        :class:`~.OWSRequest` object ``req`` as well as the exception object as
+        input. The expected output is a :class:`~.Response` object which shall
+        contain an exception report and whose content will be sent to the client.
+        
+        In case the exception handler does not recognize a given type of exception
+        or cannot produce an appropriate exception report, the exception shall
+        be re-raised.
     """
     REGISTRY_CONF = {
         "name": "Exception Handler Interface",
@@ -161,17 +161,17 @@ class ExceptionEncoderInterface(RegisteredInterface):
     
     .. method:: encodeInvalidRequestException(exception)
     
-    This method shall return an exception report for an
-    :class:`~.InvalidRequestException`.
+        This method shall return an exception report for an
+        :class:`~.InvalidRequestException`.
     
     .. method:: encodeVersionNegotiationException(exception)
     
-    This method shall return an exception report for a
-    :class:`~.VersionNegotiationException`.
+        This method shall return an exception report for a
+        :class:`~.VersionNegotiationException`.
     
     .. method:: encodeException(exception)
     
-    This method shall return an exception report for any kind of exception.
+        This method shall return an exception report for any kind of exception.    
     """
     REGISTRY_CONF = {
         "name": "OWS Exception Report XML Encoder Interface",

@@ -236,10 +236,10 @@ class MapServerDataConnectorInterface(RegisteredInterface):
     
     .. method:: congigure(layer, eo_object)
     
-    This method takes a :class:`mapscript.layerObj` object and an ``eo_object``
-    as input and configures the MapServer layer according to the type of
-    data package used by the ``eo_object`` (RectifiedDataset,
-    ReferenceableDataset or RectifiedStitchedMosaic).
+        This method takes a :class:`mapscript.layerObj` object and an ``eo_object``
+        as input and configures the MapServer layer according to the type of
+        data package used by the ``eo_object`` (RectifiedDataset,
+        ReferenceableDataset or RectifiedStitchedMosaic).
     """
     REGISTRY_CONF = {
         "name": "MapServer Data Connector Interface",
