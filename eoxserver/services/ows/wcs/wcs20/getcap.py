@@ -47,7 +47,8 @@ class WCS20GetCapabilitiesHandler(WCSCommonHandler):
     This is the handler for WCS 2.0 / EO-WCS GetCapabilities requests. It
     inherits from :class:`~.WCSCommonHandler`.
     
-    As for all handlers, the entry point is the :meth:`~.handle` method. The
+    As for all handlers, the entry point is the
+    :meth:`~.WCSCommonHandler.handle` method. The
     handler then performs a workflow that is described in the
     :class:`~.WCSCommonHandler` documentation.
     
