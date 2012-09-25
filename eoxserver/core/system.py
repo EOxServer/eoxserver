@@ -46,6 +46,9 @@ class Environment(local):
         self.registry = registry
 
 class System(object):
+    """
+    TODO
+    """
     UNCONFIGURED = 0
     STARTING = 10
     RESETTING = 20
@@ -68,6 +71,9 @@ class System(object):
     
     @classmethod
     def init(cls):
+        """
+        TODO
+        """
         cls.__state_cond.acquire()
         
         try:

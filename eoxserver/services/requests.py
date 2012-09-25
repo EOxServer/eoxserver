@@ -40,20 +40,20 @@ class OWSRequest(object):
     This class is used to encapsulate information about an OWS request.
     
     The constructor expects one required parameter, a Django
-    :class:`HTTPRequest` object ``http_req``.
+    :class:`~django.http.HttpRequest` object ``http_req``.
     
     The ``params`` argument shall contain the parameters sent with the
     request. For GET requests, this can either contain a Django
-    :class:`QueryDict` object or the query string itself. For POST requests,
+    :class:`~django.http.QueryDict` object or the query string itself. For POST requests,
     the argument shall contain the message body as a string.
     
     The ``param_type`` argument shall be set to ``kvp`` for GET
     requests and ``xml`` for POST requests.
     
     Optionally, a decoder (either a :class:`~.KVPDecoder` or
-    :class:`XMLDecoder` instance initialized with the parameters) can already be
-    conveyed to the request. If it is not present, the appropriate decoder type
-    will be chosen and initialized based on the values of ``params`` and
+    :class:`~.XMLDecoder` instance initialized with the parameters) can already 
+    be conveyed to the request. If it is not present, the appropriate decoder 
+    type will be chosen and initialized based on the values of ``params`` and
     ``param_type``.
     """
     def __init__(self, http_req, params='', param_type='kvp', decoder=None):

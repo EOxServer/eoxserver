@@ -46,7 +46,8 @@ def ows(request):
     """
     This function handles all incoming OWS requests.
     
-    It prepares the system by a call to :meth:`~.System.init` and generates
+    It prepares the system by a call to 
+    :meth:`eoxserver.core.system.System.init` and generates
     an :class:`~.OWSRequest` object containing the request parameters and
     passes the handling on to an instance of :class:`~.OWSCommonHandler`.
     
