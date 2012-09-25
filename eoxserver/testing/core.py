@@ -162,7 +162,8 @@ def _expand_regex_method(module, klass, regex):
 
 class EOxServerTestRunner(DjangoTestSuiteRunner):
     """ 
-    Custom test runner. It extends the standard :class:`~.DjangoTestRunner` 
+    Custom test runner. It extends the standard 
+    :class:`django.test.simple.DjangoTestSuiteRunner` 
     with automatic test case search for a given regular expression.
     
     Activate by including ``TEST_RUNNER = 

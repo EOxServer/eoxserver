@@ -111,7 +111,8 @@ class GMLEncoder(XMLEncoder):
         """
         This method returns a :mod:`xml.dom.minidom` element containing the GML
         representation of a polygon. The ``poly`` argument is expected to be a
-        GeoDjango :class:`Polygon` or :class:`GEOSGeometry` object containing a
+        GeoDjango :class:`~django.contrib.gis.geos.Polygon` or 
+        :class:`~django.contrib.gis.geos.GEOSGeometry` object containing a
         polygon. The ``base_id`` string is used to generate the required gml:id
         attributes on different elements of the polygon encoding.
         """
@@ -136,9 +137,9 @@ class GMLEncoder(XMLEncoder):
         """
         This method returns a :mod:`xml.dom.minidom` element containing the GML
         represenation of a multipolygon. The ``geom`` argument is expected to be
-        a GeoDjango :class:`GEOSGeometry` object. The ``base_id`` string is used
-        to generate the required gml:id attributes on different elements of the
-        multipolygon encoding.
+        a GeoDjango :class:`~django.contrib.gis.geos.GEOSGeometry` object. The 
+        ``base_id`` string is used to generate the required gml:id attributes 
+        on different elements of the multipolygon encoding.
         """
         if geom.geom_type in ("MultiPolygon", "GeometryCollection"):
             polygons = [self.encodePolygon(geom[c], "%s_%d" % (base_id, c+1)) for c in range(0, geom.num_geom)]
@@ -178,9 +179,10 @@ class EOPEncoder(GMLEncoder):
         """
         Returns a :mod:`xml.dom.minidom` element containing the EO O&M
         representation of a footprint. The ``footprint`` argument shall contain
-        a GeoDjango :class:`GEOSGeometry` object containing the footprint as a
-        polygon or multipolygon. The ``eo_id`` argument is passed on to the GML
-        encoder as a base ID for generating required gml:id attributes.
+        a GeoDjango :class:`~django.contrib.gis.geos.GEOSGeometry` object 
+        containing the footprint as a polygon or multipolygon. The ``eo_id`` 
+        argument is passed on to the GML encoder as a base ID for generating 
+        required gml:id attributes.
         """
         return self._makeElement(
             "eop", "Footprint", [
@@ -611,9 +613,9 @@ class WCS20EOAPEncoder(WCS20Encoder):
         coverage descriptions of Rectified Stitched Mosaics. The ``coverage``
         parameter shall refer to a :class:`~.RectifiedStitchedMosaicWrapper`
         object. The optional ``poly`` argument may contain a GeoDjango
-        :class:`GEOSGeometry` object describing the polygon. If it is
-        provided, the set of contributing datasets will be restricted to
-        those intersecting the given polygon.
+        :class:`~django.contrib.gis.geos.GEOSGeometry` object describing the 
+        polygon. If it is provided, the set of contributing datasets will be 
+        restricted to those intersecting the given polygon.
         """
         eop_encoder = EOPEncoder()
         
@@ -879,11 +881,11 @@ class WCS20EOAPEncoder(WCS20Encoder):
         shall be a 2-tuple of width and height. The ``extent`` shall be a
         4-tuple of ``(minx, miny, maxx, maxy)`` expressed in the CRS described
         by ``srid``. The ``footprint`` argument shall be a GeoDjango
-        :class:`GEOSGeometry` object containing a polygon. The ``is_root``
-        flag indicates whether the resulting wcs:CoverageDescription element
-        is the document root of the response. In that case a xsi:schemaLocation
-        attribute pointing to the EO-WCS schema will be added. It defaults
-        to ``False``.
+        :class:`~django.contrib.gis.geos.GEOSGeometry` object containing a 
+        polygon. The ``is_root`` flag indicates whether the resulting 
+        wcs:CoverageDescription element is the document root of the response. 
+        In that case a xsi:schemaLocation attribute pointing to the EO-WCS 
+        schema will be added. It defaults to ``False``.
         """
         poly = Polygon.from_bbox(extent)
         poly.srid = srid
