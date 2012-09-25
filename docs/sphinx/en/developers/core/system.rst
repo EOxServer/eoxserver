@@ -1,4 +1,4 @@
-.. Modules Overview
+.. Module eoxserver.core.system
   #-----------------------------------------------------------------------------
   # $Id$
   #
@@ -7,7 +7,7 @@
   #          Stephan Meissl <stephan.meissl@eox.at>
   #
   #-----------------------------------------------------------------------------
-  # Copyright (C) 2011 EOX IT Services GmbH
+  # Copyright (C) 2012 EOX IT Services GmbH
   #
   # Permission is hereby granted, free of charge, to any person obtaining a copy
   # of this software and associated documentation files (the "Software"), to
@@ -28,78 +28,10 @@
   # IN THE SOFTWARE.
   #-----------------------------------------------------------------------------
 
-.. _Modules Overview:
+.. _module_core_system:
 
-Modules
-=======
+Module eoxserver.core.system
+============================
 
-.. contents:: Table of Contents
-    :depth: 3
-    :backlinks: top
-
-EOxServer Core
---------------
-
-.. toctree::
-   :glob:
-   :maxdepth: 1
-   
-   core/*
-
-Utils
------
-
-.. toctree::
-   :glob:
-   :maxdepth: 1
-   
-   core/util/*
-
-Service Layer
--------------
-
-.. toctree::
-   :glob:
-   :maxdepth: 1
-   
-   services/*
-   services/ows/*
-   services/auth/*
-
-Processing Layer
-----------------
-
-.. toctree::
-   :glob:
-   :maxdepth: 1
-   
-   processing/*
-   resources/processes/*
-
-Data Integration Layer
-----------------------
-
-.. toctree::
-   :glob:
-   :maxdepth: 1
-   
-   resources/*
-   resources/coverages/*
-
-Data Access Layer
------------------
-
-.. toctree::
-   :glob:
-   :maxdepth: 1
-   
-   backends/*
-
-Testing
--------
-
-.. toctree::
-   :glob:
-   :maxdepth: 1
-   
-   testing/*
+.. automodule:: eoxserver.core.system
+   :members:

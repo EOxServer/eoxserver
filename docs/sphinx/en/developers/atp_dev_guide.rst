@@ -146,7 +146,7 @@ The :func:`~eoxserver.resources.processes.tracker.enqueueTask` creates a new
 task instance "Task001" of task type "SequenceSum". The tuple ``(1,2,3,4,5)`` 
 is the input to the handler subroutine. In case of full task queue 
 new task cannot be accepted and the
-:func:`~eoxserver.resources.processes.tracker.QueueFull`` is risen. 
+:func:`~eoxserver.resources.processes.tracker.QueueFull` is risen. 
 Since we want the task to be enqueued a simple re-try loop must be employed. 
 
 Step 4 - Polling the task status 
@@ -294,6 +294,5 @@ maintenance of the ATPD subsystem in a consistent state. Namely, i) the ATPD
 must repeatedly check for the abandoned "zombie" tasks and restart them by 
 calling :func:`~eoxserver.resources.processes.tracker.reenqueueZombieTasks` 
 function and ii) the ATPD must remove DB records of the finished "retired" 
-tasks by calling :func:`~eoxserver.resources.processes.tracker.deleteRetiredTask
-s` function. 
-
+tasks by calling 
+:func:`~eoxserver.resources.processes.tracker.deleteRetiredTasks` function. 

@@ -414,8 +414,8 @@ information it relies on the configuration files and the database.
 
 As you'd expect, the Registry data model relies on interfaces and
 implementations. However, not all of them are registered, but only 
-descendants of :class:`RegisteredInterface` and their respective
-implementations. :class:`RegisteredInterface` extends the configuration
+descendants of :class:`~.RegisteredInterface` and their respective
+implementations. :class:`~.RegisteredInterface` extends the configuration
 model for interfaces with information relevant to the registration and
 dynamic binding processes. This is an example for a valid
 configuration::
@@ -444,13 +444,13 @@ are enabled and which resources they have access to.
    
    *Database Model for the Registry*
 
-For every registered implementation an :class:`Implementation` instance
+For every registered implementation an :class:`!Implementation` instance
 and database record are created. Implementations are subdivided into
 components and resource classes, each with their respective model
-deriving from :class:`Implementation`. Components stand for the active
+deriving from :class:`!Implementation`. Components stand for the active
 parts of the system like Service Handlers. They can be enabled or
 disabled. Resource classes relate to a specific resource wrapper which
-in turn relate to some specific model derived from :class:`Resource`.
+in turn relate to some specific model derived from :class:`!Resource`.
 
 Furthermore, there is the possibility to create, enable and disable
 relations between components and  specific resource instances or
@@ -469,7 +469,7 @@ Component Managers shall be introduced in order to:
 * automatically create the needed relations
 
 These managers shall implement the common
-:class:`ComponentManagerInterface`.
+:class:`~.ComponentManagerInterface`.
 
 .. _rfc2_detect:
 
@@ -479,7 +479,7 @@ Detection
 The first step in the dynamic binding process provided by the registry
 is the detection of interfaces and implementations to be registered.
 For this end the registry loads the modules defined in the configuration
-files and searches them for descendants of :class:`RegisteredInterface`
+files and searches them for descendants of :class:`~.RegisteredInterface`
 and their implementations. The metadata of the detected interfaces and
 implementations (the contents of``REGISTRY_CONF``) is ingested into the
 registry. This metadata is used for binding to the implementations,
@@ -546,9 +546,10 @@ sent with the request.
 
 A more flexible way to determine which implementation to bind to is
 the test binding method (``"binding_method": "testing"``). In this case,
-the interface must be derived from :class:`TestingInterface`. The
-implementation must provide a :meth:`test` method which will be invoked
-by the registry in order to determine if it is suitable for a given set
+the interface must be derived from :class:`~.TestingInterface`. The
+implementation must provide a 
+:meth:`~eoxserver.core.registry.TestingInterface.test` method which will be 
+invoked by the registry in order to determine if it is suitable for a given set
 of parameters. This can be used e.g. to determine which format handler
 to use for a given dataset::
 
@@ -567,7 +568,7 @@ The fourth binding method is factory binding (
 ``"binding_method": "factory"``). In this case the registry invokes a
 factory that returns an instance of the desired implementation.
 Factories must be implementations of a descendant of
-:class:`FactoryInterface`. Implementations and factories are linked
+:class:`~.FactoryInterface`. Implementations and factories are linked
 together only at runtime, based on the metadata collected during the
 detection phase. This binding method is used e.g. for binding to
 instances of a resource wrapper::
