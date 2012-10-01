@@ -964,6 +964,7 @@ class RectifiedStitchedMosaicManager(BaseManagerContainerMixIn, CoverageManager)
         )
         
         self._synchronize(container, container.getDataSources(), container.getDatasets())
+        self._make_mosaic(container)
     
     def __init__(self):
         super(RectifiedStitchedMosaicManager, self).__init__()
