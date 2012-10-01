@@ -47,8 +47,6 @@ urlpatterns = patterns('',
     (r'^logview', 'eoxserver.logging.views.logview'),
     (r'^client/$', 'eoxserver.webclient.views.index'),
     (r'^client/(.*)', 'eoxserver.webclient.views.webclient'),
-    (r'^client_v2/$', 'eoxserver.webclient.views.index_v2'),
-    (r'^client_v2/(.*)', 'eoxserver.webclient.views.webclient_v2'),
     
     # Example:
     # (r'^eoxserver/', include('eoxserver.foo.urls')),
