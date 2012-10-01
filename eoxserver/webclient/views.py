@@ -48,7 +48,7 @@ def index(request):
                            impl_ids=["resources.coverages.wrappers.RectifiedStitchedMosaicWrapper"]
                            )]
     
-    # TODO get server URL
+    
     
     return render_to_response(
         'webclient/index.html', {
@@ -59,7 +59,6 @@ def index(request):
         },
         context_instance=RequestContext(request)
     )
-
 
 def webclient(request, eoid):
     """
@@ -119,101 +118,6 @@ def webclient(request, eoid):
     
     return render_to_response(
         'webclient/webclient.html', {
-            "eoid": eoid,
-            "ows_url": http_ows_url,
-            "preview_service": preview_service,
-            "outline_service": outline_service,
-            "preview_url": preview_url,
-            "outline_url": outline_url,
-            "begin": {"date": begin.strftime("%Y-%m-%d"),
-                      "time": begin.strftime("%H:%M")},
-            "end": {"date": end.strftime("%Y-%m-%d"),
-                    "time": end.strftime("%H:%M")},
-            "extent": "%f,%f,%f,%f" % extent
-        },
-        context_instance=RequestContext(request)
-    )
-
-def index_v2(request):
-    System.init()
-    dss_factory = System.getRegistry().bind("resources.coverages.wrappers.DatasetSeriesFactory")
-    dataset_series_ids = [obj.getEOID() for obj in dss_factory.find()] 
-    
-    mosaic_factory = System.getRegistry().bind("resources.coverages.wrappers.EOCoverageFactory")
-    stitched_mosaic_ids = [obj.getEOID() for obj in mosaic_factory.find(
-                           impl_ids=["resources.coverages.wrappers.RectifiedStitchedMosaicWrapper"]
-                           )]
-    
-    
-    
-    return render_to_response(
-        'webclient/index.v2.html', {
-            "datasetseries_eoids": dataset_series_ids,
-            "stitchedmosaic_eoids": stitched_mosaic_ids,
-            "path": request.path,
-            "version": get_version(),
-        },
-        context_instance=RequestContext(request)
-    )
-
-def webclient_v2(request, eoid):
-    """
-    View for webclient interface.
-    
-    Uses `webclient.preview_service`, `webclient.outline_service`,
-    `webclient.preview_url`
-    """
-    
-    
-    System.init()
-    eo_obj = System.getRegistry().getFromFactory(
-        "resources.coverages.wrappers.DatasetSeriesFactory",
-        {"obj_id": eoid}
-    )
-    if eo_obj is None:
-        eo_obj = System.getRegistry().getFromFactory(
-            "resources.coverages.wrappers.EOCoverageFactory",
-            {"obj_id": eoid}
-        )
-        if eo_obj is None:
-            raise Http404
-    
-    begin = eo_obj.getBeginTime()
-    end = eo_obj.getEndTime()
-    
-    # TODO: remove center and add initial extent
-    extent = eo_obj.getFootprint().extent
-    
-    # TODO set static resources
-    http_ows_url = System.getConfig().getConfigValue(
-        "services.owscommon", "http_service_url"
-    )
-    
-    preview_service = System.getConfig().getConfigValue(
-        "webclient", "preview_service"
-    ) or "wms"
-    
-    outline_service = System.getConfig().getConfigValue(
-        "webclient", "outline_service"
-    ) or "wms"
-    
-    if preview_service not in ("wms", "wmts"): 
-        logging.error("Unsupported service type '%s'" % preview_service)
-        preview_service = "wms"
-    if outline_service not in ("wms", "wmts"):
-        logging.error("Unsupported service type '%s'" % outline_service)
-        outline_service = "wms"
-    
-    preview_url = System.getConfig().getConfigValue(
-        "webclient", "preview_url"
-    ) or http_ows_url
-    
-    outline_url = System.getConfig().getConfigValue(
-        "webclient", "outline_url"
-    ) or http_ows_url
-    
-    return render_to_response(
-        'webclient/webclient.v2.html', {
             "eoid": eoid,
             "ows_url": http_ows_url,
             "preview_service": preview_service,
