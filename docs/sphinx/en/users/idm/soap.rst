@@ -29,17 +29,15 @@
 
 .. _Identity Management System SOAP:
 
-Identity Management System: SOAP Components
-===========================================
+SOAP Components
+===============
 
 .. contents:: Table of Contents
     :depth: 4
     :backlinks: top
 
 
-Components
-----------
-
+The following services are needed for the SOAP security part:
 The following services are needed for the SOAP security part:
 
 * Security Token Service
@@ -60,7 +58,7 @@ steps:
 .. _STS:
 
 Security Token Service
------------------------
+----------------------
 
 The Security Token Service (STS) is responsible for the authentication of users 
 and is documented and specified in the OASIS `WS-Trust 
@@ -125,7 +123,6 @@ configuration file:
     Enables or disables inclusion of SAML tokens.
 ``LOG4J_CONFIG_LOCATION`` 
     Path to the Log4J configuration file.
-
 
 
 .. _PEP:
@@ -196,8 +193,3 @@ the file ``${AXIS2_HOME}/axis2.xml`` is enabled.
 
 Edit the ``ProxyConfiguration_${SERVICE_NAME}.xml`` to configure the service. 
 The configuration file already contains documentation of the single elements.
-
-
-
-
-

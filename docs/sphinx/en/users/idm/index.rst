@@ -47,7 +47,7 @@ framwork <http://shibboleth.internet2.edu/>`_ and  the `HMA Authentication
 Service <http://wiki.services.eoportal.org/tiki-index.php?page=HMA+
 Authentication+Service>`_. In the context of EOxServer, the SOAP support in the 
 IDMS can be used to provide authentication and authorisation capabilities for 
-the `EO-WCS SOAP Proxy <http://eoxserver.org/doc/en/users/soap_proxy.html>`_. 
+the :ref:`soap proxy`. 
 
 The IDMS uses two different schemes for authentication: The native EOxServer 
 component relies on Shibboleth for Authentication, the SOAP components use the 
@@ -113,16 +113,6 @@ The following services are needed both for the HTTP and the SOAP security part:
 * Charon :ref:`Authorisation_Service`.
 * :ref:`LDAP_Directory`.
 
-For the installation and configuration please refere to the SOAP or HTTP specific 
-documentation:
-
-.. toctree::
-   :maxdepth: 1
-   
-   http
-   soap
-
-   
 Prerequisites
 ~~~~~~~~~~~~~
 
@@ -168,7 +158,6 @@ Known working implementations are:
 
 A good graphical client for LDAP directories is the `Apache Directory Studio 
 <http://directory.apache.org/studio/>`_.
-
 
 
 .. _Authorisation_Service: 
@@ -706,3 +695,15 @@ when your services have to be accessible over the HTTP standard port *80*:
 - The ``ProxyPass`` and ``ProxyPassReverse`` directives have to point to your 
   services. Please note that the Tomcat server hosting your services must have 
   the AJP interface enabled.  
+
+HTTP and SOAP Specific Components
+---------------------------------
+
+For the installation and configuration please refer to the HTTP or SOAP specific 
+documentation:
+
+.. toctree::
+   :maxdepth: 2
+   
+   http
+   soap

@@ -29,8 +29,8 @@
 
 .. _Identity Management System HTTP:
 
-Identity Management System: HTTP Components
-===========================================
+HTTP Components
+===============
 
 .. contents:: Table of Contents
     :depth: 4
