@@ -105,8 +105,8 @@ can access the data and services provided by EOxServer. The attributes from
 Shibboleth are used by the EOxServer security components to make a 
 XACMLAuthzDecisionQuery to the Charon Authorisation Service.
 
-Identity Management System: Installation and Configuration
-==========================================================
+Installation and Configuration
+------------------------------
 
 The following services are needed both for the HTTP and the SOAP security part:
 
@@ -124,7 +124,7 @@ documentation:
 
    
 Prerequisites
--------------
+~~~~~~~~~~~~~
 
 Download locations for the IDMS components:
 
@@ -155,7 +155,8 @@ The following software is needed to build the IDMS components:
 .. _LDAP_Directory:
 
 LDAP Directory
---------------
+~~~~~~~~~~~~~~
+
 The IDMS uses a LDAP directory to store user data (attributes, passwords, etc). 
 You can use any directory implementation, supporting the Lightweight Directory 
 Access Protocol (v3).
@@ -173,7 +174,7 @@ A good graphical client for LDAP directories is the `Apache Directory Studio
 .. _Authorisation_Service: 
  
 Authorisation Service
----------------------
+~~~~~~~~~~~~~~~~~~~~~
 
 Before installing the Authorsation Service, refer to the :ref:`CHARON_Configuration`.
 
@@ -228,7 +229,7 @@ to store all XACML policies. The policies are stored in the database
 
 .. code-block:: sql
 
-	INSERT INTO policy(policy) VALUES (' your xacml policy')
+    INSERT INTO policy(policy) VALUES (' your xacml policy')
 
 
 An XACML policy usually consists of a policy wide target and and several specific rules. 
@@ -247,403 +248,402 @@ A XACML policy to permit a user "wms_user" full accesss to the EOxServer WMS:
 
 .. code-block:: xml
 
-	<?xml version="1.0" encoding="UTF-8"?>
-	<Policy 
-	    xsi:schemalocation="urn:oasis:names:tc:xacml:2.0:policy:schema:os http://docs.oasis-open.org/xacml/access_control-xacml-2.0-policy-schema-os.xsd" 
-	    PolicyId="wms_user_policy" 
-	    RuleCombiningAlgId="urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:permit-overrides" 
-	    xmlns="urn:oasis:names:tc:xacml:2.0:policy:schema:os" 
-	    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-	    xmlns:ns="http://www.enviromatics.net/WS/PolicyManagementAndAuthorisationService/types /2.0">
-	    
-	    <Target>
-		<Subjects>
-		    <Subject>
-			<!-- Here we specify the user who has access to the service. Default identifier is the uid attribute -->
-			<SubjectMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-			    <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">wms_user</AttributeValue>
-			    <SubjectAttributeDesignator DataType="http://www.w3.org/2001/XMLSchema#string" AttributeId="uid"/>
-			</SubjectMatch>
-		    </Subject>
-		</Subjects>
-		<Resources>
-		    <Resource>
-			<!-- The attribute urn:oasis:names:tc:xacml:1.0:resource:resource-id specifies the protected server (default is the hostname) -->
-			<ResourceMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-			    <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">eoxserver.example.com</AttributeValue>
-			    <ResourceAttributeDesignator DataType="http://www.w3.org/2001/XMLSchema#string" AttributeId="urn:oasis:names:tc:xacml:1.0:resource:resource-id"/>
-			</ResourceMatch>
-			
-			<!-- The attribute serviceType specifies the protected service (wms or wcs) -->
-			<ResourceMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-			    <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">wms</AttributeValue>
-			    <ResourceAttributeDesignator DataType="http://www.w3.org/2001/XMLSchema#string" AttributeId="serviceType"/>
-			</ResourceMatch>                
-		    </Resource>
-		</Resources>
-	    </Target>
-	    
-	    
-	    <!-- 
-		In the following rules we allow the specified user to perform selected operations 
-		on the service. 
-	    -->
-	    
-	    <!-- 
-		GetCapabilities
-	    -->
-	    
-	    
-	    <Rule RuleId="PermitGetCapabilitiesCC" Effect="Permit">
-		<Target>
-		    <Actions>
-			<Action>
-			    <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-				<AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">GetCapabilities</AttributeValue>
-				<ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action" DataType="http://www.w3.org/2001/XMLSchema#string"/>
-			    </ActionMatch>
-			</Action>
-		    </Actions>
-		</Target>
-	    </Rule>
-	    
-	    <Rule RuleId="PermitGetCapabilitiesSC" Effect="Permit">
-		<Target>
-		    <Actions>
-			<Action>
-			    <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-				<AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">getcapabilities</AttributeValue>
-				<ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action" DataType="http://www.w3.org/2001/XMLSchema#string"/>
-			    </ActionMatch>
-			</Action>
-		    </Actions>
-		</Target>
-	    </Rule>
-	    
-	    <!-- 
-		GetMap
-	    -->
-	    
-	    <Rule RuleId="GetMapCC" Effect="Permit">
-		<Target>
-		    <Actions>
-			<Action>
-			    <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-				<AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">GetMap</AttributeValue>
-				<ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action" DataType="http://www.w3.org/2001/XMLSchema#string"/>
-			    </ActionMatch>
-			</Action>
-		    </Actions>
-		</Target>
-	    </Rule>
-	    
-	    <Rule RuleId="GetMapSC" Effect="Permit">
-		<Target>
-		    <Actions>
-			<Action>
-			    <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-				<AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">getmap</AttributeValue>
-				<ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action" DataType="http://www.w3.org/2001/XMLSchema#string"/>
-			    </ActionMatch>
-			</Action>
-		    </Actions>
-		</Target>
-	    </Rule>
-	    
-	    <!-- 
-		GetFeatureInfo
-	    -->
-	    
-	    <Rule RuleId="GetFeatureInfoCC" Effect="Permit">
-		<Target>
-		    <Actions>
-			<Action>
-			    <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-				<AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">GetFeatureInfo</AttributeValue>
-				<ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action" DataType="http://www.w3.org/2001/XMLSchema#string"/>
-			    </ActionMatch>
-			</Action>
-		    </Actions>
-		</Target>
-	    </Rule>
-	    
-	    <Rule RuleId="GetFeatureInfoSC" Effect="Permit">
-		<Target>
-		    <Actions>
-			<Action>
-			    <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-				<AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">getfeatureinfo</AttributeValue>
-				<ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action" DataType="http://www.w3.org/2001/XMLSchema#string"/>
-			    </ActionMatch>
-			</Action>
-		    </Actions>
-		</Target>
-	    </Rule>
-	    
-	    <!-- 
-		DescribeLayer
-	    -->
-	    
-	    <Rule RuleId="DescribeLayerCC" Effect="Permit">
-		<Target>
-		    <Actions>
-			<Action>
-			    <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-				<AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">DescribeLayer</AttributeValue>
-				<ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action" DataType="http://www.w3.org/2001/XMLSchema#string"/>
-			    </ActionMatch>
-			</Action>
-		    </Actions>
-		</Target>
-	    </Rule>
-	    
-	    <Rule RuleId="DescribeLayerSC" Effect="Permit">
-		<Target>
-		    <Actions>
-			<Action>
-			    <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-				<AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">describelayer</AttributeValue>
-				<ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action" DataType="http://www.w3.org/2001/XMLSchema#string"/>
-			    </ActionMatch>
-			</Action>
-		    </Actions>
-		</Target>
-	    </Rule>
-	    
-	    <!-- 
-		GetLegendGraphic
-	    -->
-	    
-	    <Rule RuleId="GetLegendGraphicCC" Effect="Permit">
-		<Target>
-		    <Actions>
-			<Action>
-			    <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-				<AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">GetLegendGraphic</AttributeValue>
-				<ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action" DataType="http://www.w3.org/2001/XMLSchema#string"/>
-			    </ActionMatch>
-			</Action>
-		    </Actions>
-		</Target>
-	    </Rule>
-	    
-	    <Rule RuleId="GetLegendGraphicSC" Effect="Permit">
-		<Target>
-		    <Actions>
-			<Action>
-			    <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-				<AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">getlegendgraphic</AttributeValue>
-				<ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action" DataType="http://www.w3.org/2001/XMLSchema#string"/>
-			    </ActionMatch>
-			</Action>
-		    </Actions>
-		</Target>
-	    </Rule>
-	    
-	    <!-- 
-		GetStyles
-	    -->
-	    
-	    <Rule RuleId="GetStylesCC" Effect="Permit">
-		<Target>
-		    <Actions>
-			<Action>
-			    <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-				<AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">GetStyles</AttributeValue>
-				<ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action" DataType="http://www.w3.org/2001/XMLSchema#string"/>
-			    </ActionMatch>
-			</Action>
-		    </Actions>
-		</Target>
-	    </Rule>
-	    
-	    <Rule RuleId="GetStylesSC" Effect="Permit">
-		<Target>
-		    <Actions>
-			<Action>
-			    <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-				<AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">getstyles</AttributeValue>
-				<ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action" DataType="http://www.w3.org/2001/XMLSchema#string"/>
-			    </ActionMatch>
-			</Action>
-		    </Actions>
-		</Target>
-	    </Rule>
+    <?xml version="1.0" encoding="UTF-8"?>
+    <Policy 
+        xsi:schemalocation="urn:oasis:names:tc:xacml:2.0:policy:schema:os http://docs.oasis-open.org/xacml/access_control-xacml-2.0-policy-schema-os.xsd" 
+        PolicyId="wms_user_policy" 
+        RuleCombiningAlgId="urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:permit-overrides" 
+        xmlns="urn:oasis:names:tc:xacml:2.0:policy:schema:os" 
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+        xmlns:ns="http://www.enviromatics.net/WS/PolicyManagementAndAuthorisationService/types /2.0">
+        
+        <Target>
+        <Subjects>
+            <Subject>
+            <!-- Here we specify the user who has access to the service. Default identifier is the uid attribute -->
+            <SubjectMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">wms_user</AttributeValue>
+                <SubjectAttributeDesignator DataType="http://www.w3.org/2001/XMLSchema#string" AttributeId="uid"/>
+            </SubjectMatch>
+            </Subject>
+        </Subjects>
+        <Resources>
+            <Resource>
+            <!-- The attribute urn:oasis:names:tc:xacml:1.0:resource:resource-id specifies the protected server (default is the hostname) -->
+            <ResourceMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">eoxserver.example.com</AttributeValue>
+                <ResourceAttributeDesignator DataType="http://www.w3.org/2001/XMLSchema#string" AttributeId="urn:oasis:names:tc:xacml:1.0:resource:resource-id"/>
+            </ResourceMatch>
+            
+            <!-- The attribute serviceType specifies the protected service (wms or wcs) -->
+            <ResourceMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">wms</AttributeValue>
+                <ResourceAttributeDesignator DataType="http://www.w3.org/2001/XMLSchema#string" AttributeId="serviceType"/>
+            </ResourceMatch>                
+            </Resource>
+        </Resources>
+        </Target>
+        
+        
+        <!-- 
+        In the following rules we allow the specified user to perform selected operations 
+        on the service. 
+        -->
+        
+        <!-- 
+        GetCapabilities
+        -->
+        
+        
+        <Rule RuleId="PermitGetCapabilitiesCC" Effect="Permit">
+        <Target>
+            <Actions>
+            <Action>
+                <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">GetCapabilities</AttributeValue>
+                <ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action" DataType="http://www.w3.org/2001/XMLSchema#string"/>
+                </ActionMatch>
+            </Action>
+            </Actions>
+        </Target>
+        </Rule>
+        
+        <Rule RuleId="PermitGetCapabilitiesSC" Effect="Permit">
+        <Target>
+            <Actions>
+            <Action>
+                <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">getcapabilities</AttributeValue>
+                <ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action" DataType="http://www.w3.org/2001/XMLSchema#string"/>
+                </ActionMatch>
+            </Action>
+            </Actions>
+        </Target>
+        </Rule>
+        
+        <!-- 
+        GetMap
+        -->
+        
+        <Rule RuleId="GetMapCC" Effect="Permit">
+        <Target>
+            <Actions>
+            <Action>
+                <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">GetMap</AttributeValue>
+                <ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action" DataType="http://www.w3.org/2001/XMLSchema#string"/>
+                </ActionMatch>
+            </Action>
+            </Actions>
+        </Target>
+        </Rule>
+        
+        <Rule RuleId="GetMapSC" Effect="Permit">
+        <Target>
+            <Actions>
+            <Action>
+                <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">getmap</AttributeValue>
+                <ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action" DataType="http://www.w3.org/2001/XMLSchema#string"/>
+                </ActionMatch>
+            </Action>
+            </Actions>
+        </Target>
+        </Rule>
+        
+        <!-- 
+        GetFeatureInfo
+        -->
+        
+        <Rule RuleId="GetFeatureInfoCC" Effect="Permit">
+        <Target>
+            <Actions>
+            <Action>
+                <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">GetFeatureInfo</AttributeValue>
+                <ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action" DataType="http://www.w3.org/2001/XMLSchema#string"/>
+                </ActionMatch>
+            </Action>
+            </Actions>
+        </Target>
+        </Rule>
+        
+        <Rule RuleId="GetFeatureInfoSC" Effect="Permit">
+        <Target>
+            <Actions>
+            <Action>
+                <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">getfeatureinfo</AttributeValue>
+                <ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action" DataType="http://www.w3.org/2001/XMLSchema#string"/>
+                </ActionMatch>
+            </Action>
+            </Actions>
+        </Target>
+        </Rule>
+        
+        <!-- 
+        DescribeLayer
+        -->
+        
+        <Rule RuleId="DescribeLayerCC" Effect="Permit">
+        <Target>
+            <Actions>
+            <Action>
+                <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">DescribeLayer</AttributeValue>
+                <ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action" DataType="http://www.w3.org/2001/XMLSchema#string"/>
+                </ActionMatch>
+            </Action>
+            </Actions>
+        </Target>
+        </Rule>
+        
+        <Rule RuleId="DescribeLayerSC" Effect="Permit">
+        <Target>
+            <Actions>
+            <Action>
+                <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">describelayer</AttributeValue>
+                <ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action" DataType="http://www.w3.org/2001/XMLSchema#string"/>
+                </ActionMatch>
+            </Action>
+            </Actions>
+        </Target>
+        </Rule>
+        
+        <!-- 
+        GetLegendGraphic
+        -->
+        
+        <Rule RuleId="GetLegendGraphicCC" Effect="Permit">
+        <Target>
+            <Actions>
+            <Action>
+                <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">GetLegendGraphic</AttributeValue>
+                <ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action" DataType="http://www.w3.org/2001/XMLSchema#string"/>
+                </ActionMatch>
+            </Action>
+            </Actions>
+        </Target>
+        </Rule>
+        
+        <Rule RuleId="GetLegendGraphicSC" Effect="Permit">
+        <Target>
+            <Actions>
+            <Action>
+                <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">getlegendgraphic</AttributeValue>
+                <ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action" DataType="http://www.w3.org/2001/XMLSchema#string"/>
+                </ActionMatch>
+            </Action>
+            </Actions>
+        </Target>
+        </Rule>
+        
+        <!-- 
+        GetStyles
+        -->
+        
+        <Rule RuleId="GetStylesCC" Effect="Permit">
+        <Target>
+            <Actions>
+            <Action>
+                <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">GetStyles</AttributeValue>
+                <ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action" DataType="http://www.w3.org/2001/XMLSchema#string"/>
+                </ActionMatch>
+            </Action>
+            </Actions>
+        </Target>
+        </Rule>
+        
+        <Rule RuleId="GetStylesSC" Effect="Permit">
+        <Target>
+            <Actions>
+            <Action>
+                <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">getstyles</AttributeValue>
+                <ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action" DataType="http://www.w3.org/2001/XMLSchema#string"/>
+                </ActionMatch>
+            </Action>
+            </Actions>
+        </Target>
+        </Rule>
 
-	</Policy>
-	
+    </Policy>
+
 
 A XACML policy to permit a user "wcs_user" full accesss to the EOxServer WCS:
 
 .. code-block:: xml
 
-	<?xml version="1.0" encoding="UTF-8"?>
-	<Policy 
-	    xsi:schemalocation="urn:oasis:names:tc:xacml:2.0:policy:schema:os http://docs.oasis-open.org/xacml/access_control-xacml-2.0-policy-schema-os.xsd" 
-	    PolicyId="wcs_user_policy" 
-	    RuleCombiningAlgId="urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:permit-overrides" 
-	    xmlns="urn:oasis:names:tc:xacml:2.0:policy:schema:os" 
-	    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-	    xmlns:ns="http://www.enviromatics.net/WS/PolicyManagementAndAuthorisationService/types /2.0">
-	    
-	    <Target>
-		<Subjects>
-		    <Subject>
-			<!-- Here we specify the user who has access to the service. Default identifier is the uid attribute -->
-			<SubjectMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-			    <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">wcs_user</AttributeValue>
-			    <SubjectAttributeDesignator DataType="http://www.w3.org/2001/XMLSchema#string" AttributeId="uid"/>
-			</SubjectMatch>
-		    </Subject>
-		</Subjects>
-		<Resources>
-		    <Resource>		    
-			<!-- The attribute urn:oasis:names:tc:xacml:1.0:resource:resource-id specifies the protected server (default is the hostname) -->
-			<ResourceMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-			    <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">eoxserver.example.com</AttributeValue>
-			    <ResourceAttributeDesignator DataType="http://www.w3.org/2001/XMLSchema#string" AttributeId="urn:oasis:names:tc:xacml:1.0:resource:resource-id"/>
-			</ResourceMatch>
-			
-			<!-- The attribute serviceType specifies the protected service (wms or wcs) -->
-			<ResourceMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-			    <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">wcs</AttributeValue>
-			    <ResourceAttributeDesignator DataType="http://www.w3.org/2001/XMLSchema#string" AttributeId="serviceType"/>
-			</ResourceMatch>
-		    </Resource>
-		</Resources>
-	    </Target>
-	    
-	    
-	    
-	    <!-- 
-		GetCapabilities
-	    -->
-	    
-	    <Rule RuleId="PermitGetCapabilitiesCC" Effect="Permit">
-		<Target>
-		    <Actions>
-			<Action>
-			    <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-				<AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">GetCapabilities</AttributeValue>
-				<ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action" DataType="http://www.w3.org/2001/XMLSchema#string"/>
-			    </ActionMatch>
-			</Action>
-		    </Actions>
-		</Target>
-	    </Rule>
-	    
-	    <Rule RuleId="PermitGetCapabilitiesSC" Effect="Permit">
-		<Target>
-		    <Actions>
-			<Action>
-			    <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-				<AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">getcapabilities</AttributeValue>
-				<ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action" DataType="http://www.w3.org/2001/XMLSchema#string"/>
-			    </ActionMatch>
-			</Action>
-		    </Actions>
-		</Target>
-	    </Rule>
-	    
-	    <!-- 
-		DescribeCoverage
-	    -->
-	    
-	    <Rule RuleId="DescribeCoverageCC" Effect="Permit">
-		<Target>
-		    <Actions>
-			<Action>
-			    <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-				<AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">DescribeCoverage</AttributeValue>
-				<ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action" DataType="http://www.w3.org/2001/XMLSchema#string"/>
-			    </ActionMatch>
-			</Action>
-		    </Actions>
-		</Target>
-	    </Rule>
-	    
-	    <Rule RuleId="DescribeCoverageSC" Effect="Permit">
-		<Target>
-		    <Actions>
-			<Action>
-			    <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-				<AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">describecoverage</AttributeValue>
-				<ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action" DataType="http://www.w3.org/2001/XMLSchema#string"/>
-			    </ActionMatch>
-			</Action>
-		    </Actions>
-		</Target>
-	    </Rule>
-	    
-	    <!-- 
-		GetCoverage
-	    -->
-	    
-	    <Rule RuleId="DescribeCoverageCC" Effect="Permit">
-		<Target>
-		    <Actions>
-			<Action>
-			    <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-				<AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">GetCoverage</AttributeValue>
-				<ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action" DataType="http://www.w3.org/2001/XMLSchema#string"/>
-			    </ActionMatch>
-			</Action>
-		    </Actions>
-		</Target>
-	    </Rule>
-	    
-	    <Rule RuleId="GetCoverageSC" Effect="Permit">
-		<Target>
-		    <Actions>
-			<Action>
-			    <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-				<AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">getcoverage</AttributeValue>
-				<ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action" DataType="http://www.w3.org/2001/XMLSchema#string"/>
-			    </ActionMatch>
-			</Action>
-		    </Actions>
-		</Target>
-	    </Rule>
-	    
-	    <!-- 
-		DescribeEOCoverageSet
-	    -->
-	    
-	    <Rule RuleId="DescribeEOCoverageSetCC" Effect="Permit">
-		<Target>
-		    <Actions>
-			<Action>
-			    <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-				<AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">DescribeEOCoverageSet</AttributeValue>
-				<ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action" DataType="http://www.w3.org/2001/XMLSchema#string"/>
-			    </ActionMatch>
-			</Action>
-		    </Actions>
-		</Target>
-	    </Rule>
-	    
-	    <Rule RuleId="DescribeEOCoverageSetSC" Effect="Permit">
-		<Target>
-		    <Actions>
-			<Action>
-			    <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-				<AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">describeeocoverageset</AttributeValue>
-				<ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action" DataType="http://www.w3.org/2001/XMLSchema#string"/>
-			    </ActionMatch>
-			</Action>
-		    </Actions>
-		</Target>
-	    </Rule>
+    <?xml version="1.0" encoding="UTF-8"?>
+    <Policy 
+        xsi:schemalocation="urn:oasis:names:tc:xacml:2.0:policy:schema:os http://docs.oasis-open.org/xacml/access_control-xacml-2.0-policy-schema-os.xsd" 
+        PolicyId="wcs_user_policy" 
+        RuleCombiningAlgId="urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:permit-overrides" 
+        xmlns="urn:oasis:names:tc:xacml:2.0:policy:schema:os" 
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+        xmlns:ns="http://www.enviromatics.net/WS/PolicyManagementAndAuthorisationService/types /2.0">
+        
+        <Target>
+        <Subjects>
+            <Subject>
+            <!-- Here we specify the user who has access to the service. Default identifier is the uid attribute -->
+            <SubjectMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">wcs_user</AttributeValue>
+                <SubjectAttributeDesignator DataType="http://www.w3.org/2001/XMLSchema#string" AttributeId="uid"/>
+            </SubjectMatch>
+            </Subject>
+        </Subjects>
+        <Resources>
+            <Resource>		    
+            <!-- The attribute urn:oasis:names:tc:xacml:1.0:resource:resource-id specifies the protected server (default is the hostname) -->
+            <ResourceMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">eoxserver.example.com</AttributeValue>
+                <ResourceAttributeDesignator DataType="http://www.w3.org/2001/XMLSchema#string" AttributeId="urn:oasis:names:tc:xacml:1.0:resource:resource-id"/>
+            </ResourceMatch>
+            
+            <!-- The attribute serviceType specifies the protected service (wms or wcs) -->
+            <ResourceMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">wcs</AttributeValue>
+                <ResourceAttributeDesignator DataType="http://www.w3.org/2001/XMLSchema#string" AttributeId="serviceType"/>
+            </ResourceMatch>
+            </Resource>
+        </Resources>
+        </Target>
+        
+        
+        
+        <!-- 
+        GetCapabilities
+        -->
+        
+        <Rule RuleId="PermitGetCapabilitiesCC" Effect="Permit">
+        <Target>
+            <Actions>
+            <Action>
+                <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">GetCapabilities</AttributeValue>
+                <ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action" DataType="http://www.w3.org/2001/XMLSchema#string"/>
+                </ActionMatch>
+            </Action>
+            </Actions>
+        </Target>
+        </Rule>
+        
+        <Rule RuleId="PermitGetCapabilitiesSC" Effect="Permit">
+        <Target>
+            <Actions>
+            <Action>
+                <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">getcapabilities</AttributeValue>
+                <ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action" DataType="http://www.w3.org/2001/XMLSchema#string"/>
+                </ActionMatch>
+            </Action>
+            </Actions>
+        </Target>
+        </Rule>
+        
+        <!-- 
+        DescribeCoverage
+        -->
+        
+        <Rule RuleId="DescribeCoverageCC" Effect="Permit">
+        <Target>
+            <Actions>
+            <Action>
+                <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">DescribeCoverage</AttributeValue>
+                <ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action" DataType="http://www.w3.org/2001/XMLSchema#string"/>
+                </ActionMatch>
+            </Action>
+            </Actions>
+        </Target>
+        </Rule>
+        
+        <Rule RuleId="DescribeCoverageSC" Effect="Permit">
+        <Target>
+            <Actions>
+            <Action>
+                <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">describecoverage</AttributeValue>
+                <ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action" DataType="http://www.w3.org/2001/XMLSchema#string"/>
+                </ActionMatch>
+            </Action>
+            </Actions>
+        </Target>
+        </Rule>
+        
+        <!-- 
+        GetCoverage
+        -->
+        
+        <Rule RuleId="DescribeCoverageCC" Effect="Permit">
+        <Target>
+            <Actions>
+            <Action>
+                <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">GetCoverage</AttributeValue>
+                <ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action" DataType="http://www.w3.org/2001/XMLSchema#string"/>
+                </ActionMatch>
+            </Action>
+            </Actions>
+        </Target>
+        </Rule>
+        
+        <Rule RuleId="GetCoverageSC" Effect="Permit">
+        <Target>
+            <Actions>
+            <Action>
+                <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">getcoverage</AttributeValue>
+                <ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action" DataType="http://www.w3.org/2001/XMLSchema#string"/>
+                </ActionMatch>
+            </Action>
+            </Actions>
+        </Target>
+        </Rule>
+        
+        <!-- 
+        DescribeEOCoverageSet
+        -->
+        
+        <Rule RuleId="DescribeEOCoverageSetCC" Effect="Permit">
+        <Target>
+            <Actions>
+            <Action>
+                <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">DescribeEOCoverageSet</AttributeValue>
+                <ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action" DataType="http://www.w3.org/2001/XMLSchema#string"/>
+                </ActionMatch>
+            </Action>
+            </Actions>
+        </Target>
+        </Rule>
+        
+        <Rule RuleId="DescribeEOCoverageSetSC" Effect="Permit">
+        <Target>
+            <Actions>
+            <Action>
+                <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">describeeocoverageset</AttributeValue>
+                <ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action" DataType="http://www.w3.org/2001/XMLSchema#string"/>
+                </ActionMatch>
+            </Action>
+            </Actions>
+        </Target>
+        </Rule>
 
-	</Policy>
- 
+    </Policy>
 
 
 
 .. _CHARON_Configuration:
 
 General Configuration for CHARON services
------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - The Charon services need the ``acs-xbeans-1.0.jar`` dependency in the 
   ``\lib`` folder of your Axis2 installation (presumably the ``webapps/axis2`` 
