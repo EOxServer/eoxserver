@@ -366,7 +366,6 @@ based on a Debian system):
     createlang plpgsql $POSTGIS_DB_NAME
     psql -d $POSTGIS_DB_NAME -f $POSTGIS_SQL_PATH/postgis.sql
     psql -d $POSTGIS_DB_NAME -f $POSTGIS_SQL_PATH/spatial_ref_sys.sql
-    psql -d $POSTGIS_DB_NAME -f `pg_config --sharedir`/contrib/hstore-new.sql
     psql -d $POSTGIS_DB_NAME -c "GRANT ALL ON geometry_columns TO PUBLIC;"
     psql -d $POSTGIS_DB_NAME -c "GRANT ALL ON geography_columns TO PUBLIC;"
     psql -d $POSTGIS_DB_NAME -c "GRANT ALL ON spatial_ref_sys TO PUBLIC;"
