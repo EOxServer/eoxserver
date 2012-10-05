@@ -29,31 +29,36 @@
 #-------------------------------------------------------------------------------
 
 from os.path import splitext, exists
-from copy import copy
+
 from osgeo import gdal, osr, gdalconst, gdal_array
 
-SUPPORTED_COMPRESSIONS = ("JPEG", "LZW", "PACKBITS", "DEFLATE", "CCITTRLE", "CCITTFAX3", "CCITTFAX4", "NONE")
+
+SUPPORTED_COMPRESSIONS = ("JPEG", "LZW", "PACKBITS", "DEFLATE", "CCITTRLE",
+                          "CCITTFAX3", "CCITTFAX4", "NONE")
+
 NUMERIC_LIMITS = {
     gdalconst.GDT_Byte: (0, 255), # TODO: make others aswell?
 }
+
 
 #===============================================================================
 # helper functions
 #===============================================================================
 
-def _create_mem_copy(self, ds, *args, **kwargs):
+def _create_mem_copy(ds, *args, **kwargs):
     """ Create a new In-Memory Dataset as copy from an existing dataset. """
     mem_drv = gdal.GetDriverByName('MEM')
     return mem_drv.CreateCopy('', ds, *args, **kwargs)
     
 
-def _create_mem(self, sizex, sizey, numbands, datatype=gdalconst.GDT_Byte, options=None):
+def _create_mem(sizex, sizey, numbands, datatype=gdalconst.GDT_Byte,
+                options=None):
     """ Create a new In-Memory Dataset. """
     if options is None:
         options = []
     
     mem_drv = gdal.GetDriverByName('MEM')
-    mem_drv.Create('', sizex, sizey, numbands, datatype, options)
+    return mem_drv.Create('', sizex, sizey, numbands, datatype, options)
 
 
 #===============================================================================
@@ -70,6 +75,7 @@ class Extent(GeographicReference):
     def __init__(self, minx, miny, maxx, maxy, srid=4326):
         self.minx, self.miny, self.maxx, self.maxy = minx, miny, maxx, maxy
         self.srid = srid
+    
     
     def apply(self, ds):
         """ Set the geotransform and projection of the dataset according to 
@@ -103,10 +109,13 @@ class GCPList(GeographicReference):
                         gcps)
         self.gcp_srid = gcp_srid
         self.srid = srid
+    
         
     def apply(self, ds):
         gcp_sr = osr.SpatialReference(); gcp_sr.ImportFromEPSG(self.gcp_srid) 
         ds.SetGCPs(self.gcps, gcp_sr.ExportToWkt())
+        
+        # TODO reproject
         
 
 #===============================================================================
@@ -117,7 +126,7 @@ class FormatSelection(object):
     """ Format selection with format specific options. Currently supports GTiff
         only.
     """
-    def __init__(self, driver_name="GTiff", compression=None, jpeg_quality=None,
+    def __init__(self, driver_name="GTiff", tiling=True, compression=None, jpeg_quality=None,
                  zlevel=None, creation_options=None):
         self._driver_name = driver_name
         self.final_options = {}
@@ -140,6 +149,9 @@ class FormatSelection(object):
             
             # TODO: "predictor" ?
         
+        if tiling:
+            self.final_options["TILED"] = "YES"
+        
         if creation_options:
             # TODO: parse arglist
             self.final_options.update(dict(creation_options))
@@ -149,10 +161,12 @@ class FormatSelection(object):
     def driver_name(self):
         return self._driver_name
     
+    
     @property
     def creation_options(self):
         return ["%s=%s" % (key, value) 
                 for key, value in self.final_options.items()]
+
 
 #===============================================================================
 # Dataset Optimization steps
@@ -172,8 +186,10 @@ class OverviewOptimization(DatasetOptimization):
     """ Dataset optimization step to add overviews to the dataset. This step may
         have to be applied after the dataset has been reprojected.
     """
+    
     def __init__(self, resampling=None):
         self.resampling = resampling
+    
     
     def __call__(self, ds):
         ds.BuildOverviews(self.resampling)
@@ -200,7 +216,7 @@ class ReprojectionOptimization(DatasetOptimization):
         tmp_ds = gdal.AutoCreateWarpedVRT(src_ds, None, dst_sr.ExportToWkt(), 
                                           gdal.GRA_Bilinear, 0.125)
         
-        datatype = gdalconst.GDT_Byte # TODO!!!
+        datatype = gdalconst.GDT_Byte # TODO: automatically detect datatype
         dst_ds = _create_mem(tmp_ds.RasterXSize, tmp_ds.RasterYSize,
                              src_ds.RasterCount, datatype)
         
@@ -220,8 +236,9 @@ class BandSelectionOptimization(DatasetOptimization):
     
     def __init__(self, bands, datatype=gdalconst.GDT_Byte):
         # preprocess bands list
-        self.bands = map(lambda band: band 
-                         if len(band) == 3 else (band[0], None, None), bands)
+        # TODO: improve
+        self.bands = map(lambda b: b  if len(b) == 3 else (b[0], None, None),
+                         bands)
         self.datatype = datatype
         
     
@@ -231,16 +248,17 @@ class BandSelectionOptimization(DatasetOptimization):
         
         for dst_index, (src_index, dmin, dmax) in enumerate(self.bands, start=1):
             src_band = ds.GetRasterBand(src_index)
+            src_min, src_max = src_band.ComputeRasterMinMax()
             
             # get min/max values or calculate from band
             if dmin is None:
                 dmin = NUMERIC_LIMITS[ds.GetDataType()][0]
             elif dmin == "min":
-                dmin = src_band.GetMinimum()
+                dmin = src_min
             if dmax is None:
                 dmax = NUMERIC_LIMITS[ds.GetDataType()][1]
-            elif dmin == "max":
-                dmin = src_band.GetMaximum()
+            elif dmax == "max":
+                dmax = src_max
             
             data = src_band.ReadAsArray()
             
@@ -248,9 +266,10 @@ class BandSelectionOptimization(DatasetOptimization):
             data = ((limits[1] - limits[0]) * ((data - dmin) / (dmax - dmin)))
             data = data.astype(gdal_array.codes[self.datatype])
             
+            # write resulst
             dst_band = dst_ds.GetRasterBand(dst_index)
             dst_band.WriteArray(data)
-            dst_band.ComputeStatistics(False)
+            dst_band.ComputeStatistics(False) # TODO: remove this?
         
         return dst_ds
 
@@ -265,6 +284,7 @@ class ColorIndexOptimization(DatasetOptimization):
     def __init__(self, palette_file=None):
         # TODO: sanitize inputs
         self.palette_file = palette_file
+    
     
     def __call__(self, src_ds):
         dst_ds = _create_mem(src_ds.RasterXSize, src_ds.RasterYSize, 1, gdalconst.GDT_Byte)
@@ -304,7 +324,7 @@ class PreProcessor(object):
     
     def __init__(self, format_selection, 
                  begin_time=None, end_time=None, coverage_id=None, 
-                 overviews=True, crs=None, bands=None, 
+                 overviews=True, crs=None, bands=None, rgba=False, orig_bands=False,
                  color_index=False, palette_file=None,
                  no_data_value=None, force=False):
         
@@ -316,6 +336,8 @@ class PreProcessor(object):
         
         self.crs = crs
         self.bands = bands
+        self.rgba = rgba
+        self.orig_bands = orig_bands
         self.color_index = color_index
         self.palette_file = palette_file
         self.no_data_value = no_data_value
@@ -326,22 +348,22 @@ class PreProcessor(object):
     def process(self, input_filename, output_filename=None, 
                 geo_reference=None, generate_metadata=True):
         
-        # open the dataset and create an In-Memory Dataset as copy to perform 
-        # optimizations
+        # open the dataset and create an In-Memory Dataset as copy
+        # to perform optimizations
         gdal.AllRegister()
         ds = _create_mem_copy(gdal.Open(input_filename))
         
         gt = ds.GetGeoTransform()
         
         if not geo_reference:
-            if gt == (0.0, 1.0, 0.0, 0.0, 0.0, 1.0):
+            if gt == (0.0, 1.0, 0.0, 0.0, 0.0, 1.0): # TODO: maybe use a better check
                 raise ValueError("No geo reference supplied and the dataset "
                                  "has no internal geo transform.") # TODO: improve exception
         else:
             geo_reference.apply(ds)
         
         # apply optimizations
-        for optimization in self.optimizations():
+        for optimization in self.optimizations:
             ds = optimization(ds)
         
         
@@ -357,7 +379,6 @@ class PreProcessor(object):
         ds = driver.CreateCopy(output_filename, ds,
                                options=self.format_selection.creation_options)
         ds = None
-        
         
         if generate_metadata:
             #TODO: implement
@@ -379,13 +400,19 @@ class WMSPreProcessor(PreProcessor):
         if self.overviews:
             yield OverviewOptimization()
         
+        # if a band selection is given, use that
         if self.bands:
             yield BandSelectionOptimization(self.bands)
+            
+        # if RGBA is requested, use the first 4 bands as RGBA
         elif self.rgba:
             yield BandSelectionOptimization([(1, "min", "max"), 
                                              (2, "min", "max"),
                                              (3, "min", "max"),
                                              (4, "min", "max")])
+        
+        # if it is not specifically requested to leave the original bands intact
+        # just use the first 3 bands as RGB
         elif not self.orig_bands:
             yield BandSelectionOptimization([(1, "min", "max"), 
                                              (2, "min", "max"),
