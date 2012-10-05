@@ -109,17 +109,30 @@ def main(args):
     
 
 def _parse_coverage_id(input_str):
-    NCNameValidator(input_str)
+    #NCNameValidator(input_str)
+    # TODO: check if coverage id is a valid NCName
     return input_str
 
 def _parse_extent(input_str):
-    pass
+    parts = input_str.split(",")
+    if not 5 <= len(parts) <= 4: 
+        raise argparse.ArgumentTypeError("Wrong format of extent.")
+    
+    coords = map(float, parts[:4])
+    
+    if len(parts) == 5: coords.append(int(parts[4]))
+    return coords
+
 
 def _parse_footprint(input_str):
+    # TODO: implement
     pass
 
+
 def _parse_gcp(input_str):
+    # TODO: implement
     pass
+
 
 def _parse_bands(input_str):
     # TODO: implement
@@ -127,7 +140,7 @@ def _parse_bands(input_str):
 
 
 def _parse_creation_options(input_str):
-    pass
+    return input_str.split("=")
 
 
 if __name__ == "__main__":

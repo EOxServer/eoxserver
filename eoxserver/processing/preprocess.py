@@ -32,6 +32,9 @@ from os.path import splitext, exists
 
 from osgeo import gdal, osr, gdalconst, gdal_array
 
+gdal.UseExceptions()
+osr.UseExceptions()
+
 
 SUPPORTED_COMPRESSIONS = ("JPEG", "LZW", "PACKBITS", "DEFLATE", "CCITTRLE",
                           "CCITTFAX3", "CCITTFAX4", "NONE")
@@ -61,12 +64,24 @@ def _create_mem(sizex, sizey, numbands, datatype=gdalconst.GDT_Byte,
     return mem_drv.Create('', sizex, sizey, numbands, datatype, options)
 
 
+def _copy_projection(src_ds, dst_ds):
+    
+    dst_ds.SetProjection(src_ds.GetProjection())
+    dst_ds.SetGeoTransform(src_ds.GetGeoTransform())
+
+    
+def _copy_metadata(src_ds, dst_ds):
+    # TODO: implement
+    pass
+
+
 #===============================================================================
 # Geographic references
 #===============================================================================
 
 class GeographicReference(object):
     pass
+
 
 class Extent(GeographicReference):
     """ Sets the extent of the dataset expressed as a 4-tuple (minx, miny, maxx,
@@ -95,6 +110,7 @@ class Extent(GeographicReference):
 
 class Footprint(GeographicReference):
     """  """
+    # TODO: implement
     pass
 
 
@@ -126,6 +142,7 @@ class FormatSelection(object):
     """ Format selection with format specific options. Currently supports GTiff
         only.
     """
+    
     def __init__(self, driver_name="GTiff", tiling=True, compression=None, jpeg_quality=None,
                  zlevel=None, creation_options=None):
         self._driver_name = driver_name
@@ -163,6 +180,11 @@ class FormatSelection(object):
     
     
     @property
+    def extension(self):
+        return ".tif"
+    
+    
+    @property
     def creation_options(self):
         return ["%s=%s" % (key, value) 
                 for key, value in self.final_options.items()]
@@ -180,20 +202,6 @@ class DatasetOptimization(object):
     
     def __call__(self, ds):
         raise NotImplementedError
-
-
-class OverviewOptimization(DatasetOptimization):
-    """ Dataset optimization step to add overviews to the dataset. This step may
-        have to be applied after the dataset has been reprojected.
-    """
-    
-    def __init__(self, resampling=None):
-        self.resampling = resampling
-    
-    
-    def __call__(self, ds):
-        ds.BuildOverviews(self.resampling)
-        return ds
 
 
 class ReprojectionOptimization(DatasetOptimization):
@@ -216,9 +224,9 @@ class ReprojectionOptimization(DatasetOptimization):
         tmp_ds = gdal.AutoCreateWarpedVRT(src_ds, None, dst_sr.ExportToWkt(), 
                                           gdal.GRA_Bilinear, 0.125)
         
-        datatype = gdalconst.GDT_Byte # TODO: automatically detect datatype
+        
         dst_ds = _create_mem(tmp_ds.RasterXSize, tmp_ds.RasterYSize,
-                             src_ds.RasterCount, datatype)
+                             src_ds.RasterCount, src_ds.GetDataType())
         
         dst_ds.SetProjection(dst_wkt)
         dst_ds.SetGeoTransform(tmp_ds.GetGeoTransform())
@@ -226,6 +234,8 @@ class ReprojectionOptimization(DatasetOptimization):
         gdal.ReprojectImage(src_ds, dst_ds, src_sr, dst_sr, gdal.GRA_Bilinear)
         
         tmp_ds = None
+        
+        _copy_metadata(src_ds, dst_ds)
         
         return dst_ds
 
@@ -242,21 +252,21 @@ class BandSelectionOptimization(DatasetOptimization):
         self.datatype = datatype
         
     
-    def __call__(self, ds):
-        dst_ds = _create_mem(ds.RasterXSize, ds.RasterYSize, len(self.bands), self.datatype)
+    def __call__(self, src_ds):
+        dst_ds = _create_mem(src_ds.RasterXSize, src_ds.RasterYSize, len(self.bands), self.datatype)
         limits = NUMERIC_LIMITS[self.datatype]
         
         for dst_index, (src_index, dmin, dmax) in enumerate(self.bands, start=1):
-            src_band = ds.GetRasterBand(src_index)
+            src_band = src_ds.GetRasterBand(src_index)
             src_min, src_max = src_band.ComputeRasterMinMax()
             
             # get min/max values or calculate from band
             if dmin is None:
-                dmin = NUMERIC_LIMITS[ds.GetDataType()][0]
+                dmin = NUMERIC_LIMITS[src_ds.GetDataType()][0]
             elif dmin == "min":
                 dmin = src_min
             if dmax is None:
-                dmax = NUMERIC_LIMITS[ds.GetDataType()][1]
+                dmax = NUMERIC_LIMITS[src_ds.GetDataType()][1]
             elif dmax == "max":
                 dmax = src_max
             
@@ -269,7 +279,10 @@ class BandSelectionOptimization(DatasetOptimization):
             # write resulst
             dst_band = dst_ds.GetRasterBand(dst_index)
             dst_band.WriteArray(data)
-            dst_band.ComputeStatistics(False) # TODO: remove this?
+            #dst_band.ComputeStatistics(False) # TODO: remove this?
+        
+        
+        _copy_projection(src_ds, dst_ds)
         
         return dst_ds
 
@@ -311,7 +324,34 @@ class ColorIndexOptimization(DatasetOptimization):
         
         return dst_ds
 
+
+#===============================================================================
+# Post-create optimization steps
+#===============================================================================
+
+class DatasetPostOptimization(object):
+    """ Abstract base class for dataset post-creation optimization steps. These
+        opotimizations are performed on the actually produced dataset. This is
+        required by some optimization techiques.
+    """
     
+    def __call__(self, ds):
+        raise NotImplementedError
+
+
+class OverviewOptimization(DatasetPostOptimization):
+    """ Dataset optimization step to add overviews to the dataset. This step may
+        have to be applied after the dataset has been reprojected.
+    """
+    
+    def __init__(self, resampling=None):
+        self.resampling = resampling
+    
+    
+    def __call__(self, ds):
+        ds.BuildOverviews(self.resampling, [2, 4, 8, 16])
+        return ds
+
 #===============================================================================
 # Pre-Processors
 #===============================================================================
@@ -378,10 +418,15 @@ class PreProcessor(object):
         driver = gdal.GetDriverByName(self.format_selection.driver_name)
         ds = driver.CreateCopy(output_filename, ds,
                                options=self.format_selection.creation_options)
+        
+        for optimization in self.post_optimizations:
+            optimization(ds)
+        
         ds = None
         
         if generate_metadata:
             #TODO: implement
+            output_filename = splitext(output_filename)[0] + ".xml"
             pass
 
 
@@ -396,9 +441,6 @@ class WMSPreProcessor(PreProcessor):
     def optimizations(self):
         if self.crs:
             yield ReprojectionOptimization(self.crs)
-        
-        if self.overviews:
-            yield OverviewOptimization()
         
         # if a band selection is given, use that
         if self.bands:
@@ -421,3 +463,8 @@ class WMSPreProcessor(PreProcessor):
         if self.color_index:
             yield ColorIndexOptimization(self.palette_file)
 
+
+    @property    
+    def post_optimizations(self):
+        if self.overviews:
+            yield OverviewOptimization()
