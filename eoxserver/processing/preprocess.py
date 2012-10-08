@@ -241,7 +241,8 @@ class ReprojectionOptimization(DatasetOptimization):
 
 
 class BandSelectionOptimization(DatasetOptimization):
-    """ Dataset optimization step which selects a number of bands
+    """ Dataset optimization step which selects a number of bands and their 
+    respective scale and copies them to the result dataset. 
     """
     
     def __init__(self, bands, datatype=gdalconst.GDT_Byte):
@@ -260,19 +261,26 @@ class BandSelectionOptimization(DatasetOptimization):
             src_band = src_ds.GetRasterBand(src_index)
             src_min, src_max = src_band.ComputeRasterMinMax()
             
+            # TODO: get datatype
+            
+            #src_dt = src_ds.GetRasterBand(1).GetDataType()
+            src_dt = gdalconst.GDT_Byte
+            
+            
             # get min/max values or calculate from band
             if dmin is None:
-                dmin = NUMERIC_LIMITS[src_ds.GetDataType()][0]
+                dmin = NUMERIC_LIMITS[src_dt][0]
             elif dmin == "min":
                 dmin = src_min
             if dmax is None:
-                dmax = NUMERIC_LIMITS[src_ds.GetDataType()][1]
+                dmax = NUMERIC_LIMITS[src_dt][1]
             elif dmax == "max":
                 dmax = src_max
             
             data = src_band.ReadAsArray()
             
             # perform scaling
+            # TODO: buggy?
             data = ((limits[1] - limits[0]) * ((data - dmin) / (dmax - dmin)))
             data = data.astype(gdal_array.codes[self.datatype])
             
