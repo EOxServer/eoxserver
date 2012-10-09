@@ -299,7 +299,8 @@ def _parse_footprint(input_str):
 
 def _parse_gcp(input_str):
     """ Helper callback function to parse one GCP in the form 
-        "pixel,line,easting,northing[,elevation]"
+        "pixel,line,easting,northing[,elevation]" and transform it into a list 
+        like [x,y[,z],pixel,line]
     """
     
     parts = input_str.split(",")
@@ -308,7 +309,8 @@ def _parse_gcp(input_str):
         raise argparse.ArgumentTypeError("Wrong number of arguments for GCP.")
     
     try:
-        return [float(part) for part in parts]
+        gcps = [float(part) for part in parts]
+        return gcps[2:] + gcps[:2]
     except ValueError:
         raise argparse.ArgumentTypeError("Wrong format of GCP.")
 
