@@ -1,11 +1,10 @@
 #!/usr/bin/python
 #-------------------------------------------------------------------------------
-# $Id: eoxserver-admin.py 827 2011-11-09 17:46:49Z meissls $
+# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
-# Authors: Stephan Krause <stephan.krause@eox.at>
+# Authors: Fabian Schindler <fabian.schindler@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
-#          Fabian Schindler <fabian.schindler@eox.at>
 #
 #-------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
