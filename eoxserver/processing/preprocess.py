@@ -68,17 +68,18 @@ def _create_mem(sizex, sizey, numbands, datatype=gdalconst.GDT_Byte,
 
 
 def _copy_projection(src_ds, dst_ds):
-    
+    """ Copy the projection and geotransform from on dataset to another """
     dst_ds.SetProjection(src_ds.GetProjection())
     dst_ds.SetGeoTransform(src_ds.GetGeoTransform())
 
     
 def _copy_metadata(src_ds, dst_ds):
-    # TODO: implement
-    pass
+    """ Copy the metadata from on dataset to another """
+    dst_ds.SetMetadata(src_ds.GetMetadata_Dict())
 
 
 def _check_file_existence(filename):
+    " Check if file exists and raise an IOError if it does. "
     if exists(filename):
         raise IOError("The output file '%s' already exists." % filename)
 
@@ -110,9 +111,10 @@ class Extent(GeographicReference):
             0,
             self.maxy,
             0,
-            (self.maxy - self.miny) / ds.RasterYSize
+            -(self.maxy - self.miny) / ds.RasterYSize
         ])
         ds.SetProjection(sr.ExportToWkt())
+        return ds
     
 
 class Footprint(GeographicReference):
@@ -125,6 +127,7 @@ class GCPList(GeographicReference):
     """ Sets a list of GCPs (Ground Control Points) to the dataset and then 
         performs a rectification to a projection specified by SRID.
     """
+    
     def __init__(self, gcps, gcp_srid=4326, srid=None):
         # TODO: sanitize GCP list
         self.gcps = map(lambda gcp: gdal.GCP(*gcp) if len(gcp) == 5 
@@ -135,29 +138,32 @@ class GCPList(GeographicReference):
     
         
     def apply(self, src_ds):
+        # setup
         dst_sr = osr.SpatialReference()
         gcp_sr = osr.SpatialReference()
-        src_sr = osr.SpatialReference()
          
-        dst_sr.ImportFromEPSG(self.srid if self.srid is not None else self.gcp_srid) 
+        dst_sr.ImportFromEPSG(self.srid if self.srid is not None 
+                              else self.gcp_srid) 
         gcp_sr.ImportFromEPSG(self.gcp_srid)
-        #src_sr.ImportFromWkt(src_ds.GetProjection())
         
+        # set the GCPs
         src_ds.SetGCPs(self.gcps, gcp_sr.ExportToWkt())
         
-        dst_wkt = dst_sr.ExportToWkt()
-        tmp_ds = gdal.AutoCreateWarpedVRT(src_ds, None, dst_wkt, 
+        # create a temporary VRT, to find out the size of the output image
+        tmp_ds = gdal.AutoCreateWarpedVRT(src_ds, None, dst_sr.ExportToWkt(), 
                                           gdal.GRA_Bilinear, 0.125)
         
         dst_ds = _create_mem(tmp_ds.RasterXSize, tmp_ds.RasterYSize,
-                             src_ds.RasterCount, gdalconst.GDT_Byte)
+                             src_ds.RasterCount, 
+                             src_ds.GetRasterBand(1).DataType)
         
-        dst_ds.SetProjection(dst_wkt)
+        tmp_ds = None
+        
+        # reproject the image
+        dst_ds.SetProjection(dst_sr.ExportToWkt())
         dst_ds.SetGeoTransform(tmp_ds.GetGeoTransform())
         
         gdal.ReprojectImage(src_ds, dst_ds, "", "", gdal.GRA_Bilinear)
-        
-        tmp_ds = None
         
         _copy_metadata(src_ds, dst_ds)
         
@@ -168,31 +174,35 @@ class GCPList(GeographicReference):
 # Format selection
 #===============================================================================
 
+
 class FormatSelection(object):
     """ Format selection with format specific options. Currently supports GTiff
         only.
     """
     
-    def __init__(self, driver_name="GTiff", tiling=True, compression=None, jpeg_quality=None,
-                 zlevel=None, creation_options=None):
+    def __init__(self, driver_name="GTiff", tiling=True, compression=None, 
+                 jpeg_quality=None, zlevel=None, creation_options=None):
         self._driver_name = driver_name
         self.final_options = {}
         if compression:
             compression = compression.upper()
             if compression not in SUPPORTED_COMPRESSIONS:
                 raise Exception("Unsupported compression method. Supported "
-                                "compressions are: %s" % ", ".join(SUPPORTED_COMPRESSIONS))
+                                "compressions are: %s" 
+                                % ", ".join(SUPPORTED_COMPRESSIONS))
             self.final_options["COMPRESS"] = compression
             
             if jpeg_quality is not None and compression == "JPEG":
                 self.final_options["JPEG_QUALITY"] = jpeg_quality
             elif jpeg_quality is not None:
-                raise ValueError("'jpeg_quality' can only be used with JPEG compression")
+                raise ValueError("'jpeg_quality' can only be used with JPEG "
+                                 "compression")
             
             if zlevel is not None and compression == "DEFLATE":
                 self.final_options["ZLEVEL"] = zlevel
             elif zlevel is not None:
-                raise ValueError("'zlevel' can only be used with DEFLATE compression")
+                raise ValueError("'zlevel' can only be used with DEFLATE "
+                                 "compression")
             
             # TODO: "predictor" ?
         
@@ -244,30 +254,31 @@ class ReprojectionOptimization(DatasetOptimization):
 
         
     def __call__(self, src_ds):
+        # setup
         src_sr = osr.SpatialReference()
         src_sr.ImportFromWkt(src_ds.GetProjection())
         
         dst_sr = osr.SpatialReference()
         dst_sr.ImportFromEPSG(self.srid)
-        dst_wkt = dst_sr.ExportToWkt()
         
+        # create a temporary dataset to get information about the output size
         tmp_ds = gdal.AutoCreateWarpedVRT(src_ds, None, dst_sr.ExportToWkt(), 
                                           gdal.GRA_Bilinear, 0.125)
         
-        
+        # create the output dataset
         dst_ds = _create_mem(tmp_ds.RasterXSize, tmp_ds.RasterYSize,
-                             src_ds.RasterCount, gdalconst.GDT_Byte)
+                             src_ds.RasterCount, 
+                             src_ds.GetRasterBand(1).DataType)
         
-        dst_ds.SetProjection(dst_wkt)
-        dst_ds.SetGeoTransform(tmp_ds.GetGeoTransform())
+        tmp_ds = None
         
+        # perform the reprojection
         gdal.ReprojectImage(src_ds, dst_ds,
                             src_sr.ExportToWkt(),
                             dst_sr.ExportToWkt(),
                             gdal.GRA_Bilinear)
         
-        tmp_ds = None
-        
+        # copy the metadata
         _copy_metadata(src_ds, dst_ds)
         
         return dst_ds
@@ -287,24 +298,21 @@ class BandSelectionOptimization(DatasetOptimization):
         
     
     def __call__(self, src_ds):
-        dst_ds = _create_mem(src_ds.RasterXSize, src_ds.RasterYSize, len(self.bands), self.datatype)
+        dst_ds = _create_mem(src_ds.RasterXSize, src_ds.RasterYSize, 
+                             len(self.bands), self.datatype)
         limits = NUMERIC_LIMITS[self.datatype]
         
-        for dst_index, (src_index, dmin, dmax) in enumerate(self.bands, start=1):
+        for dst_index, (src_index, dmin, dmax) in enumerate(self.bands, 1):
             src_band = src_ds.GetRasterBand(src_index)
             src_min, src_max = src_band.ComputeRasterMinMax()
             
-            # TODO: get datatype
-            #src_dt = src_ds.GetRasterBand(1).GetDataType()
-            src_dt = gdalconst.GDT_Byte
-            
             # get min/max values or calculate from band
             if dmin is None:
-                dmin = NUMERIC_LIMITS[src_dt][0]
+                dmin = NUMERIC_LIMITS[src_band.DataType][0]
             elif dmin == "min":
                 dmin = src_min
             if dmax is None:
-                dmax = NUMERIC_LIMITS[src_dt][1]
+                dmax = NUMERIC_LIMITS[src_band.DataType][1]
             elif dmax == "max":
                 dmax = src_max
             
@@ -337,7 +345,8 @@ class ColorIndexOptimization(DatasetOptimization):
     
     
     def __call__(self, src_ds):
-        dst_ds = _create_mem(src_ds.RasterXSize, src_ds.RasterYSize, 1, gdalconst.GDT_Byte)
+        dst_ds = _create_mem(src_ds.RasterXSize, src_ds.RasterYSize, 
+                             1, gdalconst.GDT_Byte)
         
         if not self.palette_file:
             # create a color table as a median of the given dataset
