@@ -47,10 +47,10 @@ def main(args):
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     
     parser.description = ("""\
-    Takes <infile> raster data and pre-processes it into <outfiles_basename>.tif, a 
-    GeoTIFF converted to RGB using default internal tiling, internal overviews, 
-    no compression, and 0 as no-data value, and <outfiles_basename>.xml, a 
-    EOxServer simple XML EO metadata file.
+    Takes <infile> raster data and pre-processes it into 
+    <outfiles_basename>.tif, a GeoTIFF converted to RGB using default internal 
+    tiling, internal overviews, no compression, and 0 as no-data value, and 
+    <outfiles_basename>.xml, a EOxServer simple XML EO metadata file.
 
     The outfiles are ready to be used with the eoxs_register command of an 
     EOxServer instance.
@@ -61,45 +61,75 @@ def main(args):
 
     The data quality of <outfiles_basename>.tif is most likely different from 
     <infile> because of the pre-processing applied. Reasons include 
-    re-projection, compression, conversion to RGB, indexing, etc.""")
+    re-projection, compression, conversion to RGB, indexing, etc.
+    
+    Examples:
+    
+    # basic usage with no creation of metadata
+    eoxserver-preprocess.py --no-metadata input.tif
+    
+    # basic usage with creation of metadata with specific basename
+    eoxserver-preprocess.py --coverage-id=a --begin-time=2008-03-01T13:00:00Z \\ 
+                            --end-time=2008-03-01T13:00:00Z input.tif output
+                            
+    # with RGBA band selection
+    eoxserver-preprocess.py --bands 1:0:255,2:0:255,3:0:100,4 --rgba \\
+                            --no-metadata input.tif
+
+    # with DEFLATE compression and color index from a palette file
+    eoxserver-preprocess.py  --compression=DEFLATE --zlevel=2 --indexed \\ 
+                             --pct palette.vrt --no-metadata input.tif
+    
+    # (re-)setting the extent of the file
+    eoxserver-preprocess.py --extent 0,0,10,10,4326 --no-metadata input.tif
+    
+    # Using GCPs
+    eoxserver-preprocess.py --no-metadata --gcp 0,0,10,10 --gcp 2560,0,50,10 \\
+                            --gcp 0,1920,10,50 --gcp 2560,1920,50,50 \\ 
+                            --georef-crs 4326 input.tif
+                            
+    # reading arguments from a file (1 line per argument), with overrides
+    eoxserver-preprocess.py @args.txt --crs=3035 --no-tiling input.tif
+    
+    """)
     
     #===========================================================================
     # Metadata parsing group
     #===========================================================================
     
     # TODO: won't work with mutual exclusive groups. Bug in Argparse?
-    md_g = parser.add_mutually_exclusive_group(required=True)
+    #md_g = parser.add_mutually_exclusive_group(required=True)
     
-    md_g.add_argument("--no-metadata", dest="generate_metadata",
-                      action="store_false",
-                      help="Explicitly turn off the creation of a metadata " 
-                           "file.")
+    #md_g.add_argument("--no-metadata", dest="generate_metadata",
+    #                  action="store_false",
+    #                  help="Explicitly turn off the creation of a metadata " 
+    #                       "file.")
     
-    md_g_data = md_g.add_argument_group()
+    #md_g_data = md_g.add_argument_group()
     
-    md_g_data.add_argument("--begin-time", dest="begin_time", 
-                           type=_parse_datetime,
-                           help="The ISO 8601 timestamp of the begin time.")
-    md_g_data.add_argument("--end-time", dest="end_time",
-                           type=_parse_datetime,
-                           help="The ISO 8601 timestamp of the end time.")
-    md_g_data.add_argument("--coverage-id", dest="coverage_id",
-                           type=_parse_coverage_id, 
-                           help="The ID of the coverage, must be a valid "
-                                "NCName.")
+    #md_g_data.add_argument("--begin-time", dest="begin_time", 
+    #                       type=_parse_datetime,
+    #                       help="The ISO 8601 timestamp of the begin time.")
+    #md_g_data.add_argument("--end-time", dest="end_time",
+    #                       type=_parse_datetime,
+    #                       help="The ISO 8601 timestamp of the end time.")
+    #md_g_data.add_argument("--coverage-id", dest="coverage_id",
+    #                       type=_parse_coverage_id, 
+    #                       help="The ID of the coverage, must be a valid "
+    #                            "NCName.")
     
     # should be mutually exclusive
-    #parser.add_argument("--no-metadata", dest="generate_metadata",
-    #                    action="store_false",
-    #                    help="Explicitly turn off the creation of a metadata " 
-    #                         "file.")
-    #parser.add_argument("--begin-time", dest="begin_time", type=_parse_datetime,
-    #                    help="The ISO 8601 timestamp of the begin time.")
-    #parser.add_argument("--end-time", dest="end_time", type=_parse_datetime,
-    #                    help="The ISO 8601 timestamp of the end time.")
-    #parser.add_argument("--coverage-id", dest="coverage_id",
-    #                    type=_parse_coverage_id, 
-    #                    help="The ID of the coverage, must be a valid NCName.")
+    parser.add_argument("--no-metadata", dest="generate_metadata",
+                        action="store_false",
+                        help="Explicitly turn off the creation of a metadata " 
+                             "file.")
+    parser.add_argument("--begin-time", dest="begin_time", type=_parse_datetime,
+                        help="The ISO 8601 timestamp of the begin time.")
+    parser.add_argument("--end-time", dest="end_time", type=_parse_datetime,
+                        help="The ISO 8601 timestamp of the end time.")
+    parser.add_argument("--coverage-id", dest="coverage_id",
+                        type=_parse_coverage_id, 
+                        help="The ID of the coverage, must be a valid NCName.")
     
     #===========================================================================
     # Georeference group
@@ -107,18 +137,17 @@ def main(args):
     
     georef_g = parser.add_mutually_exclusive_group()
     georef_g.add_argument("--extent", dest="extent", type=_parse_extent,
-                          help="The extent of the dataset, as a 4-tuple of floats.")
-    georef_g.add_argument("--footprint", dest="footprint", 
-                          type=_parse_footprint,
-                          help="The footprint of the dataset, as a Polygon WKT.")
+                          help="The extent of the dataset, as a 4-tuple of "
+                               "floats.")
+    #georef_g.add_argument("--footprint", dest="footprint", 
+    #                      type=_parse_footprint,
+    #                      help="The footprint of the dataset, as a Polygon WKT.")
     georef_g.add_argument("--gcp", dest="gcps", type=_parse_gcp,
                           action="append",
                           help="A Ground Control Point in the format: "
                                "'pixel,line,easting,northing[,elevation]'.")
     
     parser.add_argument("--georef-crs", dest="georef_crs")
-    
-    # TODO: projection of georeference
     
     #===========================================================================
     # Arbitraries
@@ -141,7 +170,7 @@ def main(args):
     
     bands_g = parser.add_mutually_exclusive_group()
     
-    bands_g.add_argument("--rgba", dest="rgba", action="store_const",
+    bands_g.add_argument("--rgba", dest="bandmode", action="store_const",
                          const=RGBA,
                          help="Convert the image to RGBA, using the first four "
                               "bands.")
@@ -185,10 +214,6 @@ def main(args):
     
     parser.add_argument("--traceback", action="store_true", default=False)
     
-    
-    # TODO: config from file
-    
-    
     parser.add_argument("--force", "-f", dest="force", action="store_true",
                         help="Override files, if they already exist.")
     
@@ -201,6 +226,8 @@ def main(args):
     
     values = vars(parser.parse_args(args))
     
+    
+    # check metadata values
     if "generate_metadata" in values and ("begin_time" in values 
                                           or "end_time" in values
                                           or "coverage_id" in values):
@@ -216,18 +243,19 @@ def main(args):
     # hack to flatten the list
     values["input_filename"] = values["input_filename"][0]
     
-    print values
-    
     georef_crs = values.pop("georef_crs", None)
     
     if "extent" in values:
-        values["geo_reference"] = Extent(*values.pop("extent"))
+        values["geo_reference"] = Extent(*values.pop("extent"), srid=georef_crs or 4326)
     
-    if "footprint" in values:
-        values["geo_reference"] = Footprint(values.pop("footprint"))
+    #if "footprint" in values:
+    #    values["geo_reference"] = Footprint(values.pop("footprint"))
     
     if "gcps" in values:
-        values["geo_reference"] = GCPList(values.pop("gcps"))
+        values["geo_reference"] = GCPList(values.pop("gcps"), georef_crs or 4326)
+    
+    if "palette_file" in values and not "color_index" in values:
+        parser.error("--pct can only be used with --indexed")
     
     # Extract format and execution specific values
     format_values = _extract(values, ("tiling", "compression", "jpeg_quality", 
@@ -280,13 +308,10 @@ def _parse_extent(input_str):
     """
     
     parts = input_str.split(",")
-    if not 5 <= len(parts) <= 4:
+    if len(parts) != 4:
         raise argparse.ArgumentTypeError("Wrong format of extent.")
     
-    coords = map(float, parts[:4])
-    
-    if len(parts) == 5: coords.append(int(parts[4]))
-    return coords
+    return map(float, parts)
 
 
 def _parse_footprint(input_str):

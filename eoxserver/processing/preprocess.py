@@ -105,7 +105,7 @@ class Extent(GeographicReference):
             the defined extent and SRID.
         """
         sr = osr.SpatialReference(); sr.ImportFromEPSG(self.srid)
-        ds.SetGeotransform([ # TODO: correct?
+        ds.SetGeoTransform([ # TODO: correct?
             self.minx,
             (self.maxx - self.minx) / ds.RasterXSize,
             0,
@@ -157,13 +157,13 @@ class GCPList(GeographicReference):
                              src_ds.RasterCount, 
                              src_ds.GetRasterBand(1).DataType)
         
-        tmp_ds = None
-        
         # reproject the image
         dst_ds.SetProjection(dst_sr.ExportToWkt())
         dst_ds.SetGeoTransform(tmp_ds.GetGeoTransform())
         
         gdal.ReprojectImage(src_ds, dst_ds, "", "", gdal.GRA_Bilinear)
+        
+        tmp_ds = None
         
         _copy_metadata(src_ds, dst_ds)
         
@@ -270,13 +270,17 @@ class ReprojectionOptimization(DatasetOptimization):
                              src_ds.RasterCount, 
                              src_ds.GetRasterBand(1).DataType)
         
-        tmp_ds = None
         
-        # perform the reprojection
+        # reproject the image
+        dst_ds.SetProjection(dst_sr.ExportToWkt())
+        dst_ds.SetGeoTransform(tmp_ds.GetGeoTransform())
+        
         gdal.ReprojectImage(src_ds, dst_ds,
                             src_sr.ExportToWkt(),
                             dst_sr.ExportToWkt(),
                             gdal.GRA_Bilinear)
+        
+        tmp_ds = None
         
         # copy the metadata
         _copy_metadata(src_ds, dst_ds)
@@ -359,7 +363,11 @@ class ColorIndexOptimization(DatasetOptimization):
         else:
             # copy the color table from the given palette file
             pct_ds = gdal.Open(self.palette_file)
-            ct = pct_ds.GetRasterBand(1).GetRasterColorTable().Copy()
+            pct_ct = pct_ds.GetRasterBand(1).GetRasterColorTable()
+            if not pct_ct:
+                raise ValueError("The palette file '%s' does not have a Color "
+                                 "Table." % self.palette_file)
+            ct = pct_ct.Clone()
             pct_ds = None
         
         dst_ds.GetRasterBand(1).SetRasterColorTable(ct)
