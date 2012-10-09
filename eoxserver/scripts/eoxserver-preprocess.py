@@ -32,9 +32,11 @@
 import sys
 import re
 import argparse
+import traceback
 
 from eoxserver.processing.preprocess import (
-    WMSPreProcessor, FormatSelection, SUPPORTED_COMPRESSIONS
+    WMSPreProcessor, FormatSelection, SUPPORTED_COMPRESSIONS, RGBA, ORIG_BANDS,
+    Extent, Footprint, GCPList
 )
 from eoxserver.core.util.timetools import getDateTime
 
@@ -67,40 +69,57 @@ def main(args):
     #===========================================================================
     
     # TODO: won't work with mutual exclusive groups. Bug in Argparse?
-    #md_group = parser.add_mutually_exclusive_group(required=True)
-    #md_group.add_argument("--no-metadata", dest="metadata", action="store_false", default=True)
-    #md_group_data = md_group.add_argument_group("metadata")
-    #md_group_data.add_argument("--begin-time", dest="begin_time")
-    #md_group_data.add_argument("--end-time", dest="end_time")
-    #md_group_data.add_argument("--coverage-id", dest="coverage_id")
+    md_g = parser.add_mutually_exclusive_group(required=True)
+    
+    md_g.add_argument("--no-metadata", dest="generate_metadata",
+                      action="store_false",
+                      help="Explicitly turn off the creation of a metadata " 
+                           "file.")
+    
+    md_g_data = md_g.add_argument_group()
+    
+    md_g_data.add_argument("--begin-time", dest="begin_time", 
+                           type=_parse_datetime,
+                           help="The ISO 8601 timestamp of the begin time.")
+    md_g_data.add_argument("--end-time", dest="end_time",
+                           type=_parse_datetime,
+                           help="The ISO 8601 timestamp of the end time.")
+    md_g_data.add_argument("--coverage-id", dest="coverage_id",
+                           type=_parse_coverage_id, 
+                           help="The ID of the coverage, must be a valid "
+                                "NCName.")
     
     # should be mutually exclusive
-    parser.add_argument("--no-metadata", dest="generate_metadata",
-                        action="store_false",
-                        help="Explicitly turn off the creation of a metadata " 
-                             "file.")
-    parser.add_argument("--begin-time", dest="begin_time", type=_parse_datetime,
-                        help="The ISO 8601 timestamp of the begin time.")
-    parser.add_argument("--end-time", dest="end_time", type=_parse_datetime,
-                        help="The ISO 8601 timestamp of the end time.")
-    parser.add_argument("--coverage-id", dest="coverage_id",
-                        type=_parse_coverage_id, 
-                        help="The ID of the coverage, must be a valid NCName.")
+    #parser.add_argument("--no-metadata", dest="generate_metadata",
+    #                    action="store_false",
+    #                    help="Explicitly turn off the creation of a metadata " 
+    #                         "file.")
+    #parser.add_argument("--begin-time", dest="begin_time", type=_parse_datetime,
+    #                    help="The ISO 8601 timestamp of the begin time.")
+    #parser.add_argument("--end-time", dest="end_time", type=_parse_datetime,
+    #                    help="The ISO 8601 timestamp of the end time.")
+    #parser.add_argument("--coverage-id", dest="coverage_id",
+    #                    type=_parse_coverage_id, 
+    #                    help="The ID of the coverage, must be a valid NCName.")
     
     #===========================================================================
     # Georeference group
     #===========================================================================
     
     georef_g = parser.add_mutually_exclusive_group()
-    georef_g.add_argument("--extent", dest="geo_reference", type=_parse_extent,
+    georef_g.add_argument("--extent", dest="extent", type=_parse_extent,
                           help="The extent of the dataset, as a 4-tuple of floats.")
-    georef_g.add_argument("--footprint", dest="geo_reference", 
+    georef_g.add_argument("--footprint", dest="footprint", 
                           type=_parse_footprint,
                           help="The footprint of the dataset, as a Polygon WKT.")
-    georef_g.add_argument("--gcp", dest="geo_reference", type=_parse_gcp,
+    georef_g.add_argument("--gcp", dest="gcps", type=_parse_gcp,
                           action="append",
                           help="A Ground Control Point in the format: "
                                "'pixel,line,easting,northing[,elevation]'.")
+    
+    parser.add_argument("--georef-crs", dest="georef_crs")
+    
+    # TODO: projection of georeference
     
     #===========================================================================
     # Arbitraries
@@ -122,14 +141,19 @@ def main(args):
     #===========================================================================
     
     bands_g = parser.add_mutually_exclusive_group()
-    bands_g.add_argument("--orig-bands", dest="orig_bands", action="store_true",
-                         help="Explicitly keep all original bands.")
-    bands_g.add_argument("--rgba", dest="rgba", action="store_true",
+    
+    bands_g.add_argument("--rgba", dest="rgba", action="store_const",
+                         const=RGBA,
                          help="Convert the image to RGBA, using the first four "
                               "bands.")
-    bands_g.add_argument("--bands", dest="bands", type=_parse_bands, 
-                         help="A comma separated list of bands with optional "
-                              "subsets in the form: 'no[:low:high]'.")
+    bands_g.add_argument("--orig-bands", dest="bandmode", action="store_const",
+                         const=ORIG_BANDS,
+                         help="Explicitly keep all original bands.")
+    
+    parser.add_argument("--bands", dest="bands", type=_parse_bands, 
+                        help="A comma separated list of bands with optional "
+                             "subsets in the form: 'no[:low:high]'. Either "
+                             "three bands, or four when --rgba is requested.")
     
     parser.add_argument("--compression", dest="compression",
                         choices=SUPPORTED_COMPRESSIONS,
@@ -140,6 +164,10 @@ def main(args):
     parser.add_argument("--zlevel", dest="zlevel", type=int,
                         help="The zlevel quality setting when DEFLATE "
                              "compression is requested.")
+    
+    indexed_group = parser.add_argument_group()
+    
+    # TODO: pct depends on indexed
     
     parser.add_argument("--indexed", dest="color_index", action="store_true",
                         help="Create a paletted (indexed) image.")
@@ -156,6 +184,8 @@ def main(args):
                         help="Additional GDAL dataset creation options. "
                              "See http://www.gdal.org/frmt_gtiff.html")
     
+    parser.add_argument("--traceback", action="store_true", default=False)
+    
     
     # TODO: config from file
     
@@ -163,16 +193,14 @@ def main(args):
     parser.add_argument("--force", "-f", dest="force", action="store_true",
                         help="Override files, if they already exist.")
     
-    # TODO input and output file
     parser.add_argument("input_filename", metavar="infile", nargs=1,
                         help="The input raster file to be processed.")
-    parser.add_argument("output_filename", metavar="outfiles_basename",
+    parser.add_argument("output_basename", metavar="outfiles_basename",
                         nargs="?", 
                         help="The base name of the outputfile(s) to be "
                              "generated.")
     
     values = vars(parser.parse_args(args))
-    print values
     
     if "generate_metadata" in values and ("begin_time" in values 
                                           or "end_time" in values
@@ -189,27 +217,38 @@ def main(args):
     # hack to flatten the list
     values["input_filename"] = values["input_filename"][0]
     
-    def extract(dct, keys):
-        tmp = {}
-        for key in keys:
-            try:
-                tmp[key] = dct.pop(key)
-            except KeyError:
-                pass
-        return tmp
+    print values
+    
+    georef_crs = values.pop("georef_crs", None)
+    
+    if "extent" in values:
+        values["geo_reference"] = Extent(*values.pop("extent"))
+    
+    if "footprint" in values:
+        values["geo_reference"] = Footprint(values.pop("footprint"))
+    
+    if "gcps" in values:
+        values["geo_reference"] = GCPList(values.pop("gcps"))
     
     # Extract format and execution specific values
-    format_values = extract(values, ("tiling", "compression", "jpeg_quality", 
-                                     "zlevel", "creation_options"))
-    exec_values = extract(values, ("input_filename", "output_filename",
-                                   "geo_reference", "generate_metadata"))
+    format_values = _extract(values, ("tiling", "compression", "jpeg_quality", 
+                                      "zlevel", "creation_options"))
+    exec_values = _extract(values, ("input_filename", "output_basename",
+                                    "geo_reference", "generate_metadata"))
+    other_values = _extract(values, ("traceback", ))
     
-    # create a format selection
-    format_selection = FormatSelection(**format_values)
-    
-    # create and run the preprocessor
-    preprocessor = WMSPreProcessor(format_selection, **values)
-    preprocessor.process(**exec_values)
+    try:
+        # create a format selection
+        format_selection = FormatSelection(**format_values)
+        
+        # create and run the preprocessor
+        preprocessor = WMSPreProcessor(format_selection, **values)
+        preprocessor.process(**exec_values)
+    except Exception, e:
+        # error wrapping
+        if other_values["traceback"]:
+            traceback.print_exc()
+        parser.error(str(e))
 
 
 def _parse_datetime(input_str):
@@ -242,7 +281,7 @@ def _parse_extent(input_str):
     """
     
     parts = input_str.split(",")
-    if not 5 <= len(parts) <= 4: 
+    if not 5 <= len(parts) <= 4:
         raise argparse.ArgumentTypeError("Wrong format of extent.")
     
     coords = map(float, parts[:4])
@@ -252,18 +291,31 @@ def _parse_extent(input_str):
 
 
 def _parse_footprint(input_str):
+    """ Helper callback function to parse a footprint.
+    """
     # TODO: implement
     pass
 
 
 def _parse_gcp(input_str):
-    # TODO: implement
-    pass
+    """ Helper callback function to parse one GCP in the form 
+        "pixel,line,easting,northing[,elevation]"
+    """
+    
+    parts = input_str.split(",")
+    
+    if not (len(parts) != 4 or len(parts) != 5):
+        raise argparse.ArgumentTypeError("Wrong number of arguments for GCP.")
+    
+    try:
+        return [float(part) for part in parts]
+    except ValueError:
+        raise argparse.ArgumentTypeError("Wrong format of GCP.")
 
 
 def _parse_bands(input_str):
     """ Helper callback function to parse a list of selected bands given from 
-    the user.
+        the user.
     """
     
     result = []
@@ -293,9 +345,11 @@ def _parse_bands(input_str):
     return result
 
 
-def _parse_nodata_values(x):
-    # TODO: implement 
-    pass
+def _parse_nodata_values(input_str):
+    """ Helper callback function to parse no-data values. 
+    """
+    
+    return [int(part) for part in input_str.split(",")]
 
 
 def _parse_creation_options(input_str):
@@ -303,6 +357,19 @@ def _parse_creation_options(input_str):
     """
     
     return input_str.split("=")
+
+
+def _extract(dct, keys):
+    """ Helper function to extract a list of keys from a dict and return these
+        in a new dict.
+    """
+    tmp = {}
+    for key in keys:
+        try:
+            tmp[key] = dct.pop(key)
+        except KeyError:
+            pass
+    return tmp
 
 
 if __name__ == "__main__":
