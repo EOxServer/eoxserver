@@ -256,12 +256,15 @@ class ReprojectionOptimization(DatasetOptimization):
         
         
         dst_ds = _create_mem(tmp_ds.RasterXSize, tmp_ds.RasterYSize,
-                             src_ds.RasterCount, src_ds.GetDataType())
+                             src_ds.RasterCount, gdalconst.GDT_Byte)
         
         dst_ds.SetProjection(dst_wkt)
         dst_ds.SetGeoTransform(tmp_ds.GetGeoTransform())
         
-        gdal.ReprojectImage(src_ds, dst_ds, src_sr, dst_sr, gdal.GRA_Bilinear)
+        gdal.ReprojectImage(src_ds, dst_ds,
+                            src_sr.ExportToWkt(),
+                            dst_sr.ExportToWkt(),
+                            gdal.GRA_Bilinear)
         
         tmp_ds = None
         
