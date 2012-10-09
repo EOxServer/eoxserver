@@ -43,6 +43,9 @@ NUMERIC_LIMITS = {
     gdalconst.GDT_Byte: (0, 255), # TODO: make others aswell?
 }
 
+# enum for bandmode
+RGB, RGBA, ORIG_BANDS = range(3)
+
 
 #===============================================================================
 # helper functions
@@ -74,6 +77,10 @@ def _copy_metadata(src_ds, dst_ds):
     # TODO: implement
     pass
 
+
+def _check_file_existence(filename):
+    if exists(filename):
+        raise IOError("The output file '%s' already exists." % filename)
 
 #===============================================================================
 # Geographic references
@@ -118,7 +125,7 @@ class GCPList(GeographicReference):
     """ Sets a list of GCPs (Ground Control Points) to the dataset and then 
         performs a rectification to a projection specified by SRID.
     """
-    def __init__(self, gcps, gcp_srid=4326, srid=4326):
+    def __init__(self, gcps, gcp_srid=4326, srid=None):
         # TODO: sanitize GCP list
         self.gcps = map(lambda gcp: gdal.GCP(*gcp) if len(gcp) == 5 
                         else gdal.GCP(gcp[0], gcp[1], 0.0, gcp[2], gcp[3]), 
@@ -127,11 +134,34 @@ class GCPList(GeographicReference):
         self.srid = srid
     
         
-    def apply(self, ds):
-        gcp_sr = osr.SpatialReference(); gcp_sr.ImportFromEPSG(self.gcp_srid) 
-        ds.SetGCPs(self.gcps, gcp_sr.ExportToWkt())
+    def apply(self, src_ds):
+        dst_sr = osr.SpatialReference()
+        gcp_sr = osr.SpatialReference()
+        src_sr = osr.SpatialReference()
+         
+        dst_sr.ImportFromEPSG(self.srid if self.srid is not None else self.gcp_srid) 
+        gcp_sr.ImportFromEPSG(self.gcp_srid)
+        #src_sr.ImportFromWkt(src_ds.GetProjection())
         
-        # TODO reproject
+        src_ds.SetGCPs(self.gcps, gcp_sr.ExportToWkt())
+        
+        dst_wkt = dst_sr.ExportToWkt()
+        tmp_ds = gdal.AutoCreateWarpedVRT(src_ds, None, dst_wkt, 
+                                          gdal.GRA_Bilinear, 0.125)
+        
+        dst_ds = _create_mem(tmp_ds.RasterXSize, tmp_ds.RasterYSize,
+                             src_ds.RasterCount, gdalconst.GDT_Byte)
+        
+        dst_ds.SetProjection(dst_wkt)
+        dst_ds.SetGeoTransform(tmp_ds.GetGeoTransform())
+        
+        gdal.ReprojectImage(src_ds, dst_ds, "", "", gdal.GRA_Bilinear)
+        
+        tmp_ds = None
+        
+        _copy_metadata(src_ds, dst_ds)
+        
+        return dst_ds
         
 
 #===============================================================================
@@ -262,10 +292,8 @@ class BandSelectionOptimization(DatasetOptimization):
             src_min, src_max = src_band.ComputeRasterMinMax()
             
             # TODO: get datatype
-            
             #src_dt = src_ds.GetRasterBand(1).GetDataType()
             src_dt = gdalconst.GDT_Byte
-            
             
             # get min/max values or calculate from band
             if dmin is None:
@@ -287,8 +315,6 @@ class BandSelectionOptimization(DatasetOptimization):
             # write resulst
             dst_band = dst_ds.GetRasterBand(dst_index)
             dst_band.WriteArray(data)
-            #dst_band.ComputeStatistics(False) # TODO: remove this?
-        
         
         _copy_projection(src_ds, dst_ds)
         
@@ -330,7 +356,36 @@ class ColorIndexOptimization(DatasetOptimization):
                            src_ds.GetRasterBand(3),
                            dst_ds.GetRasterBand(1), ct)
         
+        _copy_projection(src_ds, dst_ds)
+        _copy_metadata(src_ds, dst_ds)
+        
         return dst_ds
+
+
+class NoDataValueOptimization(DatasetOptimization):
+    """
+    """
+    
+    def __init__(self, nodata_values):
+        self.nodata_values = nodata_values
+        
+        
+    def __call__(self, ds):
+        nodata_values = self.nodata_values
+        if len(nodata_values) == 1:
+            nodata_values = nodata_values * ds.RasterCount
+        
+        
+        #TODO: bug, the same nodata value is set to all bands?
+        
+        
+        for index, value in enumerate(nodata_values, start=1):
+            try:
+                ds.GetRasterBand(index).SetNoDataValue(value)
+            except RuntimeError:
+                pass # TODO
+        
+        return ds
 
 
 #===============================================================================
@@ -372,9 +427,9 @@ class PreProcessor(object):
     
     def __init__(self, format_selection, 
                  begin_time=None, end_time=None, coverage_id=None, 
-                 overviews=True, crs=None, bands=None, rgba=False, orig_bands=False,
-                 color_index=False, palette_file=None,
-                 no_data_value=None, force=False):
+                 overviews=True, crs=None, bands=None, bandmode=RGB,
+                 color_index=False, palette_file=None, no_data_value=None, 
+                 force=False):
         
         self.format_selection = format_selection
         self.begin_time = begin_time
@@ -383,9 +438,9 @@ class PreProcessor(object):
         self.overviews = overviews
         
         self.crs = crs
+        
         self.bands = bands
-        self.rgba = rgba
-        self.orig_bands = orig_bands
+        self.bandmode = bandmode
         self.color_index = color_index
         self.palette_file = palette_file
         self.no_data_value = no_data_value
@@ -393,12 +448,14 @@ class PreProcessor(object):
         self.force = force
         
     
-    def process(self, input_filename, output_filename=None, 
+    def process(self, input_filename, output_basename=None, 
                 geo_reference=None, generate_metadata=True):
         
         # open the dataset and create an In-Memory Dataset as copy
         # to perform optimizations
         gdal.AllRegister()
+        gdal.UseExceptions()
+        
         ds = _create_mem_copy(gdal.Open(input_filename))
         
         gt = ds.GetGeoTransform()
@@ -408,21 +465,27 @@ class PreProcessor(object):
                 raise ValueError("No geo reference supplied and the dataset "
                                  "has no internal geo transform.") # TODO: improve exception
         else:
-            geo_reference.apply(ds)
+            ds = geo_reference.apply(ds)
         
         # apply optimizations
         for optimization in self.optimizations:
             ds = optimization(ds)
         
         
+        # TODO: make 'tif' dependant on format selection
+        # check files exist
+        if not output_basename:
+            output_filename = splitext(input_filename)[0] + "_proc.tif"
+            output_md_filename = splitext(input_filename)[0] + "_proc.xml"
+        
+        else:
+            output_filename = output_basename + ".tif"
+            output_md_filename = output_basename + ".xml"
+        
+        if not self.force:
+            _check_file_existence(output_filename)
+        
         # save the file to the disc
-        if not output_filename:
-            output_filename = splitext(input_filename)[0] + ".tif"
-        
-        if exists(output_filename) and not self.force:
-            raise IOError("The output file '%s' already exists." 
-                          % output_filename)
-        
         driver = gdal.GetDriverByName(self.format_selection.driver_name)
         ds = driver.CreateCopy(output_filename, ds,
                                options=self.format_selection.creation_options)
@@ -433,8 +496,8 @@ class PreProcessor(object):
         ds = None
         
         if generate_metadata:
-            #TODO: implement
-            output_filename = splitext(output_filename)[0] + ".xml"
+            if not self.force:
+                _check_file_existence(output_md_filename)
             pass
 
 
@@ -450,26 +513,42 @@ class WMSPreProcessor(PreProcessor):
         if self.crs:
             yield ReprojectionOptimization(self.crs)
         
-        # if a band selection is given, use that
-        if self.bands:
-            yield BandSelectionOptimization(self.bands)
-            
-        # if RGBA is requested, use the first 4 bands as RGBA
-        elif self.rgba:
-            yield BandSelectionOptimization([(1, "min", "max"), 
-                                             (2, "min", "max"),
-                                             (3, "min", "max"),
-                                             (4, "min", "max")])
         
-        # if it is not specifically requested to leave the original bands intact
-        # just use the first 3 bands as RGB
-        elif not self.orig_bands:
-            yield BandSelectionOptimization([(1, "min", "max"), 
-                                             (2, "min", "max"),
-                                             (3, "min", "max")])
+        if self.bandmode not in (RGB, RGBA, ORIG_BANDS):
+            raise ValueError
+        
+        # if RGB is requested, use the given bands or the first 3 bands as RGBA
+        if self.bandmode == RGB:
+            if self.bands and len(self.bands) != 3:
+                raise ValueError("Wrong number of bands given. Expected 3, got "
+                                 "%d." % len(self.bands))
+            yield BandSelectionOptimization(self.bands or [(1, "min", "max"), 
+                                                           (2, "min", "max"),
+                                                           (3, "min", "max")])
+        
+        # if RGBA is requested, use the given bands or the first 4 bands as RGBA
+        elif self.bandmode == RGBA:
+            if self.bands and len(self.bands) != 4:
+                raise ValueError("Wrong number of bands given. Expected 4, got "
+                                 "%d." % len(self.bands))
+            yield BandSelectionOptimization(self.bands or [(1, "min", "max"), 
+                                                           (2, "min", "max"),
+                                                           (3, "min", "max"),
+                                                           (4, "min", "max")])
+        
+        # hen band mode is set to original bands, don't use this optimization
+        elif self.bandmode == ORIG_BANDS:
+            if self.bands:
+                raise ValueError("Bandmode is set to 'original', but bands are "
+                                 "given.")
+        
+        else: raise ValueError("Illegal bandmode given.")
             
         if self.color_index:
             yield ColorIndexOptimization(self.palette_file)
+            
+        if self.no_data_value:
+            yield NoDataValueOptimization(self.no_data_value)
 
 
     @property    
