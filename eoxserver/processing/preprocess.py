@@ -537,7 +537,7 @@ class WMSPreProcessor(PreProcessor):
         if self.bandmode not in (RGB, RGBA, ORIG_BANDS):
             raise ValueError
         
-        # if RGB is requested, use the given bands or the first 3 bands as RGBA
+        # if RGB is requested, use the given bands or the first 3 bands as RGB
         if self.bandmode == RGB:
             if self.bands and len(self.bands) != 3:
                 raise ValueError("Wrong number of bands given. Expected 3, got "
@@ -556,7 +556,7 @@ class WMSPreProcessor(PreProcessor):
                                                            (3, "min", "max"),
                                                            (4, "min", "max")])
         
-        # hen band mode is set to original bands, don't use this optimization
+        # when band mode is set to original bands, don't use this optimization
         elif self.bandmode == ORIG_BANDS:
             if self.bands:
                 raise ValueError("Bandmode is set to 'original', but bands are "
