@@ -67,6 +67,9 @@ class Command(EOxServerAdminCommand):
             "folder structure.")
     args = ("--id INSTANCE_ID [--dir DIR --initial_data DIR --init_spatialite]")
     
+    can_import_settings = False
+    requires_model_validation = False
+    
     def handle(self, *args, **options):
         instance_id = options['id']
         if instance_id is None:
