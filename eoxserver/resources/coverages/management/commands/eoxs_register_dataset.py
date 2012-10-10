@@ -57,7 +57,7 @@ class Command(CommandOutputMixIn, BaseCommand):
             dest='datafiles',
             action='callback', callback=_variable_args_cb,
             default=None,
-            help=('Mandatory. One or more paths to a files '
+            help=('Mandatory. One or more paths to files '
                   'containing the image data. These paths can '
                   'either be local, ftp paths, or rasdaman '
                   'collection names.')
@@ -189,7 +189,7 @@ class Command(CommandOutputMixIn, BaseCommand):
         make_option('--visible',
             dest='visible',
             default=True,
-            help=("Optional. Sets the visibility status of all datasets to the"
+            help=("Optional. Sets the visibility status of all datasets to the "
                   "given boolean value. Defaults to 'True'.")
         )
     )
