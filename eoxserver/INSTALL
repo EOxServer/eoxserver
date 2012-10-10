@@ -33,46 +33,50 @@ THE SOFTWARE.
 # Quick installation guide for the impatient #
 ##############################################
 
+sudo pip install eoxserver
+eoxserver-admin.py create_instance YOUR_INSTANCE_ID --init_spatialite
+cd YOUR_INSTANCE_ID
+python manage.py syncdb
+
+
 +--------------------------------------------+
 | Running from the command-line
 +--------------------------------------------+
 
-Copy directory "eoxserver" to destination.
-Change to "eoxserver" directory.
-Copy or move "TEMPLATE_settings.py" to "settings.py" and adjust settings.
-Optional: Add link "initial_data.json" to "eoxserver/server/fixtures/" pointing to either "template_initial_data.json" or "../../../autotest/data/meris/meris_data.json" in order to add test data.
-Add the parent directory of eoxserver to the Python path: export PYTHONPATH=<eoxserver-parent-dir>
-Run: "python manage.py syncdb"
-Run: "python manage.py runserver"
-Point your browser to "http://localhost:8000/ows?" (e.g. "http://localhost:8000/ows?service=wcs&version=2.0.0&request=GetCapabilities") or "http://localhost:8000/admin/".
+python manage.py runserver
+
+# Point your browser to: "http://localhost:8000/"
 
 
 +--------------------------------------------+
 | Running via WSGI interface
 +--------------------------------------------+
 
-Copy directory "eoxserver" to destination.
-Change to "eoxserver" directory.
-Copy or move "TEMPLATE_settings.py" to "settings.py" and adjust settings.
-Optional: Add link "initial_data.json" to "eoxserver/server/fixtures/" pointing to either "template_initial_data.json" or "../../../autotest/data/meris/meris_data.json" in order to add test data.
-Run: "python manage.py syncdb"
-Adjust "deployment/wsgi.py" to your environment.
-Add the following to your Apache web server configuration (e.g. /etc/apache2/sites-enabled/eoxserver):
+mkdir static
+python manage.py collectstatic --noinput
+
+# Add the following to your Apache web server configuration 
+# (e.g. /etc/apache2/sites-enabled/eoxserver):
 -----------------------------------------------------------------
-Alias /eoxserver <path_to_eoxserver>/eoxserver/deployment/wsgi.py
-<Directory "<path_to_eoxserver>/eoxserver/deployment">
+Alias /static "<path_to_eoxserver_instance>/static"
+Alias /eoxserver "<path_to_eoxserver_instance>/wsgi.py"
+<Directory "<path_to_eoxserver_instance>">
     AllowOverride None
-    Options +ExecCGI -MultiViews
+    Options +ExecCGI -MultiViews +SymLinksIfOwnerMatch
     AddHandler wsgi-script .py
+    Order allow,deny
+    allow from all
 </Directory>
 -----------------------------------------------------------------
-Restart Apache web server and point your browser to "http://<url-to-your-server/eoxserver/ows?" (e.g. "http://<url-to-your-server/eoxserver/ows?service=wcs&version=2.0.0&request=GetCapabilities") or "http://<url-to-your-server/eoxserver/admin/".
+# Restart Apache web server and point your browser to: 
+# "http://<url-to-your-server/eoxserver/"
 
 
 ##############################################
 # Installation guide                         #
 ##############################################
-A comprehensive installation guide will be provided separately.
+A comprehensive installation guide is provided at: 
+http://eoxserver.org/doc_trunk/en/users/install.html
 
 
 ##############################################
@@ -91,7 +95,7 @@ Make sure the following are installed (e.g. via yast2):
 -----------
 By default, pysqlite2 on OpenSuse comes with SQLITE_OMIT_LOAD_EXTENSION
 defined; therefore to allow enable_load_extension() it is necessary to rebiuld
-from the source, not omitting it ::
+from the source, not omitting it:
 
    Download the source from http://code.google.com/p/pysqlite/
    edit setup.cfg to comment out SQLITE_OMIT_LOAD_EXENSION:
