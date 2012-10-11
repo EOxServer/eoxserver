@@ -188,9 +188,10 @@ class Command(CommandOutputMixIn, BaseCommand):
         ),
         make_option('--visible',
             dest='visible',
-            default=True,
+            metavar='TRUE_OR_FALSE',
+            default="True",
             help=("Optional. Sets the visibility status of all datasets to the "
-                  "given boolean value. Defaults to 'True'.")
+                  "given boolean ('True' or 'False') value. Defaults to 'True'.")
         )
     )
     
@@ -265,7 +266,15 @@ class Command(CommandOutputMixIn, BaseCommand):
         default_begin_time = options.get("default_begin_time")
         default_end_time = options.get("default_end_time")
         default_footprint = options.get("default_footprint")
-        visible = options.get("visible", True)
+        
+        visible = options.get("visible", "True").lower()
+        if visible in ("true", "yes", "y"):
+            visible = True
+        elif visible in ("false", "no", "n"):
+            visible = False
+        else:
+            raise CommandError("Wrong value for '--visible' flag. Use 'True' "
+                               "or 'False'.")
         
         datasetseries_eoids = options.get('datasetseries_eoids', [])
         stitchedmosaic_eoids = options.get('stitchedmosaic_eoids', [])
