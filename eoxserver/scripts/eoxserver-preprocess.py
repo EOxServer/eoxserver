@@ -32,6 +32,7 @@ import sys
 import re
 import argparse
 import traceback
+import textwrap
 
 from eoxserver.processing.preprocess import (
     WMSPreProcessor, FormatSelection, SUPPORTED_COMPRESSIONS, RGBA, ORIG_BANDS,
@@ -46,7 +47,7 @@ def main(args):
                                      argument_default=argparse.SUPPRESS,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     
-    parser.description = ("""\
+    parser.description = textwrap.dedent("""\
     Takes <infile> raster data and pre-processes it into 
     <outfiles_basename>.tif, a GeoTIFF converted to RGB using default internal 
     tiling, internal overviews, no compression, and 0 as no-data value, and 
@@ -90,7 +91,6 @@ def main(args):
                             
     # reading arguments from a file (1 line per argument), with overrides
     eoxserver-preprocess.py @args.txt --crs=3035 --no-tiling input.tif
-    
     """)
     
     #===========================================================================
@@ -254,6 +254,7 @@ def main(args):
     if "gcps" in values:
         values["geo_reference"] = GCPList(values.pop("gcps"), georef_crs or 4326)
     
+    #
     if "palette_file" in values and not "color_index" in values:
         parser.error("--pct can only be used with --indexed")
     
@@ -261,7 +262,8 @@ def main(args):
     format_values = _extract(values, ("tiling", "compression", "jpeg_quality", 
                                       "zlevel", "creation_options"))
     exec_values = _extract(values, ("input_filename", "output_basename",
-                                    "geo_reference", "generate_metadata"))
+                                    "geo_reference", "generate_metadata",
+                                    "coverage_id", "begin_time", "end_time"))
     other_values = _extract(values, ("traceback", ))
     
     try:
