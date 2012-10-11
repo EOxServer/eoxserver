@@ -29,10 +29,15 @@
 #-------------------------------------------------------------------------------
 
 from os.path import splitext, exists
+import numpy
 
-from osgeo import gdal, osr, gdalconst, gdal_array
+from osgeo import gdal, ogr, osr, gdalconst, gdal_array
+from django.contrib.gis.geos import GEOSGeometry
+from eoxserver.core.util.xmltools import DOMElementToXML
+from eoxserver.resources.coverages.metadata import NativeMetadataFormatEncoder
 
 gdal.UseExceptions()
+ogr.UseExceptions()
 osr.UseExceptions()
 
 
@@ -383,7 +388,8 @@ class ColorIndexOptimization(DatasetOptimization):
 
 
 class NoDataValueOptimization(DatasetOptimization):
-    """
+    """ This optimization step assigns a no-data value to all raster bands in
+        a dataset.
     """
     
     def __init__(self, nodata_values):
@@ -469,13 +475,11 @@ class PreProcessor(object):
         
     
     def process(self, input_filename, output_basename=None, 
-                geo_reference=None, generate_metadata=True):
+                geo_reference=None, generate_metadata=True, 
+                coverage_id=None, begin_time=None, end_time=None):
         
         # open the dataset and create an In-Memory Dataset as copy
         # to perform optimizations
-        gdal.AllRegister()
-        gdal.UseExceptions()
-        
         ds = _create_mem_copy(gdal.Open(input_filename))
         
         gt = ds.GetGeoTransform()
@@ -490,7 +494,6 @@ class PreProcessor(object):
         # apply optimizations
         for optimization in self.optimizations:
             ds = optimization(ds)
-        
         
         # TODO: make 'tif' dependant on format selection
         # check files exist
@@ -513,19 +516,99 @@ class PreProcessor(object):
         for optimization in self.post_optimizations:
             optimization(ds)
         
-        ds = None
-        
+        # generate metadata if requested
         if generate_metadata:
             if not self.force:
                 _check_file_existence(output_md_filename)
-            pass
+            
+            # generate the footprint from the dataset
+            polygon = self._generate_footprint(ds)
+            
+            # TODO: implement other options, e.g: generate footprint from
+            # extent and reproject it.
+            
+            encoder = NativeMetadataFormatEncoder()
+            xml = DOMElementToXML(encoder.encodeMetadata(coverage_id,
+                                                         begin_time,
+                                                         end_time, polygon))
+            
+            with open(output_md_filename, "w+") as f:
+                f.write(xml)
+        
+        # close the dataset and write it to the disc
+        ds = None
+    
+    
+    def _generate_footprint(self, ds):
+        """ Generate a fooptrint from a raster, using black/no-data as exclusion
+        """
+        
+        # create an empty boolean array initialized as 'False' to store where
+        # values exist as a mask array.
+        nodata_map = numpy.zeros((ds.RasterYSize, ds.RasterXSize),
+                               dtype=numpy.bool)
+        
+        for idx in range(1, ds.RasterCount + 1):
+            band = ds.GetRasterBand(idx)
+            raster_data = band.ReadAsArray()
+            nodata = band.GetNoDataValue()
+            
+            if nodata is None:
+                nodata = 0
+            
+            # apply the output to the map  
+            nodata_map |= (raster_data != nodata)
+        
+        
+        # create a temporary in-memory dataset and write the nodata mask 
+        # into its single band
+        tmp_ds = _create_mem(ds.RasterXSize, ds.RasterYSize, 1, 
+                             gdalconst.GDT_Byte)
+        tmp_band = tmp_ds.GetRasterBand(1)
+        tmp_band.WriteArray(nodata_map.astype(numpy.uint8))
+        
+        
+        # create an OGR in memory layer to hold the created polygon
+        sr = osr.SpatialReference(); sr.ImportFromWkt(ds.GetProjectionRef())
+        ogr_ds = ogr.GetDriverByName('Memory').CreateDataSource('out')
+        layer = ogr_ds.CreateLayer('poly', sr, ogr.wkbPolygon)
+        fd = ogr.FieldDefn('DN', ogr.OFTInteger)
+        layer.CreateField(fd)
+        
+        # polygonize the mask band and store the result in the OGR layer
+        gdal.Polygonize(tmp_band, tmp_band, layer, 0)
+        
+        if layer.GetFeatureCount() != 1:
+            raise RuntimeError("Error during poligonization. Wrong number of "
+                               "polygons.")
+        
+        # obtain geometry from the layer
+        feature = layer.GetNextFeature()
+        geometry = feature.GetGeometryRef()
+        
+        if geometry.GetGeometryType() != ogr.wkbPolygon:
+            raise RuntimeError("Error during poligonization. Wrong geometry "
+                               "type.")
+        
+        # simplify the polygon. the tolerance value is *really* vague
+        polygon = GEOSGeometry(geometry.ExportToWkt()).simplify(1, True)
+        
+        # reproject each point from image coordinates to lat-lon
+        # TODO: what if image is not in latlon? Need to reproject the coords to 4326
+        gt = ds.GetGeoTransform()
+        exterior = []
+        for pixel_x, pixel_y in polygon.exterior_ring.tuple:
+            exterior.append(gt[3] + abs(pixel_x) * gt[4] + abs(pixel_y) * gt[5])
+            exterior.append(gt[0] + abs(pixel_x) * gt[1] + abs(pixel_y) * gt[2])
+        
+        return [exterior]
 
 
 class WMSPreProcessor(PreProcessor):
     """
             
-        > prep = WMSPreProcessor(...)
-        > prep.process(input_filename, output_filename, generate_metadata)
+        >>> prep = WMSPreProcessor(...)
+        >>> prep.process(input_filename, output_filename, generate_metadata)
     """
 
     @property
