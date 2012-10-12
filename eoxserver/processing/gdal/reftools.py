@@ -34,7 +34,6 @@ import logging
 from osgeo import gdal
 
 from eoxserver.core.util.bbox import BBox
-from eoxserver.core.system import System
 from eoxserver.core.exceptions import InternalError
 
 ERROR_LABEL = "Referenceable grid handling is disabled!" \
@@ -143,6 +142,7 @@ def create_temporary_vrt(path_or_ds, srid=None):
     if not REFTOOLS_USABLE:
         raise InternalError(ERROR_LABEL)
 
+    from eoxserver.core.system import System
     _, vrt_path = mkstemp(
         dir = System.getConfig().getConfigValue("processing.gdal.reftools", "vrt_tmp_dir"),
         suffix = ".vrt"
