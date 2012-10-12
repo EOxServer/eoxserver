@@ -98,7 +98,8 @@ setup(
     scripts=[
         "eoxserver/scripts/eoxserver-admin.py",
         "tools/eoxserver-atpd.py",
-        "tools/eoxserver-validate_xml.py"
+        "tools/eoxserver-validate_xml.py",
+        "tools/eoxserver-preprocess.py"
     ],
     
     ext_modules=[
