@@ -43,7 +43,7 @@ from eoxserver.core.system import System
 from eoxserver.core.exceptions import (
     InternalError, ImplementationAmbiguous, ImplementationNotFound
 )
-from eoxserver.core.util.xmltools import XMLDecoder, etree
+from eoxserver.core.util.xmltools import XMLDecoder, XMLEncoder, etree
 from eoxserver.core.util.timetools import getDateTime
 from eoxserver.resources.coverages import crss
 from eoxserver.resources.coverages.interfaces import (
@@ -666,3 +666,29 @@ class DatasetMetadataFileReader(object):
 
 DatasetMetadataFileReaderImplementation = \
 EOMetadataReaderInterface.implement(DatasetMetadataFileReader)
+
+
+class NativeMetadataFormatEncoder(XMLEncoder):
+    """
+    Encodes EO Coverage metadata 
+    """
+    
+    def encodeMetadata(self, eoid, begin_time, end_time, polygon):
+        return self._makeElement("", "Metadata", [
+            ("", "EOID", eoid),
+            ("", "BeginTime", begin_time),
+            ("", "EndTime", end_time),
+            ("", "Footprint", [
+                ("", "Polygon", [
+                    ("", "Exterior", self._posListToString(polygon[0]))
+                ] + [
+                    tuple("", "Interior", self._posListToString(interior)) 
+                    for interior in polygon[1:]
+                ])
+            ])
+        ])
+    
+    
+    def _posListToString(self, ring):
+        return " ".join(map(str, ring))
+
