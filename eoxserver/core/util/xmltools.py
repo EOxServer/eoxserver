@@ -95,7 +95,7 @@ class XMLEncoder(object):
     
     def _makeElement(self, prefix, tag_name, content):
         """
-        This method creates elements. Itexpects three arguments as
+        This method creates elements. It expects three arguments as
         input:
         
         * the namespace prefix of the element; this can be the empty
