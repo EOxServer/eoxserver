@@ -36,7 +36,7 @@ from django.contrib.gis.geos import GEOSGeometry
 from django.contrib.gis.gdal.geometries import OGRGeometry
 from django.contrib.gis.gdal.srs import SpatialReference, CoordTransform
 
-from eoxserver.core.util.xmltools import DOMElementToXML
+from eoxserver.core.util.xmltools import DOMElementToXML, XMLEncoder
 from eoxserver.resources.coverages.metadata import NativeMetadataFormatEncoder
 from eoxserver.processing.gdal.reftools import get_footprint_wkt
 
@@ -44,6 +44,33 @@ from eoxserver.processing.gdal.reftools import get_footprint_wkt
 gdal.UseExceptions()
 ogr.UseExceptions()
 osr.UseExceptions()
+
+
+class NativeMetadataFormatEncoder(XMLEncoder):
+    """
+    Encodes EO Coverage metadata 
+    """
+    
+    def encodeMetadata(self, eoid, begin_time, end_time, polygon):
+        return self._makeElement("", "Metadata", [
+            ("", "EOID", eoid),
+            ("", "BeginTime", begin_time),
+            ("", "EndTime", end_time),
+            ("", "Footprint", [
+                ("", "Polygon", [
+                    ("", "Exterior", self._posListToString(polygon[0]))
+                ] + [
+                    tuple("", "Interior", self._posListToString(interior)) 
+                    for interior in polygon[1:]
+                ])
+            ])
+        ])
+    
+    
+    def _posListToString(self, ring):
+        return " ".join(map(str, ring))
+
+
 
 
 SUPPORTED_COMPRESSIONS = ("JPEG", "LZW", "PACKBITS", "DEFLATE", "CCITTRLE",
