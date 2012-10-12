@@ -33,8 +33,12 @@ import numpy
 
 from osgeo import gdal, ogr, osr, gdalconst, gdal_array
 from django.contrib.gis.geos import GEOSGeometry
+from django.contrib.gis.gdal.geometries import OGRGeometry
+from django.contrib.gis.gdal.srs import SpatialReference, CoordTransform
+
 from eoxserver.core.util.xmltools import DOMElementToXML
 from eoxserver.resources.coverages.metadata import NativeMetadataFormatEncoder
+
 
 gdal.UseExceptions()
 ogr.UseExceptions()
@@ -590,16 +594,30 @@ class PreProcessor(object):
             raise RuntimeError("Error during poligonization. Wrong geometry "
                                "type.")
         
-        # simplify the polygon. the tolerance value is *really* vague
-        polygon = GEOSGeometry(geometry.ExportToWkt()).simplify(1, True)
+        # simplify the polygon. the tolerance value is *really* vague using
+        # the GeoDjango geometry here, as it allows to preserve the topology
+        polygon = OGRGeometry(GEOSGeometry(geometry.ExportToWkt()).simplify(1, True).wkt)
         
         # reproject each point from image coordinates to lat-lon
-        # TODO: what if image is not in latlon? Need to reproject the coords to 4326
         gt = ds.GetGeoTransform()
         exterior = []
-        for pixel_x, pixel_y in polygon.exterior_ring.tuple:
-            exterior.append(gt[3] + abs(pixel_x) * gt[4] + abs(pixel_y) * gt[5])
-            exterior.append(gt[0] + abs(pixel_x) * gt[1] + abs(pixel_y) * gt[2])
+        
+        # check if reprojection to latlon is necessary
+        reproject = not sr.IsGeographic()
+        if reproject: 
+            ct = CoordTransform(SpatialReference(ds.GetProjectionRef()),
+                                SpatialReference(4326))
+        
+        for x, y in polygon.exterior_ring:
+            point = OGRGeometry("POINT (%f %f)"%
+                                (gt[0] + abs(x) * gt[1] + abs(y) * gt[2],
+                                 gt[3] + abs(x) * gt[4] + abs(y) * gt[5]))
+            
+            if reproject:
+                point.transform(ct)
+            
+            exterior.append(point.y)
+            exterior.append(point.x)
         
         return [exterior]
 
