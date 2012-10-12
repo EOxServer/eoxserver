@@ -38,6 +38,7 @@ from django.contrib.gis.gdal.srs import SpatialReference, CoordTransform
 
 from eoxserver.core.util.xmltools import DOMElementToXML
 from eoxserver.resources.coverages.metadata import NativeMetadataFormatEncoder
+from eoxserver.processing.gdal.reftools import get_footprint_wkt
 
 
 gdal.UseExceptions()
@@ -123,13 +124,8 @@ class Extent(GeographicReference):
             -(self.maxy - self.miny) / ds.RasterYSize
         ])
         ds.SetProjection(sr.ExportToWkt())
-        return ds
-    
-
-class Footprint(GeographicReference):
-    """  """
-    # TODO: implement
-    pass
+        
+        return ds, None
 
 
 class GCPList(GeographicReference):
@@ -176,7 +172,15 @@ class GCPList(GeographicReference):
         
         _copy_metadata(src_ds, dst_ds)
         
-        return dst_ds
+        footprint_wkt = get_footprint_wkt(src_ds)
+        if not gcp_sr.IsGeographic():
+            out_sr = osr.SpatialReference()
+            out_sr.ImportFromEPSG(4326)
+            geom = ogr.CreateGeometryFromWkt(footprint_wkt, gcp_sr)
+            geom.TransformTo(out_sr)
+            footprint_wkt = geom.ExportToWkt()
+        
+        return dst_ds, footprint_wkt
         
 
 #===============================================================================
@@ -313,7 +317,7 @@ class BandSelectionOptimization(DatasetOptimization):
     def __call__(self, src_ds):
         dst_ds = _create_mem(src_ds.RasterXSize, src_ds.RasterYSize, 
                              len(self.bands), self.datatype)
-        limits = NUMERIC_LIMITS[self.datatype]
+        dst_range = NUMERIC_LIMITS[self.datatype]
         
         for dst_index, (src_index, dmin, dmax) in enumerate(self.bands, 1):
             src_band = src_ds.GetRasterBand(src_index)
@@ -328,12 +332,15 @@ class BandSelectionOptimization(DatasetOptimization):
                 dmax = NUMERIC_LIMITS[src_band.DataType][1]
             elif dmax == "max":
                 dmax = src_max
+            src_range = (dmin, dmax)
             
             data = src_band.ReadAsArray()
             
             # perform scaling
-            # TODO: buggy?
-            data = ((limits[1] - limits[0]) * ((data - dmin) / (dmax - dmin)))
+            data = numpy.clip(data, dmin, dmax)
+            data = ((dst_range[1] - dst_range[0]) * 
+                    ((data - src_range[0]) / (src_range[1] - src_range[0])))
+            
             data = data.astype(gdal_array.codes[self.datatype])
             
             # write resulst
@@ -487,13 +494,15 @@ class PreProcessor(object):
         ds = _create_mem_copy(gdal.Open(input_filename))
         
         gt = ds.GetGeoTransform()
+        footprint_wkt = None
         
         if not geo_reference:
             if gt == (0.0, 1.0, 0.0, 0.0, 0.0, 1.0): # TODO: maybe use a better check
                 raise ValueError("No geo reference supplied and the dataset "
                                  "has no internal geo transform.") # TODO: improve exception
         else:
-            ds = geo_reference.apply(ds)
+            ds, footprint_wkt = geo_reference.apply(ds)
+        
         
         # apply optimizations
         for optimization in self.optimizations:
@@ -525,11 +534,19 @@ class PreProcessor(object):
             if not self.force:
                 _check_file_existence(output_md_filename)
             
-            # generate the footprint from the dataset
-            polygon = self._generate_footprint(ds)
+            if not footprint_wkt:
+                # generate the footprint from the dataset
+                polygon = self._generate_footprint(ds)
             
-            # TODO: implement other options, e.g: generate footprint from
-            # extent and reproject it.
+            else:
+                # use the provided footprint
+                geom = OGRGeometry(footprint_wkt)
+                exterior = []
+                for x, y in geom.exterior_ring.tuple:
+                    exterior.append(y); exterior.append(x)
+                
+                polygon = [exterior]
+            
             
             encoder = NativeMetadataFormatEncoder()
             xml = DOMElementToXML(encoder.encodeMetadata(coverage_id,

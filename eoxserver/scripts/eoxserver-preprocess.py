@@ -36,7 +36,7 @@ import textwrap
 
 from eoxserver.processing.preprocess import (
     WMSPreProcessor, FormatSelection, SUPPORTED_COMPRESSIONS, RGBA, ORIG_BANDS,
-    Extent, Footprint, GCPList
+    Extent, GCPList
 )
 from eoxserver.core.util.timetools import getDateTime
 
