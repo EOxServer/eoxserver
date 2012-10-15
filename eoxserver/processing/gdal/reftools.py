@@ -142,9 +142,13 @@ def create_temporary_vrt(path_or_ds, srid=None):
     if not REFTOOLS_USABLE:
         raise InternalError(ERROR_LABEL)
 
-    from eoxserver.core.system import System
+    try:
+        from eoxserver.core.system import System
+        vrt_tmp_dir = System.getConfig().getConfigValue("processing.gdal.reftools", "vrt_tmp_dir")
+    except: vrt_tmp_dir = None
+    
     _, vrt_path = mkstemp(
-        dir = System.getConfig().getConfigValue("processing.gdal.reftools", "vrt_tmp_dir"),
+        dir = vrt_tmp_dir,
         suffix = ".vrt"
     )
     
