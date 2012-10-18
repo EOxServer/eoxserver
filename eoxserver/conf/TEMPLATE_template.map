@@ -60,7 +60,7 @@ MAP
             "ows_keywordlist"                   "<KEYWORDLIST>"
             "wcs_keywordlist"                   "<KEYWORDLIST>"
             "ows_srs"                           ""
-            "wcs_formats"                       "GEOTIFF"
+            "wcs_formats"                       "GTiff PNG JPEG"
             "wcs_label"                         ""
             "wcs_name"                          ""
             "wcs_fees"                          "None"
