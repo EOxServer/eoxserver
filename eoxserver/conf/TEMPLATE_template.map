@@ -59,8 +59,6 @@ MAP
             "ows_role"                          "<ROLE>"
             "ows_keywordlist"                   "<KEYWORDLIST>"
             "wcs_keywordlist"                   "<KEYWORDLIST>"
-            "ows_srs"                           ""
-            "wcs_formats"                       "GEOTIFF"
             "wcs_label"                         ""
             "wcs_name"                          ""
             "wcs_fees"                          "None"
