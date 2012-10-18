@@ -568,7 +568,7 @@ which will be used for the data source of the same index. When only one
 ``--pattern`` is given, it is used for all data sources.
 
 Range types for datasets can be read from configuration files that are 
-accompany them. There can be a configuration file for each dataset or one 
+accompanying them. There can be a configuration file for each dataset or one 
 that applies to all datasets contained within a directory corresponding to a 
 data source. Configuration files have the file extension ``.conf``. The file 
 name is the same as the one of the dataset (so the dataset ``foo.tiff`` 
