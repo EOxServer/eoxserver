@@ -51,7 +51,7 @@ def index(request):
     # TODO get server URL
     
     return render_to_response(
-        'webclient/index.html', {
+        'eoxserver_webclient_index.html', {
             "datasetseries_eoids": dataset_series_ids,
             "stitchedmosaic_eoids": stitched_mosaic_ids,
             "path": request.path,
@@ -118,7 +118,7 @@ def webclient(request, eoid):
     ) or http_ows_url
     
     return render_to_response(
-        'webclient/webclient.html', {
+        'eoxserver_webclient.html', {
             "eoid": eoid,
             "ows_url": http_ows_url,
             "preview_service": preview_service,
