@@ -50,7 +50,7 @@ from eoxserver.services.exceptions import InvalidRequestException
 # utilities 
 
 # content-type parsing  
-is_xml       = lambda ct : getMimeType(ct) in ("text/xml","application/xml")
+is_xml       = lambda ct : getMimeType(ct) in ("text/xml","application/xml","application/gml+xml")
 is_multipart = lambda ct : getMimeType(ct).startswith("multipart/") 
 
 # capilatize header names 
