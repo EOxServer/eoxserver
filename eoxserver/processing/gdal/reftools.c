@@ -76,11 +76,11 @@ void *eoxs_get_referenceable_grid_transformer(GDALDatasetH ds) {
     gcp_count = GDALGetGCPCount(ds);
     gcps = GDALGetGCPs(ds);
     
-    return GDALCreateGCPTransformer(gcp_count, gcps, 1, FALSE);
+    return GDALCreateTPSTransformer(gcp_count, gcps, FALSE);
 }
 
 void eoxs_destroy_referenceable_grid_transformer(void *transformer) {
-    GDALDestroyGCPTransformer(transformer);
+    GDALDestroyTPSTransformer(transformer);
 }
 
 eoxs_footprint *eoxs_calculate_footprint(GDALDatasetH ds) {
@@ -145,7 +145,7 @@ eoxs_footprint *eoxs_calculate_footprint(GDALDatasetH ds) {
         z[x_e+1+y_e+1+x_e+1+i] = 0;
     }
 
-    GDALGCPTransform(transformer, FALSE, n_points, x, y, z, success);
+    GDALTPSTransform(transformer, FALSE, n_points, x, y, z, success);
 
     // discard unused information
     free(z);
