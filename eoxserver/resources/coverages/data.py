@@ -42,7 +42,9 @@ from eoxserver.core.records import (
 )
 from eoxserver.core.exceptions import InternalError
 from eoxserver.backends.cache import CacheFileWrapper
-from eoxserver.resources.coverages.exceptions import EngineError
+from eoxserver.resources.coverages.exceptions import (
+    EngineError, MetadataException
+)
 from eoxserver.resources.coverages.models import (
     DataSource, DataPackage, LocalDataPackage, RemoteDataPackage,
     RasdamanDataPackage, TileIndex
@@ -377,7 +379,7 @@ class DataPackageWrapper(RecordWrapper):
                 self._post_metadata_access()
             except:
                 self._post_metadata_access()
-                raise
+                raise MetadataException("")
                 
             return eo_metadata
         else:
