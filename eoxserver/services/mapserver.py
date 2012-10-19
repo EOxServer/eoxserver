@@ -71,7 +71,7 @@ class MapServerResponse(Response):
         self.ms_response_xml_headers = {}
         
     def _isXML(self, content_type):
-        return content_type.split(";")[0].lower() in ("text/xml", "application/xml")
+        return content_type.split(";")[0].lower() in ("text/xml", "application/xml", "application/gml+xml")
             
     def _isMultipart(self, content_type):
         return content_type.split("/")[0].lower() == "multipart"
