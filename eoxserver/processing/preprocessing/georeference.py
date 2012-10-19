@@ -45,7 +45,10 @@ class GCPList(GeographicReference):
     """
     
     def __init__(self, gcps, gcp_srid=4326, srid=None):
-        # TODO: sanitize GCP list
+        """ Expects a list of GCPs as a list of tuples in the form 
+            'x,y,[z,]pixel,line'.
+        """
+        
         self.gcps = map(lambda gcp: gdal.GCP(*gcp) if len(gcp) == 5 
                         else gdal.GCP(gcp[0], gcp[1], 0.0, gcp[2], gcp[3]), 
                         gcps)
@@ -57,7 +60,7 @@ class GCPList(GeographicReference):
         # setup
         dst_sr = osr.SpatialReference()
         gcp_sr = osr.SpatialReference()
-         
+        
         dst_sr.ImportFromEPSG(self.srid if self.srid is not None 
                               else self.gcp_srid) 
         gcp_sr.ImportFromEPSG(self.gcp_srid)

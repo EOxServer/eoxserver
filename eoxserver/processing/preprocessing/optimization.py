@@ -106,7 +106,7 @@ class BandSelectionOptimization(DatasetOptimization):
             
             data = data.astype(gdal_array.codes[self.datatype])
             
-            # write resulst
+            # write result
             dst_band = dst_ds.GetRasterBand(dst_index)
             dst_band.WriteArray(data)
         
