@@ -29,20 +29,26 @@
 #-------------------------------------------------------------------------------
 
 from os.path import splitext
+from itertools import izip
 import numpy
 
-from django.contrib.gis.geos import GEOSGeometry
+from django.contrib.gis.geos import GEOSGeometry, Polygon, LinearRing, Point
 from django.contrib.gis.gdal.geometries import OGRGeometry
 from django.contrib.gis.gdal.srs import SpatialReference, CoordTransform
 
-from eoxserver.core.util.xmltools import DOMElementToXML, XMLEncoder
+from eoxserver.core.util.xmltools import XMLEncoder
 from eoxserver.processing.preprocessing.util import (
-    create_mem, create_mem_copy, check_file_existence, gdal, ogr, osr, gdalconst
+    create_mem, create_mem_copy, gdal, ogr, osr, gdalconst
 )
 from eoxserver.processing.preprocessing.optimization import (
     BandSelectionOptimization, ColorIndexOptimization, NoDataValueOptimization,
     OverviewOptimization, ReprojectionOptimization
 )
+
+def pairwise(iterable):
+    "s -> (s0,s1), (s2,s3), (s4, s5), ..."
+    a = iter(iterable)
+    return izip(a, a)
 
 
 class NativeMetadataFormatEncoder(XMLEncoder):
@@ -82,16 +88,11 @@ class PreProcessor(object):
     
     force = False
     
-    def __init__(self, format_selection, 
-                 begin_time=None, end_time=None, coverage_id=None, 
-                 overviews=True, crs=None, bands=None, bandmode=RGB,
-                 color_index=False, palette_file=None, no_data_value=None, 
-                 force=False):
+    def __init__(self, format_selection, overviews=True, crs=None, bands=None, 
+                 bandmode=RGB, color_index=False, palette_file=None,
+                 no_data_value=None):
         
         self.format_selection = format_selection
-        self.begin_time = begin_time
-        self.end_time = end_time
-        self.coverage_id = coverage_id
         self.overviews = overviews
         
         self.crs = crs
@@ -102,12 +103,9 @@ class PreProcessor(object):
         self.palette_file = palette_file
         self.no_data_value = no_data_value
         
-        self.force = force
-        
     
-    def process(self, input_filename, output_basename=None, 
-                geo_reference=None, generate_metadata=True, 
-                coverage_id=None, begin_time=None, end_time=None):
+    def process(self, input_filename, output_filename, 
+                geo_reference=None, generate_metadata=True):
         
         # open the dataset and create an In-Memory Dataset as copy
         # to perform optimizations
@@ -124,34 +122,21 @@ class PreProcessor(object):
             ds, footprint_wkt = geo_reference.apply(ds)
         
         # apply optimizations
-        for optimization in self.optimizations:
+        for optimization in self.get_optimizations(ds):
             ds = optimization(ds)
-        
-        # TODO: make 'tif' dependant on format selection
-        # check files exist
-        if not output_basename:
-            output_filename = splitext(input_filename)[0] + "_proc.tif"
-            output_md_filename = splitext(input_filename)[0] + "_proc.xml"
-        
-        else:
-            output_filename = output_basename + ".tif"
-            output_md_filename = output_basename + ".xml"
-        
-        if not self.force:
-            check_file_existence(output_filename)
         
         # save the file to the disc
         driver = gdal.GetDriverByName(self.format_selection.driver_name)
         ds = driver.CreateCopy(output_filename, ds,
                                options=self.format_selection.creation_options)
         
-        for optimization in self.post_optimizations:
+        for optimization in self.get_post_optimizations(ds):
             optimization(ds)
+        
+        polygon = None
         
         # generate metadata if requested
         if generate_metadata:
-            if not self.force:
-                check_file_existence(output_md_filename)
             
             if not footprint_wkt:
                 # generate the footprint from the dataset
@@ -165,18 +150,12 @@ class PreProcessor(object):
                     exterior.append(y); exterior.append(x)
                 
                 polygon = [exterior]
-            
-            
-            encoder = NativeMetadataFormatEncoder()
-            xml = DOMElementToXML(encoder.encodeMetadata(coverage_id,
-                                                         begin_time,
-                                                         end_time, polygon))
-            
-            with open(output_md_filename, "w+") as f:
-                f.write(xml)
+        
         
         # close the dataset and write it to the disc
         ds = None
+        
+        return PreProcessResult(output_filename, polygon)
     
     
     def _generate_footprint(self, ds):
@@ -265,8 +244,7 @@ class WMSPreProcessor(PreProcessor):
         >>> prep.process(input_filename, output_filename, generate_metadata)
     """
 
-    @property
-    def optimizations(self):
+    def get_optimizations(self, ds):
         if self.crs:
             yield ReprojectionOptimization(self.crs)
         
@@ -279,20 +257,32 @@ class WMSPreProcessor(PreProcessor):
             if self.bands and len(self.bands) != 3:
                 raise ValueError("Wrong number of bands given. Expected 3, got "
                                  "%d." % len(self.bands))
-            yield BandSelectionOptimization(self.bands or [(1, "min", "max"), 
-                                                           (2, "min", "max"),
-                                                           (3, "min", "max")])
+            
+            if ds.RasterCount == 1:
+                yield BandSelectionOptimization(self.bands or [(1, "min", "max"), 
+                                                               (1, "min", "max"),
+                                                               (1, "min", "max")])
+            else:
+                yield BandSelectionOptimization(self.bands or [(1, "min", "max"), 
+                                                               (2, "min", "max"),
+                                                               (3, "min", "max")])
         
         # if RGBA is requested, use the given bands or the first 4 bands as RGBA
         elif self.bandmode == RGBA:
             if self.bands and len(self.bands) != 4:
                 raise ValueError("Wrong number of bands given. Expected 4, got "
                                  "%d." % len(self.bands))
-            yield BandSelectionOptimization(self.bands or [(1, "min", "max"), 
-                                                           (2, "min", "max"),
-                                                           (3, "min", "max"),
-                                                           (4, "min", "max")])
-        
+            if ds.RasterCount == 1:
+                yield BandSelectionOptimization(self.bands or [(1, "min", "max"), 
+                                                               (1, "min", "max"),
+                                                               (1, "min", "max"),
+                                                               (1, "min", "max")])
+            else:
+                yield BandSelectionOptimization(self.bands or [(1, "min", "max"), 
+                                                               (2, "min", "max"),
+                                                               (3, "min", "max"),
+                                                               (4, "min", "max")])
+            
         # when band mode is set to original bands, don't use this optimization
         elif self.bandmode == ORIG_BANDS:
             if self.bands:
@@ -308,7 +298,37 @@ class WMSPreProcessor(PreProcessor):
             yield NoDataValueOptimization(self.no_data_value)
 
 
-    @property    
-    def post_optimizations(self):
+    def get_post_optimizations(self, ds):
         if self.overviews:
             yield OverviewOptimization()
+
+
+#===============================================================================
+# PreProcess result
+#===============================================================================
+
+class PreProcessResult(object):
+    """ Result storage for preprocessed datasets. """
+    def __init__(self, output_filename, footprint):
+        self.output_filename = output_filename
+        self._footprint = footprint
+    
+    
+    @property
+    def footprint_raw(self):
+        """ Returns the raw footprint. """
+        return self._footprint
+    
+    
+    @property
+    def footprint_wkt(self):
+        """ Returns the stored footprint as WKT."""
+        return self.footprint_geom.wkt
+        
+        
+    @property
+    def footprint_geom(self):
+        """ Returns the polygon as a GEOSGeometry. """
+        return Polygon([LinearRing([
+            Point(x, y) for y, x in pairwise(ring)
+        ]) for ring in self._footprint][0])

@@ -29,6 +29,7 @@
 #-------------------------------------------------------------------------------
 
 import logging
+import traceback
 from urlparse import urlparse
 from optparse import make_option
 
@@ -84,7 +85,11 @@ class StringFormatCallback(object):
 class CommandOutputMixIn(object):
     def print_msg(self, msg, level=0, error=False):
         verbosity = getattr(self, "verbosity", 1)
+        traceback = getattr(self, "traceback", False)
+        
         if verbosity > level:
+            if error and traceback:
+                self.stout.write(traceback.format_exc() + "\n") 
             self.stdout.write(msg)
             self.stdout.write("\n")
         

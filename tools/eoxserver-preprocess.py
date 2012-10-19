@@ -33,12 +33,20 @@ import re
 import argparse
 import traceback
 import textwrap
+from os.path import splitext
 
-from eoxserver.processing.preprocess import (
-    WMSPreProcessor, FormatSelection, SUPPORTED_COMPRESSIONS, RGBA, ORIG_BANDS,
+from eoxserver.core.util.timetools import getDateTime
+from eoxserver.core.util.xmltools import DOMElementToXML
+from eoxserver.processing.preprocessing.util import  check_file_existence
+from eoxserver.processing.preprocessing import (
+    WMSPreProcessor, RGBA, ORIG_BANDS, NativeMetadataFormatEncoder
+)
+from eoxserver.processing.preprocessing.format import (
+    get_format_selection, GeoTIFFFormatSelection
+)
+from eoxserver.processing.preprocessing.georeference import (
     Extent, GCPList
 )
-from eoxserver.core.util.timetools import getDateTime
 
 
 def main(args):
@@ -184,7 +192,7 @@ def main(args):
                              "three bands, or four when --rgba is requested.")
     
     parser.add_argument("--compression", dest="compression",
-                        choices=SUPPORTED_COMPRESSIONS,
+                        choices=GeoTIFFFormatSelection.SUPPORTED_COMPRESSIONS,
                         help="The desired compression technique.")
     parser.add_argument("--jpeg-quality", dest="jpeg_quality", type=int,
                         help="The JPEG algorithm quality when JPEG compression "
@@ -215,6 +223,7 @@ def main(args):
     parser.add_argument("--traceback", action="store_true", default=False)
     
     parser.add_argument("--force", "-f", dest="force", action="store_true",
+                        default=False,
                         help="Override files, if they already exist.")
     
     parser.add_argument("input_filename", metavar="infile", nargs=1,
@@ -248,36 +257,67 @@ def main(args):
     if "extent" in values:
         values["geo_reference"] = Extent(*values.pop("extent"), srid=georef_crs or 4326)
     
-    #if "footprint" in values:
-    #    values["geo_reference"] = Footprint(values.pop("footprint"))
-    
     if "gcps" in values:
         values["geo_reference"] = GCPList(values.pop("gcps"), georef_crs or 4326)
     
-    #
     if "palette_file" in values and not "color_index" in values:
         parser.error("--pct can only be used with --indexed")
     
     # Extract format and execution specific values
     format_values = _extract(values, ("tiling", "compression", "jpeg_quality", 
                                       "zlevel", "creation_options"))
-    exec_values = _extract(values, ("input_filename", "output_basename",
-                                    "geo_reference", "generate_metadata",
-                                    "coverage_id", "begin_time", "end_time"))
+    exec_values = _extract(values, ("input_filename", "geo_reference",
+                                    "generate_metadata"))
     other_values = _extract(values, ("traceback", ))
-    
+    metadata_values = _extract(values, ("coverage_id", "begin_time",
+                                         "end_time"))
+
+    force = values.pop("force", True)
+    output_basename = values.pop("output_basename", None)
+    input_filename = exec_values.get("input_filename")
+
     try:
         # create a format selection
-        format_selection = FormatSelection(**format_values)
+        format_selection = get_format_selection("GTiff", **format_values)
+
+
+        # TODO: make 'tif' dependant on format selection
+        # check files exist
+        if not output_basename:
+            output_filename = splitext(input_filename)[0] + "_proc" + format_selection.extension
+            output_md_filename = splitext(input_filename)[0] + "_proc.xml"
         
+        else:
+            output_filename = output_basename + format_selection.extension
+            output_md_filename = output_basename + ".xml"
+
+        if not force:
+            check_file_existence(output_filename)
+
+        exec_values["output_filename"] = output_filename
+
         # create and run the preprocessor
         preprocessor = WMSPreProcessor(format_selection, **values)
-        preprocessor.process(**exec_values)
+        result = preprocessor.process(**exec_values)
+
+        if exec_values.get("generate_metadata", True):
+            if not force:
+                check_file_existence(output_md_filename)
+
+            encoder = NativeMetadataFormatEncoder()
+            xml = DOMElementToXML(encoder.encodeMetadata(metadata_values["coverage_id"],
+                                                         metadata_values["begin_time"],
+                                                         metadata_values["end_time"],
+                                                         result.footprint_raw))
+            
+            with open(output_md_filename, "w+") as f:
+                f.write(xml)
+        
     except Exception, e:
         # error wrapping
         if other_values["traceback"]:
             traceback.print_exc()
-        parser.error(str(e))
+        sys.stderr.write("%s: %s\n" % (type(e).__name__, str(e)))
 
 
 def _parse_datetime(input_str):

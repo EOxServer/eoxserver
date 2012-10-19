@@ -26,17 +26,21 @@ class FormatSelection(object):
     
     __metaclass__ = FormatSelectionMetaclass
     
+    
     @property
     def driver_name(self):
         raise NotImplementedError
+    
     
     @property
     def extension(self):
         raise NotImplementedError
     
+    
     @property
     def creation_options(self):
         return []
+    
 
 
 class GeoTIFFFormatSelection(FormatSelection):
