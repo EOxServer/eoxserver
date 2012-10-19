@@ -50,25 +50,21 @@ MANAGERS = ADMINS
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.spatialite',
-        'NAME': '<$PATH_DST$>/data/config.sqlite',    # Or path to database file if using sqlite3.
+        'ENGINE': 'django.contrib.gis.db.backends.spatialite', # Use 'spatialite' or change to 'postgis'.
+        'NAME': '<$PATH_DST$>/data/config.sqlite',    # Or path to database file if using spatialite.
         #'TEST_NAME': '<$PATH_DST$>/data/test-config.sqlite', # Required for certain test cases, but slower!
-        'USER': '',                      # Not used with sqlite3.
-        'PASSWORD': '',                  # Not used with sqlite3.
-        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+        'USER': '',                      # Not used with spatialite.
+        'PASSWORD': '',                  # Not used with spatialite.
+        'HOST': '',                      # Set to empty string for localhost. Not used with spatialite.
+        'PORT': '',                      # Set to empty string for default. Not used with spatialite.
     }
 }
-SPATIALITE_SQL='data/init_spatialite-2.3.sql'
+SPATIALITE_SQL='<$PATH_DST$>/data/init_spatialite-2.3.sql'
 
 # Local time zone for this installation. Choices can be found here:
-# http://en.wikipedia.org/wiki/List_of_tz_zones_by_name  or here:
-# http://www.postgresql.org/docs/8.1/static/datetime-keywords.html#DATETIME-TIMEZONE-SET-TABLE
-# Although not all choices may be available on all operating systems.
-# On Unix systems, a value of None will cause Django to use the same
-# timezone as the operating system.
-# If running in a Windows environment this must be set to the same as your
-# system time zone.
+# http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
+# although not all choices may be available on all operating systems.
+# In a Windows environment this must be set to your system time zone.
 # Note that this is the time zone to which Django will convert all
 # dates/times -- not necessarily the timezone of the server.
 # If you are using UTC (Zulu) time zone for your data (e.g. most
@@ -76,9 +72,6 @@ SPATIALITE_SQL='data/init_spatialite-2.3.sql'
 # you will encounter time-shifts between your data, search request & the 
 # returned results.
 TIME_ZONE = 'UTC'
-
-# Django 1.4 feature.  
-USE_TZ = True
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
@@ -91,17 +84,20 @@ SITE_ID = 1
 USE_I18N = True
 
 # If you set this to False, Django will not format dates, numbers and
-# calendars according to the current locale
+# calendars according to the current locale.
 USE_L10N = True
+
+# If you set this to False, Django will not use timezone-aware datetimes.
+USE_TZ = True
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/media/"
-MEDIA_ROOT = join('<$PATH_SRC$>', 'media')
+MEDIA_ROOT = ''
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
 # Examples: "http://media.lawrence.com/media/", "http://example.com/media/"
-MEDIA_URL = '/eoxserver_media/'
+MEDIA_URL = ''
 
 # Absolute path to the directory static files should be collected to.
 # Don't put anything in this directory yourself; store your static files
@@ -149,15 +145,20 @@ MIDDLEWARE_CLASSES = (
 # Commented because of POST requests:    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    # Uncomment the next line for simple clickjacking protection:
+    # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
 ROOT_URLCONF = '<$INSTANCE_ID$>.urls'
+
+# Python dotted path to the WSGI application used by Django's runserver.
+WSGI_APPLICATION = '<$INSTANCE_ID$>.wsgi.application'
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    join('<$PATH_SRC$>', 'templates'),
+    join('<$PATH_DST$>', 'templates'),
 )
 
 INSTALLED_APPS = (
@@ -170,8 +171,11 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     # Enable the admin:
     'django.contrib.admin',
+    # Enable admin documentation:
+    'django.contrib.admindocs',
 #    'django.contrib.databrowse',
 #    'django_extensions',
+    # Enable EOxServer:
     'eoxserver.core',
     'eoxserver.services',
     'eoxserver.resources.coverages',
