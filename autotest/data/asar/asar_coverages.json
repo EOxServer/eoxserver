@@ -10,7 +10,7 @@
         "fields": {}
     }, 
     {
-        "pk": 10, 
+        "pk": 13, 
         "model": "coverages.eometadatarecord", 
         "fields": {
             "footprint": "MULTIPOLYGON (((22.301754 -33.039026,20.099457 -32.530560,17.925622 -31.984922,16.727605 -35.166903,18.976948 -35.733683,21.262123 -36.259107,22.301754 -33.039026)))",
@@ -31,8 +31,8 @@
         "pk": 8, 
         "model": "coverages.localdatapackage", 
         "fields": {
-            "metadata_location": 15, 
-            "data_location": 15
+            "metadata_location": 20, 
+            "data_location": 20
         }
     }, 
     {
@@ -53,7 +53,7 @@
             "lineage": 9, 
             "data_package": 8, 
             "visible": true, 
-            "eo_metadata": 10, 
+            "eo_metadata": 13, 
             "size_x": 569, 
             "size_y": 486, 
             "layer_metadata": [], 
@@ -61,14 +61,14 @@
         }
     }, 
     {
-        "pk": 15, 
+        "pk": 20, 
         "model": "backends.location", 
         "fields": {
             "location_type": "local"
         }
     }, 
     {
-        "pk": 15, 
+        "pk": 20, 
         "model": "backends.localpath", 
         "fields": {
             "path": "../autotest/data/asar/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tiff"
