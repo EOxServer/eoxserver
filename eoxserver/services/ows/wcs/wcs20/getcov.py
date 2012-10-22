@@ -325,11 +325,11 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
 
         # copy tie-points 
 
-        # tiepoint offset higher order function                                         
+        # tiepoint offset - higher order function                                         
         def _tpOff( ( ox , oy ) ) :                                                         
             def function( p ) :                                                              
-                return gdal.GCP( p.GCPX, p.GCPY, p.GCPZ, p.GCPPixel + ox, 
-                                 p.GCPLine + oy, p.Info, p.Id )                                                  
+                return gdal.GCP( p.GCPX, p.GCPY, p.GCPZ, p.GCPPixel - ox, 
+                                 p.GCPLine - oy, p.Info, p.Id )                                                  
             return function                                                                  
 
         # instantiate tiepoint offset function for current offset value 
