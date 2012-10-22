@@ -158,20 +158,20 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
             )
         
         if subset is None:
+
             x_off = 0
             y_off = 0
             x_size = cov_x_size
             y_size = cov_y_size
+
         elif subset.crs_id != "imageCRS":
+
             x_off, y_off, x_size, y_size = rect_from_subset(
-                coverage.getData().getGDALDatasetIdentifier(),
-                subset.crs_id,
-                subset.minx,
-                subset.miny,
-                subset.maxx,
-                subset.maxy
-            )
+                coverage.getData().getGDALDatasetIdentifier(), subset.crs_id,
+                subset.minx, subset.miny, subset.maxx, subset.maxy )
+
         else:
+
             x_off = subset.minx
             y_off = subset.miny
             x_size = subset.maxx - subset.minx + 1
@@ -266,15 +266,15 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
         # save GCPs
         src_gcp_proj = src_ds.GetGCPProjection()
         src_gcps = src_ds.GetGCPs()
-        
+
         dst_gcps = []
         for src_gcp in src_gcps:
             dst_gcps.append(gdal.GCP(
                 src_gcp.GCPX,
                 src_gcp.GCPY,
                 src_gcp.GCPZ,
-                src_gcp.GCPPixel + src_x_off - dst_x_off,
-                src_gcp.GCPLine + src_y_off - dst_y_off,
+                src_gcp.GCPPixel - src_x_off + dst_x_off,
+                src_gcp.GCPLine - src_y_off + dst_y_off,
                 src_gcp.Info,
                 src_gcp.Id
             ))
