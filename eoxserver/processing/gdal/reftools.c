@@ -1,3 +1,33 @@
+/*
+ *-----------------------------------------------------------------------------
+ * $Id: mosaic.py 1296 2012-02-15 14:18:44Z krauses $
+ *
+ * Project: EOxServer <http://eoxserver.org>
+ * Authors: Stephan Krause <stephan.krause@eox.at>
+ *          Martin Paces <martin.paces@eox.at>
+ *
+ *-----------------------------------------------------------------------------
+ * Copyright (C) 2011 EOX IT Services GmbH
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+ * copies of the Software, and to permit persons to whom the Software is 
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies of this Software or works derived from this Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *-----------------------------------------------------------------------------
+*/
 #include <stdio.h>
 #include <string.h>
 
@@ -47,11 +77,11 @@ void *eoxs_get_referenceable_grid_transformer(GDALDatasetH ds) {
     gcp_count = GDALGetGCPCount(ds);
     gcps = GDALGetGCPs(ds);
     
-    return GDALCreateGCPTransformer(gcp_count, gcps, 1, FALSE);
+    return GDALCreateTPSTransformer(gcp_count, gcps, FALSE);
 }
 
 void eoxs_destroy_referenceable_grid_transformer(void *transformer) {
-    GDALDestroyGCPTransformer(transformer);
+    GDALDestroyTPSTransformer(transformer);
 }
 
 eoxs_footprint *eoxs_calculate_footprint(GDALDatasetH ds) {
@@ -66,10 +96,40 @@ eoxs_footprint *eoxs_calculate_footprint(GDALDatasetH ds) {
 
     eoxs_footprint *ret;
 
-    if (!ds) {
-        fprintf(stderr, "Error processing dataset.");
+    if (!ds) 
+    {
+        fprintf( stderr, "ERROR: %s:%i : Invalid GDAL dataset!",__FILE__,__LINE__ ) ; 
         return NULL;
     }
+
+    if (( 0 == GDALGetGCPCount(ds) )||( '\0' == GDALGetGCPProjection(ds)[0] ))
+    { 
+        fprintf( stderr, "ERROR: %s:%i : The GDAL dataset has no GCP!",__FILE__,__LINE__ ) ; 
+        return NULL ; 
+    } 
+
+#ifdef DEBUG 
+    { // debug - print the GCPs 
+        printf("\nFootprint Source GCPs:"); 
+        int i ; 
+        char * dlm = "" ;
+        const GDAL_GCP* gcp = GDALGetGCPs(ds);
+        OGRSpatialReferenceH sr = OSRNewSpatialReference( GDALGetGCPProjection(ds) ) ;
+        printf("\nFootprint Source GCPs:\n"); 
+        if ( OGRERR_NONE == OSRAutoIdentifyEPSG( sr ) )  
+            printf("SRID=%s;",OSRGetAuthorityCode(sr,NULL)) ; 
+        else
+            printf("%s\n",GDALGetGCPProjection(ds)) ;
+        OSRDestroySpatialReference( sr ); 
+        printf("MULTIPOINT(") ; 
+        for ( i = 0 ; i < GDALGetGCPCount(ds) ; ++i ) 
+        { 
+            printf("%s%g %g",dlm,gcp[i].dfGCPX,gcp[i].dfGCPY) ; dlm = ", " ; 
+        } 
+        printf(")\n\n") ;
+    }
+#endif /* DEBUG */
+ 
 
     x_size = GDALGetRasterXSize(ds);
     y_size = GDALGetRasterYSize(ds);
@@ -78,7 +138,7 @@ eoxs_footprint *eoxs_calculate_footprint(GDALDatasetH ds) {
 
     if (!transformer)
     {
-        fprintf(stderr, "Could not create GCP transformer.");
+        fprintf( stderr, "ERROR: %s:%i : Failed to create GCP transformer!",__FILE__,__LINE__ ) ; 
         return NULL;
     }
 
@@ -116,7 +176,7 @@ eoxs_footprint *eoxs_calculate_footprint(GDALDatasetH ds) {
         z[x_e+1+y_e+1+x_e+1+i] = 0;
     }
 
-    GDALGCPTransform(transformer, FALSE, n_points, x, y, z, success);
+    GDALTPSTransform(transformer, FALSE, n_points, x, y, z, success);
 
     // discard unused information
     free(z);
@@ -127,6 +187,20 @@ eoxs_footprint *eoxs_calculate_footprint(GDALDatasetH ds) {
     ret->n_points = n_points;
     ret->x = x;
     ret->y = y;
+
+#ifdef DEBUG 
+    { // debug - print the calculated footprint
+        int i ; 
+        char * dlm = "" ;
+        printf("\nFootprint:\n"); 
+        printf("SRID=%d;POLYGON ((",4326); 
+        for ( i = 0 ; i < n_points ; ++i ) 
+        { 
+            printf("%s%g %g",dlm,x[i],y[i]) ; dlm = ", " ; 
+        } 
+        printf("%s%g %g))\n\n",dlm,x[0],y[0]) ; dlm = ", " ; 
+    }
+#endif /* DEBUG */
 
     return ret;
 }
@@ -205,7 +279,7 @@ void eoxs_get_intermediate_point_count(
     x[2] = (double) ds_x_size; y[2] = (double) ds_y_size; z[2] = 0;
     x[3] = 0; y[3] = (double) ds_y_size; z[3] = 0;
     
-    GDALGCPTransform(transformer, FALSE, 4, x, y, z, success);
+    GDALTPSTransform(transformer, FALSE, 4, x, y, z, success);
     
     dist = MIN(
         (eoxs_array_max(4, x) - eoxs_array_min(4, x)) / (double) (ds_x_size / 100),
@@ -226,9 +300,6 @@ void eoxs_get_intermediate_point_count(
 int eoxs_rect_from_subset(GDALDatasetH ds, eoxs_subset *subset, eoxs_rect *out_rect) {
     void *transformer;
     
-    const char *tmp;
-    char *gcp_proj_wkt;
-    
     OGRSpatialReferenceH gcp_srs, subset_srs;
     OGRCoordinateTransformationH ct;
     
@@ -244,30 +315,59 @@ int eoxs_rect_from_subset(GDALDatasetH ds, eoxs_subset *subset, eoxs_rect *out_r
     int minx, miny, maxx, maxy;
     int i;
     
-    if (!ds) return 0;
+    if (!ds) 
+    {
+        fprintf( stderr, "ERROR: %s:%i : Invalid GDAL dataset!",__FILE__,__LINE__ ) ; 
+        return 0;
+    }
+
+    if (( 0 == GDALGetGCPCount(ds) )||( '\0' == GDALGetGCPProjection(ds)[0] ))
+    { 
+        fprintf( stderr, "ERROR: %s:%i : The GDAL dataset has no GCP!",__FILE__,__LINE__ ) ; 
+        return 0 ; 
+    } 
+
+#ifdef DEBUG 
+    { // debug - print the GCPs  
+        int i ; 
+        char * dlm = "" ;
+        const GDAL_GCP* gcp = GDALGetGCPs(ds);
+        OGRSpatialReferenceH sr = OSRNewSpatialReference( GDALGetGCPProjection(ds) ) ;
+        printf("\nSubsetting Source GCPs:\n"); 
+        if ( OGRERR_NONE == OSRAutoIdentifyEPSG( sr ) )  
+            printf("SRID=%s;",OSRGetAuthorityCode(sr,NULL)) ; 
+        else
+            printf("%s\n",GDALGetGCPProjection(ds)) ;
+        OSRDestroySpatialReference( sr ); 
+        printf("MULTIPOINT(") ; 
+        for ( i = 0 ; i < GDALGetGCPCount(ds) ; ++i ) 
+        { 
+            printf("%s%g %g",dlm,gcp[i].dfGCPX,gcp[i].dfGCPY) ; dlm = ", " ; 
+        } 
+        printf(")\n\n") ;
+    }
+#endif /* DEBUG */
     
     ds_x_size = GDALGetRasterXSize(ds);
     ds_y_size = GDALGetRasterYSize(ds);
     
-    tmp = GDALGetGCPProjection(ds);
-    gcp_proj_wkt = malloc(strlen(tmp));
-    strcpy(gcp_proj_wkt, tmp);
-    
     transformer = eoxs_get_referenceable_grid_transformer(ds);
     
     if (!transformer) {
-        free(gcp_proj_wkt);
+        fprintf( stderr, "ERROR: %s:%i : Failed to create GCP transformer!",__FILE__,__LINE__ ) ; 
         return 0;
     }
     
-    gcp_srs = OSRNewSpatialReference(gcp_proj_wkt);
+    gcp_srs = OSRNewSpatialReference( GDALGetGCPProjection(ds) );
     subset_srs = OSRNewSpatialReference("");
     OSRImportFromEPSG(subset_srs, subset->srid);
     
     ct = OCTNewCoordinateTransformation(subset_srs, gcp_srs);
     if (!ct) {
-        free(gcp_proj_wkt);
+        fprintf(stderr, "ERROR: %s:%i : Failed to create coordinate trasnformation!",__FILE__,__LINE__ ) ; 
         eoxs_destroy_referenceable_grid_transformer(transformer);
+        OSRDestroySpatialReference( gcp_srs ); 
+        OSRDestroySpatialReference( subset_srs ); 
         return 0;
     }
     
@@ -310,9 +410,23 @@ int eoxs_rect_from_subset(GDALDatasetH ds, eoxs_subset *subset, eoxs_rect *out_r
         y[b+i] = subset->maxy - (double) i * y_step;
         z[b+i] = 0;
     }
-    
+
+#ifdef DEBUG 
+    { // debug - print the selection polygon
+        int i ; 
+        char * dlm = "" ;
+        printf("\nSubseting - Selection Polygon:\n"); 
+        printf("SRID=%d;POLYGON ((",subset->srid); 
+        for ( i = 0 ; i < n_points ; ++i ) 
+        { 
+            printf("%s%g %g",dlm,x[i],y[i]) ; dlm = ", " ; 
+        } 
+        printf("%s%g %g))\n\n",dlm,x[0],y[0]) ; dlm = ", " ; 
+    }
+#endif /* DEBUG */
+
     OCTTransform(ct, n_points, x, y, z);
-    GDALGCPTransform(transformer, TRUE, n_points, x, y, z, success);
+    GDALTPSTransform(transformer, TRUE, n_points, x, y, z, success);
     
     minx = (int) floor(eoxs_array_min(n_points, x));
     maxx = (int) ceil(eoxs_array_max(n_points, x));
@@ -324,9 +438,11 @@ int eoxs_rect_from_subset(GDALDatasetH ds, eoxs_subset *subset, eoxs_rect *out_r
     out_rect->x_size = maxx - minx + 1;
     out_rect->y_size = maxy - miny + 1;
     
-    free(gcp_proj_wkt);
     free(x); free(y); free(z); free(success);
     eoxs_destroy_referenceable_grid_transformer(transformer);
+    OCTDestroyCoordinateTransformation( ct ); 
+    OSRDestroySpatialReference( gcp_srs ); 
+    OSRDestroySpatialReference( subset_srs ); 
     
     return 1;
 }

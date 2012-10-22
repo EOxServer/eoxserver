@@ -1,3 +1,32 @@
+#-------------------------------------------------------------------------------
+# $Id$
+#
+# Project: EOxServer <http://eoxserver.org>
+# Authors: Stephan Krause <stephan.krause@eox.at>
+#          Martin Paces <martin.paces@eox.at>
+#
+#-------------------------------------------------------------------------------
+# Copyright (C) 2011 EOX IT Services GmbH
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+# copies of the Software, and to permit persons to whom the Software is 
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies of this Software or works derived from this Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#-------------------------------------------------------------------------------
+
 from tempfile import mkstemp
 import ctypes as C
 import os.path
@@ -10,6 +39,7 @@ from eoxserver.core.exceptions import InternalError
 
 ERROR_LABEL = "Referenceable grid handling is disabled!" \
               " Did you compile the 'reftools' C module?!"
+
 
 class RECT(C.Structure):
     _fields_ = [("x_off", C.c_int),
@@ -88,7 +118,8 @@ def rect_from_subset(path_or_ds, srid, minx, miny, maxx, maxy):
         C.byref(rect)
     )
     if not ret:
-        return None
+        raise InternalError( "Failed to convert CRS subset to image"
+                             " coordinates!")
     
     return (rect.x_off, rect.y_off, rect.x_size, rect.y_size)
 
@@ -105,9 +136,7 @@ def create_rectified_vrt(path_or_ds, vrt_path, srid=None):
         ret = _create_rectified_vrt(ptr, vrt_path, 0)  
     
     if not ret:
-        raise InternalError(
-            "Could not create rectified VRT."
-        )
+        raise InternalError( "Could not create rectified VRT.")
 
 def create_temporary_vrt(path_or_ds, srid=None):
     if not REFTOOLS_USABLE:

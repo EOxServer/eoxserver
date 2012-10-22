@@ -961,13 +961,24 @@ class WCS20GetCoverageReferenceableDatasetImageCRSSubsetTestCase(eoxstest.WCS20G
 
 class WCS20GetCoverageReferenceableDatasetGeogCRSSubsetTestCase(eoxstest.WCS20GetCoverageReferenceableGridCoverageMultipartTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775&format=image/tiff&mediatype=multipart/mixed&subset=x,http://www.opengis.net/def/crs/EPSG/0/4326(19.1,20.1)&subset=y,http://www.opengis.net/def/crs/EPSG/0/4326(-35,-32.9)"
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775&format=image/tiff&mediatype=multipart/mixed&subset=x,http://www.opengis.net/def/crs/EPSG/0/4326(18.0,20.0)&subset=y,http://www.opengis.net/def/crs/EPSG/0/4326(-34.5,-33.5)"
         return (params, "kvp")
-    
+
 class WCS20GetCoverageReferenceableDatasetGeogCRSSubsetExceedsExtentTestCase(eoxstest.WCS20GetCoverageReferenceableGridCoverageMultipartTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775&format=image/tiff&mediatype=multipart/mixed&subset=x,http://www.opengis.net/def/crs/EPSG/0/4326(14,16.4)&subset=y,http://www.opengis.net/def/crs/EPSG/0/4326(-39.5,-35.1)"
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775&format=image/tiff&mediatype=multipart/mixed&subset=x,http://www.opengis.net/def/crs/EPSG/0/4326(18,23)&subset=y,http://www.opengis.net/def/crs/EPSG/0/4326(-35,-33)"
         return (params, "kvp")
+
+class WCS20GetCoverageReferenceableDatasetGeogCRSSubsetOutsideExtentTestCase(eoxstest.ExceptionTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775&format=image/tiff&mediatype=multipart/mixed&subset=x,http://www.opengis.net/def/crs/EPSG/0/4326(14.5,16.5)&subset=y,http://www.opengis.net/def/crs/EPSG/0/4326(-34.5,-33.5)"
+        return (params, "kvp")
+
+    def getExpectedHTTPStatus(self):
+        return 400
+    
+    def getExpectedExceptionCode(self):
+        return "InvalidParameterValue"
 
 #===============================================================================
 # WCS 2.0 - POST
