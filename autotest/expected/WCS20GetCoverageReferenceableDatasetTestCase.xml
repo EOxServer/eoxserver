@@ -14,7 +14,7 @@
           <gml:high>568 485</gml:high>
         </gml:GridEnvelope>
       </gml:limits>
-      <gml:axisLabels>x y</gml:axisLabels>
+      <gml:axisLabels>lat long</gml:axisLabels>
     </gml:ReferenceableGrid>
   </gml:domainSet>
   <gml:rangeSet>

@@ -2,8 +2,8 @@
 <wcseo:ReferenceableDataset xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0" xmlns:om="http://www.opengis.net/om/2.0" xmlns:swe="http://www.opengis.net/swe/2.0" xmlns:wcseo="http://www.opengis.net/wcseo/1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" gml:id="ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775" xsi:schemaLocation="http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd">
   <gml:boundedBy>
     <gml:Envelope axisLabels="lat long" srsDimension="2" srsName="http://www.opengis.net/def/crs/EPSG/0/4326" uomLabels="deg deg">
-      <gml:lowerCorner>-39.50000000 14.00000000</gml:lowerCorner>
-      <gml:upperCorner>-35.10000000 16.40000000</gml:upperCorner>
+      <gml:lowerCorner>-35.00000000 18.00000000</gml:lowerCorner>
+      <gml:upperCorner>-33.00000000 23.00000000</gml:upperCorner>
     </gml:Envelope>
   </gml:boundedBy>
   <gml:domainSet>
@@ -11,10 +11,10 @@
       <gml:limits>
         <gml:GridEnvelope>
           <gml:low>0 0</gml:low>
-          <gml:high>465 698</gml:high>
+          <gml:high>673 446</gml:high>
         </gml:GridEnvelope>
       </gml:limits>
-      <gml:axisLabels>x y</gml:axisLabels>
+      <gml:axisLabels>lat long</gml:axisLabels>
     </gml:ReferenceableGrid>
   </gml:domainSet>
   <gml:rangeSet>
@@ -71,7 +71,7 @@
                     <gml:Polygon gml:id="polygon_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775">
                       <gml:exterior>
                         <gml:LinearRing>
-                          <gml:posList>-32.98832529 22.08215621 -33.03902600 22.30175400 -34.46942783 21.83993640 -34.40783100 21.58428300 -33.48662900 21.90738300 -32.98832529 22.08215621</gml:posList>
+                          <gml:posList>-32.53056000 20.09945700 -33.03902600 22.30175400 -35.81493044 21.40552924 -35.61218900 20.49812000 -35.36156000 19.42270400 -35.10170200 18.35497600 -34.83458100 17.30213100 -33.85868000 17.67216900 -32.88145300 18.03345500 -32.08412955 18.32086728 -32.53056000 20.09945700</gml:posList>
                         </gml:LinearRing>
                       </gml:exterior>
                     </gml:Polygon>

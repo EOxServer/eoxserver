@@ -90,7 +90,7 @@ vi settings.py
 # FIXTURE_DIRS -> join(PROJECT_DIR, 'data/fixtures'),
 
 # Obtain manage.py from installed version of django:
-django-admin.py startproject tmp
+django-admin[.py] startproject tmp
 cp tmp/manage.py .
 rm -r tmp/
 
