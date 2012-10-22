@@ -3,6 +3,7 @@
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>
+#          Martin Paces <martin.paces@eox.at>
 #
 #-------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
@@ -38,6 +39,7 @@ from eoxserver.core.exceptions import InternalError
 
 ERROR_LABEL = "Referenceable grid handling is disabled!" \
               " Did you compile the 'reftools' C module?!"
+
 
 class RECT(C.Structure):
     _fields_ = [("x_off", C.c_int),
@@ -116,9 +118,9 @@ def rect_from_subset(path_or_ds, srid, minx, miny, maxx, maxy):
         C.byref(rect)
     )
     if not ret:
-        return None
+        raise InternalError( "Failed to convert CRS subset to image"
+                             " coordinates!")
     
-    #return (rect.x_off, rect.y_off, rect.x_size, rect.y_size)
     return BBox(rect.x_size, rect.y_size, rect.x_off, rect.y_off)
 
 def create_rectified_vrt(path_or_ds, vrt_path, srid=None):
@@ -134,9 +136,7 @@ def create_rectified_vrt(path_or_ds, vrt_path, srid=None):
         ret = _create_rectified_vrt(ptr, vrt_path, 0)  
     
     if not ret:
-        raise InternalError(
-            "Could not create rectified VRT."
-        )
+        raise InternalError( "Could not create rectified VRT.")
 
 def create_temporary_vrt(path_or_ds, srid=None):
     if not REFTOOLS_USABLE:
