@@ -207,13 +207,19 @@ eoxs_footprint *eoxs_calculate_footprint(GDALDatasetH ds) {
 
 const char *eoxs_get_footprint_wkt(GDALDatasetH ds) {
     eoxs_footprint *fp;
-    char *wkt, buffer[256];
+    char *wkt, buffer[512];
     int i;
     fp = eoxs_calculate_footprint(ds);
 
     if (!fp) return NULL;
 
     wkt = calloc((fp->n_points + 1) * 100 + sizeof("POLYGON(())"), sizeof(char));
+
+    if (!wkt) {
+        eoxs_destroy_footprint(fp);
+        fprintf(stderr, "Error allocating memory.");
+        return NULL;
+    }
     sprintf(wkt, "POLYGON((");
 
     for (i=0; i<fp->n_points; ++i) {
