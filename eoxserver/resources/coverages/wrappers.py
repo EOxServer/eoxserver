@@ -81,6 +81,15 @@ class CoverageWrapper(ResourceWrapper):
     @property
     def __model(self):
         return self._ResourceWrapper__model
+
+
+    def isAutomatic(self): 
+        """
+        Returns ``True`` if the coverage is automatic or ``False`` otherwise. 
+        """
+        
+        return self.__model.automatic
+
     
     def getCoverageId(self):
         """
