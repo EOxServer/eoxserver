@@ -4,6 +4,7 @@
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
+#          Martin Paces <martin.paces@eox.at>
 #
 #-------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
@@ -28,6 +29,39 @@
 #-------------------------------------------------------------------------------
 
 from osgeo import gdal
+
+#: Dictionary mapping GDAL-interpretation integer code to its human-readable presentation.
+GDAL_INTERPRETATION = { 
+		gdal.GCI_Undefined : "Undefined",
+		gdal.GCI_GrayIndex : "GrayIndex",
+		gdal.GCI_PaletteIndex : "PaletteIndex",
+		gdal.GCI_RedBand : "RedBand",
+		gdal.GCI_GreenBand : "GreenBand",
+		gdal.GCI_BlueBand : "BlueBand",
+		gdal.GCI_AlphaBand : "AlphaBand",
+		gdal.GCI_HueBand : "HueBand",
+		gdal.GCI_SaturationBand : "SaturationBand",
+		gdal.GCI_LightnessBand : "LightnessBand",
+		gdal.GCI_CyanBand : "CyanBand",
+		gdal.GCI_MagentaBand : "MagentaBand",
+		gdal.GCI_YellowBand : "YellowBand",
+		gdal.GCI_BlackBand : "BlackBand" ,
+} 
+
+#: Dictionary mapping GDAL-data-type integer code to its human-readable presentation.
+DATA_TYPE = { 
+        gdal.GDT_Byte : "Byte",
+        gdal.GDT_UInt16 : "UInt16",
+        gdal.GDT_Int16 : "Int16",
+        gdal.GDT_UInt32 : "UInt32",
+        gdal.GDT_Int32 : "Int32",
+        gdal.GDT_Float32 : "Float32",
+        gdal.GDT_Float64 : "Float64",
+        gdal.GDT_CInt16 : "CInt16",
+        gdal.GDT_CInt32 : "CInt32",
+        gdal.GDT_CFloat32 : "CFloat32",
+        gdal.GDT_CFloat64 : "CFloat64",
+} 
 
 class Band(object):
     """\
@@ -76,6 +110,10 @@ class Band(object):
         self.uom = uom
         self.gdal_interpretation = gdal_interpretation
     
+    def getGDALInterpretationAsString( self ) : 
+        "Return string representation of the ``gdal_interpretation``."
+        return GDAL_INTERPRETATION.get( self.gdal_interpretation , "Invalid" ) 
+
     def __eq__(self, other):
         if (self.name != other.name
             or self.identifier != other.identifier
@@ -155,47 +193,57 @@ class RangeType(object):
     
     def __ne__(self, other):
         return not (self == other)
+
+    def getDataTypeAsString( self ) : 
+        "Return string representation of the ``data_type``."
+        return DATA_TYPE.get( self.data_type, "Invalid" ) 
     
     def addBand(self, band):
+        "Append a new band to the band list."
         self.bands.append(band)
         
     def getSignificantFigures(self):
+        "Get significant figures of the currently used type."
         dt = self.data_type
         if dt == gdal.GDT_Byte:
             return 3
-        elif dt == gdal.GDT_UInt16 or dt == gdal.GDT_Int16:
+        elif dt in ( gdal.GDT_UInt16 , gdal.GDT_Int16 , gdal.GDT_CInt16 ) : 
             return 5
-        elif dt == gdal.GDT_UInt32 or dt == gdal.GDT_Int32:
+        elif dt in ( gdal.GDT_UInt32 , gdal.GDT_Int32 , gdal.GDT_CInt32 ) : 
             return 10
-        elif dt == gdal.GDT_Float32:
+        elif dt in ( gdal.GDT_Float32 , gdal.GDT_CFloat32 ) : 
             return 38
-        elif dt == gdal.GDT_CInt16:
-            return "Complex Int16" # TODO: How to encode GDT_CInt16 in SWE (see #103)?
-        else:
+        #TODO 64-bit float and complex
+        #elif dt in ( gdal.GDT_Float64 , gdal.GDT_CFloat64 ) : 
+        #    return ??
+        else: 
             raise NotImplementedError()
         
     def getAllowedValues(self):
+        "Get interval bounds of the currently used type."
         dt = self.data_type
         if dt == gdal.GDT_Byte:
             return (0, 255)
         elif dt == gdal.GDT_UInt16:
             return (0, 65535)
-        elif dt == gdal.GDT_Int16:
+        elif dt in ( gdal.GDT_Int16 , gdal.GDT_CInt32 ) :
             return (-32768, 32767)
         elif dt == gdal.GDT_UInt32:
             return (0, 4294967295)
-        elif dt == gdal.GDT_Int32:
+        elif dt in ( gdal.GDT_Int32 , gdal.GDT_CInt32 ) :
             return (-2147483648, 2147483647)
-        elif dt == gdal.GDT_Float32:
+        elif dt in ( gdal.GDT_Float32 , gdal.GDT_CFloat32 ) : 
             return (-3.40282e+38, 3.40282e+38)
-        elif dt == gdal.GDT_CInt16:
-            return ("Complex Int16", "Complex Int16") # TODO: How to encode GDT_CInt16 in SWE (see #103)?
+        #TODO 64-bit float and complex
+        #elif dt in ( gdal.GDT_Float64 , gdal.GDT_CFloat64 ) : 
+        #    return ??
         else:
             raise NotImplementedError()
     
 
 # TODO: rewrite this function according to new RangeType definition
 def getRangeTypeFromFile(filename):
+    """Get range type from the file given by the ``filename``."""
     ds = gdal.Open(str(filename))
     
     range_type = RangeType("", ds.GetRasterBand(1).DataType)
@@ -229,3 +277,66 @@ def getRangeTypeFromFile(filename):
         )
          
     return range_type
+
+#==============================================================================
+
+from eoxserver.resources.coverages.models import RangeTypeRecord
+
+def getAllRangeTypeNames() : 
+    """ Return a list of all registered range-type identifiers."""
+
+    return [ rec.name for rec in RangeTypeRecord.objects.all() ] 
+
+def isRangeTypeName( name ) : 
+    """
+    Check whether there is (``True``) or is not (``False``) a registered 
+    range-type with given ``name``.
+    """
+
+    return ( 0 < RangeTypeRecord.objects.filter(name=name).count() ) 
+
+def getRangeTypeObject( name ) : 
+    """ 
+    Return ``RangeType`` object for given ``name``. The properties are filled 
+    from the DB record. If there is no ``RangeTypeRecord`` corresponding to 
+    the given name ``None`` is returned.  
+    """ 
+
+    try: 
+
+        # get range-type record 
+        rt = RangeTypeRecord.objects.get(name=name)
+
+        band = [] 
+
+        # loop over band records 
+        for b in rt.bands.all() : 
+
+            nil_values=[]
+
+            # loop over nil values 
+            for n in b.nil_values.all() : 
+
+                # append created nil-value object 
+                nil_values.append( NilValue( reason=n.reason, value=n.value ) ) 
+
+            # append created band object 
+            band.append( 
+                Band( 
+                    name        = b.name, 
+                    identifier  = b.identifier,
+                    description = b.description, 
+                    definition  = b.definition,
+                    uom         = b.uom, 
+                    nil_values  = nil_values,
+                    gdal_interpretation = b.gdal_interpretation
+                )
+            ) 
+
+        # return created range-type object 
+        return RangeType( name=rt.name, data_type=rt.data_type, bands=band ) 
+                
+    except RangeTypeRecord.DoesNotExist : 
+
+        return None 
+
