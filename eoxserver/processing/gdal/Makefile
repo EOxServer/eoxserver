@@ -31,8 +31,8 @@ LD= gcc
 LD_SHARED = $(LD) -shared 
 
 INCLUDES=`gdal-config --cflags`
-CCFLAGS= -c -g -DDEBUG=1 -Wall -fPIC $(INCLUDES)
-#CCFLAGS= -c -O2 -Wall -fPIC $(INCLUDES)
+#CCFLAGS= -c -g -DDEBUG=1 -Wall -fPIC $(INCLUDES)
+CCFLAGS= -c -O2 -Wall -fPIC $(INCLUDES)
 
 LIBS=`gdal-config --libs`
 
