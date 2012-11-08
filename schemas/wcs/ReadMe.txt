@@ -16,6 +16,11 @@ The most current schema are available at http://schemas.opengis.net/ .
 
 -----------------------------------------------------------------------
 
+2012-08-24  Stephan Meissl
+  * Added CRS extension schemas
+  * Added GeoTIFF encoding extension schemas
+  * Added Range subsetting extension schemas
+
 2012-07-21  Stephan Meissl
   * v2.0: Updates according to WCS 2.0.1
     + Updated xsd:schema/@version to 2.0.1
