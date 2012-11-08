@@ -61,6 +61,7 @@ Note that the grid limits (post indexes) and axis name properties are inherited 
 			</extension>
 		</complexContent>
 	</complexType>
+    <!-- TODO: Define ReferenceableGrid element. -->
 	<element name="ReferenceableGrid" type="gml:ReferenceableGridType" substitutionGroup="gml:Grid"/>
 	<complexType name="ReferenceableGridType">
 		<complexContent>
