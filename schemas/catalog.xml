@@ -57,6 +57,9 @@ Unset: export -n XML_CATALOG_FILES (use standard catalog at /etc/xml/)
 <!-- wcs/range-subsetting -->
   <rewriteSystem systemIdStartString="http://schemas.opengis.net/wcs/range-subsetting/" rewritePrefix="wcs/range-subsetting/"/>
   <rewriteURI uriStartString="http://schemas.opengis.net/wcs/range-subsetting/" rewritePrefix="wcs/range-subsetting/"/>
+<!-- gml 3.2.1 -->
+  <rewriteSystem systemIdStartString="http://schemas.opengis.net/gml/3.2.1/" rewritePrefix="gml/3.2.1/"/>
+  <rewriteURI uriStartString="http://schemas.opengis.net/gml/3.2.1/" rewritePrefix="gml/3.2.1/"/>
 <!-- schemas.opengis.net -->
   <rewriteSystem systemIdStartString="http://schemas.opengis.net/" rewritePrefix="SCHEMAS_OPENGIS_NET/"/>
   <rewriteURI uriStartString="http://schemas.opengis.net/" rewritePrefix="SCHEMAS_OPENGIS_NET/"/>
