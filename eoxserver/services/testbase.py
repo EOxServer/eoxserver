@@ -398,7 +398,7 @@ class MultipartTestCase(XMLTestCase):
         for part in response_msg.walk():
             if part['Content-type'] == "multipart/mixed; boundary=wcs":
                 continue
-            elif part['Content-type'] == "text/xml":
+            elif part['Content-type'] in ("text/xml", "application/gml+xml"):
                 # The filename depends on the actual time the request was 
                 # answered. It has to be explicitly unified.
                 tree = etree.fromstring(part.get_payload())
