@@ -576,7 +576,9 @@ class WCSTransactionTestCase(XMLTestCase):
         logging.debug("WCSTransactionTestCase for ID: %s" % self.ID)
         
         if self.isAsync:
-            from eoxserver.resources.processes.tracker import *
+            from eoxserver.resources.processes.tracker import (
+                dequeueTask, TaskStatus, startTask, stopTaskSuccessIfNotFinished
+            )
 
             # get a pending task from the queue
             taskId = dequeueTask(1)[0]
