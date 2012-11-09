@@ -26,8 +26,8 @@
   </gml:domainSet>
   <gml:rangeSet>
     <gml:File>
-      <gml:rangeParameters xlink:arcrole="fileReference" xlink:href="coverage/mosaic_MER_FRS_1P_RGB_reduced.tif" xlink:role="image/tiff"/>
-      <gml:fileReference>coverage/mosaic_MER_FRS_1P_RGB_reduced.tif</gml:fileReference>
+      <gml:rangeParameters xlink:arcrole="fileReference" xlink:href="cid:coverage/mosaic_MER_FRS_1P_RGB_reduced.tif" xlink:role="http://www.opengis.net/spec/GMLCOV_geotiff-coverages/1.0/conf/geotiff-coverage"/>
+      <gml:fileReference>cid:coverage/mosaic_MER_FRS_1P_RGB_reduced.tif</gml:fileReference>
       <gml:fileStructure/>
       <gml:mimeType>image/tiff</gml:mimeType>
     </gml:File>
