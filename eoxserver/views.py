@@ -35,7 +35,7 @@ from eoxserver import get_version
 
 def index(request):
     return render_to_response(
-        'index.html', {
+        'eoxserver_index.html', {
             "version": get_version(),
         },
         context_instance=RequestContext(request)

@@ -40,6 +40,6 @@ Unset: export -n XML_CATALOG_FILES (use standard catalog at /etc/xml/)
 <!DOCTYPE catalog PUBLIC "-//OASIS//DTD Entity Resolution XML Catalog V1.0//EN" "http://www.oasis-open.org/committees/entity/release/1.0/catalog.dtd">
 <catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
 <!-- www.w3.org -->
-  <rewriteSystem systemIdStartString="http://www.w3.org/2001/" rewritePrefix="WWW_W3_ORG/"/>
-  <rewriteURI uriStartString="http://www.w3.org/2001/" rewritePrefix="WWW_W3_ORG/"/>
+  <rewriteSystem systemIdStartString="http://www.w3.org/" rewritePrefix="WWW_W3_ORG/"/>
+  <rewriteURI uriStartString="http://www.w3.org/" rewritePrefix="WWW_W3_ORG/"/>
 </catalog>

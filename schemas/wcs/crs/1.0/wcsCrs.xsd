@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema targetNamespace="http://www.opengis.net/wcs/crs/1.0" 
+    xmlns:crs="http://www.opengis.net/wcs/crs/1.0"
+    xmlns="http://www.w3.org/2001/XMLSchema" 
+    elementFormDefault="qualified" version="1.0.0" xml:lang="en">
+    <annotation>
+        <appinfo>wcsCrs.xsd</appinfo>
+        <documentation>This XML Schema Document is part of the WCS CRS Extension [OGC 11-053]. It encodes the elements and types that allow expressing Coordinate Reference Sytems (CRSs) in WCS client/server communication.
+            Last updated: 2011-dec-09
+            Copyright (c) 2011 Open Geospatial Consortium, Inc. All Rights Reserved.
+            To obtain additional rights of use, visit http://www.opengeospatial.org/legal/.
+        </documentation>
+    </annotation>
+    <!-- ============================================================== -->
+    <!-- includes and imports                                           -->
+    <!-- ============================================================== -->
+    <import namespace="http://www.opengis.net/wcs/2.0" schemaLocation="http://schemas.opengis.net/wcs/2.0/wcsAll.xsd"/>
+    <!-- ============================================================== -->
+    <!-- elements and types                                             -->
+    <!-- ============================================================== -->
+    <element name="crsSupported" type="anyURI">
+        <annotation>
+            <documentation>CRS information reported in the Capabilities document of a WCS service supporting the CRS Extension. </documentation>
+        </annotation>
+    </element>
+    <!-- ============================================================== -->
+    <annotation>
+        <documentation>CRSs for the request bounding box and for the result coverage. </documentation>
+    </annotation>
+    <element name="subsettingCrs" type="anyURI"/>
+    <element name="outputCrs" type="anyURI"/>
+</schema>

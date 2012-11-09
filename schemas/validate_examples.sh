@@ -33,19 +33,13 @@ export XML_CATALOG_FILES="catalog.xml"
 
 echo "########################################################################"
 echo "\n"
-echo "Validating against wcseo/1.0/wcsEOAll.xsd"
+echo "Validating EO-WCS examples against wcseo/1.0/wcsEOAll.xsd"
 echo "\n"
-xmllint --noout --schema http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd \
-    wcseo/1.0/examples/wcseo_requestGetCapabilities.xml \
-    wcseo/1.0/examples/wcseo_responseGetCapabilities.xml \
-    wcseo/1.0/examples/wcseo_requestDescribeEOCoverageSet.xml \
-    wcseo/1.0/examples/wcseo_responseDescribeEOCoverageSet_minimal.xml \
-    wcseo/1.0/examples/wcseo_responseDescribeEOCoverageSet.xml \
-    wcseo/1.0/examples/wcseo_requestGetCoverage.xml \
-    wcseo/1.0/examples/wcseo_responseGetCoverage.xml \
-    wcseo/1.0/examples/wcseo_responseGetCoverage_StitchedMosaic.xml
+find wcseo/1.0/ -iname "*.xml" -exec xmllint --noout --schema http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd {} \;
+
+echo "########################################################################"
 echo "\n"
-echo "\nValidating against wcseo/1.0/wcsEOSchematron.sch"
+echo "\nValidating EO-WCS examples against wcseo/1.0/wcsEOSchematron.sch"
 echo "\n"
 xsltproc schematron_xslt1/iso_dsdl_include.xsl wcseo/1.0/wcsEOSchematron.sch | xsltproc schematron_xslt1/iso_abstract_expand.xsl - | xsltproc schematron_xslt1/iso_svrl_for_xslt1.xsl - | xsltproc - \
     wcseo/1.0/examples/wcseo_requestGetCapabilities.xml \
@@ -59,24 +53,41 @@ xsltproc schematron_xslt1/iso_dsdl_include.xsl wcseo/1.0/wcsEOSchematron.sch | x
 
 echo "########################################################################"
 echo "\n"
-echo "Validating against wcs/2.0/wcsAll.xsd"
+echo "Validating EO-WCS examples against wcs/2.0/wcsAll.xsd"
 echo "\n"
-xmllint --noout --schema http://schemas.opengis.net/wcs/2.0/wcsAll.xsd \
-    wcseo/1.0/examples/wcseo_requestGetCapabilities.xml \
-    wcseo/1.0/examples/wcseo_responseGetCapabilities.xml \
-    wcseo/1.0/examples/wcseo_requestGetCoverage.xml
+find wcseo/1.0/ -iname "*.xml" -exec xmllint --noout --schema http://schemas.opengis.net/wcs/2.0/wcsAll.xsd {} \;
 
 echo "########################################################################"
 echo "\n"
-echo "Validating against http://schemas.xmlsoap.org/soap/envelope/"
+echo "Validating EO-WCS examples against http://schemas.xmlsoap.org/soap/envelope/"
 echo "\n"
 xmllint --noout --schema http://schemas.xmlsoap.org/soap/envelope/ \
     wcseo/1.0/examples/wcseo_requestGetCoverage_SOAP.xml \
 
-
 ## Not backwards compatible like used below:
 #echo "########################################################################"
 #echo "\n"
-#echo "Validating against gmlcov/1.0/coverage.xsd"
+#echo "Validating EO-WCS examples against gmlcov/1.0/coverage.xsd"
 #echo "\n"
 #xmllint --noout --schema http://schemas.opengis.net/gmlcov/1.0/coverage.xsd wcseo/1.0/examples/wcseo_responseGetCoverage.xml wcseo/1.0/examples/wcseo_responseGetCoverage_StitchedMosaic.xml
+
+
+echo "########################################################################"
+echo "\n"
+echo "Validating WCS examples against wcs/2.0/wcsAll.xsd"
+echo "\n"
+find wcs/ -iname "*.xml" -exec xmllint --noout --schema wcs/2.0/wcsAll.xsd {} \;
+
+
+echo "########################################################################"
+echo "\n"
+echo "Validating WCS GeoTIFF examples against wcs/geotiff/1.0/wcsGeotiff.xsd"
+echo "\n"
+find wcs/geotiff/ -iname "*.xml" -exec xmllint --noout --schema wcs/geotiff/1.0/wcsGeotiff.xsd {} \;
+
+
+echo "########################################################################"
+echo "\n"
+echo "Validating GMLCOV examples against gmlcov/1.0/gmlcovAll.xsd"
+echo "\n"
+find gmlcov/1.0/ -iname "*.xml" -exec xmllint --noout --schema gmlcov/1.0/gmlcovAll.xsd {} \;
