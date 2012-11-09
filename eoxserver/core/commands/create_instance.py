@@ -87,6 +87,8 @@ class Command(EOxServerAdminCommand):
         dst_data_dir = os.path.join(dst_inst_dir, "data")
         dst_logs_dir = os.path.join(dst_inst_dir, "logs")
         dst_fixtures_dir = os.path.join(dst_data_dir, "fixtures")
+        dst_templates_dir = os.path.join(dst_inst_dir, "templates") #TODO: Needed?
+        dst_templates_admin_dir = os.path.join(dst_templates_dir, "admin")
 
         src_root_dir = os.path.dirname(eoxserver.__file__)
         src_conf_dir = os.path.join(src_root_dir, "conf")
@@ -106,6 +108,8 @@ class Command(EOxServerAdminCommand):
         os.mkdir(dst_data_dir)
         os.mkdir(dst_logs_dir)
         os.mkdir(dst_fixtures_dir)
+        os.mkdir(dst_templates_dir)
+        os.mkdir(dst_templates_admin_dir)
 
         # create the WCS-T subdirectories
         os.mkdir(os.path.join(dst_inst_dir, "wcst_perm"))
@@ -125,7 +129,7 @@ class Command(EOxServerAdminCommand):
                               os.path.join(dst_inst_dir, "settings.py"),
                               tags)
     
-        # copy the template urls file and replace its tags
+        # copy the template urls file
         shutil.copy(os.path.join(src_conf_dir, "TEMPLATE_urls.py"),
                     os.path.join(dst_inst_dir, "urls.py"))
         
@@ -133,6 +137,10 @@ class Command(EOxServerAdminCommand):
         copy_and_replace_tags(os.path.join(src_conf_dir, "TEMPLATE_eoxserver.conf"),
                               os.path.join(dst_conf_dir, "eoxserver.conf"),
                               tags)
+        
+        # copy the template base_site.html file
+        shutil.copy(os.path.join(src_conf_dir, "TEMPLATE_base_site.html"),
+                    os.path.join(dst_templates_admin_dir, "base_site.html"))
         
         shutil.copy(os.path.join(src_conf_dir, "TEMPLATE_template.map"),
                     os.path.join(dst_conf_dir, "template.map"))
