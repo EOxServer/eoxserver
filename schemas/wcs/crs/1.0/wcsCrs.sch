@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<--
+    This Schematron Document is part of the WCS CRS Extension [OGC 11-053]
+    which enables expressing Coordinate Reference Sytems (CRSs) in WCS client/server communication.
+    Last updated: 2011-dec-19
+    Copyright (c) 2011 Open Geospatial Consortium, Inc. All Rights Reserved.
+    To obtain additional rights of use, visit http://www.opengeospatial.org/legal/.
+-->
 <sch:schema xmlns:sch="http://purl.oclc.org/dsdl/schematron" queryBinding="xslt2">
     <sch:title>WCS CRS Extension Schematron Rules</sch:title>
     <sch:ns uri="http://www.opengis.net/wcs/2.0" prefix="wcs"/>
