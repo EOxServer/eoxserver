@@ -35,6 +35,7 @@
 #include <gdal/gdal_alg.h>
 #include <gdal/gdalwarper.h>
 #include <gdal/ogr_srs_api.h>
+#include <gdal/cpl_string.h>
 
 typedef struct {
     size_t n_points;
@@ -208,31 +209,33 @@ eoxs_footprint *eoxs_calculate_footprint(GDALDatasetH ds) {
 const char *eoxs_get_footprint_wkt(GDALDatasetH ds) {
     eoxs_footprint *fp;
     char *wkt, buffer[512];
-    int i;
+    int i, maxlen;
     fp = eoxs_calculate_footprint(ds);
 
     if (!fp) return NULL;
 
-    wkt = calloc((fp->n_points + 1) * 100 + sizeof("POLYGON(())"), sizeof(char));
+    maxlen = (fp->n_points + 1) * 100 + sizeof("POLYGON(())");
+
+    wkt = calloc(maxlen, sizeof(char));
 
     if (!wkt) {
         eoxs_destroy_footprint(fp);
         fprintf(stderr, "Error allocating memory.");
         return NULL;
     }
-    sprintf(wkt, "POLYGON((");
+    snprintf(wkt, maxlen, "POLYGON((");
 
     for (i=0; i<fp->n_points; ++i) {
-        sprintf(buffer, "%f %f", fp->x[i], fp->y[i]);
+        snprintf(buffer, sizeof(buffer), "%f %f", fp->x[i], fp->y[i]);
         if(i != 0) {
-            strcat(wkt, ",");
+            CPLStrlcat(wkt, ",", maxlen);
         }
-        strcat(wkt, buffer);
+        CPLStrlcat(wkt, buffer, maxlen);
     }
 
-    sprintf(buffer, ",%f %f", fp->x[0], fp->y[0]);
-    strcat(wkt, buffer);
-    strcat(wkt, "))");
+    snprintf(buffer, sizeof(buffer), ",%f %f", fp->x[0], fp->y[0]);
+    CPLStrlcat(wkt, buffer, maxlen);
+    CPLStrlcat(wkt, "))", maxlen);
 
     // clean up
     eoxs_destroy_footprint(fp);
