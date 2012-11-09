@@ -672,10 +672,11 @@ class WCS20GetCoverageTiledTestCase(eoxstest.RectifiedGridCoverageTestCase):
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=%s" % quote ("image/tiff;tiled=YES")
         return (params, "kvp")
 
-class WCS20GetCoverageNetCDFInputTestCase(eoxstest.RectifiedGridCoverageTestCase):
-    def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_netCDF&format=image/tiff"
-        return (params, "kvp")
+# TODO: Enable test once subdatasets are supported (see #123):
+#class WCS20GetCoverageNetCDFInputTestCase(eoxstest.RectifiedGridCoverageTestCase):
+#    def getRequest(self):
+#        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_netCDF&format=image/tiff"
+#        return (params, "kvp")
 
 class WCS20GetCoverageJPEG2000InputTestCase(eoxstest.RectifiedGridCoverageTestCase):
     def getRequest(self):
