@@ -19,8 +19,8 @@
   </gml:domainSet>
   <gml:rangeSet>
     <gml:File>
-      <gml:rangeParameters xlink:arcrole="fileReference" xlink:href="coverage/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tif" xlink:role="image/tiff"/>
-      <gml:fileReference>coverage/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tif</gml:fileReference>
+      <gml:rangeParameters xlink:arcrole="fileReference" xlink:href="cid:coverage/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tif" xlink:role="image/tiff"/>
+      <gml:fileReference>cid:coverage/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tif</gml:fileReference>
       <gml:fileStructure/>
       <gml:mimeType>image/tiff</gml:mimeType>
     </gml:File>
