@@ -4,6 +4,9 @@ from eoxserver.processing.preprocessing.util import (
     gdal, gdal_array, gdalconst, osr, get_limits, create_mem, copy_metadata, 
     copy_projection
 )
+from eoxserver.resources.coverages.crss import (
+    parseEPSGCode, fromShortCode, fromURL, fromURN, fromProj4Str
+)
 
 
 #===============================================================================
@@ -25,8 +28,17 @@ class ReprojectionOptimization(DatasetOptimization):
         projection identified by an SRID.
     """
 
-    def __init__(self, srid):
-        self.srid = srid
+    def __init__(self, crs_or_srid):
+        if isinstance(crs_or_srid, int):
+            pass
+        elif isinstance(crs_or_srid, basestring):
+            crs_or_srid = parseEPSGCode(crs_or_srid, (fromShortCode, fromURL,
+                                                      fromURN, fromProj4Str))
+        else:
+            raise ValueError("Unable to obtain CRS from '%s'." %
+                             type(crs_or_srid).__name__)
+        
+        self.srid = crs_or_srid
 
         
     def __call__(self, src_ds):

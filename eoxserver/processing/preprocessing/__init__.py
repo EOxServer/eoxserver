@@ -31,6 +31,7 @@
 from os.path import splitext
 from itertools import izip
 import numpy
+import logging
 
 from django.contrib.gis.geos import GEOSGeometry, Polygon, LinearRing, Point
 from django.contrib.gis.gdal.geometries import OGRGeometry
@@ -44,6 +45,9 @@ from eoxserver.processing.preprocessing.optimization import (
     BandSelectionOptimization, ColorIndexOptimization, NoDataValueOptimization,
     OverviewOptimization, ReprojectionOptimization
 )
+
+
+logger = logging.getLogger(__name__)
 
 def pairwise(iterable):
     "s -> (s0,s1), (s2,s3), (s4, s5), ..."
@@ -119,11 +123,17 @@ class PreProcessor(object):
                 raise ValueError("No geospatial reference for unreferenced "
                                  "dataset given.")
         else:
+            logger.debug("Applying geo reference '%s'."
+                         % type(geo_reference).__name__)
             ds, footprint_wkt = geo_reference.apply(ds)
         
         # apply optimizations
         for optimization in self.get_optimizations(ds):
-            ds = optimization(ds)
+            logger.debug("Applying optimization '%s'."
+                         % type(optimization).__name__)
+            new_ds = optimization(ds)
+            ds = None
+            ds = new_ds
         
         # save the file to the disc
         driver = gdal.GetDriverByName(self.format_selection.driver_name)
@@ -131,6 +141,8 @@ class PreProcessor(object):
                                options=self.format_selection.creation_options)
         
         for optimization in self.get_post_optimizations(ds):
+            logger.debug("Applying post-optimization '%s'." %
+                         type(optimization).__name__)
             optimization(ds)
         
         polygon = None
@@ -139,6 +151,7 @@ class PreProcessor(object):
         if generate_metadata:
             
             if not footprint_wkt:
+                logger.debug("Generating footprint.")
                 # generate the footprint from the dataset
                 polygon = self._generate_footprint(ds)
             
