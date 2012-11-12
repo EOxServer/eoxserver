@@ -37,6 +37,9 @@
 #include <gdal/ogr_srs_api.h>
 #include <gdal/cpl_string.h>
 
+/******************************************************************************/
+/******************************************************************************/
+
 typedef struct {
     size_t n_points;
     double *x;
@@ -58,6 +61,9 @@ typedef struct {
     int y_size;
 } eoxs_rect;
 
+/******************************************************************************/
+/******************************************************************************/
+
 void eoxs_destroy_footprint(eoxs_footprint *fp) {
     free(fp->x);
     free(fp->y);
@@ -69,23 +75,31 @@ void eoxs_free_string(char* str)
     free(str);
 }
 
-void *eoxs_get_referenceable_grid_transformer(GDALDatasetH ds) {
+void *eoxs_create_referenceable_grid_transformer(GDALDatasetH ds, const char *method) {
     int gcp_count;
     const GDAL_GCP *gcps;
-    
-    if (!ds) return NULL;
+
+    if (!ds || !method) return NULL;
     
     gcp_count = GDALGetGCPCount(ds);
     gcps = GDALGetGCPs(ds);
-    
-    return GDALCreateTPSTransformer(gcp_count, gcps, FALSE);
+
+    if (EQUAL(method, "TPS")) {
+        return GDALCreateTPSTransformer(gcp_count, gcps, FALSE);
+    }
+    else if (EQUAL(method, "GCP")) {
+        return GDALCreateGCPTransformer(gcp_count, gcps, /* order */ 0, FALSE);
+    }
+    /* requires "tolerance" arg
+     * else if (EQUAL(method, "GCP_refined")) {
+        //return GDALCreateGCPRefineTransformer(gcp_count, gcps, 0, FALSE, 
+    }*/
+    else {
+        return NULL;
+    }
 }
 
-void eoxs_destroy_referenceable_grid_transformer(void *transformer) {
-    GDALDestroyTPSTransformer(transformer);
-}
-
-eoxs_footprint *eoxs_calculate_footprint(GDALDatasetH ds) {
+CPLErr eoxs_calculate_footprint(GDALDatasetH ds, const char *method, eoxs_footprint **out_footprint) {
     void *transformer;
     int x_size, y_size;
     double *x, *y, *z;
@@ -95,19 +109,20 @@ eoxs_footprint *eoxs_calculate_footprint(GDALDatasetH ds) {
     int *success;
     int i;
 
-    eoxs_footprint *ret;
-
-    if (!ds) 
-    {
-        fprintf( stderr, "ERROR: %s:%i : Invalid GDAL dataset!",__FILE__,__LINE__ ) ; 
-        return NULL;
+    if (!ds) {
+        CPLError(CE_Failure, CPLE_ObjectNull, "No dataset passed.");
+        return CE_Failure;
     }
 
-    if (( 0 == GDALGetGCPCount(ds) )||( '\0' == GDALGetGCPProjection(ds)[0] ))
-    { 
-        fprintf( stderr, "ERROR: %s:%i : The GDAL dataset has no GCP!",__FILE__,__LINE__ ) ; 
-        return NULL ; 
-    } 
+    else if ( 0 == GDALGetGCPCount(ds) ) {
+        CPLError(CE_Failure, CPLE_IllegalArg, "The given dataset has no GCPs.");
+        return CE_Failure; 
+    }
+
+    else if ( '\0' == GDALGetGCPProjection(ds)[0] ) {
+        CPLError(CE_Failure, CPLE_IllegalArg, "The given dataset has no GCP projection.");
+        return CE_Failure; 
+    }
 
 #ifdef DEBUG 
     { // debug - print the GCPs 
@@ -135,12 +150,13 @@ eoxs_footprint *eoxs_calculate_footprint(GDALDatasetH ds) {
     x_size = GDALGetRasterXSize(ds);
     y_size = GDALGetRasterYSize(ds);
 
-    transformer = eoxs_get_referenceable_grid_transformer(ds);
+    transformer = eoxs_create_referenceable_grid_transformer(ds, method);
 
-    if (!transformer)
-    {
-        fprintf( stderr, "ERROR: %s:%i : Failed to create GCP transformer!",__FILE__,__LINE__ ) ; 
-        return NULL;
+    if (!transformer) {
+        if (CPLGetLastErrorMsg() == NULL) {
+            CPLError(CE_Failure, CPLE_OutOfMemory, "Failed to create GCP transformer.");
+        }
+        return CE_Failure; 
     }
 
     x_e = x_size / 100 - 1; if (x_e < 0) x_e = 0;
@@ -177,17 +193,18 @@ eoxs_footprint *eoxs_calculate_footprint(GDALDatasetH ds) {
         z[x_e+1+y_e+1+x_e+1+i] = 0;
     }
 
-    GDALTPSTransform(transformer, FALSE, n_points, x, y, z, success);
+    /* for TPS and GCP methods returns always true */
+    GDALUseTransformer(transformer, FALSE, n_points, x, y, z, success);
 
     // discard unused information
     free(z);
     free(success);
-    eoxs_destroy_referenceable_grid_transformer(transformer);
+    GDALDestroyTransformer(transformer);
 
-    ret = malloc(sizeof(eoxs_footprint));
-    ret->n_points = n_points;
-    ret->x = x;
-    ret->y = y;
+    *out_footprint = malloc(sizeof(eoxs_footprint));
+    (*out_footprint)->n_points = n_points;
+    (*out_footprint)->x = x;
+    (*out_footprint)->y = y;
 
 #ifdef DEBUG 
     { // debug - print the calculated footprint
@@ -203,44 +220,47 @@ eoxs_footprint *eoxs_calculate_footprint(GDALDatasetH ds) {
     }
 #endif /* DEBUG */
 
-    return ret;
+    return CE_None;
 }
 
-const char *eoxs_get_footprint_wkt(GDALDatasetH ds) {
+CPLErr eoxs_get_footprint_wkt(GDALDatasetH ds, const char *method, char **out_wkt) {
     eoxs_footprint *fp;
-    char *wkt, buffer[512];
+    char buffer[512];
     int i, maxlen;
-    fp = eoxs_calculate_footprint(ds);
+    CPLErr ret;
+    *out_wkt = NULL;
 
-    if (!fp) return NULL;
+    if ((ret = eoxs_calculate_footprint(ds, method, &fp)) != CE_None) {
+        return ret;
+    }
 
     maxlen = (fp->n_points + 1) * 100 + sizeof("POLYGON(())");
 
-    wkt = calloc(maxlen, sizeof(char));
+    *out_wkt = calloc(maxlen, sizeof(char));
 
-    if (!wkt) {
+    if (!*out_wkt) {
         eoxs_destroy_footprint(fp);
-        fprintf(stderr, "Error allocating memory.");
-        return NULL;
+        CPLError(CE_Failure, CPLE_OutOfMemory, "Error allocating memory.");
+        return CE_Failure;
     }
-    snprintf(wkt, maxlen, "POLYGON((");
+    snprintf(*out_wkt, maxlen, "POLYGON((");
 
-    for (i=0; i<fp->n_points; ++i) {
+    for (i = 0; i < fp->n_points; ++i) {
         snprintf(buffer, sizeof(buffer), "%f %f", fp->x[i], fp->y[i]);
         if(i != 0) {
-            CPLStrlcat(wkt, ",", maxlen);
+            CPLStrlcat(*out_wkt, ",", maxlen);
         }
-        CPLStrlcat(wkt, buffer, maxlen);
+        CPLStrlcat(*out_wkt, buffer, maxlen);
     }
 
     snprintf(buffer, sizeof(buffer), ",%f %f", fp->x[0], fp->y[0]);
-    CPLStrlcat(wkt, buffer, maxlen);
-    CPLStrlcat(wkt, "))", maxlen);
+    CPLStrlcat(*out_wkt, buffer, maxlen);
+    CPLStrlcat(*out_wkt, "))", maxlen);
 
     // clean up
     eoxs_destroy_footprint(fp);
 
-    return wkt;
+    return CE_None;
 }
 
 double eoxs_array_min(int n, double *c) {
@@ -288,7 +308,7 @@ void eoxs_get_intermediate_point_count(
     x[2] = (double) ds_x_size; y[2] = (double) ds_y_size; z[2] = 0;
     x[3] = 0; y[3] = (double) ds_y_size; z[3] = 0;
     
-    GDALTPSTransform(transformer, FALSE, 4, x, y, z, success);
+    GDALUseTransformer(transformer, FALSE, 4, x, y, z, success);
     
     dist = MIN(
         (eoxs_array_max(4, x) - eoxs_array_min(4, x)) / (double) (ds_x_size / 100),
@@ -306,7 +326,7 @@ void eoxs_get_intermediate_point_count(
     *n_y = (int) ceil((eoxs_array_max(4, y) - eoxs_array_min(4, y)) / dist);
 }
 
-int eoxs_rect_from_subset(GDALDatasetH ds, eoxs_subset *subset, eoxs_rect *out_rect) {
+CPLErr eoxs_rect_from_subset(GDALDatasetH ds, eoxs_subset *subset, const char *method, eoxs_rect *out_rect) {
     void *transformer;
     
     OGRSpatialReferenceH gcp_srs, subset_srs;
@@ -324,17 +344,20 @@ int eoxs_rect_from_subset(GDALDatasetH ds, eoxs_subset *subset, eoxs_rect *out_r
     int minx, miny, maxx, maxy;
     int i;
     
-    if (!ds) 
-    {
-        fprintf( stderr, "ERROR: %s:%i : Invalid GDAL dataset!",__FILE__,__LINE__ ) ; 
-        return 0;
+    if (!ds) {
+        CPLError(CE_Failure, CPLE_ObjectNull, "No dataset passed.");
+        return CE_Failure;
     }
 
-    if (( 0 == GDALGetGCPCount(ds) )||( '\0' == GDALGetGCPProjection(ds)[0] ))
-    { 
-        fprintf( stderr, "ERROR: %s:%i : The GDAL dataset has no GCP!",__FILE__,__LINE__ ) ; 
-        return 0 ; 
-    } 
+    else if ( 0 == GDALGetGCPCount(ds) ) {
+        CPLError(CE_Failure, CPLE_IllegalArg, "The given dataset has no GCPs.");
+        return CE_Failure; 
+    }
+
+    else if ( '\0' == GDALGetGCPProjection(ds)[0] ) {
+        CPLError(CE_Failure, CPLE_IllegalArg, "The given dataset has no GCP projection.");
+        return CE_Failure; 
+    }
 
 #ifdef DEBUG 
     { // debug - print the GCPs  
@@ -360,11 +383,13 @@ int eoxs_rect_from_subset(GDALDatasetH ds, eoxs_subset *subset, eoxs_rect *out_r
     ds_x_size = GDALGetRasterXSize(ds);
     ds_y_size = GDALGetRasterYSize(ds);
     
-    transformer = eoxs_get_referenceable_grid_transformer(ds);
+    transformer = eoxs_create_referenceable_grid_transformer(ds, method);
     
     if (!transformer) {
-        fprintf( stderr, "ERROR: %s:%i : Failed to create GCP transformer!",__FILE__,__LINE__ ) ; 
-        return 0;
+        if (CPLGetLastErrorMsg() == NULL) {
+            CPLError(CE_Failure, CPLE_OutOfMemory, "Failed to create GCP transformer.");
+        }
+        return CE_Failure; 
     }
     
     gcp_srs = OSRNewSpatialReference( GDALGetGCPProjection(ds) );
@@ -373,11 +398,13 @@ int eoxs_rect_from_subset(GDALDatasetH ds, eoxs_subset *subset, eoxs_rect *out_r
     
     ct = OCTNewCoordinateTransformation(subset_srs, gcp_srs);
     if (!ct) {
-        fprintf(stderr, "ERROR: %s:%i : Failed to create coordinate trasnformation!",__FILE__,__LINE__ ) ; 
-        eoxs_destroy_referenceable_grid_transformer(transformer);
+        if (CPLGetLastErrorMsg() == NULL) {
+            CPLError(CE_Failure, CPLE_OutOfMemory, "Failed to create coordinate transformer.");
+        }
+        GDALDestroyTransformer(transformer);
         OSRDestroySpatialReference( gcp_srs ); 
         OSRDestroySpatialReference( subset_srs ); 
-        return 0;
+        return CE_Failure;
     }
     
     eoxs_get_intermediate_point_count(&n_x, &n_y, ds_x_size, ds_y_size, subset, transformer, ct);
@@ -435,7 +462,7 @@ int eoxs_rect_from_subset(GDALDatasetH ds, eoxs_subset *subset, eoxs_rect *out_r
 #endif /* DEBUG */
 
     OCTTransform(ct, n_points, x, y, z);
-    GDALTPSTransform(transformer, TRUE, n_points, x, y, z, success);
+    GDALUseTransformer(transformer, TRUE, n_points, x, y, z, success);
     
     minx = (int) floor(eoxs_array_min(n_points, x));
     maxx = (int) ceil(eoxs_array_max(n_points, x));
@@ -448,15 +475,15 @@ int eoxs_rect_from_subset(GDALDatasetH ds, eoxs_subset *subset, eoxs_rect *out_r
     out_rect->y_size = maxy - miny + 1;
     
     free(x); free(y); free(z); free(success);
-    eoxs_destroy_referenceable_grid_transformer(transformer);
+    GDALDestroyTransformer(transformer);
     OCTDestroyCoordinateTransformation( ct ); 
     OSRDestroySpatialReference( gcp_srs ); 
     OSRDestroySpatialReference( subset_srs ); 
     
-    return 1;
+    return CE_None;
 }
 
-int eoxs_create_rectified_vrt(GDALDatasetH ds, const char *vrt_filename, int srid) {
+CPLErr eoxs_create_rectified_vrt(GDALDatasetH ds, const char *vrt_filename, int srid) {
     GDALDatasetH vrt_ds;
     OGRSpatialReferenceH dst_srs;
     char *dst_srs_wkt;
@@ -465,7 +492,10 @@ int eoxs_create_rectified_vrt(GDALDatasetH ds, const char *vrt_filename, int sri
     void *transformer;
     GDALWarpOptions *warp_options;
     
-    if (!ds) return 0;
+    if (!ds) {
+        CPLError(CE_Failure, CPLE_ObjectNull, "No dataset passed.");
+        return CE_Failure;
+    }
 
     if (srid != 0) {
         dst_srs = OSRNewSpatialReference("");
@@ -489,8 +519,11 @@ int eoxs_create_rectified_vrt(GDALDatasetH ds, const char *vrt_filename, int sri
     );
     
     if (!transformer) {
+        if (CPLGetLastErrorMsg() == NULL) {
+            CPLError(CE_Failure, CPLE_OutOfMemory, "Failed to create image projection transformer.");
+        }
         if (free_dst_srs_wkt) free(dst_srs_wkt);
-        return 0;
+        return CE_Failure;
     }
     
     warp_options = GDALCreateWarpOptions();
@@ -507,10 +540,13 @@ int eoxs_create_rectified_vrt(GDALDatasetH ds, const char *vrt_filename, int sri
     );
     
     if (!vrt_ds) {
+        if (CPLGetLastErrorMsg() == NULL) {
+            CPLError(CE_Failure, CPLE_FileIO, "Failed to created warped VRT.");
+        }
         GDALDestroyGenImgProjTransformer(transformer);
         GDALDestroyWarpOptions(warp_options);
         if (free_dst_srs_wkt) free(dst_srs_wkt);
-        return 0;
+        return CE_Failure;
     }
     
     GDALSetDescription(vrt_ds, vrt_filename);
@@ -521,5 +557,5 @@ int eoxs_create_rectified_vrt(GDALDatasetH ds, const char *vrt_filename, int sri
     GDALDestroyWarpOptions(warp_options);
     if (free_dst_srs_wkt) free(dst_srs_wkt);
     
-    return 1;
+    return CE_None;
 }

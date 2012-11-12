@@ -1,7 +1,12 @@
+import logging
+
 from eoxserver.processing.gdal.reftools import get_footprint_wkt
 from eoxserver.processing.preprocessing.util import (
     gdal, ogr, osr, create_mem, copy_metadata
-) 
+)
+
+
+logger = logging.getLogger(__name__)
 
 
 #===============================================================================
@@ -65,6 +70,13 @@ class GCPList(GeographicReference):
                               else self.gcp_srid) 
         gcp_sr.ImportFromEPSG(self.gcp_srid)
         
+        
+        logger.debug("Using GCP Projection '%s'" % gcp_sr.ExportToWkt())
+        logger.debug("Applying GCPs: \n%s"
+                     % "\n".join(["%f %f -> %f %f" 
+                                  % (gcp.GCPPixel, gcp.GCPLine, gcp.GCPX, gcp.GCPY)
+                                  for gcp in self.gcps]))
+        
         # set the GCPs
         src_ds.SetGCPs(self.gcps, gcp_sr.ExportToWkt())
         
@@ -86,13 +98,18 @@ class GCPList(GeographicReference):
         
         copy_metadata(src_ds, dst_ds)
         
-        footprint_wkt = get_footprint_wkt(src_ds)
+        # TODO: maybe refine this
+        method = "TPS" if len(self.gcps) > 10 else "GCP"
+        
+        footprint_wkt = get_footprint_wkt(src_ds, method)
         if not gcp_sr.IsGeographic():
             out_sr = osr.SpatialReference()
             out_sr.ImportFromEPSG(4326)
             geom = ogr.CreateGeometryFromWkt(footprint_wkt, gcp_sr)
             geom.TransformTo(out_sr)
             footprint_wkt = geom.ExportToWkt()
+        
+        logger.debug("Calculated footprint: '%s'." % footprint_wkt)
         
         return dst_ds, footprint_wkt
 

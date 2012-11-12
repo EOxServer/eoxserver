@@ -65,12 +65,12 @@ try:
     _lib = C.LibraryLoader(C.CDLL).LoadLibrary(_lib_path)
 
     _get_footprint_wkt = _lib.eoxs_get_footprint_wkt
-    _get_footprint_wkt.argtypes = [C.c_void_p]
-    _get_footprint_wkt.restype = C.POINTER(C.c_char)
+    _get_footprint_wkt.argtypes = [C.c_void_p, C.c_char_p, C.POINTER(C.c_char_p)]
+    _get_footprint_wkt.restype = C.c_int
 
     _rect_from_subset = _lib.eoxs_rect_from_subset
-    _rect_from_subset.argtypes = [C.c_void_p, C.POINTER(SUBSET)]
-    _rect_from_subset.restype = C.POINTER(RECT)
+    _rect_from_subset.argtypes = [C.c_void_p, C.POINTER(SUBSET), C.c_char_p, C.POINTER(RECT)]
+    _rect_from_subset.restype = C.c_int
 
     _create_rectified_vrt = _lib.eoxs_create_rectified_vrt
     _create_rectified_vrt.argtypes = [C.c_void_p, C.c_char_p, C.c_int]
@@ -93,19 +93,27 @@ def _open_ds(path_or_ds):
     return gdal.Open(str(path_or_ds))
 
 
-def get_footprint_wkt(path_or_ds):
+def get_footprint_wkt(path_or_ds, method="TPS"):
+    """ `method` is either 'GCP' or 'TPS'.
+    """
+    
     if not REFTOOLS_USABLE:
         raise InternalError(ERROR_LABEL)
     
     ds = _open_ds(path_or_ds)
     
-    ret = _get_footprint_wkt(C.c_void_p(long(ds.this)))
-    string = C.cast(ret, C.c_char_p).value
+    result = C.c_char_p()
     
-    _free_string(ret)
+    ret = _get_footprint_wkt(C.c_void_p(long(ds.this)), method, C.byref(result))
+    if ret != gdal.CE_None:
+        raise RuntimeError(gdal.GetLastErrorMsg())
+    
+    string = C.cast(result, C.c_char_p).value
+    
+    _free_string(result)
     return string
 
-def rect_from_subset(path_or_ds, srid, minx, miny, maxx, maxy):
+def rect_from_subset(path_or_ds, srid, minx, miny, maxx, maxy, method="TPS"):
     if not REFTOOLS_USABLE:
         raise InternalError(ERROR_LABEL)
 
@@ -115,11 +123,11 @@ def rect_from_subset(path_or_ds, srid, minx, miny, maxx, maxy):
     ret = _rect_from_subset(
         C.c_void_p(long(ds.this)),
         C.byref(SUBSET(srid, minx, miny, maxx, maxy)),
+        method,
         C.byref(rect)
     )
-    if not ret:
-        raise InternalError( "Failed to convert CRS subset to image"
-                             " coordinates!")
+    if ret != gdal.CE_None:
+        raise RuntimeError(gdal.GetLastErrorMsg())
     
     return BBox(rect.x_size, rect.y_size, rect.x_off, rect.y_off)
 
@@ -135,8 +143,8 @@ def create_rectified_vrt(path_or_ds, vrt_path, srid=None):
     else:
         ret = _create_rectified_vrt(ptr, vrt_path, 0)  
     
-    if not ret:
-        raise InternalError( "Could not create rectified VRT.")
+    if ret != gdal.CE_None:
+        raise RuntimeError(gdal.GetLastErrorMsg())
 
 def create_temporary_vrt(path_or_ds, srid=None):
     if not REFTOOLS_USABLE:
