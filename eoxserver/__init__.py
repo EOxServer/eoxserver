@@ -82,9 +82,10 @@ def get_version():
     if VERSION[2] != None:
         version = '%s.%s' % (version, VERSION[2])
     if VERSION[3:] == ('dev', 0):
+        version = "%sdev" % version
         svn_rev = get_svn_revision(".")
         if svn_rev != u'SVN-unknown':
-            version = "%s-dev-%s" % (version, svn_rev)
+            version = "%s-%s" % (version, svn_rev)
     else:
         if VERSION[3] != 'final':
             version = '%s%s%s' % (version, VERSION[3], VERSION[4])
