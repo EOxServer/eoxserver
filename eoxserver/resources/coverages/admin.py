@@ -139,6 +139,11 @@ class DataPackageInline(admin.StackedInline):
 class LineageInline(admin.StackedInline):
     model = LineageRecord
 
+class LayerMetadata2DatasetInline(admin.StackedInline):
+    model = RectifiedDatasetRecord.layer_metadata.__getattribute__("through")
+    extra = 1
+    can_delete = True
+
 class RectifiedDatasetAdmin(ConfirmationAdmin):
     #list_display = ('coverage_id', 'eo_id', 'data_package', 'range_type', 'extent')
     fields = ('automatic', 'visible', 'coverage_id', 'eo_id', 'range_type', 'extent', 'eo_metadata', 'data_package', 'data_source', 'lineage')
@@ -149,7 +154,7 @@ class RectifiedDatasetAdmin(ConfirmationAdmin):
     
     ordering = ('coverage_id', )
     search_fields = ('coverage_id', )
-    inlines = (StitchedMosaic2DatasetInline, DatasetSeries2DatasetInline, )
+    inlines = (StitchedMosaic2DatasetInline, DatasetSeries2DatasetInline, LayerMetadata2DatasetInline)
     
     # We need to override the bulk delete function of the admin to make
     # sure the overrode delete() method of EODatasetMixIn is
