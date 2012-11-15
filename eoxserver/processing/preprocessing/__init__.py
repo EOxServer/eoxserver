@@ -135,14 +135,24 @@ class PreProcessor(object):
             ds = None
             ds = new_ds
         
+        # adjust the filename with the correct extension
+        base_filename, _ = splitext(output_filename)
+        output_filename = base_filename + self.format_selection.extension 
+        
+        logger.debug("Writing file to disc using options: %s."
+                     % ", ".join(self.format_selection.creation_options))
+        
+        logger.debug("Metadata tags to be written: %s"
+                     % ", ".join(ds.GetMetadata_List("") or []))
+        
         # save the file to the disc
         driver = gdal.GetDriverByName(self.format_selection.driver_name)
         ds = driver.CreateCopy(output_filename, ds,
                                options=self.format_selection.creation_options)
         
         for optimization in self.get_post_optimizations(ds):
-            logger.debug("Applying post-optimization '%s'." %
-                         type(optimization).__name__)
+            logger.debug("Applying post-optimization '%s'."
+                         % type(optimization).__name__)
             optimization(ds)
         
         polygon = None

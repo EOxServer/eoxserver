@@ -2,6 +2,8 @@
 _registry = {}
 
 def get_format_selection(driver, *args, **kwargs):
+    """ Format selection factory method. """
+    
     try:
         return _registry[driver](*args, **kwargs)
     except KeyError:
@@ -74,13 +76,10 @@ class GeoTIFFFormatSelection(FormatSelection):
                 raise ValueError("'zlevel' can only be used with DEFLATE "
                                  "compression")
             
-            # TODO: "predictor" ?
-        
         if tiling:
             self.final_options["TILED"] = "YES"
         
         if creation_options:
-            # TODO: parse arglist
             self.final_options.update(dict(creation_options))
         
             
