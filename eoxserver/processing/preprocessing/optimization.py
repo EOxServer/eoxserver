@@ -123,6 +123,7 @@ class BandSelectionOptimization(DatasetOptimization):
             dst_band.WriteArray(data)
         
         copy_projection(src_ds, dst_ds)
+        copy_metadata(src_ds, dst_ds)
         
         return dst_ds
 
