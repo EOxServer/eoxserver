@@ -288,6 +288,9 @@ class CoverageRecord(Resource):
         super(CoverageRecord, self).clean()
         if self.automatic and self.data_source is None:
             raise ValidationError('DataSource has to be set if automatic is true.')
+    
+    def __unicode__(self):
+        return self.coverage_id
 
 class PlainCoverageRecord(CoverageRecord):
     extent = models.ForeignKey(ExtentRecord, related_name = "single_file_coverages")
