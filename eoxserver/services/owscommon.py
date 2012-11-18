@@ -70,6 +70,14 @@ class OWSCommonHandler(BaseRequestHandler):
         req.setSchema(self.PARAM_SCHEMA)
         
         service = req.getParamValue("service")
+
+        # WMS hack - allowing WMS operation without service identifier 
+        if service is None:
+            op = req.getParamValue("operation")
+            if op and op.lower() in ( "getmap" , "getfeatureinfo" , "describelayer" , "getlegendgraphic" , "getstyles" ) : 
+                service = "WMS"
+        # WMS hack - the end 
+
         if service is None:
             raise InvalidRequestException(
                 "Mandatory 'service' parameter missing.",
