@@ -84,8 +84,8 @@ class OWSCommonHandler(BaseRequestHandler):
 
         # WMS hack - allowing WMS operation without service identifier 
         if service is None:
-            op = req.getParamValue("operation").lower() 
-            if op in ( "getmap" , "getfeatureinfo" , "describelayer" , "getlegendgraphic" , "getstyles" ) : 
+            op = req.getParamValue("operation")
+            if op and op.lower() in ( "getmap" , "getfeatureinfo" , "describelayer" , "getlegendgraphic" , "getstyles" ) : 
                 service = "WMS"
         # WMS hack - the end 
 
