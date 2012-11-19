@@ -111,6 +111,7 @@ Due to some behaviour of underlying software such as GEOSS the tests for the
 `services` component need to be split up. The following splitting is known to 
 work::
 
+    python manage.py test services.Empty
     python manage.py test services.WCS1
     python manage.py test services.WCS20GetCap
     python manage.py test services.WCSVersion
