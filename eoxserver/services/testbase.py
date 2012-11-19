@@ -354,6 +354,8 @@ class XMLTestCase(OWSTestCase):
         )
         
         for ns, location in zip(locations[::2], locations[1::2]):
+            if location == "../owsCoverages.xsd":
+                location = "http://schemas.opengis.net/wcs/1.1/wcsAll.xsd"
             etree.SubElement(schema_def, "import", attrib={
                     "namespace": ns,
                     "schemaLocation": location
@@ -429,7 +431,7 @@ class HTMLTestCase(OWSTestCase):
     HTML test cases expect to receive HTML text.
     """
     
-    def testBinaryComparisonRaster(self):
+    def testBinaryComparisonHTML(self):
         self._testBinaryComparison("html")
 
 class MultipartTestCase(XMLTestCase):
