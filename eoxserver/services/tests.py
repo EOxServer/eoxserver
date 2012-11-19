@@ -34,6 +34,15 @@ import unittest
 
 from urllib import quote
 
+class EmptyRequestExceptionTestCase(eoxstest.ExceptionTestCase):
+    """This test shall check empty requests. A valid ows:ExceptionReport shall be returned"""
+    def getRequest(self):
+        params = ""
+        return (params, "kvp")
+
+    def getExpectedExceptionCode(self):
+        return "MissingParameterValue"
+
 #===============================================================================
 # WCS 1.0
 #===============================================================================
@@ -1244,7 +1253,7 @@ class WMS13GetCapabilitiesValidTestCase(eoxstest.XMLTestCase):
         params = "service=WMS&version=1.3.0&request=GetCapabilities"
         return (params, "kvp")
 
-class WMS13GetCapabilitiesEmptyTestCase(eoxstest.XMLTestCase):
+class WMS13GetCapabilitiesEmptyTestCase(eoxstest.RasterTestCase):
     """This test shall retrieve a valid but empty WMS 1.3 GetCapabilities response (see #41)"""
     fixtures = BASE_FIXTURES
     
@@ -1256,6 +1265,14 @@ class WMS13GetMapDatasetTestCase(eoxstest.WMS13GetMapTestCase):
     """ Test a GetMap request with a simple dataset. """
     layers = ("mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced",)
     bbox = (8.487755775451660, 32.195316643454134, 25.407486727461219, 46.249103546142578)
+
+class WMS13GetMapNoServiceParameterTestCase(eoxstest.RasterTestCase):
+    """This test shall retrieve a map while omitting the service parameter. """
+    def getRequest(self):
+        params = "version=1.3.0&request=GetMap&" \
+                 "layers=mosaic_MER_FRS_1P_RGB_reduced&styles=&crs=epsg:4326&" \
+                 "bbox=35,10,45,20&width=100&height=100&format=image/tiff"
+        return (params, "kvp")
 
 class WMS13GetMapMultipleDatasetsTestCase(eoxstest.WMS13GetMapTestCase):
     """ Test a GetMap request with two datasets. """
