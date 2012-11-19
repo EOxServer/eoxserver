@@ -1253,7 +1253,7 @@ class WMS13GetCapabilitiesValidTestCase(eoxstest.XMLTestCase):
         params = "service=WMS&version=1.3.0&request=GetCapabilities"
         return (params, "kvp")
 
-class WMS13GetCapabilitiesEmptyTestCase(eoxstest.RasterTestCase):
+class WMS13GetCapabilitiesEmptyTestCase(eoxstest.XMLTestCase):
     """This test shall retrieve a valid but empty WMS 1.3 GetCapabilities response (see #41)"""
     fixtures = BASE_FIXTURES
     
