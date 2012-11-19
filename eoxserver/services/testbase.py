@@ -47,7 +47,7 @@ from eoxserver.core.system import System
 from eoxserver.core.util.xmltools import XMLDecoder
 from eoxserver.core.util.multiparttools import mpUnpack, getMimeType, getMultipartBoundary 
 from eoxserver.testing.core import (
-    EOxServerTestCase, BASE_FIXTURES
+    EOxServerTestCase, EOxServerTransactionTestCase, BASE_FIXTURES
 )
 from eoxserver.testing.xcomp import xmlCompareFiles
 
@@ -79,7 +79,7 @@ def _getMime( s ) :
 # Common classes
 #===============================================================================
 
-class OWSTestCase(EOxServerTestCase):
+class OWSMixIn(object):
     """ Main base class for testing the OWS interface
         of EOxServer.
     """
@@ -88,14 +88,14 @@ class OWSTestCase(EOxServerTestCase):
     requires_fixed_db = False
     
     def setUp(self):
-        super(OWSTestCase,self).setUp()
+        super(OWSMixIn,self).setUp()
         
         logging.info("Starting Test Case: %s" % self.__class__.__name__)
         
         if settings.DATABASES["default"]["NAME"] == ":memory:" and self.requires_fixed_db:
             self.skipTest("This test requires a file database; set 'TEST_NAME' "
                           "in your default database settings to enable this test.")
-        elif self.requires_fixed_db:
+        elif self.requires_fixed_db and settings.DATABASES["default"]["ENGINE"] == "django.contrib.gis.db.backends.spatialite":
             cursor = connection.cursor()
             cursor.execute("PRAGMA SYNCHRONOUS;")
 
@@ -219,7 +219,14 @@ class OWSTestCase(EOxServerTestCase):
         logging.info("Checking HTTP Status ...")
         self.assertEqual(self.response.status_code, 200)
 
-class RasterTestCase(OWSTestCase):
+class OWSTestCase(OWSMixIn, EOxServerTestCase):
+    pass
+
+class OWSTransactionTestCase(OWSMixIn, EOxServerTransactionTestCase):
+    pass
+
+
+class RasterMixIn(object):
     """
     Base class for test cases that expect a raster as response.
     """
@@ -231,6 +238,12 @@ class RasterTestCase(OWSTestCase):
         if not self.isRequestConfigEnabled("binary_raster_comparison_enabled", True):
             self.skipTest("Binary raster comparison is explicitly disabled.")
         self._testBinaryComparison("raster")
+
+class RasterTestCase(RasterMixIn, OWSTestCase):
+    pass
+
+class RasterTransactionTestCase(RasterMixIn, OWSTransactionTestCase):
+    pass
 
 class GDALDatasetTestCase(RasterTestCase):
     """
@@ -426,7 +439,7 @@ class ExceptionTestCase(XMLTestCase):
         })
         self.assertEqual(decoder.getValue("exceptionCode"), self.getExpectedExceptionCode())      
 
-class HTMLTestCase(OWSTestCase):
+class HTMLTransactionTestCase(OWSTransactionTestCase):
     """
     HTML test cases expect to receive HTML text.
     """
@@ -883,7 +896,7 @@ class RasdamanTestCaseMixIn(object):
 # WMS 1.3 test classes
 #===============================================================================
 
-class WMS13GetMapTestCase(RasterTestCase):
+class WMS13GetMapMixIn(object):
     layers = []
     styles = []
     crs = "epsg:4326"
@@ -925,6 +938,12 @@ class WMS13GetMapTestCase(RasterTestCase):
             return (params, "kvp")
         else:
             return (params, "kvp", self.httpHeaders)
+
+class WMS13GetMapTestCase(WMS13GetMapMixIn, RasterTestCase):
+    pass
+
+class WMS13GetMapTransactionTestCase(WMS13GetMapMixIn, RasterTransactionTestCase):
+    pass
 
 class WMS13ExceptionTestCase(ExceptionTestCase):
     def getExceptionCodeLocation(self):

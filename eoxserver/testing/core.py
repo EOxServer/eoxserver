@@ -35,7 +35,7 @@ from StringIO import StringIO
 
 from lxml import etree
 
-from django.test import TestCase
+from django.test import TestCase, TransactionTestCase
 from django.test.simple import DjangoTestSuiteRunner, get_tests
 from django.db.models.loading import get_app 
 from django.core.management import execute_from_command_line
@@ -58,11 +58,20 @@ class TestSchemaFactory(object):
     
 
 class EOxServerTestCase(TestCase):
+    """Test are carried out in a transaction which is rolled back after each
+    test."""
     fixtures = BASE_FIXTURES
     
     def setUp(self):
         System.init()
         
+class EOxServerTransactionTestCase(TransactionTestCase):
+    """Test are not carried out in a transaction and DB data can thus be used
+    outside e.g. by MapServer."""
+    fixtures = BASE_FIXTURES
+    
+    def setUp(self):
+        System.init()
 
 class CommandTestCase(EOxServerTestCase):
     """ Base class for testing CLI tools.
