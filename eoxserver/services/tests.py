@@ -1374,19 +1374,19 @@ class WMS13GetMapDatasetSeriesTimeIntervalTestCase(eoxstest.WMS13GetMapTestCase)
     bbox = (-3.75, 32.158895, 28.326165, 46.3)
     time = "2006-08-01T00:00:00Z/2006-08-22T23:59:59Z"
 
-class WMS13GetMapDatasetSeriesOutlinesTestCase(eoxstest.WMS13GetMapTestCase):
+class WMS13GetMapDatasetSeriesOutlinesTestCase(eoxstest.WMS13GetMapTransactionTestCase):
     requires_fixed_db = True
     layers = ("MER_FRS_1P_reduced_outlines",)
     width = 200
     bbox = (-3.75, 32.158895, 28.326165, 46.3)
 
-class WMS13GetMapRectifiedStitchedMosaicOutlinesTestCase(eoxstest.WMS13GetMapTestCase):
+class WMS13GetMapRectifiedStitchedMosaicOutlinesTestCase(eoxstest.WMS13GetMapTransactionTestCase):
     requires_fixed_db = True
     layers = ("mosaic_MER_FRS_1P_RGB_reduced_outlines",)
     width = 200
     bbox = (-3.75, 32.158895, 28.326165, 46.3)
 
-class WMS13GetMapRectifiedStitchedMosaicOutlinesWhiteTestCase(eoxstest.WMS13GetMapTestCase):
+class WMS13GetMapRectifiedStitchedMosaicOutlinesWhiteTestCase(eoxstest.WMS13GetMapTransactionTestCase):
     requires_fixed_db = True
     layers = ("mosaic_MER_FRS_1P_RGB_reduced_outlines",)
     width = 200
@@ -1412,7 +1412,7 @@ class WMS13GetMapReprojectedDatasetTestCase(eoxstest.WMS13GetMapTestCase):
     layers = ("MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected",)
     bbox = (8.487755775451660, 32.195316643454134, 25.407486727461219, 46.249103546142578)
 
-class WMS13GetFeatureInfoTestCase(eoxstest.HTMLTestCase):
+class WMS13GetFeatureInfoTestCase(eoxstest.HTMLTransactionTestCase):
     """ Test a GetFeatureInfo on an outline layer. """
     requires_fixed_db = True
     def getRequest(self):
