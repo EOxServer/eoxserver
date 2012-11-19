@@ -35,6 +35,29 @@
 1. How to configure test instance
 ---------------------------------
 
+-----------------------------
+1.1. Using eoxserver-admin.py
+-----------------------------
+
+cd <path_to_eoxserver_directory>
+svn co http://eoxserver.org/svn/trunk . # Note that the directories should not be moved or renamed because of relative paths.
+mv autotest tmp1
+eoxserver-admin.py create_instance autotest
+mv autotest tmp2
+mv tmp1 autotest
+mv tmp2/settings.py autotest/
+mv tmp2/manage.py autotest/
+mv tmp2/conf/eoxserver.conf autotest/conf/
+rm -r tmp2
+
+export PYTHONPATH="<path_to_eoxserver_directory>"
+cd autotest
+python manage.py syncdb
+
+-------------------------
+1.2. Manual configuration
+-------------------------
+
 cd <path_to_eoxserver_directory>
 svn co http://eoxserver.org/svn/trunk . # Note that the directories should not be moved or renamed because of relative paths.
 cd autotest
@@ -83,7 +106,7 @@ export PYTHONPATH="<path_to_eoxserver_directory>"
 python manage.py loaddata data/fixtures/some_fixture.json ...
 
 # To load all test fixtures:
-python manage.py loaddata auth_data.json initial_rangetypes.json testing_base.json testing_coverages.json testing_asar_base.json testing_asar.json 
+python manage.py loaddata auth_data.json initial_rangetypes.json testing_base.json testing_coverages.json testing_asar_base.json testing_asar.json testing_reprojected_coverages.json
 
 List of fixtures:
  * initial_data.json - Base data to enable components. Loaded with syncdb.
@@ -98,6 +121,8 @@ List of fixtures:
  * testing_backends.json - This fixtures are used for testing the backend
                            layer only and shouldn't be loaded in the test
                            instance.
+ * testing_reprojected_coverages.json - Metadata for the reprojected 
+                                        MERIS test data.
 
 
 ---------------------------
@@ -139,5 +164,35 @@ python manage.py test services coverages backends processes core
 # or simply
 python manage.py test
 # this also runs some django tests.
+
+# Due to some behaviour of underlying software such as GEOSS the tests for the 
+#services component need to be split up. The following splitting is known to 
+# work:
+
+python manage.py test services.Empty
+python manage.py test services.WCS1
+python manage.py test services.WCS20GetCap
+python manage.py test services.WCSVersion
+python manage.py test services.WCS20DescribeCoverage
+python manage.py test services.WCS20DescribeEOCoverageSet
+python manage.py test services.WCS20GetCoverage
+python manage.py test services.WCS20Post
+python manage.py test services.WMS
+python manage.py test services.Sec
+
+# Running single tests
+python manage.py test services.<beginnign-of-test-name>
+# e.g.
+python manage.py test services.WCS20GetCapabilities
+
+
+------------------------------
+6. How to add expected results
+------------------------------
+
+# To format XML files in a pretty way use the following command
+xmllint --format <filename> > <tmpfilename>
+mv <tmpfilename> <filename>
+
 
 --------------------------------------------------------------------------------
