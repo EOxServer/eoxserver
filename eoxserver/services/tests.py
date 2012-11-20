@@ -1291,6 +1291,7 @@ class WMS13GetMapMosaicTestCase(eoxstest.WMS13GetMapTestCase):
     """ Test a GetMap request with a stitched mosaic. """
     layers = ("mosaic_MER_FRS_1P_RGB_reduced",)
     bbox = (-3.75, 32.158895, 28.326165, 46.3)
+    width = 200
 
 class WMS13GetMapPNGDatasetTestCase(eoxstest.WMS13GetMapTestCase):
     """ Test a GetMap request with a dataset series. """
