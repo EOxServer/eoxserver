@@ -62,6 +62,8 @@ from eoxserver.resources.coverages.metadata import EOMetadata
 from eoxserver.processing.mosaic import make_mosaic
 
 
+logger = logging.getLogger(__name__)
+
 COVERAGE_TYPES = { 
         "PlainCoverage" : PlainCoverageRecord ,
         "RectifiedDataset" : RectifiedDatasetRecord , 
@@ -263,7 +265,7 @@ class BaseManagerContainerMixIn(object):
         for data_source in data_sources:
             locations = data_source.detect()
             
-            logging.info("Detected locations: %s"%[location.getPath() for location in locations])
+            logger.info("Detected locations: %s"%[location.getPath() for location in locations])
             
             for location in locations:
                 md_location = self._guess_metadata_location(location)
@@ -289,7 +291,7 @@ class BaseManagerContainerMixIn(object):
                 
                 if len(existing_coverages) == 1:
                     coverage = existing_coverages[0]
-                    logging.info("Add %s (%s) to %s."%(
+                    logger.info("Add %s (%s) to %s."%(
                             coverage.getCoverageId(), coverage.getType(),
                             container.getType()
                         )
@@ -316,7 +318,7 @@ class BaseManagerContainerMixIn(object):
                         else:
                             default_srid = None
                         
-                        logging.info("Creating new coverage with ID %s." % coverage_id)
+                        logger.info("Creating new coverage with ID %s." % coverage_id)
                         # TODO: implement creation of ReferenceableDatasets,
                         # RectifiedStitchedMosaics for DatasetSeriesManager
                         new_dataset = self.rect_dataset_mgr.create(
@@ -329,7 +331,7 @@ class BaseManagerContainerMixIn(object):
                             default_srid=default_srid
                         )
                         
-                        logging.info("Done creating new coverage with ID %s." % coverage_id)
+                        logger.info("Done creating new coverage with ID %s." % coverage_id)
                         
                         new_datasets.append(new_dataset)
                         
@@ -355,7 +357,7 @@ class BaseManagerContainerMixIn(object):
                 continue
             
             if not dataset.getData().getLocation().exists():
-                logging.info(
+                logger.info(
                     "Location %s does not exist. Deleting dangling dataset with ID %s"%(
                         dataset.getData().getLocation().getPath(),
                         dataset.getCoverageId()

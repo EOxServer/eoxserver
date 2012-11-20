@@ -37,7 +37,6 @@ modularity, extensibility and flexibility of EOxServer.
 
 import imp
 import os.path
-import logging
 from inspect import isclass
 
 from django.conf import settings

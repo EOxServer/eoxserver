@@ -37,6 +37,9 @@ from osgeo import osr
 import logging
 from eoxserver.core.system import System
 
+
+logger = logging.getLogger(__name__)
+
 #-------------------------------------------------------------------------------
 #: Set (Python ``set`` type) of EPSG codes of CRS whose axes are displayed
 #: in reversed order. 
@@ -354,7 +357,7 @@ def __parseListOfCRS( config , section , field ) :
         # validate the input CRS whether recognized by GDAL/Proj 
         rv = validateEPSGCode( v ) 
         if not rv : 
-            logging.warning( "Invalid EPSG code \"%s\" ! This CRS will be " \
+            logger.warning( "Invalid EPSG code \"%s\" ! This CRS will be " \
                 "ignored! section=\"%s\" item=\"%s\""%( str(v).strip() , 
                 section , field ) )
         return rv

@@ -47,6 +47,9 @@ from eoxserver.services.exceptions import (
     InvalidRequestException, VersionNegotiationException
 )
 
+
+logger = logging.getLogger(__name__)
+
 class OWSCommonHandler(BaseRequestHandler):
     """
     This class is the entry point for all incoming OWS requests.
@@ -206,7 +209,7 @@ class OWSCommonServiceHandler(BaseRequestHandler):
             filter = {"services.interfaces.service": self.SERVICE}
         )
         
-        logging.debug("OWSCommonServiceHandler._versionSupported(): versions: %s" % str(versions))
+        logger.debug("OWSCommonServiceHandler._versionSupported(): versions: %s" % str(versions))
         
         return version in versions
         

@@ -59,6 +59,9 @@ from eoxserver.services.ows.wcst.wcst11Exception import createXML_OWS11Exception
 #       If you (EOX guys) know a better solution please let me know.
 #
 
+
+logger = logging.getLogger(__name__)
+
 class WCS11VersionHandler(OWSCommonVersionHandler):
     SERVICE = "wcs"
     
@@ -98,17 +101,17 @@ class WCS11TransactionHandler(BaseRequestHandler):
 
     def _handleException(self, req, exception):
 
-        logging.debug("WCS110: Transaction() - Exception Handler!") 
+        logger.debug("WCS110: Transaction() - Exception Handler!") 
 
         # dump exception to the log file 
-        logging.error( traceback.format_exc() ) 
+        logger.error( traceback.format_exc() ) 
 
         return Response( content=createXML_OWS11Exception(exception) , content_type="text/xml" , status=500 ) 
         
 
     def _processRequest(self, req ):
 
-        logging.debug("WCS110: Transaction()") 
+        logger.debug("WCS110: Transaction()") 
 
         # KVP encoding is not supported by WCS-T 
         if req.http_req.method.upper() == "GET" : 

@@ -42,6 +42,9 @@ from eoxserver.services.exceptions import (
     InvalidAxisLabelException, InvalidSubsettingException
 )
 
+
+logger = logging.getLogger(__name__)
+
 class RectifiedGrid(object):
     def __init__(self,
         dim=2,
@@ -90,8 +93,8 @@ class RectifiedGrid(object):
                this_maxx >= that_maxx and this_maxy >= that_maxy
         
     def isSubGrid(self, grid):
-        logging.debug("EOxSRectifiedGrid.isSubGrid: Own Extent: (%f,%f,%f,%f)" % self.getExtent2D())
-        logging.debug("EOxSRectifiedGrid.isSubGrid: Containing Extent: (%f,%f,%f,%f)" % grid.getExtent2D())
+        logger.debug("EOxSRectifiedGrid.isSubGrid: Own Extent: (%f,%f,%f,%f)" % self.getExtent2D())
+        logger.debug("EOxSRectifiedGrid.isSubGrid: Containing Extent: (%f,%f,%f,%f)" % grid.getExtent2D())
         
         if grid.contains(self):
             this_offsets = numpy.array([self.offsets[i][0:2] for i in range(0, 2)])
@@ -102,7 +105,7 @@ class RectifiedGrid(object):
             else:
                 v = numpy.linalg.solve(this_offsets, numpy.array(self.origin[0:2]) - numpy.array(grid.origin[0:2]))
                 
-                logging.debug("EOxSRectifiedGrid.isSubGrid: v=(%f,%f)" % (v[0], v[1]))
+                logger.debug("EOxSRectifiedGrid.isSubGrid: v=(%f,%f)" % (v[0], v[1]))
                 
                 EPSILON = 1e-10
                 
@@ -254,7 +257,7 @@ class Trim(Subsetting):
         return poly.contains(footprint)
 
 def getGridFromFile(filename, collection_srid=None):
-    #logging.debug("CoverageInterface._getGridFromFile: SRID: %s" % str(srid))
+    #logger.debug("CoverageInterface._getGridFromFile: SRID: %s" % str(srid))
 
     return RectifiedGrid(
         dim=2,

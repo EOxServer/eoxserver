@@ -80,6 +80,9 @@ from eoxserver.core.system import System
 
 settings = __import__( os.environ.get("DJANGO_SETTINGS_MODULE","settings") )  
 
+
+# TODO: implement proper logging for this module
+
 #===============================================================================
 
 ASYNC_TIMEOUT= 60*60 # [s] time to restart zombie async tasks (be sure it is large enough)

@@ -38,6 +38,9 @@ from django.template import RequestContext
 from eoxserver.core.system import System
 from eoxserver import get_version
 
+
+logger = logging.getLogger(__name__)
+
 def index(request):
     System.init()
     dss_factory = System.getRegistry().bind("resources.coverages.wrappers.DatasetSeriesFactory")
@@ -102,10 +105,10 @@ def webclient(request, eoid):
     ) or "wms"
     
     if preview_service not in ("wms", "wmts"): 
-        logging.error("Unsupported service type '%s'" % preview_service)
+        logger.error("Unsupported service type '%s'" % preview_service)
         preview_service = "wms"
     if outline_service not in ("wms", "wmts"):
-        logging.error("Unsupported service type '%s'" % outline_service)
+        logger.error("Unsupported service type '%s'" % outline_service)
         outline_service = "wms"
     
     preview_url = System.getConfig().getConfigValue(

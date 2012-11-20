@@ -31,12 +31,16 @@
 """
 This module supports reading of geospatial metadata from GDAL datasets.
 """
+import logging
 
+from osgeo import osr
 from django.contrib.gis.geos import GEOSGeometry
+
 from eoxserver.processing.gdal.reftools import get_footprint_wkt
 from eoxserver.resources.coverages import crss 
-from osgeo import osr
-import logging
+
+
+logger = logging.getLogger(__name__)
 
 # extent calculation 
 def getExtentFromRectifiedDS( ds , eps=1e-6 ):
@@ -129,12 +133,12 @@ class GeospatialMetadata(object):
                 srid = int(srs.GetAuthorityCode(ptype))
 
             except (RuntimeError, TypeError), e:
-                logging.warn("Projection: %s" % proj) 
-                logging.warn("Failed to identify projection's EPSG code."
+                logger.warn("Projection: %s" % proj) 
+                logger.warn("Failed to identify projection's EPSG code."
                     "%s: %s" % ( type(e).__name__ , str(e) ) ) 
 
                 if default_srid is not None:
-                    logging.warn("Using the provided SRID '%s' instead."
+                    logger.warn("Using the provided SRID '%s' instead."
                        % str(default_srid) )
                 else:
                     raise RuntimeError("Unknown SRS and no default supplied.")

@@ -31,8 +31,7 @@
 This module contains the abstract base classes for request handling.
 """
 
-from eoxserver.core.util.multiparttools import mpUnpack, mpPack, capitalize
-from eoxserver.core.util.multiparttools import getMimeType, getMultipartBoundary 
+import logging
 import os.path
 from cgi import escape
 
@@ -45,6 +44,11 @@ from eoxserver.core.registry import RegisteredInterface
 from eoxserver.services.base import BaseRequestHandler
 from eoxserver.services.requests import OWSRequest, Response
 from eoxserver.services.exceptions import InvalidRequestException
+from eoxserver.core.util.multiparttools import mpUnpack, mpPack, capitalize
+from eoxserver.core.util.multiparttools import getMimeType, getMultipartBoundary
+
+
+logger = logging.getLogger(__name__)
 
 #-------------------------------------------------------------------------------
 # utilities 
@@ -352,10 +356,10 @@ class MapServerOperationHandler(BaseRequestHandler):
         ``ms_req.map.OWSDispatch()``. This method should not be
         overridden by child classes.
         """
-        logging.debug("MapServerOperationHandler.dispatch: 1")
+        logger.debug("MapServerOperationHandler.dispatch: 1")
         mapscript.msIO_installStdoutToBuffer()
         # Execute the OWS request by mapserver, obtain the status in dispatch_status (==0 is OK)
-        logging.debug("MapServerOperationHandler.dispatch: 2")
+        logger.debug("MapServerOperationHandler.dispatch: 2")
         try:
             dispatch_status = self.map.OWSDispatch(self.ows_req)
         except Exception, e:
@@ -365,12 +369,12 @@ class MapServerOperationHandler(BaseRequestHandler):
                 None
             )
         
-        logging.debug("MapServerOperationHandler.dispatch: 3")
+        logger.debug("MapServerOperationHandler.dispatch: 3")
         content_type = mapscript.msIO_stripStdoutBufferContentType()
         mapscript.msIO_stripStdoutBufferContentHeaders()
-        logging.debug("MapServerOperationHandler.dispatch: 4")
+        logger.debug("MapServerOperationHandler.dispatch: 4")
         result = mapscript.msIO_getStdoutBufferBytes()
-        logging.debug("MapServerOperationHandler.dispatch: 5")
+        logger.debug("MapServerOperationHandler.dispatch: 5")
         try:
             # MapServer 6.0:
             mapscript.msCleanup()
@@ -385,7 +389,7 @@ class MapServerOperationHandler(BaseRequestHandler):
             try:
                 os.remove(temp_file)
             except:
-                logging.warning("Could not remove temporary file '%s'" % temp_file)
+                logger.warning("Could not remove temporary file '%s'" % temp_file)
 
 def gdalconst_to_imagemode(const):
     """

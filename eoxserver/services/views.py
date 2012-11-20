@@ -30,17 +30,18 @@
 """This model contains Django views for the EOxServer software. Its main
 function is ows() which handles all incoming OWS requests"""
 
-from django.http import HttpResponse
-from django.conf import settings
-
-import os.path
 import logging
 
+from django.http import HttpResponse
+from django.conf import settings
 
 from eoxserver.core.system import System
 from eoxserver.services.owscommon import OWSCommonHandler
 from eoxserver.services.requests import OWSRequest
 from eoxserver.services.auth.base import getPDP
+
+
+logger = logging.getLogger(__name__)
 
 def ows(request):
     """

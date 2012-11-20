@@ -36,7 +36,6 @@ import os
 import sys 
 import os.path
 import traceback
-
 import logging
 import shutil
 
@@ -53,6 +52,9 @@ from eoxserver.resources.coverages.models import ReferenceableDatasetRecord
 
 #-------------------------------------------------------------------------------
 
+
+logger = logging.getLogger(__name__)
+
 # ACTION: DELETE 
 #
 # NOTE: WCS-T Delete action, as currently implemented, can remove only those 
@@ -62,7 +64,7 @@ from eoxserver.resources.coverages.models import ReferenceableDatasetRecord
 def wcst11ActionDelete( action , context ) : 
 
     aname = action["Action"]
-    logging.debug( "WCSt11:%s: START" % aname ) 
+    logger.debug( "WCSt11:%s: START" % aname ) 
 
     # extract permanet storage 
     pathPerm = os.path.abspath( "%s/.."%context['pathPerm'] ) 
@@ -97,7 +99,7 @@ def wcst11ActionDelete( action , context ) :
 
     if pck.data_package_type == 'local' : 
 
-        logging.debug( dir( pck.localdatapackage ) ) 
+        logger.debug( dir( pck.localdatapackage ) ) 
 
         lpath = pck.localdatapackage.data_location.path
         mpath = pck.localdatapackage.metadata_location.path
@@ -107,25 +109,25 @@ def wcst11ActionDelete( action , context ) :
             raise ExActionFailed , "WCSt11:%s: No permission to remove the coverage! Identifier=%s" % ( aname , repr(coverageId) )  
 
         # delete the coverage 
-        logging.info( "WCSt11:%s: Removing coverage: %s " % ( aname , coverageId ) ) 
+        logger.info( "WCSt11:%s: Removing coverage: %s " % ( aname , coverageId ) ) 
         mng.delete( coverageId ) 
 
         # delete the coverage data 
         for f in ( lpath , mpath ) : 
             try : 
-                logging.info( "WCSt11:%s: Removing file: %s " % ( aname , f ) )
+                logger.info( "WCSt11:%s: Removing file: %s " % ( aname , f ) )
                 os.remove( f ) 
             except Exception as e :
-                logging.warn( "WCSt11:%s: Failed to remove file! path=%s " % ( aname , f ) ) 
-                logging.warn( "WCSt11:%s: Reason: %s %s" % ( aname , str(type(e)) , str(e) ) )  
+                logger.warn( "WCSt11:%s: Failed to remove file! path=%s " % ( aname , f ) ) 
+                logger.warn( "WCSt11:%s: Reason: %s %s" % ( aname , str(type(e)) , str(e) ) )  
 
         # delete directories if empty 
         for d in set( ( os.path.dirname( lpath ) , os.path.dirname( mpath ) ) ) : 
             try : 
-                logging.info( "WCSt11:%s: Removing directory: %s " % ( aname , d ) )
+                logger.info( "WCSt11:%s: Removing directory: %s " % ( aname , d ) )
                 os.rmdir( d ) 
             except Exception as e :
-                logging.warn( "WCSt11:%s: Failed to remove directory! path=%s " % ( aname , d ) ) 
-                logging.warn( "WCSt11:%s: Reason: %s %s" % ( aname , str(type(e)) , str(e) ) )
+                logger.warn( "WCSt11:%s: Failed to remove directory! path=%s " % ( aname , d ) ) 
+                logger.warn( "WCSt11:%s: Reason: %s %s" % ( aname , str(type(e)) , str(e) ) )
 
     return coverageId

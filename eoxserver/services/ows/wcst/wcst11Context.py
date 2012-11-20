@@ -47,6 +47,9 @@ from eoxserver.core.system import System
 
 #-------------------------------------------------------------------------------
 
+
+logger = logging.getLogger(__name__) #  TODO: set up logging for this module
+
 def contextCreate( requestId = None , reponseHandler = None , maxAttempts = 3 ) : 
 
     conf = System.getConfig()

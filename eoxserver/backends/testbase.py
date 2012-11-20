@@ -32,6 +32,8 @@ import logging
 from eoxserver.core.system import System
 from eoxserver.testing.core import EOxServerTestCase, BASE_FIXTURES
 
+logger = logging.getLogger(__name__)
+
 BACKEND_FIXTURES = ["testing_coverages.json", "testing_backends.json"]
 
 class BackendTestCase(EOxServerTestCase):
@@ -41,7 +43,7 @@ class LocationWrapperTestCase(BackendTestCase):
     def setUp(self):
         super(LocationWrapperTestCase,self).setUp()
         
-        logging.info("Starting test case: %s" % self.__class__.__name__)
+        logger.info("Starting test case: %s" % self.__class__.__name__)
         
         self.record = self._get_record()
         

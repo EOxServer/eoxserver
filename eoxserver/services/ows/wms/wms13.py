@@ -29,11 +29,9 @@
 
 import os.path
 from xml.dom import minidom
-
-import mapscript
-
 import logging
 
+import mapscript
 from django.conf import settings
 
 from eoxserver.core.system import System
@@ -55,6 +53,9 @@ from eoxserver.services.ows.wms.common import (
     WMS1XGetCapabilitiesHandler, WMS1XGetMapHandler
 )
 from eoxserver.services.exceptions import InvalidRequestException
+
+
+logger = logging.getLogger(__name__)
 
 class EOWMSOutlinesLayer(WMSLayer):
     STYLES = (
@@ -390,6 +391,9 @@ class WMS13GetCapabilitiesHandler(WMS1XGetCapabilitiesHandler):
         # TODO: find a more efficient way to do this check
         for dataset_series in dss_factory.find():
             if len(dataset_series.getEOCoverages()) > 0:
+                logger.debug("Adding WMS Dataset Series Layer for Series '%s'."
+                             % dataset_series.getEOID())
+                
                 layer = WMSDatasetSeriesLayer(dataset_series)
                 layer.setGroup("%s_group" % dataset_series.getEOID())
                 self.addLayer(layer)
@@ -687,7 +691,7 @@ class WMS13GetFeatureInfoHandler(WMSCommonHandler):
         if dataset_series is not None:
             outlines_layer = EOWMSDatasetSeriesOutlinesLayer(dataset_series)
             
-            logging.debug("Found dataset series with ID %s"%base_name)
+            logger.debug("Found dataset series with ID %s"%base_name)
             
             self.addLayer(outlines_layer)
         else:

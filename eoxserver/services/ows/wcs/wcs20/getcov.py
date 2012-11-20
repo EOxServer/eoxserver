@@ -32,6 +32,7 @@
 This module contains handlers for WCS 2.0 / EO-WCS GetCoverage requests.
 """
 
+import logging
 from xml.dom import minidom
 from datetime import datetime
 
@@ -39,8 +40,6 @@ import mapscript
 from osgeo import gdal
 gdal.UseExceptions()
 from django.contrib.gis.geos import GEOSGeometry
-
-import logging
 
 from eoxserver.core.system import System
 from eoxserver.core.exceptions import InternalError, InvalidExpressionError
@@ -70,7 +69,10 @@ from eoxserver.services.ows.wcs.encoders import WCS20EOAPEncoder
 from eoxserver.services.ows.wcs.wcs20.subset import WCS20SubsetDecoder
 
 from eoxserver.resources.coverages.formats import getFormatRegistry
-from eoxserver.resources.coverages import crss  
+from eoxserver.resources.coverages import crss
+
+
+logger = logging.getLogger(__name__)
 
 # stripping dot from file extension
 _stripDot = lambda ext : ext[1:] if ext.startswith('.') else ext 

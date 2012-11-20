@@ -34,6 +34,9 @@ from xml.etree import ElementTree as etree
 
 from eoxserver.core.system import System
 
+
+logger = logging.getLogger(__name__)
+
 #-------------------------------------------------------------------------------
 # actions
 
@@ -187,7 +190,7 @@ def _wcst11AlterCapabilities( respSrc , OWS ) :
     except Exception as e : 
 
         # keep track of the failures 
-        logging.debug( "_wcst11AlterCapabilities(): version %s : Content not altered! reason: %s " % ( OWS.version , str(e) ) ) 
+        logger.debug( "_wcst11AlterCapabilities(): version %s : Content not altered! reason: %s " % ( OWS.version , str(e) ) ) 
 
         # return unafected original response 
         return respSrc  

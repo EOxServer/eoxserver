@@ -51,6 +51,9 @@ from eoxserver.testing.core import (
 )
 from eoxserver.testing.xcomp import xmlCompareFiles
 
+
+logger = logging.getLogger(__name__)
+
 # THIS IS INTENTIONALLY DOUBLED DUE TO A BUG IN MIMETYPES!
 mimetypes.init()
 mimetypes.init()
@@ -90,7 +93,7 @@ class OWSMixIn(object):
     def setUp(self):
         super(OWSMixIn,self).setUp()
         
-        logging.info("Starting Test Case: %s" % self.__class__.__name__)
+        logger.info("Starting Test Case: %s" % self.__class__.__name__)
         
         if settings.DATABASES["default"]["NAME"] == ":memory:" and self.requires_fixed_db:
             self.skipTest("This test requires a file database; set 'TEST_NAME' "
@@ -216,7 +219,7 @@ class OWSMixIn(object):
                 )
     
     def testStatus(self):
-        logging.info("Checking HTTP Status ...")
+        logger.info("Checking HTTP Status ...")
         self.assertEqual(self.response.status_code, 200)
 
 class OWSTestCase(OWSMixIn, EOxServerTestCase):
@@ -348,7 +351,7 @@ class XMLTestCase(OWSTestCase):
         return self.response.content
     
     def testValidate(self, XMLData=None):
-        logging.info("Validating XML ...")
+        logger.info("Validating XML ...")
         
         if XMLData is None:
             doc = etree.XML(self.getXMLData())
@@ -429,11 +432,11 @@ class ExceptionTestCase(XMLTestCase):
         return "/ows:Exception/@exceptionCode"
         
     def testStatus(self):
-        logging.info("Checking HTTP Status ...")
+        logger.info("Checking HTTP Status ...")
         self.assertEqual(self.response.status_code, self.getExpectedHTTPStatus())
     
     def testExceptionCode(self):
-        logging.info("Checking OWS Exception Code ...")
+        logger.info("Checking OWS Exception Code ...")
         decoder = XMLDecoder(self.getXMLData(), {
             "exceptionCode": {"xml_location": self.getExceptionCodeLocation(), "xml_type": "string"}
         })
@@ -588,7 +591,7 @@ class WCSTransactionTestCase(XMLTestCase):
 
     def setUp(self):
         super(WCSTransactionTestCase, self).setUp()
-        logging.debug("WCSTransactionTestCase for ID: %s" % self.ID)
+        logger.debug("WCSTransactionTestCase for ID: %s" % self.ID)
         
         if self.isAsync:
             from eoxserver.resources.processes.tracker import (
@@ -694,7 +697,7 @@ class WCSTransactionTestCase(XMLTestCase):
         Tests that the <ows:Identifier> in the XML request and response is the 
         same
         """
-        logging.debug("IDCompare testResponseIdComparison for ID: %s" % self.ID)
+        logger.debug("IDCompare testResponseIdComparison for ID: %s" % self.ID)
         self._testResponseIdComparison( self.ID  , self.getXMLData()  )
 
     def testStatusDescribeCoverage(self):
@@ -738,7 +741,7 @@ class WCSTransactionTestCase(XMLTestCase):
         Tests that the <ows:Identifier> in the XML request and response is the 
         same
         """
-        logging.debug("IDCompare testResponseIdComparison for ID: %s" % self.ID)
+        logger.debug("IDCompare testResponseIdComparison for ID: %s" % self.ID)
         self._testResponseIdComparison( self.ID , self.responseDeleteCoverage.content )
 
     def testStatusDescribeCoverageDeleted(self):
@@ -760,7 +763,7 @@ class WCSTransactionTestCase(XMLTestCase):
         Tests that the <ows:Identifier> in the XML request and response is the 
         same
         """
-        logging.debug("_testResponseIdComparison for ID: %s" % id)
+        logger.debug("_testResponseIdComparison for ID: %s" % id)
         tree = etree.fromstring( rcontent )
         for node in tree.findall("{http://www.opengis.net/ows/1.1}Identifier"):
             self.assertEqual( node.text, id )
@@ -812,7 +815,7 @@ class WCS20DescribeEOCoverageSetSubsettingTestCase(XMLTestCase):
         return []
     
     def testCoverageIds(self):
-        logging.info("Checking Coverage Ids ...")
+        logger.info("Checking Coverage Ids ...")
         decoder = XMLDecoder(self.getXMLData(), {
             "coverageids": {"xml_location": "/wcs:CoverageDescriptions/wcs:CoverageDescription/wcs:CoverageId", "xml_type": "string[]"}
         })

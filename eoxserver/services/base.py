@@ -39,6 +39,9 @@ from eoxserver.services.exceptions import (
     InvalidRequestException, VersionNegotiationException
 )
 
+
+logger = logging.getLogger(__name__)
+
 class BaseRequestHandler(object):
     """
     Base class for all EOxServer Handler Implementations.
@@ -111,10 +114,10 @@ class BaseExceptionHandler(object):
         return 400
         
     def _logError(self, req, exception):
-        logging.error(str(req.getParams()))
-        logging.error(str(exception))
+        logger.error(str(req.getParams()))
+        logger.error(str(exception))
         if settings.DEBUG:
-            logging.error(format_exc())
+            logger.error(format_exc())
 
     def _getContentType(self, exception):
         raise InternalError("Not implemented.")

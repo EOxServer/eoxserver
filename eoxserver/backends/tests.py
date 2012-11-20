@@ -37,6 +37,9 @@ from eoxserver.backends.models import (
 
 from eoxserver.backends import testbase
 
+
+logger = logging.getLogger(__name__)
+
 # test local path wrapper: get() with record and check wrapper type and
 # return values
 
@@ -140,9 +143,9 @@ class LocalDetectionTestCase(testbase.LocationWrapperTestCase):
         dir_paths = glob(os.path.join(self.wrapper.getPath(), "*")) +\
                     glob(os.path.join(self.wrapper.getPath(), "*", "*"))
         
-        logging.debug("found files: %s" % ", ".join(paths))
+        logger.debug("found files: %s" % ", ".join(paths))
         
-        logging.debug("files in dir: %s" % ", ".join(dir_paths))
+        logger.debug("files in dir: %s" % ", ".join(dir_paths))
         
         self.assertItemsEqual(paths, dir_paths)
     
@@ -235,7 +238,7 @@ class RemoteAccessTestCase(testbase.LocationWrapperTestCase):
         return self.factory.get(record=self.record)
     
     def testLocalCopy(self):
-        logging.debug("Retrieving remote file '%s'" % self.wrapper.getPath())
+        logger.debug("Retrieving remote file '%s'" % self.wrapper.getPath())
         
         target = "/tmp"
         
@@ -272,11 +275,11 @@ class RemoteDetectionTestCase(testbase.LocationWrapperTestCase):
             'path', flat=True
         )
         
-        logging.debug("testDetectWithoutSearchPattern()")
+        logger.debug("testDetectWithoutSearchPattern()")
         
-        logging.debug("found files: %s" % ", ".join(paths))
+        logger.debug("found files: %s" % ", ".join(paths))
         
-        logging.debug("files in dir: %s" % ", ".join(dir_paths))
+        logger.debug("files in dir: %s" % ", ".join(dir_paths))
         
         self.assertItemsEqual(paths, dir_paths)
     
@@ -289,11 +292,11 @@ class RemoteDetectionTestCase(testbase.LocationWrapperTestCase):
             'path', flat=True
         )
 
-        logging.debug("testDetectWithSearchPattern()")
+        logger.debug("testDetectWithSearchPattern()")
         
-        logging.debug("found files: %s" % ", ".join(paths))
+        logger.debug("found files: %s" % ", ".join(paths))
         
-        logging.debug("files in dir: %s" % ", ".join(dir_paths))
+        logger.debug("files in dir: %s" % ", ".join(dir_paths))
         
         self.assertItemsEqual(paths, dir_paths)
         

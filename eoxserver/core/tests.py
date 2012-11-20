@@ -39,6 +39,9 @@ from eoxserver.core.interfaces import (
 
 from eoxserver.core.exceptions import TypeMismatch, InternalError
 
+
+logger = logging.getLogger(__name__)
+
 class TestInterface1(Interface):
     INTERFACE_CONF = {
         "runtime_validation_level": "trust"

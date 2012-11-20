@@ -39,6 +39,9 @@ from eoxserver.services.auth.base import BasePDP, \
                                          AuthConfigReader
 
 
+logger = logging.getLogger(__name__)
+
+
 attrib_subject       = "urn:oasis:names:tc:xacml:1.0:subject:subject-id"
 attrib_auth_time     = "urn:oasis:names:tc:xacml:1.0:subject:authentication-time"
 attrib_auth_method   = "urn:oasis:names:tc:xacml:1.0:subject:authn-locality:authentication-method"
@@ -116,7 +119,7 @@ class CharonPDP(BasePDP):
         CHAR_ASSIGN  = '='
 
         try:
-            logging.debug("Loading attribute dictionary from the file "+str(dictLocation))
+            logger.debug("Loading attribute dictionary from the file "+str(dictLocation))
             f = open(dictLocation)
             for line in f:
                 if CHAR_COMMENT in line:
@@ -126,11 +129,11 @@ class CharonPDP(BasePDP):
                     key = key.strip()
                     value = value.strip()
                     self.attribMapping[key] = value
-                    logging.debug("Adding SAML attribute to dictionary:"+\
+                    logger.debug("Adding SAML attribute to dictionary:"+\
                                   str(key)+"="+str(value))
             f.close()
         except IOError :
-            logging.warn("Cannot read dictionary for attributes mapping from the "+\
+            logger.warn("Cannot read dictionary for attributes mapping from the "+\
                          "path: "+str(dictLocation))
 
 
@@ -145,10 +148,10 @@ class CharonPDP(BasePDP):
         for key, value in self.attribMapping.iteritems():
             if key in httpHeader:
                 attributes[key] = httpHeader[value]
-                logging.debug("Found SAML attribute "+str(key)+" with value "+\
+                logger.debug("Found SAML attribute "+str(key)+" with value "+\
                               str(httpHeader[value])+" in incoming request.")
             else:
-                logging.info('The key \''+key+'\' specified in the mapping ' +\
+                logger.info('The key \''+key+'\' specified in the mapping ' +\
                              'dictionary was not found in the HTTP headers.')
 
         return attributes
@@ -219,13 +222,13 @@ class AuthorisationClient:
         if (self.hostname is None or self.port is None):
             raise AuthorisationClientException("Invalid argument in constructor: "+str(url)+\
                                                " is not a valid URL.")
-        logging.debug("Created instance of AuthorisationClient with the URL "+str(url))
+        logger.debug("Created instance of AuthorisationClient with the URL "+str(url))
 
 
     def authorize(self, userAttributes, resourceAttributes, action):
         request = self._getFullRequest(userAttributes, resourceAttributes, action)
 
-        logging.debug("Sending XACMLAuthzDecisionQuery to "+\
+        logger.debug("Sending XACMLAuthzDecisionQuery to "+\
                       str(self.hostname)+":"+str(self.port)+str(self.path)+":\n"+\
                       request)
 
@@ -245,7 +248,7 @@ class AuthorisationClient:
 
         message = response.read()
         connection.close()
-        logging.debug("Received the following response from server:\n" + message)
+        logger.debug("Received the following response from server:\n" + message)
         dom = xml.dom.minidom.parseString(message)
         decision = dom.getElementsByTagNameNS('urn:oasis:names:tc:xacml:2.0:context:schema:os','Decision')
 
