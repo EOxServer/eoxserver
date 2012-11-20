@@ -34,14 +34,12 @@ key-value-pair encoded URL parameters. See also
 decoders.
 """
 
-import re
-from cgi import escape, parse_qs
-import logging
+from cgi import parse_qs
 
 from django.http import QueryDict
 
 from eoxserver.core.exceptions import (
-    InternalError, KVPDecoderException, KVPKeyNotFound,
+    InternalError, KVPKeyNotFound,
     KVPKeyOccurrenceError, KVPTypeError
 )
 from eoxserver.core.util.decoders import Decoder, DecoderInterface

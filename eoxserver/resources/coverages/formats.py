@@ -45,6 +45,9 @@ from eoxserver.core.system import System
 from eoxserver.core.exceptions import InternalError
 from eoxserver.core.startup import StartupHandlerInterface
 
+
+logger = logging.getLogger(__name__)
+
 #-------------------------------------------------------------------------------
 
 class Format(object) : 
@@ -122,7 +125,7 @@ class FormatRegistry(object):
 
         if not os.path.exists( path_formats_opt ) :
             path_formats_opt = None # no user defined formats' configuration 
-            logging.info( "Optional, user-defined file formats' specification not found. Only the installation defaults will be used.") 
+            logger.info( "Optional, user-defined file formats' specification not found. Only the installation defaults will be used.") 
 
         # load the formats' configuaration 
         self.__load_formats( path_formats_def , path_formats_opt )
@@ -256,13 +259,13 @@ class FormatRegistry(object):
         self.__mime2format = {} 
             
         # read default configuration 
-        logging.info( "Loading formats' configuration from: %s" % path_formats_def ) 
+        logger.info( "Loading formats' configuration from: %s" % path_formats_def ) 
         for ln,line in enumerate( file( path_formats_def ) ) :
             self.__parse_line( line , path_formats_def , ln+1 ) 
 
         # read the optional configuration 
         if path_formats_opt : 
-            logging.info( "Loading formats' configuration from: %s" % path_formats_opt ) 
+            logger.info( "Loading formats' configuration from: %s" % path_formats_opt ) 
             for ln,line in enumerate( file( path_formats_opt ) ) :
                 self.__parse_line( line , path_formats_opt , ln+1 ) 
 
@@ -330,11 +333,11 @@ class FormatRegistry(object):
             # store format record  
             self.__mime2format[ mime_type ] = frec 
 
-            logging.info( "Adding new file format: %s" % str( frec ) ) 
+            logger.info( "Adding new file format: %s" % str( frec ) ) 
 
         except Exception as e : 
 
-            logging.warning( "%s:%i Invalid file format specification! Line ignored! line=\"%s\" message=\"%s\"" % ( 
+            logger.warning( "%s:%i Invalid file format specification! Line ignored! line=\"%s\" message=\"%s\"" % ( 
                 fname , lnum , line , str(e) ) )
 
     def __get_path_eoxs(self):
@@ -363,7 +366,7 @@ def valMimeType( string ):
     """ 
     rv = string if _gerexValMime.match(string) else None 
     if None is rv :  
-        logging.warning( "Invalid MIME type \"%s\"." % string ) 
+        logger.warning( "Invalid MIME type \"%s\"." % string ) 
     return rv  
 
 def valDriver( string ):  
@@ -373,7 +376,7 @@ def valDriver( string ):
     """ 
     rv = string if _gerexValDriv.match(string) else None 
     if None is rv :  
-        logging.warning( "Invalid GDAL driver identifier \"%s\"." % string ) 
+        logger.warning( "Invalid GDAL driver identifier \"%s\"." % string ) 
     return rv  
 
 #-------------------------------------------------------------------------------
@@ -401,13 +404,13 @@ class FormatLoaderStartupHandler( object ) :
 
         global __FORMAT_REGISTRY
         
-        logging.debug(" --- FormatLoaderStartupHandler --- ")
-        logging.debug( repr(_gerexValMime) )
-        logging.debug( repr(_gerexValDriv) )
+        logger.debug(" --- FormatLoaderStartupHandler --- ")
+        logger.debug( repr(_gerexValMime) )
+        logger.debug( repr(_gerexValDriv) )
 
         __FORMAT_REGISTRY = FormatRegistry( config )
 
-        logging.debug( repr(__FORMAT_REGISTRY) )
+        logger.debug( repr(__FORMAT_REGISTRY) )
 
 
     def startup( self , config , registry ) :
@@ -435,15 +438,15 @@ def getFormatRegistry() :
 
     if __FORMAT_REGISTRY is None :  
 
-        logging.debug(" --- getFormatRegistry() --- ")
-        logging.debug( repr(__FORMAT_REGISTRY) )
-        logging.debug( repr(_gerexValMime) )
-        logging.debug( repr(_gerexValDriv) )
+        logger.debug(" --- getFormatRegistry() --- ")
+        logger.debug( repr(__FORMAT_REGISTRY) )
+        logger.debug( repr(_gerexValMime) )
+        logger.debug( repr(_gerexValDriv) )
 
         # load configuration if not already loaded 
         __FORMAT_REGISTRY = FormatRegistry( System.getConfig() ) 
 
-        logging.debug( repr(__FORMAT_REGISTRY) )
+        logger.debug( repr(__FORMAT_REGISTRY) )
 
     return __FORMAT_REGISTRY 
 

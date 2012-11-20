@@ -44,6 +44,8 @@ from eoxserver.resources.coverages.models import LocalDataPackage,\
 from eoxserver.resources.coverages.exceptions import NoSuchCoverageException
 
 
+logger = logging.getLogger(__name__)
+
 def _variable_args_cb(option, opt_str, value, parser):
     """ Helper function for optparse module. Allows
         variable number of option values when used
@@ -94,13 +96,13 @@ class CommandOutputMixIn(object):
             self.stdout.write("\n")
         
         if level == 0 and error:
-            logging.critical(msg)
+            logger.critical(msg)
         elif level == 1 and error:
-            logging.error(msg)
+            logger.error(msg)
         elif level in (0, 1, 2) and not error:
-            logging.info(msg)
+            logger.info(msg)
         elif level > 2:
-            logging.debug(msg)
+            logger.debug(msg)
 
 
 class DatasetManagementCommand(BaseCommand, CommandOutputMixIn):

@@ -56,6 +56,9 @@ from eoxserver.resources.coverages.geo import GeospatialMetadata
 from eoxserver.resources.coverages.metadata import EOMetadata
 import eoxserver.resources.coverages.exceptions as exceptions
 
+
+logger = logging.getLogger(__name__)
+
 # create new rectified dataset from a local path
 
 class RectifiedDatasetCreateWithLocalPathTestCase(RectifiedDatasetCreateTestCase):
@@ -717,7 +720,7 @@ class DatasetSeriesSynchronizeFileRemovedTestCase(DatasetSeriesSynchronizeTestCa
             "data/meris/TEMPORARY_mosaic_MER_FRS_1P_RGB_reduced",
             "mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif"
         )
-        logging.info("Deleting file at path: %s"%path)
+        logger.info("Deleting file at path: %s"%path)
         os.remove(path)
         
         self.synchronize(self.wrapper.getEOID())

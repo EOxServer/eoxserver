@@ -56,6 +56,9 @@ from eoxserver.resources.coverages.interfaces import (
 from eoxserver.resources.coverages.geo import GeospatialMetadata
 from eoxserver.resources.coverages.formats import getFormatRegistry
 
+
+logger = logging.getLogger(__name__)
+
 #-------------------------------------------------------------------------------
 # Data source wrappers
 #-------------------------------------------------------------------------------

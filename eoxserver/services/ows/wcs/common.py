@@ -32,12 +32,10 @@ This module contains handlers and functions commonly used by the different WCS
 version implementations.
 """
 
-import mapscript
-
-import logging 
 import datetime
-
 from urllib import unquote
+
+import mapscript
 
 from eoxserver.services.owscommon import OWSCommonConfigReader
 from eoxserver.services.mapserver import (

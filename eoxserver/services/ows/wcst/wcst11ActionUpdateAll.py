@@ -36,11 +36,13 @@ import os
 import sys 
 import os.path
 import traceback
-
 import logging
 import shutil
 
 from wcst11ActionCommon import ExActionFailed
+
+
+logger = logging.getLogger(__name__)
 
 #-------------------------------------------------------------------------------
 
@@ -49,12 +51,12 @@ from wcst11ActionCommon import ExActionFailed
 def wcst11ActionUpdateAll( action , context ) : 
 
     aname = action["Action"]
-    logging.debug( "WCSt11:%s: START" % aname ) 
+    logger.debug( "WCSt11:%s: START" % aname ) 
 
     # action not implemented 
 
     msg = "WCSt11:%s: Action not implemented!" % aname 
-    logging.error( msg ) 
+    logger.error( msg ) 
     raise ExActionFailed , msg 
 
     return coverageId

@@ -36,6 +36,9 @@ import logging
 
 from eoxserver.core.exceptions import InternalError, TypeMismatch, ConfigError
 
+
+logger = logging.getLogger(__name__)
+
 global RUNTIME_VALIDATION_LEVEL
 
 RUNTIME_VALIDATION_LEVEL = "trust"
@@ -473,7 +476,7 @@ class Method(object):
         
         msgs = []
         
-        logging.debug("validateType(): start validation")
+        logger.debug("validateType(): start validation")
         
         for arg, arg_value in impl_named_args.values():
             if not arg.isValid(arg_value):
@@ -491,7 +494,7 @@ class Method(object):
                     self.pos_args.getExpectedType()
                 ))
 
-        logging.debug("validateType(): finish validation")
+        logger.debug("validateType(): finish validation")
         
         if len(msgs) > 0:
             raise TypeMismatch("\n".join(msgs))
@@ -644,7 +647,7 @@ class Interface(object):
             
             interface_methods = InterfaceCls._getMethods()
             
-            logging.debug("Interface._getClassDict(): Interface Methods: %s" % str(interface_methods))
+            logger.debug("Interface._getClassDict(): Interface Methods: %s" % str(interface_methods))
             
             for name, method in interface_methods.items():
                 func = InterfaceCls._getBaseMethod(name, bases)
@@ -776,14 +779,14 @@ class WarningWrapper(ValidationWrapper):
         try:
             self.method.validateType(self.func.func_name, *args, **kwargs)
         except TypeMismatch, e:
-            logging.warning(str(e))
+            logger.warning(str(e))
         
         ret_value = self.func(self.instance, *args, **kwargs)
         
         try:
             self.method.validateReturnType(self.func.func_name, ret_value)
         except TypeMismatch, e:
-            logging.warning(str(e))
+            logger.warning(str(e))
         
         return ret_value
 

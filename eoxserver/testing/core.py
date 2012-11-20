@@ -42,6 +42,9 @@ from django.core.management import execute_from_command_line
 
 from eoxserver.core.system import System
 
+
+logger = logging.getLogger(__name__)
+
 BASE_FIXTURES = ["initial_rangetypes.json", "testing_base.json", "testing_asar_base.json"]
 
 class TestSchemaFactory(object):
@@ -49,7 +52,7 @@ class TestSchemaFactory(object):
     
     @classmethod
     def getSchema(cls, schema_location):
-        logging.info("Opening schema: %s" % schema_location)
+        logger.info("Opening schema: %s" % schema_location)
         f = open(schema_location)
         schema = etree.XMLSchema(etree.parse(f))
         f.close()

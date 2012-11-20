@@ -49,6 +49,8 @@ from eoxserver.backends.models import RemotePath
 from eoxserver.backends.base import LocationWrapper
 from eoxserver.backends.exceptions import DataAccessError
 
+logger = logging.getLogger(__name__)
+
 class FTPStorage(object):
     """
     This is an implementation of the :class:`~.StorageInterface` for
@@ -149,8 +151,8 @@ class FTPStorage(object):
                 )
             )
         
-        logging.info("Get remote file '%s'" % location.getPath())
-        logging.info("Write to local path '%s'" % dest_path)
+        logger.info("Get remote file '%s'" % location.getPath())
+        logger.info("Write to local path '%s'" % dest_path)
         
         try:
             self.ftp.retrbinary(cmd, local_file.write)

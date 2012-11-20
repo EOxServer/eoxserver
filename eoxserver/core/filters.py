@@ -32,8 +32,6 @@ This module defines interfaces for filter expressions and filters.
 These can be used to refine searches for resources.
 """
 
-import logging
-
 from eoxserver.core.system import System
 from eoxserver.core.interfaces import *
 from eoxserver.core.registry import (

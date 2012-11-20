@@ -28,14 +28,12 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+import logging
 import os.path
 
 import mapscript
 
-import logging
-
 from eoxserver.core.system import System
-
 from eoxserver.core.util.xmltools import DOMElementToXML
 from eoxserver.core.exceptions import InternalError
 from eoxserver.services.interfaces import (
@@ -64,6 +62,9 @@ from eoxserver.resources.coverages.formats import getFormatRegistry
 
 # crs utilities 
 from eoxserver.resources.coverages import crss
+
+
+logger = logging.getLogger(__name__)
 
 #==============================================================================
 # WCS service handler (required by WCS 2.0 as well ) 
@@ -273,7 +274,7 @@ class WCS1XGetCoverageHandler(WCS1XOperationHandler):
         self.map.appendOutputFormat(output_format)
         self.map.setOutputFormat(output_format)
         
-        logging.debug("WCS20GetCoverageHandler.configureMapObj: %s" % self.map.imagetype)
+        logger.debug("WCS20GetCoverageHandler.configureMapObj: %s" % self.map.imagetype)
 
 class WCS10GetCapabilitiesHandler(WCS1XOperationHandler):
     REGISTRY_CONF = {

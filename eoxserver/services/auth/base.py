@@ -43,6 +43,8 @@ from eoxserver.core.util.xmltools import DOMElementToXML
 from eoxserver.services.owscommon import OWSCommonExceptionHandler, OWSCommonExceptionEncoder
 
 
+logger = logging.getLogger(__name__)
+
 #-------------------------------------------------------------------------------
 # Config reader
 #-------------------------------------------------------------------------------
@@ -192,7 +194,7 @@ class BasePDP(object):
                                     authorized = False
                                 )
         except Exception, e:
-            logging.error(str(e))
+            logger.error(str(e))
             return AuthorizationResponse(
                 content =  DOMElementToXML(
                                     OWSCommonExceptionEncoder(schemas).encodeExceptionReport(
@@ -226,7 +228,7 @@ def getPDP():
     ).getPDPType()
 
     if not pdp_type or pdp_type == "none":
-        logging.debug("Authorization deactivated.")
+        logger.debug("Authorization deactivated.")
         return None
 
     else:

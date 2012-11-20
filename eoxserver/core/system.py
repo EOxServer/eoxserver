@@ -40,6 +40,9 @@ from eoxserver.core.exceptions import InternalError, ConfigError
 from eoxserver.core.registry import Registry, RegistryConfigReader
 from eoxserver.core.interfaces import RUNTIME_VALIDATION_LEVEL, IntfConfigReader
 
+
+logger = logging.getLogger(__name__)
+
 class Environment(local):
     def __init__(self, config, registry):
         self.config = config
@@ -209,6 +212,7 @@ class System(object):
             system_reader = SystemConfigReader(config)
             system_reader.validate()
             
+            # TODO: remove the logging setup and use the default django logging setup! 
             # configure the logging module
             logging.basicConfig(
                 filename=system_reader.getLoggingFilename(),
@@ -236,7 +240,7 @@ class System(object):
             return (config, registry)
             
         except Exception, e:
-            logging.error("Could not start up system due to exception: %s" % str(e))
+            logger.error("Could not start up system due to exception: %s" % str(e))
             
             raise
             

@@ -28,8 +28,6 @@
 #-------------------------------------------------------------------------------
 import mapscript
 
-import logging
-
 from eoxserver.core.system import System
 from eoxserver.core.util.xmltools import XMLEncoder
 from eoxserver.services.exceptions import InvalidRequestException

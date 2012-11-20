@@ -33,7 +33,6 @@ import os, os.path
 import shutil
 import numpy
 import math
-
 import logging
 
 from django.conf import settings
@@ -42,6 +41,9 @@ from django.contrib.gis.geos import Polygon
 from eoxserver.core.system import System
 from eoxserver.core.readers import ConfigReaderInterface
 from eoxserver.processing.exceptions import ProcessingError
+
+
+logger = logging.getLogger(__name__)
 
 def make_mosaic(mosaic):
 #    if MosaicConfigReader().isAsynchronous():
@@ -98,10 +100,10 @@ class MosaicContribution(object):
             else:
                 contributions.append(cls(dataset, footprint.intersection(poly)))
         
-        #logging.debug("Contributions")
+        #logger.debug("Contributions")
         #for contribution in contributions:
-            #logging.debug("Dataset: %s" % contribution.dataset.getCoverageId())
-            #logging.debug("Contributing Footprint: %s" % contribution.contributing_footprint.wkt)
+            #logger.debug("Dataset: %s" % contribution.dataset.getCoverageId())
+            #logger.debug("Contributing Footprint: %s" % contribution.contributing_footprint.wkt)
         
         return filter(
             lambda contribution: not contribution.isEmpty(),
@@ -154,10 +156,10 @@ class SynchronousRectifiedStitchedMosaicGenerator(object):
             y_index_min = int(math.floor((miny - self.miny) / self.yres / 256.0))
             y_index_max = int(math.ceil((maxy - self.miny) / self.yres / 256.0))
             
-            logging.debug("Mosaic Extent: %f, %f, %f, %f" % (self.minx, self.miny, self.maxx, self.maxy))
-            logging.debug("Contr. Footprint Extent: %f, %f, %f, %f" % contributing_footprint.extent)
-            logging.debug("Ref. Area Extent: %f, %f, %f, %f" % (minx, miny, maxx, maxy)) 
-            logging.debug("Tile Index Extent: %d, %d, %d, %d" % (x_index_min, y_index_min, x_index_max, y_index_max))
+            logger.debug("Mosaic Extent: %f, %f, %f, %f" % (self.minx, self.miny, self.maxx, self.maxy))
+            logger.debug("Contr. Footprint Extent: %f, %f, %f, %f" % contributing_footprint.extent)
+            logger.debug("Ref. Area Extent: %f, %f, %f, %f" % (minx, miny, maxx, maxy)) 
+            logger.debug("Tile Index Extent: %d, %d, %d, %d" % (x_index_min, y_index_min, x_index_max, y_index_max))
             
             for x_index in range(x_index_min, x_index_max+1):
                 for y_index in range(y_index_min, y_index_max+1):
@@ -202,11 +204,11 @@ class SynchronousRectifiedStitchedMosaicGenerator(object):
         x_size = self._roundint((maxx - minx) / self.xres)
         y_size = self._roundint((maxy - miny) / self.yres)
         
-        logging.debug("_makeTile()")
-        logging.debug("Tile Extent: %f, %f, %f, %f" % (tile_minx, tile_miny, tile_maxx, tile_maxy))
-        logging.debug("Dataset Extent: %f, %f, %f, %f" % (ds_minx, ds_miny, ds_maxx, ds_maxy))
-        logging.debug("Final Extent: %f, %f, %f, %f" % (minx, miny, maxx, maxy))
-        logging.debug("Offsets: %d, %d; Size: %d, %d" % (x_offset, y_offset, x_size, y_size))
+        logger.debug("_makeTile()")
+        logger.debug("Tile Extent: %f, %f, %f, %f" % (tile_minx, tile_miny, tile_maxx, tile_maxy))
+        logger.debug("Dataset Extent: %f, %f, %f, %f" % (ds_minx, ds_miny, ds_maxx, ds_maxy))
+        logger.debug("Final Extent: %f, %f, %f, %f" % (minx, miny, maxx, maxy))
+        logger.debug("Offsets: %d, %d; Size: %d, %d" % (x_offset, y_offset, x_size, y_size))
         
         src = dataset.getData().open()
 
@@ -230,12 +232,12 @@ class SynchronousRectifiedStitchedMosaicGenerator(object):
         if len(tiles) == 1:
             return tiles[0]
         else:
-            logging.debug("_mergeTiles")
+            logger.debug("_mergeTiles")
             
             x_index = tiles[0].x_index
             y_index = tiles[0].y_index
             
-            logging.debug("Index: (%d, %d)" % (x_index, y_index))
+            logger.debug("Index: (%d, %d)" % (x_index, y_index))
             
             minx = min([tile.minx for tile in tiles])
             miny = min([tile.miny for tile in tiles])
@@ -263,8 +265,8 @@ class SynchronousRectifiedStitchedMosaicGenerator(object):
                 tile_x_offset = self._roundint((tile.minx - minx) / self.xres)
                 tile_y_offset = self._roundint((maxy - tile.maxy) / self.yres)
 
-                logging.debug("Offsets: %d, %d" % (tile_x_offset, tile_y_offset))
-                logging.debug("Float Offsets: %f, %f" % ((tile.minx - minx) / self.xres, (maxy - tile.maxy) / self.yres))
+                logger.debug("Offsets: %d, %d" % (tile_x_offset, tile_y_offset))
+                logger.debug("Float Offsets: %f, %f" % ((tile.minx - minx) / self.xres, (maxy - tile.maxy) / self.yres))
 
                 for band_no in xrange(len(self.bands)):
                     src_band = src.GetRasterBand(band_no + 1)
@@ -277,7 +279,7 @@ class SynchronousRectifiedStitchedMosaicGenerator(object):
                     
                     to_write = numpy.choose(tile_nodata, (tile_data, merged_data))
                     
-                    logging.debug("Shape: %s " % str(to_write.shape))
+                    logger.debug("Shape: %s " % str(to_write.shape))
                     
                     tmp_band.WriteArray(to_write, tile_x_offset, tile_y_offset)
             
@@ -336,7 +338,7 @@ class SynchronousRectifiedStitchedMosaicGenerator(object):
         dataset_tiles = {}
         
         for contribution in contributions:
-            logging.debug("Processing Dataset '%s' ..." % contribution.dataset.getEOID())
+            logger.debug("Processing Dataset '%s' ..." % contribution.dataset.getEOID())
             
             for tile_coords in self._getContributingTiles(contribution.contributing_footprint):
                 if tile_coords in dataset_tiles:
@@ -389,7 +391,7 @@ class TileIndex(object):
         if driver is None:
             raise ProcessingError("Cannot start GDAL Shapefile driver")
         
-        logging.info("Creating shapefile '%s' ...")
+        logger.info("Creating shapefile '%s' ...")
         
         self.shapefile = driver.CreateDataSource(str(self.path))
         if self.shapefile is None:
@@ -410,13 +412,13 @@ class TileIndex(object):
         if self.layer.CreateField(ogr.FieldDefn("y_index", ogr.OFTInteger)) != 0:
             raise ProcessingError("Cannot create field 'location' on layer 'file_locations' in shapefile '%s'" % self.path)
 
-        logging.info("Success.")
+        logger.info("Success.")
                 
     def open(self):
         if not os.path.exists(self.path):
             self._createShapeFile()
         else:
-            logging.info("Opening shapefile '%s' ...")
+            logger.info("Opening shapefile '%s' ...")
             
             self.shapefile = ogr.Open(str(self.path), True) # Open for updating
             if self.shapefile is None:
@@ -426,7 +428,7 @@ class TileIndex(object):
             if self.layer is None:
                 raise ProcessingError("Shapefile '%s' has wrong format." % self.path)
             
-            logging.info("Success")
+            logger.info("Success")
     
     def close(self):
         self.layer.SyncToDisk()
@@ -453,7 +455,7 @@ class TileIndex(object):
         self.path = dst_path
     
     def addTile(self, tile):
-        logging.info("Creating shapefile entry for tile (%06d, %06d) ..." % (tile.x_index, tile.y_index))
+        logger.info("Creating shapefile entry for tile (%06d, %06d) ..." % (tile.x_index, tile.y_index))
         
         feature = ogr.Feature(self.layer.GetLayerDefn())
         
@@ -474,7 +476,7 @@ class TileIndex(object):
         
         feature = None
         
-        logging.info("Success.")
+        logger.info("Success.")
     
 #class MosaicConfigReader(object):
 #    def validate(self, config):

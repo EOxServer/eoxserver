@@ -61,6 +61,9 @@ except ImportError:
                 except ImportError:
                     pass # could not get etree
 
+
+logger = logging.getLogger(__name__)
+
 #-----------------------------------------------------------------------
 # XML Encoder
 #-----------------------------------------------------------------------
@@ -294,7 +297,7 @@ class XPath(object):
             return other
 
     def _getNodesXPath(self, element, xpath):
-        logging.debug("Element: {%s}%s XPath: %s" % (element.namespaceURI, element.localName, str(xpath)))
+        logger.debug("Element: {%s}%s XPath: %s" % (element.namespaceURI, element.localName, str(xpath)))
         
         if len(xpath) == 0:
             return [element]

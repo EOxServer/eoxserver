@@ -57,6 +57,8 @@ from eoxserver.core.system import System
 from eoxserver.core.admin import ConfirmationAdmin
 from eoxserver.core.util.timetools import UTCOffsetTimeZoneInfo
 
+
+logger = logging.getLogger(__name__)
 System.init()
 
 # NilValue
@@ -406,7 +408,13 @@ admin.site.register(RectifiedStitchedMosaicRecord, RectifiedStitchedMosaicAdmin)
     def save_model(self, request, obj, form, change):
         raise # TODO"""
 
+class LayerMetadata2DatasetSeriesInline(admin.StackedInline):
+    model = DatasetSeriesRecord.layer_metadata.__getattribute__("through")
+    extra = 1
+    can_delete = True
+
 class DatasetSeriesAdmin(AbstractContainerAdmin):
+    inlines = (LayerMetadata2DatasetSeriesInline,)
     list_display = ('eo_id', 'eo_metadata', )
     list_editable = ('eo_metadata', )
     ordering = ('eo_id', )
@@ -487,7 +495,7 @@ class EOMetadataAdmin(admin.GeoModelAdmin):
                 else:
                     synchronizer.create()
             except:
-                logging.error("Error when synchronizing.")
+                logger.error("Error when synchronizing.")
                 #transaction.rollback()
                 messages.error(request, "Error when synchronizing with file system.")
                 #return

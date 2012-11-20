@@ -11,6 +11,8 @@ from eoxserver.services.auth.base import BasePDP, \
 from eoxserver.services.auth.charonpdp import CharonPDP
 
 
+logger = logging.getLogger(__name__)
+
 validUser = {'uid': 'jdoe', 'cn': 'Doe John', 'sn': 'Doe', 'description': 'Authorized User'}
 
 
@@ -33,7 +35,7 @@ class DummyPDP(BasePDP):
 
         #checks if a attribute 'DUMMY_MODE' is in the headers
         if 'DUMMY_MODE' in httpHeader:
-            logging.info("Security Test: 'DUMMY_MODE' parameter in HTTP header")
+            logger.info("Security Test: 'DUMMY_MODE' parameter in HTTP header")
             return self.pdp._decide(ows_req)
         else :
             return (True, 'No authorisation testing')

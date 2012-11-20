@@ -38,10 +38,13 @@ import logging
 from eoxserver.resources.coverages.covmgrs import CoverageIdManager
 from eoxserver.resources.coverages.covmgrs import CoverageIdReservedError, CoverageIdReleaseError, CoverageIdInUseError
 
+
+logger = logging.getLogger(__name__)
+
 #-------------------------------------------------------------------------------
 
 def reserveCoverageId( covIdManager , coverage_id , request_id , until=None ) : 
-    logging.debug( "Reserving CID: %s " % coverage_id ) 
+    logger.debug( "Reserving CID: %s " % coverage_id ) 
     try : 
         covIdManager.reserve( coverage_id , request_id , until ) 
     except ( CoverageIdReservedError , CoverageIdInUseError ) : 
@@ -49,7 +52,7 @@ def reserveCoverageId( covIdManager , coverage_id , request_id , until=None ) :
     return True 
 
 def releaseCoverageId( covIdManager , coverage_id ) : 
-    logging.debug( "Releasing CID: %s " % coverage_id ) 
+    logger.debug( "Releasing CID: %s " % coverage_id ) 
     try : 
         covIdManager.release( coverage_id ) 
     except CoverageIdReleaseError : pass 

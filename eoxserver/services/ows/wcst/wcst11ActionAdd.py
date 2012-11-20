@@ -36,7 +36,6 @@ import os
 import sys 
 import os.path
 import traceback
-
 import logging
 import shutil
 
@@ -62,13 +61,16 @@ from eoxserver.resources.coverages.covmgrs import ReferenceableDatasetManager
 
 #-------------------------------------------------------------------------------
 
+
+logger = logging.getLogger(__name__)
+
 # ACTION: ADD 
 
 def wcst11ActionAdd( action , context , maxAttempts = 3 ) : 
     """ WCS-T 1.1 Transaction - Add action handler """ 
 
     aname = action["Action"]
-    logging.debug( "WCSt11:%s: START" % aname ) 
+    logger.debug( "WCSt11:%s: START" % aname ) 
 
     # create coverage Id manager 
     covIdManager = CoverageIdManager()
@@ -80,7 +82,7 @@ def wcst11ActionAdd( action , context , maxAttempts = 3 ) :
         if reserveCoverageId( covIdManager , cid , context['requestId'] ) : break  
     else : 
         msg = "WCSt11:%s: Failed to generate an unique coverage ID!" % aname 
-        logging.error( msg ) 
+        logger.error( msg ) 
         raise Exception , msg 
 
     # extract user provided CID 
@@ -91,9 +93,9 @@ def wcst11ActionAdd( action , context , maxAttempts = 3 ) :
         coverageId = cid 
 
     if coverageId != cid :
-        logging.info( "WCSt11:%s: Inserting new coverage: %s (%s) " % ( aname , coverageId , cid ) ) 
+        logger.info( "WCSt11:%s: Inserting new coverage: %s (%s) " % ( aname , coverageId , cid ) ) 
     else :
-        logging.info( "WCSt11:%s: Inserting new coverage: %s " % ( aname , coverageId ) ) 
+        logger.info( "WCSt11:%s: Inserting new coverage: %s " % ( aname , coverageId ) ) 
 
     try : 
 
@@ -109,7 +111,7 @@ def wcst11ActionAdd( action , context , maxAttempts = 3 ) :
         # download references 
         for i,r in enumerate(action["Reference"]): 
 
-            logging.info( "WCSt11:%s: Reference: role: %s \t href: %s " % ( aname , r['role'] , r['href'] ) ) 
+            logger.info( "WCSt11:%s: Reference: role: %s \t href: %s " % ( aname , r['role'] , r['href'] ) ) 
 
             basename = os.path.join( context['pathTemp'] , "%s_ref_%3.3i" % ( cid , i ) ) 
 
@@ -130,7 +132,7 @@ def wcst11ActionAdd( action , context , maxAttempts = 3 ) :
         # download metadata 
         for i,r in enumerate(action["Metadata"]): 
 
-            logging.info( "WCSt11:%s: Metadata: role: %s \t href: %s " % ( aname , r['role'] , r['href'] ) ) 
+            logger.info( "WCSt11:%s: Metadata: role: %s \t href: %s " % ( aname , r['role'] , r['href'] ) ) 
 
             basename = os.path.join( context['pathTemp'] , "%s_md_%3.3i" % ( cid , i ) ) 
 
@@ -155,7 +157,7 @@ def wcst11ActionAdd( action , context , maxAttempts = 3 ) :
         if bool( info.isReferenceable ) == bool( info.isRectified ) :   
             raise ExActionFailed , "WCSt11:%s: Input GeoTIFF pixel data not properly geocoded!" % aname 
        
-        logging.debug( "WCSt11:%s: Coverage Type: %s " % ( aname , ("REFERENCEABLE","RECTIFIED")[info.isRectified] ) ) 
+        logger.debug( "WCSt11:%s: Coverage Type: %s " % ( aname , ("REFERENCEABLE","RECTIFIED")[info.isRectified] ) ) 
 
         # ------------------------------------------------------------------------------
         # eopXML check 
@@ -166,7 +168,7 @@ def wcst11ActionAdd( action , context , maxAttempts = 3 ) :
 
         if eopXML is not None :
 
-            logging.info( "WCSt11:%s: Parsing the input EOP2.0 XML file: %s  " % ( aname , eopXML[0] ) )
+            logger.info( "WCSt11:%s: Parsing the input EOP2.0 XML file: %s  " % ( aname , eopXML[0] ) )
 
             # The following commands extract the EOP profile from the provided XML document 
             # and changes the EOP ID  to coverageId.
@@ -198,11 +200,11 @@ def wcst11ActionAdd( action , context , maxAttempts = 3 ) :
 
             md_footprint = getFootprint( info , repeatFirst = True )
 
-            logging.debug( str(info) ) 
-            logging.debug( md_footprint ) 
+            logger.debug( str(info) ) 
+            logger.debug( md_footprint ) 
 
-            logging.info( "WCSt11:%s: EOP2.0 XML not provided! Trying to extract information from the GeoTIFF image." % aname ) 
-            logging.debug( "WCSt11:%s: Generating EOP2.0 XML file: %s" % ( aname , srcXMLfile ) )
+            logger.info( "WCSt11:%s: EOP2.0 XML not provided! Trying to extract information from the GeoTIFF image." % aname ) 
+            logger.debug( "WCSt11:%s: Generating EOP2.0 XML file: %s" % ( aname , srcXMLfile ) )
 
             fid = file( srcXMLfile , "w" ) 
             fid.write( createXML_EOP20( coverageId , md_footprint , md_start , md_stop ) ) 
@@ -218,11 +220,11 @@ def wcst11ActionAdd( action , context , maxAttempts = 3 ) :
 
         # move the pixel data to the final destination 
 
-        logging.info( "WCSt11:%s: Coverage data location:      %s " % ( aname , dstTIFfile ) ) 
+        logger.info( "WCSt11:%s: Coverage data location:      %s " % ( aname , dstTIFfile ) ) 
         shutil.move( srcTIFfile , dstTIFfile )                          
 
         if isEODataset : 
-            logging.info( "WCSt11:%s: Coverage metadata location:  %s " % ( aname , dstXMLfile ) ) 
+            logger.info( "WCSt11:%s: Coverage metadata location:  %s " % ( aname , dstXMLfile ) ) 
             shutil.move( srcXMLfile , dstXMLfile )
             dstMDfile = dstXMLfile 
 
@@ -230,7 +232,7 @@ def wcst11ActionAdd( action , context , maxAttempts = 3 ) :
         # rectified dataset 
         if info.isRectified : 
 
-            logging.info( "WCSt11:%s: Inserting instance of RectifiedDataset ..." % aname ) 
+            logger.info( "WCSt11:%s: Inserting instance of RectifiedDataset ..." % aname ) 
 
             rdm = RectifiedDatasetManager() 
         
@@ -243,7 +245,7 @@ def wcst11ActionAdd( action , context , maxAttempts = 3 ) :
         # referencable dataset 
         elif info.isReferenceable : 
 
-            logging.info( "WCSt11:%s: Inserting instance of ReferenceableDataset ..." % aname ) 
+            logger.info( "WCSt11:%s: Inserting instance of ReferenceableDataset ..." % aname ) 
 
             rdm = ReferenceableDatasetManager() 
 

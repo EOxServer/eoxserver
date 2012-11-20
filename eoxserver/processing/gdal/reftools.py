@@ -37,6 +37,9 @@ from osgeo import gdal
 from eoxserver.core.util.bbox import BBox
 from eoxserver.core.exceptions import InternalError
 
+
+logger = logging.getLogger(__name__)
+
 ERROR_LABEL = "Referenceable grid handling is disabled!" \
               " Did you compile the 'reftools' C module?!"
 
@@ -81,7 +84,7 @@ try:
 
     REFTOOLS_USABLE = True
 except:
-    logging.warn("Could not load '%s'. Referenceable Datasets will not be usable." % _lib_path)
+    logger.warn("Could not load '%s'. Referenceable Datasets will not be usable." % _lib_path)
     
     REFTOOLS_USABLE = False
 
