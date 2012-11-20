@@ -472,6 +472,8 @@ class DatasetSeriesRecord(Resource):
                                           blank=True, null=True,
                                           related_name="dataset_series_set",
                                           verbose_name="Referenceable Dataset(s)")
+    
+    layer_metadata = models.ManyToManyField(LayerMetadataRecord, null=True, blank=True)
 
     def __unicode__(self):
         return self.eo_id

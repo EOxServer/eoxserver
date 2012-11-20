@@ -1640,6 +1640,15 @@ class DatasetSeriesWrapper(EOMetadataWrapper, ResourceWrapper):
             filter_exprs = filter_exprs
         )
         
+    def getLayerMetadata(self):
+        """
+        Returns a list of ``(metadata_key, metadata_value)`` pairs
+        that represent MapServer metadata tags to be attached to
+        MapServer layers.
+        """
+        
+        return self.__model.layer_metadata.values_list("key", "value")
+        
     def contains(self, wrapper):
         """
         This method returns ``True`` if the Dataset Series contains

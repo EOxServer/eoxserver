@@ -50,6 +50,9 @@ from eoxserver.services.owscommon import OWSCommonConfigReader
 from eoxserver.services.mapserver import MapServerOperationHandler
 from eoxserver.services.exceptions import InvalidRequestException
 
+
+logger = logging.getLogger(__name__)
+
 _stripDot = lambda s : s[1:] if s[0] == '.' else s 
 
 def getMSWMSSRSMD(): 
@@ -91,7 +94,7 @@ class WMSLayer(object):
             try:
                 os.remove(temp_file)
             except:
-                logging.warning("Could not remove temporary file '%s'" % temp_file)
+                logger.warning("Could not remove temporary file '%s'" % temp_file)
                 
 class WMSEmptyLayer(WMSLayer):
     def __init__(self, layer_name):
@@ -314,6 +317,9 @@ class WMSDatasetSeriesLayer(WMSLayer):
         layer.setMetaData("wms_enable_request", "*")
         layer.status = mapscript.MS_ON
 
+        for key, value in self.dataset_series.getLayerMetadata():
+            layer.setMetaData(key, value)
+
         # use a dummy coverage to connect to
         
         connector = System.getRegistry().findAndBind(
@@ -416,6 +422,9 @@ class WMSCommonHandler(MapServerOperationHandler):
         pass
         
     def createCoverageLayer(self, coverage):
+        logger.debug("Adding WMS coverage layer for coverage '%s'."
+                     % coverage.getCoverageId())
+        
         if coverage.getType() == "plain":
             raise InternalError(
                 "Plain coverage WMS views are not yet implemented."
