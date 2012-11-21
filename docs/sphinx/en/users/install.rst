@@ -102,8 +102,8 @@ to run EOxServer.
     | Python    | >= 2.5, < 3.0    | Scripting language                        |
     +-----------+------------------+-------------------------------------------+
     | Django    | >= 1.3           | Web development framework written in      |
-    |           |                  | Python including the GeoDjango extension  |
-    |           |                  | for geospatial database back-ends.        |
+    |           | (recommended     | Python including the GeoDjango extension  |
+    |           | 1.4)             | for geospatial database back-ends.        |
     +-----------+------------------+-------------------------------------------+
     | GDAL      | >= 1.8.0         | Geospatial Data Abstraction Library       |
     |           | (for rasdaman    | providing common interfaces for accessing |
@@ -112,8 +112,8 @@ to run EOxServer.
     |           |                  | which is used by EOxServer                |
     +-----------+------------------+-------------------------------------------+
     | MapServer | >= 6.0           | Server software implementing various OGC  |
-    |           |                  | Web Service interfaces including WCS and  |
-    |           |                  | WMS. Includes a Python binding which is   |
+    |           | (highly          | Web Service interfaces including WCS and  |
+    |           | recommended 6.2) | WMS. Includes a Python binding which is   |
     |           |                  | used by EOxServer.                        |
     +-----------+------------------+-------------------------------------------+
 
@@ -434,6 +434,18 @@ In the Apache2 configuration file of your server, e.g.
             AddHandler wsgi-script .py
             Order Allow,Deny
             Allow from all
+    </Directory>
+
+As a general good idea the number of threads can be limited using the 
+following additional Apache2 configuration. In case an old version of 
+MapServer, i.e. < 6.2 or < 6.0.4, is used the number of threads ``needs`` to be 
+limited to 1 to avoid some `thread safety issues 
+<https://github.com/mapserver/mapserver/issues/4369>`_::
+
+    WSGIDaemonProcess ows processes=10 threads=1
+    <Directory "<absolute path to instance dir>/deployment">
+        ...
+        WSGIProcessGroup ows
     </Directory>
 
 This setup will deploy your instance under the URL ``<url>`` and make it
