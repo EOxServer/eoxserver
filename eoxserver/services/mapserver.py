@@ -309,7 +309,6 @@ class MapServerOperationHandler(BaseRequestHandler):
             mapscript.msCleanup()
         else:
             mapscript.msIO_resetHandlers()
-            import pdb; pdb.set_trace()
         
         return MapServerResponse(result, content_type, dispatch_status)
 
