@@ -205,8 +205,8 @@ class OWSMixIn(object):
             actual_response = Data
 
         if expected != actual_response:
-            if self.getFileExtension("raster") == "hdf":
-                self.skipTest("Skipping binary comparison for HDF file '%s'." % expected_path)
+            if self.getFileExtension("raster") in ("hdf", "nc"):
+                self.skipTest("Skipping binary comparison for HDF or NetCDF file '%s'." % expected_path)
             f = open(response_path, 'w')
             f.write(actual_response)
             f.close()

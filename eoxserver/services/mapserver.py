@@ -375,12 +375,12 @@ class MapServerOperationHandler(BaseRequestHandler):
         logger.debug("MapServerOperationHandler.dispatch: 4")
         result = mapscript.msIO_getStdoutBufferBytes()
         logger.debug("MapServerOperationHandler.dispatch: 5")
-        try:
-            # MapServer 6.0:
+        # Workaround for MapServer issue #4369
+        msversion = mapscript.msGetVersionInt()
+        if msversion < 60004 or ( msversion < 60200 and msversion >= 60100):
             mapscript.msCleanup()
-        except TypeError:
-            # MapServer 6.2:
-            mapscript.msCleanup(1)
+        else:
+            mapscript.msIO_resetHandlers()
         
         return MapServerResponse(result, content_type, dispatch_status)
 
