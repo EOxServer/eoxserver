@@ -34,6 +34,7 @@ import argparse
 import traceback
 import textwrap
 from os.path import splitext
+import logging
 
 from eoxserver.core.util.timetools import getDateTime
 from eoxserver.core.util.xmltools import DOMElementToXML
@@ -190,6 +191,12 @@ def main(args):
                         help="A comma separated list of bands with optional "
                              "subsets in the form: 'no[:low:high]'. Either "
                              "three bands, or four when --rgba is requested.")
+
+    parser.add_argument("--footprint-alpha", dest="footprint_alpha",
+                        action="store_true", default=False,
+                        help="A comma separated list of bands with optional "
+                             "subsets in the form: 'no[:low:high]'. Either "
+                             "three bands, or four when --rgba is requested.")
     
     parser.add_argument("--compression", dest="compression",
                         choices=GeoTIFFFormatSelection.SUPPORTED_COMPRESSIONS,
@@ -225,6 +232,10 @@ def main(args):
     parser.add_argument("--force", "-f", dest="force", action="store_true",
                         default=False,
                         help="Override files, if they already exist.")
+
+    parser.add_argument("--verbosity", "-v", dest="verbosity", type=int,
+                        default=1,
+                        help="Set the verbosity (0, 1, 2). Default is 1.")
     
     parser.add_argument("input_filename", metavar="infile", nargs=1,
                         help="The input raster file to be processed.")
@@ -273,8 +284,18 @@ def main(args):
                                          "end_time"))
 
     force = values.pop("force", True)
+    verbosity = values.pop("verbosity")
     output_basename = values.pop("output_basename", None)
     input_filename = exec_values.get("input_filename")
+
+    # setup logging
+    if verbosity > 0:
+        if verbosity == 1: level = logging.WARN
+        elif verbosity == 2: level = logging.INFO
+        elif verbosity >= 3: level = logging.DEBUG
+        logging.basicConfig(format="%(levelname)s: %(message)s", stream=sys.stderr,
+                            level=level)
+        
 
     try:
         # create a format selection
