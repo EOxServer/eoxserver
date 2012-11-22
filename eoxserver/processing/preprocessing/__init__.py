@@ -40,12 +40,11 @@ from django.contrib.gis.gdal.srs import SpatialReference, CoordTransform
 from eoxserver.core.util.xmltools import XMLEncoder
 from eoxserver.processing.preprocessing.util import (
     create_mem, create_mem_copy, gdal, ogr, osr, gdalconst
-)
+, copy_projection)
 from eoxserver.processing.preprocessing.optimization import (
     BandSelectionOptimization, ColorIndexOptimization, NoDataValueOptimization,
-    OverviewOptimization, ReprojectionOptimization
+    OverviewOptimization, ReprojectionOptimization, AlphaBandOptimization
 )
-
 
 logger = logging.getLogger(__name__)
 
@@ -93,8 +92,8 @@ class PreProcessor(object):
     force = False
     
     def __init__(self, format_selection, overviews=True, crs=None, bands=None, 
-                 bandmode=RGB, color_index=False, palette_file=None,
-                 no_data_value=None):
+                 bandmode=RGB, footprint_alpha=False,
+                 color_index=False, palette_file=None, no_data_value=None):
         
         self.format_selection = format_selection
         self.overviews = overviews
@@ -103,6 +102,7 @@ class PreProcessor(object):
         
         self.bands = bands
         self.bandmode = bandmode
+        self.footprint_alpha = footprint_alpha
         self.color_index = color_index
         self.palette_file = palette_file
         self.no_data_value = no_data_value
@@ -134,6 +134,18 @@ class PreProcessor(object):
             new_ds = optimization(ds)
             ds = None
             ds = new_ds
+            
+        # generate the footprint from the dataset
+        if not footprint_wkt:
+            logger.debug("Generating footprint.")
+            footprint_wkt = self._generate_footprint_wkt(ds)
+        
+        
+        if self.footprint_alpha:
+            logger.debug("Applying optimization 'AlphaBandOptimization'.")
+            opt = AlphaBandOptimization()
+            opt(ds, footprint_wkt)
+        
         
         # adjust the filename with the correct extension
         base_filename, _ = splitext(output_filename)
@@ -155,24 +167,18 @@ class PreProcessor(object):
                          % type(optimization).__name__)
             optimization(ds)
         
-        polygon = None
+        
         
         # generate metadata if requested
+        polygon = None
         if generate_metadata:
+            # use the provided footprint
+            geom = OGRGeometry(footprint_wkt)
+            exterior = []
+            for x, y in geom.exterior_ring.tuple:
+                exterior.append(y); exterior.append(x)
             
-            if not footprint_wkt:
-                logger.debug("Generating footprint.")
-                # generate the footprint from the dataset
-                polygon = self._generate_footprint(ds)
-            
-            else:
-                # use the provided footprint
-                geom = OGRGeometry(footprint_wkt)
-                exterior = []
-                for x, y in geom.exterior_ring.tuple:
-                    exterior.append(y); exterior.append(x)
-                
-                polygon = [exterior]
+            polygon = [exterior]
         
         
         # close the dataset and write it to the disc
@@ -181,7 +187,7 @@ class PreProcessor(object):
         return PreProcessResult(output_filename, polygon)
     
     
-    def _generate_footprint(self, ds):
+    def _generate_footprint_wkt(self, ds):
         """ Generate a fooptrint from a raster, using black/no-data as exclusion
         """
         
@@ -206,6 +212,7 @@ class PreProcessor(object):
         # into its single band
         tmp_ds = create_mem(ds.RasterXSize, ds.RasterYSize, 1, 
                             gdalconst.GDT_Byte)
+        copy_projection(ds, tmp_ds)
         tmp_band = tmp_ds.GetRasterBand(1)
         tmp_band.WriteArray(nodata_map.astype(numpy.uint8))
         
@@ -236,28 +243,13 @@ class PreProcessor(object):
         # the GeoDjango geometry here, as it allows to preserve the topology
         polygon = OGRGeometry(GEOSGeometry(geometry.ExportToWkt()).simplify(1, True).wkt)
         
-        # reproject each point from image coordinates to lat-lon
-        gt = ds.GetGeoTransform()
-        exterior = []
-        
         # check if reprojection to latlon is necessary
-        reproject = not sr.IsGeographic()
-        if reproject: 
+        if not sr.IsGeographic(): 
             ct = CoordTransform(SpatialReference(ds.GetProjectionRef()),
                                 SpatialReference(4326))
+            polygon.transform(ct)
         
-        for x, y in polygon.exterior_ring:
-            point = OGRGeometry("POINT (%f %f)"%
-                                (gt[0] + abs(x) * gt[1] + abs(y) * gt[2],
-                                 gt[3] + abs(x) * gt[4] + abs(y) * gt[5]))
-            
-            if reproject:
-                point.transform(ct)
-            
-            exterior.append(point.y)
-            exterior.append(point.x)
-        
-        return [exterior]
+        return polygon.wkt
 
 
 class WMSPreProcessor(PreProcessor):

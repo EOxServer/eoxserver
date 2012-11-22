@@ -1,8 +1,8 @@
 import numpy
 
 from eoxserver.processing.preprocessing.util import ( 
-    gdal, gdal_array, gdalconst, osr, get_limits, create_mem, copy_metadata, 
-    copy_projection
+    gdal, gdal_array, gdalconst, osr, ogr, get_limits, create_mem, 
+    copy_metadata, copy_projection
 )
 from eoxserver.resources.coverages.crss import (
     parseEPSGCode, fromShortCode, fromURL, fromURN, fromProj4Str
@@ -95,6 +95,9 @@ class BandSelectionOptimization(DatasetOptimization):
         dst_range = get_limits(self.datatype)
         
         for dst_index, (src_index, dmin, dmax) in enumerate(self.bands, 1):
+            if dst_index >= src_ds.RasterCount + 1 :
+                break
+            
             src_band = src_ds.GetRasterBand(src_index)
             src_min, src_max = src_band.ComputeRasterMinMax()
             
@@ -224,4 +227,40 @@ class OverviewOptimization(DatasetPostOptimization):
     def __call__(self, ds):
         ds.BuildOverviews(self.resampling, [2, 4, 8, 16])
         return ds
+
+
+#===============================================================================
+# AlphaBand Optimization
+#===============================================================================
+
+class AlphaBandOptimization(object):
+    """  """
+    
+    def __call__(self, src_ds, footprint_wkt):
+        dt = src_ds.GetRasterBand(1).DataType
+        if src_ds.RasterCount == 3:
+            src_ds.AddBand(dt)
+        elif src_ds.RasterCount == 4:
+            pass # okay
+        else:
+            raise Exception("Cannot add alpha band, as the current band number "
+                            "'%d' does not match" % src_ds.RasterCount)
+        
+        # initialize the alpha band with zeroes (completely transparent)
+        band = src_ds.GetRasterBand(4)
+        band.Fill(0)
+        
+        # set up the layer with geometry
+        ogr_ds = ogr.GetDriverByName('Memory').CreateDataSource('wkt')
+        
+        sr = osr.SpatialReference(); sr.ImportFromEPSG(4326)
+        layer = ogr_ds.CreateLayer('poly', srs=sr)
+        
+        feat = ogr.Feature(layer.GetLayerDefn())
+        feat.SetGeometryDirectly(ogr.Geometry(wkt=footprint_wkt))
+        layer.CreateFeature(feat)
+        
+        # rasterize the polygon, burning the opaque value into the alpha band
+        gdal.RasterizeLayer(src_ds, [4], layer, burn_values=[get_limits(dt)[1]])
+
 
