@@ -283,7 +283,7 @@ class WMSDatasetSeriesLayer(WMSLayer):
         layer.setExtent(*self.dataset_series.getWGS84Extent())
         
         time_extent = ",".join(
-            sorted({isotime(coverage.getBeginTime()) for coverage in coverages})
+            sorted(set(isotime(coverage.getBeginTime()) for coverage in coverages))
         )
         layer.setMetaData("wms_timeextent", time_extent)
         
