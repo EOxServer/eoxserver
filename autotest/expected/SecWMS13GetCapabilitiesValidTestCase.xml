@@ -288,7 +288,7 @@ Copyright (C) European Space Agency - ESA
             <northBoundLatitude>45.1758</northBoundLatitude>
           </EX_GeographicBoundingBox>
           <BoundingBox CRS="EPSG:4326" maxx="45.1758" maxy="33.1348" minx="32.0801" miny="-4.04297"/>
-          <Dimension name="time" nearestValue="0" units="ISO8601">2006-08-30T10:09:49Z,2006-08-22T09:20:58Z,2006-08-16T09:09:29Z,2006-08-16T09:09:29Z,2006-08-16T00:00:00Z</Dimension>
+          <Dimension name="time" nearestValue="0" units="ISO8601">2006-08-16T00:00:00Z,2006-08-16T09:09:29Z,2006-08-22T09:20:58Z,2006-08-30T10:09:49Z</Dimension>
         </Layer>
         <Layer cascaded="0" opaque="0" queryable="1">
           <Name>MER_FRS_1P_reduced_outlines</Name>
@@ -326,7 +326,7 @@ Copyright (C) European Space Agency - ESA
             <northBoundLatitude>45.1758</northBoundLatitude>
           </EX_GeographicBoundingBox>
           <BoundingBox CRS="EPSG:4326" maxx="45.1758" maxy="33.1348" minx="32.0801" miny="-4.04297"/>
-          <Dimension name="time" nearestValue="0" units="ISO8601">2006-08-30T10:09:49Z,2006-08-16T09:09:29Z,2006-08-22T09:20:58Z</Dimension>
+          <Dimension name="time" nearestValue="0" units="ISO8601">2006-08-16T09:09:29Z,2006-08-22T09:20:58Z,2006-08-30T10:09:49Z</Dimension>
         </Layer>
         <Layer cascaded="0" opaque="0" queryable="1">
           <Name>MER_FRS_1P_RGB_reduced_outlines</Name>
