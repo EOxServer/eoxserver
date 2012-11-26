@@ -86,8 +86,9 @@ class Command(EOxServerAdminCommand):
         dst_conf_dir = os.path.join(dst_inst_dir, "conf")
         dst_data_dir = os.path.join(dst_inst_dir, "data")
         dst_logs_dir = os.path.join(dst_inst_dir, "logs")
+        dst_static_dir = os.path.join(dst_inst_dir, "static")
         dst_fixtures_dir = os.path.join(dst_data_dir, "fixtures")
-        dst_templates_dir = os.path.join(dst_inst_dir, "templates") #TODO: Needed?
+        dst_templates_dir = os.path.join(dst_inst_dir, "templates")
         dst_templates_admin_dir = os.path.join(dst_templates_dir, "admin")
 
         src_root_dir = os.path.dirname(eoxserver.__file__)
@@ -107,6 +108,7 @@ class Command(EOxServerAdminCommand):
         os.mkdir(dst_conf_dir)
         os.mkdir(dst_data_dir)
         os.mkdir(dst_logs_dir)
+        os.mkdir(dst_static_dir)
         os.mkdir(dst_fixtures_dir)
         os.mkdir(dst_templates_dir)
         os.mkdir(dst_templates_admin_dir)
