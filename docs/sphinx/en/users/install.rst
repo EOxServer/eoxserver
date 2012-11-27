@@ -169,36 +169,34 @@ There are several easy options to install EOxServer:
   version of EOxServer. You can install EOxServer either from
 
   * `PyPI - the Python Package Index <http://pypi.python.org/pypi>`_ using
-    `pip <http://www.pip-installer.org/en/latest/index.html>`_:
-    ::
+    `pip <http://www.pip-installer.org/en/latest/index.html>`_::
 
       sudo pip install eoxserver
 
-  * Or from the `EOxServer download page <http://eoxserver.org/wiki/Download>`_
-    using pip:
-    ::
+  * or from the `EOxServer download page <http://eoxserver.org/wiki/Download>`_
+    using pip::
 
       sudo pip install http://eoxserver.org/export/head/downloads/EOxServer-<version>.tar.gz
 
-    or manual:
-    ::
+    or manual::
 
       wget http://eoxserver.org/export/head/downloads/EOxServer_full-<version>.tar.gz .
       tar xvfz EOxServer-<version>.tar.gz
       cd EOxServer-<version>
       sudo python setup.py install
 
+  * or binaries provided by your operating system distribution e.g. 
+    :ref:`CentOS <CentOSInstallation>`.
+
 * Install the latest development version, the best option for users who
   want the latest-and-greatest features and aren't afraid of running
   brand-new code. Make sure you have `Subversion
   <http://subversion.tigris.org/>`_ installed and install EOxServer's
-  main development branch (the trunk) using pip:
-  ::
+  main development branch (the trunk) using pip::
 
     sudo pip install svn+http://eoxserver.org/svn/trunk
 
-  or manual:
-  ::
+  or manual::
 
     svn co http://eoxserver.org/svn/trunk/ eoxserver-trunk
     cd eoxserver-trunk
@@ -220,8 +218,7 @@ Upgrading EOxServer
 -------------------
 
 To upgrade an existing installation of EOxServer simply add the `--upgrade`
-switch to your pip command e.g.:
-::
+switch to your pip command e.g.::
 
   sudo pip install --upgrade eoxserver
 
@@ -311,8 +308,7 @@ database. If using the `create_instance` command of the
 have to do is:
 
 * Make sure EOxServer is on your ``PYTHONPATH`` environment variable
-* run in your instance directory
-  ::
+* run in your instance directory::
 
     python manage.py syncdb
 
@@ -334,8 +330,7 @@ software for the database system of your choice.
 Using a SQLite database, all you have to do is to copy the
 ``TEMPLATE_config.sqlite`` and place it somewhere in your instance directory.
 Now you have to edit the ``DATABASES`` of your ``settings.py`` file with the
-following lines:
-::
+following lines::
 
     DATABASES = {
         'default': {
@@ -354,8 +349,7 @@ following lines:
 Using a PostgreSQL/PostGIS database back-end configuration for EOxServer is a
 little bit more complex. Setting up a PostgreSQL database requires also
 installing the PostGIS extensions (the following example is an installation
-based on a Debian system):
-::
+based on a Debian system)::
 
     sudo su - postgres
     POSTGIS_DB_NAME=eoxserver_db
@@ -369,13 +363,11 @@ based on a Debian system):
     psql -d $POSTGIS_DB_NAME -c "GRANT ALL ON spatial_ref_sys TO PUBLIC;"
 
 This creates the database and installs the PostGIS extensions within the
-database. Now a user with password can be set with the following line:
-::
+database. Now a user with password can be set with the following line::
 
     createuser -d -R -P -S eoxserver-admin
 
-In the ``settings.py`` the following entry has to be added:
-::
+In the ``settings.py`` the following entry has to be added::
 
     DATABASES = {
         'default': {
@@ -412,23 +404,24 @@ In the following we present the way to deploy it using the `Apache2 Web Server
 
 The deployment procedure consists of the following:
 
-* create a ``deployment`` subdirectory in your instance
-* copy ``TEMPLATE_wsgi.py`` from the EOxServer distribution ``eoxserver/conf``
-  directory there under the name ``wsgi.py``
-* Customize ``wsgi.py``
-* Customize the Apache2 configuration file
-* Restart the Web Server
 
-In ``wsgi.py``, two items need to be customized. First, the Python path has to
-be set properly and second, the Django settings module (``settings.py``) has to
-be configured. The places where to fill in the right names are indicated in the
-file.
+* Customize ``wsgi.py`` in your EOxServer instance and add::
 
-In the Apache2 configuration file of your server, e.g.
-``/etc/apache2/sites-enabled/000-default``, please add the following lines::
+    import sys
 
-    Alias /<url> <absolute path to instance dir>/deployment/wsgi.py
-    <Directory "<absolute path to instance dir>/deployment">
+    path = "<absolute path to instance dir>"
+    if path not in sys.path:
+        sys.path.append(path)
+
+  * If using Django < 1.4 please copy ``TEMPLATE_wsgi.py`` from the EOxServer 
+    distribution ``eoxserver/conf`` directory in your instance under the name 
+    ``wsgi.py`` and customize it at the two indicated places.
+
+* Customize the Apache2 configuration file, e.g.
+  ``/etc/apache2/sites-enabled/000-default``, by adding::
+
+    Alias /<url> <absolute path to instance dir>/wsgi.py
+    <Directory "<absolute path to instance dir>">
             AllowOverride None
             Options +ExecCGI -MultiViews +SymLinksIfOwnerMatch
             AddHandler wsgi-script .py
@@ -436,14 +429,16 @@ In the Apache2 configuration file of your server, e.g.
             Allow from all
     </Directory>
 
+* Restart the Web Server
+
 As a general good idea the number of threads can be limited using the 
 following additional Apache2 configuration. In case an old version of 
-MapServer, i.e. < 6.2 or < 6.0.4, is used the number of threads ``needs`` to be 
+MapServer, i.e. < 6.2 or < 6.0.4, is used the number of threads **needs** to be 
 limited to 1 to avoid some `thread safety issues 
 <https://github.com/mapserver/mapserver/issues/4369>`_::
 
     WSGIDaemonProcess ows processes=10 threads=1
-    <Directory "<absolute path to instance dir>/deployment">
+    <Directory "<absolute path to instance dir>">
         ...
         WSGIProcessGroup ows
     </Directory>
@@ -457,16 +452,9 @@ Now that the public URL is known don't forget to adjust the configuration in
     [services.owscommon]
     http_service_url=http://<url>/ows
 
-Add the following line in the Apache2 configuration file of your server if 
-you want to load the media files, e.g. CSS, of the admin for a nice looking 
-GUI::
-
-    Alias /media <absolute path to django installation>/contrib/admin/media/
-
-Alternatively and probably more secure set ``STATIC_URL`` and ``STATIC_ROOT`` 
-in ``settings.py`` and collect the static files with the following command 
-from within your instance as described `here  <https://docs.djangoproject.com/en
-/dev/howto/static-files/#deploying-static-files-in-a-nutshell>`_::
+Finally all the static files need to be collected at the location configured 
+by ``STATIC_ROOT`` in ``settings.py`` by using the following command from 
+within your instance::
 
     python manage.py collectstatic
 
@@ -486,8 +474,7 @@ EOxServer. As a Django application, the instance can be configured using the
 
 EOxServer provides a specific command to insert datasets into the instance,
 called ``eoxs_register_dataset``. It is invoked from command line from your
-instance base folder:
-::
+instance base folder::
 
     python manage.py eoxs_register_dataset --data-file DATAFILES --rangetype RANGETYPE
 

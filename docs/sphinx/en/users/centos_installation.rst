@@ -107,7 +107,7 @@ Further packages may be required if additional features (e.g: a full DBMS)
 are desired. The following command for example installs all packages needed 
 when using SQLite::
 
-    sudo yum install sqlite pysqlite pyspatialite
+    sudo yum install sqlite libspatialite pysqlite pyspatialite
 
 Now that EOxServer is properly install the next step is to :ref:`create and configure
 an instance <Creating an Instance>`. 
@@ -137,7 +137,7 @@ resolves and installs all dependencies. So a simple::
 
 suffices to install EOxServer itself.
 
-To upgrade an existing installation of EOxServer simply add the `--upgrade` 
+To upgrade an existing installation of EOxServer simply add the ``--upgrade``
 switch to your pip command::
 
   sudo pip-python install --upgrade eoxserver
@@ -155,7 +155,7 @@ also requires `pysqlite <http://code.google.com/p/pysqlite/>`_ and
 <http://packages.eox.at>`_ or from source.
 
 If installing from source please make sure to adjust the 
-`SQLITE_OMIT_LOAD_EXTENSION` parameter in `setup.cfg` which is set by 
+`SQLITE_OMIT_LOAD_EXTENSION` parameter in ``setup.cfg`` which is set by 
 default but not allowed for EOxServer. The following provides a complete 
 installation procedure::
 
@@ -167,7 +167,9 @@ installation procedure::
     sed -e '/^define=SQLITE_OMIT_LOAD_EXTENSION$/d' -i setup.cfg
     sudo python setup.py install
 
-If the installation is rerun the ``--force`` flag has to be added in order to 
-actually redo the installation::
+If the installation is rerun the ``--upgrade`` respectively the ``--force`` 
+flag have to be added to the ``pip-python`` and ``python`` commands in order 
+to actually redo the installation::
 
+    sudo pip-python install --upgrade pyspatialite
     sudo python setup.py install --force

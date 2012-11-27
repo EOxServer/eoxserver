@@ -102,14 +102,14 @@ To run tests against a component of EOxServer simply run::
     python manage.py test <component>
 
 where `<component>` is one of `services`, `core`, `backends`, `coverages` and 
-`processes`. If all components shall be tested in one pass, just the 
-`<component>` parameter has to be omitted. Detailed information about running 
+`processes`. If all components shall be tested in one pass, just omit the 
+`<component>` parameter. Detailed information about running 
 Django tests can be found in the `according chapter of the Django documentation 
 <https://docs.djangoproject.com/en/1.3/topics/testing/#running-tests>`_.
 
 Due to some behaviour of underlying software such as GEOSS the tests for the 
-`services` component need to be split up. The following splitting is known to 
-work::
+`services` component need to be split up when used with a SQLite database. The 
+following splitting is known to work and to cover all test cases::
 
     python manage.py test services.Empty
     python manage.py test services.WCS1
