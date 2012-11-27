@@ -42,15 +42,34 @@
 cd <path_to_eoxserver_directory>
 svn co http://eoxserver.org/svn/trunk . # Note that the directories should not be moved or renamed because of relative paths.
 mv autotest tmp1
-eoxserver-admin.py create_instance autotest
-mv autotest tmp2
+eoxserver-admin.py create_instance autotest --init_spatialite
+mv autotest/manage.py tmp1/
+
+# Django >= 1.4
+mv autotest/autotest/ tmp2
+rmdir autotest/
+
+## Django < 1.4
+#mv autotest tmp2
+
 mv tmp1 autotest
+
 mv tmp2/settings.py autotest/
-mv tmp2/manage.py autotest/
 mv tmp2/conf/eoxserver.conf autotest/conf/
+mv tmp2/wsgi.py autotest/
+mv tmp2/data/config.sqlite autotest/data/
+mv tmp2/data/init_spatialite-2.3.sql autotest/data/
 rm -r tmp2
 
-export PYTHONPATH="<path_to_eoxserver_directory>"
+# Django >= 1.4
+sed -e 's/\/autotest\/autotest/\/autotest/' -i autotest/settings.py
+sed -e 's/\/autotest\/autotest/\/autotest/' -i autotest/conf/eoxserver.conf
+
+cd eoxserver/processing/gdal/
+make
+cd ../../../
+
+export PYTHONPATH=`pwd`
 cd autotest
 python manage.py syncdb
 
