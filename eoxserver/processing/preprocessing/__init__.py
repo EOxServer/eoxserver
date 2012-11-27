@@ -180,11 +180,12 @@ class PreProcessor(object):
             
             polygon = [exterior]
         
+        num_bands = ds.RasterCount
         
         # close the dataset and write it to the disc
         ds = None
         
-        return PreProcessResult(output_filename, polygon)
+        return PreProcessResult(output_filename, polygon, num_bands)
     
     
     def _generate_footprint_wkt(self, ds):
@@ -324,9 +325,10 @@ class WMSPreProcessor(PreProcessor):
 
 class PreProcessResult(object):
     """ Result storage for preprocessed datasets. """
-    def __init__(self, output_filename, footprint):
+    def __init__(self, output_filename, footprint, num_bands):
         self.output_filename = output_filename
         self._footprint = footprint
+        self.num_bands = num_bands
     
     
     @property
