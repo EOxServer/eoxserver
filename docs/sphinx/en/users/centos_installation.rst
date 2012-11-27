@@ -42,7 +42,7 @@ Installation on CentOS
     :backlinks: top
 
 This article describes the installation procedure for EOxServer on a `CentOS
-<http://www.centos.org/>`_ system. In this example, a raw CentOS 6.2 minimal
+<http://www.centos.org/>`_ system. In this example, a raw CentOS 6.3 minimal
 image is used.
 
 This installation example is complementary to the standard :ref:`Installation`
@@ -75,99 +75,101 @@ Linux) <http://fedoraproject.org/wiki/EPEL>`_ again via a simple `yum` command::
 
     sudo rpm -Uvh http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-5.noarch.rpm
 
-EOxServer requires several adjustments to existing packages to work correctly 
-which can be easily obtained from the yum repository at `packages.eox.at 
-<http://packages.eox.at>`_. This repository offers current versions of packages 
-like `MapServer <http://mapserver.org/>`_ as well as custom built ones with 
-extra drivers enabled like `GDAL <http://gdal.org/>`_ and/or with patches 
-applied like `libxml2 <http://xmlsoft.org/>`_. It is not mandatory to use this
-repository but it is highly recommended in order for all features of EOxServer 
-to work correctly.
+Finally EOxServer is available from the yum repository at `packages.eox.at 
+<http://packages.eox.at>`_. This repository offers current versions of 
+packages like `MapServer <http://mapserver.org/>`_ as well as custom built 
+ones with extra drivers enabled like `GDAL <http://gdal.org/>`_ and/or with 
+patches applied like `libxml2 <http://xmlsoft.org/>`_. It is not mandatory 
+to use this repository as detailed below but it is highly recommended in 
+order for all features of EOxServer to work correctly. The repository is 
+again easily added via a single `yum` command::
 
-The repository is easily installed::
-
-    cd /etc/yum.repos.d/
-    sudo wget http://packages.eox.at/eox.repo
-    sudo rpm --import http://packages.eox.at/eox-package-maintainers.gpg
-    sudo yum update
-
-
-Installation of required software packages
-------------------------------------------
-
-Now the required packages can be installed with only one command::
-
-    sudo yum install gcc gdal gdal-devel gdal-python libxml2 libxml2-python \
-                     mapserver mapserver-python sqlite sqlite-devel \
-                     python-lxml python-pip python-devel
-
-Further packages may be required if additional features (e.g: a full DBMS) are
-desired.
+    sudo rpm -Uvh http://yum.packages.eox.at/el/eox-release-6-1.noarch.rpm
 
 
 Installing EOxServer
 --------------------
 
-For installation of Python packages `pip <http://www.pip-installer.org/>`_ is 
-used, which iself was installed in the previous step. It automatically resolves 
-and installs all dependencies. So a simple
-::
+Once the RPM repositories are configured EOxServer and all its dependencies 
+are installed via a single command::
+
+    sudo yum install EOxServer
+
+To update EOxServer simply run the above command again or update the whole 
+system with::
+
+    sudo yum update
+
+Please don't forget to follow the update procedure for any configured 
+EOxServer instances in case of a major version upgrade.
+
+Further packages may be required if additional features (e.g: a full DBMS) 
+are desired. The following command for example installs all packages needed 
+when using SQLite::
+
+    sudo yum install sqlite libspatialite pysqlite pyspatialite
+
+Now that EOxServer is properly install the next step is to :ref:`create and configure
+an instance <Creating an Instance>`. 
+
+
+Alternate installation method using pip
+---------------------------------------
+
+Installation of required software packages
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The installation via pip builds EOxServer from its source. Thus there are 
+some additional packages required which can be installed using::
+
+    sudo yum install gdal gdal-python gdal-devel mapserver mapserver-python \
+                     libxml2 libxml2-python python-lxml python-pip \
+                     python-devel gcc
+
+Installing EOxServer
+~~~~~~~~~~~~~~~~~~~~
+
+For the installation of Python packages `pip <http://www.pip-installer.org/>`_ 
+is used, which itself was installed in the previous step. It automatically 
+resolves and installs all dependencies. So a simple::
 
     sudo pip-python install eoxserver
 
 suffices to install EOxServer itself.
 
-Upgrading EOxServer
--------------------
-
-To upgrade an existing installation of EOxServer simply add the `--upgrade` 
+To upgrade an existing installation of EOxServer simply add the ``--upgrade``
 switch to your pip command::
 
   sudo pip-python install --upgrade eoxserver
 
-When used with `spatialite <http://www.gaia-gis.it/spatialite/>`_ make sure 
-to rerun the manual pysqlite installation as explained below after every 
-upgrade.
+Please don't forget to follow the update procedure for any configured 
+EOxServer instances in case of a major version upgrade.
 
-It might be a good idea to update the whole system which might include updates of required software packages such as MapServer::
 
-    sudo yum update
+Special pysqlite considerations
+-------------------------------
 
-Please follow the update procedure for any configured EOxServer instances in 
-case of a major version upgrade.
+When used with `spatialite <http://www.gaia-gis.it/spatialite/>`_ EOxServer 
+also requires `pysqlite <http://code.google.com/p/pysqlite/>`_ and 
+`pyspatialite` which can be either installed as RPMs from `packages.eox.at 
+<http://packages.eox.at>`_ or from source.
 
-spatialite usage
-----------------
-
-When used with `spatialite <http://www.gaia-gis.it/spatialite/>`_ EOxServer
-also requires `pysqlite <http://code.google.com/p/pysqlite/>`_. Unfortunately
-pysqlite is built by default without a required parameter. Thus it has to be
-installed manually::
-
-    wget https://pysqlite.googlecode.com/files/pysqlite-2.6.3.tar.gz
-    tar xzf pysqlite-2.6.3.tar.gz
-    cd pysqlite-2.6.3
-
-Now `setup.cfg` needs to be opened with a text editor (like `vi`) and the line
-::
-
-    define=SQLITE_OMIT_LOAD_EXTENSION
-
-has to be deleted or commented. Pysqlite can now be installed with::
-
-    sudo python setup.py install
-
-If the installation is rerun you will need to add the ``--force`` flag to 
-actually redo the installation::
-
-    sudo python setup.py install --force
-
-The ``--init_spatialite`` flag of the ``create_instance`` command of the 
-``eoxserver-admin.py`` script used to initialize a sqlite database needs 
-pyspatialite::
+If installing from source please make sure to adjust the 
+`SQLITE_OMIT_LOAD_EXTENSION` parameter in ``setup.cfg`` which is set by 
+default but not allowed for EOxServer. The following provides a complete 
+installation procedure::
 
     sudo yum install libspatialite-devel geos-devel proj-devel
     sudo pip-python install pyspatialite
+    wget https://pysqlite.googlecode.com/files/pysqlite-2.6.3.tar.gz
+    tar xzf pysqlite-2.6.3.tar.gz
+    cd pysqlite-2.6.3
+    sed -e '/^define=SQLITE_OMIT_LOAD_EXTENSION$/d' -i setup.cfg
+    sudo python setup.py install
 
-Now that EOxServer is properly install the next step is to :ref:`create and configure
-an instance <Creating an Instance>`. 
+If the installation is rerun the ``--upgrade`` respectively the ``--force`` 
+flag have to be added to the ``pip-python`` and ``python`` commands in order 
+to actually redo the installation::
+
+    sudo pip-python install --upgrade pyspatialite
+    sudo python setup.py install --force
