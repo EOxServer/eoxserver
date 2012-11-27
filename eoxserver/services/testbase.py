@@ -896,8 +896,49 @@ class RasdamanTestCaseMixIn(object):
         super(RasdamanTestCaseMixIn, self).setUp()
     
 #===============================================================================
-# WMS 1.3 test classes
+# WMS test classes
 #===============================================================================
+
+class WMS11GetMapMixIn(object):
+    layers = []
+    styles = []
+    crs = "epsg:4326"
+    bbox = (0, 0, 1, 1)
+    width = 100
+    height = 100
+    frmt = "image/jpeg"
+    time = None
+    dim_band = None
+    
+    swap_axes = True
+    
+    httpHeaders = None
+    
+    def getFileExtension(self, part=None):
+        return mimetypes.guess_extension(self.frmt, False)[1:]
+    
+    def getRequest(self):
+        params = "service=WMS&request=GetMap&version=1.1.1&" \
+                 "layers=%s&styles=%s&srs=%s&bbox=%s&" \
+                 "width=%d&height=%d&format=%s" % (
+                     ",".join(self.layers), ",".join(self.styles), self.crs,
+                     ",".join(map(str, self.bbox)),
+                     self.width, self.height, self.frmt
+                 )
+        
+        if self.time:
+            params += "&time=%s" % self.time
+            
+        if self.dim_band:
+            params += "&dim_band=%s" % self.dim_band
+        
+        if self.httpHeaders is None:
+            return (params, "kvp")
+        else:
+            return (params, "kvp", self.httpHeaders)
+
+class WMS11GetMapTestCase(WMS11GetMapMixIn, RasterTestCase):
+    pass
 
 class WMS13GetMapMixIn(object):
     layers = []
