@@ -1247,6 +1247,12 @@ class WCS11PostGetCoverageMosaicTestCase(eoxstest.RectifiedGridCoverageMultipart
 # WMS
 #===============================================================================
 
+class WMS11GetCapabilitiesValidTestCase(eoxstest.OWSTestCase):
+    """This test shall retrieve a valid WMS 1.1 GetCapabilities response"""
+    def getRequest(self):
+        params = "service=WMS&version=1.1.1&request=GetCapabilities"
+        return (params, "kvp")
+
 class WMS13GetCapabilitiesValidTestCase(eoxstest.XMLTestCase):
     """This test shall retrieve a valid WMS 1.3 GetCapabilities response"""
     def getRequest(self):
@@ -1273,6 +1279,14 @@ class WMS13GetMapNoServiceParameterTestCase(eoxstest.RasterTestCase):
                  "layers=mosaic_MER_FRS_1P_RGB_reduced&styles=&crs=epsg:4326&" \
                  "bbox=35,10,45,20&width=100&height=100&format=image/tiff"
         return (params, "kvp")
+
+class WMS11GetMapMultipleDatasetsTestCase(eoxstest.WMS11GetMapTestCase):
+    """ Test a GetMap request with two datasets. """
+    layers = ("mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced",
+              "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced",
+              )
+    width = 200
+    bbox = (-3.75, 32.19025, 28.29481, 46.268645)
 
 class WMS13GetMapMultipleDatasetsTestCase(eoxstest.WMS13GetMapTestCase):
     """ Test a GetMap request with two datasets. """
