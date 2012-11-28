@@ -147,9 +147,7 @@ class PreProcessor(object):
             opt(ds, footprint_wkt)
         
         
-        # adjust the filename with the correct extension
-        base_filename, _ = splitext(output_filename)
-        output_filename = base_filename + self.format_selection.extension 
+        output_filename = self.generate_filename(output_filename)
         
         logger.debug("Writing file to disc using options: %s."
                      % ", ".join(self.format_selection.creation_options))
@@ -186,6 +184,12 @@ class PreProcessor(object):
         ds = None
         
         return PreProcessResult(output_filename, polygon, num_bands)
+    
+    
+    def generate_filename(self, filename):
+        """ Adjust the filename with the correct extension. """
+        base_filename, _ = splitext(filename)
+        return base_filename + self.format_selection.extension 
     
     
     def _generate_footprint_wkt(self, ds):
