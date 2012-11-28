@@ -334,7 +334,7 @@ class EODatasetMixIn(EOCoverageMixIn):
     
     def delete(self):
         data_package = self.data_package
-        super(EOCoverageMixIn, self).delete()
+        super(EODatasetMixIn, self).delete()
         data_package.delete()
         
 def _checkFootprint( footprint , extent ) :
@@ -382,7 +382,7 @@ class RectifiedDatasetRecord(CoverageRecord, EODatasetMixIn):
     
     def delete(self):
         extent = self.extent
-        super(EOCoverageMixIn, self).delete()
+        super(RectifiedDatasetRecord, self).delete()
         extent.delete()
 
 class ReferenceableDatasetRecord(CoverageRecord, EODatasetMixIn):
