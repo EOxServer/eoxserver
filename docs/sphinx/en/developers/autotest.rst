@@ -65,9 +65,9 @@ Now it can be filled with its content, downloaded from the `EOxServer project
 download page <http://http://eoxserver.org/wiki/Download>`_ and unpacked into
 the previously created instance (say yes if asked to overwrite)::
 
-    wget http://eoxserver.org/export/head/downloads/EOxServer_autotest-0.2.1.tar.gz
-    tar xvfz EOxServer_autotest-0.2.1.tar.gz
-    cp -Rf EOxServer_autotest-0.2.1/* autotest
+    wget http://eoxserver.org/export/head/downloads/EOxServer_autotest-0.2.2.tar.gz
+    tar xvfz EOxServer_autotest-0.2.2.tar.gz
+    cp -Rf EOxServer_autotest-0.2.2/* autotest
 
 Currently there are two configuration directives in ``conf/eoxserver.conf`` 
 which influence the testing procedure and allow to skip certain test cases 
@@ -138,9 +138,9 @@ XML Validation
 In order to speed up the tests and also to pass certain tests it is highly 
 recommended to make usage of locally stored schemas via XML Catalog::
 
-    wget http://eoxserver.org/export/head/downloads/EOxServer_schemas-0.2.1.tar.gz
-    tar xvfz EOxServer_schemas-0.2.1.tar.gz
-    export XML_CATALOG_FILES=`pwd`"/EOxServer-0.2.1/schemas/catalog.xml"
+    wget http://eoxserver.org/export/head/downloads/EOxServer_schemas-0.2.2.tar.gz
+    tar xvfz EOxServer_schemas-0.2.2.tar.gz
+    export XML_CATALOG_FILES=`pwd`"/EOxServer-0.2.2/schemas/catalog.xml"
 
 This allows the underlying libxml2 to vastly improve the performance of parsing
 schemas and the validation of XML trees against them. Also, several schemas
