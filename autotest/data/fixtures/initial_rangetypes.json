@@ -76,6 +76,19 @@
         }
     }, 
     {
+        "pk": 5, 
+        "model": "coverages.bandrecord", 
+        "fields": {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+            "name": "alpha", 
+            "nil_values": [], 
+            "gdal_interpretation": 6, 
+            "identifier": "alpha", 
+            "uom": "W.m-2.Sr-1", 
+            "description": "Alpha Channel"
+        }
+    }, 
+    {
         "pk": 1, 
         "model": "coverages.rangetyperecord", 
         "fields": {
@@ -88,6 +101,14 @@
         "model": "coverages.rangetyperecord", 
         "fields": {
             "name": "Grayscale", 
+            "data_type": 1
+        }
+    },  
+    {
+        "pk": 3, 
+        "model": "coverages.rangetyperecord", 
+        "fields": {
+            "name": "RGBA", 
             "data_type": 1
         }
     }, 
@@ -125,6 +146,42 @@
             "range_type": 2, 
             "band": 4, 
             "no": 1
+        }
+    }, 
+    {
+        "pk": 5, 
+        "model": "coverages.rangetype2band", 
+        "fields": {
+            "range_type": 3, 
+            "band": 1, 
+            "no": 1
+        }
+    }, 
+    {
+        "pk": 6, 
+        "model": "coverages.rangetype2band", 
+        "fields": {
+            "range_type": 3, 
+            "band": 2, 
+            "no": 2
+        }
+    }, 
+    {
+        "pk": 7, 
+        "model": "coverages.rangetype2band", 
+        "fields": {
+            "range_type": 3, 
+            "band": 3, 
+            "no": 3
+        }
+    }, 
+    {
+        "pk": 8, 
+        "model": "coverages.rangetype2band", 
+        "fields": {
+            "range_type": 3, 
+            "band": 5, 
+            "no": 4
         }
     }
 ]
