@@ -124,6 +124,9 @@ class WMSCoverageLayer(WMSLayer):
     def isRGB(self):
         return self.coverage.getRangeType().name == "RGB"
     
+    def isRGBA(self):
+        return self.coverage.getRangeType().name == "RGBA"
+    
     def isGrayscale(self):
         return self.coverage.getRangeType().name == "Grayscale"
         
@@ -136,9 +139,7 @@ class WMSCoverageLayer(WMSLayer):
     def getBandSelection(self, req):
         bands = self.coverage.getRangeType().bands
         
-        if len(bands) == 1 or len(bands) == 3:
-            return bands
-        elif len(bands) == 2:
+        if len(bands) in range(1, 5): # 1 to 4
             return bands
         else:
             return bands[:3]
@@ -172,7 +173,7 @@ class WMSCoverageLayer(WMSLayer):
     def configureBands(self, layer, req):
         bands = self.getBandSelection(req)
         
-        if not self.isRGB() and not self.isGrayscale():
+        if not self.isRGB() and not self.isGrayscale() and not self.isRGBA():
             layer.setProcessingKey("BANDS", "%d,%d,%d" % tuple(self.getBandIndices(req)))
         
         self.setOffsiteColor(layer, bands)
@@ -408,7 +409,8 @@ class WMSCommonHandler(MapServerOperationHandler):
             of.name      = sf.mimeType 
             of.mimetype  = sf.mimeType 
             of.extension = _stripDot( sf.defaultExt ) 
-            of.imagemode = mapscript.MS_IMAGEMODE_BYTE
+            #of.imagemode = mapscript.MS_IMAGEMODE_BYTE
+            of.imagemode = mapscript.MS_IMAGEMODE_RGBA
 
             #add the format 
             self.map.appendOutputFormat( of )
