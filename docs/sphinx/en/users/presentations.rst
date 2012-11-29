@@ -46,7 +46,7 @@ FOSS4G 2011, Denver
 `WCS in MapServer 6.0 <http://2011.foss4g.org/sessions/enhanced-support-ogcs-web
 -coverage-service-wcs-mapserver-60>`_
 
-:download:`Download the presentation <presentations/WCS_in_MapServer_6.0.pdf>`
+:download:`Download the presentation <presentations/20110915_WCS_in_MapServer_6.0.pdf>`
 
 The `FOSS4G <http://2011.foss4g.org/>`_ is a global conference focused on Free 
 and Open Source Software for Geospatial, organized by `OSGeo 
@@ -119,7 +119,7 @@ Observation Data <http://foss4g-cee.org/program/presentations/eoxserver-a-soluti
 on-for-online-access-to-large-collections-of-earth-observation-data/>`_
 
 :download:`Download the presentation 
-<presentations/foss4g-cee_eoxserver_20120522.pdf>`
+<presentations/20120522_foss4g-cee_eoxserver.pdf>`
 
 `FOSS4G-CEE <http://foss4g-cee.org/>`_ & Geoinformatics 2012 is the first 
 local conference focused on Free and Open Source Software for Geospatial in 
@@ -137,22 +137,44 @@ al.org/tiki-index.php?page=HMA%20AWG%20Meeting%20no2%202012%208%20June%202012>`_
 
 Description: See :ref:`HMA-AWG February 2012, ESA ESRIN` above
 
+Sentinel-3 OLCI/SLSTR and MERIS/(A)ATSR workshop 2012, ESA ESRIN
+----------------------------------------------------------------
+
+`EOxServer - An Open Source Solution for Standardized Online Access to Earth 
+Observation Data <http://congrexprojects.com/sen3symposium/poster-sessions>`_
+
+:download:`Download the poster 
+<presentations/20121015_EOxServer_Poster.pdf>`
+
+The `Sentinel-3 OLCI/SLSTR and MERIS/(A)ATSR workshop 
+<http://www.sen3symposium.org/>`_ is organized by the European Space Agency, 
+together with Eumetsat, and hosted in ESA-ESRIN, Frascati, Italy. The 
+workshop is open to ESA Principle Investigators and co-investigators, 
+scientists and students using MERIS/(A)ATSR data, future follow-on 
+Sentinel-3 OLCI/SLSTR data users, representatives from GMES services, 
+national, European and international space agencies and value adding 
+industries.
+
 SOMAP 2012, Vienna
 ----------------------------
 
 `EOxServer - Accessing Large Archives of Earth Observation Data Online 
-<http://somap.cartography.at/?SOMAP_2012:Program:November_23rd_2012>`_
+<http://somap.cartography.at/?SOMAP_2012:Program:November_23rd_2012>`_ 
+(`photo 
+<http://somap.cartography.at/plugins/gallery/includes/image.php?pic=L2hvbWUvLn
+NpdGVzLzEyL3NpdGUyNDMvd2ViL3NvbWFwMjAxMi9nYWxsZXJ5L3NvbWFwMDIvU09NQVAyMDEyXzIw
+MTIxMTIzLTE2NDIzOV9KTS5KUEc=&h=1060&w=1600>`_)
 
 :download:`Download the presentation 
 <presentations/20121123_SOMAP2012.pdf>`
 
-"The symposium on Service-Oriented Mapping aims to be a multidisciplinary event, 
-spanning from computer science to geobusiness. 
-
-The aim is to bring together various stakeholders in the area of Service-Oriente
-d mapping (data producers, mapping agencies and companies, infrastructure provid
-ers, software developers, cartographers, artists, ...) in order to discuss the i
-nfluence of this new production environment (the networked spatial infrastructur
-e and its service-oriented distribution) on the map production and the perspecti
-ves of the new paradigm for research and development in cartography." (<http://s
-omap.cartography.at/?SOMAP_2012:Topics>)
+The `Symposium on Service-Oriented Mapping 
+<http://somap.cartography.at/?SOMAP_2012>`_ aims to be a multidisciplinary 
+event, spanning from computer science to geobusiness. The aim is to bring 
+together various stakeholders in the area of Service-Oriented mapping (data 
+producers, mapping agencies and companies, infrastructure providers, 
+software developers, cartographers, artists, ...) in order to discuss the 
+influence of this new production environment (the networked spatial 
+infrastructure and its service-oriented distribution) on the map production 
+and the perspectives of the new paradigm for research and development in 
+cartography.
