@@ -39,8 +39,8 @@ from django.contrib.gis.gdal.srs import SpatialReference, CoordTransform
 
 from eoxserver.core.util.xmltools import XMLEncoder
 from eoxserver.processing.preprocessing.util import (
-    create_mem, create_mem_copy, gdal, ogr, osr, gdalconst
-, copy_projection)
+    create_mem, create_mem_copy, gdal, ogr, osr, gdalconst, copy_projection
+)
 from eoxserver.processing.preprocessing.optimization import (
     BandSelectionOptimization, ColorIndexOptimization, NoDataValueOptimization,
     OverviewOptimization, ReprojectionOptimization, AlphaBandOptimization
