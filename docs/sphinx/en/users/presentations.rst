@@ -136,3 +136,23 @@ al.org/tiki-index.php?page=HMA%20AWG%20Meeting%20no2%202012%208%20June%202012>`_
 <presentations/20120608_EOX_WCS_O3S_HMA-AWG.pdf>`
 
 Description: See :ref:`HMA-AWG February 2012, ESA ESRIN` above
+
+SOMAP 2012, Vienna
+----------------------------
+
+`EOxServer - Accessing Large Archives of Earth Observation Data Online 
+<http://somap.cartography.at/?SOMAP_2012:Program:November_23rd_2012>`_
+
+:download:`Download the presentation 
+<presentations/20121123_SOMAP2012.pdf>`
+
+"The symposium on Service-Oriented Mapping aims to be a multidisciplinary event, 
+spanning from computer science to geobusiness. 
+
+The aim is to bring together various stakeholders in the area of Service-Oriente
+d mapping (data producers, mapping agencies and companies, infrastructure provid
+ers, software developers, cartographers, artists, ...) in order to discuss the i
+nfluence of this new production environment (the networked spatial infrastructur
+e and its service-oriented distribution) on the map production and the perspecti
+ves of the new paradigm for research and development in cartography." (<http://s
+omap.cartography.at/?SOMAP_2012:Topics>)
