@@ -62,7 +62,7 @@ Use the ``--init_spatialite`` to initialize a SQLite database needed for
     eoxserver-admin.py create_instance --id autotest --init_spatialite
 
 Now it can be filled with its content, downloaded from the `EOxServer project
-download page <http://http://eoxserver.org/wiki/Download>`_ and unpacked into
+download page <http://eoxserver.org/wiki/Download>`_ and unpacked into
 the previously created instance (say yes if asked to overwrite)::
 
     wget http://eoxserver.org/export/head/downloads/EOxServer_autotest-0.2.1.tar.gz
