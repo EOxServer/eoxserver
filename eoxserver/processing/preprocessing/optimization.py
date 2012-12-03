@@ -1,3 +1,5 @@
+import logging
+
 import numpy
 
 from eoxserver.processing.preprocessing.util import ( 
@@ -8,6 +10,8 @@ from eoxserver.resources.coverages.crss import (
     parseEPSGCode, fromShortCode, fromURL, fromURN, fromProj4Str
 )
 
+
+logger = logging.getLogger(__name__)
 
 #===============================================================================
 # Dataset Optimization steps
@@ -48,6 +52,11 @@ class ReprojectionOptimization(DatasetOptimization):
         
         dst_sr = osr.SpatialReference()
         dst_sr.ImportFromEPSG(self.srid)
+        
+        if src_sr.IsSame(dst_sr):
+            logger.info("Source and destination projection are equal. No "
+                        "reprojection required.")
+            return src_ds
         
         # create a temporary dataset to get information about the output size
         tmp_ds = gdal.AutoCreateWarpedVRT(src_ds, None, dst_sr.ExportToWkt(), 
@@ -220,12 +229,16 @@ class OverviewOptimization(DatasetPostOptimization):
         have to be applied after the dataset has been reprojected.
     """
     
-    def __init__(self, resampling=None):
+    def __init__(self, resampling=None, overview_levels=None):
         self.resampling = resampling
+        self.overview_levels = overview_levels
     
     
     def __call__(self, ds):
-        ds.BuildOverviews(self.resampling, [2, 4, 8, 16])
+        # workaround for libtiff 3.X systems, which generated wrong overviews on
+        # some levels.
+        for level in self.overview_levels or [2, 4, 8, 16]:
+            ds.BuildOverviews(self.resampling, [level])
         return ds
 
 
