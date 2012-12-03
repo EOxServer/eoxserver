@@ -256,7 +256,8 @@ class OverviewOptimization(DatasetPostOptimization):
                 logger.debug("Calculated overview for size %d (level: %d)."
                              % (size, level))
         
-        logger.info("Building overview levels %s." % ", ".join(map(str, levels)))
+        logger.info("Building overview levels %s with resampling method '%s'."
+                    % (", ".join(map(str, levels)), self.resampling))
         
         # workaround for libtiff 3.X systems, which generated wrong overviews on
         # some levels.
