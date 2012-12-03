@@ -229,15 +229,38 @@ class OverviewOptimization(DatasetPostOptimization):
         have to be applied after the dataset has been reprojected.
     """
     
-    def __init__(self, resampling=None, overview_levels=None):
+    def __init__(self, resampling=None, levels=None, minsize=None):
         self.resampling = resampling
-        self.overview_levels = overview_levels
+        self.levels = levels
+        self.minsize = minsize
     
     
     def __call__(self, ds):
+        levels = self.levels
+        
+        # calculate the overviews automatically.
+        if not levels:
+            desired_size = abs(self.minsize) or 256
+            size = max(ds.RasterXSize, ds.RasterYSize)
+            level = 1
+            levels = []
+            
+            logger.debug("Computing overview levels for requested size %d."
+                         % desired_size)
+            
+            while size > desired_size:
+                size /= 2
+                level *= 2
+                levels.append(level)
+                
+                logger.debug("Calculated overview for size %d (level: %d)."
+                             % (size, level))
+        
+        logger.info("Building overview levels %s." % ", ".join(map(str, levels)))
+        
         # workaround for libtiff 3.X systems, which generated wrong overviews on
         # some levels.
-        for level in self.overview_levels or [2, 4, 8, 16]:
+        for level in levels:
             ds.BuildOverviews(self.resampling, [level])
         return ds
 
