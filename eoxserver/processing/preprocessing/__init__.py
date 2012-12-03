@@ -94,12 +94,14 @@ class PreProcessor(object):
     def __init__(self, format_selection, overviews=True, crs=None, bands=None, 
                  bandmode=RGB, footprint_alpha=False,
                  color_index=False, palette_file=None, no_data_value=None,
-                 overview_resampling=None, overview_levels=None):
+                 overview_resampling=None, overview_levels=None, 
+                 overview_minsize=None):
         
         self.format_selection = format_selection
         self.overviews = overviews
         self.overview_resampling = overview_resampling
         self.overview_levels = overview_levels
+        self.overview_minsize = overview_minsize
         
         self.crs = crs
         
@@ -324,7 +326,8 @@ class WMSPreProcessor(PreProcessor):
     def get_post_optimizations(self, ds):
         if self.overviews:
             yield OverviewOptimization(self.overview_resampling,
-                                       self.overview_levels)
+                                       self.overview_levels,
+                                       self.overview_minsize)
 
 
 #===============================================================================
