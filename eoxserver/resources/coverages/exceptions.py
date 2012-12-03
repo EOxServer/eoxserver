@@ -88,4 +88,4 @@ class CoverageIdReleaseError(CoverageIdError):
     This error shall be raised when a Coverage ID is released which was not 
     previously reserved.
     """
-    pass    
+    pass
