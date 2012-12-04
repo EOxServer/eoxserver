@@ -91,9 +91,9 @@ class CommandOutputMixIn(object):
         
         if verbosity > level:
             if error and traceback:
-                self.stout.write(traceback.format_exc() + "\n") 
-            self.stdout.write(msg)
-            self.stdout.write("\n")
+                self.stderr.write(traceback.format_exc() + "\n") 
+            self.stderr.write(msg)
+            self.stderr.write("\n")
         
         if level == 0 and error:
             logger.critical(msg)
