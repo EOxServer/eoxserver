@@ -240,7 +240,7 @@ class OverviewOptimization(DatasetPostOptimization):
         
         # calculate the overviews automatically.
         if not levels:
-            desired_size = abs(self.minsize) or 256
+            desired_size = abs(self.minsize or 256)
             size = max(ds.RasterXSize, ds.RasterYSize)
             level = 1
             levels = []
