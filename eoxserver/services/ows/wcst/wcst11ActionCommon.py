@@ -35,8 +35,9 @@
 import os.path
 import logging
 
-from eoxserver.resources.coverages.covmgrs import CoverageIdManager
-from eoxserver.resources.coverages.covmgrs import CoverageIdReservedError, CoverageIdReleaseError, CoverageIdInUseError
+from eoxserver.resources.coverages.managers import CoverageIdManager
+from eoxserver.resources.coverages.exceptions import CoverageIdReservedError, \
+    CoverageIdReleaseError, CoverageIdInUseError
 
 
 logger = logging.getLogger(__name__)
