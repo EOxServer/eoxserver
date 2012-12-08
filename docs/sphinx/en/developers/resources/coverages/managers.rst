@@ -1,4 +1,4 @@
-.. Module eoxserver.resources.coverages.covmgrs
+.. Module eoxserver.resources.coverages.managers
   #-----------------------------------------------------------------------------
   # $Id$
   #
@@ -28,16 +28,16 @@
   # IN THE SOFTWARE.
   #-----------------------------------------------------------------------------
 
-.. _module_resources_coverages_covmgrs:
+.. _module_resources_coverages_managers:
 
-Module eoxserver.resources.coverages.covmgrs
+Module eoxserver.resources.coverages.managers
 ================================================
 
 .. contents:: Table of Contents
     :depth: 3
     :backlinks: top
 
-.. automodule:: eoxserver.resources.coverages.covmgrs
+.. automodule:: eoxserver.resources.coverages.managers
 
 Coverage ID Manager
 -------------------
