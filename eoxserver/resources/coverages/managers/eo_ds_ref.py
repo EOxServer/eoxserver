@@ -47,12 +47,14 @@ class ReferenceableDatasetManager(EODatasetManager):
     """
 
     _wrapper = "resources.coverages.wrappers.ReferenceableDatasetWrapper",
+    _type0   = "ref_dataset"
+    _type    = "eo.%s"%_type0
 
     REGISTRY_CONF = {
         "name": "Referenceable Dataset Manager",
         "impl_id": "resources.coverages.covmgrs.ReferenceableDatasetManager",
         "registry_values": {
-            "resources.coverages.interfaces.res_type": "eo.ref_dataset"
+            "resources.coverages.interfaces.res_type": _type
         }
     }
     
@@ -66,7 +68,7 @@ class ReferenceableDatasetManager(EODatasetManager):
         return self._get_wrapper( obj_id ).deleteModel()
     
     def _validate_type(self, coverage):
-        return coverage.getType() == "eo.ref_dataset"
+        return coverage.getType() == self._type  
     
     def _create_coverage(self, coverage_id, data_package, data_source, geo_metadata, range_type_name, layer_metadata, eo_metadata, container, containers, visible):
         return self.coverage_factory.create(
@@ -86,7 +88,7 @@ class ReferenceableDatasetManager(EODatasetManager):
         )
     
     def _get_id_prefix(self):
-        return "ref_dataset"
+        return self._type0
 
     #---------------------------------------------------------------------------
 

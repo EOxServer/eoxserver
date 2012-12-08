@@ -100,12 +100,15 @@ class DatasetSeriesManager(BaseManagerContainerMixIn, BaseManager):
         ``obj_id``. If no coverage with this ID can be found, an 
         :exc:`~.NoSuchCoverage` exception will be raised.
     """
+
+    _type0   = "dataset_series"
+    _type    = "eo.%s"%_type0
     
     REGISTRY_CONF = {
         "name": "Dataset Series Manager",
         "impl_id": "resources.coverages.covmgrs.DatasetSeriesManager",
         "registry_values": {
-            "resources.coverages.interfaces.res_type": "eo.dataset_series"
+            "resources.coverages.interfaces.res_type": _type 
         }
     }
     
@@ -163,7 +166,7 @@ class DatasetSeriesManager(BaseManagerContainerMixIn, BaseManager):
         )
     
     def _get_id_prefix(self):
-        return "dataset_series"
+        return self._type0
 
     def _create(self, eo_id, **kwargs):
         #layer_metadata = self._get_layer_metadata(kwargs)

@@ -117,12 +117,14 @@ class RectifiedStitchedMosaicManager(BaseManagerContainerMixIn, CoverageManager)
     """
 
     _wrapper = "resources.coverages.wrappers.RectifiedStitchedMosaicWrapper"
+    _type0   = "rect_stitched_mosaic"
+    _type    = "eo.%s"%_type0
 
     REGISTRY_CONF = {
         "name": "Rectified Stitched Mosaic Manager",
         "impl_id": "resources.coverages.covmgrs.RectifiedStitchedMosaicManager",
         "registry_values": {
-            "resources.coverages.interfaces.res_type": "eo.rect_stitched_mosaic"
+            "resources.coverages.interfaces.res_type": _type 
         }
     }
     
@@ -255,7 +257,7 @@ class RectifiedStitchedMosaicManager(BaseManagerContainerMixIn, CoverageManager)
             )
             
     def _get_id_prefix(self):
-        return "rect_stitched_mosaic"
+        return self._type0 
     
     def _get_contained_range_type_name(self, container, location=None):
         return container.getRangeType().name
@@ -289,7 +291,7 @@ class RectifiedStitchedMosaicManager(BaseManagerContainerMixIn, CoverageManager)
     #---------------------------------------------------------------------------
 
     def _validate_type(self, coverage):
-        return coverage.getType() == "eo.rect_stitched_mosaic"
+        return coverage.getType() == self._type 
 
 
     def _get_wrapper( self, obj_id ) : 
