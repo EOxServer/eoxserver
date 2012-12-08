@@ -89,22 +89,24 @@ Ouput:
 
         # pack header 
         for key,value in header :
-            pack.append( "\n%s: %s"%( key, value ) )
+            pack.append( "\r\n%s: %s"%( key, value ) )
 
         # terminate header
-        pack.append( "\n\n" )
+        pack.append( "\r\n\r\n" )
 
         # append data 
         pack.append( data )
 
         # terminate partition 
-        pack.append( "\n--%s"%boundary )
+        pack.append( "\r\n--%s"%boundary )
 
     #terminate package 
     pack.append("--")
 
     # return package 
     return pack
+
+#-------------------------------------------------------------------------------
 
 def mpUnpack( cbuffer , boundary , capitalize = False ) :
     """
@@ -133,54 +135,108 @@ Output:
 
     """
 
+    #--------------------------------------------------------------------------
+    # boundary finder - closure 
+
     def findBorder( offset = 0 ) :
 
-        delim = "--%s"%boundary if offset == 0 else "\n--%s"%boundary
+        delim = "--%s"%boundary if offset == 0 else "\n--%s"%boundary               
+                                                                                    
+        # boundary offset (end of last data)                                        
+        idx0 = cbuffer.find( delim , offset )                                       
+                                                                                    
+        if ( idx0 < 0 ) :                                                           
+            raise ValueError , "Boundary cannot be found!"                          
+                                                                                    
+        # header offset                                                             
+        idx1 = idx0 + len( delim )                                                  
+                                                                                    
+        # nescessary check to be able to safely check two following characters      
+        if len(cbuffer[idx1:]) < 2  :                                               
+            raise ValueError , "Buffer too short!"                                  
+                                                                                    
+        # check the leading CR character                                            
+        if ( idx0 > 0 ) and ( cbuffer[idx0-1] == "\r" ) : idx0 -= 1                 
+                                                                                    
+        # check the terminating sequence                                            
+        if cbuffer[idx1:(idx1+2)] == "--" : return ( idx0, idx1+2 , -1 )            
+                                                                                    
+        # look-up double endl-line (data offset)                                    
+        tmp = idx1                                                                  
+                                                                                    
+        while True :                                                                
+                                                                                    
+            tmp = 1 + cbuffer.find( "\n" , tmp )                                    
+                                                                                    
+            if ( tmp < 1 ) :                                                        
+                raise ValueError , "Cannot find payload's a double new-line separator!"
+                                                                                    
+            # is it followed by new line?                                           
+                                                                                    
+            elif cbuffer[tmp:(tmp+2)] == "\r\n" :                                   
+                idx2 = tmp + 2                                                      
+                break                                                               
+                                                                                    
+            elif cbuffer[tmp:(tmp+1)] == "\n" :                                     
+                idx2 = tmp + 1                                                      
+                break                                                               
+                                                                                    
+            # otherwise continue to lookup                                          
+            continue
 
-        dlen = len( delim )
-        idx = dlen + cbuffer.find( delim , offset )
+        # adjust the data offset (separator must be followed by new-line)           
+        if   cbuffer[idx1:(idx1+2)] == "\r\n" : idx1 += 2                           
+        elif cbuffer[idx1:(idx1+1)] == "\n"   : idx1 += 1                           
+        else :                                                                      
+            raise ValueError , "Boundary is not followed by a new-line!"            
+                                                                                    
+        return ( idx0 , idx1 , idx2 )
 
-        if ( idx < dlen ) or ( len(cbuffer[idx:]) < 2 )  : raise ValueError , "The input buffer is not a valid multi-part package!"
+    #--------------------------------------------------------------------------
+    # auxiliary nested functions formating header names 
 
-        if cbuffer[idx:(idx+2)] == "--" :
-
-            # termination 
-            return ( idx - dlen , idx+2 , -1 )
-
-        elif cbuffer[idx] != "\n" :
-            raise ValueError , "The input buffer is not a valid multi-part package!"
-
-        idx += 1
-
-        # lookup the data begin
-        jdx = 2 + cbuffer.find( "\n\n" , idx )
-
-        if ( jdx < 2 ) : raise ValueError , "The input buffer is not a valid multi-part package!"
-
-        return ( idx - dlen , idx , jdx )
-
+    # capitalize header name  
     def unpackCC( v ) :
         key , _ , val  = v.partition(":")
-        return ( __capitalize(key) , val.strip() )
+        return ( __capitalize(key.strip()) , val.strip() )
 
+    # header name all lower 
     def unpackLC( v ) :
         key , _ , val  = v.partition(":")
-        return ( key.lower() , val.strip() )
+        return ( key.strip().lower() , val.strip() )
+
+    # filter function rejecting entries with blank keys 
+    def noblank( (k,v) ) : return bool(k) 
+
+    #--------------------------------------------------------------------------
 
     # get the offsets 
-    off = findBorder()
-    offsets  = [off]
+    # off = (<last payload end>,<header start>,<payload start>)
+    # negative <payload start> means terminating boundary  
 
-    while off[1] < off[2] :
-        off = findBorder( off[2] )
-        offsets.append(off)
+    try : 
+
+        off = findBorder()
+        offsets  = [off]
+
+        while off[1] < off[2] :
+            off = findBorder( off[2] )
+            offsets.append(off)
+
+    except ValueError as e :
+
+        raise "The buffer is not a valid MIME multi-part message!"\
+              " Reason: %s" % e.message 
 
     # process the parts 
     parts    = []
     for of0 , of1 in zip( offsets[:-1] , offsets[1:] ) :
 
+        # get the http header with <LF> line ending 
+        tmp = cbuffer[of0[1]:of0[2]].replace("\r\n","\n")[:-2].split("\n")
+
         # unpack header 
-        header = dict( map( (unpackLC,unpackCC)[capitalize] , cbuffer[of0[1]:(of0[2]-2)].split("\n") ) )
+        header = dict(filter(noblank,map((unpackLC,unpackCC)[capitalize],tmp))) 
 
         # get the header and payload offset and size 
         parts.append( ( header , of0[2] , of1[0]-of0[2] ) )
