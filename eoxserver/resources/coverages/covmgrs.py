@@ -46,40 +46,13 @@ documentation of the individual manager classes.
 import warnings 
 import logging 
 
+logger = logging.getLogger(__name__)
+
 warnings.warn("The 'eoxserver.resources.coverages.covmrgs' module is "
     "deprecated. Use ``eoxserver.resources.coverages.managers`` instead."
     , Warning, stacklevel=2)
 
-logging.warn("The 'eoxserver.resources.coverages.covmrgs' module is "
+logger.warn("The 'eoxserver.resources.coverages.covmrgs' module is "
     "deprecated. Use 'eoxserver.resources.coverages.managers' instead." ) 
-
-#import os.path
-#from ConfigParser import RawConfigParser
-#import logging
-#from uuid import uuid4
-#from datetime import timedelta
-
-#from django.contrib.gis.geos.geometry import MultiPolygon
-#try:
-#    from django.utils import timezone
-#except ImportError:
-#    from datetime import datetime as timezone
-
-#from eoxserver.core.system import System
-#from eoxserver.core.exceptions import InternalError
-#from eoxserver.core.util.timetools import UTCOffsetTimeZoneInfo
-#from eoxserver.resources.coverages.exceptions import (
-#    ManagerError, NoSuchCoverageException, CoverageIdReservedError,
-#    CoverageIdInUseError, CoverageIdReleaseError
-#, MetadataException)
-#from eoxserver.resources.coverages.models import (
-#    PlainCoverageRecord, RectifiedDatasetRecord, 
-#    ReferenceableDatasetRecord, RectifiedStitchedMosaicRecord,
-#    ReservedCoverageIdRecord, CoverageRecord, DatasetSeriesRecord
-#) 
-#from eoxserver.resources.coverages.metadata import EOMetadata
-#from eoxserver.processing.mosaic import make_mosaic
-
-#-------------------------------------------------------------------------------
 
 from eoxserver.resources.coverages.managers import *
