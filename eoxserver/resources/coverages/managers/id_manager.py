@@ -219,7 +219,7 @@ class CoverageIdManager(object):
         #      If possible in a SINGLE DB query.
 
         for ct in COVERAGE_EO_TYPES : 
-            if coverage_types[ct].objects.filter( 
+            if COVERAGE_EO_TYPES[ct].objects.filter( 
                     Q(coverage_id=coverage_id) | Q(coverage_id=coverage_id)
                 ).count() > 0 : return ct 
 

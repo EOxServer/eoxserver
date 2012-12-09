@@ -31,6 +31,8 @@
 from eoxserver.core.system import System
 from eoxserver.resources.coverages.exceptions import NoSuchCoverageException
 
+from eoxserver.processing.mosaic import make_mosaic
+
 #-------------------------------------------------------------------------------
 
 from eoxserver.resources.coverages.managers.base import BaseManagerContainerMixIn
@@ -306,7 +308,7 @@ class RectifiedStitchedMosaicManager(BaseManagerContainerMixIn, CoverageManager)
 
         :rtype: list of CoverageIDs (strings)  
         """
-        return [ obj.getCoverageID() for obj in self.coverage_factory.find(
+        return [ obj.getCoverageId() for obj in self.coverage_factory.find(
                     impl_ids=[self._wrapper] ) ]
 
 
