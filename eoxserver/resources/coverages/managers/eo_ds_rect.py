@@ -143,7 +143,7 @@ class RectifiedDatasetManager(EODatasetManager):
 
         :rtype: list of CoverageIDs (strings)  
         """
-        return [ obj.getCoverageID() for obj in self.coverage_factory.find(
+        return [ obj.getCoverageId() for obj in self.coverage_factory.find(
                     impl_ids=[self._wrapper] ) ]
 
 
