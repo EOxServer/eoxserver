@@ -28,6 +28,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+import os.path 
 from eoxserver.core.system import System
 from eoxserver.resources.coverages.exceptions import NoSuchDatasetSeriesException
 
