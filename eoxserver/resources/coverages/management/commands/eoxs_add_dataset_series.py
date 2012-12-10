@@ -44,6 +44,11 @@ from eoxserver.resources.coverages.management.commands import (
 )
 from eoxserver.resources.coverages.metadata import EOMetadata
 
+#-------------------------------------------------------------------------------
+
+from eoxserver.resources.coverages.managers import getDatasetSeriesManager
+
+#-------------------------------------------------------------------------------
 
 class Command(CommandOutputMixIn, BaseCommand):
     option_list = BaseCommand.option_list + (
@@ -135,7 +140,7 @@ class Command(CommandOutputMixIn, BaseCommand):
                 32.2014459999999971, 11.3610659999999992 
                 32.2014459999999971))"
     """ % ({"name": __name__.split(".")[-1]}))
-    args = '--eoid EOID'
+    args = '--eo-id EOID'
 
     def handle(self, *args, **options):
         System.init()
@@ -148,7 +153,7 @@ class Command(CommandOutputMixIn, BaseCommand):
         
         eoid = options.get("eoid")
         if eoid is None:
-            raise CommandError("Mandatory parameter `--eoid` not supplied.")
+            raise CommandError("Mandatory parameter `--eo-id` not supplied.")
         
         data_sources = options.get("data_sources", [])
         patterns = options.get("patterns", [])
@@ -171,12 +176,7 @@ class Command(CommandOutputMixIn, BaseCommand):
         # Create Dataset Series
         #=======================================================================
         
-        dss_mgr = System.getRegistry().findAndBind(
-            intf_id="resources.coverages.interfaces.Manager",
-            params={
-                "resources.coverages.interfaces.res_type": "eo.dataset_series"
-            }
-        )
+        dss_mgr = getDatasetSeriesManager() 
         
         self.print_msg("Creating Dataset Series with ID '%s'." % eoid, 1)
         
@@ -198,10 +198,8 @@ class Command(CommandOutputMixIn, BaseCommand):
                 if len(patterns) == 1:
                     patterns *= len(data_sources)
                 elif len(patterns) == 0:
-                    self.print_msg(
-                        "WARNING: No `--pattern` option given. Using " 
-                        "default.", 2
-                    )
+                    self.print_msg( "No pattern is given. "
+                                    "Using the default one.",2)
                     patterns = [None] * len(data_sources)
                 elif len(patterns) != len(data_sources):
                     raise CommandError(

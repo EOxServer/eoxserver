@@ -28,36 +28,18 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from eoxserver.core.system import System
-from eoxserver.resources.coverages.management.commands import (
-    DatasetManagementCommand
-)
+from eoxserver.resources.coverages.management.commands import ManageDatasetSeriesCommand 
 
+class Command(ManageDatasetSeriesCommand): 
 
-class Command(DatasetManagementCommand):
-    help=("Management command to insert one or more coverages into one or more "
-          "dataset series.")
-    args = ("--datasets DatasetID1 [DatasetID2 [...]] --dataset-series "
-            "DatasetSeriesID1 [DatasetSeriesID2 [...]]")
-    
-    def manage_datasets(self, dataset_ids, datasetseries_ids):
-        """ Main method for dataset handling.
-        """
-        
-        datasetseries_manager = System.getRegistry().findAndBind(
-            intf_id="resources.coverages.interfaces.Manager",
-            params={
-                "resources.coverages.interfaces.res_type": "eo.dataset_series"
-            }
-        )
-        
+    help=("Remove one or more datasets (DS) from one or more specified dataset"
+    " series (DSS).")
+
+    def manage_series(self, manager, dataset_ids, datasetseries_ids):
+        """Main method for dataset handling."""
+
+        #TODO: check if the removed datasets are contained by the series
+
         for dssid in datasetseries_ids:
-            params = {
-                "obj_id": dssid,
-                "link": {
-                    "coverage_ids": dataset_ids
-                }
-            }
-            datasetseries_manager.update(**params)
 
-    
+            manager.update( obj_id=dssid, unlink={"coverage_ids":dataset_ids}) 
