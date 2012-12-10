@@ -37,8 +37,14 @@ from eoxserver.resources.coverages.exceptions import (
 from eoxserver.resources.coverages.models import (
     PlainCoverageRecord, RectifiedDatasetRecord, 
     ReferenceableDatasetRecord, RectifiedStitchedMosaicRecord,
-    ReservedCoverageIdRecord, CoverageRecord, DatasetSeriesRecord
+    ReservedCoverageIdRecord, CoverageRecord, DatasetSeriesRecord,
 ) 
+
+try:
+    from django.utils import timezone
+except ImportError:
+    from datetime import datetime as timezone
+from datetime import timedelta
 
 #-------------------------------------------------------------------------------
 
@@ -177,7 +183,9 @@ class CoverageIdManager(object):
 
         # TODO unify the coverage and eo IDs!!!
         count  = CoverageRecord.objects.filter(coverage_id=coverage_id).count()
-        count += CoverageRecord.objects.filter(eo_id=coverage_id).count()
+        count += RectifiedDatasetRecord.objects.filter(eo_id=coverage_id).count()
+        count += ReferenceableDatasetRecord.objects.filter(eo_id=coverage_id).count()
+        count += RectifiedStitchedMosaicRecord.objects.filter(eo_id=coverage_id).count()
         count += DatasetSeriesRecord.objects.filter(eo_id=coverage_id).count() 
 
         return ( count > 0 ) 
@@ -292,6 +300,14 @@ class CoverageIdManager(object):
         """
         return [ obj.coverage_id for obj in ReservedCoverageIdRecord.\
                     objects.filter(request_id=request_id) ]
+
+    def getAllReservedIds(self):
+        """
+        Returns a list of all reserved IDs associated to a specific request ID.
+        """
+        return [ obj.coverage_id for obj in ReservedCoverageIdRecord.\
+                    objects.all() ]
+
 
     #def _get_id_factory(self):
     #    # Unused, but would raise an exception.
