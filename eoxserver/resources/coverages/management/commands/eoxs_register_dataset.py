@@ -5,6 +5,7 @@
 # Authors: Stephan Krause <stephan.krause@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
 #          Fabian Schindler <fabian.schindler@eox.at>
+#          Martin Paces <martin.paces@eox.at>
 #
 #-------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
@@ -31,7 +32,7 @@
 import os.path
 from copy import copy
 import traceback
-from optparse import make_option
+from optparse import make_option, OptionValueError
 
 from osgeo import gdal
 from django.core.management.base import BaseCommand, CommandError
@@ -45,10 +46,55 @@ from eoxserver.resources.coverages.geo import (
     GeospatialMetadata, getExtentFromRectifiedDS, getExtentFromReferenceableDS
 )
 from eoxserver.resources.coverages.management.commands import (
-    CommandOutputMixIn, _variable_args_cb, StringFormatCallback 
+    CommandOutputMixIn, _variable_args_cb, StringFormatCallback, 
+    _footprint, _size, _extent,
 )
 from eoxserver.resources.coverages.metadata import EOMetadata
 
+#------------------------------------------------------------------------------
+
+from eoxserver.resources.coverages.managers import getRectifiedDatasetManager
+from eoxserver.resources.coverages.managers import getReferenceableDatasetManager
+from eoxserver.resources.coverages.managers import getRectifiedStitchedMosaicManager 
+from eoxserver.resources.coverages.managers import getDatasetSeriesManager 
+
+from eoxserver.resources.coverages.rangetype import isRangeTypeName
+
+#------------------------------------------------------------------------------
+
+
+def __extract_footprint( fname ) : 
+    "Extract footprint from the source data file if possible."
+
+    #TODO: handling of referenceable datasets 
+
+    ds = gdal.Open(df)
+    if ds is not None : 
+        footprint = Polygon.from_bbox(getExtentFromRectifiedDS(ds))
+        ds.close() 
+    else : 
+        footprint = None 
+
+    return footprint 
+
+
+def __extract_geo_md( fname ) : 
+    "Extract geo-meta-data from the source data file if possible."
+
+    # TODO: for rasdaman build identifiers
+    # TODO: FTP input 
+
+    ds = gdal.Open(df)
+    if ds is not None : 
+        geo_md = GeospatialMetadata.readFromDataset(ds,srid)
+        ds.close() 
+    else : 
+        geo_md = None 
+
+    return geo_md 
+
+
+#------------------------------------------------------------------------------
 
 class Command(CommandOutputMixIn, BaseCommand):
     option_list = BaseCommand.option_list + (
@@ -56,87 +102,84 @@ class Command(CommandOutputMixIn, BaseCommand):
                     '--collection', '--collections',
             dest='datafiles',
             action='callback', callback=_variable_args_cb,
-            default=None,
-            help=('Mandatory. One or more paths to files '
-                  'containing the image data. These paths can '
-                  'either be local, ftp paths, or rasdaman '
-                  'collection names.')
+            default=[],
+            help=('Mandatory. One or more input data specifications.'
+                  'The data specification can be either path to a local file, '
+                  'FTP path, or rasdaman collection name.')
         ),
         make_option('-m', '--metadata-file', '--metadata-files',
             dest='metadatafiles',
             action='callback', callback=_variable_args_cb,
             default=[],
-            help=('Optional. One or more paths to a local files '
-                  'containing the image meta data. Defaults to '
-                  'the same path as the data file with the '
-                  '".xml" extension.')
+            help=("Optional. One or more EO meta-data specifications."
+                  "By default, the mata-data is either retrieved directly "
+                  "form the input data or from the accompaninig XML file "
+                  "(having the same location and basename as the data files "
+                  "but '.xml' extension instead of the original one)." )
         ),
-        make_option('-r', '--rangetype',
+        make_option('-r', '--range-type', '--rangetype',
             dest='rangetype',
-            help=('Mandatory identifier of the rangetype used in '
-                  'the dataset.')
+            default=None,
+            help=('Mandatory identifier of the range-type of all the datasets'
+                  'being registered.' ) 
         ),
-        make_option('--dataset-series',
-            dest='datasetseries_eoids',
+        make_option('--series','--dataset-series',
+            dest='ids_series',
             action='callback', callback=_variable_args_cb,
             default=[],
-            help=('Optional. One or more eo ids of a dataset '
-                  'series in which the created datasets shall be '
-                  'added.')
+            help=('Optional. One or more ids of dataset series '
+                   'to which the registerd dataset(s) shall be added.')
         ),
-        make_option('--stitched-mosaic',
-            dest='stitchedmosaic_eoids',
+        make_option('--mosaic','--stitched-mosaic',
+            dest='ids_mosaic',
             action='callback', callback=_variable_args_cb,
             default=[],
-            help=('Optional. One or more eo ids of a rectified '
-                  'stitched mosaic in which the dataset shall '
-                  'be added.')
+            help=('Optional. One or more ids of rectified stitched mosaics '
+                  'to which the registered dataset(s) shall be added.')
         ),
-        make_option('-i', '--coverage-id', '--coverage-ids',
-            dest='coverageids',
+        make_option('-i', '--id' , '--ids', '--coverage-id', '--coverage-ids',
+            dest='ids',
             action='callback', callback=_variable_args_cb,
             default=[],
-            help=('Optional. One or more coverage identifier for '
-                  'each dataset that shall be added. Defaults to '
-                  'the base filename without extension.')
+            help=('Optional. One or more identifiers for each dataset '
+                  'that shall be added. The default name is derived either ' 
+                  'from the EO metadata or from the data file base name.')
         ),
-        make_option('--mode',
-            dest='mode',
+        make_option('-s','--source-type','--mode',
+            dest='source_type',
             choices=['local', 'ftp', 'rasdaman'],
             default='local',
-            help=("Optional. Defines the location of the datasets "
-                  "to be registered. Can be 'local', 'ftp', or " 
-                  "'rasdaman'. Defaults to 'local'.")
+            help=("Optional. The source type of the datasets to be "
+                  "registered. Currently 'local', 'ftp', or 'rasdaman' "
+                  "backends are supported. Defaults to 'local'.")
         ),
         make_option('--host',
             dest='host',
             default=None,
-            help=("Mandatory when mode is not 'local'. Defines the "
-                  "ftp/rasdaman host to locate the dataset.")
+            help=("Mandatory for non-local backends. The host address "
+                  "where the remote datasets are located.")
         ),
         make_option('--port',
             dest='port', type='int',
             default=None,
-            help=("Optional. Defines the port for ftp/rasdaman host "
-                  "connections.")
+            help=("Optional. Non-default port to access remote datasets.")
         ),
         make_option('--user',
             dest='user',
             default=None,
-            help=("Optional. Defines the ftp/rasdaman user for the "
-                  "ftp/rasdaman connection.")
+            help=("Optional. Username needed to access remote datasets.")
         ),
         make_option('--password',
             dest='password',
             default=None,
-            help=("Optional. Defines the ftp/rasdaman user password "
-                  "for the ftp/rasdaman connection.")
+            help=("Optional. Plain text password needed to access remote "
+                  "datasets.")
         ),
-        make_option('--database',
-            dest='database',
+        make_option('--database','--rasdb',
+            dest='rasdb',
             default=None,
-            help=("Optional. Defines the rasdaman database containing "
-                  "the data.")
+            help=("Optional. Name of the rasdaman holding the registered "
+                  "data.")
         ),
         make_option('--oid', '--oids',
             dest='oids',
@@ -145,54 +188,61 @@ class Command(CommandOutputMixIn, BaseCommand):
             help=("Optional. List of rasdaman oids for each dataset "
                   "to be inserted.")
         ),
-        make_option('--default-srid',
-            dest='default_srid',
+        make_option('--srid','--default-srid',
+            dest='srid',
             default=None,
-            help=("Optional. Default SRID, needed if it cannot be " 
-                  "determined automatically by GDAL.")
+            help=("Optional. SRID (EPSG code) of the dataset if it cannot be "
+                  "determined automatically.")
         ),
-        make_option('--default-size',
-            dest='default_size',
+        make_option('--size','--default-size',
+            dest='size',
+            action="callback", callback=StringFormatCallback(_size),
             default=None,
-            help=("Optional. Default size, needed if it cannot " 
-                  "be determined automatically by GDAL. "
-                  "Format: <sizex>,<sizey>")
+            help=("Optional. Dataset pixel size if it cannot be determined " 
+                  "automatically. Format: <nrows>,<ncols>")
         ),
-        make_option('--default-extent',
-            dest='default_extent',
+        make_option('--extent','--default-extent',
+            dest='extent',
+            action="callback", callback=StringFormatCallback(_extent),
             default=None,
-            help=("Optional. Default extent, needed if it cannot be determined " 
-                  "automatically by GDAL. "
-                  "Format: <minx>,<miny>,<maxx>,<maxy>")
+            help=("Optional. Dataset extent if it cannot be determined " 
+                  "automatically. Format: <minx>,<miny>,<maxx>,<maxy>")
         ),
-        make_option('--default-begin-time',
-            dest='default_begin_time',
+        make_option('--begin-time','--default-begin-time',
+            dest='begin_time',
+            action="callback", callback=StringFormatCallback(getDateTime),
+
+            default=None,
+            help=("Optional. Acquisition begin timestamp if not available "
+                  "from the EO metadata in ISO-8601 format.")
+        ),
+        make_option('--end-time','--default-end-time',
+            dest='end_time',
             action="callback", callback=StringFormatCallback(getDateTime),
             default=None,
-            help=("Optional. Default begin timestamp when no other EO-metadata " 
-                  "is available. The format is ISO-8601.")
+            help=("Optional. Acquisition end timestamp if not available "
+                  "from the EO metadata in ISO-8601 format.")
         ),
-        make_option('--default-end-time',
-            dest='default_end_time',
-            action="callback", callback=StringFormatCallback(getDateTime),
+        make_option('--footprint''--default-footprint',
+            dest='footprint',
+            action="callback", callback=StringFormatCallback(_footprint),
             default=None,
-            help=("Optional. Default end timestamp when no other EO-metadata " 
-                  "is available. The format is ISO-8601.")
-        ),
-        make_option('--default-footprint',
-            dest='default_footprint',
-            action="callback", callback=StringFormatCallback(str),
-            default=None,
-            help=("Optional. The default footprint in WKT format when no other " 
-                  "EO-metadata is available.")
+            help=("Optional. Footprint of the dataset if not available " 
+                  "from the EO metadata in WKT format.")
         ),
         make_option('--visible',
             dest='visible',
-            metavar='TRUE_OR_FALSE',
-            default="True",
-            help=("Optional. Sets the visibility status of all datasets to the "
-                  "given boolean ('True' or 'False') value. Defaults to 'True'.")
-        )
+            metavar="store_true",
+            default=True,
+            help=("Optional. Enables the visibility flag for all datasets "
+                  "being registered. (Visibility enabled by default)")
+        ),
+        make_option('--invisible','--hidden',
+            dest='visible',
+            metavar="store_false",
+            help=("Optional. Disables the visibility flag for all datasets "
+                  "being registered. (Visibility enabled by default)")
+        ),
     )
     
     help = (
@@ -203,334 +253,377 @@ class Command(CommandOutputMixIn, BaseCommand):
     Using shell expansion of filenames and automatic metadata retrieval:
         python manage.py %(name)s \\ 
             --data-files data/meris/mosaic_MER_FRS_1P_RGB_reduced/*.tif \\
-            --rangetype RGB --dataset-series MER_FRS_1P_RGB_reduced \\
+            --range-type RGB --dataset-series MER_FRS_1P_RGB_reduced \\
             --stitched-mosaic mosaic_MER_FRS_1P_RGB_reduced -v3
     
     Manual selection of data/metadata files:
         python manage.py %(name)s \\
             --data-files 1.tif 2.tif 3.tif \\
             --metadata-files 1.xml 2.xml 3.xml \\
-            --coverage-ids a b c --rangetype RGB -v3
+            --ids a b c --range-type RGB -v3
             
     Registering a rasdaman coverage:
         python manage.py %(name)s \\
-            --mode=rasdaman --host=some.host.com --port=8080 \\
+            --source-type=rasdaman --host=some.host.com --port=8080 \\
             --user=db_user --password=secret \\
             --collection MER_FRS_1PNPDE..._reduced \\
-            --default-srid=4326 --default-size=539,448 \\ 
-            --default-extent=11.361066,32.201446,28.283846,46.252026 \\
-            --default-begin-time "`date -u --iso-8601=seconds`" \\
-            --default-end-time "`date -u --iso-8601=seconds`" \\
-            --default-footprint "POLYGON ((11.3610659999999992 
+            --srid=4326 --size=539,448 \\ 
+            --extent=11.361066,32.201446,28.283846,46.252026 \\
+            --begin-time "`date -u --iso-8601=seconds`" \\
+            --end-time "`date -u --iso-8601=seconds`" \\
+            --footprint "POLYGON ((11.3610659999999992 
                 32.2014459999999971, 11.3610659999999992 
                 46.2520260000000007, 28.2838460000000005 
                 46.2520260000000007, 28.2838460000000005  
                 32.2014459999999971, 11.3610659999999992 
                 32.2014459999999971))" \\
-            --coverage-ids MER_FRS_1PNPDE..._reduced --rangetype RGB -v3
+            --id MER_FRS_1PNPDE..._reduced --range-type RGB -v3
     """ % ({"name": __name__.split(".")[-1]})
     )
-    args = '--data-file DATAFILE --rangetype RANGETYPE'
+    args = '--data-file <file-name> --range-type <range-type>'
 
-    def handle(self, *args, **options):
+    #--------------------------------------------------------------------------
+
+    def _error( self , ds , msg ): 
+        self.print_err( "Failed to register dataset '%s'!"
+                        " Reason: %s"%( ds, msg ) ) 
+
+    #--------------------------------------------------------------------------
+
+    def handle(self, *args, **opt):
+
         System.init()
-        
-        #=======================================================================
-        # Collect parameters
-        #=======================================================================
-        
-        self.verbosity = int(options.get('verbosity', 1))
-        
-        datafiles = options.get('datafiles')
-        if datafiles is None:
-            raise CommandError(
-                "Mandatory parameter --data-file is not present."
-            )
-        elif len(datafiles) == 0:
-            raise CommandError(
-                "At least one data-file must be specified."
-            )
-        
-        rangetype = options.get('rangetype')
-        if rangetype is None:
-            raise CommandError(
-                "Mandatory parameter --rangetype is not present."
-            )
-        
-        metadatafiles = options.get('metadatafiles')
-        coverageids = options.get('coverageids')
-        mode = options.get('mode', 'local')
-        default_srid = options.get("default_srid")
-        default_size = options.get("default_size")
-        default_extent = options.get("default_extent")
-        default_begin_time = options.get("default_begin_time")
-        default_end_time = options.get("default_end_time")
-        default_footprint = options.get("default_footprint")
-        
-        visible = options.get("visible", "True").lower()
-        if visible in ("true", "yes", "y"):
-            visible = True
-        elif visible in ("false", "no", "n"):
-            visible = False
-        else:
-            raise CommandError("Wrong value for '--visible' flag. Use 'True' "
-                               "or 'False'.")
-        
-        datasetseries_eoids = options.get('datasetseries_eoids', [])
-        stitchedmosaic_eoids = options.get('stitchedmosaic_eoids', [])
-        
-        host = options.get("host")
-        port = options.get("port")
-        user = options.get("user")
-        password = options.get("password")
-        oids = options.get("oids")
-        database = options.get("database")
-        
-        if mode in ('rasdaman', 'ftp') and host is None:
-            raise CommandError(
-                "The '--host' parameter is required when mode "
-                "is 'ftp' or 'rasdaman'."
-            )
-        
-        #=======================================================================
-        # Setup default geo metadata
-        #=======================================================================
-        
-        default_geo_metadata = None
-        extent = None
-        if ((default_size is None and default_extent is not None) or
-            (default_size is not None and default_extent is None)):
-            raise CommandError(
-                "Use either both of '--default-size' and '--default-extent' "
-                "or none."
-            )
-        elif default_size is not None and default_extent is not None:
-            if default_srid is None:
-                raise CommandError(
-                    "When setting '--default-size' and '--default-extent' the "
-                    "parameter '--default-srid' is mandatory."
-                )
-            
-            sizes = [int(size) for size in default_size.split(",")]
-            extent = [float(bound) for bound in default_extent.split(",")]
-            
-            if len(sizes) != 2: 
-                raise CommandError("Wrong format for '--default-size' parameter.")
-            if len(extent) != 4: 
-                raise CommandError("Wrong format for '--default-extent' parameter.")
-            
-            default_geo_metadata = GeospatialMetadata(
-                default_srid, sizes[0], sizes[1], extent
-            )
-        
-        #=======================================================================
-        # Setup default EO metadata
-        #=======================================================================
-        
-        default_eo_metadata = None
-        if (default_begin_time is not None or default_end_time is not None
-            or default_footprint is not None):
-            
-            footprint = None
-            if default_footprint is not None:
-                footprint = GEOSGeometry(default_footprint)
-            elif extent is not None:
-                footprint = Polygon.from_bbox(tuple(extent))
-            
-            default_eo_metadata = EOMetadata(
-                None, default_begin_time, default_end_time, footprint, None
-            )
-        
-        #=======================================================================
-        # Normalize metadata files and coverage id lists
-        #=======================================================================
-        
-        if len(datafiles) > len(metadatafiles):
-            if mode == "rasdaman":
-                raise CommandError(
-                    "All rasdaman datasets require local metadata. "
-                    "Use the --metadata-files option."
-                )
-            
-            for datafile in datafiles[len(metadatafiles):]:
-                new_path = os.path.splitext(datafile)[0] + '.xml'
-                if os.path.exists(new_path):
-                    metadatafiles.append(new_path)
-                else:
-                    metadatafiles.append(datafile)
-        
-        if len(datafiles) > len(coverageids):
-            if mode == "rasdaman":
-                raise CommandError(
-                    "All rasdaman datasets require an explicit ID. "
-                    "Use the --coverage-id option."
-                )
-            
-            coverageids.extend([
-                os.path.basename(os.path.splitext(datafile)[0])
-                for datafile in datafiles[len(coverageids):]
-            ])
-        
-        
-        if mode in ("ftp", "rasdaman"):
-            self.print_msg(
-                """Using %s-connection:
-                    Host: %s
-                    Port: %s
-                    User: %s
-                    Password: %s
-                    %s
-                """ % (
-                    mode, host, port, user, password,
-                    "Database: %s" % database
-                    if mode == 'rasdaman' else "" 
-                ), 2
-            )
-        
-        rect_mgr = System.getRegistry().findAndBind(
-            intf_id="resources.coverages.interfaces.Manager",
-            params={
-                "resources.coverages.interfaces.res_type": "eo.rect_dataset"
-            }
-        )
-        
-        #=======================================================================
-        # Execute creation and insertion
-        #=======================================================================
-        
-        error_count = 0 # error counter - counts failed inserts 
 
-        for df, mdf, cid in zip(datafiles, metadatafiles, coverageids):
-            self.print_msg("Inserting coverage with ID '%s'." % cid, 2)
+        # prepare dataset managers 
+    
+        dsMngr = { 
+            "RectifiedDataset" : getRectifiedDatasetManager() ,
+            "ReferenceableDataset" : getReferenceableDatasetManager() } 
+
+        dsMngr_mosaic = getRectifiedStitchedMosaicManager() 
+        dsMngr_series = getDatasetSeriesManager() 
+
+        #-----------------------------------------------------------------------
+        # extract some of the inputs 
+
+        self.verbosity = int(opt.get('verbosity', 1))
+        self.traceback = bool( opt.get("traceback", False) ) 
+
+        src_data = opt.get('datafiles',[])
+        src_meta = opt.get('metadatafiles',[])
+        src_ids  = opt.get('ids',[])
+
+        range_type = opt.get('rangetype',None)
+
+        source_type = opt.get('source_type','local')
+
+        visibility = opt.get("visible", True )
+
+        ids_mosaic = list( set( opt["ids_mosaic"] ) ) 
+        ids_series = list( set( opt["ids_series"] ) ) 
+
+        ids_cont   = ids_mosaic + ids_series # merged containers 
+
+        _has_explicit_md = any([ ( opt[i] is not None ) for i in
+              ('srid','size','extent','begin_time','end_time','footprint') ])
+
+        # ... the rest of the options stays in the ``opt`` dictionary 
+
+        #-----------------------------------------------------------------------
+        # check the required inputs 
+
+        if not src_data : 
+            raise CommandError( "Missing specification of the data to be "
+                "registered!") 
+
+        if not range_type :
+            raise CommandError( "Missing the mandatory range type"
+                " specification." ) 
+
+        if src_meta and ( len(src_meta) != len(src_data) ) : 
+            raise CommandError( "The number of metadata files does not match"
+                " the number of input data items!" ) 
+
+        if src_ids and ( len(src_ids) != len(src_data) ) :
+            raise CommandError( "The number of IDs does not match "
+                " the number of input data items!" ) 
+
+        if source_type == "rasdaman" : 
+
+            if opt['oids'] and ( len(opt['oids']) != len(src_data) ) : 
+                raise CommandError("The number of Rasdaman OIDs does not match"
+                    " the number of input data items!" ) 
+
+            if ( len(src_data) > len(src_ids) ) : 
+                raise CommandError("Rasdaman datasets require explicite "
+                    "specification of coverage/EO-IDs !")
+
+            if ( len(src_data) > len(src_meta) ) and \
+                ( ( len(src_data) > 1 ) or ( not _has_explicit_md ) ) : 
+                raise CommandError("Rasdaman datasets require explicite "
+                    "specification of metadata stored in files or passed "
+                    "as commandline arguments!")
+        else: 
+
+            if opt['oids'] : 
+                raise CommandError( "The Rasdaman OIDs are not expected to be"
+                    " provided for %s data source!"%source_type ) 
+          
+            if opt['rasdb'] : 
+                raise CommandError( "The Rasdaman DB is not expected to be"
+                    " provided for %s data source!"%source_type ) 
+
+        if source_type != "local" : 
+
+            if not opt['host'] : 
+                raise CommandError( "The host must be specified for non-local"
+                    " data sources!" ) 
+
+            if (opt['port'] is not None) and \
+                        ((opt['port']<1) or (opt['port']>65535)) : 
+                raise CommandError("Invalid port number! port=%d"%opt['port']) 
+
+        #-----------------------------------------------------------------------
+        # check that metadata specified via the CLI 
+        # note that these can be set for one DS only 
+
+        if ( 1 < len(src_data) ) and _has_explicit_md : 
+            raise CommandError( "Specification of meta-data via the CLI is "
+                    "allowed for single dataset only!" )  
+
+
+        if ( opt["size"] is None ) != ( opt["extent"] is None ) : 
+            raise CommandError( "Both 'size' and 'extent' metadata must be "
+                    "specified but only one of them is actually provided!" ) 
+
+        if ( opt["extent"] is not None ) and ( opt["srid"] is None ) : 
+            raise CommandError( "The 'extent' metadata require SRID to be "
+                    "specified!" )
+
+        if ( opt["begin_time"] is None ) != ( opt["end_time"] is None ) :
+            raise CommandError( "Both 'begin_time' and 'end_time' metadata "
+                "must be specified but only one of them is actually provided!") 
+
+        if ( opt["begin_time"] is not None ) and ( opt["footprint"] is None ) :
+
+            # try to extract footprint from the dataset 
+            if source_type == "local" : 
+                opt["footprint"] = __extract_footprint( src_data[0] )  
+
+            # check if footprint has been extracted 
+            if ( opt["footprint"] is None ) : 
+                raise CommandError( "Cannot extract 'footprint' from the "
+                    "dataset. It must be set explicitely via CLI!" ) 
+
+        #-----------------------------------------------------------------------
+        # create the automatic IDs, filenames, and OIDs   
+
+        def __make_id( src ) : 
+            return os.path.splitext( os.path.basename( src ) )[0] 
+
+        def __make_md( src ) : 
+            return "%s.xml"%os.path.splitext( src )[0] 
+
+        if not src_ids : 
+            src_ids = [ __make_id(fn) for fn in src_data ] 
+
+        if not src_meta : 
+            src_meta = [ __make_md(fn) for fn in src_data ] 
+
+        if ( source_type == "rasdaman" ) and not pt['oids'] : 
+            opt['oids'] = [ None for i in xrange(len(src_date)) ]
+
+        #-----------------------------------------------------------------------
+        # handle the user specified geo-meta-data 
+
+        if ( opt["extent"] is not None ) : 
+
+            geo_metadata = GeospatialMetadata( opt["srid"], opt["size"][0],
+                opt["size"][1], opt["extent"] ) 
+
+            if opt["footprint"] is None : 
+                opt["footprint"] = Polygon.from_bbox( opt["extent"] )
+
+        else : 
+
+            geo_metadata = None 
+
+        #-----------------------------------------------------------------------
+        # handle the user specified EO-meta-data 
+
+        if all([ ( opt[i] is not None ) for i in \
+                    ('begin_time','end_time','footprint')]) : 
+        
+            eo_metadata = EOMetadata( src_ids[0], opt["begin_time"], 
+                            opt["end_time"], opt["footprint"], None )   
+
+        else : 
+
+            eo_metadata = None 
+
+        #-----------------------------------------------------------------------
+        # verify the identifiers agaist the DB 
+
+        # range-type 
+
+        if not isRangeTypeName( range_type ) : 
+            raise CommandError( "Invalid range-type identifier '%s' !" \
+                        % range_type )
+
+        # check rectified stitched mosaics 
+
+        for mosaic in ids_mosaic : 
+            if not dsMngr_mosaic.check_id( mosaic ) :
+                raise CommandError( "Invalid Rectified Stitched Mosaic "
+                        "identifier '%s' !" % mosaic )
+
+        # check datasets series 
+
+        for series in ids_series : 
+            if not dsMngr_series.check_id( series ) :
+                raise CommandError( "Invalid Dataset Series identifier " 
+                        "'%s' !" % series )
+
+        #-----------------------------------------------------------------------
+        # debug print 
+
+        self.print_msg("Range type:  %s"%(range_type),2)
+        self.print_msg("Visibility:  %s"%(["HIDDEN","VISIBLE"][visibility]),2)
+        self.print_msg("Data IDs:    %s"%(" ".join(src_ids)),2)
+        self.print_msg("Source data: %s"%(" ".join(src_data)),2)
+        self.print_msg("Metadata:    %s"%(" ".join(src_meta)),2)
+        self.print_msg("Mosaics:     %s"%(" ".join(ids_mosaic)),2)
+        self.print_msg("Series:      %s"%(" ".join(ids_series)),2)
+
+        if source_type == "rasdaman" : 
+            self.print_msg("Rasd. OIDs:  %s"%(" ".join(src(opt["oids"]))),2)
+            self.print_msg("Rasd. DB:    %s"%( opt["rasdb"] ),2)
+
+        self.print_msg("Source type: %s"%(source_type),2)
+
+        if source_type != "local" : 
+            self.print_msg("- host:    %s"%(opt["host"]),2)
+            self.print_msg("- port:    %s"%(opt["port"]),2)
+            self.print_msg("- user:    %s"%(opt["user"]),2)
+            self.print_msg("- passwd:  %s"%(opt["password"]),2)
+
+        self.print_msg("CLI metadata:",2) 
             
-            mgrargs = {
-                "obj_id": cid,
-                "range_type_name": rangetype,
-                "default_srid": default_srid,
-                "container_ids": datasetseries_eoids + stitchedmosaic_eoids,
-                "visible": visible
-            }
+        for i in ('srid','size','extent','begin_time','end_time','footprint'):
+            self.print_msg("- %-8s\t%s" % ( "%s:"%i , opt[i] ) , 2 ) 
+
+        #-----------------------------------------------------------------------
+        # register the idividual datasets 
+
+        success_count = 0 # count successfull actions 
+
+        for df, mdf, cid in zip( src_data, src_meta, src_ids ) :
+
+            self.print_msg( "Registering dataset: '%s'" % cid ) 
+
+            # commmon parameters 
+
+            prm = {} 
+
+            prm["obj_id"]           = cid
+            prm["range_type_name"]  = range_type
+            prm["default_srid"]     = opt["srid"]
+            prm["container_ids"]    = ids_cont
+            prm["visible"]          = opt["visible"] 
+
+            # source specific parameters 
+
+            if source_type == "local" :
+
+                prm["local_path"]     = df 
+                prm["md_local_path"]  = mdf 
+
+                # try to extract geo-metadata
+                # NOTE: For the other input the geo-metadata cannot be
+                # extracted. 
             
-            eo_metadata = None
-            if default_eo_metadata is not None:
-                eo_metadata = copy(default_eo_metadata)
-                eo_metadata.eo_id = os.path.splitext(os.path.basename(df))[0]
-            
-            if mode == 'local':
-                self.print_msg("\tFile: '%s'\n\tMeta-data: '%s'" % (df, mdf), 2)
-                mgrargs.update({
-                    "local_path": df,
-                    "md_local_path": mdf,
-                })
-                if eo_metadata is not None and eo_metadata.footprint is None:                
-                    ds = gdal.Open(df)
-                    if ds is not None:
-                        eo_metadata.footprint = Polygon.from_bbox(getExtentFromRectifiedDS(ds))
-            
-            elif mode == 'ftp':
-                self.print_msg("\tFile: '%s'\n\tMeta-data: '%s'" % (df, mdf), 2)
-                mgrargs.update({
-                    "remote_path": df,
-                    "md_remote_path": mdf,
-                    
-                    "ftp_host": host,
-                    "ftp_port": port,
-                    "ftp_user": user,
-                    "ftp_passwd": password
-                })
-            elif mode == 'rasdaman':
-                try:
-                    oid = oids.pop(0)
-                except IndexError:
-                    oid = None
-                
-                self.print_msg(
-                    "\tCollection: '%s'\n\tOID:%s\n\tMeta-data: '%s'" % (
-                        df, oid, mdf
-                    ), 2
-                )
-                
-                mgrargs.update({
-                    "collection": df,
-                    "oid": oid,
-                    "md_local_path": mdf,
-                    
-                    "ras_host": host,
-                    "ras_port": port,
-                    "ras_user": user,
-                    "ras_passwd": password,
-                    "ras_db": database
-                })
-            
-            #===================================================================
-            # Get the right manager
-            #===================================================================
-            mgr_to_use = rect_mgr
-            
-            geo_metadata = default_geo_metadata
-            if geo_metadata is None:
-                try:
-                    # TODO: for rasdaman build identifiers
-                    # for FTP not possible?
-                    geo_metadata = GeospatialMetadata.readFromDataset(
-                        gdal.Open(df),
-                        default_srid
-                    )
-                except RuntimeError:
-                    pass
-            
-            if geo_metadata is not None:
-                mgrargs["geo_metadata"] = geo_metadata
-                
-                if geo_metadata.is_referenceable:
-                    ref_mgr = System.getRegistry().findAndBind(
-                        intf_id="resources.coverages.interfaces.Manager",
-                        params={
-                            "resources.coverages.interfaces.res_type": "eo.ref_dataset"
-                        }
-                    )
-                    mgr_to_use = ref_mgr
-                    self.print_msg("\t'%s' is referenceable." % df, 2)
-            
+                if geo_metadata is not None : 
+                    geo_metadata =  __extract_geo_md( df ) 
+
+
+            elif source_type == "ftp" :
+
+                prm["remote_path"]    = df
+                prm["md_remote_path"] = mdf
+                prm["ftp_host"]       = opt["host"]
+                prm["ftp_port"]       = opt["port"]
+                prm["ftp_user"]       = opt["user"]
+                prm["ftp_passwd"]     = opt["password"]
+
+            elif source_type == "rasdaman" :
+
+                prm["collection"]     = df,
+                prm["md_local_path"]  = mdf,
+                prm["oid"]            = opt["oids"].pop(0)  
+                prm["ras_host"]       = opt["host"]
+                prm["ras_port"]       = opt["port"]
+                prm["ras_user"]       = opt["user"]
+                prm["ras_passwd"]     = opt["password"]
+                prm["ras_db"]         = opt["rasdb"]
+
+            #-------------------------------------------------------------------
+            # handle metadata
+
             if eo_metadata is not None:
-                if eo_metadata.footprint is None:
-                    raise CommandError("Default footprint could not be determined.")
-                if eo_metadata.begin_time is None:
-                    raise CommandError("No default begin time given.")
-                if eo_metadata.end_time is None:
-                    raise CommandError("No default end time given.")
+                prm["eo_metadata"] = eo_metadata
+
+            if geo_metadata is not None:
+                prm["geo_metadata"] = geo_metadata
+
+            #-------------------------------------------------------------------
+            # select dataset manager  
+
+            # NOTE: This is just WRONG!!! 
+
+            # unless changed we assume rectified DS 
+            dsType = "RectifiedDataset"
             
-                mgrargs["eo_metadata"] = eo_metadata
+            if ( geo_metadata is not None) and geo_metadata.is_referenceable :
+
+                # the DS is refereanceable  
+                dsType = "ReferenceableDataset"
+
+            #-------------------------------------------------------------------
+            # perform the actual dataset registration 
                 
             try:
-                with transaction.commit_on_success():
 
-                    mgr_to_use.create(**mgrargs)
+                with transaction.commit_on_success():
+                    self.print_msg( "Creating new dataset ...",2) 
+                    dsMngr[dsType].create( **prm ) 
 
             except Exception as e: 
 
-                if options.get("traceback", False):
+                if self.traceback : 
                     self.print_msg(traceback.format_exc())
 
-                self.print_msg( "ERROR: Registration of dataset '%s' failed!"
-                    " %s: %s"%(cid, type(e).__name__, str(e)), 1, error=True)
-
-                error_count += 1 
+                # print stack trace if required 
+                self._error( cid, "%s: %s"%(type(e).__name__, str(e)) )
 
                 continue # continue by next dataset 
 
-        #=======================================================================
+            success_count += 1 #increment the success counter  
+            self.print_msg( "Dataset successfully registered.",2) 
+
+
+        #-----------------------------------------------------------------------
         # print the final info 
         
-        count = len(datafiles) 
-        success_count = count - error_count
+        count = len(src_data) 
+        error_count = count - success_count
 
         if ( error_count > 0 ) : 
-            self.print_msg( "Failed to insert %d dataset%s." % (
-                error_count , ("","s")[error_count!=1] ) )  
+            self.print_msg( "Failed to register %d dataset%s." % (
+                error_count , ("","s")[error_count!=1] ) , 1 )  
 
         if ( success_count > 0 ) : 
-            self.print_msg( "Successfully inserted %d of %s dataset%s." % (
-                success_count , count , ("","s")[count!=1] ) )
+            self.print_msg( "Successfully registered %d of %s dataset%s." % (
+                success_count , count , ("","s")[count!=1] ) , 1 )
         else : 
-            self.print_msg( "No dataset inserted successfully." ) 
+            self.print_msg( "No dataset registered." ) 
+

@@ -28,6 +28,8 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+import traceback
+
 from optparse import make_option
 
 from django.db import transaction
@@ -36,30 +38,33 @@ from django.core.management.base import BaseCommand, CommandError
 from eoxserver.core.system import System
 from eoxserver.resources.coverages.management.commands import CommandOutputMixIn
 
+#------------------------------------------------------------------------------
+
+from eoxserver.resources.coverages.managers import CoverageIdManager
+from eoxserver.resources.coverages.managers import getRectifiedStitchedMosaicManager
+from eoxserver.resources.coverages.managers import getDatasetSeriesManager
+
+#------------------------------------------------------------------------------
+
 class Command(CommandOutputMixIn, BaseCommand):
+
     option_list = BaseCommand.option_list + (
         make_option('--all',
             action='store_true',
-            dest='all',
+            dest='synchronise_all',
+            default=False,
             help=('Optional switch to enable the synchronization for all ' 
                   'registered containers.')
         ),
-        #make_option('-i', '--id', '--ids', '--eoid', '--eoids',
-        #    dest='ids',
-        #    action='callback', callback=_variable_args_cb,
-        #    default=None,
-        #    help=('Mandatory. One or more paths to a files '
-        #          'containing the image data. These paths can '
-        #          'either be local, ftp paths, or rasdaman '
-        #          'collection names.')
-        #),
     )
+
+    args = '--all | <id> [<id> ...]'
     
     help = (
     """
     Synchronizes all specified containers (RectifiedStitchedMosaic or 
     DatasetSeries) with the file system.
-    
+
     Examples:
         python manage.py %(name)s --all
         
@@ -67,111 +72,98 @@ class Command(CommandOutputMixIn, BaseCommand):
             MER_FRS_1P_reduced
     """ % ({"name": __name__.split(".")[-1]})
     )
-    args = '--all | EO-ID1 [EO-ID2 [...]]'
+
+    #--------------------------------------------------------------------------
+
+    def _error( self , entity , ds , msg ): 
+        self.print_err( "Failed to synchronise %s '%s'!"
+                        " Reason: %s"%( entity , ds, msg ) ) 
+
+    #--------------------------------------------------------------------------
     
     def handle(self, *args, **options):
-        #=======================================================================
+
         # set up
-        #=======================================================================
+
         System.init()
         
         self.verbosity = int(options.get('verbosity', 1))
         
-        coverage_factory = System.getRegistry().bind(
-            "resources.coverages.wrappers.EOCoverageFactory"
-        )
-        datasetseries_factory = System.getRegistry().bind(
-            "resources.coverages.wrappers.DatasetSeriesFactory"
-        )
+
+        #----------------------------------------------------------------------
+        # prepare managers
         
-        mosaic_ids = []
-        series_ids = []
+        dsMngr = { 
+            "RectifiedStitchedMosaic" : getRectifiedStitchedMosaicManager(),
+            "DatasetSeries" : getDatasetSeriesManager() } 
         
-        #=======================================================================
+        cidMngr = CoverageIdManager()
+
+        #----------------------------------------------------------------------
         # parse arguments
-        #=======================================================================
-        
-        if options.get("all", False):
-            mosaic_ids = [
-                mosaic.getEOID() 
-                for mosaic in coverage_factory.find(
-                    impl_ids=["resources.coverages.wrappers.RectifiedStitchedMosaicWrapper"]
-                )
-            ]
-            
-            series_ids = [
-                datasetseries.getEOID() 
-                for datasetseries in datasetseries_factory.find()
-            ]
-        
-        
-        elif len(args) == 0:
-            raise CommandError("No container object specified.")
+
+        ids = []
+
+        if options.get("synchronise_all", False):
+
+            # synchronise all container entities 
+            for mngr in dsMngr.values() : 
+                ids.extend( mngr.get_all_ids() ) 
         
         else:
-            for eoid in args:
-                wrapper = datasetseries_factory.get(obj_id=eoid)
-                if wrapper is not None:
-                    series_ids.append(wrapper.getEOID())
-                    continue
-                
-                wrapper = coverage_factory.get(
-                    impl_id="resources.coverages.wrappers.RectifiedStitchedMosaicWrapper",
-                    obj_id=eoid
-                )
-                if wrapper is not None:
-                    mosaic_ids.append(wrapper.getEOID())
-                
-                else:
-                    raise CommandError("ID '%s' does neither refer to a "
-                                       "RectifiedStitchedMosaic nor to a "
-                                       "DatasetSeries." % eoid)
-        
-        #=======================================================================
-        # Create managers
-        #=======================================================================
-        
-        mosaic_mgr = System.getRegistry().findAndBind(
-            intf_id="resources.coverages.interfaces.Manager",
-            params={
-                "resources.coverages.interfaces.res_type": "eo.rect_stitched_mosaic"
-            }
-        )
-        
-        series_mgr = System.getRegistry().findAndBind(
-            intf_id="resources.coverages.interfaces.Manager",
-            params={
-                "resources.coverages.interfaces.res_type": "eo.dataset_series"
-            }
-        )
-        
-        #=======================================================================
-        # Dispatch synchronization
-        #=======================================================================
-        
-        if series_ids:
-            self.print_msg(
-                "Synchronizing DatasetSeries with IDs: %s"%", ".join(series_ids), 2
-            )
-        if series_ids:
-            self.print_msg(
-                "Synchronizing RectifiedStitchedMosaics with IDs: %s"%", ".join(mosaic_ids), 2
-            )
-        
-        for eoid in mosaic_ids:
+
+            # read ids from the commandline  
+            ids.extend( args ) 
+
+
+        #----------------------------------------------------------------------
+        # synchronise objects 
+
+        success_count = 0 # success counter - counts finished syncs
+
+        for id in ids : 
+
+            # get type of the entity 
+
+            dsType = cidMngr.getType( id )
+
+            # check the entity type  
+
+            if not dsMngr.has_key( dsType ) : 
+                self.print_msg( "'%s' is neither mosaic nor series!"%id,2) 
+                self._error( id , "Invalid identifier." ) 
+                continue # continue by next entity 
+
+            self.print_msg( "Synchronising %s: '%s'" % ( dsType, id )  ) 
+
             try:
+
                 with transaction.commit_on_success():
-                    mosaic_mgr.synchronize(eoid)
-            except:
-                self.print_msg(
-                    "Synchronization of Recitified Stitched Mosaic '%s' failed." % eoid
-                )
+                    dsMngr[dsType].synchronize(id)
+
+            except Exception as e :
+
+                # print stack trace if required 
+                if options.get("traceback", False):
+                    self.print_msg(traceback.format_exc())
+
+                self._error( dsType, id, "%s: %s"%(type(e).__name__, str(e)) )
         
-        for eoid in series_ids:
-            try:
-                with transaction.commit_on_success():
-                    series_mgr.synchronize(eoid)
-            except:
-                self.print_msg(
-                    "Synchronization of Dataset Series '%s' failed." % eoid
-                )
+            success_count += 1 #increment the success counter  
+            self.print_msg( "%s successfully synchronised."%dsType,2) 
+
+        #----------------------------------------------------------------------
+        # print the final info 
+        
+        count = len(ids) 
+        error_count = count - success_count
+
+        if ( error_count > 0 ) : 
+            self.print_msg( "Failed to synchronised %d objects." % (
+                error_count ) , 1 )  
+
+        if ( success_count > 0 ) : 
+            self.print_msg( "Successfully synchronised %d of %s objects." % (
+                success_count , count ) , 1 )
+        else : 
+            self.print_msg( "No object synchronised." ) 
