@@ -544,14 +544,49 @@ The first important command line tool is used for :ref:`Creating an Instance`
 of EOxServer and is explained in the :ref:`Installation` section of this user' 
 guide.
 
-.. _eoxs-register-dataset:
+.. _eoxs-register-ds:
 
 eoxs_register_dataset
 ~~~~~~~~~~~~~~~~~~~~~
 
 Besides this tool EOxServer adds some custom commands to Django's manage.py 
-script. The ``eoxs_register_dataset`` command detailed in the :ref:`Data 
-Registration` section.
+script. The ``eoxs_register_dataset`` command detailed in the 
+:ref:`Data Registration` section.
+
+
+.. _eoxs-deregister-ds:
+
+eoxs_deregister_dataset
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``eoxs_deregister_dataset`` command allows deregistration of the existing 
+datasets (simple coverage types as Rectified and Referenceables datasets only)
+from the EOxServer including their proper unlinking from the relevant
+container types. Function of this command is complementary to the 
+:ref:`eoxs_register_dataset`. 
+
+It is worth to mention that that the deregistration does not remove physical
+data stored in the file system or different storage backend. Therefore an extra
+effort has to be spent the purge the physical data/meta-data files from
+their storage. 
+
+To deregister a dataset (coverage) identified by its (Coverage/EO) identifier
+the following command shall be invoked::
+
+    python manage.py eoxs_deregister_dataset <CoverageID> 
+
+The deregistration command allows convenient deregistration of arbitrary number
+of datasets at the same time::
+
+    python manage.py eoxs_deregister_dataset <CoverageID> <CoverageID> ... 
+
+The ``eoxs_deregister_dataset`` does not allow removing of container objects
+such as the Rectified Stitched Mosaics or Dataset Series. 
+
+The ``eoxs_deregister_dataset`` command, by default, does not allow 
+deregistration of atomatic datasets (i.e, datasets registered by synchronisation 
+process, see :ref:`what_is_sync`). Although this restriction can be overridden 
+by the ``--force`` option, it is not recommended to do so.
 
 eoxs_add_dataset_series
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -655,13 +690,13 @@ ensuring the databases consistency with the file system.
 The synchronization process may take some time, especially when FTP/Rasdaman
 storages are used and also depends on the number of synchronized objects.
 
-.. _eoxs-insert:
+.. _eoxs-dss-insert-ds:
 
-eoxs_insert
-~~~~~~~~~~~
+eoxs_insert_into_series
+~~~~~~~~~~~~~~~~~~~~~~~
 
-This command allows to insert any coverage into a dataset series. This is
-similar to the ``--dataset-series`` option of the :ref:`eoxs-register-dataset`
+This command allows to insert coverages (datasets) into a dataset series. 
+This is similar to the ``--dataset-series`` option of the :ref:`eoxs-register-ds`
 option but can be used at any time not only during registration.
 
 To insert a coverage into a dataset series use this command:
@@ -685,26 +720,28 @@ multiple dataset series:
     python manage.py eoxs_insert --datasets <CoverageID1> <CoverageID2> \
                                  --dataset-series <DatasetSeriesID1> <DatasetSeriesID2>
 
-With the ``--mode`` parameter also the lookup type of coverages can be altered.
-E.g with ``--mode=filename``, coverages can be inserted by their filename
-instead of their coverage ID. Use this with caution, as this may lead to
-unexpected results, as the data model allows multiple coverages with the same
-file name. Also the paths must completely match with the paths saved in the
-database, so an absolute path would not match a saved relative path.
+..  With the ``--mode`` parameter also the lookup type of coverages can be altered.
+    E.g with ``--mode=filename``, coverages can be inserted by their filename
+    instead of their coverage ID. Use this with caution, as this may lead to
+    unexpected results, as the data model allows multiple coverages with the same
+    file name. Also the paths must completely match with the paths saved in the
+    database, so an absolute path would not match a saved relative path.
 
-eoxs_exclude
-~~~~~~~~~~~~
+.. _eoxs-dss-remove-ds:
 
-This command is somewhat the contrary to :ref:`eoxs-insert` as it removes
-coverages from a dataset series. As these two commands have a very similar
-semantic, the parameters are the same and have the same meaning.
+eoxs_remove_from_series
+~~~~~~~~~~~~~~~~~~~~~~~
+
+This command is complemetary to the :ref:`eoxs-dss-insert-ds` as it removes
+(unlinks) coverages from a dataset series. As these two commands have a very 
+similar semantic, the parameters are the same and have the same meaning.
 
 To remove a single coverage from a dataset series type:
 ::
 
     python manage.py eoxs_exclude <CoverageID> <DatasetSeriesID>
 
-Like :ref:`eoxs-insert` also multiple coverages can be excluded at once.
+Like :ref:`eoxs-dss-insert-ds` also multiple coverages can be excluded at once.
 
 Performance
 -----------
