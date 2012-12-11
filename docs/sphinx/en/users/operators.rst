@@ -588,6 +588,17 @@ deregistration of atomatic datasets (i.e, datasets registered by synchronisation
 process, see :ref:`what_is_sync`). Although this restriction can be overridden 
 by the ``--force`` option, it is not recommended to do so.
 
+Updating Datasets 
+~~~~~~~~~~~~~~~~~
+
+There is currently no way how to update registered EOxServer datasets from the
+command line. In case such an action would be needed it is recommended to
+deregister the existing dataset first (see :ref:`eoxs_deregister_dataset`
+command) and register it again with the updated parameters (see
+:ref:`eoxs_register_dataset` command). Special attention should be paid to
+linking of the *updated* dataset to all the container objects during the
+registration as this information is removed  by the deregistration.
+
 eoxs_add_dataset_series
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -695,19 +706,21 @@ storages are used and also depends on the number of synchronized objects.
 eoxs_insert_into_series
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-This command allows to insert coverages (datasets) into a dataset series. 
-This is similar to the ``--dataset-series`` option of the :ref:`eoxs-register-ds`
-option but can be used at any time not only during registration.
+This command allows to insert (link) existing coverages (datasets) into dataset
+series. 
+
+The same action can be obtained already during the dataset registration 
+by using of the ``--dataset-series`` option of the :ref:`eoxs-register-ds`.
 
 To insert a coverage into a dataset series use this command:
 ::
 
-    python manage.py eoxs_insert <CoverageID> <DatasetSeriesID>
+    python manage.py eoxs_insert_into_series <CoverageID> <DatasetSeriesID>
 
 For convenience, multiple coverages can be inserted at once:
 ::
 
-    python manage.py eoxs_insert <CoverageID1> <CoverageID2> ... <DatasetSeriesID>
+    python manage.py eoxs_insert_into_series <CoverageID1> <CoverageID2> ... <DatasetSeriesID>
 
 All given IDs but the last are interpreted as coverage IDs and the last as the
 ID for the dataset series.
@@ -717,7 +730,7 @@ The IDs can also be set explicitly via the ``--dataset`` and
 multiple dataset series:
 ::
 
-    python manage.py eoxs_insert --datasets <CoverageID1> <CoverageID2> \
+    python manage.py eoxs_insert_into_series --datasets <CoverageID1> <CoverageID2> \
                                  --dataset-series <DatasetSeriesID1> <DatasetSeriesID2>
 
 ..  With the ``--mode`` parameter also the lookup type of coverages can be altered.
@@ -739,9 +752,45 @@ similar semantic, the parameters are the same and have the same meaning.
 To remove a single coverage from a dataset series type:
 ::
 
-    python manage.py eoxs_exclude <CoverageID> <DatasetSeriesID>
+    python manage.py eoxs_remove_from_series <CoverageID> <DatasetSeriesID>
 
 Like :ref:`eoxs-dss-insert-ds` also multiple coverages can be excluded at once.
+
+It is worth to mention that the ``eoxs_remove_from_series`` command does not 
+deregister the unlinked datasets and these still held by the EOxServer. 
+In case the deregistration of datasets is desired the :ref:`eoxs-deregister-ds`
+command does so together with unlinking of the datasets from all datasets. 
+
+.. _eoxs-check-id:
+
+eoxs_check_id 
+~~~~~~~~~~~~~
+
+The ``eoxs_check_id`` commands allows checking about status of the queried
+coverage/EO identifier. The command returns the status via its return code (0 -
+``True`` or 1 - ``False``).
+
+By default the command checks whether an identifier can be used (is available)
+as a new Coverage/EO ID::
+
+    python manage.py eoxs_check_id <ID> && echo True || echo False
+
+The default behaviour is equivalent to ``--is-available`` option::
+
+    python manage.py eoxs_check_id --is-available <ID> && echo True || echo False
+
+The *available* coverage/EO ID is neither *used* by an existing objects nor
+*reserved* for use by a future object. 
+
+In order to check whether a coverage/EO ID is used by an existing object apply 
+the ``--is-used`` option:: 
+
+    python manage.py eoxs_check_id --is-used <ID> && echo True || echo False
+
+In order to check whether a coverage/EO ID is registered for future use apply
+the ``--is-reserved`` option:: 
+
+    python manage.py eoxs_check_id --is-reserved <ID> && echo True || echo False
 
 Performance
 -----------
