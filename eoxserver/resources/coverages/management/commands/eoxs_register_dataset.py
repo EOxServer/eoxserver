@@ -68,7 +68,7 @@ def __extract_footprint( fname ) :
 
     #TODO: handling of referenceable datasets 
 
-    ds = gdal.Open(df)
+    ds = gdal.Open(fname)
     if ds is not None : 
         footprint = Polygon.from_bbox(getExtentFromRectifiedDS(ds))
         ds.close() 
@@ -78,15 +78,15 @@ def __extract_footprint( fname ) :
     return footprint 
 
 
-def __extract_geo_md( fname ) : 
+def __extract_geo_md( fname, default_srid ) : 
     "Extract geo-meta-data from the source data file if possible."
 
     # TODO: for rasdaman build identifiers
     # TODO: FTP input 
 
-    ds = gdal.Open(df)
+    ds = gdal.Open(fname)
     if ds is not None : 
-        geo_md = GeospatialMetadata.readFromDataset(ds,srid)
+        geo_md = GeospatialMetadata.readFromDataset(ds, default_srid)
         ds.close() 
     else : 
         geo_md = None 
@@ -188,27 +188,27 @@ class Command(CommandOutputMixIn, BaseCommand):
             help=("Optional. List of rasdaman oids for each dataset "
                   "to be inserted.")
         ),
-        make_option('--srid','--default-srid',
+        make_option('--srid', '--default-srid',
             dest='srid',
             default=None,
             help=("Optional. SRID (EPSG code) of the dataset if it cannot be "
                   "determined automatically.")
         ),
-        make_option('--size','--default-size',
+        make_option('--size', '--default-size',
             dest='size',
             action="callback", callback=StringFormatCallback(_size),
             default=None,
             help=("Optional. Dataset pixel size if it cannot be determined " 
                   "automatically. Format: <nrows>,<ncols>")
         ),
-        make_option('--extent','--default-extent',
+        make_option('--extent', '--default-extent',
             dest='extent',
             action="callback", callback=StringFormatCallback(_extent),
             default=None,
             help=("Optional. Dataset extent if it cannot be determined " 
                   "automatically. Format: <minx>,<miny>,<maxx>,<maxy>")
         ),
-        make_option('--begin-time','--default-begin-time',
+        make_option('--begin-time', '--default-begin-time',
             dest='begin_time',
             action="callback", callback=StringFormatCallback(getDateTime),
 
@@ -216,14 +216,14 @@ class Command(CommandOutputMixIn, BaseCommand):
             help=("Optional. Acquisition begin timestamp if not available "
                   "from the EO metadata in ISO-8601 format.")
         ),
-        make_option('--end-time','--default-end-time',
+        make_option('--end-time', '--default-end-time',
             dest='end_time',
             action="callback", callback=StringFormatCallback(getDateTime),
             default=None,
             help=("Optional. Acquisition end timestamp if not available "
                   "from the EO metadata in ISO-8601 format.")
         ),
-        make_option('--footprint''--default-footprint',
+        make_option('--footprint', '--default-footprint',
             dest='footprint',
             action="callback", callback=StringFormatCallback(_footprint),
             default=None,
@@ -232,14 +232,14 @@ class Command(CommandOutputMixIn, BaseCommand):
         ),
         make_option('--visible',
             dest='visible',
-            metavar="store_true",
+            action="store_true",
             default=True,
             help=("Optional. Enables the visibility flag for all datasets "
                   "being registered. (Visibility enabled by default)")
         ),
         make_option('--invisible','--hidden',
             dest='visible',
-            metavar="store_false",
+            action="store_false",
             help=("Optional. Disables the visibility flag for all datasets "
                   "being registered. (Visibility enabled by default)")
         ),
@@ -430,8 +430,8 @@ class Command(CommandOutputMixIn, BaseCommand):
         if not src_meta : 
             src_meta = [ __make_md(fn) for fn in src_data ] 
 
-        if ( source_type == "rasdaman" ) and not pt['oids'] : 
-            opt['oids'] = [ None for i in xrange(len(src_date)) ]
+        if ( source_type == "rasdaman" ) and not opt['oids'] : 
+            opt['oids'] = [ None for i in xrange(len(src_data)) ]
 
         #-----------------------------------------------------------------------
         # handle the user specified geo-meta-data 
@@ -496,7 +496,7 @@ class Command(CommandOutputMixIn, BaseCommand):
         self.print_msg("Series:      %s"%(" ".join(ids_series)),2)
 
         if source_type == "rasdaman" : 
-            self.print_msg("Rasd. OIDs:  %s"%(" ".join(src(opt["oids"]))),2)
+            self.print_msg("Rasd. OIDs:  %s"%(" ".join(opt["oids"])),2)
             self.print_msg("Rasd. DB:    %s"%( opt["rasdb"] ),2)
 
         self.print_msg("Source type: %s"%(source_type),2)
@@ -542,8 +542,8 @@ class Command(CommandOutputMixIn, BaseCommand):
                 # NOTE: For the other input the geo-metadata cannot be
                 # extracted. 
             
-                if geo_metadata is not None : 
-                    geo_metadata =  __extract_geo_md( df ) 
+                if geo_metadata is None : 
+                    geo_metadata =  __extract_geo_md( df, opt["srid"] ) 
 
 
             elif source_type == "ftp" :
