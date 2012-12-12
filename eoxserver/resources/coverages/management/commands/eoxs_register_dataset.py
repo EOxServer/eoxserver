@@ -63,7 +63,7 @@ from eoxserver.resources.coverages.rangetype import isRangeTypeName
 #------------------------------------------------------------------------------
 
 
-def __extract_footprint( fname ) : 
+def _extract_footprint( fname ) : 
     "Extract footprint from the source data file if possible."
 
     #TODO: handling of referenceable datasets 
@@ -71,14 +71,14 @@ def __extract_footprint( fname ) :
     ds = gdal.Open(fname)
     if ds is not None : 
         footprint = Polygon.from_bbox(getExtentFromRectifiedDS(ds))
-        ds.close() 
+        #ds.close() 
     else : 
         footprint = None 
 
     return footprint 
 
 
-def __extract_geo_md( fname, default_srid ) : 
+def _extract_geo_md( fname, default_srid ) : 
     "Extract geo-meta-data from the source data file if possible."
 
     # TODO: for rasdaman build identifiers
@@ -87,7 +87,7 @@ def __extract_geo_md( fname, default_srid ) :
     ds = gdal.Open(fname)
     if ds is not None : 
         geo_md = GeospatialMetadata.readFromDataset(ds, default_srid)
-        ds.close() 
+        #ds.close() 
     else : 
         geo_md = None 
 
@@ -408,7 +408,7 @@ class Command(CommandOutputMixIn, BaseCommand):
 
             # try to extract footprint from the dataset 
             if source_type == "local" : 
-                opt["footprint"] = __extract_footprint( src_data[0] )  
+                opt["footprint"] = _extract_footprint( src_data[0] )  
 
             # check if footprint has been extracted 
             if ( opt["footprint"] is None ) : 
@@ -543,7 +543,7 @@ class Command(CommandOutputMixIn, BaseCommand):
                 # extracted. 
             
                 if geo_metadata is None : 
-                    geo_metadata =  __extract_geo_md( df, opt["srid"] ) 
+                    geo_metadata =  _extract_geo_md( df, opt["srid"] ) 
 
 
             elif source_type == "ftp" :
