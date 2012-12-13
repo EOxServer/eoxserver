@@ -67,6 +67,7 @@ Windows
 Run
 
 cd <path_to_eoxserver_directory>
+export DJANGO_SETTINGS_MODULE="autotest.settings"
 epydoc --name=EOxServer --output=../docs/epydoc/ --html --docformat=javadoc --graph=all .
 
 --------------------------------------------------------------------------------

@@ -369,6 +369,9 @@ database. Now a user with password can be set with the following line::
 
     createuser -d -R -P -S eoxserver-admin
 
+Depending on the configuration of the system used there may be the need to 
+enable access for the user in the ``pg_hba.conf``.
+
 In the ``settings.py`` the following entry has to be added::
 
     DATABASES = {
