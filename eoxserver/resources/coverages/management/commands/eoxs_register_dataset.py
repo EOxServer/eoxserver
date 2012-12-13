@@ -51,6 +51,8 @@ from eoxserver.resources.coverages.management.commands import (
 )
 from eoxserver.resources.coverages.metadata import EOMetadata
 
+from eoxserver.processing.gdal.reftools import get_footprint_wkt
+
 #------------------------------------------------------------------------------
 
 from eoxserver.resources.coverages.managers import getRectifiedDatasetManager
@@ -62,36 +64,21 @@ from eoxserver.resources.coverages.rangetype import isRangeTypeName
 
 #------------------------------------------------------------------------------
 
-
-def _extract_footprint( fname ) : 
-    "Extract footprint from the source data file if possible."
-
-    #TODO: handling of referenceable datasets 
-
-    ds = gdal.Open(fname)
-    if ds is not None : 
-        footprint = Polygon.from_bbox(getExtentFromRectifiedDS(ds))
-        #ds.close() 
-    else : 
-        footprint = None 
-
-    return footprint 
-
-
-def _extract_geo_md( fname, default_srid ) : 
-    "Extract geo-meta-data from the source data file if possible."
+def _extract_geo_md( fname, default_srid = None ) : 
+    """
+    Extract geo-meta-data from the source data file if possible.
+    The ``default_srid`` parameter can be specified as an fallback
+    when GDAL fails determine EPSG code of image or GCP projection.  
+    """
 
     # TODO: for rasdaman build identifiers
     # TODO: FTP input 
 
     ds = gdal.Open(fname)
-    if ds is not None : 
-        geo_md = GeospatialMetadata.readFromDataset(ds, default_srid)
-        #ds.close() 
-    else : 
-        geo_md = None 
 
-    return geo_md 
+    if ds is None : return None 
+
+    return GeospatialMetadata.readFromDataset(ds, default_srid)
 
 
 #------------------------------------------------------------------------------
@@ -234,15 +221,34 @@ class Command(CommandOutputMixIn, BaseCommand):
             dest='visible',
             action="store_true",
             default=True,
-            help=("Optional. Enables the visibility flag for all datasets "
+            help=("Optional. It enables the visibility flag for all datasets "
                   "being registered. (Visibility enabled by default)")
         ),
         make_option('--invisible','--hidden',
             dest='visible',
             action="store_false",
-            help=("Optional. Disables the visibility flag for all datasets "
+            help=("Optional. It disables the visibility flag for all datasets "
                   "being registered. (Visibility enabled by default)")
         ),
+
+        make_option('--ref','--referenceable', 
+            dest='is_ref_ds',
+            action="store_true",
+            help=("Optional. It indicates that the created dataset is "
+                  "a Referenceable dataset. (Relevanat only for manually "
+                  "specified geo-meta-data. Ignored for automatically detected"
+                  " local datasets)")
+        ),
+        make_option('--rect','--rectified', 
+            dest='is_ref_ds',
+            action="store_false",
+            default=False,
+            help=("Optional. Default. It indicates that the created dataset is"
+                  " a Rectified dataset. (Relevanat only for manually "
+                  "specified geo-meta-data. Ignored for automatically detected"
+                  " local datasets)")
+        ),
+
     )
     
     help = (
@@ -325,7 +331,7 @@ class Command(CommandOutputMixIn, BaseCommand):
         ids_cont   = ids_mosaic + ids_series # merged containers 
 
         _has_explicit_md = any([ ( opt[i] is not None ) for i in
-              ('srid','size','extent','begin_time','end_time','footprint') ])
+              ('size','extent','begin_time','end_time','footprint') ])
 
         # ... the rest of the options stays in the ``opt`` dictionary 
 
@@ -391,7 +397,6 @@ class Command(CommandOutputMixIn, BaseCommand):
             raise CommandError( "Specification of meta-data via the CLI is "
                     "allowed for single dataset only!" )  
 
-
         if ( opt["size"] is None ) != ( opt["extent"] is None ) : 
             raise CommandError( "Both 'size' and 'extent' metadata must be "
                     "specified but only one of them is actually provided!" ) 
@@ -404,16 +409,72 @@ class Command(CommandOutputMixIn, BaseCommand):
             raise CommandError( "Both 'begin_time' and 'end_time' metadata "
                 "must be specified but only one of them is actually provided!") 
 
-        if ( opt["begin_time"] is not None ) and ( opt["footprint"] is None ) :
+        #-----------------------------------------------------------------------
+        # handle the user specified geo-meta-data 
 
-            # try to extract footprint from the dataset 
-            if source_type == "local" : 
-                opt["footprint"] = _extract_footprint( src_data[0] )  
+        if ( opt["extent"] is not None ) : 
 
-            # check if footprint has been extracted 
-            if ( opt["footprint"] is None ) : 
+            geo_metadata = GeospatialMetadata( opt["srid"], opt["size"][0],
+                opt["size"][1], opt["extent"] , opt["is_ref_ds"] )
+
+        else : 
+
+            geo_metadata = None 
+
+        #-----------------------------------------------------------------------
+        # handle the user specified EO-meta-data 
+
+        if (opt['begin_time'] is not None) and (opt['end_time'] is not None): 
+
+            footprint = opt['footprint']
+    
+            # try to extract the missing footprint 
+            if footprint is None : 
+
+                # try to extract missing geo-metadata for local file  
+                if source_type == "local" : 
+
+                    # read the geo-metada if not given manually 
+                    if geo_metadata is None : 
+
+                        geo_metadata = _extract_geo_md(src_data[0],opt["srid"])
+
+                    # if some geo-metadata are given we try to get the FP
+                    if geo_metadata is not None : 
+                    
+                        # referenceable DS - trying to extract FP from GCPs 
+                        if geo_metadata.is_referenceable : 
+ 
+                            footprint = GEOSGeometry(get_footprint_wkt(src_data[0]))
+
+                        # for referenceable DSs we extract footprint from extent 
+                        else : 
+                        
+                            footprint = Polygon.from_bbox(geo_metadata.extent) 
+
+                else : # remote data 
+                
+                    # we rely on the manually given extent for rectified DSs
+                    if ( geo_metadata is not None ) and \
+                            ( not geo_metadata.is_referenceable ) : 
+
+                        footprint = Polygon.from_bbox( geo_metadata.extent ) 
+
+
+            # raise an error if the footprint extraction failed
+            if footprint is None : 
+
                 raise CommandError( "Cannot extract 'footprint' from the "
                     "dataset. It must be set explicitely via CLI!" ) 
+
+            # create EOMetadata object 
+        
+            eo_metadata = EOMetadata( src_ids[0], opt["begin_time"], 
+                            opt["end_time"], opt["footprint"], None )   
+
+        else : 
+
+            eo_metadata = None 
 
         #-----------------------------------------------------------------------
         # create the automatic IDs, filenames, and OIDs   
@@ -432,34 +493,6 @@ class Command(CommandOutputMixIn, BaseCommand):
 
         if ( source_type == "rasdaman" ) and not opt['oids'] : 
             opt['oids'] = [ None for i in xrange(len(src_data)) ]
-
-        #-----------------------------------------------------------------------
-        # handle the user specified geo-meta-data 
-
-        if ( opt["extent"] is not None ) : 
-
-            geo_metadata = GeospatialMetadata( opt["srid"], opt["size"][0],
-                opt["size"][1], opt["extent"] ) 
-
-            if opt["footprint"] is None : 
-                opt["footprint"] = Polygon.from_bbox( opt["extent"] )
-
-        else : 
-
-            geo_metadata = None 
-
-        #-----------------------------------------------------------------------
-        # handle the user specified EO-meta-data 
-
-        if all([ ( opt[i] is not None ) for i in \
-                    ('begin_time','end_time','footprint')]) : 
-        
-            eo_metadata = EOMetadata( src_ids[0], opt["begin_time"], 
-                            opt["end_time"], opt["footprint"], None )   
-
-        else : 
-
-            eo_metadata = None 
 
         #-----------------------------------------------------------------------
         # verify the identifiers agaist the DB 
@@ -520,6 +553,9 @@ class Command(CommandOutputMixIn, BaseCommand):
         for df, mdf, cid in zip( src_data, src_meta, src_ids ) :
 
             self.print_msg( "Registering dataset: '%s'" % cid ) 
+            
+            # store geo-metadata in a local variable 
+            _geo_metadata = geo_metadata
 
             # commmon parameters 
 
@@ -539,12 +575,9 @@ class Command(CommandOutputMixIn, BaseCommand):
                 prm["md_local_path"]  = mdf 
 
                 # try to extract geo-metadata
-                # NOTE: For the other input the geo-metadata cannot be
-                # extracted. 
-            
-                if geo_metadata is None : 
-                    geo_metadata =  _extract_geo_md( df, opt["srid"] ) 
-
+                # NOTE: The geo-metadata can be extracted from local data only!
+                if _geo_metadata is None : 
+                    _geo_metadata = _extract_geo_md( df, opt["srid"] )
 
             elif source_type == "ftp" :
 
@@ -567,23 +600,24 @@ class Command(CommandOutputMixIn, BaseCommand):
                 prm["ras_db"]         = opt["rasdb"]
 
             #-------------------------------------------------------------------
-            # handle metadata
+            # insert metadata if available 
 
             if eo_metadata is not None:
                 prm["eo_metadata"] = eo_metadata
 
-            if geo_metadata is not None:
-                prm["geo_metadata"] = geo_metadata
+            if _geo_metadata is not None:
+                prm["geo_metadata"] = _geo_metadata
 
             #-------------------------------------------------------------------
             # select dataset manager  
 
-            # NOTE: This is just WRONG!!! 
+            # TODO: Fix the ReferenceableDataset selection! 
+            # What will happen in case of rectified DS and _geo_metadata being None
 
             # unless changed we assume rectified DS 
             dsType = "RectifiedDataset"
             
-            if ( geo_metadata is not None) and geo_metadata.is_referenceable :
+            if (_geo_metadata is not None) and _geo_metadata.is_referenceable :
 
                 # the DS is refereanceable  
                 dsType = "ReferenceableDataset"
