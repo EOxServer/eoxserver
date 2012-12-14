@@ -1,3 +1,32 @@
+#-------------------------------------------------------------------------------
+# $Id$
+#
+# Project: EOxServer <http://eoxserver.org>
+# Authors: Fabian Schindler <fabian.schindler@eox.at>
+#          Stephan Meissl <stephan.meissl@eox.at>
+#
+#-------------------------------------------------------------------------------
+# Copyright (C) 2012 EOX IT Services GmbH
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+# copies of the Software, and to permit persons to whom the Software is 
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies of this Software or works derived from this Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#-------------------------------------------------------------------------------
+
 import logging
 
 import numpy
@@ -97,18 +126,32 @@ class BandSelectionOptimization(DatasetOptimization):
                          bands)
         self.datatype = datatype
         
-    
     def __call__(self, src_ds):
         dst_ds = create_mem(src_ds.RasterXSize, src_ds.RasterYSize, 
                             len(self.bands), self.datatype)
         dst_range = get_limits(self.datatype)
         
+        multiple = 0
+        
         for dst_index, (src_index, dmin, dmax) in enumerate(self.bands, 1):
-            if dst_index >= src_ds.RasterCount + 1 :
-                break
+            # check if next band is equal
+            if dst_index < len(self.bands) and (src_index, dmin, dmax) == self.bands[dst_index]:
+                multiple += 1
+                continue
+            # check that src band is available
+            if src_index > src_ds.RasterCount:
+                continue
             
-            src_band = src_ds.GetRasterBand(src_index)
-            src_min, src_max = src_band.ComputeRasterMinMax()
+            # initialize with zeros if band is 0
+            if src_index == 0:
+                src_band = src_ds.GetRasterBand(1)
+                data = numpy.zeros((src_band.YSize, src_band.XSize), dtype=gdal_array.codes[self.datatype])
+                src_min, src_max = (0, 0)
+            # use src_ds band otherwise
+            else:
+                src_band = src_ds.GetRasterBand(src_index)
+                data = src_band.ReadAsArray()
+                src_min, src_max = src_band.ComputeRasterMinMax()
             
             # get min/max values or calculate from band
             if dmin is None:
@@ -119,20 +162,26 @@ class BandSelectionOptimization(DatasetOptimization):
                 dmax = get_limits(src_band.DataType)[1]
             elif dmax == "max":
                 dmax = src_max
-            src_range = (dmin, dmax)
+            src_range = (float(dmin), float(dmax))
             
-            data = src_band.ReadAsArray()
-            
-            # perform scaling
-            data = numpy.clip(data, dmin, dmax)
+            # perform clipping and scaling
             data = ((dst_range[1] - dst_range[0]) * 
-                    ((data - src_range[0]) / (src_range[1] - src_range[0])))
+                    ((numpy.clip(data, dmin, dmax) - src_range[0]) / 
+                    (src_range[1] - src_range[0])))
             
+            # set new datatype
             data = data.astype(gdal_array.codes[self.datatype])
             
             # write result
             dst_band = dst_ds.GetRasterBand(dst_index)
             dst_band.WriteArray(data)
+            
+            # write equal bands at once
+            if multiple > 0:
+                for i in range(multiple):
+                    dst_band = dst_ds.GetRasterBand(dst_index-1-i)
+                    dst_band.WriteArray(data)
+                multiple = 0
         
         copy_projection(src_ds, dst_ds)
         copy_metadata(src_ds, dst_ds)
@@ -245,16 +294,10 @@ class OverviewOptimization(DatasetPostOptimization):
             level = 1
             levels = []
             
-            logger.debug("Computing overview levels for requested size %d."
-                         % desired_size)
-            
             while size > desired_size:
                 size /= 2
                 level *= 2
                 levels.append(level)
-                
-                logger.debug("Calculated overview for size %d (level: %d)."
-                             % (size, level))
         
         logger.info("Building overview levels %s with resampling method '%s'."
                     % (", ".join(map(str, levels)), self.resampling))
