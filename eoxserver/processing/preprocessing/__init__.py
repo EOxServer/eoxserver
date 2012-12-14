@@ -95,7 +95,8 @@ class PreProcessor(object):
                  bandmode=RGB, footprint_alpha=False,
                  color_index=False, palette_file=None, no_data_value=None,
                  overview_resampling=None, overview_levels=None, 
-                 overview_minsize=None):
+                 overview_minsize=None, radiometric_interval_min=None, 
+                 radiometric_interval_max=None):
         
         self.format_selection = format_selection
         self.overviews = overviews
@@ -111,6 +112,8 @@ class PreProcessor(object):
         self.color_index = color_index
         self.palette_file = palette_file
         self.no_data_value = no_data_value
+        self.radiometric_interval_min = radiometric_interval_min
+        self.radiometric_interval_max = radiometric_interval_max
         
     
     def process(self, input_filename, output_filename, 
@@ -169,8 +172,6 @@ class PreProcessor(object):
             logger.debug("Applying post-optimization '%s'."
                          % type(optimization).__name__)
             optimization(ds)
-        
-        
         
         # generate metadata if requested
         polygon = None
@@ -277,6 +278,15 @@ class WMSPreProcessor(PreProcessor):
         if self.bandmode not in (RGB, RGBA, ORIG_BANDS):
             raise ValueError
         
+        if self.radiometric_interval_min is not None:
+            rad_min = self.radiometric_interval_min
+        else:
+            rad_min = "min"
+        if self.radiometric_interval_max is not None:
+            rad_max = self.radiometric_interval_max
+        else:
+            rad_max = "max"
+        
         # if RGB is requested, use the given bands or the first 3 bands as RGB
         if self.bandmode == RGB:
             if self.bands and len(self.bands) != 3:
@@ -284,13 +294,13 @@ class WMSPreProcessor(PreProcessor):
                                  "%d." % len(self.bands))
             
             if ds.RasterCount == 1:
-                yield BandSelectionOptimization(self.bands or [(1, "min", "max"), 
-                                                               (1, "min", "max"),
-                                                               (1, "min", "max")])
+                yield BandSelectionOptimization(self.bands or [(1, rad_min, rad_max), 
+                                                               (1, rad_min, rad_max),
+                                                               (1, rad_min, rad_max)])
             else:
-                yield BandSelectionOptimization(self.bands or [(1, "min", "max"), 
-                                                               (2, "min", "max"),
-                                                               (3, "min", "max")])
+                yield BandSelectionOptimization(self.bands or [(1, rad_min, rad_max), 
+                                                               (2, rad_min, rad_max),
+                                                               (3, rad_min, rad_max)])
         
         # if RGBA is requested, use the given bands or the first 4 bands as RGBA
         elif self.bandmode == RGBA:
@@ -298,15 +308,15 @@ class WMSPreProcessor(PreProcessor):
                 raise ValueError("Wrong number of bands given. Expected 4, got "
                                  "%d." % len(self.bands))
             if ds.RasterCount == 1:
-                yield BandSelectionOptimization(self.bands or [(1, "min", "max"), 
-                                                               (1, "min", "max"),
-                                                               (1, "min", "max"),
-                                                               (1, "min", "max")])
+                yield BandSelectionOptimization(self.bands or [(1, rad_min, rad_max), 
+                                                               (1, rad_min, rad_max),
+                                                               (1, rad_min, rad_max),
+                                                               (0, 0, 0)]) # add zero band
             else:
-                yield BandSelectionOptimization(self.bands or [(1, "min", "max"), 
-                                                               (2, "min", "max"),
-                                                               (3, "min", "max"),
-                                                               (4, "min", "max")])
+                yield BandSelectionOptimization(self.bands or [(1, rad_min, rad_max), 
+                                                               (2, rad_min, rad_max),
+                                                               (3, rad_min, rad_max),
+                                                               (4, rad_min, rad_max)])
             
         # when band mode is set to original bands, don't use this optimization
         elif self.bandmode == ORIG_BANDS:
