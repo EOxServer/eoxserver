@@ -93,7 +93,9 @@ class WCS20DescribeEOCoverageSetHandler(BaseRequestHandler):
         
         
         count_default = WCS20ConfigReader().getPagingCountDefault()
-        count_used = min(count_req, count_default)
+        count_used = count_req
+        if count_default is not None:
+            count_used = min(count_req, count_default)
         
         count_all_coverages = len(coverages)
         if count_used < count_all_coverages:
@@ -190,4 +192,8 @@ class WCS20ConfigReader(object):
         pass
 
     def getPagingCountDefault(self):
-        return System.getConfig().getConfigValue("services.ows.wcs20", "paging_count_default")
+        value = System.getConfig().getConfigValue("services.ows.wcs20", "paging_count_default")
+        if value is not None:
+            return int(value)
+        
+        return value
