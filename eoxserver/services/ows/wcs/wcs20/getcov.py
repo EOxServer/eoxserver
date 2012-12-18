@@ -77,6 +77,8 @@ logger = logging.getLogger(__name__)
 # stripping dot from file extension
 _stripDot = lambda ext : ext[1:] if ext.startswith('.') else ext 
 
+MASK_LAYER_NAME = "__mask_layer__"
+
 # register all GDAL drivers 
 gdal.AllRegister()
 
@@ -462,8 +464,51 @@ class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
         "trims": {"xml_location": "/{http://www.opengis.net/wcs/2.0}DimensionTrim", "xml_type": "element[]"},
         "slices": {"xml_location": "/{http://www.opengis.net/wcs/2.0}DimensionSlice", "xml_type": "element[]"},
         "format": {"xml_location": "/{http://www.opengis.net/wcs/2.0}format", "xml_type": "string", "kvp_key": "format", "kvp_type": "string"},
-        "mediatype": {"xml_location": "/{http://www.opengis.net/wcs/2.0}mediaType", "xml_type": "string", "kvp_key": "mediatype", "kvp_type": "string"}
+        "mediatype": {"xml_location": "/{http://www.opengis.net/wcs/2.0}mediaType", "xml_type": "string", "kvp_key": "mediatype", "kvp_type": "string"},
+        "polygon": {"kvp_key": "polygon", "kvp_type": "string"},
     }
+    
+    def addLayers(self):
+        polygon = self.req.getParamValue("polygon")
+        
+        self.has_mask = False
+        
+        polygon = "0,0,10000,0,10000,10000,0,10000,0,0"
+        
+        if polygon:
+            # TODO: create mask layer
+            
+            mask_layer = mapscript.layerObj()
+            mask_layer.name = MASK_LAYER_NAME
+            mask_layer.status = mapscript.MS_DEFAULT;
+            
+            coords = map(float, polygon.split(","))
+            assert(len(coords) % 2 == 0)
+            
+            if coords[:2] != coords[-2:]:
+                coords.extend(coords[:2])
+            
+            shape = mapscript.shapeObj(mapscript.MS_SHAPE_POLYGON)
+            line = mapscript.lineObj()
+            for i in range(0, len(coords), 2):
+                line.add(mapscript.pointObj(coords[i], coords[i+1]))
+                print coords[i], coords[i+1]
+            shape.add(line)
+            
+            print shape.toWKT()
+            
+            
+            mask_layer.debug = 5
+            mask_layer.addFeature(shape)
+            mask_layer.setProjection("init=epsg:4326")
+            
+            print  mask_layer.getProjection()
+            self.map.insertLayer(mask_layer)
+            
+            self.has_mask = True
+        
+        super(WCS20GetRectifiedCoverageHandler, self).addLayers()
+    
     
     def createCoverages(self):
         """
@@ -590,6 +635,9 @@ class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
         layer.setMetaData("wcs_formats", getMSWCSFormatMD() )
 
         layer.setMetaData( "wcs_imagemode", gdalconst_to_imagemode_string(rangetype.data_type) )
+        
+        if self.has_mask:
+            layer.mask = MASK_LAYER_NAME
         
         return layer
 
