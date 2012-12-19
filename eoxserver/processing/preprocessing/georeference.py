@@ -103,13 +103,9 @@ class GCPList(GeographicReference):
         
         
         logger.debug("Using GCP Projection '%s'" % gcp_sr.ExportToWkt())
-        logger.debug("Applying GCPs: \n%s"
-                     % "\n".join(["%f %f -> %f %f" 
-                                  % (gcp.GCPPixel, gcp.GCPLine, gcp.GCPX, gcp.GCPY)
-                                  for gcp in self.gcps]))
-        
-        logger.debug("MULTIPOINT(%s)" % ", ".join([("(%f %f)") % (gcp.GCPX, gcp.GCPY) for gcp in self.gcps]))
-        
+        logger.debug("Applying GCPs: MULTIPOINT(%s) -> MULTIPOINT(%s)"
+                      % (", ".join([("(%f %f)") % (gcp.GCPX, gcp.GCPY) for gcp in self.gcps]) ,
+                      ", ".join([("(%f %f)") % (gcp.GCPPixel, gcp.GCPLine) for gcp in self.gcps])))
         # set the GCPs
         src_ds.SetGCPs(self.gcps, gcp_sr.ExportToWkt())
         
@@ -120,6 +116,7 @@ class GCPList(GeographicReference):
             # if the number of GCP matches
             if len(self.gcps) > min_gcpnum:
                 try:
+                    logger.debug("Trying order '%i'" % order)
                     # get the suggested pixel size/geotransform
                     size_x, size_y, geotransform = reftools.suggested_warp_output(
                         src_ds,
@@ -145,10 +142,12 @@ class GCPList(GeographicReference):
                     footprint_wkt = reftools.get_footprint_wkt(src_ds, order=order)
                     
                 except RuntimeError:
+                    logger.debug("Failed using order '%i'" % order)
                     # the given method was not applicable, use the next one
                     continue
                     
                 else:
+                    logger.debug("Successfully used order '%i'" % order)
                     # the transform method was successful, exit the loop
                     break
         else:
