@@ -46,6 +46,7 @@ from eoxserver.processing.preprocessing.optimization import (
     OverviewOptimization, ReprojectionOptimization, AlphaBandOptimization
 )
 
+
 logger = logging.getLogger(__name__)
 
 def pairwise(iterable):
@@ -205,7 +206,7 @@ class PreProcessor(object):
         # create an empty boolean array initialized as 'False' to store where
         # values exist as a mask array.
         nodata_map = numpy.zeros((ds.RasterYSize, ds.RasterXSize),
-                               dtype=numpy.bool)
+                                 dtype=numpy.bool)
         
         for idx in range(1, ds.RasterCount + 1):
             band = ds.GetRasterBand(idx)
