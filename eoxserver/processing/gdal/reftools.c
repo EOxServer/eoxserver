@@ -61,6 +61,12 @@ typedef struct {
     int y_size;
 } eoxs_rect;
 
+typedef struct {
+    size_t x_size;
+    size_t y_size;
+    double geotransform[6];
+} eoxs_image_info;
+
 /******************************************************************************/
 /******************************************************************************/
 
@@ -75,31 +81,24 @@ void eoxs_free_string(char* str)
     free(str);
 }
 
-void *eoxs_create_referenceable_grid_transformer(GDALDatasetH ds, const char *method) {
+void *eoxs_create_referenceable_grid_transformer(GDALDatasetH ds, int order) {
     int gcp_count;
     const GDAL_GCP *gcps;
 
-    if (!ds || !method) return NULL;
+    if (!ds) return NULL;
     
     gcp_count = GDALGetGCPCount(ds);
     gcps = GDALGetGCPs(ds);
 
-    if (EQUAL(method, "TPS")) {
+    if (order == -1) {
         return GDALCreateTPSTransformer(gcp_count, gcps, FALSE);
     }
-    else if (EQUAL(method, "GCP")) {
-        return GDALCreateGCPTransformer(gcp_count, gcps, /* order */ 0, FALSE);
-    }
-    /* requires "tolerance" arg
-     * else if (EQUAL(method, "GCP_refined")) {
-        //return GDALCreateGCPRefineTransformer(gcp_count, gcps, 0, FALSE, 
-    }*/
     else {
-        return NULL;
+        return GDALCreateGCPTransformer(gcp_count, gcps, order, FALSE);
     }
 }
 
-CPLErr eoxs_calculate_footprint(GDALDatasetH ds, const char *method, eoxs_footprint **out_footprint) {
+CPLErr eoxs_calculate_footprint(GDALDatasetH ds, int order, eoxs_footprint **out_footprint) {
     void *transformer;
     int x_size, y_size;
     double *x, *y, *z;
@@ -150,7 +149,7 @@ CPLErr eoxs_calculate_footprint(GDALDatasetH ds, const char *method, eoxs_footpr
     x_size = GDALGetRasterXSize(ds);
     y_size = GDALGetRasterYSize(ds);
 
-    transformer = eoxs_create_referenceable_grid_transformer(ds, method);
+    transformer = eoxs_create_referenceable_grid_transformer(ds, order);
 
     if (!transformer) {
         if (CPLGetLastErrorMsg() == NULL) {
@@ -223,14 +222,14 @@ CPLErr eoxs_calculate_footprint(GDALDatasetH ds, const char *method, eoxs_footpr
     return CE_None;
 }
 
-CPLErr eoxs_get_footprint_wkt(GDALDatasetH ds, const char *method, char **out_wkt) {
+CPLErr eoxs_get_footprint_wkt(GDALDatasetH ds, int order, char **out_wkt) {
     eoxs_footprint *fp;
     char buffer[512];
     int i, maxlen;
     CPLErr ret;
     *out_wkt = NULL;
 
-    if ((ret = eoxs_calculate_footprint(ds, method, &fp)) != CE_None) {
+    if ((ret = eoxs_calculate_footprint(ds, order, &fp)) != CE_None) {
         return ret;
     }
 
@@ -326,7 +325,7 @@ void eoxs_get_intermediate_point_count(
     *n_y = (int) ceil((eoxs_array_max(4, y) - eoxs_array_min(4, y)) / dist);
 }
 
-CPLErr eoxs_rect_from_subset(GDALDatasetH ds, eoxs_subset *subset, const char *method, eoxs_rect *out_rect) {
+CPLErr eoxs_rect_from_subset(GDALDatasetH ds, eoxs_subset *subset, int order, eoxs_rect *out_rect) {
     void *transformer;
     
     OGRSpatialReferenceH gcp_srs, subset_srs;
@@ -383,7 +382,7 @@ CPLErr eoxs_rect_from_subset(GDALDatasetH ds, eoxs_subset *subset, const char *m
     ds_x_size = GDALGetRasterXSize(ds);
     ds_y_size = GDALGetRasterYSize(ds);
     
-    transformer = eoxs_create_referenceable_grid_transformer(ds, method);
+    transformer = eoxs_create_referenceable_grid_transformer(ds, order);
     
     if (!transformer) {
         if (CPLGetLastErrorMsg() == NULL) {
@@ -558,4 +557,187 @@ CPLErr eoxs_create_rectified_vrt(GDALDatasetH ds, const char *vrt_filename, int 
     if (free_dst_srs_wkt) free(dst_srs_wkt);
     
     return CE_None;
+}
+
+
+/* Thin wrapper for GDALSuggestedWarpOutput which allows the setting of the order. */
+CPLErr eoxs_suggested_warp_output(GDALDatasetH ds, 
+                                  const char *src_wkt, /* can be NULL */
+                                  const char *dst_wkt,
+                                  int order,
+                                  eoxs_image_info* out) {
+
+    CPLErr ret;
+    void *transformer = GDALCreateGenImgProjTransformer(
+        ds,
+        src_wkt,
+        NULL,
+        dst_wkt,
+        TRUE,
+        0.0,
+        order
+    );
+
+    if (!transformer) {
+        return CE_Failure;
+    }
+    
+    ret = GDALSuggestedWarpOutput(ds, GDALGenImgProjTransform, 
+                                  transformer, 
+                                  out->geotransform,
+                                  (int*) &out->x_size, (int*) &out->y_size);
+
+    // clean up
+    GDALDestroyTransformer(transformer);
+
+    return ret;
+}
+
+
+/* copied from gdalwarper.cpp */
+CPLErr eoxs_reproject_image(GDALDatasetH hSrcDS,
+                            const char *pszSrcWKT, 
+                            GDALDatasetH hDstDS,
+                            const char *pszDstWKT,
+                            GDALResampleAlg eResampleAlg, 
+                            double dfWarpMemoryLimit, 
+                            double dfMaxError,
+                            int order) {
+    
+    GDALWarpOptions *psWOptions;
+
+/* -------------------------------------------------------------------- */
+/*      Setup a reprojection based transformer.                         */
+/* -------------------------------------------------------------------- */
+    void *hTransformArg;
+
+    hTransformArg = 
+        GDALCreateGenImgProjTransformer(
+            hSrcDS,
+            pszSrcWKT,
+            hDstDS,
+            pszDstWKT,
+            TRUE,
+            0.0,
+            order
+        );
+
+    if( hTransformArg == NULL )
+        return CE_Failure;
+
+/* -------------------------------------------------------------------- */
+/*      Create a copy of the user provided options, or a defaulted      */
+/*      options structure.                                              */
+/* -------------------------------------------------------------------- */
+    psWOptions = GDALCreateWarpOptions();
+    psWOptions->eResampleAlg = eResampleAlg;
+
+/* -------------------------------------------------------------------- */
+/*      Set transform.                                                  */
+/* -------------------------------------------------------------------- */
+    if( dfMaxError > 0.0 )
+    {
+        psWOptions->pTransformerArg = 
+            GDALCreateApproxTransformer( GDALGenImgProjTransform, 
+                                         hTransformArg, dfMaxError );
+
+        psWOptions->pfnTransformer = GDALApproxTransform;
+    }
+    else
+    {
+        psWOptions->pfnTransformer = GDALGenImgProjTransform;
+        psWOptions->pTransformerArg = hTransformArg;
+    }
+
+/* -------------------------------------------------------------------- */
+/*      Set file and band mapping.                                      */
+/* -------------------------------------------------------------------- */
+    int  iBand;
+
+    psWOptions->hSrcDS = hSrcDS;
+    psWOptions->hDstDS = hDstDS;
+
+    if( psWOptions->nBandCount == 0 )
+    {
+        psWOptions->nBandCount = MIN(GDALGetRasterCount(hSrcDS),
+                                     GDALGetRasterCount(hDstDS));
+        
+        psWOptions->panSrcBands = (int *) 
+            CPLMalloc(sizeof(int) * psWOptions->nBandCount);
+        psWOptions->panDstBands = (int *) 
+            CPLMalloc(sizeof(int) * psWOptions->nBandCount);
+
+        for( iBand = 0; iBand < psWOptions->nBandCount; iBand++ )
+        {
+            psWOptions->panSrcBands[iBand] = iBand+1;
+            psWOptions->panDstBands[iBand] = iBand+1;
+        }
+    }
+
+/* -------------------------------------------------------------------- */
+/*      Set source nodata values if the source dataset seems to have    */
+/*      any.                                                            */
+/* -------------------------------------------------------------------- */
+    for( iBand = 0; iBand < psWOptions->nBandCount; iBand++ )
+    {
+        GDALRasterBandH hBand = GDALGetRasterBand( hSrcDS, iBand+1 );
+        int             bGotNoData = FALSE;
+        double          dfNoDataValue;
+
+        if (GDALGetRasterColorInterpretation(hBand) == GCI_AlphaBand)
+        {
+            psWOptions->nSrcAlphaBand = iBand + 1;
+        }
+
+        dfNoDataValue = GDALGetRasterNoDataValue( hBand, &bGotNoData );
+        if( bGotNoData )
+        {
+            if( psWOptions->padfSrcNoDataReal == NULL )
+            {
+                int  ii;
+
+                psWOptions->padfSrcNoDataReal = (double *) 
+                    CPLMalloc(sizeof(double) * psWOptions->nBandCount);
+                psWOptions->padfSrcNoDataImag = (double *) 
+                    CPLMalloc(sizeof(double) * psWOptions->nBandCount);
+
+                for( ii = 0; ii < psWOptions->nBandCount; ii++ )
+                {
+                    psWOptions->padfSrcNoDataReal[ii] = -1.1e20;
+                    psWOptions->padfSrcNoDataImag[ii] = 0.0;
+                }
+            }
+
+            psWOptions->padfSrcNoDataReal[iBand] = dfNoDataValue;
+        }
+
+        hBand = GDALGetRasterBand( hDstDS, iBand+1 );
+        if (hBand && GDALGetRasterColorInterpretation(hBand) == GCI_AlphaBand)
+        {
+            psWOptions->nDstAlphaBand = iBand + 1;
+        }
+    }
+
+/* -------------------------------------------------------------------- */
+/*      Create a warp options based on the options.                     */
+/* -------------------------------------------------------------------- */
+    GDALWarpOperationH  hWarper = GDALCreateWarpOperation( psWOptions );
+    CPLErr eErr = CE_Failure;
+
+    if( hWarper )
+        eErr = GDALChunkAndWarpImage( hWarper, 0, 0, 
+                                      GDALGetRasterXSize(hDstDS),
+                                      GDALGetRasterYSize(hDstDS) );
+
+/* -------------------------------------------------------------------- */
+/*      Cleanup.                                                        */
+/* -------------------------------------------------------------------- */
+    GDALDestroyGenImgProjTransformer( hTransformArg );
+
+    if( dfMaxError > 0.0 )
+        GDALDestroyApproxTransformer( psWOptions->pTransformerArg );
+        
+    GDALDestroyWarpOptions( psWOptions );
+
+    return eErr;
 }
