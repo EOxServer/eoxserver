@@ -225,7 +225,7 @@ class WCS20SubsetDecoder(object):
         elif self.containment.lower() == "contains":
             op_part = "within"
         else:
-            raise InvalidParameterException(
+            raise InvalidRequestException(
                 "Unknown containment mode '%s'." % self.containment
             )
         
