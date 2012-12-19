@@ -34,13 +34,15 @@ This module contains the abstract base classes for request handling.
 import logging
 import os.path
 from cgi import escape
+import time
 
 from django.conf import settings
 from osgeo.gdalconst import GDT_Byte, GDT_Int16, GDT_UInt16, GDT_Float32
 import mapscript
 
-from eoxserver.core.interfaces import *
+from eoxserver.core.interfaces import Method, ObjectArg, ListArg
 from eoxserver.core.registry import RegisteredInterface
+from eoxserver.core.exceptions import InternalError
 from eoxserver.services.base import BaseRequestHandler
 from eoxserver.services.requests import OWSRequest, Response
 from eoxserver.services.exceptions import InvalidRequestException
@@ -356,12 +358,15 @@ class MapServerOperationHandler(BaseRequestHandler):
         ``ms_req.map.OWSDispatch()``. This method should not be
         overridden by child classes.
         """
-        logger.debug("MapServerOperationHandler.dispatch: 1")
+        logger.debug("MapServer: Installing stdout to buffer.")
         mapscript.msIO_installStdoutToBuffer()
         # Execute the OWS request by mapserver, obtain the status in dispatch_status (==0 is OK)
-        logger.debug("MapServerOperationHandler.dispatch: 2")
+        logger.debug("MapServer: Dispatching.")
         try:
+            ts = time.time()
             dispatch_status = self.map.OWSDispatch(self.ows_req)
+            te = time.time()
+            logger.debug("MapServer: Dispatch took %f seconds." % (te - ts))
         except Exception, e:
             raise InvalidRequestException(
                 str(e),
@@ -369,12 +374,12 @@ class MapServerOperationHandler(BaseRequestHandler):
                 None
             )
         
-        logger.debug("MapServerOperationHandler.dispatch: 3")
+        logger.debug("MapServer: Retrieving content-type.")
         content_type = mapscript.msIO_stripStdoutBufferContentType()
         mapscript.msIO_stripStdoutBufferContentHeaders()
-        logger.debug("MapServerOperationHandler.dispatch: 4")
+        logger.debug("MapServer: Retrieving stdout buffer bytes.")
         result = mapscript.msIO_getStdoutBufferBytes()
-        logger.debug("MapServerOperationHandler.dispatch: 5")
+        logger.debug("MapServer: Performing MapServer cleanup.")
         # Workaround for MapServer issue #4369
         msversion = mapscript.msGetVersionInt()
         if msversion < 60004 or ( msversion < 60200 and msversion >= 60100):
