@@ -39,13 +39,20 @@ def pairwise(iterable):
 
 class PolygonMask(object):
     def __init__(self, coords, crs=None):
-        srid = crss.fromURL(crs)
-        if srid is not None and crss.hasSwappedAxes(srid):
-            self.coords = [(y, x) for (x, y) in coords]
-        else:
-            self.coords = coords
+        # check if the axes should be swapped
+        
+        self.srid = crss.fromURL(crs) if crs else None
         self.crs = crs
-    
+
+        if self.srid is not None and crss.hasSwappedAxes(self.srid):
+            self.coords = [(x, y) for (y, x) in coords]
+        else:
+            self.coords = list(coords)
+        
+        # make sure the polygon is closed    
+        if self.coords[:2] != self.coords[-2:]:
+            self.coords.extend(self.coords[:2])
+        
     
     def __iter__(self):
         return iter(self.coords)
@@ -67,7 +74,12 @@ class WCS20MaskDecoder(object):
         self.polygons = []
         self.coverages = []
         self._decode(req)
-        
+    
+    
+    @property
+    def has_mask(self):
+        return (len(self.polygons) + len(self.coverages)) > 0
+    
     
     def _decode(self, req):
         if req.getParamType() == "kvp":
@@ -94,12 +106,15 @@ class WCS20MaskDecoder(object):
                 mask_value = match.group(5)
                 
                 if method.lower() == "polygon":
-                    coords = pairwise(map(float, mask_value.split(",")))
-                    self.polygons.append(object)
+                    raw_coords = map(float, mask_value.split(","))
+                    if len(raw_coords) % 2 != 0:
+                        raise Exception("Invalid number of coordinates given.")
                     
-                    self.polygons.append(PolygonMask(coords, crs))
+                    pairs = pairwise(raw_coords)
+                    self.polygons.append(PolygonMask(pairs, crs))
                 
-                elif method.lower() in ("coverageid", "coverageids"):
+                
+                elif method.lower() in ("coverage", "coverages", "coverageid", "coverageids"):
                     self.coverages.extend(mask_value.split(","))
 
     def _decodeXML(self):

@@ -28,6 +28,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+
 """
 This module contains handlers for WCS 2.0 / EO-WCS GetCoverage requests.
 """
@@ -67,7 +68,7 @@ from eoxserver.services.ows.wcs.common import (
 )
 from eoxserver.services.ows.wcs.encoders import WCS20EOAPEncoder
 from eoxserver.services.ows.wcs.wcs20.subset import WCS20SubsetDecoder
-
+from eoxserver.services.ows.wcs.wcs20.mask import WCS20MaskDecoder
 from eoxserver.resources.coverages.formats import getFormatRegistry
 from eoxserver.resources.coverages import crss
 
@@ -77,7 +78,7 @@ logger = logging.getLogger(__name__)
 # stripping dot from file extension
 _stripDot = lambda ext : ext[1:] if ext.startswith('.') else ext 
 
-MASK_LAYER_NAME = "__mask_layer__"
+MASK_LAYER_NAME = "masklayername"#"__mask_layer__"
 
 # register all GDAL drivers 
 gdal.AllRegister()
@@ -469,40 +470,31 @@ class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
     }
     
     def addLayers(self):
-        polygon = self.req.getParamValue("polygon")
+        masks = WCS20MaskDecoder(self.req)
         
-        self.has_mask = False
+        self.has_mask = masks.has_mask
         
-        polygon = "0,0,10000,0,10000,10000,0,10000,0,0"
-        
-        if polygon:
-            # TODO: create mask layer
-            
+        if self.has_mask:
+            # create a mask layer
             mask_layer = mapscript.layerObj()
             mask_layer.name = MASK_LAYER_NAME
             mask_layer.status = mapscript.MS_DEFAULT;
+            mask_layer.type = mapscript.MS_LAYER_POLYGON
+            mask_layer.setProjection("init=epsg:4326") # TODO: make this dependant on the actually given crs 
             
-            coords = map(float, polygon.split(","))
-            assert(len(coords) % 2 == 0)
+            # add features for each mask polygon
+            for polygon in masks.polygons:
+                shape = mapscript.shapeObj(mapscript.MS_SHAPE_POLYGON)
+                line = mapscript.lineObj()
+                for x, y in polygon:
+                    line.add(mapscript.pointObj(x, y))
+                shape.add(line)
+                mask_layer.addFeature(shape)
             
-            if coords[:2] != coords[-2:]:
-                coords.extend(coords[:2])
+            cls = mapscript.classObj(mask_layer)
+            style = mapscript.styleObj(cls)
+            style.color.setRGB(0, 0, 0) # requires a color
             
-            shape = mapscript.shapeObj(mapscript.MS_SHAPE_POLYGON)
-            line = mapscript.lineObj()
-            for i in range(0, len(coords), 2):
-                line.add(mapscript.pointObj(coords[i], coords[i+1]))
-                print coords[i], coords[i+1]
-            shape.add(line)
-            
-            print shape.toWKT()
-            
-            
-            mask_layer.debug = 5
-            mask_layer.addFeature(shape)
-            mask_layer.setProjection("init=epsg:4326")
-            
-            print  mask_layer.getProjection()
             self.map.insertLayer(mask_layer)
             
             self.has_mask = True
@@ -585,6 +577,7 @@ class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
         # set only the currently requested output format 
         self.map.appendOutputFormat(output_format)
         self.map.setOutputFormat(output_format)
+
 
     def getMapServerLayer(self, coverage):
         """
