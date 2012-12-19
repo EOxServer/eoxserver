@@ -29,10 +29,12 @@
 
 import logging
 
-from eoxserver.processing.gdal.reftools import get_footprint_wkt
+from eoxserver.processing.gdal import reftools # get_footprint_wkt, suggested_warp_output
 from eoxserver.processing.preprocessing.util import (
     gdal, ogr, osr, create_mem, copy_metadata
 )
+
+from eoxserver.processing.preprocessing.exceptions import GCPTransformException
 
 
 logger = logging.getLogger(__name__)
@@ -106,31 +108,53 @@ class GCPList(GeographicReference):
                                   % (gcp.GCPPixel, gcp.GCPLine, gcp.GCPX, gcp.GCPY)
                                   for gcp in self.gcps]))
         
+        logger.debug("MULTIPOINT(%s)" % ", ".join([("(%f %f)") % (gcp.GCPX, gcp.GCPY) for gcp in self.gcps]))
+        
         # set the GCPs
         src_ds.SetGCPs(self.gcps, gcp_sr.ExportToWkt())
         
-        # create a temporary VRT, to find out the size of the output image
-        tmp_ds = gdal.AutoCreateWarpedVRT(src_ds, None, dst_sr.ExportToWkt(), 
-                                          gdal.GRA_Bilinear, 0.125)
+        # try to find and use the best transform method/order. 
+        # Order is: TPS (no order), GCP (automatic order), GCP (order 1) 
+        # loop over the min GCP number to order map.
+        for min_gcpnum, order in [(20, -1), (4, 0), (0, 1)]:
+            # if the number of GCP matches
+            if len(self.gcps) > min_gcpnum:
+                try:
+                    # get the suggested pixel size/geotransform
+                    size_x, size_y, geotransform = reftools.suggested_warp_output(
+                        src_ds,
+                        None,
+                        dst_sr.ExportToWkt(),
+                        order
+                    )
+                    
+                    # create the output dataset
+                    dst_ds = create_mem(size_x, size_y,
+                                        src_ds.RasterCount, 
+                                        src_ds.GetRasterBand(1).DataType)
+                    
+                    # reproject the image
+                    dst_ds.SetProjection(dst_sr.ExportToWkt())
+                    dst_ds.SetGeoTransform(geotransform)
+                    
+                    reftools.reproject_image(src_ds, "", dst_ds, "", order=order)
+                    
+                    copy_metadata(src_ds, dst_ds)
+                    
+                    # retrieve the footprint from the given GCPs
+                    footprint_wkt = reftools.get_footprint_wkt(src_ds, order=order)
+                    
+                except RuntimeError:
+                    # the given method was not applicable, use the next one
+                    continue
+                    
+                else:
+                    # the transform method was successful, exit the loop
+                    break
+        else:
+            # no method worked, so raise an error
+            raise GCPTransformException("Could not find a valid transform method.")
         
-        dst_ds = create_mem(tmp_ds.RasterXSize, tmp_ds.RasterYSize,
-                            src_ds.RasterCount, 
-                            src_ds.GetRasterBand(1).DataType)
-        
-        # reproject the image
-        dst_ds.SetProjection(dst_sr.ExportToWkt())
-        dst_ds.SetGeoTransform(tmp_ds.GetGeoTransform())
-        
-        gdal.ReprojectImage(src_ds, dst_ds, "", "", gdal.GRA_Bilinear)
-        
-        tmp_ds = None
-        
-        copy_metadata(src_ds, dst_ds)
-        
-        # TODO: maybe refine this
-        method = "TPS" if len(self.gcps) > 10 else "GCP"
-        
-        footprint_wkt = get_footprint_wkt(src_ds, method)
         if not gcp_sr.IsGeographic():
             out_sr = osr.SpatialReference()
             out_sr.ImportFromEPSG(4326)
