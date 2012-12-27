@@ -143,6 +143,12 @@ class Command(EOxServerAdminCommand):
         
         shutil.copy(os.path.join(src_conf_dir, "TEMPLATE_template.map"),
                     os.path.join(dst_conf_dir, "template.map"))
+        shutil.copy(os.path.join(src_conf_dir, "TEMPLATE_outline_template_dataset.html"),
+                    os.path.join(dst_conf_dir, "outline_template_dataset.html"))
+        shutil.copy(os.path.join(src_conf_dir, "TEMPLATE_outline_template_footer.html"),
+                    os.path.join(dst_conf_dir, "outline_template_footer.html"))
+        shutil.copy(os.path.join(src_conf_dir, "TEMPLATE_outline_template_header.html"),
+                    os.path.join(dst_conf_dir, "outline_template_header.html"))
         
         shutil.copy(os.path.join(src_conf_dir, "init_spatialite-2.3.sql"),
                     os.path.join(dst_data_dir, "init_spatialite-2.3.sql"))
