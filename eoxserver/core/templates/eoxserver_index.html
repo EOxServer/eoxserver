@@ -32,18 +32,20 @@
 <head>
 </head>
 <body>
+    {% load url from future %}
+
     <h1>Welcome to this EOxServer instance</h1>
 
     <h2>The following components are available:</h2>
     <ul>
-        <li><a href="{% url eoxserver.services.views.ows %}">OGC Web Services base URL</a></li>
+        <li><a href="{% url 'eoxserver.services.views.ows' %}">OGC Web Services base URL</a></li>
             <ul>
-                <li><a href="{% url eoxserver.services.views.ows %}?service=wms&request=getcapabilities">EO-WMS</a></li>
-                <li><a href="{% url eoxserver.services.views.ows %}?service=wcs&request=getcapabilities">EO-WCS</a></li>
+                <li><a href="{% url 'eoxserver.services.views.ows' %}?service=wms&request=getcapabilities">EO-WMS</a></li>
+                <li><a href="{% url 'eoxserver.services.views.ows' %}?service=wcs&request=getcapabilities">EO-WCS</a></li>
             </ul>
-        <li><a href="{% url eoxserver.webclient.views.index %}">Web Client</a></li>
-        <li><a href="{% url admin:index %}">Admin Client</a></li>
-        <li><a href="{% url eoxserver.logging.views.logview %}">Log Viewer</a></li>
+        <li><a href="{% url 'eoxserver.webclient.views.index' %}">Web Client</a></li>
+        <li><a href="{% url 'admin:index' %}">Admin Client</a></li>
+        <li><a href="{% url 'eoxserver.logging.views.logview' %}">Log Viewer</a></li>
     </ul>
 
     Powered by<br/>
