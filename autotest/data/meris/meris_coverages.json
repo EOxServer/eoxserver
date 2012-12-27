@@ -585,7 +585,6 @@
             "visible": false, 
             "eo_metadata": 2, 
             "extent": 1, 
-            "layer_metadata": [], 
             "eo_id": "MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed"
         }
     }, 
@@ -598,7 +597,6 @@
             "visible": true, 
             "eo_metadata": 3, 
             "extent": 2, 
-            "layer_metadata": [], 
             "eo_id": "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed"
         }
     }, 
@@ -611,7 +609,6 @@
             "visible": false, 
             "eo_metadata": 4, 
             "extent": 3, 
-            "layer_metadata": [], 
             "eo_id": "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"
         }
     }, 
@@ -624,7 +621,6 @@
             "visible": true, 
             "eo_metadata": 6, 
             "extent": 4, 
-            "layer_metadata": [], 
             "eo_id": "mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced"
         }
     }, 
@@ -637,7 +633,6 @@
             "visible": false, 
             "eo_metadata": 7, 
             "extent": 5, 
-            "layer_metadata": [], 
             "eo_id": "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced"
         }
     }, 
@@ -650,7 +645,6 @@
             "visible": false, 
             "eo_metadata": 8, 
             "extent": 6, 
-            "layer_metadata": [], 
             "eo_id": "mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced"
         }
     }, 
@@ -663,7 +657,6 @@
             "visible": false, 
             "eo_metadata": 11, 
             "extent": 11, 
-            "layer_metadata": [], 
             "eo_id": "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_netCDF"
         }
     }, 
@@ -676,7 +669,6 @@
             "visible": false, 
             "eo_metadata": 12, 
             "extent": 12, 
-            "layer_metadata": [], 
             "eo_id": "mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced_JPEG2000"
         }
     }, 
@@ -696,7 +688,6 @@
             "tile_index": 1, 
             "eo_metadata": 5, 
             "extent": 7, 
-            "layer_metadata": [], 
             "eo_id": "mosaic_MER_FRS_1P_RGB_reduced"
         }
     }, 
