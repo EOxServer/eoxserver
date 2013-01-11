@@ -74,7 +74,7 @@ ACTION = {
 
 import eoxserver 
 
-from eoxserver.resources.coverages.covmgrs import RectifiedDatasetManager
+from eoxserver.resources.coverages.managers import RectifiedDatasetManager
 from eoxserver.resources.processes.tracker import QueueFull, registerTaskType, enqueueTask
 from eoxserver.core.system import System
 
