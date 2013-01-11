@@ -30,6 +30,7 @@
 
 import re
 
+
 VERSION = (0, 3, None, 'dev', 0)
 #VERSION = (0, 3, None, 'alpha', 1)
 #VERSION = (0, 3, None, 'beta', 1)
