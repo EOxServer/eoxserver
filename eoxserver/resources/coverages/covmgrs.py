@@ -52,7 +52,7 @@ warnings.warn("The 'eoxserver.resources.coverages.covmrgs' module is "
     "deprecated. Use ``eoxserver.resources.coverages.managers`` instead."
     , Warning, stacklevel=2)
 
-logger.warn("The 'eoxserver.resources.coverages.covmrgs' module is "
+logger.warn("The 'eoxserver.resources.coverages.covmgrs' module is "
     "deprecated. Use 'eoxserver.resources.coverages.managers' instead." ) 
 
 from eoxserver.resources.coverages.managers import *
