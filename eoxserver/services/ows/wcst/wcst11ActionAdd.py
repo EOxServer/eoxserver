@@ -55,9 +55,9 @@ from wcst11ActionCommon import createXML_EOP20
 
 #-------------------------------------------------------------------------------
 
-from eoxserver.resources.coverages.covmgrs import CoverageIdManager
-from eoxserver.resources.coverages.covmgrs import RectifiedDatasetManager
-from eoxserver.resources.coverages.covmgrs import ReferenceableDatasetManager
+from eoxserver.resources.coverages.managers import CoverageIdManager
+from eoxserver.resources.coverages.managers import RectifiedDatasetManager
+from eoxserver.resources.coverages.managers import ReferenceableDatasetManager
 
 #-------------------------------------------------------------------------------
 
