@@ -31,7 +31,7 @@
 from eoxserver.core.system import System
 from eoxserver.testing.core import EOxServerTestCase, BASE_FIXTURES,\
     CommandTestCase
-from eoxserver.resources.coverages.covmgrs import CoverageIdManager
+from eoxserver.resources.coverages.managers import CoverageIdManager
 
 EXTENDED_FIXTURES = BASE_FIXTURES + ["testing_coverages.json"]
 
