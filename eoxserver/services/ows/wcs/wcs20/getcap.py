@@ -289,3 +289,16 @@ class WCS20GetCapabilitiesHandler(WCSCommonHandler):
         # TODO: integrate WCS Transaction Operation in getcapabilities response
         #return wcst11AlterCapabilities20(resp)
         return resp
+
+
+class WCS20CorrigendumGetCapabilitiesHandler(WCS20GetCapabilitiesHandler):
+
+    REGISTRY_CONF = {
+        "name": "WCS 2.0 GetCapabilities Handler",
+        "impl_id": "services.ows.wcs20.WCS20CorrigendumGetCapabilitiesHandler",
+        "registry_values": {
+            "services.interfaces.service": "wcs",
+            "services.interfaces.version": "2.0.1",
+            "services.interfaces.operation": "getcapabilities"
+        }
+    }

@@ -219,7 +219,20 @@ class WCS20DescribeEOCoverageSetHandler(BaseRequestHandler):
                         )
             
             return (dataset_series_set, coverages.to_sorted_list())
- 
+
+
+class WCS20CorrigendumDescribeEOCoverageSetHandler(WCS20DescribeEOCoverageSetHandler):
+    REGISTRY_CONF = {
+        "name": "WCS 2.0 EO-AP DescribeEOCoverageSet Handler",
+        "impl_id": "services.ows.wcs20.WCS20CorrigendumDescribeEOCoverageSetHandler",
+        "registry_values": {
+            "services.interfaces.service": "wcs",
+            "services.interfaces.version": "2.0.1",
+            "services.interfaces.operation": "describeeocoverageset"
+        }
+    }
+
+
 class WCS20ConfigReader(object):
     REGISTRY_CONF = {
         "name": "WCS 2.0 Configuration Reader",

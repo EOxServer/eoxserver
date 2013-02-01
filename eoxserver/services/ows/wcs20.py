@@ -34,10 +34,19 @@ from eoxserver.services.owscommon import (
     OWSCommonVersionHandler, OWSCommonExceptionHandler,
     OWSCommonConfigReader
 )
-from eoxserver.services.ows.wcs.wcs20.getcap import WCS20GetCapabilitiesHandler
-from eoxserver.services.ows.wcs.wcs20.desccov import WCS20DescribeCoverageHandler
-from eoxserver.services.ows.wcs.wcs20.desceo import WCS20DescribeEOCoverageSetHandler
-from eoxserver.services.ows.wcs.wcs20.getcov import WCS20GetCoverageHandler
+from eoxserver.services.ows.wcs.wcs20.getcap import (
+    WCS20GetCapabilitiesHandler, WCS20CorrigendumGetCapabilitiesHandler
+)
+from eoxserver.services.ows.wcs.wcs20.desccov import (
+    WCS20DescribeCoverageHandler, WCS20CorrigendumDescribeCoverageHandler
+)
+from eoxserver.services.ows.wcs.wcs20.desceo import (
+    WCS20DescribeEOCoverageSetHandler, WCS20CorrigendumDescribeEOCoverageSetHandler
+)
+from eoxserver.services.ows.wcs.wcs20.getcov import (
+    WCS20GetCoverageHandler, WCS20CorrigendumGetCoverageHandler
+)
+
 
 class WCS20VersionHandler(OWSCommonVersionHandler):
     SERVICE = "wcs"
@@ -65,15 +74,32 @@ class WCS20VersionHandler(OWSCommonVersionHandler):
         
         return handler.handleException(req, exception)
 
+
+class WCS20CorrigendumVersionHandler(WCS20VersionHandler):
+    REGISTRY_CONF = {
+        "name": "WCS 2.0 Version Handler",
+        "impl_id": "services.ows.wcs20.WCS20CorrigendumVersionHandler",
+        "registry_values": {
+            "services.interfaces.service": "wcs",
+            "services.interfaces.version": "2.0.1"
+        }
+    }
+
+
 WCS20VersionHandlerImplementation = VersionHandlerInterface.implement(WCS20VersionHandler)
+WCS20CorrigendumVersionHandlerImplementation = VersionHandlerInterface.implement(WCS20CorrigendumVersionHandler)
 
 WCS20GetCapabilitiesHandlerImplementation = OperationHandlerInterface.implement(WCS20GetCapabilitiesHandler)
+WCS20CorrigendumGetCapabilitiesHandlerImplementation = OperationHandlerInterface.implement(WCS20CorrigendumGetCapabilitiesHandler)
 
 WCS20DescribeCoverageHandlerImplementation = OperationHandlerInterface.implement(WCS20DescribeCoverageHandler)
+WCS20CorrigendumDescribeCoverageHandlerImplementation = OperationHandlerInterface.implement(WCS20CorrigendumDescribeCoverageHandler)
     
 WCS20DescribeEOCoverageSetHandlerImplementation = OperationHandlerInterface.implement(WCS20DescribeEOCoverageSetHandler)
+WCS20CorrigendumDescribeEOCoverageSetHandlerImplementation = OperationHandlerInterface.implement(WCS20CorrigendumDescribeEOCoverageSetHandler)
 
 WCS20GetCoverageHandlerImplementation = OperationHandlerInterface.implement(WCS20GetCoverageHandler)
+WCS20CorrigendumGetCoverageHandlerImplementation = OperationHandlerInterface.implement(WCS20CorrigendumGetCoverageHandler)
 
 
 

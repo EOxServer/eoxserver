@@ -144,6 +144,22 @@ class WCS20GetCoverageHandler(WCSCommonHandler):
                 raise InvalidRequestException(
                     "No coverage with id '%s' found" % coverage_id, "NoSuchCoverage", coverage_id
                 )
+                
+class WCS20CorrigendumGetCoverageHandler(WCS20GetCoverageHandler):
+    """
+    This handler takes care of all WCS 2.0.1 / EO-WCS GetCoverage requests. It
+    inherits from :class:`~.WCS20GetCoverageHandler`.
+    """
+    
+    REGISTRY_CONF = {
+        "name": "WCS 2.0 GetCoverage Handler",
+        "impl_id": "services.ows.wcs20.WCS20CorrigendumGetCoverageHandler",
+        "registry_values": {
+            "services.interfaces.service": "wcs",
+            "services.interfaces.version": "2.0.1",
+            "services.interfaces.operation": "getcoverage"
+        }
+    }
 
 class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
     """
