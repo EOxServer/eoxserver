@@ -1005,6 +1005,40 @@ class WCS20GetCoverageReferenceableDatasetGeogCRSSubsetOutsideExtentTestCase(eox
         return "InvalidParameterValue"
 
 #===============================================================================
+# WCS 2.0.1 Corrigendum test cases
+#===============================================================================
+
+
+class WCS20CorrigendumGetCapabilitiesEmptyTestCase(eoxstest.XMLTestCase):
+    """This test shall retrieve a valid but empty WCS 2.0.1 EO-AP (EO-WCS) GetCapabilities response (see #162)"""
+    fixtures = BASE_FIXTURES
+    
+    def getRequest(self):
+        params = "service=WCS&version=2.0.1&request=GetCapabilities"
+        return (params, "kvp")
+
+
+class WCS20CorrigendumDescribeCoverageDatasetTestCase(eoxstest.XMLTestCase):
+    """This test shall retrieve a valid WCS 2.0.1 EO-AP (EO-WCS) DescribeCoverage response for a wcseo:RectifiedDataset (see #162)."""
+    def getRequest(self):
+        params = "service=WCS&version=2.0.1&request=DescribeCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"
+        return (params, "kvp")
+
+
+class WCS20CorrigendumDescribeEOCoverageSetMosaicTestCase(eoxstest.XMLTestCase):
+    """This test shall retrieve a valid WCS 2.0.1 EO-AP (EO-WCS) DescribeEOCoverageSet response for a wcseo:RectifiedStitchedMosaic (see #162)"""
+    def getRequest(self):
+        params = "service=WCS&version=2.0.1&request=DescribeEOCoverageSet&eoId=mosaic_MER_FRS_1P_RGB_reduced"
+        return (params, "kvp")
+
+
+class WCS20CorrigendumGetCoverageDatasetTestCase(eoxstest.RectifiedGridCoverageTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"
+        return (params, "kvp")
+
+
+#===============================================================================
 # WCS 2.0 - POST
 #===============================================================================
 
@@ -1256,6 +1290,7 @@ class WCS11PostGetCoverageMosaicTestCase(eoxstest.RectifiedGridCoverageMultipart
 #        params = """"""
 ##boundingbox=35,10,42,20,urn:ogc:def:crs:EPSG::4326&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=40,10&GridOffsets=-0.06,0.06"
 #        return (params, "xml")
+
 
 #===============================================================================
 # WMS

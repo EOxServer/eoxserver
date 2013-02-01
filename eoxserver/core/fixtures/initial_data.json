@@ -1032,6 +1032,46 @@
         }
     }, 
     {
+        "pk": 130, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wcs20.WCS20CorrigendumGetCapabilitiesHandler", 
+            "intf_id": "services.interfaces.OperationHandler"
+        }
+    }, 
+    {
+        "pk": 131, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wcs20.WCS20CorrigendumDescribeCoverageHandler", 
+            "intf_id": "services.interfaces.OperationHandler"
+        }
+    }, 
+    {
+        "pk": 132, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wcs20.WCS20CorrigendumDescribeEOCoverageSetHandler", 
+            "intf_id": "services.interfaces.OperationHandler"
+        }
+    }, 
+    {
+        "pk": 133, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wcs20.WCS20CorrigendumGetCoverageHandler", 
+            "intf_id": "services.interfaces.OperationHandler"
+        }
+    },
+    {
+        "pk": 134, 
+        "model": "core.implementation", 
+        "fields": {
+            "impl_id": "services.ows.wcs20.WCS20CorrigendumVersionHandler", 
+            "intf_id": "services.interfaces.VersionHandler"
+        }
+    }, 
+    {
         "pk": 1, 
         "model": "core.component", 
         "fields": {
@@ -1933,5 +1973,40 @@
         "fields": {
             "enabled": true
         }
-    } 
+    }, 
+    {
+        "pk": 130, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 131, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 132, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 133, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }, 
+    {
+        "pk": 134, 
+        "model": "core.component", 
+        "fields": {
+            "enabled": true
+        }
+    }       
 ]
