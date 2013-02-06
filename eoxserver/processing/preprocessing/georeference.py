@@ -124,6 +124,9 @@ class GCPList(GeographicReference):
                         dst_sr.ExportToWkt(),
                         order
                     )
+                    if size_x > 100000 or size_y > 100000:
+                        raise RuntimeError("Calculated size exceeds limit.")
+                    logger.debug("New size is '%i x %i'" % (size_x, size_y))
                     
                     # create the output dataset
                     dst_ds = create_mem(size_x, size_y,
