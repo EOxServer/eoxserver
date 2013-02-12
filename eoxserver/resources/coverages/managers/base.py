@@ -198,7 +198,7 @@ class BaseManagerContainerMixIn(object):
         super(BaseManagerContainerMixIn, self).__init__()
         
         self.rect_dataset_mgr = System.getRegistry().bind(
-            "resources.coverages.covmgrs.RectifiedDatasetManager"
+            "resources.coverages.managers.RectifiedDatasetManager"
         )
     
     def _get_data_sources(self, params):

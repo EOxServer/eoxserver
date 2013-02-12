@@ -124,7 +124,7 @@ class RectifiedStitchedMosaicManager(BaseManagerContainerMixIn, CoverageManager)
 
     REGISTRY_CONF = {
         "name": "Rectified Stitched Mosaic Manager",
-        "impl_id": "resources.coverages.covmgrs.RectifiedStitchedMosaicManager",
+        "impl_id": "resources.coverages.managers.RectifiedStitchedMosaicManager",
         "registry_values": {
             "resources.coverages.interfaces.res_type": _type 
         }

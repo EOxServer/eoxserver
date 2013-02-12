@@ -52,7 +52,7 @@ class ReferenceableDatasetManager(EODatasetManager):
 
     REGISTRY_CONF = {
         "name": "Referenceable Dataset Manager",
-        "impl_id": "resources.coverages.covmgrs.ReferenceableDatasetManager",
+        "impl_id": "resources.coverages.managers.ReferenceableDatasetManager",
         "registry_values": {
             "resources.coverages.interfaces.res_type": _type
         }

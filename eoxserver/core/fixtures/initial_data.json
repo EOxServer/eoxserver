@@ -843,7 +843,7 @@
         "pk": 106, 
         "model": "core.implementation", 
         "fields": {
-            "impl_id": "resources.coverages.covmgrs.DatasetSeriesManager", 
+            "impl_id": "resources.coverages.managers.DatasetSeriesManager", 
             "intf_id": "resources.coverages.interfaces.Manager"
         }
     }, 
@@ -851,7 +851,7 @@
         "pk": 107, 
         "model": "core.implementation", 
         "fields": {
-            "impl_id": "resources.coverages.covmgrs.RectifiedStitchedMosaicManager", 
+            "impl_id": "resources.coverages.managers.RectifiedStitchedMosaicManager", 
             "intf_id": "resources.coverages.interfaces.Manager"
         }
     }, 
@@ -859,7 +859,7 @@
         "pk": 108, 
         "model": "core.implementation", 
         "fields": {
-            "impl_id": "resources.coverages.covmgrs.RectifiedDatasetManager", 
+            "impl_id": "resources.coverages.managers.RectifiedDatasetManager", 
             "intf_id": "resources.coverages.interfaces.Manager"
         }
     }, 
@@ -947,7 +947,7 @@
         "pk": 119, 
         "model": "core.implementation", 
         "fields": {
-            "impl_id": "resources.coverages.covmgrs.ReferenceableDatasetManager", 
+            "impl_id": "resources.coverages.managers.ReferenceableDatasetManager", 
             "intf_id": "resources.coverages.interfaces.Manager"
         }
     }, 
