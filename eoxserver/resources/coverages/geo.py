@@ -120,35 +120,38 @@ class GeospatialMetadata(object):
         is_ref = ds.GetGCPCount() > 0 
 
         proj   = ds.GetGCPProjection() if is_ref else ds.GetProjection() 
+
+        if not isinstance(proj,basestring) or len(proj)<1 : 
+            raise RuntimeError("Failed to extract CRS (projection) of the "
+                    "dataset!" ) 
                 
         # convert projection to EPSG code 
-        if isinstance(proj, basestring) and len(proj) > 0 : 
 
-            srs = osr.SpatialReference()
-        
-            try:
-                srs.ImportFromWkt( proj )
-                srs.AutoIdentifyEPSG()
-                ptype = "PROJCS" if srs.IsProjected() else "GEOGCS"
-                srid = int(srs.GetAuthorityCode(ptype))
+        srs = osr.SpatialReference()
+    
+        try:
+            srs.ImportFromWkt( proj )
+            srs.AutoIdentifyEPSG()
+            ptype = "PROJCS" if srs.IsProjected() else "GEOGCS"
+            srid = int(srs.GetAuthorityCode(ptype))
 
-            except (RuntimeError, TypeError), e:
-                logger.warn("Projection: %s" % proj) 
-                logger.warn("Failed to identify projection's EPSG code."
-                    "%s: %s" % ( type(e).__name__ , str(e) ) ) 
+        except (RuntimeError, TypeError), e:
+            logger.warn("Projection: %s" % proj) 
+            logger.warn("Failed to identify projection's EPSG code."
+                "%s: %s" % ( type(e).__name__ , str(e) ) ) 
 
-                if default_srid is not None:
-                    logger.warn("Using the provided SRID '%s' instead."
-                       % str(default_srid) )
-                else:
-                    raise RuntimeError("Unknown SRS and no default supplied.")
+            if default_srid is not None:
+                logger.warn("Using the provided SRID '%s' instead."
+                   % str(default_srid) )
+            else:
+                raise RuntimeError("Unknown SRS and no default supplied.")
 
-                #validate the default SRID 
-                if not crss.validateEPSGCode( default_srid ) : 
-                    raise RuntimeError("The default SRID '%'s is not a valid" 
-                        " EPSG code." % str(default_srid) )
+            #validate the default SRID 
+            if not crss.validateEPSGCode( default_srid ) : 
+                raise RuntimeError("The default SRID '%'s is not a valid" 
+                    " EPSG code." % str(default_srid) )
 
-                srid = int(default_srid)
+            srid = int(default_srid)
                  
 
         # get the extent 
