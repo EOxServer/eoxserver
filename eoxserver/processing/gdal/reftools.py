@@ -102,10 +102,10 @@ except:
 
 
 def _open_ds(path_or_ds):
-    if isinstance(path_or_ds, gdal.Dataset):
-        return path_or_ds
-    gdal.AllRegister()
-    return gdal.Open(str(path_or_ds))
+    if isinstance(path_or_ds, basestring):
+        gdal.AllRegister()
+        return gdal.Open(str(path_or_ds))
+    return path_or_ds
 
 
 def requires_reftools(func):
