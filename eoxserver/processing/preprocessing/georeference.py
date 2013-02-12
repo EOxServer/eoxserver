@@ -144,8 +144,9 @@ class GCPList(GeographicReference):
                     # retrieve the footprint from the given GCPs
                     footprint_wkt = reftools.get_footprint_wkt(src_ds, order=order)
                     
-                except RuntimeError:
-                    logger.debug("Failed using order '%i'" % order)
+                except RuntimeError, e:
+                    logger.debug("Failed using order '%i'. Error was '%s'."
+                                 % (order, str(e)))
                     # the given method was not applicable, use the next one
                     continue
                     
@@ -157,6 +158,7 @@ class GCPList(GeographicReference):
             # no method worked, so raise an error
             raise GCPTransformException("Could not find a valid transform method.")
         
+        # reproject the footprint to a lon/lat projection if necessary
         if not gcp_sr.IsGeographic():
             out_sr = osr.SpatialReference()
             out_sr.ImportFromEPSG(4326)
