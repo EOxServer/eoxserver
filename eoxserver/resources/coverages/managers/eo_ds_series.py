@@ -107,7 +107,7 @@ class DatasetSeriesManager(BaseManagerContainerMixIn, BaseManager):
     
     REGISTRY_CONF = {
         "name": "Dataset Series Manager",
-        "impl_id": "resources.coverages.covmgrs.DatasetSeriesManager",
+        "impl_id": "resources.coverages.managers.DatasetSeriesManager",
         "registry_values": {
             "resources.coverages.interfaces.res_type": _type 
         }

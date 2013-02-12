@@ -91,7 +91,7 @@ class RectifiedDatasetManager(EODatasetManager):
     
     REGISTRY_CONF = {
         "name": "Rectified Dataset Manager",
-        "impl_id": "resources.coverages.covmgrs.RectifiedDatasetManager",
+        "impl_id": "resources.coverages.managers.RectifiedDatasetManager",
         "registry_values": {
             "resources.coverages.interfaces.res_type": _type
         }
