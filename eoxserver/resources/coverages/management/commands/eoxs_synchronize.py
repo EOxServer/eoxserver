@@ -49,7 +49,7 @@ from eoxserver.resources.coverages.managers import getDatasetSeriesManager
 class Command(CommandOutputMixIn, BaseCommand):
 
     option_list = BaseCommand.option_list + (
-        make_option('--all',
+        make_option('-a','--all',
             action='store_true',
             dest='synchronise_all',
             default=False,

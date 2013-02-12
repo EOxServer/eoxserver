@@ -57,7 +57,7 @@ class Command(CommandOutputMixIn, BaseCommand):
             default=None,
             help=('Mandatory. The EOID of the Dataset Series to be created.')
         ),
-        make_option('--data-source', '--data-sources',
+        make_option('-d','--data-source', '--data-sources',
             dest='data_sources',
             action='callback', callback=_variable_args_cb,
             default=[],
@@ -75,7 +75,7 @@ class Command(CommandOutputMixIn, BaseCommand):
                   "files. When only one is given, it is used for all data "
                   "sources.")
         ),
-        make_option('--add',
+        make_option('-a','--add',
             dest='add',
             action='callback', callback=_variable_args_cb,
             default=[],
@@ -89,21 +89,21 @@ class Command(CommandOutputMixIn, BaseCommand):
             help=("Optional. This switch explicitly turns off the "
                   "synchronization when data sources were added.")
         ),
-        make_option('--default-begin-time',
+        make_option('--begin-time','--default-begin-time',
             dest='default_begin_time',
             action="callback", callback=StringFormatCallback(getDateTime),
             default=None,
             help=("Optional. Default begin timestamp when no other EO-metadata " 
                   "is available. The format is ISO-8601.")
         ),
-        make_option('--default-end-time',
+        make_option('--end-time','--default-end-time',
             dest='default_end_time',
             action="callback", callback=StringFormatCallback(getDateTime),
             default=None,
             help=("Optional. Default end timestamp when no other EO-metadata " 
                   "is available. The format is ISO-8601.")
         ),
-        make_option('--default-footprint',
+        make_option('--footprint','--default-footprint',
             dest='default_footprint',
             action="callback", callback=StringFormatCallback(str),
             default=None,
