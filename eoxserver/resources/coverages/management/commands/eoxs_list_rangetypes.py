@@ -33,6 +33,17 @@ from optparse import make_option
 
 from django.core.management.base import BaseCommand, CommandError
 
+# try the python default json module 
+try : import json 
+except ImportError: 
+    #try the original simplejson module
+    try: import simplejson as json
+    except ImportError: 
+        #try the simplejson module packed in django
+        try: import django.utils.simplejson as json 
+        except ImportError: 
+            raise ImportError( "Failed to import any usable json module!" ) 
+    
 #------------------------------------------------------------------------------
 
 from eoxserver.core.system import System
@@ -41,7 +52,7 @@ from eoxserver.core.system import System
 
 from eoxserver.resources.coverages.rangetype import getAllRangeTypeNames
 from eoxserver.resources.coverages.rangetype import isRangeTypeName
-from eoxserver.resources.coverages.rangetype import getRangeTypeObject
+from eoxserver.resources.coverages.rangetype import getRangeType
 
 #------------------------------------------------------------------------------
 
@@ -58,6 +69,21 @@ class Command(CommandOutputMixIn, BaseCommand):
             default=False,
             help=("Optional. Print details of the reangetypes." )
         ),
+        make_option('--json',
+            dest='json_dump',
+            action='store_true',
+            default=False,
+            help=("Optional. Dump rangetype(s) in JSON format. This JSON "
+                  "dump can be loaded by another instance of EOxServer." )
+        ),
+        make_option('-o','--output',
+            dest='filename',
+            action='store', type='string',
+            default='-',
+            help=("Optional. Write output to a file rather than to the default"
+                  " standard output." )
+        ),
+        
     )
 
     args = "[<rt-id> [<rt-id> ...]]"
@@ -66,7 +92,8 @@ class Command(CommandOutputMixIn, BaseCommand):
     """
     Print either list of all rangetype indentifiers and their details.
     When the range-type identifiers are specified than only these rangetypes
-    are selected.
+    are selected. In addition complete rangetypes cans be dumped in JSON 
+    format which can be then loaded by another EOxServer instance. 
     """ % ({"name": __name__.split(".")[-1]})
     )
 
@@ -76,13 +103,18 @@ class Command(CommandOutputMixIn, BaseCommand):
 
         # Collect parameters
 
-        self.verbosity = int(options.get('verbosity', 1))
+        self.verbosity  = int(options.get('verbosity', 1))
 
-        print_details = bool(options.get('details',False))
+        print_details   = bool(options.get('details',False))
+
+        print_json      = bool(options.get('json_dump',False))
+
+        filename        = options.get('filename','-')
 
         # dataset's (coverages') ids
         rt_list = args
 
+            
         #----------------------------------------------------------------------
         # initialize EOxServer binding
 
@@ -109,31 +141,128 @@ class Command(CommandOutputMixIn, BaseCommand):
 
             rt_list = filter( __checkRangeType , rt_list )
 
+        #----------------------------------------------------------------------
+        # output
 
-        if not print_details :
+        # select the right output driver 
 
-            # print plain list
+        if print_json :         output = OutputJSON
+        elif print_details :    output = OutputDetailed 
+        else :                  output = OutputBrief 
 
-            for rt in rt_list :
-                print rt
 
-        else :
+        # write the output 
 
-            # print details
+        def _write_out( fout ) : 
+            fout.write( output.lead() ) 
+            for i,rt_name in enumerate(rt_list) :
+                if i > 0 : fout.write( output.separator() )
+                fout.write( output.object( rt_name ) ) 
+            fout.write( output.trail() ) 
 
-            for rt_name in rt_list :
+        # output file 
+        try :  
 
-                rt_obj = getRangeTypeObject( rt_name )
+            if filename == "-" : 
 
-                print
-                print "Range-Type:" , rt_obj.name
-                print "\tType:\t\t%s" % rt_obj.getDataTypeAsString()
-                print "\tNr. of Bands:\t%d" % len(rt_obj.bands)
-                print "\tBands:"
+                # write to stdout 
+                _write_out( sys.stdout ) 
 
-                for band in rt_obj.bands :
+            else : 
+                
+                # write to a file 
+                with open(filename,"w") as fout :
+                    _write_out( fout )
 
-                    print "\t\t%s"%(band.identifier)
+        except IOError as e : 
 
-            if 0 < len( rt_list ) : print
+            raise CommandError( "Failed to open the output file '%s' ! "
+                    "REASON: %s" % ( finename , str(e) ) )
+                            
+
+#------------------------------------------------------------------------------
+# output drivers 
+
+class OutputBase: 
+    """ base output driver class class """ 
+
+    @classmethod 
+    def lead(cls): return ""
+
+    @classmethod 
+    def object( cls, rt_name ) : return ""
+
+    @classmethod 
+    def trail(cls): return ""
+
+    @classmethod
+    def separator(cls) : return ""
+
+
+class OutputBrief( OutputBase ):
+    """ brief text output - RT name only """ 
+
+    @classmethod 
+    def object( cls, rt_name ) : return rt_name 
+
+    @classmethod
+    def separator(cls) : return "\n" 
+
+    @classmethod 
+    def trail(cls): return "\n"
+        
+
+class OutputDetailed( OutputBase ): 
+    """ detailed text output """ 
+
+    @classmethod
+    def lead(cls) : return "\n" 
+
+    @classmethod
+    def trail(cls) : return "\n\n" 
+
+    @classmethod
+    def separator(cls) : return "\n\n" 
+
+    @classmethod 
+    def object( cls, rt_name ) : 
+
+        rt = getRangeType( rt_name )
+
+        out = []
+
+        out.append("Range-Type: %s" % rt.name ) 
+        out.append("\tType:\t\t%s" % rt.getDataTypeAsString())
+        out.append("\tNr. of Bands:\t%d" % len(rt.bands))
+        out.append("\tBands:")
+
+        for band in rt.bands :
+            out.append( "\t\t%s"%(band.identifier) ) 
+
+        return "\n".join( out ) 
+
+
+class OutputJSON( OutputBase ) : 
+    """ JSON output """ 
+
+    @classmethod 
+    def lead(cls): 
+        return "["
+
+    @classmethod 
+    def trail(cls):
+        return "]\n"
+
+    @classmethod
+    def separator(cls) : return ",\n" 
+
+    @classmethod 
+    def object( cls, rt_name ) : 
+
+        # get rangetype as dictionary  
+        out = getRangeType(rt_name).asDict() 
+
+        # dump the json 
+        return json.dumps(out,indent=4,separators=(',',': '),sort_keys=True) 
+
 

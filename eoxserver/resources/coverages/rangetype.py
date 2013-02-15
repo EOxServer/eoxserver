@@ -29,6 +29,7 @@
 #-------------------------------------------------------------------------------
 
 from osgeo import gdal
+from django.db import transaction
 
 #: Dictionary mapping GDAL-interpretation integer code to its human-readable presentation.
 GDAL_INTERPRETATION = { 
@@ -48,6 +49,9 @@ GDAL_INTERPRETATION = {
 		gdal.GCI_BlackBand : "BlackBand" ,
 } 
 
+#: Reverse mapping of string to GDAL-interpretation integer code
+RGDAL_INTERPRETATION = dict( (j.lower(),i) for (i,j) in GDAL_INTERPRETATION.items() )
+
 #: Dictionary mapping GDAL-data-type integer code to its human-readable presentation.
 DATA_TYPE = { 
         gdal.GDT_Byte : "Byte",
@@ -62,6 +66,9 @@ DATA_TYPE = {
         gdal.GDT_CFloat32 : "CFloat32",
         gdal.GDT_CFloat64 : "CFloat64",
 } 
+
+#: Reverse mapping from string to GDAL-data-type integer 
+RDATA_TYPE = dict( (j.lower(),i) for (i,j) in DATA_TYPE.items() )
 
 class Band(object):
     """\
@@ -125,6 +132,24 @@ class Band(object):
             return False
         return True
 
+    def asDict( self ):
+        """
+        Return object's data as a dictionary to be passed to a JSON serializer.
+        """
+
+        nils = [ nil.asDict() for nil in self.nil_values ] 
+
+        return {    
+            "name" : self.name,
+            "identifier" : self.identifier,
+            "description" : self.description,
+            "definition" : self.definition,
+            "uom" : self.uom,
+            "nil_values" : nils,
+            "gdal_interpretation" : self.getGDALInterpretationAsString() 
+        }
+
+
 class NilValue(object):
     """
     This class represents nil values of a coverage band.
@@ -152,6 +177,13 @@ class NilValue(object):
         if self.reason != other.reason or self.value != other.value:
             return False
         return True
+
+    def asDict( self ):
+        """
+        Return object's data as a dictionary to be passed to a JSON serializer.
+        """
+
+        return { "reason" : self.reason , "value" : self.value } 
 
 class RangeType(object):
     """
@@ -239,6 +271,17 @@ class RangeType(object):
         #    return ??
         else:
             raise NotImplementedError()
+
+    def asDict( self ):
+        """ return object as a tupe to be passed to JSON serializer """
+
+        bands = [ band.asDict() for band in self.bands ] 
+
+        return {    
+            "name" : self.name,
+            "data_type" : self.getDataTypeAsString(), 
+            "bands" : bands
+        }
     
 
 # TODO: rewrite this function according to new RangeType definition
@@ -281,25 +324,27 @@ def getRangeTypeFromFile(filename):
 #==============================================================================
 
 from eoxserver.resources.coverages.models import RangeTypeRecord
+from eoxserver.resources.coverages.models import BandRecord
+from eoxserver.resources.coverages.models import RangeType2Band
 
 def getAllRangeTypeNames() : 
-    """ Return a list of all registered range-type identifiers."""
+    """Return a list of identifiers of all registered range-types."""
 
     return [ rec.name for rec in RangeTypeRecord.objects.all() ] 
 
 def isRangeTypeName( name ) : 
     """
     Check whether there is (``True``) or is not (``False``) a registered 
-    range-type with given ``name``.
+    range-type with given identifier``name``.
     """
 
     return ( 0 < RangeTypeRecord.objects.filter(name=name).count() ) 
 
-def getRangeTypeObject( name ) : 
+def getRangeType( name ) : 
     """ 
-    Return ``RangeType`` object for given ``name``. The properties are filled 
-    from the DB record. If there is no ``RangeTypeRecord`` corresponding to 
-    the given name ``None`` is returned.  
+    Return ``RangeType`` object for given ``name``. The object properties are 
+    loaded from the DB. If there is no ``RangeTypeRecord`` corresponding to 
+    the given name ``None`` is returned.
     """ 
 
     try: 
@@ -340,3 +385,45 @@ def getRangeTypeObject( name ) :
 
         return None 
 
+def setRangeType( rtype ) : 
+    """ 
+        Save range-type record to the DB. The range-type record is created 
+        from the ``rtype`` which can be either a ``RangeType`` object or 
+        parsed JSON dictionary.
+    """
+
+    if isinstance( rtype , RangeType ) : 
+        
+        # convert to a dictionary 
+        rtype = rtype.toDict() 
+
+    elif not isinstance( rtype , dict ) : 
+
+        raise ValueError("Invalid input object type!") 
+
+    # create record 
+
+    with transaction.commit_on_success():
+
+        rtr = RangeTypeRecord.objects.create( 
+            name = rtype['name'], 
+            data_type = RDATA_TYPE[rtype['data_type'].lower()]) 
+
+        for band in rtype['bands'] : 
+
+            br = BandRecord.objects.create( 
+                    name = band['name'], 
+                    identifier = band['identifier'], 
+                    description = band['description'],
+                    definition = band['definition'],
+                    uom = band['uom'],
+                    gdal_interpretation = RGDAL_INTERPRETATION[
+                                        band['gdal_interpretation'].lower()])
+
+            RangeType2Band.objects.create( range_type=rtr, band=br, no=1 ) 
+
+            for nval in band['nil_values'] : 
+
+                br.nil_values.create(
+                    reason = nval['reason'],
+                    value  = nval['value'])
