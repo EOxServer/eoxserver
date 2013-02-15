@@ -134,7 +134,7 @@ inhomogeneous collection of coverages.
 Range Types
 ~~~~~~~~~~~
 
-Every coverage has a ramge type that describes the structure of the data.
+Every coverage has a range type describing the structure of the data.
 Each range type has a given data type whereas the following data types are 
 supported:
 
@@ -470,6 +470,9 @@ screenshot)
 Alternatively we could have started with the Range Type and added each band via 
 the "+" icons next to the bands directly.
 
+To list, export, and load range types using the command-line tools see
+:ref:`eoxs-range-type`.
+
 Linking to a Local Path
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -791,6 +794,43 @@ In order to check whether a coverage/EO ID is registered for future use apply
 the ``--is-reserved`` option:: 
 
     python manage.py eoxs_check_id --is-reserved <ID> && echo True || echo False
+
+.. _eoxs-range-type:
+
+Range Type Handling  
+~~~~~~~~~~~~~~~~~~~
+
+The ``eoxs_list_rangetypes`` command, by default, lists the names of all 
+registered range types::
+
+    python manage.py eoxs_list_rangetypes
+
+In case of more range types details required verbose listing may be requested by
+``--details`` option. When one or more range type names are specified the output 
+will be limited to the specified range-types only::
+
+    python manage.py eoxs_list_rangetypes --details [<range-type-name> ...]
+
+The same command can be also used to export rangetype in JSON format 
+(``--json`` option). Following example prints the selected RGB range type in
+JSON format::
+
+    python manage.py eoxs_list_rangetypes --json RGB  
+
+The output may be directly savaved to file by using the ``-o`` option. Following
+example saves all the registered range-types to a file named
+``rangetypes.json``::
+
+    python manage.py eoxs_list_rangetypes --json -o rangetypes.json
+
+
+The rangetypes saved in JSON format can be loaded (e.g., by another *EOxServer*
+instance) by using of the ``eoxs_load_rangetypes`` command. By default, this 
+command reads the JSON data from the standard input. To force the command to
+read the input from a file use ``-i`` ::
+
+    python manage.py eoxs_load_rangetypes -i rangetypes.json
+
 
 Performance
 -----------

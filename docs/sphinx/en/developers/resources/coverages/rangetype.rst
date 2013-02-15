@@ -5,6 +5,7 @@
   # Project: EOxServer <http://eoxserver.org>
   # Authors: Stephan Krause <stephan.krause@eox.at>
   #          Stephan Meissl <stephan.meissl@eox.at>
+  #          Martin Paces <martin.paces@eox.at>
   #
   #-----------------------------------------------------------------------------
   # Copyright (C) 2011 EOX IT Services GmbH
@@ -33,5 +34,46 @@
 Module eoxserver.resources.coverages.rangetype
 ==============================================
 
+.. contents:: Table of Contents
+    :depth: 3
+    :backlinks: top
+
 .. automodule:: eoxserver.resources.coverages.rangetype
+
+Helper Subroutines 
+------------------
+
+.. autofunction:: getAllRangeTypeNames
+.. autofunction:: isRangeTypeName
+.. autofunction:: getRangeType
+.. autofunction:: setRangeType
+
+Range Type Classes
+------------------
+
+RangeType 
+^^^^^^^^^
+
+.. autoclass:: RangeType 
    :members:
+
+Band  
+^^^^
+
+.. autoclass:: Band 
+   :members:
+
+NilValue 
+^^^^^^^^
+
+.. autoclass:: NilValue 
+   :members:
+
+Auxiliary Data 
+--------------
+
+.. autodata:: DATA_TYPE
+.. autodata:: RDATA_TYPE
+.. autodata:: GDAL_INTERPRETATION
+.. autodata:: RGDAL_INTERPRETATION
+
