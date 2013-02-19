@@ -92,7 +92,7 @@ class BandRecord(models.Model):
 
 class RangeTypeRecord(models.Model):
     name = models.CharField(max_length=256)
-    data_type = models.IntegerField(choices=gdal.GDT_TO_NAME)
+    data_type = models.IntegerField(choices=gdal.GDT_TO_NAME.items())
     bands = models.ManyToManyField(BandRecord, through="RangeType2Band")
 
     def __unicode__(self):
