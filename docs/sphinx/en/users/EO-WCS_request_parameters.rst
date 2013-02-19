@@ -218,8 +218,8 @@ parameters that are available with GetCoverage requests.
     | → rangesubset             | Subsetting in the range domain (e.g. Band-Subsetting).    | - 1,2,3                          | O                              |
     |                           |                                                           | - Blue,Green,Red                 |                                |
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
-    | → outputcrs               | CRS for the requested output coverage                     | http://www.opengis.net/def/      | O                              |
-    |                           |                                                           | crs/EPSG/0/3035                  |                                |
+    | → outputcrs               | CRS for the requested output coverage                     | \http://www.opengis.net/def/crs/ | O                              |
+    |                           |                                                           | EPSG/0/3035                      |                                |
     |                           | - not present or                                          |                                  |                                |
     |                           | - CRS                                                     |                                  |                                |
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
@@ -234,13 +234,28 @@ parameters that are available with GetCoverage requests.
     |                           | - bilinear                                                |                                  |                                |
     |                           | - average                                                 |                                  |                                |
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
-
+    | → mask [3]_               | Masking of coverage                                       | - polygon,http://www.opengis.net/| O                              |
+    |                           |                                                           |   def/crs/EPSG/0/4326(42,10,43,  |                                |
+    |                           | - by polygon                                              |   12,39,13,38,9,42,10)           |                                |
+    |                           |                                                           | - coverage(other_coverage)       |                                |
+    |                           |   - define the polygon by a list of points (i.e. latitude |                                  |                                |
+    |                           |     and longitude values), e.g. lat1,lon1,lat2,lon2,...   |                                  |                                |
+    |                           |   - make sure to close the polygon with the last pair of  |                                  |                                |
+    |                           |     coordinates                                           |                                  |                                |
+    |                           |   - providing the polygon CRS is optional; per default    |                                  |                                |
+    |                           |     EPSG 4316 is assumed                                  |                                  |                                |
+    |                           |   - use the subset parameter to crop the resulting        |                                  |                                |
+    |                           |     coverage                                              |                                  |                                |
+    |                           |                                                           |                                  |                                |
+    |                           | - by coverage(s) (not implemented yet)                    |                                  |                                |
+    |                           |                                                           |                                  |                                |
+    +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
 \
 
 .. [1]  Version, acceptVersions: Support for EO-WCS is available only together 
         with WCS version 2.0.0.
 
-.. [2] Interpolation: (Note: Resampling options other than NEAREST can 
+.. [2]  Interpolation: (Note: Resampling options other than NEAREST can 
         dramatically slow down raster processing). The default (and fastest) is 
         NEAREST. Replaces the target pixel with its NEAREST Neighbor. 
         AVERAGE will compute the average pixel value of all pixels in the region 
@@ -251,3 +266,5 @@ parameters that are available with GetCoverage requests.
         linear interpolation of the four pixels around the target location. 
         BILINEAR can be helpful when oversampling data to give a smooth 
         appearance.
+        
+.. [3]  Please note that this is parameter is not yet OGC standardized.
