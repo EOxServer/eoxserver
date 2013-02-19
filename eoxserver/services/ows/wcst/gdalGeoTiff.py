@@ -40,8 +40,9 @@ from numpy import array
 from numpy import dot 
 from numpy import argmin, argmax 
 
-from osgeo import ogr, osr, gdal
 from qhull import chull2D_qhull
+
+from eoxserver.contrib import osr
 
 #-------------------------------------------------------------------------------
 

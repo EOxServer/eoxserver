@@ -38,8 +38,6 @@ from xml.dom import minidom
 from datetime import datetime
 
 import mapscript
-from osgeo import gdal
-gdal.UseExceptions()
 from django.contrib.gis.geos import GEOSGeometry
 
 from eoxserver.core.system import System
@@ -47,7 +45,8 @@ from eoxserver.core.exceptions import InternalError, InvalidExpressionError
 from eoxserver.core.util.xmltools import DOMElementToXML
 from eoxserver.core.util.multiparttools import mpPack
 from eoxserver.core.util.bbox import BBox 
-from eoxserver.core.util.filetools import TmpFile 
+from eoxserver.core.util.filetools import TmpFile
+from eoxserver.contrib import gdal 
 from eoxserver.processing.gdal.reftools import (
     rect_from_subset, get_footprint_wkt
 )
@@ -81,7 +80,7 @@ _stripDot = lambda ext : ext[1:] if ext.startswith('.') else ext
 MASK_LAYER_NAME = "masklayername"#"__mask_layer__"
 
 # register all GDAL drivers 
-gdal.AllRegister()
+
 
 class WCS20GetCoverageHandler(WCSCommonHandler):
     """

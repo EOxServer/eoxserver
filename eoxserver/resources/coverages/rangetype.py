@@ -28,47 +28,9 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from osgeo import gdal
 from django.db import transaction
+from eoxserver.contrib import gdal
 
-#: Dictionary mapping GDAL-interpretation integer code to its human-readable presentation.
-GDAL_INTERPRETATION = { 
-		gdal.GCI_Undefined : "Undefined",
-		gdal.GCI_GrayIndex : "GrayIndex",
-		gdal.GCI_PaletteIndex : "PaletteIndex",
-		gdal.GCI_RedBand : "RedBand",
-		gdal.GCI_GreenBand : "GreenBand",
-		gdal.GCI_BlueBand : "BlueBand",
-		gdal.GCI_AlphaBand : "AlphaBand",
-		gdal.GCI_HueBand : "HueBand",
-		gdal.GCI_SaturationBand : "SaturationBand",
-		gdal.GCI_LightnessBand : "LightnessBand",
-		gdal.GCI_CyanBand : "CyanBand",
-		gdal.GCI_MagentaBand : "MagentaBand",
-		gdal.GCI_YellowBand : "YellowBand",
-		gdal.GCI_BlackBand : "BlackBand" ,
-} 
-
-#: Reverse mapping of string to GDAL-interpretation integer code
-RGDAL_INTERPRETATION = dict( (j.lower(),i) for (i,j) in GDAL_INTERPRETATION.items() )
-
-#: Dictionary mapping GDAL-data-type integer code to its human-readable presentation.
-DATA_TYPE = { 
-        gdal.GDT_Byte : "Byte",
-        gdal.GDT_UInt16 : "UInt16",
-        gdal.GDT_Int16 : "Int16",
-        gdal.GDT_UInt32 : "UInt32",
-        gdal.GDT_Int32 : "Int32",
-        gdal.GDT_Float32 : "Float32",
-        gdal.GDT_Float64 : "Float64",
-        gdal.GDT_CInt16 : "CInt16",
-        gdal.GDT_CInt32 : "CInt32",
-        gdal.GDT_CFloat32 : "CFloat32",
-        gdal.GDT_CFloat64 : "CFloat64",
-} 
-
-#: Reverse mapping from string to GDAL-data-type integer 
-RDATA_TYPE = dict( (j.lower(),i) for (i,j) in DATA_TYPE.items() )
 
 class Band(object):
     """\
@@ -119,7 +81,7 @@ class Band(object):
     
     def getGDALInterpretationAsString( self ) : 
         "Return string representation of the ``gdal_interpretation``."
-        return GDAL_INTERPRETATION.get( self.gdal_interpretation , "Invalid" ) 
+        return gdal.GCI_TO_NAME.get( self.gdal_interpretation , "Invalid" ) 
 
     def __eq__(self, other):
         if (self.name != other.name
@@ -228,7 +190,7 @@ class RangeType(object):
 
     def getDataTypeAsString( self ) : 
         "Return string representation of the ``data_type``."
-        return DATA_TYPE.get( self.data_type, "Invalid" ) 
+        return gdal.GDT_TO_NAME.get( self.data_type, "Invalid" ) 
     
     def addBand(self, band):
         "Append a new band to the band list."
@@ -407,7 +369,7 @@ def setRangeType( rtype ) :
 
         rtr = RangeTypeRecord.objects.create( 
             name = rtype['name'], 
-            data_type = RDATA_TYPE[rtype['data_type'].lower()]) 
+            data_type = gdal.NAME_TO_GDT[rtype['data_type'].lower()]) 
 
         for band in rtype['bands'] : 
 
@@ -417,7 +379,7 @@ def setRangeType( rtype ) :
                     description = band['description'],
                     definition = band['definition'],
                     uom = band['uom'],
-                    gdal_interpretation = RGDAL_INTERPRETATION[
+                    gdal_interpretation = gdal.NAME_TO_GCI[
                                         band['gdal_interpretation'].lower()])
 
             RangeType2Band.objects.create( range_type=rtr, band=br, no=1 ) 

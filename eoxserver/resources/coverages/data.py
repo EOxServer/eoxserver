@@ -28,17 +28,12 @@
 #-------------------------------------------------------------------------------
 
 import os.path
-
-from osgeo import gdal
 import logging
 
-from eoxserver.resources.coverages.metadata import MetadataFormat
-gdal.UseExceptions() # advise GDAL to raise Python exceptions
-
+from eoxserver.contrib import gdal
 from eoxserver.core.system import System
 from eoxserver.core.records import (
-    RecordWrapperInterface, RecordWrapper, RecordWrapperFactoryInterface,
-    RecordWrapperFactory
+    RecordWrapper, RecordWrapperFactoryInterface, RecordWrapperFactory
 )
 from eoxserver.core.exceptions import InternalError
 from eoxserver.backends.cache import CacheFileWrapper
@@ -50,8 +45,7 @@ from eoxserver.resources.coverages.models import (
     RasdamanDataPackage, TileIndex
 )
 from eoxserver.resources.coverages.interfaces import (
-    DataSourceInterface, CoverageDataInterface, DataPackageInterface,
-    TileIndexInterface
+    DataSourceInterface, DataPackageInterface, TileIndexInterface
 )
 from eoxserver.resources.coverages.geo import GeospatialMetadata
 from eoxserver.resources.coverages.formats import getFormatRegistry

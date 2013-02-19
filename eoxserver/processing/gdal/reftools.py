@@ -32,8 +32,7 @@ import ctypes as C
 import os.path
 import logging
 
-from osgeo import gdal
-
+from eoxserver.contrib import gdal
 from eoxserver.core.util.bbox import BBox
 from eoxserver.core.exceptions import InternalError
 

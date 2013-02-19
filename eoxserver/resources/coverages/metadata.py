@@ -36,9 +36,9 @@ import re
 import datetime
 from os.path import splitext
 
-from osgeo import gdal
 from django.contrib.gis.geos import GEOSGeometry
 
+from eoxserver.contrib import gdal
 from eoxserver.core.system import System
 from eoxserver.core.exceptions import (
     InternalError, ImplementationAmbiguous, ImplementationNotFound

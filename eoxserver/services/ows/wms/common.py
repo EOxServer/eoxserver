@@ -31,7 +31,6 @@
 import logging
 import os
 
-from osgeo.gdalconst import GDT_Byte
 import mapscript
 
 from eoxserver.core.system import System
@@ -39,6 +38,7 @@ from eoxserver.core.util.timetools import (
     isotime, getDateTime
 )
 from eoxserver.core.exceptions import InternalError, InvalidParameterException
+from eoxserver.contrib.gdal import GDT_Byte
 from eoxserver.resources.coverages.filters import (
     BoundedArea, TimeInterval
 )

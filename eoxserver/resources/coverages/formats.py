@@ -37,10 +37,9 @@ import imp
 import logging
 import os.path 
 
-try:     from osgeo import gdal
-except ImportError: import gdal
-
 from django.conf import settings
+
+from eoxserver.contrib import gdal
 from eoxserver.core.system import System
 from eoxserver.core.exceptions import InternalError
 from eoxserver.core.startup import StartupHandlerInterface

@@ -27,19 +27,17 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from osgeo import gdal, ogr, osr
+
 from datetime import datetime
-import os, os.path
+import os.path
 import shutil
 import numpy
 import math
 import logging
 
-from django.conf import settings
 from django.contrib.gis.geos import Polygon
 
-from eoxserver.core.system import System
-from eoxserver.core.readers import ConfigReaderInterface
+from eoxserver.contrib import gdal, ogr, osr
 from eoxserver.processing.exceptions import ProcessingError
 
 

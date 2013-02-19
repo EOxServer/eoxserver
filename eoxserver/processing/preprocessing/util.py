@@ -30,12 +30,7 @@
 from os.path import exists
 import numpy
 
-from osgeo import gdal, gdalconst, gdal_array, ogr, osr
-
-
-gdal.UseExceptions()
-ogr.UseExceptions()
-osr.UseExceptions()
+from eoxserver.contrib import gdal, gdal_array
 
 
 def get_limits(dt):
@@ -61,8 +56,8 @@ def create_mem_copy(ds, *args, **kwargs):
     return mem_drv.CreateCopy('', ds, *args, **kwargs)
     
 
-def create_mem(sizex, sizey, numbands, datatype=gdalconst.GDT_Byte,
-                options=None):
+def create_mem(sizex, sizey, numbands, datatype=gdal.GDT_Byte,
+               options=None):
     """ Create a new In-Memory Dataset. """
     if options is None:
         options = []

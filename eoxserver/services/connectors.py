@@ -33,12 +33,13 @@ Because of the different nature of the data sources (files, tile indices,
 rasdaman databases) they have to be set up differently. Connectors allow to
 do this transparently.
 """
+
 import os.path
 
+from eoxserver.contrib import osr
 from eoxserver.services.mapserver import MapServerDataConnectorInterface
-from osgeo import osr
-
 from eoxserver.resources.coverages import crss  
+
 
 class FileConnector(object):
     """

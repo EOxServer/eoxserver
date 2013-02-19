@@ -37,12 +37,12 @@ from cgi import escape
 import time
 
 from django.conf import settings
-from osgeo.gdalconst import GDT_Byte, GDT_Int16, GDT_UInt16, GDT_Float32
 import mapscript
 
 from eoxserver.core.interfaces import Method, ObjectArg, ListArg
 from eoxserver.core.registry import RegisteredInterface
 from eoxserver.core.exceptions import InternalError
+from eoxserver.contrib.gdal import GDT_Byte, GDT_Int16, GDT_UInt16, GDT_Float32 
 from eoxserver.services.base import BaseRequestHandler
 from eoxserver.services.requests import OWSRequest, Response
 from eoxserver.services.exceptions import InvalidRequestException

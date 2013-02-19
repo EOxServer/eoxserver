@@ -33,9 +33,9 @@ This module supports reading of geospatial metadata from GDAL datasets.
 """
 import logging
 
-from osgeo import osr
 from django.contrib.gis.geos import GEOSGeometry
 
+from eoxserver.contrib import osr
 from eoxserver.processing.gdal.reftools import get_footprint_wkt
 from eoxserver.resources.coverages import crss 
 
