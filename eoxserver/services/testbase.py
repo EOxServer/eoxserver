@@ -34,10 +34,7 @@ import logging
 from lxml import etree
 import tempfile
 import mimetypes
-from osgeo import gdal, gdalconst, osr
-
-try:     from cStringIO import StringIO
-except : from StringIO import StringIO
+from cStringIO import StringIO
 
 from django.test import Client
 from django.conf import settings
@@ -45,7 +42,8 @@ from django.db import connection
 
 from eoxserver.core.system import System
 from eoxserver.core.util.xmltools import XMLDecoder
-from eoxserver.core.util.multiparttools import mpUnpack, getMimeType, getMultipartBoundary 
+from eoxserver.core.util.multiparttools import mpUnpack, getMimeType, getMultipartBoundary
+from eoxserver.contrib import gdal, osr
 from eoxserver.testing.core import (
     EOxServerTestCase, EOxServerTransactionTestCase, BASE_FIXTURES
 )
@@ -273,12 +271,12 @@ class GDALDatasetTestCase(RasterTestCase):
         exp_path = os.path.join(self.getExpectedFileDir(), self.getExpectedFileName("raster"))
         
         try:
-            self.res_ds = gdal.Open(self.tmppath, gdalconst.GA_ReadOnly)
+            self.res_ds = gdal.Open(self.tmppath, gdal.GA_ReadOnly)
         except RuntimeError, e:
             self.fail("Response could not be opened with GDAL. Error was %s" % e)
         
         try:
-            self.exp_ds = gdal.Open(exp_path, gdalconst.GA_ReadOnly)
+            self.exp_ds = gdal.Open(exp_path, gdal.GA_ReadOnly)
         except RuntimeError:
             self.skipTest("Expected response in '%s' is not present" % exp_path)
 

@@ -33,8 +33,9 @@
 #-------------------------------------------------------------------------------
 
 import re 
-from osgeo import osr
 import logging
+
+from eoxserver.contrib import osr
 from eoxserver.core.system import System
 
 

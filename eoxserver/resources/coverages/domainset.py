@@ -27,11 +27,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from osgeo import gdal
-from osgeo.osr import SpatialReference
-
 import logging
-
 import numpy.linalg
 
 from django.contrib.gis.geos import GEOSGeometry, Polygon, LineString
@@ -256,15 +252,15 @@ class Trim(Subsetting):
         
         return poly.contains(footprint)
 
-def getGridFromFile(filename, collection_srid=None):
-    #logger.debug("CoverageInterface._getGridFromFile: SRID: %s" % str(srid))
+#def getGridFromFile(filename, collection_srid=None):
+#    #logger.debug("CoverageInterface._getGridFromFile: SRID: %s" % str(srid))
 
-    return RectifiedGrid(
-        dim=2,
-        low=(0, 0),
-        high=(ds.RasterXSize - 1, ds.RasterYSize - 1),
-        axis_labels=axis_labels,
-        srid=srid,
-        origin=(gt[0], gt[3]),
-        offsets=((gt[1], gt[4]), (gt[2], gt[5]))
-    )
+#    return RectifiedGrid(
+#        dim=2,
+#        low=(0, 0),
+#        high=(ds.RasterXSize - 1, ds.RasterYSize - 1),
+#        axis_labels=axis_labels,
+#        srid=srid,
+#        origin=(gt[0], gt[3]),
+#        offsets=((gt[1], gt[4]), (gt[2], gt[5]))
+#    )

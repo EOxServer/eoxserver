@@ -34,12 +34,12 @@ from copy import copy
 import traceback
 from optparse import make_option, OptionValueError
 
-from osgeo import gdal
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.contrib.gis.geos.geometry import GEOSGeometry
 from django.contrib.gis.geos.polygon import Polygon
 
+from eoxserver.contrib import gdal
 from eoxserver.core.system import System
 from eoxserver.core.util.timetools import getDateTime
 from eoxserver.resources.coverages.geo import ( 
