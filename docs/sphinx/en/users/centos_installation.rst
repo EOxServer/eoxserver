@@ -109,8 +109,8 @@ when using SQLite::
 
     sudo yum install sqlite libspatialite pysqlite pyspatialite
 
-Now that EOxServer is properly install the next step is to :ref:`create and configure
-an instance <Creating an Instance>`. 
+Now that EOxServer is properly installed the next step is to :ref:`create and
+configure an instance <Creating an Instance>`. 
 
 
 Alternate installation method using pip
