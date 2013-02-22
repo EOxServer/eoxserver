@@ -952,6 +952,34 @@ class WCS20GetCoverageSubsetSizeResolutionOutputCRSRangeSubsetIndicesDatasetTest
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=x(100,200)&subset=y(200,300)&size=y(100)&resolution=x(0.1)&outputcrs=http://www.opengis.net/def/crs/EPSG/0/3035&rangesubset=1,2,3&mediatype=multipart/related"
         return (params, "kvp")
+    
+#===============================================================================
+# WCS 2.0: Polygon Mask 
+#===============================================================================
+
+class WCS20GetCoveragePolygonMaskTestCase(eoxstest.RectifiedGridCoverageTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mask=polygon(14.124422306243844,42.806626286621963,21.208516509273601,43.730638573973678,21.208516509273601,43.730638573973678,21.892970055460054,37.8443380767702,15.04843459359555,36.646544370943914,12.379065763468395,39.555471942236323,14.124422306243844,42.806626286621963)"
+        return (params, "kvp") 
+
+
+class WCS20GetCoveragePolygonMaskProjectedTestCase(eoxstest.RectifiedGridCoverageTestCase):
+    def getRequest(self): # TODO: swap axes
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mask=polygon,http://www.opengis.net/def/crs/EPSG/0/4326(42.806626286621963,14.124422306243844,43.730638573973678,21.208516509273601,43.730638573973678,21.208516509273601,37.8443380767702,21.892970055460054,36.646544370943914,15.04843459359555,39.555471942236323,12.379065763468395,42.806626286621963,14.124422306243844)" 
+        return (params, "kvp")
+
+class WCS20PostGetCoveragePolygonMaskTestCase(eoxstest.RectifiedGridCoverageTestCase):
+    def getRequest(self):
+        params = """<wcs:GetCoverage service="WCS" version="2.0.0"
+           xmlns:wcs="http://www.opengis.net/wcs/2.0"
+           xmlns:wcsmask="http://www.opengis.net/wcs/mask/1.0">
+          <wcs:CoverageId>MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed</wcs:CoverageId>
+          <wcs:format>image/tiff</wcs:format>
+          <wcs:Extension>
+            <wcsmask:polygonMask>14.124422306243844 42.806626286621963 21.208516509273601 43.730638573973678 21.208516509273601 43.730638573973678 21.892970055460054 37.8443380767702 15.04843459359555 36.646544370943914 12.379065763468395 39.555471942236323 14.124422306243844 42.806626286621963</wcsmask:polygonMask>
+          </wcs:Extension>
+        </wcs:GetCoverage>"""
+        return (params, "xml")
 
 #===============================================================================
 # WCS 2.0 Rasdaman test cases
