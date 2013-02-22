@@ -28,8 +28,12 @@
 
 import re
 from itertools import izip
+import logging
 
 from eoxserver.resources.coverages import crss #import hasSwappedAxes, fromURL
+
+
+logger = logging.getLogger(__name__)
 
 def pairwise(iterable):
     "s -> (s0,s1), (s2,s3), (s4, s5), ..."
@@ -85,7 +89,7 @@ class WCS20MaskDecoder(object):
         if req.getParamType() == "kvp":
             self._decodeKVP(req)
         else:
-            self._decodeXML()
+            self._decodeXML(req)
         
     
     def _decodeKVP(self, req):
@@ -117,8 +121,17 @@ class WCS20MaskDecoder(object):
                 elif method.lower() in ("coverage", "coverages", "coverageid", "coverageids"):
                     self.coverages.extend(mask_value.split(","))
 
-    def _decodeXML(self):
+    def _decodeXML(self, req):
         # TODO: implement
-        pass
+        polygons = req.getParamValue("polygonmasks")
+        for polygon in polygons:
+            logging.debug("Poly: %s" % polygon[:100])
+            raw_coords = map(float, polygon.split(" "))
+            if len(raw_coords) % 2 != 0:
+                raise Exception("Invalid number of coordinates given.")
+            
+            pairs = pairwise(raw_coords)
+            self.polygons.append(PolygonMask(pairs))
+            # TODO: crs?
         
         
