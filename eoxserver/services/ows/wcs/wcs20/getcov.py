@@ -481,7 +481,7 @@ class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
         "slices": {"xml_location": "/{http://www.opengis.net/wcs/2.0}DimensionSlice", "xml_type": "element[]"},
         "format": {"xml_location": "/{http://www.opengis.net/wcs/2.0}format", "xml_type": "string", "kvp_key": "format", "kvp_type": "string"},
         "mediatype": {"xml_location": "/{http://www.opengis.net/wcs/2.0}mediaType", "xml_type": "string", "kvp_key": "mediatype", "kvp_type": "string"},
-        "polygon": {"kvp_key": "polygon", "kvp_type": "string"},
+        "polygonmasks": {"xml_location": "/{http://www.opengis.net/wcs/2.0}Extension/{http://www.opengis.net/wcs/mask/1.0}polygonMask", "xml_type": "string[]", "kvp_key": "polygon", "kvp_type": "string"},
     }
     
     def addLayers(self):
@@ -493,7 +493,7 @@ class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
             # create a mask layer
             mask_layer = mapscript.layerObj()
             mask_layer.name = MASK_LAYER_NAME
-            mask_layer.status = mapscript.MS_DEFAULT;
+            mask_layer.status = mapscript.MS_DEFAULT
             mask_layer.type = mapscript.MS_LAYER_POLYGON
             mask_layer.setProjection("init=epsg:4326") # TODO: make this dependant on the actually given crs 
             
