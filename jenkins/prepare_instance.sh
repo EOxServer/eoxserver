@@ -2,40 +2,33 @@
 # Create the virtual environment if it does not exist
 cd $WORKSPACE
 if [ -d ".venv" ]; then
-  echo "**> virtualenv exists! not installing any dependencies"
+  echo "**> virtualenv exists!"
 else
   echo "**> creating virtualenv..."
-  virtualenv .venv
-  
-  # Install the dependencies
-  source .venv/bin/activate
-  echo "**> installing dependencies..."
-  pip install pysqlite pyspatialite lxml
-  pip install --no-install GDAL==1.8.1
-  cd $WORKSPACE/.venv/build/GDAL
-  python setup.py build_ext --include-dirs=/usr/include/gdal/
-  pip install --no-download GDAL
+  virtualenv --system-site-packages .venv
 fi
 
+# activate the virtual environment
+source .venv/bin/activate
 
-# Install EOxServer and recompile pyspatialite
+# Install EOxServer
 echo "**> installing eoxserver..."
-pip install --upgrade ./
-
-echo "**> recompiling pysqlite"
-mkdir -p $WORKSPACE/tmp
-cd $WORKSPACE/tmp
-wget https://pysqlite.googlecode.com/files/pysqlite-2.6.3.tar.gz
-tar xzf pysqlite-2.6.3.tar.gz
-cd pysqlite-2.6.3
-sed -i -e 's/define=SQLITE_OMIT_LOAD_EXTENSION/#define=SQLITE_OMIT_LOAD_EXTENSION/' setup.cfg 
-python setup.py install --force
-cd $WORKSPACE
-rm -rf $WORKSPACE/tmp
+python setup.py develop
 
 # Create the EOxServer instance
 echo "**> creating autotest instance..."
-mv autotest autotest_orig
-eoxserver-admin.py create_instance autotest
-cp -r autotest_orig/* autotest/autotest/
-rm -rf autotest_orig
+mv autotest tmp1
+eoxserver-admin.py create_instance autotest --init_spatialite
+mv autotest/manage.py tmp1/
+mv autotest/autotest/ tmp2
+rmdir autotest/
+mv tmp1 autotest
+mv tmp2/settings.py autotest/
+mv tmp2/conf/eoxserver.conf autotest/conf/
+mv tmp2/wsgi.py autotest/
+mv tmp2/data/config.sqlite autotest/data/
+mv tmp2/data/init_spatialite-2.3.sql autotest/data/
+rm -r tmp2
+sed -e 's/\/autotest\/autotest/\/autotest/' -i autotest/settings.py
+sed -e 's/\/autotest\/autotest/\/autotest/' -i autotest/conf/eoxserver.conf
+sed -e 's/allowed_actions=/allowed_actions=Add,Delete/' -i autotest/conf/eoxserver.conf

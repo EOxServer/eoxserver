@@ -1,20 +1,16 @@
-# Run the tests
-cd $WORKSPACE/autotest
-export XML_CATALOG_FILES="$WORKSPACE/schemas/catalog.xml"
-echo "**> running tests..."
+#!/bin/sh -xe
 
-# Run autotest tests
-#python manage.py test
-#python manage.py test services.WCS1
-python manage.py test services.WCS20GetCap
-#python manage.py test services.WCSVersion
-#python manage.py test services.WCS20DescribeCoverage
-#python manage.py test services.WCS20DescribeEOCoverageSet
-#python manage.py test services.WCS20GetCoverage
-#python manage.py test services.WCS20Post
-#python manage.py test services.WMS
-#python manage.py test services.Sec
+# Activate the virtual environment
+cd $WORKSPACE
+source .venv/bin/activate
+
+cd autotest
+export XML_CATALOG_FILES="$WORKSPACE/schemas/catalog.xml"
+echo "**> running tests ..."
+python manage.py test services -v2
+#python manage.py test core services coverages -v2
 
 # Run command line tests
+echo "**> running command line tests ..."
 python manage.py syncdb --noinput
 python manage.py loaddata auth_data.json initial_rangetypes.json
