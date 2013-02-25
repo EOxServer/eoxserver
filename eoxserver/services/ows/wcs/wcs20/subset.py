@@ -118,15 +118,28 @@ class WCS20SubsetDecoder(object):
         trim_elements = self.req.getParamValue("trims")
         
         for slice_element in slice_elements:
-            axis_label = slice_element.getElementsByTagName("wcs:Dimension")[0].firstChild.data
+            dimension = slice_element.getElementsByTagName("wcs:Dimension")[0]
+            axis_label = dimension.firstChild.data
+            
+            # TODO: until the WCS 2.0 CRS extension is finished we have to use the
+            # MapServer way to parse the CRS from the Trim/Slice
             crs = None
+            if dimension.hasAttribute("crs"):
+                crs = dimension.getAttribute("crs")
+            
             slice_point = slice_element.getElementsByTagName("wcs:SlicePoint")[0].firstChild.data
             
             slices.append((axis_label, crs, slice_point))
             
         for trim_element in trim_elements:
-            axis_label = trim_element.getElementsByTagName("wcs:Dimension")[0].firstChild.data
+            dimension = trim_element.getElementsByTagName("wcs:Dimension")[0]
+            axis_label = dimension.firstChild.data
+            
+            # TODO: see above
             crs = None
+            if dimension.hasAttribute("crs"):
+                crs = dimension.getAttribute("crs")
+            
             trim_low = trim_element.getElementsByTagName("wcs:TrimLow")[0].firstChild.data
             trim_high = trim_element.getElementsByTagName("wcs:TrimHigh")[0].firstChild.data
         
