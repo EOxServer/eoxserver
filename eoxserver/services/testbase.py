@@ -29,6 +29,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+import re 
 import os.path
 import logging
 from lxml import etree
@@ -55,6 +56,9 @@ logger = logging.getLogger(__name__)
 # THIS IS INTENTIONALLY DOUBLED DUE TO A BUG IN MIMETYPES!
 mimetypes.init()
 mimetypes.init()
+
+# precompile regular expression
+RE_MIME_TYPE_XML = re.compile("^text/xml|application/(?:[a-z]+\+)?xml$",re.IGNORECASE)
 
 #===============================================================================
 # Helper functions
@@ -523,7 +527,8 @@ class MultipartTestCase(XMLTestCase):
         
         # unpack the multipart content 
         for header,offset,size in mpUnpack(content,boundary) :
-            if _getMime(header['content-type']) in ( "text/xml" , "application/xml" ) :
+            match = RE_MIME_TYPE_XML.match( _getMime(header['content-type']) ) 
+            if match is not None : 
                 # store XML response 
                 self.xmlData = content[offset:(offset+size)]
             else : 
