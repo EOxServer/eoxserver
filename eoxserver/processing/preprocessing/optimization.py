@@ -31,9 +31,9 @@ import logging
 
 import numpy
 
+from eoxserver.contrib import gdal, gdal_array, osr, ogr
 from eoxserver.processing.preprocessing.util import ( 
-    gdal, gdal_array, gdalconst, osr, ogr, get_limits, create_mem, 
-    copy_metadata, copy_projection
+    get_limits, create_mem, copy_metadata, copy_projection
 )
 from eoxserver.resources.coverages.crss import (
     parseEPSGCode, fromShortCode, fromURL, fromURN, fromProj4Str
@@ -119,7 +119,7 @@ class BandSelectionOptimization(DatasetOptimization):
     respective scale and copies them to the result dataset. 
     """
     
-    def __init__(self, bands, datatype=gdalconst.GDT_Byte):
+    def __init__(self, bands, datatype=gdal.GDT_Byte):
         # preprocess bands list
         # TODO: improve
         self.bands = map(lambda b: b  if len(b) == 3 else (b[0], None, None),
@@ -202,7 +202,7 @@ class ColorIndexOptimization(DatasetOptimization):
     
     def __call__(self, src_ds):
         dst_ds = create_mem(src_ds.RasterXSize, src_ds.RasterYSize, 
-                            1, gdalconst.GDT_Byte)
+                            1, gdal.GDT_Byte)
         
         if not self.palette_file:
             # create a color table as a median of the given dataset
@@ -314,7 +314,8 @@ class OverviewOptimization(DatasetPostOptimization):
 #===============================================================================
 
 class AlphaBandOptimization(object):
-    """  """
+    """ This optimization renders the footprint into the alpha channel of the 
+    image. """
     
     def __call__(self, src_ds, footprint_wkt):
         dt = src_ds.GetRasterBand(1).DataType

@@ -29,11 +29,11 @@
 
 import logging
 
+from eoxserver.contrib import gdal, ogr, osr
 from eoxserver.processing.gdal import reftools # get_footprint_wkt, suggested_warp_output
 from eoxserver.processing.preprocessing.util import (
-    gdal, ogr, osr, create_mem, copy_metadata
+    create_mem, copy_metadata
 )
-
 from eoxserver.processing.preprocessing.exceptions import GCPTransformException
 
 
@@ -62,6 +62,7 @@ class Extent(GeographicReference):
             the defined extent and SRID.
         """
         sr = osr.SpatialReference(); sr.ImportFromEPSG(self.srid)
+        # TODO: center of pixel or border? see #32
         ds.SetGeoTransform([ # TODO: correct?
             self.minx,
             (self.maxx - self.minx) / ds.RasterXSize,
