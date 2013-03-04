@@ -303,9 +303,12 @@ class OverviewOptimization(DatasetPostOptimization):
                     % (", ".join(map(str, levels)), self.resampling))
         
         # workaround for libtiff 3.X systems, which generated wrong overviews on
-        # some levels.
+        # some levels. Skip with warning if workaround is not working.
         for level in levels:
-            ds.BuildOverviews(self.resampling, [level])
+            try:
+                ds.BuildOverviews(self.resampling, [level])
+            except RuntimeError:
+                logger.warning("Ovierview building failed for level '%s'." % level)
         return ds
 
 
