@@ -129,8 +129,9 @@ namespace("WebClient").Views = (function() {
             this.map.addLayers(this.layers);
             this.map.addLayer(this.bboxLayer);
 
+						
             if (useFeatureInfo) {
-                var infoControl = new OpenLayers.Control.WMSGetFeatureInfo({
+                this.infoControl = new OpenLayers.Control.WMSGetFeatureInfo({
                     url: useFeatureInfo.url, 
                     title: 'Identify features by clicking',
                     queryVisible: true,
@@ -140,8 +141,8 @@ namespace("WebClient").Views = (function() {
                     }
                 });
         
-                this.map.addControl(infoControl);
-                infoControl.activate();
+                this.map.addControl(this.infoControl);
+                this.infoControl.activate();
             }
 
             this.map.zoomToExtent(new OpenLayers.Bounds.fromArray(this.bboxModel.get("values")));
@@ -167,17 +168,33 @@ namespace("WebClient").Views = (function() {
         },
 
         onFeatureInfo: function(event) {
-            if (event.text) {
-                var popup = new OpenLayers.Popup.FramedCloud(
-                    null, 
-                    this.map.getLonLatFromPixel(event.xy),
-                    null,
-                    event.text,
-                    null,
-                    true
-                );
-                this.map.addPopup(popup);
-            }
+			if (event.request.status == 200) {
+				if (event.text) {
+					var popup = new OpenLayers.Popup.FramedCloud(
+						null, 
+						this.map.getLonLatFromPixel(event.xy),
+						null,
+						event.text,
+						null,
+						true
+					);
+					this.map.addPopup(popup);
+				}
+			}
+			else if (event.request.status >= 400 && event.request.status <= 420) {
+			//else if (event.request.status == 500) {
+				var popup_text = "No coverages found at point " + this.map.getLonLatFromPixel(event.xy) + "<BR/>" +
+								  " for time " + this.dtModel.getBeginString() + "/" + this.dtModel.getEndString();
+				var popup = new OpenLayers.Popup.FramedCloud(
+						null, 
+						this.map.getLonLatFromPixel(event.xy),
+						null,
+						popup_text,
+						null,
+						true
+				);
+				this.map.addPopup(popup);
+			}
         },
 
         /// external events
@@ -216,6 +233,7 @@ namespace("WebClient").Views = (function() {
                 var timeString = this.dtModel.getBeginString()
                                  + "/" + this.dtModel.getEndString();
                 layer.mergeNewParams({time: timeString});
+                this.infoControl.vendorParams["TIME"] = timeString;
             }, this);
         }
     });
