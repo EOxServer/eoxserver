@@ -125,7 +125,6 @@ class WCS20MaskDecoder(object):
         # TODO: implement
         polygons = req.getParamValue("polygonmasks")
         for polygon in polygons:
-            logging.debug("Poly: %s" % polygon[:100])
             raw_coords = map(float, polygon.split(" "))
             if len(raw_coords) % 2 != 0:
                 raise Exception("Invalid number of coordinates given.")
