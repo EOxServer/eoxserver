@@ -37,9 +37,10 @@ from django.contrib.gis.geos import GEOSGeometry, Polygon, LinearRing, Point
 from django.contrib.gis.gdal.geometries import OGRGeometry
 from django.contrib.gis.gdal.srs import SpatialReference, CoordTransform
 
+from eoxserver.contrib import  gdal, ogr, osr 
 from eoxserver.core.util.xmltools import XMLEncoder
 from eoxserver.processing.preprocessing.util import (
-    create_mem, create_mem_copy, gdal, ogr, osr, gdalconst, copy_projection
+    create_mem, create_mem_copy, copy_projection
 )
 from eoxserver.processing.preprocessing.optimization import (
     BandSelectionOptimization, ColorIndexOptimization, NoDataValueOptimization,
@@ -223,7 +224,7 @@ class PreProcessor(object):
         # create a temporary in-memory dataset and write the nodata mask 
         # into its single band
         tmp_ds = create_mem(ds.RasterXSize, ds.RasterYSize, 1, 
-                            gdalconst.GDT_Byte)
+                            gdal.GDT_Byte)
         copy_projection(ds, tmp_ds)
         tmp_band = tmp_ds.GetRasterBand(1)
         tmp_band.WriteArray(nodata_map.astype(numpy.uint8))
