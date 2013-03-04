@@ -86,13 +86,13 @@ class EOWMSOutlinesLayer(WMSLayer):
         return timestamp.strftime("%Y-%m-%d %H:%M:%S")
 
     def _get_query_with_timestamp(self, timestamp):
-        time_clause = " AND '%s' BETWEEN eomd.timestamp_begin AND eomd.timestamp_end" % self._get_sql_timestamp(timestamp)
+        time_clause = " AND '%s' BETWEEN eomd.timestamp_begin AND eomd.timestamp_end" % isotime(timestamp)
         
         return self._get_base_query(time_clause)
         
     def _get_query_with_time_interval(self, begin_time, end_time):
         time_clause = " AND NOT (eomd.timestamp_begin > '%s' OR eomd.timestamp_end < '%s')" % (
-            self._get_sql_timestamp(end_time), self._get_sql_timestamp(begin_time)
+            isotime(end_time), isotime(begin_time)
         )
         
         return self._get_base_query(time_clause)
@@ -243,6 +243,94 @@ class EOWMSDatasetSeriesOutlinesLayer(EOWMSOutlinesLayer):
         layer.setMetaData("wms_extent", "%f %f %f %f" % self.dataset_series.getWGS84Extent())
 
         return layer
+
+
+class EOWMSCollectionOutlinesLayer(WMSLayer):
+    """
+    """
+    
+    STYLES = (
+        ("red", 255, 0, 0),
+        ("green", 0, 128, 0),
+        ("blue", 0, 0, 255),
+        ("white", 255, 255, 255),
+        ("black", 0, 0, 0),
+        ("yellow", 255, 255, 0),
+        ("orange", 255, 165, 0),
+        ("magenta", 255, 0, 255),
+        ("cyan", 0, 255, 255),
+        ("brown", 165, 42, 42)
+    )
+    
+    DEFAULT_STYLE = "red"
+    
+    def __init__(self, collection, filter_exprs=None):
+        super(EOWMSCollectionOutlinesLayer, self).__init__()
+        self.collection = collection
+        self.filter_exprs = filter_exprs
+    
+    def createOutlineClass(self, name, r, g, b):
+        outline_class = mapscript.classObj()
+        outline_style = mapscript.styleObj()
+        outline_style.outlinecolor = mapscript.colorObj(r, g, b)
+        outline_class.insertStyle(outline_style)
+        outline_class.group = name
+        
+        return outline_class
+        
+
+    def getName(self):
+        return "%s_outlines" % self.collection.getEOID()
+
+    def getMapServerLayer(self, req):
+        layer = super(EOWMSCollectionOutlinesLayer, self).getMapServerLayer(req)
+        layer.setMetaData("wms_extent", "%f %f %f %f" % self.collection.getWGS84Extent())
+        layer.setMetaData("wms_enable_request", "getcapabilities getmap getfeatureinfo")
+
+        # NOTE: outline projection always set to WSG84
+        srid = 4326 # TODO: Is that really correct? Check it.
+        layer.setProjection( crss.asProj4Str( srid ) )
+        layer.setMetaData("ows_srs", crss.asShortCode( srid ) ) 
+        layer.setMetaData("wms_srs", crss.asShortCode( srid ) ) 
+        
+        layer.type = mapscript.MS_LAYER_POLYGON
+        
+        # TODO: make this configurable
+        layer.header = os.path.join(settings.PROJECT_DIR, "conf", "outline_template_header.html")
+        layer.template = os.path.join(settings.PROJECT_DIR, "conf", "outline_template_dataset.html")
+        layer.footer = os.path.join(settings.PROJECT_DIR, "conf", "outline_template_footer.html")
+        
+        layer.setMetaData("gml_include_items", "all")
+        layer.setMetaData("wms_include_items", "all")
+        layer.dump = True
+        
+        #layer.tolerance = 10.0
+        #layer.toleranceunits = mapscript.MS_PIXELS
+            
+        layer.offsite = mapscript.colorObj(0, 0, 0)
+        
+        for style_info in self.STYLES:
+            layer.insertClass(self.createOutlineClass(*style_info))
+
+        layer.classgroup = self.DEFAULT_STYLE
+        
+        # add a shape object for each coverage in the collection
+        for coverage in self.collection.getDatasets(self.filter_exprs):
+            # TODO: maybe using the direct API is more efficient. requires performance test
+            wkt = coverage.getFootprint().wkt
+            shape = mapscript.shapeObj.fromWKT(wkt)
+            
+            # set the features values
+            shape.initValues(1)
+            shape.setValue(0, coverage.getCoverageId())
+            
+            layer.addFeature(shape)
+        
+        # tell the layer what features are available
+        layer.addProcessing("ITEMS=coverage_id")
+        
+        return layer
+
 
 class EOWMSBandsLayerMixIn(object):
     def isRGB(self):
@@ -545,7 +633,7 @@ class WMS13GetMapHandler(WMS1XGetMapHandler):
         
         if dataset_series is not None:
             if len(dataset_series.getDatasets(filter_exprs)) > 0:
-                outlines_layer = EOWMSDatasetSeriesOutlinesLayer(dataset_series)
+                outlines_layer = EOWMSCollectionOutlinesLayer(dataset_series, filter_exprs)
                 
                 self.addLayer(outlines_layer)
             else:
@@ -558,7 +646,7 @@ class WMS13GetMapHandler(WMS1XGetMapHandler):
             )
             if coverage is not None and coverage.getType() == "eo.rect_stitched_mosaic":
                 if len(coverage.getDatasets(filter_exprs)) > 0:
-                    outlines_layer = EOWMSRectifiedStitchedMosaicOutlinesLayer(coverage)
+                    outlines_layer = EOWMSCollectionOutlinesLayer(coverage, filter_exprs)
                     
                     self.addLayer(outlines_layer)
                 else:
@@ -630,7 +718,8 @@ class WMS13GetMapHandler(WMS1XGetMapHandler):
         
         return ms_layer
 
-class WMS13GetFeatureInfoHandler(WMSCommonHandler):
+# GetFeatureInfo is *not* GetMap, but the parameters are intersecting a lot
+class WMS13GetFeatureInfoHandler(WMS1XGetMapHandler):
     REGISTRY_CONF = {
         "name": "WMS 1.3 GetFeatureInfo Handler",
         "impl_id": "services.ows.wms1x.WMS13GetFeatureInfoHandler",
@@ -671,10 +760,12 @@ class WMS13GetFeatureInfoHandler(WMSCommonHandler):
                 "layers"
             )
         
+        filter_exprs = self.getFilterExpressions()
+        
         for layer_name in layer_names:
-            self.createLayerForName(layer_name)
+            self.createLayerForName(layer_name, filter_exprs)
     
-    def createLayerForName(self, layer_name):
+    def createLayerForName(self, layer_name, filter_exprs):
         if not layer_name.endswith("_outlines"):
             raise InvalidRequestException(
                 "Cannot query layer '%s'" % layer_name,
@@ -689,7 +780,7 @@ class WMS13GetFeatureInfoHandler(WMSCommonHandler):
             {"obj_id": base_name}
         )
         if dataset_series is not None:
-            outlines_layer = EOWMSDatasetSeriesOutlinesLayer(dataset_series)
+            outlines_layer = EOWMSCollectionOutlinesLayer(dataset_series, filter_exprs)
             
             logger.debug("Found dataset series with ID %s"%base_name)
             
@@ -715,6 +806,11 @@ class WMS13GetFeatureInfoHandler(WMSCommonHandler):
         ms_layer.setMetaData("wms_exceptions_format","xml")
         
         return ms_layer
+
+        
+    def getSRSParameterName(self):
+        return "crs"
+
     
 class WMS13GetLegendGraphicHandler(WMSCommonHandler):
     REGISTRY_CONF = {
@@ -738,7 +834,6 @@ class WMS13GetLegendGraphicHandler(WMSCommonHandler):
         "height": {"kvp_key": "height", "kvp_type": "int"},
         "style": {"kvp_key": "style", "kvp_type": "string"},
         # TODO SLD, SLD_BODY, SLD_VERSION, SCALE, STYLE, RULE
-        
     }
     
     def configureMapObj(self):
@@ -846,6 +941,7 @@ class WMS13GetLegendGraphicHandler(WMSCommonHandler):
         ms_layer.setMetaData("wms_exceptions_format","xml")
         
         return ms_layer
+
 
 class WMS13ExceptionHandler(BaseExceptionHandler):
     REGISTRY_CONF = {
