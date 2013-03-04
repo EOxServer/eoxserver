@@ -50,7 +50,7 @@ from eoxserver.resources.coverages.management.commands import CommandOutputMixIn
 
 class Command(CommandOutputMixIn, BaseCommand):
 
-    args = '[-u]|-r|-u <ID>'
+    args = '[-a|-r|-u] <ID>'
 
     option_list = BaseCommand.option_list + (
         make_option('-a','--is-available',
