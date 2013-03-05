@@ -18,7 +18,7 @@ python setup.py develop
 # Create the EOxServer instance
 echo "**> creating autotest instance..."
 mv autotest tmp1
-eoxserver-admin.py create_instance autotest
+eoxserver-admin.py create_instance autotest --init_spatialite
 mv autotest/manage.py tmp1/
 mv autotest/autotest/ tmp2
 rmdir autotest/
