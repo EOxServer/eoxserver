@@ -38,7 +38,7 @@ from eoxserver.core.system import System
 from eoxserver.core.util.timetools import getDateTime, isotime
 from eoxserver.core.util.xmltools import XMLEncoder, DOMtoXML
 from eoxserver.core.exceptions import InternalError, InvalidParameterException
-from eoxserver.resources.coverages.filters import BoundedArea
+from eoxserver.resources.coverages.filters import BoundedArea, TimeInterval
 from eoxserver.resources.coverages import crss
 from eoxserver.services.base import BaseExceptionHandler
 from eoxserver.services.requests import Response
@@ -314,16 +314,32 @@ class EOWMSCollectionOutlinesLayer(WMSLayer):
 
         layer.classgroup = self.DEFAULT_STYLE
         
+        # TODO: recursively add datasets for stitched mosaics
+        datasets = self.collection.getDatasets(self.filter_exprs)
+        
         # add a shape object for each coverage in the collection
-        for coverage in self.collection.getDatasets(self.filter_exprs):
+        for dataset in datasets:
             # TODO: maybe using the direct API is more efficient. requires performance test
-            wkt = coverage.getFootprint().wkt
+            wkt = dataset.getFootprint().wkt
             shape = mapscript.shapeObj.fromWKT(wkt)
             
             # set the features values
             shape.initValues(1)
-            shape.setValue(0, coverage.getCoverageId())
+            shape.setValue(0, dataset.getCoverageId())
             
+            layer.addFeature(shape)
+        
+        logger.info(str(datasets))
+        if not len(datasets):
+            logger.info("TEST")
+            # add "null" shape
+            shape = mapscript.shapeObj(mapscript.MS_SHAPE_POLYGON)
+            line = mapscript.lineObj()
+            for x, y in [(2147483645, 2147483645), (2147483644, 2147483644), (2147483640, 2147483644), (2147483645, 2147483645)]:
+                line.add(mapscript.pointObj(x, y))
+            shape.add(line)
+            shape.initValues(1)
+            shape.setValue(0, "none") 
             layer.addFeature(shape)
         
         # tell the layer what features are available
@@ -719,7 +735,7 @@ class WMS13GetMapHandler(WMS1XGetMapHandler):
         return ms_layer
 
 # GetFeatureInfo is *not* GetMap, but the parameters are intersecting a lot
-class WMS13GetFeatureInfoHandler(WMS1XGetMapHandler):
+class WMS13GetFeatureInfoHandler(WMSCommonHandler):
     REGISTRY_CONF = {
         "name": "WMS 1.3 GetFeatureInfo Handler",
         "impl_id": "services.ows.wms1x.WMS13GetFeatureInfoHandler",
@@ -806,6 +822,123 @@ class WMS13GetFeatureInfoHandler(WMS1XGetMapHandler):
         ms_layer.setMetaData("wms_exceptions_format","xml")
         
         return ms_layer
+
+    
+    # TODO: copied from WMS13GetMapHandler. use common super class, or better,
+    # common parameter parser 
+    def getBoundedArea(self, srid, bbox):
+        if crss.hasSwappedAxes(srid):
+            return BoundedArea(srid, bbox[1], bbox[0], bbox[3], bbox[2])
+        else:
+            return BoundedArea(srid, *bbox)
+        
+    def getTimeFilterExpr(self, time_param):
+        timestamps = time_param.split("/")
+        
+        if len(timestamps) == 1:
+            try:
+                timestamp = getDateTime(timestamps[0])
+            except InvalidParameterException:
+                raise InvalidRequestException(
+                    "Invalid 'TIME' parameter format.",
+                    "InvalidParameterValue",
+                    "time"
+                )
+            
+            return System.getRegistry().getFromFactory(
+                "resources.coverages.filters.CoverageExpressionFactory",
+                {
+                    "op_name": "time_slice",
+                    "operands": (timestamp,)
+                }
+            )
+        
+        elif len(timestamps) == 2:
+            try:
+                time_intv = TimeInterval(
+                    getDateTime(timestamps[0]),
+                    getDateTime(timestamps[1])
+                )
+            except InvalidParameterException:
+                raise InvalidRequestException(
+                    "Invalid 'TIME' parameter format.",
+                    "InvalidParameterValue",
+                    "time"
+                )
+                
+            return System.getRegistry().getFromFactory(
+                "resources.coverages.filters.CoverageExpressionFactory",
+                {
+                    "op_name": "time_intersects",
+                    "operands": (time_intv,)
+                }
+            )
+        else:
+            raise InvalidRequestException(
+                "Invalid 'TIME' parameter format.",
+                "InvalidParameterValue",
+                "time"
+            )
+    
+    def getFilterExpressions(self):
+        try:
+            bbox = self.req.getParamValue("bbox")
+        except InvalidParameterException:
+            raise InvalidRequestException(
+                "Invalid BBOX parameter value",
+                "InvalidParameterValue",
+                "bbox"
+            )
+        
+        if len(bbox) != 4:
+            raise InvalidRequestException(
+                "Wrong number of arguments for 'BBOX' parameter",
+                "InvalidParameterValue",
+                "bbox"
+            )
+        
+        srid = self.getSRID()
+        
+        area = self.getBoundedArea(srid, bbox)
+
+        filter_exprs = []
+        
+        # TODO sqlite assert ahead `GEOSCoordSeq_setOrdinate_r`
+        filter_exprs.append(
+            System.getRegistry().getFromFactory(
+                "resources.coverages.filters.CoverageExpressionFactory",
+                {
+                    "op_name": "footprint_intersects_area",
+                    "operands": (area,)
+                }
+            )
+        )
+        
+        time_param = self.req.getParamValue("time")
+        
+        if time_param is not None:
+            filter_exprs.append(self.getTimeFilterExpr(time_param))
+        
+        return filter_exprs
+
+
+    def getSRID(self):
+        srs = self.req.getParamValue(self.getSRSParameterName())
+
+        if srs is None:
+            raise InvalidRequestException("Missing '%s' parameter"
+                % self.getSRSParameterName().upper(), "MissingParameterValue",
+                self.getSRSParameterName())
+        
+        srid = crss.parseEPSGCode(srs,(crss.fromURL,crss.fromURN,
+                    crss.fromShortCode)) 
+
+        if srid is None:
+            raise InvalidRequestException("Invalid '%s' parameter value"
+                % self.getSRSParameterName().upper(), "InvalidCRS" ,
+                self.getSRSParameterName())
+            
+        return srid
 
         
     def getSRSParameterName(self):
