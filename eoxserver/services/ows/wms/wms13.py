@@ -331,7 +331,6 @@ class EOWMSCollectionOutlinesLayer(WMSLayer):
         
         logger.info(str(datasets))
         if not len(datasets):
-            logger.info("TEST")
             # add "null" shape
             shape = mapscript.shapeObj(mapscript.MS_SHAPE_POLYGON)
             line = mapscript.lineObj()
