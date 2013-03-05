@@ -358,12 +358,15 @@ class MapServerOperationHandler(BaseRequestHandler):
         ``ms_req.map.OWSDispatch()``. This method should not be
         overridden by child classes.
         """
+        
         logger.debug("MapServer: Installing stdout to buffer.")
         mapscript.msIO_installStdoutToBuffer()
-        # Execute the OWS request by mapserver, obtain the status in dispatch_status (==0 is OK)
-        logger.debug("MapServer: Dispatching.")
+        
         try:
+            logger.debug("MapServer: Dispatching.")
             ts = time.time()
+            # Execute the OWS request by mapserver, obtain the status in 
+            # dispatch_status (0 is OK)
             dispatch_status = self.map.OWSDispatch(self.ows_req)
             te = time.time()
             logger.debug("MapServer: Dispatch took %f seconds." % (te - ts))
@@ -375,14 +378,32 @@ class MapServerOperationHandler(BaseRequestHandler):
             )
         
         logger.debug("MapServer: Retrieving content-type.")
-        content_type = mapscript.msIO_stripStdoutBufferContentType()
-        mapscript.msIO_stripStdoutBufferContentHeaders()
-        logger.debug("MapServer: Retrieving stdout buffer bytes.")
-        result = mapscript.msIO_getStdoutBufferBytes()
+        try:
+            content_type = mapscript.msIO_stripStdoutBufferContentType()
+            mapscript.msIO_stripStdoutBufferContentHeaders()
+
+        except mapscript.MapServerError:
+            # degenerate response. Manually split headers from content
+            complete_result = mapscript.msIO_getStdoutBufferBytes()
+            parts = complete_result.split("\r\n")
+            result = parts[-1]
+            headers = parts[:-1]
+            
+            for header in headers:
+                if header.lower().startswith("content-type"):
+                    content_type = header[14:]
+                    break
+            else:
+                content_type = None
+
+        else:
+            logger.debug("MapServer: Retrieving stdout buffer bytes.")
+            result = mapscript.msIO_getStdoutBufferBytes()
+        
         logger.debug("MapServer: Performing MapServer cleanup.")
         # Workaround for MapServer issue #4369
         msversion = mapscript.msGetVersionInt()
-        if msversion < 60004 or ( msversion < 60200 and msversion >= 60100):
+        if msversion < 60004 or (msversion < 60200 and msversion >= 60100):
             mapscript.msCleanup()
         else:
             mapscript.msIO_resetHandlers()
