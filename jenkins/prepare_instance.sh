@@ -1,4 +1,7 @@
-#!/bin/sh
+#!/bin/sh -xe
+
+OS=`facter operatingsystem`
+
 # Create the virtual environment if it does not exist
 cd $WORKSPACE
 if [ -d ".venv" ]; then
@@ -30,5 +33,10 @@ mv tmp2/data/config.sqlite autotest/data/
 mv tmp2/data/init_spatialite-2.3.sql autotest/data/
 rm -r tmp2
 sed -e 's/\/autotest\/autotest/\/autotest/' -i autotest/settings.py
+sed -e "s/#'TEST_NAME':/'TEST_NAME':/" -i autotest/settings.py
 sed -e 's/\/autotest\/autotest/\/autotest/' -i autotest/conf/eoxserver.conf
 sed -e 's/allowed_actions=/allowed_actions=Add,Delete/' -i autotest/conf/eoxserver.conf
+
+if [ $OS != 'Ubuntu' ]; then
+  sed -e 's/#binary_raster_comparison_enabled=false/binary_raster_comparison_enabled=false/' -i autotest/conf/eoxserver.conf
+fi
