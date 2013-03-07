@@ -2,8 +2,8 @@
 <wcseo:RectifiedDataset xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0" xmlns:om="http://www.opengis.net/om/2.0" xmlns:ows="http://www.opengis.net/ows/2.0" xmlns:swe="http://www.opengis.net/swe/2.0" xmlns:wcseo="http://www.opengis.net/wcseo/1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" gml:id="MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected" xsi:schemaLocation="http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd">
   <gml:boundedBy>
     <gml:Envelope axisLabels="x y" srsDimension="2" srsName="http://www.opengis.net/def/crs/EPSG/0/3857" uomLabels="m m">
-      <gml:lowerCorner>1235039.93424791 3555894.92134988</gml:lowerCorner>
-      <gml:upperCorner>3615991.36250445 6073641.32523812</gml:upperCorner>
+      <gml:lowerCorner>1235039.93424791 3555894.92121815</gml:lowerCorner>
+      <gml:upperCorner>3615991.36250445 6073641.32409081</gml:upperCorner>
     </gml:Envelope>
   </gml:boundedBy>
   <gml:domainSet>
@@ -17,11 +17,11 @@
       <gml:axisLabels>x y</gml:axisLabels>
       <gml:origin>
         <gml:Point gml:id="grid_origin_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_r" srsName="http://www.opengis.net/def/crs/EPSG/0/3857">
-          <gml:pos>1235039.934248 6073641.325238</gml:pos>
+          <gml:pos>1235039.934248 6073641.324091</gml:pos>
         </gml:Point>
       </gml:origin>
       <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/3857">4409.169312 0</gml:offsetVector>
-      <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/3857">0 -4409.363229</gml:offsetVector>
+      <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/3857">0 -4409.363227</gml:offsetVector>
     </gml:RectifiedGrid>
   </gml:domainSet>
   <gml:rangeSet>

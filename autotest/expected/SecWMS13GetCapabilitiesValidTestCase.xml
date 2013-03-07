@@ -1,10 +1,11 @@
-<?xml version="1.0" encoding="ISO-8859-1"?>
-<WMS_Capabilities xmlns="http://www.opengis.net/wms" xmlns:ms="http://mapserver.gis.umn.edu/mapserver" xmlns:sld="http://www.opengis.net/sld" xmlns:wms="http://www.opengis.net/wms" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" updateSequence="20110610T153000Z" version="1.3.0" xsi:schemaLocation="http://www.opengis.net/wms http://schemas.opengis.net/wms/1.3.0/capabilities_1_3_0.xsd  http://www.opengis.net/sld http://schemas.opengis.net/sld/1.1.0/sld_capabilities.xsd  http://mapserver.gis.umn.edu/mapserver http://localhost:8000/ows?service=WMS&amp;version=1.3.0&amp;request=GetSchemaExtension">
-  <!-- MapServer version 6.2.0 OUTPUT=GIF OUTPUT=PNG OUTPUT=JPEG OUTPUT=KML SUPPORTS=PROJ SUPPORTS=GD SUPPORTS=AGG SUPPORTS=FREETYPE SUPPORTS=CAIRO SUPPORTS=ICONV SUPPORTS=FRIBIDI SUPPORTS=WMS_SERVER SUPPORTS=WMS_CLIENT SUPPORTS=WFS_SERVER SUPPORTS=WFS_CLIENT SUPPORTS=WCS_SERVER SUPPORTS=SOS_SERVER SUPPORTS=FASTCGI SUPPORTS=THREADS SUPPORTS=GEOS INPUT=JPEG INPUT=POSTGIS INPUT=OGR INPUT=GDAL INPUT=SHAPEFILE -->
-  <Service>
-    <Name>WMS</Name>
-    <Title>Test configuration of MapServer used to demonstrate EOxServer</Title>
-    <Abstract>
+<?xml version="1.0" encoding="ISO-8859-1"?><WMS_Capabilities updateSequence="20110610T153000Z" version="1.3.0" xmlns="http://www.opengis.net/wms" xmlns:ms="http://mapserver.gis.umn.edu/mapserver" xmlns:sld="http://www.opengis.net/sld" xmlns:wms="http://www.opengis.net/wms" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/wms http://schemas.opengis.net/wms/1.3.0/capabilities_1_3_0.xsd  http://www.opengis.net/sld http://schemas.opengis.net/sld/1.1.0/sld_capabilities.xsd  http://mapserver.gis.umn.edu/mapserver http://localhost:8000/ows?service=WMS&amp;version=1.3.0&amp;request=GetSchemaExtension">
+
+<!-- MapServer version 6.2.0 OUTPUT=GIF OUTPUT=PNG OUTPUT=JPEG SUPPORTS=PROJ SUPPORTS=GD SUPPORTS=AGG SUPPORTS=FREETYPE SUPPORTS=CAIRO SUPPORTS=SVG_SYMBOLS SUPPORTS=ICONV SUPPORTS=FRIBIDI SUPPORTS=WMS_SERVER SUPPORTS=WMS_CLIENT SUPPORTS=WFS_SERVER SUPPORTS=WFS_CLIENT SUPPORTS=WCS_SERVER SUPPORTS=SOS_SERVER SUPPORTS=FASTCGI SUPPORTS=THREADS SUPPORTS=GEOS INPUT=JPEG INPUT=POSTGIS INPUT=OGR INPUT=GDAL INPUT=SHAPEFILE -->
+
+<Service>
+  <Name>WMS</Name>
+  <Title>Test configuration of MapServer used to demonstrate EOxServer</Title>
+  <Abstract>
 Test configuration of MapServer used to demonstrate EOxServer
 The MERIS test data is produced from the following ESA remote sensing data:
 MERIS L1b sample data available at: http://earth.esa.int/object/index.cfm?fobjectid=4320
@@ -39,112 +40,92 @@ Copyright (C) European Space Agency - ESA
       </ContactAddress>
       <ContactVoiceTelephone>Provided on request</ContactVoiceTelephone>
       <ContactFacsimileTelephone>None</ContactFacsimileTelephone>
-      <ContactElectronicMailAddress>office@eox.at</ContactElectronicMailAddress>
-    </ContactInformation>
-    <Fees>None</Fees>
-    <AccessConstraints>None</AccessConstraints>
-    <MaxWidth>2048</MaxWidth>
-    <MaxHeight>2048</MaxHeight>
-  </Service>
-  <Capability>
-    <Request>
-      <GetCapabilities>
-        <Format>text/xml</Format>
-        <DCPType>
-          <HTTP>
-            <Get>
-              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://localhost:8000/ows?"/>
-            </Get>
-            <Post>
-              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://localhost:8000/ows?"/>
-            </Post>
-          </HTTP>
-        </DCPType>
-      </GetCapabilities>
-      <GetMap>
-        <Format>image/png</Format>
-        <Format>image/jpeg</Format>
-        <Format>image/gif</Format>
-        <Format>image/tiff</Format>
-        <DCPType>
-          <HTTP>
-            <Get>
-              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://localhost:8000/ows?"/>
-            </Get>
-            <Post>
-              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://localhost:8000/ows?"/>
-            </Post>
-          </HTTP>
-        </DCPType>
-      </GetMap>
-      <GetFeatureInfo>
-        <Format>text/html</Format>
-        <Format>application/vnd.ogc.gml</Format>
-        <Format>text/plain</Format>
-        <DCPType>
-          <HTTP>
-            <Get>
-              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://localhost:8000/ows?"/>
-            </Get>
-            <Post>
-              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://localhost:8000/ows?"/>
-            </Post>
-          </HTTP>
-        </DCPType>
-      </GetFeatureInfo>
-      <sld:DescribeLayer>
-        <Format>text/xml</Format>
-        <DCPType>
-          <HTTP>
-            <Get>
-              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://localhost:8000/ows?"/>
-            </Get>
-            <Post>
-              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://localhost:8000/ows?"/>
-            </Post>
-          </HTTP>
-        </DCPType>
-      </sld:DescribeLayer>
-      <sld:GetLegendGraphic>
-        <Format>image/png</Format>
-        <Format>image/jpeg</Format>
-        <Format>image/gif</Format>
-        <Format>image/png; mode=8bit</Format>
-        <DCPType>
-          <HTTP>
-            <Get>
-              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://localhost:8000/ows?"/>
-            </Get>
-            <Post>
-              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://localhost:8000/ows?"/>
-            </Post>
-          </HTTP>
-        </DCPType>
-      </sld:GetLegendGraphic>
-      <ms:GetStyles>
-        <Format>text/xml</Format>
-        <DCPType>
-          <HTTP>
-            <Get>
-              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://localhost:8000/ows?"/>
-            </Get>
-            <Post>
-              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://localhost:8000/ows?"/>
-            </Post>
-          </HTTP>
-        </DCPType>
-      </ms:GetStyles>
-    </Request>
-    <Exception>
-      <Format>XML</Format>
-      <Format>INIMAGE</Format>
-      <Format>BLANK</Format>
-    </Exception>
-    <sld:UserDefinedSymbolization InlineFeature="0" RemoteWCS="0" RemoteWFS="0" SupportSLD="1" UserLayer="0" UserStyle="1"/>
-    <Layer>
-      <Name>MS</Name>
-      <Title>Test configuration of MapServer used to demonstrate EOxServer</Title>
-      <Abstract>
+  <ContactElectronicMailAddress>office@eox.at</ContactElectronicMailAddress>
+  </ContactInformation>
+  <Fees>None</Fees>
+  <AccessConstraints>None</AccessConstraints>
+  <MaxWidth>2048</MaxWidth>
+  <MaxHeight>2048</MaxHeight>
+</Service>
+
+<Capability>
+  <Request>
+    <GetCapabilities>
+      <Format>text/xml</Format>
+      <DCPType>
+        <HTTP>
+          <Get><OnlineResource xlink:href="http://localhost:8000/ows?" xmlns:xlink="http://www.w3.org/1999/xlink"/></Get>
+          <Post><OnlineResource xlink:href="http://localhost:8000/ows?" xmlns:xlink="http://www.w3.org/1999/xlink"/></Post>
+        </HTTP>
+      </DCPType>
+    </GetCapabilities>
+    <GetMap>
+      <Format>image/png</Format>
+      <Format>image/jpeg</Format>
+      <Format>image/gif</Format>
+      <Format>image/png; mode=8bit</Format>
+      <Format>application/x-pdf</Format>
+      <Format>image/svg+xml</Format>
+      <Format>image/tiff</Format>
+      <DCPType>
+        <HTTP>
+          <Get><OnlineResource xlink:href="http://localhost:8000/ows?" xmlns:xlink="http://www.w3.org/1999/xlink"/></Get>
+          <Post><OnlineResource xlink:href="http://localhost:8000/ows?" xmlns:xlink="http://www.w3.org/1999/xlink"/></Post>
+        </HTTP>
+      </DCPType>
+    </GetMap>
+    <GetFeatureInfo>
+      <Format>text/html</Format>
+      <Format>application/vnd.ogc.gml</Format>
+      <Format>text/plain</Format>
+      <DCPType>
+        <HTTP>
+          <Get><OnlineResource xlink:href="http://localhost:8000/ows?" xmlns:xlink="http://www.w3.org/1999/xlink"/></Get>
+          <Post><OnlineResource xlink:href="http://localhost:8000/ows?" xmlns:xlink="http://www.w3.org/1999/xlink"/></Post>
+        </HTTP>
+      </DCPType>
+    </GetFeatureInfo>
+    <sld:DescribeLayer>
+      <Format>text/xml</Format>
+      <DCPType>
+        <HTTP>
+          <Get><OnlineResource xlink:href="http://localhost:8000/ows?" xmlns:xlink="http://www.w3.org/1999/xlink"/></Get>
+          <Post><OnlineResource xlink:href="http://localhost:8000/ows?" xmlns:xlink="http://www.w3.org/1999/xlink"/></Post>
+        </HTTP>
+      </DCPType>
+    </sld:DescribeLayer>
+    <sld:GetLegendGraphic>
+      <Format>image/png</Format>
+      <Format>image/jpeg</Format>
+      <Format>image/gif</Format>
+      <Format>image/png; mode=8bit</Format>
+      <DCPType>
+        <HTTP>
+          <Get><OnlineResource xlink:href="http://localhost:8000/ows?" xmlns:xlink="http://www.w3.org/1999/xlink"/></Get>
+          <Post><OnlineResource xlink:href="http://localhost:8000/ows?" xmlns:xlink="http://www.w3.org/1999/xlink"/></Post>
+        </HTTP>
+      </DCPType>
+    </sld:GetLegendGraphic>
+    <ms:GetStyles>
+      <Format>text/xml</Format>
+      <DCPType>
+        <HTTP>
+          <Get><OnlineResource xlink:href="http://localhost:8000/ows?" xmlns:xlink="http://www.w3.org/1999/xlink"/></Get>
+          <Post><OnlineResource xlink:href="http://localhost:8000/ows?" xmlns:xlink="http://www.w3.org/1999/xlink"/></Post>
+        </HTTP>
+      </DCPType>
+    </ms:GetStyles>
+  </Request>
+  <Exception>
+    <Format>XML</Format>
+    <Format>INIMAGE</Format>
+    <Format>BLANK</Format>
+  </Exception>
+  <sld:UserDefinedSymbolization InlineFeature="0" RemoteWCS="0" RemoteWFS="0" SupportSLD="1" UserLayer="0" UserStyle="1"/>
+  <Layer>
+    <Name>MS</Name>
+    <Title>Test configuration of MapServer used to demonstrate EOxServer</Title>
+    <Abstract>
 Test configuration of MapServer used to demonstrate EOxServer
 The MERIS test data is produced from the following ESA remote sensing data:
 MERIS L1b sample data available at: http://earth.esa.int/object/index.cfm?fobjectid=4320
