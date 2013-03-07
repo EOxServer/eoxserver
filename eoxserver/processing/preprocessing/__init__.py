@@ -34,8 +34,6 @@ import numpy
 import logging
 
 from django.contrib.gis.geos import GEOSGeometry, Polygon, LinearRing, Point
-from django.contrib.gis.gdal.geometries import OGRGeometry
-from django.contrib.gis.gdal.srs import SpatialReference, CoordTransform
 
 from eoxserver.contrib import  gdal, ogr, osr 
 from eoxserver.core.util.xmltools import XMLEncoder
@@ -220,14 +218,23 @@ class PreProcessor(object):
             # apply the output to the map  
             nodata_map |= (raster_data != nodata)
         
+        # extend the nodata map by a border of 1 pixel
+        #nodata_map = numpy.insert(nodata_map, (0, ds.RasterYSize), False, 0)
+        #nodata_map = numpy.insert(nodata_map, (0, ds.RasterXSize), False, 1)
+        
+        
         
         # create a temporary in-memory dataset and write the nodata mask 
         # into its single band
-        tmp_ds = create_mem(ds.RasterXSize, ds.RasterYSize, 1, 
+        tmp_ds = create_mem(ds.RasterXSize + 2, ds.RasterYSize + 2, 1, 
                             gdal.GDT_Byte)
         copy_projection(ds, tmp_ds)
         tmp_band = tmp_ds.GetRasterBand(1)
         tmp_band.WriteArray(nodata_map.astype(numpy.uint8))
+        
+        
+        #driver = gdal.GetDriverByName(self.format_selection.driver_name)
+        #ds = driver.CreateCopy("/var/ngeob/x.tiff", tmp_ds)
         
         
         # create an OGR in memory layer to hold the created polygon
@@ -241,28 +248,34 @@ class PreProcessor(object):
         gdal.Polygonize(tmp_band, tmp_band, layer, 0)
         
         if layer.GetFeatureCount() != 1:
-            raise RuntimeError("Error during poligonization. Wrong number of "
-                               "polygons.")
+            # if there is more than one polygon, compute the minimum bounding polygon
+            geometry = ogr.Geometry(ogr.wkbPolygon)
+            while True:
+                feature = layer.GetNextFeature()
+                if not feature: break
+                geometry = geometry.Union(feature.GetGeometryRef())
+            
+            # TODO: improve this for a better minimum bounding polygon
+            geometry = geometry.ConvexHull()
         
-        # obtain geometry from the layer
-        feature = layer.GetNextFeature()
-        geometry = feature.GetGeometryRef()
+        else:
+            # obtain geometry from the first (and only) layer
+            feature = layer.GetNextFeature()
+            geometry = feature.GetGeometryRef()
         
         if geometry.GetGeometryType() != ogr.wkbPolygon:
             raise RuntimeError("Error during poligonization. Wrong geometry "
                                "type.")
         
-        # simplify the polygon. the tolerance value is *really* vague using
-        # the GeoDjango geometry here, as it allows to preserve the topology
-        polygon = OGRGeometry(GEOSGeometry(geometry.ExportToWkt()).simplify(1, True).wkt)
+        # simplify the polygon. the tolerance value is *really* vague 
+        geometry = geometry.SimplifyPreserveTopology(1)
         
         # check if reprojection to latlon is necessary
-        if not sr.IsGeographic(): 
-            ct = CoordTransform(SpatialReference(ds.GetProjectionRef()),
-                                SpatialReference(4326))
-            polygon.transform(ct)
+        if not sr.IsGeographic():
+            dst_sr = osr.SpatialReference(); dst_sr.ImportFromEPSG(4326)
+            geometry.TransformTo(dst_sr)
         
-        return polygon.wkt
+        return geometry.ExportToWkt()
 
 
 class WMSPreProcessor(PreProcessor):
