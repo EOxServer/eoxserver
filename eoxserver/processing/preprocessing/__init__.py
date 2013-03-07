@@ -34,6 +34,7 @@ import numpy
 import logging
 
 from django.contrib.gis.geos import GEOSGeometry, Polygon, LinearRing, Point
+from django.contrib.gis.gdal.geometries import OGRGeometry
 
 from eoxserver.contrib import  gdal, ogr, osr 
 from eoxserver.core.util.xmltools import XMLEncoder
@@ -267,8 +268,13 @@ class PreProcessor(object):
             raise RuntimeError("Error during poligonization. Wrong geometry "
                                "type.")
         
-        # simplify the polygon. the tolerance value is *really* vague 
-        geometry = geometry.SimplifyPreserveTopology(1)
+        # simplify the polygon. the tolerance value is *really* vague
+        try:
+            # SimplifyPreserveTopology() available since OGR 1.9.0
+            geometry = geometry.SimplifyPreserveTopology(1)
+        except AttributeError:
+            # use GeoDjango bindings if OGR is too old
+            geometry = ogr.CreateGeometryFromWkt(GEOSGeometry(geometry.ExportToWkt()).simplify(1, True).wkt)
         
         # check if reprojection to latlon is necessary
         if not sr.IsGeographic():
