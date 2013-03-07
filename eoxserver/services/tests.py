@@ -1604,6 +1604,14 @@ class WMS13GetFeatureInfoTimeIntervalTestCase(eoxstest.HTMLTransactionTestCase):
         params = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&LAYERS=MER_FRS_1P_RGB_reduced_outlines&QUERY_LAYERS=MER_FRS_1P_RGB_reduced_outlines&STYLES=&BBOX=24.433594,-8.986816,60.205078,58.908691&FEATURE_COUNT=10&HEIGHT=814&WIDTH=1545&FORMAT=image%2Fpng&INFO_FORMAT=text/html&CRS=EPSG:4326&I=598&J=504&TIME=2006-08-16T09:09:29Z/2006-08-16T09:12:46Z";
         return (params, "kvp")
 
+
+class WMS13GetFeatureInfoEmptyTestCase(eoxstest.HTMLTransactionTestCase):
+    """ Test a GetFeatureInfo request not hitting any datasets because of spatial/temporal bounds. """
+    
+    def getRequest(self):
+        params = "LAYERS=MER_FRS_1P_RGB_reduced_outlines&QUERY_LAYERS=MER_FRS_1P_RGB_reduced_outlines&STYLES=&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&EXCEPTIONS=INIMAGE&BBOX=20.742187%2C-19.401855%2C56.513672%2C48.493652&FEATURE_COUNT=10&HEIGHT=814&WIDTH=1545&FORMAT=image%2Fpng&INFO_FORMAT=text%2Fhtml&CRS=EPSG%3A4326&I=1038&J=505"
+        return (params, "kvp")
+
 #===============================================================================
 # Authorisation Components
 #===============================================================================
