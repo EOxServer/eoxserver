@@ -682,7 +682,7 @@ HowTo
 ^^^^^
 
 Synchronization can be triggered by a custom `Django admin command
-<https://docs.djangoproject.com/en/dev/ref/django-admin/>`_, called
+<https://docs.djangoproject.com/en/1.4/ref/django-admin/>`_, called
 ``eoxs_synchronize``.
 
 To start the synchronization process, navigate to your instances directory and

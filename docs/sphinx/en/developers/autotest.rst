@@ -92,7 +92,7 @@ Running tests
 -------------
 
 Most of the tests in EOxServer use the `Django test framework
-<https://docs.djangoproject.com/en/1.3/topics/testing/>`_, which itself is
+<https://docs.djangoproject.com/en/1.4/topics/testing/>`_, which itself is
 built upon `Python's unittest framework
 <http://docs.python.org/library/unittest.html>`_.
 
@@ -105,7 +105,7 @@ where `<component>` is one of `services`, `core`, `backends`, `coverages` and
 `processes`. If all components shall be tested in one pass, just omit the 
 `<component>` parameter. Detailed information about running 
 Django tests can be found in the `according chapter of the Django documentation 
-<https://docs.djangoproject.com/en/1.3/topics/testing/#running-tests>`_.
+<https://docs.djangoproject.com/en/1.4/topics/testing/#running-tests>`_.
 
 Due to some behaviour of underlying software such as GEOSS the tests for the 
 `services` component need to be split up when used with a SQLite database. The 

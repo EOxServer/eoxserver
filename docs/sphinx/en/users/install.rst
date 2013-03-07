@@ -101,19 +101,19 @@ to run EOxServer.
   +===========+==================+=============================================+
   | Python    | >= 2.5, < 3.0    | Scripting language                          |
   +-----------+------------------+---------------------------------------------+
-  | Django    | >= 1.3           | Web development framework written in        |
-  |           | (recommended     | Python including the GeoDjango extension    |
-  |           | 1.4)             | for geospatial database back-ends.          |
+  | Django    | >= 1.4 (1.5 for  | Web development framework written in        |
+  |           | PostGIS 2.0      | Python including the GeoDjango extension    |
+  |           | support)         | for geospatial database back-ends.          |
   +-----------+------------------+---------------------------------------------+
-  | GDAL      | >= 1.8.0         | Geospatial Data Abstraction Library         |
-  |           | (for rasdaman    | providing common interfaces for accessing   |
+  | GDAL      | >= 1.7.0 (1.8.0  | Geospatial Data Abstraction Library         |
+  |           | for rasdaman     | providing common interfaces for accessing   |
   |           | support)         | various kinds of raster and vector data     |
   |           |                  | formats and including a Python binding      |
   |           |                  | which is used by EOxServer                  |
   +-----------+------------------+---------------------------------------------+
-  | MapServer | >= 6.0           | Server software implementing various OGC    |
-  |           | (highly          | Web Service interfaces including WCS and    |
-  |           | recommended 6.2) | WMS. Includes a Python binding which is     |
+  | MapServer | >= 6.2           | Server software implementing various OGC    |
+  |           | (works partly    | Web Service interfaces including WCS and    |
+  |           | with 6.0)        | WMS. Includes a Python binding which is     |
   |           |                  | used by EOxServer.                          |
   +-----------+------------------+---------------------------------------------+
 
@@ -142,9 +142,9 @@ be installed. We suggest you use one of the following:
    <http://www.postgresql.org/>`_.
 
 For more and detailed information about database backends please refer to
-`Django database notes <https://docs.djangoproject.com/en/1.3/ref/databases/>`_
+`Django database notes <https://docs.djangoproject.com/en/1.4/ref/databases/>`_
 and `GeoDjango installation
-<https://docs.djangoproject.com/en/1.3/ref/contrib/gis/install/>`_.
+<https://docs.djangoproject.com/en/1.4/ref/contrib/gis/install/>`_.
 
 .. _table_eoxserver_db_dependencies:
 .. table:: Database Dependencies
@@ -156,7 +156,7 @@ and `GeoDjango installation
     |            |                  | GEOS (>= 3.0), GDAL (>= 1.4),            |
     |            |                  | PROJ.4 (>= 4.4)                          |
     +------------+------------------+------------------------------------------+
-    | PostgreSQL | >= 8.1           | PostGIS (>= 1.3, < 2.0), GEOS (>= 3.0),  |
+    | PostgreSQL | >= 8.1           | PostGIS (>= 1.3), GEOS (>= 3.0),         |
     |            |                  | PROJ.4 (>= 4.4), psycopg2 (== 2.4.1)     |
     +------------+------------------+------------------------------------------+
 
@@ -289,10 +289,10 @@ to be customized:
 
 You can also customize further settings, for a complete reference please refer
 to the `Django settings overview
-<https://docs.djangoproject.com/en/1.3/topics/settings/>`_.
+<https://docs.djangoproject.com/en/1.4/topics/settings/>`_.
 
 Please especially consider the setting of the `TIME_ZONE
-<https://docs.djangoproject.com/en/1.3/ref/settings/#std:setting-TIME_ZONE>`_
+<https://docs.djangoproject.com/en/1.4/ref/settings/#std:setting-TIME_ZONE>`_
 parameter and read the Notes provided in the ``settings.py`` file.
 
 
@@ -386,7 +386,7 @@ In the ``settings.py`` the following entry has to be added::
     }
 
 Please refer to `GeoDjango Database API
-<https://docs.djangoproject.com/en/1.3/ref/contrib/gis/db-api/>`_ for more
+<https://docs.djangoproject.com/en/1.4/ref/contrib/gis/db-api/>`_ for more
 instructions.
 
 .. index::
@@ -399,7 +399,7 @@ Deployment
 ~~~~~~~~~~
 
 EOxServer is deployed using the Python WSGI interface standard as any other
-`Django application <https://docs.djangoproject.com/en/1.3/howto/deployment/>`_.
+`Django application <https://docs.djangoproject.com/en/1.4/howto/deployment/>`_.
 The WSGI endpoint accepts HTTP requests passed from the web server and
 processes them synchronously. Each request is executed independently.
 
@@ -475,7 +475,7 @@ admin interface, which is explained in detail in the :ref:`ops_admin` section.
 
 Another convenient way to register datasets is the command line interface to
 EOxServer. As a Django application, the instance can be configured using the
-`manage.py <https://docs.djangoproject.com/en/dev/ref/django-admin/>`_ script.
+`manage.py <https://docs.djangoproject.com/en/1.4/ref/django-admin/>`_ script.
 
 EOxServer provides a specific command to insert datasets into the instance,
 called ``eoxs_register_dataset``. It is invoked from command line from your
