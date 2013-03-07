@@ -46,7 +46,7 @@ from eoxserver.core.util.xmltools import XMLDecoder
 from eoxserver.core.util.multiparttools import mpUnpack, getMimeType, getMultipartBoundary
 from eoxserver.contrib import gdal, osr
 from eoxserver.testing.core import (
-    EOxServerTestCase, EOxServerTransactionTestCase, BASE_FIXTURES
+    EOxServerTestCase, BASE_FIXTURES
 )
 from eoxserver.testing.xcomp import xmlCompareFiles
 
@@ -84,7 +84,8 @@ def _getMime( s ) :
 # Common classes
 #===============================================================================
 
-class OWSMixIn(object):
+class OWSTestCase(EOxServerTestCase):
+
     """ Main base class for testing the OWS interface
         of EOxServer.
     """
@@ -93,7 +94,7 @@ class OWSMixIn(object):
     requires_fixed_db = False
     
     def setUp(self):
-        super(OWSMixIn,self).setUp()
+        super(OWSTestCase,self).setUp()
         
         logger.info("Starting Test Case: %s" % self.__class__.__name__)
         
@@ -224,14 +225,8 @@ class OWSMixIn(object):
         logger.info("Checking HTTP Status ...")
         self.assertEqual(self.response.status_code, 200)
 
-class OWSTestCase(OWSMixIn, EOxServerTestCase):
-    pass
 
-class OWSTransactionTestCase(OWSMixIn, EOxServerTransactionTestCase):
-    pass
-
-
-class RasterMixIn(object):
+class RasterTestCase(OWSTestCase):
     """
     Base class for test cases that expect a raster as response.
     """
@@ -244,11 +239,6 @@ class RasterMixIn(object):
             self.skipTest("Binary raster comparison is explicitly disabled.")
         self._testBinaryComparison("raster")
 
-class RasterTestCase(RasterMixIn, OWSTestCase):
-    pass
-
-class RasterTransactionTestCase(RasterMixIn, OWSTransactionTestCase):
-    pass
 
 class GDALDatasetTestCase(RasterTestCase):
     """
@@ -444,7 +434,7 @@ class ExceptionTestCase(XMLTestCase):
         })
         self.assertEqual(decoder.getValue("exceptionCode"), self.getExpectedExceptionCode())      
 
-class HTMLTransactionTestCase(OWSTransactionTestCase):
+class HTMLTestCase(OWSTestCase):
     """
     HTML test cases expect to receive HTML text.
     """
@@ -902,7 +892,7 @@ class RasdamanTestCaseMixIn(object):
 # WMS test classes
 #===============================================================================
 
-class WMS11GetMapMixIn(object):
+class WMS11GetMapTestCase(RasterTestCase):
     layers = []
     styles = []
     crs = "epsg:4326"
@@ -940,10 +930,7 @@ class WMS11GetMapMixIn(object):
         else:
             return (params, "kvp", self.httpHeaders)
 
-class WMS11GetMapTestCase(WMS11GetMapMixIn, RasterTestCase):
-    pass
-
-class WMS13GetMapMixIn(object):
+class WMS13GetMapTestCase(RasterTestCase):
     layers = []
     styles = []
     crs = "epsg:4326"
@@ -985,12 +972,6 @@ class WMS13GetMapMixIn(object):
             return (params, "kvp")
         else:
             return (params, "kvp", self.httpHeaders)
-
-class WMS13GetMapTestCase(WMS13GetMapMixIn, RasterTestCase):
-    pass
-
-class WMS13GetMapTransactionTestCase(WMS13GetMapMixIn, RasterTransactionTestCase):
-    pass
 
 class WMS13ExceptionTestCase(ExceptionTestCase):
     def getExceptionCodeLocation(self):

@@ -67,14 +67,6 @@ class EOxServerTestCase(TestCase):
     
     def setUp(self):
         System.init()
-        
-class EOxServerTransactionTestCase(TransactionTestCase):
-    """Test are not carried out in a transaction and DB data can thus be used
-    outside e.g. by MapServer."""
-    fixtures = BASE_FIXTURES
-    
-    def setUp(self):
-        System.init()
 
 class CommandTestCase(EOxServerTestCase):
     """ Base class for testing CLI tools.
