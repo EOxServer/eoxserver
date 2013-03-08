@@ -162,11 +162,11 @@ Copyright (C) European Space Agency - ESA
         <Keyword>MERIS</Keyword>
         <Keyword>ASAR</Keyword>
         <Keyword>Envisat</Keyword>
-    </KeywordList>
-    <CRS>EPSG:4326</CRS>
-    <CRS>EPSG:3035</CRS>
-    <CRS>EPSG:3857</CRS>
-    <EX_GeographicBoundingBox>
+      </KeywordList>
+      <CRS>EPSG:4326</CRS>
+      <CRS>EPSG:3035</CRS>
+      <CRS>EPSG:3857</CRS>
+      <EX_GeographicBoundingBox>
         <westBoundLongitude>-1</westBoundLongitude>
         <eastBoundLongitude>-1</eastBoundLongitude>
         <southBoundLatitude>-1</southBoundLatitude>
