@@ -85,14 +85,14 @@
         "pk": 15, 
         "model": "backends.localpath", 
         "fields": {
-            "path": "../autotest/data/meris/MER_FRS_1P_reduced_reprojected/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected.tif"
+            "path": "data/meris/MER_FRS_1P_reduced_reprojected/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected.tif"
         }
     }, 
     {
         "pk": 16, 
         "model": "backends.localpath", 
         "fields": {
-            "path": "../autotest/data/meris/MER_FRS_1P_reduced_reprojected/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected.xml"
+            "path": "data/meris/MER_FRS_1P_reduced_reprojected/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected.xml"
         }
     }
 ]

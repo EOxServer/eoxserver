@@ -83,7 +83,7 @@
         "pk": 20, 
         "model": "backends.localpath", 
         "fields": {
-            "path": "../autotest/data/asar/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tiff"
+            "path": "data/asar/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tiff"
         }
     }
 ]

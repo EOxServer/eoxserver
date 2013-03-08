@@ -482,7 +482,7 @@
         "pk": 1, 
         "model": "coverages.tileindex", 
         "fields": {
-            "storage_dir": "../autotest/data/meris/mosaic_cache/mosaic_MER_FRS_1P_RGB_reduced/"
+            "storage_dir": "data/meris/mosaic_cache/mosaic_MER_FRS_1P_RGB_reduced/"
         }
     }, 
     {
@@ -868,126 +868,126 @@
         "pk": 1, 
         "model": "backends.localpath", 
         "fields": {
-            "path": "../autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed.tif" 
+            "path": "data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed.tif" 
         }
     }, 
     {
         "pk": 2, 
         "model": "backends.localpath", 
         "fields": {
-            "path": "../autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.tif" 
+            "path": "data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.tif" 
         }
     }, 
     {
         "pk": 3, 
         "model": "backends.localpath", 
         "fields": {
-            "path": "../autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif"
+            "path": "data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif"
         }
     }, 
     {
         "pk": 4, 
         "model": "backends.localpath", 
         "fields": {
-            "path": "../autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif"
+            "path": "data/meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif"
         }
     }, 
     {
         "pk": 5, 
         "model": "backends.localpath", 
         "fields": {
-            "path": "../autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced.tif"
+            "path": "data/meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced.tif"
         }
     }, 
     {
         "pk": 6, 
         "model": "backends.localpath", 
         "fields": {
-            "path": "../autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced.tif"
+            "path": "data/meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced.tif"
         }
     }, 
     {
         "pk": 7, 
         "model": "backends.localpath", 
         "fields": {
-            "path": "../autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed.xml"
+            "path": "data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed.xml"
         }
     }, 
     {
         "pk": 8, 
         "model": "backends.localpath", 
         "fields": {
-            "path": "../autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.xml"
+            "path": "data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.xml"
         }
     }, 
     {
         "pk": 9, 
         "model": "backends.localpath", 
         "fields": {
-            "path": "../autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.xml"
+            "path": "data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.xml"
         }
     }, 
     {
         "pk": 10, 
         "model": "backends.localpath", 
         "fields": {
-            "path": "../autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.xml"
+            "path": "data/meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.xml"
         }
     }, 
     {
         "pk": 11, 
         "model": "backends.localpath", 
         "fields": {
-            "path": "../autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced.xml"
+            "path": "data/meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced.xml"
         }
     }, 
     {
         "pk": 12, 
         "model": "backends.localpath", 
         "fields": {
-            "path": "../autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced.xml"
+            "path": "data/meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced.xml"
         }
     }, 
     {
         "pk": 13, 
         "model": "backends.localpath", 
         "fields": {
-            "path": "../autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced"
+            "path": "data/meris/mosaic_MER_FRS_1P_RGB_reduced"
         }
     }, 
     {
         "pk": 14, 
         "model": "backends.localpath", 
         "fields": {
-            "path": "../autotest/data/meris/MER_FRS_1P_reduced"
+            "path": "data/meris/MER_FRS_1P_reduced"
         }
     },
     {
         "pk": 16, 
         "model": "backends.localpath", 
         "fields": {
-            "path": "../autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.nc"
+            "path": "data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.nc"
         }
     }, 
     {
         "pk": 17, 
         "model": "backends.localpath", 
         "fields": {
-            "path": "../autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.xml"
+            "path": "data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.xml"
         }
     }, 
     {
         "pk": 18, 
         "model": "backends.localpath", 
         "fields": {
-            "path": "../autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.jp2"
+            "path": "data/meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.jp2"
         }
     }, 
     {
         "pk": 19, 
         "model": "backends.localpath", 
         "fields": {
-            "path": "../autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.xml"
+            "path": "data/meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.xml"
         }
     }
 ]
