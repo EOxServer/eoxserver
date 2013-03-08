@@ -112,7 +112,7 @@ setup(
     ],
     
     install_requires=[
-        'django>=1.3.1',
+        'django>=1.4',
     ],
     
     # Metadata
