@@ -39,11 +39,12 @@ from cStringIO import StringIO
 
 from django.test import Client
 from django.conf import settings
-from django.db import connection
 
 from eoxserver.core.system import System
 from eoxserver.core.util.xmltools import XMLDecoder
-from eoxserver.core.util.multiparttools import mpUnpack, getMimeType, getMultipartBoundary
+from eoxserver.core.util.multiparttools import (
+    mpUnpack, getMimeType, getMultipartBoundary
+)
 from eoxserver.contrib import gdal, osr
 from eoxserver.testing.core import (
     EOxServerTestCase, BASE_FIXTURES
@@ -91,20 +92,12 @@ class OWSTestCase(EOxServerTestCase):
     """
     
     fixtures = BASE_FIXTURES + ["testing_coverages.json", "testing_asar.json"]
-    requires_fixed_db = False
     
     def setUp(self):
         super(OWSTestCase,self).setUp()
         
         logger.info("Starting Test Case: %s" % self.__class__.__name__)
         
-        if settings.DATABASES["default"]["NAME"] == ":memory:" and self.requires_fixed_db:
-            self.skipTest("This test requires a file database; set 'TEST_NAME' "
-                          "in your default database settings to enable this test.")
-        elif self.requires_fixed_db and settings.DATABASES["default"]["ENGINE"] == "django.contrib.gis.db.backends.spatialite":
-            cursor = connection.cursor()
-            cursor.execute("PRAGMA SYNCHRONOUS;")
-
         rq = self.getRequest()
 
         if ( len(rq) == 2 ):

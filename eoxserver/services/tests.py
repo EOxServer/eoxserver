@@ -1547,19 +1547,16 @@ class WMS13GetMapDatasetSeriesTimeIntervalTestCase(eoxstest.WMS13GetMapTestCase)
     time = "2006-08-01T00:00:00Z/2006-08-22T23:59:59Z"
 
 class WMS13GetMapDatasetSeriesOutlinesTestCase(eoxstest.WMS13GetMapTestCase):
-    requires_fixed_db = True
     layers = ("MER_FRS_1P_reduced_outlines",)
     width = 200
     bbox = (-3.75, 32.158895, 28.326165, 46.3)
 
 class WMS13GetMapRectifiedStitchedMosaicOutlinesTestCase(eoxstest.WMS13GetMapTestCase):
-    requires_fixed_db = True
     layers = ("mosaic_MER_FRS_1P_RGB_reduced_outlines",)
     width = 200
     bbox = (-3.75, 32.158895, 28.326165, 46.3)
 
 class WMS13GetMapRectifiedStitchedMosaicOutlinesWhiteTestCase(eoxstest.WMS13GetMapTestCase):
-    requires_fixed_db = True
     layers = ("mosaic_MER_FRS_1P_RGB_reduced_outlines",)
     width = 200
     bbox = (-3.75, 32.158895, 28.326165, 46.3)
