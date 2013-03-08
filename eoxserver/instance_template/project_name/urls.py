@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #-------------------------------------------------------------------------------
 # $Id$
 #
@@ -7,7 +6,7 @@
 #          Stephan Meissl <stephan.meissl@eox.at>
 #
 #-------------------------------------------------------------------------------
-# Copyright (C) 2011 EOX IT Services GmbH
+# Copyright (C) 2012 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,17 +27,19 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from django.conf.urls.defaults import *
+"""
+URLs config for EOxServer's {{ project_name }} instance.
+
+"""
+from django.conf.urls import patterns, include, url
 
 # Enable the admin:
 from django.contrib import admin
-from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 admin.autodiscover()
-
+# Enable the databrowse:
 #from django.contrib import databrowse
-from django.conf import settings
 
-# enable the ATP auxiliary views 
+# Enable the ATP auxiliary views:
 from eoxserver.resources.processes import views as procViews
 
 urlpatterns = patterns('',
@@ -47,28 +48,17 @@ urlpatterns = patterns('',
     (r'^logview', 'eoxserver.logging.views.logview'),
     (r'^client/$', 'eoxserver.webclient.views.index'),
     (r'^client/(.*)', 'eoxserver.webclient.views.webclient'),
-    
-    # Example:
-    # (r'^eoxserver/', include('eoxserver.foo.urls')),
 
-    # Uncomment the admin/doc line below and add 'django.contrib.admindocs' 
-    # to INSTALLED_APPS to enable admin documentation:
-    # (r'^admin/doc/', include('django.contrib.admindocs.urls')),
+    # Enable admin documentation:
+    url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
+    # Enable the admin:
+    url(r'^admin/', include(admin.site.urls)),
+    # Enable the databrowse:
+    #(r'^databrowse/(.*)', databrowse.site.root),
 
-    # Uncomment the next line to enable the admin:
-    (r'^admin/', include(admin.site.urls)),
-#    (r'^databrowse/(.*)', databrowse.site.root),
-# uncomment following lines to enable the ATP views 
-#    (r'^process/status$', procViews.status ),
-#    (r'^process/status/(?P<requestType>[^/]{,64})/(?P<requestID>[^/]{,64})$', procViews.status ),
-#    (r'^process/task$', procViews.task ),
+    # Uncomment following lines to enable the ATP views:
+    #(r'^process/status$', procViews.status ),
+    #(r'^process/status/(?P<requestType>[^/]{,64})/(?P<requestID>[^/]{,64})$', procViews.status ),
+    #(r'^process/task$', procViews.task ),
     (r'^process/response/(?P<requestType>[^/]{,64})/(?P<requestID>[^/]{,64})', procViews.response ),
 )
-
-urlpatterns += staticfiles_urlpatterns()
-
-if settings.DEBUG:
-    urlpatterns += patterns('',
-        (r'^'+settings.MEDIA_URL+'/(?P<path>.*)$', 'django.views.static.serve',
-            {'document_root': settings.MEDIA_ROOT}),
-    )

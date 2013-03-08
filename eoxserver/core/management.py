@@ -30,10 +30,12 @@
 
 import os
 import sys
+from optparse import make_option
 
 from django.utils.importlib import import_module
-from optparse import make_option
 from django.core.management import BaseCommand
+from django.core.management.base import CommandError
+from django.utils import termcolors
 
 import eoxserver
 
@@ -110,3 +112,7 @@ def execute_from_commandline():
         except KeyError:
             print "Command '%s' not found.\n" % sys.argv[2]
             print_possible_commands(commands)
+            sys.exit(1)
+        except CommandError, e:
+            print termcolors.colorize("Error: %s" % e, fg="red")
+            sys.exit(1)
