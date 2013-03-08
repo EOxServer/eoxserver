@@ -22,18 +22,10 @@ python setup.py develop
 echo "**> creating autotest instance..."
 mv autotest tmp1
 eoxserver-admin.py create_instance autotest --init_spatialite
-mv autotest/manage.py tmp1/
-mv autotest/autotest/ tmp2
-rmdir autotest/
-mv tmp1 autotest
-mv tmp2/settings.py autotest/
-mv tmp2/conf/eoxserver.conf autotest/conf/
-mv tmp2/wsgi.py autotest/
-mv tmp2/data/config.sqlite autotest/data/
-mv tmp2/data/init_spatialite-2.3.sql autotest/data/
-rm -r tmp2
-sed -e 's/\/autotest\/autotest/\/autotest/' -i autotest/settings.py
-sed -e 's/\/autotest\/autotest/\/autotest/' -i autotest/conf/eoxserver.conf
+cp -R tmp1/* autotest/autotest/
+rm -r tmp1
+
+sed -e 's/pdp_type=none/pdp_type=dummypdp/' -i autotest/conf/eoxserver.conf
 sed -e 's/allowed_actions=/allowed_actions=Add,Delete/' -i autotest/conf/eoxserver.conf
 
 if [ $OS != 'Ubuntu' ]; then
