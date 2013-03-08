@@ -36,138 +36,57 @@ with the instance name in the given (optional) directory.
 
 import shutil
 import os, sys
-import django.core.management
 from optparse import make_option
+
+from django.core.management import call_command
+from django.core.management.base import CommandError
 
 import eoxserver
 from eoxserver.core.management import EOxServerAdminCommand
 
-# tags to be replaced in the template files
-TAG_PATH_SRC = "<$PATH_SRC$>"
-TAG_PATH_DST = "<$PATH_DST$>"
-TAG_INSTANCE_ID = "<$INSTANCE_ID$>"
 
 class Command(EOxServerAdminCommand):
-    option_list = EOxServerAdminCommand.option_list + (                                             
-        make_option('--id', nargs=1, action='store', metavar='INSTANCE_ID',
-            help='Mandatory name of the eoxserver instance.'
-        ),
-        make_option('-d', '--dir', default='.', 
-            help='Optional base directory. Defaults to the current directory.'
-        ),
-        make_option('--initial_data', metavar='filename', default=False,
-            help='Location of the initial data. Must be in JSON format.'
-        ),
+    option_list = EOxServerAdminCommand.option_list + (
         make_option('--init_spatialite', action='store_true',
             help='Flag to initialize the sqlite database.'
-        )
+        ),
     )
     
+    args = "[Instance name/id] [Optional destination directory]"
     help = ("Creates a new EOxServer instance with all necessary files and "
             "folder structure.")
-    args = ("--id INSTANCE_ID [--dir DIR --initial_data DIR --init_spatialite]")
     
-    can_import_settings = False
-    requires_model_validation = False
-    
-    def handle(self, *args, **options):
-        instance_id = options['id']
+    def handle(self, instance_id=None, target=None, *args, **options):
         if instance_id is None:
-            if len(args) == 1:
-                instance_id = args[0]
-            else:
-                self.parser.error("Instance ID not given.")
+            raise CommandError("Instance ID not given.")
         
-        dst_root_dir = os.path.abspath(options['dir'])
-        if django.VERSION[:2] >= (1, 4):
-            dst_inst_dir = os.path.join(dst_root_dir, instance_id, instance_id)
-        else:
-            dst_inst_dir = os.path.join(dst_root_dir, instance_id)
-        dst_conf_dir = os.path.join(dst_inst_dir, "conf")
-        dst_data_dir = os.path.join(dst_inst_dir, "data")
-        dst_logs_dir = os.path.join(dst_inst_dir, "logs")
-        dst_static_dir = os.path.join(dst_inst_dir, "static")
-        dst_fixtures_dir = os.path.join(dst_data_dir, "fixtures")
-        dst_templates_dir = os.path.join(dst_inst_dir, "templates")
-        dst_templates_admin_dir = os.path.join(dst_templates_dir, "admin")
-
-        src_root_dir = os.path.dirname(eoxserver.__file__)
-        src_conf_dir = os.path.join(src_root_dir, "conf")
-        if not os.path.isfile(os.path.join(src_conf_dir, "TEMPLATE_eoxserver.conf")):
-            src_conf_dir = os.path.join(sys.prefix, "eoxserver/conf")
-            if not os.path.isfile(os.path.join(src_conf_dir, "TEMPLATE_eoxserver.conf")):
-                sys.exit("Error: EOxServer config files not found.")
+        # Locate instance template
+        instance_template_dir = os.path.join(os.path.dirname(eoxserver.__file__), 
+                                             "instance_template")
+        if not os.path.isfile(os.path.join(instance_template_dir, "manage.py")):
+            instance_template_dir = os.path.join(sys.prefix, 
+                                                 "eoxserver/instance_template")
+            if not os.path.isfile(os.path.join(instance_template_dir, 
+                                               "manage.py")):
+                sys.exit("Error: EOxServer instance template not found.")
         
-        os.chdir(dst_root_dir)
-    
+        # Add template and extension to options
+        options['extensions'] = ["conf","py"]
+        options['template'] = instance_template_dir
+        
         # create the initial django folder structure
         print("Initializing django project folder.")
-        django.core.management.call_command("startproject", instance_id)
-    
-        # create the `conf`, `data`, `logs` and `fixtures` subdirectories
-        os.mkdir(dst_conf_dir)
-        os.mkdir(dst_data_dir)
-        os.mkdir(dst_logs_dir)
-        os.mkdir(dst_static_dir)
-        os.mkdir(dst_fixtures_dir)
-        os.mkdir(dst_templates_dir)
-        os.mkdir(dst_templates_admin_dir)
-
-        # create the WCS-T subdirectories
-        os.mkdir(os.path.join(dst_inst_dir, "wcst_perm"))
-        os.mkdir(os.path.join(dst_inst_dir, "wcst_temp"))
-    
-        # create an empty logfile
-        create_file(dst_logs_dir, "eoxserver.log")
-        
-        tags = {
-            TAG_PATH_SRC: src_root_dir,
-            TAG_PATH_DST: dst_inst_dir,
-            TAG_INSTANCE_ID: instance_id
-        }
-    
-        # copy the template settings file and replace its tags
-        copy_and_replace_tags(os.path.join(src_conf_dir, "TEMPLATE_settings.py"),
-                              os.path.join(dst_inst_dir, "settings.py"),
-                              tags)
-    
-        # copy the template urls file
-        shutil.copy(os.path.join(src_conf_dir, "TEMPLATE_urls.py"),
-                    os.path.join(dst_inst_dir, "urls.py"))
-        
-        # copy the template config file and replace its tags
-        copy_and_replace_tags(os.path.join(src_conf_dir, "TEMPLATE_eoxserver.conf"),
-                              os.path.join(dst_conf_dir, "eoxserver.conf"),
-                              tags)
-        
-        # copy the template base_site.html file
-        shutil.copy(os.path.join(src_conf_dir, "TEMPLATE_base_site.html"),
-                    os.path.join(dst_templates_admin_dir, "base_site.html"))
-        
-        shutil.copy(os.path.join(src_conf_dir, "TEMPLATE_template.map"),
-                    os.path.join(dst_conf_dir, "template.map"))
-        shutil.copy(os.path.join(src_conf_dir, "TEMPLATE_outline_template_dataset.html"),
-                    os.path.join(dst_conf_dir, "outline_template_dataset.html"))
-        shutil.copy(os.path.join(src_conf_dir, "TEMPLATE_outline_template_footer.html"),
-                    os.path.join(dst_conf_dir, "outline_template_footer.html"))
-        shutil.copy(os.path.join(src_conf_dir, "TEMPLATE_outline_template_header.html"),
-                    os.path.join(dst_conf_dir, "outline_template_header.html"))
-        
-        shutil.copy(os.path.join(src_conf_dir, "init_spatialite-2.3.sql"),
-                    os.path.join(dst_data_dir, "init_spatialite-2.3.sql"))
-        
-        shutil.copy(os.path.join(src_conf_dir, "TEMPLATE_formats.conf"),
-                    os.path.join(dst_conf_dir, "formats.conf"))
-        
-        if options.get('initial_data'):
-            initial_data = os.path.abspath(options['initial_data'])
-            if os.path.splitext(initial_data)[1].lower() != ".json":
-                raise Exception("Initial data must be a JSON file.")
-            shutil.copy(initial_data, os.path.join(dst_fixtures_dir,
-                                                   "initial_data.json"))
+        call_command("startproject", instance_id, target, **options)
         
         if options.get('init_spatialite'):
             # initialize the spatialite database file
+            if target is None:
+                dst_data_dir = os.path.join(instance_id, instance_id, "data")
+            else:
+                dst_data_dir = os.path.join(os.path.abspath(target), 
+                                            instance_id, instance_id, "data")
+            src_conf_dir = os.path.join(instance_template_dir, "conf")
+            
             os.chdir(dst_data_dir)
             db_name = "config.sqlite"
             print("Setting up initial database.")
@@ -176,32 +95,15 @@ class Command(EOxServerAdminCommand):
                 conn = db.connect(db_name)
                 rs = conn.execute('SELECT spatialite_version()')
                 if int(rs.fetchone()[0].split(".")[0]) < 3:
+                    print("SpatiaLite version <3 found, trying to initialize using 'init_spatialite-2.3.sql'.")
                     init_sql_path = os.path.join(src_conf_dir, "init_spatialite-2.3.sql")
                     os.system("spatialite %s < %s" % (db_name, init_sql_path))
                 else:
+                    print("SpatiaLite found, initializing using 'InitSpatialMetadata()'.")
                     conn.execute("SELECT InitSpatialMetadata()")
                 conn.commit()
                 conn.close()
             except ImportError:
+                print("SpatiaLite not found, trying to initialize using 'init_spatialite-2.3.sql'.")
                 init_sql_path = os.path.join(src_conf_dir, "init_spatialite-2.3.sql")
                 os.system("spatialite %s < %s" % (db_name, init_sql_path))
-
-
-# TODO maybe use django templating library?
-def copy_and_replace_tags(src_pth, dst_pth, replacements={}):
-    """Helper function to copy a file and replace tags within a file."""
-    new_file = open(dst_pth,'w')
-    old_file = open(src_pth)
-    for line in old_file:
-        for pattern, subst in replacements.iteritems():
-            line = line.replace(pattern, subst)
-        new_file.write(line)
-    new_file.close()
-    old_file.close()
-
-def create_file(dir_or_path, filename=None):
-    """Helper function to create a new empty file at a given location."""
-    if filename is not None:
-        dir_or_path = os.path.join(dir_or_path, filename)
-    f = open(dir_or_path, 'w')
-    f.close()

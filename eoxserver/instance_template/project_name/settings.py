@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #-------------------------------------------------------------------------------
 # $Id$
 #
@@ -12,8 +11,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+# copies of the Software, and to permit persons to whom the Software is 
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -29,12 +28,18 @@
 #-------------------------------------------------------------------------------
 
 """
-Django settings for EOxServer.
+Django settings for EOxServer's {{ project_name }} instance.
+
+For more information on this file, see
+https://docs.djangoproject.com/en/1.4/topics/settings/
+
+For the full list of settings and their values, see
+https://docs.djangoproject.com/en/1.4/ref/settings/
 """
 
 from os.path import join
 
-PROJECT_DIR = '<$PATH_DST$>'
+PROJECT_DIR = '{{ project_directory }}/{{ project_name }}'
 PROJECT_URL_PREFIX = ''
 
 TEST_RUNNER = 'eoxserver.testing.core.EOxServerTestRunner'
@@ -50,16 +55,16 @@ MANAGERS = ADMINS
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.spatialite', # Use 'spatialite' or change to 'postgis'.
-        'NAME': '<$PATH_DST$>/data/config.sqlite',    # Or path to database file if using spatialite.
-        #'TEST_NAME': '<$PATH_DST$>/data/test-config.sqlite', # Required for certain test cases, but slower!
-        'USER': '',                      # Not used with spatialite.
-        'PASSWORD': '',                  # Not used with spatialite.
-        'HOST': '',                      # Set to empty string for localhost. Not used with spatialite.
-        'PORT': '',                      # Set to empty string for default. Not used with spatialite.
+        'ENGINE': 'django.contrib.gis.db.backends.spatialite',                      # Use 'spatialite' or change to 'postgis'.
+        'NAME': '{{ project_directory }}/{{ project_name }}/data/config.sqlite',    # Or path to database file if using spatialite.
+        #'TEST_NAME': '{{ project_directory }}/{{ project_name }}/data/test-config.sqlite', # Required for certain test cases, but slower!
+        'USER': '',                                                             # Not used with spatialite.
+        'PASSWORD': '',                                                         # Not used with spatialite.
+        'HOST': '',                                                             # Set to empty string for localhost. Not used with spatialite.
+        'PORT': '',                                                             # Set to empty string for default. Not used with spatialite.
     }
 }
-SPATIALITE_SQL='<$PATH_DST$>/data/init_spatialite-2.3.sql'
+SPATIALITE_SQL = join(PROJECT_DIR, 'data/init_spatialite-2.3.sql')
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -103,7 +108,7 @@ MEDIA_URL = ''
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/home/media/media.lawrence.com/static/"
-STATIC_ROOT = '<$PATH_DST$>/static/'
+STATIC_ROOT = join(PROJECT_DIR, 'static')
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
@@ -125,7 +130,7 @@ STATICFILES_FINDERS = (
 )
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = '<SECRET_KEY>'
+SECRET_KEY = '{{ secret_key }}'
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
@@ -144,16 +149,16 @@ MIDDLEWARE_CLASSES = (
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = '<$INSTANCE_ID$>.urls'
+ROOT_URLCONF = '{{ project_name }}.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
-WSGI_APPLICATION = '<$INSTANCE_ID$>.wsgi.application'
+WSGI_APPLICATION = '{{ project_name }}.wsgi.application'
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    join('<$PATH_DST$>', 'templates'),
+    join(PROJECT_DIR, 'templates'),
 )
 
 INSTALLED_APPS = (
@@ -168,7 +173,8 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     # Enable admin documentation:
     'django.contrib.admindocs',
-#    'django.contrib.databrowse',
+    # Enable the databrowse:
+    #'django.contrib.databrowse',
 #    'django_extensions',
     # Enable EOxServer:
     'eoxserver.core',
@@ -187,30 +193,40 @@ INSTALLED_APPS = (
 # more details on how to customize your logging configuration.
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': False,
+    'disable_existing_loggers': True,
     'filters': {
         'require_debug_false': {
             '()': 'django.utils.log.RequireDebugFalse'
         }
     },
+    'formatters': {
+        'simple': {
+            'format': '%(levelname)s: %(message)s'
+        },
+        'verbose': {
+            'format': '[%(asctime)s][%(module)s] %(levelname)s: %(message)s'
+        }
+    },
     'handlers': {
-        'mail_admins': {
-            'level': 'ERROR',
-            'filters': ['require_debug_false'],
-            'class': 'django.utils.log.AdminEmailHandler'
+        'eoxserver_file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': join(PROJECT_DIR, 'logs', 'eoxserver.log'),
+            'formatter': 'verbose',
+            'filters': [],
         }
     },
     'loggers': {
-        'django.request': {
-            'handlers': ['mail_admins'],
-            'level': 'ERROR',
-            'propagate': True,
+        'eoxserver': {
+            'handlers': ['eoxserver_file'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': False,
         },
     }
 }
 
 FIXTURE_DIRS = (
-    join(PROJECT_DIR, '<$PATH_DST$>/data/fixtures'),
+    join(PROJECT_DIR, 'data/fixtures'),
 )
 
 # Set this variable if the path to the instance cannot be resolved 
