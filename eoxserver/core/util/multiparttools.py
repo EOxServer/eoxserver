@@ -58,7 +58,7 @@ def getMultipartBoundary( content_type ) :
         if ( key.strip().lower() == "boundary" ) : 
             return val.strip() 
      
-    raise ValueError , "failed to extract the mutipart boundary string! content-type: %s" % ct 
+    raise ValueError , "failed to extract the mutipart boundary string! content-type: %s" % content_type 
 
 #-------------------------------------------------------------------------------
 
