@@ -104,7 +104,7 @@ class RangeTypeRecord(models.Model):
 class RangeType2Band(models.Model):
     band = models.ForeignKey(BandRecord)
     range_type = models.ForeignKey(RangeTypeRecord)
-    no = models.PositiveIntegerField() # MP: What is purpose of this field?!
+    no = models.PositiveIntegerField()
 
     class Meta:
         verbose_name = "Band in Range type"

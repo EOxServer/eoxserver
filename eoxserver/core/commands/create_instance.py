@@ -52,7 +52,7 @@ class Command(EOxServerAdminCommand):
         ),
     )
     
-    args = "[Instance name/id] [Optional destination directory]"
+    args = "INSTANCE_ID [Optional destination directory]"
     help = ("Creates a new EOxServer instance with all necessary files and "
             "folder structure.")
     
