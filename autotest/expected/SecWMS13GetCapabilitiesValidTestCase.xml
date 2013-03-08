@@ -63,9 +63,6 @@ Copyright (C) European Space Agency - ESA
       <Format>image/png</Format>
       <Format>image/jpeg</Format>
       <Format>image/gif</Format>
-      <Format>image/png; mode=8bit</Format>
-      <Format>application/x-pdf</Format>
-      <Format>image/svg+xml</Format>
       <Format>image/tiff</Format>
       <DCPType>
         <HTTP>
@@ -144,8 +141,9 @@ Copyright (C) European Space Agency - ESA
         <Keyword>Envisat</Keyword>
       </KeywordList>
       <CRS>EPSG:4326</CRS>
-      <CRS>EPSG:3035</CRS>
       <CRS>EPSG:3857</CRS>
+      <CRS>EPSG:900913</CRS>
+      <CRS>EPSG:3035</CRS>
       <EX_GeographicBoundingBox>
         <westBoundLongitude>-1</westBoundLongitude>
         <eastBoundLongitude>-1</eastBoundLongitude>
