@@ -50,6 +50,7 @@
     <SupportedCRS>urn:ogc:def:crs:EPSG::4326</SupportedCRS>
     <SupportedCRS>urn:ogc:def:crs:EPSG::3857</SupportedCRS>
     <SupportedCRS>urn:ogc:def:crs:EPSG::900913</SupportedCRS>
+    <SupportedCRS>urn:ogc:def:crs:EPSG::3035</SupportedCRS>
     <SupportedFormat>image/tiff</SupportedFormat>
     <SupportedFormat>image/jp2</SupportedFormat>
     <SupportedFormat>application/x-netcdf</SupportedFormat>

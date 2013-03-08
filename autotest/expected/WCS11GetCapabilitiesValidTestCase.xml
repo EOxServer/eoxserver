@@ -129,12 +129,14 @@ Copyright (C) European Space Agency - ESA
       </ows:Parameter>
       <ows:Parameter name="format">
         <ows:AllowedValues>
-          <ows:Value>image/tiff</ows:Value>
           <ows:Value>image/png</ows:Value>
-          <ows:Value>image/jpeg</ows:Value>
+          <ows:Value>image/tiff</ows:Value>
           <ows:Value>image/jp2</ows:Value>
           <ows:Value>application/x-netcdf</ows:Value>
           <ows:Value>application/x-hdf</ows:Value>
+          <ows:Value>image/jpeg</ows:Value>
+          <ows:Value>image/gif</ows:Value>
+          <ows:Value>image/png; mode=8bit</ows:Value>
         </ows:AllowedValues>
       </ows:Parameter>
       <ows:Parameter name="store">
@@ -171,12 +173,13 @@ Copyright (C) European Space Agency - ESA
       <ows:Title>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</ows:Title>
       <ows:Abstract />
       <ows:WGS84BoundingBox dimensions="2">
-        <ows:LowerCorner>11.3610658646 32.2014462964</ows:LowerCorner>
-        <ows:UpperCorner>28.2838457183 46.2520256042</ows:UpperCorner>
+        <ows:LowerCorner>11.36106586 32.2014463</ows:LowerCorner>
+        <ows:UpperCorner>28.28384572 46.2520256</ows:UpperCorner>
       </ows:WGS84BoundingBox>
       <wcs:SupportedCRS>urn:ogc:def:crs:EPSG::4326</wcs:SupportedCRS>
       <wcs:SupportedCRS>urn:ogc:def:crs:EPSG::3857</wcs:SupportedCRS>
       <wcs:SupportedCRS>urn:ogc:def:crs:EPSG::900913</wcs:SupportedCRS>
+      <wcs:SupportedCRS>urn:ogc:def:crs:EPSG::3035</wcs:SupportedCRS>
       <wcs:SupportedFormat>image/tiff</wcs:SupportedFormat>
       <wcs:SupportedFormat>image/jp2</wcs:SupportedFormat>
       <wcs:SupportedFormat>application/x-netcdf</wcs:SupportedFormat>
@@ -193,6 +196,7 @@ Copyright (C) European Space Agency - ESA
       <wcs:SupportedCRS>urn:ogc:def:crs:EPSG::4326</wcs:SupportedCRS>
       <wcs:SupportedCRS>urn:ogc:def:crs:EPSG::3857</wcs:SupportedCRS>
       <wcs:SupportedCRS>urn:ogc:def:crs:EPSG::900913</wcs:SupportedCRS>
+      <wcs:SupportedCRS>urn:ogc:def:crs:EPSG::3035</wcs:SupportedCRS>
       <wcs:SupportedFormat>image/tiff</wcs:SupportedFormat>
       <wcs:SupportedFormat>image/jp2</wcs:SupportedFormat>
       <wcs:SupportedFormat>application/x-netcdf</wcs:SupportedFormat>
@@ -209,6 +213,7 @@ Copyright (C) European Space Agency - ESA
       <wcs:SupportedCRS>urn:ogc:def:crs:EPSG::4326</wcs:SupportedCRS>
       <wcs:SupportedCRS>urn:ogc:def:crs:EPSG::3857</wcs:SupportedCRS>
       <wcs:SupportedCRS>urn:ogc:def:crs:EPSG::900913</wcs:SupportedCRS>
+      <wcs:SupportedCRS>urn:ogc:def:crs:EPSG::3035</wcs:SupportedCRS>
       <wcs:SupportedFormat>image/tiff</wcs:SupportedFormat>
       <wcs:SupportedFormat>image/jp2</wcs:SupportedFormat>
       <wcs:SupportedFormat>application/x-netcdf</wcs:SupportedFormat>

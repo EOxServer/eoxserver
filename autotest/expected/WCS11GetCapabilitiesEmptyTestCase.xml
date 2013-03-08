@@ -125,12 +125,14 @@ Copyright (C) European Space Agency - ESA
       </ows:Parameter>
       <ows:Parameter name="format">
         <ows:AllowedValues>
-          <ows:Value>image/tiff</ows:Value>
           <ows:Value>image/png</ows:Value>
-          <ows:Value>image/jpeg</ows:Value>
+          <ows:Value>image/tiff</ows:Value>
           <ows:Value>image/jp2</ows:Value>
           <ows:Value>application/x-netcdf</ows:Value>
           <ows:Value>application/x-hdf</ows:Value>
+          <ows:Value>image/jpeg</ows:Value>
+          <ows:Value>image/gif</ows:Value>
+          <ows:Value>image/png; mode=8bit</ows:Value>
         </ows:AllowedValues>
       </ows:Parameter>
       <ows:Parameter name="store">

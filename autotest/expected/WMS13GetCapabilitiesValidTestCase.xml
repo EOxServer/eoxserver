@@ -164,8 +164,9 @@ Copyright (C) European Space Agency - ESA
         <Keyword>Envisat</Keyword>
       </KeywordList>
       <CRS>EPSG:4326</CRS>
-      <CRS>EPSG:3035</CRS>
       <CRS>EPSG:3857</CRS>
+      <CRS>EPSG:900913</CRS>
+      <CRS>EPSG:3035</CRS>
       <EX_GeographicBoundingBox>
         <westBoundLongitude>-1</westBoundLongitude>
         <eastBoundLongitude>-1</eastBoundLongitude>
