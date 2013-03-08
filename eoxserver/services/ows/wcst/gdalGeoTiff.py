@@ -42,7 +42,7 @@ from numpy import argmin, argmax
 
 from qhull import chull2D_qhull
 
-from eoxserver.contrib import osr
+from eoxserver.contrib import osr, gdal
 
 #-------------------------------------------------------------------------------
 
