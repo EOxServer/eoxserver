@@ -135,10 +135,10 @@ class OWSTestCase(EOxServerTestCase):
         return "xml"
     
     def getResponseFileDir(self):
-        return os.path.join("../autotest","responses")
+        return os.path.join(settings.PROJECT_DIR,"responses")
 
     def getDataFileDir(self):
-        return os.path.join("../autotest","data")
+        return os.path.join(settings.PROJECT_DIR,"data")
     
     def getResponseFileName(self, file_type):
         return "%s.%s" % (self.__class__.__name__, self.getFileExtension(file_type))
@@ -147,7 +147,7 @@ class OWSTestCase(EOxServerTestCase):
         return self.response.content
     
     def getExpectedFileDir(self):
-        return os.path.join("../autotest", "expected")
+        return os.path.join(settings.PROJECT_DIR, "expected")
     
     def getExpectedFileName(self, file_type):
         return "%s.%s" % (self.__class__.__name__, self.getFileExtension(file_type))
