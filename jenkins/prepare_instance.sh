@@ -33,7 +33,6 @@ mv tmp2/data/config.sqlite autotest/data/
 mv tmp2/data/init_spatialite-2.3.sql autotest/data/
 rm -r tmp2
 sed -e 's/\/autotest\/autotest/\/autotest/' -i autotest/settings.py
-sed -e "s/#'TEST_NAME':/'TEST_NAME':/" -i autotest/settings.py
 sed -e 's/\/autotest\/autotest/\/autotest/' -i autotest/conf/eoxserver.conf
 sed -e 's/allowed_actions=/allowed_actions=Add,Delete/' -i autotest/conf/eoxserver.conf
 
