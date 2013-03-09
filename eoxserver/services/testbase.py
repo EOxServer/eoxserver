@@ -384,18 +384,32 @@ class SchematronTestMixIn(object): # requires to be mixed in with XMLTestCase
     def testSchematron(self):
         errors = []
         doc = etree.XML(self.getXMLData())
-        for location in self.schematron_locations:
-            location = os.path.join(settings.PROJECT_DIR, location)
-            
-            schematron = etree.Schematron(
-                etree.parse(open(location))
-            )
-            try:
-                schematron.assertValid(doc)
-            except etree.DocumentInvalid, e:
-                errors.append(str(e))
-            except etree.SchematronValidateError:
-                self.skipTest("Schematron Testing is not enabled.")
+        
+        schematron_def = etree.Element("schema", attrib={
+                "queryBinding": "xslt2",
+            }, nsmap={
+                None: "http://purl.oclc.org/dsdl/schematron"
+            }
+        )
+        etree.SubElement(schematron_def, "pattern")
+        
+# TODO: Check if this is even possible:
+#        for ns, location in zip(self.schematron_locations[::2], self.schematron_locations[1::2]):
+#            etree.SubElement(schematron_def, "import", attrib={
+#                    "namespace": ns,
+#                    "schemaLocation": location
+#                }
+#            )
+        
+        # TODO: ugly workaround. But otherwise, the doc is not recognized as schema
+        schematron = etree.Schematron(etree.XML(etree.tostring(schematron_def)))
+                    
+        try:
+            schematron.assertValid(doc)
+        except etree.DocumentInvalid, e:
+            errors.append(str(e))
+        except etree.SchematronValidateError:
+            self.skipTest("Schematron Testing is not enabled.")
 
         if len(errors):
             self.fail(str(errors))
