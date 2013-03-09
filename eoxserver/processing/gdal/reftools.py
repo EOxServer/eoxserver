@@ -148,8 +148,8 @@ def rect_from_subset(path_or_ds, srid, minx, miny, maxx, maxy, order=0):
     ret = _rect_from_subset(
         C.c_void_p(long(ds.this)),
         C.byref(SUBSET(srid, minx, miny, maxx, maxy)),
-        C.byref(rect),
-        order
+        order,
+        C.byref(rect)
     )
     if ret != gdal.CE_None:
         raise RuntimeError(gdal.GetLastErrorMsg())
