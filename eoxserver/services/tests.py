@@ -248,7 +248,8 @@ class WCS11TransactionReferenceableDatasetTestCase(eoxstest.WCSTransactionRefere
 class WCS20GetCapabilitiesValidTestCase(eoxstest.XMLTestCase, eoxstest.SchematronTestMixIn):
     """This test shall retrieve a valid WCS 2.0 EO-AP (EO-WCS) GetCapabilities response"""
     
-    schematron_locations = ("../schemas/wcs/extensions/CRS/1.0/wcsCrs.sch",)
+    schematron_locations = ["http://schemas.opengis.net/wcs/crs/", 
+                            "http://schemas.opengis.net/wcs/crs/1.0/wcsCrs.sch"]
     
     def getRequest(self):
         params = "service=WCS&version=2.0.0&request=GetCapabilities"
