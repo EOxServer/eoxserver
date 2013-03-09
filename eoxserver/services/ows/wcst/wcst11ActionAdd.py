@@ -40,24 +40,24 @@ import logging
 import shutil
 
 from eopParse import eop20GetID, eop20SetID
-from wcstUtils import wcst11DownloadReference
-from wcstUtils import getNewCoverageID
-from wcstUtils import timeStampUTC
-from wcstUtils import responseUpload, saveToFile
+from wcstUtils import (
+    wcst11DownloadReference, getNewCoverageID, timeStampUTC, responseUpload, 
+    saveToFile
+)
 from wcst11Exception import createXML_OWS11Exception
 
 from gdalGeoTiff import GDalInfo, getFootprint
 
-from wcst11ActionCommon import reserveCoverageId, releaseCoverageId, releaseCoverageIds
-from wcst11ActionCommon import ExActionFailed
-from wcst11ActionCommon import LocalPath
-from wcst11ActionCommon import createXML_EOP20
+from wcst11ActionCommon import (
+    reserveCoverageId, releaseCoverageId, releaseCoverageIds, ExActionFailed, 
+    LocalPath, createXML_EOP20
+)
 
 #-------------------------------------------------------------------------------
 
-from eoxserver.resources.coverages.managers import CoverageIdManager
-from eoxserver.resources.coverages.managers import RectifiedDatasetManager
-from eoxserver.resources.coverages.managers import ReferenceableDatasetManager
+from eoxserver.resources.coverages.managers import (
+    CoverageIdManager, RectifiedDatasetManager, ReferenceableDatasetManager
+)
 
 #-------------------------------------------------------------------------------
 
