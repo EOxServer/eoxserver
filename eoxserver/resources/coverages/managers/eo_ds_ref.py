@@ -46,7 +46,7 @@ class ReferenceableDatasetManager(EODatasetManager):
     
     """
 
-    _wrapper = "resources.coverages.wrappers.ReferenceableDatasetWrapper",
+    _wrapper = "resources.coverages.wrappers.ReferenceableDatasetWrapper"
     _type0   = "ref_dataset"
     _type    = "eo.%s"%_type0
 
