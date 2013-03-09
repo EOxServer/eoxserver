@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<--
+<!--
     This Schematron Document is part of the WCS CRS Extension [OGC 11-053]
     which enables expressing Coordinate Reference Sytems (CRSs) in WCS client/server communication.
     Last updated: 2011-dec-19
