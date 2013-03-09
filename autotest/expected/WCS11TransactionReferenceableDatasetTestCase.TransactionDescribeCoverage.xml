@@ -3,8 +3,8 @@
   <wcs:CoverageDescription gml:id="REFERENCEABLE_ASAR_ID">
     <gml:boundedBy>
       <gml:Envelope axisLabels="lat long" srsDimension="2" srsName="http://www.opengis.net/def/crs/EPSG/0/4326" uomLabels="deg deg">
-        <gml:lowerCorner>-36.26237500 16.76118500</gml:lowerCorner>
-        <gml:upperCorner>-31.98708300 22.33711200</gml:upperCorner>
+        <gml:lowerCorner>-36.25939400 16.72653100</gml:lowerCorner>
+        <gml:upperCorner>-31.98413700 22.30240200</gml:upperCorner>
       </gml:Envelope>
     </gml:boundedBy>
     <wcs:CoverageId>REFERENCEABLE_ASAR_ID</wcs:CoverageId>
