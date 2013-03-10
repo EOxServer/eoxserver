@@ -158,14 +158,15 @@ class OWSTestCase(EOxServerTestCase):
         """
         expected_path = os.path.join( self.getExpectedFileDir(), self.getExpectedFileName(suffix) )
         response_path = os.path.join( self.getResponseFileDir(), self.getResponseFileName(suffix) )
-
-        # check that the expected XML response exists 
-        if not os.path.isfile( expected_path ) : 
-            self.skipTest( "Missing the expected XML response '%s'." % expected_path )
-
+        
         # store the XML response 
         if response is None : response = self.getXMLData()
-            
+        
+        # check that the expected XML response exists 
+        if not os.path.isfile( expected_path ) : 
+            with file(response_path, 'w') as fid : fid.write(response)
+            self.skipTest( "Missing the expected XML response '%s'." % expected_path )
+        
         # perform the actual comparison 
         try: 
             xmlCompareFiles( expected_path , StringIO(response) ) 
