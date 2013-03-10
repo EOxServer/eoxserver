@@ -152,7 +152,7 @@
           <wcseo:referenceGetCoverage>
             <ows:ServiceReference xlink:href="http://testserver/ows">
               <ows:RequestMessage>
-                <wcs:GetCoverage xmlns:wcs="http://www.opengis.net/wcs/2.0" service="WCS" version="2.0.0">
+                <wcs:GetCoverage xmlns:wcs="http://www.opengis.net/wcs/2.0" service="WCS" version="2.0.1">
                   <wcs:CoverageId>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</wcs:CoverageId>
                   <wcs:format>image/tiff</wcs:format>
                   <wcs:mediaType>multipart/related</wcs:mediaType>

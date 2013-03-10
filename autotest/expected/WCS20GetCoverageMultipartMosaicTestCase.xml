@@ -120,7 +120,7 @@
       </eop:EarthObservation>
       <wcseo:lineage>
         <wcseo:referenceGetCoverage>
-          <ows:Reference xlink:href="http://testserver/ows?service=wcs&amp;amp;version=2.0.0&amp;amp;request=GetCoverage&amp;amp;CoverageId=mosaic_MER_FRS_1P_RGB_reduced&amp;amp;format=image/tiff&amp;amp;mediatype=multipart/mixed"/>
+          <ows:Reference xlink:href="http://testserver/ows?service=wcs&amp;amp;version=2.0.1&amp;amp;request=GetCoverage&amp;amp;CoverageId=mosaic_MER_FRS_1P_RGB_reduced&amp;amp;format=image/tiff&amp;amp;mediatype=multipart/related"/>
         </wcseo:referenceGetCoverage>
         <gml:timePosition>2011-01-01T00:00:00Z</gml:timePosition>
       </wcseo:lineage>

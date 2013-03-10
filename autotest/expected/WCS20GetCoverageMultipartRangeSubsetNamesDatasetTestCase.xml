@@ -2,8 +2,8 @@
 <wcseo:RectifiedDataset xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0" xmlns:om="http://www.opengis.net/om/2.0" xmlns:ows="http://www.opengis.net/ows/2.0" xmlns:swe="http://www.opengis.net/swe/2.0" xmlns:wcseo="http://www.opengis.net/wcseo/1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" gml:id="MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed" xsi:schemaLocation="http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd">
   <gml:boundedBy>
     <gml:Envelope axisLabels="lat long" srsDimension="2" srsName="http://www.opengis.net/def/crs/EPSG/0/4326" uomLabels="deg deg">
-      <gml:lowerCorner>32.1953166435 8.4877557755</gml:lowerCorner>
-      <gml:upperCorner>46.2491035461 25.4074867275</gml:upperCorner>
+      <gml:lowerCorner>32.19531664 8.487755775</gml:lowerCorner>
+      <gml:upperCorner>46.24910355 25.40748673</gml:upperCorner>
     </gml:Envelope>
   </gml:boundedBy>
   <gml:domainSet>
@@ -150,7 +150,7 @@
       </eop:EarthObservation>
       <wcseo:lineage>
         <wcseo:referenceGetCoverage>
-          <ows:Reference xlink:href="http://testserver/ows?service=wcs&amp;amp;version=2.0.0&amp;amp;request=GetCoverage&amp;amp;CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&amp;amp;format=image/tiff&amp;amp;mediatype=multipart/mixed&amp;amp;rangesubset=MERIS_radiance_04_uint16,MERIS_radiance_05_uint16,MERIS_radiance_06_uint16"/>
+          <ows:Reference xlink:href="http://testserver/ows?service=wcs&amp;amp;version=2.0.1&amp;amp;request=GetCoverage&amp;amp;CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&amp;amp;format=image/tiff&amp;amp;mediatype=multipart/related&amp;amp;rangesubset=MERIS_radiance_04_uint16,MERIS_radiance_05_uint16,MERIS_radiance_06_uint16"/>
         </wcseo:referenceGetCoverage>
         <gml:timePosition>2011-01-01T00:00:00Z</gml:timePosition>
       </wcseo:lineage>
