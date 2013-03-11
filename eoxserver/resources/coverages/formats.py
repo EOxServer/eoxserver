@@ -62,6 +62,16 @@ class Format(object) :
     defaultExt   = property( fget = lambda self: self.__defaultExt , doc = "default extension (including dot)" )
     isWriteable  = property( fget = lambda self: self.__isWriteable, doc = "boolean flag indicating that output can be produced" )
 
+    @property 
+    def wcs10name( self ) : 
+        """ get WCS 1.0 format name """
+        if self.driver.startswith("GDAL/") :
+            s = self.driver.split('/')[1]
+            if s == "GTiff" : s = "GeoTIFF"
+        else : 
+            s = self.driver.replace("/",":") 
+        return s 
+
     def __init__( self , mime_type , driver , extension , is_writeable ) :  
 
         self.__mimeType    = mime_type 
@@ -141,13 +151,34 @@ class FormatRegistry(object):
         return self.__mime2format.values() 
 
     def getFormatsByDriver( self , driver_name ) :  
-        """ Get format records for the given GDAL driver name. In case of no match empty list is returned. """ 
+        """
+        Get format records for the given GDAL driver name. 
+        In case of no match empty list is returned. 
+        """ 
 
         return self.__driver2format.get( valDriver( driver_name ) , [] ) 
 
+    def getFormatsByWCS10Name( self , wcs10name ) :  
+        """ 
+        Get format records for the given GDAL driver name. In case of no
+        match an empty list is returned. 
+        """ 
+
+        # convert WCS 1.0 format name to driver name 
+        if ":" in wcs10name : 
+            driver_name = wcs10name.replace(":","/")
+        else : 
+            if "GeoTIFF" == wcs10name : wcs10name = "GTiff"
+            driver_name = "GDAL/%s"%wcs10name 
+
+        return self.getFormatsByDriver( driver_name ) 
+
 
     def getFormatByMIME( self , mime_type ) :  
-        """ Get format record for the given MIME type. In case of no match empty list is returned. """ 
+        """
+        Get format record for the given MIME type.
+        In case of no match None is returned.
+        """ 
 
         return self.__mime2format.get( valMimeType( mime_type ) , None ) 
 
@@ -375,7 +406,7 @@ def valDriver( string ):
     """ 
     rv = string if _gerexValDriv.match(string) else None 
     if None is rv :  
-        logger.warning( "Invalid GDAL driver identifier \"%s\"." % string ) 
+        logger.warning( "Invalid driver's identifier \"%s\"." % string ) 
     return rv  
 
 #-------------------------------------------------------------------------------

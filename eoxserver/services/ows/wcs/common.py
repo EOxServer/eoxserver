@@ -220,6 +220,9 @@ def getWCSNativeFormat( source_mime ):
 def getMSWCSNativeFormat( source_mime ): 
     return getWCSNativeFormat( source_mime ).mimeType
 
+def getMSWCS10NativeFormat( source_mime ): 
+    return getWCSNativeFormat( source_mime ).wcs10name 
+
 def getMSWCSSRSMD(): 
     """ get the space separated list of CRS EPSG codes to be passed 
         to MapScript setMedata("wcs_srs",...) method """
@@ -237,6 +240,17 @@ def getMSWCSFormatMD():
 
     return " ".join( map( lambda f : f.mimeType , frm ) )  
 
+def getMSWCS10FormatMD():
+    """ get the space separated list of supported formats to be passed 
+        to MapScript setMedata("wcs_formats",...) method """
+
+    # retrieve the format registry 
+    FormatRegistry = getFormatRegistry() 
+
+    # get format record  
+    frm = FormatRegistry.getSupportedFormatsWCS() 
+
+    return " ".join( map( lambda f : f.wcs10name , frm ) )  
 
 def getMSOutputFormat(format_param, coverage):
 
@@ -252,10 +266,16 @@ def getMSOutputFormat(format_param, coverage):
     # get format record  
     frm = FormatRegistry.getFormatByMIME( mime_type ) 
 
+    # check also WCS 1.0 name (this time 'mime_type' is not really a MIME-type)
+    if frm is None : 
+        frms = FormatRegistry.getFormatsByWCS10Name( mime_type ) 
+        frm = frms[0] if len( frms ) > 0 else None  
+
+    # check that the format is among the supported formats 
     if ( frm not in FormatRegistry.getSupportedFormatsWCS() ) : 
         sf = map( lambda f : f.mimeType , FormatRegistry.getSupportedFormatsWCS() )
         raise InvalidRequestException(
-            "Unsupported format '%s'. Known formats: %s" % ( mime_type, ", ".join(sf) ) ,
+            "Unsupported format '%s'!" % ( mime_type ) ,
             "InvalidParameterValue", "format" )
 
     # check the driver

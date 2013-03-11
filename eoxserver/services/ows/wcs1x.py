@@ -51,7 +51,8 @@ from eoxserver.services.exceptions import InvalidRequestException
 from eoxserver.services.ows.wcs.common import (
     WCSCommonHandler, getMSOutputFormat,
     getMSOutputFormatsAll, getMSWCSFormatMD,
-    getMSWCSSRSMD, getMSWCSNativeFormat
+    getMSWCSSRSMD, getMSWCSNativeFormat,
+    getMSWCS10NativeFormat, getMSWCS10FormatMD
 )
 
 # following import is needed by WCS-T 
@@ -354,6 +355,15 @@ class WCS10DescribeCoverageHandler(WCS1XDescribeCoverageHandler):
     PARAM_SCHEMA = {
         "coverageids": {"xml_location": "/{http://www.opengis.net/wcs/1.0.0}Coverage", "xml_type": "string[]", "kvp_key": "coverage", "kvp_type": "stringlist"},
     }
+
+    # special WCS 1.0 format handling  
+    def getMapServerLayer(self, coverage):
+        layer = super(WCS1XDescribeCoverageHandler, self).getMapServerLayer(coverage)
+
+        layer.setMetaData( 'wcs_nativeformat' , getMSWCS10NativeFormat(coverage.getData().getSourceFormat()) ) 
+        layer.setMetaData( 'wcs_formats', getMSWCS10FormatMD() ) 
+
+        return layer
     
 WCS10DescribeCoverageHandlerImplementation = OperationHandlerInterface.implement(WCS10DescribeCoverageHandler)
 
