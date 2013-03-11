@@ -26,7 +26,7 @@ case $DJANGO in
 		;;
 	*)
 		echo "Unknown django version, Exiting..."
-		exit -1
+		exit 1
 		;;
 esac
 
@@ -47,3 +47,24 @@ sed -e 's/allowed_actions=/allowed_actions=Add,Delete/' -i autotest/autotest/con
 if [ $OS != 'Ubuntu' ]; then
   sed -e 's/#binary_raster_comparison_enabled=false/binary_raster_comparison_enabled=false/' -i autotest/autotest/conf/eoxserver.conf
 fi
+
+# Configure the specified database system
+case $DB in
+	"spatialite")
+		echo "Using spatialite database!"
+		# Noting to do, as by default eoxserver autotest will use a spatialite db
+		;;
+	"postgis")
+		echo "Using postgis database!"
+		sed -e "s/'ENGINE':.*/'ENGINE': 'django.contrib.gis.db.backends.postgis',/" -i autotest/autotest/settings.py
+		sed -e "s/'NAME':.*/'NAME': 'eoxserver_testing',/" -i autotest/autotest/settings.py
+		sed -e "s/'USER':.*/'USER': 'jenkins',/" -i autotest/autotest/settings.py
+		sed -e "s/'PASSWORD':.*/'PASSWORD': 'eeJ0Kain',/" -i autotest/autotest/settings.py
+		sed -e "/'HOST':.*/d" -i autotest/autotest/settings.py
+		sed -e "/'PORT':.*/d" -i autotest/autotest/settings.py
+		;;
+	*)
+		echo "Unknown database system, Exiting..."
+		exit 1
+		;;
+esac
