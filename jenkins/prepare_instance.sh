@@ -14,6 +14,22 @@ fi
 # activate the virtual environment
 source .venv/bin/activate
 
+# Install the required Django version
+case $DJANGO in
+	"django1.4")
+		echo "Using latest django 1.4"
+		pip install "django<1.5,>=1.4"
+		;;
+	"django1.5")
+		echo "Using latest django 1.5"
+		pip install "django<1.6,>=1.5"
+		;;
+	*)
+		echo "Unknown django version, Exiting..."
+		exit -1
+		;;
+esac
+
 # Install EOxServer
 echo "**> installing eoxserver..."
 python setup.py develop
