@@ -80,11 +80,11 @@
       <requestResponseCRSs>EPSG:3035</requestResponseCRSs>
       <nativeCRSs>EPSG:4326</nativeCRSs>
     </supportedCRSs>
-    <supportedFormats nativeFormat="image/tiff">
-      <formats>image/tiff</formats>
-      <formats>image/jp2</formats>
-      <formats>application/x-netcdf</formats>
-      <formats>application/x-hdf</formats>
+    <supportedFormats nativeFormat="GeoTIFF">
+      <formats>GeoTIFF</formats>
+      <formats>JPEG2000</formats>
+      <formats>netCDF</formats>
+      <formats>HDF4Image</formats>
     </supportedFormats>
     <supportedInterpolations default="nearest neighbor">
       <interpolationMethod>nearest neighbor</interpolationMethod>
