@@ -5,10 +5,10 @@ OS=`facter operatingsystem`
 # Create the virtual environment if it does not exist
 cd $WORKSPACE
 if [ -d ".venv" ]; then
-  echo "**> virtualenv exists!"
+    echo "**> virtualenv exists!"
 else
-  echo "**> creating virtualenv..."
-  virtualenv --system-site-packages .venv
+    echo "**> creating virtualenv..."
+    virtualenv --system-site-packages .venv
 fi
 
 # activate the virtual environment
@@ -16,18 +16,18 @@ source .venv/bin/activate
 
 # Install the required Django version
 case $DJANGO in
-	"django1.4")
-		echo "Using latest django 1.4"
-		pip install "django<1.5,>=1.4"
-		;;
-	"django1.5")
-		echo "Using latest django 1.5"
-		pip install "django<1.6,>=1.5"
-		;;
-	*)
-		echo "Unknown django version, Exiting..."
-		exit 1
-		;;
+    "django1.4")
+        echo "Using latest django 1.4"
+        pip install "django<1.5,>=1.4"
+        ;;
+    "django1.5")
+        echo "Using latest django 1.5"
+        pip install "django<1.6,>=1.5"
+        ;;
+    *)
+        echo "Unknown django version, Exiting..."
+        exit 1
+        ;;
 esac
 
 # Install EOxServer
@@ -50,21 +50,21 @@ fi
 
 # Configure the specified database system
 case $DB in
-	"spatialite")
-		echo "Using spatialite database!"
-		# Noting to do, as by default eoxserver autotest will use a spatialite db
-		;;
-	"postgis")
-		echo "Using postgis database!"
-		sed -e "s/'ENGINE':.*/'ENGINE': 'django.contrib.gis.db.backends.postgis',/" -i autotest/autotest/settings.py
-		sed -e "s/'NAME':.*/'NAME': 'eoxserver_testing',/" -i autotest/autotest/settings.py
-		sed -e "s/'USER':.*/'USER': 'jenkins',/" -i autotest/autotest/settings.py
-		sed -e "s/'PASSWORD':.*/'PASSWORD': 'eeJ0Kain',/" -i autotest/autotest/settings.py
-		sed -e "/'HOST':.*/d" -i autotest/autotest/settings.py
-		sed -e "/'PORT':.*/d" -i autotest/autotest/settings.py
-		;;
-	*)
-		echo "Unknown database system, Exiting..."
-		exit 1
-		;;
+    "spatialite")
+        echo "Using spatialite database!"
+        # Noting to do, as by default eoxserver autotest will use a spatialite db
+        ;;
+    "postgis")
+        echo "Using postgis database!"
+        sed -e "s/'ENGINE':.*/'ENGINE': 'django.contrib.gis.db.backends.postgis',/" -i autotest/autotest/settings.py
+        sed -e "s/'NAME':.*/'NAME': 'eoxserver_testing',/" -i autotest/autotest/settings.py
+        sed -e "s/'USER':.*/'USER': 'jenkins',/" -i autotest/autotest/settings.py
+        sed -e "s/'PASSWORD':.*/'PASSWORD': 'eeJ0Kain',/" -i autotest/autotest/settings.py
+        sed -e "/'HOST':.*/d" -i autotest/autotest/settings.py
+        sed -e "/'PORT':.*/d" -i autotest/autotest/settings.py
+        ;;
+    *)
+        echo "Unknown database system, Exiting..."
+        exit 1
+        ;;
 esac
