@@ -447,6 +447,9 @@ class HTMLTestCase(OWSTestCase):
     HTML test cases expect to receive HTML text.
     """
     
+    def getFileExtension(self, file_type):
+        return "html"
+    
     def testBinaryComparisonHTML(self):
         self._testBinaryComparison("html")
 
