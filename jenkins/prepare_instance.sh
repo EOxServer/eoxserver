@@ -44,7 +44,7 @@ mv autotest tmp1
 eoxserver-admin.py create_instance autotest --init_spatialite
 if [ $DJANGO == "django1.3" ]; then
     cp -R tmp1/* autotest/
-    rm r tmp1
+    rm -r tmp1
 else
     mv autotest/manage.py tmp1/
     mv autotest/autotest/ tmp2
