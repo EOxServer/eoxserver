@@ -4,4 +4,3 @@
     <ows:ExceptionText>Subset outside coverage extent.</ows:ExceptionText>
   </ows:Exception>
 </ows:ExceptionReport>
-

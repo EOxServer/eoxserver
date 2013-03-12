@@ -77,54 +77,54 @@
   </gmlcov:rangeType>
   <gmlcov:metadata>
     <gmlcov:Extension>
-    <wcseo:EOMetadata>
-      <eop:EarthObservation gml:id="eop_mosaic_MER_FRS_1P_RGB_reduced">
-        <om:phenomenonTime>
-          <gml:TimePeriod gml:id="phen_time_mosaic_MER_FRS_1P_RGB_reduced">
-            <gml:beginPosition>2006-08-16T00:00:00Z</gml:beginPosition>
-            <gml:endPosition>2006-08-31T00:00:00Z</gml:endPosition>
-          </gml:TimePeriod>
-        </om:phenomenonTime>
-        <om:resultTime>
-          <gml:TimeInstant gml:id="res_time_mosaic_MER_FRS_1P_RGB_reduced">
-            <gml:timePosition>2006-08-31T00:00:00Z</gml:timePosition>
-          </gml:TimeInstant>
-        </om:resultTime>
-        <om:procedure/>
-        <om:observedProperty/>
-        <om:featureOfInterest>
-          <eop:Footprint gml:id="footprint_mosaic_MER_FRS_1P_RGB_reduced">
-            <eop:multiExtentOf>
-              <gml:MultiSurface gml:id="multisurface_mosaic_MER_FRS_1P_RGB_reduced" srsName="EPSG:4326">
-                <gml:surfaceMember>
-                  <gml:Polygon gml:id="polygon_mosaic_MER_FRS_1P_RGB_reduced">
-                    <gml:exterior>
-                      <gml:LinearRing>
-                        <gml:posList>45.06858238 21.70311340 44.98550200 22.14653000 44.81760100 22.97283900 44.54871900 24.21679400 44.35302600 25.07847100 44.22240100 25.61945400 43.86945300 27.09669100 43.74074338 27.60500000 43.19585500 27.60500000 43.19585500 -0.61450000 44.85603398 -0.61450000 44.93117515 7.27533357 44.75018500 8.15491400 44.41952400 9.63424600 44.12134700 10.93930044 44.65704000 11.06940200 44.96801502 11.14352522 45.06858238 21.70311340</gml:posList>
-                      </gml:LinearRing>
-                    </gml:exterior>
-                  </gml:Polygon>
-                </gml:surfaceMember>
-              </gml:MultiSurface>
-            </eop:multiExtentOf>
-          </eop:Footprint>
-        </om:featureOfInterest>
-        <om:result/>
-        <eop:metaDataProperty>
-          <eop:EarthObservationMetaData>
-            <eop:identifier>mosaic_MER_FRS_1P_RGB_reduced</eop:identifier>
-            <eop:acquisitionType>NOMINAL</eop:acquisitionType>
-            <eop:status>ARCHIVED</eop:status>
-          </eop:EarthObservationMetaData>
-        </eop:metaDataProperty>
-      </eop:EarthObservation>
-      <wcseo:lineage>
-        <wcseo:referenceGetCoverage>
-          <ows:Reference xlink:href="http://testserver/ows?service=wcs&amp;amp;version=2.0.1&amp;amp;request=GetCoverage&amp;amp;CoverageId=mosaic_MER_FRS_1P_RGB_reduced&amp;amp;format=image/tiff&amp;amp;mediatype=multipart/related&amp;amp;subset=x(100,1000)&amp;amp;subset=y(0,99)"/>
-        </wcseo:referenceGetCoverage>
-        <gml:timePosition>2011-01-01T00:00:00Z</gml:timePosition>
-      </wcseo:lineage>
-    </wcseo:EOMetadata>
+      <wcseo:EOMetadata>
+        <eop:EarthObservation gml:id="eop_mosaic_MER_FRS_1P_RGB_reduced">
+          <om:phenomenonTime>
+            <gml:TimePeriod gml:id="phen_time_mosaic_MER_FRS_1P_RGB_reduced">
+              <gml:beginPosition>2006-08-16T00:00:00Z</gml:beginPosition>
+              <gml:endPosition>2006-08-31T00:00:00Z</gml:endPosition>
+            </gml:TimePeriod>
+          </om:phenomenonTime>
+          <om:resultTime>
+            <gml:TimeInstant gml:id="res_time_mosaic_MER_FRS_1P_RGB_reduced">
+              <gml:timePosition>2006-08-31T00:00:00Z</gml:timePosition>
+            </gml:TimeInstant>
+          </om:resultTime>
+          <om:procedure/>
+          <om:observedProperty/>
+          <om:featureOfInterest>
+            <eop:Footprint gml:id="footprint_mosaic_MER_FRS_1P_RGB_reduced">
+              <eop:multiExtentOf>
+                <gml:MultiSurface gml:id="multisurface_mosaic_MER_FRS_1P_RGB_reduced" srsName="EPSG:4326">
+                  <gml:surfaceMember>
+                    <gml:Polygon gml:id="polygon_mosaic_MER_FRS_1P_RGB_reduced">
+                      <gml:exterior>
+                        <gml:LinearRing>
+                          <gml:posList>45.06858238 21.70311340 44.98550200 22.14653000 44.81760100 22.97283900 44.54871900 24.21679400 44.35302600 25.07847100 44.22240100 25.61945400 43.86945300 27.09669100 43.74074338 27.60500000 43.19585500 27.60500000 43.19585500 -0.61450000 44.85603398 -0.61450000 44.93117515 7.27533357 44.75018500 8.15491400 44.41952400 9.63424600 44.12134700 10.93930044 44.65704000 11.06940200 44.96801502 11.14352522 45.06858238 21.70311340</gml:posList>
+                        </gml:LinearRing>
+                      </gml:exterior>
+                    </gml:Polygon>
+                  </gml:surfaceMember>
+                </gml:MultiSurface>
+              </eop:multiExtentOf>
+            </eop:Footprint>
+          </om:featureOfInterest>
+          <om:result/>
+          <eop:metaDataProperty>
+            <eop:EarthObservationMetaData>
+              <eop:identifier>mosaic_MER_FRS_1P_RGB_reduced</eop:identifier>
+              <eop:acquisitionType>NOMINAL</eop:acquisitionType>
+              <eop:status>ARCHIVED</eop:status>
+            </eop:EarthObservationMetaData>
+          </eop:metaDataProperty>
+        </eop:EarthObservation>
+        <wcseo:lineage>
+          <wcseo:referenceGetCoverage>
+            <ows:Reference xlink:href="http://testserver/ows?service=wcs&amp;amp;version=2.0.1&amp;amp;request=GetCoverage&amp;amp;CoverageId=mosaic_MER_FRS_1P_RGB_reduced&amp;amp;format=image/tiff&amp;amp;mediatype=multipart/related&amp;amp;subset=x(100,1000)&amp;amp;subset=y(0,99)"/>
+          </wcseo:referenceGetCoverage>
+          <gml:timePosition>2011-01-01T00:00:00Z</gml:timePosition>
+        </wcseo:lineage>
+      </wcseo:EOMetadata>
     </gmlcov:Extension>
   </gmlcov:metadata>
   <wcseo:datasets>
