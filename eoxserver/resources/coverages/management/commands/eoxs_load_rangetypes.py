@@ -67,12 +67,12 @@ class Command(CommandOutputMixIn, BaseCommand):
             action='store', type='string',
             default='-',
             help=("Optional. Read input from a file rather than from the "
-                  "default standard output." )
+                  "default standard input." )
         ),
         
     )
 
-    help = ( """ Load rangetypes stored in JSON format.  """ )
+    help = ( """ Load rangetypes stored in JSON format from standard input.""" )
 
     #--------------------------------------------------------------------------
 

@@ -465,7 +465,7 @@ OWSCommonExceptionHandlerImplementation = ExceptionHandlerInterface.implement(OW
 
 class OWSCommon11ExceptionHandler(BaseExceptionHandler):
     """
-    This exception handler is intended for OWS Common 2.0 based exception
+    This exception handler is intended for OWS Common 1.1 based exception
     reports. Said standard defines a framework for exception reports that can
     be extended by individual OWS standards with additional error codes, for
     instance.
