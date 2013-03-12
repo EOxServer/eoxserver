@@ -4,8 +4,8 @@
     <wcs:CoverageDescription gml:id="MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed">
       <gml:boundedBy>
         <gml:Envelope axisLabels="lat long" srsDimension="2" srsName="http://www.opengis.net/def/crs/EPSG/0/4326" uomLabels="deg deg">
-          <gml:lowerCorner>32.26974600 11.64834400</gml:lowerCorner>
-          <gml:upperCorner>46.21655800 27.96859100</gml:upperCorner>
+          <gml:lowerCorner>32.20144630 11.36106586</gml:lowerCorner>
+          <gml:upperCorner>46.25202560 28.28384572</gml:upperCorner>
         </gml:Envelope>
       </gml:boundedBy>
       <wcs:CoverageId>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</wcs:CoverageId>
@@ -99,8 +99,8 @@
               <gml:pos>46.25202560 11.36106586</gml:pos>
             </gml:Point>
           </gml:origin>
-          <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/4326">0.0 0.03139662</gml:offsetVector>
-          <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/4326">-0.03136290 0.0</gml:offsetVector>
+          <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/4326">0.00000000 0.03139662</gml:offsetVector>
+          <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/4326">-0.03136290 0.00000000</gml:offsetVector>
         </gml:RectifiedGrid>
       </gml:domainSet>
       <gmlcov:rangeType>

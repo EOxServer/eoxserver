@@ -2,8 +2,8 @@
 <wcseo:ReferenceableDataset xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0" xmlns:om="http://www.opengis.net/om/2.0" xmlns:swe="http://www.opengis.net/swe/2.0" xmlns:wcseo="http://www.opengis.net/wcseo/1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" gml:id="ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775" xsi:schemaLocation="http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd">
   <gml:boundedBy>
     <gml:Envelope axisLabels="lat long" srsDimension="2" srsName="http://www.opengis.net/def/crs/EPSG/0/4326" uomLabels="deg deg">
-      <gml:lowerCorner>-33.70193400 21.30956200</gml:lowerCorner>
-      <gml:upperCorner>-32.86434900 22.30225100</gml:upperCorner>
+      <gml:lowerCorner>-33.70152200 21.30934400</gml:lowerCorner>
+      <gml:upperCorner>-32.86423900 22.30240200</gml:upperCorner>
     </gml:Envelope>
   </gml:boundedBy>
   <gml:domainSet>
@@ -71,7 +71,7 @@
                     <gml:Polygon gml:id="polygon_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775">
                       <gml:exterior>
                         <gml:LinearRing>
-                          <gml:posList>-33.02643502 22.24721923 -33.03902600 22.30175400 -33.70091234 22.08805827 -33.52648100 21.30956200 -32.86434900 21.52478500 -33.02643502 22.24721923</gml:posList>
+                          <gml:posList>-33.00414053 22.15065604 -33.03902600 22.30175400 -33.70047141 22.08820063 -33.52635100 21.30934400 -32.86423900 21.52450000 -33.00414053 22.15065604</gml:posList>
                         </gml:LinearRing>
                       </gml:exterior>
                     </gml:Polygon>

@@ -11,7 +11,7 @@
       <gml:limits>
         <gml:GridEnvelope>
           <gml:low>0 0</gml:low>
-          <gml:high>279 209</gml:high>
+          <gml:high>278 209</gml:high>
         </gml:GridEnvelope>
       </gml:limits>
       <gml:axisLabels>lat long</gml:axisLabels>
@@ -71,7 +71,7 @@
                     <gml:Polygon gml:id="polygon_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775">
                       <gml:exterior>
                         <gml:LinearRing>
-                          <gml:posList>-33.57448100 20.31839000 -34.96037900 19.84002000 -34.41856400 17.64088400 -33.04111100 18.15156700 -33.57448100 20.31839000</gml:posList>
+                          <gml:posList>-33.57457000 20.31803100 -34.96031400 19.84079700 -34.42061600 17.64842700 -33.04286800 18.15878700 -33.57457000 20.31803100</gml:posList>
                         </gml:LinearRing>
                       </gml:exterior>
                     </gml:Polygon>

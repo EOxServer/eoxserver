@@ -3,8 +3,8 @@
   <wcs:CoverageDescription gml:id="RECTIFIED_MERIS_ID">
     <gml:boundedBy>
       <gml:Envelope axisLabels="lat long" srsDimension="2" srsName="http://www.opengis.net/def/crs/EPSG/0/4326" uomLabels="deg deg">
-        <gml:lowerCorner>32.26974600 11.64834400</gml:lowerCorner>
-        <gml:upperCorner>46.21655800 27.96859100</gml:upperCorner>
+        <gml:lowerCorner>32.19025000 11.33175500</gml:lowerCorner>
+        <gml:upperCorner>46.26864500 28.29481000</gml:upperCorner>
       </gml:Envelope>
     </gml:boundedBy>
     <wcs:CoverageId>RECTIFIED_MERIS_ID</wcs:CoverageId>
@@ -97,8 +97,8 @@
             <gml:pos>46.26864500 11.33175500</gml:pos>
           </gml:Point>
         </gml:origin>
-        <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/4326">0.0 0.03135500</gml:offsetVector>
-        <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/4326">-0.03135500 0.0</gml:offsetVector>
+        <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/4326">0.00000000 0.03135500</gml:offsetVector>
+        <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/4326">-0.03135500 0.00000000</gml:offsetVector>
       </gml:RectifiedGrid>
     </gml:domainSet>
     <gmlcov:rangeType>

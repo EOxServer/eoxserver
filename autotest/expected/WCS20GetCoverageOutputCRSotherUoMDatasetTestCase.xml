@@ -2,8 +2,8 @@
 <wcseo:RectifiedDataset xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0" xmlns:om="http://www.opengis.net/om/2.0" xmlns:ows="http://www.opengis.net/ows/2.0" xmlns:swe="http://www.opengis.net/swe/2.0" xmlns:wcseo="http://www.opengis.net/wcseo/1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" gml:id="MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed" xsi:schemaLocation="http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd">
   <gml:boundedBy>
     <gml:Envelope axisLabels="x y" srsDimension="2" srsName="http://www.opengis.net/def/crs/EPSG/0/3857" uomLabels="m m">
-      <gml:lowerCorner>944852.650906326 3788772.74825132</gml:lowerCorner>
-      <gml:upperCorner>2828348.48484216 5820101.03584168</gml:upperCorner>
+      <gml:lowerCorner>944852.650850667 3788772.7477907</gml:lowerCorner>
+      <gml:upperCorner>2828348.48512045 5820101.03646919</gml:upperCorner>
     </gml:Envelope>
   </gml:boundedBy>
   <gml:domainSet>
@@ -17,11 +17,11 @@
       <gml:axisLabels>x y</gml:axisLabels>
       <gml:origin>
         <gml:Point gml:id="grid_origin_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed" srsName="http://www.opengis.net/def/crs/EPSG/0/3857">
-          <gml:pos>944852.650906 5820101.035842</gml:pos>
+          <gml:pos>944852.650851 5820101.036469</gml:pos>
         </gml:Point>
       </gml:origin>
-      <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/3857">3494.426408 0</gml:offsetVector>
-      <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/3857">0 -4534.214928</gml:offsetVector>
+      <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/3857">3494.426409 0</gml:offsetVector>
+      <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/3857">0 -4534.214930</gml:offsetVector>
     </gml:RectifiedGrid>
   </gml:domainSet>
   <gml:rangeSet>
@@ -306,7 +306,7 @@
         </eop:EarthObservation>
         <wcseo:lineage>
           <wcseo:referenceGetCoverage>
-            <ows:Reference xlink:href="http://testserver/ows?service=wcs&amp;amp;version=2.0.0&amp;amp;request=GetCoverage&amp;amp;CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&amp;amp;format=image/tiff&amp;amp;mediatype=multipart/mixed&amp;amp;outputcrs=http://www.opengis.net/def/crs/EPSG/0/3857"/>
+            <ows:Reference xlink:href="http://testserver/ows?service=wcs&amp;amp;version=2.0.1&amp;amp;request=GetCoverage&amp;amp;CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&amp;amp;format=image/tiff&amp;amp;mediatype=multipart/related&amp;amp;outputcrs=http://www.opengis.net/def/crs/EPSG/0/3857"/>
           </wcseo:referenceGetCoverage>
           <gml:timePosition>2011-01-01T00:00:00Z</gml:timePosition>
         </wcseo:lineage>
