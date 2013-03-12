@@ -42,7 +42,7 @@ python setup.py develop
 echo "**> creating autotest instance..."
 mv autotest tmp1
 eoxserver-admin.py create_instance autotest --init_spatialite
-if [ $DJANGO -eq "django1.3" ]; do
+if [ $DJANGO -eq "django1.3" ]; then
     cp -R tmp1/* autotest/
     rm r tmp1
 else
