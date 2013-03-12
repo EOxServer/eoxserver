@@ -146,9 +146,6 @@ class WCS11DescribeCoverageNoSuchCoverageFaultTestCase(eoxstest.ExceptionTestCas
     def getRequest(self):
         params = "service=wcs&version=1.1.2&request=DescribeCoverage&identifier=INVALID"
         return (params, "kvp")
-
-    def getExpectedHTTPStatus(self):
-        return 404
     
     def getExpectedExceptionCode(self):
         return "NoSuchCoverage"
@@ -158,9 +155,6 @@ class WCS11GetCoverageNoSuchCoverageFaultTestCase(eoxstest.ExceptionTestCase):
     def getRequest(self):
         params = "service=wcs&version=1.1.2&request=GetCoverage&identifier=INVALID"
         return (params, "kvp")
-
-    def getExpectedHTTPStatus(self):
-        return 404
     
     def getExpectedExceptionCode(self):
         return "NoSuchCoverage"
@@ -173,9 +167,6 @@ class WCS11DescribeCoverageReferenceableFaultTestCase(eoxstest.ExceptionTestCase
         params = "service=wcs&version=1.1.2&request=DescribeCoverage&identifier=ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775"
         return (params, "kvp")
 
-    def getExpectedHTTPStatus(self):
-        return 404
-    
     def getExpectedExceptionCode(self):
         return "NoSuchCoverage"
 
@@ -183,9 +174,6 @@ class WCS11GetCoverageReferenceableFaultTestCase(eoxstest.ExceptionTestCase):
     def getRequest(self):
         params = "service=wcs&version=1.1.2&request=GetCoverage&identifier=ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775"
         return (params, "kvp")
-
-    def getExpectedHTTPStatus(self):
-        return 404
     
     def getExpectedExceptionCode(self):
         return "NoSuchCoverage"
@@ -194,15 +182,11 @@ class WCS11GetCoverageBBoxFaultTestCase(eoxstest.ExceptionTestCase):
     def getRequest(self):
         params = "service=wcs&version=1.1.2&request=GetCoverage&identifier=mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced&boundingbox=80,80,90,90,urn:ogc:def:crs:EPSG::4326&format=image/tiff&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridBaseCRS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=46.5,12&GridOffsets=0.06,0.06"
         return (params, "kvp")
-
-    def getExpectedHTTPStatus(self):
-        return 400
     
     def getExpectedExceptionCode(self):
         return "bbox"
 
-
-class WCS20GetCoverageFormatUnsupportedFaultTestCase(eoxstest.ExceptionTestCase):
+class WCS11GetCoverageFormatUnsupportedFaultTestCase(eoxstest.ExceptionTestCase):
     def getRequest(self):
         params = "service=wcs&version=1.1.2&request=GetCoverage&identifier=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/jpeg"
         return (params, "kvp")
@@ -210,7 +194,7 @@ class WCS20GetCoverageFormatUnsupportedFaultTestCase(eoxstest.ExceptionTestCase)
     def getExpectedExceptionCode(self):
         return "InvalidParameterValue"
 
-class WCS20GetCoverageFormatUnknownFaultTestCase(eoxstest.ExceptionTestCase):
+class WCS11GetCoverageFormatUnknownFaultTestCase(eoxstest.ExceptionTestCase):
     def getRequest(self):
         params = "service=wcs&version=1.1.2&request=GetCoverage&identifier=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=unknown"
         return (params, "kvp")
