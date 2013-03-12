@@ -219,12 +219,6 @@ class PreProcessor(object):
             # apply the output to the map  
             nodata_map |= (raster_data != nodata)
         
-        # extend the nodata map by a border of 1 pixel
-        #nodata_map = numpy.insert(nodata_map, (0, ds.RasterYSize), False, 0)
-        #nodata_map = numpy.insert(nodata_map, (0, ds.RasterXSize), False, 1)
-        
-        
-        
         # create a temporary in-memory dataset and write the nodata mask 
         # into its single band
         tmp_ds = create_mem(ds.RasterXSize + 2, ds.RasterYSize + 2, 1, 
@@ -232,11 +226,6 @@ class PreProcessor(object):
         copy_projection(ds, tmp_ds)
         tmp_band = tmp_ds.GetRasterBand(1)
         tmp_band.WriteArray(nodata_map.astype(numpy.uint8))
-        
-        
-        #driver = gdal.GetDriverByName(self.format_selection.driver_name)
-        #ds = driver.CreateCopy("/var/ngeob/x.tiff", tmp_ds)
-        
         
         # create an OGR in memory layer to hold the created polygon
         sr = osr.SpatialReference(); sr.ImportFromWkt(ds.GetProjectionRef())
@@ -268,18 +257,18 @@ class PreProcessor(object):
             raise RuntimeError("Error during poligonization. Wrong geometry "
                                "type.")
         
-        # simplify the polygon. the tolerance value is *really* vague
-        try:
-            # SimplifyPreserveTopology() available since OGR 1.9.0
-            geometry = geometry.SimplifyPreserveTopology(1)
-        except AttributeError:
-            # use GeoDjango bindings if OGR is too old
-            geometry = ogr.CreateGeometryFromWkt(GEOSGeometry(geometry.ExportToWkt()).simplify(1, True).wkt)
-        
         # check if reprojection to latlon is necessary
         if not sr.IsGeographic():
             dst_sr = osr.SpatialReference(); dst_sr.ImportFromEPSG(4326)
             geometry.TransformTo(dst_sr)
+        
+        # simplify the polygon. the tolerance value is *really* vague
+        try:
+            # SimplifyPreserveTopology() available since OGR 1.9.0
+            geometry = geometry.SimplifyPreserveTopology(self.simplification_tolerance)
+        except AttributeError:
+            # use GeoDjango bindings if OGR is too old
+            geometry = ogr.CreateGeometryFromWkt(GEOSGeometry(geometry.ExportToWkt()).simplify(self.simplification_tolerance, True).wkt)
         
         return geometry.ExportToWkt()
 
@@ -290,6 +279,15 @@ class WMSPreProcessor(PreProcessor):
         >>> prep = WMSPreProcessor(...)
         >>> prep.process(input_filename, output_filename, generate_metadata)
     """
+
+    def __init__(self, format_selection, simplification_tolerance=None, *args, **kwargs):
+        super(WMSPreProcessor, self).__init__(format_selection, *args, **kwargs)
+
+        if simplification_tolerance is not None:
+            self.simplification_tolerance = simplification_tolerance
+        else:
+            self.simplification_tolerance = 0.05
+
 
     def get_optimizations(self, ds):
         if self.crs:
