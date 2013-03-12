@@ -218,10 +218,9 @@ _gerexProj4Str = re.compile(r"^\+init=epsg:(\d+)$")
 
 def validateEPSGCode( string ) : 
     """Check whether the given string is a valid EPSG code (True) or not (False)""" 
-    try : 
-        if osr.SpatialReference().ImportFromEPSG(int(string)) != 0 : 
-            raise ValueError 
-    except ValueError : 
+    try:
+        osr.SpatialReference().ImportFromEPSG(int(string)) 
+    except (ValueError, RuntimeError): 
         return False
     return True
 
@@ -256,7 +255,7 @@ def fromProj4Str( string ) :
     return _fromRegEx( string , _gerexProj4Str ) 
 
 def parseEPSGCode( string , parsers ) :  
-    """ parse EPSG code using provided seqence of EPSG parsers """ 
+    """ parse EPSG code using provided sequence of EPSG parsers """ 
     for parser in parsers : 
         epsg = parser( string ) 
         if epsg is not None : return epsg 

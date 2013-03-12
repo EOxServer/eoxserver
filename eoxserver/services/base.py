@@ -116,8 +116,7 @@ class BaseExceptionHandler(object):
     def _logError(self, req, exception):
         logger.error(str(req.getParams()))
         logger.error(str(exception))
-        if settings.DEBUG:
-            logger.error(format_exc())
+        logger.debug(format_exc())
 
     def _getContentType(self, exception):
         raise InternalError("Not implemented.")

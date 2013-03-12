@@ -397,7 +397,7 @@ class WCS20SubsetDecoder(object):
         else:
             crs_id = crss.parseEPSGCode(crs_id_str,(crss.fromURL,crss.fromURN)) 
             if crs_id is None:
-                raise InvalidSubsettingException( "Failed to extrac an EPSG"
+                raise InvalidSubsettingException( "Failed to extract an EPSG"
                     " code from the CRS URI '%s'!" % crs_id_str )
         return crs_id 
 
