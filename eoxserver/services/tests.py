@@ -166,7 +166,7 @@ class WCS11GetCoverageNoSuchCoverageFaultTestCase(eoxstest.ExceptionTestCase):
         return "NoSuchCoverage"
 
 #NOTE: Support for Referenceable Datasets in WCS < 2.0.0 not avaiable. 
-#      Any attempt to access Ref.DS via WCS 1.x should be threated as 
+#      Any attempt to access Ref.DS via WCS 1.x should be treated as 
 #      non-existing coverage. 
 class WCS11DescribeCoverageReferenceableFaultTestCase(eoxstest.ExceptionTestCase):
     def getRequest(self):
@@ -189,6 +189,17 @@ class WCS11GetCoverageReferenceableFaultTestCase(eoxstest.ExceptionTestCase):
     
     def getExpectedExceptionCode(self):
         return "NoSuchCoverage"
+    
+class WCS11GetCoverageBBoxFaultTestCase(eoxstest.ExceptionTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=1.1.2&request=GetCoverage&identifier=mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced&boundingbox=80,80,90,90,urn:ogc:def:crs:EPSG::4326&format=image/tiff&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridBaseCRS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=46.5,12&GridOffsets=0.06,0.06"
+        return (params, "kvp")
+
+    def getExpectedHTTPStatus(self):
+        return 400
+    
+    def getExpectedExceptionCode(self):
+        return "bbox"
 
 
 class WCS20GetCoverageFormatUnsupportedFaultTestCase(eoxstest.ExceptionTestCase):
