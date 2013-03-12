@@ -14,9 +14,9 @@ python manage.py test services -v2
 
 # Run command line tests
 echo "**> running command line tests ..."
-python manage.py syncdb --noinput
-python manage.py loaddata auth_data.json initial_rangetypes.json
-python manage.py eoxs_load_rangetypes << EOF
+python manage.py syncdb --noinput --traceback
+python manage.py loaddata auth_data.json initial_rangetypes.json --traceback
+python manage.py eoxs_load_rangetypes --traceback << EOF
 [{
     "bands": [
         {
@@ -254,13 +254,13 @@ python manage.py eoxs_load_rangetypes << EOF
     "name": "ASAR"
 }]
 EOF
-python manage.py eoxs_list_rangetypes
-python manage.py eoxs_add_dataset_series -i MER_FRS_1P_reduced
-python manage.py eoxs_register_dataset -d data/meris/MER_FRS_1P_reduced/*.tif -r MERIS_uint16 --dataset-series MER_FRS_1P_reduced
-python manage.py eoxs_register_dataset -d data/meris/mosaic_MER_FRS_1P_RGB_reduced/*.tif -r RGB
-python manage.py eoxs_register_dataset -d data/asar/*.tiff -m data/asar/*.tiff -r ASAR
-python manage.py eoxs_list_ids
-python manage.py eoxs_insert_into_series -d mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced mosaic_ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced mosaic_ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced -s MER_FRS_1P_reduced
+python manage.py eoxs_list_rangetypes --traceback
+python manage.py eoxs_add_dataset_series -i MER_FRS_1P_reduced --traceback
+python manage.py eoxs_register_dataset -d data/meris/MER_FRS_1P_reduced/*.tif -r MERIS_uint16 --dataset-series MER_FRS_1P_reduced --traceback
+python manage.py eoxs_register_dataset -d data/meris/mosaic_MER_FRS_1P_RGB_reduced/*.tif -r RGB --traceback
+python manage.py eoxs_register_dataset -d data/asar/*.tiff -m data/asar/*.tiff -r ASAR --traceback
+python manage.py eoxs_list_ids --traceback
+python manage.py eoxs_insert_into_series -d mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced mosaic_ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced mosaic_ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced -s MER_FRS_1P_reduced --traceback
 
 # Send some requests and compare results with expected results
 python manage.py runserver 1>/dev/null 2>&1 &
@@ -275,12 +275,12 @@ diff tmp autotest/expected/WCS20GetCoverageDatasetTestCase.tif
 
 kill `ps --ppid $PID -o pid=`
 
-python manage.py eoxs_remove_from_series -d mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced mosaic_ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced mosaic_ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced -s MER_FRS_1P_reduced
-python manage.py eoxs_deregister_dataset mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced mosaic_ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced mosaic_ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced
-python manage.py eoxs_list_ids
-python manage.py eoxs_check_id -a notused
-python manage.py eoxs_check_id -u ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed
-python manage.py eoxs_check_id -u MER_FRS_1P_reduced
-python manage.py eoxs_add_dataset_series -i test_sync -d data/meris/MER_FRS_1P_reduced/ data/meris/mosaic_MER_FRS_1P_RGB_reduced/ -p "*.tif"
-python manage.py eoxs_synchronize -a
-python manage.py eoxs_list_ids
+python manage.py eoxs_remove_from_series -d mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced mosaic_ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced mosaic_ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced -s MER_FRS_1P_reduced --traceback
+python manage.py eoxs_deregister_dataset mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced mosaic_ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced mosaic_ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced --traceback
+python manage.py eoxs_list_ids --traceback
+python manage.py eoxs_check_id -a notused --traceback
+python manage.py eoxs_check_id -u ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed --traceback
+python manage.py eoxs_check_id -u MER_FRS_1P_reduced --traceback
+python manage.py eoxs_add_dataset_series -i test_sync -d data/meris/MER_FRS_1P_reduced/ data/meris/mosaic_MER_FRS_1P_RGB_reduced/ -p "*.tif" --traceback
+python manage.py eoxs_synchronize -a --traceback
+python manage.py eoxs_list_ids --traceback
