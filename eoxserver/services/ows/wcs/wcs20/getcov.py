@@ -540,7 +540,10 @@ class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
             
             if coverage is not None:
                 decoder = WCS20SubsetDecoder(self.req, "imageCRS")
-                filter_exprs = decoder.getFilterExpressions()
+                try:
+                    filter_exprs = decoder.getFilterExpressions()
+                except InvalidSubsettingException, e:
+                    raise InvalidRequestException(str(e), "InvalidParameterValue", "subset")
 
                 try:
                     if coverage.matches(filter_exprs):
