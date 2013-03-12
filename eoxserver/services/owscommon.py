@@ -42,7 +42,6 @@ from eoxserver.services.interfaces import (
 from eoxserver.services.base import (
     BaseRequestHandler, BaseExceptionHandler
 )
-from eoxserver.services.requests import Response
 from eoxserver.services.exceptions import (
     InvalidRequestException, VersionNegotiationException
 )
@@ -120,6 +119,7 @@ class OWSCommonHandler(BaseRequestHandler):
         return handler.handle(req)
 
 OWSCommonHandlerImplementation = RequestHandlerInterface.implement(OWSCommonHandler)
+
 
 class OWSCommonServiceHandler(BaseRequestHandler):
     """
@@ -329,6 +329,7 @@ class OWSCommonServiceHandler(BaseRequestHandler):
 
         return handler.handle(req)
 
+
 class OWSCommonVersionHandler(BaseRequestHandler):
     """
     This is the base class for OWS version handlers. It inherits from
@@ -389,6 +390,7 @@ class OWSCommonVersionHandler(BaseRequestHandler):
             )
         else:
             return handler.handle(req)
+
 
 class OWSCommonExceptionHandler(BaseExceptionHandler):
     """
@@ -460,6 +462,48 @@ class OWSCommonExceptionHandler(BaseExceptionHandler):
 
 OWSCommonExceptionHandlerImplementation = ExceptionHandlerInterface.implement(OWSCommonExceptionHandler)
 
+
+class OWSCommon11ExceptionHandler(BaseExceptionHandler):
+    """
+    This exception handler is intended for OWS Common 2.0 based exception
+    reports. Said standard defines a framework for exception reports that can
+    be extended by individual OWS standards with additional error codes, for
+    instance.
+    
+    This class inherits from :class:`~.BaseExceptionHandler`.
+    """
+    REGISTRY_CONF = {
+        "name": "OWS Common Exception Handler",
+        "impl_id": "services.owscommon.OWSCommon11ExceptionHandler", 
+        "registry_values": {
+            "services.interfaces.exception_scheme": "owscommon_1.1"
+        }
+    }
+    
+    def __init__(self, schemas, version):
+        super(OWSCommon11ExceptionHandler, self).__init__(schemas)
+        self.version = version
+        
+    def _filterExceptions(self, exception):
+        if not isinstance(exception, InvalidRequestException) and \
+           not isinstance(exception, VersionNegotiationException):
+            raise
+        
+    def _getEncoder(self):
+        return OWSCommon11ExceptionEncoder(self.schemas, self.version)
+    
+    def _getHTTPStatus(self, exception):
+        if isinstance(exception, (InvalidRequestException, VersionNegotiationException)):
+            return 400
+        else:
+            return 500
+
+    def _getContentType(self, exception):
+        return "text/xml"
+
+OWSCommon11ExceptionHandlerImplementation = ExceptionHandlerInterface.implement(OWSCommon11ExceptionHandler)
+
+
 class OWSCommonExceptionEncoder(XMLEncoder):
     """
     Encoder for OWS Common 2.0 compliant exception reports. Implements
@@ -516,6 +560,69 @@ class OWSCommonExceptionEncoder(XMLEncoder):
         return self.encodeExceptionReport("Internal Server Error", "NoApplicableCode")
 
 OWSCommonExceptionEncoderImplementation = ExceptionEncoderInterface.implement(OWSCommonExceptionEncoder)
+
+
+class OWSCommon11ExceptionEncoder(XMLEncoder):
+    """
+    Encoder for OWS Common 1.1 compliant exception reports. Implements
+    :class:`~.ExceptionEncoderInterface`.
+    """
+    REGISTRY_CONF = {
+        "name": "OWS Common 1.1 Exception Report Encoder",
+        "impl_id": "services.owscommon.OWSCommon11ExceptionEncoder",
+        "registry_values": {
+            "services.interfaces.exception_scheme": "owscommon_1.1"
+        }
+    }
+    
+    def __init__(self, schemas=None, version=None):
+        super(OWSCommon11ExceptionEncoder, self).__init__(schemas)
+        self.version = version or "1.1.0"
+    
+    def _initializeNamespaces(self):
+        return {
+            "ows": "http://www.opengis.net/ows/1.1",
+            "xsi": "http://www.w3.org/2001/XMLSchema-instance"
+        }
+    
+    def encodeExceptionReport(self, exception_text, exception_code, locator=None):
+        if locator is None:
+            element = self._makeElement("ows", "ExceptionReport", [
+                ("", "@version", self.version),
+                ("", "@xml:lang", "en"),
+                ("ows", "Exception", [
+                    ("", "@exceptionCode", exception_code),
+                    ("ows", "ExceptionText", exception_text)
+                ])
+            ])
+        else:
+            element = self._makeElement("ows", "ExceptionReport", [
+                ("", "@version", self.version),
+                ("", "@xml:lang", "en"),
+                ("ows", "Exception", [
+                    ("", "@exceptionCode", exception_code),
+                    ("", "@locator", locator),
+                    ("ows", "ExceptionText", exception_text)
+                ])
+            ])
+        
+        if self.schemas is not None:
+            schemas_location = " ".join(["%s %s"%(ns, location) for ns, location in self.schemas.iteritems()])
+            element.setAttributeNS(self.ns_dict["xsi"], "%s:%s" % ("xsi", "schemaLocation"), schemas_location)
+        
+        return element
+    
+    def encodeInvalidRequestException(self, exception):
+        return self.encodeExceptionReport(exception.msg, exception.error_code, exception.locator)
+    
+    def encodeVersionNegotiationException(self, exception):
+        return self.encodeExceptionReport(exception.msg, "VersionNegotiationFailed")
+
+    def encodeException(self, exception):
+        return self.encodeExceptionReport("Internal Server Error", "NoApplicableCode")
+
+OWSCommon11ExceptionEncoderImplementation = ExceptionEncoderInterface.implement(OWSCommon11ExceptionEncoder)
+
 
 class OWSCommonConfigReader(object):
     """
