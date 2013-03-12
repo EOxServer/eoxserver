@@ -4,26 +4,283 @@
 cd $WORKSPACE
 source .venv/bin/activate
 
-cd autotest/autotest
+cd autotest
+ln -s autotest/data/ data
 export XML_CATALOG_FILES="$WORKSPACE/schemas/catalog.xml"
 echo "**> running tests ..."
-python ../manage.py test services -v2
+python manage.py test services -v2
 #TODO: Enable testing of all apps
-#python manage.py test core services coverages -v2
+#python manage.py test core services coverages backends processes -v2
 
 # Run command line tests
 echo "**> running command line tests ..."
 python manage.py syncdb --noinput
 python manage.py loaddata auth_data.json initial_rangetypes.json
-#TODO: Expand this tests:
-#eoxs_add_dataset_series
-#eoxs_register_dataset
-#eoxs_insert_into_series
-#eoxs_check_id
-#eoxs_list_ids
-#eoxs_load_rangetypes
-#eoxs_list_rangetypes
-#eoxs_synchronize
-#eoxs_remove_from_series
-#eoxs_deregister_dataset
-#compare with expected
+python manage.py eoxs_load_rangetypes << EOF
+[{
+    "bands": [
+        {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+            "description": "MERIS first band",
+            "gdal_interpretation": "Undefined",
+            "identifier": "MERIS_radiance_01_uint16",
+            "name": "MERIS_radiance_01_uint16",
+            "nil_values": [
+                {
+                    "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+                    "value": 0
+                }
+            ],
+            "uom": "W.m-2.sr-1.nm-1"
+        },
+        {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+            "description": "MERIS uint16 second band",
+            "gdal_interpretation": "Undefined",
+            "identifier": "MERIS_radiance_02_uint16",
+            "name": "MERIS_radiance_02_uint16",
+            "nil_values": [
+                {
+                    "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+                    "value": 0
+                }
+            ],
+            "uom": "W.m-2.sr-1.nm-1"
+        },
+        {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+            "description": "MERIS uint16 third band",
+            "gdal_interpretation": "Undefined",
+            "identifier": "MERIS_radiance_03_uint16",
+            "name": "MERIS_radiance_03_uint16",
+            "nil_values": [
+                {
+                    "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+                    "value": 0
+                }
+            ],
+            "uom": "W.m-2.sr-1.nm-1"
+        },
+        {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+            "description": "MERIS uint16 fourth band",
+            "gdal_interpretation": "Undefined",
+            "identifier": "MERIS_radiance_04_uint16",
+            "name": "MERIS_radiance_04_uint16",
+            "nil_values": [
+                {
+                    "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+                    "value": 0
+                }
+            ],
+            "uom": "W.m-2.sr-1.nm-1"
+        },
+        {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+            "description": "MERIS uint16 fifth band",
+            "gdal_interpretation": "Undefined",
+            "identifier": "MERIS_radiance_05_uint16",
+            "name": "MERIS_radiance_05_uint16",
+            "nil_values": [
+                {
+                    "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+                    "value": 0
+                }
+            ],
+            "uom": "W.m-2.sr-1.nm-1"
+        },
+        {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+            "description": "MERIS uint16 sixth band",
+            "gdal_interpretation": "Undefined",
+            "identifier": "MERIS_radiance_06_uint16",
+            "name": "MERIS_radiance_06_uint16",
+            "nil_values": [
+                {
+                    "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+                    "value": 0
+                }
+            ],
+            "uom": "W.m-2.sr-1.nm-1"
+        },
+        {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+            "description": "MERIS uint16 seventh band",
+            "gdal_interpretation": "Undefined",
+            "identifier": "MERIS_radiance_07_uint16",
+            "name": "MERIS_radiance_07_uint16",
+            "nil_values": [
+                {
+                    "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+                    "value": 0
+                }
+            ],
+            "uom": "W.m-2.sr-1.nm-1"
+        },
+        {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+            "description": "MERIS uint16 eighth band",
+            "gdal_interpretation": "Undefined",
+            "identifier": "MERIS_radiance_08_uint16",
+            "name": "MERIS_radiance_08_uint16",
+            "nil_values": [
+                {
+                    "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+                    "value": 0
+                }
+            ],
+            "uom": "W.m-2.sr-1.nm-1"
+        },
+        {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+            "description": "MERIS uint16 ninth band",
+            "gdal_interpretation": "Undefined",
+            "identifier": "MERIS_radiance_09_uint16",
+            "name": "MERIS_radiance_09_uint16",
+            "nil_values": [
+                {
+                    "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+                    "value": 0
+                }
+            ],
+            "uom": "W.m-2.sr-1.nm-1"
+        },
+        {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+            "description": "MERIS uint16 tenth band",
+            "gdal_interpretation": "Undefined",
+            "identifier": "MERIS_radiance_10_uint16",
+            "name": "MERIS_radiance_10_uint16",
+            "nil_values": [
+                {
+                    "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+                    "value": 0
+                }
+            ],
+            "uom": "W.m-2.sr-1.nm-1"
+        },
+        {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+            "description": "MERIS uint16 eleventh band",
+            "gdal_interpretation": "Undefined",
+            "identifier": "MERIS_radiance_11_uint16",
+            "name": "MERIS_radiance_11_uint16",
+            "nil_values": [
+                {
+                    "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+                    "value": 0
+                }
+            ],
+            "uom": "W.m-2.sr-1.nm-1"
+        },
+        {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+            "description": "MERIS uint16 twelfth band",
+            "gdal_interpretation": "Undefined",
+            "identifier": "MERIS_radiance_12_uint16",
+            "name": "MERIS_radiance_12_uint16",
+            "nil_values": [
+                {
+                    "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+                    "value": 0
+                }
+            ],
+            "uom": "W.m-2.sr-1.nm-1"
+        },
+        {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+            "description": "MERIS uint 16 thirteenth band",
+            "gdal_interpretation": "Undefined",
+            "identifier": "MERIS_radiance_13_uint16",
+            "name": "MERIS_radiance_13_uint16",
+            "nil_values": [
+                {
+                    "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+                    "value": 0
+                }
+            ],
+            "uom": "W.m-2.sr-1.nm-1"
+        },
+        {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+            "description": "MERIS uint16 fourteenth band",
+            "gdal_interpretation": "Undefined",
+            "identifier": "MERIS_radiance_14_uint16",
+            "name": "MERIS_radiance_14_uint16",
+            "nil_values": [
+                {
+                    "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+                    "value": 0
+                }
+            ],
+            "uom": "W.m-2.sr-1.nm-1"
+        },
+        {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+            "description": "MERIS uint16 fifteenth band",
+            "gdal_interpretation": "Undefined",
+            "identifier": "MERIS_radiance_15_uint16",
+            "name": "MERIS_radiance_15_uint16",
+            "nil_values": [
+                {
+                    "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+                    "value": 0
+                }
+            ],
+            "uom": "W.m-2.sr-1.nm-1"
+        }
+    ],
+    "data_type": "UInt16",
+    "name": "MERIS_uint16"
+},
+{
+    "bands": [
+        {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Amplitude",
+            "description": "ASAR Amplitude Band",
+            "gdal_interpretation": "Undefined",
+            "identifier": "ASAR_Amplitude",
+            "name": "ASAR_Amplitude",
+            "nil_values": [
+                {
+                    "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+                    "value": 0
+                }
+            ],
+            "uom": "?"
+        }
+    ],
+    "data_type": "UInt16",
+    "name": "ASAR"
+}]
+EOF
+python manage.py eoxs_list_rangetypes
+python manage.py eoxs_add_dataset_series -i MER_FRS_1P_reduced
+python manage.py eoxs_register_dataset -d data/meris/MER_FRS_1P_reduced/*.tif -r MERIS_uint16 --dataset-series MER_FRS_1P_reduced
+python manage.py eoxs_register_dataset -d data/meris/mosaic_MER_FRS_1P_RGB_reduced/*.tif -r RGB
+python manage.py eoxs_register_dataset -d data/asar/*.tiff -m data/asar/*.tiff -r ASAR
+python manage.py eoxs_list_ids
+python manage.py eoxs_insert_into_series -d mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced mosaic_ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced mosaic_ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced -s MER_FRS_1P_reduced
+
+# Send some requests and compare results with expected results
+python manage.py runserver 1>/dev/null 2>&1 &
+PID=$!
+
+curl -o tmp "http://localhost:8000/ows?service=wcs&request=getcapabilities"
+curl -o tmp "http://localhost:8000/ows?service=WCS&version=2.0.1&request=GetCapabilities"
+curl -o tmp "http://localhost:8000/ows?service=WCS&version=2.0.0&request=DescribeCoverage&CoverageId=ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"
+curl -o tmp "http://localhost:8000/ows?service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"
+curl -o tmp "http://localhost:8000/ows?service=wcs&version=2.0.0&request=GetCoverage&CoverageId=ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff"
+diff tmp autotest/expected/WCS20GetCoverageDatasetTestCase.tif
+
+kill `ps --ppid $PID -o pid=`
+
+python manage.py eoxs_remove_from_series -d mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced mosaic_ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced mosaic_ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced -s MER_FRS_1P_reduced
+python manage.py eoxs_deregister_dataset mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced mosaic_ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced mosaic_ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced
+python manage.py eoxs_list_ids
+python manage.py eoxs_check_id -a notused
+python manage.py eoxs_check_id -u ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed
+python manage.py eoxs_check_id -u MER_FRS_1P_reduced
+python manage.py eoxs_add_dataset_series -i test_sync -d data/meris/MER_FRS_1P_reduced/ data/meris/mosaic_MER_FRS_1P_RGB_reduced/ -p "*.tif"
+python manage.py eoxs_synchronize -a
+python manage.py eoxs_list_ids
