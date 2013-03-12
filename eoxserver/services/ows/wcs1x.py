@@ -41,7 +41,7 @@ from eoxserver.services.interfaces import (
     OperationHandlerInterface
 )
 from eoxserver.services.owscommon import (
-    OWSCommonServiceHandler, OWSCommonVersionHandler
+    OWSCommonServiceHandler, OWSCommonVersionHandler, OWSCommon11ExceptionHandler
 )
 from eoxserver.services.ogc import OGCExceptionHandler
 from eoxserver.services.mapserver import (
@@ -118,6 +118,12 @@ class WCS11VersionHandler(OWSCommonVersionHandler):
             "services.interfaces.version": "1.1.0"
         }
     }
+    
+    def _handleException(self, req, exception):
+        schemas = {
+            "http://www.opengis.net/ows/1.1": "http://schemas.opengis.net/ows/1.1.0/owsExceptionReport.xsd"
+        }
+        return OWSCommon11ExceptionHandler(schemas, "1.1.0").handleException(req, exception)
 
 WCS11VersionHandlerImplementation = VersionHandlerInterface.implement(WCS11VersionHandler)
 
@@ -132,6 +138,12 @@ class WCS112VersionHandler(OWSCommonVersionHandler):
             "services.interfaces.version": "1.1.2"
         }
     }
+    
+    def _handleException(self, req, exception):
+        schemas = {
+            "http://www.opengis.net/ows/1.1": "http://schemas.opengis.net/ows/1.1.0/owsExceptionReport.xsd"
+        }
+        return OWSCommon11ExceptionHandler(schemas, "1.1.2").handleException(req, exception)
 
 WCS112VersionHandlerImplementation = VersionHandlerInterface.implement(WCS112VersionHandler)
 
