@@ -489,7 +489,7 @@
         "pk": 1, 
         "model": "coverages.coveragerecord", 
         "fields": {
-            "range_type": 3, 
+            "range_type": 4, 
             "data_source": 2, 
             "automatic": true, 
             "coverage_id": "MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed", 
@@ -500,7 +500,7 @@
         "pk": 2, 
         "model": "coverages.coveragerecord", 
         "fields": {
-            "range_type": 3, 
+            "range_type": 4, 
             "data_source": 2, 
             "automatic": true, 
             "coverage_id": "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed", 
@@ -511,7 +511,7 @@
         "pk": 3, 
         "model": "coverages.coveragerecord", 
         "fields": {
-            "range_type": 3, 
+            "range_type": 4, 
             "data_source": 2, 
             "automatic": true, 
             "coverage_id": "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed", 
@@ -566,7 +566,7 @@
         "pk": 11, 
         "model": "coverages.coveragerecord", 
         "fields": {
-            "range_type": 1, 
+            "range_type": 4, 
             "data_source": null, 
             "automatic": false, 
             "coverage_id": "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_netCDF", 

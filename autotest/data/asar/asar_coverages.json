@@ -53,7 +53,7 @@
         "pk": 10, 
         "model": "coverages.coveragerecord", 
         "fields": {
-            "range_type": 4, 
+            "range_type": 5, 
             "data_source": null, 
             "automatic": false, 
             "coverage_id": "ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775", 
