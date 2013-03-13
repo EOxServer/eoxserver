@@ -264,6 +264,7 @@ python manage.py eoxs_insert_into_series -d mosaic_ENVISAT-MER_FRS_1PNPDE2006081
 
 # Send some requests and compare results with expected results
 python manage.py runserver 1>/dev/null 2>&1 &
+sleep 3
 PID=$!
 
 curl -o tmp1 "http://localhost:8000/ows?service=wcs&request=getcapabilities"
