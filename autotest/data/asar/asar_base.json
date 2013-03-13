@@ -1,6 +1,6 @@
 [
     {
-        "pk": 4, 
+        "pk": 5, 
         "model": "coverages.rangetyperecord", 
         "fields": {
             "name": "ASAR", 
@@ -8,7 +8,7 @@
         }
     }, 
     {
-        "pk": 20, 
+        "pk": 21, 
         "model": "coverages.bandrecord", 
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Amplitude", 
@@ -23,11 +23,11 @@
         }
     }, 
     {
-        "pk": 20, 
+        "pk": 24, 
         "model": "coverages.rangetype2band", 
         "fields": {
-            "range_type": 4, 
-            "band": 20, 
+            "range_type": 5, 
+            "band": 21, 
             "no": 1
         }
     }

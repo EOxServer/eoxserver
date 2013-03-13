@@ -1,6 +1,6 @@
 [
     {
-        "pk": 5, 
+        "pk": 6, 
         "model": "coverages.bandrecord", 
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
@@ -15,7 +15,7 @@
         }
     }, 
     {
-        "pk": 6, 
+        "pk": 7, 
         "model": "coverages.bandrecord", 
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
@@ -30,7 +30,7 @@
         }
     }, 
     {
-        "pk": 7, 
+        "pk": 8, 
         "model": "coverages.bandrecord", 
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
@@ -45,7 +45,7 @@
         }
     }, 
     {
-        "pk": 8, 
+        "pk": 9, 
         "model": "coverages.bandrecord", 
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
@@ -60,7 +60,7 @@
         }
     }, 
     {
-        "pk": 9, 
+        "pk": 10, 
         "model": "coverages.bandrecord", 
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
@@ -75,7 +75,7 @@
         }
     }, 
     {
-        "pk": 10, 
+        "pk": 11, 
         "model": "coverages.bandrecord", 
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
@@ -90,7 +90,7 @@
         }
     }, 
     {
-        "pk": 11, 
+        "pk": 12, 
         "model": "coverages.bandrecord", 
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
@@ -105,7 +105,7 @@
         }
     }, 
     {
-        "pk": 12, 
+        "pk": 13, 
         "model": "coverages.bandrecord", 
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
@@ -120,7 +120,7 @@
         }
     }, 
     {
-        "pk": 13, 
+        "pk": 14, 
         "model": "coverages.bandrecord", 
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
@@ -135,7 +135,7 @@
         }
     }, 
     {
-        "pk": 14, 
+        "pk": 15, 
         "model": "coverages.bandrecord", 
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
@@ -150,7 +150,7 @@
         }
     }, 
     {
-        "pk": 15, 
+        "pk": 16, 
         "model": "coverages.bandrecord", 
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
@@ -165,7 +165,7 @@
         }
     }, 
     {
-        "pk": 16, 
+        "pk": 17, 
         "model": "coverages.bandrecord", 
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
@@ -180,7 +180,7 @@
         }
     }, 
     {
-        "pk": 17, 
+        "pk": 18, 
         "model": "coverages.bandrecord", 
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
@@ -195,7 +195,7 @@
         }
     }, 
     {
-        "pk": 18, 
+        "pk": 19, 
         "model": "coverages.bandrecord", 
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
@@ -210,7 +210,7 @@
         }
     }, 
     {
-        "pk": 19, 
+        "pk": 20, 
         "model": "coverages.bandrecord", 
         "fields": {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
@@ -225,7 +225,7 @@
         }
     }, 
     {
-        "pk": 3, 
+        "pk": 4, 
         "model": "coverages.rangetyperecord", 
         "fields": {
             "name": "MERIS_uint16", 
@@ -233,137 +233,137 @@
         }
     }, 
     {
-        "pk": 5, 
-        "model": "coverages.rangetype2band", 
-        "fields": {
-            "range_type": 3, 
-            "band": 5, 
-            "no": 1
-        }
-    }, 
-    {
-        "pk": 6, 
-        "model": "coverages.rangetype2band", 
-        "fields": {
-            "range_type": 3, 
-            "band": 6, 
-            "no": 2
-        }
-    }, 
-    {
-        "pk": 7, 
-        "model": "coverages.rangetype2band", 
-        "fields": {
-            "range_type": 3, 
-            "band": 7, 
-            "no": 3
-        }
-    }, 
-    {
-        "pk": 8, 
-        "model": "coverages.rangetype2band", 
-        "fields": {
-            "range_type": 3, 
-            "band": 8, 
-            "no": 4
-        }
-    }, 
-    {
         "pk": 9, 
         "model": "coverages.rangetype2band", 
         "fields": {
-            "range_type": 3, 
-            "band": 9, 
-            "no": 5
+            "range_type": 4, 
+            "band": 6, 
+            "no": 1
         }
     }, 
     {
         "pk": 10, 
         "model": "coverages.rangetype2band", 
         "fields": {
-            "range_type": 3, 
-            "band": 10, 
-            "no": 6
+            "range_type": 4, 
+            "band": 7, 
+            "no": 2
         }
     }, 
     {
         "pk": 11, 
         "model": "coverages.rangetype2band", 
         "fields": {
-            "range_type": 3, 
-            "band": 11, 
-            "no": 7
+            "range_type": 4, 
+            "band": 8, 
+            "no": 3
         }
     }, 
     {
         "pk": 12, 
         "model": "coverages.rangetype2band", 
         "fields": {
-            "range_type": 3, 
-            "band": 12, 
-            "no": 8
+            "range_type": 4, 
+            "band": 9, 
+            "no": 4
         }
     }, 
     {
         "pk": 13, 
         "model": "coverages.rangetype2band", 
         "fields": {
-            "range_type": 3, 
-            "band": 13, 
-            "no": 9
+            "range_type": 4, 
+            "band": 10, 
+            "no": 5
         }
     }, 
     {
         "pk": 14, 
         "model": "coverages.rangetype2band", 
         "fields": {
-            "range_type": 3, 
-            "band": 14, 
-            "no": 10
+            "range_type": 4, 
+            "band": 11, 
+            "no": 6
         }
     }, 
     {
         "pk": 15, 
         "model": "coverages.rangetype2band", 
         "fields": {
-            "range_type": 3, 
-            "band": 15, 
-            "no": 11
+            "range_type": 4, 
+            "band": 12, 
+            "no": 7
         }
     }, 
     {
         "pk": 16, 
         "model": "coverages.rangetype2band", 
         "fields": {
-            "range_type": 3, 
-            "band": 16, 
-            "no": 12
+            "range_type": 4, 
+            "band": 13, 
+            "no": 8
         }
     }, 
     {
         "pk": 17, 
         "model": "coverages.rangetype2band", 
         "fields": {
-            "range_type": 3, 
-            "band": 17, 
-            "no": 13
+            "range_type": 4, 
+            "band": 14, 
+            "no": 9
         }
     }, 
     {
         "pk": 18, 
         "model": "coverages.rangetype2band", 
         "fields": {
-            "range_type": 3, 
-            "band": 18, 
-            "no": 14
+            "range_type": 4, 
+            "band": 15, 
+            "no": 10
         }
     }, 
     {
         "pk": 19, 
         "model": "coverages.rangetype2band", 
         "fields": {
-            "range_type": 3, 
+            "range_type": 4, 
+            "band": 16, 
+            "no": 11
+        }
+    }, 
+    {
+        "pk": 20, 
+        "model": "coverages.rangetype2band", 
+        "fields": {
+            "range_type": 4, 
+            "band": 17, 
+            "no": 12
+        }
+    }, 
+    {
+        "pk": 21, 
+        "model": "coverages.rangetype2band", 
+        "fields": {
+            "range_type": 4, 
+            "band": 18, 
+            "no": 13
+        }
+    }, 
+    {
+        "pk": 22, 
+        "model": "coverages.rangetype2band", 
+        "fields": {
+            "range_type": 4, 
             "band": 19, 
+            "no": 14
+        }
+    }, 
+    {
+        "pk": 23, 
+        "model": "coverages.rangetype2band", 
+        "fields": {
+            "range_type": 4, 
+            "band": 20, 
             "no": 15
         }
     }
