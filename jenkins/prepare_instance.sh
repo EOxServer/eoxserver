@@ -9,6 +9,7 @@ if [ -d ".venv" ]; then
 else
     echo "**> creating virtualenv..."
     virtualenv --system-site-packages .venv
+    pip install pysqlite
 fi
 
 # activate the virtual environment
