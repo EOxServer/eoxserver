@@ -149,6 +149,8 @@ class Command(CommandOutputMixIn, BaseCommand):
 
                 self._error( dsType, id, "%s: %s"%(type(e).__name__, str(e)) )
         
+                continue # continue by next dataset
+            
             success_count += 1 #increment the success counter  
             self.print_msg( "%s successfully synchronised."%dsType,2) 
 
@@ -159,7 +161,7 @@ class Command(CommandOutputMixIn, BaseCommand):
         error_count = count - success_count
 
         if ( error_count > 0 ) : 
-            self.print_msg( "Failed to synchronised %d objects." % (
+            self.print_msg( "Failed to synchronise %d objects." % (
                 error_count ) , 1 )  
 
         if ( success_count > 0 ) : 
@@ -167,3 +169,6 @@ class Command(CommandOutputMixIn, BaseCommand):
                 success_count , count ) , 1 )
         else : 
             self.print_msg( "No object synchronised." ) 
+
+        if ( error_count > 0 ) : 
+            raise CommandError("Not all objects could be synchronised.")

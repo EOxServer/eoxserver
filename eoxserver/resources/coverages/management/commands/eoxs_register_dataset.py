@@ -577,8 +577,17 @@ class Command(CommandOutputMixIn, BaseCommand):
                 # try to extract geo-metadata
                 # NOTE: The geo-metadata can be extracted from local data only!
                 if _geo_metadata is None : 
-                    _geo_metadata = _extract_geo_md( df, opt["srid"] )
+                    try:
+                        _geo_metadata = _extract_geo_md( df, opt["srid"] )
+                    except Exception as e:
+                        # print stack trace if required 
+                        if self.traceback : 
+                            self.print_msg(traceback.format_exc())
 
+                        self._error( cid, "%s: %s"%(type(e).__name__, str(e)) )
+
+                        continue # continue by next dataset 
+            
             elif source_type == "ftp" :
 
                 prm["remote_path"]    = df
@@ -633,10 +642,10 @@ class Command(CommandOutputMixIn, BaseCommand):
 
             except Exception as e: 
 
+                # print stack trace if required 
                 if self.traceback : 
                     self.print_msg(traceback.format_exc())
 
-                # print stack trace if required 
                 self._error( cid, "%s: %s"%(type(e).__name__, str(e)) )
 
                 continue # continue by next dataset 
@@ -661,3 +670,5 @@ class Command(CommandOutputMixIn, BaseCommand):
         else : 
             self.print_msg( "No dataset registered." ) 
 
+        if ( error_count > 0 ) : 
+            raise CommandError("Not all datasets could be registered.")

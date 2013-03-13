@@ -182,3 +182,6 @@ class Command(CommandOutputMixIn, BaseCommand):
                 success_count , count , ("","s")[count!=1] ) , 1 )
         else : 
             self.print_msg( "No dataset deregistered." ) 
+
+        if ( error_count > 0 ) : 
+            raise CommandError("Not all datasets could be deregistered.")
