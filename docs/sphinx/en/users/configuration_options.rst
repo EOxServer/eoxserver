@@ -350,7 +350,7 @@ instance <Autotest>`.
 
     binary_raster_comparison_enabled
 
-Enable/disable the comparison of binary rasters in test runs. If disabled these
+Enable/disable the binary comparison of rasters in test runs. If disabled these
 tests will be skipped. By default this feature is activated but might be turned
 off in order to prevent test failures originating on platform differences.
 
