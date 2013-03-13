@@ -68,12 +68,3 @@ NilValue
 
 .. autoclass:: NilValue 
    :members:
-
-Auxiliary Data 
---------------
-
-.. autodata:: DATA_TYPE
-.. autodata:: RDATA_TYPE
-.. autodata:: GDAL_INTERPRETATION
-.. autodata:: RGDAL_INTERPRETATION
-

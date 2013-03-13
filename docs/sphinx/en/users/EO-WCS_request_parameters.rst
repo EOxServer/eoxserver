@@ -250,6 +250,7 @@ parameters that are available with GetCoverage requests.
     |                           | - by coverage(s) (not implemented yet)                    |                                  |                                |
     |                           |                                                           |                                  |                                |
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
+
 \
 
 .. [1]  Version, acceptVersions: Support for EO-WCS is available only together 
