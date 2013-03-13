@@ -266,12 +266,21 @@ python manage.py eoxs_insert_into_series -d mosaic_ENVISAT-MER_FRS_1PNPDE2006081
 python manage.py runserver 1>/dev/null 2>&1 &
 PID=$!
 
-curl -o tmp "http://localhost:8000/ows?service=wcs&request=getcapabilities"
-curl -o tmp "http://localhost:8000/ows?service=WCS&version=2.0.1&request=GetCapabilities"
-curl -o tmp "http://localhost:8000/ows?service=WCS&version=2.0.0&request=DescribeCoverage&CoverageId=ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"
-curl -o tmp "http://localhost:8000/ows?service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"
-curl -o tmp "http://localhost:8000/ows?service=wcs&version=2.0.0&request=GetCoverage&CoverageId=ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff"
-diff tmp autotest/expected/WCS20GetCoverageDatasetTestCase.tif
+curl -o tmp1 "http://localhost:8000/ows?service=wcs&request=getcapabilities"
+xmllint --format tmp1 > tmp2
+diff tmp2 autotest/expected/command_line_test_getcapabilities.xml
+curl -o tmp1 "http://localhost:8000/ows?service=WCS&version=2.0.1&request=GetCapabilities"
+xmllint --format tmp1 > tmp2
+diff tmp2 autotest/expected/command_line_test_getcapabilities.xml
+curl -o tmp1 "http://localhost:8000/ows?service=WCS&version=2.0.0&request=DescribeCoverage&CoverageId=ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"
+xmllint --format tmp1 > tmp2
+diff tmp2 autotest/expected/command_line_test_describecoverage.xml
+curl -o tmp1 "http://localhost:8000/ows?service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"
+xmllint --format tmp1 > tmp2
+diff tmp2 autotest/expected/command_line_test_describeeocoverageset.xml
+curl -o tmp1 "http://localhost:8000/ows?service=wcs&version=2.0.0&request=GetCoverage&CoverageId=ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff"
+diff tmp1 autotest/expected/WCS20GetCoverageDatasetTestCase.tif
+rm tmp1 tmp2
 
 kill `ps --ppid $PID -o pid=`
 
