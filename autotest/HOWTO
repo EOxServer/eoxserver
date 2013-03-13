@@ -32,39 +32,26 @@
 # Autotest HowTo #
 ##################
 
----------------------------------
-1. How to configure test instance
----------------------------------
+-------------------------------------
+1. How to configure the test instance
+-------------------------------------
 
------------------------------
-1.1. Using eoxserver-admin.py
------------------------------
+# See also prepare_instance.sh in jenkins directory.
+
+# Note that in order to allow 'svn update' to still work the contents of the 
+# autotest/autotest/ subdirectory would need to be moved on directory higher 
+# to autotest/ and the paths in the config files adjusted accordingly. This is 
+# skipped in the following steps.
 
 cd <path_to_eoxserver_directory>
-svn co http://eoxserver.org/svn/trunk . # Note that the directories should not be moved or renamed because of relative paths.
+svn co http://eoxserver.org/svn/trunk .
 mv autotest tmp1
 eoxserver-admin.py create_instance autotest --init_spatialite
-mv autotest/manage.py tmp1/
+cp -R tmp1/* autotest/autotest
+rm -r tmp1
 
-# Django >= 1.4
-mv autotest/autotest/ tmp2
-rmdir autotest/
-
-## Django < 1.4
-#mv autotest tmp2
-
-mv tmp1 autotest
-
-mv tmp2/settings.py autotest/
-mv tmp2/conf/eoxserver.conf autotest/conf/
-mv tmp2/wsgi.py autotest/
-mv tmp2/data/config.sqlite autotest/data/
-mv tmp2/data/init_spatialite-2.3.sql autotest/data/
-rm -r tmp2
-
-# Django >= 1.4
-sed -e 's/\/autotest\/autotest/\/autotest/' -i autotest/settings.py
-sed -e 's/\/autotest\/autotest/\/autotest/' -i autotest/conf/eoxserver.conf
+sed -e 's/pdp_type=none/pdp_type=dummypdp/' -i autotest/autotest/conf/eoxserver.conf
+sed -e 's/allowed_actions=/allowed_actions=Add,Delete/' -i autotest/autotest/conf/eoxserver.conf
 
 cd eoxserver/processing/gdal/
 make
@@ -72,47 +59,7 @@ cd ../../../
 
 export PYTHONPATH=`pwd`
 cd autotest
-python manage.py syncdb
-
--------------------------
-1.2. Manual configuration
--------------------------
-
-cd <path_to_eoxserver_directory>
-svn co http://eoxserver.org/svn/trunk . # Note that the directories should not be moved or renamed because of relative paths.
-cd autotest
-cp ../eoxserver/conf/TEMPLATE_eoxserver.conf conf/eoxserver.conf
-cp ../eoxserver/conf/TEMPLATE_config.sqlite data/config.sqlite
-cp ../eoxserver/conf/TEMPLATE_settings.py settings.py
-cp ../eoxserver/conf/init_spatialite-2.3.sql data/
-
-vi conf/eoxserver.conf
-#--------
-# Adjust:
-#--------
-# instance_id=
-# logging_filename=<path_to_eoxserver_directory>/autotest/logs/eoxserver.log
-# module_dirs=
-# allowed_actions=Add,Delete
-# path_wcst_temp=<path_to_eoxserver_directory>/autotest/wcst_remp 
-# path_wcst_perm=<path_to_eoxserver_directory>/autotest/wcst_perm 
-
-vi settings.py
-#--------
-# Adjust:
-#--------
-# PROJECT_DIR = '<path_to_eoxserver_directory>/autotest'
-# DATABASES -> 'NAME': '<path_to_eoxserver_directory>/autotest/data/config.sqlite',
-# MEDIA_ROOT = join('../eoxserver/', 'media')
-# TEMPLATE_DIRS -> join('../eoxserver/', 'templates'),
-# FIXTURE_DIRS -> join(PROJECT_DIR, 'data/fixtures'),
-
-# Obtain manage.py from installed version of django:
-django-admin[.py] startproject tmp
-cp tmp/manage.py .
-rm -r tmp/
-
-export PYTHONPATH="<path_to_eoxserver_directory>"
+ln -s autotest/data/ data
 python manage.py syncdb
 
 
@@ -120,8 +67,10 @@ python manage.py syncdb
 2. How to load test data
 ------------------------
 
-cd <path_to_eoxserver_directory>/autotest
-export PYTHONPATH="<path_to_eoxserver_directory>"
+# Perform steps in "1. How to configure test instance"
+cd <path_to_eoxserver_directory>
+export PYTHONPATH=`pwd`
+cd autotest
 python manage.py loaddata data/fixtures/some_fixture.json ...
 
 # To load all test fixtures:
@@ -150,8 +99,9 @@ List of fixtures:
 
 # Perform steps in "1. How to configure test instance"
 # Optionally perform steps in "2. How to load test data"
-cd <path_to_eoxserver_directory>/autotest
-export PYTHONPATH="<path_to_eoxserver_directory>"
+cd <path_to_eoxserver_directory>
+export PYTHONPATH=`pwd`
+cd autotest
 python manage.py runserver
 
 
@@ -159,8 +109,9 @@ python manage.py runserver
 4. How to update fixtures
 -------------------------
 
-cd <path_to_eoxserver_directory>/autotest
-export PYTHONPATH="<path_to_eoxserver_directory>"
+cd <path_to_eoxserver_directory>
+export PYTHONPATH=`pwd`
+cd autotest
 python manage.py dumpdata --format=json --indent=4 > tmp.json
 # Inspect file e.g. with: meld tmp.json data/fixtures/initial_data.json
 mv tmp.json data/fixtures/<json-file>
@@ -170,9 +121,15 @@ mv tmp.json data/fixtures/<json-file>
 5. How to run unittests
 -----------------------
 
-cd <path_to_eoxserver_directory>/autotest
-export PYTHONPATH="<path_to_eoxserver_directory>"
-export XML_CATALOG_FILES="<path_to_eoxserver_directory>/schemas/catalog.xml"
+# See also run_tests.sh in jenkins directory.
+
+# Perform steps in "1. How to configure test instance"
+
+cd <path_to_eoxserver_directory>
+export PYTHONPATH=`pwd`
+export XML_CATALOG_FILES="`pwd`/schemas/catalog.xml"
+cd autotest
+# Make sure a symbolic link "data" pointing to "autotest/data/" is present.
 
 # services only
 python manage.py test services
@@ -184,20 +141,6 @@ python manage.py test services coverages backends processes core
 python manage.py test
 # this also runs some django tests.
 
-# Due to some behaviour of underlying software such as GEOSS the tests for the 
-#services component need to be split up. The following splitting is known to 
-# work:
-
-python manage.py test services.Empty
-python manage.py test services.WCS1
-python manage.py test services.WCS20GetCap
-python manage.py test services.WCSVersion
-python manage.py test services.WCS20DescribeCoverage
-python manage.py test services.WCS20DescribeEOCoverageSet
-python manage.py test services.WCS20GetCoverage
-python manage.py test services.WCS20Post
-python manage.py test services.WMS
-python manage.py test services.Sec
 
 # Running single tests
 python manage.py test services.<beginnign-of-test-name>
@@ -220,8 +163,9 @@ mv <tmpfilename> <filename>
 
 # To compare an expected XML document with the actual XML response 
 # use the following command
-cd <path_to_eoxserver_directory>/autotest
-export PYTHONPATH="<path_to_eoxserver_directory>"
+cd <path_to_eoxserver_directory>
+export PYTHONPATH=`pwd`
+cd autotest
 ../tools/xcomp.py responses/<XML-document> expected/<XML-document> 
 
 #The XML comparator parses the XML documents and compares 
@@ -257,7 +201,7 @@ xsltproc schematron_xslt1/iso_dsdl_include.xsl wcseo/1.0/wcsEOSchematron.sch | x
 2. Run Selenium tests
 3. Run test instance, load data via CLI commands, run some requests, and 
    compare responses with unit tests results
-4. If libxml isn't built with schematron support run schematron tests (see 
+4. If libxml is built with schematron support run schematron tests (see 
    above)
 
 
