@@ -1523,8 +1523,14 @@ class DatasetSeriesWrapper(EOMetadataWrapper, ResourceWrapper):
             self.__block_md_update = False
     
     def _aggregateMetadata(self, eo_metadata_set):
-        begin_time = min(eo_metadata_set.values_list('timestamp_begin', flat=True))
-        end_time = max(eo_metadata_set.values_list('timestamp_end', flat=True))
+        try:
+            begin_time = min(eo_metadata_set.values_list('timestamp_begin', flat=True))
+            end_time = max(eo_metadata_set.values_list('timestamp_end', flat=True))
+        # Work around for issue in Django 1.5
+        except TypeError:
+            begin_time = min([t.timestamp_begin for t in eo_metadata_set])
+            end_time = max([t.timestamp_end for t in eo_metadata_set])
+        
         footprint = eo_metadata_set.aggregate(
             Union('footprint')
         )["footprint__union"]
