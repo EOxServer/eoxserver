@@ -9,11 +9,13 @@ if [ -d ".venv" ]; then
 else
     echo "**> creating virtualenv..."
     virtualenv --system-site-packages .venv
-    pip install pysqlite
 fi
 
 # activate the virtual environment
 source .venv/bin/activate
+
+# install pysqlite via pip
+pip install pysqlite
 
 # Install the required Django version
 case $DJANGO in
