@@ -16,7 +16,7 @@ python manage.py test services -v2
 echo "**> running command line tests ..."
 
 # Restet PostGIS database if used
-if [ $DB == 'postgis' ]; then
+if [ $DB == "postgis" ]; then
     dropdb eoxserver_testing
     createdb -T template_postgis -O jenkins eoxserver_testing
 fi
@@ -274,22 +274,28 @@ python manage.py runserver 1>/dev/null 2>&1 &
 sleep 3
 PID=$!
 
-curl -o tmp1 "http://localhost:8000/ows?service=wcs&request=getcapabilities"
-xmllint --format tmp1 > tmp2
-diff tmp2 autotest/expected/command_line_test_getcapabilities.xml
-curl -o tmp1 "http://localhost:8000/ows?service=WCS&version=2.0.1&request=GetCapabilities"
-xmllint --format tmp1 > tmp2
-diff tmp2 autotest/expected/command_line_test_getcapabilities.xml
-curl -o tmp1 "http://localhost:8000/ows?service=WCS&version=2.0.0&request=DescribeCoverage&CoverageId=ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"
-xmllint --format tmp1 > tmp2
-diff tmp2 autotest/expected/command_line_test_describecoverage.xml
-curl -o tmp1 "http://localhost:8000/ows?service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"
-xmllint --format tmp1 > tmp2
-diff tmp2 autotest/expected/command_line_test_describeeocoverageset.xml
-curl -o tmp1 "http://localhost:8000/ows?service=wcs&version=2.0.0&request=GetCoverage&CoverageId=ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff"
-diff tmp1 autotest/expected/WCS20GetCoverageDatasetTestCase.tif
-rm tmp1 tmp2
+curl -o tmp "http://localhost:8000/ows?service=wcs&request=getcapabilities"
+xmllint --format tmp > tmp1
+curl -o tmp "http://localhost:8000/ows?service=WCS&version=2.0.1&request=GetCapabilities"
+xmllint --format tmp > tmp2
+curl -o tmp "http://localhost:8000/ows?service=WCS&version=2.0.0&request=DescribeCoverage&CoverageId=ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"
+xmllint --format tmp > tmp3
+curl -o tmp "http://localhost:8000/ows?service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"
+xmllint --format tmp > tmp4
+curl -o tmp "http://localhost:8000/ows?service=wcs&version=2.0.0&request=GetCoverage&CoverageId=ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff"
 
+# Perform binary comparison only on reference platform
+if [ $DB == "spatialite" ]; then
+    diff tmp1 autotest/expected/command_line_test_getcapabilities.xml
+    diff tmp2 autotest/expected/command_line_test_getcapabilities.xml
+    diff tmp3 autotest/expected/command_line_test_describecoverage.xml
+    diff tmp4 autotest/expected/command_line_test_describeeocoverageset.xml
+fi
+if [ $OS == "Ubuntu" ]; then
+    diff tmp autotest/expected/WCS20GetCoverageDatasetTestCase.tif
+fi
+
+rm tmp tmp1 tmp2 tmp3 tmp4
 kill `ps --ppid $PID -o pid=`
 
 python manage.py eoxs_remove_from_series -d mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced mosaic_ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced mosaic_ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced -s MER_FRS_1P_reduced --traceback

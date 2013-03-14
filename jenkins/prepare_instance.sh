@@ -44,7 +44,7 @@ rm -r tmp1
 sed -e 's/pdp_type=none/pdp_type=dummypdp/' -i autotest/autotest/conf/eoxserver.conf
 sed -e 's/allowed_actions=/allowed_actions=Add,Delete/' -i autotest/autotest/conf/eoxserver.conf
 
-if [ $OS != 'Ubuntu' ]; then
+if [ $OS != "Ubuntu" ]; then
   sed -e 's/#binary_raster_comparison_enabled=false/binary_raster_comparison_enabled=false/' -i autotest/autotest/conf/eoxserver.conf
 fi
 
