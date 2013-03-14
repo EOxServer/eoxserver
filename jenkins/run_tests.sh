@@ -14,6 +14,13 @@ python manage.py test services -v2
 
 # Run command line tests
 echo "**> running command line tests ..."
+
+# Restet PostGIS database if used
+if [ $DB == 'postgis' ]; then
+    dropdb eoxserver_testing
+    createdb -T template_postgis -O jenkins eoxserver_testing
+fi
+
 python manage.py syncdb --noinput --traceback
 python manage.py loaddata auth_data.json initial_rangetypes.json --traceback
 python manage.py eoxs_load_rangetypes --traceback << EOF
