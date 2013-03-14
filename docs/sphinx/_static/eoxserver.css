@@ -4,3 +4,11 @@
   border: 1px solid yellow;
   background-color: #FFFFC0;
 }
+
+/* Make sidebar a bit wider (to fit ohloh badge) */
+div.sphinxsidebar {
+	width: 250px;
+}
+div.bodywrapper {
+	margin-left: 250px;
+}
