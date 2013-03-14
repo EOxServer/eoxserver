@@ -6,6 +6,7 @@
   # Authors: Stephan Krause <stephan.krause@eox.at>
   #          Stephan Meissl <stephan.meissl@eox.at>
   #          Fabian Schindler <fabian.schindler@eox.at>
+  #          Marko Locher <marko.locher@eox.at>
   #
   #-----------------------------------------------------------------------------
   # Copyright (C) 2011 EOX IT Services GmbH
@@ -73,7 +74,7 @@ added with the following `yum` command::
 The second repository to be added is `EPEL (Extra Packages for Enterprise
 Linux) <http://fedoraproject.org/wiki/EPEL>`_ again via a simple `yum` command::
 
-    sudo rpm -Uvh http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-7.noarch.rpm
+    sudo rpm -Uvh http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
 
 Finally EOxServer is available from the yum repository at `packages.eox.at 
 <http://packages.eox.at>`_. This repository offers current versions of 
@@ -84,7 +85,7 @@ to use this repository as detailed below but it is highly recommended in
 order for all features of EOxServer to work correctly. The repository is 
 again easily added via a single `yum` command::
 
-    sudo rpm -Uvh http://yum.packages.eox.at/el/eox-release-6-1.noarch.rpm
+    sudo rpm -Uvh http://yum.packages.eox.at/el/eox-release-6-2.noarch.rpm
 
 
 Installing EOxServer
