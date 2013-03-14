@@ -108,7 +108,7 @@ Further packages may be required if additional features (e.g: a full DBMS)
 are desired. The following command for example installs all packages needed 
 when using SQLite::
 
-    sudo yum install sqlite libspatialite pysqlite pyspatialite
+    sudo yum install sqlite libspatialite python-pysqlite python-pyspatialite
 
 Now that EOxServer is properly install the next step is to :ref:`create and configure
 an instance <Creating an Instance>`. 
