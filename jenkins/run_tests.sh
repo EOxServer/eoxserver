@@ -1,5 +1,7 @@
 #!/bin/sh -xe
 
+OS=`facter operatingsystem`
+
 # Activate the virtual environment
 cd $WORKSPACE
 source .venv/bin/activate
@@ -53,7 +55,7 @@ if [ $OS == "Ubuntu" ]; then
     diff tmp expected/WCS20GetCoverageDatasetTestCase.tif
 fi
 
-rm tmp1 tmp2
+rm tmp tmp1 tmp2 tmp3 tmp4
 kill `ps --ppid $PID -o pid=`
 
 python manage.py eoxs_synchronize --all --traceback
