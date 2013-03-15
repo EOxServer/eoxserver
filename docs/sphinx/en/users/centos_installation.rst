@@ -88,6 +88,8 @@ again easily added via a single `yum` command::
     sudo rpm -Uvh http://yum.packages.eox.at/el/eox-release-6-2.noarch.rpm
 
 
+.. _centos-installing-eoxserver-yum:
+
 Installing EOxServer
 --------------------
 
@@ -153,7 +155,8 @@ Special pysqlite considerations
 When used with `spatialite <http://www.gaia-gis.it/spatialite/>`_ EOxServer 
 also requires `pysqlite <http://code.google.com/p/pysqlite/>`_ and 
 `pyspatialite` which can be either installed as RPMs from `packages.eox.at 
-<http://packages.eox.at>`_ or from source.
+<http://packages.eox.at>`_ (see :ref:`centos-installing-eoxserver-yum` 
+above) or from source.
 
 If installing from source please make sure to adjust the 
 `SQLITE_OMIT_LOAD_EXTENSION` parameter in ``setup.cfg`` which is set by 
