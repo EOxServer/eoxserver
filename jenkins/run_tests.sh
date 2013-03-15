@@ -56,4 +56,4 @@ fi
 rm tmp1 tmp2
 kill `ps --ppid $PID -o pid=`
 
-python manage.py eoxs_synchronize -a --traceback
+python manage.py eoxs_synchronize --all --traceback
