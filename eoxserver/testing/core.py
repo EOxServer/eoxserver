@@ -149,8 +149,14 @@ class CommandFaultTestCase(CommandTestCase):
 def _expand_regex_classes(module, regex):
     ret = []
     for item in dir(module):
-        if re.match(regex, item):
-            ret.append(item)
+        cls = getattr(module, item)
+        try:
+            if ((issubclass(cls, TestCase) or 
+                 issubclass(cls, TransactionTestCase)) 
+                and re.match(regex, item)):
+                ret.append(item)
+        except TypeError:
+            pass
     if not ret:
         raise ValueError("Expression %s did not match any test." % regex)
     return ret
@@ -179,10 +185,19 @@ class EOxServerTestRunner(DjangoTestSuiteRunner):
     Note that we're using regex and thus `services.WCS20\*` would get expanded 
     to all test cases of the `services` app starting with `WCS2` and followed 
     by any number of `0`\ s.
+    
+    Add test cases to exclude after a "|" character 
+    e.g. services.WCS20GetCoverage|WCS20GetCoverageReprojectedEPSG3857DatasetTestCase,WCS20GetCoverageOutputCRSotherUoMDatasetTestCase
     """
     def build_suite(self, test_labels, extra_tests=None, **kwargs):
         new_labels = []
         for test_label in test_labels:
+            parts = test_label.split('|')
+            test_labels_exclude = None
+            if len(parts) == 2:
+                test_label = parts[0]
+                test_labels_exclude = parts[1].split(',')
+            
             parts = test_label.split('.')
             
             if len(parts) > 3 or len(parts) < 1:
@@ -195,7 +210,8 @@ class EOxServerTestRunner(DjangoTestSuiteRunner):
             classes = None
             
             if len(parts) == 1:
-                new_labels.append(parts[0])
+                classes = _expand_regex_classes(test_module, '')
+                new_labels.extend([".".join((parts[0], klass)) for klass in classes])
             elif len(parts) == 2:
                 classes = _expand_regex_classes(test_module, parts[1])
                 new_labels.extend([".".join((parts[0], klass)) for klass in classes])
@@ -204,5 +220,12 @@ class EOxServerTestRunner(DjangoTestSuiteRunner):
                 for klass in classes:
                     methods = _expand_regex_method(test_module, klass, parts[2])
                     new_labels.extend([".".join((parts[0], klass, method)) for method in methods])
+            
+            if test_labels_exclude is not None:
+                for test_label_exclude in test_labels_exclude:
+                    try:
+                        new_labels.remove(".".join((parts[0], test_label_exclude)))
+                    except ValueError:
+                        raise ValueError("Test '%s' to exclude not found." % test_label_exclude)
         
         return super(EOxServerTestRunner, self).build_suite(new_labels, extra_tests, **kwargs)
