@@ -1,6 +1,6 @@
 .. Module eoxserver.core.records
   #-----------------------------------------------------------------------------
-  # $Id: rfc2.rst 1495 2012-03-09 11:57:36Z martin.paces $
+  # $Id$
   #
   # Project: EOxServer <http://eoxserver.org>
   # Authors: Stephan Krause <stephan.krause@eox.at>
