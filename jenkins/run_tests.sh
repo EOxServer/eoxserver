@@ -32,15 +32,15 @@ python manage.py runserver 1>/dev/null 2>&1 &
 sleep 3
 PID=$!
 
-curl -o tmp "http://localhost:8000/ows?service=wcs&request=getcapabilities"
+curl -sS -o tmp "http://localhost:8000/ows?service=wcs&request=getcapabilities"
 xmllint --format tmp > tmp1
-curl -o tmp "http://localhost:8000/ows?service=WCS&version=2.0.1&request=GetCapabilities"
+curl -sS -o tmp "http://localhost:8000/ows?service=WCS&version=2.0.0&request=GetCapabilities"
 xmllint --format tmp > tmp2
-curl -o tmp "http://localhost:8000/ows?service=WCS&version=2.0.0&request=DescribeCoverage&CoverageId=ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"
+curl -sS -o tmp "http://localhost:8000/ows?service=WCS&version=2.0.0&request=DescribeCoverage&CoverageId=ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"
 xmllint --format tmp > tmp3
-curl -o tmp "http://localhost:8000/ows?service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"
+curl -sS -o tmp "http://localhost:8000/ows?service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"
 xmllint --format tmp > tmp4
-curl -o tmp "http://localhost:8000/ows?service=wcs&version=2.0.0&request=GetCoverage&CoverageId=ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff"
+curl -sS -o tmp "http://localhost:8000/ows?service=wcs&version=2.0.0&request=GetCoverage&CoverageId=ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff"
 
 # Perform binary comparison only on reference platform
 if [ $DB == "spatialite" ]; then
