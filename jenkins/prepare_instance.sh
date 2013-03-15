@@ -14,9 +14,6 @@ fi
 # activate the virtual environment
 source .venv/bin/activate
 
-# install pysqlite via pip
-pip install pysqlite
-
 # Install the required Django version
 case $DJANGO in
     "django1.3")
@@ -65,7 +62,7 @@ sed -e "s/#'TEST_NAME':/'TEST_NAME':/" -i autotest/settings.py
 sed -e 's/\/autotest\/autotest/\/autotest/' -i autotest/conf/eoxserver.conf
 sed -e 's/allowed_actions=/allowed_actions=Add,Delete/' -i autotest/conf/eoxserver.conf
 
-if [ $OS != 'Ubuntu' ]; then
+if [ $OS != "Ubuntu" ]; then
   sed -e 's/#binary_raster_comparison_enabled=false/binary_raster_comparison_enabled=false/' -i autotest/conf/eoxserver.conf
 fi
 
