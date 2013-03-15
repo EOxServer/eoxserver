@@ -70,8 +70,9 @@ Quick installation guide for EOxServer on CentOS
 
 * :ref:`EOxServer <Installation>` installed and configured, including 
   MapServer and Apache HTTP Server
-* Add the yum repository available at http://packages.eox.at (recommended) or
-  obtain the RPM packages from http://packages.eox.at/centos/x86_64/.
+* Add the yum repository as described in the :ref:`CentOSInstallation` 
+  available at http://packages.eox.at (recommended) or directoy obtain the 
+  RPM packages from http://yum.packages.eox.at/el/6/testing/x86_64/.
 
 1. Basic install:
 .................
