@@ -172,7 +172,8 @@ class Command(EOxServerAdminCommand):
                 if int(rs.fetchone()[0].split(".")[0]) < 3:
                     print("SpatiaLite version <3 found, trying to initialize using 'init_spatialite-2.3.sql'.")
                     init_sql_path = os.path.join(src_conf_dir, "init_spatialite-2.3.sql")
-                    os.system("spatialite %s < %s" % (db_name, init_sql_path))
+                    with open(init_sql_path, 'r') as init_sql_file:
+                        conn.executescript(init_sql_file.read())
                 else:
                     print("SpatiaLite found, initializing using 'InitSpatialMetadata()'.")
                     conn.execute("SELECT InitSpatialMetadata()")
