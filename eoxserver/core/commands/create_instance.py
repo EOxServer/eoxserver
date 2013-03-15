@@ -169,14 +169,15 @@ class Command(EOxServerAdminCommand):
                 from pyspatialite import dbapi2 as db
                 conn = db.connect(db_name)
                 rs = conn.execute('SELECT spatialite_version()')
-                if int(rs.fetchone()[0].split(".")[0]) < 3:
-                    print("SpatiaLite version <3 found, trying to initialize using 'init_spatialite-2.3.sql'.")
+                rs = rs.fetchone()[0].split(".")
+                if (int(rs[0]), int(rs[1])) >= (2, 4):
+                    print("SpatiaLite found, initializing using 'InitSpatialMetadata()'.")
+                    conn.execute("SELECT InitSpatialMetadata()")
+                else:
+                    print("SpatiaLite version <2.4 found, trying to initialize using 'init_spatialite-2.3.sql'.")
                     init_sql_path = os.path.join(src_conf_dir, "init_spatialite-2.3.sql")
                     with open(init_sql_path, 'r') as init_sql_file:
                         conn.executescript(init_sql_file.read())
-                else:
-                    print("SpatiaLite found, initializing using 'InitSpatialMetadata()'.")
-                    conn.execute("SELECT InitSpatialMetadata()")
                 conn.commit()
                 conn.close()
             except ImportError:
