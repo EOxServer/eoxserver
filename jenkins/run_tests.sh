@@ -9,7 +9,11 @@ source .venv/bin/activate
 cd autotest
 export XML_CATALOG_FILES="$WORKSPACE/schemas/catalog.xml"
 echo "**> running tests ..."
-python manage.py test services -v2
+if [ $OS == "Ubuntu" ]; then
+    python manage.py test services -v2
+else
+    python manage.py test "services|WMS13GetCapabilitiesEmptyTestCase,WMS13GetCapabilitiesValidTestCase,SecWMS13GetCapabilitiesValidTestCase,WCS11GetCapabilitiesEmptyTestCase,WCS11GetCapabilitiesValidTestCase,WCS11PostGetCapabilitiesValidTestCase,WCS11TransactionAsyncRectifiedDatasetTestCase,WCS11TransactionRectifiedDatasetTestCase,WCS20GetCoverageOutputCRSotherUoMDatasetTestCase,WCS20GetCoverageReprojectedEPSG3857DatasetTestCase" -v2
+fi
 #TODO: Enable testing of all apps
 #python manage.py test core services coverages backends processes -v2
 
