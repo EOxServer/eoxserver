@@ -155,7 +155,9 @@ def _expand_regex_classes(module, regex):
     for item in dir(module):
         cls = getattr(module, item)
         try:
-            if issubclass(cls, TestCase) and re.match(regex, item):
+            if ((issubclass(cls, TestCase) or 
+                 issubclass(cls, TransactionTestCase)) 
+                and re.match(regex, item)):
                 ret.append(item)
         except TypeError:
             pass
