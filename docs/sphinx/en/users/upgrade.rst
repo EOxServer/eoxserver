@@ -1,13 +1,13 @@
-.. EOxServer Users' Guide
+.. Upgrade
   #-----------------------------------------------------------------------------
   # $Id$
   #
   # Project: EOxServer <http://eoxserver.org>
-  # Authors: Stephan Krause <stephan.krause@eox.at>
-  #          Stephan Meissl <stephan.meissl@eox.at>
+  # Authors: Stephan Meissl <stephan.meissl@eox.at>
+  #                  Fabian Schindler <fabian.schindler@eox.at>
   #
   #-----------------------------------------------------------------------------
-  # Copyright (C) 2011 EOX IT Services GmbH
+  # Copyright (C) 2013 EOX IT Services GmbH
   #
   # Permission is hereby granted, free of charge, to any person obtaining a copy
   # of this software and associated documentation files (the "Software"), to
@@ -23,49 +23,37 @@
   # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
   # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
   # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+  # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
   # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
   # IN THE SOFTWARE.
   #-----------------------------------------------------------------------------
 
-.. _EOxServer Users' Guide:
+.. index::
+    single: EOxServer Upgrade
+    single: Upgrade
 
-EOxServer Users' Guide
-======================
+.. _Upgrade:
 
-This section is intended for users of the EOxServer software stack. Users range  
-from administrators installing and configuring the software stack and operators 
-registering the available *EO Data* on the *Provider* side to end users 
-consuming the registered *EO Data* on the *User* side.
+Upgrade
+=======
 
-.. figure:: images/Global_Use_Case.png
-   :align: center
+.. contents:: Table of Contents
+    :depth: 3
+    :backlinks: top
 
-Developers needing to know all the nitty-gritty about EOxServer implementation 
-and APIs please refer to the :ref:`EOxServer Developers' Guide`.
+Upgrading an existing EOxServer instance may require to perform several 
+tasks depending on the version numbers. In general upgrading versions with 
+changes in the third digit of the version number only e.g. from 0.2.3 to 
+0.2.4 doesn't need any special considerations. For all other upgrades please 
+carefully read the relevant sections below.
 
-.. toctree::
-   :maxdepth: 3
-   
-   basics
-   global_use_case
-   install
-   centos_installation
-   upgrade
-   mailing_lists
-   demonstration
-   EO-WCS_request_parameters
-   operators
-   webclient
-   idm/index
-   soap_proxy
-   presentations
-   configuration_options
-   crss
-   formats  
-   atp_sum 
-   WCS-T_summary  
 
-.. TODO
-   users     - empty
-   reference - empty
+0.2 to 0.3
+----------
+
+TODO:
+
+* Changes in database models: How to migrate existing database? 
+* New/altered config parameters e.g. foramts.conf
+* New/altered settings in settings.py e.g. logging. Check  Django 1.4 release notes!
+* Dropped support for Django 1.3 and GDAL 1.6

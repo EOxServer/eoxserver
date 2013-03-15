@@ -100,6 +100,8 @@ to run EOxServer.
   | Software  | Required Version | Description                                 |
   +===========+==================+=============================================+
   | Python    | >= 2.5, < 3.0    | Scripting language                          |
+  |           | (>=2.6.5 for     |                                             |
+  |           | Django 1.5)      |                                             |
   +-----------+------------------+---------------------------------------------+
   | Django    | >= 1.4 (1.5 for  | Web development framework written in        |
   |           | PostGIS 2.0      | Python including the GeoDjango extension    |
@@ -122,7 +124,7 @@ required as well.
 
 EOxServer is written in `Python <http://www.python.org/>`_ and uses the
 `Django <https://www.djangoproject.com>`_ framework which requires a
-Python version from 2.4 to 2.7. Due to backwards incompatibilities in Python
+Python version from 2.5 to 2.7. Due to backwards incompatibilities in Python
 3.0, Django and thus EOxServer does not currently work with Python 3.0.
 
 EOxServer makes heavy usage of the `OSGeo <http://osgeo.org>`_ projects
@@ -226,8 +228,10 @@ switch to your pip command e.g.::
 
 or rerun the manual installation as explained above.
 
-Please follow the update procedure for any configured EOxServer instances in
-case of a major version upgrade.
+Please carefully follow the :ref:`upgrade procedure <Upgrade>` corresponding 
+to your version numbers for any configured EOxServer instances in case of a 
+major version upgrade.
+
 
 .. _Creating an Instance:
 
@@ -243,19 +247,16 @@ We recommend to use the :file:`eoxserver-admin.py` script that comes with
 EOxServer. It provides the command `create_instance` in order to create an
 EOxServer instance:
 
-    Usage: ``eoxserver-admin.py create_instance [options] INSTANCE_ID``
+    Usage: ``eoxserver-admin.py create_instance [options] INSTANCE_ID [Optional destination directory]``
 
-    Create a new EOxServer instance ``INSTANCE_ID`` in the root directory with
-    name ``INSTANCE_ID`` in the given (optional) directory. If the
-    ``--init_spatialite`` flag is set, then an initial sqlite database will be
-    created and initialized.
+    Creates a new EOxServer instance with name ``INSTANCE_ID`` in the current 
+    or optionally given directory with all necessary files and folder 
+    structure. If the ``--init_spatialite`` flag is set, then an initial 
+    sqlite database will be created and initialized.
 
     Options:
 
-    -h, --help           show help message and exit
-    -d DIR, --dir=DIR    Optional base directory. Defaults to the current
-                         directory.
-    --initial_data=DIR   Location of the initial data. Must be JSON.
+    -h, --help           show this help message and exit
     --init_spatialite    Flag to initialize the sqlite database.
 
 .. index::
