@@ -170,18 +170,20 @@ class Command(EOxServerAdminCommand):
                 conn = db.connect(db_name)
                 rs = conn.execute('SELECT spatialite_version()')
                 if int(rs.fetchone()[0].split(".")[0]) < 3:
+                    print("SpatiaLite version <3 found, trying to initialize using 'init_spatialite-2.3.sql'.")
                     init_sql_path = os.path.join(src_conf_dir, "init_spatialite-2.3.sql")
                     os.system("spatialite %s < %s" % (db_name, init_sql_path))
                 else:
+                    print("SpatiaLite found, initializing using 'InitSpatialMetadata()'.")
                     conn.execute("SELECT InitSpatialMetadata()")
                 conn.commit()
                 conn.close()
             except ImportError:
+                print("SpatiaLite not found, trying to initialize using 'init_spatialite-2.3.sql'.")
                 init_sql_path = os.path.join(src_conf_dir, "init_spatialite-2.3.sql")
                 os.system("spatialite %s < %s" % (db_name, init_sql_path))
 
 
-# TODO maybe use django templating library?
 def copy_and_replace_tags(src_pth, dst_pth, replacements={}):
     """Helper function to copy a file and replace tags within a file."""
     new_file = open(dst_pth,'w')
