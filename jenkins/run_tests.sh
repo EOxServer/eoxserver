@@ -3,7 +3,7 @@
 OS=`facter operatingsystem`
 
 # Activate the virtual environment
-cd $WORKSPACE
+cd "$WORKSPACE"
 source .venv/bin/activate
 
 cd autotest
