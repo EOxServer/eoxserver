@@ -3,7 +3,7 @@
 OS=`facter operatingsystem`
 
 # Create the virtual environment if it does not exist
-cd $WORKSPACE
+cd "$WORKSPACE"
 if [ -d ".venv" ]; then
     echo "**> virtualenv exists!"
 else
