@@ -260,7 +260,10 @@ class PreProcessor(object):
         # check if reprojection to latlon is necessary
         if not sr.IsGeographic():
             dst_sr = osr.SpatialReference(); dst_sr.ImportFromEPSG(4326)
-            geometry.TransformTo(dst_sr)
+            try:
+                geometry.TransformTo(dst_sr)
+            except RuntimeError:
+                geometry.Transform(osr.CoordinateTransformation(sr, dst_sr))
         
         # simplify the polygon. the tolerance value is *really* vague
         try:
