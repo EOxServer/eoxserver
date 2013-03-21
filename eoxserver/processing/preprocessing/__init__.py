@@ -33,7 +33,7 @@ from itertools import izip
 import numpy
 import logging
 
-from django.contrib.gis.geos import GEOSGeometry, Polygon, LinearRing, Point
+from django.contrib.gis.geos import GEOSGeometry, MultiPolygon, Polygon, LinearRing, Point
 from django.contrib.gis.gdal.geometries import OGRGeometry
 
 from eoxserver.contrib import  gdal, ogr, osr 
@@ -175,22 +175,49 @@ class PreProcessor(object):
             optimization(ds)
         
         # generate metadata if requested
-        polygon = None
+        footprint = None
         if generate_metadata:
-            # use the provided footprint
-            geom = OGRGeometry(footprint_wkt)
-            exterior = []
-            for x, y in geom.exterior_ring.tuple:
-                exterior.append(y); exterior.append(x)
+            normalized_space = Polygon.from_bbox((-180, -90, 180, 90))
+            non_normalized_space = Polygon.from_bbox((180, -90, 360, 90))
             
-            polygon = [exterior]
+            footprint = GEOSGeometry(footprint_wkt)
+            #.intersection(normalized_space)
+            outer = non_normalized_space.intersection(footprint)
+            
+            if len(outer):
+                footprint = MultiPolygon(
+                    *map(lambda p: 
+                        Polygon(*map(lambda ls:
+                            LinearRing(*map(lambda point: 
+                                (point[0] - 360, point[1]), ls.coords
+                            )), tuple(p)
+                        )), (outer,)
+                    )
+                ).union(normalized_space.intersection(footprint))
+            else:
+                if isinstance(footprint, Polygon):
+                    footprint = MultiPolygon(footprint)
+                
+            
+            
+            logger.info("Calculated Footprint: '%s'" % footprint.wkt)
+            
+            
+            
+            # use the provided footprint
+            #geom = OGRGeometry(footprint_wkt)
+            #exterior = []
+            #for x, y in geom.exterior_ring.tuple:
+            #    exterior.append(y); exterior.append(x)
+            
+            #polygon = [exterior]
         
         num_bands = ds.RasterCount
         
         # close the dataset and write it to the disc
         ds = None
         
-        return PreProcessResult(output_filename, polygon, num_bands)
+        return PreProcessResult(output_filename, footprint, num_bands)
     
     
     def generate_filename(self, filename):
@@ -373,12 +400,9 @@ class PreProcessResult(object):
         self._footprint = footprint
         self.num_bands = num_bands
     
-    
     @property
     def footprint_raw(self):
-        """ Returns the raw footprint. """
-        return self._footprint
-    
+        pass # TODO: return as a list of tuples
     
     @property
     def footprint_wkt(self):
@@ -389,6 +413,7 @@ class PreProcessResult(object):
     @property
     def footprint_geom(self):
         """ Returns the polygon as a GEOSGeometry. """
-        return Polygon([LinearRing([
-            Point(x, y) for y, x in pairwise(ring)
-        ]) for ring in self._footprint][0])
+        #return Polygon([LinearRing([
+        #    Point(x, y) for y, x in pairwise(ring)
+        #]) for ring in self._footprint][0])
+        return self._footprint
