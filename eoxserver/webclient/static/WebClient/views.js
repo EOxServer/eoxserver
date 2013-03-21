@@ -64,7 +64,6 @@ namespace("WebClient").Views = (function() {
                     new OpenLayers.Control.Permalink(),
                     new OpenLayers.Control.Permalink('permalink'),
                     new OpenLayers.Control.MousePosition(),
-                    new OpenLayers.Control.KeyboardDefaults({observeElement: this.el}),
                     boxControl
                 ],
                 layers: [
