@@ -29,12 +29,13 @@
 #-------------------------------------------------------------------------------
 
 import re
+import logging
 
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
 
 from django.contrib.gis.db import models
-from django.contrib.gis.geos.polygon import Polygon
+from django.contrib.gis.geos import Point, LinearRing, Polygon, MultiPolygon 
 from django.contrib.gis.geos.error import GEOSException
 
 from eoxserver.contrib import gdal
@@ -48,6 +49,9 @@ from eoxserver.resources.coverages.validators import (
 )
 
 from eoxserver.resources.coverages.formats import _gerexValMime as regexMIMEType
+
+
+logger = logging.getLogger(__name__)
 
 MIMETypeValidator = RegexValidator( regexMIMEType , message="The field must contain a valid MIME Type!" ) 
 NCNameValidator = RegexValidator(re.compile(r'^[a-zA-z_][a-zA-Z0-9_.-]*$'), message="This field must contain a valid NCName.")
@@ -310,32 +314,119 @@ class EODatasetMixIn(EOCoverageMixIn):
         super(EODatasetMixIn, self).delete()
         data_package.delete()
         
-def _checkFootprint( footprint , extent ) :
+def _checkFootprint(footprint, extent):
     """ Check footprint to match the extent. """
+    
+    rtol = 0.005 # .5% 
+    difx = abs(extent.maxx - extent.minx)
+    dify = abs(extent.maxy - extent.miny)
+    atol = rtol * min(difx, dify) 
+    
+    try:
+        bbox = Polygon.from_bbox((extent.minx, extent.miny, extent.maxx, extent.maxy))
+        bbox.srid = extent.srid
+        
+        bbox_ll = bbox.transform(footprint.srs, clone=True)
+        
+        normalized_space = Polygon.from_bbox((-180, -90, 180, 90))
+        non_normalized_space = Polygon.from_bbox((180, -90, 360, 90))
+        
+        normalized_space.srid = extent.srid
+        non_normalized_space.srid = extent.srid
+        
+        if not normalized_space.contains(bbox_ll):
+            # create 2 bboxes for each side of the date line
+            bbox_ll1 = bbox_ll.intersection(normalized_space)
+            bbox_ll2 = bbox_ll.intersection(non_normalized_space)
+            
+            bbox_ll2 = Polygon(LinearRing([Point(x - 360, y) for x, y in bbox_ll2.exterior_ring]), srid=bbox_ll2.srid)
+            
+            bbox_ll1.transform(extent.srid)
+            bbox_ll2.transform(extent.srid)
+            
+            e1 = bbox_ll1.extent
+            e2 = bbox_ll2.extent
+            
+            bbox = MultiPolygon(
+                Polygon.from_bbox((e1[0] - atol, e2[1] - atol, e1[2] + atol, e1[3] + atol)),
+                Polygon.from_bbox((e2[0] - atol, e2[1] - atol, e2[2] + atol, e2[3] + atol)),
+                srid=extent.srid
+            )
+        else:
+            # just use the tolerance for a slightly larger bbox
+            bbox = Polygon.from_bbox((extent.minx - atol, extent.miny - atol,
+                                      extent.maxx + atol, extent.maxy + atol))
+            bbox.srid = extent.srid
+        
+        footprint.transform(bbox.srs)
+        
+        logger.debug("Extent: %s" % bbox.wkt)
+        logger.debug("Footprint: %s" % footprint.wkt)
+        
+        if not bbox.contains(footprint):
+            raise ValidationError("The datasets's extent does not surround its"
+                " footprint. Extent: '%s' Footprint: '%s'."
+                % (bbox.wkt, footprint.wkt)
+            )
+        
+    except GEOSException: 
+        pass
+
+        
+"""     
+        
+        
+        # check if the dateline is crossed
+        if pmin[0] < 180 and pmax[0] > 180:
+            # create two bounding boxes on either side of the dateline
+            bounds = MultiPolygon(
+                Polygon.from_bbox((pmin[0] - difx, pmin[1] - dify,
+                                   180 + difx, pmax[1] + dify)),
+                Polygon.from_bbox((-180 - difx, min[1] - dify, 
+                                   pmax[0] - 360 + difx, pmax[1] + dify))
+            )
+        else:
+            bounds = Polygon.from_bbox((pmin[0] - difx, pmin[1] - dify,
+                                        pmax[0] + difx, pmax[1] + dify))
+        
+        if not bounds.contains(footprint):
+            raise ValidationError("The datasets's extent does not surround its"
+                " footprint. Extent: '%s' Footprint: '%s'."
+                % (bounds.wkt, footprint.wkt)
+            )
+    
+    
+
+"""
+
+"""
 
     try:
+        
 
         #TODO: Make the rtol value configurable. 
         # allow footprint to exceed extent by given % of smaller extent size
         rtol = 0.005 # .5% 
-        difx = abs( extent.maxx - extent.minx )
-        dify = abs( extent.maxy - extent.miny )
-        atol = rtol * min( difx , dify ) 
+        difx = abs(extent.maxx - extent.minx)
+        dify = abs(extent.maxy - extent.miny)
+        atol = rtol * min(difx, dify) 
 
-        bbox = Polygon.from_bbox( (
-                extent.minx - atol, extent.miny - atol,
-                extent.maxx + atol, extent.maxy + atol ) )
+        bbox = Polygon.from_bbox((
+            extent.minx - atol, extent.miny - atol,
+            extent.maxx + atol, extent.maxy + atol
+        ))
 
         bbox.set_srid( int(extent.srid) )
         
         if footprint.srid != bbox.srid : footprint.transform( bbox.srs )
         
         if not bbox.contains(footprint):
-            raise ValidationError("The datasets's extent does not surround its"
-                " footprint. Extent: '%s' Footprint: '%s'"
-                % (str(bbox), str(footprint)))
+        
+        
+        ...
+"""           
 
-    except GEOSException: pass
+    
 
 class RectifiedDatasetRecord(CoverageRecord, EODatasetMixIn):
     extent = models.ForeignKey(ExtentRecord, related_name="rect_datasets")
