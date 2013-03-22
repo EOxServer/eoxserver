@@ -630,8 +630,10 @@ class WMS13GetMapHandler(WMS1XGetMapHandler):
         self.map.setMetaData("wms_exceptions_format", "xml")
         self.map.setMetaData("wms_enable_request", "getcapabilities getmap getfeatureinfo")
         self.map.setMetaData("wms_feature_info_mime_type", "text/html")
-        
+
+
     def createLayersForName(self, layer_name, filter_exprs):
+        # TODO: dateline wrapped as in WMS1XGetMapHandler.createLayersForName
         if layer_name.endswith("_outlines"):
             self.createOutlinesLayer(layer_name[:-9])
         elif layer_name.endswith("_bands"):
