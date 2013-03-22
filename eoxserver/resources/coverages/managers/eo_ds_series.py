@@ -29,7 +29,9 @@
 #-------------------------------------------------------------------------------
 
 import os.path 
+from ConfigParser import RawConfigParser
 from eoxserver.core.system import System
+from eoxserver.core.exceptions import InternalError
 from eoxserver.resources.coverages.exceptions import NoSuchDatasetSeriesException
 
 #-------------------------------------------------------------------------------

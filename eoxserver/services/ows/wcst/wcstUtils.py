@@ -223,15 +223,24 @@ def responseUpload( responseHandlerURL , response , filename ) :
         NONE: SSL client certificate authentication not supported (yet). 
 
     """
+
     url = urlparse.urlparse( responseHandlerURL ) 
 
-    if   "http"  == url.scheme : responseUploadHTTP( url , responseHandlerURL , response , False ) 
-    elif "https" == url.scheme : responseUploadHTTP( url , responseHandlerURL , response , True ) 
-    elif "ftp"   == url.scheme : responseUploadFTP( url , responseHandlerURL , response , filename , False ) 
+    if   "http"  == url.scheme :
+        responseUploadHTTP( url, responseHandlerURL, response, False ) 
+
+    elif "https" == url.scheme :
+        responseUploadHTTP( url, responseHandlerURL, response, True ) 
+
+    elif "ftp"   == url.scheme :
+        responseUploadFTP( url, responseHandlerURL, response, filename, False ) 
+
     elif ( "ftps"  == url.scheme ) and SUPPORTS_FTPS : 
-                                 responseUploadFTP( url , responseHandlerURL , response , filename , True ) 
+        responseUploadFTP( url, responseHandlerURL, response, filename, True ) 
+
     else : 
-        raise InvalidResponseHandler , "Unsupported URL schema '%s' ! responseHandler=%s " % ( url.schema , responseHandlerURL ) 
+        raise InvalidResponseHandler , "Unsupported URL schema '%s' ! "\
+                "responseHandler=%s " % ( url.schema , responseHandlerURL ) 
 
 #-------------------------------------------------------------------------------
 

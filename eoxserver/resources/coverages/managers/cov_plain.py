@@ -34,8 +34,8 @@ from eoxserver.resources.coverages.models import PlainCoverageRecord
 
 #-------------------------------------------------------------------------------
 
-from eoxserver.resources.coverages.managers.coverage_manager import CoverageManager
-from eoxserver.resources.coverages.managers.coverage_manager import CoverageManagerDatasetMixIn
+from eoxserver.resources.coverages.managers.coverage import CoverageManager
+from eoxserver.resources.coverages.managers.coverage import CoverageManagerDatasetMixIn
 
 #-------------------------------------------------------------------------------
 
