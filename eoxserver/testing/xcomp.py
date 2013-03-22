@@ -107,7 +107,7 @@ def _skipIgnorable( node , path ) :
         # unexpected nodes - raise exception  
         if node.nodeType in (ATTRIBUTE_NODE,DOCUMENT_NODE,DOCUMENT_FRAGMENT_NODE,
                 NOTATION_NODE,ENTITY_REFERENCE_NODE,ENTITY_NODE,DOCUMENT_TYPE_NODE): 
-            raise XMLParseError , "Unexpected child node '%s' ! PATH=\"\""%(NODE_DICT[node.nodeType],path) 
+            raise XMLParseError , "Unexpected child node '%s' ! PATH='%s'" % (NODE_DICT[node.nodeType],path) 
         # the rest is just ignored  
         #if node.nodeType in (COMMENT_NODE,PROCESSING_INSTRUCTION_NODE) : pass
         node = node.nextSibling 

@@ -750,7 +750,7 @@ class DatasetSeriesSynchronizeFileRemovedTestCase(DatasetSeriesSynchronizeTestCa
                         "Footprints mismatch.")
 
     def tearDown(self):
-        super(DatasetSeriesSynchronizeTestCase, self).tearDown()
+        super(DatasetSeriesSynchronizeFileRemovedTestCase, self).tearDown()
         shutil.rmtree(self.dst)
 
 class DatasetSeriesUpdateLinkCoveragesTestCase(DatasetSeriesUpdateTestCase):
