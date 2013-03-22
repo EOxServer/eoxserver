@@ -152,6 +152,9 @@ class OWSTestCase(EOxServerTestCase):
     def getExpectedFileName(self, file_type):
         return "%s.%s" % (self.__class__.__name__, self.getFileExtension(file_type))
     
+    def getXMLData(self):
+        raise Exception("Not implemented.")
+    
     def _testXMLComparison( self , suffix = "xml" , response = None ): 
         """
         Helper function for the basic XML tree comparison to be used by `testXMLComparison`.
@@ -217,6 +220,7 @@ class OWSTestCase(EOxServerTestCase):
     
     def testStatus(self):
         logger.info("Checking HTTP Status ...")
+        #pylint: disable=E1103
         self.assertEqual(self.response.status_code, 200)
 
 
@@ -433,6 +437,7 @@ class ExceptionTestCase(XMLTestCase):
         
     def testStatus(self):
         logger.info("Checking HTTP Status ...")
+        #pylint: disable=E1103
         self.assertEqual(self.response.status_code, self.getExpectedHTTPStatus())
     
     def testExceptionCode(self):
@@ -591,7 +596,9 @@ class WCSTransactionTestCase(XMLTestCase):
     Base class for WCS Transactional test cases.
     """
     ADDmetaFile = None
+    ADDtiffFile = None
     isAsync = False
+    ID = None
 
     def setUp(self):
         super(WCSTransactionTestCase, self).setUp()
@@ -709,6 +716,7 @@ class WCSTransactionTestCase(XMLTestCase):
         Tests that the inserted coverage is available in a DescribeCoverage
         request
         """
+        #pylint: disable=E1103
         self.assertEqual(self.responseDescribeCoverage.status_code, 200)
 
     def testValidateDescribeCoverage(self):
@@ -722,12 +730,14 @@ class WCSTransactionTestCase(XMLTestCase):
         """
         Validate the inserted coverage via a GetCoverage request
         """
+        #pylint: disable=E1103
         self.assertEqual(self.responseGetCoverage.status_code, 200)
 
     def testStatusDeleteCoverage(self):
         """
         Test to delete the previously inserted coaverage
         """
+        #pylint: disable=E1103
         self.assertEqual(self.responseDeleteCoverage.status_code, 200)
 
     def testValidateDeleteCoverage(self):
@@ -753,6 +763,7 @@ class WCSTransactionTestCase(XMLTestCase):
         Tests that the deletec coverage is not longer available in a 
         DescribeCoverage request
         """
+        #pylint: disable=E1103
         self.assertEqual(self.responseDescribeCoverageDeleted.status_code, 404)
 
     def testValidateDescribeCoverageDeleted(self):
