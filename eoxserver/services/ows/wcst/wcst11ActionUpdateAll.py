@@ -53,10 +53,12 @@ def wcst11ActionUpdateAll( action , context ) :
     aname = action["Action"]
     logger.debug( "WCSt11:%s: START" % aname ) 
 
-    # action not implemented 
+    # extract user provided CID 
+    #coverageId = action["Identifier"] 
 
+    # action not implemented 
     msg = "WCSt11:%s: Action not implemented!" % aname 
     logger.error( msg ) 
     raise ExActionFailed , msg 
 
-    return coverageId
+    #return coverageId

@@ -588,8 +588,10 @@ class WCS20Encoder(CoverageGML10Encoder):
             sub_nodes = []
         
         if coverages is not None and len(coverages) != 0:
-          sub_nodes.extend([(self.encodeCoverageDescription(coverage),) for coverage in coverages])
+            sub_nodes.extend([(self.encodeCoverageDescription(coverage),) for coverage in coverages])
+
         return self._makeElement("wcs", "CoverageDescriptions", sub_nodes)
+
 
 class WCS20EOAPEncoder(WCS20Encoder):
     """
