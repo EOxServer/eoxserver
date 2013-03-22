@@ -206,17 +206,12 @@ class WMSCoverageLayer(WMSLayer):
 
 class WMSRectifiedDatasetLayer(WMSCoverageLayer):
     
-    def __init__(self, coverage, extent=None):
-        super(WMSRectifiedDatasetLayer, self).__init__(coverage)
-        self.extent = extent
-        
-    
     def getMapServerLayer(self, req):
         layer = super(WMSRectifiedDatasetLayer, self).getMapServerLayer(req)
 
         # general rectified coverage metadata
         srid = self.coverage.getSRID()
-        extent = self.extent or self.coverage.getExtent()
+        extent = self.coverage.getExtent()
         
         layer.setProjection(crss.asProj4Str(srid))
         layer.setMetaData("ows_srs", crss.asShortCode(srid))
@@ -241,25 +236,24 @@ class WMSWrappedRectifiedDatasetLayer(WMSRectifiedDatasetLayer):
     
     def __init__(self, coverage, vrt_path, extent=None):
         super(WMSWrappedRectifiedDatasetLayer, self).__init__(coverage)
-        self.extent = extent
         self.vrt_path = vrt_path
         
     
     def getMapServerLayer(self, req):
         layer = super(WMSWrappedRectifiedDatasetLayer, self).getMapServerLayer(req)
 
-        extent = self.extent or self.coverage.getExtent()
+        e = wrap_extent_around_dateline(self.coverage.getExtent(),
+                                        self.coverage.getSRID())
         
-        layer.setMetaData("wms_extent", "%.10g %.10g %.10g %.10g" % extent)
-        layer.setExtent(*extent)
+        layer.setMetaData("wms_extent", "%.10g %.10g %.10g %.10g" % e)
+        layer.setExtent(*e)
         
         data_package = self.coverage.getData()
         data_package.prepareAccess()
         ds = gdal.Open(data_package.getGDALDatasetIdentifier())
         
         vrt_ds = create_simple_vrt(ds, self.vrt_path)
-        e = wrap_extent_around_dateline(self.coverage.getExtent(),
-                                        self.coverage.getSRID())
+        
         
         size_x = ds.RasterXSize
         size_y = ds.RasterYSize
