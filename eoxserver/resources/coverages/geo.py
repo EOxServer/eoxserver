@@ -148,7 +148,7 @@ class GeospatialMetadata(object):
 
             #validate the default SRID 
             if not crss.validateEPSGCode( default_srid ) : 
-                raise RuntimeError("The default SRID '%'s is not a valid" 
+                raise RuntimeError("The default SRID '%s' is not a valid" 
                     " EPSG code." % str(default_srid) )
 
             srid = int(default_srid)
