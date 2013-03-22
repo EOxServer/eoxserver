@@ -86,6 +86,7 @@ class CommandTestCase(EOxServerTestCase):
         if isinstance(args, (list, tuple)):
             args.extend(self.args)
         elif isinstance(args, basestring):
+            #pylint: disable=E1101
             args.extend(self.args.split(" "))
         
         for key, value in self.kwargs.items():

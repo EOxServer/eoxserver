@@ -272,7 +272,7 @@ class WCS1XGetCoverageHandler(WCS1XOperationHandler):
             super(WCS1XGetCoverageHandler, self)._setParameter(key, value)
             
     def configureMapObj(self):
-        super(WCS1XOperationHandler, self).configureMapObj()
+        super(WCS1XGetCoverageHandler, self).configureMapObj()
         
         format_param = self.req.getParamValue("format")
         if not format_param:
@@ -370,7 +370,7 @@ class WCS10DescribeCoverageHandler(WCS1XDescribeCoverageHandler):
 
     # special WCS 1.0 format handling  
     def getMapServerLayer(self, coverage):
-        layer = super(WCS1XDescribeCoverageHandler, self).getMapServerLayer(coverage)
+        layer = super(WCS10DescribeCoverageHandler, self).getMapServerLayer(coverage)
 
         layer.setMetaData( 'wcs_nativeformat' , getMSWCS10NativeFormat(coverage.getData().getSourceFormat()) ) 
         layer.setMetaData( 'wcs_formats', getMSWCS10FormatMD() ) 

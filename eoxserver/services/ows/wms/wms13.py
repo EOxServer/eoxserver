@@ -84,7 +84,10 @@ class EOWMSOutlinesLayer(WMSLayer):
     
     def _get_sql_timestamp(self, timestamp):
         return timestamp.strftime("%Y-%m-%d %H:%M:%S")
-
+    
+    def _get_base_query(self, time_clause=""):
+        raise InternalError("Not implemented.")
+    
     def _get_query_with_timestamp(self, timestamp):
         time_clause = " AND '%s' BETWEEN eomd.timestamp_begin AND eomd.timestamp_end" % isotime(timestamp)
         
@@ -215,7 +218,7 @@ class EOWMSRectifiedStitchedMosaicOutlinesLayer(EOWMSOutlinesLayer):
     def getName(self):
         return "%s_outlines" % self.mosaic.getCoverageId()
     
-    def _get_base_query(self, time_clause=""):            
+    def _get_base_query(self, time_clause=""):
         return "SELECT eomd.id AS oid, eomd.footprint AS geometry, cov.coverage_id AS coverage_id FROM coverages_eometadatarecord AS eomd, coverages_coveragerecord AS cov, coverages_rectifieddatasetrecord AS rd, coverages_rectifiedstitchedmosaicrecord_rect_datasets AS rsm2rd WHERE rsm2rd.rectifiedstitchedmosaicrecord_id = %d AND rsm2rd.rectifieddatasetrecord_id = rd.coveragerecord_ptr_id AND cov.resource_ptr_id = rd.coveragerecord_ptr_id AND rd.eo_metadata_id = eomd.id%s" % (self.mosaic.getModel().pk, time_clause)
     
     def getMapServerLayer(self, req):

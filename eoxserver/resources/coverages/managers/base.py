@@ -36,6 +36,7 @@ from uuid import uuid4
 from eoxserver.core.system import System
 from eoxserver.core.exceptions import InternalError
 from eoxserver.resources.coverages.exceptions import ManagerError
+from eoxserver.resources.coverages.exceptions import NoSuchCoverageException
 
 #-------------------------------------------------------------------------------
 

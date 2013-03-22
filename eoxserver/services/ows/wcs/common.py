@@ -37,6 +37,8 @@ from urllib import unquote
 
 import mapscript
 
+from eoxserver.core.exceptions import InternalError
+
 from eoxserver.services.owscommon import OWSCommonConfigReader
 from eoxserver.services.mapserver import (
     MapServerOperationHandler, gdalconst_to_imagemode

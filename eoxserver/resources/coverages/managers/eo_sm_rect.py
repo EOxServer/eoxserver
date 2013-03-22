@@ -29,6 +29,7 @@
 #-------------------------------------------------------------------------------
 
 from eoxserver.core.system import System
+from eoxserver.core.exceptions import InternalError
 from eoxserver.resources.coverages.exceptions import NoSuchCoverageException
 
 from eoxserver.processing.mosaic import make_mosaic

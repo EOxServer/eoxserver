@@ -255,8 +255,7 @@ def createXML_WCSt11TResponse( coverageIDs , context ) :
     xml.append( u' http://schemas.opengis.net/wcst/1.1/wcstTransaction.xsd">\n' ) 
     xml.append( u'<RequestId>%s</RequestId>\n' % context['requestId'] )
     for cid in coverageIDs :
-         xml.append( u'<ows:Identifier>%s</ows:Identifier>\n' % cid )
-
+        xml.append( u'<ows:Identifier>%s</ows:Identifier>\n' % cid )
     xml.append( u'</TransactionResponse>\n' ) 
 
     return ( u"".join(xml) ).encode("UTF-8")

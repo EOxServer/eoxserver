@@ -177,7 +177,7 @@ class Command(CommandOutputMixIn, BaseCommand):
         except IOError as e : 
 
             raise CommandError( "Failed to open the output file '%s' ! "
-                    "REASON: %s" % ( finename , str(e) ) )
+                    "REASON: %s" % ( filename , str(e) ) )
                             
 
 #------------------------------------------------------------------------------
