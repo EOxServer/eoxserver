@@ -30,6 +30,7 @@
 
 import logging
 import os
+from uuid import uuid4
 
 import mapscript
 
@@ -38,17 +39,21 @@ from eoxserver.core.util.timetools import (
     isotime, getDateTime
 )
 from eoxserver.core.exceptions import InternalError, InvalidParameterException
-from eoxserver.contrib.gdal import GDT_Byte
+from eoxserver.contrib import gdal
 from eoxserver.resources.coverages.filters import (
     BoundedArea, TimeInterval
 )
 from eoxserver.resources.coverages.formats import getFormatRegistry
 from eoxserver.resources.coverages import crss
+from eoxserver.resources.coverages.dateline import (
+    extent_crosses_dateline, wrap_extent_around_dateline
+)
 
 from eoxserver.processing.gdal.reftools import create_temporary_vrt
 from eoxserver.services.owscommon import OWSCommonConfigReader
 from eoxserver.services.mapserver import MapServerOperationHandler
 from eoxserver.services.exceptions import InvalidRequestException
+from eoxserver.processing.gdal.vrt import create_simple_vrt
 
 
 logger = logging.getLogger(__name__)
@@ -117,9 +122,13 @@ class WMSCoverageLayer(WMSLayer):
         super(WMSCoverageLayer, self).__init__()
         
         self.coverage = coverage
+        self.name = None
         
     def getName(self):
-        return self.coverage.getCoverageId()
+        if self.name:
+            return self.name
+        else:
+            return self.coverage.getCoverageId()
         
     def isRGB(self):
         return self.coverage.getRangeType().name == "RGB"
@@ -167,7 +176,7 @@ class WMSCoverageLayer(WMSLayer):
             layer.offsite = mapscript.colorObj(*nil_values)
     
     def setScale(self, layer):
-        if self.coverage.getRangeType().data_type != GDT_Byte:
+        if self.coverage.getRangeType().data_type != gdal.GDT_Byte:
             layer.setProcessingKey("SCALE", "AUTO")
     
     def configureBands(self, layer, req):
@@ -196,17 +205,24 @@ class WMSCoverageLayer(WMSLayer):
         return layer
 
 class WMSRectifiedDatasetLayer(WMSCoverageLayer):
+    
+    def __init__(self, coverage, extent=None):
+        super(WMSRectifiedDatasetLayer, self).__init__(coverage)
+        self.extent = extent
+        
+    
     def getMapServerLayer(self, req):
         layer = super(WMSRectifiedDatasetLayer, self).getMapServerLayer(req)
 
         # general rectified coverage metadata
         srid = self.coverage.getSRID()
-        layer.setProjection( crss.asProj4Str( srid ) )
-        layer.setMetaData("ows_srs", crss.asShortCode( srid ) ) 
-        layer.setMetaData("wms_srs", crss.asShortCode( srid ) ) 
-        layer.setMetaData("wms_extent", "%.10g %.10g %.10g %.10g" \
-                                                   % self.coverage.getExtent())
-        layer.setExtent(*self.coverage.getExtent())
+        extent = self.extent or self.coverage.getExtent()
+        
+        layer.setProjection(crss.asProj4Str(srid))
+        layer.setMetaData("ows_srs", crss.asShortCode(srid))
+        layer.setMetaData("wms_srs", crss.asShortCode(srid))
+        layer.setMetaData("wms_extent", "%.10g %.10g %.10g %.10g" % extent)
+        layer.setExtent(*extent)
 
         # bind rectified dataset
         connector = System.getRegistry().findAndBind(
@@ -220,7 +236,52 @@ class WMSRectifiedDatasetLayer(WMSCoverageLayer):
         layer = connector.configure(layer, self.coverage)
 
         return layer
+    
+class WMSWrappedRectifiedDatasetLayer(WMSRectifiedDatasetLayer):
+    
+    def __init__(self, coverage, vrt_path, extent=None):
+        super(WMSWrappedRectifiedDatasetLayer, self).__init__(coverage)
+        self.extent = extent
+        self.vrt_path = vrt_path
         
+    
+    def getMapServerLayer(self, req):
+        layer = super(WMSWrappedRectifiedDatasetLayer, self).getMapServerLayer(req)
+
+        extent = self.extent or self.coverage.getExtent()
+        
+        layer.setMetaData("wms_extent", "%.10g %.10g %.10g %.10g" % extent)
+        layer.setExtent(*extent)
+        
+        data_package = self.coverage.getData()
+        data_package.prepareAccess()
+        ds = gdal.Open(data_package.getGDALDatasetIdentifier())
+        
+        vrt_ds = create_simple_vrt(ds, self.vrt_path)
+        e = wrap_extent_around_dateline(self.coverage.getExtent(),
+                                        self.coverage.getSRID())
+        
+        size_x = ds.RasterXSize
+        size_y = ds.RasterYSize
+        
+        dx = abs(e[0] - e[2]) / size_x
+        dy = abs(e[1] - e[3]) / size_y 
+        
+        vrt_ds.SetGeoTransform([e[0], dx, 0, e[3], 0, -dy])
+        
+        vrt_ds = None
+        
+        layer.data = self.vrt_path
+
+        return layer
+    
+    
+    def cleanup(self):
+        super(WMSWrappedRectifiedDatasetLayer, self).cleanup()
+        gdal.Unlink(self.vrt_path)
+        
+        
+    
 class WMSReferenceableDatasetLayer(WMSCoverageLayer):
     def setScale(self, layer):
         layer.setProcessingKey("SCALE", "1,2000") # TODO: make this configurable
@@ -393,8 +454,8 @@ class WMSCommonHandler(MapServerOperationHandler):
         self._setMapProjection()
 
         # set the (global) list of supported CRSes
-        self.map.setMetaData("ows_srs", getMSWMSSRSMD() ) 
-        self.map.setMetaData("wms_srs", getMSWMSSRSMD() ) 
+        self.map.setMetaData("ows_srs", getMSWMSSRSMD()) 
+        self.map.setMetaData("wms_srs", getMSWMSSRSMD()) 
 
         # set all supported output formats 
 
@@ -402,13 +463,12 @@ class WMSCommonHandler(MapServerOperationHandler):
         FormatRegistry = getFormatRegistry() 
 
         # define the supported formats 
-        for sf in FormatRegistry.getSupportedFormatsWMS() :  
-    
+        for sf in FormatRegistry.getSupportedFormatsWMS():
             # output format definition 
             of = mapscript.outputFormatObj( sf.driver, "custom" )
             of.name      = sf.mimeType 
             of.mimetype  = sf.mimeType 
-            of.extension = _stripDot( sf.defaultExt ) 
+            of.extension = _stripDot(sf.defaultExt) 
             #of.imagemode = mapscript.MS_IMAGEMODE_BYTE
             of.imagemode = mapscript.MS_IMAGEMODE_RGBA
 
@@ -416,8 +476,12 @@ class WMSCommonHandler(MapServerOperationHandler):
             self.map.appendOutputFormat( of )
 
         # set the formats supported by getMap WMS operation 
-        self.map.setMetaData( "wms_getmap_formatlist" , 
-            ",".join( map( lambda f : f.mimeType , FormatRegistry.getSupportedFormatsWMS() ) ) ) 
+        self.map.setMetaData("wms_getmap_formatlist", 
+            ",".join(
+                map(lambda f: f.mimeType,
+                    FormatRegistry.getSupportedFormatsWMS())
+            )
+        ) 
 
 
     def createLayers(self):
@@ -618,14 +682,42 @@ class WMS1XGetMapHandler(WMSCommonHandler):
             )
             if coverage is not None:
                 if coverage.matches(filter_exprs):
-                    self.addLayer(self.createCoverageLayer(coverage))
+                    # TODO: check if the coverage crosses the dateline
+                    # if yes, add multiple layers
+                    
+                    if extent_crosses_dateline(coverage.getExtent(), coverage.getSRID()):
+                        logger.debug("Coverage %s crosses the dateline. Special layer setup." % coverage.getCoverageId())
+                        if coverage.getType()  == "eo.rect_dataset":
+                            coverage_id = coverage.getCoverageId()
+                            
+                            unwrapped_coverage_layer = WMSRectifiedDatasetLayer(coverage)
+                            unwrapped_coverage_layer.name = coverage_id + "_unwrapped"
+                            
+                            wrapped_extent = wrap_extent_around_dateline(
+                                coverage.getExtent(), coverage.getSRID()
+                            )
+                            vrt_path = "/vsimem/%s/%s.vrt" % (str(uuid4()), coverage_id)
+                            wrapped_coverage_layer = WMSWrappedRectifiedDatasetLayer(coverage, vrt_path, wrapped_extent)
+                            wrapped_coverage_layer.name = coverage_id + "_wrapped"
+                            
+                            unwrapped_coverage_layer.setGroup(coverage_id)
+                            wrapped_coverage_layer.setGroup(coverage_id)
+                            
+                            self.addLayer(unwrapped_coverage_layer)
+                            self.addLayer(wrapped_coverage_layer)
+                        else:
+                            raise NotImplementedError(
+                                "WMS for dateline crossing datasets are not "
+                                "implemented."
+                            )
+                    else:
+                        self.addLayer(self.createCoverageLayer(coverage))
                 else:
                     self.addLayer(WMSEmptyLayer(coverage.getCoverageId()))
             else:
                 raise InvalidRequestException(
                     "No coverage or dataset series with EO ID '%s' found" % layer_name,
-                    "LayerNotDefined",
-                    "layers"
+                    "LayerNotDefined", "layers"
                 )
         
     def createDatasetSeriesLayers(self, dataset_series, filter_exprs):
