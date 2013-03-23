@@ -41,7 +41,7 @@
         "fields": {
             "metadata_location": 16, 
             "data_location": 15,
-	    "source_format": "image/tiff"
+            "source_format": "image/tiff"
         }
     },
     {
