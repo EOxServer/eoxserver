@@ -1585,6 +1585,16 @@ class WMS13GetMapReprojectedDatasetTestCase(eoxstest.WMS13GetMapTestCase):
     layers = ("MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected",)
     bbox = (8.487755775451660, 32.195316643454134, 25.407486727461219, 46.249103546142578)
 
+
+class WMS13GetMapCrossesDatelineDatasetTestCase(eoxstest.WMS13GetMapTestCase):
+    """ Test a GetMap request with a reprojected dataset. """
+    fixtures = BASE_FIXTURES + ["testing_crosses_dateline.json"]
+    
+    layers = ("crosses_dateline",)
+    bbox = (-180, -90, 180, 90)
+    width = 200
+
+
 class WMS13GetFeatureInfoTestCase(eoxstest.HTMLTestCase):
     """ Test a GetFeatureInfo on an outline layer. """
     

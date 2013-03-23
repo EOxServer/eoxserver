@@ -65,8 +65,6 @@ from eoxserver.resources.coverages.formats import getFormatRegistry
 from eoxserver.resources.coverages import crss
 
 
-logger = logging.getLogger(__name__)
-
 #==============================================================================
 # WCS service handler (required by WCS 2.0 as well ) 
 
@@ -173,7 +171,7 @@ class WCS1XOperationHandler(WCSCommonHandler):
         super(WCS1XOperationHandler, self).configureMapObj()
 
         # set all supported formats 
-        for output_format in getMSOutputFormatsAll() :  
+        for output_format in getMSOutputFormatsAll():
             self.map.appendOutputFormat(output_format)
             
     def getMapServerLayer(self, coverage):
@@ -245,7 +243,7 @@ class WCS1XDescribeCoverageHandler(WCS1XOperationHandler):
                     " '%s' found."%coverage_id, "NoSuchCoverage", coverage_id)                     
 
             self.coverages.append(coverage)
-        
+
 class WCS1XGetCoverageHandler(WCS1XOperationHandler):
     def createCoverages(self):
         factory = System.getRegistry().bind("resources.coverages.wrappers.EOCoverageFactory")
@@ -272,8 +270,6 @@ class WCS1XGetCoverageHandler(WCS1XOperationHandler):
             super(WCS1XGetCoverageHandler, self)._setParameter(key, value)
             
     def configureMapObj(self):
-        super(WCS1XGetCoverageHandler, self).configureMapObj()
-        
         format_param = self.req.getParamValue("format")
         if not format_param:
             raise InvalidRequestException(
@@ -287,7 +283,7 @@ class WCS1XGetCoverageHandler(WCS1XOperationHandler):
         self.map.appendOutputFormat(output_format)
         self.map.setOutputFormat(output_format)
         
-        logger.debug("WCS20GetCoverageHandler.configureMapObj: %s" % self.map.imagetype)
+        super(WCS1XGetCoverageHandler, self).configureMapObj()
 
 class WCS10GetCapabilitiesHandler(WCS1XOperationHandler):
     REGISTRY_CONF = {
