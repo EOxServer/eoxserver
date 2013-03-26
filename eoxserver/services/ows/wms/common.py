@@ -272,7 +272,7 @@ class WMSWrappedRectifiedDatasetLayer(WMSRectifiedDatasetLayer):
     
     def cleanup(self):
         super(WMSWrappedRectifiedDatasetLayer, self).cleanup()
-        gdal.Unlink(self.vrt_path)
+        gdal.Unlink(str(self.vrt_path))
         
         
     
@@ -690,7 +690,7 @@ class WMS1XGetMapHandler(WMSCommonHandler):
                             wrapped_extent = wrap_extent_around_dateline(
                                 coverage.getExtent(), coverage.getSRID()
                             )
-                            vrt_path = "/vsimem/%s/%s.vrt" % (str(uuid4()), coverage_id)
+                            vrt_path = str("/vsimem/%s/%s.vrt" % (str(uuid4()), coverage_id)) # str to avoid unicode issues
                             wrapped_coverage_layer = WMSWrappedRectifiedDatasetLayer(coverage, vrt_path, wrapped_extent)
                             wrapped_coverage_layer.name = coverage_id + "_wrapped"
                             
@@ -740,7 +740,7 @@ class WMS1XGetMapHandler(WMSCommonHandler):
                     wrapped_extent = wrap_extent_around_dateline(
                         coverage.getExtent(), coverage.getSRID()
                     )
-                    vrt_path = "/vsimem/%s/%s.vrt" % (str(uuid4()), coverage_id)
+                    vrt_path = str("/vsimem/%s/%s.vrt" % (str(uuid4()), coverage_id)) # str to avoid unicode issues
                     wrapped_coverage_layer = WMSWrappedRectifiedDatasetLayer(coverage, vrt_path, wrapped_extent)
                     wrapped_coverage_layer.name = coverage_id + "_wrapped"
                     
