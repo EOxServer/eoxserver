@@ -719,20 +719,47 @@ class WMS1XGetMapHandler(WMSCommonHandler):
             return coverage.getBeginTime()
         
         coverages = dataset_series.getEOCoverages(filter_exprs)
+        eoid = dataset_series.getEOID()
         
         if len(coverages) == 0:
-            layer = WMSEmptyLayer(dataset_series.getEOID())
+            layer = WMSEmptyLayer(eoid)
             
             self.addLayer(layer)
             
         coverages.sort(key=_get_begin_time)
         
         for coverage in coverages:
-            layer = self.createCoverageLayer(coverage)
+            if extent_crosses_dateline(coverage.getExtent(), coverage.getSRID()):
+                logger.debug("Coverage %s crosses the dateline. Special layer setup." % coverage.getCoverageId())
+                if coverage.getType()  == "eo.rect_dataset":
+                    coverage_id = coverage.getCoverageId()
+                    
+                    unwrapped_coverage_layer = WMSRectifiedDatasetLayer(coverage)
+                    unwrapped_coverage_layer.name = coverage_id + "_unwrapped"
+                    
+                    wrapped_extent = wrap_extent_around_dateline(
+                        coverage.getExtent(), coverage.getSRID()
+                    )
+                    vrt_path = "/vsimem/%s/%s.vrt" % (str(uuid4()), coverage_id)
+                    wrapped_coverage_layer = WMSWrappedRectifiedDatasetLayer(coverage, vrt_path, wrapped_extent)
+                    wrapped_coverage_layer.name = coverage_id + "_wrapped"
+                    
+                    unwrapped_coverage_layer.setGroup(eoid)
+                    wrapped_coverage_layer.setGroup(eoid)
+                    
+                    self.addLayer(unwrapped_coverage_layer)
+                    self.addLayer(wrapped_coverage_layer)
+                else:
+                    raise NotImplementedError(
+                        "WMS for dateline crossing datasets are not "
+                        "implemented."
+                    )
             
-            layer.setGroup(dataset_series.getEOID())
-            
-            self.addLayer(layer)
+            else:    
+                layer = self.createCoverageLayer(coverage)
+                layer.setGroup(eoid)
+                self.addLayer(layer)
+        
             
     def addLayer(self, layer):
         # TODO: more performant solution based on hashes
