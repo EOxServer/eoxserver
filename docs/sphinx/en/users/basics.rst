@@ -77,7 +77,7 @@ You can get the EOxServer source from
 
 Additionally the following binary packages are provided:
 
-* Enterprise Linux RPMs from `EOX' YUM repository <http://packages.eox.at>`
+* Enterprise Linux RPMs from `EOX' YUM repository <http://packages.eox.at>`_
 
 The recommended way to install EOxServer on your system is to use the
 Python installer utility
