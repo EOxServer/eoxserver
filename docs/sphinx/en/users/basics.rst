@@ -75,6 +75,10 @@ You can get the EOxServer source from
 * the `Python Package Index (PyPi) <http://pypi.python.org/pypi/EOxServer/>`_
 * the `EOxServer SVN repository <http://eoxserver.org/svn/trunk>`_
 
+Additionally the following binary packages are provided:
+
+* Enterprise Linux RPMs from `EOX' YUM repository <http://packages.eox.at>`_
+
 The recommended way to install EOxServer on your system is to use the
 Python installer utility
 `pip <http://www.pip-installer.org/en/latest/index.html>`_.
