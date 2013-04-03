@@ -51,7 +51,7 @@ from eoxserver.core.util.timetools import UTCOffsetTimeZoneInfo
 from eoxserver.resources.coverages.interfaces import ManagerInterface
 from eoxserver.resources.coverages.exceptions import (
     ManagerError, NoSuchCoverageException, CoverageIdReservedError,
-    CoverageIdInUseError, CoverageIdReleaseError
+    CoverageIdInUseError, CoverageIdReleaseError, MetadataException
 )
 from eoxserver.resources.coverages.models import (
     PlainCoverageRecord, RectifiedDatasetRecord, 
