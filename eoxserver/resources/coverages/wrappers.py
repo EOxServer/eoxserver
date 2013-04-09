@@ -1600,6 +1600,7 @@ class DatasetSeriesWrapper(EOMetadataWrapper, ResourceWrapper):
             self.__model.eo_metadata.timestamp_end = end_time
             self.__model.eo_metadata.footprint = footprint
             
+            self.__model.eo_metadata.full_clean()
             self.__model.eo_metadata.save()
             
     #-------------------------------------------------------------------
