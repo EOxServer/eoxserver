@@ -37,6 +37,7 @@ with additional application logic.
 
 import os.path
 import operator
+import logging
 
 from django.contrib.gis.geos import GEOSGeometry
 from django.contrib.gis.geos.geometry import MultiPolygon
@@ -62,6 +63,9 @@ from eoxserver.resources.coverages.interfaces import (
 from eoxserver.resources.coverages.rangetype import (
     Band, NilValue, RangeType
 )
+
+
+logger = logging.getLogger(__name__)
 
 #-----------------------------------------------------------------------
 # Wrapper implementations
@@ -1531,17 +1535,61 @@ class DatasetSeriesWrapper(EOMetadataWrapper, ResourceWrapper):
             begin_time = min([t.timestamp_begin for t in eo_metadata_set])
             end_time = max([t.timestamp_end for t in eo_metadata_set])
         
-        footprint = eo_metadata_set.aggregate(
-            Union('footprint')
-        )["footprint__union"]
+        try:
+            # use the aggregate calculation if provided
+            footprint = eo_metadata_set.envelope(field_name="footprint")
+        except:
+            # manual collection of footprints (required for backends other than 
+            # SpatiaLite or PostGIS)
+            logger.warn("Performing manual envelope calculation.")
+            envelopes = MultiPolygon([
+                md.footprint.envelope for md in eo_metadata_set
+            ])
+            footprint = envelopes.envelope
         
         return (begin_time, end_time, footprint)
     
-    def _updateMetadata(self):
+    def _updateMetadata(self, added_coverage=None):
         begin_time = None
         footprint = None
         
         rect_qs = self.__model.rect_datasets.all()
+        ref_qs = self.__model.ref_datasets.all()
+        mosaic_qs = self.__model.rect_stitched_mosaics.all()
+        
+        # if a coverage was added, do not accumulate metadata, instead make a
+        # simplified approach and only add the metadata of the new coverage
+        if added_coverage:
+            eo_metadata = self.__model.eo_metadata
+            sum_count = rect_qs.count() + ref_qs.count() + mosaic_qs.count()
+            
+            # only perform shortcut when there is guranteed metadata of 
+            # included coverages
+            if sum_count > 1:
+                logger.info("Performing shortcut metadata calculation.")
+                eo_metadata.timestamp_begin = min(
+                    eo_metadata.timestamp_begin, added_coverage.getBeginTime()
+                )
+                eo_metadata.timestamp_end = min(
+                    eo_metadata.timestamp_end, added_coverage.getEndTime()
+                )
+                
+                # calculate a new combined envelope if necessary 
+                new_envelope = added_coverage.getFootprint().envelope
+                series_envelopes = eo_metadata.footprint
+                if not series_envelopes.contains(new_envelope):
+                    series_envelopes.append(new_envelope)
+                    eo_metadata.footprint = MultiPolygon(
+                        series_envelopes.envelope
+                    )
+                
+                eo_metadata.full_clean()
+                eo_metadata.save()
+                
+                # exit now
+                return
+        
+        # perform the normal metadata aggregation here
         if len(rect_qs):
             eo_metadata_set = EOMetadataRecord.objects.filter(
                 rectifieddatasetrecord_set__in = rect_qs
@@ -1551,7 +1599,7 @@ class DatasetSeriesWrapper(EOMetadataWrapper, ResourceWrapper):
                 eo_metadata_set
             )
 
-        ref_qs = self.__model.ref_datasets.all()
+        
         if len(ref_qs):
             eo_metadata_set = EOMetadataRecord.objects.filter(
                 referenceabledatasetrecord_set__in = ref_qs
@@ -1570,7 +1618,7 @@ class DatasetSeriesWrapper(EOMetadataWrapper, ResourceWrapper):
                 end_time = end_time_ref
                 footprint = footprint_ref
 
-        mosaic_qs = self.__model.rect_stitched_mosaics.all()
+        
         if len(mosaic_qs):
             eo_metadata_set = EOMetadataRecord.objects.filter(
                 rectifiedstitchedmosaicrecord_set__in = mosaic_qs
@@ -1695,7 +1743,7 @@ class DatasetSeriesWrapper(EOMetadataWrapper, ResourceWrapper):
             )
         
         if not self.__block_md_update:
-            self._updateMetadata()
+            self._updateMetadata(wrapper)
 
     def removeCoverage(self, wrapper):
         """
