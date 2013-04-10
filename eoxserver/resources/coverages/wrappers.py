@@ -40,7 +40,7 @@ import operator
 import logging
 
 from django.contrib.gis.geos import GEOSGeometry
-from django.contrib.gis.geos.geometry import MultiPolygon
+from django.contrib.gis.geos.geometry import MultiPolygon, Polygon
 from django.contrib.gis.db.models import Union
 
 from eoxserver.core.system import System
@@ -1537,7 +1537,9 @@ class DatasetSeriesWrapper(EOMetadataWrapper, ResourceWrapper):
         
         try:
             # use the aggregate calculation if provided
-            footprint = eo_metadata_set.envelope(field_name="footprint")
+            footprint = MultiPolygon(
+                Polygon.from_bbox(eo_metadata_set.extent(field_name="footprint"))
+            )
         except:
             # manual collection of footprints (required for backends other than 
             # SpatiaLite or PostGIS)
