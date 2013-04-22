@@ -97,7 +97,7 @@ class PreProcessor(object):
                  color_index=False, palette_file=None, no_data_value=None,
                  overview_resampling=None, overview_levels=None, 
                  overview_minsize=None, radiometric_interval_min=None, 
-                 radiometric_interval_max=None):
+                 radiometric_interval_max=None, simplification_factor=None):
         
         self.format_selection = format_selection
         self.overviews = overviews
@@ -115,6 +115,12 @@ class PreProcessor(object):
         self.no_data_value = no_data_value
         self.radiometric_interval_min = radiometric_interval_min
         self.radiometric_interval_max = radiometric_interval_max
+
+        if simplification_factor is not None:
+            self.simplification_factor = simplification_factor
+        else:
+            # default 2 * resolution == 2 pixels
+            self.simplification_factor = 2
         
     
     def process(self, input_filename, output_filename, 
@@ -292,13 +298,18 @@ class PreProcessor(object):
             except RuntimeError:
                 geometry.Transform(osr.CoordinateTransformation(sr, dst_sr))
         
+        gt = ds.GetGeoTransform()
+        resolution = min(abs(gt[1]), abs(gt[5]))
+
+        simplification_value = self.simplification_factor * resolution
+        
         # simplify the polygon. the tolerance value is *really* vague
         try:
             # SimplifyPreserveTopology() available since OGR 1.9.0
-            geometry = geometry.SimplifyPreserveTopology(self.simplification_tolerance)
+            geometry = geometry.SimplifyPreserveTopology(simplification_value)
         except AttributeError:
             # use GeoDjango bindings if OGR is too old
-            geometry = ogr.CreateGeometryFromWkt(GEOSGeometry(geometry.ExportToWkt()).simplify(self.simplification_tolerance, True).wkt)
+            geometry = ogr.CreateGeometryFromWkt(GEOSGeometry(geometry.ExportToWkt()).simplify(simplification_value, True).wkt)
         
         return geometry.ExportToWkt()
 
@@ -309,15 +320,6 @@ class WMSPreProcessor(PreProcessor):
         >>> prep = WMSPreProcessor(...)
         >>> prep.process(input_filename, output_filename, generate_metadata)
     """
-
-    def __init__(self, format_selection, simplification_tolerance=None, *args, **kwargs):
-        super(WMSPreProcessor, self).__init__(format_selection, *args, **kwargs)
-
-        if simplification_tolerance is not None:
-            self.simplification_tolerance = simplification_tolerance
-        else:
-            self.simplification_tolerance = 0.05
-
 
     def get_optimizations(self, ds):
         if self.crs:
