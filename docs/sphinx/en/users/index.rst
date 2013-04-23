@@ -64,7 +64,8 @@ and APIs please refer to the :ref:`EOxServer Developers' Guide`.
    crss
    formats  
    atp_sum 
-   WCS-T_summary  
+   WCS-T_summary
+   migration
 
 .. TODO
    users     - empty

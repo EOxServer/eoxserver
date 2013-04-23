@@ -163,6 +163,8 @@ and `GeoDjango installation
     +------------+------------------+------------------------------------------+
 
 
+.. _installing_eoxserver:
+
 Installing EOxServer
 --------------------
 
