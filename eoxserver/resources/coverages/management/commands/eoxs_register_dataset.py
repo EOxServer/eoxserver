@@ -102,7 +102,9 @@ class Command(CommandOutputMixIn, BaseCommand):
                   "By default, the mata-data is either retrieved directly "
                   "form the input data or from the accompaninig XML file "
                   "(having the same location and basename as the data files "
-                  "but '.xml' extension instead of the original one)." )
+                  "but '.xml' extension instead of the original one)." 
+                  "The external XML file overides the metada stored" 
+                  "directly in the datafile." )
         ),
         make_option('-r', '--range-type', '--rangetype',
             dest='rangetype',
@@ -483,7 +485,10 @@ class Command(CommandOutputMixIn, BaseCommand):
             return os.path.splitext( os.path.basename( src ) )[0] 
 
         def __make_md( src ) : 
-            return "%s.xml"%os.path.splitext( src )[0] 
+            fname = "%s.xml"%os.path.splitext( src )[0]
+            if not os.path.exists( fname ) : 
+                fname = src 
+            return fname 
 
         if not src_ids : 
             src_ids = [ __make_id(fn) for fn in src_data ] 
