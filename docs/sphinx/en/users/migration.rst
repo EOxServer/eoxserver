@@ -116,8 +116,6 @@ or
     pip install -U "svn+http://eoxserver.org/svn/branches/0.3"
 
 
-
-
 Instance migration
 ------------------
 
@@ -154,3 +152,55 @@ Since version 0.2 a couple of new configuration options are available, most
 notably for defining output :ref:`formats <FormatsConfiguration>` and
 :ref:`CRSs <CRSConfiguration>`. Please hace a look at the relevant sections to
 see how both are set up.
+
+With Django 1.4, EOxServer is allows a much more fine-grained logging mechanism
+defined in the ``settings.py``. Details can be obtained from the `Django
+documentation
+<https://docs.djangoproject.com/en/dev/topics/logging/#configuring-logging>`_.
+The following is an example of how the logging is set up by default in new
+EOxServer instances after version 0.3:
+::
+
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': True,
+        'filters': {
+            'require_debug_false': {
+                '()': 'django.utils.log.RequireDebugFalse'
+            }
+        },
+        'formatters': {
+            'simple': {
+                'format': '%(levelname)s: %(message)s'
+            },
+            'verbose': {
+                'format': '[%(asctime)s][%(module)s] %(levelname)s: %(message)s'
+            }
+        },
+        'handlers': {
+            'eoxserver_file': {
+                'level': 'DEBUG',
+                'class': 'logging.FileHandler',
+                'filename': join(PROJECT_DIR, 'logs', 'eoxserver.log'),
+                'formatter': 'verbose',
+                'filters': [],
+            }
+        },
+        'loggers': {
+            'eoxserver': {
+                'handlers': ['eoxserver_file'],
+                'level': 'DEBUG' if DEBUG else 'INFO',
+                'propagate': False,
+            },
+        }
+    }
+
+Another important feature that was introduced in Django 1.4 is the implicit
+support of time-zones. This can be activated in the ``settings.py`` as well:
+::
+
+    USE_TZ = True
+
+For the complete list of changes in Django see the official documentation
+(`1.4 <https://docs.djangoproject.com/en/dev/releases/1.4/>`_ and
+`1.5 <https://docs.djangoproject.com/en/dev/releases/1.5/>`_).
