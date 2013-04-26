@@ -39,19 +39,8 @@ from django.conf import settings
 
 from eoxserver.core.system import System
 from eoxserver.core.util.timetools import UTCOffsetTimeZoneInfo, isotime
-from eoxserver.testing.core import BASE_FIXTURES, CommandFaultTestCase
-from eoxserver.resources.coverages.testbase import (
-    RectifiedDatasetCreateTestCase, RectifiedDatasetUpdateTestCase,
-    RectifiedDatasetDeleteTestCase, RectifiedStitchedMosaicCreateTestCase,
-    RectifiedStitchedMosaicUpdateTestCase, RectifiedStitchedMosaicDeleteTestCase,
-    RectifiedStitchedMosaicSynchronizeTestCase, 
-    DatasetSeriesCreateTestCase, DatasetSeriesUpdateTestCase,
-    DatasetSeriesDeleteTestCase, DatasetSeriesSynchronizeTestCase,
-    CoverageIdManagementTestCase, EXTENDED_FIXTURES,
-    DatasetSeriesMixIn, CoverageCommandTestCase,
-    CommandInsertTestCase, CommandExcludeTestCase,
-    CommandRegisterDatasetTestCase
-)
+from eoxserver.testing.core import BASE_FIXTURES
+import eoxserver.resources.coverages.testbase as eoxstest
 from eoxserver.resources.coverages.geo import GeospatialMetadata
 from eoxserver.resources.coverages.metadata import EOMetadata
 import eoxserver.resources.coverages.exceptions as exceptions
@@ -61,7 +50,7 @@ logger = logging.getLogger(__name__)
 
 # create new rectified dataset from a local path
 
-class RectifiedDatasetCreateWithLocalPathTestCase(RectifiedDatasetCreateTestCase):
+class RectifiedDatasetCreateWithLocalPathTestCase(eoxstest.RectifiedDatasetCreateTestCase):
     def manage(self):
         args = {
             "local_path": os.path.join(settings.PROJECT_DIR,
@@ -76,7 +65,7 @@ class RectifiedDatasetCreateWithLocalPathTestCase(RectifiedDatasetCreateTestCase
     
 # create new rectified dataset from a local path with metadata
 
-class RectifiedDatasetCreateWithLocalPathAndMetadataTestCase(RectifiedDatasetCreateTestCase):
+class RectifiedDatasetCreateWithLocalPathAndMetadataTestCase(eoxstest.RectifiedDatasetCreateTestCase):
     def manage(self):
         args = {
             "local_path": os.path.join(
@@ -93,7 +82,7 @@ class RectifiedDatasetCreateWithLocalPathAndMetadataTestCase(RectifiedDatasetCre
         }
         self.wrapper = self.create(**args)
 
-class RectifiedDatasetCreateWithContainerTestCase(RectifiedDatasetCreateTestCase):
+class RectifiedDatasetCreateWithContainerTestCase(eoxstest.RectifiedDatasetCreateTestCase):
     fixtures = BASE_FIXTURES
     
     def _create_containers(self):
@@ -117,7 +106,7 @@ class RectifiedDatasetCreateWithContainerTestCase(RectifiedDatasetCreateTestCase
                 datetime.now(),
                 GEOSGeometry("POLYGON((-3 33, 27 33, 27 45, -3 45, -3 33))")
             ),
-            "storage_dir": "/some/storage/dir"
+            "storage_dir": "/tmp/some/storage/dir"
         })
         
     def manage(self):
@@ -135,7 +124,7 @@ class RectifiedDatasetCreateWithContainerTestCase(RectifiedDatasetCreateTestCase
         self.assertTrue(self.stitched_mosaic.contains(self.wrapper), 
                         "Stitched Mosaic has to contain the dataset.")
     
-class RectifiedDatasetCreateWithContainerIDsTestCase(RectifiedDatasetCreateTestCase):
+class RectifiedDatasetCreateWithContainerIDsTestCase(eoxstest.RectifiedDatasetCreateTestCase):
     fixtures = BASE_FIXTURES
     
     def _create_containers(self):
@@ -176,7 +165,7 @@ class RectifiedDatasetCreateWithContainerIDsTestCase(RectifiedDatasetCreateTestC
                 datetime.now(),
                 GEOSGeometry("POLYGON((-3 33, 27 33, 27 45, -3 45, -3 33))")
             ),
-            "storage_dir": "/some/storage/dir"
+            "storage_dir": "/tmp/some/storage/dir"
         })
     
     def manage(self):
@@ -199,7 +188,7 @@ class RectifiedDatasetCreateWithContainerIDsTestCase(RectifiedDatasetCreateTestC
 
 # create new rectified dataset from a ftp path
 
-class RectifiedDatasetCreateWithRemothePathTestCase(RectifiedDatasetCreateTestCase):
+class RectifiedDatasetCreateWithRemothePathTestCase(eoxstest.RectifiedDatasetCreateTestCase):
     def manage(self):
         args = {
             "local_path": os.path.join(
@@ -219,7 +208,7 @@ class RectifiedDatasetCreateWithRemothePathTestCase(RectifiedDatasetCreateTestCa
 
 # create new rectified dataset from a rasdaman location 
 
-class RectifiedDatasetCreateWithRasdamanLocationTestCase(RectifiedDatasetCreateTestCase):
+class RectifiedDatasetCreateWithRasdamanLocationTestCase(eoxstest.RectifiedDatasetCreateTestCase):
     def manage(self):
         args = {
             "collection": "MERIS",
@@ -243,8 +232,8 @@ class RectifiedDatasetCreateWithRasdamanLocationTestCase(RectifiedDatasetCreateT
         self.assertEqual(self.wrapper.getType(), "eo.rect_dataset")
     
 
-class RectifiedDatasetUpdateGeoMetadataTestCase(RectifiedDatasetUpdateTestCase):
-    fixtures = EXTENDED_FIXTURES
+class RectifiedDatasetUpdateGeoMetadataTestCase(eoxstest.RectifiedDatasetUpdateTestCase):
+    fixtures = eoxstest.EXTENDED_FIXTURES
     
     def manage(self):
         args = {
@@ -254,7 +243,7 @@ class RectifiedDatasetUpdateGeoMetadataTestCase(RectifiedDatasetUpdateTestCase):
                     srid=3035,
                     size_x=100,
                     size_y=100,
-                    extent=(0, 0, 100000000, 100000000)
+                    extent=(0, 0, 10000000, 10000000)
                 )
             }
         }
@@ -268,15 +257,15 @@ class RectifiedDatasetUpdateGeoMetadataTestCase(RectifiedDatasetUpdateTestCase):
         
         self.assertEqual(3035, coverage.getAttrValue("srid"))
         self.assertEqual((100, 100), (coverage.getAttrValue("size_x"), coverage.getAttrValue("size_y")))
-        self.assertEqual((0, 0, 100000000, 100000000),( 
+        self.assertEqual((0, 0, 10000000, 10000000),( 
             coverage.getAttrValue("minx"),
             coverage.getAttrValue("miny"),
             coverage.getAttrValue("maxx"),
             coverage.getAttrValue("maxy")
         ))
     
-class RectifiedDatasetUpdateGeoMetadataViaSetAttrMetadataTestCase(RectifiedDatasetUpdateTestCase):
-    fixtures = EXTENDED_FIXTURES
+class RectifiedDatasetUpdateGeoMetadataViaSetAttrMetadataTestCase(eoxstest.RectifiedDatasetUpdateTestCase):
+    fixtures = eoxstest.EXTENDED_FIXTURES
     
     def manage(self):
         args = {
@@ -287,8 +276,8 @@ class RectifiedDatasetUpdateGeoMetadataViaSetAttrMetadataTestCase(RectifiedDatas
                 "size_y": 100,
                 "minx": 0,
                 "miny": 0,
-                "maxx": 100000000,
-                "maxy": 100000000
+                "maxx": 10000000,
+                "maxy": 10000000
             }
         }
         self.update(**args)
@@ -301,19 +290,21 @@ class RectifiedDatasetUpdateGeoMetadataViaSetAttrMetadataTestCase(RectifiedDatas
         
         self.assertEqual(3035, coverage.getAttrValue("srid"))
         self.assertEqual((100, 100), (coverage.getAttrValue("size_x"), coverage.getAttrValue("size_y")))
-        self.assertEqual((0, 0, 100000000, 100000000),( 
+        self.assertEqual((0, 0, 10000000, 10000000),( 
             coverage.getAttrValue("minx"),
             coverage.getAttrValue("miny"),
             coverage.getAttrValue("maxx"),
             coverage.getAttrValue("maxy")
         ))
 
-class RectifiedDatasetUpdateEOMetadataTestCase(RectifiedDatasetUpdateTestCase):
-    fixtures = EXTENDED_FIXTURES
+class RectifiedDatasetUpdateEOMetadataTestCase(eoxstest.RectifiedDatasetUpdateTestCase):
+    fixtures = eoxstest.EXTENDED_FIXTURES
     
     def manage(self):
-        self.begin_time = datetime.now()
-        self.end_time = datetime.now()
+        import pytz
+        utc = pytz.timezone("UTC")
+        self.begin_time = datetime.now(utc)
+        self.end_time = datetime.now(utc)
         self.footprint = MultiPolygon(Polygon.from_bbox((-3, 33, 12, 46)))
         #GEOSGeometry("POLYGON((1 2, 3 2, 3 4, 1 4, 1 2))")
         args = {
@@ -338,15 +329,18 @@ class RectifiedDatasetUpdateEOMetadataTestCase(RectifiedDatasetUpdateTestCase):
         self.assertEqual("SomeEOID", coverage.getEOID())
         self.assertEqual(self.begin_time, coverage.getBeginTime())
         self.assertEqual(self.end_time, coverage.getEndTime())
-        self.assertEqual(self.footprint, coverage.getFootprint())
-        
-class RectifiedDatasetUpdateEOMetadataViaSetAttrTestCase(RectifiedDatasetUpdateTestCase):
-    fixtures = EXTENDED_FIXTURES
+        self.assertTrue(self.footprint.equals_exact(coverage.getFootprint(), 0.001),
+                        "Footprints mismatch.")
+
+class RectifiedDatasetUpdateEOMetadataViaSetAttrTestCase(eoxstest.RectifiedDatasetUpdateTestCase):
+    fixtures = eoxstest.EXTENDED_FIXTURES
     
     def manage(self):
-        self.begin_time = datetime.now()
-        self.end_time = datetime.now()
-        self.footprint = GEOSGeometry("POLYGON((-3 33, 12 33, 12 45, -3 45, -3 33))")
+        import pytz
+        utc = pytz.timezone("UTC")
+        self.begin_time = datetime.now(utc)
+        self.end_time = datetime.now(utc)
+        self.footprint = GEOSGeometry("MULTIPOLYGON(((-3 33, 12 33, 12 45, -3 45, -3 33)))")
         args = {
             "obj_id": "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced",
             "set": {
@@ -369,8 +363,8 @@ class RectifiedDatasetUpdateEOMetadataViaSetAttrTestCase(RectifiedDatasetUpdateT
         self.assertEqual(self.end_time, coverage.getEndTime())
         self.assertEqual(self.footprint, coverage.getFootprint())
 
-class RectifiedDatasetUpdateLinkContainersTestCase(RectifiedDatasetUpdateTestCase):
-    fixtures = EXTENDED_FIXTURES
+class RectifiedDatasetUpdateLinkContainersTestCase(eoxstest.RectifiedDatasetUpdateTestCase):
+    fixtures = eoxstest.EXTENDED_FIXTURES
     
     def manage(self):
         args = {
@@ -388,9 +382,9 @@ class RectifiedDatasetUpdateLinkContainersTestCase(RectifiedDatasetUpdateTestCas
         )
         
         self.assertIn("MER_FRS_1P_reduced", [container.getEOID() for container in coverage.getContainers()])
-        
-class RectifiedDatasetUpdateUnlinkContainersTestCase(RectifiedDatasetUpdateTestCase):
-    fixtures = EXTENDED_FIXTURES
+
+class RectifiedDatasetUpdateUnlinkContainersTestCase(eoxstest.RectifiedDatasetUpdateTestCase):
+    fixtures = eoxstest.EXTENDED_FIXTURES
     
     def manage(self):
         args = {
@@ -409,8 +403,8 @@ class RectifiedDatasetUpdateUnlinkContainersTestCase(RectifiedDatasetUpdateTestC
         
         self.assertNotIn("mosaic_MER_FRS_1P_RGB_reduced", [container.getEOID() for container in coverage.getContainers()])
 
-class RectifiedDatasetUpdateCoverageAndEOIDTestCase(RectifiedDatasetUpdateTestCase):
-    fixtures = EXTENDED_FIXTURES
+class RectifiedDatasetUpdateCoverageAndEOIDTestCase(eoxstest.RectifiedDatasetUpdateTestCase):
+    fixtures = eoxstest.EXTENDED_FIXTURES
     
     def manage(self):
         args = {
@@ -431,9 +425,9 @@ class RectifiedDatasetUpdateCoverageAndEOIDTestCase(RectifiedDatasetUpdateTestCa
         self.assertEqual("SomeCoverageID", coverage.getCoverageId())
         self.assertEqual("SomeEOID", coverage.getEOID())
 
-# create new mosaic and add a local path to locations
 
-class RectifiedStitchedMosaicCreateWithLocalPathTestCase(RectifiedStitchedMosaicCreateTestCase):
+# create new mosaic and add a local path to locations
+class RectifiedStitchedMosaicCreateWithLocalPathTestCase(eoxstest.RectifiedStitchedMosaicCreateTestCase):
     def manage(self):
         args = {
             "data_dirs": [{
@@ -453,7 +447,7 @@ class RectifiedStitchedMosaicCreateWithLocalPathTestCase(RectifiedStitchedMosaic
                 datetime.now(),
                 GEOSGeometry("POLYGON((-3 33, 27 33, 27 45, -3 45, -3 33))")
             ),
-            "storage_dir": "/some/storage/dir"
+            "storage_dir": "/tmp/some/storage/dir"
         }
         self.wrapper = self.create(**args)
         
@@ -465,7 +459,7 @@ class RectifiedStitchedMosaicCreateWithLocalPathTestCase(RectifiedStitchedMosaic
 
 
 # create new mosaic and add a remote path to locations
-class RectifiedStitchedMosaicCreateWithRemotePathTestCase(RectifiedStitchedMosaicCreateTestCase):
+class RectifiedStitchedMosaicCreateWithRemotePathTestCase(eoxstest.RectifiedStitchedMosaicCreateTestCase):
     def manage(self):
         args = {
             "data_dirs": [{
@@ -488,41 +482,42 @@ class RectifiedStitchedMosaicCreateWithRemotePathTestCase(RectifiedStitchedMosai
                 datetime.now(),
                 GEOSGeometry("POLYGON((-3 33, 27 33, 27 45, -3 45, -3 33))")
             ),
-            "storage_dir": "/some/storage/dir"
+            "storage_dir": "/tmp/some/storage/dir"
         }
         self.wrapper = self.create(**args)
         
     def testContents(self):
         self.assertEqual(len(self.wrapper.getDatasets()), 3)
 
+
+#TODO enable when implemented
 # create new mosaic and add a rasdaman location to locations
+#class RectifiedStitchedMosaicCreateWithRasdamanLocationTestCase(eoxstest.RectifiedStitchedMosaicCreateTestCase):
+#    def manage(self):
+#        args = {
+#            "data_dirs": [{
+#                "type": "rasdaman",
+#                "host": "localhost",
+#                "collection": "MERIS"
+#            }],
+#            "geo_metadata": GeospatialMetadata(
+#                srid=4326, size_x=100, size_y=100,
+#                extent=(1, 2, 3, 4)
+#            ),
+#            "range_type_name": "RGB",
+#            "eo_metadata": EOMetadata(
+#                "SOMEEOID",
+#                datetime.now(),
+#                datetime.now(),
+#                GEOSGeometry("POLYGON((1 2, 3 2, 3 4, 1 4, 1 2))")
+#            ),
+#            "storage_dir": "/tmp/some/storage/dir"
+#        }
+#        self.wrapper = self.create(**args)
 
-class RectifiedStitchedMosaicCreateWithRasdamanLocationTestCase(RectifiedStitchedMosaicCreateTestCase):
-    def manage(self):
-        args = {
-            "data_dirs": [{
-                "type": "rasdaman",
-                "host": "localhost",
-                "collection": "MERIS"
-            }],
-            "geo_metadata": GeospatialMetadata(
-                srid=4326, size_x=100, size_y=100,
-                extent=(1, 2, 3, 4)
-            ),
-            "range_type_name": "RGB",
-            "eo_metadata": EOMetadata(
-                "SOMEEOID",
-                datetime.now(),
-                datetime.now(),
-                GEOSGeometry("POLYGON((1 2, 3 2, 3 4, 1 4, 1 2))")
-            ),
-            "storage_dir": "/some/storage/dir"
-        }
-        self.wrapper = self.create(**args)
 
-
-class RectifiedStitchedMosaicUpdateLinkDataSourcesTestCase(RectifiedStitchedMosaicUpdateTestCase):
-    fixtures = EXTENDED_FIXTURES
+class RectifiedStitchedMosaicUpdateLinkDataSourcesTestCase(eoxstest.RectifiedStitchedMosaicUpdateTestCase):
+    fixtures = eoxstest.EXTENDED_FIXTURES
     
     def manage(self):
         args = {
@@ -550,8 +545,8 @@ class RectifiedStitchedMosaicUpdateLinkDataSourcesTestCase(RectifiedStitchedMosa
         pass
 
 
-class RectifiedStitchedMosaicUpdateUnlinkDatasetsTestCase(RectifiedStitchedMosaicUpdateTestCase):
-    fixtures = EXTENDED_FIXTURES
+class RectifiedStitchedMosaicUpdateUnlinkDatasetsTestCase(eoxstest.RectifiedStitchedMosaicUpdateTestCase):
+    fixtures = eoxstest.EXTENDED_FIXTURES
     
     def manage(self):
         args = {
@@ -577,8 +572,7 @@ class RectifiedStitchedMosaicUpdateUnlinkDatasetsTestCase(RectifiedStitchedMosai
 
 
 # create dataset series with a local path
-
-class DatasetSeriesCreateWithLocalPathTestCase(DatasetSeriesCreateTestCase):
+class DatasetSeriesCreateWithLocalPathTestCase(eoxstest.DatasetSeriesCreateTestCase):
     fixtures = BASE_FIXTURES
     
     def manage(self):
@@ -606,8 +600,8 @@ class DatasetSeriesCreateWithLocalPathTestCase(DatasetSeriesCreateTestCase):
 
 # alter dataset series to remove a location
 
-class DatasetSeriesRemoveLocationTestCase(DatasetSeriesUpdateTestCase):
-    fixtures = EXTENDED_FIXTURES
+class DatasetSeriesRemoveLocationTestCase(eoxstest.DatasetSeriesUpdateTestCase):
+    fixtures = eoxstest.EXTENDED_FIXTURES
     
     def manage(self):
         pass
@@ -615,7 +609,7 @@ class DatasetSeriesRemoveLocationTestCase(DatasetSeriesUpdateTestCase):
     def testContents(self):
         pass
 
-class DatasetSeriesSynchronizeNewDirectoryTestCase(DatasetSeriesSynchronizeTestCase):
+class DatasetSeriesSynchronizeNewDirectoryTestCase(eoxstest.DatasetSeriesSynchronizeTestCase):
     fixtures = BASE_FIXTURES
     
     def manage(self):
@@ -676,13 +670,13 @@ class DatasetSeriesSynchronizeNewDirectoryTestCase(DatasetSeriesSynchronizeTestC
                          max([dataset.getEndTime() 
                               for dataset in wrapper.getEOCoverages()]))
         
-        footprint = wrapper.getEOCoverages()[0].getFootprint()
+        footprint = wrapper.getEOCoverages()[0].getFootprint().envelope
         for dataset in wrapper.getEOCoverages()[1:]:
-            footprint = footprint.union(dataset.getFootprint())
-        self.assertTrue(wrapper.getFootprint().equals_exact(footprint, 0.001),
+            footprint = footprint.union(dataset.getFootprint()).envelope
+        self.assertTrue(wrapper.getFootprint().envelope.equals_exact(footprint, 0.001),
                         "Footprints mismatch.")
 
-class DatasetSeriesSynchronizeFileRemovedTestCase(DatasetSeriesSynchronizeTestCase):
+class DatasetSeriesSynchronizeFileRemovedTestCase(eoxstest.DatasetSeriesSynchronizeTestCase):
     fixtures = BASE_FIXTURES
     
     def _create_files(self):
@@ -743,18 +737,18 @@ class DatasetSeriesSynchronizeFileRemovedTestCase(DatasetSeriesSynchronizeTestCa
                          max([dataset.getEndTime() 
                               for dataset in wrapper.getEOCoverages()]))
         
-        footprint = wrapper.getEOCoverages()[0].getFootprint()
+        footprint = wrapper.getEOCoverages()[0].getFootprint().envelope
         for dataset in wrapper.getEOCoverages()[1:]:
-            footprint = footprint.union(dataset.getFootprint())
-        self.assertTrue(wrapper.getFootprint().equals_exact(footprint, 0.001),
+            footprint = footprint.union(dataset.getFootprint()).envelope
+        self.assertTrue(wrapper.getFootprint().envelope.equals_exact(footprint, 0.001),
                         "Footprints mismatch.")
-
+    
     def tearDown(self):
         super(DatasetSeriesSynchronizeFileRemovedTestCase, self).tearDown()
         shutil.rmtree(self.dst)
 
-class DatasetSeriesUpdateLinkCoveragesTestCase(DatasetSeriesUpdateTestCase):
-    fixtures = EXTENDED_FIXTURES
+class DatasetSeriesUpdateLinkCoveragesTestCase(eoxstest.DatasetSeriesUpdateTestCase):
+    fixtures = eoxstest.EXTENDED_FIXTURES
     
     def manage(self):
         args = {
@@ -777,8 +771,8 @@ class DatasetSeriesUpdateLinkCoveragesTestCase(DatasetSeriesUpdateTestCase):
         self.assertIn("mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced",
                       [coverage.getCoverageId() for coverage in dataset_series.getEOCoverages()])
 
-class DatasetSeriesUpdateLinkCoverages2TestCase(DatasetSeriesUpdateTestCase):
-    fixtures = EXTENDED_FIXTURES
+class DatasetSeriesUpdateLinkCoverages2TestCase(eoxstest.DatasetSeriesUpdateTestCase):
+    fixtures = eoxstest.EXTENDED_FIXTURES
     
     def manage(self):
         args = {
@@ -802,8 +796,8 @@ class DatasetSeriesUpdateLinkCoverages2TestCase(DatasetSeriesUpdateTestCase):
                       [coverage.getCoverageId() for coverage in dataset_series.getEOCoverages()])
 
 
-class DatasetSeriesUpdateUnlinkCoveragesTestCase(DatasetSeriesUpdateTestCase):
-    fixtures = EXTENDED_FIXTURES
+class DatasetSeriesUpdateUnlinkCoveragesTestCase(eoxstest.DatasetSeriesUpdateTestCase):
+    fixtures = eoxstest.EXTENDED_FIXTURES
     
     def manage(self):
         args = {
@@ -830,14 +824,14 @@ class DatasetSeriesUpdateUnlinkCoveragesTestCase(DatasetSeriesUpdateTestCase):
 # Coverage ID management
 #===============================================================================
 
-class CoverageIdReserveTestCase(CoverageIdManagementTestCase):
+class CoverageIdReserveTestCase(eoxstest.CoverageIdManagementTestCase):
     def manage(self):    
         self.mgr.reserve("SomeCoverageID", until=datetime.now() + timedelta(days=1))
     
     def testNotAvailable(self):
         self.assertFalse(self.mgr.available("SomeCoverageID"))
 
-class CoverageIdReserveWithSameRequestIdTestCase(CoverageIdManagementTestCase):
+class CoverageIdReserveWithSameRequestIdTestCase(eoxstest.CoverageIdManagementTestCase):
     def manage(self):    
         self.mgr.reserve("SomeCoverageID", "RequestID", until=datetime.now() + timedelta(days=1))
     
@@ -847,14 +841,14 @@ class CoverageIdReserveWithSameRequestIdTestCase(CoverageIdManagementTestCase):
         except exceptions.CoverageIdReservedError:
             self.fail("Reserving with same request ID should not raise.")
     
-class CoverageIdReserveDefaultUntilTestCase(CoverageIdManagementTestCase):
+class CoverageIdReserveDefaultUntilTestCase(eoxstest.CoverageIdManagementTestCase):
     def manage(self):    
         self.mgr.reserve("SomeCoverageID")
     
     def testNotAvailable(self):
         self.assertFalse(self.mgr.available("SomeCoverageID"))
 
-class CoverageIdReleaseTestCase(CoverageIdManagementTestCase):
+class CoverageIdReleaseTestCase(eoxstest.CoverageIdManagementTestCase):
     def manage(self):
         self.mgr.reserve("SomeCoverageID", until=datetime.now() + timedelta(days=1))
         self.mgr.release("SomeCoverageID")
@@ -862,7 +856,7 @@ class CoverageIdReleaseTestCase(CoverageIdManagementTestCase):
     def testAvailable(self):
         self.assertTrue(self.mgr.available("SomeCoverageID"))
     
-class CoverageIdAlreadyReservedTestCase(CoverageIdManagementTestCase):
+class CoverageIdAlreadyReservedTestCase(eoxstest.CoverageIdManagementTestCase):
     def manage(self):    
         self.mgr.reserve("SomeCoverageID", until=datetime.now() + timedelta(days=1))
     
@@ -875,8 +869,8 @@ class CoverageIdAlreadyReservedTestCase(CoverageIdManagementTestCase):
             self.fail("Reservation of reserved ID did not raise the according "
                       "exception")
 
-class CoverageIdInUseTestCase(CoverageIdManagementTestCase):
-    fixtures = EXTENDED_FIXTURES
+class CoverageIdInUseTestCase(eoxstest.CoverageIdManagementTestCase):
+    fixtures = eoxstest.EXTENDED_FIXTURES
     
     def testIdInUseRectifiedDataset(self):
         try:
@@ -896,7 +890,7 @@ class CoverageIdInUseTestCase(CoverageIdManagementTestCase):
             self.fail("Reservation of ID in use did not raise the according "
                       "exception")
 
-class CoverageIdReleaseFailTestCase(CoverageIdManagementTestCase):
+class CoverageIdReleaseFailTestCase(eoxstest.CoverageIdManagementTestCase):
     def testRelease(self):
         try:
             self.mgr.release("SomeID", True)
@@ -905,8 +899,8 @@ class CoverageIdReleaseFailTestCase(CoverageIdManagementTestCase):
         else:
             self.fail("No exception thrown when unreserved ID was released.")
 
-class CoverageIdAvailableTestCase(CoverageIdManagementTestCase):
-    fixtures = EXTENDED_FIXTURES
+class CoverageIdAvailableTestCase(eoxstest.CoverageIdManagementTestCase):
+    fixtures = eoxstest.EXTENDED_FIXTURES
     
     def testNotAvailable(self):
         self.assertFalse(self.mgr.available("mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced"))
@@ -914,7 +908,7 @@ class CoverageIdAvailableTestCase(CoverageIdManagementTestCase):
     def testAvailable(self):
         self.assertTrue(self.mgr.available("SomeID"))
         
-class CoverageIdRequestIdTestCase(CoverageIdManagementTestCase):
+class CoverageIdRequestIdTestCase(eoxstest.CoverageIdManagementTestCase):
     def manage(self):    
         self.mgr.reserve("SomeCoverageID", "SomeRequestID", until=datetime.now() + timedelta(days=1))
         self.mgr.reserve("SomeCoverageID2", "SomeRequestID", until=datetime.now() + timedelta(days=1))
@@ -936,7 +930,7 @@ class CoverageIdRequestIdTestCase(CoverageIdManagementTestCase):
 
 # eoxs_register_dataset
 
-class RegisterLocalDatasetSimpleTestCase(CommandRegisterDatasetTestCase):
+class RegisterLocalDatasetSimpleTestCase(eoxstest.CommandRegisterDatasetTestCase):
     kwargs = {
         "d": "data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif",
         "rangetype": "RGB"
@@ -946,7 +940,7 @@ class RegisterLocalDatasetSimpleTestCase(CommandRegisterDatasetTestCase):
     ]
 
 
-class RegisterLocalDatasetWithCoverageIdTestCase(CommandRegisterDatasetTestCase):
+class RegisterLocalDatasetWithCoverageIdTestCase(eoxstest.CommandRegisterDatasetTestCase):
     kwargs = {
         "d": "data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif",
         "rangetype": "RGB",
@@ -954,7 +948,7 @@ class RegisterLocalDatasetWithCoverageIdTestCase(CommandRegisterDatasetTestCase)
     }
     coverages_to_be_registered = [{"coverage_id": "someCoverageID"}]
 
-class RegisterLocalDatasetMultipleTestCase(CommandRegisterDatasetTestCase):
+class RegisterLocalDatasetMultipleTestCase(eoxstest.CommandRegisterDatasetTestCase):
     kwargs = {
         "d": ("data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif",
               "data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.tif",
@@ -968,7 +962,7 @@ class RegisterLocalDatasetMultipleTestCase(CommandRegisterDatasetTestCase):
     ]
     
 
-class RegisterRemoteDatasetTestCase(CommandRegisterDatasetTestCase):
+class RegisterRemoteDatasetTestCase(eoxstest.CommandRegisterDatasetTestCase):
     kwargs = {
         "d": "test/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif",
         "m": "test/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.xml", 
@@ -988,7 +982,7 @@ class RegisterRemoteDatasetTestCase(CommandRegisterDatasetTestCase):
 
 # TODO: TCs for default-... and visible options
 
-class RegisterLocalDatasetVisibleTestCase(CommandRegisterDatasetTestCase):
+class RegisterLocalDatasetVisibleTestCase(eoxstest.CommandRegisterDatasetTestCase):
     kwargs = {
         "d": "data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif",
         "rangetype": "RGB",
@@ -1003,11 +997,11 @@ class RegisterLocalDatasetVisibleTestCase(CommandRegisterDatasetTestCase):
         self.assertTrue(coverage.getAttrValue("visible"))
 
 
-class RegisterLocalDatasetInvisibleTestCase(CommandRegisterDatasetTestCase):
+class RegisterLocalDatasetInvisibleTestCase(eoxstest.CommandRegisterDatasetTestCase):
     kwargs = {
         "d": "data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif",
         "rangetype": "RGB",
-        "visible": "False"
+        "invisible": "True"
     }
     coverages_to_be_registered = [
         {"eo_id": "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"}
@@ -1018,7 +1012,7 @@ class RegisterLocalDatasetInvisibleTestCase(CommandRegisterDatasetTestCase):
         self.assertFalse(coverage.getAttrValue("visible"))
 
 
-class RegisterLocalDatasetDefaultsTestCase(CommandRegisterDatasetTestCase):
+class RegisterLocalDatasetDefaultsTestCase(eoxstest.CommandRegisterDatasetTestCase):
     srid = 3035
     size = (100, 100)
     extent = (3000000, -2400000, 4400000, -1200000)
@@ -1061,15 +1055,15 @@ class RegisterLocalDatasetDefaultsTestCase(CommandRegisterDatasetTestCase):
 # eoxs_synchronize
 
 
-# eoxs_insert
+# eoxs_insert_into_series
 
-class InsertByIdTestCase(CommandInsertTestCase):
+class InsertByIdTestCase(eoxstest.CommandInsertTestCase):
     args = ("MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed", 
             "MER_FRS_1P_RGB_reduced")
     
     datasets_to_be_inserted = ["MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed"]
 
-class InsertByIdExplicitTestCase(CommandInsertTestCase):
+class InsertByIdExplicitTestCase(eoxstest.CommandInsertTestCase):
     args = (
         "--datasets", 
         "MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed",
@@ -1083,41 +1077,22 @@ class InsertByIdExplicitTestCase(CommandInsertTestCase):
         "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed",
         "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"
     ]
-    
-
-class InsertByFileTestCase(CommandInsertTestCase):
-    args = ("../autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed.tif",
-            "MER_FRS_1P_RGB_reduced")
-    kwargs = {"mode": "filename"}
-    datasets_to_be_inserted = ["MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed"]
 
 
-class InsertByUnknownIdFaultTestCase(CommandFaultTestCase):
+class InsertByUnknownIdFaultTestCase(eoxstest.CoverageCommandFaultTestCase):
     args = ("invalidID",  "MER_FRS_1P_RGB_reduced")
 
 
-class InsertByUnknownFileFaultTestCase(CommandFaultTestCase):
-    args = ("some/path",  "MER_FRS_1P_RGB_reduced")
-    kwargs = {"mode": "filename"}
+# eoxs_remove_from_series
 
-
-# TODO: not yet in fixtures
-#class InsertByRemoteFileTestCase(CommandInsertTestCase):
-#    args = ("../autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed.tif", 
-#            "MER_FRS_1P_RGB_reduced")
-#    kwargs = {"mode": "filename"}
-#    datasets_to_be_inserted
-
-# eoxs_exclude
-
-class ExcludeByIdTestCase(CommandExcludeTestCase):
+class ExcludeByIdTestCase(eoxstest.CommandExcludeTestCase):
     args = ("mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced",
             "MER_FRS_1P_RGB_reduced")
     
     datasets_to_be_excluded = ["mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced"]
 
 
-class ExcludeByIdExplicitTestCase(CommandExcludeTestCase):
+class ExcludeByIdExplicitTestCase(eoxstest.CommandExcludeTestCase):
     args = (
         "--datasets", 
         "mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced",
@@ -1133,9 +1108,5 @@ class ExcludeByIdExplicitTestCase(CommandExcludeTestCase):
     ]
 
 
-class ExcludeByFileTestCase(CommandExcludeTestCase):
-    args = ("../autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif",
-            "MER_FRS_1P_RGB_reduced")
-    kwargs = {"mode": "filename"}
-    datasets_to_be_excluded = ["mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced"]
-
+class ExcludeByUnknownIdFaultTestCase(eoxstest.CoverageCommandFaultTestCase):
+    args = ("invalidID",  "MER_FRS_1P_RGB_reduced")

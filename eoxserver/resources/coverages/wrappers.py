@@ -1175,8 +1175,14 @@ class RectifiedStitchedMosaicWrapper(TiledDataWrapper, RectifiedGridWrapper, EOC
                 rectifieddatasetrecord_set__in = qs
             )
             
-            begin_time = min(eo_metadata_set.values_list('timestamp_begin', flat=True))
-            end_time = max(eo_metadata_set.values_list('timestamp_end', flat=True))
+            try:
+                begin_time = min(eo_metadata_set.values_list('timestamp_begin', flat=True))
+                end_time = max(eo_metadata_set.values_list('timestamp_end', flat=True))
+            # Work around for issue in Django 1.5
+            except TypeError:
+                begin_time = min([t.timestamp_begin for t in eo_metadata_set])
+                end_time = max([t.timestamp_end for t in eo_metadata_set])
+            
             footprint = eo_metadata_set.aggregate(
                 Union('footprint')
             )["footprint__union"]
@@ -1572,7 +1578,7 @@ class DatasetSeriesWrapper(EOMetadataWrapper, ResourceWrapper):
                 eo_metadata.timestamp_begin = min(
                     eo_metadata.timestamp_begin, added_coverage.getBeginTime()
                 )
-                eo_metadata.timestamp_end = min(
+                eo_metadata.timestamp_end = max(
                     eo_metadata.timestamp_end, added_coverage.getEndTime()
                 )
                 

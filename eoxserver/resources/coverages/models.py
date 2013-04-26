@@ -317,6 +317,8 @@ class EODatasetMixIn(EOCoverageMixIn):
 def _checkFootprint(footprint, extent):
     """ Check footprint to match the extent. """
     
+    #TODO: Make the rtol value configurable. 
+    # allow footprint to exceed extent by given % of smaller extent size
     rtol = 0.005 # .5% 
     difx = abs(extent.maxx - extent.minx)
     dify = abs(extent.maxy - extent.miny)
@@ -324,15 +326,15 @@ def _checkFootprint(footprint, extent):
     
     try:
         bbox = Polygon.from_bbox((extent.minx, extent.miny, extent.maxx, extent.maxy))
-        bbox.srid = extent.srid
+        bbox.srid = int(extent.srid)
         
         bbox_ll = bbox.transform(footprint.srs, clone=True)
         
         normalized_space = Polygon.from_bbox((-180, -90, 180, 90))
         non_normalized_space = Polygon.from_bbox((180, -90, 360, 90))
         
-        normalized_space.srid = extent.srid
-        non_normalized_space.srid = extent.srid
+        normalized_space.srid = int(extent.srid)
+        non_normalized_space.srid = int(extent.srid)
         
         if not normalized_space.contains(bbox_ll):
             # create 2 bboxes for each side of the date line
@@ -356,77 +358,25 @@ def _checkFootprint(footprint, extent):
             # just use the tolerance for a slightly larger bbox
             bbox = Polygon.from_bbox((extent.minx - atol, extent.miny - atol,
                                       extent.maxx + atol, extent.maxy + atol))
-            bbox.srid = extent.srid
+            bbox.srid = int(extent.srid)
         
-        footprint.transform(bbox.srs)
+        if footprint.srid != bbox.srid:
+            footprint_bboxsrs = footprint.transform(bbox.srs, clone=True)
+        else:
+            footprint_bboxsrs = footprint
         
         logger.debug("Extent: %s" % bbox.wkt)
-        logger.debug("Footprint: %s" % footprint.wkt)
+        logger.debug("Footprint: %s" % footprint_bboxsrs.wkt)
         
-        if not bbox.contains(footprint):
+        if not bbox.contains(footprint_bboxsrs):
             raise ValidationError("The datasets's extent does not surround its"
                 " footprint. Extent: '%s' Footprint: '%s'."
-                % (bbox.wkt, footprint.wkt)
+                % (bbox.wkt, footprint_bboxsrs.wkt)
             )
         
     except GEOSException: 
         pass
 
-        
-"""     
-        
-        
-        # check if the dateline is crossed
-        if pmin[0] < 180 and pmax[0] > 180:
-            # create two bounding boxes on either side of the dateline
-            bounds = MultiPolygon(
-                Polygon.from_bbox((pmin[0] - difx, pmin[1] - dify,
-                                   180 + difx, pmax[1] + dify)),
-                Polygon.from_bbox((-180 - difx, min[1] - dify, 
-                                   pmax[0] - 360 + difx, pmax[1] + dify))
-            )
-        else:
-            bounds = Polygon.from_bbox((pmin[0] - difx, pmin[1] - dify,
-                                        pmax[0] + difx, pmax[1] + dify))
-        
-        if not bounds.contains(footprint):
-            raise ValidationError("The datasets's extent does not surround its"
-                " footprint. Extent: '%s' Footprint: '%s'."
-                % (bounds.wkt, footprint.wkt)
-            )
-    
-    
-
-"""
-
-"""
-
-    try:
-        
-
-        #TODO: Make the rtol value configurable. 
-        # allow footprint to exceed extent by given % of smaller extent size
-        rtol = 0.005 # .5% 
-        difx = abs(extent.maxx - extent.minx)
-        dify = abs(extent.maxy - extent.miny)
-        atol = rtol * min(difx, dify) 
-
-        bbox = Polygon.from_bbox((
-            extent.minx - atol, extent.miny - atol,
-            extent.maxx + atol, extent.maxy + atol
-        ))
-
-        bbox.set_srid( int(extent.srid) )
-        
-        if footprint.srid != bbox.srid : footprint.transform( bbox.srs )
-        
-        if not bbox.contains(footprint):
-        
-        
-        ...
-"""           
-
-    
 
 class RectifiedDatasetRecord(CoverageRecord, EODatasetMixIn):
     extent = models.ForeignKey(ExtentRecord, related_name="rect_datasets")

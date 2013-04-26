@@ -358,7 +358,7 @@ class BaseManagerContainerMixIn(object):
                 
                 if not contained:
                     container.removeCoverage(dataset)
-                    do_md_update = False
+                    do_md_update = True
 
         # if no update has been done do it now
         if do_md_update:
