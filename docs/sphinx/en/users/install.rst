@@ -171,8 +171,7 @@ and `GeoDjango installation
     | Backend    | Required Version | Required extensions/software             |
     +============+==================+==========================================+
     | SQLite     | >= 3.6           | spatialite (>= 2.3), pysqlite2 (>= 2.5), |
-    |            |                  | GEOS (>= 3.0), GDAL (>= 1.7),            |
-    |            |                  | PROJ.4 (>= 4.4)                          |
+    |            |                  | GEOS (>= 3.0), PROJ.4 (>= 4.4)           |
     +------------+------------------+------------------------------------------+
     | PostgreSQL | >= 8.1           | PostGIS (>= 1.3), GEOS (>= 3.0),         |
     |            |                  | PROJ.4 (>= 4.4), psycopg2 (== 2.4.1)     |
