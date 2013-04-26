@@ -38,26 +38,25 @@
 Installation on CentOS
 ======================
 
-This section describes specific installation procedure for EOxServer 
-on `CentOS <http://www.centos.org/>`_ GNU/Linux based operating system. 
-In this example, a raw CentOS 6.3 minimal image is used.
-
-This guide is assumed (but not tested) to be applicable also for equivalent
-versions of the prominent North American Enterprise Linux and its clones.
-
 .. contents:: Table of Contents
     :depth: 3
     :backlinks: top
 
+This section describes specific installation procedure for EOxServer 
+on `CentOS <http://www.centos.org/>`_ GNU/Linux based operating systems. 
+In this example, a raw CentOS 6.4 minimal image is used.
+
+This guide is assumed (but not tested) to be applicable also for equivalent
+versions of the prominent North American Enterprise Linux and its clones.
+
 .. seealso:: 
 
     * :ref:`Installation`
-            generic installation procedure for GNU/Linux operating systems 
+            generic installation procedure for GNU/Linux operating systems.
     * :ref:`InstanceCreation` 
-            to configure a service instance after the EOxServer has been
-            installed successfully.
+            to configure an instance of EOxServer after successful installation.
     * :ref:`OperationalInstallation` 
-            to configure an operation EOxServer installation.
+            to configure an operational EOxServer installation.
 
 Prerequisites
 -------------
@@ -119,8 +118,9 @@ system with::
 
     sudo yum update
 
-Please don't forget to follow the update procedure for any configured 
-EOxServer instances in case of a major version upgrade.
+Please carefully follow the :ref:`migration/update procedure <Migration>` 
+corresponding to your version numbers for any configured EOxServer instances 
+in case of a major version upgrade.
 
 Further packages may be required if additional features (e.g: a full DBMS) 
 are desired. The following command for example installs all packages needed 
@@ -128,12 +128,12 @@ when using SQLite::
 
     sudo yum install sqlite libspatialite python-pysqlite python-pyspatialite
 
-Alternatively PosgreSQL DBMS can be installed as follows::
+Alternatively the PosgreSQL DBMS can be installed as follows::
 
     sudo yum install postgresql postgresql-server postgis python-psycopg2
 
-To run the EOxServer  behind the Apache web server requires installation of this
-web server:: 
+To run EOxServer behind the Apache web server requires the installation of this
+web server::
 
     sudo yum install httpd mod_wsgi
     

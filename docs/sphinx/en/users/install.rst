@@ -37,22 +37,21 @@
 Installation
 ============
 
-To use the EOxServer it must be installed first. Following this guide will
-give you a working SW installation. 
-
 .. contents:: Table of Contents
     :depth: 3
     :backlinks: top
+
+To use EOxServer it must be installed first. Following this guide will
+give you a working software installation. 
 
 .. seealso:: 
 
     * :ref:`CentOSInstallation`
             for specific installation on CentOS.
     * :ref:`InstanceCreation` 
-            to configure a service instance after the EOxServer has been
-            installed successfully.
+            to configure an instance of EOxServer after successful installation.
     * :ref:`OperationalInstallation` 
-            to configure an operation EOxServer installation.
+            to configure an operational EOxServer installation.
 
 .. index::
     single: EOxServer Dependencies
@@ -245,4 +244,3 @@ or rerun the manual installation as explained above.
 Please carefully follow the :ref:`migration/update procedure <Migration>` 
 corresponding to your version numbers for any configured EOxServer instances 
 in case of a major version upgrade.
-

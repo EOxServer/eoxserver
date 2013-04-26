@@ -39,35 +39,33 @@
 Service Instance Creation and Configuration
 ===========================================
 
-Speaking of EOxServer we distinguish the common EOxServer installation (the
-installed code implementing the SW functionality) and the EOxServer service
-instances. An instance is a collection of data and configuration files that 
-enables deployment of a specific service). A single server will typically
-contain a single SW installation and one or more specific service instances. 
-
-This section deals with the creation and configuration of the EOxServer service
-instances. 
-
-
 .. contents:: Table of Contents
     :depth: 3
     :backlinks: top
 
+Speaking of EOxServer we distinguish the common EOxServer installation (the 
+installed code implementing the software functionality) and EOxServer 
+instances. An instance is a collection of data and configuration files that 
+enables the deployment of a specific service. A single server will typically 
+contain a single software installation and one or more specific instances.
+
+This section deals with the creation and configuration of EOxServer instances.
+
 .. seealso:: 
 
     * :ref:`Installation`
-            generic installation procedure for GNU/Linux operating systems 
+            generic installation procedure for GNU/Linux operating systems.
     * :ref:`CentOSInstallation`
             for specific installation on CentOS.
     * :ref:`OperationalInstallation` 
-            to configure an operation EOxServer installation.
+            to configure an operational EOxServer installation.
 
 Instance Creation 
 -----------------
 
-To create a service instance, we recommend to use the :file:`eoxserver-admin.py`
-script that comes with EOxServer. The script provides the command `create_instance` in order to create an
-EOxServer instance:
+To create an instance, we recommend to use the :file:`eoxserver-admin.py` 
+script that comes with EOxServer. The script provides the command 
+`create_instance` in order to create an EOxServer instance:
 
     Usage: ``eoxserver-admin.py create_instance [options] INSTANCE_ID [Optional destination directory]``
 
