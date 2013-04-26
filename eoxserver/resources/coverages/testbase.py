@@ -29,8 +29,9 @@
 #-------------------------------------------------------------------------------
 
 from eoxserver.core.system import System
-from eoxserver.testing.core import EOxServerTestCase, BASE_FIXTURES,\
-    CommandTestCase
+from eoxserver.testing.core import (
+    EOxServerTestCase, BASE_FIXTURES, CommandTestCase, CommandFaultTestCase
+)
 from eoxserver.resources.coverages.managers import CoverageIdManager
 
 EXTENDED_FIXTURES = BASE_FIXTURES + ["testing_coverages.json"]
@@ -157,8 +158,6 @@ class DatasetSeriesSynchronizeTestCase(SynchronizeTestCase):
         return "eo.dataset_series"
 
 
-
-
 class EODatasetMixIn(object):
     def findDatasetsByFilters(self, *filters):
         """ Convenience method to get a list of coverages by given filter
@@ -211,6 +210,9 @@ class CoverageCommandTestCase(CommandTestCase):
     fixtures = EXTENDED_FIXTURES
 
 
+class CoverageCommandFaultTestCase(CommandFaultTestCase):
+    pass
+
 class CommandRegisterDatasetTestCase(CoverageCommandTestCase, EODatasetMixIn):
     fixtures = BASE_FIXTURES # normally we want an empty database
     
@@ -247,7 +249,7 @@ class CommandRegisterDatasetTestCase(CoverageCommandTestCase, EODatasetMixIn):
 
 
 class CommandInsertTestCase(CoverageCommandTestCase, DatasetSeriesMixIn, EODatasetMixIn):
-    name = "eoxs_insert"
+    name = "eoxs_insert_into_series"
     
     datasets_to_be_inserted = []
     dataset_series_id = "MER_FRS_1P_RGB_reduced"
@@ -260,7 +262,7 @@ class CommandInsertTestCase(CoverageCommandTestCase, DatasetSeriesMixIn, EODatas
 
  
 class CommandExcludeTestCase(CoverageCommandTestCase, DatasetSeriesMixIn, EODatasetMixIn):
-    name = "eoxs_exclude"
+    name = "eoxs_remove_from_series"
     
     datasets_to_be_excluded = []
     dataset_series_id = "MER_FRS_1P_RGB_reduced"
