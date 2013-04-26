@@ -123,7 +123,7 @@ to run EOxServer.
   | GEOS      | >= 3.0           | GEOS (Geometry Engine - Open Source) is a   |
   |           |                  | C++ port of the  Java Topology Suite (JTS). |
   +-----------+------------------+---------------------------------------------+
-  | libxml2   | >= 3.0           | Libxml2 is the XML C parser and toolkit     |
+  | libxml2   | >= 2.7           | Libxml2 is the XML C parser and toolkit     |
   |           |                  | developed for the Gnome project.            |
   +-----------+------------------+---------------------------------------------+
   | lxml      | >= 2.2           | The lxml XML toolkit is a Pythonic binding  |
