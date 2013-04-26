@@ -51,6 +51,8 @@ and APIs please refer to the :ref:`EOxServer Developers' Guide`.
    global_use_case
    install
    centos_installation
+   instance_creation
+   operational_install
    migration
    mailing_lists
    demonstration

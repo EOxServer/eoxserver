@@ -42,13 +42,21 @@ Installation on CentOS
     :depth: 3
     :backlinks: top
 
-This article describes the installation procedure for EOxServer on a `CentOS
-<http://www.centos.org/>`_ system. In this example, a raw CentOS 6.3 minimal
-image is used.
+This section describes specific installation procedure for EOxServer 
+on `CentOS <http://www.centos.org/>`_ GNU/Linux based operating systems. 
+In this example, a raw CentOS 6.4 minimal image is used.
 
-This installation example is complementary to the standard :ref:`Installation`
-manual.
+This guide is assumed (but not tested) to be applicable also for equivalent
+versions of the prominent North American Enterprise Linux and its clones.
 
+.. seealso:: 
+
+    * :ref:`Installation`
+            generic installation procedure for GNU/Linux operating systems.
+    * :ref:`InstanceCreation` 
+            to configure an instance of EOxServer after successful installation.
+    * :ref:`OperationalInstallation` 
+            to configure an operational EOxServer installation.
 
 Prerequisites
 -------------
@@ -56,9 +64,14 @@ Prerequisites
 This example requires a running CentOS installation with superuser privileges
 available.
 
+.. _CentOSInstallation_repos:
 
-Preparation of RPM repositories
--------------------------------
+
+Installation from RPM Packages
+------------------------------
+
+Preparation of RPM Repositories
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The default repositories of CentOS do not provide all software packages
 required for EOxServer, and some packages are only provided in out-dated
@@ -90,8 +103,10 @@ again easily added via a single `yum` command::
 
 .. _centos-installing-eoxserver-yum:
 
+.. _CentOSInstallation_rpm:
+
 Installing EOxServer
---------------------
+~~~~~~~~~~~~~~~~~~~~
 
 Once the RPM repositories are configured EOxServer and all its dependencies 
 are installed via a single command::
@@ -103,8 +118,9 @@ system with::
 
     sudo yum update
 
-Please don't forget to follow the update procedure for any configured 
-EOxServer instances in case of a major version upgrade.
+Please carefully follow the :ref:`migration/update procedure <Migration>` 
+corresponding to your version numbers for any configured EOxServer instances 
+in case of a major version upgrade.
 
 Further packages may be required if additional features (e.g: a full DBMS) 
 are desired. The following command for example installs all packages needed 
@@ -112,15 +128,25 @@ when using SQLite::
 
     sudo yum install sqlite libspatialite python-pysqlite python-pyspatialite
 
+Alternatively the PosgreSQL DBMS can be installed as follows::
+
+    sudo yum install postgresql postgresql-server postgis python-psycopg2
+
+To run EOxServer behind the Apache web server requires the installation of this
+web server::
+
+    sudo yum install httpd mod_wsgi
+    
 Now that EOxServer is properly installed the next step is to :ref:`create and
-configure an instance <Creating an Instance>`. 
+configure a service instance <InstanceCreation>`. 
 
+.. _CentOSInstallation_pip:
 
-Alternate installation method using pip
----------------------------------------
+Alternate installation method using *pip*
+-----------------------------------------
 
-Installation of required software packages
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Required Software Packages
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The installation via pip builds EOxServer from its source. Thus there are 
 some additional packages required which can be installed using::
@@ -148,9 +174,12 @@ switch to your pip command::
 Please don't forget to follow the update procedure for any configured 
 EOxServer instances in case of a major version upgrade.
 
+Now that EOxServer is properly installed the next step is to :ref:`create and
+configure a service instance <InstanceCreation>`. 
 
-Special pysqlite considerations
--------------------------------
+
+Special *pysqlite* considerations
+---------------------------------
 
 When used with `spatialite <http://www.gaia-gis.it/spatialite/>`_ EOxServer 
 also requires `pysqlite <http://code.google.com/p/pysqlite/>`_ and 
