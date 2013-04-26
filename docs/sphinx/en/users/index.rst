@@ -51,7 +51,7 @@ and APIs please refer to the :ref:`EOxServer Developers' Guide`.
    global_use_case
    install
    centos_installation
-   upgrade
+   migration
    mailing_lists
    demonstration
    EO-WCS_request_parameters
@@ -65,7 +65,6 @@ and APIs please refer to the :ref:`EOxServer Developers' Guide`.
    formats  
    atp_sum 
    WCS-T_summary
-   migration
 
 .. TODO
    users     - empty
