@@ -120,13 +120,22 @@ to run EOxServer.
   |           |                  | formats and including a Python binding      |
   |           |                  | which is used by EOxServer                  |
   +-----------+------------------+---------------------------------------------+
+  | GEOS      | >= 3.0           | GEOS (Geometry Engine - Open Source) is a   |
+  |           |                  | C++ port of the  Java Topology Suite (JTS). |
+  +-----------+------------------+---------------------------------------------+
+  | libxml2   | >= 3.0           | Libxml2 is the XML C parser and toolkit     |
+  |           |                  | developed for the Gnome project.            |
+  +-----------+------------------+---------------------------------------------+
+  | lxml      | >= 2.2           | The lxml XML toolkit is a Pythonic binding  |
+  |           |                  | for the C libraries libxml2 and libxslt.    |
+  +-----------+------------------+---------------------------------------------+
   | MapServer | >= 6.2           | Server software implementing various OGC    |
   |           | (works partly    | Web Service interfaces including WCS and    |
   |           | with 6.0)        | WMS. Includes a Python binding which is     |
   |           |                  | used by EOxServer.                          |
   +-----------+------------------+---------------------------------------------+
 
-The Python bindings of the GDAL and MapServer (MapScript) libraries are
+The Python bindings of the GDAL, MapServer (MapScript) and libxml2 libraries are
 required as well. 
 
 EOxServer is written in `Python <http://www.python.org/>`_ and uses the
@@ -162,7 +171,7 @@ and `GeoDjango installation
     | Backend    | Required Version | Required extensions/software             |
     +============+==================+==========================================+
     | SQLite     | >= 3.6           | spatialite (>= 2.3), pysqlite2 (>= 2.5), |
-    |            |                  | GEOS (>= 3.0), GDAL (>= 1.4),            |
+    |            |                  | GEOS (>= 3.0), GDAL (>= 1.7),            |
     |            |                  | PROJ.4 (>= 4.4)                          |
     +------------+------------------+------------------------------------------+
     | PostgreSQL | >= 8.1           | PostGIS (>= 1.3), GEOS (>= 3.0),         |
