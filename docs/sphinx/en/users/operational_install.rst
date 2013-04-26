@@ -1,6 +1,6 @@
 .. CentOSInstallation
   #-----------------------------------------------------------------------------
-  # $Id: centos_installation.rst 2365 2013-03-15 18:48:19Z meissls $
+  # $Id$
   #
   # Project: EOxServer <http://eoxserver.org>
   # Authors: Martin Paces <martin.paces@eox.at>
