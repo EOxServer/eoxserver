@@ -18,7 +18,7 @@ export XML_CATALOG_FILES="$WORKSPACE/schemas/catalog.xml"
 if [ $OS == "Ubuntu" ]; then
     python manage.py test services -v2
 else
-    python manage.py test "services|WCS20GetCoverageOutputCRSotherUoMDatasetTestCase,WCS20GetCoverageReprojectedEPSG3857DatasetTestCase,WCS20GetCoverageJPEG2000TestCase" -v2
+    python manage.py test "services|WCS20GetCoverageOutputCRSotherUoMDatasetTestCase,WCS20GetCoverageReprojectedEPSG3857DatasetTestCase,WCS20GetCoverageJPEG2000TestCase" coverages -v2
     # TODO: Make WCS20GetCoverageJPEG2000TestCase work.
 fi
 #TODO: Enable testing of all apps
