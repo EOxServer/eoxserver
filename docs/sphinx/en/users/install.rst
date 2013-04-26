@@ -230,9 +230,9 @@ switch to your pip command e.g.::
 
 or rerun the manual installation as explained above.
 
-Please carefully follow the :ref:`upgrade procedure <Upgrade>` corresponding 
-to your version numbers for any configured EOxServer instances in case of a 
-major version upgrade.
+Please carefully follow the :ref:`migration/update procedure <Migration>` 
+corresponding to your version numbers for any configured EOxServer instances 
+in case of a major version upgrade.
 
 
 .. _Creating an Instance:
