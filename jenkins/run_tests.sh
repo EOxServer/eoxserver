@@ -15,10 +15,11 @@ echo "**> running unit tests tests ..."
 cd autotest
 ln -s autotest/data/ data
 export XML_CATALOG_FILES="$WORKSPACE/schemas/catalog.xml"
+# ftp tests are disabled
 if [ $OS == "Ubuntu" ]; then
-    python manage.py test services coverages -v2
+    python manage.py test services "coverages|RegisterRemoteDatasetTestCase,RectifiedStitchedMosaicCreateWithRemotePathTestCase" -v2
 else
-    python manage.py test "services|WCS20GetCoverageOutputCRSotherUoMDatasetTestCase,WCS20GetCoverageReprojectedEPSG3857DatasetTestCase,WCS20GetCoverageJPEG2000TestCase" coverages -v2
+    python manage.py test "services|WCS20GetCoverageOutputCRSotherUoMDatasetTestCase,WCS20GetCoverageReprojectedEPSG3857DatasetTestCase,WCS20GetCoverageJPEG2000TestCase" "coverages|RegisterRemoteDatasetTestCase,RectifiedStitchedMosaicCreateWithRemotePathTestCase" -v2
     # TODO: Make WCS20GetCoverageJPEG2000TestCase work.
 fi
 #TODO: Enable testing of all apps
