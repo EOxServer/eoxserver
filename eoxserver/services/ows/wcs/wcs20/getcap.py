@@ -40,7 +40,9 @@ from eoxserver.services.owscommon import OWSCommonConfigReader
 from eoxserver.services.ows.wcs.common import WCSCommonHandler, \
             getMSOutputFormatsAll,getMSWCSFormatMD,getMSWCSSRSMD
 from eoxserver.services.ows.wcs.encoders import WCS20EOAPEncoder
+from eoxserver.services.ows.wcs.wcs20.common import WCS20ConfigReader
 from eoxserver.services.ows.wcst.wcst11AlterCapabilities import wcst11AlterCapabilities20
+
 
 class WCS20GetCapabilitiesHandler(WCSCommonHandler):
     """
@@ -235,7 +237,8 @@ class WCS20GetCapabilitiesHandler(WCSCommonHandler):
 
                 op_metadata.appendChild(desc_eo_cov_set_op)
                 
-                op_metadata.appendChild(encoder.encodeCountDefaultConstraint(100)) # TODO remove hardcoded number and make it configurable
+                count_default = WCS20ConfigReader().getPagingCountDefault()
+                op_metadata.appendChild(encoder.encodeCountDefaultConstraint(count_default))
 
 
             # rewrite wcs:Contents

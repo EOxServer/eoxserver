@@ -43,6 +43,7 @@ from eoxserver.services.exceptions import (
     InvalidAxisLabelException
 )
 from eoxserver.services.ows.wcs.encoders import WCS20EOAPEncoder
+from eoxserver.services.ows.wcs.wcs20.common import WCS20ConfigReader
 from eoxserver.services.ows.wcs.wcs20.subset import WCS20SubsetDecoder
 
 
@@ -231,20 +232,3 @@ class WCS20CorrigendumDescribeEOCoverageSetHandler(WCS20DescribeEOCoverageSetHan
             "services.interfaces.operation": "describeeocoverageset"
         }
     }
-
-
-class WCS20ConfigReader(object):
-    REGISTRY_CONF = {
-        "name": "WCS 2.0 Configuration Reader",
-        "impl_id": "services.ows.wcs20.WCS20ConfigReader"
-    }
-
-    def validate(self, config):
-        pass
-
-    def getPagingCountDefault(self):
-        value = System.getConfig().getConfigValue("services.ows.wcs20", "paging_count_default")
-        if value is not None:
-            return int(value)
-        
-        return value
