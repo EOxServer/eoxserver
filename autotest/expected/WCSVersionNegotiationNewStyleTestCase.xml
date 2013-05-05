@@ -124,7 +124,7 @@ Copyright (C) European Space Agency - ESA
     </ows:Operation>
     <ows:Constraint name="CountDefault">
       <ows:NoValues/>
-      <ows:DefaultValue>100</ows:DefaultValue>
+      <ows:DefaultValue>10</ows:DefaultValue>
     </ows:Constraint>
   </ows:OperationsMetadata>
   <wcs:ServiceMetadata>
