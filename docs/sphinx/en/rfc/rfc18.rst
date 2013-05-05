@@ -492,8 +492,8 @@ Example::
             ...
 
 
-Access Controll
-~~~~~~~~~~~~~~~
+Access Control
+~~~~~~~~~~~~~~
 
 The Operator Interface itself, its Resources and its Actions shall only be
 accessible for authorized users. Also, the Interface shall distinguish between
@@ -606,7 +606,7 @@ identified.
 |           |                    | Range Types       | Delete Coverage       |
 |           |                    +-------------------+-----------------------+
 |           |                    | Bands             |                       |
-|           |                    +-------------------+                       |
+|           |                    +-------------------+-----------------------+
 |           |                    | NilValues         |                       |
 |           +--------------------+-------------------+-----------------------+
 |           | Container Handling | Coverages         | Add Coverage          |
@@ -624,9 +624,9 @@ identified.
 |           |                    |                   | Delete Container      |
 |           +--------------------+-------------------+-----------------------+
 |           | RangeType Handling | Range Types       |                       |
-|           |                    +-------------------+                       |
+|           |                    +-------------------+-----------------------+
 |           |                    | Bands             |                       |
-|           |                    +-------------------+                       |
+|           |                    +-------------------+-----------------------+
 |           |                    | NilValues         |                       |
 +-----------+--------------------+-------------------+-----------------------+
 
@@ -691,7 +691,7 @@ HTML templating and request dispatching.
 To help publishing RESTful resources, the django extension `Django REST
 framework <http://django-rest-framework.org/>`_ can be used. It provides a
 rather simple, yet customizeable access to database model. It also supports
-user authorization as required in the chapter `Access Controll`_. The library
+user authorization as required in the chapter `Access Control`_. The library
 is available under the BSD license.
 
 To provide the RPC interface, there are two possibilities. The first is a
@@ -760,7 +760,7 @@ the user manual aswell.
 +-----------------------+--------+---------+---------------------------------+
 | RPC 4 Django          | Server | BSD     | Expose server methods via RPC   |
 +-----------------------+--------+---------+---------------------------------+
-| jQuery                | Client | GPL/MIT | DOM Manipulation/ AJAX Client   |
+| jQuery                | Client | GPL/MIT | DOM Manipulation / AJAX Client  |
 +-----------------------+--------+---------+---------------------------------+
 | UnderscoreJS          | Client | MIT     | General Javascript utilities    |
 +-----------------------+--------+---------+---------------------------------+
