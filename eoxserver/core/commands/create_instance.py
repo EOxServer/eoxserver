@@ -85,7 +85,6 @@ class Command(EOxServerAdminCommand):
             else:
                 dst_data_dir = os.path.join(os.path.abspath(target), 
                                             instance_id, instance_id, "data")
-            src_conf_dir = os.path.join(instance_template_dir, "conf")
             
             os.chdir(dst_data_dir)
             db_name = "config.sqlite"
@@ -100,12 +99,12 @@ class Command(EOxServerAdminCommand):
                     conn.execute("SELECT InitSpatialMetadata()")
                 else:
                     print("SpatiaLite version <2.4 found, trying to initialize using 'init_spatialite-2.3.sql'.")
-                    init_sql_path = os.path.join(src_conf_dir, "init_spatialite-2.3.sql")
+                    init_sql_path = "init_spatialite-2.3.sql"
                     with open(init_sql_path, 'r') as init_sql_file:
                         conn.executescript(init_sql_file.read())
                 conn.commit()
                 conn.close()
             except ImportError:
                 print("SpatiaLite not found, trying to initialize using 'init_spatialite-2.3.sql'.")
-                init_sql_path = os.path.join(src_conf_dir, "init_spatialite-2.3.sql")
+                init_sql_path = "init_spatialite-2.3.sql"
                 os.system("spatialite %s < %s" % (db_name, init_sql_path))
