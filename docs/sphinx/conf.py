@@ -182,7 +182,7 @@ latex_documents = [
   ('en/index', 'EOxServer.tex', u'EOxServer Documentation',
    u'Stephan Meissl \\and Stephan Krause \\and Fabian Schindler \\and \
    Gerhard Triebnig \\and Milan Novacek \\and Arndt Bonitz \\and Martin Paces \
-   \\and Joachim Ungar',
+   \\and Joachim Ungar \\and Marko Locher \\and Christian Schiller',
    'manual', True),
 ]
 
