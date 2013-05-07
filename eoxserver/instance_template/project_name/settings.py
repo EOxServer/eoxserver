@@ -112,7 +112,7 @@ STATIC_ROOT = join(PROJECT_DIR, 'static')
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
-STATIC_URL = '/static/'
+STATIC_URL = '/{{ project_name }}_static/'
 
 # Additional locations of static files
 STATICFILES_DIRS = (
