@@ -49,7 +49,13 @@ path = "{{ project_directory }}"
 if path not in sys.path:
     sys.path.append(path)
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "{{ project_name }}.settings")
+# NOTE: The Apache mod_wsgi, by default, shares the enviroment variables 
+#       between different WSGI apps which leads to conflicts between
+#       multiple EOxServer instance. Therefore we cannot rely on the 
+#       DJANGO_SETTINGS_MODULE enviromental variable we must always set it
+#       to the proper value.
+#os.environ.setdefault("DJANGO_SETTINGS_MODULE", "{{ project_name }}.settings")
+os.environ["DJANGO_SETTINGS_MODULE"] = "{{ project_name }}.settings"
 
 # This application object is used by any WSGI server configured to use this
 # file. This includes Django's development server, if the WSGI_APPLICATION
