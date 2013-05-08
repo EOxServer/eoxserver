@@ -64,9 +64,9 @@ parameters that are available with Capabilities requests.
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
     | → request                 | Type of request                                           |   GetCapabilities                | M                              |
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
-    | → version [1]_            | Version number                                            |   2.0.0                          | O                              |
+    | → version [1]_            | Version number                                            |   2.0.1                          | O                              |
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
-    | → acceptVersions [1]_     | Prioritized sequence of one or more specification         |   2.0.0, 1.1.2, 1.0.0            | O                              |
+    | → acceptVersions [1]_     | Prioritized sequence of one or more specification         |   2.0.1, 1.1.2, 1.0.0            | O                              |
     |                           | versions accepted by the client, with preferred versions  |                                  |                                |
     |                           | listed first (first supported version will be used)       |                                  |                                |
     |                           | version1[,version2[,...]]                                 |                                  |                                |
@@ -80,7 +80,7 @@ parameters that are available with Capabilities requests.
     |                           |                                                           | - OperationsMetadata             |                                |
     |                           |                                                           | - Languages                      |                                |
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
-    | → updateSequence          | Date of last issued GetCapabilities request; to receive   |   "2011-01-17"                   | O                              |
+    | → updateSequence          | Date of last issued GetCapabilities request; to receive   |   "2013-05-08"                   | O                              |
     |                           | new document only if it has changed since                 |                                  |                                |
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
 
@@ -103,7 +103,7 @@ parameters that are available with DescribeCoverage requests.
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
     | → request                 | Type of request                                           |   DescribeCoverage               | M                              |
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
-    | → version [1]_            | Version number                                            |   2.0.0                          | M                              |
+    | → version [1]_            | Version number                                            |   2.0.1                          | M                              |
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
     | → coverageId              | NCName(s):                                                |                                  | M                              |
     |                           |                                                           |                                  |                                |
@@ -130,7 +130,7 @@ lists all parameters that are available with DescribeEOCoverageSet requests.
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
     | → request                 | Type of request                                           |   DescribeEOCoverageSet          | M                              |
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
-    | → version [1]_            | Version number                                            |   2.0.0                          | M                              |
+    | → version [1]_            | Version number                                            |   2.0.1                          | M                              |
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
     | → eoId                    | Valid eoId:                                               |                                  | M                              |
     |                           |                                                           |                                  |                                |
@@ -185,7 +185,7 @@ parameters that are available with GetCoverage requests.
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
     | → request                 | Type of request                                           |   GetCoverage                    | M                              |
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
-    | → version [1]_            | Version number                                            |   2.0.0                          | M                              |
+    | → version [1]_            | Version number                                            |   2.0.1                          | M                              |
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
     | → coverageId              | NCName(s):                                                |                                  | M                              |
     |                           |                                                           |                                  |                                |
@@ -254,7 +254,7 @@ parameters that are available with GetCoverage requests.
 \
 
 .. [1]  Version, acceptVersions: Support for EO-WCS is available only together 
-        with WCS version 2.0.0.
+        with WCS version 2.0.1.
 
 .. [2]  Interpolation: (Note: Resampling options other than NEAREST can 
         dramatically slow down raster processing). The default (and fastest) is 

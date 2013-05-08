@@ -268,11 +268,11 @@ sufficient to call::
 
     sudo iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport 80 -j ACCEPT
 
-Setting up access to any other port than 80 (such as port 443 used by the HTTPS)
+Setting up access to any other port than 80 (such as port 443 used by HTTPS)
 is the same, just change the port number in the previous command.  
 
-To make these **iptable** firewall settings permanent (preserved throughout the
-reboot) run::
+To make these **iptable** firewall settings permanent (preserved throughout
+reboots) run::
 
     sudo service iptables save
 
@@ -335,11 +335,10 @@ EO Data run the following commands::
 
 For meaning of the used options see documentation of  
 `useradd <http://unixhelp.ed.ac.uk/CGI/man-cgi?useradd+8>`_ command. 
-.. `groupadd <http://unixhelp.ed.ac.uk/CGI/man-cgi?groupadd+8>`_ commands.
 
-Since we are going to access the files through the Apache server, for
+Since we are going to access the files through the Apache web server, for
 convenience, we set the default group to ``apache``. In addition, to make the 
-directories readable by the other users run following commands:: 
+directories readable by other users run the following commands:: 
 
     sudo chmod o+=rx /srv/eoxserver
     sudo chmod o+=rx /srv/eodata
@@ -444,65 +443,46 @@ as::
 Step 6 - Web Server Integration 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The remaining task to be performed is to integrate the created EOxServer
-instance with the Apache web server. As it was already mentioned, the web server
-access the EOxServer instance through the WSGI interface. We assume that the
-Apache server is configured to load the ``mod_wsgi`` module and thus remains to
-configure the WSGI access point in the Apache server configuration. Add
-following lines to the appropriate virtual host section of the Apache server
-configuration located in the ``/etc/apache2`` directory:: 
-
-    <VirtualHost ... >
-
-    ...
- 
-    WSGIScriptAlias /instance00 "/srv/eoxserver/instance00/instance00/wsgi.py"
-
-    # static content 
-    Alias /instance00_static "/srv/eoxserver/instance00/instance00/static"
-    <Directory "/srv/eoxserver/instance00/instance00/static">
-            Options FollowSymLinks
-            AllowOverride None
-            Order allow,deny
-            allow from all
-    </Directory>
-
-    ...
-
-    </VirtualHost>
-
-In case there is no ``VirtualHost`` section present in the
-``/etc/httpd/conf/httpd.conf``
-directory or in any other ``*.conf`` file included from 
-``/etc/httpd/conf.d`` 
-directory  we suggest to create a new included configuration file, e.g.:: 
-
-    /etc/httpd/conf.d/default_site.conf
-
-with following content:: 
+The remaining task to be performed is to integrate the created EOxServer 
+instance with the Apache web server. As it was already mentioned, the web 
+server access the EOxServer instance through the WSGI interface. We assume 
+that the web server is already configured to load the ``mod_wsgi`` module 
+and thus it remains to configure the WSGI access point. The proposed 
+configuration is to create the new configuration file 
+``/etc/httpd/conf.d/default_site.conf`` with the following content::
 
     <VirtualHost *:80>
-
-    # EOxServer instance: instance00 
-
-    WSGIScriptAlias /instance00 "/srv/eoxserver/instance00/instance00/wsgi.py"
-
-    # static content 
-    Alias /instance00_static "/srv/eoxserver/instance00/instance00/static"
-    <Directory "/srv/eoxserver/instance00/instance00/static">
-            Options FollowSymLinks
-            AllowOverride None
-            Order allow,deny
-            allow from all
-    </Directory>
-
+        # EOxServer instance: instance00 
+        Alias /instance00 "/srv/eoxserver/instance00/instance00/wsgi.py"
+        Alias /instance00_static "/srv/eoxserver/instance00/instance00/static"
+        WSGIDaemonProcess ows processes=10 threads=1
+        <Directory "/srv/eoxserver/instance00/instance00>
+                Options +ExecCGI FollowSymLinks
+                AddHandler wsgi-script .py
+                WSGIProcessGroup ows
+                AllowOverride None
+                Order allow,deny
+                allow from all
+        </Directory>
     </VirtualHost>
 
-The location and base URL of the static file are specified in the EOxServer
-instance's ``setting.py`` file by the ``STATIC_ROOT`` and ``STATIC_URL`` options::
+In case there is already a ``VirtualHost`` section present in 
+``/etc/httpd/conf/httpd.conf`` or in any other ``*.conf`` file included from 
+the ``/etc/httpd/conf.d/`` directory  we suggest to add the configuration 
+lines given above to the appropriate virtual host section.
+
+Don't forget to adjust the URL configuration in 
+``/srv/eoxserver/instance00/instance00/conf/eoxserver.conf``::
+
+    [services.owscommon]
+    http_service_url=http://<you-server-address>/instance00
+
+The location and base URL of the static files are specified in the EOxServer
+instance's ``setting.py`` file by the ``STATIC_ROOT`` and ``STATIC_URL``
+options::
 
     ...
-    STATIC_ROOT = '/srv/eoxserver/instance00/instance00/wsgi.py'
+    STATIC_ROOT = '/srv/eoxserver/instance00/instance00/static/'
     ...
     STATIC_URL = '/instance00_static/'
     ...
@@ -510,7 +490,7 @@ instance's ``setting.py`` file by the ``STATIC_ROOT`` and ``STATIC_URL`` options
 These options are set automatically by the instance creation script.
 
 The static files needed by the EOxServer's web GUI need to be initialized
-(*collected*) by following command::
+(*collected*) using the following command::
 
     alias eoxsi00="sudo -u eoxserver python /srv/eoxserver/instance00/manage.py"
     eoxsi00 collectstatic -l 
@@ -522,10 +502,10 @@ user is permitted to do so::
 
 And now the last thing to do remains to restart the Apache server by::
 
-    sudo service httpd start
+    sudo service httpd restart
 
-You can check that your EOxServer instance runs properly by inserting following
-URL to your browser::
+You can check that your EOxServer instance runs properly by inserting the
+following URL to your browser::
 
     http://<you-server-address>/instance00
 

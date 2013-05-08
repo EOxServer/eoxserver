@@ -44,7 +44,7 @@ EOxServer is all about coverages - see the :doc:`basics` for a short
 description.
 
 In the language of the OGC Abstract Specification, coverages are mappings from
-a domain set that is related to some area of the earth to a range set. So, the
+a domain set that is related to some area of the Earth to a range set. So, the
 data model for coverages contains information about the structure of the
 domain set and of the range set (the so-called Range Type).
 
@@ -210,7 +210,7 @@ Referenceale Datasets are EO coverages whose domain set is a referenceable grid
 i.e. which are not rectified, but are associated with (one or more) coordinate 
 transformation which relate the image to a projected or geographic CRS. 
 That means that there is some general transformation between the grid cell
-coordinates and coordinates in an earth-bound spatial reference system. This
+coordinates and coordinates in an Earth-bound spatial reference system. This
 applies for satellite data in its original geometry.
 
 At the moment, EOxServer supports only referenceable datasets that contain

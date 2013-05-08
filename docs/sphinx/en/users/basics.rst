@@ -43,15 +43,15 @@ Introduction
 What is EOxServer?
 ~~~~~~~~~~~~~~~~~~
 
-EOxServer is an open source software for registering, processing and publishing
-Earth Observation data via different Web Services. EOxServer is written in
+EOxServer is an open source software for registering, processing, and publishing
+Earth Observation (EO) data via different Web Services. EOxServer is written in
 Python and relies on widely-used libraries for geospatial data manipulation.
 
 The core concept of the EOxServer data model is the one of a coverage. In this
 context, a coverage is a mapping from a domain set (a geographic region of the
-earth described by its coordinates) to a range set. For original EO data,
-the range set usually consists of measurements of some physical quantity (
-e.g. radiation for optical instruments).
+Earth described by its coordinates) to a range set. For original EO data,
+the range set usually consists of measurements of some physical quantity 
+(e.g. radiation for optical instruments).
 
 The EOxServer service model is designed to deliver (representations of) EO data
 using open standard web service interfaces as specified by the `Open Geospatial
@@ -123,7 +123,7 @@ basic components of the data model.
 
 The term coverage is introduced by the OGC Abstract Specification. There,
 coverages are defined as a mapping between a domain set that can be referenced
-to some region of the earth to a range set which describes the possible values
+to some region of the Earth to a range set which describes the possible values
 of the coverage. This is, of course, a very abstract definition. It comprises
 everything that has historically been called "raster data" (and then some, but
 that is out of scope of EOxServer at the moment).
@@ -171,7 +171,7 @@ three versions of the WCS specification:
 
 * version 1.0.0
 * version 1.1.0
-* version 2.0.0 including the Earth Observation Application Profile (EO-WCS)
+* version 2.0.1 including the Earth Observation Application Profile (EO-WCS)
 
 Each of these versions supports three operations:
 
