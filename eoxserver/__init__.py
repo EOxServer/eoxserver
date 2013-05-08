@@ -31,7 +31,7 @@
 import re
 
 
-VERSION = (0, 3, None, 'rc', 3)
+VERSION = (0, 3, None, 'rc', 4)
 #VERSION = (0, 3, 0, 'final', 0)
 SVN_REV = '$Id$'
 
