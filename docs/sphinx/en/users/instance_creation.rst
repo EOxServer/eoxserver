@@ -231,19 +231,6 @@ In the following we present the way to deploy it using the `Apache2 Web Server
 
 The deployment procedure consists of the following:
 
-
-* Customize ``wsgi.py`` in your EOxServer instance and add::
-
-    import sys
-
-    path = "<absolute path to instance dir>"
-    if path not in sys.path:
-        sys.path.append(path)
-
-  * If using Django < 1.4 please copy ``TEMPLATE_wsgi.py`` from the EOxServer 
-    distribution ``eoxserver/conf`` directory in your instance under the name 
-    ``wsgi.py`` and customize it at the two indicated places.
-
 * Customize the Apache2 configuration file, e.g.
   ``/etc/apache2/sites-enabled/000-default``, by adding::
 
@@ -255,6 +242,19 @@ The deployment procedure consists of the following:
             Order Allow,Deny
             Allow from all
     </Directory>
+
+* If using EOxServer < 0.3 customize ``wsgi.py`` in your EOxServer instance 
+  and add::
+
+    import sys
+
+    path = "<absolute path to instance dir>"
+    if path not in sys.path:
+        sys.path.append(path)
+
+  * If using Django < 1.4 please copy ``TEMPLATE_wsgi.py`` from the EOxServer 
+    distribution ``eoxserver/conf`` directory in your instance under the name 
+    ``wsgi.py`` and customize it at the two indicated places.
 
 * Restart the Web Server
 
@@ -314,8 +314,8 @@ dataset is contained in.
 Also mandatory is the parameter ``--rangetype``, the name of a range type
 which has to be already present in the instance's database.
 
-For each data file there may be given one metadata file containing earth
-observation specific metadata. The optional parameter ``--metadata-file``
+For each data file there may be given one metadata file containing Earth
+Observation specific metadata. The optional parameter ``--metadata-file``
 shall contain a list of paths to these files, where the items of this list
 refer to the data files with the same index of the according option. A
 metadata file for each data file is assumed with the same path, but with an

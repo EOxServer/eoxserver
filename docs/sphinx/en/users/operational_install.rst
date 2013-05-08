@@ -47,6 +47,14 @@ Unless stated otherwise this guide considers installing on CentOS GNU/Linux
 operating systems although the guide is applicable for other distributions as 
 well. 
 
+We assume that the reader of this guide *knows* what the presented
+commands are doing and he/she understands the possible consequences. This guide
+is intended to help the administrator to setup the EOxServer quickly by
+extracting the salient information but the administrator must be able 
+to alter the procedure to fit the particular needs of
+the administered system. We bear no responsibility for any possible harms caused
+by mindless following of this guide by a non-qualified person. 
+
 .. seealso:: 
 
     * :ref:`Installation`
@@ -208,6 +216,10 @@ EOxServer and of the essential dependencies performed either from the
 available RPM packages (see CentOS :ref:`CentOSInstallation_repos`) or via 
 the Python Package Index (see :ref:`CentOSInstallation_pip`). 
 
+This guide assume that the `sudo
+<http://www.centos.org/docs/4/4.5/Security_Guide/s3-wstation-privileges-limitroot-sudo.html>`_
+command is installed and configured on the system.
+
 In case of installation from RPM repositories it is necessary to install the
 required repositories first::
 
@@ -236,6 +248,33 @@ EOxServer itself is not equipped by any authentication or authorisation
 mechanism. In order to secure the resources an external tool must be used to 
 control access to the resources (e.g., the Shibboleth Apache module or the 
 Shibboleth based :ref:`Single Sign On <Identity Management System>`).
+
+To start the apache server automatically at the boot-time run following
+command::
+
+    sudo chkconfig httpd on
+
+The status of the web server can be checked by::
+
+    sudo service httpd status 
+
+and if not running the service can be started as follows:: 
+
+    sudo service httpd start
+
+It is likely the ports offered by the web service are blocked by the firewall.
+To allow access to port 80 used by the web service it should be mostly
+sufficient to call:: 
+
+    sudo iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport 80 -j ACCEPT
+
+Setting up access to any other port than 80 (such as port 443 used by HTTPS)
+is the same, just change the port number in the previous command.  
+
+To make these **iptable** firewall settings permanent (preserved throughout
+reboots) run::
+
+    sudo service iptables save
 
 Step 2 - Database Backend  
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -291,14 +330,18 @@ Step 3 - Creating Users and Directories for Instance and Data
 To create the users and directories for the EOxServer instances and the served 
 EO Data run the following commands::
 
-    sudo groupadd -r eoxserver
-    sudo groupadd -r eodata  
-    sudo useradd -r -m -g eoxserver -d /srv/eoxserver -c "EOxServer's administrator" eoxserver
-    sudo useradd -r -m -g eodata -d /srv/eodata -c "EO data provider" eodata  
+    sudo useradd -r -m -g apache -d /srv/eoxserver -c "EOxServer's administrator" eoxserver
+    sudo useradd -r -m -g apache -d /srv/eodata -c "EO data provider" eodata  
 
 For meaning of the used options see documentation of  
-`useradd <http://unixhelp.ed.ac.uk/CGI/man-cgi?useradd+8>`_ and 
-`groupadd <http://unixhelp.ed.ac.uk/CGI/man-cgi?groupadd+8>`_ commands.
+`useradd <http://unixhelp.ed.ac.uk/CGI/man-cgi?useradd+8>`_ command. 
+
+Since we are going to access the files through the Apache web server, for
+convenience, we set the default group to ``apache``. In addition, to make the 
+directories readable by other users run the following commands:: 
+
+    sudo chmod o+=rx /srv/eoxserver
+    sudo chmod o+=rx /srv/eodata
 
 Step 4 - Instance Creation 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -306,7 +349,8 @@ Step 4 - Instance Creation
 Now it's time to setup a sample instance of EOxServer. Create a new instance 
 e.g., named ``instance00``, using the ``eoxserver-admin.py`` command:: 
 
-    sudo -u eoxserver eoxserver-admin.py create_instance instance00 -d /srv/eoxserver
+    sudo -u eoxserver mkdir /srv/eoxserver/instance00
+    sudo -u eoxserver eoxserver-admin.py create_instance instance00 /srv/eoxserver/instance00
 
 Now our first bare instance exists and needs to be configured. 
 
@@ -392,14 +436,80 @@ The ``manage.py`` is the command-line proxy for the management of EOxServer. To
 avoid repeated writing of this fairly long command make a shorter alias such 
 as::
 
-    alias eoxsi00 ="sudo -u eoxserver python /srv/eoxserver/instance00/manage.py"
+    alias eoxsi00="sudo -u eoxserver python /srv/eoxserver/instance00/manage.py"
     eoxsi00 createsuperuser
 
 
 Step 6 - Web Server Integration 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-*TBD*
+The remaining task to be performed is to integrate the created EOxServer 
+instance with the Apache web server. As it was already mentioned, the web 
+server access the EOxServer instance through the WSGI interface. We assume 
+that the web server is already configured to load the ``mod_wsgi`` module 
+and thus it remains to configure the WSGI access point. The proposed 
+configuration is to create the new configuration file 
+``/etc/httpd/conf.d/default_site.conf`` with the following content::
+
+    <VirtualHost *:80>
+        # EOxServer instance: instance00 
+        Alias /instance00 "/srv/eoxserver/instance00/instance00/wsgi.py"
+        Alias /instance00_static "/srv/eoxserver/instance00/instance00/static"
+        WSGIDaemonProcess ows processes=10 threads=1
+        <Directory "/srv/eoxserver/instance00/instance00>
+                Options +ExecCGI FollowSymLinks
+                AddHandler wsgi-script .py
+                WSGIProcessGroup ows
+                AllowOverride None
+                Order allow,deny
+                allow from all
+        </Directory>
+    </VirtualHost>
+
+In case there is already a ``VirtualHost`` section present in 
+``/etc/httpd/conf/httpd.conf`` or in any other ``*.conf`` file included from 
+the ``/etc/httpd/conf.d/`` directory  we suggest to add the configuration 
+lines given above to the appropriate virtual host section.
+
+Don't forget to adjust the URL configuration in 
+``/srv/eoxserver/instance00/instance00/conf/eoxserver.conf``::
+
+    [services.owscommon]
+    http_service_url=http://<you-server-address>/instance00
+
+The location and base URL of the static files are specified in the EOxServer
+instance's ``setting.py`` file by the ``STATIC_ROOT`` and ``STATIC_URL``
+options::
+
+    ...
+    STATIC_ROOT = '/srv/eoxserver/instance00/instance00/static/'
+    ...
+    STATIC_URL = '/instance00_static/'
+    ...
+
+These options are set automatically by the instance creation script.
+
+The static files needed by the EOxServer's web GUI need to be initialized
+(*collected*) using the following command::
+
+    alias eoxsi00="sudo -u eoxserver python /srv/eoxserver/instance00/manage.py"
+    eoxsi00 collectstatic -l 
+
+To allow the ``apache`` user to write to the instance log-file make sure the
+user is permitted to do so:: 
+
+    sudo chmod g+w /srv/eoxserver/instance00/instance00/logs/eoxserver.log
+
+And now the last thing to do remains to restart the Apache server by::
+
+    sudo service httpd restart
+
+You can check that your EOxServer instance runs properly by inserting the
+following URL to your browser::
+
+    http://<you-server-address>/instance00
+
+.. TODO: instance logging configuration
 
 Step 7 - Start Operating the Instance 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
