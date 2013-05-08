@@ -475,7 +475,7 @@ Don't forget to adjust the URL configuration in
 ``/srv/eoxserver/instance00/instance00/conf/eoxserver.conf``::
 
     [services.owscommon]
-    http_service_url=http://<you-server-address>/instance00
+    http_service_url=http://<you-server-address>/instance00/ows
 
 The location and base URL of the static files are specified in the EOxServer
 instance's ``setting.py`` file by the ``STATIC_ROOT`` and ``STATIC_URL``
