@@ -26,6 +26,13 @@
   # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
   # IN THE SOFTWARE.
   #-----------------------------------------------------------------------------
+
+  # ----------------------------------------------------------------------------
+  # Online Ressources:
+  #  * http://rst.ninjs.org/ (Web Based RST Editor)
+  #  * http://sphinx-doc.org/rest.html (Sphinx Docs for RST Formatting)
+  #  * http://mapserver.org/de/development/rfc/ms-rfc-84.html
+  # ----------------------------------------------------------------------------
 .. _rfc_19:
 
 RFC 19: Migrate project repository from svn to git
@@ -99,7 +106,7 @@ Tasks
 
 * import svn to git
 * assign github users
-* split into sub-projects (c.f. rfc83):
+* split into sub-projects:
 
  * eoxserver
  * autotest
