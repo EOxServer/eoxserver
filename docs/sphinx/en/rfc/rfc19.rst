@@ -1,6 +1,6 @@
 .. RFC 19
   #-----------------------------------------------------------------------------
-  # $Id: rfc19.rst 1996 2013-04-06 11:46:12Z locherm $
+  # $Id$
   #
   # Project: EOxServer <http://eoxserver.org>
   # Authors: Marko Locher <marko.locher@eox.at>
@@ -40,23 +40,103 @@ RFC 19: Migrate project repository from svn to git
 
 :Author: Marko Locher
 :Created: 2013-04-05
-:Last Edit: $Date: 2013-04-06 16:00:00 +0200 (Fr, 05 Apr 2013) $
+:Last Edit: $Date$
 :Status: PENDING
 :Discussion: n/a
 
-Migrating from Subversion to git and in the process also switch from Trac to github. This RFC is a work in progress and not completed yet.
+Migrating from Subversion to git and in the process also switch from Trac to 
+github.
+
+(Credit: Inspired by MapServer's RFC 84 at: 
+http://mapserver.org/development/rfc/ms-rfc-84.html)
+
 
 Introduction
 ------------
 
-While SVN suits our needs as a collaborative source code versionner, it has shortcomings that make it difficult to work with for developpers working on multiple tasks in parallel. Git’s easy branching makes it possible to set up branches for individual task, isolating code changes from other branches, thus making the switch from one task to another possible without the risk of loosing or erroneously commiting work-in-progress code. Three-way merging of different branches means that merging code from one branch to another becomes a rapid task, by only having to deal with actual conflicts in the code. Offline committing and access to entire history make working offline possible.
+While svn suits our needs as a collaborative source code version management 
+system, it has shortcomings that make it difficult to work with for 
+developpers working on multiple tasks in parallel. Git’s easy branching 
+makes it possible to set up branches for individual task, isolating code 
+changes from other branches, thus making the switch from one task to another 
+possible without the risk of loosing or erroneously commiting 
+work-in-progress code. Three-way merging of different branches means that 
+merging code from one branch to another becomes a rapid task, by only having 
+to deal with actual conflicts in the code. Offline committing and access to 
+entire history make working offline possible.
 
-There is already somewhat of a consensus that the migration from SVN to git is a good move. Discussion remains as to how this transition should be performed. This RFC outlines the different options available for hosting the official repository, and the different options available for our ticket tracking.
+There is already somewhat of a consensus that the migration from svn to git 
+is a good move. Discussion remains as to how this transition should be 
+performed. This RFC outlines the different options available for hosting the 
+official repository, and the different options available for our ticket 
+tracking.
 
-Current investigation has retained two majors options that we could go down with:
+Current investigation has retained two majors options that we could go down 
+with:
 
-* Repository migrated to github, use github provided issue tracking. This option will be referred to as “Github hosting”.
-* Repository hosted by EOX, current trac instance migrated to hook on the new repository. This option will be referred to as “EOX hosting”
+* Repository migrated to github, use github provided issue tracking. This 
+  option will be referred to as “Github hosting”.
+* Repository hosted by EOX, current trac instance migrated to hook on the 
+  new repository. This option will be referred to as “EOX hosting”
+
+
+Github hosting
+--------------
+
+This option consists in moving our entire code+ticket infrastructure
+to github. The current trac instance becomes nearly read-only, new 
+tickets cannot be created on it. Existing tickets are migrated to github
+with a script taking a trac postgresql dump (once the migration starts,
+our trac instance becomes read-only).
+
+Advantages
+==========
+
+- Code hosting:
+ 
+ - No need to worry about hosting infrastructure
+ - Can be up and running with a short delay
+ - Support for pull requests, allowing external contributions to be rapidly
+   merged into our repository
+ - Online code editing for quick fixups
+ - Github visualization tools, for example to check which branches are likely
+   to contain conflicting code sections
+ - Code and patch commenting make collaboratively working on a given feature
+   very lightweight, i.e. just add your comment on the code line which seems 
+   problematic to you
+ - Documentation contributions highly simplified for one-shot contributions
+
+- Issue tracking:
+
+ - Integration of ticket state with commit messages (e.g: "fix mem allocation
+   in mapDraw(), closes issue #1234
+ - Email replies to ticket notifications
+ - The free-form label tagging of issues might open up some interesting usages
+ - Versionned text-base attachments (gists), with commenting
+
+Inconveniences
+==============
+
+- Hosting by a private company, which might become an issue if their TOS evolve
+  or if they go out of business. The source code availability is not an 
+  issue as is possible to maintain a mirror on any server, and each 
+  developer has a checkout of the full source control history. Ticket 
+  migration would be an issue, but there are APIs available to extract 
+  existing tickets.
+- Issue tracker is in some ways less feature full than trac. The only hard 
+  coded attributes are the assignee and the milestone. All the other 
+  triaging information goes into free formed labels, a la gmail.
+ 
+ - No way to automatically assign a ticket owner given a component
+ - No support for image attachments, can be referenced by url but must be
+   hosted elsewhere.
+ - No support for private security tickets
+
+- Administering committer access will be done through github, old 
+  credentials do not apply. Git does not support fine-grained commit 
+  permissions per directory, there will be a separate repository for the 
+  docs to account for the larger number of committers there.
+
 
 Git Workflows
 -------------
@@ -64,18 +144,32 @@ Git Workflows
 Stable Branches
 ^^^^^^^^^^^^^^^
 
-This document outlines a workflow for fixing bugs in our stable branches: http://www.net-snmp.org/wiki/index.php/Git_Workflow I beleive it is a very good match for our stable release management: - pick the oldest branch where the fix should be applied - commit the fix to this oldest branch - merge the old branch down to all the more recent ones, including master
+This document outlines a workflow for fixing bugs in our stable branches: 
+http://www.net-snmp.org/wiki/index.php/Git_Workflow I believe it is a very 
+good match for our stable release management:
+
+- pick the oldest branch where the fix should be applied 
+- commit the fix to this oldest branch 
+- merge the old branch down to all the more recent ones, including master
 
 Release Management
 ^^^^^^^^^^^^^^^^^^
 
-Instead of freezing development during our beta cycle, a new release branch is created once the feature freeze is decided, and our betas, release and subsequent bugfix releases are tagged off of this branch. Bug fixes are committed to this new stable branch, and merged into master. New features can continue to be added to master during all the beta phase. http://nvie.com/posts/a-successful-git-branching-model/ is an interesting read even if it does not fit our stable release branches exactly.
+Instead of freezing development during our beta cycle, a new release branch 
+is created once the feature freeze is decided, and our betas, releases and 
+subsequent bugfix releases are tagged off of this branch. Bug fixes are 
+committed to this new stable branch, and merged into master. New features 
+can continue to be added to master during all the beta phase. 
+http://nvie.com/posts/a-successful-git-branching-model/ is an interesting 
+read even if it does not fit our stable release branches exactly.
 
 
-Upgrade path for SVN users
+Upgrade path for svn users
 --------------------------
 
-For those users who do not wish to change their workflow and continue with SVN commands. This is not the recommended way to work with git, as local or remote changes might end up in having conflicts to resolve, like with svn.
+For those users who do not wish to change their workflow and continue with 
+svn commands. This is not the recommended way to work with git, as local or 
+remote changes might end up in having conflicts to resolve, like with svn.
 
 Checkout the project ::
 
@@ -111,6 +205,7 @@ Tasks
  * eoxserver
  * autotest
  * docs
+ * soap_proxy
 
 * document release process
 * migrate website scripts
