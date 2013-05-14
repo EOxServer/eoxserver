@@ -87,6 +87,7 @@ class WMSLayer(object):
         layer.name = self.getName()
         layer.setMetaData("ows_title", self.getName())
         layer.setMetaData("wms_label", self.getName())
+        layer.addProcessing("CLOSE_CONNECTION=CLOSE")
     
         if self.group_name:
             layer.group = self.group_name
