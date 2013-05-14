@@ -166,6 +166,8 @@ class EOWMSOutlinesLayer(WMSLayer):
             
             layer.data = "geometry from (%s) sq USING SRID=4326 USING UNIQUE oid" % self.getSubQuery(req)
             
+            layer.addProcessing("CLOSE_CONNECTION=DEFER")
+            
         elif db_conf["ENGINE"] == "django.contrib.gis.db.backends.spatialite":
             layer.setConnectionType(mapscript.MS_OGR, "")
             
@@ -332,7 +334,6 @@ class EOWMSCollectionOutlinesLayer(WMSLayer):
             
             layer.addFeature(shape)
         
-        logger.info(str(datasets))
         if not len(datasets):
             # add "null" shape
             shape = mapscript.shapeObj(mapscript.MS_SHAPE_POLYGON)
