@@ -31,7 +31,7 @@
 import re
 
 
-VERSION = (0, 3, 0, 'final', 0)
+VERSION = (0, 3, 1, 'dev', 0)
 SVN_REV = '$Id$'
 
 def get_svn_revision(path=None):
