@@ -41,7 +41,7 @@ RFC 19: Migrate project repository from svn to git
 :Author: Marko Locher
 :Created: 2013-04-05
 :Last Edit: $Date$
-:Status: PENDING
+:Status: ACCEPTED
 :Discussion: n/a
 
 Migrating from Subversion to git and in the process also switch from Trac to 
@@ -214,7 +214,7 @@ Tasks
 Voting History
 --------------
 
-N/A
+:Motion: Adopted on 2013-05-15 with +1 from Stephan Meißl, Fabian Schindler and Martin Paces
 
 
 Traceability
