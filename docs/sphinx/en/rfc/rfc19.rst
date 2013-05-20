@@ -90,7 +90,7 @@ with a script taking a trac postgresql dump (once the migration starts,
 our trac instance becomes read-only).
 
 Advantages
-==========
+----------
 
 - Code hosting:
  
@@ -115,7 +115,7 @@ Advantages
  - Versionned text-base attachments (gists), with commenting
 
 Inconveniences
-==============
+--------------
 
 - Hosting by a private company, which might become an issue if their TOS evolve
   or if they go out of business. The source code availability is not an 
@@ -214,7 +214,8 @@ Tasks
 Voting History
 --------------
 
-:Motion: Adopted on 2013-05-15 with +1 from Stephan Meißl, Fabian Schindler and Martin Paces
+:Motion: Adopted on 2013-05-15 with +1 from Stephan Meißl, Fabian Schindler, 
+         and Martin Paces
 
 
 Traceability
