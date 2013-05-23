@@ -62,8 +62,7 @@ class Extent(GeographicReference):
             the defined extent and SRID.
         """
         sr = osr.SpatialReference(); sr.ImportFromEPSG(self.srid)
-        # TODO: center of pixel or border? see #32
-        ds.SetGeoTransform([ # TODO: correct?
+        ds.SetGeoTransform([
             self.minx,
             (self.maxx - self.minx) / ds.RasterXSize,
             0,
@@ -110,12 +109,12 @@ class GCPList(GeographicReference):
         # set the GCPs
         src_ds.SetGCPs(self.gcps, gcp_sr.ExportToWkt())
         
-        # try to find and use the best transform method/order. 
-        # Order is: TPS (no order), GCP (automatic order), GCP (order 1) 
-        # loop over the min GCP number to order map.
-        for min_gcpnum, order in [(20, -1), (4, 0), (0, 1)]:
+        # Try to find and use the best transform method/order. 
+        # Orders are: -1 (TPS), 3, 2, and 1 (all GCP)
+        # Loop over the min and max GCP number to order map.
+        for min_gcpnum, max_gcpnum, order in [(3, 2500, -1), (10, None, 3), (6, None, 2), (3, None, 1)]:
             # if the number of GCP matches
-            if len(self.gcps) > min_gcpnum:
+            if len(self.gcps) >= min_gcpnum and (max_gcpnum is None or len(self.gcps) <= max_gcpnum):
                 try:
                     logger.debug("Trying order '%i'" % order)
                     # get the suggested pixel size/geotransform
