@@ -317,6 +317,9 @@ including the required PostGIS extension::
     PG_SHARE=/usr/share/pgsql
     sudo -u postgres psql -q -d template_postgis -f $PG_SHARE/contrib/postgis.sql
     sudo -u postgres psql -q -d template_postgis -f $PG_SHARE/contrib/spatial_ref_sys.sql
+    psql -d postgres psql -q -d template_postgis -c "GRANT ALL ON geometry_columns TO PUBLIC;"
+    psql -d postgres psql -q -d template_postgis -c "GRANT ALL ON geography_columns TO PUBLIC;"
+    psql -d postgres psql -q -d template_postgis -c "GRANT ALL ON spatial_ref_sys TO PUBLIC;"
 
 Please note that the ``PG_SHARE`` directory can vary for each Linux distribution
 or custom PostgreSQL installation. For CentOS ``/usr/share/pgsql`` happens to 
@@ -470,6 +473,17 @@ In case there is already a ``VirtualHost`` section present in
 ``/etc/httpd/conf/httpd.conf`` or in any other ``*.conf`` file included from 
 the ``/etc/httpd/conf.d/`` directory  we suggest to add the configuration 
 lines given above to the appropriate virtual host section.
+
+The ``WSGIDaemonProcess`` option forces execution of the Apache WSGI in daemon
+mode using multiple single-thread processes. While the number of daemon 
+processes can be adjusted the number of threads *must* be always set to 1.
+
+On systems such as CentOS, following option must be added to Apache
+configuration (preferably in ``/etc/httpd/conf.d/wsgi.conf``) to allow
+communication between the Apache server and WSGI daemon (the reason is explained,
+e.g., `here <http://code.google.com/p/modwsgi/wiki/ConfigurationIssues>`_)::
+    
+   WSGISocketPrefix run/wsgi 
 
 Don't forget to adjust the URL configuration in 
 ``/srv/eoxserver/instance00/instance00/conf/eoxserver.conf``::
