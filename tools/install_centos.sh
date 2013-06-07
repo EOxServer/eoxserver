@@ -4,7 +4,7 @@
 #
 # Description: 
 #
-#   Automatic installation on CentosOS (applicable also to RHEL and its clones). 
+#   Automatic installation on CentOS (applicable also to RHEL and its clones). 
 #
 #   The script install the EOxServer RPMs and setups and configures 
 #   EOxServer instance.
@@ -12,10 +12,10 @@
 #-------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
-# Authors: Martin Paces <martin.paces@iguassu.cz>
+# Authors: Martin Paces <martin.paces@eox.at>
 #
 #-------------------------------------------------------------------------------
-# Copyright (C) 2013 Iguassu Software Systems, a.s 
+# Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
