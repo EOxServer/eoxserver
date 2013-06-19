@@ -2,8 +2,9 @@
 # $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
-# Authors: Stephan Krause <stephan.krause@eox.at>
+# Authors: Fabian Schindler <fabian.schindler@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
+#          Stephan Krause <stephan.krause@eox.at>
 #
 #-------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
@@ -27,34 +28,47 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from django.db import models
+
+from django.contrib.gis.db import models
 from django.contrib.contenttypes.models import ContentType
+
+
+def get_real_content_type(obj):
+    """ Helper to get the correct content type record for the type of the object.
+    """
+    return ContentType.objects.get_for_model(type(obj))
+
+
+class Castable(models.Model):
+    real_content_type = models.ForeignKey(ContentType, editable=False)
+
+    @property
+    def real_type(self):
+        if not self.id:
+            return type(self)
+        return self.real_content_type.model_class()
     
-class Implementation(models.Model):
-    intf_id = models.CharField(max_length=256)
-    impl_id = models.CharField(max_length=256, unique=True)
+    def save(self, *args, **kwargs):
+        # save a reference to the actual content type
+        if not self.id:
+            self.real_content_type = get_real_content_type(self)
 
-class Component(Implementation):
-    enabled = models.BooleanField(default=False)
+        return super(Castable, self).save(*args, **kwargs)
 
-class ResourceClass(Implementation):
-    content_type = models.ForeignKey(ContentType)
-    
-class Resource(models.Model):
-    pass
 
-class Relation(models.Model):
-    rel_class = models.CharField(max_length=64)
-    enabled = models.BooleanField(default=False)
+    def cast(self):
+        """'cast' the model to its actual type, if it is not already. This 
+        invokes a database lookup.
+        """
 
-    subj = models.ForeignKey(Component, related_name="relations")
+        # don't perform a cast if not necessary
+        real_type = self.real_type
+        if real_type == type(self):
+            return self
 
-    obj = models.ForeignKey(Resource, related_name="relations")
+        # otherwise get the correctly typed model
+        return self.real_content_type.get_object_for_this_type(pk=self.pk)
 
-class ClassRelation(models.Model):
-    rel_class = models.CharField(max_length=64)
-    enabled = models.BooleanField(default=False)
-    
-    subj = models.ForeignKey(Component, related_name="class_relations")
-    
-    obj = models.ForeignKey(ResourceClass, related_name="class_relations")
+
+    class Meta:
+        abstract = True

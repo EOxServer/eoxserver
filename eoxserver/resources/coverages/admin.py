@@ -2,9 +2,9 @@
 # $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
-# Authors: Stephan Krause <stephan.krause@eox.at>
+# Authors: Fabian Schindler <fabian.schindler@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
-#          Martin Paces <martin.paces@eox.at>
+#          Stephan Krause <stephan.krause@eox.at>
 #
 #-------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
@@ -28,584 +28,222 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-import os.path
-import logging
-
+from django.core.exceptions import ValidationError
+from django.contrib.gis import forms
 from django.contrib.gis import admin
 from django.contrib import messages
-from django.conf import settings
-from django.http import HttpResponseRedirect
-from django.contrib.admin.util import unquote
-from django.core.exceptions import ObjectDoesNotExist
-from django.db import transaction
-from django.db.models import Q
 
-from eoxserver.backends.models import (
-    Location, LocalPath, RemotePath, RasdamanLocation
-)
-from eoxserver.resources.coverages.models import (
-    EOMetadataRecord, DataSource, TileIndex,
-    LayerMetadataRecord, LineageRecord, NilValueRecord,
-    RectifiedDatasetRecord, ReferenceableDatasetRecord, BandRecord,
-    RangeType2Band, RangeTypeRecord, RectifiedStitchedMosaicRecord,
-    PlainCoverageRecord, DatasetSeriesRecord, ExtentRecord, DataPackage,
-    LocalDataPackage, RemoteDataPackage, RasdamanDataPackage
-)
-
-from eoxserver.core.exceptions import InternalError
-from eoxserver.core.system import System
-from eoxserver.core.admin import ConfirmationAdmin
-from eoxserver.core.util.timetools import UTCOffsetTimeZoneInfo
+from eoxserver.resources.coverages import models
+from eoxserver.backends.admin import LocationForm
 
 
-logger = logging.getLogger(__name__)
-System.init()
+#===============================================================================
+# List display fields
+#===============================================================================
 
-# NilValue
-class NilValueInline(admin.TabularInline):
-    model = BandRecord.nil_values.__getattribute__("through")
-    extra = 1
-class NilValueAdmin(admin.ModelAdmin):
-    inlines = (NilValueInline, )
-admin.site.register(NilValueRecord, NilValueAdmin)
+def num_coverages(collection):
+    return len(filter(models.iscoverage, collection.eo_objects.all()))
 
-# RangeType
-class RangeType2BandInline(admin.TabularInline):
-    model = RangeType2Band
-    extra = 1
-class RangeTypeAdmin(admin.ModelAdmin):
-    inlines = (RangeType2BandInline, )
-class BandRecordAdmin(admin.ModelAdmin):
-    inlines = (RangeType2BandInline, NilValueInline)
-    exclude = ('nil_values', )
-admin.site.register(RangeTypeRecord, RangeTypeAdmin)
-admin.site.register(BandRecord, BandRecordAdmin)
-
-# SingleFile Coverage
-class PlainCoverageLayerMetadataInline(admin.TabularInline):
-    model = PlainCoverageRecord.layer_metadata.__getattribute__("through")
-    extra = 1
-class PlainCoverageAdmin(admin.ModelAdmin):
-    #list_display = ('coverage_id', 'filename', 'range_type')
-    #list_editable = ('filename', 'range_type')
-    list_filter = ('range_type', )
-    ordering = ('coverage_id', )
-    search_fields = ('coverage_id', )
-    inlines = (PlainCoverageLayerMetadataInline, )
-    exclude = ('layer_metadata',)
-admin.site.register(PlainCoverageRecord, PlainCoverageAdmin)
+num_coverages.short_description = "Coverages contained in this collection"
 
 
-class StitchedMosaic2DatasetInline(admin.TabularInline):
-    model = RectifiedStitchedMosaicRecord.rect_datasets.__getattribute__("through")
-    verbose_name = "Stitched Mosaic to Dataset Relation"
-    verbose_name_plural = "Stitched Mosaic to Dataset Relations"
-    extra = 1
-    can_delete = False
-    
-    # TODO: this is causing an exception
-    '''def get_readonly_fields(self, request, obj=None):
-        if obj is not None and obj.automatic:
-            return self.readonly_fields + (
-                'rectifiedstitchedmosaicrecord', #'rectifieddatasetrecord'
-            )
-        return super(StitchedMosaic2DatasetInline, self).get_readonly_fields(request, obj)'''
-    
-class DatasetSeries2DatasetInline(admin.TabularInline):
-    model = DatasetSeriesRecord.rect_datasets.__getattribute__("through")
-    verbose_name = "Dataset Series to Dataset Relation"
-    verbose_name_plural = "Dataset Series to Dataset Relations"
-    extra = 1
-    
-    #template ="admin/tabular.html"
-    
-    #readonly_fields = ('datasetseriesrecord', )
-    
-    can_delete = False
-    
-    # TODO: this is causing an exception
-    #def get_readonly_fields(self, request, obj=None):
-        #return super(DatasetSeries2DatasetInline, self).get_readonly_fields(request, obj)
-        #if obj is not None and obj.automatic:
-        #    return self.readonly_fields + ('datasetseriesrecord', )
-        #
-        #    return self.readonly_fields + (
-        #        'datasetseriesrecord', #'rectifieddatasetrecord'
-        #    )
-        #raise
-        #return self.readonly_fields#
+def num_collections(collection):
+    return len(filter(models.iscollection, collection.eo_objects.all()))
 
-class DataPackageInline(admin.StackedInline):
-    model = DataPackage
-    
-class LineageInline(admin.StackedInline):
-    model = LineageRecord
+num_collections.short_description = "Collections contained in this collection"
 
-class LayerMetadata2DatasetInline(admin.StackedInline):
-    model = RectifiedDatasetRecord.layer_metadata.__getattribute__("through")
-    extra = 1
-    can_delete = True
 
-class RectifiedDatasetAdmin(ConfirmationAdmin):
-    #list_display = ('coverage_id', 'eo_id', 'data_package', 'range_type', 'extent')
-    fields = ('automatic', 'visible', 'coverage_id', 'eo_id', 'range_type', 'extent', 'eo_metadata', 'data_package', 'data_source', 'lineage')
-    list_display = ('coverage_id', 'eo_id', 'range_type', 'extent', 'visible')
-    #list_editable = ('data_package', 'range_type', 'extent')
-    list_editable = ('range_type', 'extent', 'visible')
-    list_filter = ('range_type', )
-    
-    ordering = ('coverage_id', )
-    search_fields = ('coverage_id', )
-    inlines = (StitchedMosaic2DatasetInline, DatasetSeries2DatasetInline, LayerMetadata2DatasetInline)
-    
-    # We need to override the bulk delete function of the admin to make
-    # sure the overrode delete() method of EODatasetMixIn is
-    # called.
-    actions = ['really_delete_selected', ]
-    def get_actions(self, request):
-        actions = super(RectifiedDatasetAdmin, self).get_actions(request)
-        if 'delete_selected' in actions: del actions['delete_selected']
-        return actions
-    def really_delete_selected(self, request, queryset):
-        for obj in queryset:
-            obj.delete()
-        if queryset.count() == 1:
-            message_bit = "1 Dataset was"
-        else:
-            message_bit = "%s Datasets were" % queryset.count()
-        self.message_user(request, "%s successfully deleted." % message_bit)
-    really_delete_selected.short_description = "Delete selected Dataset entries"
+#===============================================================================
+# ModelForms
+#===============================================================================
 
-    def change_view(self, request, object_id, *args, **kwargs):
-        obj = self.get_object(request, object_id)
-        diff = self.get_changes(request, object_id)
-        old_automatic, new_automatic = diff.get('automatic', (False, False))
-        
-        if (old_automatic and new_automatic) or obj.automatic:
-            messages.warning(request, "This rectified dataset cannot be changed "
-                             "because it is marked as 'automatic'.")
-            
-        return super(RectifiedDatasetAdmin, self).change_view(request, object_id, *args, **kwargs)
+class CoverageForm(LocationForm):
+    pass
 
-    def get_readonly_fields(self, request, obj=None):
-        """
-        If the instance is automatic, this method will return a 
-        list of disabled fields.
-        These cannot be changed by the user, unless he disables
-        the `automatic` field.
-        """
-        if obj is not None and obj.automatic:
-            return self.readonly_fields + (
-                'coverage_id', 'eo_id', 'eo_metadata',
-                'lineage', 'data_package', 'extent',
-                'layer_metadata', 
-            )
-            
-        return self.readonly_fields
-    
-    def require_confirmation(self, diff):
-        try:
-            old_automatic, new_automatic = diff['automatic']
-            if not old_automatic and new_automatic:
-                return "You are marking the rectified dataset as automatic. All manual changes will be reset."
-        except KeyError:
-            pass
-        return False  
-        
-admin.site.register(RectifiedDatasetRecord, RectifiedDatasetAdmin)
+#===============================================================================
+# Abstract admins
+#===============================================================================
 
-class ReferenceableDatasetAdmin(ConfirmationAdmin):
-    #list_display = ('coverage_id', 'eo_id', 'data_package', 'range_type', 'size_x', 'size_y')
-    fields = ('automatic', 'visible', 'coverage_id', 'eo_id', 'range_type', 'extent', 'eo_metadata', 'data_package', 'lineage')
-    list_display = ('coverage_id', 'eo_id', 'range_type', 'extent', 'visible')
-    #list_editable = ('data_package', 'range_type', 'extent')
-    list_editable = ('range_type', 'extent', 'visible')
-    list_filter = ('range_type', )
-    
-    ordering = ('coverage_id', )
-    search_fields = ('coverage_id', )
-# TODO: Separate inline or rewrite existing one:    inlines = (DatasetSeries2DatasetInline, )
+class EOObjectAdmin(admin.GeoModelAdmin):
+    wms_url = 'http://maps.eox.at/tiles/wms/'
+    wms_layer = 'terrain_wgs84,overlay_streets_wgs84'
 
-    # We need to override the bulk delete function of the admin to make
-    # sure the overrode delete() method of EODatasetMixIn is
-    # called.
-    actions = ['really_delete_selected', ]
-    def get_actions(self, request):
-        actions = super(ReferenceableDatasetAdmin, self).get_actions(request)
-        if 'delete_selected' in actions: del actions['delete_selected']
-        return actions
-    def really_delete_selected(self, request, queryset):
-        for obj in queryset:
-            obj.delete()
-        if queryset.count() == 1:
-            message_bit = "1 Dataset was"
-        else:
-            message_bit = "%s Datasets were" % queryset.count()
-        self.message_user(request, "%s successfully deleted." % message_bit)
-    really_delete_selected.short_description = "Delete selected Dataset entries"
 
-    def change_view(self, request, object_id, *args, **kwargs):
-        obj = self.get_object(request, object_id)
-        diff = self.get_changes(request, object_id)
-        old_automatic, new_automatic = diff.get('automatic', (False, False))
-        
-        if (old_automatic and new_automatic) or obj.automatic:
-            messages.warning(request, "This referenceable dataset cannot be changed "
-                             "because it is marked as 'automatic'.")
-            
-        return super(ReferenceableDatasetAdmin, self).change_view(request, object_id, *args, **kwargs)
+class CoverageAdmin(EOObjectAdmin):
 
-    def get_readonly_fields(self, request, obj=None):
-        """
-        If the instance is automatic, this method will return a 
-        list of disabled fields.
-        These cannot be changed by the user, unless he disables
-        the `automatic` field.
-        """
-        if obj is not None and obj.automatic:
-            return self.readonly_fields + (
-                'coverage_id', 'eo_id', 'eo_metadata',
-                'lineage', 'data_package', 'extent', 'layer_metadata' )
-            
-        return self.readonly_fields
-    
-    def require_confirmation(self, diff):
-        try:
-            old_automatic, new_automatic = diff['automatic']
-            if not old_automatic and new_automatic:
-                return "You are marking the referenceable dataset as automatic. All manual changes will be reset."
-        except KeyError:
-            pass
-        return False  
+    form = CoverageForm
 
-admin.site.register(ReferenceableDatasetRecord, ReferenceableDatasetAdmin)
-
-class AbstractContainerAdmin(admin.ModelAdmin):
-    # We need to override the bulk delete function of the admin to make
-    # sure the overrode delete() method of EOCoverageRecord is
-    # called.
-    actions = ['really_delete_selected', ]
-    coverage_manager_intf_id = ""
-    container_wrapper_factory_id = ""
-    
-    def get_manager(self):
-        System.init()
-        
-        return System.getRegistry().findAndBind(
-            intf_id="resources.coverages.interfaces.Manager",
-            params={
-                "resources.coverages.interfaces.res_type": self.coverage_manager_intf_id
-            }
-        )
-    
-    def get_wrapper(self, pk):
-        raise NotImplementedError()
-
-    def get_actions(self, request):
-        actions = super(AbstractContainerAdmin, self).get_actions(request)
-        if 'delete_selected' in actions: del actions['delete_selected']
-        return actions
-
-    def really_delete_selected(self, request, queryset):
-        for obj in queryset:
-            obj.delete()
-        
-        count = queryset.count()
-        self.message_user(request, "%d %s were successfully deleted." % (
-               count,
-               self.model.Meta.verbose_name if count == 1 else self.model._meta.verbose_name_plural
-           )
-        )
-    really_delete_selected.short_description = "Delete selected entries"
-    
-    
-    def save_model(self, request, obj, form, change):
-        super(AbstractContainerAdmin, self).save_model(request, obj, form, change)
-        self.obj_to_sync = obj
-    
-    def try_synchronize(self):
-        try:
-            obj_to_sync = getattr(self, "obj_to_sync")
-            System.init()
-            mgr = self.get_manager()
-            obj_id = self.get_obj_id(obj_to_sync)
-            with transaction.commit_on_success():
-                mgr.synchronize(obj_id)
-        except AttributeError:
-            pass
-        except obj_to_sync.DoesNotExist:
-            pass
-    
-    def add_view(self, request, *args, **kwargs):
-        try:
-            ret = super(AbstractContainerAdmin, self).add_view(request, *args, **kwargs)
-            self.try_synchronize()
-            return ret
-        except:
-            messages.error(request, "Could not create %s" % self.model._meta.verbose_name)
-            return HttpResponseRedirect("..")
-    
-    def change_view(self, request, object_id, *args, **kwargs):
-        try:
-            ret = super(AbstractContainerAdmin, self).change_view(request, object_id, *args, **kwargs)
-            self.try_synchronize()
-            return ret
-        except:
-            messages.error(request, "Could not change %s" % self.model._meta.verbose_name)
-            raise
-            return HttpResponseRedirect("..")
-    
-    def changelist_view(self, request, *args, **kwargs):
-        try:
-            ret = super(AbstractContainerAdmin, self).changelist_view(request, *args, **kwargs)
-            self.try_synchronize()
-            return ret
-        except:
-            messages.error(request, "Could not change %s" % self.model._meta.verbose_name)
-            raise
-            return HttpResponseRedirect("..")
-    
-    def delete_view(self, request, *args, **kwargs):
-        try:
-            ret = super(AbstractContainerAdmin, self).delete_view(request, *args, **kwargs)
-            # TODO: need synchronization here?
-            return ret
-        except:
-            messages.error(request, "Could not delete %s" % self.model._meta.verbose_name)
-            return HttpResponseRedirect("..")
-    
-class DatasetSeries2StichedMosaicInline(admin.TabularInline):
-    model = DatasetSeriesRecord.rect_stitched_mosaics.__getattribute__("through")
-    verbose_name = "Dataset Series to Stitched Mosaic Relation"
-    verbose_name_plural = "Dataset Series to Stitched Mosaic Relations"
-    can_delete = False
-    extra = 1
-class RectifiedStitchedMosaicAdmin(AbstractContainerAdmin):
-    list_display = ('eo_id', 'eo_metadata', )
-    list_editable = ('eo_metadata', )
-    ordering = ('eo_id', )
-    search_fields = ('eo_id', )
-    filter_horizontal = ('rect_datasets', )
-    inlines = (DatasetSeries2StichedMosaicInline, )
-    
-    coverage_manager_intf_id = "eo.rect_stitched_mosaic"
-    
-    # Increase the width of the select boxes of the horizontal filter.
-    class Media:
-        css = {
-            'all': ('/'+settings.MEDIA_URL+'/admin/widgets.css',)
-        }
-     
-    def get_obj_id(self, obj):
-        return obj.coverage_id
-        
-admin.site.register(RectifiedStitchedMosaicRecord, RectifiedStitchedMosaicAdmin)
-
-"""class DataDirInline(admin.TabularInline):
-    model = DataDirRecord
-    extra = 1
-    
-    def save_model(self, request, obj, form, change):
-        raise # TODO"""
-
-class LayerMetadata2DatasetSeriesInline(admin.StackedInline):
-    model = DatasetSeriesRecord.layer_metadata.__getattribute__("through")
-    extra = 1
-    can_delete = True
-
-class DatasetSeriesAdmin(AbstractContainerAdmin):
-    inlines = (LayerMetadata2DatasetSeriesInline,)
-    list_display = ('eo_id', 'eo_metadata', )
-    list_editable = ('eo_metadata', )
-    ordering = ('eo_id', )
-    search_fields = ('eo_id', )
     fieldsets = (
         (None, {
-            'fields': ('eo_id', 'eo_metadata', 'data_sources' ),
-            'description': 'Demo DatasetSeries description.',
-        }),
-        ('Advanced coverage handling', {
+            'fields': ('identifier', )
+        }),      
+        ('Location', {
             'classes': ('collapse',),
-            'fields': ('rect_stitched_mosaics', 'rect_datasets', 'ref_datasets')
+            'fields': (('location', 'format'),
+                       ('package', 'storage'),),
+            'description': 'Location specifics'
+        }),
+        ('Metadata', {
+            'classes': ('collapse',),
+            'fields': ('range_type', 
+                       ('size_x', 'size_y'),
+                       ('min_x', 'min_y'),
+                       ('max_x', 'max_y'),
+                       ('srid', 'projection'),
+                       ('begin_time', 'end_time'),
+                       'footprint'),
+            'description': 'Geospatial metadata'
         }),
     )
-    filter_horizontal = ('rect_stitched_mosaics', 'rect_datasets', 'ref_datasets')
-    
-    coverage_manager_intf_id = "eo.dataset_series"
-
-    # Increase the width of the select boxes of the horizontal filter.
-    class Media:
-        css = {
-            'all': ('/'+settings.MEDIA_URL+'/admin/widgets.css',)
-        }
-        
-    def get_obj_id(self, obj):
-        return obj.eo_id
-
-admin.site.register(DatasetSeriesRecord, DatasetSeriesAdmin)
 
 
-class EOMetadataAdmin(admin.GeoModelAdmin):
-    wms_url = "http://vmap0.tiles.osgeo.org/wms/vmap0" # TODO: make this configurable
+class CollectionAdmin(EOObjectAdmin):
+
+    list_display = ("identifier", num_coverages, num_collections)
     
-    def save_model(self, request, obj, form, change):
-        # steps:
-        # 1. retrieve EO GML from obj
-        # 2. validate against other input values (begin_time, end_time, footprint)
-        # 3. validate against schema
-        
-        self.metadata_object = obj
-        
-        tzi = UTCOffsetTimeZoneInfo()
-        tzi.setOffsets("+", 0, 0)
-        
-        if obj.timestamp_begin.tzinfo is None:
-            dt = obj.timestamp_begin.replace(tzinfo=UTCOffsetTimeZoneInfo())
-            obj.timestamp_begin = dt.astimezone(UTCOffsetTimeZoneInfo())
-            
-        if obj.timestamp_end.tzinfo is None:
-            dt = obj.timestamp_end.replace(tzinfo=UTCOffsetTimeZoneInfo())
-            obj.timestamp_end = dt.astimezone(UTCOffsetTimeZoneInfo())
-        
-        super(EOMetadataAdmin, self).save_model(request, obj, form, change)
-        
-        if obj.timestamp_begin.tzinfo is None:
-            raise
-        """
-        if len(self.metadata_object.eo_gml) > 0:
-            # not sure about this:
-            # get right metadata interface
-            # look for metadata given in gml
-            # TODO currently error because no filename given 
-            iu = EOxSMetadataInterfaceFactory.getMetadataInterface(None, "eogml") #we got no filename, do we?
-            # TODO what if metadata is already set?
-            self.metadata_object.footprint = interface.getFootprint()
-        """
-    
-    def save_formset(self, request, form, formset, change):
-        """raise
-        if formset.model == EOMetadataRecord:
-            changed_datasets = formset.save(commit=False)
-            
-            synchronizer = EOMetadataSynchronizer(self.metadata_object)
-            
-            try:
-                if change:
-                    synchronizer.update()
-                else:
-                    synchronizer.create()
-            except:
-                logger.error("Error when synchronizing.")
-                #transaction.rollback()
-                messages.error(request, "Error when synchronizing with file system.")
-                #return
-                raise
-            
-            for dataset in changed_datasets:
-                if not dataset.automatic:
-                    dataset.save()
-        else:
-            super(EOMetadataAdmin, self).save_formset(request, form, formset, change)
-        """
-        # SK: don't think we need to override this method, as it should
-        # not be called; see also the explanation in the save_formset()
-        # method of RectifiedStitchedMosaicAdmin,
-        # DatasetSeriesAdmin
-        
-        super(EOMetadataAdmin, self).save_formset(request, form, formset, change)
-    
-    def change_view(self, request, object_id, *args, **kwarg):
-        obj = self.get_object(request, unquote(object_id))
+    def save_related(self, request, form, formsets, change):
         try:
-            if obj.rectifieddatasetrecord_set.automatic:
-                messages.warning(request, "This EO Metadata record cannot be changed because "
-                                 "the associated dataset is marked as 'automatic'.")
-        except ObjectDoesNotExist:
-            pass
-        return super(EOMetadataAdmin, self).change_view(request, object_id, *args, **kwarg)
-    
-    def get_readonly_fields(self, request, obj=None):
-        try:
-            if obj is not None and obj.rectifieddatasetrecord_set.automatic:
-                return self.readonly_fields + (
-                    'timestamp_begin', 'timestamp_end',
-                    'footprint', 'eo_gml', 'objects'
-                )
-        except ObjectDoesNotExist:
-            pass
-        return self.readonly_fields
-    
-admin.site.register(EOMetadataRecord, EOMetadataAdmin)
-
-class LayerMetadataAdmin(admin.ModelAdmin):
-    inlines = (PlainCoverageLayerMetadataInline, )
-admin.site.register(LayerMetadataRecord, LayerMetadataAdmin)
-
-admin.site.register(LineageRecord)
-admin.site.register(ExtentRecord)
-admin.site.register(TileIndex)
-
-class DataSourceAdmin(admin.ModelAdmin):
-    model = DataSource
-    
-    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
-        """ exclude all locations from the query that
-        are used within DataPackages.
-        """
-        
-        if db_field.name == 'location':
-            kwargs['queryset'] = Location.objects.filter(
-                localpath__data_file_packages=None, localpath__metadata_file_packages=None,
-                remotepath__data_file_packages=None, remotepath__metadata_file_packages=None,
-                rasdamanlocation__data_packages=None, localpath__rasdaman_metadata_file_packages=None
+            super(CollectionAdmin, self).save_related(
+                request, form, formsets, change
             )
-        return super(DataSourceAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+        except ValidationError, e:
+            for m in e.messages:
+                self.message_user(request, str(m), messages.ERROR)
 
-admin.site.register(DataSource, DataSourceAdmin)
+
+    def synchronize(self, request, queryset):
+        for model in queryset:
+            self.message_user(
+                request, "Successfully fake-synchronized %s." % str(model),
+                messages.INFO
+            )
+    
+    synchronize.short_description = "Synchronizes the collections with its data sources."
+    
+    actions = ["synchronize"]    
+
+
+class AbstractInline(admin.TabularInline):
+    extra = 1
+
 
 #===============================================================================
-# Data Packages for Datasets
+# Inline admins
 #===============================================================================
 
-class AbstractDataPackageAdmin(admin.ModelAdmin):
-    def save_model(self, request, obj, form, change):
-        obj.data_package_type = self.model.DATA_PACKAGE_TYPE
-        obj.save()
 
-class LocalDataPackageAdmin(AbstractDataPackageAdmin):
-    model = LocalDataPackage
+class RangeTypeInline(AbstractInline):
+    model = models.RangeType
     
-    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
-        if db_field.name in ('data_location', 'metadata_location'): 
-            kwargs['queryset'] = LocalPath.objects.filter(
-                data_sources=None
-            )
-        return super(AbstractDataPackageAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
-class RemoteDataPackageAdmin(AbstractDataPackageAdmin):
-    model = RemoteDataPackage
+class BandInline(AbstractInline):
+    model = models.Band
 
-    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
-        if db_field.name in ('data_location', 'metadata_location'): 
-            kwargs['queryset'] = RemotePath.objects.filter(
-                data_sources=None
-            )
-        return super(AbstractDataPackageAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
-class RasdamanDataPackageAdmin(AbstractDataPackageAdmin):
-    model = RasdamanDataPackage
+class NilValueInline(AbstractInline):
+    model = models.NilValue
+
+
+#class AdditionalEOMetadataInline(AbstractInline):
+#    model = models.AdditionalEOMetadata
+#    fk_name = "coverage"
+
+
+class CollectionInline(AbstractInline):
+    model = getattr(models.Collection.eo_objects, "through")
+    fk_name = "eo_object"
+
+
+class EOObjectInline(AbstractInline):
+    model = getattr(models.Collection.eo_objects, "through")
+    fk_name = "collection"
+
     
-    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
-        if db_field.name == 'data_location': 
-            kwargs['queryset'] = RasdamanLocation.objects.filter(
-                data_sources=None
-            )
-        elif db_field.name == 'metadata_location':
-            kwargs['queryset'] = LocalPath.objects.filter(
-                data_sources=None
-            )
-        return super(AbstractDataPackageAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+class DataSourceInline(AbstractInline):
+    model = models.DataSource
+    form = LocationForm
+    extra = 0
 
-admin.site.register(LocalDataPackage, LocalDataPackageAdmin)
-admin.site.register(RemoteDataPackage, RemoteDataPackageAdmin)
-admin.site.register(RasdamanDataPackage, RasdamanDataPackageAdmin)
+
+class DataItemInline(AbstractInline):
+    model = models.backends.DataItem
+
+
+#===============================================================================
+# Model admins
+#===============================================================================
+
+
+def get_projection_format_choices():
+    # TODO: replace with dynamic lookup via plugins? or stick with gdal supported stuff?
+    return (
+        ("WKT", "WKT"),
+        ("XML", "XML"),
+        ("URL", "URL"),
+    )
+
+
+class ProjectionForm(forms.ModelForm):
+    """ Form for `Projections`. Overrides the `format` formfield and adds
+    choices dynamically.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super(ProjectionForm, self).__init__(*args, **kwargs)
+        self.fields['format'] = forms.ChoiceField(
+            choices=get_projection_format_choices()
+        )
+
+
+class ProjectionAdmin(admin.ModelAdmin):
+    model = models.Projection
+    form = ProjectionForm
+
+admin.site.register(models.Projection, ProjectionAdmin)
+
+
+class RangeTypeAdmin(admin.ModelAdmin):
+    model = models.RangeType
+    inlines = (BandInline,) 
+
+admin.site.register(models.RangeType, RangeTypeAdmin)
+
+
+class RectifiedDatasetAdmin(CoverageAdmin):
+    model = models.RectifiedDataset
+    inlines = (DataItemInline, CollectionInline)
+
+admin.site.register(models.RectifiedDataset, RectifiedDatasetAdmin)
+
+
+class ReferenceableDatasetAdmin(CoverageAdmin):
+    model = models.ReferenceableDataset
+    inlines = (DataItemInline, CollectionInline)
+
+
+admin.site.register(models.ReferenceableDataset, ReferenceableDatasetAdmin)
+
+
+class RectifiedStitchedMosaicAdmin(CoverageAdmin, CollectionAdmin):
+    model = models.RectifiedStitchedMosaic
+    inlines = (DataItemInline, CollectionInline, EOObjectInline)
+
+admin.site.register(models.RectifiedStitchedMosaic, RectifiedStitchedMosaicAdmin)
+
+
+class DatasetSeriesAdmin(CollectionAdmin):
+    model = models.DatasetSeries
+
+    fieldsets = (
+        (None, {
+            'fields': ('identifier',)
+        }),
+        ('Metadata', {
+            'classes': ('collapse',),
+            'fields': (('begin_time', 'end_time'), 'footprint')
+        }),
+    )
+    
+    inlines = (DataSourceInline, EOObjectInline, CollectionInline)
+
+admin.site.register(models.DatasetSeries, DatasetSeriesAdmin)

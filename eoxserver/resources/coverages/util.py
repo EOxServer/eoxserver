@@ -28,46 +28,21 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from django.db import models
+
+def pk_equals(first, second):
+    return first.pk == second.pk
 
 
-class Storage(models.Model):
-    url = models.CharField(max_length=1024)
-    storage_type = models.CharField(max_length=32)
-    
-    def __unicode__(self):
-        return "%s: %s" % (self.storage_type, self.url)
+def detect_circular_reference(eo_object, collection, supercollection_getter, equals=pk_equals):
+    """Utility function to detect circular references in model hierarchies."""
 
+    #print "Checking for circular reference: %s %s" %(eo_object, collection)
+    if equals(eo_object, collection):
+        #print "Circular reference detected: %s %s" %(eo_object, collection)
+        return True
 
-class BaseLocation(models.Model):
-    # base type for everything that describes a locateable object
-    location = models.CharField(max_length=64)
-    format = models.CharField(max_length=32, null=True, blank=True)
-    storage = models.ForeignKey(Storage, null=True, blank=True)
+    for collection in supercollection_getter(collection):
+        if detect_circular_reference(eo_object, collection, supercollection_getter, equals):
+            return True
 
-    class Meta:
-        abstract = True
-
-    def __unicode__(self):
-        if self.format:
-            return "%s (%s)" % (self.location, self.format)
-        return self.location
-
-
-class Package(BaseLocation):
-    # for "packaged" data, like ZIP, TAR, SAFE packages or files like netCDF/HDF
-    pass
-
-
-class Dataset(BaseLocation):
-    package = models.ForeignKey(Package, null=True, blank=True)
-
-
-class DataItem(BaseLocation):
-    # for extra locations
-    # e.g: if a coverage consists of multiple files (each band in a single file)
-
-    # TODO: can a data item also be in a package? guess so
-
-    dataset = models.ForeignKey(Dataset, related_name="data_items")
-    semantic = models.CharField(max_length=64)
+    return False

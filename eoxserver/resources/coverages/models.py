@@ -2,9 +2,9 @@
 # $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
-# Authors: Stephan Krause <stephan.krause@eox.at>
+# Authors: Fabian Schindler <fabian.schindler@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
-#          Martin Paces <martin.paces@eox.at>
+#          Stephan Krause <stephan.krause@eox.at>
 #
 #-------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
@@ -28,482 +28,516 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-import re
 import logging
+from itertools import chain
 
-from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
-
 from django.contrib.gis.db import models
-from django.contrib.gis.geos import Point, LinearRing, Polygon, MultiPolygon 
-from django.contrib.gis.geos.error import GEOSException
+from django.contrib.gis.geos import MultiPolygon
 
-from eoxserver.contrib import gdal
-from eoxserver.core.models import Resource
-from eoxserver.backends.models import (
-    Location, LocalPath, RemotePath,
-    RasdamanLocation, CacheFile
-)
-from eoxserver.resources.coverages.validators import (
-    validateEOOM, validateCoverageIDnotInEOOM
-)
+from django.db.models import Min, Max
+from django.contrib.gis.db.models import Union
 
-from eoxserver.resources.coverages.formats import _gerexValMime as regexMIMEType
+from eoxserver.core import models as base
+from eoxserver.backends import models as backends
+from eoxserver.resources.coverages.util import detect_circular_reference
 
 
 logger = logging.getLogger(__name__)
 
-MIMETypeValidator = RegexValidator( regexMIMEType , message="The field must contain a valid MIME Type!" ) 
-NCNameValidator = RegexValidator(re.compile(r'^[a-zA-z_][a-zA-Z0-9_.-]*$'), message="This field must contain a valid NCName.")
+#===============================================================================
+# Helpers
+#===============================================================================
 
-class NilValueRecord(models.Model):
-    reason = models.CharField(max_length=128, default="http://www.opengis.net/def/nil/OGC/0/unknown", 
-        choices=(
-            ("http://www.opengis.net/def/nil/OGC/0/inapplicable", "Inapplicable (There is no value)"),
-            ("http://www.opengis.net/def/nil/OGC/0/missing", "Missing"),
-            ("http://www.opengis.net/def/nil/OGC/0/template", "Template (The value will be available later)"),
-            ("http://www.opengis.net/def/nil/OGC/0/unknown", "Unknown"),
-            ("http://www.opengis.net/def/nil/OGC/0/withheld", "Withheld (The value is not divulged)"),
-            ("http://www.opengis.net/def/nil/OGC/0/AboveDetectionRange", "Above detection range"),
-            ("http://www.opengis.net/def/nil/OGC/0/BelowDetectionRange", "Below detection range")
-        )
+def iscoverage(eo_object):
+    """ Helper to check whether an EOObject is a coverage. """
+    return issubclass(eo_object.real_type, Coverage)
+
+
+def iscollection(eo_object):
+    """ Helper to check whether an EOObject is a collection. """
+    return issubclass(eo_object.real_type, Collection)
+
+
+def collect_eo_metadata(qs, insert=None, exclude=None):
+    """ Helper function to collect EO metadata from all EOObjects in a queryset, 
+    plus additionals from a list and exclude others from a different list.
+    """
+
+    values = qs.exclude(
+        pk__in=[eo_object.pk for eo_object in exclude or ()]
+    ).aggregate(
+        begin_time=Min("begin_time"), end_time=Max("end_time"), footprint=Union("footprint")
     )
-    value = models.IntegerField()
+
+    begin_time, end_time, footprint = values["begin_time"], values["end_time"], values["footprint"]
+
+    for eo_object in insert or ():
+        if begin_time is None:
+            begin_time = eo_object.begin_time
+        elif eo_object.begin_time is not None:
+            begin_time = min(begin_time, eo_object.begin_time)
+
+        if end_time is None:
+            end_time = eo_object.end_time
+        elif eo_object.end_time is not None:
+            end_time = max(end_time, eo_object.end_time)
+
+        if footprint is None:
+            footprint = eo_object.footprint
+        elif eo_object.footprint is not None:
+            footprint = footprint.union(eo_object.footprint)
+
+    if not isinstance(footprint, MultiPolygon) and footprint is not None:
+        footprint = MultiPolygon(footprint)
+
+    return begin_time, end_time, footprint
+
+
+#===============================================================================
+# Metadata classes
+#===============================================================================
+
+class Projection(models.Model):
+    name = models.CharField(max_length=64, unique=True)
+    format = models.CharField(max_length=16)
+
+    definition = models.TextField()
+
+    @property
+    def spatial_reference(self):
+        from osgeo import osr
+        sr = osr.SpatialReference()
+
+        # TODO: parse definition
+        
+        return sr
 
     def __unicode__(self):
-        return self.reason+" "+str(self.value)
+        return self.name
+
+
+class Extent(models.Model):
+    min_x = models.FloatField()
+    min_y = models.FloatField()
+    max_x = models.FloatField()
+    max_y = models.FloatField()
+    srid = models.PositiveIntegerField(blank=True, null=True)
+    projection = models.ForeignKey(Projection, blank=True, null=True)
+
+    @property
+    def spatial_reference(self):
+        if self.srid is not None:
+            from osgeo import osr
+            sr = osr.SpatialReference()
+            sr.ImportFromEPSG(self.srid)
+
+        else:
+            return self.projection.get_spatial_reference()
+    
+    @property
+    def extent(self):
+        """ Returns the extent as a 4-tuple. """
+        return self.min_x, self.min_y, self.max_x, self.max_y
+
+    def clean(self):
+        # make sure that neither both nor none of SRID or projections is set
+        if self.projection is None and self.srid is None:
+            raise ValidationError("No projection or spatial reference given.")
+        elif self.projection is not None and self.srid is not None:
+            raise ValidationError(
+                "Projection and spatial reference are mutually exclusive."
+            )
+
+    class Meta:
+        abstract = True
+
+
+class EOMetadata(models.Model):
+    begin_time = models.DateTimeField(null=True, blank=True)
+    end_time = models.DateTimeField(null=True, blank=True)
+    footprint = models.MultiPolygonField(null=True, blank=True)
+    
+    objects = models.GeoManager()
+
+    @property
+    def extent_wgs84(self):
+        if self.footprint is None: return None
+        return self.footprint.extent
+
+    @property
+    def time_extent(self):
+        return self.begin_time, self.end_time
+
+    class Meta:
+        abstract = True
+
+
+class AdditionalEOMetadata(backends.DataItem):
+    #semantic = models.CharField(max_length=32, null=True, blank=True)
+    #coverage = models.ForeignKey("Coverage", related_name="additional_eo_metadata_set")
+    pass
+
+
+class DataSource(backends.Dataset):
+    pattern = models.CharField(max_length=32, null=False, blank=False)
+    collection = models.ForeignKey("Collection")
+
+
+#===============================================================================
+# Base class EOObject
+#===============================================================================
+
+# TODO: encapsulate "casting" mechanism
+
+class EOObject(base.Castable, EOMetadata):
+    identifier = models.CharField(max_length=32, unique=True, null=False, blank=False)
+
+    objects = models.GeoManager()
+
+    def __init__(self, *args, **kwargs):
+        super(EOObject, self).__init__(*args, **kwargs)
+        self._original_begin_time = self.begin_time
+        self._original_end_time = self.end_time
+        self._original_footprint = self.footprint
+
+    def save(self, *args, **kwargs):
+        super(EOObject, self).save(*args, **kwargs)
+
+        # propagate changes of the EO Metadata up in the collection hierarchy
+        if (self._original_begin_time != self.begin_time
+            or self._original_end_time != self.end_time
+            or self._original_footprint != self.footprint):
+
+            for collection in self.collections.all():
+                collection.update_eo_metadata()
+
+        # set the new values for subsequent calls to `save()`
+        self._original_begin_time = self.begin_time
+        self._original_end_time = self.end_time
+        self._original_footprint = self.footprint
+
+
+
+    def __unicode__(self):
+        return "%s (%s)" % (self.identifier, self.real_type._meta.verbose_name)
+
+
+    class Meta:
+        verbose_name = "EO Object"
+        verbose_name_plural = "EO Objects"
+
+
+
+#===============================================================================
+# RangeType structure
+#===============================================================================
+
+class RangeType(models.Model):
+    name = models.CharField(max_length=32, null=False, blank=False)
+    data_type = models.PositiveIntegerField() # TODO: move data type to band?
+
+
+    def __unicode__(self):
+        return "%s (%s)" % (self.name, self.data_type)
+
+
+    class Meta:
+        verbose_name = "Range Type"
+
+
+class Band(models.Model):
+    index = models.PositiveSmallIntegerField()
+    name = models.CharField(max_length=32, null=False, blank=False)
+    identifier = models.CharField(max_length=32, null=False, blank=False)
+    description = models.CharField(max_length=32, null=True, blank=True)
+    definition = models.CharField(max_length=32, null=True, blank=True)
+    uom = models.CharField(max_length=32, null=False, blank=False)
+    color_interpretation = models.PositiveIntegerField(null=True, blank=True)
+    
+    range_type = models.ForeignKey(RangeType, related_name="bands")
+
+
+    def __unicode__(self):
+        return self.name
+
+
+    class Meta:
+        ordering = ('index',)
+        unique_together = (('index', 'range_type'), ('identifier', 'range_type'))
+
+
+class NilValue(models.Model):
+    value = models.BigIntegerField() # TODO: what about float/complex values?
+    reason = models.CharField(max_length=32, null=False, blank=False)
+    
+    band = models.ForeignKey(Band, related_name="nil_values")
+
+
+    def __unicode__(self):
+        return "%s (%s)" % (self.reason, self.value)
 
     class Meta:
         verbose_name = "Nil Value"
 
-class BandRecord(models.Model):
-    name = models.CharField(max_length=256)
-    identifier = models.CharField(max_length=256)
-    description = models.TextField()
-    definition = models.CharField(max_length=256)
-    uom = models.CharField("UOM", max_length=16)
-    nil_values = models.ManyToManyField(NilValueRecord, null=True, blank=True, verbose_name="Nil Value")
-    gdal_interpretation = models.IntegerField("GDAL Interpretation", default=gdal.GCI_Undefined,
-        choices=gdal.GCI_TO_NAME.items()
-    )
 
-    def __unicode__(self):
-        return self.name
-
-    class Meta:
-        verbose_name = "Band"
+#===============================================================================
+# Base classes for Coverages and Collections
+#===============================================================================
 
 
-class RangeTypeRecord(models.Model):
-    name = models.CharField(max_length=256)
-    data_type = models.IntegerField(choices=gdal.GDT_TO_NAME.items())
-    bands = models.ManyToManyField(BandRecord, through="RangeType2Band")
-
-    def __unicode__(self):
-        return self.name
-
-    class Meta:
-        verbose_name = "Range Type"
+class Coverage(EOObject, Extent, backends.Dataset):
+    """ Common base class for all coverage types.
+    """
+    size_x = models.FloatField()
+    size_y = models.FloatField()
     
-class RangeType2Band(models.Model):
-    band = models.ForeignKey(BandRecord)
-    range_type = models.ForeignKey(RangeTypeRecord)
-    no = models.PositiveIntegerField()
+    range_type = models.ForeignKey(RangeType, blank=True, null=True, on_delete=models.SET_NULL)
 
-    class Meta:
-        verbose_name = "Band in Range type"
-
-class ExtentRecord(models.Model):
-    srid = models.IntegerField("SRID")
-    size_x = models.IntegerField()
-    size_y = models.IntegerField()
-    minx = models.FloatField()
-    miny = models.FloatField()
-    maxx = models.FloatField()
-    maxy = models.FloatField()
-
-    def __unicode__(self):
-        return "Extent (SRID=%d; %f, %f, %f, %f; Size: %d x %d)" % (
-            self.srid, self.minx, self.miny, self.maxx, self.maxy, self.size_x, self.size_y
-        )
+    objects = models.GeoManager()
     
-    class Meta:
-        verbose_name = "Extent"
 
-class LayerMetadataRecord(models.Model):
-    key = models.CharField(max_length=256)
-    value = models.TextField()
+class Collection(EOObject):
+    eo_objects = models.ManyToManyField(EOObject, through="EOObjectToCollectionThrough", related_name="collections")
 
-    def __unicode__(self):
-        return self.key
-
-    class Meta:
-        verbose_name = "Layer Metadata"
-        verbose_name_plural = "Layer Metadata"
-
-class LineageRecord(models.Model):
-
-    class Meta:
-        verbose_name = "Lineage Entry"
-        verbose_name_plural = "Lineage Entries"
-
-class EOMetadataRecord(models.Model):
-    timestamp_begin = models.DateTimeField("Begin of acquisition")
-    timestamp_end = models.DateTimeField("End of acquisition")
-    footprint = models.MultiPolygonField(srid=4326)
-    eo_gml = models.TextField("EO O&M", blank=True, validators=[validateEOOM]) # validate against schema
     objects = models.GeoManager()
 
-    class Meta:
-        verbose_name = "EO Metadata Entry"
-        verbose_name_plural = "EO Metadata Entries"
+    def insert(self, eo_object, through=None):
+        # TODO: a collection shall not contain itself!
+        if self.pk == eo_object.pk:
+            raise ValidationError("A collection cannot contain itself.")
 
-    def __unicode__(self):
-        return ("BeginTime: %s" % self.timestamp_begin)
-    
-    
+        if through is None:
+            # was not invoked by the through model, so create it first. 
+            # insert will be invoked again in the `through.save()` method.
+            logger.debug("Creating relation model for %s and %s." % (self, eo_object))
+            through = EOObjectToCollectionThrough(eo_object=eo_object, collection=self)
+            through.full_clean()
+            through.save()
+            return
+
+        logger.debug("Inserting %s into %s." % (eo_object, self))
+
+        # cast self to actual collection type
+        self.cast()._insert(eo_object, through)
+
+
+    def _insert(self, eo_object, through=None):
+        """Interface method for collection insertions. If the insertion is not 
+        possible, raise an exception.
+        EO metadata collection needs to be done here as-well!
+        """
+
+        raise ValidationError("Collection %s cannot insert %s" % (str(self), str(eo_object)))
+
+
+    def remove(self, eo_object, through=None):
+        if through is None:
+            EOObjectToCollectionThrough.objects.get(eo_object=eo_object, collection=self).delete()
+            return
+
+        logger.debug("Removing %s from %s." % (eo_object, self))
+        
+        # call actual remove method on actual collection type
+        self.cast()._remove(eo_object)
+
+
+    def _remove(self, eo_object):
+        """ Interface method for collection removals. Update of EO-metadata needs
+        to be performed here. Abortion of removal is not possible (atm).
+        """
+        raise NotImplementedError
+
+
+    def update_eo_metadata(self):
+        logger.debug("Updating EO Metadata for %s." % self)
+        self.begin_time, self.end_time, self.footprint = collect_eo_metadata(self.eo_objects.all())
+        self.full_clean()
+        self.save()
+
+    # containment methods
+
+    def contains(self, eo_object, recursive=False):
+        """ Check if an EO object is contained in a collection or subcollection,
+        if `recursive` is set to `True`.
+        """
+
+        if not isinstance(eo_object, EOObject):
+            raise ValueError("Expected EOObject.")
+
+        if self.eo_objects.filter(pk=eo_object.pk).exists():
+            return True
+
+        if recursive:
+            for collection in self.eo_objects.filter(collection__isnull=False):
+                collection = collection.cast()
+                if collection.contains(eo_object, recursive):
+                    return True
+
+        return False
+
+
+    def __contains__(self, eo_object):
+        """ Shorthand for non-recursive `contains()` method. """
+        return self.contains(eo_object)
+
+    def __iter__(self):
+        return iter(self.eo_objects.all())
+
+    def iter_cast(self, recursive=False):
+        for eo_object in self.eo_objects.all():
+            eo_object = eo_object.cast()
+            yield eo_object
+            if recursive and iscollection(eo_object):
+                for item in eo_object.iter_cast(recursive):
+                    yield item
+
+    def __len__(self):
+        return self.eo_objects.count()
+
+
+class EOObjectToCollectionThrough(models.Model):
+    """Relation of objects to collections. 
+    Warning: do *not* use bulk methods of query sets of this collection, as it 
+    will not invoke the correct `insert` and `remove` methods on the collection.
+    """
+
+    eo_object = models.ForeignKey(EOObject)
+    collection = models.ForeignKey(Collection, related_name="coverages_set")
+
+    objects = models.GeoManager()
+
+
+    def __init__(self, *args, **kwargs):
+        super(EOObjectToCollectionThrough, self).__init__(*args, **kwargs)
+        try:
+            self._original_eo_object = self.eo_object
+        except: 
+            self._original_eo_object = None
+
+        try:
+            self._original_collection = self.collection
+        except:
+            self._original_collection = None
+
+
     def save(self, *args, **kwargs):
-        from eoxserver.core.util.timetools import UTCOffsetTimeZoneInfo
-        if self.timestamp_begin.tzinfo is None:
-            dt = self.timestamp_begin.replace(tzinfo=UTCOffsetTimeZoneInfo())
-            self.timestamp_begin = dt.astimezone(UTCOffsetTimeZoneInfo())
-            
-        if self.timestamp_end.tzinfo is None:
-            dt = self.timestamp_end.replace(tzinfo=UTCOffsetTimeZoneInfo())
-            self.timestamp_end = dt.astimezone(UTCOffsetTimeZoneInfo())
-        models.Model.save(self, *args, **kwargs)
-    
-    def clean(self):
-        pass
+        if (self._original_eo_object is not None 
+            and self._original_collection is not None
+            and (self._original_eo_object != self.eo_object
+                 or self._original_collection != self.collection)):
+            logger.debug("Relation has been altered!")
+            self._original_collection.remove(self._original_eo_object, self)
 
-class DataSource(models.Model): # Maybe make two sub models for local and remote storages.
-    """
-    
-    """
-    location = models.ForeignKey(Location, related_name="data_sources")
-    search_pattern = models.CharField(max_length=1024, null=True)
-    
-    class Meta:
-        unique_together = ('location', 'search_pattern')
-        
-    def __unicode__(self):
-        return "%s: %s" % (str(self.location), self.search_pattern)
+        def getter(eo_object):
+            return eo_object.collections.all()
 
-class DataPackage(models.Model):
-    data_package_type = models.CharField(max_length=32, editable=False)
-    metadata_format_name = models.CharField(max_length=128, null=True, blank=True)
-    
-    def __unicode__(self):
-        if self.data_package_type == "local":
-            return "Local Data Package: %s / %s" % (
-                self.localdatapackage.data_location,
-                self.localdatapackage.metadata_location,
-            )
-            
-        elif self.data_package_type == "remote":
-            return "Remote Data Package: %s / %s" % (
-                self.remotedatapackage.data_location,
-                self.remotedatapackage.metadata_location,
-            )
-        elif self.data_package_type == "rasdaman":
-            return "Rasdaman Data Package: %s / %s" % (
-                self.rasdamandatapackage.data_location,
-                self.rasdamandatapackage.metadata_location,
-            )
-        else:
-            return "Unknown location type"
+        if detect_circular_reference(self.eo_object, self.collection, getter):
+            raise ValidationError("Circular reference detected.")
 
-    
-class LocalDataPackage(DataPackage):
-    DATA_PACKAGE_TYPE = "local"
-    
-    data_location = models.ForeignKey(LocalPath, related_name="data_file_packages")
-    metadata_location = models.ForeignKey(LocalPath, related_name="metadata_file_packages", null=True)
-    source_format = models.CharField( max_length=64, null=False, blank=False, validators = [ MIMETypeValidator ] ) 
+        super(EOObjectToCollectionThrough, self).save(*args, **kwargs)
 
-class RemoteDataPackage(DataPackage):
-    DATA_PACKAGE_TYPE = "remote"
-    
-    data_location = models.ForeignKey(RemotePath, related_name="data_file_packages")
-    metadata_location = models.ForeignKey(RemotePath, related_name="metadata_file_packages", null=True)
-    source_format = models.CharField( max_length=64, null=False, blank=False, validators = [ MIMETypeValidator ] ) 
+        # perform the insertion
+        # TODO: this is a bit buggy, as the insertion cannot be aborted this way
+        # but if the insertion is *before* the save, then EO metadata collecting
+        # still handles previously removed ones.
+        self.collection.insert(self.eo_object, self)
 
-    cache_file = models.ForeignKey(CacheFile, related_name="remote_data_packages", null=True)
-    
-    def delete(self):
-        cache_file = self.cache_file
-        super(RemoteDataPackage, self).delete()
-        cache_file.delete()
+        self._original_eo_object = self.eo_object
+        self._original_collection = self.collection
 
-class RasdamanDataPackage(DataPackage):
-    DATA_PACKAGE_TYPE = "rasdaman"
-    
-    data_location = models.ForeignKey(RasdamanLocation, related_name="data_packages")
-    metadata_location = models.ForeignKey(LocalPath, related_name="rasdaman_metadata_file_packages", null=True)
 
-class TileIndex(models.Model):
-    storage_dir = models.CharField(max_length=1024)
-    
-    class Meta:
-        verbose_name = "Tile Index"
-        verbose_name_plural = "Tile Indices"
+    def delete(self, *args, **kwargs):
+        # TODO: pre-remove method? (maybe to cancel remove?)
+        logger.debug("Deleting relation model between for %s and %s." % (self.collection, self.eo_object))
+        result =  super(EOObjectToCollectionThrough, self).delete(*args, **kwargs)
+        self.collection.remove(self.eo_object, self)
+        return result
 
-class ReservedCoverageIdRecord(models.Model):
-    until = models.DateTimeField()
-    request_id = models.CharField(max_length=256, null=True)
-    coverage_id = models.CharField("Coverage ID", max_length=256, unique=True, validators=[NCNameValidator])
-
-class CoverageRecord(Resource):
-    coverage_id = models.CharField("Coverage ID", max_length=256, unique=True, validators=[NCNameValidator])
-
-    range_type = models.ForeignKey(RangeTypeRecord, on_delete=models.PROTECT)
-    layer_metadata = models.ManyToManyField(LayerMetadataRecord, null=True, blank=True)
-    automatic = models.BooleanField(default=False) # True means that the dataset was automatically generated from a dataset series's data dir
-    data_source = models.ForeignKey(DataSource, related_name="%(class)s_set", null=True, blank=True, on_delete=models.SET_NULL) # Has to be set if automatic is true.
-
-    def clean(self):
-        super(CoverageRecord, self).clean()
-        if self.automatic and self.data_source is None:
-            raise ValidationError('DataSource has to be set if automatic is true.')
-    
-    def __unicode__(self):
-        return self.coverage_id
-
-class PlainCoverageRecord(CoverageRecord):
-    extent = models.ForeignKey(ExtentRecord, related_name = "single_file_coverages")
-    data_package = models.ForeignKey(DataPackage, related_name="plain_coverages")
 
     class Meta:
-        verbose_name = "Single File Coverage"
-        verbose_name_plural = "Single File Coverages"
-        
-    def delete(self):
-        extent = self.extent
-        super(PlainCoverageRecord, self).delete()
-        extent.delete()
+        unique_together = (("eo_object", "collection"),)
+        verbose_name = "EO Object to Collection Relation"
+        verbose_name_plural = "EO Object to Collection Relations"
 
-class EOCoverageMixIn(models.Model):
-    eo_id = models.CharField("EO ID", max_length=256, unique=True, validators=[NCNameValidator])
-    eo_metadata = models.OneToOneField(EOMetadataRecord,
-                                       related_name="%(class)s_set",
-                                       verbose_name="EO Metadata Entry")
-    lineage = models.OneToOneField(LineageRecord, related_name="%(class)s_set")
+
+#===============================================================================
+# Actual Coverage and Collections
+#===============================================================================
+
+
+class RectifiedDataset(Coverage):
     
-    class Meta:
-        abstract = True
-
-    def delete(self):
-        eo_metadata = self.eo_metadata
-        lineage = self.lineage
-        super(EOCoverageMixIn, self).delete()
-        eo_metadata.delete()
-        lineage.delete()
-
-class EODatasetMixIn(EOCoverageMixIn):
-    data_package = models.ForeignKey(DataPackage, related_name="%(class)s_set")
-    visible = models.BooleanField(default=False) # True means that the dataset is visible in the GetCapabilities response
-
-    def __unicode__(self):
-        return self.eo_id
-
-    class Meta:
-        abstract=True
-    
-    def delete(self):
-        data_package = self.data_package
-        super(EODatasetMixIn, self).delete()
-        data_package.delete()
-        
-def _checkFootprint(footprint, extent):
-    """ Check footprint to match the extent. """
-    
-    #TODO: Make the rtol value configurable. 
-    # allow footprint to exceed extent by given % of smaller extent size
-    rtol = 0.005 # .5% 
-    difx = abs(extent.maxx - extent.minx)
-    dify = abs(extent.maxy - extent.miny)
-    atol = rtol * min(difx, dify) 
-    
-    try:
-        bbox = Polygon.from_bbox((extent.minx, extent.miny, extent.maxx, extent.maxy))
-        bbox.srid = int(extent.srid)
-        
-        bbox_ll = bbox.transform(footprint.srs, clone=True)
-        
-        normalized_space = Polygon.from_bbox((-180, -90, 180, 90))
-        non_normalized_space = Polygon.from_bbox((180, -90, 360, 90))
-        
-        normalized_space.srid = int(extent.srid)
-        non_normalized_space.srid = int(extent.srid)
-        
-        if not normalized_space.contains(bbox_ll):
-            # create 2 bboxes for each side of the date line
-            bbox_ll1 = bbox_ll.intersection(normalized_space)
-            bbox_ll2 = bbox_ll.intersection(non_normalized_space)
-            
-            bbox_ll2 = Polygon(LinearRing([Point(x - 360, y) for x, y in bbox_ll2.exterior_ring]), srid=bbox_ll2.srid)
-            
-            bbox_ll1.transform(extent.srid)
-            bbox_ll2.transform(extent.srid)
-            
-            e1 = bbox_ll1.extent
-            e2 = bbox_ll2.extent
-            
-            bbox = MultiPolygon(
-                Polygon.from_bbox((e1[0] - atol, e2[1] - atol, e1[2] + atol, e1[3] + atol)),
-                Polygon.from_bbox((e2[0] - atol, e2[1] - atol, e2[2] + atol, e2[3] + atol)),
-                srid=extent.srid
-            )
-        else:
-            # just use the tolerance for a slightly larger bbox
-            bbox = Polygon.from_bbox((extent.minx - atol, extent.miny - atol,
-                                      extent.maxx + atol, extent.maxy + atol))
-            bbox.srid = int(extent.srid)
-        
-        if footprint.srid != bbox.srid:
-            footprint_bboxsrs = footprint.transform(bbox.srs, clone=True)
-        else:
-            footprint_bboxsrs = footprint
-        
-        logger.debug("Extent: %s" % bbox.wkt)
-        logger.debug("Footprint: %s" % footprint_bboxsrs.wkt)
-        
-        if not bbox.contains(footprint_bboxsrs):
-            raise ValidationError("The datasets's extent does not surround its"
-                " footprint. Extent: '%s' Footprint: '%s'."
-                % (bbox.wkt, footprint_bboxsrs.wkt)
-            )
-        
-    except GEOSException: 
-        pass
-
-
-class RectifiedDatasetRecord(CoverageRecord, EODatasetMixIn):
-    extent = models.ForeignKey(ExtentRecord, related_name="rect_datasets")
+    objects = models.GeoManager()
     
     class Meta:
         verbose_name = "Rectified Dataset"
         verbose_name_plural = "Rectified Datasets"
-    
-    def clean(self):
-        super(RectifiedDatasetRecord, self).clean()
-        
-        # TODO: this does not work in the admins changelist.save method
-        # A wrong WKB is inside the eo_metadata.footprint entry
-        _checkFootprint( self.eo_metadata.footprint , self.extent ) 
-        
-        validateCoverageIDnotInEOOM(self.coverage_id, self.eo_metadata.eo_gml)
-    
-    def delete(self):
-        extent = self.extent
-        super(RectifiedDatasetRecord, self).delete()
-        extent.delete()
 
-class ReferenceableDatasetRecord(CoverageRecord, EODatasetMixIn):
-    extent = models.ForeignKey(ExtentRecord, related_name="refa_datasets")
+
+class ReferenceableDataset(Coverage):
+    
+    objects = models.GeoManager()
     
     class Meta:
         verbose_name = "Referenceable Dataset"
         verbose_name_plural = "Referenceable Datasets"
-        
-    def clean(self):
-        super(ReferenceableDatasetRecord, self).clean()
-        
-        # TODO: taken from Rectified DS, check if applicable to Referenceable DS too
-        # TODO: this does not work in the admins changelist.save method
-        # A wrong WKB is inside the eo_metadata.footprint entry
-        _checkFootprint( self.eo_metadata.footprint , self.extent ) 
 
-        validateCoverageIDnotInEOOM(self.coverage_id, self.eo_metadata.eo_gml)
 
-    def delete(self):
-        extent = self.extent
-        super(EOCoverageMixIn, self).delete()
-        extent.delete()
-
-class RectifiedStitchedMosaicRecord(CoverageRecord, EOCoverageMixIn):
-    extent = models.ForeignKey(ExtentRecord, related_name="rect_stitched_mosaics")
-    data_sources = models.ManyToManyField(DataSource,
-                                          null=True, blank=True,
-                                          related_name="rect_stitched_mosaics")
-    tile_index = models.ForeignKey(TileIndex, related_name="rect_stitched_mosaics")
-    rect_datasets = models.ManyToManyField(RectifiedDatasetRecord,
-                                           null=True, blank=True,
-                                           related_name="rect_stitched_mosaics",
-                                           verbose_name="Rectified Dataset(s)")
-
-    def __unicode__(self):
-        return self.eo_id
-
+class RectifiedStitchedMosaic(Coverage, Collection):
+    
+    objects = models.GeoManager()
+    
     class Meta:
-        verbose_name = "Stitched Mosaic"
-        verbose_name_plural = "Stitched Mosaics"
-        
-    def clean(self):
-        super(RectifiedStitchedMosaicRecord, self).clean()
-        
-        footprint = self.eo_metadata.footprint
-        bbox = Polygon.from_bbox((self.extent.minx, self.extent.miny, 
-                                 self.extent.maxx, self.extent.maxy))
-        bbox.set_srid(int(self.extent.srid))
-        
-        if footprint.srid != bbox.srid:
-            footprint.transform(bbox.srs)
-        
-        if not bbox.contains(footprint):
+        verbose_name = "Rectified Stitched Mosaic"
+        verbose_name_plural = "Rectified Stitched Mosaics"
+
+    def _insert(self, eo_object, through=None):
+        if eo_object.real_type != RectifiedDataset:
+            raise ValidationError("In a %s only %s can be inserted." % (
+                RectifiedStitchedMosaic._meta.verbose_name,
+                RectifiedDataset._meta.verbose_name_plural
+            ))
+
+        # TODO: check that the rectified dataset is on the same "grid" as the 
+        # rectified stitched mosaic
+
+        rectified_dataset = eo_object.cast()
+        if self.srid != rectified_dataset.srid:
             raise ValidationError(
-                "Extent does not surround footprint. Extent: '%s' Footprint: " 
-                "'%s'" % (str(bbox), str(footprint))
+                "Dataset '%s' has not the same Grid as the Rectified Stitched "
+                "Mosaic '%s'." % (rectified_dataset, self.identifier)
             )
-        
-        validateCoverageIDnotInEOOM(self.coverage_id, self.eo_metadata.eo_gml)
 
-    def delete(self):
-        tile_index = self.tile_index
-        # TODO maybe delete only automatic datasets?
-        for dataset in self.rect_datasets.all():
-            dataset.delete()
-        super(RectifiedStitchedMosaicRecord, self).delete()
-        tile_index.delete()
-    
-class DatasetSeriesRecord(Resource):
-    eo_id = models.CharField("EO ID", max_length=256, unique=True, validators=[NCNameValidator])
-    eo_metadata = models.OneToOneField(EOMetadataRecord,
-                                       related_name="dataset_series_set",
-                                       verbose_name="EO Metadata Entry")
-    data_sources = models.ManyToManyField(DataSource,
-                                          null=True, blank=True,
-                                          related_name="dataset_series_set")
-    rect_stitched_mosaics = models.ManyToManyField(RectifiedStitchedMosaicRecord,
-                                                   blank=True, null=True,
-                                                   related_name="dataset_series_set",
-                                                   verbose_name="Stitched Mosaic(s)")
-    rect_datasets = models.ManyToManyField(RectifiedDatasetRecord,
-                                           blank=True, null=True,
-                                           related_name="dataset_series_set",
-                                           verbose_name="Rectified Dataset(s)")
-    ref_datasets = models.ManyToManyField(ReferenceableDatasetRecord,
-                                          blank=True, null=True,
-                                          related_name="dataset_series_set",
-                                          verbose_name="Referenceable Dataset(s)")
-    
-    layer_metadata = models.ManyToManyField(LayerMetadataRecord, null=True, blank=True)
+        self.begin_time, self.end_time, self.footprint = collect_eo_metadata(self.eo_objects.all(), insert=[eo_object])
+        self.full_clean()
+        self.save()
+        return
 
-    def __unicode__(self):
-        return self.eo_id
+    def _remove(self, eo_object):
+        self.begin_time, self.end_time, self.footprint = collect_eo_metadata(self.eo_objects.all(), exclude=[eo_object])
+        self.full_clean()
+        self.save()
+        return
+
+
+class DatasetSeries(Collection):
+    
+    objects = models.GeoManager()
 
     class Meta:
         verbose_name = "Dataset Series"
         verbose_name_plural = "Dataset Series"
 
-    def delete(self):
-        eo_metadata = self.eo_metadata
-        for dataset in self.rect_datasets.filter(automatic=True):
-            if dataset.dataset_series_set.count() == 1 and \
-               dataset.rect_stitched_mosaics.count() == 0:
-                dataset.delete()
-        for dataset in self.ref_datasets.filter(automatic=True):
-            if dataset.dataset_series_set.count() == 1:
-                dataset.delete()
-        super(DatasetSeriesRecord, self).delete()
-        eo_metadata.delete()
+
+    def _insert(self, eo_object, through=None):
+        self.begin_time, self.end_time, self.footprint = collect_eo_metadata(self.eo_objects.all(), insert=[eo_object])
+        self.full_clean()
+        self.save()
+        return
+
+    def _remove(self, eo_object):
+        self.begin_time, self.end_time, self.footprint = collect_eo_metadata(self.eo_objects.all(), exclude=[eo_object])
+        self.full_clean()
+        self.save()
+        return
