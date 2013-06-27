@@ -31,9 +31,43 @@
 This module defines interfaces for the Data Access Layer.
 """
 
-from eoxserver.core.interfaces import *
-from eoxserver.core.registry import RegisteredInterface
-from eoxserver.core.records import RecordWrapperInterface
+#from eoxserver.core.interfaces import *
+#from eoxserver.core.registry import RegisteredInterface
+#from eoxserver.core.records import RecordWrapperInterface
+
+
+
+class DataReaderInterface(object):
+
+    @property
+    def name(self):
+        "Name of the data reader implementation."
+
+    def get_supported_formats(self):
+        "Shall return a list of all supported formats."
+
+
+class MetadataReaderInterface(object):
+
+    pass
+
+class StorageInterface(object):
+
+    @property
+    def name(self):
+        "Name of the storage implementation."
+
+
+class PackageInterface(object):
+
+    @property
+    def name(self):
+        "Name of the package implementation."
+
+
+
+
+'''
 
 class StorageInterface(RegisteredInterface):
     """
@@ -343,3 +377,4 @@ class DatabaseLocationInterface(LocationInterface):
     getPassword = Method(
         returns = StringArg("@return")
     )
+'''

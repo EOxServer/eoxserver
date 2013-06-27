@@ -30,7 +30,9 @@
 
 from django import forms
 from django.contrib import admin
-import models
+
+from eoxserver.backends.component import BackendComponent, env
+from eoxserver.backends import models
 
 
 #===============================================================================
@@ -39,41 +41,18 @@ import models
 
 
 def get_format_choices():
-    return (
-        #("array", "array"),
-        ("GDAL", get_gdal_format_choices()),
-        ("Metadata", (("EO-GML", "EO-GML"),))
-    )
-
-
-def get_gdal_format_choices():
-    from osgeo import gdal
-
-    choices = []
-    for i in range(gdal.GetDriverCount()):
-        driver = gdal.GetDriver(i)
-        name = "GDAL/%s" % driver.ShortName
-        choices.append((name, name))
-
-    return choices
+    backend_component = BackendComponent(env)
+    return map(lambda r: (r.name, r.get_supported_formats()), backend_component.data_readers)
 
 
 def get_package_format_choices():
-    return (
-        ("ZIP", "ZIP"),
-        ("TAR", "TAR"),
-        ("SAFE", "SAFE"),
-        ("netCDF", "netCDF"),
-        ("HDF", "HDF")
-    )
+    backend_component = BackendComponent(env)
+    return map(lambda p: (p.name, p.name), backend_component.packages)
+
 
 def get_storage_type_choices():
-    return (
-        ("local", "local"),
-        ("ftp", "ftp"),
-        ("rasdaman", "rasdaman"),
-        ("WCS", "WCS")
-    )
+    backend_component = BackendComponent(env)
+    return map(lambda p: (p.name, p.name), backend_component.storages)
 
 
 #===============================================================================
