@@ -40,13 +40,22 @@ def get_real_content_type(obj):
 
 
 class Castable(models.Model):
+    """ Model mix-in for 'castable' types. With this MixIn, type information and 
+    completed models can be retrieved.
+    """
+
     real_content_type = models.ForeignKey(ContentType, editable=False)
 
     @property
     def real_type(self):
+        # if not saved, use the actual type
         if not self.id:
             return type(self)
-        return self.real_content_type.model_class()
+
+        # this command uses the cached access of the contenttypes framework
+        real_content_type = ContentType.objects.get_for_id(self.real_content_type_id)
+        return real_content_type.model_class()
+
     
     def save(self, *args, **kwargs):
         # save a reference to the actual content type
@@ -56,14 +65,15 @@ class Castable(models.Model):
         return super(Castable, self).save(*args, **kwargs)
 
 
-    def cast(self):
-        """'cast' the model to its actual type, if it is not already. This 
-        invokes a database lookup.
+    def cast(self, refresh=False):
+        """'Cast' the model to its actual type, if it is not already. This 
+        invokes a database lookup if the real type is not the same as the type 
+        of the current model.
         """
 
         # don't perform a cast if not necessary
         real_type = self.real_type
-        if real_type == type(self):
+        if real_type == type(self) and not refresh:
             return self
 
         # otherwise get the correctly typed model
