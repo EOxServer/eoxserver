@@ -1,6 +1,5 @@
 #!/usr/bin/python
 #-------------------------------------------------------------------------------
-# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>

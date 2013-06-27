@@ -1,5 +1,4 @@
 #-------------------------------------------------------------------------------
-# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Meissl <stephan.meissl@eox.at>
