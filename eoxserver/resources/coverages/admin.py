@@ -131,22 +131,13 @@ class AbstractInline(admin.TabularInline):
 # Inline admins
 #===============================================================================
 
-
-class RangeTypeInline(AbstractInline):
-    model = models.RangeType
-    
-
-class BandInline(AbstractInline):
-    model = models.Band
-
-
 class NilValueInline(AbstractInline):
     model = models.NilValue
 
 
-#class AdditionalEOMetadataInline(AbstractInline):
-#    model = models.AdditionalEOMetadata
-#    fk_name = "coverage"
+class BandInline(AbstractInline):
+    model = models.Band
+    inlines = (NilValueInline,) # TODO: not working!
 
 
 class CollectionInline(AbstractInline):
@@ -207,6 +198,12 @@ class RangeTypeAdmin(admin.ModelAdmin):
     inlines = (BandInline,) 
 
 admin.site.register(models.RangeType, RangeTypeAdmin)
+
+class BandAdmin(admin.ModelAdmin):
+    model = models.Band
+    inlines = (NilValueInline,)
+
+admin.site.register(models.Band, BandAdmin)
 
 
 class RectifiedDatasetAdmin(CoverageAdmin):

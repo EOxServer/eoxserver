@@ -234,7 +234,7 @@ class EOObject(base.Castable, EOMetadata):
 #===============================================================================
 
 class RangeType(models.Model):
-    name = models.CharField(max_length=32, null=False, blank=False)
+    name = models.CharField(max_length=32, null=False, blank=False, unique=True)
     data_type = models.PositiveIntegerField() # TODO: move data type to band?
 
 
@@ -319,10 +319,10 @@ class Collection(EOObject):
         logger.debug("Inserting %s into %s." % (eo_object, self))
 
         # cast self to actual collection type
-        self.cast()._insert(eo_object, through)
+        self.cast().perform_insertion(eo_object, through)
 
 
-    def _insert(self, eo_object, through=None):
+    def perform_insertion(self, eo_object, through=None):
         """Interface method for collection insertions. If the insertion is not 
         possible, raise an exception.
         EO metadata collection needs to be done here as-well!
@@ -339,10 +339,10 @@ class Collection(EOObject):
         logger.debug("Removing %s from %s." % (eo_object, self))
         
         # call actual remove method on actual collection type
-        self.cast()._remove(eo_object)
+        self.cast().perform_removal(eo_object)
 
 
-    def _remove(self, eo_object):
+    def perform_removal(self, eo_object):
         """ Interface method for collection removals. Update of EO-metadata needs
         to be performed here. Abortion of removal is not possible (atm).
         """
@@ -435,13 +435,13 @@ class EOObjectToCollectionThrough(models.Model):
         if detect_circular_reference(self.eo_object, self.collection, getter):
             raise ValidationError("Circular reference detected.")
 
-        super(EOObjectToCollectionThrough, self).save(*args, **kwargs)
-
         # perform the insertion
         # TODO: this is a bit buggy, as the insertion cannot be aborted this way
         # but if the insertion is *before* the save, then EO metadata collecting
         # still handles previously removed ones.
         self.collection.insert(self.eo_object, self)
+
+        super(EOObjectToCollectionThrough, self).save(*args, **kwargs)
 
         self._original_eo_object = self.eo_object
         self._original_collection = self.collection
@@ -492,7 +492,7 @@ class RectifiedStitchedMosaic(Coverage, Collection):
         verbose_name = "Rectified Stitched Mosaic"
         verbose_name_plural = "Rectified Stitched Mosaics"
 
-    def _insert(self, eo_object, through=None):
+    def perform_insertion(self, eo_object, through=None):
         if eo_object.real_type != RectifiedDataset:
             raise ValidationError("In a %s only %s can be inserted." % (
                 RectifiedStitchedMosaic._meta.verbose_name,
@@ -514,7 +514,7 @@ class RectifiedStitchedMosaic(Coverage, Collection):
         self.save()
         return
 
-    def _remove(self, eo_object):
+    def perform_removal(self, eo_object):
         self.begin_time, self.end_time, self.footprint = collect_eo_metadata(self.eo_objects.all(), exclude=[eo_object])
         self.full_clean()
         self.save()
@@ -530,13 +530,13 @@ class DatasetSeries(Collection):
         verbose_name_plural = "Dataset Series"
 
 
-    def _insert(self, eo_object, through=None):
+    def perform_insertion(self, eo_object, through=None):
         self.begin_time, self.end_time, self.footprint = collect_eo_metadata(self.eo_objects.all(), insert=[eo_object])
         self.full_clean()
         self.save()
         return
 
-    def _remove(self, eo_object):
+    def perform_removal(self, eo_object):
         self.begin_time, self.end_time, self.footprint = collect_eo_metadata(self.eo_objects.all(), exclude=[eo_object])
         self.full_clean()
         self.save()
