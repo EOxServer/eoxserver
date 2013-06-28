@@ -1,10 +1,8 @@
 # Documentation HowTo
 
-## 1a. How to generate sphinx documentation
+## Generate Sphinx documentation
 
 ### UNIX
-
-Run
 
 ```sh
 cd <path_to_docs_directory>/sphinx
@@ -13,7 +11,7 @@ export DJANGO_SETTINGS_MODULE="autotest.settings" # Use a valid EOxServer settin
 make html
 ```
 
-The documentation is generated in _build/html.
+The documentation is generated in *_build/html*.
 
 ```sh
 # For pdf output run:
@@ -22,11 +20,9 @@ cd _build/latex/
 make all-pdf
 ```
 
-The pdf documentation is generated as EOxServer.pdf
+The pdf documentation is generated as *EOxServer.pdf*.
 
 ### Windows
-
-Run
 
 ```sh
 cd <path_to_docs_directory>/sphinx
@@ -35,21 +31,17 @@ set DJANGO_SETTINGS_MODULE="autotest.settings" # Use a valid EOxServer settings 
 sphinx-build.exe -b html -d _build\doctrees -D latex_paper_size=a4 . _build/html  #Note that the "sphinx-build.exe" has to be set in your path
 ````
 
-The documentation is generated in _build/html.
+The documentation is generated in *_build/html*.
 
-## 1b. How to generate the epydoc documentation
-
-Run
+## Generate epydoc documentation
 
 ```sh
 cd <path_to_eoxserver_directory>
 export DJANGO_SETTINGS_MODULE="autotest.settings"
 epydoc --name=EOxServer --output=../docs/epydoc/ --html --docformat=javadoc --graph=all .
-````
+```
 
-## 2. How to update model graphs
-
-Run
+## 2. Update model graphs
 
 ```sh
 cd <path_to_autotest_directory>
