@@ -29,14 +29,15 @@
 
 import logging
 
-from eoxserver.core.system import System
-from eoxserver.testing.core import EOxServerTestCase, BASE_FIXTURES
+#from eoxserver.core.system import System
+#from eoxserver.testing.core import EOxServerTestCase, BASE_FIXTURES
 
 logger = logging.getLogger(__name__)
 
+BASE_FIXTURES = []
 BACKEND_FIXTURES = ["testing_coverages.json", "testing_backends.json"]
 
-class BackendTestCase(EOxServerTestCase):
+class BackendTestCase():#EOxServerTestCase):
     fixtures = BASE_FIXTURES + BACKEND_FIXTURES
 
 class LocationWrapperTestCase(BackendTestCase):

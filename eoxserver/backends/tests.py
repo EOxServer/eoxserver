@@ -31,14 +31,94 @@ import os.path
 from glob import glob
 import logging
 
-from eoxserver.backends.models import (
-    LocalPath, RemotePath, RasdamanLocation
-)
+from django.test import TestCase
 
 from eoxserver.backends import testbase
-
+from eoxserver.backends import models
+from eoxserver.backends.cache import CacheContext
+from eoxserver.backends.access import retrieve
+from eoxserver.backends.component import BackendComponent, env
 
 logger = logging.getLogger(__name__)
+
+
+""" "New" data models
+"""
+
+
+def create(Model, *args, **kwargs):
+    model = Model(*args, **kwargs)
+    model.full_clean()
+    model.save()
+    return model
+
+
+
+class RetrieveTestCase(TestCase):
+    def setUp(self):
+        pass
+
+
+    def tearDown(self):
+        pass
+
+
+    def test_retrieve_http(self):
+        storage = create(models.Storage,
+            url="http://eoxserver.org/export/2523/downloads",
+            storage_type="HTTP"
+        )
+        dataset = create(models.Dataset,
+            location="EOxServer_documentation-0.3.0.pdf",
+            storage=storage
+        )
+
+        with CacheContext() as c:
+            cache_path = retrieve(dataset, c)
+            self.assertTrue(os.path.exists(cache_path))
+
+
+    def test_retrieve_ftp_zip(self):
+        import storages, packages
+        c  = BackendComponent(env)
+        print c.storages
+
+        storage = create(models.Storage,
+            url="ftp://anonymous:@localhost:2121/",
+            storage_type="FTP"
+        )
+
+        package = create(models.Package,
+            location="package.zip",
+            format="ZIP",
+            storage=storage
+        )
+
+        dataset = create(models.Dataset,
+            location="file.txt",
+            package=package
+        )
+
+        with CacheContext() as c:
+            cache_path = retrieve(dataset, c)
+            self.assertTrue(os.path.exists(cache_path))
+            with open(cache_path) as f:
+                self.assertEqual(f.read(), "test")
+
+        self.assertFalse(os.path.exists(cache_path))
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # test local path wrapper: get() with record and check wrapper type and
 # return values
