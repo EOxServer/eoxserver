@@ -40,7 +40,8 @@ class VSIFile(object):
 
 
     def close(self):
-        VSIFCloseL(self._handle)
+        if self._handle is not None
+            VSIFCloseL(self._handle)
         self._handle = None
 
 
@@ -52,3 +53,10 @@ class VSIFile(object):
     def size(self):
         stat = VSIStatL(self.filename)
         return stat.size
+
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, etype=None, evalue=None, tb=None):
+        self.close()
