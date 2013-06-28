@@ -43,7 +43,9 @@ class BaseLocation(models.Model):
     # base type for everything that describes a locateable object
     location = models.CharField(max_length=64)
     format = models.CharField(max_length=32, null=True, blank=True)
+    
     storage = models.ForeignKey(Storage, null=True, blank=True)
+
 
     class Meta:
         abstract = True
@@ -56,11 +58,11 @@ class BaseLocation(models.Model):
 
 class Package(BaseLocation):
     # for "packaged" data, like ZIP, TAR, SAFE packages or files like netCDF/HDF
-    pass
+    package = models.ForeignKey("self", related_name="pakages", null=True, blank=True)
 
 
 class Dataset(BaseLocation):
-    package = models.ForeignKey(Package, null=True, blank=True)
+    package = models.ForeignKey(Package, related_name="datasets", null=True, blank=True)
 
 
 class DataItem(BaseLocation):
@@ -70,4 +72,5 @@ class DataItem(BaseLocation):
     # TODO: can a data item also be in a package? guess so
 
     dataset = models.ForeignKey(Dataset, related_name="data_items")
+    package = models.ForeignKey(Package, related_name="data_items", null=True, blank=True)
     semantic = models.CharField(max_length=64)
