@@ -57,12 +57,22 @@ class StorageInterface(object):
     def name(self):
         "Name of the storage implementation."
 
+    def retrieve(self, url, location, path):
+        """Retrieve a remote file from the storage specified by the given `url` 
+        and location and store it to the given `path`."""
+
 
 class PackageInterface(object):
 
     @property
     def name(self):
         "Name of the package implementation."
+
+
+    def extract(self, package_filename, location, path):
+        """Extract a file specified by the `location` from the package to the 
+        given `path` specification.
+        """
 
 
 
