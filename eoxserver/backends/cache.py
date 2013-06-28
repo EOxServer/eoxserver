@@ -27,6 +27,140 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+import os
+from os import path
+import shutil
+import tempfile
+
+
+class CacheContext(object):
+    "Context manager to manage cached files."
+    def __init__(self, retention_time=None, cache_directory=None):
+        self._cached_objects = set()
+
+        if not cache_directory:
+            cache_directory = tempfile.mkdtemp(prefix="eoxs_cache")
+            self._temporary_dir = True
+        else:
+            self._temporary_dir = False
+
+        self._cache_directory = cache_directory
+        self._retention_time = retention_time
+        self._level = 0
+
+
+    @property
+    def cache_directory(self):
+        "Returns the configured cache directory."
+        return self._cache_directory
+
+
+    def relative_path(self, cache_path):
+        "Returns a path relative to the cache directory."
+        return path.join(self._cache_directory, cache_path)
+
+
+    def add_path(self, cache_path):
+        """Add a path to this cache context. Also creates necessary 
+        sub-directories.
+        """
+
+        self._cached_objects.add(cache_path)
+        relative_path = self.relative_path(cache_path)
+
+        try:
+            # TODO: add all subdirectories aswell
+            os.makedirs(path.dirname(relative_path))
+        except OSError:
+            pass
+
+        return relative_path
+
+
+    def cleanup(self):
+        "Perform cache cleanup."
+        if self._retention_time and not self._temporary_dir:
+            # no cleanup required
+            return
+
+        elif not self._temporary_dir:
+            for path in self._cached_objects:
+                os.remove(path)
+            self._cached_objects.clear()
+
+        else:
+            shutil.rmtree(self._cache_directory)
+            self._cached_objects.clear()
+
+
+    def __contains__(self, cache_path):
+        "Check whether or not the path is contained in this cache."
+        if cache_path in self._cached_objects:
+            return True
+
+        return path.exists(self.relative_path(cache_path))
+
+    
+    def __enter__(self):
+        "Context manager protocol, for recursive use."
+        self._level += 1
+        return self
+
+
+    def __exit__(self, etype=None, evalue=None, tb=None):
+        "Exit of context manager protocol. Performs cache cleanup if necessary."
+        self._level -= 1
+        if self._level == 0:
+            self.cleanup()
+        
+
+"""
+
+def register_dataset(data_items, metadata_items):
+    with CacheContext() as c:
+
+        for f in chain(data_items, metadata_items):
+            
+
+            if f in c:
+                use cached
+            else:
+                retrieve
+                c.add(f)
+
+
+"""
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''
 """
 This module provides an implementation of a cache, intended primarily
 for caching content from remote backends.
@@ -409,3 +543,4 @@ class CacheConfigReader(object):
 
 CacheConfigReaderImplementation = \
 ConfigReaderInterface.implement(CacheConfigReader)
+'''
