@@ -977,7 +977,7 @@ class WMS13GetLegendGraphicHandler(WMSCommonHandler):
         super(WMS13GetLegendGraphicHandler, self).configureMapObj()
         
         self.map.setMetaData("wms_exceptions_format", "xml")
-        self.map.setMetaData("wms_enable_request", "getcapabilities getmap getfeatureinfo,getlegendgraphic")
+        self.map.setMetaData("wms_enable_request", "getcapabilities getmap getfeatureinfo getlegendgraphic")
 
     def createLayers(self):
         layer_name = self.req.getParamValue("layer")

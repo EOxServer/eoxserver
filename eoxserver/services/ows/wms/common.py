@@ -192,7 +192,7 @@ class WMSCoverageLayer(WMSLayer):
     def getMapServerLayer(self, req):
         layer = super(WMSCoverageLayer, self).getMapServerLayer(req)
         
-        layer.setMetaData("wms_enable_request", "getcapabilities,getmap")
+        layer.setMetaData("wms_enable_request", "getcapabilities getmap")
 
         for key, value in self.coverage.getLayerMetadata():
             layer.setMetaData(key, value)
