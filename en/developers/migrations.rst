@@ -60,7 +60,7 @@ What are migrations?
 Setup
 -----
 
-`South` needs to be initialized in every instance that want to make use of the 
+`South` needs to be initialized in every instance that wants to make use of the 
 migration features. 
 
 Setting up `South` is quite easy, as all you need to do is install `South` (most
@@ -76,7 +76,7 @@ setting in ``settings.py`` and run ``python manage.py syncdb``:
     )
 
 A complete guide on all installation and configuration options can be found 
-`here <http://south.readthedocs.org/en/latest/installation.html>`_.
+`here <http://south.readthedocs.org/en/latest/installation.html>`__.
 
 
 Creating Migrations
@@ -88,7 +88,8 @@ Fortunately, for most of the small changes these can be created automatically by
 using `Souths` command ``python manage.py schemamigration`` and passing the 
 app names which have changes in their models.
 
-A very good tutorial for `South` can be found `here <http://south.readthedocs.org/en/latest/tutorial/part1.html>`_.
+A very good tutorial for `South` can be found `here 
+<http://south.readthedocs.org/en/latest/tutorial/part1.html>`__.
 
 
 Performing a Migration

@@ -53,7 +53,7 @@ on the *User* side.
    basics
    core
    data_model
-   database_schema
+   migrations
    plugins
    services
    data_formats

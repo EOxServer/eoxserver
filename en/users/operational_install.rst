@@ -183,7 +183,7 @@ The sole purpose of the DBMS credentials is to access the database.
 It should be mentioned that user-name/password is not the only possible way how
 to secure the database access. The various authentication options for PosgreSQL
 are covered, e.g., `here
-<http://www.postgresql.org/docs/devel/static/auth-pg-hba-conf.html>`_.
+<http://www.postgresql.org/docs/devel/static/auth-pg-hba-conf.html>`__.
 
 Django Sysadmin   
 ~~~~~~~~~~~~~~~
@@ -481,7 +481,7 @@ processes can be adjusted the number of threads *must* be always set to 1.
 On systems such as CentOS, following option must be added to Apache
 configuration (preferably in ``/etc/httpd/conf.d/wsgi.conf``) to allow
 communication between the Apache server and WSGI daemon (the reason is explained,
-e.g., `here <http://code.google.com/p/modwsgi/wiki/ConfigurationIssues>`_)::
+e.g., `here <http://code.google.com/p/modwsgi/wiki/ConfigurationIssues>`__)::
     
    WSGISocketPrefix run/wsgi 
 
