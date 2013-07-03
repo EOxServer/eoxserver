@@ -1,4 +1,5 @@
-# autotest instance for EOxServer
+autotest instance for EOxServer
+===============================
 
 autotest instance for EOxServer used for unit and integration tests.
 
