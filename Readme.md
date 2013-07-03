@@ -41,7 +41,7 @@ export DJANGO_SETTINGS_MODULE="autotest.settings"
 epydoc --name=EOxServer --output=../docs/epydoc/ --html --docformat=javadoc --graph=all .
 ```
 
-## 2. Update model graphs
+## Update model graphs
 
 ```sh
 cd <path_to_autotest_directory>
