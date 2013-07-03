@@ -36,19 +36,11 @@ from optparse import make_option, OptionValueError
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
-from eoxserver.core.system import System
-from eoxserver.backends.local import LocalPath
-from eoxserver.backends.ftp import RemotePath
-from eoxserver.resources.coverages.models import LocalDataPackage,\
-    RemoteDataPackage
 from eoxserver.resources.coverages.exceptions import NoSuchCoverageException
 
 from django.contrib.gis.geos.geometry import GEOSGeometry
 
 #-------------------------------------------------------------------------------
-
-from eoxserver.resources.coverages.managers import CoverageIdManager
-from eoxserver.resources.coverages.managers import getDatasetSeriesManager
 
 #-------------------------------------------------------------------------------
 
