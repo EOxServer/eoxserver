@@ -28,131 +28,31 @@
 #-------------------------------------------------------------------------------
 
 import logging
+from unittest import SkipTest
 
-#from eoxserver.core.system import System
-#from eoxserver.testing.core import EOxServerTestCase, BASE_FIXTURES
+try:
+    from twisted.protocols.ftp import FTPFactory, FTPRealm
+    from twisted.cred.portal import Portal
+    from twisted.cred.checkers import AllowAnonymousAccess, FilePasswordDB
+    from twisted.internet import reactor
+    HAVE_TWISTED = True
+except ImportError:
+    HAVE_TWISTED = False
+
+
 
 logger = logging.getLogger(__name__)
 
-BASE_FIXTURES = []
-BACKEND_FIXTURES = ["testing_coverages.json", "testing_backends.json"]
+def withFTPServer(port=2121, directory=None):
+    def wrap(f):
+        def wrapped(*args, **kwargs):
+            if not HAVE_TWISTED:
+                raise SkipTest("This test requires Twisted to run.")
+            # TODO: start FTP server
+            ret = f(args, **kwargs)
+            # TODO: stop ftp server
+            return ret
+        return wrapped
+    return wrap
 
-class BackendTestCase():#EOxServerTestCase):
-    fixtures = BASE_FIXTURES + BACKEND_FIXTURES
-
-class LocationWrapperTestCase(BackendTestCase):
-    def setUp(self):
-        super(LocationWrapperTestCase,self).setUp()
-        
-        logger.info("Starting test case: %s" % self.__class__.__name__)
-        
-        self.record = self._get_record()
-        
-        self.factory = System.getRegistry().bind(
-            "backends.factories.LocationFactory"
-        )
-        
-        self.wrapper = self._get_wrapper()
-
-    def _get_record(self):
-        raise NotImplemented()
-
-    def _get_wrapper(self):
-        raise NotImplemented()
-
-class LocationWrapperCreationTestCase(LocationWrapperTestCase):
-    def testType(self):
-        self.assertEqual(self.wrapper.getType(), self._get_type())
-    
-    def testValues(self):
-        for method, value in self._get_values():
-            self.assertEqual(getattr(self.wrapper, method)(), value)
-    
-    def _get_type(self):
-        raise NotImplementedError()
-    
-    def _get_values(self):
-        raise NotImplementedError()
-
-class LocationWrapperCreateAndSaveTestCase(LocationWrapperTestCase):
-    def setUp(self):
-        super(LocationWrapperCreateAndSaveTestCase, self).setUp()
-        self.wrapper.sync()
-
-    def testType(self):
-        self.assertEqual(
-            self.wrapper.getType(), self.wrapper.getRecord().location_type
-        )
-    
-    def testValues(self):
-        raise NotImplementedError()
-
-    def _get_record(self):
-        return None
-    
-    def _get_wrapper(self):
-        return self.factory.create(type=self._get_type(), **self._get_arguments())
-    
-    def _get_type(self):
-        raise NotImplementedError()
-    
-    def _get_arguments(self):
-        raise NotImplementedError()
-    
-
-# Specialized test cases for local, remote and rasdaman locations
-
-# local
-
-class LocalPathCreationTestCase(LocationWrapperCreationTestCase):
-    def _get_type(self):
-        return "local"
-    
-    def _get_values(self):
-        return (
-            ("getPath", self.record.path),
-        )
-    
-class LocalPathCreateAndSaveTestCase(LocationWrapperCreateAndSaveTestCase):
-    def _get_type(self):
-        return "local"
-        
-# remote
-
-class RemotePathCreationTestCase(LocationWrapperCreationTestCase):
-    def _get_type(self):
-        return "ftp"
-    
-    def _get_values(self):
-        return (
-            ("getHost", self.record.storage.host),
-            ("getPort", self.record.storage.port),
-            ("getUser", self.record.storage.user),
-            ("getPassword", self.record.storage.passwd),
-            ("getPath", self.record.path)
-        )
-        
-class RemotePathCreateAndSaveTestCase(LocationWrapperCreateAndSaveTestCase):
-    def _get_type(self):
-        return "ftp"
-
-# rasdaman
-
-class RasdamanLocationCreationTestCase(LocationWrapperCreationTestCase):
-    def _get_type(self):
-        return "rasdaman"
-    
-    def _get_values(self):
-        return (
-            ("getCollection", self.record.collection),
-            ("getOID", self.record.oid),
-            ("getHost", self.record.storage.host),
-            ("getPort", self.record.storage.port),
-            ("getUser", self.record.storage.user),
-            ("getPassword", self.record.storage.passwd)
-        )
-
-class RasdamanLocationCreateAndSaveTestCase(LocationWrapperCreateAndSaveTestCase):
-    def _get_type(self):
-        return "rasdaman"
 
