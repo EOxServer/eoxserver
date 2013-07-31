@@ -1,4 +1,3 @@
-
 from os import path
 from urlparse import urlparse
 
@@ -13,6 +12,4 @@ class LocalStorage(Component):
     name = "local"
 
     def retrieve(self, url, location, path):
-        # TODO: implement! ;)
-        # should not be too hard
-        pass
+        return path.join(url, location)

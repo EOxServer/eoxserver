@@ -58,8 +58,11 @@ class StorageInterface(object):
         "Name of the storage implementation."
 
     def retrieve(self, url, location, path):
-        """Retrieve a remote file from the storage specified by the given `url` 
-        and location and store it to the given `path`."""
+        """ Retrieve a remote file from the storage specified by the given `url` 
+            and location and store it to the given `path`. Storages that don't
+            need to actually retrieve and store files, just need to return a 
+            path to a local file instead of storing it under `path`.
+        """
 
 
 class PackageInterface(object):
@@ -70,8 +73,8 @@ class PackageInterface(object):
 
 
     def extract(self, package_filename, location, path):
-        """Extract a file specified by the `location` from the package to the 
-        given `path` specification.
+        """ Extract a file specified by the `location` from the package to the 
+            given `path` specification.
         """
 
 

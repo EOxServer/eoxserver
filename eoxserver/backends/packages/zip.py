@@ -1,5 +1,6 @@
-
+import shutil
 from zipfile import ZipFile
+
 from eoxserver.core import Component, implements
 from eoxserver.backends.interfaces import PackageInterface
 
@@ -13,8 +14,11 @@ class ZIPPackage(Component):
     name = "ZIP"
 
     def extract(self, package_filename, location, path):
+        #import pdb; pdb.set_trace()
         zipfile = ZipFile(package_filename, "r")
-        zipfile.extract(location, path)
+        infile = zipfile.open(location)
+        with open(path, "wb") as outfile:
+            shutil.copyfileobj(infile, outfile)
 
     
     def list_files(self, package_filename):

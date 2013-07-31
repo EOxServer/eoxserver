@@ -1,98 +1,103 @@
 
-from os import path
+from os import makedirs, path
 import hashlib
+import logging
 
 from eoxserver.backends.cache import CacheContext
 from eoxserver.backends.component import BackendComponent, env
 
 
-def construct_cache_path(data_item):
-    ""
+logger = logging.getLogger(__name__)
 
-    print "...... ", data_item, data_item.package, data_item.storage
-
-    location = data_item.location[1:] if path.isabs(data_item.location) else data_item.location
-
-    if data_item.storage:
-        # create unique dirname
-        storage = data_item.storage
-
-        urlhash = hashlib.new("sha1")
-        urlhash.update(storage.storage_type)
-        urlhash.update(storage.url)
-        digest = urlhash.hexdigest()
-
-        return path.join(digest, location)
-
-    elif data_item.package:
-        return path.join(construct_cache_path(data_item.package), data_item.location)
-
-    else:
-        return data_item.location
+def generate_hash(location, format, hash_impl="sha1"):
+    h = hashlib.new(hash_impl)
+    if format is not None:
+        h.update(format)
+    h.update(location)
+    return h.hexdigest()
 
 
+def retrieve(data_item, cache=None):
+    """ 
+    """
 
-def retrieve(data_item, cache_context=None):
-    ""
+    backend = BackendComponent(env)
 
-    if not cache_context:
-        cache_context = CacheContext() # TODO: read cache context config
+    if cache is None:
+        cache = CacheContext()
 
-    with cache_context:
-        backend_component = BackendComponent(env)
-        location = data_item.location
+    # compute a cache path where the file *would* be cached
+    with cache:
+        item_id = generate_hash(data_item.location, data_item.format)
+        path = cache.relative_path(item_id)
 
-        cache_path = construct_cache_path(data_item)
+        logger.debug("Retrieving %s (ID: %s)" % (data_item, item_id))
 
-        if data_item.package is None:
-            storage = data_item.storage
-
-            if storage is None:
-                return cache_context.cache_path
-
-            storage_component = backend_component.get_storage_component(
-                storage.storage_type
+        if item_id in cache:
+            logger.debug("Item %s is already in the cache." % item_id)
+            return path
+        
+        if data_item.package is None and data_item.storage:
+            return _retrieve_from_storage(
+                backend, data_item, data_item.storage, item_id, path, cache
             )
 
-            if cache_path not in cache_context:
-                # create a cache location
-                cache_context.add_path(cache_path)
-
-                # retrieve file and store it under 
-                storage_component.retrieve(
-                    storage.url, location, cache_context.relative_path(cache_path)
-                )
-
-            return cache_path
-
         elif data_item.package:
-            # recursively retrieve packages
-            package = data_item.package
-
-            if cache_path not in cache_context:
-                package_filename = retrieve(package, cache_context)
-                cache_path = path.join(package_filename, location)
-                
-                cache_context.add_path(cache_path)
-
-                # extract location from package
-                package_component = backend_component.get_package_component(
-                    package.format
-                )
-                print cache_context.relative_path(cache_path)
-                package_component.extract(
-                    cache_context.relative_path(package_filename), location, 
-                    cache_context.relative_path(cache_path)
-                )
-
-            return cache_path
+            return _extract_from_package(
+                backend, data_item, data_item.package, item_id, path, cache
+            )
 
         else:
-            # local file
-            return location
+            return data_item.location
 
+
+
+def _retrieve_from_storage(backend, data_item, storage, item_id, path, cache):
+    """ Helper function to retrieve a file from a storage.
+    """
+    logger.debug("Accessing storage %s." % storage)
+
+    component = backend.get_storage_component(
+        storage.storage_type
+    )
+
+    actual_path = component.retrieve(
+        storage.url, data_item.location, path
+    )
+
+    if actual_path and actual_path != path:
+        cache.add_mapping(actual_path, item_id)
+
+    return actual_path or path
+
+
+def _extract_from_package(backend, data_item, package, item_id, path, cache):
+    """ Helper function to extract a file from a package.
+    """
+    logger.debug("Accessing package %s." % package)
+
+    package_location = retrieve(package, cache)
+
+    component = backend.get_package_component(
+        package.format
+    )
+
+    logger.debug(
+        "Extracting from %s: %s and saving it at %s" 
+        % (package_location, data_item.location, path)
+    )
+
+    actual_path = component.extract(
+        package_location, data_item.location, path
+    )
+
+    if actual_path and actual_path != path:
+        cache.add_mapping(actual_path, item_id)
+
+    return actual_path or path
 
 
 def open(data_item, cache_context=None):
-    "Returns a file object pointing to the given location."
+    """ Returns a file object pointing to the given location.
+    """
     return __builtins__.open(retrieve(data_item, cache_context))
