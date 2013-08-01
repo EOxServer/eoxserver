@@ -53,7 +53,7 @@ class Castable(models.Model):
             return type(self)
 
         # this command uses the cached access of the contenttypes framework
-        real_content_type = ContentType.objects.get_for_id(self.real_content_type_id)
+        real_content_type = ContentType.objects.get_for_id(self.real_content_type)
         return real_content_type.model_class()
 
     
