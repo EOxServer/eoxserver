@@ -35,14 +35,46 @@ import logging
 from django.http import HttpResponse
 from django.conf import settings
 
-from eoxserver.core.system import System
-from eoxserver.services.owscommon import OWSCommonHandler
-from eoxserver.services.requests import OWSRequest
-from eoxserver.services.auth.base import getPDP
+from eoxserver.services.component import OWSServiceComponent, env
 
 
 logger = logging.getLogger(__name__)
 
+def ows(request):
+    component = OWSServiceComponent(env)
+
+    try:
+        handler = component.get_service_handler(request)
+        result = handler.handle(request)
+        default_status = 200
+    except Exception, e:
+        raise
+        handler = component.get_exception_handler(request)
+        result = handler.handle(e)
+        default_status = 400
+
+    # TODO: convert result to a django response
+    if isinstance(result, HttpResponse):
+        return response
+
+    try:
+        content, content_type, status = result
+        print content, content_type, status
+        return HttpResponse(content=content, #content_type=content_type,
+            status=status)
+    except ValueError:
+        pass
+        
+    try:
+        content, content_type = result
+        return HttpResponse(content=content, content_type=content_type, status=default_status)
+    except ValueError:
+        pass
+
+
+
+
+'''
 def ows(request):
     """
     This function handles all incoming OWS requests.
@@ -104,3 +136,4 @@ def ows(request):
             response[header_name] = header_value
 
     return response
+'''
