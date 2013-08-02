@@ -294,6 +294,10 @@ class Coverage(EOObject, Extent, backends.Dataset):
     
     range_type = models.ForeignKey(RangeType, blank=True, null=True, on_delete=models.SET_NULL)
 
+    @property
+    def size(self):
+        return self.size_x, self.size_y
+    
     objects = models.GeoManager()
     
 
