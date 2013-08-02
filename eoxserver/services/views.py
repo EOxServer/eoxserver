@@ -40,100 +40,41 @@ from eoxserver.services.component import OWSServiceComponent, env
 
 logger = logging.getLogger(__name__)
 
+
+# TODO: dynamic urls, for REST or the like?
+
+
 def ows(request):
     component = OWSServiceComponent(env)
 
     try:
-        handler = component.get_service_handler(request)
+        handler = component.query_service_handler(request)
         result = handler.handle(request)
         default_status = 200
     except Exception, e:
         raise
-        handler = component.get_exception_handler(request)
+        handler = component.query_exception_handler(request)
         result = handler.handle(e)
         default_status = 400
 
-    # TODO: convert result to a django response
+    
     if isinstance(result, HttpResponse):
         return response
 
+    # convert result to a django response
     try:
         content, content_type, status = result
         print content, content_type, status
-        return HttpResponse(content=content, #content_type=content_type,
-            status=status)
+        return HttpResponse(
+            content=content, content_type=content_type, status=status
+        )
     except ValueError:
         pass
         
     try:
         content, content_type = result
-        return HttpResponse(content=content, content_type=content_type, status=default_status)
+        return HttpResponse(
+            content=content, content_type=content_type, status=default_status
+        )
     except ValueError:
         pass
-
-
-
-
-'''
-def ows(request):
-    """
-    This function handles all incoming OWS requests.
-    
-    It prepares the system by a call to 
-    :meth:`eoxserver.core.system.System.init` and generates
-    an :class:`~.OWSRequest` object containing the request parameters and
-    passes the handling on to an instance of :class:`~.OWSCommonHandler`.
-    
-    If security handling is enabled, the Policy Decision Point (PDP) is
-    called first in order to determine if the request is authorized. Otherwise
-    the response of the PDP is sent back to the client. See also
-    :mod:`eoxserver.services.auth.base`.
-    """
-
-    if request.method == 'GET':
-        ows_req = OWSRequest(
-            http_req=request,
-            params=request.GET,
-            param_type="kvp"
-        )
-    elif request.method == 'POST':
-        ows_req = OWSRequest(
-            http_req=request,
-            params=request.raw_post_data,
-            param_type="xml"
-        )
-    else:
-        raise Exception("Unsupported request method '%s'" % request.method)
-
-    System.init()
-    
-    pdp = getPDP()
-    
-    if pdp:
-        auth_resp = pdp.authorize(ows_req)
-    
-    if not pdp or auth_resp.authorized:
-        
-        handler = OWSCommonHandler()
-
-        ows_resp = handler.handle(ows_req)
-
-        response = HttpResponse(
-            content=ows_resp.getContent(),
-            content_type=ows_resp.getContentType(),
-            status=ows_resp.getStatus()
-        )
-        for header_name, header_value in ows_resp.headers.items():
-            response[header_name] = header_value
-
-    else:
-        response = HttpResponse(
-            content=auth_resp.getContent(),
-            content_type=auth_resp.getContentType(),
-            status=auth_resp.getStatus()
-        )
-        for header_name, header_value in auth_resp.headers.items():
-            response[header_name] = header_value
-
-    return response
-'''
