@@ -29,152 +29,58 @@
 
 """
 This module provides an implementation of a system configuration that relies
-on different configuration files. It is used by :mod:`eoxserver.core.system` to
-store the current system configuration.
+on different configuration files.
 """
 
 import imp
-import os.path
+import os
+from os.path import join, getmtime
 from sys import prefix
+import threading
 from ConfigParser import RawConfigParser
+import logging
+from time import time
 
 from django.conf import settings
 
-from eoxserver.core.exceptions import InternalError
 
-class Config(object):
+config_lock = threading.RLock()
+logger = logging.getLogger(__name__)
+
+# configuration singleton
+_cached_config = None
+_last_access_time = None
+
+
+def get_eoxserver_config():
+    with config_lock:
+        if not _cached_config or getmtime(get_instance_config_path()) > _last_access_time:
+            reload_eoxserver_config()
+
+    return _cached_config
+
+
+def reload_eoxserver_config():
+    global _cached_config, _last_access_time
+    _, eoxs_path, _ = imp.find_module("eoxserver")
+    paths = [
+        join(eoxs_path, "conf", "default.conf"),
+        join(prefix, "eoxserver/conf/default.conf"),
+        get_instance_config_path()
+    ]
+
+    logger.info(
+        "%soading the EOxServer configuration. Using paths: %s." 
+        % ("Rel" if _cached_config else "L", ", ".join(paths))
+    )
+
+    with config_lock:
+        _cached_config = RawConfigParser()
+        _cached_config.read(paths)
+        _last_access_time = time()
+
+
+def get_instance_config_path():
+    """ Convenience function to get the path to the instance config.
     """
-    The :class:`Config` class represents a system configuration. Internally,
-    it relies on two configuration files:
-    
-    * the default configuration file (``eoxserver/conf/default.conf``)
-    * the instance configuration file (``conf/eoxserver.conf`` in the instance
-      directory)
-    
-    Configuration values are read from these files.
-    """
-    
-    def __init__(self):
-        self.__eoxs_path = None
-        self.__default_conf = None
-        self.__instance_conf = None
-
-        eoxs_path = self.getEOxSPath()
-        
-        default_conf_path = os.path.join(eoxs_path, "conf", "default.conf")
-        default_conf_path_alt = os.path.join(prefix, "eoxserver/conf/default.conf")
-        
-        if os.path.exists(default_conf_path):
-            self.__default_conf = ConfigFile(default_conf_path)
-        elif os.path.exists(default_conf_path_alt):
-            self.__default_conf = ConfigFile(default_conf_path_alt)
-        else:
-            raise InternalError("Improperly installed: could not find default configuration file.")
-        
-        instance_conf_path = os.path.join(settings.PROJECT_DIR, "conf", "eoxserver.conf")
-        
-        if os.path.exists(instance_conf_path):
-            self.__instance_conf = ConfigFile(instance_conf_path)
-        else:
-            raise InternalError("Improperly configured: could not find instance configuration file.")
-    
-    def getConfigValue(self, section, key):
-        """
-        Returns a configuration parameter value. The ``section`` and ``key``
-        arguments denote the parameter to be looked up. The value is searched
-        for first in the instance configuration file; if it is not found there
-        the value is read from the default configuration file.
-        """
-        
-        inst_value = self.getInstanceConfigValue(section, key)
-        if inst_value is None:
-            return self.getDefaultConfigValue(section, key)
-        else:
-            return inst_value
-    
-    def getDefaultConfigValue(self, section, key):
-        """
-        Returns a configuration parameter default value (read from the default
-        configuration file). The ``section`` and ``key`` arguments denote the
-        parameter to be looked up.
-        """
-        
-        return self.__default_conf.get(section, key)
-        
-    def getInstanceConfigValue(self, section, key):
-        """
-        Returns a configuration parameter value as defined in the instance
-        configuration file, or ``None`` if it is not found there. The
-        ``section`` and ``key`` arguments denote the parameter to be looked up.
-        """
-        
-        return self.__instance_conf.get(section, key)
-    
-    def getConcurringConfigValues(self, section, key):
-        """
-        Returns a dictionary od concurring configuration parameter values. It
-        may have two entries
-        
-        * ``default``: the default configuration parameter value
-        * ``instance``: the instance configuration value
-        
-        If there is no configuration parameter value defined in the respective
-        configuration file, the entry is omitted.
-        
-        The ``section`` and ``key`` arguments denote the parameter to be looked
-        up.
-        """
-        
-        concurring_values = {}
-        
-        def_value = self.getDefaultConfigValue(section, key)
-        if def_value is not None:
-            concurring_values["default"] = def_value
-        
-        instance_value = self.getInstanceConfigValue(section, key)
-        if instance_value is not None:
-            concurring_values["instance"] = instance_value
-        
-        return concurring_values
-    
-    def getEOxSPath(self):
-        """
-        Returns the path to the EOxServer installation (not to the instance).
-        """
-        
-        if self.__eoxs_path is None:
-            try:
-                _, eoxs_path, _ = imp.find_module("eoxserver")
-            except ImportError:
-                raise InternalError("Something very strange is happening: cannot find 'eoxserver' module.")
-            self.__eoxs_path = eoxs_path
-        
-        return self.__eoxs_path
-
-class ConfigFile(object):
-    """
-    This is a wrapper for a configuration file. It is based on the Python
-    builtin :mod:`ConfigParser` module.
-    """
-    
-    def __init__(self, config_filename):
-        self.config_filename = config_filename
-
-        self._parser = RawConfigParser()
-        self._parser.read(config_filename)
-
-    def get(self, section, key):
-        """
-        Return the configuration parameter value, or ``None`` if it is not
-        defined.
-        
-        The ``section`` argument denotes the section of the configuration file
-        where to look for the parameter named ``key``. See the
-        :mod:`ConfigParser` module documentation for details on the config file
-        syntax.
-        """
-        
-        if self._parser.has_option(section, key):
-            return self._parser.get(section, key)
-        else:
-            return None
+    return join(settings.PROJECT_DIR, "conf", "eoxserver.conf")
