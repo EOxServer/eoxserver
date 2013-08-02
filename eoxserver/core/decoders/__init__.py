@@ -40,7 +40,7 @@ class Choice(object):
                 return choice.__get__(decoder, decoder_class)
             except:
                 continue
-        raise
+        raise NoChoiceResultException
 
 
 class Exclusive(object):
@@ -136,3 +136,6 @@ def lower(value):
 
 def upper(value):
     return value.upper()
+
+def strip(value):
+    return value.strip()

@@ -1,5 +1,5 @@
 import sys
-from ConfigParser import NoOptionError
+from ConfigParser import NoOptionError, NoSectionError
 
 
 def section(name):
@@ -17,9 +17,9 @@ def section(name):
 
 class Option(object):
 
-    def __init__(self, key=None, type_=None, separator=None, required=False, default=None, section=None):
+    def __init__(self, key=None, type=None, separator=None, required=False, default=None, section=None):
         self.key = key # needs to be set by the reader metaclass
-        self.type_ = type_
+        self.type = type
         self.separator = separator
         self.required = required
         self.default = default
@@ -34,20 +34,20 @@ class Option(object):
     def __get__(self, reader, objtype=None):
         section = self.section or reader.section
         try:
-            if self.type_ is bool:
+            if self.type is bool:
                 raw_value = reader._config.getboolean(section, self.key)
             else:
                 raw_value = reader._config.get(section, self.key)
-        except NoOptionError, e:
+        except (NoOptionError, NoSectionError), e:
             if not self.required:
                 return self.default
             raise e
         
         if self.separator is not None:
-            return map(self.type_, raw_value.split(self.separator))
+            return map(self.type, raw_value.split(self.separator))
 
-        elif self.type_:
-            return self.type_(raw_value)
+        elif self.type:
+            return self.type(raw_value)
 
         else:
             return raw_value
