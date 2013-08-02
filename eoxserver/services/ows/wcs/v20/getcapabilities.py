@@ -4,9 +4,17 @@ from django.contrib.contenttypes.models import ContentType
 
 from eoxserver.core import Component, implements
 
+from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.decoders import xml, kvp, typelist, upper
 from eoxserver.resources.coverages import models
-from eoxserver.services.interfaces import OWSServiceHandlerInterface
+from eoxserver.resources.coverages.formats import getFormatRegistry
+from eoxserver.resources.coverages import crss
+from eoxserver.services.component import OWSServiceComponent, env
+from eoxserver.services.interfaces import (
+    OWSServiceHandlerInterface, 
+    OWSGetServiceHandlerInterface, OWSPostServiceHandlerInterface
+)
+from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.services.ows.wcs.v20.util import (
     ns_xlink, ns_ogc, ns_ows, ns_gml, ns_gmlcov, ns_wcs, ns_crs, ns_eowcs, 
     nsmap,
@@ -16,6 +24,8 @@ from eoxserver.services.ows.wcs.v20.util import (
 
 class WCS20GetCapabilitiesHandler(Component):
     implements(OWSServiceHandlerInterface)
+    implements(OWSGetServiceHandlerInterface)
+    implements(OWSPostServiceHandlerInterface)
 
     service = "WCS"
     versions = ("2.0.0", "2.0.1")
@@ -28,91 +38,174 @@ class WCS20GetCapabilitiesHandler(Component):
         elif request.method == "POST":
             return WCS20GetCapabilitiesXMLDecoder(request.body)
 
+
     def handle(self, request):
         decoder = self.get_decoder(request)
+        if "text/xml" not in decoder.acceptformats:
+            raise InvalidRequestException()
+        encoder = WCS20CapabilitiesXMLEncoder()
+        return encoder.encode(decoder)
+
+
+class WCS20GetCapabilitiesDecoder(object):
+    """ Mix-in for WCS 2.0 GetCapabilities request decoders.
+    """
+
+    def section_included(self, *sections):
+        """ See if one of the sections is requested.
+        """
+        if not self.sections:
+            return True
+
+        for section in sections:
+            section = section.upper()
+            if "ALL" in self.sections or section in self.sections:
+                return True
+
+        return False
+
+
+class WCS20GetCapabilitiesKVPDecoder(kvp.Decoder, WCS20GetCapabilitiesDecoder):
+    sections            = kvp.Parameter(type=typelist(upper, ","), num="?")
+    updatesequence      = kvp.Parameter(num="?")
+    acceptversions      = kvp.Parameter(type=typelist(str, ","), num="?")
+    acceptformats       = kvp.Parameter(type=typelist(str, ","), num="?", default=["text/xml"])
+    acceptlanguages     = kvp.Parameter(type=typelist(str, ","), num="?")
+
+
+class WCS20GetCapabilitiesXMLDecoder(xml.Decoder, WCS20GetCapabilitiesDecoder):
+    sections            = xml.Parameter("/ows:Sections/ows:Section/text()", num="*")
+    updatesequence      = xml.Parameter("/@updateSequence", num="?")
+    acceptversions      = xml.Parameter("/ows:AcceptVersions/ows:Version/text()", num="*")
+    acceptformats       = xml.Parameter("/ows:AcceptFormats/ows:OutputFormat/text()", num="*", default=["text/xml"])
+    acceptlanguages     = xml.Parameter("/ows:AcceptLanguages/ows:Language/text()", num="*")
+
+    namespaces = nsmap
+
+
+class WCS20CapabilitiesXMLEncoder(object):
+    def encode(self, decoder):
+        reader = CapabilitiesConfigReader(get_eoxserver_config())
 
         sections = []
         if decoder.section_included("ServiceIdentification"):
             sections.append(
                 OWS("ServiceIdentification",
-                    OWS("Title", "title"),
-                    OWS("Abstract", "abstract"),
+                    OWS("Title", reader.title),
+                    OWS("Abstract", reader.abstract),
                     OWS("Keywords", 
-                        OWS("Keyword", "keyword")
+                        *map(lambda k: OWS("Keyword", k), reader.keywords)
                     ),
                     OWS("ServiceType", "OGC WCS", codeSpace="OGC"),
                     OWS("ServiceTypeVersion", "2.0.1"),
-                    OWS("Profile", "profile"),
-                    OWS("Fees", "None"),
-                    OWS("AccessConstraints", "None")
+                    OWS("Profile", "profile"), #TODO
+                    OWS("Fees", reader.fees),
+                    OWS("AccessConstraints", reader.access_constraints)
                 )
             )
 
         if decoder.section_included("ServiceProvider"):
             sections.append(
                 OWS("ServiceProvider",
-                    OWS("ProviderName", ""),
-                    OWS("ProviderSite", ""),
+                    OWS("ProviderName", reader.provider_name),
+                    OWS("ProviderSite", reader.provider_site),
                     OWS("ServiceContact",
-                        OWS("IndividualName", ""),
-                        OWS("PositionName", ""),
+                        OWS("IndividualName", reader.individual_name),
+                        OWS("PositionName", reader.position_name),
                         OWS("ContactInfo",
                             OWS("Phone",
-                                OWS("Voice", ""),
-                                OWS("Facsimile", "")
+                                OWS("Voice", reader.phone_voice),
+                                OWS("Facsimile", reader.phone_facsimile)
                             )
                         ),
                         OWS("Address",
-                            OWS("DeliveryPoint", ""),
-                            OWS("City", ""),
-                            OWS("AdministrativeArea", ""),
-                            OWS("PostalCode", ""),
-                            OWS("Country", ""),
-                            OWS("ElectronicMailAddress", "")
+                            OWS("DeliveryPoint", reader.delivery_point),
+                            OWS("City", reader.city),
+                            OWS("AdministrativeArea", reader.administrative_area),
+                            OWS("PostalCode", reader.postal_code),
+                            OWS("Country", reader.country),
+                            OWS("ElectronicMailAddress", reader.electronic_mail_address)
                         ),
-                        OWS("OnlineResource", ""),
-                        OWS("HoursOfService", ""),
-                        OWS("ContactInstructions", "")
+                        OWS("OnlineResource", **{
+                            ns_xlink("href"): reader.http_service_url, # TODO: here
+                            ns_xlink("type"): "simple"
+                        }),
+                        OWS("HoursOfService", reader.hours_of_service),
+                        OWS("ContactInstructions", reader.contact_instructions)
                     ),
-                    OWS("Role", "")
+                    OWS("Role", reader.role)
                 )
             )
 
+
         if decoder.section_included("OperationsMetadata"):
-            sections.append(
-                OWS("OperationsMetadata",
+            component = OWSServiceComponent(env)
+            versions = ("2.0.0", "2.0.1")
+            get_handlers = component.query_service_handlers(
+                service="WCS", versions=versions, method="GET"
+            )
+            post_handlers = component.query_service_handlers(
+                service="WCS", versions=versions, method="POST"
+            )
+            all_handlers = sorted(
+                set(get_handlers + post_handlers), key=lambda h: h.request
+            )
+
+            operations = []
+            for handler in all_handlers:
+                methods = []
+                if handler in get_handlers:
+                    methods.append(
+                        OWS("Get", **{
+                                ns_xlink("href"): reader.http_service_url,
+                                ns_xlink("type"): "simple"
+                            }
+                        )
+                    )
+                if handler in post_handlers:
+                    methods.append(
+                        OWS("Post",
+                            OWS("Constraint", 
+                                OWS("AllowedValues", 
+                                    OWS("Value", "XML")
+                                ), name="PostEncoding"
+                            ), **{
+                                ns_xlink("href"): reader.http_service_url,
+                                ns_xlink("type"): "simple"
+                            }
+                        )
+                    )
+
+                operations.append(
                     OWS("Operation",
                         OWS("DCP",
-                            OWS("HTTP",
-                                OWS("Get", **{
-                                        ns_xlink("href"): "",
-                                        ns_xlink("type"): "simple"
-                                }),
-                                OWS("Get",
-                                    OWS("Constraint", 
-                                        OWS("AllowedValues", 
-                                            OWS("Value", "XML")
-                                        ), name="PostEncoding"
-                                    ), **{
-                                        ns_xlink("href"): "",
-                                        ns_xlink("type"): "simple"
-                                    }
-                                ),
-                            ),
-                        ), name="GetCapabilities"
-                    ),
-                )
-            )
-    
-        if decoder.section_included("ServiceMetadata"):
-            sections.append(
-                WCS("ServiceMetadata",
-                    WCS("formatSupported"),
-                    WCS("Extension",
-                        WCS(ns_crs("crsSupported"), "")
+                            OWS("HTTP", *methods)
+                        ), name=handler.request
                     )
                 )
+
+            sections.append(OWS("OperationsMetadata", *operations))
+
+
+        if decoder.section_included("ServiceMetadata"):
+            service_metadata = WCS("ServiceMetadata")
+
+            # get the list of enabled formats from the format registry
+            formats = getFormatRegistry().getSupportedFormatsWCS()
+            service_metadata.extend(
+                map(lambda f: WCS("formatSupported", f.mimeType), formats)
             )
+
+            # get a list of supported CRSs from the CRS registry
+            supported_crss = crss.getSupportedCRS_WCS(format_function=crss.asURL)
+            extension = WCS("Extension")
+            service_metadata.append(extension)
+            extension.extend(
+                map(lambda c: CRS("crsSupported", c), supported_crss)
+            )
+
+            sections.append(service_metadata)
+
 
         if decoder.section_included("Contents", "CoverageSummary", "DatasetSeriesSummary"):
             contents = []
@@ -196,35 +289,3 @@ class WCS20GetCapabilitiesHandler(Component):
         root = WCS("Capabilities", *sections, version="2.0.1")
         return etree.tostring(root, pretty_print=True, encoding='iso-8859-1'), "text/xml"
 
-
-class WCS20GetCapabilitiesDecoder(object):
-    """ Mix-in for WCS 2.0 GetCapabilities request decoders.
-    """
-    def section_included(self, *sections):
-        if not self.sections:
-            return True
-
-        for section in sections:
-            section = section.upper()
-            if "ALL" in self.sections or section in self.sections:
-                return True
-
-        return False
-
-
-class WCS20GetCapabilitiesKVPDecoder(kvp.Decoder, WCS20GetCapabilitiesDecoder):
-    sections =          kvp.Parameter("sections", type=typelist(upper, ","), num="?")
-    update_sequence =   kvp.Parameter("updatesequence", num="?")
-    accept_formats =    kvp.Parameter("acceptversions", type=typelist(str, ","), num="?")
-    accept_formats =    kvp.Parameter("acceptformats", type=typelist(str, ","), num="?")
-    accept_languages =  kvp.Parameter("acceptlanguages", type=typelist(str, ","), num="?")
-
-
-class WCS20GetCapabilitiesXMLDecoder(kvp.Decoder, WCS20GetCapabilitiesDecoder):
-    sections =          xml.Parameter("/ows:Sections/ows:Section/text()", num="*")
-    update_sequence =   xml.Parameter("/@updateSequence", num="?")
-    accept_formats =    xml.Parameter("/ows:AcceptVersions/ows:Version/text()", num="*")
-    accept_formats =    xml.Parameter("/ows:AcceptFormats/ows:OutputFormat/text()", num="*")
-    accept_languages =  xml.Parameter("/ows:AcceptLanguages/ows:Language/text()", num="*")
-
-    namespaces = nsmap
