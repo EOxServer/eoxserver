@@ -51,6 +51,13 @@ class OWSExceptionHandlerInterface(object):
     pass
 
 
+class OWSGetServiceHandlerInterface(OWSServiceHandlerInterface):
+    pass
+
+
+class OWSPostServiceHandlerInterface(OWSServiceHandlerInterface):
+    pass
+
 
 '''
 
