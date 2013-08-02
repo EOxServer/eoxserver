@@ -40,9 +40,10 @@ import os.path
 from django.conf import settings
 
 from eoxserver.contrib import gdal
-from eoxserver.core.system import System
+from eoxserver.core.config import get_eoxserver_config
+from eoxserver.core.decoders import config, typelist, strip
 from eoxserver.core.exceptions import InternalError
-from eoxserver.core.startup import StartupHandlerInterface
+#from eoxserver.core.startup import StartupHandlerInterface
 
 
 logger = logging.getLogger(__name__)
@@ -249,18 +250,16 @@ class FormatRegistry(object):
         Parse the EOxServer configuration. 
         """
         
-        #  WMS and WCS suported formats 
+        reader = FormatConfigReader(config)
 
-        wms = config.getConfigValue("services.ows.wms","supported_formats") 
-        wcs = config.getConfigValue("services.ows.wcs","supported_formats") 
+        #  WMS and WCS suported formats
 
-        self.__wms_supported_formats = filter( lambda f: f, map( lambda m: self.getFormatByMIME(m.strip()), wms.split(',') ) )
-        self.__wcs_supported_formats = filter( lambda f: f, map( lambda m: self.getFormatByMIME(m.strip()), wcs.split(',') ) )
+        self.__wms_supported_formats = map(self.getFormatByMIME, reader.supported_formats_wms)
+        self.__wcs_supported_formats = map(self.getFormatByMIME, reader.supported_formats_wcs)
 
         #  WCS 2.0.1 source to native format mapping 
  
-        src = config.getConfigValue("services.ows.wcs20","default_native_format").strip() 
-        tmp = self.getFormatByMIME( src )
+        tmp = self.getFormatByMIME(reader.default_native_format)
 
         self.__wcs20_def_native_format = tmp 
 
@@ -268,7 +267,7 @@ class FormatRegistry(object):
             print ( tmp is None ) , ( tmp not in self.getSupportedFormatsWCS() )
             raise ValueError , "Invalid value of configuration option 'services.ows.wcs20' 'default_native_format'! value=\"%s\""% src  
 
-        tmp = config.getConfigValue("services.ows.wcs20","source_to_native_format_map")
+        tmp = reader.source_to_native_format_map
         tmp = map( lambda m: self.getFormatByMIME(m.strip()), tmp.split(',') ) 
         tmp = [ (tmp[i],tmp[i+1]) for i in xrange(0,(len(tmp)>>1)<<1,2) ]
         tmp = filter( lambda p: ( p[0] is not None ) and ( p[1] is not None ) , tmp ) 
@@ -380,6 +379,19 @@ class FormatRegistry(object):
         except ImportError:
             raise InternalError("Filed to find the 'eoxserver' module! Check your modules' path!")
 
+
+class FormatConfigReader(config.Reader):
+    section = "services.ows.wms"
+    supported_formats_wms = config.Option("supported_formats", typelist(strip, ","))
+
+    section = "services.ows.wcs"
+    supported_formats_wcs = config.Option("supported_formats", typelist(strip, ","))
+
+    section = "services.ows.wcs20"
+    default_native_format = config.Option(type=strip)
+    source_to_native_format_map = config.Option()
+
+
 #-------------------------------------------------------------------------------
 # regular expression validators 
 
@@ -453,7 +465,7 @@ class FormatLoaderStartupHandler( object ) :
 
 
 #: The actual FormatLoaderStartupHandler implementation. 
-FormatLoaderStartupHandlerImplementation = StartupHandlerInterface.implement( FormatLoaderStartupHandler ) 
+#FormatLoaderStartupHandlerImplementation = StartupHandlerInterface.implement( FormatLoaderStartupHandler ) 
     
 #-------------------------------------------------------------------------------
 # public API 
@@ -474,7 +486,7 @@ def getFormatRegistry() :
         logger.debug( repr(_gerexValDriv) )
 
         # load configuration if not already loaded 
-        __FORMAT_REGISTRY = FormatRegistry( System.getConfig() ) 
+        __FORMAT_REGISTRY = FormatRegistry( get_eoxserver_config() ) 
 
         logger.debug( repr(__FORMAT_REGISTRY) )
 
