@@ -492,7 +492,7 @@ class CoverageGML10Encoder(XMLEncoder):
         return self._makeElement("gmlcov", "rangeType", [
             ("swe", "DataRecord", [
                 (self.encodeRangeTypeField(range_type, band),)
-                for band in range_type.bands
+                for band in range_type.bands.all()
             ])
         ])
 
@@ -511,14 +511,14 @@ class CoverageGML10Encoder(XMLEncoder):
                 ("swe", "description", band.description),
 # TODO: Not in sweCommon anymore
 #                ("swe", "name", band.name),
-                ("swe", "nilValues", [(self.encodeNilValue(nil_value),) for nil_value in band.nil_values]),
+                ("swe", "nilValues", [(self.encodeNilValue(nil_value),) for nil_value in band.nil_values.all()]),
                 ("swe", "uom", [
                     ("", "@code", band.uom)
                 ]),
                 ("swe", "constraint", [
                     ("swe", "AllowedValues", [
-                        ("swe", "interval", "%s %s" % range_type.getAllowedValues()),
-                        ("swe", "significantFigures", range_type.getSignificantFigures())
+                        ("swe", "interval", "%s %s" % band.allowed_values),
+                        ("swe", "significantFigures", band.significant_figures)
                     ])
                 ])
             ])
@@ -767,7 +767,7 @@ class WCS20EOAPEncoder(WCS20Encoder):
             ("wcs", "CoverageId", coverage.identifier),
             (self.encodeEOMetadata(coverage),),
             (self.encodeDomainSet(coverage),),
-            #(self.encodeRangeType(coverage),), #TODO!!!
+            (self.encodeRangeType(coverage),),
             ("wcs", "ServiceParameters", [
                 ("wcs", "CoverageSubtype", type(coverage).__name__),
                 ("wcs", "nativeFormat" , native_format.mimeType ) 
