@@ -39,6 +39,7 @@ from django.db.models import Min, Max
 from django.contrib.gis.db.models import Union
 
 from eoxserver.core import models as base
+from eoxserver.contrib import gdal
 from eoxserver.backends import models as backends
 from eoxserver.resources.coverages.util import detect_circular_reference
 
@@ -246,6 +247,36 @@ class RangeType(models.Model):
         verbose_name = "Range Type"
 
 
+    @property
+    def allowed_values(self):
+        dt = self.data_type
+        if dt == gdal.GDT_Byte:
+            return (0, 255)
+        elif dt == gdal.GDT_UInt16:
+            return (0, 65535)
+        elif dt in (gdal.GDT_Int16, gdal.GDT_CInt32):
+            return (-32768, 32767)
+        elif dt == gdal.GDT_UInt32:
+            return (0, 4294967295)
+        elif dt in (gdal.GDT_Int32, gdal.GDT_CInt32):
+            return (-2147483648, 2147483647)
+        elif dt in (gdal.GDT_Float32, gdal.GDT_CFloat32) : 
+            return (-3.40282e+38, 3.40282e+38)
+
+
+    @property
+    def significant_figures(self):
+        dt = self.data_type
+        if dt == gdal.GDT_Byte:
+            return 3
+        elif dt in ( gdal.GDT_UInt16 , gdal.GDT_Int16 , gdal.GDT_CInt16 ) : 
+            return 5
+        elif dt in ( gdal.GDT_UInt32 , gdal.GDT_Int32 , gdal.GDT_CInt32 ) : 
+            return 10
+        elif dt in ( gdal.GDT_Float32 , gdal.GDT_CFloat32 ) : 
+            return 38
+
+
 class Band(models.Model):
     index = models.PositiveSmallIntegerField()
     name = models.CharField(max_length=32, null=False, blank=False)
@@ -265,6 +296,15 @@ class Band(models.Model):
     class Meta:
         ordering = ('index',)
         unique_together = (('index', 'range_type'), ('identifier', 'range_type'))
+
+
+    @property
+    def allowed_values(self):
+        return self.range_type.allowed_values
+
+    @property
+    def significant_figures(self):
+        return self.range_type.significant_figures
 
 
 class NilValue(models.Model):
