@@ -69,8 +69,6 @@ class DataItem(BaseLocation):
     # for extra locations
     # e.g: if a coverage consists of multiple files (each band in a single file)
 
-    # TODO: can a data item also be in a package? guess so
-
     dataset = models.ForeignKey(Dataset, related_name="data_items")
     package = models.ForeignKey(Package, related_name="data_items", null=True, blank=True)
     semantic = models.CharField(max_length=64)

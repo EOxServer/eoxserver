@@ -62,37 +62,37 @@ def get_storage_type_choices():
 
 class StorageForm(forms.ModelForm):
     """ Form for `Storages`. Overrides the `format` formfield and adds choices
-    dynamically.
+        dynamically.
     """
 
     def __init__(self, *args, **kwargs):
         super(StorageForm, self).__init__(*args, **kwargs)
         self.fields['storage_type'] = forms.ChoiceField(
-            choices=get_storage_type_choices()
+            choices=[("---------", None)] + get_storage_type_choices()
         )
 
 
 class LocationForm(forms.ModelForm):
     """ Form for `Locations`. Overrides the `format` formfield and adds choices
-    dynamically.
+        dynamically.
     """
 
     def __init__(self, *args, **kwargs):
         super(LocationForm, self).__init__(*args, **kwargs)
         self.fields['format'] = forms.ChoiceField(
-            choices=get_format_choices()
+            choices=[("---------", None)] + get_format_choices()
         )
 
 
 class PackageForm(forms.ModelForm):
     """ Form for `Packages`. Overrides the `format` formfield and adds choices
-    dynamically.
+        dynamically.
     """
 
     def __init__(self, *args, **kwargs):
         super(PackageForm, self).__init__(*args, **kwargs)
         self.fields['format'] = forms.ChoiceField(
-            choices=get_package_format_choices()
+            choices=[("---------", None)] + get_package_format_choices()
         )
 
 
