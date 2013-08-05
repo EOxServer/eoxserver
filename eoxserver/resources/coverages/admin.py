@@ -54,8 +54,87 @@ num_collections.short_description = "Collections contained in this collection"
 
 
 #===============================================================================
+# Choices
+#===============================================================================
+
+
+def get_projection_format_choices():
+    # TODO: replace with dynamic lookup via plugins? or stick with gdal supported stuff?
+    return (
+        ("WKT", "WKT"),
+        ("XML", "XML"),
+        ("URL", "URL"),
+    )
+
+
+def get_gdal_data_type_choices():
+    from osgeo import gdalconst
+    return (
+        (gdalconst.GDT_Byte, "Byte"),
+        (gdalconst.GDT_Int16, "Int16"),
+        (gdalconst.GDT_UInt16, "UInt16"),
+        (gdalconst.GDT_Int32, "Int32"),
+        (gdalconst.GDT_UInt32, "UInt32"),
+        (gdalconst.GDT_Float32, "Float32"),
+        (gdalconst.GDT_Float64, "Float64"),
+        (gdalconst.GDT_CFloat32, "Complex32"),
+        (gdalconst.GDT_CFloat64, "Complex64"),
+    )
+
+
+def get_gdal_color_interpretation_choices():
+    from osgeo import gdalconst
+    return (
+        (gdalconst.GCI_Undefined, "Undefined"),
+        (gdalconst.GCI_GrayIndex, "Gray"),
+        (gdalconst.GCI_PaletteIndex, "PaletteIndex"),
+        (gdalconst.GCI_RedBand, "Red"),
+        (gdalconst.GCI_GreenBand, "Green"),
+        (gdalconst.GCI_BlueBand, "Blue"),
+        (gdalconst.GCI_AlphaBand, "Alpha"),
+        (gdalconst.GCI_HueBand, "Hue"),
+        (gdalconst.GCI_LightnessBand, "Lightness"),
+        (gdalconst.GCI_CyanBand, "Cyan"),
+        (gdalconst.GCI_MagentaBand, "Magenta"),
+        (gdalconst.GCI_YellowBand, "Yellow"),
+        (gdalconst.GCI_BlackBand, "Black"),
+        (gdalconst.GCI_YCbCr_YBand, "Y"),
+        (gdalconst.GCI_YCbCr_CbBand, "Cb"),
+        (gdalconst.GCI_YCbCr_CrBand, "Cr"),
+    )
+
+
+#===============================================================================
 # ModelForms
 #===============================================================================
+
+
+class RangeTypeForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(RangeTypeForm, self).__init__(*args, **kwargs)
+        self.fields['data_type'] = forms.ChoiceField(
+            choices=get_gdal_data_type_choices()
+        )
+
+
+class BandInlineForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(BandInlineForm, self).__init__(*args, **kwargs)
+        self.fields['color_interpretation'] = forms.ChoiceField(
+            choices=get_gdal_color_interpretation_choices()
+        )
+
+
+class ProjectionForm(forms.ModelForm):
+    """ Form for `Projections`. Overrides the `format` formfield and adds
+        choices dynamically.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super(ProjectionForm, self).__init__(*args, **kwargs)
+        self.fields['format'] = forms.ChoiceField(
+            choices=get_projection_format_choices()
+        )
 
 class CoverageForm(LocationForm):
     pass
@@ -136,8 +215,14 @@ class NilValueInline(AbstractInline):
 
 
 class BandInline(AbstractInline):
+    form = BandInlineForm # TODO: not working as expected...
     model = models.Band
     inlines = (NilValueInline,) # TODO: not working!
+    extra = 0
+
+    def get_queryset(self):
+        queryset = super(BandInline, self).get_queryset()
+        return queryset.order_by("index")
 
 
 class CollectionInline(AbstractInline):
@@ -165,27 +250,6 @@ class DataItemInline(AbstractInline):
 #===============================================================================
 
 
-def get_projection_format_choices():
-    # TODO: replace with dynamic lookup via plugins? or stick with gdal supported stuff?
-    return (
-        ("WKT", "WKT"),
-        ("XML", "XML"),
-        ("URL", "URL"),
-    )
-
-
-class ProjectionForm(forms.ModelForm):
-    """ Form for `Projections`. Overrides the `format` formfield and adds
-    choices dynamically.
-    """
-
-    def __init__(self, *args, **kwargs):
-        super(ProjectionForm, self).__init__(*args, **kwargs)
-        self.fields['format'] = forms.ChoiceField(
-            choices=get_projection_format_choices()
-        )
-
-
 class ProjectionAdmin(admin.ModelAdmin):
     model = models.Projection
     form = ProjectionForm
@@ -195,6 +259,7 @@ admin.site.register(models.Projection, ProjectionAdmin)
 
 class RangeTypeAdmin(admin.ModelAdmin):
     model = models.RangeType
+    form = RangeTypeForm
     inlines = (BandInline,) 
 
 admin.site.register(models.RangeType, RangeTypeAdmin)
