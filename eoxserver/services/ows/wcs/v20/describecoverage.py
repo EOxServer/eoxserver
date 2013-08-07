@@ -9,9 +9,12 @@ from eoxserver.services.ows.wcs.v20.util import nsmap
 from eoxserver.services.ows.wcs.v20.encoders import (
     WCS20CoverageDescriptionXMLEncoder
 )
+from eoxserver.services.ows.wcs.encoders import WCS20EOAPEncoder
+from eoxserver.core.util.xmltools import DOMElementToXML
 
 
-class WCS20GetCoverageHandler(Component):
+
+class WCS20DescribeCoverageHandler(Component):
     implements(OWSServiceHandlerInterface)
     implements(OWSGetServiceHandlerInterface)
     implements(OWSPostServiceHandlerInterface)
@@ -48,9 +51,8 @@ class WCS20GetCoverageHandler(Component):
         #return encoder.encode(coverages)
 
         # TODO: remove this at some point
-        from eoxserver.services.ows.wcs.encoders import WCS20EOAPEncoder
-        from eoxserver.core.util.xmltools import DOMElementToXML
-        return DOMElementToXML(WCS20EOAPEncoder().encodeCoverageDescriptions(coverages)), "text/xml"
+        encoder = WCS20EOAPEncoder()
+        return DOMElementToXML(encoder.encodeCoverageDescriptions(coverages)), "text/xml"
 
 
 class WCS20DescribeCoverageKVPDecoder(kvp.Decoder):
