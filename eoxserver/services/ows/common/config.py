@@ -29,3 +29,8 @@ class CapabilitiesConfigReader(config.Reader):
         config.Option("http_service_url", section="services.owscommon", required=True),
         config.Option("http_service_url", section="services.ows", required=True),
     )
+
+
+class WCSEOConfigReader(config.Reader):
+    section = "services.ows.wcs20"
+    paging_count_default = config.Option(type=int, default=None)
