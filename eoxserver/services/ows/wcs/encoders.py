@@ -776,7 +776,7 @@ class WCS20EOAPEncoder(WCS20Encoder):
         return self._makeElement("wcs", "CoverageDescription", sub_nodes)
 
     #TODO: remove once fully supported by mapserver 
-    def encodeSupportedCRSs( self ) : 
+    def encodeSupportedCRSs(self) : 
         """
         This method returns list of :mod:`xml.dom.minidom` elements containing
         the supported CRSes for a service. The CRSes are retrieved using
@@ -923,9 +923,9 @@ class WCS20EOAPEncoder(WCS20Encoder):
         only input.
         """
         return self._makeElement("wcseo", "DatasetSeriesDescription", [
-            ("@gml", "id", self._getGMLId(dataset_series.getEOID())),
-            (self.encodeBoundedBy(dataset_series.getWGS84Extent()),),
-            ("wcseo", "DatasetSeriesId", dataset_series.getEOID()),
+            ("@gml", "id", self._getGMLId(dataset_series.identifier)),
+            (self.encodeBoundedBy(dataset_series.extent_wgs84),),
+            ("wcseo", "DatasetSeriesId", dataset_series.identifier),
             (self.encodeTimePeriod(dataset_series),),
 #            ("wcseo", "ServiceParameters", [
 # TODO: Include all referenced EO Coverages:            
@@ -1043,9 +1043,9 @@ class WCS20EOAPEncoder(WCS20Encoder):
         """
         timeFormat = "%Y-%m-%dT%H:%M:%S"
 
-        teoid = "%s_timeperiod" % dataset_series.getEOID()
-        start = dataset_series.getBeginTime().strftime(timeFormat)
-        stop  = dataset_series.getEndTime().strftime(timeFormat)
+        teoid = "%s_timeperiod" % dataset_series.identifier
+        start = dataset_series.begin_time.strftime(timeFormat)
+        stop  = dataset_series.end_time.strftime(timeFormat)
 
         return self._makeElement("gml", "TimePeriod", [
             ("@gml", "id", self._getGMLId(teoid) ),
@@ -1060,7 +1060,7 @@ class WCS20EOAPEncoder(WCS20Encoder):
         """
         return self._makeElement("wcseo", "DatasetSeriesSummary", [
             (self.encodeWGS84BoundingBox(dataset_series),),
-            ("wcseo", "DatasetSeriesId", dataset_series.getEOID()),
+            ("wcseo", "DatasetSeriesId", dataset_series.identifier),
             (self.encodeTimePeriod(dataset_series),)
         ])
 
