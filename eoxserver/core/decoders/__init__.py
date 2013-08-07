@@ -8,7 +8,9 @@ SINGLE_VALUES = (ZERO_OR_ONE, 1)
 
 
 class DecodingException(Exception):
-    pass
+    def __init__(self, message, locator=None):
+        super(DecodingException, self).__init__(message)
+        self.locator = locator
 
 
 class WrongMultiplicity(DecodingException):
@@ -129,6 +131,27 @@ class fixed(object):
 
         return value
 
+
+class enum(object):
+    """ Helper for parameters that are expected to be in a certain enumeration.
+        A ValueError is raised if not.
+    """
+
+    def __init__(self, values, case_sensitive=True):
+        if case_sensitive:
+            values = map(lambda v: v.lower(), values)
+        self.values = values
+        self.case_sensitive = case_sensitive
+
+
+    def __call__(self, value):
+        compare = value if self.case_sensitive else value.lower()
+        if compare not in self.values:
+            raise ValueError("Unexpected value '%s'. Expected one of: %s." %
+                (value, ", ".join(self.values))
+            )
+
+        return value
 
 def lower(value):
     return value.lower()

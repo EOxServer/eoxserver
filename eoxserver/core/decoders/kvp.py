@@ -6,15 +6,18 @@ from eoxserver.core.decoders import (
 class Parameter(object):
     key = None
 
-    def __init__(self, key=None, type=None, separator=None, num=1, default=None):
+    def __init__(self, key=None, type=None, separator=None, num=1, default=None,
+                 locator=None):
         self.key = key
         self.type = type
         self.separator = separator
         self.num = num
         self.default = default
+        self.locator = locator
 
     def __get__(self, decoder, decoder_class=None):
         multiple = self.num not in SINGLE_VALUES
+        locator = self.locator or self.key
 
         # TODO: allow simple dicts aswell
         results = decoder._query_dict.getlist(self.key)
@@ -22,13 +25,19 @@ class Parameter(object):
         count = len(results)
 
         if not multiple and count > 1:
-            raise WrongMultiplicity("Expected at most one, got %d." % count)
+            raise WrongMultiplicity(
+                "Expected at most one, got %d." % count, locator
+            )
 
         elif isinstance(self.num, int) and count != self.num:
-            raise WrongMultiplicity("Expected %d, got %d." % (self.num, count))
+            raise WrongMultiplicity(
+                "Expected %d, got %d." % (self.num, count), locator
+            )
 
         elif self.num == ONE_OR_MORE and count == 0:
-            raise WrongMultiplicity("Expected at least one, got 0.")
+            raise WrongMultiplicity(
+                "Expected at least one, got none.", locator
+            )
 
         if multiple:
             return map(self.type, results)

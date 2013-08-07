@@ -9,22 +9,25 @@ from eoxserver.core.decoders import (
 
 class Parameter(object):
     def __init__(self, selector, type=None, separator=None,
-                 num=1, default=None, namespaces=None):
+                 num=1, default=None, namespaces=None, locator=None):
         self.selector = selector
         self.type = type
         self.separator = separator
         self.num = num # int or "?", "+", "*"
         self.default = default # only used for "?"
         self.namespaces = namespaces
+        self.locator = locator
 
 
     def __get__(self, decoder, decoder_class=None):
         # prepare the XPath selector if necessary
         if isinstance(self.selector, basestring):
             namespaces = self.namespaces or decoder_class.namespaces
-            self.selector = etree.XPath(selector, namespaces=namespaces)
+            self.selector = etree.XPath(self.selector, namespaces=namespaces)
 
+        locator = self.locator or str(self.selector)
         multiple = self.num not in SINGLE_VALUES
+
         results = self.selector(decoder._tree)
         count = len(results)
 
@@ -32,19 +35,29 @@ class Parameter(object):
             raise WrongMultiplicity
 
         elif isinstance(self.num, int) and count != self.num:
-            raise WrongMultiplicity("Expected %d, got %d." % (self.num, count))
+            raise WrongMultiplicity(
+                "Expected %d, got %d." % (self.num, count), locator
+            )
 
         elif self.num == ONE_OR_MORE and count == 0:
-            raise WrongMultiplicity
+            raise WrongMultiplicity(
+                "Expected at least one, got none.", locator
+            )
 
         if multiple:
-            return map(self.type, results)
+            try:
+                return map(self.type, results)
+            except Exception, e:
+                raise TypeConversion(str(e), locator)
 
         elif self.num == ZERO_OR_ONE and count == 0:
             return self.default
 
         elif self.type:
-            return self.type(results[0])
+            try:
+                return self.type(results[0])
+            except Exception, e:
+                raise TypeConversion(str(e), locator)
 
         return results[0]
 
