@@ -48,7 +48,20 @@ class OWSServiceHandlerInterface(object):
 
 
 class OWSExceptionHandlerInterface(object): 
-    pass
+    @property
+    def service(self):
+        pass
+
+    @property
+    def versions(self):
+        pass
+
+    @property
+    def request(self):
+        pass
+
+    def handle(self, request):
+        pass
 
 
 class OWSGetServiceHandlerInterface(OWSServiceHandlerInterface):
