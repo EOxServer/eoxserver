@@ -49,3 +49,22 @@ GML = ElementMaker(namespace=ns_gml.uri, nsmap=nsmap)
 WCS = ElementMaker(namespace=ns_wcs.uri, nsmap=nsmap)
 CRS = ElementMaker(namespace=ns_crs.uri, nsmap=nsmap)
 EOWCS = ElementMaker(namespace=ns_eowcs.uri, nsmap=nsmap)
+
+
+class SectionsMixIn(object):
+    """ Mix-in for request decoders that use sections.
+    """
+
+    def section_included(self, *sections):
+        """ See if one of the sections is requested.
+        """
+        if not self.sections:
+            return True
+
+        for section in sections:
+            section = section.upper()
+            if "ALL" in self.sections or section in self.sections:
+                return True
+
+        return False
+
