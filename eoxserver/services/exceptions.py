@@ -29,7 +29,9 @@
 
 from eoxserver.core.exceptions import EOxSException
 
-class InvalidRequestException(EOxSException):
+
+
+class InvalidRequestException(Exception):
     """
     This exception indicates that the request was invalid and an exception
     report shall be returned to the client.
@@ -42,16 +44,16 @@ class InvalidRequestException(EOxSException):
     How exactly the exception reports are constructed is not defined by the
     exception, but by exception handlers.
     """
-    def __init__(self, msg, error_code, locator):
+    def __init__(self, msg, code=None, locator=None):
         super(InvalidRequestException, self).__init__(msg)
-        
-        self.msg = msg
-        self.error_code = error_code
+    
+        self.code = code or "InvalidRequest"
         self.locator = locator
     
     def __str__(self):
-        return "Invalid Request: ErrorCode: %s; Locator: %s; Message: '%s'" % (
-            self.error_code, self.locator, self.msg
+        return "Invalid Request: Code: %s; Locator: %s; Message: '%s'" % (
+            self.code, self.locator, 
+            super(InvalidRequestException, self).__str__()
         )
 
 class VersionNegotiationException(EOxSException):
@@ -74,3 +76,20 @@ class InvalidSubsettingException(EOxSException):
     submitted.
     """
     pass
+
+
+class NoSuchObjectException(Exception):
+    def __init__(self, ids):
+        self.ids = ids
+
+    @property
+    def locator(self):
+        return " ".join(self.ids)
+
+
+class NoSuchCoverageException(NoSuchObjectException):
+    code = "NoSuchCoverage"
+
+
+class NoSuchDatasetSeriesOrCoverage(NoSuchObjectException):
+    code = "NoSuchDatasetSeriesOrCoverage"
