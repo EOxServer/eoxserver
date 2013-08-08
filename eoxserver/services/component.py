@@ -65,8 +65,18 @@ class OWSServiceComponent(Component):
         return handlers
 
 
-    def get_exception_handler(self, request):
+    def query_exception_handler(self, request):
         decoder = self.get_decoder(request)
+        handlers = self.exception_handlers
+
+        # TODO: improve. a lot.
+        for handler in handlers:
+            if (decoder.service == handler.service 
+                and decoder.version in handler.versions):
+                
+                return handler
+
+        return None
 
 
 class OWSCommonKVPDecoder(kvp.Decoder):

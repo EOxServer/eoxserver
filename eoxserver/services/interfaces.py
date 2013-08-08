@@ -60,7 +60,7 @@ class OWSExceptionHandlerInterface(object):
     def request(self):
         pass
 
-    def handle(self, request):
+    def handle_exception(self, request, exception):
         pass
 
 
