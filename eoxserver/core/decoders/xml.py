@@ -3,7 +3,8 @@ import sys
 from lxml import etree
 
 from eoxserver.core.decoders import (
-    ZERO_OR_ONE, ONE_OR_MORE, ANY, SINGLE_VALUES, WrongMultiplicity, typelist
+    ZERO_OR_ONE, ONE_OR_MORE, ANY, SINGLE_VALUES, WrongMultiplicityException, 
+    InvalidParameterException, MissingParameterException
 )
 
 
@@ -32,23 +33,30 @@ class Parameter(object):
         count = len(results)
 
         if not multiple and count > 1:
-            raise WrongMultiplicity
+            raise WrongMultiplicityException(
+                "Expected at most one, got %d." % count, locator
+            )
 
-        elif isinstance(self.num, int) and count != self.num:
-            raise WrongMultiplicity(
-                "Expected %d, got %d." % (self.num, count), locator
+        elif self.num == 1 and count == 0:
+            raise MissingParameterException(
+                "Expected exactly one, got none.", locator
             )
 
         elif self.num == ONE_OR_MORE and count == 0:
-            raise WrongMultiplicity(
+            raise MissingParameterException(
                 "Expected at least one, got none.", locator
+            )
+
+        elif isinstance(self.num, int) and count != self.num:
+            raise WrongMultiplicityException(
+                "Expected %d, got %d." % (self.num, count), locator
             )
 
         if multiple:
             try:
                 return map(self.type, results)
             except Exception, e:
-                raise TypeConversion(str(e), locator)
+                raise InvalidParameterException(str(e), locator)
 
         elif self.num == ZERO_OR_ONE and count == 0:
             return self.default
@@ -57,7 +65,7 @@ class Parameter(object):
             try:
                 return self.type(results[0])
             except Exception, e:
-                raise TypeConversion(str(e), locator)
+                raise InvalidParameterException(str(e), locator)
 
         return results[0]
 

@@ -13,7 +13,7 @@ class DecodingException(Exception):
         self.locator = locator
 
 
-class WrongMultiplicity(DecodingException):
+class WrongMultiplicityException(DecodingException):
     pass
 
 
@@ -22,6 +22,13 @@ class NoChoiceResultException(DecodingException):
 
 
 class ExclusiveException(DecodingException):
+    pass
+
+
+class InvalidParameterException(DecodingException):
+    pass
+
+class MissingParameterException(DecodingException):
     pass
 
 
@@ -138,7 +145,7 @@ class enum(object):
     """
 
     def __init__(self, values, case_sensitive=True):
-        if case_sensitive:
+        if not case_sensitive:
             values = map(lambda v: v.lower(), values)
         self.values = values
         self.case_sensitive = case_sensitive
