@@ -4,6 +4,9 @@ from django.utils.dateparse import parse_datetime, parse_date
 from django.contrib.gis.geos import Polygon
 
 from eoxserver.resources.coverages import crss
+from eoxserver.services.exceptions import (
+    InvalidAxisLabelException, InvalidSubsettingException
+)
 
 
 __all__ = ["Subsets", "Trim", "Slice"]
@@ -170,16 +173,24 @@ class Subsets(list):
             raise ValueError("Supplied argument is not a subset.")
 
         if not isinstance(subset, self.allowed_types):
-            raise ValueError("Supplied subset is not allowed.")
+            raise InvalidSubsettingException(
+                "Supplied subset is not allowed."
+            )
 
         if self.has_x and subset.is_x:
-            raise ValueError("Multiple subsets for X-axis given.")
+            raise InvalidSubsettingException(
+                "Multiple subsets for X-axis given."
+            )
 
         if self.has_y and subset.is_y:
-            raise ValueError("Multiple subsets for Y-axis given.")
+            raise InvalidSubsettingException(
+                "Multiple subsets for Y-axis given."
+            )
 
         if self.has_t and subset.is_temporal:
-            raise ValueError("Multiple subsets for time-axis given.")
+            raise InvalidSubsettingException(
+                "Multiple subsets for time-axis given."
+            )
 
 
 
@@ -187,7 +198,9 @@ class Subset(object):
     def __init__(self, axis, crs=None):
         axis = axis.lower()
         if axis not in all_axes:
-            raise ValueError("Axis '%s' is not valid or supported." % axis)
+            raise InvalidAxisLabelException(
+                "Axis '%s' is not valid or supported." % axis
+            )
         self.axis = axis
         self.crs = crs
 
