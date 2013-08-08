@@ -346,6 +346,35 @@ def isProjected( epsg ) :
     return bool( spat_ref.IsProjected() ) 
 
 
+def crs_bounds(srid):
+    """ Get the maximum bounds of the CRS. """
+
+    srs = osr.SpatialReference()
+    srs.ImportFromEPSG(srid)
+        
+    if srs.IsGeographic():
+        return (-180.0, -90.0, 180.0, 90.0)
+    else:
+        earth_circumference = 2 * math.pi * srs.GetSemiMajor()
+    
+        return (
+            -earth_circumference,
+            -earth_circumference,
+            earth_circumference,
+            earth_circumference
+        )
+
+def crs_tolerance(srid):
+    """ Get the "tolerance" of the CRS """
+
+    srs = osr.SpatialReference()
+    srs.ImportFromEPSG(srid)
+        
+    if srs.IsGeographic():
+        return 1e-8
+    else:
+        return 1e-2
+
 #-------------------------------------------------------------------------------
 
 def _parseListOfCRS(raw_value) : 
