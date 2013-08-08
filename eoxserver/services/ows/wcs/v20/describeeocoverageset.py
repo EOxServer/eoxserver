@@ -8,19 +8,17 @@ from django.db.models import Q
 from eoxserver.core import Component, implements
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.decoders import xml, kvp, typelist, upper, enum
+from eoxserver.core.util.xmltools import DOMElementToXML
 from eoxserver.resources.coverages import models
 from eoxserver.services.interfaces import (
     OWSServiceHandlerInterface, 
     OWSGetServiceHandlerInterface, OWSPostServiceHandlerInterface
 )
 from eoxserver.services.ows.wcs.v20.util import nsmap, SectionsMixIn
-from eoxserver.services.ows.wcs.v20.encoders import (
-    WCS20CoverageDescriptionXMLEncoder
-)
 from eoxserver.services.ows.wcs.encoders import WCS20EOAPEncoder
-from eoxserver.core.util.xmltools import DOMElementToXML
 from eoxserver.services.ows.common.config import WCSEOConfigReader
 from eoxserver.services.subset import Subsets, Trim
+from eoxserver.services.exceptions import NoSuchDatasetSeriesOrCoverage
 
 
 logger = logging.getLogger(__name__)
@@ -57,6 +55,9 @@ class WCS20DescribeEOCoverageSetHandler(Component):
             subsets = Subsets(decoder.subsets, allowed_types=Trim)
         except ValueError, e:
             raise InvalidSubset(str(e))
+
+        inc_dss_section = decoder.section_included("DatasetSeriesDescriptions")
+        inc_cov_section = decoder.section_included("CoverageDescriptions")
 
         if len(eo_ids) == 0:
             raise
@@ -117,12 +118,14 @@ class WCS20DescribeEOCoverageSetHandler(Component):
         # the "count" parameter and default setting. Also, if we already 
         # exceeded the count, limit the number of dataset series aswell
 
-        # TODO: also take "sections" into account
-        
-        num_collections = len(collection_set)
-        if num_collections < count:
+        if inc_dss_section:
+            num_collections = len(collection_set)
+        else:
+            num_collections = 0
+
+        if num_collections < count and inc_cov_section:
             coverages_qs = coverages_qs.order_by("identifier")[:count - num_collections]
-        elif num_collections == count:
+        elif num_collections == count or not inc_cov_section:
             coverages_qs = []
         else:
             coverages_qs = []
@@ -136,15 +139,15 @@ class WCS20DescribeEOCoverageSetHandler(Component):
         if containment == "within":
             collection_set = filter(lambda c: subsets.matches(c), collection_set)
 
-        coverages = [] if decoder.section_included("CoverageDescriptions") else None
-        dataset_series = [] if decoder.section_included("DatasetSeriesDescriptions") else None
+        coverages = []
+        dataset_series = []
 
         # finally iterate over everything that has been retrieved and get
         # a list of dataset series and coverages to be encoded into the response
         for eo_object in chain(coverages_qs, collection_set):
-            if coverages is not None and issubclass(eo_object.real_type, models.Coverage):
+            if inc_cov_section and issubclass(eo_object.real_type, models.Coverage):
                 coverages.append(eo_object.cast())
-            elif dataset_series is not None and issubclass(eo_object.real_type, models.DatasetSeries):
+            elif inc_dss_section and issubclass(eo_object.real_type, models.DatasetSeries):
                 dataset_series.append(eo_object.cast())
 
             else:
@@ -170,7 +173,9 @@ class WCS20DescribeEOCoverageSetHandler(Component):
 
 
 def parse_subset_kvp(string):
-    
+    """ 
+
+    """
 
     subset_re = re.compile(r'(\w+)(,([^(]+))?\(([^,]*)(,([^)]*))?\)')
     match = subset_re.match(string)
@@ -204,22 +209,26 @@ def pos_int(value):
         raise ValueError("Negative values are not allowed.")
     return value
 
-containment_type = enum(("overlaps", "contains"), False)
-
+containment_enum = enum(
+    ("overlaps", "contains"), False
+)
+sections_enum = enum(
+    ("DatasetSeriesDescriptions", "CoverageDescriptions", "All"), False
+)
 
 class WCS20DescribeEOCoverageSetKVPDecoder(kvp.Decoder, SectionsMixIn):
-    eo_ids      = kvp.Parameter("eoid", type=typelist(str, ","), num=1)
+    eo_ids      = kvp.Parameter("eoid", type=typelist(str, ","), num=1, locator="eoid")
     subsets     = kvp.Parameter("subset", type=parse_subset_kvp, num="*")
-    containment = kvp.Parameter(type=containment_type, num="?")
+    containment = kvp.Parameter(type=containment_enum, num="?")
     count       = kvp.Parameter(type=pos_int, num="?", default=sys.maxint)
-    sections    = kvp.Parameter(type=typelist(upper, ","), num="?")
+    sections    = kvp.Parameter(type=typelist(sections_enum, ","), num="?")
 
 
 class WCS20DescribeEOCoverageSetXMLDecoder(xml.Decoder, SectionsMixIn):
-    eo_ids      = xml.Parameter("/wcs:CoverageId/text()", num="+")
+    eo_ids      = xml.Parameter("/wcs:CoverageId/text()", num="+", locator="eoid")
     subsets     = xml.Parameter("/wcs:DimensionTrim", type=parse_subset_xml)
-    containment = xml.Parameter("/wcseo:containment/text()", type=containment_type)
-    count       = xml.Parameter("/@count", type=pos_int, num="?", default=sys.maxint)
-    sections    = xml.Parameter("/wcseo:sections/wcseo:section/text()", num="*")
+    containment = xml.Parameter("/wcseo:containment/text()", type=containment_enum, locator="containment")
+    count       = xml.Parameter("/@count", type=pos_int, num="?", default=sys.maxint, locator="count")
+    sections    = xml.Parameter("/wcseo:sections/wcseo:section/text()", type=sections_enum, num="*", locator="sections")
 
     namespaces = nsmap
