@@ -28,6 +28,7 @@ class ExclusiveException(DecodingException):
 class InvalidParameterException(DecodingException):
     pass
 
+
 class MissingParameterException(DecodingException):
     pass
 
