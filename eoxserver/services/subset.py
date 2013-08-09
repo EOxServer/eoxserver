@@ -59,7 +59,7 @@ class Subsets(list):
             return None
 
         all_crss = set(
-            map(lambda s: s.crs, )
+            map(lambda s: s.crs, xy_subsets)
         )
 
         if len(all_crss) != 1:
