@@ -1,40 +1,14 @@
 from lxml.builder import ElementMaker
-#from eoxserver.core.util.xml import NameSpace, NameSpaceMap
-
-class NameSpace(object):
-    def __init__(self, uri, prefix=None):
-        self._uri = uri
-        self._lxml_uri = "{%s}" % uri
-        self._prefix = prefix
-
-    @property
-    def uri(self):
-        return self._uri
-
-    @property
-    def prefix(self):
-        return self._prefix
-    
-    def __call__(self, tag):
-        return self._lxml_uri + tag
-
-
-class NameSpaceMap(dict):
-    def __init__(self, *namespaces):
-        for namespace in namespaces:
-            self.add(namespace)
-
-    def add(self, namespace):
-        self[namespace.prefix] = namespace.uri
+from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap
 
 
 # namespace declarations
 ns_xlink = NameSpace("http://www.w3.org/1999/xlink", "xlink")
 ns_ogc = NameSpace("http://www.opengis.net/ogc", "ogc")
-ns_ows = NameSpace("http://www.opengis.net/ows/2.0", "wcs")
+ns_ows = NameSpace("http://www.opengis.net/ows/2.0", "ows")
 ns_gml = NameSpace("http://www.opengis.net/gml/3.2", "gml")
 ns_gmlcov = NameSpace("http://www.opengis.net/gml/3.2", "gmlcov")
-ns_wcs = NameSpace("http://www.opengis.net/wcs/2.0", "ows")
+ns_wcs = NameSpace("http://www.opengis.net/wcs/2.0", "wcs")
 ns_crs = NameSpace("http://www.opengis.net/wcs/service-extension/crs/1.0", "crs")
 ns_eowcs = NameSpace("http://www.opengis.net/wcseo/1.0", "eowcs")
 

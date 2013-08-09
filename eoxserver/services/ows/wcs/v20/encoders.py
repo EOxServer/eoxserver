@@ -216,15 +216,3 @@ class WCS20CapabilitiesXMLEncoder(object):
 class WCS20CoverageDescriptionXMLEncoder(object):
     def encode(self, coverages):
         pass
-
-
-class WCS20ExceptionXMLEncoder(object):
-    def encode(self, message, code, locator):
-        # TODO schema location, xml:lang
-        root = OWS("ExceptionReport", 
-            OWS("Exception", 
-                OWS("ExceptionText", message),
-                exceptionCode=code, locator=locator
-            )
-        )
-        return etree.tostring(root, pretty_print=True, encoding='iso-8859-1'), "text/xml"
