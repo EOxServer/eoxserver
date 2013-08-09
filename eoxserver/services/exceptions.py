@@ -27,9 +27,6 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from eoxserver.core.exceptions import EOxSException
-
-
 
 class InvalidRequestException(Exception):
     """
@@ -56,40 +53,66 @@ class InvalidRequestException(Exception):
             super(InvalidRequestException, self).__str__()
         )
 
-class VersionNegotiationException(EOxSException):
+class VersionNegotiationException(Exception):
     """
     This exception indicates that version negotiation fails. Such errors can
     happen with OWS 2.0 compliant "new-style" version negotation.
     """
-    pass
+    code = "VersionNegotiationFailed"
 
-class InvalidAxisLabelException(EOxSException):
+
+class LocatorListException(Exception):
+    """ Base class for exceptions that report that a number of items are missing
+        or invalid
+    """
+    def __init__(self, items):
+        self.items = items
+
+    @property
+    def locator(self):
+        "This property provides a list of all missing/invalid items."
+        return " ".join(self.items)
+
+
+class InvalidAxisLabelException(LocatorListException):
     """
     This exception indicates that an invalid axis name was chosen in a WCS
     2.0 subsetting parameter.
     """
-    pass
+    code = "InvalidAxisLabels"
 
-class InvalidSubsettingException(EOxSException):
+
+class InvalidSubsettingException(Exception):
     """
     This exception indicates an invalid WCS 2.0 subsetting parameter was
     submitted.
     """
-    pass
+    code = "InvalidSubsetting"
+    locator = "subset"
 
 
-class NoSuchObjectException(Exception):
-    def __init__(self, ids):
-        self.ids = ids
-
-    @property
-    def locator(self):
-        return " ".join(self.ids)
-
-
-class NoSuchCoverageException(NoSuchObjectException):
+class NoSuchCoverageException(LocatorListException):
+    """ This exception indicates that the requested coverage(s) do not 
+        exist.
+    """
     code = "NoSuchCoverage"
 
+    def __str__(self):
+        return "Could not find Coverage%s with ID: %s" % (
+            " " if len(self.items) == 1 else "s", ", ".join(self.items)
+        )
 
-class NoSuchDatasetSeriesOrCoverage(NoSuchObjectException):
+
+class NoSuchDatasetSeriesOrCoverageException(LocatorListException):
+    """ This exception indicates that the requested coverage(s) or dataset 
+        series do not exist.
+    """
     code = "NoSuchDatasetSeriesOrCoverage"
+
+    def __str__(self):
+        return "Could not find Coverage%s or Dataset Series with ID: %s" % (
+            " " if len(self.items) == 1 else "s", ", ".join(self.items)
+        )
+
+class OperationNotSupportedException(Exception):
+    pass
