@@ -1,5 +1,5 @@
 from eoxserver.core import env, Component, implements, ExtensionPoint
-from eoxserver.core.decoders import kvp, xml
+from eoxserver.core.decoders import kvp, xml, upper
 from eoxserver.services.interfaces import *
 
 
@@ -13,8 +13,7 @@ class OWSServiceComponent(Component):
 
     def __init__(self, *args, **kwargs):
         super(OWSServiceComponent, self).__init__(*args, **kwargs)
-        #self.service_handlers = None
-        #self.exception_handlers = None
+
 
     def get_decoder(self, request):
         if request.method == "GET":
@@ -24,14 +23,18 @@ class OWSServiceComponent(Component):
 
 
     def query_service_handler(self, request):
+        """ Tries to find the correct service handler
+        """
         decoder = self.get_decoder(request)
         handlers = self.service_handlers
 
+        # TODO: version negotiation
+
         # TODO: improve. a lot.
         for handler in handlers:
-            if (decoder.service == handler.service 
+            if (decoder.service == handler.service.upper()
                 and decoder.version in handler.versions 
-                and decoder.request == handler.request):
+                and decoder.request == handler.request.upper()):
                 
                 # TODO: also take request method into account
 
@@ -41,7 +44,10 @@ class OWSServiceComponent(Component):
 
 
     def query_service_handlers(self, service=None, versions=None, request=None, method=None):
+        service = service.upper() if service is not None else None
+        request = request.upper() if request is not None else None
         method = method.upper() if method is not None else None
+
         if method == "GET":
             handlers = self.get_service_handlers
         elif method == "POST":
@@ -60,7 +66,7 @@ class OWSServiceComponent(Component):
             )
 
         if request:
-            handlers = filter(lambda h: h.request == request, handlers)
+            handlers = filter(lambda h: h.request.upper() == request, handlers)
 
         return handlers
 
@@ -80,12 +86,12 @@ class OWSServiceComponent(Component):
 
 
 class OWSCommonKVPDecoder(kvp.Decoder):
-    service = kvp.Parameter("service")
+    service = kvp.Parameter("service", type=upper)
     version = kvp.Parameter("version", num="?")
-    request = kvp.Parameter("request")
+    request = kvp.Parameter("request", type=upper)
 
 
 class OWSCommonXMLDecoder(kvp.Decoder):
-    service = xml.Parameter("@service")
+    service = xml.Parameter("@service", type=upper)
     version = xml.Parameter("@version", num="?")
-    request = xml.Parameter("local-name()")
+    request = xml.Parameter("local-name()", type=upper)
