@@ -18,7 +18,7 @@ from eoxserver.services.ows.wcs.v20.util import nsmap, SectionsMixIn
 from eoxserver.services.ows.wcs.encoders import WCS20EOAPEncoder
 from eoxserver.services.ows.common.config import WCSEOConfigReader
 from eoxserver.services.subset import Subsets, Trim
-from eoxserver.services.exceptions import NoSuchDatasetSeriesOrCoverage
+from eoxserver.services.exceptions import NoSuchDatasetSeriesOrCoverageException
 
 
 logger = logging.getLogger(__name__)
@@ -71,7 +71,7 @@ class WCS20DescribeEOCoverageSetHandler(Component):
         # requested, that are not available, raise and exit.
         failed = [ eo_id for eo_id in eo_ids if eo_id not in available_ids ]
         if failed:
-            raise NoSuchDatasetSeriesOrCoverage(failed)
+            raise NoSuchDatasetSeriesOrCoverageException(failed)
 
         collections_qs = subsets.filter(models.Collection.objects.filter(
             identifier__in=eo_ids
