@@ -226,7 +226,7 @@ class WCS20DescribeEOCoverageSetKVPDecoder(kvp.Decoder, SectionsMixIn):
 
 class WCS20DescribeEOCoverageSetXMLDecoder(xml.Decoder, SectionsMixIn):
     eo_ids      = xml.Parameter("/wcs:CoverageId/text()", num="+", locator="eoid")
-    subsets     = xml.Parameter("/wcs:DimensionTrim", type=parse_subset_xml)
+    subsets     = xml.Parameter("/wcs:DimensionTrim", type=parse_subset_xml, num="*")
     containment = xml.Parameter("/wcseo:containment/text()", type=containment_enum, locator="containment")
     count       = xml.Parameter("/@count", type=pos_int, num="?", default=sys.maxint, locator="count")
     sections    = xml.Parameter("/wcseo:sections/wcseo:section/text()", type=sections_enum, num="*", locator="sections")
