@@ -1,4 +1,14 @@
+import logging
+
 import mapscript
+
+from eoxserver.core.util.multiparttools import mpUnpack, mpPack, capitalize
+from eoxserver.core.util.multiparttools import getMimeType, getMultipartBoundary
+
+
+logger = logging.getLogger(__name__)
+is_xml = lambda ct: getMimeType(ct) in ("text/xml", "application/xml", "application/gml+xml")
+is_multipart = lambda ct: getMimeType(ct).startswith("multipart/") 
 
 
 class Request(mapscript.OWSRequest):
@@ -19,7 +29,6 @@ class Request(mapscript.OWSRequest):
                 self[key] = value
         else:
             self.postrequest = params
-
 
 
     def __getitem__(self, key): 
@@ -52,13 +61,42 @@ class Request(mapscript.OWSRequest):
 class Response(object):
     """ Data class for mapserver results. 
     """
-    def __init__(self, ):
+
+    def __init__(self, content, content_type, status):
         pass
 
     @property
     def multipart(self):
-        return 
-    
+        return
+
+
+     def _split(self, content, content_type):
+
+        if is_multipart(content_type): 
+        
+            # extract multipart boundary  
+            boundary = getMultipartBoundary(content_type)
+
+            for headers, offset, size in mpUnpack(content, boundary, capitalize=True):
+
+                if is_xml( headers['Content-Type'] ) : 
+                    self.ms_response_xml = self.content[offset:(offset+size)]
+                    self.ms_response_xml_headers = headers
+                else : 
+                    self.ms_response_data = self.content[offset:(offset+size)] 
+                    self.ms_response_data_headers = headers
+
+        else: # single part payload 
+            
+            headers = headcap(headers)
+            headers['Content-Type'] = self.content_type 
+
+            if is_xml( self.content_type ) : 
+                self.ms_response_xml = self.content
+                self.ms_response_xml_headers = headers
+            else : 
+                self.ms_response_data = self.content 
+                self.ms_response_data_headers = headers
 
 
 
@@ -87,14 +125,14 @@ class MetadataMixIn(object):
                 if namespace:
                     key = "%s_%s" % (key, namespace)
 
-                self.setMetaData(key, value)
+                super(MetadataMixIn, self).setMetaData(key, value)
         else:
             if namespace:
                 key = "%s_%s" % (key_or_params, namespace)
             else:
                 key = key_or_params
 
-            return self.setMetaData(key, value)
+            return super(MetadataMixIn, self).setMetaData(key, value)
 
 
 class Map(mapscript.mapObj, MetadataMixIn):
@@ -158,4 +196,11 @@ class Map(mapscript.mapObj, MetadataMixIn):
 
 
 class Layer(mapscript.layerObj, MetadataMixIn):
-    pass
+    def __init__(self, name, metadata=None, type=mapscript.MS_LAYER_RASTER, mapobj=None):
+        mapscript.layerObj.__init__(self, mapobj)
+        MetadataMixIn.__init__(self, metadata)
+        self.status = mapscript.MS_ON
+        if type == MS_LAYER_RASTER:
+            self.dump = MS_TRUE
+            self.setConnectionType(mapscript.MS_RASTER, "")
+        self.type = type
