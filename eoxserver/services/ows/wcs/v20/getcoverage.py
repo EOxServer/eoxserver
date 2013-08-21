@@ -36,6 +36,12 @@ class WCS20GetCoverageHandler(Component):
 
         renderer = self.get_renderer(coverage_type)
 
+
+        # translate arguments
+        params = {
+            "coverageid": decoder.coverageid,
+        }
+
         try:
             renderer.render(coverage) # TODO: pass arguments
         except Exception, e:
@@ -52,19 +58,26 @@ class WCS20GetCoverageHandler(Component):
         raise "No renderer found for coverage type '%s'." % coverage_type.__name__
 
 
-
-
-
-
-
-
 class WCS20GetCoverageKVPDecoder(kvp.Decoder):
     coverage_id = kvp.Parameter("coverageid", num=1)
     subsets     = kvp.Parameter("subset", type=parse_subset_kvp, num="*")
+    sizes       = kvp.Parameter("size", type=parse_size_kvp, num="*")
+    resolutions = kvp.Parameter("resolution", type=parse_resolution_kvp, num="*")
+    rangesubset = kvp.Parameter("rangesubset", type=typelist(str, ","), num="?")
+    format      = kvp.Parameter("format", num="?")
+    outputcrs   = kvp.Parameter("outputcrs", num="?")
+    mediatype   = kvp.Parameter("mediatype", num="?")
 
 
 class WCS20GetCoverageXMLDecoder(xml.Decoder):
     coverage_id = xml.Parameter("/wcs:CoverageId/text()", num=1, locator="coverageid")
     subsets     = xml.Parameter("/wcs:DimensionTrim", type=parse_subset_xml, num="*")
+
+    rangesubset = kvp.Parameter("rangesubset", type=typelist(str, ","), num="?")
+
+    format      = xml.Parameter("/wcs:format/text()", num="?", locator="format")
+    # TODO:!!!
+    outputcrs   = xml.Parameter("/wcs:mediaType/text()", num="?", locator="outputcrs")
+    mediatype   = xml.Parameter("/wcs:mediaType/text()", num="?", locator="mediatype")
     
     namespaces = nsmap
