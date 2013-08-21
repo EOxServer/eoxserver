@@ -17,6 +17,25 @@ def generate_hash(location, format, hash_impl="sha1"):
     return h.hexdigest()
 
 
+def connect(data_item, cache=None):
+    """ return a connection string, either for a local (cached) data or something 
+        residing on a server of some kind
+    """
+
+    backend = BackendComponent(env)
+
+    storage = data_item.storage
+
+    if storage:
+        component = backend.get_connected_storage_component(storage.storage_type)
+
+    if not storage or not component:
+        return retrieve(data_item, cache)
+
+    return component.connect(storage.url, data_item.location)
+
+
+
 def retrieve(data_item, cache=None):
     """ 
     """
@@ -57,7 +76,7 @@ def _retrieve_from_storage(backend, data_item, storage, item_id, path, cache):
     """
     logger.debug("Accessing storage %s." % storage)
 
-    component = backend.get_storage_component(
+    component = backend.get_file_storage_component(
         storage.storage_type
     )
 
