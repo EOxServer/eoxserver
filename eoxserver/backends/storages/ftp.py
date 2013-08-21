@@ -6,11 +6,11 @@ from urlparse import urlparse
 from django.core.exceptions import ValidationError
 
 from eoxserver.core import Component, implements
-from eoxserver.backends.interfaces import StorageInterface
+from eoxserver.backends.interfaces import FileStorageInterface
 
 
 class FTPStorage(Component):
-    implements(StorageInterface)
+    implements(FileStorageInterface)
 
     name = "FTP"
 

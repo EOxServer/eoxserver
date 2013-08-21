@@ -2,11 +2,11 @@ from os import path
 from urlparse import urlparse
 
 from eoxserver.core import Component, implements
-from eoxserver.backends.interfaces import StorageInterface
+from eoxserver.backends.interfaces import FileStorageInterface
 
 
 class LocalStorage(Component):
-    implements(StorageInterface)
+    implements(FileStorageInterface)
 
 
     name = "local"

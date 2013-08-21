@@ -5,13 +5,26 @@ from eoxserver.backends.interfaces import *
 
 class BackendComponent(Component):
     data_readers = ExtensionPoint(DataReaderInterface)
-    storages = ExtensionPoint(StorageInterface)
+    file_storages = ExtensionPoint(FileStorageInterface)
+    connected_storages = ExtensionPoint(ConnectedStorageInterface)
     packages = ExtensionPoint(PackageInterface)
 
-    def get_storage_component(self, storage_type):
+    def get_file_storage_component(self, storage_type):
         storage_type = storage_type.upper()
         result_component = None
-        for storage_component in self.storages:
+        for storage_component in self.file_storages:
+            if storage_component.name.upper() == storage_type:
+                if result_component is not None:
+                    raise Exception("Ambigouus storage component")
+                result_component = storage_component
+
+        return result_component
+
+
+    def get_connected_storage_component(self, storage_type):
+        storage_type = storage_type.upper()
+        result_component = None
+        for storage_component in self.connected_storages:
             if storage_component.name.upper() == storage_type:
                 if result_component is not None:
                     raise Exception("Ambigouus storage component")
@@ -32,9 +45,4 @@ class BackendComponent(Component):
         return result_component
 
 
-
-
-
-
 BackendComponent(env)
-

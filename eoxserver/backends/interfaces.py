@@ -48,20 +48,40 @@ class DataReaderInterface(object):
 
 
 class MetadataReaderInterface(object):
-
     pass
 
-class StorageInterface(object):
 
+class AbstractStorageInterface(object):
     @property
     def name(self):
         "Name of the storage implementation."
+
+    def validate(self, url):
+        """ Validates the given storage locator and raises a ValidationError
+            if errors occurred.
+        """
+
+class FileStorageInterface(AbstractStorageInterface):
+    """ Interface for storages that provide access to files and allow the 
+        retrieval of those.
+    """
 
     def retrieve(self, url, location, path):
         """ Retrieve a remote file from the storage specified by the given `url` 
             and location and store it to the given `path`. Storages that don't
             need to actually retrieve and store files, just need to return a 
             path to a local file instead of storing it under `path`.
+        """
+
+
+class ConnectedStorageInterface(AbstractStorageInterface):
+    """ Interface for storages that do not store "files" but provide access to
+        data in a different fashion.
+    """
+    
+    def connect(self, url, location):
+        """ Return a connection string for a remote dataset residing on a 
+            storage specified by the given `url` and `location`.
         """
 
 
