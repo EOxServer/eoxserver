@@ -75,7 +75,7 @@ class OWSPostServiceHandlerInterface(OWSServiceHandlerInterface):
 
 class CoverageRendererInterface(object):
 
-    def render(self, coverage, outputcrs=None, subsets=None, interpolation=None
+    def render(self, coverage, outputcrs=None, subsets=None, interpolation=None,
                sizes=None, format=None):
         pass
 
