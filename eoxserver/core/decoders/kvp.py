@@ -1,3 +1,7 @@
+from cgi import parse_qs
+
+from django.http import QueryDict
+
 from eoxserver.core.decoders import (
     ZERO_OR_ONE, ONE_OR_MORE, ANY, SINGLE_VALUES, WrongMultiplicityException, 
     InvalidParameterException, MissingParameterException
@@ -9,7 +13,7 @@ class Parameter(object):
 
     def __init__(self, key=None, type=None, separator=None, num=1, default=None,
                  locator=None):
-        self.key = key
+        self.key = key.lower() if key is not None else None
         self.type = type
         self.separator = separator
         self.num = num
@@ -21,7 +25,8 @@ class Parameter(object):
         locator = self.locator or self.key
 
         # TODO: allow simple dicts aswell
-        results = decoder._query_dict.getlist(self.key)
+        results = decoder._query_dict.get(self.key, [])
+
         
         count = len(results)
 
@@ -67,7 +72,7 @@ class DecoderMetaclass(type):
     def __init__(cls, name, bases, dct):
         for key, value in dct.items():
             if isinstance(value, Parameter) and value.key is None:
-                value.key = key
+                value.key = key.lower()
 
         return super(DecoderMetaclass, cls).__init__(name, bases, dct)
 
@@ -75,5 +80,17 @@ class DecoderMetaclass(type):
 class Decoder(object):
     __metaclass__ = DecoderMetaclass
     
-    def __init__(self, query_dict):
+    def __init__(self, params):
+        query_dict = {}
+        if isinstance(params, QueryDict):
+            for key, values in params.lists():
+                query_dict[key.lower()] = values
+        
+        else:
+            tmp = parse_qs(params)
+            for key, values in tmp.items():
+                query_dict[key.lower()] = values
+        
+        self.kvp = params
         self._query_dict = query_dict
+        
