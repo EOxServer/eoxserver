@@ -1,6 +1,9 @@
-from lxml.builder import ElementMaker
-from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap
+import re
 
+from lxml.builder import ElementMaker
+
+from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap
+from eoxserver.services.subset import Trim, Slice
 
 # namespace declarations
 ns_xlink = NameSpace("http://www.w3.org/1999/xlink", "xlink")
@@ -24,6 +27,23 @@ WCS = ElementMaker(namespace=ns_wcs.uri, nsmap=nsmap)
 CRS = ElementMaker(namespace=ns_crs.uri, nsmap=nsmap)
 EOWCS = ElementMaker(namespace=ns_eowcs.uri, nsmap=nsmap)
 
+subset_re = re.compile(r'(\w+)(,([^(]+))?\(([^,]*)(,([^)]*))?\)')
+size_re = re.compile(r'(\w+)\(([^)]*)\)')
+resolution_re = re.compile(r'(\w+)\(([^)]*)\)')
+
+
+class Size(object):
+    def __init__(self, axis, value):
+        self.axis = axis
+        self.value = int(value)
+
+
+class Resolution(object):
+    def __init__(self, axis, value):
+        self.axis = axis
+        self.value = float(value)
+
+
 
 class SectionsMixIn(object):
     """ Mix-in for request decoders that use sections.
@@ -44,3 +64,58 @@ class SectionsMixIn(object):
 
         return False
 
+
+
+def parse_subset_kvp(string):
+    """ Parse one subset from the WCS 2.0 KVP notation.
+    """
+
+    match = subset_re.match(string)
+    if not match:
+        raise
+
+    axis = match.group(1)
+    crs = match.group(3)
+    
+    if match.group(6) is not None:
+        return Trim(axis, match.group(4), match.group(6), crs)
+    else:
+        return Slice(axis_label, match.group(4), crs)
+
+def parse_size_kvp(string):
+    """ 
+    """
+
+    match = size_re.match(string)
+    if not match:
+        raise
+
+    return Size(match.group(1), match.group(2))
+
+
+def parse_resolution_kvp(string):
+    """ 
+    """
+
+    match = resolution_re.match(string)
+    if not match:
+        raise
+
+    return Resolution(match.group(1), match.group(2))
+
+
+
+def parse_subset_xml(elem):
+    """ Parse one subset from the WCS 2.0 XML notation. Expects an lxml.etree
+        Element as parameter.
+    """
+
+    if elem.tag == ns_wcs("DimensionTrim"):
+        return Trim(
+            elem.findtext(ns_wcs("Dimension")),
+            elem.findtext(ns_wcs("TrimLow")),
+            elem.findtext(ns_wcs("TrimHigh"))
+        )
+    elif elem.tag == ns_wcs("DimensionSlice"):
+        return Slice()
+        #TODO

@@ -1,5 +1,5 @@
-from eoxserver.core import Component, implements
-from eoxserver.services.interfaces import CoverageRendererInterface
+from eoxserver.core import Component, implements, ExtensionPoint
+from eoxserver.core.decoders import xml, kvp, typelist, upper, enum
 from eoxserver.resources.coverages import models
 from eoxserver.services.interfaces import (
     OWSServiceHandlerInterface, 
@@ -7,7 +7,10 @@ from eoxserver.services.interfaces import (
     CoverageRendererInterface
 )
 from eoxserver.services.exceptions import NoSuchCoverageException
-
+from eoxserver.services.ows.wcs.v20.util import (
+    nsmap, SectionsMixIn, parse_subset_kvp, parse_subset_xml,
+    parse_size_kvp, parse_resolution_kvp
+)
 
 class WCS20GetCoverageHandler(Component):
     implements(OWSServiceHandlerInterface)
@@ -15,6 +18,10 @@ class WCS20GetCoverageHandler(Component):
     implements(OWSPostServiceHandlerInterface)
 
     renderers = ExtensionPoint(CoverageRendererInterface)
+
+    service = "WCS" 
+    versions = ("2.0.0", "2.0.1")
+    request = "GetCoverage"
 
     def get_decoder(self, request):
         if request.method == "GET":
@@ -30,7 +37,7 @@ class WCS20GetCoverageHandler(Component):
         try:
             coverage = models.Coverage.objects.get(identifier=coverage_id)
         except models.Coverage.DoesNotExist:
-            raise NoSuchCoverageException(coverage_id)
+            raise NoSuchCoverageException((coverage_id,))
 
         coverage_type = coverage.real_type
 
@@ -67,6 +74,7 @@ class WCS20GetCoverageKVPDecoder(kvp.Decoder):
     format      = kvp.Parameter("format", num="?")
     outputcrs   = kvp.Parameter("outputcrs", num="?")
     mediatype   = kvp.Parameter("mediatype", num="?")
+    interpolation = kvp.Parameter("mediatype", num="?")
 
 
 class WCS20GetCoverageXMLDecoder(xml.Decoder):

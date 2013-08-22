@@ -1,4 +1,3 @@
-import re
 import sys
 import logging
 from itertools import chain
@@ -14,7 +13,9 @@ from eoxserver.services.interfaces import (
     OWSServiceHandlerInterface, 
     OWSGetServiceHandlerInterface, OWSPostServiceHandlerInterface
 )
-from eoxserver.services.ows.wcs.v20.util import nsmap, SectionsMixIn
+from eoxserver.services.ows.wcs.v20.util import (
+    nsmap, SectionsMixIn, parse_subset_kvp, parse_subset_xml
+)
 from eoxserver.services.ows.wcs.encoders import WCS20EOAPEncoder
 from eoxserver.services.ows.common.config import WCSEOConfigReader
 from eoxserver.services.subset import Subsets, Trim
@@ -170,37 +171,6 @@ class WCS20DescribeEOCoverageSetHandler(Component):
             ), 
             "text/xml"
         )
-
-
-def parse_subset_kvp(string):
-    """ 
-
-    """
-
-    subset_re = re.compile(r'(\w+)(,([^(]+))?\(([^,]*)(,([^)]*))?\)')
-    match = subset_re.match(string)
-    if not match:
-        raise
-
-    axis = match.group(1)
-    crs = match.group(3)
-    
-    if match.group(6) is not None:
-        return Trim(axis, match.group(4), match.group(6), crs)
-    else:
-        return Slice(axis_label, match.group(4), crs)
-
-
-def parse_subset_xml(elem):
-    if elem.tag == ns_wcs("DimensionTrim"):
-        return Trim(
-            elem.findtext(ns_wcs("Dimension")),
-            elem.findtext(ns_wcs("TrimLow")),
-            elem.findtext(ns_wcs("TrimHigh"))
-        )
-    elif elem.tag == ns_wcs("DimensionSlice"):
-        return Slice()
-        #TODO
     
 
 def pos_int(value):
@@ -209,9 +179,11 @@ def pos_int(value):
         raise ValueError("Negative values are not allowed.")
     return value
 
+
 containment_enum = enum(
     ("overlaps", "contains"), False
 )
+
 sections_enum = enum(
     ("DatasetSeriesDescriptions", "CoverageDescriptions", "All"), False
 )
