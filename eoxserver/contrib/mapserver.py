@@ -70,7 +70,7 @@ class Response(object):
         return
 
 
-     def _split(self, content, content_type):
+    def _split(self, content, content_type):
 
         if is_multipart(content_type): 
         
