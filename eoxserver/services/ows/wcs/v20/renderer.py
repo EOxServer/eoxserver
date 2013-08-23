@@ -2,6 +2,7 @@
 from eoxserver.core import Component, implements
 from eoxserver.contrib.mapserver import Request, Map, Layer
 from eoxserver.services.interfaces import CoverageRendererInterface
+from eoxserver.resources.coverages import models
 
 class CoverageRenderer(Component):
     implements(CoverageRendererInterface)
@@ -68,10 +69,10 @@ class RectifiedCoverageMapServerRenderer(CoverageRenderer):
 
         layer.setMetaData("ows_title", coverage.identifier)
         layer.setMetaData({
-            "label", coverage.identifier,
+            "label": coverage.identifier,
             "extent": "%.10g %.10g %.10g %.10g" % extent,
-            "resolution", "%.10g %.10g" % resolution,
-            "size", "%d %d" % size,
+            "resolution": "%.10g %.10g" % resolution,
+            "size": "%d %d" % size,
             "bandcount": str(len(rangetype.bands)),
             "band_names": " ".join([band.name for band in rangetype.bands]),
             "interval": "%f %f" % rangetype.allowed_values,
@@ -94,14 +95,15 @@ class RectifiedCoverageMapServerRenderer(CoverageRenderer):
 
             # For MS WCS 1.x interface
             layer.setMetaData({
-                "label", band.name,
+                "label": band.name,
                 "interval": "%d %d" % rangetype.allowed_values
             }, namespace="wcs_%s" % band.name)
 
         map_.insertLayer(layer)
 
-
-        # TODO: mask?
+        if "mask" in kwargs:
+            # TODO: implement
+            pass
 
 
         # configure request
