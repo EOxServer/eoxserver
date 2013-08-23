@@ -28,7 +28,10 @@
 #-------------------------------------------------------------------------------
 
 import re
+from warnings import warn
 from datetime import datetime, tzinfo, timedelta
+
+from django.utils.timezone import is_aware
 
 from eoxserver.core.exceptions import InvalidParameterException
 
@@ -106,4 +109,15 @@ def getDateTime(s):
     return utct
 
 def isotime(dt):
+    warn("This function is deprecated. Use 'isoformat' instead.", DeprecationWarning)
     return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+def isoformat(dt):
+    """ Formats a datetime object to an ISO string. Timezone naive datetimes are
+        are treated as UTC Zulu. UTC Zulu is expressed with the proper "Z" 
+        ending and not with the "+00:00" offset declaration.
+    """
+    if not dt.utcoffset():
+        dt = dt.replace(tzinfo=None)
+        return dt.isoformat("T") + "Z"
+    return dt.isoformat("T")
