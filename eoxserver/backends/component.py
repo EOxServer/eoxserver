@@ -1,3 +1,4 @@
+import itertools
 
 from eoxserver.core import env, Component, implements, ExtensionPoint
 from eoxserver.backends.interfaces import *
@@ -8,6 +9,14 @@ class BackendComponent(Component):
     file_storages = ExtensionPoint(FileStorageInterface)
     connected_storages = ExtensionPoint(ConnectedStorageInterface)
     packages = ExtensionPoint(PackageInterface)
+
+
+    @property
+    def storages(self):
+        """ Helper for all storages.
+        """
+        return itertools.chain(self.file_storages, self.connected_storages)
+    
 
     def get_file_storage_component(self, storage_type):
         storage_type = storage_type.upper()
@@ -31,6 +40,16 @@ class BackendComponent(Component):
                 result_component = storage_component
 
         return result_component
+
+
+    def get_storage_component(self, storage_type):
+        file_storage = self.get_file_storage_component()
+        connected_storage = self.get_connected_storage_component()
+
+        if file_storage is not None and connected_storage is not None:
+            raise Exception("Ambigouus storage component")
+
+        return file_storage or connected_storage
 
 
     def get_package_component(self, format):
