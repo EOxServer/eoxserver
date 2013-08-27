@@ -43,8 +43,8 @@ class BackendComponent(Component):
 
 
     def get_storage_component(self, storage_type):
-        file_storage = self.get_file_storage_component()
-        connected_storage = self.get_connected_storage_component()
+        file_storage = self.get_file_storage_component(storage_type)
+        connected_storage = self.get_connected_storage_component(storage_type)
 
         if file_storage is not None and connected_storage is not None:
             raise Exception("Ambigouus storage component")
