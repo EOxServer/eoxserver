@@ -1,29 +1,17 @@
 from lxml import etree
 from lxml.builder import E
 
-from django.util.timezones import parse_datetime
+from django.utils.dateparse import parse_datetime
 from django.contrib.gis.geos import Polygon
 
+from eoxserver.core.util.xmltools import parse
 from eoxserver.core.util.timetools import isoformat
+from eoxserver.core.util.iteratortools import pairwise
 from eoxserver.core import Component, implements
 from eoxserver.core.decoders import xml
 from eoxserver.resources.coverages.metadata.interfaces import (
     MetadataReaderInterface, MetadataWriterInterface
 )
-
-
-
-def get_xml(obj):
-    xml = None
-    if isinstance(obj, basestring):
-        tree = lxml.fromstring(obj)
-    else:
-        try:
-            tree = lxml.parse(obj)
-        except:
-            pass
-
-    return tree
 
 
 class NativeFormat(Component):
@@ -33,13 +21,13 @@ class NativeFormat(Component):
     formats = ("native", )
 
     def test(self, obj):
-        xml = get_xml(obj)
+        xml = parse(obj)
         return xml is not None and xml.tag == "Metadata"
 
 
     def read(self, obj):
-        tree = get_xml(obj)
-        if tree:
+        tree = parse(obj)
+        if tree is not None:
             decoder = NativeFormatDecoder(tree)
             return {
                 "identifier": decoder.identifier,
@@ -91,7 +79,7 @@ def parse_ring(string):
 
 
 class NativeFormatDecoder(xml.Decoder):
-    identifier = xml.Parameter("/EOID/text()")
-    begin_time = xml.Parameter("/BeginTime/text()", type=parse_datetime)
-    end_time = xml.Parameter("/EndTime/text()", type=parse_datetime)
-    footprint = xml.Parameter("/Footprint/Polygon", type=parse_footprint_xml)
+    identifier = xml.Parameter("EOID/text()")
+    begin_time = xml.Parameter("BeginTime/text()", type=parse_datetime)
+    end_time = xml.Parameter("EndTime/text()", type=parse_datetime)
+    footprint = xml.Parameter("Footprint/Polygon", type=parse_footprint_xml)

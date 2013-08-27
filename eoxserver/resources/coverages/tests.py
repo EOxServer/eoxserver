@@ -28,14 +28,17 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+from datetime import datetime
 
 from django.test import TestCase
 from django.core.exceptions import ValidationError
-from django.contrib.gis.geos import GEOSGeometry
+from django.contrib.gis.geos import GEOSGeometry, Polygon
 from django.utils.dateparse import parse_datetime
+from django.utils.timezone import utc
 
+from eoxserver.core import env
 from eoxserver.resources.coverages.models import *
-
+from eoxserver.resources.coverages.metadata.formats import native, eoom
 
 def create(Class, **kwargs):
     obj = Class(**kwargs)
@@ -264,3 +267,126 @@ class ModelTests(TestCase):
         with self.assertRaises(ValidationError):
             series_1.insert(series_2)
             series_2.insert(series_1)
+
+
+class MetadataFormatTests(TestCase):
+    def test_native_reader(self):
+        xml = """
+        <Metadata>
+            <EOID>some_unique_id</EOID>
+            <BeginTime>2013-08-27T10:00:00Z</BeginTime>
+            <EndTime>2013-08-27T10:00:10Z</EndTime>
+            <Footprint>
+                <Polygon>
+                    <Exterior>0 0 10 0 10 10 0 10 0 0</Exterior>
+                    <!--<Interior></Interior>-->
+                </Polygon>
+            </Footprint>
+        </Metadata>
+        """
+        reader = native.NativeFormat(env)
+        self.assertTrue(reader.test(xml))
+        values = reader.read(xml)
+
+        self.assertEqual({
+            "identifier": "some_unique_id", 
+            "begin_time": datetime(2013, 8, 27, 10, 0, 0, tzinfo=utc),
+            "end_time": datetime(2013, 8, 27, 10, 0, 10, tzinfo=utc),
+            "footprint": Polygon.from_bbox((0, 0, 10, 10))
+        }, values)
+
+    def test_eoom_reader(self):
+        xml = """<?xml version="1.0" encoding="utf-8"?>
+        <?xml-stylesheet type="text/xsl" href="schematron_result_for_eop.xsl"?>
+        <eop:EarthObservation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/opt/2.0 ../xsd/opt.xsd" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:swe="http://www.opengis.net/swe/1.0" xmlns:om="http://www.opengis.net/om/2.0" gml:id="eop_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed">
+          <om:phenomenonTime>
+            <gml:TimePeriod gml:id="tp_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed">
+              <gml:beginPosition>2006-08-16T09:09:29Z</gml:beginPosition>
+              <gml:endPosition>2006-08-16T09:12:46Z</gml:endPosition>
+            </gml:TimePeriod>
+          </om:phenomenonTime>
+          <om:resultTime>
+            <gml:TimeInstant gml:id="archivingdate_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed">
+              <gml:timePosition>2006-08-16T11:03:08Z</gml:timePosition>
+            </gml:TimeInstant>
+          </om:resultTime>
+          <om:procedure>
+            <eop:EarthObservationEquipment gml:id="equ_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed">
+              <eop:platform>
+                <eop:Platform>
+                  <eop:shortName>ENVISAT</eop:shortName>
+                </eop:Platform>
+              </eop:platform>
+              <eop:instrument>
+                <eop:Instrument>
+                  <eop:shortName>MERIS</eop:shortName>
+                </eop:Instrument>
+              </eop:instrument>
+              <eop:sensor>
+                <eop:Sensor>
+                  <eop:sensorType>OPTICAL</eop:sensorType>
+                </eop:Sensor>
+              </eop:sensor>
+            </eop:EarthObservationEquipment>
+          </om:procedure>
+          <om:observedProperty xlink:href="#params1" />
+          <om:featureOfInterest>
+            <eop:Footprint gml:id="footprint_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed">
+              <eop:multiExtentOf>
+                <gml:MultiSurface gml:id="multisurface_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed" srsName="EPSG:4326">
+                  <gml:surfaceMember>
+                    <gml:Polygon gml:id="polygon_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed">
+                      <gml:exterior>
+                        <gml:LinearRing>
+                          <gml:posList>0 0 10 0 10 10 0 10 0 0</gml:posList>
+                        </gml:LinearRing>
+                      </gml:exterior>
+                    </gml:Polygon>
+                  </gml:surfaceMember>
+                </gml:MultiSurface>
+              </eop:multiExtentOf>
+            </eop:Footprint>
+          </om:featureOfInterest>
+          <om:result />
+          <eop:metaDataProperty>
+            <eop:EarthObservationMetaData>
+              <eop:identifier>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</eop:identifier>
+              <eop:acquisitionType>NOMINAL</eop:acquisitionType>
+              <eop:productType>MER_FRS_1P</eop:productType>
+              <eop:status>ARCHIVED</eop:status>
+              <eop:downlinkedTo>
+                <eop:DownlinkInformation>
+                  <eop:acquisitionStation>PDHS-E</eop:acquisitionStation>
+                </eop:DownlinkInformation>
+              </eop:downlinkedTo>
+              <eop:processing>
+                <eop:ProcessingInformation>
+                  <eop:processingCenter>PDHS-E</eop:processingCenter>
+                </eop:ProcessingInformation>
+              </eop:processing>
+            </eop:EarthObservationMetaData>
+          </eop:metaDataProperty>
+        </eop:EarthObservation>
+        """
+        
+        reader = eoom.EOOMFormatReader(env)
+        self.assertTrue(reader.test(xml))
+        values = reader.read(xml)
+
+        self.assertEqual({
+            "identifier": "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed",
+            "begin_time": datetime(2006, 8, 16, 9, 9, 29, tzinfo=utc),
+            "end_time": datetime(2006, 8, 16, 9, 12, 46, tzinfo=utc),
+            "footprint": Polygon.from_bbox((0, 0, 10, 10))
+        }, values)
+        
+
+
+    def test_dimap_reader(self):
+        xml = """
+
+        """
+        # TODO: find example DIMAP
+        
+
+

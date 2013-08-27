@@ -97,6 +97,28 @@ class NameSpaceMap(dict):
         self[namespace.prefix] = namespace.uri
 
 
+def parse(obj):
+    """ Helper function to parse XML either directly from a string, or fall back
+        to whatever ``lxml.etree.parse`` parses. Returns ``None`` if it could 
+        not parse any XML.
+    """
+
+    tree = None
+    if etree.iselement(obj):
+        return obj
+    elif isinstance(obj, basestring):
+        try:
+            tree = etree.fromstring(obj)
+        except:
+            pass
+    else:
+        try:
+            tree = etree.parse(obj)
+        except:
+            pass
+
+    return tree
+
 
 #-----------------------------------------------------------------------
 # XML Encoder
