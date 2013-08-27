@@ -41,8 +41,8 @@ class Storage(models.Model):
 
 class BaseLocation(models.Model):
     # base type for everything that describes a locateable object
-    location = models.CharField(max_length=64)
-    format = models.CharField(max_length=32, null=True, blank=True)
+    location = models.CharField(max_length=1024)
+    format = models.CharField(max_length=64, null=True, blank=True)
     
     storage = models.ForeignKey(Storage, null=True, blank=True)
 
@@ -57,7 +57,9 @@ class BaseLocation(models.Model):
 
 
 class Package(BaseLocation):
-    # for "packaged" data, like ZIP, TAR, SAFE packages or files like netCDF/HDF
+    """ Model for Packages. Packages are files that contain multiple files or 
+        provide access to multiple data items.
+    """
     package = models.ForeignKey("self", related_name="pakages", null=True, blank=True)
 
 
@@ -69,6 +71,6 @@ class DataItem(BaseLocation):
     # for extra locations
     # e.g: if a coverage consists of multiple files (each band in a single file)
 
-    dataset = models.ForeignKey(Dataset, related_name="data_items")
+    dataset = models.ForeignKey(Dataset, related_name="data_items", null=True, blank=True)
     package = models.ForeignKey(Package, related_name="data_items", null=True, blank=True)
     semantic = models.CharField(max_length=64)

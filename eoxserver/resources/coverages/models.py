@@ -132,7 +132,7 @@ class Extent(models.Model):
             from osgeo import osr
             sr = osr.SpatialReference()
             sr.ImportFromEPSG(self.srid)
-
+            return sr
         else:
             return self.projection.get_spatial_reference()
     
@@ -140,6 +140,11 @@ class Extent(models.Model):
     def extent(self):
         """ Returns the extent as a 4-tuple. """
         return self.min_x, self.min_y, self.max_x, self.max_y
+
+    @extent.setter
+    def extent(self, value):
+        """ Set the extent as a tuple. """
+        self.min_x, self.min_y, self.max_x, self.max_y = value
 
     def clean(self):
         # make sure that neither both nor none of SRID or projections is set
@@ -260,7 +265,7 @@ class RangeType(models.Model):
             return (0, 4294967295)
         elif dt in (gdal.GDT_Int32, gdal.GDT_CInt32):
             return (-2147483648, 2147483647)
-        elif dt in (gdal.GDT_Float32, gdal.GDT_CFloat32) : 
+        elif dt in (gdal.GDT_Float32, gdal.GDT_CFloat32): 
             return (-3.40282e+38, 3.40282e+38)
 
 
@@ -269,11 +274,11 @@ class RangeType(models.Model):
         dt = self.data_type
         if dt == gdal.GDT_Byte:
             return 3
-        elif dt in ( gdal.GDT_UInt16 , gdal.GDT_Int16 , gdal.GDT_CInt16 ) : 
+        elif dt in (gdal.GDT_UInt16, gdal.GDT_Int16, gdal.GDT_CInt16): 
             return 5
-        elif dt in ( gdal.GDT_UInt32 , gdal.GDT_Int32 , gdal.GDT_CInt32 ) : 
+        elif dt in (gdal.GDT_UInt32, gdal.GDT_Int32, gdal.GDT_CInt32): 
             return 10
-        elif dt in ( gdal.GDT_Float32 , gdal.GDT_CFloat32 ) : 
+        elif dt in (gdal.GDT_Float32, gdal.GDT_CFloat32):
             return 38
 
 
