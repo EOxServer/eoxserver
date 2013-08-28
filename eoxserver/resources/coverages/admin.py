@@ -155,12 +155,6 @@ class CoverageAdmin(EOObjectAdmin):
     fieldsets = (
         (None, {
             'fields': ('identifier', )
-        }),      
-        ('Location', {
-            'classes': ('collapse',),
-            'fields': (('location', 'format'),
-                       ('package', 'storage'),),
-            'description': 'Location specifics'
         }),
         ('Metadata', {
             'classes': ('collapse',),
