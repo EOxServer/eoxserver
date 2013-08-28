@@ -197,7 +197,7 @@ class DataSource(backends.Dataset):
 # TODO: encapsulate "casting" mechanism
 
 class EOObject(base.Castable, EOMetadata):
-    identifier = models.CharField(max_length=32, unique=True, null=False, blank=False)
+    identifier = models.CharField(max_length=256, unique=True, null=False, blank=False)
 
     objects = models.GeoManager()
 
@@ -282,6 +282,10 @@ class RangeType(models.Model):
             return 38
 
 
+    def __iter__(self):
+        return iter(self.bands.all())
+
+
 class Band(models.Model):
     index = models.PositiveSmallIntegerField()
     name = models.CharField(max_length=32, null=False, blank=False)
@@ -342,6 +346,10 @@ class Coverage(EOObject, Extent, backends.Dataset):
     @property
     def size(self):
         return self.size_x, self.size_y
+
+    @size.setter
+    def size(self, value):
+        self.size_x, self.size_y = value
     
     objects = models.GeoManager()
     
