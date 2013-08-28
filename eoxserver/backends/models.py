@@ -28,10 +28,14 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+from django.core.exceptions import ValidationError
 from django.db import models
 
 
 class Storage(models.Model):
+    """ Model to symbolize storages that provide file or other types of access
+        to data items and packages.
+    """
     url = models.CharField(max_length=1024)
     storage_type = models.CharField(max_length=32)
     
@@ -40,12 +44,19 @@ class Storage(models.Model):
 
 
 class BaseLocation(models.Model):
-    # base type for everything that describes a locateable object
+    """ Abstract base type for everything that describes a locateable object.
+    """
     location = models.CharField(max_length=1024)
     format = models.CharField(max_length=64, null=True, blank=True)
     
     storage = models.ForeignKey(Storage, null=True, blank=True)
+    package = None # placeholder
 
+    def clean(self):
+        if self.storage is not None and self.package is not None:
+            raise ValidationError(
+                "Only one of 'package' and 'storage' can be set."
+            )
 
     class Meta:
         abstract = True
@@ -63,13 +74,15 @@ class Package(BaseLocation):
     package = models.ForeignKey("self", related_name="pakages", null=True, blank=True)
 
 
-class Dataset(BaseLocation):
-    package = models.ForeignKey(Package, related_name="datasets", null=True, blank=True)
+class Dataset(models.Model):
+    """ Model for a set of associated data and metadata items.
+    """
 
 
 class DataItem(BaseLocation):
-    # for extra locations
-    # e.g: if a coverage consists of multiple files (each band in a single file)
+    """ Model for locateable data items contributing to a dataset. Data items 
+        can be linked to either a storage or a package or none of both.
+    """
 
     dataset = models.ForeignKey(Dataset, related_name="data_items", null=True, blank=True)
     package = models.ForeignKey(Package, related_name="data_items", null=True, blank=True)
