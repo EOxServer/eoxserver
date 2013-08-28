@@ -32,13 +32,16 @@ from datetime import datetime
 
 from django.test import TestCase
 from django.core.exceptions import ValidationError
-from django.contrib.gis.geos import GEOSGeometry, Polygon
+from django.contrib.gis.geos import GEOSGeometry, Polygon, MultiPolygon
 from django.utils.dateparse import parse_datetime
 from django.utils.timezone import utc
 
 from eoxserver.core import env
 from eoxserver.resources.coverages.models import *
-from eoxserver.resources.coverages.metadata.formats import native, eoom
+from eoxserver.resources.coverages.metadata.formats import (
+    native, eoom, dimap_general
+)
+
 
 def create(Class, **kwargs):
     obj = Class(**kwargs)
@@ -292,7 +295,7 @@ class MetadataFormatTests(TestCase):
             "identifier": "some_unique_id", 
             "begin_time": datetime(2013, 8, 27, 10, 0, 0, tzinfo=utc),
             "end_time": datetime(2013, 8, 27, 10, 0, 10, tzinfo=utc),
-            "footprint": Polygon.from_bbox((0, 0, 10, 10))
+            "footprint": MultiPolygon(Polygon.from_bbox((0, 0, 10, 10)))
         }, values)
 
     def test_eoom_reader(self):
@@ -377,7 +380,7 @@ class MetadataFormatTests(TestCase):
             "identifier": "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed",
             "begin_time": datetime(2006, 8, 16, 9, 9, 29, tzinfo=utc),
             "end_time": datetime(2006, 8, 16, 9, 12, 46, tzinfo=utc),
-            "footprint": Polygon.from_bbox((0, 0, 10, 10))
+            "footprint": MultiPolygon(Polygon.from_bbox((0, 0, 10, 10)))
         }, values)
         
 

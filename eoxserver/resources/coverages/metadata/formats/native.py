@@ -2,7 +2,7 @@ from lxml import etree
 from lxml.builder import E
 
 from django.utils.dateparse import parse_datetime
-from django.contrib.gis.geos import Polygon
+from django.contrib.gis.geos import Polygon, MultiPolygon
 
 from eoxserver.core.util.xmltools import parse
 from eoxserver.core.util.timetools import isoformat
@@ -67,10 +67,10 @@ class NativeFormat(Component):
 
 
 def parse_footprint_xml(elem):
-    return Polygon(
+    return MultiPolygon(Polygon(
         parse_ring(elem.findtext("Exterior")),
         *map(lambda e: parse_ring(e.text), elem.findall("Interior"))
-    )
+    ))
 
 def parse_ring(string):
     points = []

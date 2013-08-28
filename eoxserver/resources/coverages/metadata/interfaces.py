@@ -31,14 +31,16 @@ class MetadataReaderInterface(object):
     """ Interface for metadata writers.
     """
 
-    @property
-    def formats(self):
-        pass
-
-
     def test(self, obj):
         """ Return a boolean value, whether or not metadata can be extracted 
             from the given object.
+        """
+        pass
+
+
+    def format(self, obj):
+        """ Returns a format specifier for the given object. Can be ignored, 
+            when the reader only supports one format.
         """
         pass
 
@@ -48,8 +50,8 @@ class MetadataReaderInterface(object):
             - identifier (string)
             - extent (a four tuple of floats)
             - size (a two-tuple of ints)
-            - projection (a string)
-            - footprint (a django.contrib.gis.geos.GEOSGeometry)
+            - projection (an integer or two-tuple of two strings (definition and format))
+            - footprint (a django.contrib.gis.geos.MultiPolygon)
             - begin_time (a python datetime.datetime)
             - end_time (a python datetime.datetime)
 
@@ -75,8 +77,8 @@ class MetadataWriterInterface(object):
             - identifier (string)
             - extent (a four tuple of floats)
             - size (a two-tuple of ints)
-            - projection (a string)
-            - footprint (a django.contrib.gis.geos.GEOSGeometry)
+            - projection (an integer or two-tuple of two strings (definition and format))
+            - footprint (a django.contrib.gis.geos.MultiPolygon)
             - begin_time (a python datetime.datetime)
             - end_time (a python datetime.datetime)
 

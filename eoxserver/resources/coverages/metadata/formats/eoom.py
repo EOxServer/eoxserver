@@ -1,7 +1,7 @@
 from lxml import etree
 
 from django.utils.dateparse import parse_datetime
-from django.contrib.gis.geos import Polygon
+from django.contrib.gis.geos import Polygon, MultiPolygon
 
 from eoxserver.core.util.xmltools import parse, NameSpace, NameSpaceMap
 from eoxserver.core.util.iteratortools import pairwise
@@ -39,10 +39,10 @@ class EOOMFormatReader(Component):
 
 
 def parse_footprint_xml(elem):
-    return Polygon(
+    return MultiPolygon(Polygon(
         parse_ring(elem.findtext("gml:exterior/gml:LinearRing/gml:posList", namespaces=nsmap)),
         *map(lambda e: parse_ring(e.text), elem.findall("gml:interior/gml:LinearRing/gml:posList", namespaces=nsmap))
-    )
+    ))
 
 def parse_ring(string):
     points = []
