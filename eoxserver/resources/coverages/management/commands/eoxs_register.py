@@ -6,6 +6,7 @@ from django.core.management.base import CommandError, BaseCommand
 from django.db import transaction
 
 from eoxserver.core import env
+from eoxserver.contrib import gdal
 from eoxserver.backends import models as backends
 from eoxserver.backends.component import BackendComponent
 from eoxserver.backends.cache import CacheContext
@@ -62,13 +63,17 @@ class Command(CommandOutputMixIn, BaseCommand):
             action="callback", callback=_variable_args_cb_list, default=[],
             help=("[storage_type:url] [package_type:location]* format:location")
         ),
+        make_option("-s", "--semantic", dest="semantics",
+            action="callback", callback=_variable_args_cb, default=None,
+            help=("Optional. If given, one semantic must be present for each "
+                 "'--data' option.")
+        ),
         make_option("-m", "--meta-data", dest="metadata", 
             action="callback", callback=_variable_args_cb_list, default=[],
-            help=("[storage_type:url] [package_type:location]* format:location")
+            help=("Optional. [storage_type:url] [package_type:location]* format:location")
         ),
-        make_option("-r", "--range-type", dest="rangetype", 
-            action="callback", callback=_variable_args_cb_list, default=[],
-            help=("[storage_type:url] [package_type:location]* format:location")
+        make_option("-r", "--range-type", dest="range_type_name",
+            help=("Mandatory. Name of the stored range type. ")
         ),
 
         make_option("-e", "--extent", dest="extent", 
@@ -76,7 +81,7 @@ class Command(CommandOutputMixIn, BaseCommand):
             help=("Override extent.")
         ),
 
-        make_option("-s", "--size", dest="size", 
+        make_option("--size", dest="size", 
             action="callback", callback=_variable_args_cb,
             help=("Override size.")
         ),
@@ -109,26 +114,16 @@ class Command(CommandOutputMixIn, BaseCommand):
 
     @transaction.commit_on_success
     def handle(self, *args, **kwargs):
+        with CacheContext() as cache:
+            self.handle_with_cache(cache, *args, **kwargs)
 
+
+    def handle_with_cache(self, cache, *args, **kwargs):
         metadata_component = MetadataComponent(env)
         datas = kwargs["data"]
+        semantics = kwargs.get("semantics")
         metadatas = kwargs["metadata"]
-
-        # TODO: what if the data is referenced in the metadata files? like in DIMAP
-        # TODO: ignore this case right now.
-
-        metadata_models = []
-
-        for metadata in metadatas:
-            import pdb; pdb.set_trace()
-            storage, package, format, location = self._get_location_chain(metadata)
-            metadata_model = backends.DataItem(
-                location=location, format=format or "", semantic="metadata", 
-                storage=storage, package=package,
-            )
-            metadata_model.full_clean()
-            metadata_model.save()
-            metadata_models.append(item)
+        range_type_name = kwargs["range_type_name"]
 
         # TODO: not required, as the keys are already
         metadata_keys = set((
@@ -136,56 +131,115 @@ class Command(CommandOutputMixIn, BaseCommand):
             "footprint", "begin_time", "end_time"
         ))
 
+        all_data_items = []
         retrieved_metadata = {}
+        # TODO: apply defaults from CLI either here or last
+        
+        #import pdb; pdb.set_trace()
 
-        # TODO: apply defaults from CLI
+        for metadata in metadatas:
+            storage, package, format, location = self._get_location_chain(metadata)
+            data_item = backends.DataItem(
+                location=location, format=format or "", semantic="metadata", 
+                storage=storage, package=package,
+            )
+            data_item.full_clean()
+            data_item.save()
+            all_data_items.append(data_item)
 
+            with open(connect(data_item, cache)) as f:
+                content = f.read()
+                reader = metadata_component.get_reader_by_test(content)
+                if reader:
+                    values = reader.read(content)
+                    for key, value in values.items():
+                        if key in metadata_keys:
+                            retrieved_metadata.setdefault(key, value)
 
-        with CacheContext() as c:
-            for model in metadata_models:
-                with open(retrieve(model, c)) as f:
-                    content = f.read()
-                    reader = metadata_component.get_reader_by_test(content)
-                    if reader:
-                        values = reader.read(content)
-                        for key, value in values.items():
-                            if key in metadata_keys:
-                                retrieved_metadata.setdefault(key, value)
+                        # TODO: think this over. semantic would be required
+                        #elif key == "datafiles":
+                        #    datas.append(value) # TODO:
 
-                            if key == "datafiles":
-                                datas.append(value) # TODO append
-
-        if len(metadata_keys - set(retrieved_metadata.keys())):
-            raise 
+        
 
         if len(datas) < 1:
             raise CommandError("No data files specified.")
+
+        if semantics is None:
+            # TODO: check corner cases.
+            # e.g: only one data item given but multiple bands in range type
+            # --> bands[0:<bandnum>]
+            semantics = ["bands[%d]" % i for i in range(len(datas))]
+
+
+        for data, semantic in zip(datas, semantics):
+            storage, package, format, location = self._get_location_chain(data)
+            data_item = backends.DataItem(
+                location=location, format=format or "", semantic=semantic, 
+                storage=storage, package=package,
+            )
+            data_item.full_clean()
+            data_item.save()
+            all_data_items.append(data_item)
+
+            # TODO: other opening methods than GDAL
+            ds = gdal.Open(connect(data_item, cache))
+            reader = metadata_component.get_reader_by_test(ds)
+            if reader:
+                values = reader.read(ds)
+                for key, value in values.items():
+                    if key in metadata_keys:
+                        retrieved_metadata.setdefault(key, value)
+            ds = None
+
+        if len(metadata_keys - set(retrieved_metadata.keys())):
+            raise CommandError("Missing metadata keys %s." % ", ".join(metadata_keys - set(retrieved_metadata.keys())))
+
         try:
             CoverageType = getattr(models, kwargs["coverage_type"])
         except:
             pass
             # TODO: split into module path/coverage and get correct coverage class
 
-
-
-
         try:
-            coverage = CoverageType(**coverage_params)
-            coverage.identifier = identifier # TODO: bug in models for some coverages
+            if range_type_name is None:
+                raise CommandError("No range type name specified.")
+            range_type = models.RangeType.objects.get(name=range_type_name)
+
+            coverage = CoverageType()
+            
+            proj = retrieved_metadata.pop("projection")
+            if isinstance(proj, int):
+                retrieved_metadata["srid"] = proj
+            else:
+                definition, format = proj
+                retrieved_metadata["projection"] = models.Projection.objects.get(format=format, definition=definition)
+
+
+
+
+            #coverage.identifier = identifier # TODO: bug in models for some coverages
+            for key, value in retrieved_metadata.items():
+                print key
+                setattr(coverage, key, value)
+
+
+
             coverage.full_clean()
             coverage.save()
+
+            for data_item in all_data_items:
+                data_item.dataset = coverage
+                data_item.full_clean()
+                data_item.save()
+
         except ValidationError, e:
             # TODO: show error message
-            raise
+            raise CommandError(str(e))
+
+        print "Successfully registered one dataset."
 
         
-
-        # for each metadata create one data item
-        
-
-
-
-
     def _get_location_chain(self, items):
         """ Returns the tuple
         """
