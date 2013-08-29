@@ -32,5 +32,6 @@
 
 """\
 This package provides a common interface to contributing third party libraries
-that need some special care when importing. 
+that need some special care when importing or are provided with additional 
+features. 
 """
