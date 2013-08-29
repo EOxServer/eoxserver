@@ -29,6 +29,8 @@
 #-------------------------------------------------------------------------------
 
 from datetime import datetime
+from StringIO import StringIO
+from textwrap import dedent
 
 from django.test import TestCase
 from django.core.exceptions import ValidationError
@@ -281,9 +283,14 @@ class MetadataFormatTests(TestCase):
             <EndTime>2013-08-27T10:00:10Z</EndTime>
             <Footprint>
                 <Polygon>
-                    <Exterior>0 0 10 0 10 10 0 10 0 0</Exterior>
+                    <Exterior>0 0 20 0 20 10 0 10 0 0</Exterior>
                     <!--<Interior></Interior>-->
                 </Polygon>
+                <Polygon>
+                    <Exterior>10 10 40 10 40 30 10 30 10 10</Exterior>
+                    <!--<Interior></Interior>-->
+                </Polygon>
+
             </Footprint>
         </Metadata>
         """
@@ -295,8 +302,41 @@ class MetadataFormatTests(TestCase):
             "identifier": "some_unique_id", 
             "begin_time": datetime(2013, 8, 27, 10, 0, 0, tzinfo=utc),
             "end_time": datetime(2013, 8, 27, 10, 0, 10, tzinfo=utc),
-            "footprint": MultiPolygon(Polygon.from_bbox((0, 0, 10, 10)))
+            "footprint": MultiPolygon(
+                Polygon.from_bbox((0, 0, 10, 20)),
+                Polygon.from_bbox((10, 10, 30, 40))
+            )
         }, values)
+
+    def test_native_writer(self):
+        values = {
+            "identifier": "some_unique_id", 
+            "begin_time": datetime(2013, 8, 27, 10, 0, 0, tzinfo=utc),
+            "end_time": datetime(2013, 8, 27, 10, 0, 10, tzinfo=utc),
+            "footprint": MultiPolygon(
+                Polygon.from_bbox((0, 0, 10, 20)),
+                Polygon.from_bbox((10, 10, 30, 40))
+            )
+        }
+        writer = native.NativeFormat(env)
+
+        f = StringIO()
+        writer.write(values, f, pretty=True)
+        self.assertEqual(dedent("""\
+            <Metadata>
+              <EOID>some_unique_id</EOID>
+              <BeginTime>2013-08-27T10:00:00Z</BeginTime>
+              <EndTime>2013-08-27T10:00:10Z</EndTime>
+              <Footprint>
+                <Polygon>
+                  <Exterior>0.000000 0.000000 20.000000 0.000000 20.000000 10.000000 0.000000 10.000000 0.000000 0.000000</Exterior>
+                </Polygon>
+                <Polygon>
+                  <Exterior>10.000000 10.000000 40.000000 10.000000 40.000000 30.000000 10.000000 30.000000 10.000000 10.000000</Exterior>
+                </Polygon>
+              </Footprint>
+            </Metadata>
+            """), dedent(f.getvalue()))
 
     def test_eoom_reader(self):
         xml = """<?xml version="1.0" encoding="utf-8"?>
@@ -341,7 +381,16 @@ class MetadataFormatTests(TestCase):
                     <gml:Polygon gml:id="polygon_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed">
                       <gml:exterior>
                         <gml:LinearRing>
-                          <gml:posList>0 0 10 0 10 10 0 10 0 0</gml:posList>
+                          <gml:posList>20 10 40 10 40 30 20 30 20 10</gml:posList>
+                        </gml:LinearRing>
+                      </gml:exterior>
+                    </gml:Polygon>
+                  </gml:surfaceMember>
+                  <gml:surfaceMember>
+                    <gml:Polygon gml:id="polygon_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed">
+                      <gml:exterior>
+                        <gml:LinearRing>
+                          <gml:posList>60 50 80 50 80 70 60 70 60 50</gml:posList>
                         </gml:LinearRing>
                       </gml:exterior>
                     </gml:Polygon>
@@ -376,13 +425,16 @@ class MetadataFormatTests(TestCase):
         self.assertTrue(reader.test(xml))
         values = reader.read(xml)
 
-        self.assertEqual({
+        expected = {
             "identifier": "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed",
             "begin_time": datetime(2006, 8, 16, 9, 9, 29, tzinfo=utc),
             "end_time": datetime(2006, 8, 16, 9, 12, 46, tzinfo=utc),
-            "footprint": MultiPolygon(Polygon.from_bbox((0, 0, 10, 10)))
-        }, values)
-        
+            "footprint": MultiPolygon(
+                Polygon.from_bbox((10, 20, 30, 40)),
+                Polygon.from_bbox((50, 60, 70, 80))
+            )
+        }
+        self.assertEqual(expected, values)
 
 
     def test_dimap_reader(self):
