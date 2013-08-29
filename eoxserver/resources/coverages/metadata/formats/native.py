@@ -33,30 +33,37 @@ class NativeFormat(Component):
                 "identifier": decoder.identifier,
                 "begin_time": decoder.begin_time,
                 "end_time": decoder.end_time,
-                "footprint": decoder.footprint
+                "footprint": MultiPolygon(*decoder.polygons)
             }
         raise Exception("Could not parse from obj '%s'." % repr(obj))
 
 
     def write(self, values, file_obj, format=None, encoding=None, pretty=False):
+        def flip(point):
+            return point[1], point[0]
+
         # ignore format
         tree = E.Metadata(
             E.EOID(values["identifier"]),
             E.BeginTime(isoformat(values["begin_time"])),
             E.EndTime(isoformat(values["end_time"])),
             E.Footprint(
-                E.Polygon(
-                    E.Exterior(
-                        " ".join([
-                            "%f %f" % point
-                            for point in values["footprint"].exterior_ring
-                        ])
+                *map(lambda polygon: 
+                    E.Polygon(
+                        E.Exterior(
+                            " ".join([
+                                "%f %f" % flip(point)
+                                for point in polygon.exterior_ring
+                            ])
+                        ),
+                        *[E.Interior(
+                            " ".join([
+                                "%f %f" % flip(point)
+                                for point in interior
+                            ])
+                        ) for interior in polygon[1:]]
                     ),
-                    *[E.Interior(
-                        " ".join([
-                            "%f %f" % point for point in interior
-                        ])
-                    ) for interior in values["footprint"][1:]]
+                    values["footprint"]
                 )
             )
         )
@@ -66,11 +73,11 @@ class NativeFormat(Component):
         )
 
 
-def parse_footprint_xml(elem):
-    return MultiPolygon(Polygon(
+def parse_polygon_xml(elem):
+    return Polygon(
         parse_ring(elem.findtext("Exterior")),
         *map(lambda e: parse_ring(e.text), elem.findall("Interior"))
-    ))
+    )
 
 def parse_ring(string):
     points = []
@@ -82,4 +89,4 @@ class NativeFormatDecoder(xml.Decoder):
     identifier = xml.Parameter("EOID/text()")
     begin_time = xml.Parameter("BeginTime/text()", type=parse_datetime)
     end_time = xml.Parameter("EndTime/text()", type=parse_datetime)
-    footprint = xml.Parameter("Footprint/Polygon", type=parse_footprint_xml)
+    polygons = xml.Parameter("Footprint/Polygon", type=parse_polygon_xml, num="+")

@@ -33,16 +33,16 @@ class EOOMFormatReader(Component):
                 "identifier": decoder.identifier,
                 "begin_time": decoder.begin_time,
                 "end_time": decoder.end_time,
-                "footprint": decoder.footprint
+                "footprint": MultiPolygon(*decoder.polygons)
             }
         raise Exception("Could not parse from obj '%s'." % repr(obj))
 
 
-def parse_footprint_xml(elem):
-    return MultiPolygon(Polygon(
+def parse_polygon_xml(elem):
+    return Polygon(
         parse_ring(elem.findtext("gml:exterior/gml:LinearRing/gml:posList", namespaces=nsmap)),
         *map(lambda e: parse_ring(e.text), elem.findall("gml:interior/gml:LinearRing/gml:posList", namespaces=nsmap))
-    ))
+    )
 
 def parse_ring(string):
     points = []
@@ -54,6 +54,6 @@ class EOOMFormatDecoder(xml.Decoder):
     identifier = xml.Parameter("eop:metaDataProperty/eop:EarthObservationMetaData/eop:identifier/text()")
     begin_time = xml.Parameter("om:phenomenonTime/gml:TimePeriod/gml:beginPosition/text()", type=parse_datetime)
     end_time = xml.Parameter("om:phenomenonTime/gml:TimePeriod/gml:endPosition/text()", type=parse_datetime)
-    footprint = xml.Parameter("om:featureOfInterest/eop:Footprint/eop:multiExtentOf/gml:MultiSurface/gml:surfaceMember/gml:Polygon", type=parse_footprint_xml)
+    polygons = xml.Parameter("om:featureOfInterest/eop:Footprint/eop:multiExtentOf/gml:MultiSurface/gml:surfaceMember/gml:Polygon", type=parse_polygon_xml, num="+")
 
     namespaces = nsmap
