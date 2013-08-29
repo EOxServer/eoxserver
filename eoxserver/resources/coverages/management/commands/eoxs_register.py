@@ -1,3 +1,32 @@
+#-------------------------------------------------------------------------------
+# $Id$
+#
+# Project: EOxServer <http://eoxserver.org>
+# Authors: Fabian Schindler <fabian.schindler@eox.at>
+#
+#-------------------------------------------------------------------------------
+# Copyright (C) 2013 EOX IT Services GmbH
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+# copies of the Software, and to permit persons to whom the Software is 
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies of this Software or works derived from this Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#-------------------------------------------------------------------------------
+
+
 from optparse import make_option
 from itertools import chain
 
@@ -135,7 +164,6 @@ class Command(CommandOutputMixIn, BaseCommand):
         retrieved_metadata = {}
         # TODO: apply defaults from CLI either here or last
         
-        #import pdb; pdb.set_trace()
 
         for metadata in metadatas:
             storage, package, format, location = self._get_location_chain(metadata)
@@ -215,15 +243,10 @@ class Command(CommandOutputMixIn, BaseCommand):
                 definition, format = proj
                 retrieved_metadata["projection"] = models.Projection.objects.get(format=format, definition=definition)
 
-
-
-
             #coverage.identifier = identifier # TODO: bug in models for some coverages
             for key, value in retrieved_metadata.items():
                 print key
                 setattr(coverage, key, value)
-
-
 
             coverage.full_clean()
             coverage.save()
@@ -290,9 +313,3 @@ def save(model):
     model.full_clean()
     model.save()
     return model
-
-
-class DataChain(object):
-
-    def __init__(self, location, format=None, packages=None, storage=None):
-        pass
