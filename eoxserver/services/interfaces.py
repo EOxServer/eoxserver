@@ -29,237 +29,114 @@
 
 
 class OWSServiceHandlerInterface(object):
-
+    """ Interface for OWS Service handlers.
+    """
 
     @property
     def service(self):
-        pass
+        """ The name of the supported service in uppercase letters.
+        """
 
     @property
     def versions(self):
-        pass
+        """ An iterable of all supported versions as strings.
+        """
 
     @property
     def request(self):
-        pass
+        """ The supported request method.
+        """
 
     def handle(self, request):
-        pass
+        """ The main handling method. Takes a `django.http.Request` object as 
+            single parameter.
+        """
 
 
 class OWSExceptionHandlerInterface(object): 
+    """ Interface for OWS exception handlers.
+    """
+
     @property
     def service(self):
-        pass
+        """ The name of the supported service in uppercase letters.
+        """
 
     @property
     def versions(self):
-        pass
+        """ An iterable of all supported versions as strings.
+        """
 
     @property
     def request(self):
-        pass
+        """ The supported request method.
+        """
 
     def handle_exception(self, request, exception):
-        pass
+        """ The main exception handling method. Parameters are an object of the 
+            `django.http.Request` type and the raised exception.
+        """
 
 
 class OWSGetServiceHandlerInterface(OWSServiceHandlerInterface):
-    pass
+    """ Interface for service handlers that support HTTP GET requests.
+    """
 
 
 class OWSPostServiceHandlerInterface(OWSServiceHandlerInterface):
-    pass
-
+    """ Interface for service handlers that support HTTP POST requests.
+    """
 
 
 class CoverageRendererInterface(object):
+    """ Interface for coverage renderers.
+    """
 
     def render(self, coverage, outputcrs=None, subsets=None, interpolation=None,
                sizes=None, format=None):
-        pass
+        """
+        """
 
     @property
     def handles(self):
         """ Returns an iterable of all coverage classes that this renderer is 
             able to render.
         """
-        pass
 
 
 class OutputFormatInterface(object):
     pass
 
 
-'''
-
-"""
-This module defines interfaces for service request handlers.
-
-EOxServer follows a cascaded approach for handling OWS requests: First, a
-service handler takes in all requests for a specific service, e.g. WMS or WCS.
-Second, the request gets passed on to the appropriate version handler. Last,
-the actual operation handler for that request is invoked.
-
-This cascaded approach shall ensure that features that relate to every operation
-of a service or service version (most importantly exception handling) can be
-implemented centrally.
-"""
-
-from eoxserver.core.interfaces import *
-from eoxserver.core.registry import RegisteredInterface
-from eoxserver.services.requests import OWSRequest, Response
-
-class RequestHandlerInterface(RegisteredInterface):
-    """
-    This is the basic interface for OWS request handling. It is the parent
-    class of the other handler interfaces. The binding method is KVP. The
-    interface does not define any keys though, which is done by the child
-    classes.
-    
-    .. method:: handle(req)
-    
-        This method shall be called for handling the request. It expects an
-        :class:`~.OWSRequest` object as input ``req`` and shall return a
-        :class:`~.Response` object.
-    
-    """
-    REGISTRY_CONF = {
-        "name": "Request Handler Interface",
-        "intf_id": "services.interfaces.RequestHandler",
-        "binding_method": "kvp",
-        "registry_keys": ()
-    }
-    
-    handle = Method(
-        ObjectArg("req", arg_class=OWSRequest),
-        returns = ObjectArg("@return", arg_class=Response)
-    )
-
-class ServiceHandlerInterface(RequestHandlerInterface):
-    """
-    This interface inherits from :class:`RequestHandlerInterface`. It adds
-    no methods, but a registry key ``services.interfaces.service`` which
-    allows to bind to an implementation given the name of the service.
-    """
-    REGISTRY_CONF = {
-        "name": "Service Handler Interface",
-        "intf_id": "services.interfaces.ServiceHandler",
-        "binding_method": "kvp",
-        "registry_keys": (
-            "services.interfaces.service",
-        )
-    }
-
-class VersionHandlerInterface(RequestHandlerInterface):
-    """
-    This interface inherits from :class:`RequestHandlerInterface`. It adds
-    no methods, but the registry keys ``services.interfaces.service`` and 
-    ``services.interface.version`` which allow to bind to an implementation
-    given the name of the service and the version descriptor.
+class MapServerConnectorInterface(object):
+    """ Interface for connectors between `mapscript.layerObj` and associated 
+        data.
     """
 
-    REGISTRY_CONF = {
-        "name": "Service Handler Interface",
-        "intf_id": "services.interfaces.VersionHandler",
-        "binding_method": "kvp",
-        "registry_keys": (
-            "services.interfaces.service",
-            "services.interfaces.version"
-        )
-    }
+    def supports(self, data_statements):
+        """ Returns `True` if the given `data_statements` are supporteda and 
+            `False` if not.
+        """
+    
+    def connect(self, layer, data_statements):
+        """ Connect a layer (a `mapscript.layerObj`) with the given data 
+            statements (a list of two-tuples: location and semantic).
+        """
 
-class OperationHandlerInterface(RequestHandlerInterface):
-    """
-    This interface inherits from :class:`RequestHandlerInterface`. It adds
-    no methods, but the registry keys ``services.interfaces.service``, 
-    ``services.interface.version`` and ``services.interfaces.operation`` which
-    allow to bind to an implementation given the name of the service, the
-    version descriptor and the operation name.
+    def disconnect(self, layer, data_statements):
+        """ Performs all necessary cleanup operations.
+        """
+
+class MapServerLayerFactoryInterface(object):
+    """ Interface for factories that create `mapscript.layerObj` objects for 
+        coverages.
     """
 
-    REGISTRY_CONF = {
-        "name": "Service Handler Interface",
-        "intf_id": "services.interfaces.OperationHandler",
-        "binding_method": "kvp",
-        "registry_keys": (
-            "services.interfaces.service",
-            "services.interfaces.version",
-            "services.interfaces.operation"
-        )
-    }
+    @property
+    def handles(self):
+        """ Iterable of all object types that are supported by this connector.
+        """
 
-class ExceptionHandlerInterface(RegisteredInterface):
-    """
-    This interface is intended for exception handlers. These handlers shall
-    be invoked when an exception is raised during the processing of an OWS
-    request.
-    
-    .. method:: handleException(req, exception)
-    
-        This method shall handle an exception. It expects the original
-        :class:`~.OWSRequest` object ``req`` as well as the exception object as
-        input. The expected output is a :class:`~.Response` object which shall
-        contain an exception report and whose content will be sent to the client.
-        
-        In case the exception handler does not recognize a given type of exception
-        or cannot produce an appropriate exception report, the exception shall
-        be re-raised.
-    """
-    REGISTRY_CONF = {
-        "name": "Exception Handler Interface",
-        "intf_id": "services.interfaces.ExceptionHandler",
-        "binding_method": "kvp",
-        "registry_keys": (
-            "services.interfaces.exception_scheme",
-        )
-    }
-    
-    handleException = Method(
-        ObjectArg("req", arg_class=OWSRequest),
-        ObjectArg("exception", arg_class=Exception),
-        returns = ObjectArg("@return", arg_class=Response)
-    )
-
-class ExceptionEncoderInterface(RegisteredInterface):
-    """
-    This interface is intended for encoding OWS exception reports.
-    
-    .. method:: encodeInvalidRequestException(exception)
-    
-        This method shall return an exception report for an
-        :class:`~.InvalidRequestException`.
-    
-    .. method:: encodeVersionNegotiationException(exception)
-    
-        This method shall return an exception report for a
-        :class:`~.VersionNegotiationException`.
-    
-    .. method:: encodeException(exception)
-    
-        This method shall return an exception report for any kind of exception.    
-    """
-    REGISTRY_CONF = {
-        "name": "OWS Exception Report XML Encoder Interface",
-        "intf_id": "services.interfaces.ExceptionEncoder",
-        "binding_method": "kvp",
-        "registry_keys": (
-            "services.interfaces.exception_scheme",
-        )
-    }
-    
-    encodeInvalidRequestException = Method(
-        ObjectArg("exception", arg_class=Exception),
-        returns = StringArg("@return")
-    )
-    
-    encodeVersionNegotiationException = Method(
-        ObjectArg("exception", arg_class=Exception),
-        returns = StringArg("@return")
-    )
-
-    encodeException = Method(
-        ObjectArg("exception", arg_class=Exception),
-        returns = StringArg("@return")
-    )
-'''
+    def generate(self, eo_object):
+        """ 
+        """
