@@ -29,19 +29,34 @@
 from lxml import etree
 from lxml.builder import E
 
-class VRT(object):
-    def __init__(self, ):
 
-        pass
+class VRT(object):
+    def __init__(self, projection, geotransform, metadata=None):
+        self.projection = projection
+        self.geotransform = geotransform
+        self.metadata = metadata
+        self.bands = []
+        self.gcps = []
+        self.size = (None, None)
+
 
     def add_source(self, band, ds):
         pass
+
 
     def write(self, file_obj, pretty=False):
         file_obj.write()
 
 
-class SimpleSource(object):
-    def __init__(self, path)
+class VRTRasterBand(list):
+    pass
 
+
+class SimpleSource(object):
+    def __init__(self, filename, ):
+        pass
+
+
+class ComplexSource(object):
+    pass
 

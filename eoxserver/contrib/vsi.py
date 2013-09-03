@@ -35,16 +35,23 @@ import os
 
 from gdal import (
     VSIFOpenL, VSIFCloseL, VSIFReadL, VSIFWriteL, VSIFSeekL, VSIFTellL,
-    VSIFTruncateL, Unlink
+    VSIFTruncateL, Unlink, Rename
 )
 
 
 def open(filename, mode="r"):
     return VSIFile(filename)
 
+rename = Rename
+
+unlink = remove = Unlink
+
 
 class VSIFile(object):
-    def __init__(self, filename, mode):
+    """ File-like object interface for VSI file API.
+    """
+
+    def __init__(self, filename, mode="r"):
         self._handle = VSIFOpenL(filename, mode)
         self.filename = filename
 
@@ -68,7 +75,7 @@ class VSIFile(object):
 
 
     def close(self):
-        if self._handle is not None
+        if self._handle is not None:
             VSIFCloseL(self._handle)
         self._handle = None
 

@@ -35,4 +35,21 @@ except ImportError:
     from osr import *
 
 
+class SpatialReference(SpatialReference):
+    """ Extension to the original SpatialReference class.
+    """
+
+    @property
+    def proj(self):
+        return self.ExportToProj4()
+
+    @property
+    def wkt(self):
+        return self.ExportToWkt()
+
+    @property
+    def xml(self):
+        return self.ExportToXML()
+    
+
 UseExceptions()
