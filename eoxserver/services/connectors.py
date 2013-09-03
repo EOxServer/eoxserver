@@ -27,8 +27,13 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+
+from os.path import join
+from uuid import uuid4
+
 from eoxserver.core import Component, implements
-from eoxserver.services.interfaces import 
+from eoxserver.contrib import vsi, vrt
+from eoxserver.services.interfaces import MapServerConnectorInterface
 
 
 class SimpleConnector(Component):
@@ -40,9 +45,8 @@ class SimpleConnector(Component):
             and data_statements[0][1].startswith("bands")
         )
 
-
     def connect(self, layer, data_statements):
-        location, semantic = data_statements[0]
+        location, _ = data_statements[0]
         layer.data = location
 
     def disconnect(self, layer, data_statements):
@@ -59,18 +63,24 @@ class MultiFileConnector(Component):
         )
 
     def connect(self, layer, data_statements):
-        # TODO: create and configure temporary VRT
-        # implement
-        pass
+
+        vrt_doc = vrt.VRT()
+        # TODO: configure vrt here
+
+        path = join("/vsimem", uuid4().hex)
+        with vsi.open(path, "w+") as f:
+            vrt_doc.write(f)
+
+        layer.data = path
 
     def disconnect(self, layer, data_statements):
-        gdal.Unlink(layer.data)
+        vsi.remove(layer.data)
 
 
 class TileIndexConnector(Component):
     implements(MapServerConnectorInterface)
 
-    def supports(self):
+    def supports(self, data_statements):
         return (
             len(data_statements) == 1 and data_statements[0][1] == "tileindex"
         )

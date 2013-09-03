@@ -85,6 +85,17 @@ class OWSServiceComponent(Component):
         return None
 
 
+class MapServerComponent(Component):
+    connectors = ExtensionPoint(MapServerConnectorInterface)
+
+    def get_connector(self, data_statements):
+        for connector in self.connectors:
+            if connector.supports(data_statements):
+                return connector
+
+        return None
+
+
 class OWSCommonKVPDecoder(kvp.Decoder):
     service = kvp.Parameter("service", type=upper)
     version = kvp.Parameter("version", num="?")
