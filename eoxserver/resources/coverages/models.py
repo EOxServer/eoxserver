@@ -39,7 +39,7 @@ from django.db.models import Min, Max
 from django.contrib.gis.db.models import Union
 
 from eoxserver.core import models as base
-from eoxserver.contrib import gdal
+from eoxserver.contrib import gdal, osr
 from eoxserver.backends import models as backends
 from eoxserver.resources.coverages.util import detect_circular_reference
 
@@ -107,7 +107,6 @@ class Projection(models.Model):
 
     @property
     def spatial_reference(self):
-        from osgeo import osr
         sr = osr.SpatialReference()
 
         # TODO: parse definition
@@ -129,12 +128,11 @@ class Extent(models.Model):
     @property
     def spatial_reference(self):
         if self.srid is not None:
-            from osgeo import osr
             sr = osr.SpatialReference()
             sr.ImportFromEPSG(self.srid)
             return sr
         else:
-            return self.projection.get_spatial_reference()
+            return self.projection.spatial_reference
     
     @property
     def extent(self):
