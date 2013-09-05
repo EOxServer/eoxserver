@@ -41,11 +41,16 @@ from eoxserver.services.component import OWSServiceComponent, env
 
 logger = logging.getLogger(__name__)
 
-
-# TODO: dynamic urls, for REST or the like?
-
-
 def ows(request):
+    """ Main entry point for OWS requests against EOxServer. It uses the OWS 
+        component to dynamically determine the handler for this request. 
+        If an exception occurs during the handling of the request, an exception
+        handler is determined and dispatched.
+
+        Any response of the service handler and exception handler is transformed
+        to a django HttpResponse to adhere the required interface.
+    """
+
     component = OWSServiceComponent(env)
 
     try:
@@ -57,9 +62,12 @@ def ows(request):
         result = handler.handle_exception(request, e)
         default_status = 400
 
-    
+    # try to return a django compatible response
     if isinstance(result, (HttpResponse, StreamingHttpResponse)):
-        return response
+        return result
+
+    elif isinstance(result, basestring):
+        return HttpResponse(result)
 
     # convert result to a django response
     try:
