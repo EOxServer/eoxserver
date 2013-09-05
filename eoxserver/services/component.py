@@ -87,6 +87,7 @@ class OWSServiceComponent(Component):
 
 class MapServerComponent(Component):
     connectors = ExtensionPoint(MapServerConnectorInterface)
+    layer_factories = ExtensionPoint(MapServerLayerFactoryInterface)
 
     def get_connector(self, data_statements):
         for connector in self.connectors:

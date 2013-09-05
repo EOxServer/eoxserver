@@ -92,9 +92,8 @@ class CoverageRendererInterface(object):
     """ Interface for coverage renderers.
     """
 
-    def render(self, coverage, outputcrs=None, subsets=None, interpolation=None,
-               sizes=None, format=None):
-        """
+    def render(self, coverage, **kwargs):
+        """ Render the coverage with the given parameters.
         """
 
     @property
@@ -113,19 +112,20 @@ class MapServerConnectorInterface(object):
         data.
     """
 
-    def supports(self, data_statements):
-        """ Returns `True` if the given `data_statements` are supporteda and 
+    def supports(self, data_items):
+        """ Returns `True` if the given `data_items` are supported and 
             `False` if not.
         """
     
-    def connect(self, layer, data_statements):
+    def connect(self, coverage, data_items, layer, cache):
         """ Connect a layer (a `mapscript.layerObj`) with the given data 
-            statements (a list of two-tuples: location and semantic).
+            items and coverage (a list of two-tuples: location and semantic).
         """
 
-    def disconnect(self, layer, data_statements):
+    def disconnect(self, coverage, data_items, layer, cache):
         """ Performs all necessary cleanup operations.
         """
+
 
 class MapServerLayerFactoryInterface(object):
     """ Interface for factories that create `mapscript.layerObj` objects for 
@@ -137,6 +137,14 @@ class MapServerLayerFactoryInterface(object):
         """ Iterable of all object types that are supported by this connector.
         """
 
+    @property
+    def suffix(self):
+        """ The suffix associated with layers this factory produces. This is 
+            used for "specialized" layers such as "bands" or "outlines" layers.
+            For factories that don't use this feature, it can be left out.
+        """
+
     def generate(self, eo_object):
-        """ 
+        """ Returns a `mapscript.layerObj` preconfigured for the given EO 
+            object.
         """

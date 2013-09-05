@@ -33,37 +33,48 @@ from uuid import uuid4
 
 from eoxserver.core import Component, implements
 from eoxserver.contrib import vsi, vrt
+from eoxserver.backends.access import connect
 from eoxserver.services.interfaces import MapServerConnectorInterface
 
 
 class SimpleConnector(Component):
+    """ Connector for single file layers.
+    """
     implements(MapServerConnectorInterface)
     
-    def supports(self, data_statements):
+    def supports(self, data_items):
         return (
-            len(data_statements) == 1 
-            and data_statements[0][1].startswith("bands")
+            len(data_items) == 1 
+            and data_items[0].semantic.startswith("bands")
         )
 
-    def connect(self, layer, data_statements):
-        location, _ = data_statements[0]
-        layer.data = location
+    def connect(self, coverage, data_items, layer, cache):
+        layer.data = connect(data_items[0], cache)
 
-    def disconnect(self, layer, data_statements):
+    def disconnect(self, coverage, data_items, layer, cache):
         pass
 
 
 class MultiFileConnector(Component):
+    """ Connects multiple files containing the various bands of the coverage
+        with the given layer. A temporary VRT file is used as abstraction for 
+        the different band files.
+    """
+
     implements(MapServerConnectorInterface)
     
-    def supports(self, data_statements):
+    def supports(self, data_items):
+        # TODO: better checks
         return (
-            len(data_statements) > 1 
-            and all(map(lambda d: d[1].startswith("bands"), data_statements))
+            len(data_items) > 1 
+            and all(
+                map(lambda d: d[1].semantic.startswith("bands"), data_items)
+            )
         )
 
-    def connect(self, layer, data_statements):
+    def connect(self, coverage, data_items, layer, cache):
 
+        # TODO: implement
         vrt_doc = vrt.VRT()
         # TODO: configure vrt here
 
@@ -73,22 +84,25 @@ class MultiFileConnector(Component):
 
         layer.data = path
 
-    def disconnect(self, layer, data_statements):
+    def disconnect(self, coverage, data_items, layer, cache):
         vsi.remove(layer.data)
 
 
 class TileIndexConnector(Component):
+    """ Connects a tile index with the given layer. The tileitem is fixed to 
+        "location".
+    """
+
     implements(MapServerConnectorInterface)
 
-    def supports(self, data_statements):
+    def supports(self, data_items):
         return (
-            len(data_statements) == 1 and data_statements[0][1] == "tileindex"
+            len(data_items) == 1 and data_items[0].semantic == "tileindex"
         )
 
-    def connect(self, layer, data_statements):
-        location, semantic = data_statements[0]
-        layer.tileindex = os.path.abspath(path)
+    def connect(self, coverage, data_items, layer, cache):
+        layer.tileindex = os.path.abspath(connect(data_items[0], cache))
         layer.tileitem = "location"
 
-    def disconnect(self, layer, data_statements):
+    def disconnect(self, coverage, data_items, layer, cache):
         pass
