@@ -61,7 +61,11 @@ class WCS20GetCoverageHandler(Component):
 
     def handle(self, request):
         decoder = self.get_decoder(request)
+
+        #get parameters
         coverage_id = decoder.coverage_id
+        
+        
 
         try:
             coverage = models.Coverage.objects.get(identifier=coverage_id)
@@ -71,15 +75,24 @@ class WCS20GetCoverageHandler(Component):
         coverage_type = coverage.real_type
 
         renderer = self.get_renderer(coverage_type)
+        if not renderer:
+            raise Exception() # TODO: error message
 
 
         # translate arguments
-        params = {
-            "coverageid": decoder.coverageid,
+        kwargs = {
+            "subsets": decoder.subsets,
+            "sizes": decoder.sizes,
+            "resolutions": decoder.resolutions,
+            "rangesubset": decoder.rangesubset,
+            "format": decoder.format,
+            "outputcrs": decoder.outputcrs,
+            "mediatype": decoder.mediatype,
+            "interpolation": decoder.interpolation
         }
 
         try:
-            renderer.render(coverage) # TODO: pass arguments
+            return renderer.render(coverage, **kwargs) # TODO: pass arguments
         except Exception, e:
             # TODO: ?
             raise
