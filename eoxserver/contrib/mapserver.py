@@ -28,6 +28,7 @@
 
 import time
 import logging
+from cgi import escape
 
 from mapscript import *
 
@@ -53,7 +54,7 @@ class Response(object):
 
     def __init__(self, content, content_type, status):
         self.content = content
-        self.content_type= content_type
+        self.content_type = content_type
 
     @property
     def multipart(self):
@@ -87,8 +88,6 @@ class Response(object):
             else : 
                 self.ms_response_data = self.content 
                 self.ms_response_data_headers = headers
-
-
 
 
 class MetadataMixIn(object):
@@ -151,7 +150,6 @@ class Map(MetadataMixIn, mapObj):
             content_type = msIO_stripStdoutBufferContentType()
             msIO_stripStdoutBufferContentHeaders()
 
-            print content_type
         except MapServerError:
             # degenerate response. Manually split headers from content
             result = msIO_getStdoutBufferBytes()
@@ -170,9 +168,6 @@ class Map(MetadataMixIn, mapObj):
             logger.debug("MapServer: Retrieving stdout buffer bytes.")
             result = msIO_getStdoutBufferBytes()
         
-
-        print result
-
         logger.debug("MapServer: Performing MapServer cleanup.")
         # Workaround for MapServer issue #4369
         msversion = msGetVersionInt()
@@ -189,6 +184,7 @@ class Layer(MetadataMixIn, layerObj):
     def __init__(self, name, metadata=None, type=MS_LAYER_RASTER, mapobj=None):
         layerObj.__init__(self, mapobj)
         MetadataMixIn.__init__(self, metadata)
+        self.name = name
         self.status = MS_ON
         if type == MS_LAYER_RASTER:
             self.dump = MS_TRUE
@@ -198,7 +194,6 @@ class Layer(MetadataMixIn, layerObj):
 
 def create_request(values, request_type=MS_GET_REQUEST):
     used_keys = {}
-    
 
     request = OWSRequest()
     request.type = request_type
