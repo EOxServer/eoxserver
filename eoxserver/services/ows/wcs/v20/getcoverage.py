@@ -65,8 +65,6 @@ class WCS20GetCoverageHandler(Component):
         #get parameters
         coverage_id = decoder.coverage_id
         
-        
-
         try:
             coverage = models.Coverage.objects.get(identifier=coverage_id)
         except models.Coverage.DoesNotExist:

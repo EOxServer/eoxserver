@@ -8,7 +8,6 @@ from eoxserver.contrib.mapserver import (
     gdalconst_to_imagemode, gdalconst_to_imagemode_string
 )
 from eoxserver.backends.cache import CacheContext
-from eoxserver.backends.access import connect
 from eoxserver.services.component import MapServerComponent
 from eoxserver.services.interfaces import CoverageRendererInterface
 from eoxserver.resources.coverages import models
@@ -25,16 +24,18 @@ class RectifiedCoverageMapServerRenderer(CoverageRenderer):
     handles = (models.RectifiedDataset,)
 
     def render(self, coverage, **kwargs):
-        with CacheContext() as c:
-            data_items = coverage.data_items.filter(semantic__startswith="bands")
-            locations = map(lambda data_item: connect(data_item, c), data_items)
-
-            #print locations
-            #data = connect(coverage, c)
-            return self._render(coverage, data_items, locations, kwargs)
+        with CacheContext() as cache:
+            return self._render(coverage, cache, kwargs)
 
 
-    def _render(self, coverage, data_items, locations, kwargs):
+    def _render(self, coverage, cache, kwargs):
+        ms_component = MapServerComponent(env)
+
+        # get coverage related stuff
+        data_items = coverage.data_items.filter(semantic__startswith="bands")
+        range_type = coverage.range_type
+        bands = list(range_type)
+
         # create and configure map object
         map_ = Map()
         map_.setMetaData("ows_enable_request", "*")
@@ -46,9 +47,6 @@ class RectifiedCoverageMapServerRenderer(CoverageRenderer):
         if format is None:
             raise Exception("format could not be determined")
 
-        range_type = coverage.range_type
-        bands = list(range_type)
-
         imagemode = gdalconst_to_imagemode(range_type.data_type)
         time_stamp = datetime.now().strftime("%Y%m%d%H%M%S")
         basename = "%s_%s" % (coverage.identifier, time_stamp) 
@@ -56,22 +54,12 @@ class RectifiedCoverageMapServerRenderer(CoverageRenderer):
         map_.appendOutputFormat(of)
         map_.setOutputFormat(of)
 
+
+        # TODO: use layer factory here
+
         # create and configure layer
         layer = Layer(coverage.identifier)
 
-        data_statements = map(
-            lambda ds: (ds[0], ds[1].semantic),
-            zip(locations, data_items)
-        )
-
-        ms_component = MapServerComponent(env)
-        layer_connector = ms_component.get_connector(data_statements)
-        
-        if not layer_connector:
-            raise Exception("Could not find applicable layer connector.")
-
-        layer_connector.connect(layer, data_statements)
-        
         layer.setProjection(coverage.spatial_reference.proj)
 
         extent = coverage.extent
@@ -129,9 +117,24 @@ class RectifiedCoverageMapServerRenderer(CoverageRenderer):
             # TODO: implement
             pass
 
-        # create request object and dispatch it agains the map
-        request = self._create_request_v20(coverage.identifier, **kwargs)
-        response = map_.dispatch(request)
+
+        
+        layer_connector = ms_component.get_connector(data_items)
+        
+        if not layer_connector:
+            raise Exception("Could not find applicable layer connector.")
+
+        try:
+            layer_connector.connect(coverage, data_items, layer, cache)
+
+            # create request object and dispatch it agains the map
+            request = self._create_request_v20(coverage.identifier, **kwargs)
+            response = map_.dispatch(request)
+
+        finally:
+            # perform any required layer related cleanup
+            layer_connector.disconnect(coverage, data_items, layer, cache)
+
         return response.content, response.content_type
 
 
