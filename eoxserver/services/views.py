@@ -58,6 +58,7 @@ def ows(request):
         result = handler.handle(request)
         default_status = 200
     except Exception, e:
+        logger.debug(traceback.format_exc())
         handler = component.query_exception_handler(request)
         result = handler.handle_exception(request, e)
         default_status = 400
