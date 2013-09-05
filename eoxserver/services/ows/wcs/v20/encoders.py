@@ -1,8 +1,10 @@
 from lxml import etree
 
-from eoxserver.resources.coverages import models
+from eoxserver.core.config import get_eoxserver_config
 from eoxserver.resources.coverages.formats import getFormatRegistry
 from eoxserver.resources.coverages import crss
+from eoxserver.services.component import OWSServiceComponent, env
+from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.services.ows.wcs.v20.util import (
     ns_xlink, ns_ogc, ns_ows, ns_gml, ns_gmlcov, ns_wcs, ns_crs, ns_eowcs, 
     OWS, GML, WCS, CRS, EOWCS,
@@ -10,61 +12,63 @@ from eoxserver.services.ows.wcs.v20.util import (
 
 
 class WCS20CapabilitiesXMLEncoder(object):
-    def encode(self, decoder):
-        reader = CapabilitiesConfigReader(get_eoxserver_config())
+    def encode(self, sections, coverages_qs=None, dataset_series_qs=None):
+        conf = CapabilitiesConfigReader(get_eoxserver_config())
 
-        sections = []
-        if decoder.section_included("ServiceIdentification"):
-            sections.append(
+
+        all_sections = "all" in sections
+        caps = []
+        if all_sections or "serviceidentification" in sections:
+            caps.append(
                 OWS("ServiceIdentification",
-                    OWS("Title", reader.title),
-                    OWS("Abstract", reader.abstract),
+                    OWS("Title", conf.title),
+                    OWS("Abstract", conf.abstract),
                     OWS("Keywords", 
-                        *map(lambda k: OWS("Keyword", k), reader.keywords)
+                        *map(lambda k: OWS("Keyword", k), conf.keywords)
                     ),
                     OWS("ServiceType", "OGC WCS", codeSpace="OGC"),
                     OWS("ServiceTypeVersion", "2.0.1"),
                     OWS("Profile", "profile"), #TODO
-                    OWS("Fees", reader.fees),
-                    OWS("AccessConstraints", reader.access_constraints)
+                    OWS("Fees", conf.fees),
+                    OWS("AccessConstraints", conf.access_constraints)
                 )
             )
 
-        if decoder.section_included("ServiceProvider"):
-            sections.append(
+        if all_sections or "serviceprovider" in sections:
+            caps.append(
                 OWS("ServiceProvider",
-                    OWS("ProviderName", reader.provider_name),
-                    OWS("ProviderSite", reader.provider_site),
+                    OWS("ProviderName", conf.provider_name),
+                    OWS("ProviderSite", conf.provider_site),
                     OWS("ServiceContact",
-                        OWS("IndividualName", reader.individual_name),
-                        OWS("PositionName", reader.position_name),
+                        OWS("IndividualName", conf.individual_name),
+                        OWS("PositionName", conf.position_name),
                         OWS("ContactInfo",
                             OWS("Phone",
-                                OWS("Voice", reader.phone_voice),
-                                OWS("Facsimile", reader.phone_facsimile)
+                                OWS("Voice", conf.phone_voice),
+                                OWS("Facsimile", conf.phone_facsimile)
                             )
                         ),
                         OWS("Address",
-                            OWS("DeliveryPoint", reader.delivery_point),
-                            OWS("City", reader.city),
-                            OWS("AdministrativeArea", reader.administrative_area),
-                            OWS("PostalCode", reader.postal_code),
-                            OWS("Country", reader.country),
-                            OWS("ElectronicMailAddress", reader.electronic_mail_address)
+                            OWS("DeliveryPoint", conf.delivery_point),
+                            OWS("City", conf.city),
+                            OWS("AdministrativeArea", conf.administrative_area),
+                            OWS("PostalCode", conf.postal_code),
+                            OWS("Country", conf.country),
+                            OWS("ElectronicMailAddress", conf.electronic_mail_address)
                         ),
                         OWS("OnlineResource", **{
-                            ns_xlink("href"): reader.http_service_url, # TODO: here
+                            ns_xlink("href"): conf.http_service_url, # TODO: here
                             ns_xlink("type"): "simple"
                         }),
-                        OWS("HoursOfService", reader.hours_of_service),
-                        OWS("ContactInstructions", reader.contact_instructions)
+                        OWS("HoursOfService", conf.hours_of_service),
+                        OWS("ContactInstructions", conf.contact_instructions)
                     ),
-                    OWS("Role", reader.role)
+                    OWS("Role", conf.role)
                 )
             )
 
 
-        if decoder.section_included("OperationsMetadata"):
+        if all_sections or "operationsmetadata" in sections:
             component = OWSServiceComponent(env)
             versions = ("2.0.0", "2.0.1")
             get_handlers = component.query_service_handlers(
@@ -83,7 +87,7 @@ class WCS20CapabilitiesXMLEncoder(object):
                 if handler in get_handlers:
                     methods.append(
                         OWS("Get", **{
-                                ns_xlink("href"): reader.http_service_url,
+                                ns_xlink("href"): conf.http_service_url,
                                 ns_xlink("type"): "simple"
                             }
                         )
@@ -96,7 +100,7 @@ class WCS20CapabilitiesXMLEncoder(object):
                                     OWS("Value", "XML")
                                 ), name="PostEncoding"
                             ), **{
-                                ns_xlink("href"): reader.http_service_url,
+                                ns_xlink("href"): conf.http_service_url,
                                 ns_xlink("type"): "simple"
                             }
                         )
@@ -110,10 +114,10 @@ class WCS20CapabilitiesXMLEncoder(object):
                     )
                 )
 
-            sections.append(OWS("OperationsMetadata", *operations))
+            caps.append(OWS("OperationsMetadata", *operations))
 
 
-        if decoder.section_included("ServiceMetadata"):
+        if all_sections or "servicemetadata" in sections:
             service_metadata = WCS("ServiceMetadata")
 
             # get the list of enabled formats from the format registry
@@ -130,65 +134,45 @@ class WCS20CapabilitiesXMLEncoder(object):
                 map(lambda c: CRS("crsSupported", c), supported_crss)
             )
 
-            sections.append(service_metadata)
+            caps.append(service_metadata)
 
+        inc_contents = all_sections or "contents" in sections
+        inc_coverage_summary = inc_contents or "coveragesummary" in sections
+        inc_dataset_series_summary = inc_contents or "datasetseriessummary" in sections
+        inc_contents = inc_contents or inc_coverage_summary or inc_dataset_series_summary
 
-        if decoder.section_included("Contents", "CoverageSummary", "DatasetSeriesSummary"):
+        if inc_contents:
             contents = []
 
-            if decoder.section_included("Contents", "CoverageSummary"):
+            if inc_coverage_summary:
                 coverages = []
-                coverages_qs = models.Coverage.objects \
-                    .order_by("identifier") \
-                    .values_list("identifier", "real_content_type")
 
-                for identifier, content_type in coverages_qs:
-                    coverage_type = ContentType.objects.get_for_id(content_type).model_class().__name__
+                # reduce data transfer by only selecting required elements
+                # TODO: currently runs into a bug
+                #coverages_qs = coverages_qs.only(
+                #    "identifier", "real_content_type"
+                #)
 
+                for coverage in coverages_qs:
                     coverages.append(
                         WCS("CoverageSummary",
-                            WCS("CoverageId", identifier),
-                            WCS("CoverageSubtype", coverage_type)
+                            WCS("CoverageId", coverage.identifier),
+                            WCS("CoverageSubtype", coverage.real_type.__name__)
                         )
                     )
                 contents.extend(coverages)
 
-            if decoder.section_included("Contents", "DatasetSeriesSummary"):
+            if inc_dataset_series_summary:
                 dataset_series_set = []
-
-                # TODO: bug in Django/GeoDjango when using dates in values_list
-                """dataset_series_qs = models.DatasetSeries.objects \
-                    .order_by("identifier") \
-                    .envelope() \
-                    .values_list("identifier", "envelope", "begin_time", "end_time")
-
-                for identifier, envelope, begin_time, end_time in dataset_series_qs:
-                    minx, miny, maxx, maxy = envelope.extent
-                    dataset_series.append(
-                        WCSEO("DatasetSeriesSummary", (
-                            OWS("WGS84BoundingBox", (
-                                OWS("LowerCorner", "%f %f" % (miny, minx)),
-                                OWS("UppperCorner", "%f %f" % (maxy, maxx)),
-                            )),
-                            WCSEO("DatasetSeriesId", identifier),
-                            GML("TimePeriod", (
-                                GML("beginPosition", begin_time.isoformat()),
-                                GML("endPosition", end_time.isoformat())
-                            ), **{ns_gml("id"): identifier + "_timeperiod"})
-                        ))
-                    )"""
                 
-                dataset_series_qs = models.DatasetSeries.objects \
-                    .order_by("identifier") \
-                    .exclude(
-                        footprint__isnull=True, begin_time__isnull=True, 
-                        end_time__isnull=True
-                    )
+                # reduce data transfer by only selecting required elements
+                # TODO: currently runs into a bug
+                #dataset_series_qs = dataset_series_qs.only(
+                #    "identifier", "begin_time", "end_time", "footprint"
+                #)
                 
                 for dataset_series in dataset_series_qs:
-                    # TODO: WGS84BoundingBox is mandatory. But what Boundingbox 
-                    # does an empty DatasetSeries have?
-                    minx, miny, maxx, maxy = dataset_series.footprint.extent
+                    minx, miny, maxx, maxy = dataset_series.extent_wgs84
 
                     dataset_series_set.append(
                         EOWCS("DatasetSeriesSummary",
@@ -207,9 +191,9 @@ class WCS20CapabilitiesXMLEncoder(object):
 
                 contents.append(WCS("Extension", *dataset_series_set))
 
-            sections.append(WCS("Contents", *contents))
+            caps.append(WCS("Contents", *contents))
 
-        root = WCS("Capabilities", *sections, version="2.0.1")
+        root = WCS("Capabilities", *caps, version="2.0.1")
         return etree.tostring(root, pretty_print=True, encoding='iso-8859-1'), "text/xml"
 
 

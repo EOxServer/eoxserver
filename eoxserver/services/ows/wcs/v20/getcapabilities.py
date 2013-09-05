@@ -5,7 +5,8 @@ from django.contrib.contenttypes.models import ContentType
 from eoxserver.core import Component, implements
 
 from eoxserver.core.config import get_eoxserver_config
-from eoxserver.core.decoders import xml, kvp, typelist, upper
+from eoxserver.core.decoders import xml, kvp, typelist, lower
+from eoxserver.resources.coverages import models
 from eoxserver.services.component import OWSServiceComponent, env
 from eoxserver.services.interfaces import (
     OWSServiceHandlerInterface, 
@@ -37,12 +38,23 @@ class WCS20GetCapabilitiesHandler(Component):
         decoder = self.get_decoder(request)
         if "text/xml" not in decoder.acceptformats:
             raise InvalidRequestException()
+
+        # TODO: check updatesequence and perform version negotiation
+        coverages_qs = models.Coverage.objects.order_by("identifier")
+
+        dataset_series_qs = models.DatasetSeries.objects \
+            .order_by("identifier") \
+            .exclude(
+                footprint__isnull=True, begin_time__isnull=True, 
+                end_time__isnull=True
+            )
+
         encoder = WCS20CapabilitiesXMLEncoder()
-        return encoder.encode(decoder)
+        return encoder.encode(decoder.sections, coverages_qs, dataset_series_qs)
 
 
 class WCS20GetCapabilitiesKVPDecoder(kvp.Decoder, SectionsMixIn):
-    sections            = kvp.Parameter(type=typelist(upper, ","), num="?")
+    sections            = kvp.Parameter(type=typelist(lower, ","), num="?", default=["all"])
     updatesequence      = kvp.Parameter(num="?")
     acceptversions      = kvp.Parameter(type=typelist(str, ","), num="?")
     acceptformats       = kvp.Parameter(type=typelist(str, ","), num="?", default=["text/xml"])
