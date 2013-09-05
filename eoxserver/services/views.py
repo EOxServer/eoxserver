@@ -31,8 +31,9 @@
 function is ows() which handles all incoming OWS requests"""
 
 import logging
+import traceback
 
-from django.http import HttpResponse
+from django.http import HttpResponse, StreamingHttpResponse
 from django.conf import settings
 
 from eoxserver.services.component import OWSServiceComponent, env
@@ -57,13 +58,12 @@ def ows(request):
         default_status = 400
 
     
-    if isinstance(result, HttpResponse):
+    if isinstance(result, (HttpResponse, StreamingHttpResponse)):
         return response
 
     # convert result to a django response
     try:
         content, content_type, status = result
-        print content, content_type, status
         return HttpResponse(
             content=content, content_type=content_type, status=status
         )
