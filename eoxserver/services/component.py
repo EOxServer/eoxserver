@@ -89,12 +89,21 @@ class MapServerComponent(Component):
     connectors = ExtensionPoint(MapServerConnectorInterface)
     layer_factories = ExtensionPoint(MapServerLayerFactoryInterface)
 
-    def get_connector(self, data_statements):
+    def get_connector(self, data_items):
         for connector in self.connectors:
-            if connector.supports(data_statements):
+            if connector.supports(data_items):
                 return connector
 
         return None
+
+    def get_layer_factory(self, coverage_type, suffix=None):
+        result = None
+        for factory in self.layer_factories:
+            if coverage_type in factory.handles and suffix == factory.suffix:
+                if factory:
+                    raise ""
+                result = factory
+        return result
 
 
 class OWSCommonKVPDecoder(kvp.Decoder):
