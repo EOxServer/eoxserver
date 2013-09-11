@@ -35,7 +35,7 @@ from django.core.management.base import CommandError, BaseCommand
 from django.db import transaction
 
 from eoxserver.core import env
-from eoxserver.contrib import gdal
+from eoxserver.contrib import gdal, osr
 from eoxserver.backends import models as backends
 from eoxserver.backends.component import BackendComponent
 from eoxserver.backends.cache import CacheContext
@@ -241,7 +241,13 @@ class Command(CommandOutputMixIn, BaseCommand):
                 retrieved_metadata["srid"] = proj
             else:
                 definition, format = proj
-                retrieved_metadata["projection"] = models.Projection.objects.get(format=format, definition=definition)
+
+                # Try to identify the SRID from the given input
+                try:
+                    sr = osr.SpatialReference(definition, format)
+                    retrieved_metadata["srid"] = sr.srid
+                except Exception, e:
+                    retrieved_metadata["projection"] = models.Projection.objects.get(format=format, definition=definition)
 
             #coverage.identifier = identifier # TODO: bug in models for some coverages
             for key, value in retrieved_metadata.items():
