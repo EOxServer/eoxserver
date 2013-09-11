@@ -242,6 +242,11 @@ class RangeType(models.Model):
     data_type = models.PositiveIntegerField() # TODO: move data type to band?
 
 
+    def __init__(self, *args, **kwargs):
+        super(RangeType, self).__init__(*args, **kwargs)
+        self._cached_bands = None
+
+
     def __unicode__(self):
         return "%s (%s)" % (self.name, self.data_type)
 
@@ -280,8 +285,24 @@ class RangeType(models.Model):
             return 38
 
 
+    @property
+    def cached_bands(self):
+        if self._cached_bands is None:
+            self._cached_bands = list(self.bands.all())
+        return self._cached_bands
+
+
     def __iter__(self):
-        return iter(self.bands.all())
+        return iter(self.cached_bands)
+
+
+    def __len__(self):
+        return len(self.cached_bands)
+
+
+    def __getitem__(self, index):
+        return self.cached_bands[index]
+
 
 
 class Band(models.Model):
