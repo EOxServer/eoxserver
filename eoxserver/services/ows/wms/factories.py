@@ -65,13 +65,14 @@ class CoverageBandsLayerFactory(AbstractLayerFactory):
 
         for req_band in req_bands:
             if isinstance(req_band, int):
-                band_indices.append(req_band)
+                band_indices.append(req_band + 1)
                 bands.append(range_type[req_band])
             else:
                 for i, band in enumerate(range_type):
                     if band.name == req_band:
-                        band_indices.append(i)
+                        band_indices.append(i + 1)
                         bands.append(band)
+                        break
                 else:
                     raise "Coverage '%s' does not have a band with name '%s'." 
 
@@ -166,9 +167,10 @@ class CoverageOutlinesLayerFactory(AbstractLayerFactory):
 
 
 def create_offsite_color(bands):
+    return colorObj(0,0,0)
     if len(bands) == 1:
-        v = int(bands[0].nil_values[0].value)
+        v = int(bands[0].nil_values.all()[0].value)
         return colorObj(v, v, v)
     elif len(bands) == 3:
-        values = [int(band.nil_values[0].value) for bands in band]
+        values = [int(band.nil_values.all()[0].value) for band in bands]
         return colorObj(*values)

@@ -154,6 +154,11 @@ def parse_bbox(string):
 def parse_time(string):
     pass # TODO: implement
 
+def int_or_str(string):
+    try:
+        return int(string)
+    except:
+        return string
 
 class WMS13GetMapDecoder(kvp.Decoder):
     layers = kvp.Parameter(type=typelist(str, ","), num=1)
@@ -164,6 +169,6 @@ class WMS13GetMapDecoder(kvp.Decoder):
     width  = kvp.Parameter(num=1)
     height = kvp.Parameter(num=1)
     format = kvp.Parameter(num=1)
-    dim_bands = kvp.Parameter(num="?")
+    dim_bands = kvp.Parameter(type=typelist(int_or_str, ","), num="?")
 
 
