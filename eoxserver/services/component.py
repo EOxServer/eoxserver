@@ -99,10 +99,13 @@ class MapServerComponent(Component):
     def get_layer_factory(self, coverage_type, suffix=None):
         result = None
         for factory in self.layer_factories:
-            if coverage_type in factory.handles and suffix == factory.suffix:
-                if factory:
-                    raise ""
+            if (issubclass(coverage_type, factory.handles)
+                and suffix == factory.suffix):
+                if result:
+                    pass # TODO
+                    #raise Exception("Found")
                 result = factory
+                return result
         return result
 
 
