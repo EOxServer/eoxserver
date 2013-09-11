@@ -235,6 +235,7 @@ class Command(CommandOutputMixIn, BaseCommand):
             range_type = models.RangeType.objects.get(name=range_type_name)
 
             coverage = CoverageType()
+            coverage.range_type = range_type
             
             proj = retrieved_metadata.pop("projection")
             if isinstance(proj, int):
