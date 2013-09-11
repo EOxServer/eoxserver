@@ -34,7 +34,7 @@ class InvalidRequestException(Exception):
     report shall be returned to the client.
     
     The constructor takes three arguments, namely ``msg``, the error message,
-    ``error_code``, the error code, and ``locator``, which is needed in OWS
+    ``code``, the error code, and ``locator``, which is needed in OWS
     exception reports for indicating which part of the request produced the
     error.
     
