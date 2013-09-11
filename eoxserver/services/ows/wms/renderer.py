@@ -1,4 +1,12 @@
 
+from itertools import chain
+
+from django.db.models import Q
+
+from eoxserver.backends.cache import CacheContext
+from eoxserver.contrib.mapserver import create_request, Map
+from eoxserver.services.component import MapServerComponent, env
+
 class WMSCapabilitiesRenderer(object):
     def render(self, request, coverages_qs, dataset_series_qs):
         ms_component = MapServerComponent(env)
@@ -28,10 +36,12 @@ class WMSCapabilitiesRenderer(object):
 
 
 class WMSMapRenderer(object):
-    def render(self, request, layer_groups):
+    def render(self, layer_groups, request_values, **options):
         ms_component = MapServerComponent(env)
 
         map_ = Map()
+        map_.setMetaData("ows_enable_request", "*")
+        map_.setProjection("EPSG:4326")
 
         group_names = set()
         group_layers = []
@@ -49,25 +59,27 @@ class WMSMapRenderer(object):
 
                 suffix = suffix or "" # transform None to empty string
 
-                group_name = "/" + "/".join(
-                    map(lambda n: n + suffix, names[1:])
-                )
-                # create a group layer
-                if group_name not in group_names:
-                    group_names.add(group_name)
-                    group_layer = factory.generate_group(names[-1] + suffix)
-                    if group_layer:
-                        group_layers.append(group_layer)
+                group_name = None
+
+                if len(names) > 1:
+                    group_name = "/" + "/".join(
+                        map(lambda n: n + suffix, names[1:])
+                    )
+                    # create a group layer
+                    if group_name not in group_names:
+                        group_names.add(group_name)
+                        group_layer = factory.generate_group(names[-1] + suffix)
+                        if group_layer:
+                            group_layers.append(group_layer)
 
                 data_items = coverage.data_items.filter(
-                    Q(semantic__startswith="bands") || Q(semantic="tileindex")
+                    Q(semantic__startswith="bands") | Q(semantic="tileindex")
                 )
 
-                layers = factory.generate(coverage)
+                layers = factory.generate(coverage, options)
                 for layer in layers:
-                    layer.setMetaData({
-                        "layer_group": group_name
-                    }, namespace="wms")
+                    if group_name:
+                        layer.setMetaData("wms_layer_group", group_name)
 
                     if factory.requires_connection:
                         connector = ms_component.get_connector(data_items)
@@ -78,15 +90,18 @@ class WMSMapRenderer(object):
                         connector_to_layers.setdefault(connector, []).append(
                             (coverage, data_items, layer)
                         )
+                    coverage_layers.append(layer)
 
             for layer in chain(group_layers, coverage_layers):
                 map_.insertLayer(layer)
 
-            try:
-                map_.dispatch(request)
-            except:
-                # cleanup
-                for connector, (coverage, data_items, layer) in connector_to_layers.items():
-                    connector.disconnect(coverage, data_items, layer, cache)
-                raise
+            request = create_request(request_values)
 
+            try:
+                response = map_.dispatch(request)
+                return response.content, response.content_type
+            finally:
+                # cleanup
+                for connector, items in connector_to_layers.items():
+                    for coverage, data_items, layer in items:
+                        connector.disconnect(coverage, data_items, layer, cache)
