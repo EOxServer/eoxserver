@@ -2,6 +2,7 @@
 from itertools import chain
 
 from django.db.models import Q
+from django.utils.datastructures import SortedDict
 
 from eoxserver.backends.cache import CacheContext
 from eoxserver.contrib.mapserver import create_request, Map
@@ -43,8 +44,7 @@ class WMSMapRenderer(object):
         map_.setMetaData("ows_enable_request", "*")
         map_.setProjection("EPSG:4326")
 
-        group_names = set()
-        group_layers = []
+        group_layers = SortedDict()
         coverage_layers = []
         connector_to_layers = {}
 
@@ -62,16 +62,19 @@ class WMSMapRenderer(object):
                 group_name = None
                 group_layer = None
 
+                group_name = "/" + "/".join(
+                    map(lambda n: n + suffix, names[1:])
+                )
+
                 if len(names) > 1:
-                    group_name = "/" + "/".join(
-                        map(lambda n: n + suffix, names[1:])
-                    )
                     # create a group layer
-                    if group_name not in group_names:
-                        group_names.add(group_name)
+                    if group_name not in group_layers:
                         group_layer = factory.generate_group(names[-1] + suffix)
                         if group_layer:
-                            group_layers.append(group_layer)
+                            group_layers[group_name] = group_layer
+                if not group_layer:
+                    group_layer = group_layers.get(group_name)
+
 
                 data_items = coverage.data_items.filter(
                     Q(semantic__startswith="bands") | Q(semantic="tileindex")
@@ -93,7 +96,7 @@ class WMSMapRenderer(object):
                         )
                     coverage_layers.append(layer)
 
-            for layer in chain(group_layers, coverage_layers):
+            for layer in chain(group_layers.values(), coverage_layers):
                 old_layer = map_.getLayerByName(layer.name)
                 if old_layer:
                     # remove the old layer and reinsert the new one, to 

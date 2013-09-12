@@ -13,7 +13,7 @@ class AbstractLayerFactory(Component):
     implements(MapServerLayerFactoryInterface)
     abstract = True
 
-    def generate(self, eo_object, options):
+    def generate(self, eo_object, group_layer, options):
         pass
 
 
@@ -29,7 +29,7 @@ class CoverageLayerFactory(AbstractLayerFactory):
     suffix = None
     requires_connection = True
 
-    def generate(self, eo_object, options):
+    def generate(self, eo_object, group_layer, options):
         layer = Layer(eo_object.identifier)
         layer.setMetaData("wms_extent", "%f %f %f %f" % eo_object.extent_wgs84)
         layer.setMetaData("wms_enable_request", "getcapabilities getmap getfeatureinfo")
@@ -49,7 +49,7 @@ class CoverageBandsLayerFactory(AbstractLayerFactory):
     suffix = "_bands"
     requires_connection = True
 
-    def generate(self, eo_object, options):
+    def generate(self, eo_object, group_layer, options):
         name = eo_object.identifier + self.suffix
         layer = Layer(name)
         layer.setMetaData("ows_title", name)
@@ -111,19 +111,24 @@ class CoverageOutlinesLayerFactory(AbstractLayerFactory):
     
     DEFAULT_STYLE = "red"
 
-    def generate(self, eo_object, options):
-        layer = Layer(eo_object.identifier + self.suffix, type=MS_LAYER_POLYGON)
+    def generate(self, eo_object, group_layer, options):
+        # don't generate any layers, but add the footprint as feature to the 
+        # group layer
         
-        # create a shape from the objects footprint
+        layer = group_layer
         shape = shapeObj.fromWKT(eo_object.footprint.wkt)
-
-        # set the features values and add it to the layer
         shape.initValues(1)
         shape.setValue(0, eo_object.identifier)
         layer.addFeature(shape)
         layer.addProcessing("ITEMS=identifier")
 
-        # set projection info
+        return ()
+
+
+    def generate_group(self, name):
+        layer = Layer(name, type=MS_LAYER_POLYGON)
+        self.apply_styles(layer)
+
         srid = 4326
         layer.setProjection(crss.asProj4Str(srid))
         layer.setMetaData("ows_srs", crss.asShortCode(srid)) 
@@ -138,17 +143,8 @@ class CoverageOutlinesLayerFactory(AbstractLayerFactory):
         layer.setMetaData("gml_include_items", "all")
         layer.setMetaData("wms_include_items", "all")
 
-
         layer.offsite = colorObj(0, 0, 0)
 
-        self.apply_styles(layer)
-        # TODO: what about dateline...
-        yield layer
-
-
-    def generate_group(self, name):
-        layer = Layer(name, type=MS_LAYER_POLYGON)
-        self.apply_styles(layer)
         return layer
 
 

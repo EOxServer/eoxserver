@@ -82,7 +82,8 @@ class WMS13GetMapHandler(Component):
                     # apply subsets
                     eo_objects = subsets.filter(eo_objects)
 
-                    group = LayerGroup(collection.identifier)
+                    #group = LayerGroup(collection.identifier)
+                    group = []
 
                     # append all retrived EO objects, either as a coverage of 
                     # the real type, or as a subgroup.
@@ -92,7 +93,7 @@ class WMS13GetMapHandler(Component):
                         if models.iscoverage(eo_object):
                             group.append((eo_object.cast(), suffix))
                         elif models.iscollection(eo_object):
-                            group.append(recursive_lookup(
+                            group.extend(recursive_lookup(
                                 eo_object, suffix, used_ids, subsets
                             ))
                         else: 
@@ -101,7 +102,9 @@ class WMS13GetMapHandler(Component):
                     return group
 
                 root_group.append(
-                    recursive_lookup(eo_object, suffix, used_ids, subsets)
+                    LayerGroup(eo_object.identifier,
+                        recursive_lookup(eo_object, suffix, used_ids, subsets)
+                    )
                 )
 
             elif models.iscoverage(eo_object):
@@ -154,11 +157,13 @@ def parse_bbox(string):
 def parse_time(string):
     pass # TODO: implement
 
+
 def int_or_str(string):
     try:
         return int(string)
-    except:
+    except ValueError:
         return string
+
 
 class WMS13GetMapDecoder(kvp.Decoder):
     layers = kvp.Parameter(type=typelist(str, ","), num=1)

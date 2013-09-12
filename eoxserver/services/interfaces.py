@@ -150,7 +150,7 @@ class MapServerLayerFactoryInterface(object):
             connected via a layer connector.
         """
 
-    def generate(self, eo_object):
+    def generate(self, eo_object, group_layer, options):
         """ Returns an iterable of `mapscript.layerObj` objects preconfigured 
             for the given EO object. This is easily done via the `yield` 
             statement.
