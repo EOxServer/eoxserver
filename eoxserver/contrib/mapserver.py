@@ -29,6 +29,8 @@
 import time
 import logging
 from cgi import escape
+import tempfile
+import os
 
 from mapscript import *
 
@@ -133,6 +135,14 @@ class Map(MetadataMixIn, mapObj):
 
         logger.debug("MapServer: Installing stdout to buffer.")
         msIO_installStdoutToBuffer()
+
+        # write the map if debug is enabled
+        if logger.isEnabledFor(logging.DEBUG):
+            _, filename = tempfile.mkstemp()
+            self.save(filename)
+            with open(filename) as f:
+                logger.debug(f.read())
+            os.remove(filename)
         
         try:
             logger.debug("MapServer: Dispatching.")
