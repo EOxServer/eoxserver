@@ -60,6 +60,7 @@ class WMSMapRenderer(object):
                 suffix = suffix or "" # transform None to empty string
 
                 group_name = None
+                group_layer = None
 
                 if len(names) > 1:
                     group_name = "/" + "/".join(
@@ -76,7 +77,7 @@ class WMSMapRenderer(object):
                     Q(semantic__startswith="bands") | Q(semantic="tileindex")
                 )
 
-                layers = factory.generate(coverage, options)
+                layers = factory.generate(coverage, group_layer, options)
                 for layer in layers:
                     if group_name:
                         layer.setMetaData("wms_layer_group", group_name)
@@ -99,7 +100,6 @@ class WMSMapRenderer(object):
                     # raise the layer to the top.
                     # TODO: find a more efficient way to do this
                     map_.removeLayer(old_layer.index)
-                    continue
                 map_.insertLayer(layer)
 
             request = create_request(request_values)
