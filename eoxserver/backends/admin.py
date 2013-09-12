@@ -79,9 +79,9 @@ class LocationForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(LocationForm, self).__init__(*args, **kwargs)
-        self.fields['format'] = forms.ChoiceField(
-            choices=[("---------", None)] + get_format_choices()
-        )
+        #self.fields['format'] = forms.ChoiceField(
+        #    choices=[("---------", None)] + get_format_choices()
+        #)
 
 
 class PackageForm(forms.ModelForm):

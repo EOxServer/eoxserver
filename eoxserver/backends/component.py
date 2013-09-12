@@ -34,7 +34,6 @@ from eoxserver.backends.interfaces import *
 
 
 class BackendComponent(Component):
-    data_readers = ExtensionPoint(DataReaderInterface)
     file_storages = ExtensionPoint(FileStorageInterface)
     connected_storages = ExtensionPoint(ConnectedStorageInterface)
     packages = ExtensionPoint(PackageInterface)
