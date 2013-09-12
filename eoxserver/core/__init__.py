@@ -30,6 +30,7 @@
 import logging
 import traceback
 import pkgutil
+import threading
 
 from django.utils.importlib import import_module
 
@@ -38,6 +39,8 @@ from component import Component, ComponentManager, ExtensionPoint, implements
 env = ComponentManager()
 logger = logging.getLogger(__name__)
 
+__init_lock = threading.Lock()
+__is_initialized = False
 
 def initialize():
     """ Initialize the EOxServer plugin system by trying to import all the 
@@ -47,22 +50,29 @@ def initialize():
         that the import will be done recursively.
     """
 
-    from django.conf import settings
+    global __is_initialized
 
-    for plugin in getattr(settings, "PLUGINS", ()):
+    with __init_lock:
+        if __is_initialized:
+            return
+        __is_initialized = True
 
-        parts = plugin.split(".")
-        if parts[-1] == "*":
-            import_modules(".".join(parts[:-1]))
-        elif parts[-1] == "**":
-            import_recursive(".".join(parts[:-1]))
-        else:
-            try:
-                import_module(plugin)
-                logger.debug("Imported plugin '%s'." % plugin)
-            except ImportError:
-                logger.error("Failed to import plugin '%s'." % plugin)
-                logger.debug(traceback.format_exc())
+        from django.conf import settings
+
+        for plugin in getattr(settings, "PLUGINS", ()):
+
+            parts = plugin.split(".")
+            if parts[-1] == "*":
+                import_modules(".".join(parts[:-1]))
+            elif parts[-1] == "**":
+                import_recursive(".".join(parts[:-1]))
+            else:
+                try:
+                    import_module(plugin)
+                    logger.debug("Imported plugin '%s'." % plugin)
+                except ImportError:
+                    logger.error("Failed to import plugin '%s'." % plugin)
+                    logger.debug(traceback.format_exc())
 
 
 def import_modules(base_module_path):
