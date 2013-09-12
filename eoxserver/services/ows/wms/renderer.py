@@ -32,36 +32,44 @@ from itertools import chain
 from django.db.models import Q
 from django.utils.datastructures import SortedDict
 
+from eoxserver.core.config import get_eoxserver_config
 from eoxserver.backends.cache import CacheContext
-from eoxserver.contrib.mapserver import create_request, Map
+from eoxserver.contrib.mapserver import create_request, Map, Layer
 from eoxserver.services.component import MapServerComponent, env
+from eoxserver.services.ows.common.config import CapabilitiesConfigReader
+
 
 class WMSCapabilitiesRenderer(object):
-    def render(self, request, coverages_qs, dataset_series_qs):
+    def render(self, dataset_series_qs, suffixes, request_values):
         ms_component = MapServerComponent(env)
         conf = CapabilitiesConfigReader(get_eoxserver_config())
 
         map_ = Map()
+        map_.setMetaData("wms_enable_request", "*")
+        map_.setMetaData("wms_onlineresource", conf.http_service_url)
+        map_.setProjection("EPSG:4326")
+
+        for dataset_series in dataset_series_qs:
+            group_name = None
+            if len(suffixes) > 1:
+                # TODO: create group layer.
+                group_name = dataset_series.identifier + "_group"
+                group_layer = Layer(group_name)
+                map_.insertLayer(group_layer)
+
+            for suffix in suffixes:
+                layer = Layer(dataset_series.identifier + (suffix or ""))
+                if group_name:
+                    layer.setMetaData("wms_layer_group", "/" + group_name)
+                map_.insertLayer(layer)
+                # TODO: set metadata
+            pass
         # TODO: add all the capabilities relevant metadata
+        
+        request = create_request(request_values)
+        response = map_.dispatch(request)
+        return response.content, response.content_type
 
-        factory_cache = {}
-
-        for coverage in coverages_qs:
-            coverage_type = coverage.real_type
-            if coverage_type not in factory_cache:
-                factory_cache[coverage_type] = [
-                    factory
-                    for factory in ms_component.layer_factories
-                    if issubclass(coverage_type, factory.handles)
-                ]
-
-            for factory in factory_cache[coverage_type]:
-                layer = factory.generate(coverage)
-
-            map_.insertLayer(layer)
-            # TODO meta layer via layer groups
-
-        return map_.dispatch(r)
 
 
 class WMSMapRenderer(object):
