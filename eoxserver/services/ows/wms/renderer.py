@@ -93,6 +93,13 @@ class WMSMapRenderer(object):
                     coverage_layers.append(layer)
 
             for layer in chain(group_layers, coverage_layers):
+                old_layer = map_.getLayerByName(layer.name)
+                if old_layer:
+                    # remove the old layer and reinsert the new one, to 
+                    # raise the layer to the top.
+                    # TODO: find a more efficient way to do this
+                    map_.removeLayer(old_layer.index)
+                    continue
                 map_.insertLayer(layer)
 
             request = create_request(request_values)
