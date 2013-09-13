@@ -30,11 +30,15 @@
 
 from os.path import join
 from uuid import uuid4
+import logging
 
 from eoxserver.core import Component, implements
 from eoxserver.contrib import vsi, vrt
 from eoxserver.backends.access import connect
 from eoxserver.services.interfaces import MapServerConnectorInterface
+
+
+logger = logging.getLogger(__name__)
 
 
 class SimpleConnector(Component):
@@ -43,13 +47,12 @@ class SimpleConnector(Component):
     implements(MapServerConnectorInterface)
     
     def supports(self, data_items):
-        return (
-            len(data_items) == 1 
-            and data_items[0].semantic.startswith("bands")
-        )
+        filtered = filter(lambda d: d.semantic.startswith("bands"), data_items)
+        return len(filtered) == 1 
 
     def connect(self, coverage, data_items, layer, cache):
-        layer.data = connect(data_items[0], cache)
+        filtered = filter(lambda d: d.semantic.startswith("bands"), data_items)
+        layer.data = connect(filtered[0], cache)
 
     def disconnect(self, coverage, data_items, layer, cache):
         pass
