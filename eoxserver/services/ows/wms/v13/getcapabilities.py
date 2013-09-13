@@ -40,7 +40,6 @@ from eoxserver.services.interfaces import (
 class WMS13GetCapabilitiesHandler(Component):
     implements(OWSServiceHandlerInterface)
     implements(OWSGetServiceHandlerInterface)
-    #implements(OWSPostServiceHandlerInterface) # TODO: ?
     
     service = "WMS"
     versions = ("1.3", "1.3.0",)

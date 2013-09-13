@@ -25,3 +25,71 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
+
+from itertools import chain
+
+from eoxserver.core import Component, env, implements
+from eoxserver.core.decoders import kvp, typelist, InvalidParameterException
+from eoxserver.resources.coverages import models
+from eoxserver.services.component import MapServerComponent
+from eoxserver.services.subset import Subsets, Trim, Slice
+from eoxserver.services.interfaces import (
+    OWSServiceHandlerInterface, OWSGetServiceHandlerInterface
+)
+from eoxserver.services.ows.wms.util import (
+    lookup_layers, parse_bbox, parse_time, int_or_str
+)
+
+
+class WMS13GetFeatureInfoHandler(Component):
+    implements(OWSServiceHandlerInterface)
+    implements(OWSGetServiceHandlerInterface)
+
+    service = "WMS"
+    versions = ("1.3.0", "1.3")
+    request = "GetFeatureInfo"
+
+    def handle(self, request):
+        decoder = WMS13GetFeatureInfoDecoder(request.GET)
+
+        bbox = decoder.bbox
+        time = decoder.time
+        crs = decoder.crs
+        layers = decoder.layers
+
+        if not layers:
+            raise InvalidParameterException("No layers specified", "layers")
+
+        # TODO: if crs has not swapped axes
+        minx, miny, maxx, maxy = bbox
+
+        subsets = Subsets((
+            Trim("x", minx, maxx, crs),
+            Trim("y", miny, maxy, crs),
+        ))
+        if time: 
+            subsets.append(time)
+        
+        ms_component = MapServerComponent(env)
+        suffixes = set(map(lambda s: s.suffix, ms_component.layer_factories))
+        root_group = lookup_layers(layers, subsets, chain((None,), suffixes))
+        
+        # TODO: make this dependant on the plugin
+        from eoxserver.services.ows.wms.renderer import WMSFeatureInfoRenderer
+        renderer = WMSFeatureInfoRenderer()
+        return renderer.render(
+            root_group, request.GET.items(), 
+            time=decoder.time, bands=decoder.dim_bands
+        )
+
+
+class WMS13GetFeatureInfoDecoder(kvp.Decoder):
+    layers = kvp.Parameter(type=typelist(str, ","), num=1)
+    styles = kvp.Parameter(num="?")
+    bbox   = kvp.Parameter(type=parse_bbox, num=1)
+    time   = kvp.Parameter(type=parse_time, num="?")
+    crs    = kvp.Parameter(num=1)
+    width  = kvp.Parameter(num=1)
+    height = kvp.Parameter(num=1)
+    format = kvp.Parameter(num=1)
+    dim_bands = kvp.Parameter(type=typelist(int_or_str, ","), num="?")
