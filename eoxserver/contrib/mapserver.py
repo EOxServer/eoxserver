@@ -114,12 +114,12 @@ class MetadataMixIn(object):
         if value is None:
             for key, value in key_or_params.items():
                 if namespace:
-                    key = "%s_%s" % (key, namespace)
+                    key = "%s_%s" % (namespace, key)
 
                 super(MetadataMixIn, self).setMetaData(key, value)
         else:
             if namespace:
-                key = "%s_%s" % (key_or_params, namespace)
+                key = "%s_%s" % (namespace, key_or_params)
             else:
                 key = key_or_params
 
@@ -187,7 +187,6 @@ class Map(MetadataMixIn, mapObj):
             msIO_resetHandlers()
         
         return Response(result, content_type, status)
-    
 
 
 class Layer(MetadataMixIn, layerObj):

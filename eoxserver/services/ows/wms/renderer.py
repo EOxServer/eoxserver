@@ -33,6 +33,7 @@ from django.db.models import Q
 from django.utils.datastructures import SortedDict
 
 from eoxserver.core.config import get_eoxserver_config
+from eoxserver.core.util.timetools import isoformat
 from eoxserver.backends.cache import CacheContext
 from eoxserver.contrib.mapserver import create_request, Map, Layer
 from eoxserver.services.component import MapServerComponent, env
@@ -40,31 +41,79 @@ from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 
 
 class WMSCapabilitiesRenderer(object):
-    def render(self, dataset_series_qs, suffixes, request_values):
+    def render(self, collections, suffixes, request_values):
         ms_component = MapServerComponent(env)
         conf = CapabilitiesConfigReader(get_eoxserver_config())
 
         map_ = Map()
-        map_.setMetaData("wms_enable_request", "*")
-        map_.setMetaData("wms_onlineresource", conf.http_service_url)
+        map_.setMetaData({
+            "enable_request": "*",
+            "onlineresource": conf.http_service_url,
+            "title": conf.title,
+            "abstract": conf.abstract,
+            "accessconstraints": conf.access_constraints,
+            "addresstype": "",
+            "address": conf.delivery_point,
+            "stateorprovince": conf.administrative_area,
+            "city": conf.city,
+            "postcode": conf.postal_code,
+            "country": conf.country,
+            "contactelectronicmailaddress": conf.electronic_mail_address,
+            "contactfacsimiletelephone": conf.phone_facsimile,
+            "contactvoicetelephone": conf.phone_voice,
+            "contactperson": conf.individual_name,
+            "contactorganization": conf.provider_name,
+            "contactposition": conf.position_name,
+            "fees": conf.fees,
+            "keywordlist": ",".join(conf.keywords),
+        }, namespace="ows")
         map_.setProjection("EPSG:4326")
 
-        for dataset_series in dataset_series_qs:
+
+        for collection in collections:
             group_name = None
+            
+            # calculate extent and timextent for every collection
+            extent = " ".join(map(str, collection.extent_wgs84))
+
+            eo_objects = collection.eo_objects.filter(
+                begin_time__isnull=False, end_time__isnull=False
+            )
+            timeextent = ",".join(
+                map(
+                    lambda o: (
+                        "/".join(
+                            map(isoformat, o.time_extent)
+                        ) + "/PT1S"
+                    ), eo_objects
+                )
+            )
+
             if len(suffixes) > 1:
-                # TODO: create group layer.
-                group_name = dataset_series.identifier + "_group"
+                # create group layer, if there is more than one suffix for this 
+                # collection
+                group_name = collection.identifier + "_group"
                 group_layer = Layer(group_name)
+                group_layer.setMetaData({
+                    "title": group_name,
+                    "extent": extent
+                }, namespace="wms")
                 map_.insertLayer(group_layer)
 
             for suffix in suffixes:
-                layer = Layer(dataset_series.identifier + (suffix or ""))
+                layer_name = collection.identifier + (suffix or "")
+                layer = Layer(layer_name)
                 if group_name:
-                    layer.setMetaData("wms_layer_group", "/" + group_name)
+                    layer.setMetaData({
+                        "layer_group": "/" + group_name
+                    }, namespace="wms")
+
+                layer.setMetaData({
+                    "title": layer_name,
+                    "extent": extent,
+                    "timeextent": timeextent
+                }, namespace="wms")
                 map_.insertLayer(layer)
-                # TODO: set metadata
-            pass
-        # TODO: add all the capabilities relevant metadata
         
         request = create_request(request_values)
         response = map_.dispatch(request)
@@ -83,6 +132,7 @@ class WMSMapRenderer(object):
         group_layers = SortedDict()
         coverage_layers = []
         connector_to_layers = {}
+        layers_to_style = []
 
         with CacheContext() as cache:
             for names, suffix, coverage in layer_groups.walk():
@@ -113,10 +163,10 @@ class WMSMapRenderer(object):
 
 
                 data_items = coverage.data_items.filter(
-                    Q(semantic__startswith="bands") | Q(semantic="tileindex")
+                #    Q(semantic__startswith="bands") | Q(semantic="tileindex")
                 )
 
-                layers = factory.generate(coverage, group_layer, options)
+                layers = tuple(factory.generate(coverage, group_layer, options))
                 for layer in layers:
                     if group_name:
                         layer.setMetaData("wms_layer_group", group_name)
@@ -132,6 +182,9 @@ class WMSMapRenderer(object):
                         )
                     coverage_layers.append(layer)
 
+                layers_to_style.append((coverage, data_items, layers))
+
+
             for layer in chain(group_layers.values(), coverage_layers):
                 old_layer = map_.getLayerByName(layer.name)
                 if old_layer:
@@ -140,6 +193,13 @@ class WMSMapRenderer(object):
                     # TODO: find a more efficient way to do this
                     map_.removeLayer(old_layer.index)
                 map_.insertLayer(layer)
+
+            # apply any styles
+            style_applicators = ms_component.style_applicators
+            for coverage, data_items, layers in layers_to_style:
+                for layer in layers:
+                    for applicator in style_applicators:
+                        applicator.apply(coverage, data_items, layer, cache)
 
             request = create_request(request_values)
 
@@ -151,3 +211,5 @@ class WMSMapRenderer(object):
                 for connector, items in connector_to_layers.items():
                     for coverage, data_items, layer in items:
                         connector.disconnect(coverage, data_items, layer, cache)
+
+
