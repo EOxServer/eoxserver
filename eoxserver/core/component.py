@@ -17,7 +17,7 @@
 #         Christopher Lenz <cmlenz@gmx.de>
 
 __all__ = ['Component', 'ExtensionPoint', 'implements', 'Interface',
-           'TracError']
+           'ComponentException']
 
 
 def N_(string):
@@ -27,29 +27,8 @@ def N_(string):
     return string
 
 
-class TracError(Exception):
-    """Exception base class for errors in Trac."""
-
-    title = N_('Trac Error')
-
-    def __init__(self, message, title=None, show_traceback=False):
-        """If message is a genshi.builder.tag object, everything up to
-        the first <p> will be displayed in the red box, and everything
-        after will be displayed below the red box.  If title is given,
-        it will be displayed as the large header above the error
-        message.
-        """
-        from trac.util.translation import gettext
-        Exception.__init__(self, message)
-        self._message = message
-        self.title = title or gettext(self.title)
-        self.show_traceback = show_traceback
-
-    message = property(lambda self: self._message,
-                       lambda self, v: setattr(self, '_message', v))
-
-    def __unicode__(self):
-        return unicode(self.message)
+class ComponentException(Exception):
+    pass
 
 
 class Interface(object):
@@ -80,8 +59,31 @@ class ExtensionPoint(property):
 
     def __repr__(self):
         """Return a textual representation of the extension point."""
-        return '<ExtensionPoint %s>' % self.interface.__name__
+        return '<%s %s>' % (self.__class__.__name__, self.interface.__name__)
 
+
+class UniqueExtensionPoint(ExtensionPoint):
+    """Marker class for unique extension points in components."""
+
+
+    def extensions(self, component):
+        """Return the single component that is implementing the interaface. If 
+        none is found, or more than one, an exception is raised.
+        """
+        extensions = super(UniqueExtensionPoint, self).extensions()
+        length = len(extensions)
+        if length == 1:
+            return extensions[0]
+        elif length > 1:
+            raise ComponentException(
+                "More than one implementation was found for this extension "
+                "point."
+            )
+        else:
+            raise ComponentException(
+                "No implementation was found for this extension point."
+            )
+        
 
 class ComponentMeta(type):
     """Meta class for components.
@@ -197,12 +199,15 @@ class ComponentManager(object):
         component = self.components.get(cls)
         if not component and not issubclass(cls, ComponentManager):
             if cls not in ComponentMeta._components:
-                raise TracError('Component "%s" not registered' % cls.__name__)
+                raise ComponentException(
+                    'Component "%s" not registered' % cls.__name__
+                )
             try:
                 component = cls(self)
             except TypeError, e:
-                raise TracError('Unable to instantiate component %r (%s)' %
-                                (cls, e))
+                raise ComponentException(
+                    'Unable to instantiate component %r (%s)' % (cls, e)
+                )
         return component
 
     def is_enabled(self, cls):
