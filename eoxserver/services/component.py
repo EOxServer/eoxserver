@@ -48,6 +48,7 @@ class OWSServiceComponent(Component):
         if request.method == "GET":
             return OWSCommonKVPDecoder(request.GET)
         elif request.method == "POST":
+            # TODO: this may also be in a different format.
             return OWSCommonXMLDecoder(request.body)
 
 
@@ -112,31 +113,6 @@ class OWSServiceComponent(Component):
                 return handler
 
         return None
-
-
-class MapServerComponent(Component):
-    connectors = ExtensionPoint(MapServerConnectorInterface)
-    layer_factories = ExtensionPoint(MapServerLayerFactoryInterface)
-    style_applicators = ExtensionPoint(MapServerStyleApplicatorInterface)
-
-    def get_connector(self, data_items):
-        for connector in self.connectors:
-            if connector.supports(data_items):
-                return connector
-
-        return None
-
-    def get_layer_factory(self, coverage_type, suffix=None):
-        result = None
-        for factory in self.layer_factories:
-            if (issubclass(coverage_type, factory.handles)
-                and suffix == factory.suffix):
-                if result:
-                    pass # TODO
-                    #raise Exception("Found")
-                result = factory
-                return result
-        return result
 
 
 class OWSCommonKVPDecoder(kvp.Decoder):
