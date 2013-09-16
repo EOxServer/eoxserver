@@ -27,22 +27,22 @@
 #-------------------------------------------------------------------------------
 
 
-from itertools import chain
-
-from django.db.models import Q
-from django.utils.datastructures import SortedDict
-
+from eoxserver.core import Component, implements
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.util.timetools import isoformat
-from eoxserver.backends.cache import CacheContext
 from eoxserver.contrib.mapserver import create_request, Map, Layer
-from eoxserver.services.component import MapServerComponent, env
 from eoxserver.services.ows.common.config import CapabilitiesConfigReader
+from eoxserver.services.ows.wms.interfaces import (
+    WMSCapabilitiesRendererInterface
+)
 
 
-class WMSCapabilitiesRenderer(object):
+class MapServerWMSCapabilitiesRenderer(Component):
+    """ WMS Capabilities renderer implementation using MapServer.
+    """
+    implements(WMSCapabilitiesRendererInterface)
+
     def render(self, collections, suffixes, request_values):
-        ms_component = MapServerComponent(env)
         conf = CapabilitiesConfigReader(get_eoxserver_config())
 
         map_ = Map()
@@ -118,98 +118,3 @@ class WMSCapabilitiesRenderer(object):
         request = create_request(request_values)
         response = map_.dispatch(request)
         return response.content, response.content_type
-
-
-
-class WMSMapRenderer(object):
-    def render(self, layer_groups, request_values, **options):
-        ms_component = MapServerComponent(env)
-
-        map_ = Map()
-        map_.setMetaData("ows_enable_request", "*")
-        map_.setProjection("EPSG:4326")
-
-        group_layers = SortedDict()
-        coverage_layers = []
-        connector_to_layers = {}
-        layers_to_style = []
-
-        with CacheContext() as cache:
-            for names, suffix, coverage in layer_groups.walk():
-                # get a factory for the given coverage and suffix
-                factory = ms_component.get_layer_factory(
-                    coverage.real_type, suffix
-                )
-                if not factory:
-                    raise "Could not find a factory for suffix '%s'" % suffix
-
-                suffix = suffix or "" # transform None to empty string
-
-                group_name = None
-                group_layer = None
-
-                group_name = "/" + "/".join(
-                    map(lambda n: n + suffix, names[1:])
-                )
-
-                if len(names) > 1:
-                    # create a group layer
-                    if group_name not in group_layers:
-                        group_layer = factory.generate_group(names[-1] + suffix)
-                        if group_layer:
-                            group_layers[group_name] = group_layer
-                if not group_layer:
-                    group_layer = group_layers.get(group_name)
-
-
-                data_items = coverage.data_items.filter(
-                #    Q(semantic__startswith="bands") | Q(semantic="tileindex")
-                )
-
-                layers = tuple(factory.generate(coverage, group_layer, options))
-                for layer in layers:
-                    if group_name:
-                        layer.setMetaData("wms_layer_group", group_name)
-
-                    if factory.requires_connection:
-                        connector = ms_component.get_connector(data_items)
-                        if not connector:
-                            raise ""
-
-                        connector.connect(coverage, data_items, layer, cache)
-                        connector_to_layers.setdefault(connector, []).append(
-                            (coverage, data_items, layer)
-                        )
-                    coverage_layers.append(layer)
-
-                layers_to_style.append((coverage, data_items, layers))
-
-
-            for layer in chain(group_layers.values(), coverage_layers):
-                old_layer = map_.getLayerByName(layer.name)
-                if old_layer:
-                    # remove the old layer and reinsert the new one, to 
-                    # raise the layer to the top.
-                    # TODO: find a more efficient way to do this
-                    map_.removeLayer(old_layer.index)
-                map_.insertLayer(layer)
-
-            # apply any styles
-            style_applicators = ms_component.style_applicators
-            for coverage, data_items, layers in layers_to_style:
-                for layer in layers:
-                    for applicator in style_applicators:
-                        applicator.apply(coverage, data_items, layer, cache)
-
-            request = create_request(request_values)
-
-            try:
-                response = map_.dispatch(request)
-                return response.content, response.content_type
-            finally:
-                # cleanup
-                for connector, items in connector_to_layers.items():
-                    for coverage, data_items, layer in items:
-                        connector.disconnect(coverage, data_items, layer, cache)
-
-

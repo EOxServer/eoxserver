@@ -2,8 +2,7 @@
 # $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
-# Authors: Stephan Krause <stephan.krause@eox.at>
-#          Stephan Meissl <stephan.meissl@eox.at>
+# Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
 #-------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
@@ -28,67 +27,11 @@
 #-------------------------------------------------------------------------------
 
 
-from os.path import join
-from uuid import uuid4
-import logging
+import os.path
 
 from eoxserver.core import Component, implements
-from eoxserver.contrib import vsi, vrt
 from eoxserver.backends.access import connect
-from eoxserver.services.interfaces import MapServerConnectorInterface
-
-
-logger = logging.getLogger(__name__)
-
-
-class SimpleConnector(Component):
-    """ Connector for single file layers.
-    """
-    implements(MapServerConnectorInterface)
-    
-    def supports(self, data_items):
-        filtered = filter(lambda d: d.semantic.startswith("bands"), data_items)
-        return len(filtered) == 1 
-
-    def connect(self, coverage, data_items, layer, cache):
-        filtered = filter(lambda d: d.semantic.startswith("bands"), data_items)
-        layer.data = connect(filtered[0], cache)
-
-    def disconnect(self, coverage, data_items, layer, cache):
-        pass
-
-
-class MultiFileConnector(Component):
-    """ Connects multiple files containing the various bands of the coverage
-        with the given layer. A temporary VRT file is used as abstraction for 
-        the different band files.
-    """
-
-    implements(MapServerConnectorInterface)
-    
-    def supports(self, data_items):
-        # TODO: better checks
-        return (
-            len(data_items) > 1 
-            and all(
-                map(lambda d: d[1].semantic.startswith("bands"), data_items)
-            )
-        )
-
-    def connect(self, coverage, data_items, layer, cache):
-
-        # TODO: implement
-        vrt_doc = vrt.VRT()
-        # TODO: configure vrt here
-
-        path = join("/vsimem", uuid4().hex)
-        with vsi.open(path, "w+") as f:
-            vrt_doc.write(f)
-
-        layer.data = path
-
-    def disconnect(self, coverage, data_items, layer, cache):
-        vsi.remove(layer.data)
+from eoxserver.servics.mapserver.interfaces import ConnectorInterface
 
 
 class TileIndexConnector(Component):
@@ -96,7 +39,7 @@ class TileIndexConnector(Component):
         "location".
     """
 
-    implements(MapServerConnectorInterface)
+    implements(ConnectorInterface)
 
     def supports(self, data_items):
         return (
