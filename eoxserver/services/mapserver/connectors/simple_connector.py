@@ -29,7 +29,7 @@
 
 from eoxserver.core import Component, implements
 from eoxserver.backends.access import connect
-from eoxserver.servics.mapserver.interfaces import ConnectorInterface
+from eoxserver.services.mapserver.interfaces import ConnectorInterface
 
 
 class SimpleConnector(Component):

@@ -29,10 +29,9 @@
 
 from itertools import chain
 
-from eoxserver.core import Component, env, implements
+from eoxserver.core import Component, implements, UniqueExtensionPoint
 from eoxserver.core.decoders import kvp, typelist, InvalidParameterException
 from eoxserver.resources.coverages import models
-from eoxserver.services.component import MapServerComponent
 from eoxserver.services.subset import Subsets, Trim, Slice
 from eoxserver.services.interfaces import (
     OWSServiceHandlerInterface, OWSGetServiceHandlerInterface
@@ -40,11 +39,14 @@ from eoxserver.services.interfaces import (
 from eoxserver.services.ows.wms.util import (
     lookup_layers, parse_bbox, parse_time, int_or_str
 )
+from eoxserver.services.ows.wms.interfaces import WMSMapRendererInterface
 
 
 class WMS13GetMapHandler(Component):
     implements(OWSServiceHandlerInterface)
     implements(OWSGetServiceHandlerInterface)
+
+    renderer = UniqueExtensionPoint(WMSMapRendererInterface)
 
     service = "WMS"
     versions = ("1.3.0", "1.3")
@@ -71,14 +73,12 @@ class WMS13GetMapHandler(Component):
         if time: 
             subsets.append(time)
         
-        ms_component = MapServerComponent(env)
-        suffixes = set(map(lambda s: s.suffix, ms_component.layer_factories))
+        #ms_component = MapServerComponent(env)
+        #suffixes = set(map(lambda s: s.suffix, ms_component.layer_factories))
+        suffixes = (None, "_bands", "_outlines")
         root_group = lookup_layers(layers, subsets, chain((None,), suffixes))
         
-        # TODO: make this dependant on the plugin
-        from eoxserver.services.ows.wms.renderer import WMSMapRenderer
-        renderer = WMSMapRenderer()
-        return renderer.render(
+        return self.renderer.render(
             root_group, request.GET.items(), 
             time=decoder.time, bands=decoder.dim_bands
         )

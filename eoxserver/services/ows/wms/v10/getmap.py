@@ -29,10 +29,9 @@
 
 from itertools import chain
 
-from eoxserver.core import Component, env, implements
+from eoxserver.core import Component, implements, UniqueExtensionPoint
 from eoxserver.core.decoders import kvp, typelist, InvalidParameterException
 from eoxserver.resources.coverages import models
-from eoxserver.services.component import MapServerComponent
 from eoxserver.services.subset import Subsets, Trim, Slice
 from eoxserver.services.interfaces import (
     OWSServiceHandlerInterface, OWSGetServiceHandlerInterface
@@ -40,11 +39,14 @@ from eoxserver.services.interfaces import (
 from eoxserver.services.ows.wms.util import (
     lookup_layers, parse_bbox, parse_time, int_or_str
 )
+from eoxserver.services.ows.wms.interfaces import WMSMapRendererInterface
 
 
 class WMS10GetMapHandler(Component):
     implements(OWSServiceHandlerInterface)
     implements(OWSGetServiceHandlerInterface)
+
+    renderer = UniqueExtensionPoint(WMSMapRendererInterface) 
 
     service = "WMS"
     versions = ("1.0", "1.0.0")
@@ -70,10 +72,7 @@ class WMS10GetMapHandler(Component):
         
         root_group = lookup_layers(layers, subsets)
         
-        # TODO: make this dependant on the plugin
-        from eoxserver.services.ows.wms.renderer import WMSMapRenderer
-        renderer = WMSMapRenderer()
-        return renderer.render(
+        return self.renderer.render(
             root_group, request.GET.items()
         )
 

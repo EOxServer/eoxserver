@@ -30,7 +30,7 @@
 from eoxserver.core import Component, implements
 from eoxserver.backends.access import connect
 from eoxserver.contrib import vsi, vrt
-from eoxserver.servics.mapserver.interfaces import ConnectorInterface
+from eoxserver.services.mapserver.interfaces import ConnectorInterface
 
 
 class MultiFileConnector(Component):
@@ -46,7 +46,7 @@ class MultiFileConnector(Component):
         return (
             len(data_items) > 1 
             and all(
-                map(lambda d: d[1].semantic.startswith("bands"), data_items)
+                map(lambda d: d.semantic.startswith("bands"), data_items)
             )
         )
 

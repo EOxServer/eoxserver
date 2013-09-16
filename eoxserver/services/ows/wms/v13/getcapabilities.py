@@ -27,11 +27,12 @@
 #-------------------------------------------------------------------------------
 
 
-from eoxserver.core import Component, implements
+from eoxserver.core import Component, implements, UniqueExtensionPoint
 from eoxserver.resources.coverages import models
 from eoxserver.services.component import OWSServiceComponent, env
-from eoxserver.services.ows.wms.renderer import WMSCapabilitiesRenderer
-from eoxserver.services.component import MapServerComponent
+from eoxserver.services.ows.wms.interfaces import (
+    WMSCapabilitiesRendererInterface
+)
 from eoxserver.services.interfaces import (
     OWSServiceHandlerInterface, OWSGetServiceHandlerInterface
 )
@@ -41,6 +42,8 @@ class WMS13GetCapabilitiesHandler(Component):
     implements(OWSServiceHandlerInterface)
     implements(OWSGetServiceHandlerInterface)
     
+    renderer = UniqueExtensionPoint(WMSCapabilitiesRendererInterface)
+
     service = "WMS"
     versions = ("1.3", "1.3.0",)
     request = "GetCapabilities"
@@ -53,9 +56,9 @@ class WMS13GetCapabilitiesHandler(Component):
                 footprint__isnull=True, begin_time__isnull=True, 
                 end_time__isnull=True
             )
+        # TODO:
+        #ms_component = MapServerComponent(env)
+        #suffixes = map(lambda s: s.suffix, ms_component.layer_factories)
+        suffixes = (None, "_outlines", "_bands")
 
-        ms_component = MapServerComponent(env)
-        suffixes = map(lambda s: s.suffix, ms_component.layer_factories)
-
-        renderer = WMSCapabilitiesRenderer()
-        return renderer.render(dataset_series_qs, suffixes, request.GET.items())
+        return self.renderer.render(dataset_series_qs, suffixes, request.GET.items())

@@ -27,8 +27,13 @@
 #-------------------------------------------------------------------------------
 
 
+from itertools import chain
+
+from django.db.models import Q
+from django.utils.datastructures import SortedDict
+
 from eoxserver.core import Component, ExtensionPoint
-from eoxserver.services.mapserver.interface import (
+from eoxserver.services.mapserver.interfaces import (
     ConnectorInterface, LayerFactoryInterface, StyleApplicatorInterface
 )
 
@@ -61,7 +66,7 @@ class MapServerWMSBaseComponent(Component):
         return result
 
 
-    def setup_map(self, layer_groups, map_, cache):
+    def setup_map(self, layer_groups, map_, options, cache):
         group_layers = SortedDict()
         coverage_layers = []
         connector_to_layers = {}

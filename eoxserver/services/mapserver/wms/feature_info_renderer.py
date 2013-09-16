@@ -27,15 +27,9 @@
 #-------------------------------------------------------------------------------
 
 
-from itertools import chain
-
-from django.db.models import Q
-from django.utils.datastructures import SortedDict
-
 from eoxserver.core import implements
 from eoxserver.backends.cache import CacheContext
 from eoxserver.contrib.mapserver import create_request, Map, Layer
-from eoxserver.services.component import MapServerComponent, env
 from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.services.mapserver.wms.util import MapServerWMSBaseComponent
 from eoxserver.services.ows.wms.interfaces import WMSFeatureInfoRendererInterface
@@ -53,7 +47,9 @@ class MapServerWMSFeatureInfoRenderer(MapServerWMSBaseComponent):
         map_.setProjection("EPSG:4326")
 
         with CacheContext() as cache:
-            connector_to_layers = self.setup_map(layer_groups, map_, cache)
+            connector_to_layers = self.setup_map(
+                layer_groups, map_, options, cache
+            )
 
             request = create_request(request_values)
 

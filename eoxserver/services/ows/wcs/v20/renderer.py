@@ -32,14 +32,14 @@ from urllib import unquote
 
 from django.db.models import Q
 
-from eoxserver.core import Component, implements, env
+from eoxserver.core import Component, implements, ExtensionPoint
 from eoxserver.contrib.mapserver import (
     create_request, Map, Layer, outputFormatObj, 
     gdalconst_to_imagemode, gdalconst_to_imagemode_string
 )
 from eoxserver.backends.cache import CacheContext
-from eoxserver.services.component import MapServerComponent
 from eoxserver.services.interfaces import CoverageRendererInterface
+from eoxserver.services.mapserver.interfaces import ConnectorInterface
 from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.formats import getFormatRegistry
 from eoxserver.resources.coverages import crss
@@ -53,14 +53,14 @@ class CoverageRenderer(Component):
 class RectifiedCoverageMapServerRenderer(CoverageRenderer):
     handles = (models.RectifiedDataset,)
 
+    connectors = ExtensionPoint(ConnectorInterface)
+
     def render(self, coverage, **kwargs):
         with CacheContext() as cache:
             return self._render(coverage, cache, kwargs)
 
 
     def _render(self, coverage, cache, kwargs):
-        ms_component = MapServerComponent(env)
-
         # get coverage related stuff
         data_items = coverage.data_items.filter(
             Q(semantic__startswith="bands") | Q(semantic="tileindex")
@@ -149,15 +149,15 @@ class RectifiedCoverageMapServerRenderer(CoverageRenderer):
             # TODO: implement
             pass
 
-
-        
-        layer_connector = ms_component.get_connector(data_items)
-        
-        if not layer_connector:
+        connector = None
+        for connector in self.connectors:
+            if connector.supports(data_items):
+                break
+        else:
             raise Exception("Could not find applicable layer connector.")
 
         try:
-            layer_connector.connect(coverage, data_items, layer, cache)
+            connector.connect(coverage, data_items, layer, cache)
 
             # create request object and dispatch it agains the map
             request = self._create_request_v20(coverage.identifier, **kwargs)
@@ -165,7 +165,7 @@ class RectifiedCoverageMapServerRenderer(CoverageRenderer):
 
         finally:
             # perform any required layer related cleanup
-            layer_connector.disconnect(coverage, data_items, layer, cache)
+            connector.disconnect(coverage, data_items, layer, cache)
 
         return response.content, response.content_type
 
