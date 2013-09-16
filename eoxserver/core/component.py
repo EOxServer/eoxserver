@@ -16,8 +16,8 @@
 # Author: Jonas Borgström <jonas@edgewall.com>
 #         Christopher Lenz <cmlenz@gmx.de>
 
-__all__ = ['Component', 'ExtensionPoint', 'implements', 'Interface',
-           'ComponentException']
+__all__ = ['Component', 'ExtensionPoint', 'UniqueExtensionPoint', 'implements', 
+           'Interface', 'ComponentException', 'ComponentManager']
 
 
 def N_(string):
@@ -70,7 +70,7 @@ class UniqueExtensionPoint(ExtensionPoint):
         """Return the single component that is implementing the interaface. If 
         none is found, or more than one, an exception is raised.
         """
-        extensions = super(UniqueExtensionPoint, self).extensions()
+        extensions = super(UniqueExtensionPoint, self).extensions(component)
         length = len(extensions)
         if length == 1:
             return extensions[0]

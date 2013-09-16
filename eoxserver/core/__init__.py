@@ -34,7 +34,8 @@ import threading
 
 from django.utils.importlib import import_module
 
-from component import Component, ComponentManager, ExtensionPoint, implements
+from component import *
+
 
 env = ComponentManager()
 logger = logging.getLogger(__name__)
