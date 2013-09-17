@@ -70,8 +70,6 @@ class CoverageOutlinesLayerFactory(AbstractLayerFactory):
         shape.initValues(1)
         shape.setValue(0, eo_object.identifier)
         layer.addFeature(shape)
-        layer.addProcessing("ITEMS=identifier")
-
         return ()
 
 
@@ -92,6 +90,8 @@ class CoverageOutlinesLayerFactory(AbstractLayerFactory):
         
         layer.setMetaData("gml_include_items", "all")
         layer.setMetaData("wms_include_items", "all")
+
+        layer.addProcessing("ITEMS=identifier")
 
         layer.offsite = colorObj(0, 0, 0)
 
