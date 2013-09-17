@@ -131,6 +131,8 @@ def lookup_layers(layers, subsets, suffixes=None):
     return root_group
 
 
+# TODO: rename to layer selection
+
 class LayerGroup(list):
     def __init__(self, name, iterable=None):
         self.name = name
@@ -147,6 +149,7 @@ class LayerGroup(list):
                     return True
             except TypeError:
                 pass
+        return False
 
 
     def walk(self, breadth_first=True):

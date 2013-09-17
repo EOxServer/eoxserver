@@ -39,7 +39,7 @@ from eoxserver.services.mapserver.interfaces import (
 
 
 class MapServerWMSBaseComponent(Component):
-    """ Base class 
+    """ Base class for various WMS render components using MapServer.
     """
 
     connectors = ExtensionPoint(ConnectorInterface)
