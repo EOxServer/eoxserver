@@ -57,12 +57,14 @@ class GDALDatasetMetadataReader(Component):
             gt = ds.GetGeoTransform()
             extent = None
 
-            # TODO: check if geotransfrom is valid
+            x_extent = (gt[0], gt[0] + size[0] * gt[1])
+            y_extent = (gt[3] + size[1] * gt[5], gt[3])
+
             extent = (
-                gt[0],
-                gt[3] + size[1] * gt[5],
-                gt[0] + size[0] * gt[1],
-                gt[3]
+                min(x_extent),
+                min(y_extent),
+                max(x_extent),
+                max(x_extent)
             )
             projection = ds.GetProjection()
 
@@ -71,7 +73,6 @@ class GDALDatasetMetadataReader(Component):
             }
 
             if projection:
-                # TODO: try to get an EPSG code here
                 values["projection"] = (projection, "WKT")
             if extent:
                 values["extent"] = extent
