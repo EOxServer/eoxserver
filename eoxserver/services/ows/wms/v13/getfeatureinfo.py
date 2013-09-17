@@ -30,7 +30,7 @@ from itertools import chain
 
 from eoxserver.core import Component, env, implements, UniqueExtensionPoint
 from eoxserver.core.decoders import kvp, typelist, InvalidParameterException
-from eoxserver.resources.coverages import models
+from eoxserver.resources.coverages import models, crss
 from eoxserver.services.subset import Subsets, Trim, Slice
 from eoxserver.services.interfaces import (
     OWSServiceHandlerInterface, OWSGetServiceHandlerInterface
@@ -63,8 +63,16 @@ class WMS13GetFeatureInfoHandler(Component):
         if not layers:
             raise InvalidParameterException("No layers specified", "layers")
 
-        # TODO: if crs has not swapped axes
-        minx, miny, maxx, maxy = bbox
+        srid = crss.parseEPSGCode(
+            crs, (crss.fromShortCode, crss.fromURN, crss.fromURL)
+        )
+        if srid is None:
+            raise InvalidParameterException("Invalid CRS specifier.", "crs")
+
+        if crss.hasSwappedAxes(srid):
+            miny, minx, maxy, maxx = bbox
+        else:
+            minx, miny, maxx, maxy = bbox
 
         subsets = Subsets((
             Trim("x", minx, maxx, crs),
