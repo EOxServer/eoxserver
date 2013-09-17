@@ -1,0 +1,130 @@
+#-------------------------------------------------------------------------------
+# $Id$
+#
+# Project: EOxServer <http://eoxserver.org>
+# Authors: Fabian Schindler <fabian.schindler@eox.at>
+#
+#-------------------------------------------------------------------------------
+# Copyright (C) 2011 EOX IT Services GmbH
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+# copies of the Software, and to permit persons to whom the Software is 
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies of this Software or works derived from this Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#-------------------------------------------------------------------------------
+
+from itertools import chain
+
+from eoxserver.core import Component, env, implements, UniqueExtensionPoint
+from eoxserver.core.decoders import kvp, typelist, InvalidParameterException
+from eoxserver.resources.coverages import models
+from eoxserver.services.subset import Subsets, Trim, Slice
+from eoxserver.services.interfaces import (
+    OWSServiceHandlerInterface, OWSGetServiceHandlerInterface
+)
+from eoxserver.services.ows.wms.util import (
+    lookup_layers, parse_bbox, parse_time, int_or_str, LayerGroup
+)
+from eoxserver.services.ows.wms.interfaces import (
+    WMSLegendGraphicRendererInterface
+)
+
+
+class WMS13GetLegendGraphicHandler(Component):
+    implements(OWSServiceHandlerInterface)
+    implements(OWSGetServiceHandlerInterface)
+
+    renderer = UniqueExtensionPoint(WMSLegendGraphicRendererInterface)
+
+    service = "WMS"
+    versions = ("1.3.0", "1.3")
+    request = "GetLegendGraphic"
+
+    def handle(self, request):
+        decoder = WMS13GetLegendGraphicDecoder(request.GET)
+
+        layer_name = decoder.layer
+        coverage_id = decoder.coverage
+
+        suffixes = (None, "_bands", "_outlines")
+        for suffix in suffixes:
+            try:
+                if len(suffix or "") == 0:
+                    identifier = layer_name
+                else:
+                    layer_name[-len(suffix):]
+                eo_object = models.EOObject.objects.get(identifier=identifier)
+                break
+            except models.EOObject.DoesNotExist:
+                pass
+        else:
+            raise InvalidParameterException(
+                "No such layer '%s'." % layer_name, "layer"
+            )
+
+
+        if models.iscollection(eo_object):
+            def recursive_lookup(collection, used_ids, suffix):
+                eo_objects = models.EOObject.objects.filter(
+                    collections__in=[collection.pk]
+                ).exclude(
+                    pk__in=used_ids
+                )
+
+                result = []
+                for eo_object in eo_objects:
+                    used_ids.add(eo_object.pk)
+
+                    if models.iscoverage(eo_object):
+                        result.append((eo_object.cast(), suffix))
+                    elif models.iscollection(eo_object):
+                        result.extend(
+                            recursive_lookup(eo_object, used_ids, suffix)
+                        )
+                    else:
+                        pass
+
+                return result
+
+            used_ids = set()
+            coverages = recursive_lookup(eo_object, used_ids, suffix)
+            collection = eo_object
+
+            if coverage_id:
+                for coverage in coverages:
+                    if coverage.identifier == coverage_id:
+                        coverages = ((coverage, suffix),)
+                        break
+                else:
+                    raise InvalidParameterException(
+                        "Layer '%s' does not contain a coverage with ID '%s'.", 
+                        "coverage"
+                    )
+        else:
+            collection = None
+            coverages = ((eo_object.cast(), suffix),)
+
+        layer_groups = LayerGroup(
+            collection.identifier if collection else None
+        )
+        layer_groups.extend(coverages)
+
+        return self.renderer.render(layer_groups, request.GET.items())
+
+
+class WMS13GetLegendGraphicDecoder(kvp.Decoder):
+    layer    = kvp.Parameter(num=1)
+    coverage = kvp.Parameter(num="?")

@@ -27,46 +27,40 @@
 #-------------------------------------------------------------------------------
 
 
-class WMSCapabilitiesRendererInterface(object):
-    """ Interface for WMS compatible capabilities renderers.
+from eoxserver.core import implements
+from eoxserver.backends.cache import CacheContext
+from eoxserver.contrib.mapserver import create_request, Map, Layer
+from eoxserver.services.ows.common.config import CapabilitiesConfigReader
+from eoxserver.services.mapserver.wms.util import MapServerWMSBaseComponent
+from eoxserver.services.ows.wms.interfaces import (
+    WMSLegendGraphicRendererInterface
+)
+
+
+class MapServerWMSLegendGraphicRenderer(MapServerWMSBaseComponent):
+    """ A WMS feature info renderer using MapServer.
     """
+    implements(WMSLegendGraphicRendererInterface)
 
-    def render(self, collections, suffixes, request_values):
-        """ Render a capabilities document, containing metadata of the given 
-            collections.
-        """
-
-
-class WMSMapRendererInterface(object):
-    """ Interface for WMS compatible map renderers.
-    """
-
+    
     def render(self, layer_groups, request_values, **options):
-        """ Render the given layer hierarchy with the provided request values 
-            and further options.
+        map_ = Map()
+        map_.setMetaData("ows_enable_request", "*")
+        map_.setProjection("EPSG:4326")
 
-            ``options`` contains relevant options such as specified bands.
-        """
+        with CacheContext() as cache:
 
-class WMSFeatureInfoRendererInterface(object):
-    """ Interface for WMS compatible feature info renderers.
-    """
+            connector_to_layers = self.setup_map(
+                layer_groups, map_, options, cache
+            )
 
-    def render(self, layer_groups, request_values, **options):
-        """ Render the given layer hierarchy with the provided request values 
-            and further options.
+            request = create_request(request_values)
 
-            ``options`` contains relevant options such as specified bands.
-        """
-
-class WMSLegendGraphicRendererInterface(object):
-    """ Interface for WMS compatible legend graphic renderers.
-    """
-
-    def render(self, collection, eo_object, request_values, **options):
-        """ Render the given collection and coverage with the provided request
-            values and further options.
-
-            ``options`` contains relevant options such as specified bands.
-        """
-
+            try:
+                response = map_.dispatch(request)
+                return response.content, response.content_type
+            finally:
+                # cleanup
+                for connector, items in connector_to_layers.items():
+                    for coverage, data_items, layer in items:
+                        connector.disconnect(coverage, data_items, layer, cache)
