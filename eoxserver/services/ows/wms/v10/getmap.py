@@ -37,7 +37,7 @@ from eoxserver.services.interfaces import (
     OWSServiceHandlerInterface, OWSGetServiceHandlerInterface
 )
 from eoxserver.services.ows.wms.util import (
-    lookup_layers, parse_bbox, parse_time, int_or_str
+    lookup_layers, parse_bbox
 )
 from eoxserver.services.ows.wms.interfaces import WMSMapRendererInterface
 
