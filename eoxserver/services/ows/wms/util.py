@@ -57,10 +57,10 @@ def int_or_str(string):
 def lookup_layers(layers, subsets, suffixes=None):
     """ Performs a layer lookup for the given layer names. Applies the given 
         subsets and looks up all layers with the given suffixes. Returns a 
-        hierarchy of ``LayerGroup`` objects.
+        hierarchy of ``LayerSelection`` objects.
     """
     suffix_related_ids = {}
-    root_group = LayerGroup(None)
+    root_group = LayerSelection(None)
     suffixes = suffixes or (None,)
 
     for layer_name in layers:
@@ -99,8 +99,7 @@ def lookup_layers(layers, subsets, suffixes=None):
                 # apply subsets
                 eo_objects = subsets.filter(eo_objects)
 
-                #group = LayerGroup(collection.identifier)
-                group = []
+                selection = LayerSelection()
 
                 # append all retrived EO objects, either as a coverage of 
                 # the real type, or as a subgroup.
@@ -108,55 +107,88 @@ def lookup_layers(layers, subsets, suffixes=None):
                     used_ids.add(eo_object.pk)
 
                     if models.iscoverage(eo_object):
-                        group.append((eo_object.cast(), suffix))
+                        selection.append(eo_object.cast(), eo_object.identifier)
                     elif models.iscollection(eo_object):
-                        group.extend(recursive_lookup(
+                        selection.extend(recursive_lookup(
                             eo_object, suffix, used_ids, subsets
                         ))
                     else: 
-                        raise "Type '%s' is neither a collection, nor a coverage."
+                        pass
 
-                return group
+                return selection
 
             root_group.append(
-                LayerGroup(eo_object.identifier,
+                LayerSelection(
+                    eo_object, suffix,
                     recursive_lookup(eo_object, suffix, used_ids, subsets)
                 )
             )
 
         elif models.iscoverage(eo_object):
-            # TODO: suffix
-            root_group.append((eo_object.cast(), suffix))
+            # Add a layer selection for the coverage with the suffix
+            selection = LayerSelection(None, suffix=suffix)
+
+            if subsets.matches(eo_object):
+                selection.append(eo_object.cast(), eo_object.identifier)
+            else:
+                selection.append(None, eo_object.identifier)
+
+            root_group.append(selection)
 
     return root_group
 
 
-# TODO: rename to layer selection
-
-class LayerGroup(list):
-    def __init__(self, name, iterable=None):
-        self.name = name
+class LayerSelection(list):
+    """ Helper class for hierarchical layer selections.
+    """
+    def __init__(self, collection=None, suffix=None, iterable=None):
+        self.collection = collection
+        self.suffix = suffix
         if iterable:
-            super(LayerGroup, self).__init__(iterable)
+            super(LayerSelection, self).__init__(iterable)
 
 
     def __contains__(self, eo_object):
         for item in self:
-            if eo_object == item:
-                return True
             try:
                 if eo_object in item:
                     return True
             except TypeError:
                 pass
+
+            try:
+                if eo_object == item[0]:
+                    return True
+            except IndexError:
+                pass
+            
         return False
 
 
-    def walk(self, breadth_first=True):
+    def append(self, eo_object_or_selection, name=None):
+        if isinstance(eo_object_or_selection, LayerSelection):
+            super(LayerSelection, self).append(eo_object_or_selection)
+        else:
+            super(LayerSelection, self).append((eo_object_or_selection, name))
+        
+
+    def walk(self, depth_first=True):
+        """ Yields four-tuples (collections, coverage, name, suffix).
+        """
+        
+        collection = (self.collection,) if self.collection else ()
+
         for item in self:
             try:
-                for names, suffix, eo_object in item.walk():
-                    yield (self.name,) + names, suffix, eo_object
-            except AttributeError:
-                yield (self.name,), item[1], item[0]
+                for collections, eo_object, name, suffix in item.walk():
+                    yield (
+                        collection + collections,
+                        eo_object, name,
+                        suffix or self.suffix
+                    )
 
+            except AttributeError:
+                yield collection, item[0], item[1], self.suffix
+
+        if not self:
+            yield collection, None, None, self.suffix
