@@ -192,9 +192,97 @@ class Subsets(list):
         return qs
 
 
-        def matches(self, eo_object, containment="overlaps"):
+    def matches(self, eo_object, containment="overlaps"):
+        if not len(self):
             return True
-            # TODO: implement
+
+        bbox = [None, None, None, None]
+        srid = self.xy_srid
+        if srid is None:
+            srid = 4326
+        max_extent = crss.crs_bounds(srid)
+        tolerance = crss.crs_tolerance(srid)
+
+        footprint = eo_object.footprint
+        begin_time = eo_object.begin_time
+        end_time = eo_object.end_time
+
+        for subset in self:
+            if isinstance(subset, Slice):
+                is_slice = True
+                value = subset.value
+            elif isinstance(subset, Trim):
+                is_slice = False
+                low = subset.low
+                high = subset.high
+
+            if subset.is_temporal:
+                if is_slice:
+                    if begin_time > value or end_time < value:
+                        return False
+                elif low is None and high is not None:
+                    if begin_time > high:
+                        return False
+                elif low is not None and high is None:
+                    if end_time < low:
+                        return False
+                else:
+                    if begin_time > high or end_time < low:
+                        return False
+
+            else:
+                if is_slice:
+                    if subset.is_x:
+                        line = Line(
+                            (value, max_extent[1]),
+                            (value, max_extent[3])
+                        )
+                    else:
+                        line = Line(
+                            (max_extent[0], value),
+                            (max_extent[2], value)
+                        )
+                    line.srid = srid
+                    if srid != 4326:
+                        line.transform(4326)
+
+                    if not line.intersects(footprint):
+                        return False
+                    
+                else:
+                    if subset.is_x:
+                        bbox[0] = subset.low
+                        bbox[2] = subset.high
+                    else:
+                        bbox[1] = subset.low
+                        bbox[3] = subset.high
+
+
+        if bbox != [None, None, None, None]:
+            bbox = map(
+                lambda v: v[0] if v[0] is not None else v[1],
+                zip(bbox, max_extent)
+            )
+
+            bbox[0] -= tolerance; bbox[1] -= tolerance
+            bbox[2] += tolerance; bbox[3] += tolerance
+
+            logger.debug(
+                "Applying BBox %s with containment '%s'." % (bbox, containment)
+            )
+
+            poly = Polygon.from_bbox(bbox)
+            poly.srid = srid
+
+            if srid != 4326:
+                poly.transform(4326)
+            if containment == "overlaps":
+                if not footprint.intersects(poly):
+                    return False
+            elif containment == "contains":
+                if not footprint.within(poly):
+                    return False
+        return True
 
 
     def _check_subset(self, subset):
