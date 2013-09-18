@@ -57,15 +57,17 @@ class GDALDatasetMetadataReader(Component):
             gt = ds.GetGeoTransform()
             extent = None
 
-            x_extent = (gt[0], gt[0] + size[0] * gt[1])
-            y_extent = (gt[3] + size[1] * gt[5], gt[3])
+            if gt != (0.0, 1.0, 0.0, 0.0, 0.0, 1.0):
+                x_extent = (gt[0], gt[0] + size[0] * gt[1])
+                y_extent = (gt[3] + size[1] * gt[5], gt[3])
 
-            extent = (
-                min(x_extent),
-                min(y_extent),
-                max(x_extent),
-                max(x_extent)
-            )
+                extent = (
+                    min(x_extent),
+                    min(y_extent),
+                    max(x_extent),
+                    max(x_extent)
+                )
+            
             projection = ds.GetProjection()
 
             values = {
