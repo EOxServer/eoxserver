@@ -47,7 +47,7 @@ class MapServerWMSMapRenderer(MapServerWMSBaseComponent):
         map_.setProjection("EPSG:4326")
 
         with CacheContext() as cache:
-            connector_to_layers = self.setup_map(
+            coverage_layers = self.setup_map(
                 layer_groups, map_, options, cache
             )
 
@@ -58,6 +58,4 @@ class MapServerWMSMapRenderer(MapServerWMSBaseComponent):
                 return response.content, response.content_type
             finally:
                 # cleanup
-                for connector, items in connector_to_layers.items():
-                    for coverage, data_items, layer in items:
-                        connector.disconnect(coverage, data_items, layer, cache)
+                self.teardown_map(map_, coverage_layers, cache)
