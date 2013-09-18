@@ -35,24 +35,22 @@ from django.http import Http404
 from django.conf import settings
 from django.template import RequestContext
 
-from eoxserver.core.system import System
 from eoxserver import get_version
+from eoxserver.core.config import get_eoxserver_config
+from eoxserver.core.decoders import config, enum
+from eoxserver.resources.coverages import models
+from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 
 
 logger = logging.getLogger(__name__)
 
 def index(request):
-    System.init()
-    dss_factory = System.getRegistry().bind("resources.coverages.wrappers.DatasetSeriesFactory")
-    dataset_series_ids = [obj.getEOID() for obj in dss_factory.find()] 
-    
-    mosaic_factory = System.getRegistry().bind("resources.coverages.wrappers.EOCoverageFactory")
-    stitched_mosaic_ids = [obj.getEOID() for obj in mosaic_factory.find(
-                           impl_ids=["resources.coverages.wrappers.RectifiedStitchedMosaicWrapper"]
-                           )]
-    
-    
-    
+    dataset_series_ids = models.DatasetSeries.objects.values_list(
+        "identifier", flat=True
+    )
+    stitched_mosaic_ids = models.RectifiedStitchedMosaic.objects.values_list(
+        "identifier", flat=True
+    )
     return render_to_response(
         'webclient/index.html', {
             "datasetseries_eoids": dataset_series_ids,
@@ -63,7 +61,7 @@ def index(request):
         context_instance=RequestContext(request)
     )
 
-def webclient(request, eoid):
+def webclient(request, identifier):
     """
     View for webclient interface.
     
@@ -71,62 +69,29 @@ def webclient(request, eoid):
     `webclient.preview_url`
     """
     
+    try:
+        eo_object = models.Collection.objects.get(identifier=identifier)
     
-    System.init()
-    eo_obj = System.getRegistry().getFromFactory(
-        "resources.coverages.wrappers.DatasetSeriesFactory",
-        {"obj_id": eoid}
-    )
-    if eo_obj is None:
-        eo_obj = System.getRegistry().getFromFactory(
-            "resources.coverages.wrappers.EOCoverageFactory",
-            {"obj_id": eoid}
-        )
-        if eo_obj is None:
-            raise Http404
+    except models.Collection.DoesNotExist:
+        raise Http404("No such collection.")
     
-    begin = eo_obj.getBeginTime()
-    end = eo_obj.getEndTime()
+    begin = eo_object.begin_time
+    end = eo_object.end_time
     
     # TODO: remove center and add initial extent
-    extent = eo_obj.getFootprint().extent
+    extent = eo_object.extent_wgs84
     
     # TODO set static resources
-    http_ows_url = System.getConfig().getConfigValue(
-        "services.owscommon", "http_service_url"
-    )
-    
-    preview_service = System.getConfig().getConfigValue(
-        "webclient", "preview_service"
-    ) or "wms"
-    
-    outline_service = System.getConfig().getConfigValue(
-        "webclient", "outline_service"
-    ) or "wms"
-    
-    if preview_service not in ("wms", "wmts"): 
-        logger.error("Unsupported service type '%s'" % preview_service)
-        preview_service = "wms"
-    if outline_service not in ("wms", "wmts"):
-        logger.error("Unsupported service type '%s'" % outline_service)
-        outline_service = "wms"
-    
-    preview_url = System.getConfig().getConfigValue(
-        "webclient", "preview_url"
-    ) or http_ows_url
-    
-    outline_url = System.getConfig().getConfigValue(
-        "webclient", "outline_url"
-    ) or http_ows_url
+    reader = WebclientConfigReader(get_eoxserver_config())
     
     return render_to_response(
         'webclient/webclient.html', {
-            "eoid": eoid,
-            "ows_url": http_ows_url,
-            "preview_service": preview_service,
-            "outline_service": outline_service,
-            "preview_url": preview_url,
-            "outline_url": outline_url,
+            "eoid": identifier,
+            "ows_url": reader.http_service_url,
+            "preview_service": reader.preview_service,
+            "outline_service": reader.outline_service,
+            "preview_url": reader.preview_url or reader.http_service_url,
+            "outline_url": reader.outline_url or reader.http_service_url,
             "begin": {"date": begin.strftime("%Y-%m-%d"),
                       "time": begin.strftime("%H:%M")},
             "end": {"date": end.strftime("%Y-%m-%d"),
@@ -138,4 +103,12 @@ def webclient(request, eoid):
     )
 
 
+class WebclientConfigReader(CapabilitiesConfigReader):
+    section = "webclient"
+
+    preview_service = config.Option(type=enum(("wms", "wmts")), default="wms")
+    outline_service = config.Option(type=enum(("wms", "wmts")), default="wms")
+
+    preview_url = config.Option(default=None)
+    outline_url = config.Option(default=None)
 
