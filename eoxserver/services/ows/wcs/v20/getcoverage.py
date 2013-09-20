@@ -32,10 +32,12 @@ from eoxserver.core.decoders import xml, kvp, typelist, upper, enum
 from eoxserver.resources.coverages import models
 from eoxserver.services.interfaces import (
     OWSServiceHandlerInterface, 
-    OWSGetServiceHandlerInterface, OWSPostServiceHandlerInterface,
-    CoverageRendererInterface
+    OWSGetServiceHandlerInterface, OWSPostServiceHandlerInterface
 )
-from eoxserver.services.exceptions import NoSuchCoverageException
+from eoxserver.services.ows.wcs.interfaces import CoverageRendererInterface
+from eoxserver.services.exceptions import (
+    NoSuchCoverageException, OperationNotSupportedException
+)
 from eoxserver.services.ows.wcs.v20.util import (
     nsmap, SectionsMixIn, parse_subset_kvp, parse_subset_xml,
     parse_size_kvp, parse_resolution_kvp
@@ -59,6 +61,16 @@ class WCS20GetCoverageHandler(Component):
             return WCS20GetCoverageXMLDecoder(request.body)
 
 
+    def get_renderer(self, coverage_type):
+        for renderer in self.renderers:
+            if issubclass(coverage_type, renderer.handles):
+                return renderer
+
+        raise OperationNotSupportedException(
+            "No renderer found for coverage type '%s'." % coverage_type.__name__
+        )
+
+
     def handle(self, request):
         decoder = self.get_decoder(request)
 
@@ -73,12 +85,9 @@ class WCS20GetCoverageHandler(Component):
         coverage_type = coverage.real_type
 
         renderer = self.get_renderer(coverage_type)
-        if not renderer:
-            raise Exception() # TODO: error message
-
 
         # translate arguments
-        kwargs = {
+        request_values = {
             "subsets": decoder.subsets,
             "sizes": decoder.sizes,
             "resolutions": decoder.resolutions,
@@ -89,20 +98,7 @@ class WCS20GetCoverageHandler(Component):
             "interpolation": decoder.interpolation
         }
 
-        try:
-            return renderer.render(coverage, **kwargs) # TODO: pass arguments
-        except Exception, e:
-            # TODO: ?
-            raise
-
-
-
-    def get_renderer(self, coverage_type):
-        for renderer in self.renderers:
-            if issubclass(coverage_type, renderer.handles):
-                return renderer
-
-        raise "No renderer found for coverage type '%s'." % coverage_type.__name__
+        return renderer.render(coverage, **request_values)
 
 
 class WCS20GetCoverageKVPDecoder(kvp.Decoder):
@@ -121,7 +117,7 @@ class WCS20GetCoverageXMLDecoder(xml.Decoder):
     coverage_id = xml.Parameter("/wcs:CoverageId/text()", num=1, locator="coverageid")
     subsets     = xml.Parameter("/wcs:DimensionTrim", type=parse_subset_xml, num="*")
 
-    rangesubset = kvp.Parameter("rangesubset", type=typelist(str, ","), num="?")
+    rangesubset = xml.Parameter("rangesubset", type=typelist(str, ","), num="?")
 
     format      = xml.Parameter("/wcs:format/text()", num="?", locator="format")
     # TODO:!!!
