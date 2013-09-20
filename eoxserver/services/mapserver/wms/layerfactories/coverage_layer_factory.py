@@ -45,6 +45,7 @@ class CoverageLayerFactory(AbstractLayerFactory):
         layer.setMetaData(
             "wms_enable_request", "getcapabilities getmap getfeatureinfo"
         )
+        layer.addProcessing("CLOSE_CONNECTION=CLOSE")
 
         coverage = eo_object.cast()
         self._set_projection(layer, coverage.spatial_reference)
