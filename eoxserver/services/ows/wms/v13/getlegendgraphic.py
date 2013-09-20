@@ -36,7 +36,7 @@ from eoxserver.services.interfaces import (
     OWSServiceHandlerInterface, OWSGetServiceHandlerInterface
 )
 from eoxserver.services.ows.wms.util import (
-    lookup_layers, parse_bbox, parse_time, int_or_str, LayerGroup
+    lookup_layers, parse_bbox, parse_time, int_or_str, LayerSelection
 )
 from eoxserver.services.ows.wms.interfaces import (
     WMSLegendGraphicRendererInterface
@@ -117,12 +117,12 @@ class WMS13GetLegendGraphicHandler(Component):
             collection = None
             coverages = ((eo_object.cast(), suffix),)
 
-        layer_groups = LayerGroup(
+        layer_selection = LayerSelection(
             collection.identifier if collection else None
         )
-        layer_groups.extend(coverages)
+        layer_selection.extend(coverages)
 
-        return self.renderer.render(layer_groups, request.GET.items())
+        return self.renderer.render(layer_selection, request.GET.items())
 
 
 class WMS13GetLegendGraphicDecoder(kvp.Decoder):
