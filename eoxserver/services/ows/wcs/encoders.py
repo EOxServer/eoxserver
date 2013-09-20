@@ -749,8 +749,15 @@ class WCS20EOAPEncoder(WCS20Encoder):
         # retrieve the format registry 
         FormatRegistry = getFormatRegistry() 
 
-        # get the coverage's source format 
-        source_mime   = coverage.format
+        # get the coverage's source format
+        source_mime = None
+
+        # TODO: don't get the first format
+        for data_item in coverage.data_items.filter(semantic__startswith="bands"):
+            if data_item.format:
+                source_mime = data_item.format
+                break
+
         source_format = FormatRegistry.getFormatByMIME( source_mime ) 
 
         # map the source format to the native one 
