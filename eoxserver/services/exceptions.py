@@ -114,5 +114,9 @@ class NoSuchDatasetSeriesOrCoverageException(LocatorListException):
             " " if len(self.items) == 1 else "s", ", ".join(self.items)
         )
 
+
 class OperationNotSupportedException(Exception):
-    pass
+    """ Exception to be thrown when some operations are not supported or 
+        disabled.
+    """
+    code = "OperationNotSupported"

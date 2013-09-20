@@ -88,20 +88,5 @@ class OWSPostServiceHandlerInterface(OWSServiceHandlerInterface):
     """
 
 
-class CoverageRendererInterface(object):
-    """ Interface for coverage renderers.
-    """
-
-    def render(self, coverage, **kwargs):
-        """ Render the coverage with the given parameters.
-        """
-
-    @property
-    def handles(self):
-        """ Returns an iterable of all coverage classes that this renderer is 
-            able to render.
-        """
-
-
 class OutputFormatInterface(object):
     pass
