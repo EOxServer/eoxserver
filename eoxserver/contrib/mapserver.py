@@ -138,11 +138,13 @@ class Map(MetadataMixIn, mapObj):
 
         # write the map if debug is enabled
         if logger.isEnabledFor(logging.DEBUG):
-            _, filename = tempfile.mkstemp()
-            self.save(filename)
-            with open(filename) as f:
-                logger.debug(f.read())
-            os.remove(filename)
+            fd, filename = tempfile.mkstemp(text=True)
+            try:
+                with os.fdopen(fd) as f:
+                    self.save(filename)
+                    logger.debug(f.read())
+            finally:
+                os.remove(filename)
         
         try:
             logger.debug("MapServer: Dispatching.")
