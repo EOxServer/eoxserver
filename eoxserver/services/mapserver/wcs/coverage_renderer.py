@@ -38,7 +38,7 @@ from eoxserver.contrib.mapserver import (
     gdalconst_to_imagemode, gdalconst_to_imagemode_string
 )
 from eoxserver.backends.cache import CacheContext
-from eoxserver.services.interfaces import CoverageRendererInterface
+from eoxserver.services.ows.wcs.interfaces import CoverageRendererInterface
 from eoxserver.services.mapserver.interfaces import ConnectorInterface
 from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.formats import getFormatRegistry
