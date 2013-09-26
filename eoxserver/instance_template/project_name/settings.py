@@ -37,9 +37,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.4/ref/settings/
 """
 
-from os.path import join
+from os.path import join, abspath, dirname
 
-PROJECT_DIR = '{{ project_directory }}/{{ project_name }}'
+PROJECT_DIR = dirname(abspath(__file__))
 PROJECT_URL_PREFIX = ''
 
 TEST_RUNNER = 'eoxserver.testing.core.EOxServerTestRunner'
@@ -55,9 +55,9 @@ MANAGERS = ADMINS
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.spatialite',                      # Use 'spatialite' or change to 'postgis'.
-        'NAME': '{{ project_directory }}/{{ project_name }}/data/config.sqlite',    # Or path to database file if using spatialite.
-        #'TEST_NAME': '{{ project_directory }}/{{ project_name }}/data/test-config.sqlite', # Required for certain test cases, but slower!
+        'ENGINE': 'django.contrib.gis.db.backends.spatialite',                  # Use 'spatialite' or change to 'postgis'.
+        'NAME': join(PROJECT_DIR, 'data/config.sqlite'),                        # Or path to database file if using spatialite.
+        #'TEST_NAME': join(PROJECT_DIR, 'data/test-config.sqlite'),             # Required for certain test cases, but slower!
         'USER': '',                                                             # Not used with spatialite.
         'PASSWORD': '',                                                         # Not used with spatialite.
         'HOST': '',                                                             # Set to empty string for localhost. Not used with spatialite.
@@ -175,7 +175,8 @@ INSTALLED_APPS = (
     'django.contrib.admindocs',
     # Enable the databrowse:
     #'django.contrib.databrowse',
-#    'django_extensions',
+    # Enable for debugging
+    #'django_extensions',
     # Enable EOxServer:
     'eoxserver.core',
     'eoxserver.services',
@@ -185,6 +186,24 @@ INSTALLED_APPS = (
     'eoxserver.testing',
     'eoxserver.webclient'
 )
+
+
+# The configured EOxServer components. Components add specific functionality
+# to the EOxServer and must adhere to a given interface. In order to activate 
+# a component, its module must be included in the following list or imported at
+# some other place. To help configuring all required components, each module 
+# path can end with either a '*' or '**'. The single '*' means that all direct
+# modules in the package will be included. With the double '**' a recursive 
+# search will be done.
+COMPONENTS = (
+    'eoxserver.backends.storages.*',
+    'eoxserver.backends.packages.*',
+    'eoxserver.resources.coverages.metadata.formats.*',
+    'eoxserver.services.ows.wcs.**',
+    'eoxserver.services.ows.wms.**',
+    'eoxserver.services.mapserver.**',
+)
+
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
