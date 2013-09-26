@@ -36,16 +36,11 @@ namespace("WebClient").Models = (function() {
                 return "wrong end"
             }
         },
-
-        _getString: function(date) {
-            return $.datepicker.formatDate('yy-mm-ddT', date)
-                + zpad(date.getHours(), 2) + ":" + zpad(date.getMinutes(), 2) + "Z";
-        },
         getBeginString: function() {
-            return this._getString(this.get("begin"));
+            return this.get("begin").toISOString();
         },
         getEndString: function() {
-            return this._getString(this.get("end"));
+            return this.get("end").toISOString();
         }
     });
 

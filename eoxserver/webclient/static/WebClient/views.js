@@ -258,9 +258,13 @@ namespace("WebClient").Views = (function() {
 
             // set up subviews
 
-            this.dateSliderView = new DateSliderView({
+            this.timeSliderView = new TimeSliderView({
                 model: this.dtModel
             });
+
+            /*this.dateSliderView = new DateSliderView({
+                model: this.dtModel
+            });*/
             
             this.dtSelectionView = new DateTimeSelectionView({
                 model: this.dtModel
@@ -277,7 +281,7 @@ namespace("WebClient").Views = (function() {
             this.helpView = new HelpView();
 
             this.views = [
-                this.dateSliderView,
+                this.timeSliderView,
                 this.dtSelectionView,
                 this.bboxSelectionView,
                 this.serviceInfoView,
@@ -321,7 +325,7 @@ namespace("WebClient").Views = (function() {
 
             // render subviews
 
-            this.dateSliderView.setElement(this.$("#slider"));
+            this.timeSliderView.setElement(this.$("#slider"));
             this.dtSelectionView.setElement(this.$("#frg-date"));
             this.bboxSelectionView.setElement(this.$("#frg-bbox"));
             this.serviceInfoView.setElement(this.$("#frg-info"));
@@ -350,6 +354,36 @@ namespace("WebClient").Views = (function() {
      * Therefore it listenes on a DateTimeIntervalModel which it receives upon
      * initialization and also sets values to it.
      */
+
+
+    var TimeSliderView = Backbone.View.extend({
+        events: {
+            "selectionChanged": "onSelectionChanged"
+        },
+        render: function() {
+            var model = this.model;
+            this.slider = new TimeSlider(this.el, {
+                domain: {
+                    start: model.get("min"),
+                    end: model.get("max")
+                },
+                brush: {
+                    start: model.get("begin"),
+                    end: model.get("end")
+                },
+                datasets: []
+            });
+
+        },
+        onSelectionChanged: function(event) {
+            var e = event.originalEvent;
+            this.model.set({
+                begin: e.detail.start,
+                end: e.detail.end
+            });
+        }
+    });
+
 
     var DateSliderView = Backbone.View.extend({
         initialize: function(options) {

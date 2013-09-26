@@ -30,6 +30,7 @@
 
 import logging
 
+from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
 from django.http import Http404
 from django.conf import settings
@@ -38,6 +39,7 @@ from django.template import RequestContext
 from eoxserver import get_version
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.decoders import config, enum
+from eoxserver.core.util.timetools import isoformat
 from eoxserver.resources.coverages import models
 from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 
@@ -78,24 +80,23 @@ def webclient(request, identifier):
     begin = eo_object.begin_time
     end = eo_object.end_time
     
-    # TODO: remove center and add initial extent
     extent = eo_object.extent_wgs84
-    
-    # TODO set static resources
     reader = WebclientConfigReader(get_eoxserver_config())
-    
+
     return render_to_response(
         'webclient/webclient.html', {
             "eoid": identifier,
-            "ows_url": reader.http_service_url,
+            "ows_url": reverse("eoxserver.services.views.ows"), #reader.http_service_url,
             "preview_service": reader.preview_service,
             "outline_service": reader.outline_service,
             "preview_url": reader.preview_url or reader.http_service_url,
             "outline_url": reader.outline_url or reader.http_service_url,
-            "begin": {"date": begin.strftime("%Y-%m-%d"),
-                      "time": begin.strftime("%H:%M")},
-            "end": {"date": end.strftime("%Y-%m-%d"),
-                    "time": end.strftime("%H:%M")},
+            #"begin": {"date": begin.strftime("%Y-%m-%d"),
+            #          "time": begin.strftime("%H:%M")},
+            #"end": {"date": end.strftime("%Y-%m-%d"),
+            #        "time": end.strftime("%H:%M")},
+            "begin": isoformat(begin),
+            "end": isoformat(end),
             "extent": "%f,%f,%f,%f" % extent,
             "debug": settings.DEBUG
         },

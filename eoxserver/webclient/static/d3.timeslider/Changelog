@@ -1,0 +1,17 @@
+v0.0.3:
+  date: 2013-09-17
+  changes:
+    - Updated to D3js v3.3.3
+    - Implemented #zoom(start, end) method
+    - Removed unneeded g.root element
+    - Call #nice() on the input domain
+
+v0.0.2:
+  date: 2013-08-15
+  changes:
+    - bumped version for grunt based release process
+
+v0.0.1:
+  date: 2013-08-15
+  changes:
+    - initial release
