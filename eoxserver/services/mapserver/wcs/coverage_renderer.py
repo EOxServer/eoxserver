@@ -55,12 +55,12 @@ class RectifiedCoverageMapServerRenderer(CoverageRenderer):
 
     connectors = ExtensionPoint(ConnectorInterface)
 
-    def render(self, coverage, **kwargs):
+    def render(self, coverage, request_values):
         with CacheContext() as cache:
-            return self._render(coverage, cache, kwargs)
+            return self._render(coverage, cache, request_values)
 
 
-    def _render(self, coverage, cache, kwargs):
+    def _render(self, coverage, cache, request_values):
         # get coverage related stuff
         data_items = coverage.data_items.filter(
             Q(semantic__startswith="bands") | Q(semantic="tileindex")
@@ -74,7 +74,7 @@ class RectifiedCoverageMapServerRenderer(CoverageRenderer):
 
         # configure outputformat
         native_format = get_native_format(coverage, data_items)
-        format = kwargs.get("format") or native_format
+        format = find_param(request_values, "format", native_format)
 
         if format is None:
             raise Exception("format could not be determined")
@@ -145,7 +145,8 @@ class RectifiedCoverageMapServerRenderer(CoverageRenderer):
 
         map_.insertLayer(layer)
 
-        if "mask" in kwargs:
+        mask = find_param(request_values, "mask")
+        if mask:
             # TODO: implement
             pass
 
@@ -160,7 +161,7 @@ class RectifiedCoverageMapServerRenderer(CoverageRenderer):
             connector.connect(coverage, data_items, layer, cache)
 
             # create request object and dispatch it agains the map
-            request = self._create_request_v20(coverage.identifier, **kwargs)
+            request = create_request(request_values)#self._create_request_v20(coverage.identifier, request_values)
             response = map_.dispatch(request)
 
         finally:
@@ -213,6 +214,13 @@ class ReferenceableDatasetRenderer(CoverageRenderer):
 
     def render(self, coverage, parameters):
         pass
+
+
+def find_param(params, name, default=None):
+    for key, value in params:
+        if key == name:
+            return value
+    return default
 
 
 def get_native_format(coverage, data_items):

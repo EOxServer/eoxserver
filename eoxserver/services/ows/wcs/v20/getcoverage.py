@@ -27,6 +27,8 @@
 #-------------------------------------------------------------------------------
 
 
+from itertools import chain
+
 from eoxserver.core import Component, implements, ExtensionPoint
 from eoxserver.core.decoders import xml, kvp, typelist, upper, enum
 from eoxserver.resources.coverages import models
@@ -40,7 +42,7 @@ from eoxserver.services.exceptions import (
 )
 from eoxserver.services.ows.wcs.v20.util import (
     nsmap, SectionsMixIn, parse_subset_kvp, parse_subset_xml,
-    parse_size_kvp, parse_resolution_kvp
+    parse_size_kvp, parse_resolution_kvp, Slice, Trim
 )
 
 class WCS20GetCoverageHandler(Component):
@@ -87,18 +89,68 @@ class WCS20GetCoverageHandler(Component):
         renderer = self.get_renderer(coverage_type)
 
         # translate arguments
-        request_values = {
-            "subsets": decoder.subsets,
-            "sizes": decoder.sizes,
-            "resolutions": decoder.resolutions,
-            "rangesubset": decoder.rangesubset,
-            "format": decoder.format,
-            "outputcrs": decoder.outputcrs,
-            "mediatype": decoder.mediatype,
-            "interpolation": decoder.interpolation
-        }
 
-        return renderer.render(coverage, **request_values)
+        request_values = [
+            ("service", "wcs"),
+            ("version", "2.0.0"),
+            ("request", "GetCoverage"),
+            ("coverageid", decoder.coverage_id),
+
+        ] + map(subset_to_kvp, decoder.subsets) \
+          + map(size_to_kvp, decoder.sizes) \
+          + map(resolution_to_kvp, decoder.resolutions)
+        
+        if decoder.rangesubset:
+            request_values.append(
+                ("rangesubset", ",".join(decoder.rangesubset))
+            )
+
+        if decoder.format:
+            request_values.append(
+                ("format", decoder.format)
+            )
+
+        if decoder.outputcrs:
+            request_values.append(
+                ("outputcrs", decoder.outputcrs)
+            )
+
+        if decoder.mediatype:
+            request_values.append(
+                ("mediatype", decoder.mediatype)
+            )
+
+        if decoder.interpolation:
+            request_values.append(
+                ("interpolation", decoder.interpolation)
+            )
+
+        return renderer.render(coverage, request_values)
+
+
+def subset_to_kvp(subset):
+    temporal_format = lambda v: ('"%s"' % isoformat(v) if v else "*")
+    spatial_format = lambda v: (str(v) if v is not None else "*")
+
+    frmt = temporal_format if subset.is_temporal else spatial_format
+
+    if isinstance(subset, Slice):
+        value = frmt(subset.value)
+    else:
+        value = "%s,%s" % (frmt(subset.low), frmt(subset.high))
+
+    if subset.crs:
+        return "subset", "%s,%s(%s)" % (subset.axis, subset.crs, value)
+    else:
+        return "subset", "%s(%s)" % (subset.axis, value)
+
+
+def size_to_kvp(size):
+    return "size", "%s(%d)" % (size.axis, size.value)
+
+
+def resolution_to_kvp(resolution):
+    return "resolution", "%s(%f)" % (resolution.axis, resolution.value)
 
 
 class WCS20GetCoverageKVPDecoder(kvp.Decoder):
