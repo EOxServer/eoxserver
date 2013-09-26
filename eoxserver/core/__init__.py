@@ -28,19 +28,18 @@
 
 
 import logging
-import traceback
-import pkgutil
 import threading
 
 from django.utils.importlib import import_module
 
-from component import *
+from eoxserver.core.component import *
+from eoxserver.core.util.importtools import easy_import
 
 
 env = ComponentManager()
 logger = logging.getLogger(__name__)
 
-__init_lock = threading.Lock()
+__init_lock = threading.RLock()
 __is_initialized = False
 
 def initialize():
@@ -60,48 +59,25 @@ def initialize():
 
         from django.conf import settings
 
-        for plugin in getattr(settings, "PLUGINS", ()):
+        logger.info("Initializing EOxServer components.")
 
-            parts = plugin.split(".")
-            if parts[-1] == "*":
-                import_modules(".".join(parts[:-1]))
-            elif parts[-1] == "**":
-                import_recursive(".".join(parts[:-1]))
-            else:
-                try:
-                    import_module(plugin)
-                    logger.debug("Imported plugin '%s'." % plugin)
-                except ImportError:
-                    logger.error("Failed to import plugin '%s'." % plugin)
-                    logger.debug(traceback.format_exc())
+        for plugin in getattr(settings, "COMPONENTS", ()):
+            easy_import(plugin)
 
 
-def import_modules(base_module_path):
-    """ Helper function to import all direct submodules within a package. This 
-        function is not recursive.
+def reset():
+    """ Reset the EOxServer plugin system.
     """
 
-    path = import_module(base_module_path).__path__
-    for loader, module_name, is_pkg in pkgutil.iter_modules(path):
-        full_path = "%s.%s" % (base_module_path, module_name)
-        try:
-            loader.find_module(module_name).load_module(module_name)
-            logger.debug("Imported plugin '%s'." % full_path)
-        except ImportError:
-            logger.error("Failed to import plugin '%s'." % full_path)
-            logger.debug(traceback.format_exc())
+    global __is_initialized
 
+    with __init_lock:
+        if not __is_initialized:
+            return
+        __is_initialized = False
 
-def import_recursive(base_module_path):
-    """  Helper function to recursively import all submodules and packages.
-    """
+        logger.info("Resetting EOxServer components.")
+        ComponentMeta._registry = {}
+        ComponentMeta._components = []
 
-    path = import_module(base_module_path).__path__
-    for loader, module_name, is_pkg in pkgutil.walk_packages(path):
-        full_path = "%s.%s" % (base_module_path, module_name)
-        try:
-            loader.find_module(module_name).load_module(module_name)
-            logger.debug("Imported plugin '%s'." % full_path)
-        except ImportError:
-            logger.error("Failed to import plugin '%s'." % full_path)
-            logger.debug(traceback.format_exc())
+        initialize()
