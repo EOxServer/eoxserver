@@ -33,7 +33,7 @@ from itertools import chain
 
 from django.core.exceptions import ValidationError
 from django.contrib.gis.db import models
-from django.contrib.gis.geos import MultiPolygon
+from django.contrib.gis.geos import MultiPolygon, Polygon
 
 from django.db.models import Min, Max
 from django.contrib.gis.db.models import Union
@@ -60,18 +60,23 @@ def iscollection(eo_object):
     return issubclass(eo_object.real_type, Collection)
 
 
-def collect_eo_metadata(qs, insert=None, exclude=None):
+def collect_eo_metadata(qs, insert=None, exclude=None, bbox=False):
     """ Helper function to collect EO metadata from all EOObjects in a queryset, 
-    plus additionals from a list and exclude others from a different list.
+    plus additionals from a list and exclude others from a different list. If 
+    bbox is `True` then the returned polygon will only be a minimal bounding box
+    of the collected footprints.
     """
 
     values = qs.exclude(
         pk__in=[eo_object.pk for eo_object in exclude or ()]
     ).aggregate(
-        begin_time=Min("begin_time"), end_time=Max("end_time"), footprint=Union("footprint")
+        begin_time=Min("begin_time"), end_time=Max("end_time"),
+        footprint=Union("footprint")
     )
 
-    begin_time, end_time, footprint = values["begin_time"], values["end_time"], values["footprint"]
+    begin_time, end_time, footprint = (
+        values["begin_time"], values["end_time"], values["footprint"]
+    )
 
     for eo_object in insert or ():
         if begin_time is None:
@@ -91,6 +96,9 @@ def collect_eo_metadata(qs, insert=None, exclude=None):
 
     if not isinstance(footprint, MultiPolygon) and footprint is not None:
         footprint = MultiPolygon(footprint)
+
+    if bbox and footprint is not None:
+        footprint = MultiPolygon(Polygon.from_bbox(footprint.extent))
 
     return begin_time, end_time, footprint
 
@@ -147,10 +155,10 @@ class Extent(models.Model):
     def clean(self):
         # make sure that neither both nor none of SRID or projections is set
         if self.projection is None and self.srid is None:
-            raise ValidationError("No projection or spatial reference given.")
+            raise ValidationError("No projection or srid given.")
         elif self.projection is not None and self.srid is not None:
             raise ValidationError(
-                "Projection and spatial reference are mutually exclusive."
+                "Fields 'projection' and 'srid' are mutually exclusive."
             )
 
     class Meta:
@@ -585,13 +593,17 @@ class RectifiedStitchedMosaic(Coverage, Collection):
                 "Mosaic '%s'." % (rectified_dataset, self.identifier)
             )
 
-        self.begin_time, self.end_time, self.footprint = collect_eo_metadata(self.eo_objects.all(), insert=[eo_object])
+        self.begin_time, self.end_time, self.footprint = collect_eo_metadata(
+            self.eo_objects.all(), insert=[eo_object]
+        )
         self.full_clean()
         self.save()
         return
 
     def perform_removal(self, eo_object):
-        self.begin_time, self.end_time, self.footprint = collect_eo_metadata(self.eo_objects.all(), exclude=[eo_object])
+        self.begin_time, self.end_time, self.footprint = collect_eo_metadata(
+            self.eo_objects.all(), exclude=[eo_object]
+        )
         self.full_clean()
         self.save()
         return
@@ -607,13 +619,17 @@ class DatasetSeries(Collection):
 
 
     def perform_insertion(self, eo_object, through=None):
-        self.begin_time, self.end_time, self.footprint = collect_eo_metadata(self.eo_objects.all(), insert=[eo_object])
+        self.begin_time, self.end_time, self.footprint = collect_eo_metadata(
+            self.eo_objects.all(), insert=[eo_object], bbox=True
+        )
         self.full_clean()
         self.save()
         return
 
     def perform_removal(self, eo_object):
-        self.begin_time, self.end_time, self.footprint = collect_eo_metadata(self.eo_objects.all(), exclude=[eo_object])
+        self.begin_time, self.end_time, self.footprint = collect_eo_metadata(
+            self.eo_objects.all(), exclude=[eo_object], bbox=True
+        )
         self.full_clean()
         self.save()
         return
