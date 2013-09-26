@@ -110,7 +110,7 @@ def parse_subset_kvp(string):
     if match.group(6) is not None:
         return Trim(axis, match.group(4), match.group(6), crs)
     else:
-        return Slice(axis_label, match.group(4), crs)
+        return Slice(axis, match.group(4), crs)
 
 def parse_size_kvp(string):
     """ 
