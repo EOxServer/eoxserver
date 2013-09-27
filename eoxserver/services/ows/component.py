@@ -27,21 +27,34 @@
 #-------------------------------------------------------------------------------
 
 
+import itertools
+
 from eoxserver.core import env, Component, implements, ExtensionPoint
-from eoxserver.core.decoders import kvp, xml, upper
-from eoxserver.services.interfaces import *
+from eoxserver.core.decoders import kvp, xml, upper, typelist
+from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap
+from eoxserver.services.ows.interfaces import *
+from eoxserver.services.ows.version import parse_version_string
+
+ns_xlink = NameSpace("http://www.w3.org/1999/xlink", "xlink")
+ns_ows10 = NameSpace("http://www.opengis.net/ows/1.0", "ows10")
+ns_ows11 = NameSpace("http://www.opengis.net/ows/1.1", "ows11")
+ns_ows20 = NameSpace("http://www.opengis.net/ows/2.0", "ows20")
+
+nsmap = NameSpaceMap(ns_ows10, ns_ows11, ns_ows20)
 
 
-class OWSServiceComponent(Component):
-    service_handlers = ExtensionPoint(OWSServiceHandlerInterface)
-    exception_handlers = ExtensionPoint(OWSExceptionHandlerInterface)
+class ServiceComponent(Component):
+    service_handlers = ExtensionPoint(ServiceHandlerInterface)
+    exception_handlers = ExtensionPoint(ExceptionHandlerInterface)
 
-    get_service_handlers = ExtensionPoint(OWSGetServiceHandlerInterface)
-    post_service_handlers = ExtensionPoint(OWSPostServiceHandlerInterface)
+    get_service_handlers = ExtensionPoint(GetServiceHandlerInterface)
+    post_service_handlers = ExtensionPoint(PostServiceHandlerInterface)
+
+    version_negotiation_handlers = ExtensionPoint(VersionNegotiationInterface)
 
 
     def __init__(self, *args, **kwargs):
-        super(OWSServiceComponent, self).__init__(*args, **kwargs)
+        super(ServiceComponent, self).__init__(*args, **kwargs)
 
 
     def get_decoder(self, request):
@@ -55,10 +68,22 @@ class OWSServiceComponent(Component):
     def query_service_handler(self, request):
         """ Tries to find the correct service handler
         """
-        decoder = self.get_decoder(request)
-        handlers = self.service_handlers
 
-        # TODO: version negotiation
+        decoder = self.get_decoder(request)
+        if request.method == "GET":
+            handlers = self.get_service_handlers 
+        elif request.method == "POST":
+            handlers = self.post_service_handlers 
+        else:
+            handlers = self.service_handlers
+
+        version = decoder.version
+        if version is None:
+            accepted_versions = decoder.acceptversions
+            handlers = filter_handlers(
+                handlers, decoder.service, decoder.request
+            )
+            return self.version_negotiation(handlers, accepted_versions)
 
         # TODO: improve. a lot.
         for handler in handlers:
@@ -74,8 +99,6 @@ class OWSServiceComponent(Component):
 
 
     def query_service_handlers(self, service=None, versions=None, request=None, method=None):
-        service = service.upper() if service is not None else None
-        request = request.upper() if request is not None else None
         method = method.upper() if method is not None else None
 
         if method == "GET":
@@ -87,18 +110,7 @@ class OWSServiceComponent(Component):
         else:
             return []
 
-        if service:
-            handlers = filter(lambda h: h.service == service, handlers)
-
-        if versions:
-            handlers = filter(
-                lambda h: len(set(h.versions) & set(versions)) > 0, handlers
-            )
-
-        if request:
-            handlers = filter(lambda h: h.request.upper() == request, handlers)
-
-        return handlers
+        return filter_handlers(handlers, service, versions, request)
 
 
     def query_exception_handler(self, request):
@@ -115,13 +127,63 @@ class OWSServiceComponent(Component):
         return None
 
 
+    def version_negotiation(self, handlers, accepted_versions=None):
+        version_to_handler = {}
+        for handler in handlers:
+            for version in handlers.versions:
+                version_to_handler.setdefault(version, handler)
+
+        available_versions = sorted(version_to_handler.keys(), reverse=True)
+        if not available_versions:
+            raise Exception("No handler found.")
+
+        if not accepted_versions:
+            return version_to_handler[available_versions[0]]
+
+        combinations = itertools.product(accepted_versions, available_versions)
+        for accepted_version, available_version in combinations:
+            if accepted_version == available_version:
+                return version_to_handler[accepted_version]
+
+
+def filter_handlers(handlers, service=None, versions=None, request=None):
+    """ Utility function to filter the given OWS service handlers by their
+        attributes 'service', 'versions' and 'request'.
+    """
+
+    service = service.upper() if service is not None else None
+    request = request.upper() if request is not None else None
+
+    if service:
+        handlers = filter(lambda h: h.service == service, handlers)
+
+    if versions:
+        handlers = filter(
+            lambda h: len(set(h.versions) & set(versions)) > 0, handlers
+        )
+
+    if request:
+        handlers = filter(lambda h: h.request.upper() == request, handlers)
+
+    return handlers
+
+
 class OWSCommonKVPDecoder(kvp.Decoder):
-    service = kvp.Parameter("service", type=upper)
-    version = kvp.Parameter("version", num="?")
-    request = kvp.Parameter("request", type=upper)
+    service         = kvp.Parameter("service", type=upper)
+    version         = kvp.Parameter("version", type=parse_version_string, num="?")
+    request         = kvp.Parameter("request", type=upper)
+    acceptversions  = kvp.Parameter(type=typelist(parse_version_string, ","), num="?")
 
 
 class OWSCommonXMLDecoder(kvp.Decoder):
-    service = xml.Parameter("@service", type=upper)
-    version = xml.Parameter("@version", num="?")
-    request = xml.Parameter("local-name()", type=upper)
+    service         = xml.Parameter("@service", type=upper)
+    version         = xml.Parameter("@version", type=parse_version_string, num="?")
+    request         = xml.Parameter("local-name()", type=upper)
+    acceptversions  = xml.Parameter(
+        "ows10:AcceptVersions/ows10:Version/text() "
+        "| ows11:AcceptVersions/ows11:Version/text() "
+        "| ows20:AcceptVersions/ows20:Version/text()",
+        type=parse_version_string, num="*"
+    )
+
+    namespaces = nsmap

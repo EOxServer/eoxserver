@@ -67,15 +67,16 @@ class Version(object):
         correct layout are also compareable.
 
         Versions are compared by the "major" and the "minor" number. Only if 
-        both versions provide a "revision" it is taken into account. So "2.0" 
-        and "2.0.1" are considered equal!
+        both versions provide a "revision" it is taken into account. So Versions
+        "1.0" and "1.0.1" are considered equal!
     """
 
     def __init__(self, major, minor, revision=None):
         try:
             assert(isinstance(major, int) and major >= 0)
             assert(isinstance(minor, int) and minor >= 0)
-            assert(revision is None or (isinstance(revision, int) and revision >= 0))
+            assert(revision is None 
+                   or (isinstance(revision, int) and revision >= 0))
         except AssertionError:
             raise ValueError("Invalid version components supplied.")
 
