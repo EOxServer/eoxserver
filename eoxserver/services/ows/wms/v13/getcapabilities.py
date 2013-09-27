@@ -29,18 +29,17 @@
 
 from eoxserver.core import Component, implements, UniqueExtensionPoint
 from eoxserver.resources.coverages import models
-from eoxserver.services.component import OWSServiceComponent, env
 from eoxserver.services.ows.wms.interfaces import (
     WMSCapabilitiesRendererInterface
 )
-from eoxserver.services.interfaces import (
-    OWSServiceHandlerInterface, OWSGetServiceHandlerInterface
+from eoxserver.services.ows.interfaces import (
+    ServiceHandlerInterface, GetServiceHandlerInterface
 )
 
 
 class WMS13GetCapabilitiesHandler(Component):
-    implements(OWSServiceHandlerInterface)
-    implements(OWSGetServiceHandlerInterface)
+    implements(ServiceHandlerInterface)
+    implements(GetServiceHandlerInterface)
     
     renderer = UniqueExtensionPoint(WMSCapabilitiesRendererInterface)
 

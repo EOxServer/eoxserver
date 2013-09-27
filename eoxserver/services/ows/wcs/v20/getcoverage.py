@@ -32,11 +32,11 @@ from itertools import chain
 from eoxserver.core import Component, implements, ExtensionPoint
 from eoxserver.core.decoders import xml, kvp, typelist, upper, enum
 from eoxserver.resources.coverages import models
-from eoxserver.services.interfaces import (
-    OWSServiceHandlerInterface, 
-    OWSGetServiceHandlerInterface, OWSPostServiceHandlerInterface
+from eoxserver.services.ows.interfaces import (
+    ServiceHandlerInterface, GetServiceHandlerInterface, 
+    PostServiceHandlerInterface
 )
-from eoxserver.services.ows.wcs.interfaces import CoverageRendererInterface
+from eoxserver.services.ows.wcs.interfaces import WCSCoverageRendererInterface
 from eoxserver.services.exceptions import (
     NoSuchCoverageException, OperationNotSupportedException
 )
@@ -45,12 +45,13 @@ from eoxserver.services.ows.wcs.v20.util import (
     parse_size_kvp, parse_resolution_kvp, Slice, Trim
 )
 
-class WCS20GetCoverageHandler(Component):
-    implements(OWSServiceHandlerInterface)
-    implements(OWSGetServiceHandlerInterface)
-    implements(OWSPostServiceHandlerInterface)
 
-    renderers = ExtensionPoint(CoverageRendererInterface)
+class WCS20GetCoverageHandler(Component):
+    implements(ServiceHandlerInterface)
+    implements(GetServiceHandlerInterface)
+    implements(PostServiceHandlerInterface)
+
+    renderers = ExtensionPoint(WCSCoverageRendererInterface)
 
     service = "WCS" 
     versions = ("2.0.0", "2.0.1")
@@ -94,8 +95,7 @@ class WCS20GetCoverageHandler(Component):
             ("service", "wcs"),
             ("version", "2.0.0"),
             ("request", "GetCoverage"),
-            ("coverageid", decoder.coverage_id),
-
+            ("coverageid", decoder.coverage_id)
         ] + map(subset_to_kvp, decoder.subsets) \
           + map(size_to_kvp, decoder.sizes) \
           + map(resolution_to_kvp, decoder.resolutions)

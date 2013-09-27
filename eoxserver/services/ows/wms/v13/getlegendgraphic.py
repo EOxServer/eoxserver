@@ -32,8 +32,8 @@ from eoxserver.core import Component, env, implements, UniqueExtensionPoint
 from eoxserver.core.decoders import kvp, typelist, InvalidParameterException
 from eoxserver.resources.coverages import models
 from eoxserver.services.subset import Subsets, Trim, Slice
-from eoxserver.services.interfaces import (
-    OWSServiceHandlerInterface, OWSGetServiceHandlerInterface
+from eoxserver.services.ows.interfaces import (
+    ServiceHandlerInterface, GetServiceHandlerInterface
 )
 from eoxserver.services.ows.wms.util import (
     lookup_layers, parse_bbox, parse_time, int_or_str, LayerSelection
@@ -44,8 +44,8 @@ from eoxserver.services.ows.wms.interfaces import (
 
 
 class WMS13GetLegendGraphicHandler(Component):
-    implements(OWSServiceHandlerInterface)
-    implements(OWSGetServiceHandlerInterface)
+    implements(ServiceHandlerInterface)
+    implements(GetServiceHandlerInterface)
 
     renderer = UniqueExtensionPoint(WMSLegendGraphicRendererInterface)
 

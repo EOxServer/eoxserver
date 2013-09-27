@@ -33,8 +33,8 @@ from eoxserver.core import Component, implements, UniqueExtensionPoint
 from eoxserver.core.decoders import kvp, typelist, InvalidParameterException
 from eoxserver.resources.coverages import models, crss
 from eoxserver.services.subset import Subsets, Trim, Slice
-from eoxserver.services.interfaces import (
-    OWSServiceHandlerInterface, OWSGetServiceHandlerInterface
+from eoxserver.services.ows.interfaces import (
+    ServiceHandlerInterface, GetServiceHandlerInterface
 )
 from eoxserver.services.ows.wms.util import (
     lookup_layers, parse_bbox, parse_time, int_or_str
@@ -43,8 +43,8 @@ from eoxserver.services.ows.wms.interfaces import WMSMapRendererInterface
 
 
 class WMS13GetMapHandler(Component):
-    implements(OWSServiceHandlerInterface)
-    implements(OWSGetServiceHandlerInterface)
+    implements(ServiceHandlerInterface)
+    implements(GetServiceHandlerInterface)
 
     renderer = UniqueExtensionPoint(WMSMapRendererInterface)
 

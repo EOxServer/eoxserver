@@ -38,9 +38,9 @@ from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.decoders import xml, kvp, typelist, upper, enum
 from eoxserver.core.util.xmltools import DOMElementToXML
 from eoxserver.resources.coverages import models
-from eoxserver.services.interfaces import (
-    OWSServiceHandlerInterface, 
-    OWSGetServiceHandlerInterface, OWSPostServiceHandlerInterface
+from eoxserver.services.ows.interfaces import (
+    ServiceHandlerInterface, GetServiceHandlerInterface, 
+    PostServiceHandlerInterface
 )
 from eoxserver.services.ows.wcs.v20.util import (
     nsmap, SectionsMixIn, parse_subset_kvp, parse_subset_xml
@@ -54,9 +54,9 @@ from eoxserver.services.exceptions import NoSuchDatasetSeriesOrCoverageException
 logger = logging.getLogger(__name__)
 
 class WCS20DescribeEOCoverageSetHandler(Component):
-    implements(OWSServiceHandlerInterface)
-    implements(OWSGetServiceHandlerInterface)
-    implements(OWSPostServiceHandlerInterface)
+    implements(ServiceHandlerInterface)
+    implements(GetServiceHandlerInterface)
+    implements(PostServiceHandlerInterface)
 
     service = "WCS"
     versions = ("2.0.0", "2.0.1")

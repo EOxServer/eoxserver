@@ -32,7 +32,7 @@ from lxml import etree
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.resources.coverages.formats import getFormatRegistry
 from eoxserver.resources.coverages import crss
-from eoxserver.services.component import OWSServiceComponent, env
+from eoxserver.services.ows.component import ServiceComponent, env
 from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.services.ows.wcs.v20.util import (
     ns_xlink, ns_ogc, ns_ows, ns_gml, ns_gmlcov, ns_wcs, ns_crs, ns_eowcs, 
@@ -98,7 +98,7 @@ class WCS20CapabilitiesXMLEncoder(object):
 
 
         if all_sections or "operationsmetadata" in sections:
-            component = OWSServiceComponent(env)
+            component = ServiceComponent(env)
             versions = ("2.0.0", "2.0.1")
             get_handlers = component.query_service_handlers(
                 service="WCS", versions=versions, method="GET"

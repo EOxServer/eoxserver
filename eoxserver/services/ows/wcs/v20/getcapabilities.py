@@ -34,10 +34,10 @@ from eoxserver.core import Component, implements
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.decoders import xml, kvp, typelist, lower
 from eoxserver.resources.coverages import models
-from eoxserver.services.component import OWSServiceComponent, env
-from eoxserver.services.interfaces import (
-    OWSServiceHandlerInterface, 
-    OWSGetServiceHandlerInterface, OWSPostServiceHandlerInterface
+from eoxserver.services.ows.component import ServiceComponent, env
+from eoxserver.services.ows.interfaces import (
+    ServiceHandlerInterface, GetServiceHandlerInterface, 
+    PostServiceHandlerInterface, VersionNegotiationInterface
 )
 from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.services.ows.wcs.v20.util import nsmap, SectionsMixIn
@@ -45,9 +45,10 @@ from eoxserver.services.ows.wcs.v20.encoders import WCS20CapabilitiesXMLEncoder
 
 
 class WCS20GetCapabilitiesHandler(Component):
-    implements(OWSServiceHandlerInterface)
-    implements(OWSGetServiceHandlerInterface)
-    implements(OWSPostServiceHandlerInterface)
+    implements(ServiceHandlerInterface)
+    implements(GetServiceHandlerInterface)
+    implements(PostServiceHandlerInterface)
+    implements(VersionNegotiationInterface)
 
     service = "WCS"
     versions = ("2.0.0", "2.0.1")
