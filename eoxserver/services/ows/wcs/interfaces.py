@@ -27,7 +27,15 @@
 #-------------------------------------------------------------------------------
 
 
-class CoverageRendererInterface(object):
+class WCSCapabilitiesRendererInterface(object):
+    """ Interface for WCS Capabilities renderers.
+    """
+    def render(self, coverages, request_values):
+        """
+        """
+
+
+class WCSCoverageRendererInterface(object):
     """ Interface for coverage renderers.
     """
 

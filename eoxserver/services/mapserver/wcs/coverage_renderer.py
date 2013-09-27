@@ -38,7 +38,7 @@ from eoxserver.contrib.mapserver import (
     gdalconst_to_imagemode, gdalconst_to_imagemode_string
 )
 from eoxserver.backends.cache import CacheContext
-from eoxserver.services.ows.wcs.interfaces import CoverageRendererInterface
+from eoxserver.services.ows.wcs.interfaces import WCSCoverageRendererInterface
 from eoxserver.services.mapserver.interfaces import ConnectorInterface
 from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.formats import getFormatRegistry
@@ -46,7 +46,7 @@ from eoxserver.resources.coverages import crss
 
 
 class CoverageRenderer(Component):
-    implements(CoverageRendererInterface)
+    implements(WCSCoverageRendererInterface)
     abstract = True
 
 
@@ -169,44 +169,6 @@ class RectifiedCoverageMapServerRenderer(CoverageRenderer):
             connector.disconnect(coverage, data_items, layer, cache)
 
         return response.content, response.content_type
-
-
-    def _create_request_v20(self, coverageid, subsets=[], sizes=[], 
-                            resolutions=[], rangesubset=None, format=None, 
-                            outputcrs=None, mediatype=None, interpolation=None,
-                            **kwargs):
-        params = [
-            ("service", "wcs"),
-            ("version", "2.0.0"),
-            ("request", "getcoverage"),
-            ("coverageid", coverageid)
-        ]
-
-        for s in subsets:
-            # prohibit subsets other that trims and xy
-            if s.crs:
-                value = "%s,%s(%s,%s)" % (
-                    s.axis, s.crs, s.low or "*", s.high or "*"
-                )
-            else: 
-                value = "%s(%s,%s)" % (
-                    s.axis, s.low or "*", s.high or "*"
-                )
-            params.append(("subset", value))
-
-        for size in sizes:
-            params.append(("size", "%s(%i)" % (size.axis, size.value)))
-
-        for res in resolutions:
-            params.append(("resolution", "%s(%f)" % (res.axis, res.value)))
-
-        if rangesubset: params.append(("rangesubset", ",".join(rangesubset)))
-        if format: params.append(("format", format))
-        if outputcrs: params.append(("outputcrs", outputcrs))
-        if mediatype: params.append(("mediatype", mediatype))
-        if interpolation: params.append(("interpolation", interpolation))
-
-        return create_request(params)
 
 
 class ReferenceableDatasetRenderer(CoverageRenderer):
