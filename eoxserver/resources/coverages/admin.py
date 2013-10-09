@@ -33,6 +33,7 @@ from django.contrib.gis import forms
 from django.contrib.gis import admin
 from django.contrib import messages
 
+from eoxserver.contrib import gdal
 from eoxserver.resources.coverages import models
 from eoxserver.backends.admin import LocationForm
 
@@ -68,40 +69,11 @@ def get_projection_format_choices():
 
 
 def get_gdal_data_type_choices():
-    from osgeo import gdalconst
-    return (
-        (gdalconst.GDT_Byte, "Byte"),
-        (gdalconst.GDT_Int16, "Int16"),
-        (gdalconst.GDT_UInt16, "UInt16"),
-        (gdalconst.GDT_Int32, "Int32"),
-        (gdalconst.GDT_UInt32, "UInt32"),
-        (gdalconst.GDT_Float32, "Float32"),
-        (gdalconst.GDT_Float64, "Float64"),
-        (gdalconst.GDT_CFloat32, "Complex32"),
-        (gdalconst.GDT_CFloat64, "Complex64"),
-    )
+    return gdal.GDT_TO_NAME.items()
 
 
 def get_gdal_color_interpretation_choices():
-    from osgeo import gdalconst
-    return (
-        (gdalconst.GCI_Undefined, "Undefined"),
-        (gdalconst.GCI_GrayIndex, "Gray"),
-        (gdalconst.GCI_PaletteIndex, "PaletteIndex"),
-        (gdalconst.GCI_RedBand, "Red"),
-        (gdalconst.GCI_GreenBand, "Green"),
-        (gdalconst.GCI_BlueBand, "Blue"),
-        (gdalconst.GCI_AlphaBand, "Alpha"),
-        (gdalconst.GCI_HueBand, "Hue"),
-        (gdalconst.GCI_LightnessBand, "Lightness"),
-        (gdalconst.GCI_CyanBand, "Cyan"),
-        (gdalconst.GCI_MagentaBand, "Magenta"),
-        (gdalconst.GCI_YellowBand, "Yellow"),
-        (gdalconst.GCI_BlackBand, "Black"),
-        (gdalconst.GCI_YCbCr_YBand, "Y"),
-        (gdalconst.GCI_YCbCr_CbBand, "Cb"),
-        (gdalconst.GCI_YCbCr_CrBand, "Cr"),
-    )
+    return gdal.GCI_TO_NAME.items()
 
 
 #===============================================================================
@@ -109,9 +81,9 @@ def get_gdal_color_interpretation_choices():
 #===============================================================================
 
 
-class RangeTypeForm(forms.ModelForm):
+class NilValueSetForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
-        super(RangeTypeForm, self).__init__(*args, **kwargs)
+        super(NilValueSetForm, self).__init__(*args, **kwargs)
         self.fields['data_type'] = forms.ChoiceField(
             choices=get_gdal_data_type_choices()
         )
@@ -120,6 +92,9 @@ class RangeTypeForm(forms.ModelForm):
 class BandInlineForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(BandInlineForm, self).__init__(*args, **kwargs)
+        self.fields['data_type'] = forms.ChoiceField(
+            choices=get_gdal_data_type_choices()
+        )
         self.fields['color_interpretation'] = forms.ChoiceField(
             choices=get_gdal_color_interpretation_choices()
         )
@@ -136,12 +111,15 @@ class ProjectionForm(forms.ModelForm):
             choices=get_projection_format_choices()
         )
 
+
 class CoverageForm(LocationForm):
     pass
+
 
 #===============================================================================
 # Abstract admins
 #===============================================================================
+
 
 class EOObjectAdmin(admin.GeoModelAdmin):
     wms_url = 'http://maps.eox.at/tiles/wms/'
@@ -211,12 +189,17 @@ class NilValueInline(AbstractInline):
 class BandInline(AbstractInline):
     form = BandInlineForm # TODO: not working as expected...
     model = models.Band
-    inlines = (NilValueInline,) # TODO: not working!
     extra = 0
 
     def get_queryset(self):
         queryset = super(BandInline, self).get_queryset()
         return queryset.order_by("index")
+
+    
+    #def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        # TODO: get only nilvalue sets for the same data type
+        #if db_field.name == "nil_value_set":
+        #    kwargs["queryset"] = models.NilValueSet.objects.filter(data_type=)
 
 
 class CollectionInline(AbstractInline):
@@ -251,18 +234,19 @@ class ProjectionAdmin(admin.ModelAdmin):
 admin.site.register(models.Projection, ProjectionAdmin)
 
 
+class NilValueSetAdmin(admin.ModelAdmin):
+    model = models.RangeType
+    form = NilValueSetForm
+    inlines = (NilValueInline,) 
+
+admin.site.register(models.NilValueSet, NilValueSetAdmin)
+
+
 class RangeTypeAdmin(admin.ModelAdmin):
     model = models.RangeType
-    form = RangeTypeForm
     inlines = (BandInline,) 
 
 admin.site.register(models.RangeType, RangeTypeAdmin)
-
-class BandAdmin(admin.ModelAdmin):
-    model = models.Band
-    inlines = (NilValueInline,)
-
-admin.site.register(models.Band, BandAdmin)
 
 
 class RectifiedDatasetAdmin(CoverageAdmin):
@@ -275,7 +259,6 @@ admin.site.register(models.RectifiedDataset, RectifiedDatasetAdmin)
 class ReferenceableDatasetAdmin(CoverageAdmin):
     model = models.ReferenceableDataset
     inlines = (DataItemInline, CollectionInline)
-
 
 admin.site.register(models.ReferenceableDataset, ReferenceableDatasetAdmin)
 

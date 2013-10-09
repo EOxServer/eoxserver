@@ -245,53 +245,84 @@ class EOObject(base.Castable, EOMetadata):
 # RangeType structure
 #===============================================================================
 
+
+class NilValueSet(models.Model):
+    name = models.CharField(max_length=64)
+    data_type = models.PositiveIntegerField()
+
+    def __init__(self, *args, **kwargs):
+        super(NilValueSet, self).__init__(*args, **kwargs)
+        self._cached_nil_values = None
+
+    @property
+    def values(self):
+        return [nil_value.value for nil_value in self]
+
+    def __unicode__(self):
+        return "%s (%s)" % (self.name, gdal.GetDataTypeName(self.data_type))
+
+    @property
+    def cached_nil_values(self):
+        if self._cached_nil_values is None:
+            self._cached_nil_values = list(self.nil_values.all())
+        return self._cached_nil_values
+
+    def __iter__(self):
+        return iter(self.cached_nil_values)
+
+    def __len__(self):
+        return len(self.cached_nil_values)
+
+    def __getitem__(self, index):
+        return self.cached_nil_values[index]
+
+    class Meta:
+        verbose_name = "Nil Value Set"
+
+
+class NilValue(models.Model):
+    value_string = models.CharField(max_length=64)
+    reason = models.CharField(max_length=64, null=False, blank=False)
+    
+    nil_value_set = models.ForeignKey(NilValueSet, related_name="nil_values")
+
+    def __unicode__(self):
+        return "%s (%s)" % (self.reason, self.value_string)
+
+    @property
+    def value(self):
+        """ Get the parsed python value from the saved value string.
+        """
+        dt = self.nil_value_set.data_type
+        if dt in (gdal.GDT_Int16, gdal.GDT_UInt16, gdal.GDT_Int32, gdal.GDT_UInt32):
+            return int(self.value_string)
+        elif dt in (gdal.GDT_Float32, gdal.GDT_Float64):
+            return float(self.value_string)
+        elif dt in (gdal.GDT_CInt16, gdal.GDT_CInt32, gdal.GDT_CFloat32, gdal.GDT_CFloat64):
+            return complex(self.value_string)
+
+    def clean(self):
+        """ Check that the value can be parsed.
+        """
+        try:
+            _ = self.value
+        except Exception, e:
+            raise ValidationError(str(e))
+
+    class Meta:
+        verbose_name = "Nil Value"
+
+
 class RangeType(models.Model):
     name = models.CharField(max_length=32, null=False, blank=False, unique=True)
-    data_type = models.PositiveIntegerField() # TODO: move data type to band?
 
 
     def __init__(self, *args, **kwargs):
         super(RangeType, self).__init__(*args, **kwargs)
         self._cached_bands = None
 
-
     def __unicode__(self):
-        return "%s (%s)" % (self.name, self.data_type)
-
-
-    class Meta:
-        verbose_name = "Range Type"
-
-
-    @property
-    def allowed_values(self):
-        dt = self.data_type
-        if dt == gdal.GDT_Byte:
-            return (0, 255)
-        elif dt == gdal.GDT_UInt16:
-            return (0, 65535)
-        elif dt in (gdal.GDT_Int16, gdal.GDT_CInt32):
-            return (-32768, 32767)
-        elif dt == gdal.GDT_UInt32:
-            return (0, 4294967295)
-        elif dt in (gdal.GDT_Int32, gdal.GDT_CInt32):
-            return (-2147483648, 2147483647)
-        elif dt in (gdal.GDT_Float32, gdal.GDT_CFloat32): 
-            return (-3.40282e+38, 3.40282e+38)
-
-
-    @property
-    def significant_figures(self):
-        dt = self.data_type
-        if dt == gdal.GDT_Byte:
-            return 3
-        elif dt in (gdal.GDT_UInt16, gdal.GDT_Int16, gdal.GDT_CInt16): 
-            return 5
-        elif dt in (gdal.GDT_UInt32, gdal.GDT_Int32, gdal.GDT_CInt32): 
-            return 10
-        elif dt in (gdal.GDT_Float32, gdal.GDT_CFloat32):
-            return 38
-
+        return self.name
 
     @property
     def cached_bands(self):
@@ -299,18 +330,17 @@ class RangeType(models.Model):
             self._cached_bands = list(self.bands.all())
         return self._cached_bands
 
-
     def __iter__(self):
         return iter(self.cached_bands)
-
 
     def __len__(self):
         return len(self.cached_bands)
 
-
     def __getitem__(self, index):
         return self.cached_bands[index]
 
+    class Meta:
+        verbose_name = "Range Type"
 
 
 class Band(models.Model):
@@ -318,43 +348,43 @@ class Band(models.Model):
     name = models.CharField(max_length=32, null=False, blank=False)
     identifier = models.CharField(max_length=32, null=False, blank=False)
     description = models.CharField(max_length=32, null=True, blank=True)
-    definition = models.CharField(max_length=32, null=True, blank=True)
+    definition = models.CharField(max_length=128, null=True, blank=True)
     uom = models.CharField(max_length=32, null=False, blank=False)
-    color_interpretation = models.PositiveIntegerField(null=True, blank=True)
     
-    range_type = models.ForeignKey(RangeType, related_name="bands")
+    # GDAL specific
+    data_type = models.PositiveIntegerField()
+    color_interpretation = models.PositiveIntegerField(null=True, blank=True)
+
+    range_type = models.ForeignKey(RangeType, related_name="bands", null=False, blank=False)
+    nil_value_set = models.ForeignKey(NilValueSet, null=True, blank=True)
 
 
     def __unicode__(self):
         return self.name
 
+    def clean(self):
+        nil_value_set = self.nil_value_set
+        if nil_value_set and nil_value_set.data_type != self.data_type:
+            raise ValidationError(
+                "The data type of the band is not equal to the data type of "
+                "its nil value set."
+            )
 
     class Meta:
         ordering = ('index',)
         unique_together = (('index', 'range_type'), ('identifier', 'range_type'))
 
 
+    def __unicode__(self):
+        return "%s (%s)" % (self.name, gdal.GetDataTypeName(self.data_type))
+
     @property
     def allowed_values(self):
-        return self.range_type.allowed_values
+        return gdal.GDT_NUMERIC_LIMITS[self.data_type]
 
     @property
     def significant_figures(self):
-        return self.range_type.significant_figures
-
-
-class NilValue(models.Model):
-    value = models.BigIntegerField() # TODO: what about float/complex values?
-    reason = models.CharField(max_length=32, null=False, blank=False)
-    
-    band = models.ForeignKey(Band, related_name="nil_values")
-
-
-    def __unicode__(self):
-        return "%s (%s)" % (self.reason, self.value)
-
-    class Meta:
-        verbose_name = "Nil Value"
+        return gdal.GDT_SIGNIFICANT_FIGURES[self.data_type]
 
 
 #===============================================================================
