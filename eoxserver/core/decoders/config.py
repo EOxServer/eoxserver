@@ -42,8 +42,6 @@ def section(name):
     locals_["section"] = name
 
 
-
-
 class Option(object):
 
     def __init__(self, key=None, type=None, separator=None, required=False, default=None, section=None):
