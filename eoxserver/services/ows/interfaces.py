@@ -2,8 +2,7 @@
 # $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
-# Authors: Stephan Krause <stephan.krause@eox.at>
-#          Stephan Meissl <stephan.meissl@eox.at>
+# Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
 #-------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
@@ -50,6 +49,12 @@ class ServiceHandlerInterface(object):
     def handle(self, request):
         """ The main handling method. Takes a `django.http.Request` object as 
             single parameter.
+        """
+
+    @property
+    def constraints(self):
+        """ Optional property to return a dict with constraints for default 
+            values.
         """
 
 
