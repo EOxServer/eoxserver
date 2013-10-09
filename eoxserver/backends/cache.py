@@ -34,9 +34,65 @@ import shutil
 import tempfile
 import errno
 import logging
+import threading
+
+from eoxserver.core.config import get_eoxserver_config
+from eoxserver.backends.config import CacheConfigReader
 
 
 logger = logging.getLogger(__name__)
+
+
+# global instance of the cache context
+cache_context_storage = threading.local()
+
+
+class CacheException(Exception):
+    pass
+
+
+def setup_cache_session(config=None):
+    """ Initialize the cache context for this session. If a cache context was 
+        already present, an exception is raised.
+    """
+    if not config:
+        config = CacheConfigReader(get_eoxserver_config())
+
+    set_cache_context(CacheContext(config.retention_time, config.directory))
+
+
+def shutdown_cache_session():
+    """ Shutdown the cache context for this session and trigger any pending 
+        cleanup actions required.
+    """
+    cache_context = get_cache_context()
+    cache_context.cleanup()
+    set_cache_context(None)
+
+
+def set_cache_context(cache_context):
+    """ Sets the cache context for this session. Raises an exception if there 
+        was already a cache context associated.
+    """
+    if cache_context is not None:
+        if getattr(cache_context_storage, "cache_context", None) is not None:
+            raise CacheException(
+                "The cache context for this session was already initialized."
+            )
+
+    cache_context_storage.cache_context = cache_context
+
+
+def get_cache_context():
+    """ Get the thread local cache context for this session. Raises an exception
+        if the session was not initialized.
+    """
+    cache_context = getattr(cache_context_storage, "cache_context", None)
+    if not cache_context:
+        raise CacheException(
+            "The cache context for this session was not initialized."
+        )
+    return cache_context
 
 
 class CacheContext(object):
