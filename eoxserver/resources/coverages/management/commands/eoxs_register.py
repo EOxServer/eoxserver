@@ -154,6 +154,10 @@ class Command(CommandOutputMixIn, BaseCommand):
         metadatas = kwargs["metadata"]
         range_type_name = kwargs["range_type_name"]
 
+        if range_type_name is None:
+            raise CommandError("No range type name specified.")
+        range_type = models.RangeType.objects.get(name=range_type_name)
+
         # TODO: not required, as the keys are already
         metadata_keys = set((
             "identifier", "extent", "size", "projection", 
@@ -185,10 +189,7 @@ class Command(CommandOutputMixIn, BaseCommand):
                             retrieved_metadata.setdefault(key, value)
 
                         # TODO: think this over. semantic would be required
-                        #elif key == "datafiles":
-                        #    datas.append(value) # TODO:
 
-        
 
         if len(datas) < 1:
             raise CommandError("No data files specified.")
@@ -196,8 +197,15 @@ class Command(CommandOutputMixIn, BaseCommand):
         if semantics is None:
             # TODO: check corner cases.
             # e.g: only one data item given but multiple bands in range type
-            # --> bands[0:<bandnum>]
-            semantics = ["bands[%d]" % i for i in range(len(datas))]
+            # --> bands[1:<bandnum>]
+            if len(datas) == 1:
+                if len(range_type) == 1:
+                    semantics = ["bands[1]"]
+                else:
+                    semantics = ["bands[1:%d]" % len(range_type)]
+            
+            else:
+                semantics = ["bands[%d]" % i for i in range(len(datas))]
 
 
         for data, semantic in zip(datas, semantics):
@@ -221,7 +229,10 @@ class Command(CommandOutputMixIn, BaseCommand):
             ds = None
 
         if len(metadata_keys - set(retrieved_metadata.keys())):
-            raise CommandError("Missing metadata keys %s." % ", ".join(metadata_keys - set(retrieved_metadata.keys())))
+            raise CommandError(
+                "Missing metadata keys %s." 
+                % ", ".join(metadata_keys - set(retrieved_metadata.keys()))
+            )
 
         try:
             CoverageType = getattr(models, kwargs["coverage_type"])
@@ -230,10 +241,6 @@ class Command(CommandOutputMixIn, BaseCommand):
             # TODO: split into module path/coverage and get correct coverage class
 
         try:
-            if range_type_name is None:
-                raise CommandError("No range type name specified.")
-            range_type = models.RangeType.objects.get(name=range_type_name)
-
             coverage = CoverageType()
             coverage.range_type = range_type
             
