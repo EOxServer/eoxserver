@@ -59,7 +59,10 @@ GCI_TO_NAME = SortedDict((
     (GCI_CyanBand, "CyanBand"),
     (GCI_MagentaBand, "MagentaBand"),
     (GCI_YellowBand, "YellowBand"),
-    (GCI_BlackBand, "BlackBand")
+    (GCI_BlackBand, "BlackBand"),
+    (GCI_YCbCr_YBand, "YBand"),
+    (GCI_YCbCr_CbBand, "CbBand"),
+    (GCI_YCbCr_CrBand, "CrBand"),
 ))
 
 NAME_TO_GCI = dict( (j.lower(),i) for (i,j) in GCI_TO_NAME.items() )
@@ -80,3 +83,30 @@ GDT_TO_NAME = SortedDict((
 
 NAME_TO_GDT = SortedDict( (j.lower(),i) for (i,j) in GDT_TO_NAME.items() )
 
+GDT_NUMERIC_LIMITS = {
+    GDT_Byte: (0, 255),
+    GDT_Int16: (-32768, 32767),
+    GDT_UInt16: (0, 65535),
+    GDT_CInt16: (complex(-32768, -32768), complex(32767, 32767)),
+    GDT_Int32: (-2147483648, 2147483647),
+    GDT_UInt32: (0, 4294967295),
+    GDT_CInt32: (complex(-2147483648, -2147483648), complex(2147483647, 2147483647)),
+    GDT_Float32: (-3.40282e+38, 3.40282e+38),
+    GDT_CFloat32: (complex(-3.40282e+38, -3.40282e+38), complex(3.40282e+38, 3.40282e+38)),
+    GDT_Float64: (-1.79769e+308, 1.79769e+308),
+    GDT_CFloat64: (complex(-1.79769e+308, -1.79769e+308), complex(1.79769e+308, 1.79769e+308))
+}
+
+GDT_SIGNIFICANT_FIGURES = {
+    GDT_Byte: 3,
+    GDT_Int16: 5,
+    GDT_UInt16: 5,
+    GDT_CInt16: 5,
+    GDT_Int32: 10,
+    GDT_UInt32: 10,
+    GDT_CInt32: 10,
+    GDT_Float32: 38,
+    GDT_CFloat32: 38,
+    GDT_Float64: 308,
+    GDT_CFloat64: 308
+}

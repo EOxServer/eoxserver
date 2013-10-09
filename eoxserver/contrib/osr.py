@@ -64,6 +64,11 @@ class SpatialReference(object):
         return self.sr.ExportToXML()
 
     @property
+    def url(self):
+        # TODO: what about other authorities than EPSG?
+        return "http://www.opengis.net/def/crs/EPSG/0/%d" % self.srid
+
+    @property
     def srid(self):
         """ Convenience function that tries to get the SRID of the projection.
         """
@@ -74,6 +79,11 @@ class SpatialReference(object):
             cstype = 'PROJCS'
 
         return int(self.sr.GetAuthorityCode(cstype))
+
+    @property
+    def swap_axes(self):
+        # TODO:
+        pass
     
     def __getattr__(self, name):
         return getattr(self.sr, name)
