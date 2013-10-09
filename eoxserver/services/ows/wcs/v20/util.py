@@ -40,22 +40,31 @@ ns_xlink = NameSpace("http://www.w3.org/1999/xlink", "xlink")
 ns_ogc = NameSpace("http://www.opengis.net/ogc", "ogc")
 ns_ows = NameSpace("http://www.opengis.net/ows/2.0", "ows")
 ns_gml = NameSpace("http://www.opengis.net/gml/3.2", "gml")
-ns_gmlcov = NameSpace("http://www.opengis.net/gml/3.2", "gmlcov")
+ns_gmlcov = NameSpace("http://www.opengis.net/gmlcov/1.0", "gmlcov")
 ns_wcs = NameSpace("http://www.opengis.net/wcs/2.0", "wcs")
 ns_crs = NameSpace("http://www.opengis.net/wcs/service-extension/crs/1.0", "crs")
-ns_eowcs = NameSpace("http://www.opengis.net/wcseo/1.0", "eowcs")
+ns_eowcs = NameSpace("http://www.opengis.net/wcseo/1.0", "wcseo")
+ns_om  = NameSpace("http://www.opengis.net/om/2.0", "om")
+ns_eop = NameSpace("http://www.opengis.net/eop/2.0", "eop")
+ns_swe = NameSpace("http://www.opengis.net/swe/2.0", "swe")
 
 # namespace map
 nsmap = NameSpaceMap(
-    ns_xlink, ns_ogc, ns_ows, ns_gml, ns_gmlcov, ns_wcs, ns_crs, ns_eowcs
+    ns_xlink, ns_ogc, ns_ows, ns_gml, ns_gmlcov, ns_wcs, ns_crs, ns_eowcs,
+    ns_om, ns_eop, ns_swe
 )
 
 # Element factories
 OWS = ElementMaker(namespace=ns_ows.uri, nsmap=nsmap)
 GML = ElementMaker(namespace=ns_gml.uri, nsmap=nsmap)
+GMLCOV = ElementMaker(namespace=ns_gmlcov.uri, nsmap=nsmap)
 WCS = ElementMaker(namespace=ns_wcs.uri, nsmap=nsmap)
 CRS = ElementMaker(namespace=ns_crs.uri, nsmap=nsmap)
 EOWCS = ElementMaker(namespace=ns_eowcs.uri, nsmap=nsmap)
+OM  = ElementMaker(namespace=ns_om.uri, nsmap=nsmap)
+EOP = ElementMaker(namespace=ns_eop.uri, nsmap=nsmap)
+SWE = ElementMaker(namespace=ns_swe.uri, nsmap=nsmap)
+
 
 subset_re = re.compile(r'(\w+)(,([^(]+))?\(([^,]*)(,([^)]*))?\)')
 size_re = re.compile(r'(\w+)\(([^)]*)\)')
