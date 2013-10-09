@@ -50,6 +50,7 @@ class CapabilitiesConfigReader(config.Reader):
     postal_code         = config.Option(default="None")
     country             = config.Option(default="None")
     electronic_mail_address = config.Option(default="None")
+    onlineresource      = config.Option(default="None")
     hours_of_service    = config.Option(default="None")
     contact_instructions = config.Option(default="None")
     role                = config.Option(default="None")
