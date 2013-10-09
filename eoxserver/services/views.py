@@ -2,7 +2,8 @@
 # $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
-# Authors: Stephan Krause <stephan.krause@eox.at>
+# Authors: Fabian Schindler <fabian.schindler@eox.at>
+#          Stephan Krause <stephan.krause@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
 #
 #-------------------------------------------------------------------------------
@@ -36,7 +37,7 @@ import traceback
 from django.http import HttpResponse, StreamingHttpResponse
 from django.conf import settings
 
-from eoxserver.services.component import OWSServiceComponent, env
+from eoxserver.services.ows.component import ServiceComponent, env
 
 
 logger = logging.getLogger(__name__)
@@ -51,7 +52,7 @@ def ows(request):
         to a django HttpResponse to adhere the required interface.
     """
 
-    component = OWSServiceComponent(env)
+    component = ServiceComponent(env)
 
     try:
         handler = component.query_service_handler(request)
