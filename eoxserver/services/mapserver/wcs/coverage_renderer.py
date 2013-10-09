@@ -45,12 +45,10 @@ from eoxserver.resources.coverages.formats import getFormatRegistry
 from eoxserver.resources.coverages import crss
 
 
-class CoverageRenderer(Component):
+
+class RectifiedCoverageMapServerRenderer(Component):
     implements(WCSCoverageRendererInterface)
-    abstract = True
 
-
-class RectifiedCoverageMapServerRenderer(CoverageRenderer):
     handles = (models.RectifiedDataset,)
 
     connectors = ExtensionPoint(ConnectorInterface)
@@ -169,13 +167,6 @@ class RectifiedCoverageMapServerRenderer(CoverageRenderer):
             connector.disconnect(coverage, data_items, layer, cache)
 
         return response.content, response.content_type
-
-
-class ReferenceableDatasetRenderer(CoverageRenderer):
-    handles = (models.ReferenceableDataset,)
-
-    def render(self, coverage, parameters):
-        pass
 
 
 def find_param(params, name, default=None):
