@@ -655,8 +655,21 @@ class WCS20EOAPEncoder(WCS20Encoder):
             poly_intersection = coverage.footprint.intersection(poly)
         
         eop_encoder = EOPEncoder()
+        data_items = list(coverage.data_items.filter(
+            semantic="metadata", format="eogml"
+        ))
         
-        if False:#coverage.getEOGML():
+        if len(data_items) == 1:
+
+
+
+
+
+
+
+
+
+            
             dom = minidom.parseString(coverage.getEOGML())
             earth_observation = dom.documentElement
             if poly_intersection is not None:
@@ -776,7 +789,7 @@ class WCS20EOAPEncoder(WCS20Encoder):
             (self.encodeDomainSet(coverage),),
             (self.encodeRangeType(coverage),),
             ("wcs", "ServiceParameters", [
-                ("wcs", "CoverageSubtype", type(coverage).__name__),
+                ("wcs", "CoverageSubtype", coverage.real_type.__name__),
                 ("wcs", "nativeFormat" , native_format.mimeType ) 
             ])
         ])

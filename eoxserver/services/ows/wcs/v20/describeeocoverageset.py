@@ -45,7 +45,7 @@ from eoxserver.services.ows.interfaces import (
 from eoxserver.services.ows.wcs.v20.util import (
     nsmap, SectionsMixIn, parse_subset_kvp, parse_subset_xml
 )
-from eoxserver.services.ows.wcs.encoders import WCS20EOAPEncoder
+from eoxserver.services.ows.wcs.v20.encoders import WCS20EOXMLEncoder
 from eoxserver.services.ows.common.config import WCSEOConfigReader
 from eoxserver.services.subset import Subsets, Trim
 from eoxserver.services.exceptions import NoSuchDatasetSeriesOrCoverageException
@@ -69,17 +69,23 @@ class WCS20DescribeEOCoverageSetHandler(Component):
         elif request.method == "POST":
             return WCS20DescribeEOCoverageSetXMLDecoder(request.body)
 
+    @property
+    def constraints(self):
+        reader = WCSEOConfigReader(get_eoxserver_config())
+        return {
+            "CountDefault": reader.paging_count_default
+        }
 
     def handle(self, request):
         decoder = self.get_decoder(request)
         eo_ids = decoder.eo_ids
-        reader = WCSEOConfigReader(get_eoxserver_config())
-
+        
         containment = decoder.containment
 
+        cound_default = self.constraints["CountDefault"]
         count = decoder.count
-        if reader.paging_count_default is not None:
-            count = min(count, reader.paging_count_default)
+        if count_default is not None:
+            count = min(count, count_default)
 
         try:
             subsets = Subsets(decoder.subsets, allowed_types=Trim)
@@ -191,14 +197,14 @@ class WCS20DescribeEOCoverageSetHandler(Component):
         #return encoder.encode(coverages)
 
         # TODO: remove this at some point
-        encoder = WCS20EOAPEncoder()
+        encoder = WCS20EOXMLEncoder()
         return (
-            DOMElementToXML(
-                encoder.encodeEOCoverageSetDescription(
+            encoder.serialize(
+                encoder.encode_eo_coverage_set_description(
                     dataset_series, coverages, count_all_coverages
-                )
-            ), 
-            "text/xml"
+                ), pretty_print=True
+            ),
+            encoder.content_type
         )
     
 

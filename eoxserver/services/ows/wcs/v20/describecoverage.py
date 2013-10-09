@@ -38,7 +38,7 @@ from eoxserver.services.ows.wcs.v20.util import nsmap
 from eoxserver.services.ows.wcs.v20.encoders import (
     WCS20CoverageDescriptionXMLEncoder
 )
-from eoxserver.services.ows.wcs.encoders import WCS20EOAPEncoder
+from eoxserver.services.ows.wcs.v20.encoders import WCS20EOXMLEncoder
 from eoxserver.core.util.xmltools import DOMElementToXML
 
 
@@ -76,12 +76,16 @@ class WCS20DescribeCoverageHandler(Component):
             except models.Coverage.DoesNotExist:
                 raise NoSuchCoverage(coveage_id)
 
-        #encoder = WCS20CoverageDescriptionXMLEncoder()
-        #return encoder.encode(coverages)
-
         # TODO: remove this at some point
-        encoder = WCS20EOAPEncoder()
-        return DOMElementToXML(encoder.encodeCoverageDescriptions(coverages)), "text/xml"
+
+        encoder = WCS20EOXMLEncoder()
+        return (
+            encoder.serialize(
+                encoder.encode_coverage_descriptions(coverages),
+                pretty_print=True
+            ),
+            encoder.content_type
+        )
 
 
 class WCS20DescribeCoverageKVPDecoder(kvp.Decoder):
