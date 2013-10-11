@@ -294,12 +294,34 @@ class NilValue(models.Model):
         """ Get the parsed python value from the saved value string.
         """
         dt = self.nil_value_set.data_type
-        if dt in (gdal.GDT_Int16, gdal.GDT_UInt16, gdal.GDT_Int32, gdal.GDT_UInt32):
-            return int(self.value_string)
-        elif dt in (gdal.GDT_Float32, gdal.GDT_Float64):
-            return float(self.value_string)
-        elif dt in (gdal.GDT_CInt16, gdal.GDT_CInt32, gdal.GDT_CFloat32, gdal.GDT_CFloat64):
-            return complex(self.value_string)
+        is_complex = False
+
+        if dt in (gdal.GDT_INTEGRAL_TYPES):
+            value =  int(self.value_string)
+        elif dt in gdal.GDT_FLOAT_TYPES:
+            value =  float(self.value_string)
+        elif dt in gdal.GDT_COMPLEX_TYPES:
+            value =  complex(self.value_string)
+            is_complex = True
+        else:
+            value = None
+
+        limits = gdal.GDT_NUMERIC_LIMITS.get(dt)
+
+        if limits and value is not None:
+            def within(v, low, high):
+                return (v >= low and v <= high)
+
+            error = ValueError(
+                "Stored value is out of the limits for the data type"
+            )
+            if not is_complex and not within(value, *limits) :
+                raise error
+            elif is_complex:
+                if (not within(value.real, limits[0].real, limits[1].real)
+                    or not within(value.real, limits[0].real, limits[1].real)):
+                    raise error
+        return value
 
     def clean(self):
         """ Check that the value can be parsed.
