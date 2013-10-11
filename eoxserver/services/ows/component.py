@@ -35,6 +35,7 @@ from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap
 from eoxserver.services.ows.interfaces import *
 from eoxserver.services.ows.version import parse_version_string
 
+
 ns_xlink = NameSpace("http://www.w3.org/1999/xlink", "xlink")
 ns_ows10 = NameSpace("http://www.opengis.net/ows/1.0", "ows10")
 ns_ows11 = NameSpace("http://www.opengis.net/ows/1.1", "ows11")
@@ -81,7 +82,7 @@ class ServiceComponent(Component):
         if version is None:
             accepted_versions = decoder.acceptversions
             handlers = filter_handlers(
-                handlers, decoder.service, decoder.request
+                handlers, decoder.service, accepted_versions, decoder.request
             )
             return self.version_negotiation(handlers, accepted_versions)
 
@@ -130,7 +131,7 @@ class ServiceComponent(Component):
     def version_negotiation(self, handlers, accepted_versions=None):
         version_to_handler = {}
         for handler in handlers:
-            for version in handlers.versions:
+            for version in handler.versions:
                 version_to_handler.setdefault(version, handler)
 
         available_versions = sorted(version_to_handler.keys(), reverse=True)
@@ -143,7 +144,7 @@ class ServiceComponent(Component):
         combinations = itertools.product(accepted_versions, available_versions)
         for accepted_version, available_version in combinations:
             if accepted_version == available_version:
-                return version_to_handler[accepted_version]
+                return version_to_handler[available_version]
 
 
 def filter_handlers(handlers, service=None, versions=None, request=None):
@@ -157,13 +158,16 @@ def filter_handlers(handlers, service=None, versions=None, request=None):
     if service:
         handlers = filter(lambda h: h.service == service, handlers)
 
-    if versions:
-        handlers = filter(
-            lambda h: len(set(h.versions) & set(versions)) > 0, handlers
-        )
-
     if request:
         handlers = filter(lambda h: h.request.upper() == request, handlers)
+
+    if versions:
+        handlers = [
+            handler for handler in handlers
+            if any(version in handler.versions for version in versions)
+        ]
+        
+    print versions, handlers
 
     return handlers
 
@@ -175,7 +179,7 @@ class OWSCommonKVPDecoder(kvp.Decoder):
     acceptversions  = kvp.Parameter(type=typelist(parse_version_string, ","), num="?")
 
 
-class OWSCommonXMLDecoder(kvp.Decoder):
+class OWSCommonXMLDecoder(xml.Decoder):
     service         = xml.Parameter("@service", type=upper)
     version         = xml.Parameter("@version", type=parse_version_string, num="?")
     request         = xml.Parameter("local-name()", type=upper)
