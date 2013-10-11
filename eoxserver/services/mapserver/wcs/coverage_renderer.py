@@ -30,23 +30,19 @@
 from datetime import datetime
 from urllib import unquote
 
-from django.db.models import Q
-
-from eoxserver.core import Component, implements, ExtensionPoint
+from eoxserver.core import implements, ExtensionPoint
 from eoxserver.contrib.mapserver import (
-    create_request, Map, Layer, outputFormatObj, 
-    gdalconst_to_imagemode, gdalconst_to_imagemode_string
+    create_request, outputFormatObj, gdalconst_to_imagemode, 
 )
 from eoxserver.backends.cache import CacheContext
 from eoxserver.services.ows.wcs.interfaces import WCSCoverageRendererInterface
 from eoxserver.services.mapserver.interfaces import ConnectorInterface
+from eoxserver.services.mapserver.wcs.base_renderer import BaseRenderer
 from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.formats import getFormatRegistry
-from eoxserver.resources.coverages import crss
 
 
-
-class RectifiedCoverageMapServerRenderer(Component):
+class RectifiedCoverageMapServerRenderer(BaseRenderer):
     implements(WCSCoverageRendererInterface)
 
     handles = (models.RectifiedDataset,)
@@ -55,100 +51,39 @@ class RectifiedCoverageMapServerRenderer(Component):
 
     def render(self, coverage, request_values):
         with CacheContext() as cache:
-            return self._render(coverage, cache, request_values)
+            return self._render(coverage, request_values, cache)
 
-
-    def _render(self, coverage, cache, request_values):
+    def _render(self, coverage, request_values, cache):
         # get coverage related stuff
-        data_items = coverage.data_items.filter(
-            Q(semantic__startswith="bands") | Q(semantic="tileindex")
-        )
+        
+        data_items = self.data_items_for_coverage(coverage)
+
         range_type = coverage.range_type
         bands = list(range_type)
 
         # create and configure map object
-        map_ = Map()
-        map_.setMetaData("ows_enable_request", "*")
+        map_ = self.create_map()
 
         # configure outputformat
-        native_format = get_native_format(coverage, data_items)
-        format = find_param(request_values, "format", native_format)
+        native_format = self.get_native_format(coverage, data_items)
+        format = self.find_param(request_values, "format", native_format)
 
         if format is None:
             raise Exception("format could not be determined")
 
-        imagemode = gdalconst_to_imagemode(range_type.data_type)
+        # TODO: imagemode
+        imagemode = gdalconst_to_imagemode(bands[0].data_type)
         time_stamp = datetime.now().strftime("%Y%m%d%H%M%S")
         basename = "%s_%s" % (coverage.identifier, time_stamp) 
         of = create_outputformat(format, imagemode, basename)
         map_.appendOutputFormat(of)
         map_.setOutputFormat(of)
 
-
         # TODO: use layer factory here
-
-        # create and configure layer
-        layer = Layer(coverage.identifier)
-
-        layer.setProjection(coverage.spatial_reference.proj)
-
-        extent = coverage.extent
-        size = coverage.size
-        resolution = ((extent[2] - extent[0]) / float(size[0]),
-                      (extent[1] - extent[3]) / float(size[1]))
-
-        layer.setExtent(*extent)
-
-        layer.setMetaData({
-            "title": coverage.identifier,
-            "enable_request": "*"
-        }, namespace="ows")
-
-        layer.setMetaData({
-            "label": coverage.identifier,
-            "extent": "%.10g %.10g %.10g %.10g" % extent,
-            "resolution": "%.10g %.10g" % resolution,
-            "size": "%d %d" % size,
-            "bandcount": str(len(bands)),
-            "band_names": " ".join([band.name for band in bands]),
-            "interval": "%f %f" % range_type.allowed_values,
-            "significant_figures": "%d" % range_type.significant_figures,
-            "rangeset_name": range_type.name,
-            "rangeset_label": range_type.name,
-            "rangeset_axes": ",".join(band.name for band in bands),
-            "native_format": native_format,
-            "nativeformat": native_format,
-            #"formats": getMSWCSFormatMD(),
-            "imagemode": gdalconst_to_imagemode_string(range_type.data_type),
-        }, namespace="wcs")
-
-        supported_crss = " ".join(
-            crss.getSupportedCRS_WCS(format_function=crss.asShortCode)
-        ) 
-        layer.setMetaData("ows_srs", supported_crss) 
-        layer.setMetaData("wcs_srs", supported_crss) 
-
-        for band in bands:
-            layer.setMetaData({
-                "band_description": band.description,
-                "band_definition": band.definition,
-                "band_uom": band.uom
-            }, namespace=band.name)
-
-            # For MS WCS 1.x interface
-            layer.setMetaData({
-                "label": band.name,
-                "interval": "%d %d" % band.allowed_values
-            }, namespace="wcs_%s" % band.name)
-
+        layer = self.layer_for_coverage(coverage, native_format)
+        
         map_.insertLayer(layer)
 
-        mask = find_param(request_values, "mask")
-        if mask:
-            # TODO: implement
-            pass
-
-        connector = None
         for connector in self.connectors:
             if connector.supports(data_items):
                 break
@@ -157,9 +92,8 @@ class RectifiedCoverageMapServerRenderer(Component):
 
         try:
             connector.connect(coverage, data_items, layer, cache)
-
             # create request object and dispatch it agains the map
-            request = create_request(request_values)#self._create_request_v20(coverage.identifier, request_values)
+            request = create_request(request_values)
             response = map_.dispatch(request)
 
         finally:
@@ -169,34 +103,26 @@ class RectifiedCoverageMapServerRenderer(Component):
         return response.content, response.content_type
 
 
-def find_param(params, name, default=None):
-    for key, value in params:
-        if key == name:
-            return value
-    return default
-
-
-def get_native_format(coverage, data_items):
-    if len(data_items) == 1:
-        return data_items[0].format
-
-    return None
-
-
-def create_outputformat(format, imagemode, basename):
-    parts = unquote(format).split(";")
+def create_outputformat(frmt, imagemode, basename):
+    parts = unquote(frmt).split(";")
     mime_type = parts[0]
     options = map(
         lambda kv: map(lambda i: i.strip(), kv.split("=")), parts[1:]
     )
 
     registry = getFormatRegistry()
-    reg_format = registry.getFormatByMIME(mime_type)
+    reg_format = registry.getFormatByMIME(mime_type) 
 
     if not reg_format:
-        raise "Unsupported output format '%s'." % format
+        wcs10_frmts = registry.getFormatsByWCS10Name(mime_type)
+        if wcs10_frmts:
+            reg_format = wcs10_frmts[0]
+
+    if not reg_format:
+        raise Exception("Unsupported output format '%s'." % frmt)
 
     outputformat = outputFormatObj(reg_format.driver, "custom")
+    outputformat.name = reg_format.wcs10name
     outputformat.mimetype = reg_format.mimeType
     outputformat.extension = reg_format.defaultExt
     outputformat.imagemode = imagemode

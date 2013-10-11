@@ -51,6 +51,7 @@ class MapServerWCSCapabilitiesRenderer(Component):
             "onlineresource": conf.http_service_url,
             "service_onlineresource": conf.http_service_url,
             "title": conf.title,
+            "label": conf.title,
             "abstract": conf.abstract,
             "accessconstraints": conf.access_constraints,
             "addresstype": "",
@@ -65,6 +66,9 @@ class MapServerWCSCapabilitiesRenderer(Component):
             "contactperson": conf.individual_name,
             "contactorganization": conf.provider_name,
             "contactposition": conf.position_name,
+            "role": conf.role,
+            "hoursofservice": conf.hours_of_service,
+            "contactinstructions": conf.contact_instructions,
             "fees": conf.fees,
             "keywordlist": ",".join(conf.keywords),
         }, namespace="ows")
@@ -83,6 +87,7 @@ class MapServerWCSCapabilitiesRenderer(Component):
             layer.setExtent(*extent)
             layer.setMetaData({
                 "title": coverage.identifier,
+                "label": coverage.identifier,
                 "extent": "%.10g %.10g %.10g %.10g" % extent,
                 "resolution": "%.10g %.10g" % resolution,
                 "size": "%d %d" % size,
