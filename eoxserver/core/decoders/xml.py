@@ -57,6 +57,8 @@ class Parameter(object):
         multiple = self.num not in SINGLE_VALUES
 
         results = self.selector(decoder._tree)
+        if isinstance(results, basestring):
+            results = [results]
         count = len(results)
 
         if not multiple and count > 1:

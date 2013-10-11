@@ -42,6 +42,10 @@ class DecodingException(Exception):
         super(DecodingException, self).__init__(message)
         self.locator = locator
 
+    def __str__(self):
+        if self.locator:
+            return "%s (%s)" % (super(DecodingException, self).__str__(), self.locator)
+        return super(DecodingException, self).__str__()
 
 class WrongMultiplicityException(DecodingException):
     pass
@@ -141,7 +145,7 @@ class typelist(object):
         list of a type separated by some separator.
     """
     
-    def __init__(self, typ, separator=" "):
+    def __init__(self, typ=None, separator=" "):
         self.typ = typ
         self.separator = separator
         
