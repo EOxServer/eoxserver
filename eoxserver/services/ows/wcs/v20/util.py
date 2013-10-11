@@ -37,13 +37,14 @@ from eoxserver.services.subset import Trim, Slice
 
 # namespace declarations
 ns_xlink = NameSpace("http://www.w3.org/1999/xlink", "xlink")
+ns_xsi = NameSpace("http://www.w3.org/2001/XMLSchema-instance", "xsi")
 ns_ogc = NameSpace("http://www.opengis.net/ogc", "ogc")
 ns_ows = NameSpace("http://www.opengis.net/ows/2.0", "ows")
 ns_gml = NameSpace("http://www.opengis.net/gml/3.2", "gml")
 ns_gmlcov = NameSpace("http://www.opengis.net/gmlcov/1.0", "gmlcov")
 ns_wcs = NameSpace("http://www.opengis.net/wcs/2.0", "wcs")
 ns_crs = NameSpace("http://www.opengis.net/wcs/service-extension/crs/1.0", "crs")
-ns_eowcs = NameSpace("http://www.opengis.net/wcseo/1.0", "wcseo")
+ns_eowcs = NameSpace("http://www.opengis.net/wcseo/1.0", "wcseo", "http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd")
 ns_om  = NameSpace("http://www.opengis.net/om/2.0", "om")
 ns_eop = NameSpace("http://www.opengis.net/eop/2.0", "eop")
 ns_swe = NameSpace("http://www.opengis.net/swe/2.0", "swe")

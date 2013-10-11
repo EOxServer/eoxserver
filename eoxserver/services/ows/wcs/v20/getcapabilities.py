@@ -78,7 +78,9 @@ class WCS20GetCapabilitiesHandler(Component):
             )
 
         encoder = WCS20CapabilitiesXMLEncoder()
-        return encoder.encode(decoder.sections, coverages_qs, dataset_series_qs)
+        return encoder.encode_capabilities(
+            decoder.sections, coverages_qs, dataset_series_qs
+        )
 
 
 class WCS20GetCapabilitiesKVPDecoder(kvp.Decoder, SectionsMixIn):

@@ -76,7 +76,7 @@ class WCS20DescribeCoverageHandler(Component):
             except models.Coverage.DoesNotExist:
                 raise NoSuchCoverage(coveage_id)
 
-        # TODO: remove this at some point
+        # TODO: remove this at some point and use a renderer plugin
 
         encoder = WCS20EOXMLEncoder()
         return (

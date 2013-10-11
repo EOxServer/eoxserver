@@ -38,13 +38,18 @@ from eoxserver.resources.coverages import crss, models
 from eoxserver.services.ows.component import ServiceComponent, env
 from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.services.ows.wcs.v20.util import (
-    ns_xlink, ns_ogc, ns_ows, ns_gml, ns_gmlcov, ns_wcs, ns_crs, ns_eowcs, 
-    OWS, GML, GMLCOV, WCS, CRS, EOWCS, OM, EOP, SWE
+    nsmap, ns_xlink, ns_xsi, ns_ogc, ns_ows, ns_gml, ns_gmlcov, ns_wcs, ns_crs, 
+    ns_eowcs, OWS, GML, GMLCOV, WCS, CRS, EOWCS, OM, EOP, SWE, 
 )
 
 
 class XMLEncoder(object):
     def serialize(self, tree, pretty_print=True, encoding='iso-8859-1'):
+        schema_locations = self.get_schema_locations(tree)
+        tree.attrib[ns_xsi("schemaLocation")] = " ".join(
+            "%s %s" % (uri, loc) for uri, loc in schema_locations.items()
+        )
+
         return etree.tostring(
             tree, pretty_print=pretty_print, encoding=encoding
         )
@@ -52,6 +57,9 @@ class XMLEncoder(object):
     @property
     def content_type(self):
         return "text/xml"
+
+    def add_schema_locations(self, tree):
+        pass
 
 
 class OWS20Encoder(XMLEncoder):
@@ -62,12 +70,8 @@ class OWS20Encoder(XMLEncoder):
 
 
 class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
-
-    
-
-    def encode(self, sections, coverages_qs=None, dataset_series_qs=None):
+    def encode_capabilities(self, sections, coverages_qs=None, dataset_series_qs=None):
         conf = CapabilitiesConfigReader(get_eoxserver_config())
-
 
         all_sections = "all" in sections
         caps = []
@@ -263,7 +267,8 @@ class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
         root = WCS("Capabilities", *caps, version="2.0.1")
         return etree.tostring(root, pretty_print=True, encoding='iso-8859-1'), "text/xml"
 
-
+    def get_schema_locations(self, tree):
+        return nsmap.schema_locations
 
 
 
@@ -545,6 +550,9 @@ class WCS20CoverageDescriptionXMLEncoder(GMLCOV10Encoder):
             for coverage in coverages
         ])
 
+    def get_schema_locations(self, tree):
+        return nsmap.schema_locations
+
 
 class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20Encoder):
     def encode_eo_metadata(self, coverage, request=None, subset_polygon=None):
@@ -689,7 +697,8 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20E
 
         return root
 
-
+    def get_schema_locations(self, tree):
+        return nsmap.schema_locations
 
 
 
