@@ -70,10 +70,11 @@ logger = logging.getLogger(__name__)
 
 
 class NameSpace(object):
-    def __init__(self, uri, prefix=None):
+    def __init__(self, uri, prefix=None, schema_location=None):
         self._uri = uri
         self._lxml_uri = "{%s}" % uri
         self._prefix = prefix
+        self._schema_location = schema_location
 
     @property
     def uri(self):
@@ -82,6 +83,10 @@ class NameSpace(object):
     @property
     def prefix(self):
         return self._prefix
+
+    @property
+    def schema_location(self):
+        return self._schema_location
     
     def __call__(self, tag):
         return self._lxml_uri + tag
@@ -89,11 +94,18 @@ class NameSpace(object):
 
 class NameSpaceMap(dict):
     def __init__(self, *namespaces):
+        self._schema_location_dict = {}
         for namespace in namespaces:
             self.add(namespace)
 
     def add(self, namespace):
         self[namespace.prefix] = namespace.uri
+        if namespace.schema_location:
+            self._schema_location_dict[namespace.uri] = namespace.schema_location
+
+    @property
+    def schema_locations(self):
+        return self._schema_location_dict
 
 
 def parse(obj):
