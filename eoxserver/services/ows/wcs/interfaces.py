@@ -31,7 +31,14 @@ class WCSCapabilitiesRendererInterface(object):
     """ Interface for WCS Capabilities renderers.
     """
     def render(self, coverages, request_values):
+        """ Render the capabilities including information about the given 
+            coverages.
         """
+
+
+class WCSCoverageDescriptionRendererInterface(object):
+    def render(self, coverages, request_values):
+        """ Render the description of the given coverages.
         """
 
 
@@ -48,3 +55,5 @@ class WCSCoverageRendererInterface(object):
         """ Returns an iterable of all coverage classes that this renderer is 
             able to render.
         """
+
+
