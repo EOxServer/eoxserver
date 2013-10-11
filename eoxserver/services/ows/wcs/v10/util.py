@@ -32,7 +32,6 @@ from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap
 
 ns_xlink = NameSpace("http://www.w3.org/1999/xlink", "xlink")
 ns_ogc = NameSpace("http://www.opengis.net/ogc", "ogc")
-ns_ows = NameSpace("http://www.opengis.net/ows/1.1", "ows")
-ns_wcs = NameSpace("http://www.opengis.net/wcs/1.1", "wcs")
+ns_ows = NameSpace("http://www.opengis.net/ows/1.0", "ows")
 
-nsmap = NameSpaceMap(ns_xlink, ns_ogc, ns_ows, ns_wcs)
+nsmap = NameSpaceMap(ns_xlink, ns_ogc, ns_ows)

@@ -46,14 +46,14 @@ from eoxserver.services.ows.wcs.interfaces import (
 from eoxserver.services.ows.wcs.v11.util import nsmap
 
 
-class WCS11GetCapabilitiesHandler(Component):
+class WCS10GetCapabilitiesHandler(Component):
     implements(ServiceHandlerInterface)
     implements(GetServiceHandlerInterface)
     implements(PostServiceHandlerInterface)
     implements(VersionNegotiationInterface)
 
     service = "WCS"
-    versions = ("1.1.0", "1.1.1", "1.1.2")
+    versions = ("1.0.0",)
     request = "GetCapabilities"
 
     renderer = UniqueExtensionPoint(WCSCapabilitiesRendererInterface)
@@ -61,9 +61,9 @@ class WCS11GetCapabilitiesHandler(Component):
 
     def get_decoder(self, request):
         if request.method == "GET":
-            return WCS11GetCapabilitiesKVPDecoder(request.GET)
+            return WCS10GetCapabilitiesKVPDecoder(request.GET)
         elif request.method == "POST":
-            return WCS11GetCapabilitiesXMLDecoder(request.body)
+            return WCS10GetCapabilitiesXMLDecoder(request.body)
 
 
     def handle(self, request):
@@ -76,7 +76,7 @@ class WCS11GetCapabilitiesHandler(Component):
         return self.renderer.render(coverages_qs, request.GET.items())
 
 
-class WCS11GetCapabilitiesKVPDecoder(kvp.Decoder):
+class WCS10GetCapabilitiesKVPDecoder(kvp.Decoder):
     sections            = kvp.Parameter(type=typelist(lower, ","), num="?", default=["all"])
     updatesequence      = kvp.Parameter(num="?")
     acceptversions      = kvp.Parameter(type=typelist(str, ","), num="?")
@@ -84,7 +84,7 @@ class WCS11GetCapabilitiesKVPDecoder(kvp.Decoder):
     acceptlanguages     = kvp.Parameter(type=typelist(str, ","), num="?")
 
 
-class WCS11GetCapabilitiesXMLDecoder(xml.Decoder):
+class WCS10GetCapabilitiesXMLDecoder(xml.Decoder):
     sections            = xml.Parameter("/ows:Sections/ows:Section/text()", num="*")
     updatesequence      = xml.Parameter("/@updateSequence", num="?")
     acceptversions      = xml.Parameter("/ows:AcceptVersions/ows:Version/text()", num="*")

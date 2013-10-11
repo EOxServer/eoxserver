@@ -5,7 +5,7 @@
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
 #-------------------------------------------------------------------------------
-# Copyright (C) 2011 EOX IT Services GmbH
+# Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,68 +27,76 @@
 #-------------------------------------------------------------------------------
 
 
-from django.contrib.contenttypes.models import ContentType
+from itertools import chain
 
 from eoxserver.core import Component, implements, UniqueExtensionPoint
-
-from eoxserver.core.config import get_eoxserver_config
-from eoxserver.core.decoders import xml, kvp, typelist, lower
+from eoxserver.core.decoders import xml, kvp, typelist, upper, enum
 from eoxserver.resources.coverages import models
-from eoxserver.services.ows.component import ServiceComponent, env
 from eoxserver.services.ows.interfaces import (
     ServiceHandlerInterface, GetServiceHandlerInterface, 
-    PostServiceHandlerInterface, VersionNegotiationInterface
+    PostServiceHandlerInterface
 )
-from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.services.ows.wcs.interfaces import (
-    WCSCapabilitiesRendererInterface
+    WCSCoverageDescriptionRendererInterface
+)
+from eoxserver.services.exceptions import (
+    NoSuchCoverageException, OperationNotSupportedException
 )
 from eoxserver.services.ows.wcs.v11.util import nsmap
 
 
-class WCS11GetCapabilitiesHandler(Component):
+class WCS11DescribeCoverageHandler(Component):
     implements(ServiceHandlerInterface)
     implements(GetServiceHandlerInterface)
     implements(PostServiceHandlerInterface)
-    implements(VersionNegotiationInterface)
 
-    service = "WCS"
-    versions = ("1.1.0", "1.1.1", "1.1.2")
-    request = "GetCapabilities"
+    renderer = UniqueExtensionPoint(WCSCoverageDescriptionRendererInterface)
 
-    renderer = UniqueExtensionPoint(WCSCapabilitiesRendererInterface)
-
+    service = "WCS" 
+    versions = ("1.1.0", "1.1.1", "1.1.2",)
+    request = "DescribeCoverage"
 
     def get_decoder(self, request):
         if request.method == "GET":
-            return WCS11GetCapabilitiesKVPDecoder(request.GET)
+            return WCS11DescribeCoverageKVPDecoder(request.GET)
         elif request.method == "POST":
-            return WCS11GetCapabilitiesXMLDecoder(request.body)
+            return WCS11DescribeCoverageXMLDecoder(request.body)
+
+    def get_renderer(self, coverage_type):
+        for renderer in self.renderers:
+            if issubclass(coverage_type, renderer.handles):
+                return renderer
+
+        raise OperationNotSupportedException(
+            "No renderer found for coverage type '%s'." % coverage_type.__name__
+        )
 
 
     def handle(self, request):
         decoder = self.get_decoder(request)
-        if "text/xml" not in decoder.acceptformats:
-            raise InvalidRequestException()
+        
+        coverage_ids = set(decoder.identifiers)
+        coverages = models.Coverage.objects.filter(identifier__in=coverage_ids)
 
-        coverages_qs = models.Coverage.objects.order_by("identifier")
+        # check correct number
+        if len(coverages) < len(coverage_ids):
+            available_ids = set([coverage.identifier for coverage in coverages])
+            raise NoSuchCoverageException(coverage_ids - available_ids)
 
-        return self.renderer.render(coverages_qs, request.GET.items())
+        request_values = [
+            ("service", "WCS"),
+            ("version", "1.1.2"),
+            ("request", "DescribeCoverage"),
+            ("identifier", ",".join(decoder.identifiers)),
+        ]
+
+        return self.renderer.render(coverages, request_values)
 
 
-class WCS11GetCapabilitiesKVPDecoder(kvp.Decoder):
-    sections            = kvp.Parameter(type=typelist(lower, ","), num="?", default=["all"])
-    updatesequence      = kvp.Parameter(num="?")
-    acceptversions      = kvp.Parameter(type=typelist(str, ","), num="?")
-    acceptformats       = kvp.Parameter(type=typelist(str, ","), num="?", default=["text/xml"])
-    acceptlanguages     = kvp.Parameter(type=typelist(str, ","), num="?")
+class WCS11DescribeCoverageKVPDecoder(kvp.Decoder):
+    identifiers = kvp.Parameter("identifier", type=typelist(separator=","), num=1)
 
 
-class WCS11GetCapabilitiesXMLDecoder(xml.Decoder):
-    sections            = xml.Parameter("/ows:Sections/ows:Section/text()", num="*")
-    updatesequence      = xml.Parameter("/@updateSequence", num="?")
-    acceptversions      = xml.Parameter("/ows:AcceptVersions/ows:Version/text()", num="*")
-    acceptformats       = xml.Parameter("/ows:AcceptFormats/ows:OutputFormat/text()", num="*", default=["text/xml"])
-    acceptlanguages     = xml.Parameter("/ows:AcceptLanguages/ows:Language/text()", num="*")
-
+class WCS11DescribeCoverageXMLDecoder(xml.Decoder):
+    identifiers = xml.Parameter("wcs:Identifier/text()", type=typelist(separator=","), num=1)
     namespaces = nsmap
