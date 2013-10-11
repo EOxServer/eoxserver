@@ -90,11 +90,18 @@ GDT_NUMERIC_LIMITS = {
     GDT_CInt16: (complex(-32768, -32768), complex(32767, 32767)),
     GDT_Int32: (-2147483648, 2147483647),
     GDT_UInt32: (0, 4294967295),
-    GDT_CInt32: (complex(-2147483648, -2147483648), complex(2147483647, 2147483647)),
+    GDT_CInt32: (
+        complex(-2147483648, -2147483648), complex(2147483647, 2147483647)
+    ),
     GDT_Float32: (-3.40282e+38, 3.40282e+38),
-    GDT_CFloat32: (complex(-3.40282e+38, -3.40282e+38), complex(3.40282e+38, 3.40282e+38)),
+    GDT_CFloat32: (
+        complex(-3.40282e+38, -3.40282e+38), complex(3.40282e+38, 3.40282e+38)
+    ),
     GDT_Float64: (-1.79769e+308, 1.79769e+308),
-    GDT_CFloat64: (complex(-1.79769e+308, -1.79769e+308), complex(1.79769e+308, 1.79769e+308))
+    GDT_CFloat64: (
+        complex(-1.79769e+308, -1.79769e+308),
+        complex(1.79769e+308, 1.79769e+308)
+    )
 }
 
 GDT_SIGNIFICANT_FIGURES = {
@@ -110,3 +117,12 @@ GDT_SIGNIFICANT_FIGURES = {
     GDT_Float64: 308,
     GDT_CFloat64: 308
 }
+
+
+GDT_INTEGRAL_TYPES = frozenset(
+    (GDT_Byte, GDT_Int16, GDT_UInt16, GDT_Int32, GDT_UInt32)
+)
+GDT_FLOAT_TYPES = frozenset((GDT_Float32, GDT_Float64))
+GDT_COMPLEX_TYPES = frozenset(
+    (GDT_CInt16, GDT_CInt32, GDT_CFloat32, GDT_CFloat64)
+)
