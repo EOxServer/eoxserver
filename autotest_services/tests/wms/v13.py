@@ -1,0 +1,206 @@
+from autotest_services import testbase
+import base as wmsbase
+
+
+class WMS13GetCapabilitiesValidTestCase(testbase.XMLTestCase):
+    """This test shall retrieve a valid WMS 1.3 GetCapabilities response"""
+
+    
+
+    def getRequest(self):
+        params = "service=WMS&version=1.3.0&request=GetCapabilities"
+        return (params, "kvp")
+
+class WMS13GetCapabilitiesEmptyTestCase(testbase.XMLTestCase):
+    """This test shall retrieve a valid but empty WMS 1.3 GetCapabilities response (see #41)"""
+    fixtures = testbase.BASE_FIXTURES
+    
+    def getRequest(self):
+        params = "service=WMS&version=1.3.0&request=GetCapabilities"
+        return (params, "kvp")
+
+class WMS13GetMapDatasetTestCase(wmsbase.WMS13GetMapTestCase):
+    """ Test a GetMap request with a simple dataset. """
+    layers = ("mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced",)
+    bbox = (8.487755775451660, 32.195316643454134, 25.407486727461219, 46.249103546142578)
+
+class WMS13GetMapNoServiceParameterTestCase(testbase.RasterTestCase):
+    """This test shall retrieve a map while omitting the service parameter. """
+    def getRequest(self):
+        params = "version=1.3.0&request=GetMap&" \
+                 "layers=mosaic_MER_FRS_1P_RGB_reduced&styles=&crs=epsg:4326&" \
+                 "bbox=35,10,45,20&width=100&height=100&format=image/tiff"
+        return (params, "kvp")
+
+class WMS13GetMapMultipleDatasetsTestCase(wmsbase.WMS13GetMapTestCase):
+    """ Test a GetMap request with two datasets. """
+    layers = ("mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced",
+              "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced",
+              )
+    width = 200
+    bbox = (-3.75, 32.19025, 28.29481, 46.268645)
+    
+class WMS13GetMapDatasetMultispectralTestCase(wmsbase.WMS13GetMapTestCase):
+    """ Test a GetMap request with a dataset containing 15 bands. """
+    layers = ("MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed",)
+    bbox = (8.487755775451660, 32.195316643454134, 25.407486727461219, 46.249103546142578)
+
+
+class WMS13GetMapMosaicTestCase(wmsbase.WMS13GetMapTestCase):
+    """ Test a GetMap request with a stitched mosaic. """
+    layers = ("mosaic_MER_FRS_1P_RGB_reduced",)
+    bbox = (-3.75, 32.158895, 28.326165, 46.3)
+    width = 200
+
+class WMS13GetMapPNGDatasetTestCase(wmsbase.WMS13GetMapTestCase):
+    """ Test a GetMap request with a dataset series. """
+    layers = ("mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced",)
+    bbox = (8.5, 32.2, 25.4, 46.3)
+    frmt = "image/png"
+
+class WMS13GetMapGIFDatasetTestCase(wmsbase.WMS13GetMapTestCase):
+    """ Test a GetMap request with a dataset series. """
+    layers = ("mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced",)
+    bbox = (8.5, 32.2, 25.4, 46.3)
+    frmt = "image/gif"
+
+class WMS13GetMapTIFFDatasetTestCase(wmsbase.WMS13GetMapTestCase):
+    """ Test a GetMap request with a dataset series. """
+    layers = ("mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced",)
+    bbox = (8.5, 32.2, 25.4, 46.3)
+    frmt = "image/tiff"
+
+class WMS13GetMapLayerNotDefinedFaultTestCase(wmsbase.WMS13ExceptionTestCase):
+    def getRequest(self):
+        params = "service=WMS&version=1.3.0&request=GetMap&layers=INVALIDLAYER&bbox=0,0,1,1&crs=EPSG:4326&width=10&height=10&exceptions=XML&format=image/png"
+        return (params, "kvp")
+    
+    def getExpectedExceptionCode(self):
+        return "LayerNotDefined"
+
+class WMS13GetMapFormatUnknownFaultTestCase(wmsbase.WMS13ExceptionTestCase):
+    def getRequest(self):
+        params = "service=WMS&version=1.3.0&request=GetMap&layers=MER_FRS_1P_reduced&bbox=-32,-4,46,28&crs=EPSG:4326&width=100&height=100&format=image/INVALID&exceptions=application/vnd.ogc.se_xml"
+        return (params, "kvp")
+    
+    def getExpectedExceptionCode(self):
+        return "InvalidFormat"
+    
+class WMS13GetMapInvalidBoundingBoxTestCase(wmsbase.WMS13ExceptionTestCase):
+    def getRequest(self):
+        params = "service=WMS&version=1.3.0&request=GetMap&layers=MER_FRS_1P_reduced&bbox=1,2,3&crs=EPSG:4326&width=100&height=100&format=image/jpeg&exceptions=application/vnd.ogc.se_xml"
+        return (params, "kvp")
+    
+    def getExpectedExceptionCode(self):
+        return "InvalidParameterValue"
+
+class WMS13GetMapInvalidCRSTestCase(wmsbase.WMS13ExceptionTestCase):
+    def getRequest(self):
+        params = "service=WMS&version=1.3.0&request=GetMap&layers=MER_FRS_1P_reduced&bbox=0,0,1,1&crs=INVALIDCRS&width=100&height=100&format=image/jpeg&exceptions=application/vnd.ogc.se_xml"
+        return (params, "kvp")
+    
+    def getExpectedExceptionCode(self):
+        return "InvalidCRS"
+
+class WMS13GetMapReferenceableGridTestCase(wmsbase.WMS13GetMapTestCase):
+    layers = ("ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775", )
+    bbox = (17.0, -36.0, 22.0, -32.0)
+    width = 500
+    height = 400
+
+class WMS13GetMapReferenceableGridReprojectionTestCase(wmsbase.WMS13GetMapTestCase):
+    layers = ("ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775", )
+    crs = "epsg:32734"
+    bbox = (122043.08622624225, 6008645.867004246, 594457.4634022854, 6459127.468615601)
+    width = 472
+    height = 451
+    swap_axes = False
+
+class WMS13GetMapDatasetSeriesTestCase(wmsbase.WMS13GetMapTestCase):
+    """ Test a GetMap request with a dataset series. """
+    layers = ("MER_FRS_1P_RGB_reduced",)
+    width = 200
+    bbox = (-3.75, 32.158895, 28.326165, 46.3)
+
+class WMS13GetMapDatasetSeriesTimePointTestCase(wmsbase.WMS13GetMapTestCase):
+    layers = ("MER_FRS_1P_RGB_reduced",)
+    width = 200
+    bbox = (-3.75, 32.158895, 28.326165, 46.3)
+    time = "2006-08-30T10:09:49Z"
+
+class WMS13GetMapDatasetSeriesTimeIntervalTestCase(wmsbase.WMS13GetMapTestCase):
+    layers = ("MER_FRS_1P_RGB_reduced",)
+    width = 200
+    bbox = (-3.75, 32.158895, 28.326165, 46.3)
+    time = "2006-08-01T00:00:00Z/2006-08-22T23:59:59Z"
+
+class WMS13GetMapDatasetSeriesOutlinesTestCase(wmsbase.WMS13GetMapTestCase):
+    layers = ("MER_FRS_1P_reduced_outlines",)
+    width = 200
+    bbox = (-3.75, 32.158895, 28.326165, 46.3)
+
+class WMS13GetMapRectifiedStitchedMosaicOutlinesTestCase(wmsbase.WMS13GetMapTestCase):
+    layers = ("mosaic_MER_FRS_1P_RGB_reduced_outlines",)
+    width = 200
+    bbox = (-3.75, 32.158895, 28.326165, 46.3)
+
+class WMS13GetMapRectifiedStitchedMosaicOutlinesWhiteTestCase(wmsbase.WMS13GetMapTestCase):
+    layers = ("mosaic_MER_FRS_1P_RGB_reduced_outlines",)
+    width = 200
+    bbox = (-3.75, 32.158895, 28.326165, 46.3)
+    styles = ("white",)
+
+class WMS13GetMapDatasetSeriesOutlinesTimeIntervalTestCase(wmsbase.WMS13GetMapTestCase):
+    layers = ("MER_FRS_1P_RGB_reduced_outlines",)
+    width = 200
+    bbox = (-3.75, 32.158895, 28.326165, 46.3)
+    time = "2006-08-16T09:09:29Z/2006-08-16T09:15:46Z"
+        
+class WMS13GetMapDatasetOneBandTestCase(wmsbase.WMS13GetMapTestCase):
+    """ Test a GetMap request with a dataset containing 15 bands. """
+    layers = ("MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed_bands",)
+    bbox = (8.487755775451660, 32.195316643454134, 25.407486727461219, 46.249103546142578)
+    dim_band = "MERIS_radiance_01_uint16"
+
+class WMS13GetMapDatasetThreeBandsTestCase(wmsbase.WMS13GetMapTestCase):
+    """ Test a GetMap request with a dataset containing 15 bands. """
+    layers = ("MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed_bands",)
+    bbox = (8.487755775451660, 32.195316643454134, 25.407486727461219, 46.249103546142578)
+    dim_band = "MERIS_radiance_02_uint16,MERIS_radiance_08_uint16,MERIS_radiance_12_uint16"
+
+class WMS13GetMapReprojectedDatasetTestCase(wmsbase.WMS13GetMapTestCase):
+    """ Test a GetMap request with a reprojected dataset. """
+    fixtures = testbase.OWSTestCase.fixtures + ["testing_reprojected_coverages.json"]
+    
+    layers = ("MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected",)
+    bbox = (8.487755775451660, 32.195316643454134, 25.407486727461219, 46.249103546142578)
+
+class WMS13GetMapCrossesDatelineDatasetTestCase(wmsbase.WMS13GetMapTestCase):
+    """ Test a GetMap request with a reprojected dataset. """
+    fixtures = testbase.BASE_FIXTURES + ["crosses_dateline.json"]
+    
+    layers = ("crosses_dateline",)
+    bbox = (-180, -90, 180, 90)
+    width = 200
+
+class WMS13GetFeatureInfoTestCase(testbase.HTMLTestCase):
+    """ Test a GetFeatureInfo on an outline layer. """
+    
+    def getRequest(self):
+        params = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&LAYERS=MER_FRS_1P_RGB_reduced_outlines&QUERY_LAYERS=MER_FRS_1P_RGB_reduced_outlines&STYLES=&BBOX=32.158895,-3.75,46.3,28.326165&FEATURE_COUNT=10&HEIGHT=100&WIDTH=200&FORMAT=image%2Fpng&INFO_FORMAT=text/html&CRS=EPSG:4326&I=100&J=50";
+        return (params, "kvp")
+
+class WMS13GetFeatureInfoTimeIntervalTestCase(testbase.HTMLTestCase):
+    """ Test a GetFeatureInfo on an outline layer with a given time slice. """
+    
+    def getRequest(self):
+        params = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&LAYERS=MER_FRS_1P_RGB_reduced_outlines&QUERY_LAYERS=MER_FRS_1P_RGB_reduced_outlines&STYLES=&BBOX=24.433594,-8.986816,60.205078,58.908691&FEATURE_COUNT=10&HEIGHT=814&WIDTH=1545&FORMAT=image%2Fpng&INFO_FORMAT=text/html&CRS=EPSG:4326&I=598&J=504&TIME=2006-08-16T09:09:29Z/2006-08-16T09:12:46Z";
+        return (params, "kvp")
+
+
+class WMS13GetFeatureInfoEmptyTestCase(testbase.HTMLTestCase):
+    """ Test a GetFeatureInfo request not hitting any datasets because of spatial/temporal bounds. """
+    
+    def getRequest(self):
+        params = "LAYERS=MER_FRS_1P_RGB_reduced_outlines&QUERY_LAYERS=MER_FRS_1P_RGB_reduced_outlines&STYLES=&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&EXCEPTIONS=INIMAGE&BBOX=20.742187%2C-19.401855%2C56.513672%2C48.493652&FEATURE_COUNT=10&HEIGHT=814&WIDTH=1545&FORMAT=image%2Fpng&INFO_FORMAT=text%2Fhtml&CRS=EPSG%3A4326&I=1038&J=505"
+        return (params, "kvp")
