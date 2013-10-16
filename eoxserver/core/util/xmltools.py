@@ -31,14 +31,7 @@
 This module contains utils for XML encoding, decoding and printing.
 """
 
-import xml.dom.minidom
 import logging
-
-from eoxserver.core.exceptions import (
-    InternalError, XMLDecoderException, XMLNodeNotFound,
-    XMLNodeOccurrenceError, XMLTypeError,  XMLEncoderException
-)
-
 try:
     from lxml import etree
 except ImportError:
@@ -131,184 +124,34 @@ def parse(obj):
     return tree
 
 
-#-----------------------------------------------------------------------
-# XML Encoder
-#-----------------------------------------------------------------------
+ns_xsi = NameSpace("http://www.w3.org/2001/XMLSchema-instance", "xsi")
 
 class XMLEncoder(object):
-    """
-    This is the base class for XML encoders. It is intended to be
-    subclassed by concrete encoder implementations which can use its
-    utility methods to compose XML documents.
+    """ Base class for XML encoders using lxml.etree. This class does not 
+        actually provide any helpers for encoding XML in a tree structure (this
+        is already done in lxml.etree), but adds tree to string serialization 
+        and automatic handling of schema locations.
     """
     
-    def __init__(self, schemas=None):
-        super(XMLEncoder, self).__init__()
-        
-        self.ns_dict = self._initializeNamespaces()
-        self.dom = self._createDOM()
-        self.schemas = schemas
-    
-    def _initializeNamespaces(self):
+    def serialize(self, tree, pretty_print=True, encoding='iso-8859-1'):
+        """ Serialize a tree to an XML string. Also adds the ``schemaLocations``
+            attribute to the root node.
         """
-        This method must be overridden by descendants in order to
-        initialize the namespace dictionary of the object. The
-        dictionary keys are interpreted as namespace prefixes whereas
-        the values contain the namespace URIs.
-        
-        The return value is the namespace dictionary.
+        schema_locations = self.get_schema_locations()
+        tree.attrib[ns_xsi("schemaLocation")] = " ".join(
+            "%s %s" % (uri, loc) for uri, loc in schema_locations.items()
+        )
+
+        return etree.tostring(
+            tree, pretty_print=pretty_print, encoding=encoding
+        )
+
+    @property
+    def content_type(self):
+        return "text/xml"
+
+    def get_schema_locations(self):
+        """ Interface method. Returns a dict mapping namespace URIs to a network
+            locations.
         """
         return {}
-    
-    def _createDOM(self):
-        return xml.dom.minidom.getDOMImplementation().createDocument(None, None, None)
-    
-    def _makeElement(self, prefix, tag_name, content):
-        """
-        This method creates elements. It expects three arguments as
-        input:
-        
-        * the namespace prefix of the element; this can be the empty
-          string for the default namespace or unqualified names.
-        * the tag name of the element
-        * the content of the element
-        
-        If the content is
-        
-        * a DOM Element; it will be appended to the newly created
-          element's child nodes;
-        * a list of node definitions; these nodes will be created
-          and then appended to the newly created element
-        * some other argument, it will be converted to a string and
-          be appended to the element as text value.
-        
-        Node definition lists contain tuples that describe the
-        elements or attributes to be created and/or to be appended to
-        the parent element. 3-tuples of ``(prefix, tag_name, content)``
-        will be interpreted in the same way as the input parameters.
-        
-        If the ``prefix`` or ``tag_name`` parameters start with a ``@``
-        an attribute will be created and appended to the parent element.
-        If the ``prefix`` or ``tag_name`` parameters contain ``@@`` a
-        text node will be created.
-        
-        The ``content`` parameter can contain a node definition list as
-        well.
-        
-        Alternatively, 1-tuples containing a DOM Element can be
-        specified. The DOM Element will be appended to the respective
-        parent element.
-        
-        
-        """
-        
-        if prefix != "":
-            if prefix in self.ns_dict:
-                element = self.dom.createElementNS(self.ns_dict[prefix], "%s:%s" % (prefix, tag_name))
-            else:
-                raise InternalError("Encoding error: unknown namespace prefix '%s'" % prefix)
-        else:
-            element = self.dom.createElement(tag_name)
-
-        if isinstance(content, xml.dom.minidom.Element):
-            element.appendChild(content)
-        elif isinstance(content, list):
-            for subcontent in content:
-                if not isinstance(subcontent, tuple):
-                    raise InternalError("Encoding error: expecting tuples with 1 or 3 entries")
-                if len(subcontent) == 3:
-                    child_prefix, child_tag_name, child_content = subcontent
-                    if child_prefix == "@@" or child_tag_name == "@@":
-                        element.appendChild(self.dom.createTextNode(str(child_content)))
-                    elif child_prefix.startswith("@") or child_tag_name.startswith("@"):
-                        attr_prefix = child_prefix.lstrip("@")
-                        attr_name = child_tag_name.lstrip("@")
-                        if attr_prefix != "":
-                            if attr_prefix in self.ns_dict:
-                                element.setAttributeNS(self.ns_dict[attr_prefix], "%s:%s" % (attr_prefix, attr_name), str(child_content))
-                            else:
-                                raise XMLEncoderException("Encoding error: unknown namespace prefix '%s'" % attr_prefix)
-                        else:
-                            element.setAttribute(attr_name, str(child_content))
-                    else:
-                        element.appendChild(self._makeElement(child_prefix, child_tag_name, child_content))
-                elif len(subcontent) == 1:
-                    element.appendChild(subcontent[0])
-                else:
-                    raise InternalError("Encoding error: tuples must have 1 or 3 entries")
-        else:
-            element.appendChild(self.dom.createTextNode(str(content)))
-            
-        return element
-
-#-----------------------------------------------------------------------
-# Utility functions
-#-----------------------------------------------------------------------
-
-def _getChildNamespaces(node):
-    nsmap = {}
-    for child in node.childNodes:
-        nsmap.update(_getChildNamespaces(child))
-    
-    if node.attributes is not None:
-        for i in range(0, node.attributes.length):
-            attr = node.attributes.item(i)
-            if attr.namespaceURI is not None:
-                if attr.prefix is None:
-                    nsmap[""] = attr.namespaceURI
-                elif not attr.prefix.startswith("xml"):
-                    nsmap[attr.prefix] = attr.namespaceURI
-    
-    if node.namespaceURI is not None:
-        if node.prefix is None:
-            nsmap[""] = node.namespaceURI
-        elif not node.prefix.startswith("xml"):
-            nsmap[node.prefix] = node.namespaceURI
-    
-    return nsmap
-
-def DOMtoXML(xmldom, nsmap=None):
-    """
-    Takes a DOM document as input and returns the corresponding XML
-    (no pretty printing) encoded as ISO-8859-1 string. This function is 
-    namespace aware.
-    
-    The optional ``nsmap`` parameter may contain a dictionary of
-    XML prefixes and namespace URIs; these namespace definitions will
-    be appended to the document root elements list of xmlns attributes.
-    In case it is missing, the namespaces used throughout the document
-    are automatically determined and the corresponding xmlns attributes
-    will be created.
-    """
-    
-    return DOMElementToXML(xmldom.documentElement, nsmap)
-
-def DOMElementToXML(element, nsmap=None):
-    """
-    This function takes a DOM element as input and returns an XML 
-    document with the input element as root encoded as ISO-8859-1
-    string. This function is namespace aware.
-    
-    The optional ``nsmap`` parameter may contain a dictionary of
-    XML prefixes and namespace URIs; these namespace definitions will
-    be appended to the document root elements list of xmlns attributes.
-    In case it is missing, the namespaces used throughout the document
-    are automatically determined and the corresponding xmlns attributes
-    will be created.
-    """
-    
-    # search the dom for namespace definitions
-    if nsmap is None:
-        nsmap = _getChildNamespaces(element)
-    
-    for prefix, uri in nsmap.items():
-        if prefix == "":
-            element.setAttribute("xmlns", uri)
-        else:
-            element.setAttribute("xmlns:%s" % prefix, uri)
-    
-    xml  = '<?xml version="1.0" encoding="ISO-8859-1"?>'
-    
-    xml += element.toxml(encoding="ISO-8859-1")
-    
-    return xml
