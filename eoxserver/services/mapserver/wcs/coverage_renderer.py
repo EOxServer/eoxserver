@@ -36,7 +36,10 @@ from eoxserver.contrib.mapserver import (
 )
 from eoxserver.backends.cache import CacheContext
 from eoxserver.services.ows.wcs.interfaces import WCSCoverageRendererInterface
-from eoxserver.services.mapserver.interfaces import ConnectorInterface
+from eoxserver.services.ows.wcs.v20.encoders import WCS20EOXMLEncoder
+from eoxserver.services.mapserver.interfaces import (
+    ConnectorInterface, LayerFactoryInterface
+)
 from eoxserver.services.mapserver.wcs.base_renderer import BaseRenderer
 from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.formats import getFormatRegistry
@@ -45,9 +48,11 @@ from eoxserver.resources.coverages.formats import getFormatRegistry
 class RectifiedCoverageMapServerRenderer(BaseRenderer):
     implements(WCSCoverageRendererInterface)
 
-    handles = (models.RectifiedDataset,)
+    handles = (models.RectifiedDataset, models.RectifiedStitchedMosaic)
 
     connectors = ExtensionPoint(ConnectorInterface)
+    layer_factories = ExtensionPoint(LayerFactoryInterface)
+
 
     def render(self, coverage, request_values):
         with CacheContext() as cache:
@@ -100,7 +105,15 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
             # perform any required layer related cleanup
             connector.disconnect(coverage, data_items, layer, cache)
 
+        if self.find_param(request_values, "mediatype") in ("multipart/mixed", "multipart/related"):
+            # TODO: change the response XML
+            #encoder = WCS20EOXMLEncoder()
+            #return , mediatype
+            pass
+
+        # "default" response
         return response.content, response.content_type
+        
 
 
 def create_outputformat(frmt, imagemode, basename):
@@ -137,3 +150,9 @@ def create_outputformat(frmt, imagemode, basename):
     return outputformat
 
 
+def pop_request_value(request_values, key, default=None):
+    for request_value in request_values:
+        if key == request_value[0]:
+            request_values.remove(request_value)
+            return request_values[1]
+    return default

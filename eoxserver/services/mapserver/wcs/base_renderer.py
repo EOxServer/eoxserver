@@ -30,11 +30,18 @@
 from django.db.models import Q
 
 from eoxserver.core import Component
+from eoxserver.core.config import get_eoxserver_config
+from eoxserver.core.decoders import config
 from eoxserver.contrib.mapserver import (
     Map, Layer, gdalconst_to_imagemode_string, outputFormatObj
 )
 from eoxserver.resources.coverages import crss
 from eoxserver.resources.coverages.formats import getFormatRegistry
+
+
+class WCSConfigReader(config.Reader):
+    section = "services.ows.wcs"
+    maxsize = config.Option(type=int, default=None)
 
 
 class BaseRenderer(Component):
@@ -45,6 +52,9 @@ class BaseRenderer(Component):
         """
         map_ = Map()
         map_.setMetaData("ows_enable_request", "*")
+        maxsize = WCSConfigReader(get_eoxserver_config()).maxsize
+        if maxsize is not None:
+            map_.maxsize = maxsize
         return map_
 
     def data_items_for_coverage(self, coverage):
