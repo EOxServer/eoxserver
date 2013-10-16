@@ -31,15 +31,13 @@ import re
 
 from lxml.builder import ElementMaker
 
-from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap
+from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap, ns_xsi
 from eoxserver.services.subset import Trim, Slice
+from eoxserver.services.ows.common.v20.encoders import ns_xlink, ns_ows, OWS
 
 
 # namespace declarations
-ns_xlink = NameSpace("http://www.w3.org/1999/xlink", "xlink")
-ns_xsi = NameSpace("http://www.w3.org/2001/XMLSchema-instance", "xsi")
 ns_ogc = NameSpace("http://www.opengis.net/ogc", "ogc")
-ns_ows = NameSpace("http://www.opengis.net/ows/2.0", "ows")
 ns_gml = NameSpace("http://www.opengis.net/gml/3.2", "gml")
 ns_gmlcov = NameSpace("http://www.opengis.net/gmlcov/1.0", "gmlcov")
 ns_wcs = NameSpace("http://www.opengis.net/wcs/2.0", "wcs")
@@ -56,7 +54,6 @@ nsmap = NameSpaceMap(
 )
 
 # Element factories
-OWS = ElementMaker(namespace=ns_ows.uri, nsmap=nsmap)
 GML = ElementMaker(namespace=ns_gml.uri, nsmap=nsmap)
 GMLCOV = ElementMaker(namespace=ns_gmlcov.uri, nsmap=nsmap)
 WCS = ElementMaker(namespace=ns_wcs.uri, nsmap=nsmap)

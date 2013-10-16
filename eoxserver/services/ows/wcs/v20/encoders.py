@@ -30,6 +30,7 @@
 from lxml import etree
 
 from eoxserver.core.config import get_eoxserver_config
+from eoxserver.core.util.xmltools import XMLEncoder
 from eoxserver.core.util.timetools import isoformat
 from eoxserver.backends.access import retrieve
 from eoxserver.contrib.osr import SpatialReference
@@ -37,36 +38,12 @@ from eoxserver.resources.coverages.formats import getFormatRegistry
 from eoxserver.resources.coverages import crss, models
 from eoxserver.services.ows.component import ServiceComponent, env
 from eoxserver.services.ows.common.config import CapabilitiesConfigReader
+from eoxserver.services.ows.common.v20.encoders import OWS20Encoder
 from eoxserver.services.ows.wcs.v20.util import (
     nsmap, ns_xlink, ns_xsi, ns_ogc, ns_ows, ns_gml, ns_gmlcov, ns_wcs, ns_crs, 
     ns_eowcs, OWS, GML, GMLCOV, WCS, CRS, EOWCS, OM, EOP, SWE, 
 )
 
-
-class XMLEncoder(object):
-    def serialize(self, tree, pretty_print=True, encoding='iso-8859-1'):
-        schema_locations = self.get_schema_locations(tree)
-        tree.attrib[ns_xsi("schemaLocation")] = " ".join(
-            "%s %s" % (uri, loc) for uri, loc in schema_locations.items()
-        )
-
-        return etree.tostring(
-            tree, pretty_print=pretty_print, encoding=encoding
-        )
-
-    @property
-    def content_type(self):
-        return "text/xml"
-
-    def add_schema_locations(self, tree):
-        pass
-
-
-class OWS20Encoder(XMLEncoder):
-    def encode_reference(self, node_name, href, reftype="simple"):
-        return OWS(node_name, 
-            **{ns_xlink("href"): href, ns_xlink("type"): reftype}
-        )
 
 
 class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
@@ -267,7 +244,7 @@ class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
         root = WCS("Capabilities", *caps, version="2.0.1")
         return etree.tostring(root, pretty_print=True, encoding='iso-8859-1'), "text/xml"
 
-    def get_schema_locations(self, tree):
+    def get_schema_locations(self):
         return nsmap.schema_locations
 
 
@@ -550,7 +527,7 @@ class WCS20CoverageDescriptionXMLEncoder(GMLCOV10Encoder):
             for coverage in coverages
         ])
 
-    def get_schema_locations(self, tree):
+    def get_schema_locations(self):
         return nsmap.schema_locations
 
 
@@ -607,15 +584,20 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20E
         )
 
     def encode_coverage_description(self, coverage, srid=None, size=None, extent=None, footprint=None):
+        source_mime = None
         for data_item in coverage.data_items.filter(semantic__startswith="bands"):
             if data_item.format:
                 source_mime = data_item.format
                 break
 
-        source_format = getFormatRegistry().getFormatByMIME(source_mime) 
+        if source_mime:
+            source_format = getFormatRegistry().getFormatByMIME(source_mime) 
 
-        # map the source format to the native one 
-        native_format = getFormatRegistry().mapSourceToNativeWCS20(source_format) 
+            # map the source format to the native one 
+            native_format = getFormatRegistry().mapSourceToNativeWCS20(source_format) 
+        else:
+            # TODO: improve if no native format availabe
+            native_format = None
 
         if extent:
             poly = Polygon.from_bbox(extent)
@@ -634,7 +616,7 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20E
             self.encode_range_type(self.get_range_type(coverage.range_type_id)),
             WCS("ServiceParameters", 
                 WCS("CoverageSubtype", coverage.real_type.__name__),
-                WCS("nativeFormat", native_format.mimeType)
+                WCS("nativeFormat", native_format.mimeType if native_format else "")
             ),
             **{ns_gml("id"): self.get_gml_id(coverage.identifier)}
         )
@@ -655,6 +637,19 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20E
             )
         )
 
+    def alter_rectified_dataset(self, coverage, request, tree, subset_polygon=None):
+        return EOWCS("RectifiedDataset",
+            tree.children,
+            self.encode_eo_metadata(coverage, request, subset_polygon)
+        )
+
+    def alter_rectified_stitched_mosaic(self, coverage, request, subset=None):
+        return EOWCS("RectifiedStitchedMosaic",
+            tree.children,
+            self.encode_eo_metadata(coverage, request, subset_polygon),
+            # TODO: contributing datasets
+        )
+
     def encode_referenceable_dataset(self, coverage, reference, mime_type, subset=None):
 
         #if subset:
@@ -668,7 +663,7 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20E
             self.encode_time_period(
                 dataset_series.begin_time, dataset_series.end_time, 
                 "%s_timeperiod" % dataset_series.identifier
-            )
+            ),
             **{ns_gml("id"): self.get_gml_id(dataset_series.identifier)}
         )
 
@@ -685,7 +680,8 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20E
             number_returned = len(coverages) + len(dataset_series_set)
 
         root = EOWCS("EOCoverageSetDescription", 
-            numberMatched=number_matched, numberReturned=number_returned
+            numberMatched=str(number_matched), 
+            numberReturned=str(number_returned)
         )
 
         if coverages:
@@ -697,7 +693,7 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20E
 
         return root
 
-    def get_schema_locations(self, tree):
+    def get_schema_locations(self):
         return nsmap.schema_locations
 
 

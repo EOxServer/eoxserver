@@ -62,6 +62,8 @@ class WCS20ExceptionHandler(Component):
             status = 501
 
         encoder = OWS20ExceptionXMLEncoder()
-        content, content_type = encoder.encode(message, "2.0.1", code, locator)
+        xml = encoder.serialize(
+            encoder.encode_exception(message, "2.0.1", code, locator)
+        )
 
-        return content, content_type, status
+        return (xml, encoder.content_type, status)

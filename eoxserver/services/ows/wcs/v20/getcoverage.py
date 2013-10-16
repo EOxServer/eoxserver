@@ -93,7 +93,7 @@ class WCS20GetCoverageHandler(Component):
 
         request_values = [
             ("service", "wcs"),
-            ("version", "2.0.0"),
+            ("version", "2.0.1"),
             ("request", "GetCoverage"),
             ("coverageid", decoder.coverage_id)
         ] + map(subset_to_kvp, decoder.subsets) \
@@ -162,18 +162,22 @@ class WCS20GetCoverageKVPDecoder(kvp.Decoder):
     format      = kvp.Parameter("format", num="?")
     outputcrs   = kvp.Parameter("outputcrs", num="?")
     mediatype   = kvp.Parameter("mediatype", num="?")
-    interpolation = kvp.Parameter("mediatype", num="?")
+    interpolation = kvp.Parameter("interpolation", num="?")
 
 
 class WCS20GetCoverageXMLDecoder(xml.Decoder):
-    coverage_id = xml.Parameter("/wcs:CoverageId/text()", num=1, locator="coverageid")
-    subsets     = xml.Parameter("/wcs:DimensionTrim", type=parse_subset_xml, num="*")
+    coverage_id = xml.Parameter("wcs:CoverageId/text()", num=1, locator="coverageid")
+    subsets     = xml.Parameter("wcs:DimensionTrim", type=parse_subset_xml, num="*")
+
+    sizes       = xml.Parameter("TODO", type=parse_size_kvp, num="*")
+    resolutions = xml.Parameter("TODO", type=parse_size_kvp, num="*")
+    interpolation = xml.Parameter("TODO", type=parse_size_kvp, num="?")
 
     rangesubset = xml.Parameter("rangesubset", type=typelist(str, ","), num="?")
 
-    format      = xml.Parameter("/wcs:format/text()", num="?", locator="format")
+    format      = xml.Parameter("wcs:format/text()", num="?", locator="format")
     # TODO:!!!
-    outputcrs   = xml.Parameter("/wcs:mediaType/text()", num="?", locator="outputcrs")
-    mediatype   = xml.Parameter("/wcs:mediaType/text()", num="?", locator="mediatype")
+    outputcrs   = xml.Parameter("TODO", num="?", locator="outputcrs")
+    mediatype   = xml.Parameter("wcs:mediaType/text()", num="?", locator="mediatype")
     
     namespaces = nsmap

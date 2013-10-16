@@ -36,7 +36,6 @@ from django.db.models import Q
 from eoxserver.core import Component, implements
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.decoders import xml, kvp, typelist, upper, enum
-from eoxserver.core.util.xmltools import DOMElementToXML
 from eoxserver.resources.coverages import models
 from eoxserver.services.ows.interfaces import (
     ServiceHandlerInterface, GetServiceHandlerInterface, 
@@ -82,7 +81,7 @@ class WCS20DescribeEOCoverageSetHandler(Component):
         
         containment = decoder.containment
 
-        cound_default = self.constraints["CountDefault"]
+        count_default = self.constraints["CountDefault"]
         count = decoder.count
         if count_default is not None:
             count = min(count, count_default)
