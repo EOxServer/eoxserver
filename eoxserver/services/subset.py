@@ -92,7 +92,7 @@ class Subsets(list):
         )
 
         if len(all_crss) != 1:
-            raise "all X/Y crss must be the same"
+            raise Exception("All X/Y crss must be the same")
 
         xy_crs = iter(all_crss).next()
         if xy_crs is not None:
@@ -309,6 +309,67 @@ class Subsets(list):
                 "Multiple subsets for time-axis given."
             )
 
+
+    def bounding_polygon(self, coverage):
+        srid = coverage.srid
+        extent = coverage.extent
+        size_x, size_y = coverage.size
+        footprint = coverage.footprint
+
+        subset_srid = self.xy_srid
+
+        if subset_srid == "imageCRS":
+            bbox = extent
+        else:
+            bbox = footprint.extent
+
+        for subset in self:
+            if not isinstance(subset, Trim) or subset.is_temporal:
+                continue
+
+            if subset_srid == "imageCRS":
+                if subset.is_x:
+                    if subset.low is not None:
+                        l = max(float(subset.low) / float(size_x), 0.0)
+                        bbox[0] = extent[0] + l * (extent[2] - extent[0])
+
+                    if subset.high is not None:
+                        l = max(float(subset.high) / float(size_x), 0.0)
+                        bbox[2] = extent[2] + l * (extent[2] - extent[0])
+
+                elif subset.is_y:
+                    if subset.low is not None:
+                        l = max(float(subset.low) / float(size_y), 0.0)
+                        bbox[1] = extent[3] - l * (extent[3] - extent[1])
+
+                    if subset.high is not None:
+                        l = max(float(subset.high) / float(size_y), 0.0)
+                        bbox[3] = extent[3] - l * (extent[3] - extent[1])
+
+            else:
+                if subset.is_x:
+                    if subset.low is not None:
+                        bbox[0] = max(subset.low, bbox[0])
+
+                    if subset.high is not None:
+                        bbox[2] = min(subset.high, bbox[2])
+
+                if subset.is_y:
+                    if subset.low is not None:
+                        bbox[1] = max(subset.low, bbox[1])
+
+                    if subset.high is not None:
+                        bbox[3] = min(subset.high, bbox[3])
+
+        if subset_srid == "imageCRS":
+            poly = Polygon.from_bbox(bbox)
+            poly.srid = srid
+
+        else:
+            poly = Polygon.from_bbox(bbox)
+            poly.srid = subset_srid
+
+        return poly
 
 
 class Subset(object):
