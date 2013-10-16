@@ -83,35 +83,107 @@ class WCS11GetCoverageHandler(Component):
             raise NoSuchCoverageException((coverage_id,))
 
         coverage_type = coverage.real_type
-
         renderer = self.get_renderer(coverage_type)
 
-        # TODO: translate request values from POST 
+        request_values = [
+            ("service", "wcs"),
+            ("version", "1.1.2"),
+            ("request", "GetCoverage"),
+            ("identifier", coverage_id),
+            ("boundingbox", ",".join(map(str, decoder.boundingbox))),
+            ("format", decoder.format)
+        ]
 
-        return renderer.render(coverage, request.GET.items())
+        gridcs = decoder.gridcs
+        gridbasecrs = decoder.gridbasecrs
+        gridoffsets = decoder.gridoffsets
+        gridtype = decoder.gridtype
+        gridorigin = decoder.gridorigin
+
+        if gridcs:
+            request_values.append(("gridcs", decoder.gridcs))
+        
+        if gridbasecrs:
+            request_values.append(("gridbasecrs", decoder.gridbasecrs))
+        
+        if gridoffsets:
+            request_values.append(
+                ("gridoffsets", ",".join(map(str, decoder.gridoffsets)))
+            )
+        
+        if gridtype is not None:
+            request_values.append(("gridtype", gridtype))
+        
+        if gridorigin is not None:
+            request_values.append(
+                ("gridorigin", ",".join(map(str, decoder.gridorigin)))
+            )
+        
+        return renderer.render(coverage, request_values)
 
 
-def parse_bounding_box_xml(node):
+def parse_bbox_kvp(string):
+    minx, miny, maxx, maxy, crs = string.split(",")
+    minx, miny, maxx, maxy = map(float, (minx, miny, maxx, maxy))
+    return minx, miny, maxx, maxy, crs
+
+
+def parse_bbox_xml(node):
     try:
-        ll = map(float, node.xpath("ows:LowerCorner/text()", nsmap=nsmap)[0].split(" "))
-        ur = map(float, node.xpath("ows:UpperCorner/text()", nsmap=nsmap)[0].split(" "))
+        lower_corner = node.xpath("ows:LowerCorner/text()", namespaces=nsmap)[0]
+        upper_corner = node.xpath("ows:UpperCorner/text()", namespaces=nsmap)[0]
+        ll = map(float, lower_corner.split(" "))
+        ur = map(float, upper_corner.split(" "))
     except (IndexError, ValueError):
         raise ValueError("Invalid bounding box.")
+    crs = node.attrib["crs"]
+    return ll[0], ll[1], ur[0], ur[1], crs
 
-    crs = node.attr("crs")
+
+def parse_origin_kvp(string):
+    x, y = map(float, string.split(","))
+    return x, y
+
+
+def parse_origin_xml(string):
+    x, y = map(float, string.split(" "))
+    return x, y
+
+
+def parse_offsets_kvp(string):
+    x, y = map(float, string.split(","))
+    return x, y
+
+
+def parse_offsets_xml(string):
+    x, y = map(float, string.split(" "))
+    return x, y
 
 
 class WCS11GetCoverageKVPDecoder(kvp.Decoder):
     identifier = kvp.Parameter(num=1)
+    boundingbox = kvp.Parameter(type=parse_bbox_kvp, num=1)
+    format = kvp.Parameter(num=1)
+    gridcs = kvp.Parameter(num="?")
+    gridbasecrs = kvp.Parameter(num="?")
+    gridtype = kvp.Parameter(num="?")
+    gridorigin = kvp.Parameter(type=parse_origin_kvp, num="?")
+    gridoffsets = kvp.Parameter(type=parse_offsets_kvp, num="?")
 
 
 class WCS11GetCoverageXMLDecoder(xml.Decoder):
     identifier = xml.Parameter("ows:Identifier/text()", num=1)
+    boundingbox = xml.Parameter("wcs:DomainSubset/ows:BoundingBox", type=parse_bbox_xml, num=1)
     format = xml.Parameter("wcs:Output/@format", num=1)
-    grid_crs = xml.Parameter("wcs:Output/wcs:GridCRS/text()", num="?")
-    bbox = xml.Parameter("wcs:DomainSubset/ows:BoundingBox") # TODO
+    gridcs = xml.Parameter("wcs:Output/wcs:GridCRS/wcs:GridCS/text()", num="?")
+    gridbasecrs = xml.Parameter("wcs:Output/wcs:GridCRS/wcs:GridBaseCRS/text()", num="?")
+    gridtype = xml.Parameter("wcs:Output/wcs:GridCRS/wcs:GridType/text()", num="?")
+    gridorigin = xml.Parameter("wcs:Output/wcs:GridCRS/wcs:GridOrigin/text()", type=parse_origin_xml, num="?")
+    gridoffsets = xml.Parameter("wcs:Output/wcs:GridCRS/wcs:GridOffsets/text()", type=parse_offsets_xml, num="?")
 
-    interpolation = xml.Parameter("wcs:RangeSubset/wcs:InterpolationType/text()", num="?")
-    fields = xml.Parameter("wcs:RangeSubset/ows:Identifier/text()", num="*")
+
+    # TODO
+    #interpolation = xml.Parameter("wcs:RangeSubset/wcs:InterpolationType/text()", num="?")
+    #fields = xml.Parameter("wcs:RangeSubset/ows:Identifier/text()", num="*")
 
     namespaces = nsmap
