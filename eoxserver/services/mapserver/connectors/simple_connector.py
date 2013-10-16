@@ -26,10 +26,15 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+from os.path import join
+from uuid import uuid4
 
 from eoxserver.core import Component, implements
 from eoxserver.backends.access import connect
+from eoxserver.contrib import vsi, vrt, mapserver, gdal
 from eoxserver.services.mapserver.interfaces import ConnectorInterface
+from eoxserver.processing.gdal.vrt import create_simple_vrt
+from eoxserver.resources.coverages.dateline import wrap_extent_around_dateline
 
 
 class SimpleConnector(Component):
@@ -43,7 +48,27 @@ class SimpleConnector(Component):
 
     def connect(self, coverage, data_items, layer, cache):
         filtered = filter(lambda d: d.semantic.startswith("bands"), data_items)
-        layer.data = connect(filtered[0], cache)
+        data = connect(filtered[0], cache)
+
+        if not layer.metadata.get("eoxs_wrap_dateline") == "true":
+            layer.data = data
+        else:
+            e = wrap_extent_around_dateline(coverage.extent, coverage.srid)
+
+            vrt_path = join("/vsimem", uuid4().hex)
+            ds = gdal.Open(data)
+            vrt_ds = create_simple_vrt(ds, vrt_path)
+            size_x = ds.RasterXSize
+            size_y = ds.RasterYSize
+            
+            dx = abs(e[0] - e[2]) / size_x
+            dy = abs(e[1] - e[3]) / size_y 
+            
+            vrt_ds.SetGeoTransform([e[0], dx, 0, e[3], 0, -dy])
+            vrt_ds = None
+            
+            layer.data = vrt_path
 
     def disconnect(self, coverage, data_items, layer, cache):
-        pass
+        if layer.metadata.get("eoxs_wrap_dateline") == "true":
+            vsi.remove(layer.data)

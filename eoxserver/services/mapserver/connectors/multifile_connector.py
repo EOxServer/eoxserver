@@ -26,6 +26,8 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+from os.path import join
+from uuid import uuid4
 
 from eoxserver.core import Component, implements
 from eoxserver.backends.access import connect
@@ -59,6 +61,25 @@ class MultiFileConnector(Component):
         path = join("/vsimem", uuid4().hex)
         with vsi.open(path, "w+") as f:
             vrt_doc.write(f)
+
+
+        # TODO!!
+        if layer.metadata.get("eoxs_wrap_dateline") == "true":
+            e = wrap_extent_around_dateline(coverage.extent, coverage.srid)
+
+            vrt_path = join("/vsimem", uuid4().hex)
+            ds = gdal.Open(data)
+            vrt_ds = create_simple_vrt(ds, vrt_path)
+            size_x = ds.RasterXSize
+            size_y = ds.RasterYSize
+            
+            dx = abs(e[0] - e[2]) / size_x
+            dy = abs(e[1] - e[3]) / size_y 
+            
+            vrt_ds.SetGeoTransform([e[0], dx, 0, e[3], 0, -dy])
+            vrt_ds = None
+            
+            layer.data = vrt_path
 
         layer.data = path
 
