@@ -32,7 +32,9 @@ from itertools import chain
 
 from django.core.exceptions import ValidationError
 from django.core.management.base import CommandError, BaseCommand
+from django.utils.dateparse import parse_datetime
 from django.db import transaction
+from django.contrib.gis.geos import GEOSGeometry
 
 from eoxserver.core import env
 from eoxserver.contrib import gdal, osr
@@ -45,7 +47,6 @@ from eoxserver.resources.coverages.metadata.component import MetadataComponent
 from eoxserver.resources.coverages.management.commands import (
     CommandOutputMixIn, _variable_args_cb
 )
-
 
 
 def _variable_args_cb(option, opt_str, value, parser):
@@ -121,7 +122,7 @@ class Command(CommandOutputMixIn, BaseCommand):
         ),
 
         make_option("-f", "--footprint", dest="footprint", 
-            action="callback", callback=_variable_args_cb,
+            action="store", default=None,
             help=("Override footprint.")
         ),
 
@@ -166,8 +167,10 @@ class Command(CommandOutputMixIn, BaseCommand):
 
         all_data_items = []
         retrieved_metadata = {}
-        # TODO: apply defaults from CLI either here or last
-        
+
+        retrieved_metadata.update(
+            self._get_overrides(**kwargs)
+        )
 
         for metadata in metadatas:
             storage, package, format, location = self._get_location_chain(metadata)
@@ -277,6 +280,32 @@ class Command(CommandOutputMixIn, BaseCommand):
         print "Successfully registered one dataset."
 
         
+    def _get_overrides(self, identifier=None, size=None, extent=None, 
+                       begin_time=None, end_time=None, footprint=None, **kwargs):
+
+        overrides = {}
+
+        if identifier:
+            overrides["identifier"] = identifier
+
+        if extent:
+            overrides["extent"] = map(float, extent.split(","))
+
+        if size:
+            overrides["size"] = map(int, size.split(","))            
+
+        if begin_time:
+            overrides["begin_time"] = parse_datetime(begin_time)
+
+        if end_time:
+            overrides["end_time"] = parse_datetime(end_time)
+
+        if footprint:
+            overrides["footprint"] = GEOSGeometry(footprint)
+
+        return overrides
+
+
     def _get_location_chain(self, items):
         """ Returns the tuple
         """
