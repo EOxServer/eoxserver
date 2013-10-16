@@ -27,19 +27,27 @@
 #-------------------------------------------------------------------------------
 
 
-from lxml import etree
 from lxml.builder import ElementMaker
 
-from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap
+from eoxserver.core.util.xmltools import XMLEncoder, NameSpace, NameSpaceMap
 
 
+ns_xlink = NameSpace("http://www.w3.org/1999/xlink", "xlink")
 ns_ows = NameSpace("http://www.opengis.net/ows/2.0", "ows")
 
 nsmap = NameSpaceMap(ns_ows)
 OWS = ElementMaker(namespace=ns_ows.uri, nsmap=nsmap)
 
-class OWS20ExceptionXMLEncoder(object):
-    def encode(self, message, version, code, locator=None):
+
+class OWS20Encoder(XMLEncoder):
+    def encode_reference(self, node_name, href, reftype="simple"):
+        return OWS(node_name, 
+            **{ns_xlink("href"): href, ns_xlink("type"): reftype}
+        )
+
+
+class OWS20ExceptionXMLEncoder(XMLEncoder):
+    def encode_exception(self, message, version, code, locator=None):
 
         exception_attributes = {
             "exceptionCode": code
@@ -50,8 +58,7 @@ class OWS20ExceptionXMLEncoder(object):
 
         exception_text = (OWS("ExceptionText", message),) if message else ()
 
-        root = OWS("ExceptionReport", 
+        return OWS("ExceptionReport", 
             OWS("Exception", *exception_text, **exception_attributes
             ), lang="en", version=version
         )
-        return etree.tostring(root, pretty_print=True, encoding='iso-8859-1'), "text/xml"
