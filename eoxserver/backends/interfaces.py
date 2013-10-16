@@ -50,6 +50,11 @@ class FileStorageInterface(AbstractStorageInterface):
             path to a local file instead of storing it under `path`.
         """
 
+    def list_files(self, url, location):
+        """ Return a list of retrievable files available on the storage located 
+            at the specified URL and given location.
+        """
+
 
 class ConnectedStorageInterface(AbstractStorageInterface):
     """ Interface for storages that do not store "files" but provide access to
@@ -73,3 +78,9 @@ class PackageInterface(object):
         """ Extract a file specified by the `location` from the package to the 
             given `path` specification.
         """
+
+    def list_contents(self, package_filename, location):
+        """ Return a list of item locations under the specified location in the 
+            given package.
+        """
+

@@ -57,16 +57,37 @@ class FTPStorage(Component):
         """ Retrieves the file referenced by `location` from the server 
             specified by its `url` and stores it under the `result_path`.
         """
-        parsed = urlparse(url)
-        ftp = FTP()
-        ftp.connect(parsed.hostname, parsed.port)
-        # TODO: default username/password?
-        ftp.login(parsed.username, parsed.password)
+        
+        ftp, parsed_url = self._open(url)
 
         try:
-            cmd = "RETR %s" % path.join(parsed.path, location)
+            cmd = "RETR %s" % path.join(parsed_url.path, location)
             with open(result_path, 'wb') as local_file:
                 ftp.retrbinary(cmd, local_file.write)
 
         finally:
             ftp.quit()
+
+
+    def list_files(self, url, location):
+        ftp, parsed_url = self._open(url)
+
+        try:
+            return ftp.nlst(location)
+        except ftplib.error_perm, resp:
+            if str(resp).startswith("550"):
+                return []
+            else:
+                raise
+        finally:
+            ftp.quit()
+
+
+    def _open(self, url):
+        parsed_url = urlparse(url)
+        ftp = FTP()
+        ftp.connect(parsed_url.hostname, parsed_url.port)
+        # TODO: default username/password?
+        ftp.login(parsed_url.username, parsed_url.password)
+
+        return ftp, parsed_url
