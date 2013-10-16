@@ -31,6 +31,7 @@ from eoxserver.contrib import gdal
 from eoxserver.resources.coverages.metadata.interfaces import (
     MetadataReaderInterface, GDALDatasetMetadataReaderInterface
 )
+from eoxserver.processing.gdal import reftools
 
 
 def open_gdal(obj):
@@ -50,6 +51,14 @@ class GDALDatasetMetadataReader(Component):
     def test(self, obj):
         return open_gdal(obj) is not None
 
+    def get_format_name(self, obj):
+        ds = open_gdal(obj)
+        if not ds:
+            return None
+
+        driver = ds.GetDriver()
+        return "GDAL/" + driver.ShortName
+
     def read(self, obj):
         ds = open_gdal(obj)
         if ds is not None:
@@ -65,7 +74,7 @@ class GDALDatasetMetadataReader(Component):
                     min(x_extent),
                     min(y_extent),
                     max(x_extent),
-                    max(x_extent)
+                    max(y_extent)
                 )
             
             projection = ds.GetProjection()
@@ -85,7 +94,14 @@ class GDALDatasetMetadataReader(Component):
                 for key, value in additional_values.items():
                     values.setdefault(key, value)
 
+            if ds.GetGCPCount() > 0:
+                values["footprint"] = GEOSGeometry(
+                    reftools.get_footprint_wkt(raw_metadata)
+                )
+
             return values
+
+            
             
         raise Exception("Could not parse from obj '%s'." % repr(obj))
 

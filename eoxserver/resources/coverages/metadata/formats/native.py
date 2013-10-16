@@ -54,6 +54,10 @@ class NativeFormat(Component):
         return xml is not None and xml.tag == "Metadata"
 
 
+    def get_format_name(self, obj):
+        return "native"
+    
+
     def read(self, obj):
         tree = parse(obj)
         if tree is not None:

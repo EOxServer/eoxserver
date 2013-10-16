@@ -45,6 +45,9 @@ class DimapGeneralFormatReader(Component):
         tree = parse(obj)
         return tree is not None and tree.tag == "Dimap_Document"
 
+    def get_format_name(self, obj):
+        return "dimap"
+
     def read(self, obj):
         tree = parse(obj)
         if self.test(tree):
