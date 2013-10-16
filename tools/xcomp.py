@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 #-------------------------------------------------------------------------------
-# $Id$
 #
 # simple CLI tool comparing XML documents 
 #

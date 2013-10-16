@@ -1,5 +1,4 @@
 #-------------------------------------------------------------------------------
-# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>
@@ -122,7 +121,7 @@ setup(
     maintainer_email="packages@eox.at",
     
     description="EOxServer is a server for Earth Observation (EO) data",
-    long_description=read("README"),
+    long_description=read("README.rst"),
     
     classifiers=[
           'Development Status :: 1 - Planning',

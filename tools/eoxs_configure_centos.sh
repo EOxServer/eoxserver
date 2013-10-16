@@ -3,10 +3,11 @@
 #
 # Description: 
 #
-#   Automatic installation on CentOS (applicable also to RHEL and its clones). 
+#   Automatic installation and configuration on CentOS 
+#   (applicable also to RHEL and its clones). 
 #
-#   The script install the EOxServer RPMs and setups and configures 
-#   EOxServer instance.
+#   The script creates and configures EOxServer instance. 
+#   set the instance name as the first argument. 
 #
 #-------------------------------------------------------------------------------
 #
@@ -42,7 +43,7 @@ set -e
 # if not set the default HOSTNAME is used  
 
 #HOSTNAME=<fill-your-hostname-or-IP-here>
-INSTANCE="instance00"
+INSTANCE=${1:-"instance00"}
 
 HTTPUSER="apache"
 INSTUSER="eoxserver"
@@ -69,68 +70,19 @@ SOCKET_PREFIX="run/wsgi"
 
 if [ -z "$HOSTNAME" ] 
 then 
-    echo "Set the HOSTNAME variable!" 1>&1 
+    echo "Set the HOSTNAME variable!" 1>&2
     exit 1 
 fi 
 
 #-------------------------------------------------------------------------------
-# 1 installation 
-
-rpm -q --quiet elgis-release || rpm -Uvh http://elgis.argeo.org/repos/6/elgis-release-6-6_0.noarch.rpm
-rpm -q --quiet epel-release || rpm -Uvh http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
-rpm -q --quiet eox-release || rpm -Uvh http://yum.packages.eox.at/el/eox-release-6-2.noarch.rpm
-
-# uncomment for unstable releases  
-#ex /etc/yum.repos.d/eox-testing.repo <<END
-#1,\$g/enabled/s/0/1/g
-#wq
-#END
-
-yum clean all
-
-yum --assumeyes install EOxServer httpd mod_wsgi postgresql postgresql-server postgis python-psycopg2
-
-#-------------------------------------------------------------------------------
-# 1 HTTPD setup part 1 
-
-chkconfig httpd on
-service httpd start
-
-# NOTE: Firewall setup should be excluded from the EOxServer Instance RPM!
-iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport 80 -j ACCEPT
-
-service iptables save
-
-#-------------------------------------------------------------------------------
-# 2 DB setup part 1 
-
-service postgresql initdb
-chkconfig postgresql on
-service postgresql start
-
-sudo -u postgres createdb template_postgis
-sudo -u postgres createlang plpgsql template_postgis
-PG_SHARE=/usr/share/pgsql
-sudo -u postgres psql -q -d template_postgis -f $PG_SHARE/contrib/postgis.sql
-sudo -u postgres psql -q -d template_postgis -f $PG_SHARE/contrib/spatial_ref_sys.sql
-sudo -u postgres psql -q -d template_postgis -c "GRANT ALL ON geometry_columns TO PUBLIC;"
-sudo -u postgres psql -q -d template_postgis -c "GRANT ALL ON geography_columns TO PUBLIC;"
-sudo -u postgres psql -q -d template_postgis -c "GRANT ALL ON spatial_ref_sys TO PUBLIC;"
-
-#-------------------------------------------------------------------------------
-# 3 create users 
-
-# create users 
-useradd -r -m -g "$HTTPUSER" -d "$INSTROOT" -c "EOxServer's administrator" "$INSTUSER"
-useradd -r -m -g "$HTTPUSER" -d "$DATAROOT" -c "EO data provider" "$DATAUSER"
-
-#make the users directories world readable  
-
-chmod a+rx "$INSTROOT"
-chmod a+rx "$DATAROOT"
-
-#-------------------------------------------------------------------------------
 # 4 create instance 
+
+if [ -d "$INSTROOT/$INSTANCE" ]
+then
+    echo "Instance directory: $INSTROOT/$INSTANCE" 1>&2
+    echo "Instance directory exists! The instance seems to exists already." 1>&2
+    exit 1 
+fi
 
 # ver.: 0.2
 #sudo -u eoxserver eoxserver-admin.py create_instance "$INSTANCE" -d "$INSTROOT" 

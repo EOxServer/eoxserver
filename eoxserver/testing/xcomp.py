@@ -1,5 +1,4 @@
 #-------------------------------------------------------------------------------
-# $Id$
 #
 # simple tool comparing XML documents - powered by Python miniDOM
 #
