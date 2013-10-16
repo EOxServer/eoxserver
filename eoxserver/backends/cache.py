@@ -65,8 +65,12 @@ def shutdown_cache_session():
     """ Shutdown the cache context for this session and trigger any pending 
         cleanup actions required.
     """
-    cache_context = get_cache_context()
-    cache_context.cleanup()
+    try:
+        cache_context = get_cache_context()
+        cache_context.cleanup()
+    except CacheException:
+        # it seems that the cache was already shut down.
+        pass
     set_cache_context(None)
 
 
