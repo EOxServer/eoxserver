@@ -420,7 +420,7 @@ class Coverage(EOObject, Extent, backends.Dataset):
     size_x = models.FloatField()
     size_y = models.FloatField()
     
-    range_type = models.ForeignKey(RangeType, blank=True, null=True, on_delete=models.SET_NULL)
+    range_type = models.ForeignKey(RangeType)
 
     @property
     def size(self):
