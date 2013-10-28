@@ -37,12 +37,12 @@ class ConnectorInterface(object):
             `False` if not.
         """
     
-    def connect(self, coverage, data_items, layer, cache):
+    def connect(self, coverage, data_items, layer):
         """ Connect a layer (a `mapscript.layerObj`) with the given data 
             items and coverage (a list of two-tuples: location and semantic).
         """
 
-    def disconnect(self, coverage, data_items, layer, cache):
+    def disconnect(self, coverage, data_items, layer):
         """ Performs all necessary cleanup operations.
         """
 
@@ -53,13 +53,8 @@ class LayerFactoryInterface(object):
     """
 
     @property
-    def handles(self):
-        """ Iterable of all object types that are supported by this connector.
-        """
-
-    @property
-    def suffix(self):
-        """ The suffix associated with layers this factory produces. This is 
+    def suffixes(self):
+        """ The suffixes associated with layers this factory produces. This is 
             used for "specialized" layers such as "bands" or "outlines" layers.
             For factories that don't use this feature, it can be left out.
         """
@@ -86,6 +81,6 @@ class StyleApplicatorInterface(object):
     """ Interface for style applicators.
     """
 
-    def apply(self, coverage, data_items, layer, cache):
+    def apply(self, coverage, data_items, layer):
         """ Apply all relevant styles.
         """
