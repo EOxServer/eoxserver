@@ -57,7 +57,9 @@ def setup_cache_session(config=None):
     if not config:
         config = CacheConfigReader(get_eoxserver_config())
 
-    set_cache_context(CacheContext(config.retention_time, config.directory))
+    set_cache_context(
+        CacheContext(config.retention_time, config.directory, True)
+    )
 
 
 def shutdown_cache_session():
@@ -101,7 +103,7 @@ def get_cache_context():
 class CacheContext(object):
     """ Context manager to manage cached files.
     """
-    def __init__(self, retention_time=None, cache_directory=None):
+    def __init__(self, retention_time=None, cache_directory=None, managed=False):
         self._cached_objects = set()
 
         if not cache_directory:
@@ -114,6 +116,8 @@ class CacheContext(object):
         self._retention_time = retention_time
         self._level = 0
         self._mappings = {}
+
+        self._managed = managed
 
 
     @property
@@ -199,5 +203,5 @@ class CacheContext(object):
             the level drops to zero.
         """
         self._level -= 1
-        if self._level == 0:
+        if self._level == 0 and not self._managed:
             self.cleanup()

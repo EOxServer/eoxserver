@@ -31,7 +31,7 @@ from os import makedirs, path
 import hashlib
 import logging
 
-from eoxserver.backends.cache import CacheContext
+from eoxserver.backends.cache import get_cache_context
 from eoxserver.backends.component import BackendComponent, env
 
 
@@ -71,7 +71,7 @@ def retrieve(data_item, cache=None):
     backend = BackendComponent(env)
 
     if cache is None:
-        cache = CacheContext()
+        cache = get_cache_context()
 
     # compute a cache path where the file *would* be cached
     with cache:
