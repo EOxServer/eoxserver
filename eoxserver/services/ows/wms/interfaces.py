@@ -40,6 +40,11 @@ class WMSMapRendererInterface(object):
     """ Interface for WMS compatible map renderers.
     """
 
+    @property
+    def suffixes(self):
+        """ Return a list of supported layer suffixes for this renderer.
+        """
+
     def render(self, layer_groups, request_values, **options):
         """ Render the given layer hierarchy with the provided request values 
             and further options.
@@ -51,6 +56,11 @@ class WMSFeatureInfoRendererInterface(object):
     """ Interface for WMS compatible feature info renderers.
     """
 
+    @property
+    def suffixes(self):
+        """ Return a list of supported layer suffixes for this renderer.
+        """
+
     def render(self, layer_groups, request_values, **options):
         """ Render the given layer hierarchy with the provided request values 
             and further options.
@@ -61,6 +71,11 @@ class WMSFeatureInfoRendererInterface(object):
 class WMSLegendGraphicRendererInterface(object):
     """ Interface for WMS compatible legend graphic renderers.
     """
+
+    @property
+    def suffixes(self):
+        """ Return a list of supported layer suffixes for this renderer.
+        """
 
     def render(self, collection, eo_object, request_values, **options):
         """ Render the given collection and coverage with the provided request
