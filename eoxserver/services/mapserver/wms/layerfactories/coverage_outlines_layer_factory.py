@@ -37,43 +37,43 @@ from eoxserver.contrib.mapserver import (
 )
 from eoxserver.resources.coverages import models, crss
 from eoxserver.services.mapserver.interfaces import LayerFactoryInterface
-from eoxserver.services.mapserver.wms.layerfactories import AbstractLayerFactory
+from eoxserver.services.mapserver.wms.layerfactories import (
+    AbstractLayerFactory, BaseStyleMixIn
+)
 
 
-class CoverageOutlinesLayerFactory(AbstractLayerFactory):
+class CoverageOutlinesLayerFactory(BaseStyleMixIn, AbstractLayerFactory):
     handles = (models.RectifiedDataset, models.ReferenceableDataset,
                models.RectifiedStitchedMosaic,)
-    suffix = "_outlines"
+    suffixes = ("_outlines",)
     requires_connection = False
 
-    STYLES = (
-        ("red", 255, 0, 0),
-        ("green", 0, 128, 0),
-        ("blue", 0, 0, 255),
-        ("white", 255, 255, 255),
-        ("black", 0, 0, 0),
-        ("yellow", 255, 255, 0),
-        ("orange", 255, 165, 0),
-        ("magenta", 255, 0, 255),
-        ("cyan", 0, 255, 255),
-        ("brown", 165, 42, 42)
-    )
     
-    DEFAULT_STYLE = "red"
-
-    def generate(self, eo_object, group_layer, options):
+    def generate(self, eo_object, group_layer, suffix, options):
         # don't generate any layers, but add the footprint as feature to the 
         # group layer
 
-        layer = group_layer
+        if group_layer:
+            layer = group_layer
+        else:
+            layer = self._create_polygon_layer(
+                eo_object.identifier + "_outlines"
+            )
+
         shape = shapeObj.fromWKT(eo_object.footprint.wkt)
         shape.initValues(1)
         shape.setValue(0, eo_object.identifier)
         layer.addFeature(shape)
-        return ()
+        
+        if not group_layer:
+            yield layer, ()
 
 
     def generate_group(self, name):
+        return self._create_polygon_layer(name)
+
+
+    def _create_polygon_layer(self, name):
         layer = Layer(name, type=MS_LAYER_POLYGON)
         self.apply_styles(layer)
 
@@ -96,17 +96,4 @@ class CoverageOutlinesLayerFactory(AbstractLayerFactory):
         layer.offsite = colorObj(0, 0, 0)
 
         return layer
-
-
-    def apply_styles(self, layer):
-        # add style info
-        for name, r, g, b in self.STYLES:
-            cls = classObj()
-            style = styleObj()
-            style.outlinecolor = colorObj(r, g, b)
-            cls.insertStyle(style)
-            cls.group = name
-        
-            layer.insertClass(cls)
-
-        layer.classgroup = self.DEFAULT_STYLE
+    

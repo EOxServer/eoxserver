@@ -28,55 +28,55 @@
 
 
 from eoxserver.core import Component, implements
-from eoxserver.contrib.mapserver import Layer
+from eoxserver.contrib import mapserver as ms
 from eoxserver.resources.coverages import models, crss
 from eoxserver.resources.coverages.dateline import (
     extent_crosses_dateline, wrap_extent_around_dateline
 )
 from eoxserver.services.mapserver.interfaces import LayerFactoryInterface
-from eoxserver.services.mapserver.wms.layerfactories import AbstractLayerFactory
+from eoxserver.services.mapserver.wms.layerfactories import (
+    AbstractLayerFactory, OffsiteColorMixIn
+)
 
 
-class CoverageLayerFactory(AbstractLayerFactory):
+class CoverageLayerFactory(OffsiteColorMixIn, AbstractLayerFactory):
     handles = (models.RectifiedDataset, models.RectifiedStitchedMosaic)
-    suffix = None
+    suffixes = (None,)
     requires_connection = True
 
-    def generate(self, eo_object, group_layer, options):
+    def generate(self, eo_object, group_layer, suffix, options):
         coverage = eo_object.cast()
         extent = coverage.extent
         srid = coverage.srid
+
+        data_items = coverage.data_items.all()
+        range_type = coverage.range_type
+
+        offsite = self.offsite_color_from_range_type(range_type)
+        
         if extent_crosses_dateline(extent, srid):
             identifier = coverage.identifier
             wrapped_extent = wrap_extent_around_dateline(extent, srid)
-            yield self._create_layer(
+            layer = self._create_layer(
                 coverage, identifier + "_unwrapped", extent, identifier
             )
-            yield self._create_layer(
+            if offsite:
+                layer.offsite = offsite
+            yield layer, data_items
+            wrapped_layer = self._create_layer(
                 coverage, identifier + "_wrapped", wrapped_extent, identifier, True
             )
+            if offsite:
+                wrapped_layer.offsite = offsite
+            yield wrapped_layer, data_items
         else:
-            yield self._create_layer(coverage, coverage.identifier, extent)
-
-
-    def _create_layer(self, coverage, name, extent, group=None, wrapped=False):
-        layer = Layer(name)
-        layer.setMetaData("wms_extent", "%f %f %f %f" % extent)
-        layer.setMetaData(
-            "wms_enable_request", "getcapabilities getmap getfeatureinfo"
-        )
-
-        if wrapped:
-            # set the info for the connector to wrap this layer around the dateline
-            layer.setMetaData("eoxs_wrap_dateline", "true")
-
-        layer.setExtent(*extent)
-        self._set_projection(layer, coverage.spatial_reference)
-        if group:
-            layer.group = group
-
-        return layer
+            layer = self._create_layer(
+                coverage, coverage.identifier, extent
+            )
+            if offsite:
+                layer.offsite = offsite
+            yield layer, data_items
 
 
     def generate_group(self, name):
-        return Layer(name)
+        return ms.Layer(name)

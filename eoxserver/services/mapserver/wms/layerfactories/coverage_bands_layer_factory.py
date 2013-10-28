@@ -37,17 +37,19 @@ from eoxserver.contrib.mapserver import (
 )
 from eoxserver.resources.coverages import models
 from eoxserver.services.mapserver.interfaces import LayerFactoryInterface
-from eoxserver.services.mapserver.wms.layerfactories import AbstractLayerFactory
+from eoxserver.services.mapserver.wms.layerfactories import (
+    AbstractLayerFactory, OffsiteColorMixIn
+)
 
 
-class CoverageBandsLayerFactory(AbstractLayerFactory):
+class CoverageBandsLayerFactory(OffsiteColorMixIn, AbstractLayerFactory):
     handles = (models.RectifiedDataset, models.RectifiedStitchedMosaic,)
               # TODO: ReferenceableDatasets
-    suffix = "_bands"
+    suffixes = ("_bands",)
     requires_connection = True
 
-    def generate(self, eo_object, group_layer, options):
-        name = eo_object.identifier + self.suffix
+    def generate(self, eo_object, group_layer, suffix, options):
+        name = eo_object.identifier + "_bands"
         layer = Layer(name)
         layer.setMetaData("ows_title", name)
         layer.setMetaData("wms_label", name)
@@ -63,6 +65,7 @@ class CoverageBandsLayerFactory(AbstractLayerFactory):
         for req_band in req_bands:
             if isinstance(req_band, int):
                 band_indices.append(req_band + 1)
+
                 bands.append(range_type[req_band])
             else:
                 for i, band in enumerate(range_type):
@@ -71,34 +74,30 @@ class CoverageBandsLayerFactory(AbstractLayerFactory):
                         bands.append(band)
                         break
                 else:
-                    raise "Coverage '%s' does not have a band with name '%s'." 
+                    raise Exception(
+                        "Coverage '%s' does not have a band with name '%s'." 
+                    )
 
         if len(req_bands) in (3, 4):
             indices_str = ",".join(map(str, band_indices))
+            offsite_indices = map(lambda v: v-1, band_indices[:3])
         elif len(req_bands) == 1:
             indices_str = ",".join(map(str, band_indices * 3))
+            v = band_indices[0] - 1
+            offsite_indices = [v, v, v]
         else:
-            raise "Invalid number of bands requested."
+            raise Exception("Invalid number of bands requested.")
 
         layer.setProcessingKey("BANDS", indices_str)
-        layer.offsite = create_offsite_color(bands)
+        layer.offsite = self.offsite_color_from_range_type(
+            range_type, offsite_indices
+        )
         
         # TODO: seems to break rendering
         #layer.setProcessingKey("SCALE", "100,200")
 
-        yield layer
+        yield (layer, coverage.data_items.all())
         # TODO: dateline wrapping
 
     def generate_group(self, name):
         return Layer(name)
-
-
-def create_offsite_color(bands):
-    return colorObj(0,0,0)
-    if len(bands) == 1:
-        v = int(bands[0].nil_values.all()[0].value)
-        return colorObj(v, v, v)
-    elif len(bands) == 3:
-        values = [int(band.nil_values.all()[0].value) for band in bands]
-        return colorObj(*values)
-
