@@ -1,11 +1,10 @@
 #-------------------------------------------------------------------------------
 #
 # Project: EOxServer <http://eoxserver.org>
-# Authors: Stephan Krause <stephan.krause@eox.at>
-#          Stephan Meissl <stephan.meissl@eox.at>
+# Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
 #-------------------------------------------------------------------------------
-# Copyright (C) 2011 EOX IT Services GmbH
+# Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -39,13 +38,13 @@ logger = logging.getLogger(__name__)
 class SLDStyleApplicator(Component):
     implements(StyleApplicatorInterface)
 
-    def apply(self, coverage, data_items, layer, cache):
+    def apply(self, coverage, data_items, layer):
         sld_items = filter(lambda d: (
             d.semantic.startswith("style") and d.format.upper() == "SLD"
         ), data_items)
 
         for sld_item in sld_items:
             
-            sld_filename = connect(sld_item, cache)
+            sld_filename = connect(sld_item)
             with open(sld_filename) as f:
                 layer.applySLD(f.read(), coverage.identifier)
