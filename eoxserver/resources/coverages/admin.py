@@ -121,8 +121,8 @@ class CoverageForm(LocationForm):
 
 
 class EOObjectAdmin(admin.GeoModelAdmin):
-    wms_url = 'http://maps.eox.at/tiles/wms/'
-    wms_layer = 'terrain_wgs84,overlay_streets_wgs84'
+    wms_url = 'http://tiles.maps.eox.at/wms/'
+    wms_layer = 'globcover,overlay_streets_wgs84'
 
 
 class CoverageAdmin(EOObjectAdmin):
@@ -134,7 +134,6 @@ class CoverageAdmin(EOObjectAdmin):
             'fields': ('identifier', )
         }),
         ('Metadata', {
-            'classes': ('collapse',),
             'fields': ('range_type', 
                        ('size_x', 'size_y'),
                        ('min_x', 'min_y'),
@@ -277,7 +276,6 @@ class DatasetSeriesAdmin(CollectionAdmin):
             'fields': ('identifier',)
         }),
         ('Metadata', {
-            'classes': ('collapse',),
             'fields': (('begin_time', 'end_time'), 'footprint')
         }),
     )
