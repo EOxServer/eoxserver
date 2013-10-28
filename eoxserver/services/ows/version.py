@@ -27,7 +27,68 @@
 #-------------------------------------------------------------------------------
 
 
-from functools import wraps, total_ordering
+from functools import wraps
+try:
+    from functools import total_ordering
+except ImportError:
+    import sys as _sys
+
+    if _sys.version_info[0] == 3:
+        def _has_method(cls, name):
+            for B in cls.__mro__:
+                if B is object:
+                    continue
+                if name in B.__dict__:
+                    return True
+            return False
+    else:
+        def _has_method(cls, name):
+            for B in cls.mro():
+                if B is object:
+                    continue
+                if name in B.__dict__:
+                    return True
+            return False
+
+
+
+    def _ordering(cls, overwrite):
+        def setter(name, value):
+            if overwrite or not _has_method(cls, name):
+                value.__name__ = name
+                setattr(cls, name, value)
+                
+        comparison = None
+        if not _has_method(cls, '__lt__'):
+            for name in 'gt le ge'.split():
+                if not _has_method(cls, '__' + name + '__'):
+                    continue
+                comparison = getattr(cls, '__' + name + '__')
+                if name.endswith('e'):
+                    eq = lambda s, o: comparison(s, o) and comparison(o, s)
+                else:
+                    eq = lambda s, o: not comparison(s, o) and not comparison(o, s)
+                ne = lambda s, o: not eq(s, o)
+                if name.startswith('l'):
+                    setter('__lt__', lambda s, o: comparison(s, o) and ne(s, o))
+                else:
+                    setter('__lt__', lambda s, o: comparison(o, s) and ne(s, o))
+                break
+            assert comparison is not None, 'must have at least one of ge, gt, le, lt'
+
+        setter('__ne__', lambda s, o: s < o or o < s)
+        setter('__eq__', lambda s, o: not s != o)
+        setter('__gt__', lambda s, o: o < s)
+        setter('__ge__', lambda s, o: not (s < o))
+        setter('__le__', lambda s, o: not (s > o))
+        return cls
+
+
+    def total_ordering(cls):
+        return _ordering(cls, False)
+
+    def force_total_ordering(cls):
+        return _ordering(cls, True)
 
 
 __all__ = ["parse_version_string", "Version"]
