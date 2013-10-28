@@ -29,21 +29,12 @@
 
 
 from django.contrib.gis.db import models
-from django.contrib.contenttypes.models import ContentType
-
-
-def get_real_content_type(obj):
-    """ Helper to get the correct content type record for the type of the object.
-    """
-    return ContentType.objects.get_for_model(type(obj))
 
 
 class Castable(models.Model):
     """ Model mix-in for 'castable' types. With this MixIn, type information and 
-    completed models can be retrieved.
+        completed models can be retrieved.
     """
-
-    real_content_type = models.ForeignKey(ContentType, editable=False)
 
     @property
     def real_type(self):
@@ -51,17 +42,20 @@ class Castable(models.Model):
         if not self.id:
             return type(self)
 
-        # this command uses the cached access of the contenttypes framework
-        real_content_type = ContentType.objects.get_for_id(self.real_content_type_id)
-        return real_content_type.model_class()
+        return self.type_registry[self.real_content_type]
 
-    
-    def save(self, *args, **kwargs):
-        # save a reference to the actual content type
+        
+    def __init__(self, *args, **kwargs):
+        super(Castable, self).__init__(*args, **kwargs)
         if not self.id:
-            self.real_content_type = get_real_content_type(self)
-
-        return super(Castable, self).save(*args, **kwargs)
+            for type_id, cls in self.type_registry.items():
+                if cls == type(self):
+                    self.real_content_type = type_id
+                    break
+            else:
+                raise Exception(
+                    "Saved type identifier is not present in the type registry."
+                )
 
 
     def cast(self, refresh=False):
@@ -75,8 +69,7 @@ class Castable(models.Model):
         if real_type == type(self) and not refresh:
             return self
 
-        # otherwise get the correctly typed model
-        return self.real_content_type.get_object_for_this_type(pk=self.pk)
+        return self.real_type.objects.get(pk=self.pk)
 
 
     class Meta:

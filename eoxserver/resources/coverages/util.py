@@ -29,6 +29,11 @@
 #-------------------------------------------------------------------------------
 
 
+from django.db.models import Min, Max
+from django.contrib.gis.db.models import Union
+from django.contrib.gis.geos import MultiPolygon, Polygon
+
+
 def pk_equals(first, second):
     return first.pk == second.pk
 
@@ -46,3 +51,46 @@ def detect_circular_reference(eo_object, collection, supercollection_getter, equ
             return True
 
     return False
+
+
+def collect_eo_metadata(qs, insert=None, exclude=None, bbox=False):
+    """ Helper function to collect EO metadata from all EOObjects in a queryset, 
+    plus additionals from a list and exclude others from a different list. If 
+    bbox is `True` then the returned polygon will only be a minimal bounding box
+    of the collected footprints.
+    """
+
+    values = qs.exclude(
+        pk__in=[eo_object.pk for eo_object in exclude or ()]
+    ).aggregate(
+        begin_time=Min("begin_time"), end_time=Max("end_time"),
+        footprint=Union("footprint")
+    )
+
+    begin_time, end_time, footprint = (
+        values["begin_time"], values["end_time"], values["footprint"]
+    )
+
+    for eo_object in insert or ():
+        if begin_time is None:
+            begin_time = eo_object.begin_time
+        elif eo_object.begin_time is not None:
+            begin_time = min(begin_time, eo_object.begin_time)
+
+        if end_time is None:
+            end_time = eo_object.end_time
+        elif eo_object.end_time is not None:
+            end_time = max(end_time, eo_object.end_time)
+
+        if footprint is None:
+            footprint = eo_object.footprint
+        elif eo_object.footprint is not None:
+            footprint = footprint.union(eo_object.footprint)
+
+    if not isinstance(footprint, MultiPolygon) and footprint is not None:
+        footprint = MultiPolygon(footprint)
+
+    if bbox and footprint is not None:
+        footprint = MultiPolygon(Polygon.from_bbox(footprint.extent))
+
+    return begin_time, end_time, footprint
