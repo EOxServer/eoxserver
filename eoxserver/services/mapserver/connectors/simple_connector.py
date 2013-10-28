@@ -46,9 +46,9 @@ class SimpleConnector(Component):
         filtered = filter(lambda d: d.semantic.startswith("bands"), data_items)
         return len(filtered) == 1 
 
-    def connect(self, coverage, data_items, layer, cache):
+    def connect(self, coverage, data_items, layer):
         filtered = filter(lambda d: d.semantic.startswith("bands"), data_items)
-        data = connect(filtered[0], cache)
+        data = connect(filtered[0])
 
         if not layer.metadata.get("eoxs_wrap_dateline") == "true":
             layer.data = data
@@ -69,6 +69,6 @@ class SimpleConnector(Component):
             
             layer.data = vrt_path
 
-    def disconnect(self, coverage, data_items, layer, cache):
+    def disconnect(self, coverage, data_items, layer):
         if layer.metadata.get("eoxs_wrap_dateline") == "true":
             vsi.remove(layer.data)

@@ -46,9 +46,9 @@ class TileIndexConnector(Component):
             len(data_items) == 1 and data_items[0].semantic == "tileindex"
         )
 
-    def connect(self, coverage, data_items, layer, cache):
-        layer.tileindex = os.path.abspath(connect(data_items[0], cache))
+    def connect(self, coverage, data_items, layer):
+        layer.tileindex = os.path.abspath(connect(data_items[0]))
         layer.tileitem = "location"
 
-    def disconnect(self, coverage, data_items, layer, cache):
+    def disconnect(self, coverage, data_items, layer):
         pass

@@ -52,7 +52,7 @@ class MultiFileConnector(Component):
             )
         )
 
-    def connect(self, coverage, data_items, layer, cache):
+    def connect(self, coverage, data_items, layer):
 
         # TODO: implement
         vrt_doc = vrt.VRT()
@@ -83,5 +83,5 @@ class MultiFileConnector(Component):
 
         layer.data = path
 
-    def disconnect(self, coverage, data_items, layer, cache):
+    def disconnect(self, coverage, data_items, layer):
         vsi.remove(layer.data)
