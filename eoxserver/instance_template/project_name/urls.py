@@ -44,7 +44,7 @@ from eoxserver.resources.processes import views as procViews
 urlpatterns = patterns('',
     (r'^$', 'eoxserver.views.index'),
     (r'^ows', 'eoxserver.services.views.ows'),
-    (r'^logview', 'eoxserver.logging.views.logview'),
+    #(r'^logview', 'eoxserver.logging.views.logview'),
     (r'^client/$', 'eoxserver.webclient.views.index'),
     (r'^client/(.*)', 'eoxserver.webclient.views.webclient'),
 

@@ -33,7 +33,12 @@ function is ows() which handles all incoming OWS requests"""
 import logging
 import traceback
 
-from django.http import HttpResponse, StreamingHttpResponse
+from django.http import HttpResponse
+try:
+    from django.http import StreamingHttpResponse
+except:
+    class StreamingHttpResponse(object):
+        pass
 from django.conf import settings
 
 from eoxserver.services.ows.component import ServiceComponent, env
