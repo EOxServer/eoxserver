@@ -5,7 +5,7 @@
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
 #-------------------------------------------------------------------------------
-# Copyright (C) 2011 EOX IT Services GmbH
+# Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,46 +26,28 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-
-from eoxserver.core import Component, implements
-from eoxserver.services.ows.interfaces import ExceptionHandlerInterface
 from eoxserver.services.ows.common.v20.encoders import OWS20ExceptionXMLEncoder
-from eoxserver.core.decoders import (
-    DecodingException, MissingParameterException
-)
 
 
-class WCS10ExceptionHandler(Component):
-    implements(ExceptionHandlerInterface)
-
-    service = "WCS"
-    versions = ("1.0.0",)
-    request = None
+class OWS20ExceptionHandler(object):
+    """ A Fallback exception handler. This class does on purpose not implement
+        the ExceptionHandlerInterface and must be instantiated manually.
+    """
 
     def handle_exception(self, request, exception):
         message = str(exception)
-        code = getattr(exception, "code", None)
+        version = "2.0.0"
+        code = getattr(exception, "code", type(exception).__name__)
         locator = getattr(exception, "locator", None)
-        status = 400
-        
+        status_code = 400
 
+        encoder = OWS20ExceptionXMLEncoder()
 
-        # TODO
+        return (
+            encoder.serialize(
+                encoder.encode_exception(message, version, code, locator)
+            ),
+            encoder.content_type,
+            status_code
+        )
 
-
-
-        if code is None:
-            if isinstance(exception, MissingParameterException):
-                code = "MissingParameterValue"
-            elif isinstance(exception, DecodingException):
-                code = "InvalidParameterValue"
-            else:
-                code = "InvalidRequest"
-
-        if code in ("NoSuchCoverage", "InvalidAxisLabel", "InvalidSubsetting"):
-            status = 404
-        elif code in ("OperationNotSupported", "OptionNotSupported"):
-            status = 501
-
-
-        return "xxx", 400  #content, content_type, status

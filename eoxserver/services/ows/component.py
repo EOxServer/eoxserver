@@ -34,6 +34,13 @@ from eoxserver.core.decoders import kvp, xml, upper, typelist
 from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap
 from eoxserver.services.ows.interfaces import *
 from eoxserver.services.ows.version import parse_version_string
+from eoxserver.services.exceptions import (
+    ServiceNotSupportedException, VersionNotSupportedException,
+    VersionNegotiationException, OperationNotSupportedException
+)
+from eoxserver.services.ows.common.v20.exceptionhandler import (
+    OWS20ExceptionHandler
+)
 
 
 ns_xlink = NameSpace("http://www.w3.org/1999/xlink", "xlink")
@@ -86,17 +93,33 @@ class ServiceComponent(Component):
             )
             return self.version_negotiation(handlers, accepted_versions)
 
-        # TODO: improve. a lot.
-        for handler in handlers:
-            if (decoder.service == handler.service.upper()
-                and decoder.version in handler.versions 
-                and decoder.request == handler.request.upper()):
-                
-                # TODO: also take request method into account
+        # check that the service is supported
+        handlers = filter(
+            lambda h: decoder.service == h.service.upper(), handlers
+        )
+        if not handlers:
+            raise ServiceNotSupportedException(decoder.service)
 
-                return handler
+        # check that the required version is enabled
+        handlers = filter(
+            lambda h: decoder.version in h.versions, handlers
+        )
+        if not handlers:
+            raise VersionNotSupportedException(decoder.service, decoder.version)
 
-        return None
+        # check that the required operation is supported and sort by the highest
+        # version supported in descending manner
+        handlers = sorted(
+            filter(
+                lambda h: decoder.request == h.request.upper(), handlers
+            ), key=lambda h: max(h.versions), reverse=True
+        )
+
+        if not handlers:
+            raise OperationNotSupportedException(decoder.request)
+
+        # return the handler with the highest version
+        return handlers[0]
 
 
     def query_service_handlers(self, service=None, versions=None, request=None, method=None):
@@ -118,14 +141,30 @@ class ServiceComponent(Component):
         decoder = self.get_decoder(request)
         handlers = self.exception_handlers
 
-        # TODO: improve. a lot.
-        for handler in handlers:
-            if (decoder.service == handler.service 
-                and decoder.version in handler.versions):
-                
-                return handler
 
-        return None
+        handlers = sorted(
+            filter(
+                lambda h: decoder.service == h.service.upper(), 
+                self.exception_handlers
+            ),
+            key=lambda h: max(h.versions), reverse=True
+        )
+
+        # try to get the correctly versioned exception handler
+        if decoder.version:
+            for handler in handlers:
+                if decoder.version in handler.versions:
+                    return handler
+        else:
+            # return the exception handler with the highest version,
+            # if one is available
+            try:
+                return handlers[0]
+            except IndexError:
+                pass
+
+        # last resort fallback is a plain OWS exception handler
+        return OWS20ExceptionHandler()
 
 
     def version_negotiation(self, handlers, accepted_versions=None):
@@ -136,7 +175,7 @@ class ServiceComponent(Component):
 
         available_versions = sorted(version_to_handler.keys(), reverse=True)
         if not available_versions:
-            raise Exception("No handler found.")
+            raise VersionNegotiationException()
 
         if not accepted_versions:
             return version_to_handler[available_versions[0]]
@@ -145,6 +184,8 @@ class ServiceComponent(Component):
         for accepted_version, available_version in combinations:
             if accepted_version == available_version:
                 return version_to_handler[available_version]
+
+        raise VersionNegotiationException()
 
 
 def filter_handlers(handlers, service=None, versions=None, request=None):

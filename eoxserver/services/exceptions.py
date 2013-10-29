@@ -118,4 +118,36 @@ class OperationNotSupportedException(Exception):
     """ Exception to be thrown when some operations are not supported or 
         disabled.
     """
+    def __init__(self, operation):
+        self.operation = operation
+
+    def __str__(self):
+        return "Operation '%s' is not supported." % self.operation
+
     code = "OperationNotSupported"
+
+
+class ServiceNotSupportedException(OperationNotSupportedException):
+    """ Exception to be thrown when a specific OWS service is not enabled.
+    """
+    def __init__(self, service):
+        self.service = service
+
+    def __str__(self):
+        return "Service '%s' is not supported." % self.service.upper()
+
+
+class VersionNotSupportedException(Exception):
+    """ Exception to be thrown when a specific OWS service version is not 
+        supported.
+    """
+    def __init__(self, service, version):
+        self.service = service
+        self.version = version
+
+    def __str__(self):
+        return "Service '%s' version '%s' is not supported." % (
+            self.service, self.version
+        )
+
+    code = "InvalidParameterValue"
