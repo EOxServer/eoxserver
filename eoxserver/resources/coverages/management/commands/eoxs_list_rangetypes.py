@@ -45,7 +45,7 @@ except ImportError:
     
 #------------------------------------------------------------------------------
 
-from eoxserver.core.system import System
+#from eoxserver.core.system import System
 
 #------------------------------------------------------------------------------
 
@@ -112,12 +112,6 @@ class Command(CommandOutputMixIn, BaseCommand):
 
         # dataset's (coverages') ids
         rt_list = args
-
-            
-        #----------------------------------------------------------------------
-        # initialize EOxServer binding
-
-        System.init()
 
         #----------------------------------------------------------------------
         # check the input rangetype names

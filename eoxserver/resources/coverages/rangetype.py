@@ -31,11 +31,59 @@ from django.db import transaction
 from eoxserver.contrib import gdal
 
 
-class Band(object):
+class WRangeType(object):
+    """
+    RangeType contains range type information of a coverage. The
+    constructor accepts the mandatory ``name`` and ``data_type``
+    parameters as well as an optional ``bands`` parameter. If no bands
+    are specified they shall be added with :meth:`addBands`.
+    """
+    
+    def __init__(self, name, bands=[] ):
+        self.name = name
+        self.bands = bands
+    
+    def __eq__(self, other):
+        if (self.name != other.name
+            or self.bands != other.bands):
+            return False
+        return True
+    
+    def addBand(self, band):
+        "Append a new band to the band list."
+        self.bands.append(band)
+        
+    def asDict( self ):
+        """ return object as a tupe to be passed to JSON serializer """
+
+        bands = [ band.asDict() for band in self.bands ] 
+
+        return {    
+            "name" : self.name,
+            "bands" : bands
+        }
+
+
+class WBand(object):
     """\
     Band represents a band configuration.
     
-    The ``gdal_interpretation`` parameter contains the GDAL
+    The ``data_type`` parameter may be set to one of the following
+    constants defined in :mod:`osgeo.gdalconst`:
+    
+    * ``GDT_Byte``
+    * ``GDT_UInt16``
+    * ``GDT_Int16``
+    * ``GDT_UInt32``
+    * ``GDT_Int32``
+    * ``GDT_Float32``
+    * ``GDT_Float64``
+    * ``GDT_CInt16``
+    * ``GDT_CInt32``
+    * ``GDT_CFloat32``
+    * ``GDT_CFloat64``
+    
+    The ``color_interpretation`` parameter contains the GDAL
     BandInterpretation value which may be assigned to a band. It may
     be set to one of the following constants defined in
     :mod:`osgeo.gdalconst`:
@@ -60,141 +108,63 @@ class Band(object):
 
     def __init__(self,
         name,
+        data_type, 
         identifier='',
         description='',
         definition='http://opengis.net/def/property/OGC/0/Radiance',
-        nil_values=None,
+        nil_values=[],
         uom='W.m-2.sr-1.nm-1',
-        gdal_interpretation=gdal.GCI_Undefined
+        color_interpretation=gdal.GCI_Undefined
     ):
         self.name = name
+        self.data_type = data_type
         self.identifier = identifier
         self.description = description
         self.definition = definition
-        if nil_values is None:
-            self.nil_values = []
-        else:
-            self.nil_values = nil_values
+        self.nil_values = nil_values
         self.uom = uom
-        self.gdal_interpretation = gdal_interpretation
-    
-    def getGDALInterpretationAsString( self ) : 
-        "Return string representation of the ``gdal_interpretation``."
-        return gdal.GCI_TO_NAME.get( self.gdal_interpretation , "Invalid" ) 
+        self.color_interpretation = color_interpretation
 
     def __eq__(self, other):
         if (self.name != other.name
+            or self.data_type != data_type
             or self.identifier != other.identifier
             or self.description != other.description
             or self.definition != other.definition
             or self.nil_values != other.nil_values
             or self.uom != other.uom
-            or self.gdal_interpretation != other.gdal_interpretation):
+            or self.color_interpretation != other.color_interpretation):
             return False
         return True
+
+    def addNilValue(self, nil_value ):
+        "Append a new nil-value to the band list."
+        self.nil_values.append(nil_value)
 
     def asDict( self ):
         """
         Return object's data as a dictionary to be passed to a JSON serializer.
         """
 
-        nils = [ nil.asDict() for nil in self.nil_values ] 
-
         return {    
             "name" : self.name,
+            "data_type" : self.getDataTypeAsString(), 
             "identifier" : self.identifier,
             "description" : self.description,
             "definition" : self.definition,
             "uom" : self.uom,
-            "nil_values" : nils,
-            "gdal_interpretation" : self.getGDALInterpretationAsString() 
+            "nil_values" : [ nv.asDict() for nv in self.nil_values ],
+            "color_interpretation" : self.getColorInterpretationAsString() 
         }
-
-
-class NilValue(object):
-    """
-    This class represents nil values of a coverage band.
     
-    The constructor accepts the nil value itself and a reason. The
-    reason shall be one of:
-    
-    * ``http://www.opengis.net/def/nil/OGC/0/inapplicable``
-    * ``http://www.opengis.net/def/nil/OGC/0/missing``
-    * ``http://www.opengis.net/def/nil/OGC/0/template``
-    * ``http://www.opengis.net/def/nil/OGC/0/unknown``
-    * ``http://www.opengis.net/def/nil/OGC/0/withheld``
-    * ``http://www.opengis.net/def/nil/OGC/0/AboveDetectionRange``
-    * ``http://www.opengis.net/def/nil/OGC/0/BelowDetectionRange``
-    
-    See http://www.opengis.net/def/nil/ for the official description
-    of the meanings of these values.
-    """
-    
-    def __init__(self, reason, value):
-        self.reason = reason
-        self.value = value
-        
-    def __eq__(self, other):
-        if self.reason != other.reason or self.value != other.value:
-            return False
-        return True
-
-    def asDict( self ):
-        """
-        Return object's data as a dictionary to be passed to a JSON serializer.
-        """
-
-        return { "reason" : self.reason , "value" : self.value } 
-
-class RangeType(object):
-    """
-    RangeType contains range type information of a coverage. The
-    constructor accepts the mandatory ``name`` and ``data_type``
-    parameters as well as an optional ``bands`` parameter. If no bands
-    are specified they shall be added with :meth:`addBands`.
-    
-    The ``data_type`` parameter may be set to one of the following
-    constants defined in :mod:`osgeo.gdalconst`:
-    
-    * ``GDT_Byte``
-    * ``GDT_UInt16``
-    * ``GDT_Int16``
-    * ``GDT_UInt32``
-    * ``GDT_Int32``
-    * ``GDT_Float32``
-    * ``GDT_Float64``
-    * ``GDT_CInt16``
-    * ``GDT_CInt32``
-    * ``GDT_CFloat32``
-    * ``GDT_CFloat64``
-    """
-    
-    def __init__(self, name, data_type, bands=None):
-        self.name = name
-        self.data_type = data_type
-        if bands is None:
-            self.bands = []
-        else:
-            self.bands = bands
-    
-    def __eq__(self, other):
-        if (self.name != other.name
-            or self.data_type != other.data_type 
-            or self.bands != other.bands):
-            return False
-        return True
-    
-    def __ne__(self, other):
-        return not (self == other)
-
     def getDataTypeAsString( self ) : 
         "Return string representation of the ``data_type``."
         return gdal.GDT_TO_NAME.get( self.data_type, "Invalid" ) 
     
-    def addBand(self, band):
-        "Append a new band to the band list."
-        self.bands.append(band)
-        
+    def getColorInterpretationAsString( self ) : 
+        "Return string representation of the ``color_interpretation``."
+        return gdal.GCI_TO_NAME.get( self.color_interpretation , "Invalid" ) 
+
     def getSignificantFigures(self):
         "Get significant figures of the currently used type."
         dt = self.data_type
@@ -206,9 +176,8 @@ class RangeType(object):
             return 10
         elif dt in ( gdal.GDT_Float32 , gdal.GDT_CFloat32 ) : 
             return 38
-        #TODO 64-bit float and complex
-        #elif dt in ( gdal.GDT_Float64 , gdal.GDT_CFloat64 ) : 
-        #    return ??
+        elif dt in ( gdal.GDT_Float64 , gdal.GDT_CFloat64 ) : 
+            return 308
         else: 
             raise NotImplementedError()
         
@@ -227,71 +196,100 @@ class RangeType(object):
             return (-2147483648, 2147483647)
         elif dt in ( gdal.GDT_Float32 , gdal.GDT_CFloat32 ) : 
             return (-3.40282e+38, 3.40282e+38)
-        #TODO 64-bit float and complex
-        #elif dt in ( gdal.GDT_Float64 , gdal.GDT_CFloat64 ) : 
-        #    return ??
+        elif dt in ( gdal.GDT_Float64 , gdal.GDT_CFloat64 ) : 
+            return (-1.7976931348623157e+308, 1.7976931348623157e+308)
         else:
             raise NotImplementedError()
 
+
+class WNilValue(object):
+    """
+    This class represents nil values of a coverage band.
+    
+    The constructor accepts the nil value itself and a reason. The
+    reason shall be one of:
+    
+    * ``http://www.opengis.net/def/nil/OGC/0/inapplicable``
+    * ``http://www.opengis.net/def/nil/OGC/0/missing``
+    * ``http://www.opengis.net/def/nil/OGC/0/template``
+    * ``http://www.opengis.net/def/nil/OGC/0/unknown``
+    * ``http://www.opengis.net/def/nil/OGC/0/withheld``
+    * ``http://www.opengis.net/def/nil/OGC/0/AboveDetectionRange``
+    * ``http://www.opengis.net/def/nil/OGC/0/BelowDetectionRange``
+    
+    See http://www.opengis.net/def/nil/ for the official description
+    of the meanings of these values.
+
+    Note: the type of the nill value is assumed to be the same 
+    as the one of the associated band.
+    """
+    
+    def __init__(self, reason, value):
+        self.reason = reason
+        self.value = value
+        
+    def __eq__(self, other):
+        if self.reason != other.reason or self.value != other.value:
+            return False
+        return True
+
     def asDict( self ):
-        """ return object as a tupe to be passed to JSON serializer """
+        """
+        Return object's data as a dictionary to be passed to a JSON serializer.
+        """
 
-        bands = [ band.asDict() for band in self.bands ] 
+        return { "reason" : self.reason , "value" : self.value } 
 
-        return {    
-            "name" : self.name,
-            "data_type" : self.getDataTypeAsString(), 
-            "bands" : bands
-        }
-    
 
-# TODO: rewrite this function according to new RangeType definition
-def getRangeTypeFromFile(filename):
-    """Get range type from the file given by the ``filename``."""
-    ds = gdal.Open(str(filename))
-    
-    range_type = RangeType("", ds.GetRasterBand(1).DataType)
-    
-    for i in range(1, ds.RasterCount + 1):
-        band = ds.GetRasterBand(i)
-        color_intp = band.GetRasterColorInterpretation()
-        if color_intp == gdal.GCI_RedBand:
-            name = "red"
-            description = "Red Band"
-        elif color_intp == gdal.GCI_GreenBand:
-            name = "green"
-            description = "Green Band"
-        elif color_intp == gdal.GCI_BlueBand:
-            name = "blue"
-            description = "Blue Band"
-        else:
-            name = "unknown_band_%d" % i
-            description = "Unknown Band"
+## TODO: rewrite this function according to new RangeType definition
+#def getRangeTypeFromFile(filename):
+#    """Get range type from the file given by the ``filename``."""
+#    ds = gdal.Open(str(filename))
+#    
+#    range_type = RangeType("", ds.GetRasterBand(1).DataType)
+#    
+#    for i in range(1, ds.RasterCount + 1):
+#        band = ds.GetRasterBand(i)
+#        color_intp = band.GetRasterColorInterpretation()
+#        if color_intp == gdal.GCI_RedBand:
+#            name = "red"
+#            description = "Red Band"
+#        elif color_intp == gdal.GCI_GreenBand:
+#            name = "green"
+#            description = "Green Band"
+#        elif color_intp == gdal.GCI_BlueBand:
+#            name = "blue"
+#            description = "Blue Band"
+#        else:
+#            name = "unknown_band_%d" % i
+#            description = "Unknown Band"
 
-        range_type.addBand(Band(
-            name, name, description, 
-            nil_values=[
-                    NilValue(
-                        value=band.GetNoDataValue(),
-                        reason="http://www.opengis.net/def/nil/OGC/1.0/unknown"
-                    )
-                ],
-                gdal_interpretation = color_intp
-            )
-        )
-         
-    return range_type
+#        range_type.addBand(Band(
+#            name, name, description, 
+#            nil_values=[
+#                    NilValue(
+#                        value=band.GetNoDataValue(),
+#                        reason="http://www.opengis.net/def/nil/OGC/1.0/unknown"
+#                    )
+#                ],
+#                color_interpretation = color_intp
+#            )
+#        )
+#         
+#    return range_type
 
 #==============================================================================
 
-from eoxserver.resources.coverages.models import RangeTypeRecord
-from eoxserver.resources.coverages.models import BandRecord
-from eoxserver.resources.coverages.models import RangeType2Band
+from eoxserver.resources.coverages.models import RangeType
+from eoxserver.resources.coverages.models import Band
+from eoxserver.resources.coverages.models import NilValueSet
+from eoxserver.resources.coverages.models import NilValue
+
 
 def getAllRangeTypeNames() : 
     """Return a list of identifiers of all registered range-types."""
 
-    return [ rec.name for rec in RangeTypeRecord.objects.all() ] 
+    return [ rec.name for rec in RangeType.objects.all() ] 
 
 def isRangeTypeName( name ) : 
     """
@@ -299,61 +297,64 @@ def isRangeTypeName( name ) :
     range-type with given identifier``name``.
     """
 
-    return ( 0 < RangeTypeRecord.objects.filter(name=name).count() ) 
+    return ( 0 < RangeType.objects.filter(name=name).count() ) 
+
 
 def getRangeType( name ) : 
     """ 
-    Return ``RangeType`` object for given ``name``. The object properties are 
-    loaded from the DB. If there is no ``RangeTypeRecord`` corresponding to 
+    Return ``WRangeType`` object for given ``name``. The object properties are 
+    loaded from the DB. If there is no ``RangeType`` record corresponding to 
     the given name ``None`` is returned.
     """ 
 
     try: 
 
         # get range-type record 
-        rt = RangeTypeRecord.objects.get(name=name)
+        rt = RangeType.objects.get(name=name)
 
         band = [] 
 
-        # loop over band records 
+        # loop over band records (ordering set in model) 
         for b in rt.bands.all() : 
 
             nil_values=[]
 
             # loop over nil values 
-            for n in b.nil_values.all() : 
+            for n in b.nil_value_set.nil_values.all() : 
 
                 # append created nil-value object 
-                nil_values.append( NilValue( reason=n.reason, value=n.value ) ) 
+                nil_values.append( WNilValue( reason=n.reason, value=n.raw_value ) ) 
 
             # append created band object 
             band.append( 
-                Band( 
-                    name        = b.name, 
+                WBand( 
+                    name        = b.name,
+                    data_type   = b.data_type, 
                     identifier  = b.identifier,
                     description = b.description, 
                     definition  = b.definition,
                     uom         = b.uom, 
                     nil_values  = nil_values,
-                    gdal_interpretation = b.gdal_interpretation
+                    color_interpretation = b.color_interpretation
                 )
             ) 
 
         # return created range-type object 
-        return RangeType( name=rt.name, data_type=rt.data_type, bands=band ) 
+        return WRangeType( name=rt.name, bands=band ) 
                 
-    except RangeTypeRecord.DoesNotExist : 
+    except RangeType.DoesNotExist : 
 
         return None 
+
 
 def setRangeType( rtype ) : 
     """ 
         Save range-type record to the DB. The range-type record is created 
-        from the ``rtype`` which can be either a ``RangeType`` object or 
+        from the ``rtype`` which can be either a ``WRangeType`` object or 
         parsed JSON dictionary.
     """
 
-    if isinstance( rtype , RangeType ) : 
+    if isinstance( rtype , WRangeType ) : 
         
         # convert to a dictionary 
         rtype = rtype.toDict() 
@@ -366,25 +367,47 @@ def setRangeType( rtype ) :
 
     with transaction.commit_on_success():
 
-        rtr = RangeTypeRecord.objects.create( 
-            name = rtype['name'], 
-            data_type = gdal.NAME_TO_GDT[rtype['data_type'].lower()]) 
+        rt = RangeType.objects.create( name = rtype['name'] )
 
-        for band in rtype['bands'] : 
+        # compatibility with old range-type json format
+        dtype_global = rtype.get('data_type',None)  
 
-            br = BandRecord.objects.create( 
-                    name = band['name'], 
-                    identifier = band['identifier'], 
+        for idx,band in enumerate(rtype['bands']) : 
+
+            # compatibility with old range-type json format
+            dtype = dtype_global if dtype_global else band['data_type']
+            cint  = band['gdal_interpretation'] if 'gdal_interpretation' in \
+                                    band else band['color_interpretation']
+            
+            # convert string to gdal code 
+            dtype = gdal.NAME_TO_GDT[dtype.lower()]
+            cint  = gdal.NAME_TO_GCI[cint.lower()]
+
+            # prepare nil-value set 
+
+            nvset = NilValueSet.objects.create( 
+                    name = "__%s_%2.2d__"%(rtype['name'],idx),
+                    data_type = dtype )  
+    
+            for nval in band['nil_values'] : 
+
+                nv = NilValue.objects.create( 
+                    reason = nval['reason'],
+                    raw_value = str(nval['value']),
+                    nil_value_set = nvset )
+    
+                # cheking value 
+                tmp = nv.value 
+    
+            bn = Band.objects.create( 
+                    index = idx, 
+                    name = band['name'],
+                    identifier = band['identifier'],
+                    data_type = dtype,
                     description = band['description'],
                     definition = band['definition'],
                     uom = band['uom'],
-                    gdal_interpretation = gdal.NAME_TO_GCI[
-                                        band['gdal_interpretation'].lower()])
-
-            RangeType2Band.objects.create( range_type=rtr, band=br, no=1 ) 
-
-            for nval in band['nil_values'] : 
-
-                br.nil_values.create(
-                    reason = nval['reason'],
-                    value  = nval['value'])
+                    color_interpretation = cint,
+                    range_type = rt,
+                    nil_value_set = nvset 
+                    )

@@ -45,10 +45,6 @@ except ImportError:
     
 #------------------------------------------------------------------------------
 
-from eoxserver.core.system import System
-
-#------------------------------------------------------------------------------
-
 from eoxserver.resources.coverages.rangetype import isRangeTypeName
 from eoxserver.resources.coverages.rangetype import setRangeType
 
@@ -68,7 +64,6 @@ class Command(CommandOutputMixIn, BaseCommand):
             help=("Optional. Read input from a file rather than from the "
                   "default standard input." )
         ),
-        
     )
 
     help = ( """ Load rangetypes stored in JSON format from standard input.""" )
@@ -116,11 +111,6 @@ class Command(CommandOutputMixIn, BaseCommand):
             raise CommandError( "Failed to open the input file '%s' ! "
                                     "REASON: %s " % ( filename , str(e) ) ) 
             
-        #----------------------------------------------------------------------
-        # initialize EOxServer binding
-
-        System.init()
-
         #----------------------------------------------------------------------
         # insert the range types to DB 
 
