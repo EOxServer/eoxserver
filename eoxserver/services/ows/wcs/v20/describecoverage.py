@@ -39,8 +39,6 @@ from eoxserver.services.ows.wcs.v20.encoders import (
     WCS20CoverageDescriptionXMLEncoder
 )
 from eoxserver.services.ows.wcs.v20.encoders import WCS20EOXMLEncoder
-from eoxserver.core.util.xmltools import DOMElementToXML
-
 
 
 class WCS20DescribeCoverageHandler(Component):
