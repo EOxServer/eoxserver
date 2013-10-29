@@ -28,9 +28,6 @@
 
 
 from eoxserver.core import implements
-from eoxserver.backends.cache import CacheContext
-from eoxserver.contrib.mapserver import create_request, Map, Layer
-from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.services.ows.wms.interfaces import WMSMapRendererInterface
 from eoxserver.services.mapserver.wms.util import MapServerWMSBaseComponent
 
@@ -39,23 +36,3 @@ class MapServerWMSMapRenderer(MapServerWMSBaseComponent):
     """ A WMS map renderer using MapServer.
     """
     implements(WMSMapRendererInterface)
-
-    
-    def render(self, layer_groups, request_values, **options):
-        map_ = Map()
-        map_.setMetaData("ows_enable_request", "*")
-        map_.setProjection("EPSG:4326")
-
-        with CacheContext() as cache:
-            coverage_layers = self.setup_map(
-                layer_groups, map_, options, cache
-            )
-
-            request = create_request(request_values)
-
-            try:
-                response = map_.dispatch(request)
-                return response.content, response.content_type
-            finally:
-                # cleanup
-                self.teardown_map(map_, coverage_layers, cache)
