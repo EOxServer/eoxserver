@@ -29,8 +29,7 @@
 
 from eoxserver.core import implements
 from eoxserver.core.config import get_eoxserver_config
-from eoxserver.backends.cache import CacheContext
-from eoxserver.contrib.mapserver import create_request, Map, Layer
+from eoxserver.contrib import mapserver as ms
 from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.services.mapserver.wms.util import MapServerWMSBaseComponent
 from eoxserver.services.ows.wms.interfaces import (
@@ -46,7 +45,7 @@ class MapServerWMSFeatureInfoRenderer(MapServerWMSBaseComponent):
     
     def render(self, layer_groups, request_values, **options):
         config = CapabilitiesConfigReader(get_eoxserver_config())
-        map_ = Map()
+        map_ = ms.Map()
         map_.setMetaData({
             "enable_request": "*",
             "onlineresource": config.http_service_url,
@@ -55,16 +54,9 @@ class MapServerWMSFeatureInfoRenderer(MapServerWMSBaseComponent):
         map_.setMetaData("wms_getfeatureinfo_formatlist", "text/html")
         map_.setProjection("EPSG:4326")
 
-        with CacheContext() as cache:
-            coverage_layers = self.setup_map(
-                layer_groups, map_, options, cache
-            )
-
-            request = create_request(request_values)
-
-            try:
-                response = map_.dispatch(request)
-                return response.content, response.content_type
-            finally:
-                # cleanup
-                self.teardown_map(map_, coverage_layers, cache)
+        session = self.setup_map(layer_groups, map_, options)
+        
+        with session:
+            request = ms.create_request(request_values)
+            response = map_.dispatch(request)
+            return response.content, response.content_type

@@ -258,12 +258,22 @@ class NilValueSet(models.Model):
         verbose_name = "Nil Value Set"
 
 
+NIL_VALUE_CHOICES = (
+    ("http://www.opengis.net/def/nil/OGC/0/inapplicable", "Inapplicable (There is no value)"),
+    ("http://www.opengis.net/def/nil/OGC/0/missing", "Missing"),
+    ("http://www.opengis.net/def/nil/OGC/0/template", "Template (The value will be available later)"),
+    ("http://www.opengis.net/def/nil/OGC/0/unknown", "Unknown"),
+    ("http://www.opengis.net/def/nil/OGC/0/withheld", "Withheld (The value is not divulged)"),
+    ("http://www.opengis.net/def/nil/OGC/0/AboveDetectionRange", "Above detection range"),
+    ("http://www.opengis.net/def/nil/OGC/0/BelowDetectionRange", "Below detection range")
+)
+
 class NilValue(models.Model):
     """ Single nil value contributing to a nil value set. 
     """
 
     raw_value = models.CharField(max_length=64, help_text="The string representation of the nil value.")
-    reason = models.CharField(max_length=64, null=False, blank=False, help_text="A string identifier (commonly a URI or URL) for the reason of this nil value.")
+    reason = models.CharField(max_length=64, null=False, blank=False, choices=NIL_VALUE_CHOICES, help_text="A string identifier (commonly a URI or URL) for the reason of this nil value.")
     
     nil_value_set = models.ForeignKey(NilValueSet, related_name="nil_values")
 

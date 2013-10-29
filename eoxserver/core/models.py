@@ -52,10 +52,6 @@ class Castable(models.Model):
                 if cls == type(self):
                     self.real_content_type = type_id
                     break
-            else:
-                raise Exception(
-                    "Saved type identifier is not present in the type registry."
-                )
 
 
     def cast(self, refresh=False):

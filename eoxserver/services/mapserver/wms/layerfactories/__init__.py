@@ -126,7 +126,7 @@ class OffsiteColorMixIn(object):
         for index in band_indices:
             band = range_type[index]
             nil_value_set = band.nil_value_set
-            if nil_value_set and len(nil_value_set) == 1:
+            if nil_value_set and len(nil_value_set) > 0:
                 values.append(nil_value_set[0].value)
             else:
                 return None

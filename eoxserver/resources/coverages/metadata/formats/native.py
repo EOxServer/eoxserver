@@ -66,7 +66,8 @@ class NativeFormat(Component):
                 "identifier": decoder.identifier,
                 "begin_time": decoder.begin_time,
                 "end_time": decoder.end_time,
-                "footprint": MultiPolygon(*decoder.polygons)
+                "footprint": MultiPolygon(*decoder.polygons),
+                "format": "native"
             }
         raise Exception("Could not parse from obj '%s'." % repr(obj))
 

@@ -187,11 +187,16 @@ class Command(CommandOutputMixIn, BaseCommand):
                 reader = metadata_component.get_reader_by_test(content)
                 if reader:
                     values = reader.read(content)
+
+                    format = values.pop("format", None)
+                    if format:
+                        data_item.format = format
+                        data_item.full_clean()
+                        data_item.save()
+
                     for key, value in values.items():
                         if key in metadata_keys:
                             retrieved_metadata.setdefault(key, value)
-
-                        # TODO: think this over. semantic would be required
 
 
         if len(datas) < 1:
@@ -226,6 +231,13 @@ class Command(CommandOutputMixIn, BaseCommand):
             reader = metadata_component.get_reader_by_test(ds)
             if reader:
                 values = reader.read(ds)
+
+                format = values.pop("format", None)
+                if format:
+                    data_item.format = format
+                    data_item.full_clean()
+                    data_item.save()
+
                 for key, value in values.items():
                     if key in metadata_keys:
                         retrieved_metadata.setdefault(key, value)

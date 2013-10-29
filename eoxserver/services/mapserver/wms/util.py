@@ -27,16 +27,20 @@
 #-------------------------------------------------------------------------------
 
 
+import logging
 from itertools import chain
 
 from django.db.models import Q
 from django.utils.datastructures import SortedDict
 
 from eoxserver.core import Component, ExtensionPoint
-from eoxserver.contrib.mapserver import Layer
+from eoxserver.contrib import mapserver as ms
 from eoxserver.services.mapserver.interfaces import (
     ConnectorInterface, LayerFactoryInterface, StyleApplicatorInterface
 )
+
+
+logger = logging.getLogger(__name__)
 
 
 class MapServerWMSBaseComponent(Component):
@@ -46,6 +50,26 @@ class MapServerWMSBaseComponent(Component):
     connectors = ExtensionPoint(ConnectorInterface)
     layer_factories = ExtensionPoint(LayerFactoryInterface)
     style_applicators = ExtensionPoint(StyleApplicatorInterface)
+
+
+    def render(self, layer_groups, request_values, **options):
+        map_ = ms.Map()
+        map_.setMetaData("ows_enable_request", "*")
+        map_.setProjection("EPSG:4326")
+
+        session = self.setup_map(layer_groups, map_, options)
+        
+        with session:
+            request = ms.create_request(request_values)
+            response = map_.dispatch(request)
+            return response.content, response.content_type
+
+
+    @property
+    def suffixes(self):
+        return list(
+            chain(*[factory.suffixes for factory in self.layer_factories])
+        )
 
 
     def get_connector(self, data_items):
@@ -58,7 +82,7 @@ class MapServerWMSBaseComponent(Component):
     def get_layer_factory(self, suffix):
         result = None
         for factory in self.layer_factories:
-            if suffix == factory.suffix:
+            if suffix in factory.suffixes:
                 if result:
                     pass # TODO
                     #raise Exception("Found")
@@ -67,27 +91,30 @@ class MapServerWMSBaseComponent(Component):
         return result
 
 
-    def setup_map(self, layer_selection, map_, options, cache):
+    def setup_map(self, layer_selection, map_, options):
         group_layers = SortedDict()
-        coverage_layers = {}
+        session = ConnectorSession()
 
-        x= tuple(layer_selection.walk())
-
-        # set up group layers
-        for collections, _, name, suffix in x:
+        # set up group layers before any "real" layers
+        for collections, _, name, suffix in tuple(layer_selection.walk()):
             if not collections:
                 continue
 
+            # get a factory for the given suffix
             factory = self.get_layer_factory(suffix)
             if not factory:
                 # raise or pass?
                 continue
 
+            # get the groups name, which is the name of the collection + the 
+            # suffix
             group_name = collections[-1].identifier + (suffix or "")
+
+            # generate a group layer
             group_layer = factory.generate_group(group_name)
             group_layers[group_name] = group_layer
 
-
+        # set up the actual layers for each coverage
         for collections, coverage, name, suffix in layer_selection.walk():
             # get a factory for the given coverage and suffix
             factory = self.get_layer_factory(suffix)
@@ -99,133 +126,27 @@ class MapServerWMSBaseComponent(Component):
                 group_name = collections[-1].identifier + (suffix or "")
                 group_layer = group_layers.get(group_name)
 
-            if not coverage:
-                layers = (Layer(name),)
+            if not coverage or not factory:
+                tmp_layer = ms.layerObj()
+                tmp_layer.name = name
+                layers_and_data_items = ((tmp_layer, ()),)
             else:
                 data_items = coverage.data_items.all()
                 coverage.cached_data_items = data_items
-                layers = tuple(factory.generate(coverage, group_layer, options))
+                layers_and_data_items = tuple(factory.generate(
+                    coverage, group_layer, suffix, options
+                ))
 
-
-            for layer in layers:
-                coverage_layers.setdefault(coverage, []).append(layer)
-                if not coverage or not factory:
-                    continue
-
+            for layer, data_items in layers_and_data_items:
+                connector = self.get_connector(data_items)
+                
                 if group_name:
                     layer.setMetaData("wms_layer_group", "/" + group_name)
 
-                if factory.requires_connection:
-                    connector = self.get_connector(data_items)
-                    if not connector:
-                        # TODO: raise or pass?
-                        raise ""
-
-                    connector.connect(coverage, data_items, layer, cache)
+                session.add(connector, coverage, data_items, layer)
                 
 
-        for layer in chain(group_layers.values(), chain(*coverage_layers.values())):
-            old_layer = map_.getLayerByName(layer.name)
-            if old_layer:
-                # remove the old layer and reinsert the new one, to 
-                # raise the layer to the top.
-                # TODO: find a more efficient way to do this
-                map_.removeLayer(old_layer.index)
-            map_.insertLayer(layer)
-
-
-        # apply any styles
-        style_applicators = self.style_applicators
-        for coverage, layers in coverage_layers.items():
-            if not coverage:
-                continue
-
-            data_items = (getattr(coverage, "cached_data_items", None)
-                          or coverage.data_items.all())
-            for layer in layers:
-                for applicator in style_applicators:
-                    applicator.apply(coverage, data_items, layer, cache)
-
-        return coverage_layers
-
-
-    def teardown_map(self, map_, coverage_layers, cache):
-        for coverage, layers in coverage_layers.items():
-            if not coverage:
-                continue
-
-            data_items = (getattr(coverage, "cached_data_items", None)
-                          or coverage.data_items.all())
-
-            connector = self.get_connector(data_items)
-            if not connector:
-                continue
-
-            for layer in layers:
-                try:
-                    connector.disconnect(coverage, data_items, layer, cache)
-                except Exception:
-                    # TODO log
-                    pass
-
-
-    def get_empty_layers(self, name):
-        layer = Layer(name)
-        layer.setMetaData("wms_enable_request", "getmap")
-        return (layer,)
-
-
-        """
-        for names, suffix, coverage in layer_groups.walk():
-            # get a factory for the given coverage and suffix
-            factory = self.get_layer_factory(
-                coverage.real_type, suffix
-            )
-            if not factory:
-                raise "Could not find a factory for suffix '%s'" % suffix
-
-            suffix = suffix or "" # transform None to empty string
-
-            group_name = None
-            group_layer = None
-
-            group_name = "/" + "/".join(
-                map(lambda n: n + suffix, names[1:])
-            )
-
-            if len(names) > 1:
-                # create a group layer
-                if group_name not in group_layers:
-                    group_layer = factory.generate_group(names[-1] + suffix)
-                    if group_layer:
-                        group_layers[group_name] = group_layer
-            if not group_layer:
-                group_layer = group_layers.get(group_name)
-
-
-            data_items = coverage.data_items.filter(
-            #    Q(semantic__startswith="bands") | Q(semantic="tileindex")
-            )
-
-            layers = tuple(factory.generate(coverage, group_layer, options))
-            for layer in layers:
-                if group_name:
-                    layer.setMetaData("wms_layer_group", group_name)
-
-                if factory.requires_connection:
-                    connector = self.get_connector(data_items)
-                    if not connector:
-                        raise ""
-
-                    connector.connect(coverage, data_items, layer, cache)
-                    connector_to_layers.setdefault(connector, []).append(
-                        (coverage, data_items, layer)
-                    )
-                coverage_layers.append(layer)
-
-            layers_to_style.append((coverage, data_items, layers))
-
-
+        coverage_layers = [layer for _, layer, _ in session.coverage_layers]
         for layer in chain(group_layers.values(), coverage_layers):
             old_layer = map_.getLayerByName(layer.name)
             if old_layer:
@@ -235,12 +156,46 @@ class MapServerWMSBaseComponent(Component):
                 map_.removeLayer(old_layer.index)
             map_.insertLayer(layer)
 
-        # apply any styles
-        style_applicators = self.style_applicators
-        for coverage, data_items, layers in layers_to_style:
-            for layer in layers:
-                for applicator in style_applicators:
-                    applicator.apply(coverage, data_items, layer, cache)
 
-        return connector_to_layers
-        """
+        # apply any styles
+        # TODO: move this to map/legendgraphic renderer only?
+        for coverage, layer, data_items in session.coverage_layers:
+            for applicator in self.style_applicators:
+                applicator.apply(coverage, data_items, layer)
+
+        return session
+
+
+    def get_empty_layers(self, name):
+        layer = ms.layerObj()
+        layer.name = name
+        layer.setMetaData("wms_enable_request", "getmap")
+        return (layer,)
+
+
+class ConnectorSession(object):
+    def __init__(self):
+        self.item_list = []
+
+    def add(self, connector, coverage, data_items, layer):
+        self.item_list.append(
+            (connector, coverage, layer, data_items)
+        )
+
+    def __enter__(self):
+        for connector, coverage, layer, data_items in self.item_list:
+            if connector:
+                connector.connect(coverage, data_items, layer)
+
+    def __exit__(self, *args, **kwargs):
+        for connector, coverage, layer, data_items in self.item_list:
+            if connector:
+                connector.disconnect(coverage, data_items, layer)
+
+
+    @property
+    def coverage_layers(self):
+
+        return map(lambda it: (it[1], it[2], it[3]), self.item_list)
+        #for _, coverage, layer, data_items in self.item_list:
+        #    yield coverage, layer, data_items
