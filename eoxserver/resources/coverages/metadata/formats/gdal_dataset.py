@@ -62,6 +62,7 @@ class GDALDatasetMetadataReader(Component):
     def read(self, obj):
         ds = open_gdal(obj)
         if ds is not None:
+            driver = ds.GetDriver()
             size = (ds.RasterXSize, ds.RasterYSize)
             gt = ds.GetGeoTransform()
             extent = None
@@ -99,11 +100,15 @@ class GDALDatasetMetadataReader(Component):
                     reftools.get_footprint_wkt(raw_metadata)
                 )
 
-            return values
+            driver_metadata = driver.GetMetadata()
+            frmt = driver_metadata.get("DMD_MIMETYPE")
+            if frmt:
+                values["format"] = frmt
 
-            
+            return values
             
         raise Exception("Could not parse from obj '%s'." % repr(obj))
+
 
     def _find_additional_reader(self, ds):
         for reader in self.additional_readers:

@@ -66,6 +66,7 @@ class DimapGeneralFormatReader(Component):
 
             values =  {
                 "identifier": decoder.identifier,
+                "format": "dimap"
             }
 
             # in Dimap, pretty much everything is optional

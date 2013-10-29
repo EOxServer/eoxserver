@@ -62,7 +62,8 @@ class EOOMFormatReader(Component):
                 "identifier": decoder.identifier,
                 "begin_time": decoder.begin_time,
                 "end_time": decoder.end_time,
-                "footprint": MultiPolygon(*decoder.polygons)
+                "footprint": MultiPolygon(*decoder.polygons),
+                "format": "eogml"
             }
         raise Exception("Could not parse from obj '%s'." % repr(obj))
 
