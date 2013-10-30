@@ -30,215 +30,215 @@
 from django.db import transaction
 from eoxserver.contrib import gdal
 
+#TODO: get rid of the W* wrapper classes 
+#class WRangeType(object):
+#    """
+#    RangeType contains range type information of a coverage. The
+#    constructor accepts the mandatory ``name`` and ``data_type``
+#    parameters as well as an optional ``bands`` parameter. If no bands
+#    are specified they shall be added with :meth:`addBands`.
+#    """
+#    
+#    def __init__(self, name, bands=[] ):
+#        self.name = name
+#        self.bands = bands
+#    
+#    def __eq__(self, other):
+#        if (self.name != other.name
+#            or self.bands != other.bands):
+#            return False
+#        return True
+#    
+#    def addBand(self, band):
+#        "Append a new band to the band list."
+#        self.bands.append(band)
+#        
+#    def asDict( self ):
+#        """ return object as a tupe to be passed to JSON serializer """
 
-class WRangeType(object):
-    """
-    RangeType contains range type information of a coverage. The
-    constructor accepts the mandatory ``name`` and ``data_type``
-    parameters as well as an optional ``bands`` parameter. If no bands
-    are specified they shall be added with :meth:`addBands`.
-    """
-    
-    def __init__(self, name, bands=[] ):
-        self.name = name
-        self.bands = bands
-    
-    def __eq__(self, other):
-        if (self.name != other.name
-            or self.bands != other.bands):
-            return False
-        return True
-    
-    def addBand(self, band):
-        "Append a new band to the band list."
-        self.bands.append(band)
-        
-    def asDict( self ):
-        """ return object as a tupe to be passed to JSON serializer """
+#        bands = [ band.asDict() for band in self.bands ] 
 
-        bands = [ band.asDict() for band in self.bands ] 
-
-        return {    
-            "name" : self.name,
-            "bands" : bands
-        }
-
-
-class WBand(object):
-    """\
-    Band represents a band configuration.
-    
-    The ``data_type`` parameter may be set to one of the following
-    constants defined in :mod:`osgeo.gdalconst`:
-    
-    * ``GDT_Byte``
-    * ``GDT_UInt16``
-    * ``GDT_Int16``
-    * ``GDT_UInt32``
-    * ``GDT_Int32``
-    * ``GDT_Float32``
-    * ``GDT_Float64``
-    * ``GDT_CInt16``
-    * ``GDT_CInt32``
-    * ``GDT_CFloat32``
-    * ``GDT_CFloat64``
-    
-    The ``color_interpretation`` parameter contains the GDAL
-    BandInterpretation value which may be assigned to a band. It may
-    be set to one of the following constants defined in
-    :mod:`osgeo.gdalconst`:
-    
-    * ``GCI_Undefined``
-    * ``GCI_GrayIndex``
-    * ``GCI_PaletteIndex``
-    * ``GCI_RedBand``
-    * ``GCI_GreenBand``
-    * ``GCI_BlueBand``
-    * ``GCI_AlphaBand``
-    * ``GCI_HueBand``
-    * ``GCI_SaturationBand``
-    * ``GCI_LightnessBand``
-    * ``GCI_CyanBand``
-    * ``GCI_MagentaBand``
-    * ``GCI_YellowBand``
-    * ``GCI_BlackBand``
-    
-    It defaults to ``GCI_Undefined``.
-    """
-
-    def __init__(self,
-        name,
-        data_type, 
-        identifier='',
-        description='',
-        definition='http://opengis.net/def/property/OGC/0/Radiance',
-        nil_values=[],
-        uom='W.m-2.sr-1.nm-1',
-        color_interpretation=gdal.GCI_Undefined
-    ):
-        self.name = name
-        self.data_type = data_type
-        self.identifier = identifier
-        self.description = description
-        self.definition = definition
-        self.nil_values = nil_values
-        self.uom = uom
-        self.color_interpretation = color_interpretation
-
-    def __eq__(self, other):
-        if (self.name != other.name
-            or self.data_type != data_type
-            or self.identifier != other.identifier
-            or self.description != other.description
-            or self.definition != other.definition
-            or self.nil_values != other.nil_values
-            or self.uom != other.uom
-            or self.color_interpretation != other.color_interpretation):
-            return False
-        return True
-
-    def addNilValue(self, nil_value ):
-        "Append a new nil-value to the band list."
-        self.nil_values.append(nil_value)
-
-    def asDict( self ):
-        """
-        Return object's data as a dictionary to be passed to a JSON serializer.
-        """
-
-        return {    
-            "name" : self.name,
-            "data_type" : self.getDataTypeAsString(), 
-            "identifier" : self.identifier,
-            "description" : self.description,
-            "definition" : self.definition,
-            "uom" : self.uom,
-            "nil_values" : [ nv.asDict() for nv in self.nil_values ],
-            "color_interpretation" : self.getColorInterpretationAsString() 
-        }
-    
-    def getDataTypeAsString( self ) : 
-        "Return string representation of the ``data_type``."
-        return gdal.GDT_TO_NAME.get( self.data_type, "Invalid" ) 
-    
-    def getColorInterpretationAsString( self ) : 
-        "Return string representation of the ``color_interpretation``."
-        return gdal.GCI_TO_NAME.get( self.color_interpretation , "Invalid" ) 
-
-    def getSignificantFigures(self):
-        "Get significant figures of the currently used type."
-        dt = self.data_type
-        if dt == gdal.GDT_Byte:
-            return 3
-        elif dt in ( gdal.GDT_UInt16 , gdal.GDT_Int16 , gdal.GDT_CInt16 ) : 
-            return 5
-        elif dt in ( gdal.GDT_UInt32 , gdal.GDT_Int32 , gdal.GDT_CInt32 ) : 
-            return 10
-        elif dt in ( gdal.GDT_Float32 , gdal.GDT_CFloat32 ) : 
-            return 38
-        elif dt in ( gdal.GDT_Float64 , gdal.GDT_CFloat64 ) : 
-            return 308
-        else: 
-            raise NotImplementedError()
-        
-    def getAllowedValues(self):
-        "Get interval bounds of the currently used type."
-        dt = self.data_type
-        if dt == gdal.GDT_Byte:
-            return (0, 255)
-        elif dt == gdal.GDT_UInt16:
-            return (0, 65535)
-        elif dt in ( gdal.GDT_Int16 , gdal.GDT_CInt32 ) :
-            return (-32768, 32767)
-        elif dt == gdal.GDT_UInt32:
-            return (0, 4294967295)
-        elif dt in ( gdal.GDT_Int32 , gdal.GDT_CInt32 ) :
-            return (-2147483648, 2147483647)
-        elif dt in ( gdal.GDT_Float32 , gdal.GDT_CFloat32 ) : 
-            return (-3.40282e+38, 3.40282e+38)
-        elif dt in ( gdal.GDT_Float64 , gdal.GDT_CFloat64 ) : 
-            return (-1.7976931348623157e+308, 1.7976931348623157e+308)
-        else:
-            raise NotImplementedError()
+#        return {    
+#            "name" : self.name,
+#            "bands" : bands
+#        }
 
 
-class WNilValue(object):
-    """
-    This class represents nil values of a coverage band.
-    
-    The constructor accepts the nil value itself and a reason. The
-    reason shall be one of:
-    
-    * ``http://www.opengis.net/def/nil/OGC/0/inapplicable``
-    * ``http://www.opengis.net/def/nil/OGC/0/missing``
-    * ``http://www.opengis.net/def/nil/OGC/0/template``
-    * ``http://www.opengis.net/def/nil/OGC/0/unknown``
-    * ``http://www.opengis.net/def/nil/OGC/0/withheld``
-    * ``http://www.opengis.net/def/nil/OGC/0/AboveDetectionRange``
-    * ``http://www.opengis.net/def/nil/OGC/0/BelowDetectionRange``
-    
-    See http://www.opengis.net/def/nil/ for the official description
-    of the meanings of these values.
+#class WBand(object):
+#    """\
+#    Band represents a band configuration.
+#    
+#    The ``data_type`` parameter may be set to one of the following
+#    constants defined in :mod:`osgeo.gdalconst`:
+#    
+#    * ``GDT_Byte``
+#    * ``GDT_UInt16``
+#    * ``GDT_Int16``
+#    * ``GDT_UInt32``
+#    * ``GDT_Int32``
+#    * ``GDT_Float32``
+#    * ``GDT_Float64``
+#    * ``GDT_CInt16``
+#    * ``GDT_CInt32``
+#    * ``GDT_CFloat32``
+#    * ``GDT_CFloat64``
+#    
+#    The ``color_interpretation`` parameter contains the GDAL
+#    BandInterpretation value which may be assigned to a band. It may
+#    be set to one of the following constants defined in
+#    :mod:`osgeo.gdalconst`:
+#    
+#    * ``GCI_Undefined``
+#    * ``GCI_GrayIndex``
+#    * ``GCI_PaletteIndex``
+#    * ``GCI_RedBand``
+#    * ``GCI_GreenBand``
+#    * ``GCI_BlueBand``
+#    * ``GCI_AlphaBand``
+#    * ``GCI_HueBand``
+#    * ``GCI_SaturationBand``
+#    * ``GCI_LightnessBand``
+#    * ``GCI_CyanBand``
+#    * ``GCI_MagentaBand``
+#    * ``GCI_YellowBand``
+#    * ``GCI_BlackBand``
+#    
+#    It defaults to ``GCI_Undefined``.
+#    """
 
-    Note: the type of the nill value is assumed to be the same 
-    as the one of the associated band.
-    """
-    
-    def __init__(self, reason, value):
-        self.reason = reason
-        self.value = value
-        
-    def __eq__(self, other):
-        if self.reason != other.reason or self.value != other.value:
-            return False
-        return True
+#    def __init__(self,
+#        name,
+#        data_type, 
+#        identifier='',
+#        description='',
+#        definition='http://opengis.net/def/property/OGC/0/Radiance',
+#        nil_values=[],
+#        uom='W.m-2.sr-1.nm-1',
+#        color_interpretation=gdal.GCI_Undefined
+#    ):
+#        self.name = name
+#        self.data_type = data_type
+#        self.identifier = identifier
+#        self.description = description
+#        self.definition = definition
+#        self.nil_values = nil_values
+#        self.uom = uom
+#        self.color_interpretation = color_interpretation
 
-    def asDict( self ):
-        """
-        Return object's data as a dictionary to be passed to a JSON serializer.
-        """
+#    def __eq__(self, other):
+#        if (self.name != other.name
+#            or self.data_type != data_type
+#            or self.identifier != other.identifier
+#            or self.description != other.description
+#            or self.definition != other.definition
+#            or self.nil_values != other.nil_values
+#            or self.uom != other.uom
+#            or self.color_interpretation != other.color_interpretation):
+#            return False
+#        return True
 
-        return { "reason" : self.reason , "value" : self.value } 
+#    def addNilValue(self, nil_value ):
+#        "Append a new nil-value to the band list."
+#        self.nil_values.append(nil_value)
+
+#    def asDict( self ):
+#        """
+#        Return object's data as a dictionary to be passed to a JSON serializer.
+#        """
+
+#        return {    
+#            "name" : self.name,
+#            "data_type" : self.getDataTypeAsString(), 
+#            "identifier" : self.identifier,
+#            "description" : self.description,
+#            "definition" : self.definition,
+#            "uom" : self.uom,
+#            "nil_values" : [ nv.asDict() for nv in self.nil_values ],
+#            "color_interpretation" : self.getColorInterpretationAsString() 
+#        }
+#    
+#    def getDataTypeAsString( self ) : 
+#        "Return string representation of the ``data_type``."
+#        return gdal.GDT_TO_NAME.get( self.data_type, "Invalid" ) 
+#    
+#    def getColorInterpretationAsString( self ) : 
+#        "Return string representation of the ``color_interpretation``."
+#        return gdal.GCI_TO_NAME.get( self.color_interpretation , "Invalid" ) 
+
+#    def getSignificantFigures(self):
+#        "Get significant figures of the currently used type."
+#        dt = self.data_type
+#        if dt == gdal.GDT_Byte:
+#            return 3
+#        elif dt in ( gdal.GDT_UInt16 , gdal.GDT_Int16 , gdal.GDT_CInt16 ) : 
+#            return 5
+#        elif dt in ( gdal.GDT_UInt32 , gdal.GDT_Int32 , gdal.GDT_CInt32 ) : 
+#            return 10
+#        elif dt in ( gdal.GDT_Float32 , gdal.GDT_CFloat32 ) : 
+#            return 38
+#        elif dt in ( gdal.GDT_Float64 , gdal.GDT_CFloat64 ) : 
+#            return 308
+#        else: 
+#            raise NotImplementedError()
+#        
+#    def getAllowedValues(self):
+#        "Get interval bounds of the currently used type."
+#        dt = self.data_type
+#        if dt == gdal.GDT_Byte:
+#            return (0, 255)
+#        elif dt == gdal.GDT_UInt16:
+#            return (0, 65535)
+#        elif dt in ( gdal.GDT_Int16 , gdal.GDT_CInt32 ) :
+#            return (-32768, 32767)
+#        elif dt == gdal.GDT_UInt32:
+#            return (0, 4294967295)
+#        elif dt in ( gdal.GDT_Int32 , gdal.GDT_CInt32 ) :
+#            return (-2147483648, 2147483647)
+#        elif dt in ( gdal.GDT_Float32 , gdal.GDT_CFloat32 ) : 
+#            return (-3.40282e+38, 3.40282e+38)
+#        elif dt in ( gdal.GDT_Float64 , gdal.GDT_CFloat64 ) : 
+#            return (-1.7976931348623157e+308, 1.7976931348623157e+308)
+#        else:
+#            raise NotImplementedError()
+
+
+#class WNilValue(object):
+#    """
+#    This class represents nil values of a coverage band.
+#    
+#    The constructor accepts the nil value itself and a reason. The
+#    reason shall be one of:
+#    
+#    * ``http://www.opengis.net/def/nil/OGC/0/inapplicable``
+#    * ``http://www.opengis.net/def/nil/OGC/0/missing``
+#    * ``http://www.opengis.net/def/nil/OGC/0/template``
+#    * ``http://www.opengis.net/def/nil/OGC/0/unknown``
+#    * ``http://www.opengis.net/def/nil/OGC/0/withheld``
+#    * ``http://www.opengis.net/def/nil/OGC/0/AboveDetectionRange``
+#    * ``http://www.opengis.net/def/nil/OGC/0/BelowDetectionRange``
+#    
+#    See http://www.opengis.net/def/nil/ for the official description
+#    of the meanings of these values.
+
+#    Note: the type of the nill value is assumed to be the same 
+#    as the one of the associated band.
+#    """
+#    
+#    def __init__(self, reason, value):
+#        self.reason = reason
+#        self.value = value
+#        
+#    def __eq__(self, other):
+#        if self.reason != other.reason or self.value != other.value:
+#            return False
+#        return True
+
+#    def asDict( self ):
+#        """
+#        Return object's data as a dictionary to be passed to a JSON serializer.
+#        """
+
+#        return { "reason" : self.reason , "value" : self.value } 
 
 
 ## TODO: rewrite this function according to new RangeType definition
@@ -302,9 +302,9 @@ def isRangeTypeName( name ) :
 
 def getRangeType( name ) : 
     """ 
-    Return ``WRangeType`` object for given ``name``. The object properties are 
-    loaded from the DB. If there is no ``RangeType`` record corresponding to 
-    the given name ``None`` is returned.
+    Return range type ``name`` as JSON serializable dictionary. 
+    The values are loaded from the DB. If there is no ``RangeType``
+    record corresponding to the given name ``None`` is returned.
     """ 
 
     try: 
@@ -322,25 +322,26 @@ def getRangeType( name ) :
             # loop over nil values 
             for n in b.nil_value_set.nil_values.all() : 
 
-                # append created nil-value object 
-                nil_values.append( WNilValue( reason=n.reason, value=n.raw_value ) ) 
+                # append created nil-value dictionary
+                nil_values.append( { 'reason': n.reason, 'value': n.raw_value } ) 
 
-            # append created band object 
+            # append created band dictionary
             band.append( 
-                WBand( 
-                    name        = b.name,
-                    data_type   = b.data_type, 
-                    identifier  = b.identifier,
-                    description = b.description, 
-                    definition  = b.definition,
-                    uom         = b.uom, 
-                    nil_values  = nil_values,
-                    color_interpretation = b.color_interpretation
-                )
+                { 
+                    'name'        : b.name,
+                    'data_type'   : gdal.GCI_TO_NAME.get(b.data_type,'Invalid'), 
+                    'identifier'  : b.identifier,
+                    'description' : b.description, 
+                    'definition'  : b.definition,
+                    'uom'         : b.uom, 
+                    'nil_values'  : nil_values,
+                    'color_interpretation' :
+                        gdal.GCI_TO_NAME.get(b.color_interpretation,'Invalid'),
+                } 
             ) 
 
-        # return created range-type object 
-        return WRangeType( name=rt.name, bands=band ) 
+        # return JSON serializable dictionary 
+        return { 'name': rt.name, 'bands': band } 
                 
     except RangeType.DoesNotExist : 
 
@@ -349,17 +350,13 @@ def getRangeType( name ) :
 
 def setRangeType( rtype ) : 
     """ 
-        Save range-type record to the DB. The range-type record is created 
-        from the ``rtype`` which can be either a ``WRangeType`` object or 
-        parsed JSON dictionary.
+    Insert range type to the DB. The range type record is
+    defined by the ``rtype`` which is a dictionaty as returned by 
+    ``getRangeType()`` or parsed form JSON.
     """
 
-    if isinstance( rtype , WRangeType ) : 
-        
-        # convert to a dictionary 
-        rtype = rtype.toDict() 
-
-    elif not isinstance( rtype , dict ) : 
+    # check the input's data type 
+    if not isinstance( rtype , dict ) : 
 
         raise ValueError("Invalid input object type!") 
 
