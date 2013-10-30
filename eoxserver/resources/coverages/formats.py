@@ -253,8 +253,9 @@ class FormatRegistry(object):
 
         #  WMS and WCS suported formats
 
-        self.__wms_supported_formats = map(self.getFormatByMIME, reader.supported_formats_wms)
-        self.__wcs_supported_formats = map(self.getFormatByMIME, reader.supported_formats_wcs)
+        nonNone = lambda v: ( v is not None ) 
+        self.__wms_supported_formats = filter(nonNone,map(self.getFormatByMIME,reader.supported_formats_wms))
+        self.__wcs_supported_formats = filter(nonNone,map(self.getFormatByMIME,reader.supported_formats_wcs)) 
 
         #  WCS 2.0.1 source to native format mapping 
  
@@ -263,7 +264,6 @@ class FormatRegistry(object):
         self.__wcs20_def_native_format = tmp 
 
         if ( tmp is None ) or ( tmp not in self.getSupportedFormatsWCS() ) : 
-            print ( tmp is None ) , ( tmp not in self.getSupportedFormatsWCS() )
             raise ValueError , "Invalid value of configuration option 'services.ows.wcs20' 'default_native_format'! value=\"%s\""% src  
 
         tmp = reader.source_to_native_format_map
