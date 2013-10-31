@@ -50,6 +50,12 @@ class SpatialReference(object):
             else:
                 sr.SetFromUserInput(raw)
 
+    def IsSame(self, other):
+        if isinstance(other, SpatialReference):
+            return self.sr.IsSame(other.sr)
+        else:
+            return self.sr.IsSame(other)
+
     @property
     def proj(self):
         return self.sr.ExportToProj4()
