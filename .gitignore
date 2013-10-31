@@ -1,0 +1,12 @@
+*.py[cod]
+*.so
+
+# Packaging
+/dist
+/build
+*.egg
+*.egg-info
+
+# Developers
+.project
+.pydevproject
