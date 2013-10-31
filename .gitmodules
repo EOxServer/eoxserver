@@ -1,0 +1,3 @@
+[submodule "autotest"]
+	path = autotest
+	url = https://github.com/EOxServer/autotest.git
