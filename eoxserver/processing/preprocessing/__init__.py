@@ -262,7 +262,7 @@ class PreProcessor(object):
         # create an OGR in memory layer to hold the created polygon
         sr = osr.SpatialReference(); sr.ImportFromWkt(ds.GetProjectionRef())
         ogr_ds = ogr.GetDriverByName('Memory').CreateDataSource('out')
-        layer = ogr_ds.CreateLayer('poly', sr, ogr.wkbPolygon)
+        layer = ogr_ds.CreateLayer('poly', sr.sr, ogr.wkbPolygon)
         fd = ogr.FieldDefn('DN', ogr.OFTInteger)
         layer.CreateField(fd)
         
@@ -293,9 +293,9 @@ class PreProcessor(object):
         if not sr.IsGeographic():
             dst_sr = osr.SpatialReference(); dst_sr.ImportFromEPSG(4326)
             try:
-                geometry.TransformTo(dst_sr)
+                geometry.TransformTo(dst_sr.sr)
             except RuntimeError:
-                geometry.Transform(osr.CoordinateTransformation(sr, dst_sr))
+                geometry.Transform(osr.CoordinateTransformation(sr.sr, dst_sr.sr))
         
         gt = ds.GetGeoTransform()
         resolution = min(abs(gt[1]), abs(gt[5]))
