@@ -337,7 +337,7 @@ class AlphaBandOptimization(object):
         ogr_ds = ogr.GetDriverByName('Memory').CreateDataSource('wkt')
         
         sr = osr.SpatialReference(); sr.ImportFromEPSG(4326)
-        layer = ogr_ds.CreateLayer('poly', srs=sr)
+        layer = ogr_ds.CreateLayer('poly', srs=sr.sr)
         
         feat = ogr.Feature(layer.GetLayerDefn())
         feat.SetGeometryDirectly(ogr.Geometry(wkt=footprint_wkt))
