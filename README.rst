@@ -1,3 +1,6 @@
+autotest instance for EOxServer
+===============================
+
 autotest instance for EOxServer used for unit and integration tests.
 
 EOxServer is a Python application and framework for presenting Earth
