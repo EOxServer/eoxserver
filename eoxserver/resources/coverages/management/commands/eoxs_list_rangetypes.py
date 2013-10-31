@@ -45,7 +45,7 @@ except ImportError:
     
 #------------------------------------------------------------------------------
 
-from eoxserver.core.system import System
+#from eoxserver.core.system import System
 
 #------------------------------------------------------------------------------
 
@@ -112,12 +112,6 @@ class Command(CommandOutputMixIn, BaseCommand):
 
         # dataset's (coverages') ids
         rt_list = args
-
-            
-        #----------------------------------------------------------------------
-        # initialize EOxServer binding
-
-        System.init()
 
         #----------------------------------------------------------------------
         # check the input rangetype names
@@ -258,10 +252,8 @@ class OutputJSON( OutputBase ) :
     @classmethod 
     def object( cls, rt_name ) : 
 
-        # get rangetype as dictionary  
-        out = getRangeType(rt_name).asDict() 
-
-        # dump the json 
-        return json.dumps(out,indent=4,separators=(',',': '),sort_keys=True) 
+        # get rangetype as dictionary and dump the json 
+        return json.dumps( getRangeType(rt_name), indent=4,
+                        separators=(',',': '), sort_keys=True ) 
 
 

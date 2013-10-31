@@ -285,33 +285,47 @@ class NilValue(models.Model):
         """ Get the parsed python value from the saved value string.
         """
         dt = self.nil_value_set.data_type
+        is_float   = False 
         is_complex = False
 
-        if dt in (gdal.GDT_INTEGRAL_TYPES):
+        if dt in gdal.GDT_INTEGRAL_TYPES :
             value =  int(self.raw_value)
-        elif dt in gdal.GDT_FLOAT_TYPES:
+
+        elif dt in gdal.GDT_FLOAT_TYPES :
             value =  float(self.raw_value)
-        elif dt in gdal.GDT_COMPLEX_TYPES:
+            is_float = True 
+
+        elif dt in gdal.GDT_INTEGRAL_COMPLEX_TYPES : 
             value =  complex(self.raw_value)
             is_complex = True
+
+        elif dt in gdal.GDT_FLOAT_COMPLEX_TYPES : 
+            value =  complex(self.raw_value)
+            is_complex = True
+            is_float = True 
+
         else:
             value = None
 
-        limits = gdal.GDT_NUMERIC_LIMITS.get(dt)
+        # range check makes sense for integral values only 
+        if not is_float : 
 
-        if limits and value is not None:
-            def within(v, low, high):
-                return (v >= low and v <= high)
+            limits = gdal.GDT_NUMERIC_LIMITS.get(dt)
 
-            error = ValueError(
-                "Stored value is out of the limits for the data type"
-            )
-            if not is_complex and not within(value, *limits) :
-                raise error
-            elif is_complex:
-                if (not within(value.real, limits[0].real, limits[1].real)
-                    or not within(value.real, limits[0].real, limits[1].real)):
+            if limits and value is not None:
+                def within(v, low, high):
+                    return (v >= low and v <= high)
+
+                error = ValueError(
+                    "Stored value is out of the limits for the data type"
+                )
+                if not is_complex and not within(value, *limits) :
                     raise error
+                elif is_complex:
+                    if (not within(value.real, limits[0].real, limits[1].real)
+                        or not within(value.real, limits[0].real, limits[1].real)):
+                        raise error
+
         return value
 
 

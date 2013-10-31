@@ -121,7 +121,13 @@ GDT_SIGNIFICANT_FIGURES = {
 GDT_INTEGRAL_TYPES = frozenset(
     (GDT_Byte, GDT_Int16, GDT_UInt16, GDT_Int32, GDT_UInt32)
 )
+
+GDT_INTEGRAL_COMPLEX_TYPES = frozenset((GDT_CInt16, GDT_CInt32))
+
 GDT_FLOAT_TYPES = frozenset((GDT_Float32, GDT_Float64))
+
+GDT_FLOAT_COMPLEX_TYPES = frozenset((GDT_CFloat32, GDT_CFloat64))
+
 GDT_COMPLEX_TYPES = frozenset(
     (GDT_CInt16, GDT_CInt32, GDT_CFloat32, GDT_CFloat64)
 )
