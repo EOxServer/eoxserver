@@ -60,4 +60,6 @@ class WMS13GetCapabilitiesHandler(Component):
         #suffixes = map(lambda s: s.suffix, ms_component.layer_factories)
         suffixes = (None, "_outlines", "_bands")
 
+        renderer = self.renderer
+
         return self.renderer.render(dataset_series_qs, suffixes, request.GET.items())

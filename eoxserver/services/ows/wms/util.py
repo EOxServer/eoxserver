@@ -27,10 +27,14 @@
 #-------------------------------------------------------------------------------
 
 
+import logging
+
 from eoxserver.resources.coverages import models
 from eoxserver.core.decoders import InvalidParameterException
 from eoxserver.services.subset import Trim, Slice
 
+
+logger = logging.getLogger(__name__)
 
 def parse_bbox(string):
     try:
@@ -62,13 +66,16 @@ def lookup_layers(layers, subsets, suffixes=None):
     suffix_related_ids = {}
     root_group = LayerSelection(None)
     suffixes = suffixes or (None,)
+    logger.debug(str(suffixes))
 
     for layer_name in layers:
         for suffix in suffixes:
             if not suffix:
                 identifier = layer_name
-            else:
+            elif layer_name.endswith(suffix):
                 identifier = layer_name[:-len(suffix)]
+            else:
+                continue
             
             # TODO: nasty, nasty bug... dunno where
             eo_objects = models.EOObject.objects.filter(

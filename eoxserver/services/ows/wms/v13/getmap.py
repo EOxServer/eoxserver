@@ -27,12 +27,10 @@
 #-------------------------------------------------------------------------------
 
 
-from itertools import chain
-
 from eoxserver.core import Component, implements, UniqueExtensionPoint
 from eoxserver.core.decoders import kvp, typelist, InvalidParameterException
 from eoxserver.resources.coverages import models, crss
-from eoxserver.services.subset import Subsets, Trim, Slice
+from eoxserver.services.subset import Subsets, Trim
 from eoxserver.services.ows.interfaces import (
     ServiceHandlerInterface, GetServiceHandlerInterface
 )
@@ -81,12 +79,10 @@ class WMS13GetMapHandler(Component):
         if time: 
             subsets.append(time)
         
-        #ms_component = MapServerComponent(env)
-        #suffixes = set(map(lambda s: s.suffix, ms_component.layer_factories))
-        suffixes = (None, "_bands", "_outlines")
-        root_group = lookup_layers(layers, subsets, chain((None,), suffixes))
-        
-        return self.renderer.render(
+        renderer = self.renderer
+        root_group = lookup_layers(layers, subsets, renderer.suffixes)
+
+        return renderer.render(
             root_group, request.GET.items(), 
             time=decoder.time, bands=decoder.dim_bands
         )
