@@ -150,6 +150,9 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    # For management of the per/request cache system.
+    'eoxserver.backends.middleware.BackendsCacheMiddleware',
 )
 
 ROOT_URLCONF = '{{ project_name }}.urls'
