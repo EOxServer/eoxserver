@@ -51,7 +51,7 @@ from eoxserver.resources.coverages.interfaces import (
     EOMetadataReaderInterface
 )
 from eoxserver.resources.coverages.exceptions import MetadataException
-from eoxserver.processing.gdal import reftools
+from eoxserver.processing.gdal import reftools as rt 
 
 #-------------------------------------------------------------------------------
 # defining namespaces 
@@ -183,11 +183,14 @@ class EnvisatDatasetMetadataFormat(MetadataFormat):
             )
     
         eoid = splitext(raw_metadata.GetMetadataItem("MPH_PRODUCT"))[0]
+        rt_prm = rt.suggest_transformer(raw_metadata)
+        fp_wkt = rt.get_footprint_wkt(raw_metadata,**rt_prm)
+
         return EOMetadata(
             eo_id=eoid,
             begin_time=self._parse_timestamp(raw_metadata.GetMetadataItem("MPH_SENSING_START")),
             end_time=self._parse_timestamp(raw_metadata.GetMetadataItem("MPH_SENSING_STOP")),
-            footprint=GEOSGeometry(reftools.get_footprint_wkt(raw_metadata)),
+            footprint= GEOSGeometry( fp_wkt ),
             md_format=self,
         )
     

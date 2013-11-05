@@ -47,9 +47,7 @@ from eoxserver.core.util.multiparttools import mpPack
 from eoxserver.core.util.bbox import BBox 
 from eoxserver.core.util.filetools import TmpFile
 from eoxserver.contrib import gdal 
-from eoxserver.processing.gdal.reftools import (
-    rect_from_subset, get_footprint_wkt
-)
+from eoxserver.processing.gdal import reftools as rt 
 from eoxserver.services.base import BaseRequestHandler
 from eoxserver.services.requests import Response
 from eoxserver.services.mapserver import (
@@ -224,6 +222,9 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
         # set request schema 
         req.setSchema(self.PARAM_SCHEMA)
 
+        # get reftool transformer's parameters 
+        rt_prm = rt.suggest_transformer(coverage.getData().getGDALDatasetIdentifier()) 
+
         #=============================================
         # coverage subsetting
 
@@ -254,9 +255,9 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
 
         else : # otherwise let GDAL handle the projection
 
-            bbox = rect_from_subset(
+            bbox = rt.rect_from_subset(
                 coverage.getData().getGDALDatasetIdentifier(), subset.crs_id,
-                subset.minx, subset.miny, subset.maxx, subset.maxy )  
+                subset.minx, subset.miny, subset.maxx, subset.maxy, **rt_prm )  
 
         # calculate effective offsets and size of the overlapped area
 
@@ -375,7 +376,7 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
             # get footprint if needed 
 
             if ( media_type is not None ) and ( subset is not None ) : 
-                footprint = GEOSGeometry(get_footprint_wkt(dst_path))
+                footprint = GEOSGeometry(rt.get_footprint_wkt(dst_path,**rt_prm))
             else : 
                 footprint = None 
 
