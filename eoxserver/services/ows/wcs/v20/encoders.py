@@ -169,7 +169,9 @@ class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
             service_metadata = WCS("ServiceMetadata")
 
             # get the list of enabled formats from the format registry
-            formats = getFormatRegistry().getSupportedFormatsWCS()
+            formats = filter(
+                lambda f: f, getFormatRegistry().getSupportedFormatsWCS()
+            )
             service_metadata.extend(
                 map(lambda f: WCS("formatSupported", f.mimeType), formats)
             )
@@ -476,7 +478,7 @@ class GMLCOV10Encoder(GML32Encoder):
     def encode_nil_values(self, nil_value_set):
         return SWE("nilValues",
             *[SWE("NilValues",
-                SWE("nilValue", nil_value.value_string, reason=nil_value.reason)
+                SWE("nilValue", nil_value.raw_value, reason=nil_value.reason)
             ) for nil_value in nil_value_set]
         )
 
