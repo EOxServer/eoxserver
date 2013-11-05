@@ -42,9 +42,9 @@ from eoxserver.services.mapserver.wms.layerfactories.coverage_layer_factory impo
 logger = logging.getLogger(__name__)
 
 
-class CoverageMaskLayerFactory(CoverageLayerFactory):
+class CoverageMaskedLayerFactory(CoverageLayerFactory):
     handles = ()
-    suffixes = ("_mask",)
+    suffixes = ("_masked",)
     requires_connection = True
 
     
@@ -82,7 +82,7 @@ class CoverageMaskLayerFactory(CoverageLayerFactory):
             yield (mask_layer, (mask_item,))
 
 
-        super_items = super(CoverageMaskLayerFactory, self).generate(
+        super_items = super(CoverageMaskedLayerFactory, self).generate(
             eo_object, group_layer, suffix, options
         )
         for layer, data_items in super_items:
