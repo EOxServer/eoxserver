@@ -46,9 +46,12 @@ class PolygonMaskConnector(Component):
     implements(ConnectorInterface)
     
     def supports(self, data_items):
+        num = len(data_items)
         return (
-            len(data_items) == 1 
-            and data_items[0].semantic.startswith("polygonmask")
+            len(data_items) >= 1 
+            and len(filter(
+                lambda d: d.semantic.startswith("polygonmask"), data_items
+            )) == num
         )
 
     def connect(self, coverage, data_items, layer):
@@ -66,30 +69,35 @@ class PolygonMaskConnector(Component):
             # TODO: better use the coverages Extent?
             geom_types = (ogr.wkbPolygon, ogr.wkbMultiPolygon)
             output_polygon = ogr.Geometry(wkt=str(coverage.footprint.wkt))
-            ds = ogr.Open(connect(mask_item))
-            for i in range(ds.GetLayerCount()):
-                ogr_layer = ds.GetLayer(i)
-                if not ogr_layer:
-                    continue
 
-                feature = ogr_layer.GetNextFeature()
-                while feature:
-                    # TODO: reproject if necessary
-                    geometry = feature.GetGeometryRef()
-                    if geometry.GetGeometryType() not in geom_types:
+            for mask_item in data_items:
+                ds = ogr.Open(connect(mask_item))
+                for i in range(ds.GetLayerCount()):
+                    ogr_layer = ds.GetLayer(i)
+                    if not ogr_layer:
                         continue
-                    if geometry:
-                        output_polygon = output_polygon.Difference(geometry)
+
                     feature = ogr_layer.GetNextFeature()
+                    while feature:
+                        # TODO: reproject if necessary
+                        geometry = feature.GetGeometryRef()
+                        if geometry.GetGeometryType() not in geom_types:
+                            continue
+                        if geometry:
+                            output_polygon = output_polygon.Difference(geometry)
+                        feature = ogr_layer.GetNextFeature()
 
             # since we have the geometry already in memory, add it to the layer
             # as WKT
             shape = ms.shapeObj.fromWKT(output_polygon.ExportToWkt())
+            shape.initValues(1)
+            shape.setValue(0, coverage.identifier)
             layer.addFeature(shape)
 
         else:
             layer.connectiontype = ms.MS_OGR
-            layer.connection = connect(mask_item)
+            layer.connection = connect(data_items[0])
+            # TODO: more than one mask_item?
 
         layer.setProjection("EPSG:4326")
         layer.setMetaData("ows_srs", "EPSG:4326") 
