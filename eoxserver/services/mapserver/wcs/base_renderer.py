@@ -32,9 +32,7 @@ from django.db.models import Q
 from eoxserver.core import Component
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.decoders import config
-from eoxserver.contrib.mapserver import (
-    Map, Layer, gdalconst_to_imagemode_string, outputFormatObj
-)
+from eoxserver.contrib import mapserver as ms
 from eoxserver.resources.coverages import crss
 from eoxserver.resources.coverages.formats import getFormatRegistry
 
@@ -50,7 +48,7 @@ class BaseRenderer(Component):
     def create_map(self):
         """ Helper function to create a WCS enabled MapServer mapObj.
         """
-        map_ = Map()
+        map_ = ms.mapObj()
         map_.setMetaData("ows_enable_request", "*")
         maxsize = WCSConfigReader(get_eoxserver_config()).maxsize
         if maxsize is not None:
@@ -73,7 +71,9 @@ class BaseRenderer(Component):
         bands = list(range_type)
 
         # create and configure layer
-        layer = Layer(coverage.identifier)
+        layer = ms.layerObj()
+        layer.name = coverage.identifier
+        layer.type = ms.MS_LAYER_RASTER
         layer.setProjection(coverage.spatial_reference.proj)
 
         extent = coverage.extent
@@ -83,12 +83,12 @@ class BaseRenderer(Component):
 
         layer.setExtent(*extent)
 
-        layer.setMetaData({
+        ms.setMetaData(layer, {
             "title": coverage.identifier,
             "enable_request": "*"
         }, namespace="ows")
 
-        layer.setMetaData({
+        ms.setMetaData(layer, {
             "label": coverage.identifier,
             "extent": "%.10g %.10g %.10g %.10g" % extent,
             "resolution": "%.10g %.10g" % resolution,
@@ -100,12 +100,12 @@ class BaseRenderer(Component):
             "rangeset_name": range_type.name,
             "rangeset_label": range_type.name,
             "rangeset_axes": ",".join(band.name for band in bands),
-            "imagemode": gdalconst_to_imagemode_string(bands[0].data_type),
+            "imagemode": ms.gdalconst_to_imagemode_string(bands[0].data_type),
             "formats": " ".join([f.mimeType for f in self.get_wcs_formats()])
         }, namespace="wcs")
 
         if native_format:
-            layer.setMetaData({
+            ms.setMetaData(layer, {
                 "native_format": native_format,
                 "nativeformat": native_format
             }, namespace="wcs")
@@ -117,14 +117,14 @@ class BaseRenderer(Component):
         layer.setMetaData("wcs_srs", supported_crss) 
 
         for band in bands:
-            layer.setMetaData({
+            ms.setMetaData(layer, {
                 "band_description": band.description,
                 "band_definition": band.definition,
                 "band_uom": band.uom
             }, namespace=band.name)
 
             # For MS WCS 1.x interface
-            layer.setMetaData({
+            ms.setMetaData(layer, {
                 "label": band.name,
                 "interval": "%d %d" % band.allowed_values
             }, namespace="wcs_%s" % band.name)
@@ -153,10 +153,9 @@ class BaseRenderer(Component):
     def get_all_outputformats(self, use_mime=True):
         outputformats = []
         for frmt in self.get_wcs_formats():
-            of = outputFormatObj(frmt.driver, "custom")
+            of = ms.outputFormatObj(frmt.driver, "custom")
             of.name = frmt.mimeType if use_mime else frmt.wcs10name
             of.mimetype = frmt.mimeType 
             of.extension = frmt.defaultExt
             outputformats.append(of)
         return outputformats
-
