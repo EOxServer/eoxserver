@@ -56,7 +56,6 @@ class ColorizedMaskLayerFactory(BaseStyleMixIn, AbstractLayerFactory):
         mask_name = suffix[1:]
         coverage = eo_object.cast()
         
-
         if mask_name not in self.enabled_masks:
             return
 

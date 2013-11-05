@@ -26,8 +26,13 @@
 #-------------------------------------------------------------------------------
 
 
+import os.path
+
+from django.conf import settings
+
 from eoxserver.core import Component, implements
 from eoxserver.contrib import mapserver as ms
+from eoxserver.resources.coverages import crss
 from eoxserver.services.mapserver.interfaces import LayerFactoryInterface
 
 
@@ -132,3 +137,33 @@ class OffsiteColorMixIn(object):
                 return None
 
         return ms.colorObj(*values)
+
+
+class PolygonLayerMixIn(object):
+    def _create_polygon_layer(self, name):
+        layer = ms.layerObj()
+        layer.name = name
+        layer.type = ms.MS_LAYER_POLYGON
+
+        self.apply_styles(layer)
+
+        srid = 4326
+        layer.setProjection(crss.asProj4Str(srid))
+        layer.setMetaData("ows_srs", crss.asShortCode(srid)) 
+        layer.setMetaData("wms_srs", crss.asShortCode(srid)) 
+
+        layer.dump = True
+
+        layer.header = os.path.join(settings.PROJECT_DIR, "conf", "outline_template_header.html")
+        layer.template = os.path.join(settings.PROJECT_DIR, "conf", "outline_template_dataset.html")
+        layer.footer = os.path.join(settings.PROJECT_DIR, "conf", "outline_template_footer.html")
+        
+        layer.setMetaData("gml_include_items", "all")
+        layer.setMetaData("wms_include_items", "all")
+
+        layer.addProcessing("ITEMS=identifier")
+
+        layer.offsite = ms.colorObj(0, 0, 0)
+
+        return layer
+    
