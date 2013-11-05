@@ -70,14 +70,17 @@ def union(*footprints):
 
 class ModelTests(TestCase):
     def setUp(self):
+        self.range_type = create(RangeType,
+            name="RGB"
+        )
+
         self.rectified_1 = create(RectifiedDataset,
             identifier="rectified-1",
             footprint=GEOSGeometry("MULTIPOLYGON (((-111.6210939999999994 26.8588260000000005, -113.0273439999999994 -4.0786740000000004, -80.6835939999999994 -9.7036739999999995, -68.0273439999999994 15.6088260000000005, -111.6210939999999994 26.8588260000000005)))"),
             begin_time="2013-06-11T14:55:23Z", end_time="2013-06-11T14:55:23Z",
             min_x=10, min_y=10, max_x=20, max_y=20, srid=4326, 
             size_x=100, size_y=100,
-            location="path/to/dataset1.tif", format="GDAL/VRT", 
-            #storage=ftp_storage
+            range_type=self.range_type
         )
 
         self.rectified_2 = create(RectifiedDataset,
@@ -86,8 +89,7 @@ class ModelTests(TestCase):
             begin_time="2013-06-10T18:52:34Z", end_time="2013-06-10T18:52:32Z",
             min_x=10, min_y=10, max_x=20, max_y=20, srid=4326, 
             size_x=100, size_y=100,
-            location="path/to/dataset2.tif", format="GDAL/VRT", 
-            #storage=ftp_storage
+            range_type=self.range_type
         )
 
         self.rectified_3 = create(RectifiedDataset,
@@ -96,8 +98,7 @@ class ModelTests(TestCase):
             begin_time="2013-06-10T18:55:54Z", end_time="2013-06-10T18:55:54Z",
             min_x=10, min_y=10, max_x=20, max_y=20, srid=4326, 
             size_x=100, size_y=100,
-            location="path/to/dataset3.tif", format="GDAL/VRT", 
-            #storage=ftp_storage
+            range_type=self.range_type
         )
 
         self.referenceable = create(ReferenceableDataset,
@@ -106,15 +107,14 @@ class ModelTests(TestCase):
             begin_time="2013-06-10T18:55:54Z", end_time="2013-06-10T18:55:54Z",
             min_x=10, min_y=10, max_x=20, max_y=20, srid=4326, 
             size_x=100, size_y=100,
-            location="path/to/dataset3.tif", format="GDAL/VRT", 
-            #storage=ftp_storage
+            range_type=self.range_type
         )
 
         self.mosaic = RectifiedStitchedMosaic(
             identifier="mosaic-1",
             min_x=10, min_y=10, max_x=20, max_y=20, srid=4326, 
             size_x=100, size_y=100,
-            location="path/to/tileindex", format="GDAL/VRT"
+            range_type=self.range_type
         )
 
         # TODO: bug, requires identifier to be set manually again
