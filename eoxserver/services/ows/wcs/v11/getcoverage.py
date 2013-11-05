@@ -61,13 +61,14 @@ class WCS11GetCoverageHandler(Component):
             return WCS11GetCoverageXMLDecoder(request.body)
 
 
-    def get_renderer(self, coverage_type):
+    def get_renderer(self, coverage):
         for renderer in self.renderers:
-            if issubclass(coverage_type, renderer.handles):
+            if renderer.supports(coverage):
                 return renderer
 
         raise OperationNotSupportedException(
-            "No renderer found for coverage type '%s'." % coverage_type.__name__
+            "No renderer found for coverage type '%s'." % 
+            coverage.real_type.name.__name__
         )
 
 
@@ -82,8 +83,7 @@ class WCS11GetCoverageHandler(Component):
         except models.Coverage.DoesNotExist:
             raise NoSuchCoverageException((coverage_id,))
 
-        coverage_type = coverage.real_type
-        renderer = self.get_renderer(coverage_type)
+        renderer = self.get_renderer(coverage)
 
         request_values = [
             ("service", "wcs"),

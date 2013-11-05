@@ -62,9 +62,9 @@ class WCS10GetCoverageHandler(Component):
             pass
 
 
-    def get_renderer(self, coverage_type):
+    def get_renderer(self, coverage):
         for renderer in self.renderers:
-            if issubclass(coverage_type, renderer.handles):
+            if renderer.supports(coverage):
                 return renderer
 
         raise OperationNotSupportedException(
@@ -83,9 +83,7 @@ class WCS10GetCoverageHandler(Component):
         except models.Coverage.DoesNotExist:
             raise NoSuchCoverageException((coverage_id,))
 
-        coverage_type = coverage.real_type
-
-        renderer = self.get_renderer(coverage_type)
+        renderer = self.get_renderer(coverage)
         return renderer.render(coverage, request.GET.items())
 
 
