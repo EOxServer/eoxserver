@@ -30,25 +30,37 @@ CC= gcc
 LD= gcc
 LD_SHARED = $(LD) -shared 
 
-INCLUDES=`gdal-config --cflags`
-#CCFLAGS= -c -g -DDEBUG=1 -Wall -fPIC $(INCLUDES)
-CCFLAGS= -c -O2 -Wall -fPIC $(INCLUDES)
+INCS=$(shell gdal-config --cflags)
+LIBS=$(shell gdal-config --libs)
 
-LIBS=`gdal-config --libs`
+#CCFLAGS=-g -DDEBUG=1 -Wall -fPIC $(INCS)
+CFLAGS=-O2 -Wall -fPIC $(INCS)
+LFLAGS=$(LIBS)
 
-OBJS= reftools.o
+OBJ1=reftools.o
+OBJ2=reftools_ext.o
 
-EXE_LIST= reftools
+TARGET1=_reftools.so
+TARGET2=_reftools_ext.so
 
 # --------------------------------------------
 
-all: $(EXE_LIST) clean
+all: baseline clean
+
+baseline: $(TARGET1)
+extended: $(TARGET2)   
 
 %.o: %.c
-	$(CC) $< $(CCFLAGS) -o $@
+	$(CC) -c $< -o $@ $(CFLAGS) 
 
-reftools: $(OBJS)
-	$(LD_SHARED) -Wl,-soname,_reftools.so -o _reftools.so $(OBJS) $(LIBS) 
+$(TARGET1): $(OBJ1)
+	$(LD_SHARED) -o $(TARGET1) $(OBJ1) $(LFLAGS) 
+
+$(TARGET2): $(OBJ2)
+	$(LD_SHARED) -o $(TARGET2) $(OBJ2) $(LFLAGS) 
+
+reftools_ext.o:
+	$(CC) -c reftools.c -o reftools_ext.o -DUSE_GDAL_EOX_EXTENSIONS=1 $(CFLAGS)
 
 clean:
 	rm *.o

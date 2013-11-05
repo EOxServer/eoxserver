@@ -37,7 +37,23 @@
 #include <gdal/ogr_srs_api.h>
 #include <gdal/cpl_string.h>
 
+
 /******************************************************************************/
+/* NOTE: define -DUSE_GDAL_EOX_EXTENSIONS to compile the EOX extended version */
+/******************************************************************************/
+
+/* GDAL Transformer methods */
+#define METHOD_GCP 1  
+#define METHOD_TPS 2  
+#define METHOD_TPS_LSQ 3  
+
+/* check that the required extensions are available */
+#ifdef USE_GDAL_EOX_EXTENSIONS
+#ifndef GDAL_USE_TPS2 
+#error "The GDAL library does not provide required extensions!"
+#endif 
+#endif
+
 /******************************************************************************/
 
 typedef struct {
@@ -70,6 +86,58 @@ typedef struct {
 /******************************************************************************/
 /******************************************************************************/
 
+/* check method and order */
+CPLErr check_method_and_order(int method, int order)
+{ 
+    if (METHOD_GCP==method) 
+    { 
+        if (( order < 0 )||( order > 3 ))
+        { 
+            CPLError(CE_Failure,CPLE_IllegalArg,"Invalid polynomial order! ORDER=%d",order); 
+            return CE_Failure;
+        }
+    } 
+#ifdef USE_GDAL_EOX_EXTENSIONS
+    else if ((METHOD_TPS==method)||(METHOD_TPS_LSQ==method ))
+    { 
+        if (( order < -1 )||( order > 3 ))
+        { 
+            CPLError(CE_Failure,CPLE_IllegalArg,"Invalid TPS augmenting polynomial order! ORDER=%d",order); 
+            return CE_Failure;
+        }
+    }
+#else 
+    else if ((METHOD_TPS==method)||(1!=order))
+    { 
+        CPLError(CE_Failure,CPLE_IllegalArg,"Invalid TPS augmenting polynomial order! ORDER=%d",order) ; 
+        return CE_Failure;
+    }
+    else if (METHOD_TPS_LSQ==method)
+    { 
+        CPLError(CE_Failure,CPLE_IllegalArg,"TPS_LSQ method not supported!") ;
+        return CE_Failure;
+    } 
+#endif 
+    else 
+    { 
+        CPLError(CE_Failure,CPLE_IllegalArg,"Invalid method! METHOD=%d",method) ;
+        return CE_Failure;
+    } 
+
+    return CE_None ; 
+} 
+
+
+/* return 1 for extended or 0 for baseline version of GDAL */ 
+int eoxs_is_extended( void ) 
+{ 
+#ifdef USE_GDAL_EOX_EXTENSIONS
+    return 1 ; 
+#else 
+    return 0 ; 
+#endif 
+} 
+
 void eoxs_destroy_footprint(eoxs_footprint *fp) {
     free(fp->x);
     free(fp->y);
@@ -81,24 +149,50 @@ void eoxs_free_string(char* str)
     free(str);
 }
 
-void *eoxs_create_referenceable_grid_transformer(GDALDatasetH ds, int order) {
+void *eoxs_create_referenceable_grid_transformer(GDALDatasetH ds, int method, int order)
+{
     int gcp_count;
     const GDAL_GCP *gcps;
+
+    if ( check_method_and_order(method,order) != CE_None ) return NULL ; 
 
     if (!ds) return NULL;
     
     gcp_count = GDALGetGCPCount(ds);
     gcps = GDALGetGCPs(ds);
 
-    if (order == -1) {
-        return GDALCreateTPSTransformer(gcp_count, gcps, FALSE);
-    }
-    else {
+#ifdef DEBUG 
+    printf("GDAL Transformer:\n") ; 
+    printf("method = %d\n",method) ; 
+    printf("order = %d\n",order) ; 
+#endif 
+
+    if ( METHOD_GCP == method ) 
+    { 
         return GDALCreateGCPTransformer(gcp_count, gcps, order, FALSE);
+    } 
+    else if ( METHOD_TPS == method ) 
+    { 
+#ifdef USE_GDAL_EOX_EXTENSIONS
+        printf("*\n") ;
+        return GDALCreateTPS2TransformerExt(gcp_count, gcps, FALSE, order);
+#else 
+        return GDALCreateTPSTransformer(gcp_count, gcps, FALSE);
+#endif 
+    } 
+#ifdef USE_GDAL_EOX_EXTENSIONS
+    else if ( METHOD_TPS_LSQ == method ) 
+    { 
+        return GDALCreateTPS2TransformerLSQGrid(gcp_count, gcps, FALSE, order, 0, 0);
+    } 
+#endif 
+    else 
+    { 
+        return NULL ; 
     }
 }
 
-CPLErr eoxs_calculate_footprint(GDALDatasetH ds, int order, eoxs_footprint **out_footprint) {
+CPLErr eoxs_calculate_footprint(GDALDatasetH ds, int method, int order, eoxs_footprint **out_footprint) {
     void *transformer;
     int x_size, y_size;
     double *x, *y, *z;
@@ -149,7 +243,7 @@ CPLErr eoxs_calculate_footprint(GDALDatasetH ds, int order, eoxs_footprint **out
     x_size = GDALGetRasterXSize(ds);
     y_size = GDALGetRasterYSize(ds);
 
-    transformer = eoxs_create_referenceable_grid_transformer(ds, order);
+    transformer = eoxs_create_referenceable_grid_transformer(ds, method, order);
 
     if (!transformer) {
         if (CPLGetLastErrorMsg() == NULL) {
@@ -222,14 +316,14 @@ CPLErr eoxs_calculate_footprint(GDALDatasetH ds, int order, eoxs_footprint **out
     return CE_None;
 }
 
-CPLErr eoxs_get_footprint_wkt(GDALDatasetH ds, int order, char **out_wkt) {
+CPLErr eoxs_get_footprint_wkt(GDALDatasetH ds, int method, int order, char **out_wkt) {
     eoxs_footprint *fp;
     char buffer[512];
     int i, maxlen;
     CPLErr ret;
     *out_wkt = NULL;
 
-    if ((ret = eoxs_calculate_footprint(ds, order, &fp)) != CE_None) {
+    if ((ret = eoxs_calculate_footprint(ds, method, order, &fp)) != CE_None) {
         return ret;
     }
 
@@ -325,7 +419,7 @@ void eoxs_get_intermediate_point_count(
     *n_y = (int) ceil((eoxs_array_max(4, y) - eoxs_array_min(4, y)) / dist);
 }
 
-CPLErr eoxs_rect_from_subset(GDALDatasetH ds, eoxs_subset *subset, int order, eoxs_rect *out_rect) {
+CPLErr eoxs_rect_from_subset(GDALDatasetH ds, eoxs_subset *subset, int method, int order, eoxs_rect *out_rect) {
     void *transformer;
     
     OGRSpatialReferenceH gcp_srs, subset_srs;
@@ -382,7 +476,7 @@ CPLErr eoxs_rect_from_subset(GDALDatasetH ds, eoxs_subset *subset, int order, eo
     ds_x_size = GDALGetRasterXSize(ds);
     ds_y_size = GDALGetRasterYSize(ds);
     
-    transformer = eoxs_create_referenceable_grid_transformer(ds, order);
+    transformer = eoxs_create_referenceable_grid_transformer(ds, method, order);
     
     if (!transformer) {
         if (CPLGetLastErrorMsg() == NULL) {
