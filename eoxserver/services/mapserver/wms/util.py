@@ -174,6 +174,9 @@ class MapServerWMSBaseComponent(Component):
 
 
 class ConnectorSession(object):
+    """ Helper class to be used in `with` statements. Allows connecting and 
+        disconnecting all added layers with the given data items.
+    """
     def __init__(self):
         self.item_list = []
 
@@ -195,7 +198,4 @@ class ConnectorSession(object):
 
     @property
     def coverage_layers(self):
-
         return map(lambda it: (it[1], it[2], it[3]), self.item_list)
-        #for _, coverage, layer, data_items in self.item_list:
-        #    yield coverage, layer, data_items
