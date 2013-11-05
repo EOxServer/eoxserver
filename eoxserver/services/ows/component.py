@@ -28,6 +28,7 @@
 
 
 import itertools
+from functools import partial
 
 from eoxserver.core import env, Component, implements, ExtensionPoint
 from eoxserver.core.decoders import kvp, xml, upper, typelist
@@ -95,7 +96,7 @@ class ServiceComponent(Component):
 
         # check that the service is supported
         handlers = filter(
-            lambda h: decoder.service == h.service.upper(), handlers
+            partial(handler_supports_service, service=decoder.service), handlers
         )
         if not handlers:
             raise ServiceNotSupportedException(decoder.service)
@@ -141,10 +142,9 @@ class ServiceComponent(Component):
         decoder = self.get_decoder(request)
         handlers = self.exception_handlers
 
-
         handlers = sorted(
             filter(
-                lambda h: decoder.service == h.service.upper(), 
+                partial(handler_supports_service, service=decoder.service), 
                 self.exception_handlers
             ),
             key=lambda h: max(h.versions), reverse=True
@@ -197,7 +197,9 @@ def filter_handlers(handlers, service=None, versions=None, request=None):
     request = request.upper() if request is not None else None
 
     if service:
-        handlers = filter(lambda h: h.service == service, handlers)
+        handlers = filter(
+            partial(handler_supports_service, service=service), handlers
+        )
 
     if request:
         handlers = filter(lambda h: h.request.upper() == request, handlers)
@@ -213,15 +215,24 @@ def filter_handlers(handlers, service=None, versions=None, request=None):
     return handlers
 
 
+def handler_supports_service(handler, service=None):
+    """ Convenience method to check whether or not a handler supports a service.
+    """
+    if isinstance(handler.service, basestring):
+        return handler.service.upper() == service
+    else:
+        return service in handler.service
+
+
 class OWSCommonKVPDecoder(kvp.Decoder):
-    service         = kvp.Parameter("service", type=upper)
+    service         = kvp.Parameter("service", type=upper, num="?")
     version         = kvp.Parameter("version", type=parse_version_string, num="?")
     request         = kvp.Parameter("request", type=upper)
     acceptversions  = kvp.Parameter(type=typelist(parse_version_string, ","), num="?")
 
 
 class OWSCommonXMLDecoder(xml.Decoder):
-    service         = xml.Parameter("@service", type=upper)
+    service         = xml.Parameter("@service", type=upper, num="?")
     version         = xml.Parameter("@version", type=parse_version_string, num="?")
     request         = xml.Parameter("local-name()", type=upper)
     acceptversions  = xml.Parameter(

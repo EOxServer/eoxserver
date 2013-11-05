@@ -33,7 +33,12 @@ class ServiceHandlerInterface(object):
 
     @property
     def service(self):
-        """ The name of the supported service in uppercase letters.
+        """ The name of the supported service in uppercase letters. This can 
+            also be an iterable, if the handler shall support more than one 
+            service specifier.
+            Some service specifications demand that the service parameter can be
+            omitted for certain requests. In this case this property can alse be
+            ``None`` or contain ``None``.
         """
 
     @property
@@ -64,7 +69,12 @@ class ExceptionHandlerInterface(object):
 
     @property
     def service(self):
-        """ The name of the supported service in uppercase letters.
+        """ The name of the supported service in uppercase letters. This can 
+            also be an iterable, if the handler shall support more than one 
+            service specifier.
+            Some service specifications demand that the service parameter can be
+            omitted for certain requests. In this case this property can alse be
+            ``None`` or contain ``None``.
         """
 
     @property
