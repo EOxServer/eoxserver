@@ -29,12 +29,15 @@
 
 from eoxserver.core import implements
 from eoxserver.core.config import get_eoxserver_config
+from eoxserver.core.decoders import xml
 from eoxserver.contrib import mapserver as ms
+from eoxserver.resources.coverages import models
 from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.services.mapserver.wms.util import MapServerWMSBaseComponent
 from eoxserver.services.ows.wms.interfaces import (
     WMSFeatureInfoRendererInterface
 )
+from eoxserver.services.ows.wcs.v20.encoders import WCS20EOXMLEncoder
 
 
 class MapServerWMSFeatureInfoRenderer(MapServerWMSBaseComponent):
@@ -55,8 +58,59 @@ class MapServerWMSFeatureInfoRenderer(MapServerWMSBaseComponent):
         map_.setProjection("EPSG:4326")
 
         session = self.setup_map(layer_groups, map_, options)
+
+
+        # check if the required format is EO O&M
+        frmt = pop_param(request_values, "info_format")
+        use_eoom = False
+        if frmt in ("application/xml", "text/xml"):
+            request_values.append(("info_format", "application/vnd.ogc.gml"))
+            use_eoom = True
+        else:
+            request_values.append(("info_format", frmt))
         
         with session:
             request = ms.create_request(request_values)
             response = map_.dispatch(request)
-            return response.content, response.content_type
+
+            if not use_eoom:
+                # just return the response
+                return response.content, response.content_type
+            else:
+                # do a postprocessing step and get all identifiers in order
+                # to encode them with EO O&M
+                decoder = GMLFeatureDecoder(response.content)
+                identifiers = decoder.identifiers
+                coverages = models.Coverage.objects.filter(
+                    identifier__in=identifiers
+                )
+
+                # sort the result with the returned order of coverages
+                lookup_table = dict((c.identifier, c) for c in coverages)
+                coverages = [
+                    lookup_table[identifier] for identifier in identifiers
+                ]
+
+                # encode the coverages with the EO O&M 
+                encoder = WCS20EOXMLEncoder()
+                return (
+                    encoder.serialize(
+                        encoder.encode_coverage_descriptions(coverages)
+                    ),
+                    encoder.content_type
+                )
+
+
+
+def pop_param(request_values, name, default=None):
+    """ Helper to pop one param from a key-value list
+    """
+    for param_name, value in request_values:
+        if param_name.lower() == name:
+            request_values.remove((param_name, value))
+            return value
+    return default
+
+
+class GMLFeatureDecoder(xml.Decoder):
+    identifiers = xml.Parameter("//identifier/text()", num="*")
