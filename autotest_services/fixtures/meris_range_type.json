@@ -13,7 +13,7 @@
     "fields": {
         "reason": "http://www.opengis.net/def/nil/OGC/0/unknown", 
         "nil_value_set": 2, 
-        "value_string": "0"
+        "raw_value": "0"
     }
 },
 {
