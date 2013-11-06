@@ -37,7 +37,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.4/ref/settings/
 """
 
-from os.path import join
+from os.path import join, abspath, dirname
 
 PROJECT_DIR = dirname(abspath(__file__))
 PROJECT_URL_PREFIX = ''
@@ -127,7 +127,7 @@ STATICFILES_FINDERS = (
 )
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = ''
+SECRET_KEY = 'tmp'
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
