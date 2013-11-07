@@ -1,5 +1,4 @@
 #-------------------------------------------------------------------------------
-# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>
@@ -12,8 +11,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -28,53 +27,99 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-##################
-# Autotest HowTo #
-##################
 
--------------------------------------
-1. How to configure the test instance
--------------------------------------
+################################################################################
+#                               Autotest HowTos                                #
+################################################################################
 
-# See also prepare_instance.sh in jenkins directory.
 
-# Note that in order to allow 'svn update' to still work the contents of the 
-# autotest/autotest/ subdirectory would need to be moved on directory higher 
-# to autotest/ and the paths in the config files adjusted accordingly. This is 
-# skipped in the following steps.
++------------------------------------------------------------------------------+
+| 1. How to configure the autotest instance using vagrant (recommended)        |
++------------------------------------------------------------------------------+
 
-cd <path_to_eoxserver_directory>
-svn co http://eoxserver.org/svn/trunk .
-mv autotest tmp1
-eoxserver-admin.py create_instance autotest --init_spatialite
-cp -R tmp1/* autotest/autotest
-rm -r tmp1
+# See HOWTO in vagrant directory of EOxServer repository
+# https://github.com/EOxServer/eoxserver.git
+# https://github.com/EOxServer/eoxserver/tree/master/vagrant/HOWTO
 
-sed -e 's/pdp_type=none/pdp_type=dummypdp/' -i autotest/autotest/conf/eoxserver.conf
-sed -e 's/allowed_actions=/allowed_actions=Add,Delete/' -i autotest/autotest/conf/eoxserver.conf
 
-cd eoxserver/processing/gdal/
-make
-cd ../../../
++------------------------------------------------------------------------------+
+| 2. How to configure the autotest instance without vagrant (not recommended)  |
++------------------------------------------------------------------------------+
 
-export PYTHONPATH=`pwd`
-cd autotest
-ln -s autotest/data/ data
+# Clone EOxServer
+git clone git@github.com:EOxServer/eoxserver.git
+cd eoxserver/
+git submodule init
+git submodule update
+cd autotest/
+
+# Configure database
+vi settings.py
+
+python manage.py syncdb --noinput
+python manage.py loaddata auth_data.json initial_rangetypes.json
+
+
++------------------------------------------------------------------------------+
+| 3. How to generate a custom EOxServer instance                               |
++------------------------------------------------------------------------------+
+
+# See also prepare_instance.sh in jenkins directory of EOxServer repository
+# https://github.com/EOxServer/eoxserver.git
+# https://github.com/EOxServer/eoxserver/tree/master/jenkins/prepare_instance.sh
+
+eoxserver-admin.py create_instance <your-instance-name> --init_spatialite
+cd <your-instance-name>/
 python manage.py syncdb
 
 
-------------------------
-2. How to load test data
-------------------------
++------------------------------------------------------------------------------+
+| 4. How to run tests                                                          |
++------------------------------------------------------------------------------+
 
-# Perform steps in "1. How to configure test instance"
-cd <path_to_eoxserver_directory>
-export PYTHONPATH=`pwd`
-cd autotest
+# See also run_tests.sh in jenkins directory of EOxServer repository
+# https://github.com/EOxServer/eoxserver.git
+# https://github.com/EOxServer/eoxserver/tree/master/jenkins/run_tests.sh
+
+# Perform steps in "1. How to configure the autotest instance using vagrant"
+
+vagrant ssh
+cd /var/eoxserver/autotest/
+export XML_CATALOG_FILES="../schemas/catalog.xml"
+python manage.py test <appname>
+
+# services only
+python manage.py test services -v2
+
+# all modules
+python manage.py test services coverages backends processes core
+
+# or simply
+python manage.py test
+# this also runs some django tests.
+
+
+# Running single tests
+python manage.py test services.<beginnign-of-test-name>
+# e.g.
+python manage.py test services.WCS20GetCapabilities
+
+
++------------------------------------------------------------------------------+
+| 5. How to load test data                                                     |
++------------------------------------------------------------------------------+
+
+# Perform steps in "1. How to configure the autotest instance using vagrant"
+
+vagrant ssh
+cd /var/eoxserver/autotest/
 python manage.py loaddata data/fixtures/some_fixture.json ...
 
 # To load all test fixtures:
-python manage.py loaddata auth_data.json initial_rangetypes.json testing_base.json testing_coverages.json testing_asar_base.json testing_asar.json testing_reprojected_coverages.json
+python manage.py loaddata auth_data.json initial_rangetypes.json \
+                 testing_base.json testing_coverages.json \
+                 testing_asar_base.json testing_asar.json \
+                 testing_reprojected_coverages.json
 
 List of fixtures:
  * initial_data.json - Base data to enable components. Loaded with syncdb.
@@ -93,79 +138,49 @@ List of fixtures:
                                         MERIS test data.
 
 
----------------------------
-3. How to run test instance
----------------------------
++------------------------------------------------------------------------------+
+| 6. How to run development server                                             |
++------------------------------------------------------------------------------+
 
-# Perform steps in "1. How to configure test instance"
-# Optionally perform steps in "2. How to load test data"
-cd <path_to_eoxserver_directory>
-export PYTHONPATH=`pwd`
-cd autotest
-python manage.py runserver
+# Perform steps in "1. How to configure the autotest instance using vagrant"
+# Optionally perform steps in "5. How to load test data"
+
+vagrant ssh
+cd /var/eoxserver/autotest/
+python manage.py runserver 0.0.0.0:8000
+
+# Access server
+http://localhost:8001/
 
 
--------------------------
-4. How to update fixtures
--------------------------
++------------------------------------------------------------------------------+
+| 7. How to update fixtures                                                    |
++------------------------------------------------------------------------------+
 
-cd <path_to_eoxserver_directory>
-export PYTHONPATH=`pwd`
-cd autotest
+vagrant ssh
+cd /var/eoxserver/autotest/
 python manage.py dumpdata --format=json --indent=4 > tmp.json
 # Inspect file e.g. with: meld tmp.json data/fixtures/initial_data.json
 mv tmp.json data/fixtures/<json-file>
 
 
------------------------
-5. How to run unittests
------------------------
-
-# See also run_tests.sh in jenkins directory.
-
-# Perform steps in "1. How to configure test instance"
-
-cd <path_to_eoxserver_directory>
-export PYTHONPATH=`pwd`
-export XML_CATALOG_FILES="`pwd`/schemas/catalog.xml"
-cd autotest
-# Make sure a symbolic link "data" pointing to "autotest/data/" is present.
-
-# services only
-python manage.py test services
-
-# for all modules
-python manage.py test services coverages backends processes core
-
-# or simply
-python manage.py test
-# this also runs some django tests.
-
-
-# Running single tests
-python manage.py test services.<beginnign-of-test-name>
-# e.g.
-python manage.py test services.WCS20GetCapabilities
-
-
-------------------------------
-6. How to add expected results
-------------------------------
++------------------------------------------------------------------------------+
+| 8. How to add expected results                                               |
++------------------------------------------------------------------------------+
 
 # To format XML files in a pretty way use the following command
 xmllint --format <filename> > <tmpfilename>
 mv <tmpfilename> <filename>
 
 
--------------------------------
-7. How to compare XML documents 
--------------------------------
++------------------------------------------------------------------------------+
+| 9. How to compare XML documents                                              |
++------------------------------------------------------------------------------+
 
 # To compare an expected XML document with the actual XML response 
 # use the following command
-cd <path_to_eoxserver_directory>
-export PYTHONPATH=`pwd`
-cd autotest
+vagrant ssh
+cd /var/eoxserver/autotest/
 ../tools/xcomp.py responses/<XML-document> expected/<XML-document> 
 
 #The XML comparator parses the XML documents and compares 
@@ -174,18 +189,18 @@ cd autotest
 #attributes and various name-space prefixes).
 
 
---------------------------------
-8. How to validate XML documents
---------------------------------
++------------------------------------------------------------------------------+
+| 10. How to validate XML documents                                            |
++------------------------------------------------------------------------------+
 
 export XML_CATALOG_FILES="<path_to_eoxserver_directory>/schemas/catalog.xml"
 
 xmllint --noout --schema http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd <XML-document>
 
 
-------------------------------
-9. How to run schematron tests
-------------------------------
++------------------------------------------------------------------------------+
+| 11. How to run schematron tests                                              |
++------------------------------------------------------------------------------+
 
 export XML_CATALOG_FILES="<path_to_eoxserver_directory>/schemas/catalog.xml"
 
@@ -193,11 +208,15 @@ cd <path_to_eoxserver_directory>/schemas/
 xsltproc schematron_xslt1/iso_dsdl_include.xsl wcseo/1.0/wcsEOSchematron.sch | xsltproc schematron_xslt1/iso_abstract_expand.xsl - | xsltproc schematron_xslt1/iso_svrl_for_xslt1.xsl - | xsltproc - <XML-document>
 
 
-------------------------
-10. How to run all tests
-------------------------
++------------------------------------------------------------------------------+
+| 12. How to run all tests                                                     |
++------------------------------------------------------------------------------+
 
-1. Run unit tests (see above)
+# See also run_tests.sh in jenkins directory of EOxServer repository
+# https://github.com/EOxServer/eoxserver.git
+# https://github.com/EOxServer/eoxserver/tree/master/jenkins/run_tests.sh
+
+1. Run tests (see above)
 2. Run Selenium tests
 3. Run test instance, load data via CLI commands, run some requests, and 
    compare responses with unit tests results
@@ -205,4 +224,26 @@ xsltproc schematron_xslt1/iso_dsdl_include.xsl wcseo/1.0/wcsEOSchematron.sch | x
    above)
 
 
---------------------------------------------------------------------------------
++------------------------------------------------------------------------------+
+| 13. How to reset the autotest instance                                       |
++------------------------------------------------------------------------------+
+
+# Perform steps in "1. How to configure the autotest instance using vagrant"
+
+vagrant ssh
+cd /var/eoxserver/autotest/
+
+sudo service httpd stop
+
+# Reset DB with PostgreSQL:
+sudo su postgres -c "dropdb eoxserver_testing"
+sudo su postgres -c "createdb -O eoxserver -T template_postgis eoxserver_testing"
+
+python manage.py syncdb --noinput --traceback
+python manage.py loaddata auth_data.json initial_rangetypes.json --traceback
+
+# Reset EOxServer
+rm -f logs/eoxserver.log
+touch logs/eoxserver.log
+
+sudo service httpd start
