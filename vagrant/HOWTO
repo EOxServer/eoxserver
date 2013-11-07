@@ -51,6 +51,7 @@ vagrant plugin install sahara           # Sandboxing https://github.com/jedi4eve
 vagrant plugin install vagrant-vbguest  # Check for Virtualbox Guest Additions https://github.com/dotless-de/vagrant-vbguest
 
 # Run vagrant
+cd vagrant/
 vagrant up
 
 # Access server
@@ -95,6 +96,7 @@ git submodule update
 16) Open an Administrator console and enter:
 vagrant plugin install sahara
 vagrant plugin install vagrant-vbguest
+cd vagrant/
 vagrant up
 17) Access server at:
 http://localhost:8000/
