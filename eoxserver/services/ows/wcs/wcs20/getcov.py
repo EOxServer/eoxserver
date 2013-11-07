@@ -371,7 +371,8 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
                 
         with TmpFile( format.defaultExt , "tmp_" ) as dst_path :
 
-            drv_dst.CreateCopy( dst_path , ds_vrt , True , "" ) 
+            #NOTE: the format option (last param.) must be None or a sequence
+            drv_dst.CreateCopy( dst_path , ds_vrt , True , () ) 
 
             # get footprint if needed 
 
