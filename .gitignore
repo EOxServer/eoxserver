@@ -10,3 +10,9 @@
 # Developers
 .project
 .pydevproject
+
+# Vagrant
+/vagrant/.vagrant*
+/vagrant/shares/httpd_conf.d/README
+/vagrant/shares/httpd_conf.d/welcome.conf
+/vagrant/shares/httpd_conf.d/wsgi.conf.rpmnew
