@@ -1,0 +1,11 @@
+# Python
+*.pyc
+
+# Django
+/data/config.sqlite
+/static
+
+# EOxServer
+/logs/eoxserver.log
+/wcst_perm
+/wcst_temp

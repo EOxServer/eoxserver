@@ -53,14 +53,26 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': 'eoxserver_testing',
-        'USER': 'eoxserver',
-        'PASSWORD': 'eoxserver',
+# Configure which database to use. Default is PostGIS.
+DATABASE = '' # 'sqlite'
+
+if DATABASE == 'sqlite':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.contrib.gis.db.backends.spatialite',
+            'NAME': '/var/eoxserver/autotest/data/config.sqlite',
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.contrib.gis.db.backends.postgis',
+            'NAME': 'eoxserver_testing',
+            'USER': 'eoxserver',
+            'PASSWORD': 'eoxserver',
+        }
+    }
+
 SPATIALITE_SQL = join(PROJECT_DIR, 'data/init_spatialite-2.3.sql')
 
 # Local time zone for this installation. Choices can be found here:
