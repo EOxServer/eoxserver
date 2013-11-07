@@ -45,11 +45,18 @@ from eoxserver.core.util.multiparttools import (
     mpUnpack, getMimeType, getMultipartBoundary
 )
 from eoxserver.contrib import gdal, osr
-from eoxserver.testing.core import (
-    EOxServerTestCase, BASE_FIXTURES
-)
+#from eoxserver.testing.core import (
+#    EOxServerTestCase, BASE_FIXTURES
+#)
 from eoxserver.testing.xcomp import xmlCompareFiles
 
+
+root_dir = os.path.join(settings.PROJECT_DIR, "..")
+
+BASE_FIXTURES = [
+    "range_types.json", "meris_range_type.json", 
+    "asar_range_type.json",
+]
 
 logger = logging.getLogger(__name__)
 
@@ -138,10 +145,10 @@ class OWSTestCase(TestCase):
         return "xml"
     
     def getResponseFileDir(self):
-        return os.path.join(settings.PROJECT_DIR,"responses")
+        return os.path.join(root_dir, "responses")
 
     def getDataFileDir(self):
-        return os.path.join(settings.PROJECT_DIR,"data")
+        return os.path.join(root_dir, "data")
     
     def getResponseFileName(self, file_type):
         return "%s.%s" % (self.__class__.__name__, self.getFileExtension(file_type))
@@ -150,7 +157,7 @@ class OWSTestCase(TestCase):
         return self.response.content
     
     def getExpectedFileDir(self):
-        return os.path.join(settings.PROJECT_DIR, "expected")
+        return os.path.join(root_dir, "expected")
     
     def getExpectedFileName(self, file_type):
         return "%s.%s" % (self.__class__.__name__, self.getFileExtension(file_type))
@@ -445,7 +452,6 @@ class ExceptionTestCase(XMLTestCase):
     
     def testExceptionCode(self):
         logger.info("Checking OWS Exception Code ...")
-
 
         tree = etree.fromstring(self.getXMLData())
         self.assertEqual(
@@ -871,10 +877,14 @@ class WCS20DescribeEOCoverageSetSectionsTestCase(XMLTestCase):
         return []
     
     def testSections(self):
-        decoder = XMLDecoder(self.getXMLData(), {
-            "sections": {"xml_location": "/*", "xml_type": "tagName[]"}
-        })
-        sections = decoder.getValue("sections")
+        tree = etree.fromstring(self.getXMLData())
+        sections = tree.xpath(
+            "/*/*",
+            namespaces={
+                "wcs": "http://www.opengis.net/wcs/2.0"
+            }
+        )
+        sections = [section.tag for section in sections]
         self.assertItemsEqual(sections, self.getExpectedSections())
     
 class WCS20GetCoverageMultipartTestCase(MultipartTestCase):
@@ -905,7 +915,7 @@ class WCS20GetCoverageReferenceableGridCoverageMultipartTestCase(
     pass
 
 class RasdamanTestCaseMixIn(object):
-    fixtures = BASE_FIXTURES + ["testing_rasdaman_coverages.json"]
+    #fixtures = BASE_FIXTURES + ["testing_rasdaman_coverages.json"]
     
     def setUp(self):
         # TODO check if connection to DB server is possible

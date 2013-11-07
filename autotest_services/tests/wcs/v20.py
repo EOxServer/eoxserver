@@ -1,3 +1,6 @@
+
+from urllib import quote
+
 from autotest_services import testbase
 import base as wcsbase
 
@@ -324,8 +327,8 @@ class WCS20DescribeEOCoverageSetDatasetPagingCountTestCase(testbase.WCS20Describ
 class WCS20DescribeEOCoverageSetSectionsAllTestCase(testbase.WCS20DescribeEOCoverageSetSectionsTestCase):
     def getExpectedSections(self):
         return [
-            "wcs:CoverageDescriptions",
-            "wcseo:DatasetSeriesDescriptions"
+            "{http://www.opengis.net/wcs/2.0}CoverageDescriptions",
+            "{http://www.opengis.net/wcseo/1.0}DatasetSeriesDescriptions"
         ]
         
     def getRequest(self):
@@ -335,8 +338,8 @@ class WCS20DescribeEOCoverageSetSectionsAllTestCase(testbase.WCS20DescribeEOCove
 class WCS20DescribeEOCoverageSetSectionsAll2TestCase(testbase.WCS20DescribeEOCoverageSetSectionsTestCase):
     def getExpectedSections(self):
         return [
-            "wcs:CoverageDescriptions",
-            "wcseo:DatasetSeriesDescriptions"
+            "{http://www.opengis.net/wcs/2.0}CoverageDescriptions",
+            "{http://www.opengis.net/wcseo/1.0}DatasetSeriesDescriptions"
         ]
         
     def getRequest(self):
@@ -346,8 +349,8 @@ class WCS20DescribeEOCoverageSetSectionsAll2TestCase(testbase.WCS20DescribeEOCov
 class WCS20DescribeEOCoverageSetSectionsAll3TestCase(testbase.WCS20DescribeEOCoverageSetSectionsTestCase):
     def getExpectedSections(self):
         return [
-            "wcs:CoverageDescriptions",
-            "wcseo:DatasetSeriesDescriptions"
+            "{http://www.opengis.net/wcs/2.0}CoverageDescriptions",
+            "{http://www.opengis.net/wcseo/1.0}DatasetSeriesDescriptions"
         ]
         
     def getRequest(self):
@@ -357,8 +360,8 @@ class WCS20DescribeEOCoverageSetSectionsAll3TestCase(testbase.WCS20DescribeEOCov
 class WCS20DescribeEOCoverageSetSectionsAll4TestCase(testbase.WCS20DescribeEOCoverageSetSectionsTestCase):
     def getExpectedSections(self):
         return [
-            "wcs:CoverageDescriptions",
-            "wcseo:DatasetSeriesDescriptions"
+            "{http://www.opengis.net/wcs/2.0}CoverageDescriptions",
+            "{http://www.opengis.net/wcseo/1.0}DatasetSeriesDescriptions"
         ]
         
     def getRequest(self):
@@ -368,7 +371,7 @@ class WCS20DescribeEOCoverageSetSectionsAll4TestCase(testbase.WCS20DescribeEOCov
 class WCS20DescribeEOCoverageSetSectionsCoverageDescriptionsTestCase(testbase.WCS20DescribeEOCoverageSetSectionsTestCase):
     def getExpectedSections(self):
         return [
-            "wcs:CoverageDescriptions"
+            "{http://www.opengis.net/wcs/2.0}CoverageDescriptions"
         ]
         
     def getRequest(self):
@@ -378,7 +381,7 @@ class WCS20DescribeEOCoverageSetSectionsCoverageDescriptionsTestCase(testbase.WC
 class WCS20DescribeEOCoverageSetSectionsDatasetSeriesDescriptionsTestCase(testbase.WCS20DescribeEOCoverageSetSectionsTestCase):
     def getExpectedSections(self):
         return [
-            "wcseo:DatasetSeriesDescriptions"
+            "{http://www.opengis.net/wcseo/1.0}DatasetSeriesDescriptions"
         ]
         
     def getRequest(self):
@@ -534,7 +537,7 @@ class WCS20GetCoverageCompressionJPEGTestCase(testbase.RectifiedGridCoverageTest
 
 class WCS20GetCoverageTiledTestCase(testbase.RectifiedGridCoverageTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=%s" % quote ("image/tiff;tiled=YES")
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=%s" % quote("image/tiff;tiled=YES")
         return (params, "kvp")
 
 # TODO: Enable test once subdatasets are supported (see #123):
@@ -704,6 +707,14 @@ class WCS20GetCoverageRangeSubsetNamesDatasetTestCase(testbase.RectifiedGridCove
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&rangesubset=MERIS_radiance_04_uint16,MERIS_radiance_05_uint16,MERIS_radiance_06_uint16"
         return (params, "kvp")
+
+class WCS20GetCoverageRangeSubsetNamesPNGDatasetTestCase(testbase.RectifiedGridCoverageTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/png&rangesubset=1"
+        return (params, "kvp")
+
+    def getFileExtension(self, part=None):
+        return "png"
 
 class WCS20GetCoverageMultipartRangeSubsetNamesDatasetTestCase(testbase.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
     def getRequest(self):
