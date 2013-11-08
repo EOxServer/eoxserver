@@ -53,12 +53,8 @@ if path not in sys.path:
 #       multiple EOxServer instance. Therefore we cannot rely on the 
 #       DJANGO_SETTINGS_MODULE enviromental variable we must always set it
 #       to the proper value.
-#os.environ.setdefault("DJANGO_SETTINGS_MODULE", "autotest.settings")
-os.environ["DJANGO_SETTINGS_MODULE"] = "autotest.settings"
-
-# Initialize the EOxServer component system.
-import eoxserver.core
-eoxserver.core.initialize()
+#os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
+os.environ["DJANGO_SETTINGS_MODULE"] = "settings"
 
 # Initialize the EOxServer component system.
 import eoxserver.core
