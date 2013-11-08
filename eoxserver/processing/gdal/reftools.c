@@ -670,6 +670,10 @@ CPLErr eoxs_create_rectified_vrt(GDALDatasetH ds, const char *vrt_filename,
     void *transformer;
     GDALWarpOptions *warp_options;
 
+    CPLErr ret ; 
+    int x_size,y_size;
+    double geotransform[6];
+
     if ( check_method_and_order(method,order) != CE_None ) return CE_Failure; 
     
     if (!ds) {
@@ -703,41 +707,129 @@ CPLErr eoxs_create_rectified_vrt(GDALDatasetH ds, const char *vrt_filename,
         if (free_dst_srs_wkt) free(dst_srs_wkt);
         return CE_Failure;
     }
+
+    // guess the size of the created image
+
+    ret = GDALSuggestedWarpOutput(ds, GDALGenImgProjTransform, 
+                transformer, geotransform, &x_size, &y_size );
+
+    if ( ret != CE_None ) 
+    {
+        GDALDestroyGenImgProjTransformer(transformer);
+        return ret ;  
+    }
+
+    // update the transformer to include the output geo-transform 
+    
+    GDALSetGenImgProjTransformerDstGeoTransform( transformer, geotransform ); 
+
+    // set warp options 
     
     warp_options = GDALCreateWarpOptions();
-    //warp_options->eResampleAlg = GRA_NearestNeighbour;
-    warp_options->pTransformerArg = transformer;
-    
-    vrt_ds = GDALAutoCreateWarpedVRT(
-        ds,                       // source dataset,
-        NULL,                     // source projection WKT
-        dst_srs_wkt,              // destination projection WKT,
-        GRA_NearestNeighbour,     // resample algorithm
-        0.0,                      // choose exact calculation
-        warp_options              // warp options
-    );
-    
-    if (!vrt_ds) {
-        if (CPLGetLastErrorMsg() == NULL) {
-            CPLError(CE_Failure, CPLE_FileIO, "Failed to created warped VRT.");
-        }
-        GDALDestroyGenImgProjTransformer(transformer);
-        GDALDestroyWarpOptions(warp_options);
-        if (free_dst_srs_wkt) free(dst_srs_wkt);
-        return CE_Failure;
-    }
-    
-    GDALSetDescription(vrt_ds, vrt_filename);
-    
-    // clean up
-    GDALClose(vrt_ds);
-    GDALDestroyGenImgProjTransformer(transformer);
-    GDALDestroyWarpOptions(warp_options);
-    if (free_dst_srs_wkt) free(dst_srs_wkt);
-    
-    return CE_None;
-}
 
+    warp_options->eResampleAlg = GRA_NearestNeighbour ;     // resampling method
+    warp_options->pfnTransformer = GDALGenImgProjTransform ;// specific transform function
+    warp_options->pTransformerArg = transformer;            // pointer to the transfomer 
+    warp_options->hSrcDS = ds ;                             // source dataset 
+
+    { 
+        int i , j , nb ; 
+
+        // bands setup
+        warp_options->nBandCount = nb = GDALGetRasterCount( ds );
+        warp_options->panSrcBands = (int*)CPLMalloc(sizeof(int) * nb );
+        warp_options->panDstBands = (int*)CPLMalloc(sizeof(int) * nb );
+
+        for( i = 0; i < nb ; i++ )
+        {
+            warp_options->panSrcBands[i] = i+1;
+            warp_options->panDstBands[i] = i+1;
+        }
+
+        // handle no-data values alpha bands
+        for( i = 0; i < nb ; i++ )
+        { 
+            GDALRasterBandH band = GDALGetRasterBand( ds, i+1 );
+            int has_noda_value = FALSE ; 
+            double v_nodata = GDALGetRasterNoDataValue( band, &has_noda_value ) ; 
+
+            if ( has_noda_value ) 
+            { 
+                // if not yet allocated allocate the no-data vectors
+            
+                if( NULL == warp_options->padfSrcNoDataReal )
+                { 
+                    warp_options->padfSrcNoDataImag = (double*)CPLCalloc(nb,sizeof(double)) ; 
+                    warp_options->padfSrcNoDataReal = (double*)CPLMalloc(sizeof(double)*nb) ; 
+
+                    //NOTE: the 'magic constant' taken from the GDAL sources 
+                    for ( j = 0 ; j < nb ; ++j ) 
+                        warp_options->padfSrcNoDataReal[j] = -1.1e20;
+                } 
+
+                warp_options->padfSrcNoDataReal[i] = v_nodata ;
+            } 
+
+            if ( GDALGetRasterColorInterpretation(band) == GCI_AlphaBand )
+            { 
+                warp_options->nSrcAlphaBand = i+1 ; 
+                warp_options->nDstAlphaBand = i+1 ; 
+            } 
+        } 
+    } 
+
+    // approximating transformation (desired as it makes warping really faster)
+    if ( 0 < APPROX_ERR_TOL ) 
+    { 
+        warp_options->pTransformerArg =         // pointer to the transfomer
+                GDALCreateApproxTransformer( 
+                    warp_options->pfnTransformer,
+                    warp_options->pTransformerArg, 
+                    APPROX_ERR_TOL ) ; 
+                    
+        warp_options->pfnTransformer = GDALApproxTransform; // specific transform function
+
+        // make sure the original transformer gets destroyed
+        GDALApproxTransformerOwnsSubtransformer(
+                warp_options->pTransformerArg, TRUE );
+    }    
+
+    // create the rectified (warped) VRT
+    vrt_ds = GDALCreateWarpedVRT( ds, // source dataset
+            x_size, y_size,     // image size 
+            geotransform,       // geotransformation matrix
+            warp_options ) ;    // warp options 
+
+    if ( vrt_ds ) // SUCCESS 
+    {
+        // set some additional metadata
+        GDALSetProjection( vrt_ds, dst_srs_wkt );
+        GDALSetDescription( vrt_ds, vrt_filename );
+
+        // close the dataset 
+        GDALClose(vrt_ds);
+
+        ret = CE_None ; 
+    } 
+    else    // FAILURE 
+    {
+        if (CPLGetLastErrorMsg() == NULL)
+            CPLError(CE_Failure, CPLE_FileIO, "Failed to created warped VRT.");
+
+        ret = CE_Failure;
+    }
+   
+    // clean-up the mess 
+    
+    // NOTE: The transfomer gets destroyed elsewhere. If you try
+    //       to destroy it here you get a 'double-free' seg.fault.     
+    //GDALDestroyGenImgProjTransformer(transformer);
+   
+    GDALDestroyWarpOptions( warp_options );
+    if (free_dst_srs_wkt) free(dst_srs_wkt);
+
+    return ret ;
+}
 
 /* Thin wrapper for GDALSuggestedWarpOutput which allows the setting of the order. */
 CPLErr eoxs_suggested_warp_output(GDALDatasetH ds, 

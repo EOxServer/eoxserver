@@ -64,5 +64,5 @@ reftools_ext.o:
 	$(CC) -c reftools.c -o reftools_ext.o -DUSE_GDAL_EOX_EXTENSIONS=1 $(CFLAGS)
 
 clean:
-	rm *.o
+	-rm -fv *.o
 
