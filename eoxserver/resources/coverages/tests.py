@@ -1,5 +1,4 @@
 #-----------------------------------------------------------------------
-# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>
@@ -12,8 +11,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -54,7 +53,7 @@ class RectifiedDatasetCreateWithLocalPathTestCase(eoxstest.RectifiedDatasetCreat
     def manage(self):
         args = {
             "local_path": os.path.join(settings.PROJECT_DIR,
-                          "data/meris/MER_FRS_1P_reduced", 
+                          "autotest/data/meris/MER_FRS_1P_reduced", 
                           "ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.tif"),
             "range_type_name": "RGB",
         }
@@ -70,13 +69,13 @@ class RectifiedDatasetCreateWithLocalPathAndMetadataTestCase(eoxstest.RectifiedD
         args = {
             "local_path": os.path.join(
                 settings.PROJECT_DIR,
-                "data/meris/MER_FRS_1P_reduced", 
+                "autotest/data/meris/MER_FRS_1P_reduced", 
                 "ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.tif"
             ),
             "range_type_name": "RGB",
             "md_local_path": os.path.join(
                 settings.PROJECT_DIR,
-                "data/meris/MER_FRS_1P_reduced", 
+                "autotest/data/meris/MER_FRS_1P_reduced", 
                 "ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.xml"
             )
         }
@@ -113,7 +112,7 @@ class RectifiedDatasetCreateWithContainerTestCase(eoxstest.RectifiedDatasetCreat
         self._create_containers()
         args = {
             "local_path": os.path.join(settings.PROJECT_DIR,
-                          "data/meris/mosaic_MER_FRS_1P_RGB_reduced", 
+                          "autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced", 
                           "mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif"),
             "range_type_name": "RGB",
             "container": self.stitched_mosaic
@@ -172,7 +171,7 @@ class RectifiedDatasetCreateWithContainerIDsTestCase(eoxstest.RectifiedDatasetCr
         self._create_containers()
         args = {
             "local_path": os.path.join(settings.PROJECT_DIR,
-                          "data/meris/mosaic_MER_FRS_1P_RGB_reduced", 
+                          "autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced", 
                           "mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif"),
             "range_type_name": "RGB",
             "container_ids": [self.stitched_mosaic.getCoverageId(), self.dataset_series.getEOID()]
@@ -193,13 +192,13 @@ class RectifiedDatasetCreateWithRemothePathTestCase(eoxstest.RectifiedDatasetCre
         args = {
             "local_path": os.path.join(
                 settings.PROJECT_DIR,
-                "data/meris/MER_FRS_1P_reduced", 
+                "autotest/data/meris/MER_FRS_1P_reduced", 
                 "ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.tif"
             ),
             "range_type_name": "RGB",
             "md_local_path": os.path.join(
                 settings.PROJECT_DIR,
-                "data/meris/MER_FRS_1P_reduced", 
+                "autotest/data/meris/MER_FRS_1P_reduced", 
                 "ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.xml"
             )
         }
@@ -222,7 +221,7 @@ class RectifiedDatasetCreateWithRasdamanLocationTestCase(eoxstest.RectifiedDatas
             ),
             "md_local_path": os.path.join(
                 settings.PROJECT_DIR,
-                "data/meris/mosaic_MER_FRS_1P_RGB_reduced", 
+                "autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced", 
                 "mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.xml"
             )
         }
@@ -432,7 +431,7 @@ class RectifiedStitchedMosaicCreateWithLocalPathTestCase(eoxstest.RectifiedStitc
         args = {
             "data_dirs": [{
                 "path": os.path.join(settings.PROJECT_DIR,
-                                     "data/meris/mosaic_MER_FRS_1P_RGB_reduced"),
+                                     "autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced"),
                 "search_pattern": "*.tif",
                 "type": "local"
             }],
@@ -527,12 +526,12 @@ class RectifiedStitchedMosaicUpdateLinkDataSourcesTestCase(eoxstest.RectifiedSti
                     "type": "local",
                     "path": os.path.join(
                         settings.PROJECT_DIR,
-                        "data/meris/MER_FRS_1P_reduced", 
+                        "autotest/data/meris/MER_FRS_1P_reduced", 
                         "ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.tif"
                     ),
                     "md_path": os.path.join(
                         settings.PROJECT_DIR,
-                        "data/meris/MER_FRS_1P_reduced", 
+                        "autotest/data/meris/MER_FRS_1P_reduced", 
                         "ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.xml"
                     )
                 }]
@@ -579,7 +578,7 @@ class DatasetSeriesCreateWithLocalPathTestCase(eoxstest.DatasetSeriesCreateTestC
         args = {
             "data_dirs": [{
                 "path": os.path.join(settings.PROJECT_DIR,
-                                     "data/meris/MER_FRS_1P_reduced"),
+                                     "autotest/data/meris/MER_FRS_1P_reduced"),
                 "search_pattern": "*.tif",
                 "type": "local"
             }],
@@ -635,7 +634,7 @@ class DatasetSeriesSynchronizeNewDirectoryTestCase(eoxstest.DatasetSeriesSynchro
                         "location": location_factory.create(
                             **{
                                 "path": os.path.join(settings.PROJECT_DIR,
-                                                     "data/meris/MER_FRS_1P_reduced"),
+                                                     "autotest/data/meris/MER_FRS_1P_reduced"),
                                 "type": "local"
                             }
                         ),
@@ -681,10 +680,10 @@ class DatasetSeriesSynchronizeFileRemovedTestCase(eoxstest.DatasetSeriesSynchron
     
     def _create_files(self):
         src = os.path.join(settings.PROJECT_DIR, 
-                           "data/meris/mosaic_MER_FRS_1P_RGB_reduced")
+                           "autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced")
         
         self.dst = os.path.join(settings.PROJECT_DIR,
-                                "data/meris/TEMPORARY_mosaic_MER_FRS_1P_RGB_reduced")
+                                "autotest/data/meris/TEMPORARY_mosaic_MER_FRS_1P_RGB_reduced")
         shutil.copytree(src, self.dst)
         
     def manage(self):
@@ -693,7 +692,7 @@ class DatasetSeriesSynchronizeFileRemovedTestCase(eoxstest.DatasetSeriesSynchron
         args = {
             "data_dirs": [{
                 "path": os.path.join(settings.PROJECT_DIR,
-                                     "data/meris/TEMPORARY_mosaic_MER_FRS_1P_RGB_reduced"),
+                                     "autotest/data/meris/TEMPORARY_mosaic_MER_FRS_1P_RGB_reduced"),
                 "search_pattern": "*.tif",
                 "type": "local"
             }],
@@ -711,7 +710,7 @@ class DatasetSeriesSynchronizeFileRemovedTestCase(eoxstest.DatasetSeriesSynchron
         # delete one file
         path = os.path.join(
             settings.PROJECT_DIR,
-            "data/meris/TEMPORARY_mosaic_MER_FRS_1P_RGB_reduced",
+            "autotest/data/meris/TEMPORARY_mosaic_MER_FRS_1P_RGB_reduced",
             "mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif"
         )
         logger.info("Deleting file at path: %s"%path)
@@ -932,7 +931,7 @@ class CoverageIdRequestIdTestCase(eoxstest.CoverageIdManagementTestCase):
 
 class RegisterLocalDatasetSimpleTestCase(eoxstest.CommandRegisterDatasetTestCase):
     kwargs = {
-        "d": "data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif",
+        "d": "autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif",
         "rangetype": "RGB"
     }
     coverages_to_be_registered = [
@@ -942,7 +941,7 @@ class RegisterLocalDatasetSimpleTestCase(eoxstest.CommandRegisterDatasetTestCase
 
 class RegisterLocalDatasetWithCoverageIdTestCase(eoxstest.CommandRegisterDatasetTestCase):
     kwargs = {
-        "d": "data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif",
+        "d": "autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif",
         "rangetype": "RGB",
         "i": "someCoverageID"
     }
@@ -950,9 +949,9 @@ class RegisterLocalDatasetWithCoverageIdTestCase(eoxstest.CommandRegisterDataset
 
 class RegisterLocalDatasetMultipleTestCase(eoxstest.CommandRegisterDatasetTestCase):
     kwargs = {
-        "d": ("data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif",
-              "data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.tif",
-              "data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed.tif"),
+        "d": ("autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif",
+              "autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.tif",
+              "autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed.tif"),
         "rangetype": "RGB"
     }
     coverages_to_be_registered = [
@@ -984,7 +983,7 @@ class RegisterRemoteDatasetTestCase(eoxstest.CommandRegisterDatasetTestCase):
 
 class RegisterLocalDatasetVisibleTestCase(eoxstest.CommandRegisterDatasetTestCase):
     kwargs = {
-        "d": "data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif",
+        "d": "autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif",
         "rangetype": "RGB",
         "visible": "True"
     }
@@ -999,7 +998,7 @@ class RegisterLocalDatasetVisibleTestCase(eoxstest.CommandRegisterDatasetTestCas
 
 class RegisterLocalDatasetInvisibleTestCase(eoxstest.CommandRegisterDatasetTestCase):
     kwargs = {
-        "d": "data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif",
+        "d": "autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif",
         "rangetype": "RGB",
         "invisible": "True"
     }
@@ -1021,7 +1020,7 @@ class RegisterLocalDatasetDefaultsTestCase(eoxstest.CommandRegisterDatasetTestCa
     end_time = datetime(2012, 06, 10, 12, 45, tzinfo=UTCOffsetTimeZoneInfo())
     
     kwargs = {
-        "d": "data/meris/mosaic_cache/mosaic_MER_FRS_1P_RGB_reduced/tiles/000/000/tile_merged_000001_000000.tiff",
+        "d": "autotest/data/meris/mosaic_cache/mosaic_MER_FRS_1P_RGB_reduced/tiles/000/000/tile_merged_000001_000000.tiff",
         "rangetype": "RGB",
         "default-srid": str(srid),
         "default-size": "%s,%s" % size,
