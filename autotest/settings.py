@@ -60,7 +60,7 @@ if DATABASE == 'sqlite':
     DATABASES = {
         'default': {
             'ENGINE': 'django.contrib.gis.db.backends.spatialite',
-            'NAME': '/var/eoxserver/autotest/data/config.sqlite',
+            'NAME': join(PROJECT_DIR, 'data/config.sqlite'),
         }
     }
 else:

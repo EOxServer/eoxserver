@@ -2,10 +2,10 @@
 *.pyc
 
 # Django
-/data/config.sqlite
-/static
+/autotest/data/config.sqlite
+/autotest/static
 
 # EOxServer
-/logs/eoxserver.log
-/wcst_perm
-/wcst_temp
+/autotest/logs/eoxserver.log
+/autotest/wcst_perm
+/autotest/wcst_temp
