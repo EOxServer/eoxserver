@@ -21,7 +21,7 @@ import sys
 path = "/var/eoxserver/autotest"
 if path not in sys.path:
     sys.path.insert(0,path)
-environ.setdefault('DJANGO_SETTINGS_MODULE', 'settings')
+environ.setdefault('DJANGO_SETTINGS_MODULE', 'autotest.settings')
 
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
@@ -42,7 +42,7 @@ fi
 python manage.py collectstatic --noinput
 
 # Create runtime files
-touch /var/eoxserver/autotest/logs/eoxserver.log
+touch /var/eoxserver/autotest/autotest/logs/eoxserver.log
 
 # Load the demonstration if not already present
 if python manage.py eoxs_check_id -a MER_FRS_1P_RGB_reduced --traceback ; then
