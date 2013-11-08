@@ -13,7 +13,6 @@ echo "**> running pylint tests ..."
 # Run unit tests
 echo "**> running unit tests tests ..."
 cd autotest
-ln -s autotest/data/ data
 export XML_CATALOG_FILES="$WORKSPACE/schemas/catalog.xml"
 # ftp tests are disabled
 if [ $OS == "Ubuntu" ]; then

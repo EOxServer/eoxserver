@@ -47,11 +47,8 @@ touch /var/eoxserver/autotest/logs/eoxserver.log
 # Load the demonstration if not already present
 if python manage.py eoxs_check_id -a MER_FRS_1P_RGB_reduced --traceback ; then
     python manage.py eoxs_add_dataset_series -i MER_FRS_1P_RGB_reduced --traceback
-    python manage.py eoxs_register_dataset -d /var/eoxserver/autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced/*.tif -r RGB --dataset-series MER_FRS_1P_RGB_reduced --traceback
+    python manage.py eoxs_register_dataset -d /var/eoxserver/autotest/autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced/*.tif -r RGB --dataset-series MER_FRS_1P_RGB_reduced --traceback
 fi
-
-# Make the instance read- and editable by everybody
-chmod -R a+w /var/eoxserver/autotest/
 
 # Add CRS 900913 if not present
 if ! grep -Fxq "<900913> +proj=tmerc +lat_0=0 +lon_0=21 +k=1 +x_0=21500000 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs  <>" /usr/share/proj/epsg ; then

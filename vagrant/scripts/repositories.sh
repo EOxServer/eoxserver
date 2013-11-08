@@ -1,13 +1,16 @@
 #!/bin/sh
 
 # Install the EPEL repository
-rpm -Uvh --replacepkgs http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+yum install -y http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-6
 
 # Install the ELGIS repository
-rpm -Uvh --replacepkgs http://elgis.argeo.org/repos/6/elgis-release-6-6_0.noarch.rpm
+yum install -y http://elgis.argeo.org/repos/6/elgis-release-6-6_0.noarch.rpm
+rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-ELGIS
 
 # Install and enable the EOX repository
-rpm -Uvh --replacepkgs http://yum.packages.eox.at/el/eox-release-6-2.noarch.rpm
+yum install -y http://yum.packages.eox.at/el/eox-release-6-2.noarch.rpm
+rpm --import /etc/pki/rpm-gpg/eox-package-maintainers.gpg
 sed -e 's/^enabled=0/enabled=1/' -i /etc/yum.repos.d/eox-testing.repo
 
 # Ignore TU Vienna CentOS mirror
