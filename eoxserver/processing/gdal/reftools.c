@@ -31,11 +31,11 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <gdal.h>
-#include <gdal_alg.h>
-#include <gdalwarper.h>
-#include <ogr_srs_api.h>
-#include <cpl_string.h>
+#include <gdal/gdal.h>
+#include <gdal/gdal_alg.h>
+#include <gdal/gdalwarper.h>
+#include <gdal/ogr_srs_api.h>
+#include <gdal/cpl_string.h>
 
 
 /******************************************************************************/
