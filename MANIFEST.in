@@ -1,19 +1,8 @@
-include README
+include README.rst
 include MANIFEST.in
 include HOWTO
-include __init__.py 
-include urls.py
-graft conf
-graft expected
-graft responses
+graft autotest
 graft selenium
 graft scripts
-graft data
-graft logs
-graft ftpcache
-graft wcst_perm
-graft wcst_temp
-exclude data/config.sqlite
-exclude data/init_spatialite-2.3.sql
-prune data/tmp
+exclude autotest/data/config.sqlite
 recursive-exclude . *.pyc

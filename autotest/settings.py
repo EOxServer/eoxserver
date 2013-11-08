@@ -60,7 +60,7 @@ if DATABASE == 'sqlite':
     DATABASES = {
         'default': {
             'ENGINE': 'django.contrib.gis.db.backends.spatialite',
-            'NAME': '/var/eoxserver/autotest/data/config.sqlite',
+            'NAME': join(PROJECT_DIR, 'data/config.sqlite'),
         }
     }
 else:
@@ -165,10 +165,10 @@ MIDDLEWARE_CLASSES = (
     'eoxserver.backends.middleware.BackendsCacheMiddleware',
 )
 
-ROOT_URLCONF = 'urls'
+ROOT_URLCONF = 'autotest.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
-WSGI_APPLICATION = 'wsgi.application'
+WSGI_APPLICATION = 'autotest.wsgi.application'
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
@@ -264,7 +264,7 @@ LOGGING = {
 
 FIXTURE_DIRS = (
     join(PROJECT_DIR, 'data/fixtures'),
-    join(PROJECT_DIR, 'autotest_services/fixtures'),
+    join(PROJECT_DIR, '../autotest_services/fixtures'),
 )
 
 # Set this variable if the path to the instance cannot be resolved 
