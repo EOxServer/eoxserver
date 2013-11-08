@@ -63,6 +63,7 @@ DATABASES = {
         'PORT': '',                                                             # Set to empty string for default. Not used with spatialite.
     }
 }
+
 SPATIALITE_SQL = join(PROJECT_DIR, 'data/init_spatialite-2.3.sql')
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False
