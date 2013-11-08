@@ -9,3 +9,5 @@
 /logs/eoxserver.log
 /wcst_perm
 /wcst_temp
+/ftpcache
+/responses
