@@ -42,10 +42,6 @@
 /* NOTE: define -DUSE_GDAL_EOX_EXTENSIONS to compile the EOX extended version */
 /******************************************************************************/
 
-/* approximation transformers threshold in pixel units */
-/* 0.125 is the default value used by CLI gdalwarp */
-#define APPROX_ERR_TOL 0.125 
-
 /* GDAL Transformer methods */
 #define METHOD_GCP 1  
 #define METHOD_TPS 2  
@@ -660,7 +656,11 @@ CPLErr eoxs_rect_from_subset(GDALDatasetH ds, EOXS_SUBSET *subset, int method, i
 }
 
 CPLErr eoxs_create_rectified_vrt(GDALDatasetH ds, const char *vrt_filename,
-                                            int srid, int method, int order)
+                            int srid, // TODO: make it work with srs_wkt 
+                            GDALResampleAlg eResampleAlg, 
+                            double dfWarpMemoryLimit, 
+                            double dfMaxError,
+                            int method, int order)
 {
     GDALDatasetH vrt_ds;
     OGRSpatialReferenceH dst_srs;
@@ -727,7 +727,8 @@ CPLErr eoxs_create_rectified_vrt(GDALDatasetH ds, const char *vrt_filename,
     
     warp_options = GDALCreateWarpOptions();
 
-    warp_options->eResampleAlg = GRA_NearestNeighbour ;     // resampling method
+    warp_options->dfWarpMemoryLimit = dfWarpMemoryLimit ;   // warp memory limit 
+    warp_options->eResampleAlg = eResampleAlg ;             // resampling method
     warp_options->pfnTransformer = GDALGenImgProjTransform ;// specific transform function
     warp_options->pTransformerArg = transformer;            // pointer to the transfomer 
     warp_options->hSrcDS = ds ;                             // source dataset 
@@ -779,13 +780,13 @@ CPLErr eoxs_create_rectified_vrt(GDALDatasetH ds, const char *vrt_filename,
     } 
 
     // approximating transformation (desired as it makes warping really faster)
-    if ( 0 < APPROX_ERR_TOL ) 
+    if ( 0 < dfMaxError ) 
     { 
         warp_options->pTransformerArg =         // pointer to the transfomer
                 GDALCreateApproxTransformer( 
                     warp_options->pfnTransformer,
                     warp_options->pTransformerArg, 
-                    APPROX_ERR_TOL ) ; 
+                    dfMaxError ) ; 
                     
         warp_options->pfnTransformer = GDALApproxTransform; // specific transform function
 
@@ -795,6 +796,7 @@ CPLErr eoxs_create_rectified_vrt(GDALDatasetH ds, const char *vrt_filename,
     }    
 
     // create the rectified (warped) VRT
+    // NOTE: VRT dataset steels ownership of the warp_options->pfnTransformer !!!
     vrt_ds = GDALCreateWarpedVRT( ds, // source dataset
             x_size, y_size,     // image size 
             geotransform,       // geotransformation matrix
@@ -807,9 +809,10 @@ CPLErr eoxs_create_rectified_vrt(GDALDatasetH ds, const char *vrt_filename,
         GDALSetDescription( vrt_ds, vrt_filename );
 
         // close the dataset 
-        GDALClose(vrt_ds);
+        GDALClose(vrt_ds); // NOTE: GDALClose() destroys the transformers!!!
 
-        ret = CE_None ; 
+        // NOTE: GDALClose() commits the actual file write. Check for any possible I/O errors!
+        ret = CPLGetLastErrorType() ; 
     } 
     else    // FAILURE 
     {
@@ -821,10 +824,6 @@ CPLErr eoxs_create_rectified_vrt(GDALDatasetH ds, const char *vrt_filename,
    
     // clean-up the mess 
     
-    // NOTE: The transfomer gets destroyed elsewhere. If you try
-    //       to destroy it here you get a 'double-free' seg.fault.     
-    //GDALDestroyGenImgProjTransformer(transformer);
-   
     GDALDestroyWarpOptions( warp_options );
     if (free_dst_srs_wkt) free(dst_srs_wkt);
 
@@ -858,7 +857,7 @@ CPLErr eoxs_suggested_warp_output(GDALDatasetH ds,
 }
 
 
-/* copied from gdalwarper.cpp */
+/* original source copied from gdalwarper.cpp - some mods have been made though */
 CPLErr eoxs_reproject_image(GDALDatasetH hSrcDS,
                             const char *pszSrcWKT, 
                             GDALDatasetH hDstDS,
@@ -866,7 +865,8 @@ CPLErr eoxs_reproject_image(GDALDatasetH hSrcDS,
                             GDALResampleAlg eResampleAlg, 
                             double dfWarpMemoryLimit, 
                             double dfMaxError,
-                            int method, int order) {
+                            int method, int order) 
+{
     
     GDALWarpOptions *psWOptions;
 
@@ -885,6 +885,7 @@ CPLErr eoxs_reproject_image(GDALDatasetH hSrcDS,
 /* -------------------------------------------------------------------- */
     psWOptions = GDALCreateWarpOptions();
     psWOptions->eResampleAlg = eResampleAlg;
+    psWOptions->dfWarpMemoryLimit = dfWarpMemoryLimit ;   // warp memory limit 
 
 /* -------------------------------------------------------------------- */
 /*      Set transform.                                                  */
