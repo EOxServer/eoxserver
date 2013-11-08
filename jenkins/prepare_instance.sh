@@ -38,7 +38,10 @@ python setup.py develop
 echo "**> creating autotest instance..."
 mv autotest tmp1
 eoxserver-admin.py create_instance autotest --init_spatialite
-cp -R tmp1/* autotest/autotest/
+cp -R tmp1/autotest/data/ autotest/autotest/
+cp -R tmp1/autotest/expected/ autotest/autotest/
+cp tmp1/autotest/conf/template.map autotest/autotest/conf/template.map
+mkdir -p autotest/autotest/responses/
 rm -r tmp1
 
 sed -e 's/pdp_type=none/pdp_type=dummypdp/' -i autotest/autotest/conf/eoxserver.conf

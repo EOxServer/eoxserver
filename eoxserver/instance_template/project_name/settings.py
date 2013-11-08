@@ -37,9 +37,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.4/ref/settings/
 """
 
-from os.path import join
+from os.path import join, abspath, dirname
 
-PROJECT_DIR = '{{ project_directory }}/{{ project_name }}'
+PROJECT_DIR = dirname(abspath(__file__))
 PROJECT_URL_PREFIX = ''
 
 TEST_RUNNER = 'eoxserver.testing.core.EOxServerTestRunner'
@@ -64,6 +64,7 @@ DATABASES = {
         'PORT': '',                                                             # Set to empty string for default. Not used with spatialite.
     }
 }
+
 SPATIALITE_SQL = join(PROJECT_DIR, 'data/init_spatialite-2.3.sql')
 
 # Local time zone for this installation. Choices can be found here:
