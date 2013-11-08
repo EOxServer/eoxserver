@@ -42,6 +42,10 @@
 /* NOTE: define -DUSE_GDAL_EOX_EXTENSIONS to compile the EOX extended version */
 /******************************************************************************/
 
+/* approximation transformers threshold in pixel units */
+/* 0.125 is the default value used by CLI gdalwarp */
+#define APPROX_ERR_TOL 0.125 
+
 /* GDAL Transformer methods */
 #define METHOD_GCP 1  
 #define METHOD_TPS 2  
@@ -60,7 +64,7 @@ typedef struct {
     size_t n_points;
     double *x;
     double *y;
-} eoxs_footprint;
+} EOXS_FOOTPRINT;
 
 typedef struct {
     int srid;
@@ -68,20 +72,20 @@ typedef struct {
     double miny;
     double maxx;
     double maxy;
-} eoxs_subset;
+} EOXS_SUBSET;
 
 typedef struct {
     int x_off;
     int y_off;
     int x_size;
     int y_size;
-} eoxs_rect;
+} EOXS_RECT;
 
 typedef struct {
-    size_t x_size;
-    size_t y_size;
+    int x_size;
+    int y_size;
     double geotransform[6];
-} eoxs_image_info;
+} EOXS_IMAGE_INFO;
 
 /******************************************************************************/
 /******************************************************************************/
@@ -138,7 +142,7 @@ int eoxs_is_extended( void )
 #endif 
 } 
 
-void eoxs_destroy_footprint(eoxs_footprint *fp) {
+void eoxs_destroy_footprint(EOXS_FOOTPRINT *fp) {
     free(fp->x);
     free(fp->y);
     free(fp);
@@ -271,7 +275,7 @@ void *eoxs_create_gen_img_proj_transformer(
 
 /******************************************************************************/
 
-CPLErr eoxs_calculate_footprint(GDALDatasetH ds, int method, int order, eoxs_footprint **out_footprint) {
+CPLErr eoxs_calculate_footprint(GDALDatasetH ds, int method, int order, EOXS_FOOTPRINT **out_footprint) {
     void *transformer;
     int x_size, y_size;
     double *x, *y, *z;
@@ -373,7 +377,7 @@ CPLErr eoxs_calculate_footprint(GDALDatasetH ds, int method, int order, eoxs_foo
     free(success);
     GDALDestroyTransformer(transformer);
 
-    *out_footprint = malloc(sizeof(eoxs_footprint));
+    *out_footprint = malloc(sizeof(EOXS_FOOTPRINT));
     (*out_footprint)->n_points = n_points;
     (*out_footprint)->x = x;
     (*out_footprint)->y = y;
@@ -396,7 +400,7 @@ CPLErr eoxs_calculate_footprint(GDALDatasetH ds, int method, int order, eoxs_foo
 }
 
 CPLErr eoxs_get_footprint_wkt(GDALDatasetH ds, int method, int order, char **out_wkt) {
-    eoxs_footprint *fp;
+    EOXS_FOOTPRINT *fp;
     char buffer[512];
     int i, maxlen;
     CPLErr ret;
@@ -466,7 +470,7 @@ void eoxs_get_intermediate_point_count(
     int *n_y,
     int ds_x_size,
     int ds_y_size,
-    eoxs_subset *subset,
+    EOXS_SUBSET *subset,
     void *transformer,
     OGRCoordinateTransformationH ct
 ) {
@@ -498,7 +502,7 @@ void eoxs_get_intermediate_point_count(
     *n_y = (int) ceil((eoxs_array_max(4, y) - eoxs_array_min(4, y)) / dist);
 }
 
-CPLErr eoxs_rect_from_subset(GDALDatasetH ds, eoxs_subset *subset, int method, int order, eoxs_rect *out_rect) {
+CPLErr eoxs_rect_from_subset(GDALDatasetH ds, EOXS_SUBSET *subset, int method, int order, EOXS_RECT *out_rect) {
     void *transformer;
     
     OGRSpatialReferenceH gcp_srs, subset_srs;
@@ -740,7 +744,7 @@ CPLErr eoxs_suggested_warp_output(GDALDatasetH ds,
                                   const char *src_wkt, /* can be NULL */
                                   const char *dst_wkt,
                                   int method, int order,
-                                  eoxs_image_info* out) {
+                                  EOXS_IMAGE_INFO* out) {
 
     CPLErr ret;
     void *transformer = eoxs_create_gen_img_proj_transformer( 
@@ -753,7 +757,7 @@ CPLErr eoxs_suggested_warp_output(GDALDatasetH ds,
     ret = GDALSuggestedWarpOutput(ds, GDALGenImgProjTransform, 
                                   transformer, 
                                   out->geotransform,
-                                  (int*) &out->x_size, (int*) &out->y_size);
+                                  &out->x_size, &out->y_size);
 
     // clean up
     GDALDestroyTransformer(transformer);

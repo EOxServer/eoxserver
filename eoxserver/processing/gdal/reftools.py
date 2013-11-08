@@ -65,8 +65,8 @@ class SUBSET(C.Structure):
 
 
 class IMAGE_INFO(C.Structure):
-    _fields_ = [("x_size", C.c_size_t),
-                ("y_size", C.c_size_t),
+    _fields_ = [("x_size", C.c_int),
+                ("y_size", C.c_int),
                 ("geotransform", C.ARRAY(C.c_double, 6))]
 
 
