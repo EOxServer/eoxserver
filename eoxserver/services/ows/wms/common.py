@@ -49,7 +49,7 @@ from eoxserver.resources.coverages.dateline import (
     extent_crosses_dateline, wrap_extent_around_dateline
 )
 
-from eoxserver.processing.gdal.reftools import create_temporary_vrt
+from eoxserver.processing.gdal import reftools as rt
 from eoxserver.services.owscommon import OWSCommonConfigReader
 from eoxserver.services.mapserver import MapServerOperationHandler
 from eoxserver.services.exceptions import InvalidRequestException
@@ -301,9 +301,9 @@ class WMSReferenceableDatasetLayer(WMSCoverageLayer):
         return layer
 
     def rectify(self):
-        return create_temporary_vrt(
-            self.coverage.getData().getGDALDatasetIdentifier()
-        )
+        ds_path = self.coverage.getData().getGDALDatasetIdentifier()
+        rt_prm  = rt.suggest_transformer( ds_path ) 
+        return rt.create_temporary_rectified_vrt( ds_path , **rt_prm ) 
 
 class WMSRectifiedStitchedMosaicLayer(WMSCoverageLayer):
     def getMapServerLayer(self, req):

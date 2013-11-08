@@ -33,7 +33,8 @@ LD_SHARED = $(LD) -shared
 INCS=$(shell gdal-config --cflags)
 LIBS=$(shell gdal-config --libs)
 
-#CCFLAGS=-g -DDEBUG=1 -Wall -fPIC $(INCS)
+#CFLAGS=-g -DDEBUG=1 -Wall -fPIC $(INCS)
+#CFLAGS=-O2 -g -DDEBUG=1 -Wall -fPIC $(INCS)
 CFLAGS=-O2 -Wall -fPIC $(INCS)
 LFLAGS=$(LIBS)
 

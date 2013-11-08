@@ -31,11 +31,11 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <gdal/gdal.h>
-#include <gdal/gdal_alg.h>
-#include <gdal/gdalwarper.h>
-#include <gdal/ogr_srs_api.h>
-#include <gdal/cpl_string.h>
+#include <gdal.h>
+#include <gdal_alg.h>
+#include <gdalwarper.h>
+#include <ogr_srs_api.h>
+#include <cpl_string.h>
 
 
 /******************************************************************************/
@@ -149,6 +149,8 @@ void eoxs_free_string(char* str)
     free(str);
 }
 
+/******************************************************************************/
+
 void *eoxs_create_referenceable_grid_transformer(GDALDatasetH ds, int method, int order)
 {
     int gcp_count;
@@ -162,7 +164,7 @@ void *eoxs_create_referenceable_grid_transformer(GDALDatasetH ds, int method, in
     gcps = GDALGetGCPs(ds);
 
 #ifdef DEBUG 
-    printf("GDAL Transformer:\n") ; 
+    printf("GDAL Referenceable Transformer:\n") ; 
     printf("method = %d\n",method) ; 
     printf("order = %d\n",order) ; 
 #endif 
@@ -174,7 +176,6 @@ void *eoxs_create_referenceable_grid_transformer(GDALDatasetH ds, int method, in
     else if ( METHOD_TPS == method ) 
     { 
 #ifdef USE_GDAL_EOX_EXTENSIONS
-        printf("*\n") ;
         return GDALCreateTPS2TransformerExt(gcp_count, gcps, FALSE, order);
 #else 
         return GDALCreateTPSTransformer(gcp_count, gcps, FALSE);
@@ -191,6 +192,84 @@ void *eoxs_create_referenceable_grid_transformer(GDALDatasetH ds, int method, in
         return NULL ; 
     }
 }
+
+/******************************************************************************/
+
+void *eoxs_create_gen_img_proj_transformer(
+    GDALDatasetH ds_src, // mandatory 
+    const char * srs_wkt_src, // can be NULL 
+    GDALDatasetH ds_dst,     // can be NULL 
+    const char * srs_wkt_dst, // can be NULL (if ds_dst provided)
+    int method, 
+    int order)
+{
+    void *transformer = NULL ;
+    char ** topt = NULL ; 
+
+#ifdef DEBUG 
+    printf("GDAL Gen.Img. Transformer:\n") ; 
+    printf("method = %d\n",method) ; 
+    printf("order = %d\n",order) ; 
+#endif 
+
+    if ( check_method_and_order(method,order) != CE_None ) return NULL ; 
+
+    // SET TRANSFOMER OPTIONS
+    
+    // destination projection WKT
+    if ( srs_wkt_src ) 
+        topt = CSLSetNameValue( topt, "SRC_SRS", srs_wkt_src );
+    
+    // source projection WKT
+    if ( srs_wkt_dst ) 
+        topt = CSLSetNameValue( topt, "DST_SRS", srs_wkt_dst ); 
+
+    // use GCPs from the source dataset (TRUE set by default)
+    //topt = CSLSetNameValue( topt, "GCPS_OK", "TRUE" ); 
+
+    // method specific options 
+    if (METHOD_GCP==method) 
+    { 
+        topt = CSLSetNameValue( topt, "METHOD", "GCP_POLYNOMIAL" ); // set method to GCP polynomial interpolation
+
+        if ( order > 0 ) 
+            topt = CSLSetNameValue( topt, "MAX_GCP_ORDER", CPLSPrintf("%d",order) ); // set max. polymomial order
+    } 
+#ifdef USE_GDAL_EOX_EXTENSIONS
+    else if ((METHOD_TPS==method)||(METHOD_TPS_LSQ==method))
+    { 
+        topt = CSLSetNameValue( topt, "METHOD", "GCP_TPS2" ); // set method to GCP Thin Plate Spline v2 interpolation 
+        topt = CSLSetNameValue( topt, "TPS2_AP_ORDER", CPLSPrintf("%d",order) ); // augmenting polynomial order 
+    
+        if (METHOD_TPS_LSQ==method)
+        { 
+            topt = CSLSetNameValue( topt, "TPS2_LSQ_GRID", "1" ); // use alternative rectangular grid 
+            topt = CSLSetNameValue( topt, "TPS2_LSQ_GRID_NX", "0" ); // x grid size (0 means default)
+            topt = CSLSetNameValue( topt, "TPS2_LSQ_GRID_NY", "0" ); // y grid size (0 means default)
+        } 
+    } 
+#else
+    else if (METHOD_TPS==method)
+    { 
+        topt = CSLSetNameValue( topt, "METHOD", "GCP_TPS" ); // set method to GCP Thin Plate Spline interpolation 
+    } 
+#endif 
+    else return NULL ; 
+
+    // CREATE TRANSFOMER 
+    transformer = GDALCreateGenImgProjTransformer2(
+        ds_src,  // source dataset 
+        ds_dst,  // destination dataset
+        topt     // trasformer options
+    ); 
+
+    // DISCARD TRANSFOMER OPTIONS 
+    CSLDestroy( topt );
+
+    return transformer ; 
+} 
+
+/******************************************************************************/
 
 CPLErr eoxs_calculate_footprint(GDALDatasetH ds, int method, int order, eoxs_footprint **out_footprint) {
     void *transformer;
@@ -576,7 +655,9 @@ CPLErr eoxs_rect_from_subset(GDALDatasetH ds, eoxs_subset *subset, int method, i
     return CE_None;
 }
 
-CPLErr eoxs_create_rectified_vrt(GDALDatasetH ds, const char *vrt_filename, int srid) {
+CPLErr eoxs_create_rectified_vrt(GDALDatasetH ds, const char *vrt_filename,
+                                            int srid, int method, int order)
+{
     GDALDatasetH vrt_ds;
     OGRSpatialReferenceH dst_srs;
     char *dst_srs_wkt;
@@ -584,6 +665,8 @@ CPLErr eoxs_create_rectified_vrt(GDALDatasetH ds, const char *vrt_filename, int 
     
     void *transformer;
     GDALWarpOptions *warp_options;
+
+    if ( check_method_and_order(method,order) != CE_None ) return CE_Failure; 
     
     if (!ds) {
         CPLError(CE_Failure, CPLE_ObjectNull, "No dataset passed.");
@@ -601,14 +684,12 @@ CPLErr eoxs_create_rectified_vrt(GDALDatasetH ds, const char *vrt_filename, int 
         free_dst_srs_wkt = FALSE;
     }
     
-    transformer = GDALCreateGenImgProjTransformer(
+    transformer = eoxs_create_gen_img_proj_transformer( 
         ds,                       // source dataset
         NULL,                     // source projection WKT -> read from dataset 
         NULL,                     // destination dataset
         dst_srs_wkt,              // destination projection WKT
-        TRUE,                     // use GCPs
-        0.0,                      // ignored
-        1                         // use interpolation order 1
+        method, order 
     );
     
     if (!transformer) {
@@ -658,19 +739,12 @@ CPLErr eoxs_create_rectified_vrt(GDALDatasetH ds, const char *vrt_filename, int 
 CPLErr eoxs_suggested_warp_output(GDALDatasetH ds, 
                                   const char *src_wkt, /* can be NULL */
                                   const char *dst_wkt,
-                                  int order,
+                                  int method, int order,
                                   eoxs_image_info* out) {
 
     CPLErr ret;
-    void *transformer = GDALCreateGenImgProjTransformer(
-        ds,
-        src_wkt,
-        NULL,
-        dst_wkt,
-        TRUE,
-        0.0,
-        order
-    );
+    void *transformer = eoxs_create_gen_img_proj_transformer( 
+        ds, src_wkt, NULL, dst_wkt, method, order ) ; 
 
     if (!transformer) {
         return CE_Failure;
@@ -696,25 +770,15 @@ CPLErr eoxs_reproject_image(GDALDatasetH hSrcDS,
                             GDALResampleAlg eResampleAlg, 
                             double dfWarpMemoryLimit, 
                             double dfMaxError,
-                            int order) {
+                            int method, int order) {
     
     GDALWarpOptions *psWOptions;
 
 /* -------------------------------------------------------------------- */
 /*      Setup a reprojection based transformer.                         */
 /* -------------------------------------------------------------------- */
-    void *hTransformArg;
-
-    hTransformArg = 
-        GDALCreateGenImgProjTransformer(
-            hSrcDS,
-            pszSrcWKT,
-            hDstDS,
-            pszDstWKT,
-            TRUE,
-            0.0,
-            order
-        );
+    void *hTransformArg = eoxs_create_gen_img_proj_transformer( 
+            hSrcDS, pszSrcWKT, hDstDS, pszDstWKT, method, order ) ;
 
     if( hTransformArg == NULL )
         return CE_Failure;
