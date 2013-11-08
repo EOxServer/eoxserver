@@ -22,14 +22,14 @@
         "pk": 100,
         "model": "backends.localpath",
         "fields": {
-            "path": "data/misc/crosses_dateline.tif"
+            "path": "autotest/data/misc/crosses_dateline.tif"
         }
     },
     {
         "pk": 101,
         "model": "backends.localpath",
         "fields": {
-            "path": "data/misc/crosses_dateline.xml"
+            "path": "autotest/data/misc/crosses_dateline.xml"
         }
     },
     {
