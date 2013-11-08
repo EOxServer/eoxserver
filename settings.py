@@ -1,5 +1,4 @@
 #-------------------------------------------------------------------------------
-# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>
@@ -11,8 +10,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -42,7 +41,7 @@ from os.path import join, abspath, dirname
 PROJECT_DIR = dirname(abspath(__file__))
 PROJECT_URL_PREFIX = ''
 
-TEST_RUNNER = 'eoxserver.testing.core.EOxServerTestRunner'
+#TEST_RUNNER = 'eoxserver.testing.core.EOxServerTestRunner'
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -192,7 +191,9 @@ INSTALLED_APPS = (
     'eoxserver.resources.processes',
     'eoxserver.backends',
     'eoxserver.testing',
-    'eoxserver.webclient'
+    'eoxserver.webclient',
+    # Enable EOxServer autotests
+    'autotest_services',
 )
 
 # A sample logging configuration. The only tangible logging
@@ -236,6 +237,7 @@ LOGGING = {
 
 FIXTURE_DIRS = (
     join(PROJECT_DIR, 'data/fixtures'),
+    join(PROJECT_DIR, 'autotest_services/fixtures'),
 )
 
 # Set this variable if the path to the instance cannot be resolved 
