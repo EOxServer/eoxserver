@@ -53,7 +53,7 @@ class RectifiedDatasetCreateWithLocalPathTestCase(eoxstest.RectifiedDatasetCreat
     def manage(self):
         args = {
             "local_path": os.path.join(settings.PROJECT_DIR,
-                          "autotest/data/meris/MER_FRS_1P_reduced", 
+                          "data/meris/MER_FRS_1P_reduced", 
                           "ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.tif"),
             "range_type_name": "RGB",
         }
@@ -69,13 +69,13 @@ class RectifiedDatasetCreateWithLocalPathAndMetadataTestCase(eoxstest.RectifiedD
         args = {
             "local_path": os.path.join(
                 settings.PROJECT_DIR,
-                "autotest/data/meris/MER_FRS_1P_reduced", 
+                "data/meris/MER_FRS_1P_reduced", 
                 "ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.tif"
             ),
             "range_type_name": "RGB",
             "md_local_path": os.path.join(
                 settings.PROJECT_DIR,
-                "autotest/data/meris/MER_FRS_1P_reduced", 
+                "data/meris/MER_FRS_1P_reduced", 
                 "ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.xml"
             )
         }
@@ -112,7 +112,7 @@ class RectifiedDatasetCreateWithContainerTestCase(eoxstest.RectifiedDatasetCreat
         self._create_containers()
         args = {
             "local_path": os.path.join(settings.PROJECT_DIR,
-                          "autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced", 
+                          "data/meris/mosaic_MER_FRS_1P_RGB_reduced", 
                           "mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif"),
             "range_type_name": "RGB",
             "container": self.stitched_mosaic
@@ -171,7 +171,7 @@ class RectifiedDatasetCreateWithContainerIDsTestCase(eoxstest.RectifiedDatasetCr
         self._create_containers()
         args = {
             "local_path": os.path.join(settings.PROJECT_DIR,
-                          "autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced", 
+                          "data/meris/mosaic_MER_FRS_1P_RGB_reduced", 
                           "mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif"),
             "range_type_name": "RGB",
             "container_ids": [self.stitched_mosaic.getCoverageId(), self.dataset_series.getEOID()]
@@ -192,13 +192,13 @@ class RectifiedDatasetCreateWithRemothePathTestCase(eoxstest.RectifiedDatasetCre
         args = {
             "local_path": os.path.join(
                 settings.PROJECT_DIR,
-                "autotest/data/meris/MER_FRS_1P_reduced", 
+                "data/meris/MER_FRS_1P_reduced", 
                 "ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.tif"
             ),
             "range_type_name": "RGB",
             "md_local_path": os.path.join(
                 settings.PROJECT_DIR,
-                "autotest/data/meris/MER_FRS_1P_reduced", 
+                "data/meris/MER_FRS_1P_reduced", 
                 "ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.xml"
             )
         }
@@ -221,7 +221,7 @@ class RectifiedDatasetCreateWithRasdamanLocationTestCase(eoxstest.RectifiedDatas
             ),
             "md_local_path": os.path.join(
                 settings.PROJECT_DIR,
-                "autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced", 
+                "data/meris/mosaic_MER_FRS_1P_RGB_reduced", 
                 "mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.xml"
             )
         }
@@ -431,7 +431,7 @@ class RectifiedStitchedMosaicCreateWithLocalPathTestCase(eoxstest.RectifiedStitc
         args = {
             "data_dirs": [{
                 "path": os.path.join(settings.PROJECT_DIR,
-                                     "autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced"),
+                                     "data/meris/mosaic_MER_FRS_1P_RGB_reduced"),
                 "search_pattern": "*.tif",
                 "type": "local"
             }],
@@ -526,12 +526,12 @@ class RectifiedStitchedMosaicUpdateLinkDataSourcesTestCase(eoxstest.RectifiedSti
                     "type": "local",
                     "path": os.path.join(
                         settings.PROJECT_DIR,
-                        "autotest/data/meris/MER_FRS_1P_reduced", 
+                        "data/meris/MER_FRS_1P_reduced", 
                         "ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.tif"
                     ),
                     "md_path": os.path.join(
                         settings.PROJECT_DIR,
-                        "autotest/data/meris/MER_FRS_1P_reduced", 
+                        "data/meris/MER_FRS_1P_reduced", 
                         "ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.xml"
                     )
                 }]
@@ -578,7 +578,7 @@ class DatasetSeriesCreateWithLocalPathTestCase(eoxstest.DatasetSeriesCreateTestC
         args = {
             "data_dirs": [{
                 "path": os.path.join(settings.PROJECT_DIR,
-                                     "autotest/data/meris/MER_FRS_1P_reduced"),
+                                     "data/meris/MER_FRS_1P_reduced"),
                 "search_pattern": "*.tif",
                 "type": "local"
             }],
@@ -634,7 +634,7 @@ class DatasetSeriesSynchronizeNewDirectoryTestCase(eoxstest.DatasetSeriesSynchro
                         "location": location_factory.create(
                             **{
                                 "path": os.path.join(settings.PROJECT_DIR,
-                                                     "autotest/data/meris/MER_FRS_1P_reduced"),
+                                                     "data/meris/MER_FRS_1P_reduced"),
                                 "type": "local"
                             }
                         ),
@@ -680,10 +680,10 @@ class DatasetSeriesSynchronizeFileRemovedTestCase(eoxstest.DatasetSeriesSynchron
     
     def _create_files(self):
         src = os.path.join(settings.PROJECT_DIR, 
-                           "autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced")
+                           "data/meris/mosaic_MER_FRS_1P_RGB_reduced")
         
         self.dst = os.path.join(settings.PROJECT_DIR,
-                                "autotest/data/meris/TEMPORARY_mosaic_MER_FRS_1P_RGB_reduced")
+                                "data/meris/TEMPORARY_mosaic_MER_FRS_1P_RGB_reduced")
         shutil.copytree(src, self.dst)
         
     def manage(self):
@@ -692,7 +692,7 @@ class DatasetSeriesSynchronizeFileRemovedTestCase(eoxstest.DatasetSeriesSynchron
         args = {
             "data_dirs": [{
                 "path": os.path.join(settings.PROJECT_DIR,
-                                     "autotest/data/meris/TEMPORARY_mosaic_MER_FRS_1P_RGB_reduced"),
+                                     "data/meris/TEMPORARY_mosaic_MER_FRS_1P_RGB_reduced"),
                 "search_pattern": "*.tif",
                 "type": "local"
             }],
@@ -710,7 +710,7 @@ class DatasetSeriesSynchronizeFileRemovedTestCase(eoxstest.DatasetSeriesSynchron
         # delete one file
         path = os.path.join(
             settings.PROJECT_DIR,
-            "autotest/data/meris/TEMPORARY_mosaic_MER_FRS_1P_RGB_reduced",
+            "data/meris/TEMPORARY_mosaic_MER_FRS_1P_RGB_reduced",
             "mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif"
         )
         logger.info("Deleting file at path: %s"%path)
