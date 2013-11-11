@@ -112,20 +112,20 @@ class GCPList(GeographicReference):
         # Try to find and use the best transform method/order. 
         # Orders are: -1 (TPS), 3, 2, and 1 (all GCP)
         # Loop over the min and max GCP number to order map.
-        for min_gcpnum, max_gcpnum, order0 in [(3, None, -1), (10, None, 3), (6, None, 2), (3, None, 1)]:
+        for min_gcpnum, max_gcpnum, order in [(3, None, -1), (10, None, 3), (6, None, 2), (3, None, 1)]:
             # if the number of GCP matches
             if len(self.gcps) >= min_gcpnum and (max_gcpnum is None or len(self.gcps) <= max_gcpnum):
                 try:
                   
                     if ( order < 0 ) : 
                         # let the reftools suggest the right interpolator 
-                        rt_prm = rt.suggest_transformer( src_ds ) : 
-                    else : 
+                        rt_prm = rt.suggest_transformer( src_ds )
+                    else:
                         # use the polynomial GCP interpolation as requested
                         rt_prm = { "method":rt.METHOD_GCP, "order":order } 
 
                     logger.debug("Trying order '%i' {method:%s,order:%s}" % \
-                        (order0, rt.METHOD2STR[rt_prm["method"]] , rt_prm["order"] ) )
+                        (order, rt.METHOD2STR[rt_prm["method"]] , rt_prm["order"] ) )
                     # get the suggested pixel size/geotransform
                     size_x, size_y, geotransform = rt.suggested_warp_output(
                         src_ds,
