@@ -11,8 +11,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -78,7 +78,24 @@ def get_gdal_libs(default=None):
 
     return libdir, lib
 
+def get_gdal_incdirs(default=None):
+    if default is None:
+        default = ("", "")
+    
+    p = subprocess.Popen(["gdal-config", "--cflags"], stdout=subprocess.PIPE)
+    if p.wait() != 0:
+        return default
+    output = p.stdout.read().strip().split(" ")
+    lib = ""
+    libdir = ""
+    for part in output:
+        if part.startswith("-I"):
+            incdir = part[2:]
+
+    return incdir
+
 gdal_libdir, gdal_lib = get_gdal_libs()
+gdal_incdir = get_gdal_incdirs()
 packages, data_files = [], []
 for dirpath, dirnames, filenames in os.walk('eoxserver'):
     for i, dirname in enumerate(dirnames):
@@ -107,6 +124,15 @@ setup(
             sources=['eoxserver/processing/gdal/reftools.c'],
             libraries=[gdal_lib],
             library_dirs=[gdal_libdir],
+            include_dirs=[gdal_incdir],
+        ),
+        Extension(
+            'eoxserver.processing.gdal._reftools_ext',
+            sources=['eoxserver/processing/gdal/reftools.c'],
+            libraries=[gdal_lib],
+            library_dirs=[gdal_libdir],
+            include_dirs=[gdal_incdir],
+            define_macros = [('USE_GDAL_EOX_EXTENSIONS', '1')],
         ),
     ],
     

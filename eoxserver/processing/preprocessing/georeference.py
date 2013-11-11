@@ -29,7 +29,7 @@
 import logging
 
 from eoxserver.contrib import gdal, ogr, osr
-from eoxserver.processing.gdal import reftools # get_footprint_wkt, suggested_warp_output
+from eoxserver.processing.gdal import reftools as rt 
 from eoxserver.processing.preprocessing.util import (
     create_mem, copy_metadata
 )
@@ -111,17 +111,26 @@ class GCPList(GeographicReference):
         # Try to find and use the best transform method/order. 
         # Orders are: -1 (TPS), 3, 2, and 1 (all GCP)
         # Loop over the min and max GCP number to order map.
-        for min_gcpnum, max_gcpnum, order in [(3, 2500, -1), (10, None, 3), (6, None, 2), (3, None, 1)]:
+        for min_gcpnum, max_gcpnum, order in [(3, None, -1), (10, None, 3), (6, None, 2), (3, None, 1)]:
             # if the number of GCP matches
             if len(self.gcps) >= min_gcpnum and (max_gcpnum is None or len(self.gcps) <= max_gcpnum):
                 try:
-                    logger.debug("Trying order '%i'" % order)
+                  
+                    if ( order < 0 ) : 
+                        # let the reftools suggest the right interpolator 
+                        rt_prm = rt.suggest_transformer( src_ds )
+                    else:
+                        # use the polynomial GCP interpolation as requested
+                        rt_prm = { "method":rt.METHOD_GCP, "order":order } 
+
+                    logger.debug("Trying order '%i' {method:%s,order:%s}" % \
+                        (order, rt.METHOD2STR[rt_prm["method"]] , rt_prm["order"] ) )
                     # get the suggested pixel size/geotransform
-                    size_x, size_y, geotransform = reftools.suggested_warp_output(
+                    size_x, size_y, geotransform = rt.suggested_warp_output(
                         src_ds,
                         None,
                         dst_sr.ExportToWkt(),
-                        order
+                        **rt_prm 
                     )
                     if size_x > 100000 or size_y > 100000:
                         raise RuntimeError("Calculated size exceeds limit.")
@@ -136,12 +145,12 @@ class GCPList(GeographicReference):
                     dst_ds.SetProjection(dst_sr.ExportToWkt())
                     dst_ds.SetGeoTransform(geotransform)
                     
-                    reftools.reproject_image(src_ds, "", dst_ds, "", order=order)
+                    rt.reproject_image(src_ds, "", dst_ds, "", **rt_prm )
                     
                     copy_metadata(src_ds, dst_ds)
                     
                     # retrieve the footprint from the given GCPs
-                    footprint_wkt = reftools.get_footprint_wkt(src_ds, order=order)
+                    footprint_wkt = rt.get_footprint_wkt(src_ds, **rt_prm )
                     
                 except RuntimeError, e:
                     logger.debug("Failed using order '%i'. Error was '%s'."

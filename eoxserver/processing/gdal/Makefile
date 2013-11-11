@@ -2,6 +2,7 @@
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>
+#          Martin Paces <martin.paces@eox.at>
 #
 #-------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
@@ -9,8 +10,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -24,31 +25,49 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
+#
+# NOTE: To compile the version for extended GDAL beside the baseline run: 
+#
+# $ make baseline extended clean 
+#
 
 CC= gcc
 LD= gcc
 LD_SHARED = $(LD) -shared 
 
-INCLUDES=`gdal-config --cflags`
-#CCFLAGS= -c -g -DDEBUG=1 -Wall -fPIC $(INCLUDES)
-CCFLAGS= -c -O2 -Wall -fPIC $(INCLUDES)
+INCS=$(shell gdal-config --cflags)
+LIBS=$(shell gdal-config --libs)
 
-LIBS=`gdal-config --libs`
+#CFLAGS=-g -DDEBUG=1 -Wall -fPIC $(INCS)
+#CFLAGS=-O2 -g -DDEBUG=1 -Wall -fPIC $(INCS)
+CFLAGS=-O2 -Wall -fPIC $(INCS)
+LFLAGS=$(LIBS)
 
-OBJS= reftools.o
+OBJ1=reftools.o
+OBJ2=reftools_ext.o
 
-EXE_LIST= reftools
+TARGET1=_reftools.so
+TARGET2=_reftools_ext.so
 
 # --------------------------------------------
 
-all: $(EXE_LIST) clean
+all: baseline clean
+
+baseline: $(TARGET1)
+extended: $(TARGET2)   
 
 %.o: %.c
-	$(CC) $< $(CCFLAGS) -o $@
+	$(CC) -c $< -o $@ $(CFLAGS) 
 
-reftools: $(OBJS)
-	$(LD_SHARED) -Wl,-soname,_reftools.so -o _reftools.so $(OBJS) $(LIBS) 
+$(TARGET1): $(OBJ1)
+	$(LD_SHARED) -o $(TARGET1) $(OBJ1) $(LFLAGS) 
+
+$(TARGET2): $(OBJ2)
+	$(LD_SHARED) -o $(TARGET2) $(OBJ2) $(LFLAGS) 
+
+reftools_ext.o:
+	$(CC) -c reftools.c -o reftools_ext.o -DUSE_GDAL_EOX_EXTENSIONS=1 $(CFLAGS)
 
 clean:
-	rm *.o
+	-rm -fv *.o
 

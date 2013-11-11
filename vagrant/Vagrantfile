@@ -41,6 +41,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.provision "shell", path: "scripts/httpd.sh"
   config.vm.provision "shell", path: "scripts/user_custom.sh"
 
+  # Use package caching https://github.com/fgrehm/vagrant-cachier
+  config.cache.auto_detect = true
+
   # Adjust Virtualbox configuration
   config.vm.provider "virtualbox" do |v|
 

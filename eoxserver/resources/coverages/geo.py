@@ -35,7 +35,7 @@ import logging
 from django.contrib.gis.geos import GEOSGeometry
 
 from eoxserver.contrib import osr
-from eoxserver.processing.gdal.reftools import get_footprint_wkt
+from eoxserver.processing.gdal import reftools as rt 
 from eoxserver.resources.coverages import crss 
 
 
@@ -78,7 +78,10 @@ def getExtentFromReferenceableDS( ds ):
     if 1 != len( filelist ) : 
         RuntimeError( "Cannot get a single dataset filename!" ) 
         
-    return GEOSGeometry(get_footprint_wkt(filelist[0])).extent 
+    rt_prm = rt.suggest_transformer(filelist[0]) 
+    fp_wkt = rt.get_footprint_wkt(filelist[0],**rt_prm)
+
+    return GEOSGeometry( fp_wkt ).extent 
 
 
 class GeospatialMetadata(object):
