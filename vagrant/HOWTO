@@ -49,6 +49,7 @@ git submodule update
 # Install Vagrant add-ons
 vagrant plugin install sahara           # Sandboxing https://github.com/jedi4ever/sahara
 vagrant plugin install vagrant-vbguest  # Check for Virtualbox Guest Additions https://github.com/dotless-de/vagrant-vbguest
+vagrant plugin install vagrant-cachier  # Cache yum/apt/etc. packages https://github.com/fgrehm/vagrant-cachier
 
 # Run vagrant
 cd vagrant/
@@ -96,6 +97,7 @@ git submodule update
 16) Open an Administrator console and enter:
 vagrant plugin install sahara
 vagrant plugin install vagrant-vbguest
+vagrant plugin install vagrant-cachier
 cd vagrant/
 vagrant up
 17) Access server at:
