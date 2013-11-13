@@ -5,47 +5,41 @@ import httplib
 import xml.dom.minidom
 import eoxserver
 from urlparse import urlparse
-from eoxserver.services.auth.base import BasePDP, \
-                                         PolicyDecisionPointInterface, \
-                                         AuthConfigReader
+
+from eoxserver.core import implements
+from eoxserver.services.auth.base import BasePDP
+from eoxserver.services.auth.interfaces import PolicyDecisionPointInterface
 from eoxserver.services.auth.charonpdp import CharonPDP
 
 
 logger = logging.getLogger(__name__)
 
-validUser = {'uid': 'jdoe', 'cn': 'Doe John', 'sn': 'Doe', 'description': 'Authorized User'}
-
+validUser = {
+    'uid': 'jdoe', 
+    'cn': 'Doe John', 
+    'sn': 'Doe', 
+    'description': 'Authorized User'
+}
 
 class DummyPDP(BasePDP):
-
-    REGISTRY_CONF = {
-        "name": "Dummy Policy Decision Point",
-        "impl_id": "services.auth.dummypdp.DummyPDP",
-        "registry_values": {
-            "services.auth.base.pdp_type": "dummypdp"
-        }
-    }
+    implements(PolicyDecisionPointInterface)
 
     def __init__(self):
         self.pdp = CharonPDP(DummyAuthzClient())
 
-    def _decide(self, ows_req):
-
-        httpHeader = ows_req.http_req.META
+    def _decide(self, request):
+        httpHeader = request.META
 
         #checks if a attribute 'DUMMY_MODE' is in the headers
         if 'DUMMY_MODE' in httpHeader:
             logger.info("Security Test: 'DUMMY_MODE' parameter in HTTP header")
-            return self.pdp._decide(ows_req)
+            return self.pdp._decide(request)
         else :
             return (True, 'No authorisation testing')
 
-DummyPDPImplementation = PolicyDecisionPointInterface.implement(DummyPDP)
 
 class DummyAuthzClient(object):
-
     def authorize(self, userAttributes, resourceAttributes, action):
-
         for key, value in validUser.iteritems():
             if key in userAttributes:
                 if value != userAttributes[key]:

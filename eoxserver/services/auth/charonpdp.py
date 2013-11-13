@@ -33,10 +33,13 @@ import httplib
 import xml.dom.minidom
 import eoxserver
 from urlparse import urlparse
-from eoxserver.services.auth.base import BasePDP, \
-                                         PolicyDecisionPointInterface, \
-                                         AuthConfigReader
 
+from eoxserver.core import implements
+from eoxserver.core.config import get_eoxserver_config
+from eoxserver.services.ows.decoders import get_decoder
+from eoxserver.services.auth.base import BasePDP, AuthConfigReader
+from eoxserver.services.auth.interfaces import PolicyDecisionPointInterface
+                                         
 
 logger = logging.getLogger(__name__)
 
@@ -77,40 +80,25 @@ template_attribute = "<Attribute AttributeId=\"{0}\" DataType=\"{1}\">" + \
 #-------------------------------------------------------------------------------
 
 class CharonPDP(BasePDP):
-
+    implements(PolicyDecisionPointInterface)
     # please do not remove this dictionary; it is needed for EOxServer internal
     # processes
-    REGISTRY_CONF = {
-        "name": "Charon Policy Decision Point",
-        "impl_id": "services.auth.charonpdp.CharonPDP",
-        "registry_values": {
-            "services.auth.base.pdp_type": "charon"
-        }
-    }
+
+    pdp_type = "charon"
 
     def __init__(self, client=None):
 
-        cfgReader = AuthConfigReader()
-        url = cfgReader.getAuthorisationServiceURL()
+        cfgReader = AuthConfigReader(get_eoxserver_config())
+        url = cfgReader.authorisationServiceURL
 
         # For tests
-        if (client is None):
-            self.client = AuthorisationClient(url)
-        else :
-            self.client = client
-
+        self.client = client or AuthorisationClient(url)
         self.attribMapping = {}
 
-        self.serviceID = cfgReader.getServiceID()
-        if (self.serviceID is None or \
-            self.serviceID == '' ):
-            self.serviceID = 'default'
+        self.serviceID = cfgReader.serviceID or "default"
 
         dictLocation = cfgReader.getAttributeMappingDictionary()
-        if (dictLocation is None or \
-            dictLocation == '' or \
-            dictLocation == 'default'):
-
+        if not dictLocation or dictLocation == "default":
             basePath = os.path.split(eoxserver.__file__)[0]
             dictLocation = os.path.join(basePath, 'conf', 'defaultAttributeDictionary')
 
@@ -118,27 +106,32 @@ class CharonPDP(BasePDP):
         CHAR_ASSIGN  = '='
 
         try:
-            logger.debug("Loading attribute dictionary from the file "+str(dictLocation))
-            f = open(dictLocation)
-            for line in f:
-                if CHAR_COMMENT in line:
-                    line, comment = line.split(CHAR_COMMENT, 1)
-                if CHAR_ASSIGN in line:
-                    key, value = line.split(CHAR_ASSIGN, 1)
-                    key = key.strip()
-                    value = value.strip()
-                    self.attribMapping[key] = value
-                    logger.debug("Adding SAML attribute to dictionary:"+\
-                                  str(key)+"="+str(value))
-            f.close()
+            logger.debug(
+                "Loading attribute dictionary from the file %s" % dictLocation
+            )
+            with open(dictLocation) as f:
+                for line in f:
+                    if CHAR_COMMENT in line:
+                        line, comment = line.split(CHAR_COMMENT, 1)
+                    if CHAR_ASSIGN in line:
+                        key, value = line.split(CHAR_ASSIGN, 1)
+                        key = key.strip()
+                        value = value.strip()
+                        self.attribMapping[key] = value
+                        logger.debug(
+                            "Adding SAML attribute to dictionary: %s = %s" 
+                            % (key, value)
+                        )
         except IOError :
-            logger.warn("Cannot read dictionary for attributes mapping from the "+\
-                         "path: "+str(dictLocation))
+            logger.warn(
+                "Cannot read dictionary for attributes mapping from the path: "
+                "%s" % dictLocation
+            )
 
 
     # Extracts the asserted subject attributes from the OWS Request
-    def _getAssertedAttributes(self, ows_req):
-        httpHeader = ows_req.http_req.META
+    def _getAssertedAttributes(self, request):
+        httpHeader = request.META
         attributes = {}
 
         # adding the REMOTE_ADDR from HTTP header to subject attributes
@@ -147,18 +140,21 @@ class CharonPDP(BasePDP):
         for key, value in self.attribMapping.iteritems():
             if key in httpHeader:
                 attributes[key] = httpHeader[value]
-                logger.debug("Found SAML attribute "+str(key)+" with value "+\
-                              str(httpHeader[value])+" in incoming request.")
+                logger.debug(
+                    "Found SAML attribute %s with value %s in incoming "
+                    "request." % (key, httpHeader[value]))
             else:
-                logger.info('The key \''+key+'\' specified in the mapping ' +\
-                             'dictionary was not found in the HTTP headers.')
+                logger.info(
+                    "The key '%s' specified in the mapping dictionary was not "
+                    "found in the HTTP headers." % key
+                )
 
         return attributes
 
 
     # Extracts the resource specific attributes from the OWS Request
-    def _getResourceAttributes(self, ows_req):
-        httpHeader = ows_req.http_req.META
+    def _getResourceAttributes(self, request):
+        httpHeader = request.META
         attributes = {}
 
         if self.serviceID == 'default' :
@@ -166,30 +162,30 @@ class CharonPDP(BasePDP):
         else :
             attributes[attrib_resource] = self.serviceID
 
-        attributes['serviceType'] = str(ows_req.getParamValue("service")).lower()
+        decoder = get_decoder(request)
+        attributes['serviceType'] = decoder.service.lower()
         attributes['serverName'] = httpHeader['SERVER_NAME']
 
         return attributes
 
 
     # performs the actual authz. decision
-    def _decide(self, ows_req):
+    def _decide(self, request):
 
-        userAttributes     = self._getAssertedAttributes(ows_req)
-        resourceAttributes = self._getResourceAttributes(ows_req)
+        decoder = get_decoder(request)
+        userAttributes     = self._getAssertedAttributes(request)
+        resourceAttributes = self._getResourceAttributes(request)
 
-        result = self.client.authorize(userAttributes, resourceAttributes, str(ows_req.getParamValue("operation")).lower())
+        result = self.client.authorize(
+            userAttributes, resourceAttributes, decoder.request.lower()
+        )
         return result
-
-
-# please do not remove this line
-CharonPDPImplementation = PolicyDecisionPointInterface.implement(CharonPDP)
 
 #-------------------------------------------------------------------------------
 # SOAP client for the CHARON Policy Management and Authorization Service
 #-------------------------------------------------------------------------------
 
-class AuthorisationClient:
+class AuthorisationClient(object):
     """
     SOAP client for the CHARON Policy Management and Authorisation
     Service
@@ -314,18 +310,5 @@ class AuthorisationClient:
 #-------------------------------------------------------------------------------
 
 class AuthorisationClientException(Exception):
+    """ Exception that is thrown by the AuthorisationClient in case of an error
     """
-    Exception that is thrown by the AuthorisationClient in case of an error
-
-    .. method::  __init__(authz_service_url)
-
-        Constructor with an exception message
-
-    .. method::  __str__()
-
-        Returns the exception message
-    """
-    def __init__(self, message):
-        self.message = message
-    def __str__(self):
-        return repr(self.message)
