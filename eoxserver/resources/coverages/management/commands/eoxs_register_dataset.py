@@ -50,7 +50,7 @@ from eoxserver.resources.coverages.management.commands import (
 )
 from eoxserver.resources.coverages.metadata import EOMetadata
 
-from eoxserver.processing.gdal.reftools import get_footprint_wkt
+from eoxserver.processing.gdal import reftools as rt 
 
 #------------------------------------------------------------------------------
 
@@ -446,7 +446,9 @@ class Command(CommandOutputMixIn, BaseCommand):
                         # referenceable DS - trying to extract FP from GCPs 
                         if geo_metadata.is_referenceable : 
  
-                            footprint = GEOSGeometry(get_footprint_wkt(src_data[0]))
+                            rt_prm = rt.suggest_transformer(src_data[0]) 
+                            fp_wkt = rt.get_footprint_wkt(src_data[0],**rt_prm)
+                            footprint = GEOSGeometry( fp_wkt ) 
 
                         # for referenceable DSs we extract footprint from extent 
                         else : 

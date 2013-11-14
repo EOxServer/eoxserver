@@ -31,7 +31,7 @@ from eoxserver.contrib import gdal
 from eoxserver.resources.coverages.metadata.interfaces import (
     MetadataReaderInterface, GDALDatasetMetadataReaderInterface
 )
-from eoxserver.processing.gdal import reftools
+from eoxserver.processing.gdal import reftools as rt
 
 
 def open_gdal(obj):
@@ -96,8 +96,10 @@ class GDALDatasetMetadataReader(Component):
                     values.setdefault(key, value)
 
             if ds.GetGCPCount() > 0:
+                rt_prm = rt.suggest_transformer(raw_metadata)
+                fp_wkt = rt.get_footprint_wkt(raw_metadata,**rt_prm)
                 values["footprint"] = GEOSGeometry(
-                    reftools.get_footprint_wkt(raw_metadata)
+                    fp_wkt
                 )
 
             driver_metadata = driver.GetMetadata()
