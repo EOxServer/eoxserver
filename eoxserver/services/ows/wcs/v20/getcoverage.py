@@ -44,6 +44,7 @@ from eoxserver.services.ows.wcs.v20.util import (
     nsmap, SectionsMixIn, parse_subset_kvp, parse_subset_xml,
     parse_size_kvp, parse_resolution_kvp, Slice, Trim
 )
+from eoxserver.services.result import to_http_response
 
 
 class WCS20GetCoverageHandler(Component):
@@ -124,7 +125,8 @@ class WCS20GetCoverageHandler(Component):
                 ("interpolation", decoder.interpolation)
             )
 
-        return renderer.render(coverage, request_values)
+        result_set, _ = renderer.render(coverage, request_values)
+        return to_http_response(result_set)
 
 
 def subset_to_kvp(subset):

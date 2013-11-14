@@ -42,6 +42,7 @@ from eoxserver.services.ows.wcs.interfaces import (
 from eoxserver.services.exceptions import (
     NoSuchCoverageException, OperationNotSupportedException
 )
+from eoxserver.services.result import to_http_response
 
 class WCS10DescribeCoverageHandler(Component):
     implements(ServiceHandlerInterface)
@@ -84,7 +85,8 @@ class WCS10DescribeCoverageHandler(Component):
             available_ids = set([coverage.identifier for coverage in coverages])
             raise NoSuchCoverageException(coverage_ids - available_ids)
 
-        return self.renderer.render(coverages, request.GET.items())
+        result, _ = self.renderer.render(coverages, request.GET.items())
+        return to_http_response(result)
 
 
 def parse_bbox_kvp(string):

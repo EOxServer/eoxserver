@@ -35,7 +35,7 @@ from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.services.ows.wcs.interfaces import (
     WCSCapabilitiesRendererInterface
 )
-
+from eoxserver.services.result import result_set_from_raw_data, get_content_type
 
 class MapServerWCSCapabilitiesRenderer(Component):
     """ WCS Capabilities renderer implementation using MapServer.
@@ -96,5 +96,7 @@ class MapServerWCSCapabilitiesRenderer(Component):
             map_.insertLayer(layer)
         
         request = create_request(request_values)
-        response = map_.dispatch(request)
-        return response.content, response.content_type
+        raw_result = map_.dispatch(request)
+        result = result_set_from_raw_data(raw_result)
+
+        return result, get_content_type(result)

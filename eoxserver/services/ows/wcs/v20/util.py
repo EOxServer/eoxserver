@@ -96,7 +96,7 @@ class SectionsMixIn(object):
 
         for section in map(lambda s: s.lower(), sections):
             section = section.lower()
-            if "all" in self.sections or section in requested_sections:
+            if "all" in requested_sections or section in requested_sections:
                 return True
 
         return False

@@ -28,12 +28,13 @@
 
 
 from eoxserver.core import implements
-from eoxserver.contrib.mapserver import create_request
+from eoxserver.contrib import mapserver as ms
 from eoxserver.backends.cache import CacheContext
 from eoxserver.services.mapserver.wcs.base_renderer import BaseRenderer
 from eoxserver.services.ows.wcs.interfaces import (
     WCSCoverageDescriptionRendererInterface
 )
+from eoxserver.services.result import result_set_from_raw_data, get_content_type
 
 
 class CoverageDescriptionMapServerRenderer(BaseRenderer):
@@ -55,7 +56,8 @@ class CoverageDescriptionMapServerRenderer(BaseRenderer):
         for outputformat in self.get_all_outputformats(not use_name):
             map_.appendOutputFormat(outputformat)
 
-        request = create_request(request_values)
-        response = map_.dispatch(request)
+        request = ms.create_request(request_values)
+        raw_result = ms.dispatch(map_, request)
+        result = result_set_from_raw_data(raw_result)
 
-        return response.content, response.content_type
+        return result, get_content_type(result)

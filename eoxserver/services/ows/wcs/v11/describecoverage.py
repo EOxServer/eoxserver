@@ -43,6 +43,7 @@ from eoxserver.services.exceptions import (
     NoSuchCoverageException, OperationNotSupportedException
 )
 from eoxserver.services.ows.wcs.v11.util import nsmap
+from eoxserver.services.result import to_http_response
 
 
 class WCS11DescribeCoverageHandler(Component):
@@ -90,7 +91,8 @@ class WCS11DescribeCoverageHandler(Component):
             ("identifier", ",".join(decoder.identifiers)),
         ]
 
-        return self.renderer.render(coverages, request_values)
+        result, _ = self.renderer.render(coverages, request_values)
+        return to_http_response(result)
 
 
 class WCS11DescribeCoverageKVPDecoder(kvp.Decoder):

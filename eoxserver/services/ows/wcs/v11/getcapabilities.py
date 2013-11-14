@@ -44,7 +44,7 @@ from eoxserver.services.ows.wcs.interfaces import (
     WCSCapabilitiesRendererInterface
 )
 from eoxserver.services.ows.wcs.v11.util import nsmap
-
+from eoxserver.services.result import to_http_response
 
 class WCS11GetCapabilitiesHandler(Component):
     implements(ServiceHandlerInterface)
@@ -73,7 +73,8 @@ class WCS11GetCapabilitiesHandler(Component):
 
         coverages_qs = models.Coverage.objects.order_by("identifier")
 
-        return self.renderer.render(coverages_qs, request.GET.items())
+        result, _ = self.renderer.render(coverages_qs, request.GET.items())
+        return to_http_response(result)
 
 
 class WCS11GetCapabilitiesKVPDecoder(kvp.Decoder):

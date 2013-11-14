@@ -40,6 +40,7 @@ from eoxserver.services.mapserver.interfaces import (
 from eoxserver.services.mapserver.wcs.base_renderer import BaseRenderer
 from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.formats import getFormatRegistry
+from eoxserver.services.result import result_set_from_raw_data, get_content_type
 
 
 class RectifiedCoverageMapServerRenderer(BaseRenderer):
@@ -98,11 +99,13 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
             connector.connect(coverage, data_items, layer)
             # create request object and dispatch it agains the map
             request = ms.create_request(request_values)
-            response = ms.dispatch(map_, request)
+            raw_result = ms.dispatch(map_, request)
 
         finally:
             # perform any required layer related cleanup
             connector.disconnect(coverage, data_items, layer)
+
+        result = result_set_from_raw_data(raw_result)
 
         if self.find_param(request_values, "mediatype") in ("multipart/mixed", "multipart/related"):
             # TODO: change the response XML
@@ -111,7 +114,7 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
             pass
 
         # "default" response
-        return response.content, response.content_type
+        return result, get_content_type(result)
         
 
 def create_outputformat(frmt, imagemode, basename):
@@ -139,7 +142,6 @@ def create_outputformat(frmt, imagemode, basename):
     outputformat.imagemode = imagemode
 
     for key, value in options:
-        print key, value
         outputformat.setOption(key, value)
 
     filename = basename + reg_format.defaultExt
