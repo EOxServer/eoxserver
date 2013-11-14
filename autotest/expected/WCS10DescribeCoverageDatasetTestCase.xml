@@ -82,7 +82,7 @@
     </supportedCRSs>
     <supportedFormats nativeFormat="GeoTIFF">
       <formats>GeoTIFF</formats>
-      <formats>JPEG2000</formats>
+      <formats>JP2OpenJPEG</formats>
       <formats>netCDF</formats>
       <formats>HDF4Image</formats>
     </supportedFormats>
