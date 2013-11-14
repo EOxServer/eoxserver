@@ -57,3 +57,25 @@ class WCSCoverageRendererInterface(object):
         """
 
 
+class PackageWriterInterface(object):
+    """ Interface for package writers.
+    """
+
+    def supports(self, format, params):
+        """ Return a boolen value, whether or not a writer supports a given 
+            format.
+        """
+
+    def create_package(self, filename, params):
+        """ Create a package, which the encoder can later add items to with the 
+            `cleanup` and `add_to_package` method.
+        """
+
+    def cleanup(self, package):
+        """ Perform any necessary cleanups, like closing files, etc.
+        """
+
+    def add_to_package(self, package, file_obj, location):
+        """ Add the file object to the package, that is returned by the 
+            `create_package` method.
+        """
