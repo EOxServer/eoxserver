@@ -40,6 +40,7 @@ from eoxserver.services.ows.wms.util import (
     lookup_layers, parse_bbox
 )
 from eoxserver.services.ows.wms.interfaces import WMSMapRendererInterface
+from eoxserver.services.result import to_http_response
 
 
 class WMS10GetMapHandler(Component):
@@ -48,7 +49,7 @@ class WMS10GetMapHandler(Component):
 
     renderer = UniqueExtensionPoint(WMSMapRendererInterface) 
 
-    service = "WMS"
+    service = ("WMS", None)
     versions = ("1.0", "1.0.0")
     request = "GetMap"
 
@@ -72,9 +73,10 @@ class WMS10GetMapHandler(Component):
         
         root_group = lookup_layers(layers, subsets)
         
-        return self.renderer.render(
+        result, _ = self.renderer.render(
             root_group, request.GET.items()
         )
+        return to_http_response(result)
 
 
 class WMS10GetMapDecoder(kvp.Decoder):

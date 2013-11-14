@@ -26,8 +26,9 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+from itertools import chain
 
-from eoxserver.core import Component, implements
+from eoxserver.core import Component, implements, ExtensionPoint
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.util.timetools import isoformat
 from eoxserver.contrib.mapserver import create_request, Map, Layer
@@ -35,6 +36,8 @@ from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.services.ows.wms.interfaces import (
     WMSCapabilitiesRendererInterface
 )
+from eoxserver.services.mapserver.interfaces import LayerFactoryInterface
+from eoxserver.services.result import result_set_from_raw_data, get_content_type
 
 
 class MapServerWMSCapabilitiesRenderer(Component):
@@ -42,8 +45,20 @@ class MapServerWMSCapabilitiesRenderer(Component):
     """
     implements(WMSCapabilitiesRendererInterface)
 
-    def render(self, collections, suffixes, request_values):
+
+    layer_factories = ExtensionPoint(LayerFactoryInterface)
+
+    @property
+    def suffixes(self):
+        return list(
+            chain(*[factory.suffixes for factory in self.layer_factories])
+        )
+
+
+    def render(self, collections, request_values):
         conf = CapabilitiesConfigReader(get_eoxserver_config())
+
+        suffixes = self.suffixes
 
         map_ = Map()
         map_.setMetaData({
@@ -116,5 +131,6 @@ class MapServerWMSCapabilitiesRenderer(Component):
                 map_.insertLayer(layer)
         
         request = create_request(request_values)
-        response = map_.dispatch(request)
-        return response.content, response.content_type
+        raw_result = map_.dispatch(request)
+        result = result_set_from_raw_data(raw_result)
+        return result, get_content_type(result)

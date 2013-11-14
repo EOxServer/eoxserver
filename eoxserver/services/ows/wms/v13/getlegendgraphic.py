@@ -41,6 +41,7 @@ from eoxserver.services.ows.wms.util import (
 from eoxserver.services.ows.wms.interfaces import (
     WMSLegendGraphicRendererInterface
 )
+from eoxserver.services.result import to_http_response
 
 
 class WMS13GetLegendGraphicHandler(Component):
@@ -122,7 +123,8 @@ class WMS13GetLegendGraphicHandler(Component):
         )
         layer_selection.extend(coverages)
 
-        return self.renderer.render(layer_selection, request.GET.items())
+        result, _ = self.renderer.render(layer_selection, request.GET.items())
+        return to_http_response(result)
 
 
 class WMS13GetLegendGraphicDecoder(kvp.Decoder):

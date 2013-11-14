@@ -38,6 +38,9 @@ from eoxserver.services.ows.wms.interfaces import (
     WMSFeatureInfoRendererInterface
 )
 from eoxserver.services.ows.wcs.v20.encoders import WCS20EOXMLEncoder
+from eoxserver.services.result import (
+    result_set_from_raw_data, get_content_type, ResultBuffer
+)
 
 
 class MapServerWMSFeatureInfoRenderer(MapServerWMSBaseComponent):
@@ -71,15 +74,16 @@ class MapServerWMSFeatureInfoRenderer(MapServerWMSBaseComponent):
         
         with session:
             request = ms.create_request(request_values)
-            response = map_.dispatch(request)
+            raw_result = map_.dispatch(request)
+            result = result_set_from_raw_data(raw_result)
 
             if not use_eoom:
                 # just return the response
-                return response.content, response.content_type
+                return result, get_content_type(result)
             else:
                 # do a postprocessing step and get all identifiers in order
                 # to encode them with EO O&M
-                decoder = GMLFeatureDecoder(response.content)
+                decoder = GMLFeatureDecoder(result[0].data_file)
                 identifiers = decoder.identifiers
                 coverages = models.Coverage.objects.filter(
                     identifier__in=identifiers
@@ -93,12 +97,14 @@ class MapServerWMSFeatureInfoRenderer(MapServerWMSBaseComponent):
 
                 # encode the coverages with the EO O&M 
                 encoder = WCS20EOXMLEncoder()
-                return (
-                    encoder.serialize(
-                        encoder.encode_coverage_descriptions(coverages)
-                    ),
-                    encoder.content_type
-                )
+
+                return [
+                    ResultBuffer(
+                        encoder.serialize(
+                            encoder.encode_coverage_descriptions(coverages)
+                        ), encoder.content_type
+                    )
+                ], encoder.content_type
 
 
 

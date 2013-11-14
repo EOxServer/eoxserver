@@ -35,6 +35,7 @@ from eoxserver.services.ows.wms.interfaces import (
 from eoxserver.services.ows.interfaces import (
     ServiceHandlerInterface, GetServiceHandlerInterface
 )
+from eoxserver.services.result import to_http_response
 
 
 class WMS11GetCapabilitiesHandler(Component):
@@ -56,8 +57,7 @@ class WMS11GetCapabilitiesHandler(Component):
                 end_time__isnull=True
             )
 
-        #ms_component = MapServerComponent(env)
-        #suffixes = map(lambda s: s.suffix, ms_component.layer_factories)
-        suffixes = (None, "_outlines", "_bands")
-
-        return self.renderer.render(dataset_series_qs, suffixes, request.GET.items())
+        result, _ = render(
+            dataset_series_qs, request.GET.items()
+        )
+        return to_http_response(result)
