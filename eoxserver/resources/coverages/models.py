@@ -37,7 +37,7 @@ from eoxserver.core import models as base
 from eoxserver.contrib import gdal, osr
 from eoxserver.backends import models as backends
 from eoxserver.resources.coverages.util import (
-    detect_circular_reference, collect_eo_metadata
+    detect_circular_reference, collect_eo_metadata, is_same_grid
 )
 
 
@@ -430,8 +430,8 @@ class Coverage(EOObject, Extent, backends.Dataset):
     """ Common base model for all coverage types.
     """
 
-    size_x = models.FloatField()
-    size_y = models.FloatField()
+    size_x = models.PositiveIntegerField()
+    size_y = models.PositiveIntegerField()
     
     range_type = models.ForeignKey(RangeType)
 
@@ -442,7 +442,19 @@ class Coverage(EOObject, Extent, backends.Dataset):
     @size.setter
     def size(self, value):
         self.size_x, self.size_y = value
-    
+
+    @property
+    def resolution_x(self):
+        return (self.max_x - self.min_x) / float(self.size_x)
+
+    @property
+    def resolution_y(self):
+        return (self.max_y - self.min_y) / float(self.size_y)
+
+    @property
+    def resolution(self):
+        return (self.resolution_x, self.resolution_y)
+
     objects = models.GeoManager()
     
 
@@ -662,19 +674,23 @@ class RectifiedStitchedMosaic(Coverage, Collection):
                 RectifiedDataset._meta.verbose_name_plural
             ))
 
-        # TODO: check that the rectified dataset is on the same "grid" as the 
-        # rectified stitched mosaic
-
         rectified_dataset = eo_object.cast()
-        if self.srid != rectified_dataset.srid:
+        if self.range_type != rectified_dataset.range_type:
             raise ValidationError(
-                "Dataset '%s' has not the same Grid as the Rectified Stitched "
-                "Mosaic '%s'." % (rectified_dataset, self.identifier)
+                "Dataset '%s' has a different Range Type as the Rectified "
+                "Stitched Mosaic '%s'." % (rectified_dataset, self.identifier)
+            )
+
+        if not is_same_grid((self, rectified_dataset)):
+            raise ValidationError(
+                "Dataset '%s' has not the same base grid as the Rectified "
+                "Stitched Mosaic '%s'."  % (rectified_dataset, self.identifier)
             )
 
         self.begin_time, self.end_time, self.footprint = collect_eo_metadata(
             self.eo_objects.all(), insert=[eo_object]
         )
+        # TODO: recalculate size and extent!
         self.full_clean()
         self.save()
         return
@@ -683,6 +699,7 @@ class RectifiedStitchedMosaic(Coverage, Collection):
         self.begin_time, self.end_time, self.footprint = collect_eo_metadata(
             self.eo_objects.all(), exclude=[eo_object]
         )
+        # TODO: recalculate size and extent!
         self.full_clean()
         self.save()
         return

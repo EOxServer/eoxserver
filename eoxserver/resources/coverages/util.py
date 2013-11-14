@@ -29,6 +29,8 @@
 #-------------------------------------------------------------------------------
 
 
+import operator
+
 from django.db.models import Min, Max
 from django.contrib.gis.db.models import Union
 from django.contrib.gis.geos import MultiPolygon, Polygon
@@ -94,3 +96,49 @@ def collect_eo_metadata(qs, insert=None, exclude=None, bbox=False):
         footprint = MultiPolygon(Polygon.from_bbox(footprint.extent))
 
     return begin_time, end_time, footprint
+
+
+def is_same_grid(coverages, epsilon=1e-10):
+    """ Function to determine if the given coverages share the same base grid.
+        Returns a boolean value, whether or not the coverages share a common 
+        grid.
+    """
+
+    if len(coverages) < 2:
+        raise ValueError("Not enough coverages given.")
+
+    first = coverages[0]
+    first_ext = first.extent
+    first_res = first.resolution
+    first_srid = first.srid
+    first_proj = first.projection
+
+    for other in coverages[1:]:
+        other_ext = other.extent
+        other_res = other.resolution
+
+        # check projection/srid
+        if first_srid != other.srid or first_proj != other.projection:
+            return False
+
+        # check dimensions
+        if len(first_res) != len(other_res):
+            return False
+
+        # check offset vectors
+        for a, b in zip(first_res, other_res):
+            if abs(a - b) > epsilon:
+                return False
+
+        # check base grids
+        diff_origins = tuple(map(operator.sub, first_ext[:2], other_ext[:2]))
+        print diff_origins
+
+        v = tuple(map(operator.div, diff_origins, other_res))
+        print v
+
+        if (abs(v[0] - round(v[0])) > epsilon 
+            or abs(v[1] - round(v[1])) > epsilon):
+            return False
+
+    return True
