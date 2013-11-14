@@ -42,54 +42,12 @@ from eoxserver.contrib import gdal
 logger = logging.getLogger(__name__)
 is_xml = lambda ct: getMimeType(ct) in ("text/xml", "application/xml", "application/gml+xml")
 is_multipart = lambda ct: getMimeType(ct).startswith("multipart/") 
-
+msversion = msGetVersionInt()
 
 class MapServerException(Exception):
     def __init__(self, message, locator):
         super(MapServerException, self).__init__(message)
         self.locator = locator
-
-
-class Response(object):
-    """ Data class for mapserver results. 
-    """
-
-    def __init__(self, content, content_type, status):
-        self.content = content
-        self.content_type = content_type
-
-    @property
-    def multipart(self):
-        return
-
-
-    def _split(self, content, content_type):
-
-        if is_multipart(content_type): 
-        
-            # extract multipart boundary  
-            boundary = getMultipartBoundary(content_type)
-
-            for headers, offset, size in mpUnpack(content, boundary, capitalize=True):
-
-                if is_xml( headers['Content-Type'] ) : 
-                    self.ms_response_xml = self.content[offset:(offset+size)]
-                    self.ms_response_xml_headers = headers
-                else : 
-                    self.ms_response_data = self.content[offset:(offset+size)] 
-                    self.ms_response_data_headers = headers
-
-        else: # single part payload 
-            
-            headers = headcap(headers)
-            headers['Content-Type'] = self.content_type 
-
-            if is_xml( self.content_type ) : 
-                self.ms_response_xml = self.content
-                self.ms_response_xml_headers = headers
-            else : 
-                self.ms_response_data = self.content 
-                self.ms_response_data_headers = headers
 
 
 class MetadataMixIn(object):
@@ -160,38 +118,16 @@ def dispatch(map_, request):
     except Exception, e:
         raise MapServerException(str(e), "NoApplicableCode")
     
-    logger.debug("MapServer: Retrieving content-type.")
-    try:
-        content_type = msIO_stripStdoutBufferContentType()
-        msIO_stripStdoutBufferContentHeaders()
+    bytes = msIO_getStdoutBufferBytes()
 
-    except MapServerError:
-        # degenerate response. Manually split headers from content
-        result = msIO_getStdoutBufferBytes()
-        parts = result.split("\r\n")
-        result = parts[-1]
-        headers = parts[:-1]
-        
-        for header in headers:
-            if header.lower().startswith("content-type"):
-                content_type = header[14:]
-                break
-        else:
-            content_type = None
-
-    else:
-        logger.debug("MapServer: Retrieving stdout buffer bytes.")
-        result = msIO_getStdoutBufferBytes()
-    
     logger.debug("MapServer: Performing MapServer cleanup.")
     # Workaround for MapServer issue #4369
-    msversion = msGetVersionInt()
     if msversion < 60004 or (msversion < 60200 and msversion >= 60100):
         msCleanup()
     else:
         msIO_resetHandlers()
     
-    return Response(result, content_type, status)
+    return bytes
 
 
 class Layer(MetadataMixIn, layerObj):
