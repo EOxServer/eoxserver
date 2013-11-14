@@ -169,7 +169,7 @@ class CollectionAdmin(EOObjectAdmin):
     
     synchronize.short_description = "Synchronizes the collections with its data sources."
     
-    actions = ["synchronize"]    
+    actions = EOObjectAdmin.actions + ["synchronize"]
 
 
 class AbstractInline(admin.TabularInline):
@@ -264,6 +264,17 @@ admin.site.register(models.ReferenceableDataset, ReferenceableDatasetAdmin)
 class RectifiedStitchedMosaicAdmin(CoverageAdmin, CollectionAdmin):
     model = models.RectifiedStitchedMosaic
     inlines = (DataItemInline, CollectionInline, EOObjectInline)
+
+    def restitch(self, request, queryset):
+        for model in queryset:
+            self.message_user(
+                request, "Successfully fake-stitched %s." % str(model),
+                messages.INFO
+            )
+    
+    restitch.short_description = "Restitch the rectified stitched mosaic."
+    
+    actions = CollectionAdmin.actions + ["restitch"]
 
 admin.site.register(models.RectifiedStitchedMosaic, RectifiedStitchedMosaicAdmin)
 
