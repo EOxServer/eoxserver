@@ -33,6 +33,7 @@ from eoxserver.core.util.xmltools import XMLEncoder, NameSpace, NameSpaceMap
 
 ns_xlink = NameSpace("http://www.w3.org/1999/xlink", "xlink")
 ns_ows = NameSpace("http://www.opengis.net/ows/1.1", "ows")
+ns_xml = NameSpace("http://www.w3.org/XML/1998/namespace", "xml")
 
 nsmap = NameSpaceMap(ns_ows)
 OWS = ElementMaker(namespace=ns_ows.uri, nsmap=nsmap)
@@ -51,7 +52,7 @@ class OWS11ExceptionXMLEncoder(XMLEncoder):
 
         return OWS("ExceptionReport", 
             OWS("Exception", *exception_text, **exception_attributes
-            ), lang="en", version=version
+            ), version=version, **{ns_xml("lang"): "en"}
         )
 
     def get_schema_locations(self):
