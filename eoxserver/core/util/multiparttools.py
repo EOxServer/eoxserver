@@ -241,3 +241,105 @@ Output:
         parts.append( ( header , of0[2] , of1[0]-of0[2] ) )
 
     return parts
+
+
+CRLF = b"\r\n"
+CRLFCRLF = b"\r\n\r\n"
+
+def get_substring(data, boundary, offset, end):
+    index = data.find(boundary, offset, end)
+    if index == -1:
+        return None, None
+    return data[offset:index], index + len(boundary)
+
+
+def parse_parametrized_option(string):
+    parts = string.split(";")
+    params = dict(
+        param.strip().split("=", 1) for param in parts[1:]
+    )
+    return parts[0], params
+
+
+def capitalize_header(key):
+    return "-".join([
+        item if item[0].isupper() else item[0].upper() + item[1:]
+        for item in key.split("-")
+    ])
+
+
+def iterate(data, offset=0, end=None, headers=None):
+    """ Efficient generator function to iterate over a single- or multipart 
+        message. I yields tuples in the shape (``headers``, ``data``), where 
+        headers is a ``dict`` and data a buffer object, referencing the subset 
+        of the original content. In case of multipart messages, the multipart 
+        headers are yielded beforehand, with an empty string as data.
+
+        The `offset` parameter specifies the offset index to the start of the 
+        data. This is mostly used in the recursive call. The same applies to the
+        `end` parameter.
+
+        The `headers` parameter specifies that the header section of the 
+        response was already read, and the headers are now entailed in the given 
+        dict. If this parameter is omitted, the headers are read from the 
+        stream.
+    """
+
+    # check if the headers need to be parsed.
+    if not headers:
+        # read the header bytes from the string and get the new offset.
+        header_bytes, offset = get_substring(data, CRLFCRLF, offset, end)
+
+        # check if no data could be extracted
+        if (header_bytes, offset) == (None, None):
+            return
+
+        # parse the headers into a dict
+        headers = {}
+        for line in header_bytes.split(CRLF):
+            key, _, value = line.partition(":")
+            headers[capitalize_header(key.strip())] = value.strip()
+
+    # get the content type
+    content_type, params = parse_parametrized_option(
+        headers.get("Content-Type", "")
+    )
+
+    # check if this is a multipart
+    if content_type.startswith("multipart"):
+        # if this is a multipart, yield only its headers and an empty string
+        yield headers, ""
+
+        # parse the boundary and find the final index of all multiparts
+        boundary = "%s--%s" % (CRLF, params["boundary"])
+        end_boundary = "%s--" % boundary
+
+        sub_end = data.find(end_boundary)
+        if sub_end == -1:
+            raise ValueError("Could not find multipart end.")
+
+        # get the first part of this multipart
+        sub_offset = data.find(boundary, offset, sub_end)
+        if sub_offset == -1:
+            raise ValueError("Could not find boundary.")
+
+        # iterate over all parts until we reach the end of the multipart
+        while sub_offset < sub_end:
+            sub_offset += len(boundary) + 1
+            sub_stop = data.find(boundary, sub_offset, sub_end)
+            
+            sub_stop = sub_stop if sub_stop > -1 else sub_end
+
+            # recursive function call
+            for sub_headers, sub_data in iterate(data, sub_offset, sub_stop):
+                yield sub_headers, sub_data
+
+            sub_offset = sub_stop
+
+    else:
+        # in case we have a single part, just yield the headers and a buffer
+        # pointing to a substring of the original data stream.
+        if end is not None:
+            yield headers, buffer(data, offset, (end-offset))
+        else:
+            yield headers, buffer(data, offset)
