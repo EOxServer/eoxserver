@@ -127,18 +127,26 @@ vagrant vbguest -f      # (Re-)Install virtualbox guest additions in case it com
 | 4. How to build EOxServer                                                    |
 +------------------------------------------------------------------------------+
 
+# Check Jenkins build is passing.
+
 # Prepare a vagrant environment as described at:
 # https://gitlab.eox.at/vagrant/builder_rpm/tree/master
 
 cd git/eoxserver/
 git pull
 
+# If starting a new release branch:
+git checkout -b 0.4
+vi eoxserver/__init__.py
+# Adjust version to future one
+git commit eoxserver/__init__.py -m "Adjusting version."
+git push origin 0.4
+
 vi eoxserver/__init__.py
 # Adjust version
 vi setup.py
 # Adjust Development Status
 git commit setup.py eoxserver/__init__.py -m "Adjusting version."
-git push
 # Info:
 #Development Status :: 1 - Planning
 #Development Status :: 2 - Pre-Alpha
@@ -149,17 +157,30 @@ git push
 #Development Status :: 7 - Inactive
 
 git tag -a release-0.3.1 -m "Tagging the 0.3.1 release of EOxServer."
-git push --tags
 git archive --format=tar --prefix=eoxserver-0.3.1/ release-0.3.1 | gzip > eoxserver-0.3.1.tar.gz
 mv eoxserver-0.3.1.tar.gz <path-to-builder_rpm>
-cd <path-to-builder_rpm>
+cd <path-to-builder_rpm>/
 vagrant ssh
+
 tar xzf eoxserver-0.3.1.tar.gz
 rm eoxserver-0.3.1.tar.gz
 cd eoxserver-0.3.1/
+
+# pypi
+python setup.py sdist
+#Check newly generated file dist/EOxServer-0.3.1.tar.gz
+python setup.py sdist upload
+# Administrate visible versions at pypi.python.org
+
+# rpm
 python setup.py bdist_rpm --release <NO>
-cd dist
-tar czf ../../eoxserver-0.3.1.tar.gz EOxServer-0.3.1*rpm
-# scp ../../eoxserver-0.3.1.tar.gz -> packages.eox.at
-cd ../..
+# Test packages in dist/
+
+git push
+git push --tags
+
+cd dist/
+tar czf ../../rpmbuild/RPMS/EOxServer-0.3.1.tar.gz EOxServer-0.3.1*rpm
+# scp eoxserver-0.3.1.tar.gz -> packages@packages.eox.at:.
+cd ../../
 rm -r eoxserver-0.3.1/
