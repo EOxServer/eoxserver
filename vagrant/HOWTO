@@ -157,14 +157,14 @@ git commit setup.py eoxserver/__init__.py -m "Adjusting version."
 #Development Status :: 7 - Inactive
 
 git tag -a release-0.3.1 -m "Tagging the 0.3.1 release of EOxServer."
-git archive --format=tar --prefix=eoxserver-0.3.1/ release-0.3.1 | gzip > eoxserver-0.3.1.tar.gz
-mv eoxserver-0.3.1.tar.gz <path-to-builder_rpm>
+git archive --format=tar --prefix=EOxServer-0.3.1/ release-0.3.1 | gzip > EOxServer-0.3.1.tar.gz
+mv EOxServer-0.3.1.tar.gz <path-to-builder_rpm>
 cd <path-to-builder_rpm>/
 vagrant ssh
 
-tar xzf eoxserver-0.3.1.tar.gz
-rm eoxserver-0.3.1.tar.gz
-cd eoxserver-0.3.1/
+tar xzf EOxServer-0.3.1.tar.gz
+rm EOxServer-0.3.1.tar.gz
+cd EOxServer-0.3.1/
 
 # pypi
 python setup.py sdist
@@ -180,7 +180,7 @@ git push
 git push --tags
 
 cd dist/
-tar czf ../../rpmbuild/RPMS/EOxServer-0.3.1.tar.gz EOxServer-0.3.1*rpm
-# scp eoxserver-0.3.1.tar.gz -> packages@packages.eox.at:.
+tar czf ../../rpmbuild/RPMS/EOxServer-0.3.1.tar.gz EOxServer-*rpm
+# scp EOxServer-0.3.1.tar.gz -> packages@packages.eox.at:.
 cd ../../
-rm -r eoxserver-0.3.1/
+rm -r EOxServer-0.3.1/
