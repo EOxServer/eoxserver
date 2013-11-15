@@ -27,7 +27,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-VERSION = (0, 3, 1, 'dev', 1)
+VERSION = (0, 3, 1, 'final', 1)
 
 def get_version():
     # Concatenate first two elements
