@@ -27,34 +27,54 @@
 #-------------------------------------------------------------------------------
 
 
-import zipfile
+import tarfile
 
 from eoxserver.core import Component, implements
 from eoxserver.services.ows.wcs.interfaces import (
     PackageWriterInterface
 )
 
-class ZipPackageWriter(Component):
+
+gzip_mimes = ("application/gzip", "application/x-gzip")
+bzip_mimes = ("application/bzip", "application/x-bzip")
+mime_list = ("application/tar", "application/x-tar") + gzip_mimes + bzip_mimes
+
+
+class TarPackageWriter(Component):
+    """ Package writer for compressed and uncompressed tar files.
+    """
+
     implements(PackageWriterInterface)
 
     def supports(self, format, params):
-        return format.lower() == "application/zip"
+        return format.lower() in mime_list
 
     def create_package(self, filename, format, params):
-        compression = zipfile.ZIP_STORED
-        if params.get("compression", "").upper() == "DEFLATED":
-            print compression
-            compression = zipfile.ZIP_DEFLATED
-        return zipfile.ZipFile(filename, "a", compression)
+        if format in gzip_mimes:
+            mode = "w:gz"
+        elif format in bzip_mimes:
+            mode = "w:bz2"
+        else:
+            mode = "w"
+
+        return tarfile.open(filename, mode)
 
     def cleanup(self, package):
         package.close()
 
     def add_to_package(self, package, file_obj, size, location):
-        package.writestr(location, file_obj.read())
+        info = tarfile.TarInfo(location)
+        info.size = size
+        package.addfile(info, file_obj)
 
     def get_mime_type(self, package, format, params):
-        return "application/zip"
+        return "application/x-compressed-tar"
 
-    def get_file_extension(self, package, format, params):
-        return ".zip"
+    def get_file_extension(self, package, format, params):#
+        if format in gzip_mimes:
+            return ".tar.gz"
+
+        elif format in bzip_mimes:
+            return ".tar.bz2"
+
+        return ".tar"

@@ -66,7 +66,7 @@ class PackageWriterInterface(object):
             format.
         """
 
-    def create_package(self, filename, params):
+    def create_package(self, filename, format, params):
         """ Create a package, which the encoder can later add items to with the 
             `cleanup` and `add_to_package` method.
         """
@@ -75,7 +75,17 @@ class PackageWriterInterface(object):
         """ Perform any necessary cleanups, like closing files, etc.
         """
 
-    def add_to_package(self, package, file_obj, location):
+    def add_to_package(self, package, file_obj, size, location):
         """ Add the file object to the package, that is returned by the 
             `create_package` method.
+        """
+
+    def get_mime_type(self, package, format, params):
+        """ Retrieve the output mime type for the given package and/or format
+            specifier.
+        """
+
+    def get_file_extension(self, package, format, params):
+        """ Retrieve the file extension for the given package and format 
+            specifier.
         """

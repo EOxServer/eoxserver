@@ -219,37 +219,43 @@ class WCS20GetEOCoverageSetHandler(Component):
                 coverages.append(eo_object.cast())
 
 
-        fd, pkg_filename = tempfile.mkstemp()
+        fd, pkg_filename = tempfile.mkstemp(suffix=".tar.gz")
         tmp = os.fdopen(fd)
         tmp.close()
-        package = writer.create_package(pkg_filename, format_params)
+        package = writer.create_package(pkg_filename, format, format_params)
 
         for coverage in coverages:
             renderer = self.get_renderer(coverage)
-            content, content_type = renderer.render(coverage, (
+            result_set, _ = renderer.render(coverage, (
                 ("service", "WCS"),
                 ("request", "GetCoverage"),
                 ("version", "2.0.1"),
                 ("coverageid", coverage.identifier)
             ))
-            # TODO: if multipart
-            if not content_type.startswith("multipart"):
-                items = (
-                    (coverage.identifier, content),
-                )
-            else:
-                # TODO: split into parts
-                pass
-
-            for filename, content in items:
+            all_filenames = set()
+            for result_item in result_set:
+                if not result_item.filename:
+                    ext = mimetypes.guess_extension(result_item.content_type)
+                    filename = coverage.identifier + ext
+                else:
+                    filename = result_item.filename
+                if filename in all_filenames:
+                    continue # TODO: create new filename
+                all_filenames.add(filename)
                 location = "%s/%s" % (coverage.identifier, filename)
-                writer.add_to_package(package, StringIO(content), location)
+                writer.add_to_package(
+                    package, result_item.data_file, result_item.size, location
+                )
 
+        mime_type = writer.get_mime_type(package, format, format_params)
+        ext = writer.get_file_extension(package, format, format_params)
         writer.cleanup(package)
 
         response = StreamingHttpResponse(
-            tempfile_iterator(pkg_filename), format
+            tempfile_iterator(pkg_filename), mime_type
         )
+        response["Content-Disposition"] = 'inline; filename="ows%s"' % ext
+        response["Content-Length"] = str(os.path.getsize(pkg_filename))
 
         return response
 

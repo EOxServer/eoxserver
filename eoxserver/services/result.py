@@ -1,6 +1,33 @@
-
+#-------------------------------------------------------------------------------
+# $Id$
+#
+# Project: EOxServer <http://eoxserver.org>
+# Authors: Fabian Schindler <fabian.schindler@eox.at>
+#
+#-------------------------------------------------------------------------------
+# Copyright (C) 2013 EOX IT Services GmbH
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+# copies of the Software, and to permit persons to whom the Software is 
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies of this Software or works derived from this Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#-------------------------------------------------------------------------------
 
 import os
+import os.path
 from cStringIO import StringIO
 from uuid import uuid4
 
@@ -31,6 +58,13 @@ class ResultItem(object):
         """
         return StringIO("")
 
+    def __len__(self):
+        """ Unified access to size of data.
+        """
+        return 0
+    
+    size = property(lambda self: len(self))
+
     def chunked(self, chunksize):
         """ Returns a chunk of the data, which has at most ``chunksize`` bytes.
         """
@@ -40,18 +74,6 @@ class ResultItem(object):
         """ Cleanup any associated files, allocated memory, etc.
         """
         pass
-
-
-    @property
-    def get_headers(self):
-        headers = SortedDict([("Content-Type", self.content_type)])
-
-        if self.filename:
-            headers["Content-Disposition"] = 'inline; filename="%s"' % self.filename
-        if self.identifier:
-            headers["Content-Id"] = self.identifier
-        
-        return headers
 
 
 class ResultFile(ResultItem):
@@ -69,6 +91,9 @@ class ResultFile(ResultItem):
     @property
     def data_file(self):
         return fp
+
+    def __len__(self):
+        return os.path.getsize(self.fp.filename)
 
     def chunked(self, chunksize):
         while True:
@@ -98,6 +123,9 @@ class ResultBuffer(ResultItem):
     @property
     def data_file(self):
         return StringIO(self.buf)
+
+    def __len__(self):
+        return len(self.buf)
 
     def chunked(self, chunksize):
         if chunksize < 0:
@@ -142,11 +170,14 @@ def to_http_response(result_set, response_type=HttpResponse, boundary=None):
         class to be used. It must be capable to work with iterators.
     """
     
+    # if more than one item is contained in the result set, the content type is
+    # multipart
     if len(result_set) > 1:
         boundary = boundary or uuid4().hex
         content_type = "multipart/related; boundary=%s" % boundary
         headers = ()
 
+    # otherwise, the content type is the content type of the first included item
     else:
         boundary = None
         content_type = result_set[0].content_type or "application/octet-stream"
@@ -188,16 +219,29 @@ def to_http_response(result_set, response_type=HttpResponse, boundary=None):
 
 
 def parse_headers(headers):
+    """ Convenience function to read the "Content-Type", "Content-Disposition" 
+        and "Content-Id" headers.
+    """
     content_type = headers.get("Content-Type", "application/octet-stream")
     _, params = mp.parse_parametrized_option(
         headers.get("Content-Disposition", "")
     )
     filename = params.get("filename")
+    if filename:
+        if filename.startswith('"'):
+            filename = filename[1:]
+        if filename.endswith('"'):
+            filename = filename[:-1]
+
     identifier = headers.get("Content-Id")
     return content_type, filename, identifier
 
 
 def result_set_from_raw_data(data):
+    """ Create a result set from raw HTTP data. This can either be a single
+        or a multipart string. It returns a list containing objects of the 
+        `ResultBuffer` type that reference substrings of the given data.
+    """
     return [
         ResultBuffer(data, *parse_headers(headers))
         for headers, data in mp.iterate(data)
