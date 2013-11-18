@@ -32,10 +32,11 @@
 
 
 import os
+from uuid import uuid4
 
 from gdal import (
     VSIFOpenL, VSIFCloseL, VSIFReadL, VSIFWriteL, VSIFSeekL, VSIFTellL,
-    VSIFTruncateL, Unlink, Rename
+    VSIFTruncateL, Unlink, Rename, FileFromMemBuffer
 )
 
 
@@ -53,7 +54,12 @@ class VSIFile(object):
 
     def __init__(self, filename, mode="r"):
         self._handle = VSIFOpenL(filename, mode)
-        self.filename = filename
+        self._filename = filename
+
+
+    @property
+    def filename(self):
+        return self._filename
 
 
     def read(self, size=None):
@@ -84,6 +90,7 @@ class VSIFile(object):
     def closed(self):
         return (self._handle is None)
 
+
     @property
     def size(self):
         stat = VSIStatL(self.filename)
@@ -95,3 +102,23 @@ class VSIFile(object):
 
     def __exit__(self, etype=None, evalue=None, tb=None):
         self.close()
+
+    def __del__(self):
+        self.close()
+
+
+class TemporaryVSIFile(VSIFile):
+    """ Subclass of VSIFile, that automatically deletes the physical file upon
+        deletion.
+    """
+
+    @classmethod
+    def from_buffer(cls, buf, mode="w", filename=None):
+        if not filename:
+            filename = "/vsimem/%s" % uuid4().hex()
+        gdal.FileFromBuffer(filename, buf)
+        return cls(mode)
+
+    def close(self):
+        super(TemporaryVSIFile, self).close()
+        remove(self.filename)
