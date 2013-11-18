@@ -45,7 +45,6 @@ class MapServerWMSCapabilitiesRenderer(Component):
     """
     implements(WMSCapabilitiesRendererInterface)
 
-
     layer_factories = ExtensionPoint(LayerFactoryInterface)
 
     @property
