@@ -32,7 +32,11 @@ esac
 
 # Install EOxServer
 echo "**> installing eoxserver..."
-python setup.py develop
+if [ $OS == "Ubuntu" ]; then
+    python setup.py develop --disable-extended-reftools
+else
+    python setup.py develop
+fi
 
 # Create the EOxServer instance
 echo "**> creating autotest instance..."

@@ -27,7 +27,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-import os
+import os, sys
 
 # Hack to remove setuptools "feature" which resulted in
 # ignoring MANIFEST.in when code is in an svn repository.
@@ -105,6 +105,29 @@ for dirpath, dirnames, filenames in os.walk('eoxserver'):
     elif filenames:
         data_files.append([dirpath, [os.path.join(dirpath, f) for f in filenames]])
 
+ext_modules = [
+    Extension(
+        'eoxserver.processing.gdal._reftools',
+        sources=['eoxserver/processing/gdal/reftools.c'],
+        libraries=[gdal_lib],
+        library_dirs=[gdal_libdir],
+        include_dirs=[gdal_incdir],
+    ),
+    Extension(
+        'eoxserver.processing.gdal._reftools_ext',
+        sources=['eoxserver/processing/gdal/reftools.c'],
+        libraries=[gdal_lib],
+        library_dirs=[gdal_libdir],
+        include_dirs=[gdal_incdir],
+        define_macros = [('USE_GDAL_EOX_EXTENSIONS', '1')],
+    )
+]
+
+# Check if we should build the extended reftools relying on gdal-eox
+if "--disable-extended-reftools" in sys.argv:
+    ext_modules.pop()
+    sys.argv.remove("--disable-extended-reftools")
+
 setup(
     name='EOxServer',
     version=version.replace(' ', '-'),
@@ -117,25 +140,7 @@ setup(
         "tools/eoxserver-validate_xml.py",
         "tools/eoxserver-preprocess.py"
     ],
-    
-    ext_modules=[
-        Extension(
-            'eoxserver.processing.gdal._reftools',
-            sources=['eoxserver/processing/gdal/reftools.c'],
-            libraries=[gdal_lib],
-            library_dirs=[gdal_libdir],
-            include_dirs=[gdal_incdir],
-        ),
-        Extension(
-            'eoxserver.processing.gdal._reftools_ext',
-            sources=['eoxserver/processing/gdal/reftools.c'],
-            libraries=[gdal_lib],
-            library_dirs=[gdal_libdir],
-            include_dirs=[gdal_incdir],
-            define_macros = [('USE_GDAL_EOX_EXTENSIONS', '1')],
-        ),
-    ],
-    
+    ext_modules=ext_modules,
     install_requires=[
         'django>=1.4',
     ],
