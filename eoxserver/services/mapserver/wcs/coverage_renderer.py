@@ -32,18 +32,23 @@ from urllib import unquote
 
 from eoxserver.core import implements, ExtensionPoint
 from eoxserver.contrib import mapserver as ms
+from eoxserver.resources.coverages import models
+from eoxserver.resources.coverages.formats import getFormatRegistry
 from eoxserver.services.ows.wcs.interfaces import WCSCoverageRendererInterface
 from eoxserver.services.ows.wcs.v20.encoders import WCS20EOXMLEncoder
 from eoxserver.services.mapserver.interfaces import (
     ConnectorInterface, LayerFactoryInterface
 )
 from eoxserver.services.mapserver.wcs.base_renderer import BaseRenderer
-from eoxserver.resources.coverages import models
-from eoxserver.resources.coverages.formats import getFormatRegistry
+from eoxserver.services.ows.version import Version
 from eoxserver.services.result import result_set_from_raw_data, get_content_type
 
 
 class RectifiedCoverageMapServerRenderer(BaseRenderer):
+    """ A coverage renderer for rectified coverages. Uses mapserver to process 
+        the request.
+    """
+
     implements(WCSCoverageRendererInterface)
 
     handles = (models.RectifiedDataset, models.RectifiedStitchedMosaic)
@@ -51,16 +56,17 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
     connectors = ExtensionPoint(ConnectorInterface)
     layer_factories = ExtensionPoint(LayerFactoryInterface)
 
+    versions = (Version(2, 0), Version(1, 1), Version(1, 0))
 
-    def supports(self, coverage):
-        return issubclass(coverage.real_type, 
+    def supports(self, params):
+        return issubclass(params.coverage.real_type, 
             (models.RectifiedDataset, models.RectifiedStitchedMosaic)
-        )
+        ) and params.version in self.versions
 
 
-    def render(self, coverage, request_values):
+    def render(self, params):
         # get coverage related stuff
-        
+        coverage = params.coverage
         data_items = self.data_items_for_coverage(coverage)
 
         range_type = coverage.range_type
@@ -71,7 +77,7 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
 
         # configure outputformat
         native_format = self.get_native_format(coverage, data_items)
-        format = self.find_param(request_values, "format", native_format)
+        format = params.format or native_format
 
         if format is None:
             raise Exception("format could not be determined")
@@ -98,7 +104,7 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         try:
             connector.connect(coverage, data_items, layer)
             # create request object and dispatch it agains the map
-            request = ms.create_request(request_values)
+            request = ms.create_request(params)
             raw_result = ms.dispatch(map_, request)
 
         finally:
