@@ -29,27 +29,25 @@
 
 from eoxserver.core import Component, implements
 from eoxserver.core.decoders import xml, kvp, typelist, upper
-from eoxserver.resources.coverages import models
 from eoxserver.services.ows.interfaces import (
     ServiceHandlerInterface, GetServiceHandlerInterface, 
     PostServiceHandlerInterface
 )
-from eoxserver.services.ows.wcs.v20.util import nsmap
-from eoxserver.services.ows.wcs.v20.encoders import (
-    WCS20CoverageDescriptionXMLEncoder
+from eoxserver.services.ows.wcs.basehandlers import (
+    WCSDescribeCoverageHandlerBase
 )
-from eoxserver.services.ows.wcs.v20.encoders import WCS20EOXMLEncoder
+from eoxserver.services.ows.wcs.v20.parameters import (
+    WCS20CoverageDescriptionRenderParams
+)
+from eoxserver.services.ows.wcs.v20.util import nsmap
 
 
-class WCS20DescribeCoverageHandler(Component):
+class WCS20DescribeCoverageHandler(WCSDescribeCoverageHandlerBase, Component):
     implements(ServiceHandlerInterface)
     implements(GetServiceHandlerInterface)
     implements(PostServiceHandlerInterface)
 
-    service = "WCS"
     versions = ("2.0.0", "2.0.1")
-    request = "DescribeCoverage"
-
 
     def get_decoder(self, request):
         if request.method == "GET":
@@ -57,33 +55,8 @@ class WCS20DescribeCoverageHandler(Component):
         elif request.method == "POST":
             return WCS20DescribeCoverageXMLDecoder(request.body)
 
-
-    def handle(self, request):
-        decoder = self.get_decoder(request)
-        coverage_ids = decoder.coverage_ids
-
-        if len(coverage_ids) == 0:
-            raise
-
-        coverages = []
-        for coverage_id in coverage_ids:
-            try:
-                coverages.append(
-                    models.Coverage.objects.get(identifier__exact=coverage_id)
-                )
-            except models.Coverage.DoesNotExist:
-                raise NoSuchCoverage(coveage_id)
-
-        # TODO: remove this at some point and use a renderer plugin
-
-        encoder = WCS20EOXMLEncoder()
-        return (
-            encoder.serialize(
-                encoder.encode_coverage_descriptions(coverages),
-                pretty_print=True
-            ),
-            encoder.content_type
-        )
+    def get_params(self, coverages, decoder):
+        return WCS20CoverageDescriptionRenderParams(coverages)
 
 
 class WCS20DescribeCoverageKVPDecoder(kvp.Decoder):

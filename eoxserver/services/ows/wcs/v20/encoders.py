@@ -244,11 +244,10 @@ class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
             caps.append(WCS("Contents", *contents))
 
         root = WCS("Capabilities", *caps, version="2.0.1")
-        return etree.tostring(root, pretty_print=True, encoding='iso-8859-1'), "text/xml"
+        return root
 
     def get_schema_locations(self):
         return nsmap.schema_locations
-
 
 
 class GML32Encoder(object):

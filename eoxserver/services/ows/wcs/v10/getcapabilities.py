@@ -27,38 +27,26 @@
 #-------------------------------------------------------------------------------
 
 
-from django.contrib.contenttypes.models import ContentType
-
-from eoxserver.core import Component, implements, UniqueExtensionPoint
-
-from eoxserver.core.config import get_eoxserver_config
+from eoxserver.core import Component, implements
 from eoxserver.core.decoders import xml, kvp, typelist, lower
-from eoxserver.resources.coverages import models
-from eoxserver.services.ows.component import ServiceComponent, env
 from eoxserver.services.ows.interfaces import (
     ServiceHandlerInterface, GetServiceHandlerInterface, 
     PostServiceHandlerInterface, VersionNegotiationInterface
 )
-from eoxserver.services.ows.common.config import CapabilitiesConfigReader
-from eoxserver.services.ows.wcs.interfaces import (
-    WCSCapabilitiesRendererInterface
+from eoxserver.services.ows.wcs.basehandlers import (
+    WCSGetCapabilitiesHandlerBase
 )
-from eoxserver.services.ows.wcs.v11.util import nsmap
-from eoxserver.services.result import to_http_response
+from eoxserver.services.ows.wcs.parameters import WCSCapabilitiesRenderParams
+from eoxserver.services.ows.wcs.v10.util import nsmap
 
 
-class WCS10GetCapabilitiesHandler(Component):
+class WCS10GetCapabilitiesHandler(WCSGetCapabilitiesHandlerBase, Component):
     implements(ServiceHandlerInterface)
     implements(GetServiceHandlerInterface)
     implements(PostServiceHandlerInterface)
     implements(VersionNegotiationInterface)
 
-    service = "WCS"
     versions = ("1.0.0",)
-    request = "GetCapabilities"
-
-    renderer = UniqueExtensionPoint(WCSCapabilitiesRendererInterface)
-
 
     def get_decoder(self, request):
         if request.method == "GET":
@@ -66,16 +54,11 @@ class WCS10GetCapabilitiesHandler(Component):
         elif request.method == "POST":
             return WCS10GetCapabilitiesXMLDecoder(request.body)
 
-
-    def handle(self, request):
-        decoder = self.get_decoder(request)
-        if "text/xml" not in decoder.acceptformats:
-            raise InvalidRequestException()
-
-        coverages_qs = models.Coverage.objects.order_by("identifier")
-
-        result, _ = self.renderer.render(coverages_qs, request.GET.items())
-        return to_http_response(result)
+    def get_params(self, coverages, decoder):
+        return WCSCapabilitiesRenderParams(
+            coverages, "1.0.0", decoder.sections, decoder.acceptlanguages, 
+            decoder.acceptformats, decoder.updatesequence
+        )
 
 
 class WCS10GetCapabilitiesKVPDecoder(kvp.Decoder):

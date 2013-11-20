@@ -27,36 +27,26 @@
 #-------------------------------------------------------------------------------
 
 
-from itertools import chain
-
-from eoxserver.core import Component, implements, ExtensionPoint
-from eoxserver.core.decoders import xml, kvp, typelist, upper, enum
-from eoxserver.resources.coverages import models
+from eoxserver.core import Component, implements
+from eoxserver.core.decoders import xml, kvp, typelist
 from eoxserver.services.ows.interfaces import (
     ServiceHandlerInterface, GetServiceHandlerInterface, 
     PostServiceHandlerInterface
 )
-from eoxserver.services.ows.wcs.interfaces import WCSCoverageRendererInterface
-from eoxserver.services.exceptions import (
-    NoSuchCoverageException, OperationNotSupportedException
-)
+from eoxserver.services.ows.wcs.basehandlers import WCSGetCoverageHandlerBase
 from eoxserver.services.ows.wcs.v20.util import (
-    nsmap, SectionsMixIn, parse_subset_kvp, parse_subset_xml,
-    parse_size_kvp, parse_resolution_kvp, Slice, Trim
+    nsmap, parse_subset_kvp, parse_subset_xml, parse_size_kvp, 
+    parse_resolution_kvp, Slice, Trim
 )
-from eoxserver.services.result import to_http_response
+from eoxserver.services.ows.wcs.v20.parameters import WCS20CoverageRenderParams
 
 
-class WCS20GetCoverageHandler(Component):
+class WCS20GetCoverageHandler(WCSGetCoverageHandlerBase, Component):
     implements(ServiceHandlerInterface)
     implements(GetServiceHandlerInterface)
     implements(PostServiceHandlerInterface)
 
-    renderers = ExtensionPoint(WCSCoverageRendererInterface)
-
-    service = "WCS" 
     versions = ("2.0.0", "2.0.1")
-    request = "GetCoverage"
 
     def get_decoder(self, request):
         if request.method == "GET":
@@ -64,94 +54,12 @@ class WCS20GetCoverageHandler(Component):
         elif request.method == "POST":
             return WCS20GetCoverageXMLDecoder(request.body)
 
-
-    def get_renderer(self, coverage):
-        for renderer in self.renderers:
-            if renderer.supports(coverage):
-                return renderer
-
-        raise OperationNotSupportedException(
-            "No renderer found for coverage type '%s'." 
-            % coverage.real_type.__name__
+    def get_params(self, coverage, decoder):
+        return WCS20CoverageRenderParams(
+            coverage, decoder.subsets, decoder.sizes, decoder.resolutions,
+            decider.rangesubset, decoder.format, decoder.outputcrs, 
+            decoder.mediatype, decoder.interpolation, decoder.mask
         )
-
-
-    def handle(self, request):
-        decoder = self.get_decoder(request)
-
-        #get parameters
-        coverage_id = decoder.coverage_id
-        
-        try:
-            coverage = models.Coverage.objects.get(identifier=coverage_id)
-        except models.Coverage.DoesNotExist:
-            raise NoSuchCoverageException((coverage_id,))
-
-        renderer = self.get_renderer(coverage)
-
-        # translate arguments
-
-        request_values = [
-            ("service", "wcs"),
-            ("version", "2.0.1"),
-            ("request", "GetCoverage"),
-            ("coverageid", decoder.coverage_id)
-        ] + map(subset_to_kvp, decoder.subsets) \
-          + map(size_to_kvp, decoder.sizes) \
-          + map(resolution_to_kvp, decoder.resolutions)
-        
-        if decoder.rangesubset:
-            request_values.append(
-                ("rangesubset", ",".join(decoder.rangesubset))
-            )
-
-        if decoder.format:
-            request_values.append(
-                ("format", decoder.format)
-            )
-
-        if decoder.outputcrs:
-            request_values.append(
-                ("outputcrs", decoder.outputcrs)
-            )
-
-        if decoder.mediatype:
-            request_values.append(
-                ("mediatype", decoder.mediatype)
-            )
-
-        if decoder.interpolation:
-            request_values.append(
-                ("interpolation", decoder.interpolation)
-            )
-
-        result_set, _ = renderer.render(coverage, request_values)
-        return to_http_response(result_set)
-
-
-def subset_to_kvp(subset):
-    temporal_format = lambda v: ('"%s"' % isoformat(v) if v else "*")
-    spatial_format = lambda v: (str(v) if v is not None else "*")
-
-    frmt = temporal_format if subset.is_temporal else spatial_format
-
-    if isinstance(subset, Slice):
-        value = frmt(subset.value)
-    else:
-        value = "%s,%s" % (frmt(subset.low), frmt(subset.high))
-
-    if subset.crs:
-        return "subset", "%s,%s(%s)" % (subset.axis, subset.crs, value)
-    else:
-        return "subset", "%s(%s)" % (subset.axis, value)
-
-
-def size_to_kvp(size):
-    return "size", "%s(%d)" % (size.axis, size.value)
-
-
-def resolution_to_kvp(resolution):
-    return "resolution", "%s(%f)" % (resolution.axis, resolution.value)
 
 
 class WCS20GetCoverageKVPDecoder(kvp.Decoder):
@@ -164,6 +72,8 @@ class WCS20GetCoverageKVPDecoder(kvp.Decoder):
     outputcrs   = kvp.Parameter("outputcrs", num="?")
     mediatype   = kvp.Parameter("mediatype", num="?")
     interpolation = kvp.Parameter("interpolation", num="?")
+
+    mask = None
 
 
 class WCS20GetCoverageXMLDecoder(xml.Decoder):
@@ -181,4 +91,7 @@ class WCS20GetCoverageXMLDecoder(xml.Decoder):
     outputcrs   = xml.Parameter("TODO", num="?", locator="outputcrs")
     mediatype   = xml.Parameter("wcs:mediaType/text()", num="?", locator="mediatype")
     
+    mask = None
+
     namespaces = nsmap
+

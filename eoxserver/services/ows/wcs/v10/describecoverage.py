@@ -27,33 +27,26 @@
 #-------------------------------------------------------------------------------
 
 
-from itertools import chain
-
-from eoxserver.core import Component, implements, UniqueExtensionPoint
-from eoxserver.core.decoders import xml, kvp, typelist, upper, enum
-from eoxserver.resources.coverages import models
+from eoxserver.core import Component, implements
+from eoxserver.core.decoders import xml, kvp, typelist
 from eoxserver.services.ows.interfaces import (
     ServiceHandlerInterface, GetServiceHandlerInterface, 
     PostServiceHandlerInterface
 )
-from eoxserver.services.ows.wcs.interfaces import (
-    WCSCoverageDescriptionRendererInterface
+from eoxserver.services.ows.wcs.basehandlers import (
+    WCSDescribeCoverageHandlerBase
 )
-from eoxserver.services.exceptions import (
-    NoSuchCoverageException, OperationNotSupportedException
+from eoxserver.services.ows.wcs.v10.parameters import (
+    WCS10CoverageDescriptionRenderParams
 )
-from eoxserver.services.result import to_http_response
 
-class WCS10DescribeCoverageHandler(Component):
+
+class WCS10DescribeCoverageHandler(WCSDescribeCoverageHandlerBase, Component):
     implements(ServiceHandlerInterface)
     implements(GetServiceHandlerInterface)
     #implements(PostServiceHandlerInterface)
 
-    renderer = UniqueExtensionPoint(WCSCoverageDescriptionRendererInterface)
-
-    service = "WCS" 
     versions = ("1.0.0",)
-    request = "DescribeCoverage"
 
     def get_decoder(self, request):
         if request.method == "GET":
@@ -64,35 +57,9 @@ class WCS10DescribeCoverageHandler(Component):
             pass
 
 
-    def get_renderer(self, coverage_type):
-        for renderer in self.renderers:
-            if issubclass(coverage_type, renderer.handles):
-                return renderer
-
-        raise OperationNotSupportedException(
-            "No renderer found for coverage type '%s'." % coverage_type.__name__
-        )
-
-
-    def handle(self, request):
-        decoder = self.get_decoder(request)
-        
-        coverage_ids = set(decoder.coverages)
-        coverages = models.Coverage.objects.filter(identifier__in=coverage_ids)
-
-        # check correct number
-        if len(coverages) < len(coverage_ids):
-            available_ids = set([coverage.identifier for coverage in coverages])
-            raise NoSuchCoverageException(coverage_ids - available_ids)
-
-        result, _ = self.renderer.render(coverages, request.GET.items())
-        return to_http_response(result)
-
-
-def parse_bbox_kvp(string):
-    return map(float, string.split(","))
+    def get_params(self, coverages, decoder):
+        return WCS10CoverageDescriptionRenderParams(coverages)
 
 
 class WCS10DescribeCoverageKVPDecoder(kvp.Decoder):
-    coverages   = kvp.Parameter("coverage", type=typelist(separator=","), num=1)
-
+    coverage_ids = kvp.Parameter("coverage", type=typelist(str, ","), num=1)

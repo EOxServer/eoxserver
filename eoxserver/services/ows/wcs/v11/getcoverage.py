@@ -27,33 +27,23 @@
 #-------------------------------------------------------------------------------
 
 
-from itertools import chain
-
-from eoxserver.core import Component, implements, ExtensionPoint
-from eoxserver.core.decoders import xml, kvp, typelist, upper, enum
-from eoxserver.resources.coverages import models
+from eoxserver.core import Component, implements
+from eoxserver.core.decoders import xml, kvp, typelist
 from eoxserver.services.ows.interfaces import (
     ServiceHandlerInterface, GetServiceHandlerInterface, 
     PostServiceHandlerInterface
 )
-from eoxserver.services.ows.wcs.interfaces import WCSCoverageRendererInterface
-from eoxserver.services.exceptions import (
-    NoSuchCoverageException, OperationNotSupportedException
-)
+from eoxserver.services.ows.wcs.basehandlers import WCSGetCoverageHandlerBase
 from eoxserver.services.ows.wcs.v11.util import nsmap
-from eoxserver.services.result import to_http_response
+from eoxserver.services.ows.wcs.v11.parameters import WCS11CoverageRenderParams
 
 
-class WCS11GetCoverageHandler(Component):
+class WCS11GetCoverageHandler(WCSGetCoverageHandlerBase, Component):
     implements(ServiceHandlerInterface)
     implements(GetServiceHandlerInterface)
     implements(PostServiceHandlerInterface)
 
-    renderers = ExtensionPoint(WCSCoverageRendererInterface)
-
-    service = "WCS" 
     versions = ("1.1.0", "1.1.1", "1.1.2")
-    request = "GetCoverage"
 
     def get_decoder(self, request):
         if request.method == "GET":
@@ -62,66 +52,12 @@ class WCS11GetCoverageHandler(Component):
             return WCS11GetCoverageXMLDecoder(request.body)
 
 
-    def get_renderer(self, coverage):
-        for renderer in self.renderers:
-            if renderer.supports(coverage):
-                return renderer
-
-        raise OperationNotSupportedException(
-            "No renderer found for coverage type '%s'." % 
-            coverage.real_type.name.__name__
+    def get_params(self, coverage, decoder):
+        return WCS11CoverageRenderParams(
+            coverage, decoder.boundingbox, decoder.format, decoder.gridcs, 
+            decoder.gridbasecrs, decoder.gridtype, decoder.gridorigin, 
+            decoder.gridoffsets
         )
-
-
-    def handle(self, request):
-        decoder = self.get_decoder(request)
-
-        #get parameters
-        coverage_id = decoder.identifier
-        
-        try:
-            coverage = models.Coverage.objects.get(identifier=coverage_id)
-        except models.Coverage.DoesNotExist:
-            raise NoSuchCoverageException((coverage_id,))
-
-        renderer = self.get_renderer(coverage)
-
-        request_values = [
-            ("service", "wcs"),
-            ("version", "1.1.2"),
-            ("request", "GetCoverage"),
-            ("identifier", coverage_id),
-            ("boundingbox", ",".join(map(str, decoder.boundingbox))),
-            ("format", decoder.format)
-        ]
-
-        gridcs = decoder.gridcs
-        gridbasecrs = decoder.gridbasecrs
-        gridoffsets = decoder.gridoffsets
-        gridtype = decoder.gridtype
-        gridorigin = decoder.gridorigin
-
-        if gridcs:
-            request_values.append(("gridcs", decoder.gridcs))
-        
-        if gridbasecrs:
-            request_values.append(("gridbasecrs", decoder.gridbasecrs))
-        
-        if gridoffsets:
-            request_values.append(
-                ("gridoffsets", ",".join(map(str, decoder.gridoffsets)))
-            )
-        
-        if gridtype is not None:
-            request_values.append(("gridtype", gridtype))
-        
-        if gridorigin is not None:
-            request_values.append(
-                ("gridorigin", ",".join(map(str, decoder.gridorigin)))
-            )
-        
-        result, _ = renderer.render(coverage, request_values)
-        return to_http_response(result)
 
 
 def parse_bbox_kvp(string):
@@ -163,7 +99,7 @@ def parse_offsets_xml(string):
 
 
 class WCS11GetCoverageKVPDecoder(kvp.Decoder):
-    identifier = kvp.Parameter(num=1)
+    coverage_id = kvp.Parameter("identifier", num=1)
     boundingbox = kvp.Parameter(type=parse_bbox_kvp, num=1)
     format = kvp.Parameter(num=1)
     gridcs = kvp.Parameter(num="?")
@@ -174,7 +110,7 @@ class WCS11GetCoverageKVPDecoder(kvp.Decoder):
 
 
 class WCS11GetCoverageXMLDecoder(xml.Decoder):
-    identifier = xml.Parameter("ows:Identifier/text()", num=1)
+    coverage_id = xml.Parameter("ows:Identifier/text()", num=1)
     boundingbox = xml.Parameter("wcs:DomainSubset/ows:BoundingBox", type=parse_bbox_xml, num=1)
     format = xml.Parameter("wcs:Output/@format", num=1)
     gridcs = xml.Parameter("wcs:Output/wcs:GridCRS/wcs:GridCS/text()", num="?")
@@ -182,7 +118,6 @@ class WCS11GetCoverageXMLDecoder(xml.Decoder):
     gridtype = xml.Parameter("wcs:Output/wcs:GridCRS/wcs:GridType/text()", num="?")
     gridorigin = xml.Parameter("wcs:Output/wcs:GridCRS/wcs:GridOrigin/text()", type=parse_origin_xml, num="?")
     gridoffsets = xml.Parameter("wcs:Output/wcs:GridCRS/wcs:GridOffsets/text()", type=parse_offsets_xml, num="?")
-
 
     # TODO
     #interpolation = xml.Parameter("wcs:RangeSubset/wcs:InterpolationType/text()", num="?")

@@ -27,32 +27,29 @@
 #-------------------------------------------------------------------------------
 
 
-from django.contrib.contenttypes.models import ContentType
-
 from eoxserver.core import Component, implements
-
-from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.decoders import xml, kvp, typelist, lower
 from eoxserver.resources.coverages import models
-from eoxserver.services.ows.component import ServiceComponent, env
 from eoxserver.services.ows.interfaces import (
     ServiceHandlerInterface, GetServiceHandlerInterface, 
     PostServiceHandlerInterface, VersionNegotiationInterface
 )
-from eoxserver.services.ows.common.config import CapabilitiesConfigReader
+from eoxserver.services.ows.wcs.basehandlers import (
+    WCSGetCapabilitiesHandlerBase
+)
 from eoxserver.services.ows.wcs.v20.util import nsmap, SectionsMixIn
-from eoxserver.services.ows.wcs.v20.encoders import WCS20CapabilitiesXMLEncoder
+from eoxserver.services.ows.wcs.v20.parameters import (
+    WCS20CapabilitiesRenderParams
+)
 
 
-class WCS20GetCapabilitiesHandler(Component):
+class WCS20GetCapabilitiesHandler(WCSGetCapabilitiesHandlerBase, Component):
     implements(ServiceHandlerInterface)
     implements(GetServiceHandlerInterface)
     implements(PostServiceHandlerInterface)
     implements(VersionNegotiationInterface)
 
-    service = "WCS"
     versions = ("2.0.0", "2.0.1")
-    request = "GetCapabilities"
 
 
     def get_decoder(self, request):
@@ -62,24 +59,25 @@ class WCS20GetCapabilitiesHandler(Component):
             return WCS20GetCapabilitiesXMLDecoder(request.body)
 
 
-    def handle(self, request):
-        decoder = self.get_decoder(request)
-        if "text/xml" not in decoder.acceptformats:
-            raise InvalidRequestException()
+    def lookup_coverages(self, decoder):
+        if "contents" in decoder.sections or "all" in decoder.sections:
+            coverages = models.Coverage.objects.order_by("identifier")
 
-        # TODO: check updatesequence and perform version negotiation
-        coverages_qs = models.Coverage.objects.order_by("identifier")
+            dataset_series = models.DatasetSeries.objects \
+                .order_by("identifier") \
+                .exclude(
+                    footprint__isnull=True, begin_time__isnull=True, 
+                    end_time__isnull=True
+                )
+            return coverages, dataset_series
 
-        dataset_series_qs = models.DatasetSeries.objects \
-            .order_by("identifier") \
-            .exclude(
-                footprint__isnull=True, begin_time__isnull=True, 
-                end_time__isnull=True
-            )
 
-        encoder = WCS20CapabilitiesXMLEncoder()
-        return encoder.encode_capabilities(
-            decoder.sections, coverages_qs, dataset_series_qs
+    def get_params(self, models, decoder):
+        coverages, dataset_series = models
+        return WCS20CapabilitiesRenderParams(
+            coverages, dataset_series, decoder.sections, 
+            decoder.acceptlanguages, decoder.acceptformats, 
+            decoder.updatesequence
         )
 
 
