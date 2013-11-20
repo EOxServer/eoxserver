@@ -30,15 +30,29 @@
 class WCSCapabilitiesRendererInterface(object):
     """ Interface for WCS Capabilities renderers.
     """
-    def render(self, coverages, request_values):
+
+    def render(self, params):
         """ Render the capabilities including information about the given 
             coverages.
         """
 
+    def supports(self, params):
+        """ Returns a boolean value to indicate whether or not the renderer is 
+            able to render the capabilities with the given parameters.
+        """
+
 
 class WCSCoverageDescriptionRendererInterface(object):
-    def render(self, coverages, request_values):
+    """ Interface for coverage description renderers.
+    """
+
+    def render(self, params):
         """ Render the description of the given coverages.
+        """
+
+    def supports(self, params):
+        """ Returns a boolean value to indicate whether or not the renderer is 
+            able to render the coverage and the given WCS version.
         """
 
 
@@ -46,14 +60,13 @@ class WCSCoverageRendererInterface(object):
     """ Interface for coverage renderers.
     """
 
-    def render(self, coverage, request_values):
+    def render(self, params):
         """ Render the coverage with the given parameters.
         """
 
-    @property
-    def handles(self):
-        """ Returns an iterable of all coverage classes that this renderer is 
-            able to render.
+    def supports(self, params):
+        """ Returns a boolean value to indicate whether or not the renderer is 
+            able to render the coverage with the given parameters.
         """
 
 
