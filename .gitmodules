@@ -4,3 +4,6 @@
 [submodule "schemas"]
 	path = schemas
 	url = https://github.com/EOxServer/schemas.git
+[submodule "documentation"]
+	path = documentation
+	url = https://github.com/EOxServer/documentation.git
