@@ -1,4 +1,4 @@
-.. EOxServer documentation master file
+.. EOxServer English Documentation Index file
   #-----------------------------------------------------------------------------
   # $Id$
   #
@@ -28,8 +28,8 @@
   # IN THE SOFTWARE.
   #-----------------------------------------------------------------------------
 
-EOxServer's Documentation
-=========================
+EOxServer's English Documentation
+=================================
 
 EOxServer is a Python application and framework for presenting Earth
 Observation (EO) data and metadata.
@@ -50,12 +50,15 @@ Open Source software including `MapServer <http://mapserver.org>`_,
 `PostGIS <http://postgis.refractions.net/>`_, and 
 `PROJ.4 <http://trac.osgeo.org/proj/>`_.
 
-Here you find the documentation for users and developers of EOxServer.
+Here you find the English documentation for users and developers of EOxServer.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    
-   en/index
+   users/index
+   developers/index
+   rfc/index
+   ../copyright
 
 Indices and tables
 ==================
