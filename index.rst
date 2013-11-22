@@ -59,11 +59,12 @@ Here you find the English documentation for users and developers of EOxServer.
 
 .. toctree::
    :maxdepth: 1
-   
+
    users/index
    developers/index
    rfc/index
-   ../copyright
+   copyright
+   credits
 
 Indices and tables
 ==================
