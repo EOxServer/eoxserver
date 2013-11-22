@@ -59,6 +59,7 @@ Here you find the English documentation for users and developers of EOxServer.
 
 .. toctree::
    :maxdepth: 1
+   :titlesonly:
 
    users/index
    developers/index

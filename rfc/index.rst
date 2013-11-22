@@ -92,16 +92,17 @@ RFCs and their implementation status [1]_.
 The list below provides links to all EOxServer RFCs available:
 
 .. toctree::
+   :hidden:
+
+   policies
+   howto
+
+.. toctree::
    :maxdepth: 1
    :glob:
 
    rfc?
    rfc??
-
-.. toctree::
-   :hidden:
-
-   policies
-   howto
+   rfc???
 
 .. [1]  Note that this list might not be fully up to date although we try hard.
