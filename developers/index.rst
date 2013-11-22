@@ -23,25 +23,25 @@
   # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
   # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
   # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+  # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
   # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
   # IN THE SOFTWARE.
   #-----------------------------------------------------------------------------
 
 .. _EOxServer Developers' Guide:
 
-EOxServer Developers' Guide
-===========================
+Developers' Guide
+=================
 
 The Developers' Guide is intended for people who want to use EOxServer
 as a development framework for geospatial services, or do have to
 extend EOxServer's functionality to implement specific data and metadata
 formats for instance.
 
-Users of the EOxServer software stack please refer to the 
-:ref:`EOxServer Users' Guide`. Users range from administrators installing and 
-configuring the software stack and operators registering the available *EO 
-Data* on the *Provider* side to end users consuming the registered *EO Data* 
+Users of the EOxServer software stack please refer to the
+:ref:`EOxServer Users' Guide`. Users range from administrators installing and
+configuring the software stack and operators registering the available *EO
+Data* on the *Provider* side to end users consuming the registered *EO Data*
 on the *User* side.
 
 .. figure:: ../users/images/Global_Use_Case.png
@@ -49,7 +49,7 @@ on the *User* side.
 
 .. toctree::
    :maxdepth: 3
-   
+
    basics
    core
    data_model
