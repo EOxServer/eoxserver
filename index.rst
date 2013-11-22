@@ -34,8 +34,13 @@ EOxServer's English Documentation
 EOxServer is a Python application and framework for presenting Earth
 Observation (EO) data and metadata.
 
-EOxServer implements the `OGC <http://www.opengeospatial.org/>`_ 
-Implementation Specifications EO-WCS and EO-WMS on top of 
+.. only:: html
+.. raw:: html
+
+  <p><script type="text/javascript" src="http://www.ohloh.net/p/489120/widgets/project_partner_badge.js"></script></p>
+
+EOxServer implements the `OGC <http://www.opengeospatial.org/>`_
+Implementation Specifications EO-WCS and EO-WMS on top of
 `MapServer's <http://mapserver.org>`_
 `WCS <http://www.opengeospatial.org/standards/wcs>`_ and 
 `WMS <http://www.opengeospatial.org/standards/wms>`_ implementations.
