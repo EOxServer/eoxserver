@@ -150,6 +150,7 @@ setup(
     install_requires=[
         'django>=1.4',
     ],
+    zip_safe = False,
     
     # Metadata
     author="EOX IT Services GmbH",
