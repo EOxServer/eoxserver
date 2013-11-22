@@ -94,8 +94,6 @@ def get_gdal_incdirs(default=None):
 
     return incdir
 
-gdal_libdir, gdal_lib = get_gdal_libs()
-gdal_incdir = get_gdal_incdirs()
 packages, data_files = [], []
 for dirpath, dirnames, filenames in os.walk('eoxserver'):
     for i, dirname in enumerate(dirnames):
@@ -105,28 +103,36 @@ for dirpath, dirnames, filenames in os.walk('eoxserver'):
     elif filenames:
         data_files.append([dirpath, [os.path.join(dirpath, f) for f in filenames]])
 
-ext_modules = [
-    Extension(
-        'eoxserver.processing.gdal._reftools',
-        sources=['eoxserver/processing/gdal/reftools.c'],
-        libraries=[gdal_lib],
-        library_dirs=[gdal_libdir],
-        include_dirs=[gdal_incdir],
-    ),
-    Extension(
-        'eoxserver.processing.gdal._reftools_ext',
-        sources=['eoxserver/processing/gdal/reftools.c'],
-        libraries=[gdal_lib],
-        library_dirs=[gdal_libdir],
-        include_dirs=[gdal_incdir],
-        define_macros = [('USE_GDAL_EOX_EXTENSIONS', '1')],
-    )
-]
+# On readthecods.org we don't want the reftools to be build
+on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+if on_rtd:
+    ext_modules = []
+else:
+    gdal_libdir, gdal_lib = get_gdal_libs()
+    gdal_incdir = get_gdal_incdirs()
 
-# Check if we should build the extended reftools relying on gdal-eox
-if "--disable-extended-reftools" in sys.argv:
-    ext_modules.pop()
-    sys.argv.remove("--disable-extended-reftools")
+    ext_modules = [
+        Extension(
+            'eoxserver.processing.gdal._reftools',
+            sources=['eoxserver/processing/gdal/reftools.c'],
+            libraries=[gdal_lib],
+            library_dirs=[gdal_libdir],
+            include_dirs=[gdal_incdir],
+        ),
+        Extension(
+            'eoxserver.processing.gdal._reftools_ext',
+            sources=['eoxserver/processing/gdal/reftools.c'],
+            libraries=[gdal_lib],
+            library_dirs=[gdal_libdir],
+            include_dirs=[gdal_incdir],
+            define_macros = [('USE_GDAL_EOX_EXTENSIONS', '1')],
+        )
+    ]
+
+    # Check if we should build the extended reftools relying on gdal-eox
+    if "--disable-extended-reftools" in sys.argv:
+        ext_modules.pop()
+        sys.argv.remove("--disable-extended-reftools")
 
 setup(
     name='EOxServer',
