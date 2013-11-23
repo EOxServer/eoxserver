@@ -32,6 +32,8 @@ import ctypes as C
 import os.path
 import logging
 
+from functools import wraps 
+
 from eoxserver.contrib import gdal
 from eoxserver.core.util.bbox import BBox
 from eoxserver.core.exceptions import InternalError
@@ -145,12 +147,13 @@ def requires_reftools(func):
         available and raises if not.
     """
     
+    @wraps(func)
     def wrapped(*args, **kwargs):
         if not REFTOOLS_USABLE:
             raise InternalError("Referenceable grid handling is disabled! "
                                 "Did you compile the 'reftools' C module?!")
         return func(*args, **kwargs)
-    
+
     return wrapped
 
 @requires_reftools
