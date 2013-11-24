@@ -1,4 +1,4 @@
-.. EOxServer English Documentation Index file
+.. EOxServer Developers' Guide
   #-----------------------------------------------------------------------------
   # $Id$
   #
@@ -23,46 +23,47 @@
   # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
   # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
   # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+  # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
   # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
   # IN THE SOFTWARE.
   #-----------------------------------------------------------------------------
 
-EOxServer's English Documentation
-=================================
+.. _EOxServer Developers' Guide:
 
-EOxServer is a Python application and framework for presenting Earth
-Observation (EO) data and metadata.
+Developers' Guide
+=================
 
-EOxServer implements the `OGC <http://www.opengeospatial.org/>`_ 
-Implementation Specifications EO-WCS and EO-WMS on top of 
-`MapServer's <http://mapserver.org>`_
-`WCS <http://www.opengeospatial.org/standards/wcs>`_ and 
-`WMS <http://www.opengeospatial.org/standards/wms>`_ implementations.
+The Developers' Guide is intended for people who want to use EOxServer
+as a development framework for geospatial services, or do have to
+extend EOxServer's functionality to implement specific data and metadata
+formats for instance.
 
-EOxServer is released under the 
-:ref:`EOxServer Open License <EOxServer Open License>` a MIT-style 
-license and written in `Python <http://www.python.org/>`_ and entirely based on 
-Open Source software including `MapServer <http://mapserver.org>`_, 
-`Django/GeoDjango <https://www.djangoproject.com>`_, 
-`GDAL <http://www.gdal.org>`_, 
-`SpatiaLite <http://www.gaia-gis.it/spatialite/>`_, or 
-`PostGIS <http://postgis.refractions.net/>`_, and 
-`PROJ.4 <http://trac.osgeo.org/proj/>`_.
+Users of the EOxServer software stack please refer to the
+:ref:`EOxServer Users' Guide`. Users range from administrators installing and
+configuring the software stack and operators registering the available *EO
+Data* on the *Provider* side to end users consuming the registered *EO Data*
+on the *User* side.
 
-Here you find the English documentation for users and developers of EOxServer.
+.. figure:: ../users/images/Global_Use_Case.png
+   :align: center
 
 .. toctree::
-   :maxdepth: 1
-   
-   users/index
-   developers/index
-   rfc/index
-   ../copyright
+   :maxdepth: 3
 
-Indices and tables
-==================
+   basics
+   core
+   data_model
+   migrations
+   plugins
+   services
+   data_formats
+   metadata_formats
+   autotest
+   soap_proxy
+   handling_coverages
+   atp_dev_guide
+   modules
+   testing
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+.. TODO
+   processes

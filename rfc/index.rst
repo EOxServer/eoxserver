@@ -23,13 +23,13 @@
   # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
   # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
   # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+  # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
   # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
   # IN THE SOFTWARE.
   #-----------------------------------------------------------------------------
 
-EOxServer Requests for Comments
-===============================
+Requests for Comments
+=====================
 
 EOxServer Requests for Comments (RFCs) are a means for EOxServer developers to
 share their ideas and feature requests, propose enhancements, and discuss
@@ -43,13 +43,13 @@ See the :doc:`policies` for details.
 Writing RFCs
 ------------
 
-If you want to write a Request for Comments, please read the 
+If you want to write a Request for Comments, please read the
 :doc:`howto` first.
 
 RFCs
 ----
 
-Table: ":ref:`table_list_of_accepted_rfcs`" below lists all accepted EOxServer 
+Table: ":ref:`table_list_of_accepted_rfcs`" below lists all accepted EOxServer
 RFCs and their implementation status [1]_.
 
 .. _table_list_of_accepted_rfcs:
@@ -92,16 +92,17 @@ RFCs and their implementation status [1]_.
 The list below provides links to all EOxServer RFCs available:
 
 .. toctree::
-   :maxdepth: 1
-   :glob:
-   
-   rfc?
-   rfc??
-
-.. toctree::
    :hidden:
-   
+
    policies
    howto
+
+.. toctree::
+   :maxdepth: 1
+   :glob:
+
+   rfc?
+   rfc??
+   rfc???
 
 .. [1]  Note that this list might not be fully up to date although we try hard.

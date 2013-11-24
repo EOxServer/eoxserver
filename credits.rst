@@ -1,4 +1,4 @@
-.. EOxServer Developers' Guide
+.. EOxServer Open License
   #-----------------------------------------------------------------------------
   # $Id$
   #
@@ -23,47 +23,25 @@
   # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
   # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
   # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+  # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
   # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
   # IN THE SOFTWARE.
   #-----------------------------------------------------------------------------
 
-.. _EOxServer Developers' Guide:
+.. index::
+   single: Credits
 
-EOxServer Developers' Guide
-===========================
+.. _Credits:
 
-The Developers' Guide is intended for people who want to use EOxServer
-as a development framework for geospatial services, or do have to
-extend EOxServer's functionality to implement specific data and metadata
-formats for instance.
+Credits
+=======
 
-Users of the EOxServer software stack please refer to the 
-:ref:`EOxServer Users' Guide`. Users range from administrators installing and 
-configuring the software stack and operators registering the available *EO 
-Data* on the *Provider* side to end users consuming the registered *EO Data* 
-on the *User* side.
+.. figure:: ./_static/HMA_Logo.jpg
+   :target: http://rssportal.esa.int/tiki-index.php?page=Open%20Software
 
-.. figure:: ../users/images/Global_Use_Case.png
-   :align: center
+Work on EOxServer has been partly funded by the `European Space Agency (ESA)`_
+in the frame of the HMA-FO_ and O3S_ projects.
 
-.. toctree::
-   :maxdepth: 3
-   
-   basics
-   core
-   data_model
-   migrations
-   plugins
-   services
-   data_formats
-   metadata_formats
-   autotest
-   soap_proxy
-   handling_coverages
-   atp_dev_guide
-   modules
-   testing
-
-.. TODO
-   processes
+.. _European Space Agency (ESA): http://www.esa.int/esaMI/ESRIN_SITE/
+.. _HMA-FO: http://wiki.services.eoportal.org/tiki-index.php?page=HMA-FO
+.. _O3S: http://wiki.services.eoportal.org/tiki-index.php?page=O3S

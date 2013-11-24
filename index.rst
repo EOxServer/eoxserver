@@ -1,4 +1,4 @@
-.. EOxServer documentation master file
+.. EOxServer English Documentation Index file
   #-----------------------------------------------------------------------------
   # $Id$
   #
@@ -28,14 +28,19 @@
   # IN THE SOFTWARE.
   #-----------------------------------------------------------------------------
 
-EOxServer's Documentation
-=========================
+EOxServer's English Documentation
+=================================
 
 EOxServer is a Python application and framework for presenting Earth
 Observation (EO) data and metadata.
 
-EOxServer implements the `OGC <http://www.opengeospatial.org/>`_ 
-Implementation Specifications EO-WCS and EO-WMS on top of 
+.. only:: html
+.. raw:: html
+
+  <p><script type="text/javascript" src="http://www.ohloh.net/p/489120/widgets/project_partner_badge.js"></script></p>
+
+EOxServer implements the `OGC <http://www.opengeospatial.org/>`_
+Implementation Specifications EO-WCS and EO-WMS on top of
 `MapServer's <http://mapserver.org>`_
 `WCS <http://www.opengeospatial.org/standards/wcs>`_ and 
 `WMS <http://www.opengeospatial.org/standards/wms>`_ implementations.
@@ -50,12 +55,17 @@ Open Source software including `MapServer <http://mapserver.org>`_,
 `PostGIS <http://postgis.refractions.net/>`_, and 
 `PROJ.4 <http://trac.osgeo.org/proj/>`_.
 
-Here you find the documentation for users and developers of EOxServer.
+Here you find the English documentation for users and developers of EOxServer.
 
 .. toctree::
-   :maxdepth: 2
-   
-   en/index
+   :maxdepth: 1
+   :titlesonly:
+
+   users/index
+   developers/index
+   rfc/index
+   copyright
+   credits
 
 Indices and tables
 ==================

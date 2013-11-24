@@ -23,30 +23,30 @@
   # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
   # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
   # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+  # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
   # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
   # IN THE SOFTWARE.
   #-----------------------------------------------------------------------------
 
 .. _EOxServer Users' Guide:
 
-EOxServer Users' Guide
-======================
+Users' Guide
+============
 
-This section is intended for users of the EOxServer software stack. Users range  
-from administrators installing and configuring the software stack and operators 
-registering the available *EO Data* on the *Provider* side to end users 
+This section is intended for users of the EOxServer software stack. Users range
+from administrators installing and configuring the software stack and operators
+registering the available *EO Data* on the *Provider* side to end users
 consuming the registered *EO Data* on the *User* side.
 
 .. figure:: images/Global_Use_Case.png
    :align: center
 
-Developers needing to know all the nitty-gritty about EOxServer implementation 
+Developers needing to know all the nitty-gritty about EOxServer implementation
 and APIs please refer to the :ref:`EOxServer Developers' Guide`.
 
 .. toctree::
    :maxdepth: 3
-   
+
    basics
    global_use_case
    install
@@ -64,8 +64,8 @@ and APIs please refer to the :ref:`EOxServer Developers' Guide`.
    presentations
    configuration_options
    crss
-   formats  
-   atp_sum 
+   formats
+   atp_sum
    WCS-T_summary
 
 .. TODO
