@@ -31,6 +31,8 @@ import ctypes as C
 import os.path
 import logging
 
+from functools import wraps 
+
 from eoxserver.contrib import gdal
 from eoxserver.core.util.bbox import BBox
 from eoxserver.core.exceptions import InternalError
@@ -144,12 +146,13 @@ def requires_reftools(func):
         available and raises if not.
     """
     
+    @wraps(func)
     def wrapped(*args, **kwargs):
         if not REFTOOLS_USABLE:
             raise InternalError("Referenceable grid handling is disabled! "
                                 "Did you compile the 'reftools' C module?!")
         return func(*args, **kwargs)
-    
+
     return wrapped
 
 @requires_reftools
@@ -179,6 +182,15 @@ def suggest_transformer( path_or_ds ) :
     nx = 5 
     ny = int(max(1,0.5*nx*float(sy)/float(sx))) 
     ng = (nx+1)*(ny+1)+10 
+
+    # check if we deal with an outline along the image's vertical edges
+    if nn < 500 : # avoid check for large tie-point sets 
+        cnt = 0 
+        for gcp in ds.GetGCPs() : 
+            cnt += ( gcp.GCPPixel < 1 ) or ( gcp.GCPPixel >= ( sx-1 ) ) 
+        is_vertical_outline = ( cnt == nn ) 
+    else : 
+        is_vertical_outline = False
     
     # check whether the GDAL extensions are available 
 
@@ -193,6 +205,10 @@ def suggest_transformer( path_or_ds ) :
         if ( 4*sy < sx ) :
             order = 1 
          
+        # small fotprints such as ngEO should use lower TPS-AP order  
+        if is_vertical_outline : 
+            order = 1 
+
         # for excessive number of source tiepoints use Least-Square TPS fit 
         if ( nn > ng ) : 
             method = METHOD_TPS_LSQ
