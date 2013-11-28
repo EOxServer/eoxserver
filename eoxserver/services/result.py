@@ -80,31 +80,33 @@ class ResultFile(ResultItem):
     """ Class for results that wrap physical files on the disc.
     """
 
-    def __init__(self, fp, content_type=None, filename=None, identifier=None):
+    def __init__(self, path, content_type=None, filename=None, identifier=None):
         super(ResultFile, self).__init__(content_type, filename, identifier)
-        self.fp = fp
+        self.path = path
 
     @property
     def data(self):
-        return fp.read()
+        with open(self.path) as f:
+            return f.read()
 
     @property
     def data_file(self):
-        return fp
+        return open(self.path)
 
     def __len__(self):
-        return os.path.getsize(self.fp.filename)
+        return os.path.getsize(self.path)
 
     def chunked(self, chunksize):
-        while True:
-            data = fp.read(chunksize)
-            if not data:
-                break
+        with open(self.path) as f:
+            while True:
+                data = f.read(chunksize)
+                if not data:
+                    break
 
-            yield data
+                yield data
 
     def delete(self):
-        os.remove(fp.filename)
+        os.remove(self.path)
 
 
 class ResultBuffer(ResultItem):
@@ -185,20 +187,27 @@ def to_http_response(result_set, response_type=HttpResponse, boundary=None):
 
 
     def response_iterator(items, boundary=None):
-        if boundary:
-            boundary_str = "%s--%s%s" % (mp.CRLF, boundary, mp.CRLF)
-            boundary_str_end = "%s--%s--" % (mp.CRLF, boundary)
-
-        for item in items:
+        try:
             if boundary:
-                yield boundary_str
-                yield mp.CRLF.join(
-                    "%s: %s" % (key, value) 
-                    for key, value in get_headers(item)
-                ) + mp.CRLFCRLF
-            yield item.data
-        if boundary:
-            yield boundary_str_end
+                boundary_str = "%s--%s%s" % (mp.CRLF, boundary, mp.CRLF)
+                boundary_str_end = "%s--%s--" % (mp.CRLF, boundary)
+
+            for item in items:
+                if boundary:
+                    yield boundary_str
+                    yield mp.CRLF.join(
+                        "%s: %s" % (key, value) 
+                        for key, value in get_headers(item)
+                    ) + mp.CRLFCRLF
+                yield item.data
+            if boundary:
+                yield boundary_str_end
+        finally:
+            for item in items:
+                try:
+                    item.delete()
+                except:
+                    pass # bad exception swallowing...
 
     # workaround for bug in django, that does not consume iterator in tests.
     if response_type == HttpResponse:
