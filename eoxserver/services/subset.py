@@ -310,6 +310,28 @@ class Subsets(list):
             )
 
 
+    @property
+    def xy_bbox(self):
+        """ Returns the minimum bounding box for all X and Y subsets.
+        """
+        bbox = [None, None, None, None]
+        for subset in self:
+            if subset.is_x:
+                if isinstance(subset, Trim):
+                    bbox[0] = subset.low
+                    bbox[2] = subset.high
+                else:
+                    bbox[0] = bbox[2] = subset.value
+            elif subset.is_y:
+                if isinstance(subset, Trim):
+                    bbox[1] = subset.low
+                    bbox[3] = subset.high
+                else:
+                    bbox[1] = bbox[3] = subset.value
+
+        return bbox
+
+
     def bounding_polygon(self, coverage):
         srid = coverage.srid
         extent = coverage.extent
