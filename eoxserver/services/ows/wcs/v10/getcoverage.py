@@ -54,7 +54,7 @@ class WCS10GetCoverageHandler(WCSGetCoverageHandlerBase, Component):
 
     def get_params(self, coverage, decoder):
         return WCS10CoverageRenderParams(
-            params, decoder.bbox, decoder.crs, decoder.format, 
+            coverage, decoder.bbox, decoder.crs, decoder.format, 
             decoder.response_crs, decoder.width, decoder.height,
             decoder.resx, decoder.resy, decoder.interpolation
         )
@@ -65,7 +65,7 @@ def parse_bbox_kvp(string):
 
 
 class WCS10GetCoverageKVPDecoder(kvp.Decoder):
-    coverage_id = kvp.Parameter(num=1)
+    coverage_id = kvp.Parameter("coverage", num=1)
     crs         = kvp.Parameter(num=1)
     response_crs = kvp.Parameter(num="?")
     bbox        = kvp.Parameter(type=parse_bbox_kvp)

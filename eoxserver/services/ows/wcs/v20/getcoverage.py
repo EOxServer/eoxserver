@@ -57,7 +57,7 @@ class WCS20GetCoverageHandler(WCSGetCoverageHandlerBase, Component):
     def get_params(self, coverage, decoder):
         return WCS20CoverageRenderParams(
             coverage, decoder.subsets, decoder.sizes, decoder.resolutions,
-            decider.rangesubset, decoder.format, decoder.outputcrs, 
+            decoder.rangesubset, decoder.format, decoder.outputcrs, 
             decoder.mediatype, decoder.interpolation, decoder.mask
         )
 
