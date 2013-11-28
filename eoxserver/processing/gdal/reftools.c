@@ -107,10 +107,13 @@ CPLErr check_method_and_order(int method, int order)
         }
     }
 #else 
-    else if ((METHOD_TPS==method)||(1!=order))
-    { 
-        CPLError(CE_Failure,CPLE_IllegalArg,"Invalid TPS augmenting polynomial order! ORDER=%d",order) ; 
-        return CE_Failure;
+    else if (METHOD_TPS==method)
+    {
+        if (order != 1)
+        {
+            CPLError(CE_Failure,CPLE_IllegalArg,"Invalid TPS augmenting polynomial order! ORDER=%d",order) ; 
+            return CE_Failure;
+        }
     }
     else if (METHOD_TPS_LSQ==method)
     { 
