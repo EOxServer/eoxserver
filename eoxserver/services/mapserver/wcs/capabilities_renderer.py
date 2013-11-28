@@ -35,14 +35,21 @@ from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.services.ows.wcs.interfaces import (
     WCSCapabilitiesRendererInterface
 )
+from eoxserver.services.ows.version import Version
 from eoxserver.services.result import result_set_from_raw_data, get_content_type
+
 
 class MapServerWCSCapabilitiesRenderer(Component):
     """ WCS Capabilities renderer implementation using MapServer.
     """
     implements(WCSCapabilitiesRendererInterface)
 
-    def render(self, coverages, request_values):
+    versions = (Version(1, 0), Version(1, 1))
+
+    def supports(self, params):
+        return params.version in self.versions
+
+    def render(self, params):
         conf = CapabilitiesConfigReader(get_eoxserver_config())
 
         map_ = Map()
@@ -75,7 +82,7 @@ class MapServerWCSCapabilitiesRenderer(Component):
         map_.setProjection("EPSG:4326")
 
 
-        for coverage in coverages:
+        for coverage in params.coverages:
             layer = Layer(coverage.identifier)
             
             layer.setProjection(coverage.spatial_reference.proj)
@@ -95,8 +102,7 @@ class MapServerWCSCapabilitiesRenderer(Component):
 
             map_.insertLayer(layer)
         
-        request = create_request(request_values)
+        request = create_request(params)
         raw_result = map_.dispatch(request)
         result = result_set_from_raw_data(raw_result)
-
-        return result, get_content_type(result)
+        return result
