@@ -36,7 +36,7 @@ from uuid import uuid4
 
 from gdal import (
     VSIFOpenL, VSIFCloseL, VSIFReadL, VSIFWriteL, VSIFSeekL, VSIFTellL,
-    VSIFTruncateL, Unlink, Rename, FileFromMemBuffer
+    VSIFTruncateL, VSIStatL, Unlink, Rename, FileFromMemBuffer
 )
 
 
