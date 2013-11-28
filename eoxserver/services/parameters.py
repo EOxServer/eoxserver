@@ -49,7 +49,7 @@ class VersionedParams(object):
 
 
 class CapabilitiesRenderParams(object):
-    def __init__(self, coverages, version, sections=None, accept_languages=None
+    def __init__(self, coverages, version, sections=None, accept_languages=None,
                  accept_formats=None, updatesequence=None):
         self._coverages = coverages
         self._version = version

@@ -35,7 +35,7 @@ from eoxserver.services.ows.wcs.parameters import (
 
 class WCS20CapabilitiesRenderParams(WCSCapabilitiesRenderParams):
     def __init__(self, coverages, dataset_series=None, sections=None, 
-                 accept_languages=None accept_formats=None, updatesequence=None):
+                 accept_languages=None, accept_formats=None, updatesequence=None):
         super(WCS20CapabilitiesRenderParams, self).__init__(
             coverages, "2.0.1", sections, accept_languages, accept_formats,
             updatesequence
@@ -45,7 +45,7 @@ class WCS20CapabilitiesRenderParams(WCSCapabilitiesRenderParams):
     dataset_series = property(lambda self: self._dataset_series)
 
 
-class WCS20CoverageDescrptionRenderParams(CoverageDescriptionRenderParams):
+class WCS20CoverageDescriptionRenderParams(CoverageDescriptionRenderParams):
     coverage_ids_key_name = "coverageid"
 
     def __init__(self, coverages):
@@ -60,7 +60,7 @@ class WCS20CoverageRenderParams(CoverageRenderParams):
                  interpolation=None, mask=None):
 
         super(WCS20CoverageRenderParams, self).__init__(coverage, "2.0.1")
-        self._subsets = subsets or ()
+        self._subsets = subsets
         self._sizes = sizes or ()
         self._resolutions = resolutions or ()
         self._rangesubset = rangesubset or ()

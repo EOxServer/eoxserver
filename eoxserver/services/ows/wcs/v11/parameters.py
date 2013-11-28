@@ -36,7 +36,7 @@ class WCS11CoverageDescrptionRenderParams(CoverageDescriptionRenderParams):
 
     def __init__(self, coverages):
         super(WCS11CoverageDescrptionRenderParams, self).__init__(
-            coverage, "1.1.2"
+            coverages, "1.1.2"
         )
 
 

@@ -31,12 +31,12 @@ from eoxserver.services.ows.wcs.parameters import (
 )
 
 
-class WCS10CoverageDescrptionRenderParams(CoverageDescriptionRenderParams):
+class WCS10CoverageDescriptionRenderParams(CoverageDescriptionRenderParams):
     coverage_ids_key_name = "coverage"
 
     def __init__(self, coverages):
-        super(WCS10CoverageDescrptionRenderParams, self).__init__(
-            coverage, "1.0.0"
+        super(WCS10CoverageDescriptionRenderParams, self).__init__(
+            coverages, "1.0.0"
         )
 
 
@@ -70,7 +70,7 @@ class WCS10CoverageRenderParams(CoverageRenderParams):
 
 
     def __iter__(self):
-        for k, v in super(WCS11CoverageRenderParams, self).__iter__():
+        for k, v in super(WCS10CoverageRenderParams, self).__iter__():
             yield k, v
 
         yield ("bbox", ",".join(map(str, self.bbox)))

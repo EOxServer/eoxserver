@@ -34,13 +34,13 @@ from eoxserver.services.parameters import (
 
 class WCSParamsMixIn(object):
     def __iter__(self):
-        for k, v in super(WCSRenderParams, self).__iter__():
+        for k, v in super(WCSParamsMixIn, self).__iter__():
             yield k, v
         
         yield ("service", "WCS")
 
 
-class WCSCapabilitiesRenderParams(WCSRenderParams, CapabilitiesRenderParams):
+class WCSCapabilitiesRenderParams(WCSParamsMixIn, CapabilitiesRenderParams):
     pass
 
 
