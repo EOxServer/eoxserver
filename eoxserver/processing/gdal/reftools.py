@@ -32,7 +32,7 @@ import os.path
 import logging
 
 from eoxserver.contrib import gdal
-from eoxserver.core.util.bbox import BBox
+from eoxserver.core.util.rect import Rect
 from eoxserver.core.exceptions import InternalError
 
 #-------------------------------------------------------------------------------
@@ -265,7 +265,7 @@ def get_footprint_wkt(path_or_ds, method=METHOD_GCP, order=0):
 
 @requires_reftools
 def rect_from_subset(path_or_ds, srid, minx, miny, maxx, maxy,
-                                        method=METHOD_GCP, order=0):
+                     method=METHOD_GCP, order=0):
     
     ds = _open_ds(path_or_ds)
     
@@ -279,7 +279,7 @@ def rect_from_subset(path_or_ds, srid, minx, miny, maxx, maxy,
     if ret != gdal.CE_None:
         raise RuntimeError(gdal.GetLastErrorMsg())
     
-    return BBox(rect.x_size, rect.y_size, rect.x_off, rect.y_off)
+    return Rect(rect.x_off, rect.y_off, rect.x_size, rect.y_size)
 
 
 @requires_reftools
