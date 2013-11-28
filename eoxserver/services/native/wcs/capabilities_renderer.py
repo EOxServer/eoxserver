@@ -31,6 +31,7 @@ from django.conf import settings
 
 from eoxserver.core import Component, implements
 from eoxserver.services.result import ResultBuffer
+from eoxserver.services.ows.version import Version
 from eoxserver.services.ows.wcs.interfaces import (
     WCSCapabilitiesRendererInterface
 )
@@ -39,6 +40,8 @@ from eoxserver.services.ows.wcs.v20.encoders import WCS20CapabilitiesXMLEncoder
 
 class NativeWCS20CapabilitiesRenderer(Component):
     implements(WCSCapabilitiesRendererInterface)
+
+    versions = (Version(2, 0),)
 
     def supports(self, params):
         if params.version not in self.versions:
