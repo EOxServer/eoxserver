@@ -40,9 +40,8 @@ from eoxserver.services.ows.wcs.parameters import WCSCapabilitiesRenderParams
 from eoxserver.services.exceptions import (
     NoSuchCoverageException, OperationNotSupportedException
 )
-from eoxserver.services.ows.wcs.parameters
 from eoxserver.services.ows.wcs.interfaces import (
-    WCSCoverageDescriptionRendererInterface, WCSCoverageRendererInterface
+    WCSCoverageDescriptionRendererInterface, WCSCoverageRendererInterface,
     WCSCapabilitiesRendererInterface
 )
 
@@ -72,7 +71,7 @@ class WCSGetCapabilitiesHandlerBase(object):
         """
 
         return WCSCapabilitiesRenderParams(coverages,
-            getattr(decoder, "version", None)
+            getattr(decoder, "version", None),
             getattr(decoder, "sections", None), 
             getattr(decoder, "acceptlanguages", None),
             getattr(decoder, "acceptformats", None),
@@ -115,7 +114,7 @@ class WCSGetCapabilitiesHandlerBase(object):
 
         # dispatch the renderer and return the response
         result_set = renderer.render(params)
-        return self.to_http_response()
+        return self.to_http_response(result_set)
 
 
 class WCSDescribeCoverageHandlerBase(object):
