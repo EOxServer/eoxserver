@@ -41,7 +41,7 @@ from eoxserver.services.mapserver.interfaces import (
 )
 from eoxserver.services.mapserver.wcs.base_renderer import BaseRenderer
 from eoxserver.services.ows.version import Version
-from eoxserver.services.result import result_set_from_raw_data, get_content_type
+from eoxserver.services.result import result_set_from_raw_data
 
 
 class RectifiedCoverageMapServerRenderer(BaseRenderer):
@@ -111,16 +111,16 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
             # perform any required layer related cleanup
             connector.disconnect(coverage, data_items, layer)
 
-        result = result_set_from_raw_data(raw_result)
+        result_set = result_set_from_raw_data(raw_result)
 
-        if self.find_param(request_values, "mediatype") in ("multipart/mixed", "multipart/related"):
+        if getattr(params, "mediatype", None) in ("multipart/mixed", "multipart/related"):
             # TODO: change the response XML
             #encoder = WCS20EOXMLEncoder()
             #return , mediatype
             pass
 
         # "default" response
-        return result, get_content_type(result)
+        return result_set
         
 
 def create_outputformat(frmt, imagemode, basename):
