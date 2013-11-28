@@ -30,6 +30,8 @@
 from datetime import datetime
 from urllib import unquote
 
+from lxml import etree
+
 from eoxserver.core import implements, ExtensionPoint
 from eoxserver.contrib import mapserver as ms
 from eoxserver.resources.coverages import models
@@ -41,7 +43,7 @@ from eoxserver.services.mapserver.interfaces import (
 )
 from eoxserver.services.mapserver.wcs.base_renderer import BaseRenderer
 from eoxserver.services.ows.version import Version
-from eoxserver.services.result import result_set_from_raw_data
+from eoxserver.services.result import result_set_from_raw_data, ResultBuffer
 
 
 class RectifiedCoverageMapServerRenderer(BaseRenderer):
@@ -114,10 +116,17 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         result_set = result_set_from_raw_data(raw_result)
 
         if getattr(params, "mediatype", None) in ("multipart/mixed", "multipart/related"):
-            # TODO: change the response XML
-            #encoder = WCS20EOXMLEncoder()
-            #return , mediatype
-            pass
+            encoder = WCS20EOXMLEncoder()
+            result_set[0] = ResultBuffer(
+                encoder.serialize(
+                    encoder.alter_rectified_dataset(
+                        coverage, getattr(params, "request", None), 
+                        etree.parse(result_set[0].data_file).getroot(), None
+                    )
+                ), 
+                encoder.content_type
+            )
+            
 
         # "default" response
         return result_set

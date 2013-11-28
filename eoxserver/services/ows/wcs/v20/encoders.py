@@ -640,17 +640,17 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20E
         )
 
     def alter_rectified_dataset(self, coverage, request, tree, subset_polygon=None):
-        return EOWCS("RectifiedDataset",
-            tree.children,
-            self.encode_eo_metadata(coverage, request, subset_polygon)
-        )
+        return EOWCS("RectifiedDataset", *(
+            tree.getchildren() +
+            [self.encode_eo_metadata(coverage, request, subset_polygon)]
+        ))
 
     def alter_rectified_stitched_mosaic(self, coverage, request, subset=None):
-        return EOWCS("RectifiedStitchedMosaic",
-            tree.children,
-            self.encode_eo_metadata(coverage, request, subset_polygon),
+        return EOWCS("RectifiedStitchedMosaic", *(
+            tree.getchildren() +
+            [self.encode_eo_metadata(coverage, request, subset_polygon)]
             # TODO: contributing datasets
-        )
+        ))
 
     def encode_referenceable_dataset(self, coverage, range_type, reference, 
                                      mime_type, subset=None):
