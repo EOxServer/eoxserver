@@ -3,10 +3,9 @@
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>
 #          Stephan Meissl <stephan.meissl@eox.at>
-#          Fabian Schindler <fabian.schindler@eox.at>
 #
 #-------------------------------------------------------------------------------
-# Copyright (C) 2011 EOX IT Services GmbH
+# Copyright (C) 2012 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,50 +26,37 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-import os
+"""
+URLs config for EOxServer's autotest instance.
 
-# Hack to remove setuptools "feature" which resulted in
-# ignoring MANIFEST.in when code is in an svn repository.
-# TODO find a nicer solution
-from setuptools.command import sdist
-del sdist.finders[:]
+"""
+from django.conf.urls import patterns, include, url
 
-from setuptools import setup
-from setuptools.command.install import install as _install
+# Enable the admin:
+from django.contrib import admin
+admin.autodiscover()
+# Enable the databrowse:
+#from django.contrib import databrowse
 
-from eoxserver import get_version
+# Enable the ATP auxiliary views:
+from eoxserver.resources.processes import views as procViews
 
-class install(_install):
-    def run(self):
-        _install.run(self)
-        
-        self.prefix
-version = get_version()
+urlpatterns = patterns('',
+    (r'^$', 'eoxserver.views.index'),
+    (r'^ows', 'eoxserver.services.views.ows'),
+    (r'^client/$', 'eoxserver.webclient.views.index'),
+    (r'^client/(.*)', 'eoxserver.webclient.views.webclient'),
 
-data_files = []
-for dirpath, dirnames, filenames in os.walk('autotest/data'):
-    data_files.append([dirpath, [os.path.join(dirpath, f) for f in filenames]])
+    # Enable admin documentation:
+    url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
+    # Enable the admin:
+    url(r'^admin/', include(admin.site.urls)),
+    # Enable the databrowse:
+    #(r'^databrowse/(.*)', databrowse.site.root),
 
-setup(
-    name='EOxServer_autotest',
-    version=version.replace(' ', '-'),
-    # TODO: packages
-    data_files=data_files,
-    
-    install_requires=['eoxserver'],
-    
-    # Metadata
-    author="EOX IT Services GmbH",
-    author_email="office@eox.at",
-    maintainer="EOX IT Services GmbH",
-    maintainer_email="packages@eox.at",
-    
-    description="Autotest instance for EOxServer",
-    long_description="",
-    
-    license="EOxServer Open License (MIT-style)",
-    keywords="Earth Observation, EO, OGC, WCS, WMS",
-    url="http://eoxserver.org/",
-    
-    cmdclass={'install': install},
+    # Uncomment following lines to enable the ATP views:
+    #(r'^process/status$', procViews.status ),
+    #(r'^process/status/(?P<requestType>[^/]{,64})/(?P<requestID>[^/]{,64})$', procViews.status ),
+    #(r'^process/task$', procViews.task ),
+    (r'^process/response/(?P<requestType>[^/]{,64})/(?P<requestID>[^/]{,64})', procViews.response ),
 )
