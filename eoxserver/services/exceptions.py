@@ -118,11 +118,13 @@ class OperationNotSupportedException(Exception):
     """ Exception to be thrown when some operations are not supported or 
         disabled.
     """
-    def __init__(self, operation):
+    def __init__(self, message, operation=None):
+        super(OperationNotSupportedException, self).__init__(message)
         self.operation = operation
 
-    def __str__(self):
-        return "Operation '%s' is not supported." % self.operation
+    @property
+    def locator(self):
+        return self.operation
 
     code = "OperationNotSupported"
 

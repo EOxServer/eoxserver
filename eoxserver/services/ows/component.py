@@ -100,7 +100,10 @@ class ServiceComponent(Component):
         )
 
         if not handlers:
-            raise OperationNotSupportedException(decoder.request)
+            operation = decoder.request
+            raise OperationNotSupportedException(
+                "Operation '%s' is not supported." % operation, operation
+            )
 
         # return the handler with the highest version
         return handlers[0]
