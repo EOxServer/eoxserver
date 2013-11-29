@@ -107,8 +107,8 @@ class GDALReferenceableDatasetRenderer(Component):
 
         result_set = [
             ResultFile(
-                path, mime_type, identifier=filename_base if i == 0 else None,
-                filename=filename_base+splitext(path)[1]
+                path, mime_type, filename_base + splitext(path)[1],
+                ("cid:coverage/%s" % coverage.identifier) if i == 0 else None
             ) for i, path in enumerate(out_ds.GetFileList())
         ]
 
