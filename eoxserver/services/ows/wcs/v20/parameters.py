@@ -49,8 +49,8 @@ class WCS20CoverageDescriptionRenderParams(CoverageDescriptionRenderParams):
     coverage_ids_key_name = "coverageid"
 
     def __init__(self, coverages):
-        super(WCS20CoverageDescrptionRenderParams, self).__init__(
-            coverage, "2.0.1"
+        super(WCS20CoverageDescriptionRenderParams, self).__init__(
+            coverages, "2.0.1"
         )
 
 
