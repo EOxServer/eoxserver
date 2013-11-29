@@ -34,6 +34,7 @@ from lxml.builder import ElementMaker
 from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap, ns_xsi
 from eoxserver.services.subset import Trim, Slice
 from eoxserver.services.ows.common.v20.encoders import ns_xlink, ns_ows, OWS
+from eoxserver.services.exceptions import InvalidSubsettingException
 
 
 # namespace declarations
@@ -107,22 +108,25 @@ def parse_subset_kvp(string):
     """ Parse one subset from the WCS 2.0 KVP notation.
     """
 
-    match = subset_re.match(string)
-    if not match:
-        raise
+    try:
+        match = subset_re.match(string)
+        if not match:
+            raise
 
-    axis = match.group(1)
-    crs = match.group(3)
-    
-    if match.group(6) is not None:
-        return Trim(axis, match.group(4), match.group(6), crs)
-    else:
-        return Slice(axis, match.group(4), crs)
+        axis = match.group(1)
+        crs = match.group(3)
+        
+        if match.group(6) is not None:
+            return Trim(axis, match.group(4), match.group(6), crs)
+        else:
+            return Slice(axis, match.group(4), crs)
+    except Exception, e:
+        raise InvalidSubsettingException(str(e))
+
 
 def parse_size_kvp(string):
     """ 
     """
-
     match = size_re.match(string)
     if not match:
         raise
@@ -147,12 +151,15 @@ def parse_subset_xml(elem):
         Element as parameter.
     """
 
-    if elem.tag == ns_wcs("DimensionTrim"):
-        return Trim(
-            elem.findtext(ns_wcs("Dimension")),
-            elem.findtext(ns_wcs("TrimLow")),
-            elem.findtext(ns_wcs("TrimHigh"))
-        )
-    elif elem.tag == ns_wcs("DimensionSlice"):
-        return Slice()
-        #TODO
+    try:
+        if elem.tag == ns_wcs("DimensionTrim"):
+            return Trim(
+                elem.findtext(ns_wcs("Dimension")),
+                elem.findtext(ns_wcs("TrimLow")),
+                elem.findtext(ns_wcs("TrimHigh"))
+            )
+        elif elem.tag == ns_wcs("DimensionSlice"):
+            return Slice()
+            #TODO
+    except Exception, e:
+        raise InvalidSubsettingException(str(e))
