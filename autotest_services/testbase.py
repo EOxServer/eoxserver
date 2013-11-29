@@ -40,14 +40,8 @@ from cStringIO import StringIO
 from django.test import Client, TestCase
 from django.conf import settings
 
-#from eoxserver.core.util.xmltools import XMLDecoder
-from eoxserver.core.util.multiparttools import (
-    mpUnpack, getMimeType, getMultipartBoundary
-)
+from eoxserver.core.util import multiparttools as mp 
 from eoxserver.contrib import gdal, osr
-#from eoxserver.testing.core import (
-#    EOxServerTestCase, BASE_FIXTURES
-#)
 from eoxserver.testing.xcomp import xmlCompareFiles
 
 
@@ -91,6 +85,8 @@ def _getMime( s ) :
 # Common classes
 #===============================================================================
 
+REQUEST_CACHE = {}
+
 class OWSTestCase(TestCase):
     """ Main base class for testing the OWS interface
         of EOxServer.
@@ -99,15 +95,23 @@ class OWSTestCase(TestCase):
     fixtures = [
         "range_types.json", "meris_range_type.json", 
         "meris_coverages_uint16.json", "meris_coverages_rgb.json",
+        "meris_coverages_reprojected_uint16.json",
         "asar_range_type.json", "asar_coverages.json"
     ]
     
     def setUp(self):
         super(OWSTestCase,self).setUp()
+
+        classname = self.__class__.__name__
         
-        logger.info("Starting Test Case: %s" % self.__class__.__name__)
+        logger.info("Starting Test Case: %s" % classname)
         
         rq = self.getRequest()
+
+        if classname in REQUEST_CACHE:
+            logger.info("Using cached response.")
+            self.response = REQUEST_CACHE[classname]
+            return
 
         if ( len(rq) == 2 ):
             request, req_type = rq
@@ -125,6 +129,14 @@ class OWSTestCase(TestCase):
 
         else:
             raise Exception("Invalid request type '%s'." % req_type)
+
+        REQUEST_CACHE[classname] = self.response
+
+
+    @classmethod
+    def tearDownClass(cls):
+        del REQUEST_CACHE[cls.__name__]
+
     
     def isRequestConfigEnabled(self, config_key, default=False):
         #value = System.getConfig().getConfigValue("testing", config_key)
@@ -488,7 +500,8 @@ class MultipartTestCase(XMLTestCase):
     def _mangleXML( self , cbuffer ) : 
         """ remove variable parts of selected XML elements text and attributes """ 
 
-        #define XML names to be used 
+        return cbuffer
+        """#define XML names to be used 
 
         N0 = "{http://www.opengis.net/gml/3.2}rangeSet/" \
              "{http://www.opengis.net/gml/3.2}File/" \
@@ -510,57 +523,54 @@ class MultipartTestCase(XMLTestCase):
             base , _ , _   = base.rpartition("_")
             return "%s.%s"%(base,ext) 
 
-        def changeHref( e ) : 
-            if e is not None : e.set( HREF , cropFileName( e.get( HREF ) ) )
+        def changeHref(e) : 
+            if e is not None: e.set(HREF, cropFileName(e.get(HREF)))
                 
-        def changeText( e ) : 
-            if e is not None: e.text = cropFileName( e.text )
+        def changeText(e) : 
+            if e is not None: e.text = cropFileName(e.text)
 
         # parse XML Note: etree.parse respects the encoding reported in XML delaration!
-        xml = etree.parse( StringIO( cbuffer ) )
+        xml = etree.fromstring(cbuffer)
 
         # mangle XML content to get rid of variable content
 
         # WCS 2.0.x - rangeSet/File
-        changeHref( xml.find( N0 ) ) 
-        changeText( xml.find( N1 ) )
+        changeHref(xml.find(N0)) 
+        changeText(xml.find(N1))
         # WCS 1.1.x - Coverage/Reference 
-        changeHref( xml.find( N2 ) ) 
+        changeHref(xml.find(N2)) 
 
         # output xml - force UTF-8 encoding including the XML delaration 
-        return etree.tostring( xml , encoding="UTF-8" , xml_declaration=True )
+        return etree.tostring(xml , encoding="UTF-8" , xml_declaration=True)"""
 
-    def _unpackMultipartContent( self , response ) : 
+    def _unpackMultipartContent(self, response):
+        if response.streaming:
+            content = "".join(response)
+        else:
+            content = response.content
 
-        content      = response.content
         content_type = response['Content-Type']
 
-        # check the content type 
-        if getMimeType( content_type ) \
-            not in ( "multipart/mixed" , "multipart/related" ) :
-            raise Exception , "Received content is neither mixed nor related multipart! Content-Type: %s" % content_type 
+        if not content_type.startswith("multipart/"):
+            self.fail(
+                "Received response does not seem to be a multipart response. "
+                "Content type is '%s'." % content_type
+            )
 
-        # extract multipart boundary  
-        boundary = getMultipartBoundary( content_type ) 
-        
-        # unpack the multipart content 
-        for header,offset,size in mpUnpack(content,boundary) :
-            match = RE_MIME_TYPE_XML.match( _getMime(header['content-type']) ) 
-            if match is not None : 
-                # store XML response 
-                self.xmlData = content[offset:(offset+size)]
-            else : 
-                # store coverage data 
-                self.imageData = content[offset:(offset+size)]
-
+        for headers, data in mp.iterate(content, headers=response):
+            if RE_MIME_TYPE_XML.match(headers["Content-Type"]):
+                self.xmlData = str(data)
+            else:
+                self.imageData = str(data)
 
     def _setUpMultiparts(self):
-        if self.isSetUp: return
-
-        self._unpackMultipartContent( self.response ) 
+        if self.isSetUp: 
+            return
+        self._unpackMultipartContent(self.response)
         
         # mangle XML data 
-        if self.xmlData : self.xmlData = self._mangleXML( self.xmlData ) 
+        if self.xmlData:
+            self.xmlData = self._mangleXML(self.xmlData) 
 
         self.isSetUp = True
 
