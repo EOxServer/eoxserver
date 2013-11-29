@@ -87,7 +87,8 @@ class WCSGetCapabilitiesHandlerBase(object):
                 return renderer
 
         raise OperationNotSupportedException(
-            "No Capabilities renderer found for the given parameters."
+            "No Capabilities renderer found for the given parameters.",
+            self.request
         )
 
     def to_http_response(self, result_set):
@@ -108,6 +109,7 @@ class WCSGetCapabilitiesHandlerBase(object):
 
         # create the render params
         params = self.get_params(coverages, decoder)
+        params.http_request = request
 
         # get the renderer
         renderer = self.get_renderer(params)
@@ -162,7 +164,8 @@ class WCSDescribeCoverageHandlerBase(object):
                 return renderer
 
         raise OperationNotSupportedException(
-            "No suitable coverage description renderer found."
+            "No suitable coverage description renderer found.",
+            self.request
         )
 
     def to_http_response(self, result_set):
@@ -231,7 +234,8 @@ class WCSGetCoverageHandlerBase(object):
                 return renderer
 
         raise OperationNotSupportedException(
-            "No renderer found for coverage '%s'." % params.coverage
+            "No renderer found for coverage '%s'." % params.coverage, 
+            self.request
         )
 
     def to_http_response(self, result_set):
