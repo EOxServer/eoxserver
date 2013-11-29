@@ -126,7 +126,7 @@ class WCS11GetCoverageFormatUnknownFaultTestCase(testbase.ExceptionTestCase):
 #===============================================================================
 # WCS 1.1 WCS Transaction tests
 #===============================================================================
-
+'''
 class WCS11TransactionRectifiedDatasetTestCase(testbase.WCSTransactionRectifiedGridCoverageTestCase):
     """ This test case shall test the synchronous inserting of a new 
         RectifiedGridCoverage by means of the WCS 1.1 Transaction operation 
@@ -156,6 +156,7 @@ class WCS11TransactionReferenceableDatasetTestCase(testbase.WCSTransactionRefere
     fixtures = testbase.BASE_FIXTURES
     ID = "REFERENCEABLE_ASAR_ID"
     ADDtiffFile = "asar/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tiff"
+'''
 
 #===============================================================================
 # WCS 1.1 - POST
@@ -211,14 +212,7 @@ class WCS11PostGetCoverageDatasetTestCase(testbase.RectifiedGridCoverageMultipar
                 <ows:UpperCorner>46.5 28</ows:UpperCorner>
               </ows:BoundingBox>
             </DomainSubset>
-            <Output format="image/tiff">
-              <GridCRS>
-                <GridBaseCRS>urn:ogc:def:crs:EPSG::4326</GridBaseCRS>
-                <GridType>urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs</GridType>
-                <GridOffsets>2 2</GridOffsets>
-                <GridCS>urn:ogc:def:crs:OGC::imageCRS</GridCS>
-              </GridCRS>
-            </Output>
+            <Output format="image/tiff" />
           </GetCoverage>"""
         return (params, "xml")
 
@@ -236,14 +230,7 @@ class WCS11PostGetCoverageMosaicTestCase(testbase.RectifiedGridCoverageMultipart
                 <ows:UpperCorner>46.5 28</ows:UpperCorner>
               </ows:BoundingBox>
             </DomainSubset>
-            <Output format="image/tiff">
-              <GridCRS>
-                <GridBaseCRS>urn:ogc:def:crs:EPSG::4326</GridBaseCRS>
-                <GridType>urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs</GridType>
-                <GridOffsets>2 2</GridOffsets>
-                <GridCS>urn:ogc:def:crs:OGC::imageCRS</GridCS>
-              </GridCRS>
-            </Output>
+            <Output format="image/tiff" />
           </GetCoverage>"""
         return (params, "xml")
 
