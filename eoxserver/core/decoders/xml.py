@@ -85,6 +85,9 @@ class Parameter(object):
             try:
                 return map(self.type, results)
             except Exception, e:
+                # let some more sophisticated exceptions pass
+                if hasattr(e, "locator") or hasattr(e, "code"):
+                    raise
                 raise InvalidParameterException(str(e), locator)
 
         elif self.num == ZERO_OR_ONE and count == 0:
@@ -94,6 +97,9 @@ class Parameter(object):
             try:
                 return self.type(results[0])
             except Exception, e:
+                # let some more sophisticated exceptions pass
+                if hasattr(e, "locator") or hasattr(e, "code"):
+                    raise
                 raise InvalidParameterException(str(e), locator)
 
         return results[0]
