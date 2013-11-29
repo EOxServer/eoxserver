@@ -63,7 +63,7 @@ class BaseRenderer(Component):
             Q(semantic__startswith="bands") | Q(semantic="tileindex")
         )
 
-    def layer_for_coverage(self, coverage, native_format):
+    def layer_for_coverage(self, coverage, native_format, version=None):
         """ Helper method to generate a WCS enabled MapServer layer for a given 
             coverage.
         """
@@ -94,15 +94,23 @@ class BaseRenderer(Component):
             "resolution": "%.10g %.10g" % resolution,
             "size": "%d %d" % size,
             "bandcount": str(len(bands)),
-            "band_names": " ".join([band.name for band in bands]),
+            
             "interval": "%f %f" % bands[0].allowed_values,
             "significant_figures": "%d" % bands[0].significant_figures,
             "rangeset_name": range_type.name,
             "rangeset_label": range_type.name,
-            "rangeset_axes": ",".join(band.name for band in bands),
             "imagemode": ms.gdalconst_to_imagemode_string(bands[0].data_type),
             "formats": " ".join([f.mimeType for f in self.get_wcs_formats()])
         }, namespace="wcs")
+
+        if version == None or version.startswith("2.0"):
+            ms.setMetaData(layer, {
+                "band_names": " ".join([band.name for band in bands]),
+            }, namespace="wcs")
+        else:
+            ms.setMetaData(layer, {
+                "rangeset_axes": ",".join(band.name for band in bands),
+            }, namespace="wcs")
 
         if native_format:
             ms.setMetaData(layer, {

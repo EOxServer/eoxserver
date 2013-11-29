@@ -93,7 +93,7 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         map_.setOutputFormat(of)
 
         # TODO: use layer factory here
-        layer = self.layer_for_coverage(coverage, native_format)
+        layer = self.layer_for_coverage(coverage, native_format, params.version)
         
         map_.insertLayer(layer)
 
@@ -120,7 +120,7 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
             result_set[0] = ResultBuffer(
                 encoder.serialize(
                     encoder.alter_rectified_dataset(
-                        coverage, getattr(params, "request", None), 
+                        coverage, getattr(params, "http_request", None), 
                         etree.parse(result_set[0].data_file).getroot(), None
                     )
                 ), 
