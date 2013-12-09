@@ -58,14 +58,14 @@ def getExtentFromRectifiedDS( ds , eps=1e-6 ):
     x0 , dxx , dxy , y0 , dyx , dyy = ds.GetGeoTransform()
 
     if ( abs(eps*dxx) < abs(dxy) ) or ( abs(eps*dyy) < abs(dyx) ) :  
-        RuntimeError( "Rectified datasets with non-orthogonal or"
+        raise RuntimeError( "Rectified datasets with non-orthogonal or"
             " rotated axes are not supported" ) 
 
     if ( dxx < 0 ) or ( dyy > 0 ) :  
-        RuntimeError( "Rectified datasets with flipped axes directions"
+        raise RuntimeError( "Rectified datasets with flipped axes directions"
             " are not supported" ) 
 
-    x1 , y1 = ( x0 + size_x * dxx ) , ( y0 + size_y * dyy ) 
+    x1 , y1 = ( x0 + size_x * dxx ) , ( y0 + size_y * dyy )
 
     return ( x0 , y1 , x1 , y0 ) 
 
@@ -77,7 +77,7 @@ def getExtentFromReferenceableDS( ds ):
     filelist = ds.GetFileList()
 
     if 1 != len( filelist ) : 
-        RuntimeError( "Cannot get a single dataset filename!" ) 
+        raise RuntimeError( "Cannot get a single dataset filename!" ) 
         
     rt_prm = rt.suggest_transformer(filelist[0]) 
     fp_wkt = rt.get_footprint_wkt(filelist[0],**rt_prm)
