@@ -43,10 +43,29 @@ namespace("WebClient").Views = (function() {
             });
             this.boxControl = boxControl;
 
-            var wmsLayer = new OpenLayers.Layer.WMS(
-                "OpenLayers WMS",
-                "http://vmap0.tiles.osgeo.org/wms/vmap0",
-                {layers: 'basic'}
+            var wmsLayer = new OpenLayers.Layer.WMTS({
+                    requestEncoding: "REST",
+                    attribution: '&copy; EOX IT Services GmbH',
+                    url: [ 'http://a.tiles.maps.eox.at/wmts/','http://b.tiles.maps.eox.at/wmts/','http://c.tiles.maps.eox.at/wmts/','http://d.tiles.maps.eox.at/wmts/','http://e.tiles.maps.eox.at/wmts/' ],
+                    matrixSet: 'WGS84',
+                    style: 'default',
+                    format: 'image/png',
+                    resolutions: [ 0.70312500000000000000,0.35156250000000000000,0.17578125000000000000,0.08789062500000000000,0.04394531250000000000,0.02197265625000000000,0.01098632812500000000,0.00549316406250000000,0.00274658203125000000,0.00137329101562500000,0.00068664550781250000 ],
+                    maxExtent: new OpenLayers.Bounds(-180.000000,-90.000000,180.000000,90.000000),
+                    projection: new OpenLayers.Projection("EPSG:4326"),
+                    gutter: 0,
+                    buffer: 0,
+                    units: 'dd',
+                    transitionEffect: 'resize',
+                    isphericalMercator: false,
+                    isBaseLayer: false,
+                    wrapDateLine: true,
+                    zoomOffset: 0,
+                    name: 'Terrain', 
+                    layer: 'terrain',
+                    isBaseLayer: true,
+                    attribution: "Terrain &copy; <a href='#' onClick='toggle(terrain_attribution)'>Various</a>"
+                }
             );
 
             var mapParams = {
