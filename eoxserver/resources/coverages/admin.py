@@ -446,7 +446,11 @@ admin.site.register(DatasetSeriesRecord, DatasetSeriesAdmin)
 
 
 class EOMetadataAdmin(admin.GeoModelAdmin):
-    wms_url = "http://vmap0.tiles.osgeo.org/wms/vmap0" # TODO: make this configurable
+    wms_name = 'EOX Maps'
+    wms_url = 'http://tiles.maps.eox.at/wms/'
+    wms_layer = 'terrain,overlay'
+    default_lon = 16
+    default_lat = 48
     
     def save_model(self, request, obj, form, change):
         # steps:
