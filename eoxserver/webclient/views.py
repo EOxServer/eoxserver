@@ -88,9 +88,11 @@ def webclient(request, eoid):
     begin = eo_obj.getBeginTime()
     end = eo_obj.getEndTime()
     
-    # TODO: remove center and add initial extent
     extent = eo_obj.getFootprint().extent
-    
+    # zoom to Europe if we don't have a proper extent
+    if extent == (0,0,1,1):
+        extent = (-10,30,34,72)
+
     # TODO set static resources
     http_ows_url = System.getConfig().getConfigValue(
         "services.owscommon", "http_service_url"
