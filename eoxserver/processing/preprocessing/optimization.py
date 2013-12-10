@@ -81,9 +81,9 @@ class ReprojectionOptimization(DatasetOptimization):
         dst_sr = osr.SpatialReference()
         dst_sr.ImportFromEPSG(self.srid)
         
-        if src_sr.IsSame(dst_sr):
-            logger.info("Source and destination projection are equal. No "
-                        "reprojection required.")
+        if src_sr.IsSame(dst_sr) and (src_ds.GetGeoTransform()[1] > 0) and (src_ds.GetGeoTransform()[5] < 0):
+            logger.info("Source and destination projection are equal and image "
+                        "is not flipped. Thus, no reprojection is required.")
             return src_ds
         
         # create a temporary dataset to get information about the output size
