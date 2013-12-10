@@ -176,8 +176,15 @@ python setup.py sdist upload
 python setup.py bdist_rpm --release <NO>
 # Test packages in dist/
 
+vi eoxserver/__init__.py
+# Adjust version to dev
+vi setup.py
+# Adjust Development Status if necessary
+git commit setup.py eoxserver/__init__.py -m "Adjusting version."
+
 git push
 git push --tags
+# Edit release at https://github.com/EOxServer/eoxserver/releases
 
 cd dist/
 tar czf ../../rpmbuild/RPMS/EOxServer-0.3.1.tar.gz EOxServer-*rpm
