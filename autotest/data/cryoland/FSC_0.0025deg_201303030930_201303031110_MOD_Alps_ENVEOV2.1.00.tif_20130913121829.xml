@@ -1,0 +1,10 @@
+<Metadata>
+    <EOID>FSC_0.0025deg_201303030930_201303031110_MOD_Alps_ENVEOV2.1.00</EOID>
+    <BeginTime>2013-09-13T00:00:00Z</BeginTime>
+    <EndTime>2013-09-13T23:59:59Z</EndTime>
+    <Footprint>
+        <Polygon>
+            <Exterior>44.3212891 5.6948242 48.5839844 5.6948242 48.5839844 16.7250977 44.3212891 16.7250977 44.3212891 5.6948242</Exterior>
+        </Polygon>
+    </Footprint>
+</Metadata>
