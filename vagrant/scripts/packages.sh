@@ -4,7 +4,8 @@
 yum update -y
 
 # Install packages
-yum install -y gdal-eox gdal-eox-python postgis Django14 proj-epsg
+yum install -y gdal-eox gdal-eox-python postgis Django14 proj-epsg \
+               python-django-extensions python-werkzeug
 yum install -y python-lxml mod_wsgi httpd postgresql-server python-psycopg2 pytz
 yum install -y libxml2 libxml2-python mapserver mapserver-python
 
