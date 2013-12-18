@@ -118,7 +118,7 @@ class PDPComponent(Component):
 
     def get_pdp(self, pdp_type):
         for pdp in self.pdps:
-            if pdp.type == pdp_type:
+            if pdp.pdp_type == pdp_type:
                 return pdp
         return None
 

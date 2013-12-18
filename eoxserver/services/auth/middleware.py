@@ -32,6 +32,7 @@ import functools
 from django.http import HttpResponse
 
 from eoxserver.services.auth.base import getPDP
+from eoxserver.services.auth.exceptions import AuthorizationError
 
 
 class PDPMiddleware(object):
