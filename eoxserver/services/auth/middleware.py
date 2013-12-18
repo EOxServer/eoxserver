@@ -58,7 +58,9 @@ class PDPMiddleware(object):
             if not authorized:
                 encoder = OWS20ExceptionXMLEncoder()
                 return HttpResponse(
-                    encoder.encode_exception(message, "2.0.0", code),
+                    encoder.serialize(
+                        encoder.encode_exception(message, "2.0.0", code)
+                    ),
                     encoder.content_type, status=403
                 )
 
@@ -92,7 +94,9 @@ def pdp_protect(view):
             if not authorized:
                 encoder = OWS20ExceptionXMLEncoder()
                 return HttpResponse(
-                    encoder.encode_exception(message, "2.0.0", code),
+                    encoder.serialize(
+                        encoder.encode_exception(message, "2.0.0", code)
+                    ),
                     encoder.content_type, status=403
                 )
 
