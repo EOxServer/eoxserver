@@ -192,7 +192,7 @@ INSTALLED_APPS = (
     # Enable the databrowse:
     #'django.contrib.databrowse',
     # Enable for debugging
-    #'django_extensions',
+    'django_extensions',
     # Enable EOxServer:
     'eoxserver.core',
     'eoxserver.services',
@@ -249,7 +249,7 @@ LOGGING = {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
             'filename': join(PROJECT_DIR, 'logs', 'eoxserver.log'),
-            'formatter': 'verbose',
+            'formatter': 'verbose' if DEBUG else 'simple',
             'filters': [],
         }
     },
@@ -263,7 +263,7 @@ LOGGING = {
 }
 
 FIXTURE_DIRS = (
-    join(PROJECT_DIR, 'data/fixtures')
+    join(PROJECT_DIR, 'data/fixtures'),
 )
 
 # Set this variable if the path to the instance cannot be resolved 
