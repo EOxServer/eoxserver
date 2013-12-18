@@ -238,7 +238,7 @@ LOGGING = {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
             'filename': join(PROJECT_DIR, 'logs', 'eoxserver.log'),
-            'formatter': 'verbose',
+            'formatter': 'verbose' if DEBUG else 'simple',
             'filters': [],
         }
     },
