@@ -44,7 +44,7 @@ from eoxserver.contrib import gdal, osr
 from eoxserver.testing.xcomp import xmlCompareFiles
 
 
-root_dir = os.path.join(settings.PROJECT_DIR, "..")
+root_dir = settings.PROJECT_DIR
 
 BASE_FIXTURES = [
     "range_types.json", "meris_range_type.json", 
