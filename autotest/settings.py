@@ -54,7 +54,7 @@ ADMINS = (
 MANAGERS = ADMINS
 
 # Configure which database to use. Default is PostGIS.
-DATABASE = '' # 'sqlite'
+DATABASE =  'sqlite'
 
 if DATABASE == 'sqlite':
     DATABASES = {
@@ -214,11 +214,20 @@ INSTALLED_APPS = (
 # modules in the package will be included. With the double '**' a recursive 
 # search will be done.
 COMPONENTS = (
+    # backends
     'eoxserver.backends.storages.*',
     'eoxserver.backends.packages.*',
+
+    # metadata readers/writers
     'eoxserver.resources.coverages.metadata.formats.*',
+
+    # service handlers
     'eoxserver.services.ows.wcs.**',
     'eoxserver.services.ows.wms.**',
+
+    # renderer components etc.
+    'eoxserver.services.native.**',
+    'eoxserver.services.gdal.**',
     'eoxserver.services.mapserver.**',
 )
 
