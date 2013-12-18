@@ -54,7 +54,7 @@ ADMINS = (
 MANAGERS = ADMINS
 
 # Configure which database to use. Default is PostGIS.
-DATABASE =  'sqlite'
+DATABASE = '' # 'sqlite'
 
 if DATABASE == 'sqlite':
     DATABASES = {
