@@ -38,7 +38,6 @@ from django.http import HttpResponse
 from eoxserver.core import Component, ExtensionPoint, env
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.decoders import config
-from eoxserver.services.ows.common.v20.encoders import OWS20ExceptionXMLEncoder
 from eoxserver.services.auth.exceptions import AuthorisationException
 from eoxserver.services.auth.interfaces import PolicyDecisionPointInterface
 
