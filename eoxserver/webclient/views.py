@@ -80,6 +80,9 @@ def webclient(request, identifier):
     end = eo_object.end_time
     
     extent = eo_object.extent_wgs84
+    # zoom to Europe if we don't have a proper extent
+    if extent == (0,0,1,1):
+        extent = (-10,30,34,72)
     reader = WebclientConfigReader(get_eoxserver_config())
 
     return render_to_response(

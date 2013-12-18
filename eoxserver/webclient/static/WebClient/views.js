@@ -43,17 +43,53 @@ namespace("WebClient").Views = (function() {
             });
             this.boxControl = boxControl;
 
-            var wmsLayer = new OpenLayers.Layer.WMS(
-                "OpenLayers WMS",
-                "http://vmap0.tiles.osgeo.org/wms/vmap0",
-                {layers: 'basic'}
+            layerDefaults = {
+                requestEncoding: 'REST',
+                url: [ 'http://a.tiles.maps.eox.at/wmts/','http://b.tiles.maps.eox.at/wmts/','http://c.tiles.maps.eox.at/wmts/','http://d.tiles.maps.eox.at/wmts/','http://e.tiles.maps.eox.at/wmts/' ],
+                matrixSet: 'WGS84',
+                style: 'default',
+                format: 'image/png',
+                resolutions: [ 0.70312500000000000000,0.35156250000000000000,0.17578125000000000000,0.08789062500000000000,0.04394531250000000000,0.02197265625000000000,0.01098632812500000000,0.00549316406250000000,0.00274658203125000000,0.00137329101562500000,0.00068664550781250000,0.00034332275390625000,0.00017166137695312500 ],
+                maxExtent: new OpenLayers.Bounds(-180.000000,-90.000000,180.000000,90.000000),
+                projection: new OpenLayers.Projection('EPSG:4326'),
+                gutter: 0,
+                buffer: 0,
+                units: 'dd',
+                transitionEffect: 'resize',
+                isphericalMercator: false,
+                wrapDateLine: true,
+                zoomOffset: 0
+            };
+
+            var wmtsLayer = new OpenLayers.Layer.WMTS(
+                OpenLayers.Util.applyDefaults(
+                    {
+                        name: 'EOX Maps Terrain',
+                        layer: 'terrain',
+                        isBaseLayer: true,
+                        attribution: 'Terrain map data: GTOPO30, SRTM © NASA, EU-DEM © Produced using Copernicus data and information funded by the European Union - EU-DEM layers, CleanTOPO2 public domain, GlobCover © ESA, NaturalEarth public domain, and OpenStreetMap © OpenStreetMap contributors; Terrain map design © EOX IT Services GmbH',
+                    },
+                    layerDefaults
+                )
+            );
+
+            var wmtsOverlay = new OpenLayers.Layer.WMTS(
+                OpenLayers.Util.applyDefaults(
+                    {
+                        name: 'EOX Maps Overlay',
+                        layer: 'overlay',
+                        isBaseLayer: false,
+                        attribution: 'Overlay map data: NaturalEarth public domain and OpenStreetMap © OpenStreetMap contributors; Overlay map design © EOX IT Services GmbH',
+                    },
+                    layerDefaults
+                )
             );
 
             var mapParams = {
-                projection: new OpenLayers.Projection("EPSG:4326"),
-                displayProjection: new OpenLayers.Projection("EPSG:4326"),
+                projection: new OpenLayers.Projection('EPSG:4326'),
+                displayProjection: new OpenLayers.Projection('EPSG:4326'),
                 numZoomLevels:13,
-                units: "d",
+                units: 'dd',
                 maxExtent: bounds,
                 restrictedExtent: bounds,
                 controls: [
@@ -67,7 +103,7 @@ namespace("WebClient").Views = (function() {
                     boxControl
                 ],
                 layers: [
-                    wmsLayer
+                    wmtsLayer
                 ]
             };
 
@@ -127,8 +163,8 @@ namespace("WebClient").Views = (function() {
 
             this.map.addLayers(this.layers);
             this.map.addLayer(this.bboxLayer);
+            this.map.addLayer(wmtsOverlay);
 
-						
             if (useFeatureInfo) {
                 this.infoControl = new OpenLayers.Control.WMSGetFeatureInfo({
                     url: useFeatureInfo.url, 
@@ -167,33 +203,33 @@ namespace("WebClient").Views = (function() {
         },
 
         onFeatureInfo: function(event) {
-			if (event.request.status == 200) {
-				if (event.text) {
-					var popup = new OpenLayers.Popup.FramedCloud(
-						null, 
-						this.map.getLonLatFromPixel(event.xy),
-						null,
-						event.text,
-						null,
-						true
-					);
-					this.map.addPopup(popup);
-				}
-			}
-			else if (event.request.status >= 400 && event.request.status <= 420) {
-			//else if (event.request.status == 500) {
-				var popup_text = "No coverages found at point " + this.map.getLonLatFromPixel(event.xy) + "<BR/>" +
-								  " for time " + this.dtModel.getBeginString() + "/" + this.dtModel.getEndString();
-				var popup = new OpenLayers.Popup.FramedCloud(
-						null, 
-						this.map.getLonLatFromPixel(event.xy),
-						null,
-						popup_text,
-						null,
-						true
-				);
-				this.map.addPopup(popup);
-			}
+            if (event.request.status == 200) {
+                if (event.text) {
+                    var popup = new OpenLayers.Popup.FramedCloud(
+                        null,
+                        this.map.getLonLatFromPixel(event.xy),
+                        null,
+                        event.text,
+                        null,
+                        true
+                    );
+                    this.map.addPopup(popup);
+                }
+            }
+            else if (event.request.status >= 400 && event.request.status <= 420) {
+            //else if (event.request.status == 500) {
+                var popup_text = "No coverages found at point " + this.map.getLonLatFromPixel(event.xy) + "<BR/>" +
+                                  " for time " + this.dtModel.getBeginString() + "/" + this.dtModel.getEndString();
+                var popup = new OpenLayers.Popup.FramedCloud(
+                        null,
+                        this.map.getLonLatFromPixel(event.xy),
+                        null,
+                        popup_text,
+                        null,
+                        true
+                );
+                this.map.addPopup(popup);
+            }
         },
 
         /// external events
@@ -1041,10 +1077,34 @@ namespace("WebClient").Views = (function() {
 
             /// background
 
-            var wmsLayer = new OpenLayers.Layer.WMS(
-                "OpenLayers WMS",
-                "http://vmap0.tiles.osgeo.org/wms/vmap0",
-                {layers: 'basic'}
+            layerDefaults = {
+                requestEncoding: 'REST',
+                url: [ 'http://a.tiles.maps.eox.at/wmts/','http://b.tiles.maps.eox.at/wmts/','http://c.tiles.maps.eox.at/wmts/','http://d.tiles.maps.eox.at/wmts/','http://e.tiles.maps.eox.at/wmts/' ],
+                matrixSet: 'WGS84',
+                style: 'default',
+                format: 'image/png',
+                resolutions: [ 0.70312500000000000000,0.35156250000000000000,0.17578125000000000000,0.08789062500000000000,0.04394531250000000000,0.02197265625000000000,0.01098632812500000000,0.00549316406250000000,0.00274658203125000000,0.00137329101562500000,0.00068664550781250000,0.00034332275390625000,0.00017166137695312500 ],
+                maxExtent: new OpenLayers.Bounds(-180.000000,-90.000000,180.000000,90.000000),
+                projection: new OpenLayers.Projection('EPSG:4326'),
+                gutter: 0,
+                buffer: 0,
+                units: 'dd',
+                transitionEffect: 'resize',
+                isphericalMercator: false,
+                wrapDateLine: true,
+                zoomOffset: 0
+            };
+
+            var wmtsLayer = new OpenLayers.Layer.WMTS(
+                OpenLayers.Util.applyDefaults(
+                    {
+                        name: 'EOX Maps Terrain',
+                        layer: 'terrain',
+                        isBaseLayer: true,
+                        attribution: 'Terrain map data: GTOPO30, SRTM © NASA, EU-DEM © Produced using Copernicus data and information funded by the European Union - EU-DEM layers, CleanTOPO2 public domain, GlobCover © ESA, NaturalEarth public domain, and OpenStreetMap © OpenStreetMap contributors; Terrain map design © EOX IT Services GmbH',
+                    },
+                    layerDefaults
+                )
             );
 
             /// set up 'bands' eo-wms layer
@@ -1088,7 +1148,7 @@ namespace("WebClient").Views = (function() {
                 numZoomLevels:13,
                 units: "d",
                 layers: [
-                    wmsLayer, this.layer, vectorLayer
+                    wmtsLayer, this.layer, vectorLayer
                 ]
             });
             this.map.zoomToExtent(bounds);

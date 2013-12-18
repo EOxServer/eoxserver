@@ -121,8 +121,11 @@ class CoverageForm(LocationForm):
 
 
 class EOObjectAdmin(admin.GeoModelAdmin):
+    wms_name = 'EOX Maps'
     wms_url = 'http://tiles.maps.eox.at/wms/'
-    wms_layer = 'globcover,overlay_streets_wgs84'
+    wms_layer = 'terrain,overlay'
+    default_lon = 16
+    default_lat = 48
 
 
 class CoverageAdmin(EOObjectAdmin):

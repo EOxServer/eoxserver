@@ -156,19 +156,19 @@ git commit setup.py eoxserver/__init__.py -m "Adjusting version."
 #Development Status :: 6 - Mature
 #Development Status :: 7 - Inactive
 
-git tag -a release-0.3.1 -m "Tagging the 0.3.1 release of EOxServer."
-git archive --format=tar --prefix=EOxServer-0.3.1/ release-0.3.1 | gzip > EOxServer-0.3.1.tar.gz
-mv EOxServer-0.3.1.tar.gz <path-to-builder_rpm>
+git tag -a release-0.3.2 -m "Tagging the 0.3.2 release of EOxServer."
+git archive --format=tar --prefix=EOxServer-0.3.2/ release-0.3.2 | gzip > EOxServer-0.3.2.tar.gz
+mv EOxServer-0.3.2.tar.gz <path-to-builder_rpm>
 cd <path-to-builder_rpm>/
 vagrant ssh
 
-tar xzf EOxServer-0.3.1.tar.gz
-rm EOxServer-0.3.1.tar.gz
-cd EOxServer-0.3.1/
+tar xzf EOxServer-0.3.2.tar.gz
+rm EOxServer-0.3.2.tar.gz
+cd EOxServer-0.3.2/
 
 # pypi
 python setup.py sdist
-#Check newly generated file dist/EOxServer-0.3.1.tar.gz
+#Check newly generated file dist/EOxServer-0.3.2.tar.gz
 python setup.py sdist upload
 # Administrate visible versions at pypi.python.org
 
@@ -176,11 +176,22 @@ python setup.py sdist upload
 python setup.py bdist_rpm --release <NO>
 # Test packages in dist/
 
+cd dist/
+tar czf ../../rpmbuild/RPMS/EOxServer-0.3.2.tar.gz EOxServer-*rpm
+# scp EOxServer-0.3.2.tar.gz -> packages@packages.eox.at:.
+cd ../../
+rm -r EOxServer-0.3.2/
+
+vi eoxserver/__init__.py
+# Adjust version to dev
+vi setup.py
+# Adjust Development Status if necessary
+git commit setup.py eoxserver/__init__.py -m "Adjusting version."
+
 git push
 git push --tags
 
-cd dist/
-tar czf ../../rpmbuild/RPMS/EOxServer-0.3.1.tar.gz EOxServer-*rpm
-# scp EOxServer-0.3.1.tar.gz -> packages@packages.eox.at:.
-cd ../../
-rm -r EOxServer-0.3.1/
+# Edit release at https://github.com/EOxServer/eoxserver/releases
+# Edit milestones at https://github.com/EOxServer/eoxserver/issues/milestones
+# Mail to dev & users
+# Tweet
