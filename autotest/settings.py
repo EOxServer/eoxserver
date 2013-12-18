@@ -263,8 +263,7 @@ LOGGING = {
 }
 
 FIXTURE_DIRS = (
-    join(PROJECT_DIR, 'data/fixtures'),
-    join(PROJECT_DIR, '../autotest_services/fixtures'),
+    join(PROJECT_DIR, 'data/fixtures')
 )
 
 # Set this variable if the path to the instance cannot be resolved 
