@@ -14,16 +14,10 @@ echo "**> running pylint tests ..."
 echo "**> running unit tests tests ..."
 cd autotest
 export XML_CATALOG_FILES="$WORKSPACE/schemas/catalog.xml"
-# ftp tests are disabled
-if [ $OS == "Ubuntu" ]; then
-    python manage.py test "services|WCS20GetCoverageJPEG2000TestCase,WCS10DescribeCoverageDatasetTestCase,WCS10DescribeCoverageMosaicTestCase,WCS11TransactionReferenceableDatasetTestCase,WCS20GetCoverageReferenceableDatasetGeogCRSSubsetExceedsExtentTestCase,WCS20GetCoverageReferenceableDatasetGeogCRSSubsetTestCase,WCS20GetCoverageReferenceableDatasetImageCRSSubsetTestCase,WCS20PostGetCoverageReferenceableMultipartDatasetTestCase" -v2
-    python manage.py test "coverages|RegisterRemoteDatasetTestCase,RectifiedStitchedMosaicCreateWithRemotePathTestCase" -v2
-else
-    python manage.py test "services|WCS20GetCoverageOutputCRSotherUoMDatasetTestCase,WCS20GetCoverageReprojectedEPSG3857DatasetTestCase" -v2
-    python manage.py test "coverages|RegisterRemoteDatasetTestCase,RectifiedStitchedMosaicCreateWithRemotePathTestCase" -v2
-fi
+python manage.py test autotest_services -v2
+python manage.py test services coverages -v2
 #TODO: Enable testing of all apps
-#python manage.py test core services coverages backends processes -v2
+#python manage.py test autotest_services core services coverages backends processes -v2
 
 # Run command line tests
 echo "**> running command line tests ..."
@@ -35,7 +29,7 @@ if [ $DB == "postgis" ]; then
 fi
 
 python manage.py syncdb --noinput --traceback
-python manage.py loaddata auth_data.json initial_rangetypes.json --traceback
+python manage.py loaddata auth_data.json range_types.json --traceback
 python manage.py eoxs_load_rangetypes --traceback << EOF
 [{
     "bands": [
@@ -276,9 +270,9 @@ python manage.py eoxs_load_rangetypes --traceback << EOF
 EOF
 python manage.py eoxs_list_rangetypes --traceback
 python manage.py eoxs_add_dataset_series -i MER_FRS_1P_reduced --traceback
-python manage.py eoxs_register_dataset -d autotest/data/meris/MER_FRS_1P_reduced/*.tif -r MERIS_uint16 --dataset-series MER_FRS_1P_reduced --traceback
-python manage.py eoxs_register_dataset -d autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced/*.tif -r RGB --traceback
-python manage.py eoxs_register_dataset -d autotest/data/asar/*.tiff -r ASAR --traceback
+python manage.py eoxs_register -d autotest/data/meris/MER_FRS_1P_reduced/*.tif -r MERIS_uint16 --dataset-series MER_FRS_1P_reduced --traceback
+python manage.py eoxs_register -d autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced/*.tif -r RGB --traceback
+python manage.py eoxs_register -d autotest/data/asar/*.tiff -r ASAR --traceback
 python manage.py eoxs_list_ids --traceback
 python manage.py eoxs_insert_into_series -d mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced mosaic_ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced mosaic_ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced -s MER_FRS_1P_reduced --traceback
 
