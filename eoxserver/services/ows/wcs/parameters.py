@@ -90,5 +90,6 @@ class CoverageDescriptionRenderParams(WCSParamsMixIn, VersionedParams):
         for k, v in super(CoverageDescriptionRenderParams, self).__iter__():
             yield k, v
 
+        yield ("request", "DescribeCoverage")
         yield (self.coverage_ids_key_name, ",".join(self.coverage_ids))
 
