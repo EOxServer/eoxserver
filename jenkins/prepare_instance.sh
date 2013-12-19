@@ -46,6 +46,7 @@ cp -R tmp1/autotest/data/ autotest/autotest/
 cp -R tmp1/autotest/expected/ autotest/autotest/
 cp tmp1/autotest/conf/template.map autotest/autotest/conf/template.map
 mkdir -p autotest/autotest/responses/
+cp -R tmp1/autotest_services/ autotest/
 rm -r tmp1
 
 sed -e 's/pdp_type=none/pdp_type=dummypdp/' -i autotest/autotest/conf/eoxserver.conf
@@ -55,6 +56,9 @@ sed -e 's/# cache_dir=\/tmp/cache_dir=\/tmp/' -i autotest/autotest/conf/eoxserve
 if [ $OS != "Ubuntu" ]; then
   sed -e 's/#binary_raster_comparison_enabled=false/binary_raster_comparison_enabled=false/' -i autotest/autotest/conf/eoxserver.conf
 fi
+
+# Enable 'autotest_services' app
+sed -e "s/#'autotest_services',/'autotest_services',/" -i autotest/autotest/settings.py
 
 # Configure the specified database system
 case $DB in

@@ -192,6 +192,8 @@ INSTALLED_APPS = (
     'eoxserver.backends',
     'eoxserver.testing',
     'eoxserver.webclient',
+    # Enable EOxServer autotests
+    #'autotest_services',
 )
 
 
