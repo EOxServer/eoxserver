@@ -56,7 +56,9 @@ class MapServerWCSCapabilitiesRenderer(Component):
         map_.setMetaData({
             "enable_request": "*",
             "onlineresource": conf.http_service_url,
-            "service_onlineresource": conf.http_service_url,
+            "service_onlineresource": conf.onlineresource,
+            "updateSequence": conf.update_sequence,
+            "name": conf.name,
             "title": conf.title,
             "label": conf.title,
             "abstract": conf.abstract,
