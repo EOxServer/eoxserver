@@ -31,6 +31,7 @@ from eoxserver.core import Component, implements
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.util.timetools import isoformat
 from eoxserver.contrib.mapserver import create_request, Map, Layer
+from eoxserver.services.mapserver.wcs.base_renderer import BaseRenderer
 from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.services.ows.wcs.interfaces import (
     WCSCapabilitiesRendererInterface
@@ -39,7 +40,7 @@ from eoxserver.services.ows.version import Version
 from eoxserver.services.result import result_set_from_raw_data, get_content_type
 
 
-class MapServerWCSCapabilitiesRenderer(Component):
+class MapServerWCSCapabilitiesRenderer(BaseRenderer):
     """ WCS Capabilities renderer implementation using MapServer.
     """
     implements(WCSCapabilitiesRendererInterface)
@@ -56,7 +57,9 @@ class MapServerWCSCapabilitiesRenderer(Component):
         map_.setMetaData({
             "enable_request": "*",
             "onlineresource": conf.http_service_url,
-            "service_onlineresource": conf.http_service_url,
+            "service_onlineresource": conf.onlineresource,
+            "updateSequence": conf.update_sequence,
+            "name": conf.name,
             "title": conf.title,
             "label": conf.title,
             "abstract": conf.abstract,
@@ -78,9 +81,12 @@ class MapServerWCSCapabilitiesRenderer(Component):
             "contactinstructions": conf.contact_instructions,
             "fees": conf.fees,
             "keywordlist": ",".join(conf.keywords),
+            "formats": " ".join([f.wcs10name for f in self.get_wcs_formats()]),
         }, namespace="ows")
         map_.setProjection("EPSG:4326")
 
+        for outputformat in self.get_all_outputformats(False):
+            map_.appendOutputFormat(outputformat)
 
         for coverage in params.coverages:
             layer = Layer(coverage.identifier)
@@ -98,6 +104,7 @@ class MapServerWCSCapabilitiesRenderer(Component):
                 "extent": "%.10g %.10g %.10g %.10g" % extent,
                 "resolution": "%.10g %.10g" % resolution,
                 "size": "%d %d" % size,
+                "formats": " ".join([f.wcs10name for f in self.get_wcs_formats()]),
             }, namespace="wcs")
 
             map_.insertLayer(layer)

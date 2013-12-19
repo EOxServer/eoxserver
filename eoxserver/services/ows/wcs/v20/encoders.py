@@ -110,8 +110,8 @@ class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
                             OWS("HoursOfService", conf.hours_of_service),
                             OWS("ContactInstructions", conf.contact_instructions)
                         ),
-                    ),
-                    OWS("Role", conf.role)
+                        OWS("Role", conf.role)
+                    )
                 )
             )
 
@@ -245,7 +245,7 @@ class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
 
             caps.append(WCS("Contents", *contents))
 
-        root = WCS("Capabilities", *caps, version="2.0.1")
+        root = WCS("Capabilities", *caps, version="2.0.1", updateSequence=conf.update_sequence)
         return root
 
     def get_schema_locations(self):
