@@ -26,7 +26,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-
+from eoxserver.services.subset import Slice
 from eoxserver.services.ows.wcs.parameters import (
     CoverageRenderParams, CoverageDescriptionRenderParams,
     WCSCapabilitiesRenderParams
