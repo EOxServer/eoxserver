@@ -274,7 +274,6 @@ class Command(CommandOutputMixIn, BaseCommand):
 
             #coverage.identifier = identifier # TODO: bug in models for some coverages
             for key, value in retrieved_metadata.items():
-                print key
                 setattr(coverage, key, value)
 
             coverage.full_clean()

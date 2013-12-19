@@ -557,6 +557,8 @@ class Collection(EOObject):
                     yield item
 
     def __len__(self):
+        if self.id == None:
+            return 0
         return self.eo_objects.count()
 
 

@@ -70,8 +70,8 @@ class EOOMFormatReader(Component):
 
 def parse_polygon_xml(elem):
     return Polygon(
-        parse_ring(elem.findtext("gml:exterior/gml:LinearRing/gml:posList", namespaces=nsmap)),
-        *map(lambda e: parse_ring(e.text), elem.findall("gml:interior/gml:LinearRing/gml:posList", namespaces=nsmap))
+        parse_ring(elem.xpath("gml:exterior/gml:LinearRing/gml:posList", namespaces=nsmap)[0].text),
+        *map(lambda e: parse_ring(e.text), elem.xpath("gml:interior/gml:LinearRing/gml:posList", namespaces=nsmap))
     )
 
 def parse_ring(string):
@@ -81,9 +81,9 @@ def parse_ring(string):
 
 
 class EOOMFormatDecoder(xml.Decoder):
-    identifier = xml.Parameter("eop:metaDataProperty/eop:EarthObservationMetaData/eop:identifier/text()")
-    begin_time = xml.Parameter("om:phenomenonTime/gml:TimePeriod/gml:beginPosition/text()", type=parse_datetime)
-    end_time = xml.Parameter("om:phenomenonTime/gml:TimePeriod/gml:endPosition/text()", type=parse_datetime)
+    identifier = xml.Parameter("eop:metaDataProperty/eop:EarthObservationMetaData/eop:identifier/text()", type=str, num=1)
+    begin_time = xml.Parameter("om:phenomenonTime/gml:TimePeriod/gml:beginPosition/text()", type=parse_datetime, num=1)
+    end_time = xml.Parameter("om:phenomenonTime/gml:TimePeriod/gml:endPosition/text()", type=parse_datetime, num=1)
     polygons = xml.Parameter("om:featureOfInterest/eop:Footprint/eop:multiExtentOf/gml:MultiSurface/gml:surfaceMember/gml:Polygon", type=parse_polygon_xml, num="+")
 
     namespaces = nsmap
