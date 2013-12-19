@@ -29,6 +29,8 @@
 
 from lxml import etree
 
+from django.contrib.gis.geos import Polygon
+
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.util.xmltools import XMLEncoder
 from eoxserver.core.util.timetools import isoformat
@@ -551,7 +553,7 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20E
 
         else:
             earth_observation = self.encode_earth_observation(
-                coverage, subset_polygon
+                coverage, subset_polygon=subset_polygon
             )
 
         if not request:
@@ -672,7 +674,7 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20E
                 coverage, srid, size, extent, False
             )
             eo_metadata = self.encode_eo_metadata(
-                coverage, subset_footprint=footprint
+                coverage, subset_polygon=footprint
             )
 
             # get the WGS84 extent

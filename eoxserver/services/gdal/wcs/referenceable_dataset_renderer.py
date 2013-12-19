@@ -31,6 +31,8 @@ from os.path import splitext, abspath
 from datetime import datetime
 from uuid import uuid4
 
+from django.contrib.gis.geos import GEOSGeometry
+
 from eoxserver.core import Component, implements
 from eoxserver.core.util.rect import Rect
 from eoxserver.backends.access import connect
@@ -42,6 +44,7 @@ from eoxserver.services.subset import Subsets
 from eoxserver.services.result import ResultFile, ResultBuffer
 from eoxserver.services.ows.wcs.interfaces import WCSCoverageRendererInterface
 from eoxserver.services.ows.wcs.v20.encoders import WCS20EOXMLEncoder
+from eoxserver.processing.gdal import reftools
 
 
 class GDALReferenceableDatasetRenderer(Component):
@@ -116,9 +119,9 @@ class GDALReferenceableDatasetRenderer(Component):
             reference = result_set[0].identifier
             
             if subsets.has_x and subsets.has_y:
-                footprint = GEOSGeometry(get_footprint_wkt(dst_path))
+                footprint = GEOSGeometry(reftools.get_footprint_wkt(out_ds))
                 encoder_subset = (
-                    subsets.xy_srid, src_rect.size, extent, footprint
+                    subsets.xy_srid, src_rect.size, coverage.extent, footprint
                 )
             else:
                 encoder_subset = None
@@ -188,10 +191,11 @@ class GDALReferenceableDatasetRenderer(Component):
             vrt = VRTBuilder(size_x, size_y)
             vrt.copy_gcps(dataset)
 
+            minx, miny, maxx, maxy = subsets.xy_bbox
+
             # subset in geographical coordinates
-            subset_rect = rect_from_subset(
-                vrt.dataset, subsets.xy_srid, 
-                subsets.minx, subsets.miny, subsets.maxx, subsets.maxy
+            subset_rect = reftools.rect_from_subset(
+                vrt.dataset, subsets.xy_srid, minx, miny, maxx, maxy
             )
 
         # check whether or not the subsets intersect with the image
