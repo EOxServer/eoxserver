@@ -62,7 +62,7 @@ class WCS10GetCapabilitiesHandler(WCSGetCapabilitiesHandlerBase, Component):
 
 
 class WCS10GetCapabilitiesKVPDecoder(kvp.Decoder):
-    sections            = kvp.Parameter(type=typelist(lower, ","), num="?", default=["all"])
+    sections            = kvp.Parameter(type=typelist(lower, ","), num="?")
     updatesequence      = kvp.Parameter(num="?")
     acceptversions      = kvp.Parameter(type=typelist(str, ","), num="?")
     acceptformats       = kvp.Parameter(type=typelist(str, ","), num="?", default=["text/xml"])

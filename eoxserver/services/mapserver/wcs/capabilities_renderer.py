@@ -103,6 +103,7 @@ class MapServerWCSCapabilitiesRenderer(Component):
             map_.insertLayer(layer)
         
         request = create_request(params)
+        request.setParameter("version", params.version)
         raw_result = map_.dispatch(request)
         result = result_set_from_raw_data(raw_result)
         return result
