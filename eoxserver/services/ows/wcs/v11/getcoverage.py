@@ -110,7 +110,7 @@ class WCS11GetCoverageKVPDecoder(kvp.Decoder):
 
 
 class WCS11GetCoverageXMLDecoder(xml.Decoder):
-    coverage_id = xml.Parameter("ows:Identifier/text()", num=1)
+    coverage_id = xml.Parameter("ows:Identifier/text()", type=str, num=1)
     boundingbox = xml.Parameter("wcs:DomainSubset/ows:BoundingBox", type=parse_bbox_xml, num=1)
     format = xml.Parameter("wcs:Output/@format", num=1)
     gridcs = xml.Parameter("wcs:Output/wcs:GridCRS/wcs:GridCS/text()", num="?")
