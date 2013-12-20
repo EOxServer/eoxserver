@@ -39,7 +39,7 @@ class Parameter(object):
     def __init__(self, selector, type=None, separator=None,
                  num=1, default=None, namespaces=None, locator=None):
         self.selector = selector
-        self.type = type
+        self.type = type or str # default to string, because XPath might return some kind of object
         self.separator = separator
         self.num = num # int or "?", "+", "*"
         self.default = default # only used for "?"
