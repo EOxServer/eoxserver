@@ -79,16 +79,22 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
 
         # configure outputformat
         native_format = self.get_native_format(coverage, data_items)
-        format = params.format or native_format
+        if get_format_by_mime(native_format) is None:
+            native_format = "image/tiff"
 
-        if format is None:
+        frmt = params.format or native_format
+
+        if frmt is None:
             raise Exception("format could not be determined")
+
+        mime_type, frmt = split_format(frmt)
 
         # TODO: imagemode
         imagemode = ms.gdalconst_to_imagemode(bands[0].data_type)
         time_stamp = datetime.now().strftime("%Y%m%d%H%M%S")
-        basename = "%s_%s" % (coverage.identifier, time_stamp) 
-        of = create_outputformat(format, imagemode, basename)
+        basename = "%s_%s" % (coverage.identifier, time_stamp)
+        of = create_outputformat(mime_type, frmt, imagemode, basename)
+
         map_.appendOutputFormat(of)
         map_.setOutputFormat(of)
 
@@ -107,6 +113,7 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
             connector.connect(coverage, data_items, layer)
             # create request object and dispatch it agains the map
             request = ms.create_request(params)
+            request.setParameter("format", mime_type)
             raw_result = ms.dispatch(map_, request)
 
         finally:
@@ -130,22 +137,23 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
 
         # "default" response
         return result_set
-        
 
-def create_outputformat(frmt, imagemode, basename):
+
+def split_format(frmt):
     parts = unquote(frmt).split(";")
     mime_type = parts[0]
     options = map(
         lambda kv: map(lambda i: i.strip(), kv.split("=")), parts[1:]
     )
+    return mime_type, options
+        
 
-    registry = getFormatRegistry()
-    reg_format = registry.getFormatByMIME(mime_type) 
+def create_outputformat(mime_type, options, imagemode, basename):
+    """ Returns a ``mapscript.outputFormatObj`` for the given format name and 
+        imagemode.
+    """
 
-    if not reg_format:
-        wcs10_frmts = registry.getFormatsByWCS10Name(mime_type)
-        if wcs10_frmts:
-            reg_format = wcs10_frmts[0]
+    reg_format = get_format_by_mime(mime_type)
 
     if not reg_format:
         raise Exception("Unsupported output format '%s'." % frmt)
@@ -157,7 +165,7 @@ def create_outputformat(frmt, imagemode, basename):
     outputformat.imagemode = imagemode
 
     for key, value in options:
-        outputformat.setOption(key, value)
+        outputformat.setOption(str(key), str(value))
 
     filename = basename + reg_format.defaultExt
     outputformat.setOption("FILENAME", str(filename))
@@ -165,9 +173,18 @@ def create_outputformat(frmt, imagemode, basename):
     return outputformat
 
 
-def pop_request_value(request_values, key, default=None):
-    for request_value in request_values:
-        if key == request_value[0]:
-            request_values.remove(request_value)
-            return request_values[1]
-    return default
+def get_format_by_mime(mime_type):
+    """ Convenience function to return an enabled format descriptior for the 
+        given mime type or WCS 1.0 format name. Returns ``None``, if none 
+        applies.
+    """
+
+    registry = getFormatRegistry()
+    reg_format = registry.getFormatByMIME(mime_type) 
+
+    if not reg_format:
+        wcs10_frmts = registry.getFormatsByWCS10Name(mime_type)
+        if wcs10_frmts:
+            reg_format = wcs10_frmts[0]
+
+    return reg_format
