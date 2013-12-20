@@ -29,6 +29,7 @@
 
 import logging
 
+from django.utils.timezone import is_aware, make_aware, utc
 from django.utils.dateparse import parse_datetime, parse_date
 from django.contrib.gis.geos import Polygon
 
@@ -427,15 +428,25 @@ class Trim(Subset):
     def __init__(self, axis, low=None, high=None, crs=None):
         super(Trim, self).__init__(axis, crs)
         dt = parse_quoted_temporal if self.is_temporal else float_or_star
-        self.low = dt(low)
-        self.high = dt(high)
+        
+        low = dt(low)
+        high = dt(high)
+
+        if low is not None and high is not None and low > high:
+            raise InvalidSubsettingException(
+                "Invalid bounds: lower bound greater than upper bound."
+            )
+
+        self.low = low
+        self.high = high
 
 
 
 temporal_axes = ("t", "time", "phenomenontime")
 x_axes = ("x", "lon", "long")
 y_axes = ("y", "lat")
-all_axes = temporal_axes + x_axes + y_axes
+z_axes = ("z", "height")
+all_axes = temporal_axes + x_axes + y_axes + z_axes
 
 
 def float_or_star(value):
@@ -462,6 +473,8 @@ def parse_quoted_temporal(value):
     for parser in (parse_datetime, parse_date):
         temporal = parser(value)
         if temporal:
+            if not is_aware(temporal):
+                temporal = make_aware(temporal, utc)
             return temporal
 
     raise ValueError("Could not parse '%s' to a temporal value" % value)
