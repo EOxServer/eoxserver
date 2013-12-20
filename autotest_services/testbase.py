@@ -134,7 +134,10 @@ class OWSTestCase(TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        del REQUEST_CACHE[cls.__name__]
+        try:
+            del REQUEST_CACHE[cls.__name__]
+        except KeyError:
+            pass
 
     
     def isRequestConfigEnabled(self, config_key, default=False):
@@ -493,7 +496,7 @@ class MultipartTestCase(XMLTestCase):
         self.isSetUp = False
         super(MultipartTestCase, self).setUp()
         
-        self._setUpMultiparts()
+        #self._setUpMultiparts()
     
 
     def _mangleXML( self , cbuffer ) : 
@@ -543,18 +546,10 @@ class MultipartTestCase(XMLTestCase):
         return etree.tostring(xml , encoding="UTF-8" , xml_declaration=True)"""
 
     def _unpackMultipartContent(self, response):
-        if response.streaming:
+        if getattr(response, "streaming", False):
             content = "".join(response)
         else:
             content = response.content
-
-        content_type = response['Content-Type']
-
-        if not content_type.startswith("multipart/"):
-            self.fail(
-                "Received response does not seem to be a multipart response. "
-                "Content type is '%s'." % content_type
-            )
 
         for headers, data in mp.iterate(content, headers=response):
             if RE_MIME_TYPE_XML.match(headers["Content-Type"]):
@@ -590,10 +585,14 @@ class MultipartTestCase(XMLTestCase):
     
     def getXMLData(self):
         self._setUpMultiparts()
+        if self.xmlData is None:
+            self.fail("No XML data returned.")
         return self.xmlData
     
     def getResponseData(self):
         self._setUpMultiparts()
+        if self.imageData is None:
+            self.fail("No image data returned.")
         return self.imageData
         
 class RectifiedGridCoverageMultipartTestCase(
