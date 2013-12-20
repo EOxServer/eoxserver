@@ -28,6 +28,7 @@
 
 
 import logging
+from datetime import datetime
 
 from django.utils.timezone import is_aware, make_aware, utc
 from django.utils.dateparse import parse_datetime, parse_date
@@ -473,8 +474,14 @@ def parse_quoted_temporal(value):
     for parser in (parse_datetime, parse_date):
         temporal = parser(value)
         if temporal:
+            # convert to datetime if necessary
+            if not isinstance(temporal, datetime):
+                temporal = datetime.combine(temporal, datetime.min.time())
+
+            # use UTC, if the datetime is not already time-zone aware
             if not is_aware(temporal):
                 temporal = make_aware(temporal, utc)
+            
             return temporal
 
     raise ValueError("Could not parse '%s' to a temporal value" % value)
