@@ -33,7 +33,7 @@ from eoxserver.core.decoders import config, typelist, Choice
 class CapabilitiesConfigReader(config.Reader):
     section = "services.ows"
 
-    update_sequence     = config.Option(default="None")
+    update_sequence     = config.Option(default="0")
     name                = config.Option(default="None")
     title               = config.Option(default="None")
     abstract            = config.Option(default="None")

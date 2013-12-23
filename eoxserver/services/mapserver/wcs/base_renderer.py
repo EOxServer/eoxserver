@@ -41,6 +41,9 @@ class WCSConfigReader(config.Reader):
     section = "services.ows.wcs"
     maxsize = config.Option(type=int, default=None)
 
+    section = "services.ows"
+    update_sequence = config.Option(default="0")
+
 
 class BaseRenderer(Component):
     abstract = True
@@ -53,6 +56,7 @@ class BaseRenderer(Component):
         maxsize = WCSConfigReader(get_eoxserver_config()).maxsize
         if maxsize is not None:
             map_.maxsize = maxsize
+        map_.setMetaData("ows_updateSequence", WCSConfigReader(get_eoxserver_config()).update_sequence)
         return map_
 
     def data_items_for_coverage(self, coverage):
@@ -100,7 +104,7 @@ class BaseRenderer(Component):
             "rangeset_name": range_type.name,
             "rangeset_label": range_type.name,
             "imagemode": ms.gdalconst_to_imagemode_string(bands[0].data_type),
-            "formats": " ".join([f.mimeType for f in self.get_wcs_formats()])
+            "formats": " ".join([f.wcs10name if version.startswith("1.0") else f.mimeType for f in self.get_wcs_formats()])
         }, namespace="wcs")
 
         if version == None or version.startswith("2.0"):
@@ -113,6 +117,8 @@ class BaseRenderer(Component):
             }, namespace="wcs")
 
         if native_format:
+            if version.startswith("1.0"):
+                native_format = next((x.wcs10name for x in self.get_wcs_formats() if x.mimeType == native_format), native_format)
             ms.setMetaData(layer, {
                 "native_format": native_format,
                 "nativeformat": native_format
