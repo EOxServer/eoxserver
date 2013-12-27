@@ -59,6 +59,9 @@ class VersionNegotiationException(Exception):
     """
     code = "VersionNegotiationFailed"
 
+    def __str__(self):
+        return "Version negotiation failed."
+
 
 class LocatorListException(Exception):
     """ Base class for exceptions that report that a number of items are missing

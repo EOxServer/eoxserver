@@ -33,7 +33,8 @@ from eoxserver.core.util.xmltools import XMLEncoder, NameSpace, NameSpaceMap
 
 
 ns_xlink = NameSpace("http://www.w3.org/1999/xlink", "xlink")
-ns_ows = NameSpace("http://www.opengis.net/ows/2.0", "ows")
+ns_ows = NameSpace("http://www.opengis.net/ows/2.0", "ows", "http://schemas.opengis.net/ows/2.0/owsAll.xsd")
+ns_xml = NameSpace("http://www.w3.org/XML/1998/namespace", "xml")
 
 nsmap = NameSpaceMap(ns_ows)
 OWS = ElementMaker(namespace=ns_ows.uri, nsmap=nsmap)
@@ -48,7 +49,6 @@ class OWS20Encoder(XMLEncoder):
 
 class OWS20ExceptionXMLEncoder(XMLEncoder):
     def encode_exception(self, message, version, code, locator=None):
-
         exception_attributes = {
             "exceptionCode": code
         }
@@ -60,5 +60,8 @@ class OWS20ExceptionXMLEncoder(XMLEncoder):
 
         return OWS("ExceptionReport", 
             OWS("Exception", *exception_text, **exception_attributes
-            ), lang="en", version=version
+            ), version=version, **{ns_xml("lang"): "en"}
         )
+
+    def get_schema_locations(self):
+        return nsmap.schema_locations
