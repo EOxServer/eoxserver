@@ -374,13 +374,13 @@ class GMLCOV10Encoder(GML32Encoder):
         srs_name = sr.url
         
         swap = crss.getAxesSwapper(sr.srid)
-        frmt = "%.8f %.8f" if sr.IsProjected() else "%.3f %.3f"
+        frmt = "%.3f %.3f" if sr.IsProjected() else "%.8f %.8f"
         labels = ("x", "y") if sr.IsProjected() else ("long", "lat")
 
         axis_labels = " ".join(swap(*labels))
         origin = frmt % swap(minx, maxy)
         x_offsets = frmt % swap((maxx - minx) / float(size_x), 0)
-        y_offsets = frmt % swap(0, (maxy - miny) / float(size_y))
+        y_offsets = frmt % swap(0, (miny - maxy) / float(size_y))
 
         return GML("RectifiedGrid",
             GML("limits",
@@ -448,7 +448,18 @@ class GMLCOV10Encoder(GML32Encoder):
         labels = ("x", "y") if sr.IsProjected() else ("long", "lat")
         axis_labels = " ".join(swap(*labels))
         axis_units = "m m" if sr.IsProjected() else "deg deg"
-        frmt = "%.8f %.8f" if sr.IsProjected() else "%.3f %.3f"
+        frmt = "%.3f %.3f" if sr.IsProjected() else "%.8f %.8f"
+        # Make sure values are outside of actual extent
+        if sr.IsProjected():
+            minx -= 0.0005
+            miny -= 0.0005
+            maxx += 0.0005
+            maxy += 0.0005
+        else:
+            minx -= 0.000000005
+            miny -= 0.000000005
+            maxx += 0.000000005
+            maxy += 0.000000005
         
         return GML("boundedBy",
             GML("Envelope",
