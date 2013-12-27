@@ -80,6 +80,8 @@ class WCS20DescribeEOCoverageSetHandler(Component):
         eo_ids = decoder.eo_ids
         
         containment = decoder.containment
+        if not containment:
+            containment = "overlaps"
 
         count_default = self.constraints["CountDefault"]
         count = decoder.count
@@ -140,10 +142,9 @@ class WCS20DescribeEOCoverageSetHandler(Component):
         # Get all either directly referenced coverages or coverages that are
         # within referenced containers. Full subsetting is applied here.
 
-        coverages_qs = models.Coverage.objects.filter(
+        coverages_qs = subsets.filter(models.Coverage.objects.filter(
             Q(identifier__in=eo_ids) | Q(collections__in=collection_pks)
-        )
-        coverages_qs = subsets.filter(coverages_qs, containment=containment)
+        ), containment=containment)
 
         # save a reference before limits are applied to obtain the full number
         # of matched coverages.
@@ -170,8 +171,8 @@ class WCS20DescribeEOCoverageSetHandler(Component):
         # because of the count parameter
         count_all_coverages = coverages_no_limit_qs.count()
 
-        # TODO: if containment is "within" we need to check all collections again
-        if containment == "within":
+        # TODO: if containment is "contains" we need to check all collections again
+        if containment == "contains":
             collection_set = filter(lambda c: subsets.matches(c), collection_set)
 
         coverages = []
@@ -197,10 +198,12 @@ class WCS20DescribeEOCoverageSetHandler(Component):
 
         # TODO: remove this at some point
         encoder = WCS20EOXMLEncoder()
+
         return (
             encoder.serialize(
                 encoder.encode_eo_coverage_set_description(
-                    dataset_series, coverages, count_all_coverages
+                    dataset_series, coverages, 
+                    count_all_coverages + num_collections
                 ), pretty_print=True
             ),
             encoder.content_type
