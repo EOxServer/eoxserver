@@ -36,7 +36,9 @@ from eoxserver.core.util.xmltools import XMLEncoder
 from eoxserver.core.util.timetools import isoformat
 from eoxserver.backends.access import retrieve
 from eoxserver.contrib.osr import SpatialReference
-from eoxserver.resources.coverages.models import RectifiedStitchedMosaic
+from eoxserver.resources.coverages.models import (
+    RectifiedStitchedMosaic, ReferenceableDataset
+)
 from eoxserver.resources.coverages.formats import getFormatRegistry
 from eoxserver.resources.coverages import crss, models
 from eoxserver.services.ows.component import ServiceComponent, env
@@ -527,10 +529,11 @@ class GMLCOV10Encoder(GML32Encoder):
 
 class WCS20CoverageDescriptionXMLEncoder(GMLCOV10Encoder):
     def encode_coverage_description(self, coverage):
+        rectified = False if issubclass(coverage.real_type, ReferenceableDataset) else True
         return WCS("CoverageDescription",
             self.encode_bounded_by(coverage.extent_wgs84),
             WCS("CoverageId", coverage.identifier),
-            self.encode_domain_set(coverage),
+            self.encode_domain_set(coverage, rectified=rectified),
             self.encode_range_type(self.get_range_type(coverage.range_type_id)),
             WCS("ServiceParameters",
                 WCS("CoverageSubtype", coverage.real_type.__name__)
@@ -611,7 +614,7 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20E
             source_format = getFormatRegistry().getFormatByMIME(source_mime)
             # map the source format to the native one 
             native_format = getFormatRegistry().mapSourceToNativeWCS20(source_format)
-        elif coverage.real_type == RectifiedStitchedMosaic:
+        elif issubclass(coverage.real_type, RectifiedStitchedMosaic):
             # use the default format for RectifiedStitchedMosaics
             native_format = getFormatRegistry().getDefaultNativeFormat()
         else:
@@ -627,11 +630,13 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20E
             extent = coverage.extent
             sr = coverage.spatial_reference
 
+        rectified = False if issubclass(coverage.real_type, ReferenceableDataset) else True
+
         return WCS("CoverageDescription",
             self.encode_bounded_by(extent, sr),
             WCS("CoverageId", coverage.identifier),
             self.encode_eo_metadata(coverage),
-            self.encode_domain_set(coverage, srid, size, extent),
+            self.encode_domain_set(coverage, srid, size, extent, rectified),
             self.encode_range_type(self.get_range_type(coverage.range_type_id)),
             WCS("ServiceParameters", 
                 WCS("CoverageSubtype", coverage.real_type.__name__),
