@@ -32,6 +32,7 @@ from eoxserver.contrib import mapserver as ms
 from eoxserver.resources.coverages import models
 from eoxserver.services.mapserver.wcs.base_renderer import BaseRenderer
 from eoxserver.services.ows.version import Version
+from eoxserver.services.exceptions import NoSuchCoverageException
 from eoxserver.services.ows.wcs.interfaces import (
     WCSCoverageDescriptionRendererInterface
 )
@@ -44,8 +45,8 @@ class CoverageDescriptionMapServerRenderer(BaseRenderer):
 
     implements(WCSCoverageDescriptionRendererInterface)
 
-    versions = (Version(1, 0), Version(1, 1))
-    handles = (models.RectifiedDataset, models.RectifiedStitchedMosaic)
+    versions = (Version(1, 1), Version(1, 0))
+    handles = (models.RectifiedDataset, models.RectifiedStitchedMosaic, models.ReferenceableDataset)
 
     def supports(self, params):
         return (
@@ -61,6 +62,11 @@ class CoverageDescriptionMapServerRenderer(BaseRenderer):
         use_name = (params.version == Version(1, 0))
 
         for coverage in params.coverages:
+
+            # ReferenceableDatasets are not supported in WCS < 2.0
+            if issubclass(coverage.real_type, models.ReferenceableDataset):
+                raise NoSuchCoverageException((coverage.identifier,))
+
             data_items = self.data_items_for_coverage(coverage)
             native_format = self.get_native_format(coverage, data_items)
             layer = self.layer_for_coverage(

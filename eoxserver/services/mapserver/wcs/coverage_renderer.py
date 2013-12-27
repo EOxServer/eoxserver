@@ -36,6 +36,7 @@ from eoxserver.core import implements, ExtensionPoint
 from eoxserver.contrib import mapserver as ms
 from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.formats import getFormatRegistry
+from eoxserver.services.exceptions import NoSuchCoverageException
 from eoxserver.services.ows.wcs.interfaces import WCSCoverageRendererInterface
 from eoxserver.services.ows.wcs.v20.encoders import WCS20EOXMLEncoder
 from eoxserver.services.mapserver.interfaces import (
@@ -53,22 +54,32 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
 
     implements(WCSCoverageRendererInterface)
 
-    handles = (models.RectifiedDataset, models.RectifiedStitchedMosaic)
+    # ReferenceableDatasets are not handled in WCS >= 2.0
+    versions_full = (Version(1, 1), Version(1, 0))
+    versions_partly = (Version(2, 0),)
+    handles_full = (models.RectifiedDataset, models.RectifiedStitchedMosaic, models.ReferenceableDataset)
+    handles_partly = (models.RectifiedDataset, models.RectifiedStitchedMosaic)
 
     connectors = ExtensionPoint(ConnectorInterface)
     layer_factories = ExtensionPoint(LayerFactoryInterface)
 
-    versions = (Version(2, 0), Version(1, 1), Version(1, 0))
-
     def supports(self, params):
-        return issubclass(params.coverage.real_type, 
-            (models.RectifiedDataset, models.RectifiedStitchedMosaic)
-        ) and params.version in self.versions
-
+        return (
+            (params.version in self.versions_full
+            and issubclass(params.coverage.real_type, self.handles_full))
+            or
+            (params.version in self.versions_partly
+            and issubclass(params.coverage.real_type, self.handles_partly))
+        )
 
     def render(self, params):
         # get coverage related stuff
         coverage = params.coverage
+
+        # ReferenceableDataset are not supported in WCS < 2.0
+        if issubclass(coverage.real_type, models.ReferenceableDataset):
+            raise NoSuchCoverageException((coverage.identifier,))
+
         data_items = self.data_items_for_coverage(coverage)
 
         range_type = coverage.range_type
