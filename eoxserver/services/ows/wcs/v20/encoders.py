@@ -36,6 +36,7 @@ from eoxserver.core.util.xmltools import XMLEncoder
 from eoxserver.core.util.timetools import isoformat
 from eoxserver.backends.access import retrieve
 from eoxserver.contrib.osr import SpatialReference
+from eoxserver.resources.coverages.models import RectifiedStitchedMosaic
 from eoxserver.resources.coverages.formats import getFormatRegistry
 from eoxserver.resources.coverages import crss, models
 from eoxserver.services.ows.component import ServiceComponent, env
@@ -254,7 +255,7 @@ class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
 
 class GML32Encoder(object):
     def encode_linear_ring(self, ring, sr):
-        frmt = "%.8f %.8f" if sr.projected else "%.3f %.3f"
+        frmt = "%.3f %.3f" if sr.projected else "%.8f %.8f"
 
         swap = crss.getAxesSwapper(sr.srid) 
         pos_list = " ".join(frmt % swap(*point) for point in ring)
@@ -490,9 +491,10 @@ class GMLCOV10Encoder(GML32Encoder):
 
     def encode_nil_values(self, nil_value_set):
         return SWE("nilValues",
-            *[SWE("NilValues",
-                SWE("nilValue", nil_value.raw_value, reason=nil_value.reason)
-            ) for nil_value in nil_value_set]
+            SWE("NilValues",
+                *[SWE("nilValue", nil_value.raw_value, reason=nil_value.reason
+                ) for nil_value in nil_value_set]
+            )
         )
 
     def encode_field(self, band):
@@ -606,10 +608,12 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20E
                 break
 
         if source_mime:
-            source_format = getFormatRegistry().getFormatByMIME(source_mime) 
-
+            source_format = getFormatRegistry().getFormatByMIME(source_mime)
             # map the source format to the native one 
-            native_format = getFormatRegistry().mapSourceToNativeWCS20(source_format) 
+            native_format = getFormatRegistry().mapSourceToNativeWCS20(source_format)
+        elif coverage.real_type == RectifiedStitchedMosaic:
+            # use the default format for RectifiedStitchedMosaics
+            native_format = getFormatRegistry().getDefaultNativeFormat()
         else:
             # TODO: improve if no native format availabe
             native_format = None

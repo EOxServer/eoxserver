@@ -9,8 +9,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -134,7 +134,7 @@ class FormatRegistry(object):
 
         if not os.path.exists( path_formats_opt ) :
             path_formats_opt = None # no user defined formats' configuration 
-            logger.info( "Optional, user-defined file formats' specification not found. Only the installation defaults will be used.") 
+            logger.debug( "Optional, user-defined file formats' specification not found. Only the installation defaults will be used.") 
 
         # load the formats' configuaration 
         self.__load_formats( path_formats_def , path_formats_opt )
@@ -240,6 +240,13 @@ class FormatRegistry(object):
 
         return format 
 
+
+    def getDefaultNativeFormat(self):
+        """ Get default nativeFormat as defined in section 'services.ows.wcs20'.
+        """
+        return self.__wcs20_def_native_format
+
+
     #---------------------------------------------------------------------------
     # loading of configuration - private auxiliary subroutines 
 
@@ -287,13 +294,13 @@ class FormatRegistry(object):
         self.__mime2format = {} 
             
         # read default configuration 
-        logger.info( "Loading formats' configuration from: %s" % path_formats_def ) 
+        logger.debug( "Loading formats' configuration from: %s" % path_formats_def ) 
         for ln,line in enumerate( file( path_formats_def ) ) :
             self.__parse_line( line , path_formats_def , ln+1 ) 
 
         # read the optional configuration 
         if path_formats_opt : 
-            logger.info( "Loading formats' configuration from: %s" % path_formats_opt ) 
+            logger.debug( "Loading formats' configuration from: %s" % path_formats_opt ) 
             for ln,line in enumerate( file( path_formats_opt ) ) :
                 self.__parse_line( line , path_formats_opt , ln+1 ) 
 
@@ -361,7 +368,7 @@ class FormatRegistry(object):
             # store format record  
             self.__mime2format[ mime_type ] = frec 
 
-            logger.info( "Adding new file format: %s" % str( frec ) ) 
+            logger.debug( "Adding new file format: %s" % str( frec ) ) 
 
         except Exception as e : 
 
