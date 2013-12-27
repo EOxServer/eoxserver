@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<wcs:Capabilities xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:wcs="http://www.opengis.net/wcs/1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" updateSequence="20110610T153000Z" version="1.1.2" xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsGetCapabilities.xsd http://www.opengis.net/ows/1.1 http://schemas.opengis.net/ows/1.1.0/owsAll.xsd">
+<wcs:Capabilities xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:wcs="http://www.opengis.net/wcs/1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" updateSequence="20131219T132000Z" version="1.1.2" xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsGetCapabilities.xsd http://www.opengis.net/ows/1.1 http://schemas.opengis.net/ows/1.1.0/owsAll.xsd">
   <ows:ServiceIdentification>
     <ows:Title>Test configuration of MapServer used to demonstrate EOxServer</ows:Title>
     <ows:Abstract>
@@ -22,8 +22,6 @@ Copyright (C) European Space Agency - ESA
     </ows:Keywords>
     <ows:ServiceType codeSpace="OGC">OGC WCS</ows:ServiceType>
     <ows:ServiceTypeVersion>1.1.2</ows:ServiceTypeVersion>
-    <ows:Profile>urn:ogc:extension:WCS:1.1:TransactionAdd</ows:Profile>
-    <ows:Profile>urn:ogc:extension:WCS:1.1:TransactionDelete</ows:Profile>
     <ows:Fees>None</ows:Fees>
     <ows:AccessConstraints>None</ows:AccessConstraints>
   </ows:ServiceIdentification>
@@ -129,14 +127,10 @@ Copyright (C) European Space Agency - ESA
       </ows:Parameter>
       <ows:Parameter name="format">
         <ows:AllowedValues>
-          <ows:Value>image/png</ows:Value>
           <ows:Value>image/tiff</ows:Value>
           <ows:Value>image/jp2</ows:Value>
           <ows:Value>application/x-netcdf</ows:Value>
           <ows:Value>application/x-hdf</ows:Value>
-          <ows:Value>image/jpeg</ows:Value>
-          <ows:Value>image/gif</ows:Value>
-          <ows:Value>image/png; mode=8bit</ows:Value>
         </ows:AllowedValues>
       </ows:Parameter>
       <ows:Parameter name="store">
@@ -147,23 +141,6 @@ Copyright (C) European Space Agency - ESA
       <ows:Parameter name="GridBaseCRS">
         <ows:AllowedValues>
           <ows:Value>urn:ogc:def:crs:epsg::4326</ows:Value>
-        </ows:AllowedValues>
-      </ows:Parameter>
-    </ows:Operation>
-    <ows:Operation name="transaction">
-      <ows:DCP>
-        <ows:HTTP>
-          <ows:Post xlink:href="http://localhost:8000/ows" xlink:type="simple"/>
-        </ows:HTTP>
-      </ows:DCP>
-      <ows:Parameter name="service">
-        <ows:AllowedValues>
-          <ows:Value>WCS</ows:Value>
-        </ows:AllowedValues>
-      </ows:Parameter>
-      <ows:Parameter name="version">
-        <ows:AllowedValues>
-          <ows:Value>1.1</ows:Value>
         </ows:AllowedValues>
       </ows:Parameter>
     </ows:Operation>
