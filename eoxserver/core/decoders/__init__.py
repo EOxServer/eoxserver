@@ -44,7 +44,7 @@ class DecodingException(Exception):
 
     def __str__(self):
         if self.locator:
-            return "%s (%s)" % (super(DecodingException, self).__str__(), self.locator)
+            return "%s: %s" % (self.locator, super(DecodingException, self).__str__())
         return super(DecodingException, self).__str__()
 
 class WrongMultiplicityException(DecodingException):
