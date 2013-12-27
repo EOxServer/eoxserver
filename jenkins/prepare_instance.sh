@@ -50,7 +50,7 @@ cp -R tmp1/autotest_services/ autotest/
 rm -r tmp1
 
 if [ $OS == "Ubuntu" ]; then
-  sed -e 's/binary_raster_comparison_enabled=false/binary_raster_comparison_enabled=true/' -i autotest/autotest/conf/eoxserver.conf
+  sed -e 's/#binary_raster_comparison_enabled=false/binary_raster_comparison_enabled=false/' -i autotest/autotest/conf/eoxserver.conf
 fi
 
 # Enable 'autotest_services' app
