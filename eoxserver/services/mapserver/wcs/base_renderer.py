@@ -34,6 +34,7 @@ from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.decoders import config
 from eoxserver.contrib import mapserver as ms
 from eoxserver.resources.coverages import crss
+from eoxserver.resources.coverages.models import RectifiedStitchedMosaic
 from eoxserver.resources.coverages.formats import getFormatRegistry
 
 
@@ -147,6 +148,10 @@ class BaseRenderer(Component):
 
 
     def get_native_format(self, coverage, data_items):
+        if issubclass(coverage.real_type, RectifiedStitchedMosaic):
+            # use the default format for RectifiedStitchedMosaics
+            return getFormatRegistry().getDefaultNativeFormat().wcs10name
+
         if len(data_items) == 1:
             return data_items[0].format
 
