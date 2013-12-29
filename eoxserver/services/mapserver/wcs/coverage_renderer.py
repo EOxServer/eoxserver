@@ -57,8 +57,10 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
     # ReferenceableDatasets are not handled in WCS >= 2.0
     versions_full = (Version(1, 1), Version(1, 0))
     versions_partly = (Version(2, 0),)
+    versions = versions_full + versions_partly
     handles_full = (models.RectifiedDataset, models.RectifiedStitchedMosaic, models.ReferenceableDataset)
     handles_partly = (models.RectifiedDataset, models.RectifiedStitchedMosaic)
+    handles = handles_full + handles_partly
 
     connectors = ExtensionPoint(ConnectorInterface)
     layer_factories = ExtensionPoint(LayerFactoryInterface)
