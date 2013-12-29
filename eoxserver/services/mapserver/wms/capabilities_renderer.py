@@ -32,6 +32,8 @@ from eoxserver.core import Component, implements, ExtensionPoint
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.util.timetools import isoformat
 from eoxserver.contrib.mapserver import create_request, Map, Layer
+from eoxserver.resources.coverages import crss
+from eoxserver.resources.coverages.formats import getFormatRegistry
 from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.services.ows.wms.interfaces import (
     WMSCapabilitiesRendererInterface
@@ -63,10 +65,13 @@ class MapServerWMSCapabilitiesRenderer(Component):
         map_.setMetaData({
             "enable_request": "*",
             "onlineresource": conf.http_service_url,
+            "service_onlineresource": conf.onlineresource,
+            "updateSequence": conf.update_sequence,
+            "name": conf.name,
             "title": conf.title,
             "abstract": conf.abstract,
             "accessconstraints": conf.access_constraints,
-            "addresstype": "",
+            "addresstype": "postal",
             "address": conf.delivery_point,
             "stateorprovince": conf.administrative_area,
             "city": conf.city,
@@ -80,9 +85,13 @@ class MapServerWMSCapabilitiesRenderer(Component):
             "contactposition": conf.position_name,
             "fees": conf.fees,
             "keywordlist": ",".join(conf.keywords),
+            "srs": " ".join(crss.getSupportedCRS_WCS(format_function=crss.asShortCode)),
         }, namespace="ows")
         map_.setProjection("EPSG:4326")
-
+        map_.setMetaData({
+            "getmap_formatlist": ",".join([f.mimeType for f in self.get_wms_formats()]),
+            "getfeatureinfo_formatlist": "text/html,application/vnd.ogc.gml,text/plain"
+        }, namespace="wms")
 
         for collection in collections:
             group_name = None
@@ -133,3 +142,6 @@ class MapServerWMSCapabilitiesRenderer(Component):
         raw_result = map_.dispatch(request)
         result = result_set_from_raw_data(raw_result)
         return result, get_content_type(result)
+
+    def get_wms_formats(self):
+        return getFormatRegistry().getSupportedFormatsWMS()
