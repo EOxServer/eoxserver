@@ -64,7 +64,8 @@
         "projection": null, 
         "srid": 4326, 
         "max_x": 16.7250976562, 
-        "max_y": 48.583984375
+        "max_y": 48.583984375, 
+        "visible": false
     }
 },
 {

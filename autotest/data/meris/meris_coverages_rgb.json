@@ -67,7 +67,8 @@
         "projection": null, 
         "srid": 4326, 
         "max_x": 28.294810000000002, 
-        "max_y": 46.268645
+        "max_y": 46.268645, 
+        "visible": true
     }
 },
 {
@@ -83,7 +84,8 @@
         "projection": null, 
         "srid": 4326, 
         "max_x": 25.41015, 
-        "max_y": 46.268645
+        "max_y": 46.268645, 
+        "visible": false
     }
 },
 {
@@ -99,7 +101,8 @@
         "projection": null, 
         "srid": 4326, 
         "max_x": 13.213055, 
-        "max_y": 46.268645
+        "max_y": 46.268645, 
+        "visible": false
     }
 },
 {
@@ -115,7 +118,8 @@
         "projection": null, 
         "srid": 4326, 
         "max_x": 28.326165, 
-        "max_y": 46.3
+        "max_y": 46.3, 
+        "visible": true
     }
 },
 {
