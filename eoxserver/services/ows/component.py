@@ -85,11 +85,21 @@ class ServiceComponent(Component):
             raise ServiceNotSupportedException(decoder.service)
 
         # check that the required version is enabled
-        handlers = filter(
+        handlers_ = filter(
             lambda h: decoder.version in h.versions, handlers
         )
-        if not handlers:
-            raise VersionNotSupportedException(decoder.service, decoder.version)
+        if not handlers_:
+            # old style version negotiation shall always return capabilities
+            if decoder.request == "GETCAPABILITIES":
+                handlers = [sorted(
+                    filter(
+                        lambda h: decoder.request == h.request.upper(), handlers
+                    ), key=lambda h: max(h.versions), reverse=True
+                )[0]]
+            else:
+                raise VersionNotSupportedException(decoder.service, decoder.version)
+        else:
+            handlers = handlers_
 
         # check that the required operation is supported and sort by the highest
         # version supported in descending manner
