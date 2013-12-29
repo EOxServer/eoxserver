@@ -53,6 +53,12 @@ class WCS20GetCapabilitiesEmptyTestCase(testbase.XMLTestCase):
         params = "service=WCS&version=2.0.1&request=GetCapabilities"
         return (params, "kvp")
 
+class WCSVersionNegotiationTestCase(testbase.XMLTestCase):
+    """This test shall check version negotiation. A valid WCS 2.0 EO-AP (EO-WCS) GetCapabilities response shall be returned"""
+    def getRequest(self):
+        params = "service=wcs&request=GetCapabilities"
+        return (params, "kvp")
+
 class WCSVersionNegotiationOldStyleTestCase(testbase.XMLTestCase):
     """This test shall check old style version negotiation. A valid WCS 2.0 EO-AP (EO-WCS) GetCapabilities response shall be returned"""
     def getRequest(self):

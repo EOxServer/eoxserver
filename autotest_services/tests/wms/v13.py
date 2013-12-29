@@ -1,3 +1,30 @@
+#-------------------------------------------------------------------------------
+#
+# Project: EOxServer <http://eoxserver.org>
+# Authors: Fabian Schindler <fabian.schindler@eox.at>
+#
+#-------------------------------------------------------------------------------
+# Copyright (C) 2013 EOX IT Services GmbH
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies of this Software or works derived from this Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#-------------------------------------------------------------------------------
+
 from autotest_services import testbase
 import base as wmsbase
 
@@ -19,6 +46,38 @@ class WMS13GetCapabilitiesEmptyTestCase(testbase.XMLTestCase):
     def getRequest(self):
         params = "service=WMS&version=1.3.0&request=GetCapabilities"
         return (params, "kvp")
+
+
+class WMSVersionNegotiationTestCase(testbase.XMLTestCase):
+    """This test shall check version negotiation. A valid WMS 1.3 GetCapabilities response shall be returned"""
+    def getRequest(self):
+        params = "service=WMS&request=GetCapabilities"
+        return (params, "kvp")
+
+class WMSVersionNegotiationNewStyleTestCase(testbase.XMLTestCase):
+    """This test shall check new style version negotiation. A valid WMS 1.3 GetCapabilities response shall be returned"""
+    def getRequest(self):
+        params = "service=WMS&acceptversions=1.3.0,1.0.0&request=GetCapabilities"
+        return (params, "kvp")
+
+class WMSVersionNegotiationFaultTestCase(testbase.ExceptionTestCase):
+    """This test shall check new style version negotiation. A valid ows:ExceptionReport shall be returned"""
+    def getRequest(self):
+        params = "service=WMS&acceptversions=3.0.0&request=GetCapabilities"
+        return (params, "kvp")
+
+    def getExpectedExceptionCode(self):
+        return "VersionNegotiationFailed"
+
+    def getExceptionCodeLocation(self):
+        return "ogc:ServiceException/@code"
+
+class WMSVersionNegotiationOldStyleTestCase(testbase.XMLTestCase):
+    """This test shall check old style version negotiation. A valid WMS 1.3 GetCapabilities response shall be returned"""
+    def getRequest(self):
+        params = "service=WMS&version=3.0.0&request=GetCapabilities"
+        return (params, "kvp")
+
 
 class WMS13GetMapDatasetTestCase(wmsbase.WMS13GetMapTestCase):
     """ Test a GetMap request with a simple dataset. """
