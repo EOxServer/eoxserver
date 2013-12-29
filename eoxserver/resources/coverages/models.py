@@ -435,6 +435,8 @@ class Coverage(EOObject, Extent, backends.Dataset):
     
     range_type = models.ForeignKey(RangeType)
 
+    visible = models.BooleanField(default=False) # True means that the dataset is visible in the GetCapabilities response
+
     @property
     def size(self):
         return self.size_x, self.size_y

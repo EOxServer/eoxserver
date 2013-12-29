@@ -31,6 +31,7 @@ from eoxserver.core import Component, implements
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.util.timetools import isoformat
 from eoxserver.contrib.mapserver import create_request, Map, Layer
+from eoxserver.resources.coverages import crss
 from eoxserver.services.mapserver.wcs.base_renderer import BaseRenderer
 from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.services.ows.wcs.interfaces import (
@@ -82,6 +83,7 @@ class MapServerWCSCapabilitiesRenderer(BaseRenderer):
             "fees": conf.fees,
             "keywordlist": ",".join(conf.keywords),
             "formats": " ".join([f.wcs10name for f in self.get_wcs_formats()]),
+            "srs": " ".join(crss.getSupportedCRS_WCS(format_function=crss.asShortCode)),
         }, namespace="ows")
         map_.setProjection("EPSG:4326")
 
@@ -89,25 +91,27 @@ class MapServerWCSCapabilitiesRenderer(BaseRenderer):
             map_.appendOutputFormat(outputformat)
 
         for coverage in params.coverages:
-            layer = Layer(coverage.identifier)
-            
-            layer.setProjection(coverage.spatial_reference.proj)
-            extent = coverage.extent
-            size = coverage.size
-            resolution = ((extent[2] - extent[0]) / float(size[0]),
-                          (extent[1] - extent[3]) / float(size[1]))
+            if coverage.visible:
+                layer = Layer(coverage.identifier)
 
-            layer.setExtent(*extent)
-            layer.setMetaData({
-                "title": coverage.identifier,
-                "label": coverage.identifier,
-                "extent": "%.10g %.10g %.10g %.10g" % extent,
-                "resolution": "%.10g %.10g" % resolution,
-                "size": "%d %d" % size,
-                "formats": " ".join([f.wcs10name for f in self.get_wcs_formats()]),
-            }, namespace="wcs")
+                layer.setProjection(coverage.spatial_reference.proj)
+                extent = coverage.extent
+                size = coverage.size
+                resolution = ((extent[2] - extent[0]) / float(size[0]),
+                              (extent[1] - extent[3]) / float(size[1]))
 
-            map_.insertLayer(layer)
+                layer.setExtent(*extent)
+                layer.setMetaData({
+                    "title": coverage.identifier,
+                    "label": coverage.identifier,
+                    "extent": "%.10g %.10g %.10g %.10g" % extent,
+                    "resolution": "%.10g %.10g" % resolution,
+                    "size": "%d %d" % size,
+                    "formats": " ".join([f.wcs10name for f in self.get_wcs_formats()]),
+                    "srs": " ".join(crss.getSupportedCRS_WCS(format_function=crss.asShortCode)),
+                }, namespace="wcs")
+
+                map_.insertLayer(layer)
         
         request = create_request(params)
         request.setParameter("version", params.version)
