@@ -91,6 +91,7 @@ Copyright (C) European Space Agency - ESA
           <ows:Value>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</ows:Value>
           <ows:Value>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</ows:Value>
           <ows:Value>mosaic_MER_FRS_1P_RGB_reduced</ows:Value>
+          <ows:Value>ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775</ows:Value>
         </ows:AllowedValues>
       </ows:Parameter>
     </ows:Operation>
@@ -116,6 +117,7 @@ Copyright (C) European Space Agency - ESA
           <ows:Value>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</ows:Value>
           <ows:Value>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</ows:Value>
           <ows:Value>mosaic_MER_FRS_1P_RGB_reduced</ows:Value>
+          <ows:Value>ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775</ows:Value>
         </ows:AllowedValues>
       </ows:Parameter>
       <ows:Parameter name="InterpolationType">
@@ -195,6 +197,23 @@ Copyright (C) European Space Agency - ESA
       <wcs:SupportedFormat>application/x-netcdf</wcs:SupportedFormat>
       <wcs:SupportedFormat>application/x-hdf</wcs:SupportedFormat>
       <wcs:Identifier>mosaic_MER_FRS_1P_RGB_reduced</wcs:Identifier>
+    </wcs:CoverageSummary>
+    <wcs:CoverageSummary>
+      <ows:Title>ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775</ows:Title>
+      <ows:Abstract/>
+      <ows:WGS84BoundingBox dimensions="2">
+        <ows:LowerCorner>16.727605 -36.259107</ows:LowerCorner>
+        <ows:UpperCorner>22.301754 -31.984922</ows:UpperCorner>
+      </ows:WGS84BoundingBox>
+      <wcs:SupportedCRS>urn:ogc:def:crs:EPSG::4326</wcs:SupportedCRS>
+      <wcs:SupportedCRS>urn:ogc:def:crs:EPSG::3857</wcs:SupportedCRS>
+      <wcs:SupportedCRS>urn:ogc:def:crs:EPSG::900913</wcs:SupportedCRS>
+      <wcs:SupportedCRS>urn:ogc:def:crs:EPSG::3035</wcs:SupportedCRS>
+      <wcs:SupportedFormat>image/tiff</wcs:SupportedFormat>
+      <wcs:SupportedFormat>image/jp2</wcs:SupportedFormat>
+      <wcs:SupportedFormat>application/x-netcdf</wcs:SupportedFormat>
+      <wcs:SupportedFormat>application/x-hdf</wcs:SupportedFormat>
+      <wcs:Identifier>ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775</wcs:Identifier>
     </wcs:CoverageSummary>
   </wcs:Contents>
 </wcs:Capabilities>
