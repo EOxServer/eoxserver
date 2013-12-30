@@ -37,7 +37,7 @@ from eoxserver.contrib.mapserver import (
 )
 from eoxserver.resources.coverages import models
 from eoxserver.services.mapserver.interfaces import LayerFactoryInterface
-from eoxserver.services.mapserver.wms.layerfactories import (
+from eoxserver.services.mapserver.wms.layerfactories.base import (
     AbstractLayerFactory, OffsiteColorMixIn
 )
 

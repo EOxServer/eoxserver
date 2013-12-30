@@ -34,7 +34,7 @@ from eoxserver.resources.coverages.dateline import (
     extent_crosses_dateline, wrap_extent_around_dateline
 )
 from eoxserver.services.mapserver.interfaces import LayerFactoryInterface
-from eoxserver.services.mapserver.wms.layerfactories import (
+from eoxserver.services.mapserver.wms.layerfactories.base import (
     AbstractLayerFactory, OffsiteColorMixIn
 )
 

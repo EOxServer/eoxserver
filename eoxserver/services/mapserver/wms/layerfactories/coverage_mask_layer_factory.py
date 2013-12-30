@@ -35,19 +35,20 @@ from eoxserver.resources.coverages import models, crss
 from eoxserver.resources.coverages.dateline import (
     extent_crosses_dateline, wrap_extent_around_dateline
 )
+from eoxserver.services.mapserver.wms.layerfactories.base import (
+    AbstractLayerFactory
+)
 
-from eoxserver.services.mapserver.wms.layerfactories.coverage_layer_factory import CoverageLayerFactory
 
 
 logger = logging.getLogger(__name__)
 
 
-class CoverageMaskedLayerFactory(CoverageLayerFactory):
+class CoverageMaskedLayerFactory(AbstractLayerFactory):
     handles = ()
     suffixes = ("_masked",)
     requires_connection = True
 
-    
     def generate(self, eo_object, group_layer, suffix, options):
         name = eo_object.identifier + suffix
         all_data_items = eo_object.data_items.all()

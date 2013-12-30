@@ -31,7 +31,7 @@ from eoxserver.core import Component, implements
 from eoxserver.contrib import mapserver as ms
 from eoxserver.resources.coverages import models
 from eoxserver.services.mapserver.interfaces import LayerFactoryInterface
-from eoxserver.services.mapserver.wms.layerfactories import (
+from eoxserver.services.mapserver.wms.layerfactories.base import (
     AbstractLayerFactory, BaseStyleMixIn, PolygonLayerMixIn
 )
 

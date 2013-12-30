@@ -32,7 +32,7 @@ import logging
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.decoders import config, typelist
 from eoxserver.contrib import mapserver as ms
-from eoxserver.services.mapserver.wms.layerfactories import (
+from eoxserver.services.mapserver.wms.layerfactories.base import (
     BaseStyleMixIn, AbstractLayerFactory
 )
 
