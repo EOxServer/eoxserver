@@ -43,7 +43,6 @@ class ZIPPackage(Component):
     name = "ZIP"
 
     def extract(self, package_filename, location, path):
-        #import pdb; pdb.set_trace()
         zipfile = ZipFile(package_filename, "r")
         infile = zipfile.open(location)
         with open(path, "wb") as outfile:
