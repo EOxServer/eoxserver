@@ -1,5 +1,4 @@
 #-------------------------------------------------------------------------------
-# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
@@ -11,7 +10,7 @@
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -27,37 +26,17 @@
 #-------------------------------------------------------------------------------
 
 
-from eoxserver.core import Component, implements, UniqueExtensionPoint
-from eoxserver.resources.coverages import models
-from eoxserver.services.ows.wms.interfaces import (
-    WMSCapabilitiesRendererInterface
-)
+from eoxserver.core import Component, implements
 from eoxserver.services.ows.interfaces import (
     ServiceHandlerInterface, GetServiceHandlerInterface
 )
-from eoxserver.services.result import to_http_response
+from eoxserver.services.ows.wms.basehandlers import (
+    WMSGetCapabilitiesHandlerBase
+)
 
 
-class WMS10GetCapabilitiesHandler(Component):
+class WMS10GetCapabilitiesHandler(WMSGetCapabilitiesHandlerBase, Component):
     implements(ServiceHandlerInterface)
     implements(GetServiceHandlerInterface)
 
-    renderer = UniqueExtensionPoint(WMSCapabilitiesRendererInterface)
-    
-    service = "WMS"
     versions = ("1.0", "1.0.0")
-    request = "GetCapabilities"
-
-
-    def handle(self, request):
-        dataset_series_qs = models.DatasetSeries.objects \
-            .order_by("identifier") \
-            .exclude(
-                footprint__isnull=True, begin_time__isnull=True, 
-                end_time__isnull=True
-            )
-
-        result, _ = self.renderer.render(
-            dataset_series_qs, request.GET.items()
-        )
-        return to_http_response(result)
