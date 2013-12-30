@@ -1,4 +1,4 @@
-#-------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------
 # $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
@@ -209,13 +209,12 @@ class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
                 #)
 
                 for coverage in coverages_qs:
-                    if coverage.visible:
-                        coverages.append(
-                            WCS("CoverageSummary",
-                                WCS("CoverageId", coverage.identifier),
-                                WCS("CoverageSubtype", coverage.real_type.__name__)
-                            )
+                    coverages.append(
+                        WCS("CoverageSummary",
+                            WCS("CoverageId", coverage.identifier),
+                            WCS("CoverageSubtype", coverage.real_type.__name__)
                         )
+                    )
                 contents.extend(coverages)
 
             if inc_dataset_series_summary:

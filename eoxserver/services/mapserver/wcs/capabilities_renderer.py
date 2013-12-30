@@ -91,28 +91,27 @@ class MapServerWCSCapabilitiesRenderer(BaseRenderer):
             map_.appendOutputFormat(outputformat)
 
         for coverage in params.coverages:
-            if coverage.visible:
-                layer = Layer(coverage.identifier)
+            layer = Layer(coverage.identifier)
 
-                layer.setProjection(coverage.spatial_reference.proj)
-                extent = coverage.extent
-                size = coverage.size
-                resolution = ((extent[2] - extent[0]) / float(size[0]),
-                              (extent[1] - extent[3]) / float(size[1]))
+            layer.setProjection(coverage.spatial_reference.proj)
+            extent = coverage.extent
+            size = coverage.size
+            resolution = ((extent[2] - extent[0]) / float(size[0]),
+                          (extent[1] - extent[3]) / float(size[1]))
 
-                layer.setExtent(*extent)
-                layer.setMetaData({
-                    "title": coverage.identifier,
-                    "label": coverage.identifier,
-                    "extent": "%.10g %.10g %.10g %.10g" % extent,
-                    "resolution": "%.10g %.10g" % resolution,
-                    "size": "%d %d" % size,
-                    "formats": " ".join([f.wcs10name for f in self.get_wcs_formats()]),
-                    "srs": " ".join(crss.getSupportedCRS_WCS(format_function=crss.asShortCode)),
-                }, namespace="wcs")
+            layer.setExtent(*extent)
+            layer.setMetaData({
+                "title": coverage.identifier,
+                "label": coverage.identifier,
+                "extent": "%.10g %.10g %.10g %.10g" % extent,
+                "resolution": "%.10g %.10g" % resolution,
+                "size": "%d %d" % size,
+                "formats": " ".join([f.wcs10name for f in self.get_wcs_formats()]),
+                "srs": " ".join(crss.getSupportedCRS_WCS(format_function=crss.asShortCode)),
+            }, namespace="wcs")
 
-                map_.insertLayer(layer)
-        
+            map_.insertLayer(layer)
+
         request = create_request(params)
         request.setParameter("version", params.version)
         raw_result = map_.dispatch(request)

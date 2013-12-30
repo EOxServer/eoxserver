@@ -63,7 +63,7 @@ class WCSGetCapabilitiesHandlerBase(object):
         """ Default implementation of the coverage lookup. Simply returns all 
             coverages in no specific order.
         """
-        return models.Coverage.objects.all()
+        return models.Coverage.objects.filter(visible=True)
 
     def get_params(self, coverages, decoder):
         """ Default method to return a render params object from the given 

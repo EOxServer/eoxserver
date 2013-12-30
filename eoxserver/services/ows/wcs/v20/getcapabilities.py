@@ -61,7 +61,9 @@ class WCS20GetCapabilitiesHandler(WCSGetCapabilitiesHandlerBase, Component):
 
     def lookup_coverages(self, decoder):
         if "contents" in decoder.sections or "all" in decoder.sections:
-            coverages = models.Coverage.objects.order_by("identifier")
+            coverages = models.Coverage.objects \
+                .order_by("identifier") \
+                .filter(visible=True)
 
             dataset_series = models.DatasetSeries.objects \
                 .order_by("identifier") \
