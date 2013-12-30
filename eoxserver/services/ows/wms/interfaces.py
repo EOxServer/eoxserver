@@ -9,8 +9,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -30,9 +30,9 @@ class WMSCapabilitiesRendererInterface(object):
     """ Interface for WMS compatible capabilities renderers.
     """
 
-    def render(self, collections, suffixes, request_values):
+    def render(self, collections, coverages, request_values):
         """ Render a capabilities document, containing metadata of the given 
-            collections.
+            collections and coverages.
         """
 
 
