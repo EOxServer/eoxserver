@@ -142,6 +142,18 @@ class Layer(MetadataMixIn, layerObj):
         self.type = type
 
 
+class Class(classObj):
+    def __init__(self, name, mapobj=None):
+        classObj.__init__(self, mapobj)
+        self.name = name
+
+
+class Style(styleObj):
+    def __init__(self, name, mapobj=None):
+        styleObj.__init__(self, mapobj)
+        self.name = name
+
+
 def create_request(values, request_type=MS_GET_REQUEST):
     used_keys = {}
 
