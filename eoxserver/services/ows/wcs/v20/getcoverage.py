@@ -54,11 +54,11 @@ class WCS20GetCoverageHandler(WCSGetCoverageHandlerBase, Component):
         elif request.method == "POST":
             return WCS20GetCoverageXMLDecoder(request.body)
 
-    def get_params(self, coverage, decoder):
+    def get_params(self, coverage, decoder, request):
         return WCS20CoverageRenderParams(
             coverage, decoder.subsets, decoder.sizes, decoder.resolutions,
             decoder.rangesubset, decoder.format, decoder.outputcrs, 
-            decoder.mediatype, decoder.interpolation, decoder.mask
+            decoder.mediatype, decoder.interpolation, decoder.mask, request
         )
 
 

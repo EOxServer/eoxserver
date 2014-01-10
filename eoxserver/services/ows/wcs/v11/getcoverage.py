@@ -52,7 +52,7 @@ class WCS11GetCoverageHandler(WCSGetCoverageHandlerBase, Component):
             return WCS11GetCoverageXMLDecoder(request.body)
 
 
-    def get_params(self, coverage, decoder):
+    def get_params(self, coverage, decoder, request):
         return WCS11CoverageRenderParams(
             coverage, decoder.boundingbox, decoder.format, decoder.gridcs, 
             decoder.gridbasecrs, decoder.gridtype, decoder.gridorigin, 

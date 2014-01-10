@@ -52,7 +52,7 @@ class WCS10GetCoverageHandler(WCSGetCoverageHandlerBase, Component):
             pass
 
 
-    def get_params(self, coverage, decoder):
+    def get_params(self, coverage, decoder, request):
         return WCS10CoverageRenderParams(
             coverage, decoder.bbox, decoder.crs, decoder.format, 
             decoder.response_crs, decoder.width, decoder.height,
