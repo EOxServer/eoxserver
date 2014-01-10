@@ -2,6 +2,7 @@
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Martin Paces <martin.paces@eox.at>
+#          Fabian Schindler <fabian.schindler@eox.at>
 #
 #-------------------------------------------------------------------------------
 # Copyright (C) 2011 EOX IT Services GmbH
@@ -25,27 +26,14 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-import sys 
-import traceback
-
+import sys
 from optparse import make_option
 
 from django.core.management.base import BaseCommand, CommandError
-from django.db import transaction
-
-#------------------------------------------------------------------------------
-
-from eoxserver.core.system import System
-
-#------------------------------------------------------------------------------
-
-from eoxserver.resources.coverages.managers import CoverageIdManager
-
-#------------------------------------------------------------------------------
 
 from eoxserver.resources.coverages.management.commands import CommandOutputMixIn
+from eoxserver.resources.coverages import models
 
-#------------------------------------------------------------------------------
 
 class Command(CommandOutputMixIn, BaseCommand):
 
@@ -64,7 +52,7 @@ class Command(CommandOutputMixIn, BaseCommand):
             help=("Query whether the given ID is reserved for creation of "
                   "a new entity (i.e., coverage, dataset, mosaic, or series). "
                   "When ID is reserved it may or may not be already used but "
-                  " for sure it is not available.")
+                  "for sure it is not available.")
         ), 
         make_option('-u','--is-used',
             dest='query_type',
@@ -85,34 +73,38 @@ class Command(CommandOutputMixIn, BaseCommand):
     #--------------------------------------------------------------------------
 
     def handle(self, *args, **opt):
-
-        System.init()
-
-        # prepare ID manager 
-        id_manager = CoverageIdManager() 
-
         # get query type
         qtype = opt.get("query_type", "isAvailable" )
 
         #get queried ID 
         try: 
-            id = args[0]
+            identifier = args[0]
         except IndexError : 
             raise CommandError("Missing the mandatory quertied ID!")
 
+        try:
+            eo_object = models.EOObject.objects.get(identifier=identifier)
+        except models.EOObject.DoesNotExist:
+            eo_object = None
+
         # select query based on the query type  
-        if qtype == "isAvailable" : 
-            result = id_manager.isAvailable( id )
-        
-        elif qtype == "isUsed" :
-            result = id_manager.isUsed( id )
+        if qtype == "isAvailable":
+            result = eo_object is None
+            
+        elif qtype == "isUsed":
+            result = (
+                eo_object is not None 
+                and eo_object.real_type != models.ReservedID
+            )
     
         elif qtype == "isReserved" :
-            result = id_manager.isReserved( id )
+            result = (
+                eo_object is not None 
+                and eo_object.real_type == models.ReservedID
+            )
 
-        else : 
+        else: 
             raise CommandError("Invalid query type!") 
 
-
-        # exit with propper exit code 
-        sys.exit( int( not bool(result) ) ) 
+        # exit with propper exit code.
+        sys.exit(int(not result))

@@ -32,6 +32,7 @@ from itertools import chain
 
 from django.core.exceptions import ValidationError
 from django.contrib.gis.db import models
+from django.utils.timezone import now
 
 from eoxserver.core import models as base
 from eoxserver.contrib import gdal, osr
@@ -215,6 +216,55 @@ class EOObject(base.Castable, EOMetadata):
         verbose_name = "EO Object"
         verbose_name_plural = "EO Objects"
 
+#===============================================================================
+# Identifier reservation
+#===============================================================================
+
+class ReservedIDManager(models.Manager):
+    """ Model manager for `ReservedID` models for easier handling. Returns only
+        `QuerySet`s that contain valid reservations.
+    """
+    def get_original_queryset(self):
+        return super(ReservedIDManager, self).get_queryset()
+
+    def get_queryset(self):
+        Q = models.Q
+        self.get_original_queryset().filter(
+            Q(until__isnull=True) | Q(until__gt=now())
+        )
+
+    def cleanup_reservations(self):
+        Q = models.Q
+        self.get_original_queryset().filter(
+            Q(until__isnull=False) | Q(until__lte=now())
+        ).delete()
+
+    def remove_reservation(self, identifier=None, request_id=None):
+        if not identifier and not request_id:
+            raise ValueError("Either identifier or request ID required")
+
+        if identifier:
+            model = self.get_original_queryset().get(identifier=identifier)
+            if request_id and model.request_id != request_id:
+                raise ValueError(
+                    "Given request ID does not match the reservation."
+                )
+        else:
+            model = self.get_original_queryset().get(request_id=request_id)
+        model.delete()
+
+
+class ReservedID(EOObject):
+    """ Model to reserve a specific ID. The field `until` can be used to 
+        specify the end of the reservation.
+    """
+    until = models.DateTimeField(null=True)
+    request_id = models.CharField(max_length=256, null=True)
+
+    objects = ReservedIDManager()
+
+
+EO_OBJECT_TYPE_REGISTRY[0] = ReservedID
 
 #===============================================================================
 # RangeType structure
