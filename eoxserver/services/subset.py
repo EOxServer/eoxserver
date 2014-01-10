@@ -342,16 +342,17 @@ class Subsets(list):
 
         subset_srid = self.xy_srid
 
-        if subset_srid == "imageCRS":
-            bbox = extent
+        if subset_srid is None:
+            bbox = list(extent)
         else:
-            bbox = footprint.extent
+            bbox = list(footprint.extent)
 
         for subset in self:
             if not isinstance(subset, Trim) or subset.is_temporal:
                 continue
 
-            if subset_srid == "imageCRS":
+            if subset_srid is None:
+                # transform coordinates from imageCRS to coverages CRS
                 if subset.is_x:
                     if subset.low is not None:
                         l = max(float(subset.low) / float(size_x), 0.0)
@@ -385,7 +386,7 @@ class Subsets(list):
                     if subset.high is not None:
                         bbox[3] = min(subset.high, bbox[3])
 
-        if subset_srid == "imageCRS":
+        if subset_srid is None:
             poly = Polygon.from_bbox(bbox)
             poly.srid = srid
 
