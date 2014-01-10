@@ -42,6 +42,7 @@ from eoxserver.services.ows.wcs.v20.encoders import WCS20EOXMLEncoder
 from eoxserver.services.mapserver.interfaces import (
     ConnectorInterface, LayerFactoryInterface
 )
+from eoxserver.services.subset import Subsets
 from eoxserver.services.mapserver.wcs.base_renderer import BaseRenderer
 from eoxserver.services.ows.version import Version
 from eoxserver.services.result import result_set_from_raw_data, ResultBuffer
@@ -86,6 +87,7 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
 
         range_type = coverage.range_type
         bands = list(range_type)
+        subsets = Subsets(params.subsets)
 
         # create and configure map object
         map_ = self.create_map()
@@ -141,7 +143,8 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
                 encoder.serialize(
                     encoder.alter_rectified_dataset(
                         coverage, getattr(params, "http_request", None), 
-                        etree.parse(result_set[0].data_file).getroot(), None
+                        etree.parse(result_set[0].data_file).getroot(), 
+                        subsets.bounding_polygon(coverage)
                     )
                 ), 
                 encoder.content_type
