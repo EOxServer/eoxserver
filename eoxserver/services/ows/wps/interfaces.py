@@ -32,50 +32,77 @@ class ProcessInterface(object):
         the WPS.
     """
 
+
     @property
     def identifier(self):
         """ The identifier, the process shall be identified with.
         """
+
 
     @property
     def title(self):
         """ The title of the process. Optional.
         """
 
+    
     @property
     def description(self):
         """ A detailed description of the process. Optional.
         """
 
+    
     @property
     def profiles(self):
         """ An iterable of URNs of any profiles this process adheres to. 
             Optional.
         """
 
+    
     @property
     def metadata(self):
         """ An iterable of URLs of any additional metadata associated with the 
             process. Optional.
         """
 
+    
     @property
     def version(self):
         """ The version of the process, if applicable. Optional.
         """
 
+    
     @property
     def inputs(self):
-        """ An iterable of key-value pairs, mapping the input identifiers to 
-            their respective types.
+        """ A dict mapping the input identifiers to their respective types. 
+            This can directly the supported python types (which are wrapped as 
+            LiterData types), ``LiterData``, ``BoundingBoxData`` and 
+            ``ComplexData`` instances. Mandatory
         """
 
+    
     @property
     def outputs(self):
-        """ TODO: for process description only.
+        """ A dict mapping the output identifiers to their respective types. 
+            Uses the same definitions as the ``inputs`` property.
         """
+
 
     def execute(self, **kwargs):
-        """ The main execution function for the process.
+        """ The main execution function for the process. The ``kwargs`` are the
+            parsed input inputs, as names by the ``inputs`` property. The 
+            function must return a dict, mapping the output identifiers to the 
+            actual outputs.
+            TODO: allow direct returning of single values when only one output?
         """
 
+
+    def decode_complex_input(self, identifier, raw_value, mime_type, encoding, schema):
+        """ Decodes a complex input before it is passed to the execution 
+            function.
+        """
+
+    def encode_complex_output(self, identifier, value, mime_type, encoding, schema):
+        """ Encode a complex output in a format specified by a mime-type.
+            The function must be able to handle all complex outputs with all 
+            formats as stated in the `outputs` property.
+        """
