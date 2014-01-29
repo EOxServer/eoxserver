@@ -34,6 +34,7 @@ from eoxserver.services.ows.interfaces import (
     PostServiceHandlerInterface, VersionNegotiationInterface
 )
 from eoxserver.services.ows.wps.interfaces import ProcessInterface
+from eoxserver.services.ows.wps.exceptions import NoSuchProcessException
 from eoxserver.services.ows.wps.v10.encoders import (
     WPS10ProcessDescriptionsXMLEncoder
 )
@@ -53,24 +54,37 @@ class WPS10DescribeProcessHandler(Component):
 
 
     def get_decoder(self, request):
-        return WPS10ProcessDescriptionsKVPDecoder(request.GET)
+        if request.method == "GET":
+            return WPS10DescribeProcessKVPDecoder(request.GET)
+        else:
+            return WPS10DescribeProcessXMLDecoder(request.body)
+
 
     def handle(self, request):
+        decoder = self.get_decoder(request)
+        identifiers = set(decoder.identifiers)
 
+        used_processes = []
+        for process in self.processes:
+            if process.identifier in identifiers:
+                identifiers.remove(process.identifier)
+                used_processes.append(process)
+
+        if len(identifiers):
+            raise NoSuchProcessException(identifiers)
 
         encoder = WPS10ProcessDescriptionsXMLEncoder()
         return encoder.serialize(
-            encoder.encode_process_descriptions(self.processes)
+            encoder.encode_process_descriptions(used_processes)
         ), encoder.content_type
 
 
-class WPS10ProcessDescriptionsKVPDecoder(kvp.Decoder):
-    identifier = kvp.Parameter(type=typelist(str, ","))
+class WPS10DescribeProcessKVPDecoder(kvp.Decoder):
+    identifiers = kvp.Parameter("identifier", type=typelist(str, ","))
 
 
-class WPS10ProcessDescriptionsXMLDecoder(xml.Decoder):
-    acceptversions = xml.Parameter("/ows:AcceptVersions/ows:Version/text()", num="*")
-    language = xml.Parameter("/ows:AcceptLanguages/ows:Language/text()", num="*")
+class WPS10DescribeProcessXMLDecoder(xml.Decoder):
+    identifiers = xml.Parameter("ows:Identifier/text()", num="+")
 
     namespaces = nsmap
 
