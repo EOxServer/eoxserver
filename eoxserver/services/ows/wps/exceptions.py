@@ -27,7 +27,10 @@
 #-------------------------------------------------------------------------------
 
 
-class NoSuchProcessDescription(Exception):
+class NoSuchProcessException(Exception):
+    code = "NoSuchProcess"
+    locator = "identifier"
+    
     def __init__(self, identifiers):
         self.identifiers = identifiers
 
@@ -36,3 +39,7 @@ class NoSuchProcessDescription(Exception):
             "" if not len(self.identifiers) else "es",
             ", ".join(map(lambda s: "'%s'" % s, self.identifiers))
         )
+
+
+class ReferenceException(Exception):
+    pass
