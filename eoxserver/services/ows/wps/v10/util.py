@@ -40,7 +40,7 @@ from eoxserver.services.exceptions import InvalidSubsettingException
 
 
 # namespace declarations
-ns_wps = NameSpace("http://www.opengis.net/wps/1.0", "wps", "http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd")
+ns_wps = NameSpace("http://www.opengis.net/wps/1.0.0", "wps", "http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd")
 
 # namespace map
 nsmap = NameSpaceMap(
