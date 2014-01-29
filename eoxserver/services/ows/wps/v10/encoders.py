@@ -26,15 +26,15 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-
-from datetime import datetime, date, time
+from django.utils.timezone import now
 
 from eoxserver.core.util.xmltools import XMLEncoder, NameSpace, NameSpaceMap
+from eoxserver.core.util.timetools import isoformat
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.services.ows.component import ServiceComponent, env
 from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.services.ows.wps.parameters import (
-    LiteralData, ComplexData, BoundingBoxData
+    is_literal_type, LiteralData, ComplexData, BoundingBoxData
 )
 from eoxserver.services.ows.wps.v10.util import (
     OWS, WPS, ns_ows, ns_wps, ns_xlink, ns_xml
@@ -64,6 +64,101 @@ class WPS10BaseXMLEncoder(XMLEncoder):
             elem.attr[ns_wps("processVersion")] = version
 
         return elem
+
+    def encode_parameter(self, name, parameter, is_input):
+        # support for the shorthand
+        if is_literal_type(parameter):
+            parameter = LiteralData(name, parameter)
+
+        # TODO: minOccurs/maxOccurs correct
+        elem = WPS("Input" if is_input else "Output",
+            OWS("Identifier", parameter.identifier or name)
+        )
+
+        if parameter.title:
+            elem.append(OWS("Title", parameter.title))
+        if parameter.description:
+            elem.append(OWS("Abstract", parameter.description))
+
+        if isinstance(parameter, LiteralData):
+            data_elem = WPS("LiteralData" if is_input else "LiteralOutput")
+
+            literal_type_name = parameter.type_name
+            if literal_type_name:
+                data_elem.append(
+                    OWS("DataType", literal_type_name, **{
+                        ns_ows("reference"): "http://www.w3.org/TR/xmlschema-2/#%s" % literal_type_name
+                    })
+                )
+
+            if parameter.uoms:
+                data_elem.append(
+                    WPS("UOMs",
+                        WPS("Default",
+                            OWS("UOM", parameter.uoms[0])
+                        ),
+                        WPS("Supported", *[
+                            OWS("UOM", uom) for uom in parameter.uoms
+                        ])
+                    )
+                )
+
+            if is_input and parameter.allowed_values:
+                data_elem.append(
+                    OWS("AllowedValues", *[
+                        OWS("AllowedValue", str(allowed_value))
+                        for allowed_value in parameter.allowed_values
+                    ])
+                )
+            elif is_input and parameter.values_reference:
+                data_elem.append(
+                    WPS("ValuesReference", **{
+                        ns_ows("reference"): parameter.values_reference,
+                        "valuesForm": parameter.values_reference
+                    })
+                )
+            elif is_input:
+                data_elem.append(OWS("AnyValue"))
+
+            if is_input and parameter.default is not None:
+                elem.attrib["minOccurs"] = "0"
+                data_elem.append(
+                    WPS("Default", str(parameter.default))
+                )
+
+        elif isinstance(parameter, ComplexData):
+            formats = parameter.formats
+            if isinstance(formats, Format):
+                formats = (formats,)
+
+            data_elem = WPS("ComplexData" if is_input else "ComplexOutput",
+                WPS("Default",
+                    self.encode_format(formats[0])
+                ),
+                WPS("Supported", *[
+                    self.encode_format(frmt) for frmt in formats
+                ])
+            )
+
+        elif isinstance(parameter, BoundingBoxData):
+            # TODO: implement
+            data_elem = WPS("BoundingBoxData" if is_input else "BoundingBoxOutput")
+
+        elem.append(data_elem)
+        return elem
+        
+
+    def encode_format(self, frmt):
+        elem = WPS("Format",
+            WPS("MimeType", frmt.mime_type)
+        )
+
+        if frmt.encoding:
+            elem.append(WPS("Encoding", frmt.encoding))
+
+        if frmt.encoding:
+            elem.append(WPS("Schema", frmt.schema))
+
 
 
 class WPS10CapabilitiesXMLEncoder(WPS10BaseXMLEncoder):
@@ -166,18 +261,7 @@ class WPS10CapabilitiesXMLEncoder(WPS10BaseXMLEncoder):
         return {"wps": ns_wps.schema_location}
 
 
-LITERAL_DATA_NAME = {
-    str: "string",
-    unicode: "string",
-    bool: "boolean",
-    int: "integer",
-    long: "integer",
-    float: "float",
-    #complex: "",
-    date: "date",
-    datetime: "dateTime",
-    time: "time"
-}
+
 
 class WPS10ProcessDescriptionsXMLEncoder(WPS10BaseXMLEncoder):
     def encode_process_descriptions(self, processes):
@@ -201,75 +285,31 @@ class WPS10ProcessDescriptionsXMLEncoder(WPS10BaseXMLEncoder):
         return elem
 
 
-    def encode_parameter(self, name, parameter, is_input):
-        # support for the shorthand
-        if parameter in LITERAL_DATA_NAME:
-            parameter = LiteralData(name, parameter)
-
-        # TODO: minOccurs/maxOccurs correct
-        elem = WPS("Input" if is_input else "Output",
-            OWS("Identifier", parameter.identifier or name)
+class WPS10ExecuteResponseXMLEncoder(WPS10BaseXMLEncoder):
+    def encode_execute_response(self, process, outputs):
+        return WPS("ExecuteResponse",
+            self.encode_process_brief(process),
+            WPS("Status",
+                WPS("ProcessSucceded"), # TODO: other states
+                creationTime=isoformat(now())
+            ),
+            WPS("DataInputs",
+            ), # TODO: only if lineage == True
+            WPS("OutputDefinitions", *[
+                self.encode_parameter(name, parameter, False)
+                for name, parameter in process.outputs.items()
+            ]),
+            WPS("ProcessOutputs", *[
+                self.encode_output(name, process.outputs[name], data)
+                for name, data in outputs.items()
+            ])
         )
 
-        if parameter.title:
-            elem.append(OWS("Title", parameter.title))
-        if parameter.description:
-            elem.append(OWS("Abstract", parameter.description))
-
-        if isinstance(parameter, LiteralData):
-            data_elem = WPS("LiteralData" if is_input else "LiteralOutput")
-
-            if parameter.type in LITERAL_DATA_NAME:
-                literal_name = LITERAL_DATA_NAME[parameter.type]
-                data_elem.append(
-                    OWS("DataType", literal_name, **{
-                        ns_ows("reference"): "http://www.w3.org/TR/xmlschema-2/#%s" % literal_name
-                    })
-                )
-
-            if parameter.uoms:
-                data_elem.append(
-                    WPS("UOMs",
-                        WPS("Default",
-                            OWS("UOM", parameter.uoms[0])
-                        ),
-                        WPS("Supported", *[
-                            OWS("UOM", uom) for uom in parameter.uoms
-                        ])
-                    )
-                )
-
-            if is_input and parameter.allowed_values:
-                data_elem.append(
-                    OWS("AllowedValues", *[
-                        OWS("AllowedValue", str(allowed_value))
-                        for allowed_value in parameter.allowed_values
-                    ])
-                )
-            elif is_input and parameter.values_reference:
-                data_elem.append(
-                    WPS("ValuesReference", **{
-                        ns_ows("reference"): parameter.values_reference,
-                        "valuesForm": parameter.values_reference
-                    })
-                )
-            elif is_input:
-                data_elem.append(OWS("AnyValue"))
-
-            if is_input and parameter.default is not None:
-                elem.attrib["minOccurs"] = "0"
-                data_elem.append(
-                    WPS("Default", str(parameter.default))
-                )
-
-        elif isinstance(parameter, ComplexData):
-            data_elem = WPS("ComplexData" if is_input else "ComplexOutput",
-
+    def encode_output(self, name, parameter, data):
+        elem = self.encode_parameter(name, parameter, False)
+        elem.append(
+            WPS("Data",
+                WPS("LiteralData", str(data))
             )
-        elif isinstance(parameter, BoundingBoxData):
-            # TODO: implement
-            data_elem = WPS("BoundingBoxData" if is_input else "BoundingBoxOutput")
-
-        elem.append(data_elem)
+        )
         return elem
-        
