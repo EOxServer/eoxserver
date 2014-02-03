@@ -26,11 +26,15 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+
 from django.utils.timezone import now
 
 from eoxserver.core.util.xmltools import XMLEncoder, NameSpace, NameSpaceMap
 from eoxserver.core.util.timetools import isoformat
 from eoxserver.core.config import get_eoxserver_config
+from eoxserver.services.result import (
+    to_http_response, ResultItem, ResultBuffer
+)
 from eoxserver.services.ows.component import ServiceComponent, env
 from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.services.ows.wps.parameters import (
@@ -286,24 +290,33 @@ class WPS10ProcessDescriptionsXMLEncoder(WPS10BaseXMLEncoder):
 
 
 class WPS10ExecuteResponseXMLEncoder(WPS10BaseXMLEncoder):
-    def encode_execute_response(self, process, outputs):
-        return WPS("ExecuteResponse",
+    def encode_execute_response(self, process, inputs, results, lineage=False):
+        response_elem = WPS("ExecuteResponse",
             self.encode_process_brief(process),
             WPS("Status",
                 WPS("ProcessSucceded"), # TODO: other states
                 creationTime=isoformat(now())
-            ),
-            WPS("DataInputs",
-            ), # TODO: only if lineage == True
+            )
+        )
+
+        if lineage:
+            response_elem.append(
+                WPS("DataInputs",
+
+                )
+            )
+
+        response_elem.extend((
             WPS("OutputDefinitions", *[
                 self.encode_parameter(name, parameter, False)
                 for name, parameter in process.outputs.items()
             ]),
             WPS("ProcessOutputs", *[
                 self.encode_output(name, process.outputs[name], data)
-                for name, data in outputs.items()
+                for name, data in results.items()
             ])
-        )
+        ))
+        return response_elem
 
     def encode_output(self, name, parameter, data):
         elem = self.encode_parameter(name, parameter, False)
@@ -313,3 +326,24 @@ class WPS10ExecuteResponseXMLEncoder(WPS10BaseXMLEncoder):
             )
         )
         return elem
+
+
+class WPS10ExecuteResponseRawEncoder(object):
+    def __init__(self, results):
+        self.results = results
+
+    def encode_execute_response(self, process, inputs, results, lineage):
+        return [
+            ResultBuffer(value, identifier=key)
+            for key, value in results.iteritems()
+        ]   
+
+    def serialize(self, result_items):
+        return to_http_response(result_items)
+
+    @property
+    def content_type(self):
+        if len(self.results) > 1:
+            return "multipart/related"
+        return getattr(self.results.values()[0], "mime_type", "text/plain")
+
