@@ -32,6 +32,8 @@ from datetime import datetime, date, time, timedelta
 
 from django.utils.dateparse import parse_date, parse_datetime, parse_time
 
+from eoxserver.core.util.timetools import isoformat
+
 
 class Parameter(object):
     def __init__(self, identifier=None, title=None, description=None, 
@@ -89,7 +91,7 @@ ISO_8601_DURATION_RE = re.compile(
     r"$"
 )
 
-def parse_timedelta(raw_value):
+def parse_duration(raw_value):
     match = ISO_8601_DURATION_R.match(raw_value)
     
     if not match:
@@ -121,11 +123,49 @@ def parse_timedelta(raw_value):
     return dt
 
 
-LITERL_DATA_PARSER = {
+LITERAL_DATA_PARSER = {
     date: parse_date_ext,
     datetime: parse_datetime_ext,
     time: parse_time_ext,
-    timedelta: parse_timedelta
+    timedelta: parse_duration
+}
+
+
+def encode_duration(self, dt):
+    years, days = divmod(dt.days, 365)
+    months, days = divmod(days, 30)
+
+    hours, seconds = divmod(dt.seconds, 3600)
+    minutes, seconds = divmod(seconds, 60)
+
+    seconds += (float(dt.microseconds) / 1000000) if dt.microseconds else 0
+
+    date_str = "%s%s%s" % (
+        ("%sY" % years) if years else "",
+        ("%sM" % months) if months else "",
+        ("%sD" % days) if days else ""
+    )
+    time_str = "%s%s%s" % (
+        ("%sH" % hours) if hours else "",
+        ("%sM" % minutes) if minutes else "",
+        ("%sS" % seconds) if seconds else ""
+    )
+
+    if date_str and time_str:
+        return "P%sT%s"
+
+    elif date_str:
+        return "P%s" % date_str
+    elif time_str:
+        return "PT%s" % time_str
+    else:
+        return "PT0S"
+
+LITERAL_DATA_ENCODER = {
+    date: parse_date_ext,
+    datetime: isoformat,
+    time: parse_time_ext,
+    timedelta: encode_duration
 }
 
 
@@ -146,10 +186,14 @@ class LiteralData(Parameter):
 
     def parse_value(self, raw_value):
         try:
-            parser = LITERL_DATA_PARSER.get(self.type, self.type)
+            parser = LITERAL_DATA_PARSER.get(self.type, self.type)
             return parser(raw_value)
         except (ValueError, TypeError), e:
             raise Exception("%s: Input parsing error: '%s' (raw value '%s')" % (self.identifier, str(e), raw_value))
+
+    def encode_value(self, value):
+        value_type = type(value)
+        return LITERAL_DATA_ENCODER.get(value_type, str)
 
     @property
     def type_name(self):
@@ -169,7 +213,13 @@ class BoundingBoxData(Parameter):
 
 
 class Format(object):
-    def __init__(self, mime_type, encoding=None, schema=None):
+    def __init__(self, mime_type, encoding=None, schema=None, encoder=None):
         self.mime_type = mime_type
         self.encoding = encoding
         self.schema = schema
+        self.encoder = encoder
+
+    def encode_data(self, data):
+        if self.encoder:
+            return self.encoder
+        raise NotImplementedError
