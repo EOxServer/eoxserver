@@ -39,12 +39,12 @@ from eoxserver.services.ows.interfaces import (
 )
 from eoxserver.services.ows.wps.interfaces import ProcessInterface
 from eoxserver.services.ows.wps.parameters import (
-    LiteralData, LITERAL_DATA_NAME
+    is_literal_type, LiteralData, ComplexData
 )
 from eoxserver.services.ows.wps.exceptions import NoSuchProcessException
-from eoxserver.services.ows.wps.v10.util import nsmap, ns_wps, ns_xlink
+from eoxserver.services.ows.wps.v10.util import nsmap, ns_wps, ns_ows, ns_xlink
 from eoxserver.services.ows.wps.v10.encoders import (
-    WPS10ExecuteResponseXMLEncoder
+    WPS10ExecuteResponseXMLEncoder, WPS10ExecuteResponseRawEncoder
 )
 
 
@@ -73,23 +73,22 @@ class WPS10ExcecuteHandler(Component):
             return WPS10ExecuteXMLDecoder(request.body)
 
 
-    def handle(self, request):
-        decoder = self.get_decoder(request)
 
-        for process in self.processes:
-            if process.identifier == decoder.identifier:
-                break
-        else: 
-            raise NoSuchProcessException((decoder.identifier,))
-
+    def process_inputs(self, process, decoder):
+        """ Iterates over all input options stated in the process and parses 
+            all given inputs. This also includes resolving references
+        """
         input_params = process.inputs
         inputs = decoder.inputs
 
         kwargs = {}
         for key, parameter in input_params.items():
-            if parameter in LITERAL_DATA_NAME:
+            
+            if is_literal_type(parameter):
                 parameter = LiteralData(key, parameter)
+
             try:
+                # get the "raw" input value
                 raw_value = inputs.pop(key)
 
                 if isinstance(raw_value, Reference):
@@ -104,27 +103,70 @@ class WPS10ExcecuteHandler(Component):
 
             kwargs[key] = value
 
+        return kwargs
+
+
+    def preprocess_result(self, process, results):
+        output_defs = getattr(process, "outputs", {})
+        if len(output_defs) == 0:
+            return {}
+
+        elif len(output_defs) == 1 and not isinstance(results, dict):
+            key = output_defs.keys()[0]
+            return {key: results}
+
+        elif not isinstance(results, dict):
+            return dict(results) # TODO: improve
+
+        return results
+
+
+    def process_outputs(self, process, decoder, results):
+        response_form = decoder.response_form or ResponseDocument()
+
+        results = self.preprocess_result(process, results)
+
+        encoded_result = {}
+        for output_identifier, raw_output in results.iteritems():
+            if not response_form.is_output_included(output_identifier):
+                pass
+
+            encoded_result[output_identifier] = response_form.encode(
+                process, output_identifier, raw_output
+            )
+
+
+        if not response_form.raw:
+            encoder = WPS10ExecuteResponseXMLEncoder()
+        else:
+            encoder = WPS10ExecuteResponseRawEncoder(results)
+
+        return encoder.serialize(
+            encoder.encode_execute_response(
+                process, decoder.inputs, results, 
+                getattr(response_form, "lineage", False)
+            )
+        ), encoder.content_type
+
+
+
+    def handle(self, request):
+        decoder = self.get_decoder(request)
+
+        for process in self.processes:
+            if process.identifier == decoder.identifier:
+                break
+        else: 
+            raise NoSuchProcessException((decoder.identifier,))
+
+        kwargs = self.process_inputs(process, decoder)
+
         # execute the process and prepare the result
         result = process.execute(**kwargs)
 
-        response_form = decoder.response_form or ResponseDocument()
-        if response_form.raw:
-            # Raw response
-            # create a direct HTTPResponse from it
+        return self.process_outputs(process, decoder, result)
 
-            # TODO: multiple outputs
-            return HttpResponse(str(result[response_form.outputs[0]]))
-        else:
-            actual_result = {}
-            for output_name in response_form.outputs:
-                actual_result[output_name] = result[output_name]
-
-            encoder = WPS10ExecuteResponseXMLEncoder()
-            return encoder.serialize(
-                encoder.encode_execute_response(
-                    process, actual_result
-                )
-            )
+        
 
     def resolve_reference(self, reference, request):
         url = urlparse(reference.href)
@@ -140,9 +182,11 @@ class WPS10ExcecuteHandler(Component):
             )
         
         try:
-            response = urllib2.urlopen()
-        except:
-            pass
+            request = urllib2.Request(reference.href, reference.body)
+            response = urllib2.urlopen(request)
+            return response.read()
+        except urllib2.URLError, e:
+            raise ReferenceException(str(e))
 
 
 
@@ -156,16 +200,65 @@ class Reference(object):
         self.encoding = encoding
         self.schema = schema
 
+
 class ResponseForm(object):
     raw = False
-    def __init__(self, outputs=None):
-        self.outputs = outputs or ()
 
-class RawResponse(ResponseForm):
+    def __init__(self, output_options=None):
+        self.output_options = output_options or {}
+
+    def is_output_included(self, output_identifier):
+        if not self.output_options or output_identifier in self.output_options:
+            return True
+        return False
+
+
+    def encode(self, process, output_identifier, raw_result):
+        parameter = process.outputs[output_identifier]
+
+        if isinstance(parameter, LiteralData):
+            # TODO: UOM?
+            return parameter.encode_value(raw_result)
+
+        elif isinstance(parameter, ComplexData):
+            # get the requested format encoding or use the default
+
+            frmt = self._get_selected_format(
+                output_identifier, parameter.formats
+            )
+
+            # try this order: use formats encoding function, use processes 
+            # encoding function
+
+            try:
+                return frmt.encode_data(raw_result)
+            except NotImplementedError:
+                return process.encode_complex_output(
+                    output_identifier, raw_result,
+                    frmt.mime_type, frmt.encoding, frmt.schema
+                )
+
+    def _get_selected_format(self, output_identifier, formats):
+        options = output_options.get(output_identifier)
+        mime_type = options.get("mime_type")
+
+        # first make a "strict" iteration
+        for frmt in formats:
+            if frmt.mime_type == mime_type:
+                return mime_type
+
+        # return the default, the first format
+        return formats[0]
+
+
+
+class RawDataOutput(ResponseForm):
     raw = True
 
 class ResponseDocument(ResponseForm):
-    pass
+    def __init__(self, output_options=None, lineage=False):
+        super(ResponseDocument, self).__init__(output_options)
+        self.lineage = lineage
 
 
 class AttributedValue(dict):
@@ -240,18 +333,45 @@ def parse_input_xml(element):
     return name, value
 
 
+def parse_output(attrs):
+    return {
+        "reference": attrs.get("asReference") == "true",
+        "uom": attrs.get("uom"),
+        "mime_type": attrs.get("mimeType"),
+        "encoding": attrs.get("encoding"),
+        "schema": attrs.get("schema")
+    }
 
-def parse_response_document_kvp(value):
-    return ResponseDocument()
+def parse_response_document_kvp(raw_string):
+    outputs = {}
+    for kvp in raw_string.split(";"):
+        key, value = parse_complex_kvp(kvp)
+        outputs[key] = parse_output(value)
 
-def parse_raw_response_kvp(value):
-    return RawResponse((value,))
+    return ResponseDocument(outputs)
+
+
+def parse_raw_response_kvp(raw_string):
+    key, value = parse_complex_kvp(raw_string)
+    return RawResponse({key: parse_output(value)})
+
 
 def parse_response_form_xml(elem):
     if elem.tag == ns_wps("ResponseDocument"):
+        outputs = {}
+        for output_elem in elem.xpath("wps:Output", namespaces=nsmap):
+            identifier = output_elem.findtext(ns_ows("Identifier"))
+            outputs[identifier] = parse_output(output_elem.attrib)
+
         return ResponseDocument(
-            map(str, elem.xpath("wps:Output/ows:Identifier/text()", namespaces=nsmap))
+            outputs, elem.attrib.get("lineage") == "true"
         )
+    elif elem.tag == ns_wps("RawDataOutput"):
+        return RawDataOutput(
+            {elem.findtext(ns_ows("Identifier")): parse_output(elem.attrib)}
+        )
+
+    raise
 
 
 class WPS10ExecuteKVPDecoder(kvp.Decoder):
@@ -270,7 +390,6 @@ class WPS10ExecuteKVPDecoder(kvp.Decoder):
         return self.response_document or ResponseDocument()
 
 
-
 class WPS10ExecuteXMLDecoder(xml.Decoder):
     identifier = xml.Parameter("ows:Identifier/text()")
     inputs_ = xml.Parameter("wps:DataInputs/wps:Input", type=parse_input_xml, num="*", default=[])
@@ -283,46 +402,3 @@ class WPS10ExecuteXMLDecoder(xml.Decoder):
 
     namespaces = nsmap
 
-
-class UnitMixIn(object):
-    def __new__(cls, value, unit):
-        obj = super(UnitMixIn, cls).__new__(cls, value)
-        obj.unit = unit
-        return obj
-
-class UnitFloat(UnitMixIn, float):
-    pass
-
-
-class WPSExecuteParameters(object):
-    @property
-    def input_values(self):
-        pass
-
-    @property
-    def output_definitions(self):
-        pass
-
-
-
-class ExampleProcess(Component):
-    implements(ProcessInterface)
-
-    identifier = "random"
-
-    inputs = {
-        "lower": float,
-        "upper": float
-    }
-
-    outputs = {
-        "value": float
-    }
-
-
-    def execute(self, lower, upper):
-        import random
-
-        return {
-            "value": lower + random.random() * (upper - lower)
-        }
