@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <eop:EarthObservation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.opengis.net/eop/2.0 ../xsd/eop.xsd"
+    xsi:schemaLocation="http://www.opengis.net/eop/2.0 ../eop.xsd"
  xmlns:om="http://www.opengis.net/om/2.0"
  xmlns:xlink="http://www.w3.org/1999/xlink"
  xmlns:gml="http://www.opengis.net/gml/3.2"
@@ -85,7 +85,7 @@
                     <eop:type>QUICKLOOK</eop:type>                    
                     <eop:referenceSystemIdentifier codeSpace="EPSG">epsg:4326</eop:referenceSystemIdentifier>    
                     <eop:fileName>
-                       <ows:ServiceReference xlink:href="http://etc"><ows:RequestMessage></ows:RequestMessage></ows:ServiceReference>
+                        <ows:ServiceReference xlink:href="http://eop.cnes.fr/catalog/DS_PHR1A_20010822110247_TLS_PX_E123N45_0101_01234.gml"><ows:RequestMessage></ows:RequestMessage></ows:ServiceReference>
                     </eop:fileName>
                 </eop:BrowseInformation>
             </eop:browse>

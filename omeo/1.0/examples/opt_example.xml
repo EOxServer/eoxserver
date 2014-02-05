@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <?xml-stylesheet type="text/xsl" href="schematron_result_for_eop.xsl"?>
 <opt:EarthObservation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.opengis.net/opt/2.0 ../xsd/opt.xsd"
+	xsi:schemaLocation="http://www.opengis.net/opt/2.0 ../opt.xsd"
 	xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:gml="http://www.opengis.net/gml/3.2"
 	xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:opt="http://www.opengis.net/opt/2.0"
 	xmlns:ows="http://www.opengis.net/ows/2.0"

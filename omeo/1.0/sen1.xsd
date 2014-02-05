@@ -1,7 +1,11 @@
-<!-- edited with XMLSpy v2011 sp1 (http://www.altova.com) by ROBERTO BIASUTTI (ESRIN STORE) -->
 <schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:ows="http://www.opengis.net/ows/2.0" xmlns:sen1="http://www.opengis.net/sen1/2.0" xmlns:sar="http://www.opengis.net/sar/2.0" xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:om="http://www.opengis.net/om/2.0" xmlns:gmd="http://www.isotc211.org/2005/gmd" targetNamespace="http://www.opengis.net/sen1/2.0" elementFormDefault="qualified" attributeFormDefault="unqualified" version="2.0.0">
 	<annotation>
-		<documentation>Sentinel-1 applicatiion schema</documentation>
+		<documentation>Sentinel-1 applicatiionn schema.
+			
+		Earth Observation Metadata profile of Observations and Measurements is an OGC Standard.
+		Copyright (c) 2013 Open Geospatial Consortium. 
+		To obtain additional rights of use, visit http://www.opengeospatial.org/legal/ .
+		</documentation>
 	</annotation>
 	<!-- ====================================================================== -->
 	<!-- bring in other schemas -->
@@ -10,7 +14,7 @@
 	<import namespace="http://www.opengis.net/ows/2.0" schemaLocation="http://schemas.opengis.net/ows/2.0/owsAll.xsd"/>
 	<import namespace="http://www.opengis.net/eop/2.0" schemaLocation="eop.xsd"/>
 	<import namespace="http://www.opengis.net/sar/2.0" schemaLocation="sar.xsd"/>
-	<import namespace="http://www.opengis.net/om/2.0" schemaLocation="om/2.0/observation.xsd"/>
+	<import namespace="http://www.opengis.net/om/2.0" schemaLocation="http://schemas.opengis.net/om/2.0/observation.xsd" />
 	<!-- ====================================================================== -->
 	<element name="EarthObservation" type="sen1:EarthObservationType" substitutionGroup="sar:EarthObservation">
 		<annotation>
