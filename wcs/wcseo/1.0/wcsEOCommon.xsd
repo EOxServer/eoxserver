@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schema targetNamespace="http://www.opengis.net/wcseo/1.0"
-    xmlns:wcseo="http://www.opengis.net/wcseo/1.0"
+<schema targetNamespace="http://www.opengis.net/wcs/wcseo/1.0"
+    xmlns:wcseo="http://www.opengis.net/wcs/wcseo/1.0"
     xmlns:wcs="http://www.opengis.net/wcs/2.0"
     xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0"
     xmlns:ows="http://www.opengis.net/ows/2.0"
@@ -11,7 +11,7 @@
     <annotation>
         <appinfo>wcsEOCommon.xsd</appinfo>
         <documentation>This XML Schema Document encodes the elements and types that are shared by multiple EO-WCS operations.
-            Last updated: 2011-feb-04
+            Last updated: 2013-jun-11
             Copyright (c) 2011 Open Geospatial Consortium, Inc. All Rights Reserved.
             To obtain additional rights of use, visit http://www.opengeospatial.org/legal/.
         </documentation>
@@ -114,28 +114,50 @@
     <element name="rectifiedDataset">
         <complexType>
             <sequence>
-                <element ref="wcs:CoverageId"/>
+                <choice>
+                    <element ref="wcs:CoverageId"/>
+                    <element ref="ows:Reference"/>
+                </choice>
             </sequence>
         </complexType>
     </element>
     <element name="referenceableDataset">
         <complexType>
             <sequence>
-                <element ref="wcs:CoverageId"/>
+                <choice>
+                    <element ref="wcs:CoverageId"/>
+                    <element ref="ows:Reference"/>
+                </choice>
             </sequence>
         </complexType>
     </element>
     <element name="rectifiedStitchedMosaic">
         <complexType>
             <sequence>
-                <element ref="wcs:CoverageId"/>
+                <choice>
+                    <element ref="wcs:CoverageId"/>
+                    <element ref="ows:Reference"/>
+                </choice>
             </sequence>
         </complexType>
     </element>
     <element name="referenceableStitchedMosaic">
         <complexType>
             <sequence>
-                <element ref="wcs:CoverageId"/>
+                <choice>
+                    <element ref="wcs:CoverageId"/>
+                    <element ref="ows:Reference"/>
+                </choice>
+            </sequence>
+        </complexType>
+    </element>
+    <element name="datasetSeries">
+        <complexType>
+            <sequence>
+                <choice>
+                    <element ref="wcseo:DatasetSeriesId"/>
+                    <element ref="ows:Reference"/>
+                </choice>
             </sequence>
         </complexType>
     </element>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schema targetNamespace="http://www.opengis.net/wcseo/1.0"
-    xmlns:wcseo="http://www.opengis.net/wcseo/1.0"
+<schema targetNamespace="http://www.opengis.net/wcs/wcseo/1.0"
+    xmlns:wcseo="http://www.opengis.net/wcs/wcseo/1.0"
     xmlns:wcs="http://www.opengis.net/wcs/2.0"
     xmlns:ows="http://www.opengis.net/ows/2.0"
     xmlns:gml="http://www.opengis.net/gml/3.2"
@@ -9,7 +9,7 @@
     <annotation>
         <appinfo>wcsEOGetCapabilities.xsd</appinfo>
         <documentation>This XML Schema Document includes, directly and indirectly, all the XML Schema Documents defined by the OGC Web Coverage Service (WCS) Earth Observation Application Profile (EO-WCS).
-            Last updated: 2011-feb-04
+            Last updated: 2013-jun-11
             Copyright (c) 2011 Open Geospatial Consortium, Inc. All Rights Reserved.
             To obtain additional rights of use, visit http://www.opengeospatial.org/legal/.
         </documentation>
