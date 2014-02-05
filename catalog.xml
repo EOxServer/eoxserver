@@ -43,14 +43,14 @@ Unset: export -n XML_CATALOG_FILES (use standard catalog at /etc/xml/)
   <rewriteSystem systemIdStartString="http://schemas.opengis.net/wcseo/1.0/" rewritePrefix="wcseo/1.0/"/>
   <rewriteURI uriStartString="http://schemas.opengis.net/wcseo/1.0/" rewritePrefix="wcseo/1.0/"/>
 <!-- eop 2.0 -->
-  <rewriteSystem systemIdStartString="http://schemas.opengis.net/eop/2.0/" rewritePrefix="omeo/"/>
-  <rewriteURI uriStartString="http://schemas.opengis.net/eop/2.0/" rewritePrefix="omeo/"/>
+  <rewriteSystem systemIdStartString="http://schemas.opengis.net/eop/2.0/" rewritePrefix="omeo/1.0/"/>
+  <rewriteURI uriStartString="http://schemas.opengis.net/eop/2.0/" rewritePrefix="omeo/1.0/"/>
 <!-- wcs/2.0 -->
   <rewriteSystem systemIdStartString="http://schemas.opengis.net/wcs/2.0/" rewritePrefix="wcs/2.0/"/>
   <rewriteURI uriStartString="http://schemas.opengis.net/wcs/2.0/" rewritePrefix="wcs/2.0/"/>
 <!-- wcs/geotiff -->
-  <rewriteSystem systemIdStartString="http://schemas.opengis.net/wcs/geotiff/" rewritePrefix="wcs/geotiff/"/>
-  <rewriteURI uriStartString="http://schemas.opengis.net/wcs/geotiff/" rewritePrefix="wcs/geotiff/"/>
+  <rewriteSystem systemIdStartString="http://schemas.opengis.net/gmlcov/geotiff/" rewritePrefix="gmlcov/geotiff/"/>
+  <rewriteURI uriStartString="http://schemas.opengis.net/gmlcov/geotiff/" rewritePrefix="gmlcov/geotiff/"/>
 <!-- wcs/crs -->
   <rewriteSystem systemIdStartString="http://schemas.opengis.net/wcs/crs/" rewritePrefix="wcs/crs/"/>
   <rewriteURI uriStartString="http://schemas.opengis.net/wcs/crs/" rewritePrefix="wcs/crs/"/>
