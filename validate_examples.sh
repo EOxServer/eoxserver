@@ -1,6 +1,5 @@
 #!/bin/sh
 #-------------------------------------------------------------------------------
-# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>
@@ -12,8 +11,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -62,7 +61,7 @@ echo "\n"
 echo "Validating EO-WCS examples against http://schemas.xmlsoap.org/soap/envelope/"
 echo "\n"
 xmllint --noout --schema http://schemas.xmlsoap.org/soap/envelope/ \
-    wcseo/1.0/examples/wcseo_requestGetCoverage_SOAP.xml \
+    wcseo/1.0/examples/wcseo_requestGetCoverage_SOAP.xml
 
 ## Not backwards compatible like used below:
 #echo "########################################################################"
@@ -83,7 +82,7 @@ echo "########################################################################"
 echo "\n"
 echo "Validating WCS GeoTIFF examples against wcs/geotiff/1.0/wcsGeotiff.xsd"
 echo "\n"
-find wcs/geotiff/ -iname "*.xml" -exec xmllint --noout --schema wcs/geotiff/1.0/wcsGeotiff.xsd {} \;
+find gmlcov/geotiff/ -iname "*.xml" -exec xmllint --noout --schema gmlcov/geotiff/1.0/wcsGeotiff.xsd {} \;
 
 
 echo "########################################################################"
