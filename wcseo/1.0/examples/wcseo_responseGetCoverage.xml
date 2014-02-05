@@ -10,7 +10,7 @@
     xmlns:om="http://www.opengis.net/om/2.0"
     xmlns:xlink="http://www.w3.org/1999/xlink"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOGetCoverage.xsd"
+    xsi:schemaLocation="http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd"
     gml:id="someEOCoverage1">
     <gml:boundedBy>
         <gml:Envelope srsName="http://www.opengis.net/def/crs/EPSG/0/4326" axisLabels="Lat Long" srsDimension="2" uomLabels="deg deg">
@@ -187,7 +187,7 @@
             <wcseo:lineage>
                 <!-- GetCoverage request via KVP -->
                 <wcseo:referenceGetCoverage>
-                    <ows:Reference xlink:href="http://www.someWCS.org?SERVICE=WCS&amp;VERSION=2.0.0&amp;REQUEST=GetCoverage&amp;COVERAGEID=someEOCoverage1&amp;FORMAT=application/gml+xml"/>
+                    <ows:Reference xlink:href="http://www.someWCS.org?SERVICE=WCS&amp;VERSION=2.0.1&amp;REQUEST=GetCoverage&amp;COVERAGEID=someEOCoverage1&amp;FORMAT=application/gml+xml"/>
                 </wcseo:referenceGetCoverage>
                 <gml:timePosition>2011-02-04T15:45:52Z</gml:timePosition>
             </wcseo:lineage>
@@ -201,7 +201,7 @@
                                 xmlns:gml="http://www.opengis.net/gml/3.2"
                                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                                 xsi:schemaLocation="http://www.opengis.net/wcs/2.0 http://schemas.opengis.net/wcs/2.0/wcsAll.xsd"
-                                service="WCS" version="2.0.0">
+                                service="WCS" version="2.0.1">
                                 <wcs:format>application/gml+xml</wcs:format>
                                 <wcs:CoverageId>someEOCoverage1</wcs:CoverageId>
                             </wcs:GetCoverage>

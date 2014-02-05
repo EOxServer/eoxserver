@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<wcs:Capabilities updateSequence="20110104T160000Z" version="2.0.0"
+<wcs:Capabilities updateSequence="20110104T160000Z" version="2.0.1"
     xmlns:gml="http://www.opengis.net/gml/3.2"
     xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0"
     xmlns:ogc="http://www.opengis.net/ogc"
@@ -20,7 +20,7 @@
             <ows:Keyword>Keyword</ows:Keyword>
         </ows:Keywords>
         <ows:ServiceType codeSpace="OGC">OGC WCS</ows:ServiceType>
-        <ows:ServiceTypeVersion>2.0.0</ows:ServiceTypeVersion>
+        <ows:ServiceTypeVersion>2.0.1</ows:ServiceTypeVersion>
         <ows:Profile>http://www.opengis.net/spec/WCS/2.0/conf/core</ows:Profile>
         <ows:Profile>http://www.opengis.net/spec/WCS_protocol-binding_get-kvp/1.0/conf/get-kvp</ows:Profile>
         <ows:Profile>http://www.opengis.net/spec/WCS_protocol-binding_post-xml/1.0/conf/post-xml</ows:Profile>
