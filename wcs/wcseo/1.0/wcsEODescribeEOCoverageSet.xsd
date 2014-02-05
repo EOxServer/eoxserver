@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schema targetNamespace="http://www.opengis.net/wcseo/1.0"
-    xmlns:wcseo="http://www.opengis.net/wcseo/1.0"
+<schema targetNamespace="http://www.opengis.net/wcs/wcseo/1.0"
+    xmlns:wcseo="http://www.opengis.net/wcs/wcseo/1.0"
     xmlns:wcs="http://www.opengis.net/wcs/2.0"
     xmlns:gml="http://www.opengis.net/gml/3.2"
     xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0"
@@ -10,7 +10,7 @@
     <annotation>
         <appinfo>wcsEODescribeCoverageSet.xsd</appinfo>
         <documentation>This XML Schema Document defines the DescribeEOCoverageSet operation request and response XML elements and types, used by the OGC Web Coverage Service (WCS) Earth Observation Application Profile (EO-WCS).
-            Last updated: 2011-feb-04
+            Last updated: 2013-jun-11
             Copyright (c) 2011 Open Geospatial Consortium, Inc. All Rights Reserved.
             To obtain additional rights of use, visit http://www.opengeospatial.org/legal/.
         </documentation>
@@ -135,6 +135,7 @@
             <element ref="wcseo:referenceableDataset" minOccurs="0" maxOccurs="unbounded"/>
             <element ref="wcseo:rectifiedStitchedMosaic" minOccurs="0" maxOccurs="unbounded"/>
             <element ref="wcseo:referenceableStitchedMosaic" minOccurs="0" maxOccurs="unbounded"/>
+            <element ref="wcseo:datasetSeries" minOccurs="0" maxOccurs="unbounded"/>
         </sequence>
     </complexType>
 </schema>

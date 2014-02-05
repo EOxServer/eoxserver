@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schema targetNamespace="http://www.opengis.net/wcseo/1.0"
-    xmlns:wcseo="http://www.opengis.net/wcseo/1.0"
+<schema targetNamespace="http://www.opengis.net/wcs/wcseo/1.0"
+    xmlns:wcseo="http://www.opengis.net/wcs/wcseo/1.0"
     xmlns:gml="http://www.opengis.net/gml/3.2"
     xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0"
     xmlns:eop="http://www.opengis.net/eop/2.0"
@@ -10,7 +10,7 @@
         <appinfo>wcsEOCoverage.xsd</appinfo>
         <documentation>This XML Schema Document encodes the coverage elements and types that are defined in the WCS EO-AP.
             This file is actually not needed by WCS EO-AP implementations but provided for completeness.
-            Last updated: 2011-feb-04
+            Last updated: 2013-jun-11
             Copyright (c) 2011 Open Geospatial Consortium, Inc. All Rights Reserved.
             To obtain additional rights of use, visit http://www.opengeospatial.org/legal/.
         </documentation>
@@ -78,6 +78,7 @@
             <element ref="wcseo:referenceableDataset" minOccurs="0" maxOccurs="unbounded"/>
             <element ref="wcseo:rectifiedStitchedMosaic" minOccurs="0" maxOccurs="unbounded"/>
             <element ref="wcseo:referenceableStitchedMosaic" minOccurs="0" maxOccurs="unbounded"/>
+            <element ref="wcseo:datasetSeries" minOccurs="0" maxOccurs="unbounded"/>
         </sequence>
     </complexType>
 </schema>

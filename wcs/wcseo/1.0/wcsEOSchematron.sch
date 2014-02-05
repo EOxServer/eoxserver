@@ -8,7 +8,7 @@
     <sch:ns prefix="gmlcov" uri="http://www.opengis.net/gmlcov/1.0"/>
     <sch:ns prefix="gml" uri="http://www.opengis.net/gml/3.2"/>
     <sch:ns prefix="wcs" uri="http://www.opengis.net/wcs/2.0"/>
-    <sch:ns prefix="wcseo" uri="http://www.opengis.net/wcseo/1.0"/>
+    <sch:ns prefix="wcseo" uri="http://www.opengis.net/wcs/wcseo/1.0"/>
     <sch:ns prefix="eop" uri="http://www.opengis.net/eop/2.0"/>
     <sch:ns prefix="om" uri="http://www.opengis.net/om/2.0"/>
     <sch:pattern>
