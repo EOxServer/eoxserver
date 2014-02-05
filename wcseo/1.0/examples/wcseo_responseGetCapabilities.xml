@@ -99,7 +99,10 @@
         </ows:Constraint>
     </ows:OperationsMetadata>
 
-    <wcs:ServiceMetadata/>
+    <wcs:ServiceMetadata>
+        <wcs:formatSupported>application/gml+xml</wcs:formatSupported>
+        <wcs:formatSupported>image/tiff</wcs:formatSupported>
+    </wcs:ServiceMetadata>
 
     <wcs:Contents>
         <!-- CoverageSummary including mandatory elements only -->

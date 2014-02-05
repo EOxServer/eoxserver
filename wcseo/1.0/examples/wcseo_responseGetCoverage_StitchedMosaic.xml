@@ -61,54 +61,56 @@
         </swe:DataRecord>
     </gmlcov:rangeType>
     <gmlcov:metadata>
-        <wcseo:EOMetadata>
-            <eop:EarthObservation gml:id="someStitchedMosaic1_eop">
-                <om:phenomenonTime>
-                    <gml:TimePeriod gml:id="someStitchedMosaic1_phen_time">
-                        <gml:beginPosition>2008-01-01T00:00:00Z</gml:beginPosition>
-                        <gml:endPosition>2009-12-31T23:59:59Z</gml:endPosition>
-                    </gml:TimePeriod>
-                </om:phenomenonTime>
-                <om:resultTime>
-                    <gml:TimeInstant gml:id="someStitchedMosaic1_res_time">
-                        <gml:timePosition>2011-01-28T14:48:44Z</gml:timePosition>
-                    </gml:TimeInstant>
-                </om:resultTime>
-                <om:procedure />
-                <om:observedProperty />
-                <om:featureOfInterest>
-                    <eop:Footprint gml:id="someStitchedMosaic1_footprint">
-                        <eop:multiExtentOf>
-                            <gml:MultiSurface gml:id="someStitchedMosaic1_multisurface">
-                                <gml:surfaceMember>
-                                    <gml:Polygon gml:id="someStitchedMosaic1_polygon">
-                                        <gml:exterior>
-                                            <gml:LinearRing>
-                                                <gml:posList>50.537109 8.261719 44.384766 8.261719 44.472656 20.390625 50.625000 20.390625 50.537109 8.261719</gml:posList>
-                                            </gml:LinearRing>
-                                        </gml:exterior>
-                                    </gml:Polygon>
-                                </gml:surfaceMember>
-                            </gml:MultiSurface>
-                        </eop:multiExtentOf>
-                    </eop:Footprint>
-                </om:featureOfInterest>
-                <om:result />
-                <eop:metaDataProperty>
-                    <eop:EarthObservationMetaData>
-                        <eop:identifier>someStitchedMosaic1_</eop:identifier>
-                        <eop:acquisitionType>NOMINAL</eop:acquisitionType>
-                        <eop:status>ARCHIVED</eop:status>
-                    </eop:EarthObservationMetaData>
-                </eop:metaDataProperty>
-            </eop:EarthObservation>
-            <wcseo:lineage>
-                <wcseo:referenceGetCoverage>
-                    <ows:Reference xlink:href="http://www.someWCS.org?SERVICE=WCS&amp;VERSION=2.0.1&amp;REQUEST=GetCoverage&amp;COVERAGEID=someStitchedMosaic1&amp;FORMAT=image/tiff&amp;MEDIATYPE=multipart/mixed"/>
-                </wcseo:referenceGetCoverage>
-                <gml:timePosition>2011-02-04T15:45:52Z</gml:timePosition>
-            </wcseo:lineage>
-        </wcseo:EOMetadata>
+        <gmlcov:Extension>
+            <wcseo:EOMetadata>
+                <eop:EarthObservation gml:id="someStitchedMosaic1_eop">
+                    <om:phenomenonTime>
+                        <gml:TimePeriod gml:id="someStitchedMosaic1_phen_time">
+                            <gml:beginPosition>2008-01-01T00:00:00Z</gml:beginPosition>
+                            <gml:endPosition>2009-12-31T23:59:59Z</gml:endPosition>
+                        </gml:TimePeriod>
+                    </om:phenomenonTime>
+                    <om:resultTime>
+                        <gml:TimeInstant gml:id="someStitchedMosaic1_res_time">
+                            <gml:timePosition>2011-01-28T14:48:44Z</gml:timePosition>
+                        </gml:TimeInstant>
+                    </om:resultTime>
+                    <om:procedure />
+                    <om:observedProperty />
+                    <om:featureOfInterest>
+                        <eop:Footprint gml:id="someStitchedMosaic1_footprint">
+                            <eop:multiExtentOf>
+                                <gml:MultiSurface gml:id="someStitchedMosaic1_multisurface">
+                                    <gml:surfaceMember>
+                                        <gml:Polygon gml:id="someStitchedMosaic1_polygon">
+                                            <gml:exterior>
+                                                <gml:LinearRing>
+                                                    <gml:posList>50.537109 8.261719 44.384766 8.261719 44.472656 20.390625 50.625000 20.390625 50.537109 8.261719</gml:posList>
+                                                </gml:LinearRing>
+                                            </gml:exterior>
+                                        </gml:Polygon>
+                                    </gml:surfaceMember>
+                                </gml:MultiSurface>
+                            </eop:multiExtentOf>
+                        </eop:Footprint>
+                    </om:featureOfInterest>
+                    <om:result />
+                    <eop:metaDataProperty>
+                        <eop:EarthObservationMetaData>
+                            <eop:identifier>someStitchedMosaic1_</eop:identifier>
+                            <eop:acquisitionType>NOMINAL</eop:acquisitionType>
+                            <eop:status>ARCHIVED</eop:status>
+                        </eop:EarthObservationMetaData>
+                    </eop:metaDataProperty>
+                </eop:EarthObservation>
+                <wcseo:lineage>
+                    <wcseo:referenceGetCoverage>
+                        <ows:Reference xlink:href="http://www.someWCS.org?SERVICE=WCS&amp;VERSION=2.0.1&amp;REQUEST=GetCoverage&amp;COVERAGEID=someStitchedMosaic1&amp;FORMAT=image/tiff&amp;MEDIATYPE=multipart/mixed"/>
+                    </wcseo:referenceGetCoverage>
+                    <gml:timePosition>2011-02-04T15:45:52Z</gml:timePosition>
+                </wcseo:lineage>
+            </wcseo:EOMetadata>
+        </gmlcov:Extension>
     </gmlcov:metadata>
     <wcseo:datasets>
         <!-- Dataset without contributingFootprint -->
