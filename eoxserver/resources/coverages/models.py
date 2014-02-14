@@ -395,7 +395,7 @@ class RangeType(models.Model):
     """ Collection model for bands.
     """
 
-    name = models.CharField(max_length=32, null=False, blank=False, unique=True)
+    name = models.CharField(max_length=256, null=False, blank=False, unique=True)
 
 
     def __init__(self, *args, **kwargs):
@@ -429,11 +429,11 @@ class Band(models.Model):
     """
 
     index = models.PositiveSmallIntegerField()
-    name = models.CharField(max_length=32, null=False, blank=False)
-    identifier = models.CharField(max_length=32, null=False, blank=False)
-    description = models.CharField(max_length=32, null=True, blank=True)
-    definition = models.CharField(max_length=128, null=True, blank=True)
-    uom = models.CharField(max_length=32, null=False, blank=False)
+    name = models.CharField(max_length=256, null=False, blank=False)
+    identifier = models.CharField(max_length=256, null=False, blank=False)
+    description = models.TextField(null=True, blank=True)
+    definition = models.CharField(max_length=256, null=True, blank=True)
+    uom = models.CharField(max_length=64, null=False, blank=False)
     
     # GDAL specific
     data_type = models.PositiveIntegerField()
