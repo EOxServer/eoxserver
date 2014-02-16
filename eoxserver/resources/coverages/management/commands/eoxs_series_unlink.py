@@ -46,19 +46,14 @@ from eoxserver.resources.coverages.models import EO_OBJECT_TYPE_REGISTRY
 
 class Command(CommandOutputMixIn, BaseCommand):
     option_list = BaseCommand.option_list + (
-        make_option("-i", "--identifier", "--dataset-series-id", 
-            dest="identifier", action="store", default=None,
-            help=("Dataset series identifier.")
-        ),
         make_option("-s", "--series",dest="parents",
             action='callback', callback=_variable_args_cb,
-            default=[], help=("Optional. Link to one or more parent dataset series.")
+            default=None, help=("List of the target dataset series.")
         ), 
         make_option("-a", "--add",dest="children",
             action='callback', callback=_variable_args_cb,
-            default=[], help=("Optional. Link one or more child eo-objects.")
+            default=None, help=("List of the inserted child eo-objects.")
         ), 
-
         make_option('--ignore-missing-parent',
             dest='ignore_missing_parent',
             action="store_true",default=False,
@@ -73,27 +68,16 @@ class Command(CommandOutputMixIn, BaseCommand):
                   " does not exist. By defualt, a missing child " 
                   "will terminate the command." )
         ),
-#        make_option("--footprint", dest="footprint", 
-#            action="store", default=None,
-#            help=("Optional. Set footprint.")
-#        ),
-#        make_option("--begin-time", dest="begin_time", 
-#            action="store", default=None,
-#            help=("Optional. Set begin time.")
-#        ),
-#        make_option("--end-time", dest="end_time", 
-#            action="store", default=None,
-#            help=("Optional. Set end time.")
-#        ),
     )
 
 #    args = "<identifier>"
     
     help = (
-    """ Creates a new Dataset Series.  
+    """ 
+        Unlink (remove) one or more EOObjects from one or more dataset series. 
+        Note that the EOObjects will still remain in the data-base.
 
-        Optionall, one or more parent datases series 
-        can be specified. 
+        NOTE: Non-existing links are ignored.
     """ % ({"name": __name__.split(".")[-1]}))
 
     @transaction.commit_on_success
@@ -102,15 +86,12 @@ class Command(CommandOutputMixIn, BaseCommand):
         #----------------------------------------------------------------------
         # check the inputs 
 
-        # check required identifier 
-        identifier = opt.get('identifier',None)
-        if identifier is None : 
-            raise CommandError("Missing the mandatory dataset series identifier!")
+        # check the required inputs 
+        if opt.get('parents',None) is None : 
+            raise CommandError("Missing the mandatory dataset series identifier(s)!")
 
-        # is the identifier unique?
-        if 0 < EOObject.objects.filter(identifier=identifier).count():
-            raise CommandError( "The identifier is already in use!"
-                                " IDENTIFIER='%s'"%identifier )
+        if opt.get('children',None) is None : 
+            raise CommandError("Missing the mandatory inserted EOObjects identifier(s)!")
 
         # extract the parents 
         ignore_missing_parent = bool(opt.get('ignore_missing_parent',False))
@@ -143,28 +124,29 @@ class Command(CommandOutputMixIn, BaseCommand):
         #----------------------------------------------------------------------
         # perform the action 
 
-        self.print_msg( "Creating Dataset Series: '%s'" % identifier ) 
+        try : 
 
-        try: 
+            for parent in parents: 
+                for child in children : 
 
-            series = DatasetSeries() 
-            series.identifier = identifier 
-            series.save() 
+                    eotype   = EO_OBJECT_TYPE_REGISTRY[child.real_content_type]
 
-            # insert created dataset series to the parent series  
-            for parent in parents : 
-                self.print_msg( "Linking: '%s' ---> '%s' " \
-                                        % ( identifier, parent.identifier ) )
-                parent.insert( series ) 
+                    # check whether the link does not exist 
+                    # TODO: try to find a more efficiet way
+                    if parent.eo_objects.filter(identifier=child.identifier).exists() : 
+                        
+                        self.print_msg( "Unlinking: '%s' <-x- '%s' (%s)"
+                            "" %( parent.identifier,child.identifier,
+                            eotype.__name__))
 
-            # insert existing eo-objects to the dataset series 
-            for child in children : 
-                eotype = EO_OBJECT_TYPE_REGISTRY[child.real_content_type]
-                self.print_msg( "Linking: '%s' <--- '%s' (%s)" \
-                    % ( identifier, child.identifier, eotype.__name__ ))
-                series.insert( child ) 
+                        parent.remove( child ) 
+                    
+                    else : 
 
-        except CommandError : raise 
+                        self.print_wrn("The link does not exist: '%s' <-x- "
+                            "'%s' (%s)"%(parent.identifier,child.identifier,
+                            eotype.__name__))
+
 
         except Exception as e : 
 
@@ -172,8 +154,8 @@ class Command(CommandOutputMixIn, BaseCommand):
             if opt.get("traceback", False):
                 self.print_msg(traceback.format_exc())
             
-            raise CommandError("Dataset series creation failed! REASON=%s"%(e))
+            raise CommandError("Dataset series removal failed! REASON=%s"%(e))
 
         #----------------------------------------------------------------------
 
-        self.print_msg( "Dataset Series created sucessfully." ) 
+
