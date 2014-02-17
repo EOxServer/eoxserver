@@ -88,8 +88,7 @@ class WCS20GetEOCoverageSetHandler(Component):
 
     def get_params(self, coverage, decoder, request):
         return WCS20CoverageRenderParams(
-            coverage, decoder.subsets, format=decoder.format, 
-            http_request=request
+            coverage, decoder.subsets, http_request=request
         )
 
     def get_renderer(self, params):
@@ -233,14 +232,9 @@ class WCS20GetEOCoverageSetHandler(Component):
         package = writer.create_package(pkg_filename, format, format_params)
 
         for coverage in coverages:
-            params = get_params(coverage, decoder, request)
+            params = self.get_params(coverage, decoder, request)
             renderer = self.get_renderer(params)
-            result_set, _ = renderer.render(coverage, (
-                ("service", "WCS"),
-                ("request", "GetCoverage"),
-                ("version", "2.0.1"),
-                ("coverageid", coverage.identifier)
-            ))
+            result_set = renderer.render(params)
             all_filenames = set()
             for result_item in result_set:
                 if not result_item.filename:
