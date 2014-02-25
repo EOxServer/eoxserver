@@ -5,7 +5,7 @@
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
 #-------------------------------------------------------------------------------
-# Copyright (C) 2011 EOX IT Services GmbH
+# Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,10 +28,7 @@
 
 
 import logging
-from datetime import datetime
 
-from django.utils.timezone import is_aware, make_aware, utc
-from django.utils.dateparse import parse_datetime, parse_date
 from django.contrib.gis.geos import Polygon
 
 from eoxserver.resources.coverages import crss
@@ -46,7 +43,14 @@ logger = logging.getLogger(__name__)
 
 
 class Subsets(list):
+    """ Convenience class to handle a variety of spatial and/or temporal 
+        subsets.
+    """
+
+
     def __init__(self, iterable, allowed_types=None):
+        """ Constructor. Allows to add set the initial subsets
+        """
         self.allowed_types = allowed_types if allowed_types is not None else (Trim, Slice)
         # Do a manual insertion here to assure integrity
         for subset in iterable:
@@ -423,16 +427,12 @@ class Subset(object):
 class Slice(Subset):
     def __init__(self, axis, value, crs=None):
         super(Slice, self).__init__(axis, crs)
-        self.value = parse_quoted_temporal(value) if self.is_temporal else float(value)
+        self.value = value
 
 
 class Trim(Subset):
     def __init__(self, axis, low=None, high=None, crs=None):
         super(Trim, self).__init__(axis, crs)
-        dt = parse_quoted_temporal if self.is_temporal else float_or_star
-        
-        low = dt(low)
-        high = dt(high)
 
         if low is not None and high is not None and low > high:
             raise InvalidSubsettingException(
@@ -451,38 +451,7 @@ z_axes = ("z", "height")
 all_axes = temporal_axes + x_axes + y_axes + z_axes
 
 
-def float_or_star(value):
+def is_temporal(axis):
+    """ Returns whether or not an axis is a temporal one.
     """
-    """
-
-    if value == "*":
-        return None
-    return float(value)
-
-
-def parse_quoted_temporal(value):
-    """ 
-    """
-
-    if value == "*":
-        return None
-
-    if not value[0] == '"' and not value[-1] == '"':
-        raise ValueError("Temporal value needs to be quoted with double quotes.")
-
-    value = value[1:-1]
-
-    for parser in (parse_datetime, parse_date):
-        temporal = parser(value)
-        if temporal:
-            # convert to datetime if necessary
-            if not isinstance(temporal, datetime):
-                temporal = datetime.combine(temporal, datetime.min.time())
-
-            # use UTC, if the datetime is not already time-zone aware
-            if not is_aware(temporal):
-                temporal = make_aware(temporal, utc)
-            
-            return temporal
-
-    raise ValueError("Could not parse '%s' to a temporal value" % value)
+    return (axis.lower() in temporal_axes)
