@@ -31,7 +31,7 @@ import re
 from warnings import warn
 from datetime import datetime, tzinfo, timedelta
 
-from django.utils.timezone import utc, make_aware, is_aware, 
+from django.utils.timezone import utc, make_aware, is_aware
 from django.utils.dateparse import parse_datetime, parse_date
 
 from eoxserver.core.exceptions import InvalidParameterException
