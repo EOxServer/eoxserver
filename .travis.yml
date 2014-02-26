@@ -5,8 +5,8 @@ python:
 install:
   - "pip install ."
 script:
-	- cd autotest
-	- python manage.py test core
-	- python manage.py test backends
-	- python manage.py test coverages
-	- python manage.py test autotest_services
+  - cd autotest
+  - python manage.py test core
+  - python manage.py test backends
+  - python manage.py test coverages
+  - python manage.py test autotest_services
