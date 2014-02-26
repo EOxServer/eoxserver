@@ -3,9 +3,10 @@
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
+#          Martin Paces <martin.paces@eox.at>
 #
 #-------------------------------------------------------------------------------
-# Copyright (C) 2013 EOX IT Services GmbH
+# Copyright (C) 2011-2014 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,25 +27,15 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-
-import logging
-
 from eoxserver.contrib import mapserver as ms
-from eoxserver.backends.access import connect
-from eoxserver.resources.coverages import models, crss
-from eoxserver.resources.coverages.dateline import (
-    extent_crosses_dateline, wrap_extent_around_dateline
+from eoxserver.resources.coverages import models
+
+from eoxserver.services.mapserver.wms.layerfactories.base import (
+    BaseCoverageLayerFactory
 )
-from eoxserver.services.mapserver.wms.layerfactories.coverage_layer_factory \
-    import CoverageLayerFactory
 
-
-
-logger = logging.getLogger(__name__)
-
-
-class CoverageMaskedLayerFactory(CoverageLayerFactory): 
-    handles = CoverageLayerFactory.handles 
+class CoverageMaskedLayerFactory(BaseCoverageLayerFactory): 
+    handles = (models.RectifiedDataset, models.RectifiedStitchedMosaic)
     suffixes = ("_masked",)
     requires_connection = True
 
@@ -61,6 +52,19 @@ class CoverageMaskedLayerFactory(CoverageLayerFactory):
         for mask_semantic in mask_semantics:
             mask_items = mask_items.filter(semantic__startswith=mask_semantic)
 
+        # layer creating closure 
+        def _create_mask_polygon_layer(name):
+            mask_layer = ms.layerObj()
+            mask_layer.name = name
+            mask_layer.type = ms.MS_LAYER_POLYGON
+
+            mask_layer.setMetaData("eoxs_geometry_reversed", "true")
+
+            cls = ms.classObj(mask_layer)
+            style = ms.styleObj(cls)
+            style.color.setRGB(0, 0, 0)
+            return mask_layer
+
         # multiple masks shall be grouped by a group layer
         if len(mask_items) > 1:
 
@@ -72,7 +76,7 @@ class CoverageMaskedLayerFactory(CoverageLayerFactory):
             # generate mask layers
             for i, mask_item in enumerate(mask_items):
 
-                mask_sublayer = self.create_mask_polygon_layer(
+                mask_sublayer = _create_mask_polygon_layer(
                     "%s%2.2d"%(mask_layer_name,i)
                 )
                 mask_sublayer.group = mask_layer.name
@@ -83,7 +87,7 @@ class CoverageMaskedLayerFactory(CoverageLayerFactory):
         # single mask shall be used directly as a "group" layer 
         elif len(mask_items) == 1 :
 
-            mask_layer = self.create_mask_polygon_layer(mask_layer_name)
+            mask_layer = _create_mask_polygon_layer(mask_layer_name)
 
             yield (mask_layer, (mask_items[0],))
 
@@ -114,17 +118,6 @@ class CoverageMaskedLayerFactory(CoverageLayerFactory):
             # "re-yield" the layer and its items
             yield (layer, data_items)
 
-    def create_mask_polygon_layer(self, name):
-        mask_layer = ms.layerObj()
-        mask_layer.name = name
-        mask_layer.type = ms.MS_LAYER_POLYGON
-
-        mask_layer.setMetaData("eoxs_geometry_reversed", "true")
-
-        cls = ms.classObj(mask_layer)
-        style = ms.styleObj(cls)
-        style.color.setRGB(0, 0, 0)
-        return mask_layer
 
     def generate_group(self, name):
         layer = ms.layerObj()

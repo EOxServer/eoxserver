@@ -2,9 +2,10 @@
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
+#          Martin Paces <martin.paces@eox.at>
 #
 #-------------------------------------------------------------------------------
-# Copyright (C) 2011 EOX IT Services GmbH
+# Copyright (C) 2011-2014 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -32,47 +33,14 @@ from django.conf import settings
 
 from eoxserver.core import Component, implements
 from eoxserver.contrib import mapserver as ms
-from eoxserver.resources.coverages import crss
+from eoxserver.resources.coverages import models, crss
 from eoxserver.services.mapserver.interfaces import LayerFactoryInterface
 
+from eoxserver.resources.coverages.dateline import (
+    extent_crosses_dateline, wrap_extent_around_dateline
+)
 
-class AbstractLayerFactory(Component):
-    implements(LayerFactoryInterface)
-    abstract = True
-
-    def generate(self, eo_object, group_layer, suffix, options):
-        pass
-
-
-    def _create_layer(self, coverage, name, extent=None, group=None, wrapped=False):
-        layer = ms.layerObj()
-        layer.name = name
-        layer.type = ms.MS_LAYER_RASTER
-        if extent:
-            layer.setMetaData("wms_extent", "%f %f %f %f" % extent)
-            layer.setExtent(*extent)
-
-        #layer.setMetaData(
-        #    "wms_enable_request", "getcapabilities getmap getfeatureinfo"
-        #)
-
-        if wrapped:
-            # set the info for the connector to wrap this layer around the dateline
-            layer.setMetaData("eoxs_wrap_dateline", "true")
-
-        self._set_projection(layer, coverage.spatial_reference)
-        if group:
-            layer.group = group
-
-        return layer
-
-
-    def _set_projection(self, layer, sr):
-        short_epsg = "EPSG:%d" % sr.srid
-        layer.setProjection(sr.proj)
-        layer.setMetaData("ows_srs", short_epsg) 
-        layer.setMetaData("wms_srs", short_epsg) 
-
+#-------------------------------------------------------------------------------
 
 class BaseStyleMixIn(object):
     STYLES = (
@@ -166,4 +134,93 @@ class PolygonLayerMixIn(object):
         layer.offsite = ms.colorObj(0, 0, 0)
 
         return layer
+
+#-------------------------------------------------------------------------------
+
+class PlainLayerMixIn(object): 
+
+    def _create_layer(self, coverage, name, extent=None, group=None, wrapped=False):
+        layer = ms.layerObj()
+        layer.name = name
+        layer.type = ms.MS_LAYER_RASTER
+        if extent:
+            layer.setMetaData("wms_extent", "%f %f %f %f" % extent)
+            layer.setExtent(*extent)
+
+        #layer.setMetaData(
+        #    "wms_enable_request", "getcapabilities getmap getfeatureinfo"
+        #)
+
+        if wrapped:
+            # set the info for the connector to wrap this layer around the dateline
+            layer.setMetaData("eoxs_wrap_dateline", "true")
+
+        self._set_projection(layer, coverage.spatial_reference)
+        if group:
+            layer.group = group
+
+        return layer
+
+
+    def _set_projection(self, layer, sr):
+        short_epsg = "EPSG:%d" % sr.srid
+        layer.setProjection(sr.proj)
+        layer.setMetaData("ows_srs", short_epsg) 
+        layer.setMetaData("wms_srs", short_epsg) 
+
+#-------------------------------------------------------------------------------
     
+class AbstractLayerFactory(PlainLayerMixIn,Component):
+    implements(LayerFactoryInterface)
+    abstract = True
+
+    def generate(self, eo_object, group_layer, suffix, options):
+        raise NotImplementedError
+
+#-------------------------------------------------------------------------------
+
+class BaseCoverageLayerFactory(OffsiteColorMixIn, PlainLayerMixIn, Component):
+    implements(LayerFactoryInterface)
+    # NOTE: Technically, this class is not abstract but we need it labeled 
+    #       as an abstract class to allow inheritance while avoiding multiple
+    #       component's imports.
+    abstract = True 
+
+    def generate(self, eo_object, group_layer, suffix, options):
+        coverage = eo_object.cast()
+        extent = coverage.extent
+        srid = coverage.srid
+
+        data_items = coverage.data_items.all()
+        range_type = coverage.range_type
+
+        offsite = self.offsite_color_from_range_type(range_type)
+        
+        if extent_crosses_dateline(extent, srid):
+            identifier = coverage.identifier
+            wrapped_extent = wrap_extent_around_dateline(extent, srid)
+            layer = self._create_layer(
+                coverage, identifier + "_unwrapped", extent, identifier
+            )
+            if offsite:
+                layer.offsite = offsite
+            yield layer, data_items
+            wrapped_layer = self._create_layer(
+                coverage, identifier + "_wrapped", wrapped_extent, identifier, True
+            )
+            if offsite:
+                wrapped_layer.offsite = offsite
+            yield wrapped_layer, data_items
+        else:
+            layer = self._create_layer(
+                coverage, coverage.identifier, extent
+            )
+            if offsite:
+                layer.offsite = offsite
+            yield layer, data_items
+
+
+    def generate_group(self, name):
+        return ms.Layer(name)
+
+
