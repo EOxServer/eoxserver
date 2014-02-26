@@ -31,10 +31,9 @@ import re
 from datetime import datetime
 
 from lxml.builder import ElementMaker
-from django.utils.timezone import is_aware, make_aware, utc
-from django.utils.dateparse import parse_datetime, parse_date
 
 from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap, ns_xsi
+from eoxserver.core.util.timetools import parse_iso8601
 from eoxserver.services.subset import Trim, Slice, is_temporal
 from eoxserver.services.ows.common.v20.encoders import ns_xlink, ns_ows, OWS
 from eoxserver.services.exceptions import InvalidSubsettingException
@@ -196,22 +195,7 @@ def parse_quoted_temporal(value):
     if not value[0] == '"' and not value[-1] == '"':
         raise ValueError("Temporal value needs to be quoted with double quotes.")
 
-    value = value[1:-1]
-
-    for parser in (parse_datetime, parse_date):
-        temporal = parser(value)
-        if temporal:
-            # convert to datetime if necessary
-            if not isinstance(temporal, datetime):
-                temporal = datetime.combine(temporal, datetime.min.time())
-
-            # use UTC, if the datetime is not already time-zone aware
-            if not is_aware(temporal):
-                temporal = make_aware(temporal, utc)
-            
-            return temporal
-
-    raise ValueError("Could not parse '%s' to a temporal value" % value)
+    return parse_iso8601(value[1:-1])
 
 
 def get_parser_for_axis(axis):
