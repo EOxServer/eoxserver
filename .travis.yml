@@ -7,7 +7,7 @@ install:
   - sudo apt-get update
   - sudo apt-get install aptitude
   - sudo aptitude install -y gdal-bin python-gdal libgdal1-dev
-  - "pip install ."
+  - sudo python setup.py install --disable-extended-reftools
 script:
   - cd autotest
   - python manage.py test core
