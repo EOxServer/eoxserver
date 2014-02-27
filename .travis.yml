@@ -3,7 +3,7 @@ python:
   - "2.6"
   - "2.7"
 install:
-  - sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable
+  - sudo add-apt-repository -y ppa:ubuntugis/ubuntugis-unstable
   - sudo apt-get update
   - sudo apt-get install gdal python-gdal libgdal1-dev
   - "pip install ."
