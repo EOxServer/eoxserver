@@ -1,0 +1,20 @@
+language: python
+python:
+  - "2.6"
+  - "2.7"
+install:
+  # adding required repo for dependencies
+  - sudo add-apt-repository -y ppa:ubuntugis/ubuntugis-unstable
+  - sudo apt-get update
+  - sudo apt-get install aptitude
+  # install a lot of deps from the apt-repos
+  - sudo aptitude install -y gdal-bin python-gdal libgdal1-dev libxml2 python-lxml python-libxml2 libproj0 libproj-dev libgeos-dev libgeos++-dev cgi-mapserver python-mapscript libapache2-mod-wsgi python-psycopg2 postgis
+  - sudo pip install --upgrade --install-option="--disable-extended-reftools" .
+script:
+  - sudo -u postgres createdb eoxserver_demo
+  - sudo -u postgres psql eoxserver_demo -c 'create extension postgis;'
+  - cd autotest
+  - python manage.py test core
+  - python manage.py test backends
+  - python manage.py test coverages
+  - python manage.py test autotest_services

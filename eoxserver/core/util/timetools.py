@@ -31,7 +31,8 @@ import re
 from warnings import warn
 from datetime import datetime, tzinfo, timedelta
 
-from django.utils.timezone import is_aware
+from django.utils.timezone import utc, make_aware, is_aware
+from django.utils.dateparse import parse_datetime, parse_date
 
 from eoxserver.core.exceptions import InvalidParameterException
 
@@ -121,3 +122,26 @@ def isoformat(dt):
         dt = dt.replace(tzinfo=None)
         return dt.isoformat("T") + "Z"
     return dt.isoformat("T")
+
+
+def parse_iso8601(value):
+    """ Parses an ISO 8601 date or datetime string to a python date or datetime.
+        Raises a `ValueError` if a conversion was not possible. The returned 
+        datetime is always considered time-zone aware and defaulting to UTC 
+        Zulu.
+    """
+
+    for parser in (parse_datetime, parse_date):
+        temporal = parser(value)
+        if temporal:
+            # convert to datetime if necessary
+            if not isinstance(temporal, datetime):
+                temporal = datetime.combine(temporal, datetime.min.time())
+
+            # use UTC, if the datetime is not already time-zone aware
+            if not is_aware(temporal):
+                temporal = make_aware(temporal, utc)
+            
+            return temporal
+
+    raise ValueError("Could not parse '%s' to a temporal value" % value)

@@ -28,11 +28,13 @@
 
 
 import re
+from datetime import datetime
 
 from lxml.builder import ElementMaker
 
 from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap, ns_xsi
-from eoxserver.services.subset import Trim, Slice
+from eoxserver.core.util.timetools import parse_iso8601
+from eoxserver.services.subset import Trim, Slice, is_temporal
 from eoxserver.services.ows.common.v20.encoders import ns_xlink, ns_ows, OWS
 from eoxserver.services.exceptions import InvalidSubsettingException
 
@@ -109,38 +111,42 @@ def parse_subset_kvp(string):
     """
 
     try:
+
         match = subset_re.match(string)
         if not match:
-            raise
+            raise Exception("Could not parse input subset string.")
 
         axis = match.group(1)
+        parser = get_parser_for_axis(axis)
         crs = match.group(3)
         
         if match.group(6) is not None:
-            return Trim(axis, match.group(4), match.group(6), crs)
+            return Trim(
+                axis, parser(match.group(4)), parser(match.group(6)), crs
+            )
         else:
-            return Slice(axis, match.group(4), crs)
+            return Slice(axis, parser(match.group(4)), crs)
     except Exception, e:
         raise InvalidSubsettingException(str(e))
 
 
 def parse_size_kvp(string):
-    """ 
+    """ Parses a size from the given string.
     """
     match = size_re.match(string)
     if not match:
-        raise
+        raise ValueError("Invalid size parameter given.")
 
     return Size(match.group(1), match.group(2))
 
 
 def parse_resolution_kvp(string):
-    """ 
+    """ Parses a resolution from the given string.
     """
 
     match = resolution_re.match(string)
     if not match:
-        raise
+        raise ValueError("Invalid resolution parameter given.")
 
     return Resolution(match.group(1), match.group(2))
 
@@ -152,14 +158,51 @@ def parse_subset_xml(elem):
     """
 
     try:
+        dimension = elem.findtext(ns_wcs("Dimension"))
+        parser = get_parser_for_axis(dimension)
         if elem.tag == ns_wcs("DimensionTrim"):
             return Trim(
-                elem.findtext(ns_wcs("Dimension")),
-                elem.findtext(ns_wcs("TrimLow")),
-                elem.findtext(ns_wcs("TrimHigh"))
+                dimension,
+                parser(elem.findtext(ns_wcs("TrimLow"))),
+                parser(elem.findtext(ns_wcs("TrimHigh")))
             )
         elif elem.tag == ns_wcs("DimensionSlice"):
-            return Slice()
-            #TODO
+            return Slice(
+                dimension,
+                parser(elem.findtext(ns_wcs("SlicePoint")))
+            )
     except Exception, e:
         raise InvalidSubsettingException(str(e))
+
+
+def float_or_star(value):
+    """ Parses a string value that is either a floating point value or the '*'
+        character. Raises a `ValueError` if no float could be parsed.
+    """
+
+    if value == "*":
+        return None
+    return float(value)
+
+
+def parse_quoted_temporal(value):
+    """ Parses a quoted temporal value.
+    """
+
+    if value == "*":
+        return None
+
+    if not value[0] == '"' and not value[-1] == '"':
+        raise ValueError("Temporal value needs to be quoted with double quotes.")
+
+    return parse_iso8601(value[1:-1])
+
+
+def get_parser_for_axis(axis):
+    """ Returns the correct parsing function for the given axis.
+    """
+
+    if is_temporal(axis):
+        return parse_quoted_temporal
+    else:
+        return float_or_star

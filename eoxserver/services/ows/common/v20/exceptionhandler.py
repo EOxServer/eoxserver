@@ -37,7 +37,8 @@ class OWS20ExceptionHandler(object):
     def handle_exception(self, request, exception):
         message = str(exception)
         version = "2.0.0"
-        code = getattr(exception, "code", type(exception).__name__)
+        # NOTE: An existing 'code' attribute can be set to None value!!!
+        code = getattr(exception, "code", None) or "NoApplicableCode"
         locator = getattr(exception, "locator", None)
         status_code = 400
 

@@ -59,11 +59,16 @@ class ExclusiveException(DecodingException):
     pass
 
 
+# NOTE: The following exceptions may get propagated as OWS exceptions 
+#       therefore it is necessary to set the proper OWS exception code.
+
 class InvalidParameterException(DecodingException):
+    code = "InvalidParameterValue"
     pass
 
 
 class MissingParameterException(DecodingException):
+    code = "MissingParameterValue"
     pass
 
 

@@ -171,6 +171,11 @@ class MapServerWMSCapabilitiesRenderer(Component):
 
             map_.insertLayer(layer)
 
+        # set the map_extent to a reasonable default value
+        # in case there is no coverage or collection
+        if map_extent is None : 
+            map_extent = ( 0.0, 0.0, 1.0, 1.0 )
+
         map_minx, map_miny, map_maxx, map_maxy = map_extent
         map_.setExtent(map_minx, map_miny, map_maxx, map_maxy)
 

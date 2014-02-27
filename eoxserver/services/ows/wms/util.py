@@ -31,6 +31,7 @@ import logging
 
 from eoxserver.resources.coverages import models
 from eoxserver.core.decoders import InvalidParameterException
+from eoxserver.core.util.timetools import parse_iso8601
 from eoxserver.services.subset import Trim, Slice
 
 
@@ -45,10 +46,14 @@ def parse_bbox(string):
 
 def parse_time(string):
     items = string.split("/")
+
     if len(items) == 1:
-        return Slice("t", '"%s"' % items[0])
-    elif len(items) == 2:
-        return Trim("t", '"%s"' % items[0], '"%s"' % items[1])
+        return Slice("t", parse_iso8601(items[0]))
+    elif len(items) in (2, 3):
+        # ignore resolution
+        return Trim("t", parse_iso8601(items[0]), parse_iso8601(items[1]))
+
+    raise InvalidParameterException("Invalid TIME parameter.", "time")
 
 
 def int_or_str(string):
