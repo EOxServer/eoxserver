@@ -41,7 +41,10 @@ from eoxserver.services.ows.wps.interfaces import ProcessInterface
 from eoxserver.services.ows.wps.parameters import (
     is_literal_type, LiteralData, ComplexData
 )
-from eoxserver.services.ows.wps.exceptions import NoSuchProcessException
+from eoxserver.services.ows.wps.exceptions import ( 
+    NoSuchProcessException, MissingInputException,
+    InvalidReferenceException,
+) 
 from eoxserver.services.ows.wps.v10.util import nsmap, ns_wps, ns_ows, ns_xlink
 from eoxserver.services.ows.wps.v10.encoders import (
     WPS10ExecuteResponseXMLEncoder, WPS10ExecuteResponseRawEncoder
@@ -98,7 +101,7 @@ class WPS10ExcecuteHandler(Component):
 
             except KeyError:
                 if parameter.default is None: # TODO: maybe an extra optional flag to allow None as a default value?
-                    raise Exception("Parameter '%s' is required." % key)
+                    raise MissingInputException("Parameter '%s' is required." % key)
                 value = parameter.default
 
             kwargs[key] = value
@@ -157,7 +160,7 @@ class WPS10ExcecuteHandler(Component):
             if process.identifier == decoder.identifier:
                 break
         else: 
-            raise NoSuchProcessException((decoder.identifier,))
+            raise NoSuchProcessException(decoder.identifier)
 
         kwargs = self.process_inputs(process, decoder)
 
@@ -177,7 +180,7 @@ class WPS10ExcecuteHandler(Component):
             for headers, data in mp.iterate(request):
                 if headers.get("Content-ID") == url.path:
                     return data
-            raise ReferenceException(
+            raise InvalidReferenceException(
                 "No part with content-id '%s'." % url.path
             )
         
@@ -186,7 +189,7 @@ class WPS10ExcecuteHandler(Component):
             response = urllib2.urlopen(request)
             return response.read()
         except urllib2.URLError, e:
-            raise ReferenceException(str(e))
+            raise InvalidReferenceException(str(e))
 
 
 

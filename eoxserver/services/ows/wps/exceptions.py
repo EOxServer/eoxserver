@@ -3,9 +3,10 @@
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
+#          Martin Paces <martin.paces@eox.at>
 #
 #-------------------------------------------------------------------------------
-# Copyright (C) 2013 EOX IT Services GmbH
+# Copyright (C) 2013-2014 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,20 +27,75 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-
-class NoSuchProcessException(Exception):
-    code = "NoSuchProcess"
-    locator = "identifier"
+class OWS10Exception(Exception):
+    """ Base OWS 1.0 exception of the WPS 1.0.0 exceptionss """
     
-    def __init__(self, identifiers):
-        self.identifiers = identifiers
+    def __init__( self, code, locator, message ):   
+        
+        self.code = code 
+        self.locator = locator 
 
-    def __str__(self):
-        return "No such process%s: %s" % (
-            "" if not len(self.identifiers) else "es",
-            ", ".join(map(lambda s: "'%s'" % s, self.identifiers))
-        )
+        Exception.__init__( self, message ) 
 
+#-------------------------------------------------------------------------------
+# All possible WPS 1.0.0 exceptions. For list of OWS exception used by WPS 
+# see OGC 05-007r7 Table 38 and Table 62 
 
-class ReferenceException(Exception):
-    pass
+class NoApplicableCode(OWS10Exception): 
+    def __init__( self, message, locator = None ) : 
+        OWS10Exception.__init__( self, "NoApplicableCode", locator, message ) 
+
+class MissingParameterValue(OWS10Exception): 
+    def __init__( self, message, locator ) : 
+        OWS10Exception.__init__( self, "MissingParameterValue", locator, message ) 
+
+class InvalidParameterValue(OWS10Exception): 
+    def __init__( self, message, locator ) : 
+        OWS10Exception.__init__( self, "InvalidParameterValue", locator, message ) 
+
+class NotEnoughStorage(OWS10Exception): 
+    def __init__( self, message ) : 
+        OWS10Exception.__init__( self, "NotEnoughStorage", None, message ) 
+
+class ServerBusy(OWS10Exception): 
+    def __init__( self, message ) : 
+        OWS10Exception.__init__( self, "ServerBusy", None, message ) 
+
+class FileSizeExceeded(OWS10Exception): 
+    def __init__( self, message, locator ) : 
+        OWS10Exception.__init__( self, "FileSizeExceeded", locator, message ) 
+
+class StorageNotSupported(OWS10Exception): 
+    def __init__( self, message ) : 
+        OWS10Exception.__init__( self, "StorageNotSupported", None, message ) 
+
+class VersionNegotiationFailed(OWS10Exception): 
+    def __init__( self, message, locator ) : 
+        OWS10Exception.__init__( self, "VersionNegotiationFailed", locator, message ) 
+
+#-------------------------------------------------------------------------------
+# Derived specific exceptions.
+#
+# Note that WPS 1.0.0 allows use of "vendor specific exception code" as locator
+# for the default "NoApplicableCode" exceptions. 
+
+class NoSuchProcessException(InvalidParameterValue):
+    def __init__( self, identifier ):
+        msg = "No such process: %s" % identifier
+        InvalidParameterValue.__init__( self, msg, "identifier" ) 
+
+class InvalidReferenceException(NoApplicableCode):
+    def __init__( self, message = "" ) : 
+        NoApplicableCode.__init__( self, message, locator = "InvalidReferenceException" )
+
+class ExecuteException(NoApplicableCode):
+    def __init__( self, message = "" , locator = "ExecuteException" ) : 
+        NoApplicableCode.__init__( self, message, locator )
+
+class InvalidInputException(NoApplicableCode):
+    def __init__( self, message = "" , locator = "InvalidInputException" ) : 
+        NoApplicableCode.__init__( self, message, locator )
+
+class MissingInputException(NoApplicableCode):
+    def __init__( self, message = "" , locator = "MissingInputException" ) : 
+        NoApplicableCode.__init__( self, message, locator )

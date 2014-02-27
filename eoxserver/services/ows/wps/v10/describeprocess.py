@@ -70,8 +70,8 @@ class WPS10DescribeProcessHandler(Component):
                 identifiers.remove(process.identifier)
                 used_processes.append(process)
 
-        if len(identifiers):
-            raise NoSuchProcessException(identifiers)
+        for identifier in identifiers: 
+            raise NoSuchProcessException(identifier)
 
         encoder = WPS10ProcessDescriptionsXMLEncoder()
         return encoder.serialize(
