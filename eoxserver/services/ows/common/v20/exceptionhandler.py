@@ -38,8 +38,7 @@ class OWS20ExceptionHandler(object):
         message = str(exception)
         version = "2.0.0"
         # NOTE: An existing 'code' attribute can be set to None value!!!
-        code = getattr(exception, "code", None )
-        if code is None : code = "NoApplicableCode"
+        code = getattr(exception, "code", None) or "NoApplicableCode"
         locator = getattr(exception, "locator", None)
         status_code = 400
 
