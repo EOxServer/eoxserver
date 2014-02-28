@@ -100,9 +100,15 @@ class WPS10ExcecuteHandler(Component):
                     value = parameter.parse_value(raw_value)
 
             except KeyError:
-                if parameter.default is None: # TODO: maybe an extra optional flag to allow None as a default value?
+                if parameter._is_optional : 
+                    if isinstance(parameter,LiteralData): 
+                        # the 'parameter.default' set either to a sane 
+                        # default value or None 
+                        value = parameter.default 
+                    else : 
+                        value = None # TODO: defaults for non-literal types 
+                else: 
                     raise MissingInputException("Parameter '%s' is required." % key)
-                value = parameter.default
 
             kwargs[key] = value
 

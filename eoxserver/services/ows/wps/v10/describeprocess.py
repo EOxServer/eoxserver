@@ -115,8 +115,13 @@ class TestProcess(Component):
         ),
         "V": LiteralData(
             "MyVIdenifier", description="VVV", 
-            type=float, default=1., values_reference="http://foo.bar/value"
-        )
+            type=float, default=1., values_reference="http://foo.bar/value",
+            uoms=("metres", "feet")
+        ),
+        "W": LiteralData(
+            "MyWIdenifier", description="WWW", 
+            type=datetime, optional = True 
+        ),
     }
 
     outputs = {

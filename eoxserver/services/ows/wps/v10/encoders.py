@@ -74,10 +74,15 @@ class WPS10BaseXMLEncoder(XMLEncoder):
         if is_literal_type(parameter):
             parameter = LiteralData(name, parameter)
 
-        # TODO: minOccurs/maxOccurs correct
         elem = WPS("Input" if is_input else "Output",
             OWS("Identifier", parameter.identifier or name)
         )
+
+        # TODO: minOccurs/maxOccurs correct
+        # occurance attributes 
+        if is_input : 
+            elem.attrib["minOccurs"] = ("1","0")[parameter._is_optional] 
+            elem.attrib["maxOccurs"] = "1"
 
         if parameter.title:
             elem.append(OWS("Title", parameter.title))
@@ -107,28 +112,30 @@ class WPS10BaseXMLEncoder(XMLEncoder):
                     )
                 )
 
-            if is_input and parameter.allowed_values:
-                data_elem.append(
-                    OWS("AllowedValues", *[
-                        OWS("AllowedValue", str(allowed_value))
-                        for allowed_value in parameter.allowed_values
-                    ])
-                )
-            elif is_input and parameter.values_reference:
-                data_elem.append(
-                    WPS("ValuesReference", **{
-                        ns_ows("reference"): parameter.values_reference,
-                        "valuesForm": parameter.values_reference
-                    })
-                )
-            elif is_input:
-                data_elem.append(OWS("AnyValue"))
+            if is_input :
 
-            if is_input and parameter.default is not None:
-                elem.attrib["minOccurs"] = "0"
-                data_elem.append(
-                    WPS("Default", str(parameter.default))
-                )
+                if parameter.allowed_values:
+                    data_elem.append(
+                        OWS("AllowedValues", *[
+                            OWS("AllowedValue", str(allowed_value))
+                            for allowed_value in parameter.allowed_values
+                        ])
+                    )
+                elif parameter.values_reference:
+                    data_elem.append(
+                        WPS("ValuesReference", **{
+                            ns_ows("reference"): parameter.values_reference,
+                            "valuesForm": parameter.values_reference
+                        })
+                    )
+                else: 
+                    data_elem.append(OWS("AnyValue"))
+
+                if is_input and parameter.default is not None:
+                    data_elem.append(
+                        WPS("Default", str(parameter.default))
+                    )
+
 
         elif isinstance(parameter, ComplexData):
             formats = parameter.formats

@@ -34,14 +34,24 @@ from django.utils.dateparse import parse_date, parse_datetime, parse_time
 
 from eoxserver.core.util.timetools import isoformat
 
+# NOTE: Currently, the inputs parameters are not allowed to be present 
+#       more that once (maxOccurs=1) per request. These input parameters
+#       are, by default, mandatory (minOccur=1). Unpon explicit requests
+#       the parameters can be made optional (minOccur=0). 
+#
+#       Although not explicitely mentioned by the WPS 1.0.0 standard
+#       it is a common practice that the outputs do not appear more than
+#       onece per output times (maxOccurs=1). Unless not requested 
+#       otherwise, all the outputs are present in the default respose.
 
 class Parameter(object):
     def __init__(self, identifier=None, title=None, description=None, 
-                 metadata=None):
+                 metadata=None,optional=False):
         self.identifier = identifier
-        self.title = title
+        self.title = title if title else identifier
         self.description = description
         self.metadata = metadata or ()
+        self._is_optional = optional 
 
 
 
@@ -175,14 +185,16 @@ def is_literal_type(type_):
 
 class LiteralData(Parameter):
 
-    def __init__(self, identifier=None, type=str, uoms=None, default=None, 
+    def __init__(self, identifier, type=str, uoms=None, default=None, 
                  allowed_values=None, values_reference=None, *args, **kwargs):
         super(LiteralData, self).__init__(identifier, *args, **kwargs)
         self.type = type
-        self.uoms = uoms or ()
+        self.uoms = uoms or () # the first uom is the default one 
         self.default = default
         self.allowed_values = allowed_values or ()
         self.values_reference = values_reference
+
+        if default is not None : self._is_optional = True 
 
     def parse_value(self, raw_value):
         try:
@@ -201,7 +213,7 @@ class LiteralData(Parameter):
 
 
 class ComplexData(Parameter):
-    def __init__(self, identifier=None, formats=None, *args, **kwargs):
+    def __init__(self, identifier, formats=None, *args, **kwargs):
         super(ComplexData, self).__init__(identifier, *args, **kwargs)
         self.formats = formats
 
