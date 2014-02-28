@@ -14,9 +14,9 @@ install:
   # install a lot of deps from the apt-repos
   - sudo aptitude install -y gdal-bin python-gdal libgdal1-dev libxml2 python-lxml python-libxml2 libproj0 libproj-dev libgeos-dev libgeos++-dev cgi-mapserver python-mapscript libapache2-mod-wsgi python-psycopg2 postgis
   # test with various Django versions
-  - sudo pip install -q Django==$DJANGO
+  - sudo pip install -q Django==$DJANGO --use-mirrors
   # actually install EOxServer
-  - sudo pip install --install-option="--disable-extended-reftools" .
+  - sudo pip install --use-mirrors --install-option="--disable-extended-reftools" .
 script:
   - sudo -u postgres createdb eoxserver_demo
   - sudo -u postgres psql eoxserver_demo -c 'create extension postgis;'
@@ -25,3 +25,9 @@ script:
   - python manage.py test backends
   - python manage.py test coverages
   - python manage.py test autotest_services
+notifications:
+  irc:
+    channels:
+      - "irc.freenode.net#eoxserver"
+    on_success: always
+    on_failure: always
