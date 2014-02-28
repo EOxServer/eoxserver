@@ -53,10 +53,12 @@ class WPS10BaseXMLEncoder(XMLEncoder):
             OWS("Abstract", getattr(process, "description", ""))
         )
 
-        elem.extend([
-            OWS("Metadata", metadata)
-            for metadata in getattr(process, "metadata", [])
-        ])
+        # TODO: Fix the metadata encoding to be compliant 
+        #       with the OWC common!
+        #elem.extend([
+        #    OWS("Metadata", metadata)
+        #    for metadata in getattr(process, "metadata", [])
+        #])
 
         elem.extend([
             OWS("Profile", profile)
