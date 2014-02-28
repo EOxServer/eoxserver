@@ -15,7 +15,7 @@ install:
   # test with various Django versions
   - sudo pip install -q Django==$DJANGO
   # actually install EOxServer
-  - sudo pip install --upgrade --install-option="--disable-extended-reftools" .
+  - sudo pip install --install-option="--disable-extended-reftools" .
 script:
   - sudo -u postgres createdb eoxserver_demo
   - sudo -u postgres psql eoxserver_demo -c 'create extension postgis;'
