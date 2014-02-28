@@ -1,4 +1,7 @@
 language: python
+env:
+  - DJANGO=1.5
+  - DJANGO=1.6
 python:
   - "2.6"
   - "2.7"
@@ -9,6 +12,9 @@ install:
   - sudo apt-get install aptitude
   # install a lot of deps from the apt-repos
   - sudo aptitude install -y gdal-bin python-gdal libgdal1-dev libxml2 python-lxml python-libxml2 libproj0 libproj-dev libgeos-dev libgeos++-dev cgi-mapserver python-mapscript libapache2-mod-wsgi python-psycopg2 postgis
+  # test with various Django versions
+  - sudo pip install -q Django==$DJANGO
+  # actually install EOxServer
   - sudo pip install --upgrade --install-option="--disable-extended-reftools" .
 script:
   - sudo -u postgres createdb eoxserver_demo
