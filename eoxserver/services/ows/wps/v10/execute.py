@@ -102,7 +102,7 @@ class WPS10ExcecuteHandler(Component):
             except KeyError:
                 if parameter._is_optional : 
                     if isinstance(parameter,LiteralData): 
-                        # the 'parameter.default' set either to a sane 
+                        # the 'parameter.default' is set either to a sane 
                         # default value or None 
                         value = parameter.default 
                     else : 
