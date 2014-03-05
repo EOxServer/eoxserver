@@ -36,6 +36,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.4/ref/settings/
 """
 
+import os
 from os.path import join, abspath, dirname
 
 PROJECT_DIR = dirname(abspath(__file__))
@@ -54,7 +55,7 @@ ADMINS = (
 MANAGERS = ADMINS
 
 # Configure which database to use. Default is PostGIS.
-DATABASE = '' # 'sqlite'
+DATABASE = os.environ.get('DB', 'postgis')
 
 if DATABASE == 'sqlite':
     DATABASES = {
