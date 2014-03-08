@@ -66,7 +66,15 @@ class Command(CommandOutputMixIn, BaseCommand):
         ),
     )
 
-    help = ( """ Load rangetypes stored in JSON format from standard input.""" )
+    help = ( """
+    Load rangetypes stored in JSON format from standard input (defualt) or from
+    a file (-i option).
+    
+    NOTE: This command is supports JSON formats produced by both the new
+          (>=v0.4) and old (<0.4) versions of the EOxServer. 
+          It is thus possible to export range types from an older EOxServer
+          instances and import them to a new one. 
+    """ )
 
     #--------------------------------------------------------------------------
 

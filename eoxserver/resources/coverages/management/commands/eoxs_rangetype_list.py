@@ -93,6 +93,11 @@ class Command(CommandOutputMixIn, BaseCommand):
     When the range-type identifiers are specified than only these rangetypes
     are selected. In addition complete rangetypes cans be dumped in JSON 
     format which can be then loaded by another EOxServer instance. 
+
+    NOTE: JSON format of the range-types has slightly changed with the new 
+          range-type data model introduced in the EOxServer version v0.4. 
+          The produced JSON is not backward comatible and cannot be loaded 
+          to EOxServer 0.3.* and earlier. 
     """ % ({"name": __name__.split(".")[-1]})
     )
 

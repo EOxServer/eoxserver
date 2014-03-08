@@ -1,4 +1,8 @@
 language: python
+env:
+  - DJANGO=1.4 GDAL=1.10 DB=sqlite
+  - DJANGO=1.5 GDAL=1.10 DB=sqlite
+  - DJANGO=1.6 GDAL=1.10 DB=sqlite
 python:
   - "2.6"
   - "2.7"
@@ -8,8 +12,13 @@ install:
   - sudo apt-get update
   - sudo apt-get install aptitude
   # install a lot of deps from the apt-repos
-  - sudo aptitude install -y gdal-bin python-gdal libgdal1-dev libxml2 python-lxml python-libxml2 libproj0 libproj-dev libgeos-dev libgeos++-dev cgi-mapserver python-mapscript libapache2-mod-wsgi python-psycopg2 postgis
-  - sudo pip install --upgrade --install-option="--disable-extended-reftools" .
+  - sudo aptitude install -y gdal-bin libgdal1-dev libxml2 python-lxml python-libxml2 libproj0 libproj-dev libgeos-dev libgeos++-dev cgi-mapserver python-mapscript libapache2-mod-wsgi python-psycopg2 postgis
+  # test with various Django versions
+  - pip install -q Django==$DJANGO --use-mirrors
+  # test with various GDAL versions
+  - pip install -q gdal==$GDAL --use-mirrors
+  # actually install EOxServer
+  - pip install --use-mirrors --install-option="--disable-extended-reftools" .
 script:
   - sudo -u postgres createdb eoxserver_demo
   - sudo -u postgres psql eoxserver_demo -c 'create extension postgis;'
@@ -18,3 +27,9 @@ script:
   - python manage.py test backends
   - python manage.py test coverages
   - python manage.py test autotest_services
+notifications:
+  irc:
+    channels:
+      - "irc.freenode.net#eoxserver"
+    on_success: always
+    on_failure: always
