@@ -790,3 +790,41 @@ class DatasetSeries(Collection):
         return
 
 EO_OBJECT_TYPE_REGISTRY[30] = DatasetSeries
+
+class VectorMask(models.Model): 
+    """ Vector Mask metadata 
+    """
+
+    # EOP allowed mask types 
+    CLOUD=1
+    SNOW=2 
+    QUALITY=3
+
+    TYPE_CHOICES = ( 
+        ( CLOUD, "CLOUD" ),
+        ( SNOW, "SNOW" ),
+        ( QUALITY,"QUALITY" ), 
+    ) 
+
+    name = models.CharField(max_length=64, unique=True)
+
+    type = models.PositiveSmallIntegerField( choices=TYPE_CHOICES,
+                                            blank=False, null=False ) 
+
+    subtype = models.CharField(max_length=64,blank=True, null=True)
+
+    srid = models.PositiveIntegerField(blank=True, null=True)
+    projection = models.ForeignKey(Projection, blank=True, null=True)
+
+    geometry = models.MultiPolygonField(null=False, blank=False)
+
+    objects = models.GeoManager()
+
+    coverages = models.ManyToManyField( Coverage, related_name="vector_masks" ) 
+    
+    def __unicode__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "Vector Mask"
+        verbose_name_plural = "Vector Masks"

@@ -223,7 +223,16 @@ class DataItemInline(AbstractInline):
     model = models.backends.DataItem
 
 
-#===============================================================================
+class VectorMaskInline(AbstractInline):
+    model = getattr(models.VectorMask.coverages, "through")
+    #fk_name = "vectormask"
+
+
+class VectorMaskCoverageInline(AbstractInline):
+    model = getattr(models.VectorMask.coverages, "through")
+    #fk_name = "coverage"
+
+
 # Model admins
 #===============================================================================
 
@@ -252,21 +261,21 @@ admin.site.register(models.RangeType, RangeTypeAdmin)
 
 class RectifiedDatasetAdmin(CoverageAdmin):
     model = models.RectifiedDataset
-    inlines = (DataItemInline, CollectionInline)
+    inlines = (VectorMaskInline, DataItemInline, CollectionInline)
 
 admin.site.register(models.RectifiedDataset, RectifiedDatasetAdmin)
 
 
 class ReferenceableDatasetAdmin(CoverageAdmin):
     model = models.ReferenceableDataset
-    inlines = (DataItemInline, CollectionInline)
+    inlines = (VectorMaskInline, DataItemInline, CollectionInline)
 
 admin.site.register(models.ReferenceableDataset, ReferenceableDatasetAdmin)
 
 
 class RectifiedStitchedMosaicAdmin(CoverageAdmin, CollectionAdmin):
     model = models.RectifiedStitchedMosaic
-    inlines = (DataItemInline, CollectionInline, EOObjectInline)
+    inlines = (VectorMaskInline, DataItemInline, CollectionInline, EOObjectInline)
 
     def restitch(self, request, queryset):
         for model in queryset:
@@ -297,3 +306,13 @@ class DatasetSeriesAdmin(CollectionAdmin):
     inlines = (DataSourceInline, EOObjectInline, CollectionInline)
 
 admin.site.register(models.DatasetSeries, DatasetSeriesAdmin)
+
+
+class VectorMaskAdmin(EOObjectAdmin): 
+    model = models.VectorMask 
+
+    fields = ('name',('type','subtype'),('srid','projection'),'geometry') 
+
+    inlines = ( VectorMaskCoverageInline, )
+
+admin.site.register(models.VectorMask, VectorMaskAdmin)
