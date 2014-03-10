@@ -97,8 +97,9 @@ class Command(CommandOutputMixIn, BaseCommand):
         ),
         make_option("-s", "--semantic", dest="semantics",
             action="callback", callback=_variable_args_cb, default=None,
-            help=("Optional. If given, one semantic must be present for each "
-                 "'--data' option.")
+            help=("Optional band semantics. If given, one band "
+                  "semantics 'band[*]' must be present for each '--data' "
+                  " item.")
         ),
         make_option("-m", "--meta-data", dest="metadata", 
             action="callback", callback=_variable_args_cb_list, default=[],
