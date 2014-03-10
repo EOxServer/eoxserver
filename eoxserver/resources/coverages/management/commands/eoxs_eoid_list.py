@@ -108,7 +108,7 @@ class Command(CommandOutputMixIn, BaseCommand):
             qset = eotype.objects.filter(identifier=identifiers[0])
 
         elif len(identifiers) > 1 :
-            qset = eotype.objects.filter(identifier=identifiers[0])
+            qset = eotype.objects.filter(identifier__contains=identifiers)
 
         else : # len(identifiers) < 1
             qset = [] 
