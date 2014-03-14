@@ -85,7 +85,7 @@ class WCS20CoverageRenderParams(CoverageRenderParams):
     mediatype     = property(lambda self: self._mediatype)
     interpolation = property(lambda self: self._interpolation)
     mask          = property(lambda self: self._mask)
-    encoding_params = property(lambda self: self._mask)
+    encoding_params = property(lambda self: self._encoding_params)
 
     http_request  = property(lambda self: self._http_request)
 
