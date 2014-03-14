@@ -27,7 +27,7 @@
 #-------------------------------------------------------------------------------
 
 
-from eoxserver.core import Component, implements
+from eoxserver.core import Component, implements, ExtensionPoint
 from eoxserver.core.decoders import xml, kvp, typelist
 from eoxserver.services.ows.interfaces import (
     ServiceHandlerInterface, GetServiceHandlerInterface, 
@@ -39,12 +39,15 @@ from eoxserver.services.ows.wcs.v20.util import (
     parse_resolution_kvp, Slice, Trim
 )
 from eoxserver.services.ows.wcs.v20.parameters import WCS20CoverageRenderParams
+from eoxserver.services.ows.wcs.interfaces import EncodingExtensionInterface
 
 
 class WCS20GetCoverageHandler(WCSGetCoverageHandlerBase, Component):
     implements(ServiceHandlerInterface)
     implements(GetServiceHandlerInterface)
     implements(PostServiceHandlerInterface)
+
+    encoding_extensions = ExtensionPoint(EncodingExtensionInterface)
 
     versions = ("2.0.0", "2.0.1")
 
@@ -55,10 +58,16 @@ class WCS20GetCoverageHandler(WCSGetCoverageHandlerBase, Component):
             return WCS20GetCoverageXMLDecoder(request.body)
 
     def get_params(self, coverage, decoder, request):
+        encoding_params = None
+        for encoding_extension in encoding_extensions:
+            if encoding_extension.supports(decoder.format):
+                encoding_params = encoding_extension.get_encoding_params(request)
+
         return WCS20CoverageRenderParams(
             coverage, decoder.subsets, decoder.sizes, decoder.resolutions,
             decoder.rangesubset, decoder.format, decoder.outputcrs, 
-            decoder.mediatype, decoder.interpolation, decoder.mask, request
+            decoder.mediatype, decoder.interpolation, decoder.mask, 
+            encoding_params or {}, request
         )
 
 

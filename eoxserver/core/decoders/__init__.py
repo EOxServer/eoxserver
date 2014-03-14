@@ -209,3 +209,28 @@ def upper(value):
 
 def strip(value):
     return value.strip()
+
+
+class value_range(object):
+    """ Helper to assert that a given parameter is within a specified range.
+    """
+
+    def __init__(self, min, max, type=float):
+        self._min = min
+        self._max = max
+        self._type = type
+
+    def __call__(self, raw):
+        value = self._type(raw)
+        if value < self.min or value > self.max:
+            raise ValueError(
+                "Given value '%s' exceeds expected bounds (%s, %s)" 
+                % (value, self._min, self._max)
+            )
+        return value
+
+def boolean(raw):
+    raw = raw.lower()
+    if not raw in ("true", "false"):
+        raise ValueError("Could not parse a boolean value from '%s'." % raw)
+    return raw == "true"
