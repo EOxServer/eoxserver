@@ -1,11 +1,10 @@
 #-------------------------------------------------------------------------------
-# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
-# Authors: Fabian Schindler <fabian.schindler@eox.at>
+# Authors: Martin Paces <martin.paces@eox.at>
 #
 #-------------------------------------------------------------------------------
-# Copyright (C) 2011 EOX IT Services GmbH
+# Copyright (C) 2014 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,44 +25,30 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-
 from eoxserver.core import Component, implements
-from eoxserver.contrib.mapserver import (
-    Layer, MS_LAYER_POLYGON, shapeObj, classObj, styleObj, colorObj
-)
 from eoxserver.resources.coverages import models
-from eoxserver.services.mapserver.interfaces import LayerFactoryInterface
-from eoxserver.services.mapserver.wms.layerfactories.base import (
-    AbstractLayerFactory, BaseStyleMixIn, PolygonLayerMixIn
-)
+from eoxserver.services.mapserver.interfaces import LayerPluginInterface
+
+from eoxserver.services.mapserver.wms.layers.coverage_data_masked_layer_factory \
+    import CoverageDataMaskedLayerFactory
+
+#-------------------------------------------------------------------------------
+
+class CoverageDataMaskedLayerPlugin(Component):
+    implements(LayerPluginInterface)
+
+    handles = (models.RectifiedDataset, models.RectifiedStitchedMosaic)
+    suffixes = ("_masked",)
+    requires_connection = True
+
+    def get_layer_factory(self,suffix,options):  
+
+        # explicitly disable bands selection
+        options=dict(options)
+        options["bands"]=None 
+
+        factory = CoverageDataMaskedLayerFactory(suffix,options)
+        factory.plugin = self
+        return factory 
 
 
-class CoverageOutlinesLayerFactory(BaseStyleMixIn, PolygonLayerMixIn, AbstractLayerFactory):
-    handles = (models.RectifiedDataset, models.ReferenceableDataset,
-               models.RectifiedStitchedMosaic,)
-    suffixes = ("_outlines",)
-    requires_connection = False
-
-    
-    def generate(self, eo_object, group_layer, suffix, options):
-        # don't generate any layers, but add the footprint as feature to the 
-        # group layer
-
-        if group_layer:
-            layer = group_layer
-        else:
-            layer = self._create_polygon_layer(
-                eo_object.identifier + "_outlines"
-            )
-
-        shape = shapeObj.fromWKT(eo_object.footprint.wkt)
-        shape.initValues(1)
-        shape.setValue(0, eo_object.identifier)
-        layer.addFeature(shape)
-        
-        if not group_layer:
-            yield layer, ()
-
-
-    def generate_group(self, name):
-        return self._create_polygon_layer(name)

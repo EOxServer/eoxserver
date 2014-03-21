@@ -28,7 +28,7 @@
 
 
 import logging
-from itertools import chain
+from itertools import chain, count 
 
 from django.db.models import Q
 from django.utils.datastructures import SortedDict
@@ -36,7 +36,7 @@ from django.utils.datastructures import SortedDict
 from eoxserver.core import Component, ExtensionPoint
 from eoxserver.contrib import mapserver as ms
 from eoxserver.services.mapserver.interfaces import (
-    ConnectorInterface, LayerFactoryInterface, StyleApplicatorInterface
+    ConnectorInterface, StyleApplicatorInterface, LayerPluginInterface,
 )
 from eoxserver.services.result import result_set_from_raw_data, get_content_type
 
@@ -49,7 +49,7 @@ class MapServerWMSBaseComponent(Component):
     """
 
     connectors = ExtensionPoint(ConnectorInterface)
-    layer_factories = ExtensionPoint(LayerFactoryInterface)
+    layer_plugins = ExtensionPoint(LayerPluginInterface) 
     style_applicators = ExtensionPoint(StyleApplicatorInterface)
 
 
@@ -71,9 +71,7 @@ class MapServerWMSBaseComponent(Component):
 
     @property
     def suffixes(self):
-        return list(
-            chain(*[factory.suffixes for factory in self.layer_factories])
-        )
+        return list( chain( *((f.suffixes for f in self.layer_plugins)) ) )
 
 
     def get_connector(self, data_items):
@@ -83,98 +81,87 @@ class MapServerWMSBaseComponent(Component):
         return None
 
 
-    def get_layer_factory(self, suffix):
-        result = None
-        for factory in self.layer_factories:
-            if suffix in factory.suffixes:
-                if result:
-                    pass # TODO
-                    #raise Exception("Found")
-                result = factory
-                return result
-        return result
-
-
     def setup_map(self, layer_selection, map_, options):
-        group_layers = SortedDict()
+
+        def _get_new_layer_factory(*arg):
+            for layer_plugin in self.layer_plugins:
+                if suffix in layer_plugin.suffixes:
+                    return layer_plugin.get_layer_factory(*arg)
+            raise KeyError
+
+
+        # collected suffixes and layer factories
+        l_factories = []  # needed to preserve the order
+        d_factories = {}  # suffix factory mapping
+
+        # returned session object
         session = ConnectorSession()
 
-        # set up group layers before any "real" layers
-        for collections, _, name, suffix in tuple(layer_selection.walk()):
-            if not collections:
-                continue
-
-            # get a factory for the given suffix
-            factory = self.get_layer_factory(suffix)
-            if not factory:
-                # raise or pass?
-                continue
-
-            # get the groups name, which is the name of the collection + the 
-            # suffix
-            group_name = collections[-1].identifier + (suffix or "")
-
-            # generate a group layer
-            group_layer = factory.generate_group(group_name)
-            group_layers[group_name] = group_layer
-
-        # set up the actual layers for each coverage
+        # sort out the coverages and collect the suffixes and layer factories
         for collections, coverage, name, suffix in layer_selection.walk():
-            # get a factory for the given coverage and suffix
-            factory = self.get_layer_factory(suffix)
 
-            group_layer = None
-            group_name = None
+            # get the factory class
+            try:
+                # get existing factory
+                factory = d_factories[suffix]
+            except KeyError:
+                # get new factory
+                try:
+                    factory = _get_new_layer_factory(suffix,options)
+                except KeyError: continue
+                d_factories[suffix] = factory
+                l_factories.append(factory)
 
-            if collections:
-                group_name = collections[-1].identifier + (suffix or "")
-                group_layer = group_layers.get(group_name)
+            factory.add_coverage(collections,coverage,name)
 
-            if not coverage or not factory:
-                tmp_layer = ms.layerObj()
-                tmp_layer.name = name
-                layers_and_data_items = ((tmp_layer, ()),)
-            else:
-                data_items = coverage.data_items.all()
-                coverage.cached_data_items = data_items
-                layers_and_data_items = tuple(factory.generate(
-                    coverage, group_layer, suffix, options
-                ))
+        #---------------------------------------------------------
+        logger.debug("MAP: %s", map_)
+        logger.debug("Initial Layers: ")
+        for i in count() :
+            l = map_.getLayer(i)
+            if not l : break
+            logger.debug("\t %s -> %s ", l.name, l.group )
+        logger.debug("Initial Layers: end of list")
+        #---------------------------------------------------------
 
-            for layer, data_items in layers_and_data_items:
-                connector = self.get_connector(data_items)
-                
-                if group_name:
-                    layer.setMetaData("wms_layer_group", "/" + group_name)
+        # iterate over the layers
+        for factory in l_factories :
 
-                session.add(connector, coverage, data_items, layer)
-                
+            for layer, coverage, data_items in factory.generate() :
 
-        coverage_layers = [layer for _, layer, _ in session.coverage_layers]
-        for layer in chain(group_layers.values(), coverage_layers):
-            old_layer = map_.getLayerByName(layer.name)
-            if old_layer:
-                # remove the old layer and reinsert the new one, to 
-                # raise the layer to the top.
-                # TODO: find a more efficient way to do this
-                map_.removeLayer(old_layer.index)
-            map_.insertLayer(layer)
+                # if necessary create data connector
+                if coverage and data_items :
+                    connector = self.get_connector(data_items)
+                    session.add(connector, coverage, data_items, layer)
 
+                # NOTE: The map_ object shall be cleaned befor inserting
+                #       new layers!
+                #old_layer = map_.getLayerByName(layer.name)
+                #if old_layer:
+                    # remove the old layer and reinsert the new one, to
+                    # raise the layer to the top.
+                    # TODO: find a more efficient way to do this
+                    #map_.removeLayer(old_layer.index)
 
-        # apply any styles
+                map_.insertLayer(layer)
+
+        #---------------------------------------------------------
+        logger.debug("MAP: %s", map_)
+        logger.debug("Current Layers: ")
+        for i in count() :
+            l = map_.getLayer(i)
+            if not l : break
+            logger.debug("\t %s -> %s ", l.name, l.group )
+        logger.debug("Current Layers: end of list")
+        #---------------------------------------------------------
+
+        # TODO: apply styles
         # TODO: move this to map/legendgraphic renderer only?
-        for coverage, layer, data_items in session.coverage_layers:
-            for applicator in self.style_applicators:
-                applicator.apply(coverage, data_items, layer)
+        #for coverage, layer, data_items in session.coverage_layers:
+        #    for applicator in self.style_applicators:
+        #        applicator.apply(coverage, data_items, layer)
 
         return session
-
-
-    def get_empty_layers(self, name):
-        layer = ms.layerObj()
-        layer.name = name
-        layer.setMetaData("wms_enable_request", "getmap")
-        return (layer,)
 
 
 class ConnectorSession(object):

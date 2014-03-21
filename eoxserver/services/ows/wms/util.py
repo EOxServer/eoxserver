@@ -81,14 +81,13 @@ def lookup_layers(layers, subsets, suffixes=None):
                 identifier = layer_name[:-len(suffix)]
             else:
                 continue
-            
-            # TODO: nasty, nasty bug... dunno where
-            eo_objects = models.EOObject.objects.filter(
-                identifier=identifier
-            )
-            if len(eo_objects):
-                eo_object = eo_objects[0]
-                break
+
+            # TODO: nasty, nasty bug... dunno where (MP: Is this still applicable?)
+            try:
+                eo_object = models.EOObject.objects.get(identifier=identifier)
+            except models.EOObject.DoesNotExist : pass
+            else : break
+
         else:
             raise InvalidParameterException(
                 "No such layer %s" % layer_name, "layers"

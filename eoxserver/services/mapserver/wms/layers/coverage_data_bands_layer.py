@@ -1,12 +1,10 @@
 #-------------------------------------------------------------------------------
-# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
-# Authors: Fabian Schindler <fabian.schindler@eox.at>
-#          Martin Paces <martin.paces@eox.at>
+# Authors: Martin Paces <martin.paces@eox.at>
 #
 #-------------------------------------------------------------------------------
-# Copyright (C) 2011-2014 EOX IT Services GmbH
+# Copyright (C) 2014 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,12 +25,23 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+from eoxserver.core import Component, implements
 from eoxserver.resources.coverages import models
-from eoxserver.services.mapserver.wms.layerfactories.base import (
-    BaseCoverageLayerFactory
-)
+from eoxserver.services.mapserver.interfaces import LayerPluginInterface
 
-class CoverageLayerFactory(BaseCoverageLayerFactory) :
+from eoxserver.services.mapserver.wms.layers.coverage_data_layer_factory \
+    import CoverageDataLayerFactory
+
+#-------------------------------------------------------------------------------
+
+class CoverageDataBandsLayerPlugin(Component):
+    implements(LayerPluginInterface)
+
     handles = (models.RectifiedDataset, models.RectifiedStitchedMosaic)
-    suffixes = (None,)
+    suffixes = ("_bands",)
     requires_connection = True
+
+    def get_layer_factory(self,suffix,options):  
+        factory = CoverageDataLayerFactory(suffix,options)
+        factory.plugin = self
+        return factory 

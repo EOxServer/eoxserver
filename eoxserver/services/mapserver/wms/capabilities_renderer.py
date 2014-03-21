@@ -37,7 +37,7 @@ from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.services.ows.wms.interfaces import (
     WMSCapabilitiesRendererInterface
 )
-from eoxserver.services.mapserver.interfaces import LayerFactoryInterface
+from eoxserver.services.mapserver.interfaces import LayerPluginInterface
 from eoxserver.services.result import result_set_from_raw_data, get_content_type
 
 
@@ -46,13 +46,11 @@ class MapServerWMSCapabilitiesRenderer(Component):
     """
     implements(WMSCapabilitiesRendererInterface)
 
-    layer_factories = ExtensionPoint(LayerFactoryInterface)
+    layer_plugins = ExtensionPoint(LayerPluginInterface)
 
     @property
     def suffixes(self):
-        return list(
-            chain(*[factory.suffixes for factory in self.layer_factories])
-        )
+        return list( chain( *((f.suffixes for f in self.layer_plugins)) ) )
 
 
     def render(self, collections, coverages, request_values):

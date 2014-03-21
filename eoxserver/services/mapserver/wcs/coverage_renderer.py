@@ -39,9 +39,7 @@ from eoxserver.resources.coverages.formats import getFormatRegistry
 from eoxserver.services.exceptions import NoSuchCoverageException
 from eoxserver.services.ows.wcs.interfaces import WCSCoverageRendererInterface
 from eoxserver.services.ows.wcs.v20.encoders import WCS20EOXMLEncoder
-from eoxserver.services.mapserver.interfaces import (
-    ConnectorInterface, LayerFactoryInterface
-)
+from eoxserver.services.mapserver.interfaces import ConnectorInterface
 from eoxserver.services.subset import Subsets
 from eoxserver.services.mapserver.wcs.base_renderer import (
     BaseRenderer, is_format_supported
@@ -69,7 +67,6 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
     handles = handles_full + handles_partly
 
     connectors = ExtensionPoint(ConnectorInterface)
-    layer_factories = ExtensionPoint(LayerFactoryInterface)
 
     def supports(self, params):
         return (
