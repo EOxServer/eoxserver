@@ -161,17 +161,6 @@ class Command(CommandOutputMixIn, BaseCommand):
             action="store", default=None,
             help=("Optional clouds' polygon mask.")
         ),
-
-        make_option("--view", dest="img_view",
-            action="store", default=None,
-            help=("Optional pre-rendered view image.")
-        ),
-
-        make_option("--view-type", dest="img_view_type",
-            action="store", default="RGB",
-            help=("Optional type of the view image. "
-                  "Possible values are *RGB|Gray|Bands")
-        ),
     )
 
     @transaction.commit_on_success
@@ -191,12 +180,6 @@ class Command(CommandOutputMixIn, BaseCommand):
         metadatas = kwargs["metadata"]
         range_type_name = kwargs["range_type_name"]
         polygon_mask_clouds = kwargs["pm_clouds"]
-        view_image = kwargs["img_view"]
-        view_type = (kwargs["img_view_type"]).lower()  
-
-        if view_type.lower() not in ("rgb","gray","bands") :
-            raise CommandError("Invalid view image type '%s'!"%\
-                                                kwargs["img_view_type"])
 
         if range_type_name is None:
             raise CommandError("No range type name specified.")
@@ -292,34 +275,6 @@ class Command(CommandOutputMixIn, BaseCommand):
 #                        if key in metadata_keys:
 #                            retrieved_metadata.setdefault(key, value)
             
-        if view_image is not None : 
-
-            #storage, package, format, location = self._get_location_chain(polygon_mask_clouds)
-            storage, package, format, location = None, None, None, view_image
-            data_item = backends.DataItem(
-                location=location, format=format or "", 
-                semantic="view[%s]"%view_type, 
-                storage=storage, package=package,
-            )
-            data_item.full_clean()
-            data_item.save()
-            all_data_items.append(data_item)
-
-#            with open(connect(data_item, cache)) as f:
-#                content = f.read()
-#                reader = metadata_component.get_reader_by_test(content)
-#                if reader:
-#                    values = reader.read(content)
-#
-#                    format = values.pop("format", None)
-#                    if format:
-#                        data_item.format = format
-#                        data_item.full_clean()
-#                        data_item.save()
-#
-#                    for key, value in values.items():
-#                        if key in metadata_keys:
-#                            retrieved_metadata.setdefault(key, value)
 
         #----------------------------------------------------------------------
         # meta-data
