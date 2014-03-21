@@ -153,11 +153,9 @@ class EOMetadata(models.Model):
     class Meta:
         abstract = True
 
-
 class DataSource(backends.Dataset):
     pattern = models.CharField(max_length=32, null=False, blank=False)
     collection = models.ForeignKey("Collection")
-
 
 #===============================================================================
 # Base class EOObject
@@ -215,6 +213,20 @@ class EOObject(base.Castable, EOMetadata):
     class Meta:
         verbose_name = "EO Object"
         verbose_name_plural = "EO Objects"
+
+
+class MetadataItem(models.Model):
+    """ Model for generic key/value metadata item. a
+        can be linked to either a storage or a package or none of both.
+    """
+    semantic = models.CharField(max_length=64,null=False,blank=False)
+    value    = models.CharField(max_length=256,null=False, blank=False)
+    eo_object = models.ForeignKey(EOObject)
+
+    class Meta:
+        verbose_name = "Metadata Item"
+        verbose_name_plural = "Metadata Items"
+
 
 #===============================================================================
 # Identifier reservation

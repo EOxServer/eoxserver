@@ -223,6 +223,10 @@ class DataItemInline(AbstractInline):
     model = models.backends.DataItem
 
 
+class MetadataItemInline(AbstractInline):
+    model = models.MetadataItem
+
+
 class VectorMaskInline(AbstractInline):
     model = getattr(models.VectorMask.coverages, "through")
     #fk_name = "vectormask"
@@ -261,21 +265,24 @@ admin.site.register(models.RangeType, RangeTypeAdmin)
 
 class RectifiedDatasetAdmin(CoverageAdmin):
     model = models.RectifiedDataset
-    inlines = (VectorMaskInline, DataItemInline, CollectionInline)
+    inlines = ( VectorMaskInline, MetadataItemInline, DataItemInline, 
+                CollectionInline )
 
 admin.site.register(models.RectifiedDataset, RectifiedDatasetAdmin)
 
 
 class ReferenceableDatasetAdmin(CoverageAdmin):
     model = models.ReferenceableDataset
-    inlines = (VectorMaskInline, DataItemInline, CollectionInline)
+    inlines = ( VectorMaskInline, MetadataItemInline, DataItemInline, 
+                CollectionInline )
 
 admin.site.register(models.ReferenceableDataset, ReferenceableDatasetAdmin)
 
 
 class RectifiedStitchedMosaicAdmin(CoverageAdmin, CollectionAdmin):
     model = models.RectifiedStitchedMosaic
-    inlines = (VectorMaskInline, DataItemInline, CollectionInline, EOObjectInline)
+    inlines = ( VectorMaskInline, MetadataItemInline, DataItemInline, 
+                CollectionInline, EOObjectInline )
 
     def restitch(self, request, queryset):
         for model in queryset:
@@ -303,7 +310,8 @@ class DatasetSeriesAdmin(CollectionAdmin):
         }),
     )
     
-    inlines = (DataSourceInline, EOObjectInline, CollectionInline)
+    inlines = (DataSourceInline, MetadataItemInline, 
+                CollectionInline, EOObjectInline )
 
 admin.site.register(models.DatasetSeries, DatasetSeriesAdmin)
 
