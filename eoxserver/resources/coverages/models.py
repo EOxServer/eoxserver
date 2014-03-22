@@ -137,7 +137,7 @@ class EOMetadata(models.Model):
 
     begin_time = models.DateTimeField(null=True, blank=True)
     end_time = models.DateTimeField(null=True, blank=True)
-    footprint = models.MultiPolygonField(null=True, blank=True)
+    footprint = models.MultiPolygonField(null=True, blank=True, srid=4326)
     
     objects = models.GeoManager()
 
@@ -725,6 +725,7 @@ EO_OBJECT_TYPE_REGISTRY[11] = ReferenceableDataset
 class RectifiedStitchedMosaic(Coverage, Collection):
     """ Collection type which can entail rectified datasets that share a common 
         range type and are on the same grid.
+        NOTE: Geometry shall always be stored in the WGS84 lat/lon coordinates!
     """
     
     objects = models.GeoManager()
@@ -805,6 +806,7 @@ EO_OBJECT_TYPE_REGISTRY[30] = DatasetSeries
 
 class VectorMask(models.Model): 
     """ Vector Mask metadata 
+        NOTE: Geometry shall always be stored in the WGS84 lat/lon coordinates!
     """
 
     # EOP allowed mask types 
@@ -818,21 +820,16 @@ class VectorMask(models.Model):
         ( QUALITY,"QUALITY" ), 
     ) 
 
-    name = models.CharField(max_length=64, unique=True)
-
     type = models.PositiveSmallIntegerField( choices=TYPE_CHOICES,
                                             blank=False, null=False ) 
 
     subtype = models.CharField(max_length=64,blank=True, null=True)
 
-    srid = models.PositiveIntegerField(blank=True, null=True)
-    projection = models.ForeignKey(Projection, blank=True, null=True)
-
-    geometry = models.MultiPolygonField(null=False, blank=False)
+    geometry = models.MultiPolygonField(null=False, blank=False, srid=4326)
 
     objects = models.GeoManager()
 
-    coverages = models.ManyToManyField( Coverage, related_name="vector_masks" ) 
+    coverage = models.ForeignKey( Coverage ) 
     
     def __unicode__(self):
         return self.name

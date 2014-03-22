@@ -227,15 +227,11 @@ class MetadataItemInline(AbstractInline):
     model = models.MetadataItem
 
 
-class VectorMaskInline(AbstractInline):
-    model = getattr(models.VectorMask.coverages, "through")
-    #fk_name = "vectormask"
-
-
-class VectorMaskCoverageInline(AbstractInline):
-    model = getattr(models.VectorMask.coverages, "through")
-    #fk_name = "coverage"
-
+# TODO: fix to display inline map widget.
+class VectorMaskInline(admin.StackedInline)
+    extra = 0 
+    model = models.VectorMask
+    fields = (('type','subtype'),'geometry') 
 
 # Model admins
 #===============================================================================
@@ -316,11 +312,3 @@ class DatasetSeriesAdmin(CollectionAdmin):
 admin.site.register(models.DatasetSeries, DatasetSeriesAdmin)
 
 
-class VectorMaskAdmin(EOObjectAdmin): 
-    model = models.VectorMask 
-
-    fields = ('name',('type','subtype'),('srid','projection'),'geometry') 
-
-    inlines = ( VectorMaskCoverageInline, )
-
-admin.site.register(models.VectorMask, VectorMaskAdmin)
