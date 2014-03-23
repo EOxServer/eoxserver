@@ -27,6 +27,7 @@
 #-------------------------------------------------------------------------------
 
 
+from lxml import etree 
 from django.utils.dateparse import parse_date, parse_datetime
 from django.contrib.gis.geos import Polygon, MultiPolygon
 
@@ -43,7 +44,10 @@ class DimapGeneralFormatReader(Component):
 
     def test(self, obj):
         tree = parse(obj)
-        return tree is not None and tree.tag == "Dimap_Document"
+        if tree is None : return False 
+        if isinstance(tree,etree._ElementTree):
+            tree = tree.getroot() ; 
+        return tree.tag == "Dimap_Document"
 
     def get_format_name(self, obj):
         return "dimap"

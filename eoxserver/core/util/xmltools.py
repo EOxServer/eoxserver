@@ -107,18 +107,18 @@ def parse(obj):
     """
 
     tree = None
-    if etree.iselement(obj):
+    if etree.iselement(obj) or isinstance(obj,etree._ElementTree): 
         return obj
     elif isinstance(obj, basestring):
         try:
             tree = etree.fromstring(obj)
-        except:
-            pass
+        except Exception as e :
+            logger.debug("etree.fromstring(obj) failed! %s"%e)
     else:
         try:
             tree = etree.parse(obj)
-        except:
-            pass
+        except Exception as e :
+            logger.debug("etree.parse(obj) failed! %s"%e)
 
     return tree
 

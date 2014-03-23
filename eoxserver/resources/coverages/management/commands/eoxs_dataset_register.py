@@ -29,6 +29,7 @@
 
 import traceback
 
+from lxml import etree 
 from optparse import make_option
 from itertools import chain
 
@@ -219,6 +220,8 @@ class Command(CommandOutputMixIn, BaseCommand):
         #----------------------------------------------------------------------
         # meta-data
 
+        vector_masks_src=[] 
+
         for metadata in metadatas:
             storage, package, format, location = self._get_location_chain(metadata)
             data_item = backends.DataItem(
@@ -230,7 +233,7 @@ class Command(CommandOutputMixIn, BaseCommand):
             all_data_items.append(data_item)
 
             with open(connect(data_item, cache)) as f:
-                content = f.read()
+                content = etree.parse(f)
                 reader = metadata_component.get_reader_by_test(content)
                 if reader:
                     values = reader.read(content)
@@ -244,6 +247,9 @@ class Command(CommandOutputMixIn, BaseCommand):
                     for key, value in values.items():
                         if key in metadata_keys:
                             retrieved_metadata.setdefault(key, value)
+
+                    vector_masks_src = values.get("vmasks",[])
+
         #----------------------------------------------------------------------
         # other semantics
 
@@ -258,7 +264,6 @@ class Command(CommandOutputMixIn, BaseCommand):
             data_item.full_clean()
             data_item.save()
             all_data_items.append(data_item)
-
 #            with open(connect(data_item, cache)) as f:
 #                content = f.read()
 #                reader = metadata_component.get_reader_by_test(content)
@@ -274,7 +279,26 @@ class Command(CommandOutputMixIn, BaseCommand):
 #                    for key, value in values.items():
 #                        if key in metadata_keys:
 #                            retrieved_metadata.setdefault(key, value)
+
+        #----------------------------------------------------------------------
+        # handle vector masks 
             
+        vector_masks = []
+        VMASK_TYPE = dict( (v,k) for (k,v) in models.VectorMask.TYPE_CHOICES ) 
+        
+        for vm_src in vector_masks_src: 
+
+            if vm_src["type"] not in VMASK_TYPE: 
+                raise CommandError( "Invalid mask type '%s'! Allowed "
+                    "mask-types are: %s" , vm_src["type"],
+                        "|".join(VMASK_TYPE.keys()) )
+
+            vm = models.VectorMask()
+            vm.type     = VMASK_TYPE[vm_src["type"]]
+            vm.subtype  = vm_src["subtype"] 
+            vm.geometry = vm_src["mask"]
+
+            vector_masks.append( vm ) 
 
         #----------------------------------------------------------------------
         # meta-data
@@ -364,6 +388,10 @@ class Command(CommandOutputMixIn, BaseCommand):
                 data_item.full_clean()
                 data_item.save()
 
+            for vm in vector_masks:
+                vm.coverage = coverage 
+                vm.full_clean()
+                vm.save()
 
             #------------------------------------------------------------------
             # link to the parent dataset 
