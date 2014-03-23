@@ -832,7 +832,9 @@ class VectorMask(models.Model):
     coverage = models.ForeignKey( Coverage ) 
     
     def __unicode__(self):
-        return self.name
+        return "MASK{%s,%s%s}"%( self.coverage.identifier,
+                dict(self.TYPE_CHOICES)[self.type] , 
+                "" if self.subtype is None else "[%s]"%self.subtype )
 
     class Meta:
         verbose_name = "Vector Mask"
