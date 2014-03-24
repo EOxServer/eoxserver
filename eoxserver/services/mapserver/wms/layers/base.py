@@ -78,8 +78,9 @@ class LayerFactory(object):
                 self.__groups.append( group ) 
         else : 
             group = None 
-
-        self.__items.append((coverage.cast(),group,collections)) 
+    
+        if coverage is not None :
+            self.__items.append((coverage.cast(),group,collections)) 
 
     def generate(self): 
         """ Layer generator. """ 

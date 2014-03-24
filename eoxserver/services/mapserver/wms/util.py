@@ -98,8 +98,12 @@ class MapServerWMSBaseComponent(Component):
         session = ConnectorSession()
 
         # sort out the coverages and collect the suffixes and layer factories
+        # NOTE: In case of no coverage matching the spatio-temporal selection
+        #       a single record with the coverage field set to None is 
+        #       received to set-up the empty group layers.
         for collections, coverage, name, suffix in layer_selection.walk():
 
+            print (collections,coverage,name,suffix) 
             # get the factory class
             try:
                 # get existing factory
