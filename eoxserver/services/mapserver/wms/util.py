@@ -103,7 +103,6 @@ class MapServerWMSBaseComponent(Component):
         #       received to set-up the empty group layers.
         for collections, coverage, name, suffix in layer_selection.walk():
 
-            print (collections,coverage,name,suffix) 
             # get the factory class
             try:
                 # get existing factory
