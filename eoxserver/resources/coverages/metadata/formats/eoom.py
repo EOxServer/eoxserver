@@ -101,19 +101,22 @@ def parse_srs_name( srs_name ):
 
 def parse_multisurf_gml(elem,srid=None):
     if not srid : srid = parse_srs_name( elem.get("srsName") ) 
-    return MultiPolygon(
-        *(( parse_polygon_gml(e,srid) for e in 
-                elem.xpath("gml:surfaceMember/gml:Polygon",namespaces=nsmap) 
-         )), srid=srid
-    )
+    try: 
+        return MultiPolygon(
+            [ parse_polygon_gml(e,srid) for e in 
+                    elem.xpath("gml:surfaceMember/gml:Polygon",namespaces=nsmap) 
+            ], srid=srid
+        )
+    except Exception as e : 
+        print "parse_multisurf_gml()", type(e) , e 
 
 def parse_polygon_gml(elem,srid=None):
     if not srid : srid = parse_srs_name( elem.get("srsName") ) 
     return Polygon(
-        *(( parse_list_gml(e.text,srid) for e in chain( 
+        *[ parse_list_gml(e.text,srid) for e in chain( 
                 elem.xpath("gml:exterior/gml:LinearRing/gml:posList",namespaces=nsmap)[:1],
                 elem.xpath("gml:interior/gml:LinearRing/gml:posList",namespaces=nsmap) )
-         )), srid=srid 
+        ], srid=srid 
     )
 
 def parse_list_gml(string,srid):
