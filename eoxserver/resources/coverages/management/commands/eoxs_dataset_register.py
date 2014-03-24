@@ -40,7 +40,7 @@ from django.db import transaction
 from django.contrib.gis.geos import GEOSGeometry
 
 from eoxserver.core import env
-from eoxserver.contrib import gdal, osr
+from eoxserver.contrib import gdal, osr, ogr 
 from eoxserver.backends import models as backends
 from eoxserver.backends.component import BackendComponent
 from eoxserver.backends.cache import CacheContext
@@ -51,6 +51,8 @@ from eoxserver.resources.coverages.management.commands import (
     CommandOutputMixIn, _variable_args_cb
 )
 
+# common spatial reference object 
+SR_WGS84=osr.SpatialReference(4326).sr 
 
 def _variable_args_cb(option, opt_str, value, parser):
     """ Helper function for optparse module. Allows
@@ -158,9 +160,14 @@ class Command(CommandOutputMixIn, BaseCommand):
                   "will terminate the command." )
         ),
 
-        make_option("--clouds", dest="pm_clouds",
+        make_option("--cloud", dest="pm_cloud",
             action="store", default=None,
-            help=("Optional clouds' polygon mask.")
+            help=("Optional cloud polygon mask.")
+        ),
+
+        make_option("--snow", dest="pm_snow",
+            action="store", default=None,
+            help=("Optional snow polygon mask.")
         ),
     )
 
@@ -180,7 +187,8 @@ class Command(CommandOutputMixIn, BaseCommand):
         semantics = kwargs.get("semantics")
         metadatas = kwargs["metadata"]
         range_type_name = kwargs["range_type_name"]
-        polygon_mask_clouds = kwargs["pm_clouds"]
+        polygon_mask_cloud = kwargs["pm_cloud"]
+        polygon_mask_snow = kwargs["pm_snow"]
 
         if range_type_name is None:
             raise CommandError("No range type name specified.")
@@ -251,35 +259,36 @@ class Command(CommandOutputMixIn, BaseCommand):
                     vector_masks_src = values.get("vmasks",[])
 
         #----------------------------------------------------------------------
-        # other semantics
+        # polygon masks 
 
-        if polygon_mask_clouds is not None : 
+        def _get_geometry( file_name ):
+            """ load geometry from a feature collection """
+            # TODO: improve the feature selection
+            ds = ogr.Open(file_name)
+            ly = ds.GetLayer(0)
+            ft = ly.GetFeature(0)
+            g0 = ft.GetGeometryRef()
+            g0.TransformTo( SR_WGS84 ) # geometries always stored in WGS84
+            return GEOSGeometry(buffer(g0.ExportToWkb()),srid=4326) 
 
-            #storage, package, format, location = self._get_location_chain(polygon_mask_clouds)
-            storage, package, format, location = None, None, None, polygon_mask_clouds
-            data_item = backends.DataItem(
-                location=location, format=format or "", semantic="polygonmask[clouds]", 
-                storage=storage, package=package,
-            )
-            data_item.full_clean()
-            data_item.save()
-            all_data_items.append(data_item)
-#            with open(connect(data_item, cache)) as f:
-#                content = f.read()
-#                reader = metadata_component.get_reader_by_test(content)
-#                if reader:
-#                    values = reader.read(content)
-#
-#                    format = values.pop("format", None)
-#                    if format:
-#                        data_item.format = format
-#                        data_item.full_clean()
-#                        data_item.save()
-#
-#                    for key, value in values.items():
-#                        if key in metadata_keys:
-#                            retrieved_metadata.setdefault(key, value)
+        if polygon_mask_cloud is not None : 
 
+            # append the mask record
+            vector_masks_src.append({
+                    'type' : 'CLOUD' ,
+                    'subtype' : None ,
+                    'mask' : _get_geometry( polygon_mask_cloud ),
+                }) 
+
+        if polygon_mask_snow is not None : 
+
+            # append the mask record
+            vector_masks_src.append({
+                    'type' : 'SNOW' ,
+                    'subtype' : None ,
+                    'mask' : _get_geometry( polygon_mask_snow ),
+                }) 
+            
         #----------------------------------------------------------------------
         # handle vector masks 
             
