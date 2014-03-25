@@ -825,6 +825,8 @@ class VectorMask(models.Model):
 
     subtype = models.CharField(max_length=64,blank=True, null=True)
 
+    semantic = models.CharField(max_length=64,blank=True, null=True)
+
     geometry = models.MultiPolygonField(null=False, blank=False, srid=4326)
 
     objects = models.GeoManager()

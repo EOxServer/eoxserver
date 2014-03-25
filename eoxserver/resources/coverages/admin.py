@@ -231,7 +231,7 @@ class MetadataItemInline(AbstractInline):
 class VectorMaskInline(admin.StackedInline):
     extra = 0 
     model = models.VectorMask
-    fields = (('type','subtype'),'geometry') 
+    fields = ('semantic', ('type','subtype'), 'geometry') 
 
 # Model admins
 #===============================================================================
