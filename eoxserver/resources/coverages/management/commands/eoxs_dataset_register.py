@@ -307,6 +307,13 @@ class Command(CommandOutputMixIn, BaseCommand):
             vm.subtype  = vm_src["subtype"] 
             vm.geometry = vm_src["mask"]
 
+            #TODO: improve the semantic handling 
+            if vm.subtype : 
+                vm.semantic = ( "%s_%s"%( vm_src["type"],
+                                vm_src["subtype"].replace(" ","_") ) ).lower()
+            else : 
+                vm.semantic = vm_src["type"].lower()
+            
             vector_masks.append( vm ) 
 
         #----------------------------------------------------------------------
