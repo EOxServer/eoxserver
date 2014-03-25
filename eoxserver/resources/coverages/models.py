@@ -831,7 +831,7 @@ class VectorMask(models.Model):
 
     objects = models.GeoManager()
 
-    coverage = models.ForeignKey( Coverage ) 
+    coverage = models.ForeignKey( Coverage, related_name='vector_masks' ) 
     
     def __unicode__(self):
         return "MASK{%s,%s%s}"%( self.coverage.identifier,
