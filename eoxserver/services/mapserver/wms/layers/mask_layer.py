@@ -53,31 +53,20 @@ class MaskLayerFactory(LayerFactory,PolygonLayerMixIn,StyledLayerMixIn):
 
     def _mask( self, mask_items, outline ): 
 
-        sr = osr.SpatialReference() 
-        sr.ImportFromEPSGA(4326)
-
-        #print sr.ExportToWkt()  
-
         mask = MultiPolygon(()) 
         
         for mask_item in mask_items: 
+            print mask_item 
+            mask = mask | mask_item.geometry
 
-            ds = ogr.Open(mask_item.location) 
-            ly = ds.GetLayer(0)
-            ft = ly.GetFeature(0)
-            g0 = ft.GetGeometryRef()
-            g0.TransformTo( sr ) 
+        return mask & outline
 
-            # TODO: clip to outline 
-
-            mask = mask | GEOSGeometry(buffer(g0.ExportToWkb())) 
-
-        return mask
 
     def generate(self): 
 
         mask_name = self.suffix[1:] 
-        semantic = "polygonmask[%s]"%mask_name 
+        print mask_name
+        #semantic = "polygonmask[%s]"%mask_name 
 
         # keep the layer objects 
         d_groups = {} 
@@ -93,8 +82,8 @@ class MaskLayerFactory(LayerFactory,PolygonLayerMixIn,StyledLayerMixIn):
         for cov, group, cols in reversed( self.coverages ) : 
 
             # get the mask items
-            mask_items = cov.data_items.filter(
-                semantic__startswith=semantic
+            mask_items = cov.vector_masks.filter(
+                semantic__startswith=mask_name
             )
 
             # get part of the visible footprint 

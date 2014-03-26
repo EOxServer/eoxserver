@@ -168,6 +168,35 @@ class PolygonLayerMixIn(object):
 
 #-------------------------------------------------------------------------------
 
+class PolygonMaskingLayerMixIn(object): 
+
+    # layer creating method 
+    def _polygon_masking_layer(self,cov,name,mask,group=None): 
+
+        layer = ms.layerObj()
+        layer.name = name
+        layer.type = ms.MS_LAYER_POLYGON
+
+        #layer.setMetaData("eoxs_geometry_reversed", "true")
+
+        if group: 
+            layer.setMetaData("wms_layer_group", group) 
+
+        cls = ms.classObj(layer)
+        style = ms.styleObj(cls)
+        style.color.setRGB(0, 0, 0)
+
+        shape = ms.shapeObj.fromWKT(mask.wkt)
+        shape.initValues(1)
+        shape.setValue(0, cov.identifier)
+
+        # add feature to the layer
+        layer.addFeature(shape)
+
+        return layer
+
+#-------------------------------------------------------------------------------
+
 class DataLayerMixIn(object): 
 
     # TODO: Review the following offsite color method.

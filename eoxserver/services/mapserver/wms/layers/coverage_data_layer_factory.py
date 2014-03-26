@@ -30,13 +30,20 @@ from eoxserver.resources.coverages.dateline import (
 )
 
 from eoxserver.services.mapserver.wms.layers.base import (
-    LayerFactory, GroupLayerMixIn, DataLayerMixIn
+    LayerFactory, GroupLayerMixIn, DataLayerMixIn,
+    PolygonMaskingLayerMixIn,
 )
 
 #-------------------------------------------------------------------------------
 
-class CoverageDataLayerFactory(LayerFactory,GroupLayerMixIn,DataLayerMixIn): 
+class CoverageDataLayerFactory(LayerFactory,GroupLayerMixIn,DataLayerMixIn,
+                                     PolygonMaskingLayerMixIn): 
     """ basic data layer factory """ 
+
+
+    def _mask_geom( self, cov ):
+        return None 
+
 
     def generate(self): 
 
@@ -54,18 +61,41 @@ class CoverageDataLayerFactory(LayerFactory,GroupLayerMixIn,DataLayerMixIn):
 
             # band indices 
             indices = self._indeces( cov, self.options )
-
+        
             # get the data items 
             data_items = _get_bands(cov)
 
             # MP: Not clear why we are doing this.
             cov.cached_data_items = cov.data_items.all()
             
+            #=================================================================
+            # prepare mask layer(s)
+
+            # get mask geometry 
+            mask_geom = self._mask_geom( cov )
+
+            if mask_geom and (not mask_geom.empty ) : 
+                
+                # prepare the mask polygon layer 
+
+                mask_name  = "%s%s__mask__"%( cov.identifier , self.suffix ) 
+                layer = self._polygon_masking_layer(cov,mask_name,
+                                            mask_geom,layer_group)
+
+                yield layer, None, None
+
+            else : 
+
+                mask_name = None 
+
+            #=================================================================
+            # prepare data layers 
+
             if not extent_crosses_dateline(cov.extent,cov.srid):
 
                 name  = "%s%s"%( cov.identifier , self.suffix ) 
-                layer = self._data_layer( cov, name, cov.extent,
-                                      layer_group, indices=indices )
+                layer = self._data_layer( cov, name, cov.extent, layer_group, 
+                                            mask=mask_name, indices=indices )
                 yield layer, cov, data_items
 
             else : # image crosses the date-line 
@@ -80,12 +110,13 @@ class CoverageDataLayerFactory(LayerFactory,GroupLayerMixIn,DataLayerMixIn):
                 name   = "%s_1%s"%( cov.identifier , self.suffix )
                 extent = cov.extent
                 layer  = self._data_layer( cov, name, extent, layer_subgroup,
-                                           wrapped=False, indices=indices )
+                            wrapped=False, mask=mask_name, indices=indices )
                 yield layer, cov, data_items
-
+                   
+                # TODO: check masking for date-line crossing products
                 # create additional layer with +/-360dg latitude offset 
                 name   = "%s_2%s"%( cov.identifier , self.suffix )
                 extent = wrap_extent_around_dateline( cov.extent, cov.srid )
                 layer  = self._data_layer( cov, name, extent, layer_subgroup,
-                                           wrapped=True, indices=indices )
+                            wrapped=True, mask=mask_name, indices=indices )
                 yield layer, cov, data_items

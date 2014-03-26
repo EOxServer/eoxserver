@@ -34,41 +34,18 @@ from eoxserver.services.mapserver.wms.layers.coverage_outlines_layer_factory \
 
 #-------------------------------------------------------------------------------
 #from django.contrib.gis.geos.collections import MultiPolygon
-from eoxserver.contrib import ogr 
-#from eoxserver.contrib import osr
-from osgeo import osr
-from django.contrib.gis.geos import GEOSGeometry
 
 class CoverageOutlinesMaskedLayerFactory(CoverageOutlinesLayerFactory):
     """ derived masked outlines' layer factory """
 
-    def _masked_outline( self, mask_items, outline ): 
-
-        sr = osr.SpatialReference() 
-        sr.ImportFromEPSGA(4326)
-
-        #print sr.ExportToWkt()  
-        
-        for mask_item in mask_items: 
-
-            ds = ogr.Open(mask_item.location) 
-            ly = ds.GetLayer(0)
-            ft = ly.GetFeature(0)
-            g0 = ft.GetGeometryRef()
-            g0.TransformTo( sr ) 
-
-            mask = GEOSGeometry(buffer(g0.ExportToWkb())) 
-
-            outline = outline - mask
-
-        return outline 
-
     def _outline_geom( self, cov ):
 
-        # get the mask items
-        mask_items = cov.data_items.filter(
-            semantic__startswith="polygonmask"
-        )
+        outline = cov.footprint
+
+        for mask_item in cov.vector_masks.all() :
+            outline = outline - mask_item.geometry
+
+        return outline 
         
         return self._masked_outline(mask_items,cov.footprint)
 
