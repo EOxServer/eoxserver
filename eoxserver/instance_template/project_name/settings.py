@@ -253,9 +253,9 @@ LOGGING = {
             'filters': [],
         },
         'stderr_stream': {
-            'level': 'DEBUG',
+            'level': 'INFO',
             'class': 'logging.StreamHandler',
-            'formatter': 'verbose' if DEBUG else 'simple',
+            'formatter': 'simple',
             'filters': [],
         },
     },
@@ -267,7 +267,7 @@ LOGGING = {
         },
         '': {
             'handlers': ['stderr_stream'],
-            'level': 'DEBUG' if DEBUG else 'INFO',
+            'level': 'WARNING',
             'propagate': False,
         },
     }
