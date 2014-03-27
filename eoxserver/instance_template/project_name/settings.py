@@ -251,11 +251,22 @@ LOGGING = {
             'filename': join(PROJECT_DIR, 'logs', 'eoxserver.log'),
             'formatter': 'verbose' if DEBUG else 'simple',
             'filters': [],
-        }
+        },
+        'stderr_stream': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose' if DEBUG else 'simple',
+            'filters': [],
+        },
     },
     'loggers': {
         'eoxserver': {
             'handlers': ['eoxserver_file'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': False,
+        },
+        '': {
+            'handlers': ['stderr_stream'],
             'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': False,
         },
