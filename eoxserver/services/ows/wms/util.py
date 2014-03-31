@@ -93,6 +93,21 @@ def lookup_layers(layers, subsets, suffixes=None):
                 "No such layer %s" % layer_name, "layers"
             )
 
+        # check the the layer does not have wms_view meta-data 
+        try: 
+            
+            md_item = eo_object.metadata_items.get(semantic="wms_view") 
+
+            eo_object = models.EOObject.objects.get(identifier=md_item.value)
+
+        except models.MetadataItem.DoesNotExist : # no wms_view available 
+            # use the existing eo_object
+            pass 
+
+        except models.EOObject.DoesNotExist : # wms_view is invalid 
+            # use the existing eo_object 
+            pass 
+
         if models.iscollection(eo_object):
             # recursively iterate over all sub-collections and collect all
             # coverages
