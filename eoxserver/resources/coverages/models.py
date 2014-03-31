@@ -221,7 +221,7 @@ class MetadataItem(models.Model):
     """
     semantic = models.CharField(max_length=64,null=False,blank=False)
     value    = models.CharField(max_length=256,null=False, blank=False)
-    eo_object = models.ForeignKey(EOObject)
+    eo_object = models.ForeignKey(EOObject,related_name="metadata_items")
 
     class Meta:
         verbose_name = "Metadata Item"
