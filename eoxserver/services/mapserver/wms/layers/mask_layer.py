@@ -56,7 +56,6 @@ class MaskLayerFactory(LayerFactory,PolygonLayerMixIn,StyledLayerMixIn):
         mask = MultiPolygon(()) 
         
         for mask_item in mask_items: 
-            print mask_item 
             mask = mask | mask_item.geometry
 
         return mask & outline
@@ -65,21 +64,12 @@ class MaskLayerFactory(LayerFactory,PolygonLayerMixIn,StyledLayerMixIn):
     def generate(self): 
 
         mask_name = self.suffix[1:] 
-        print mask_name
         #semantic = "polygonmask[%s]"%mask_name 
 
-        # keep the layer objects 
-        d_groups = {} 
-
-        # create the group layers 
-        for group in self.groups : 
-            layer = self._polygon_layer(group,filled=True,srid=4326)
-            d_groups[group] = layer 
-            yield layer, None, () 
-
+        layer = self._polygon_layer( self.group, filled=True, srid=4326 )
 
         # iterate over the coverages and add features to the layer groups 
-        for cov, group, cols in reversed( self.coverages ) : 
+        for cov, cov_name in reversed( self.coverages ) : 
 
             # get the mask items
             mask_items = cov.vector_masks.filter(
@@ -89,17 +79,19 @@ class MaskLayerFactory(LayerFactory,PolygonLayerMixIn,StyledLayerMixIn):
             # get part of the visible footprint 
             mask = self._mask(mask_items,cov.footprint)
 
-            # skip completly covered outlines 
+            # skip empty masks 
             if mask.empty : continue 
 
             # generate feature 
             shape = ms.shapeObj.fromWKT(mask.wkt)
             shape.initValues(2)
-            shape.setValue(0, cov.identifier)
-            shape.setValue(1, mask_name)
+            shape.setValue(0, cov_name )
+            shape.setValue(1, mask_name )
 
             # add feature to the group
-            d_groups[group].addFeature(shape)
+            layer.addFeature(shape)
+
+        yield layer, None, () 
 
 #-------------------------------------------------------------------------------
 

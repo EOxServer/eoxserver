@@ -60,10 +60,9 @@ class LayerPluginInterface(object):
             For factories that don't use this feature, it can be left out.
         """
 
-    def get_layer_factory(self,suffix,options):  
-        """ Get LayerFactory object creating the map layer of the given suffix.
-         
-            TODO: describe LayerFactory interface 
+    def get_layer_factory(self,layer_selection,options):  
+        """ Get a ``LayerFactory`` object creating the map layer for the given
+            ``LayerSelection`` object.
         """
 
 class StyleApplicatorInterface(object):

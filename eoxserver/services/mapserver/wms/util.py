@@ -81,43 +81,10 @@ class MapServerWMSBaseComponent(Component):
         return None
 
 
-    def setup_map(self, layer_selection, map_, options):
-
-        def _get_new_layer_factory(*arg):
-            for layer_plugin in self.layer_plugins:
-                if suffix in layer_plugin.suffixes:
-                    return layer_plugin.get_layer_factory(*arg)
-            raise KeyError
-
-
-        # collected suffixes and layer factories
-        l_factories = []  # needed to preserve the order
-        d_factories = {}  # suffix factory mapping
-
-        # returned session object
-        session = ConnectorSession()
-
-        # sort out the coverages and collect the suffixes and layer factories
-        # NOTE: In case of no coverage matching the spatio-temporal selection
-        #       a single record with the coverage field set to None is 
-        #       received to set-up the empty group layers.
-        for collections, coverage, name, suffix in layer_selection.walk():
-
-            # get the factory class
-            try:
-                # get existing factory
-                factory = d_factories[suffix]
-            except KeyError:
-                # get new factory
-                try:
-                    factory = _get_new_layer_factory(suffix,options)
-                except KeyError: continue
-                d_factories[suffix] = factory
-                l_factories.append(factory)
-
-            factory.add_coverage(collections,coverage,name)
+    def setup_map(self, layer_selections, map_, options):
 
         #---------------------------------------------------------
+        # debug print - list existing mapserver layers 
         logger.debug("MAP: %s", map_)
         logger.debug("Initial Layers: ")
         for i in count() :
@@ -127,9 +94,24 @@ class MapServerWMSBaseComponent(Component):
         logger.debug("Initial Layers: end of list")
         #---------------------------------------------------------
 
-        # iterate over the layers
-        for factory in l_factories :
+        def _get_new_layer_factory(ls,opt):
+            for layer_plugin in self.layer_plugins:
+                if ls.suffix in layer_plugin.suffixes:
+                    return layer_plugin.get_layer_factory(ls,opt)
+            raise KeyError
 
+        #---------------------------------------------------------
+
+        # returned session object
+        session = ConnectorSession()
+
+        # iterate over the layer selections 
+        for layer_selection in layer_selections : 
+        
+            # initialize the layer_factory 
+            factory = _get_new_layer_factory(layer_selection,options)
+
+            # generate the map layers 
             for layer, coverage, data_items in factory.generate() :
 
                 # if necessary create data connector
@@ -149,6 +131,7 @@ class MapServerWMSBaseComponent(Component):
                 map_.insertLayer(layer)
 
         #---------------------------------------------------------
+        # debug print - list existing mapserver layers 
         logger.debug("MAP: %s", map_)
         logger.debug("Current Layers: ")
         for i in count() :

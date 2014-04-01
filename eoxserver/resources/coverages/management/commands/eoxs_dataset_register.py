@@ -170,9 +170,15 @@ class Command(CommandOutputMixIn, BaseCommand):
             help=("Optional snow polygon mask.")
         ),
 
-        make_option("--view", dest="md_view",
+        make_option("--view", dest="md_wms_view",
             action="store", default=None,
             help=("Optional link WMS view to another EO-ID (layer).")
+        ),
+
+        make_option("--alias", dest="md_wms_alias",
+            action="store", default=None,
+            help=("Optional EO-ID (layer) of another dataset"
+                  "the registered coverage provides view to.")
         ),
     )
 
@@ -194,7 +200,8 @@ class Command(CommandOutputMixIn, BaseCommand):
         range_type_name = kwargs["range_type_name"]
         polygon_mask_cloud = kwargs["pm_cloud"]
         polygon_mask_snow = kwargs["pm_snow"]
-        wms_view = kwargs["md_view"]
+        wms_view  = kwargs["md_wms_view"]
+        wms_alias = kwargs["md_wms_alias"]
 
         if range_type_name is None:
             raise CommandError("No range type name specified.")
@@ -329,13 +336,15 @@ class Command(CommandOutputMixIn, BaseCommand):
 
         # prerendered WMS view 
         if wms_view is not None : 
-
-            md = models.MetadataItem()
-            md.semantic = "wms_view"
-            md.value    = wms_view
-
-            metadata_items.append( md ) 
+            metadata_items.append(
+                models.MetadataItem(semantic="wms_view",value=wms_view)
+            ) 
                 
+        # alias of the WMS view 
+        if wms_alias is not None : 
+            metadata_items.append(
+                models.MetadataItem(semantic="wms_alias",value=wms_alias)
+            ) 
 
         #----------------------------------------------------------------------
         # coverage 

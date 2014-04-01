@@ -43,29 +43,23 @@ class CoverageOutlinesLayerFactory(LayerFactory,PolygonLayerMixIn,StyledLayerMix
 
     def generate(self): 
 
-        # keep the layer objects 
-        d_groups = {} 
+        layer = self._polygon_layer( self.group, filled=False,srid=4326)
 
-        # create the group layers 
-        for group in self.groups : 
-            layer = self._polygon_layer(group,filled=False,srid=4326)
-            d_groups[group] = layer 
-            yield layer, None, () 
+        # iterate over the coverages 
+        for cov, cov_name in reversed( self.coverages ) : 
 
+            # get part of the visible footprint
+            outline = self._outline_geom( cov )
 
-        # iterate over the coverages and add features to the layer groups 
-        for cov, group, cols in reversed( self.coverages ) : 
-
-            # get part of the visible footprint 
-            outline = self._outline_geom( cov ) 
-
-            # skip completly covered outlines 
+            # skip invisible outlines 
             if outline.empty : continue 
 
             # generate feature 
             shape = ms.shapeObj.fromWKT(outline.wkt)
             shape.initValues(1)
-            shape.setValue(0, cov.identifier)
+            shape.setValue(0, cov_name )
 
             # add feature to the group
-            d_groups[group].addFeature(shape)
+            layer.addFeature(shape)
+
+        yield layer, None, () 

@@ -44,5 +44,3 @@ class CoverageDataMaskedLayerFactory(CoverageDataLayerFactory):
             outline = outline - mask_item.geometry
 
         return outline 
-        
-        return self._masked_outline(mask_items,cov.footprint)

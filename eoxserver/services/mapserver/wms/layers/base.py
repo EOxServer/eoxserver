@@ -54,33 +54,36 @@ class LayerFactory(object):
         return self.__suffix
 
     @property
-    def groups(self):
-        "Get list of groups defined by this factory."
-        return self.__groups 
+    def group(self): 
+        "Return layers group name."
+        return self.__group
+
+    @property
+    def root(self):
+        "Get the (root) EOObject of the requested layer."
+        return self.__root 
 
     @property
     def coverages(self): 
-        "Get list of source coverages processed by the factory."
+        "Get list of the coverages needed by the requested layer."
         return self.__items
 
-    def __init__(self,suffix,options) : 
-        self.__suffix  = ( suffix or "" ) 
+    @property
+    def is_groupped(self): 
+        """Return a boolean flag indicating whether a group layer is needed.
+           The group layer is not needed if the requested EOObject (layer)
+           is the same as the rendered EOObject (coverage).
+        """
+        return not ( (len(self.__items) == 1) and \
+            (self.__items[0][1] == self.__root.identifier) ) 
+
+    def __init__(self, layer_selection, options) : 
+
+        self.__root    = layer_selection.root 
+        self.__items   = layer_selection.coverages
+        self.__suffix  = ( layer_selection.suffix or "" ) 
+        self.__group   = layer_selection.layer_name
         self.__options = ( options or {} ) 
-        self.__items   = []
-        self.__groups  = []
-
-    def add_coverage( self, collections, coverage, name ): 
-        """ Add a source coverage. """ 
-
-        if collections:
-            group = collections[-1].identifier + self.suffix
-            if group not in self.__groups: 
-                self.__groups.append( group ) 
-        else : 
-            group = None 
-    
-        if coverage is not None :
-            self.__items.append((coverage.cast(),group,collections)) 
 
     def generate(self): 
         """ Layer generator. """ 
@@ -270,7 +273,6 @@ class DataLayerMixIn(object):
             else:
                 # band identifier 
                 for i, band in enumerate(range_types):
-                    print "\t %s %s"%(band.identifier,req_band)
                     if band.identifier == req_band :
                         indices.append( i + 1 )
                         break

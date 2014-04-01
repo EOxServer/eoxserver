@@ -26,7 +26,6 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-
 import logging
 
 from eoxserver.resources.coverages import models
@@ -34,8 +33,9 @@ from eoxserver.core.decoders import InvalidParameterException
 from eoxserver.core.util.timetools import parse_iso8601
 from eoxserver.services.subset import Trim, Slice
 
-
 logger = logging.getLogger(__name__)
+
+#-------------------------------------------------------------------------------
 
 def parse_bbox(string):
     try:
@@ -62,159 +62,196 @@ def int_or_str(string):
     except ValueError:
         return string
 
+#-------------------------------------------------------------------------------
 
 def lookup_layers(layers, subsets, suffixes=None):
     """ Performs a layer lookup for the given layer names. Applies the given 
         subsets and looks up all layers with the given suffixes. Returns a 
-        hierarchy of ``LayerSelection`` objects.
+        list of ``LayerSelection`` objects. 
     """
-    suffix_related_ids = {}
-    root_group = LayerSelection(None)
-    suffixes = suffixes or (None,)
-    logger.debug(str(suffixes))
 
-    for layer_name in layers:
+    suffixes = suffixes or (None,)
+    logger.debug("Tested suffixes: %s"%str(suffixes))
+
+    # ------------------------------------------------------------------------
+    # local closures: 
+
+    def _lookup_eoobject( layer_name ): 
+        """ Search an EOObject matching the given layer name. """ 
+
         for suffix in suffixes:
-            if not suffix:
+
+            if not suffix: # suffix is None or an empty string 
                 identifier = layer_name
-            elif layer_name.endswith(suffix):
+
+            elif layer_name.endswith(suffix): # suffix matches the layer name
                 identifier = layer_name[:-len(suffix)]
-            else:
+
+            else: # no match found 
                 continue
 
-            # TODO: nasty, nasty bug... dunno where (MP: Is this still applicable?)
-            try:
-                eo_object = models.EOObject.objects.get(identifier=identifier)
-            except models.EOObject.DoesNotExist : pass
-            else : break
+            # get an EO Object matching the identifier 
+            eo_objects = list(models.EOObject.objects.filter(identifier=identifier))
 
-        else:
-            raise InvalidParameterException(
-                "No such layer %s" % layer_name, "layers"
-            )
+            # if a match is found get the object and terminate the search loop 
+            if len(eo_objects) > 0 : 
+                return eo_objects[0] , suffix 
 
-        # check the the layer does not have wms_view meta-data 
+        raise InvalidParameterException(
+            "No such layer %s" % layer_name, "layers"
+        )
+
+    # ---------------------------------
+
+    def _get_wms_view( eo_object ): 
+        """ Get an EOObject used for the WMS view. If there is no WMS view 
+            object the closure returns the input object. 
+        """ 
+
+        # check whether the layer has a wms_view meta-data item  
         try: 
             
+            # TODO: cange to DB model to a more efficient model 
             md_item = eo_object.metadata_items.get(semantic="wms_view") 
 
-            eo_object = models.EOObject.objects.get(identifier=md_item.value)
+            return models.EOObject.objects.get(identifier=md_item.value)
 
         except models.MetadataItem.DoesNotExist : # no wms_view available 
             # use the existing eo_object
-            pass 
+            return eo_object
 
         except models.EOObject.DoesNotExist : # wms_view is invalid 
             # use the existing eo_object 
-            pass 
+            return eo_object
 
-        if models.iscollection(eo_object):
-            # recursively iterate over all sub-collections and collect all
-            # coverages
+    # ---------------------------------
 
-            used_ids = suffix_related_ids.setdefault(suffix, set())
-
-            def recursive_lookup(collection, suffix, used_ids, subsets):
-                # get all EO objects related to this collection, excluding 
-                # those already searched
-                eo_objects = models.EOObject.objects.filter(
-                    collections__in=[collection.pk]
-                ).exclude(
-                    pk__in=used_ids
-                ).order_by("begin_time", "end_time")
-                # apply subsets
-                eo_objects = subsets.filter(eo_objects)
-
-                selection = LayerSelection()
-
-                # append all retrived EO objects, either as a coverage of 
-                # the real type, or as a subgroup.
-                for eo_object in eo_objects:
-                    used_ids.add(eo_object.pk)
-
-                    if models.iscoverage(eo_object):
-                        selection.append(eo_object.cast(), eo_object.identifier)
-                    elif models.iscollection(eo_object):
-                        selection.extend(recursive_lookup(
-                            eo_object, suffix, used_ids, subsets
-                        ))
-                    else: 
-                        pass
-
-                return selection
-
-            root_group.append(
-                LayerSelection(
-                    eo_object, suffix,
-                    recursive_lookup(eo_object, suffix, used_ids, subsets)
-                )
-            )
-
-        elif models.iscoverage(eo_object):
-            # Add a layer selection for the coverage with the suffix
-            selection = LayerSelection(None, suffix=suffix)
-
-            if subsets.matches(eo_object):
-                selection.append(eo_object.cast(), eo_object.identifier)
-            else:
-                selection.append(None, eo_object.identifier)
-
-            root_group.append(selection)
-
-    return root_group
-
-
-class LayerSelection(list):
-    """ Helper class for hierarchical layer selections.
-    """
-    def __init__(self, collection=None, suffix=None, iterable=None):
-        self.collection = collection
-        self.suffix = suffix
-        if iterable:
-            super(LayerSelection, self).__init__(iterable)
-
-
-    def __contains__(self, eo_object):
-        for item in self:
-            try:
-                if eo_object in item:
-                    return True
-            except TypeError:
-                pass
-
-            try:
-                if eo_object == item[0]:
-                    return True
-            except IndexError:
-                pass
+    def _get_alias( eo_object ):  
+        """ Get an EOObject alias, i.e., an identifier of the EOObject
+            the given EOOobject provides the WMS view to. 
+        """ 
+        try: 
             
-        return False
+            return eo_object.metadata_items.get(semantic="wms_alias").value
 
-
-    def append(self, eo_object_or_selection, name=None):
-        if isinstance(eo_object_or_selection, LayerSelection):
-            super(LayerSelection, self).append(eo_object_or_selection)
-        else:
-            super(LayerSelection, self).append((eo_object_or_selection, name))
+        except models.MetadataItem.DoesNotExist : # wms_view is invalid 
+            # use the existing eo_object 
+            return None 
         
+    # ---------------------------------
 
-    def walk(self, depth_first=True):
-        """ Yields four-tuples (collections, coverage, name, suffix).
+    def _recursive_lookup( collection ): 
+        """ Search recursively through the nested collections 
+            and find the relevant EOObjects."""
+
+        # get all objects held by this collection
+        eo_objects = models.EOObject.objects\
+            .filter( collections__in=[collection.pk] )\
+            .exclude( pk__in=used_ids )\
+            .order_by("begin_time", "end_time", "identifier")\
+            .prefetch_related('metadata_items')
+
+        # apply the subset filtering 
+        eo_objects = subsets.filter( eo_objects )
+
+        # iterate over the remaining EOObjects 
+        for eo_object in eo_objects:
+
+            used_ids.add( eo_object.pk )
+
+            if models.iscoverage( eo_object ):
+                selection.append( eo_object.cast(), _get_alias(eo_object) )
+
+            elif models.iscollection( eo_object ):
+                _recursive_lookup( eo_object )
+
+            else:
+                pass # TODO: Reporting of invalid EOObjects (?) 
+
+    # ------------------------------------------------------------------------
+
+    selections = []  
+
+    for layer_name in layers:
+    
+        # get an EOObject and suffix matching the layer_name 
+        eoo_src, suffix = _lookup_eoobject( layer_name )
+    
+        # get EOObject holding the WMS view 
+        eoo_wms = _get_wms_view( eoo_src )
+
+        # prepare the final EOObject(s) selection
+        selection = LayerSelection( eoo_src, suffix ) 
+
+        if models.iscoverage( eoo_wms ):
+            # EOObject is a coverage 
+
+            # append to selection if matches the subset
+            if subsets.matches( eoo_wms ):
+                selection.append( eoo_wms.cast(), eoo_src.identifier )
+                
+        elif models.iscollection( eoo_wms ):
+            # EOObject is a collection (but not a coverage) 
+
+            # recursively look-up the coverages 
+            used_ids = set() 
+
+            _recursive_lookup( eoo_wms )
+
+        else : 
+            pass # TODO: Reporting of invalid EOObjects (?) 
+
+        selections.append( selection ) 
+
+    return selections 
+
+#-------------------------------------------------------------------------------
+
+class LayerSelection(tuple): 
+    """ helper class holding the selection of EOObject 
+        to be used for rendering of a WMS layer
+    """
+
+    def __new__(cls, root, suffix ):
+        """ Construct the object. Parameters:
+
+                root    - requested EOObject (layer)
+                suffix  - layer name suffix 
         """
-        
-        collection = (self.collection,) if self.collection else ()
+            
+        return super(LayerSelection,cls)\
+                    .__new__(cls,(root,suffix,[]))
 
-        for item in self:
-            try:
-                for collections, eo_object, name, suffix in item.walk():
-                    yield (
-                        collection + collections,
-                        eo_object, name,
-                        suffix or self.suffix
-                    )
+    @property 
+    def root(self): 
+        "The root EOObject corresponding the requested layer name."
+        return self[0]
 
-            except AttributeError:
-                yield collection, item[0], item[1], self.suffix
+    @property
+    def suffix(self): 
+        "The layer name suffix of this layer selection."
+        return self[1]
 
-        if not self:
-            yield collection, None, None, self.suffix
+    @property
+    def identifier(self): 
+        "The layer base name (EOObject identifier) of this selection."
+        return self.root.identifier 
+
+    @property
+    def layer_name(self):
+        "The requested layer name of this layer selection." 
+        return self.identifier + ( self.suffix or "" ) 
+
+    @property 
+    def coverages(self): 
+        "The list of selected coveraged to be used for rendering of the layer."
+        return self[2]
+
+    def append(self, rendered, alias=None):
+        """ Append a selected EOObjected needed by the layer.  
+            In case the actual rendered object has an alias 
+            (i.e., represents view for another object) this alias 
+            can be passed as the second parameters. 
+        """
+
+        self[2].append( ( rendered, (alias or rendered.identifier) ) ) 
