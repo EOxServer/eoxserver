@@ -162,3 +162,17 @@ class VersionNotSupportedException(Exception):
             return "Version '%s' is not supported." % self.version
 
     code = "InvalidParameterValue"
+
+
+class RenderException(Exception):
+    """ Rendering related exception.
+    """
+    def __init__(self, message, locator, is_parameter=True):
+        super(RenderException, self).__init__(message)
+        self.locator = locator
+        self.is_parameter = is_parameter
+
+    @property
+    def code(self):
+        return "InvalidParameterValue" if self.is_parameter else "InvalidRequest"
+
