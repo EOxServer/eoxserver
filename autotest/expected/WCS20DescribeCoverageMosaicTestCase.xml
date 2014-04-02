@@ -1,8 +1,8 @@
-<?xml version="1.0" encoding="ISO-8859-1"?>
-<wcs:CoverageDescriptions xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0" xmlns:om="http://www.opengis.net/om/2.0" xmlns:swe="http://www.opengis.net/swe/2.0" xmlns:wcs="http://www.opengis.net/wcs/2.0" xmlns:wcseo="http://www.opengis.net/wcseo/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/ows/2.0 http://schemas.opengis.net/ows/2.0/owsAll.xsd http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd">
+<?xml version='1.0' encoding='UTF-8'?>
+<wcs:CoverageDescriptions xmlns:crs="http://www.opengis.net/wcs/service-extension/crs/1.0" xmlns:wcs="http://www.opengis.net/wcs/2.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:swe="http://www.opengis.net/swe/2.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:ows="http://www.opengis.net/ows/2.0" xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0" xmlns:wcseo="http://www.opengis.net/wcseo/1.0" xmlns:om="http://www.opengis.net/om/2.0" xmlns:ogc="http://www.opengis.net/ogc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd">
   <wcs:CoverageDescription gml:id="mosaic_MER_FRS_1P_RGB_reduced">
     <gml:boundedBy>
-      <gml:Envelope axisLabels="lat long" srsDimension="2" srsName="http://www.opengis.net/def/crs/EPSG/0/4326" uomLabels="deg deg">
+      <gml:Envelope axisLabels="lat long" srsName="http://www.opengis.net/def/crs/EPSG/0/4326" uomLabels="deg deg" srsDimension="2">
         <gml:lowerCorner>32.15889500 -3.75000000</gml:lowerCorner>
         <gml:upperCorner>46.30000000 28.32616501</gml:upperCorner>
       </gml:Envelope>
@@ -28,7 +28,7 @@
             <om:featureOfInterest>
               <eop:Footprint gml:id="footprint_mosaic_MER_FRS_1P_RGB_reduced">
                 <eop:multiExtentOf>
-                  <gml:MultiSurface gml:id="multisurface_mosaic_MER_FRS_1P_RGB_reduced" srsName="EPSG:4326">
+                  <gml:MultiSurface srsName="EPSG:4326" gml:id="multisurface_mosaic_MER_FRS_1P_RGB_reduced">
                     <gml:surfaceMember>
                       <gml:Polygon gml:id="polygon_mosaic_MER_FRS_1P_RGB_reduced_1">
                         <gml:exterior>
@@ -55,7 +55,7 @@
       </gmlcov:Extension>
     </gmlcov:metadata>
     <gml:domainSet>
-      <gml:RectifiedGrid dimension="2" gml:id="mosaic_MER_FRS_1P_RGB_reduced_grid">
+      <gml:RectifiedGrid gml:id="mosaic_MER_FRS_1P_RGB_reduced_grid" dimension="2">
         <gml:limits>
           <gml:GridEnvelope>
             <gml:low>0 0</gml:low>
@@ -64,7 +64,7 @@
         </gml:limits>
         <gml:axisLabels>lat long</gml:axisLabels>
         <gml:origin>
-          <gml:Point gml:id="mosaic_MER_FRS_1P_RGB_reduced_grid_origin" srsName="http://www.opengis.net/def/crs/EPSG/0/4326">
+          <gml:Point srsName="http://www.opengis.net/def/crs/EPSG/0/4326" gml:id="mosaic_MER_FRS_1P_RGB_reduced_grid_origin">
             <gml:pos>46.30000000 -3.75000000</gml:pos>
           </gml:Point>
         </gml:origin>
@@ -79,7 +79,6 @@
             <swe:description>Red Channel</swe:description>
             <swe:nilValues>
               <swe:NilValues>
-                <swe:nilValue reason="http://www.opengis.net/def/nil/OGC/0/unknown">255</swe:nilValue>
                 <swe:nilValue reason="http://www.opengis.net/def/nil/OGC/0/unknown">0</swe:nilValue>
               </swe:NilValues>
             </swe:nilValues>
@@ -97,7 +96,6 @@
             <swe:description>Green Channel</swe:description>
             <swe:nilValues>
               <swe:NilValues>
-                <swe:nilValue reason="http://www.opengis.net/def/nil/OGC/0/unknown">255</swe:nilValue>
                 <swe:nilValue reason="http://www.opengis.net/def/nil/OGC/0/unknown">0</swe:nilValue>
               </swe:NilValues>
             </swe:nilValues>
@@ -115,7 +113,6 @@
             <swe:description>Blue Channel</swe:description>
             <swe:nilValues>
               <swe:NilValues>
-                <swe:nilValue reason="http://www.opengis.net/def/nil/OGC/0/unknown">255</swe:nilValue>
                 <swe:nilValue reason="http://www.opengis.net/def/nil/OGC/0/unknown">0</swe:nilValue>
               </swe:NilValues>
             </swe:nilValues>
