@@ -117,6 +117,8 @@ class Exclusive(object):
 
 
 class Concatenate(object):
+    """ Helper to concatenate the results of all sub-parameters to one.
+    """
     def __init__(self, *choices, **kwargs):
         self.choices = choices
         self.allow_errors = kwargs.get("allow_errors", True)
@@ -201,13 +203,18 @@ class enum(object):
         return value
 
 def lower(value):
+    """ Functor to return a lower-case string.
+    """
     return value.lower()
 
-
 def upper(value):
+    """ Functor to return a upper-case string.
+    """
     return value.upper()
 
 def strip(value):
+    """ Functor to return a whitespace stripped string.
+    """
     return value.strip()
 
 
@@ -230,6 +237,8 @@ class value_range(object):
         return value
 
 def boolean(raw):
+    """ Functor to convert "true"/"false" to a boolean.
+    """
     raw = raw.lower()
     if not raw in ("true", "false"):
         raise ValueError("Could not parse a boolean value from '%s'." % raw)
