@@ -134,20 +134,27 @@ class Subsets(list):
                         begin_time__lte=value,
                         end_time__gte=value
                     )
-                elif low is None and high is not None:
-                    qs = qs.filter(
-                        begin_time__lte=high
-                    )
-                elif low is not None and high is None:
-                    qs = qs.filter(
-                        end_time__gte=low
-                    )
+
                 else:
-                    qs = qs.exclude(
-                        begin_time__gt=high
-                    ).exclude(
-                        end_time__lt=low
-                    )
+                    if high is not None:
+                        qs = qs.filter(
+                            begin_time__lte=high
+                        )
+                    if low is not None:
+                        qs = qs.filter(
+                            end_time__gte=low
+                        )
+                
+                    # check if the temporal bounds must be strictly contained
+                    if containment == "contains":
+                        if high is not None:
+                            qs = qs.filter(
+                                end_time__lte=high
+                            )
+                        if low is not None:
+                            qs = qs.filter(
+                                begin_time__gte=low
+                            )
 
             else:
                 if is_slice:
