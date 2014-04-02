@@ -1,4 +1,4 @@
-    #-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 # $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
@@ -130,7 +130,8 @@ class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
                 service="WCS", versions=versions, method="POST"
             )
             all_handlers = sorted(
-                set(get_handlers + post_handlers), key=lambda h: h.request
+                set(get_handlers + post_handlers), 
+                key=lambda h: (getattr(h, "index", 10000), h.request)
             )
 
             operations = []
