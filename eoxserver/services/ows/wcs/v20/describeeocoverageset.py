@@ -61,6 +61,7 @@ class WCS20DescribeEOCoverageSetHandler(Component):
     versions = ("2.0.0", "2.0.1")
     request = "DescribeEOCoverageSet"
 
+    index = 20
 
     def get_decoder(self, request):
         if request.method == "GET":
@@ -150,18 +151,23 @@ class WCS20DescribeEOCoverageSetHandler(Component):
         # of matched coverages.
         coverages_no_limit_qs = coverages_qs
 
+        
+        num_collections = len(
+            filter(lambda c: not models.iscoverage(c), collection_set)
+        )
+
         # compute how many (if any) coverages can be retrieved. This depends on
         # the "count" parameter and default setting. Also, if we already 
         # exceeded the count, limit the number of dataset series aswell
 
         if inc_dss_section:
-            num_collections = len(filter(lambda c: not models.iscoverage(c), collection_set))
+            displayed_collections = num_collections
         else:
-            num_collections = 0
+            displayed_collections = 0
 
-        if num_collections < count and inc_cov_section:
-            coverages_qs = coverages_qs.order_by("identifier")[:count - num_collections]
-        elif num_collections == count or not inc_cov_section:
+        if displayed_collections < count and inc_cov_section:
+            coverages_qs = coverages_qs.order_by("identifier")[:count - displayed_collections]
+        elif displayed_collections == count or not inc_cov_section:
             coverages_qs = []
         else:
             coverages_qs = []
