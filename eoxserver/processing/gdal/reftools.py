@@ -128,8 +128,7 @@ try:
     REFTOOLS_USABLE = True
 
 except OSError:
-
-    logger.warn("Could not load '%s'. Referenceable Datasets will not be usable." % _lib_path)
+    logger.warn("Could not load '%s'. Referenceable Datasets will not be usable." % _lib)
     
     REFTOOLS_USABLE = False
 
@@ -332,9 +331,11 @@ def create_temporary_rectified_vrt(path_or_ds, srid=None,
         suffix = ".vrt"
     )
     
-    create_rectified_vrt(path_or_ds, vrt_path, srid, 
+    create_rectified_vrt(
+        path_or_ds, vrt_path, srid, 
         resample, memory_limit, max_error, 
-        method, order)
+        method, order
+    )
     
     return vrt_path
 
@@ -358,13 +359,12 @@ def suggested_warp_output(path_or_ds, src_wkt, dst_wkt, method=METHOD_GCP, order
         raise RuntimeError(gdal.GetLastErrorMsg())
     
     return info.x_size, info.y_size, info.geotransform
-    
+
+
 @requires_reftools
 def reproject_image(src_ds, src_wkt, dst_ds, dst_wkt, 
-    resample=gdal.GRA_NearestNeighbour, 
-    memory_limit=0.0,
-    max_error=APPROX_ERR_TOL, 
-    method=METHOD_GCP, order=0):
+                    resample=gdal.GRA_NearestNeighbour, memory_limit=0.0,
+                    max_error=APPROX_ERR_TOL, method=METHOD_GCP, order=0):
     
     ret = _reproject_image(
         C.c_void_p(long(src_ds.this)),
