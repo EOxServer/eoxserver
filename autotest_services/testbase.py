@@ -58,7 +58,9 @@ mimetypes.init()
 mimetypes.init()
 
 # precompile regular expression
-RE_MIME_TYPE_XML = re.compile("^text/xml|application/(?:[a-z]+\+)?xml$",re.IGNORECASE)
+RE_MIME_TYPE_XML = re.compile(
+    "^text/xml|application/(?:[a-z]+\+)?xml$", re.IGNORECASE
+)
 
 #===============================================================================
 # Helper functions
@@ -178,29 +180,43 @@ class OWSTestCase(TestCase):
     
     def getXMLData(self):
         raise Exception("Not implemented.")
+
+    def prepareXMLData(self, xml_data):
+        parser = etree.XMLParser(remove_blank_text=True)
+        tree = etree.fromstring(xml_data, parser)
+        return etree.tostring(
+            tree, pretty_print=True, encoding='UTF-8', xml_declaration=True
+        )
     
-    def _testXMLComparison( self , suffix = "xml" , response = None ): 
+    def _testXMLComparison(self, suffix="xml", response=None): 
         """
         Helper function for the basic XML tree comparison to be used by `testXMLComparison`.
         """
-        expected_path = os.path.join( self.getExpectedFileDir(), self.getExpectedFileName(suffix) )
-        response_path = os.path.join( self.getResponseFileDir(), self.getResponseFileName(suffix) )
+        expected_path = os.path.join(self.getExpectedFileDir(), self.getExpectedFileName(suffix))
+        response_path = os.path.join(self.getResponseFileDir(), self.getResponseFileName(suffix))
         
         # store the XML response 
-        if response is None : response = self.getXMLData()
+        if response is None:
+            response = self.prepareXMLData(self.getXMLData())
         
         # check that the expected XML response exists 
-        if not os.path.isfile( expected_path ) : 
-            with file(response_path, 'w') as fid : fid.write(response)
-            self.skipTest( "Missing the expected XML response '%s'." % expected_path )
+        if not os.path.isfile(expected_path): 
+            with open(response_path, 'w') as f:
+                f.write(response)
+
+            self.skipTest("Missing the expected XML response '%s'." % expected_path)
         
         # perform the actual comparison 
         try: 
-            xmlCompareFiles( expected_path , StringIO(response) ) 
+            xmlCompareFiles(expected_path, StringIO(response))
         except Exception as e : 
-            with file(response_path, 'w') as fid : fid.write(response)
-            self.fail( "Response returned in '%s' is not equal to expected response in '%s'. REASON: %s " % \
-                    ( response_path , expected_path , str(e) ) )
+            with open(response_path, 'w') as f: 
+                f.write(response)
+
+            self.fail(
+                "Response returned in '%s' is not equal to expected response "
+                "in '%s'. REASON: %s " % (response_path, expected_path, str(e))
+            )
 
 
     def _testBinaryComparison(self, file_type, Data=None):
@@ -211,9 +227,9 @@ class OWSTestCase(TestCase):
         response_path = os.path.join(self.getResponseFileDir(), self.getResponseFileName(file_type))
 
         try:
-            f = open(expected_path, 'r')
-            expected = f.read()
-            f.close()
+            with open(expected_path, 'r') as f:
+                expected = f.read()
+
         except IOError:
             expected = None
         
@@ -231,9 +247,16 @@ class OWSTestCase(TestCase):
         if expected != actual_response:
             if self.getFileExtension("raster") in ("hdf", "nc"):
                 self.skipTest("Skipping binary comparison for HDF or NetCDF file '%s'." % expected_path)
-            f = open(response_path, 'w')
-            f.write(actual_response)
-            f.close()
+            
+
+            if file_type == "raster":
+                gdal.Open(expected_path)
+                pass
+
+
+            # save the contents of the file
+            with open(response_path, 'w') as f:
+                f.write(actual_response)
             
             if expected is None:
                 self.skipTest("Expected response in '%s' is not present" % expected_path)
