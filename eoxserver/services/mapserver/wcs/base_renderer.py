@@ -31,7 +31,7 @@ from django.db.models import Q
 
 from eoxserver.core import Component
 from eoxserver.core.config import get_eoxserver_config
-from eoxserver.core.decoders import config
+from eoxserver.core.decoders import config, typelist
 from eoxserver.contrib import mapserver as ms
 from eoxserver.resources.coverages import crss
 from eoxserver.resources.coverages.models import RectifiedStitchedMosaic
@@ -40,6 +40,7 @@ from eoxserver.resources.coverages.formats import getFormatRegistry
 
 class WCSConfigReader(config.Reader):
     section = "services.ows.wcs"
+    supported_formats = config.Option(type=typelist(str, ","), default=())
     maxsize = config.Option(type=int, default=None)
 
     section = "services.ows"
@@ -57,7 +58,9 @@ class BaseRenderer(Component):
         maxsize = WCSConfigReader(get_eoxserver_config()).maxsize
         if maxsize is not None:
             map_.maxsize = maxsize
-        map_.setMetaData("ows_updateSequence", WCSConfigReader(get_eoxserver_config()).update_sequence)
+        map_.setMetaData("ows_updateSequence", 
+            WCSConfigReader(get_eoxserver_config()).update_sequence
+        )
         return map_
 
     def data_items_for_coverage(self, coverage):
@@ -178,3 +181,8 @@ class BaseRenderer(Component):
             of.extension = frmt.defaultExt
             outputformats.append(of)
         return outputformats
+
+
+def is_format_supported(mime_type):
+    reader = WCSConfigReader(get_eoxserver_config())
+    return mime_type in reader.supported_formats
