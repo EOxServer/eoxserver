@@ -28,6 +28,12 @@
 from autotest_services import testbase
 
 
+format_to_extension = {
+    "image/jpeg": "jpeg",
+    "image/png": "png",
+    "image/gif": "gif"
+}
+
 class WMS11GetMapTestCase(testbase.RasterTestCase):
     layers = []
     styles = []
@@ -44,7 +50,10 @@ class WMS11GetMapTestCase(testbase.RasterTestCase):
     httpHeaders = None
     
     def getFileExtension(self, part=None):
-        return testbase.mimetypes.guess_extension(self.frmt, False)[1:]
+        try:
+            return format_to_extension[self.frmt]
+        except KeyError:
+            return testbase.mimetypes.guess_extension(self.frmt, False)[1:]
     
     def getRequest(self):
         params = "service=WMS&request=GetMap&version=1.1.1&" \
@@ -82,7 +91,10 @@ class WMS13GetMapTestCase(testbase.RasterTestCase):
     httpHeaders = None
     
     def getFileExtension(self, part=None):
-        return testbase.mimetypes.guess_extension(self.frmt, False)[1:]
+        try:
+            return format_to_extension[self.frmt]
+        except KeyError:
+            return testbase.mimetypes.guess_extension(self.frmt, False)[1:]
     
     def getRequest(self):
         bbox = self.bbox if not self.swap_axes else (
