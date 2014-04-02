@@ -62,24 +62,16 @@ class Parameter(object):
         count = len(results)
 
         if not multiple and count > 1:
-            raise WrongMultiplicityException(
-                "Expected at most one, got %d." % count, locator
-            )
+            raise WrongMultiplicityException(locator, "at most one", count)
 
         elif self.num == 1 and count == 0:
-            raise MissingParameterException(
-                "Expected exactly one, got none.", locator
-            )
+            raise MissingParameterException(locator)
 
         elif self.num == ONE_OR_MORE and count == 0:
-            raise MissingParameterException(
-                "Expected at least one, got none.", locator
-            )
+            raise MissingParameterMultipleException(locator)
 
         elif isinstance(self.num, int) and count != self.num:
-            raise WrongMultiplicityException(
-                "Expected %d, got %d." % (self.num, count), locator
-            )
+            raise WrongMultiplicityException(locator, self.num, count)
 
         if multiple:
             try:
