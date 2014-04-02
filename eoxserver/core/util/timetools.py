@@ -132,7 +132,13 @@ def parse_iso8601(value):
     """
 
     for parser in (parse_datetime, parse_date):
-        temporal = parser(value)
+        try:
+            temporal = parser(value)
+        except Exception, e:
+            raise ValueError(
+                "Could not parse '%s' to a temporal value. "
+                "Error was: %s" % (value, e)
+            )
         if temporal:
             # convert to datetime if necessary
             if not isinstance(temporal, datetime):
