@@ -44,7 +44,7 @@ class WCS20GeoTIFFEncodingExtension(Component):
         if request.method == "GET":
             return WCS20GeoTIFFEncodingExtensionKVPDecoder(request.GET)
         else:
-            pass  # TODO
+            return WCS20GeoTIFFEncodingExtensionXMLDecoder(request.body)
 
     def get_encoding_params(self, request):
         decoder = self.get_decoder(request)
