@@ -17,15 +17,6 @@
     }
 },
 {
-    "pk": 2, 
-    "model": "coverages.nilvalue", 
-    "fields": {
-        "reason": "http://www.opengis.net/def/nil/OGC/0/unknown", 
-        "nil_value_set": 1, 
-        "raw_value": "255"
-    }
-},
-{
     "pk": 1, 
     "model": "coverages.rangetype", 
     "fields": {
