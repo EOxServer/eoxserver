@@ -155,7 +155,7 @@ class WCS20DescribeEOCoverageSetHandler(Component):
         # exceeded the count, limit the number of dataset series aswell
 
         if inc_dss_section:
-            num_collections = len(collection_set)
+            num_collections = len(filter(lambda c: not models.iscoverage(c), collection_set))
         else:
             num_collections = 0
 
