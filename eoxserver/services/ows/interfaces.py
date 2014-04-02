@@ -62,6 +62,12 @@ class ServiceHandlerInterface(object):
             values.
         """
 
+    @property
+    def index(self):
+        """ Optional. The index this service handler shall have when being 
+            reported in a capabilities document.
+        """
+
 
 class ExceptionHandlerInterface(object): 
     """ Interface for OWS exception handlers.
