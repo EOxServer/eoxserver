@@ -56,32 +56,32 @@ class WCS11DescribeCoverageMosaicTestCase(testbase.XMLTestCase):
         params = "service=WCS&version=1.1.2&request=DescribeCoverage&identifier=mosaic_MER_FRS_1P_RGB_reduced"
         return (params, "kvp")
 
-class WCS11GetCoverageDatasetTestCase(testbase.RectifiedGridCoverageMultipartTestCase):
+class WCS11GetCoverageDatasetTestCase(wcsbase.WCS11GetCoverageMixIn, testbase.RectifiedGridCoverageMultipartTestCase):
     def getRequest(self):
         params = "service=WCS&version=1.1.2&request=GetCoverage&identifier=mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced&boundingbox=32,12,46.5,28,urn:ogc:def:crs:EPSG::4326&format=image/tiff"
         return (params, "kvp")
 
-class WCS11GetCoverageMosaicTestCase(testbase.RectifiedGridCoverageMultipartTestCase):
+class WCS11GetCoverageMosaicTestCase(wcsbase.WCS11GetCoverageMixIn, testbase.RectifiedGridCoverageMultipartTestCase):
     def getRequest(self):
         params = "service=WCS&version=1.1.2&request=GetCoverage&identifier=mosaic_MER_FRS_1P_RGB_reduced&boundingbox=32,-4,46.5,28,urn:ogc:def:crs:EPSG::4326&format=image/tiff"
         return (params, "kvp")
 
-class WCS11GetCoverageDatasetSubsetTestCase(testbase.RectifiedGridCoverageMultipartTestCase):
+class WCS11GetCoverageDatasetSubsetTestCase(wcsbase.WCS11GetCoverageMixIn, testbase.RectifiedGridCoverageMultipartTestCase):
     def getRequest(self):
         params = "service=WCS&version=1.1.2&request=GetCoverage&identifier=mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced&boundingbox=0,0,550,440,urn:ogc:def:crs:OGC::imageCRS&format=image/tiff&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridBaseCRS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=0,0&GridOffsets=2,2"
         return (params, "kvp")
 
-class WCS11GetCoverageDatasetSubsetEPSG4326TestCase(testbase.RectifiedGridCoverageMultipartTestCase):
+class WCS11GetCoverageDatasetSubsetEPSG4326TestCase(wcsbase.WCS11GetCoverageMixIn, testbase.RectifiedGridCoverageMultipartTestCase):
     def getRequest(self):
         params = "service=WCS&version=1.1.2&request=GetCoverage&identifier=mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced&boundingbox=32,12,46.5,28,urn:ogc:def:crs:EPSG::4326&format=image/tiff&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridBaseCRS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=46.5,12&GridOffsets=0.06,0.06"
         return (params, "kvp")
 
-class WCS11GetCoverageMosaicSubsetTestCase(testbase.RectifiedGridCoverageMultipartTestCase):
+class WCS11GetCoverageMosaicSubsetTestCase(wcsbase.WCS11GetCoverageMixIn, testbase.RectifiedGridCoverageMultipartTestCase):
     def getRequest(self):
         params = "service=WCS&version=1.1.2&request=GetCoverage&identifier=mosaic_MER_FRS_1P_RGB_reduced&boundingbox=300,200,700,350,urn:ogc:def:crs:OGC::imageCRS&format=image/tiff&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridBaseCRS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=0,0&GridOffsets=2,2"
         return (params, "kvp")
 
-class WCS11GetCoverageMosaicSubsetEPSG4326TestCase(testbase.RectifiedGridCoverageMultipartTestCase):
+class WCS11GetCoverageMosaicSubsetEPSG4326TestCase(wcsbase.WCS11GetCoverageMixIn, testbase.RectifiedGridCoverageMultipartTestCase):
     def getRequest(self):
         params = "service=WCS&version=1.1.2&request=GetCoverage&identifier=mosaic_MER_FRS_1P_RGB_reduced&boundingbox=35,10,42,20,urn:ogc:def:crs:EPSG::4326&format=image/tiff&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridBaseCRS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=40,10&GridOffsets=-0.06,0.06"
         return (params, "kvp")
@@ -92,7 +92,7 @@ class WCS11GetCoverageMosaicSubsetEPSG4326TestCase(testbase.RectifiedGridCoverag
 
 class WCS11DescribeCoverageNoSuchCoverageFaultTestCase(testbase.ExceptionTestCase):
     def getRequest(self):
-        params = "service=wcs&version=1.1.2&request=DescribeCoverage&identifier=INVALID"
+        params = "service=wcs&version=1.1.2&request=DescribeCoverage&identifier=INVALID&boundingbox=35,10,42,20,urn:ogc:def:crs:EPSG::4326&format=image/tiff&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridBaseCRS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=40,10&GridOffsets=-0.06,0.06"
         return (params, "kvp")
     
     def getExpectedExceptionCode(self):
@@ -101,7 +101,7 @@ class WCS11DescribeCoverageNoSuchCoverageFaultTestCase(testbase.ExceptionTestCas
 
 class WCS11GetCoverageNoSuchCoverageFaultTestCase(testbase.ExceptionTestCase):
     def getRequest(self):
-        params = "service=wcs&version=1.1.2&request=GetCoverage&identifier=INVALID"
+        params = "service=wcs&version=1.1.2&request=GetCoverage&identifier=INVALID&boundingbox=35,10,42,20,urn:ogc:def:crs:EPSG::4326&format=image/tiff&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridBaseCRS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=40,10&GridOffsets=-0.06,0.06"
         return (params, "kvp")
     
     def getExpectedExceptionCode(self):
@@ -136,7 +136,7 @@ class WCS11GetCoverageBBoxFaultTestCase(testbase.ExceptionTestCase):
 
 class WCS11GetCoverageFormatUnsupportedFaultTestCase(testbase.ExceptionTestCase):
     def getRequest(self):
-        params = "service=wcs&version=1.1.2&request=GetCoverage&identifier=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/jpeg"
+        params = "service=wcs&version=1.1.2&request=GetCoverage&identifier=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/jpeg&boundingbox=35,10,42,20,urn:ogc:def:crs:EPSG::4326&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridBaseCRS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=40,10&GridOffsets=-0.06,0.06"
         return (params, "kvp")
     
     def getExpectedExceptionCode(self):
@@ -144,7 +144,7 @@ class WCS11GetCoverageFormatUnsupportedFaultTestCase(testbase.ExceptionTestCase)
 
 class WCS11GetCoverageFormatUnknownFaultTestCase(testbase.ExceptionTestCase):
     def getRequest(self):
-        params = "service=wcs&version=1.1.2&request=GetCoverage&identifier=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=unknown"
+        params = "service=wcs&version=1.1.2&request=GetCoverage&identifier=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=unknown&boundingbox=35,10,42,20,urn:ogc:def:crs:EPSG::4326&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridBaseCRS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=40,10&GridOffsets=-0.06,0.06"
         return (params, "kvp")
     
     def getExpectedExceptionCode(self):
