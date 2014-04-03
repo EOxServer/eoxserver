@@ -371,7 +371,7 @@ class Subsets(list):
 
                     if subset.high is not None:
                         l = max(float(subset.high) / float(size_x), 0.0)
-                        bbox[2] = extent[2] + l * (extent[2] - extent[0])
+                        bbox[2] = extent[0] + l * (extent[2] - extent[0])
 
                 elif subset.is_y:
                     if subset.low is not None:
@@ -436,6 +436,9 @@ class Slice(Subset):
         super(Slice, self).__init__(axis, crs)
         self.value = value
 
+    def __repr__(self):
+        return "Slice: %s[%s] with crs=%s" % (self.axis, self.value, self.crs)
+
 
 class Trim(Subset):
     def __init__(self, axis, low=None, high=None, crs=None):
@@ -449,6 +452,10 @@ class Trim(Subset):
         self.low = low
         self.high = high
 
+    def __repr__(self):
+        return "Trim: %s[%s:%s] with crs=%s" % (
+            self.axis, self.low, self.high, self.crs
+        )
 
 
 temporal_axes = ("t", "time", "phenomenontime")
