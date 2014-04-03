@@ -144,19 +144,28 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         result_set = result_set_from_raw_data(raw_result)
 
         if params.version == Version(2, 0):
-
-            
             if getattr(params, "mediatype", None) in ("multipart/mixed", "multipart/related"):
                 subsets = Subsets(params.subsets)
                 encoder = WCS20EOXMLEncoder()
+                is_mosaic = issubclass(
+                    coverage.real_type, models.RectifiedStitchedMosaic
+                )
+
+                if not is_mosaic:
+                    tree = encoder.alter_rectified_dataset(
+                        coverage, getattr(params, "http_request", None), 
+                        etree.parse(result_set[0].data_file).getroot(), 
+                        subsets.bounding_polygon(coverage)
+                    )
+                else:
+                    tree = encoder.alter_rectified_stitched_mosaic(
+                        coverage.cast(), getattr(params, "http_request", None), 
+                        etree.parse(result_set[0].data_file).getroot(), 
+                        subsets.bounding_polygon(coverage)
+                    )
+
                 result_set[0] = ResultBuffer(
-                    encoder.serialize(
-                        encoder.alter_rectified_dataset(
-                            coverage, getattr(params, "http_request", None), 
-                            etree.parse(result_set[0].data_file).getroot(), 
-                            subsets.bounding_polygon(coverage)
-                        )
-                    ), 
+                    encoder.serialize(tree), 
                     encoder.content_type
                 )
 
@@ -214,7 +223,7 @@ def get_format_by_mime(mime_type):
         if wcs10_frmts:
             reg_format = wcs10_frmts[0]
 
-    if not is_format_supported(reg_format.mimeType):
+    if reg_format and not is_format_supported(reg_format.mimeType):
         return None
 
     return reg_format
