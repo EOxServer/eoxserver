@@ -225,7 +225,7 @@ class WCS11PostDescribeCoverageMosaicTestCase(testbase.XMLTestCase):
           </DescribeCoverage>"""
         return (params, "xml")
 
-class WCS11PostGetCoverageDatasetTestCase(testbase.RectifiedGridCoverageMultipartTestCase):
+class WCS11PostGetCoverageDatasetTestCase(wcsbase.WCS11GetCoverageMixIn, testbase.RectifiedGridCoverageMultipartTestCase):
     def getRequest(self):
         params = """<GetCoverage xmlns="http://www.opengis.net/wcs/1.1" 
           xmlns:ows="http://www.opengis.net/ows/1.1" 
@@ -243,7 +243,7 @@ class WCS11PostGetCoverageDatasetTestCase(testbase.RectifiedGridCoverageMultipar
           </GetCoverage>"""
         return (params, "xml")
 
-class WCS11PostGetCoverageMosaicTestCase(testbase.RectifiedGridCoverageMultipartTestCase):
+class WCS11PostGetCoverageMosaicTestCase(wcsbase.WCS11GetCoverageMixIn, testbase.RectifiedGridCoverageMultipartTestCase):
     def getRequest(self):
         params = """<GetCoverage xmlns="http://www.opengis.net/wcs/1.1" 
           xmlns:ows="http://www.opengis.net/ows/1.1" 
