@@ -94,7 +94,7 @@ class Command(CommandOutputMixIn, BaseCommand):
         #if format is None : 
         #    raise CommandError("Missing the required coverage format!")
 
-        #TODO: strage and package handling 
+        #TODO: storage and package handling 
         storage = None
         package = None  
 
