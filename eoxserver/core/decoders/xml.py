@@ -29,13 +29,13 @@
 
 from lxml import etree
 
-from eoxserver.core.decoders import (
-    ZERO_OR_ONE, ONE_OR_MORE, ANY, SINGLE_VALUES, WrongMultiplicityException, 
-    InvalidParameterException, MissingParameterException
-)
+from eoxserver.core.decoders.base import BaseParameter
 
 
-class Parameter(object):
+class Parameter(BaseParameter):
+    """ Parameter for XML values.
+    """
+
     def __init__(self, selector, type=None, separator=None,
                  num=1, default=None, namespaces=None, locator=None):
         self.selector = selector
@@ -44,57 +44,24 @@ class Parameter(object):
         self.num = num # int or "?", "+", "*"
         self.default = default # only used for "?"
         self.namespaces = namespaces
-        self.locator = locator
+        self._locator = locator
 
 
-    def __get__(self, decoder, decoder_class=None):
+    def select(self, decoder, decoder_class=None):
         # prepare the XPath selector if necessary
         if isinstance(self.selector, basestring):
             namespaces = self.namespaces or decoder_class.namespaces
             self.selector = etree.XPath(self.selector, namespaces=namespaces)
 
-        locator = self.locator or str(self.selector)
-        multiple = self.num not in SINGLE_VALUES
-
         results = self.selector(decoder._tree)
         if isinstance(results, basestring):
             results = [results]
-        count = len(results)
 
-        if not multiple and count > 1:
-            raise WrongMultiplicityException(locator, "at most one", count)
-
-        elif self.num == 1 and count == 0:
-            raise MissingParameterException(locator)
-
-        elif self.num == ONE_OR_MORE and count == 0:
-            raise MissingParameterMultipleException(locator)
-
-        elif isinstance(self.num, int) and count != self.num:
-            raise WrongMultiplicityException(locator, self.num, count)
-
-        if multiple:
-            try:
-                return map(self.type, results)
-            except Exception, e:
-                # let some more sophisticated exceptions pass
-                if hasattr(e, "locator") or hasattr(e, "code"):
-                    raise
-                raise InvalidParameterException(str(e), locator)
-
-        elif self.num == ZERO_OR_ONE and count == 0:
-            return self.default
-
-        elif self.type:
-            try:
-                return self.type(results[0])
-            except Exception, e:
-                # let some more sophisticated exceptions pass
-                if hasattr(e, "locator") or hasattr(e, "code"):
-                    raise
-                raise InvalidParameterException(str(e), locator)
-
-        return results[0]
+        return results
+        
+    @property
+    def locator(self):
+        return self._locator or str(self.selector)
 
 
 class Decoder(object):
