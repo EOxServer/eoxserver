@@ -44,6 +44,9 @@ from eoxserver.services.subset import Subsets
 from eoxserver.services.result import ResultFile, ResultBuffer
 from eoxserver.services.ows.wcs.interfaces import WCSCoverageRendererInterface
 from eoxserver.services.ows.wcs.v20.encoders import WCS20EOXMLEncoder
+from eoxserver.services.exceptions import (
+    RenderException, OperationNotSupportedException
+)
 from eoxserver.processing.gdal import reftools
 
 
@@ -85,7 +88,7 @@ class GDALReferenceableDatasetRenderer(Component):
         format = params.format or native_format
 
         if not format:
-            raise Exception("No format specified.")
+            raise RenderException("No format specified.")
 
 
         # perform subsetting either with or without rangesubsetting
@@ -200,7 +203,7 @@ class GDALReferenceableDatasetRenderer(Component):
 
         # check whether or not the subsets intersect with the image
         if not image_rect.intersects(subset_rect):
-            raise Exception("Subset outside coverage extent.") # TODO: correct exception
+            raise RenderException("Subset outside coverage extent.") # TODO: correct exception
 
         # in case the input and output rects are the same, return None to 
         # indicate this
@@ -213,7 +216,11 @@ class GDALReferenceableDatasetRenderer(Component):
     def perform_range_subset(self, src_ds, range_type, subset_bands, 
                              subset_rect):
 
-        vrt = VRTBuilder(src_ds.RasterXSize, src_ds.RasterYSize)
+
+        # TODO: something fishy here!
+
+
+        vrt = VRTBuilder(*subset_rect.size)#src_ds.RasterXSize, src_ds.RasterYSize)
         dst_rect = Rect(0, 0, src_ds.RasterXSize, src_ds.RasterYSize)
 
         input_bands = list(range_type)
