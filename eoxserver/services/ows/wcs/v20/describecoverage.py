@@ -66,5 +66,5 @@ class WCS20DescribeCoverageKVPDecoder(kvp.Decoder):
 
 
 class WCS20DescribeCoverageXMLDecoder(xml.Decoder):
-    coverage_ids = xml.Parameter("/wcs:CoverageId/text()", num="+")
+    coverage_ids = xml.Parameter("wcs:CoverageId/text()", num="+")
     namespaces = nsmap
