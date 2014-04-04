@@ -52,13 +52,13 @@
         <eop:EarthObservation gml:id="eop_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775">
           <om:phenomenonTime>
             <gml:TimePeriod gml:id="phen_time_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775">
-              <gml:beginPosition>2005-03-31T07:59:36Z</gml:beginPosition>
-              <gml:endPosition>2005-03-31T08:00:36Z</gml:endPosition>
+              <gml:beginPosition>2005-03-31T07:59:36.409059Z</gml:beginPosition>
+              <gml:endPosition>2005-03-31T08:00:36.342970Z</gml:endPosition>
             </gml:TimePeriod>
           </om:phenomenonTime>
           <om:resultTime>
             <gml:TimeInstant gml:id="res_time_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775">
-              <gml:timePosition>2005-03-31T08:00:36Z</gml:timePosition>
+              <gml:timePosition>2005-03-31T08:00:36.342970Z</gml:timePosition>
             </gml:TimeInstant>
           </om:resultTime>
           <om:procedure/>
@@ -66,7 +66,7 @@
           <om:featureOfInterest>
             <eop:Footprint gml:id="footprint_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775">
               <eop:multiExtentOf>
-                <gml:MultiSurface gml:id="multisurface_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775" srsName="EPSG:4326">
+                <gml:MultiSurface srsName="EPSG:4326" gml:id="multisurface_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775">
                   <gml:surfaceMember>
                     <gml:Polygon gml:id="polygon_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775">
                       <gml:exterior>

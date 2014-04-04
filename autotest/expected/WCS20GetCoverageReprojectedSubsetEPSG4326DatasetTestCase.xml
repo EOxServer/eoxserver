@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding="ISO-8859-1"?>
-<wcseo:RectifiedDataset xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0" xmlns:om="http://www.opengis.net/om/2.0" xmlns:ows="http://www.opengis.net/ows/2.0" xmlns:swe="http://www.opengis.net/swe/2.0" xmlns:wcseo="http://www.opengis.net/wcseo/1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" gml:id="MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected" xsi:schemaLocation="http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd">
+<?xml version='1.0' encoding='UTF-8'?>
+<wcseo:RectifiedDataset xmlns:crs="http://www.opengis.net/wcs/service-extension/crs/1.0" xmlns:wcs="http://www.opengis.net/wcs/2.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:swe="http://www.opengis.net/swe/2.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:ows="http://www.opengis.net/ows/2.0" xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0" xmlns:wcseo="http://www.opengis.net/wcseo/1.0" xmlns:om="http://www.opengis.net/om/2.0" xmlns:ogc="http://www.opengis.net/ogc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd" gml:id="MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected">
   <gml:boundedBy>
-    <gml:Envelope axisLabels="lat long" srsDimension="2" srsName="http://www.opengis.net/def/crs/EPSG/0/4326" uomLabels="deg deg">
+    <gml:Envelope srsName="http://www.opengis.net/def/crs/EPSG/0/4326" axisLabels="lat long" uomLabels="deg deg" srsDimension="2">
       <gml:lowerCorner>38 20</gml:lowerCorner>
       <gml:upperCorner>40 22</gml:upperCorner>
     </gml:Envelope>
@@ -26,7 +26,7 @@
   </gml:domainSet>
   <gml:rangeSet>
     <gml:File>
-      <gml:rangeParameters xlink:arcrole="fileReference" xlink:href="cid:coverage/MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected.tif" xlink:role="http://www.opengis.net/spec/GMLCOV_geotiff-coverages/1.0/conf/geotiff-coverage"/>
+      <gml:rangeParameters xlink:href="cid:coverage/MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected.tif" xlink:role="http://www.opengis.net/spec/GMLCOV_geotiff-coverages/1.0/conf/geotiff-coverage" xlink:arcrole="fileReference"/>
       <gml:fileReference>cid:coverage/MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected.tif</gml:fileReference>
       <gml:fileStructure/>
       <gml:mimeType>image/tiff</gml:mimeType>
@@ -36,7 +36,7 @@
     <swe:DataRecord>
       <swe:field name="MERIS_radiance_01_uint16">
         <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
-          <swe:description>MERIS first band</swe:description>
+          <swe:description>MERIS uint16 first band</swe:description>
           <swe:nilValues/>
           <swe:uom code="W.m-2.sr-1.nm-1"/>
           <swe:constraint>
@@ -192,7 +192,7 @@
       </swe:field>
       <swe:field name="MERIS_radiance_13_uint16">
         <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
-          <swe:description>MERIS uint 16 thirteenth band</swe:description>
+          <swe:description>MERIS uint16 thirteenth band</swe:description>
           <swe:nilValues/>
           <swe:uom code="W.m-2.sr-1.nm-1"/>
           <swe:constraint>
@@ -234,21 +234,21 @@
   <gmlcov:metadata>
     <gmlcov:Extension>
       <wcseo:EOMetadata>
-        <eop:EarthObservation xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:om="http://www.opengis.net/om/2.0" xmlns:swe="http://www.opengis.net/swe/1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" gml:id="eop_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed" xsi:schemaLocation="http://www.opengis.net/opt/2.0 ../xsd/opt.xsd">
+        <eop:EarthObservation xmlns:swe="http://www.opengis.net/swe/1.0" xsi:schemaLocation="http://www.opengis.net/opt/2.0 ../xsd/opt.xsd" gml:id="eop_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected">
           <om:phenomenonTime>
-            <gml:TimePeriod gml:id="tp_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed">
+            <gml:TimePeriod gml:id="tp_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected">
               <gml:beginPosition>2006-08-16T09:09:29Z</gml:beginPosition>
               <gml:endPosition>2006-08-16T09:12:46Z</gml:endPosition>
             </gml:TimePeriod>
           </om:phenomenonTime>
           <om:resultTime>
             <!-- repeat of archiving date? -->
-            <gml:TimeInstant gml:id="archivingdate_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed">
+            <gml:TimeInstant gml:id="archivingdate_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected">
               <gml:timePosition>2006-08-16T11:03:08Z</gml:timePosition>
             </gml:TimeInstant>
           </om:resultTime>
           <om:procedure>
-            <eop:EarthObservationEquipment gml:id="equ_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed">
+            <eop:EarthObservationEquipment gml:id="equ_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected">
               <eop:platform>
                 <eop:Platform>
                   <eop:shortName>ENVISAT</eop:shortName>
@@ -268,9 +268,9 @@
           </om:procedure>
           <om:observedProperty xlink:href="#params1"/>
           <om:featureOfInterest>
-            <eop:Footprint gml:id="footprint_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected">
+            <eop:Footprint xmlns:swe="http://www.opengis.net/swe/2.0" gml:id="footprint_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected">
               <eop:multiExtentOf>
-                <gml:MultiSurface gml:id="multisurface_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected" srsName="EPSG:4326">
+                <gml:MultiSurface srsName="EPSG:4326" gml:id="multisurface_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected">
                   <gml:surfaceMember>
                     <gml:Polygon gml:id="polygon_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected">
                       <gml:exterior>
@@ -287,7 +287,7 @@
           <om:result/>
           <eop:metaDataProperty>
             <eop:EarthObservationMetaData>
-              <eop:identifier>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</eop:identifier>
+              <eop:identifier>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected</eop:identifier>
               <eop:acquisitionType>NOMINAL</eop:acquisitionType>
               <eop:productType>MER_FRS_1P</eop:productType>
               <eop:status>ARCHIVED</eop:status>

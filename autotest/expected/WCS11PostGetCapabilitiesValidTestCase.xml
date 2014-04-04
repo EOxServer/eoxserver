@@ -1,14 +1,11 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<wcs:Capabilities xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:wcs="http://www.opengis.net/wcs/1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" updateSequence="20131219T132000Z" version="1.1.2" xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsGetCapabilities.xsd http://www.opengis.net/ows/1.1 http://schemas.opengis.net/ows/1.1.0/owsAll.xsd">
+<?xml version='1.0' encoding='UTF-8'?>
+<Capabilities xmlns="http://www.opengis.net/wcs/1.1" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ogc="http://www.opengis.net/ogc" version="1.1.2" updateSequence="20131219T132000Z" xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsGetCapabilities.xsd http://www.opengis.net/ows/1.1 http://schemas.opengis.net/ows/1.1.0/owsAll.xsd">
   <ows:ServiceIdentification>
     <ows:Title>Test configuration of MapServer used to demonstrate EOxServer</ows:Title>
-    <ows:Abstract>
-Test configuration of MapServer used to demonstrate EOxServer
+    <ows:Abstract>Test configuration of MapServer used to demonstrate EOxServer
 The MERIS test data is produced from the following ESA remote sensing data:
 MERIS L1b sample data available at: http://earth.esa.int/object/index.cfm?fobjectid=4320
-
-Copyright (C) European Space Agency - ESA
-</ows:Abstract>
+Copyright (C) European Space Agency - ESA</ows:Abstract>
     <ows:Keywords>
       <ows:Keyword>EO-WCS</ows:Keyword>
       <ows:Keyword>WCS EO-AP</ows:Keyword>
@@ -27,7 +24,7 @@ Copyright (C) European Space Agency - ESA
   </ows:ServiceIdentification>
   <ows:ServiceProvider>
     <ows:ProviderName>EOX IT Services GmbH - HG Wien - FN 312068z - UID ATU64265057</ows:ProviderName>
-    <ows:ProviderSite xlink:href="http://eoxserver.org" xlink:type="simple"/>
+    <ows:ProviderSite xlink:type="simple" xlink:href="http://eoxserver.org"/>
     <ows:ServiceContact>
       <ows:IndividualName>Stephan Meissl</ows:IndividualName>
       <ows:PositionName>Senior IT Consultant</ows:PositionName>
@@ -44,7 +41,7 @@ Copyright (C) European Space Agency - ESA
           <ows:Country>Austria</ows:Country>
           <ows:ElectronicMailAddress>office@eox.at</ows:ElectronicMailAddress>
         </ows:Address>
-        <ows:OnlineResource xlink:href="http://eoxserver.org" xlink:type="simple"/>
+        <ows:OnlineResource xlink:type="simple" xlink:href="http://eoxserver.org"/>
         <ows:HoursOfService>Mon - Fri 10:30 - 17:00 CET and CEST respectively excl. Austrian holidays</ows:HoursOfService>
         <ows:ContactInstructions>E-mails are usually answered within 3 working days.</ows:ContactInstructions>
       </ows:ContactInfo>
@@ -55,8 +52,8 @@ Copyright (C) European Space Agency - ESA
     <ows:Operation name="GetCapabilities">
       <ows:DCP>
         <ows:HTTP>
-          <ows:Get xlink:href="http://localhost:8000/ows?" xlink:type="simple"/>
-          <ows:Post xlink:href="http://localhost:8000/ows?" xlink:type="simple"/>
+          <ows:Get xlink:type="simple" xlink:href="http://localhost:8000/ows?"/>
+          <ows:Post xlink:type="simple" xlink:href="http://localhost:8000/ows?"/>
         </ows:HTTP>
       </ows:DCP>
       <ows:Parameter name="service">
@@ -92,14 +89,15 @@ Copyright (C) European Space Agency - ESA
           <ows:Value>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</ows:Value>
           <ows:Value>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</ows:Value>
           <ows:Value>mosaic_MER_FRS_1P_RGB_reduced</ows:Value>
+          <ows:Value>ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775</ows:Value>
         </ows:AllowedValues>
       </ows:Parameter>
     </ows:Operation>
     <ows:Operation name="GetCoverage">
       <ows:DCP>
         <ows:HTTP>
-          <ows:Get xlink:href="http://localhost:8000/ows?" xlink:type="simple"/>
-          <ows:Post xlink:href="http://localhost:8000/ows?" xlink:type="simple"/>
+          <ows:Get xlink:type="simple" xlink:href="http://localhost:8000/ows?"/>
+          <ows:Post xlink:type="simple" xlink:href="http://localhost:8000/ows?"/>
         </ows:HTTP>
       </ows:DCP>
       <ows:Parameter name="service">
@@ -117,6 +115,7 @@ Copyright (C) European Space Agency - ESA
           <ows:Value>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</ows:Value>
           <ows:Value>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</ows:Value>
           <ows:Value>mosaic_MER_FRS_1P_RGB_reduced</ows:Value>
+          <ows:Value>ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775</ows:Value>
         </ows:AllowedValues>
       </ows:Parameter>
       <ows:Parameter name="InterpolationType">
@@ -145,57 +144,74 @@ Copyright (C) European Space Agency - ESA
       </ows:Parameter>
     </ows:Operation>
   </ows:OperationsMetadata>
-  <wcs:Contents>
-    <wcs:CoverageSummary>
+  <Contents>
+    <CoverageSummary>
       <ows:Title>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</ows:Title>
       <ows:Abstract/>
       <ows:WGS84BoundingBox dimensions="2">
         <ows:LowerCorner>11.36106586 32.2014463</ows:LowerCorner>
         <ows:UpperCorner>28.28384572 46.2520256</ows:UpperCorner>
       </ows:WGS84BoundingBox>
-      <wcs:SupportedCRS>urn:ogc:def:crs:EPSG::4326</wcs:SupportedCRS>
-      <wcs:SupportedCRS>urn:ogc:def:crs:EPSG::3857</wcs:SupportedCRS>
-      <wcs:SupportedCRS>urn:ogc:def:crs:EPSG::900913</wcs:SupportedCRS>
-      <wcs:SupportedCRS>urn:ogc:def:crs:EPSG::3035</wcs:SupportedCRS>
-      <wcs:SupportedFormat>image/tiff</wcs:SupportedFormat>
-      <wcs:SupportedFormat>image/jp2</wcs:SupportedFormat>
-      <wcs:SupportedFormat>application/x-netcdf</wcs:SupportedFormat>
-      <wcs:SupportedFormat>application/x-hdf</wcs:SupportedFormat>
-      <wcs:Identifier>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</wcs:Identifier>
-    </wcs:CoverageSummary>
-    <wcs:CoverageSummary>
+      <SupportedCRS>urn:ogc:def:crs:EPSG::4326</SupportedCRS>
+      <SupportedCRS>urn:ogc:def:crs:EPSG::3857</SupportedCRS>
+      <SupportedCRS>urn:ogc:def:crs:EPSG::900913</SupportedCRS>
+      <SupportedCRS>urn:ogc:def:crs:EPSG::3035</SupportedCRS>
+      <SupportedFormat>image/tiff</SupportedFormat>
+      <SupportedFormat>image/jp2</SupportedFormat>
+      <SupportedFormat>application/x-netcdf</SupportedFormat>
+      <SupportedFormat>application/x-hdf</SupportedFormat>
+      <Identifier>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</Identifier>
+    </CoverageSummary>
+    <CoverageSummary>
       <ows:Title>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</ows:Title>
       <ows:Abstract/>
       <ows:WGS84BoundingBox dimensions="2">
         <ows:LowerCorner>11.331755 32.19025</ows:LowerCorner>
         <ows:UpperCorner>28.29481 46.268645</ows:UpperCorner>
       </ows:WGS84BoundingBox>
-      <wcs:SupportedCRS>urn:ogc:def:crs:EPSG::4326</wcs:SupportedCRS>
-      <wcs:SupportedCRS>urn:ogc:def:crs:EPSG::3857</wcs:SupportedCRS>
-      <wcs:SupportedCRS>urn:ogc:def:crs:EPSG::900913</wcs:SupportedCRS>
-      <wcs:SupportedCRS>urn:ogc:def:crs:EPSG::3035</wcs:SupportedCRS>
-      <wcs:SupportedFormat>image/tiff</wcs:SupportedFormat>
-      <wcs:SupportedFormat>image/jp2</wcs:SupportedFormat>
-      <wcs:SupportedFormat>application/x-netcdf</wcs:SupportedFormat>
-      <wcs:SupportedFormat>application/x-hdf</wcs:SupportedFormat>
-      <wcs:Identifier>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</wcs:Identifier>
-    </wcs:CoverageSummary>
-    <wcs:CoverageSummary>
+      <SupportedCRS>urn:ogc:def:crs:EPSG::4326</SupportedCRS>
+      <SupportedCRS>urn:ogc:def:crs:EPSG::3857</SupportedCRS>
+      <SupportedCRS>urn:ogc:def:crs:EPSG::900913</SupportedCRS>
+      <SupportedCRS>urn:ogc:def:crs:EPSG::3035</SupportedCRS>
+      <SupportedFormat>image/tiff</SupportedFormat>
+      <SupportedFormat>image/jp2</SupportedFormat>
+      <SupportedFormat>application/x-netcdf</SupportedFormat>
+      <SupportedFormat>application/x-hdf</SupportedFormat>
+      <Identifier>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</Identifier>
+    </CoverageSummary>
+    <CoverageSummary>
       <ows:Title>mosaic_MER_FRS_1P_RGB_reduced</ows:Title>
       <ows:Abstract/>
       <ows:WGS84BoundingBox dimensions="2">
         <ows:LowerCorner>-3.75 32.158895</ows:LowerCorner>
         <ows:UpperCorner>28.326165 46.3</ows:UpperCorner>
       </ows:WGS84BoundingBox>
-      <wcs:SupportedCRS>urn:ogc:def:crs:EPSG::4326</wcs:SupportedCRS>
-      <wcs:SupportedCRS>urn:ogc:def:crs:EPSG::3857</wcs:SupportedCRS>
-      <wcs:SupportedCRS>urn:ogc:def:crs:EPSG::900913</wcs:SupportedCRS>
-      <wcs:SupportedCRS>urn:ogc:def:crs:EPSG::3035</wcs:SupportedCRS>
-      <wcs:SupportedFormat>image/tiff</wcs:SupportedFormat>
-      <wcs:SupportedFormat>image/jp2</wcs:SupportedFormat>
-      <wcs:SupportedFormat>application/x-netcdf</wcs:SupportedFormat>
-      <wcs:SupportedFormat>application/x-hdf</wcs:SupportedFormat>
-      <wcs:Identifier>mosaic_MER_FRS_1P_RGB_reduced</wcs:Identifier>
-    </wcs:CoverageSummary>
-  </wcs:Contents>
-</wcs:Capabilities>
+      <SupportedCRS>urn:ogc:def:crs:EPSG::4326</SupportedCRS>
+      <SupportedCRS>urn:ogc:def:crs:EPSG::3857</SupportedCRS>
+      <SupportedCRS>urn:ogc:def:crs:EPSG::900913</SupportedCRS>
+      <SupportedCRS>urn:ogc:def:crs:EPSG::3035</SupportedCRS>
+      <SupportedFormat>image/tiff</SupportedFormat>
+      <SupportedFormat>image/jp2</SupportedFormat>
+      <SupportedFormat>application/x-netcdf</SupportedFormat>
+      <SupportedFormat>application/x-hdf</SupportedFormat>
+      <Identifier>mosaic_MER_FRS_1P_RGB_reduced</Identifier>
+    </CoverageSummary>
+    <CoverageSummary>
+      <ows:Title>ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775</ows:Title>
+      <ows:Abstract/>
+      <ows:WGS84BoundingBox dimensions="2">
+        <ows:LowerCorner>16.727605 -36.259107</ows:LowerCorner>
+        <ows:UpperCorner>22.301754 -31.984922</ows:UpperCorner>
+      </ows:WGS84BoundingBox>
+      <SupportedCRS>urn:ogc:def:crs:EPSG::4326</SupportedCRS>
+      <SupportedCRS>urn:ogc:def:crs:EPSG::3857</SupportedCRS>
+      <SupportedCRS>urn:ogc:def:crs:EPSG::900913</SupportedCRS>
+      <SupportedCRS>urn:ogc:def:crs:EPSG::3035</SupportedCRS>
+      <SupportedFormat>image/tiff</SupportedFormat>
+      <SupportedFormat>image/jp2</SupportedFormat>
+      <SupportedFormat>application/x-netcdf</SupportedFormat>
+      <SupportedFormat>application/x-hdf</SupportedFormat>
+      <Identifier>ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775</Identifier>
+    </CoverageSummary>
+  </Contents>
+</Capabilities>

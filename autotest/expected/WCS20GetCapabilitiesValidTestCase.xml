@@ -63,7 +63,35 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
     </ows:ServiceContact>
   </ows:ServiceProvider>
   <ows:OperationsMetadata>
+    <ows:Operation name="GetCapabilities">
+      <ows:DCP>
+        <ows:HTTP>
+          <ows:Get xlink:href="http://localhost:8000/ows?" xlink:type="simple"/>
+          <ows:Post xlink:href="http://localhost:8000/ows?" xlink:type="simple">
+            <ows:Constraint name="PostEncoding">
+              <ows:AllowedValues>
+                <ows:Value>XML</ows:Value>
+              </ows:AllowedValues>
+            </ows:Constraint>
+          </ows:Post>
+        </ows:HTTP>
+      </ows:DCP>
+    </ows:Operation>
     <ows:Operation name="DescribeCoverage">
+      <ows:DCP>
+        <ows:HTTP>
+          <ows:Get xlink:href="http://localhost:8000/ows?" xlink:type="simple"/>
+          <ows:Post xlink:href="http://localhost:8000/ows?" xlink:type="simple">
+            <ows:Constraint name="PostEncoding">
+              <ows:AllowedValues>
+                <ows:Value>XML</ows:Value>
+              </ows:AllowedValues>
+            </ows:Constraint>
+          </ows:Post>
+        </ows:HTTP>
+      </ows:DCP>
+    </ows:Operation>
+    <ows:Operation name="GetCoverage">
       <ows:DCP>
         <ows:HTTP>
           <ows:Get xlink:href="http://localhost:8000/ows?" xlink:type="simple"/>
@@ -94,34 +122,6 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
         <ows:NoValues/>
         <ows:DefaultValue>10</ows:DefaultValue>
       </ows:Constraint>
-    </ows:Operation>
-    <ows:Operation name="GetCapabilities">
-      <ows:DCP>
-        <ows:HTTP>
-          <ows:Get xlink:href="http://localhost:8000/ows?" xlink:type="simple"/>
-          <ows:Post xlink:href="http://localhost:8000/ows?" xlink:type="simple">
-            <ows:Constraint name="PostEncoding">
-              <ows:AllowedValues>
-                <ows:Value>XML</ows:Value>
-              </ows:AllowedValues>
-            </ows:Constraint>
-          </ows:Post>
-        </ows:HTTP>
-      </ows:DCP>
-    </ows:Operation>
-    <ows:Operation name="GetCoverage">
-      <ows:DCP>
-        <ows:HTTP>
-          <ows:Get xlink:href="http://localhost:8000/ows?" xlink:type="simple"/>
-          <ows:Post xlink:href="http://localhost:8000/ows?" xlink:type="simple">
-            <ows:Constraint name="PostEncoding">
-              <ows:AllowedValues>
-                <ows:Value>XML</ows:Value>
-              </ows:AllowedValues>
-            </ows:Constraint>
-          </ows:Post>
-        </ows:HTTP>
-      </ows:DCP>
     </ows:Operation>
     <ows:Operation name="GetEOCoverageSet">
       <ows:DCP>
