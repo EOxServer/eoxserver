@@ -575,7 +575,6 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20E
                     pass # no featureOfInterest
 
         else:
-            print "NO FEATURE OF INTEREST"
             earth_observation = self.encode_earth_observation(
                 coverage, subset_polygon=subset_polygon
             )
