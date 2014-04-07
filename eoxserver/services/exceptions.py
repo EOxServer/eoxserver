@@ -100,8 +100,9 @@ class NoSuchCoverageException(LocatorListException):
     code = "NoSuchCoverage"
 
     def __str__(self):
-        return "Could not find Coverage%s with ID: %s" % (
-            "" if len(self.items) == 1 else "s", ", ".join(self.items)
+        return "No such Coverage%s with ID: %s" % (
+            "" if len(self.items) == 1 else "s",
+            ", ".join(map(lambda i: "'%s'" % i, self.items))
         )
 
 
@@ -112,8 +113,9 @@ class NoSuchDatasetSeriesOrCoverageException(LocatorListException):
     code = "NoSuchDatasetSeriesOrCoverage"
 
     def __str__(self):
-        return "Could not find Coverage%s or Dataset Series with ID: %s" % (
-            " " if len(self.items) == 1 else "s", ", ".join(self.items)
+        return "No such Coverage%s or Dataset Series with ID: %s" % (
+            " " if len(self.items) == 1 else "s",
+            ", ".join(map(lambda i: "'%s'" % i, self.items))
         )
 
 

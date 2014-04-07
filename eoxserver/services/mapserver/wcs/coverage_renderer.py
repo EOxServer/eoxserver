@@ -129,7 +129,7 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
 
         try:
             connector.connect(coverage, data_items, layer)
-            # create request object and dispatch it agains the map
+            # create request object and dispatch it against the map
             request = ms.create_request(params)
             request.setParameter("format", mime_type)
             raw_result = ms.dispatch(map_, request)
@@ -152,13 +152,13 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
                     tree = encoder.alter_rectified_dataset(
                         coverage, getattr(params, "http_request", None), 
                         etree.parse(result_set[0].data_file).getroot(), 
-                        subsets.bounding_polygon(coverage)
+                        subsets.bounding_polygon(coverage) if subsets else None
                     )
                 else:
                     tree = encoder.alter_rectified_stitched_mosaic(
                         coverage.cast(), getattr(params, "http_request", None), 
                         etree.parse(result_set[0].data_file).getroot(), 
-                        subsets.bounding_polygon(coverage)
+                        subsets.bounding_polygon(coverage) if subsets else None
                     )
 
                 result_set[0] = ResultBuffer(

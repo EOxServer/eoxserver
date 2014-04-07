@@ -82,6 +82,7 @@ class BaseRenderer(Component):
         layer = ms.layerObj()
         layer.name = coverage.identifier
         layer.type = ms.MS_LAYER_RASTER
+
         layer.setProjection(coverage.spatial_reference.proj)
 
         extent = coverage.extent
@@ -128,9 +129,15 @@ class BaseRenderer(Component):
                 "nativeformat": native_format
             }, namespace="wcs")
 
-        supported_crss = " ".join(
-            crss.getSupportedCRS_WCS(format_function=crss.asShortCode)
-        ) 
+        native_crs = "EPSG:%d" % coverage.spatial_reference.srid
+        all_crss = crss.getSupportedCRS_WCS(format_function=crss.asShortCode)
+        if native_crs in all_crss:
+            all_crss.remove(native_crs)
+
+        # setting the coverages CRS as the first one is important!
+        all_crss.insert(0, native_crs)
+        
+        supported_crss = " ".join(all_crss) 
         layer.setMetaData("ows_srs", supported_crss) 
         layer.setMetaData("wcs_srs", supported_crss) 
 
