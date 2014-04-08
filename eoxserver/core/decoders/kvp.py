@@ -34,7 +34,7 @@ from django.http import QueryDict
 from eoxserver.core.decoders.base import BaseParameter
 
 
-class Parameter(object):
+class Parameter(BaseParameter):
     """ Parameter for KVP values.
     """
 
