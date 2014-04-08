@@ -28,8 +28,11 @@
 
 from tempfile import mkstemp
 import ctypes as C
+from ctypes.util import find_library
 import os.path
 import logging
+from itertools import izip
+import math
 
 from functools import wraps 
 
@@ -54,12 +57,7 @@ METHOD2STR = { METHOD_GCP: "METHOD_GCP", METHOD_TPS:"METHOD_TPS", METHOD_TPS_LSQ
 #-------------------------------------------------------------------------------
 
 logger = logging.getLogger(__name__)
-
-
-class ReftoolsException(Exception):
-    pass
-
-
+"""
 class RECT(C.Structure):
     _fields_ = [("x_off", C.c_int),
                 ("y_off", C.c_int),
@@ -79,62 +77,476 @@ class IMAGE_INFO(C.Structure):
     _fields_ = [("x_size", C.c_int),
                 ("y_size", C.c_int),
                 ("geotransform", C.ARRAY(C.c_double, 6))]
+"""
+
+class WARP_OPTIONS(C.Structure):
+    _fields_ = [
+        ("papszWarpOptions", C.POINTER(C.c_char_p)),
+        ("dfWarpMemoryLimit", C.c_double),
+        ("eResampleAlg", C.c_int),
+        ("eWorkingDataType", C.c_int),
+        ("hSrcDS", C.c_void_p),
+        ("hDstDS", C.c_void_p),
+        ("nBandCount", C.c_int),
+        ("panSrcBands", C.POINTER(C.c_int)),
+        ("panDstBands", C.POINTER(C.c_int)),
+        ("nSrcAlphaBand", C.c_int),
+        ("nDstAlphaBand", C.c_int),
+        ("padfSrcNoDataReal", POINTER(C.c_double)),
+        ("padfSrcNoDataImag", POINTER(C.c_double)),
+        ("padfDstNoDataReal", POINTER(C.c_double)),
+        ("padfDstNoDataImag", POINTER(C.c_double)),
+        ("pfnProgress", C.c_void_p),
+        ("pProgressArg", C.c_void_p),
+        ("pfnTransformer", C.c_void_p),
+        ("pTransformerArg", C.c_void_p),
+        ("papfnSrcPerBandValidityMaskFunc", C.c_void_p),
+        ("papSrcPerBandValidityMaskFuncArg", C.c_void_p),
+        ("pfnSrcValidityMaskFunc", C.c_void_p),
+        ("pSrcValidityMaskFuncArg", C.c_void_p),
+        ("pfnSrcDensityMaskFunc", C.c_void_p),
+        ("pSrcDensityMaskFuncArg", C.c_void_p),
+        ("pfnDstDensityMaskFunc", C.c_void_p),
+        ("pDstDensityMaskFuncArg", C.c_void_p),
+        ("pfnDstValidityMaskFunc", C.c_void_p),
+        ("pDstValidityMaskFuncArg", C.c_void_p),
+        ("pfnPreWarpChunkProcessor", C.c_void_p),
+        ("pPreWarpProcessorArg", C.c_void_p),
+        ("pfnPostWarpChunkProcessor", C.c_void_p),
+        ("pPostWarpProcessorArg", C.c_void_p),
+        ("hCutline", C.c_void_p),
+        ("dfCutlineBlendDist", C.c_double),
+    ]
+
+_libgdal = C.LibraryLoader(C.CDLL).LoadLibrary(find_library("gdal"))
 
 
-_lib_path_baseline = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)),
-    "_reftools.so"
-)
+GDALGetGCPs = _libgdal.GDALGetGCPs
+GDALGetGCPs.restype = C.c_void_p # actually array of GCPs, but more info not required
+GDALGetGCPs.argtypes = [C.c_void_p]
 
-_lib_path_extended = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)),
-    "_reftools_ext.so"
-)
 
-global REFTOOLS_USEABLE
-    
+# baseline GDAL transformer creation functions
+
+GDALCreateGCPTransformer = _libgdal.GDALCreateGCPTransformer
+GDALCreateGCPTransformer.restype = C.c_void_p
+# TODO: argtypes
+
+GDALCreateTPSTransformer = _libgdal.GDALCreateTPSTransformer
+GDALCreateTPSTransformer.restype = C.c_void_p
+# TODO: argtypes
+
+GDALUseTransformer = _libgdal.GDALUseTransformer
+GDALUseTransformer.restype = C.c_int
+GDALUseTransformer.argtypes = [C.c_void_p, C.c_int, C.c_int, C.POINTER(C.c_double), C.POINTER(C.c_double), C.POINTER(C.c_double), POINTER(C.c_int)]
+
+GDALDestroyTransformer = _libgdal.GDALDestroyTransformer
+GDALDestroyTransformer.argtypes = [c_void_p]
+
+# extended GDAL transformer creation functions
 try:
+    GDALCreateTPS2TransformerExt = _libgdal.GDALCreateTPS2TransformerExt
+    GDALCreateTPS2TransformerExt.restype = C.c_void_p
+    # TODO: argtypes
+except AttributeError:
+    GDALCreateTPS2TransformerExt = None
 
-    try :
-        # load the extended reftools firts 
-        _lib = C.LibraryLoader(C.CDLL).LoadLibrary(_lib_path_extended)
-    except OSError : 
-        # load the baseline reftools if the extended not available
-        _lib = C.LibraryLoader(C.CDLL).LoadLibrary(_lib_path_baseline)
+try:
+    GDALCreateTPS2TransformerLSQGrid = _libgdal.GDALCreateTPS2TransformerLSQGrid
+    GDALCreateTPS2TransformerLSQGrid.restype = C.c_void_p
+    # TODO: argtypes
+except AttributeError:
+    GDALCreateTPS2TransformerLSQGrid = None
 
-    _is_extended = _lib.eoxs_is_extended
-    _is_extended.argtypes = [] 
-    _is_extended.restype = C.c_int
 
-    _get_footprint_wkt = _lib.eoxs_get_footprint_wkt
-    _get_footprint_wkt.argtypes = [C.c_void_p, C.c_int, C.c_int, C.POINTER(C.c_char_p)]
-    _get_footprint_wkt.restype = C.c_int
+OCTNewCoordinateTransformation = _libgdal.OCTNewCoordinateTransformation
+OCTNewCoordinateTransformation.restype = C.c_void_p
+OCTNewCoordinateTransformation.argtypes = [C.c_void_p, C.c_void_p]
+OCTNewCoordinateTransformation.errcheck = None # TODO!
 
-    _rect_from_subset = _lib.eoxs_rect_from_subset
-    _rect_from_subset.argtypes = [C.c_void_p, C.POINTER(SUBSET), C.c_int, C.c_int, C.POINTER(RECT)]
-    _rect_from_subset.restype = C.c_int
+OCTDestroyCoordinateTransformation = _libgdal.OCTDestroyCoordinateTransformation
+OCTDestroyCoordinateTransformation.argtypes = [C.c_void_p]
 
-    _create_rectified_vrt = _lib.eoxs_create_rectified_vrt
-    _create_rectified_vrt.argtypes = [C.c_void_p, C.c_char_p, C.c_int, C.c_int, C.c_double, C.c_double, C.c_int, C.c_int]
-    _create_rectified_vrt.restype = C.c_int
+GDALCreateWarpOptions = _libgdal.GDALCreateWarpOptions
+GDALCreateWarpOptions.restype = C.POINTER(WARP_OPTIONS)
 
-    _suggested_warp_output = _lib.eoxs_suggested_warp_output
-    _suggested_warp_output.argtypes = [C.c_void_p, C.c_char_p, C.c_char_p, C.c_int, C.c_int, C.POINTER(IMAGE_INFO)]
-    _suggested_warp_output.restype = C.c_int
 
-    _reproject_image = _lib.eoxs_reproject_image
-    _reproject_image.argtypes = [C.c_void_p, C.c_char_p, C.c_void_p, C.c_char_p, C.c_int, C.c_double, C.c_double, C.c_int, C.c_int]
-    _reproject_image.restype = C.c_int
+class Transformer(object):
+    def __init__(self, handle):
+        self._handle = handle
 
-    _free_string = _lib.eoxs_free_string
-    _free_string.argtypes = [C.c_char_p]
+    @property
+    def _as_parameter_(self):
+        return self._handle
 
-    REFTOOLS_USABLE = True
+    def __del__(self):
+        GDALDestroyTransformer(self._handle)
 
-except OSError:
-    logger.warn("Could not load '%s'. Referenceable Datasets will not be usable." % _lib_path_baseline)
+    #def __call__(self, points, ):
+
+
+class CoordinateTransformation(object):
+
+    def __init__(self, src_srs, dst_srs):
+        self._handle = OCTNewCoordinateTransformation(
+            src_srs.this, dst_srs.this
+        )
+
+    @property
+    def _as_parameter_(self):
+        return self._handle
+
+    def __del__(self):
+        OCTDestroyCoordinateTransformation(self)
+
+
+class WARP_OPTIONS(C.Structure):
+
+
+
+
+def _create_referenceable_grid_transformer(ds, method, order):
+    # TODO: check method and order
+    num_gcps = ds.GetGCPCount()
+    gcps = GDALGetGCPs(ds.this)
+
+    handle = None
+
+    if method == METHOD_GCP:
+        handle = GDALCreateGCPTransformer(num_gcps, gcps, order, 0);
+    elif method == METHOD_TPS:
+        if GDALCreateTPS2TransformerExt:
+            handle = GDALCreateTPS2TransformerExt(num_gcps, gcps, 0, order)
+        else:
+            handle = GDALCreateTPSTransformer(num_gcps, gcps, 0)
+
+    elif method == METHOD_TPS_LSQ and GDALCreateTPS2TransformerLSQGrid:
+        handle = GDALCreateTPS2TransformerLSQGrid(num_gcps, gcps, 0, order, 0, 0)
+    elif method == METHOD_TPS_LSQ:
+        raise AttributeError("GDALCreateTPS2TransformerLSQGrid not available")
+
+    else:
+        raise
+
+    return Transformer(handle)
+
+
+def _create_generic_transformer(src_ds, src_wkt, dst_ds, dst_wkt, method, order):
+    # TODO: check method and order
+
+    options = {}
+
+    if src_wkt:
+        options["SRC_SRS"] = src_wkt
+    if dst_wkt:
+        options["DST_SRS"] = dst_wkt
+
+    if method == METHOD_GCP:
+        options["METHOD"] = "GCP_POLYNOMINAL"
+
+        if order > 0:
+            options["MAX_GCP_ORDER"] = str(order)
+
+    elif method in (METHOD_TPS, METHOD_TPS_LSQ):
+
+        # TODO: TPS2 only if 
+        if GDALCreateTPS2TransformerLSQGrid:
+            options["METHOD"] = "GCP_TPS2"
+            options["TPS2_AP_ORDER"] = str(order)
+            if method == METHOD_TPS_LSQ:
+                options["TPS2_LSQ_GRID"] = "1"
+                options["TPS2_LSQ_GRID_NX"] = "0"
+                options["TPS2_LSQ_GRID_NY"] = "0"
+        else:
+            options["METHOD"] = "GCP_TPS"
+
+    csl_type = c_char_p * (len(options) + 1)
+    csl = csl_type(("%s=%s" % key, value for key, value in options.items()))
+    csl[-1] = 0
+    transformer = Transformer(
+        GDALCreateGenImgProjTransformer2(src_ds, dst_ds, csl)
+    )
+
+
+def get_footprint_wkt(ds, method, order):
+    """ 
+        methods: 
+
+            METHOD_GCP 
+            METHOD_TPS
+            METHOD_TPS_LSQ 
+
+        order (method specific):
+
+        - GCP (order of global fitting polynomial)  
+            0 for automatic order
+            1, 2, and 3  for 1st, 2nd and 3rd polynomial order  
+
+        - TPS and TPS_LSQ (order of augmenting polynomial) 
+           -1  for no-polynomial augmentation 
+            0  for 0th order (constant offset) 
+            1, 2, and 3  for 1st, 2nd and 3rd polynomial order  
+
+        General guide: 
+
+            method TPS, order 3  should work in most cases
+            method TPS_LSQ, order 3  shoudl work in cases 
+                of an excessive number of tiepoints but
+                it may become wobbly for small number
+                of tiepoints 
+            
+           The global polynomoal (GCP) interpolation does not work 
+           well for images covering large geographic areas (e.g.,
+           ENVISAT ASAR and MERIS).
+
+        NOTE: The default parameters are left for backward compatibility.
+              They can be, however, often inappropriate!
+    """
+    transformer = _create_transformer(ds, method, order)
+
+    x_size = ds.RasterXSize
+    y_size = ds.RasterYSize
+
+    x_e = max(x_size / 100 -1, 0)
+    y_e = max(y_size / 100 -1, 0)
+
+    num_points = 4 + 2 * x_e + 2 * y_e
+    coord_array_type = (C.c_double * num_points)
+    x = coord_array_type()
+    y = coord_array_type()
+    z = coord_array_type()
+
+    success = (C.c_int * num_points)()
+
+    for i in xrange(1, x_e + 1):
+        x[i] = float(i * x_size / x_e)
+        y[i] = 0.0
+
+    for i in xrange(1, y_e + 1):
+        x[x_e + 1 + i] = float(x_size)
+        y[x_e + 1 + i] = float(i * y_size * y_e)
+
+    for i in xrange(1, x_e + 1):
+        x[x_e + y_e + 2 + i] = 0.0
+        y[x_e + y_e + 2 + i] = float(y_size - i * y_size / y_e)
+
+    GDALUseTransformer(transformer, False, num_points, x, y, z, success)
+
+    return "POLYGON((%s))" % (
+        ",".join(
+            "%f %f" % (coord_x, coord_y)
+            for coord_x, coord_y in izip(x, y)
+        )
+    )
+
+
+def rect_from_subset(path_or_ds, srid, minx, miny, maxx, maxy,
+                     method=METHOD_GCP, order=0):
+
+    transformer = _create_referenceable_grid_transformer(ds, method, order)
+
+
+    x_size = ds.RasterXSize
+    y_size = ds.RasterYSize
+
+
+    transformer = _create_referenceable_grid_transformer(ds, method, order)
+
+    gcp_srs = osr.SpatialReference(ds.GetGCPProjection())
+
+    subset_srs = osr.SpatialReference()
+    subset_srs.ImportFromEPSG(srid)
+
+    coord_array_type = (C.c_double * 4)
+    x = coord_array_type()
+    y = coord_array_type()
+    z = coord_array_type()
+
+    success = (C.c_int * 4)()
+
+    x[1] = float(x_size)
+    y[1] = 0.0
+
+    x[2] = float(x_size)
+    y[2] = float(y_size)
+
+    x[3] = 0.0
+    y[3] = float(y_size)
+
+
+    GDALUseTransformer(transformer, False, 4, x, y, z, success)
+
+    dist = min(
+        (max(x) - min(x)) / (x_size / 100),
+        (max(y) - min(y)) / (y_size / 100)
+    )
+
+    x[0] = minx; y[0] = miny
+    x[1] = maxx; y[1] = miny
+    x[2] = maxx; y[2] = maxy
+    x[3] = minx; y[3] = maxy
+
+
+    ct = CoordinateTransformation(subset_srs, gcp_srs)
     
-    REFTOOLS_USABLE = False
+    OCTTransform(ct, 4, x, y, z)
+
+    num_x = math.ceil((max(x) - min(x)) / dist)
+    num_y = math.ceil((max(y) - min(y)) / dist)
+
+    x_step = (maxx - minx) / num_x
+    y_step = (maxy - miny) / num_y
+
+    n_points = 4 + 2 * n_x + 2 * n_y
+
+    coord_array_type = (C.c_double * num_points)
+    x = coord_array_type()
+    y = coord_array_type()
+    z = coord_array_type()
+    success = (C.c_int * num_points)()
+
+    for i in xrange(1, num_x + 1):
+        x[i] = minx + i * x_step
+        y[i] = miny
+
+    for i in xrange(1, n_y + 1):
+        x[i + num_x + 1] = maxx
+        y[i + num_y + 1] = maxy + i * y_step
+
+    for i in xrange(1, num_x + 1):
+        x[i + num_x + num_y + 2] = maxx - i * x_step
+        y[i + num_x + num_y + 2] = maxy
+
+    for i in xrange(1, num_y + 1):
+        x[i + 2 * num_x + num_y + 3] = minx
+        y[i + 2 * num_x + num_y + 3] = maxy - i * y_step
+
+
+    OCTTransform(ct, num_points, x, y, z)
+    GDALUseTransformer(transformer, True, num_points, x, y, z, success)
+
+    minx = math.floor(min(x))
+    miny = math.floor(min(y))
+    size_x = math.ceil(max(x) - minx) + 1
+    size_y = math.ceil(max(y) - miny) + 1
+
+    return Rect(minx, miny, size_x, size_y)
+
+
+def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
+    resample=gdal.GRA_NearestNeighbour, memory_limit=0.0,
+    max_error=APPROX_ERR_TOL, method=METHOD_GCP, order=0):
+
+    if srid: 
+        srs = osr.SpatialReference()
+        srs.ImportFromEPSG(srid)
+        wkt = srs.ExportToWkt()
+    else:
+        wkt = ds.GetGCPProjection()
+
+    transformer = _create_generic_transformer(
+        ds, None, None, wkt, method, order
+    )
+
+    geotransform = (C.c_double * 6)()
+
+    GDALSuggestedWarpOutput(
+        ds, GDALGenImgProjTransform, transformer, geotransform, 
+        byref(x_size), byref(y_size)
+    )
+
+    GDALSetGenImgProjTransformerDstGeoTransform(transformer, geotransform)
+
+    options = GDALCreateWarpOptions()
+    options.dfWarpMemoryLimit = memory_limit
+    options.eResampleAlg = resample
+    options.pfnTransformer = GDALGenImgProjTransform
+    options.pTransformerArg = transformer
+    options.hDstDS = ds.this
+
+    nb = options.nBandCount = ds.RasterCount
+    options.panSrcBands = CPLMalloc(C.sizeof(C.c_int) * nb)
+    options.panDstBands = CPLMalloc(C.sizeof(C.c_int) * nb)
+
+    # TODO: nodata value setup
+    for i in xrange(nb):
+        band = ds.GetRasterBand(i+1)
+
+
+    if max_error > 0:
+        options.pTransformerArg = GDALCreateApproxTransformer(
+            options.pfnTransformer, options.pTransformerArg, max_error
+        )
+        options.pfnTransformer = GDALApproxTransform
+        # TODO: correct for python
+        GDALApproxTransformerOwnsSubtransformer(options.pTransformerArg, True)
+
+    vrt_ds = GDALCreateWarpedVRT(ds.this, x_size, y_size, geotransform, options)
+
+    GDALSetProjection(vrt_ds, dst_wkt)
+    GDALSetDescription(vrt_ds, filename)
+    GDALClose(vrt_ds)
+
+    GDALDestroyWarpOptions(options)
+
+
+def suggested_warp_output(path_or_ds, src_wkt, dst_wkt, method=METHOD_GCP, order=0):
+    geotransform = (C.c_double * 6)()
+    x_size = C.c_int()
+    y_size = C.c_int()
+    transformer = _create_generic_transformer(ds, src_wkt, dst_wkt, method, order)
+    GDALSuggestedWarpOutput(
+        ds, GDALGenImgProjTransform, transformer, 
+        geotransform, C.byref(x_size), C.c_int(y_size)
+    )
+
+    return int(x_size), int(y_size), tuple(geotransform)
+
+
+
+
+
+def reproject_image(src_ds, src_wkt, dst_ds, dst_wkt, 
+                    resample=gdal.GRA_NearestNeighbour, memory_limit=0.0,
+                    max_error=APPROX_ERR_TOL, method=METHOD_GCP, order=0):
+
+    transformer = _create_generic_transformer(
+        src_ds.this, src_wkt, dst_ds.this, dst_wkt, method, order
+    )
+    size_x = dst_ds.RasterXSize
+    size_y = dst_ds.RasterYSize
+
+    options = GDALCreateWarpOptions()
+    options.eResampleAlg = resample
+    options.dfWarpMemoryLimit = memory_limit
+
+    options.hSrcDS = src_ds.this
+    options.hSrcDS = dst_ds.this
+
+    if max_error > 0:
+        options.pTransformerArg = GDALCreateApproxTransformer(
+            GDALGenImgProjTransform, transformer, max_error
+        )
+        options.pfnTransformer = GDALApproxTransform
+    else:
+        options.pfnTransformer = GDALGenImgProjTransform
+        options.pTransformerArg = transformer
+
+    if options.nBandCount == 0:
+        # TODO: implement srcbands
+        pass
+
+    # TODO: nodata setup
+
+    warper = GDALCreateWarpOperation(options)
+    GDALChunkAndWarpImage(warper, 0, 0, size_x, size_y)
+
+
+
+    GDALDestroyWarpOptions(options)
+
+
+
 
 
 def _open_ds(path_or_ds):
@@ -143,31 +555,13 @@ def _open_ds(path_or_ds):
         return gdal.Open(str(path_or_ds))
     return path_or_ds
 
-
-def requires_reftools(func):
-    """ Decorator function that checks whether or not the reftools library is 
-        available and raises if not.
-    """
-    
-    @wraps(func)
-    def wrapped(*args, **kwargs):
-        if not REFTOOLS_USABLE:
-            raise ReftoolsException(
-                "Could not load reftools extension library. "
-                "Referenceable grid handling is disabled."
-            )
-        return func(*args, **kwargs)
-
-    return wrapped
-
-@requires_reftools
 def is_extended() : 
     """ check whether the EOX's GDAL extensions are available
         (True) or not (False)
     """
-    return bool( _is_extended() ) 
+    return GDALCreateTPS2TransformerLSQGrid || GDALCreateTPS2TransformerExt
 
-@requires_reftools
+
 def suggest_transformer( path_or_ds ) : 
     """ suggest value of method and order to be passed 
         tp ``get_footprint_wkt`` and ``rect_from_subset``
@@ -237,39 +631,7 @@ def suggest_transformer( path_or_ds ) :
 
 @requires_reftools
 def get_footprint_wkt(path_or_ds, method=METHOD_GCP, order=0):
-    """ 
-        methods: 
-
-            METHOD_GCP 
-            METHOD_TPS
-            METHOD_TPS_LSQ 
-
-        order (method specific):
-
-        - GCP (order of global fitting polynomial)  
-            0 for automatic order
-            1, 2, and 3  for 1st, 2nd and 3rd polynomial order  
-
-        - TPS and TPS_LSQ (order of augmenting polynomial) 
-           -1  for no-polynomial augmentation 
-            0  for 0th order (constant offset) 
-            1, 2, and 3  for 1st, 2nd and 3rd polynomial order  
-
-        General guide: 
-
-            method TPS, order 3  should work in most cases
-            method TPS_LSQ, order 3  shoudl work in cases 
-                of an excessive number of tiepoints but
-                it may become wobbly for small number
-                of tiepoints 
-            
-           The global polynomoal (GCP) interpolation does not work 
-           well for images covering large geographic areas (e.g.,
-           ENVISAT ASAR and MERIS).
-
-        NOTE: The default parameters are left for backward compatibility.
-              They can be, however, often inappropriate!
-    """
+    
     
     ds = _open_ds(path_or_ds)
     
@@ -283,44 +645,6 @@ def get_footprint_wkt(path_or_ds, method=METHOD_GCP, order=0):
     
     _free_string(result)
     return string
-
-@requires_reftools
-def rect_from_subset(path_or_ds, srid, minx, miny, maxx, maxy,
-                     method=METHOD_GCP, order=0):
-    
-    ds = _open_ds(path_or_ds)
-    
-    rect = RECT()
-    ret = _rect_from_subset(
-        C.c_void_p(long(ds.this)),
-        C.byref(SUBSET(srid, minx, miny, maxx, maxy)),
-        method, order,
-        C.byref(rect)
-    )
-    if ret != gdal.CE_None:
-        raise RuntimeError(gdal.GetLastErrorMsg())
-    
-    return Rect(rect.x_off, rect.y_off, rect.x_size, rect.y_size)
-
-
-@requires_reftools
-def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
-    resample=gdal.GRA_NearestNeighbour, memory_limit=0.0,
-    max_error=APPROX_ERR_TOL, method=METHOD_GCP, order=0):
-
-    ds = _open_ds(path_or_ds)
-    ptr = C.c_void_p(long(ds.this))
-
-    # when not provided set SRID to 0 
-    if srid is None:
-        srid = 0 
-
-    ret = _create_rectified_vrt(ptr, vrt_path, srid,
-        resample, memory_limit, max_error, 
-        method, order)
-    
-    if ret != gdal.CE_None:
-        raise RuntimeError(gdal.GetLastErrorMsg())
 
 
 @requires_reftools
@@ -346,43 +670,3 @@ def create_temporary_rectified_vrt(path_or_ds, srid=None,
     
     return vrt_path
 
-
-@requires_reftools
-def suggested_warp_output(path_or_ds, src_wkt, dst_wkt, method=METHOD_GCP, order=0):
-
-    ds = _open_ds(path_or_ds)
-    ptr = C.c_void_p(long(ds.this))
-    info = IMAGE_INFO()
-    
-    ret = _suggested_warp_output(
-        ptr,
-        src_wkt,
-        dst_wkt,
-        method, order,
-        C.byref(info)
-    )
-    
-    if ret != gdal.CE_None:
-        raise RuntimeError(gdal.GetLastErrorMsg())
-    
-    return info.x_size, info.y_size, info.geotransform
-
-
-@requires_reftools
-def reproject_image(src_ds, src_wkt, dst_ds, dst_wkt, 
-                    resample=gdal.GRA_NearestNeighbour, memory_limit=0.0,
-                    max_error=APPROX_ERR_TOL, method=METHOD_GCP, order=0):
-    
-    ret = _reproject_image(
-        C.c_void_p(long(src_ds.this)),
-        src_wkt,
-        C.c_void_p(long(dst_ds.this)),
-        dst_wkt,
-        resample,
-        memory_limit,
-        max_error,
-        method, order
-    )
-    
-    if ret != gdal.CE_None:
-        raise RuntimeError(gdal.GetLastErrorMsg())
