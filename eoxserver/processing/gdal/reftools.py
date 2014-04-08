@@ -442,6 +442,7 @@ def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
         srs = osr.SpatialReference()
         srs.ImportFromEPSG(srid)
         wkt = srs.ExportToWkt()
+        srs = None
     else:
         wkt = ds.GetGCPProjection()
 
