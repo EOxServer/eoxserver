@@ -37,7 +37,7 @@ from django.core.exceptions import ValidationError
 from django.core.management.base import CommandError, BaseCommand
 from django.utils.dateparse import parse_datetime
 from django.db import transaction
-from django.contrib.gis.geos import GEOSGeometry
+from django.contrib.gis import geos 
 
 from eoxserver.core import env
 from eoxserver.contrib import gdal, osr, ogr 
@@ -462,7 +462,7 @@ class Command(CommandOutputMixIn, BaseCommand):
             if kwargs.get("traceback", False):
                 self.print_msg(traceback.format_exc())
             
-            raise CommandError("Dataset series creation failed! REASON=%s"%(e))
+            raise CommandError("Dataset registration failed! REASON=%s"%(e))
 
         self.print_msg("Dataset registered sucessfully. EOID='%s'"%coverage.identifier) 
 
@@ -490,7 +490,22 @@ class Command(CommandOutputMixIn, BaseCommand):
             overrides["end_time"] = parse_datetime(end_time)
 
         if footprint:
-            overrides["footprint"] = GEOSGeometry(footprint)
+
+            footprint = geos.GEOSGeometry(footprint)
+
+            if footprint.geom_type == "MultiPolygon" : 
+                pass 
+            elif footprint.geom_type == "Polygon" :
+                footprint = geos.MultiPolygon( footprint ) 
+            else : 
+                raise CommandError("Invalid footprint geometry type!"
+                                   " GEOM_TYPE=%s"%(footprint.geom_type))
+            
+            if footprint.hasz : 
+                raise CommandError("Invalid footprint geometry! "
+                                   " 3D geometry is not supported!" )
+
+            overrides["footprint"] = footprint 
 
         return overrides
 
