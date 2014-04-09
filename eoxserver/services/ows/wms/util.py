@@ -175,11 +175,16 @@ def lookup_layers(layers, subsets, suffixes=None):
             else:
                 pass # TODO: Reporting of invalid EOObjects (?) 
 
+
     # ------------------------------------------------------------------------
 
     selections = []  
 
-    for layer_name in layers:
+    # NOTE: The lookup is performed on a set of unique layer names. This has
+    #       no effect on the rendering order of the layer as this is determined
+    #       by the WMS request handled by the mapserver.
+
+    for layer_name in set(layers):
     
         # get an EOObject and suffix matching the layer_name 
         eoo_src, suffix = _lookup_eoobject( layer_name )

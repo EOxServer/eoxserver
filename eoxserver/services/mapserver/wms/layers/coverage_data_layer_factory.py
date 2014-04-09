@@ -34,6 +34,8 @@ from eoxserver.services.mapserver.wms.layers.base import (
     PolygonMaskingLayerMixIn,
 )
 
+import random 
+
 #-------------------------------------------------------------------------------
 
 class CoverageDataLayerFactory(LayerFactory,GroupLayerMixIn,DataLayerMixIn,
@@ -61,6 +63,14 @@ class CoverageDataLayerFactory(LayerFactory,GroupLayerMixIn,DataLayerMixIn,
 
             layer_group = "/"+group if group else ""
 
+            # NOTE: In order to assure proper rendering of the nested layers
+            #       a unique name has to be assigned to each of them. They
+            #       will never be addressed by their true name.
+            #       The top-level coverages must preserve their true identity
+            #       though because they are requested in the WMS query. 
+            base_name = cov_name if not group else \
+                        "%s_%s_%08x"%(group,cov_name,random.randrange(16**8))
+
             # band indices 
             indices = self._indeces( cov, self.options )
         
@@ -77,7 +87,7 @@ class CoverageDataLayerFactory(LayerFactory,GroupLayerMixIn,DataLayerMixIn,
                 
                 # prepare the mask polygon layer 
 
-                mask_name  = "%s%s__mask__"%( cov_name , self.suffix ) 
+                mask_name  = "%s%s__mask__"%( base_name , self.suffix ) 
                 layer = self._polygon_masking_layer(cov,mask_name,
                                             mask_geom,layer_group)
 
@@ -92,7 +102,7 @@ class CoverageDataLayerFactory(LayerFactory,GroupLayerMixIn,DataLayerMixIn,
 
             if not extent_crosses_dateline(cov.extent,cov.srid):
 
-                name  = "%s%s"%( cov_name , self.suffix ) 
+                name  = "%s%s"%( base_name , self.suffix ) 
                 layer = self._data_layer( cov, name, cov.extent, layer_group, 
                                             mask=mask_name, indices=indices )
                 yield layer, cov, data_items
@@ -100,13 +110,13 @@ class CoverageDataLayerFactory(LayerFactory,GroupLayerMixIn,DataLayerMixIn,
             else : # image crosses the date-line 
 
                 # create group layer 
-                name  = "%s%s"%( cov_name , self.suffix ) 
+                name  = "%s%s"%( base_name , self.suffix ) 
                 yield self._group_layer(cov.identifier,layer_group),None,() 
 
                 layer_subgroup= "%s/%s%s"%(layer_group,name,self.suffix)
 
                 # layer with the original extent 
-                name   = "%s_1%s"%( cov_name , self.suffix )
+                name   = "%s_1%s"%( base_name , self.suffix )
                 extent = cov.extent
                 layer  = self._data_layer( cov, name, extent, layer_subgroup,
                             wrapped=False, mask=mask_name, indices=indices )
@@ -114,7 +124,7 @@ class CoverageDataLayerFactory(LayerFactory,GroupLayerMixIn,DataLayerMixIn,
                    
                 # TODO: check masking for date-line crossing products
                 # create additional layer with +/-360dg latitude offset 
-                name   = "%s_2%s"%( cov_name , self.suffix )
+                name   = "%s_2%s"%( base_name , self.suffix )
                 extent = wrap_extent_around_dateline( cov.extent, cov.srid )
                 layer  = self._data_layer( cov, name, extent, layer_subgroup,
                             wrapped=True, mask=mask_name, indices=indices )

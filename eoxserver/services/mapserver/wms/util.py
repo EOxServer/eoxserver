@@ -44,6 +44,7 @@ from eoxserver.services.result import result_set_from_raw_data, get_content_type
 logger = logging.getLogger(__name__)
 
 
+
 class MapServerWMSBaseComponent(Component):
     """ Base class for various WMS render components using MapServer.
     """
@@ -52,6 +53,7 @@ class MapServerWMSBaseComponent(Component):
     layer_plugins = ExtensionPoint(LayerPluginInterface) 
     style_applicators = ExtensionPoint(StyleApplicatorInterface)
 
+    # ------------------------------------------------------------------------
 
     def render(self, layer_groups, request_values, **options):
         map_ = ms.Map()
@@ -62,11 +64,29 @@ class MapServerWMSBaseComponent(Component):
         session = self.setup_map(layer_groups, map_, options)
         
         with session:
-            request = ms.create_request(request_values)
+            request = ms.create_request( self._alter_request(request_values) )
             raw_result = map_.dispatch(request)
 
             result = result_set_from_raw_data(raw_result)
             return result, get_content_type(result)
+
+
+    def _alter_request( self , request_values ): 
+        """ alter parameters of the WMS requet """
+
+        for key,value in request_values : 
+
+            if key == "LAYERS" : 
+                # Assure, when a layer appears multiple times in the list,
+                # the last instance is rendered. The mapserver renders 
+                #  always the first instance. 
+                ll = [] 
+                for l in reversed(value.split(',')) : 
+                    if l not in ll : 
+                        ll.append(l)
+                value = ",".join( reversed(ll) ) 
+
+            yield (key,value)  
 
 
     @property
@@ -83,15 +103,6 @@ class MapServerWMSBaseComponent(Component):
 
     def setup_map(self, layer_selections, map_, options):
 
-        #---------------------------------------------------------
-        # debug print - list existing mapserver layers 
-        logger.debug("MAP: %s", map_)
-        logger.debug("Initial Layers: ")
-        for i in count() :
-            l = map_.getLayer(i)
-            if not l : break
-            logger.debug("\t %s -> %s ", l.name, l.group )
-        logger.debug("Initial Layers: end of list")
         #---------------------------------------------------------
 
         def _get_new_layer_factory(ls,opt):
@@ -119,33 +130,24 @@ class MapServerWMSBaseComponent(Component):
                     connector = self.get_connector(data_items)
                     session.add(connector, coverage, data_items, layer)
 
-                # NOTE: The map_ object shall be cleaned befor inserting
-                #       new layers!
-                #old_layer = map_.getLayerByName(layer.name)
-                #if old_layer:
-                    # remove the old layer and reinsert the new one, to
-                    # raise the layer to the top.
-                    # TODO: find a more efficient way to do this
-                    #map_.removeLayer(old_layer.index)
-
                 map_.insertLayer(layer)
+
+                # TODO: move this to map/legendgraphic renderer only?
+                # apply the styling
+                for applicator in self.style_applicators:
+                    applicator.apply(coverage, data_items, layer)
 
         #---------------------------------------------------------
         # debug print - list existing mapserver layers 
-        logger.debug("MAP: %s", map_)
-        logger.debug("Current Layers: ")
+        logger.debug("Produced Layers: ")
         for i in count() :
             l = map_.getLayer(i)
             if not l : break
-            logger.debug("\t %s -> %s ", l.name, l.group )
-        logger.debug("Current Layers: end of list")
+            try: group = l.getMetaData("wms_layer_group")
+            except: group = None  
+            logger.debug("\t %s -> %s ", l.name, group )
+        logger.debug("Produced Layers: end of list")
         #---------------------------------------------------------
-
-        # TODO: apply styles
-        # TODO: move this to map/legendgraphic renderer only?
-        #for coverage, layer, data_items in session.coverage_layers:
-        #    for applicator in self.style_applicators:
-        #        applicator.apply(coverage, data_items, layer)
 
         return session
 
