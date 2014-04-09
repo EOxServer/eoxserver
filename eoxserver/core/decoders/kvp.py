@@ -47,10 +47,14 @@ class Parameter(BaseParameter):
         self.separator = separator
         self.num = num
         self.default = default
-        self.locator = locator
+        self._locator = locator
 
     def select(self, decoder, decoder_class=None):
         return decoder._query_dict.get(self.key, [])
+
+    @property
+    def locator(self):
+        return self._locator or self.key
 
 
 class DecoderMetaclass(type):
