@@ -564,6 +564,7 @@ class WCS20GetCoverageTiledTestCase(testbase.RectifiedGridCoverageTestCase):
 #        return (params, "kvp")
 
 class WCS20GetCoverageJPEG2000InputTestCase(testbase.RectifiedGridCoverageTestCase):
+    fixtures = testbase.RectifiedGridCoverageTestCase.fixtures + ["meris_coverages_jpeg2000.json"]
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced_JPEG2000&format=image/tiff"
         return (params, "kvp")
