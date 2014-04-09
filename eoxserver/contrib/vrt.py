@@ -100,9 +100,12 @@ class VRTBuilder(object):
             try:
                 src = src.GetFileList()[0]
             except AttributeError:
-                raise ValueErrror("Expected string or GDAL Dataset.")
+                raise ValueError("Expected string or GDAL Dataset.")
             except IndexError:
-                raise ValueErrror("Supplied Dataset does not have a filename.")
+                raise ValueError("Supplied Dataset does not have a filename.")
+
+
+        print src_rect, dst_rect
 
         lines = [
             "<SimpleSource>",

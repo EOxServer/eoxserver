@@ -88,10 +88,14 @@ class Rect(tuple):
 
     def translated(self, (diff_x, diff_y)):
         return Rect(
-            self.size_x, self.size_y, 
-            self.offset_x + diff_x, self.offset_y + diff_y
+            self.offset_x + diff_x, self.offset_y + diff_y,
+            self.size_x, self.size_y
         )
 
     __add__ = translated
 
     __sub__ = (lambda self, (x, y): self.translated((-x, -y)))
+
+
+    def __repr__(self):
+        return "Rect(offset_x=%s, offset_y=%s, size_x=%s, size_y=%s)" % self
