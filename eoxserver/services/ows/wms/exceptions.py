@@ -5,7 +5,7 @@
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
 #-------------------------------------------------------------------------------
-# Copyright (C) 2013 EOX IT Services GmbH
+# Copyright (C) 2014 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,49 +27,9 @@
 #-------------------------------------------------------------------------------
 
 
-from lxml import etree
+class LayerNotDefined(Exception):
+    def __init__(self, layer):
+        super(LayerNotDefined, self).__init__("No such layer '%s'." % layer)
 
-from eoxserver.core.decoders.base import BaseParameter
-
-
-class Parameter(BaseParameter):
-    """ Parameter for XML values.
-    """
-
-    def __init__(self, selector, type=None, num=1, default=None, 
-                 namespaces=None, locator=None):
-        self.selector = selector
-        self.type = type or str # default to string, because XPath might return some kind of object
-        self.num = num # int or "?", "+", "*"
-        self.default = default # only used for "?"
-        self.namespaces = namespaces
-        self._locator = locator
-
-
-    def select(self, decoder, decoder_class=None):
-        # prepare the XPath selector if necessary
-        if isinstance(self.selector, basestring):
-            namespaces = self.namespaces or decoder_class.namespaces
-            self.selector = etree.XPath(self.selector, namespaces=namespaces)
-
-        results = self.selector(decoder._tree)
-        if isinstance(results, basestring):
-            results = [results]
-
-        return results
-        
-    @property
-    def locator(self):
-        return self._locator or str(self.selector)
-
-
-class Decoder(object):
-    """ Base class for XML Decoders.
-    """
-
-    namespaces = {}
-
-    def __init__(self, tree):
-        if isinstance(tree, basestring):
-            tree = etree.fromstring(tree)
-        self._tree = tree
+    locator = "layers"
+    code = "LayerNotDefined"

@@ -32,6 +32,7 @@ from eoxserver.resources.coverages import models
 from eoxserver.core.decoders import InvalidParameterException
 from eoxserver.core.util.timetools import parse_iso8601
 from eoxserver.services.subset import Trim, Slice
+from eoxserver.services.ows.wms.exceptions import LayerNotDefined
 
 logger = logging.getLogger(__name__)
 
@@ -39,9 +40,18 @@ logger = logging.getLogger(__name__)
 
 def parse_bbox(string):
     try:
-        return map(float, string.split(","))
+        bbox = map(float, string.split(","))
     except ValueError:
-        raise InvalidParameterException("Invalid BBOX parameter.", "bbox")
+        raise InvalidParameterException("Invalid 'BBOX' parameter.", "bbox")
+
+    try:
+        minx, miny, maxx, maxy = bbox
+    except ValueError:
+        raise InvalidParameterException(
+            "Wrong number of arguments for 'BBOX' parameter.", "bbox"
+        )
+
+    return bbox
 
 
 def parse_time(string):

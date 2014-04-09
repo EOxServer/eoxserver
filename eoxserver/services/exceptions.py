@@ -76,12 +76,19 @@ class LocatorListException(Exception):
         return " ".join(self.items)
 
 
-class InvalidAxisLabelException(LocatorListException):
+class InvalidAxisLabelException(Exception):
     """
     This exception indicates that an invalid axis name was chosen in a WCS
     2.0 subsetting parameter.
     """
-    code = "InvalidAxisLabels"
+    code = "InvalidAxisLabel"
+
+    def __init__(self, axis_label):
+        super(InvalidAxisLabelException, self).__init__(
+            "Invalid axis label: '%s'." % axis_label
+        )
+        self.locator = axis_label
+    
 
 
 class InvalidSubsettingException(Exception):

@@ -34,7 +34,7 @@ from django.http import QueryDict
 from eoxserver.core.decoders.base import BaseParameter
 
 
-class Parameter(object):
+class Parameter(BaseParameter):
     """ Parameter for KVP values.
     """
 
@@ -47,10 +47,14 @@ class Parameter(object):
         self.separator = separator
         self.num = num
         self.default = default
-        self.locator = locator
+        self._locator = locator
 
     def select(self, decoder, decoder_class=None):
         return decoder._query_dict.get(self.key, [])
+
+    @property
+    def locator(self):
+        return self._locator or self.key
 
 
 class DecoderMetaclass(type):

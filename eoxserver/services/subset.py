@@ -412,9 +412,7 @@ class Subset(object):
     def __init__(self, axis, crs=None):
         axis = axis.lower()
         if axis not in all_axes:
-            raise InvalidAxisLabelException(
-                "Axis '%s' is not valid or supported." % axis
-            )
+            raise InvalidAxisLabelException(axis)
         self.axis = axis
         self.crs = crs
 
