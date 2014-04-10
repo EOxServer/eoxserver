@@ -181,14 +181,14 @@ class GDALReferenceableDatasetRenderer(Component):
 
         # pixel subset
         elif subsets.xy_srid is None: # means "imageCRS"
-            minx, miny, maxx, maxy = subsets.xy_bbox
+            minx, miny, maxx, maxy = map(int, subsets.xy_bbox)
 
             minx = minx if minx is not None else image_rect.offset_x
             miny = miny if miny is not None else image_rect.offset_y
             maxx = maxx if maxx is not None else image_rect.upper_x
             maxy = maxy if maxy is not None else image_rect.upper_y
 
-            subset_rect = Rect(minx, miny, maxx-minx, maxy-miny)
+            subset_rect = Rect(minx, miny, maxx-minx+1, maxy-miny+1)
 
         else:
             vrt = VRTBuilder(size_x, size_y)
@@ -203,25 +203,21 @@ class GDALReferenceableDatasetRenderer(Component):
 
         # check whether or not the subsets intersect with the image
         if not image_rect.intersects(subset_rect):
-            raise RenderException("Subset outside coverage extent.") # TODO: correct exception
+            raise RenderException("Subset outside coverage extent.")
 
         # in case the input and output rects are the same, return None to 
         # indicate this
         #if image_rect == subset_rect:
         #    return None
 
-        return image_rect & subset_rect
+        return (subset_rect & image_rect) - subset_rect.offset 
 
 
     def perform_range_subset(self, src_ds, range_type, subset_bands, 
                              subset_rect):
 
-
-        # TODO: something fishy here!
-
-
-        vrt = VRTBuilder(*subset_rect.size)#src_ds.RasterXSize, src_ds.RasterYSize)
-        dst_rect = Rect(0, 0, src_ds.RasterXSize, src_ds.RasterYSize)
+        vrt = VRTBuilder(*subset_rect.size)
+        dst_rect = Rect(0, 0, *subset_rect.size)
 
         input_bands = list(range_type)
         for index, subset_band in enumerate(subset_bands, start=1):
@@ -251,8 +247,8 @@ class GDALReferenceableDatasetRenderer(Component):
         return vrt.dataset
 
     def perform_subset(self, src_ds, subset_rect):
-        vrt = VRTBuilder(src_ds.RasterXSize, src_ds.RasterYSize)
-        dst_rect = Rect(0, 0, src_ds.RasterXSize, src_ds.RasterYSize)
+        vrt = VRTBuilder(*subset_rect.size)
+        dst_rect = Rect(0, 0, *subset_rect.size)
 
         for index in xrange(1, src_ds.RasterCount + 1):
             src_band = src_ds.GetRasterBand(index)
