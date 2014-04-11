@@ -1,7 +1,8 @@
 EOxServer
 ========= 
 
-[![Build Status](https://travis-ci.org/EOxServer/eoxserver.svg?branch=travis-support)](https://travis-ci.org/EOxServer/eoxserver)
+.. image:: https://travis-ci.org/EOxServer/eoxserver.svg?branch=travis-support
+   :target: https://travis-ci.org/EOxServer/eoxserver
 
 EOxServer is a Python application and framework for presenting Earth
 Observation (EO) data and metadata.
