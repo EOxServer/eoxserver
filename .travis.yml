@@ -26,6 +26,7 @@ install:
 script:
   #- 'if ["$DB" == "postgis"]; then sudo -u postgres createdb eoxserver_demo; fi'
   #- 'if ["$DB" == "postgis"]; sudo -u postgres psql eoxserver_demo -c ''create extension postgis;''; fi'
+  - python -c "from osgeo import gdal; print dir(gdal)"
   - cd autotest
   - python manage.py test core
   - python manage.py test backends
