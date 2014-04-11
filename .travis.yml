@@ -8,7 +8,7 @@ python:
   - "2.7"
 virtualenv:
   system_site_packages: true
-before-install:
+before_install:
   # adding required repo for dependencies
   - sudo add-apt-repository -y ppa:ubuntugis/ubuntugis-unstable
   - sudo apt-get update
