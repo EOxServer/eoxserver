@@ -1,3 +1,5 @@
+# Shields: [![Build Status](https://travis-ci.org/EOxServer/eoxserver.svg?branch=travis-support)](https://travis-ci.org/EOxServer/eoxserver)
+
 EOxServer
 =========
 
