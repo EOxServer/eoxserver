@@ -104,9 +104,6 @@ class VRTBuilder(object):
             except IndexError:
                 raise ValueError("Supplied Dataset does not have a filename.")
 
-
-        print src_rect, dst_rect
-
         lines = [
             "<SimpleSource>",
             '<SourceFilename relativeToVRT="1">%s</SourceFilename>' % src,
@@ -125,6 +122,3 @@ class VRTBuilder(object):
         lines.append("</SimpleSource>")
 
         self._add_source_to_band(band_index, "".join(lines))
-
-
-        
