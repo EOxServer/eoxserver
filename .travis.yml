@@ -16,12 +16,12 @@ before_install:
   # install a lot of deps from the apt-repos
   - sudo apt-get install -qq -y gdal-bin libgdal1-dev libxml2 python-lxml python-libxml2 libproj0 libproj-dev libgeos-dev libgeos++-dev cgi-mapserver python-mapscript python-psycopg2 postgis python-gdal
   # allowing sqlite to load extensions
-  - 'if [ "$DB" == "sqlite" ]; then wget https://pypi.python.org/packages/source/p/pysqlite/pysqlite-2.6.3.tar.gz fi'
-  - 'if [ "$DB" == "sqlite" ]; then tar xzf pysqlite-2.6.3.tar.gz fi'
-  - 'if [ "$DB" == "sqlite" ]; then cd pysqlite-2.6.3 fi'
-  - 'if [ "$DB" == "sqlite" ]; then sed -i "/define=SQLITE_OMIT_LOAD_EXTENSION/c\#define=SQLITE_OMIT_LOAD_EXTENSION" setup.cfg fi'
-  - 'if [ "$DB" == "sqlite" ]; then sudo python setup.py install fi'
-  - 'if [ "$DB" == "sqlite" ]; then cd - fi'
+  - 'if [ "$DB" == "sqlite" ]; then wget https://pypi.python.org/packages/source/p/pysqlite/pysqlite-2.6.3.tar.gz; fi'
+  - 'if [ "$DB" == "sqlite" ]; then tar xzf pysqlite-2.6.3.tar.gz; fi'
+  - 'if [ "$DB" == "sqlite" ]; then cd pysqlite-2.6.3; fi'
+  - 'if [ "$DB" == "sqlite" ]; then sed -i "/define=SQLITE_OMIT_LOAD_EXTENSION/c\#define=SQLITE_OMIT_LOAD_EXTENSION" setup.cfg; fi'
+  - 'if [ "$DB" == "sqlite" ]; then sudo python setup.py install; fi'
+  - 'if [ "$DB" == "sqlite" ]; then cd -; fi'
   - 'if [ "$DB" == "postgis" ]; then sudo -u postgres createdb eoxserver_demo; fi'
   - 'if [ "$DB" == "postgis" ]; sudo -u postgres psql eoxserver_demo -c ''create extension postgis;''; fi'
 install:
