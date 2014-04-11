@@ -70,8 +70,8 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
     <ows:Operation name="DescribeCoverage">
       <ows:DCP>
         <ows:HTTP>
-          <ows:Get xlink:href="http://localhost:8000/ows?" xlink:type="simple"/>
-          <ows:Post xlink:href="http://localhost:8000/ows?" xlink:type="simple"/>
+          <ows:Get xlink:type="simple" xlink:href="http://localhost:8000/ows?"/>
+          <ows:Post xlink:type="simple" xlink:href="http://localhost:8000/ows?"/>
         </ows:HTTP>
       </ows:DCP>
       <ows:Parameter name="service">
@@ -130,6 +130,7 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
           <ows:Value>image/jp2</ows:Value>
           <ows:Value>application/x-netcdf</ows:Value>
           <ows:Value>application/x-hdf</ows:Value>
+          <ows:Value>image/png</ows:Value>
         </ows:AllowedValues>
       </ows:Parameter>
       <ows:Parameter name="store">
@@ -160,6 +161,7 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
       <SupportedFormat>image/jp2</SupportedFormat>
       <SupportedFormat>application/x-netcdf</SupportedFormat>
       <SupportedFormat>application/x-hdf</SupportedFormat>
+      <SupportedFormat>image/png</SupportedFormat>
       <Identifier>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</Identifier>
     </CoverageSummary>
     <CoverageSummary>
@@ -177,6 +179,7 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
       <SupportedFormat>image/jp2</SupportedFormat>
       <SupportedFormat>application/x-netcdf</SupportedFormat>
       <SupportedFormat>application/x-hdf</SupportedFormat>
+      <SupportedFormat>image/png</SupportedFormat>
       <Identifier>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</Identifier>
     </CoverageSummary>
     <CoverageSummary>
@@ -194,6 +197,7 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
       <SupportedFormat>image/jp2</SupportedFormat>
       <SupportedFormat>application/x-netcdf</SupportedFormat>
       <SupportedFormat>application/x-hdf</SupportedFormat>
+      <SupportedFormat>image/png</SupportedFormat>
       <Identifier>mosaic_MER_FRS_1P_RGB_reduced</Identifier>
     </CoverageSummary>
     <CoverageSummary>
@@ -211,6 +215,7 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
       <SupportedFormat>image/jp2</SupportedFormat>
       <SupportedFormat>application/x-netcdf</SupportedFormat>
       <SupportedFormat>application/x-hdf</SupportedFormat>
+      <SupportedFormat>image/png</SupportedFormat>
       <Identifier>ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775</Identifier>
     </CoverageSummary>
   </Contents>
