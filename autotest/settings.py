@@ -44,6 +44,7 @@ PROJECT_URL_PREFIX = ''
 
 #TODO
 #TEST_RUNNER = 'eoxserver.testing.core.EOxServerTestRunner'
+#TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -193,7 +194,8 @@ INSTALLED_APPS = (
     # Enable the databrowse:
     #'django.contrib.databrowse',
     # Enable for debugging
-    'django_extensions',
+    #'django_extensions',
+    #'django_nose',
     # Enable EOxServer:
     'eoxserver.core',
     'eoxserver.services',
