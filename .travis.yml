@@ -1,11 +1,12 @@
 language: python
 env:
-  - DJANGO=1.4 GDAL=1.10 DB=sqlite
+  #- DJANGO=1.4 GDAL=1.10 DB=sqlite
   - DJANGO=1.5 GDAL=1.10 DB=sqlite
-  - DJANGO=1.6 GDAL=1.10 DB=sqlite
+  #- DJANGO=1.6 GDAL=1.10 DB=sqlite
 python:
-  - "2.6"
+  #- "2.6"
   - "2.7"
+  #- "pypy"
 virtualenv:
   system_site_packages: true
 before_install:
