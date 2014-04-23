@@ -161,7 +161,7 @@ class WCS20DescribeEOCoverageSetFaultTestCase(testbase.ExceptionTestCase):
         return 404
     
     def getExpectedExceptionCode(self):
-        return "NoSuchCoverage"
+        return "NoSuchDatasetSeriesOrCoverage"
 
 class WCS20DescribeEOCoverageSetMissingParameterFaultTestCase(testbase.ExceptionTestCase):
     def getRequest(self):
