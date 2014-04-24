@@ -60,5 +60,15 @@
         "dataset": 12, 
         "location": "autotest/data/meris/MER_FRS_1P_reduced_reprojected/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected.tif"
     }
+},
+{
+    "pk": 12,
+    "model": "services.WMSRenderOptions",
+    "fields": {
+        "coverage": 12,
+        "scale_min": 0,
+        "scale_max": 65535,
+        "resampling": "NEAREST"
+    }
 }
 ]

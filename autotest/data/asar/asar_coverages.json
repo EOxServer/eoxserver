@@ -48,5 +48,15 @@
     "pk": 13, 
     "model": "coverages.referenceabledataset", 
     "fields": {}
+},
+{
+    "pk": 13,
+    "model": "services.WMSRenderOptions",
+    "fields": {
+        "coverage": 13,
+        "scale_min": 10,
+        "scale_max": 4000,
+        "resampling": "NEAREST"
+    }
 }
 ]

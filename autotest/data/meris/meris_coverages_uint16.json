@@ -229,5 +229,35 @@
         "dataset": 3, 
         "location": "autotest/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed.tif"
     }
+},
+{
+    "pk": 1,
+    "model": "services.WMSRenderOptions",
+    "fields": {
+        "coverage": 1,
+        "scale_min": 0,
+        "scale_max": 65535,
+        "resampling": "NEAREST"
+    }
+},
+{
+    "pk": 2,
+    "model": "services.WMSRenderOptions",
+    "fields": {
+        "coverage": 2,
+        "scale_min": 0,
+        "scale_max": 65535,
+        "resampling": "NEAREST"
+    }
+},
+{
+    "pk": 3,
+    "model": "services.WMSRenderOptions",
+    "fields": {
+        "coverage": 3,
+        "scale_min": 0,
+        "scale_max": 65535,
+        "resampling": "NEAREST"
+    }
 }
 ]
