@@ -35,6 +35,7 @@ from eoxserver.core import Component, implements
 from eoxserver.contrib import mapserver as ms
 from eoxserver.resources.coverages import models, crss
 from eoxserver.services.mapserver.interfaces import LayerFactoryInterface
+from eoxserver.services import models as service_models
 
 from eoxserver.resources.coverages.dateline import (
     extent_crosses_dateline, wrap_extent_around_dateline
@@ -135,7 +136,6 @@ class PolygonLayerMixIn(object):
 
         return layer
 
-#-------------------------------------------------------------------------------
 
 class PlainLayerMixIn(object): 
 
@@ -161,6 +161,38 @@ class PlainLayerMixIn(object):
 
         return layer
 
+    def get_render_options(self, coverage):
+        try:
+            return service_models.WMSRenderOptions.objects.get(
+                coverage=coverage
+            )
+        except service_models.WMSRenderOptions.DoesNotExist:
+            return None
+
+    def set_render_options(self, layer, offsite=None, options=None):
+        if offsite:
+            layer.offsite = offsite
+        if options:
+            red = options.default_red
+            green = options.default_green
+            blue = options.default_blue
+            alpha = options.default_alpha
+
+            if red is not None and green is not None and blue is not None:
+                bands = "%d,%d,%d" % (red, green, blue)
+                if alpha is not None:
+                    bands += alpha
+                layer.setProcessingKey("BANDS", bands)
+
+            if options.scale_auto:
+                layer.setProcessingKey("SCALE", "AUTO")
+            elif options.scale_min is not None and options.scale_max is not None:
+                layer.setProcessingKey(
+                    "SCALE", "%d,%d" % (options.scale_min, options.scale_max)
+                )
+
+            if options.resampling:
+                layer.setProcessingKey("RESAMPLE", str(options.resampling))
 
     def _set_projection(self, layer, sr):
         short_epsg = "EPSG:%d" % sr.srid
@@ -168,16 +200,14 @@ class PlainLayerMixIn(object):
         layer.setMetaData("ows_srs", short_epsg) 
         layer.setMetaData("wms_srs", short_epsg) 
 
-#-------------------------------------------------------------------------------
-    
-class AbstractLayerFactory(PlainLayerMixIn,Component):
+  
+class AbstractLayerFactory(PlainLayerMixIn, Component):
     implements(LayerFactoryInterface)
     abstract = True
 
     def generate(self, eo_object, group_layer, suffix, options):
         raise NotImplementedError
 
-#-------------------------------------------------------------------------------
 
 class BaseCoverageLayerFactory(OffsiteColorMixIn, PlainLayerMixIn, Component):
     implements(LayerFactoryInterface)
@@ -195,6 +225,7 @@ class BaseCoverageLayerFactory(OffsiteColorMixIn, PlainLayerMixIn, Component):
         range_type = coverage.range_type
 
         offsite = self.offsite_color_from_range_type(range_type)
+        options = self.get_render_options(coverage)
         
         if extent_crosses_dateline(extent, srid):
             identifier = coverage.identifier
@@ -202,21 +233,20 @@ class BaseCoverageLayerFactory(OffsiteColorMixIn, PlainLayerMixIn, Component):
             layer = self._create_layer(
                 coverage, identifier + "_unwrapped", extent, identifier
             )
-            if offsite:
-                layer.offsite = offsite
+
+            self.set_render_options(layer, offsite, options)
+            self.set_render_options(layer, offsite, options)
             yield layer, data_items
             wrapped_layer = self._create_layer(
                 coverage, identifier + "_wrapped", wrapped_extent, identifier, True
             )
-            if offsite:
-                wrapped_layer.offsite = offsite
+            self.set_render_options(wrapped_layer, offsite, options)
             yield wrapped_layer, data_items
         else:
             layer = self._create_layer(
                 coverage, coverage.identifier, extent
             )
-            if offsite:
-                layer.offsite = offsite
+            self.set_render_options(layer, offsite, options)
             yield layer, data_items
 
 
