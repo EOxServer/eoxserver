@@ -43,7 +43,7 @@ class WMS11GetMapTestCase(testbase.RasterTestCase):
     height = 100
     frmt = "image/jpeg"
     time = None
-    dim_band = None
+    dim_bands = None
     
     swap_axes = True
     
@@ -67,8 +67,8 @@ class WMS11GetMapTestCase(testbase.RasterTestCase):
         if self.time:
             params += "&time=%s" % self.time
             
-        if self.dim_band:
-            params += "&dim_band=%s" % self.dim_band
+        if self.dim_bands:
+            params += "&dim_bands=%s" % self.dim_bands
         
         if self.httpHeaders is None:
             return (params, "kvp")
@@ -84,7 +84,7 @@ class WMS13GetMapTestCase(testbase.RasterTestCase):
     height = 100
     frmt = "image/jpeg"
     time = None
-    dim_band = None
+    dim_bands = None
     
     swap_axes = True
     
@@ -113,8 +113,8 @@ class WMS13GetMapTestCase(testbase.RasterTestCase):
         if self.time:
             params += "&time=%s" % self.time
             
-        if self.dim_band:
-            params += "&dim_band=%s" % self.dim_band
+        if self.dim_bands:
+            params += "&dim_bands=%s" % self.dim_bands
         
         if self.httpHeaders is None:
             return (params, "kvp")

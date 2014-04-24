@@ -627,7 +627,10 @@ class WCS20GetCoverageSubsetInvalidEPSGFaultTestCase(testbase.ExceptionTestCase)
         return (params, "kvp")
     
     def getExpectedExceptionCode(self):
-        return "InvalidParameterValue"
+        return "InvalidSubsetting"
+
+    def getExpectedHTTPStatus(self):
+        return 404
 
 #===============================================================================
 # WCS 2.0: OutputCRS

@@ -170,7 +170,7 @@ class WMS13GetMapReferenceableGridTestCase(wmsbase.WMS13GetMapTestCase):
 
 class WMS13GetMapReferenceableGridReprojectionTestCase(wmsbase.WMS13GetMapTestCase):
     layers = ("ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775", )
-    crs = "epsg:32734"
+    crs = "EPSG:32734"
     bbox = (122043.08622624225, 6008645.867004246, 594457.4634022854, 6459127.468615601)
     width = 472
     height = 451
@@ -228,13 +228,13 @@ class WMS13GetMapDatasetOneBandTestCase(wmsbase.WMS13GetMapTestCase):
     """ Test a GetMap request with a dataset containing 15 bands. """
     layers = ("MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed_bands",)
     bbox = (8.487755775451660, 32.195316643454134, 25.407486727461219, 46.249103546142578)
-    dim_band = "MERIS_radiance_01_uint16"
+    dim_bands = "MERIS_radiance_01_uint16"
 
 class WMS13GetMapDatasetThreeBandsTestCase(wmsbase.WMS13GetMapTestCase):
     """ Test a GetMap request with a dataset containing 15 bands. """
     layers = ("MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed_bands",)
     bbox = (8.487755775451660, 32.195316643454134, 25.407486727461219, 46.249103546142578)
-    dim_band = "MERIS_radiance_02_uint16,MERIS_radiance_08_uint16,MERIS_radiance_12_uint16"
+    dim_bands = "MERIS_radiance_02_uint16,MERIS_radiance_08_uint16,MERIS_radiance_12_uint16"
 
 #===============================================================================
 # Reprojected
@@ -321,6 +321,9 @@ class WMS13GetMapDatasetSeriesMaskedTestCase(wmsbase.WMS13GetMapTestCase):
 # Styled Coverages
 #===============================================================================
 
+# currently disabled because of segfaults in MapServer
+
+'''
 class WMS13GetMapDatasetStyledTestCase(wmsbase.WMS13GetMapTestCase):
     """ Test a GetMap request a dataset with an associated style. """
     fixtures = wmsbase.WMS13GetMapTestCase.fixtures + [
@@ -330,7 +333,7 @@ class WMS13GetMapDatasetStyledTestCase(wmsbase.WMS13GetMapTestCase):
     layers = ("FSC_0.0025deg_201303030930_201303031110_MOD_Alps_ENVEOV2.1.00",)
     bbox = (6, 44.5, 16, 48)
     width = 200
-
+'''
 #===============================================================================
 # Feature Info
 #===============================================================================
@@ -378,6 +381,9 @@ class WMS13GetFeatureInfoEOOMTestCase(testbase.XMLTestCase):
 # Legend Graphic
 #===============================================================================
 
+# currently disabled because of segfaults in MapServer
+
+'''
 class WMS13GetLegendGraphicDatasetStyledTestCase(testbase.RasterTestCase):
     """ Test a GetLegendGraphic request for a dataset with an associated style. """
     
@@ -391,3 +397,4 @@ class WMS13GetLegendGraphicDatasetStyledTestCase(testbase.RasterTestCase):
 
     def getFileExtension(self, file_type):
         return "png"
+'''
