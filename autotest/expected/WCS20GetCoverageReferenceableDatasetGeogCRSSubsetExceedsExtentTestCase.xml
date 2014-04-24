@@ -7,7 +7,7 @@
     </gml:Envelope>
   </gml:boundedBy>
   <gml:domainSet>
-    <gml:ReferenceableGrid dimension="2" gml:id="ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775_grid">
+    <gml:ReferenceableGrid gml:id="ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775_grid" dimension="2">
       <gml:limits>
         <gml:GridEnvelope>
           <gml:low>0 0</gml:low>
@@ -19,8 +19,8 @@
   </gml:domainSet>
   <gml:rangeSet>
     <gml:File>
-      <gml:rangeParameters xlink:arcrole="fileReference" xlink:href="cid:coverage/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tif" xlink:role="image/tiff"/>
-      <gml:fileReference>cid:coverage/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tif</gml:fileReference>
+      <gml:rangeParameters xlink:href="cid:coverage/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_161215" xlink:arcrole="fileReference" xlink:role="image/tiff"/>
+      <gml:fileReference>cid:coverage/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_161215</gml:fileReference>
       <gml:fileStructure/>
       <gml:mimeType>image/tiff</gml:mimeType>
     </gml:File>
@@ -71,7 +71,7 @@
                     <gml:Polygon gml:id="polygon_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775">
                       <gml:exterior>
                         <gml:LinearRing>
-                          <gml:posList>-32.53056000 20.09945700 -33.03902600 22.30175400 -35.81434594 21.40571795 -35.61403300 20.50617000 -35.36345800 19.43062500 -35.10368100 18.36289400 -34.83467900 17.30232000 -33.86088300 17.67133300 -32.88583400 18.03176600 -32.08424839 18.32134075 -32.53056000 20.09945700</gml:posList>
+                          <gml:posList>-32.08461378 18.32279648 -32.53056000 20.09945700 -33.03902600 22.30175400 -35.81502978 21.40549717 -35.61437600 20.50798200 -35.36350800 19.43260800 -35.10376900 18.36429600 -34.83515800 17.30304600 -33.86074900 17.67047100 -32.88559700 18.03158500 -32.08461378 18.32279648</gml:posList>
                         </gml:LinearRing>
                       </gml:exterior>
                     </gml:Polygon>
