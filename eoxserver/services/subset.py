@@ -98,11 +98,18 @@ class Subsets(list):
         )
 
         if len(all_crss) != 1:
-            raise Exception("All X/Y crss must be the same")
+            raise InvalidSubsettingException("All X/Y crss must be the same")
 
         xy_crs = iter(all_crss).next()
         if xy_crs is not None:
-            return crss.parseEPSGCode(xy_crs, (crss.fromURL, crss.fromURN))
+            srid = crss.parseEPSGCode(xy_crs, 
+                (crss.fromURL, crss.fromURN, crss.fromShortCode)
+            )
+            if srid is None and not crss.is_image_crs(xy_crs):
+                raise InvalidSubsettingException(
+                    "Could not parse EPSG code from URI '%s'" % xy_crs
+                )
+            return srid
         return None
 
 
@@ -114,6 +121,7 @@ class Subsets(list):
 
         bbox = [None, None, None, None]
         srid = self.xy_srid
+
         if srid is None:
             srid = 4326
         max_extent = crss.crs_bounds(srid)
