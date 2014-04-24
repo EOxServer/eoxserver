@@ -67,13 +67,14 @@ class VRTBuilder(object):
         for key, value in ds.GetMetadata().items():
             self._ds.SetMetadataItem(key, value)
 
-    def copy_gcps(self, ds, rect=None):
+    def copy_gcps(self, ds, offset=None):
         gcps = ds.GetGCPs()
-        if rect:
+        if offset:
             gcps = [
                 gdal.GCP(
-                    gcp.GCPX, gcp.GCPY, gcp.GCPZ, gcp.GCPPixel-rect[0], 
-                    gcp.GCPLine-rect[1], gcp.Info, gcp.Id
+                    gcp.GCPX, gcp.GCPY, gcp.GCPZ, 
+                    gcp.GCPPixel-offset[0], gcp.GCPLine-offset[1], 
+                    gcp.Info, gcp.Id
                 ) for gcp in gcps
             ]
         self._ds.SetGCPs(gcps, ds.GetGCPProjection())

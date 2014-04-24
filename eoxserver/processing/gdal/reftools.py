@@ -306,7 +306,8 @@ def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
     ptr = C.c_void_p(long(ds.this))
 
     # when not provided set SRID to 0 
-    if srid is None : srid = 0 
+    if srid is None:
+        srid = 0 
 
     ret = _create_rectified_vrt(ptr, vrt_path, srid,
         resample, memory_limit, max_error, 
