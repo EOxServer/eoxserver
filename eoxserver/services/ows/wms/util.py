@@ -83,6 +83,7 @@ def lookup_layers(layers, subsets, suffixes=None):
     suffixes = suffixes or (None,)
     logger.debug(str(suffixes))
 
+
     for layer_name in layers:
         for suffix in suffixes:
             if not suffix:
@@ -147,7 +148,6 @@ def lookup_layers(layers, subsets, suffixes=None):
         elif models.iscoverage(eo_object):
             # Add a layer selection for the coverage with the suffix
             selection = LayerSelection(None, suffix=suffix)
-
             if subsets.matches(eo_object):
                 selection.append(eo_object.cast(), eo_object.identifier)
             else:
