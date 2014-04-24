@@ -103,7 +103,6 @@ class BaseRenderer(Component):
             "resolution": "%.10g %.10g" % resolution,
             "size": "%d %d" % size,
             "bandcount": str(len(bands)),
-            
             "interval": "%f %f" % bands[0].allowed_values,
             "significant_figures": "%d" % bands[0].significant_figures,
             "rangeset_name": range_type.name,
