@@ -331,7 +331,10 @@ class WCS20DescribeEOCoverageSetInvalidAxisLabelFaultTestCase(testbase.Exception
 
 class WCS20DescribeEOCoverageSetDatasetPagingCountTestCase(testbase.WCS20DescribeEOCoverageSetPagingTestCase):
     def getExpectedCoverageCount(self):
-        return 2
+        return 1
+
+    def getExpectedDatasetSeriesCount(self):
+        return 1
     
     def getRequest(self):
         params = "service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=MER_FRS_1P_reduced&count=2"

@@ -892,6 +892,9 @@ class WCS20DescribeEOCoverageSetSubsettingTestCase(XMLTestCase):
 class WCS20DescribeEOCoverageSetPagingTestCase(XMLTestCase):
     def getExpectedCoverageCount(self):
         return 0
+
+    def getExpectedDatasetSeriesCount(self):
+        return 0
     
     def testCoverageCount(self):
         tree = etree.fromstring(self.getXMLData())
@@ -902,6 +905,13 @@ class WCS20DescribeEOCoverageSetPagingTestCase(XMLTestCase):
             }
         )
         self.assertEqual(len(coverage_ids), self.getExpectedCoverageCount())
+        dss_ids = tree.xpath(
+            "wcseo:DatasetSeriesDescriptions/wcseo:DatasetSeriesDescription/wcseo:DatasetSeriesId/text()",
+            namespaces={
+                "wcseo": "http://www.opengis.net/wcseo/1.0"
+            }
+        )
+        self.assertEqual(len(dss_ids), self.getExpectedDatasetSeriesCount())
 
 class WCS20DescribeEOCoverageSetSectionsTestCase(XMLTestCase):
     def getExpectedSections(self):
