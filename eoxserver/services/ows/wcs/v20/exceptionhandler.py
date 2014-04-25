@@ -56,7 +56,7 @@ class WCS20ExceptionHandler(Component):
             else:
                 code = "InvalidRequest"
 
-        if code in ("NoSuchCoverage", "NoSuchCoverageOrDatasetSeries", 
+        if code in ("NoSuchCoverage", "NoSuchDatasetSeriesOrCoverage", 
                     "InvalidAxisLabel", "InvalidSubsetting"):
             status = 404
         elif code in ("OperationNotSupported", "OptionNotSupported"):
