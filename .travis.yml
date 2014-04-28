@@ -4,9 +4,7 @@ env:
   - DJANGO=1.5 GDAL=1.10 DB=sqlite
   - DJANGO=1.6 GDAL=1.10 DB=sqlite
 python:
-  - "2.6"
   - "2.7"
-  - "pypy"
 virtualenv:
   system_site_packages: true
 before_install:
@@ -24,13 +22,14 @@ before_install:
   - 'if [ "$DB" == "sqlite" ]; then cd -; fi'
   - 'if [ "$DB" == "postgis" ]; then sudo -u postgres createdb eoxserver_demo; fi'
   - 'if [ "$DB" == "postgis" ]; then sudo -u postgres psql eoxserver_demo -c ''create extension postgis;''; fi'
+  - export XML_CATALOG_FILES="`pwd`/schemas/catalog.xml"
+  - cd autotest
 install:
   # test with various Django versions
   - pip install -q Django==$DJANGO
   # actually install EOxServer
   - pip install --install-option="--disable-extended-reftools" .
 script:
-  - cd autotest
   - python manage.py test core
   - python manage.py test backends
   - python manage.py test coverages
