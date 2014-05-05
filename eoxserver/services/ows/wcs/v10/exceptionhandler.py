@@ -68,4 +68,4 @@ class WCS10ExceptionHandler(Component):
             status = 501
 
 
-        return "xxx", 400  #content, content_type, status
+        return message, 400  #content, content_type, status

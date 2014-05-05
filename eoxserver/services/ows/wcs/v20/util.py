@@ -36,7 +36,9 @@ from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap, ns_xsi
 from eoxserver.core.util.timetools import parse_iso8601
 from eoxserver.services.subset import Trim, Slice, is_temporal
 from eoxserver.services.ows.common.v20.encoders import ns_xlink, ns_ows, OWS
-from eoxserver.services.exceptions import InvalidSubsettingException
+from eoxserver.services.exceptions import (
+    InvalidSubsettingException, InvalidAxisLabelException
+)
 
 
 # namespace declarations
@@ -126,6 +128,8 @@ def parse_subset_kvp(string):
             )
         else:
             return Slice(axis, parser(match.group(4)), crs)
+    except InvalidAxisLabelException:
+        raise
     except Exception, e:
         raise InvalidSubsettingException(str(e))
 

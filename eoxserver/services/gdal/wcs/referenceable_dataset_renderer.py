@@ -78,32 +78,26 @@ class GDALReferenceableDatasetRenderer(Component):
 
         # retrieve area of interest of the source image according to given 
         # subsets
-        src_rect = self.get_source_image_rect(src_ds, subsets)
+        src_rect, dst_rect = self.get_source_and_dest_rect(src_ds, subsets)
 
         # deduct "native" format of the source image
         native_format = data_items[0].format if len(data_items) == 1 else None
 
         # get the requested image format, which defaults to the native format
         # if available
-        format = params.format or native_format
+        frmt = params.format or native_format
 
-        if not format:
-            raise RenderException("No format specified.")
+        if not frmt:
+            raise RenderException("No format specified.", "format")
 
 
         # perform subsetting either with or without rangesubsetting
-        if params.rangesubset:
-            subsetted_ds = self.perform_range_subset(
-                src_ds, range_type, subset_bands, src_rect, 
-            )
-
-        else:
-            subsetted_ds = self.perform_subset(
-                src_ds, src_rect
-            )
+        subsetted_ds = self.perform_subset(
+            src_ds, range_type, src_rect, dst_rect, params.rangesubset
+        )
 
         # encode the processed dataset and save it to the filesystem
-        out_ds, out_driver = self.encode(subsetted_ds, format)
+        out_ds, out_driver = self.encode(subsetted_ds, frmt)
 
         driver_metadata = out_driver.GetMetadata_Dict()
         mime_type = driver_metadata.get("DMD_MIMETYPE")
@@ -172,7 +166,7 @@ class GDALReferenceableDatasetRenderer(Component):
             return vrt.dataset
 
 
-    def get_source_image_rect(self, dataset, subsets):
+    def get_source_and_dest_rect(self, dataset, subsets):
         size_x, size_y = dataset.RasterXSize, dataset.RasterYSize
         image_rect = Rect(0, 0, size_x, size_y)
 
@@ -183,52 +177,50 @@ class GDALReferenceableDatasetRenderer(Component):
         elif subsets.xy_srid is None: # means "imageCRS"
             minx, miny, maxx, maxy = subsets.xy_bbox
 
-            minx = minx if minx is not None else image_rect.offset_x
-            miny = miny if miny is not None else image_rect.offset_y
-            maxx = maxx if maxx is not None else image_rect.upper_x
-            maxy = maxy if maxy is not None else image_rect.upper_y
+            minx = int(minx) if minx is not None else image_rect.offset_x
+            miny = int(miny) if miny is not None else image_rect.offset_y
+            maxx = int(maxx) if maxx is not None else image_rect.upper_x
+            maxy = int(maxy) if maxy is not None else image_rect.upper_y
 
-            subset_rect = Rect(minx, miny, maxx-minx, maxy-miny)
+            subset_rect = Rect(minx, miny, maxx-minx+1, maxy-miny+1)
 
+        # subset in geographical coordinates
         else:
-            vrt = VRTBuilder(size_x, size_y)
+            vrt = VRTBuilder(*image_rect.size)
             vrt.copy_gcps(dataset)
 
-            minx, miny, maxx, maxy = subsets.xy_bbox
+            options = reftools.suggest_transformer(dataset)
 
-            # subset in geographical coordinates
             subset_rect = reftools.rect_from_subset(
-                vrt.dataset, subsets.xy_srid, minx, miny, maxx, maxy
+                vrt.dataset, subsets.xy_srid, *subsets.xy_bbox, **options
             )
 
         # check whether or not the subsets intersect with the image
         if not image_rect.intersects(subset_rect):
-            raise RenderException("Subset outside coverage extent.") # TODO: correct exception
+            raise RenderException("Subset outside coverage extent.", "subset")
 
-        # in case the input and output rects are the same, return None to 
-        # indicate this
-        #if image_rect == subset_rect:
-        #    return None
+        src_rect = subset_rect #& image_rect # TODO: why no intersection??
+        dst_rect = src_rect - subset_rect.offset
 
-        return image_rect & subset_rect
+        return src_rect, dst_rect
 
 
-    def perform_range_subset(self, src_ds, range_type, subset_bands, 
-                             subset_rect):
+    def perform_subset(self, src_ds, range_type, subset_rect, dst_rect, 
+                       subset_bands=None):
+        vrt = VRTBuilder(*subset_rect.size)
 
-
-        # TODO: something fishy here!
-
-
-        vrt = VRTBuilder(*subset_rect.size)#src_ds.RasterXSize, src_ds.RasterYSize)
-        dst_rect = Rect(0, 0, src_ds.RasterXSize, src_ds.RasterYSize)
-
+        # list of band indices/names. defaults to all bands
+        subset_bands = subset_bands or xrange(len(range_type))
         input_bands = list(range_type)
+
         for index, subset_band in enumerate(subset_bands, start=1):
+            # integer means band index. can be negative
             if isinstance(subset_band, int):
-                if subset_band > 0:
+                # negative indices are relative to end
+                if subset_band < 0:
                     subset_band = len(range_type) + subset_band
             else:
+                # find the correct band by name/identifier
                 subset_band = index_of(input_bands,
                     lambda band: (
                         band.name == subset_band 
@@ -236,13 +228,13 @@ class GDALReferenceableDatasetRenderer(Component):
                     )
                 )
                 if subset_band is None:
-                    raise ValueError("Invalid range subset.")
+                    raise RenderException("Invalid range subset.", "subset")
 
             # prepare and add a simple source for the band
             input_band = input_bands[subset_band]
             vrt.add_band(input_band.data_type)
             vrt.add_simple_source(
-                index, src_ds, subset_band, subset_rect, dst_rect
+                index, src_ds, subset_band+1, subset_rect, dst_rect
             )
 
         vrt.copy_metadata(src_ds)
@@ -250,19 +242,6 @@ class GDALReferenceableDatasetRenderer(Component):
 
         return vrt.dataset
 
-    def perform_subset(self, src_ds, subset_rect):
-        vrt = VRTBuilder(src_ds.RasterXSize, src_ds.RasterYSize)
-        dst_rect = Rect(0, 0, src_ds.RasterXSize, src_ds.RasterYSize)
-
-        for index in xrange(1, src_ds.RasterCount + 1):
-            src_band = src_ds.GetRasterBand(index)
-            vrt.add_band(src_band.DataType)
-            vrt.add_simple_source(index, src_ds, index, subset_rect, dst_rect)
-
-        vrt.copy_metadata(src_ds)
-        vrt.copy_gcps(src_ds, subset_rect)
-
-        return vrt.dataset
 
     def encode(self, dataset, format):
         #format, options = None
@@ -281,7 +260,6 @@ def index_of(iterable, predicate, default=None, start=1):
         if predicate(item):
             return i
     return default
-
 
 def temp_vsimem_filename():
     return "/vsimem/%s" % uuid4().hex
