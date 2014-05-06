@@ -66,4 +66,12 @@ class CoverageOutlinesLayerFactory(BaseStyleMixIn, PolygonLayerMixIn, AbstractLa
 
 
     def generate_group(self, name):
-        return self._create_polygon_layer(name)
+        layer = self._create_polygon_layer(name)
+
+        # Dummy feature, or else empty groups will produce errors
+        shape = shapeObj()
+        shape.initValues(1)
+        shape.setValue(0, "dummy")
+        layer.addFeature(shape)
+
+        return layer

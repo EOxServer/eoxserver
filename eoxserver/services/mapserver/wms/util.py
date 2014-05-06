@@ -152,7 +152,9 @@ class MapServerWMSBaseComponent(Component):
                 group_name = collections[-1].identifier + (suffix or "")
                 group_layer = group_layers.get(group_name)
 
-            if not coverage or not factory:
+            if not coverage:
+                layers_and_data_items = ()
+            elif not factory:
                 tmp_layer = ms.layerObj()
                 tmp_layer.name = name
                 layers_and_data_items = ((tmp_layer, ()),)
