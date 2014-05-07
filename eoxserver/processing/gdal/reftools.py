@@ -180,6 +180,8 @@ GDALSuggestedWarpOutput = _libgdal.GDALSuggestedWarpOutput
 GDALSuggestedWarpOutput.restype = C.c_int
 GDALSuggestedWarpOutput.argtypes = [C.c_void_p, C.c_void_p, C.c_void_p, C.c_double * 6, C.POINTER(C.c_int), C.POINTER(C.c_int)]
 
+GDALSetGenImgProjTransformerDstGeoTransform = _libgdal.GDALSetGenImgProjTransformerDstGeoTransform
+GDALSetGenImgProjTransformerDstGeoTransform.argtypes = [C.c_void_p, C.c_double * 6]
 
 class Transformer(object):
     def __init__(self, handle):
@@ -257,6 +259,9 @@ CPLParseNameValue = _libgdal.CPLParseNameValue
 CPLParseNameValue.restype = C.c_char_p
 CPLParseNameValue.argtypes = [C.c_char_p, C.POINTER(C.c_char_p)]
 
+CPLMalloc = _libgdal.CPLMalloc
+CPLMalloc.restype = C.c_void_p
+
 CPLFree = _libgdal.free
 CPLFree.argtypes = [C.c_void_p]
 
@@ -317,14 +322,13 @@ def _create_generic_transformer(src_ds, src_wkt, dst_ds, dst_wkt, method, order)
     # TODO: check method and order
 
     try:
-        src_ds = int(src_ds.this)
+        src_ds = C.c_void_p(long(src_ds.this))
     except AttributeError:
         pass
     try:
-        dst_ds = int(dst_ds.this)
+        dst_ds = C.c_void_p(long(dst_ds.this))
     except AttributeError:
         pass
-
 
     options = CSL()
 
@@ -334,13 +338,12 @@ def _create_generic_transformer(src_ds, src_wkt, dst_ds, dst_wkt, method, order)
         options["DST_SRS"] = dst_wkt
 
     if method == METHOD_GCP:
-        options["METHOD"] = "GCP_POLYNOMINAL"
-
+        options["METHOD"] = "GCP_POLYNOMIAL"
+        options["GCPS_OK"]  = "TRUE"
         if order > 0:
             options["MAX_GCP_ORDER"] = str(order)
 
     elif method in (METHOD_TPS, METHOD_TPS_LSQ):
-
         # TODO: TPS2 only if 
         if GDALCreateTPS2TransformerLSQGrid:
             options["METHOD"] = "GCP_TPS2"
@@ -352,18 +355,15 @@ def _create_generic_transformer(src_ds, src_wkt, dst_ds, dst_wkt, method, order)
         else:
             options["METHOD"] = "GCP_TPS"
 
-    print options
+    else:
+        raise some_error # TODO: raise proper error
+
+    # TODO: proper error handling
     handle = GDALCreateGenImgProjTransformer2(src_ds, dst_ds, options)
-    print handle
-
     if not handle:
-        print gdal.GetLastErrorMsg()
+        raise Exception(gdal.GetLastErrorMsg())
 
-        raise
-
-    transformer = Transformer(handle
-        
-    )
+    transformer = Transformer(handle)
     return transformer
 
 
@@ -536,21 +536,9 @@ def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
     resample=gdal.GRA_NearestNeighbour, memory_limit=0.0,
     max_error=APPROX_ERR_TOL, method=METHOD_GCP, order=0):
 
-    print path_or_ds
     ds = _open_ds(path_or_ds)
-    """GDALOpen = _libgdal.GDALOpen
-    GDALOpen.restype = C.c_void_p
-    GDALOpen.argtypes = [C.c_char_p, C.c_int]
-    GDALGetGCPProjection = _libgdal.GDALGetGCPProjection
-    GDALGetGCPProjection.restype = C.c_char_p
-    GDALGetGCPProjection.argtypes = [C.c_void_p]
-
-    ds = GDALOpen(path_or_ds, 0)
-    """
     ptr = C.c_void_p(long(ds.this))
-
-    print ds, ptr
-
+    
     if srid: 
         srs = osr.SpatialReference()
         srs.ImportFromEPSG(srid)
@@ -563,14 +551,9 @@ def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
         ds, None, None, wkt, method, order
     )
 
-    print GDALGenImgProjTransform
-
     x_size = C.c_int()
     y_size = C.c_int()
     geotransform = (C.c_double * 6)()
-
-    print ds, "0x%x" % int(ds)
-    print C.byref(x_size), C.byref(y_size), transformer._handle
 
     GDALSuggestedWarpOutput(
         #int(ds.this), 
@@ -579,7 +562,7 @@ def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
         C.byref(x_size), C.byref(y_size)
     )
 
-    print "xxxx"
+
 
     GDALSetGenImgProjTransformerDstGeoTransform(transformer, geotransform)
 
@@ -600,6 +583,16 @@ def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
 
 
     if max_error > 0:
+
+        GDALCreateApproxTransformer = _libgdal.GDALCreateApproxTransformer
+        GDALCreateApproxTransformer.restype = C.c_void_p
+        GDALCreateApproxTransformer.argtypes = [C.c_void_p, C.c_void_p, C.c_double]
+
+        GDALApproxTransform = _libgdal.GDALApproxTransform
+
+        GDALApproxTransformerOwnsSubtransformer = _libgdal.GDALApproxTransformerOwnsSubtransformer
+        GDALApproxTransformerOwnsSubtransformer.argtypes = [C.c_void_p, C.c_bool]
+
         options.pTransformerArg = GDALCreateApproxTransformer(
             options.pfnTransformer, options.pTransformerArg, max_error
         )
@@ -607,13 +600,38 @@ def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
         # TODO: correct for python
         GDALApproxTransformerOwnsSubtransformer(options.pTransformerArg, True)
 
-    vrt_ds = GDALCreateWarpedVRT(ds.this, x_size, y_size, geotransform, options)
 
-    GDALSetProjection(vrt_ds, dst_wkt)
-    GDALSetDescription(vrt_ds, filename)
+    GDALCreateWarpedVRT = _libgdal.GDALCreateWarpedVRT
+    GDALCreateWarpedVRT.restype = C.c_void_p
+    GDALCreateWarpedVRT.argtypes = [C.c_void_p, C.c_int, C.c_int, C.c_double * 6, C.POINTER(WARP_OPTIONS)]
+
+    print "XXXX"
+
+    vrt_ds = GDALCreateWarpedVRT(ptr, x_size, y_size, geotransform, options)
+
+    print "YYYY"
+
+    GDALSetProjection = _libgdal.GDALSetProjection
+    GDALSetProjection.argtypes = [C.c_void_p, C.c_char_p]
+
+    GDALSetProjection(vrt_ds, wkt)
+    print "ZZZZ"
+
+    GDALSetDescription = _libgdal.GDALSetDescription
+    GDALSetDescription.argtypes = [C.c_void_p, C.c_char_p]
+    GDALSetDescription(vrt_ds, vrt_path)
+    print "AAAA"
+
+    GDALClose = _libgdal.GDALClose
+    GDALClose.argtypes = [C.c_void_p]
     GDALClose(vrt_ds)
+    print "BBBB"
 
+
+    GDALDestroyWarpOptions = _libgdal.GDALDestroyWarpOptions
+    GDALDestroyWarpOptions.argtypes = [C.POINTER(WARP_OPTIONS)]
     GDALDestroyWarpOptions(options)
+    print "CCCC"
 
 
 def suggested_warp_output(ds, src_wkt, dst_wkt, method=METHOD_GCP, order=0):
@@ -626,7 +644,7 @@ def suggested_warp_output(ds, src_wkt, dst_wkt, method=METHOD_GCP, order=0):
         geotransform, C.byref(x_size), C.byref(y_size)
     )
 
-    return int(x_size), int(y_size), tuple(geotransform)
+    return x_size.value, y_size.value, tuple(geotransform)
 
 
 def reproject_image(src_ds, src_wkt, dst_ds, dst_wkt, 
