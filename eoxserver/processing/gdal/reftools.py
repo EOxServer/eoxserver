@@ -334,7 +334,7 @@ def _create_generic_transformer(src_ds, src_wkt, dst_ds, dst_wkt, method, order)
         options["DST_SRS"] = dst_wkt
 
     if method == METHOD_GCP:
-        options["METHOD"] = "GCP_TPS"#"GCP_POLYNOMINAL"
+        options["METHOD"] = "GCP_POLYNOMINAL"
 
         if order > 0:
             options["MAX_GCP_ORDER"] = str(order)
@@ -537,8 +537,8 @@ def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
     max_error=APPROX_ERR_TOL, method=METHOD_GCP, order=0):
 
     print path_or_ds
-    #ds = _open_ds(path_or_ds)
-    GDALOpen = _libgdal.GDALOpen
+    ds = _open_ds(path_or_ds)
+    """GDALOpen = _libgdal.GDALOpen
     GDALOpen.restype = C.c_void_p
     GDALOpen.argtypes = [C.c_char_p, C.c_int]
     GDALGetGCPProjection = _libgdal.GDALGetGCPProjection
@@ -546,6 +546,10 @@ def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
     GDALGetGCPProjection.argtypes = [C.c_void_p]
 
     ds = GDALOpen(path_or_ds, 0)
+    """
+    ptr = C.c_void_p(long(ds.this))
+
+    print ds, ptr
 
     if srid: 
         srs = osr.SpatialReference()
@@ -553,7 +557,7 @@ def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
         wkt = srs.ExportToWkt()
         srs = None
     else:
-        wkt = GDALGetGCPProjection(ds)
+        wkt = ds.GetGCPProjection()
 
     transformer = _create_generic_transformer(
         ds, None, None, wkt, method, order
@@ -570,8 +574,8 @@ def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
 
     GDALSuggestedWarpOutput(
         #int(ds.this), 
-        ds,
-        GDALGenImgProjTransform, transformer._handle, geotransform, 
+        ptr,
+        GDALGenImgProjTransform, transformer, geotransform, 
         C.byref(x_size), C.byref(y_size)
     )
 
