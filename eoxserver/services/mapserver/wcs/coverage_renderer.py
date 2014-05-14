@@ -34,7 +34,7 @@ from lxml import etree
 
 from eoxserver.core import implements, ExtensionPoint
 from eoxserver.contrib import mapserver as ms
-from eoxserver.resources.coverages import models
+from eoxserver.resources.coverages import models, crss
 from eoxserver.resources.coverages.formats import getFormatRegistry
 from eoxserver.services.exceptions import NoSuchCoverageException
 from eoxserver.services.ows.wcs.interfaces import WCSCoverageRendererInterface
@@ -89,6 +89,18 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
 
         range_type = coverage.range_type
         bands = list(range_type)
+
+        subsets = Subsets(params.subsets)
+        
+        if subsets:
+            srid = subsets.xy_srid
+            if srid is not None:
+                if not crss.validateEPSGCode(srid):
+                    raise RenderException(
+                        "Failed to extract an EPSG code from the CRS URI "
+                        "'%s'." % subsets.xy_srid, "subset"
+                    )
+
         
         # create and configure map object
         map_ = self.create_map()
@@ -105,7 +117,6 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
 
         mime_type, frmt = split_format(frmt)
 
-        # TODO: imagemode
         imagemode = ms.gdalconst_to_imagemode(bands[0].data_type)
         time_stamp = datetime.now().strftime("%Y%m%d%H%M%S")
         basename = "%s_%s" % (coverage.identifier, time_stamp)
@@ -142,7 +153,6 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
 
         if params.version == Version(2, 0):
             if getattr(params, "mediatype", None) in ("multipart/mixed", "multipart/related"):
-                subsets = Subsets(params.subsets)
                 encoder = WCS20EOXMLEncoder()
                 is_mosaic = issubclass(
                     coverage.real_type, models.RectifiedStitchedMosaic

@@ -60,8 +60,9 @@ class Rect(tuple):
     area = property(lambda self: self.size_x * self.size_y)
 
 
-    def combination(self, other):
-        """ Returns a combined rect 
+    def envelope(self, other):
+        """ Returns the envelope of two rectanges, i.e., a smallest
+            rectange contaning the input rectangles. 
         """
         return Rect(
             offset_x=min(self.offset_x, other[0]), 
@@ -70,9 +71,13 @@ class Rect(tuple):
             upper_y=max(self.upper_y, other[1] + other[3])
         )
 
-    __or__ = combination
+    __or__ = envelope 
 
     def intersection(self, other):
+        """ Returns the intersection of two rectanges, i.e., 
+            a largest common rectanle contained by the input rectangles. 
+        """
+        
         return Rect(
             offset_x=max(self.offset_x, other[0]), 
             offset_y=max(self.offset_y, other[1]),
@@ -83,15 +88,23 @@ class Rect(tuple):
     __and__ = intersection
 
     def intersects(self, other):
+        """ Tests whether two rectangles overlap (True) or not (False). 
+        """ 
         return self.intersection(other).area > 0
 
 
     def translated(self, (diff_x, diff_y)):
+        """ Returns a new rectange shifted by the given offset. 
+        """
         return Rect(
-            self.size_x, self.size_y, 
-            self.offset_x + diff_x, self.offset_y + diff_y
+            self.offset_x + diff_x, self.offset_y + diff_y,
+            self.size_x, self.size_y
         )
 
     __add__ = translated
 
     __sub__ = (lambda self, (x, y): self.translated((-x, -y)))
+
+
+    def __repr__(self):
+        return "Rect(offset_x=%s, offset_y=%s, size_x=%s, size_y=%s)" % self

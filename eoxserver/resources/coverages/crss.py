@@ -33,6 +33,7 @@
 
 import re 
 import logging
+import math
 
 from eoxserver.contrib import osr
 from eoxserver.core.config import get_eoxserver_config
@@ -402,6 +403,17 @@ def crs_tolerance(srid):
         return 1e-8
     else:
         return 1e-2
+
+image_crss_ids = set((
+    "urn:ogc:def:crs:OGC::imageCRS", "imageCRS",
+    "CRS:1", "urn:ogc:def:crs:OGC::CRS1", "urn:ogc:def:crs:OGC:1.3:CRS1",
+    "http://www.opengis.net/def/crs/OGC/0/CRS1",
+    "http://www.opengis.net/def/crs/OGC/1.3/CRS1"
+))
+
+def is_image_crs(string):
+    return string in image_crss_ids
+
 
 #-------------------------------------------------------------------------------
 

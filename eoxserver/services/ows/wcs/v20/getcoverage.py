@@ -36,7 +36,7 @@ from eoxserver.services.ows.interfaces import (
 from eoxserver.services.ows.wcs.basehandlers import WCSGetCoverageHandlerBase
 from eoxserver.services.ows.wcs.v20.util import (
     nsmap, parse_subset_kvp, parse_subset_xml, parse_size_kvp, 
-    parse_resolution_kvp, Slice, Trim
+    parse_resolution_kvp
 )
 from eoxserver.services.ows.wcs.v20.parameters import WCS20CoverageRenderParams
 

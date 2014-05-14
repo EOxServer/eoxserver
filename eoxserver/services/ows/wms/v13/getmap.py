@@ -87,6 +87,7 @@ class WMS13GetMapHandler(Component):
             root_group, request.GET.items(), 
             time=decoder.time, bands=decoder.dim_bands
         )
+
         return to_http_response(result)
 
 
