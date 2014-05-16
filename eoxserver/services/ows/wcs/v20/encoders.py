@@ -1,4 +1,4 @@
-    #-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 # $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
@@ -29,7 +29,7 @@
 
 from lxml import etree
 
-from django.contrib.gis.geos import Polygon
+from django.contrib.gis.geos import Polygon, MultiPolygon
 from django.utils.timezone import now
 
 from eoxserver.core.config import get_eoxserver_config
@@ -130,7 +130,8 @@ class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
                 service="WCS", versions=versions, method="POST"
             )
             all_handlers = sorted(
-                set(get_handlers + post_handlers), key=lambda h: h.request
+                set(get_handlers + post_handlers), 
+                key=lambda h: (getattr(h, "index", 10000), h.request)
             )
 
             operations = []
@@ -292,7 +293,7 @@ class GML32Encoder(object):
         return GML("MultiSurface",
             *[GML("surfaceMember", polygon) for polygon in polygons],
             **{ns_gml("id"): "multisurface_%s" % base_id,
-               "srsName": "EPSG:4326"
+               "srsName": "EPSG:%d" % geom.srid
             }
         )
 
@@ -554,7 +555,6 @@ class WCS20CoverageDescriptionXMLEncoder(GMLCOV10Encoder):
 
 class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20Encoder):
     def encode_eo_metadata(self, coverage, request=None, subset_polygon=None):
-
         data_items = list(coverage.data_items.filter(
             semantic="metadata", format="eogml"
         ))
@@ -565,7 +565,7 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20E
             if subset_polygon:
                 try:
                     feature = earth_observation.xpath(
-                        "eop:featureOfInterest", namespaces=nsmap
+                        "om:featureOfInterest", namespaces=nsmap
                     )[0]
                     feature[0] = self.encode_footprint(
                         coverage.footprint.intersection(subset_polygon),
@@ -586,7 +586,8 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20E
             lineage = EOWCS("lineage",
                 EOWCS("referenceGetCoverage",
                     self.encode_reference("Reference",
-                        request.build_absolute_uri().replace("&", "&amp;")
+                        request.build_absolute_uri().replace("&", "&amp;"),
+                        False
                     )
                 ), GML("timePosition", isoformat(now()))
             )
@@ -668,17 +669,62 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20E
             )
         )
 
+    def calculate_contribution(self, footprint, contributions, subset_polygon=None):
+        if subset_polygon:
+            footprint = footprint.intersection(subset_polygon)
+
+        for contribution in contributions:
+            footprint = footprint.difference(contribution)
+        contributions.append(footprint)
+        return footprint
+
+
+    def encode_contributing_datasets(self, coverage, subset_polygon=None):
+        eo_objects = coverage.eo_objects
+        if subset_polygon:
+            if subset_polygon.srid != 4326:
+                subset_polygon = subset_polygon.transform(4326, True)
+
+            eo_objects = eo_objects.filter(
+                footprint__intersects=subset_polygon
+            )
+
+        # iterate over all subsets in reverse order to get the 
+        eo_objects = eo_objects.order_by("-begin_time")
+        actual_contributions = []
+        all_contributions = []
+        for eo_object in eo_objects:
+            contribution = self.calculate_contribution(
+                eo_object.footprint, all_contributions, subset_polygon
+            )
+            if not contribution.empty and contribution.num_geom > 0:
+                actual_contributions.append((eo_object, contribution))
+
+        return EOWCS("datasets", *[
+            EOWCS("dataset",
+                WCS("CoverageId", eo_object.identifier),
+                EOWCS("contributingFootprint",
+                    self.encode_footprint(
+                        contribution, eo_object.identifier
+                    )
+                )
+            )
+            for eo_object, contribution in reversed(actual_contributions)
+        ])
+
     def alter_rectified_dataset(self, coverage, request, tree, subset_polygon=None):
         return EOWCS("RectifiedDataset", *(
-            tree.getchildren() +
-            [self.encode_eo_metadata(coverage, request, subset_polygon)]
+            tree.getchildren() + [
+                self.encode_eo_metadata(coverage, request, subset_polygon)
+            ]
         ), **tree.attrib)
 
-    def alter_rectified_stitched_mosaic(self, coverage, request, subset=None):
+    def alter_rectified_stitched_mosaic(self, coverage, request, tree, subset_polygon=None):
         return EOWCS("RectifiedStitchedMosaic", *(
-            tree.getchildren() +
-            [self.encode_eo_metadata(coverage, request, subset_polygon)]
-            # TODO: contributing datasets
+            tree.getchildren() + [
+                self.encode_eo_metadata(coverage, request, subset_polygon),
+                self.encode_contributing_datasets(coverage, subset_polygon)
+            ]
         ), **tree.attrib)
 
     def encode_referenceable_dataset(self, coverage, range_type, reference, 

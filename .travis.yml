@@ -4,25 +4,32 @@ env:
   - DJANGO=1.5 GDAL=1.10 DB=sqlite
   - DJANGO=1.6 GDAL=1.10 DB=sqlite
 python:
-  - "2.6"
   - "2.7"
-install:
+virtualenv:
+  system_site_packages: true
+before_install:
   # adding required repo for dependencies
-  - sudo add-apt-repository -y ppa:ubuntugis/ubuntugis-unstable
-  - sudo apt-get update
-  - sudo apt-get install aptitude
+  #- sudo add-apt-repository -y ppa:ubuntugis/ubuntugis-unstable
+  - sudo apt-get update -qq
   # install a lot of deps from the apt-repos
-  - sudo aptitude install -y gdal-bin libgdal1-dev libxml2 python-lxml python-libxml2 libproj0 libproj-dev libgeos-dev libgeos++-dev cgi-mapserver python-mapscript libapache2-mod-wsgi python-psycopg2 postgis
+  - sudo apt-get install -qq -y gdal-bin libgdal1-dev libxml2 python-lxml python-libxml2 libproj0 libproj-dev libgeos-dev libgeos++-dev cgi-mapserver python-mapscript python-psycopg2 postgis python-gdal
+  # allowing sqlite to load extensions
+  - 'if [ "$DB" == "sqlite" ]; then wget https://pypi.python.org/packages/source/p/pysqlite/pysqlite-2.6.3.tar.gz; fi'
+  - 'if [ "$DB" == "sqlite" ]; then tar xzf pysqlite-2.6.3.tar.gz; fi'
+  - 'if [ "$DB" == "sqlite" ]; then cd pysqlite-2.6.3; fi'
+  - 'if [ "$DB" == "sqlite" ]; then sed -i "/define=SQLITE_OMIT_LOAD_EXTENSION/c\#define=SQLITE_OMIT_LOAD_EXTENSION" setup.cfg; fi'
+  - 'if [ "$DB" == "sqlite" ]; then sudo python setup.py install; fi'
+  - 'if [ "$DB" == "sqlite" ]; then cd -; fi'
+  - 'if [ "$DB" == "postgis" ]; then sudo -u postgres createdb eoxserver_demo; fi'
+  - 'if [ "$DB" == "postgis" ]; then sudo -u postgres psql eoxserver_demo -c ''create extension postgis;''; fi'
+install:
   # test with various Django versions
-  - pip install -q Django==$DJANGO --use-mirrors
-  # test with various GDAL versions
-  - pip install -q gdal==$GDAL --use-mirrors
+  - pip install -q Django==$DJANGO
   # actually install EOxServer
-  - pip install --use-mirrors --install-option="--disable-extended-reftools" .
-script:
-  - sudo -u postgres createdb eoxserver_demo
-  - sudo -u postgres psql eoxserver_demo -c 'create extension postgis;'
+  - pip install --install-option="--disable-extended-reftools" .
+  - export XML_CATALOG_FILES="`pwd`/schemas/catalog.xml"
   - cd autotest
+script:
   - python manage.py test core
   - python manage.py test backends
   - python manage.py test coverages

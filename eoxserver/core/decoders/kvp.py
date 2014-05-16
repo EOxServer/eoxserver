@@ -31,13 +31,13 @@ from cgi import parse_qs
 
 from django.http import QueryDict
 
-from eoxserver.core.decoders import (
-    ZERO_OR_ONE, ONE_OR_MORE, ANY, SINGLE_VALUES, WrongMultiplicityException, 
-    InvalidParameterException, MissingParameterException
-)
+from eoxserver.core.decoders.base import BaseParameter
 
 
-class Parameter(object):
+class Parameter(BaseParameter):
+    """ Parameter for KVP values.
+    """
+
     key = None
 
     def __init__(self, key=None, type=None, separator=None, num=1, default=None,
@@ -47,64 +47,22 @@ class Parameter(object):
         self.separator = separator
         self.num = num
         self.default = default
-        self.locator = locator
+        self._locator = locator
 
-    def __get__(self, decoder, decoder_class=None):
-        multiple = self.num not in SINGLE_VALUES
-        locator = self.locator or self.key
+    def select(self, decoder, decoder_class=None):
+        return decoder._query_dict.get(self.key, [])
 
-        # TODO: allow simple dicts aswell
-        results = decoder._query_dict.get(self.key, [])
-
-        
-        count = len(results)
-
-        if not multiple and count > 1:
-            raise WrongMultiplicityException(
-                "Expected at most one, got %d." % count, locator
-            )
-
-        elif self.num == 1 and count == 0:
-            raise MissingParameterException(
-                "Expected exactly one, got none.", locator
-            )
-
-        elif self.num == ONE_OR_MORE and count == 0:
-            raise MissingParameterException(
-                "Expected at least one, got none.", locator
-            )
-
-        elif isinstance(self.num, int) and count != self.num:
-            raise WrongMultiplicityException(
-                "Expected %d, got %d." % (self.num, count), locator
-            )
-
-        if multiple:
-            try:
-                return map(self.type, results)
-            except Exception, e:
-                # let some more sophisticated exceptions pass
-                if hasattr(e, "locator") or hasattr(e, "code"):
-                    raise
-                raise InvalidParameterException(str(e), locator)
-
-        elif self.num == ZERO_OR_ONE and count == 0:
-            return self.default
-
-        elif self.type:
-            try:
-                return self.type(results[0])
-            except Exception, e:
-                # let some more sophisticated exceptions pass
-                if hasattr(e, "locator") or hasattr(e, "code"):
-                    raise
-                raise InvalidParameterException(str(e), locator)
-
-        return results[0]
+    @property
+    def locator(self):
+        return self._locator or self.key
 
 
 class DecoderMetaclass(type):
+    """ Metaclass for KVP Decoders to allow easy parameter declaration.
+    """
     def __init__(cls, name, bases, dct):
+        # set the "key" attribute of any parameter to the parameters name
+        # if no other key was specified.
         for key, value in dct.items():
             if isinstance(value, Parameter) and value.key is None:
                 value.key = key.lower()
@@ -113,6 +71,8 @@ class DecoderMetaclass(type):
 
 
 class Decoder(object):
+    """ Base class for KVP decoders.
+    """
     __metaclass__ = DecoderMetaclass
     
     def __init__(self, params):
@@ -121,10 +81,19 @@ class Decoder(object):
             for key, values in params.lists():
                 query_dict[key.lower()] = values
         
-        else:
+        elif isinstance(params, basestring):
             tmp = parse_qs(params)
             for key, values in tmp.items():
                 query_dict[key.lower()] = values
+
+        elif isinstance(params, dict):
+            for key, value in params.items():
+                query_dict[key.lower()] = (value,)
+
+        else:
+            raise ValueError(
+                "Decoder input '%s' not supported." % type(params).__name__
+            )
         
         self.kvp = params
         self._query_dict = query_dict

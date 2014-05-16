@@ -98,11 +98,18 @@ class Subsets(list):
         )
 
         if len(all_crss) != 1:
-            raise Exception("All X/Y crss must be the same")
+            raise InvalidSubsettingException("All X/Y crss must be the same")
 
         xy_crs = iter(all_crss).next()
         if xy_crs is not None:
-            return crss.parseEPSGCode(xy_crs, (crss.fromURL, crss.fromURN))
+            srid = crss.parseEPSGCode(xy_crs, 
+                (crss.fromURL, crss.fromURN, crss.fromShortCode)
+            )
+            if srid is None and not crss.is_image_crs(xy_crs):
+                raise InvalidSubsettingException(
+                    "Could not parse EPSG code from URI '%s'" % xy_crs
+                )
+            return srid
         return None
 
 
@@ -114,6 +121,7 @@ class Subsets(list):
 
         bbox = [None, None, None, None]
         srid = self.xy_srid
+
         if srid is None:
             srid = 4326
         max_extent = crss.crs_bounds(srid)
@@ -134,20 +142,27 @@ class Subsets(list):
                         begin_time__lte=value,
                         end_time__gte=value
                     )
-                elif low is None and high is not None:
-                    qs = qs.filter(
-                        begin_time__lte=high
-                    )
-                elif low is not None and high is None:
-                    qs = qs.filter(
-                        end_time__gte=low
-                    )
+
                 else:
-                    qs = qs.exclude(
-                        begin_time__gt=high
-                    ).exclude(
-                        end_time__lt=low
-                    )
+                    if high is not None:
+                        qs = qs.filter(
+                            begin_time__lte=high
+                        )
+                    if low is not None:
+                        qs = qs.filter(
+                            end_time__gte=low
+                        )
+                
+                    # check if the temporal bounds must be strictly contained
+                    if containment == "contains":
+                        if high is not None:
+                            qs = qs.filter(
+                                end_time__lte=high
+                            )
+                        if low is not None:
+                            qs = qs.filter(
+                                begin_time__gte=low
+                            )
 
             else:
                 if is_slice:
@@ -364,7 +379,7 @@ class Subsets(list):
 
                     if subset.high is not None:
                         l = max(float(subset.high) / float(size_x), 0.0)
-                        bbox[2] = extent[2] + l * (extent[2] - extent[0])
+                        bbox[2] = extent[0] + l * (extent[2] - extent[0])
 
                 elif subset.is_y:
                     if subset.low is not None:
@@ -405,9 +420,7 @@ class Subset(object):
     def __init__(self, axis, crs=None):
         axis = axis.lower()
         if axis not in all_axes:
-            raise InvalidAxisLabelException(
-                "Axis '%s' is not valid or supported." % axis
-            )
+            raise InvalidAxisLabelException(axis)
         self.axis = axis
         self.crs = crs
 
@@ -429,6 +442,9 @@ class Slice(Subset):
         super(Slice, self).__init__(axis, crs)
         self.value = value
 
+    def __repr__(self):
+        return "Slice: %s[%s] with crs=%s" % (self.axis, self.value, self.crs)
+
 
 class Trim(Subset):
     def __init__(self, axis, low=None, high=None, crs=None):
@@ -442,6 +458,10 @@ class Trim(Subset):
         self.low = low
         self.high = high
 
+    def __repr__(self):
+        return "Trim: %s[%s:%s] with crs=%s" % (
+            self.axis, self.low, self.high, self.crs
+        )
 
 
 temporal_axes = ("t", "time", "phenomenontime")

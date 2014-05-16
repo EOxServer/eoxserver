@@ -42,13 +42,38 @@ class DecodingException(Exception):
         super(DecodingException, self).__init__(message)
         self.locator = locator
 
-    def __str__(self):
-        if self.locator:
-            return "%s: %s" % (self.locator, super(DecodingException, self).__str__())
-        return super(DecodingException, self).__str__()
 
 class WrongMultiplicityException(DecodingException):
-    pass
+    code = "InvalidParameterValue"
+    
+    def __init__(self, locator, expected, result):
+        super(WrongMultiplicityException, self).__init__(
+            "Parameter '%s': expected %s got %d" % (locator, expected, result),
+            locator
+        )
+
+
+class MissingParameterException(DecodingException):
+    """ Exception to be thrown, when a decoder could not read one parameter, 
+        where exactly one was required.
+    """
+    code = "MissingParameterValue"
+
+    def __init__(self, locator):
+        super(MissingParameterException, self).__init__(
+            "Missing required parameter '%s'" % locator, locator
+        )
+
+class MissingParameterMultipleException(DecodingException):
+    """ Exception to be thrown, when a decoder could not read at least one 
+        parameter, where one ore more were required.
+    """
+    code = "MissingParameterValue"
+
+    def __init__(self, locator):
+        super(MissingParameterMultipleException, self).__init__(
+            "Missing at least one required parameter '%s'" % locator, locator
+        )
 
 
 class NoChoiceResultException(DecodingException):
@@ -64,12 +89,6 @@ class ExclusiveException(DecodingException):
 
 class InvalidParameterException(DecodingException):
     code = "InvalidParameterValue"
-    pass
-
-
-class MissingParameterException(DecodingException):
-    code = "MissingParameterValue"
-    pass
 
 
 # Compound fields
@@ -185,20 +204,20 @@ class enum(object):
     """
 
     def __init__(self, values, case_sensitive=True):
-        if not case_sensitive:
-            values = map(lambda v: v.lower(), values)
         self.values = values
+        self.compare_values = values if case_sensitive else map(lower, values)
         self.case_sensitive = case_sensitive
 
 
     def __call__(self, value):
         compare = value if self.case_sensitive else value.lower()
-        if compare not in self.values:
+        if compare not in self.compare_values:
             raise ValueError("Unexpected value '%s'. Expected one of: %s." %
-                (value, ", ".join(self.values))
+                (value, ", ".join(map(lambda s: "'%s'" % s, self.values)))
             )
 
         return value
+
 
 def lower(value):
     return value.lower()
@@ -206,6 +225,7 @@ def lower(value):
 
 def upper(value):
     return value.upper()
+
 
 def strip(value):
     return value.strip()

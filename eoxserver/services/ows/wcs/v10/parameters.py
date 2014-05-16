@@ -29,6 +29,7 @@
 from eoxserver.services.ows.wcs.parameters import (
     CoverageRenderParams, CoverageDescriptionRenderParams
 )
+from eoxserver.services.subset import Subsets, Trim
 
 
 class WCS10CoverageDescriptionRenderParams(CoverageDescriptionRenderParams):
@@ -67,6 +68,13 @@ class WCS10CoverageRenderParams(CoverageRenderParams):
     resx          = property(lambda self: self._resx)
     resy          = property(lambda self: self._resy)
     interpolation = property(lambda self: self._interpolation)
+
+    @property
+    def subsets(self):
+        return Subsets((
+            Trim("x", self._bbox[0], self._bbox[2], self._crs),
+            Trim("y", self._bbox[1], self._bbox[3], self._crs),
+        ))
 
 
     def __iter__(self):

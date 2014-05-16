@@ -51,6 +51,8 @@ class WCSGetCapabilitiesHandlerBase(object):
     service = "WCS"
     request = "GetCapabilities"
 
+    index = 0
+
     renderers = ExtensionPoint(WCSCapabilitiesRendererInterface)
 
     def get_decoder(self, request):
@@ -123,6 +125,8 @@ class WCSDescribeCoverageHandlerBase(object):
 
     service = "WCS"
     request = "DescribeCoverage"
+
+    index = 1
 
     renderers = ExtensionPoint(WCSCoverageDescriptionRendererInterface)
 
@@ -198,6 +202,8 @@ class WCSGetCoverageHandlerBase(object):
 
     service = "WCS"
     request = "GetCoverage"
+
+    index = 10
 
     renderers = ExtensionPoint(WCSCoverageRendererInterface)
 

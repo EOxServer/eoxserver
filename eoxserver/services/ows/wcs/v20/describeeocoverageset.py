@@ -61,6 +61,7 @@ class WCS20DescribeEOCoverageSetHandler(Component):
     versions = ("2.0.0", "2.0.1")
     request = "DescribeEOCoverageSet"
 
+    index = 20
 
     def get_decoder(self, request):
         if request.method == "GET":
@@ -150,18 +151,23 @@ class WCS20DescribeEOCoverageSetHandler(Component):
         # of matched coverages.
         coverages_no_limit_qs = coverages_qs
 
+        
+        num_collections = len(
+            filter(lambda c: not models.iscoverage(c), collection_set)
+        )
+
         # compute how many (if any) coverages can be retrieved. This depends on
         # the "count" parameter and default setting. Also, if we already 
         # exceeded the count, limit the number of dataset series aswell
 
         if inc_dss_section:
-            num_collections = len(collection_set)
+            displayed_collections = num_collections
         else:
-            num_collections = 0
+            displayed_collections = 0
 
-        if num_collections < count and inc_cov_section:
-            coverages_qs = coverages_qs.order_by("identifier")[:count - num_collections]
-        elif num_collections == count or not inc_cov_section:
+        if displayed_collections < count and inc_cov_section:
+            coverages_qs = coverages_qs.order_by("identifier")[:count - displayed_collections]
+        elif displayed_collections == count or not inc_cov_section:
             coverages_qs = []
         else:
             coverages_qs = []
@@ -171,20 +177,20 @@ class WCS20DescribeEOCoverageSetHandler(Component):
         # because of the count parameter
         count_all_coverages = coverages_no_limit_qs.count()
 
-        # TODO: if containment is "contains" we need to check all collections again
+        # if containment is "contains" we need to check all collections again
         if containment == "contains":
             collection_set = filter(lambda c: subsets.matches(c), collection_set)
 
-        coverages = []
-        dataset_series = []
+        coverages = set()
+        dataset_series = set()
 
         # finally iterate over everything that has been retrieved and get
         # a list of dataset series and coverages to be encoded into the response
         for eo_object in chain(coverages_qs, collection_set):
             if inc_cov_section and issubclass(eo_object.real_type, models.Coverage):
-                coverages.append(eo_object.cast())
+                coverages.add(eo_object.cast())
             elif inc_dss_section and issubclass(eo_object.real_type, models.DatasetSeries):
-                dataset_series.append(eo_object.cast())
+                dataset_series.add(eo_object.cast())
 
             else:
                 # TODO: what to do here?
@@ -202,7 +208,8 @@ class WCS20DescribeEOCoverageSetHandler(Component):
         return (
             encoder.serialize(
                 encoder.encode_eo_coverage_set_description(
-                    dataset_series, coverages, 
+                    sorted(dataset_series, key=lambda s: s.identifier), 
+                    sorted(coverages, key=lambda c: c.identifier), 
                     count_all_coverages + num_collections
                 ), pretty_print=True
             ),
@@ -234,10 +241,10 @@ class WCS20DescribeEOCoverageSetKVPDecoder(kvp.Decoder, SectionsMixIn):
 
 
 class WCS20DescribeEOCoverageSetXMLDecoder(xml.Decoder, SectionsMixIn):
-    eo_ids      = xml.Parameter("/wcs:CoverageId/text()", num="+", locator="eoid")
-    subsets     = xml.Parameter("/wcs:DimensionTrim", type=parse_subset_xml, num="*")
-    containment = xml.Parameter("/wcseo:containment/text()", type=containment_enum, locator="containment")
-    count       = xml.Parameter("/@count", type=pos_int, num="?", default=sys.maxint, locator="count")
-    sections    = xml.Parameter("/wcseo:sections/wcseo:section/text()", type=sections_enum, num="*", locator="sections")
+    eo_ids      = xml.Parameter("wcseo:eoId/text()", num="+", locator="eoid")
+    subsets     = xml.Parameter("wcs:DimensionTrim", type=parse_subset_xml, num="*")
+    containment = xml.Parameter("wcseo:containment/text()", type=containment_enum, locator="containment")
+    count       = xml.Parameter("@count", type=pos_int, num="?", default=sys.maxint, locator="count")
+    sections    = xml.Parameter("wcseo:sections/wcseo:section/text()", type=sections_enum, num="*", locator="sections")
 
     namespaces = nsmap

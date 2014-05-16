@@ -78,6 +78,7 @@ class WCS20GetEOCoverageSetHandler(Component):
     versions = ("2.0.0", "2.0.1")
     request = "GetEOCoverageSet"
 
+    index = 21
 
     def get_decoder(self, request):
         if request.method == "GET":

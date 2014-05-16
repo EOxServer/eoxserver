@@ -83,7 +83,7 @@ class MapServerWMSFeatureInfoRenderer(MapServerWMSBaseComponent):
             else:
                 # do a postprocessing step and get all identifiers in order
                 # to encode them with EO O&M
-                decoder = GMLFeatureDecoder(result[0].data_file)
+                decoder = GMLFeatureDecoder(result[0].data_file.read())
                 identifiers = decoder.identifiers
                 coverages = models.Coverage.objects.filter(
                     identifier__in=identifiers
