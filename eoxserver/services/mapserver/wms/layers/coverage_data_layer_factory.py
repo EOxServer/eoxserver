@@ -91,7 +91,7 @@ class CoverageDataLayerFactory(LayerFactory,GroupLayerMixIn,DataLayerMixIn,
                 layer = self._polygon_masking_layer(cov,mask_name,
                                             mask_geom,layer_group)
 
-                yield layer, None, None
+                yield layer, None, ()
 
             else : 
 
@@ -111,7 +111,7 @@ class CoverageDataLayerFactory(LayerFactory,GroupLayerMixIn,DataLayerMixIn,
 
                 # create group layer 
                 name  = "%s%s"%( base_name , self.suffix ) 
-                yield self._group_layer(cov.identifier,layer_group),None,() 
+                yield self._group_layer(cov.identifier,layer_group), None, () 
 
                 layer_subgroup= "%s/%s%s"%(layer_group,name,self.suffix)
 
