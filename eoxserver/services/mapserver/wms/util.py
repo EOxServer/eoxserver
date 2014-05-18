@@ -65,10 +65,8 @@ class MapServerWMSBaseComponent(Component):
         map_.imagecolor.setRGB(0, 0, 0)
 
         # set supported CRSs
-        decoder = CRSsConfigReader(get_eoxserver_config())
-        crss_string = " ".join(
-            map(lambda crs: "EPSG:%d" % crs, decoder.supported_crss_wms)
-        )
+        crss = CRSsConfigReader(get_eoxserver_config())
+        crss_string = " ".join( "EPSG:%d"%v for v in crss.supported_crss_wms )
         map_.setMetaData("ows_srs", crss_string)
         map_.setMetaData("wms_srs", crss_string)
 
