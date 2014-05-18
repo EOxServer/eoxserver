@@ -204,8 +204,11 @@ class DataLayerMixIn(object):
 
     # TODO: Review the following offsite color method.
     def _offsite_color(self, range_type, indices=None ):
-        """ Helper function to create an offsite color for a given range type 
-            and optionally band indices.
+        """
+        Cretate an offsite color for a given range type and optional list
+        of band indices.
+        The bands' offise colors are set either from the nil-values of the
+        range type or set to zero if there is no nil-value available.
         """
         
         if indices == None:
@@ -221,8 +224,6 @@ class DataLayerMixIn(object):
         else : 
             band_indices= map( lambda v : v-1 , indices ) 
 
-
-
         if len(band_indices) != 3: 
             raise ValueError(
                 "Wrong number of band indices to calculate offsite color."
@@ -230,19 +231,11 @@ class DataLayerMixIn(object):
 
         values = []
         for index in band_indices:
-            band = range_type[index]
-            nil_value_set = band.nil_value_set
-            if nil_value_set and len(nil_value_set) > 0:
-                values.append(nil_value_set[0].value)
-            else:
-                return None
+            nilvalset = range_type[index].nil_value_set
+            values.append( nilvalset[0].value if nilvalset else 0 )
 
         return ms.colorObj(*values)
 
-
-        req_bands = options["bands"]
-        band_indices = []
-        bands = []
 
     def _indeces( self , cov, options ):
 
