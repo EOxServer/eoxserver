@@ -41,8 +41,9 @@ from eoxserver.core.util.timetools import isoformat
 #
 #       Although not explicitely mentioned by the WPS 1.0.0 standard
 #       it is a common practice that the outputs do not appear more than
-#       onece per output times (maxOccurs=1). Unless not requested 
-#       otherwise, all the outputs are present in the default respose.
+#       once per output (maxOccurs=1). When the exlicit specification
+#       of the outputs is omitted in the request all process output are
+#       contained in the default respose.
 
 class Parameter(object):
     def __init__(self, identifier=None, title=None, description=None, 
