@@ -37,6 +37,9 @@ from eoxserver.services.ows.wps.parameters import LiteralData, ComplexData
 class TestProcess(Component):
     """ Simple test process. """ 
 
+    # Comment following line to make the test process active.
+    abstract = True
+
     implements(ProcessInterface)
 
     identifier = "id"
