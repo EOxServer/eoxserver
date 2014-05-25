@@ -1,8 +1,10 @@
 #-------------------------------------------------------------------------------
-# $Id$
+#
+#  WPS Literal Data type
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
+#          Martin Paces <martin.paces@eox.at>
 #
 #-------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
@@ -10,8 +12,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -26,7 +28,6 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-
 import re
 from datetime import datetime, date, time, timedelta
 
@@ -34,27 +35,9 @@ from django.utils.dateparse import parse_date, parse_datetime, parse_time
 
 from eoxserver.core.util.timetools import isoformat
 
-# NOTE: Currently, the inputs parameters are not allowed to be present 
-#       more that once (maxOccurs=1) per request. These input parameters
-#       are, by default, mandatory (minOccur=1). Unpon explicit requests
-#       the parameters can be made optional (minOccur=0). 
-#
-#       Although not explicitely mentioned by the WPS 1.0.0 standard
-#       it is a common practice that the outputs do not appear more than
-#       once per output (maxOccurs=1). When the exlicit specification
-#       of the outputs is omitted in the request all process output are
-#       contained in the default respose.
+from base import Parameter
 
-class Parameter(object):
-    def __init__(self, identifier=None, title=None, description=None, 
-                 metadata=None,optional=False):
-        self.identifier = identifier
-        self.title = title if title else identifier
-        self.description = description
-        self.metadata = metadata or ()
-        self._is_optional = optional 
-
-
+#-------------------------------------------------------------------------------
 
 LITERAL_DATA_NAME = {
     str: "string",
@@ -63,7 +46,6 @@ LITERAL_DATA_NAME = {
     int: "integer",
     long: "integer",
     float: "float",
-    #complex: "",
     date: "date",
     datetime: "dateTime",
     time: "time",
@@ -104,9 +86,9 @@ ISO_8601_DURATION_RE = re.compile(
 
 def parse_duration(raw_value):
     match = ISO_8601_DURATION_R.match(raw_value)
-    
+
     if not match:
-        raise ValueError("Could not parse ISO duration from '%s'." % raw_value) 
+        raise ValueError("Could not parse ISO duration from '%s'." % raw_value)
 
     days = 0
     seconds = 0
@@ -183,26 +165,28 @@ LITERAL_DATA_ENCODER = {
 def is_literal_type(type_):
     return type_ in LITERAL_DATA_NAME
 
+#-------------------------------------------------------------------------------
 
 class LiteralData(Parameter):
 
-    def __init__(self, identifier, type=str, uoms=None, default=None, 
+    def __init__(self, identifier, type=str, uoms=None, default=None,
                  allowed_values=None, values_reference=None, *args, **kwargs):
         super(LiteralData, self).__init__(identifier, *args, **kwargs)
         self.type = type
-        self.uoms = uoms or () # the first uom is the default one 
+        self.uoms = uoms or () # the first uom is the default one
         self.default = default
         self.allowed_values = allowed_values or ()
         self.values_reference = values_reference
 
-        if default is not None : self._is_optional = True 
+        if default is not None : self._is_optional = True
 
     def parse_value(self, raw_value):
         try:
             parser = LITERAL_DATA_PARSER.get(self.type, self.type)
             return parser(raw_value)
         except (ValueError, TypeError), e:
-            raise Exception("%s: Input parsing error: '%s' (raw value '%s')" % (self.identifier, str(e), raw_value))
+            raise Exception("%s: Input parsing error: '%s' (raw value '%s')"
+                            "" % (self.identifier, str(e), raw_value))
 
     def encode_value(self, value):
         value_type = type(value)
@@ -212,27 +196,3 @@ class LiteralData(Parameter):
     def type_name(self):
         return LITERAL_DATA_NAME.get(self.type)
 
-
-class ComplexData(Parameter):
-    def __init__(self, identifier, formats=None, *args, **kwargs):
-        super(ComplexData, self).__init__(identifier, *args, **kwargs)
-        self.formats = formats
-
-
-class BoundingBoxData(Parameter):
-    def __init__(self, identifier, *args, **kwargs):
-        super(BoundingBoxData, self).__init__(identifier, *args, **kwargs)
-        # TODO: CRSs
-
-
-class Format(object):
-    def __init__(self, mime_type, encoding=None, schema=None, encoder=None):
-        self.mime_type = mime_type
-        self.encoding = encoding
-        self.schema = schema
-        self.encoder = encoder
-
-    def encode_data(self, data):
-        if self.encoder:
-            return self.encoder
-        raise NotImplementedError
