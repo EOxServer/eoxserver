@@ -598,7 +598,7 @@ def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
         )
         options.pfnTransformer = GDALApproxTransform
         # TODO: correct for python
-        GDALApproxTransformerOwnsSubtransformer(options.pTransformerArg, True)
+        #GDALApproxTransformerOwnsSubtransformer(options.pTransformerArg, False)
 
 
     GDALCreateWarpedVRT = _libgdal.GDALCreateWarpedVRT
@@ -607,8 +607,18 @@ def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
 
     print "XXXX"
 
-    vrt_ds = GDALCreateWarpedVRT(ptr, x_size, y_size, geotransform, options)
 
+    GDALAutoCreateWarpedVRT = _libgdal.GDALAutoCreateWarpedVRT
+    GDALAutoCreateWarpedVRT.restype = C.c_void_p
+    GDALAutoCreateWarpedVRT.argtypes = [C.c_void_p, C.c_char_p, C.c_char_p, C.c_int, C.c_double, C.POINTER(WARP_OPTIONS)]
+
+
+    print x_size, y_size, tuple(geotransform), options
+    #options=GDALCreateWarpOptions()
+    #vrt_ds = GDALCreateWarpedVRT(ptr, x_size, y_size, geotransform, options)
+    vrt_ds = GDALAutoCreateWarpedVRT(ptr, None, wkt, resample, max_error, None)
+
+    print vrt_ds
     print "YYYY"
 
     GDALSetProjection = _libgdal.GDALSetProjection
