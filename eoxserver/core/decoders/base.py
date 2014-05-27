@@ -67,7 +67,8 @@ class BaseParameter(object):
 
         # parse the value/values, or return the defaults
         if multiple:
-            if self.num == ANY and self.default is not None:
+            
+            if count == 0 and self.num == ANY and self.default is not None:
                 return self.default
 
             try:
