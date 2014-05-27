@@ -247,16 +247,16 @@ class OWSTestCase(TestCase):
         if expected != actual_response:
             if self.getFileExtension("raster") in ("hdf", "nc"):
                 self.skipTest("Skipping binary comparison for HDF or NetCDF file '%s'." % expected_path)
-            
-
-            if file_type == "raster":
-                gdal.Open(expected_path)
-                pass
-
 
             # save the contents of the file
             with open(response_path, 'w') as f:
                 f.write(actual_response)
+
+            if file_type == "raster":
+                try:
+                    gdal.Open(expected_path)
+                except RuntimeError:
+                    self.skipTest("Expeted response is not present")
             
             if expected is None:
                 self.skipTest("Expected response in '%s' is not present" % expected_path)
@@ -933,10 +933,10 @@ class WCS20GetCoverageMultipartTestCase(MultipartTestCase):
         # The timePosition tag depends on the actual time the request was 
         # answered. It has to be explicitly unified.
         tree = etree.fromstring(self.getXMLData())
-        for node in tree.findall("{http://www.opengis.net/gmlcov/1.0}metadata/" \
-                                 "{http://www.opengis.net/gmlcov/1.0}Extension/" \
-                                 "{http://www.opengis.net/wcseo/1.0}EOMetadata/" \
-                                 "{http://www.opengis.net/wcseo/1.0}lineage/" \
+        for node in tree.findall("{http://www.opengis.net/gmlcov/1.0}metadata/"
+                                 "{http://www.opengis.net/gmlcov/1.0}Extension/"
+                                 "{http://www.opengis.net/wcseo/1.0}EOMetadata/"
+                                 "{http://www.opengis.net/wcseo/1.0}lineage/"
                                  "{http://www.opengis.net/gml/3.2}timePosition"):
             node.text = "2011-01-01T00:00:00Z"
         self.xmlData = etree.tostring(tree, encoding="ISO-8859-1")
