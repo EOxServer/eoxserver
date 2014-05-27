@@ -27,7 +27,7 @@
 #-------------------------------------------------------------------------------
 
 import logging
-from unittest import SkipTest
+from django.utils.unittest import SkipTest
 
 try:
     from twisted.protocols.ftp import FTPFactory, FTPRealm

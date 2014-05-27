@@ -76,7 +76,8 @@ class ModelTests(TestCase):
         self.rectified_1 = create(RectifiedDataset,
             identifier="rectified-1",
             footprint=GEOSGeometry("MULTIPOLYGON (((-111.6210939999999994 26.8588260000000005, -113.0273439999999994 -4.0786740000000004, -80.6835939999999994 -9.7036739999999995, -68.0273439999999994 15.6088260000000005, -111.6210939999999994 26.8588260000000005)))"),
-            begin_time="2013-06-11T14:55:23Z", end_time="2013-06-11T14:55:23Z",
+            begin_time=parse_datetime("2013-06-11T14:55:23Z"), 
+            end_time=parse_datetime("2013-06-11T14:55:23Z"),
             min_x=10, min_y=10, max_x=20, max_y=20, srid=4326, 
             size_x=100, size_y=100,
             range_type=self.range_type
@@ -85,7 +86,8 @@ class ModelTests(TestCase):
         self.rectified_2 = create(RectifiedDataset,
             identifier="rectified-2",
             footprint=GEOSGeometry("MULTIPOLYGON (((-28.0371090000000009 19.4760129999999982, -32.9589840000000009 -0.9146120000000000, -2.8125000000000000 -3.8150019999999998, 4.2187500000000000 19.1244510000000005, -28.0371090000000009 19.4760129999999982)))"),
-            begin_time="2013-06-10T18:52:34Z", end_time="2013-06-10T18:52:32Z",
+            begin_time=parse_datetime("2013-06-10T18:52:34Z"),
+            end_time=parse_datetime("2013-06-10T18:52:32Z"),
             min_x=10, min_y=10, max_x=20, max_y=20, srid=4326, 
             size_x=100, size_y=100,
             range_type=self.range_type
@@ -94,7 +96,8 @@ class ModelTests(TestCase):
         self.rectified_3 = create(RectifiedDataset,
             identifier="rectified-3",
             footprint=GEOSGeometry("MULTIPOLYGON (((-85.5175780000000003 14.2904660000000003, -116.2792969999999997 -8.3853150000000003, -63.7207030000000003 -19.4595340000000014, -58.7988280000000003 7.2592160000000003, -85.5175780000000003 14.2904660000000003)))"),
-            begin_time="2013-06-10T18:55:54Z", end_time="2013-06-10T18:55:54Z",
+            begin_time=parse_datetime("2013-06-10T18:55:54Z"),
+            end_time=parse_datetime("2013-06-10T18:55:54Z"),
             min_x=10, min_y=10, max_x=20, max_y=20, srid=4326, 
             size_x=100, size_y=100,
             range_type=self.range_type
@@ -103,7 +106,8 @@ class ModelTests(TestCase):
         self.referenceable = create(ReferenceableDataset,
             identifier="referenceable-1",
             footprint=GEOSGeometry("MULTIPOLYGON (((-85.5175780000000003 14.2904660000000003, -116.2792969999999997 -8.3853150000000003, -63.7207030000000003 -19.4595340000000014, -58.7988280000000003 7.2592160000000003, -85.5175780000000003 14.2904660000000003)))"),
-            begin_time="2013-06-10T18:55:54Z", end_time="2013-06-10T18:55:54Z",
+            begin_time=parse_datetime("2013-06-10T18:55:54Z"),
+            end_time=parse_datetime("2013-06-10T18:55:54Z"),
             min_x=10, min_y=10, max_x=20, max_y=20, srid=4326, 
             size_x=100, size_y=100,
             range_type=self.range_type
