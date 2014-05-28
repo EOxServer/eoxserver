@@ -69,6 +69,11 @@ def union(*footprints):
 
 class GeometryMixIn(object):
     def assertGeometryEqual(self, a, b, tolerance=0.05):
+        try:
+            if a.difference(b).empty:
+                return
+        except:
+            pass
         self.assertTrue(
             a.equals_exact(b, tolerance),
             "%r != %r" % (a.wkt, b.wkt)
