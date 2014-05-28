@@ -94,7 +94,7 @@ class Command(CommandOutputMixIn, BaseCommand):
                 "Missing the mandatory dataset series identifier(s)!"
             )
 
-        if not children: 
+        if not children_ids: 
             raise CommandError(
                 "Missing the mandatory inserted EOObjects identifier(s)!"
             )
