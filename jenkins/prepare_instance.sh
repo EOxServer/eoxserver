@@ -46,11 +46,10 @@ fi
 case $DB in
     "spatialite")
         echo "Using spatialite database!"
-        export DB=sqlite
+        # Noting to do, as by default eoxserver autotest will use a spatialite db
         ;;
     "postgis")
         echo "Using postgis database!"
-        export DB=postgis
         sed -e "s/'USER':.*/'USER': 'jenkins',/" -i autotest/autotest/settings.py
         sed -e "s/'PASSWORD':.*/'PASSWORD': 'eeJ0Kain',/" -i autotest/autotest/settings.py
         ;;
