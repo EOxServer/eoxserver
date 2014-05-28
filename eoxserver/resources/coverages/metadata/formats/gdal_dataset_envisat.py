@@ -66,6 +66,7 @@ class GDALDatasetEnvisatMetadataFormatReader(Component):
             "end_time": parse_datetime(ds.GetMetadataItem("MPH_SENSING_STOP"))
         }
 
+
 MONTHS = {
     "JAN": 1,
     "FEB": 2,
