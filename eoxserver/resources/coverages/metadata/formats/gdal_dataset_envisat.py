@@ -30,6 +30,8 @@
 import re
 from datetime import datetime
 
+from django.utils.timezone import utc
+
 from eoxserver.core import Component, ExtensionPoint, implements
 from eoxserver.contrib import gdal
 from eoxserver.resources.coverages.metadata.interfaces import (
@@ -50,7 +52,7 @@ class GDALDatasetEnvisatMetadataFormatReader(Component):
 
         return True
 
-    def read(self, ds):
+    def read_ds(self, ds):
         return {
             "identifier": splitext(ds.GetMetadataItem("MPH_PRODUCT"))[0],
             "begin_time": parse_datetime(ds.GetMetadataItem("MPH_SENSING_START")),
@@ -76,7 +78,9 @@ def parse_datetime(self, timestamp):
         "DEC": 12
     }
     
-    m = re.match(r"(\d{2})-([A-Z]{3})-(\d{4}) (\d{2}):(\d{2}):(\d{2}).*", timestamp)
+    m = re.match(
+        r"(\d{2})-([A-Z]{3})-(\d{4}) (\d{2}):(\d{2}):(\d{2}).*", timestamp
+    )
     day = int(m.group(1))
     month = MONTHS[m.group(2)]
     year = int(m.group(3))
@@ -84,4 +88,4 @@ def parse_datetime(self, timestamp):
     minute = int(m.group(5))
     second = int(m.group(6))
     
-    return datetime(year, month, day, hour, minute, second)
+    return datetime(year, month, day, hour, minute, second, tzinfo=utc)
