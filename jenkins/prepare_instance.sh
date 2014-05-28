@@ -64,6 +64,7 @@ echo "**> creating autotest_jenkins instance..."
 rm -rf autotest_jenkins/
 eoxserver-admin.py create_instance autotest_jenkins --init_spatialite
 cp -R autotest/autotest/data/ autotest_jenkins/autotest_jenkins/
+cp -R autotest/autotest/expected/ autotest_jenkins/autotest_jenkins/
 cp autotest/autotest/conf/eoxserver.conf autotest_jenkins/autotest_jenkins/conf/eoxserver.conf
 mkdir -p autotest_jenkins/autotest_jenkins/responses/
 

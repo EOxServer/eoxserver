@@ -86,15 +86,17 @@ fi
 rm tmp tmp1 tmp2 tmp3 tmp4
 kill `ps --ppid $PID -o pid=`
 
-python manage.py eoxs_series_unlink -d mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced mosaic_ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced mosaic_ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced -s MER_FRS_1P_reduced --traceback
-python manage.py eoxs_deregister_dataset mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced mosaic_ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced mosaic_ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced --traceback
-python manage.py eoxs_list_ids --traceback
-python manage.py eoxs_check_id -a notused --traceback
-python manage.py eoxs_check_id -u ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed --traceback
-python manage.py eoxs_check_id -u MER_FRS_1P_reduced --traceback
-python manage.py eoxs_add_dataset_series -i test_sync -d autotest_jenkins/data/meris/MER_FRS_1P_reduced/ autotest_jenkins/data/meris/mosaic_MER_FRS_1P_RGB_reduced/ -p "*.tif" --traceback
-python manage.py eoxs_synchronize -a --traceback
-python manage.py eoxs_list_ids --traceback
+python manage.py eoxs_series_unlink --series MER_FRS_1P_reduced --remove mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced --traceback
+python manage.py eoxs_dataset_deregister mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced --traceback
+python manage.py eoxs_eoid_list --traceback
+# TODO: this functionality seems to have been removed
+#python manage.py eoxs_check_id -a notused --traceback
+#python manage.py eoxs_check_id -u ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed --traceback
+#python manage.py eoxs_check_id -u MER_FRS_1P_reduced --traceback
+# TODO: re-activate once implemented
+#python manage.py eoxs_series_create -i test_sync -d autotest_jenkins/data/meris/MER_FRS_1P_reduced/ autotest_jenkins/data/meris/mosaic_MER_FRS_1P_RGB_reduced/ -p "*.tif" --traceback
+#python manage.py eoxs_synchronize -a --traceback
+python manage.py eoxs_eoid_list --traceback
 
 # Run Selenium
 echo "**> running Selenium tests ..."
