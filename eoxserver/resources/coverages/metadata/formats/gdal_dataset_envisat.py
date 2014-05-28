@@ -29,11 +29,11 @@
 
 import re
 from datetime import datetime
+from os.path import splitext
 
 from django.utils.timezone import utc
 
-from eoxserver.core import Component, ExtensionPoint, implements
-from eoxserver.contrib import gdal
+from eoxserver.core import Component, implements
 from eoxserver.resources.coverages.metadata.interfaces import (
     GDALDatasetMetadataReaderInterface
 )
