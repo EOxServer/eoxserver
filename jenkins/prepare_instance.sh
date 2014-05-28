@@ -38,24 +38,34 @@ else
     python setup.py develop
 fi
 
-# Create the EOxServer instance
-echo "**> creating autotest instance..."
-mv autotest tmp1
-eoxserver-admin.py create_instance autotest --init_spatialite
-cp -R tmp1/autotest/data/ autotest/autotest/
-cp -R tmp1/autotest/expected/ autotest/autotest/
-cp tmp1/autotest/conf/eoxserver.conf autotest/autotest/conf/eoxserver.conf
-mkdir -p autotest/autotest/responses/
-cp -R tmp1/autotest_services/ autotest/
-cp -R tmp1/.git/ autotest/
-rm -r tmp1/
-
 if [ $OS == "Ubuntu" ]; then
   sed -e 's/#binary_raster_comparison_enabled=false/binary_raster_comparison_enabled=false/' -i autotest/autotest/conf/eoxserver.conf
 fi
 
-# Enable 'autotest_services' app
-sed -e "s/#'autotest_services',/'autotest_services',/" -i autotest/autotest/settings.py
+# Configure the specified database system
+case $DB in
+    "spatialite")
+        echo "Using spatialite database!"
+        export DB=sqlite
+        ;;
+    "postgis")
+        echo "Using postgis database!"
+        export DB=postgis
+        sed -e "s/'USER':.*/'USER': 'jenkins',/" -i autotest/autotest/settings.py
+        sed -e "s/'PASSWORD':.*/'PASSWORD': 'eeJ0Kain',/" -i autotest/autotest/settings.py
+        ;;
+    *)
+        echo "Unknown database system, Exiting..."
+        exit 1
+        ;;
+esac
+
+# Create a new EOxServer instance for command line, server, etc. testing
+echo "**> creating autotest_jenkins instance..."
+eoxserver-admin.py create_instance autotest_jenkins --init_spatialite
+cp -R autotest/autotest/data/ autotest_jenkins/autotest_jenkins/
+cp autotest/autotest/conf/eoxserver.conf autotest_jenkins/autotest_jenkins/conf/eoxserver.conf
+mkdir -p autotest_jenkins/autotest_jenkins/responses/
 
 # Configure the specified database system
 case $DB in
@@ -65,12 +75,12 @@ case $DB in
         ;;
     "postgis")
         echo "Using postgis database!"
-        sed -e "s/'ENGINE':.*/'ENGINE': 'django.contrib.gis.db.backends.postgis',/" -i autotest/autotest/settings.py
-        sed -e "s/'NAME':.*/'NAME': 'eoxserver_testing',/" -i autotest/autotest/settings.py
-        sed -e "s/'USER':.*/'USER': 'jenkins',/" -i autotest/autotest/settings.py
-        sed -e "s/'PASSWORD':.*/'PASSWORD': 'eeJ0Kain',/" -i autotest/autotest/settings.py
-        sed -e "/'HOST':.*/d" -i autotest/autotest/settings.py
-        sed -e "/'PORT':.*/d" -i autotest/autotest/settings.py
+        sed -e "s/'ENGINE':.*/'ENGINE': 'django.contrib.gis.db.backends.postgis',/" -i autotest_jenkins/autotest_jenkins/settings.py
+        sed -e "s/'NAME':.*/'NAME': 'eoxserver_testing',/" -i autotest_jenkins/autotest_jenkins/settings.py
+        sed -e "s/'USER':.*/'USER': 'jenkins',/" -i autotest_jenkins/autotest_jenkins/settings.py
+        sed -e "s/'PASSWORD':.*/'PASSWORD': 'eeJ0Kain',/" -i autotest_jenkins/autotest_jenkins/settings.py
+        sed -e "/'HOST':.*/d" -i autotest_jenkins/autotest_jenkins/settings.py
+        sed -e "/'PORT':.*/d" -i autotest_jenkins/autotest_jenkins/settings.py
         ;;
     *)
         echo "Unknown database system, Exiting..."
