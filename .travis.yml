@@ -29,8 +29,10 @@ install:
   - pip install --install-option="--disable-extended-reftools" .
   - export XML_CATALOG_FILES="`pwd`/schemas/catalog.xml"
   - cd autotest
-script:
+  - ls autotest/conf/
+  - ls autotest
   - "sed -e 's/#binary_raster_comparison_enabled=false/binary_raster_comparison_enabled=false/' -i autotest/conf/eoxserver.conf"
+script:
   - python manage.py test core
   - python manage.py test backends
   - python manage.py test coverages
