@@ -13,6 +13,13 @@ echo "**> running pylint tests ..."
 # Run unit tests
 echo "**> running unit tests tests ..."
 cd autotest
+
+# Make sure the PostGIS test database is not present
+if [ $DB == "postgis" ] && [ `psql jenkins -tAc "SELECT 1 FROM pg_database WHERE datname='test_eoxserver_testing'"` ] ; then
+    echo "Dropping PostGIS test database."
+    dropdb test_eoxserver_testing
+fi
+
 export XML_CATALOG_FILES="$WORKSPACE/schemas/catalog.xml"
 python manage.py test autotest_services -v2
 python manage.py test services coverages -v2
@@ -26,7 +33,10 @@ cd autotest_jenkins
 
 # Restet PostGIS database if used
 if [ $DB == "postgis" ]; then
-    dropdb eoxserver_testing
+    if [ `psql jenkins -tAc "SELECT 1 FROM pg_database WHERE datname='eoxserver_testing'"` ] ; then
+        echo "Dropping PostGIS database."
+        dropdb eoxserver_testing
+    fi
     createdb -T template_postgis -O jenkins eoxserver_testing
 fi
 
