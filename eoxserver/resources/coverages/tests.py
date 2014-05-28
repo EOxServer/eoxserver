@@ -52,7 +52,7 @@ def create(Class, **kwargs):
 
 
 def refresh(*objects):
-    refr = lambda obj: type(obj).objects.get(pk=obj.pk)
+    refr = lambda obj: type(obj).objects.get(identifier=obj.identifier)
     if len(objects) == 1:
         return refr(objects[0])
     return map(refr, objects)
@@ -144,7 +144,9 @@ class ModelTests(TestCase):
 
 
     def test_insertion(self):
-        rectified_1, rectified_2, rectified_3 = self.rectified_1, self.rectified_2, self.rectified_3
+        rectified_1, rectified_2, rectified_3 = (
+            self.rectified_1, self.rectified_2, self.rectified_3
+        )
         mosaic, series_1, series_2 = self.mosaic, self.series_1, self.series_2
 
         mosaic.insert(rectified_1)
@@ -180,12 +182,15 @@ class ModelTests(TestCase):
         self.assertEqual(len(series_1), 4)
 
 
+        mosaic = RectifiedStitchedMosaic.objects.get(identifier="mosaic-1")
         mosaic, series_1, series_2 = refresh(mosaic, series_1, series_2)
 
         # TODO: further check metadata
         self.assertTrue(series_1.begin_time is not None)
 
-        begin_time, end_time, all_rectified_footprints = collect_eo_metadata(RectifiedDataset.objects.all())
+        begin_time, end_time, all_rectified_footprints = collect_eo_metadata(
+            RectifiedDataset.objects.all()
+        )
         time_extent = begin_time, end_time
 
         self.assertTrue(series_1.footprint.equals(all_rectified_footprints))
@@ -201,7 +206,9 @@ class ModelTests(TestCase):
 
 
     def test_insertion_cascaded(self):
-        rectified_1, mosaic, series_1, series_2 = self.rectified_1, self.mosaic, self.series_1, self.series_2
+        rectified_1, mosaic, series_1, series_2 = (
+            self.rectified_1, self.mosaic, self.series_1, self.series_2
+        )
 
         mosaic.insert(rectified_1)
         series_1.insert(mosaic)
@@ -231,7 +238,9 @@ class ModelTests(TestCase):
 
 
     def test_insertion_and_removal(self):
-        rectified_1, rectified_2, series_1 = self.rectified_1, self.rectified_2, self.series_1
+        rectified_1, rectified_2, series_1 = (
+            self.rectified_1, self.rectified_2, self.series_1
+        )
         series_1.insert(rectified_1)
         series_1.insert(rectified_2)
 
@@ -308,7 +317,8 @@ class MetadataFormatTests(TestCase):
             "footprint": MultiPolygon(
                 Polygon.from_bbox((0, 0, 10, 20)),
                 Polygon.from_bbox((10, 10, 30, 40))
-            )
+            ),
+            "format": "native"
         }, values)
 
     def test_native_writer(self):
@@ -435,7 +445,8 @@ class MetadataFormatTests(TestCase):
             "footprint": MultiPolygon(
                 Polygon.from_bbox((10, 20, 30, 40)),
                 Polygon.from_bbox((50, 60, 70, 80))
-            )
+            ),
+            'format': 'eogml'
         }
         self.assertEqual(expected, values)
 
