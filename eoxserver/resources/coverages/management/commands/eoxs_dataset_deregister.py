@@ -61,9 +61,9 @@ class Command(CommandOutputMixIn, BaseCommand):
             self.print_msg("Deleting Dataset: '%s'" % (identifier))
             try:
                 # locate coverage an check the type 
-                eoobj = EOObject.objects.get(identifier=identifier).cast()
+                dataset = EOObject.objects.get(identifier=identifier).cast()
 
-                if eoobj.real_type not in (RectifiedDataset, ReferenceableDataset): 
+                if dataset.real_type not in (RectifiedDataset, ReferenceableDataset): 
                     raise EOObject.DoesNotExist
                 # final removal
                 dataset.delete()
