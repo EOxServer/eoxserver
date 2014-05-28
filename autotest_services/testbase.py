@@ -38,6 +38,7 @@ from cStringIO import StringIO
 
 from django.test import Client, TestCase
 from django.conf import settings
+from django.utils.unittest import SkipTest
 
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.util import multiparttools as mp 
@@ -102,9 +103,11 @@ class OWSTestCase(TestCase):
     ]
     
     def setUp(self):
-        super(OWSTestCase,self).setUp()
+        super(OWSTestCase, self).setUp()
 
         classname = self.__class__.__name__
+
+        self.check_disabled()
         
         logger.info("Starting Test Case: %s" % classname)
         
@@ -115,7 +118,7 @@ class OWSTestCase(TestCase):
             self.response = REQUEST_CACHE[classname]
             return
 
-        if ( len(rq) == 2 ):
+        if len(rq) == 2:
             request, req_type = rq
             headers = {}
         else:
@@ -142,6 +145,15 @@ class OWSTestCase(TestCase):
         except KeyError:
             pass
 
+    def check_disabled(self):
+        config = get_eoxserver_config()
+        disabled_tests = config.get("testing", "disabled_tests", "").split(",")
+        name = type(self).__name__
+        if name in disabled_tests:
+            raise SkiptTest(
+                "Test '%s' is disabled by the configuration." % name
+            )
+
     
     def isRequestConfigEnabled(self, config_key, default=False):
         config = get_eoxserver_config()
@@ -149,7 +161,7 @@ class OWSTestCase(TestCase):
             value = config.get("testing", config_key)
         except:
             value = None
-        
+
         if value is None:
             return default
         elif value.lower() in ("yes", "y", "true", "on"):
