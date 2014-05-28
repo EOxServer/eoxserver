@@ -26,6 +26,8 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+from django.contrib.gis.geos import GEOSGeometry
+
 from eoxserver.core import Component, ExtensionPoint, implements
 from eoxserver.contrib import gdal
 from eoxserver.resources.coverages.metadata.interfaces import (
