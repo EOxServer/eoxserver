@@ -67,7 +67,7 @@ class Command(CommandOutputMixIn, BaseCommand):
     Examples:
         python manage.py %(name)s --all
         
-        python manage.py %(name)s MER_FRS_1P_RGB_reduced \\
+        python manage.py %(name)s MER_FRS_1P_reduced_RGB \\
             MER_FRS_1P_reduced
     """ % ({"name": __name__.split(".")[-1]})
     )
