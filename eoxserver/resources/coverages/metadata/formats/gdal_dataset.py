@@ -96,11 +96,9 @@ class GDALDatasetMetadataReader(Component):
                     values.setdefault(key, value)
 
             if ds.GetGCPCount() > 0:
-                rt_prm = rt.suggest_transformer(raw_metadata)
-                fp_wkt = rt.get_footprint_wkt(raw_metadata,**rt_prm)
-                values["footprint"] = GEOSGeometry(
-                    fp_wkt
-                )
+                rt_prm = rt.suggest_transformer(ds)
+                fp_wkt = rt.get_footprint_wkt(ds, **rt_prm)
+                values["footprint"] = GEOSGeometry(fp_wkt)
 
             driver_metadata = driver.GetMetadata()
             frmt = driver_metadata.get("DMD_MIMETYPE")
