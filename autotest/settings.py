@@ -55,10 +55,10 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-# Configure which database to use. Default is PostGIS.
-DATABASE = os.environ.get('DB', 'postgis')
+# Configure which database to use. Default is spatialite.
+DATABASE = os.environ.get('DB', 'spatialite')
 
-if DATABASE == 'sqlite':
+if DATABASE == 'spatialite':
     DATABASES = {
         'default': {
             'ENGINE': 'django.contrib.gis.db.backends.spatialite',
