@@ -55,11 +55,10 @@ class Command(CommandOutputMixIn, BaseCommand):
     def handle(self, *args, **opt):
         # check required identifier 
         if not args: 
-            raise CommandError("Missing the mandatory dataset identifier!")
-
-        self.print_msg("Deleting Dataset: '%s'" % (identifier))
+            raise CommandError("Missing the mandatory dataset identifier(s)!")
 
         for identifier in args:
+            self.print_msg("Deleting Dataset: '%s'" % (identifier))
             try:
                 # locate coverage an check the type 
                 eoobj = EOObject.objects.get(identifier=identifier).cast()
