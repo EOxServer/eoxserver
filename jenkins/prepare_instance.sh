@@ -47,7 +47,8 @@ cp -R tmp1/autotest/expected/ autotest/autotest/
 cp tmp1/autotest/conf/eoxserver.conf autotest/autotest/conf/eoxserver.conf
 mkdir -p autotest/autotest/responses/
 cp -R tmp1/autotest_services/ autotest/
-rm -r tmp1
+cp -R tmp1/.git/ autotest/
+rm -r tmp1/
 
 if [ $OS == "Ubuntu" ]; then
   sed -e 's/#binary_raster_comparison_enabled=false/binary_raster_comparison_enabled=false/' -i autotest/autotest/conf/eoxserver.conf
