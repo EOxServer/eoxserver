@@ -93,7 +93,7 @@ class WCS20DescribeCoverageDatasetTestCase(testbase.XMLTestCase):
 class WCS20DescribeCoverageMosaicTestCase(testbase.XMLTestCase):
     """This test shall retrieve a valid WCS 2.0 EO-AP (EO-WCS) DescribeCoverage response for a wcseo:RectifiedStitchedMosaic."""
     def getRequest(self):
-        params = "service=WCS&version=2.0.0&request=DescribeCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced"
+        params = "service=WCS&version=2.0.0&request=DescribeCoverage&CoverageId=mosaic_MER_FRS_1P_reduced_RGB"
         return (params, "kvp")
 
 class WCS20DescribeCoverageDatasetSeriesFaultTestCase(testbase.ExceptionTestCase):
@@ -142,7 +142,7 @@ class WCS20DescribeEOCoverageSetDatasetTestCase(testbase.XMLTestCase):
 class WCS20DescribeEOCoverageSetMosaicTestCase(testbase.XMLTestCase):
     """This test shall retrieve a valid WCS 2.0 EO-AP (EO-WCS) DescribeEOCoverageSet response for a wcseo:RectifiedStitchedMosaic"""
     def getRequest(self):
-        params = "service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=mosaic_MER_FRS_1P_RGB_reduced"
+        params = "service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=mosaic_MER_FRS_1P_reduced_RGB"
         return (params, "kvp")
 
 class WCS20DescribeEOCoverageSetDatasetSeriesTestCase(testbase.XMLTestCase):
@@ -432,7 +432,7 @@ class WCS20DescribeEOCoverageSetDatasetUniqueTestCase(testbase.WCS20DescribeEOCo
 
 class WCS20DescribeEOCoverageSetDatasetOutOfSubsetTestCase(testbase.WCS20DescribeEOCoverageSetSubsettingTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced,mosaic_MER_FRS_1P_RGB_reduced,MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(0,1)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(0,1)"
+        params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced,mosaic_MER_FRS_1P_reduced_RGB,MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(0,1)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(0,1)"
         return (params, "kvp")
     
     def getExpectedCoverageIds(self):
@@ -440,7 +440,7 @@ class WCS20DescribeEOCoverageSetDatasetOutOfSubsetTestCase(testbase.WCS20Describ
     
 class WCS20DescribeEOCoverageSetDatasetSeriesStitchedMosaicTestCase(testbase.WCS20DescribeEOCoverageSetSubsettingTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced,mosaic_MER_FRS_1P_RGB_reduced"
+        params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced,mosaic_MER_FRS_1P_reduced_RGB"
         return (params, "kvp")
     
     def getExpectedCoverageIds(self):
@@ -451,7 +451,7 @@ class WCS20DescribeEOCoverageSetDatasetSeriesStitchedMosaicTestCase(testbase.WCS
             "mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced",
             "mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced",
             "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced",
-            "mosaic_MER_FRS_1P_RGB_reduced"
+            "mosaic_MER_FRS_1P_reduced_RGB"
         ]
 
 #===============================================================================
@@ -461,7 +461,7 @@ class WCS20DescribeEOCoverageSetDatasetSeriesStitchedMosaicTestCase(testbase.WCS
 # after WCS 2.0.1 implementation does not lead to an error anymore 
 #class WCS20GetCoverageFormatMissingFaultTestCase(testbase.ExceptionTestCase):
 #    def getRequest(self):
-#        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced"
+#        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_reduced_RGB"
 #        return (params, "kvp")
 #    
 #    def getExpectedExceptionCode(self):
@@ -500,7 +500,7 @@ class WCS20GetCoverageFormatUnknownFaultTestCase(testbase.ExceptionTestCase):
 
 class WCS20GetCoverageMosaicTestCase(testbase.RectifiedGridCoverageTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=image/tiff"
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_reduced_RGB&format=image/tiff"
         return (params, "kvp")
 
 class WCS20GetCoverageDatasetTestCase(testbase.RectifiedGridCoverageTestCase):
@@ -515,7 +515,7 @@ class WCS20GetCoverageDatasetTestCase(testbase.RectifiedGridCoverageTestCase):
 # WCS 2.0.1 introduced the native format, i.e., default format in case of missing format specification
 class WCS20GetCoverageNativeTestCase(testbase.RectifiedGridCoverageTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced"
+        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_reduced_RGB"
         return (params, "kvp")
 
     def getFileExtension(self, part=None):
@@ -523,7 +523,7 @@ class WCS20GetCoverageNativeTestCase(testbase.RectifiedGridCoverageTestCase):
 
 class WCS20GetCoverageJPEG2000TestCase(testbase.RectifiedGridCoverageTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=image/jp2"
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_reduced_RGB&format=image/jp2"
         return (params, "kvp")
     
     def getFileExtension(self, part=None):
@@ -531,7 +531,7 @@ class WCS20GetCoverageJPEG2000TestCase(testbase.RectifiedGridCoverageTestCase):
 
 class WCS20GetCoverageNetCDFTestCase(testbase.RectifiedGridCoverageTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=application/x-netcdf"
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_reduced_RGB&format=application/x-netcdf"
         return (params, "kvp")
     
     def getFileExtension(self, part=None):
@@ -539,7 +539,7 @@ class WCS20GetCoverageNetCDFTestCase(testbase.RectifiedGridCoverageTestCase):
 
 class WCS20GetCoverageHDFTestCase(testbase.RectifiedGridCoverageTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=application/x-hdf"
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_reduced_RGB&format=application/x-hdf"
         return (params, "kvp")
     
     def getFileExtension(self, part=None):
@@ -547,17 +547,17 @@ class WCS20GetCoverageHDFTestCase(testbase.RectifiedGridCoverageTestCase):
 
 class WCS20GetCoverageCompressionLZWTestCase(testbase.RectifiedGridCoverageTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=%s" % quote("image/tiff;compress=LZW")
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_reduced_RGB&format=%s" % quote("image/tiff;compress=LZW")
         return (params, "kvp")
 
 class WCS20GetCoverageCompressionJPEGTestCase(testbase.RectifiedGridCoverageTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=%s" % quote("image/tiff;compress=JPEG;jpeg_quality=50")
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_reduced_RGB&format=%s" % quote("image/tiff;compress=JPEG;jpeg_quality=50")
         return (params, "kvp")
 
 class WCS20GetCoverageTiledTestCase(testbase.RectifiedGridCoverageTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=%s" % quote("image/tiff;tiled=YES")
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_reduced_RGB&format=%s" % quote("image/tiff;tiled=YES")
         return (params, "kvp")
 
 # TODO: Enable test once subdatasets are supported (see #123):
@@ -578,7 +578,7 @@ class WCS20GetCoverageJPEG2000InputTestCase(testbase.RectifiedGridCoverageTestCa
 
 class WCS20GetCoverageMultipartMosaicTestCase(wcsbase.WCS20GetCoverageMixIn, testbase.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=image/tiff&mediatype=multipart/related"
+        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_reduced_RGB&format=image/tiff&mediatype=multipart/related"
         return (params, "kvp")
 
 class WCS20GetCoverageMultipartDatasetTestCase(wcsbase.WCS20GetCoverageMixIn, testbase.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
@@ -589,7 +589,7 @@ class WCS20GetCoverageMultipartDatasetTestCase(wcsbase.WCS20GetCoverageMixIn, te
 # TODO: wrong multipart parameters only result in non-multipart images. Uncomment, when implemented
 #class WCS20GetCoverageWrongMultipartParameterFaultTestCase(wcsbase.WCS20GetCoverageMixIn, testbase.ExceptionTestCase):
 #    def getRequest(self):
-#        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=image/tiff&mediatype=multipart/something"
+#        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_reduced_RGB&format=image/tiff&mediatype=multipart/something"
 #        return (params, "kvp")
 #
 #    def getExpectedExceptionCode(self):
@@ -606,7 +606,7 @@ class WCS20GetCoverageSubsetDatasetTestCase(wcsbase.WCS20GetCoverageMixIn, testb
 
 class WCS20GetCoverageMultipartSubsetMosaicTestCase(wcsbase.WCS20GetCoverageMixIn, testbase.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=image/tiff&mediatype=multipart/related&subset=x(100,1000)&subset=y(0,99)"
+        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_reduced_RGB&format=image/tiff&mediatype=multipart/related&subset=x(100,1000)&subset=y(0,99)"
         return (params, "kvp")
 
 class WCS20GetCoverageMultipartSubsetDatasetTestCase(wcsbase.WCS20GetCoverageMixIn, testbase.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
@@ -621,12 +621,12 @@ class WCS20GetCoverageSubsetEPSG4326DatasetTestCase(testbase.RectifiedGridCovera
     
 class WCS20GetCoverageSubsetEPSG4326MosaicTestCase(testbase.RectifiedGridCoverageTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=image/tiff&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(38,40)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(0,30)"
+        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_reduced_RGB&format=image/tiff&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(38,40)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(0,30)"
         return (params, "kvp")
 
 class WCS20GetCoverageSubsetInvalidEPSGFaultTestCase(testbase.ExceptionTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=image/tiff&subset=x,http://www.opengis.net/def/crs/EPSG/0/99999(38,40)&subset=y,http://www.opengis.net/def/crs/EPSG/0/99999(20,22)"
+        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_reduced_RGB&format=image/tiff&subset=x,http://www.opengis.net/def/crs/EPSG/0/99999(38,40)&subset=y,http://www.opengis.net/def/crs/EPSG/0/99999(20,22)"
         return (params, "kvp")
     
     def getExpectedExceptionCode(self):
@@ -660,7 +660,7 @@ class WCS20GetCoverageSizeDatasetTestCase(testbase.RectifiedGridCoverageTestCase
 
 class WCS20GetCoverageSizeMosaicTestCase(testbase.RectifiedGridCoverageTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=image/tiff&size=x(200)&size=y(400)"
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_reduced_RGB&format=image/tiff&size=x(200)&size=y(400)"
         return (params, "kvp")
 
 class WCS20GetCoverageSubsetSizeDatasetTestCase(testbase.RectifiedGridCoverageTestCase):
@@ -680,7 +680,7 @@ class WCS20GetCoverageSubsetEPSG4326SizeExceedsExtentDatasetTestCase(wcsbase.WCS
 
 class WCS20GetCoverageInvalidSizeFaultTestCase(testbase.ExceptionTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=image/tiff&size=x(1.11)"
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_reduced_RGB&format=image/tiff&size=x(1.11)"
         return (params, "kvp")
     
     def getExpectedExceptionCode(self):
@@ -697,7 +697,7 @@ class WCS20GetCoverageResolutionDatasetTestCase(testbase.RectifiedGridCoverageTe
     
 class WCS20GetCoverageResolutionMosaicTestCase(testbase.RectifiedGridCoverageTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=image/tiff&resolution=x(0.1)&resolution=y(0.1)"
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_reduced_RGB&format=image/tiff&resolution=x(0.1)&resolution=y(0.1)"
         return (params, "kvp")
 
 class WCS20GetCoverageSubsetResolutionDatasetTestCase(testbase.RectifiedGridCoverageTestCase):
@@ -942,7 +942,7 @@ class WCS20CorrigendumDescribeEOCoverageSetMosaicTestCase(testbase.XMLTestCase):
         (see #162)
     """
     def getRequest(self):
-        params = "service=WCS&version=2.0.1&request=DescribeEOCoverageSet&eoId=mosaic_MER_FRS_1P_RGB_reduced"
+        params = "service=WCS&version=2.0.1&request=DescribeEOCoverageSet&eoId=mosaic_MER_FRS_1P_reduced_RGB"
         return (params, "kvp")
 
 

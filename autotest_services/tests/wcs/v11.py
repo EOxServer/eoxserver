@@ -53,7 +53,7 @@ class WCS11DescribeCoverageDatasetTestCase(testbase.XMLTestCase):
 
 class WCS11DescribeCoverageMosaicTestCase(testbase.XMLTestCase):
     def getRequest(self):
-        params = "service=WCS&version=1.1.2&request=DescribeCoverage&identifier=mosaic_MER_FRS_1P_RGB_reduced"
+        params = "service=WCS&version=1.1.2&request=DescribeCoverage&identifier=mosaic_MER_FRS_1P_reduced_RGB"
         return (params, "kvp")
 
 class WCS11GetCoverageDatasetTestCase(wcsbase.WCS11GetCoverageMixIn, testbase.RectifiedGridCoverageMultipartTestCase):
@@ -63,7 +63,7 @@ class WCS11GetCoverageDatasetTestCase(wcsbase.WCS11GetCoverageMixIn, testbase.Re
 
 class WCS11GetCoverageMosaicTestCase(wcsbase.WCS11GetCoverageMixIn, testbase.RectifiedGridCoverageMultipartTestCase):
     def getRequest(self):
-        params = "service=WCS&version=1.1.2&request=GetCoverage&identifier=mosaic_MER_FRS_1P_RGB_reduced&boundingbox=32,-4,46.5,28,urn:ogc:def:crs:EPSG::4326&format=image/tiff"
+        params = "service=WCS&version=1.1.2&request=GetCoverage&identifier=mosaic_MER_FRS_1P_reduced_RGB&boundingbox=32,-4,46.5,28,urn:ogc:def:crs:EPSG::4326&format=image/tiff"
         return (params, "kvp")
 
 class WCS11GetCoverageDatasetSubsetTestCase(wcsbase.WCS11GetCoverageMixIn, testbase.RectifiedGridCoverageMultipartTestCase):
@@ -78,12 +78,12 @@ class WCS11GetCoverageDatasetSubsetEPSG4326TestCase(wcsbase.WCS11GetCoverageMixI
 
 class WCS11GetCoverageMosaicSubsetTestCase(wcsbase.WCS11GetCoverageMixIn, testbase.RectifiedGridCoverageMultipartTestCase):
     def getRequest(self):
-        params = "service=WCS&version=1.1.2&request=GetCoverage&identifier=mosaic_MER_FRS_1P_RGB_reduced&boundingbox=300,200,700,350,urn:ogc:def:crs:OGC::imageCRS&format=image/tiff&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridBaseCRS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=0,0&GridOffsets=2,2"
+        params = "service=WCS&version=1.1.2&request=GetCoverage&identifier=mosaic_MER_FRS_1P_reduced_RGB&boundingbox=300,200,700,350,urn:ogc:def:crs:OGC::imageCRS&format=image/tiff&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridBaseCRS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=0,0&GridOffsets=2,2"
         return (params, "kvp")
 
 class WCS11GetCoverageMosaicSubsetEPSG4326TestCase(wcsbase.WCS11GetCoverageMixIn, testbase.RectifiedGridCoverageMultipartTestCase):
     def getRequest(self):
-        params = "service=WCS&version=1.1.2&request=GetCoverage&identifier=mosaic_MER_FRS_1P_RGB_reduced&boundingbox=35,10,42,20,urn:ogc:def:crs:EPSG::4326&format=image/tiff&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridBaseCRS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=40,10&GridOffsets=-0.06,0.06"
+        params = "service=WCS&version=1.1.2&request=GetCoverage&identifier=mosaic_MER_FRS_1P_reduced_RGB&boundingbox=35,10,42,20,urn:ogc:def:crs:EPSG::4326&format=image/tiff&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridBaseCRS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=40,10&GridOffsets=-0.06,0.06"
         return (params, "kvp")
 
 #===============================================================================
@@ -161,8 +161,8 @@ class WCS11TransactionRectifiedDatasetTestCase(testbase.WCSTransactionRectifiedG
     """
     fixtures = testbase.BASE_FIXTURES
     ID = "RECTIFIED_MERIS_ID"
-    ADDtiffFile = "meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif"
-    ADDmetaFile = "meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.xml"
+    ADDtiffFile = "meris/mosaic_MER_FRS_1P_reduced_RGB/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif"
+    ADDmetaFile = "meris/mosaic_MER_FRS_1P_reduced_RGB/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.xml"
 
 class WCS11TransactionAsyncRectifiedDatasetTestCase(testbase.WCSTransactionRectifiedGridCoverageTestCase):
     """ This test case shall test the asynchronous inserting of a new 
@@ -171,8 +171,8 @@ class WCS11TransactionAsyncRectifiedDatasetTestCase(testbase.WCSTransactionRecti
     """
     fixtures = testbase.BASE_FIXTURES
     ID = "RECTIFIED_MERIS_ID"
-    ADDtiffFile = "meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif"
-    ADDmetaFile = "meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.xml"
+    ADDtiffFile = "meris/mosaic_MER_FRS_1P_reduced_RGB/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif"
+    ADDmetaFile = "meris/mosaic_MER_FRS_1P_reduced_RGB/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.xml"
     isAsync = True
 
 class WCS11TransactionReferenceableDatasetTestCase(testbase.WCSTransactionReferenceableGridCoverageTestCase):
@@ -221,7 +221,7 @@ class WCS11PostDescribeCoverageMosaicTestCase(testbase.XMLTestCase):
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
           xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsDescribeCoverage.xsd" 
           service="WCS" version="1.1.2">
-            <Identifier>mosaic_MER_FRS_1P_RGB_reduced</Identifier>
+            <Identifier>mosaic_MER_FRS_1P_reduced_RGB</Identifier>
           </DescribeCoverage>"""
         return (params, "xml")
 
@@ -250,7 +250,7 @@ class WCS11PostGetCoverageMosaicTestCase(wcsbase.WCS11GetCoverageMixIn, testbase
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
           xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsGetCoverage.xsd" 
           service="WCS" version="1.1.2">
-            <ows:Identifier>mosaic_MER_FRS_1P_RGB_reduced</ows:Identifier>
+            <ows:Identifier>mosaic_MER_FRS_1P_reduced_RGB</ows:Identifier>
             <DomainSubset>
               <ows:BoundingBox crs="urn:ogc:def:crs:EPSG::4326">
                 <ows:LowerCorner>32 -4</ows:LowerCorner>

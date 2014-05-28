@@ -88,7 +88,7 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
         <ows:AllowedValues>
           <ows:Value>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</ows:Value>
           <ows:Value>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</ows:Value>
-          <ows:Value>mosaic_MER_FRS_1P_RGB_reduced</ows:Value>
+          <ows:Value>mosaic_MER_FRS_1P_reduced_RGB</ows:Value>
           <ows:Value>ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775</ows:Value>
         </ows:AllowedValues>
       </ows:Parameter>
@@ -114,7 +114,7 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
         <ows:AllowedValues>
           <ows:Value>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</ows:Value>
           <ows:Value>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</ows:Value>
-          <ows:Value>mosaic_MER_FRS_1P_RGB_reduced</ows:Value>
+          <ows:Value>mosaic_MER_FRS_1P_reduced_RGB</ows:Value>
           <ows:Value>ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775</ows:Value>
         </ows:AllowedValues>
       </ows:Parameter>
@@ -183,7 +183,7 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
       <Identifier>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</Identifier>
     </CoverageSummary>
     <CoverageSummary>
-      <ows:Title>mosaic_MER_FRS_1P_RGB_reduced</ows:Title>
+      <ows:Title>mosaic_MER_FRS_1P_reduced_RGB</ows:Title>
       <ows:Abstract/>
       <ows:WGS84BoundingBox dimensions="2">
         <ows:LowerCorner>-3.75 32.158895</ows:LowerCorner>
@@ -198,7 +198,7 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
       <SupportedFormat>application/x-netcdf</SupportedFormat>
       <SupportedFormat>application/x-hdf</SupportedFormat>
       <SupportedFormat>image/png</SupportedFormat>
-      <Identifier>mosaic_MER_FRS_1P_RGB_reduced</Identifier>
+      <Identifier>mosaic_MER_FRS_1P_reduced_RGB</Identifier>
     </CoverageSummary>
     <CoverageSummary>
       <ows:Title>ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775</ows:Title>

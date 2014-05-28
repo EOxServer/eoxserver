@@ -169,7 +169,7 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
       <wcs:CoverageSubtype>RectifiedDataset</wcs:CoverageSubtype>
     </wcs:CoverageSummary>
     <wcs:CoverageSummary>
-      <wcs:CoverageId>mosaic_MER_FRS_1P_RGB_reduced</wcs:CoverageId>
+      <wcs:CoverageId>mosaic_MER_FRS_1P_reduced_RGB</wcs:CoverageId>
       <wcs:CoverageSubtype>RectifiedStitchedMosaic</wcs:CoverageSubtype>
     </wcs:CoverageSummary>
     <wcs:Extension>
@@ -178,8 +178,8 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
           <ows:LowerCorner>32.264541 -3.437981</ows:LowerCorner>
           <ows:UpperCorner>46.218445 27.968591</ows:UpperCorner>
         </ows:WGS84BoundingBox>
-        <wcseo:DatasetSeriesId>MER_FRS_1P_RGB_reduced</wcseo:DatasetSeriesId>
-        <gml:TimePeriod gml:id="MER_FRS_1P_RGB_reduced_timeperiod">
+        <wcseo:DatasetSeriesId>MER_FRS_1P_reduced_RGB</wcseo:DatasetSeriesId>
+        <gml:TimePeriod gml:id="MER_FRS_1P_reduced_RGB_timeperiod">
           <gml:beginPosition>2006-08-16T09:09:29Z</gml:beginPosition>
           <gml:endPosition>2006-08-30T10:13:06Z</gml:endPosition>
         </gml:TimePeriod>

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<wcseo:RectifiedStitchedMosaic xmlns:crs="http://www.opengis.net/wcs/service-extension/crs/1.0" xmlns:wcs="http://www.opengis.net/wcs/2.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:swe="http://www.opengis.net/swe/2.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:ows="http://www.opengis.net/ows/2.0" xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0" xmlns:wcseo="http://www.opengis.net/wcseo/1.0" xmlns:om="http://www.opengis.net/om/2.0" xmlns:ogc="http://www.opengis.net/ogc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd" gml:id="mosaic_MER_FRS_1P_RGB_reduced">
+<wcseo:RectifiedStitchedMosaic xmlns:crs="http://www.opengis.net/wcs/service-extension/crs/1.0" xmlns:wcs="http://www.opengis.net/wcs/2.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:swe="http://www.opengis.net/swe/2.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:ows="http://www.opengis.net/ows/2.0" xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0" xmlns:wcseo="http://www.opengis.net/wcseo/1.0" xmlns:om="http://www.opengis.net/om/2.0" xmlns:ogc="http://www.opengis.net/ogc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd" gml:id="mosaic_MER_FRS_1P_reduced_RGB">
   <gml:boundedBy>
     <gml:Envelope srsName="http://www.opengis.net/def/crs/EPSG/0/4326" axisLabels="lat long" uomLabels="deg deg" srsDimension="2">
       <gml:lowerCorner>43.1645 -0.6145</gml:lowerCorner>
@@ -7,7 +7,7 @@
     </gml:Envelope>
   </gml:boundedBy>
   <gml:domainSet>
-    <gml:RectifiedGrid dimension="2" gml:id="grid_mosaic_MER_FRS_1P_RGB_reduced">
+    <gml:RectifiedGrid dimension="2" gml:id="grid_mosaic_MER_FRS_1P_reduced_RGB">
       <gml:limits>
         <gml:GridEnvelope>
           <gml:low>0 0</gml:low>
@@ -16,7 +16,7 @@
       </gml:limits>
       <gml:axisLabels>lat long</gml:axisLabels>
       <gml:origin>
-        <gml:Point gml:id="grid_origin_mosaic_MER_FRS_1P_RGB_reduced" srsName="http://www.opengis.net/def/crs/EPSG/0/4326">
+        <gml:Point gml:id="grid_origin_mosaic_MER_FRS_1P_reduced_RGB" srsName="http://www.opengis.net/def/crs/EPSG/0/4326">
           <gml:pos>46.300000 -0.614500</gml:pos>
         </gml:Point>
       </gml:origin>
@@ -26,8 +26,8 @@
   </gml:domainSet>
   <gml:rangeSet>
     <gml:File>
-      <gml:rangeParameters xlink:href="cid:coverage/mosaic_MER_FRS_1P_RGB_reduced.tif" xlink:role="http://www.opengis.net/spec/GMLCOV_geotiff-coverages/1.0/conf/geotiff-coverage" xlink:arcrole="fileReference"/>
-      <gml:fileReference>cid:coverage/mosaic_MER_FRS_1P_RGB_reduced.tif</gml:fileReference>
+      <gml:rangeParameters xlink:href="cid:coverage/mosaic_MER_FRS_1P_reduced_RGB.tif" xlink:role="http://www.opengis.net/spec/GMLCOV_geotiff-coverages/1.0/conf/geotiff-coverage" xlink:arcrole="fileReference"/>
+      <gml:fileReference>cid:coverage/mosaic_MER_FRS_1P_reduced_RGB.tif</gml:fileReference>
       <gml:fileStructure/>
       <gml:mimeType>image/tiff</gml:mimeType>
     </gml:File>
@@ -78,26 +78,26 @@
   <gmlcov:metadata>
     <gmlcov:Extension>
       <wcseo:EOMetadata>
-        <eop:EarthObservation gml:id="eop_mosaic_MER_FRS_1P_RGB_reduced">
+        <eop:EarthObservation gml:id="eop_mosaic_MER_FRS_1P_reduced_RGB">
           <om:phenomenonTime>
-            <gml:TimePeriod gml:id="phen_time_mosaic_MER_FRS_1P_RGB_reduced">
+            <gml:TimePeriod gml:id="phen_time_mosaic_MER_FRS_1P_reduced_RGB">
               <gml:beginPosition>2006-08-16T09:09:29Z</gml:beginPosition>
               <gml:endPosition>2006-08-30T10:13:06Z</gml:endPosition>
             </gml:TimePeriod>
           </om:phenomenonTime>
           <om:resultTime>
-            <gml:TimeInstant gml:id="res_time_mosaic_MER_FRS_1P_RGB_reduced">
+            <gml:TimeInstant gml:id="res_time_mosaic_MER_FRS_1P_reduced_RGB">
               <gml:timePosition>2006-08-30T10:13:06Z</gml:timePosition>
             </gml:TimeInstant>
           </om:resultTime>
           <om:procedure/>
           <om:observedProperty/>
           <om:featureOfInterest>
-            <eop:Footprint gml:id="footprint_mosaic_MER_FRS_1P_RGB_reduced">
+            <eop:Footprint gml:id="footprint_mosaic_MER_FRS_1P_reduced_RGB">
               <eop:multiExtentOf>
-                <gml:MultiSurface srsName="EPSG:4326" gml:id="multisurface_mosaic_MER_FRS_1P_RGB_reduced">
+                <gml:MultiSurface srsName="EPSG:4326" gml:id="multisurface_mosaic_MER_FRS_1P_reduced_RGB">
                   <gml:surfaceMember>
-                    <gml:Polygon gml:id="polygon_mosaic_MER_FRS_1P_RGB_reduced">
+                    <gml:Polygon gml:id="polygon_mosaic_MER_FRS_1P_reduced_RGB">
                       <gml:exterior>
                         <gml:LinearRing>
                           <gml:posList>46.21655800 14.32257600 46.15207600 14.88922100 46.04447500 15.71416300 45.87438400 16.93919600 45.70763700 18.04116800 45.43766100 19.69662100 45.18870800 21.06197900 44.98550200 22.14653000 44.81760100 22.97283900 44.54871900 24.21679400 44.35302600 25.07847100 44.22240100 25.61945400 43.86945300 27.09669100 43.74074338 27.60500000 43.19585500 27.60500000 43.19585500 -0.61450000 46.19855930 -0.61450000 46.08290600 0.28854700 45.73636300 2.73342000 45.39947000 4.81565700 45.00948200 6.89477600 44.75018500 8.15491400 44.41952400 9.63424600 44.12134700 10.93930000 44.65704000 11.06940200 45.55003900 11.28225500 46.21538200 11.45216500 46.07713900 12.56460100 45.89816100 13.88709500 45.84534200 14.22429500 46.21655800 14.32257600</gml:posList>
@@ -112,7 +112,7 @@
           <om:result/>
           <eop:metaDataProperty>
             <eop:EarthObservationMetaData>
-              <eop:identifier>mosaic_MER_FRS_1P_RGB_reduced</eop:identifier>
+              <eop:identifier>mosaic_MER_FRS_1P_reduced_RGB</eop:identifier>
               <eop:acquisitionType>NOMINAL</eop:acquisitionType>
               <eop:status>ARCHIVED</eop:status>
             </eop:EarthObservationMetaData>
@@ -120,7 +120,7 @@
         </eop:EarthObservation>
         <wcseo:lineage>
           <wcseo:referenceGetCoverage>
-            <ows:Reference xlink:href="http://testserver/ows?service=wcs&amp;amp;version=2.0.1&amp;amp;request=GetCoverage&amp;amp;CoverageId=mosaic_MER_FRS_1P_RGB_reduced&amp;amp;format=image/tiff&amp;amp;mediatype=multipart/related&amp;amp;subset=x(100,1000)&amp;amp;subset=y(0,99)"/>
+            <ows:Reference xlink:href="http://testserver/ows?service=wcs&amp;amp;version=2.0.1&amp;amp;request=GetCoverage&amp;amp;CoverageId=mosaic_MER_FRS_1P_reduced_RGB&amp;amp;format=image/tiff&amp;amp;mediatype=multipart/related&amp;amp;subset=x(100,1000)&amp;amp;subset=y(0,99)"/>
           </wcseo:referenceGetCoverage>
           <gml:timePosition>2011-01-01T00:00:00Z</gml:timePosition>
         </wcseo:lineage>

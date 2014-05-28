@@ -1,8 +1,8 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <CoverageDescription xmlns="http://www.opengis.net/wcs" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:gml="http://www.opengis.net/gml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.0.0" updateSequence="20131219T132000Z" xsi:schemaLocation="http://www.opengis.net/wcs http://schemas.opengis.net/wcs/1.0.0/describeCoverage.xsd">
   <CoverageOffering>
-    <name>mosaic_MER_FRS_1P_RGB_reduced</name>
-    <label>mosaic_MER_FRS_1P_RGB_reduced</label>
+    <name>mosaic_MER_FRS_1P_reduced_RGB</name>
+    <label>mosaic_MER_FRS_1P_reduced_RGB</label>
     <lonLatEnvelope srsName="urn:ogc:def:crs:OGC:1.3:CRS84">
       <gml:pos>-3.75 32.158895</gml:pos>
       <gml:pos>28.326165 46.3</gml:pos>
