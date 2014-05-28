@@ -325,3 +325,7 @@ python manage.py eoxs_list_ids --traceback
 # Run Selenium
 echo "**> running Selenium tests ..."
 #TODO
+
+# Remmove autotest directory to allow git submodule update
+cd ..
+rm -r autotest/
