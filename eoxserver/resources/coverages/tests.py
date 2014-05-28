@@ -67,7 +67,15 @@ def union(*footprints):
     return u
 
 
-class ModelTests(TestCase):
+class GeometryMixIn(object):
+    def assertGeometryEqual(self, a, b, tolerance=0.05):
+        self.assertTrue(
+            a.equals_exact(b, tolerance),
+            "%r != %r" % (a.wkt, b.wkt)
+        )
+
+
+class ModelTests(GeometryMixIn, TestCase):
     def setUp(self):
         self.range_type = create(RangeType,
             name="RGB"
@@ -197,9 +205,9 @@ class ModelTests(TestCase):
             Polygon.from_bbox(all_rectified_footprints.extent)
         )
 
-        self.assertEqual(series_1.footprint, extent_footprint)
-        self.assertEqual(series_2.footprint, extent_footprint)
-        self.assertEqual(mosaic.footprint, all_rectified_footprints)
+        self.assertGeometryEqual(series_1.footprint, extent_footprint)
+        self.assertGeometryEqual(series_2.footprint, extent_footprint)
+        self.assertGeometryEqual(mosaic.footprint, all_rectified_footprints)
 
         self.assertEqual(series_1.time_extent, time_extent)
         self.assertEqual(series_2.time_extent, time_extent)
@@ -255,10 +263,11 @@ class ModelTests(TestCase):
         series_1 = refresh(series_1)
 
         self.assertEqual(rectified_1.time_extent, series_1.time_extent)
-        self.assertEqual(
-            MultiPolygon(Polygon.from_bbox(rectified_1.footprint.extent)),
-            series_1.footprint,
-            "%r != %r" % (rectified_1.footprint.wkt, series_1.footprint.wkt)
+        self.assertGeometryEqual(
+            MultiPolygon(
+                Polygon.from_bbox(rectified_1.footprint.extent)
+            ), 
+            series_1.footprint
         )
 
     
@@ -294,7 +303,7 @@ class ModelTests(TestCase):
             series_2.insert(series_1)
 
 
-class MetadataFormatTests(TestCase):
+class MetadataFormatTests(GeometryMixIn, TestCase):
     def test_native_reader(self):
         xml = """
         <Metadata>
