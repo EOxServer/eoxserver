@@ -34,6 +34,8 @@ import operator
 from django.db.models import Min, Max
 from django.contrib.gis.db.models import Union
 from django.contrib.gis.geos import MultiPolygon, Polygon
+from django.utils.timezone import is_naive, make_aware, get_current_timezone
+from django.utils.dateparse import parse_datetime
 
 
 def pk_equals(first, second):
@@ -72,6 +74,18 @@ def collect_eo_metadata(qs, insert=None, exclude=None, bbox=False):
     begin_time, end_time, footprint = (
         values["begin_time"], values["end_time"], values["footprint"]
     )
+
+    # workaround for Django 1.4 bug: aggregate times are strings
+    if isinstance(begin_time, basestring):
+        begin_time = parse_datetime(begin_time)
+
+    if isinstance(end_time, basestring):
+        end_time = parse_datetime(end_time)
+
+    if begin_time and is_naive(begin_time):
+        begin_time = make_aware(begin_time, get_current_timezone())
+    if end_time and is_naive(end_time):
+        end_time = make_aware(end_time, get_current_timezone())
 
     for eo_object in insert or ():
         if begin_time is None:
@@ -132,10 +146,8 @@ def is_same_grid(coverages, epsilon=1e-10):
 
         # check base grids
         diff_origins = tuple(map(operator.sub, first_ext[:2], other_ext[:2]))
-        print diff_origins
 
         v = tuple(map(operator.div, diff_origins, other_res))
-        print v
 
         if (abs(v[0] - round(v[0])) > epsilon 
             or abs(v[1] - round(v[1])) > epsilon):
