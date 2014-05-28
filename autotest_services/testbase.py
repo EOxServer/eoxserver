@@ -147,10 +147,13 @@ class OWSTestCase(TestCase):
 
     def check_disabled(self):
         config = get_eoxserver_config()
-        disabled_tests = config.get("testing", "disabled_tests", "").split(",")
+        try:
+            disabled_tests = config.get("testing", "disabled_tests").split(",")
+        except:
+            disabled_tests = ()
         name = type(self).__name__
         if name in disabled_tests:
-            raise SkiptTest(
+            raise SkipTest(
                 "Test '%s' is disabled by the configuration." % name
             )
 
