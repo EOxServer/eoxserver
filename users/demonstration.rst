@@ -49,7 +49,7 @@ combining the three available datasets:
 
 * DatasetSeries (EOId: MER_FRS_1P_reduced) containing the 3 MERIS sample
   datasets with all 15 radiance bands encoded as uint16 values
-* StitchedMosaic (CoverageId: mosaic_MER_FRS_1P_RGB_reduced) containing
+* StitchedMosaic (CoverageId: mosaic_MER_FRS_1P_reduced_RGB) containing
   the 3 MERIS sample datasets reduced to RGB 8-bit
 
 Note, the data has been reduced from 300m resolution to 3000m.
@@ -111,7 +111,7 @@ Interesting parts of the repsonse:
   .. code-block:: xml
 
     <wcs:CoverageSummary>
-        <wcs:CoverageId>mosaic_MER_FRS_1P_RGB_reduced</wcs:CoverageId>
+        <wcs:CoverageId>mosaic_MER_FRS_1P_reduced_RGB</wcs:CoverageId>
         <wcs:CoverageSubtype>RectifiedStitchedMosaic</wcs:CoverageSubtype>
     </wcs:CoverageSummary>
 
@@ -137,13 +137,13 @@ Interesting parts of the repsonse:
 DescribeCoverage
 ----------------
 
-`DescribeCoverage StitchedMosaic <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=DescribeCoverage&coverageid=mosaic_MER_FRS_1P_RGB_reduced>`_::
+`DescribeCoverage StitchedMosaic <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=DescribeCoverage&coverageid=mosaic_MER_FRS_1P_reduced_RGB>`_::
 
     http://eoxserver.org/demo_stable/ows?
         service=wcs&
         version=2.0.0&
         request=DescribeCoverage&
-        coverageid=mosaic_MER_FRS_1P_RGB_reduced
+        coverageid=mosaic_MER_FRS_1P_reduced_RGB
     
 `DescribeCoverage Dataset <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=DescribeCoverage&coverageid=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed>`_::
 
@@ -173,41 +173,41 @@ Dataset
 StitchedMosaic
 ~~~~~~~~~~~~~~
 
-`DescribeEOCoverageSet StitchedMosaic (4 Datasets returned) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOId=mosaic_MER_FRS_1P_RGB_reduced>`_::
+`DescribeEOCoverageSet StitchedMosaic (4 Datasets returned) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOId=mosaic_MER_FRS_1P_reduced_RGB>`_::
 
     http://eoxserver.org/demo_stable/ows?
         service=wcs&
         version=2.0.0&
         request=DescribeEOCoverageSet&
-        EOId=mosaic_MER_FRS_1P_RGB_reduced
+        EOId=mosaic_MER_FRS_1P_reduced_RGB
 
-`DescribeEOCoverageSet StitchedMosaic, subset in time (3 Datasets returned) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOId=mosaic_MER_FRS_1P_RGB_reduced&subset=phenomenonTime(%222006-08-01%22,%222006-08-22T09:22:00Z%22)>`_::
+`DescribeEOCoverageSet StitchedMosaic, subset in time (3 Datasets returned) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOId=mosaic_MER_FRS_1P_reduced_RGB&subset=phenomenonTime(%222006-08-01%22,%222006-08-22T09:22:00Z%22)>`_::
 
     http://eoxserver.org/demo_stable/ows?
         service=wcs&
         version=2.0.0&
         request=DescribeEOCoverageSet&
-        EOId=mosaic_MER_FRS_1P_RGB_reduced&
+        EOId=mosaic_MER_FRS_1P_reduced_RGB&
         subset=phenomenonTime("2006-08-01","2006-08-22T09:22:00Z")
 
-`DescribeEOCoverageSet StitchedMosaic, subset in Lat and Long, containment contains (1 Dataset returned) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOId=mosaic_MER_FRS_1P_RGB_reduced&subset=Lat,http://www.opengis.net/def/crs/EPSG/0/4326(32,47)&subset=Long,http://www.opengis.net/def/crs/EPSG/0/4326(11,33)&containment=contains>`_::
+`DescribeEOCoverageSet StitchedMosaic, subset in Lat and Long, containment contains (1 Dataset returned) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOId=mosaic_MER_FRS_1P_reduced_RGB&subset=Lat,http://www.opengis.net/def/crs/EPSG/0/4326(32,47)&subset=Long,http://www.opengis.net/def/crs/EPSG/0/4326(11,33)&containment=contains>`_::
 
     http://eoxserver.org/demo_stable/ows?
         service=wcs&
         version=2.0.0&
         request=DescribeEOCoverageSet&
-        EOId=mosaic_MER_FRS_1P_RGB_reduced&
+        EOId=mosaic_MER_FRS_1P_reduced_RGB&
         subset=Lat,http://www.opengis.net/def/crs/EPSG/0/4326(32,47)&
         subset=Long,http://www.opengis.net/def/crs/EPSG/0/4326(11,33)&
         containment=contains
 
-`DescribeEOCoverageSet StitchedMosaic, returned CoverageDescriptions limited to 2 <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOId=mosaic_MER_FRS_1P_RGB_reduced&count=2>`_::
+`DescribeEOCoverageSet StitchedMosaic, returned CoverageDescriptions limited to 2 <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOId=mosaic_MER_FRS_1P_reduced_RGB&count=2>`_::
 
     http://eoxserver.org/demo_stable/ows?
         service=wcs&
         version=2.0.0&
         request=DescribeEOCoverageSet&
-        EOId=mosaic_MER_FRS_1P_RGB_reduced&
+        EOId=mosaic_MER_FRS_1P_reduced_RGB&
         count=2
 
 DatasetSeries
@@ -276,13 +276,13 @@ DatasetSeries
 GetCoverage
 -----------
 
-`GetCoverage StitchedMosaic, full (GML incl. contributingFootprint & GeoTIFF) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=GetCoverage&coverageid=mosaic_MER_FRS_1P_RGB_reduced&format=image/tiff&mediatype=multipart/mixed>`_::
+`GetCoverage StitchedMosaic, full (GML incl. contributingFootprint & GeoTIFF) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=GetCoverage&coverageid=mosaic_MER_FRS_1P_reduced_RGB&format=image/tiff&mediatype=multipart/mixed>`_::
 
     http://eoxserver.org/demo_stable/ows?
         service=wcs&
         version=2.0.0&
         request=GetCoverage&
-        coverageid=mosaic_MER_FRS_1P_RGB_reduced&
+        coverageid=mosaic_MER_FRS_1P_reduced_RGB&
         format=image/tiff&
         mediatype=multipart/mixed
 

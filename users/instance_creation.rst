@@ -372,8 +372,8 @@ visible.
 
 This is an example usage of the ``eoxs_register_dataset`` command::
 
-    python manage.py eoxs_register_dataset --data-file data/meris/mosaic_MER_FRS_1P_RGB_reduced/*.tif --rangetype RGB \
-        --dataset-series MER_FRS_1P_RGB_reduced --stitched-mosaic mosaic_MER_FRS_1P_RGB_reduced -v3
+    python manage.py eoxs_register_dataset --data-file data/meris/mosaic_MER_FRS_1P_reduced_RGB/*.tif --rangetype RGB \
+        --dataset-series MER_FRS_1P_reduced_RGB --stitched-mosaic mosaic_MER_FRS_1P_reduced_RGB -v3
 
 In this example, the parameter ``--metadata-file`` is omitted, since these files
 are in the same location as the data files and only differ in their extension.
