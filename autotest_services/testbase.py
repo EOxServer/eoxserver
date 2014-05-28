@@ -39,6 +39,7 @@ from cStringIO import StringIO
 from django.test import Client, TestCase
 from django.conf import settings
 
+from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.util import multiparttools as mp 
 from eoxserver.contrib import gdal, osr
 from eoxserver.testing.xcomp import xmlCompareFiles
@@ -143,8 +144,12 @@ class OWSTestCase(TestCase):
 
     
     def isRequestConfigEnabled(self, config_key, default=False):
-        #value = System.getConfig().getConfigValue("testing", config_key)
-        value = None
+        config = get_eoxserver_config()
+        try:
+            value = config.get("testing", config_key)
+        except:
+            value = None
+        
         if value is None:
             return default
         elif value.lower() in ("yes", "y", "true", "on"):
