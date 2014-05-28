@@ -193,9 +193,13 @@ class ModelTests(TestCase):
         )
         time_extent = begin_time, end_time
 
-        self.assertTrue(series_1.footprint.equals(all_rectified_footprints))
-        self.assertTrue(series_2.footprint.equals(all_rectified_footprints))
-        self.assertTrue(mosaic.footprint.equals(all_rectified_footprints))
+        extent_footprint = MultiPolygon(
+            Polygon.from_bbox(all_rectified_footprints.extent)
+        )
+
+        self.assertEqual(series_1.footprint, extent_footprint)
+        self.assertEqual(series_2.footprint, extent_footprint)
+        self.assertEqual(mosaic.footprint, all_rectified_footprints)
 
         self.assertEqual(series_1.time_extent, time_extent)
         self.assertEqual(series_2.time_extent, time_extent)
@@ -251,7 +255,11 @@ class ModelTests(TestCase):
         series_1 = refresh(series_1)
 
         self.assertEqual(rectified_1.time_extent, series_1.time_extent)
-        self.assertEqual(rectified_1.footprint, series_1.footprint)
+        self.assertEqual(
+            MultiPolygon(Polygon.from_bbox(rectified_1.footprint.extent)),
+            series_1.footprint,
+            "%r != %r" % (rectified_1.footprint.wkt, series_1.footprint.wkt)
+        )
 
     
     def test_propagate_eo_metadata_change(self):
