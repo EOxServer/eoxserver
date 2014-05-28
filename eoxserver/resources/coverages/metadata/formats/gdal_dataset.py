@@ -26,7 +26,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from django.contrib.gis.geos import GEOSGeometry
+from django.contrib.gis.geos import GEOSGeometry, Polygon, MultiPolygon
 
 from eoxserver.core import Component, ExtensionPoint, implements
 from eoxserver.contrib import gdal
@@ -100,7 +100,18 @@ class GDALDatasetMetadataReader(Component):
             if ds.GetGCPCount() > 0:
                 rt_prm = rt.suggest_transformer(ds)
                 fp_wkt = rt.get_footprint_wkt(ds, **rt_prm)
-                values["footprint"] = GEOSGeometry(fp_wkt)
+                footprint = GEOSGeometry(fp_wkt)
+
+                if isinstance(footprint, Polygon):
+                    footprint = MultiPolygon(footprint)
+                elif isinstance(footprint, MultiPolygon):
+                    pass
+                else:
+                    raise Exception(
+                        "Got invalid geometry %s"
+                        % type(footprint).__name__
+                    )
+                values["footprint"] = footprint
 
             driver_metadata = driver.GetMetadata()
             frmt = driver_metadata.get("DMD_MIMETYPE")
