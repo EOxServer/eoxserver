@@ -128,6 +128,12 @@ class Command(CommandOutputMixIn, BaseCommand):
         make_option("--coverage-type", dest="coverage_type",
             action="store", default="RectifiedDataset",
             help=("The actual coverage type.")
+        ),
+
+        make_option("--visible", dest="visible",
+            action="store_true", default=False,
+            help=("Set the coverage to be 'visible', which means it is "
+                  "advertised in GetCapabilities responses.")
         )
     )
 
@@ -263,6 +269,8 @@ class Command(CommandOutputMixIn, BaseCommand):
             #coverage.identifier = identifier # TODO: bug in models for some coverages
             for key, value in retrieved_metadata.items():
                 setattr(coverage, key, value)
+
+            coverage.visible = kwargs["visible"]
 
             coverage.full_clean()
             coverage.save()
