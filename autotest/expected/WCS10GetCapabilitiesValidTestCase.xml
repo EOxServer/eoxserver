@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <WCS_Capabilities xmlns="http://www.opengis.net/wcs" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:gml="http://www.opengis.net/gml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.0.0" updateSequence="20131219T132000Z" xsi:schemaLocation="http://www.opengis.net/wcs http://schemas.opengis.net/wcs/1.0.0/wcsCapabilities.xsd">
   <Service>
     <name>EOxServer EO-WCS</name>
@@ -96,6 +96,14 @@
   </Capability>
   <ContentMetadata>
     <CoverageOfferingBrief>
+      <name>ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775</name>
+      <label>ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775</label>
+      <lonLatEnvelope srsName="urn:ogc:def:crs:OGC:1.3:CRS84">
+        <gml:pos>16.727605 -36.259107</gml:pos>
+        <gml:pos>22.301754 -31.984922</gml:pos>
+      </lonLatEnvelope>
+    </CoverageOfferingBrief>
+    <CoverageOfferingBrief>
       <name>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</name>
       <label>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</label>
       <lonLatEnvelope srsName="urn:ogc:def:crs:OGC:1.3:CRS84">
@@ -117,14 +125,6 @@
       <lonLatEnvelope srsName="urn:ogc:def:crs:OGC:1.3:CRS84">
         <gml:pos>-3.75 32.158895</gml:pos>
         <gml:pos>28.326165 46.3</gml:pos>
-      </lonLatEnvelope>
-    </CoverageOfferingBrief>
-    <CoverageOfferingBrief>
-      <name>ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775</name>
-      <label>ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775</label>
-      <lonLatEnvelope srsName="urn:ogc:def:crs:OGC:1.3:CRS84">
-        <gml:pos>16.727605 -36.259107</gml:pos>
-        <gml:pos>22.301754 -31.984922</gml:pos>
       </lonLatEnvelope>
     </CoverageOfferingBrief>
   </ContentMetadata>
