@@ -39,6 +39,7 @@ from eoxserver.services.ows.wms.util import (
 )
 from eoxserver.services.ows.wms.interfaces import WMSMapRendererInterface
 from eoxserver.services.result import to_http_response
+from eoxserver.services.ows.wms.exceptions import InvalidCRS
 
 
 class WMS13GetMapHandler(Component):
@@ -66,7 +67,7 @@ class WMS13GetMapHandler(Component):
             crs, (crss.fromShortCode, crss.fromURN, crss.fromURL)
         )
         if srid is None:
-            raise InvalidParameterException("Invalid CRS specifier.", "crs")
+            raise InvalidCRS(crs, "crs")
 
         if crss.hasSwappedAxes(srid):
             miny, minx, maxy, maxx = bbox

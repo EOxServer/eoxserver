@@ -46,34 +46,38 @@ from eoxserver.resources.coverages.models import EO_OBJECT_TYPE_REGISTRY
 
 class Command(CommandOutputMixIn, BaseCommand):
     option_list = BaseCommand.option_list + (
-        make_option("-s", "--series",dest="parents",
+        make_option("-s", "--series", dest="parents",
             action='callback', callback=_variable_args_cb,
             default=None, help=("List of the target dataset series.")
         ), 
-        make_option("-a", "--add",dest="children",
+        make_option("-r", "--remove", dest="children",
             action='callback', callback=_variable_args_cb,
-            default=None, help=("List of the inserted child eo-objects.")
+            default=None, help=("List of the removed child eo-objects.")
         ), 
         make_option('--ignore-missing-parent',
             dest='ignore_missing_parent',
-            action="store_true",default=False,
-            help=("Optional. Proceed even if the linked parent"
-                  " does not exist. By defualt, a missing parent " 
-                  "will terminate the command." )
+            action="store_true", default=False,
+            help=("Optional. Proceed even if the linked parent "
+                  "does not exist. By defualt, a missing parent " 
+                  "will terminate the command.")
         ),
         make_option('--ignore-missing-child',
             dest='ignore_missing_child',
-            action="store_true",default=False,
-            help=("Optional. Proceed even if the linked child"
-                  " does not exist. By defualt, a missing child " 
-                  "will terminate the command." )
+            action="store_true", default=False,
+            help=("Optional. Proceed even if the linked child "
+                  "does not exist. By defualt, a missing child " 
+                  "will terminate the command.")
         ),
     )
 
-#    args = "<identifier>"
+    args = (
+        "--series <series-id> [<series-id> ...] --remove <eo-object-id> "
+        "[<eo-object-id> ...] [--ignore-missing-parent] "
+        "[--ignore-missing-child]"
+    )
     
     help = (
-    """ 
+    """
         Unlink (remove) one or more EOObjects from one or more dataset series. 
         Note that the EOObjects will still remain in the data-base.
 
@@ -82,80 +86,71 @@ class Command(CommandOutputMixIn, BaseCommand):
 
     @transaction.commit_on_success
     def handle(self, *args, **opt):
-        
-        #----------------------------------------------------------------------
-        # check the inputs 
+        # check the required inputs
+        parent_ids = opt.get('parents', None)
+        children_ids = opt.get('children', None)
+        if not parent_ids: 
+            raise CommandError(
+                "Missing the mandatory dataset series identifier(s)!"
+            )
 
-        # check the required inputs 
-        if opt.get('parents',None) is None : 
-            raise CommandError("Missing the mandatory dataset series identifier(s)!")
-
-        if opt.get('children',None) is None : 
-            raise CommandError("Missing the mandatory inserted EOObjects identifier(s)!")
+        if not children_ids: 
+            raise CommandError(
+                "Missing the mandatory inserted EOObjects identifier(s)!"
+            )
 
         # extract the parents 
-        ignore_missing_parent = bool(opt.get('ignore_missing_parent',False))
+        ignore_missing_parent = opt['ignore_missing_parent']
         parents = [] 
-        for parent_id in opt.get('parents',[]): 
-            try : 
-                parents.append( DatasetSeries.objects.get(identifier=parent_id) )
-            except DatasetSeries.DoesNotExist : 
-                msg ="There is no Dataset Series matching the given" \
-                        " identifier: '%s' "%parent_id
-                if ignore_missing_parent : 
-                    self.print_wrn( msg )
-                else : 
-                    raise CommandError( msg ) 
+        for parent_id in parent_ids: 
+            try: 
+                parents.append(DatasetSeries.objects.get(identifier=parent_id))
+            except DatasetSeries.DoesNotExist: 
+                msg = (
+                    "There is no Dataset Series matching the given "
+                    "identifier: '%s'" % parent_id
+                )
+                if ignore_missing_parent: 
+                    self.print_wrn(msg)
+                else: 
+                    raise CommandError(msg) 
 
         # extract the children  
-        ignore_missing_child = bool(opt.get('ignore_missing_child',False))
+        ignore_missing_child = opt['ignore_missing_child']
         children = [] 
-        for child_id in opt.get('children',[]): 
-            try : 
-                children.append( EOObject.objects.get(identifier=child_id) )
-            except EOObject.DoesNotExist : 
-                msg ="There is no EOObject matching the given" \
-                        " identifier: '%s' "%child_id
-                if ignore_missing_child : 
-                    self.print_wrn( msg )
-                else : 
-                    raise CommandError( msg ) 
-    
-        #----------------------------------------------------------------------
-        # perform the action 
-
-        try : 
-
+        for child_id in children_ids: 
+            try:
+                children.append(EOObject.objects.get(identifier=child_id))
+            except EOObject.DoesNotExist:
+                msg = (
+                    "There is no EOObject matching the given identifier: '%s'"
+                    % child_id
+                )
+                if ignore_missing_child:
+                    self.print_wrn(msg)
+                else:
+                    raise CommandError(msg)
+        
+        try:
             for parent in parents: 
-                for child in children : 
+                for child in children:
+                    # check whether the link does not exist
+                    if child in parent:
+                        self.print_msg(
+                            "Unlinking: %s <-x- %s" % (parent, child)
+                        )
+                        parent.remove(child)
 
-                    eotype   = EO_OBJECT_TYPE_REGISTRY[child.real_content_type]
-
-                    # check whether the link does not exist 
-                    # TODO: try to find a more efficiet way
-                    if parent.eo_objects.filter(identifier=child.identifier).exists() : 
-                        
-                        self.print_msg( "Unlinking: '%s' <-x- '%s' (%s)"
-                            "" %( parent.identifier,child.identifier,
-                            eotype.__name__))
-
-                        parent.remove( child ) 
-                    
-                    else : 
-
-                        self.print_wrn("The link does not exist: '%s' <-x- "
-                            "'%s' (%s)"%(parent.identifier,child.identifier,
-                            eotype.__name__))
+                    else:
+                        self.print_wrn(
+                            "Collection %s does not contain %s" 
+                            % (parent, child)
+                        )
 
 
-        except Exception as e : 
-
+        except Exception as e:
             # print stack trace if required 
             if opt.get("traceback", False):
                 self.print_msg(traceback.format_exc())
             
-            raise CommandError("Dataset series removal failed! REASON=%s"%(e))
-
-        #----------------------------------------------------------------------
-
-
+            raise CommandError("Unlinking failed! REASON=%s" % (e))

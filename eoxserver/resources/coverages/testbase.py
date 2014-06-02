@@ -251,7 +251,7 @@ class CommandInsertTestCase(CoverageCommandTestCase, DatasetSeriesMixIn, EODatas
     name = "eoxs_insert_into_series"
     
     datasets_to_be_inserted = []
-    dataset_series_id = "MER_FRS_1P_RGB_reduced"
+    dataset_series_id = "MER_FRS_1P_reduced_RGB"
     
     def testContents(self):
         dss = self.getDatasetSeriesById(self.dataset_series_id)
@@ -264,7 +264,7 @@ class CommandExcludeTestCase(CoverageCommandTestCase, DatasetSeriesMixIn, EOData
     name = "eoxs_remove_from_series"
     
     datasets_to_be_excluded = []
-    dataset_series_id = "MER_FRS_1P_RGB_reduced"
+    dataset_series_id = "MER_FRS_1P_reduced_RGB"
     
     def testContents(self):
         dss = self.getDatasetSeriesById(self.dataset_series_id)

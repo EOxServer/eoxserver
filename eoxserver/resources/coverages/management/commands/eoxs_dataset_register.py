@@ -54,23 +54,6 @@ from eoxserver.resources.coverages.management.commands import (
 # common spatial reference object 
 SR_WGS84=osr.SpatialReference(4326).sr 
 
-def _variable_args_cb(option, opt_str, value, parser):
-    """ Helper function for optparse module. Allows
-        variable number of option values when used
-        as a callback.
-    """
-    args = []
-    for arg in parser.rargs:
-        if not arg.startswith('-'):
-            args.append(arg)
-        else:
-            del parser.rargs[:len(args)]
-            break
-    if getattr(parser.values, option.dest):
-        args.extend(getattr(parser.values, option.dest))
-    setattr(parser.values, option.dest, args)
-    
-
 def _variable_args_cb_list(option, opt_str, value, parser):
     """ Helper function for optparse module. Allows variable number of option 
         values when used as a callback.
@@ -113,13 +96,19 @@ class Command(CommandOutputMixIn, BaseCommand):
         ),
 
         make_option("-e", "--extent", dest="extent", 
-            action="callback", callback=_variable_args_cb, default=None,
-            help=("Override extent.")
+            action="store", default=None,
+            help=("Override extent. Comma separated list of "
+                  "<minx>,<miny>,<maxx>,<maxy>.")
         ),
 
         make_option("--size", dest="size", 
             action="callback", callback=_variable_args_cb,
             help=("Override size.")
+        ),
+
+        make_option("--srid", dest="srid", 
+            action="store", default=None,
+            help=("Override SRID.")
         ),
 
         make_option("-p", "--projection", dest="projection", 
@@ -146,6 +135,12 @@ class Command(CommandOutputMixIn, BaseCommand):
             action="store", default="RectifiedDataset",
             help=("The actual coverage type.")
         ),
+
+        make_option("--visible", dest="visible",
+            action="store_true", default=False,
+            help=("Set the coverage to be 'visible', which means it is "
+                  "advertised in GetCapabilities responses.")
+        )
 
         make_option("--series",dest="parents",
             action='callback', callback=_variable_args_cb,
@@ -189,10 +184,6 @@ class Command(CommandOutputMixIn, BaseCommand):
 
 
     def handle_with_cache(self, cache, *args, **kwargs):
-
-        #----------------------------------------------------------------------
-        # check the inputs 
-
         metadata_component = MetadataComponent(env)
         datas = kwargs["data"]
         semantics = kwargs.get("semantics")
@@ -207,9 +198,8 @@ class Command(CommandOutputMixIn, BaseCommand):
             raise CommandError("No range type name specified.")
         range_type = models.RangeType.objects.get(name=range_type_name)
 
-        # TODO: not required, as the keys are already
         metadata_keys = set((
-            "identifier", "extent", "size", "projection", 
+            "identifier", "extent", "size", "projection",
             "footprint", "begin_time", "end_time"
         ))
 
@@ -426,6 +416,8 @@ class Command(CommandOutputMixIn, BaseCommand):
             for key, value in retrieved_metadata.items():
                 setattr(coverage, key, value)
 
+            coverage.visible = kwargs["visible"]
+
             coverage.full_clean()
             coverage.save()
 
@@ -455,22 +447,18 @@ class Command(CommandOutputMixIn, BaseCommand):
         #except ValidationError, e:
         #    # TODO: show error message
         #    raise CommandError(str(e))
-
         except Exception as e : 
-
             # print stack trace if required 
             if kwargs.get("traceback", False):
                 self.print_msg(traceback.format_exc())
-            
             raise CommandError("Dataset registration failed! REASON=%s"%(e))
 
         self.print_msg("Dataset registered sucessfully. EOID='%s'"%coverage.identifier) 
 
-
-
         
     def _get_overrides(self, identifier=None, size=None, extent=None, 
-                       begin_time=None, end_time=None, footprint=None, **kwargs):
+                       begin_time=None, end_time=None, footprint=None, 
+                       projection=None, **kwargs):
 
         overrides = {}
 
@@ -490,22 +478,23 @@ class Command(CommandOutputMixIn, BaseCommand):
             overrides["end_time"] = parse_datetime(end_time)
 
         if footprint:
-
             footprint = geos.GEOSGeometry(footprint)
-
-            if footprint.geom_type == "MultiPolygon" : 
-                pass 
-            elif footprint.geom_type == "Polygon" :
-                footprint = geos.MultiPolygon( footprint ) 
-            else : 
-                raise CommandError("Invalid footprint geometry type!"
-                                   " GEOM_TYPE=%s"%(footprint.geom_type))
-            
-            if footprint.hasz : 
+            if footprint.hasz :
                 raise CommandError("Invalid footprint geometry! "
-                                   " 3D geometry is not supported!" )
+                                   " 3D geometry is not supported!")
+            if footprint.geom_type == "MultiPolygon" :
+                overrides["footprint"] = footprint
+            elif footprint.geom_type == "Polygon" :
+                overrides["footprint"] = geos.MultiPolygon(footprint)
+            else : 
+                raise CommandError("Invalid footprint geometry type %s !"
+                                                      ""%(footprint.geom_type))
 
-            overrides["footprint"] = footprint 
+        if projection:
+            try:
+                overrides["projection"] = int(projection)
+            except ValueError:
+                overrides["projection"] = projection
 
         return overrides
 
@@ -540,7 +529,7 @@ class Command(CommandOutputMixIn, BaseCommand):
                 )
                 storage = None # override here
             else:
-                raise "Could not find package component"
+                raise Exception("Could not find package component")
 
         format, location = self._split_location(items[-1])
         return storage, package, format, location

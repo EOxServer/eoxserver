@@ -1,8 +1,8 @@
 language: python
 env:
-  - DJANGO=1.4 GDAL=1.10 DB=sqlite
-  - DJANGO=1.5 GDAL=1.10 DB=sqlite
-  - DJANGO=1.6 GDAL=1.10 DB=sqlite
+  - DJANGO=1.4 GDAL=1.10 DB=spatialite
+  - DJANGO=1.5 GDAL=1.10 DB=spatialite
+  #- DJANGO=1.6 GDAL=1.10 DB=spatialite
 python:
   - "2.7"
 virtualenv:
@@ -14,14 +14,15 @@ before_install:
   # install a lot of deps from the apt-repos
   - sudo apt-get install -qq -y gdal-bin libgdal1-dev libxml2 python-lxml python-libxml2 libproj0 libproj-dev libgeos-dev libgeos++-dev cgi-mapserver python-mapscript python-psycopg2 postgis python-gdal
   # allowing sqlite to load extensions
-  - 'if [ "$DB" == "sqlite" ]; then wget https://pypi.python.org/packages/source/p/pysqlite/pysqlite-2.6.3.tar.gz; fi'
-  - 'if [ "$DB" == "sqlite" ]; then tar xzf pysqlite-2.6.3.tar.gz; fi'
-  - 'if [ "$DB" == "sqlite" ]; then cd pysqlite-2.6.3; fi'
-  - 'if [ "$DB" == "sqlite" ]; then sed -i "/define=SQLITE_OMIT_LOAD_EXTENSION/c\#define=SQLITE_OMIT_LOAD_EXTENSION" setup.cfg; fi'
-  - 'if [ "$DB" == "sqlite" ]; then sudo python setup.py install; fi'
-  - 'if [ "$DB" == "sqlite" ]; then cd -; fi'
-  - 'if [ "$DB" == "postgis" ]; then sudo -u postgres createdb eoxserver_demo; fi'
-  - 'if [ "$DB" == "postgis" ]; then sudo -u postgres psql eoxserver_demo -c ''create extension postgis;''; fi'
+  - 'if [ "$DB" == "spatialite" ]; then wget https://pypi.python.org/packages/source/p/pysqlite/pysqlite-2.6.3.tar.gz; fi'
+  - 'if [ "$DB" == "spatialite" ]; then tar xzf pysqlite-2.6.3.tar.gz; fi'
+  - 'if [ "$DB" == "spatialite" ]; then cd pysqlite-2.6.3; fi'
+  - 'if [ "$DB" == "spatialite" ]; then sed -i "/define=SQLITE_OMIT_LOAD_EXTENSION/c\#define=SQLITE_OMIT_LOAD_EXTENSION" setup.cfg; fi'
+  - 'if [ "$DB" == "spatialite" ]; then sudo python setup.py install; fi'
+  - 'if [ "$DB" == "spatialite" ]; then cd -; fi'
+  - 'if [ "$DB" == "postgis" ]; then sudo psql postgres -tAc "CREATE USER eoxserver NOSUPERUSER CREATEDB NOCREATEROLE ENCRYPTED PASSWORD ''eoxserver'';"; fi'
+  - 'if [ "$DB" == "postgis" ]; then sudo -u postgres createdb eoxserver_testing; fi'
+  - 'if [ "$DB" == "postgis" ]; then sudo -u postgres psql eoxserver_testing -c ''create extension postgis;''; fi'
 install:
   # test with various Django versions
   - pip install -q Django==$DJANGO
@@ -29,6 +30,8 @@ install:
   - pip install --install-option="--disable-extended-reftools" .
   - export XML_CATALOG_FILES="`pwd`/schemas/catalog.xml"
   - cd autotest
+  - "sed -e 's/#binary_raster_comparison_enabled=false/binary_raster_comparison_enabled=false/' -i autotest/conf/eoxserver.conf"
+  - 'echo "disabled_tests=WCS20GetCoverageReferenceableDatasetGeogCRSSubsetTestCase,WCS20GetCoverageReferenceableDatasetGeogCRSSubsetExceedsExtentTestCase,WCS20GetCoverageOutputCRSotherUoMDatasetTestCase,WCS20GetCoverageJPEG2000TestCase,WCS20DescribeEOCoverageSetIncorrectSpatialSubsetFaultTestCase,WCS10DescribeCoverageMosaicTestCase,WCS10DescribeCoverageDatasetTestCase" >> autotest/conf/eoxserver.conf'
 script:
   - python manage.py test core
   - python manage.py test backends

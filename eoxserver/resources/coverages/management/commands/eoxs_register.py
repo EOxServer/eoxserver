@@ -49,23 +49,6 @@ from eoxserver.resources.coverages.management.commands import (
 )
 
 
-def _variable_args_cb(option, opt_str, value, parser):
-    """ Helper function for optparse module. Allows
-        variable number of option values when used
-        as a callback.
-    """
-    args = []
-    for arg in parser.rargs:
-        if not arg.startswith('-'):
-            args.append(arg)
-        else:
-            del parser.rargs[:len(args)]
-            break
-    if getattr(parser.values, option.dest):
-        args.extend(getattr(parser.values, option.dest))
-    setattr(parser.values, option.dest, args)
-    
-
 def _variable_args_cb_list(option, opt_str, value, parser):
     """ Helper function for optparse module. Allows variable number of option 
         values when used as a callback.
@@ -107,13 +90,19 @@ class Command(CommandOutputMixIn, BaseCommand):
         ),
 
         make_option("-e", "--extent", dest="extent", 
-            action="callback", callback=_variable_args_cb, default=None,
-            help=("Override extent.")
+            action="store", default=None,
+            help=("Override extent. Comma separated list of "
+                  "<minx>,<miny>,<maxx>,<maxy>.")
         ),
 
         make_option("--size", dest="size", 
             action="callback", callback=_variable_args_cb,
             help=("Override size.")
+        ),
+
+        make_option("--srid", dest="srid", 
+            action="store", default=None,
+            help=("Override SRID.")
         ),
 
         make_option("-p", "--projection", dest="projection", 
@@ -139,6 +128,12 @@ class Command(CommandOutputMixIn, BaseCommand):
         make_option("--coverage-type", dest="coverage_type",
             action="store", default="RectifiedDataset",
             help=("The actual coverage type.")
+        ),
+
+        make_option("--visible", dest="visible",
+            action="store_true", default=False,
+            help=("Set the coverage to be 'visible', which means it is "
+                  "advertised in GetCapabilities responses.")
         )
     )
 
@@ -159,9 +154,8 @@ class Command(CommandOutputMixIn, BaseCommand):
             raise CommandError("No range type name specified.")
         range_type = models.RangeType.objects.get(name=range_type_name)
 
-        # TODO: not required, as the keys are already
         metadata_keys = set((
-            "identifier", "extent", "size", "projection", 
+            "identifier", "extent", "size", "projection",
             "footprint", "begin_time", "end_time"
         ))
 
@@ -276,6 +270,8 @@ class Command(CommandOutputMixIn, BaseCommand):
             for key, value in retrieved_metadata.items():
                 setattr(coverage, key, value)
 
+            coverage.visible = kwargs["visible"]
+
             coverage.full_clean()
             coverage.save()
 
@@ -292,7 +288,8 @@ class Command(CommandOutputMixIn, BaseCommand):
 
         
     def _get_overrides(self, identifier=None, size=None, extent=None, 
-                       begin_time=None, end_time=None, footprint=None, **kwargs):
+                       begin_time=None, end_time=None, footprint=None, 
+                       projection=None, **kwargs):
 
         overrides = {}
 
@@ -313,6 +310,12 @@ class Command(CommandOutputMixIn, BaseCommand):
 
         if footprint:
             overrides["footprint"] = GEOSGeometry(footprint)
+
+        if projection:
+            try:
+                overrides["projection"] = int(projection)
+            except ValueError:
+                overrides["projection"] = projection
 
         return overrides
 
@@ -347,7 +350,7 @@ class Command(CommandOutputMixIn, BaseCommand):
                 )
                 storage = None # override here
             else:
-                raise "Could not find package component"
+                raise Exception("Could not find package component")
 
         format, location = self._split_location(items[-1])
         return storage, package, format, location

@@ -31,7 +31,7 @@ from itertools import chain
 
 from eoxserver.core import Component, implements, UniqueExtensionPoint
 from eoxserver.core.decoders import kvp, typelist, InvalidParameterException
-from eoxserver.resources.coverages import models
+from eoxserver.resources.coverages import models, crss
 from eoxserver.services.subset import Subsets, Trim, Slice
 from eoxserver.services.ows.interfaces import (
     ServiceHandlerInterface, GetServiceHandlerInterface
@@ -41,6 +41,7 @@ from eoxserver.services.ows.wms.util import (
 )
 from eoxserver.services.ows.wms.interfaces import WMSMapRendererInterface
 from eoxserver.services.result import to_http_response
+from eoxserver.services.ows.wms.exceptions import InvalidCRS
 
 
 class WMS10GetMapHandler(Component):
@@ -62,6 +63,12 @@ class WMS10GetMapHandler(Component):
 
         if not layers:
             raise InvalidParameterException("No layers specified", "layers")
+
+        srid = crss.parseEPSGCode(
+            srs, (crss.fromShortCode, crss.fromURN, crss.fromURL)
+        )
+        if srid is None:
+            raise InvalidCRS(srs, "srs")
 
         # WMS 1.1 knows no swapped axes
         minx, miny, maxx, maxy = bbox
