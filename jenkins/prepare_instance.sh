@@ -65,6 +65,7 @@ echo "**> creating autotest_jenkins instance..."
 rm -rf autotest_jenkins/
 if [ $OS == "Ubuntu" ]; then
     eoxserver-admin.py create_instance autotest_jenkins
+    rm autotest_jenkins/autotest_jenkins/data/config.sqlite
     spatialite autotest_jenkins/autotest_jenkins/data/config.sqlite "SELECT InitSpatialMetaData();"
 else
     eoxserver-admin.py create_instance autotest_jenkins --init_spatialite
