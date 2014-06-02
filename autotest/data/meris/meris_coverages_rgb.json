@@ -58,7 +58,7 @@
     "pk": 5, 
     "model": "coverages.coverage", 
     "fields": {
-        "min_x": 11.331755000000001, 
+        "min_x": 11.331755, 
         "min_y": 32.19025, 
         "dataset_ptr": 5, 
         "size_y": 449, 
@@ -66,7 +66,7 @@
         "size_x": 541, 
         "projection": null, 
         "srid": 4326, 
-        "max_x": 28.294810000000002, 
+        "max_x": 28.29481, 
         "max_y": 46.268645, 
         "visible": true
     }
