@@ -239,7 +239,7 @@ class OWSTestCase(TestCase):
             )
 
 
-    def _testBinaryComparison(self, file_type, Data=None):
+    def _testBinaryComparison(self, file_type, data=None):
         """
         Helper function for the `testBinaryComparisonRaster` function.
         """
@@ -254,7 +254,7 @@ class OWSTestCase(TestCase):
             expected = None
         
         actual_response = None
-        if Data is None:
+        if data is None:
             if file_type in ("raster", "html"):
                 actual_response = self.getResponseData()
             elif file_type == "xml":
@@ -262,11 +262,14 @@ class OWSTestCase(TestCase):
             else:
                 self.fail("Unknown file_type '%s'." % file_type)
         else:
-            actual_response = Data
+            actual_response = data
 
         if expected != actual_response:
             if self.getFileExtension("raster") in ("hdf", "nc"):
-                self.skipTest("Skipping binary comparison for HDF or NetCDF file '%s'." % expected_path)
+                self.skipTest(
+                    "Skipping binary comparison for HDF or NetCDF file '%s'." 
+                    % expected_path
+                )
 
             # save the contents of the file
             with open(response_path, 'w') as f:
@@ -279,15 +282,17 @@ class OWSTestCase(TestCase):
                     self.skipTest("Expeted response is not present")
             
             if expected is None:
-                self.skipTest("Expected response in '%s' is not present" % expected_path)
+                self.skipTest(
+                    "Expected response in '%s' is not present" % expected_path
+                )
             else:
-                self.fail("Response returned in '%s' is not equal to expected response in '%s'." % (
-                           response_path, expected_path)
+                self.fail(
+                    "Response returned in '%s' is not equal to expected "
+                    "response in '%s'." % (response_path, expected_path)
                 )
     
     def testStatus(self):
         logger.info("Checking HTTP Status ...")
-        #pylint: disable=E1103
         self.assertEqual(self.response.status_code, 200)
 
 
