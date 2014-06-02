@@ -100,5 +100,5 @@ def resampleMERISreduced():
     origin = (-3.75,46.3)
     offsets = ((0.031355,0.0),(0.0,-0.031355))
 
-    resample(srid, origin, offsets, "meris/MER_FRS_1P_RGB_reduced", "meris/mosaic_MER_FRS_1P_RGB_reduced", "*.tif")
+    resample(srid, origin, offsets, "meris/MER_FRS_1P_reduced_RGB", "meris/mosaic_MER_FRS_1P_reduced_RGB", "*.tif")
 

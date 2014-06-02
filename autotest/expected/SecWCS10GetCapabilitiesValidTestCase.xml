@@ -112,8 +112,8 @@
       </lonLatEnvelope>
     </CoverageOfferingBrief>
     <CoverageOfferingBrief>
-      <name>mosaic_MER_FRS_1P_RGB_reduced</name>
-      <label>mosaic_MER_FRS_1P_RGB_reduced</label>
+      <name>mosaic_MER_FRS_1P_reduced_RGB</name>
+      <label>mosaic_MER_FRS_1P_reduced_RGB</label>
       <lonLatEnvelope srsName="urn:ogc:def:crs:OGC:1.3:CRS84">
         <gml:pos>-3.75 32.158895</gml:pos>
         <gml:pos>28.326165 46.3</gml:pos>

@@ -51,7 +51,7 @@ class WCS10DescribeCoverageDatasetTestCase(testbase.XMLTestCase):
 
 class WCS10DescribeCoverageMosaicTestCase(testbase.XMLTestCase):
     def getRequest(self):
-        params = "service=WCS&version=1.0.0&request=DescribeCoverage&coverage=mosaic_MER_FRS_1P_RGB_reduced"
+        params = "service=WCS&version=1.0.0&request=DescribeCoverage&coverage=mosaic_MER_FRS_1P_reduced_RGB"
         return (params, "kvp")
 
 class WCS10GetCoverageDatasetTestCase(testbase.RectifiedGridCoverageTestCase):
@@ -61,5 +61,5 @@ class WCS10GetCoverageDatasetTestCase(testbase.RectifiedGridCoverageTestCase):
 
 class WCS10GetCoverageMosaicTestCase(testbase.RectifiedGridCoverageTestCase):
     def getRequest(self):
-        params = "service=WCS&version=1.0.0&request=GetCoverage&coverage=mosaic_MER_FRS_1P_RGB_reduced&crs=epsg:4326&bbox=-4,32,28,46.5&width=640&height=290&format=image/tiff"
+        params = "service=WCS&version=1.0.0&request=GetCoverage&coverage=mosaic_MER_FRS_1P_reduced_RGB&crs=epsg:4326&bbox=-4,32,28,46.5&width=640&height=290&format=image/tiff"
         return (params, "kvp")

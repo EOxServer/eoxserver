@@ -88,7 +88,7 @@ class WMS13GetMapNoServiceParameterTestCase(testbase.RasterTestCase):
     """This test shall retrieve a map while omitting the service parameter. """
     def getRequest(self):
         params = "version=1.3.0&request=GetMap&" \
-                 "layers=mosaic_MER_FRS_1P_RGB_reduced&styles=&crs=epsg:4326&" \
+                 "layers=mosaic_MER_FRS_1P_reduced_RGB&styles=&crs=epsg:4326&" \
                  "bbox=35,10,45,20&width=100&height=100&format=image/tiff"
         return (params, "kvp")
 
@@ -108,7 +108,7 @@ class WMS13GetMapDatasetMultispectralTestCase(wmsbase.WMS13GetMapTestCase):
 
 class WMS13GetMapMosaicTestCase(wmsbase.WMS13GetMapTestCase):
     """ Test a GetMap request with a stitched mosaic. """
-    layers = ("mosaic_MER_FRS_1P_RGB_reduced",)
+    layers = ("mosaic_MER_FRS_1P_reduced_RGB",)
     bbox = (-3.75, 32.158895, 28.326165, 46.3)
     width = 200
 
@@ -178,18 +178,18 @@ class WMS13GetMapReferenceableGridReprojectionTestCase(wmsbase.WMS13GetMapTestCa
 
 class WMS13GetMapDatasetSeriesTestCase(wmsbase.WMS13GetMapTestCase):
     """ Test a GetMap request with a dataset series. """
-    layers = ("MER_FRS_1P_RGB_reduced",)
+    layers = ("MER_FRS_1P_reduced_RGB",)
     width = 200
     bbox = (-3.75, 32.158895, 28.326165, 46.3)
 
 class WMS13GetMapDatasetSeriesTimePointTestCase(wmsbase.WMS13GetMapTestCase):
-    layers = ("MER_FRS_1P_RGB_reduced",)
+    layers = ("MER_FRS_1P_reduced_RGB",)
     width = 200
     bbox = (-3.75, 32.158895, 28.326165, 46.3)
     time = "2006-08-30T10:09:49Z"
 
 class WMS13GetMapDatasetSeriesTimeIntervalTestCase(wmsbase.WMS13GetMapTestCase):
-    layers = ("MER_FRS_1P_RGB_reduced",)
+    layers = ("MER_FRS_1P_reduced_RGB",)
     width = 200
     bbox = (-3.75, 32.158895, 28.326165, 46.3)
     time = "2006-08-01T00:00:00Z/2006-08-22T23:59:59Z"
@@ -204,18 +204,18 @@ class WMS13GetMapDatasetSeriesOutlinesTestCase(wmsbase.WMS13GetMapTestCase):
     bbox = (-3.75, 32.158895, 28.326165, 46.3)
 
 class WMS13GetMapRectifiedStitchedMosaicOutlinesTestCase(wmsbase.WMS13GetMapTestCase):
-    layers = ("mosaic_MER_FRS_1P_RGB_reduced_outlines",)
+    layers = ("mosaic_MER_FRS_1P_reduced_RGB_outlines",)
     width = 200
     bbox = (-3.75, 32.158895, 28.326165, 46.3)
 
 class WMS13GetMapRectifiedStitchedMosaicOutlinesWhiteTestCase(wmsbase.WMS13GetMapTestCase):
-    layers = ("mosaic_MER_FRS_1P_RGB_reduced_outlines",)
+    layers = ("mosaic_MER_FRS_1P_reduced_RGB_outlines",)
     width = 200
     bbox = (-3.75, 32.158895, 28.326165, 46.3)
     styles = ("white",)
 
 class WMS13GetMapDatasetSeriesOutlinesTimeIntervalTestCase(wmsbase.WMS13GetMapTestCase):
-    layers = ("MER_FRS_1P_RGB_reduced_outlines",)
+    layers = ("MER_FRS_1P_reduced_RGB_outlines",)
     width = 200
     bbox = (-3.75, 32.158895, 28.326165, 46.3)
     time = "2006-08-16T09:09:29Z/2006-08-16T09:15:46Z"
@@ -276,7 +276,7 @@ class WMS13GetMapDatasetSeriesMaskedTestCase(wmsbase.WMS13GetMapTestCase):
     """ Test a GetMap request with the masked layer for a dataset series. """
     fixtures = MASK_FIXTURES
 
-    layers = ("MER_FRS_1P_RGB_reduced_masked",)
+    layers = ("MER_FRS_1P_reduced_RGB_masked",)
     bbox = (11, 32, 28, 46)
 
 #===============================================================================
@@ -295,7 +295,7 @@ class WMS13GetMapDatasetSeriesCloudMaskTestCase(wmsbase.WMS13GetMapTestCase):
     """ Test a GetMap request for cloudmask of a dataset series. """
     fixtures = MASK_FIXTURES
 
-    layers = ("MER_FRS_1P_RGB_reduced_clouds",)
+    layers = ("MER_FRS_1P_reduced_RGB_clouds",)
     styles = ("magenta",)
     bbox = (11, 32, 28, 46) 
 
@@ -314,7 +314,7 @@ class WMS13GetMapDatasetSeriesMaskedTestCase(wmsbase.WMS13GetMapTestCase):
     """ Test a GetMap request with the masked layer for a dataset series. """
     fixtures = MASK_FIXTURES
 
-    layers = ("MER_FRS_1P_RGB_reduced_masked",)
+    layers = ("MER_FRS_1P_reduced_RGB_masked",)
     bbox = (11, 32, 28, 46)
 
 #===============================================================================
@@ -342,14 +342,14 @@ class WMS13GetFeatureInfoTestCase(testbase.HTMLTestCase):
     """ Test a GetFeatureInfo on an outline layer. """
     
     def getRequest(self):
-        params = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&LAYERS=MER_FRS_1P_RGB_reduced_outlines&QUERY_LAYERS=MER_FRS_1P_RGB_reduced_outlines&STYLES=&BBOX=32.158895,-3.75,46.3,28.326165&FEATURE_COUNT=10&HEIGHT=100&WIDTH=200&FORMAT=image%2Fpng&INFO_FORMAT=text/html&CRS=EPSG:4326&I=100&J=50";
+        params = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&LAYERS=MER_FRS_1P_reduced_RGB_outlines&QUERY_LAYERS=MER_FRS_1P_reduced_RGB_outlines&STYLES=&BBOX=32.158895,-3.75,46.3,28.326165&FEATURE_COUNT=10&HEIGHT=100&WIDTH=200&FORMAT=image%2Fpng&INFO_FORMAT=text/html&CRS=EPSG:4326&I=100&J=50";
         return (params, "kvp")
 
 class WMS13GetFeatureInfoTimeIntervalTestCase(testbase.HTMLTestCase):
     """ Test a GetFeatureInfo on an outline layer with a given time slice. """
     
     def getRequest(self):
-        params = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&LAYERS=MER_FRS_1P_RGB_reduced_outlines&QUERY_LAYERS=MER_FRS_1P_RGB_reduced_outlines&STYLES=&BBOX=24.433594,-8.986816,60.205078,58.908691&FEATURE_COUNT=10&HEIGHT=814&WIDTH=1545&FORMAT=image%2Fpng&INFO_FORMAT=text/html&CRS=EPSG:4326&I=598&J=504&TIME=2006-08-16T09:09:29Z/2006-08-16T09:12:46Z";
+        params = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&LAYERS=MER_FRS_1P_reduced_RGB_outlines&QUERY_LAYERS=MER_FRS_1P_reduced_RGB_outlines&STYLES=&BBOX=24.433594,-8.986816,60.205078,58.908691&FEATURE_COUNT=10&HEIGHT=814&WIDTH=1545&FORMAT=image%2Fpng&INFO_FORMAT=text/html&CRS=EPSG:4326&I=598&J=504&TIME=2006-08-16T09:09:29Z/2006-08-16T09:12:46Z";
         return (params, "kvp")
 
 
@@ -357,7 +357,7 @@ class WMS13GetFeatureInfoEmptyTestCase(testbase.HTMLTestCase):
     """ Test a GetFeatureInfo request not hitting any datasets because of spatial/temporal bounds. """
     
     def getRequest(self):
-        params = "LAYERS=MER_FRS_1P_RGB_reduced_outlines&QUERY_LAYERS=MER_FRS_1P_RGB_reduced_outlines&STYLES=&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&EXCEPTIONS=INIMAGE&BBOX=20.742187%2C-19.401855%2C56.513672%2C48.493652&FEATURE_COUNT=10&HEIGHT=814&WIDTH=1545&FORMAT=image%2Fpng&INFO_FORMAT=text%2Fhtml&CRS=EPSG%3A4326&I=1038&J=505"
+        params = "LAYERS=MER_FRS_1P_reduced_RGB_outlines&QUERY_LAYERS=MER_FRS_1P_reduced_RGB_outlines&STYLES=&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&EXCEPTIONS=INIMAGE&BBOX=20.742187%2C-19.401855%2C56.513672%2C48.493652&FEATURE_COUNT=10&HEIGHT=814&WIDTH=1545&FORMAT=image%2Fpng&INFO_FORMAT=text%2Fhtml&CRS=EPSG%3A4326&I=1038&J=505"
         return (params, "kvp")
 
 
@@ -366,7 +366,7 @@ class WMS13GetFeatureInfoMaskedOutlinesTestCase(testbase.HTMLTestCase):
     fixtures = MASK_FIXTURES
 
     def getRequest(self):
-        params = "service=WMS&version=1.3.0&request=GetFeatureInfo&bbox=32,11,46,28&crs=EPSG:4326&width=500&height=500&format=png&TRANSPARENT=TRUE&styles=&layers=MER_FRS_1P_RGB_reduced_masked_outlines&info_format=text/plain&query_layers=MER_FRS_1P_RGB_reduced_masked_outlines&i=250&j=250&feature_count=10"
+        params = "service=WMS&version=1.3.0&request=GetFeatureInfo&bbox=32,11,46,28&crs=EPSG:4326&width=500&height=500&format=png&TRANSPARENT=TRUE&styles=&layers=MER_FRS_1P_reduced_RGB_masked_outlines&info_format=text/plain&query_layers=MER_FRS_1P_reduced_RGB_masked_outlines&i=250&j=250&feature_count=10"
         return (params, "kvp")
 
 
@@ -374,7 +374,7 @@ class WMS13GetFeatureInfoEOOMTestCase(testbase.XMLTestCase):
     """ Test a GetFeatureInfo on an outline layer. """
     
     def getRequest(self):
-        params = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&LAYERS=MER_FRS_1P_RGB_reduced_outlines&QUERY_LAYERS=MER_FRS_1P_RGB_reduced_outlines&STYLES=&BBOX=32.158895,-3.75,46.3,28.326165&FEATURE_COUNT=10&HEIGHT=100&WIDTH=200&FORMAT=image%2Fpng&INFO_FORMAT=application/xml&CRS=EPSG:4326&I=100&J=50";
+        params = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&LAYERS=MER_FRS_1P_reduced_RGB_outlines&QUERY_LAYERS=MER_FRS_1P_reduced_RGB_outlines&STYLES=&BBOX=32.158895,-3.75,46.3,28.326165&FEATURE_COUNT=10&HEIGHT=100&WIDTH=200&FORMAT=image%2Fpng&INFO_FORMAT=application/xml&CRS=EPSG:4326&I=100&J=50";
         return (params, "kvp")
 
 #===============================================================================
