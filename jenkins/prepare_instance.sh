@@ -63,7 +63,12 @@ esac
 # Create a new EOxServer instance for command line, server, etc. testing
 echo "**> creating autotest_jenkins instance..."
 rm -rf autotest_jenkins/
-eoxserver-admin.py create_instance autotest_jenkins --init_spatialite
+if [ $OS == "Ubuntu" ]; then
+    eoxserver-admin.py create_instance autotest_jenkins
+    spatialite autotest_jenkins/autotest_jenkins/data/config.sqlite "SELECT InitSpatialMetaData();"
+else
+    eoxserver-admin.py create_instance autotest_jenkins --init_spatialite
+fi
 cp -R autotest/autotest/data/ autotest_jenkins/autotest_jenkins/
 cp -R autotest/autotest/expected/ autotest_jenkins/autotest_jenkins/
 cp autotest/autotest/conf/eoxserver.conf autotest_jenkins/autotest_jenkins/conf/eoxserver.conf
