@@ -45,6 +45,7 @@ python manage.py loaddata auth_data.json range_types.json --traceback
 python manage.py eoxs_rangetype_load -i autotest_jenkins/data/meris/meris_range_type_definition.json --traceback
 python manage.py eoxs_rangetype_load -i autotest_jenkins/data/asar/asar_range_type_definition.json --traceback
 python manage.py eoxs_rangetype_list --traceback
+python manage.py eoxs_rangetype_list --json --traceback # dump all range-types as JSON 
 python manage.py eoxs_series_create -i MER_FRS_1P_reduced --traceback
 python manage.py eoxs_register -d autotest_jenkins/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.tif -m autotest_jenkins/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.xml -r MERIS_uint16 --visible --traceback
 python manage.py eoxs_register -d autotest_jenkins/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif -m autotest_jenkins/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.xml -r MERIS_uint16 --visible --traceback
@@ -52,13 +53,13 @@ python manage.py eoxs_register -d autotest_jenkins/data/meris/MER_FRS_1P_reduced
 
 python manage.py eoxs_series_link --series MER_FRS_1P_reduced --add MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed
 
-python manage.py eoxs_register -d autotest_jenkins/data/meris/mosaic_MER_FRS_1P_reduced_RGB/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif -m autotest_jenkins/data/meris/mosaic_MER_FRS_1P_reduced_RGB/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.xml -r RGB --visible --traceback
-python manage.py eoxs_register -d autotest_jenkins/data/meris/mosaic_MER_FRS_1P_reduced_RGB/mosaic_ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced.tif -m autotest_jenkins/data/meris/mosaic_MER_FRS_1P_reduced_RGB/mosaic_ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced.xml -r RGB --visible --traceback
-python manage.py eoxs_register -d autotest_jenkins/data/meris/mosaic_MER_FRS_1P_reduced_RGB/mosaic_ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced.tif -m autotest_jenkins/data/meris/mosaic_MER_FRS_1P_reduced_RGB/mosaic_ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced.xml -r RGB --visible --traceback
+python manage.py eoxs_dataset_register --series MER_FRS_1P_reduced -d autotest_jenkins/data/meris/mosaic_MER_FRS_1P_reduced_RGB/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif -m autotest_jenkins/data/meris/mosaic_MER_FRS_1P_reduced_RGB/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.xml -r RGB --visible --traceback
+python manage.py eoxs_dataset_register --series MER_FRS_1P_reduced -d autotest_jenkins/data/meris/mosaic_MER_FRS_1P_reduced_RGB/mosaic_ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced.tif -m autotest_jenkins/data/meris/mosaic_MER_FRS_1P_reduced_RGB/mosaic_ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced.xml -r RGB --visible --traceback
+python manage.py eoxs_dataset_register --series MER_FRS_1P_reduced -d autotest_jenkins/data/meris/mosaic_MER_FRS_1P_reduced_RGB/mosaic_ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced.tif -m autotest_jenkins/data/meris/mosaic_MER_FRS_1P_reduced_RGB/mosaic_ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced.xml -r RGB --visible --traceback
+#python manage.py eoxs_series_link --series MER_FRS_1P_reduced --add mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced --traceback
 
 python manage.py eoxs_register -d autotest_jenkins/data/asar/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tiff -r ASAR --coverage-type=ReferenceableDataset --projection 4326 --extent 16.727605,-36.259107,22.301754,-31.984922 --visible --traceback
 python manage.py eoxs_eoid_list --traceback
-python manage.py eoxs_series_link --series MER_FRS_1P_reduced --add mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced --traceback
 
 # Send some requests and compare results with expected results
 python manage.py runserver 1>/dev/null 2>&1 &
@@ -100,6 +101,9 @@ python manage.py eoxs_series_unlink --series MER_FRS_1P_reduced --remove mosaic_
 python manage.py eoxs_dataset_deregister mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced --traceback
 python manage.py eoxs_eoid_list --traceback
 # TODO: this functionality seems to have been removed
+python manage.py eoxs_eoid_check --traceback -t DatasetSeries -i MER_FRS_1P_reduced && echo "Test of 'eoxs_eoid_check' passed."
+python manage.py eoxs_eoid_check --traceback -i ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed && echo "Test of 'eoxs_eoid_check' passed."
+python manage.py eoxs_eoid_check --traceback -i nonexistent_XYZ || echo "Test of 'eoxs_eoid_check' passed."
 #python manage.py eoxs_check_id -a notused --traceback
 #python manage.py eoxs_check_id -u ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed --traceback
 #python manage.py eoxs_check_id -u MER_FRS_1P_reduced --traceback
