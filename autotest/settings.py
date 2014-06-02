@@ -263,13 +263,25 @@ LOGGING = {
             'filename': join(PROJECT_DIR, 'logs', 'eoxserver.log'),
             'formatter': 'verbose' if DEBUG else 'simple',
             'filters': [],
+        },
+        'django_file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': join(PROJECT_DIR, 'logs', 'django.log'),
+            'formatter': 'verbose',
+            'filters': [],
         }
     },
     'loggers': {
         'eoxserver': {
             'handlers': ['eoxserver_file'],
             'level': 'DEBUG' if DEBUG else 'INFO',
-            'propagate': False,
+            'propagate': False
+        },
+        'django': {
+            'handlers': ['django_file'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': False
         },
     }
 }
