@@ -105,4 +105,7 @@ class Command(EOxServerAdminCommand):
                 conn.close()
             except ImportError:
                 print("SpatiaLite not found, trying to initialize using 'InitSpatialMetaData()'.")
-                os.system('spatialite %s "SELECT InitSpatialMetaData();"')
+                os.system(
+                    'spatialite %s "SELECT InitSpatialMetaData();"'
+                    % db_name
+                )
