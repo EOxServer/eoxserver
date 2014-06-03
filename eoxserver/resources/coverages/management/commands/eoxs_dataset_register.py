@@ -140,7 +140,7 @@ class Command(CommandOutputMixIn, BaseCommand):
             action="store_true", default=False,
             help=("Set the coverage to be 'visible', which means it is "
                   "advertised in GetCapabilities responses.")
-        )
+        ),
 
         make_option("--series",dest="parents",
             action='callback', callback=_variable_args_cb,
