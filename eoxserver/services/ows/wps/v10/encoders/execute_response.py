@@ -35,16 +35,38 @@ from eoxserver.services.ows.wps.v10.util import (
 )
 
 from .process_description import encode_process_brief
-from .parameters import encode_output_def
+from .parameters import (Parameter, fix_parameter,
+    LiteralData, BoundingBoxData, ComplexData,
+    encode_input_exec, encode_output_exec,)
 from .base import WPS10BaseXMLEncoder
 
 
-# TODO: move data encoding to a separate module
-#def encode_input( ... ):
-def encode_output(name, parameter, data):
+# TODO: move low-level data encoding to a separate module
+def _encode_literal(prm, data):
+    attrib = { 'dataType': prm.dtype.name }
+    if prm.uoms:
+        #NOTE: If applicable the default UOM is inserted.
+        attrib['uom'] = prm.uoms[0]
+    return WPS("LiteralData", unicode(data), **attrib)
+
+def _encode_bbox(prm, data):
     #TODO: proper output encoding
-    elem = encode_output_def(name, parameter)
-    elem.append(WPS("Data", WPS("LiteralData", str(data))))
+    return WPS("BoundingBoxData")
+
+def _encode_complex(prm, data):
+    #TODO: proper output encoding
+    return WPS("ComplexData")
+
+def _encode_output(prm, data):
+    elem = encode_input_exec(prm.identifier, prm)
+
+    if isinstance(prm, LiteralData):
+        elem.append(WPS("Data", _encode_literal(prm, data)))
+    if isinstance(prm, BoundingBoxData):
+        elem.append(WPS("Data", _encode_bbox(prm, data)))
+    if isinstance(prm, ComplexData):
+        elem.append(WPS("Data", _encode_complex(prm, data)))
+
     return elem
 
 def _encode_response(process, inputs, status_elem, lineage):
@@ -53,12 +75,14 @@ def _encode_response(process, inputs, status_elem, lineage):
         encode_process_brief(process),
         WPS("Status", status_elem, creationTime=isoformat(now()))
     )
+
     if lineage:
-        inputs_enc = [] # TODO: encoded inputs
-        elem.append(WPS("DataInputs", *inputs_enc))
-        elem.append(WPS("OutputDefinitions",
-            *(encode_output_def(n, p) for n, p in process.outputs.items())
-        ))
+        #TODO: proper lineage output
+        inputs_data = [encode_output_exec(n, p) for n, p in process.inputs]
+        outputs_def = [encode_output_exec(n, p) for n, p in process.outputs]
+        elem.append(WPS("DataInputs", *inputs_data))
+        elem.append(WPS("OutputDefinitions", *outputs_def))
+
     return elem
 
 
@@ -69,9 +93,15 @@ class WPS10ExecuteResponseXMLEncoder(WPS10BaseXMLEncoder):
         """Encode execute response (SUCCESS) including the output data."""
         status = WPS("ProcessSucceded")
         elem = _encode_response(process, inputs, status, lineage)
-        elem.append(WPS("ProcessOutputs",
-            *(encode_output(n, process.outputs[n], d) for n, d in results.items())
-        ))
+
+        outputs = []
+        for name, prm in process.outputs: # preserve order of the outputs
+            prm = fix_parameter(name, prm) # short-hand def. expansion
+            result = results.get(prm.identifier, None)
+            if results: # skip missing outputs
+                outputs.append(_encode_output(prm, result))
+        elem.append(WPS("ProcessOutputs", *outputs))
+
         return elem
 
     #@staticmethod

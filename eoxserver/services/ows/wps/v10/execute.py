@@ -10,8 +10,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -34,21 +34,129 @@ from eoxserver.core import Component, implements, ExtensionPoint
 from eoxserver.core.decoders import kvp, xml
 from eoxserver.core.util import multiparttools as mp
 from eoxserver.services.ows.interfaces import (
-    ServiceHandlerInterface, GetServiceHandlerInterface, 
+    ServiceHandlerInterface, GetServiceHandlerInterface,
     PostServiceHandlerInterface
 )
 from eoxserver.services.ows.wps.interfaces import ProcessInterface
 from eoxserver.services.ows.wps.parameters import (
-    is_literal_type, LiteralData, ComplexData
+    fix_parameter, Parameter, LiteralData, BoundingBoxData, ComplexData
 )
-from eoxserver.services.ows.wps.exceptions import ( 
+from eoxserver.services.ows.wps.exceptions import (
     NoSuchProcessException, MissingInputException,
     InvalidReferenceException,
-) 
+)
 from eoxserver.services.ows.wps.v10.util import nsmap, ns_wps, ns_ows, ns_xlink
 from eoxserver.services.ows.wps.v10.encoders import (
     WPS10ExecuteResponseXMLEncoder, WPS10ExecuteResponseRawEncoder
 )
+
+
+def _normalize_results(output_defs, results):
+    """Convert result to a common form."""
+    if isinstance(results, dict):
+        return results
+    elif len(output_defs) == 1:
+        return {output_defs[0][0]: results}
+    else:
+        try:
+            return dict(results)
+        except ValueError:
+            raise ValueError("Failed to convert the results to a dictionary!")
+
+def _resolve_reference(reference, request):
+    """ Get the input passed as a reference. """
+    url = urlparse(reference.href)
+
+    # if the href references a part in the multipart request, iterate over
+    # all parts and return the correct one
+    if url.scheme == "cid":
+        for headers, data in mp.iterate(request):
+            if headers.get("Content-ID") == url.path:
+                return data
+        raise InvalidReferenceException(
+            "No part with content-id '%s'." % url.path
+        )
+
+    try:
+        request = urllib2.Request(reference.href, reference.body)
+        response = urllib2.urlopen(request)
+        return response.read()
+    except urllib2.URLError, e:
+        raise InvalidReferenceException(str(e))
+
+
+def decode_process_inputs(process, decoder, request):
+    """ Iterates over all input options stated in the process and parses
+        all given inputs. This also includes resolving references
+    """
+    inputs = decoder.inputs
+
+    #TODO: remove followin backward compatibility conversion
+    if isinstance(process.inputs, dict):
+        process.inputs = process.inputs.items()
+    input_defs = process.inputs
+
+    decoded_inputs = {}
+    for name, prm in input_defs:
+        prm = fix_parameter(name, prm) # short-hand def. expansion
+        try:
+            # get the "raw" input value
+            raw_value = inputs.pop(prm.identifier)
+            if isinstance(raw_value, Reference):
+                value = _resolve_reference(raw_value, request)
+            else:
+                value = prm.dtype.parse(raw_value)
+        except KeyError:
+            if prm.is_optional:
+                value = None
+                if isinstance(prm, LiteralData):
+                    value = prm.default
+                # TODO: defaults for non-literal types
+            else:
+                raise MissingInputException("Input '%s' is required."%name)
+        decoded_inputs[name] = value
+    return decoded_inputs
+
+
+def encode_process_outputs(process, decoder, results):
+    resp_form = decoder.response_form or ResponseDocument()
+
+    #TODO: remove followin backward compatibility conversion
+    if isinstance(process.outputs, dict):
+        process.outputs = process.outputs.items()
+    output_defs = process.outputs
+
+    results = _normalize_results(output_defs, results)
+
+    encoded_results = {}
+    for name, prm in output_defs:
+        prm = fix_parameter(name, prm) # short-hand def. expansion
+
+        # Don't encode outputs if not requested by the response form.
+        if resp_form and not resp_form.is_output_included(prm.identifier):
+            continue
+
+        # TODO: check stadard to get the proper behaviour
+        # skip mising outputs
+        result = results.get(name, None)
+        if result is None:
+            continue
+
+        encoded_result = resp_form.encode(process, prm, result)
+        encoded_results[prm.identifier] = encoded_result
+
+    if not resp_form.raw:
+        encoder = WPS10ExecuteResponseXMLEncoder()
+    else:
+        encoder = WPS10ExecuteResponseRawEncoder(results)
+
+    return encoder.serialize(
+        encoder.encode_execute_response(
+            process, decoder.inputs, encoded_results,
+            getattr(resp_form, "lineage", False)
+        )
+    ), encoder.content_type
+
 
 
 class WPS10ExcecuteHandler(Component):
@@ -60,12 +168,12 @@ class WPS10ExcecuteHandler(Component):
     versions = ("1.0.0",)
     request = "Execute"
 
-
     processes = ExtensionPoint(ProcessInterface)
     #result_storage = ExtensionPoint(ResultStorageInterface)
-    
 
-    def get_decoder(self, request):
+
+    @staticmethod
+    def get_decoder(request):
         if request.method == "GET":
             return WPS10ExecuteKVPDecoder(request.GET)
         elif request.method == "POST":
@@ -76,126 +184,23 @@ class WPS10ExcecuteHandler(Component):
             return WPS10ExecuteXMLDecoder(request.body)
 
 
-
-    def process_inputs(self, process, decoder):
-        """ Iterates over all input options stated in the process and parses 
-            all given inputs. This also includes resolving references
-        """
-        input_params = process.inputs
-        inputs = decoder.inputs
-
-        kwargs = {}
-        for key, parameter in input_params.items():
-            
-            if is_literal_type(parameter):
-                parameter = LiteralData(key, parameter)
-
-            try:
-                # get the "raw" input value
-                raw_value = inputs.pop(key)
-
-                if isinstance(raw_value, Reference):
-                    value = self.resolve_reference(raw_value, request)
-                else:
-                    value = parameter.parse_value(raw_value)
-
-            except KeyError:
-                if parameter._is_optional : 
-                    if isinstance(parameter,LiteralData): 
-                        # the 'parameter.default' is set either to a sane 
-                        # default value or None 
-                        value = parameter.default 
-                    else : 
-                        value = None # TODO: defaults for non-literal types 
-                else: 
-                    raise MissingInputException("Parameter '%s' is required." % key)
-
-            kwargs[key] = value
-
-        return kwargs
-
-
-    def preprocess_result(self, process, results):
-        output_defs = getattr(process, "outputs", {})
-        if len(output_defs) == 0:
-            return {}
-
-        elif len(output_defs) == 1 and not isinstance(results, dict):
-            key = output_defs.keys()[0]
-            return {key: results}
-
-        elif not isinstance(results, dict):
-            return dict(results) # TODO: improve
-
-        return results
-
-
-    def process_outputs(self, process, decoder, results):
-        response_form = decoder.response_form or ResponseDocument()
-
-        results = self.preprocess_result(process, results)
-
-        encoded_result = {}
-        for output_identifier, raw_output in results.iteritems():
-            if not response_form.is_output_included(output_identifier):
-                pass
-
-            encoded_result[output_identifier] = response_form.encode(
-                process, output_identifier, raw_output
-            )
-
-
-        if not response_form.raw:
-            encoder = WPS10ExecuteResponseXMLEncoder()
-        else:
-            encoder = WPS10ExecuteResponseRawEncoder(results)
-
-        return encoder.serialize(
-            encoder.encode_execute_response(
-                process, decoder.inputs, results, 
-                getattr(response_form, "lineage", False)
-            )
-        ), encoder.content_type
-
-
-
     def handle(self, request):
         decoder = self.get_decoder(request)
 
-        for process in self.processes:
-            if process.identifier == decoder.identifier:
+        for item in self.processes:
+            if item.identifier == decoder.identifier:
+                process = item
                 break
-        else: 
+        else:
             raise NoSuchProcessException(decoder.identifier)
 
-        kwargs = self.process_inputs(process, decoder)
+        kwargs = decode_process_inputs(process, decoder, request)
 
+        # TODO: exception catching + proper error execute response generation
         # execute the process and prepare the result
         result = process.execute(**kwargs)
 
-        return self.process_outputs(process, decoder, result)
-
-        
-
-    def resolve_reference(self, reference, request):
-        url = urlparse(reference.href)
-
-        # if the href references a part in the multipart request, iterate over 
-        # all parts and return the correct one 
-        if url.scheme == "cid":
-            for headers, data in mp.iterate(request):
-                if headers.get("Content-ID") == url.path:
-                    return data
-            raise InvalidReferenceException(
-                "No part with content-id '%s'." % url.path
-            )
-        
-        try:
-            request = urllib2.Request(reference.href, reference.body)
-            response = urllib2.urlopen(request)
-            return response.read()
-        except urllib2.URLError, e:
-            raise InvalidReferenceException(str(e))
+        return encode_process_outputs(process, decoder, result)
 
 
 
@@ -222,28 +227,28 @@ class ResponseForm(object):
         return False
 
 
-    def encode(self, process, output_identifier, raw_result):
-        parameter = process.outputs[output_identifier]
-
+    def encode(self, process, parameter, raw_result):
         if isinstance(parameter, LiteralData):
-            # TODO: UOM?
-            return parameter.encode_value(raw_result)
+            if parameter.check(raw_result):
+                return parameter.encode(raw_result)
+            else:
+                raise ValueError("Invalid output '%s'!"%parameter.identifier)
 
         elif isinstance(parameter, ComplexData):
             # get the requested format encoding or use the default
 
             frmt = self._get_selected_format(
-                output_identifier, parameter.formats
+                parameter.identifier, parameter.formats
             )
 
-            # try this order: use formats encoding function, use processes 
+            # try this order: use formats encoding function, use processes
             # encoding function
 
             try:
                 return frmt.encode_data(raw_result)
             except NotImplementedError:
                 return process.encode_complex_output(
-                    output_identifier, raw_result,
+                    parameter.identifier, raw_result,
                     frmt.mime_type, frmt.encoding, frmt.schema
                 )
 
@@ -258,7 +263,6 @@ class ResponseForm(object):
 
         # return the default, the first format
         return formats[0]
-
 
 
 class RawDataOutput(ResponseForm):
@@ -321,7 +325,7 @@ def parse_input_xml(element):
         )
         body = etree.tostring(data_elem.xpath("wps:Body")[0])
         # TODO: BodyReference?
-        
+
         value = Reference(
             data_elem.attrib[ns_xlink("href")], headers, body,
             data_elem.attrib.get("method", "GET"),
@@ -393,7 +397,7 @@ class WPS10ExecuteKVPDecoder(kvp.Decoder):
     @property
     def response_form(self):
         raw_response = self.raw_response
-        if raw_response: 
+        if raw_response:
             return raw_response
 
         return self.response_document or ResponseDocument()

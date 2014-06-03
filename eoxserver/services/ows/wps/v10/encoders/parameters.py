@@ -29,63 +29,87 @@
 #-------------------------------------------------------------------------------
 
 from eoxserver.services.ows.wps.parameters import (
-    is_literal_type, LiteralData, ComplexData, BoundingBoxData, Format
+    Parameter, LiteralData, ComplexData, BoundingBoxData, Format,
+    AllowedAny, AllowedEnum, AllowedRange, AllowedRangeCollection,
+    AllowedByReference, fix_parameter,
 )
 
 from eoxserver.services.ows.wps.v10.util import (
-    OWS, WPS, ns_ows, ns_wps, ns_xlink, ns_xml
+    OWS, WPS, NIL, ns_ows, ns_wps, ns_xlink, ns_xml
 )
 
 #-------------------------------------------------------------------------------
 
 def _encode_format(frmt):
 
-    elem = WPS("Format",
-        WPS("MimeType", frmt.mime_type)
+    elem = NIL("Format",
+        NIL("MimeType", frmt.mime_type)
     )
 
     if frmt.encoding:
-        elem.append(WPS("Encoding", frmt.encoding))
+        elem.append(NIL("Encoding", frmt.encoding))
 
     if frmt.encoding:
-        elem.append(WPS("Schema", frmt.schema))
+        elem.append(NIL("Schema", frmt.schema))
 
 
 #-------------------------------------------------------------------------------
 
+def _encode_allowed_value(avobj):
+    enum, ranges, elist = None, [], []
+
+    if isinstance(avobj, AllowedAny):
+        return OWS("AnyValue")
+    elif isinstance(avobj, AllowedByReference):
+        return WPS("ValuesReference", **{
+            ns_ows("reference"): avobj.url,
+            "valuesForm": avobj.url,
+        })
+    elif isinstance(avobj, AllowedEnum):
+        enum = avobj
+    elif isinstance(avobj, AllowedRange):
+        ranges = [avobj]
+    elif isinstance(avobj, AllowedRangeCollection):
+        enum, ranges = avobj.enum, avobj.ranges
+    else:
+        raise TypeError("Invalid allowed value object! OBJ=%r"%avobj)
+
+    dtype = avobj.dtype
+    ddtype = dtype.get_diff_dtype()
+
+    if enum is not None:
+        elist.extend(OWS("AllowedValue", dtype.encode(v)) for v in enum.values)
+    for range_ in ranges:
+        attr, elms = {}, []
+        if range_.closure != 'closed':
+            attr = {ns_ows("rangeClosure"): range_.closure}
+        if range_.minval is not None:
+            elms.append(OWS("MinimumValue", dtype.encode(range_.minval)))
+        if range_.maxval is not None:
+            elms.append(OWS("MaximumValue", dtype.encode(range_.maxval)))
+        if range_.spacing is not None:
+            elms.append(OWS("Spacing", ddtype.encode(range_.spacing)))
+        elist.append(OWS("Range", *elms, **attr))
+
+    return OWS("AllowedValues", *elist)
+
+
 def _encode_literal(prm, is_input):
+    dtype = prm.dtype
+    elem = NIL("LiteralData" if is_input else "LiteralOutput")
 
-    elem = WPS("LiteralData" if is_input else "LiteralOutput")
-
-    tname = prm.type_name
-
-    if tname:
-        tmp = {
-            ns_ows("reference"): "http://www.w3.org/TR/xmlschema-2/#%s"%tname,
-        }
-        elem.append(OWS("DataType", tname, **tmp))
+    elem.append(OWS("DataType", dtype.name, **{
+        ns_ows("reference"): "http://www.w3.org/TR/xmlschema-2/#%s"%dtype.name,
+    }))
 
     if prm.uoms:
-        elem.append(WPS("UOMs",
-            WPS("Default", OWS("UOM", prm.uoms[0])),
-            WPS("Supported", *((OWS("UOM", u) for u in prm.uoms)))
+        elem.append(NIL("UOMs",
+            NIL("Default", NIL("UOM", prm.uoms[0])),
+            NIL("Supported", *[NIL("UOM", u) for u in prm.uoms])
         ))
 
     if is_input:
-
-        if prm.allowed_values:
-            tmp = ((OWS("AllowedValue", str(v)) for v in prm.allowed_values))
-            elem.append(OWS("AllowedValues", *tmp))
-
-        elif prm.values_reference:
-            tmp = {
-                ns_ows("reference"): prm.values_reference,
-                "valuesForm": prm.values_reference,
-            }
-            elem.append(WPS("ValuesReference", **tmp))
-
-        else:
-            elem.append(OWS("AnyValue"))
+        elem.append(_encode_allowed_value(prm.allowed_values))
 
         if prm.default is not None:
             elem.append(WPS("Default", str(prm.default)))
@@ -101,63 +125,62 @@ def _encode_complex(prm, is_input):
     if isinstance(formats, Format):
         formats = (formats,)
 
-    return WPS("ComplexData" if is_input else "ComplexOutput",
+    return NIL("ComplexData" if is_input else "ComplexOutput",
         WPS("Default", _encode_format(formats[0])),
-        WPS("Supported", *((_encode_format(f) for f in formats)))
+        WPS("Supported", *[_encode_format(f) for f in formats])
     )
 
 #-------------------------------------------------------------------------------
 
 def _encode_bbox(prm, is_input):
-
-    return WPS("BoundingBoxData" if is_input else "BoundingBoxOutput",
+    return NIL("BoundingBoxData" if is_input else "BoundingBoxOutput",
         WPS("Default", WPS("CRS", prm.crss[0])),
-        WPS("Supported", *((WPS("CRS", c) for c in prm.crss)))
+        WPS("Supported", *[WPS("CRS", c) for c in prm.crss])
     )
 
 #-------------------------------------------------------------------------------
 
-def _encode_parameter(name, prm, is_input):
-
-    # support for the shorthand
-    if is_literal_type(prm):
-        prm = LiteralData(name, prm)
-
-    elem = WPS("Input" if is_input else "Output",
-        OWS("Identifier", prm.identifier or name)
-    )
-
-    # TODO: minOccurs/maxOccurs correct
-    # occurance attributes
-    if is_input:
-        elem.attrib["minOccurs"] = ("1", "0")[bool(prm._is_optional)]
-        elem.attrib["maxOccurs"] = "1"
-
+def _encode_param_common(prm):
+    """Encode common base for all possible parameter XML serialization"""
+    elist = [OWS("Identifier", prm.identifier)]
     if prm.title:
-        elem.append(OWS("Title", prm.title))
-
+        elist.append(OWS("Title", prm.title))
     if prm.description:
-        elem.append(OWS("Abstract", prm.description))
+        elist.append(OWS("Abstract", prm.description))
+    return elist
 
-
+def encode_input_descr(name, prm):
+    """Encode process description input element."""
+    prm = fix_parameter(name, prm) # short-hand def. expansion
+    elem = NIL("Input", *_encode_param_common(prm))
+    elem.attrib["minOccurs"] = ("1", "0")[bool(prm.is_optional)]
+    elem.attrib["maxOccurs"] = "1"
     if isinstance(prm, LiteralData):
-        elem.append(_encode_literal(prm, is_input))
-
+        elem.append(_encode_literal(prm, True))
     elif isinstance(prm, ComplexData):
-        elem.append(_encode_complex(prm, is_input))
-
+        elem.append(_encode_complex(prm, True))
     elif isinstance(prm, BoundingBoxData):
-        elem.append(_encode_bbox(prm, is_input))
-
+        elem.append(_encode_bbox(prm, True))
     return elem
 
-#-------------------------------------------------------------------------------
+def encode_output_descr(name, prm):
+    """Encode process description output element."""
+    prm = fix_parameter(name, prm) # short-hand def. expansion
+    elem = NIL("Output", *_encode_param_common(prm))
+    if isinstance(prm, LiteralData):
+        elem.append(_encode_literal(prm, False))
+    elif isinstance(prm, ComplexData):
+        elem.append(_encode_complex(prm, False))
+    elif isinstance(prm, BoundingBoxData):
+        elem.append(_encode_bbox(prm, False))
+    return elem
 
-def encode_input_def(name, parameter):
-    """Encode input parameter definition."""
-    return _encode_parameter(name, parameter, True)
+def encode_input_exec(name, prm):
+    """Encode base of the execute response input element."""
+    prm = fix_parameter(name, prm) # short-hand def. expansion
+    return WPS("Input", *_encode_param_common(prm))
 
-def encode_output_def(name, parameter):
-    """Encode output result definition."""
-    return _encode_parameter(name, parameter, False)
-
+def encode_output_exec(name, prm):
+    """Encode base of the execute response input element."""
+    prm = fix_parameter(name, prm) # short-hand def. expansion
+    return WPS("Output", *_encode_param_common(prm))

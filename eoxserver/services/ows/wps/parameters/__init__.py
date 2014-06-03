@@ -1,6 +1,6 @@
 #-------------------------------------------------------------------------------
 #
-#  WPS input and output parameters and data types 
+#  WPS input and output parameters and data types
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Martin Paces <martin.paces@eox.at>
@@ -11,8 +11,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -27,7 +27,19 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from base import *  
-from literaldata import *  
-from complexdata import *  
-from bboxdata import *  
+from .base import Parameter
+from .literaldata import LiteralData
+from .complexdata import ComplexData, Format
+from .bboxdata import BoundingBox, BoundingBoxData
+
+from .allowed_values import (BaseAllowed, AllowedAny, AllowedEnum,
+    AllowedRange, AllowedRangeCollection, AllowedByReference)
+
+from .data_types import (BaseType, Boolean, Integer, Double, String, Duration,
+                         Date, Time, DateTime, DTYPES)
+
+def fix_parameter(name, prm):
+    """ Expand short-hand definition of the parameter."""
+    if isinstance(prm, Parameter):
+        return prm
+    return LiteralData(name, dtype=prm)

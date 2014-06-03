@@ -29,46 +29,56 @@
 #-------------------------------------------------------------------------------
 
 from eoxserver.services.ows.wps.v10.util import (
-    OWS, WPS, ns_ows, ns_wps, ns_xlink, ns_xml
+    OWS, WPS, NIL, ns_ows, ns_wps, ns_xlink, ns_xml
 )
-from .parameters import encode_input_def, encode_output_def
+from .parameters import encode_input_descr, encode_output_descr
 from .base import WPS10BaseXMLEncoder
 
+
+def _encode_metadata(title, href):
+    return OWS("Metadata", **{ns_xlink("title"): title, ns_xlink("href"): href})
 
 def encode_process_brief(process):
     id_ = getattr(process, 'identifier', process.__class__.__name__)
     title = getattr(process, 'title', id_)
-    descr = getattr(process, 'description', process.__class__.__doc__)
+    abstract = getattr(process, 'description', process.__class__.__doc__)
+    version = getattr(process, "version", "1.0.0")
+    metadata = getattr(process, "metadata", {})
+    profiles = getattr(process, "profiles", [])
+    wsdl = getattr(process, "wsdl", None)
 
-    elem = WPS("Process",
-        OWS("Identifier", id_),
-        OWS("Title", title),
-        OWS("Abstract", descr),
-    )
-
-    # TODO: Fix the metadata encoding to be compliant with the OWC common!
-    #elem.extend([
-    #    OWS("Metadata", metadata)
-    #    for metadata in getattr(process, "metadata", [])
-    #])
-
-    elem.extend(OWS("Profile", p) for p in getattr(process, "profiles", []))
-
-    version = getattr(process, "version", None)
-    if version:
-        elem.attr[ns_wps("processVersion")] = version
+    elem = WPS("Process", OWS("Identifier", id_), OWS("Title", title))
+    elem.attrib[ns_wps("processVersion")] = version
+    if abstract:
+        elem.append(OWS("Abstract", abstract))
+    elem.extend(_encode_metadata(k, metadata[k]) for k in metadata)
+    elem.extend(WPS("Profile", p) for p in profiles)
+    if wsdl:
+        elem.append(WPS("WSDL", **{ns_xlink("href"): wsdl}))
 
     return elem
 
-
 def encode_process_full(process):
+    # TODO: support for async processes
+    supports_store = False
+    supports_update = False
+
+    # TODO: remove backward compatibitity support for inputs/outputs dicts
+    if isinstance(process.inputs, dict):
+        process.inputs = process.inputs.items()
+    if isinstance(process.outputs, dict):
+        process.outputs = process.outputs.items()
+
+    inputs = [encode_input_descr(n, p) for n, p in process.inputs]
+    outputs = [encode_output_descr(n, p) for n, p in process.outputs]
+
     elem = encode_process_brief(process)
-
-    inputs = (encode_input_def(n, p) for n, p in process.inputs.items())
-    outputs = (encode_output_def(n, p) for n, p in process.outputs.items())
-
-    elem.append(WPS("DataInputs", *inputs))
-    elem.append(WPS("DataOutputs", *outputs))
+    if supports_store:
+        elem.attrib["storeSupported"] = "true"
+    if supports_update:
+        elem.attrib["statusSupported"] = "true"
+    elem.append(NIL("DataInputs", *inputs))
+    elem.append(NIL("DataOutputs", *outputs))
 
     return elem
 
@@ -76,5 +86,10 @@ def encode_process_full(process):
 class WPS10ProcessDescriptionsXMLEncoder(WPS10BaseXMLEncoder):
     @staticmethod
     def encode_process_descriptions(processes):
-        tmp = (encode_process_full(p) for p in processes)
-        return WPS("ProcessDescriptions", *tmp)
+        _proc = [encode_process_full(p) for p in processes]
+        _attr = {
+            "service": "WPS",
+            "version": "1.0.0",
+            ns_xml("lang"): "en-US",
+        }
+        return WPS("ProcessDescriptions", *_proc, **_attr)

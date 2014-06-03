@@ -115,7 +115,9 @@ class WPS10CapabilitiesXMLEncoder(WPS10BaseXMLEncoder):
             ),
             # TODO: WPS("WSDL") ?
             **{
-                "service": "WPS", ns_xml("lang"): "en-US",
-                "updateSequence": conf.update_sequence
+                "service": "WPS",
+                "version": "1.0.0",
+                ns_xml("lang"): "en-US",
+                "updateSequence": conf.update_sequence,
             }
         )

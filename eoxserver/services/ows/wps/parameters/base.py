@@ -44,9 +44,19 @@ class Parameter(object):
 
     def __init__(self, identifier=None, title=None, description=None,
                  metadata=None, optional=False):
+        """ Object constructor.
+
+            Parameters:
+                identifier  idetnfier of the parameter.
+                title       optional human-raedable name (defaults to idetfier).
+                description optional human-redable verbose description.
+                metadata    optional metadata (title/URL dictionary).
+                optional    optional boolean flag indicating whether the input
+                            parameter is optional or not.
+        """
         self.identifier = identifier
         self.title = title or identifier
         self.description = description
-        self.metadata = metadata or ()
-        self._is_optional = optional
+        self.metadata = metadata or {}
+        self.is_optional = optional # applicable to inputs only
 

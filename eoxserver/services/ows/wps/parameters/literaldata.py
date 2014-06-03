@@ -28,171 +28,95 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-import re
-from datetime import datetime, date, time, timedelta
+# TODO: Review standard compliance of the duration parsing and encoding.
 
-from django.utils.dateparse import parse_date, parse_datetime, parse_time
-
-from eoxserver.core.util.timetools import isoformat
-
-from base import Parameter
-
-#-------------------------------------------------------------------------------
-
-LITERAL_DATA_NAME = {
-    str: "string",
-    unicode: "string",
-    bool: "boolean",
-    int: "integer",
-    long: "integer",
-    float: "float",
-    date: "date",
-    datetime: "dateTime",
-    time: "time",
-    timedelta: "duration"
-}
-
-
-def parse_date_ext(raw_value):
-    value = parse_date(raw_value)
-    if not value:
-        raise ValueError("Could not parse ISO date from '%s'." % raw_value)
-    return value
-
-def parse_datetime_ext(raw_value):
-    value = parse_datetime(raw_value)
-    if not value:
-        raise ValueError("Could not parse ISO date time from '%s'." % raw_value)
-    return value
-
-
-def parse_time_ext(raw_value):
-    value = parse_time(raw_value)
-    if not value:
-        raise ValueError("Could not parse ISO time from '%s'." % raw_value)
-    return value
-
-
-ISO_8601_DURATION_RE = re.compile(
-    r"^(?P<sign>[+-])?P"
-    r"(?P<years>\d+Y)?"
-    r"(?P<months>\d+M)?"
-    r"(?P<days>\d+D)?"
-    r"(?P<hours>\d+H)?"
-    r"(?P<minutes>\d+M)?"
-    r"(?P<seconds>\d+S)?"
-    r"$"
-)
-
-def parse_duration(raw_value):
-    match = ISO_8601_DURATION_R.match(raw_value)
-
-    if not match:
-        raise ValueError("Could not parse ISO duration from '%s'." % raw_value)
-
-    days = 0
-    seconds = 0
-    negative = False
-
-    for key, value in match.items():
-        if key == "sign" and value == "-":
-            negative = True
-        elif key == "years":
-            days += int(value) * 365
-        elif key == "months":
-            days += int(value) * 30 #???
-        elif key == "days":
-            days += int(value)
-        elif key == "hours":
-            seconds += int(value) * 24 * 60
-        elif key == "minutes":
-            seconds += int(value) * 60
-        elif key == "seconds":
-            seconds += int(value)
-
-    dt = timedelta(days, seconds)
-    if negative:
-        return -dt
-    return dt
-
-
-LITERAL_DATA_PARSER = {
-    date: parse_date_ext,
-    datetime: parse_datetime_ext,
-    time: parse_time_ext,
-    timedelta: parse_duration
-}
-
-
-def encode_duration(self, dt):
-    years, days = divmod(dt.days, 365)
-    months, days = divmod(days, 30)
-
-    hours, seconds = divmod(dt.seconds, 3600)
-    minutes, seconds = divmod(seconds, 60)
-
-    seconds += (float(dt.microseconds) / 1000000) if dt.microseconds else 0
-
-    date_str = "%s%s%s" % (
-        ("%sY" % years) if years else "",
-        ("%sM" % months) if months else "",
-        ("%sD" % days) if days else ""
-    )
-    time_str = "%s%s%s" % (
-        ("%sH" % hours) if hours else "",
-        ("%sM" % minutes) if minutes else "",
-        ("%sS" % seconds) if seconds else ""
-    )
-
-    if date_str and time_str:
-        return "P%sT%s"
-
-    elif date_str:
-        return "P%s" % date_str
-    elif time_str:
-        return "PT%s" % time_str
-    else:
-        return "PT0S"
-
-LITERAL_DATA_ENCODER = {
-    date: parse_date_ext,
-    datetime: isoformat,
-    time: parse_time_ext,
-    timedelta: encode_duration
-}
-
-
-def is_literal_type(type_):
-    return type_ in LITERAL_DATA_NAME
-
-#-------------------------------------------------------------------------------
+from .base import Parameter
+from .data_types import BaseType, String, DTYPES
+from .allowed_values import BaseAllowed, AllowedAny, AllowedEnum
 
 class LiteralData(Parameter):
+    """ literal-data parameter class """
 
-    def __init__(self, identifier, type=str, uoms=None, default=None,
-                 allowed_values=None, values_reference=None, *args, **kwargs):
+    def __init__(self, identifier, dtype=String, uoms=None, default=None,
+                 allowed_values=None, *args, **kwargs):
+        """ Object constructor.
+
+            Parameters:
+                identifier  idetnfier of the parameter.
+                title       optional human-raedable name (defaults to idetfier).
+                description optional human-redable verbose description.
+                metadata    optional metadata (title/URL dictionary).
+                optional    optional boolean flag indicating whether the input
+                            parameter is optional or not.
+                dtype       optional data type of the parameter. String type
+                            ``str`` is set by default. For list of supported
+                            types see ``LiteralData.SUPPORTED_TYPES``).
+                uoms        optional sequence of the supported units.
+                defalt      optional default input value. Presence of the
+                            default value sets the parameter optional.
+                allowed_values optional restriction on the accepted values.
+                            By default any value of the given type is
+                            supported. The allowed value can be specified by an
+                            an enumerated list (iterable) of values or by
+                            instance of one of the following classes:
+                            ``AllowedAny``, ``AllowedEnum``, ``AllowedRange``,
+                            or ``AllowedByReference``.
+        """
         super(LiteralData, self).__init__(identifier, *args, **kwargs)
-        self.type = type
+
+        if issubclass(dtype, BaseType):
+            self._dtype = dtype
+        elif dtype in DTYPES:
+            self._dtype = DTYPES[dtype]
+        else:
+            raise TypeError("Non-supported data type %s! "%dtype)
+
+        if isinstance(allowed_values, BaseAllowed):
+            if (hasattr(allowed_values, 'dtype')
+                                      and self._dtype != allowed_values.dtype):
+                raise TypeError("The allowed values vs. literal data  type"
+                      " mismatch! %s != %s", allowed_values.dtype, self._dtype)
+            self._allowed_values = allowed_values
+        elif allowed_values is not None:
+            self._allowed_values = AllowedEnum(allowed_values, self._dtype)
+        else:
+            self._allowed_values = AllowedAny()
+
         self.uoms = uoms or () # the first uom is the default one
-        self.default = default
-        self.allowed_values = allowed_values or ()
-        self.values_reference = values_reference
 
-        if default is not None : self._is_optional = True
-
-    def parse_value(self, raw_value):
-        try:
-            parser = LITERAL_DATA_PARSER.get(self.type, self.type)
-            return parser(raw_value)
-        except (ValueError, TypeError), e:
-            raise Exception("%s: Input parsing error: '%s' (raw value '%s')"
-                            "" % (self.identifier, str(e), raw_value))
-
-    def encode_value(self, value):
-        value_type = type(value)
-        return LITERAL_DATA_ENCODER.get(value_type, str)
+        if default is None:
+            self.default = None
+        else:
+            self.default = self.parse(default)
+            self.is_optional = True
 
     @property
-    def type_name(self):
-        return LITERAL_DATA_NAME.get(self.type)
+    def dtype(self):
+        """Data type class of the literal data object. (RO)"""
+        return self._dtype
+
+    @property
+    def allowed_values(self):
+        """Allowed values object of the literal data object. (RO)"""
+        return self._allowed_values
+
+    def check(self, value):
+        """Check whether the value is allowed (True) or not (False)."""
+        return self._allowed_values.check(value)
+
+    def verify(self, value):
+        """Return the value if allowed or raise the ValueError exception."""
+        return self._allowed_values.verify(value)
+
+    def encode(self, value):
+        """Encode the given value to its string representation."""
+        return self._dtype.encode(value)
+
+    def parse(self, raw_value):
+        """Encode the given value to its string representation."""
+        try:
+            return self._allowed_values.verify(self._dtype.parse(raw_value))
+        except (ValueError, TypeError) as exc:
+            raise Exception("%s: Input parsing error: '%s' (raw value '%s')"
+                            "" % (self.identifier, str(exc), raw_value))
 

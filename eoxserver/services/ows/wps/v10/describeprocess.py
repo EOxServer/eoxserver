@@ -10,8 +10,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -26,11 +26,10 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-
 from eoxserver.core import Component, ExtensionPoint, implements
 from eoxserver.core.decoders import kvp, xml, typelist
 from eoxserver.services.ows.interfaces import (
-    ServiceHandlerInterface, GetServiceHandlerInterface, 
+    ServiceHandlerInterface, GetServiceHandlerInterface,
     PostServiceHandlerInterface, VersionNegotiationInterface
 )
 from eoxserver.services.ows.wps.interfaces import ProcessInterface
@@ -42,6 +41,7 @@ from eoxserver.services.ows.wps.v10.util import nsmap
 
 
 class WPS10DescribeProcessHandler(Component):
+
     implements(ServiceHandlerInterface)
     implements(GetServiceHandlerInterface)
     implements(PostServiceHandlerInterface)
@@ -52,8 +52,8 @@ class WPS10DescribeProcessHandler(Component):
 
     processes = ExtensionPoint(ProcessInterface)
 
-
-    def get_decoder(self, request):
+    @staticmethod
+    def get_decoder(request):
         if request.method == "GET":
             return WPS10DescribeProcessKVPDecoder(request.GET)
         else:
@@ -70,7 +70,7 @@ class WPS10DescribeProcessHandler(Component):
                 identifiers.remove(process.identifier)
                 used_processes.append(process)
 
-        for identifier in identifiers: 
+        for identifier in identifiers:
             raise NoSuchProcessException(identifier)
 
         encoder = WPS10ProcessDescriptionsXMLEncoder()
@@ -82,8 +82,7 @@ class WPS10DescribeProcessHandler(Component):
 class WPS10DescribeProcessKVPDecoder(kvp.Decoder):
     identifiers = kvp.Parameter("identifier", type=typelist(str, ","))
 
-
 class WPS10DescribeProcessXMLDecoder(xml.Decoder):
     identifiers = xml.Parameter("ows:Identifier/text()", num="+")
-
     namespaces = nsmap
+

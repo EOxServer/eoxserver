@@ -1,5 +1,4 @@
 #-------------------------------------------------------------------------------
-# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
@@ -11,8 +10,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -32,45 +31,66 @@ from datetime import datetime
 from eoxserver.core import Component, implements
 from eoxserver.services.ows.wps.interfaces import ProcessInterface
 from eoxserver.services.ows.wps.parameters import LiteralData, ComplexData
+from eoxserver.services.ows.wps.parameters import (AllowedAny, AllowedEnum,
+    AllowedRange, AllowedByReference)
 
 
 class TestProcess(Component):
-    """ Simple test process. """ 
+    """ Simple test process. """
 
     # Comment following line to make the test process active.
     abstract = True
 
     implements(ProcessInterface)
 
-    identifier = "id"
+    identifier = "test"
     title = "title"
     description = "description"
-    metadata = ["a", "b"]
+    metadata = {"test-metadata":"http://www.metadata.com/test-metadata"}
     profiles = ["p", "q"]
 
     inputs = {
-        "X": int,
-        "Y": datetime,
-        "Z": LiteralData(
-            "MyZIdenifier", description="myAbstract", 
-            type=float, default=1., allowed_values=[1., 2., 3.]
-        ),
-        "V": LiteralData(
-            "MyVIdenifier", description="VVV", 
-            type=float, default=1., values_reference="http://foo.bar/value",
-            uoms=("metres", "feet")
-        ),
-        "W": LiteralData(
-            "MyWIdenifier", description="WWW", 
-            type=datetime, optional = True 
-        ),
+        "A": int,
+        "B": datetime,
+        "C": LiteralData("MyCIdenifier",
+                description="myAbstract",
+                dtype=int,
+                default=1,
+                allowed_values=[1, 2, 3]
+            ),
+        "D": LiteralData("MyDIdenifier",
+                description="myAbstract",
+                dtype=float,
+                default=1.0,
+                allowed_values=AllowedEnum((1., 2., 3.))
+            ),
+        "E": LiteralData("MyEIdenifier",
+                dtype=float,
+                default=0.5,
+                allowed_values=AllowedRange(0., 1.,'open')
+            ),
+        "F": LiteralData("MyFIdenifier",
+                dtype=int,
+                default=2,
+                allowed_values=AllowedRange(0, 10,'closed',spacing=2,dtype=int)
+            ),
+        "G": LiteralData("MyGIdenifier",
+                dtype=float,
+                allowed_values=AllowedByReference("http://foo.bar/value"),
+                uoms=("metres", "feet")
+            ),
+        "W": LiteralData("MyWIdenifier",
+                description="WWW",
+                dtype=datetime,
+                optional = True
+            ),
     }
 
     outputs = {
-        "X": int, 
+        "X": int,
         "Y": float,
         "Z": LiteralData(
-            "MyZIdenifier", description="myAbstract", type=float,
+            "MyZIdenifier", description="myAbstract", dtype=float,
             uoms=("metres", "feet")
         )
     }

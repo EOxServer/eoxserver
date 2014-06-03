@@ -47,7 +47,7 @@ class GetTimeDataProcess(Component):
     identifier = "getTimeData"
     title = "Retrieves time information about a collection"
     description = "Creates csv output of coverage time information of collections."
-    metadata = [] 
+    metadata = {}
     profiles = ['EOxServer:GetTimeData']
 
     inputs = {
