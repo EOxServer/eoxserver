@@ -26,8 +26,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-import sys 
-import traceback
+import sys
 from optparse import make_option
 
 from django.core.management.base import CommandError, BaseCommand

@@ -27,8 +27,6 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-import traceback
-
 from optparse import make_option
 from itertools import chain
 

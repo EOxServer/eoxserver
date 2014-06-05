@@ -26,7 +26,6 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-import traceback
 from optparse import make_option
 
 from django.core.management import call_command
