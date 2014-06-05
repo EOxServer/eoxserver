@@ -26,51 +26,66 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+import sys 
 import traceback
 from optparse import make_option
 
 from django.core.management.base import CommandError, BaseCommand
 
-from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.management.commands import (
-    CommandOutputMixIn, _variable_args_cb, nested_commit_on_success
+    CommandOutputMixIn, _variable_args_cb
 )
+
+from eoxserver.resources.coverages import models
 
 
 class Command(CommandOutputMixIn, BaseCommand):
+    option_list = BaseCommand.option_list + (
+        make_option("-t", "--type", 
+            dest="type_name", action="store", default="EOObject",
+            help=("Optional. Restrict the listed identifiers to given type.")
+        ),
+    )
 
-    args = "<identifier> [<identifier> ...]"
-    
-    help = (
-    """ Deregister on or more Datasets.
+    args = "<id> [<id> ...] [-t <type>]"
+
+    help = """
+        Check whether one or more identifier are used by existing EOObjects or 
+        objects of a specified subtype. 
+
+        The existence is indicated by the returned exit-code. A non-zero value 
+        indicates that any of the supplied identifiers is already in use.
     """
+    )
 
-    @nested_commit_on_success
     def handle(self, *identifiers, **kwargs):
-        if not identifiers: 
-            raise CommandError("Missing the mandatory dataset identifier(s).")
+        if not identifiers:
+            raise CommandError("Missing the mandatory identifier(s).")
 
+        type_name = kwargs["type_name"]
+
+        try:
+            # TODO: allow types residing in different apps
+            ObjectType = getattr(models, type_name)
+            if not issubclass(ObjectType, models.EOObject):
+                raise CommandError("Unsupported type '%s'." % type_name)
+        except AttributeError:
+            raise CommandError("Unsupported type '%s'." % type_name)
+
+
+        used = False
         for identifier in identifiers:
-            self.print_msg("Deleting Dataset: '%s'" % (identifier))
             try:
-                # locate coverage an check the type 
-                coverage = models.Coverage.objects.get(
-                    identifier=identifier
-                ).cast()
-
-                # final removal
-                coverage.delete()
-
-            except models.Coverage.DoesNotExist: 
-                raise CommandError(
-                    "No dataset is matching the given identifier: '%s'."
-                    % identifier
+                obj = ObjectType.objects.get(identifier=identifier)
+                self.print_msg(
+                    "The identifier '%s' is already in use by a '%s'." 
+                    % (identifier, obj.real_type.__name__)
+                )
+                used = True
+            except ObjectType.DoesNotExist:
+                self.print_msg(
+                    "The identifier '%s' is currently not in use." % identifier
                 )
 
-            except Exception, e:
-                self.print_traceback(e, kwargs)
-                raise CommandError(
-                    "Dataset deregistration failed: %s" % e
-                )
-
-        self.print_msg("Dataset deregistered sucessfully.") 
+        if used:
+            sys.exit(1)

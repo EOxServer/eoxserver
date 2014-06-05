@@ -33,9 +33,9 @@ from optparse import make_option
 from itertools import chain
 
 from django.core.exceptions import ValidationError
+from django.core.management import call_command
 from django.core.management.base import CommandError, BaseCommand
 from django.utils.dateparse import parse_datetime
-from django.db import transaction
 from django.contrib.gis import geos 
 
 from eoxserver.core import env
@@ -47,7 +47,7 @@ from eoxserver.backends.access import connect
 from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.metadata.component import MetadataComponent
 from eoxserver.resources.coverages.management.commands import (
-    CommandOutputMixIn, _variable_args_cb
+    CommandOutputMixIn, _variable_args_cb, nested_commit_on_success
 )
 
 
@@ -76,17 +76,19 @@ class Command(CommandOutputMixIn, BaseCommand):
         ),
         make_option("-d", "--data", dest="data",
             action="callback", callback=_variable_args_cb_list, default=[],
-            help=("[storage_type:url] [package_type:location]* format:location")
+            help=("[storage_type:url] [package_type:location]* "
+                  "format:location")
         ),
         make_option("-s", "--semantic", dest="semantics",
             action="callback", callback=_variable_args_cb, default=None,
             help=("Optional band semantics. If given, one band "
                   "semantics 'band[*]' must be present for each '--data' "
-                  " item.")
+                  "option.")
         ),
         make_option("-m", "--meta-data", dest="metadata", 
             action="callback", callback=_variable_args_cb_list, default=[],
-            help=("Optional. [storage_type:url] [package_type:location]* format:location")
+            help=("Optional. [storage_type:url] [package_type:location]* "
+                  "format:location")
         ),
         make_option("-r", "--range-type", dest="range_type_name",
             help=("Mandatory. Name of the stored range type. ")
@@ -139,21 +141,21 @@ class Command(CommandOutputMixIn, BaseCommand):
                   "advertised in GetCapabilities responses.")
         ),
 
-        make_option("--series",dest="parents",
-            action='callback', callback=_variable_args_cb,
-            default=[], help=("Optional. Link to one or more parent dataset series.")
+        make_option("--collection", dest="collection_ids",
+            action='callback', callback=_variable_args_cb, default=[], 
+            help=("Optional. Link to one or more collection(s).")
         ), 
 
-        make_option('--ignore-missing-parent',
-            dest='ignore_missing_parent',
-            action="store_true",default=False,
-            help=("Optional. Proceed even if the linked parent"
-                  " does not exist. By defualt, a missing parent " 
-                  "will terminate the command." )
-        ),
+        make_option('--ignore-missing-collection', 
+            dest='ignore_missing_collection', 
+            action="store_true", default=False,
+            help=("Optional. Proceed even if the linked collection "
+                  "does not exist. By defualt, a missing collection " 
+                  "will result in an error.")
+        )
     )
 
-    @transaction.commit_on_success
+    @nested_commit_on_success
     def handle(self, *args, **kwargs):
         with CacheContext() as cache:
             self.handle_with_cache(cache, *args, **kwargs)
@@ -182,29 +184,10 @@ class Command(CommandOutputMixIn, BaseCommand):
             self._get_overrides(**kwargs)
         )
 
-        #----------------------------------------------------------------------
-        # parent dataset series 
-
-        # extract the parents 
-        ignore_missing_parent = bool(kwargs.get('ignore_missing_parent',False))
-        parents = [] 
-        for parent_id in kwargs.get('parents',[]): 
-            try : 
-                ds = models.DatasetSeries.objects.get(identifier=parent_id)
-                parents.append( ds ) 
-            except DatasetSeries.DoesNotExist : 
-                msg ="There is no Dataset Series matching the given" \
-                        " identifier: '%s' "%parent_id
-                if ignore_missing_parent : 
-                    self.print_wrn( msg )
-                else : 
-                    raise CommandError( msg ) 
-
-        #----------------------------------------------------------------------
-        # meta-data
-
         for metadata in metadatas:
-            storage, package, format, location = self._get_location_chain(metadata)
+            storage, package, format, location = self._get_location_chain(
+                metadata
+            )
             data_item = backends.DataItem(
                 location=location, format=format or "", semantic="metadata", 
                 storage=storage, package=package,
@@ -281,10 +264,12 @@ class Command(CommandOutputMixIn, BaseCommand):
             )
 
         try:
+            # TODO: allow types of different apps
             CoverageType = getattr(models, kwargs["coverage_type"])
-        except:
-            pass
-            # TODO: split into module path/coverage and get correct coverage class
+        except AttributeError:
+            raise CommandError(
+                "Type '%s' is not supported." % kwargs["coverage_type"]
+            )
 
         try:
             coverage = CoverageType()
@@ -301,9 +286,12 @@ class Command(CommandOutputMixIn, BaseCommand):
                     sr = osr.SpatialReference(definition, format)
                     retrieved_metadata["srid"] = sr.srid
                 except Exception, e:
-                    retrieved_metadata["projection"] = models.Projection.objects.get(format=format, definition=definition)
+                    prj = models.Projection.objects.get(
+                        format=format, definition=definition
+                    )
+                    retrieved_metadata["projection"] = prj
 
-            #coverage.identifier = identifier # TODO: bug in models for some coverages
+            # TODO: bug in models for some coverages
             for key, value in retrieved_metadata.items():
                 setattr(coverage, key, value)
 
@@ -317,25 +305,23 @@ class Command(CommandOutputMixIn, BaseCommand):
                 data_item.full_clean()
                 data_item.save()
 
+            # link with collection(s)
+            ignore_missing_collection = kwargs["ignore_missing_collection"]
+            for collection_id in kwargs["collection_ids"] or ():
 
-            #------------------------------------------------------------------
-            # link to the parent dataset 
-            for parent in parents : 
-                self.print_msg( "Linking: '%s' ---> '%s' " % ( 
-                                    coverage.identifier, parent.identifier ) )
-                parent.insert( coverage ) 
+                call_command("eoxs_collection_link",
+                    collection=collection_id, add=coverage.identifier, 
+                    ignore_missing_collection=ignore_missing_collection
+                )
 
+        except Exception as e: 
+            self.print_traceback(e, kwargs)
+            raise CommandError("Dataset registration failed: %s" % e)
 
-        #except ValidationError, e:
-        #    # TODO: show error message
-        #    raise CommandError(str(e))
-        except Exception as e : 
-            # print stack trace if required 
-            if kwargs.get("traceback", False):
-                self.print_msg(traceback.format_exc())
-            raise CommandError("Dataset registration failed! REASON=%s"%(e))
-
-        self.print_msg("Dataset registered sucessfully. EOID='%s'"%coverage.identifier) 
+        self.print_msg(
+            "Dataset with ID '%s' registered sucessfully." 
+            % coverage.identifier
+        ) 
 
         
     def _get_overrides(self, identifier=None, size=None, extent=None, 
@@ -369,8 +355,10 @@ class Command(CommandOutputMixIn, BaseCommand):
             elif footprint.geom_type == "Polygon" :
                 overrides["footprint"] = geos.MultiPolygon(footprint)
             else : 
-                raise CommandError("Invalid footprint geometry type %s !"
-                                                      ""%(footprint.geom_type))
+                raise CommandError(
+                    "Invalid footprint geometry type %s !"
+                    % (footprint.geom_type)
+                )
 
         if projection:
             try:
@@ -398,7 +386,6 @@ class Command(CommandOutputMixIn, BaseCommand):
             storage, _ = backends.Storage.objects.get_or_create(
                 url=url, storage_type=storage_type
             )
-
 
         # packages
         for item in items[1 if storage else 0:-1]:
