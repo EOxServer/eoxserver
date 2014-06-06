@@ -1,7 +1,7 @@
 language: python
 env:
-  - 'DJANGO="django<1.5,>=1.4" GDAL=1.10 DB=spatialite'
-  - 'DJANGO="django<1.6,>=1.5" GDAL=1.10 DB=spatialite'
+  - 'DJANGO="==1.4.13" GDAL=1.10 DB=spatialite'
+  - 'DJANGO="==1.5.8" GDAL=1.10 DB=spatialite'
   #- DJANGO=1.6 GDAL=1.10 DB=spatialite
 python:
   - "2.7"
@@ -26,7 +26,7 @@ before_install:
   - 'if [ "$DB" == "postgis" ]; then sudo -u postgres psql eoxserver_testing -c ''create extension postgis;''; fi'
 install:
   # test with various Django versions
-  - pip install Django==$DJANGO
+  - pip install Django$DJANGO
   - django-admin.py --version
   # actually install EOxServer
   - pip install --install-option="--disable-extended-reftools" .
