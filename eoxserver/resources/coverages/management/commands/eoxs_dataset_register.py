@@ -337,11 +337,13 @@ class Command(CommandOutputMixIn, BaseCommand):
                 data_item.save()
 
             # link with collection(s)
-            call_command("eoxs_collection_link",
-                collection_ids=kwargs["collection_ids"], 
-                add_ids=[coverage.identifier],
-                ignore_missing_collection=kwargs["ignore_missing_collection"]
-            )
+            if kwargs["collection_ids"]:
+                ignore_missing_collection = kwargs["ignore_missing_collection"]
+                call_command("eoxs_collection_link",
+                    collection_ids=kwargs["collection_ids"], 
+                    add_ids=[coverage.identifier],
+                    ignore_missing_collection=ignore_missing_collection
+                )
 
         except Exception as e: 
             self.print_traceback(e, kwargs)
