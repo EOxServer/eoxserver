@@ -119,14 +119,15 @@ class Command(CommandOutputMixIn, BaseCommand):
             collection.full_clean()
             collection.save()
 
+            ignore_missing_collection = kwargs["ignore_missing_collection"]
             # insert into super collections and insert child objects
             for super_collection in kwargs["collection_ids"] or ():
                 call_command("eoxs_collection_link", 
                     collection=super_collection, add=identifier, 
-                    ignore_missing_collection=kwargs["ignore_missing_collection"]
+                    ignore_missing_collection=ignore_missing_collection
                 )
 
-            for object_id in kwargs["object_ids"]:
+            for object_id in kwargs["object_ids"] or ():
                 call_command("eoxs_collection_link", 
                     collection=identifier, add=object_id, 
                     ignore_missing_object=kwargs["ignore_missing_object"],
