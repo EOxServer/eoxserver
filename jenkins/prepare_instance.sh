@@ -30,6 +30,8 @@ case $DJANGO in
         ;;
 esac
 
+django-admin --version
+
 # Install EOxServer
 echo "**> installing eoxserver..."
 if [ $OS == "Ubuntu" ]; then

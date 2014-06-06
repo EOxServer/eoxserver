@@ -27,6 +27,7 @@ before_install:
 install:
   # test with various Django versions
   - pip install Django==$DJANGO
+  - django-admin --version
   # actually install EOxServer
   - pip install --install-option="--disable-extended-reftools" .
   - export XML_CATALOG_FILES="`pwd`/schemas/catalog.xml"
