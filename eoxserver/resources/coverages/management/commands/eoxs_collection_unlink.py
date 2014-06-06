@@ -113,7 +113,7 @@ class Command(CommandOutputMixIn, BaseCommand):
                     raise CommandError(msg) 
 
         # extract the children  
-        ignore_missing_child = kwargs['ignore_missing_child']
+        ignore_missing_object = kwargs['ignore_missing_object']
         objects = [] 
         for remove_id in remove_ids: 
             try:
@@ -125,7 +125,7 @@ class Command(CommandOutputMixIn, BaseCommand):
                     "There is no EOObject matching the given identifier: '%s'"
                     % remove_id
                 )
-                if ignore_missing_child:
+                if ignore_missing_object:
                     self.print_wrn(msg)
                 else:
                     raise CommandError(msg)
