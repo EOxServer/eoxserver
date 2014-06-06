@@ -100,8 +100,8 @@ class Command(CommandOutputMixIn, BaseCommand):
         ),
 
         make_option("--size", dest="size", 
-            action="callback", callback=_variable_args_cb,
-            help=("Override size.")
+            action="store", default=None,
+            help=("Override size. Comma separated list of <size-x>,<size-y>.")
         ),
 
         make_option("--srid", dest="srid", 
@@ -337,12 +337,11 @@ class Command(CommandOutputMixIn, BaseCommand):
                 data_item.save()
 
             # link with collection(s)
-            ignore_missing_collection = kwargs["ignore_missing_collection"]
-            for collection_id in kwargs["collection_ids"] or ():
-                call_command("eoxs_collection_link",
-                    collection=collection_id, add=coverage.identifier, 
-                    ignore_missing_collection=ignore_missing_collection
-                )
+            call_command("eoxs_collection_link",
+                collection_ids=kwargs["collection_ids"], 
+                add_ids=[coverage.identifier],
+                ignore_missing_collection=kwargs["ignore_missing_collection"]
+            )
 
         except Exception as e: 
             self.print_traceback(e, kwargs)
