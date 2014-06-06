@@ -1,7 +1,7 @@
 language: python
 env:
-  - 'DJANGO="==1.4.13" GDAL=1.10 DB=spatialite'
-  - 'DJANGO="==1.5.8" GDAL=1.10 DB=spatialite'
+  - 'DJANGO="1.4.13" GDAL=1.10 DB=spatialite'
+  - 'DJANGO="1.5.8" GDAL=1.10 DB=spatialite'
   #- DJANGO=1.6 GDAL=1.10 DB=spatialite
 python:
   - "2.7"
@@ -26,8 +26,10 @@ before_install:
   - 'if [ "$DB" == "postgis" ]; then sudo -u postgres psql eoxserver_testing -c ''create extension postgis;''; fi'
 install:
   # test with various Django versions
-  - pip install Django$DJANGO
+  - pip install Django==$DJANGO
   - django-admin.py --version
+  # patch Django 1.4 libgeos
+  - 'if [ $DJANGO == "1.4.13" ]; then find . -name libgeos.py  -exec patch {} jenkins/geos-dev.patch \; ; fi'
   # actually install EOxServer
   - pip install --install-option="--disable-extended-reftools" .
   - export XML_CATALOG_FILES="`pwd`/schemas/catalog.xml"

@@ -32,6 +32,10 @@ esac
 
 django-admin.py --version
 
+if [ $OS == "Ubuntu"] && [ $DJANGO == "django1.4" ]; then
+    find . -name libgeos.py  -exec patch {} geos-dev.patch \;
+fi
+
 # Install EOxServer
 echo "**> installing eoxserver..."
 if [ $OS == "Ubuntu" ]; then
