@@ -55,7 +55,6 @@ class Command(CommandOutputMixIn, BaseCommand):
         The existence is indicated by the returned exit-code. A non-zero value 
         indicates that any of the supplied identifiers is already in use.
     """
-    )
 
     def handle(self, *identifiers, **kwargs):
         if not identifiers:

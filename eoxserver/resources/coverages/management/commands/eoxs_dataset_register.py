@@ -70,12 +70,13 @@ class Command(CommandOutputMixIn, BaseCommand):
     option_list = BaseCommand.option_list + (
         make_option("-i", "--identifier", "--coverage-id", dest="identifier",
             action="store", default=None,
-            help=("Override identifier")
+            help=("Override identifier.")
         ),
         make_option("-d", "--data", dest="data",
             action="callback", callback=_variable_args_cb_list, default=[],
-            help=("[storage_type:url] [package_type:location]* "
-                  "format:location")
+            help=("Add a data item to the dataset. Format is: "
+                  "[storage_type:url] [package_type:location]* format:location"
+                 )
         ),
         make_option("-s", "--semantic", dest="semantics",
             action="callback", callback=_variable_args_cb, default=None,
@@ -105,7 +106,7 @@ class Command(CommandOutputMixIn, BaseCommand):
 
         make_option("--srid", dest="srid", 
             action="store", default=None,
-            help=("Override SRID.")
+            help=("Override SRID. Integer number.")
         ),
 
         make_option("-p", "--projection", dest="projection", 
@@ -115,17 +116,18 @@ class Command(CommandOutputMixIn, BaseCommand):
 
         make_option("-f", "--footprint", dest="footprint", 
             action="store", default=None,
-            help=("Override footprint.")
+            help=("Override footprint. Must be supplied as WKT Polygons or "
+                  "MultiPolygons.")
         ),
 
         make_option("--begin-time", dest="begin_time", 
             action="store", default=None,
-            help=("Override begin time.")
+            help=("Override begin time. Format is ISO8601 datetime strings.")
         ),
 
         make_option("--end-time", dest="end_time", 
             action="store", default=None,
-            help=("Override end time.")
+            help=("Override end time. Format is ISO8601 datetime strings.")
         ),
 
         make_option("--coverage-type", dest="coverage_type",
@@ -152,6 +154,37 @@ class Command(CommandOutputMixIn, BaseCommand):
                   "will result in an error.")
         )
     )
+
+    args = (
+        "-d [<storage>:][<package>:]<location> [-d ... ] "
+        "-r <range-type-name> "
+        "[-m [<storage>:][<package>:]<location> [-m ... ]] "
+        "[-s <semantic> [-s <semantic>]] "
+        "[--identifier <identifier>] "
+        "[-e <minx>,<miny>,<maxx>,<maxy>] "
+        "[--size <size-x> <size-y>] "
+        "[--srid <srid> | --projection <projection-def>] "
+        "[--footprint <footprint-wkt>] "
+        "[--begin-time <begin-time>] [--end-time <end-time>] "
+        "[--coverage-type <coverage-type-name>] "
+        "[--visible] [--collection <collection-id> [--collection ... ]] "
+        "[--ignore-missing-collection]"
+    )
+
+    help = """
+        Registers a Dataset.
+        A dataset is a collection of data and metadata items. When beeing 
+        registered, as much metadata as possible is extracted from the supplied
+        (meta-)data items. If some metadata is still missing, it needs to be 
+        supplied via the specific override options.
+
+        By default, datasets are not "visible" which means that they are not 
+        advertised in the GetCapabilities sections of the various services.
+        This needs to be overruled via the `--visible` switch.
+
+        The registered dataset can optionally be directly inserted one or more
+        collections.
+    """
 
     @nested_commit_on_success
     def handle(self, *args, **kwargs):
@@ -387,8 +420,8 @@ class Command(CommandOutputMixIn, BaseCommand):
 
         # packages
         for item in items[1 if storage else 0:-1]:
+            type_or_format, location = self._split_location(item)
             package_component = component.get_package_component(type_or_format)
-            format, location = self._split_location(item)
             if package_component:
                 package, _ = backends.Package.objects.get_or_create(
                     location=location, format=format, 
@@ -396,7 +429,10 @@ class Command(CommandOutputMixIn, BaseCommand):
                 )
                 storage = None # override here
             else:
-                raise Exception("Could not find package component")
+                raise Exception(
+                    "Could not find package component for format '%s'"
+                    % type_or_format
+                )
 
         format, location = self._split_location(items[-1])
         return storage, package, format, location

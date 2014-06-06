@@ -55,8 +55,8 @@ class Command(CommandOutputMixIn, BaseCommand):
 
     args = "-i <collection-id> [-r] [-f]"
     
-    help = (
-    """ Deletes a Collection.
+    help = """
+        Deletes a Collection.
 
         By default this command does not remove non-empty collections. If the 
         `--recursive` option is set, then all sub-ordinate collections are 
@@ -100,7 +100,9 @@ class Command(CommandOutputMixIn, BaseCommand):
             )
 
             for sub_collection in sub_collections:
-                count += self._delete_series(sub_collection, recursive, force)
+                count += self._delete_collection(
+                    sub_collection, recursive, force
+                )
 
         if not force and collection.eo_objects.exist():
             raise CommandError(

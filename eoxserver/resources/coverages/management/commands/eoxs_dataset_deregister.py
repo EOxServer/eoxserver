@@ -40,9 +40,7 @@ class Command(CommandOutputMixIn, BaseCommand):
 
     args = "<identifier> [<identifier> ...]"
     
-    help = (
-    """ Deregister on or more Datasets.
-    """
+    help = "Deregister on or more Datasets."
 
     @nested_commit_on_success
     def handle(self, *identifiers, **kwargs):

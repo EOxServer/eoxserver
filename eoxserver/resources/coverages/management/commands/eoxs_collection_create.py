@@ -79,8 +79,8 @@ class Command(CommandOutputMixIn, BaseCommand):
         "[--ignore-missing-collection] [--ignore-missing-object]"
     )
     
-    help = (
-    """ Creates a new Collection. By default the type of the new collection is
+    help = """
+        Creates a new Collection. By default the type of the new collection is
         DatasetSeries.
         Optionally the collection can directly be inserted into other 
         collections and can be directly supplied with sub-objects.

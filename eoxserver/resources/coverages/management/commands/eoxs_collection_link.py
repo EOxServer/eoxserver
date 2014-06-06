@@ -71,8 +71,8 @@ class Command(CommandOutputMixIn, BaseCommand):
         "[--ignore-missing-collection] [--ignore-missing-object]"
     )
     
-    help = (
-    """ Link (insert) one or more EOObjects into one or more dataset series. 
+    help = """
+        Link (insert) one or more EOObjects into one or more dataset series. 
         Pre-existing links are ignored.
     """
 

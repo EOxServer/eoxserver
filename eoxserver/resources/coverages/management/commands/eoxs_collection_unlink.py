@@ -71,17 +71,18 @@ class Command(CommandOutputMixIn, BaseCommand):
         "[--ignore-missing-collection] [--ignore-missing-object]"
     )
     
-    help = (
-    """ Unlink (remove) one or more EOObjects from one or more dataset series. 
+    help = """
+        Unlink (remove) one or more EOObjects from one or more dataset series. 
         Note that the EOObjects will still remain in the data-base.
         Non-existing links are ignored.
     """
+
 
     @nested_commit_on_success
     def handle(self, *args, **kwargs):
         # check the required inputs
         collection_ids = kwargs.get('collection_ids', None)
-        add_ids = kwargs.get('add_ids', None)
+        remove_ids = kwargs.get('remove_ids', None)
         if not collection_ids: 
             raise CommandError(
                 "Missing the mandatory collection identifier(s)!"
