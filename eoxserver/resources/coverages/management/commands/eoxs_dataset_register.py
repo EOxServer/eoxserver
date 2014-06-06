@@ -379,15 +379,16 @@ class Command(CommandOutputMixIn, BaseCommand):
         if footprint:
             footprint = geos.GEOSGeometry(footprint)
             if footprint.hasz :
-                raise CommandError("Invalid footprint geometry! "
-                                   " 3D geometry is not supported!")
+                raise CommandError(
+                    "Invalid footprint geometry! 3D geometry is not supported!"
+                )
             if footprint.geom_type == "MultiPolygon" :
                 overrides["footprint"] = footprint
             elif footprint.geom_type == "Polygon" :
                 overrides["footprint"] = geos.MultiPolygon(footprint)
             else : 
                 raise CommandError(
-                    "Invalid footprint geometry type %s !"
+                    "Invalid footprint geometry type '%s'!"
                     % (footprint.geom_type)
                 )
 
