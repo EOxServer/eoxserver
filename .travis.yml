@@ -1,7 +1,7 @@
 language: python
 env:
-  - DJANGO=1.4 GDAL=1.10 DB=spatialite
-  - DJANGO=1.5 GDAL=1.10 DB=spatialite
+  - 'DJANGO="django<1.5,>=1.4" GDAL=1.10 DB=spatialite'
+  - 'DJANGO="django<1.6,>=1.5" GDAL=1.10 DB=spatialite'
   #- DJANGO=1.6 GDAL=1.10 DB=spatialite
 python:
   - "2.7"
