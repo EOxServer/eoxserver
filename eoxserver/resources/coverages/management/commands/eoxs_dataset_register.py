@@ -142,7 +142,7 @@ class Command(CommandOutputMixIn, BaseCommand):
         ),
 
         make_option("--collection", dest="collection_ids",
-            action='callback', callback=_variable_args_cb, default=[], 
+            action='callback', callback=_variable_args_cb, default=None, 
             help=("Optional. Link to one or more collection(s).")
         ), 
 
@@ -339,7 +339,6 @@ class Command(CommandOutputMixIn, BaseCommand):
             # link with collection(s)
             ignore_missing_collection = kwargs["ignore_missing_collection"]
             for collection_id in kwargs["collection_ids"] or ():
-
                 call_command("eoxs_collection_link",
                     collection=collection_id, add=coverage.identifier, 
                     ignore_missing_collection=ignore_missing_collection
