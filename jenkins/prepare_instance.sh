@@ -30,7 +30,7 @@ case $DJANGO in
         ;;
 esac
 
-django-admin --version
+django-admin.py --version
 
 # Install EOxServer
 echo "**> installing eoxserver..."
