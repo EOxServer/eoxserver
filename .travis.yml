@@ -26,7 +26,7 @@ before_install:
   - 'if [ "$DB" == "postgis" ]; then sudo -u postgres psql eoxserver_testing -c ''create extension postgis;''; fi'
 install:
   # test with various Django versions
-  - pip install -q Django==$DJANGO
+  - pip install Django==$DJANGO
   # actually install EOxServer
   - pip install --install-option="--disable-extended-reftools" .
   - export XML_CATALOG_FILES="`pwd`/schemas/catalog.xml"
