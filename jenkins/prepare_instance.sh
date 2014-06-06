@@ -32,7 +32,7 @@ esac
 
 django-admin.py --version
 
-if [ $OS == "Ubuntu"] && [ $DJANGO == "django1.4" ]; then
+if [ $OS == "Ubuntu" ] && [ $DJANGO == "django1.4" ]; then
     find . -name libgeos.py  -exec patch {} geos-dev.patch \;
 fi
 
