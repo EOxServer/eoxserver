@@ -29,7 +29,7 @@
 
 import logging
 
-from django.contrib.gis.geos import Polygon
+from django.contrib.gis.geos import Polygon, Line
 
 from eoxserver.resources.coverages import crss
 from eoxserver.services.exceptions import (
