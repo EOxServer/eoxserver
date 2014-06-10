@@ -28,7 +28,7 @@
 -->
 
 
-# Vagrant How Tos
+# Vagrant Usage
 
 
 ## How to use vagrant in a Linux environment
@@ -42,19 +42,19 @@ Clone EOxServer:
     git submodule update
 ```
 
-Install VirtualBox & Vagrant
-
-The configuration is tested with:
-
+Install VirtualBox & Vagrant. The configuration is tested with:
 * [Vagrant v1.3.5](http://downloads.vagrantup.com/tags/v1.3.5)
 * [VirtualBox 4.3.0](https://www.virtualbox.org/wiki/Downloads)
 
 Install Vagrant add-ons:
+* `sahara` for [sandboxing](https://github.com/jedi4ever/sahara)
+* `vagrant-vbguest` to [check for Virtualbox Guest Additions](https://github.com/dotless-de/vagrant-vbguest)
+* `vagrant-cachier` to [cache yum/apt/etc. packages](https://github.com/fgrehm/vagrant-cachier)
 
 ```sh
-    vagrant plugin install sahara           # [Sandboxing](https://github.com/jedi4ever/sahara)
-    vagrant plugin install vagrant-vbguest  # [Check for Virtualbox Guest Additions](https://github.com/dotless-de/vagrant-vbguest)
-    vagrant plugin install vagrant-cachier  # [Cache yum/apt/etc. packages](https://github.com/fgrehm/vagrant-cachier)
+    vagrant plugin install sahara
+    vagrant plugin install vagrant-vbguest
+    vagrant plugin install vagrant-cachier
 ```
 
 Run vagrant:
@@ -75,7 +75,7 @@ Run tests:
     python manage.py test services -v2
 ```
 
-Read/Follow autotest HOWTO:
+Read and follow `autotest` HOWTO:
 
 ```sh
     vagrant ssh
@@ -87,51 +87,48 @@ Read/Follow autotest HOWTO:
 
 Use the following steps:
 
-1) Install git from http://git-scm.com/download/win
-2) Install VirtualBox from
+1. Install git from http://git-scm.com/download/win
+2. Install VirtualBox from
    http://download.virtualbox.org/virtualbox/4.3.2/VirtualBox-4.3.2-90405-Win.exe
-3) Install vagrant from http://downloads.vagrantup.com/tags/v1.3.5 (use the .msi file)
-4) Start a git bash and execute the following commands:
+3. Install vagrant from http://downloads.vagrantup.com/tags/v1.3.5 (use the .msi file)
+4. Start a git bash and execute the following commands:
    git clone git@github.com:EOxServer/eoxserver.git
    cd eoxserver/
    git submodule init
    git submodule update
-5) Open the Vagrantfile (located in eoxserver/vagrant ) with an editor.
-6) Add v.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/vagrant", "1"] before the line # Use GUI for debugging purposes
-7) Save and close Vagrantfile
-8) Open an Administrator Console (right click on the command prompt icon and select "Run as administrator")
-9) Enter secpol.msc (and hit enter). Navigate to Local Policies, User Rights Assignment and check "Create symbolic links". Make sure that the Administrator account is added. Close it.
-10) Still in the admin console enter: fsutil behavior set SymlinkEvaluation L2L:1 R2R:1 L2R:1 R2L:1 (and hit enter. This step isn't necessary on all systems. Only if you use net shares. But it does not hurt 
-11) Open the Administrative Tools Panel from the Control Panel. Open Component Services.
-12) Select Computers, My Computer, Select DCOM Config.
-13) Right click on "Virtual Box Application". Select Security. At "Launch and Activation Permissions" select Customize. Hit Edit.
-14) Add your user account and Administrator. Select Permissions: Local Launch, Remote Launch, Local Activation and Remote Activation. Hit Ok. And again ok. Close the Component Services.
-15) Log off and log on again.
-16) Open an Administrator console and enter:
+5. Open the Vagrantfile (located in eoxserver/vagrant ) with an editor.
+6. Add v.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/vagrant", "1"] before the line # Use GUI for debugging purposes
+7. Save and close Vagrantfile
+8. Open an Administrator Console (right click on the command prompt icon and select "Run as administrator")
+9. Enter secpol.msc (and hit enter). Navigate to Local Policies, User Rights Assignment and check "Create symbolic links". Make sure that the Administrator account is added. Close it.
+10. Still in the admin console enter: fsutil behavior set SymlinkEvaluation L2L:1 R2R:1 L2R:1 R2L:1 (and hit enter. This step isn't necessary on all systems. Only if you use net shares. But it does not hurt 
+11. Open the Administrative Tools Panel from the Control Panel. Open Component Services.
+12. Select Computers, My Computer, Select DCOM Config.
+13. Right click on "Virtual Box Application". Select Security. At "Launch and Activation Permissions" select Customize. Hit Edit.
+14. Add your user account and Administrator. Select Permissions: Local Launch, Remote Launch, Local Activation and Remote Activation. Hit Ok. And again ok. Close the Component Services.
+15. Log off and log on again.
+16. Open an Administrator console and enter:
     vagrant plugin install sahara
     vagrant plugin install vagrant-vbguest
     vagrant plugin install vagrant-cachier
     cd vagrant/
     vagrant up
-17) Access server at:
+17. Access server at:
     http://localhost:8000/
-18) Run tests:
+18. Run tests:
     vagrant ssh
     cd /var/eoxserver/autotest/
     export XML_CATALOG_FILES="../schemas/catalog.xml"
     python manage.py test services -v2
-19) Read/Follow autotest HOWTO:
+19. Read/Follow autotest HOWTO:
     vagrant ssh
     vi /var/eoxserver/autotest/HOWTO
 
 
 ## Troubleshoot vagrant
 
-```sh
-    vagrant provision       # If the provisioning didn't finish during vagrant up or after changes.
-    vagrant vbguest -f      # (Re-)Install virtualbox guest additions in case it complains about not matching versions.
-```
-
+* If the provisioning didn't finish during vagrant up or after changes try: `vagrant provision`
+* (Re-)Install virtualbox guest additions in case it complains about not matching versions: `vagrant vbguest -f`
 * Slow performance: Check "Enable IO APIC", uncheck "Extended Features: Enable PAE/NX", and uncheck "Enable Nested Paging" in VirtualBox Manager.
 * Symlinks with VirtualBox 4.1 not working: vi /opt/vagrant/embedded/gems/gems/vagrant-1.3.5/plugins/providers/virtualbox/driver/version_4_1.rb and add those changes: https://github.com/mitchellh/vagrant/commit/387692f9c8fa4031050646e2773b3d2d9b2c994e
 
