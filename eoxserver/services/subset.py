@@ -29,7 +29,7 @@
 
 import logging
 
-from django.contrib.gis.geos import Polygon, Line
+from django.contrib.gis.geos import Polygon, LineString
 
 from eoxserver.resources.coverages import crss
 from eoxserver.services.exceptions import (
@@ -167,12 +167,12 @@ class Subsets(list):
             else:
                 if is_slice:
                     if subset.is_x:
-                        line = Line(
+                        line = LineString(
                             (value, max_extent[1]),
                             (value, max_extent[3])
                         )
                     else:
-                        line = Line(
+                        line = LineString(
                             (max_extent[0], value),
                             (max_extent[2], value)
                         )
