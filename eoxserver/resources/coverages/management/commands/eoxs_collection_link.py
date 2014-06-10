@@ -133,7 +133,7 @@ class Command(CommandOutputMixIn, BaseCommand):
                 # check whether the link does not exist
                 if eo_object not in collection:
                     self.print_msg(
-                        "Unlinking: %s <-x- %s" % (collection, eo_object)
+                        "Linking: %s <--- %s" % (collection, eo_object)
                     )
                     collection.insert(eo_object)
 
