@@ -34,9 +34,6 @@ from eoxserver.core.util import multiparttools as mp
 from eoxserver.services.result import result_set_from_raw_data
 
 
-
-
-
 class MultipartTest(TestCase):
     """ Test class for multipart parsing/splitting
     """
