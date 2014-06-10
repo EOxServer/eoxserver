@@ -80,5 +80,6 @@ class Command(BaseCommand):
         print("%s%s" % (indent, eo_object))
 
         if recursive and models.iscollection(eo_object):
-            for sub_eo_object in eo_object.eo_objects.all():
+            collection = eo_object.cast()
+            for sub_eo_object in collection.eo_objects.all():
                 self.print_object(sub_eo_object, recursive, level+1)
