@@ -441,10 +441,7 @@ class Band(models.Model):
 
     range_type = models.ForeignKey(RangeType, related_name="bands", null=False, blank=False)
     nil_value_set = models.ForeignKey(NilValueSet, null=True, blank=True)
-
-
-    def __unicode__(self):
-        return self.name
+    
 
     def clean(self):
         nil_value_set = self.nil_value_set
