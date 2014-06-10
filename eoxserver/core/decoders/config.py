@@ -93,7 +93,7 @@ class ReaderMetaclass(type):
             if isinstance(value, Option) and value.key is None:
                 value.key = key
 
-        return super(ReaderMetaclass, cls).__init__(name, bases, dct)
+        super(ReaderMetaclass, cls).__init__(name, bases, dct)
 
 
 class Reader(object):
