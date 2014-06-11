@@ -489,8 +489,13 @@ class GMLCOV10Encoder(GML32Encoder):
         try:
             return cached_nil_value_set[pk]
         except KeyError:
-            cached_nil_value_set[pk] = models.NilValueSet.objects.get(pk=pk)
-            return cached_nil_value_set[pk]
+            try:
+                cached_nil_value_set[pk] = models.NilValueSet.objects.get(
+                    pk=pk
+                )
+                return cached_nil_value_set[pk]
+            except models.NilValueSet.DoesNotExist:
+                return ()
 
 
     def encode_nil_values(self, nil_value_set):
