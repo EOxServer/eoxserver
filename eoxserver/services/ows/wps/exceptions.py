@@ -11,8 +11,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -29,73 +29,88 @@
 
 class OWS10Exception(Exception):
     """ Base OWS 1.0 exception of the WPS 1.0.0 exceptionss """
-    
-    def __init__( self, code, locator, message ):   
-        
-        self.code = code 
-        self.locator = locator 
-
-        Exception.__init__( self, message ) 
+    def __init__(self, code, locator, message):
+        self.code = code
+        self.locator = locator
+        Exception.__init__(self, message)
 
 #-------------------------------------------------------------------------------
-# All possible WPS 1.0.0 exceptions. For list of OWS exception used by WPS 
-# see OGC 05-007r7 Table 38 and Table 62 
+# All possible WPS 1.0.0 exceptions. For list of OWS exception used by WPS
+# see OGC 05-007r7 Table 38 and Table 62
 
-class NoApplicableCode(OWS10Exception): 
-    def __init__( self, message, locator = None ) : 
-        OWS10Exception.__init__( self, "NoApplicableCode", locator, message ) 
+class NoApplicableCode(OWS10Exception):
+    def __init__(self, message, locator=None):
+        OWS10Exception.__init__(self, "NoApplicableCode", locator, message)
 
-class MissingParameterValue(OWS10Exception): 
-    def __init__( self, message, locator ) : 
-        OWS10Exception.__init__( self, "MissingParameterValue", locator, message ) 
+class MissingParameterValue(OWS10Exception):
+    def __init__(self, message, locator):
+        OWS10Exception.__init__(self, "MissingParameterValue", locator, message)
 
-class InvalidParameterValue(OWS10Exception): 
-    def __init__( self, message, locator ) : 
-        OWS10Exception.__init__( self, "InvalidParameterValue", locator, message ) 
+class InvalidParameterValue(OWS10Exception):
+    def __init__(self, message, locator):
+        OWS10Exception.__init__(self, "InvalidParameterValue", locator, message)
 
-class NotEnoughStorage(OWS10Exception): 
-    def __init__( self, message ) : 
-        OWS10Exception.__init__( self, "NotEnoughStorage", None, message ) 
+class NotEnoughStorage(OWS10Exception):
+    def __init__(self, message):
+        OWS10Exception.__init__(self, "NotEnoughStorage", None, message)
 
-class ServerBusy(OWS10Exception): 
-    def __init__( self, message ) : 
-        OWS10Exception.__init__( self, "ServerBusy", None, message ) 
+class ServerBusy(OWS10Exception):
+    def __init__(self, message):
+        OWS10Exception.__init__(self, "ServerBusy", None, message)
 
-class FileSizeExceeded(OWS10Exception): 
-    def __init__( self, message, locator ) : 
-        OWS10Exception.__init__( self, "FileSizeExceeded", locator, message ) 
+class FileSizeExceeded(OWS10Exception):
+    def __init__(self, message, locator):
+        OWS10Exception.__init__(self, "FileSizeExceeded", locator, message)
 
-class StorageNotSupported(OWS10Exception): 
-    def __init__( self, message ) : 
-        OWS10Exception.__init__( self, "StorageNotSupported", None, message ) 
+class StorageNotSupported(OWS10Exception):
+    def __init__(self, message):
+        OWS10Exception.__init__(self, "StorageNotSupported", None, message)
 
-class VersionNegotiationFailed(OWS10Exception): 
-    def __init__( self, message, locator ) : 
-        OWS10Exception.__init__( self, "VersionNegotiationFailed", locator, message ) 
+class VersionNegotiationFailed(OWS10Exception):
+    def __init__(self, message, locator):
+        OWS10Exception.__init__(self, "VersionNegotiationFailed", locator, message)
 
 #-------------------------------------------------------------------------------
 # Derived specific exceptions.
 #
 # Note that WPS 1.0.0 allows use of "vendor specific exception code" as locator
-# for the default "NoApplicableCode" exceptions. 
+# for the default "NoApplicableCode" exceptions.
 
 class NoSuchProcessException(InvalidParameterValue):
-    def __init__( self, identifier ):
+    def __init__(self, identifier):
         msg = "No such process: %s" % identifier
-        InvalidParameterValue.__init__( self, msg, "identifier" ) 
+        InvalidParameterValue.__init__(self, msg, "process identifier")
 
-class InvalidReferenceException(NoApplicableCode):
-    def __init__( self, message = "" ) : 
-        NoApplicableCode.__init__( self, message, locator = "InvalidReferenceException" )
+class InvalidOutputException(InvalidParameterValue):
+    def __init__(self, output_id):
+        message = "Invalid output '%s'!"%(output_id)
+        InvalidParameterValue.__init__(self, message, output_id)
+
+class InvalidOutputValueException(NoApplicableCode):
+    def __init__(self, output_id, message=""):
+        message = "Invalid output value of '%s'! %s"%(output_id, message)
+        NoApplicableCode.__init__(self, message, output_id)
+
+class InvalidInputException(InvalidParameterValue):
+    def __init__(self, input_id):
+        message = "Invalid input '%s'!"%(input_id)
+        InvalidParameterValue.__init__(self, message, input_id)
+
+class InvalidInputValueException(InvalidParameterValue):
+    def __init__(self, input_id, message=""):
+        message = "Invalid input value of '%s'! %s"%(input_id, message)
+        InvalidParameterValue.__init__(self, message, input_id)
+
+class MissingRequiredInputException(InvalidParameterValue):
+    def __init__(self, input_id):
+        message = "Missing required input '%s'!"%(input_id)
+        InvalidParameterValue.__init__(self, message, input_id)
+
+class InvalidReferenceException(InvalidParameterValue):
+    def __init__(self, input_id, message=""):
+        message = "Invalid input '%s' reference! %s"%(input_id, message)
+        InvalidParameterValue.__init__(self, message, input_id)
 
 class ExecuteException(NoApplicableCode):
-    def __init__( self, message = "" , locator = "ExecuteException" ) : 
-        NoApplicableCode.__init__( self, message, locator )
-
-class InvalidInputException(NoApplicableCode):
-    def __init__( self, message = "" , locator = "InvalidInputException" ) : 
-        NoApplicableCode.__init__( self, message, locator )
-
-class MissingInputException(NoApplicableCode):
-    def __init__( self, message = "" , locator = "MissingInputException" ) : 
-        NoApplicableCode.__init__( self, message, locator )
+    def __init__(self, message="", locator="process.execute()"):
+        NoApplicableCode.__init__(self, message, locator)

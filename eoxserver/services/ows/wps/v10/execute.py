@@ -43,8 +43,9 @@ from eoxserver.services.ows.interfaces import (
 )
 from eoxserver.services.ows.wps.interfaces import ProcessInterface
 from eoxserver.services.ows.wps.exceptions import (
-    NoSuchProcessException,
-    MissingInputException, InvalidReferenceException, InvalidInputException,
+    NoSuchProcessException, MissingRequiredInputException,
+    InvalidInputException, InvalidOutputException,
+    InvalidReferenceException, InvalidInputValueException,
 )
 from eoxserver.services.ows.wps.parameters import (
     fix_parameter, Parameter, LiteralData, BoundingBoxData, ComplexData,
@@ -93,14 +94,19 @@ class WPS10ExcecuteHandler(Component):
     def handle(self, request):
         decoder = self.get_decoder(request)
         process = self.get_process(decoder.identifier)
+        input_defs, input_ids = _normalize_params(process.inputs)
+        output_defs, output_ids = _normalize_params(process.outputs)
         raw_inputs = decoder.inputs
         resp_form = decoder.response_form
 
-        inputs = decode_process_inputs(process, raw_inputs, request)
+        _check_invalid_inputs(input_ids, raw_inputs)
+        _check_invalid_outputs(output_ids, resp_form)
+
+        inputs = decode_process_inputs(input_defs, raw_inputs, request)
 
         outputs = process.execute(**inputs)
 
-        packed_outputs = pack_process_outputs(process, outputs, resp_form)
+        packed_outputs = pack_process_outputs(output_defs, outputs, resp_form)
 
         if resp_form.raw:
             encoder = WPS10ExecuteResponseRawEncoder()
@@ -113,18 +119,34 @@ class WPS10ExcecuteHandler(Component):
         return encoder.serialize(response), encoder.content_type
 
 
-def decode_process_inputs(process, raw_inputs, request):
+def _normalize_params(param_defs):
+    if isinstance(param_defs, dict):
+        param_defs = param_defs.iteritems()
+    params, param_ids = [], []
+    for name, param in param_defs:
+        param = fix_parameter(name, param) # short-hand def. expansion
+        param_ids.append(param.identifier)
+        params.append((name, param))
+    return params, param_ids
+
+def _check_invalid_inputs(input_ids, inputs):
+    invalids = set(inputs) - set(input_ids)
+    if len(invalids):
+        raise InvalidInputException(invalids.pop())
+
+def _check_invalid_outputs(output_ids, outputs):
+    invalids = set(outputs) - set(output_ids)
+    if len(invalids):
+        raise InvalidOutputException(invalids.pop())
+
+
+def decode_process_inputs(input_defs, raw_inputs, request):
     """ Iterates over all input options stated in the process and parses
         all given inputs. This also includes resolving references
     """
-    #TODO: remove followin backward compatibility conversion
-    if isinstance(process.inputs, dict):
-        process.inputs = process.inputs.items()
-    input_defs = process.inputs
-
     decoded_inputs = {}
+
     for name, prm in input_defs:
-        prm = fix_parameter(name, prm) # short-hand def. expansion
         raw_value = raw_inputs.get(prm.identifier)
         if raw_value is not None:
             #TODO: fix the input parsing
@@ -132,27 +154,23 @@ def decode_process_inputs(process, raw_inputs, request):
                 raw_value = _resolve_reference(raw_value, request)
             try:
                 value = _decode_literal(prm, raw_value)
-            except ValueError:
-                raise InvalidInputException("Invalid input value '%s'."%prm.identifier)
+            except ValueError as exc:
+                raise InvalidInputValueException(prm.identifier, exc)
         elif prm.is_optional:
             value = prm.default if isinstance(prm, LiteralData) else None
         else:
-            raise MissingInputException("Input '%s' is required."%prm.identifier)
-
+            raise MissingRequiredInputException(prm.identifier)
         decoded_inputs[name] = value
+
     return decoded_inputs
 
 
-def pack_process_outputs(process, results, response_form):
+def pack_process_outputs(output_defs, results, response_form):
     """ Collect data, output declaration and output request for each item."""
-    #TODO: remove followin backward compatibility conversion
-    if isinstance(process.outputs, dict):
-        process.outputs = process.outputs.items()
-
-    # Try to convert the result to a dictionary.
+    # Normalize the outputs to a dictionary.
     if not isinstance(results, dict):
-        if len(process.outputs) == 1:
-            results = {process.outputs[0][0]: results}
+        if len(output_defs) == 1:
+            results = {output_defs[0][0]: results}
         else:
             results = dict(results)
 
@@ -161,7 +179,7 @@ def pack_process_outputs(process, results, response_form):
     #   - the process output declaration (ProcessDescription/Output)
     #   - the output's requested form (RequestForm/Output)
     packd_results = OrderedDict()
-    for name, prm in process.outputs:
+    for name, prm in output_defs:
         prm = fix_parameter(name, prm) # short-hand def. expansion
         outreq = response_form.get_output(prm.identifier)
         result = results.get(name)
@@ -189,14 +207,12 @@ def _resolve_reference(reference, request):
         for headers, data in mp.iterate(request):
             if headers.get("Content-ID") == url.path:
                 return data
-        raise InvalidReferenceException(
-            "No part with content-id '%s'." % url.path
-        )
-
+        raise InvalidReferenceException(reference.identifier,
+                                    "No part with content-id '%s'." % url.path)
     try:
         request = urllib2.Request(reference.href, reference.body)
         response = urllib2.urlopen(request)
         return response.read()
     except urllib2.URLError, exc:
-        raise InvalidReferenceException(str(exc))
+        raise InvalidReferenceException(reference.identifier, str(exc))
 

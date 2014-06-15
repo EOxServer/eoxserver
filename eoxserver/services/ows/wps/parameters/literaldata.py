@@ -28,9 +28,6 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-# TODO: Review standard compliance of the duration parsing and encoding.
-# TODO: Proper UOM handling.
-
 try:
     # available in Python 2.7+
     from collections import OrderedDict
@@ -41,6 +38,7 @@ from .base import Parameter
 from .data_types import BaseType, String, DTYPES
 from .allowed_values import BaseAllowed, AllowedAny, AllowedEnum
 from .units import UnitOfMeasure, UnitLinear
+
 
 class LiteralData(Parameter):
     """ literal-data parameter class """
@@ -160,10 +158,10 @@ class LiteralData(Parameter):
             _value = self._dtype.encode(_value)
             return _value.encode(encoding) if encoding else _value
         except (ValueError, TypeError) as exc:
-            raise Exception("%s: Output encoding error: '%s' (value '%s')"
-                            "" % (self.identifier, str(exc), value))
+            raise ValueError("Output encoding error: '%s' (value '%s')"
+                                                        "" % (str(exc), value))
 
-    def parse(self, raw_value, uom=None, encoding=None ):
+    def parse(self, raw_value, uom=None, encoding=None):
         """ Parse the input value from its string representation.
 
             The value is checked to match the defined allowed values
@@ -176,5 +174,5 @@ class LiteralData(Parameter):
             _value = self._allowed_values.verify(_value)
             return _value
         except (ValueError, TypeError) as exc:
-            raise Exception("%s: Input parsing error: '%s' (raw value '%s')"
-                            "" % (self.identifier, str(exc), raw_value))
+            raise ValueError("Input parsing error: '%s' (raw value '%s')"
+                                                    "" % (str(exc), raw_value))

@@ -35,6 +35,8 @@ from eoxserver.services.ows.wps.parameters import (
     LiteralData, ComplexData, BoundingBoxData,
 )
 
+from eoxserver.services.ows.wps.exceptions import InvalidOutputValueException
+
 #-------------------------------------------------------------------------------
 
 class WPS10ExecuteResponseRawEncoder(object):
@@ -74,9 +76,12 @@ def _encode_raw_output(data, prm, req):
 
 def _encode_raw_literal(data, prm, req):
     """ Encode single raw literal."""
-    return ResultBuffer(prm.encode(data, req.uom or prm.default_uom, 'utf8'),
-        content_type="text/plain" if req.mime_type is None else req.mime_type,
-        identifier=prm.identifier)
+    try:
+        encoded_data = prm.encode(data, req.uom or prm.default_uom, 'utf8')
+    except (ValueError, TypeError) as exc:
+        raise InvalidOutputValueException(prm.identifier, exc)
+    return ResultBuffer(encoded_data, identifier=prm.identifier,
+        content_type="text/plain" if req.mime_type is None else req.mime_type)
 
 def _encode_raw_bbox(data, prm, req):
     """ Encode single raw bounding box."""
