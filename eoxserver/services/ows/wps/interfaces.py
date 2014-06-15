@@ -51,7 +51,7 @@ class ProcessInterface(object):
         """
 
     @property
-    def description(self):
+    def abstract(self):
         """ A human-readable detailed description of the process. Optional.
         """
 

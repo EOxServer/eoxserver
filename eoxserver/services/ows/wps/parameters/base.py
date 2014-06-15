@@ -39,24 +39,42 @@
 #       of the outputs is omitted in the request all process output are
 #       contained in the default respose.
 
-class Parameter(object):
-    """ base parameter class """
+class BaseParamMetadata(object):
+    """ Common metadata base of all parameter classes."""
 
-    def __init__(self, identifier=None, title=None, description=None,
+    def __init__(self, identifier, title=None, abstract=None):
+        self.identifier = identifier
+        self.title = title
+        self.abstract = abstract
+
+
+class ParamMetadata(BaseParamMetadata):
+    """ Common metadata of the execute request parameters."""
+    def __init__(self, identifier, title=None, abstract=None, uom=None,
+                    crs=None, mime_type=None, encoding=None, schema=None):
+        BaseParamMetadata.__init__(self, identifier, title, abstract)
+        self.uom = uom
+        self.crs = crs
+        self.mime_type = mime_type
+        self.encoding = encoding
+        self.schema = schema
+
+
+class Parameter(BaseParamMetadata):
+    """ Base parameter class used by the process definition."""
+
+    def __init__(self, identifier=None, title=None, abstract=None,
                  metadata=None, optional=False):
         """ Object constructor.
 
             Parameters:
                 identifier  idetnfier of the parameter.
                 title       optional human-raedable name (defaults to idetfier).
-                description optional human-redable verbose description.
+                abstract    optional human-redable verbose description.
                 metadata    optional metadata (title/URL dictionary).
                 optional    optional boolean flag indicating whether the input
                             parameter is optional or not.
         """
-        self.identifier = identifier
-        self.title = title or identifier
-        self.description = description
+        BaseParamMetadata.__init__(self, identifier, title, abstract)
         self.metadata = metadata or {}
-        self.is_optional = optional # applicable to inputs only
-
+        self.is_optional = optional

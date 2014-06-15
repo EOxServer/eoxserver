@@ -45,7 +45,7 @@ class TestProcess(Component):
 
     identifier = "test"
     title = "title"
-    description = "description"
+    abstract = "description"
     metadata = {"test-metadata":"http://www.metadata.com/test-metadata"}
     profiles = ["p", "q"]
 
@@ -53,13 +53,13 @@ class TestProcess(Component):
         "A": int,
         "B": datetime,
         "C": LiteralData("MyCIdenifier",
-                description="myAbstract",
+                abstract="myAbstract",
                 dtype=int,
                 default=1,
                 allowed_values=[1, 2, 3]
             ),
         "D": LiteralData("MyDIdenifier",
-                description="myAbstract",
+                abstract="myAbstract",
                 dtype=float,
                 default=1.0,
                 allowed_values=AllowedEnum((1., 2., 3.))
@@ -77,10 +77,11 @@ class TestProcess(Component):
         "G": LiteralData("MyGIdenifier",
                 dtype=float,
                 allowed_values=AllowedByReference("http://foo.bar/value"),
-                uoms=("metres", "feet")
+                #uoms=("metres", "feet")
+                uoms=(("metres",1.0), ("feet",0.3048))
             ),
         "W": LiteralData("MyWIdenifier",
-                description="WWW",
+                abstract="WWW",
                 dtype=datetime,
                 optional = True
             ),
@@ -90,8 +91,9 @@ class TestProcess(Component):
         "X": int,
         "Y": float,
         "Z": LiteralData(
-            "MyZIdenifier", description="myAbstract", dtype=float,
-            uoms=("metres", "feet")
+            "MyZIdenifier", abstract="myAbstract", dtype=float,
+            #uoms=("metres", "feet")
+            uoms=(("metres",1.0), ("feet",0.3048))
         )
     }
 

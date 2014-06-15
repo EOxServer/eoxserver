@@ -30,85 +30,112 @@
 
 from django.utils.timezone import now
 from eoxserver.core.util.timetools import isoformat
-from eoxserver.services.ows.wps.v10.util import (
-    OWS, WPS, ns_ows, ns_wps, ns_xlink, ns_xml
+from eoxserver.services.ows.wps.v10.util import WPS
+
+from eoxserver.services.ows.wps.parameters import (
+    Parameter, LiteralData, ComplexData, BoundingBoxData,
+    fix_parameter,
 )
 
 from .process_description import encode_process_brief
-from .parameters import (Parameter, fix_parameter,
-    LiteralData, BoundingBoxData, ComplexData,
-    encode_input_exec, encode_output_exec,)
+from .parameters import (
+    encode_input_exec, encode_output_exec, encode_output_def
+)
 from .base import WPS10BaseXMLEncoder
 
+#-------------------------------------------------------------------------------
 
-# TODO: move low-level data encoding to a separate module
-def _encode_literal(prm, data):
-    attrib = { 'dataType': prm.dtype.name }
-    if prm.uoms:
-        #NOTE: If applicable the default UOM is inserted.
-        attrib['uom'] = prm.uoms[0]
-    return WPS("LiteralData", unicode(data), **attrib)
+class WPS10ExecuteResponseXMLEncoder(WPS10BaseXMLEncoder):
 
-def _encode_bbox(prm, data):
-    #TODO: proper output encoding
-    return WPS("BoundingBoxData")
+    content_type = "application/xml"
 
-def _encode_complex(prm, data):
-    #TODO: proper output encoding
-    return WPS("ComplexData")
+    @staticmethod
+    def encode_response(process, results, resp_form, inputs, raw_inputs):
+        """Encode execute response (SUCCESS) including the output data."""
+        status = WPS("ProcessSucceded")
+        elem = _encode_common_response(process, status, inputs, raw_inputs, resp_form)
 
-def _encode_output(prm, data):
-    elem = encode_input_exec(prm.identifier, prm)
+        outputs = []
+        for result, prm, req in results.itervalues():
+            outputs.append(_encode_output(result, prm, req))
+        elem.append(WPS("ProcessOutputs", *outputs))
 
-    if isinstance(prm, LiteralData):
-        elem.append(WPS("Data", _encode_literal(prm, data)))
-    if isinstance(prm, BoundingBoxData):
-        elem.append(WPS("Data", _encode_bbox(prm, data)))
-    if isinstance(prm, ComplexData):
-        elem.append(WPS("Data", _encode_complex(prm, data)))
+        return elem
 
-    return elem
+    #@staticmethod
+    #def encode_failure()
 
-def _encode_response(process, inputs, status_elem, lineage):
+    #@staticmethod
+    #def encode_progress()
+
+    #@staticmethod
+    #def encode_accepted()
+
+#-------------------------------------------------------------------------------
+
+def _encode_common_response(process, status_elem, inputs, raw_inputs, resp_doc):
     """Encode common execute response part shared by all specific responses."""
     elem = WPS("ExecuteResponse",
         encode_process_brief(process),
         WPS("Status", status_elem, creationTime=isoformat(now()))
     )
 
-    if lineage:
-        #TODO: proper lineage output
-        inputs_data = [encode_output_exec(n, p) for n, p in process.inputs]
-        outputs_def = [encode_output_exec(n, p) for n, p in process.outputs]
+    if resp_doc.lineage:
+        inputs_data = []
+        for id_, prm in process.inputs:
+            prm = fix_parameter(id_, prm)
+            data = inputs.get(id_)
+            rawinp = raw_inputs.get(prm.identifier)
+            if rawinp is not None:
+                inputs_data.append(_encode_input(data, prm, rawinp))
         elem.append(WPS("DataInputs", *inputs_data))
+
+        outputs_def = []
+        for id_, prm in process.outputs:
+            prm = fix_parameter(id_, prm)
+            outdef = resp_doc.get(prm.identifier)
+            if outdef is not None:
+                outputs_def.append(encode_output_def(outdef))
         elem.append(WPS("OutputDefinitions", *outputs_def))
 
     return elem
 
+def _encode_input(data, prm, raw):
+    elem = encode_input_exec(raw)
+    if isinstance(prm, LiteralData):
+        elem.append(WPS("Data", _encode_literal(data, prm, raw)))
+    elif isinstance(prm, BoundingBoxData):
+        elem.append(WPS("Data", _encode_bbox(data, prm, raw)))
+    elif isinstance(prm, ComplexData):
+        elem.append(WPS("Data", _encode_complex(data, prm, raw)))
+    return elem
 
-class WPS10ExecuteResponseXMLEncoder(WPS10BaseXMLEncoder):
+def _encode_output(data, prm, req):
+    elem = encode_output_exec(Parameter(prm.identifier,
+                        req.title or prm.title, req.abstract or prm.abstract))
+    if isinstance(prm, LiteralData):
+        elem.append(WPS("Data", _encode_literal(data, prm, req)))
+    elif isinstance(prm, BoundingBoxData):
+        elem.append(WPS("Data", _encode_bbox(data, prm, req)))
+    elif isinstance(prm, ComplexData):
+        elem.append(WPS("Data", _encode_complex(data, prm, req)))
+    return elem
 
-    @staticmethod
-    def encode_execute_response(process, inputs, results, lineage=False):
-        """Encode execute response (SUCCESS) including the output data."""
-        status = WPS("ProcessSucceded")
-        elem = _encode_response(process, inputs, status, lineage)
+#def _encode_reference(ref):
+#    pass
 
-        outputs = []
-        for name, prm in process.outputs: # preserve order of the outputs
-            prm = fix_parameter(name, prm) # short-hand def. expansion
-            result = results.get(prm.identifier, None)
-            if results: # skip missing outputs
-                outputs.append(_encode_output(prm, result))
-        elem.append(WPS("ProcessOutputs", *outputs))
+def _encode_literal(data, prm, req):
+    attrib = {'dataType': prm.dtype.name}
+    uom = req.uom or prm.default_uom
+    if prm.uoms:
+        attrib['uom'] = uom
+    return WPS("LiteralData", prm.encode(data, uom), **attrib)
 
-        return elem
+def _encode_bbox(data, prm, req):
+    #TODO: proper output encoding
+    return WPS("BoundingBoxData")
 
-    #@staticmethod
-    #def encode_execute_failure(process, inputs, results, lineage=False):
+def _encode_complex(data, prm, req):
+    #TODO: proper output encoding
+    return WPS("ComplexData")
 
-    #@staticmethod
-    #def encode_execute_progress(process, inputs, results, lineage=False):
-
-    #@staticmethod
-    #def encode_execute_async(process, inputs, results, lineage=False):

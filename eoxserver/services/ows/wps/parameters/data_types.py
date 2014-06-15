@@ -157,10 +157,7 @@ class String(BaseType):
 
     @classmethod
     def parse(cls, raw_value):
-        try:
-            return unicode(raw_value)
-        except UnicodeDecodeError:
-            return unicode(raw_value, cls.encoding)
+        return cls.dtype(raw_value)
 
     @classmethod
     def get_diff_dtype(cls): # string has no difference

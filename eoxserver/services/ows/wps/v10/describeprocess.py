@@ -82,6 +82,7 @@ class WPS10DescribeProcessHandler(Component):
 class WPS10DescribeProcessKVPDecoder(kvp.Decoder):
     identifiers = kvp.Parameter("identifier", type=typelist(str, ","))
 
+
 class WPS10DescribeProcessXMLDecoder(xml.Decoder):
     identifiers = xml.Parameter("ows:Identifier/text()", num="+")
     namespaces = nsmap

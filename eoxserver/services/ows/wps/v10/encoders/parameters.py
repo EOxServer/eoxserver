@@ -1,6 +1,6 @@
 #-------------------------------------------------------------------------------
 #
-# WPS 1.0 common XML encoders
+# WPS 1.0 parameters' XML encoders
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
@@ -31,7 +31,7 @@
 from eoxserver.services.ows.wps.parameters import (
     Parameter, LiteralData, ComplexData, BoundingBoxData, Format,
     AllowedAny, AllowedEnum, AllowedRange, AllowedRangeCollection,
-    AllowedByReference, fix_parameter,
+    AllowedByReference,
 )
 
 from eoxserver.services.ows.wps.v10.util import (
@@ -40,20 +40,87 @@ from eoxserver.services.ows.wps.v10.util import (
 
 #-------------------------------------------------------------------------------
 
-def _encode_format(frmt):
+def encode_input_descr(prm):
+    """ Encode process description input."""
+    elem = NIL("Input", *_encode_param_common(prm))
+    elem.attrib["minOccurs"] = ("1", "0")[bool(prm.is_optional)]
+    elem.attrib["maxOccurs"] = "1"
+    if isinstance(prm, LiteralData):
+        elem.append(_encode_literal(prm, True))
+    elif isinstance(prm, ComplexData):
+        elem.append(_encode_complex(prm, True))
+    elif isinstance(prm, BoundingBoxData):
+        elem.append(_encode_bbox(prm, True))
+    return elem
 
-    elem = NIL("Format",
-        NIL("MimeType", frmt.mime_type)
-    )
+def encode_output_descr(prm):
+    """ Encode process description output."""
+    elem = NIL("Output", *_encode_param_common(prm))
+    if isinstance(prm, LiteralData):
+        elem.append(_encode_literal(prm, False))
+    elif isinstance(prm, ComplexData):
+        elem.append(_encode_complex(prm, False))
+    elif isinstance(prm, BoundingBoxData):
+        elem.append(_encode_bbox(prm, False))
+    return elem
 
-    if frmt.encoding:
-        elem.append(NIL("Encoding", frmt.encoding))
+def encode_input_exec(prm):
+    """ Encode common part of the execure response data input."""
+    return WPS("Input", *_encode_param_common(prm))
 
-    if frmt.encoding:
-        elem.append(NIL("Schema", frmt.schema))
+def encode_output_exec(prm):
+    """ Encode common part of the execure response data output."""
+    return WPS("Output", *_encode_param_common(prm))
 
+def encode_output_def(outdef):
+    """ Encode the execure response output definition."""
+    attrib = {}
+    if outdef.uom is not None:
+        attrib['uom'] = outdef.uom
+    if outdef.crs is not None:
+        attrib['crs'] = outdef.crs
+    if outdef.mime_type is not None:
+        attrib['mimeType'] = outdef.mime_type
+    if outdef.encoding is not None:
+        attrib['encoding'] = outdef.encoding
+    if outdef.schema is not None:
+        attrib['schema'] = outdef.schema
+    if outdef.as_reference is not None:
+        attrib['asReference'] = 'true' if outdef.as_reference else 'false'
+    return WPS("Output", *_encode_param_common(outdef), **attrib)
+
+def _encode_param_common(prm):
+    """ Encode common sub-elements of all XML parameters."""
+    elist = [OWS("Identifier", prm.identifier)]
+    if prm.title:
+        elist.append(OWS("Title", prm.title))
+    if prm.abstract:
+        elist.append(OWS("Abstract", prm.abstract))
+    return elist
 
 #-------------------------------------------------------------------------------
+
+def _encode_literal(prm, is_input):
+    dtype = prm.dtype
+    elem = NIL("LiteralData" if is_input else "LiteralOutput")
+
+    elem.append(OWS("DataType", dtype.name, **{
+        ns_ows("reference"): "http://www.w3.org/TR/xmlschema-2/#%s"%dtype.name,
+    }))
+
+    if prm.uoms:
+        elem.append(NIL("UOMs",
+            NIL("Default", NIL("UOM", prm.uoms[0])),
+            NIL("Supported", *[NIL("UOM", u) for u in prm.uoms])
+        ))
+
+    if is_input:
+        elem.append(_encode_allowed_value(prm.allowed_values))
+
+        if prm.default is not None:
+            elem.append(WPS("Default", str(prm.default)))
+
+    return elem
 
 def _encode_allowed_value(avobj):
     enum, ranges, elist = None, [], []
@@ -93,29 +160,6 @@ def _encode_allowed_value(avobj):
 
     return OWS("AllowedValues", *elist)
 
-
-def _encode_literal(prm, is_input):
-    dtype = prm.dtype
-    elem = NIL("LiteralData" if is_input else "LiteralOutput")
-
-    elem.append(OWS("DataType", dtype.name, **{
-        ns_ows("reference"): "http://www.w3.org/TR/xmlschema-2/#%s"%dtype.name,
-    }))
-
-    if prm.uoms:
-        elem.append(NIL("UOMs",
-            NIL("Default", NIL("UOM", prm.uoms[0])),
-            NIL("Supported", *[NIL("UOM", u) for u in prm.uoms])
-        ))
-
-    if is_input:
-        elem.append(_encode_allowed_value(prm.allowed_values))
-
-        if prm.default is not None:
-            elem.append(WPS("Default", str(prm.default)))
-
-    return elem
-
 #-------------------------------------------------------------------------------
 
 def _encode_complex(prm, is_input):
@@ -130,6 +174,15 @@ def _encode_complex(prm, is_input):
         WPS("Supported", *[_encode_format(f) for f in formats])
     )
 
+def _encode_format(frmt):
+    elem = NIL("Format",
+        NIL("MimeType", frmt.mime_type)
+    )
+    if frmt.encoding:
+        elem.append(NIL("Encoding", frmt.encoding))
+    if frmt.encoding:
+        elem.append(NIL("Schema", frmt.schema))
+
 #-------------------------------------------------------------------------------
 
 def _encode_bbox(prm, is_input):
@@ -138,49 +191,3 @@ def _encode_bbox(prm, is_input):
         WPS("Supported", *[WPS("CRS", c) for c in prm.crss])
     )
 
-#-------------------------------------------------------------------------------
-
-def _encode_param_common(prm):
-    """Encode common base for all possible parameter XML serialization"""
-    elist = [OWS("Identifier", prm.identifier)]
-    if prm.title:
-        elist.append(OWS("Title", prm.title))
-    if prm.description:
-        elist.append(OWS("Abstract", prm.description))
-    return elist
-
-def encode_input_descr(name, prm):
-    """Encode process description input element."""
-    prm = fix_parameter(name, prm) # short-hand def. expansion
-    elem = NIL("Input", *_encode_param_common(prm))
-    elem.attrib["minOccurs"] = ("1", "0")[bool(prm.is_optional)]
-    elem.attrib["maxOccurs"] = "1"
-    if isinstance(prm, LiteralData):
-        elem.append(_encode_literal(prm, True))
-    elif isinstance(prm, ComplexData):
-        elem.append(_encode_complex(prm, True))
-    elif isinstance(prm, BoundingBoxData):
-        elem.append(_encode_bbox(prm, True))
-    return elem
-
-def encode_output_descr(name, prm):
-    """Encode process description output element."""
-    prm = fix_parameter(name, prm) # short-hand def. expansion
-    elem = NIL("Output", *_encode_param_common(prm))
-    if isinstance(prm, LiteralData):
-        elem.append(_encode_literal(prm, False))
-    elif isinstance(prm, ComplexData):
-        elem.append(_encode_complex(prm, False))
-    elif isinstance(prm, BoundingBoxData):
-        elem.append(_encode_bbox(prm, False))
-    return elem
-
-def encode_input_exec(name, prm):
-    """Encode base of the execute response input element."""
-    prm = fix_parameter(name, prm) # short-hand def. expansion
-    return WPS("Input", *_encode_param_common(prm))
-
-def encode_output_exec(name, prm):
-    """Encode base of the execute response input element."""
-    prm = fix_parameter(name, prm) # short-hand def. expansion
-    return WPS("Output", *_encode_param_common(prm))

@@ -1,7 +1,10 @@
 #-------------------------------------------------------------------------------
 #
+#  Input objects used by the execute requests and responses
+#
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
+#          Martin Paces <martin.paces@eox.at>
 #
 #-------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
@@ -25,42 +28,32 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from eoxserver.core import Component, ExtensionPoint, implements
-from eoxserver.core.decoders import kvp, xml, typelist
-from eoxserver.services.ows.interfaces import (
-    ServiceHandlerInterface, GetServiceHandlerInterface,
-    PostServiceHandlerInterface, VersionNegotiationInterface
-)
-from eoxserver.services.ows.wps.interfaces import ProcessInterface
-from eoxserver.services.ows.wps.v10.encoders import WPS10CapabilitiesXMLEncoder
-from eoxserver.services.ows.wps.v10.util import nsmap
+from .base import BaseParamMetadata, ParamMetadata
+
+class InputReference(BaseParamMetadata):
+    """ Input data reference."""
+
+    def __init__(self, href, identifier, title=None, abstract=None,
+                    headers=None, body=None, method="GET", mime_type=None,
+                    encoding=None, schema=None, body_href=None):
+        BaseParamMetadata.__init__(self, identifier, title, abstract)
+        self.href = href
+        self.headers = headers or ()
+        self.body = body
+        self.body_href = body_href
+        self.method = method
+        self.mime_type = mime_type
+        self.encoding = encoding
+        self.schema = schema
 
 
-class WPS10GetCapabilitiesHandler(Component):
-    implements(ServiceHandlerInterface)
-    implements(GetServiceHandlerInterface)
-    implements(PostServiceHandlerInterface)
-    implements(VersionNegotiationInterface)
+class InputData(ParamMetadata):
+    """ Raw input data."""
+    def __init__(self, identifier, title=None, abstract=None,
+                        data=None, parsed_data=None, uom=None, crs=None,
+                        mime_type=None, encoding=None, schema=None):
+        ParamMetadata.__init__(self, identifier, title, abstract, uom, crs,
+                                                   mime_type, encoding, schema)
+        self.data = data
+        self.parsed_data = parsed_data
 
-    service = "WPS"
-    versions = ("1.0.0",)
-    request = "GetCapabilities"
-
-    processes = ExtensionPoint(ProcessInterface)
-
-    def handle(self, request):
-        encoder = WPS10CapabilitiesXMLEncoder()
-        return encoder.serialize(
-            encoder.encode_capabilities(self.processes)
-        ), encoder.content_type
-
-
-class WPS10GetCapabilitiesKVPDecoder(kvp.Decoder):
-    #acceptversions = kvp.Parameter(type=typelist(str, ","), num="?")
-    language = kvp.Parameter(num="?")
-
-
-class WPS10GetCapabilitiesXMLDecoder(xml.Decoder):
-    #acceptversions = xml.Parameter("/ows:AcceptVersions/ows:Version/text()", num="*")
-    language = xml.Parameter("/ows:AcceptLanguages/ows:Language/text()", num="*")
-    namespaces = nsmap

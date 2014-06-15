@@ -29,10 +29,18 @@
 #-------------------------------------------------------------------------------
 
 # TODO: Review standard compliance of the duration parsing and encoding.
+# TODO: Proper UOM handling.
+
+try:
+    # available in Python 2.7+
+    from collections import OrderedDict
+except ImportError:
+    from django.utils.datastructures import SortedDict as OrderedDict
 
 from .base import Parameter
 from .data_types import BaseType, String, DTYPES
 from .allowed_values import BaseAllowed, AllowedAny, AllowedEnum
+from .units import UnitOfMeasure, UnitLinear
 
 class LiteralData(Parameter):
     """ literal-data parameter class """
@@ -44,7 +52,7 @@ class LiteralData(Parameter):
             Parameters:
                 identifier  idetnfier of the parameter.
                 title       optional human-raedable name (defaults to idetfier).
-                description optional human-redable verbose description.
+                abstract    optional human-redable verbose description.
                 metadata    optional metadata (title/URL dictionary).
                 optional    optional boolean flag indicating whether the input
                             parameter is optional or not.
@@ -82,13 +90,29 @@ class LiteralData(Parameter):
         else:
             self._allowed_values = AllowedAny()
 
-        self.uoms = uoms or () # the first uom is the default one
+        if uoms: # the first uom is the default one
+            tmp = OrderedDict()
+            for uom in uoms:
+                if not isinstance(uom, UnitOfMeasure):
+                    uom = UnitLinear(uom[0], uom[1])
+                tmp[uom.name] = uom
+            self._uoms = tmp
+        else:
+            self._uoms = None
 
         if default is None:
             self.default = None
         else:
             self.default = self.parse(default)
             self.is_optional = True
+
+    @property
+    def default_uom(self):
+        return self._uoms.keys()[0] if self._uoms else None
+
+    @property
+    def uoms(self):
+        return self._uoms.keys() if self._uoms else None
 
     @property
     def dtype(self):
@@ -108,15 +132,49 @@ class LiteralData(Parameter):
         """Return the value if allowed or raise the ValueError exception."""
         return self._allowed_values.verify(value)
 
-    def encode(self, value):
-        """Encode the given value to its string representation."""
-        return self._dtype.encode(value)
-
-    def parse(self, raw_value):
-        """Encode the given value to its string representation."""
+    def apply_uom(self, value, uom):
+        if uom is None:
+            return value
         try:
-            return self._allowed_values.verify(self._dtype.parse(raw_value))
+            return self._uoms[uom].apply(value)
+        except KeyError:
+            raise ValueError("Invalid UOM '%s'!"%uom)
+
+    def strip_uom(self, value, uom):
+        if uom is None:
+            return value
+        try:
+            return self._uoms[uom].strip(value)
+        except KeyError:
+            raise ValueError("Invalid UOM '%s'!"%uom)
+
+    def encode(self, value, uom=None, encoding=None):
+        """ Encode the output value to its string representation.
+
+            The value is checked to match the defined allowed values
+            restriction and the UOM conversion is applied.
+        """
+        try:
+            _value = self._allowed_values.verify(value)
+            _value = self.apply_uom(_value, uom)
+            _value = self._dtype.encode(_value)
+            return _value.encode(encoding) if encoding else _value
+        except (ValueError, TypeError) as exc:
+            raise Exception("%s: Output encoding error: '%s' (value '%s')"
+                            "" % (self.identifier, str(exc), value))
+
+    def parse(self, raw_value, uom=None, encoding=None ):
+        """ Parse the input value from its string representation.
+
+            The value is checked to match the defined allowed values
+            restriction and the UOM conversion is applied.
+        """
+        try:
+            _value = unicode(raw_value, encoding) if encoding else raw_value
+            _value = self._dtype.parse(raw_value)
+            _value = self.strip_uom(_value, uom or self.default_uom)
+            _value = self._allowed_values.verify(_value)
+            return _value
         except (ValueError, TypeError) as exc:
             raise Exception("%s: Input parsing error: '%s' (raw value '%s')"
                             "" % (self.identifier, str(exc), raw_value))
-

@@ -29,11 +29,12 @@
 #-------------------------------------------------------------------------------
 
 from eoxserver.services.ows.wps.v10.util import (
-    OWS, WPS, NIL, ns_ows, ns_wps, ns_xlink, ns_xml
+    OWS, WPS, NIL, ns_wps, ns_xlink, ns_xml
 )
 from .parameters import encode_input_descr, encode_output_descr
 from .base import WPS10BaseXMLEncoder
 
+from eoxserver.services.ows.wps.parameters import fix_parameter
 
 def _encode_metadata(title, href):
     return OWS("Metadata", **{ns_xlink("title"): title, ns_xlink("href"): href})
@@ -41,7 +42,7 @@ def _encode_metadata(title, href):
 def encode_process_brief(process):
     id_ = getattr(process, 'identifier', process.__class__.__name__)
     title = getattr(process, 'title', id_)
-    abstract = getattr(process, 'description', process.__class__.__doc__)
+    abstract = getattr(process, 'abstract', process.__class__.__doc__)
     version = getattr(process, "version", "1.0.0")
     metadata = getattr(process, "metadata", {})
     profiles = getattr(process, "profiles", [])
@@ -69,8 +70,8 @@ def encode_process_full(process):
     if isinstance(process.outputs, dict):
         process.outputs = process.outputs.items()
 
-    inputs = [encode_input_descr(n, p) for n, p in process.inputs]
-    outputs = [encode_output_descr(n, p) for n, p in process.outputs]
+    inputs = [encode_input_descr(fix_parameter(n, p)) for n, p in process.inputs]
+    outputs = [encode_output_descr(fix_parameter(n, p)) for n, p in process.outputs]
 
     elem = encode_process_brief(process)
     if supports_store:
