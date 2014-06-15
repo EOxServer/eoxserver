@@ -37,19 +37,15 @@ from eoxserver.services.ows.wps.parameters import (
 #from eoxserver.services.ows.wps.parameters import (AllowedAny, AllowedEnum,
 #    AllowedRange, AllowedByReference)
 
-
 class TestProcess(Component):
-    """ Simple test process. """
-
-    # Comment following line to make the test process active.
-    #abstract = True
-
+    """ Test identity process (the ouptuts are copies of the inputs)
+        demonstrating various features of the literal data inputs
+        and outputs.
+    """
     implements(ProcessInterface)
 
     identifier = "TC00:identity:literal"
     title = "Test Case 00: Literal data identity."
-    #abstract = "Testing literal data inputs and outputs. The inputs are" \
-    #              " simply copied and returned in the response."
     metadata = {"test-metadata":"http://www.metadata.com/test-metadata"}
     profiles = ["test_profile"]
 

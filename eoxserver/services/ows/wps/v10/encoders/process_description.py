@@ -42,7 +42,8 @@ def _encode_metadata(title, href):
 def encode_process_brief(process):
     id_ = getattr(process, 'identifier', process.__class__.__name__)
     title = getattr(process, 'title', id_)
-    abstract = getattr(process, 'abstract', process.__class__.__doc__)
+    #abstract = getattr(process, 'abstract', process.__class__.__doc__)
+    abstract = getattr(process, 'description', process.__class__.__doc__)
     version = getattr(process, "version", "1.0.0")
     metadata = getattr(process, "metadata", {})
     profiles = getattr(process, "profiles", [])
