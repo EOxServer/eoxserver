@@ -36,9 +36,6 @@ from eoxserver.services.ows.wps.parameters import (
 )
 from eoxserver.services.ows.wps.v10.util import nsmap, ns_wps, ns_ows, ns_xlink
 
-# precompiled reg.ex. used to eliminate repeated white-spaces
-_RE_MULTIWS = re.compile(r"\s+")
-
 def _bool(raw_bool):
     """ Parse WPS boolean string."""
     return raw_bool == "true"
@@ -135,22 +132,9 @@ def _parse_input_data(elem, identifier, title, abstract):
     elif elem.tag == ns_wps("BoundingBoxData"):
         lower_corner = elem.findtext("./"+ns_ows("LowerCorner"))
         upper_corner = elem.findtext("./"+ns_ows("UpperCorner"))
-        crs = elem.attrib.get("crs")
-
         if lower_corner is None or upper_corner is None:
             raise ValueError("Invalid 'wps:BoundingBoxData' element!")
-
-        # pack BBOX to KVP encoding
-        lower_corner = _RE_MULTIWS.sub(",", lower_corner.text.strip())
-        upper_corner = _RE_MULTIWS.sub(",", lower_corner.text.strip())
-
-        if len(lower_corner.split(",")) != len(upper_corner.split(",")):
-            raise ValueError("Dimension mismatch of the bounding box corner"
-                       " coordinates.")
-        tmp = [lower_corner, upper_corner]
-        if crs:
-            tmp.append(crs)
-        args['data'] = ",".join(tmp)
+        args['data'] = (lower_corner, upper_corner, elem.attrib.get("crs"))
 
     else:
         raise ValueError("Invalid input content of the 'wps:Data' element!")

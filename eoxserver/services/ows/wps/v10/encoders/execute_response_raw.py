@@ -65,7 +65,7 @@ class WPS10ExecuteResponseRawEncoder(object):
 #-------------------------------------------------------------------------------
 
 def _encode_raw_output(data, prm, req):
-    """ Encode single raw output item."""
+    """ Encode a raw output item."""
     if isinstance(prm, LiteralData):
         return _encode_raw_literal(data, prm, req)
     elif isinstance(prm, BoundingBoxData):
@@ -75,7 +75,7 @@ def _encode_raw_output(data, prm, req):
     raise TypeError("Invalid output type! %r"%(prm))
 
 def _encode_raw_literal(data, prm, req):
-    """ Encode single raw literal."""
+    """ Encode a raw literal."""
     try:
         encoded_data = prm.encode(data, req.uom or prm.default_uom, 'utf8')
     except (ValueError, TypeError) as exc:
@@ -84,12 +84,16 @@ def _encode_raw_literal(data, prm, req):
         content_type="text/plain" if req.mime_type is None else req.mime_type)
 
 def _encode_raw_bbox(data, prm, req):
-    """ Encode single raw bounding box."""
-    #TODO: proper output encoding
-    return None
+    """ Encode a raw bounding box."""
+    try:
+        encoded_data = prm.encode_kvp(data).encode('utf8')
+    except (ValueError, TypeError) as exc:
+        raise InvalidOutputValueException(prm.identifier, exc)
+    return ResultBuffer(encoded_data, identifier=prm.identifier,
+        content_type="text/plain" if req.mime_type is None else req.mime_type)
 
 def _encode_raw_complex(data, prm, req):
     #TODO: proper output encoding
-    """ Encode single raw complex data."""
+    """ Encode raw complex data."""
     return None
 

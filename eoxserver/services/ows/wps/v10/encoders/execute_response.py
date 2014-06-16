@@ -30,7 +30,7 @@
 
 from django.utils.timezone import now
 from eoxserver.core.util.timetools import isoformat
-from eoxserver.services.ows.wps.v10.util import WPS
+from eoxserver.services.ows.wps.v10.util import WPS, OWS
 
 from eoxserver.services.ows.wps.parameters import (
     Parameter, LiteralData, ComplexData, BoundingBoxData,
@@ -138,8 +138,13 @@ def _encode_literal(data, prm, req):
     return WPS("LiteralData", encoded_data, **attrib)
 
 def _encode_bbox(data, prm, req):
-    #TODO: proper output encoding
-    return WPS("BoundingBoxData")
+    lower, upper, crs = prm.encode_xml(data)
+    return WPS("BoundingBoxData",
+        OWS("LowerCorner", lower),
+        OWS("UpperCorner", upper),
+        dimension="%d"%prm.dimension,
+        crs=crs,
+    )
 
 def _encode_complex(data, prm, req):
     #TODO: proper output encoding

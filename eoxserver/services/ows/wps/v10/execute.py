@@ -153,11 +153,11 @@ def decode_process_inputs(input_defs, raw_inputs, request):
             if isinstance(raw_value, InputReference):
                 raw_value = _resolve_reference(raw_value, request)
             try:
-                value = _decode_literal(prm, raw_value)
+                value = _decode_input(prm, raw_value)
             except ValueError as exc:
                 raise InvalidInputValueException(prm.identifier, exc)
         elif prm.is_optional:
-            value = prm.default if isinstance(prm, LiteralData) else None
+            value = getattr(prm,'default',None)
         else:
             raise MissingRequiredInputException(prm.identifier)
         decoded_inputs[name] = value
@@ -191,11 +191,14 @@ def pack_process_outputs(output_defs, results, response_form):
 
     return packd_results
 
-
-def _decode_literal(prm, raw_value):
-    """ Decode raw literal value and check it agains the allowed values. """
-    return prm.parse(raw_value.data, raw_value.uom)
-
+def _decode_input(prm, raw_value):
+    """ Decode raw input and check it agains the allowed values."""
+    if isinstance(prm, LiteralData):
+        return prm.parse(raw_value.data, raw_value.uom)
+    elif isinstance(prm, BoundingBoxData):
+        return prm.parse(raw_value.data)
+    else:
+        raise TypeError("Unsupported parameter type %s!"%(type(prm)))
 
 def _resolve_reference(reference, request):
     """ Get the input passed as a reference. """

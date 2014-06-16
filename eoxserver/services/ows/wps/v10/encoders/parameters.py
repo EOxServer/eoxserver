@@ -187,7 +187,7 @@ def _encode_format(frmt):
 
 def _encode_bbox(prm, is_input):
     return NIL("BoundingBoxData" if is_input else "BoundingBoxOutput",
-        WPS("Default", WPS("CRS", prm.crss[0])),
-        WPS("Supported", *[WPS("CRS", c) for c in prm.crss])
+        WPS("Default", WPS("CRS", prm.encode_crs(prm.default_crs))),
+        WPS("Supported", *[WPS("CRS", prm.encode_crs(crs)) for crs in prm.crss])
     )
 
