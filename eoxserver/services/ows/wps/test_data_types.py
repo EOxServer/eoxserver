@@ -30,7 +30,7 @@
 import datetime as dt
 import unittest
 from parameters import (BaseType, Boolean, Integer, Double, String,
-                        Duration, Date, Time, DateTime)
+                        Duration, Date, Time, DateTime, CRSType)
 
 #------------------------------------------------------------------------------
 
@@ -120,11 +120,9 @@ class TestDataTypeString(unittest.TestCase, BaseTestMixin):
         self.name = 'string'
         self.dtype = String
         self.dtype_diff = None
-        self.encoded= [('TEST',u'TEST'), (sample_unicode,sample_unicode),
-            (sample_str_utf8,sample_unicode) ]
+        self.encoded= [('TEST',u'TEST'), (sample_unicode,sample_unicode)]#, (sample_str_utf8,sample_unicode) ]
         self.encoded_rejected = []
-        self.parsed= [(sample_unicode,sample_unicode),
-            (sample_str_utf8,sample_unicode) ]
+        self.parsed= [(sample_unicode,sample_unicode)]#, (sample_str_utf8,sample_unicode) ]
         self.parsed_rejected = []
 
 
@@ -232,6 +230,19 @@ class TestDataTypeTime(unittest.TestCase, BaseTestMixin):
             u'2014-02-29T00:00', u'2014-13-01T00:00',
             u'2014-02-00T00:00', u'2014-00-01T00:00',
         ]
+
+class TestDataTypeCRS(unittest.TestCase, BaseTestMixin):
+    def setUp(self):
+        self.name = 'anyURI'
+        self.dtype = CRSType 
+        self.dtype_diff = None
+        self.encoded= [(0,u'ImageCRS'), 
+            (4326, u'http://www.opengis.net/def/crs/EPSG/0/4326'), ]
+        self.encoded_rejected = [-1]
+        self.parsed= [ ('ImageCRS',0), ('EPSG:4326',4326), 
+            ('http://www.opengis.net/def/crs/EPSG/0/4326',4326), 
+            ('urn:ogc:def:crs:epsg:6.2:4326',4326)]
+        self.parsed_rejected = ["anything", "EPSG:0"]
 
 #------------------------------------------------------------------------------
 

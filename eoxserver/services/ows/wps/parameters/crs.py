@@ -1,6 +1,6 @@
 #-------------------------------------------------------------------------------
 #
-#  WPS input and output parameters and data types
+#  CRS data type.
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Martin Paces <martin.paces@eox.at>
@@ -27,27 +27,45 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from .base import Parameter
-from .literaldata import LiteralData
-from .complexdata import ComplexData, Format
-from .bboxdata import BoundingBox, BoundingBoxData
-from .units import UnitOfMeasure, UnitLinear
-from .allowed_values import (
-    BaseAllowed, AllowedAny, AllowedEnum, AllowedRange,
-    AllowedRangeCollection, AllowedByReference
-)
-from .data_types import (
-    DTYPES, BaseType, Boolean, Integer, Double, String,
-    Duration, Date, Time, DateTime
-)
-from .crs import CRSType
-from .inputs import InputReference, InputData
-from .response_form import (
-    Output, ResponseForm, ResponseDocument, RawDataOutput
+from .data_types import BaseType
+
+from eoxserver.resources.coverages.crss import (
+    asURL, fromURL, fromURN, fromShortCode, validateEPSGCode, parseEPSGCode,
 )
 
-def fix_parameter(name, prm):
-    """ Expand short-hand definition of the parameter."""
-    if isinstance(prm, Parameter):
-        return prm
-    return LiteralData(name, dtype=prm)
+class CRSType(BaseType):
+    """ CRS data-type.
+        CRS are preresented by the EPSG codes + 0 meaning the ImageCRC.
+    """
+    name = "anyURI"
+    dtype = int
+    zero = None
+    comparable = False
+
+    @classmethod
+    def parse(cls, raw_value):
+        """ Cast or parse input to its proper represenation."""
+        if isinstance(raw_value, cls.dtype):
+            if raw_value == 0 or validateEPSGCode(raw_value):
+                return raw_value
+        else:
+            if raw_value == "ImageCRS":
+                return 0
+            else:
+                value = parseEPSGCode(raw_value, (fromURL, fromURN, fromShortCode))
+                if value is not None:
+                    return value
+        raise ValueError("Invalid CRS %r!"%raw_value)
+
+    @classmethod
+    def encode(cls, value):
+        """ Encode value to a unicode string."""
+        if value == 0:
+            return u'ImageCRS'
+        elif validateEPSGCode(value):
+            return unicode(asURL(value))
+        raise ValueError("Invalid CRS %r!"%value)
+
+    @classmethod
+    def get_diff_dtype(cls): # string has no difference
+        return None
