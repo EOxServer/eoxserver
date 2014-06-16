@@ -37,7 +37,7 @@ from eoxserver.services.ows.wps.parameters import (
 #from eoxserver.services.ows.wps.parameters import (AllowedAny, AllowedEnum,
 #    AllowedRange, AllowedByReference)
 
-class TestProcess(Component):
+class TestProcess00(Component):
     """ Test identity process (the ouptuts are copies of the inputs)
         demonstrating various features of the literal data inputs
         and outputs.
