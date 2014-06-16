@@ -48,8 +48,8 @@ class LiteralData(Parameter):
         """ Object constructor.
 
             Parameters:
-                identifier  idetnfier of the parameter.
-                title       optional human-raedable name (defaults to idetfier).
+                identifier  identifier of the parameter.
+                title       optional human-raedable name (defaults to identifier).
                 abstract    optional human-redable verbose description.
                 metadata    optional metadata (title/URL dictionary).
                 optional    optional boolean flag indicating whether the input
@@ -58,7 +58,7 @@ class LiteralData(Parameter):
                             ``str`` is set by default. For list of supported
                             types see ``LiteralData.SUPPORTED_TYPES``).
                 uoms        optional sequence of the supported units.
-                defalt      optional default input value. Presence of the
+                default     optional default input value. Presence of the
                             default value sets the parameter optional.
                 allowed_values optional restriction on the accepted values.
                             By default any value of the given type is
