@@ -76,17 +76,21 @@ def _encode_raw_output(data, prm, req):
 
 def _encode_raw_literal(data, prm, req):
     """ Encode a raw literal."""
+    content_type = "text/plain" if req.mime_type is None else req.mime_type
+    content_type = "%s; charset=utf-8"%content_type
     try:
-        encoded_data = prm.encode(data, req.uom or prm.default_uom, 'utf8')
+        encoded_data = prm.encode(data, req.uom or prm.default_uom, 'utf-8')
     except (ValueError, TypeError) as exc:
         raise InvalidOutputValueException(prm.identifier, exc)
     return ResultBuffer(encoded_data, identifier=prm.identifier,
-        content_type="text/plain" if req.mime_type is None else req.mime_type)
+        content_type=content_type)
 
 def _encode_raw_bbox(data, prm, req):
     """ Encode a raw bounding box."""
+    content_type = "text/plain" if req.mime_type is None else req.mime_type
+    content_type = "%s; charset=utf-8"%content_type
     try:
-        encoded_data = prm.encode_kvp(data).encode('utf8')
+        encoded_data = prm.encode_kvp(data).encode('utf-8')
     except (ValueError, TypeError) as exc:
         raise InvalidOutputValueException(prm.identifier, exc)
     return ResultBuffer(encoded_data, identifier=prm.identifier,
