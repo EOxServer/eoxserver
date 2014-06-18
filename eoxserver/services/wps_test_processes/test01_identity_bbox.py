@@ -51,7 +51,7 @@ CRSS = (
 
 class TestProcess01(Component):
     """ Test identity process (the ouptuts are copies of the inputs)
-        demonstrating various features of the literal data inputs
+        demonstrating various features of the bounding box data inputs
         and outputs.
     """
     implements(ProcessInterface)
