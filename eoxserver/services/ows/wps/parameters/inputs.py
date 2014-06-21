@@ -50,10 +50,10 @@ class InputReference(BaseParamMetadata):
 class InputData(ParamMetadata):
     """ Raw input data."""
     def __init__(self, identifier, title=None, abstract=None,
-                        data=None, parsed_data=None, uom=None, crs=None,
-                        mime_type=None, encoding=None, schema=None):
+                        data=None, uom=None, crs=None, mime_type=None,
+                        encoding=None, schema=None, asurl=False):
         ParamMetadata.__init__(self, identifier, title, abstract, uom, crs,
                                                    mime_type, encoding, schema)
         self.data = data
-        self.parsed_data = parsed_data
+        self.asurl = asurl # set to True if data are passed as HTTP/GET URL
 

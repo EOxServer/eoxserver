@@ -28,13 +28,14 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+from lxml import etree
 from django.utils.timezone import now
 from eoxserver.core.util.timetools import isoformat
-from eoxserver.services.ows.wps.v10.util import WPS, OWS
+from eoxserver.services.ows.wps.v10.util import WPS, OWS, ns_xlink
 
 from eoxserver.services.ows.wps.parameters import (
     Parameter, LiteralData, ComplexData, BoundingBoxData,
-    fix_parameter,
+    fix_parameter, InputReference
 )
 
 from .process_description import encode_process_brief
@@ -49,7 +50,7 @@ from eoxserver.services.ows.wps.exceptions import InvalidOutputValueException
 
 class WPS10ExecuteResponseXMLEncoder(WPS10BaseXMLEncoder):
 
-    content_type = "application/xml"
+    content_type = "application/xml; charset=utf-8"
 
     @staticmethod
     def encode_response(process, results, resp_form, inputs, raw_inputs):
@@ -104,12 +105,15 @@ def _encode_common_response(process, status_elem, inputs, raw_inputs, resp_doc):
 
 def _encode_input(data, prm, raw):
     elem = encode_input_exec(raw)
-    if isinstance(prm, LiteralData):
+
+    if isinstance(raw, InputReference):
+        elem.append(_encode_input_reference(raw))
+    elif isinstance(prm, LiteralData):
         elem.append(WPS("Data", _encode_literal(data, prm, raw)))
     elif isinstance(prm, BoundingBoxData):
-        elem.append(WPS("Data", _encode_bbox(data, prm, raw)))
+        elem.append(WPS("Data", _encode_bbox(data, prm)))
     elif isinstance(prm, ComplexData):
-        elem.append(WPS("Data", _encode_complex(data, prm, raw)))
+        elem.append(WPS("Data", _encode_complex(data, prm)))
     return elem
 
 def _encode_output(data, prm, req):
@@ -118,13 +122,14 @@ def _encode_output(data, prm, req):
     if isinstance(prm, LiteralData):
         elem.append(WPS("Data", _encode_literal(data, prm, req)))
     elif isinstance(prm, BoundingBoxData):
-        elem.append(WPS("Data", _encode_bbox(data, prm, req)))
+        elem.append(WPS("Data", _encode_bbox(data, prm)))
     elif isinstance(prm, ComplexData):
-        elem.append(WPS("Data", _encode_complex(data, prm, req)))
+        elem.append(WPS("Data", _encode_complex(data, prm)))
     return elem
 
-#def _encode_reference(ref):
-#    pass
+def _encode_input_reference(ref):
+    #TODO proper input reference encoding
+    return WPS("Reference", **{ns_xlink("href"): ref.href})
 
 def _encode_literal(data, prm, req):
     attrib = {'dataType': prm.dtype.name}
@@ -137,7 +142,7 @@ def _encode_literal(data, prm, req):
         raise InvalidOutputValueException(prm.identifier, exc)
     return WPS("LiteralData", encoded_data, **attrib)
 
-def _encode_bbox(data, prm, req):
+def _encode_bbox(data, prm):
     lower, upper, crs = prm.encode_xml(data)
     return WPS("BoundingBoxData",
         OWS("LowerCorner", lower),
@@ -146,7 +151,28 @@ def _encode_bbox(data, prm, req):
         crs=crs,
     )
 
-def _encode_complex(data, prm, req):
-    #TODO: proper output encoding
-    return WPS("ComplexData")
+def _encode_format_attr(data, prm):
+    mime_type = getattr(data, 'mime_type', None)
+    if mime_type is not None:
+        encoding = getattr(data, 'encoding', None)
+        schema = getattr(data, 'schema', None)
+    else:
+        deffrm = prm.default_format
+        mime_type = deffrm.mime_type
+        encoding = deffrm.encoding
+        schema = deffrm.schema
+    attr = {"mimeType": mime_type}
+    if encoding is not None:
+        attr['encoding'] = encoding
+    if encoding is not None:
+        attr['schema'] = schema
+    return attr
 
+def _encode_complex(data, prm):
+    payload = prm.encode_xml(data)
+    elem = WPS("ComplexData", **_encode_format_attr(data, prm))
+    if isinstance(payload, etree._Element):
+        elem.append(payload)
+    else:
+        elem.text = etree.CDATA(payload)
+    return elem

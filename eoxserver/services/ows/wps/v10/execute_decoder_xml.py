@@ -28,7 +28,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-import re
+from lxml import etree
 from eoxserver.core.decoders import xml
 from eoxserver.services.ows.wps.exceptions import InvalidParameterValue
 from eoxserver.services.ows.wps.parameters import (
@@ -112,34 +112,43 @@ def _parse_input_reference(elem, identifier, title, abstract):
 
 
 def _parse_input_data(elem, identifier, title, abstract):
-    args = {}
-
     if elem.tag == ns_wps("LiteralData"):
-        args['data'] = elem.text
-        args['uom'] = elem.attrib.get("uom")
-
-    elif elem.tag == ns_wps("ComplexBoxData"):
-        if len(elem):
-            args['data'] = None
-            args['parsed_data'] = elem[0]
-        else:
-            args['data'] = elem.text
-            args['parsed_data'] = None
-        args['mime_type'] = elem.attrib.get("mimeType")
-        args['encoding'] = elem.attrib.get("encoding")
-        args['schema'] = elem.attrib.get("schema")
-
+        args = _parse_input_literal(elem)
     elif elem.tag == ns_wps("BoundingBoxData"):
-        lower_corner = elem.findtext("./"+ns_ows("LowerCorner"))
-        upper_corner = elem.findtext("./"+ns_ows("UpperCorner"))
-        if lower_corner is None or upper_corner is None:
-            raise ValueError("Invalid 'wps:BoundingBoxData' element!")
-        args['data'] = (lower_corner, upper_corner, elem.attrib.get("crs"))
-
+        args = _parse_input_bbox(elem)
+    elif elem.tag == ns_wps("ComplexData"):
+        args = _parse_input_complex(elem)
     else:
         raise ValueError("Invalid input content of the 'wps:Data' element!")
 
     return InputData(identifier, title, abstract, **args)
+
+def _parse_input_literal(elem):
+    args = {}
+    args['data'] = elem.text
+    args['uom'] = elem.attrib.get("uom")
+    return args
+
+def _parse_input_bbox(elem):
+    args = {}
+    lower_corner = elem.findtext("./"+ns_ows("LowerCorner"))
+    upper_corner = elem.findtext("./"+ns_ows("UpperCorner"))
+    if lower_corner is None or upper_corner is None:
+        raise ValueError("Invalid 'wps:BoundingBoxData' element!")
+    args['data'] = (lower_corner, upper_corner, elem.attrib.get("crs"))
+    return args
+
+def _parse_input_complex(elem):
+    args = {}
+    if len(elem):
+        args['data'] = etree.tostring(elem[0], pretty_print=False,
+                                        xml_declaration=True, encoding="utf-8")
+    else:
+        args['data'] = elem.text
+    args['mime_type'] = elem.attrib.get("mimeType")
+    args['encoding'] = elem.attrib.get("encoding")
+    args['schema'] = elem.attrib.get("schema")
+    return args
 
 
 def _create_output(identifier, attrs, title=None, abstract=None):
@@ -159,7 +168,8 @@ class WPS10ExecuteXMLDecoder(xml.Decoder):
 
     @property
     def response_form(self):
-        return self._response_form or ResponseDocument()
+        resp_form = self._response_form
+        return resp_form if resp_form is not None else ResponseDocument()
 
     @property
     def inputs(self):

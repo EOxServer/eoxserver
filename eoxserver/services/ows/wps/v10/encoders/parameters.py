@@ -29,13 +29,13 @@
 #-------------------------------------------------------------------------------
 
 from eoxserver.services.ows.wps.parameters import (
-    Parameter, LiteralData, ComplexData, BoundingBoxData, Format,
+    LiteralData, ComplexData, BoundingBoxData,
     AllowedAny, AllowedEnum, AllowedRange, AllowedRangeCollection,
     AllowedByReference,
 )
 
 from eoxserver.services.ows.wps.v10.util import (
-    OWS, WPS, NIL, ns_ows, ns_wps, ns_xlink, ns_xml
+    OWS, WPS, NIL, ns_ows,
 )
 
 #-------------------------------------------------------------------------------
@@ -163,25 +163,18 @@ def _encode_allowed_value(avobj):
 #-------------------------------------------------------------------------------
 
 def _encode_complex(prm, is_input):
-
-    formats = prm.formats
-
-    if isinstance(formats, Format):
-        formats = (formats,)
-
     return NIL("ComplexData" if is_input else "ComplexOutput",
-        WPS("Default", _encode_format(formats[0])),
-        WPS("Supported", *[_encode_format(f) for f in formats])
+        WPS("Default", _encode_format(prm.default_format)),
+        WPS("Supported", *[_encode_format(f) for f in prm.formats.itervalues()])
     )
 
 def _encode_format(frmt):
-    elem = NIL("Format",
-        NIL("MimeType", frmt.mime_type)
-    )
-    if frmt.encoding:
+    elem = NIL("Format", NIL("MimeType", frmt.mime_type))
+    if frmt.encoding is not None:
         elem.append(NIL("Encoding", frmt.encoding))
-    if frmt.encoding:
+    if frmt.schema is not None:
         elem.append(NIL("Schema", frmt.schema))
+    return elem
 
 #-------------------------------------------------------------------------------
 

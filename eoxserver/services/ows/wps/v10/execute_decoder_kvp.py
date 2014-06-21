@@ -36,16 +36,10 @@ from eoxserver.services.ows.wps.parameters import (
     InputData, InputReference, Output, ResponseDocument, RawDataOutput
 )
 
-class _AttributedValue(dict):
-    def __init__(self, value, attributes):
-        super(_AttributedValue, self).__init__(attributes)
-        self.value = value
-
-
 def _parse_inputs(raw_string):
     inputs = {}
     for item in raw_string.split(";"):
-        id_, param = _parse_param(item)
+        id_, value, param = _parse_param(item)
         href = param.get("href") or param.get("xlink:href")
         if href is not None:
             input_ = InputReference(
@@ -59,15 +53,15 @@ def _parse_inputs(raw_string):
             #NOTE: KVP Bounding box cannot be safely detected and parsed.
             input_ = InputData(
                 identifier=id_,
-                data=param.value,
+                data=value,
                 uom=param.get("uom"),
                 mime_type=param.get("mimeType"),
                 encoding=param.get("encoding"),
-                schema=param.get("schema")
+                schema=param.get("schema"),
+                asurl=True,
             )
         inputs[id_] = input_
     return inputs
-
 
 def _parse_param(raw_string):
     items = (item.partition('=') for item in raw_string.split("@"))
@@ -76,8 +70,8 @@ def _parse_param(raw_string):
     data = urllib.unquote_plus(data) if dlm else None
     for key, dlm, val in items:
         if dlm:
-            attr[key] = urllib.unquote_plus(val)
-    return id_, _AttributedValue(data, attr)
+            attr[urllib.unquote_plus(key)] = urllib.unquote_plus(val)
+    return id_, data, attr
 
 
 def _parse_outputs(raw_string):
@@ -95,7 +89,7 @@ def _parse_bool(raw_string):
     return raw_string == 'true'
 
 
-def _create_output(identifier, attrs):
+def _create_output(identifier, _, attrs):
     attr_as_reference = False
     #attr_as_reference = attrs.get("asReference")
     #if attr_as_reference is not None:

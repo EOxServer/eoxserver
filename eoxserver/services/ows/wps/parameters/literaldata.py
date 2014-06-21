@@ -151,6 +151,8 @@ class LiteralData(Parameter):
 
             The value is checked to match the defined allowed values
             restriction and the UOM conversion is applied.
+
+            Returns unicode or byte-string if the encoding is given.
         """
         try:
             _value = self._allowed_values.verify(value)
@@ -161,14 +163,23 @@ class LiteralData(Parameter):
             raise ValueError("Output encoding error: '%s' (value '%s')"
                                                         "" % (str(exc), value))
 
-    def parse(self, raw_value, uom=None, encoding=None):
+    def parse(self, raw_value, uom=None, encoding="utf-8"):
         """ Parse the input value from its string representation.
 
             The value is checked to match the defined allowed values
             restriction and the UOM conversion is applied.
+
+            Non-unicode raw_data are converted to unicode before parsing.
+            Byte strings are decoded using the profided encoding (utf8 by
+            default).
         """
         try:
-            _value = unicode(raw_value, encoding) if encoding else raw_value
+            if isinstance(raw_value, unicode):
+                _value = raw_value
+            elif isinstance(raw_value, str):
+                _value = unicode(raw_value, encoding)
+            else:
+                _value = unicode(raw_value)
             _value = self._dtype.parse(raw_value)
             _value = self.strip_uom(_value, uom or self.default_uom)
             _value = self._allowed_values.verify(_value)

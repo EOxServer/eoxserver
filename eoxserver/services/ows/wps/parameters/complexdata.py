@@ -28,23 +28,256 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+import json
+from lxml import etree
+from copy import deepcopy
+from StringIO import StringIO
+
+try:
+    from cStringIO import StringIO as FastStringIO
+except ImportError:
+    FastStringIO = StringIO
+
+try:
+    # available in Python 2.7+
+    from collections import OrderedDict
+except ImportError:
+    from django.utils.datastructures import SortedDict as OrderedDict
+
 from .base import Parameter
+from .formats import Format
+
+#-------------------------------------------------------------------------------
+# complex data - data containers
+
+class CDBase(object):
+    """ Base class of the complex data container. """
+    def __init__(self, mime_type=None, encoding=None, schema=None, format=None):
+        if isinstance(format, Format):
+            self.mime_type = format.mime_type
+            self.encoding = format.encoding
+            self.schema = format.schema
+        else:
+            self.mime_type = mime_type
+            self.encoding = encoding
+            self.schema = schema
+
+
+class CDObject(CDBase):
+    """ Complex data wraper arround an arbitraty python object.
+
+        To be used to set custom format attributes for the XML
+        and JSON payload.
+
+        NOTE: CDObject is not used for the input JSON and XML.
+    """
+    def __init__(self, data, mime_type=None, encoding=None, schema=None,
+                        format=None):
+        CDBase.__init__(self, mime_type, encoding, schema, format)
+        self.data = data
+
+
+class CDTextBuffer(StringIO, CDBase):
+    """ Complex data text (unicode) in-memory buffer (StringIO).
+
+        To be used to set custom format attributes for the XML
+        and JSON payload.
+    """
+    def __init__(self, data=u'', mime_type=None, encoding=None, schema=None,
+                        format=None):
+        StringIO.__init__(self, unicode(data))
+        CDBase.__init__(self, mime_type, encoding, schema, format)
+
+    @property
+    def data(self):
+        self.seek(0)
+        return self.read()
+
+    def write(self, data):
+        StringIO.write(self, unicode(data))
+
+
+class CDByteBuffer(StringIO, CDBase):
+    """ Complex data text in-memory buffer (cStringIO/StringIO).
+
+        To be used to set custom format attributes for the XML
+        and JSON payload.
+    """
+    def __init__(self, data='', mime_type=None, encoding=None, schema=None,
+                        format=None):
+        StringIO.__init__(self, str(data))
+        CDBase.__init__(self, mime_type, encoding, schema, format)
+
+    def write(self, data):
+        StringIO.write(self, str(data))
+
+    @property
+    def data(self):
+        self.seek(0)
+        return self.read()
+
+
+class CDFile(file, CDBase):
+    """ Complex data file (StringIO).
+
+        To be used to set custom format attributes for the XML
+        and JSON payload.
+    """
+    def __init__(self, name, mode='r', buffering=-1,
+                    mime_type=None, encoding=None, schema=None, format=None):
+        file.__init__(self, name, mode, buffering)
+        CDBase.__init__(self, mime_type, encoding, schema, format)
 
 #-------------------------------------------------------------------------------
 
 class ComplexData(Parameter):
-    def __init__(self, identifier, formats=None, *args, **kwargs):
+    """ complex-data parameter class """
+
+    def __init__(self, identifier, formats, *args, **kwargs):
+        """ Object constructor.
+
+            Parameters:
+                identifier  identifier of the parameter.
+                title       optional human-raedable name (defaults to identifier).
+                abstract    optional human-redable verbose description.
+                metadata    optional metadata (title/URL dictionary).
+                optional    optional boolean flag indicating whether the input
+                            parameter is optional or not.
+                formats     List of supported formats.
+        """
         super(ComplexData, self).__init__(identifier, *args, **kwargs)
-        self.formats = formats
+        self.formats = OrderedDict()
+        if isinstance(formats, Format):
+            formats = (formats,)
+        for frm in formats:
+            self.formats[(frm.mime_type, frm.encoding, frm.schema)] = frm
 
-class Format(object):
-    def __init__(self, mime_type, encoding=None, schema=None, encoder=None):
-        self.mime_type = mime_type
-        self.encoding = encoding
-        self.schema = schema
-        self.encoder = encoder
+    @property
+    def default_format(self):
+        return self.formats.itervalues().next()
 
-    def encode_data(self, data):
-        if self.encoder:
-            return self.encoder
-        raise NotImplementedError
+    def get_format(self, mime_type, encoding=None, schema=None):
+        if mime_type is None:
+            return self.default_format
+        else:
+            return self.formats.get((mime_type, encoding, schema))
+
+#    def verify_format(self, format):
+#        """ Returns valid format or rise value error exception."""
+#        if format is None:
+#            return self.default_format
+#        tmp = (format.mime_type, format.encoding, format.schema)
+#        if tmp in self.formats:
+#            return format
+#        raise ValueError("Invalid format %r"%format)
+
+    def parse(self, data, mime_type, schema, encoding, **opt):
+        """ parse input complex data """
+        format_ = self.get_format(mime_type, encoding, schema)
+        if format_ is None:
+            raise ValueError("Invalid format specification! mime_type=%r, "
+                "encoding=%r, schema=%r"%(mime_type, encoding, schema))
+        text_encoding = getattr(format_, 'text_encoding', 'utf-8')
+        fattr = {
+            'mime_type': format_.mime_type,
+            'encoding': format_.encoding,
+            'schema': format_.schema
+        }
+        if format_.is_xml:
+            parsed_data = CDObject(etree.fromstring(data), **fattr)
+        elif format_.is_json:
+            parsed_data = CDObject(json.loads(_unicode(data, text_encoding)), **fattr)
+        elif format_.is_text:
+            parsed_data = CDTextBuffer(_unicode(data, text_encoding), **fattr)
+            parsed_data.seek(0)
+        else: # generic binary byte-stream
+            parsed_data = CDByteBuffer(data, **fattr)
+            if format_.encoding is not None:
+                data_out = FastStringIO()
+                for chunk in format_.decode(parsed_data, **opt):
+                    data_out.write(chunk)
+                parsed_data = data_out
+            parsed_data.seek(0)
+        return parsed_data
+
+    def encode_xml(self, data):
+        """ encode complex data to be embedded to an XML document"""
+        mime_type = getattr(data, 'mime_type', None)
+        encoding = getattr(data, 'encoding', None)
+        schema = getattr(data, 'schema', None)
+        format_ = self.get_format(mime_type, encoding, schema)
+        if format_ is None:
+            raise ValueError("Invalid format specification! mime_type=%r, "
+                "encoding=%r, schema=%r"%(mime_type, encoding, schema))
+        if not format_.allows_xml_embedding:
+            raise ValueError("Selected format does not allows XML embedding! "
+                                "mime_type=%r, encoding=%r, schema=%r"%(
+                                mime_type, encoding, schema))
+        if isinstance(data, CDObject):
+            data = data.data
+        if format_.is_xml:
+            if isinstance(data, etree._ElementTree):
+                data = data.getroot()
+            return deepcopy(data)
+        elif format_.is_json:
+            return json.dumps(data, ensure_ascii=False)
+        elif format_.is_text:
+            if not isinstance(data, basestring):
+                data.seek(0)
+                data = data.read()
+            return data
+        else: # generic binary byte-stream
+            if format_.encoding is not None:
+                data.seek(0)
+                data_out = FastStringIO()
+                for chunk in format_.encode(data):
+                    data_out.write(chunk)
+                data = data_out
+            data.seek(0)
+            return data.read()
+
+    def encode_raw(self, data):
+        """ encode complex data for raw output """
+        mime_type = getattr(data, 'mime_type', None)
+        encoding = getattr(data, 'encoding', None)
+        schema = getattr(data, 'schema', None)
+        format_ = self.get_format(mime_type, encoding, schema)
+        text_encoding = getattr(format_, 'text_encoding', 'utf-8')
+        if format_ is None:
+            raise ValueError("Invalid format specification! mime_type=%r, "
+                "encoding=%r, schema=%r"%(mime_type, encoding, schema))
+        if isinstance(data, CDObject):
+            data = data.data
+        if format_.is_xml:
+            data = FastStringIO(etree.tostring(data, pretty_print=False,
+                                xml_declaration=True, encoding=text_encoding))
+            content_type = "%s; charset=%s"%(format_.mime_type, text_encoding)
+        elif format_.is_json:
+            data = FastStringIO(json.dumps(data, ensure_ascii=False).encode(text_encoding))
+            content_type = "%s; charset=%s"%(format_.mime_type, text_encoding)
+        elif format_.is_text:
+            data = FastStringIO(data.read().encode(text_encoding))
+            content_type = "%s; charset=%s"%(format_.mime_type, text_encoding)
+        else: # generic binary byte-stream
+            if format_.encoding is not None:
+                data_out = FastStringIO()
+                for chunk in format_.encode(data):
+                    data_out.write(chunk)
+                data.seek(0)
+                data = data_out
+            content_type = format_.mime_type
+        data.seek(0)
+        return data, content_type
+
+
+def _bytestring(data):
+    if isinstance(data, str):
+        return data
+    raise TypeError("Byte string expected, %s received!"%type(data))
+
+def _unicode(data, encoding):
+    if isinstance(data, unicode):
+        return data
+    elif isinstance(data, str):
+        return unicode(data, encoding)
+    raise TypeError("Byte od unicode string expected, %s received!"%type(data))

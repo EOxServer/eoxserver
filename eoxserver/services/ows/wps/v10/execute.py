@@ -48,8 +48,7 @@ from eoxserver.services.ows.wps.exceptions import (
     InvalidReferenceException, InvalidInputValueException,
 )
 from eoxserver.services.ows.wps.parameters import (
-    fix_parameter, Parameter, LiteralData, BoundingBoxData, ComplexData,
-    InputReference,
+    fix_parameter, LiteralData, BoundingBoxData, ComplexData, InputReference,
 )
 from eoxserver.services.ows.wps.v10.encoders import (
     WPS10ExecuteResponseXMLEncoder, WPS10ExecuteResponseRawEncoder
@@ -116,7 +115,7 @@ class WPS10ExcecuteHandler(Component):
         response = encoder.encode_response(
                       process, packed_outputs, resp_form, inputs, raw_inputs)
 
-        return encoder.serialize(response), encoder.content_type
+        return encoder.serialize(response, encoding='utf-8'), encoder.content_type
 
 
 def _normalize_params(param_defs):
@@ -157,7 +156,7 @@ def decode_process_inputs(input_defs, raw_inputs, request):
             except ValueError as exc:
                 raise InvalidInputValueException(prm.identifier, exc)
         elif prm.is_optional:
-            value = getattr(prm,'default',None)
+            value = getattr(prm, 'default', None)
         else:
             raise MissingRequiredInputException(prm.identifier)
         decoded_inputs[name] = value
@@ -197,6 +196,9 @@ def _decode_input(prm, raw_value):
         return prm.parse(raw_value.data, raw_value.uom)
     elif isinstance(prm, BoundingBoxData):
         return prm.parse(raw_value.data)
+    elif isinstance(prm, ComplexData):
+        return prm.parse(raw_value.data, raw_value.mime_type,
+                raw_value.schema, raw_value.encoding, urlsafe=raw_value.asurl)
     else:
         raise TypeError("Unsupported parameter type %s!"%(type(prm)))
 

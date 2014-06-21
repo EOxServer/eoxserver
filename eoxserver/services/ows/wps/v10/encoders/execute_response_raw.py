@@ -28,8 +28,10 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+import types
+
 from eoxserver.services.result import (
-    to_http_response, ResultBuffer, #ResultFile,
+    to_http_response, ResultItem, #ResultFile,
 )
 from eoxserver.services.ows.wps.parameters import (
     LiteralData, ComplexData, BoundingBoxData,
@@ -37,12 +39,18 @@ from eoxserver.services.ows.wps.parameters import (
 
 from eoxserver.services.ows.wps.exceptions import InvalidOutputValueException
 
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from StringIO import StringIO
+
+
 #-------------------------------------------------------------------------------
 
 class WPS10ExecuteResponseRawEncoder(object):
 
     @staticmethod
-    def serialize(result_items):
+    def serialize(result_items, **kwargs):
         return to_http_response(result_items)
 
     def __init__(self):
@@ -64,6 +72,52 @@ class WPS10ExecuteResponseRawEncoder(object):
 
 #-------------------------------------------------------------------------------
 
+class ResultAlt(ResultItem):
+    """ Alternative implementation of the result buffer. The object can be
+    inifilized by a byte-string, by a sequence or generator of byte-string,
+    or by a seekable file(-like) object.
+    """
+
+    def __init__(self, buf, content_type=None, filename=None, identifier=None,
+                    close=False):
+        ResultItem.__init__(self, content_type, filename, identifier)
+        if isinstance(buf, basestring):
+            self._file = StringIO(str(buf)) # make sure a byte string is passed
+        elif isinstance(buf, (tuple, list, types.GeneratorType)):
+            tmp = StringIO()
+            for chunk in buf:
+                tmp.write(chunk)
+            self._file = tmp
+        else:
+            self._file = buf
+        self._close = close
+
+    def __del__(self):
+        if self._close:
+            self._file.close()
+
+    def __len__(self):
+        self._file.seek(0, 2)
+        return self._file.tell()
+
+    @property
+    def data_file(self):
+        self._file.seek(0)
+        return self._file
+
+    @property
+    def data(self):
+        return self.data_file.read()
+
+    def chunked(self, chunksize):
+        if chunksize < 0:
+            raise ValueError("Invalid chunk-size %d"%chunksize)
+        data_file = self.data_file
+        for chunk in iter(lambda: data_file.read(chunksize), ''):
+            yield chunk
+
+#-------------------------------------------------------------------------------
+
 def _encode_raw_output(data, prm, req):
     """ Encode a raw output item."""
     if isinstance(prm, LiteralData):
@@ -71,7 +125,7 @@ def _encode_raw_output(data, prm, req):
     elif isinstance(prm, BoundingBoxData):
         return _encode_raw_bbox(data, prm, req)
     elif isinstance(prm, ComplexData):
-        return _encode_raw_complex(data, prm, req)
+        return _encode_raw_complex(data, prm)
     raise TypeError("Invalid output type! %r"%(prm))
 
 def _encode_raw_literal(data, prm, req):
@@ -82,7 +136,7 @@ def _encode_raw_literal(data, prm, req):
         encoded_data = prm.encode(data, req.uom or prm.default_uom, 'utf-8')
     except (ValueError, TypeError) as exc:
         raise InvalidOutputValueException(prm.identifier, exc)
-    return ResultBuffer(encoded_data, identifier=prm.identifier,
+    return ResultAlt(encoded_data, identifier=prm.identifier,
         content_type=content_type)
 
 def _encode_raw_bbox(data, prm, req):
@@ -93,11 +147,11 @@ def _encode_raw_bbox(data, prm, req):
         encoded_data = prm.encode_kvp(data).encode('utf-8')
     except (ValueError, TypeError) as exc:
         raise InvalidOutputValueException(prm.identifier, exc)
-    return ResultBuffer(encoded_data, identifier=prm.identifier,
+    return ResultAlt(encoded_data, identifier=prm.identifier,
         content_type="text/plain" if req.mime_type is None else req.mime_type)
 
-def _encode_raw_complex(data, prm, req):
-    #TODO: proper output encoding
+def _encode_raw_complex(data, prm):
     """ Encode raw complex data."""
-    return None
-
+    payload, content_type = prm.encode_raw(data)
+    return ResultAlt(payload, identifier=prm.identifier,
+                                                     content_type=content_type)
