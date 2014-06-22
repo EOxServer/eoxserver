@@ -101,24 +101,29 @@ class GDALReferenceableDatasetRenderer(Component):
 
         driver_metadata = out_driver.GetMetadata_Dict()
         mime_type = driver_metadata.get("DMD_MIMETYPE")
+        extension = driver_metadata.get("DMD_EXTENSION")
 
         time_stamp = datetime.now().strftime("%Y%m%d%H%M%S")
         filename_base = "%s_%s" % (coverage.identifier, time_stamp)
 
         result_set = [
             ResultFile(
-                path, mime_type, filename_base + splitext(path)[1],
+                path, mime_type, "%s.%s" % (filename_base, extension),
                 ("cid:coverage/%s" % coverage.identifier) if i == 0 else None
             ) for i, path in enumerate(out_ds.GetFileList())
         ]
 
         if params.mediatype.startswith("multipart"):
-            reference = result_set[0].identifier
+            reference = "cid:coverage/%s" % result_set[0].filename
             
             if subsets.has_x and subsets.has_y:
                 footprint = GEOSGeometry(reftools.get_footprint_wkt(out_ds))
+                if not subsets.xy_srid:
+                    extent = footprint.extent
+                else:
+                    extent = subsets.xy_bbox
                 encoder_subset = (
-                    subsets.xy_srid, src_rect.size, coverage.extent, footprint
+                    subsets.xy_srid, src_rect.size, extent, footprint
                 )
             else:
                 encoder_subset = None

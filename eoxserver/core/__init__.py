@@ -32,7 +32,10 @@ import threading
 
 from django.utils.importlib import import_module
 
-from eoxserver.core.component import *
+from eoxserver.core.component import (
+    ComponentManager, ComponentMeta, Component, 
+    ExtensionPoint, UniqueExtensionPoint, implements
+)
 from eoxserver.core.util.importtools import easy_import
 
 
@@ -41,6 +44,7 @@ logger = logging.getLogger(__name__)
 
 __init_lock = threading.RLock()
 __is_initialized = False
+
 
 def initialize():
     """ Initialize the EOxServer plugin system by trying to import all the 

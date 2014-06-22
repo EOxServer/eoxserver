@@ -47,7 +47,9 @@ from eoxserver.services.ows.wcs.v20.util import (
 from eoxserver.services.ows.wcs.v20.encoders import WCS20EOXMLEncoder
 from eoxserver.services.ows.common.config import WCSEOConfigReader
 from eoxserver.services.subset import Subsets, Trim
-from eoxserver.services.exceptions import NoSuchDatasetSeriesOrCoverageException
+from eoxserver.services.exceptions import (
+    NoSuchDatasetSeriesOrCoverageException, InvalidSubsettingException
+)
 
 
 logger = logging.getLogger(__name__)
@@ -92,7 +94,7 @@ class WCS20DescribeEOCoverageSetHandler(Component):
         try:
             subsets = Subsets(decoder.subsets, allowed_types=Trim)
         except ValueError, e:
-            raise InvalidSubset(str(e))
+            raise InvalidSubsettingException(str(e))
 
         inc_dss_section = decoder.section_included("DatasetSeriesDescriptions")
         inc_cov_section = decoder.section_included("CoverageDescriptions")

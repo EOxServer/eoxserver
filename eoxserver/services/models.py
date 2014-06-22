@@ -44,5 +44,5 @@ class WMSRenderOptions(models.Model):
     resampling = models.CharField(null=True, blank=True, max_length=16)
 
     scale_auto = models.BooleanField(default=False)
-    scale_min = models.PositiveSmallIntegerField(null=True)
-    scale_max = models.PositiveSmallIntegerField(null=True)
+    scale_min = models.PositiveIntegerField(null=True)
+    scale_max = models.PositiveIntegerField(null=True)

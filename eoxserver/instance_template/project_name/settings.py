@@ -266,7 +266,7 @@ LOGGING = {
             'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': False,
         },
-        '': {
+        'django': {
             'handlers': ['stderr_stream'],
             'level': 'WARNING',
             'propagate': False,

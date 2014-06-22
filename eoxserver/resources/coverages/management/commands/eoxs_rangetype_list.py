@@ -82,7 +82,6 @@ class Command(CommandOutputMixIn, BaseCommand):
             help=("Optional. Write output to a file rather than to the default"
                   " standard output." )
         ),
-        
     )
 
     args = "[<rt-id> [<rt-id> ...]]"
