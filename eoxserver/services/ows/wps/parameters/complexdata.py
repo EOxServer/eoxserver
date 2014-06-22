@@ -76,32 +76,10 @@ class CDObject(CDBase):
         CDBase.__init__(self, mime_type, encoding, schema, format)
         self.data = data
 
-
-class CDTextBuffer(StringIO, CDBase):
-    """ Complex data text (unicode) in-memory buffer (StringIO).
-
-        To be used to set custom format attributes for the XML
-        and JSON payload.
-    """
-    def __init__(self, data=u'', mime_type=None, encoding=None, schema=None,
-                        format=None):
-        StringIO.__init__(self, unicode(data))
-        CDBase.__init__(self, mime_type, encoding, schema, format)
-
-    @property
-    def data(self):
-        self.seek(0)
-        return self.read()
-
-    def write(self, data):
-        StringIO.write(self, unicode(data))
-
-
 class CDByteBuffer(StringIO, CDBase):
-    """ Complex data text in-memory buffer (cStringIO/StringIO).
+    """ Complex data binary in-memory buffer (StringIO).
 
-        To be used to set custom format attributes for the XML
-        and JSON payload.
+        To be used to hold a generic binary (byte-stream) payload.
     """
     def __init__(self, data='', mime_type=None, encoding=None, schema=None,
                         format=None):
@@ -115,6 +93,71 @@ class CDByteBuffer(StringIO, CDBase):
     def data(self):
         self.seek(0)
         return self.read()
+
+
+class CDTextBuffer(StringIO, CDBase):
+    """ Complex data text (unicode) in-memory buffer (StringIO).
+
+        To be used to hold generic text. The the text payload
+        is stored as a unicode-stream.
+
+        Set the 'text_encoding' parameter is unicode encoding/decoding
+        shall be applied.
+    """
+    def __init__(self, data=u'', mime_type=None, encoding=None, schema=None,
+                        format=None, text_encoding=None):
+        StringIO.__init__(self, unicode(data))
+        CDBase.__init__(self, mime_type, encoding, schema, format)
+        self.text_encoding = text_encoding
+
+    @property
+    def data(self):
+        self.seek(0)
+        return self.read()
+
+    def write(self, data):
+        if self.text_encoding is None:
+            return StringIO.write(self, unicode(data))
+        else:
+            return StringIO.write(self, unicode(data, self.text_encoding))
+
+    def read(self, size=None):
+        if size is None:
+            data = StringIO.read(self)
+        else:
+            data = StringIO.read(self, size)
+        if self.text_encoding is None:
+            return data
+        else:
+            return data.encode(self.text_encoding)
+
+
+class CDAsciiTextBuffer(CDByteBuffer):
+    """ Complex data text (ascii) in-memory buffer (StringIO).
+
+        To be used to hold generic ascii text. The the text payload
+        is stored as a byte-stream and this class cannot hold
+        characters outside of the 7-bit ascii characters' range.
+    """
+    def __init__(self, data='', mime_type=None, encoding=None, schema=None,
+                        format=None, text_encoding=None):
+        CDByteBuffer.__init__(self, data, mime_type, encoding, schema, format)
+        self.text_encoding = text_encoding
+
+    def write(self, data):
+        if not isinstance(data, basestring):
+            data = str(data)
+        StringIO.write(self, data.encode('ascii'))
+
+    def read(self, size=None):
+        if size is None:
+            data = StringIO.read(self)
+        else:
+            data = StringIO.read(self, size)
+        if self.text_encoding is None:
+            return data
+        else:
+            return data.encode(self.text_encoding)
 
 
 class CDFile(file, CDBase):
@@ -238,6 +281,10 @@ class ComplexData(Parameter):
 
     def encode_raw(self, data):
         """ encode complex data for raw output """
+        def _rewind(fid):
+            if hasattr(fid, 'seek'):
+                fid.seek(0)
+            return data
         mime_type = getattr(data, 'mime_type', None)
         encoding = getattr(data, 'encoding', None)
         schema = getattr(data, 'schema', None)
@@ -256,18 +303,19 @@ class ComplexData(Parameter):
             data = FastStringIO(json.dumps(data, ensure_ascii=False).encode(text_encoding))
             content_type = "%s; charset=%s"%(format_.mime_type, text_encoding)
         elif format_.is_text:
-            data = FastStringIO(data.read().encode(text_encoding))
+            if isinstance(data, (CDTextBuffer, CDAsciiTextBuffer)):
+                data.text_encoding = text_encoding
+            else:
+                data = FastStringIO(_rewind(data).read().encode(text_encoding))
             content_type = "%s; charset=%s"%(format_.mime_type, text_encoding)
         else: # generic binary byte-stream
             if format_.encoding is not None:
                 data_out = FastStringIO()
-                for chunk in format_.encode(data):
+                for chunk in format_.encode(_rewind(data)):
                     data_out.write(chunk)
-                data.seek(0)
                 data = data_out
             content_type = format_.mime_type
-        data.seek(0)
-        return data, content_type
+        return _rewind(data), content_type
 
 
 def _bytestring(data):

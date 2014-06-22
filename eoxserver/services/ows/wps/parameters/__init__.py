@@ -31,6 +31,7 @@ from .base import Parameter
 from .literaldata import LiteralData
 from .complexdata import (
     ComplexData, CDBase, CDObject, CDTextBuffer, CDByteBuffer, CDFile,
+    CDAsciiTextBuffer,
 )
 from .formats import (
     Format, FormatText, FormatXML, FormatJSON,
