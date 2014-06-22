@@ -27,13 +27,14 @@
 
 import csv
 from datetime import datetime
-from StringIO import StringIO
 
 from eoxserver.core import Component, implements
 from eoxserver.core.util.timetools import isoformat
 
 from eoxserver.services.ows.wps.interfaces import ProcessInterface
-from eoxserver.services.ows.wps.parameters import LiteralData, ComplexData
+from eoxserver.services.ows.wps.parameters import (
+    LiteralData, ComplexData, CDTextBuffer, CDAsciiTextBuffer, FormatText
+)
 from eoxserver.services.ows.wps.exceptions import InvalidInputValueException
 
 from eoxserver.resources.coverages import models
@@ -45,19 +46,26 @@ class GetTimeDataProcess(Component):
     implements(ProcessInterface)
 
     identifier = "getTimeData"
-    title = "Retrieves time information about a collection"
-    description = "Creates csv output of coverage time information of collections."
+    title = "Get times of collection coverages."
+    decription = "Query collection and get list of coverages and their times" \
+            " and spatial extents. The process is used by the time-slider " \
+            " of the EOxClient (web client)."
     metadata = {}
     profiles = ['EOxServer:GetTimeData']
 
     inputs = {
-        "collection": str,
-        "begin_time": LiteralData("begin_time", datetime, optional=True),
-        "end_time": LiteralData("end_time", datetime, optional=True),
+        "collection": LiteralData("collection",
+            title="Collection name (a.k.a. dataset-series identifier)."),
+        "begin_time": LiteralData("begin_time", datetime, optional=True,
+            title="Optional start of the time interval."),
+        "end_time": LiteralData("end_time", datetime, optional=True,
+            title="Optional end of the time interval."),
     }
 
     outputs = {
-        "times": str
+        "times": ComplexData("times", formats=FormatText('text/csv'),
+                title="Comma separated list of collection's coverages, their" \
+                    " extents and times.")
     }
 
     @staticmethod
@@ -90,7 +98,7 @@ class GetTimeDataProcess(Component):
         coverages_qs = coverages_qs.order_by('begin_time', 'end_time')
 
         # create the output
-        output = StringIO()
+        output = CDAsciiTextBuffer()
         writer = csv.writer(output, quoting=csv.QUOTE_ALL)
         header = ["starttime", "endtime", "bbox", "identifier"]
         writer.writerow(header)
@@ -102,5 +110,4 @@ class GetTimeDataProcess(Component):
             bbox = coverage.extent_wgs84
             writer.writerow([isoformat(starttime), isoformat(endtime), bbox, identifier])
 
-        return output.getvalue()
-
+        return output
