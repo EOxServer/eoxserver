@@ -28,6 +28,8 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+import os
+import os.path
 import json
 from lxml import etree
 from copy import deepcopy
@@ -160,16 +162,50 @@ class CDAsciiTextBuffer(CDByteBuffer):
             return data.encode(self.text_encoding)
 
 
-class CDFile(file, CDBase):
-    """ Complex data file (StringIO).
+class CDFile(CDBase):
+    """ Complex data binary file.
 
-        To be used to set custom format attributes for the XML
-        and JSON payload.
+        To be used to hold a generic binary (byte-stream) payload.
+
+        NOTE: The file allows you to specify whether the file is
+              temporary (will be atomatically removed - by default)
+              or permanent (preserverved after object destruction).
     """
+
     def __init__(self, name, mode='r', buffering=-1,
-                    mime_type=None, encoding=None, schema=None, format=None):
-        file.__init__(self, name, mode, buffering)
+                    mime_type=None, encoding=None, schema=None, format=None,
+                    remove_file=True):
         CDBase.__init__(self, mime_type, encoding, schema, format)
+        self._file = file(name, mode, buffering)
+        self._remove_file = remove_file
+
+    def __del__(self):
+        name = self.name
+        self.close()
+        if self._remove_file:
+            os.remove(name)
+
+    @property
+    def data(self):
+        self.seek(0)
+        return self.read()
+
+    def __getattr__(self, attr):
+        return getattr(self._file, attr)
+
+
+class CDPermanentFile(CDFile):
+    """ Complex data permanent binary file.
+
+        To be used to hold a generic binary (byte-stream) payload.
+
+        NOTE: This class preserves the actual file.
+    """
+
+    def __init__(self, remove_file, name, mode='r', buffering=-1,
+                    mime_type=None, encoding=None, schema=None, format=None):
+        CDFile.__init__(name, mode, buffering, mime_type, encoding, schema,
+                        format, False)
 
 #-------------------------------------------------------------------------------
 

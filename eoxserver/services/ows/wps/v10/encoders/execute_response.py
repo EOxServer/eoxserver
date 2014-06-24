@@ -164,7 +164,7 @@ def _encode_format_attr(data, prm):
     attr = {"mimeType": mime_type}
     if encoding is not None:
         attr['encoding'] = encoding
-    if encoding is not None:
+    if schema is not None:
         attr['schema'] = schema
     return attr
 

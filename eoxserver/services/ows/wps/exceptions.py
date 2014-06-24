@@ -91,6 +91,11 @@ class InvalidOutputValueException(NoApplicableCode):
         message = "Invalid output value of '%s'! %s"%(output_id, message)
         NoApplicableCode.__init__(self, message, output_id)
 
+class InvalidOutputDefException(InvalidParameterValue):
+    def __init__(self, output_id, message=""):
+        message = "Invalid output definition of '%s'! %s"%(output_id, message)
+        InvalidParameterValue.__init__(self, message, output_id)
+
 class InvalidInputException(InvalidParameterValue):
     def __init__(self, input_id):
         message = "Invalid input '%s'!"%(input_id)

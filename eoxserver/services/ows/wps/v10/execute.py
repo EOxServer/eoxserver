@@ -44,7 +44,7 @@ from eoxserver.services.ows.interfaces import (
 from eoxserver.services.ows.wps.interfaces import ProcessInterface
 from eoxserver.services.ows.wps.exceptions import (
     NoSuchProcessException, MissingRequiredInputException,
-    InvalidInputException, InvalidOutputException,
+    InvalidInputException, InvalidOutputException, InvalidOutputDefException,
     InvalidReferenceException, InvalidInputValueException,
 )
 from eoxserver.services.ows.wps.parameters import (
@@ -101,7 +101,9 @@ class WPS10ExcecuteHandler(Component):
         _check_invalid_inputs(input_ids, raw_inputs)
         _check_invalid_outputs(output_ids, resp_form)
 
-        inputs = decode_process_inputs(input_defs, raw_inputs, request)
+        inputs = {}
+        inputs.update(prepare_process_output_requests(output_defs, resp_form))
+        inputs.update(decode_process_inputs(input_defs, raw_inputs, request))
 
         outputs = process.execute(**inputs)
 
@@ -144,7 +146,6 @@ def decode_process_inputs(input_defs, raw_inputs, request):
         all given inputs. This also includes resolving references
     """
     decoded_inputs = {}
-
     for name, prm in input_defs:
         raw_value = raw_inputs.get(prm.identifier)
         if raw_value is not None:
@@ -160,9 +161,27 @@ def decode_process_inputs(input_defs, raw_inputs, request):
         else:
             raise MissingRequiredInputException(prm.identifier)
         decoded_inputs[name] = value
-
     return decoded_inputs
 
+def prepare_process_output_requests(output_defs, response_form):
+    """ Complex data format selection (mimeType, encoding, schema)
+        is passed as an input to the process
+    """
+    output_requests = {}
+    for name, prm in output_defs:
+        outreq = response_form.get_output(prm.identifier)
+        if isinstance(prm, ComplexData):
+            format_ = prm.get_format(outreq.mime_type, outreq.encoding, outreq.schema)
+            if format_ is None:
+                raise InvalidOutputDefException(prm.identifier, "Invalid "
+                    "complex data format! mimeType=%r encoding=%r schema=%r"
+                    ""%(outreq.mime_type, outreq.encoding, outreq.schema))
+            output_requests[name] = {
+                "mime_type": format_.mime_type,
+                "encoding": format_.encoding,
+                "schema": format_.schema,
+            }
+    return output_requests
 
 def pack_process_outputs(output_defs, results, response_form):
     """ Collect data, output declaration and output request for each item."""
@@ -172,14 +191,12 @@ def pack_process_outputs(output_defs, results, response_form):
             results = {output_defs[0][0]: results}
         else:
             results = dict(results)
-
     # Pack the results to a tuple containing:
     #   - the output data (before encoding)
     #   - the process output declaration (ProcessDescription/Output)
     #   - the output's requested form (RequestForm/Output)
     packd_results = OrderedDict()
     for name, prm in output_defs:
-        prm = fix_parameter(name, prm) # short-hand def. expansion
         outreq = response_form.get_output(prm.identifier)
         result = results.get(name)
         # TODO: Can we silently skip the missing outputs? Check the standard!
@@ -187,7 +204,6 @@ def pack_process_outputs(output_defs, results, response_form):
             packd_results[prm.identifier] = (result, prm, outreq)
         elif isinstance(prm, LiteralData) and prm.default is not None:
             packd_results[prm.identifier] = (prm.default, prm, outreq)
-
     return packd_results
 
 def _decode_input(prm, raw_value):
