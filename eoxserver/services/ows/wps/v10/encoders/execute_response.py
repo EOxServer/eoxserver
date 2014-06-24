@@ -44,7 +44,7 @@ from .parameters import (
 )
 from .base import WPS10BaseXMLEncoder
 
-from eoxserver.services.ows.wps.exceptions import InvalidOutputValueException
+from eoxserver.services.ows.wps.exceptions import InvalidOutputValueError
 
 #-------------------------------------------------------------------------------
 
@@ -139,7 +139,7 @@ def _encode_literal(data, prm, req):
     try:
         encoded_data = prm.encode(data, uom)
     except (ValueError, TypeError) as exc:
-        raise InvalidOutputValueException(prm.identifier, exc)
+        raise InvalidOutputValueError(prm.identifier, exc)
     return WPS("LiteralData", encoded_data, **attrib)
 
 def _encode_bbox(data, prm):

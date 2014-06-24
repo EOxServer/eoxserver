@@ -35,7 +35,7 @@ from eoxserver.services.ows.wps.interfaces import ProcessInterface
 from eoxserver.services.ows.wps.parameters import (
     LiteralData, ComplexData, CDTextBuffer, CDAsciiTextBuffer, FormatText
 )
-from eoxserver.services.ows.wps.exceptions import InvalidInputValueException
+from eoxserver.services.ows.wps.exceptions import InvalidInputValueError
 
 from eoxserver.resources.coverages import models
 
@@ -77,7 +77,7 @@ class GetTimeDataProcess(Component):
         try:
             series = models.DatasetSeries.objects.get(identifier=collection)
         except models.DatasetSeries.DoesNotExist:
-            raise InvalidInputValueException("collection", "Invalid collection name '%s'!"%collection)
+            raise InvalidInputValueError("collection", "Invalid collection name '%s'!"%collection)
 
         # recursive dataset series lookup
         def _get_children_ids(ds):

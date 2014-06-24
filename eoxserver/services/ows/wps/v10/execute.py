@@ -43,9 +43,9 @@ from eoxserver.services.ows.interfaces import (
 )
 from eoxserver.services.ows.wps.interfaces import ProcessInterface
 from eoxserver.services.ows.wps.exceptions import (
-    NoSuchProcessException, MissingRequiredInputException,
-    InvalidInputException, InvalidOutputException, InvalidOutputDefException,
-    InvalidReferenceException, InvalidInputValueException,
+    NoSuchProcessError, MissingRequiredInputError,
+    InvalidInputError, InvalidOutputError, InvalidOutputDefError,
+    InvalidReferenceError, InvalidInputValueError,
 )
 from eoxserver.services.ows.wps.parameters import (
     fix_parameter, LiteralData, BoundingBoxData, ComplexData, InputReference,
@@ -88,7 +88,7 @@ class WPS10ExcecuteHandler(Component):
         for process in self.processes:
             if process.identifier == identifier:
                 return process
-        raise NoSuchProcessException(identifier)
+        raise NoSuchProcessError(identifier)
 
     def handle(self, request):
         decoder = self.get_decoder(request)
@@ -133,12 +133,12 @@ def _normalize_params(param_defs):
 def _check_invalid_inputs(input_ids, inputs):
     invalids = set(inputs) - set(input_ids)
     if len(invalids):
-        raise InvalidInputException(invalids.pop())
+        raise InvalidInputError(invalids.pop())
 
 def _check_invalid_outputs(output_ids, outputs):
     invalids = set(outputs) - set(output_ids)
     if len(invalids):
-        raise InvalidOutputException(invalids.pop())
+        raise InvalidOutputError(invalids.pop())
 
 
 def decode_process_inputs(input_defs, raw_inputs, request):
@@ -155,11 +155,11 @@ def decode_process_inputs(input_defs, raw_inputs, request):
             try:
                 value = _decode_input(prm, raw_value)
             except ValueError as exc:
-                raise InvalidInputValueException(prm.identifier, exc)
+                raise InvalidInputValueError(prm.identifier, exc)
         elif prm.is_optional:
             value = getattr(prm, 'default', None)
         else:
-            raise MissingRequiredInputException(prm.identifier)
+            raise MissingRequiredInputError(prm.identifier)
         decoded_inputs[name] = value
     return decoded_inputs
 
@@ -173,7 +173,7 @@ def prepare_process_output_requests(output_defs, response_form):
         if isinstance(prm, ComplexData):
             format_ = prm.get_format(outreq.mime_type, outreq.encoding, outreq.schema)
             if format_ is None:
-                raise InvalidOutputDefException(prm.identifier, "Invalid "
+                raise InvalidOutputDefError(prm.identifier, "Invalid "
                     "complex data format! mimeType=%r encoding=%r schema=%r"
                     ""%(outreq.mime_type, outreq.encoding, outreq.schema))
             output_requests[name] = {
@@ -228,12 +228,12 @@ def _resolve_reference(reference, request):
         for headers, data in mp.iterate(request):
             if headers.get("Content-ID") == url.path:
                 return data
-        raise InvalidReferenceException(reference.identifier,
+        raise InvalidReferenceError(reference.identifier,
                                     "No part with content-id '%s'." % url.path)
     try:
         request = urllib2.Request(reference.href, reference.body)
         response = urllib2.urlopen(request)
         return response.read()
     except urllib2.URLError, exc:
-        raise InvalidReferenceException(reference.identifier, str(exc))
+        raise InvalidReferenceError(reference.identifier, str(exc))
 

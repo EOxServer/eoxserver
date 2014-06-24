@@ -30,10 +30,10 @@ from eoxserver.core import Component, ExtensionPoint, implements
 from eoxserver.core.decoders import kvp, xml, typelist
 from eoxserver.services.ows.interfaces import (
     ServiceHandlerInterface, GetServiceHandlerInterface,
-    PostServiceHandlerInterface, VersionNegotiationInterface
+    PostServiceHandlerInterface, #VersionNegotiationInterface
 )
 from eoxserver.services.ows.wps.interfaces import ProcessInterface
-from eoxserver.services.ows.wps.exceptions import NoSuchProcessException
+from eoxserver.services.ows.wps.exceptions import NoSuchProcessError
 from eoxserver.services.ows.wps.v10.encoders import (
     WPS10ProcessDescriptionsXMLEncoder
 )
@@ -71,7 +71,7 @@ class WPS10DescribeProcessHandler(Component):
                 used_processes.append(process)
 
         for identifier in identifiers:
-            raise NoSuchProcessException(identifier)
+            raise NoSuchProcessError(identifier)
 
         encoder = WPS10ProcessDescriptionsXMLEncoder()
         return encoder.serialize(

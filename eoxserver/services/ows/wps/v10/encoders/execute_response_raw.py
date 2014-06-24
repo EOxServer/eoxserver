@@ -37,7 +37,7 @@ from eoxserver.services.ows.wps.parameters import (
     LiteralData, ComplexData, BoundingBoxData,
 )
 
-from eoxserver.services.ows.wps.exceptions import InvalidOutputValueException
+from eoxserver.services.ows.wps.exceptions import InvalidOutputValueError
 
 try:
     from cStringIO import StringIO
@@ -135,7 +135,7 @@ def _encode_raw_literal(data, prm, req):
     try:
         encoded_data = prm.encode(data, req.uom or prm.default_uom, 'utf-8')
     except (ValueError, TypeError) as exc:
-        raise InvalidOutputValueException(prm.identifier, exc)
+        raise InvalidOutputValueError(prm.identifier, exc)
     return ResultAlt(encoded_data, identifier=prm.identifier,
         content_type=content_type)
 
@@ -146,7 +146,7 @@ def _encode_raw_bbox(data, prm, req):
     try:
         encoded_data = prm.encode_kvp(data).encode('utf-8')
     except (ValueError, TypeError) as exc:
-        raise InvalidOutputValueException(prm.identifier, exc)
+        raise InvalidOutputValueError(prm.identifier, exc)
     return ResultAlt(encoded_data, identifier=prm.identifier,
         content_type="text/plain" if req.mime_type is None else req.mime_type)
 

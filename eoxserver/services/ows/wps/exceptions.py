@@ -76,46 +76,46 @@ class VersionNegotiationFailed(OWS10Exception):
 # Note that WPS 1.0.0 allows use of "vendor specific exception code" as locator
 # for the default "NoApplicableCode" exceptions.
 
-class NoSuchProcessException(InvalidParameterValue):
+class NoSuchProcessError(InvalidParameterValue):
     def __init__(self, identifier):
         msg = "No such process: %s" % identifier
         InvalidParameterValue.__init__(self, msg, "process identifier")
 
-class InvalidOutputException(InvalidParameterValue):
+class InvalidOutputError(InvalidParameterValue):
     def __init__(self, output_id):
         message = "Invalid output '%s'!"%(output_id)
         InvalidParameterValue.__init__(self, message, output_id)
 
-class InvalidOutputValueException(NoApplicableCode):
+class InvalidOutputValueError(NoApplicableCode):
     def __init__(self, output_id, message=""):
         message = "Invalid output value of '%s'! %s"%(output_id, message)
         NoApplicableCode.__init__(self, message, output_id)
 
-class InvalidOutputDefException(InvalidParameterValue):
+class InvalidOutputDefError(InvalidParameterValue):
     def __init__(self, output_id, message=""):
         message = "Invalid output definition of '%s'! %s"%(output_id, message)
         InvalidParameterValue.__init__(self, message, output_id)
 
-class InvalidInputException(InvalidParameterValue):
+class InvalidInputError(InvalidParameterValue):
     def __init__(self, input_id):
         message = "Invalid input '%s'!"%(input_id)
         InvalidParameterValue.__init__(self, message, input_id)
 
-class InvalidInputValueException(InvalidParameterValue):
+class InvalidInputValueError(InvalidParameterValue):
     def __init__(self, input_id, message=""):
         message = "Invalid input value of '%s'! %s"%(input_id, message)
         InvalidParameterValue.__init__(self, message, input_id)
 
-class MissingRequiredInputException(InvalidParameterValue):
+class MissingRequiredInputError(InvalidParameterValue):
     def __init__(self, input_id):
         message = "Missing required input '%s'!"%(input_id)
         InvalidParameterValue.__init__(self, message, input_id)
 
-class InvalidReferenceException(InvalidParameterValue):
+class InvalidReferenceError(InvalidParameterValue):
     def __init__(self, input_id, message=""):
         message = "Invalid input '%s' reference! %s"%(input_id, message)
         InvalidParameterValue.__init__(self, message, input_id)
 
-class ExecuteException(NoApplicableCode):
+class ExecuteError(NoApplicableCode):
     def __init__(self, message="", locator="process.execute()"):
         NoApplicableCode.__init__(self, message, locator)
