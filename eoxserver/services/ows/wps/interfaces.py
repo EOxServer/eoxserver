@@ -26,10 +26,33 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-# TODO: sync/async processes
+class AsyncBackendInterface(object):
+    """ Interface class for asynchronous WPS backends.
+        NOTE: Only one async. backend at time is allowed to be configured.
+    """
+
+    @property
+    def supported_versions(self):
+        """ A list of versions of the WPS standard supported by the backend.
+        """
+
+    def enqueue(self, identifier, raw_inputs, response_document, version):
+        """ Enqueue the WPS request for asynchronous processing.
+
+            Once enqued the process shall be managed exclusively by the async.
+            backend.
+
+            The request is defined by the process's ``identifier``,
+            ``raw_inputs`` (before the decoding and resolution
+            of the references), and the ``response_document`` (holding
+            the outputs' parameters).  The ``version`` of the WPS standard
+            to be used.  The method returns a URL (string) of the asynchronous
+            execute response.
+        """
+
 
 class ProcessInterface(object):
-    """ Interface class for processes, advertised, described and executed by
+    """ Interface class for processes offered, described and executed by
         the WPS.
     """
 
