@@ -26,6 +26,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+# TODO: sync/async processes
 
 class ProcessInterface(object):
     """ Interface class for processes, advertised, described and executed by
@@ -53,6 +54,7 @@ class ProcessInterface(object):
     @property
     def description(self):
         """ A human-readable detailed description of the process. Optional.
+            (Content of the the abstract in the WPS process description.)
         """
 
     @property
@@ -75,40 +77,29 @@ class ProcessInterface(object):
     @property
     def inputs(self):
         """ A dict mapping the inputs' identifiers to their respective types.
-            The type can be either one of the supported python types
-            (automatically converted to ``LiterData`` type) or an instance
-            of ``LiterData``, ``BoundingBoxData``, or ``ComplexData``.
-            Mandatory.
+            The type can be either one of the supported native python types
+            (automatically converted to a ``LiterData`` object) or an instance
+            of one of the data-specification classes (``LiterData``,
+            ``BoundingBoxData``, or ``ComplexData``).  Mandatory.
         """
 
     @property
     def outputs(self):
         """ A dict mapping the outputs' identifiers to their respective types.
-            The type can be either one of the supported python types
-            (automatically converted to ``LiterData`` type) or an instance
-            of ``LiterData``, ``BoundingBoxData``, or ``ComplexData``.
-            Mandatory.
+            The type can be either one of the supported native python types
+            (automatically converted to a ``LiterData`` object) or an instance
+            of one of the data-specification classes (``LiterData``,
+            ``BoundingBoxData``, or ``ComplexData``).  Mandatory.
         """
-
 
     def execute(self, **kwargs):
         """ The main execution function for the process. The ``kwargs`` are the
-            parsed input inputs, as names by the ``inputs`` property. The
-            function must return a dict, mapping the output identifiers to the
-            actual outputs.
-            TODO: allow direct returning of single values when only one output?
+            parsed input inputs (using the keys as defined by the ``inputs``)
+            and the Complex Data format requests (using the keys as defined by
+            the ``outputs``).
+            The method is expected to return a dictionary of the output values
+            (using the keys as defined by the ``outputs``). In case of only
+            one output item defined by the ``outputs``, one output value
+            is allowed to be returned directly.
         """
 
-# TODO: sync/async processes
-# TODO: complex data handling
-
-#    def decode_complex_input(self, identifier, raw_value, mime_type, encoding, schema):
-#        """ Decodes a complex input before it is passed to the execution
-#            function.
-#        """
-#
-#    def encode_complex_output(self, identifier, value, mime_type, encoding, schema):
-#        """ Encode a complex output in a format specified by a mime-type.
-#            The function must be able to handle all complex outputs with all
-#            formats as stated in the `outputs` property.
-#        """
