@@ -88,7 +88,10 @@ class Subsets(list):
         return any(map(lambda s: s.is_temporal, self))
 
     @property
-    def xy_srid(self):
+    def xy_crs(self):
+        """ Returns the CRS specifier for the X and Y axis. Returns ``None``
+            when no X or Y subsets are contained.
+        """
         xy_subsets = filter(lambda s: s.is_x or s.is_y, self)
         if not len(xy_subsets):
             return None
@@ -100,7 +103,14 @@ class Subsets(list):
         if len(all_crss) != 1:
             raise InvalidSubsettingException("All X/Y crss must be the same")
 
-        xy_crs = iter(all_crss).next()
+        return iter(all_crss).next()
+
+
+    @property
+    def xy_srid(self):
+        """ Tries to find the correct integer SRID for the xy_crs.
+        """
+        xy_crs = self.xy_crs
         if xy_crs is not None:
             srid = crss.parseEPSGCode(xy_crs, 
                 (crss.fromURL, crss.fromURN, crss.fromShortCode)
