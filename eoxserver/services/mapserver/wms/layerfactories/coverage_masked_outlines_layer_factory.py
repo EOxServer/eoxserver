@@ -68,9 +68,7 @@ class CoverageMaskedOutlinesLayerFactory(BaseStyleMixIn, PolygonLayerMixIn, Abst
             shape.setValue(0, eo_object.identifier)
             layer.addFeature(shape)
         
-
-        if not group_layer:
-            yield layer, mask_items
+        yield layer, mask_items
 
 
     def generate_group(self, name):

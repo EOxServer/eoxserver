@@ -33,21 +33,20 @@ import tempfile
 import os
 
 from mapscript import *
+from lxml import etree
 
-from eoxserver.core.util.multiparttools import mpUnpack, mpPack, capitalize
-from eoxserver.core.util.multiparttools import getMimeType, getMultipartBoundary
+from eoxserver.core.util.multiparttools import iterate
 from eoxserver.contrib import gdal
 
 
 logger = logging.getLogger(__name__)
-is_xml = lambda ct: getMimeType(ct) in ("text/xml", "application/xml", "application/gml+xml")
-is_multipart = lambda ct: getMimeType(ct).startswith("multipart/") 
 msversion = msGetVersionInt()
 
 class MapServerException(Exception):
-    def __init__(self, message, locator):
+    def __init__(self, message, locator, code=None):
         super(MapServerException, self).__init__(message)
         self.locator = locator
+        self.code = code
 
 
 class MetadataMixIn(object):
@@ -118,7 +117,31 @@ def dispatch(map_, request):
     except Exception, e:
         raise MapServerException(str(e), "NoApplicableCode")
     
-    bytes = msIO_getStdoutBufferBytes()
+    raw_bytes = msIO_getStdoutBufferBytes()
+
+    # check whether an error occurred
+    if status != 0:
+        # First try to get the error message through the error object
+        obj = msGetErrorObj()
+        if obj and obj.message:
+            raise MapServerException(obj.message, obj.code)
+
+        try:
+            # try to parse the output as XML
+            _, data = iterate(raw_bytes).next()
+            tree = etree.fromstring(str(data))
+            exception_elem = tree.xpath("*[local-name() = 'Exception']")[0]
+            locator = exception_elem.attrib["locator"]
+            code = exception_elem.attrib["exceptionCode"]
+            message = exception_elem[0].text
+
+            raise MapServerException(message, locator, code)
+
+        except (etree.XMLSyntaxError, IndexError, KeyError):
+            pass
+
+        # Fallback: raise arbitrary error
+        raise MapServerException("Unexpected Error.", "NoApplicableCode")
 
     logger.debug("MapServer: Performing MapServer cleanup.")
     # Workaround for MapServer issue #4369
@@ -126,8 +149,8 @@ def dispatch(map_, request):
         msCleanup()
     else:
         msIO_resetHandlers()
-    
-    return bytes
+
+    return raw_bytes
 
 
 class Layer(MetadataMixIn, layerObj):
@@ -155,6 +178,8 @@ class Style(styleObj):
 
 
 def create_request(values, request_type=MS_GET_REQUEST):
+    """ Creates a mapserver request from 
+    """
     used_keys = {}
 
     request = OWSRequest()
@@ -213,22 +238,22 @@ def gdalconst_to_imagemode_string(const):
 
 
 def setMetaData(obj, key_or_params, value=None, namespace=None):
-        """ Convenvience function to allow setting multiple metadata values with 
-            one call and optionally setting a 'namespace' for each entry.
-        """
-        if value is None:
-            for key, value in key_or_params.items():
-                if namespace:
-                    key = "%s_%s" % (namespace, key)
-
-                obj.setMetaData(key, value)
-        else:
+    """ Convenvience function to allow setting multiple metadata values with 
+        one call and optionally setting a 'namespace' for each entry.
+    """
+    if value is None:
+        for key, value in key_or_params.items():
             if namespace:
-                key = "%s_%s" % (namespace, key_or_params)
-            else:
-                key = key_or_params
+                key = "%s_%s" % (namespace, key)
 
             obj.setMetaData(key, value)
+    else:
+        if namespace:
+            key = "%s_%s" % (namespace, key_or_params)
+        else:
+            key = key_or_params
+
+        obj.setMetaData(key, value)
 
 # alias
 set_metadata = setMetaData

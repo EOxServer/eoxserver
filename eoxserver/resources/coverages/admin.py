@@ -190,7 +190,7 @@ class NilValueInline(AbstractInline):
 class BandInline(AbstractInline):
     form = BandInlineForm # TODO: not working as expected...
     model = models.Band
-    extra = 0
+    extra = 1
 
     def get_queryset(self):
         queryset = super(BandInline, self).get_queryset()

@@ -307,7 +307,7 @@ class OverviewOptimization(DatasetPostOptimization):
             try:
                 ds.BuildOverviews(self.resampling, [level])
             except RuntimeError:
-                logger.warning("Ovierview building failed for level '%s'." % level)
+                logger.warning("Overview building failed for level '%s'." % level)
         return ds
 
 

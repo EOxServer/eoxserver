@@ -34,7 +34,9 @@ from eoxserver.backends.access import connect
 from eoxserver.contrib import vsi, vrt, mapserver, gdal
 from eoxserver.services.mapserver.interfaces import ConnectorInterface
 from eoxserver.processing.gdal.vrt import create_simple_vrt
+from eoxserver.processing.gdal import reftools
 from eoxserver.resources.coverages.dateline import wrap_extent_around_dateline
+from eoxserver.resources.coverages import models
 
 
 class SimpleConnector(Component):
@@ -49,6 +51,12 @@ class SimpleConnector(Component):
     def connect(self, coverage, data_items, layer):
         filtered = filter(lambda d: d.semantic.startswith("bands"), data_items)
         data = connect(filtered[0])
+
+        if isinstance(coverage, models.ReferenceableDataset):
+            vrt_path = join("/vsimem", uuid4().hex)
+            reftools.create_rectified_vrt(data, vrt_path)
+            data = vrt_path
+            layer.setMetaData("eoxs_ref_data", data)
 
         if not layer.metadata.get("eoxs_wrap_dateline") == "true":
             layer.data = data
@@ -72,3 +80,7 @@ class SimpleConnector(Component):
     def disconnect(self, coverage, data_items, layer):
         if layer.metadata.get("eoxs_wrap_dateline") == "true":
             vsi.remove(layer.data)
+
+        vrt_path = layer.metadata.get("eoxs_ref_data")
+        if vrt_path:
+            vsi.remove(vrt_path)

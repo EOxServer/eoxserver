@@ -5,7 +5,7 @@
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
 #-------------------------------------------------------------------------------
-# Copyright (C) 2011 EOX IT Services GmbH
+# Copyright (C) 2013 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,11 +28,8 @@
 
 
 import logging
-from datetime import datetime
 
-from django.utils.timezone import is_aware, make_aware, utc
-from django.utils.dateparse import parse_datetime, parse_date
-from django.contrib.gis.geos import Polygon
+from django.contrib.gis.geos import Polygon, LineString
 
 from eoxserver.resources.coverages import crss
 from eoxserver.services.exceptions import (
@@ -46,7 +43,14 @@ logger = logging.getLogger(__name__)
 
 
 class Subsets(list):
+    """ Convenience class to handle a variety of spatial and/or temporal 
+        subsets.
+    """
+
+
     def __init__(self, iterable, allowed_types=None):
+        """ Constructor. Allows to add set the initial subsets
+        """
         self.allowed_types = allowed_types if allowed_types is not None else (Trim, Slice)
         # Do a manual insertion here to assure integrity
         for subset in iterable:
@@ -94,11 +98,18 @@ class Subsets(list):
         )
 
         if len(all_crss) != 1:
-            raise Exception("All X/Y crss must be the same")
+            raise InvalidSubsettingException("All X/Y crss must be the same")
 
         xy_crs = iter(all_crss).next()
         if xy_crs is not None:
-            return crss.parseEPSGCode(xy_crs, (crss.fromURL, crss.fromURN))
+            srid = crss.parseEPSGCode(xy_crs, 
+                (crss.fromURL, crss.fromURN, crss.fromShortCode)
+            )
+            if srid is None and not crss.is_image_crs(xy_crs):
+                raise InvalidSubsettingException(
+                    "Could not parse EPSG code from URI '%s'" % xy_crs
+                )
+            return srid
         return None
 
 
@@ -110,6 +121,7 @@ class Subsets(list):
 
         bbox = [None, None, None, None]
         srid = self.xy_srid
+
         if srid is None:
             srid = 4326
         max_extent = crss.crs_bounds(srid)
@@ -130,30 +142,37 @@ class Subsets(list):
                         begin_time__lte=value,
                         end_time__gte=value
                     )
-                elif low is None and high is not None:
-                    qs = qs.filter(
-                        begin_time__lte=high
-                    )
-                elif low is not None and high is None:
-                    qs = qs.filter(
-                        end_time__gte=low
-                    )
+
                 else:
-                    qs = qs.exclude(
-                        begin_time__gt=high
-                    ).exclude(
-                        end_time__lt=low
-                    )
+                    if high is not None:
+                        qs = qs.filter(
+                            begin_time__lte=high
+                        )
+                    if low is not None:
+                        qs = qs.filter(
+                            end_time__gte=low
+                        )
+                
+                    # check if the temporal bounds must be strictly contained
+                    if containment == "contains":
+                        if high is not None:
+                            qs = qs.filter(
+                                end_time__lte=high
+                            )
+                        if low is not None:
+                            qs = qs.filter(
+                                begin_time__gte=low
+                            )
 
             else:
                 if is_slice:
                     if subset.is_x:
-                        line = Line(
+                        line = LineString(
                             (value, max_extent[1]),
                             (value, max_extent[3])
                         )
                     else:
-                        line = Line(
+                        line = LineString(
                             (max_extent[0], value),
                             (max_extent[2], value)
                         )
@@ -360,7 +379,7 @@ class Subsets(list):
 
                     if subset.high is not None:
                         l = max(float(subset.high) / float(size_x), 0.0)
-                        bbox[2] = extent[2] + l * (extent[2] - extent[0])
+                        bbox[2] = extent[0] + l * (extent[2] - extent[0])
 
                 elif subset.is_y:
                     if subset.low is not None:
@@ -401,9 +420,7 @@ class Subset(object):
     def __init__(self, axis, crs=None):
         axis = axis.lower()
         if axis not in all_axes:
-            raise InvalidAxisLabelException(
-                "Axis '%s' is not valid or supported." % axis
-            )
+            raise InvalidAxisLabelException(axis)
         self.axis = axis
         self.crs = crs
 
@@ -423,16 +440,15 @@ class Subset(object):
 class Slice(Subset):
     def __init__(self, axis, value, crs=None):
         super(Slice, self).__init__(axis, crs)
-        self.value = parse_quoted_temporal(value) if self.is_temporal else float(value)
+        self.value = value
+
+    def __repr__(self):
+        return "Slice: %s[%s] with crs=%s" % (self.axis, self.value, self.crs)
 
 
 class Trim(Subset):
     def __init__(self, axis, low=None, high=None, crs=None):
         super(Trim, self).__init__(axis, crs)
-        dt = parse_quoted_temporal if self.is_temporal else float_or_star
-        
-        low = dt(low)
-        high = dt(high)
 
         if low is not None and high is not None and low > high:
             raise InvalidSubsettingException(
@@ -442,6 +458,10 @@ class Trim(Subset):
         self.low = low
         self.high = high
 
+    def __repr__(self):
+        return "Trim: %s[%s:%s] with crs=%s" % (
+            self.axis, self.low, self.high, self.crs
+        )
 
 
 temporal_axes = ("t", "time", "phenomenontime")
@@ -451,38 +471,7 @@ z_axes = ("z", "height")
 all_axes = temporal_axes + x_axes + y_axes + z_axes
 
 
-def float_or_star(value):
+def is_temporal(axis):
+    """ Returns whether or not an axis is a temporal one.
     """
-    """
-
-    if value == "*":
-        return None
-    return float(value)
-
-
-def parse_quoted_temporal(value):
-    """ 
-    """
-
-    if value == "*":
-        return None
-
-    if not value[0] == '"' and not value[-1] == '"':
-        raise ValueError("Temporal value needs to be quoted with double quotes.")
-
-    value = value[1:-1]
-
-    for parser in (parse_datetime, parse_date):
-        temporal = parser(value)
-        if temporal:
-            # convert to datetime if necessary
-            if not isinstance(temporal, datetime):
-                temporal = datetime.combine(temporal, datetime.min.time())
-
-            # use UTC, if the datetime is not already time-zone aware
-            if not is_aware(temporal):
-                temporal = make_aware(temporal, utc)
-            
-            return temporal
-
-    raise ValueError("Could not parse '%s' to a temporal value" % value)
+    return (axis.lower() in temporal_axes)

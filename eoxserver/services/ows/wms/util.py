@@ -31,24 +31,39 @@ import logging
 
 from eoxserver.resources.coverages import models
 from eoxserver.core.decoders import InvalidParameterException
+from eoxserver.core.util.timetools import parse_iso8601
 from eoxserver.services.subset import Trim, Slice
+from eoxserver.services.ows.wms.exceptions import LayerNotDefined
 
 
 logger = logging.getLogger(__name__)
 
 def parse_bbox(string):
     try:
-        return map(float, string.split(","))
+        bbox = map(float, string.split(","))
     except ValueError:
-        raise InvalidParameterException("Invalid BBOX parameter.", "bbox")
+        raise InvalidParameterException("Invalid 'BBOX' parameter.", "bbox")
+
+    try:
+        minx, miny, maxx, maxy = bbox
+    except ValueError:
+        raise InvalidParameterException(
+            "Wrong number of arguments for 'BBOX' parameter.", "bbox"
+        )
+
+    return bbox
 
 
 def parse_time(string):
     items = string.split("/")
+
     if len(items) == 1:
-        return Slice("t", '"%s"' % items[0])
-    elif len(items) == 2:
-        return Trim("t", '"%s"' % items[0], '"%s"' % items[1])
+        return Slice("t", parse_iso8601(items[0]))
+    elif len(items) in (2, 3):
+        # ignore resolution
+        return Trim("t", parse_iso8601(items[0]), parse_iso8601(items[1]))
+
+    raise InvalidParameterException("Invalid TIME parameter.", "time")
 
 
 def int_or_str(string):
@@ -68,6 +83,7 @@ def lookup_layers(layers, subsets, suffixes=None):
     suffixes = suffixes or (None,)
     logger.debug(str(suffixes))
 
+
     for layer_name in layers:
         for suffix in suffixes:
             if not suffix:
@@ -85,9 +101,7 @@ def lookup_layers(layers, subsets, suffixes=None):
                 eo_object = eo_objects[0]
                 break
         else:
-            raise InvalidParameterException(
-                "No such layer %s" % layer_name, "layers"
-            )
+            raise LayerNotDefined(layer_name)
 
         if models.iscollection(eo_object):
             # recursively iterate over all sub-collections and collect all
@@ -134,7 +148,6 @@ def lookup_layers(layers, subsets, suffixes=None):
         elif models.iscoverage(eo_object):
             # Add a layer selection for the coverage with the suffix
             selection = LayerSelection(None, suffix=suffix)
-
             if subsets.matches(eo_object):
                 selection.append(eo_object.cast(), eo_object.identifier)
             else:

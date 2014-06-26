@@ -51,6 +51,8 @@ class WCSGetCapabilitiesHandlerBase(object):
     service = "WCS"
     request = "GetCapabilities"
 
+    index = 0
+
     renderers = ExtensionPoint(WCSCapabilitiesRendererInterface)
 
     def get_decoder(self, request):
@@ -61,7 +63,8 @@ class WCSGetCapabilitiesHandlerBase(object):
         """ Default implementation of the coverage lookup. Simply returns all 
             coverages in no specific order.
         """
-        return models.Coverage.objects.filter(visible=True)
+        return models.Coverage.objects.filter(visible=True) \
+            .order_by("identifier")
 
     def get_params(self, coverages, decoder):
         """ Default method to return a render params object from the given 
@@ -75,7 +78,6 @@ class WCSGetCapabilitiesHandlerBase(object):
             getattr(decoder, "acceptformats", None),
             getattr(decoder, "updatesequence", None),
         )
-
 
     def get_renderer(self, params):
         """ Default implementation for a renderer retrieval.
@@ -123,6 +125,8 @@ class WCSDescribeCoverageHandlerBase(object):
 
     service = "WCS"
     request = "DescribeCoverage"
+
+    index = 1
 
     renderers = ExtensionPoint(WCSCoverageDescriptionRendererInterface)
 
@@ -198,6 +202,8 @@ class WCSGetCoverageHandlerBase(object):
 
     service = "WCS"
     request = "GetCoverage"
+
+    index = 10
 
     renderers = ExtensionPoint(WCSCoverageRendererInterface)
 

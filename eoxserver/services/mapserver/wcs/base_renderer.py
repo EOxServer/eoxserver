@@ -31,7 +31,7 @@ from django.db.models import Q
 
 from eoxserver.core import Component
 from eoxserver.core.config import get_eoxserver_config
-from eoxserver.core.decoders import config
+from eoxserver.core.decoders import config, typelist
 from eoxserver.contrib import mapserver as ms
 from eoxserver.resources.coverages import crss
 from eoxserver.resources.coverages.models import RectifiedStitchedMosaic
@@ -40,6 +40,7 @@ from eoxserver.resources.coverages.formats import getFormatRegistry
 
 class WCSConfigReader(config.Reader):
     section = "services.ows.wcs"
+    supported_formats = config.Option(type=typelist(str, ","), default=())
     maxsize = config.Option(type=int, default=None)
 
     section = "services.ows"
@@ -57,7 +58,9 @@ class BaseRenderer(Component):
         maxsize = WCSConfigReader(get_eoxserver_config()).maxsize
         if maxsize is not None:
             map_.maxsize = maxsize
-        map_.setMetaData("ows_updateSequence", WCSConfigReader(get_eoxserver_config()).update_sequence)
+        map_.setMetaData("ows_updateSequence", 
+            WCSConfigReader(get_eoxserver_config()).update_sequence
+        )
         return map_
 
     def data_items_for_coverage(self, coverage):
@@ -79,6 +82,7 @@ class BaseRenderer(Component):
         layer = ms.layerObj()
         layer.name = coverage.identifier
         layer.type = ms.MS_LAYER_RASTER
+
         layer.setProjection(coverage.spatial_reference.proj)
 
         extent = coverage.extent
@@ -99,7 +103,6 @@ class BaseRenderer(Component):
             "resolution": "%.10g %.10g" % resolution,
             "size": "%d %d" % size,
             "bandcount": str(len(bands)),
-            
             "interval": "%f %f" % bands[0].allowed_values,
             "significant_figures": "%d" % bands[0].significant_figures,
             "rangeset_name": range_type.name,
@@ -125,9 +128,15 @@ class BaseRenderer(Component):
                 "nativeformat": native_format
             }, namespace="wcs")
 
-        supported_crss = " ".join(
-            crss.getSupportedCRS_WCS(format_function=crss.asShortCode)
-        ) 
+        native_crs = "EPSG:%d" % coverage.spatial_reference.srid
+        all_crss = crss.getSupportedCRS_WCS(format_function=crss.asShortCode)
+        if native_crs in all_crss:
+            all_crss.remove(native_crs)
+
+        # setting the coverages CRS as the first one is important!
+        all_crss.insert(0, native_crs)
+        
+        supported_crss = " ".join(all_crss) 
         layer.setMetaData("ows_srs", supported_crss) 
         layer.setMetaData("wcs_srs", supported_crss) 
 
@@ -178,3 +187,8 @@ class BaseRenderer(Component):
             of.extension = frmt.defaultExt
             outputformats.append(of)
         return outputformats
+
+
+def is_format_supported(mime_type):
+    reader = WCSConfigReader(get_eoxserver_config())
+    return mime_type in reader.supported_formats

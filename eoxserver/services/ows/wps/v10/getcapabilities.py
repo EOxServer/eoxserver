@@ -1,5 +1,4 @@
 #-------------------------------------------------------------------------------
-# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
@@ -10,8 +9,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -26,11 +25,10 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-
 from eoxserver.core import Component, ExtensionPoint, implements
 from eoxserver.core.decoders import kvp, xml, typelist
 from eoxserver.services.ows.interfaces import (
-    ServiceHandlerInterface, GetServiceHandlerInterface, 
+    ServiceHandlerInterface, GetServiceHandlerInterface,
     PostServiceHandlerInterface, VersionNegotiationInterface
 )
 from eoxserver.services.ows.wps.interfaces import ProcessInterface
@@ -50,7 +48,6 @@ class WPS10GetCapabilitiesHandler(Component):
 
     processes = ExtensionPoint(ProcessInterface)
 
-
     def handle(self, request):
         encoder = WPS10CapabilitiesXMLEncoder()
         return encoder.serialize(
@@ -60,10 +57,10 @@ class WPS10GetCapabilitiesHandler(Component):
 
 class WPS10GetCapabilitiesKVPDecoder(kvp.Decoder):
     #acceptversions = kvp.Parameter(type=typelist(str, ","), num="?")
-    language       = kvp.Parameter(num="?")
+    language = kvp.Parameter(num="?")
+
 
 class WPS10GetCapabilitiesXMLDecoder(xml.Decoder):
     #acceptversions = xml.Parameter("/ows:AcceptVersions/ows:Version/text()", num="*")
     language = xml.Parameter("/ows:AcceptLanguages/ows:Language/text()", num="*")
-
     namespaces = nsmap

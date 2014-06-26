@@ -215,6 +215,7 @@ COMPONENTS = (
     # service handlers
     'eoxserver.services.ows.wcs.**',
     'eoxserver.services.ows.wms.**',
+    'eoxserver.services.ows.wps.**',
 
     # renderer components etc.
     'eoxserver.services.native.**',
@@ -251,12 +252,23 @@ LOGGING = {
             'filename': join(PROJECT_DIR, 'logs', 'eoxserver.log'),
             'formatter': 'verbose' if DEBUG else 'simple',
             'filters': [],
-        }
+        },
+        'stderr_stream': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+            'filters': [],
+        },
     },
     'loggers': {
         'eoxserver': {
             'handlers': ['eoxserver_file'],
             'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': False,
+        },
+        'django': {
+            'handlers': ['stderr_stream'],
+            'level': 'WARNING',
             'propagate': False,
         },
     }

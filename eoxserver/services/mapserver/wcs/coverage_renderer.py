@@ -34,7 +34,7 @@ from lxml import etree
 
 from eoxserver.core import implements, ExtensionPoint
 from eoxserver.contrib import mapserver as ms
-from eoxserver.resources.coverages import models
+from eoxserver.resources.coverages import models, crss
 from eoxserver.resources.coverages.formats import getFormatRegistry
 from eoxserver.services.exceptions import NoSuchCoverageException
 from eoxserver.services.ows.wcs.interfaces import WCSCoverageRendererInterface
@@ -43,9 +43,14 @@ from eoxserver.services.mapserver.interfaces import (
     ConnectorInterface, LayerFactoryInterface
 )
 from eoxserver.services.subset import Subsets
-from eoxserver.services.mapserver.wcs.base_renderer import BaseRenderer
+from eoxserver.services.mapserver.wcs.base_renderer import (
+    BaseRenderer, is_format_supported
+)
 from eoxserver.services.ows.version import Version
 from eoxserver.services.result import result_set_from_raw_data, ResultBuffer
+from eoxserver.services.exceptions import (
+    RenderException, OperationNotSupportedException
+)
 
 
 class RectifiedCoverageMapServerRenderer(BaseRenderer):
@@ -87,8 +92,19 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
 
         range_type = coverage.range_type
         bands = list(range_type)
-        subsets = Subsets(params.subsets)
 
+        subsets = Subsets(params.subsets)
+        
+        if subsets:
+            srid = subsets.xy_srid
+            if srid is not None:
+                if not crss.validateEPSGCode(srid):
+                    raise RenderException(
+                        "Failed to extract an EPSG code from the CRS URI "
+                        "'%s'." % subsets.xy_srid, "subset"
+                    )
+
+        
         # create and configure map object
         map_ = self.create_map()
 
@@ -100,11 +116,10 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         frmt = params.format or native_format
 
         if frmt is None:
-            raise Exception("format could not be determined")
+            raise RenderException("Format could not be determined", "format")
 
         mime_type, frmt = split_format(frmt)
 
-        # TODO: imagemode
         imagemode = ms.gdalconst_to_imagemode(bands[0].data_type)
         time_stamp = datetime.now().strftime("%Y%m%d%H%M%S")
         basename = "%s_%s" % (coverage.identifier, time_stamp)
@@ -122,11 +137,13 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
             if connector.supports(data_items):
                 break
         else:
-            raise Exception("Could not find applicable layer connector.")
+            raise OperationNotSupportedException(
+                "Could not find applicable layer connector.", "coverage"
+            )
 
         try:
             connector.connect(coverage, data_items, layer)
-            # create request object and dispatch it agains the map
+            # create request object and dispatch it against the map
             request = ms.create_request(params)
             request.setParameter("format", mime_type)
             raw_result = ms.dispatch(map_, request)
@@ -137,19 +154,30 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
 
         result_set = result_set_from_raw_data(raw_result)
 
-        if getattr(params, "mediatype", None) in ("multipart/mixed", "multipart/related"):
-            encoder = WCS20EOXMLEncoder()
-            result_set[0] = ResultBuffer(
-                encoder.serialize(
-                    encoder.alter_rectified_dataset(
+        if params.version == Version(2, 0):
+            if getattr(params, "mediatype", None) in ("multipart/mixed", "multipart/related"):
+                encoder = WCS20EOXMLEncoder()
+                is_mosaic = issubclass(
+                    coverage.real_type, models.RectifiedStitchedMosaic
+                )
+
+                if not is_mosaic:
+                    tree = encoder.alter_rectified_dataset(
                         coverage, getattr(params, "http_request", None), 
                         etree.parse(result_set[0].data_file).getroot(), 
-                        subsets.bounding_polygon(coverage)
+                        subsets.bounding_polygon(coverage) if subsets else None
                     )
-                ), 
-                encoder.content_type
-            )
-            
+                else:
+                    tree = encoder.alter_rectified_stitched_mosaic(
+                        coverage.cast(), getattr(params, "http_request", None), 
+                        etree.parse(result_set[0].data_file).getroot(), 
+                        subsets.bounding_polygon(coverage) if subsets else None
+                    )
+
+                result_set[0] = ResultBuffer(
+                    encoder.serialize(tree), 
+                    encoder.content_type
+                )
 
         # "default" response
         return result_set
@@ -172,7 +200,9 @@ def create_outputformat(mime_type, options, imagemode, basename):
     reg_format = get_format_by_mime(mime_type)
 
     if not reg_format:
-        raise Exception("Unsupported output format '%s'." % frmt)
+        raise RenderException(
+            "Unsupported output format '%s'." % mime_type, "format"
+        )
 
     outputformat = ms.outputFormatObj(reg_format.driver, "custom")
     outputformat.name = reg_format.wcs10name
@@ -196,11 +226,14 @@ def get_format_by_mime(mime_type):
     """
 
     registry = getFormatRegistry()
-    reg_format = registry.getFormatByMIME(mime_type) 
+    reg_format = registry.getFormatByMIME(mime_type)
 
     if not reg_format:
         wcs10_frmts = registry.getFormatsByWCS10Name(mime_type)
         if wcs10_frmts:
             reg_format = wcs10_frmts[0]
+
+    if reg_format and not is_format_supported(reg_format.mimeType):
+        return None
 
     return reg_format

@@ -51,10 +51,10 @@ class ColorizedMaskLayerFactory(BaseStyleMixIn, AbstractLayerFactory):
         decoder = EnabledMasksConfigReader(get_eoxserver_config())
         return decoder.mask_names
 
-    
     def generate(self, eo_object, group_layer, suffix, options):
         mask_name = suffix[1:]
         coverage = eo_object.cast()
+        layer_name = "%s%s" % (coverage.identifier, suffix)
         
         if mask_name not in self.enabled_masks:
             return
@@ -63,36 +63,33 @@ class ColorizedMaskLayerFactory(BaseStyleMixIn, AbstractLayerFactory):
             semantic="polygonmask[%s]" % mask_name
         )
 
-        if not group_layer and len(mask_items) > 1:
-            group_layer = self.generate_group(coverage.identifier + suffix)
-            yield group_layer, ()
+        # externaly enforced group or multiple groupped masks 
+        if group_layer or len(mask_items) > 1 : 
 
+            # check if the external group provided - if not create a new one 
+            if not group_layer : 
+                group_layer = self.generate_group(coverage.identifier + suffix)
+                yield group_layer, ()
+        
+            # append to a comma separated list 
+            _append = lambda l,v: "%s,%s"%(l,v) if l else v 
 
-        for i, mask_item in enumerate(mask_items):
-            # TODO: datelinewrap?
-            if group_layer:
-                name = "%s%s_%d" % (coverage.identifier, suffix, i)
-            else:
-                name = "%s%s" % (coverage.identifier, suffix)
-
-            layer = self._create_layer(coverage,
-                name, None, #coverage.extent
-            )
-            self._set_projection(layer, coverage.spatial_reference)
+            # handle the groupped layers 
+            for i, mask_item in enumerate(mask_items):
+                layer = self.create_polygon_layer(
+                    coverage, "%s_%d" % (layer_name, i)
+                )
+                group_layer.connection = _append(
+                    group_layer.connection, layer.name
+                )
             
-            layer.type = ms.MS_LAYER_POLYGON
-            layer.dump = True
+                yield layer, (mask_item,)
 
-            if group_layer:
-                c = group_layer.connection
-                if not c:
-                    group_layer.connection = layer.name
-                else:
-                    group_layer.connection = "%s,%s" % (c, layer.name)
-            else:
-                self.apply_styles(layer, fill=True)
-
-            yield layer, (mask_item,)
+        # only one mask used directly as a layer 
+        elif len(mask_items) == 1 : 
+            layer = self.create_polygon_layer(coverage, layer_name)
+            self.apply_styles(layer, fill=True)
+            yield layer, (mask_items[0],)
 
 
     def generate_group(self, name):
@@ -102,6 +99,15 @@ class ColorizedMaskLayerFactory(BaseStyleMixIn, AbstractLayerFactory):
         layer.connectiontype = ms.MS_UNION
         layer.connection = ""
         self.apply_styles(layer, fill=True)
+        return layer
+
+
+    def create_polygon_layer(self, coverage, name): 
+        layer = self._create_layer(coverage, name, coverage.extent)
+        self._set_projection(layer, coverage.spatial_reference)
+        layer.type = ms.MS_LAYER_POLYGON
+        layer.dump = True
+        layer.offsite = ms.colorObj(0, 0, 0)
         return layer
 
 

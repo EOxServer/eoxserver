@@ -33,6 +33,7 @@ import tempfile
 import logging
 from itertools import chain
 from cStringIO import StringIO
+import mimetypes
 
 from django.db.models import Q
 from django.http import HttpResponse
@@ -53,13 +54,15 @@ from eoxserver.services.ows.wcs.v20.util import (
     nsmap, SectionsMixIn, parse_subset_kvp, parse_subset_xml
 )
 from eoxserver.services.ows.wcs.v20.encoders import WCS20EOXMLEncoder
+from eoxserver.services.ows.wcs.v20.parameters import WCS20CoverageRenderParams
 from eoxserver.services.ows.common.config import WCSEOConfigReader
 from eoxserver.services.ows.wcs.interfaces import (
     WCSCoverageRendererInterface, PackageWriterInterface
 )
 from eoxserver.services.subset import Subsets, Trim
 from eoxserver.services.exceptions import (
-    NoSuchDatasetSeriesOrCoverageException, InvalidRequestException
+    NoSuchDatasetSeriesOrCoverageException, InvalidRequestException,
+    InvalidSubsettingException
 )
 
 
@@ -77,6 +80,7 @@ class WCS20GetEOCoverageSetHandler(Component):
     versions = ("2.0.0", "2.0.1")
     request = "GetEOCoverageSet"
 
+    index = 21
 
     def get_decoder(self, request):
         if request.method == "GET":
@@ -84,9 +88,15 @@ class WCS20GetEOCoverageSetHandler(Component):
         elif request.method == "POST":
             return WCS20GetEOCoverageSetXMLDecoder(request.body)
 
-    def get_renderer(self, coverage):
+
+    def get_params(self, coverage, decoder, request):
+        return WCS20CoverageRenderParams(
+            coverage, decoder.subsets, http_request=request
+        )
+
+    def get_renderer(self, params):
         for renderer in self.coverage_renderers:
-            if renderer.supports(coverage):
+            if renderer.supports(params):
                 return renderer
 
         raise InvalidRequestException(
@@ -126,7 +136,7 @@ class WCS20GetEOCoverageSetHandler(Component):
         try:
             subsets = Subsets(decoder.subsets, allowed_types=Trim)
         except ValueError, e:
-            raise InvalidSubset(str(e))
+            raise InvalidSubsettingException(str(e))
 
         if len(eo_ids) == 0:
             raise
@@ -219,19 +229,15 @@ class WCS20GetEOCoverageSetHandler(Component):
                 coverages.append(eo_object.cast())
 
 
-        fd, pkg_filename = tempfile.mkstemp(suffix=".tar.gz")
+        fd, pkg_filename = tempfile.mkstemp()
         tmp = os.fdopen(fd)
         tmp.close()
         package = writer.create_package(pkg_filename, format, format_params)
 
         for coverage in coverages:
-            renderer = self.get_renderer(coverage)
-            result_set, _ = renderer.render(coverage, (
-                ("service", "WCS"),
-                ("request", "GetCoverage"),
-                ("version", "2.0.1"),
-                ("coverageid", coverage.identifier)
-            ))
+            params = self.get_params(coverage, decoder, request)
+            renderer = self.get_renderer(params)
+            result_set = renderer.render(params)
             all_filenames = set()
             for result_item in result_set:
                 if not result_item.filename:

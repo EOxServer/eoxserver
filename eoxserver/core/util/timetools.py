@@ -26,91 +26,11 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+from datetime import datetime 
 
-import re
-from warnings import warn
-from datetime import datetime, tzinfo, timedelta
+from django.utils.timezone import utc, make_aware, is_aware
+from django.utils.dateparse import parse_datetime, parse_date
 
-from django.utils.timezone import is_aware
-
-from eoxserver.core.exceptions import InvalidParameterException
-
-# pre-compile the regular expression for date/time matching
-
-date_regex = r"(?P<year>\d{4})[-]?(?P<month>\d{2})[-]?(?P<day>\d{2})"
-time_regex = r"(?P<hour>\d{2})(:?(?P<minute>\d{2})(:?(?P<second>\d{2}))?)?"
-tz_regex = r"(?P<tz_expr>Z|(?P<tz_sign>[+-])(?P<tz_hours>\d{2}):?(?P<tz_minutes>\d{2})?)?"
-datetime_regex = date_regex + r"(T" + time_regex + tz_regex + ")?"
-
-datetime_regex_obj = re.compile(datetime_regex)
-
-class UTCOffsetTimeZoneInfo(tzinfo):
-    def __init__(self):
-        super(UTCOffsetTimeZoneInfo, self).__init__
-        
-        self.offset_td = timedelta()
-    
-    def setOffsets(self, offset_sign, offset_hours, offset_minutes):
-        if offset_sign == "+":
-            self.offset_td = timedelta(hours = offset_hours, minutes = offset_minutes)
-        else:
-            self.offset_td = timedelta(hours = -offset_hours, minutes = -offset_minutes)
-    
-    def utcoffset(self, dt):
-        return self.offset_td
-    
-    def dst(self, dt):
-        return timedelta()
-    
-    def tzname(self, dt):
-        return None
-
-def _convert(s):
-    if s is None:
-        return 0
-    else:
-        return int(s)
-
-def getDateTime(s):
-    match = datetime_regex_obj.match(s)
-    if match is None:
-        raise InvalidParameterException(
-            "'%s' does not match any known datetime format." % s
-        )
-    
-    year = int(match.group("year"))
-    month = int(match.group("month"))
-    day = int(match.group("day"))
-    
-    hour = _convert(match.group("hour"))
-    minute = _convert(match.group("minute"))
-    second = _convert(match.group("second"))
-    
-    if match.group("tz_expr") in (None, "Z"):
-        offset_sign = "+"
-        offset_hours = 0
-        offset_minutes = 0
-    else:
-        offset_sign = match.group("tz_sign")
-        offset_hours = _convert(match.group("tz_hours"))
-        offset_minutes = _convert(match.group("tz_minutes"))
-        
-    tzi = UTCOffsetTimeZoneInfo()
-    tzi.setOffsets(offset_sign, offset_hours, offset_minutes)
-    
-    try:
-        dt = datetime(year, month, day, hour, minute, second, 0, tzi)
-    except ValueError:
-        raise InvalidParameterException("Invalid date/time '%s'" % s)
-    
-    utc = UTCOffsetTimeZoneInfo()
-    utct = dt.astimezone(utc)
-    
-    return utct
-
-def isotime(dt):
-    warn("This function is deprecated. Use 'isoformat' instead.", DeprecationWarning)
-    return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 def isoformat(dt):
     """ Formats a datetime object to an ISO string. Timezone naive datetimes are
@@ -121,3 +41,32 @@ def isoformat(dt):
         dt = dt.replace(tzinfo=None)
         return dt.isoformat("T") + "Z"
     return dt.isoformat("T")
+
+
+def parse_iso8601(value):
+    """ Parses an ISO 8601 date or datetime string to a python date or datetime.
+        Raises a `ValueError` if a conversion was not possible. The returned 
+        datetime is always considered time-zone aware and defaulting to UTC 
+        Zulu.
+    """
+
+    for parser in (parse_datetime, parse_date):
+        try:
+            temporal = parser(value)
+        except Exception, e:
+            raise ValueError(
+                "Could not parse '%s' to a temporal value. "
+                "Error was: %s" % (value, e)
+            )
+        if temporal:
+            # convert to datetime if necessary
+            if not isinstance(temporal, datetime):
+                temporal = datetime.combine(temporal, datetime.min.time())
+
+            # use UTC, if the datetime is not already time-zone aware
+            if not is_aware(temporal):
+                temporal = make_aware(temporal, utc)
+            
+            return temporal
+
+    raise ValueError("Could not parse '%s' to a temporal value" % value)

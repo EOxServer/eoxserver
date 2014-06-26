@@ -131,7 +131,8 @@ class ServiceComponent(Component):
         else:
             return []
 
-        return filter_handlers(handlers, service, versions, request)
+        handlers = filter_handlers(handlers, service, versions, request)
+        return sort_handlers(handlers)
 
 
     def query_exception_handler(self, request):
@@ -207,6 +208,13 @@ def filter_handlers(handlers, service=None, versions=None, request=None):
         ]
 
     return handlers
+
+
+def sort_handlers(handlers, ascending=True):
+    return sorted(
+        handlers, key=lambda h: getattr(h, "index", 100000), 
+        reverse=not ascending
+    )
 
 
 def handler_supports_service(handler, service=None):

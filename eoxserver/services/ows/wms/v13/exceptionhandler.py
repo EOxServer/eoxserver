@@ -65,7 +65,7 @@ class WMS13ExceptionHandler(Component):
         encoder = self.get_encoder(request)
 
         locator = getattr(exception, "locator", None)
-        code = getattr(exception, "code", type(exception).__name__)
+        code = getattr(exception, "code", None) or type(exception).__name__
 
         return (
             encoder.serialize(
