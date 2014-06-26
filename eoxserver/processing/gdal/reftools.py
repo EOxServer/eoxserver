@@ -132,7 +132,7 @@ try:
     REFTOOLS_USABLE = True
 
 except OSError:
-    logger.warn("Could not load '%s'. Referenceable Datasets will not be usable." % _lib)
+    logger.warn("Could not load '%s'. Referenceable Datasets will not be usable." % _lib_path_baseline)
     
     REFTOOLS_USABLE = False
 
