@@ -106,14 +106,14 @@ class InvalidInputValueError(InvalidParameterValue):
         message = "Invalid input value of '%s'! %s"%(input_id, message)
         InvalidParameterValue.__init__(self, message, input_id)
 
+class InvalidInputReferenceError(InvalidParameterValue):
+    def __init__(self, input_id, message=""):
+        message = "Invalid input '%s' reference! %s"%(input_id, message)
+        InvalidParameterValue.__init__(self, message, input_id)
+
 class MissingRequiredInputError(InvalidParameterValue):
     def __init__(self, input_id):
         message = "Missing required input '%s'!"%(input_id)
-        InvalidParameterValue.__init__(self, message, input_id)
-
-class InvalidReferenceError(InvalidParameterValue):
-    def __init__(self, input_id, message=""):
-        message = "Invalid input '%s' reference! %s"%(input_id, message)
         InvalidParameterValue.__init__(self, message, input_id)
 
 class ExecuteError(NoApplicableCode):

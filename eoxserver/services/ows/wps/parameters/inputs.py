@@ -28,23 +28,21 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from .base import BaseParamMetadata, ParamMetadata
+from .base import ParamMetadata
 
-class InputReference(BaseParamMetadata):
+class InputReference(ParamMetadata):
     """ Input data reference."""
 
     def __init__(self, href, identifier, title=None, abstract=None,
-                    headers=None, body=None, method="GET", mime_type=None,
+                    headers=None, body=None, method=None, mime_type=None,
                     encoding=None, schema=None, body_href=None):
-        BaseParamMetadata.__init__(self, identifier, title, abstract)
+        ParamMetadata.__init__(self, identifier, title, abstract, None, None,
+                                                   mime_type, encoding, schema)
         self.href = href
         self.headers = headers or ()
         self.body = body
         self.body_href = body_href
         self.method = method
-        self.mime_type = mime_type
-        self.encoding = encoding
-        self.schema = schema
 
 
 class InputData(ParamMetadata):

@@ -34,6 +34,7 @@ except ImportError:
 
 import urllib2
 from urlparse import urlparse
+import logging
 
 from eoxserver.core import Component, implements, ExtensionPoint
 from eoxserver.core.util import multiparttools as mp
@@ -45,10 +46,11 @@ from eoxserver.services.ows.wps.interfaces import ProcessInterface
 from eoxserver.services.ows.wps.exceptions import (
     NoSuchProcessError, MissingRequiredInputError,
     InvalidInputError, InvalidOutputError, InvalidOutputDefError,
-    InvalidReferenceError, InvalidInputValueError,
+    InvalidInputReferenceError, InvalidInputValueError,
 )
 from eoxserver.services.ows.wps.parameters import (
-    fix_parameter, LiteralData, BoundingBoxData, ComplexData, InputReference,
+    fix_parameter, LiteralData, BoundingBoxData, ComplexData,
+    InputReference, InputData,
 )
 from eoxserver.services.ows.wps.v10.encoders import (
     WPS10ExecuteResponseXMLEncoder, WPS10ExecuteResponseRawEncoder
@@ -60,6 +62,7 @@ from eoxserver.services.ows.wps.v10.execute_decoder_kvp import (
     WPS10ExecuteKVPDecoder
 )
 
+LOGGER = logging.getLogger(__name__)
 
 class WPS10ExcecuteHandler(Component):
     implements(ServiceHandlerInterface)
@@ -149,9 +152,11 @@ def decode_process_inputs(input_defs, raw_inputs, request):
     for name, prm in input_defs:
         raw_value = raw_inputs.get(prm.identifier)
         if raw_value is not None:
-            #TODO: fix the input parsing
             if isinstance(raw_value, InputReference):
-                raw_value = _resolve_reference(raw_value, request)
+                try:
+                    raw_value = _resolve_reference(raw_value, request)
+                except ValueError as exc:
+                    raise InvalidInputReferenceError(prm.identifier, exc)
             try:
                 value = _decode_input(prm, raw_value)
             except ValueError as exc:
@@ -218,22 +223,44 @@ def _decode_input(prm, raw_value):
     else:
         raise TypeError("Unsupported parameter type %s!"%(type(prm)))
 
-def _resolve_reference(reference, request):
-    """ Get the input passed as a reference. """
-    url = urlparse(reference.href)
+def _resolve_reference(iref, request):
+    """ Get the input passed as a reference."""
+    # prepare HTTP/POST request
+    if iref.method == "POST":
+        if iref.body_href is not None:
+            iref.body = _resolve_url(iref.body_href, None, iref.headers, request)
+        if iref.body is not None:
+            ValueError("Missing the POST request body!")
+    else:
+        iref.body = None
+    data = _resolve_url(iref.href, iref.body, iref.headers, request)
+    return InputData(iref.identifier, iref.title, iref.abstract, data,
+                        None, None, iref.mime_type, iref.encoding, iref.schema)
 
-    # if the href references a part in the multipart request, iterate over
-    # all parts and return the correct one
+def _resolve_url(href, body, headers, request):
+    """ Resolve the input reference URL."""
+    LOGGER.debug("resolving: %s%s", href, "" if body is None else " (POST)")
+    url = urlparse(href)
     if url.scheme == "cid":
-        for headers, data in mp.iterate(request):
-            if headers.get("Content-ID") == url.path:
-                return data
-        raise InvalidReferenceError(reference.identifier,
-                                    "No part with content-id '%s'." % url.path)
+        return _resolve_multipart_related(url.path, request)
+    elif url.scheme in ('http', 'https'):
+        return _resolve_http_url(href, body, headers)
+    else:
+        raise ValueError("Unsupported URL scheme %r!"%(url.scheme))
+
+def _resolve_http_url(href, body=None, headers=()):
+    """ Resolve the HTTP request."""
     try:
-        request = urllib2.Request(reference.href, reference.body)
+        request = urllib2.Request(href, body, dict(headers))
         response = urllib2.urlopen(request)
         return response.read()
     except urllib2.URLError, exc:
-        raise InvalidReferenceError(reference.identifier, str(exc))
+        raise ValueError(str(exc))
 
+def _resolve_multipart_related(cid, request):
+    """ Resolve reference to another part of the multi-part request."""
+    # iterate over the parts to find the correct one
+    for headers, data in mp.iterate(request):
+        if headers.get("Content-ID") == cid:
+            return data
+    raise ValueError("No part with content-id '%s'." % cid)
