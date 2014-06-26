@@ -26,3 +26,30 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+from eoxserver.core import Component, implements
+from eoxserver.services.ows.interfaces import ExceptionHandlerInterface
+from eoxserver.services.ows.common.v11.encoders import OWS11ExceptionXMLEncoder
+
+
+class WPS10ExceptionHandler(Component):
+    implements(ExceptionHandlerInterface)
+
+    service = "WPS"
+    versions = ("1.0.0", "1.0")
+    request = None
+    
+
+    def handle_exception(self, request, exception):
+        locator = getattr(exception, "locator", None)
+        code = getattr(exception, "code", None) or type(exception).__name__
+
+        encoder = OWS11ExceptionXMLEncoder()
+
+        return (
+            encoder.serialize(
+                encoder.encode_exception(
+                    str(exception), "1.1.0", code, locator
+                )
+            ), 
+            encoder.content_type, 400
+        )
