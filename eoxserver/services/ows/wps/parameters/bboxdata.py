@@ -30,10 +30,12 @@
 
 import re
 from itertools import chain
+
 from eoxserver.core.util.rect import Rect
 from .data_types import Double
 from .crs import CRSType
 from .base import Parameter
+
 
 # precompiled reg.ex. used to eliminate repeated white-spaces
 _RE_MULTIWS = re.compile(r"\s+")
@@ -94,8 +96,8 @@ class BoundingBox(tuple):
         return Rect(self[0][0], self[0][1], None, None, self[1][0], self[1][1])
 
     def __str__(self):
-        crs = ", crs=%s"%self.crs if self.crs is not None else ""
-        return "BoundingBox((%s, %s)%s)"%(self.lower, self.upper, crs)
+        crs = ", crs=%s" % (self.crs if self.crs is not None else "")
+        return "BoundingBox((%s, %s)%s)" % (self.lower, self.upper, crs)
 
 #-------------------------------------------------------------------------------
 
@@ -105,7 +107,7 @@ class BoundingBoxData(Parameter):
     dtype_crs = CRSType
 
     def __init__(self, identifier, crss=None, dimension=2, default=None,
-                    *args, **kwargs):
+                 *args, **kwargs):
         """ Object constructor.
 
             Parameters:
@@ -128,7 +130,7 @@ class BoundingBoxData(Parameter):
         self.crss = tuple(self.parse_crs(crs) for crs in crss or (4326,))
         self.default = self.parse(default) if default is not None else None
         if self.dimension < 1:
-            raise ValueError("Invalid bounding box dimension %s!"%dimension)
+            raise ValueError("Invalid bounding box dimension %s!" % dimension)
 
     @property
     def default_crs(self):

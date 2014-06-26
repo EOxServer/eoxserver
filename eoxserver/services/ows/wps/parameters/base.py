@@ -50,9 +50,10 @@ class BaseParamMetadata(object):
 
 class ParamMetadata(BaseParamMetadata):
     """ Common metadata of the execute request parameters."""
+    
     def __init__(self, identifier, title=None, abstract=None, uom=None,
-                    crs=None, mime_type=None, encoding=None, schema=None):
-        BaseParamMetadata.__init__(self, identifier, title, abstract)
+                 crs=None, mime_type=None, encoding=None, schema=None):
+        super(BaseParamMetadata, self).__init__(identifier, title, abstract)
         self.uom = uom
         self.crs = crs
         self.mime_type = mime_type
@@ -69,12 +70,12 @@ class Parameter(BaseParamMetadata):
 
             Parameters:
                 identifier  idetnfier of the parameter.
-                title       optional human-raedable name (defaults to idetfier).
-                abstract    optional human-redable verbose description.
+                title       optional human-readable name (defaults to idetfier).
+                abstract    optional human-readable verbose description.
                 metadata    optional metadata (title/URL dictionary).
                 optional    optional boolean flag indicating whether the input
                             parameter is optional or not.
         """
-        BaseParamMetadata.__init__(self, identifier, title, abstract)
+        super(Parameter, self).__init__(identifier, title, abstract)
         self.metadata = metadata or {}
         self.is_optional = optional

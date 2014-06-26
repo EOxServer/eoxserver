@@ -30,6 +30,7 @@
 
 from .codecs import CodecBase64, CodecRaw
 
+
 class Format(object):
     """ Base complex data format. """
 

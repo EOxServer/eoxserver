@@ -217,8 +217,8 @@ class ComplexData(Parameter):
 
             Parameters:
                 identifier  identifier of the parameter.
-                title       optional human-raedable name (defaults to identifier).
-                abstract    optional human-redable verbose description.
+                title       optional human-readable name (defaults to identifier).
+                abstract    optional human-readable verbose description.
                 metadata    optional metadata (title/URL dictionary).
                 optional    optional boolean flag indicating whether the input
                             parameter is optional or not.

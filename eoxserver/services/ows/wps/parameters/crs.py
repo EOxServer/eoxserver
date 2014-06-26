@@ -55,7 +55,7 @@ class CRSType(BaseType):
                 value = parseEPSGCode(raw_value, (fromURL, fromURN, fromShortCode))
                 if value is not None:
                     return value
-        raise ValueError("Invalid CRS %r!"%raw_value)
+        raise ValueError("Invalid CRS %r!" % raw_value)
 
     @classmethod
     def encode(cls, value):
@@ -64,7 +64,7 @@ class CRSType(BaseType):
             return u'ImageCRS'
         elif validateEPSGCode(value):
             return unicode(asURL(value))
-        raise ValueError("Invalid CRS %r!"%value)
+        raise ValueError("Invalid CRS %r!" % value)
 
     @classmethod
     def get_diff_dtype(cls): # string has no difference

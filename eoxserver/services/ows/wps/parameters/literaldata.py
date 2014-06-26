@@ -185,5 +185,6 @@ class LiteralData(Parameter):
             _value = self._allowed_values.verify(_value)
             return _value
         except (ValueError, TypeError) as exc:
-            raise ValueError("Input parsing error: '%s' (raw value '%s')"
-                                                    "" % (str(exc), raw_value))
+            raise ValueError(
+                "Input parsing error: '%s' (raw value '%s')" % (exc, raw_value)
+            )

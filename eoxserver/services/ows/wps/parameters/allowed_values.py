@@ -39,7 +39,7 @@ class TypedMixIn(object):
         elif dtype in DTYPES:
             self._dtype = DTYPES[dtype]
         else:
-            raise TypeError("Non-supported data type %s !"%dtype)
+            raise TypeError("Non-supported data type %s!" % dtype)
 
     @property
     def dtype(self):
@@ -114,15 +114,15 @@ class AllowedRange(BaseAllowed, TypedMixIn):
 
     # NOTE: Use of spacing with float discrete range is not recommended.
     def __init__(self, minval, maxval, closure='closed',
-                       spacing=None, spacing_rtol=1e-9, dtype=Double):
+                 spacing=None, spacing_rtol=1e-9, dtype=Double):
         """ Range constructor.
 
             parameters:
-                minval      range lower bound - set to None is unbound
-                maxval      range upper bound - set to None is unbound
-                closuere    *'closed'|'open'|'open-closed'|'closed-open'
-                spacing     uniform spacing of dicretly sampled ranges
-                spacing_rtol relative tollerance of the spacing match
+                minval      range lower bound - set to None if unbound
+                maxval      range upper bound - set to None if unbound
+                closure    *'closed'|'open'|'open-closed'|'closed-open'
+                spacing     uniform spacing of discretely sampled ranges
+                spacing_rtol relative tolerance of the spacing match
         """
         TypedMixIn.__init__(self, dtype)
 
@@ -149,11 +149,12 @@ class AllowedRange(BaseAllowed, TypedMixIn):
 
             # check wehther the type has difference operation defined
             if ddtype is None or ddtype.zero is None:
-                raise TypeError("Spacing is not applicable for type '%s'!"
-                                ""%dtype)
+                raise TypeError(
+                    "Spacing is not applicable for type '%s'!" % dtype
+                )
             spacing = ddtype.parse(spacing)
             if spacing <= ddtype.zero:
-                raise ValueError("Invalid spacing %s !"%spacing)
+                raise ValueError("Invalid spacing '%s'!" % spacing)
 
         self._spacing = spacing
         self._rtol = spacing_rtol
@@ -180,7 +181,7 @@ class AllowedRange(BaseAllowed, TypedMixIn):
         ddtype = self._dtype.get_diff_dtype()
         tmp0 = ddtype.as_number(self._dtype.sub(value, self._base))
         tmp1 = ddtype.as_number(self.spacing)
-        tmp2 = float(tmp0)/float(tmp1)
+        tmp2 = float(tmp0) / float(tmp1)
         return not self._rtol >= abs(tmp2 - round(tmp2))
 
     def _out_of_bounds(self, value):

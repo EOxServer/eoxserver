@@ -30,7 +30,7 @@ from eoxserver.core import Component, ExtensionPoint, implements
 from eoxserver.core.decoders import kvp, xml, typelist
 from eoxserver.services.ows.interfaces import (
     ServiceHandlerInterface, GetServiceHandlerInterface,
-    PostServiceHandlerInterface, #VersionNegotiationInterface
+    PostServiceHandlerInterface
 )
 from eoxserver.services.ows.wps.interfaces import ProcessInterface
 from eoxserver.services.ows.wps.exceptions import NoSuchProcessError

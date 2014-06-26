@@ -29,6 +29,7 @@
 
 import base64
 
+
 class Codec(object):
     """ Base complex data codec."""
     encoding = None
