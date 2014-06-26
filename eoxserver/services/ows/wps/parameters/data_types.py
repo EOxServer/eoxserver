@@ -27,11 +27,11 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-import re
 from datetime import datetime, date, time, timedelta
 from django.utils.dateparse import parse_date, parse_datetime, parse_time, utc
 from django.utils.tzinfo import FixedOffset
-from eoxserver.core.util.timetools import isoformat
+
+from eoxserver.core.util.timetools import isoformat, parse_duration
 
 
 class BaseType(object):
@@ -56,19 +56,19 @@ class BaseType(object):
     @classmethod
     def get_diff_dtype(cls): # difference type - change if differs from the base
         """ Get type of the differece of this type.
-            E.g., `dimedelta` for a `datetime`.
+            E.g., `timedelta` for a `datetime`.
         """
         return cls
 
     @classmethod
     def as_number(cls, value):
         """ convert to a number (e.g., duration)"""
-        raise TypeError("Data type %s cannot be converted to a number!"%cls)
+        raise TypeError("Data type %s cannot be converted to a number!" % cls)
 
     @classmethod
     def sub(cls, value0, value1):
         """ substract value0 - value1 """
-        raise TypeError("Data type %s cannot be substracted!"%cls)
+        raise TypeError("Data type %s cannot be substracted!" % cls)
 
 
 class Boolean(BaseType):
@@ -169,36 +169,11 @@ class Duration(BaseType):
     dtype = timedelta
     zero = timedelta(0)
 
-    RE_ISO_8601 = re.compile(
-        r"^(?P<sign>[+-])?P"
-        r"(?:(?P<years>\d+(\.\d+)?)Y)?"
-        r"(?:(?P<months>\d+(\.\d+)?)M)?"
-        r"(?:(?P<days>\d+(\.\d+)?)D)?"
-        r"T?(?:(?P<hours>\d+(\.\d+)?)H)?"
-        r"(?:(?P<minutes>\d+(\.\d+)?)M)?"
-        r"(?:(?P<seconds>\d+(\.\d+)?)S)?$"
-    )
-
     @classmethod
     def parse(cls, raw_value):
         if isinstance(raw_value, cls.dtype):
             return raw_value
-
-        re_match = cls.RE_ISO_8601.match(raw_value)
-        if not re_match:
-            raise ValueError("Could not parse ISO duration from '%s'."
-                                                                  ""%raw_value)
-        match = re_match.groupdict()
-
-        sign = -1 if "-" == match['sign'] else 1
-        days = float(match['days'] or 0)
-        days += float(match['months'] or 0) * 30 #?!
-        days += float(match['years'] or 0) * 365 #?!
-        fsec = float(match['seconds'] or 0)
-        fsec += float(match['minutes'] or 0) * 60
-        fsec += float(match['hours'] or 0) * 3600
-
-        return sign * cls.dtype(days, fsec)
+        return parse_duration(raw_value)
 
     @classmethod
     def encode(cls, value):
