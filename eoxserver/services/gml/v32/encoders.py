@@ -29,6 +29,7 @@
 from lxml.builder import ElementMaker
 
 from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap, ns_xsi
+from eoxserver.core.util.timetools import isoformat
 from eoxserver.resources.coverages import crss
 
 # namespace declarations
