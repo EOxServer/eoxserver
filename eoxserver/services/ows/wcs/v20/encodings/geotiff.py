@@ -49,9 +49,15 @@ class WCS20GeoTIFFEncodingExtension(Component):
     def get_encoding_params(self, request):
         decoder = self.get_decoder(request)
 
-        params = {}
-
-        return params
+        return {
+            "compression": decoder.compression,
+            "jpeg_quality": decoder.jpeg_quality,
+            "predictor": decoder.predictor,
+            "interleave": decoder.interleave,
+            "tiling": decoder.tiling,
+            "tileheight": decoder.tileheight,
+            "tilewidth": decoder.tilewidth
+        }
 
 
 compression_enum = enum(
