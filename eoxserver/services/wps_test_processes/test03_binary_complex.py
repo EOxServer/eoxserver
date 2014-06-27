@@ -29,13 +29,13 @@ import uuid
 import os.path
 import numpy as np
 from osgeo import gdal
-from numpy.random import random
+from numpy import random as np_rnd
 from eoxserver.core import Component, implements
-from eoxserver.services.ows.wps.exceptions import ExecuteException
+from eoxserver.services.ows.wps.exceptions import ExecuteError
 from eoxserver.services.ows.wps.interfaces import ProcessInterface
 from eoxserver.services.ows.wps.parameters import (
     LiteralData, ComplexData, CDFile, CDByteBuffer,
-    FormatBinaryRaw, FormatBinaryBase64,
+    FormatBinaryRaw, FormatBinaryBase64, AllowedRange,
 )
 
 class TestProcess03(Component):
@@ -56,10 +56,15 @@ class TestProcess03(Component):
             abstract="Select method how the complex data output is passed.",
             allowed_values=('in-memory-buffer', 'file'), default='file',
         )),
+        ("seed", LiteralData('TC03:seed', int, optional=True,
+            title="Random generator seed.", abstract="Random generator seed "
+            "that can be used to obtain reproduceable results",
+            allowed_values=AllowedRange(0, None, dtype=int),
+        )),
     ]
 
     outputs = [
-        ("output00",
+        ("output",
             ComplexData('TC03:output00',
                 title="Test case #02: Complex output #00",
                 abstract="Copy of the input00.",
@@ -81,30 +86,31 @@ class TestProcess03(Component):
     #       format selection. In case of no format selected by the user
     #       the format selection argument contains the default format.
     @staticmethod
-    def execute(method, output00):
+    def execute(method, seed, output):
         base_fname = os.path.join("/tmp", str(uuid.uuid4()))
-        size = (768, 512)
+        size_x, size_y = (768, 512)
 
         mem_driver = gdal.GetDriverByName("MEM")
-        mem_ds = mem_driver.Create("", size[0], size[1], 3, gdal.GDT_Byte)
+        mem_ds = mem_driver.Create("", size_x, size_y, 3, gdal.GDT_Byte)
+        np_rnd.seed(seed)
         for i in xrange(3):
-            data = np.array(random((size[1], size[0]))*256, 'uint8')
+            data = np.array(np_rnd.random((size_y, size_x))*256, 'uint8')
             mem_ds.GetRasterBand(i+1).WriteArray(data)
 
-        if output00['mime_type'] == "image/png":
+        if output['mime_type'] == "image/png":
             fname = base_fname+".png"
             driver = gdal.GetDriverByName("PNG")
             options = []
-        elif output00['mime_type'] == "image/jpeg":
+        elif output['mime_type'] == "image/jpeg":
             fname = base_fname+".jpg"
             driver = gdal.GetDriverByName("JPEG")
             options = []
-        elif output00['mime_type'] == "image/tiff":
+        elif output['mime_type'] == "image/tiff":
             fname = base_fname+".tif"
             driver = gdal.GetDriverByName("GTiff")
             options = ["TILED=YES", "COMPRESS=DEFLATE", "PHOTOMETRIC=RGB"]
         else:
-            ExecuteException("Invalid format! %r"%output00)
+            ExecuteError("Unexpected output format received! %r"%output)
 
         try:
             driver.CreateCopy(fname, mem_ds, 0, options)
@@ -113,15 +119,15 @@ class TestProcess03(Component):
             if method == 'file':
                 # Return object as a temporary Complex Data File.
                 # None that the object holds the format attributes!
-                return CDFile(fname, **output00)
+                return CDFile(fname, **output)
 
             elif method == 'in-memory-buffer':
                 # Return object as an im-memore Complex Data Buffer.
                 # None that the object holds the format attributes!
                 with file(fname) as fid:
-                    output = CDByteBuffer(fid.read(), **output00)
+                    _output = CDByteBuffer(fid.read(), **output)
                 os.remove(fname)
-                return output
+                return _output
         except:
             # make sure no temporary file is left
             if os.path.isfile(fname):
