@@ -1083,3 +1083,92 @@ class WCS20PostGetCoverageReferenceableMultipartDatasetTestCase(wcsbase.WCS20Get
           <wcs:mediaType>multipart/related</wcs:mediaType>
         </wcs:GetCoverage>"""
         return (params, "xml")
+
+# WCS 2.0 GetCoverage GeoTIFF 
+
+class WCS20GetCoverageDatasetGeoTIFFPackBitsTestCase(wcsbase.GeoTIFFMixIn, testbase.RectifiedGridCoverageTestCase):
+    expected_compression = "PACKBITS"
+
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&geotiff:compression=PackBits"
+        return (params, "kvp")
+
+class WCS20GetCoverageDatasetGeoTIFFHuffmanTestCase(wcsbase.GeoTIFFMixIn, testbase.RectifiedGridCoverageTestCase):
+    expected_compression = "CCITTRLE"
+    
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&geotiff:compression=Huffman"
+        return (params, "kvp")
+
+class WCS20GetCoverageDatasetGeoTIFFLZWTestCase(wcsbase.GeoTIFFMixIn, testbase.RectifiedGridCoverageTestCase):
+    expected_compression = "LZW"
+    
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&geotiff:compression=LZW"
+        return (params, "kvp")
+
+
+class WCS20GetCoverageDatasetGeoTIFFJPEGLowTestCase(wcsbase.GeoTIFFMixIn, testbase.RectifiedGridCoverageTestCase):
+    expected_compression = "JPEG"
+    expected_jpeg_quality = 50
+    
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&geotiff:compression=JPEG&geotiff:jpeg_quality=50"
+        return (params, "kvp")
+
+
+class WCS20GetCoverageDatasetGeoTIFFJPEGHighTestCase(wcsbase.GeoTIFFMixIn, testbase.RectifiedGridCoverageTestCase):
+    expected_compression = "JPEG"
+    expected_jpeg_quality = 90
+    
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&geotiff:compression=JPEG&geotiff:jpeg_quality=90"
+        return (params, "kvp")
+
+
+class WCS20GetCoverageDatasetGeoTIFFDeflateTestCase(wcsbase.GeoTIFFMixIn, testbase.RectifiedGridCoverageTestCase):
+    expected_compression = "DEFLATE"
+    
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&geotiff:compression=Deflate&geotiff:predictor=Horizontal"
+        return (params, "kvp")
+
+
+class WCS20GetCoverageDatasetGeoTIFFInterleaveBandTestCase(wcsbase.GeoTIFFMixIn, testbase.RectifiedGridCoverageTestCase):
+    expected_interleave = "BAND"
+    
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&geotiff:interleave=Band"
+        return (params, "kvp")
+
+
+class WCS20GetCoverageDatasetGeoTIFFTiled16TestCase(wcsbase.GeoTIFFMixIn, testbase.RectifiedGridCoverageTestCase):
+    expected_tiling = (16, 16)
+    
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&geotiff:tiling=true&geotiff:tilewidth=16&geotiff:tileheight=16"
+        return (params, "kvp")
+
+class WCS20GetCoverageDatasetGeoTIFFPostTestCase(wcsbase.GeoTIFFMixIn, testbase.RectifiedGridCoverageTestCase):
+    expected_tiling = (32, 64)
+    expected_interleave = "BAND"
+    expected_compression = "DEFLATE"
+    
+    def getRequest(self):
+        params = """<wcs:GetCoverage service="WCS" version="2.0.1"
+           xmlns:wcs="http://www.opengis.net/wcs/2.0"
+           xmlns:geotiff="http://www.opengis.net/gmlcov/geotiff/1.0">
+          <wcs:CoverageId>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</wcs:CoverageId>
+          <wcs:format>image/tiff</wcs:format>
+          <wcs:Extension>
+            <geotiff:parameters>
+              <geotiff:compression>Deflate</geotiff:compression>
+              <geotiff:predictor>FloatingPoint</geotiff:predictor>
+              <geotiff:interleave>Band</geotiff:interleave>
+              <geotiff:tiling>true</geotiff:tiling>
+              <geotiff:tilewidth>32</geotiff:tilewidth>
+              <geotiff:tileheight>64</geotiff:tileheight>
+            </geotiff:parameters>
+          </wcs:Extension>
+        </wcs:GetCoverage>"""
+        return (params, "xml")
