@@ -134,7 +134,8 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         time_stamp = datetime.now().strftime("%Y%m%d%H%M%S")
         basename = "%s_%s" % (coverage.identifier, time_stamp)
         of = create_outputformat(
-            mime_type, frmt, imagemode, basename, params.encoding_params
+            mime_type, frmt, imagemode, basename, 
+            getattr(params, "encoding_params", {})
         )
 
         map_.appendOutputFormat(of)

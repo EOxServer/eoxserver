@@ -102,7 +102,7 @@ class GDALReferenceableDatasetRenderer(Component):
 
         # encode the processed dataset and save it to the filesystem
         out_ds, out_driver = self.encode(
-            subsetted_ds, frmt, params.encoding_params
+            subsetted_ds, frmt, getattr(params, "encoding_params", {})
         )
 
         driver_metadata = out_driver.GetMetadata_Dict()
@@ -254,7 +254,7 @@ class GDALReferenceableDatasetRenderer(Component):
         return vrt.dataset
 
 
-    def encode(self, dataset, format, encoding_params):
+    def encode(self, dataset, frmt, encoding_params):
         options = ()
         if frmt == "image/tiff":
             options = _get_gtiff_options(**encoding_params)
