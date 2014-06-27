@@ -249,12 +249,13 @@ class value_range(object):
 
     def __call__(self, raw):
         value = self._type(raw)
-        if value < self.min or value > self.max:
+        if value < self._min or value > self._max:
             raise ValueError(
                 "Given value '%s' exceeds expected bounds (%s, %s)" 
                 % (value, self._min, self._max)
             )
         return value
+
 
 def boolean(raw):
     """ Functor to convert "true"/"false" to a boolean.
