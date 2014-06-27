@@ -30,6 +30,7 @@ from lxml import etree
 from StringIO import StringIO
 from eoxserver.core import Component, implements
 from eoxserver.services.ows.wps.interfaces import ProcessInterface
+from eoxserver.services.ows.wps.exceptions import InvalidOutputDefError
 from eoxserver.services.ows.wps.parameters import (
     ComplexData, CDObject, CDTextBuffer,
     FormatText, FormatXML, FormatJSON, #FormatBinaryRaw, FormatBinaryBase64,
@@ -62,7 +63,8 @@ class TestProcess02(Component):
         ("output00",
             ComplexData('TC02:output00',
                 title="Test case #02: Complex output #00",
-                abstract="Copy of the input00.",
+                abstract="Copy of the input00. Output format must be the same "
+                    "as the input format.",
                 formats=(FormatText('text/plain'), FormatXML('text/xml'),
                           FormatJSON())
             )
@@ -77,8 +79,13 @@ class TestProcess02(Component):
     ]
 
     @staticmethod
-    def execute(input00):
+    def execute(input00, output00, **kwarg):
         outputs = {}
+
+        # process specific format constraint known only by the execute() method
+        if input00.mime_type != output00['mime_type']:
+            raise InvalidOutputDefError("TC02:output00", "The 'TC02:output00' "
+                "format must be the same as the format of 'TC02:input00'.")
 
         if input00.mime_type == "text/plain":
             # CDTextBuffer object inherited from StringIO - works with unicode
