@@ -244,7 +244,7 @@ def _apply_gtiff(outputformat, compression=None, jpeg_quality=None,
     if compression:
         if compression.lower() == "huffman":
             compression = "CCITTRLE"
-        outputformat.setOption("COMPRESS", compression.upper())
+        outputformat.setOption("COMPRESS", str(compression.upper()))
 
     if jpeg_quality is not None:
         outputformat.setOption("JPEG_QUALITY", str(jpeg_quality))
@@ -256,7 +256,7 @@ def _apply_gtiff(outputformat, compression=None, jpeg_quality=None,
         outputformat.setOption("PREDICTOR", str(pr + 1))
 
     if interleave:
-        outputformat.setOption("INTERLEAVE", interleave)
+        outputformat.setOption("INTERLEAVE", str(interleave.upper()))
 
     if tiling:
         outputformat.setOption("TILED", "YES")
