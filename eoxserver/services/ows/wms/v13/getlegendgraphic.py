@@ -31,7 +31,6 @@ from itertools import chain
 from eoxserver.core import Component, env, implements, UniqueExtensionPoint
 from eoxserver.core.decoders import kvp, typelist, InvalidParameterException
 from eoxserver.resources.coverages import models
-from eoxserver.services.subset import Subsets, Trim, Slice
 from eoxserver.services.ows.interfaces import (
     ServiceHandlerInterface, GetServiceHandlerInterface
 )

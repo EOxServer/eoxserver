@@ -44,7 +44,9 @@ class SLDStyleApplicator(Component):
         ), data_items)
 
         for sld_item in sld_items:
-            
             sld_filename = connect(sld_item)
             with open(sld_filename) as f:
-                layer.applySLD(f.read(), coverage.identifier)
+                #layer.setMetaData("wms_sld_body", f.read())
+                #layer.map.applySLD(f.read())
+                pass 
+                # SLD is currently buggyly implemented in MS

@@ -87,17 +87,15 @@ class CoverageBandsLayerFactory(OffsiteColorMixIn, AbstractLayerFactory):
             offsite_indices = [v, v, v]
         else:
             raise Exception("Invalid number of bands requested.")
-
-        layer.setProcessingKey("BANDS", indices_str)
-        layer.offsite = self.offsite_color_from_range_type(
+        
+        offsite = self.offsite_color_from_range_type(
             range_type, offsite_indices
         )
-        
-        # TODO: seems to break rendering
-        #layer.setProcessingKey("SCALE", "100,200")
+        options = self.get_render_options(coverage)
+        self.set_render_options(layer, offsite, options)
 
+        layer.setProcessingKey("BANDS", indices_str)
         yield (layer, coverage.data_items.all())
-        # TODO: dateline wrapping
 
     def generate_group(self, name):
         return Layer(name)

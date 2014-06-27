@@ -76,12 +76,19 @@ class LocatorListException(Exception):
         return " ".join(self.items)
 
 
-class InvalidAxisLabelException(LocatorListException):
+class InvalidAxisLabelException(Exception):
     """
     This exception indicates that an invalid axis name was chosen in a WCS
     2.0 subsetting parameter.
     """
-    code = "InvalidAxisLabels"
+    code = "InvalidAxisLabel"
+
+    def __init__(self, axis_label):
+        super(InvalidAxisLabelException, self).__init__(
+            "Invalid axis label: '%s'." % axis_label
+        )
+        self.locator = axis_label
+    
 
 
 class InvalidSubsettingException(Exception):
@@ -100,8 +107,9 @@ class NoSuchCoverageException(LocatorListException):
     code = "NoSuchCoverage"
 
     def __str__(self):
-        return "Could not find Coverage%s with ID: %s" % (
-            "" if len(self.items) == 1 else "s", ", ".join(self.items)
+        return "No such Coverage%s with ID: %s" % (
+            "" if len(self.items) == 1 else "s",
+            ", ".join(map(lambda i: "'%s'" % i, self.items))
         )
 
 
@@ -112,8 +120,9 @@ class NoSuchDatasetSeriesOrCoverageException(LocatorListException):
     code = "NoSuchDatasetSeriesOrCoverage"
 
     def __str__(self):
-        return "Could not find Coverage%s or Dataset Series with ID: %s" % (
-            " " if len(self.items) == 1 else "s", ", ".join(self.items)
+        return "No such Coverage%s or Dataset Series with ID: %s" % (
+            " " if len(self.items) == 1 else "s",
+            ", ".join(map(lambda i: "'%s'" % i, self.items))
         )
 
 
@@ -162,3 +171,17 @@ class VersionNotSupportedException(Exception):
             return "Version '%s' is not supported." % self.version
 
     code = "InvalidParameterValue"
+
+
+class RenderException(Exception):
+    """ Rendering related exception.
+    """
+    def __init__(self, message, locator, is_parameter=True):
+        super(RenderException, self).__init__(message)
+        self.locator = locator
+        self.is_parameter = is_parameter
+
+    @property
+    def code(self):
+        return "InvalidParameterValue" if self.is_parameter else "InvalidRequest"
+

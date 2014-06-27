@@ -26,6 +26,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+from eoxserver.core.util.timetools import isoformat
 from eoxserver.services.subset import Slice
 from eoxserver.services.ows.wcs.parameters import (
     CoverageRenderParams, CoverageDescriptionRenderParams,

@@ -35,7 +35,6 @@ from functools import wraps
 
 from eoxserver.contrib import gdal
 from eoxserver.core.util.rect import Rect
-from eoxserver.core.exceptions import InternalError
 
 #-------------------------------------------------------------------------------
 # approximation transformer's threshold in pixel units 
@@ -55,6 +54,11 @@ METHOD2STR = { METHOD_GCP: "METHOD_GCP", METHOD_TPS:"METHOD_TPS", METHOD_TPS_LSQ
 #-------------------------------------------------------------------------------
 
 logger = logging.getLogger(__name__)
+
+
+class ReftoolsException(Exception):
+    pass
+
 
 class RECT(C.Structure):
     _fields_ = [("x_off", C.c_int),
@@ -128,8 +132,7 @@ try:
     REFTOOLS_USABLE = True
 
 except OSError:
-
-    logger.warn("Could not load '%s'. Referenceable Datasets will not be usable." % _lib_path)
+    logger.warn("Could not load '%s'. Referenceable Datasets will not be usable." % _lib_path_baseline)
     
     REFTOOLS_USABLE = False
 
@@ -149,8 +152,10 @@ def requires_reftools(func):
     @wraps(func)
     def wrapped(*args, **kwargs):
         if not REFTOOLS_USABLE:
-            raise InternalError("Referenceable grid handling is disabled! "
-                                "Did you compile the 'reftools' C module?!")
+            raise ReftoolsException(
+                "Could not load reftools extension library. "
+                "Referenceable grid handling is disabled."
+            )
         return func(*args, **kwargs)
 
     return wrapped
@@ -307,7 +312,8 @@ def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
     ptr = C.c_void_p(long(ds.this))
 
     # when not provided set SRID to 0 
-    if srid is None : srid = 0 
+    if srid is None:
+        srid = 0 
 
     ret = _create_rectified_vrt(ptr, vrt_path, srid,
         resample, memory_limit, max_error, 
@@ -332,9 +338,11 @@ def create_temporary_rectified_vrt(path_or_ds, srid=None,
         suffix = ".vrt"
     )
     
-    create_rectified_vrt(path_or_ds, vrt_path, srid, 
+    create_rectified_vrt(
+        path_or_ds, vrt_path, srid, 
         resample, memory_limit, max_error, 
-        method, order)
+        method, order
+    )
     
     return vrt_path
 
@@ -358,13 +366,12 @@ def suggested_warp_output(path_or_ds, src_wkt, dst_wkt, method=METHOD_GCP, order
         raise RuntimeError(gdal.GetLastErrorMsg())
     
     return info.x_size, info.y_size, info.geotransform
-    
+
+
 @requires_reftools
 def reproject_image(src_ds, src_wkt, dst_ds, dst_wkt, 
-    resample=gdal.GRA_NearestNeighbour, 
-    memory_limit=0.0,
-    max_error=APPROX_ERR_TOL, 
-    method=METHOD_GCP, order=0):
+                    resample=gdal.GRA_NearestNeighbour, memory_limit=0.0,
+                    max_error=APPROX_ERR_TOL, method=METHOD_GCP, order=0):
     
     ret = _reproject_image(
         C.c_void_p(long(src_ds.this)),

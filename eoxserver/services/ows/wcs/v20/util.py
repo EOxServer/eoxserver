@@ -35,19 +35,20 @@ from lxml.builder import ElementMaker
 from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap, ns_xsi
 from eoxserver.core.util.timetools import parse_iso8601
 from eoxserver.services.subset import Trim, Slice, is_temporal
+from eoxserver.services.gml.v32.encoders import (
+    ns_gml, ns_gmlcov, ns_om, ns_eop, GML, GMLCOV, OM, EOP
+)
 from eoxserver.services.ows.common.v20.encoders import ns_xlink, ns_ows, OWS
-from eoxserver.services.exceptions import InvalidSubsettingException
+from eoxserver.services.exceptions import (
+    InvalidSubsettingException, InvalidAxisLabelException
+)
 
 
 # namespace declarations
 ns_ogc = NameSpace("http://www.opengis.net/ogc", "ogc")
-ns_gml = NameSpace("http://www.opengis.net/gml/3.2", "gml")
-ns_gmlcov = NameSpace("http://www.opengis.net/gmlcov/1.0", "gmlcov")
 ns_wcs = NameSpace("http://www.opengis.net/wcs/2.0", "wcs")
 ns_crs = NameSpace("http://www.opengis.net/wcs/service-extension/crs/1.0", "crs")
 ns_eowcs = NameSpace("http://www.opengis.net/wcseo/1.0", "wcseo", "http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd")
-ns_om  = NameSpace("http://www.opengis.net/om/2.0", "om")
-ns_eop = NameSpace("http://www.opengis.net/eop/2.0", "eop")
 ns_swe = NameSpace("http://www.opengis.net/swe/2.0", "swe")
 
 # namespace map
@@ -57,13 +58,10 @@ nsmap = NameSpaceMap(
 )
 
 # Element factories
-GML = ElementMaker(namespace=ns_gml.uri, nsmap=nsmap)
-GMLCOV = ElementMaker(namespace=ns_gmlcov.uri, nsmap=nsmap)
+
 WCS = ElementMaker(namespace=ns_wcs.uri, nsmap=nsmap)
 CRS = ElementMaker(namespace=ns_crs.uri, nsmap=nsmap)
 EOWCS = ElementMaker(namespace=ns_eowcs.uri, nsmap=nsmap)
-OM  = ElementMaker(namespace=ns_om.uri, nsmap=nsmap)
-EOP = ElementMaker(namespace=ns_eop.uri, nsmap=nsmap)
 SWE = ElementMaker(namespace=ns_swe.uri, nsmap=nsmap)
 
 
@@ -126,6 +124,8 @@ def parse_subset_kvp(string):
             )
         else:
             return Slice(axis, parser(match.group(4)), crs)
+    except InvalidAxisLabelException:
+        raise
     except Exception, e:
         raise InvalidSubsettingException(str(e))
 

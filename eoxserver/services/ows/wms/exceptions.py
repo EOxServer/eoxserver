@@ -1,11 +1,11 @@
 #-------------------------------------------------------------------------------
+# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
-# Authors: Stephan Krause <stephan.krause@eox.at>
-#          Stephan Meissl <stephan.meissl@eox.at>
+# Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
 #-------------------------------------------------------------------------------
-# Copyright (C) 2011 EOX IT Services GmbH
+# Copyright (C) 2014 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,27 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from eoxserver.core.exceptions import EOxSException
 
-class ProcessingError(EOxSException):
-    pass
+class LayerNotDefined(Exception):
+    def __init__(self, layer):
+        super(LayerNotDefined, self).__init__("No such layer '%s'." % layer)
+
+    locator = "layers"
+    code = "LayerNotDefined"
+
+class InvalidCRS(Exception):
+    def __init__(self, value, crs_param_name):
+        super(InvalidCRS, self).__init__(
+            "Invalid '%s' parameter value: '%s'"
+            % (crs_param_name.upper(), value)
+        )
+        self.locator = crs_param_name
+    code = "InvalidCRS"
+
+class InvalidFormat(Exception):
+    def __init__(self, value):
+        super(InvalidFormat, self).__init__(
+            "Unknown format name '%s'" % value
+        )
+    locator = "format"
+    code = "InvalidFormat"

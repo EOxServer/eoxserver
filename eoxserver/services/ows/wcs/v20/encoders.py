@@ -1,4 +1,4 @@
-    #-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 # $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
@@ -29,7 +29,7 @@
 
 from lxml import etree
 
-from django.contrib.gis.geos import Polygon
+from django.contrib.gis.geos import Polygon, MultiPolygon
 from django.utils.timezone import now
 
 from eoxserver.core.config import get_eoxserver_config
@@ -42,14 +42,14 @@ from eoxserver.resources.coverages.models import (
 )
 from eoxserver.resources.coverages.formats import getFormatRegistry
 from eoxserver.resources.coverages import crss, models
+from eoxserver.services.gml.v32.encoders import GML32Encoder, EOP20Encoder
 from eoxserver.services.ows.component import ServiceComponent, env
 from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.services.ows.common.v20.encoders import OWS20Encoder
 from eoxserver.services.ows.wcs.v20.util import (
     nsmap, ns_xlink, ns_xsi, ns_ogc, ns_ows, ns_gml, ns_gmlcov, ns_wcs, ns_crs, 
-    ns_eowcs, OWS, GML, GMLCOV, WCS, CRS, EOWCS, OM, EOP, SWE, 
+    ns_eowcs, OWS, GML, GMLCOV, WCS, CRS, EOWCS, SWE
 )
-
 
 
 class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
@@ -130,7 +130,8 @@ class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
                 service="WCS", versions=versions, method="POST"
             )
             all_handlers = sorted(
-                set(get_handlers + post_handlers), key=lambda h: h.request
+                set(get_handlers + post_handlers), 
+                key=lambda h: (getattr(h, "index", 10000), h.request)
             )
 
             operations = []
@@ -256,105 +257,6 @@ class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
         return nsmap.schema_locations
 
 
-class GML32Encoder(object):
-    def encode_linear_ring(self, ring, sr):
-        frmt = "%.3f %.3f" if sr.projected else "%.8f %.8f"
-
-        swap = crss.getAxesSwapper(sr.srid) 
-        pos_list = " ".join(frmt % swap(*point) for point in ring)
-
-        return GML("LinearRing",
-            GML("posList",
-                pos_list
-            )
-        )
-
-    def encode_polygon(self, polygon, base_id):
-        return GML("Polygon",
-            GML("exterior",
-                self.encode_linear_ring(polygon[0], polygon.srs)
-            ),
-            *(GML("interior",
-                self.encode_linear_ring(interior, polygon.srs)
-            ) for interior in polygon[1:]),
-            **{ns_gml("id"): "polygon_%s" % base_id}
-        )
-
-    def encode_multi_surface(self, geom, base_id):
-        if geom.geom_typeid in (6, 7):  # MultiPolygon and GeometryCollection
-            polygons = [
-                self.encode_polygon(polygon, "%s_%d" % (base_id, i+1))    
-                for i, polygon in enumerate(geom)
-            ]
-        elif geom.geom_typeid == 3:     # Polygon
-            polygons = [self.encode_polygon(geom, base_id)]
-
-        return GML("MultiSurface",
-            *[GML("surfaceMember", polygon) for polygon in polygons],
-            **{ns_gml("id"): "multisurface_%s" % base_id,
-               "srsName": "EPSG:4326"
-            }
-        )
-
-    def encode_time_period(self, begin_time, end_time, identifier):
-        return GML("TimePeriod",
-            GML("beginPosition", isoformat(begin_time)),
-            GML("endPosition", isoformat(end_time)),
-            **{ns_gml("id"): identifier}
-        )
-
-    def encode_time_instant(self, time, identifier):
-        return GML("TimeInstant",
-            GML("timePosition", isoformat(time)),
-            **{ns_gml("id"): identifier}   
-        )
-
-class EOP20Encoder(GML32Encoder):
-    def encode_footprint(self, footprint, eo_id):
-        return EOP("Footprint",
-            EOP("multiExtentOf", self.encode_multi_surface(footprint, eo_id)),
-            **{ns_gml("id"): "footprint_%s" % eo_id}
-        )
-
-    def encode_metadata_property(self, eo_id, contributing_datasets=None):
-        return EOP("metaDataProperty",
-            EOP("EarthObservationMetaData",
-                EOP("identifier", eo_id),
-                EOP("acquisitionType", "NOMINAL"),
-                EOP("status", "ARCHIVED"),
-                *([EOP("composedOf", contributing_datasets)] 
-                    if contributing_datasets else []
-                )
-            )
-        )
-
-    def encode_earth_observation(self, eo_metadata, contributing_datasets=None, subset_polygon=None):
-        identifier = eo_metadata.identifier
-        begin_time = eo_metadata.begin_time
-        end_time = eo_metadata.end_time
-        result_time = eo_metadata.end_time
-        footprint = eo_metadata.footprint
-
-        if subset_polygon is not None:
-            footprint = footprint.intersection(subset_polygon)
-
-        
-        return EOP("EarthObservation",
-            OM("phenomenonTime",
-                self.encode_time_period(begin_time, end_time, "phen_time_%s" % identifier)
-            ),
-            OM("resultTime",
-                self.encode_time_instant(result_time, "res_time_%s" % identifier)
-            ),
-            OM("procedure"),
-            OM("observedProperty"),
-            OM("featureOfInterest",
-                self.encode_footprint(footprint, identifier)
-            ),
-            OM("result"),
-            self.encode_metadata_property(identifier, contributing_datasets),
-            **{ns_gml("id"): "eop_%s" % identifier}
-        )
 
 
 class GMLCOV10Encoder(GML32Encoder):
@@ -488,8 +390,13 @@ class GMLCOV10Encoder(GML32Encoder):
         try:
             return cached_nil_value_set[pk]
         except KeyError:
-            cached_nil_value_set[pk] = models.NilValueSet.objects.get(pk=pk)
-            return cached_nil_value_set[pk]
+            try:
+                cached_nil_value_set[pk] = models.NilValueSet.objects.get(
+                    pk=pk
+                )
+                return cached_nil_value_set[pk]
+            except models.NilValueSet.DoesNotExist:
+                return ()
 
 
     def encode_nil_values(self, nil_value_set):
@@ -527,7 +434,6 @@ class GMLCOV10Encoder(GML32Encoder):
         )
 
 
-
 class WCS20CoverageDescriptionXMLEncoder(GMLCOV10Encoder):
     def encode_coverage_description(self, coverage):
         rectified = False if issubclass(coverage.real_type, ReferenceableDataset) else True
@@ -554,7 +460,6 @@ class WCS20CoverageDescriptionXMLEncoder(GMLCOV10Encoder):
 
 class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20Encoder):
     def encode_eo_metadata(self, coverage, request=None, subset_polygon=None):
-
         data_items = list(coverage.data_items.filter(
             semantic="metadata", format="eogml"
         ))
@@ -565,7 +470,7 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20E
             if subset_polygon:
                 try:
                     feature = earth_observation.xpath(
-                        "eop:featureOfInterest", namespaces=nsmap
+                        "om:featureOfInterest", namespaces=nsmap
                     )[0]
                     feature[0] = self.encode_footprint(
                         coverage.footprint.intersection(subset_polygon),
@@ -586,7 +491,8 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20E
             lineage = EOWCS("lineage",
                 EOWCS("referenceGetCoverage",
                     self.encode_reference("Reference",
-                        request.build_absolute_uri().replace("&", "&amp;")
+                        request.build_absolute_uri().replace("&", "&amp;"),
+                        False
                     )
                 ), GML("timePosition", isoformat(now()))
             )
@@ -668,17 +574,62 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20E
             )
         )
 
+    def calculate_contribution(self, footprint, contributions, subset_polygon=None):
+        if subset_polygon:
+            footprint = footprint.intersection(subset_polygon)
+
+        for contribution in contributions:
+            footprint = footprint.difference(contribution)
+        contributions.append(footprint)
+        return footprint
+
+
+    def encode_contributing_datasets(self, coverage, subset_polygon=None):
+        eo_objects = coverage.eo_objects
+        if subset_polygon:
+            if subset_polygon.srid != 4326:
+                subset_polygon = subset_polygon.transform(4326, True)
+
+            eo_objects = eo_objects.filter(
+                footprint__intersects=subset_polygon
+            )
+
+        # iterate over all subsets in reverse order to get the 
+        eo_objects = eo_objects.order_by("-begin_time")
+        actual_contributions = []
+        all_contributions = []
+        for eo_object in eo_objects:
+            contribution = self.calculate_contribution(
+                eo_object.footprint, all_contributions, subset_polygon
+            )
+            if not contribution.empty and contribution.num_geom > 0:
+                actual_contributions.append((eo_object, contribution))
+
+        return EOWCS("datasets", *[
+            EOWCS("dataset",
+                WCS("CoverageId", eo_object.identifier),
+                EOWCS("contributingFootprint",
+                    self.encode_footprint(
+                        contribution, eo_object.identifier
+                    )
+                )
+            )
+            for eo_object, contribution in reversed(actual_contributions)
+        ])
+
     def alter_rectified_dataset(self, coverage, request, tree, subset_polygon=None):
         return EOWCS("RectifiedDataset", *(
-            tree.getchildren() +
-            [self.encode_eo_metadata(coverage, request, subset_polygon)]
+            tree.getchildren() + [
+                self.encode_eo_metadata(coverage, request, subset_polygon)
+            ]
         ), **tree.attrib)
 
-    def alter_rectified_stitched_mosaic(self, coverage, request, subset=None):
+    def alter_rectified_stitched_mosaic(self, coverage, request, tree, subset_polygon=None):
         return EOWCS("RectifiedStitchedMosaic", *(
-            tree.getchildren() +
-            [self.encode_eo_metadata(coverage, request, subset_polygon)]
-            # TODO: contributing datasets
+            tree.getchildren() + [
+                self.encode_eo_metadata(coverage, request, subset_polygon),
+                self.encode_contributing_datasets(coverage, subset_polygon)
+            ]
         ), **tree.attrib)
 
     def encode_referenceable_dataset(self, coverage, range_type, reference, 

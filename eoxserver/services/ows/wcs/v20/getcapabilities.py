@@ -60,7 +60,8 @@ class WCS20GetCapabilitiesHandler(WCSGetCapabilitiesHandlerBase, Component):
 
 
     def lookup_coverages(self, decoder):
-        if "contents" in decoder.sections or "all" in decoder.sections:
+        sections = decoder.sections
+        if "contents" in sections or "all" in sections:
             coverages = models.Coverage.objects \
                 .order_by("identifier") \
                 .filter(visible=True)
@@ -72,6 +73,8 @@ class WCS20GetCapabilitiesHandler(WCSGetCapabilitiesHandlerBase, Component):
                     end_time__isnull=True
                 )
             return coverages, dataset_series
+        else:
+            return (), ()
 
 
     def get_params(self, models, decoder):
@@ -92,10 +95,10 @@ class WCS20GetCapabilitiesKVPDecoder(kvp.Decoder, SectionsMixIn):
 
 
 class WCS20GetCapabilitiesXMLDecoder(xml.Decoder, SectionsMixIn):
-    sections            = xml.Parameter("/ows:Sections/ows:Section/text()", num="*")
-    updatesequence      = xml.Parameter("/@updateSequence", num="?")
-    acceptversions      = xml.Parameter("/ows:AcceptVersions/ows:Version/text()", num="*")
-    acceptformats       = xml.Parameter("/ows:AcceptFormats/ows:OutputFormat/text()", num="*", default=["text/xml"])
-    acceptlanguages     = xml.Parameter("/ows:AcceptLanguages/ows:Language/text()", num="*")
+    sections            = xml.Parameter("ows:Sections/ows:Section/text()", num="*", default=["all"])
+    updatesequence      = xml.Parameter("@updateSequence", num="?")
+    acceptversions      = xml.Parameter("ows:AcceptVersions/ows:Version/text()", num="*")
+    acceptformats       = xml.Parameter("ows:AcceptFormats/ows:OutputFormat/text()", num="*", default=["text/xml"])
+    acceptlanguages     = xml.Parameter("ows:AcceptLanguages/ows:Language/text()", num="*")
 
     namespaces = nsmap

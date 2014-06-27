@@ -27,7 +27,7 @@
 #-------------------------------------------------------------------------------
 
 
-from os import path
+import os.path
 from urlparse import urlparse
 
 from eoxserver.core import Component, implements
@@ -41,4 +41,4 @@ class LocalStorage(Component):
     name = "local"
 
     def retrieve(self, url, location, path):
-        return path.join(url, location)
+        return location

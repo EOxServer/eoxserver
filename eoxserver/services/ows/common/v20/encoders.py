@@ -42,9 +42,12 @@ OWS = ElementMaker(namespace=ns_ows.uri, nsmap=nsmap)
 
 class OWS20Encoder(XMLEncoder):
     def encode_reference(self, node_name, href, reftype="simple"):
-        return OWS(node_name, 
-            **{ns_xlink("href"): href, ns_xlink("type"): reftype}
-        )
+
+        attributes = {ns_xlink("href"): href}
+        if reftype:
+            attributes[ns_xlink("type")] = reftype
+
+        return OWS(node_name, **attributes)
 
 
 class OWS20ExceptionXMLEncoder(XMLEncoder):
