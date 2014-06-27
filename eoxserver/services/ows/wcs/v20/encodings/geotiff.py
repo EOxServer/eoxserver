@@ -40,7 +40,11 @@ class WCS20GeoTIFFEncodingExtension(Component):
     implements(EncodingExtensionInterface)
 
     def supports(self, frmt, options):
+        # To allow "native" GeoTIFF formats aswell
+        if not frmt:
+            return True
         return frmt.lower() == "image/tiff"
+
 
     def get_decoder(self, request):
         if request.method == "GET":
