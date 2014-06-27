@@ -259,9 +259,7 @@ class GDALReferenceableDatasetRenderer(Component):
         if frmt == "image/tiff":
             options = _get_gtiff_options(**encoding_params)
 
-        args = [
-            ("%s=%s" % key, value) for key, value in (options or {}).items()
-        ]
+        args = [ ("%s=%s" % key, value) for key, value in options ]
 
         path = "/tmp/%s" % uuid4().hex
         out_driver = gdal.GetDriverByName("GTiff")
