@@ -53,7 +53,7 @@ class ParamMetadata(BaseParamMetadata):
     
     def __init__(self, identifier, title=None, abstract=None, uom=None,
                  crs=None, mime_type=None, encoding=None, schema=None):
-        super(BaseParamMetadata, self).__init__(identifier, title, abstract)
+        super(ParamMetadata, self).__init__(identifier, title, abstract)
         self.uom = uom
         self.crs = crs
         self.mime_type = mime_type
