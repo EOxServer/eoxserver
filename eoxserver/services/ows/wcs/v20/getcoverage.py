@@ -60,7 +60,7 @@ class WCS20GetCoverageHandler(WCSGetCoverageHandlerBase, Component):
     def get_params(self, coverage, decoder, request):
         encoding_params = None
         for encoding_extension in self.encoding_extensions:
-            if encoding_extension.supports(decoder.format):
+            if encoding_extension.supports(decoder.format, {}):
                 encoding_params = encoding_extension.get_encoding_params(
                     request
                 )
