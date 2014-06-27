@@ -30,6 +30,7 @@
 from os.path import splitext, abspath
 from datetime import datetime
 from uuid import uuid4
+import logging
 
 from django.contrib.gis.geos import GEOSGeometry
 
@@ -45,6 +46,9 @@ from eoxserver.services.result import ResultFile, ResultBuffer
 from eoxserver.services.ows.wcs.interfaces import WCSCoverageRendererInterface
 from eoxserver.services.ows.wcs.v20.encoders import WCS20EOXMLEncoder
 from eoxserver.processing.gdal import reftools
+
+
+logger = logging.getLogger(__name__)
 
 
 class GDALReferenceableDatasetRenderer(Component):
@@ -82,9 +86,9 @@ class GDALReferenceableDatasetRenderer(Component):
 
         # get the requested image format, which defaults to the native format
         # if available
-        format = params.format or native_format
+        frmt = params.format or native_format
 
-        if not format:
+        if not frmt:
             raise Exception("No format specified.")
 
 
@@ -100,7 +104,9 @@ class GDALReferenceableDatasetRenderer(Component):
             )
 
         # encode the processed dataset and save it to the filesystem
-        out_ds, out_driver = self.encode(subsetted_ds, format)
+        out_ds, out_driver = self.encode(
+            subsetted_ds, frmt, params.encoding_params
+        )
 
         driver_metadata = out_driver.GetMetadata_Dict()
         mime_type = driver_metadata.get("DMD_MIMETYPE")
@@ -257,16 +263,18 @@ class GDALReferenceableDatasetRenderer(Component):
 
         return vrt.dataset
 
-    def encode(self, dataset, format):
-        #format, options = None
-        options = {}
-        options = [
+    def encode(self, dataset, format, encoding_params):
+        
+        if frmt == "image/tiff":
+            options = _get_gtiff_options(**encoding_params)
+
+        args = [
             ("%s=%s" % key, value) for key, value in (options or {}).items()
         ]
 
         path = "/tmp/%s" % uuid4().hex
         out_driver = gdal.GetDriverByName("GTiff")
-        return out_driver.CreateCopy(path, dataset, True, options), out_driver
+        return out_driver.CreateCopy(path, dataset, True, args), out_driver
 
 
 def index_of(iterable, predicate, default=None, start=1):
@@ -278,3 +286,34 @@ def index_of(iterable, predicate, default=None, start=1):
 
 def temp_vsimem_filename():
     return "/vsimem/%s" % uuid4().hex
+
+
+def _get_gtiff_options(compression=None, jpeg_quality=None, 
+                       predictor=None, interleave=None, tiling=False, 
+                       tilewidth=None, tileheight=None):
+
+    logger.info("Applying GeoTIFF parameters.")
+
+    if compression:
+        if compression.lower() == "huffman":
+            compression = "CCITTRLE"
+        yield ("COMPRESS", compression.upper())
+
+    if jpeg_quality is not None:
+        yield ("JPEG_QUALITY", str(jpeg_quality))
+
+    if predictor:
+        pr = ["NONE", "HORIZONTAL", "FLOATINGPOINT"].index(predictor.upper())
+        if pr == -1:
+            raise ValueError("Invalid compression predictor '%s'." % predictor)
+        yield ("PREDICTOR", str(pr + 1))
+
+    if interleave:
+        yield ("INTERLEAVE", interleave)
+
+    if tiling:
+        yield ("TILED", "YES")
+        if tilewidth is not None:
+            yield ("BLOCKXSIZE", str(tilewidth))
+        if tileheight is not None:
+            yield ("BLOCKYSIZE", str(tileheight))
