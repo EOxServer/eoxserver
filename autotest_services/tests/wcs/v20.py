@@ -545,21 +545,6 @@ class WCS20GetCoverageHDFTestCase(testbase.RectifiedGridCoverageTestCase):
     def getFileExtension(self, part=None):
         return "hdf"
 
-class WCS20GetCoverageCompressionLZWTestCase(testbase.RectifiedGridCoverageTestCase):
-    def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_reduced_RGB&format=%s" % quote("image/tiff;compress=LZW")
-        return (params, "kvp")
-
-class WCS20GetCoverageCompressionJPEGTestCase(testbase.RectifiedGridCoverageTestCase):
-    def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_reduced_RGB&format=%s" % quote("image/tiff;compress=JPEG;jpeg_quality=50")
-        return (params, "kvp")
-
-class WCS20GetCoverageTiledTestCase(testbase.RectifiedGridCoverageTestCase):
-    def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_reduced_RGB&format=%s" % quote("image/tiff;tiled=YES")
-        return (params, "kvp")
-
 # TODO: Enable test once subdatasets are supported (see #123):
 #class WCS20GetCoverageNetCDFInputTestCase(testbase.RectifiedGridCoverageTestCase):
 #    def getRequest(self):
