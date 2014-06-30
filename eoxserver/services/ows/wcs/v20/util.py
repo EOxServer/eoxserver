@@ -175,6 +175,15 @@ def parse_subset_xml(elem):
         raise InvalidSubsettingException(str(e))
 
 
+def parse_interpolation(raw):
+    """ Returns a unified string denoting the interpolation method used.
+    """
+    if raw.startswith("http://www.opengis.net/def/interpolation/OGC/1/"):
+        raw = raw[len("http://www.opengis.net/def/interpolation/OGC/1/"):]
+        return raw.upper()
+    return raw
+
+
 def float_or_star(value):
     """ Parses a string value that is either a floating point value or the '*'
         character. Raises a `ValueError` if no float could be parsed.
