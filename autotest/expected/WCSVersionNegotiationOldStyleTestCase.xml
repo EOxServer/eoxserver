@@ -31,7 +31,7 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
     <ows:Profile>http://www.opengis.net/spec/GMLCOV_geotiff-coverages/1.0/conf/geotiff-coverage</ows:Profile>
     <ows:Profile>http://www.opengis.net/spec/WCS_geotiff-coverages/1.0/conf/geotiff-coverage</ows:Profile>
     <ows:Profile>http://www.opengis.net/spec/WCS_service-model_crs-predefined/1.0/conf/crs-predefined</ows:Profile>
-    <ows:Profile>http://www.opengis.net/spec/WCS_service-model_scaling+interpolation/1.0/conf/scaling+interpolation</ows:Profile>
+    <ows:Profile>http://www.opengis.net/spec/WCS_service-extension_interpolation/1.0/conf/interpolation</ows:Profile>
     <ows:Profile>http://www.opengis.net/spec/WCS_service-model_band-subsetting/1.0/conf/band-subsetting</ows:Profile>
     <ows:Fees>None</ows:Fees>
     <ows:AccessConstraints>None</ows:AccessConstraints>
@@ -153,6 +153,12 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
       <crs:crsSupported>http://www.opengis.net/def/crs/EPSG/0/3857</crs:crsSupported>
       <crs:crsSupported>http://www.opengis.net/def/crs/EPSG/0/900913</crs:crsSupported>
       <crs:crsSupported>http://www.opengis.net/def/crs/EPSG/0/3035</crs:crsSupported>
+      <int:InterpolationMetadata xmlns:ns0="http://www.opengis.net/wcs/interpolation/1.0">
+        <int:InterpolationSupported>http://www.opengis.net/def/interpolation/OGC/1/nearest-neighbour</int:InterpolationSupported>
+        <int:InterpolationSupported>http://www.opengis.net/def/interpolation/OGC/1/linear</int:InterpolationSupported>
+        <int:InterpolationSupported>http://www.opengis.net/def/interpolation/OGC/1/quadratic</int:InterpolationSupported>
+        <int:InterpolationSupported>http://www.opengis.net/def/interpolation/OGC/1/cubic</int:InterpolationSupported>
+      </int:InterpolationMetadata>
     </wcs:Extension>
   </wcs:ServiceMetadata>
   <wcs:Contents>
