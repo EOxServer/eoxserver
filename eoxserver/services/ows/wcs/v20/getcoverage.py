@@ -82,7 +82,6 @@ class WCS20GetCoverageXMLDecoder(xml.Decoder):
 
     sizes       = xml.Parameter("TODO", type=parse_size_kvp, num="*")
     resolutions = xml.Parameter("TODO", type=parse_size_kvp, num="*")
-    interpolation = xml.Parameter("TODO", type=parse_size_kvp, num="?")
 
     rangesubset = xml.Parameter("rangesubset", type=typelist(str, ","), num="?")
 
