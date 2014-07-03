@@ -117,12 +117,12 @@ def parse_subset_kvp(string):
         axis = match.group(1)
         parser = get_parser_for_axis(axis)
         
-        if match.group(5) is not None:
+        if match.group(4) is not None:
             return Trim(
-                axis, parser(match.group(3)), parser(match.group(5))
+                axis, parser(match.group(2)), parser(match.group(4))
             )
         else:
-            return Slice(axis, parser(match.group(3)))
+            return Slice(axis, parser(match.group(2)))
     except InvalidAxisLabelException:
         raise
     except Exception, e:
