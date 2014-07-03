@@ -1040,7 +1040,7 @@ class WCS20PostGetCoverageSubsetEPSG4326MultipartDatasetTestCase(testbase.WCS20G
     def getRequest(self):
         params = """<wcs:GetCoverage service="WCS" version="2.0.1"
            xmlns:wcs="http://www.opengis.net/wcs/2.0" 
-           xmlns:crs="http://www.opengis.net/wcs/extensions/crs/1.0">
+           xmlns:crs="http://www.opengis.net/wcs/crs/1.0">
           <wcs:Extension>
             <crs:subsettingCrs>http://www.opengis.net/def/crs/EPSG/0/4326</crs:subsettingCrs>
           </wcs:Extension>
