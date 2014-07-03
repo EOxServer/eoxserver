@@ -128,8 +128,10 @@ class WCS20CoverageRenderParams(CoverageRenderParams):
         else:
             value = "%s,%s" % (frmt(subset.low), frmt(subset.high))
 
-        if subset.crs:
-            return "subset", "%s,%s(%s)" % (subset.axis, subset.crs, value)
+        if self.subsets.crs:
+            return "subset", "%s,%s(%s)" % (
+                subset.axis, self.subsets.crs, value
+            )
         else:
             return "subset", "%s(%s)" % (subset.axis, value)
 
