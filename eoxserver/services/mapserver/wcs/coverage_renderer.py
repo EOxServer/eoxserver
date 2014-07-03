@@ -42,7 +42,6 @@ from eoxserver.services.ows.wcs.v20.encoders import WCS20EOXMLEncoder
 from eoxserver.services.mapserver.interfaces import (
     ConnectorInterface, LayerFactoryInterface
 )
-from eoxserver.services.subset import Subsets
 from eoxserver.services.mapserver.wcs.base_renderer import (
     BaseRenderer, is_format_supported
 )
@@ -93,15 +92,15 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         range_type = coverage.range_type
         bands = list(range_type)
 
-        subsets = Subsets(params.subsets)
+        subsets = params.subsets
         
         if subsets:
-            srid = subsets.xy_srid
+            srid = subsets.srid
             if srid is not None:
                 if not crss.validateEPSGCode(srid):
                     raise RenderException(
                         "Failed to extract an EPSG code from the CRS URI "
-                        "'%s'." % subsets.xy_srid, "subset"
+                        "'%s'." % srid, "subset"
                     )
 
         

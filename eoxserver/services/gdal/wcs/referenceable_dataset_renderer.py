@@ -40,7 +40,6 @@ from eoxserver.contrib import gdal, osr
 from eoxserver.contrib.vrt import VRTBuilder
 from eoxserver.resources.coverages import models
 from eoxserver.services.ows.version import Version
-from eoxserver.services.subset import Subsets
 from eoxserver.services.result import ResultFile, ResultBuffer
 from eoxserver.services.ows.wcs.interfaces import WCSCoverageRendererInterface
 from eoxserver.services.ows.wcs.v20.encoders import WCS20EOXMLEncoder
@@ -68,7 +67,7 @@ class GDALReferenceableDatasetRenderer(Component):
         data_items = coverage.data_items.filter(semantic__startswith="bands")
         range_type = coverage.range_type
 
-        subsets = Subsets(params.subsets)
+        subsets = params.subsets
 
         # GDAL source dataset. Either a single file dataset or a composed VRT 
         # dataset.
@@ -118,12 +117,12 @@ class GDALReferenceableDatasetRenderer(Component):
             
             if subsets.has_x and subsets.has_y:
                 footprint = GEOSGeometry(reftools.get_footprint_wkt(out_ds))
-                if not subsets.xy_srid:
+                if not subsets.srid:
                     extent = footprint.extent
                 else:
                     extent = subsets.xy_bbox
                 encoder_subset = (
-                    subsets.xy_srid, src_rect.size, extent, footprint
+                    subsets.srid, src_rect.size, extent, footprint
                 )
             else:
                 encoder_subset = None
@@ -179,7 +178,7 @@ class GDALReferenceableDatasetRenderer(Component):
             subset_rect = image_rect
 
         # pixel subset
-        elif subsets.xy_srid is None: # means "imageCRS"
+        elif subsets.srid is None: # means "imageCRS"
             minx, miny, maxx, maxy = subsets.xy_bbox
 
             minx = int(minx) if minx is not None else image_rect.offset_x
@@ -197,7 +196,7 @@ class GDALReferenceableDatasetRenderer(Component):
             options = reftools.suggest_transformer(dataset)
 
             subset_rect = reftools.rect_from_subset(
-                vrt.dataset, subsets.xy_srid, *subsets.xy_bbox, **options
+                vrt.dataset, subsets.srid, *subsets.xy_bbox, **options
             )
 
         # check whether or not the subsets intersect with the image
