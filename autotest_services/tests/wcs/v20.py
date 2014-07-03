@@ -173,7 +173,7 @@ class WCS20DescribeEOCoverageSetMissingParameterFaultTestCase(testbase.Exception
 
 class WCS20DescribeEOCoverageSetTwoSpatialSubsetsTestCase(testbase.WCS20DescribeEOCoverageSetSubsettingTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(32,47)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(11,33)"
+        params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced&subset=lat(32,47)&subset=long(11,33)"
         return (params, "kvp")
 
     def getExpectedCoverageIds(self):
@@ -185,7 +185,7 @@ class WCS20DescribeEOCoverageSetTwoSpatialSubsetsTestCase(testbase.WCS20Describe
 
 class WCS20DescribeEOCoverageSetTwoSpatialSubsetsOverlapsTestCase(testbase.WCS20DescribeEOCoverageSetSubsettingTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(32,47)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(11,33)&containment=overlaps"
+        params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced&subset=lat(32,47)&subset=long(11,33)&containment=overlaps"
         return (params, "kvp")
 
     def getExpectedCoverageIds(self):
@@ -197,7 +197,7 @@ class WCS20DescribeEOCoverageSetTwoSpatialSubsetsOverlapsTestCase(testbase.WCS20
 
 class WCS20DescribeEOCoverageSetTwoSpatialSubsetsContainsTestCase(testbase.WCS20DescribeEOCoverageSetSubsettingTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(32,47)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(11,33)&containment=contains"
+        params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced&subset=lat(32,47)&subset=long(11,33)&containment=contains"
         return (params, "kvp")
     
     def getExpectedCoverageIds(self):
@@ -239,7 +239,7 @@ class WCS20DescribeEOCoverageSetTemporalSubsetContainsTestCase(testbase.WCS20Des
 
 class WCS20DescribeEOCoverageSetSpatioTemporalSubsetTestCase(testbase.WCS20DescribeEOCoverageSetSubsettingTestCase):
     def getRequest(self):
-        params = 'service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced&subset=phenomenonTime("2006-08-01","2006-08-22T09:22:00Z")&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(32,47)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(11,33)'
+        params = 'service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced&subset=phenomenonTime("2006-08-01","2006-08-22T09:22:00Z")&subset=lat(32,47)&subset=long(11,33)'
         return (params, "kvp")
         
     def getExpectedCoverageIds(self):
@@ -250,7 +250,7 @@ class WCS20DescribeEOCoverageSetSpatioTemporalSubsetTestCase(testbase.WCS20Descr
 
 class WCS20DescribeEOCoverageSetSpatioTemporalSubsetOverlapsTestCase(testbase.WCS20DescribeEOCoverageSetSubsettingTestCase):
     def getRequest(self):
-        params = 'service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced&subset=phenomenonTime("2006-08-01","2006-08-22T09:22:00Z")&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(32,47)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(11,33)&containment=overlaps'
+        params = 'service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced&subset=phenomenonTime("2006-08-01","2006-08-22T09:22:00Z")&subset=lat(32,47)&subset=long(11,33)&containment=overlaps'
         return (params, "kvp")
         
     def getExpectedCoverageIds(self):
@@ -261,7 +261,7 @@ class WCS20DescribeEOCoverageSetSpatioTemporalSubsetOverlapsTestCase(testbase.WC
 
 class WCS20DescribeEOCoverageSetSpatioTemporalSubsetContainsTestCase(testbase.WCS20DescribeEOCoverageSetSubsettingTestCase):
     def getRequest(self):
-        params = 'service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced&subset=phenomenonTime("2006-08-01","2006-08-22T09:22:00Z")&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(32,47)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(11,33)&containment=contains'
+        params = 'service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced&subset=phenomenonTime("2006-08-01","2006-08-22T09:22:00Z")&subset=lat(32,47)&subset=long(11,33)&containment=contains'
         return (params, "kvp")
         
     def getExpectedCoverageIds(self):
@@ -293,7 +293,7 @@ class WCS20DescribeEOCoverageSetInvalidTemporalSubsetFaultTestCase(testbase.Exce
 
 class WCS20DescribeEOCoverageSetIncorrectSpatialSubsetFaultTestCase(testbase.ExceptionTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(some_lat,some_other_lat)"
+        params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced&subset=lat(some_lat,some_other_lat)"
         return (params, "kvp")
     
     def getExpectedHTTPStatus(self):
@@ -304,7 +304,7 @@ class WCS20DescribeEOCoverageSetIncorrectSpatialSubsetFaultTestCase(testbase.Exc
 
 class WCS20DescribeEOCoverageSetInvalidSpatialSubsetFaultTestCase(testbase.ExceptionTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(47,32)"
+        params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced&subset=lat(47,32)"
         return (params, "kvp")
     
     def getExpectedHTTPStatus(self):
@@ -316,7 +316,7 @@ class WCS20DescribeEOCoverageSetInvalidSpatialSubsetFaultTestCase(testbase.Excep
 # EOxServer allows and understands certain additional axis labels like "lat", or "long".
 class WCS20DescribeEOCoverageSetInvalidAxisLabelFaultTestCase(testbase.ExceptionTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced&subset=x_axis,http://www.opengis.net/def/crs/EPSG/0/4326(32,47)"
+        params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced&subset=x_axis(32,47)"
         return (params, "kvp")
     
     def getExpectedHTTPStatus(self):
@@ -432,7 +432,7 @@ class WCS20DescribeEOCoverageSetDatasetUniqueTestCase(testbase.WCS20DescribeEOCo
 
 class WCS20DescribeEOCoverageSetDatasetOutOfSubsetTestCase(testbase.WCS20DescribeEOCoverageSetSubsettingTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced,mosaic_MER_FRS_1P_reduced_RGB,MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(0,1)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(0,1)"
+        params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced,mosaic_MER_FRS_1P_reduced_RGB,MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed&subset=lat(0,1)&subset=long(0,1)"
         return (params, "kvp")
     
     def getExpectedCoverageIds(self):
@@ -616,17 +616,17 @@ class WCS20GetCoverageMultipartSubsetDatasetTestCase(wcsbase.WCS20GetCoverageMix
 
 class WCS20GetCoverageSubsetEPSG4326DatasetTestCase(testbase.RectifiedGridCoverageTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(38,40)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(20,22)"
+        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=lat(38,40)&subset=long(20,22)&subsettingcrs=http://www.opengis.net/def/crs/EPSG/0/4326"
         return (params, "kvp")
     
 class WCS20GetCoverageSubsetEPSG4326MosaicTestCase(testbase.RectifiedGridCoverageTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_reduced_RGB&format=image/tiff&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(38,40)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(0,30)"
+        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_reduced_RGB&format=image/tiff&subset=lat(38,40)&subset=long(0,30)&subsettingcrs=http://www.opengis.net/def/crs/EPSG/0/4326"
         return (params, "kvp")
 
 class WCS20GetCoverageSubsetInvalidEPSGFaultTestCase(testbase.ExceptionTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_reduced_RGB&format=image/tiff&subset=x,http://www.opengis.net/def/crs/EPSG/0/99999(38,40)&subset=y,http://www.opengis.net/def/crs/EPSG/0/99999(20,22)"
+        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_reduced_RGB&format=image/tiff&subset=x(38,40)&subset=y(20,22)&subsettingcrs=http://www.opengis.net/def/crs/EPSG/0/99999"
         return (params, "kvp")
     
     def getExpectedExceptionCode(self):
@@ -670,12 +670,12 @@ class WCS20GetCoverageSubsetSizeDatasetTestCase(testbase.RectifiedGridCoverageTe
 
 class WCS20GetCoverageSubsetEPSG4326SizeDatasetTestCase(wcsbase.WCS20GetCoverageMixIn, testbase.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/related&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(38,40)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(20,22)&size=lat(20)&size=long(20)"
+        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/related&subset=lat(38,40)&subset=long(20,22)&size=lat(20)&size=long(20)&subsettingcrs=http://www.opengis.net/def/crs/EPSG/0/4326"
         return (params, "kvp")
     
 class WCS20GetCoverageSubsetEPSG4326SizeExceedsExtentDatasetTestCase(wcsbase.WCS20GetCoverageMixIn, testbase.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(10,50)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(0,50)&size=lat(100)&size=long(100)&mediatype=multipart/related"
+        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=lat(10,50)&subset=long(0,50)&size=lat(100)&size=long(100)&mediatype=multipart/related&subsettingcrs=http://www.opengis.net/def/crs/EPSG/0/4326"
         return (params, "kvp")
 
 class WCS20GetCoverageInvalidSizeFaultTestCase(testbase.ExceptionTestCase):
@@ -707,12 +707,12 @@ class WCS20GetCoverageSubsetResolutionDatasetTestCase(testbase.RectifiedGridCove
 
 class WCS20GetCoverageSubsetEPSG4326ResolutionLatLonDatasetTestCase(testbase.RectifiedGridCoverageTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(38,40)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(20,22)&resolution=lat(0.01)&resolution=long(0.01)"
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=lat(38,40)&subset=long(20,22)&resolution=lat(0.01)&resolution=long(0.01)&subsettingcrs=http://www.opengis.net/def/crs/EPSG/0/4326"
         return (params, "kvp")
 
 class WCS20GetCoverageSubsetEPSG4326ResolutionInvalidAxisDatasetFaultTestCase(testbase.ExceptionTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(38,40)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(20,22)&resolution=x(0.01)&resolution=y(0.01)"
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=lat(38,40)&subset=long(20,22)&resolution=x(0.01)&resolution=y(0.01)&subsettingcrs=http://www.opengis.net/def/crs/EPSG/0/4326"
         return (params, "kvp")
     
     def getExpectedExceptionCode(self):
@@ -855,7 +855,7 @@ class WCS20GetCoverageReprojectedSubsetDatasetTestCase(testbase.RectifiedGridCov
 class WCS20GetCoverageReprojectedSubsetEPSG4326DatasetTestCase(wcsbase.WCS20GetCoverageMixIn, testbase.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
     fixtures = testbase.OWSTestCase.fixtures + ["testing_reprojected_coverages.json"]
     def getRequest(self):
-        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected&format=image/tiff&mediatype=multipart/related&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(38,40)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(20,22)"
+        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected&format=image/tiff&mediatype=multipart/related&subset=lat(38,40)&subset=long(20,22)&subsettingcrs=http://www.opengis.net/def/crs/EPSG/0/4326"
         return (params, "kvp")
 
 class WCS20GetCoverageReprojectedMultipartDatasetTestCase(wcsbase.WCS20GetCoverageMixIn, testbase.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
@@ -892,17 +892,17 @@ class WCS20GetCoverageReferenceableDatasetImageCRSSubsetTestCase(wcsbase.WCS20Ge
 
 class WCS20GetCoverageReferenceableDatasetGeogCRSSubsetTestCase(wcsbase.WCS20GetCoverageMixIn, testbase.WCS20GetCoverageReferenceableGridCoverageMultipartTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775&format=image/tiff&mediatype=multipart/mixed&subset=x,http://www.opengis.net/def/crs/EPSG/0/4326(18.0,20.0)&subset=y,http://www.opengis.net/def/crs/EPSG/0/4326(-34.5,-33.5)"
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775&format=image/tiff&mediatype=multipart/mixed&subset=x(18.0,20.0)&subset=y(-34.5,-33.5)&subsettingcrs=http://www.opengis.net/def/crs/EPSG/0/4326"
         return (params, "kvp")
 
 class WCS20GetCoverageReferenceableDatasetGeogCRSSubsetExceedsExtentTestCase(wcsbase.WCS20GetCoverageMixIn, testbase.WCS20GetCoverageReferenceableGridCoverageMultipartTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775&format=image/tiff&mediatype=multipart/mixed&subset=x,http://www.opengis.net/def/crs/EPSG/0/4326(18,23)&subset=y,http://www.opengis.net/def/crs/EPSG/0/4326(-35,-33)"
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775&format=image/tiff&mediatype=multipart/mixed&subset=x(18,23)&subset=y(-35,-33)&subsettingcrs=http://www.opengis.net/def/crs/EPSG/0/4326"
         return (params, "kvp")
 
 class WCS20GetCoverageReferenceableDatasetGeogCRSSubsetOutsideExtentTestCase(testbase.ExceptionTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775&format=image/tiff&mediatype=multipart/mixed&subset=x,http://www.opengis.net/def/crs/EPSG/0/4326(14.5,16.5)&subset=y,http://www.opengis.net/def/crs/EPSG/0/4326(-34.5,-33.5)"
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775&format=image/tiff&mediatype=multipart/mixed&subset=x(14.5,16.5)&subset=y(-34.5,-33.5)&subsettingcrs=http://www.opengis.net/def/crs/EPSG/0/4326"
         return (params, "kvp")
 
     def getExpectedHTTPStatus(self):
@@ -1036,33 +1036,29 @@ class WCS20PostGetCoverageSubsetMultipartDatasetTestCase(wcsbase.WCS20GetCoverag
         </wcs:GetCoverage>"""
         return (params, "xml")
 
-# TODO: Enable once CRS handling with POST requests is implemented in MapServer
-# TODO: Adjust to final namespace maybe "http://www.opengis.net/wcs_service-extension_crs/1.0"
-#class WCS20PostGetCoverageSubsetEPSG4326MultipartDatasetTestCase(testbase.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
-#    def getRequest(self):
-#        params = """<wcs:GetCoverage service="WCS" version="2.0.1"
-#           xmlns:wcs="http://www.opengis.net/wcs/2.0" 
-#           xmlns:wcscrs="http://www.opengis.net/wcs/extensions/crs/1.0">
-#          <wcs:Extension>
-#            <wcscrs:GetCoverageCrs>
-#              <wcscrs:subsettingCrs>http://www.opengis.net/def/crs/EPSG/0/4326</wcscrs:subsettingCrs>
-#            </wcscrs:GetCoverageCrs>
-#          </wcs:Extension>
-#          <wcs:CoverageId>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</wcs:CoverageId>
-#          <wcs:DimensionTrim>
-#            <wcs:Dimension>Long</wcs:Dimension>
-#            <wcs:TrimLow>20</wcs:TrimLow>
-#            <wcs:TrimHigh>22</wcs:TrimHigh>
-#          </wcs:DimensionTrim>
-#          <wcs:DimensionTrim>
-#            <wcs:Dimension>Lat</wcs:Dimension>
-#            <wcs:TrimLow>36</wcs:TrimLow>
-#            <wcs:TrimHigh>38</wcs:TrimHigh>
-#          </wcs:DimensionTrim>
-#          <wcs:format>image/tiff</wcs:format>
-#          <wcs:mediaType>multipart/related</wcs:mediaType>
-#        </wcs:GetCoverage>"""
-#        return (params, "xml")
+class WCS20PostGetCoverageSubsetEPSG4326MultipartDatasetTestCase(testbase.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
+    def getRequest(self):
+        params = """<wcs:GetCoverage service="WCS" version="2.0.1"
+           xmlns:wcs="http://www.opengis.net/wcs/2.0" 
+           xmlns:crs="http://www.opengis.net/wcs/extensions/crs/1.0">
+          <wcs:Extension>
+            <crs:subsettingCrs>http://www.opengis.net/def/crs/EPSG/0/4326</crs:subsettingCrs>
+          </wcs:Extension>
+          <wcs:CoverageId>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</wcs:CoverageId>
+          <wcs:DimensionTrim>
+            <wcs:Dimension>Long</wcs:Dimension>
+            <wcs:TrimLow>20</wcs:TrimLow>
+            <wcs:TrimHigh>22</wcs:TrimHigh>
+          </wcs:DimensionTrim>
+          <wcs:DimensionTrim>
+            <wcs:Dimension>Lat</wcs:Dimension>
+            <wcs:TrimLow>36</wcs:TrimLow>
+            <wcs:TrimHigh>38</wcs:TrimHigh>
+          </wcs:DimensionTrim>
+          <wcs:format>image/tiff</wcs:format>
+          <wcs:mediaType>multipart/related</wcs:mediaType>
+        </wcs:GetCoverage>"""
+        return (params, "xml")
 
 class WCS20PostGetCoverageReferenceableMultipartDatasetTestCase(wcsbase.WCS20GetCoverageMixIn, testbase.WCS20GetCoverageReferenceableGridCoverageMultipartTestCase):
     def getRequest(self):
