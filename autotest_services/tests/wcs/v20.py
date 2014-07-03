@@ -781,6 +781,36 @@ class WCS20GetCoverageSubsetSizeResolutionOutputCRSRangeSubsetIndicesDatasetTest
 #        return (params, "xml")
 
 #===============================================================================
+# WCS 2.0: Interpolation
+#===============================================================================
+
+class WCS20GetCoverageDatasetInterpolationNearestTestCase(testbase.RectifiedGridCoverageTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced&format=image/tiff&subset=x(200,250)&subset=y(200,250)outputcrs=http://www.opengis.net/def/crs/EPSG/0/3035&interpolation=http://www.opengis.net/def/interpolation/OGC/1/nearest-neighbour"
+        return (params, "kvp")
+
+class WCS20GetCoverageDatasetInterpolationAverageTestCase(testbase.RectifiedGridCoverageTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced&format=image/tiff&subset=x(200,250)&subset=y(200,250)outputcrs=http://www.opengis.net/def/crs/EPSG/0/3035&interpolation=http://www.opengis.net/def/interpolation/OGC/1/average"
+        return (params, "kvp")
+
+class WCS20GetCoverageDatasetInterpolationBilinearTestCase(testbase.RectifiedGridCoverageTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced&format=image/tiff&subset=x(200,250)&subset=y(200,250)outputcrs=http://www.opengis.net/def/crs/EPSG/0/3035&interpolation=http://www.opengis.net/def/interpolation/OGC/1/bilinear"
+        return (params, "kvp")
+
+class WCS20GetCoverageInvalidInterpolationFaultTestCase(testbase.ExceptionTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced&format=image/tiff&subset=x(200,250)&subset=y(200,250)outputcrs=http://www.opengis.net/def/crs/EPSG/0/3035&interpolation=http://www.opengis.net/def/interpolation/OGC/1/invalid"
+        return (params, "kvp")
+    
+    def getExpectedExceptionCode(self):
+        return "InterpolationMethodNotSupported"
+    
+    def getExpectedHTTPStatus(self):
+        return 404
+
+#===============================================================================
 # WCS 2.0 Rasdaman test cases
 #===============================================================================
 
