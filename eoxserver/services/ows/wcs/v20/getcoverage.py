@@ -29,6 +29,7 @@
 
 from eoxserver.core import Component, implements
 from eoxserver.core.decoders import xml, kvp, typelist
+from eoxserver.services.subset import Subsets
 from eoxserver.services.ows.interfaces import (
     ServiceHandlerInterface, GetServiceHandlerInterface, 
     PostServiceHandlerInterface
@@ -55,8 +56,9 @@ class WCS20GetCoverageHandler(WCSGetCoverageHandlerBase, Component):
             return WCS20GetCoverageXMLDecoder(request.body)
 
     def get_params(self, coverage, decoder, request):
+        subsets = Subsets(decoder.subsets, crs=decoder.subsettingcrs)
         return WCS20CoverageRenderParams(
-            coverage, decoder.subsets, decoder.sizes, decoder.resolutions,
+            coverage, subsets, decoder.sizes, decoder.resolutions,
             decoder.rangesubset, decoder.format, decoder.outputcrs, 
             decoder.mediatype, decoder.interpolation, decoder.mask, request
         )
@@ -69,6 +71,7 @@ class WCS20GetCoverageKVPDecoder(kvp.Decoder):
     resolutions = kvp.Parameter("resolution", type=parse_resolution_kvp, num="*")
     rangesubset = kvp.Parameter("rangesubset", type=typelist(str, ","), num="?")
     format      = kvp.Parameter("format", num="?")
+    subsettingcrs = kvp.Parameter("subsettingcrs", num="?")
     outputcrs   = kvp.Parameter("outputcrs", num="?")
     mediatype   = kvp.Parameter("mediatype", num="?")
     interpolation = kvp.Parameter("interpolation", num="?")
@@ -87,8 +90,8 @@ class WCS20GetCoverageXMLDecoder(xml.Decoder):
     rangesubset = xml.Parameter("rangesubset", type=typelist(str, ","), num="?")
 
     format      = xml.Parameter("wcs:format/text()", num="?", locator="format")
-    # TODO:!!!
-    outputcrs   = xml.Parameter("TODO", num="?", locator="outputcrs")
+    subsettingcrs = xml.Parameter("wcs:Extension/crs:subsettingCrs/text()", num="?", locator="subsettingcrs")
+    outputcrs   = xml.Parameter("wcs:Extension/crs:outputCrs/text()", num="?", locator="outputcrs")
     mediatype   = xml.Parameter("wcs:mediaType/text()", num="?", locator="mediatype")
     
     mask = None
