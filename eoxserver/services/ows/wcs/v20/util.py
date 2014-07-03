@@ -179,7 +179,8 @@ def parse_subset_xml(elem):
 
 
 SUPPORTED_INTERPOLATIONS = (
-    "nearest-neighbour", "linear", "quadratic", "cubic",
+    "average", "nearest-neighbour", "bilinear", "cubic", "cubic-spline", 
+    "lanczos", "mode"
 )
 
 def parse_interpolation(raw):
@@ -187,7 +188,7 @@ def parse_interpolation(raw):
     """
     if raw.startswith("http://www.opengis.net/def/interpolation/OGC/1/"):
         raw = raw[len("http://www.opengis.net/def/interpolation/OGC/1/"):]
-        value = raw.upper()
+        value = raw.lower()
     else:
         value = raw
 

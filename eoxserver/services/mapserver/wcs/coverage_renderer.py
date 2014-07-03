@@ -49,8 +49,18 @@ from eoxserver.services.mapserver.wcs.base_renderer import (
 from eoxserver.services.ows.version import Version
 from eoxserver.services.result import result_set_from_raw_data, ResultBuffer
 from eoxserver.services.exceptions import (
-    RenderException, OperationNotSupportedException
+    RenderException, OperationNotSupportedException, 
+    InterpolationMethodNotSupportedException
 )
+
+
+INTERPOLATION_TRANS = {
+    "nearest-neighbour": "NEAREST",
+    "linear": "BILINEAR",
+    "bilinear": "BILINEAR",
+    "cubic": "BICUBIC",
+    "average": "AVERAGE"
+}
 
 
 class RectifiedCoverageMapServerRenderer(BaseRenderer):
@@ -79,6 +89,7 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
             (params.version in self.versions_partly
             and issubclass(params.coverage.real_type, self.handles_partly))
         )
+
 
     def render(self, params):
         # get coverage related stuff
@@ -144,7 +155,8 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         try:
             connector.connect(coverage, data_items, layer)
             # create request object and dispatch it against the map
-            request = ms.create_request(params)
+
+            request = ms.create_request(self.translate_params(params))
             request.setParameter("format", mime_type)
             raw_result = ms.dispatch(map_, request)
 
@@ -181,6 +193,27 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
 
         # "default" response
         return result_set
+
+    def translate_params(self, params):
+        """ "Translate" parameters to be understandable by mapserver.
+        """
+        if params.version.startswith("2.0"):
+            for key, value in params:
+                if key == "interpolation":
+                    interpolation = INTERPOLATION_TRANS.get(value)
+                    if not interpolation:
+                        raise InterpolationMethodNotSupportedException(
+                            "Interpolation method '%s' is not supported." 
+                            % value
+                        )
+                    yield key, value
+
+                else:
+                    yield key, value
+
+        else:
+            for key, value in params:
+                yield key, value
 
 
 def split_format(frmt):
