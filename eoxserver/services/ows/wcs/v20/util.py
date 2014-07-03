@@ -48,6 +48,7 @@ from eoxserver.services.exceptions import (
 ns_ogc = NameSpace("http://www.opengis.net/ogc", "ogc")
 ns_wcs = NameSpace("http://www.opengis.net/wcs/2.0", "wcs")
 ns_crs = NameSpace("http://www.opengis.net/wcs/service-extension/crs/1.0", "crs")
+ns_rsub = NameSpace("http://www.opengis.net/wcs/range-subsetting/1.0", "rsub")
 ns_eowcs = NameSpace("http://www.opengis.net/wcseo/1.0", "wcseo", "http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd")
 ns_swe = NameSpace("http://www.opengis.net/swe/2.0", "swe")
 

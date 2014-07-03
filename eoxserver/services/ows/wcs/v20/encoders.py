@@ -81,7 +81,7 @@ class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
                     OWS("Profile", "http://www.opengis.net/spec/WCS_geotiff-coverages/1.0/conf/geotiff-coverage"),
                     OWS("Profile", "http://www.opengis.net/spec/WCS_service-model_crs-predefined/1.0/conf/crs-predefined"),
                     OWS("Profile", "http://www.opengis.net/spec/WCS_service-model_scaling+interpolation/1.0/conf/scaling+interpolation"),
-                    OWS("Profile", "http://www.opengis.net/spec/WCS_service-model_band-subsetting/1.0/conf/band-subsetting"),
+                    OWS("Profile", "http://www.opengis.net/spec/WCS_service-extension_range-subsetting/1.0/conf/record-subsetting"),
                     OWS("Fees", conf.fees),
                     OWS("AccessConstraints", conf.access_constraints)
                 )
