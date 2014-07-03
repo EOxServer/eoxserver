@@ -47,7 +47,7 @@ from eoxserver.services.exceptions import (
 # namespace declarations
 ns_ogc = NameSpace("http://www.opengis.net/ogc", "ogc")
 ns_wcs = NameSpace("http://www.opengis.net/wcs/2.0", "wcs")
-ns_crs = NameSpace("http://www.opengis.net/wcs/service-extension/crs/1.0", "crs")
+ns_crs = NameSpace("http://www.opengis.net/wcs/crs/1.0", "crs")
 ns_eowcs = NameSpace("http://www.opengis.net/wcseo/1.0", "wcseo", "http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd")
 ns_swe = NameSpace("http://www.opengis.net/swe/2.0", "swe")
 
@@ -65,7 +65,7 @@ EOWCS = ElementMaker(namespace=ns_eowcs.uri, nsmap=nsmap)
 SWE = ElementMaker(namespace=ns_swe.uri, nsmap=nsmap)
 
 
-subset_re = re.compile(r'(\w+)(,([^(]+))?\(([^,]*)(,([^)]*))?\)')
+subset_re = re.compile(r'(\w+)\(([^,]*)(,([^)]*))?\)')
 size_re = re.compile(r'(\w+)\(([^)]*)\)')
 resolution_re = re.compile(r'(\w+)\(([^)]*)\)')
 
@@ -116,14 +116,13 @@ def parse_subset_kvp(string):
 
         axis = match.group(1)
         parser = get_parser_for_axis(axis)
-        crs = match.group(3)
         
-        if match.group(6) is not None:
+        if match.group(5) is not None:
             return Trim(
-                axis, parser(match.group(4)), parser(match.group(6)), crs
+                axis, parser(match.group(3)), parser(match.group(5))
             )
         else:
-            return Slice(axis, parser(match.group(4)), crs)
+            return Slice(axis, parser(match.group(3)))
     except InvalidAxisLabelException:
         raise
     except Exception, e:
