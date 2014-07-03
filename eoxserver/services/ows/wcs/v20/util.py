@@ -190,7 +190,7 @@ def parse_interpolation(raw):
         raw = raw[len("http://www.opengis.net/def/interpolation/OGC/1/"):]
         value = raw.lower()
     else:
-        value = raw
+        value = raw.lower()
 
     if value not in SUPPORTED_INTERPOLATIONS:
         raise InterpolationMethodNotSupportedException(
