@@ -40,7 +40,8 @@ from eoxserver.services.gml.v32.encoders import (
 )
 from eoxserver.services.ows.common.v20.encoders import ns_xlink, ns_ows, OWS
 from eoxserver.services.exceptions import (
-    InvalidSubsettingException, InvalidAxisLabelException
+    InvalidSubsettingException, InvalidAxisLabelException, 
+    NoSuchFieldException, IllegalFieldSequenceException
 )
 
 

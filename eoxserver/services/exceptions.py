@@ -185,3 +185,23 @@ class RenderException(Exception):
     def code(self):
         return "InvalidParameterValue" if self.is_parameter else "InvalidRequest"
 
+
+class NoSuchFieldException(Exception):
+    """ Error in RangeSubsetting when band does not exist.
+    """
+
+    code = "NoSuchField"
+
+    def __init__(self, msg, locator):
+        super(NoSuchFieldException, self).__init__(msg)
+        self.locator = locator
+
+
+class InvalidFieldSequenceException(Exception):
+    """ Error in RangeSubsetting for illegal intervals.
+    """
+    code = "InvalidFieldSequence"
+
+    def __init__(self, msg, locator):
+        super(NoSuchFieldException, self).__init__(msg)
+        self.locator = locator
