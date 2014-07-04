@@ -722,9 +722,9 @@ class WCS20GetCoverageSubsetEPSG4326ResolutionInvalidAxisDatasetFaultTestCase(te
 # WCS 2.0: Rangesubset
 #===============================================================================
 
-class WCS20GetCoverageRangeSubsetIndicesDatasetTestCase(testbase.RectifiedGridCoverageTestCase):
+class WCS20GetCoverageRangeSubsetIntervalDatasetTestCase(testbase.RectifiedGridCoverageTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&rangesubset=1,2,3"
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&rangesubset=MERIS_radiance_01_uint16:MERIS_radiance_03_uint16"
         return (params, "kvp")
 
 class WCS20GetCoverageRangeSubsetNamesDatasetTestCase(testbase.RectifiedGridCoverageTestCase):
@@ -734,7 +734,15 @@ class WCS20GetCoverageRangeSubsetNamesDatasetTestCase(testbase.RectifiedGridCove
 
 class WCS20GetCoverageRangeSubsetNamesPNGDatasetTestCase(testbase.RectifiedGridCoverageTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/png&rangesubset=1"
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/png&rangesubset=MERIS_radiance_01_uint16"
+        return (params, "kvp")
+
+    def getFileExtension(self, part=None):
+        return "png"
+
+class WCS20GetCoverageRangeSubsetItemIntervalDatasetTestCase(testbase.RectifiedGridCoverageTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/png&rangesubset=MERIS_radiance_01_uint16,MERIS_radiance_03_uint16:MERIS_radiance_04_uint16"
         return (params, "kvp")
 
     def getFileExtension(self, part=None):
@@ -745,9 +753,9 @@ class WCS20GetCoverageMultipartRangeSubsetNamesDatasetTestCase(wcsbase.WCS20GetC
         params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/related&rangesubset=MERIS_radiance_04_uint16,MERIS_radiance_05_uint16,MERIS_radiance_06_uint16"
         return (params, "kvp")
 
-class WCS20GetCoverageSubsetSizeResolutionOutputCRSRangeSubsetIndicesDatasetTestCase(wcsbase.WCS20GetCoverageMixIn, testbase.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
+class WCS20GetCoverageSubsetSizeResolutionOutputCRSRangeSubsetIntervalDatasetTestCase(wcsbase.WCS20GetCoverageMixIn, testbase.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=x(100,200)&subset=y(200,300)&size=y(100)&resolution=x(0.1)&outputcrs=http://www.opengis.net/def/crs/EPSG/0/3035&rangesubset=1,2,3&mediatype=multipart/related"
+        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=x(100,200)&subset=y(200,300)&size=y(100)&resolution=x(0.1)&outputcrs=http://www.opengis.net/def/crs/EPSG/0/3035&rangesubset=MERIS_radiance_01_uint16:MERIS_radiance_03_uint16&mediatype=multipart/related"
         return (params, "kvp")
     
 #===============================================================================
@@ -1081,5 +1089,40 @@ class WCS20PostGetCoverageReferenceableMultipartDatasetTestCase(wcsbase.WCS20Get
           </wcs:DimensionTrim>
           <wcs:format>image/tiff</wcs:format>
           <wcs:mediaType>multipart/related</wcs:mediaType>
+        </wcs:GetCoverage>"""
+        return (params, "xml")
+
+
+class WCS20PostGetCoverageRangeSubsetMultipartDatasetTestCase(wcsbase.WCS20GetCoverageMixIn, testbase.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
+    def getRequest(self):
+        params = """<wcs:GetCoverage service="WCS" version="2.0.1"
+           xmlns:wcs="http://www.opengis.net/wcs/2.0"
+           xmlns:rsub="http://www.opengis.net/wcs/range-subsetting/1.0">
+          <wcs:CoverageId>MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed</wcs:CoverageId>
+          <wcs:DimensionTrim>
+            <wcs:Dimension>x</wcs:Dimension>
+            <wcs:TrimLow>0</wcs:TrimLow>
+            <wcs:TrimHigh>99</wcs:TrimHigh>
+          </wcs:DimensionTrim>
+          <wcs:DimensionTrim>
+            <wcs:Dimension>y</wcs:Dimension>
+            <wcs:TrimLow>0</wcs:TrimLow>
+            <wcs:TrimHigh>99</wcs:TrimHigh>
+          </wcs:DimensionTrim>
+          <wcs:format>image/tiff</wcs:format>
+          <wcs:mediaType>multipart/related</wcs:mediaType>
+          <wcs:Extension>
+            <rsub:RangeSubset>
+              <rsub:RangeItem>
+                <rsub:RangeComponent>MERIS_radiance_04_uint16</rsub:RangeComponent>
+              </rsub:RangeItem>
+              <rsub:RangeItem>
+                <rsub:RangeInterval>
+                  <rsub:startComponent>MERIS_radiance_05_uint16</rsub:startComponent>
+                  <rsub:endComponent>MERIS_radiance_07_uint16</rsub:endComponent>
+                </rsub:RangeInterval>
+              </rsub:RangeItem>
+            </rsub:RangeSubset>
+          </wcs:Extension>
         </wcs:GetCoverage>"""
         return (params, "xml")
