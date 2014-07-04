@@ -101,9 +101,6 @@ class WCS20CoverageRenderParams(CoverageRenderParams):
         for resolution in self.resolutions:
             yield self.resolution_to_kvp(resolution)
 
-        if self.rangesubset:
-            yield ("rangesubset", ",".join(self.rangesubset))
-
         if self.format:
             yield ("format", self.format)
 

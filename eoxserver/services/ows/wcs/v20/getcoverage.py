@@ -36,7 +36,7 @@ from eoxserver.services.ows.interfaces import (
 from eoxserver.services.ows.wcs.basehandlers import WCSGetCoverageHandlerBase
 from eoxserver.services.ows.wcs.v20.util import (
     nsmap, parse_subset_kvp, parse_subset_xml, parse_size_kvp, 
-    parse_resolution_kvp
+    parse_resolution_kvp, parse_range_subset_kvp, parse_range_subset_xml
 )
 from eoxserver.services.ows.wcs.v20.parameters import WCS20CoverageRenderParams
 
@@ -67,7 +67,7 @@ class WCS20GetCoverageKVPDecoder(kvp.Decoder):
     subsets     = kvp.Parameter("subset", type=parse_subset_kvp, num="*")
     sizes       = kvp.Parameter("size", type=parse_size_kvp, num="*")
     resolutions = kvp.Parameter("resolution", type=parse_resolution_kvp, num="*")
-    rangesubset = kvp.Parameter("rangesubset", type=typelist(str, ","), num="?")
+    rangesubset = kvp.Parameter("rangesubset", type=parse_range_subset_kvp, num="?")
     format      = kvp.Parameter("format", num="?")
     outputcrs   = kvp.Parameter("outputcrs", num="?")
     mediatype   = kvp.Parameter("mediatype", num="?")
@@ -84,7 +84,7 @@ class WCS20GetCoverageXMLDecoder(xml.Decoder):
     resolutions = xml.Parameter("TODO", type=parse_size_kvp, num="*")
     interpolation = xml.Parameter("TODO", type=parse_size_kvp, num="?")
 
-    rangesubset = xml.Parameter("rangesubset", type=typelist(str, ","), num="?")
+    rangesubset = xml.Parameter("wcs:Extension/rsub:RangeSubset", type=parse_range_subset_xml, num="?", locator="rangesubset")
 
     format      = xml.Parameter("wcs:format/text()", num="?", locator="format")
     # TODO:!!!
