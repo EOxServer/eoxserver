@@ -145,6 +145,16 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
             connector.connect(coverage, data_items, layer)
             # create request object and dispatch it against the map
             request = ms.create_request(params)
+
+            rangesubset = params.rangesubset
+            if rangesubset:
+                request.setParameter(
+                    "rangesubset", 
+                    ",".join(
+                        map(str, rangesubset.get_band_indices(range_type, 1))
+                    )
+                )
+
             request.setParameter("format", mime_type)
             raw_result = ms.dispatch(map_, request)
 
