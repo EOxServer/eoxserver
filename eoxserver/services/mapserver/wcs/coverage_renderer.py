@@ -146,7 +146,7 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
             # create request object and dispatch it against the map
             request = ms.create_request(params)
 
-            rangesubset = getattr(params, "rangesubset")
+            rangesubset = getattr(params, "rangesubset", None)
             if rangesubset:
                 request.setParameter(
                     "rangesubset", 
