@@ -90,7 +90,6 @@ class InvalidAxisLabelException(Exception):
         self.locator = axis_label
     
 
-
 class InvalidSubsettingException(Exception):
     """
     This exception indicates an invalid WCS 2.0 subsetting parameter was
@@ -173,6 +172,14 @@ class VersionNotSupportedException(Exception):
     code = "InvalidParameterValue"
 
 
+class InterpolationMethodNotSupportedException(Exception):
+    """
+    This exception indicates a not supported interpolation method.
+    """
+    code = "InterpolationMethodNotSupported"
+    locator = "interpolation"
+
+
 class RenderException(Exception):
     """ Rendering related exception.
     """
@@ -185,3 +192,23 @@ class RenderException(Exception):
     def code(self):
         return "InvalidParameterValue" if self.is_parameter else "InvalidRequest"
 
+
+class NoSuchFieldException(Exception):
+    """ Error in RangeSubsetting when band does not exist.
+    """
+
+    code = "NoSuchField"
+
+    def __init__(self, msg, locator):
+        super(NoSuchFieldException, self).__init__(msg)
+        self.locator = locator
+
+
+class InvalidFieldSequenceException(Exception):
+    """ Error in RangeSubsetting for illegal intervals.
+    """
+    code = "InvalidFieldSequence"
+
+    def __init__(self, msg, locator):
+        super(NoSuchFieldException, self).__init__(msg)
+        self.locator = locator

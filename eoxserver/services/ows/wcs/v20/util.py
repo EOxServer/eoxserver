@@ -35,41 +35,42 @@ from lxml.builder import ElementMaker
 from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap, ns_xsi
 from eoxserver.core.util.timetools import parse_iso8601
 from eoxserver.services.subset import Trim, Slice, is_temporal
+from eoxserver.services.gml.v32.encoders import (
+    ns_gml, ns_gmlcov, ns_om, ns_eop, GML, GMLCOV, OM, EOP
+)
 from eoxserver.services.ows.common.v20.encoders import ns_xlink, ns_ows, OWS
 from eoxserver.services.exceptions import (
-    InvalidSubsettingException, InvalidAxisLabelException
+    InvalidSubsettingException, InvalidAxisLabelException, 
+    NoSuchFieldException, InvalidFieldSequenceException,
+    InterpolationMethodNotSupportedException
 )
 
 
 # namespace declarations
 ns_ogc = NameSpace("http://www.opengis.net/ogc", "ogc")
-ns_gml = NameSpace("http://www.opengis.net/gml/3.2", "gml")
-ns_gmlcov = NameSpace("http://www.opengis.net/gmlcov/1.0", "gmlcov")
 ns_wcs = NameSpace("http://www.opengis.net/wcs/2.0", "wcs")
-ns_crs = NameSpace("http://www.opengis.net/wcs/service-extension/crs/1.0", "crs")
+ns_crs = NameSpace("http://www.opengis.net/wcs/crs/1.0", "crs")
+ns_rsub = NameSpace("http://www.opengis.net/wcs/range-subsetting/1.0", "rsub")
 ns_eowcs = NameSpace("http://www.opengis.net/wcseo/1.0", "wcseo", "http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd")
-ns_om  = NameSpace("http://www.opengis.net/om/2.0", "om")
-ns_eop = NameSpace("http://www.opengis.net/eop/2.0", "eop")
 ns_swe = NameSpace("http://www.opengis.net/swe/2.0", "swe")
+ns_int = NameSpace("http://www.opengis.net/wcs/interpolation/1.0", "int")
 
 # namespace map
 nsmap = NameSpaceMap(
-    ns_xlink, ns_ogc, ns_ows, ns_gml, ns_gmlcov, ns_wcs, ns_crs, ns_eowcs,
-    ns_om, ns_eop, ns_swe
+    ns_xlink, ns_ogc, ns_ows, ns_gml, ns_gmlcov, ns_wcs, ns_crs, ns_rsub, 
+    ns_eowcs, ns_om, ns_eop, ns_swe, ns_int
 )
 
 # Element factories
-GML = ElementMaker(namespace=ns_gml.uri, nsmap=nsmap)
-GMLCOV = ElementMaker(namespace=ns_gmlcov.uri, nsmap=nsmap)
+
 WCS = ElementMaker(namespace=ns_wcs.uri, nsmap=nsmap)
 CRS = ElementMaker(namespace=ns_crs.uri, nsmap=nsmap)
 EOWCS = ElementMaker(namespace=ns_eowcs.uri, nsmap=nsmap)
-OM  = ElementMaker(namespace=ns_om.uri, nsmap=nsmap)
-EOP = ElementMaker(namespace=ns_eop.uri, nsmap=nsmap)
 SWE = ElementMaker(namespace=ns_swe.uri, nsmap=nsmap)
+INT = ElementMaker(namespace=ns_int.uri, nsmap=nsmap) 
 
 
-subset_re = re.compile(r'(\w+)(,([^(]+))?\(([^,]*)(,([^)]*))?\)')
+subset_re = re.compile(r'(\w+)\(([^,]*)(,([^)]*))?\)')
 size_re = re.compile(r'(\w+)\(([^)]*)\)')
 resolution_re = re.compile(r'(\w+)\(([^)]*)\)')
 
@@ -84,6 +85,44 @@ class Resolution(object):
     def __init__(self, axis, value):
         self.axis = axis
         self.value = float(value)
+
+
+class RangeSubset(list):
+
+    def get_band_indices(self, range_type, offset=0):
+        current_idx = -1
+        all_bands = range_type.cached_bands[:]
+        
+        for subset in self:
+            if isinstance(subset, basestring):
+                # slice, i.e single band
+                start = stop = subset
+
+            else:
+                start, stop = subset
+
+            start_idx = self._find(all_bands, start)
+            if start != stop:
+                stop_idx = self._find(all_bands, stop)
+                if stop_idx <= start_idx:
+                    raise IllegalFieldSequenceException(
+                        "Invalid interval '%s:%s'." % (start, stop), start
+                    )
+
+                # expand interval to indices
+                for i in range(start_idx, stop_idx+1):
+                    yield i + offset
+
+            else: 
+                # return the item
+                yield start_idx + offset
+
+
+    def _find(self, all_bands, name):
+        for i, band in enumerate(all_bands):
+            if band.name == name or band.identifier == name:
+                return i
+        raise NoSuchFieldException("Field '%s' does not exist." % name, name)
 
 
 
@@ -120,14 +159,13 @@ def parse_subset_kvp(string):
 
         axis = match.group(1)
         parser = get_parser_for_axis(axis)
-        crs = match.group(3)
         
-        if match.group(6) is not None:
+        if match.group(4) is not None:
             return Trim(
-                axis, parser(match.group(4)), parser(match.group(6)), crs
+                axis, parser(match.group(2)), parser(match.group(4))
             )
         else:
-            return Slice(axis, parser(match.group(4)), crs)
+            return Slice(axis, parser(match.group(2)))
     except InvalidAxisLabelException:
         raise
     except Exception, e:
@@ -137,6 +175,7 @@ def parse_subset_kvp(string):
 def parse_size_kvp(string):
     """ Parses a size from the given string.
     """
+
     match = size_re.match(string)
     if not match:
         raise ValueError("Invalid size parameter given.")
@@ -154,6 +193,19 @@ def parse_resolution_kvp(string):
 
     return Resolution(match.group(1), match.group(2))
 
+
+def parse_range_subset_kvp(string):
+    """ Parse a rangesubset structure from the WCS 2.0 KVP notation.
+    """
+
+    rangesubset = RangeSubset()
+    for item in string.split(","):
+        if ":" in item:
+            rangesubset.append(item.split(":"))
+        else:
+            rangesubset.append(item)
+
+    return rangesubset
 
 
 def parse_subset_xml(elem):
@@ -177,6 +229,46 @@ def parse_subset_xml(elem):
             )
     except Exception, e:
         raise InvalidSubsettingException(str(e))
+
+
+SUPPORTED_INTERPOLATIONS = (
+    "average", "nearest-neighbour", "bilinear", "cubic", "cubic-spline", 
+    "lanczos", "mode"
+)
+
+def parse_interpolation(raw):
+    """ Returns a unified string denoting the interpolation method used.
+    """
+    if raw.startswith("http://www.opengis.net/def/interpolation/OGC/1/"):
+        raw = raw[len("http://www.opengis.net/def/interpolation/OGC/1/"):]
+        value = raw.lower()
+    else:
+        value = raw.lower()
+
+    if value not in SUPPORTED_INTERPOLATIONS:
+        raise InterpolationMethodNotSupportedException(
+            "Interpolation method '%s' is not supported." % raw
+        )
+    return value
+
+
+def parse_range_subset_xml(elem):
+    """ Parse a rangesubset structure from the WCS 2.0 XML notation.
+    """
+
+    rangesubset = RangeSubset()
+
+    for child in elem:
+        item = child[0]
+        if item.tag == ns_rsub("RangeComponent"):
+            rangesubset.append(item.text)
+        elif item.tag == ns_rsub("RangeInterval"):
+            rangesubset.append((
+                item.findtext(ns_rsub("startComponent")),
+                item.findtext(ns_rsub("endComponent"))
+            ))
+    
+    return rangesubset
 
 
 def float_or_star(value):

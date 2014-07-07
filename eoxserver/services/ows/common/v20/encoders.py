@@ -53,11 +53,11 @@ class OWS20Encoder(XMLEncoder):
 class OWS20ExceptionXMLEncoder(XMLEncoder):
     def encode_exception(self, message, version, code, locator=None):
         exception_attributes = {
-            "exceptionCode": code
+            "exceptionCode": str(code)
         }
 
         if locator:
-            exception_attributes["locator"] = locator
+            exception_attributes["locator"] = str(locator)
 
         exception_text = (OWS("ExceptionText", message),) if message else ()
 
