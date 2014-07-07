@@ -49,7 +49,9 @@ def encode_process_brief(process):
     profiles = getattr(process, "profiles", [])
     wsdl = getattr(process, "wsdl", None)
 
-    elem = WPS("Process", OWS("Identifier", id_), OWS("Title", title))
+    elem = WPS("ProcessDescription", 
+        OWS("Identifier", id_), OWS("Title", title)
+    )
     elem.attrib[ns_wps("processVersion")] = version
     if abstract:
         elem.append(OWS("Abstract", abstract))
