@@ -1098,19 +1098,6 @@ class WCS20PostGetCoverageRangeSubsetMultipartDatasetTestCase(wcsbase.WCS20GetCo
         params = """<wcs:GetCoverage service="WCS" version="2.0.1"
            xmlns:wcs="http://www.opengis.net/wcs/2.0"
            xmlns:rsub="http://www.opengis.net/wcs/range-subsetting/1.0">
-          <wcs:CoverageId>MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed</wcs:CoverageId>
-          <wcs:DimensionTrim>
-            <wcs:Dimension>x</wcs:Dimension>
-            <wcs:TrimLow>0</wcs:TrimLow>
-            <wcs:TrimHigh>99</wcs:TrimHigh>
-          </wcs:DimensionTrim>
-          <wcs:DimensionTrim>
-            <wcs:Dimension>y</wcs:Dimension>
-            <wcs:TrimLow>0</wcs:TrimLow>
-            <wcs:TrimHigh>99</wcs:TrimHigh>
-          </wcs:DimensionTrim>
-          <wcs:format>image/tiff</wcs:format>
-          <wcs:mediaType>multipart/related</wcs:mediaType>
           <wcs:Extension>
             <rsub:RangeSubset>
               <rsub:RangeItem>
@@ -1124,5 +1111,18 @@ class WCS20PostGetCoverageRangeSubsetMultipartDatasetTestCase(wcsbase.WCS20GetCo
               </rsub:RangeItem>
             </rsub:RangeSubset>
           </wcs:Extension>
+          <wcs:CoverageId>MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed</wcs:CoverageId>
+          <wcs:DimensionTrim>
+            <wcs:Dimension>x</wcs:Dimension>
+            <wcs:TrimLow>0</wcs:TrimLow>
+            <wcs:TrimHigh>99</wcs:TrimHigh>
+          </wcs:DimensionTrim>
+          <wcs:DimensionTrim>
+            <wcs:Dimension>y</wcs:Dimension>
+            <wcs:TrimLow>0</wcs:TrimLow>
+            <wcs:TrimHigh>99</wcs:TrimHigh>
+          </wcs:DimensionTrim>
+          <wcs:format>image/tiff</wcs:format>
+          <wcs:mediaType>multipart/related</wcs:mediaType>
         </wcs:GetCoverage>"""
         return (params, "xml")
