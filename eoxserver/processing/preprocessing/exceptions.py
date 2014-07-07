@@ -25,9 +25,8 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from eoxserver.core.exceptions import EOxSException
 
-class PreprocessingException(EOxSException):
+class PreprocessingException(Exception):
     pass
 
 class GCPTransformException(PreprocessingException):

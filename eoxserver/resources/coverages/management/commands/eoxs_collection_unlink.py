@@ -2,6 +2,7 @@
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Martin Paces <martin.paces@eox.at>
+#          Fabian Schindler <fabian.schindler@eox.at>
 #
 #-------------------------------------------------------------------------------
 # Copyright (C) 2014 EOX IT Services GmbH
@@ -25,44 +26,38 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-import traceback
 from optparse import make_option
+from itertools import product
 
-from django.core.exceptions import ValidationError
 from django.core.management.base import CommandError, BaseCommand
-from django.utils.dateparse import parse_datetime
-from django.db import transaction
-from django.contrib.gis.geos import GEOSGeometry
 
+from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.management.commands import (
-    CommandOutputMixIn, _variable_args_cb
+    CommandOutputMixIn, _variable_args_cb, nested_commit_on_success
 )
-
-#from eoxserver.resources.coverages import models
-from eoxserver.resources.coverages.models import DatasetSeries
-from eoxserver.resources.coverages.models import EOObject
-from eoxserver.resources.coverages.models import EO_OBJECT_TYPE_REGISTRY 
 
 
 class Command(CommandOutputMixIn, BaseCommand):
     option_list = BaseCommand.option_list + (
-        make_option("-s", "--series", dest="parents",
+        make_option("-c", "--collection", dest="collection_ids",
             action='callback', callback=_variable_args_cb,
-            default=None, help=("List of the target dataset series.")
+            default=None, help=("Collection(s) from which the "
+                                "objects shall be removed.")
         ), 
-        make_option("-r", "--remove", dest="children",
+        make_option("-r", "--remove", dest="remove_ids",
             action='callback', callback=_variable_args_cb,
-            default=None, help=("List of the removed child eo-objects.")
+            default=None, help=("List of the to be removed "
+                                "eo-objects.")
         ), 
-        make_option('--ignore-missing-parent',
-            dest='ignore_missing_parent',
+        make_option('--ignore-missing-collection',
+            dest='ignore_missing_collection',
             action="store_true", default=False,
             help=("Optional. Proceed even if the linked parent "
                   "does not exist. By defualt, a missing parent " 
                   "will terminate the command.")
         ),
-        make_option('--ignore-missing-child',
-            dest='ignore_missing_child',
+        make_option('--ignore-missing-object',
+            dest='ignore_missing_object',
             action="store_true", default=False,
             help=("Optional. Proceed even if the linked child "
                   "does not exist. By defualt, a missing child " 
@@ -71,86 +66,85 @@ class Command(CommandOutputMixIn, BaseCommand):
     )
 
     args = (
-        "--series <series-id> [<series-id> ...] --remove <eo-object-id> "
-        "[<eo-object-id> ...] [--ignore-missing-parent] "
-        "[--ignore-missing-child]"
+        "--collection <collection-id> [<collection-id> ...] "
+        "--remove <eo-object-id> [--remove <eo-object-id> ...] "
+        "[--ignore-missing-collection] [--ignore-missing-object]"
     )
     
-    help = (
-    """
+    help = """
         Unlink (remove) one or more EOObjects from one or more dataset series. 
         Note that the EOObjects will still remain in the data-base.
+        Non-existing links are ignored.
+    """
 
-        NOTE: Non-existing links are ignored.
-    """ % ({"name": __name__.split(".")[-1]}))
 
-    @transaction.commit_on_success
-    def handle(self, *args, **opt):
+    @nested_commit_on_success
+    def handle(self, *args, **kwargs):
         # check the required inputs
-        parent_ids = opt.get('parents', None)
-        children_ids = opt.get('children', None)
-        if not parent_ids: 
+        collection_ids = kwargs.get('collection_ids', None)
+        remove_ids = kwargs.get('remove_ids', None)
+        if not collection_ids: 
             raise CommandError(
-                "Missing the mandatory dataset series identifier(s)!"
+                "Missing the mandatory collection identifier(s)!"
             )
 
-        if not children_ids: 
+        if not remove_ids: 
             raise CommandError(
-                "Missing the mandatory inserted EOObjects identifier(s)!"
+                "Missing the mandatory identifier(s) for to be removed "
+                "objects."
             )
 
-        # extract the parents 
-        ignore_missing_parent = opt['ignore_missing_parent']
-        parents = [] 
-        for parent_id in parent_ids: 
+        # extract the collections 
+        ignore_missing_collection = kwargs['ignore_missing_collection']
+        collections = [] 
+        for collection_id in collection_ids: 
             try: 
-                parents.append(DatasetSeries.objects.get(identifier=parent_id))
-            except DatasetSeries.DoesNotExist: 
-                msg = (
-                    "There is no Dataset Series matching the given "
-                    "identifier: '%s'" % parent_id
+                collections.append(
+                    models.Collection.objects.get(identifier=collection_id)
                 )
-                if ignore_missing_parent: 
+            except models.Collection.DoesNotExist: 
+                msg = (
+                    "There is no Collection matching the given "
+                    "identifier: '%s'" % collection_id
+                )
+                if ignore_missing_collection: 
                     self.print_wrn(msg)
                 else: 
                     raise CommandError(msg) 
 
         # extract the children  
-        ignore_missing_child = opt['ignore_missing_child']
-        children = [] 
-        for child_id in children_ids: 
+        ignore_missing_object = kwargs['ignore_missing_object']
+        objects = [] 
+        for remove_id in remove_ids: 
             try:
-                children.append(EOObject.objects.get(identifier=child_id))
-            except EOObject.DoesNotExist:
+                objects.append(
+                    models.EOObject.objects.get(identifier=remove_id)
+                )
+            except models.EOObject.DoesNotExist:
                 msg = (
                     "There is no EOObject matching the given identifier: '%s'"
-                    % child_id
+                    % remove_id
                 )
-                if ignore_missing_child:
+                if ignore_missing_object:
                     self.print_wrn(msg)
                 else:
                     raise CommandError(msg)
         
         try:
-            for parent in parents: 
-                for child in children:
-                    # check whether the link does not exist
-                    if child in parent:
-                        self.print_msg(
-                            "Unlinking: %s <-x- %s" % (parent, child)
-                        )
-                        parent.remove(child)
+            for collection, eo_object in product(collections, objects):
+                # check whether the link does not exist
+                if eo_object in collection:
+                    self.print_msg(
+                        "Unlinking: %s <-x- %s" % (collection, eo_object)
+                    )
+                    collection.remove(eo_object)
 
-                    else:
-                        self.print_wrn(
-                            "Collection %s does not contain %s" 
-                            % (parent, child)
-                        )
-
+                else:
+                    self.print_wrn(
+                        "Collection %s does not contain %s" 
+                        % (collection, eo_object)
+                    )
 
         except Exception as e:
-            # print stack trace if required 
-            if opt.get("traceback", False):
-                self.print_msg(traceback.format_exc())
-            
-            raise CommandError("Unlinking failed! REASON=%s" % (e))
+            self.print_traceback(e, kwargs)
+            raise CommandError("Unlinking failed: %s" % (e))

@@ -29,7 +29,7 @@
 
 import logging
 
-from django.contrib.gis.geos import Polygon
+from django.contrib.gis.geos import Polygon, LineString
 
 from eoxserver.resources.coverages import crss
 from eoxserver.services.exceptions import (
@@ -88,7 +88,10 @@ class Subsets(list):
         return any(map(lambda s: s.is_temporal, self))
 
     @property
-    def xy_srid(self):
+    def xy_crs(self):
+        """ Returns the CRS specifier for the X and Y axis. Returns ``None``
+            when no X or Y subsets are contained.
+        """
         xy_subsets = filter(lambda s: s.is_x or s.is_y, self)
         if not len(xy_subsets):
             return None
@@ -100,7 +103,14 @@ class Subsets(list):
         if len(all_crss) != 1:
             raise InvalidSubsettingException("All X/Y crss must be the same")
 
-        xy_crs = iter(all_crss).next()
+        return iter(all_crss).next()
+
+
+    @property
+    def xy_srid(self):
+        """ Tries to find the correct integer SRID for the xy_crs.
+        """
+        xy_crs = self.xy_crs
         if xy_crs is not None:
             srid = crss.parseEPSGCode(xy_crs, 
                 (crss.fromURL, crss.fromURN, crss.fromShortCode)
@@ -167,12 +177,12 @@ class Subsets(list):
             else:
                 if is_slice:
                     if subset.is_x:
-                        line = Line(
+                        line = LineString(
                             (value, max_extent[1]),
                             (value, max_extent[3])
                         )
                     else:
-                        line = Line(
+                        line = LineString(
                             (max_extent[0], value),
                             (max_extent[2], value)
                         )

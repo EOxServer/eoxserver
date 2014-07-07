@@ -35,7 +35,6 @@ from functools import wraps
 
 from eoxserver.contrib import gdal
 from eoxserver.core.util.rect import Rect
-from eoxserver.core.exceptions import InternalError
 
 #-------------------------------------------------------------------------------
 # approximation transformer's threshold in pixel units 
@@ -55,6 +54,11 @@ METHOD2STR = { METHOD_GCP: "METHOD_GCP", METHOD_TPS:"METHOD_TPS", METHOD_TPS_LSQ
 #-------------------------------------------------------------------------------
 
 logger = logging.getLogger(__name__)
+
+
+class ReftoolsException(Exception):
+    pass
+
 
 class RECT(C.Structure):
     _fields_ = [("x_off", C.c_int),
@@ -128,7 +132,7 @@ try:
     REFTOOLS_USABLE = True
 
 except OSError:
-    logger.warn("Could not load '%s'. Referenceable Datasets will not be usable." % _lib)
+    logger.warn("Could not load '%s'. Referenceable Datasets will not be usable." % _lib_path_baseline)
     
     REFTOOLS_USABLE = False
 
@@ -148,8 +152,10 @@ def requires_reftools(func):
     @wraps(func)
     def wrapped(*args, **kwargs):
         if not REFTOOLS_USABLE:
-            raise InternalError("Referenceable grid handling is disabled! "
-                                "Did you compile the 'reftools' C module?!")
+            raise ReftoolsException(
+                "Could not load reftools extension library. "
+                "Referenceable grid handling is disabled."
+            )
         return func(*args, **kwargs)
 
     return wrapped
