@@ -30,7 +30,7 @@ from autotest_services import testbase
 
 
 #===============================================================================
-# WCS 1.0
+# WCS 1.0 GetCapabilities
 #===============================================================================
 
 class WPS10GetCapabilitiesValidTestCase(testbase.XMLTestCase):
@@ -48,12 +48,16 @@ class WPS10PostGetCapabilitiesValidTestCase(testbase.XMLTestCase):
         """        
         return (params, "xml")
 
+
+#===============================================================================
+# WCS 1.0 DescribeProcess
+#===============================================================================
+
+
 class WPS10DescribeProcessValidTestCase(testbase.XMLTestCase):
     def getRequest(self):
         params = "service=WPS&version=1.0.0&request=DescribeProcess&identifier=TC00:identity:literal"
         return (params, "kvp")
-
-
 
 class WPS10PostDescribeProcessValidTestCase(testbase.XMLTestCase):
     def getRequest(self):
