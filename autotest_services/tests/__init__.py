@@ -5,3 +5,5 @@ from wcs.v20 import *
 from wms.v10 import *
 from wms.v11 import *
 from wms.v13 import *
+
+from wps.v10 import *
