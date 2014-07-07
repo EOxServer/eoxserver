@@ -37,3 +37,13 @@ class WPS10GetCapabilitiesValidTestCase(testbase.XMLTestCase):
     def getRequest(self):
         params = "service=WPS&version=1.0.0&request=GetCapabilities"
         return (params, "kvp")
+
+class WPS10PostGetCapabilitiesValidTestCase(testbase.XMLTestCase):
+    def getRequest(self):
+        params = """<wps:GetCapabilities updateSequence="u2001" service="WPS"
+          xmlns:wps="http://www.opengis.net/wps/1.0"
+          xmlns:ows="http://www.opengis.net/ows/1.1">
+            <ows:AcceptVersions><ows:Version>1.0.0</ows:Version></ows:AcceptVersions>
+          </wps:GetCapabilities>
+        """        
+        return (params, "xml")
