@@ -28,13 +28,15 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+from lxml.builder import E
+
 from eoxserver.services.ows.wps.v10.util import (
     OWS, WPS, NIL, ns_wps, ns_xlink, ns_xml
 )
 from .parameters import encode_input_descr, encode_output_descr
 from .base import WPS10BaseXMLEncoder
-
 from eoxserver.services.ows.wps.parameters import fix_parameter
+
 
 def _encode_metadata(title, href):
     return OWS("Metadata", **{ns_xlink("title"): title, ns_xlink("href"): href})
@@ -49,7 +51,7 @@ def encode_process_brief(process):
     profiles = getattr(process, "profiles", [])
     wsdl = getattr(process, "wsdl", None)
 
-    elem = WPS("ProcessDescription", 
+    elem = E("ProcessDescription", 
         OWS("Identifier", id_), OWS("Title", title)
     )
     elem.attrib[ns_wps("processVersion")] = version
