@@ -47,3 +47,21 @@ class WPS10PostGetCapabilitiesValidTestCase(testbase.XMLTestCase):
           </wps:GetCapabilities>
         """        
         return (params, "xml")
+
+class WPS10DescribeProcessValidTestCase(testbase.XMLTestCase):
+    def getRequest(self):
+        params = "service=WPS&version=1.0.0&request=DescribeProcess&identifier=TC00:identity:literal"
+        return (params, "kvp")
+
+
+
+class WPS10PostDescribeProcessValidTestCase(testbase.XMLTestCase):
+    def getRequest(self):
+        params = """<wps:DescribeProcess service="WPS" version="1.0.0"
+          xmlns:wps="http://www.opengis.net/wps/1.0"
+          xmlns:ows="http://www.opengis.net/ows/1.1">
+            <ows:Identifier>TC00:identity:literal</ows:Identifier>
+          </wps:DescribeProcess>
+        """        
+        return (params, "xml")
+
