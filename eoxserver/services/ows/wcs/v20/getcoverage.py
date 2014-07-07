@@ -36,7 +36,7 @@ from eoxserver.services.ows.interfaces import (
 from eoxserver.services.ows.wcs.basehandlers import WCSGetCoverageHandlerBase
 from eoxserver.services.ows.wcs.v20.util import (
     nsmap, parse_subset_kvp, parse_subset_xml, parse_size_kvp, 
-    parse_resolution_kvp
+    parse_resolution_kvp, parse_interpolation
 )
 from eoxserver.services.ows.wcs.v20.parameters import WCS20CoverageRenderParams
 from eoxserver.services.ows.wcs.interfaces import EncodingExtensionInterface
@@ -82,7 +82,7 @@ class WCS20GetCoverageKVPDecoder(kvp.Decoder):
     format      = kvp.Parameter("format", num="?")
     outputcrs   = kvp.Parameter("outputcrs", num="?")
     mediatype   = kvp.Parameter("mediatype", num="?")
-    interpolation = kvp.Parameter("interpolation", num="?")
+    interpolation = kvp.Parameter("interpolation", type=parse_interpolation, num="?")
 
     mask = None
 
@@ -93,7 +93,6 @@ class WCS20GetCoverageXMLDecoder(xml.Decoder):
 
     sizes       = xml.Parameter("TODO", type=parse_size_kvp, num="*")
     resolutions = xml.Parameter("TODO", type=parse_size_kvp, num="*")
-    interpolation = xml.Parameter("TODO", type=parse_size_kvp, num="?")
 
     rangesubset = xml.Parameter("rangesubset", type=typelist(str, ","), num="?")
 
@@ -101,6 +100,9 @@ class WCS20GetCoverageXMLDecoder(xml.Decoder):
     # TODO:!!!
     outputcrs   = xml.Parameter("TODO", num="?", locator="outputcrs")
     mediatype   = xml.Parameter("wcs:mediaType/text()", num="?", locator="mediatype")
+    
+    # only allow global interpolation right now.
+    interpolation = xml.Parameter("wcs:Extension/int:Interpolation/int:globalInterpolation/text()", type=parse_interpolation, num="?", locator="interpolation")
     
     mask = None
 
