@@ -60,3 +60,35 @@ class WCS20GetCoverageMixIn(object):
             )
         except:
             return xml_data[:] 
+
+
+class GeoTIFFMixIn(object):
+    expected_compression = None
+    expected_jpeg_quality = None # TODO: not possible?
+    expected_predictor = None # TODO: not possible to get predictor?
+    expected_interleave = None
+    expected_tiling = None # (width, height)
+
+
+    def test_geotiff(self):
+        self._openDatasets()
+        ds = self.res_ds
+
+        img_str = ds.GetMetadata("IMAGE_STRUCTURE")
+
+        if self.expected_compression:
+            self.assertEqual(
+                self.expected_compression, img_str.get("COMPRESSION")
+            )
+
+        if self.expected_interleave:
+            self.assertEqual(
+                self.expected_interleave, img_str.get("INTERLEAVE")
+            )
+
+        if self.expected_tiling:
+            b = ds.GetRasterBand(1)
+            block_x_size, block_y_size = b.GetBlockSize()
+            
+            self.assertEqual(self.expected_tiling[0], block_x_size)
+            self.assertEqual(self.expected_tiling[1], block_y_size)

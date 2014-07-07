@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<wcs:Capabilities xmlns:crs="http://www.opengis.net/wcs/crs/1.0" xmlns:wcs="http://www.opengis.net/wcs/2.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:swe="http://www.opengis.net/swe/2.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:ows="http://www.opengis.net/ows/2.0" xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0" xmlns:wcseo="http://www.opengis.net/wcseo/1.0" xmlns:om="http://www.opengis.net/om/2.0" xmlns:ogc="http://www.opengis.net/ogc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" updateSequence="20131219T132000Z" version="2.0.1" xsi:schemaLocation="http://www.opengis.net/ows/2.0 http://schemas.opengis.net/ows/2.0/owsAll.xsd http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd">
+<wcs:Capabilities xmlns:crs="http://www.opengis.net/wcs/crs/1.0" xmlns:wcs="http://www.opengis.net/wcs/2.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:int="http://www.opengis.net/wcs/interpolation/1.0" xmlns:swe="http://www.opengis.net/swe/2.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:ows="http://www.opengis.net/ows/2.0" xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0" xmlns:wcseo="http://www.opengis.net/wcseo/1.0" xmlns:om="http://www.opengis.net/om/2.0" xmlns:ogc="http://www.opengis.net/ogc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" updateSequence="20131219T132000Z" version="2.0.1" xsi:schemaLocation="http://www.opengis.net/ows/2.0 http://schemas.opengis.net/ows/2.0/owsAll.xsd http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd">
   <ows:ServiceIdentification>
     <ows:Title>Test configuration of MapServer used to demonstrate EOxServer</ows:Title>
     <ows:Abstract>Test configuration of MapServer used to demonstrate EOxServer
@@ -31,7 +31,7 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
     <ows:Profile>http://www.opengis.net/spec/GMLCOV_geotiff-coverages/1.0/conf/geotiff-coverage</ows:Profile>
     <ows:Profile>http://www.opengis.net/spec/WCS_geotiff-coverages/1.0/conf/geotiff-coverage</ows:Profile>
     <ows:Profile>http://www.opengis.net/spec/WCS_service-model_crs-predefined/1.0/conf/crs-predefined</ows:Profile>
-    <ows:Profile>http://www.opengis.net/spec/WCS_service-model_scaling+interpolation/1.0/conf/scaling+interpolation</ows:Profile>
+    <ows:Profile>http://www.opengis.net/spec/WCS_service-extension_interpolation/1.0/conf/interpolation</ows:Profile>
     <ows:Profile>http://www.opengis.net/spec/WCS_service-model_band-subsetting/1.0/conf/band-subsetting</ows:Profile>
     <ows:Fees>None</ows:Fees>
     <ows:AccessConstraints>None</ows:AccessConstraints>
@@ -153,6 +153,15 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
       <crs:crsSupported>http://www.opengis.net/def/crs/EPSG/0/3857</crs:crsSupported>
       <crs:crsSupported>http://www.opengis.net/def/crs/EPSG/0/900913</crs:crsSupported>
       <crs:crsSupported>http://www.opengis.net/def/crs/EPSG/0/3035</crs:crsSupported>
+      <int:InterpolationMetadata>
+        <int:InterpolationSupported>http://www.opengis.net/def/interpolation/OGC/1/average</int:InterpolationSupported>
+        <int:InterpolationSupported>http://www.opengis.net/def/interpolation/OGC/1/nearest-neighbour</int:InterpolationSupported>
+        <int:InterpolationSupported>http://www.opengis.net/def/interpolation/OGC/1/bilinear</int:InterpolationSupported>
+        <int:InterpolationSupported>http://www.opengis.net/def/interpolation/OGC/1/cubic</int:InterpolationSupported>
+        <int:InterpolationSupported>http://www.opengis.net/def/interpolation/OGC/1/cubic-spline</int:InterpolationSupported>
+        <int:InterpolationSupported>http://www.opengis.net/def/interpolation/OGC/1/lanczos</int:InterpolationSupported>
+        <int:InterpolationSupported>http://www.opengis.net/def/interpolation/OGC/1/mode</int:InterpolationSupported>
+      </int:InterpolationMetadata>
     </wcs:Extension>
   </wcs:ServiceMetadata>
   <wcs:Contents>
