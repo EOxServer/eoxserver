@@ -222,7 +222,7 @@ class GDALReferenceableDatasetRenderer(Component):
         else:
             subset_bands = xrange(1, len(range_type) + 1)
 
-        for dst_index, src_index in enumerate(subset_bands):
+        for dst_index, src_index in enumerate(subset_bands, start=1):
             input_band = input_bands[src_index-1]
             vrt.add_band(input_band.data_type)
             vrt.add_simple_source(
