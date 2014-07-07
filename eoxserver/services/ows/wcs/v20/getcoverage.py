@@ -27,8 +27,9 @@
 #-------------------------------------------------------------------------------
 
 
-from eoxserver.core import Component, implements
+from eoxserver.core import Component, implements, ExtensionPoint
 from eoxserver.core.decoders import xml, kvp, typelist
+from eoxserver.services.subset import Subsets
 from eoxserver.services.ows.interfaces import (
     ServiceHandlerInterface, GetServiceHandlerInterface, 
     PostServiceHandlerInterface
@@ -36,15 +37,19 @@ from eoxserver.services.ows.interfaces import (
 from eoxserver.services.ows.wcs.basehandlers import WCSGetCoverageHandlerBase
 from eoxserver.services.ows.wcs.v20.util import (
     nsmap, parse_subset_kvp, parse_subset_xml, parse_size_kvp, 
-    parse_resolution_kvp, parse_range_subset_kvp, parse_range_subset_xml
+    parse_resolution_kvp, parse_range_subset_kvp, parse_range_subset_xml,
+    parse_interpolation
 )
 from eoxserver.services.ows.wcs.v20.parameters import WCS20CoverageRenderParams
+from eoxserver.services.ows.wcs.interfaces import EncodingExtensionInterface
 
 
 class WCS20GetCoverageHandler(WCSGetCoverageHandlerBase, Component):
     implements(ServiceHandlerInterface)
     implements(GetServiceHandlerInterface)
     implements(PostServiceHandlerInterface)
+
+    encoding_extensions = ExtensionPoint(EncodingExtensionInterface)
 
     versions = ("2.0.0", "2.0.1")
 
@@ -55,10 +60,19 @@ class WCS20GetCoverageHandler(WCSGetCoverageHandlerBase, Component):
             return WCS20GetCoverageXMLDecoder(request.body)
 
     def get_params(self, coverage, decoder, request):
+        subsets = Subsets(decoder.subsets, crs=decoder.subsettingcrs)
+        encoding_params = None
+        for encoding_extension in self.encoding_extensions:
+            if encoding_extension.supports(decoder.format, {}):
+                encoding_params = encoding_extension.get_encoding_params(
+                    request
+                )
+
         return WCS20CoverageRenderParams(
-            coverage, decoder.subsets, decoder.sizes, decoder.resolutions,
+            coverage, subsets, decoder.sizes, decoder.resolutions,
             decoder.rangesubset, decoder.format, decoder.outputcrs, 
-            decoder.mediatype, decoder.interpolation, decoder.mask, request
+            decoder.mediatype, decoder.interpolation, decoder.mask, 
+            encoding_params or {}, request
         )
 
 
@@ -69,9 +83,10 @@ class WCS20GetCoverageKVPDecoder(kvp.Decoder):
     resolutions = kvp.Parameter("resolution", type=parse_resolution_kvp, num="*")
     rangesubset = kvp.Parameter("rangesubset", type=parse_range_subset_kvp, num="?")
     format      = kvp.Parameter("format", num="?")
+    subsettingcrs = kvp.Parameter("subsettingcrs", num="?")
     outputcrs   = kvp.Parameter("outputcrs", num="?")
     mediatype   = kvp.Parameter("mediatype", num="?")
-    interpolation = kvp.Parameter("interpolation", num="?")
+    interpolation = kvp.Parameter("interpolation", type=parse_interpolation, num="?")
 
     mask = None
 
@@ -82,14 +97,16 @@ class WCS20GetCoverageXMLDecoder(xml.Decoder):
 
     sizes       = xml.Parameter("TODO", type=parse_size_kvp, num="*")
     resolutions = xml.Parameter("TODO", type=parse_size_kvp, num="*")
-    interpolation = xml.Parameter("TODO", type=parse_size_kvp, num="?")
 
     rangesubset = xml.Parameter("wcs:Extension/rsub:RangeSubset", type=parse_range_subset_xml, num="?", locator="rangesubset")
 
     format      = xml.Parameter("wcs:format/text()", num="?", locator="format")
-    # TODO:!!!
-    outputcrs   = xml.Parameter("TODO", num="?", locator="outputcrs")
+    subsettingcrs = xml.Parameter("wcs:Extension/crs:subsettingCrs/text()", num="?", locator="subsettingcrs")
+    outputcrs   = xml.Parameter("wcs:Extension/crs:outputCrs/text()", num="?", locator="outputcrs")
     mediatype   = xml.Parameter("wcs:mediaType/text()", num="?", locator="mediatype")
+    
+    # only allow global interpolation right now.
+    interpolation = xml.Parameter("wcs:Extension/int:Interpolation/int:globalInterpolation/text()", type=parse_interpolation, num="?", locator="interpolation")
     
     mask = None
 

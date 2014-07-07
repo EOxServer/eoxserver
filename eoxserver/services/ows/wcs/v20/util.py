@@ -41,22 +41,24 @@ from eoxserver.services.gml.v32.encoders import (
 from eoxserver.services.ows.common.v20.encoders import ns_xlink, ns_ows, OWS
 from eoxserver.services.exceptions import (
     InvalidSubsettingException, InvalidAxisLabelException, 
-    NoSuchFieldException, InvalidFieldSequenceException
+    NoSuchFieldException, InvalidFieldSequenceException,
+    InterpolationMethodNotSupportedException
 )
 
 
 # namespace declarations
 ns_ogc = NameSpace("http://www.opengis.net/ogc", "ogc")
 ns_wcs = NameSpace("http://www.opengis.net/wcs/2.0", "wcs")
-ns_crs = NameSpace("http://www.opengis.net/wcs/service-extension/crs/1.0", "crs")
+ns_crs = NameSpace("http://www.opengis.net/wcs/crs/1.0", "crs")
 ns_rsub = NameSpace("http://www.opengis.net/wcs/range-subsetting/1.0", "rsub")
 ns_eowcs = NameSpace("http://www.opengis.net/wcseo/1.0", "wcseo", "http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd")
 ns_swe = NameSpace("http://www.opengis.net/swe/2.0", "swe")
+ns_int = NameSpace("http://www.opengis.net/wcs/interpolation/1.0", "int")
 
 # namespace map
 nsmap = NameSpaceMap(
     ns_xlink, ns_ogc, ns_ows, ns_gml, ns_gmlcov, ns_wcs, ns_crs, ns_rsub, 
-    ns_eowcs, ns_om, ns_eop, ns_swe
+    ns_eowcs, ns_om, ns_eop, ns_swe, ns_int
 )
 
 # Element factories
@@ -65,9 +67,10 @@ WCS = ElementMaker(namespace=ns_wcs.uri, nsmap=nsmap)
 CRS = ElementMaker(namespace=ns_crs.uri, nsmap=nsmap)
 EOWCS = ElementMaker(namespace=ns_eowcs.uri, nsmap=nsmap)
 SWE = ElementMaker(namespace=ns_swe.uri, nsmap=nsmap)
+INT = ElementMaker(namespace=ns_int.uri, nsmap=nsmap) 
 
 
-subset_re = re.compile(r'(\w+)(,([^(]+))?\(([^,]*)(,([^)]*))?\)')
+subset_re = re.compile(r'(\w+)\(([^,]*)(,([^)]*))?\)')
 size_re = re.compile(r'(\w+)\(([^)]*)\)')
 resolution_re = re.compile(r'(\w+)\(([^)]*)\)')
 
@@ -156,14 +159,13 @@ def parse_subset_kvp(string):
 
         axis = match.group(1)
         parser = get_parser_for_axis(axis)
-        crs = match.group(3)
         
-        if match.group(6) is not None:
+        if match.group(4) is not None:
             return Trim(
-                axis, parser(match.group(4)), parser(match.group(6)), crs
+                axis, parser(match.group(2)), parser(match.group(4))
             )
         else:
-            return Slice(axis, parser(match.group(4)), crs)
+            return Slice(axis, parser(match.group(2)))
     except InvalidAxisLabelException:
         raise
     except Exception, e:
@@ -227,6 +229,27 @@ def parse_subset_xml(elem):
             )
     except Exception, e:
         raise InvalidSubsettingException(str(e))
+
+
+SUPPORTED_INTERPOLATIONS = (
+    "average", "nearest-neighbour", "bilinear", "cubic", "cubic-spline", 
+    "lanczos", "mode"
+)
+
+def parse_interpolation(raw):
+    """ Returns a unified string denoting the interpolation method used.
+    """
+    if raw.startswith("http://www.opengis.net/def/interpolation/OGC/1/"):
+        raw = raw[len("http://www.opengis.net/def/interpolation/OGC/1/"):]
+        value = raw.lower()
+    else:
+        value = raw.lower()
+
+    if value not in SUPPORTED_INTERPOLATIONS:
+        raise InterpolationMethodNotSupportedException(
+            "Interpolation method '%s' is not supported." % raw
+        )
+    return value
 
 
 def parse_range_subset_xml(elem):

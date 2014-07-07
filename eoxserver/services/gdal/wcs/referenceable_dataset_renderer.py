@@ -30,6 +30,7 @@
 from os.path import splitext, abspath
 from datetime import datetime
 from uuid import uuid4
+import logging
 
 from django.contrib.gis.geos import GEOSGeometry
 
@@ -40,7 +41,6 @@ from eoxserver.contrib import gdal, osr
 from eoxserver.contrib.vrt import VRTBuilder
 from eoxserver.resources.coverages import models
 from eoxserver.services.ows.version import Version
-from eoxserver.services.subset import Subsets
 from eoxserver.services.result import ResultFile, ResultBuffer
 from eoxserver.services.ows.wcs.interfaces import WCSCoverageRendererInterface
 from eoxserver.services.ows.wcs.v20.encoders import WCS20EOXMLEncoder
@@ -48,6 +48,9 @@ from eoxserver.services.exceptions import (
     RenderException, OperationNotSupportedException
 )
 from eoxserver.processing.gdal import reftools
+
+
+logger = logging.getLogger(__name__)
 
 
 class GDALReferenceableDatasetRenderer(Component):
@@ -68,7 +71,7 @@ class GDALReferenceableDatasetRenderer(Component):
         data_items = coverage.data_items.filter(semantic__startswith="bands")
         range_type = coverage.range_type
 
-        subsets = Subsets(params.subsets)
+        subsets = params.subsets
 
         # GDAL source dataset. Either a single file dataset or a composed VRT 
         # dataset.
@@ -97,7 +100,9 @@ class GDALReferenceableDatasetRenderer(Component):
         )
 
         # encode the processed dataset and save it to the filesystem
-        out_ds, out_driver = self.encode(subsetted_ds, frmt)
+        out_ds, out_driver = self.encode(
+            subsetted_ds, frmt, getattr(params, "encoding_params", {})
+        )
 
         driver_metadata = out_driver.GetMetadata_Dict()
         mime_type = driver_metadata.get("DMD_MIMETYPE")
@@ -118,12 +123,12 @@ class GDALReferenceableDatasetRenderer(Component):
             
             if subsets.has_x and subsets.has_y:
                 footprint = GEOSGeometry(reftools.get_footprint_wkt(out_ds))
-                if not subsets.xy_srid:
+                if not subsets.srid:
                     extent = footprint.extent
                 else:
                     extent = subsets.xy_bbox
                 encoder_subset = (
-                    subsets.xy_srid, src_rect.size, extent, footprint
+                    subsets.srid, src_rect.size, extent, footprint
                 )
             else:
                 encoder_subset = None
@@ -179,7 +184,7 @@ class GDALReferenceableDatasetRenderer(Component):
             subset_rect = image_rect
 
         # pixel subset
-        elif subsets.xy_srid is None: # means "imageCRS"
+        elif subsets.srid is None: # means "imageCRS"
             minx, miny, maxx, maxy = subsets.xy_bbox
 
             minx = int(minx) if minx is not None else image_rect.offset_x
@@ -197,7 +202,7 @@ class GDALReferenceableDatasetRenderer(Component):
             options = reftools.suggest_transformer(dataset)
 
             subset_rect = reftools.rect_from_subset(
-                vrt.dataset, subsets.xy_srid, *subsets.xy_bbox, **options
+                vrt.dataset, subsets.srid, *subsets.xy_bbox, **options
             )
 
         # check whether or not the subsets intersect with the image
@@ -235,16 +240,16 @@ class GDALReferenceableDatasetRenderer(Component):
         return vrt.dataset
 
 
-    def encode(self, dataset, format):
-        #format, options = None
-        options = {}
-        options = [
-            ("%s=%s" % key, value) for key, value in (options or {}).items()
-        ]
+    def encode(self, dataset, frmt, encoding_params):
+        options = ()
+        if frmt == "image/tiff":
+            options = _get_gtiff_options(**encoding_params)
+
+        args = [ ("%s=%s" % key, value) for key, value in options ]
 
         path = "/tmp/%s" % uuid4().hex
         out_driver = gdal.GetDriverByName("GTiff")
-        return out_driver.CreateCopy(path, dataset, True, options), out_driver
+        return out_driver.CreateCopy(path, dataset, True, args), out_driver
 
 
 def index_of(iterable, predicate, default=None, start=1):
@@ -253,5 +258,37 @@ def index_of(iterable, predicate, default=None, start=1):
             return i
     return default
 
+
 def temp_vsimem_filename():
     return "/vsimem/%s" % uuid4().hex
+
+
+def _get_gtiff_options(compression=None, jpeg_quality=None, 
+                       predictor=None, interleave=None, tiling=False, 
+                       tilewidth=None, tileheight=None):
+
+    logger.info("Applying GeoTIFF parameters.")
+
+    if compression:
+        if compression.lower() == "huffman":
+            compression = "CCITTRLE"
+        yield ("COMPRESS", compression.upper())
+
+    if jpeg_quality is not None:
+        yield ("JPEG_QUALITY", str(jpeg_quality))
+
+    if predictor:
+        pr = ["NONE", "HORIZONTAL", "FLOATINGPOINT"].index(predictor.upper())
+        if pr == -1:
+            raise ValueError("Invalid compression predictor '%s'." % predictor)
+        yield ("PREDICTOR", str(pr + 1))
+
+    if interleave:
+        yield ("INTERLEAVE", interleave)
+
+    if tiling:
+        yield ("TILED", "YES")
+        if tilewidth is not None:
+            yield ("BLOCKXSIZE", str(tilewidth))
+        if tileheight is not None:
+            yield ("BLOCKYSIZE", str(tileheight))
