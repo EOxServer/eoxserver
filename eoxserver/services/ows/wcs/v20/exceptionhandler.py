@@ -37,7 +37,8 @@ from eoxserver.core.decoders import (
 
 CODES_404 = (
     "NoSuchCoverage", "NoSuchDatasetSeriesOrCoverage", "InvalidAxisLabel", 
-    "InvalidSubsetting", "InterpolationMethodNotSupported"
+    "InvalidSubsetting", "InterpolationMethodNotSupported", "NoSuchField", 
+    "InvalidFieldSequence"
 )
 
 class WCS20ExceptionHandler(Component):

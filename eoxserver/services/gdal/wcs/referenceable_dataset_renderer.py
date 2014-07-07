@@ -216,35 +216,22 @@ class GDALReferenceableDatasetRenderer(Component):
 
 
     def perform_subset(self, src_ds, range_type, subset_rect, dst_rect, 
-                       subset_bands=None):
+                       rangesubset=None):
         vrt = VRTBuilder(*subset_rect.size)
 
-        # list of band indices/names. defaults to all bands
-        subset_bands = subset_bands or xrange(len(range_type))
         input_bands = list(range_type)
 
-        for index, subset_band in enumerate(subset_bands, start=1):
-            # integer means band index. can be negative
-            if isinstance(subset_band, int):
-                # negative indices are relative to end
-                if subset_band < 0:
-                    subset_band = len(range_type) + subset_band
-            else:
-                # find the correct band by name/identifier
-                subset_band = index_of(input_bands,
-                    lambda band: (
-                        band.name == subset_band 
-                        or band.identifier == subset_band
-                    )
-                )
-                if subset_band is None:
-                    raise RenderException("Invalid range subset.", "subset")
+        # list of band indices/names. defaults to all bands
+        if rangesubset:
+            subset_bands = rangesubset.get_band_indices(range_type, 1)
+        else:
+            subset_bands = xrange(1, len(range_type) + 1)
 
-            # prepare and add a simple source for the band
-            input_band = input_bands[subset_band]
+        for dst_index, src_index in enumerate(subset_bands, start=1):
+            input_band = input_bands[src_index-1]
             vrt.add_band(input_band.data_type)
             vrt.add_simple_source(
-                index, src_ds, subset_band+1, subset_rect, dst_rect
+                dst_index, src_ds, src_index, subset_rect, dst_rect
             )
 
         vrt.copy_metadata(src_ds)

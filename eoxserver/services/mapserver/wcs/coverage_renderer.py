@@ -43,6 +43,7 @@ from eoxserver.services.ows.wcs.v20.encoders import WCS20EOXMLEncoder
 from eoxserver.services.mapserver.interfaces import (
     ConnectorInterface, LayerFactoryInterface
 )
+from eoxserver.services.subset import Subsets
 from eoxserver.services.mapserver.wcs.base_renderer import (
     BaseRenderer, is_format_supported
 )
@@ -166,8 +167,16 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         try:
             connector.connect(coverage, data_items, layer)
             # create request object and dispatch it against the map
-
             request = ms.create_request(self.translate_params(params))
+            rangesubset = getattr(params, "rangesubset", None)
+            if rangesubset:
+                request.setParameter(
+                    "rangesubset", 
+                    ",".join(
+                        map(str, rangesubset.get_band_indices(range_type, 1))
+                    )
+                )
+
             request.setParameter("format", mime_type)
             raw_result = ms.dispatch(map_, request)
 

@@ -40,7 +40,8 @@ from eoxserver.services.gml.v32.encoders import (
 )
 from eoxserver.services.ows.common.v20.encoders import ns_xlink, ns_ows, OWS
 from eoxserver.services.exceptions import (
-    InvalidSubsettingException, InvalidAxisLabelException,
+    InvalidSubsettingException, InvalidAxisLabelException, 
+    NoSuchFieldException, InvalidFieldSequenceException,
     InterpolationMethodNotSupportedException
 )
 
@@ -49,14 +50,15 @@ from eoxserver.services.exceptions import (
 ns_ogc = NameSpace("http://www.opengis.net/ogc", "ogc")
 ns_wcs = NameSpace("http://www.opengis.net/wcs/2.0", "wcs")
 ns_crs = NameSpace("http://www.opengis.net/wcs/crs/1.0", "crs")
+ns_rsub = NameSpace("http://www.opengis.net/wcs/range-subsetting/1.0", "rsub")
 ns_eowcs = NameSpace("http://www.opengis.net/wcseo/1.0", "wcseo", "http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd")
 ns_swe = NameSpace("http://www.opengis.net/swe/2.0", "swe")
 ns_int = NameSpace("http://www.opengis.net/wcs/interpolation/1.0", "int")
 
 # namespace map
 nsmap = NameSpaceMap(
-    ns_xlink, ns_ogc, ns_ows, ns_gml, ns_gmlcov, ns_wcs, ns_crs, ns_eowcs,
-    ns_om, ns_eop, ns_swe, ns_int
+    ns_xlink, ns_ogc, ns_ows, ns_gml, ns_gmlcov, ns_wcs, ns_crs, ns_rsub, 
+    ns_eowcs, ns_om, ns_eop, ns_swe, ns_int
 )
 
 # Element factories
@@ -83,6 +85,44 @@ class Resolution(object):
     def __init__(self, axis, value):
         self.axis = axis
         self.value = float(value)
+
+
+class RangeSubset(list):
+
+    def get_band_indices(self, range_type, offset=0):
+        current_idx = -1
+        all_bands = range_type.cached_bands[:]
+        
+        for subset in self:
+            if isinstance(subset, basestring):
+                # slice, i.e single band
+                start = stop = subset
+
+            else:
+                start, stop = subset
+
+            start_idx = self._find(all_bands, start)
+            if start != stop:
+                stop_idx = self._find(all_bands, stop)
+                if stop_idx <= start_idx:
+                    raise IllegalFieldSequenceException(
+                        "Invalid interval '%s:%s'." % (start, stop), start
+                    )
+
+                # expand interval to indices
+                for i in range(start_idx, stop_idx+1):
+                    yield i + offset
+
+            else: 
+                # return the item
+                yield start_idx + offset
+
+
+    def _find(self, all_bands, name):
+        for i, band in enumerate(all_bands):
+            if band.name == name or band.identifier == name:
+                return i
+        raise NoSuchFieldException("Field '%s' does not exist." % name, name)
 
 
 
@@ -135,6 +175,7 @@ def parse_subset_kvp(string):
 def parse_size_kvp(string):
     """ Parses a size from the given string.
     """
+
     match = size_re.match(string)
     if not match:
         raise ValueError("Invalid size parameter given.")
@@ -152,6 +193,19 @@ def parse_resolution_kvp(string):
 
     return Resolution(match.group(1), match.group(2))
 
+
+def parse_range_subset_kvp(string):
+    """ Parse a rangesubset structure from the WCS 2.0 KVP notation.
+    """
+
+    rangesubset = RangeSubset()
+    for item in string.split(","):
+        if ":" in item:
+            rangesubset.append(item.split(":"))
+        else:
+            rangesubset.append(item)
+
+    return rangesubset
 
 
 def parse_subset_xml(elem):
@@ -196,6 +250,25 @@ def parse_interpolation(raw):
             "Interpolation method '%s' is not supported." % raw
         )
     return value
+
+
+def parse_range_subset_xml(elem):
+    """ Parse a rangesubset structure from the WCS 2.0 XML notation.
+    """
+
+    rangesubset = RangeSubset()
+
+    for child in elem:
+        item = child[0]
+        if item.tag == ns_rsub("RangeComponent"):
+            rangesubset.append(item.text)
+        elif item.tag == ns_rsub("RangeInterval"):
+            rangesubset.append((
+                item.findtext(ns_rsub("startComponent")),
+                item.findtext(ns_rsub("endComponent"))
+            ))
+    
+    return rangesubset
 
 
 def float_or_star(value):
