@@ -90,7 +90,6 @@ class InvalidAxisLabelException(Exception):
         self.locator = axis_label
     
 
-
 class InvalidSubsettingException(Exception):
     """
     This exception indicates an invalid WCS 2.0 subsetting parameter was
@@ -171,6 +170,14 @@ class VersionNotSupportedException(Exception):
             return "Version '%s' is not supported." % self.version
 
     code = "InvalidParameterValue"
+
+
+class InterpolationMethodNotSupportedException(Exception):
+    """
+    This exception indicates a not supported interpolation method.
+    """
+    code = "InterpolationMethodNotSupported"
+    locator = "interpolation"
 
 
 class RenderException(Exception):

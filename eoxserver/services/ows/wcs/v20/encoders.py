@@ -48,7 +48,8 @@ from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.services.ows.common.v20.encoders import OWS20Encoder
 from eoxserver.services.ows.wcs.v20.util import (
     nsmap, ns_xlink, ns_xsi, ns_ogc, ns_ows, ns_gml, ns_gmlcov, ns_wcs, ns_crs, 
-    ns_eowcs, OWS, GML, GMLCOV, WCS, CRS, EOWCS, SWE
+    ns_eowcs, OWS, GML, GMLCOV, WCS, CRS, EOWCS, SWE, INT,
+    SUPPORTED_INTERPOLATIONS
 )
 
 
@@ -80,7 +81,7 @@ class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
                     OWS("Profile", "http://www.opengis.net/spec/GMLCOV_geotiff-coverages/1.0/conf/geotiff-coverage"),
                     OWS("Profile", "http://www.opengis.net/spec/WCS_geotiff-coverages/1.0/conf/geotiff-coverage"),
                     OWS("Profile", "http://www.opengis.net/spec/WCS_service-model_crs-predefined/1.0/conf/crs-predefined"),
-                    OWS("Profile", "http://www.opengis.net/spec/WCS_service-model_scaling+interpolation/1.0/conf/scaling+interpolation"),
+                    OWS("Profile", "http://www.opengis.net/spec/WCS_service-extension_interpolation/1.0/conf/interpolation"),
                     OWS("Profile", "http://www.opengis.net/spec/WCS_service-model_band-subsetting/1.0/conf/band-subsetting"),
                     OWS("Fees", conf.fees),
                     OWS("AccessConstraints", conf.access_constraints)
@@ -189,6 +190,16 @@ class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
             service_metadata.append(extension)
             extension.extend(
                 map(lambda c: CRS("crsSupported", c), supported_crss)
+            )
+
+            base_url = "http://www.opengis.net/def/interpolation/OGC/1/"
+
+            extension.append(
+                INT("InterpolationMetadata", *[
+                    INT("InterpolationSupported", 
+                        base_url + supported_interpolation
+                    ) for supported_interpolation in SUPPORTED_INTERPOLATIONS
+                ])
             )
 
             caps.append(service_metadata)

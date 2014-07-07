@@ -29,6 +29,7 @@
 
 from datetime import datetime
 from urllib import unquote
+import logging
 
 from lxml import etree
 
@@ -48,8 +49,20 @@ from eoxserver.services.mapserver.wcs.base_renderer import (
 from eoxserver.services.ows.version import Version
 from eoxserver.services.result import result_set_from_raw_data, ResultBuffer
 from eoxserver.services.exceptions import (
-    RenderException, OperationNotSupportedException
+    RenderException, OperationNotSupportedException, 
+    InterpolationMethodNotSupportedException
 )
+
+
+logger = logging.getLogger(__name__)
+
+INTERPOLATION_TRANS = {
+    "nearest-neighbour": "NEAREST",
+    "linear": "BILINEAR",
+    "bilinear": "BILINEAR",
+    "cubic": "BICUBIC",
+    "average": "AVERAGE"
+}
 
 
 class RectifiedCoverageMapServerRenderer(BaseRenderer):
@@ -63,7 +76,13 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
     versions_full = (Version(1, 1), Version(1, 0))
     versions_partly = (Version(2, 0),)
     versions = versions_full + versions_partly
-    handles_full = (models.RectifiedDataset, models.RectifiedStitchedMosaic, models.ReferenceableDataset)
+    
+    handles_full = (
+        models.RectifiedDataset,
+        models.RectifiedStitchedMosaic,
+        models.ReferenceableDataset
+    )
+
     handles_partly = (models.RectifiedDataset, models.RectifiedStitchedMosaic)
     handles = handles_full + handles_partly
 
@@ -78,6 +97,7 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
             (params.version in self.versions_partly
             and issubclass(params.coverage.real_type, self.handles_partly))
         )
+
 
     def render(self, params):
         # get coverage related stuff
@@ -122,7 +142,10 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         imagemode = ms.gdalconst_to_imagemode(bands[0].data_type)
         time_stamp = datetime.now().strftime("%Y%m%d%H%M%S")
         basename = "%s_%s" % (coverage.identifier, time_stamp)
-        of = create_outputformat(mime_type, frmt, imagemode, basename)
+        of = create_outputformat(
+            mime_type, frmt, imagemode, basename, 
+            getattr(params, "encoding_params", {})
+        )
 
         map_.appendOutputFormat(of)
         map_.setOutputFormat(of)
@@ -143,7 +166,8 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         try:
             connector.connect(coverage, data_items, layer)
             # create request object and dispatch it against the map
-            request = ms.create_request(params)
+
+            request = ms.create_request(self.translate_params(params))
             request.setParameter("format", mime_type)
             raw_result = ms.dispatch(map_, request)
 
@@ -181,6 +205,27 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         # "default" response
         return result_set
 
+    def translate_params(self, params):
+        """ "Translate" parameters to be understandable by mapserver.
+        """
+        if params.version.startswith("2.0"):
+            for key, value in params:
+                if key == "interpolation":
+                    interpolation = INTERPOLATION_TRANS.get(value)
+                    if not interpolation:
+                        raise InterpolationMethodNotSupportedException(
+                            "Interpolation method '%s' is not supported." 
+                            % value
+                        )
+                    yield key, value
+
+                else:
+                    yield key, value
+
+        else:
+            for key, value in params:
+                yield key, value
+
 
 def split_format(frmt):
     parts = unquote(frmt).split(";")
@@ -191,7 +236,7 @@ def split_format(frmt):
     return mime_type, options
         
 
-def create_outputformat(mime_type, options, imagemode, basename):
+def create_outputformat(mime_type, options, imagemode, basename, parameters):
     """ Returns a ``mapscript.outputFormatObj`` for the given format name and 
         imagemode.
     """
@@ -209,13 +254,48 @@ def create_outputformat(mime_type, options, imagemode, basename):
     outputformat.extension = reg_format.defaultExt
     outputformat.imagemode = imagemode
 
-    for key, value in options:
-        outputformat.setOption(str(key), str(value))
+    #for key, value in options:
+    #    outputformat.setOption(str(key), str(value))
+
+    if mime_type == "image/tiff":
+        _apply_gtiff(outputformat, **parameters)
+
 
     filename = basename + reg_format.defaultExt
     outputformat.setOption("FILENAME", str(filename))
 
     return outputformat
+
+
+def _apply_gtiff(outputformat, compression=None, jpeg_quality=None, 
+                 predictor=None, interleave=None, tiling=False, 
+                 tilewidth=None, tileheight=None):
+
+    logger.info("Applying GeoTIFF parameters.")
+
+    if compression:
+        if compression.lower() == "huffman":
+            compression = "CCITTRLE"
+        outputformat.setOption("COMPRESS", str(compression.upper()))
+
+    if jpeg_quality is not None:
+        outputformat.setOption("JPEG_QUALITY", str(jpeg_quality))
+
+    if predictor:
+        pr = ["NONE", "HORIZONTAL", "FLOATINGPOINT"].index(predictor.upper())
+        if pr == -1:
+            raise ValueError("Invalid compression predictor '%s'." % predictor)
+        outputformat.setOption("PREDICTOR", str(pr + 1))
+
+    if interleave:
+        outputformat.setOption("INTERLEAVE", str(interleave.upper()))
+
+    if tiling:
+        outputformat.setOption("TILED", "YES")
+        if tilewidth is not None:
+            outputformat.setOption("BLOCKXSIZE", str(tilewidth))
+        if tileheight is not None:
+            outputformat.setOption("BLOCKYSIZE", str(tileheight))
 
 
 def get_format_by_mime(mime_type):
