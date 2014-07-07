@@ -83,7 +83,7 @@ class WPS10CapabilitiesXMLEncoder(WPS10BaseXMLEncoder):
             ),
             OWS("ServiceProvider",
                 OWS("ProviderName", conf.provider_name),
-                OWS("ProviderSite", conf.provider_site),
+                OWS("ProviderSite", **{ns_xlink("href"): conf.provider_site}),
                 OWS("ServiceContact",
                     OWS("IndividualName", conf.individual_name),
                     OWS("PositionName", conf.position_name),
