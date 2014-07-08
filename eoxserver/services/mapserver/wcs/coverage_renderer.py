@@ -170,7 +170,9 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         try:
             connector.connect(coverage, data_items, layer)
             # create request object and dispatch it against the map
-            request = ms.create_request(self.translate_params(params))
+            request = ms.create_request(
+                self.translate_params(params, range_type)
+            )
             request.setParameter("format", mime_type)
             raw_result = ms.dispatch(map_, request)
 
@@ -208,7 +210,7 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         # "default" response
         return result_set
 
-    def translate_params(self, params):
+    def translate_params(self, params, range_type):
         """ "Translate" parameters to be understandable by mapserver.
         """
         if params.version.startswith("2.0"):
@@ -235,7 +237,6 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
             # (since 6.4?).
             SCALE_AVAILABLE = ms.msGetVersionInt() > 60401
             scalefactor = params.scalefactor
-            print scalefactor
             if scalefactor is not None:
                 if SCALE_AVAILABLE:
                     yield "scalefactor", str(scalefactor)
