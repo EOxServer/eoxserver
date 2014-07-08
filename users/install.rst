@@ -5,6 +5,7 @@
   # Project: EOxServer <http://eoxserver.org>
   # Authors: Stephan Krause <stephan.krause@eox.at>
   #          Stephan Meissl <stephan.meissl@eox.at>
+  #          Fabian Schindler <fabian.schindler@eox.at>
   #
   #-----------------------------------------------------------------------------
   # Copyright (C) 2011 EOX IT Services GmbH
@@ -56,42 +57,6 @@ give you a working software installation.
 .. index::
     single: EOxServer Dependencies
     single: Dependencies
-
-.. _install_hw:
-
-Hardware Requirements
----------------------
-
-EOxServer has been deployed on a variety of different computers and virtual
-machines with commonplace hardware configurations. The typical setup is:
-
-* a dual-core or quad-core CPU
-* 1 to 4 GB of RAM
-
-The image processing operations required for certain OGC Web Service requests
-(subsetting, reprojection, resampling) may be quite expensive in terms of
-CPU load and memory consumption, so adding more RAM or an additional core (for
-VMs) may increase the performance of the service. Bear in mind however, that
-disk I/O speed is often a bottleneck.
-
-EOxServer itself requires about 15 MB of disk space. Usually, the data
-to be served has a magnitude of 10-100 GB or larger. So, this will be the
-determining factor when choosing the appropriate disk size. Note that
-for Rectified Stitched Mosaics, EOxServer will generate mosaic tiles from the
-original data which requires additional disk space up to the space occupied by
-the composing Rectified Datasets (depending on how much they overlap).
-
-EOxServer itself does not have any GUI other than the Web Administration Client
-and Web Map Client and thus no graphics support is required on the server.
-
-Running (parts of) the Identity Management System (see :doc:`idm/index`) on the
-same machine as EOxServer puts additional load on the server. Usually, running
-the Tomcat server will require about 512 MB of RAM. Note that the different
-components of the IDM may be deployed on different machines. The additional
-network latency for checking a remote PDP on every incoming request may have a
-considerable impact on the performance of the services (in particular WMS),
-though, and thus it may be preferable to run the PDP on the same machine as
-EOxServer.
 
 Dependencies
 ------------
@@ -252,3 +217,21 @@ or rerun the manual installation as explained above.
 Please carefully follow the :ref:`migration/update procedure <Migration>` 
 corresponding to your version numbers for any configured EOxServer instances 
 in case of a major version upgrade.
+
+
+.. _hardware_guidelines:
+
+Hardware Guidelines
+---------------------
+
+EOxServer has been deployed on a variety of different computers and virtual
+machines with commonplace hardware configurations. The typical setup is:
+
+* a dual-core or quad-core CPU
+* 1 to 4 GB of RAM
+
+The image processing operations required for certain OGC Web Service requests
+(subsetting, reprojection, resampling) may be quite expensive in terms of
+CPU load and memory consumption, so adding more RAM or an additional core (for
+VMs) may increase the performance of the service. Bear in mind however, that
+disk I/O speed is often a bottleneck.

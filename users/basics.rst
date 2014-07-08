@@ -73,7 +73,7 @@ You can get the EOxServer source from
 
 * the `EOxServer Download page <http://eoxserver.org/wiki/Download>`_
 * the `Python Package Index (PyPi) <http://pypi.python.org/pypi/EOxServer/>`_
-* the `EOxServer SVN repository <http://eoxserver.org/svn/trunk>`_
+* the `EOxServer Git repository <https://github.com/EOxServer/eoxserver>`_
 
 Additionally the following binary packages are provided:
 
@@ -105,7 +105,7 @@ The EOxServer documentation consists of the
 * :doc:`/en/rfc/index` (where you can find high-level design documentation)
 
 Furthermore, you can consult the inline documentation in the source code
-e.g. in the `Source Browser <http://eoxserver.org/browser>`_.
+e.g. in the `Source Browser <https://github.com/EOxServer/eoxserver>`_.
 
 Demonstration Services
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -221,19 +221,18 @@ that allows to select and view a subset of the coverage bands only. Furthermore,
 queryable "outlines" layers are added for Rectified Stitched Mosaics and Dataset
 Series which show the footprints of the Datasets they contain.
 
-.. TODO: Web Processing Service: Include once implementation is available.
-    Web Processing Service
-    ~~~~~~~~~~~~~~~~~~~~~~
+Web Processing Service
+~~~~~~~~~~~~~~~~~~~~~~
 
-    The OGC `Web Processing Service <http://www.opengeospatial.org/standards/wps>`_
-    (WPS) is intended to make processing resources for geospatial data available
-    online. EOxServer features an implementation of this standard as well.
+The OGC `Web Processing Service <http://www.opengeospatial.org/standards/wps>`_
+(WPS) is intended to make processing resources for geospatial data available
+online. EOxServer features an implementation of this standard as well.
 
-    The WPS server provides three operations:
+The WPS server provides three operations:
 
-    * GetCapabilities - returns an XML document describing the available processes
-    * DescribeProcess - returns an XML document describing a specific process
-    * Execute - allows to invoke a process
+* GetCapabilities - returns an XML document describing the available processes
+* DescribeProcess - returns an XML document describing a specific process
+* Execute - allows to invoke a process
 
 .. TODO: Security Architecture
     Security Architecture

@@ -63,11 +63,11 @@ The demonstration tries to show the usage of all available
 GetCapabilities
 ---------------
 
-`GetCapabilities <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=GetCapabilities>`_::
+`GetCapabilities <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.1&request=GetCapabilities>`_::
 
     http://eoxserver.org/demo_stable/ows?
         service=wcs&
-        version=2.0.0&
+        version=2.0.1&
         request=GetCapabilities
 
 Interesting parts of the repsonse:
@@ -137,19 +137,19 @@ Interesting parts of the repsonse:
 DescribeCoverage
 ----------------
 
-`DescribeCoverage StitchedMosaic <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=DescribeCoverage&coverageid=mosaic_MER_FRS_1P_reduced_RGB>`_::
+`DescribeCoverage StitchedMosaic <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.1&request=DescribeCoverage&coverageid=mosaic_MER_FRS_1P_reduced_RGB>`_::
 
     http://eoxserver.org/demo_stable/ows?
         service=wcs&
-        version=2.0.0&
+        version=2.0.1&
         request=DescribeCoverage&
         coverageid=mosaic_MER_FRS_1P_reduced_RGB
     
-`DescribeCoverage Dataset <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=DescribeCoverage&coverageid=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed>`_::
+`DescribeCoverage Dataset <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.1&request=DescribeCoverage&coverageid=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed>`_::
 
     http://eoxserver.org/demo_stable/ows?
         service=wcs&
-        version=2.0.0&
+        version=2.0.1&
         request=DescribeCoverage&
         coverageid=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed
 
@@ -162,50 +162,50 @@ DescribeEOCoverageSet
 Dataset
 ~~~~~~~
 
-`DescribeEOCoverageSet Dataset <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed>`_::
+`DescribeEOCoverageSet Dataset <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.1&request=DescribeEOCoverageSet&EOId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed>`_::
 
     http://eoxserver.org/demo_stable/ows?
             service=wcs&
-            version=2.0.0&
+            version=2.0.1&
             request=DescribeEOCoverageSet&
             EOId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed
 
 StitchedMosaic
 ~~~~~~~~~~~~~~
 
-`DescribeEOCoverageSet StitchedMosaic (4 Datasets returned) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOId=mosaic_MER_FRS_1P_reduced_RGB>`_::
+`DescribeEOCoverageSet StitchedMosaic (4 Datasets returned) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.1&request=DescribeEOCoverageSet&EOId=mosaic_MER_FRS_1P_reduced_RGB>`_::
 
     http://eoxserver.org/demo_stable/ows?
         service=wcs&
-        version=2.0.0&
+        version=2.0.1&
         request=DescribeEOCoverageSet&
         EOId=mosaic_MER_FRS_1P_reduced_RGB
 
-`DescribeEOCoverageSet StitchedMosaic, subset in time (3 Datasets returned) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOId=mosaic_MER_FRS_1P_reduced_RGB&subset=phenomenonTime(%222006-08-01%22,%222006-08-22T09:22:00Z%22)>`_::
+`DescribeEOCoverageSet StitchedMosaic, subset in time (3 Datasets returned) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.1&request=DescribeEOCoverageSet&EOId=mosaic_MER_FRS_1P_reduced_RGB&subset=phenomenonTime(%222006-08-01%22,%222006-08-22T09:22:00Z%22)>`_::
 
     http://eoxserver.org/demo_stable/ows?
         service=wcs&
-        version=2.0.0&
+        version=2.0.1&
         request=DescribeEOCoverageSet&
         EOId=mosaic_MER_FRS_1P_reduced_RGB&
         subset=phenomenonTime("2006-08-01","2006-08-22T09:22:00Z")
 
-`DescribeEOCoverageSet StitchedMosaic, subset in Lat and Long, containment contains (1 Dataset returned) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOId=mosaic_MER_FRS_1P_reduced_RGB&subset=Lat,http://www.opengis.net/def/crs/EPSG/0/4326(32,47)&subset=Long,http://www.opengis.net/def/crs/EPSG/0/4326(11,33)&containment=contains>`_::
+`DescribeEOCoverageSet StitchedMosaic, subset in Lat and Long, containment contains (1 Dataset returned) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.1&request=DescribeEOCoverageSet&EOId=mosaic_MER_FRS_1P_reduced_RGB&subset=Lat(32,47)&subset=Long(11,33)&containment=contains>`_::
 
     http://eoxserver.org/demo_stable/ows?
         service=wcs&
-        version=2.0.0&
+        version=2.0.1&
         request=DescribeEOCoverageSet&
         EOId=mosaic_MER_FRS_1P_reduced_RGB&
-        subset=Lat,http://www.opengis.net/def/crs/EPSG/0/4326(32,47)&
-        subset=Long,http://www.opengis.net/def/crs/EPSG/0/4326(11,33)&
+        subset=Lat(32,47)&
+        subset=Long(11,33)&
         containment=contains
 
-`DescribeEOCoverageSet StitchedMosaic, returned CoverageDescriptions limited to 2 <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOId=mosaic_MER_FRS_1P_reduced_RGB&count=2>`_::
+`DescribeEOCoverageSet StitchedMosaic, returned CoverageDescriptions limited to 2 <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.1&request=DescribeEOCoverageSet&EOId=mosaic_MER_FRS_1P_reduced_RGB&count=2>`_::
 
     http://eoxserver.org/demo_stable/ows?
         service=wcs&
-        version=2.0.0&
+        version=2.0.1&
         request=DescribeEOCoverageSet&
         EOId=mosaic_MER_FRS_1P_reduced_RGB&
         count=2
@@ -213,61 +213,61 @@ StitchedMosaic
 DatasetSeries
 ~~~~~~~~~~~~~~
 
-`DescribeEOCoverageSet DatasetSeries (5 Datasets returned) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=describeeocoverageset&eoid=MER_FRS_1P_reduced>`_::
+`DescribeEOCoverageSet DatasetSeries (5 Datasets returned) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.1&request=describeeocoverageset&eoid=MER_FRS_1P_reduced>`_::
 
     http://eoxserver.org/demo_stable/ows?
         service=wcs&
-        version=2.0.0&
+        version=2.0.1&
         request=describeeocoverageset&
         eoid=MER_FRS_1P_reduced
 
-`DescribeEOCoverageSet DatasetSeries, trim subset in time (4 Datasets returned) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=describeeocoverageset&eoid=MER_FRS_1P_reduced&subset=phenomenonTime(%222006-08-01%22,%222006-08-22T09:22:00Z%22)>`_::
+`DescribeEOCoverageSet DatasetSeries, trim subset in time (4 Datasets returned) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.1&request=describeeocoverageset&eoid=MER_FRS_1P_reduced&subset=phenomenonTime(%222006-08-01%22,%222006-08-22T09:22:00Z%22)>`_::
 
     http://eoxserver.org/demo_stable/ows?
         service=wcs&
-        version=2.0.0&
+        version=2.0.1&
         request=describeeocoverageset&
         eoid=MER_FRS_1P_reduced&
         subset=phenomenonTime("2006-08-01","2006-08-22T09:22:00Z")
 
-`DescribeEOCoverageSet DatasetSeries, slice subset in time (2 Dataset returned) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=describeeocoverageset&eoid=MER_FRS_1P_reduced&subset=phenomenonTime(%222006-08-22T09:20:58Z%22)>`_::
+`DescribeEOCoverageSet DatasetSeries, slice subset in time (2 Dataset returned) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.1&request=describeeocoverageset&eoid=MER_FRS_1P_reduced&subset=phenomenonTime(%222006-08-22T09:20:58Z%22)>`_::
 
     http://eoxserver.org/demo_stable/ows?
         service=wcs&
-        version=2.0.0&
+        version=2.0.1&
         request=describeeocoverageset&
         eoid=MER_FRS_1P_reduced&
         subset=phenomenonTime("2006-08-22T09:20:58Z")
 
-`DescribeEOCoverageSet DatasetSeries, trim subset in time trim, containment contains (2 Dataset returned) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=describeeocoverageset&eoid=MER_FRS_1P_reduced&subset=phenomenonTime(%222006-08-01%22,%222006-08-22T09:22:00Z%22)&containment=contains>`_::
+`DescribeEOCoverageSet DatasetSeries, trim subset in time trim, containment contains (2 Dataset returned) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.1&request=describeeocoverageset&eoid=MER_FRS_1P_reduced&subset=phenomenonTime(%222006-08-01%22,%222006-08-22T09:22:00Z%22)&containment=contains>`_::
 
     http://eoxserver.org/demo_stable/ows?
         service=wcs&
-        version=2.0.0&
+        version=2.0.1&
         request=describeeocoverageset&
         eoid=MER_FRS_1P_reduced&
         subset=phenomenonTime("2006-08-01","2006-08-22T09:22:00Z")&
         containment=contains
 
-`DescribeEOCoverageSet DatasetSeries, subset in Lat and Long (5 Datasets returned) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=describeeocoverageset&eoid=MER_FRS_1P_reduced&subset=Lat,http://www.opengis.net/def/crs/EPSG/0/4326(32,47)&subset=Long,http://www.opengis.net/def/crs/EPSG/0/4326(11,33)>`_::
+`DescribeEOCoverageSet DatasetSeries, subset in Lat and Long (5 Datasets returned) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.1&request=describeeocoverageset&eoid=MER_FRS_1P_reduced&subset=Lat(32,47)&subset=Long(11,33)>`_::
 
     http://eoxserver.org/demo_stable/ows?
         service=wcs&
-        version=2.0.0&
+        version=2.0.1&
         request=describeeocoverageset&
         eoid=MER_FRS_1P_reduced&
-        subset=Lat,http://www.opengis.net/def/crs/EPSG/0/4326(32,47)&
-        subset=Long,http://www.opengis.net/def/crs/EPSG/0/4326(11,33)
+        subset=Lat(32,47)&
+        subset=Long(11,33)
 
-`DescribeEOCoverageSet DatasetSeries, subset in Lat and Long, containment contains (2 Dataset returned) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=describeeocoverageset&eoid=MER_FRS_1P_reduced&subset=Lat,http://www.opengis.net/def/crs/EPSG/0/4326(32,47)&subset=Long,http://www.opengis.net/def/crs/EPSG/0/4326(11,33)&containment=contains>`_::
+`DescribeEOCoverageSet DatasetSeries, subset in Lat and Long, containment contains (2 Dataset returned) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.1&request=describeeocoverageset&eoid=MER_FRS_1P_reduced&subset=Lat(32,47)&subset=Long(11,33)&containment=contains>`_::
 
     http://eoxserver.org/demo_stable/ows?
         service=wcs&
-        version=2.0.0&
+        version=2.0.1&
         request=describeeocoverageset&
         eoid=MER_FRS_1P_reduced&
-        subset=Lat,http://www.opengis.net/def/crs/EPSG/0/4326(32,47)&
-        subset=Long,http://www.opengis.net/def/crs/EPSG/0/4326(11,33)&
+        subset=Lat(32,47)&
+        subset=Long(11,33)&
         containment=contains
 
 .. index::
@@ -276,31 +276,31 @@ DatasetSeries
 GetCoverage
 -----------
 
-`GetCoverage StitchedMosaic, full (GML incl. contributingFootprint & GeoTIFF) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=GetCoverage&coverageid=mosaic_MER_FRS_1P_reduced_RGB&format=image/tiff&mediatype=multipart/mixed>`_::
+`GetCoverage StitchedMosaic, full (GML incl. contributingFootprint & GeoTIFF) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.1&request=GetCoverage&coverageid=mosaic_MER_FRS_1P_reduced_RGB&format=image/tiff&mediatype=multipart/mixed>`_::
 
     http://eoxserver.org/demo_stable/ows?
         service=wcs&
-        version=2.0.0&
+        version=2.0.1&
         request=GetCoverage&
         coverageid=mosaic_MER_FRS_1P_reduced_RGB&
         format=image/tiff&
         mediatype=multipart/mixed
 
-`GetCoverage Dataset, full (GML & GeoTIFF) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=GetCoverage&coverageid=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/mixed&resolution=Lat(0.031324)&resolution=Long(0.031324)>`_::
+`GetCoverage Dataset, full (GML & GeoTIFF) <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.1&request=GetCoverage&coverageid=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/mixed&scalesize=x(200),y(200)>`_::
 
     http://eoxserver.org/demo_stable/ows?
         service=wcs&
-        version=2.0.0&
+        version=2.0.1&
         request=GetCoverage&
         coverageid=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&
         format=image/tiff&
         mediatype=multipart/mixed
 
-`GetCoverage Dataset, subset in pixels <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=GetCoverage&coverageid=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/mixed&subset=x(100,200)&subset=y(300,400)>`_::
+`GetCoverage Dataset, subset in pixels <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.1&request=GetCoverage&coverageid=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/mixed&subset=x(100,200)&subset=y(300,400)>`_::
 
     http://eoxserver.org/demo_stable/ows?
         service=wcs&
-        version=2.0.0&
+        version=2.0.1&
         request=GetCoverage&
         coverageid=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&
         format=image/tiff&
@@ -308,58 +308,183 @@ GetCoverage
         subset=x(100,200)&
         subset=y(300,400)
 
-`GetCoverage Dataset, subset in epsg 4326 <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=GetCoverage&coverageid=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/mixed&subset=Lat,http://www.opengis.net/def/crs/EPSG/0/4326(40,41)&subset=Long,http://www.opengis.net/def/crs/EPSG/0/4326(17,18)>`_::
+`GetCoverage Dataset, subset in epsg 4326 <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.1&request=GetCoverage&coverageid=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/mixed&subset=Lat(40,41)&subset=Long(17,18)&subsettingCrs=http://www.opengis.net/def/crs/EPSG/0/4326>`_::
 
     http://eoxserver.org/demo_stable/ows?
         service=wcs&
-        version=2.0.0&
+        version=2.0.1&
         request=GetCoverage&
         coverageid=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&
         format=image/tiff&
         mediatype=multipart/mixed&
-        subset=Lat,http://www.opengis.net/def/crs/EPSG/0/4326(40,41)&
-        subset=Long,http://www.opengis.net/def/crs/EPSG/0/4326(17,18)
+        subset=Lat(40,41)&
+        subset=Long(17,18)&
+        subsettingCrs=http://www.opengis.net/def/crs/EPSG/0/4326
 
-`GetCoverage Dataset, full, OutputCRS epsg 3035 <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=GetCoverage&coverageid=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/mixed&OutputCRS=http://www.opengis.net/def/crs/EPSG/0/3035&resolution=Lat(0.031324)&resolution=Long(0.031324)>`_::
+`GetCoverage Dataset, full, OutputCRS epsg 3035 <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.1&request=GetCoverage&coverageid=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/mixed&OutputCRS=http://www.opengis.net/def/crs/EPSG/0/3035&scalesize=x(200),y(200)>`_::
 
     http://eoxserver.org/demo_stable/ows?
         service=wcs&
-        version=2.0.0&
+        version=2.0.1&
         request=GetCoverage&
         coverageid=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&
         format=image/tiff&
         mediatype=multipart/mixed&
-        OutputCRS=http://www.opengis.net/def/crs/EPSG/0/3035
+        outputCrs=http://www.opengis.net/def/crs/EPSG/0/3035
 
-`GetCoverage Dataset, full, size 200x200 <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=GetCoverage&coverageid=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/mixed&size=x(200)&size=y(200)>`_::
+`GetCoverage Dataset, full, size 200x200 <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.1&request=GetCoverage&coverageid=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/mixed&scalesize=x(200),y(200)>`_::
 
     http://eoxserver.org/demo_stable/ows?
         service=wcs&
-        version=2.0.0&
+        version=2.0.1&
         request=GetCoverage&
         coverageid=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&
         format=image/tiff&
         mediatype=multipart/mixed&
-        size=x(200)&size=y(200)
+        scalesize=x(200),y(200)
 
-`GetCoverage Dataset, full, size 200x400 <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=GetCoverage&coverageid=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/mixed&size=x(200)&size=y(400)>`_::
+`GetCoverage Dataset, full, size 200x400 <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.1&request=GetCoverage&coverageid=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/mixed&scalesize=x(200),y(400)>`_::
 
     http://eoxserver.org/demo_stable/ows?
         service=wcs&
-        version=2.0.0&
+        version=2.0.1&
         request=GetCoverage&
         coverageid=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&
         format=image/tiff&
         mediatype=multipart/mixed&
-        size=x(200)&size=y(400)
+        scalesize=x(200),y(400)
 
-`GetCoverage Dataset, subset in bands <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.0&request=GetCoverage&coverageid=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/mixed&rangesubset=1,2,3>`_::
+`GetCoverage Dataset, subset in bands <http://eoxserver.org/demo_stable/ows?service=wcs&version=2.0.1&request=GetCoverage&coverageid=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/mixed&rangesubset=MERIS_radiance_01_uint16:MERIS_radiance_03_uint16>`_::
 
     http://eoxserver.org/demo_stable/ows?
         service=wcs&
-        version=2.0.0&
+        version=2.0.1&
         request=GetCoverage&
         coverageid=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&
         format=image/tiff&
         mediatype=multipart/mixed&
-        rangesubset=1,2,3
+        rangesubset=MERIS_radiance_01_uint16:MERIS_radiance_03_uint16
+
+
+GetCoverage POST/XML
+--------------------
+
+GetCoverage requests with POST/XML encoding might look like this:
+
+
+A simple request:
+
+  .. code-block:: xml
+
+    <wcs:GetCoverage service="WCS" version="2.0.1"
+       xmlns:wcs="http://www.opengis.net/wcs/2.0">
+      <wcs:CoverageId>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</wcs:CoverageId>
+      <wcs:format>image/tiff</wcs:format>
+      <wcs:mediaType>multipart/related</wcs:mediaType>
+    </wcs:GetCoverage>
+
+With a subset in pixel coordinates:
+
+  .. code-block:: xml
+
+    <wcs:GetCoverage service="WCS" version="2.0.1"
+       xmlns:wcs="http://www.opengis.net/wcs/2.0">
+      <wcs:CoverageId>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</wcs:CoverageId>
+      <wcs:DimensionTrim>
+        <wcs:Dimension>x</wcs:Dimension>
+        <wcs:TrimLow>0</wcs:TrimLow>
+        <wcs:TrimHigh>99</wcs:TrimHigh>
+      </wcs:DimensionTrim>
+      <wcs:DimensionTrim>
+        <wcs:Dimension>y</wcs:Dimension>
+        <wcs:TrimLow>0</wcs:TrimLow>
+        <wcs:TrimHigh>99</wcs:TrimHigh>
+      </wcs:DimensionTrim>
+      <wcs:format>image/tiff</wcs:format>
+      <wcs:mediaType>multipart/related</wcs:mediaType>
+    </wcs:GetCoverage>
+
+With a subset in geographic coordinates with bilinear interpolation:
+
+  .. code-block:: xml
+
+    <wcs:GetCoverage service="WCS" version="2.0.1"
+       xmlns:wcs="http://www.opengis.net/wcs/2.0" 
+       xmlns:int="http://www.opengis.net/wcs/interpolation/1.0"
+       xmlns:crs="http://www.opengis.net/wcs/crs/1.0">
+      <wcs:Extension>
+        <crs:subsettingCrs>http://www.opengis.net/def/crs/EPSG/0/4326</crs:subsettingCrs>
+        <int:Interpolation>
+          <int:globalInterpolation>http://www.opengis.net/def/interpolation/OGC/1/bilinear</int:globalInterpolation>
+        </int:Interpolation>
+      </wcs:Extension>
+      <wcs:CoverageId>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</wcs:CoverageId>
+      <wcs:DimensionTrim>
+        <wcs:Dimension>Long</wcs:Dimension>
+        <wcs:TrimLow>20</wcs:TrimLow>
+        <wcs:TrimHigh>22</wcs:TrimHigh>
+      </wcs:DimensionTrim>
+      <wcs:DimensionTrim>
+        <wcs:Dimension>Lat</wcs:Dimension>
+        <wcs:TrimLow>36</wcs:TrimLow>
+        <wcs:TrimHigh>38</wcs:TrimHigh>
+      </wcs:DimensionTrim>
+      <wcs:format>image/tiff</wcs:format>
+      <wcs:mediaType>multipart/related</wcs:mediaType>
+    </wcs:GetCoverage>
+
+With a range-subset and pixel-subset:
+
+  .. code-block:: xml
+
+    <wcs:GetCoverage service="WCS" version="2.0.1"
+       xmlns:wcs="http://www.opengis.net/wcs/2.0"
+       xmlns:rsub="http://www.opengis.net/wcs/range-subsetting/1.0">
+      <wcs:Extension>
+        <rsub:RangeSubset>
+          <rsub:RangeItem>
+            <rsub:RangeComponent>MERIS_radiance_04_uint16</rsub:RangeComponent>
+          </rsub:RangeItem>
+          <rsub:RangeItem>
+            <rsub:RangeInterval>
+              <rsub:startComponent>MERIS_radiance_05_uint16</rsub:startComponent>
+              <rsub:endComponent>MERIS_radiance_07_uint16</rsub:endComponent>
+            </rsub:RangeInterval>
+          </rsub:RangeItem>
+        </rsub:RangeSubset>
+      </wcs:Extension>
+      <wcs:CoverageId>MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed</wcs:CoverageId>
+      <wcs:DimensionTrim>
+        <wcs:Dimension>x</wcs:Dimension>
+        <wcs:TrimLow>0</wcs:TrimLow>
+        <wcs:TrimHigh>99</wcs:TrimHigh>
+      </wcs:DimensionTrim>
+      <wcs:DimensionTrim>
+        <wcs:Dimension>y</wcs:Dimension>
+        <wcs:TrimLow>0</wcs:TrimLow>
+        <wcs:TrimHigh>99</wcs:TrimHigh>
+      </wcs:DimensionTrim>
+      <wcs:format>image/tiff</wcs:format>
+      <wcs:mediaType>multipart/related</wcs:mediaType>
+    </wcs:GetCoverage>
+
+With a set of GeoTIFF encoding parameters:
+
+  .. code-block:: xml
+
+    <wcs:GetCoverage service="WCS" version="2.0.1"
+       xmlns:wcs="http://www.opengis.net/wcs/2.0"
+       xmlns:geotiff="http://www.opengis.net/gmlcov/geotiff/1.0">
+      <wcs:CoverageId>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</wcs:CoverageId>
+      <wcs:format>image/tiff</wcs:format>
+      <wcs:Extension>
+        <geotiff:parameters>
+          <geotiff:compression>Deflate</geotiff:compression>
+          <geotiff:predictor>FloatingPoint</geotiff:predictor>
+          <geotiff:interleave>Band</geotiff:interleave>
+          <geotiff:tiling>true</geotiff:tiling>
+          <geotiff:tilewidth>32</geotiff:tilewidth>
+          <geotiff:tileheight>64</geotiff:tileheight>
+        </geotiff:parameters>
+      </wcs:Extension>
+    </wcs:GetCoverage>

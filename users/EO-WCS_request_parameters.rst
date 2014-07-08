@@ -138,19 +138,19 @@ lists all parameters that are available with DescribeEOCoverageSet requests.
     |                           | - using the eoId of a DatatsetSeries                      |                                  |                                | 
     |                           | - using the coverageId of a StitchedMosaic                |                                  |                                |
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
-    | → subset                  | Allows to constrain the request in each dimensions and    |- Lat,http://www.opengis.net/def/ | O                              |
-    |                           | define how these  parameters are applied.                 |  crs/EPSG/0/4326(32,47)          |                                |
-    |                           |                                                           |- Long,http://www.opengis.net/def/|                                |
-    |                           | The spatial constraint is expressed in WGS84, the         |  crs/EPSG/0/4326(11,33)&         |                                |
+    | → subset                  | Allows to constrain the request in each dimensions and    |- Lat(32,47)                      | O                              |
+    |                           | define how these  parameters are applied.                 |                                  |                                |
+    |                           |                                                           |- Long(11,33)                     |                                |
+    |                           | The spatial constraint is expressed in WGS84, the         |                                  |                                |
     |                           | temporal constraint in ISO 8601.                          |- phenomenonTime("2006-08-01",    |                                |
     |                           |                                                           |  "2006-08-22T09:22:00Z")         |                                |
-    |                           | Spatial trimming:  Name of an coverage axis (Long or Lat) |- Lat,http://www.opengis.net/def/ |                                |
-    |                           | Temporal trimming: phenomenonTime                         |  crs/EPSG/0/4326(32,47)&         |                                |
-    |                           | Plus optional either:                                     |  Long,http://www.opengis.net/def/|                                |
-    |                           |                                                           |  crs/EPSG/0/4326(11,33)&         |                                |
-    |                           | - containment = overlaps (default)                        |  phenomenonTime("2006-08-01",    |                                |
-    |                           | - containment = contains                                  |  "2006-08-22T09:22:00Z")&        |                                |
+    |                           | Spatial trimming:  Name of an coverage axis (Long or Lat) |- Lat(32,47)&Long(11,33)&         |                                |
+    |                           | Temporal trimming: phenomenonTime                         |  phenomenonTime("2006-08-01"&    |                                |
+    |                           | Plus optional either:                                     |  "2006-08-22T09:22:00Z")&        |                                |
     |                           |                                                           |  containment=contains            |                                |
+    |                           | - containment = overlaps (default)                        |                                  |                                |
+    |                           | - containment = contains                                  |                                  |                                |
+    |                           |                                                           |                                  |                                |
     |                           | Any combination thereof (but each value only once per     |                                  |                                |
     |                           | request)                                                  |                                  |                                |
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
@@ -207,50 +207,81 @@ parameters that are available with GetCoverage requests.
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
     | → subset                  | Trimming of coverage dimension (no slicing allowed!)      |- x(400,200)                      | O                              |
     |                           |                                                           |- Lat(12,14)                      |                                |
-    |                           | - the label of a coverage axis                            |- Long,http://www.opengis.net/def/|                                |
-    |                           |                                                           |  crs/EPSG/0/4326(17,17.4)        |                                |
-    |                           |   + plus either:                                          |                                  |                                |
+    |                           | - the label of a coverage axis                            |- Long(17,17.4)                   |                                |
     |                           |                                                           |                                  |                                |
-    |                           |     * pixel coordinates                                   |                                  |                                |
-    |                           |     * without CRS (→ original projection)                 |                                  |                                |
-    |                           |     * with CRS (→ reprojecting)                           |                                  |                                |
+    |                           |   + The meaning of the subset can be altered by the       |                                  |                                |
+    |                           |     subsettingCrs parameter.                              |                                  |                                |
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
-    | → rangesubset             | Subsetting in the range domain (e.g. Band-Subsetting).    | - 1,2,3                          | O                              |
-    |                           |                                                           | - Blue,Green,Red                 |                                |
+    | → subsettingCrs           | The CRS the subsets are expressed in. This also defines   | \http://www.opengis.net/def/crs/ | O                              |
+    |                           | the output CRS, if no further outputCrs is specified.     | EPSG/0/4326                      |                                |
+    |                           | If no subsettingCrs is given, pixel coordinates are       |                                  |                                |
+    |                           | assumed.                                                  |                                  |                                |
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
-    | → outputcrs               | CRS for the requested output coverage                     | \http://www.opengis.net/def/crs/ | O                              |
+    | → outputCrs               | CRS for the requested output coverage                     | \http://www.opengis.net/def/crs/ | O                              |
     |                           |                                                           | EPSG/0/3035                      |                                |
     |                           | - not present or                                          |                                  |                                |
     |                           | - CRS                                                     |                                  |                                |
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
-    |- → size  or               | Mutually exclusive per axis, either:                      |- size=Long(20)                   | O                              |
-    |- → resolution             |                                                           |- size=x(50)                      |                                |
-    |                           | - integer dimension of the requested coverage (per axis)  |- resolution=long(0.01)           |                                | 
-    |                           | - resolution of one pixel (per axis)                      |- resolution=y(0.3)               |                                |
+    | → rangesubset             | Subsetting in the range domain (e.g. Band-Subsetting).    | - Blue,Green,Red                 | O                              |
+    |                           |                                                           | - Band1:Band3,Band5,Band7:Band9  |                                |
+    +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
+    | → scaleFactor             | Scale the output by this factor.                          | - 0.5                            | O                              |
+    |                           | The 'scaleFactor' parameter requires MapServer v7.0.      | - 1.25                           |                                |
+    +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
+    |- → scaleAxes              | Mutually exclusive per axis, either:                      |- scaleAxes=x(1.5),y(0.5)         | O                              |
+    |- → scaleSize              |                                                           |- scaleSize=x(50),y(100)          |                                |
+    |- → scaleExtent            | - a scale factor (per axis)                               |- scaleExtent=long(50:100)        |                                | 
+    |                           | - absolute pixel size as integer (per axis)               |                                  |                                |
+    |                           | - the size given as extent (per axis). This is internally |                                  |                                |
+    |                           |   translated to a 'scaleSize'                             |                                  |                                |
+    |                           |                                                           |                                  |                                |
+    |                           | The 'scaleAxes' parameter requires MapServer v7.0.        |                                  |                                |
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
     | → interpolation [2]_      | Interpolation method to be used                           | bilinear                         | O                              |
-    |                           |                                                           |                                  |                                | 
-    |                           | - nearest (default)                                       |                                  |                                |
-    |                           | - bilinear                                                |                                  |                                |
-    |                           | - average                                                 |                                  |                                |
-    +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
-    | → mask [3]_               | Masking of coverage                                       | - polygon,http://www.opengis.net/| O                              |
-    |                           |                                                           |   def/crs/EPSG/0/4326(42,10,43,  |                                |
-    |                           | - by polygon                                              |   12,39,13,38,9,42,10)           |                                |
-    |                           |                                                           | - coverage(other_coverage)       |                                |
-    |                           |   - define the polygon by a list of points (i.e. latitude |                                  |                                |
-    |                           |     and longitude values), e.g. lat1,lon1,lat2,lon2,...   |                                  |                                |
-    |                           |   - make sure to close the polygon with the last pair of  |                                  |                                |
-    |                           |     coordinates                                           |                                  |                                |
-    |                           |   - providing the polygon CRS is optional; per default    |                                  |                                |
-    |                           |     EPSG 4316 is assumed                                  |                                  |                                |
-    |                           |   - use the subset parameter to crop the resulting        |                                  |                                |
-    |                           |     coverage                                              |                                  |                                |
     |                           |                                                           |                                  |                                |
-    |                           | - by coverage(s) (not implemented yet)                    |                                  |                                |
-    |                           |                                                           |                                  |                                |
+    |                           | - \http://www.opengis.net/def/interpolation/OGC/1/        |                                  |                                |
+    |                           |   nearest-neighbour (default)                             |                                  |                                |
+    |                           | - \http://www.opengis.net/def/interpolation/OGC/1/        |                                  |                                |
+    |                           |   average                                                 |                                  |                                |
+    |                           | - \http://www.opengis.net/def/interpolation/OGC/1/        |                                  |                                |
+    |                           |   bilinear                                                |                                  |                                |
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
-
+    | → geotiff:compression [3]_| The internal compression method used. One of:             | LZW                              | O                              |
+    |                           |                                                           |                                  |                                |
+    |                           | - None                                                    |                                  |                                |
+    |                           | - PackBits                                                |                                  |                                |
+    |                           | - Huffman                                                 |                                  |                                |
+    |                           | - LZW                                                     |                                  |                                |
+    |                           | - JPEG                                                    |                                  |                                |
+    |                           | - Deflate                                                 |                                  |                                |
+    +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
+    | → geotiff:jpeg_quality    | The quality of the JPEG compression when this compression | 75                               | O                              |
+    |   [3]_                    | method is used. Must be an integer between 1 and 100.     |                                  |                                |
+    +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
+    | → geotiff:predictor [3]_  | The predictor method used for the Deflate or LZW          | Horizontal                       | O                              |
+    |                           | compression. One of:                                      |                                  |                                |
+    |                           |                                                           |                                  |                                |
+    |                           | - None                                                    |                                  |                                |
+    |                           | - Horizontal                                              |                                  |                                |
+    |                           | - FloatingPoint                                           |                                  |                                |
+    +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
+    | → geotiff:interleave [3]_ | Defines how the output image shall be interleaved.        | Horizontal                       | O                              |
+    |                           | One of:                                                   |                                  |                                |
+    |                           |                                                           |                                  |                                |
+    |                           | - Pixel                                                   |                                  |                                |
+    |                           | - Band                                                    |                                  |                                |
+    +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
+    | → geotiff:tiling [3]_     | Defines whether or not the image shall be internally      | true                             | O                              |
+    |                           | tiled. Must be a boolean value (true/false). If this is   |                                  |                                |
+    |                           | set to 'true', also a tilewidth and tileheight must be    |                                  |                                |
+    |                           | specified.                                                |                                  |                                |
+    +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
+    | → geotiff:tilewidth [3]_  | Defines the width of the internal tiles. Must be an       | 256                              | O                              |
+    |                           | integer and a multiple of 16.                             |                                  |                                |
+    +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
+    | → geotiff:tileheight [3]_ | Defines the height of the internal tiles. Must be an      | 128                              | O                              |
+    |                           | integer and a multiple of 16.                             |                                  |                                |
+    +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
 \
 
 .. [1]  Version, acceptVersions: Support for EO-WCS is available only together 
@@ -267,5 +298,9 @@ parameters that are available with GetCoverage requests.
         linear interpolation of the four pixels around the target location. 
         BILINEAR can be helpful when oversampling data to give a smooth 
         appearance.
-        
-.. [3]  Please note that this is parameter is not yet OGC standardized.
+
+.. [3]  These parameters are only used in conjunction with GeoTIFF output. Thus
+        the format parameter must be either 'image/tiff' or the "native" format
+        of the coverage maps to GeoTIFF. The specificaiton of this encoding 
+        extension can be found `here 
+        <https://portal.opengeospatial.org/files/?artifact_id=54813>`_
