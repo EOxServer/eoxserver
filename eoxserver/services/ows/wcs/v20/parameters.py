@@ -56,15 +56,13 @@ class WCS20CoverageDescriptionRenderParams(CoverageDescriptionRenderParams):
 
 
 class WCS20CoverageRenderParams(CoverageRenderParams):
-    def __init__(self, coverage, subsets=None, sizes=None, resolutions=None,
-                 rangesubset=None, format=None, outputcrs=None, mediatype=None,
-                 interpolation=None, scalefactor=None, scales=None, 
-                 encoding_params=None, http_request=None):
+    def __init__(self, coverage, subsets=None, rangesubset=None, format=None,
+                 outputcrs=None, mediatype=None, interpolation=None, 
+                 scalefactor=None, scales=None, encoding_params=None, 
+                 http_request=None):
 
         super(WCS20CoverageRenderParams, self).__init__(coverage, "2.0.1")
         self._subsets = subsets
-        self._sizes = sizes or ()
-        self._resolutions = resolutions or ()
         self._rangesubset = rangesubset or ()
         self._scalefactor = scalefactor
         self._scales = scales or ()
@@ -79,8 +77,6 @@ class WCS20CoverageRenderParams(CoverageRenderParams):
     coverage_id_key_name = "coverageid"
 
     subsets       = property(lambda self: self._subsets)
-    sizes         = property(lambda self: self._sizes)
-    resolutions   = property(lambda self: self._resolutions)
     rangesubset   = property(lambda self: self._rangesubset)
     scalefactor   = property(lambda self: self._scalefactor)
     scales        = property(lambda self: self._scales)
@@ -98,12 +94,6 @@ class WCS20CoverageRenderParams(CoverageRenderParams):
 
         for subset in self.subsets:
             yield self.subset_to_kvp(subset)
-
-        for size in self.sizes:
-            yield self.size_to_kvp(size)
-
-        for resolution in self.resolutions:
-            yield self.resolution_to_kvp(resolution)
 
         if self.format:
             yield ("format", self.format)
@@ -134,11 +124,3 @@ class WCS20CoverageRenderParams(CoverageRenderParams):
             return "subset", "%s,%s(%s)" % (subset.axis, crs, value)
         else:
             return "subset", "%s(%s)" % (subset.axis, value)
-
-
-    def size_to_kvp(self, size):
-        return "size", "%s(%d)" % (size.axis, size.value)
-
-
-    def resolution_to_kvp(self, resolution):
-        return "resolution", "%s(%f)" % (resolution.axis, resolution.value)

@@ -40,6 +40,9 @@ from eoxserver.resources.coverages.formats import getFormatRegistry
 from eoxserver.services.exceptions import NoSuchCoverageException
 from eoxserver.services.ows.wcs.interfaces import WCSCoverageRendererInterface
 from eoxserver.services.ows.wcs.v20.encoders import WCS20EOXMLEncoder
+from eoxserver.services.ows.wcs.v20.util import (
+    ScaleSize, ScaleExtent, ScaleAxis
+)
 from eoxserver.services.mapserver.interfaces import (
     ConnectorInterface, LayerFactoryInterface
 )
@@ -232,13 +235,15 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
             # (since 6.4?).
             SCALE_AVAILABLE = ms.msGetVersionInt() > 60401
             scalefactor = params.scalefactor
-            if scalefactor is not None and SCALE_AVAILABLE:
-                yield "scalefactor", str(scalefactor)
-            elif ms.msGetVersionInt() <= 60401:
-                raise RenderException(
-                    "'ScaleFactor' is not supported by MapServer in the "
-                    "current version."
-                )
+            print scalefactor
+            if scalefactor is not None:
+                if SCALE_AVAILABLE:
+                    yield "scalefactor", str(scalefactor)
+                else:
+                    raise RenderException(
+                        "'ScaleFactor' is not supported by MapServer in the "
+                        "current version.", "scalefactor"
+                    )
 
 
             for scale in params.scales:
@@ -253,12 +258,13 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
                     else:
                         raise RenderException(
                             "'ScaleAxes' is not supported by MapServer in the "
-                            "current version."
+                            "current version.", "scaleaxes"
                         )
 
                 if scaleaxes:
                     yield "scaleaxes", ",".join(
-                        map(lambda s: ("%s(%f)" % (s.axis, s.value)), scaleaxes)
+                        "%s(%f)" % (scale.axis, scale.value) 
+                        for scale in scaleaxes
                     )
 
         else:

@@ -71,13 +71,13 @@ class WCS20GetCoverageHandler(WCSGetCoverageHandlerBase, Component):
                     request
                 )
 
-        scale = decoder.scalefactor
+        scalefactor = decoder.scalefactor
         scales = list(
             chain(decoder.scaleaxes, decoder.scalesize, decoder.scaleextent)
         )
 
         # check scales validity: ScaleFactor and any other scale
-        if scale and scales:
+        if scalefactor and scales:
             raise InvalidRequestException(
                 "ScaleFactor and any other scale operation are mutually "
                 "exclusive.", locator="scalefactor"
@@ -85,19 +85,18 @@ class WCS20GetCoverageHandler(WCSGetCoverageHandlerBase, Component):
 
         # check scales validity: Axis uniqueness
         axes = set()
-        for item in scales:
-            if item.axis in axes:
+        for scale in scales:
+            if scale.axis in axes:
                 raise InvalidRequestException(
-                    "Axis '%s' is scaled multiple times." % item.axis,
-                    locator=item.axis
+                    "Axis '%s' is scaled multiple times." % scale.axis,
+                    locator=scale.axis
                 )
-            axes.add(item.axis)
+            axes.add(scale.axis)
 
         return WCS20CoverageRenderParams(
-            coverage, subsets, decoder.sizes, decoder.resolutions,
-            decoder.rangesubset, decoder.format, decoder.outputcrs, 
-            decoder.mediatype, decoder.interpolation, 
-            encoding_params or {}, request
+            coverage, subsets, decoder.rangesubset, decoder.format, 
+            decoder.outputcrs, decoder.mediatype, decoder.interpolation,
+            scalefactor, scales, encoding_params or {}, request
         )
 
 
