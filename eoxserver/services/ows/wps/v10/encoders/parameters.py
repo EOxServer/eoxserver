@@ -110,15 +110,15 @@ def _encode_literal(prm, is_input):
 
     if prm.uoms:
         elem.append(NIL("UOMs",
-            NIL("Default", NIL("UOM", prm.uoms[0])),
-            NIL("Supported", *[NIL("UOM", u) for u in prm.uoms])
+            NIL("Default", OWS("UOM", prm.uoms[0])),
+            NIL("Supported", *[OWS("UOM", u) for u in prm.uoms])
         ))
 
     if is_input:
         elem.append(_encode_allowed_value(prm.allowed_values))
 
         if prm.default is not None:
-            elem.append(WPS("Default", str(prm.default)))
+            elem.append(NIL("DefaultValue", str(prm.default)))
 
     return elem
 
@@ -145,7 +145,7 @@ def _encode_allowed_value(avobj):
     ddtype = dtype.get_diff_dtype()
 
     if enum is not None:
-        elist.extend(OWS("AllowedValue", dtype.encode(v)) for v in enum.values)
+        elist.extend(OWS("Value", dtype.encode(v)) for v in enum.values)
     for range_ in ranges:
         attr, elms = {}, []
         if range_.closure != 'closed':

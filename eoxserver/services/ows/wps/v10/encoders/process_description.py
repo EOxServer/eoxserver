@@ -28,8 +28,6 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from lxml.builder import E
-
 from eoxserver.services.ows.wps.v10.util import (
     OWS, WPS, NIL, ns_wps, ns_xlink, ns_xml
 )
@@ -51,7 +49,30 @@ def encode_process_brief(process):
     profiles = getattr(process, "profiles", [])
     wsdl = getattr(process, "wsdl", None)
 
-    elem = E("ProcessDescription", 
+    elem = WPS("Process",
+        OWS("Identifier", id_), OWS("Title", title)
+    )
+    elem.attrib[ns_wps("processVersion")] = version
+    if abstract:
+        elem.append(OWS("Abstract", abstract))
+    elem.extend(_encode_metadata(k, metadata[k]) for k in metadata)
+    elem.extend(WPS("Profile", p) for p in profiles)
+    if wsdl:
+        elem.append(WPS("WSDL", **{ns_xlink("href"): wsdl}))
+
+    return elem
+
+def _encode_process_brief(process):
+    id_ = getattr(process, 'identifier', process.__class__.__name__)
+    title = getattr(process, 'title', id_)
+    #abstract = getattr(process, 'abstract', process.__class__.__doc__)
+    abstract = getattr(process, 'description', process.__class__.__doc__)
+    version = getattr(process, "version", "1.0.0")
+    metadata = getattr(process, "metadata", {})
+    profiles = getattr(process, "profiles", [])
+    wsdl = getattr(process, "wsdl", None)
+
+    elem = NIL("ProcessDescription",
         OWS("Identifier", id_), OWS("Title", title)
     )
     elem.attrib[ns_wps("processVersion")] = version
@@ -84,7 +105,7 @@ def encode_process_full(process):
     if supports_update:
         elem.attrib["statusSupported"] = "true"
     elem.append(NIL("DataInputs", *inputs))
-    elem.append(NIL("DataOutputs", *outputs))
+    elem.append(NIL("ProcessOutputs", *outputs))
 
     return elem
 
