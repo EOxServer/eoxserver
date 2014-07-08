@@ -93,6 +93,12 @@ class GDALReferenceableDatasetRenderer(Component):
         if not frmt:
             raise RenderException("No format specified.", "format")
 
+        if params.scalefactor is not None or params.scales:
+            raise RenderException(
+                "ReferenceableDataset cannot be scaled.",
+                "scalefactor" if params.scalefactor is not None else "scale"
+            )
+
 
         # perform subsetting either with or without rangesubsetting
         subsetted_ds = self.perform_subset(
