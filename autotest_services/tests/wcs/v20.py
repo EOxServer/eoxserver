@@ -1138,6 +1138,34 @@ class WCS20PostGetCoverageRangeSubsetMultipartDatasetTestCase(wcsbase.WCS20GetCo
         </wcs:GetCoverage>"""
         return (params, "xml")
 
+
+class WCS20PostGetCoverageInterpolationMultipartDatasetTestCase(wcsbase.WCS20GetCoverageMixIn, testbase.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
+    def getRequest(self):
+        params = """<wcs:GetCoverage service="WCS" version="2.0.1"
+           xmlns:wcs="http://www.opengis.net/wcs/2.0"
+           xmlns:int="http://www.opengis.net/wcs/interpolation/1.0"
+           xmlns:crs="http://www.opengis.net/wcs/crs/1.0">
+          <wcs:Extension>
+            <int:Interpolation>
+              <int:globalInterpolation>http://www.opengis.net/def/interpolation/OGC/1/bilinear</int:globalInterpolation>
+            </int:Interpolation>
+            <crs:subsettingCrs>http://www.opengis.net/def/crs/EPSG/0/4326</crs:subsettingCrs>
+          </wcs:Extension>
+          <wcs:CoverageId>MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed</wcs:CoverageId>
+          <wcs:DimensionTrim>
+            <wcs:Dimension>Long</wcs:Dimension>
+            <wcs:TrimLow>20</wcs:TrimLow>
+            <wcs:TrimHigh>22</wcs:TrimHigh>
+          </wcs:DimensionTrim>
+          <wcs:DimensionTrim>
+            <wcs:Dimension>Lat</wcs:Dimension>
+            <wcs:TrimLow>36</wcs:TrimLow>
+            <wcs:TrimHigh>38</wcs:TrimHigh>
+          </wcs:DimensionTrim>
+          <wcs:format>image/tiff</wcs:format>
+          <wcs:mediaType>multipart/related</wcs:mediaType>
+        </wcs:GetCoverage>"""
+        return (params, "xml")
 # WCS 2.0 GetCoverage GeoTIFF 
 
 class WCS20GetCoverageDatasetGeoTIFFPackBitsTestCase(wcsbase.GeoTIFFMixIn, testbase.RectifiedGridCoverageTestCase):
