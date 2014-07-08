@@ -45,7 +45,7 @@ class WPS10PostGetCapabilitiesValidTestCase(testbase.XMLTestCase):
           xmlns:ows="http://www.opengis.net/ows/1.1">
             <ows:AcceptVersions><ows:Version>1.0.0</ows:Version></ows:AcceptVersions>
           </wps:GetCapabilities>
-        """        
+        """
         return (params, "xml")
 
 
@@ -66,6 +66,20 @@ class WPS10PostDescribeProcessValidTestCase(testbase.XMLTestCase):
           xmlns:ows="http://www.opengis.net/ows/1.1">
             <ows:Identifier>TC00:identity:literal</ows:Identifier>
           </wps:DescribeProcess>
-        """        
+        """
         return (params, "xml")
 
+class WPS10DescribeProcessValidTC01TestCase(testbase.XMLTestCase):
+    def getRequest(self):
+        params = "service=WPS&version=1.0.0&request=DescribeProcess&identifier=TC01:identity:bbox"
+        return (params, "kvp")
+
+class WPS10DescribeProcessValidTC02TestCase(testbase.XMLTestCase):
+    def getRequest(self):
+        params = "service=WPS&version=1.0.0&request=DescribeProcess&identifier=TC02:identity:complex"
+        return (params, "kvp")
+
+class WPS10DescribeProcessValidTC03TestCase(testbase.XMLTestCase):
+    def getRequest(self):
+        params = "service=WPS&version=1.0.0&request=DescribeProcess&identifier=TC03:image_generator:complex"
+        return (params, "kvp")
