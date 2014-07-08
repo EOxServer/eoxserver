@@ -58,19 +58,20 @@ class WCS20CoverageDescriptionRenderParams(CoverageDescriptionRenderParams):
 class WCS20CoverageRenderParams(CoverageRenderParams):
     def __init__(self, coverage, subsets=None, sizes=None, resolutions=None,
                  rangesubset=None, format=None, outputcrs=None, mediatype=None,
-                 interpolation=None, mask=None, encoding_params=None, 
-                 http_request=None):
+                 interpolation=None, scalefactor=None, scales=None, 
+                 encoding_params=None, http_request=None):
 
         super(WCS20CoverageRenderParams, self).__init__(coverage, "2.0.1")
         self._subsets = subsets
         self._sizes = sizes or ()
         self._resolutions = resolutions or ()
         self._rangesubset = rangesubset or ()
+        self._scalefactor = scalefactor
+        self._scales = scales or ()
         self._format = format
         self._outputcrs = outputcrs
         self._mediatype = mediatype
         self._interpolation = interpolation
-        self._mask = mask
         self._encoding_params = encoding_params or {}
         self._http_request = http_request
 
@@ -81,13 +82,13 @@ class WCS20CoverageRenderParams(CoverageRenderParams):
     sizes         = property(lambda self: self._sizes)
     resolutions   = property(lambda self: self._resolutions)
     rangesubset   = property(lambda self: self._rangesubset)
+    scalefactor   = property(lambda self: self._scalefactor)
+    scales        = property(lambda self: self._scales)
     format        = property(lambda self: self._format)
     outputcrs     = property(lambda self: self._outputcrs)
     mediatype     = property(lambda self: self._mediatype)
     interpolation = property(lambda self: self._interpolation)
-    mask          = property(lambda self: self._mask)
     encoding_params = property(lambda self: self._encoding_params)
-
     http_request  = property(lambda self: self._http_request)
 
 

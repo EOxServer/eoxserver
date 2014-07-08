@@ -26,6 +26,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+from itertools import chain
 
 from eoxserver.core import Component, implements, ExtensionPoint
 from eoxserver.core.decoders import xml, kvp, typelist
@@ -36,12 +37,14 @@ from eoxserver.services.ows.interfaces import (
 )
 from eoxserver.services.ows.wcs.basehandlers import WCSGetCoverageHandlerBase
 from eoxserver.services.ows.wcs.v20.util import (
-    nsmap, parse_subset_kvp, parse_subset_xml, parse_size_kvp, 
-    parse_resolution_kvp, parse_range_subset_kvp, parse_range_subset_xml,
-    parse_interpolation
+    nsmap, parse_subset_kvp, parse_subset_xml, parse_range_subset_kvp, 
+    parse_range_subset_xml, parse_interpolation, 
+    parse_scaleaxis_kvp, parse_scalesize_kvp, parse_scaleextent_kvp,
+    parse_scaleaxis_xml, parse_scalesize_xml, parse_scaleextent_xml,
 )
 from eoxserver.services.ows.wcs.v20.parameters import WCS20CoverageRenderParams
 from eoxserver.services.ows.wcs.interfaces import EncodingExtensionInterface
+from eoxserver.services.exceptions import InvalidRequestException
 
 
 class WCS20GetCoverageHandler(WCSGetCoverageHandlerBase, Component):
@@ -68,10 +71,32 @@ class WCS20GetCoverageHandler(WCSGetCoverageHandlerBase, Component):
                     request
                 )
 
+        scale = decoder.scalefactor
+        scales = list(
+            chain(decoder.scaleaxes, decoder.scalesize, decoder.scaleextent)
+        )
+
+        # check scales validity: ScaleFactor and any other scale
+        if scale and scales:
+            raise InvalidRequestException(
+                "ScaleFactor and any other scale operation are mutually "
+                "exclusive.", locator="scalefactor"
+            )
+
+        # check scales validity: Axis uniqueness
+        axes = set()
+        for item in scales:
+            if item.axis in axes:
+                raise InvalidRequestException(
+                    "Axis '%s' is scaled multiple times." % item.axis,
+                    locator=item.axis
+                )
+            axes.add(item.axis)
+
         return WCS20CoverageRenderParams(
             coverage, subsets, decoder.sizes, decoder.resolutions,
             decoder.rangesubset, decoder.format, decoder.outputcrs, 
-            decoder.mediatype, decoder.interpolation, decoder.mask, 
+            decoder.mediatype, decoder.interpolation, 
             encoding_params or {}, request
         )
 
@@ -79,8 +104,10 @@ class WCS20GetCoverageHandler(WCSGetCoverageHandlerBase, Component):
 class WCS20GetCoverageKVPDecoder(kvp.Decoder):
     coverage_id = kvp.Parameter("coverageid", num=1)
     subsets     = kvp.Parameter("subset", type=parse_subset_kvp, num="*")
-    sizes       = kvp.Parameter("size", type=parse_size_kvp, num="*")
-    resolutions = kvp.Parameter("resolution", type=parse_resolution_kvp, num="*")
+    scalefactor = kvp.Parameter("scalefactor", type=float, num="?")
+    scaleaxes   = kvp.Parameter("scaleaxes", type=typelist(parse_scaleaxis_kvp, ","), default=(), num="?")
+    scalesize   = kvp.Parameter("scalesize", type=typelist(parse_scalesize_kvp, ","), default=(), num="?")
+    scaleextent = kvp.Parameter("scaleextent", type=typelist(parse_scaleextent_kvp, ","), default=(), num="?")
     rangesubset = kvp.Parameter("rangesubset", type=parse_range_subset_kvp, num="?")
     format      = kvp.Parameter("format", num="?")
     subsettingcrs = kvp.Parameter("subsettingcrs", num="?")
@@ -88,27 +115,19 @@ class WCS20GetCoverageKVPDecoder(kvp.Decoder):
     mediatype   = kvp.Parameter("mediatype", num="?")
     interpolation = kvp.Parameter("interpolation", type=parse_interpolation, num="?")
 
-    mask = None
-
 
 class WCS20GetCoverageXMLDecoder(xml.Decoder):
     coverage_id = xml.Parameter("wcs:CoverageId/text()", num=1, locator="coverageid")
-    subsets     = xml.Parameter("wcs:DimensionTrim", type=parse_subset_xml, num="*")
-
-    sizes       = xml.Parameter("TODO", type=parse_size_kvp, num="*")
-    resolutions = xml.Parameter("TODO", type=parse_size_kvp, num="*")
-
+    subsets     = xml.Parameter("wcs:DimensionTrim", type=parse_subset_xml, num="*", locator="subset")
+    scalefactor = xml.Parameter("wcs:Extension/scal:ScaleByFactor/scal:scaleFactor/text()", type=float, num="?", locator="scalefactor")
+    scaleaxes   = xml.Parameter("wcs:Extension/scal:ScaleByAxesFactor/scal:ScaleAxis", type=parse_scaleaxis_xml, num="*", default=(), locator="scaleaxes")
+    scalesize   = xml.Parameter("wcs:Extension/scal:ScaleToSize/scal:TargetAxisSize", type=parse_scalesize_xml, num="*", default=(), locator="scalesize")
+    scaleextent = xml.Parameter("wcs:Extension/scal:ScaleToExtent/scal:TargetAxisExtent", type=parse_scaleextent_xml, num="*", default=(), locator="scaleextent")
     rangesubset = xml.Parameter("wcs:Extension/rsub:RangeSubset", type=parse_range_subset_xml, num="?", locator="rangesubset")
-
     format      = xml.Parameter("wcs:format/text()", num="?", locator="format")
     subsettingcrs = xml.Parameter("wcs:Extension/crs:subsettingCrs/text()", num="?", locator="subsettingcrs")
     outputcrs   = xml.Parameter("wcs:Extension/crs:outputCrs/text()", num="?", locator="outputcrs")
     mediatype   = xml.Parameter("wcs:mediaType/text()", num="?", locator="mediatype")
-    
-    # only allow global interpolation right now.
     interpolation = xml.Parameter("wcs:Extension/int:Interpolation/int:globalInterpolation/text()", type=parse_interpolation, num="?", locator="interpolation")
     
-    mask = None
-
     namespaces = nsmap
-
