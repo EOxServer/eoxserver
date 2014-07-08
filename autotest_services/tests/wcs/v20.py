@@ -669,10 +669,10 @@ class WCS20GetCoverageInvalidSizeFaultTestCase(testbase.ExceptionTestCase):
         return (params, "kvp")
     
     def getExpectedHTTPStatus(self):
-        404
+        return 404
 
     def getExpectedExceptionCode(self):
-        return "InvalidParameterValue"
+        return "InvalidScaleFactor"
 
 #===============================================================================
 # WCS 2.0: Resolution
