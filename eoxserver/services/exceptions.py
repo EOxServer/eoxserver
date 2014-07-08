@@ -64,8 +64,8 @@ class VersionNegotiationException(Exception):
 
 
 class LocatorListException(Exception):
-    """ Base class for exceptions that report that a number of items are missing
-        or invalid
+    """ Base class for exceptions that report that a number of items are 
+        missing or invalid
     """
     def __init__(self, items):
         self.items = items
@@ -190,7 +190,9 @@ class RenderException(Exception):
 
     @property
     def code(self):
-        return "InvalidParameterValue" if self.is_parameter else "InvalidRequest"
+        return (
+            "InvalidParameterValue" if self.is_parameter else "InvalidRequest"
+        )
 
 
 class NoSuchFieldException(Exception):
@@ -212,3 +214,40 @@ class InvalidFieldSequenceException(Exception):
     def __init__(self, msg, locator):
         super(NoSuchFieldException, self).__init__(msg)
         self.locator = locator
+
+
+class InvalidScaleFactorException(Exception):
+    """ Error in ScaleFactor and ScaleAxis operations
+    """
+    code = "InvalidScaleFactor"
+
+    def __init__(self, scalefactor):
+        super(InvalidScaleFactorException, self).__init__(
+            "Scalefactor '%s' is not valid" % scalefactor
+        )
+        self.locator = scalefactor
+
+
+class InvalidScaleExtentException(Exception):
+    """ Error in ScaleExtent operations
+    """
+    code = "InvalidExtent"
+
+    def __init__(self, low, high):
+        super(InvalidScaleExtentException, self).__init__(
+            "ScaleExtent '%s:%s' is not valid" % (low, high)
+        )
+        self.locator = high
+
+
+class ScaleAxisUndefinedException(Exception):
+    """ Error in all scaling operations involving an axis
+    """
+
+    code = "ScaleAxisUndefined"
+
+    def __init__(self, axis):
+        super(ScaleAxisUndefinedException, self).__init__(
+            "Scale axis '%s' is undefined" % axis
+        )
+        self.locator = axis

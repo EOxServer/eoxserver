@@ -83,6 +83,7 @@ class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
                     OWS("Profile", "http://www.opengis.net/spec/WCS_service-model_crs-predefined/1.0/conf/crs-predefined"),
                     OWS("Profile", "http://www.opengis.net/spec/WCS_service-extension_interpolation/1.0/conf/interpolation"),
                     OWS("Profile", "http://www.opengis.net/spec/WCS_service-extension_range-subsetting/1.0/conf/record-subsetting"),
+                    OWS("Profile", "http://www.opengis.net/spec/WCS_service-extension_scaling/1.0/conf/scaling"),
                     OWS("Fees", conf.fees),
                     OWS("AccessConstraints", conf.access_constraints)
                 )
