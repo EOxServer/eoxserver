@@ -66,7 +66,7 @@ def encode_output_descr(prm):
 
 def encode_input_exec(prm):
     """ Encode common part of the execure response data input."""
-    return WPS("Input", *_encode_param_common(prm))
+    return WPS("Input", *_encode_param_common(prm, False))
 
 def encode_output_exec(prm):
     """ Encode common part of the execure response data output."""
@@ -87,13 +87,13 @@ def encode_output_def(outdef):
         attrib['schema'] = outdef.schema
     if outdef.as_reference is not None:
         attrib['asReference'] = 'true' if outdef.as_reference else 'false'
-    return WPS("Output", *_encode_param_common(outdef), **attrib)
+    return WPS("Output", *_encode_param_common(outdef, False), **attrib)
 
-def _encode_param_common(prm):
+def _encode_param_common(prm, title_required=True):
     """ Encode common sub-elements of all XML parameters."""
     elist = [OWS("Identifier", prm.identifier)]
-    if prm.title:
-        elist.append(OWS("Title", prm.title))
+    if prm.title or title_required:
+        elist.append(OWS("Title", prm.title or prm.identifier))
     if prm.abstract:
         elist.append(OWS("Abstract", prm.abstract))
     return elist
