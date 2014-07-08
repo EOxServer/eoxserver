@@ -164,8 +164,8 @@ def _encode_allowed_value(avobj):
 
 def _encode_complex(prm, is_input):
     return NIL("ComplexData" if is_input else "ComplexOutput",
-        WPS("Default", _encode_format(prm.default_format)),
-        WPS("Supported", *[_encode_format(f) for f in prm.formats.itervalues()])
+        NIL("Default", _encode_format(prm.default_format)),
+        NIL("Supported", *[_encode_format(f) for f in prm.formats.itervalues()])
     )
 
 def _encode_format(frmt):
@@ -180,7 +180,7 @@ def _encode_format(frmt):
 
 def _encode_bbox(prm, is_input):
     return NIL("BoundingBoxData" if is_input else "BoundingBoxOutput",
-        WPS("Default", WPS("CRS", prm.encode_crs(prm.default_crs))),
-        WPS("Supported", *[WPS("CRS", prm.encode_crs(crs)) for crs in prm.crss])
+        NIL("Default", NIL("CRS", prm.encode_crs(prm.default_crs))),
+        NIL("Supported", *[NIL("CRS", prm.encode_crs(crs)) for crs in prm.crss])
     )
 
