@@ -12,6 +12,7 @@
     <DataInputs>
       <Input minOccurs="1" maxOccurs="1">
         <ows:Identifier>input00</ows:Identifier>
+        <ows:Title>input00</ows:Title>
         <LiteralData>
           <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">string</ows:DataType>
           <ows:AnyValue/>
@@ -19,6 +20,7 @@
       </Input>
       <Input minOccurs="0" maxOccurs="1">
         <ows:Identifier>TC00:input01</ows:Identifier>
+        <ows:Title>TC00:input01</ows:Title>
         <ows:Abstract>Simple string input.</ows:Abstract>
         <LiteralData>
           <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">string</ows:DataType>
@@ -27,15 +29,16 @@
       </Input>
       <Input minOccurs="0" maxOccurs="1">
         <ows:Identifier>TC00:input02</ows:Identifier>
+        <ows:Title>TC00:input02</ows:Title>
         <ows:Abstract>Enumerated string input. Optional with the default.</ows:Abstract>
         <LiteralData>
           <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">string</ows:DataType>
           <ows:AllowedValues>
-            <ows:AllowedValue>high</ows:AllowedValue>
-            <ows:AllowedValue>medium</ows:AllowedValue>
-            <ows:AllowedValue>low</ows:AllowedValue>
+            <ows:Value>high</ows:Value>
+            <ows:Value>medium</ows:Value>
+            <ows:Value>low</ows:Value>
           </ows:AllowedValues>
-          <wps:Default>medium</wps:Default>
+          <DefaultValue>medium</DefaultValue>
         </LiteralData>
       </Input>
       <Input minOccurs="0" maxOccurs="1">
@@ -46,19 +49,19 @@
           <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">double</ows:DataType>
           <UOMs>
             <Default>
-              <UOM>m</UOM>
+              <ows:UOM>m</ows:UOM>
             </Default>
             <Supported>
-              <UOM>m</UOM>
-              <UOM>mm</UOM>
-              <UOM>cm</UOM>
-              <UOM>dm</UOM>
-              <UOM>yd</UOM>
-              <UOM>ft</UOM>
-              <UOM>in</UOM>
-              <UOM>km</UOM>
-              <UOM>mi</UOM>
-              <UOM>NM</UOM>
+              <ows:UOM>m</ows:UOM>
+              <ows:UOM>mm</ows:UOM>
+              <ows:UOM>cm</ows:UOM>
+              <ows:UOM>dm</ows:UOM>
+              <ows:UOM>yd</ows:UOM>
+              <ows:UOM>ft</ows:UOM>
+              <ows:UOM>in</ows:UOM>
+              <ows:UOM>km</ows:UOM>
+              <ows:UOM>mi</ows:UOM>
+              <ows:UOM>NM</ows:UOM>
             </Supported>
           </UOMs>
           <ows:AllowedValues>
@@ -67,7 +70,7 @@
               <ows:MaximumValue>2</ows:MaximumValue>
             </ows:Range>
           </ows:AllowedValues>
-          <wps:Default>0.0</wps:Default>
+          <DefaultValue>0.0</DefaultValue>
         </LiteralData>
       </Input>
       <Input minOccurs="0" maxOccurs="1">
@@ -78,12 +81,12 @@
           <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">double</ows:DataType>
           <UOMs>
             <Default>
-              <UOM>K</UOM>
+              <ows:UOM>K</ows:UOM>
             </Default>
             <Supported>
-              <UOM>K</UOM>
-              <UOM>C</UOM>
-              <UOM>F</UOM>
+              <ows:UOM>K</ows:UOM>
+              <ows:UOM>C</ows:UOM>
+              <ows:UOM>F</ows:UOM>
             </Supported>
           </UOMs>
           <ows:AllowedValues>
@@ -91,19 +94,21 @@
               <ows:MinimumValue>0</ows:MinimumValue>
             </ows:Range>
           </ows:AllowedValues>
-          <wps:Default>298.15</wps:Default>
+          <DefaultValue>298.15</DefaultValue>
         </LiteralData>
       </Input>
     </DataInputs>
-    <DataOutputs>
+    <ProcessOutputs>
       <Output>
         <ows:Identifier>output00</ows:Identifier>
+        <ows:Title>output00</ows:Title>
         <LiteralOutput>
           <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">string</ows:DataType>
         </LiteralOutput>
       </Output>
       <Output>
         <ows:Identifier>TC00:output01</ows:Identifier>
+        <ows:Title>TC00:output01</ows:Title>
         <ows:Abstract>Simple string output.</ows:Abstract>
         <LiteralOutput>
           <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">string</ows:DataType>
@@ -111,6 +116,7 @@
       </Output>
       <Output>
         <ows:Identifier>TC00:output02</ows:Identifier>
+        <ows:Title>TC00:output02</ows:Title>
         <ows:Abstract>Enumerated string output.</ows:Abstract>
         <LiteralOutput>
           <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">string</ows:DataType>
@@ -124,19 +130,19 @@
           <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">double</ows:DataType>
           <UOMs>
             <Default>
-              <UOM>m</UOM>
+              <ows:UOM>m</ows:UOM>
             </Default>
             <Supported>
-              <UOM>m</UOM>
-              <UOM>mm</UOM>
-              <UOM>cm</UOM>
-              <UOM>dm</UOM>
-              <UOM>yd</UOM>
-              <UOM>ft</UOM>
-              <UOM>in</UOM>
-              <UOM>km</UOM>
-              <UOM>mi</UOM>
-              <UOM>NM</UOM>
+              <ows:UOM>m</ows:UOM>
+              <ows:UOM>mm</ows:UOM>
+              <ows:UOM>cm</ows:UOM>
+              <ows:UOM>dm</ows:UOM>
+              <ows:UOM>yd</ows:UOM>
+              <ows:UOM>ft</ows:UOM>
+              <ows:UOM>in</ows:UOM>
+              <ows:UOM>km</ows:UOM>
+              <ows:UOM>mi</ows:UOM>
+              <ows:UOM>NM</ows:UOM>
             </Supported>
           </UOMs>
         </LiteralOutput>
@@ -149,16 +155,16 @@
           <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">double</ows:DataType>
           <UOMs>
             <Default>
-              <UOM>K</UOM>
+              <ows:UOM>K</ows:UOM>
             </Default>
             <Supported>
-              <UOM>K</UOM>
-              <UOM>C</UOM>
-              <UOM>F</UOM>
+              <ows:UOM>K</ows:UOM>
+              <ows:UOM>C</ows:UOM>
+              <ows:UOM>F</ows:UOM>
             </Supported>
           </UOMs>
         </LiteralOutput>
       </Output>
-    </DataOutputs>
+    </ProcessOutputs>
   </ProcessDescription>
 </wps:ProcessDescriptions>
