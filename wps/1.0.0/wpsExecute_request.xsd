@@ -55,7 +55,7 @@
 			<documentation>List of the Inputs provided as part of the Execute Request. </documentation>
 		</annotation>
 		<sequence>
-			<element name="Input" type="wps:InputType" maxOccurs="unbounded">
+			<element name="Input" type="wps:InputType" minOccurs="0" maxOccurs="unbounded">
 				<annotation>
 					<documentation>Unordered list of one or more inputs to be used by the process, including each of the Inputs needed to execute the process. </documentation>
 				</annotation>
