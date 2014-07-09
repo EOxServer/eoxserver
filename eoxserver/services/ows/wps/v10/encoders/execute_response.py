@@ -155,7 +155,11 @@ def _encode_literal(data, prm, req):
     return WPS("LiteralData", encoded_data, **attrib)
 
 def _encode_bbox(data, prm):
-    lower, upper, crs = prm.encode_xml(data)
+    try:
+        lower, upper, crs = prm.encode_xml(data)
+    except (ValueError, TypeError) as exc:
+        raise InvalidOutputValueError(prm.identifier, exc)
+
     return WPS("BoundingBoxData",
         OWS("LowerCorner", lower),
         OWS("UpperCorner", upper),
