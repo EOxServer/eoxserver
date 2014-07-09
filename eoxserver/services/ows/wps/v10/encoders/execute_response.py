@@ -187,7 +187,11 @@ def _encode_format_attr(data, prm):
     return attr
 
 def _encode_complex(data, prm):
-    payload = prm.encode_xml(data)
+    try:
+        payload = prm.encode_xml(data)
+    except (ValueError, TypeError) as exc:
+        raise InvalidOutputValueError(prm.identifier, exc)
+
     elem = WPS("ComplexData", **_encode_format_attr(data, prm))
     if isinstance(payload, etree._Element):
         elem.append(payload)
