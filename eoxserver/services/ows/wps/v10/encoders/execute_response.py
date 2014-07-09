@@ -30,8 +30,10 @@
 
 from lxml import etree
 from django.utils.timezone import now
+from eoxserver.core.config import get_eoxserver_config
+from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.core.util.timetools import isoformat
-from eoxserver.services.ows.wps.v10.util import WPS, OWS, ns_xlink
+from eoxserver.services.ows.wps.v10.util import WPS, OWS, ns_xlink, ns_xml
 
 from eoxserver.services.ows.wps.parameters import (
     Parameter, LiteralData, ComplexData, BoundingBoxData,
@@ -55,7 +57,7 @@ class WPS10ExecuteResponseXMLEncoder(WPS10BaseXMLEncoder):
     @staticmethod
     def encode_response(process, results, resp_form, inputs, raw_inputs):
         """Encode execute response (SUCCESS) including the output data."""
-        status = WPS("ProcessSucceded")
+        status = WPS("ProcessSucceeded")
         elem = _encode_common_response(process, status, inputs, raw_inputs, resp_form)
 
         outputs = []
@@ -78,9 +80,19 @@ class WPS10ExecuteResponseXMLEncoder(WPS10BaseXMLEncoder):
 
 def _encode_common_response(process, status_elem, inputs, raw_inputs, resp_doc):
     """Encode common execute response part shared by all specific responses."""
+    conf = CapabilitiesConfigReader(get_eoxserver_config())
+    url = conf.http_service_url
+    dlm = "?" if url[-1] != "?" else ""
     elem = WPS("ExecuteResponse",
         encode_process_brief(process),
-        WPS("Status", status_elem, creationTime=isoformat(now()))
+        WPS("Status", status_elem, creationTime=isoformat(now())),
+        {
+            "service": "WPS",
+            "version": "1.0.0",
+            ns_xml("lang"): "en-US",
+            "serviceInstance": "%s%sservice=WPS&version=1.0.0&request="\
+                               "GetCapabilities"%(url, dlm)
+        },
     )
 
     if resp_doc.lineage:
@@ -147,9 +159,11 @@ def _encode_bbox(data, prm):
     return WPS("BoundingBoxData",
         OWS("LowerCorner", lower),
         OWS("UpperCorner", upper),
-        dimension="%d"%prm.dimension,
         crs=crs,
+        #dimension="%d"%prm.dimension,
     )
+    #NOTE: Although derived from OWS BoundingBox the WPS (schema) does not
+    #      allow the dimenstion attribute.
 
 def _encode_format_attr(data, prm):
     mime_type = getattr(data, 'mime_type', None)
