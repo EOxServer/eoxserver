@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<wps:ExecuteResponse xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.0.0" xml:lang="en-US" service="WPS" serviceInstance="http://foo.bar.com/ows?hahaha" xsi:schemaLocation="wps http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
+<wps:ExecuteResponse xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.0.0" xml:lang="en-US" service="WPS" serviceInstance="http://localhost:8000/ows?service=WPS&amp;version=1.0.0&amp;request=GetCapabilities" xsi:schemaLocation="wps http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
   <wps:Process wps:processVersion="1.0.0">
     <ows:Identifier>TC02:identity:complex</ows:Identifier>
     <ows:Title>Test Case 02: Complex data identity.</ows:Title>
