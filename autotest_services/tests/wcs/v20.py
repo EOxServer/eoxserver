@@ -640,68 +640,73 @@ class WCS20GetCoverageOutputCRSotherUoMDatasetTestCase(wcsbase.WCS20GetCoverageM
 
 class WCS20GetCoverageSizeDatasetTestCase(testbase.RectifiedGridCoverageTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&size=x(200)&size=y(200)"
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&scalesize=x(200),y(200)"
         return (params, "kvp")
 
 class WCS20GetCoverageSizeMosaicTestCase(testbase.RectifiedGridCoverageTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_reduced_RGB&format=image/tiff&size=x(200)&size=y(400)"
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_reduced_RGB&format=image/tiff&scalesize=x(200),y(400)"
         return (params, "kvp")
 
 class WCS20GetCoverageSubsetSizeDatasetTestCase(testbase.RectifiedGridCoverageTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=x(100,200)&subset=y(200,300)&size=x(20)&size=y(20)"
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=x(100,200)&subset=y(200,300)&scalesize=x(20),y(20)"
         return (params, "kvp")
 
 class WCS20GetCoverageSubsetEPSG4326SizeDatasetTestCase(wcsbase.WCS20GetCoverageMixIn, testbase.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/related&subset=lat(38,40)&subset=long(20,22)&size=lat(20)&size=long(20)&subsettingcrs=http://www.opengis.net/def/crs/EPSG/0/4326"
+        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/related&subset=lat(38,40)&subset=long(20,22)&scalesize=lat(20),long(20)&subsettingcrs=http://www.opengis.net/def/crs/EPSG/0/4326"
         return (params, "kvp")
     
 class WCS20GetCoverageSubsetEPSG4326SizeExceedsExtentDatasetTestCase(wcsbase.WCS20GetCoverageMixIn, testbase.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=lat(10,50)&subset=long(0,50)&size=lat(100)&size=long(100)&mediatype=multipart/related&subsettingcrs=http://www.opengis.net/def/crs/EPSG/0/4326"
+        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=lat(10,50)&subset=long(0,50)&scalesize=lat(100),long(100)&mediatype=multipart/related&subsettingcrs=http://www.opengis.net/def/crs/EPSG/0/4326"
         return (params, "kvp")
 
 class WCS20GetCoverageInvalidSizeFaultTestCase(testbase.ExceptionTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_reduced_RGB&format=image/tiff&size=x(1.11)"
+        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_reduced_RGB&format=image/tiff&scalesize=x(1.11)"
         return (params, "kvp")
     
+    def getExpectedHTTPStatus(self):
+        return 404
+
     def getExpectedExceptionCode(self):
-        return "InvalidParameterValue"
+        return "InvalidScaleFactor"
 
 #===============================================================================
 # WCS 2.0: Resolution
 #===============================================================================
 
-class WCS20GetCoverageResolutionDatasetTestCase(testbase.RectifiedGridCoverageTestCase):
-    def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&resolution=x(0.1)&resolution=y(0.1)"
-        return (params, "kvp")
-    
-class WCS20GetCoverageResolutionMosaicTestCase(testbase.RectifiedGridCoverageTestCase):
-    def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_reduced_RGB&format=image/tiff&resolution=x(0.1)&resolution=y(0.1)"
-        return (params, "kvp")
+# TODO: not supported anymore (WCS 2.0 Scaling Extension)
 
-class WCS20GetCoverageSubsetResolutionDatasetTestCase(testbase.RectifiedGridCoverageTestCase):
-    def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=x(100,200)&subset=y(200,300)&resolution=x(0.1)&resolution=y(0.1)"
-        return (params, "kvp")
-
-class WCS20GetCoverageSubsetEPSG4326ResolutionLatLonDatasetTestCase(testbase.RectifiedGridCoverageTestCase):
-    def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=lat(38,40)&subset=long(20,22)&resolution=lat(0.01)&resolution=long(0.01)&subsettingcrs=http://www.opengis.net/def/crs/EPSG/0/4326"
-        return (params, "kvp")
-
-class WCS20GetCoverageSubsetEPSG4326ResolutionInvalidAxisDatasetFaultTestCase(testbase.ExceptionTestCase):
-    def getRequest(self):
-        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=lat(38,40)&subset=long(20,22)&resolution=x(0.01)&resolution=y(0.01)&subsettingcrs=http://www.opengis.net/def/crs/EPSG/0/4326"
-        return (params, "kvp")
-    
-    def getExpectedExceptionCode(self):
-        return "InvalidParameterValue"
+#class WCS20GetCoverageResolutionDatasetTestCase(testbase.RectifiedGridCoverageTestCase):
+#    def getRequest(self):
+#        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&resolution=x(0.1)&resolution=y(0.1)"
+#        return (params, "kvp")
+#    
+#class WCS20GetCoverageResolutionMosaicTestCase(testbase.RectifiedGridCoverageTestCase):
+#    def getRequest(self):
+#        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_reduced_RGB&format=image/tiff&resolution=x(0.1)&resolution=y(0.1)"
+#        return (params, "kvp")
+#
+#class WCS20GetCoverageSubsetResolutionDatasetTestCase(testbase.RectifiedGridCoverageTestCase):
+#    def getRequest(self):
+#        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=x(100,200)&subset=y(200,300)&resolution=x(0.1)&resolution=y(0.1)"
+#        return (params, "kvp")
+#
+#class WCS20GetCoverageSubsetEPSG4326ResolutionLatLonDatasetTestCase(testbase.RectifiedGridCoverageTestCase):
+#    def getRequest(self):
+#        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=lat(38,40)&subset=long(20,22)&resolution=lat(0.01)&resolution=long(0.01)&subsettingcrs=http://www.opengis.net/def/crs/EPSG/0/4326"
+#        return (params, "kvp")
+#
+#class WCS20GetCoverageSubsetEPSG4326ResolutionInvalidAxisDatasetFaultTestCase(testbase.ExceptionTestCase):
+#    def getRequest(self):
+#        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=lat(38,40)&subset=long(20,22)&resolution=x(0.01)&resolution=y(0.01)&subsettingcrs=http://www.opengis.net/def/crs/EPSG/0/4326"
+#        return (params, "kvp")
+#    
+#    def getExpectedExceptionCode(self):
+#        return "InvalidParameterValue"
 
 #===============================================================================
 # WCS 2.0: Rangesubset
@@ -738,10 +743,12 @@ class WCS20GetCoverageMultipartRangeSubsetNamesDatasetTestCase(wcsbase.WCS20GetC
         params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/related&rangesubset=MERIS_radiance_04_uint16,MERIS_radiance_05_uint16,MERIS_radiance_06_uint16"
         return (params, "kvp")
 
-class WCS20GetCoverageSubsetSizeResolutionOutputCRSRangeSubsetIntervalDatasetTestCase(wcsbase.WCS20GetCoverageMixIn, testbase.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
-    def getRequest(self):
-        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=x(100,200)&subset=y(200,300)&size=y(100)&resolution=x(0.1)&outputcrs=http://www.opengis.net/def/crs/EPSG/0/3035&rangesubset=MERIS_radiance_01_uint16:MERIS_radiance_03_uint16&mediatype=multipart/related"
-        return (params, "kvp")
+# TODO: not supported anymore (WCS 2.0 Scaling Extension)
+
+#class WCS20GetCoverageSubsetSizeResolutionOutputCRSRangeSubsetIntervalDatasetTestCase(wcsbase.WCS20GetCoverageMixIn, testbase.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
+#    def getRequest(self):
+#        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=x(100,200)&subset=y(200,300)&size=y(100)&resolution=x(0.1)&outputcrs=http://www.opengis.net/def/crs/EPSG/0/3035&rangesubset=MERIS_radiance_01_uint16:MERIS_radiance_03_uint16&mediatype=multipart/related"
+#        return (params, "kvp")
     
 #===============================================================================
 # WCS 2.0: Polygon Mask 
@@ -819,13 +826,14 @@ class WCS20GetCoverageRasdamanMultipartDatasetSubsetTestCase(wcsbase.WCS20GetCov
 
 class WCS20GetCoverageRasdamanMultipartDatasetSizeTestCase(wcsbase.WCS20GetCoverageMixIn, testbase.RasdamanTestCaseMixIn, testbase.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced_rasdaman&format=image/tiff&mediatype=multipart/related&size=x(100)&size=y(100)"
+        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced_rasdaman&format=image/tiff&mediatype=multipart/related&scalesize=x(100),y(100)"
         return (params, "kvp")
 
-class WCS20GetCoverageRasdamanMultipartDatasetResolutionTestCase(wcsbase.WCS20GetCoverageMixIn, testbase.RasdamanTestCaseMixIn, testbase.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
-    def getRequest(self):
-        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced_rasdaman&format=image/tiff&mediatype=multipart/related&resolution=x(0.1)&resolution=y(0.1)"
-        return (params, "kvp")
+# TODO: not supported anymore (WCS 2.0 Scaling Extension)
+#class WCS20GetCoverageRasdamanMultipartDatasetResolutionTestCase(wcsbase.WCS20GetCoverageMixIn, testbase.RasdamanTestCaseMixIn, testbase.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
+#    def getRequest(self):
+#        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced_rasdaman&format=image/tiff&mediatype=multipart/related&resolution=x(0.1)&resolution=y(0.1)"
+#        return (params, "kvp")
 
 class WCS20GetCoverageRasdamanMultipartDatasetOutputCRSTestCase(wcsbase.WCS20GetCoverageMixIn, testbase.RasdamanTestCaseMixIn, testbase.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
     def getRequest(self):
@@ -834,13 +842,14 @@ class WCS20GetCoverageRasdamanMultipartDatasetOutputCRSTestCase(wcsbase.WCS20Get
 
 class WCS20GetCoverageRasdamanMultipartDatasetSubsetSizeTestCase(wcsbase.WCS20GetCoverageMixIn, testbase.RasdamanTestCaseMixIn, testbase.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
     def getRequest(self):
-        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced_rasdaman&format=image/tiff&mediatype=multipart/related&subset=x(100,200)&subset=y(200,300)&size=x(20)&size=y(20)"
+        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced_rasdaman&format=image/tiff&mediatype=multipart/related&subset=x(100,200)&subset=y(200,300)&scalesize=x(20),y(20)"
         return (params, "kvp")
 
-class WCS20GetCoverageRasdamanMultipartDatasetSubsetResolutionTestCase(wcsbase.WCS20GetCoverageMixIn, testbase.RasdamanTestCaseMixIn, testbase.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
-    def getRequest(self):
-        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced_rasdaman&format=image/tiff&mediatype=multipart/related&subset=x(100,200)&subset=y(200,300)&resolution=x(0.1)&resolution=y(0.1)"
-        return (params, "kvp")
+# TODO: not supported anymore (WCS 2.0 Scaling Extension)
+#class WCS20GetCoverageRasdamanMultipartDatasetSubsetResolutionTestCase(wcsbase.WCS20GetCoverageMixIn, testbase.RasdamanTestCaseMixIn, testbase.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
+#    def getRequest(self):
+#        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced_rasdaman&format=image/tiff&mediatype=multipart/related&subset=x(100,200)&subset=y(200,300)&resolution=x(0.1)&resolution=y(0.1)"
+#        return (params, "kvp")
 
 class WCS20GetCoverageRasdamanMultipartDatasetRangeSubsetTestCase(wcsbase.WCS20GetCoverageMixIn, testbase.RasdamanTestCaseMixIn, testbase.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
     def getRequest(self):
@@ -1137,6 +1146,86 @@ class WCS20PostGetCoverageRangeSubsetMultipartDatasetTestCase(wcsbase.WCS20GetCo
           <wcs:mediaType>multipart/related</wcs:mediaType>
         </wcs:GetCoverage>"""
         return (params, "xml")
+
+
+class WCS20PostGetCoverageScaleSizeMultipartDatasetTestCase(wcsbase.WCS20GetCoverageMixIn, testbase.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
+    def getRequest(self):
+        params = """<wcs:GetCoverage service="WCS" version="2.0.1"
+           xmlns:wcs="http://www.opengis.net/wcs/2.0"
+           xmlns:scal="http://www.opengis.net/wcs/scaling/1.0">
+          <wcs:Extension>
+            <scal:ScaleToSize>
+              <scal:TargetAxisSize>
+                <scal:axis>x</scal:axis>
+                <scal:targetSize>50</scal:targetSize>
+              </scal:TargetAxisSize>
+              <scal:TargetAxisSize>
+                <scal:axis>y</scal:axis>
+                <scal:targetSize>50</scal:targetSize>
+              </scal:TargetAxisSize>
+            </scal:ScaleToSize>
+          </wcs:Extension>
+          <wcs:CoverageId>MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed</wcs:CoverageId>
+          <wcs:format>image/tiff</wcs:format>
+          <wcs:mediaType>multipart/related</wcs:mediaType>
+        </wcs:GetCoverage>"""
+        return (params, "xml")
+
+
+class WCS20PostGetCoverageScaleExtentMultipartDatasetTestCase(wcsbase.WCS20GetCoverageMixIn, testbase.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
+    def getRequest(self):
+        params = """<wcs:GetCoverage service="WCS" version="2.0.1"
+           xmlns:wcs="http://www.opengis.net/wcs/2.0"
+           xmlns:scal="http://www.opengis.net/wcs/scaling/1.0">
+          <wcs:Extension>
+            <scal:ScaleToExtent>
+              <scal:TargetAxisExtent>
+                <scal:axis>x</scal:axis>
+                <scal:low>50</scal:low>
+                <scal:high>100</scal:high>
+              </scal:TargetAxisExtent>
+              <scal:TargetAxisExtent>
+                <scal:axis>y</scal:axis>
+                <scal:low>50</scal:low>
+                <scal:high>100</scal:high>
+              </scal:TargetAxisExtent>
+            </scal:ScaleToExtent>
+          </wcs:Extension>
+          <wcs:CoverageId>MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed</wcs:CoverageId>
+          <wcs:format>image/tiff</wcs:format>
+          <wcs:mediaType>multipart/related</wcs:mediaType>
+        </wcs:GetCoverage>"""
+        return (params, "xml")
+
+
+class WCS20PostGetCoverageInterpolationMultipartDatasetTestCase(wcsbase.WCS20GetCoverageMixIn, testbase.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
+    def getRequest(self):
+        params = """<wcs:GetCoverage service="WCS" version="2.0.1"
+           xmlns:wcs="http://www.opengis.net/wcs/2.0"
+           xmlns:int="http://www.opengis.net/wcs/interpolation/1.0"
+           xmlns:crs="http://www.opengis.net/wcs/crs/1.0">
+          <wcs:Extension>
+            <int:Interpolation>
+              <int:globalInterpolation>http://www.opengis.net/def/interpolation/OGC/1/bilinear</int:globalInterpolation>
+            </int:Interpolation>
+            <crs:subsettingCrs>http://www.opengis.net/def/crs/EPSG/0/4326</crs:subsettingCrs>
+          </wcs:Extension>
+          <wcs:CoverageId>MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed</wcs:CoverageId>
+          <wcs:DimensionTrim>
+            <wcs:Dimension>Long</wcs:Dimension>
+            <wcs:TrimLow>20</wcs:TrimLow>
+            <wcs:TrimHigh>22</wcs:TrimHigh>
+          </wcs:DimensionTrim>
+          <wcs:DimensionTrim>
+            <wcs:Dimension>Lat</wcs:Dimension>
+            <wcs:TrimLow>36</wcs:TrimLow>
+            <wcs:TrimHigh>38</wcs:TrimHigh>
+          </wcs:DimensionTrim>
+          <wcs:format>image/tiff</wcs:format>
+          <wcs:mediaType>multipart/related</wcs:mediaType>
+        </wcs:GetCoverage>"""
+        return (params, "xml")
+
 
 # WCS 2.0 GetCoverage GeoTIFF 
 
