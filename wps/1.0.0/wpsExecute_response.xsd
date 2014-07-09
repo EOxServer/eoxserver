@@ -58,7 +58,7 @@
 							</annotation>
 							<complexType>
 								<sequence>
-									<element name="Output" type="wps:OutputDataType" maxOccurs="unbounded">
+									<element name="Output" type="wps:OutputDataType" minOccurs="0" maxOccurs="unbounded">
 										<annotation>
 											<documentation>Unordered list of values of all the outputs produced by this process. It is not necessary to include an output until the Status is ProcessSucceeded. </documentation>
 										</annotation>
@@ -87,7 +87,7 @@
 			<documentation>Definition of a format, encoding,  schema, and unit-of-measure for an output to be returned from a process. </documentation>
 		</annotation>
 		<sequence>
-			<element name="Output" type="wps:DocumentOutputDefinitionType" maxOccurs="unbounded">
+			<element name="Output" type="wps:DocumentOutputDefinitionType" minOccurs="0" maxOccurs="unbounded">
 				<annotation>
 					<documentation>Output definition as provided in the execute request </documentation>
 				</annotation>
