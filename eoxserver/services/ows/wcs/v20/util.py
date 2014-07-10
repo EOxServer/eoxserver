@@ -34,7 +34,7 @@ from lxml.builder import ElementMaker
 
 from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap, ns_xsi
 from eoxserver.core.util.timetools import parse_iso8601
-from eoxserver.services.subset import Trim, Slice, is_temporal
+from eoxserver.services.subset import Trim, Slice, is_temporal, all_axes
 from eoxserver.services.gml.v32.encoders import (
     ns_gml, ns_gmlcov, ns_om, ns_eop, GML, GMLCOV, OM, EOP
 )
@@ -42,7 +42,8 @@ from eoxserver.services.ows.common.v20.encoders import ns_xlink, ns_ows, OWS
 from eoxserver.services.exceptions import (
     InvalidSubsettingException, InvalidAxisLabelException, 
     NoSuchFieldException, InvalidFieldSequenceException,
-    InterpolationMethodNotSupportedException
+    InterpolationMethodNotSupportedException, InvalidScaleFactorException,
+    InvalidScaleExtentException, ScaleAxisUndefinedException
 )
 
 
@@ -51,14 +52,16 @@ ns_ogc = NameSpace("http://www.opengis.net/ogc", "ogc")
 ns_wcs = NameSpace("http://www.opengis.net/wcs/2.0", "wcs")
 ns_crs = NameSpace("http://www.opengis.net/wcs/crs/1.0", "crs")
 ns_rsub = NameSpace("http://www.opengis.net/wcs/range-subsetting/1.0", "rsub")
-ns_eowcs = NameSpace("http://www.opengis.net/wcseo/1.0", "wcseo", "http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd")
+ns_eowcs = NameSpace("http://www.opengis.net/wcseo/1.0", "wcseo", 
+                     "http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd")
 ns_swe = NameSpace("http://www.opengis.net/swe/2.0", "swe")
 ns_int = NameSpace("http://www.opengis.net/wcs/interpolation/1.0", "int")
+ns_scal = NameSpace("http://www.opengis.net/wcs/scaling/1.0", "scal")
 
 # namespace map
 nsmap = NameSpaceMap(
     ns_xlink, ns_ogc, ns_ows, ns_gml, ns_gmlcov, ns_wcs, ns_crs, ns_rsub, 
-    ns_eowcs, ns_om, ns_eop, ns_swe, ns_int
+    ns_eowcs, ns_om, ns_eop, ns_swe, ns_int, ns_scal
 )
 
 # Element factories
@@ -70,25 +73,13 @@ SWE = ElementMaker(namespace=ns_swe.uri, nsmap=nsmap)
 INT = ElementMaker(namespace=ns_int.uri, nsmap=nsmap) 
 
 
-subset_re = re.compile(r'(\w+)\(([^,]*)(,([^)]*))?\)')
-size_re = re.compile(r'(\w+)\(([^)]*)\)')
-resolution_re = re.compile(r'(\w+)\(([^)]*)\)')
-
-
-class Size(object):
-    def __init__(self, axis, value):
-        self.axis = axis
-        self.value = int(value)
-
-
-class Resolution(object):
-    def __init__(self, axis, value):
-        self.axis = axis
-        self.value = float(value)
+SUBSET_RE = re.compile(r'(\w+)\(([^,]*)(,([^)]*))?\)')
+SCALEAXIS_RE = re.compile(r'(\w+)\(([^)]*)\)')
+SCALESIZE_RE = SCALEAXIS_RE
+SCALEEXTENT_RE = re.compile(r'(\w+)\(([^:]*):([^)]*)\)')
 
 
 class RangeSubset(list):
-
     def get_band_indices(self, range_type, offset=0):
         current_idx = -1
         all_bands = range_type.cached_bands[:]
@@ -125,6 +116,37 @@ class RangeSubset(list):
         raise NoSuchFieldException("Field '%s' does not exist." % name, name)
 
 
+class Scale(object):
+    """ Abstract base class for all Scaling operations.
+    """
+    def __init__(self, axis):
+        self.axis = axis
+
+
+class ScaleAxis(Scale):
+    """ Scale a single axis by a specific value.
+    """
+    def __init__(self, axis, scale):
+        super(ScaleAxis, self).__init__(axis)
+        self.scale = scale
+
+
+class ScaleSize(Scale):
+    """ Scale a single axis to a specific size.
+    """
+    def __init__(self, axis, size):
+        super(ScaleSize, self).__init__(axis)
+        self.size = size
+
+
+class ScaleExtent(Scale):
+    """ Scale a single axis to a specific extent.
+    """
+    def __init__(self, axis, low, high):
+        super(ScaleExtent, self).__init__(axis)
+        self.low = low
+        self.high = high
+
 
 class SectionsMixIn(object):
     """ Mix-in for request decoders that use sections.
@@ -146,14 +168,12 @@ class SectionsMixIn(object):
         return False
 
 
-
 def parse_subset_kvp(string):
     """ Parse one subset from the WCS 2.0 KVP notation.
     """
 
     try:
-
-        match = subset_re.match(string)
+        match = SUBSET_RE.match(string)
         if not match:
             raise Exception("Could not parse input subset string.")
 
@@ -172,28 +192,6 @@ def parse_subset_kvp(string):
         raise InvalidSubsettingException(str(e))
 
 
-def parse_size_kvp(string):
-    """ Parses a size from the given string.
-    """
-
-    match = size_re.match(string)
-    if not match:
-        raise ValueError("Invalid size parameter given.")
-
-    return Size(match.group(1), match.group(2))
-
-
-def parse_resolution_kvp(string):
-    """ Parses a resolution from the given string.
-    """
-
-    match = resolution_re.match(string)
-    if not match:
-        raise ValueError("Invalid resolution parameter given.")
-
-    return Resolution(match.group(1), match.group(2))
-
-
 def parse_range_subset_kvp(string):
     """ Parse a rangesubset structure from the WCS 2.0 KVP notation.
     """
@@ -206,6 +204,67 @@ def parse_range_subset_kvp(string):
             rangesubset.append(item)
 
     return rangesubset
+
+
+def parse_scaleaxis_kvp(string):
+    """ Parses the KVP notation of a single scale axis.
+    """
+
+    match = SCALEAXIS_RE.match(string)
+    if not match:
+        raise Exception("Could not parse input scale axis string.")
+
+    axis = match.group(1)
+    if axis not in all_axes:
+        raise ScaleAxisUndefinedException(axis)
+    try:
+        value = float(match.group(2))
+    except ValueError:
+        raise InvalidScaleFactorException(match.group(2))
+
+    return ScaleAxis(axis, value)
+
+
+def parse_scalesize_kvp(string):
+    """ Parses the KVP notation of a single scale size.
+    """
+
+    match = SCALESIZE_RE.match(string)
+    if not match:
+        raise Exception("Could not parse input scale size string.")
+
+    axis = match.group(1)
+    if axis not in all_axes:
+        raise ScaleAxisUndefinedException(axis)
+    try:
+        value = int(match.group(2))
+    except ValueError:
+        raise InvalidScaleFactorException(match.group(2))
+
+    return ScaleSize(axis, value)
+
+
+def parse_scaleextent_kvp(string):
+    """ Parses the KVP notation of a single scale extent.
+    """
+
+    match = SCALEEXTENT_RE.match(string)
+    if not match:
+        raise Exception("Could not parse input scale extent string.")
+
+    axis = match.group(1)
+    if axis not in all_axes:
+        raise ScaleAxisUndefinedException(axis)
+    try:
+        low = int(match.group(2))
+        high = int(match.group(3))
+    except ValueError:
+        raise InvalidScaleFactorException(match.group(3))
+
+    if low >= high:
+        raise InvalidScaleExtentException(low, high)
+
+    return ScaleExtent(axis, low, high)
 
 
 def parse_subset_xml(elem):
@@ -271,6 +330,59 @@ def parse_range_subset_xml(elem):
     return rangesubset
 
 
+def parse_scaleaxis_xml(elem):
+    """ Parses the XML notation of a single scale axis.
+    """
+
+    axis = elem.findtext(ns_scal("axis"))
+    if axis not in all_axes:
+        raise ScaleAxisUndefinedException(axis)
+    try:
+        raw = elem.findtext(ns_scal("scaleFactor"))
+        value = float(raw)
+    except ValueError:
+        InvalidScaleFactorException(raw)
+
+    return ScaleAxis(axis, value)
+
+
+def parse_scalesize_xml(elem):
+    """ Parses the XML notation of a single scale size.
+    """
+
+    axis = elem.findtext(ns_scal("axis"))
+    if axis not in all_axes:
+        raise ScaleAxisUndefinedException(axis)
+    try:
+        raw = elem.findtext(ns_scal("targetSize"))
+        value = int(raw)
+    except ValueError:
+        InvalidScaleFactorException(raw)
+
+    return ScaleSize(axis, value)
+
+
+def parse_scaleextent_xml(elem):
+    """ Parses the XML notation of a single scale extent.
+    """
+
+    axis = elem.findtext(ns_scal("axis"))
+    if axis not in all_axes:
+        raise ScaleAxisUndefinedException(axis)
+    try:
+        raw_low = elem.findtext(ns_scal("low"))
+        raw_high = elem.findtext(ns_scal("high"))
+        low = int(raw_low)
+        high = int(raw_high)
+    except ValueError:
+        InvalidScaleFactorException(raw_high)
+
+    if low >= high:
+        raise InvalidScaleExtentException(low, high)
+
+    return ScaleExtent(axis, low, high)
+
+
 def float_or_star(value):
     """ Parses a string value that is either a floating point value or the '*'
         character. Raises a `ValueError` if no float could be parsed.
@@ -289,7 +401,9 @@ def parse_quoted_temporal(value):
         return None
 
     if not value[0] == '"' and not value[-1] == '"':
-        raise ValueError("Temporal value needs to be quoted with double quotes.")
+        raise ValueError(
+            "Temporal value needs to be quoted with double quotes."
+        )
 
     return parse_iso8601(value[1:-1])
 

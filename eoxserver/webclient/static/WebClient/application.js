@@ -116,7 +116,9 @@ namespace("WebClient").Application = (function() {
                 el: $("#div-main"),
                 dtModel: this.dtModel,
                 bboxModel: this.bboxModel,
-                capsModel: model
+                capsModel: model,
+                owsUrl: this.owsUrl,
+                eoid: this.eoid
             });
 
             this.mapView.render();

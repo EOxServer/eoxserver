@@ -40,6 +40,9 @@ from eoxserver.resources.coverages.formats import getFormatRegistry
 from eoxserver.services.exceptions import NoSuchCoverageException
 from eoxserver.services.ows.wcs.interfaces import WCSCoverageRendererInterface
 from eoxserver.services.ows.wcs.v20.encoders import WCS20EOXMLEncoder
+from eoxserver.services.ows.wcs.v20.util import (
+    ScaleSize, ScaleExtent, ScaleAxis
+)
 from eoxserver.services.mapserver.interfaces import (
     ConnectorInterface, LayerFactoryInterface
 )
@@ -167,16 +170,9 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         try:
             connector.connect(coverage, data_items, layer)
             # create request object and dispatch it against the map
-            request = ms.create_request(self.translate_params(params))
-            rangesubset = getattr(params, "rangesubset", None)
-            if rangesubset:
-                request.setParameter(
-                    "rangesubset", 
-                    ",".join(
-                        map(str, rangesubset.get_band_indices(range_type, 1))
-                    )
-                )
-
+            request = ms.create_request(
+                self.translate_params(params, range_type)
+            )
             request.setParameter("format", mime_type)
             raw_result = ms.dispatch(map_, request)
 
@@ -214,7 +210,7 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         # "default" response
         return result_set
 
-    def translate_params(self, params):
+    def translate_params(self, params, range_type):
         """ "Translate" parameters to be understandable by mapserver.
         """
         if params.version.startswith("2.0"):
@@ -230,6 +226,47 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
 
                 else:
                     yield key, value
+
+            rangesubset = params.rangesubset
+            if rangesubset:
+                yield "rangesubset", ",".join(
+                    map(str, rangesubset.get_band_indices(range_type, 1))
+                )
+
+            # TODO: this only works in newer MapServer implementations 
+            # (since 6.4?).
+            SCALE_AVAILABLE = ms.msGetVersionInt() > 60401
+            scalefactor = params.scalefactor
+            if scalefactor is not None:
+                if SCALE_AVAILABLE:
+                    yield "scalefactor", str(scalefactor)
+                else:
+                    raise RenderException(
+                        "'ScaleFactor' is not supported by MapServer in the "
+                        "current version.", "scalefactor"
+                    )
+
+
+            for scale in params.scales:
+                scaleaxes = []
+                if isinstance(scale, ScaleSize):
+                    yield "size", "%s(%d)" % (scale.axis, scale.size)
+                elif isinstance(scale, ScaleExtent):
+                    yield "size", "%s(%d)" % (scale.axis, scale.high-scale.low)
+                elif isinstance(scale, ScaleAxis):
+                    if SCALE_AVAILABLE:
+                        scaleaxes.append(scale)
+                    else:
+                        raise RenderException(
+                            "'ScaleAxes' is not supported by MapServer in the "
+                            "current version.", "scaleaxes"
+                        )
+
+                if scaleaxes:
+                    yield "scaleaxes", ",".join(
+                        "%s(%f)" % (scale.axis, scale.value) 
+                        for scale in scaleaxes
+                    )
 
         else:
             for key, value in params:

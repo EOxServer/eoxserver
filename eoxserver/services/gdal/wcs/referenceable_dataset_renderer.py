@@ -35,6 +35,8 @@ import logging
 from django.contrib.gis.geos import GEOSGeometry
 
 from eoxserver.core import Component, implements
+from eoxserver.core.config import get_eoxserver_config
+from eoxserver.core.decoders import config
 from eoxserver.core.util.rect import Rect
 from eoxserver.backends.access import connect
 from eoxserver.contrib import gdal, osr
@@ -93,6 +95,18 @@ class GDALReferenceableDatasetRenderer(Component):
         if not frmt:
             raise RenderException("No format specified.", "format")
 
+        if params.scalefactor is not None or params.scales:
+            raise RenderException(
+                "ReferenceableDataset cannot be scaled.",
+                "scalefactor" if params.scalefactor is not None else "scale"
+            )
+
+        maxsize = WCSConfigReader(get_eoxserver_config()).maxsize
+        if maxsize > dst_rect.size_x or maxsize > dst_rect.size_y:
+            raise RenderException(
+                "Requested image size is too large to be processed.",
+                "size"
+            )
 
         # perform subsetting either with or without rangesubsetting
         subsetted_ds = self.perform_subset(
@@ -292,3 +306,8 @@ def _get_gtiff_options(compression=None, jpeg_quality=None,
             yield ("BLOCKXSIZE", str(tilewidth))
         if tileheight is not None:
             yield ("BLOCKYSIZE", str(tileheight))
+
+
+class WCSConfigReader(config.Reader):
+    section = "services.ows.wcs"
+    maxsize = config.Option(type=int, default=None)

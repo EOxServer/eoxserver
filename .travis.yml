@@ -35,7 +35,7 @@ install:
   - export XML_CATALOG_FILES="`pwd`/schemas/catalog.xml"
   - cd autotest
   - "sed -e 's/#binary_raster_comparison_enabled=false/binary_raster_comparison_enabled=false/' -i autotest/conf/eoxserver.conf"
-  - 'echo "disabled_tests=WCS20GetCoverageSubsetEPSG4326ResolutionInvalidAxisDatasetFaultTestCase,WCS20GetCoverageReferenceableDatasetGeogCRSSubsetTestCase,WCS20GetCoverageReferenceableDatasetGeogCRSSubsetExceedsExtentTestCase,WCS20GetCoverageOutputCRSotherUoMDatasetTestCase,WCS20GetCoverageJPEG2000TestCase,WCS20DescribeEOCoverageSetIncorrectSpatialSubsetFaultTestCase,WCS10DescribeCoverageMosaicTestCase,WCS10DescribeCoverageDatasetTestCase" >> autotest/conf/eoxserver.conf'
+  - 'echo "disabled_tests=WCS20GetCoverageSubsetEPSG4326ResolutionInvalidAxisDatasetFaultTestCase,WCS20GetCoverageReferenceableDatasetGeogCRSSubsetTestCase,WCS20GetCoverageReferenceableDatasetGeogCRSSubsetExceedsExtentTestCase,WCS20GetCoverageOutputCRSotherUoMDatasetTestCase,WCS20GetCoverageJPEG2000TestCase,WCS20DescribeEOCoverageSetIncorrectSpatialSubsetFaultTestCase,WCS10DescribeCoverageMosaicTestCase,WCS10DescribeCoverageDatasetTestCase,WPS10ExecuteComplexDataTIFBase64InMemTestCase" >> autotest/conf/eoxserver.conf'
 script:
   - python manage.py test core -v2
   - python manage.py test backends -v2
