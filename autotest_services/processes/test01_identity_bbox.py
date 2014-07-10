@@ -67,7 +67,7 @@ class TestProcess01(Component):
         )),
     ]
     outputs = [
-        ("output00", BoundingBoxData("TC01:output00")),
+        ("output00", BoundingBoxData("TC01:output00", crss=(4326, 0))),
     ]
 
     @staticmethod
