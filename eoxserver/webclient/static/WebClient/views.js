@@ -295,7 +295,9 @@ namespace("WebClient").Views = (function() {
             // set up subviews
 
             this.timeSliderView = new TimeSliderView({
-                model: this.dtModel
+                model: this.dtModel,
+                url: options.owsUrl,
+                eoid: options.eoid
             });
 
             /*this.dateSliderView = new DateSliderView({
@@ -361,7 +363,7 @@ namespace("WebClient").Views = (function() {
 
             // render subviews
 
-            this.timeSliderView.setElement(this.$("#slider"));
+            this.timeSliderView.setElement($("#slider"));
             this.dtSelectionView.setElement(this.$("#frg-date"));
             this.bboxSelectionView.setElement(this.$("#frg-bbox"));
             this.serviceInfoView.setElement(this.$("#frg-info"));
@@ -391,10 +393,13 @@ namespace("WebClient").Views = (function() {
      * initialization and also sets values to it.
      */
 
-
     var TimeSliderView = Backbone.View.extend({
         events: {
             "selectionChanged": "onSelectionChanged"
+        },
+        initialize: function(options) {
+            this.url = options.url;
+            this.eoid = options.eoid;
         },
         render: function() {
             var model = this.model;
@@ -407,7 +412,15 @@ namespace("WebClient").Views = (function() {
                     start: model.get("begin"),
                     end: model.get("end")
                 },
-                datasets: []
+                datasets: [{
+                    id: this.eoid,
+                    color: "red",
+                    data: new TimeSlider.Plugin.EOWCS({
+                        url: this.url,
+                        eoid: this.eoid, 
+                        dataset: this.eoid
+                    })
+                }]
             });
 
         },
@@ -686,9 +699,11 @@ namespace("WebClient").Views = (function() {
         onBBoxChange: function() {
             var $inputs = this.$inputs;
             if (this.model.get("isSet")) {
-                _.each(this.model.get("values"), function(v, i) {
-                    $($inputs[i]).val(v);
-                });
+                var v = this.model.get("values");
+                this.$("#minx").val(v[0]);
+                this.$("#miny").val(v[1]);
+                this.$("#maxx").val(v[2]);
+                this.$("#maxy").val(v[3]);
             }
         },
         onBBoxSelectStop: function() {

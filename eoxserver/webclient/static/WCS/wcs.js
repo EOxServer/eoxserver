@@ -34,7 +34,6 @@
 		return {
 			describeEOCoverageSetURL: function (baseurl, eoid, params) {
 				params = params || {};
-				subsetCRS = params.subsetCRS || "http://www.opengis.net/def/crs/EPSG/0/4326";
 				if (baseurl.charAt(baseurl.length-1) !== "?")
 					baseurl += "?";
 				baseurl += "service=wcs&version=2.0.0&request=describeeocoverageset&eoid=" + eoid;
@@ -44,11 +43,11 @@
 					params.subsetY = [params.bbox[1], params.bbox[3]];
 				}
 				if (params.subsetX) {
-					baseurl += "&subset=x," + subsetCRS + "("
+					baseurl += "&subset=x("
 							+ params.subsetX[0] + "," + params.subsetX[1] + ")";
 				}
 				if (params.subsetY) {
-					baseurl += "&subset=y," + subsetCRS + "("
+					baseurl += "&subset=y("
 							+ params.subsetY[0] + "," + params.subsetY[1] + ")";
 				}
 				
@@ -68,7 +67,6 @@
 			},
 			getCoverageURL: function(baseurl, coverageid, format, params) {
 				params = params || {};
-				subsetCRS = params.subsetCRS || "http://www.opengis.net/def/crs/EPSG/0/4326";
 				if (baseurl.charAt(baseurl.length-1) !== "?")
 					baseurl += "?";
 				baseurl += "service=wcs&version=2.0.0&request=getcoverage";
@@ -79,10 +77,10 @@
 					params.subsetY = [params.bbox[1], params.bbox[3]];
 				}
 				if (params.subsetX)
-					baseurl += "&subset=x," + subsetCRS + "("
+					baseurl += "&subset=x("
 							+ params.subsetX[0] + "," + params.subsetX[1] + ")";
 				if (params.subsetY)
-					baseurl += "&subset=y," + subsetCRS + "("
+					baseurl += "&subset=y("
 							+ params.subsetY[0] + "," + params.subsetY[1] + ")";
 				if (params.size && !params.sizeX && !params.sizeY) {
 					params.sizeX = params.size[0];
@@ -108,6 +106,9 @@
 				if (params.rangeSubset)
 					baseurl += "&rangesubset=" + params.rangeSubset.join(",");
 				
+				if (params.subsetCRS) {
+					baseurl += "&subsettingCrs=" + params.subsetCRS;
+				}
 				return baseurl;
 			}
 		}
