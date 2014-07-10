@@ -1116,7 +1116,7 @@ namespace("WebClient").Views = (function() {
                 layers: this.model.get("coverageId") + "_bands",
                 transparent: true,
                 version: "1.3.0",
-                dim_band: initialBands
+                dim_bands: initialBands
             }, {
                 maxExtent: bounds,
                 displayOutsideMaxExtent: true,
@@ -1186,7 +1186,7 @@ namespace("WebClient").Views = (function() {
             var bands = this.rangeTypeModel.get("selectedBands");
             if(bands.length == 1 || bands.length == 3) {
                 this.layer.mergeNewParams({
-                    dim_band: bands.join(",")
+                    dim_bands: bands.join(",")
                 });
             }
         }
