@@ -154,9 +154,12 @@ class MapServerWMSBaseComponent(Component):
 
             if not coverage:
                 # add an empty layer to not produce errors out of bounds.
-                tmp_layer = ms.layerObj()
-                tmp_layer.name = (name + suffix) if suffix else name
-                layers_and_data_items = ((tmp_layer, ()),)
+                if name:
+                    tmp_layer = ms.layerObj()
+                    tmp_layer.name = (name + suffix) if suffix else name
+                    layers_and_data_items = ((tmp_layer, ()),)
+                else:
+                    layers_and_data_items = ()
 
             elif not factory:
                 tmp_layer = ms.layerObj()
