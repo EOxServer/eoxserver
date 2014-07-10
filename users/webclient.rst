@@ -108,7 +108,7 @@ is often a problem, especially when dealing with very large data files and
 different projections. In order to boost performance, you can use caching
 techniques. There are different software packages that provide caching
 for WMS services; in this context we present
-`MapCache <http://www.mapserver.org/trunk/mapcache/index.html>`_, an open
+`MapCache <http://www.mapserver.org/mapcache/index.html>`_, an open
 source tool that is part of the MapServer project.
 
 MapCache supports various tile-based interfaces including the OGC `Web Map
@@ -116,36 +116,11 @@ Tile Service <http://www.opengeospatial.org/standards/wmts>`_ (WMTS). We suggest
 to use WMTS for caching purposes, as it is a genuine OGC standard whereas the
 alternatives (WMS-C, TMS) are mere suggestions witout binding character.
 
-The MapCache sub-package provides an Apache2 HTTP Server module. In order to
-install it you must download the latest trunk version of MapServer and change
-to the ``mapcache`` subdirectory. There you can build and install the software
-in the common way::
-
-  $ ./configure
-  $ make
-  $ sudo make install
-  
-For comprehensive installation instructions and alternative setups see the
-`MapCache Installation and Configuration
-<http://www.mapserver.org/trunk/mapcache/install.html>`_
-documentation.
-
-Once you have installed the module you can deploy a MapCache instance. Therefore
-you have to add something like the following to your Apache2 configuration::
-
-    <IfModule mapcache_module>
-       <Directory /path/to/directory>
-          Order Allow,Deny
-          Allow from all
-       </Directory>
-       MapCacheAlias /mapcache "/path/to/directory/mapcache.xml"
-    </IfModule>
-
 The XML file the ``MapCacheAlias`` directive points to contains the
 configuration of the cache. It specifies the services to be provided, the
 data sources, the provided layers, how they are cut into tiles and many other
 things. For a complete reference please refer to the `MapCache Configuration
-File Docs <http://http://www.mapserver.org/trunk/mapcache/config.html>`_.
+File Docs <http://www.mapserver.org/mapcache/config.html>`_.
 
 Specifically for EOxServer, the data source URL has to be set to the EOxServer
 OGC Web Services URL, usually something like
@@ -168,7 +143,7 @@ it is requested, but you can pre-seed the cache using the ``mapcache_seed``
 command. Once you have built MapCache, you can find this tool in the
 ``mapcache/src`` subdirectory of your MapServer directory. For a reference,
 see the `MapCache Seeder Docs
-<http://www.mapserver.org/trunk/mapcache/seed.html>`_.
+<http://www.mapserver.org/mapcache/seed.html>`_.
 
 Once you have set up a WMTS instance, you can set the EOxServer configuration
 parameters ``preview_service`` to ``wmts`` and ``preview_url`` to the URL your

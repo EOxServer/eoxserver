@@ -64,16 +64,13 @@ Especially for batch processing using the :ref:`ops_cli` may be preferable.
 Storage Backends
 ----------------
 
-EOxServer supports different kinds of data stores for coverage data:
+EOxServer supports different kinds of data stores for coverage data (additional 
+backends can be added as plugin):
 
 * as an image file stored on the local file system
-* as an image file stored on a remote FTP server
+* as an image file stored on a remote FTP or HTTP server
 * as a raster array in a `rasdaman <http://www.rasdaman.org>`_ database
 
-These different ways of storing data are called Storage Backends. Internally,
-EOxServer uses the term Location as an abstraction for the different ways
-access to the data is described. Each storage backend has its own type of
-Locations that is described in the following subsections.
 
 Local
 ~~~~~
@@ -113,6 +110,24 @@ password entries.
 The data is retrieved from the database using the rasdaman GDAL driver (see
 :doc:`install` for further information).
 
+
+Data Items
+----------
+
+A data item describes a single resource located on a storage, where the "local"
+storage (the local filesystem) is assumed if no other storage is defined. The
+path of a data item is always relative to its storage and might in some special
+cases have a specific meaning. This is defined in the Storage plugin that 
+handles the specific backend.
+
+Each data item has a semantic, which defines the actual usage of this data 
+item. This might be "metadata" for metadata files or "bands[1:3]" for raster 
+data. The usage of this field is really generic and depends on the context.
+
+The format of a data item has informative character of how it might be 
+interpreted. Use default MIME types here.
+
+
 .. _ops_coverages:
 
 Coverages
@@ -127,6 +142,11 @@ EOxServer coverages fall into three main categories:
 In addition there is the :ref:`ops_ds_series` type which corresponds to an
 inhomogeneous collection of coverages.
 
+Every coverage is a set of associated Data Items which define where the actual
+data of the coverage can be found.
+
+Additionally every coverage has associated EO Metadata, that defines the 
+acquisition time and the area of interest whithin the coverage.
 
 
 .. _ops_range_types:
@@ -174,18 +194,8 @@ data type.
 If you want to view other band combinations than the default ones, you can use
 the EO-WMS features implemented by EOxServer. For each coverage, an additional
 layers called ``<coverage id>_bands`` is provided for WMS 1.3. Using this
-layer and the ``DIM_BAND`` KVP parameter you can select another combination
+layer and the ``DIM_BANDS`` KVP parameter you can select another combination
 of bands (either 1 or 3 bands).
-
-.. _ops_eo_md:
-
-EO Metadata
-~~~~~~~~~~~
-
-Earth Observation (EO) metadata records are stored for each EO coverage
-and Dataset Series. They contain the acquisition begin and end time as well
-as the footprint of the coverage. The footprint is a polygon that describes the
-outlines of the area covered by the coverage.
 
 .. _ops_rect_ds:
 

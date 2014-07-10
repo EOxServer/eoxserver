@@ -225,6 +225,9 @@ EOxServer is deployed using the Python WSGI interface standard as any other
 The WSGI endpoint accepts HTTP requests passed from the web server and
 processes them synchronously. Each request is executed independently.
 
+In the `deployment git repository <https://github.com/EOxServer/deployment>`_ 
+we collect snippets for various deployment scenarios.
+
 In the following we present the way to deploy it using the `Apache2 Web Server
 <http://httpd.apache.org>`_ and its `mod_wsgi
 <http://code.google.com/p/modwsgi/>`_ extension module.

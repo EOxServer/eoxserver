@@ -52,77 +52,6 @@ listed.
 Mandatory. The ID (name) of your instance. This is used on several locations
 throughout EOxServer and is inserted into a number of service responses.
 
-::
-
-    logging_filename
-
-Mandatory. The value of this option shall be a valid path to an existing file
-where all logs made by EOxServer will be saved. The process running EOxServer
-needs write permissions to that file.
-
-::
-
-    logging_format
-
-The format used to write each log entry to the log file. Since EOxServer uses
-the standard library `logging <http://docs.python.org/library/logging.html>`_ 
-for all logging purposes, the value of this parameter has to adhere to the
-`logging format rules
-<http://docs.python.org/library/logging.html#logrecord-attributes>`_ of the
-module.
-
-::
-
-    logging_level
-
-This parameter determines which logging levels are to be inserted into the
-logfile. The possible values are (from lowest priority to highest): `DEBUG`,
-`INFO`, `WARNING`, `ERROR` and `CRITICAL` whereas `DEBUG` is the default. Only
-messages with at least this level are actually written to the logfile.
-
-
-[core.interfaces]
------------------
-
-::
-
-    runtime_validation_level
-
-The runtime validation level. Tells the core whether to include type checks at
-runtime. Possible values are 'trust', 'warn', 'fail'. Defaults to 'trust'.
-
-
-[core.ipc]
-----------
-
-In this section, options for controlling inter process communication will be
-added, once it is implemented.
-
-
-[core.registry]
----------------
-
-::
-
-    module_dirs
-
-This parameter is currently not used.
-
-::
-
-    modules
-
-Mandatory. A comma-separated list of modules that contain implementations of
-EOxServer interfaces. Use module identifiers as with normal Python `import
-statements
-<http://docs.python.org/reference/simple_stmts.html#the-import-statement>`_.
-
-::
-
-    system_modules
-
-This parameter is currently not used.
-
 
 [processing.gdal.reftools]
 --------------------------
@@ -164,6 +93,107 @@ the system. Needs to be in the following form:
 Mandatory. This parameter is the actual domain and path URL to the OWS services
 served with the EOxServer instance. This parameter is used in various contexts
 and is also included in several OWS service responses.
+
+
+[services.ows]
+--------------
+
+This section entails various service metadata settings which are embedded in 
+W*S GetCapabilities documents.
+
+::
+
+    update_sequence=20131219T132000Z
+
+::
+
+    name=EOxServer EO-WCS
+
+::
+
+    title=Test configuration of MapServer used to demonstrate EOxServer
+
+::
+
+    abstract=Test configuration of MapServer used to demonstrate EOxServer
+
+::
+
+    onlineresource=http://eoxserver.org
+
+::
+
+    keywords=<KEYWORDLIST>
+
+::
+
+    fees=None
+
+::
+
+    access_constraints=None
+
+::
+
+    provider_name=<CONTACTORGANIZATION>
+
+::
+
+    provider_site=<URL>
+
+::
+
+    individual_name=<CONTACTPERSON>
+
+::
+
+    position_name=<CONTACTPOSITION>
+
+::
+
+    phone_voice=<CONTACTVOICETELEPHONE>
+
+::
+
+    phone_facsimile=<CONTACTFACSIMILETELEPHONE>
+
+::
+
+    delivery_point=<ADDRESS>
+
+::
+
+    city=<CITY>
+
+::
+
+    administrative_area=<STATEORPROVINCE>
+
+::
+
+    postal_code=<POSTCODE>
+
+::
+
+    country=<COUNTRY>
+
+::
+
+    electronic_mail_address=<CONTACTELECTRONICMAILADDRESS>
+
+::
+
+    hours_of_service=<HOURSOFSERVICE>
+
+::
+
+    contact_instructions=<CONTACTINSTRUCTIONS>
+
+
+::
+
+    role=Service provider
+
 
 
 [services.ows.wms]
@@ -233,6 +263,15 @@ option accepts comma-separated list of MIME-type pairs.
 The MIME-types used for this option must be defined in the *Format Registry* (see
 ":ref:`FormatsConfiguration`").
     
+
+::
+
+    maxsize = 2048
+
+The maximum size for each dimension in WCS GetCoverage responses. All sizes 
+above will result in exception reports.
+
+
 .. _ConfigurationOptionsWCST11:
 
 [services.ows.wcst11]
