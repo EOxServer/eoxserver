@@ -27,7 +27,9 @@
 #-------------------------------------------------------------------------------
 
 from autotest_services import testbase
-from autotest_services.tests.wps.base import WPS10ExecuteMixIn
+from autotest_services.tests.wps.base import (
+    WPS10ExecuteMixIn, ContentTypeCheckMixIn,
+)
 
 #===============================================================================
 # WCS 1.0 GetCapabilities
@@ -169,45 +171,46 @@ class WPS10ExecuteLiteralDataKVPTestCase(WPS10ExecuteMixIn, testbase.XMLTestCase
         params = "service=WPS&version=1.0.0&request=Execute&identifier=TC00:identity:literal&DataInputs=input00=Some+text.%3BTC00%3Ainput03=123@uom=mm%3BTC00%3Ainput04=19.5@uom=C&ResponseDocument=TC00%3Aoutput03@uom=cm%3BTC00%3Aoutput04@uom=F&lineage=true"
         return (params, "kvp")
 
-#class WPS10ExecuteLiteralDataRawOutputTestCase(testbase.XMLTestCase):
-#    def getRequest(self):
-#        params = """<wps:Execute version="1.0.0" service="WPS"
-#        xmlns:wps="http://www.opengis.net/wps/1.0.0"
-#        xmlns:ows="http://www.opengis.net/ows/1.1">
-#          <ows:Identifier>TC00:identity:literal</ows:Identifier>
-#          <wps:DataInputs>
-#            <wps:Input>
-#              <ows:Identifier>input00</ows:Identifier>
-#              <wps:Data>
-#                <wps:LiteralData>Test string.</wps:LiteralData>
-#              </wps:Data>
-#            </wps:Input>
-#            <wps:Input>
-#              <ows:Identifier>TC00:input04</ows:Identifier>
-#              <wps:Data>
-#                <wps:LiteralData uom="C">15</wps:LiteralData>
-#              </wps:Data>
-#            </wps:Input>
-#          </wps:DataInputs>
-#          <wps:ResponseForm>
-#            <wps:RawDataOutput asReference="false" uom="F">
-#              <ows:Identifier>TC00:output04</ows:Identifier>
-#            </wps:RawDataOutput>
-#          </wps:ResponseForm>
-#        </wps:Execute>
-#        """
-#        # response: 59
-#        # Content-Type: text/plain; charset=utf-8
-#        return (params, "xml")
+class WPS10ExecuteLiteralDataRawOutputTestCase(ContentTypeCheckMixIn, testbase.PlainTextTestCase):
+    expectedContentType = "text/plain; charset=utf-8"
+    def getRequest(self):
+        params = """<wps:Execute version="1.0.0" service="WPS"
+        xmlns:wps="http://www.opengis.net/wps/1.0.0"
+        xmlns:ows="http://www.opengis.net/ows/1.1">
+          <ows:Identifier>TC00:identity:literal</ows:Identifier>
+          <wps:DataInputs>
+            <wps:Input>
+              <ows:Identifier>input00</ows:Identifier>
+              <wps:Data>
+                <wps:LiteralData>Test string.</wps:LiteralData>
+              </wps:Data>
+            </wps:Input>
+            <wps:Input>
+              <ows:Identifier>TC00:input04</ows:Identifier>
+              <wps:Data>
+                <wps:LiteralData uom="C">15</wps:LiteralData>
+              </wps:Data>
+            </wps:Input>
+          </wps:DataInputs>
+          <wps:ResponseForm>
+            <wps:RawDataOutput asReference="false" uom="F">
+              <ows:Identifier>TC00:output04</ows:Identifier>
+            </wps:RawDataOutput>
+          </wps:ResponseForm>
+        </wps:Execute>
+        """
+        # response: 59
+        return (params, "xml")
 
-#class WPS10ExecuteLiteralDataRawOutputTestCase(testbase.XMLTestCase):
-#    def getRequest(self):
-#        params =
-#        "http://192.168.56.18:8000/ows?service=WPS&version=1.0.0&request=Execute&identifier=TC00:identity:literal&DataInputs=input00=Some+text.%3BTC00%3Ainput04=19.5@uom=C&RawDataOutput=TC00%3Aoutput04@uom=F"
-#        # response: 67.1
-#        # Content-Type: text/plain; charset=utf-8
-#        return (params, "kvp")
+class WPS10ExecuteLiteralDataRawOutputKVPTestCase(ContentTypeCheckMixIn, testbase.PlainTextTestCase):
+    expectedContentType = "text/plain; charset=utf-8"
+    def getRequest(self):
+        params = "service=WPS&version=1.0.0&request=Execute&identifier=TC00:identity:literal&DataInputs=input00=Some+text.%3BTC00%3Ainput04=19.5@uom=C&RawDataOutput=TC00%3Aoutput04@uom=F"
+        # response: 67.1
+        return (params, "kvp")
 
+#TODO: Error - malformed XML request
+#TODO: Error - malformed KVP request
 #TODO: Error - invalid process identifier
 #TODO: Error - missing required input
 #TODO: Error - invalid input (identifier)
@@ -248,41 +251,44 @@ class WPS10ExecuteBoundingBoxKVPTestCase(WPS10ExecuteMixIn, testbase.XMLTestCase
         params = "service=WPS&version=1.0.0&request=Execute&identifier=TC01:identity:bbox&DataInputs=TC01:input00=0,1,2,3,urn:ogc:def:crs:EPSG::4326&lineage=true"
         return (params, "kvp")
 
-#class WPS10ExecuteLiteralDataRawOutputTestCase(testbase.XMLTestCase):
-#    def getRequest(self):
-#        params = """<wps:Execute version="1.0.0" service="WPS"
-#        xmlns:wps="http://www.opengis.net/wps/1.0.0"
-#        xmlns:ows="http://www.opengis.net/ows/1.1">
-#          <ows:Identifier>TC01:identity:bbox</ows:Identifier>
-#          <wps:DataInputs>
-#            <wps:Input>
-#              <ows:Identifier>TC01:input00</ows:Identifier>
-#              <wps:Data>
-#                <wps:BoundingBoxData crs="http://www.opengis.net/def/crs/EPSG/0/32661">
-#                  <ows:LowerCorner>0 1</ows:LowerCorner>
-#                  <ows:UpperCorner>2 3</ows:UpperCorner>
-#                </wps:BoundingBoxData>
-#              </wps:Data>
-#            </wps:Input>
-#          </wps:DataInputs>
-#          <wps:ResponseForm>
-#           <wps:RawDataOutput>
-#             <ows:Identifier>TC01:output00</ows:Identifier>
-#           </wps:RawDataOutput>
-#          </wps:ResponseForm>
-#        </wps:Execute>
-#        """
-#        # response: 0,1,2,3,http://www.opengis.net/def/crs/EPSG/0/32661
-#        # Content-Type: text/plain; charset=utf-8
-#        return (params, "xml")
+class WPS10ExecuteBoundingBoxRawOutputTestCase(ContentTypeCheckMixIn, testbase.PlainTextTestCase):
+    expectedContentType = "text/plain"
+    def getRequest(self):
+        params = """<wps:Execute version="1.0.0" service="WPS"
+        xmlns:wps="http://www.opengis.net/wps/1.0.0"
+        xmlns:ows="http://www.opengis.net/ows/1.1">
+          <ows:Identifier>TC01:identity:bbox</ows:Identifier>
+          <wps:DataInputs>
+            <wps:Input>
+              <ows:Identifier>TC01:input00</ows:Identifier>
+              <wps:Data>
+                <wps:BoundingBoxData crs="http://www.opengis.net/def/crs/EPSG/0/4326">
+                  <ows:LowerCorner>0 1</ows:LowerCorner>
+                  <ows:UpperCorner>2 3</ows:UpperCorner>
+                </wps:BoundingBoxData>
+              </wps:Data>
+            </wps:Input>
+          </wps:DataInputs>
+          <wps:ResponseForm>
+           <wps:RawDataOutput>
+             <ows:Identifier>TC01:output00</ows:Identifier>
+           </wps:RawDataOutput>
+          </wps:ResponseForm>
+        </wps:Execute>
+        """
+        # response: 0,1,2,3,http://www.opengis.net/def/crs/EPSG/0/4326
+        return (params, "xml")
 
 
-#class WPS10ExecuteLiteralDataRawOutputKVPTestCase(testbase.XMLTestCase):
-#    def getRequest(self):
-#        params = "service=WPS&version=1.0.0&request=Execute&identifier=TC01:identity:bbox&DataInputs=TC01:input00=0,1,2,3,ImageCRS&RawDataOutput=TC01:output00"
-#        # response: 0,1,2,3,ImageCRS
-#        # Content-Type: text/plain; charset=utf-8
-#        return (params, "xml")
+class WPS10ExecuteBoundingBoxRawOutputKVPTestCase(ContentTypeCheckMixIn, testbase.PlainTextTestCase):
+    expectedContentType = "text/plain"
+    def getRequest(self):
+        params = "service=WPS&version=1.0.0&request=Execute&identifier=TC01:identity:bbox&DataInputs=TC01:input00=0,1,2,3,ImageCRS&RawDataOutput=TC01:output00"
+        # response: 0,1,2,3,ImageCRS
+        return (params, "kvp")
+
+#TODO: Error - invalid input CRS
+#TODO: Error - invalid output CRS
 
 #===============================================================================
 # WCS 1.0 Execute - Complex Data Tests (text-based payload)
@@ -376,7 +382,102 @@ class WPS10ExecuteComplexDataXMLKVPTestCase(WPS10ExecuteMixIn, testbase.XMLTestC
         params = "service=WPS&version=1.0.0&request=Execute&identifier=TC02:identity:complex&DataInputs=TC02:input00=%3Ctest%3AtestXML+xmlns%3Atest%3D%22http%3A%2F%2Fxml.eox.at%2Ftest%22%3EP%C5%99%C3%ADli%C5%A1%20%C5%BElu%C5%A5ou%C4%8Dk%C3%BD%20k%C5%AF%C5%88%20%C3%BAp%C4%9Bl%20%C4%8F%C3%A1belsk%C3%A9%20%C3%B3dy.%3C%2Ftest%3AtestXML%3E@mimeType=text%2Fxml&ResponseDocument=TC02:output00@mimeType=text%2Fxml&lineage=true"
         return (params, "kvp")
 
-#TODO: test RAW responses
+
+class WPS10ExecuteComplexDataTextRawOutputTestCase(ContentTypeCheckMixIn, testbase.PlainTextTestCase):
+    expectedContentType = "text/plain; charset=utf-8"
+    def getRequest(self):
+        params = """<wps:Execute version="1.0.0" service="WPS"
+        xmlns:wps="http://www.opengis.net/wps/1.0.0"
+        xmlns:ows="http://www.opengis.net/ows/1.1">
+          <ows:Identifier>TC02:identity:complex</ows:Identifier>
+          <wps:DataInputs>
+            <wps:Input>
+              <ows:Identifier>TC02:input00</ows:Identifier>
+              <wps:Data>
+                <wps:ComplexData>Sample
+text
+complex
+payload.</wps:ComplexData>
+              </wps:Data>
+            </wps:Input>
+          </wps:DataInputs>
+          <wps:ResponseForm>
+            <wps:RawDataOutput>
+              <ows:Identifier>TC02:output00</ows:Identifier>
+            </wps:RawDataOutput>
+          </wps:ResponseForm>
+        </wps:Execute>
+        """
+        return (params, "xml")
+
+class WPS10ExecuteComplexDataJSONRawOutputTestCase(ContentTypeCheckMixIn, testbase.JSONTestCase):
+    expectedContentType = "application/json; charset=utf-8"
+    def getRequest(self):
+        params = """<wps:Execute version="1.0.0" service="WPS"
+        xmlns:wps="http://www.opengis.net/wps/1.0.0"
+        xmlns:ows="http://www.opengis.net/ows/1.1">
+          <ows:Identifier>TC02:identity:complex</ows:Identifier>
+          <wps:DataInputs>
+            <wps:Input>
+              <ows:Identifier>TC02:input00</ows:Identifier>
+              <wps:Data>
+                <wps:ComplexData mimeType="application/json">{"numbers":[1,2,3,1.23456789012345678901e-124],"string":"Hallo world!"}</wps:ComplexData>
+              </wps:Data>
+            </wps:Input>
+          </wps:DataInputs>
+          <wps:ResponseForm>
+            <wps:RawDataOutput mimeType="application/json">
+              <ows:Identifier>TC02:output00</ows:Identifier>
+            </wps:RawDataOutput>
+          </wps:ResponseForm>
+        </wps:Execute>
+        """
+        return (params, "xml")
+
+class WPS10ExecuteComplexDataXMLRawOutputTestCase(ContentTypeCheckMixIn, testbase.XMLNoValTestCase):
+    expectedContentType = "text/xml; charset=utf-8"
+    def getRequest(self):
+        params = """<wps:Execute version="1.0.0" service="WPS"
+        xmlns:wps="http://www.opengis.net/wps/1.0.0"
+        xmlns:ows="http://www.opengis.net/ows/1.1">
+          <ows:Identifier>TC02:identity:complex</ows:Identifier>
+          <wps:DataInputs>
+            <wps:Input>
+              <ows:Identifier>TC02:input00</ows:Identifier>
+              <wps:Data>
+                <wps:ComplexData mimeType="text/xml">
+                  <test:testXML xmlns:test="http://xml.eox.at/test" />
+                </wps:ComplexData>
+              </wps:Data>
+            </wps:Input>
+          </wps:DataInputs>
+          <wps:ResponseForm>
+           <wps:RawDataOutput mimeType="text/xml">
+             <ows:Identifier>TC02:output00</ows:Identifier>
+           </wps:RawDataOutput>
+          </wps:ResponseForm>
+        </wps:Execute>
+        """
+        return (params, "xml")
+
+
+class WPS10ExecuteComplexDataTextRawOutputKVPTestCase(ContentTypeCheckMixIn, testbase.PlainTextTestCase):
+    expectedContentType = "text/plain; charset=utf-8"
+    def getRequest(self):
+        params = "service=WPS&version=1.0.0&request=Execute&identifier=TC02:identity:complex&DataInputs=TC02:input00=P%C5%99%C3%ADli%C5%A1%20%C5%BElu%C5%A5ou%C4%8Dk%C3%BD%20k%C5%AF%C5%88%20%C3%BAp%C4%9Bl%20%C4%8F%C3%A1belsk%C3%A9%20%C3%B3dy.&RawDataOutput=TC02:output00"
+        return (params, "kvp")
+
+class WPS10ExecuteComplexDataJSONRawOutputKVPTestCase(ContentTypeCheckMixIn, testbase.JSONTestCase):
+    expectedContentType = "application/json; charset=utf-8"
+    def getRequest(self):
+        params = "service=WPS&version=1.0.0&request=Execute&identifier=TC02:identity:complex&DataInputs=TC02:input00={%22text%22:%22P%C5%99%C3%ADli%C5%A1%20%C5%BElu%C5%A5ou%C4%8Dk%C3%BD%20k%C5%AF%C5%88%20%C3%BAp%C4%9Bl%20%C4%8F%C3%A1belsk%C3%A9%20%C3%B3dy.%22}@mimeType=application%2Fjson&ResponseDocument=TC02:output00@mimeType=application%2Fjson&RawDataOutput=TC02:output00@mimeType=application%2Fjson"
+        return (params, "kvp")
+
+class WPS10ExecuteComplexDataXMLRawOutputKVPTestCase(ContentTypeCheckMixIn, testbase.XMLNoValTestCase):
+    expectedContentType = "text/xml; charset=utf-8"
+    def getRequest(self):
+        params = "service=WPS&version=1.0.0&request=Execute&identifier=TC02:identity:complex&DataInputs=TC02:input00=%3Ctest%3AtestXML+xmlns%3Atest%3D%22http%3A%2F%2Fxml.eox.at%2Ftest%22%3EP%C5%99%C3%ADli%C5%A1%20%C5%BElu%C5%A5ou%C4%8Dk%C3%BD%20k%C5%AF%C5%88%20%C3%BAp%C4%9Bl%20%C4%8F%C3%A1belsk%C3%A9%20%C3%B3dy.%3C%2Ftest%3AtestXML%3E@mimeType=text%2Fxml&RawDataOutput=TC02:output00@mimeType=text%2Fxml"
+        return (params, "kvp")
 
 #===============================================================================
 # WCS 1.0 Execute - Complex Data Tests (binary payload)
@@ -446,7 +547,48 @@ class WPS10ExecuteComplexDataTIFBase64InMemTestCase(WPS10ExecuteMixIn, testbase.
 
 class WPS10ExecuteComplexDataJPGBase64KVPTestCase(WPS10ExecuteMixIn, testbase.XMLTestCase):
     def getRequest(self):
-        params = "service=WPS&version=1.0.0&request=Execute&identifier=TC03:image_generator:complex&DataInputs=TC03:seed=0&ResponseDocument=TC03:output00@mimeType=image/jpeg@encoding=base64&lineage=true"
+        params = "service=WPS&version=1.0.0&request=Execute&identifier=TC03:image_generator:complex&DataInputs=TC03:seed=0&ResponseDocument=TC03:output00@mimeType=image%2Fjpeg@encoding=base64&lineage=true"
         return (params, "kvp")
 
-#TODO: test RAW responses
+class WPS10ExecuteComplexDataPNGRawOutputKVPTestCase(ContentTypeCheckMixIn, testbase.GDALDatasetTestCase):
+    expectedContentType = "image/png"
+    def getFileExtension(self, file_type):
+        return "png"
+    def getRequest(self):
+        params = "service=WPS&version=1.0.0&request=Execute&identifier=TC03:image_generator:complex&DataInputs=TC03:seed=0&RawDataOutput=TC03:output00"
+        return (params, "kvp")
+
+class WPS10ExecuteComplexDataTIFRawOutputKVPTestCase(ContentTypeCheckMixIn, testbase.GDALDatasetTestCase):
+    expectedContentType = "image/tiff"
+    def getFileExtension(self, file_type):
+        return "tif"
+    def getRequest(self):
+        params = "service=WPS&version=1.0.0&request=Execute&identifier=TC03:image_generator:complex&DataInputs=TC03:seed=0&RawDataOutput=TC03:output00@mimeType=image%2Ftiff"
+        return (params, "kvp")
+
+class WPS10ExecuteComplexDataJPGRawOutputTestCase(ContentTypeCheckMixIn, testbase.GDALDatasetTestCase):
+    expectedContentType = "image/jpeg"
+    def getFileExtension(self, file_type):
+        return "jpg"
+    def getRequest(self):
+        params = """<wps:Execute version="1.0.0" service="WPS"
+        xmlns:wps="http://www.opengis.net/wps/1.0.0"
+        xmlns:ows="http://www.opengis.net/ows/1.1">
+          <ows:Identifier>TC03:image_generator:complex</ows:Identifier>
+          <wps:DataInputs>
+            <wps:Input>
+              <ows:Identifier>TC03:seed</ows:Identifier>
+              <wps:Data>
+                <wps:LiteralData>0</wps:LiteralData>
+              </wps:Data>
+            </wps:Input>
+          </wps:DataInputs>
+          <wps:ResponseForm>
+           <wps:RawDataOutput mimeType="image/jpeg">
+             <ows:Identifier>TC03:output00</ows:Identifier>
+           </wps:RawDataOutput>
+          </wps:ResponseForm>
+        </wps:Execute>
+        """
+        return (params, "xml")
+

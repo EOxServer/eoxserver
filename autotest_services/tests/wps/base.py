@@ -49,3 +49,9 @@ class WPS10ExecuteMixIn(object):
 
         return etree.tostring(xml, **XML_OPTS)
 
+class ContentTypeCheckMixIn(object):
+    def testContentType(self):
+        if hasattr(self, 'expectedContentType'):
+            content_type = self.getResponseHeader('Content-Type')
+            self.assertEqual(self.expectedContentType, content_type)
+

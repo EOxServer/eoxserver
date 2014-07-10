@@ -191,7 +191,10 @@ class OWSTestCase(TestCase):
     
     def getResponseData(self):
         return self.response.content
-    
+
+    def getResponseHeader(self, key):
+        return self.response[key]
+
     def getExpectedFileDir(self):
         return os.path.join(root_dir, "expected")
     
@@ -279,7 +282,9 @@ class OWSTestCase(TestCase):
                 try:
                     gdal.Open(expected_path)
                 except RuntimeError:
-                    self.skipTest("Expeted response is not present")
+                    self.skipTest(
+                        "Expected response in '%s' is not present" % expected_path
+                    )
             
             if expected is None:
                 self.skipTest(
@@ -403,15 +408,25 @@ class ReferenceableGridCoverageTestCase(GDALDatasetTestCase):
         
         self.assert_(res_srs.IsSame(exp_srs))
 
-class XMLTestCase(OWSTestCase):
+class XMLNoValTestCase(OWSTestCase):
     """
-    Base class for test cases that expects XML output, which is parsed
-    and validated against a schema definition.
+    Base class for test cases that expects XML output. The XML is NOT validated
+    against a schema definition.
     """
     
     def getXMLData(self):
         return self.response.content
     
+    def testXMLComparison(self):
+        self._testXMLComparison()
+
+
+class XMLTestCase(XMLNoValTestCase):
+    """
+    Base class for test cases that expects XML output, which is parsed
+    and validated against a schema definition.
+    """
+
     def testValidate(self, XMLData=None):
         logger.info("Validating XML ...")
         
@@ -447,9 +462,7 @@ class XMLTestCase(OWSTestCase):
             schema.assertValid(doc)
         except etree.Error as e:
             self.fail(str(e))
-        
-    def testXMLComparison(self):
-        self._testXMLComparison()
+
 
 class SchematronTestMixIn(object): # requires to be mixed in with XMLTestCase
     """
@@ -531,6 +544,28 @@ class HTMLTestCase(OWSTestCase):
     
     def testBinaryComparisonHTML(self):
         self._testBinaryComparison("html")
+
+class PlainTextTestCase(OWSTestCase):
+    """
+    Plain text test cases expect to receive plain text.
+    """
+    def getFileExtension(self, file_type):
+        return "txt"
+
+    def testBinaryComparisonText(self):
+        self._testBinaryComparison("text", self.getResponseData())
+
+
+class JSONTestCase(OWSTestCase):
+    """
+    JSON test cases expect to receive JSON document.
+    """
+    def getFileExtension(self, file_type):
+        return "json"
+
+    def testBinaryComparisonJSON(self):
+        self._testBinaryComparison("text", self.getResponseData())
+
 
 class MultipartTestCase(XMLTestCase):
     """
