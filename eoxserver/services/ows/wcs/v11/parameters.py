@@ -67,9 +67,9 @@ class WCS11CoverageRenderParams(CoverageRenderParams):
     @property
     def subsets(self):
         return Subsets((
-            Trim("x", self._bbox[0], self._bbox[2], self._bbox[4]),
-            Trim("y", self._bbox[1], self._bbox[3], self._bbox[4]),
-        ))
+            Trim("x", self._bbox[0], self._bbox[2]),
+            Trim("y", self._bbox[1], self._bbox[3]),
+        ), crs=self._bbox[4])
 
 
     def __iter__(self):

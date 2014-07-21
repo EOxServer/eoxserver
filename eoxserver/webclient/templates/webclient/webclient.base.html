@@ -43,9 +43,11 @@
     <script src="{{STATIC_URL}}jquery/jquery.maskedinput.min.js"></script>
     <script src="{{STATIC_URL}}d3.min.js"></script>
     <script src="{{STATIC_URL}}d3.timeslider/d3.timeslider.min.js"></script>
+    <script src="{{STATIC_URL}}d3.timeslider/d3.timeslider.plugins.min.js"></script>
     <script src="{{STATIC_URL}}underscore/underscore.min.js"></script>
     <script src="{{STATIC_URL}}backbone/backbone.min.js"></script>
-    <script src="{{STATIC_URL}}libcoverage.js/libcoverage.complete.min.js" type="text/javascript"></script>
+    <script src="{{STATIC_URL}}libcoverage.js/libcoverage.min.js" type="text/javascript"></script>
+    <script src="{{STATIC_URL}}libcoverage.js/libcoverage.backbone.min.js" type="text/javascript"></script>
     <script src="{{STATIC_URL}}WebClient/templates.js" type="text/javascript"></script>
     <script src="{{STATIC_URL}}WebClient/models.js" type="text/javascript"></script>
     <script src="{{STATIC_URL}}WebClient/views.js" type="text/javascript"></script>
@@ -57,6 +59,7 @@
     {% block map %}<div id="div-map" style="position:absolute;top:0px;left:0px;padding:0;margin:0;height:100%;width:100%;min-height:450px;min-width:600px;z-index:1;"></div>{% endblock %}
     {% block main %}<div id="div-main"></div>{% endblock %}
     <div id="div-download"></div>
+    <div id="slider"></div>
     <div id="div-tooltip" class="ui-widget tooltip"><a></a></div>
     <div id="div-busy-indicator" class="ui-widget ui-widget-content ui-corner-all">
         <img src="{{STATIC_URL}}ajax-loader.gif"></img>
@@ -74,20 +77,6 @@
     <script type="text/javascript">
 
 $(document).ready(function() {
-    /*var timeRex = /([0-9]{1,2}):([0-9]{1,2})/, match;
-    var minDate = $.datepicker.parseDate("yy-mm-dd", "{{begin.date}}");
-    var maxDate = $.datepicker.parseDate("yy-mm-dd", "{{end.date}}");
-
-    match = timeRex.exec("{{begin.time}}");
-
-    minDate.setHours(match[1]);
-    minDate.setMinutes(match[2]);
-
-    match = timeRex.exec("{{end.time}}");
-    
-    maxDate.setHours(match[1]);
-    maxDate.setMinutes(match[2]);*/
-
     var minDate = new Date("{{begin}}");
     var maxDate = new Date("{{end}}");
 

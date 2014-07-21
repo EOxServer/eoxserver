@@ -30,17 +30,19 @@
 from os.path import splitext, abspath
 from datetime import datetime
 from uuid import uuid4
+import logging
 
 from django.contrib.gis.geos import GEOSGeometry
 
 from eoxserver.core import Component, implements
+from eoxserver.core.config import get_eoxserver_config
+from eoxserver.core.decoders import config
 from eoxserver.core.util.rect import Rect
 from eoxserver.backends.access import connect
 from eoxserver.contrib import gdal, osr
 from eoxserver.contrib.vrt import VRTBuilder
 from eoxserver.resources.coverages import models
 from eoxserver.services.ows.version import Version
-from eoxserver.services.subset import Subsets
 from eoxserver.services.result import ResultFile, ResultBuffer
 from eoxserver.services.ows.wcs.interfaces import WCSCoverageRendererInterface
 from eoxserver.services.ows.wcs.v20.encoders import WCS20EOXMLEncoder
@@ -48,6 +50,9 @@ from eoxserver.services.exceptions import (
     RenderException, OperationNotSupportedException
 )
 from eoxserver.processing.gdal import reftools
+
+
+logger = logging.getLogger(__name__)
 
 
 class GDALReferenceableDatasetRenderer(Component):
@@ -68,7 +73,7 @@ class GDALReferenceableDatasetRenderer(Component):
         data_items = coverage.data_items.filter(semantic__startswith="bands")
         range_type = coverage.range_type
 
-        subsets = Subsets(params.subsets)
+        subsets = params.subsets
 
         # GDAL source dataset. Either a single file dataset or a composed VRT 
         # dataset.
@@ -90,6 +95,18 @@ class GDALReferenceableDatasetRenderer(Component):
         if not frmt:
             raise RenderException("No format specified.", "format")
 
+        if params.scalefactor is not None or params.scales:
+            raise RenderException(
+                "ReferenceableDataset cannot be scaled.",
+                "scalefactor" if params.scalefactor is not None else "scale"
+            )
+
+        maxsize = WCSConfigReader(get_eoxserver_config()).maxsize
+        if maxsize > dst_rect.size_x or maxsize > dst_rect.size_y:
+            raise RenderException(
+                "Requested image size is too large to be processed.",
+                "size"
+            )
 
         # perform subsetting either with or without rangesubsetting
         subsetted_ds = self.perform_subset(
@@ -97,7 +114,9 @@ class GDALReferenceableDatasetRenderer(Component):
         )
 
         # encode the processed dataset and save it to the filesystem
-        out_ds, out_driver = self.encode(subsetted_ds, frmt)
+        out_ds, out_driver = self.encode(
+            subsetted_ds, frmt, getattr(params, "encoding_params", {})
+        )
 
         driver_metadata = out_driver.GetMetadata_Dict()
         mime_type = driver_metadata.get("DMD_MIMETYPE")
@@ -118,12 +137,12 @@ class GDALReferenceableDatasetRenderer(Component):
             
             if subsets.has_x and subsets.has_y:
                 footprint = GEOSGeometry(reftools.get_footprint_wkt(out_ds))
-                if not subsets.xy_srid:
+                if not subsets.srid:
                     extent = footprint.extent
                 else:
                     extent = subsets.xy_bbox
                 encoder_subset = (
-                    subsets.xy_srid, src_rect.size, extent, footprint
+                    subsets.srid, src_rect.size, extent, footprint
                 )
             else:
                 encoder_subset = None
@@ -179,7 +198,7 @@ class GDALReferenceableDatasetRenderer(Component):
             subset_rect = image_rect
 
         # pixel subset
-        elif subsets.xy_srid is None: # means "imageCRS"
+        elif subsets.srid is None: # means "imageCRS"
             minx, miny, maxx, maxy = subsets.xy_bbox
 
             minx = int(minx) if minx is not None else image_rect.offset_x
@@ -197,7 +216,7 @@ class GDALReferenceableDatasetRenderer(Component):
             options = reftools.suggest_transformer(dataset)
 
             subset_rect = reftools.rect_from_subset(
-                vrt.dataset, subsets.xy_srid, *subsets.xy_bbox, **options
+                vrt.dataset, subsets.srid, *subsets.xy_bbox, **options
             )
 
         # check whether or not the subsets intersect with the image
@@ -211,35 +230,22 @@ class GDALReferenceableDatasetRenderer(Component):
 
 
     def perform_subset(self, src_ds, range_type, subset_rect, dst_rect, 
-                       subset_bands=None):
+                       rangesubset=None):
         vrt = VRTBuilder(*subset_rect.size)
 
-        # list of band indices/names. defaults to all bands
-        subset_bands = subset_bands or xrange(len(range_type))
         input_bands = list(range_type)
 
-        for index, subset_band in enumerate(subset_bands, start=1):
-            # integer means band index. can be negative
-            if isinstance(subset_band, int):
-                # negative indices are relative to end
-                if subset_band < 0:
-                    subset_band = len(range_type) + subset_band
-            else:
-                # find the correct band by name/identifier
-                subset_band = index_of(input_bands,
-                    lambda band: (
-                        band.name == subset_band 
-                        or band.identifier == subset_band
-                    )
-                )
-                if subset_band is None:
-                    raise RenderException("Invalid range subset.", "subset")
+        # list of band indices/names. defaults to all bands
+        if rangesubset:
+            subset_bands = rangesubset.get_band_indices(range_type, 1)
+        else:
+            subset_bands = xrange(1, len(range_type) + 1)
 
-            # prepare and add a simple source for the band
-            input_band = input_bands[subset_band]
+        for dst_index, src_index in enumerate(subset_bands, start=1):
+            input_band = input_bands[src_index-1]
             vrt.add_band(input_band.data_type)
             vrt.add_simple_source(
-                index, src_ds, subset_band+1, subset_rect, dst_rect
+                dst_index, src_ds, src_index, subset_rect, dst_rect
             )
 
         vrt.copy_metadata(src_ds)
@@ -248,16 +254,16 @@ class GDALReferenceableDatasetRenderer(Component):
         return vrt.dataset
 
 
-    def encode(self, dataset, format):
-        #format, options = None
-        options = {}
-        options = [
-            ("%s=%s" % key, value) for key, value in (options or {}).items()
-        ]
+    def encode(self, dataset, frmt, encoding_params):
+        options = ()
+        if frmt == "image/tiff":
+            options = _get_gtiff_options(**encoding_params)
+
+        args = [ ("%s=%s" % key, value) for key, value in options ]
 
         path = "/tmp/%s" % uuid4().hex
         out_driver = gdal.GetDriverByName("GTiff")
-        return out_driver.CreateCopy(path, dataset, True, options), out_driver
+        return out_driver.CreateCopy(path, dataset, True, args), out_driver
 
 
 def index_of(iterable, predicate, default=None, start=1):
@@ -266,5 +272,42 @@ def index_of(iterable, predicate, default=None, start=1):
             return i
     return default
 
+
 def temp_vsimem_filename():
     return "/vsimem/%s" % uuid4().hex
+
+
+def _get_gtiff_options(compression=None, jpeg_quality=None, 
+                       predictor=None, interleave=None, tiling=False, 
+                       tilewidth=None, tileheight=None):
+
+    logger.info("Applying GeoTIFF parameters.")
+
+    if compression:
+        if compression.lower() == "huffman":
+            compression = "CCITTRLE"
+        yield ("COMPRESS", compression.upper())
+
+    if jpeg_quality is not None:
+        yield ("JPEG_QUALITY", str(jpeg_quality))
+
+    if predictor:
+        pr = ["NONE", "HORIZONTAL", "FLOATINGPOINT"].index(predictor.upper())
+        if pr == -1:
+            raise ValueError("Invalid compression predictor '%s'." % predictor)
+        yield ("PREDICTOR", str(pr + 1))
+
+    if interleave:
+        yield ("INTERLEAVE", interleave)
+
+    if tiling:
+        yield ("TILED", "YES")
+        if tilewidth is not None:
+            yield ("BLOCKXSIZE", str(tilewidth))
+        if tileheight is not None:
+            yield ("BLOCKYSIZE", str(tileheight))
+
+
+class WCSConfigReader(config.Reader):
+    section = "services.ows.wcs"
+    maxsize = config.Option(type=int, default=None)

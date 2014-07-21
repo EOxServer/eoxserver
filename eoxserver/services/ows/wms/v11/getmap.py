@@ -73,9 +73,9 @@ class WMS11GetMapHandler(Component):
         minx, miny, maxx, maxy = bbox
 
         subsets = Subsets((
-            Trim("x", minx, maxx, srs),
-            Trim("y", miny, maxy, srs),
-        ))
+            Trim("x", minx, maxx),
+            Trim("y", miny, maxy),
+        ), crs=srs)
         if time:
             subsets.append(time)
                 

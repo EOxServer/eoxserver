@@ -136,29 +136,30 @@ class ServiceComponent(Component):
 
 
     def query_exception_handler(self, request):
-        decoder = get_decoder(request)
-        handlers = self.exception_handlers
+        try:
+            decoder = get_decoder(request)
+            handlers = self.exception_handlers
+            handlers = sorted(
+                filter(
+                    partial(handler_supports_service, service=decoder.service), 
+                    self.exception_handlers
+                ),
+                key=lambda h: max(h.versions), reverse=True
+            )
 
-        handlers = sorted(
-            filter(
-                partial(handler_supports_service, service=decoder.service), 
-                self.exception_handlers
-            ),
-            key=lambda h: max(h.versions), reverse=True
-        )
-
-        # try to get the correctly versioned exception handler
-        if decoder.version:
-            for handler in handlers:
-                if decoder.version in handler.versions:
-                    return handler
-        else:
-            # return the exception handler with the highest version,
-            # if one is available
-            try:
+            # try to get the correctly versioned exception handler
+            if decoder.version:
+                for handler in handlers:
+                    if decoder.version in handler.versions:
+                        return handler
+            else:
+                # return the exception handler with the highest version,
+                # if one is available
                 return handlers[0]
-            except IndexError:
-                pass
+        except:
+            # swallow any exception here, because we *really* need a handler
+            # to correctly show the exception.
+            pass
 
         # last resort fallback is a plain OWS exception handler
         return OWS20ExceptionHandler()
