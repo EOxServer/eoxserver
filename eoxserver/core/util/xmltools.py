@@ -105,22 +105,19 @@ def parse(obj):
         to whatever ``lxml.etree.parse`` parses. Returns ``None`` if it could 
         not parse any XML.
     """
-
-    tree = None
-    if etree.iselement(obj) or isinstance(obj,etree._ElementTree): 
+    if etree.iselement(obj) or isinstance(obj, etree._ElementTree):
         return obj
     elif isinstance(obj, basestring):
         try:
-            tree = etree.fromstring(obj)
-        except Exception as e :
-            logger.debug("etree.fromstring(obj) failed! %s"%e)
+            return etree.fromstring(obj)
+        except Exception as exc:
+            logger.debug("etree.fromstring(obj) failed! %s", exc)
     else:
         try:
-            tree = etree.parse(obj)
-        except Exception as e :
-            logger.debug("etree.parse(obj) failed! %s"%e)
-
-    return tree
+            return etree.parse(obj)
+        except Exception as exc:
+            logger.debug("etree.parse(obj) failed! %s", exc)
+    return None
 
 
 ns_xsi = NameSpace("http://www.w3.org/2001/XMLSchema-instance", "xsi")
