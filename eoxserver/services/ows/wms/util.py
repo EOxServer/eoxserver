@@ -10,8 +10,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -28,6 +28,7 @@
 
 import logging
 
+from django.core.exceptions import ObjectDoesNotExist
 from eoxserver.resources.coverages import models
 from eoxserver.core.decoders import InvalidParameterException
 from eoxserver.core.util.timetools import parse_iso8601
@@ -36,33 +37,25 @@ from eoxserver.services.ows.wms.exceptions import LayerNotDefined
 
 logger = logging.getLogger(__name__)
 
-#-------------------------------------------------------------------------------
 
 def parse_bbox(string):
     try:
-        bbox = map(float, string.split(","))
+        bbox = tuple(float(v) for v in string.split(","))
     except ValueError:
         raise InvalidParameterException("Invalid 'BBOX' parameter.", "bbox")
-
-    try:
-        minx, miny, maxx, maxy = bbox
-    except ValueError:
-        raise InvalidParameterException(
-            "Wrong number of arguments for 'BBOX' parameter.", "bbox"
-        )
-
+    if len(bbox) != 4:
+        raise InvalidParameterException("Wrong number of arguments for 'BBOX'"
+                                        " parameter.", "bbox")
     return bbox
 
 
 def parse_time(string):
     items = string.split("/")
-
     if len(items) == 1:
         return Slice("t", parse_iso8601(items[0]))
     elif len(items) in (2, 3):
         # ignore resolution
         return Trim("t", parse_iso8601(items[0]), parse_iso8601(items[1]))
-
     raise InvalidParameterException("Invalid TIME parameter.", "time")
 
 
@@ -72,198 +65,145 @@ def int_or_str(string):
     except ValueError:
         return string
 
-#-------------------------------------------------------------------------------
 
 def lookup_layers(layers, subsets, suffixes=None):
-    """ Performs a layer lookup for the given layer names. Applies the given 
-        subsets and looks up all layers with the given suffixes. Returns a 
-        list of ``LayerSelection`` objects. 
+    """ Performs a layer lookup for the given layer names. Applies the given
+        subsets and looks up all layers with the given suffixes. Returns a
+        list of ``LayerSelection`` objects.
     """
-
     suffixes = suffixes or (None,)
-    logger.debug("Tested suffixes: %s"%str(suffixes))
+    logger.debug("Tested suffixes: %s", suffixes)
 
     # ------------------------------------------------------------------------
-    # local closures: 
+    # local closures:
 
-    def _lookup_eoobject( layer_name ): 
-        """ Search an EOObject matching the given layer name. """ 
-
+    def _lookup_eoobject(layer_name):
+        """ Search an EOObject matching the given layer name. """
         for suffix in suffixes:
-
-            if not suffix: # suffix is None or an empty string 
+            if not suffix:
                 identifier = layer_name
-
-            elif layer_name.endswith(suffix): # suffix matches the layer name
+            elif layer_name.endswith(suffix):
                 identifier = layer_name[:-len(suffix)]
-
-            else: # no match found 
+            else: # no match found
                 continue
-
-            # get an EO Object matching the identifier 
             eo_objects = list(models.EOObject.objects.filter(identifier=identifier))
+            if len(eo_objects) > 0:
+                return eo_objects[0], suffix
+        raise LayerNotDefined(layer_name)
 
-            # if a match is found get the object and terminate the search loop 
-            if len(eo_objects) > 0 : 
-                return eo_objects[0] , suffix 
-
-        raise InvalidParameterException(
-            "No such layer %s" % layer_name, "layers"
-        )
-
-    # ---------------------------------
-
-    def _get_wms_view( eo_object ): 
-        """ Get an EOObject used for the WMS view. If there is no WMS view 
-            object the closure returns the input object. 
-        """ 
-
-        # check whether the layer has a wms_view meta-data item  
-        try: 
-            md_item = eo_object.metadata_items.get(semantic="wms_view") 
+    def _get_wms_view(eo_object):
+        """ Get an EOObject used for the WMS view. If there is no WMS view
+            object the closure returns the input object.
+        """
+        try:
+            md_item = eo_object.metadata_items.get(semantic="wms_view")
             return models.EOObject.objects.get(identifier=md_item.value)
-
-        except models.MetadataItem.DoesNotExist : # no wms_view available 
-            # use the existing eo_object
+        except ObjectDoesNotExist:
             return eo_object
 
-        except models.EOObject.DoesNotExist : # wms_view is invalid 
-            # use the existing eo_object 
-            return eo_object
-
-    # ---------------------------------
-
-    def _get_alias( eo_object ):  
+    def _get_alias(eo_object):
         """ Get an EOObject alias, i.e., an identifier of the EOObject
-            the given EOOobject provides the WMS view to. 
-        """ 
-        try: 
-            
+            the given EOOobject provides the WMS view to.
+        """
+        try:
             return eo_object.metadata_items.get(semantic="wms_alias").value
+        except ObjectDoesNotExist:
+            return None
 
-        except models.MetadataItem.DoesNotExist : # wms_view is invalid 
-            # use the existing eo_object 
-            return None 
-        
-    # ---------------------------------
-
-    def _recursive_lookup( collection ): 
-        """ Search recursively through the nested collections 
+    def _recursive_lookup(collection):
+        """ Search recursively through the nested collections
             and find the relevant EOObjects."""
-
-        # get all objects held by this collection
-        eo_objects = models.EOObject.objects\
-            .filter( collections__in=[collection.pk] )\
-            .exclude( pk__in=used_ids )\
-            .order_by("begin_time", "end_time", "identifier")\
-            .prefetch_related('metadata_items')
-
-        # apply the subset filtering 
-        eo_objects = subsets.filter( eo_objects )
-
-        # iterate over the remaining EOObjects 
+        eo_objects = subsets.filter(models.EOObject.objects\
+                        .filter(collections__in=[collection.pk])\
+                        .exclude(pk__in=used_ids)\
+                        .order_by("begin_time", "end_time", "identifier")\
+                        .prefetch_related('metadata_items'))
         for eo_object in eo_objects:
-
-            used_ids.add( eo_object.pk )
-
-            if models.iscoverage( eo_object ):
-                selection.append( eo_object.cast(), _get_alias(eo_object) )
-
-            elif models.iscollection( eo_object ):
-                _recursive_lookup( eo_object )
-
+            used_ids.add(eo_object.pk)
+            if models.iscoverage(eo_object):
+                selection.append(eo_object.cast(), _get_alias(eo_object))
+            elif models.iscollection(eo_object):
+                _recursive_lookup(eo_object)
             else:
-                pass # TODO: Reporting of invalid EOObjects (?) 
-
+                pass # TODO: Reporting of invalid EOObjects (?)
 
     # ------------------------------------------------------------------------
 
-    selections = []  
+    selections = []
 
     # NOTE: The lookup is performed on a set of unique layer names. This has
     #       no effect on the rendering order of the layer as this is determined
     #       by the WMS request handled by the mapserver.
 
     for layer_name in set(layers):
-    
-        # get an EOObject and suffix matching the layer_name 
-        eoo_src, suffix = _lookup_eoobject( layer_name )
-    
-        # get EOObject holding the WMS view 
-        eoo_wms = _get_wms_view( eoo_src )
+        # get an EOObject and suffix matching the layer_name
+        eoo_src, suffix = _lookup_eoobject(layer_name)
+
+        # get EOObject holding the WMS view
+        eoo_wms = _get_wms_view(eoo_src)
 
         # prepare the final EOObject(s) selection
-        selection = LayerSelection( eoo_src, suffix ) 
+        selection = LayerSelection(eoo_src, suffix)
 
-        if models.iscoverage( eoo_wms ):
-            # EOObject is a coverage 
+        if models.iscollection(eoo_wms): # EOObject is a collection
+            used_ids = set()
+            # recursively look-up the coverages
+            _recursive_lookup(eoo_wms)
 
-            # append to selection if matches the subset
-            if subsets.matches( eoo_wms ):
-                selection.append( eoo_wms.cast(), eoo_src.identifier )
-                
-        elif models.iscollection( eoo_wms ):
-            # EOObject is a collection (but not a coverage) 
+        elif models.iscoverage(eoo_wms): # EOObject is a coverage
+            # append to the selection if the coverage matches the subset
+            if subsets.matches(eoo_wms):
+                selection.append(eoo_wms.cast(), eoo_src.identifier)
 
-            # recursively look-up the coverages 
-            used_ids = set() 
+        else:
+            pass # TODO: Reporting of invalid EOObjects (?)
 
-            _recursive_lookup( eoo_wms )
+        selections.append(selection)
 
-        else : 
-            pass # TODO: Reporting of invalid EOObjects (?) 
+    return selections
 
-        selections.append( selection ) 
 
-    return selections 
-
-#-------------------------------------------------------------------------------
-
-class LayerSelection(tuple): 
-    """ helper class holding the selection of EOObject 
+class LayerSelection(tuple):
+    """ helper class holding the selection of EOObject
         to be used for rendering of a WMS layer
     """
-
-    def __new__(cls, root, suffix ):
+    def __new__(cls, root, suffix):
         """ Construct the object. Parameters:
 
                 root    - requested EOObject (layer)
-                suffix  - layer name suffix 
+                suffix  - layer name suffix
         """
-            
-        return super(LayerSelection,cls)\
-                    .__new__(cls,(root,suffix,[]))
+        return super(LayerSelection, cls).__new__(cls, (root, suffix, []))
 
-    @property 
-    def root(self): 
+    @property
+    def root(self):
         "The root EOObject corresponding the requested layer name."
         return self[0]
 
     @property
-    def suffix(self): 
+    def suffix(self):
         "The layer name suffix of this layer selection."
         return self[1]
 
     @property
-    def identifier(self): 
+    def identifier(self):
         "The layer base name (EOObject identifier) of this selection."
-        return self.root.identifier 
+        return self.root.identifier
 
     @property
     def layer_name(self):
-        "The requested layer name of this layer selection." 
-        return self.identifier + ( self.suffix or "" ) 
+        "The requested layer name of this layer selection."
+        return self.identifier + (self.suffix or "")
 
-    @property 
-    def coverages(self): 
+    @property
+    def coverages(self):
         "The list of selected coveraged to be used for rendering of the layer."
         return self[2]
 
     def append(self, rendered, alias=None):
-        """ Append a selected EOObjected needed by the layer.  
-            In case the actual rendered object has an alias 
-            (i.e., represents view for another object) this alias 
-            can be passed as the second parameters. 
+        """ Append a selected EOObjected needed by the layer.
+            In case the actual rendered object has an alias
+            (i.e., represents view for another object) this alias
+            can be passed as the second parameters.
         """
-
-        self[2].append( ( rendered, (alias or rendered.identifier) ) ) 
+        self[2].append((rendered, (alias or rendered.identifier)))

@@ -43,9 +43,7 @@ from eoxserver.services.ows.wcs.v20.encoders import WCS20EOXMLEncoder
 from eoxserver.services.ows.wcs.v20.util import (
     ScaleSize, ScaleExtent, ScaleAxis
 )
-from eoxserver.services.mapserver.interfaces import (
-    ConnectorInterface, LayerFactoryInterface
-)
+from eoxserver.services.mapserver.interfaces import ConnectorInterface
 from eoxserver.services.subset import Subsets
 from eoxserver.services.mapserver.wcs.base_renderer import (
     BaseRenderer, is_format_supported
