@@ -31,7 +31,6 @@ from eoxserver.contrib import mapserver as ms
 from eoxserver.resources.coverages import crss
 from eoxserver.services import models as service_models
 
-#-------------------------------------------------------------------------------
 
 class LayerFactory(object):
     """ Abstract base layer factory class. """
@@ -81,7 +80,6 @@ class LayerFactory(object):
         """ Layer generator. """
         raise NotImplementedError
 
-#-------------------------------------------------------------------------------
 
 class GroupLayerMixIn(object):
     @staticmethod
@@ -93,7 +91,6 @@ class GroupLayerMixIn(object):
             layer.setMetaData("wms_layer_group", group)
         return layer
 
-#-------------------------------------------------------------------------------
 
 class StyledLayerMixIn(object):
     STYLES = (
@@ -124,7 +121,6 @@ class StyledLayerMixIn(object):
             layer.insertClass(cls)
         layer.classgroup = (default or self.DEFAULT_STYLE)
 
-#-------------------------------------------------------------------------------
 
 class PolygonLayerMixIn(object):
     def _polygon_layer(self, name, filled=False, srid=4326, default_style=None):
@@ -153,7 +149,6 @@ class PolygonLayerMixIn(object):
 
         return layer
 
-#-------------------------------------------------------------------------------
 
 class PolygonMaskingLayerMixIn(object):
     @staticmethod
@@ -179,7 +174,6 @@ class PolygonMaskingLayerMixIn(object):
 
         return layer
 
-#-------------------------------------------------------------------------------
 
 class DataLayerMixIn(object):
     @staticmethod

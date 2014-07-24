@@ -9,8 +9,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -25,48 +25,54 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from django.contrib.gis.geos.collections import MultiPolygon
-
 from eoxserver.contrib import mapserver as ms
 
 from eoxserver.services.mapserver.wms.layers.base import (
     LayerFactory, StyledLayerMixIn, PolygonLayerMixIn,
 )
 
-#-------------------------------------------------------------------------------
 
-class CoverageOutlinesLayerFactory(LayerFactory,PolygonLayerMixIn,StyledLayerMixIn): 
+class CoverageOutlinesLayerFactory(LayerFactory, PolygonLayerMixIn, StyledLayerMixIn):
     """ base coverage outline layer """
 
-    def _outline_geom( self, cov ):
+    def _outline_geom(self, cov):
         return cov.footprint
 
-    def generate(self): 
-
+    def generate(self):
         layer = self._polygon_layer(self.group, filled=False, srid=4326)
 
-        # iterate over the coverages 
-        for cov, cov_name in reversed( self.coverages ) : 
+        for cov, cov_name in reversed(self.coverages):
 
             # get part of the visible footprint
-            outline = self._outline_geom( cov )
+            outline = self._outline_geom(cov)
 
-            # skip invisible outlines 
-            if outline.empty : continue 
+            # skip invisible outlines
+            if outline.empty:
+                continue
 
-            # generate feature 
+            # generate feature
             shape = ms.shapeObj.fromWKT(outline.wkt)
             shape.initValues(1)
-            shape.setValue(0, cov_name )
+            shape.setValue(0, cov_name)
 
             # add feature to the group
             layer.addFeature(shape)
 
-# TODO: run the test 
+# TODO: run the test
 #        # Dummy feature, or else empty groups will produce errors
 #        shape = shapeObj()
 #        shape.initValues(1)
 #        shape.setValue(0, "dummy")
 #        layer.addFeature(shape)
 
-        yield layer, None, () 
+        yield layer, None, ()
+
+
+class CoverageOutlinesMaskedLayerFactory(CoverageOutlinesLayerFactory):
+    """ derived masked outlines' layer factory """
+
+    def _outline_geom(self, cov):
+        outline = cov.footprint
+        for mask_item in cov.vector_masks.all():
+            outline = outline - mask_item.geometry
+        return outline

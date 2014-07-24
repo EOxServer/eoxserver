@@ -34,7 +34,6 @@ from eoxserver.resources.coverages.management.commands import (
     CommandOutputMixIn
 )
 
-
 class Command(CommandOutputMixIn, BaseCommand):
     option_list = BaseCommand.option_list + (
         make_option("-i", "--identifier", dest="identifier",

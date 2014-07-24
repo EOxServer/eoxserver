@@ -44,9 +44,7 @@ class DimapGeneralFormatReader(Component):
 
     def test(self, obj):
         tree = parse(obj)
-        if tree is None:
-            return False
-        return tree.find('.').tag == "Dimap_Document"
+        return tree is not None and tree.find('.').tag == "Dimap_Document"
 
     def get_format_name(self, obj):
         return "dimap"

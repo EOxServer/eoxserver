@@ -9,8 +9,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -32,16 +32,15 @@ from eoxserver.services.mapserver.interfaces import LayerPluginInterface
 from eoxserver.services.mapserver.wms.layers.coverage_outlines_layer_factory \
     import CoverageOutlinesLayerFactory
 
-#-------------------------------------------------------------------------------
 
 class CoverageOutlinesLayerPlugin(Component):
     implements(LayerPluginInterface)
-
     handles = (models.RectifiedDataset, models.RectifiedStitchedMosaic)
     suffixes = ("_outlines",)
     requires_connection = True
 
-    def get_layer_factory(self,suffix,options):  
-        factory = CoverageOutlinesLayerFactory(suffix,options)
+    def get_layer_factory(self, suffix, options):
+        factory = CoverageOutlinesLayerFactory(suffix, options)
         factory.plugin = self
-        return factory 
+        return factory
+

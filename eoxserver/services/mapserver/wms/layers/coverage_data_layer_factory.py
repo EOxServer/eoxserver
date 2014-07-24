@@ -25,18 +25,15 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+import random
 from eoxserver.resources.coverages.dateline import (
     extent_crosses_dateline, wrap_extent_around_dateline
 )
-
 from eoxserver.services.mapserver.wms.layers.base import (
     LayerFactory, GroupLayerMixIn, DataLayerMixIn,
     PolygonMaskingLayerMixIn,
 )
 
-import random
-
-#-------------------------------------------------------------------------------
 
 class CoverageDataLayerFactory(LayerFactory, GroupLayerMixIn, DataLayerMixIn,
                                      PolygonMaskingLayerMixIn):
@@ -56,14 +53,14 @@ class CoverageDataLayerFactory(LayerFactory, GroupLayerMixIn, DataLayerMixIn,
             layer_group = "/"+group if group else ""
 
             # NOTE: In order to assure proper rendering of the nested layers
-            #       a unique name has to be assigned to each of them. 
+            #       a unique name has to be assigned to each of them.
             #       Note that they will never be addressed by their true name.
             #       The top-level coverages must preserve their true identity
             #       though because they are requested by the WMS query.
             base_name = cov_name if not group else \
                         "%s_%s_%08x"%(group, cov_name, random.randrange(16**8))
 
-            # coverage specific renderer options
+            # coverage specific rendering options
             ropt = self._render_options(cov)
 
             # band indices
