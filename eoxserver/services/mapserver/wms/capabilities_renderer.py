@@ -50,7 +50,7 @@ class MapServerWMSCapabilitiesRenderer(Component):
 
     @property
     def suffixes(self):
-        return list( chain( *((f.suffixes for f in self.layer_plugins)) ) )
+        return list(chain(*(f.suffixes for f in self.layer_plugins)))
 
 
     def render(self, collections, coverages, request_values):
@@ -170,15 +170,14 @@ class MapServerWMSCapabilitiesRenderer(Component):
 
         # set the map_extent to a reasonable default value
         # in case there is no coverage or collection
-        if map_extent is None : 
-            map_extent = ( 0.0, 0.0, 1.0, 1.0 )
+        if map_extent is None: 
+            map_extent = (0.0, 0.0, 1.0, 1.0)
 
-        map_.setExtent( *map_extent ) 
+        map_.setExtent(*map_extent)
 
         request = create_request(request_values)
         raw_result = map_.dispatch(request)
         result = result_set_from_raw_data(raw_result)
-
         return result, get_content_type(result)
 
     def get_wms_formats(self):

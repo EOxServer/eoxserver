@@ -35,7 +35,7 @@ from optparse import make_option
 from django.core.management import call_command
 from django.core.management.base import CommandError, BaseCommand
 from django.utils.dateparse import parse_datetime
-from django.contrib.gis import geos
+from django.contrib.gis import geos 
 
 from eoxserver.core import env
 from eoxserver.contrib import gdal, osr, ogr
@@ -249,11 +249,11 @@ class Command(CommandOutputMixIn, BaseCommand):
         vector_masks_src = []
 
         for metadata in metadatas:
-            storage, package, format_, location = self._get_location_chain(
+            storage, package, format, location = self._get_location_chain(
                 metadata
             )
             data_item = backends.DataItem(
-                location=location, format=format_ or "", semantic="metadata", 
+                location=location, format=format or "", semantic="metadata", 
                 storage=storage, package=package,
             )
             data_item.full_clean()
@@ -266,9 +266,9 @@ class Command(CommandOutputMixIn, BaseCommand):
                 if reader:
                     values = reader.read(content)
 
-                    format_ = values.pop("format", None)
-                    if format_:
-                        data_item.format = format_
+                    format = values.pop("format", None)
+                    if format:
+                        data_item.format = format
                         data_item.full_clean()
                         data_item.save()
 
@@ -292,8 +292,6 @@ class Command(CommandOutputMixIn, BaseCommand):
             return geos.GEOSGeometry(buffer(g0.ExportToWkb()), srid=4326)
 
         if polygon_mask_cloud is not None:
-
-            # append the mask record
             vector_masks_src.append({
                     'type': 'CLOUD',
                     'subtype': None,
@@ -301,8 +299,6 @@ class Command(CommandOutputMixIn, BaseCommand):
                 })
 
         if polygon_mask_snow is not None:
-
-            # append the mask record
             vector_masks_src.append({
                     'type': 'SNOW',
                     'subtype': None,
@@ -316,7 +312,6 @@ class Command(CommandOutputMixIn, BaseCommand):
         VMASK_TYPE = dict((v, k) for (k, v) in models.VectorMask.TYPE_CHOICES)
 
         for vm_src in vector_masks_src:
-
             if vm_src["type"] not in VMASK_TYPE:
                 raise CommandError("Invalid mask type '%s'! Allowed "
                     "mask-types are: %s", vm_src["type"],
@@ -374,9 +369,9 @@ class Command(CommandOutputMixIn, BaseCommand):
 
 
         for data, semantic in zip(datas, semantics):
-            storage, package, format_, location = self._get_location_chain(data)
+            storage, package, format, location = self._get_location_chain(data)
             data_item = backends.DataItem(
-                location=location, format=format_ or "", semantic=semantic,
+                location=location, format=format or "", semantic=semantic, 
                 storage=storage, package=package,
             )
             data_item.full_clean()
@@ -389,9 +384,9 @@ class Command(CommandOutputMixIn, BaseCommand):
             if reader:
                 values = reader.read(ds)
 
-                format_ = values.pop("format", None)
-                if format_:
-                    data_item.format = format_
+                format = values.pop("format", None)
+                if format:
+                    data_item.format = format
                     data_item.full_clean()
                     data_item.save()
 
@@ -422,15 +417,15 @@ class Command(CommandOutputMixIn, BaseCommand):
             if isinstance(proj, int):
                 retrieved_metadata["srid"] = proj
             else:
-                definition, format_ = proj
+                definition, format = proj
 
                 # Try to identify the SRID from the given input
                 try:
-                    sr = osr.SpatialReference(definition, format_)
+                    sr = osr.SpatialReference(definition, format)
                     retrieved_metadata["srid"] = sr.srid
                 except Exception, e:
                     prj = models.Projection.objects.get(
-                        format=format_, definition=definition
+                        format=format, definition=definition
                     )
                     retrieved_metadata["projection"] = prj
 
@@ -476,7 +471,7 @@ class Command(CommandOutputMixIn, BaseCommand):
             % coverage.identifier
         ) 
 
-
+        
     def _get_overrides(self, identifier=None, size=None, extent=None, 
                        begin_time=None, end_time=None, footprint=None, 
                        projection=None, **kwargs):
@@ -487,10 +482,10 @@ class Command(CommandOutputMixIn, BaseCommand):
             overrides["identifier"] = identifier
 
         if extent:
-            overrides["extent"] = [float(v) for v in extent.split(",")]
+            overrides["extent"] = map(float, extent.split(","))
 
         if size:
-            overrides["size"] = [int(v) for v in size.split(",")]
+            overrides["size"] = map(int, size.split(","))            
 
         if begin_time:
             overrides["begin_time"] = parse_datetime(begin_time)
@@ -500,15 +495,15 @@ class Command(CommandOutputMixIn, BaseCommand):
 
         if footprint:
             footprint = geos.GEOSGeometry(footprint)
-            if footprint.hasz:
+            if footprint.hasz :
                 raise CommandError(
                     "Invalid footprint geometry! 3D geometry is not supported!"
                 )
-            if footprint.geom_type == "MultiPolygon":
+            if footprint.geom_type == "MultiPolygon" :
                 overrides["footprint"] = footprint
-            elif footprint.geom_type == "Polygon":
+            elif footprint.geom_type == "Polygon" :
                 overrides["footprint"] = geos.MultiPolygon(footprint)
-            else:
+            else : 
                 raise CommandError(
                     "Invalid footprint geometry type '%s'!"
                     % (footprint.geom_type)
@@ -557,8 +552,8 @@ class Command(CommandOutputMixIn, BaseCommand):
                     % type_or_format
                 )
 
-        format_, location = self._split_location(items[-1])
-        return storage, package, format_, location
+        format, location = self._split_location(items[-1])
+        return storage, package, format, location
 
 
     def _split_location(self, item):

@@ -9,8 +9,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -25,22 +25,14 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-import sys 
-import traceback
+import sys
+#import traceback
 from optparse import make_option
-
-from django.core.exceptions import ValidationError
 from django.core.management.base import CommandError, BaseCommand
-from django.utils.dateparse import parse_datetime
-from django.db import transaction
-from django.contrib.gis.geos import GEOSGeometry
-
+from eoxserver.resources.coverages.models import EOObject, MetadataItem
 from eoxserver.resources.coverages.management.commands import (
-    CommandOutputMixIn, _variable_args_cb
+    CommandOutputMixIn
 )
-
-from eoxserver.resources.coverages.models import EOObject
-from eoxserver.resources.coverages.models import MetadataItem
 
 class Command(CommandOutputMixIn, BaseCommand):
     option_list = BaseCommand.option_list + (
@@ -48,12 +40,12 @@ class Command(CommandOutputMixIn, BaseCommand):
             action="store", default=None,
             help=("Queried identifier.")
         ),
-        make_option("-s","--semantic",dest="semantic", 
-            action="store", default=None, 
+        make_option("-s", "--semantic", dest="semantic",
+            action="store", default=None,
             help=("Metadata semantic (key).")
         ),
-        make_option("-l","--value",dest="value", 
-            action="store", default=None, 
+        make_option("-l", "--value", dest="value",
+            action="store", default=None,
             help=("Metadata value.")
         ),
     )
@@ -64,71 +56,44 @@ class Command(CommandOutputMixIn, BaseCommand):
     """
     Set EOObject metadata. The metadada are simple key (semantic), value
     pairs assigned to an EOObject. This command sets a new key/value pair.
-    """ 
+    """
     )
 
     def handle(self, *args, **opt):
-
-        #----------------------------------------------------------------------
-        # check the inputs 
-
-        # check required identifier 
-        identifier = opt.get('identifier',None)
-        if identifier is None : 
+        identifier = opt.get('identifier', None)
+        if identifier is None:
             raise CommandError("Missing the mandatory dataset identifier!")
 
-        # get semantic 
-        semantic = opt.get('semantic',None) 
-        if semantic is None : 
+        semantic = opt.get('semantic', None)
+        if semantic is None:
             raise CommandError("Missing the mandatory metadata semantic!")
 
-        # get value 
-        value = opt.get('value',None) 
-        if value is None : 
+        value = opt.get('value', None)
+        if value is None:
             raise CommandError("Missing the mandatory metadata value!")
 
-        #----------------------------------------------------------------------
-        # perform the action 
-   
-        # find the EOObj matching the identifier
-        try :  
-
+        try:
             eoobj = EOObject.objects.get(identifier=identifier).cast()
-
-        except eotype.DoesNotExist : 
-
-            self.print_err( "There is no EOObject matching the identifier: "
-                    "'%s'" % identifier )  
-            
+        except EOObject.DoesNotExist:
+            self.print_err("There is no EOObject matching the identifier: "
+                    "'%s'" % identifier)
             #TODO: Find a better way how to pass the return code.
-            sys.exit(1) 
+            sys.exit(1)
+        else:
+            self.print_msg("There is a %s matching the identifier: '%s'" % (
+                eoobj.__class__.__name__, identifier))
 
-        else : 
-
-            self.print_msg( "There is a %s matching the identifier: '%s'" % ( 
-                eoobj.__class__.__name__, identifier ) )  
-
-        # set the metadata item if not already set 
-        tmp = eoobj.metadata_items.filter(semantic=semantic,value=value)
-
-        if tmp.count() == 0 : 
-            
-            md = MetadataItem() 
-            md.semantic = semantic 
-            md.value    = value 
+        # set the metadata item if not already set
+        tmp = eoobj.metadata_items.filter(semantic=semantic, value=value)
+        if tmp.count() == 0:
+            md = MetadataItem()
+            md.semantic = semantic
+            md.value = value
             md.eo_object = eoobj
             md.full_clean()
             md.save()
-
-            self.print_msg( "Metadata item '%s' created successfully."%semantic ) 
-
-        else: 
-
-            self.print_msg( "Metadata item '%s' with the same value already"
-                    " exists. Nothing is done."%semantic )
-
-        #----------------------------------------------------------------------
-
-
-
+            self.print_msg("Metadata item '%s' created successfully."%semantic)
+        else:
+            self.print_msg("Metadata item '%s' with the same value already"
+                    " exists. Nothing is done."%semantic)
 

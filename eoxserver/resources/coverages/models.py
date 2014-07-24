@@ -153,9 +153,11 @@ class EOMetadata(models.Model):
     class Meta:
         abstract = True
 
+
 class DataSource(backends.Dataset):
     pattern = models.CharField(max_length=32, null=False, blank=False)
     collection = models.ForeignKey("Collection")
+
 
 #===============================================================================
 # Base class EOObject
@@ -805,7 +807,6 @@ class VectorMask(models.Model):
     """ Vector Mask metadata 
         NOTE: Geometry shall always be stored in the WGS84 lat/lon coordinates!
     """
-
     # EOP allowed mask types 
     CLOUD=1
     SNOW=2 
@@ -819,15 +820,10 @@ class VectorMask(models.Model):
 
     type = models.PositiveSmallIntegerField( choices=TYPE_CHOICES,
                                             blank=False, null=False ) 
-
     subtype = models.CharField(max_length=64,blank=True, null=True)
-
     semantic = models.CharField(max_length=64,blank=True, null=True)
-
     geometry = models.MultiPolygonField(null=False, blank=False, srid=4326)
-
     objects = models.GeoManager()
-
     coverage = models.ForeignKey( Coverage, related_name='vector_masks' ) 
     
     def __unicode__(self):

@@ -38,7 +38,6 @@ from eoxserver.resources.coverages import models
 from eoxserver.backends.admin import LocationForm
 
 
-
 #===============================================================================
 # List display fields
 #===============================================================================
@@ -129,24 +128,20 @@ class EOObjectAdmin(admin.GeoModelAdmin):
     default_lon = 16
     default_lat = 48
 
-    # Django 1.4 backward compatibility  
-    def message_user( self, request, message, level=messages.INFO,
-                        extra_tags='', fail_silently=False): 
-
-        if django.VERSION < (1,5) : 
-
-            if  level == messages.INFO : 
-                admin.GeoModelAdmin.message_user( self, request, message )
-            else : 
-                # TODO: fix handling of the non-INFO message levels 
-                # NOTE: for purpose of debuging left to fail 
-                admin.GeoModelAdmin.message_user( self, request, message,
-                        level, extra_tags, fail_silently ) 
-
-        else : 
-
-            admin.GeoModelAdmin.message_user( self, request, message,
-                    level, extra_tags, fail_silently ) 
+    # Django 1.4 backward compatibility
+    def message_user(self, request, message, level=messages.INFO,
+                        extra_tags='', fail_silently=False):
+        if django.VERSION < (1, 5):
+            if level == messages.INFO:
+                admin.GeoModelAdmin.message_user(self, request, message)
+            else:
+                # TODO: fix handling of the non-INFO message levels
+                # NOTE: for purpose of debuging left to fail
+                super(GeoModelAdmin, self).message_user(request, message,
+                                              level, extra_tags, fail_silently)
+        else:
+            super(GeoModelAdmin, self).message_user(self, request, message,
+                                              level, extra_tags, fail_silently)
  
 
 class CoverageAdmin(EOObjectAdmin):
@@ -250,10 +245,11 @@ class MetadataItemInline(AbstractInline):
 
 # TODO: fix to display inline map widget.
 class VectorMaskInline(admin.StackedInline):
-    extra = 0 
+    extra = 0
     model = models.VectorMask
-    fields = ('semantic', ('type','subtype'), 'geometry') 
+    fields = ('semantic', ('type', 'subtype'), 'geometry')
 
+#===============================================================================
 # Model admins
 #===============================================================================
 
@@ -282,24 +278,21 @@ admin.site.register(models.RangeType, RangeTypeAdmin)
 
 class RectifiedDatasetAdmin(CoverageAdmin):
     model = models.RectifiedDataset
-    inlines = ( VectorMaskInline, MetadataItemInline, DataItemInline, 
-                CollectionInline )
+    inlines = (VectorMaskInline, MetadataItemInline, DataItemInline, CollectionInline)
 
 admin.site.register(models.RectifiedDataset, RectifiedDatasetAdmin)
 
 
 class ReferenceableDatasetAdmin(CoverageAdmin):
     model = models.ReferenceableDataset
-    inlines = ( VectorMaskInline, MetadataItemInline, DataItemInline, 
-                CollectionInline )
+    inlines = (VectorMaskInline, MetadataItemInline, DataItemInline, CollectionInline)
 
 admin.site.register(models.ReferenceableDataset, ReferenceableDatasetAdmin)
 
 
 class RectifiedStitchedMosaicAdmin(CoverageAdmin, CollectionAdmin):
     model = models.RectifiedStitchedMosaic
-    inlines = ( VectorMaskInline, MetadataItemInline, DataItemInline, 
-                CollectionInline, EOObjectInline )
+    inlines = (VectorMaskInline, MetadataItemInline, DataItemInline, CollectionInline, EOObjectInline)
 
     def restitch(self, request, queryset):
         for model in queryset:
@@ -327,9 +320,6 @@ class DatasetSeriesAdmin(CollectionAdmin):
         }),
     )
     
-    inlines = (DataSourceInline, MetadataItemInline, 
-                CollectionInline, EOObjectInline )
+    inlines = (DataSourceInline, MetadataItemInline, EOObjectInline, CollectionInline)
 
 admin.site.register(models.DatasetSeries, DatasetSeriesAdmin)
-
-

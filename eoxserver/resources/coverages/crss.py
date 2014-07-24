@@ -346,13 +346,13 @@ def hasSwappedAxes( epsg ) :
     else : 
         return ( epsg in EPSG_AXES_REVERSED ) 
 
-def hasSwappedAxes_slow( epsg ):
+def hasSwappedAxes_slow(epsg):
     """Decide whether the coordinate system given by the passed EPSG code is 
     displayed with swapped axes (True) or not (False).
     This function may be a bit slower than hasSwappedAxes() but does not 
     require Django 'settings' to be loaded.
     """
-    return ( epsg in EPSG_AXES_REVERSED )
+    return epsg in EPSG_AXES_REVERSED
 
 def getAxesSwapper( epsg , swapAxes = None ) : 
         """ 

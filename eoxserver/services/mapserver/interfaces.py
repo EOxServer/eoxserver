@@ -36,7 +36,7 @@ class ConnectorInterface(object):
         """ Returns `True` if the given `data_items` are supported and 
             `False` if not.
         """
-    
+
     def connect(self, coverage, data_items, layer):
         """ Connect a layer (a `mapscript.layerObj`) with the given data 
             items and coverage (a list of two-tuples: location and semantic).
@@ -46,21 +46,21 @@ class ConnectorInterface(object):
         """ Performs all necessary cleanup operations.
         """
 
-class LayerPluginInterface(object): 
-    """ 
-        Interface for layer plug-in components. The component creates 
-        instances of factories that create `mapscript.layerObj` 
+class LayerPluginInterface(object):
+    """
+        Interface for layer plug-in components. The component creates
+        instances of factories that create `mapscript.layerObj`
         objects for coverages.
     """
 
     @property
     def suffixes(self):
-        """ The suffixes associated with layers this factory produces. This is 
+        """ The suffixes associated with layers this factory produces. This is
             used for "specialized" layers such as "bands" or "outlines" layers.
             For factories that don't use this feature, it can be left out.
         """
 
-    def get_layer_factory(self,layer_selection,options):  
+    def get_layer_factory(self, layer_selection, options):
         """ Get a ``LayerFactory`` object creating the map layer for the given
             ``LayerSelection`` object.
         """
