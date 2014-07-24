@@ -106,3 +106,11 @@ class CoverageDataLayerFactory(LayerFactory, GroupLayerMixIn, DataLayerMixIn,
                     wrapped=True, mask=mask_name, indices=indices, ropt=ropt)
                 yield layer, cov, data_items
 
+
+class CoverageDataMaskedLayerFactory(CoverageDataLayerFactory):
+    """ masked data layer factory """
+    def _mask_geom(self, cov):
+        outline = cov.footprint
+        for mask_item in cov.vector_masks.all():
+            outline = outline - mask_item.geometry
+        return outline

@@ -29,7 +29,7 @@ from eoxserver.core import Component, implements
 from eoxserver.resources.coverages import models
 from eoxserver.services.mapserver.interfaces import LayerPluginInterface
 
-from eoxserver.services.mapserver.wms.layers.coverage_data_masked_layer_factory \
+from eoxserver.services.mapserver.wms.layers.coverage_data_layer_factory \
     import CoverageDataMaskedLayerFactory
 
 
