@@ -29,18 +29,25 @@
 
 import re
 from datetime import datetime
+from os.path import splitext
 
-from eoxserver.core import Component, ExtensionPoint, implements
-from eoxserver.contrib import gdal
+from django.utils.timezone import utc
+
+from eoxserver.core import Component, implements
 from eoxserver.resources.coverages.metadata.interfaces import (
     GDALDatasetMetadataReaderInterface
 )
 
 
 class GDALDatasetEnvisatMetadataFormatReader(Component):
+    """ Metadata format reader for specific ENVISAT products.
+    """
     implements(GDALDatasetMetadataReaderInterface)
 
     def test_ds(self, ds):
+        """ Check whether or not the dataset seems to be an ENVISAT image and
+            has the correct metadata tags.
+        """
         md_dict = ds.GetMetadata_Dict()
         for key in ("MPH_PRODUCT", "MPH_SENSING_START", "MPH_SENSING_STOP"):
             if key not in md_dict:
@@ -50,7 +57,9 @@ class GDALDatasetEnvisatMetadataFormatReader(Component):
 
         return True
 
-    def read(self, ds):
+    def read_ds(self, ds):
+        """ Return the ENVISAT specific metadata items.
+        """
         return {
             "identifier": splitext(ds.GetMetadataItem("MPH_PRODUCT"))[0],
             "begin_time": parse_datetime(ds.GetMetadataItem("MPH_SENSING_START")),
@@ -58,30 +67,35 @@ class GDALDatasetEnvisatMetadataFormatReader(Component):
         }
 
 
-def parse_datetime(self, timestamp):
+MONTHS = {
+    "JAN": 1,
+    "FEB": 2,
+    "MAR": 3,
+    "APR": 4,
+    "MAY": 5,
+    "JUN": 6,
+    "JUL": 7,
+    "AUG": 8,
+    "SEP": 9,
+    "OCT": 10,
+    "NOV": 11,
+    "DEC": 12
+}
+
+
+def parse_datetime(timestamp):
     """ Datetime parsing function for special Envisat datetime format.
     """
-    MONTHS = {
-        "JAN": 1,
-        "FEB": 2,
-        "MAR": 3,
-        "APR": 4,
-        "MAY": 5,
-        "JUN": 6,
-        "JUL": 7,
-        "AUG": 8,
-        "SEP": 9,
-        "OCT": 10,
-        "NOV": 11,
-        "DEC": 12
-    }
     
-    m = re.match(r"(\d{2})-([A-Z]{3})-(\d{4}) (\d{2}):(\d{2}):(\d{2}).*", timestamp)
-    day = int(m.group(1))
-    month = MONTHS[m.group(2)]
-    year = int(m.group(3))
-    hour = int(m.group(4))
-    minute = int(m.group(5))
-    second = int(m.group(6))
     
-    return datetime(year, month, day, hour, minute, second)
+    match = re.match(
+        r"(\d{2})-([A-Z]{3})-(\d{4}) (\d{2}):(\d{2}):(\d{2}).*", timestamp
+    )
+    day = int(match.group(1))
+    month = MONTHS[match.group(2)]
+    year = int(match.group(3))
+    hour = int(match.group(4))
+    minute = int(match.group(5))
+    second = int(match.group(6))
+    
+    return datetime(year, month, day, hour, minute, second, tzinfo=utc)

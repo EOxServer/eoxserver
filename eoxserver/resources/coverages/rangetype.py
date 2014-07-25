@@ -329,7 +329,7 @@ def getRangeType( name ) :
             band.append( 
                 { 
                     'name'        : b.name,
-                    'data_type'   : gdal.GCI_TO_NAME.get(b.data_type,'Invalid'), 
+                    'data_type'   : gdal.GDT_TO_NAME.get(b.data_type,'Invalid'), 
                     'identifier'  : b.identifier,
                     'description' : b.description, 
                     'definition'  : b.definition,

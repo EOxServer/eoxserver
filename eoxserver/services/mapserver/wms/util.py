@@ -34,12 +34,15 @@ from django.db.models import Q
 from django.utils.datastructures import SortedDict
 
 from eoxserver.core import Component, ExtensionPoint
+from eoxserver.core.config import get_eoxserver_config
 from eoxserver.contrib import mapserver as ms
+from eoxserver.resources.coverages.crss import CRSsConfigReader
 from eoxserver.services.mapserver.interfaces import (
     ConnectorInterface, LayerFactoryInterface, StyleApplicatorInterface
 )
 from eoxserver.services.result import result_set_from_raw_data, get_content_type
-
+from eoxserver.services.exceptions import RenderException
+from eoxserver.services.ows.wms.exceptions import InvalidCRS, InvalidFormat
 
 logger = logging.getLogger(__name__)
 
@@ -59,6 +62,16 @@ class MapServerWMSBaseComponent(Component):
         map_.setProjection("EPSG:4326")
         map_.imagecolor.setRGB(0, 0, 0)
 
+        # set supported CRSs
+        decoder = CRSsConfigReader(get_eoxserver_config())
+        crss_string = " ".join(
+            map(lambda crs: "EPSG:%d" % crs, decoder.supported_crss_wms)
+        )
+        map_.setMetaData("ows_srs", crss_string)
+        map_.setMetaData("wms_srs", crss_string)
+
+        self.check_parameters(map_, request_values)
+
         session = self.setup_map(layer_groups, map_, options)
         
         with session:
@@ -68,6 +81,15 @@ class MapServerWMSBaseComponent(Component):
             result = result_set_from_raw_data(raw_result)
             return result, get_content_type(result)
 
+
+    def check_parameters(self, map_, request_values):
+        for key, value in request_values:
+            if key.lower() == "format":
+                if not map_.getOutputFormatByName(value):
+                    raise InvalidFormat(value)
+                break
+        else:
+            raise RenderException("Missing 'format' parameter")        
 
     @property
     def suffixes(self):
@@ -130,7 +152,16 @@ class MapServerWMSBaseComponent(Component):
                 group_name = collections[-1].identifier + (suffix or "")
                 group_layer = group_layers.get(group_name)
 
-            if not coverage or not factory:
+            if not coverage:
+                # add an empty layer to not produce errors out of bounds.
+                if name:
+                    tmp_layer = ms.layerObj()
+                    tmp_layer.name = (name + suffix) if suffix else name
+                    layers_and_data_items = ((tmp_layer, ()),)
+                else:
+                    layers_and_data_items = ()
+
+            elif not factory:
                 tmp_layer = ms.layerObj()
                 tmp_layer.name = name
                 layers_and_data_items = ((tmp_layer, ()),)
@@ -159,7 +190,6 @@ class MapServerWMSBaseComponent(Component):
                 # TODO: find a more efficient way to do this
                 map_.removeLayer(old_layer.index)
             map_.insertLayer(layer)
-
 
         # apply any styles
         # TODO: move this to map/legendgraphic renderer only?

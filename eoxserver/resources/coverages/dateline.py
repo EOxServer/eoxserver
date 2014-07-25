@@ -58,6 +58,8 @@ def wrap_extent_around_dateline(extent, srid=4326):
         return (extent[0] - CRS_WIDTH[srid], extent[1], 
                 extent[2] - CRS_WIDTH[srid], extent[3])
     except KeyError:
-        raise NotImplemented("Dateline wrapping is not implemented for SRID "
-                             "%d. Supported are SRIDs %s." % 
-                             (srid, ", ".join(CRS_WIDTH.keys())))
+        raise NotImplementedError(
+            "Dateline wrapping is not implemented for SRID "
+            "%d. Supported are SRIDs %s." % 
+            (srid, ", ".join(CRS_WIDTH.keys()))
+        )

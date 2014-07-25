@@ -34,23 +34,23 @@ from django.http import QueryDict
 from eoxserver.core.decoders.base import BaseParameter
 
 
-class Parameter(object):
+class Parameter(BaseParameter):
     """ Parameter for KVP values.
     """
 
     key = None
 
-    def __init__(self, key=None, type=None, separator=None, num=1, default=None,
-                 locator=None):
+    def __init__(self, key=None, type=None, num=1, default=None, locator=None):
+        super(Parameter, self).__init__(type, num, default)
         self.key = key.lower() if key is not None else None
-        self.type = type
-        self.separator = separator
-        self.num = num
-        self.default = default
-        self.locator = locator
+        self._locator = locator
 
     def select(self, decoder, decoder_class=None):
         return decoder._query_dict.get(self.key, [])
+
+    @property
+    def locator(self):
+        return self._locator or self.key
 
 
 class DecoderMetaclass(type):
@@ -63,7 +63,7 @@ class DecoderMetaclass(type):
             if isinstance(value, Parameter) and value.key is None:
                 value.key = key.lower()
 
-        return super(DecoderMetaclass, cls).__init__(name, bases, dct)
+        super(DecoderMetaclass, cls).__init__(name, bases, dct)
 
 
 class Decoder(object):

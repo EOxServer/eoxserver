@@ -64,8 +64,8 @@ class VersionNegotiationException(Exception):
 
 
 class LocatorListException(Exception):
-    """ Base class for exceptions that report that a number of items are missing
-        or invalid
+    """ Base class for exceptions that report that a number of items are 
+        missing or invalid
     """
     def __init__(self, items):
         self.items = items
@@ -76,13 +76,19 @@ class LocatorListException(Exception):
         return " ".join(self.items)
 
 
-class InvalidAxisLabelException(LocatorListException):
+class InvalidAxisLabelException(Exception):
     """
     This exception indicates that an invalid axis name was chosen in a WCS
     2.0 subsetting parameter.
     """
-    code = "InvalidAxisLabels"
+    code = "InvalidAxisLabel"
 
+    def __init__(self, axis_label):
+        super(InvalidAxisLabelException, self).__init__(
+            "Invalid axis label: '%s'." % axis_label
+        )
+        self.locator = axis_label
+    
 
 class InvalidSubsettingException(Exception):
     """
@@ -166,6 +172,14 @@ class VersionNotSupportedException(Exception):
     code = "InvalidParameterValue"
 
 
+class InterpolationMethodNotSupportedException(Exception):
+    """
+    This exception indicates a not supported interpolation method.
+    """
+    code = "InterpolationMethodNotSupported"
+    locator = "interpolation"
+
+
 class RenderException(Exception):
     """ Rendering related exception.
     """
@@ -176,5 +190,64 @@ class RenderException(Exception):
 
     @property
     def code(self):
-        return "InvalidParameterValue" if self.is_parameter else "InvalidRequest"
+        return (
+            "InvalidParameterValue" if self.is_parameter else "InvalidRequest"
+        )
 
+
+class NoSuchFieldException(Exception):
+    """ Error in RangeSubsetting when band does not exist.
+    """
+
+    code = "NoSuchField"
+
+    def __init__(self, msg, locator):
+        super(NoSuchFieldException, self).__init__(msg)
+        self.locator = locator
+
+
+class InvalidFieldSequenceException(Exception):
+    """ Error in RangeSubsetting for illegal intervals.
+    """
+    code = "InvalidFieldSequence"
+
+    def __init__(self, msg, locator):
+        super(NoSuchFieldException, self).__init__(msg)
+        self.locator = locator
+
+
+class InvalidScaleFactorException(Exception):
+    """ Error in ScaleFactor and ScaleAxis operations
+    """
+    code = "InvalidScaleFactor"
+
+    def __init__(self, scalefactor):
+        super(InvalidScaleFactorException, self).__init__(
+            "Scalefactor '%s' is not valid" % scalefactor
+        )
+        self.locator = scalefactor
+
+
+class InvalidScaleExtentException(Exception):
+    """ Error in ScaleExtent operations
+    """
+    code = "InvalidExtent"
+
+    def __init__(self, low, high):
+        super(InvalidScaleExtentException, self).__init__(
+            "ScaleExtent '%s:%s' is not valid" % (low, high)
+        )
+        self.locator = high
+
+
+class ScaleAxisUndefinedException(Exception):
+    """ Error in all scaling operations involving an axis
+    """
+
+    code = "ScaleAxisUndefined"
+
+    def __init__(self, axis):
+        super(ScaleAxisUndefinedException, self).__init__(
+            "Scale axis '%s' is undefined" % axis
+        )
+        self.locator = axis

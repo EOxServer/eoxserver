@@ -42,14 +42,15 @@ from eoxserver.resources.coverages.models import (
 )
 from eoxserver.resources.coverages.formats import getFormatRegistry
 from eoxserver.resources.coverages import crss, models
+from eoxserver.services.gml.v32.encoders import GML32Encoder, EOP20Encoder
 from eoxserver.services.ows.component import ServiceComponent, env
 from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.services.ows.common.v20.encoders import OWS20Encoder
 from eoxserver.services.ows.wcs.v20.util import (
     nsmap, ns_xlink, ns_xsi, ns_ogc, ns_ows, ns_gml, ns_gmlcov, ns_wcs, ns_crs, 
-    ns_eowcs, OWS, GML, GMLCOV, WCS, CRS, EOWCS, OM, EOP, SWE, 
+    ns_eowcs, OWS, GML, GMLCOV, WCS, CRS, EOWCS, SWE, INT,
+    SUPPORTED_INTERPOLATIONS
 )
-
 
 
 class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
@@ -80,8 +81,9 @@ class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
                     OWS("Profile", "http://www.opengis.net/spec/GMLCOV_geotiff-coverages/1.0/conf/geotiff-coverage"),
                     OWS("Profile", "http://www.opengis.net/spec/WCS_geotiff-coverages/1.0/conf/geotiff-coverage"),
                     OWS("Profile", "http://www.opengis.net/spec/WCS_service-model_crs-predefined/1.0/conf/crs-predefined"),
-                    OWS("Profile", "http://www.opengis.net/spec/WCS_service-model_scaling+interpolation/1.0/conf/scaling+interpolation"),
-                    OWS("Profile", "http://www.opengis.net/spec/WCS_service-model_band-subsetting/1.0/conf/band-subsetting"),
+                    OWS("Profile", "http://www.opengis.net/spec/WCS_service-extension_interpolation/1.0/conf/interpolation"),
+                    OWS("Profile", "http://www.opengis.net/spec/WCS_service-extension_range-subsetting/1.0/conf/record-subsetting"),
+                    OWS("Profile", "http://www.opengis.net/spec/WCS_service-extension_scaling/1.0/conf/scaling"),
                     OWS("Fees", conf.fees),
                     OWS("AccessConstraints", conf.access_constraints)
                 )
@@ -191,6 +193,16 @@ class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
                 map(lambda c: CRS("crsSupported", c), supported_crss)
             )
 
+            base_url = "http://www.opengis.net/def/interpolation/OGC/1/"
+
+            extension.append(
+                INT("InterpolationMetadata", *[
+                    INT("InterpolationSupported", 
+                        base_url + supported_interpolation
+                    ) for supported_interpolation in SUPPORTED_INTERPOLATIONS
+                ])
+            )
+
             caps.append(service_metadata)
 
         inc_contents = all_sections or "contents" in sections
@@ -257,105 +269,6 @@ class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
         return nsmap.schema_locations
 
 
-class GML32Encoder(object):
-    def encode_linear_ring(self, ring, sr):
-        frmt = "%.3f %.3f" if sr.projected else "%.8f %.8f"
-
-        swap = crss.getAxesSwapper(sr.srid) 
-        pos_list = " ".join(frmt % swap(*point) for point in ring)
-
-        return GML("LinearRing",
-            GML("posList",
-                pos_list
-            )
-        )
-
-    def encode_polygon(self, polygon, base_id):
-        return GML("Polygon",
-            GML("exterior",
-                self.encode_linear_ring(polygon[0], polygon.srs)
-            ),
-            *(GML("interior",
-                self.encode_linear_ring(interior, polygon.srs)
-            ) for interior in polygon[1:]),
-            **{ns_gml("id"): "polygon_%s" % base_id}
-        )
-
-    def encode_multi_surface(self, geom, base_id):
-        if geom.geom_typeid in (6, 7):  # MultiPolygon and GeometryCollection
-            polygons = [
-                self.encode_polygon(polygon, "%s_%d" % (base_id, i+1))    
-                for i, polygon in enumerate(geom)
-            ]
-        elif geom.geom_typeid == 3:     # Polygon
-            polygons = [self.encode_polygon(geom, base_id)]
-
-        return GML("MultiSurface",
-            *[GML("surfaceMember", polygon) for polygon in polygons],
-            **{ns_gml("id"): "multisurface_%s" % base_id,
-               "srsName": "EPSG:%d" % geom.srid
-            }
-        )
-
-    def encode_time_period(self, begin_time, end_time, identifier):
-        return GML("TimePeriod",
-            GML("beginPosition", isoformat(begin_time)),
-            GML("endPosition", isoformat(end_time)),
-            **{ns_gml("id"): identifier}
-        )
-
-    def encode_time_instant(self, time, identifier):
-        return GML("TimeInstant",
-            GML("timePosition", isoformat(time)),
-            **{ns_gml("id"): identifier}   
-        )
-
-class EOP20Encoder(GML32Encoder):
-    def encode_footprint(self, footprint, eo_id):
-        return EOP("Footprint",
-            EOP("multiExtentOf", self.encode_multi_surface(footprint, eo_id)),
-            **{ns_gml("id"): "footprint_%s" % eo_id}
-        )
-
-    def encode_metadata_property(self, eo_id, contributing_datasets=None):
-        return EOP("metaDataProperty",
-            EOP("EarthObservationMetaData",
-                EOP("identifier", eo_id),
-                EOP("acquisitionType", "NOMINAL"),
-                EOP("status", "ARCHIVED"),
-                *([EOP("composedOf", contributing_datasets)] 
-                    if contributing_datasets else []
-                )
-            )
-        )
-
-    def encode_earth_observation(self, eo_metadata, contributing_datasets=None, subset_polygon=None):
-        identifier = eo_metadata.identifier
-        begin_time = eo_metadata.begin_time
-        end_time = eo_metadata.end_time
-        result_time = eo_metadata.end_time
-        footprint = eo_metadata.footprint
-
-        if subset_polygon is not None:
-            footprint = footprint.intersection(subset_polygon)
-
-        
-        return EOP("EarthObservation",
-            OM("phenomenonTime",
-                self.encode_time_period(begin_time, end_time, "phen_time_%s" % identifier)
-            ),
-            OM("resultTime",
-                self.encode_time_instant(result_time, "res_time_%s" % identifier)
-            ),
-            OM("procedure"),
-            OM("observedProperty"),
-            OM("featureOfInterest",
-                self.encode_footprint(footprint, identifier)
-            ),
-            OM("result"),
-            self.encode_metadata_property(identifier, contributing_datasets),
-            **{ns_gml("id"): "eop_%s" % identifier}
-        )
 
 
 class GMLCOV10Encoder(GML32Encoder):
@@ -489,8 +402,13 @@ class GMLCOV10Encoder(GML32Encoder):
         try:
             return cached_nil_value_set[pk]
         except KeyError:
-            cached_nil_value_set[pk] = models.NilValueSet.objects.get(pk=pk)
-            return cached_nil_value_set[pk]
+            try:
+                cached_nil_value_set[pk] = models.NilValueSet.objects.get(
+                    pk=pk
+                )
+                return cached_nil_value_set[pk]
+            except models.NilValueSet.DoesNotExist:
+                return ()
 
 
     def encode_nil_values(self, nil_value_set):
@@ -526,7 +444,6 @@ class GMLCOV10Encoder(GML32Encoder):
                 *[self.encode_field(band) for band in range_type]
             )
         )
-
 
 
 class WCS20CoverageDescriptionXMLEncoder(GMLCOV10Encoder):

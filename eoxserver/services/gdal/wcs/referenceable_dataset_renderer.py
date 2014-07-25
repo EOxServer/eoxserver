@@ -30,17 +30,19 @@
 from os.path import splitext, abspath
 from datetime import datetime
 from uuid import uuid4
+import logging
 
 from django.contrib.gis.geos import GEOSGeometry
 
 from eoxserver.core import Component, implements
+from eoxserver.core.config import get_eoxserver_config
+from eoxserver.core.decoders import config
 from eoxserver.core.util.rect import Rect
 from eoxserver.backends.access import connect
 from eoxserver.contrib import gdal, osr
 from eoxserver.contrib.vrt import VRTBuilder
 from eoxserver.resources.coverages import models
 from eoxserver.services.ows.version import Version
-from eoxserver.services.subset import Subsets
 from eoxserver.services.result import ResultFile, ResultBuffer
 from eoxserver.services.ows.wcs.interfaces import WCSCoverageRendererInterface
 from eoxserver.services.ows.wcs.v20.encoders import WCS20EOXMLEncoder
@@ -48,6 +50,9 @@ from eoxserver.services.exceptions import (
     RenderException, OperationNotSupportedException
 )
 from eoxserver.processing.gdal import reftools
+
+
+logger = logging.getLogger(__name__)
 
 
 class GDALReferenceableDatasetRenderer(Component):
@@ -68,7 +73,7 @@ class GDALReferenceableDatasetRenderer(Component):
         data_items = coverage.data_items.filter(semantic__startswith="bands")
         range_type = coverage.range_type
 
-        subsets = Subsets(params.subsets)
+        subsets = params.subsets
 
         # GDAL source dataset. Either a single file dataset or a composed VRT 
         # dataset.
@@ -78,53 +83,66 @@ class GDALReferenceableDatasetRenderer(Component):
 
         # retrieve area of interest of the source image according to given 
         # subsets
-        src_rect = self.get_source_image_rect(src_ds, subsets)
+        src_rect, dst_rect = self.get_source_and_dest_rect(src_ds, subsets)
 
         # deduct "native" format of the source image
         native_format = data_items[0].format if len(data_items) == 1 else None
 
         # get the requested image format, which defaults to the native format
         # if available
-        format = params.format or native_format
+        frmt = params.format or native_format
 
-        if not format:
-            raise RenderException("No format specified.")
+        if not frmt:
+            raise RenderException("No format specified.", "format")
 
+        if params.scalefactor is not None or params.scales:
+            raise RenderException(
+                "ReferenceableDataset cannot be scaled.",
+                "scalefactor" if params.scalefactor is not None else "scale"
+            )
+
+        maxsize = WCSConfigReader(get_eoxserver_config()).maxsize
+        if maxsize > dst_rect.size_x or maxsize > dst_rect.size_y:
+            raise RenderException(
+                "Requested image size is too large to be processed.",
+                "size"
+            )
 
         # perform subsetting either with or without rangesubsetting
-        if params.rangesubset:
-            subsetted_ds = self.perform_range_subset(
-                src_ds, range_type, subset_bands, src_rect, 
-            )
-
-        else:
-            subsetted_ds = self.perform_subset(
-                src_ds, src_rect
-            )
+        subsetted_ds = self.perform_subset(
+            src_ds, range_type, src_rect, dst_rect, params.rangesubset
+        )
 
         # encode the processed dataset and save it to the filesystem
-        out_ds, out_driver = self.encode(subsetted_ds, format)
+        out_ds, out_driver = self.encode(
+            subsetted_ds, frmt, getattr(params, "encoding_params", {})
+        )
 
         driver_metadata = out_driver.GetMetadata_Dict()
         mime_type = driver_metadata.get("DMD_MIMETYPE")
+        extension = driver_metadata.get("DMD_EXTENSION")
 
         time_stamp = datetime.now().strftime("%Y%m%d%H%M%S")
         filename_base = "%s_%s" % (coverage.identifier, time_stamp)
 
         result_set = [
             ResultFile(
-                path, mime_type, filename_base + splitext(path)[1],
+                path, mime_type, "%s.%s" % (filename_base, extension),
                 ("cid:coverage/%s" % coverage.identifier) if i == 0 else None
             ) for i, path in enumerate(out_ds.GetFileList())
         ]
 
         if params.mediatype.startswith("multipart"):
-            reference = result_set[0].identifier
+            reference = "cid:coverage/%s" % result_set[0].filename
             
             if subsets.has_x and subsets.has_y:
                 footprint = GEOSGeometry(reftools.get_footprint_wkt(out_ds))
+                if not subsets.srid:
+                    extent = footprint.extent
+                else:
+                    extent = subsets.xy_bbox
                 encoder_subset = (
-                    subsets.xy_srid, src_rect.size, coverage.extent, footprint
+                    subsets.srid, src_rect.size, extent, footprint
                 )
             else:
                 encoder_subset = None
@@ -172,7 +190,7 @@ class GDALReferenceableDatasetRenderer(Component):
             return vrt.dataset
 
 
-    def get_source_image_rect(self, dataset, subsets):
+    def get_source_and_dest_rect(self, dataset, subsets):
         size_x, size_y = dataset.RasterXSize, dataset.RasterYSize
         image_rect = Rect(0, 0, size_x, size_y)
 
@@ -180,69 +198,54 @@ class GDALReferenceableDatasetRenderer(Component):
             subset_rect = image_rect
 
         # pixel subset
-        elif subsets.xy_srid is None: # means "imageCRS"
+        elif subsets.srid is None: # means "imageCRS"
             minx, miny, maxx, maxy = subsets.xy_bbox
 
-            minx = minx if minx is not None else image_rect.offset_x
-            miny = miny if miny is not None else image_rect.offset_y
-            maxx = maxx if maxx is not None else image_rect.upper_x
-            maxy = maxy if maxy is not None else image_rect.upper_y
+            minx = int(minx) if minx is not None else image_rect.offset_x
+            miny = int(miny) if miny is not None else image_rect.offset_y
+            maxx = int(maxx) if maxx is not None else image_rect.upper_x
+            maxy = int(maxy) if maxy is not None else image_rect.upper_y
 
-            subset_rect = Rect(minx, miny, maxx-minx, maxy-miny)
+            subset_rect = Rect(minx, miny, maxx-minx+1, maxy-miny+1)
 
+        # subset in geographical coordinates
         else:
-            vrt = VRTBuilder(size_x, size_y)
+            vrt = VRTBuilder(*image_rect.size)
             vrt.copy_gcps(dataset)
 
-            minx, miny, maxx, maxy = subsets.xy_bbox
+            options = reftools.suggest_transformer(dataset)
 
-            # subset in geographical coordinates
             subset_rect = reftools.rect_from_subset(
-                vrt.dataset, subsets.xy_srid, minx, miny, maxx, maxy
+                vrt.dataset, subsets.srid, *subsets.xy_bbox, **options
             )
 
         # check whether or not the subsets intersect with the image
         if not image_rect.intersects(subset_rect):
-            raise RenderException("Subset outside coverage extent.") # TODO: correct exception
+            raise RenderException("Subset outside coverage extent.", "subset")
 
-        # in case the input and output rects are the same, return None to 
-        # indicate this
-        #if image_rect == subset_rect:
-        #    return None
+        src_rect = subset_rect #& image_rect # TODO: why no intersection??
+        dst_rect = src_rect - subset_rect.offset
 
-        return image_rect & subset_rect
+        return src_rect, dst_rect
 
 
-    def perform_range_subset(self, src_ds, range_type, subset_bands, 
-                             subset_rect):
-
-
-        # TODO: something fishy here!
-
-
-        vrt = VRTBuilder(*subset_rect.size)#src_ds.RasterXSize, src_ds.RasterYSize)
-        dst_rect = Rect(0, 0, src_ds.RasterXSize, src_ds.RasterYSize)
+    def perform_subset(self, src_ds, range_type, subset_rect, dst_rect, 
+                       rangesubset=None):
+        vrt = VRTBuilder(*subset_rect.size)
 
         input_bands = list(range_type)
-        for index, subset_band in enumerate(subset_bands, start=1):
-            if isinstance(subset_band, int):
-                if subset_band > 0:
-                    subset_band = len(range_type) + subset_band
-            else:
-                subset_band = index_of(input_bands,
-                    lambda band: (
-                        band.name == subset_band 
-                        or band.identifier == subset_band
-                    )
-                )
-                if subset_band is None:
-                    raise ValueError("Invalid range subset.")
 
-            # prepare and add a simple source for the band
-            input_band = input_bands[subset_band]
+        # list of band indices/names. defaults to all bands
+        if rangesubset:
+            subset_bands = rangesubset.get_band_indices(range_type, 1)
+        else:
+            subset_bands = xrange(1, len(range_type) + 1)
+
+        for dst_index, src_index in enumerate(subset_bands, start=1):
+            input_band = input_bands[src_index-1]
             vrt.add_band(input_band.data_type)
             vrt.add_simple_source(
-                index, src_ds, subset_band, subset_rect, dst_rect
+                dst_index, src_ds, src_index, subset_rect, dst_rect
             )
 
         vrt.copy_metadata(src_ds)
@@ -250,30 +253,17 @@ class GDALReferenceableDatasetRenderer(Component):
 
         return vrt.dataset
 
-    def perform_subset(self, src_ds, subset_rect):
-        vrt = VRTBuilder(src_ds.RasterXSize, src_ds.RasterYSize)
-        dst_rect = Rect(0, 0, src_ds.RasterXSize, src_ds.RasterYSize)
 
-        for index in xrange(1, src_ds.RasterCount + 1):
-            src_band = src_ds.GetRasterBand(index)
-            vrt.add_band(src_band.DataType)
-            vrt.add_simple_source(index, src_ds, index, subset_rect, dst_rect)
+    def encode(self, dataset, frmt, encoding_params):
+        options = ()
+        if frmt == "image/tiff":
+            options = _get_gtiff_options(**encoding_params)
 
-        vrt.copy_metadata(src_ds)
-        vrt.copy_gcps(src_ds, subset_rect)
-
-        return vrt.dataset
-
-    def encode(self, dataset, format):
-        #format, options = None
-        options = {}
-        options = [
-            ("%s=%s" % key, value) for key, value in (options or {}).items()
-        ]
+        args = [ ("%s=%s" % key, value) for key, value in options ]
 
         path = "/tmp/%s" % uuid4().hex
         out_driver = gdal.GetDriverByName("GTiff")
-        return out_driver.CreateCopy(path, dataset, True, options), out_driver
+        return out_driver.CreateCopy(path, dataset, True, args), out_driver
 
 
 def index_of(iterable, predicate, default=None, start=1):
@@ -285,3 +275,39 @@ def index_of(iterable, predicate, default=None, start=1):
 
 def temp_vsimem_filename():
     return "/vsimem/%s" % uuid4().hex
+
+
+def _get_gtiff_options(compression=None, jpeg_quality=None, 
+                       predictor=None, interleave=None, tiling=False, 
+                       tilewidth=None, tileheight=None):
+
+    logger.info("Applying GeoTIFF parameters.")
+
+    if compression:
+        if compression.lower() == "huffman":
+            compression = "CCITTRLE"
+        yield ("COMPRESS", compression.upper())
+
+    if jpeg_quality is not None:
+        yield ("JPEG_QUALITY", str(jpeg_quality))
+
+    if predictor:
+        pr = ["NONE", "HORIZONTAL", "FLOATINGPOINT"].index(predictor.upper())
+        if pr == -1:
+            raise ValueError("Invalid compression predictor '%s'." % predictor)
+        yield ("PREDICTOR", str(pr + 1))
+
+    if interleave:
+        yield ("INTERLEAVE", interleave)
+
+    if tiling:
+        yield ("TILED", "YES")
+        if tilewidth is not None:
+            yield ("BLOCKXSIZE", str(tilewidth))
+        if tileheight is not None:
+            yield ("BLOCKYSIZE", str(tileheight))
+
+
+class WCSConfigReader(config.Reader):
+    section = "services.ows.wcs"
+    maxsize = config.Option(type=int, default=None)

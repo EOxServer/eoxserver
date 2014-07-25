@@ -33,6 +33,7 @@ import tempfile
 import logging
 from itertools import chain
 from cStringIO import StringIO
+import mimetypes
 
 from django.db.models import Q
 from django.http import HttpResponse
@@ -60,7 +61,8 @@ from eoxserver.services.ows.wcs.interfaces import (
 )
 from eoxserver.services.subset import Subsets, Trim
 from eoxserver.services.exceptions import (
-    NoSuchDatasetSeriesOrCoverageException, InvalidRequestException
+    NoSuchDatasetSeriesOrCoverageException, InvalidRequestException,
+    InvalidSubsettingException
 )
 
 
@@ -132,9 +134,13 @@ class WCS20GetEOCoverageSetHandler(Component):
             count = min(count, count_default)
 
         try:
-            subsets = Subsets(decoder.subsets, allowed_types=Trim)
+            subsets = Subsets(
+                decoder.subsets, 
+                crs="http://www.opengis.net/def/crs/EPSG/0/4326",
+                allowed_types=Trim
+            )
         except ValueError, e:
-            raise InvalidSubset(str(e))
+            raise InvalidSubsettingException(str(e))
 
         if len(eo_ids) == 0:
             raise

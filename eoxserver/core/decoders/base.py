@@ -37,10 +37,22 @@ class BaseParameter(object):
     """ Abstract base class for XML, KVP or any other kind of parameter.
     """
 
+    def __init__(self, type=None, num=1, default=None):
+        self.type = type or str
+        self.num = num
+        self.default = default
+
+
     def select(self, decoder, decoder_class=None):
         """ Interface method.
         """
         raise NotImplementedError
+
+
+    @property
+    def locator(self):
+        return ""
+
 
     def __get__(self, decoder, decoder_class=None):
         """ Property getter function.
@@ -67,7 +79,8 @@ class BaseParameter(object):
 
         # parse the value/values, or return the defaults
         if multiple:
-            if self.num == ANY and self.default is not None:
+            
+            if count == 0 and self.num == ANY and self.default is not None:
                 return self.default
 
             try:
