@@ -376,7 +376,7 @@ class MetadataFormatTests(GeometryMixIn, TestCase):
     def test_eoom_reader(self):
         xml = """<?xml version="1.0" encoding="utf-8"?>
         <?xml-stylesheet type="text/xsl" href="schematron_result_for_eop.xsl"?>
-        <eop:EarthObservation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/opt/2.0 ../xsd/opt.xsd" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:swe="http://www.opengis.net/swe/1.0" xmlns:om="http://www.opengis.net/om/2.0" gml:id="eop_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed">
+        <opt:EarthObservation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/opt/2.0 ../xsd/opt.xsd" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:opt="http://www.opengis.net/opt/2.0" xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:swe="http://www.opengis.net/swe/1.0" xmlns:om="http://www.opengis.net/om/2.0" gml:id="eop_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed">
           <om:phenomenonTime>
             <gml:TimePeriod gml:id="tp_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed">
               <gml:beginPosition>2006-08-16T09:09:29Z</gml:beginPosition>
@@ -434,7 +434,39 @@ class MetadataFormatTests(GeometryMixIn, TestCase):
               </eop:multiExtentOf>
             </eop:Footprint>
           </om:featureOfInterest>
-          <om:result />
+          <om:result>
+            <opt:EarthObservationResult gml:id="uuid_c04e9c83-ace0-4942-9d53-20607c4ede9b">
+              <eop:mask>
+                <eop:MaskInformation>
+                  <eop:type>CLOUD</eop:type>
+                  <eop:format>VECTOR</eop:format>
+                  <eop:referenceSystemIdentifier codeSpace="EPSG">urn:ogc:def:crs:EPSG:6.3:4326</eop:referenceSystemIdentifier>
+                  <eop:multiExtentOf>
+                    <gml:MultiSurface gml:id="uuid_37675536-a251-4d75-9045-0f961f5f635e" srsName="urn:ogc:def:crs:EPSG:6.3:4326">
+                      <gml:surfaceMember>
+                        <gml:Polygon gml:id="uuid_318e1e33-7e04-43cd-b069-6f52c83d9ef8">
+                          <gml:exterior>
+                            <gml:LinearRing>
+                              <gml:posList>25 15 35 15 35 25 25 25 25 15</gml:posList>
+                            </gml:LinearRing>
+                          </gml:exterior>
+                        </gml:Polygon>
+                      </gml:surfaceMember>
+                      <gml:surfaceMember>
+                        <gml:Polygon gml:id="uuid_885ab490-c68b-4d37-80ad-bec7e3275b7f">
+                          <gml:exterior>
+                            <gml:LinearRing>
+                              <gml:posList>65 55 75 55 75 65 65 65 65 55</gml:posList>
+                            </gml:LinearRing>
+                          </gml:exterior>
+                        </gml:Polygon>
+                      </gml:surfaceMember>
+                    </gml:MultiSurface>
+                  </eop:multiExtentOf>
+                </eop:MaskInformation>
+              </eop:mask>
+            </opt:EarthObservationResult>
+          </om:result>
           <eop:metaDataProperty>
             <eop:EarthObservationMetaData>
               <eop:identifier>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</eop:identifier>
@@ -453,7 +485,7 @@ class MetadataFormatTests(GeometryMixIn, TestCase):
               </eop:processing>
             </eop:EarthObservationMetaData>
           </eop:metaDataProperty>
-        </eop:EarthObservation>
+        </opt:EarthObservation>
         """
         
         reader = eoom.EOOMFormatReader(env)
@@ -468,6 +500,16 @@ class MetadataFormatTests(GeometryMixIn, TestCase):
                 Polygon.from_bbox((10, 20, 30, 40)),
                 Polygon.from_bbox((50, 60, 70, 80))
             ),
+            "vmasks": [
+                {
+                    'type': 'CLOUD',
+                    'subtype': None,
+                    'mask': MultiPolygon(
+                        Polygon.from_bbox((15, 25, 25, 35)),
+                        Polygon.from_bbox((55, 65, 65, 75)),
+                    )
+                },
+            ],
             'format': 'eogml'
         }
         self.assertEqual(expected, values)

@@ -53,7 +53,10 @@ NS_SSP = NameSpace("http://www.opengis.net/ssp/2.0", "atm")
 NS_OM = NameSpace("http://www.opengis.net/om/2.0", "om")
 NS_GML = NameSpace("http://www.opengis.net/gml/3.2", "gml")
 nsmap = NameSpaceMap(NS_EOP, NS_OM, NS_GML)
-NS_EOP_ALL = (NS_EOP, NS_OPT, NS_SAR, NS_ATM, NS_ALT, NS_LMB, NS_SSP)
+
+NS_EOP_ALL = [
+    ns.uri for ns in [NS_EOP, NS_OPT, NS_SAR, NS_ATM, NS_ALT, NS_LMB, NS_SSP]
+]
 
 
 class EOOMFormatReader(Component):
@@ -61,7 +64,13 @@ class EOOMFormatReader(Component):
 
     def test(self, obj):
         tree = parse(obj)
-        return tree is not None and tree.find('.').tag in NS_EOP_ALL
+        if tree is None:
+            return False
+        ename = etree.QName(tree.find('.').tag)
+        return (
+            ename.localname == "EarthObservation"
+            and ename.namespace in NS_EOP_ALL
+        )
 
     def read(self, obj):
         tree = parse(obj)

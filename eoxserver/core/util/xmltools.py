@@ -111,12 +111,14 @@ def parse(obj):
         try:
             return etree.fromstring(obj)
         except Exception as exc:
-            logger.debug("etree.fromstring(obj) failed! %s", exc)
+            logger.debug("etree.fromstring(obj):"
+                         " Failed to parse the XML document! %s", exc)
     else:
         try:
             return etree.parse(obj)
         except Exception as exc:
-            logger.debug("etree.parse(obj) failed! %s", exc)
+            logger.debug("etree.parse(obj):"
+                         " Failed to parse the XML document! %s", exc)
     return None
 
 
