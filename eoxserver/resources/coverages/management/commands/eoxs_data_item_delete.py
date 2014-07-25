@@ -9,8 +9,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -25,25 +25,18 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-import traceback
+#import traceback
 from optparse import make_option
-
-from django.core.exceptions import ValidationError
 from django.core.management.base import CommandError, BaseCommand
-from django.utils.dateparse import parse_datetime
-from django.db import transaction
-from django.contrib.gis.geos import GEOSGeometry
-
 from eoxserver.resources.coverages.management.commands import (
-    CommandOutputMixIn, _variable_args_cb
+    CommandOutputMixIn, nested_commit_on_success
 )
-
-#from eoxserver.backends import models as backends
 from eoxserver.resources.coverages.models import Coverage
+
 
 class Command(CommandOutputMixIn, BaseCommand):
     option_list = BaseCommand.option_list + (
-        make_option("-i", "--identifier", dest="identifier", 
+        make_option("-i", "--identifier", dest="identifier",
             action="store", default=None,
             help=("Coverage identifier.")
         ),
@@ -63,72 +56,61 @@ class Command(CommandOutputMixIn, BaseCommand):
     """
     Remove one or more data items assigned to the Coverage of the given
     identifier.
-    """ 
+    """
     )
 
+    @nested_commit_on_success
     def handle(self, *args, **opt):
-
-        #----------------------------------------------------------------------
-        # check the inputs 
-
-        # check required identifier 
-        identifier = opt.get('identifier',None)
-        if identifier is None : 
+        # check required identifier
+        identifier = opt.get('identifier', None)
+        if identifier is None:
             raise CommandError("Missing the required coverage identifier!")
 
-        # check required semantic or index 
-        semantic = opt.get('semantic',None)
-        index    = opt.get('index',None)
+        # check required semantic or index
+        semantic = opt.get('semantic', None)
+        index = opt.get('index', None)
 
         if (semantic is None) and (index is None):
             raise CommandError("Index of semantic must be specified")
 
-        # check index value 
-        if index: 
+        # check index value
+        if index:
             try:
-                index = int(index) 
-                if index < 1 : raise ValueError 
-            except ValueError: 
+                index = int(index)
+                if index < 1:
+                    raise ValueError
+            except ValueError:
                 raise CommandError("Invalid index value '%s' !"%index)
 
-        #----------------------------------------------------------------------
-        # perform the action 
-    
-        # find the coverage 
+        # find the coverage
         try:
             cov = Coverage.objects.get(identifier=identifier)
-        except Coverage.DoesNotExist: 
-            raise CommandError("Invalid coverage identifier: '%s' !"%(identifier)) 
+        except Coverage.DoesNotExist:
+            raise CommandError("Invalid coverage identifier: '%s' !"%(identifier))
 
+        # find the selected data items
+        data_items = []
 
-        data_items = [] 
-
-        if index is not None : 
-            # list the data items 
-            for i,di in enumerate( cov.data_items.all().order_by("id") ) : 
-                if index == ( i + 1 ) : 
+        if index is not None: # selection by an index
+            for i, di in enumerate(cov.data_items.all().order_by("id")):
+                if index == (i + 1):
                     semantic = di.semantic
                     data_items.append(di)
                     break
             else:
                 raise CommandError("Invalid index value '%s' !"%index)
 
-        elif semantic is not None : 
-
+        elif semantic is not None: #selection by name
             data_items = cov.data_items.filter(semantic=semantic)
-
-            if len(data_items) == 0 : 
+            if len(data_items) == 0:
                 raise CommandError("Invalid index semantic '%s' !"%semantic)
-            
+
+        # delete selected items
         for di in data_items:
-            di.delete() 
+            di.delete()
 
         self.print_msg("%d item%s '%s' deleted from coverage '%s'."%(
-            len(data_items),("s","")[len(data_items)==1],
+            len(data_items), ("s", "")[len(data_items) == 1],
             semantic, identifier
         ))
-
-        #----------------------------------------------------------------------
-
-
 

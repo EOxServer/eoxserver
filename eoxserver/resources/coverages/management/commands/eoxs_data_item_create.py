@@ -9,8 +9,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -25,25 +25,19 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-import traceback
+#import traceback
 from optparse import make_option
-
-from django.core.exceptions import ValidationError
 from django.core.management.base import CommandError, BaseCommand
-from django.utils.dateparse import parse_datetime
-from django.db import transaction
-from django.contrib.gis.geos import GEOSGeometry
-
 from eoxserver.resources.coverages.management.commands import (
-    CommandOutputMixIn, _variable_args_cb
+    CommandOutputMixIn, nested_commit_on_success
 )
-
 from eoxserver.backends import models as backends
 from eoxserver.resources.coverages.models import Coverage
 
+
 class Command(CommandOutputMixIn, BaseCommand):
     option_list = BaseCommand.option_list + (
-        make_option("-i", "--identifier", dest="identifier", 
+        make_option("-i", "--identifier", dest="identifier",
             action="store", default=None,
             help=("Coverage identifier.")
         ),
@@ -60,62 +54,53 @@ class Command(CommandOutputMixIn, BaseCommand):
             help=("Optional data item's format.")
         ),
     )
-
     args = "-i <id> -s <semantic> -l <location> [-f <format>]"
-
     help = (
     """
     Assign new data item to a Coverage of the given identifier.
-    """ 
+    """
     )
 
+    @nested_commit_on_success
     def handle(self, *args, **opt):
-
-        #----------------------------------------------------------------------
-        # check the inputs 
-
-        # check required identifier 
-        identifier = opt.get('identifier',None)
-        if identifier is None : 
+        # check required identifier
+        identifier = opt.get('identifier', None)
+        if identifier is None:
             raise CommandError("Missing the required coverage identifier!")
 
         # check required semantic
-        semantic = opt.get('semantic',None)
-        if semantic is None : 
+        semantic = opt.get('semantic', None)
+        if semantic is None:
             raise CommandError("Missing the data item's semantic!")
 
-        # check required location 
-        location = opt.get('location',None)
-        if location is None : 
+        # check required location
+        location = opt.get('location', None)
+        if location is None:
             raise CommandError("Missing the required coverage location!")
 
-        # check optional format 
-        format = opt.get('format',None)
-        #if format is None : 
+        # check optional format
+        format_ = opt.get('format', None)
+        #if format is None:
         #    raise CommandError("Missing the required coverage format!")
 
-        #TODO: storage and package handling 
+        #TODO: storage and package handling
         storage = None
-        package = None  
+        package = None
 
-        #----------------------------------------------------------------------
-        # perform the action 
-    
-        # find the coverage 
+        # find the coverage
         try:
             cov = Coverage.objects.get(identifier=identifier)
-        except Coverage.DoesNotExist: 
-            raise CommandError("Invalid coverage identifier: '%s' !"%(identifier)) 
+        except Coverage.DoesNotExist:
+            raise CommandError("Invalid coverage identifier: '%s' !"%(identifier))
 
+        # create a new item
         data_item = backends.DataItem(
-            location=location, format=(format or ""), semantic=semantic, 
+            location=location, format=(format_ or ""), semantic=semantic,
             storage=storage, package=package,
         )
         data_item.dataset = cov
         data_item.full_clean()
         data_item.save()
 
-        self.print_msg("Data item '%s' created for coverage '%s'."%(semantic,identifier))
-        #----------------------------------------------------------------------
-
+        self.print_msg("Data item '%s' created for coverage '%s'."%(semantic, identifier))
 

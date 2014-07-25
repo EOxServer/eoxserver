@@ -9,8 +9,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -25,61 +25,41 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-import traceback
+#import traceback
 from optparse import make_option
-
-from django.core.exceptions import ValidationError
 from django.core.management.base import CommandError, BaseCommand
-from django.utils.dateparse import parse_datetime
-from django.db import transaction
-from django.contrib.gis.geos import GEOSGeometry
-
-from eoxserver.resources.coverages.management.commands import (
-    CommandOutputMixIn, _variable_args_cb
-)
-
+from eoxserver.resources.coverages.management.commands import CommandOutputMixIn
 from eoxserver.resources.coverages.models import Coverage
 
 class Command(CommandOutputMixIn, BaseCommand):
     option_list = BaseCommand.option_list + (
-        make_option("-i", "--identifier", dest="identifier", 
+        make_option("-i", "--identifier", dest="identifier",
             action="store", default=None,
             help=("Coverage identifier.")
         ),
     )
-
     args = "-i <id>"
-
     help = (
     """
-    Print list of data item assigned to a Coverage of the given identifier
-    """ 
+    Print list of data item assigned to a Coverage of the given identifier.
+    """
     )
 
     def handle(self, *args, **opt):
-
-        #----------------------------------------------------------------------
-        # check the inputs 
-
-        # check required identifier 
-        identifier = opt.get('identifier',None)
-        if identifier is None : 
+        # check required identifier
+        identifier = opt.get('identifier', None)
+        if identifier is None:
             raise CommandError("Missing the required coverage identifier!")
 
-        #----------------------------------------------------------------------
-        # perform the action 
-    
-        # find the coverage 
+        # find the coverage
         try:
             cov = Coverage.objects.get(identifier=identifier)
-        except Coverage.DoesNotExist: 
-            raise CommandError("Invalid coverage identifier: '%s' !"%(identifier)) 
+        except Coverage.DoesNotExist:
+            raise CommandError("Invalid coverage identifier: '%s' !"%(identifier))
 
         self.print_msg("Coverage: '%s'."%identifier)
 
-        # list the data items 
-        for i,di in enumerate( cov.data_items.all().order_by("id") ) : 
-            print "%d\t%s\t{%s}\t%s"%(i+1,di.semantic,di.format,di.location) 
-
-        #----------------------------------------------------------------------
+        # list the data items
+        for i, di in enumerate(cov.data_items.all().order_by("id")):
+            print "%d\t%s\t{%s}\t%s"%(i+1, di.semantic, di.format, di.location)
 
