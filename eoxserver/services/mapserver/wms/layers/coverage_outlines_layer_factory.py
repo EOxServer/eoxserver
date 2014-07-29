@@ -41,25 +41,26 @@ class CoverageOutlinesLayerFactory(LayerFactory, PolygonLayerMixIn, StyledLayerM
     def generate(self):
         layer = self._polygon_layer(self.group, filled=False, srid=4326)
 
-        if len(self.coverages) > 0:
-            for cov, cov_name in reversed(self.coverages):
+        count = 0
+        for cov, cov_name in reversed(self.coverages):
 
-                # get part of the visible footprint
-                outline = self._outline_geom(cov)
+            # get part of the visible footprint
+            outline = self._outline_geom(cov)
 
-                # skip invisible outlines
-                if outline.empty:
-                    continue
+            # skip invisible outlines
+            if outline.empty:
+                continue
 
-                # generate feature
-                shape = ms.shapeObj.fromWKT(outline.wkt)
-                shape.initValues(1)
-                shape.setValue(0, cov_name)
+            # generate feature
+            shape = ms.shapeObj.fromWKT(outline.wkt)
+            shape.initValues(1)
+            shape.setValue(0, cov_name)
 
-                # add feature to the group
-                layer.addFeature(shape)
+            # add feature to the group
+            layer.addFeature(shape)
+            count += 1
        
-        else: # add empty feature if there is no applicable coverage 
+        if count == 0: # add an empty feature if there is no applicable coverage 
             shape = ms.shapeObj()
             shape.initValues(1)
             shape.setValue(0, "__empty__")
