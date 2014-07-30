@@ -169,6 +169,10 @@ class MapServerResponse(Response):
             headers_xml  = headcap( headers_xml )
             headers_data = headcap( self.ms_response_data_headers ) 
 
+            #add the missing content lenght headers
+            headers_xml["Content-Length"] = "%d"%len(response_xml)
+            headers_data["Content-Length"] = "%d"%len(self.ms_response_data)
+
             # prepare multipart package 
             parts = [ 
                   ( headers_xml.items() , response_xml ) , 
@@ -176,14 +180,21 @@ class MapServerResponse(Response):
                 ] 
            
             content_type = "multipart/%s; boundary=%s"%(subtype,boundary) 
+            payload = mpPack(parts, boundary)
+            payload_length = 0
+            for chunk in payload:
+                payload_length += len(chunk)
+            headers = {'Content-Length': "%d"%payload_length}
 
-            return Response(mpPack(parts,boundary),content_type,{},self.getStatus())
+            return Response(payload, content_type, headers, self.getStatus())
  
         else : # pure XML response - currently not in use - possibly harmfull as there is no way to test it!  
 
-            if headers_xml is None: headers_xml = self.headers
+            if headers_xml is None:
+                headers_xml = headcap(self.headers)
+            headers_xml["Content-Length"] = "%d"%len(response_xml)
 
-            return Response(response_xml,self.content_type,headcap(headers_xml),self.getStatus()) 
+            return Response(response_xml, self.content_type, headers_xml, self.getStatus())
 
     def getContentType(self):
         """

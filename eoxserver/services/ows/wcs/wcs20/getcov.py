@@ -434,7 +434,10 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
         resp = Response(
             content_type = mime_type,
             content = data, 
-            headers = {'Content-Disposition': "inline; filename=\"%s\"" % filename},
+            headers = {
+                'Content-Length': "%d" % len(data),
+                'Content-Disposition': "inline; filename=\"%s\"" % filename,
+            },
             status = 200
         )
         
@@ -445,19 +448,29 @@ class WCS20GetReferenceableCoverageHandler(BaseRequestHandler):
 
         # prepare multipart package 
         parts = [ # u
-            ( [( "Content-Type" , "text/xml" )] , cov_desc ) , 
+            ( [( "Content-Type" , "text/xml" ),
+               ( "Content-Length", "%d" % len(cov_desc) ),
+              ] , cov_desc ) ,
             ( [( "Content-Type" , str(mime_type) ) , 
+               ( "Content-Length", "%d" % len(data) ),
                ( "Content-Description" , "coverage data" ),
                ( "Content-Transfer-Encoding" , "binary" ),
                ( "Content-Id" , str(reference) ),
                ( "Content-Disposition" , "inline; filename=\"%s\"" % str(filename) ) ,
               ] , data ) ] 
 
+        payload = mpPack(parts, boundary)
+        payload_length = 0
+        for chunk in payload:
+            payload_length += len(chunk)
+
         # create response 
         resp = Response(
-            content = mpPack( parts , boundary ) ,
+            content = payload ,
             content_type = "multipart/%s; boundary=%s"%(subtype,boundary),
-            headers = {},
+            headers = {
+                'Content-Length': "%d" % payload_length,
+            },
             status = 200
         )
         
@@ -736,6 +749,9 @@ class WCS20GetRectifiedCoverageHandler(WCSCommonHandler):
                     getFormatRegistry().getFormatByMIME( mime_type ).defaultExt
                 )
                 
-                resp.headers.update({'Content-Disposition': "inline; filename=\"%s\"" % filename})
+                resp.headers.update({
+                    'Content-Length': "%d" % len(resp.content),
+                    'Content-Disposition': "inline; filename=\"%s\"" % filename,
+                })
 
         return resp
