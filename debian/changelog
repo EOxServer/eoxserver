@@ -1,0 +1,11 @@
+eoxserver (0.3.2-0~trusty2) trusty; urgency=low
+
+  * Disabled reftools.
+
+ -- Angelos Tzotsos <gcpp.kalxas@gmail.com>  Mon, 29 Jul 2014 16:04:00 +0200
+
+eoxserver (0.3.2-0~trusty1) trusty; urgency=low
+
+  * Initial debian build.
+
+ -- Angelos Tzotsos <gcpp.kalxas@gmail.com>  Sun, 28 Jul 2014 15:54:00 +0200
