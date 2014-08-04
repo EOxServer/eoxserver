@@ -188,7 +188,7 @@ def to_http_response(result_set, response_type=HttpResponse, boundary=None):
     else:
         boundary = None
         content_type = result_set[0].content_type or "application/octet-stream"
-        headers = get_headers(result_set[0])
+        headers = tuple(get_headers(result_set[0]))
 
 
     def response_iterator(items, boundary=None):
