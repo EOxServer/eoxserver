@@ -33,6 +33,7 @@ from django.core.management.base import CommandError, BaseCommand
 
 from eoxserver.resources.coverages import models
 
+INDENT="  "
 
 class Command(BaseCommand):
     option_list = BaseCommand.option_list + (
@@ -76,10 +77,11 @@ class Command(BaseCommand):
 
 
     def print_object(self, eo_object, recursive=False, level=0):
-        indent = "  " * level
-        print("%s%s" % (indent, eo_object))
+        indent = INDENT * level
+        eo_object = eo_object.cast()
+        print("%s%s %s" % (indent, eo_object.identifier,
+                                eo_object.__class__.__name__))
 
         if recursive and models.iscollection(eo_object):
-            collection = eo_object.cast()
-            for sub_eo_object in collection.eo_objects.all():
+            for sub_eo_object in eo_object.eo_objects.all():
                 self.print_object(sub_eo_object, recursive, level+1)

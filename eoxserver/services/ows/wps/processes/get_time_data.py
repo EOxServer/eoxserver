@@ -63,13 +63,17 @@ class GetTimeDataProcess(Component):
     }
 
     outputs = {
-        "times": ComplexData("times", formats=FormatText('text/csv'),
-                title="Comma separated list of collection's coverages, their" \
-                    " extents and times.")
+        "times": ComplexData("times",
+                    formats=(FormatText('text/csv'), FormatText('text/plain')),
+                    title="Comma separated list of collection's coverages,"\
+                            " their extents and times.",
+                    abstract="NOTE: The use of the 'text/plain' format is "\
+                               "deprecated! This format will be removed!'"
+                )
     }
 
     @staticmethod
-    def execute(collection, begin_time, end_time):
+    def execute(collection, begin_time, end_time, **kwarg):
         """ The main execution function for the process.
         """
 
