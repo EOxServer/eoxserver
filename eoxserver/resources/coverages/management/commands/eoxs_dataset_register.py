@@ -134,7 +134,7 @@ class Command(CommandOutputMixIn, BaseCommand):
         ),
 
         make_option("--coverage-type", dest="coverage_type",
-            action="store", default="RectifiedDataset",
+            action="store", default=None,
             help=("The actual coverage type.")
         ),
 
@@ -233,7 +233,7 @@ class Command(CommandOutputMixIn, BaseCommand):
 
         metadata_keys = set((
             "identifier", "extent", "size", "projection",
-            "footprint", "begin_time", "end_time"
+            "footprint", "begin_time", "end_time", "coverage_type",
         ))
 
         all_data_items = []
@@ -403,7 +403,7 @@ class Command(CommandOutputMixIn, BaseCommand):
 
         try:
             # TODO: allow types of different apps
-            CoverageType = getattr(models, kwargs["coverage_type"])
+            CoverageType = getattr(models, retrieved_metadata["coverage_type"])
         except AttributeError:
             raise CommandError(
                 "Type '%s' is not supported." % kwargs["coverage_type"]
@@ -474,9 +474,12 @@ class Command(CommandOutputMixIn, BaseCommand):
         
     def _get_overrides(self, identifier=None, size=None, extent=None, 
                        begin_time=None, end_time=None, footprint=None, 
-                       projection=None, **kwargs):
+                       projection=None, coverage_type=None, **kwargs):
 
         overrides = {}
+
+        if coverage_type:
+            overrides["coverage_type"] = coverage_type
 
         if identifier:
             overrides["identifier"] = identifier
