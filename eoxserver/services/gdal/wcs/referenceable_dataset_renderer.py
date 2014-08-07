@@ -132,7 +132,7 @@ class GDALReferenceableDatasetRenderer(Component):
             ) for i, path in enumerate(out_ds.GetFileList())
         ]
 
-        if params.mediatype.startswith("multipart"):
+        if params.mediatype and params.mediatype.startswith("multipart"):
             reference = "cid:coverage/%s" % result_set[0].filename
             
             if subsets.has_x and subsets.has_y:
