@@ -63,9 +63,6 @@ class Command(CommandOutputMixIn, BaseCommand):
 
 
     def handle(self, *args, **options):
-        # Collect parameters
-        self.traceback = bool(options.get("traceback", False))
-        self.verbosity = int(options.get('verbosity', 1))
         filename = options.get('filename', '-')
 
         # load and parse the input data
@@ -76,17 +73,15 @@ class Command(CommandOutputMixIn, BaseCommand):
                 with open(filename, "r") as fin:
                     rts = json.load(fin)
 
-            # print stack trace if required 
-            if self.traceback : 
+        except IOError as exc:
+            if self.traceback:
                 self.print_msg(traceback.format_exc())
-            raise CommandError( "Failed to open the input file '%s' ! "
-                                    "REASON: %s " % ( filename , str(e) ) ) 
-            
+            raise CommandError("Failed to open the input file '%s' ! "
+                                    "REASON: %s " % (filename, str(exc)))
+
         # allow single range-type objects
         if isinstance(rts, dict):
             rts = [rts]
-        #----------------------------------------------------------------------
-        # insert the range types to DB 
 
         # insert the range types to DB
         success_count = 0 # success counter - counts finished syncs
