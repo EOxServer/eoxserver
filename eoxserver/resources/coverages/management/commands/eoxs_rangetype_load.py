@@ -119,6 +119,9 @@ class Command(CommandOutputMixIn, BaseCommand):
             raise CommandError( "Failed to open the input file '%s' ! "
                                     "REASON: %s " % ( filename , str(e) ) ) 
             
+        # allow single range-type objects
+        if isinstance(rts, dict):
+            rts = [rts]
         #----------------------------------------------------------------------
         # insert the range types to DB 
 
