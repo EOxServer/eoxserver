@@ -112,6 +112,13 @@ class GDALDatasetMetadataReader(Component):
                 fp_wkt = rt.get_footprint_wkt(ds, **rt_prm)
                 footprint = GEOSGeometry(fp_wkt, srid)
 
+                if isinstance(footprint, Polygon):
+                    footprint = MultiPolygon(footprint)
+                elif not isinstance(footprint, MultiPolygon):
+                    raise TypeError(
+                        "Got invalid geometry %s" % type(footprint).__name__
+                    )
+
                 values["footprint"] = footprint
                 values["extent"] = footprint.extent
 
