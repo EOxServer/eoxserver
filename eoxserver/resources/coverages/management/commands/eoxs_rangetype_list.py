@@ -26,61 +26,30 @@
 #-------------------------------------------------------------------------------
 
 import sys
-import traceback
-
+import json
 from optparse import make_option
-
 from django.core.management.base import BaseCommand, CommandError
-
-# try the python default json module 
-try : import json 
-except ImportError: 
-    #try the original simplejson module
-    try: import simplejson as json
-    except ImportError: 
-        #try the simplejson module packed in django
-        try: import django.utils.simplejson as json 
-        except ImportError: 
-            raise ImportError( "Failed to import any usable json module!" ) 
-    
-#------------------------------------------------------------------------------
-
-#from eoxserver.core.system import System
-
-#------------------------------------------------------------------------------
-
 from eoxserver.resources.coverages.rangetype import getAllRangeTypeNames
 from eoxserver.resources.coverages.rangetype import isRangeTypeName
 from eoxserver.resources.coverages.rangetype import getRangeType
-
-#------------------------------------------------------------------------------
-
 from eoxserver.resources.coverages.management.commands import CommandOutputMixIn
 
-#------------------------------------------------------------------------------
 
 class Command(CommandOutputMixIn, BaseCommand):
-
     option_list = BaseCommand.option_list + (
-        make_option('--details',
-            dest='details',
-            action='store_true',
-            default=False,
-            help=("Optional. Print details of the reangetypes." )
-        ),
         make_option('--json',
             dest='json_dump',
             action='store_true',
             default=False,
-            help=("Optional. Dump rangetype(s) in JSON format. This JSON "
-                  "dump can be loaded by another instance of EOxServer." )
+            help=("Optional. Dump rangetype(s) in JSON format. The JSON "
+                  "dump can be loaded by another EOxServer instance.")
         ),
-        make_option('-o','--output',
+        make_option('-o', '--output',
             dest='filename',
             action='store', type='string',
             default='-',
             help=("Optional. Write output to a file rather than to the default"
-                  " standard output." )
+                  " standard output.")
         ),
     )
 
@@ -88,176 +57,119 @@ class Command(CommandOutputMixIn, BaseCommand):
 
     help = (
     """
-    Print either list of all rangetype indentifiers and their details.
-    When the range-type identifiers are specified than only these rangetypes
-    are selected. In addition complete rangetypes cans be dumped in JSON 
-    format which can be then loaded by another EOxServer instance. 
+    Print list of registered range-types.  The output and its format can be
+    controlled.  By default, the program dupms a simple list of range-types'
+    identifiers.
+    If the range-type identifiers are specified than only these rangetypes
+    are filtered.  In addition, complete rangetype definitions cans be dumped
+    in the JSON format.  The JSON output can be directly loaded by another
+    EOxServer instance.
 
-    NOTE: JSON format of the range-types has slightly changed with the new 
-          range-type data model introduced in the EOxServer version v0.4. 
-          The produced JSON is not backward comatible and cannot be loaded 
-          to EOxServer 0.3.* and earlier. 
-    """ % ({"name": __name__.split(".")[-1]})
+    NOTE: JSON format of the range-types has slightly changed with the new
+          range-type data model introduced in the EOxServer version v0.4.
+          The produced JSON is not backward comatible and cannot be loaded
+          to EOxServer 0.3.* and earlier.
+    """
     )
 
-    #--------------------------------------------------------------------------
 
     def handle(self, *args, **options):
+        print_json = bool(options.get('json_dump', False))
+        filename = options.get('filename', '-')
+        rt_list = args # list of range-type identifiers
 
-        # Collect parameters
-
-        self.verbosity  = int(options.get('verbosity', 1))
-
-        print_details   = bool(options.get('details',False))
-
-        print_json      = bool(options.get('json_dump',False))
-
-        filename        = options.get('filename','-')
-
-        # dataset's (coverages') ids
-        rt_list = args
-
-        #----------------------------------------------------------------------
-        # check the input rangetype names
-
-        if not rt_list :
-
-            # if no IDs specified get all identifiers
-
+        if not rt_list:
+            # if no range-type name specified get all of them
             rt_list = getAllRangeTypeNames()
 
-        else :
-
+        else:
             # filter existing range-type names
-
-            def __checkRangeType( rt ) :
-                rv = isRangeTypeName( rt )
-                if not rv :
-                    self.print_err( "Invalid range-type identifier '%s' !"%rt )
+            def __checkRangeType(rt):
+                rv = isRangeTypeName(rt)
+                if not rv:
+                    self.print_err("Invalid range-type identifier '%s' !"%rt)
                 return rv
+            rt_list = [rt for rt in rt_list if __checkRangeType(rt)]
 
-            rt_list = filter( __checkRangeType , rt_list )
+        # select the right output format
+        if print_json:
+            output = OutputJSON
+        else:
+            output = OutputBrief
 
-        #----------------------------------------------------------------------
-        # output
+        def _write_out(fout):
+            """ Write the output."""
+            fout.write(output.lead())
+            for i, rt_name in enumerate(rt_list):
+                if i > 0:
+                    fout.write(output.separator())
+                fout.write(output.object(rt_name))
+            fout.write(output.trail())
 
-        # select the right output driver 
+        try:
+            if filename == "-":
+                _write_out(sys.stdout)
+            else:
+                with open(filename, "w") as fout:
+                    _write_out(fout)
 
-        if print_json :         output = OutputJSON
-        elif print_details :    output = OutputDetailed 
-        else :                  output = OutputBrief 
-
-
-        # write the output 
-
-        def _write_out( fout ) : 
-            fout.write( output.lead() ) 
-            for i,rt_name in enumerate(rt_list) :
-                if i > 0 : fout.write( output.separator() )
-                fout.write( output.object( rt_name ) ) 
-            fout.write( output.trail() ) 
-
-        # output file 
-        try :  
-
-            if filename == "-" : 
-
-                # write to stdout 
-                _write_out( sys.stdout ) 
-
-            else : 
-                
-                # write to a file 
-                with open(filename,"w") as fout :
-                    _write_out( fout )
-
-        except IOError as e : 
-
-            raise CommandError( "Failed to open the output file '%s' ! "
-                    "REASON: %s" % ( filename , str(e) ) )
-                            
-
-#------------------------------------------------------------------------------
-# output drivers 
-
-class OutputBase: 
-    """ base output driver class class """ 
-
-    @classmethod 
-    def lead(cls): return ""
-
-    @classmethod 
-    def object( cls, rt_name ) : return ""
-
-    @classmethod 
-    def trail(cls): return ""
-
-    @classmethod
-    def separator(cls) : return ""
+        except IOError as exc:
+            raise CommandError("Failed to write to file '%s'!"
+                                " REASON: %s" % (filename, str(exc)))
 
 
-class OutputBrief( OutputBase ):
-    """ brief text output - RT name only """ 
+class BaseOutput(object):
+    """ base output class """
+    @staticmethod
+    def lead():
+        return ""
 
-    @classmethod 
-    def object( cls, rt_name ) : return rt_name 
+    @staticmethod
+    def object(rt_name):
+        raise NotImplementedError
 
-    @classmethod
-    def separator(cls) : return "\n" 
+    @staticmethod
+    def trail():
+        return ""
 
-    @classmethod 
-    def trail(cls): return "\n"
-        
-
-class OutputDetailed( OutputBase ): 
-    """ detailed text output """ 
-
-    @classmethod
-    def lead(cls) : return "\n" 
-
-    @classmethod
-    def trail(cls) : return "\n\n" 
-
-    @classmethod
-    def separator(cls) : return "\n\n" 
-
-    @classmethod 
-    def object( cls, rt_name ) : 
-
-        rt = getRangeType( rt_name )
-
-        out = []
-
-        out.append("Range-Type: %s" % rt.name ) 
-        out.append("\tType:\t\t%s" % rt.getDataTypeAsString())
-        out.append("\tNr. of Bands:\t%d" % len(rt.bands))
-        out.append("\tBands:")
-
-        for band in rt.bands :
-            out.append( "\t\t%s"%(band.identifier) ) 
-
-        return "\n".join( out ) 
+    @staticmethod
+    def separator():
+        return ""
 
 
-class OutputJSON( OutputBase ) : 
-    """ JSON output """ 
+class OutputBrief(BaseOutput):
+    """ brief text output - RT name only """
+    @staticmethod
+    def object(rt_name):
+        return rt_name
 
-    @classmethod 
-    def lead(cls): 
+    @staticmethod
+    def separator():
+        return "\n"
+
+    @staticmethod
+    def trail():
+        return "\n"
+
+
+class OutputJSON(BaseOutput):
+    """ JSON output """
+    @staticmethod
+    def lead():
         return "["
 
-    @classmethod 
-    def trail(cls):
+    @staticmethod
+    def trail():
         return "]\n"
 
-    @classmethod
-    def separator(cls) : return ",\n" 
+    @staticmethod
+    def separator():
+        return ",\n"
 
-    @classmethod 
-    def object( cls, rt_name ) : 
-
-        # get rangetype as dictionary and dump the json 
-        return json.dumps( getRangeType(rt_name), indent=4,
-                        separators=(',',': '), sort_keys=True ) 
+    @staticmethod
+    def object(rt_name):
+        # get rangetype as a dict and dump the json
+        return json.dumps(getRangeType(rt_name), indent=4,
+                        separators=(',', ': '), sort_keys=True)
 
 
