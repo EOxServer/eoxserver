@@ -19,6 +19,8 @@ case $DJANGO in
     "django1.4")
         echo "Using latest django 1.4"
         pip install "django<1.5,>=1.4"
+        # Apply GEOS version parsing patch (see https://code.djangoproject.com/ticket/17212#comment:9)
+        patch -p1 .venv/local/lib/python2.7/site-packages/django/contrib/gis/geos/libgeos.py jenkins/django-1.4_geos-version.patch
         ;;
     "django1.5")
         echo "Using latest django 1.5"
