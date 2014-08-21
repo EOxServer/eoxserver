@@ -38,7 +38,14 @@ from functools import wraps
 
 from eoxserver.contrib import gdal
 from eoxserver.core.util.rect import Rect
+from eoxserver.core.exceptions import InternalError
 
+
+try:
+    from osgeo.gdal import GCI_AlphaBand
+except ImportError:
+    from gdal import GCI_AplhaBand
+    
 #-------------------------------------------------------------------------------
 # approximation transformer's threshold in pixel units 
 # 0.125 is the default value used by CLI gdalwarp tool 
@@ -260,7 +267,12 @@ CPLParseNameValue.restype = C.c_char_p
 CPLParseNameValue.argtypes = [C.c_char_p, C.POINTER(C.c_char_p)]
 
 CPLMalloc = _libgdal.CPLMalloc
+CPLMalloc.argtypes=[C.c_size_t ]
 CPLMalloc.restype = C.c_void_p
+
+CPLCalloc = _libgdal.CPLCalloc
+CPLCalloc.argtypes = [C.c_size_t,C.c_size_t]
+CPLCalloc.restype = C.c_void_p
 
 CPLFree = _libgdal.free
 CPLFree.argtypes = [C.c_void_p]
@@ -537,8 +549,8 @@ def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
     max_error=APPROX_ERR_TOL, method=METHOD_GCP, order=0):
 
     ds = _open_ds(path_or_ds)
-    ptr = C.c_void_p(long(ds.this))
-    
+    ptr = C.c_void_p(long(ds.this))    
+
     if srid: 
         srs = osr.SpatialReference()
         srs.ImportFromEPSG(srid)
@@ -563,7 +575,6 @@ def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
     )
 
 
-
     GDALSetGenImgProjTransformerDstGeoTransform(transformer, geotransform)
 
     options = GDALCreateWarpOptions()
@@ -574,31 +585,45 @@ def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
     options.hDstDS = ds.this
 
     nb = options.nBandCount = ds.RasterCount
-    options.panSrcBands = CPLMalloc(C.sizeof(C.c_int) * nb)
-    options.panDstBands = CPLMalloc(C.sizeof(C.c_int) * nb)
-
+    options.panSrcBands = C.cast(CPLMalloc(C.sizeof(C.c_int) * nb),C.POINTER(C.c_int))
+    options.panDstBands = C.cast(CPLMalloc(C.sizeof(C.c_int) * nb),C.POINTER(C.c_int))
+    
     # TODO: nodata value setup
     for i in xrange(nb):
+        options.panSrcBands[i]=i+1
+        options.panDstBands[i]=i+1
+    
+    for i in xrange(nb):
         band = ds.GetRasterBand(i+1)
-
-
-    if max_error > 0:
-
-        GDALCreateApproxTransformer = _libgdal.GDALCreateApproxTransformer
-        GDALCreateApproxTransformer.restype = C.c_void_p
-        GDALCreateApproxTransformer.argtypes = [C.c_void_p, C.c_void_p, C.c_double]
-
-        GDALApproxTransform = _libgdal.GDALApproxTransform
-
-        GDALApproxTransformerOwnsSubtransformer = _libgdal.GDALApproxTransformerOwnsSubtransformer
-        GDALApproxTransformerOwnsSubtransformer.argtypes = [C.c_void_p, C.c_bool]
-
-        options.pTransformerArg = GDALCreateApproxTransformer(
-            options.pfnTransformer, options.pTransformerArg, max_error
-        )
-        options.pfnTransformer = GDALApproxTransform
-        # TODO: correct for python
-        #GDALApproxTransformerOwnsSubtransformer(options.pTransformerArg, False)
+        v_noda=band.GetNoDataValue()
+        if v_noda is not None:
+            if not options.padfSrcNoDataReal:
+                options.padfSrcNoDataImag = C.cast(CPLCalloc(nb,C.sizeof(C.c_double)),C.POINTER(C.c_double))
+                options.padfSrcNoDataReal = C.cast(CPLCalloc(nb,C.sizeof(C.c_double)),C.POINTER(C.c_double))
+                for j in xrange(nb):
+                    options.padfSrcNoDataReal[j] = -1.1e20
+            options.padfSrcNoDataReal[i]=v_noda
+        if band.GetRasterColorInterpretation() == GCI_AlphaBand:
+            options.nSrcAlphaBand = i+1
+            options.nDstAlphaBand = i+1
+            
+#    if max_error > 0:
+#        print "maxerr>0"
+#        GDALCreateApproxTransformer = _libgdal.GDALCreateApproxTransformer
+#        GDALCreateApproxTransformer.restype = C.c_void_p
+#        GDALCreateApproxTransformer.argtypes = [C.c_void_p, C.c_void_p, C.c_double]
+#
+#        GDALApproxTransform = _libgdal.GDALApproxTransform
+#
+#        GDALApproxTransformerOwnsSubtransformer = _libgdal.GDALApproxTransformerOwnsSubtransformer
+#        GDALApproxTransformerOwnsSubtransformer.argtypes = [C.c_void_p, C.c_bool]
+#
+#        options.pTransformerArg = GDALCreateApproxTransformer(
+#            options.pfnTransformer, options.pTransformerArg, max_error
+#        )
+#        options.pfnTransformer = GDALApproxTransform
+#        # TODO: correct for python
+#        #GDALApproxTransformerOwnsSubtransformer(options.pTransformerArg, False)
 
 
     GDALCreateWarpedVRT = _libgdal.GDALCreateWarpedVRT
@@ -612,13 +637,12 @@ def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
     GDALAutoCreateWarpedVRT.restype = C.c_void_p
     GDALAutoCreateWarpedVRT.argtypes = [C.c_void_p, C.c_char_p, C.c_char_p, C.c_int, C.c_double, C.POINTER(WARP_OPTIONS)]
 
-
+    
     print x_size, y_size, tuple(geotransform), options
     #options=GDALCreateWarpOptions()
-    #vrt_ds = GDALCreateWarpedVRT(ptr, x_size, y_size, geotransform, options)
-    vrt_ds = GDALAutoCreateWarpedVRT(ptr, None, wkt, resample, max_error, None)
+    vrt_ds = GDALCreateWarpedVRT(ptr, x_size, y_size, geotransform, options)
+    #vrt_ds = GDALAutoCreateWarpedVRT(ptr, None, wkt, resample, max_error, None)
 
-    print vrt_ds
     print "YYYY"
 
     GDALSetProjection = _libgdal.GDALSetProjection
@@ -637,11 +661,12 @@ def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
     GDALClose(vrt_ds)
     print "BBBB"
 
-
     GDALDestroyWarpOptions = _libgdal.GDALDestroyWarpOptions
     GDALDestroyWarpOptions.argtypes = [C.POINTER(WARP_OPTIONS)]
     GDALDestroyWarpOptions(options)
     print "CCCC"
+
+
 
 
 def suggested_warp_output(ds, src_wkt, dst_wkt, method=METHOD_GCP, order=0):
