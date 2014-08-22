@@ -568,106 +568,98 @@ def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
     geotransform = (C.c_double * 6)()
 
     GDALSuggestedWarpOutput(
-        #int(ds.this), 
         ptr,
         GDALGenImgProjTransform, transformer, geotransform, 
         C.byref(x_size), C.byref(y_size)
     )
 
-
     GDALSetGenImgProjTransformerDstGeoTransform(transformer, geotransform)
 
     options = GDALCreateWarpOptions()
-    options.dfWarpMemoryLimit = memory_limit
-    options.eResampleAlg = resample
-    options.pfnTransformer = GDALGenImgProjTransform
-    options.pTransformerArg = transformer
-    options.hDstDS = ds.this
+    options.contents.dfWarpMemoryLimit = memory_limit
+    options.contents.eResampleAlg = resample
+    options.contents.pfnTransformer = C.cast(GDALGenImgProjTransform,C.c_void_p)
+    options.contents.pTransformerArg = C.cast(transformer,C.c_void_p)
+    options.contents.hSrcDS = ptr
 
-    nb = options.nBandCount = ds.RasterCount
-    options.panSrcBands = C.cast(CPLMalloc(C.sizeof(C.c_int) * nb),C.POINTER(C.c_int))
-    options.panDstBands = C.cast(CPLMalloc(C.sizeof(C.c_int) * nb),C.POINTER(C.c_int))
+    nb = ds.RasterCount
+    options.contents.nBandCount = nb
+    options.contents.panSrcBands = C.cast(CPLMalloc(C.sizeof(C.c_int) * nb),C.POINTER(C.c_int))
+    options.contents.panDstBands = C.cast(CPLMalloc(C.sizeof(C.c_int) * nb),C.POINTER(C.c_int))
     
     # TODO: nodata value setup
     for i in xrange(nb):
-        options.panSrcBands[i]=i+1
-        options.panDstBands[i]=i+1
+        options.contents.panSrcBands[i]=i+1
+        options.contents.panDstBands[i]=i+1
     
     for i in xrange(nb):
         band = ds.GetRasterBand(i+1)
         v_noda=band.GetNoDataValue()
         if v_noda is not None:
-            if not options.padfSrcNoDataReal:
-                options.padfSrcNoDataImag = C.cast(CPLCalloc(nb,C.sizeof(C.c_double)),C.POINTER(C.c_double))
-                options.padfSrcNoDataReal = C.cast(CPLCalloc(nb,C.sizeof(C.c_double)),C.POINTER(C.c_double))
+            if not options.contents.padfSrcNoDataReal:
+                options.contents.padfSrcNoDataImag = C.cast(CPLCalloc(nb,C.sizeof(C.c_double)),C.POINTER(C.c_double))
+                options.contents.padfSrcNoDataReal = C.cast(CPLCalloc(nb,C.sizeof(C.c_double)),C.POINTER(C.c_double))
                 for j in xrange(nb):
-                    options.padfSrcNoDataReal[j] = -1.1e20
-            options.padfSrcNoDataReal[i]=v_noda
+                    options.contents.padfSrcNoDataReal[j] = -1.1e20
+            options.contents.padfSrcNoDataReal[i]=v_noda
         if band.GetRasterColorInterpretation() == GCI_AlphaBand:
-            options.nSrcAlphaBand = i+1
-            options.nDstAlphaBand = i+1
+            options.contents.nSrcAlphaBand = i+1
+            options.contents.nDstAlphaBand = i+1
             
-#    if max_error > 0:
+    if max_error > 0:
 #        print "maxerr>0"
-#        GDALCreateApproxTransformer = _libgdal.GDALCreateApproxTransformer
-#        GDALCreateApproxTransformer.restype = C.c_void_p
-#        GDALCreateApproxTransformer.argtypes = [C.c_void_p, C.c_void_p, C.c_double]
-#
-#        GDALApproxTransform = _libgdal.GDALApproxTransform
-#
-#        GDALApproxTransformerOwnsSubtransformer = _libgdal.GDALApproxTransformerOwnsSubtransformer
-#        GDALApproxTransformerOwnsSubtransformer.argtypes = [C.c_void_p, C.c_bool]
-#
-#        options.pTransformerArg = GDALCreateApproxTransformer(
-#            options.pfnTransformer, options.pTransformerArg, max_error
-#        )
-#        options.pfnTransformer = GDALApproxTransform
-#        # TODO: correct for python
-#        #GDALApproxTransformerOwnsSubtransformer(options.pTransformerArg, False)
+        GDALCreateApproxTransformer = _libgdal.GDALCreateApproxTransformer
+        GDALCreateApproxTransformer.restype = C.c_void_p
+        GDALCreateApproxTransformer.argtypes = [C.c_void_p, C.c_void_p, C.c_double]
+
+        GDALApproxTransform = _libgdal.GDALApproxTransform
+
+        GDALApproxTransformerOwnsSubtransformer = _libgdal.GDALApproxTransformerOwnsSubtransformer
+        GDALApproxTransformerOwnsSubtransformer.argtypes = [C.c_void_p, C.c_bool]
+
+        options.contents.pTransformerArg = GDALCreateApproxTransformer(
+            options.contents.pfnTransformer, options.contents.pTransformerArg, max_error
+        )
+        options.contents.pfnTransformer = C.cast(GDALApproxTransform,C.c_void_p) 
+        # TODO: correct for python
+        # Will be destroyed by Transformer.__del__ ?
+        GDALApproxTransformerOwnsSubtransformer(options.contents.pTransformerArg, False)
 
 
     GDALCreateWarpedVRT = _libgdal.GDALCreateWarpedVRT
     GDALCreateWarpedVRT.restype = C.c_void_p
     GDALCreateWarpedVRT.argtypes = [C.c_void_p, C.c_int, C.c_int, C.c_double * 6, C.POINTER(WARP_OPTIONS)]
 
-    print "XXXX"
-
+#    print "XXXX"
 
     GDALAutoCreateWarpedVRT = _libgdal.GDALAutoCreateWarpedVRT
     GDALAutoCreateWarpedVRT.restype = C.c_void_p
     GDALAutoCreateWarpedVRT.argtypes = [C.c_void_p, C.c_char_p, C.c_char_p, C.c_int, C.c_double, C.POINTER(WARP_OPTIONS)]
-
     
-    print x_size, y_size, tuple(geotransform), options
-    #options=GDALCreateWarpOptions()
+#    print x_size, y_size, tuple(geotransform), options
     vrt_ds = GDALCreateWarpedVRT(ptr, x_size, y_size, geotransform, options)
-    #vrt_ds = GDALAutoCreateWarpedVRT(ptr, None, wkt, resample, max_error, None)
 
-    print "YYYY"
+#    print "YYYY"
 
     GDALSetProjection = _libgdal.GDALSetProjection
     GDALSetProjection.argtypes = [C.c_void_p, C.c_char_p]
-
     GDALSetProjection(vrt_ds, wkt)
-    print "ZZZZ"
+#    print "ZZZZ"
 
     GDALSetDescription = _libgdal.GDALSetDescription
     GDALSetDescription.argtypes = [C.c_void_p, C.c_char_p]
     GDALSetDescription(vrt_ds, vrt_path)
-    print "AAAA"
+#    print "AAAA"
 
     GDALClose = _libgdal.GDALClose
     GDALClose.argtypes = [C.c_void_p]
     GDALClose(vrt_ds)
-    print "BBBB"
+#    print "BBBB"
 
     GDALDestroyWarpOptions = _libgdal.GDALDestroyWarpOptions
     GDALDestroyWarpOptions.argtypes = [C.POINTER(WARP_OPTIONS)]
     GDALDestroyWarpOptions(options)
-    print "CCCC"
-
-
-
+#    print "CCCC"
 
 def suggested_warp_output(ds, src_wkt, dst_wkt, method=METHOD_GCP, order=0):
     geotransform = (C.c_double * 6)()
