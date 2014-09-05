@@ -66,16 +66,11 @@ class Command(CommandOutputMixIn, BaseCommand):
         try:
             eoobj = EOObject.objects.get(identifier=identifier).cast()
         except EOObject.DoesNotExist:
-            self.print_err("There is no EOObject matching the identifier: "
-                    "'%s'" % identifier)
-            #TODO: Find a better way how to pass the return code.
-            sys.exit(1)
-        else:
-            self.print_msg("There is a %s matching the identifier: '%s'" % (
-                eoobj.__class__.__name__, identifier))
+            raise CommandError("There is no EOObject matching the identifier "
+                                "%r !" % identifier)
 
         metadata_items = eoobj.metadata_items.all()
         if semantic is not None:
             metadata_items = metadata_items.filter(semantic=semantic)
         for md in metadata_items:
-            print "%s\t\"%s\""%(md.semantic, md.value)
+            print "%s\t%r"%(md.semantic, md.value.encode("utf8"))
