@@ -322,13 +322,12 @@ class WMSPreProcessor(PreProcessor):
     """
 
     def get_optimizations(self, ds):
-        if self.crs:
-            yield ReprojectionOptimization(self.crs)
-        
-        
         if self.bandmode not in (RGB, RGBA, ORIG_BANDS):
             raise ValueError
-        
+
+        if self.crs:
+            yield ReprojectionOptimization(self.crs, self.footprint_alpha)
+
         if self.radiometric_interval_min is not None:
             rad_min = self.radiometric_interval_min
         else:
