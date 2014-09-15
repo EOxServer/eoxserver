@@ -120,8 +120,6 @@ class MapServerResponse(Response):
         properties respectively.
         """
 
-        import pdb; pdb.set_trace()
-
         if is_multipart( self.content_type ) : 
         
             # extract multipart boundary  
@@ -394,6 +392,7 @@ class MapServerOperationHandler(BaseRequestHandler):
         try:
             content_type = mapscript.msIO_stripStdoutBufferContentType()
             mapscript.msIO_stripStdoutBufferContentHeaders()
+            # since MapServer 6.4.1 the strip functions don't seem to work
             if content_type is None:
                 raise mapscript.MapServerError
 
