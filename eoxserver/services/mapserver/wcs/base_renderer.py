@@ -10,8 +10,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -58,7 +58,7 @@ class BaseRenderer(Component):
         maxsize = WCSConfigReader(get_eoxserver_config()).maxsize
         if maxsize is not None:
             map_.maxsize = maxsize
-        map_.setMetaData("ows_updateSequence", 
+        map_.setMetaData("ows_updateSequence",
             WCSConfigReader(get_eoxserver_config()).update_sequence
         )
         return map_
@@ -72,7 +72,7 @@ class BaseRenderer(Component):
         )
 
     def layer_for_coverage(self, coverage, native_format, version=None):
-        """ Helper method to generate a WCS enabled MapServer layer for a given 
+        """ Helper method to generate a WCS enabled MapServer layer for a given
             coverage.
         """
         range_type = coverage.range_type
@@ -108,10 +108,13 @@ class BaseRenderer(Component):
             "rangeset_name": range_type.name,
             "rangeset_label": range_type.name,
             "imagemode": ms.gdalconst_to_imagemode_string(bands[0].data_type),
-            "formats": " ".join([f.wcs10name if version.startswith("1.0") else f.mimeType for f in self.get_wcs_formats()])
+            "formats": " ".join([
+                f.wcs10name if version.startswith("1.0") else f.mimeType
+                for f in self.get_wcs_formats()]
+            )
         }, namespace="wcs")
 
-        if version == None or version.startswith("2.0"):
+        if version is None or version.startswith("2.0"):
             ms.setMetaData(layer, {
                 "band_names": " ".join([band.name for band in bands]),
             }, namespace="wcs")
@@ -122,7 +125,10 @@ class BaseRenderer(Component):
 
         if native_format:
             if version.startswith("1.0"):
-                native_format = next((x.wcs10name for x in self.get_wcs_formats() if x.mimeType == native_format), native_format)
+                native_format = next((
+                    x.wcs10name for x in self.get_wcs_formats()
+                    if x.mimeType == native_format), native_format
+                )
             ms.setMetaData(layer, {
                 "native_format": native_format,
                 "nativeformat": native_format
@@ -135,16 +141,16 @@ class BaseRenderer(Component):
 
         # setting the coverages CRS as the first one is important!
         all_crss.insert(0, native_crs)
-        
-        supported_crss = " ".join(all_crss) 
-        layer.setMetaData("ows_srs", supported_crss) 
-        layer.setMetaData("wcs_srs", supported_crss) 
+
+        supported_crss = " ".join(all_crss)
+        layer.setMetaData("ows_srs", supported_crss)
+        layer.setMetaData("wcs_srs", supported_crss)
 
         for band in bands:
             ms.setMetaData(layer, {
                 "band_description": band.description,
                 "band_definition": band.definition,
-                "band_uom": band.uom
+                "band_uom": band.uom,
             }, namespace=band.name)
 
             # For MS WCS 1.x interface
@@ -153,8 +159,19 @@ class BaseRenderer(Component):
                 "interval": "%d %d" % band.allowed_values
             }, namespace="wcs_%s" % band.name)
 
-        return layer
+        nilvalues = " ".join(
+            str(nil_value.value) for nil_value in bands[0].nil_value_set
+        )
+        nilvalues_reasons = " ".join(
+            nil_value.reason for nil_value in bands[0].nil_value_set
+        )
+        if nilvalues:
+            ms.setMetaData(layer, {
+                "nilvalues": nilvalues,
+                "nilvalues_reasons": nilvalues_reasons
+            }, namespace="wcs")
 
+        return layer
 
     def get_native_format(self, coverage, data_items):
         if issubclass(coverage.real_type, RectifiedStitchedMosaic):
@@ -166,24 +183,21 @@ class BaseRenderer(Component):
 
         return None
 
-
     def find_param(self, params, name, default=None):
         for key, value in params:
             if key == name:
                 return value
         return default
 
-
     def get_wcs_formats(self):
         return getFormatRegistry().getSupportedFormatsWCS()
-
 
     def get_all_outputformats(self, use_mime=True):
         outputformats = []
         for frmt in self.get_wcs_formats():
             of = ms.outputFormatObj(frmt.driver, "custom")
             of.name = frmt.mimeType if use_mime else frmt.wcs10name
-            of.mimetype = frmt.mimeType 
+            of.mimetype = frmt.mimeType
             of.extension = frmt.defaultExt
             outputformats.append(of)
         return outputformats
