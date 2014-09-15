@@ -120,6 +120,8 @@ class MapServerResponse(Response):
         properties respectively.
         """
 
+        import pdb; pdb.set_trace()
+
         if is_multipart( self.content_type ) : 
         
             # extract multipart boundary  
@@ -392,6 +394,8 @@ class MapServerOperationHandler(BaseRequestHandler):
         try:
             content_type = mapscript.msIO_stripStdoutBufferContentType()
             mapscript.msIO_stripStdoutBufferContentHeaders()
+            if content_type is None:
+                raise mapscript.MapServerError
 
         except mapscript.MapServerError:
             # degenerate response. Manually split headers from content
