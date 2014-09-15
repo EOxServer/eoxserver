@@ -10,8 +10,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -46,13 +46,19 @@ class CoverageDescriptionMapServerRenderer(BaseRenderer):
     implements(WCSCoverageDescriptionRendererInterface)
 
     versions = (Version(1, 1), Version(1, 0))
-    handles = (models.RectifiedDataset, models.RectifiedStitchedMosaic, models.ReferenceableDataset)
+    handles = (
+        models.RectifiedDataset, models.RectifiedStitchedMosaic,
+        models.ReferenceableDataset
+    )
 
     def supports(self, params):
         return (
-            params.version in self.versions 
+            params.version in self.versions
             and all(
-                map(lambda c: issubclass(c.real_type, self.handles), params.coverages)
+                map(
+                    lambda c: issubclass(c.real_type, self.handles),
+                    params.coverages
+                )
             )
         )
 
@@ -73,7 +79,7 @@ class CoverageDescriptionMapServerRenderer(BaseRenderer):
                 coverage, native_format, params.version
             )
             map_.insertLayer(layer)
-        
+
         for outputformat in self.get_all_outputformats(not use_name):
             map_.appendOutputFormat(outputformat)
 
