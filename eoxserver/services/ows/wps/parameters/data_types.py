@@ -145,7 +145,7 @@ class String(BaseType):
     name = "string"
     dtype = unicode
     encoding = 'utf-8'
-    comparable = False # disabled although Python implements comarable strings
+    comparable = False # disabled although Python implements comparable strings
 
     @classmethod
     def encode(cls, value):

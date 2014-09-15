@@ -101,8 +101,8 @@ class ProcessInterface(object):
     def inputs(self):
         """ A dict mapping the inputs' identifiers to their respective types.
             The type can be either one of the supported native python types
-            (automatically converted to a ``LiterData`` object) or an instance
-            of one of the data-specification classes (``LiterData``,
+            (automatically converted to a ``LiteralData`` object) or an instance
+            of one of the data-specification classes (``LiteralData``,
             ``BoundingBoxData``, or ``ComplexData``).  Mandatory.
         """
 
