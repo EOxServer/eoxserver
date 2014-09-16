@@ -1068,7 +1068,7 @@ namespace("WebClient").Views = (function() {
                         name: 'EOX Maps Terrain',
                         layer: 'terrain',
                         isBaseLayer: true,
-                        attribution: 'Terrain map data: GTOPO30, SRTM © NASA, EU-DEM © Produced using Copernicus data and information funded by the European Union - EU-DEM layers, CleanTOPO2 public domain, GlobCover © ESA, NaturalEarth public domain, and OpenStreetMap © OpenStreetMap contributors; Terrain map design © EOX IT Services GmbH',
+                        attribution: 'Terrain { Data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors and <a href="http://maps.eox.at/#data">others</a>, Rendering &copy; <a href="http://eox.at">EOX</a> }',
                     },
                     layerDefaults
                 )
