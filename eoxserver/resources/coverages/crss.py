@@ -45,7 +45,7 @@ logger = logging.getLogger(__name__)
 #-------------------------------------------------------------------------------
 #: Set (Python ``set`` type) of EPSG codes of CRS whose axes are displayed
 #: in reversed order. 
-#: source:  GDAL 1.10.0, WKT/AXES definitions 
+#: Source:  GDAL 1.10.0, WKT/AXES definitions 
 EPSG_AXES_REVERSED = set([ 
     # GEOGRAPHIC COORDINATE SYSTEMS 
     # NOTE: Tested to be consistent with GDAL 

@@ -71,7 +71,7 @@ class Command(CommandOutputMixIn, BaseCommand):
     @nested_commit_on_success
     def handle(self, *args, **kwargs):
         identifier = kwargs['identifier']
-        if identifier:
+        if not identifier:
             raise CommandError("Missing the mandatory collection identifier.")
 
         try:
@@ -104,7 +104,7 @@ class Command(CommandOutputMixIn, BaseCommand):
                     sub_collection, recursive, force
                 )
 
-        if not force and collection.eo_objects.exist():
+        if not force and collection.eo_objects.count() > 0:
             raise CommandError(
                 "Collection '%s' is not empty." % collection.identifier
             )

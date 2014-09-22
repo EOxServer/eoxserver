@@ -102,11 +102,14 @@ class GDALReferenceableDatasetRenderer(Component):
             )
 
         maxsize = WCSConfigReader(get_eoxserver_config()).maxsize
-        if maxsize > dst_rect.size_x or maxsize > dst_rect.size_y:
-            raise RenderException(
-                "Requested image size is too large to be processed.",
-                "size"
-            )
+        if maxsize is not None:
+            if maxsize < dst_rect.size_x or maxsize < dst_rect.size_y:
+                raise RenderException(
+                    "Requested image size %dpx x %dpx exceeds the allowed "
+                    "limit maxsize=%dpx." % (
+                        dst_rect.size_x, dst_rect.size_y, maxsize
+                    ), "size"
+                )
 
         # perform subsetting either with or without rangesubsetting
         subsetted_ds = self.perform_subset(
@@ -132,7 +135,7 @@ class GDALReferenceableDatasetRenderer(Component):
             ) for i, path in enumerate(out_ds.GetFileList())
         ]
 
-        if params.mediatype.startswith("multipart"):
+        if params.mediatype and params.mediatype.startswith("multipart"):
             reference = "cid:coverage/%s" % result_set[0].filename
             
             if subsets.has_x and subsets.has_y:

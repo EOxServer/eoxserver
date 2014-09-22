@@ -40,9 +40,9 @@ touch "$EOX_ROOT/autotest/autotest/logs/eoxserver.log"
 
 # Load the demonstration if not already present
 SERIES="MER_FRS_1P_reduced_RGB"
-python manage.py eoxs_eoid_check -f DatasetSeries -i "$SERIES" --traceback \
-    || python manage.py eoxs_series_create -i "$SERIES" --traceback
+python manage.py eoxs_id_check "$SERIES" --type DatasetSeries --traceback \
+    && python manage.py eoxs_collection_create --type DatasetSeries -i "$SERIES" --traceback
 for TIF in "$EOX_ROOT/autotest/autotest/data/meris/mosaic_MER_FRS_1P_reduced_RGB/"*.tif
 do
-    python manage.py eoxs_dataset_register -r RGB -d "$TIF" -m "${TIF//.tif/.xml}" --series "$SERIES" --traceback
+    python manage.py eoxs_dataset_register -r RGB -d "$TIF" -m "${TIF//.tif/.xml}" --collection "$SERIES" --traceback
 done

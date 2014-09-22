@@ -11,8 +11,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -33,14 +33,15 @@ VERSION = (0, 5, None, 'dev', 0)
 #VERSION = (0, 5, None, 'rc', 1)
 #VERSION = (0, 5, 0, 'final', 0)
 
+
 def get_version():
     # Concatenate first two elements
     version = '%s.%s' % (VERSION[0], VERSION[1])
     # Concatenate third element if not None
-    if VERSION[2] != None:
+    if VERSION[2] is not None:
         version = '%s.%s' % (version, VERSION[2])
     # Concatenate last two elements if forth not "final"
     if VERSION[3] != 'final':
         version = '%s%s%s' % (version, VERSION[3], VERSION[4])
-    
+
     return version

@@ -32,7 +32,8 @@ esac
 
 django-admin.py --version
 
-if [ $OS == "Ubuntu" ] && [ $DJANGO == "django1.4" ]; then
+if [ $DJANGO == "django1.4" ]; then
+    # Apply GEOS version parsing patch (see https://code.djangoproject.com/ticket/17212#comment:9)
     find . -name libgeos.py  -exec patch {} jenkins/geos-dev.patch \;
 fi
 
@@ -46,7 +47,7 @@ fi
 
 if [ $OS == "Ubuntu" ]; then
   sed -e 's/#binary_raster_comparison_enabled=false/binary_raster_comparison_enabled=false/' -i autotest/autotest/conf/eoxserver.conf
-  echo "disabled_tests=WCS20GetCoverageReferenceableDatasetGeogCRSSubsetTestCase,WCS20GetCoverageReferenceableDatasetGeogCRSSubsetExceedsExtentTestCase,WCS20GetCoverageOutputCRSotherUoMDatasetTestCase,WCS20GetCoverageJPEG2000TestCase,WCS20DescribeEOCoverageSetIncorrectSpatialSubsetFaultTestCase,WCS10DescribeCoverageMosaicTestCase,WCS10DescribeCoverageDatasetTestCase" >> autotest/autotest/conf/eoxserver.conf
+  echo "disabled_tests=WCS20GetCoverageReferenceableDatasetGeogCRSSubsetTestCase,WCS20GetCoverageReferenceableDatasetGeogCRSSubsetExceedsExtentTestCase,WCS20GetCoverageOutputCRSotherUoMDatasetTestCase,WCS20GetCoverageJPEG2000TestCase,WCS20DescribeEOCoverageSetIncorrectSpatialSubsetFaultTestCase,WCS10DescribeCoverageMosaicTestCase,WCS10DescribeCoverageDatasetTestCase,WPS10ExecuteComplexDataTIFBase64InMemTestCase" >> autotest/autotest/conf/eoxserver.conf
 fi
 
 # Configure the specified database system

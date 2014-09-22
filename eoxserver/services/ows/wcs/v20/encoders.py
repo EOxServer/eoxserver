@@ -29,11 +29,10 @@
 
 from lxml import etree
 
-from django.contrib.gis.geos import Polygon, MultiPolygon
+from django.contrib.gis.geos import Polygon
 from django.utils.timezone import now
 
 from eoxserver.core.config import get_eoxserver_config
-from eoxserver.core.util.xmltools import XMLEncoder
 from eoxserver.core.util.timetools import isoformat
 from eoxserver.backends.access import retrieve
 from eoxserver.contrib.osr import SpatialReference
@@ -47,14 +46,14 @@ from eoxserver.services.ows.component import ServiceComponent, env
 from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.services.ows.common.v20.encoders import OWS20Encoder
 from eoxserver.services.ows.wcs.v20.util import (
-    nsmap, ns_xlink, ns_xsi, ns_ogc, ns_ows, ns_gml, ns_gmlcov, ns_wcs, ns_crs, 
-    ns_eowcs, OWS, GML, GMLCOV, WCS, CRS, EOWCS, SWE, INT,
-    SUPPORTED_INTERPOLATIONS
+    nsmap, ns_xlink, ns_gml, ns_wcs, ns_eowcs,
+    OWS, GML, GMLCOV, WCS, CRS, EOWCS, SWE, INT, SUPPORTED_INTERPOLATIONS
 )
 
 
 class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
-    def encode_capabilities(self, sections, coverages_qs=None, dataset_series_qs=None):
+    def encode_capabilities(self, sections, coverages_qs=None,
+                            dataset_series_qs=None):
         conf = CapabilitiesConfigReader(get_eoxserver_config())
 
         all_sections = "all" in sections
@@ -132,7 +131,7 @@ class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
                 service="WCS", versions=versions, method="POST"
             )
             all_handlers = sorted(
-                set(get_handlers + post_handlers), 
+                set(get_handlers + post_handlers),
                 key=lambda h: (getattr(h, "index", 10000), h.request)
             )
 
@@ -146,8 +145,8 @@ class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
                 if handler in post_handlers:
                     post = self.encode_reference("Post", conf.http_service_url)
                     post.append(
-                        OWS("Constraint", 
-                            OWS("AllowedValues", 
+                        OWS("Constraint",
+                            OWS("AllowedValues",
                                 OWS("Value", "XML")
                             ), name="PostEncoding"
                         )
@@ -158,14 +157,14 @@ class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
                     OWS("Operation",
                         OWS("DCP",
                             OWS("HTTP", *methods)
-                        ), 
+                        ),
                         # apply default values as constraints
                         *[
                             OWS("Constraint",
                                 OWS("NoValues"),
                                 OWS("DefaultValue", str(default)),
                                 name=name
-                            ) for name, default 
+                            ) for name, default
                             in getattr(handler, "constraints", {}).items()
                         ],
                         name=handler.request
@@ -197,7 +196,7 @@ class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
 
             extension.append(
                 INT("InterpolationMetadata", *[
-                    INT("InterpolationSupported", 
+                    INT("InterpolationSupported",
                         base_url + supported_interpolation
                     ) for supported_interpolation in SUPPORTED_INTERPOLATIONS
                 ])
@@ -233,13 +232,13 @@ class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
 
             if inc_dataset_series_summary:
                 dataset_series_set = []
-                
+
                 # reduce data transfer by only selecting required elements
                 # TODO: currently runs into a bug
                 #dataset_series_qs = dataset_series_qs.only(
                 #    "identifier", "begin_time", "end_time", "footprint"
                 #)
-                
+
                 for dataset_series in dataset_series_qs:
                     minx, miny, maxx, maxy = dataset_series.extent_wgs84
 
@@ -339,13 +338,13 @@ class GMLCOV10Encoder(GML32Encoder):
             }
         )
 
-    def encode_domain_set(self, coverage, srid=None, size=None, extent=None, 
+    def encode_domain_set(self, coverage, srid=None, size=None, extent=None,
                           rectified=True):
         grid_name = "%s_grid" % coverage.identifier
         srs = SpatialReference(srid) if srid is not None else None
 
         if rectified:
-            return GML("domainSet", 
+            return GML("domainSet",
                 self.encode_rectified_grid(
                     size or coverage.size, extent or coverage.extent,
                     srs or coverage.spatial_reference, grid_name
@@ -378,7 +377,7 @@ class GMLCOV10Encoder(GML32Encoder):
             miny -= 0.000000005
             maxx += 0.000000005
             maxy += 0.000000005
-        
+
         return GML("boundedBy",
             GML("Envelope",
                 GML("lowerCorner", frmt % swap(minx, miny)),
@@ -410,7 +409,6 @@ class GMLCOV10Encoder(GML32Encoder):
             except models.NilValueSet.DoesNotExist:
                 return ()
 
-
     def encode_nil_values(self, nil_value_set):
         return SWE("nilValues",
             SWE("NilValues",
@@ -430,7 +428,7 @@ class GMLCOV10Encoder(GML32Encoder):
                 SWE("constraint",
                     SWE("AllowedValues",
                         SWE("interval", "%s %s" % band.allowed_values),
-                        SWE("significantFigures", "%d" % band.significant_figures)
+                        SWE("significantFigures", str(band.significant_figures))
                     )
                 ),
                 definition=band.definition
@@ -448,7 +446,11 @@ class GMLCOV10Encoder(GML32Encoder):
 
 class WCS20CoverageDescriptionXMLEncoder(GMLCOV10Encoder):
     def encode_coverage_description(self, coverage):
-        rectified = False if issubclass(coverage.real_type, ReferenceableDataset) else True
+        if issubclass(coverage.real_type, ReferenceableDataset):
+            rectified = False
+        else:
+            rectified = True
+
         return WCS("CoverageDescription",
             self.encode_bounded_by(coverage.extent_wgs84),
             WCS("CoverageId", coverage.identifier),
@@ -518,7 +520,7 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20E
                     )
                 ), GML("timePosition", isoformat(now()))
             )
-        
+
         return GMLCOV("metadata",
             GMLCOV("Extension",
                 EOWCS("EOMetadata",
@@ -537,7 +539,7 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20E
 
         if source_mime:
             source_format = getFormatRegistry().getFormatByMIME(source_mime)
-            # map the source format to the native one 
+            # map the source format to the native one
             native_format = getFormatRegistry().mapSourceToNativeWCS20(source_format)
         elif issubclass(coverage.real_type, RectifiedStitchedMosaic):
             # use the default format for RectifiedStitchedMosaics
@@ -563,7 +565,7 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20E
             self.encode_eo_metadata(coverage),
             self.encode_domain_set(coverage, srid, size, extent, rectified),
             self.encode_range_type(self.get_range_type(coverage.range_type_id)),
-            WCS("ServiceParameters", 
+            WCS("ServiceParameters",
                 WCS("CoverageSubtype", coverage.real_type.__name__),
                 WCS("nativeFormat", native_format.mimeType if native_format else "")
             ),
@@ -576,7 +578,7 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20E
                 GML("rangeParameters",
                     **{
                         ns_xlink("arcrole"): "fileReference",
-                        ns_xlink("href"): reference, 
+                        ns_xlink("href"): reference,
                         ns_xlink("role"): mime_type
                     }
                 ),
@@ -606,7 +608,7 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20E
                 footprint__intersects=subset_polygon
             )
 
-        # iterate over all subsets in reverse order to get the 
+        # iterate over all subsets in reverse order to get the
         eo_objects = eo_objects.order_by("-begin_time")
         actual_contributions = []
         all_contributions = []
@@ -644,20 +646,20 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20E
             ]
         ), **tree.attrib)
 
-    def encode_referenceable_dataset(self, coverage, range_type, reference, 
+    def encode_referenceable_dataset(self, coverage, range_type, reference,
                                      mime_type, subset=None):
-        # handle subset 
+        # handle subset
         dst_srid = coverage.srid
 
         if not subset:
-            # whole area - no subset 
+            # whole area - no subset
             domain_set = self.encode_domain_set(coverage, rectified=False)
             eo_metadata = self.encode_eo_metadata(coverage)
             extent = coverage.extent
             sr = SpatialReference(dst_srid)
 
         else:
-            # subset is given 
+            # subset is given
             srid, size, extent, footprint = subset
             srid = srid if srid is not None else 4326
 
@@ -692,7 +694,7 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20E
             self.encode_bounded_by(dataset_series.extent_wgs84),
             EOWCS("DatasetSeriesId", dataset_series.identifier),
             self.encode_time_period(
-                dataset_series.begin_time, dataset_series.end_time, 
+                dataset_series.begin_time, dataset_series.end_time,
                 "%s_timeperiod" % dataset_series.identifier
             ),
             **{ns_gml("id"): self.get_gml_id(dataset_series.identifier)}
@@ -704,14 +706,16 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20E
             for dataset_series in dataset_series_set
         ])
 
-    def encode_eo_coverage_set_description(self, dataset_series_set, coverages, number_matched=None, number_returned=None):
+    def encode_eo_coverage_set_description(self, dataset_series_set, coverages,
+                                           number_matched=None,
+                                           number_returned=None):
         if number_matched is None:
             number_matched = len(coverages) + len(dataset_series_set)
         if number_returned is None:
             number_returned = len(coverages) + len(dataset_series_set)
 
-        root = EOWCS("EOCoverageSetDescription", 
-            numberMatched=str(number_matched), 
+        root = EOWCS("EOCoverageSetDescription",
+            numberMatched=str(number_matched),
             numberReturned=str(number_returned)
         )
 

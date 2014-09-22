@@ -70,7 +70,7 @@ INTERPOLATION_TRANS = {
 
 
 class RectifiedCoverageMapServerRenderer(BaseRenderer):
-    """ A coverage renderer for rectified coverages. Uses mapserver to process 
+    """ A coverage renderer for rectified coverages. Uses mapserver to process
         the request.
     """
 
@@ -80,7 +80,7 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
     versions_full = (Version(1, 1), Version(1, 0))
     versions_partly = (Version(2, 0),)
     versions = versions_full + versions_partly
-    
+
     handles_full = (
         models.RectifiedDataset,
         models.RectifiedStitchedMosaic,
@@ -102,7 +102,6 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
             and issubclass(params.coverage.real_type, self.handles_partly))
         )
 
-
     def render(self, params):
         # get coverage related stuff
         coverage = params.coverage
@@ -117,7 +116,7 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         bands = list(range_type)
 
         subsets = params.subsets
-        
+
         if subsets:
             srid = subsets.srid
             if srid is not None:
@@ -127,7 +126,6 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
                         "'%s'." % srid, "subset"
                     )
 
-        
         # create and configure map object
         map_ = self.create_map()
 
@@ -147,7 +145,7 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         time_stamp = datetime.now().strftime("%Y%m%d%H%M%S")
         basename = "%s_%s" % (coverage.identifier, time_stamp)
         of = create_outputformat(
-            mime_type, frmt, imagemode, basename, 
+            mime_type, frmt, imagemode, basename,
             getattr(params, "encoding_params", {})
         )
 
@@ -156,7 +154,7 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
 
         # TODO: use layer factory here
         layer = self.layer_for_coverage(coverage, native_format, params.version)
-        
+
         map_.insertLayer(layer)
 
         for connector in self.connectors:
@@ -191,14 +189,14 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
 
                 if not is_mosaic:
                     tree = encoder.alter_rectified_dataset(
-                        coverage, getattr(params, "http_request", None), 
-                        etree.parse(result_set[0].data_file).getroot(), 
+                        coverage, getattr(params, "http_request", None),
+                        etree.parse(result_set[0].data_file).getroot(),
                         subsets.bounding_polygon(coverage) if subsets else None
                     )
                 else:
                     tree = encoder.alter_rectified_stitched_mosaic(
-                        coverage.cast(), getattr(params, "http_request", None), 
-                        etree.parse(result_set[0].data_file).getroot(), 
+                        coverage.cast(), getattr(params, "http_request", None),
+                        etree.parse(result_set[0].data_file).getroot(),
                         subsets.bounding_polygon(coverage) if subsets else None
                     )
 
