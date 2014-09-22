@@ -10,8 +10,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -26,25 +26,17 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-
 from lxml import etree
-
 from eoxserver.core.decoders.base import BaseParameter
 
-
 class Parameter(BaseParameter):
-    """ Parameter for XML values.
-    """
-
-    def __init__(self, selector, type=None, num=1, default=None, 
+    """ Parameter for XML values."""
+    def __init__(self, selector, type=None, num=1, default=None,
                  namespaces=None, locator=None):
+        super(Parameter, self).__init__(type, num, default)
         self.selector = selector
-        self.type = type or str # default to string, because XPath might return some kind of object
-        self.num = num # int or "?", "+", "*"
-        self.default = default # only used for "?"
         self.namespaces = namespaces
         self._locator = locator
-
 
     def select(self, decoder, decoder_class=None):
         # prepare the XPath selector if necessary
@@ -57,19 +49,25 @@ class Parameter(BaseParameter):
             results = [results]
 
         return results
-        
+
     @property
     def locator(self):
         return self._locator or str(self.selector)
 
 
 class Decoder(object):
-    """ Base class for XML Decoders.
-    """
-
+    """ Base class for XML Decoders."""
     namespaces = {}
 
     def __init__(self, tree):
         if isinstance(tree, basestring):
-            tree = etree.fromstring(tree)
+            try:
+                tree = etree.fromstring(tree)
+            except etree.XMLSyntaxError as exc:
+                # NOTE: lxml.etree.XMLSyntaxError is incorretly identified as
+                #       an OWS exception by the exception handler leading
+                #       to a wrong OWS error response.  This exception thus
+                #       must be cought and replaced by another exception
+                #       of a different type.
+                raise ValueError("Malformed XML document! %s"%(exc))
         self._tree = tree

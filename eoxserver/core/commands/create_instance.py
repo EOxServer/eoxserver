@@ -104,6 +104,8 @@ class Command(EOxServerAdminCommand):
                 conn.commit()
                 conn.close()
             except ImportError:
-                print("SpatiaLite not found, trying to initialize using 'init_spatialite-2.3.sql'.")
-                init_sql_path = "init_spatialite-2.3.sql"
-                os.system("spatialite %s < %s" % (db_name, init_sql_path))
+                print("SpatiaLite not found, trying to initialize using 'InitSpatialMetaData()'.")
+                os.system(
+                    'spatialite %s "SELECT InitSpatialMetaData();"'
+                    % db_name
+                )

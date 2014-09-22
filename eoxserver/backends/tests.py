@@ -37,6 +37,8 @@ from eoxserver.backends import models
 from eoxserver.backends.cache import CacheContext
 from eoxserver.backends.access import retrieve
 from eoxserver.backends.component import BackendComponent, env
+from eoxserver.backends.testbase import withFTPServer
+
 
 logger = logging.getLogger(__name__)
 
@@ -69,9 +71,10 @@ class RetrieveTestCase(TestCase):
             url="http://eoxserver.org/export/2523/downloads",
             storage_type="HTTP"
         )
-        dataset = create(models.Dataset,
+        dataset = create(models.DataItem,
             location="EOxServer_documentation-0.3.0.pdf",
-            storage=storage
+            storage=storage,
+            semantic="pdffile"
         )
 
         with CacheContext() as c:
@@ -81,6 +84,7 @@ class RetrieveTestCase(TestCase):
         self.assertFalse(os.path.exists(cache_path))
 
 
+    @withFTPServer()
     def test_retrieve_ftp_zip(self):
         import storages, packages
 
@@ -95,14 +99,16 @@ class RetrieveTestCase(TestCase):
             storage=storage
         )
 
-        dataset = create(models.Dataset,
+        dataset = create(models.DataItem,
             location="file.txt",
-            package=package
+            package=package,
+            semantic="textfile"
         )
 
-        dataset2 = create(models.Dataset,
+        dataset2 = create(models.DataItem,
             location="file2.txt",
-            package=package
+            package=package,
+            semantic="textfile"
         )
 
         with CacheContext() as c:

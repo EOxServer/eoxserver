@@ -18,14 +18,23 @@ following snippet.
 You can download the latest version of D3 directly from
 [d3js.org/d3.v3.zip](http://d3js.org/d3.v3.zip)
 
+If you want to display datasets loaded from an EOWCS server, you also need
+to include [libcoverage.js](https://github.com/EOX-A/libcoverage.js). An example
+on how to use it is provided below.
+
 ```html
+<!-- libcoverage.js-->
+<script src="dependencies/libcoverage.js/libcoverage.min.js" charset="utf-8"></script>
+
 <!-- TimeSlider -->
 <script src="build/d3.timeslider.js"></script>
+<script src="build/d3.timeslider.plugins.js"></script>
 <link href="build/d3.timeslider.css" rel="stylesheet" type="text/css" media="all" />
 <script>
   window.addEventListener('load', function() {
     // Initialize the TimeSlider
     slider = new TimeSlider(document.getElementById('d3_timeslider'), {
+      debounce: 50,
       domain: {
         start: new Date("2012-01-01T00:00:00Z"),
         end: new Date("2013-01-01T00:00:00Z"),
@@ -38,14 +47,14 @@ You can download the latest version of D3 directly from
         {
           id: 'img2012',
           color: 'red',
-          data: function(start, end) {
-            return [
+          data: function(start, end, callback) {
+            return callback('img2012', [
               [ new Date("2012-01-01T12:00:00Z"), new Date("2012-01-01T16:00:00Z") ],
               [ new Date("2012-01-02T12:00:00Z"), new Date("2012-01-02T16:00:00Z") ],
-              [ new Date("2012-01-04T00:00:00Z") ],
-              [ new Date("2012-01-05T00:00:00Z"), new Date("2012-01-06T00:00:00Z") ],
+              new Date("2012-01-04T00:00:00Z"),
+              new Date("2012-01-05T00:00:00Z"),
               [ new Date("2012-01-06T12:00:00Z"), new Date("2012-01-26T16:00:00Z") ],
-            ]
+            ]);
           }
         }
       ]
@@ -56,6 +65,26 @@ You can download the latest version of D3 directly from
       console.log("Custom event handler on the time slider");
       console.log(e.detail);
     });
+
+    // Change the TimeSlider domain, or the selected interval, then reset the 
+    // TimeSlider to it's initial state
+    slider.domain(new Date("2011-01-01T00:00:00Z"),  new Date("2013-01-01T00:00:00Z"));
+    slider.select(new Date("2011-02-01T00:00:00Z"),  new Date("2013-02-08T00:00:00Z"))
+    slider.reset();
+
+    // Add a new dataset and remove another one
+    slider.addDataset({
+      id: 'fsc',
+      color: 'green'
+      data: new TimeSlider.Plugin.EOWCS({ url: 'http://neso.cryoland.enveo.at/cryoland/ows', eoid: 'daily_FSC_PanEuropean_Optical', dataset: 'fsc' })
+    });
+    slider.addDataset({
+      id: 'asar',
+      color: 'purple',
+      data: new TimeSlider.Plugin.WMS({ url: 'http://data.eox.at/instance01/ows', eoid: 'ASAR_IMM_L1_view', dataset: 'asar' })
+    })
+    slider.removeDataset('img2012');
+)
   }, false);
 </script>
 ```

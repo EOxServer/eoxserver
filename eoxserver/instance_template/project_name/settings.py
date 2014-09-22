@@ -215,6 +215,7 @@ COMPONENTS = (
     # service handlers
     'eoxserver.services.ows.wcs.**',
     'eoxserver.services.ows.wms.**',
+    'eoxserver.services.ows.wps.**',
 
     # renderer components etc.
     'eoxserver.services.native.**',
@@ -265,7 +266,7 @@ LOGGING = {
             'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': False,
         },
-        '': {
+        'django': {
             'handlers': ['stderr_stream'],
             'level': 'WARNING',
             'propagate': False,

@@ -102,3 +102,15 @@ class PackageWriterInterface(object):
         """ Retrieve the file extension for the given package and format 
             specifier.
         """
+
+
+class EncodingExtensionInterface(object):
+    def supports(self, format, options):
+        """ Return a boolen value, whether or not an encoding extension 
+            supports a given format.
+        """
+
+    def parse_encoding_params(self, request):
+        """ Return a dict, containing all additional encoding parameters from a 
+            given request.
+        """

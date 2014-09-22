@@ -29,7 +29,7 @@
 
 import logging
 
-from django.contrib.gis.geos import Polygon
+from django.contrib.gis.geos import Polygon, LineString
 
 from eoxserver.resources.coverages import crss
 from eoxserver.services.exceptions import (
@@ -47,14 +47,17 @@ class Subsets(list):
         subsets.
     """
 
-
-    def __init__(self, iterable, allowed_types=None):
+    def __init__(self, iterable, crs=None, allowed_types=None):
         """ Constructor. Allows to add set the initial subsets
         """
-        self.allowed_types = allowed_types if allowed_types is not None else (Trim, Slice)
+        self.allowed_types = allowed_types if allowed_types is not None else (
+            Trim, Slice
+        )
         # Do a manual insertion here to assure integrity
         for subset in iterable:
             self.append(subset)
+
+        self._crs = crs
 
     # List API
     
@@ -88,26 +91,25 @@ class Subsets(list):
         return any(map(lambda s: s.is_temporal, self))
 
     @property
-    def xy_srid(self):
-        xy_subsets = filter(lambda s: s.is_x or s.is_y, self)
-        if not len(xy_subsets):
-            return None
+    def crs(self):
+        return self._crs
 
-        all_crss = set(
-            map(lambda s: s.crs, xy_subsets)
-        )
-
-        if len(all_crss) != 1:
-            raise InvalidSubsettingException("All X/Y crss must be the same")
-
-        xy_crs = iter(all_crss).next()
-        if xy_crs is not None:
-            srid = crss.parseEPSGCode(xy_crs, 
+    @crs.setter
+    def crs(self, value):
+        self._crs = value
+    
+    @property
+    def srid(self):
+        """ Tries to find the correct integer SRID for the crs.
+        """
+        crs = self.crs
+        if crs is not None:
+            srid = crss.parseEPSGCode(crs, 
                 (crss.fromURL, crss.fromURN, crss.fromShortCode)
             )
-            if srid is None and not crss.is_image_crs(xy_crs):
+            if srid is None and not crss.is_image_crs(crs):
                 raise InvalidSubsettingException(
-                    "Could not parse EPSG code from URI '%s'" % xy_crs
+                    "Could not parse EPSG code from URI '%s'" % crs
                 )
             return srid
         return None
@@ -120,7 +122,7 @@ class Subsets(list):
         qs = queryset
 
         bbox = [None, None, None, None]
-        srid = self.xy_srid
+        srid = self.srid
 
         if srid is None:
             srid = 4326
@@ -167,12 +169,12 @@ class Subsets(list):
             else:
                 if is_slice:
                     if subset.is_x:
-                        line = Line(
+                        line = LineString(
                             (value, max_extent[1]),
                             (value, max_extent[3])
                         )
                     else:
-                        line = Line(
+                        line = LineString(
                             (max_extent[0], value),
                             (max_extent[2], value)
                         )
@@ -192,13 +194,16 @@ class Subsets(list):
 
         if bbox != [None, None, None, None]:
             bbox = map(
-                lambda v: v[0] if v[0] is not None else v[1], zip(bbox, max_extent)
+                lambda v: v[0] if v[0] is not None else v[1], 
+                zip(bbox, max_extent)
             )
 
             bbox[0] -= tolerance; bbox[1] -= tolerance
             bbox[2] += tolerance; bbox[3] += tolerance
 
-            logger.debug("Applying BBox %s with containment '%s'." % (bbox, containment))
+            logger.debug(
+                "Applying BBox %s with containment '%s'." % (bbox, containment)
+            )
 
             poly = Polygon.from_bbox(bbox)
             poly.srid = srid
@@ -218,7 +223,7 @@ class Subsets(list):
             return True
 
         bbox = [None, None, None, None]
-        srid = self.xy_srid
+        srid = self.srid
         if srid is None:
             srid = 4326
         max_extent = crss.crs_bounds(srid)
@@ -359,7 +364,7 @@ class Subsets(list):
         size_x, size_y = coverage.size
         footprint = coverage.footprint
 
-        subset_srid = self.xy_srid
+        subset_srid = self.srid
 
         if subset_srid is None:
             bbox = list(extent)
@@ -417,12 +422,11 @@ class Subsets(list):
 
 
 class Subset(object):
-    def __init__(self, axis, crs=None):
+    def __init__(self, axis):
         axis = axis.lower()
         if axis not in all_axes:
             raise InvalidAxisLabelException(axis)
         self.axis = axis
-        self.crs = crs
 
     @property
     def is_temporal(self):
@@ -438,17 +442,17 @@ class Subset(object):
 
 
 class Slice(Subset):
-    def __init__(self, axis, value, crs=None):
-        super(Slice, self).__init__(axis, crs)
+    def __init__(self, axis, value):
+        super(Slice, self).__init__(axis)
         self.value = value
 
     def __repr__(self):
-        return "Slice: %s[%s] with crs=%s" % (self.axis, self.value, self.crs)
+        return "Slice: %s[%s]" % (self.axis, self.value)
 
 
 class Trim(Subset):
-    def __init__(self, axis, low=None, high=None, crs=None):
-        super(Trim, self).__init__(axis, crs)
+    def __init__(self, axis, low=None, high=None):
+        super(Trim, self).__init__(axis)
 
         if low is not None and high is not None and low > high:
             raise InvalidSubsettingException(
@@ -459,8 +463,8 @@ class Trim(Subset):
         self.high = high
 
     def __repr__(self):
-        return "Trim: %s[%s:%s] with crs=%s" % (
-            self.axis, self.low, self.high, self.crs
+        return "Trim: %s[%s:%s]" % (
+            self.axis, self.low, self.high
         )
 
 

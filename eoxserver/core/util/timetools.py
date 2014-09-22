@@ -26,92 +26,12 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-
 import re
-from warnings import warn
-from datetime import datetime, tzinfo, timedelta
+from datetime import datetime, timedelta
 
 from django.utils.timezone import utc, make_aware, is_aware
 from django.utils.dateparse import parse_datetime, parse_date
 
-from eoxserver.core.exceptions import InvalidParameterException
-
-# pre-compile the regular expression for date/time matching
-
-date_regex = r"(?P<year>\d{4})[-]?(?P<month>\d{2})[-]?(?P<day>\d{2})"
-time_regex = r"(?P<hour>\d{2})(:?(?P<minute>\d{2})(:?(?P<second>\d{2}))?)?"
-tz_regex = r"(?P<tz_expr>Z|(?P<tz_sign>[+-])(?P<tz_hours>\d{2}):?(?P<tz_minutes>\d{2})?)?"
-datetime_regex = date_regex + r"(T" + time_regex + tz_regex + ")?"
-
-datetime_regex_obj = re.compile(datetime_regex)
-
-class UTCOffsetTimeZoneInfo(tzinfo):
-    def __init__(self):
-        super(UTCOffsetTimeZoneInfo, self).__init__
-        
-        self.offset_td = timedelta()
-    
-    def setOffsets(self, offset_sign, offset_hours, offset_minutes):
-        if offset_sign == "+":
-            self.offset_td = timedelta(hours = offset_hours, minutes = offset_minutes)
-        else:
-            self.offset_td = timedelta(hours = -offset_hours, minutes = -offset_minutes)
-    
-    def utcoffset(self, dt):
-        return self.offset_td
-    
-    def dst(self, dt):
-        return timedelta()
-    
-    def tzname(self, dt):
-        return None
-
-def _convert(s):
-    if s is None:
-        return 0
-    else:
-        return int(s)
-
-def getDateTime(s):
-    match = datetime_regex_obj.match(s)
-    if match is None:
-        raise InvalidParameterException(
-            "'%s' does not match any known datetime format." % s
-        )
-    
-    year = int(match.group("year"))
-    month = int(match.group("month"))
-    day = int(match.group("day"))
-    
-    hour = _convert(match.group("hour"))
-    minute = _convert(match.group("minute"))
-    second = _convert(match.group("second"))
-    
-    if match.group("tz_expr") in (None, "Z"):
-        offset_sign = "+"
-        offset_hours = 0
-        offset_minutes = 0
-    else:
-        offset_sign = match.group("tz_sign")
-        offset_hours = _convert(match.group("tz_hours"))
-        offset_minutes = _convert(match.group("tz_minutes"))
-        
-    tzi = UTCOffsetTimeZoneInfo()
-    tzi.setOffsets(offset_sign, offset_hours, offset_minutes)
-    
-    try:
-        dt = datetime(year, month, day, hour, minute, second, 0, tzi)
-    except ValueError:
-        raise InvalidParameterException("Invalid date/time '%s'" % s)
-    
-    utc = UTCOffsetTimeZoneInfo()
-    utct = dt.astimezone(utc)
-    
-    return utct
-
-def isotime(dt):
-    warn("This function is deprecated. Use 'isoformat' instead.", DeprecationWarning)
-    return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 def isoformat(dt):
     """ Formats a datetime object to an ISO string. Timezone naive datetimes are
@@ -124,13 +44,14 @@ def isoformat(dt):
     return dt.isoformat("T")
 
 
-def parse_iso8601(value):
+def parse_iso8601(value, tzinfo=None):
     """ Parses an ISO 8601 date or datetime string to a python date or datetime.
         Raises a `ValueError` if a conversion was not possible. The returned 
-        datetime is always considered time-zone aware and defaulting to UTC 
-        Zulu.
+        datetime is always considered time-zone aware and defaulting to the 
+        given timezone `tzinfo` or UTC Zulu if none was specified.
     """
 
+    tzinfo = tzinfo or utc
     for parser in (parse_datetime, parse_date):
         try:
             temporal = parser(value)
@@ -146,8 +67,42 @@ def parse_iso8601(value):
 
             # use UTC, if the datetime is not already time-zone aware
             if not is_aware(temporal):
-                temporal = make_aware(temporal, utc)
+                temporal = make_aware(temporal, tzinfo)
             
             return temporal
 
     raise ValueError("Could not parse '%s' to a temporal value" % value)
+
+
+RE_ISO_8601 = re.compile(
+    r"^(?P<sign>[+-])?P"
+    r"(?:(?P<years>\d+(\.\d+)?)Y)?"
+    r"(?:(?P<months>\d+(\.\d+)?)M)?"
+    r"(?:(?P<days>\d+(\.\d+)?)D)?"
+    r"T?(?:(?P<hours>\d+(\.\d+)?)H)?"
+    r"(?:(?P<minutes>\d+(\.\d+)?)M)?"
+    r"(?:(?P<seconds>\d+(\.\d+)?)S)?$"
+)
+
+def parse_duration(value):
+    """ Parses an ISO 8601 duration string into a python timedelta object. 
+        Raises a `ValueError` if a conversion was not possible.
+    """
+    
+    match = RE_ISO_8601.match(value)
+    if not match:
+        raise ValueError(
+            "Could not parse ISO 8601 duration from '%s'." % value
+        )
+    match = match.groupdict()
+
+    sign = -1 if "-" == match['sign'] else 1
+    days = float(match['days'] or 0)
+    days += float(match['months'] or 0) * 30 #?!
+    days += float(match['years'] or 0) * 365 #?!
+    fsec = float(match['seconds'] or 0)
+    fsec += float(match['minutes'] or 0) * 60
+    fsec += float(match['hours'] or 0) * 3600
+
+    return sign * timedelta(days, fsec)
+

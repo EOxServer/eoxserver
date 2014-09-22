@@ -61,7 +61,7 @@ class ResultItem(object):
     def __len__(self):
         """ Unified access to size of data.
         """
-        return 0
+        raise NotImplementedError
     
     size = property(lambda self: len(self))
 
@@ -165,6 +165,11 @@ def get_headers(result_item):
             "Content-Disposition", 'attachment; filename="%s"' 
             % result_item.filename
         )
+    try:
+        yield "Content-Length", len(result_item)
+    except (AttributeError, NotImplementedError):
+        pass
+
 
 
 def to_http_response(result_set, response_type=HttpResponse, boundary=None):

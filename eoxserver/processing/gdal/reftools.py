@@ -38,7 +38,6 @@ from functools import wraps
 
 from eoxserver.contrib import gdal
 from eoxserver.core.util.rect import Rect
-from eoxserver.core.exceptions import InternalError
 
 #-------------------------------------------------------------------------------
 # approximation transformer's threshold in pixel units 

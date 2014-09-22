@@ -152,7 +152,16 @@ class MapServerWMSBaseComponent(Component):
                 group_name = collections[-1].identifier + (suffix or "")
                 group_layer = group_layers.get(group_name)
 
-            if not coverage or not factory:
+            if not coverage:
+                # add an empty layer to not produce errors out of bounds.
+                if name:
+                    tmp_layer = ms.layerObj()
+                    tmp_layer.name = (name + suffix) if suffix else name
+                    layers_and_data_items = ((tmp_layer, ()),)
+                else:
+                    layers_and_data_items = ()
+
+            elif not factory:
                 tmp_layer = ms.layerObj()
                 tmp_layer.name = name
                 layers_and_data_items = ((tmp_layer, ()),)
@@ -181,7 +190,6 @@ class MapServerWMSBaseComponent(Component):
                 # TODO: find a more efficient way to do this
                 map_.removeLayer(old_layer.index)
             map_.insertLayer(layer)
-
 
         # apply any styles
         # TODO: move this to map/legendgraphic renderer only?

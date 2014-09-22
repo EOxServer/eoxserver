@@ -6,13 +6,6 @@ namespace("WebClient").Templates = (function() {
         logo: "", // to be overridden
         
         mainControl: _.template('\
-            <table class="ui-widget ui-widget-content ui-corner-all"> \
-                <tr> \
-                    <td style="vertical-align:middle">Date:</td> \
-                    <td style="vertical-align:middle;width:70%;padding:10px"><div id="slider"></div></td> \
-                    <td style="vertical-align:middle;width:20%;"><button id="btn-download"/></td> \
-                </tr> \
-            </table> \
             <div id="tabs-main"> \
                 <ul> \
                     <li><a href="#frg-date"><span>Date/Time</span></a></li> \
@@ -24,7 +17,9 @@ namespace("WebClient").Templates = (function() {
                 <div id="frg-bbox" class="container"></div> \
                 <div id="frg-info" class="container"></div> \
                 <div id="frg-help" class="container"></div> \
-            </div>'
+                 \
+            </div>\
+            <button id="btn-download"/>'
         ),
         
         datetimeSelection: _.template('\

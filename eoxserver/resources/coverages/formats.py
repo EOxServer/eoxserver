@@ -41,13 +41,15 @@ from django.conf import settings
 from eoxserver.contrib import gdal
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.decoders import config, typelist, strip
-from eoxserver.core.exceptions import InternalError
-#from eoxserver.core.startup import StartupHandlerInterface
 
 
 logger = logging.getLogger(__name__)
 
 #-------------------------------------------------------------------------------
+
+class FormatRegistryException(Exception):
+    pass
+
 
 class Format(object) : 
 
@@ -127,7 +129,7 @@ class FormatRegistry(object):
             if not os.path.exists( path_formats_def ) :
 
                 # failed to read the file 
-                raise InternalError("Cannot find the default file formats' configuration file.")
+                raise FormatRegistryException("Cannot find the default file formats' configuration file.")
 
         # optional formats' configuration 
         path_formats_opt = os.path.join( settings.PROJECT_DIR, "conf", "formats.conf" ) 
@@ -383,7 +385,7 @@ class FormatRegistry(object):
         try:
             return imp.find_module("eoxserver")[1]
         except ImportError:
-            raise InternalError("Filed to find the 'eoxserver' module! Check your modules' path!")
+            raise FormatRegistryException("Filed to find the 'eoxserver' module! Check your modules' path!")
 
 
 class FormatConfigReader(config.Reader):

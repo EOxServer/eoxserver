@@ -75,3 +75,18 @@
     border: 1px solid #111;
     margin: 0px;
 }
+
+#btn-download {
+    width: 100%;
+}
+
+#slider {
+   position: absolute;
+   bottom: 3em;
+   left: 10%;
+   height: 40px;
+   width: 80%;
+   //min-height: 450px;
+   min-width: 600px;
+   z-index: 10000; 
+}

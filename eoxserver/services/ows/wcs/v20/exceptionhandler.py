@@ -35,6 +35,13 @@ from eoxserver.core.decoders import (
 )
 
 
+CODES_404 = frozenset((
+    "NoSuchCoverage", "NoSuchDatasetSeriesOrCoverage", "InvalidAxisLabel", 
+    "InvalidSubsetting", "InterpolationMethodNotSupported", "NoSuchField", 
+    "InvalidFieldSequence", "InvalidScaleFactor", "InvalidExtent",
+    "ScaleAxisUndefined"
+))
+
 class WCS20ExceptionHandler(Component):
     implements(ExceptionHandlerInterface)
 
@@ -56,8 +63,7 @@ class WCS20ExceptionHandler(Component):
             else:
                 code = "InvalidRequest"
 
-        if code in ("NoSuchCoverage", "NoSuchDatasetSeriesOrCoverage", 
-                    "InvalidAxisLabel", "InvalidSubsetting"):
+        if code in CODES_404:
             status = 404
         elif code in ("OperationNotSupported", "OptionNotSupported"):
             status = 501

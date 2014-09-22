@@ -37,6 +37,7 @@ class AbstractStorageInterface(object):
             if errors occurred.
         """
 
+
 class FileStorageInterface(AbstractStorageInterface):
     """ Interface for storages that provide access to files and allow the 
         retrieval of those.
@@ -82,4 +83,3 @@ class PackageInterface(object):
         """ Return a list of item locations under the specified location in the 
             given package.
         """
-
