@@ -12,8 +12,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -28,7 +28,6 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-import os.path
 import logging
 
 from django.contrib.gis import admin
@@ -38,7 +37,6 @@ from django.http import HttpResponseRedirect
 from django.contrib.admin.util import unquote
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
-from django.db.models import Q
 
 from eoxserver.backends.models import (
     Location, LocalPath, RemotePath, RasdamanLocation
@@ -52,7 +50,6 @@ from eoxserver.resources.coverages.models import (
     LocalDataPackage, RemoteDataPackage, RasdamanDataPackage
 )
 
-from eoxserver.core.exceptions import InternalError
 from eoxserver.core.system import System
 from eoxserver.core.admin import ConfirmationAdmin
 from eoxserver.core.util.timetools import UTCOffsetTimeZoneInfo
@@ -62,29 +59,42 @@ logger = logging.getLogger(__name__)
 System.init()
 
 # NilValue
+
+
 class NilValueInline(admin.TabularInline):
     model = BandRecord.nil_values.__getattribute__("through")
     extra = 1
+
+
 class NilValueAdmin(admin.ModelAdmin):
     inlines = (NilValueInline, )
 admin.site.register(NilValueRecord, NilValueAdmin)
 
 # RangeType
+
+
 class RangeType2BandInline(admin.TabularInline):
     model = RangeType2Band
     extra = 1
+
+
 class RangeTypeAdmin(admin.ModelAdmin):
     inlines = (RangeType2BandInline, )
+
+
 class BandRecordAdmin(admin.ModelAdmin):
     inlines = (RangeType2BandInline, NilValueInline)
     exclude = ('nil_values', )
 admin.site.register(RangeTypeRecord, RangeTypeAdmin)
 admin.site.register(BandRecord, BandRecordAdmin)
 
-# SingleFile Coverage
+
 class PlainCoverageLayerMetadataInline(admin.TabularInline):
+# SingleFile Coverage
     model = PlainCoverageRecord.layer_metadata.__getattribute__("through")
     extra = 1
+
+
 class PlainCoverageAdmin(admin.ModelAdmin):
     #list_display = ('coverage_id', 'filename', 'range_type')
     #list_editable = ('filename', 'range_type')
@@ -102,7 +112,7 @@ class StitchedMosaic2DatasetInline(admin.TabularInline):
     verbose_name_plural = "Stitched Mosaic to Dataset Relations"
     extra = 1
     can_delete = False
-    
+
     # TODO: this is causing an exception
     '''def get_readonly_fields(self, request, obj=None):
         if obj is not None and obj.automatic:
@@ -110,7 +120,8 @@ class StitchedMosaic2DatasetInline(admin.TabularInline):
                 'rectifiedstitchedmosaicrecord', #'rectifieddatasetrecord'
             )
         return super(StitchedMosaic2DatasetInline, self).get_readonly_fields(request, obj)'''
-    
+
+
 class DatasetSeries2DatasetInline(admin.TabularInline):
     model = DatasetSeriesRecord.rect_datasets.__getattribute__("through")
     verbose_name = "Dataset Series to Dataset Relation"
@@ -137,14 +148,17 @@ class DatasetSeries2DatasetInline(admin.TabularInline):
 
 class DataPackageInline(admin.StackedInline):
     model = DataPackage
-    
+
+
 class LineageInline(admin.StackedInline):
     model = LineageRecord
+
 
 class LayerMetadata2DatasetInline(admin.StackedInline):
     model = RectifiedDatasetRecord.layer_metadata.__getattribute__("through")
     extra = 1
     can_delete = True
+
 
 class RectifiedDatasetAdmin(ConfirmationAdmin):
     #list_display = ('coverage_id', 'eo_id', 'data_package', 'range_type', 'extent')
@@ -153,19 +167,21 @@ class RectifiedDatasetAdmin(ConfirmationAdmin):
     #list_editable = ('data_package', 'range_type', 'extent')
     list_editable = ('range_type', 'extent', 'visible')
     list_filter = ('range_type', )
-    
+
     ordering = ('coverage_id', )
     search_fields = ('coverage_id', )
     inlines = (StitchedMosaic2DatasetInline, DatasetSeries2DatasetInline, LayerMetadata2DatasetInline)
-    
+
     # We need to override the bulk delete function of the admin to make
     # sure the overrode delete() method of EODatasetMixIn is
     # called.
     actions = ['really_delete_selected', ]
+
     def get_actions(self, request):
         actions = super(RectifiedDatasetAdmin, self).get_actions(request)
         if 'delete_selected' in actions: del actions['delete_selected']
         return actions
+
     def really_delete_selected(self, request, queryset):
         for obj in queryset:
             obj.delete()
@@ -180,11 +196,11 @@ class RectifiedDatasetAdmin(ConfirmationAdmin):
         obj = self.get_object(request, object_id)
         diff = self.get_changes(request, object_id)
         old_automatic, new_automatic = diff.get('automatic', (False, False))
-        
+
         if (old_automatic and new_automatic) or obj.automatic:
             messages.warning(request, "This rectified dataset cannot be changed "
                              "because it is marked as 'automatic'.")
-            
+
         return super(RectifiedDatasetAdmin, self).change_view(request, object_id, *args, **kwargs)
 
     def get_readonly_fields(self, request, obj=None):
@@ -200,9 +216,9 @@ class RectifiedDatasetAdmin(ConfirmationAdmin):
                 'lineage', 'data_package', 'extent',
                 'layer_metadata', 
             )
-            
+
         return self.readonly_fields
-    
+
     def require_confirmation(self, diff):
         try:
             old_automatic, new_automatic = diff['automatic']
@@ -210,9 +226,10 @@ class RectifiedDatasetAdmin(ConfirmationAdmin):
                 return "You are marking the rectified dataset as automatic. All manual changes will be reset."
         except KeyError:
             pass
-        return False  
-        
+        return False
+
 admin.site.register(RectifiedDatasetRecord, RectifiedDatasetAdmin)
+
 
 class ReferenceableDatasetAdmin(ConfirmationAdmin):
     #list_display = ('coverage_id', 'eo_id', 'data_package', 'range_type', 'size_x', 'size_y')
@@ -221,7 +238,7 @@ class ReferenceableDatasetAdmin(ConfirmationAdmin):
     #list_editable = ('data_package', 'range_type', 'extent')
     list_editable = ('range_type', 'extent', 'visible')
     list_filter = ('range_type', )
-    
+
     ordering = ('coverage_id', )
     search_fields = ('coverage_id', )
 # TODO: Separate inline or rewrite existing one:    inlines = (DatasetSeries2DatasetInline, )
@@ -230,10 +247,12 @@ class ReferenceableDatasetAdmin(ConfirmationAdmin):
     # sure the overrode delete() method of EODatasetMixIn is
     # called.
     actions = ['really_delete_selected', ]
+
     def get_actions(self, request):
         actions = super(ReferenceableDatasetAdmin, self).get_actions(request)
         if 'delete_selected' in actions: del actions['delete_selected']
         return actions
+
     def really_delete_selected(self, request, queryset):
         for obj in queryset:
             obj.delete()
@@ -248,7 +267,7 @@ class ReferenceableDatasetAdmin(ConfirmationAdmin):
         obj = self.get_object(request, object_id)
         diff = self.get_changes(request, object_id)
         old_automatic, new_automatic = diff.get('automatic', (False, False))
-        
+
         if (old_automatic and new_automatic) or obj.automatic:
             messages.warning(request, "This referenceable dataset cannot be changed "
                              "because it is marked as 'automatic'.")
@@ -268,7 +287,7 @@ class ReferenceableDatasetAdmin(ConfirmationAdmin):
                 'lineage', 'data_package', 'extent', 'layer_metadata' )
             
         return self.readonly_fields
-    
+
     def require_confirmation(self, diff):
         try:
             old_automatic, new_automatic = diff['automatic']
@@ -276,9 +295,10 @@ class ReferenceableDatasetAdmin(ConfirmationAdmin):
                 return "You are marking the referenceable dataset as automatic. All manual changes will be reset."
         except KeyError:
             pass
-        return False  
+        return False
 
 admin.site.register(ReferenceableDatasetRecord, ReferenceableDatasetAdmin)
+
 
 class AbstractContainerAdmin(admin.ModelAdmin):
     # We need to override the bulk delete function of the admin to make
@@ -287,17 +307,17 @@ class AbstractContainerAdmin(admin.ModelAdmin):
     actions = ['really_delete_selected', ]
     coverage_manager_intf_id = ""
     container_wrapper_factory_id = ""
-    
+
     def get_manager(self):
         System.init()
-        
+
         return System.getRegistry().findAndBind(
             intf_id="resources.coverages.interfaces.Manager",
             params={
                 "resources.coverages.interfaces.res_type": self.coverage_manager_intf_id
             }
         )
-    
+
     def get_wrapper(self, pk):
         raise NotImplementedError()
 
@@ -317,12 +337,11 @@ class AbstractContainerAdmin(admin.ModelAdmin):
            )
         )
     really_delete_selected.short_description = "Delete selected entries"
-    
-    
+
     def save_model(self, request, obj, form, change):
         super(AbstractContainerAdmin, self).save_model(request, obj, form, change)
         self.obj_to_sync = obj
-    
+
     def try_synchronize(self):
         try:
             obj_to_sync = getattr(self, "obj_to_sync")
@@ -335,7 +354,7 @@ class AbstractContainerAdmin(admin.ModelAdmin):
             pass
         except obj_to_sync.DoesNotExist:
             pass
-    
+
     def add_view(self, request, *args, **kwargs):
         try:
             ret = super(AbstractContainerAdmin, self).add_view(request, *args, **kwargs)
@@ -344,7 +363,7 @@ class AbstractContainerAdmin(admin.ModelAdmin):
         except:
             messages.error(request, "Could not create %s" % self.model._meta.verbose_name)
             return HttpResponseRedirect("..")
-    
+
     def change_view(self, request, object_id, *args, **kwargs):
         try:
             ret = super(AbstractContainerAdmin, self).change_view(request, object_id, *args, **kwargs)
@@ -354,7 +373,7 @@ class AbstractContainerAdmin(admin.ModelAdmin):
             messages.error(request, "Could not change %s" % self.model._meta.verbose_name)
             raise
             return HttpResponseRedirect("..")
-    
+
     def changelist_view(self, request, *args, **kwargs):
         try:
             ret = super(AbstractContainerAdmin, self).changelist_view(request, *args, **kwargs)
@@ -364,7 +383,7 @@ class AbstractContainerAdmin(admin.ModelAdmin):
             messages.error(request, "Could not change %s" % self.model._meta.verbose_name)
             raise
             return HttpResponseRedirect("..")
-    
+
     def delete_view(self, request, *args, **kwargs):
         try:
             ret = super(AbstractContainerAdmin, self).delete_view(request, *args, **kwargs)
@@ -373,13 +392,16 @@ class AbstractContainerAdmin(admin.ModelAdmin):
         except:
             messages.error(request, "Could not delete %s" % self.model._meta.verbose_name)
             return HttpResponseRedirect("..")
-    
+
+
 class DatasetSeries2StichedMosaicInline(admin.TabularInline):
     model = DatasetSeriesRecord.rect_stitched_mosaics.__getattribute__("through")
     verbose_name = "Dataset Series to Stitched Mosaic Relation"
     verbose_name_plural = "Dataset Series to Stitched Mosaic Relations"
     can_delete = False
     extra = 1
+
+
 class RectifiedStitchedMosaicAdmin(AbstractContainerAdmin):
     list_display = ('eo_id', 'eo_metadata', )
     list_editable = ('eo_metadata', )
@@ -387,31 +409,33 @@ class RectifiedStitchedMosaicAdmin(AbstractContainerAdmin):
     search_fields = ('eo_id', )
     filter_horizontal = ('rect_datasets', )
     inlines = (DatasetSeries2StichedMosaicInline, )
-    
+
     coverage_manager_intf_id = "eo.rect_stitched_mosaic"
-    
+
     # Increase the width of the select boxes of the horizontal filter.
     class Media:
         css = {
             'all': ('/'+settings.MEDIA_URL+'/admin/widgets.css',)
         }
-     
+
     def get_obj_id(self, obj):
         return obj.coverage_id
-        
+
 admin.site.register(RectifiedStitchedMosaicRecord, RectifiedStitchedMosaicAdmin)
 
 """class DataDirInline(admin.TabularInline):
     model = DataDirRecord
     extra = 1
-    
+
     def save_model(self, request, obj, form, change):
         raise # TODO"""
+
 
 class LayerMetadata2DatasetSeriesInline(admin.StackedInline):
     model = DatasetSeriesRecord.layer_metadata.__getattribute__("through")
     extra = 1
     can_delete = True
+
 
 class DatasetSeriesAdmin(AbstractContainerAdmin):
     inlines = (LayerMetadata2DatasetSeriesInline,)
@@ -430,7 +454,7 @@ class DatasetSeriesAdmin(AbstractContainerAdmin):
         }),
     )
     filter_horizontal = ('rect_stitched_mosaics', 'rect_datasets', 'ref_datasets')
-    
+
     coverage_manager_intf_id = "eo.dataset_series"
 
     # Increase the width of the select boxes of the horizontal filter.
@@ -438,7 +462,7 @@ class DatasetSeriesAdmin(AbstractContainerAdmin):
         css = {
             'all': ('/'+settings.MEDIA_URL+'/admin/widgets.css',)
         }
-        
+
     def get_obj_id(self, obj):
         return obj.eo_id
 
@@ -447,32 +471,36 @@ admin.site.register(DatasetSeriesRecord, DatasetSeriesAdmin)
 
 class EOMetadataAdmin(admin.GeoModelAdmin):
     wms_name = 'EOX Maps'
-    wms_url = 'http://tiles.maps.eox.at/wms/'
-    wms_layer = 'terrain,overlay'
+    wms_url = '//tiles.maps.eox.at/wms/'
+    wms_layer = 'terrain'
     default_lon = 16
     default_lat = 48
-    
+    default_zoom = 3
+    # add overlay
+    map_template = 'admin/openlayers_extralayers.html'
+
     def save_model(self, request, obj, form, change):
         # steps:
         # 1. retrieve EO GML from obj
-        # 2. validate against other input values (begin_time, end_time, footprint)
+        # 2. validate against other input values (begin_time, end_time,
+        #    footprint)
         # 3. validate against schema
-        
+
         self.metadata_object = obj
-        
+
         tzi = UTCOffsetTimeZoneInfo()
         tzi.setOffsets("+", 0, 0)
-        
+
         if obj.timestamp_begin.tzinfo is None:
             dt = obj.timestamp_begin.replace(tzinfo=UTCOffsetTimeZoneInfo())
             obj.timestamp_begin = dt.astimezone(UTCOffsetTimeZoneInfo())
-            
+
         if obj.timestamp_end.tzinfo is None:
             dt = obj.timestamp_end.replace(tzinfo=UTCOffsetTimeZoneInfo())
             obj.timestamp_end = dt.astimezone(UTCOffsetTimeZoneInfo())
-        
+
         super(EOMetadataAdmin, self).save_model(request, obj, form, change)
-        
+
         if obj.timestamp_begin.tzinfo is None:
             raise
         """
@@ -480,19 +508,19 @@ class EOMetadataAdmin(admin.GeoModelAdmin):
             # not sure about this:
             # get right metadata interface
             # look for metadata given in gml
-            # TODO currently error because no filename given 
+            # TODO currently error because no filename given
             iu = EOxSMetadataInterfaceFactory.getMetadataInterface(None, "eogml") #we got no filename, do we?
             # TODO what if metadata is already set?
             self.metadata_object.footprint = interface.getFootprint()
         """
-    
+
     def save_formset(self, request, form, formset, change):
         """raise
         if formset.model == EOMetadataRecord:
             changed_datasets = formset.save(commit=False)
-            
+
             synchronizer = EOMetadataSynchronizer(self.metadata_object)
-            
+
             try:
                 if change:
                     synchronizer.update()
@@ -504,7 +532,7 @@ class EOMetadataAdmin(admin.GeoModelAdmin):
                 messages.error(request, "Error when synchronizing with file system.")
                 #return
                 raise
-            
+
             for dataset in changed_datasets:
                 if not dataset.automatic:
                     dataset.save()
@@ -515,9 +543,9 @@ class EOMetadataAdmin(admin.GeoModelAdmin):
         # not be called; see also the explanation in the save_formset()
         # method of RectifiedStitchedMosaicAdmin,
         # DatasetSeriesAdmin
-        
+
         super(EOMetadataAdmin, self).save_formset(request, form, formset, change)
-    
+
     def change_view(self, request, object_id, *args, **kwarg):
         obj = self.get_object(request, unquote(object_id))
         try:
@@ -527,7 +555,7 @@ class EOMetadataAdmin(admin.GeoModelAdmin):
         except ObjectDoesNotExist:
             pass
         return super(EOMetadataAdmin, self).change_view(request, object_id, *args, **kwarg)
-    
+
     def get_readonly_fields(self, request, obj=None):
         try:
             if obj is not None and obj.rectifieddatasetrecord_set.automatic:
@@ -538,8 +566,9 @@ class EOMetadataAdmin(admin.GeoModelAdmin):
         except ObjectDoesNotExist:
             pass
         return self.readonly_fields
-    
+
 admin.site.register(EOMetadataRecord, EOMetadataAdmin)
+
 
 class LayerMetadataAdmin(admin.ModelAdmin):
     inlines = (PlainCoverageLayerMetadataInline, )
@@ -549,56 +578,64 @@ admin.site.register(LineageRecord)
 admin.site.register(ExtentRecord)
 admin.site.register(TileIndex)
 
+
 class DataSourceAdmin(admin.ModelAdmin):
     model = DataSource
-    
+
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
         """ exclude all locations from the query that
         are used within DataPackages.
         """
-        
+
         if db_field.name == 'location':
             kwargs['queryset'] = Location.objects.filter(
-                localpath__data_file_packages=None, localpath__metadata_file_packages=None,
-                remotepath__data_file_packages=None, remotepath__metadata_file_packages=None,
-                rasdamanlocation__data_packages=None, localpath__rasdaman_metadata_file_packages=None
+                localpath__data_file_packages=None,
+                localpath__metadata_file_packages=None,
+                remotepath__data_file_packages=None,
+                remotepath__metadata_file_packages=None,
+                rasdamanlocation__data_packages=None,
+                localpath__rasdaman_metadata_file_packages=None
             )
         return super(DataSourceAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 admin.site.register(DataSource, DataSourceAdmin)
 
-#===============================================================================
+#============================
 # Data Packages for Datasets
-#===============================================================================
+#============================
+
 
 class AbstractDataPackageAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         obj.data_package_type = self.model.DATA_PACKAGE_TYPE
         obj.save()
 
+
 class LocalDataPackageAdmin(AbstractDataPackageAdmin):
     model = LocalDataPackage
-    
+
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
-        if db_field.name in ('data_location', 'metadata_location'): 
+        if db_field.name in ('data_location', 'metadata_location'):
             kwargs['queryset'] = LocalPath.objects.filter(
                 data_sources=None
             )
         return super(AbstractDataPackageAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
+
 class RemoteDataPackageAdmin(AbstractDataPackageAdmin):
     model = RemoteDataPackage
 
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
-        if db_field.name in ('data_location', 'metadata_location'): 
+        if db_field.name in ('data_location', 'metadata_location'):
             kwargs['queryset'] = RemotePath.objects.filter(
                 data_sources=None
             )
         return super(AbstractDataPackageAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
+
 class RasdamanDataPackageAdmin(AbstractDataPackageAdmin):
     model = RasdamanDataPackage
-    
+
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
         if db_field.name == 'data_location': 
             kwargs['queryset'] = RasdamanLocation.objects.filter(

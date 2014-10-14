@@ -46,10 +46,12 @@ if [ "\$(psql postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='$DB_USER'")" 
     echo "Creating EOxServer database user."
     psql postgres -tAc "CREATE USER $DB_USER NOSUPERUSER CREATEDB NOCREATEROLE ENCRYPTED PASSWORD '$DB_PASSWORD'"
 fi
-if [ "\$(psql postgres -tAc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'")" != 1 ] ; then
-    echo "Creating EOxServer database."
-    createdb -O $DB_USER -T template_postgis $DB_NAME
+if [ "\$(psql postgres -tAc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'")" == 1 ] ; then
+    echo "Deleting EOxServer database"
+    dropdb $DB_NAME
 fi
+echo "Creating EOxServer database."
+createdb -O $DB_USER -T template_postgis $DB_NAME
 EOF
 ## End of database configuration script
 
