@@ -36,7 +36,7 @@ import math
 
 from functools import wraps 
 
-from eoxserver.contrib import gdal
+from eoxserver.contrib import gdal, osr
 from eoxserver.core.util.rect import Rect
 
 #-------------------------------------------------------------------------------
@@ -173,6 +173,9 @@ OCTNewCoordinateTransformation.argtypes = [C.c_void_p, C.c_void_p]
 OCTDestroyCoordinateTransformation = _libgdal.OCTDestroyCoordinateTransformation
 OCTDestroyCoordinateTransformation.argtypes = [C.c_void_p]
 
+OCTTransform = _libgdal.OCTTransform
+OCTTransform.argtypes = [C.c_void_p, C.c_int, C.POINTER(C.c_double), C.POINTER(C.c_double), C.POINTER(C.c_double)]
+
 GDALCreateWarpOptions = _libgdal.GDALCreateWarpOptions
 GDALCreateWarpOptions.restype = C.POINTER(WARP_OPTIONS)
 
@@ -201,7 +204,8 @@ class CoordinateTransformation(object):
 
     def __init__(self, src_srs, dst_srs):
         self._handle = OCTNewCoordinateTransformation(
-            src_srs.this, dst_srs.this
+            C.cast(long(src_srs.this), C.c_void_p),
+            C.cast(long(dst_srs.this), C.c_void_p)
         )
 
     @property
@@ -216,7 +220,10 @@ class CoordinateTransformation(object):
 def _create_referenceable_grid_transformer(ds, method, order):
     # TODO: check method and order
     num_gcps = ds.GetGCPCount()
-    gcps = GDALGetGCPs(ds.this)
+    gcps = GDALGetGCPs(C.cast(long(ds.this), C.c_void_p))
+
+
+    print num_gcps
 
     handle = None
 
@@ -367,47 +374,47 @@ def _create_generic_transformer(src_ds, src_wkt, dst_ds, dst_wkt, method, order)
     return transformer
 
 
-def get_footprint_wkt(ds, method, order):
-    """ 
-        methods: 
+def get_footprint_wkt(ds, method=METHOD_GCP, order=0):
+    """
+        methods:
 
-            METHOD_GCP 
+            METHOD_GCP
             METHOD_TPS
-            METHOD_TPS_LSQ 
+            METHOD_TPS_LSQ
 
         order (method specific):
 
-        - GCP (order of global fitting polynomial)  
+        - GCP (order of global fitting polynomial)
             0 for automatic order
-            1, 2, and 3  for 1st, 2nd and 3rd polynomial order  
+            1, 2, and 3  for 1st, 2nd and 3rd polynomial order
 
-        - TPS and TPS_LSQ (order of augmenting polynomial) 
-           -1  for no-polynomial augmentation 
-            0  for 0th order (constant offset) 
-            1, 2, and 3  for 1st, 2nd and 3rd polynomial order  
+        - TPS and TPS_LSQ (order of augmenting polynomial)
+           -1  for no-polynomial augmentation
+            0  for 0th order (constant offset)
+            1, 2, and 3  for 1st, 2nd and 3rd polynomial order
 
-        General guide: 
+        General guide:
 
             method TPS, order 3  should work in most cases
-            method TPS_LSQ, order 3  shoudl work in cases 
+            method TPS_LSQ, order 3  shoudl work in cases
                 of an excessive number of tiepoints but
                 it may become wobbly for small number
-                of tiepoints 
-            
-           The global polynomoal (GCP) interpolation does not work 
+                of tiepoints
+
+           The global polynomoal (GCP) interpolation does not work
            well for images covering large geographic areas (e.g.,
            ENVISAT ASAR and MERIS).
 
         NOTE: The default parameters are left for backward compatibility.
               They can be, however, often inappropriate!
     """
-    transformer = _create_transformer(ds, method, order)
+    transformer = _create_referenceable_grid_transformer(ds, method, order)
 
     x_size = ds.RasterXSize
     y_size = ds.RasterYSize
 
-    x_e = max(x_size / 100 -1, 0)
-    y_e = max(y_size / 100 -1, 0)
+    x_e = max(x_size / 100 - 1, 0)
+    y_e = max(y_size / 100 - 1, 0)
 
     num_points = 4 + 2 * x_e + 2 * y_e
     coord_array_type = (C.c_double * num_points)
@@ -442,12 +449,14 @@ def get_footprint_wkt(ds, method, order):
 def rect_from_subset(path_or_ds, srid, minx, miny, maxx, maxy,
                      method=METHOD_GCP, order=0):
 
-    transformer = _create_referenceable_grid_transformer(ds, method, order)
+    method=1
+    order=0
+    print minx, miny, maxx, maxy, method, order
 
+    ds = path_or_ds
 
     x_size = ds.RasterXSize
     y_size = ds.RasterYSize
-
 
     transformer = _create_referenceable_grid_transformer(ds, method, order)
 
@@ -472,7 +481,6 @@ def rect_from_subset(path_or_ds, srid, minx, miny, maxx, maxy,
     x[3] = 0.0
     y[3] = float(y_size)
 
-
     GDALUseTransformer(transformer, False, 4, x, y, z, success)
 
     dist = min(
@@ -480,23 +488,22 @@ def rect_from_subset(path_or_ds, srid, minx, miny, maxx, maxy,
         (max(y) - min(y)) / (y_size / 100)
     )
 
-    x[0] = minx; y[0] = miny
-    x[1] = maxx; y[1] = miny
-    x[2] = maxx; y[2] = maxy
-    x[3] = minx; y[3] = maxy
-
+    x[0] = x[3] = minx
+    x[1] = x[2] = maxx
+    y[0] = y[1] = miny
+    y[2] = y[3] = maxy
 
     ct = CoordinateTransformation(subset_srs, gcp_srs)
-    
+
     OCTTransform(ct, 4, x, y, z)
 
-    num_x = math.ceil((max(x) - min(x)) / dist)
-    num_y = math.ceil((max(y) - min(y)) / dist)
+    num_x = int(math.ceil((max(x) - min(x)) / dist))
+    num_y = int(math.ceil((max(y) - min(y)) / dist))
 
     x_step = (maxx - minx) / num_x
     y_step = (maxy - miny) / num_y
 
-    n_points = 4 + 2 * n_x + 2 * n_y
+    num_points = 4 + 2 * num_x + 2 * num_y
 
     coord_array_type = (C.c_double * num_points)
     x = coord_array_type()
@@ -508,7 +515,7 @@ def rect_from_subset(path_or_ds, srid, minx, miny, maxx, maxy,
         x[i] = minx + i * x_step
         y[i] = miny
 
-    for i in xrange(1, n_y + 1):
+    for i in xrange(1, num_y + 1):
         x[i + num_x + 1] = maxx
         y[i + num_y + 1] = maxy + i * y_step
 
@@ -520,26 +527,29 @@ def rect_from_subset(path_or_ds, srid, minx, miny, maxx, maxy,
         x[i + 2 * num_x + num_y + 3] = minx
         y[i + 2 * num_x + num_y + 3] = maxy - i * y_step
 
-
     OCTTransform(ct, num_points, x, y, z)
     GDALUseTransformer(transformer, True, num_points, x, y, z, success)
 
-    minx = math.floor(min(x))
-    miny = math.floor(min(y))
-    size_x = math.ceil(max(x) - minx) + 1
-    size_y = math.ceil(max(y) - miny) + 1
 
+    print list(x), list(y),  # TODO
+    print list (success)
+    minx = int(math.floor(min(x)))
+    miny = int(math.floor(min(y)))
+    size_x = int(math.ceil(max(x) - minx) + 1)
+    size_y = int(math.ceil(max(y) - miny) + 1)
+
+    print Rect(minx, miny, size_x, size_y)  # TODO
     return Rect(minx, miny, size_x, size_y)
 
 
 def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
-    resample=gdal.GRA_NearestNeighbour, memory_limit=0.0,
-    max_error=APPROX_ERR_TOL, method=METHOD_GCP, order=0):
+                         resample=gdal.GRA_NearestNeighbour, memory_limit=0.0,
+                         max_error=APPROX_ERR_TOL, method=METHOD_GCP, order=0):
 
     ds = _open_ds(path_or_ds)
     ptr = C.c_void_p(long(ds.this))
-    
-    if srid: 
+
+    if srid:
         srs = osr.SpatialReference()
         srs.ImportFromEPSG(srid)
         wkt = srs.ExportToWkt()
@@ -561,8 +571,6 @@ def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
         GDALGenImgProjTransform, transformer, geotransform, 
         C.byref(x_size), C.byref(y_size)
     )
-
-
 
     GDALSetGenImgProjTransformerDstGeoTransform(transformer, geotransform)
 
