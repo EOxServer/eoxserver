@@ -31,7 +31,7 @@ import ctypes as C
 from ctypes.util import find_library
 import os.path
 import logging
-from itertools import izip
+from itertools import izip, chain
 import math
 
 from functools import wraps 
@@ -186,6 +186,36 @@ GDALSuggestedWarpOutput.argtypes = [C.c_void_p, C.c_void_p, C.c_void_p, C.c_doub
 GDALSetGenImgProjTransformerDstGeoTransform = _libgdal.GDALSetGenImgProjTransformerDstGeoTransform
 GDALSetGenImgProjTransformerDstGeoTransform.argtypes = [C.c_void_p, C.c_double * 6]
 
+GDALCreateWarpedVRT = _libgdal.GDALCreateWarpedVRT
+GDALCreateWarpedVRT.restype = C.c_void_p
+GDALCreateWarpedVRT.argtypes = [C.c_void_p, C.c_int, C.c_int, C.c_double * 6, C.POINTER(WARP_OPTIONS)]
+
+GDALAutoCreateWarpedVRT = _libgdal.GDALAutoCreateWarpedVRT
+GDALAutoCreateWarpedVRT.restype = C.c_void_p
+GDALAutoCreateWarpedVRT.argtypes = [C.c_void_p, C.c_char_p, C.c_char_p, C.c_int, C.c_double, C.POINTER(WARP_OPTIONS)]
+
+
+GDALCreateApproxTransformer = _libgdal.GDALCreateApproxTransformer
+GDALCreateApproxTransformer.restype = C.c_void_p
+GDALCreateApproxTransformer.argtypes = [C.c_void_p, C.c_void_p, C.c_double]
+
+GDALApproxTransformerOwnsSubtransformer = _libgdal.GDALApproxTransformerOwnsSubtransformer
+GDALApproxTransformerOwnsSubtransformer.argtypes = [C.c_void_p, C.c_bool]
+
+GDALSetDescription = _libgdal.GDALSetDescription
+GDALSetDescription.argtypes = [C.c_void_p, C.c_char_p]
+
+
+GDALSetProjection = _libgdal.GDALSetProjection
+GDALSetProjection.argtypes = [C.c_void_p, C.c_char_p]
+
+GDALDestroyWarpOptions = _libgdal.GDALDestroyWarpOptions
+GDALDestroyWarpOptions.argtypes = [C.POINTER(WARP_OPTIONS)]
+
+GDALClose = _libgdal.GDALClose
+GDALClose.argtypes = [C.c_void_p]
+
+
 class Transformer(object):
     def __init__(self, handle):
         self._handle = handle
@@ -221,10 +251,6 @@ def _create_referenceable_grid_transformer(ds, method, order):
     # TODO: check method and order
     num_gcps = ds.GetGCPCount()
     gcps = GDALGetGCPs(C.cast(long(ds.this), C.c_void_p))
-
-
-    print num_gcps
-
     handle = None
 
     if method == METHOD_GCP:
@@ -276,8 +302,6 @@ CPLFree.argtypes = [C.c_void_p]
 class CSL(object):
     """ Wrapper for GDAL CSL API.
     """
-
-    
 
     def __init__(self, **kwargs):
         self._handle = None
@@ -346,12 +370,11 @@ def _create_generic_transformer(src_ds, src_wkt, dst_ds, dst_wkt, method, order)
 
     if method == METHOD_GCP:
         options["METHOD"] = "GCP_POLYNOMIAL"
-        options["GCPS_OK"]  = "TRUE"
+        options["GCPS_OK"] = "TRUE"
         if order > 0:
             options["MAX_GCP_ORDER"] = str(order)
 
     elif method in (METHOD_TPS, METHOD_TPS_LSQ):
-        # TODO: TPS2 only if 
         if GDALCreateTPS2TransformerLSQGrid:
             options["METHOD"] = "GCP_TPS2"
             options["TPS2_AP_ORDER"] = str(order)
@@ -363,7 +386,7 @@ def _create_generic_transformer(src_ds, src_wkt, dst_ds, dst_wkt, method, order)
             options["METHOD"] = "GCP_TPS"
 
     else:
-        raise some_error # TODO: raise proper error
+        raise RuntimeError("Unknown transformation method.")
 
     # TODO: proper error handling
     handle = GDALCreateGenImgProjTransformer2(src_ds, dst_ds, options)
@@ -428,31 +451,41 @@ def get_footprint_wkt(ds, method=METHOD_GCP, order=0):
         x[i] = float(i * x_size / x_e)
         y[i] = 0.0
 
+    x[x_e + 1] = x_size
+
     for i in xrange(1, y_e + 1):
         x[x_e + 1 + i] = float(x_size)
-        y[x_e + 1 + i] = float(i * y_size * y_e)
+        y[x_e + 1 + i] = float(i * y_size / y_e)
+
+    x[x_e + y_e + 2] = x_size
+    y[x_e + y_e + 2] = y_size
 
     for i in xrange(1, x_e + 1):
-        x[x_e + y_e + 2 + i] = 0.0
-        y[x_e + y_e + 2 + i] = float(y_size - i * y_size / y_e)
+        x[x_e + y_e + 2 + i] = float(x_size - i * x_size / x_e)
+        y[x_e + y_e + 2 + i] = y_size
+
+    y[x_e * 2 + y_e + 3] = y_size
+
+    for i in xrange(1, y_e + 1):
+        x[x_e * 2 + y_e + 3 + i] = 0.0
+        y[x_e * 2 + y_e + 3 + i] = float(y_size - i * y_size / y_e)
 
     GDALUseTransformer(transformer, False, num_points, x, y, z, success)
 
     return "POLYGON((%s))" % (
         ",".join(
             "%f %f" % (coord_x, coord_y)
-            for coord_x, coord_y in izip(x, y)
+            for coord_x, coord_y in chain(izip(x, y), ((x[0], y[0]),))
         )
     )
 
 
 def rect_from_subset(path_or_ds, srid, minx, miny, maxx, maxy,
                      method=METHOD_GCP, order=0):
+    """ Returns the smallest area of an image for the given spatial subset.
+    """
 
-    method=1
-    order=0
-    print minx, miny, maxx, maxy, method, order
-
+    #import pdb; pdb.set_trace()
     ds = path_or_ds
 
     x_size = ds.RasterXSize
@@ -511,34 +544,42 @@ def rect_from_subset(path_or_ds, srid, minx, miny, maxx, maxy,
     z = coord_array_type()
     success = (C.c_int * num_points)()
 
+    x[0] = minx
+    y[0] = miny
+
     for i in xrange(1, num_x + 1):
         x[i] = minx + i * x_step
         y[i] = miny
 
+    x[num_x + 1] = maxx
+    y[num_x + 1] = miny
+
     for i in xrange(1, num_y + 1):
-        x[i + num_x + 1] = maxx
-        y[i + num_y + 1] = maxy + i * y_step
+        x[num_x + 1 + i] = maxx
+        y[num_x + 1 + i] = miny + i * y_step
+
+    x[num_x + num_y + 2] = maxx
+    y[num_x + num_y + 2] = maxy
 
     for i in xrange(1, num_x + 1):
-        x[i + num_x + num_y + 2] = maxx - i * x_step
-        y[i + num_x + num_y + 2] = maxy
+        x[num_x + num_y + 2 + i] = maxx - i * x_step
+        y[num_x + num_y + 2 + i] = maxy
+
+    x[num_x * 2 + num_y + 3] = minx
+    y[num_x * 2 + num_y + 3] = maxy
 
     for i in xrange(1, num_y + 1):
-        x[i + 2 * num_x + num_y + 3] = minx
-        y[i + 2 * num_x + num_y + 3] = maxy - i * y_step
+        x[num_x * 2 + num_y + 3 + i] = minx
+        y[num_x * 2 + num_y + 3 + i] = maxy - i * y_step
 
     OCTTransform(ct, num_points, x, y, z)
     GDALUseTransformer(transformer, True, num_points, x, y, z, success)
 
-
-    print list(x), list(y),  # TODO
-    print list (success)
     minx = int(math.floor(min(x)))
     miny = int(math.floor(min(y)))
     size_x = int(math.ceil(max(x) - minx) + 1)
     size_y = int(math.ceil(max(y) - miny) + 1)
 
-    print Rect(minx, miny, size_x, size_y)  # TODO
     return Rect(minx, miny, size_x, size_y)
 
 
@@ -566,9 +607,8 @@ def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
     geotransform = (C.c_double * 6)()
 
     GDALSuggestedWarpOutput(
-        #int(ds.this), 
         ptr,
-        GDALGenImgProjTransform, transformer, geotransform, 
+        GDALGenImgProjTransform, transformer, geotransform,
         C.byref(x_size), C.byref(y_size)
     )
 
@@ -586,20 +626,11 @@ def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
     options.panDstBands = CPLMalloc(C.sizeof(C.c_int) * nb)
 
     # TODO: nodata value setup
-    for i in xrange(nb):
-        band = ds.GetRasterBand(i+1)
-
+    #for i in xrange(nb):
+    #    band = ds.GetRasterBand(i+1)
 
     if max_error > 0:
-
-        GDALCreateApproxTransformer = _libgdal.GDALCreateApproxTransformer
-        GDALCreateApproxTransformer.restype = C.c_void_p
-        GDALCreateApproxTransformer.argtypes = [C.c_void_p, C.c_void_p, C.c_double]
-
         GDALApproxTransform = _libgdal.GDALApproxTransform
-
-        GDALApproxTransformerOwnsSubtransformer = _libgdal.GDALApproxTransformerOwnsSubtransformer
-        GDALApproxTransformerOwnsSubtransformer.argtypes = [C.c_void_p, C.c_bool]
 
         options.pTransformerArg = GDALCreateApproxTransformer(
             options.pfnTransformer, options.pTransformerArg, max_error
@@ -608,64 +639,31 @@ def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
         # TODO: correct for python
         #GDALApproxTransformerOwnsSubtransformer(options.pTransformerArg, False)
 
-
-    GDALCreateWarpedVRT = _libgdal.GDALCreateWarpedVRT
-    GDALCreateWarpedVRT.restype = C.c_void_p
-    GDALCreateWarpedVRT.argtypes = [C.c_void_p, C.c_int, C.c_int, C.c_double * 6, C.POINTER(WARP_OPTIONS)]
-
-    print "XXXX"
-
-
-    GDALAutoCreateWarpedVRT = _libgdal.GDALAutoCreateWarpedVRT
-    GDALAutoCreateWarpedVRT.restype = C.c_void_p
-    GDALAutoCreateWarpedVRT.argtypes = [C.c_void_p, C.c_char_p, C.c_char_p, C.c_int, C.c_double, C.POINTER(WARP_OPTIONS)]
-
-
-    print x_size, y_size, tuple(geotransform), options
     #options=GDALCreateWarpOptions()
     #vrt_ds = GDALCreateWarpedVRT(ptr, x_size, y_size, geotransform, options)
     vrt_ds = GDALAutoCreateWarpedVRT(ptr, None, wkt, resample, max_error, None)
-
-    print vrt_ds
-    print "YYYY"
-
-    GDALSetProjection = _libgdal.GDALSetProjection
-    GDALSetProjection.argtypes = [C.c_void_p, C.c_char_p]
-
     GDALSetProjection(vrt_ds, wkt)
-    print "ZZZZ"
-
-    GDALSetDescription = _libgdal.GDALSetDescription
-    GDALSetDescription.argtypes = [C.c_void_p, C.c_char_p]
     GDALSetDescription(vrt_ds, vrt_path)
-    print "AAAA"
-
-    GDALClose = _libgdal.GDALClose
-    GDALClose.argtypes = [C.c_void_p]
     GDALClose(vrt_ds)
-    print "BBBB"
-
-
-    GDALDestroyWarpOptions = _libgdal.GDALDestroyWarpOptions
-    GDALDestroyWarpOptions.argtypes = [C.POINTER(WARP_OPTIONS)]
     GDALDestroyWarpOptions(options)
-    print "CCCC"
 
 
 def suggested_warp_output(ds, src_wkt, dst_wkt, method=METHOD_GCP, order=0):
     geotransform = (C.c_double * 6)()
     x_size = C.c_int()
     y_size = C.c_int()
-    transformer = _create_generic_transformer(ds, src_wkt, dst_wkt, method, order)
+    transformer = _create_generic_transformer(
+        ds, src_wkt, dst_wkt, method, order
+    )
     GDALSuggestedWarpOutput(
-        ds, GDALGenImgProjTransform, transformer, 
+        ds, GDALGenImgProjTransform, transformer,
         geotransform, C.byref(x_size), C.byref(y_size)
     )
 
     return x_size.value, y_size.value, tuple(geotransform)
 
 
-def reproject_image(src_ds, src_wkt, dst_ds, dst_wkt, 
+def reproject_image(src_ds, src_wkt, dst_ds, dst_wkt,
                     resample=gdal.GRA_NearestNeighbour, memory_limit=0.0,
                     max_error=APPROX_ERR_TOL, method=METHOD_GCP, order=0):
 
@@ -709,19 +707,22 @@ def _open_ds(path_or_ds):
         return gdal.Open(str(path_or_ds))
     return path_or_ds
 
-def is_extended() : 
+
+def is_extended():
     """ check whether the EOX's GDAL extensions are available
         (True) or not (False)
     """
-    return bool(GDALCreateTPS2TransformerLSQGrid or GDALCreateTPS2TransformerExt)
+    return bool(
+        GDALCreateTPS2TransformerLSQGrid or GDALCreateTPS2TransformerExt
+    )
 
 
-def suggest_transformer( path_or_ds ) : 
-    """ suggest value of method and order to be passed 
+def suggest_transformer(path_or_ds):
+    """ suggest value of method and order to be passed
         tp ``get_footprint_wkt`` and ``rect_from_subset``
     """
 
-    # get info about the dataset 
+    # get info about the dataset
     ds = _open_ds(path_or_ds)
 
     nn = ds.GetGCPCount()
@@ -730,54 +731,52 @@ def suggest_transformer( path_or_ds ) :
 
     # guess reasonable limit number of tie-points
     # (Assuming that the tiepoints cover but not execeed
-    # the full raster image. That way we don't need 
-    # to calculate bounding box of the tiepoints' set.)  
-    nx = 5 
-    ny = int(max(1, 0.5*nx*float(sy)/float(sx))) 
-    ng = (nx+1) * (ny+1) + 10 
+    # the full raster image. That way we don't need
+    # to calculate bounding box of the tiepoints' set.)
+    nx = 5
+    ny = int(max(1, 0.5*nx*float(sy)/float(sx)))
+    ng = (nx+1) * (ny+1) + 10
 
     # check if we deal with an outline along the image's vertical edges
-    if nn < 500: # avoid check for large tie-point sets 
-        cnt = 0 
-        for gcp in ds.GetGCPs() : 
-            cnt += (gcp.GCPPixel < 1) or (gcp.GCPPixel >= (sx - 1)) 
+    if nn < 500:  # avoid check for large tie-point sets
+        cnt = 0
+        for gcp in ds.GetGCPs():
+            cnt += (gcp.GCPPixel < 1) or (gcp.GCPPixel >= (sx - 1))
         is_vertical_outline = (cnt == nn)
-    else: 
+    else:
         is_vertical_outline = False
-    
-    # check whether the GDAL extensions are available 
 
-    if is_extended(): # extended GDAL 
-        
-        # set default to TPS and 3rd order augmenting polynomial 
+    # check whether the GDAL extensions are available
+    if is_extended():  # extended GDAL
+        # set default to TPS and 3rd order augmenting polynomial
         order = 3
         method = METHOD_TPS
 
         # some very short ASAR products need 1st order augmenting polynomial
         # the numerics for higher order aug.pol. becomes a bit `wobbly`
         if 4 * sy < sx:
-            order = 1 
-         
-        # small fotprints such as ngEO should use lower TPS-AP order  
+            order = 1
+
+        # small fotprints such as ngEO should use lower TPS-AP order
         if is_vertical_outline:
-            order = 1 
+            order = 1
 
-        # for excessive number of source tiepoints use Least-Square TPS fit 
-        if nn > ng: 
+        # for excessive number of source tiepoints use Least-Square TPS fit
+        if nn > ng:
             method = METHOD_TPS_LSQ
-         
-    else: # baseline GDAL 
 
-        # set default to TPS and 1st order 
+    else:  # baseline GDAL
+
+        # set default to TPS and 1st order
         # (the only order available in baseline GDAL)
-        order = 1 
+        order = 1
         method = METHOD_TPS
-        
-        # for excessive number of source tiepoints use polynomial GCP fit 
-        # (the result will most likely incorrect but there is nothing 
-        # better to be done with the baseline GDAL)  
-        if nn > ng: 
-            method = METHOD_GCP
-            order = 0 # automatic order selection 
 
-    return {'method':method, 'order':order} 
+        # for excessive number of source tiepoints use polynomial GCP fit
+        # (the result will most likely incorrect but there is nothing
+        # better to be done with the baseline GDAL)
+        if nn > ng:
+            method = METHOD_GCP
+            order = 0  # automatic order selection
+
+    return {'method': method, 'order': order}
