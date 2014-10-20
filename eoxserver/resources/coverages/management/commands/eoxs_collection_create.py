@@ -85,6 +85,10 @@ class Command(CommandOutputMixIn, BaseCommand):
         DatasetSeries.
         Optionally the collection can directly be inserted into other
         collections and can be directly supplied with sub-objects.
+
+        The type of the collection must be specified with a prepended module
+        path if the type is not one of the standard collection types.
+        E.g: 'myapp.models.MyCollection'.
     """
 
     @nested_commit_on_success
@@ -95,7 +99,6 @@ class Command(CommandOutputMixIn, BaseCommand):
 
         collection_type = kwargs["type"]
         try:
-            # TODO: allow collections residing in other apps as-well
             module = models
             if "." in collection_type:
                 mod_name, _, collection_type = collection_type.rpartition(".")
