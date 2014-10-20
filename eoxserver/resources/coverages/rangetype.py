@@ -319,11 +319,12 @@ def getRangeType( name ) :
 
             nil_values=[]
 
-            # loop over nil values 
-            for n in b.nil_value_set.nil_values.all() : 
+            if b.nil_value_set:
+                # loop over nil values 
+                for n in b.nil_value_set.nil_values.all() : 
 
-                # append created nil-value dictionary
-                nil_values.append( { 'reason': n.reason, 'value': n.raw_value } ) 
+                    # append created nil-value dictionary
+                    nil_values.append( { 'reason': n.reason, 'value': n.raw_value } ) 
 
             # append created band dictionary
             band.append( 
