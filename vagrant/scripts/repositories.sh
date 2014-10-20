@@ -18,8 +18,8 @@ sed -e 's/^enabled=1/enabled=0/' -i /etc/yum.repos.d/eox-testing.repo
 sed -e 's/^#exclude=.*/exclude=gd.tuwien.ac.at/' /etc/yum/pluginconf.d/fastestmirror.conf > /etc/yum/pluginconf.d/fastestmirror.conf
 
 # Set includepkgs in EOX Stable
-if ! grep -Fxq "includepkgs=mapserver mapserver-python mapcache libxml2 libxml2-python libxerces-c-3_1 gdal-eox gdal-eox-devel gdal-eox-driver-envisat gdal-eox-driver-netcdf gdal-eox-driver-openjpeg2 gdal-eox-java gdal-eox-libs gdal-eox-python openjpeg2" /etc/yum.repos.d/eox.repo ; then
-    sed -e 's/^\[eox\]$/&\nincludepkgs=mapserver mapserver-python mapcache libxml2 libxml2-python libxerces-c-3_1 gdal-eox gdal-eox-devel gdal-eox-driver-envisat gdal-eox-driver-netcdf gdal-eox-driver-openjpeg2 gdal-eox-java gdal-eox-libs gdal-eox-python openjpeg2/' -i /etc/yum.repos.d/eox.repo
+if ! grep -Fxq "includepkgs=mapserver mapserver-python mapcache libxml2 libxml2-python libxerces-c-3_1 gdal-eox gdal-eox-devel gdal-eox-driver-envisat gdal-eox-driver-netcdf gdal-eox-driver-openjpeg2 gdal-eox-java gdal-eox-libs gdal-eox-python openjpeg2 python-pysqlite-eox" /etc/yum.repos.d/eox.repo ; then
+    sed -e 's/^\[eox\]$/&\nincludepkgs=mapserver mapserver-python mapcache libxml2 libxml2-python libxerces-c-3_1 gdal-eox gdal-eox-devel gdal-eox-driver-envisat gdal-eox-driver-netcdf gdal-eox-driver-openjpeg2 gdal-eox-java gdal-eox-libs gdal-eox-python openjpeg2 python-pysqlite-eox/' -i /etc/yum.repos.d/eox.repo
 fi
 
 # Set exclude in CentOS-Base
