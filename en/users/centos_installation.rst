@@ -87,7 +87,7 @@ added with the following `yum` command::
 The second repository to be added is `EPEL (Extra Packages for Enterprise
 Linux) <http://fedoraproject.org/wiki/EPEL>`_ again via a simple `yum` command::
 
-    sudo rpm -Uvh http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+    sudo yum install epel-release
 
 Finally EOxServer is available from the yum repository at `packages.eox.at 
 <http://packages.eox.at>`_. This repository offers current versions of 
