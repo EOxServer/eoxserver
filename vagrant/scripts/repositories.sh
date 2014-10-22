@@ -1,16 +1,25 @@
 #!/bin/sh
 
 # Install the EPEL repository
-yum install -y http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
-rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-6
+if ! rpm -q --quiet epel-release ; then
+    yum install -y epel-release
+    rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-6
+fi
 
 # Install the ELGIS repository
-yum install -y http://elgis.argeo.org/repos/6/elgis-release-6-6_0.noarch.rpm
-rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-ELGIS
+if ! rpm -q --quiet elgis-release ; then
+    yum install -y http://elgis.argeo.org/repos/6/elgis-release-6-6_0.noarch.rpm
+    rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-ELGIS
+fi
 
 # Install the EOX repository
-yum install -y http://yum.packages.eox.at/el/eox-release-6-2.noarch.rpm
+if ! rpm -q --quiet eox-release ; then
+    yum install -y http://yum.packages.eox.at/el/eox-release-6-2.noarch.rpm
+else
+    yum reinstall -y http://yum.packages.eox.at/el/eox-release-6-2.noarch.rpm
+fi
 rpm --import /etc/pki/rpm-gpg/eox-package-maintainers.gpg
+
 # Make sure only the stable repository is enabled
 sed -e 's/^enabled=1/enabled=0/' -i /etc/yum.repos.d/eox-testing.repo
 
