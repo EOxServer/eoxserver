@@ -21,16 +21,6 @@ if [ $DB == "postgis" ] && [ `psql template_postgis jenkins -tAc "SELECT 1 FROM 
 fi
 
 export XML_CATALOG_FILES="$WORKSPACE/schemas/catalog.xml"
-# ftp tests are disabled
-if [ $OS == "Ubuntu" ]; then
-    python manage.py test "services|WCS20GetCoverageJPEG2000TestCase,WCS10DescribeCoverageDatasetTestCase,WCS10DescribeCoverageMosaicTestCase,WCS11TransactionReferenceableDatasetTestCase,WCS20GetCoverageReferenceableDatasetGeogCRSSubsetExceedsExtentTestCase,WCS20GetCoverageReferenceableDatasetGeogCRSSubsetTestCase,WCS20GetCoverageReferenceableDatasetImageCRSSubsetTestCase,WCS20PostGetCoverageReferenceableMultipartDatasetTestCase,WCS20GetCoverageOutputCRSotherUoMDatasetTestCase,WCS20GetCoverageSubsetEPSG4326ResolutionInvalidAxisDatasetFaultTestCase" -v2
-    python manage.py test "coverages|RegisterRemoteDatasetTestCase,RectifiedStitchedMosaicCreateWithRemotePathTestCase" -v2
-else
-    python manage.py test "services|WCS20GetCoverageReprojectedEPSG3857DatasetTestCase" -v2
-    python manage.py test "coverages|RegisterRemoteDatasetTestCase,RectifiedStitchedMosaicCreateWithRemotePathTestCase" -v2
-fi
-
-export XML_CATALOG_FILES="$WORKSPACE/schemas/catalog.xml"
 python manage.py test autotest_services -v2
 python manage.py test services coverages -v2
 #TODO: Enable testing of all apps
