@@ -32,11 +32,16 @@ if ! grep -Fxq "includepkgs=mapserver mapserver-python mapcache libxml2 libxml2-
 fi
 
 # Set exclude in CentOS-Base
-if ! grep -Fxq "exclude=libxml2 libxml2-python" /etc/yum.repos.d/CentOS-Base.repo ; then
+if ! grep -Fxq "exclude=libxml2 libxml2-python libxerces-c-3_1" /etc/yum.repos.d/CentOS-Base.repo ; then
     sed -e 's/^\[base\]$/&\nexclude=libxml2 libxml2-python libxerces-c-3_1/' -i /etc/yum.repos.d/CentOS-Base.repo
     sed -e 's/^\[updates\]$/&\nexclude=libxml2 libxml2-python libxerces-c-3_1/' -i /etc/yum.repos.d/CentOS-Base.repo
 fi
 
-# Disabled to be fully compatible with build environment
 # Install Continuous Release (CR) repository
-#yum install -y centos-release-cr
+if ! rpm -q --quiet centos-release-cr ; then
+    yum install -y centos-release-cr
+    # Set exclude in CentOS-CR
+    if ! grep -Fxq "exclude=libxml2 libxml2-python libxerces-c-3_1" /etc/yum.repos.d/CentOS-CR.repo ; then
+        sed -e 's/^\[cr\]$/&\nexclude=libxml2 libxml2-python libxerces-c-3_1/' -i /etc/yum.repos.d/CentOS-CR.repo
+    fi
+fi
