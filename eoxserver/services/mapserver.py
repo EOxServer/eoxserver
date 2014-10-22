@@ -11,8 +11,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -42,7 +42,7 @@ import mapscript
 from eoxserver.core.interfaces import Method, ObjectArg, ListArg
 from eoxserver.core.registry import RegisteredInterface
 from eoxserver.core.exceptions import InternalError
-from eoxserver.contrib.gdal import GDT_Byte, GDT_Int16, GDT_UInt16, GDT_Float32 
+from eoxserver.contrib.gdal import GDT_Byte, GDT_Int16, GDT_UInt16, GDT_Float32
 from eoxserver.services.base import BaseRequestHandler
 from eoxserver.services.requests import OWSRequest, Response
 from eoxserver.services.exceptions import InvalidRequestException
@@ -53,26 +53,26 @@ from eoxserver.core.util.multiparttools import getMimeType, getMultipartBoundary
 logger = logging.getLogger(__name__)
 
 #-------------------------------------------------------------------------------
-# utilities 
+# utilities
 
-# content-type parsing  
+# content-type parsing
 is_xml       = lambda ct : getMimeType(ct) in ("text/xml","application/xml","application/gml+xml")
-is_multipart = lambda ct : getMimeType(ct).startswith("multipart/") 
+is_multipart = lambda ct : getMimeType(ct).startswith("multipart/")
 
-# capilatize header names 
-_headcap = lambda p : ( capitalize(p[0]) , p[1] ) 
-headcap  = lambda h : dict( map( _headcap , h.items() ) )  
+# capilatize header names
+_headcap = lambda p : ( capitalize(p[0]) , p[1] )
+headcap  = lambda h : dict( map( _headcap , h.items() ) )
 
 #-------------------------------------------------------------------------------
 
 class MapServerRequest(OWSRequest):
     """
     This class inherits from :class:`~.OWSRequest`.
-    
+
     The constructor expects a single argument ``req`` which is expected to
     contain an :class:`~.OWSRequest` instance. The parameters and decoder
     will be taken from that instance.
-    
+
     :class:`MapServerRequest` objects add two properties: first a ``map``
     property which contains a :class:`mapscript.mapObj`, and second an
     ``ows_req`` property which contains a :class:`mapscript.OWSRequest`
@@ -80,9 +80,9 @@ class MapServerRequest(OWSRequest):
     """
     def __init__(self, req):
         super(MapServerRequest, self).__init__(req.http_req, params=req.params, decoder=req.decoder)
-        
+
         self.version = req.version
-        
+
         self.map = mapscript.mapObj()
         self.ows_req = mapscript.OWSRequest()
 
@@ -91,7 +91,7 @@ class MapServerResponse(Response):
     This class inherits from :class:`~.Response`. It adds methods to handle
     with response data obtained from MapServer, including methods for
     multipart messages.
-    
+
     The constructor takes several arguments. In ``ms_response``, the response
     buffer as returned by MapServer is expected. The ``ms_content_type``
     argument shall be set to the MIME type of the response content.
@@ -99,20 +99,20 @@ class MapServerResponse(Response):
     call to :meth:`mapscript.mapObj.OWSDispatch`. ``headers`` and ``status``
     are optional and have the same meaning as in :class:`~.Response`.
     """
-    
+
     def __init__(self, ms_response, ms_content_type, ms_status, headers={}, status=None):
         super(MapServerResponse, self).__init__(content=ms_response, content_type=ms_content_type, headers=headers, status=status)
         self.ms_status = ms_status
-        
+
         self.ms_response_data = None
-        self.ms_response_data_headers = {} 
-        self.ms_response_xml = None 
+        self.ms_response_data_headers = {}
+        self.ms_response_xml = None
         self.ms_response_xml_headers = {}
-        
+
     def splitResponse(self):
         """
         This method splits a multipart response into its different parts.
-        
+
         The XML part is stored in the ``ms_response_xml`` property of the
         object. The coverage data is stored in the ``ms_response_data``
         property of the object. The headers of the parts are stored in
@@ -120,39 +120,39 @@ class MapServerResponse(Response):
         properties respectively.
         """
 
-        if is_multipart( self.content_type ) : 
-        
-            # extract multipart boundary  
-            boundary = getMultipartBoundary( self.content_type ) 
+        if is_multipart( self.content_type ) :
+
+            # extract multipart boundary
+            boundary = getMultipartBoundary( self.content_type )
 
             for headers,offset,size in mpUnpack(self.content,boundary,capitalize=True) :
 
-                if is_xml( headers['Content-Type'] ) : 
+                if is_xml( headers['Content-Type'] ) :
                     self.ms_response_xml = self.content[offset:(offset+size)]
                     self.ms_response_xml_headers = headers
-                else : 
-                    self.ms_response_data = self.content[offset:(offset+size)] 
+                else :
+                    self.ms_response_data = self.content[offset:(offset+size)]
                     self.ms_response_data_headers = headers
 
-        else : # single part payload 
-            
-            headers = headcap( self.headers )
-            headers['Content-Type'] = self.content_type 
+        else : # single part payload
 
-            if is_xml( self.content_type ) : 
+            headers = headcap( self.headers )
+            headers['Content-Type'] = self.content_type
+
+            if is_xml( self.content_type ) :
                 self.ms_response_xml = self.content
                 self.ms_response_xml_headers = headers
-            else : 
-                self.ms_response_data = self.content 
+            else :
+                self.ms_response_data = self.content
                 self.ms_response_data_headers = headers
 
-    
+
     def getProcessedResponse(self, response_xml, headers_xml=None, boundary="wcs", subtype="mixed"):
         """
         This method returns a :class:`~.Response` object that contains the
         coverage data generated by the original MapServer call and the
         XML data contained in the ``response_xml`` argument.
-        
+
         The ``headers_xml`` parameter may contain a dictionary of headers
         to be tagged on the XML part of the multipart response. The
         ``boundary`` argument shall contain the boundary string used for
@@ -161,25 +161,25 @@ class MapServerResponse(Response):
         statement and defaults to ``mixed`` for a complete MIME type of
         ``multipart/mixed``.
         """
-        if self.ms_response_data is not None: # mutipart response   
+        if self.ms_response_data is not None: # mutipart response
 
             if headers_xml is None: headers_xml = self.ms_response_xml_headers
 
-            # normalize header content 
+            # normalize header content
             headers_xml  = headcap( headers_xml )
-            headers_data = headcap( self.ms_response_data_headers ) 
+            headers_data = headcap( self.ms_response_data_headers )
 
             #add the missing content lenght headers
             headers_xml["Content-Length"] = "%d"%len(response_xml)
             headers_data["Content-Length"] = "%d"%len(self.ms_response_data)
 
-            # prepare multipart package 
-            parts = [ 
-                  ( headers_xml.items() , response_xml ) , 
+            # prepare multipart package
+            parts = [
+                  ( headers_xml.items() , response_xml ) ,
                   ( headers_data.items() , self.ms_response_data ) ,
-                ] 
-           
-            content_type = "multipart/%s; boundary=%s"%(subtype,boundary) 
+                ]
+
+            content_type = "multipart/%s; boundary=%s"%(subtype,boundary)
             payload = mpPack(parts, boundary)
             payload_length = 0
             for chunk in payload:
@@ -187,8 +187,8 @@ class MapServerResponse(Response):
             headers = {'Content-Length': "%d"%payload_length}
 
             return Response(payload, content_type, headers, self.getStatus())
- 
-        else : # pure XML response - currently not in use - possibly harmfull as there is no way to test it!  
+
+        else : # pure XML response - currently not in use - possibly harmfull as there is no way to test it!
 
             if headers_xml is None:
                 headers_xml = headcap(self.headers)
@@ -204,7 +204,7 @@ class MapServerResponse(Response):
             return self.headers["Content-type"]
         else:
             return self.content_type # TODO: headers for multipart messages
-        
+
     def getStatus(self):
         """
         Returns the HTTP status code of the response.
@@ -231,7 +231,7 @@ class MapServerLayerGeneratorInterface(RegisteredInterface):
             "services.mapserver.eo_object_type",
         )
     }
-    
+
     configure = Method(
         ObjectArg("ms_req", arg_class=MapServerRequest),
         ObjectArg("eo_object"),
@@ -244,15 +244,15 @@ class MapServerDataConnectorInterface(RegisteredInterface):
     a MapServer layer. The basic rationale for this is that there are at
     least three different types of data sources that need differentt
     treatment:
-    
+
     * data stored in single plain files
     * tiled data with references in a tile index (a shape file)
     * rasdaman arrays
-    
+
     Others might be added in the course of development of EOxServer.
-    
+
     .. method:: congigure(layer, eo_object)
-    
+
         This method takes a :class:`mapscript.layerObj` object and an ``eo_object``
         as input and configures the MapServer layer according to the type of
         data package used by the ``eo_object`` (RectifiedDataset,
@@ -266,14 +266,14 @@ class MapServerDataConnectorInterface(RegisteredInterface):
             "services.mapserver.data_structure_type",
         )
     }
-    
+
     configure = Method(
         ObjectArg("layer", arg_class=mapscript.layerObj),
         ObjectArg("eo_object"),
         ListArg("filter_exprs", default=None),
         returns=ObjectArg("@return", arg_class=mapscript.layerObj)
     )
-        
+
 class MapServerOperationHandler(BaseRequestHandler):
     """
     MapServerOperationHandler serves as parent class for all operations
@@ -284,7 +284,7 @@ class MapServerOperationHandler(BaseRequestHandler):
     This class implements a workflow for request handling that
     involves calls to MapServer using its Python binding (mapscript).
     Requests are processed in six steps:
-    
+
     * retrieve coverage information (:meth:`createCoverages` method)
     * configure a MapServer ``OWSRequest`` object with
       parameters from the request (:meth:`configureRequest` method)
@@ -295,31 +295,31 @@ class MapServerOperationHandler(BaseRequestHandler):
     * dispatch the request, i.e. let MapServer actually do its
       work; return the result (:meth:`dispatch` method)
     * postprocess the MapServer response (:meth:`postprocess` method)
-    
+
     Child classes may override the configureRequest, configureMap,
     postprocess and postprocessFault methods in order to customize
     functionality. If possible, the handle and dispatch methods should
     not be overridden.
     """
-    
+
     PARAM_SCHEMA = {
         "service": {"xml_location": "/@service", "xml_type": "string", "kvp_key": "service", "kvp_type": "string"},
         "version": {"xml_location": "/@version", "xml_type": "string", "kvp_key": "version", "kvp_type": "string"},
         "operation": {"xml_location": "/", "xml_type": "localName", "kvp_key": "request", "kvp_type": "string"}
     }
-    
+
     def __init__(self):
         super(MapServerOperationHandler, self).__init__()
-        
+
         self.req = None
         self.map = mapscript.mapObj(os.path.join(settings.PROJECT_DIR, "conf", "template.map"))
         self.ows_req = mapscript.OWSRequest()
-        
+
         self.temp_files = []
-    
+
     def _addTempFile(self, temp_file_path):
         self.temp_files.append(temp_file_path)
-            
+
     def _setParameter(self, key, value):
         self.ows_req.setParameter(key, value)
 
@@ -339,22 +339,22 @@ class MapServerOperationHandler(BaseRequestHandler):
                 if len(values) == 1:
                     self._setParameter(key.lower(), escape(values[0]))
                 else:
-                    c = 0 
+                    c = 0
                     for value in values:
-                        # addParameter() available in MapServer >= 6.2 
+                        # addParameter() available in MapServer >= 6.2
                         # https://github.com/mapserver/mapserver/issues/3973
                         try:
                             self._addParameter(key.lower(), escape(value))
                         # Workaround for MapServer 6.0
                         except AttributeError:
-                            if c == 0: 
+                            if c == 0:
                                 new_key = key.lower()
-                            else: 
-                                new_key = "%s_%d" % (key.lower(), c) 
-                            self._setParameter(new_key, escape(value)) 
-                            c += 1 
-                            while "%s_%d" % (key.lower(), c) in self.req.getParams(): 
-                                c += 1 
+                            else:
+                                new_key = "%s_%d" % (key.lower(), c)
+                            self._setParameter(new_key, escape(value))
+                            c += 1
+                            while "%s_%d" % (key.lower(), c) in self.req.getParams():
+                                c += 1
 
             self._setParameter("version", self.req.getVersion())
         elif self.req.getParamType() == "xml":
@@ -369,14 +369,14 @@ class MapServerOperationHandler(BaseRequestHandler):
         ``ms_req.map.OWSDispatch()``. This method should not be
         overridden by child classes.
         """
-        
+
         logger.debug("MapServer: Installing stdout to buffer.")
         mapscript.msIO_installStdoutToBuffer()
-        
+
         try:
             logger.debug("MapServer: Dispatching.")
             ts = time.time()
-            # Execute the OWS request by mapserver, obtain the status in 
+            # Execute the OWS request by mapserver, obtain the status in
             # dispatch_status (0 is OK)
             dispatch_status = self.map.OWSDispatch(self.ows_req)
             te = time.time()
@@ -387,13 +387,14 @@ class MapServerOperationHandler(BaseRequestHandler):
                 "NoApplicableCode",
                 None
             )
-        
+
         logger.debug("MapServer: Retrieving content-type.")
         try:
             content_type = mapscript.msIO_stripStdoutBufferContentType()
             mapscript.msIO_stripStdoutBufferContentHeaders()
             # since MapServer 6.4.1 the strip functions don't seem to work
-            if content_type is None:
+            # but we don't want to split anything in WCS 1.0.0
+            if content_type is None and self.req.version != "1.0.0":
                 raise mapscript.MapServerError
 
         except mapscript.MapServerError:
@@ -402,7 +403,7 @@ class MapServerOperationHandler(BaseRequestHandler):
             parts = complete_result.split("\r\n")
             result = parts[-1]
             headers = parts[:-1]
-            
+
             for header in headers:
                 if header.lower().startswith("content-type"):
                     content_type = header[14:]
@@ -413,7 +414,7 @@ class MapServerOperationHandler(BaseRequestHandler):
         else:
             logger.debug("MapServer: Retrieving stdout buffer bytes.")
             result = mapscript.msIO_getStdoutBufferBytes()
-        
+
         logger.debug("MapServer: Performing MapServer cleanup.")
         # Workaround for MapServer issue #4369
         msversion = mapscript.msGetVersionInt()
@@ -421,7 +422,7 @@ class MapServerOperationHandler(BaseRequestHandler):
             mapscript.msCleanup()
         else:
             mapscript.msIO_resetHandlers()
-        
+
         return MapServerResponse(result, content_type, dispatch_status)
 
     def cleanup(self):
@@ -457,4 +458,4 @@ def gdalconst_to_imagemode_string(const):
         return "INT16"
     elif const == GDT_Float32:
         return "FLOAT32"
-    
+
