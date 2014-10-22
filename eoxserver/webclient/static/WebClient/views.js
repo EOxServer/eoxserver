@@ -67,7 +67,7 @@ namespace("WebClient").Views = (function() {
                         name: 'EOX Maps Terrain',
                         layer: 'terrain',
                         isBaseLayer: true,
-                        attribution: 'Terrain map data: GTOPO30, SRTM © NASA, EU-DEM © Produced using Copernicus data and information funded by the European Union - EU-DEM layers, CleanTOPO2 public domain, GlobCover © ESA, NaturalEarth public domain, and OpenStreetMap © OpenStreetMap contributors; Terrain map design © EOX IT Services GmbH',
+                        attribution: 'Terrain { Data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors and <a href="http://maps.eox.at/#data">others</a>, Rendering &copy; <a href="http://eox.at">EOX</a> }',
                     },
                     layerDefaults
                 )
@@ -79,7 +79,7 @@ namespace("WebClient").Views = (function() {
                         name: 'EOX Maps Overlay',
                         layer: 'overlay',
                         isBaseLayer: false,
-                        attribution: 'Overlay map data: NaturalEarth public domain and OpenStreetMap © OpenStreetMap contributors; Overlay map design © EOX IT Services GmbH',
+                        attribution: 'Overlay { Data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Rendering &copy; <a href="http://eox.at">EOX</a> and <a href="https://github.com/mapserver/basemaps">MapServer</a> }',
                     },
                     layerDefaults
                 )
@@ -100,6 +100,7 @@ namespace("WebClient").Views = (function() {
                     new OpenLayers.Control.Permalink(),
                     new OpenLayers.Control.Permalink('permalink'),
                     new OpenLayers.Control.MousePosition(),
+                    new OpenLayers.Control.Attribution(),
                     boxControl
                 ],
                 layers: [
@@ -1116,7 +1117,7 @@ namespace("WebClient").Views = (function() {
                         name: 'EOX Maps Terrain',
                         layer: 'terrain',
                         isBaseLayer: true,
-                        attribution: 'Terrain map data: GTOPO30, SRTM © NASA, EU-DEM © Produced using Copernicus data and information funded by the European Union - EU-DEM layers, CleanTOPO2 public domain, GlobCover © ESA, NaturalEarth public domain, and OpenStreetMap © OpenStreetMap contributors; Terrain map design © EOX IT Services GmbH',
+                        attribution: 'Terrain { Data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors and <a href="http://maps.eox.at/#data">others</a>, Rendering &copy; <a href="http://eox.at">EOX</a> }',
                     },
                     layerDefaults
                 )
