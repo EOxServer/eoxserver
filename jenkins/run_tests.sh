@@ -21,6 +21,16 @@ if [ $DB == "postgis" ] && [ `psql template_postgis jenkins -tAc "SELECT 1 FROM 
 fi
 
 export XML_CATALOG_FILES="$WORKSPACE/schemas/catalog.xml"
+# ftp tests are disabled
+if [ $OS == "Ubuntu" ]; then
+    python manage.py test "services|WCS20GetCoverageJPEG2000TestCase,WCS10DescribeCoverageDatasetTestCase,WCS10DescribeCoverageMosaicTestCase,WCS11TransactionReferenceableDatasetTestCase,WCS20GetCoverageReferenceableDatasetGeogCRSSubsetExceedsExtentTestCase,WCS20GetCoverageReferenceableDatasetGeogCRSSubsetTestCase,WCS20GetCoverageReferenceableDatasetImageCRSSubsetTestCase,WCS20PostGetCoverageReferenceableMultipartDatasetTestCase,WCS20GetCoverageOutputCRSotherUoMDatasetTestCase,WCS20GetCoverageSubsetEPSG4326ResolutionInvalidAxisDatasetFaultTestCase" -v2
+    python manage.py test "coverages|RegisterRemoteDatasetTestCase,RectifiedStitchedMosaicCreateWithRemotePathTestCase" -v2
+else
+    python manage.py test "services|WCS20GetCoverageReprojectedEPSG3857DatasetTestCase" -v2
+    python manage.py test "coverages|RegisterRemoteDatasetTestCase,RectifiedStitchedMosaicCreateWithRemotePathTestCase" -v2
+fi
+
+export XML_CATALOG_FILES="$WORKSPACE/schemas/catalog.xml"
 python manage.py test autotest_services -v2
 python manage.py test services coverages -v2
 #TODO: Enable testing of all apps
@@ -45,7 +55,7 @@ python manage.py loaddata auth_data.json range_types.json --traceback
 python manage.py eoxs_rangetype_load -i autotest_jenkins/data/meris/meris_range_type_definition.json --traceback
 python manage.py eoxs_rangetype_load -i autotest_jenkins/data/asar/asar_range_type_definition.json --traceback
 python manage.py eoxs_rangetype_list --traceback
-python manage.py eoxs_rangetype_list --json --traceback # dump all range-types as JSON 
+python manage.py eoxs_rangetype_list --json --traceback # dump all range-types as JSON
 python manage.py eoxs_collection_create -i MER_FRS_1P_reduced --traceback
 python manage.py eoxs_dataset_register -d autotest_jenkins/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.tif -m autotest_jenkins/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.xml -r MERIS_uint16 --visible --traceback
 python manage.py eoxs_dataset_register -d autotest_jenkins/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif -m autotest_jenkins/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.xml -r MERIS_uint16 --visible --traceback
