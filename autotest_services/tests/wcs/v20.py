@@ -1068,7 +1068,7 @@ class WCS20PostGetCoverageSubsetMultipartDatasetTestCase(wcsbase.WCS20GetCoverag
         </wcs:GetCoverage>"""
         return (params, "xml")
 
-class WCS20PostGetCoverageSubsetEPSG4326MultipartDatasetTestCase(testbase.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
+class WCS20PostGetCoverageSubsetEPSG4326MultipartDatasetTestCase(wcsbase.WCS20GetCoverageMixIn, testbase.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
     def getRequest(self):
         params = """<wcs:GetCoverage service="WCS" version="2.0.1"
            xmlns:wcs="http://www.opengis.net/wcs/2.0"
