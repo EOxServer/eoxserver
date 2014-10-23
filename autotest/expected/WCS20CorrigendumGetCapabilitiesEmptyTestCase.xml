@@ -150,10 +150,12 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
     <wcs:formatSupported>application/x-hdf</wcs:formatSupported>
     <wcs:formatSupported>image/png</wcs:formatSupported>
     <wcs:Extension>
-      <crs:crsSupported>http://www.opengis.net/def/crs/EPSG/0/4326</crs:crsSupported>
-      <crs:crsSupported>http://www.opengis.net/def/crs/EPSG/0/3857</crs:crsSupported>
-      <crs:crsSupported>http://www.opengis.net/def/crs/EPSG/0/900913</crs:crsSupported>
-      <crs:crsSupported>http://www.opengis.net/def/crs/EPSG/0/3035</crs:crsSupported>
+      <crs:CrsMetadata>
+        <crs:crsSupported>http://www.opengis.net/def/crs/EPSG/0/4326</crs:crsSupported>
+        <crs:crsSupported>http://www.opengis.net/def/crs/EPSG/0/3857</crs:crsSupported>
+        <crs:crsSupported>http://www.opengis.net/def/crs/EPSG/0/900913</crs:crsSupported>
+        <crs:crsSupported>http://www.opengis.net/def/crs/EPSG/0/3035</crs:crsSupported>
+      </crs:CrsMetadata>
       <int:InterpolationMetadata>
         <int:InterpolationSupported>http://www.opengis.net/def/interpolation/OGC/1/average</int:InterpolationSupported>
         <int:InterpolationSupported>http://www.opengis.net/def/interpolation/OGC/1/nearest-neighbour</int:InterpolationSupported>
