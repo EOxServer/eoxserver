@@ -10,8 +10,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -29,8 +29,8 @@
 
 from eoxserver.core import Component, implements, UniqueExtensionPoint
 from eoxserver.core.decoders import kvp, typelist, InvalidParameterException
-from eoxserver.resources.coverages import models, crss
-from eoxserver.services.subset import Subsets, Trim, Slice
+from eoxserver.resources.coverages import crss
+from eoxserver.services.subset import Subsets, Trim
 from eoxserver.services.ows.interfaces import (
     ServiceHandlerInterface, GetServiceHandlerInterface
 )
@@ -46,7 +46,7 @@ class WMS11GetMapHandler(Component):
     implements(ServiceHandlerInterface)
     implements(GetServiceHandlerInterface)
 
-    renderer = UniqueExtensionPoint(WMSMapRendererInterface) 
+    renderer = UniqueExtensionPoint(WMSMapRendererInterface)
 
     service = "WMS"
     versions = ("1.1", "1.1.0", "1.1.1")
@@ -78,13 +78,13 @@ class WMS11GetMapHandler(Component):
         ), crs=srs)
         if time:
             subsets.append(time)
-                
+
         renderer = self.renderer
         root_group = lookup_layers(layers, subsets, renderer.suffixes)
 
         result, _ = renderer.render(
-            root_group, request.GET.items(), 
-            time=decoder.time, bands=decoder.dim_bands
+            root_group, request.GET.items(),
+            time=decoder.time, bands=decoder.dim_bands, subsets=subsets
         )
         return to_http_response(result)
 

@@ -10,8 +10,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -35,7 +35,7 @@ from eoxserver.services.mapserver.interfaces import ConnectorInterface
 
 
 class TileIndexConnector(Component):
-    """ Connects a tile index with the given layer. The tileitem is fixed to 
+    """ Connects a tile index with the given layer. The tileitem is fixed to
         "location".
     """
 
@@ -46,9 +46,9 @@ class TileIndexConnector(Component):
             len(data_items) == 1 and data_items[0].semantic == "tileindex"
         )
 
-    def connect(self, coverage, data_items, layer):
+    def connect(self, coverage, data_items, layer, options):
         layer.tileindex = os.path.abspath(connect(data_items[0]))
         layer.tileitem = "location"
 
-    def disconnect(self, coverage, data_items, layer):
+    def disconnect(self, coverage, data_items, layer, options):
         pass

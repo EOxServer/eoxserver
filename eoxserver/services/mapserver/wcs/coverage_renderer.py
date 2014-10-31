@@ -166,7 +166,7 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
             )
 
         try:
-            connector.connect(coverage, data_items, layer)
+            connector.connect(coverage, data_items, layer, {})
             # create request object and dispatch it against the map
             request = ms.create_request(
                 self.translate_params(params, range_type)
@@ -176,7 +176,7 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
 
         finally:
             # perform any required layer related cleanup
-            connector.disconnect(coverage, data_items, layer)
+            connector.disconnect(coverage, data_items, layer, {})
 
         result_set = result_set_from_raw_data(raw_result)
 
