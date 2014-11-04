@@ -45,7 +45,7 @@ python manage.py loaddata auth_data.json range_types.json --traceback
 python manage.py eoxs_rangetype_load -i autotest_jenkins/data/meris/meris_range_type_definition.json --traceback
 python manage.py eoxs_rangetype_load -i autotest_jenkins/data/asar/asar_range_type_definition.json --traceback
 python manage.py eoxs_rangetype_list --traceback
-python manage.py eoxs_rangetype_list --json --traceback # dump all range-types as JSON 
+python manage.py eoxs_rangetype_list --json --traceback # dump all range-types as JSON
 python manage.py eoxs_collection_create -i MER_FRS_1P_reduced --traceback
 python manage.py eoxs_dataset_register -d autotest_jenkins/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.tif -m autotest_jenkins/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.xml -r MERIS_uint16 --visible --traceback
 python manage.py eoxs_dataset_register -d autotest_jenkins/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif -m autotest_jenkins/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.xml -r MERIS_uint16 --visible --traceback
@@ -75,7 +75,7 @@ xmllint --format tmp > tmp3
 curl -sS -o tmp "http://localhost:8000/ows?service=WCS&version=2.0.1&request=DescribeEOCoverageSet&eoId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"
 xmllint --format tmp > tmp4
 
-# Restart development server otherwise the GetCoverage requests hangs forever
+# Restart development server otherwise the GetCoverage request hangs forever
 kill `ps --ppid $PID -o pid=`
 python manage.py runserver 1>/dev/null 2>&1 &
 sleep 3

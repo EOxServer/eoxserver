@@ -10,8 +10,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -188,7 +188,9 @@ class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
             supported_crss = crss.getSupportedCRS_WCS(format_function=crss.asURL)
             extension = WCS("Extension")
             service_metadata.append(extension)
-            extension.extend(
+            crs_metadata = CRS("CrsMetadata")
+            extension.append(crs_metadata)
+            crs_metadata.extend(
                 map(lambda c: CRS("crsSupported", c), supported_crss)
             )
 
@@ -289,7 +291,7 @@ class GMLCOV10Encoder(GML32Encoder):
         size_x, size_y = size
         minx, miny, maxx, maxy = extent
         srs_name = sr.url
-        
+
         swap = crss.getAxesSwapper(sr.srid)
         frmt = "%.3f %.3f" if sr.IsProjected() else "%.8f %.8f"
         labels = ("x", "y") if sr.IsProjected() else ("long", "lat")

@@ -40,8 +40,12 @@ def get_version():
     # Concatenate third element if not None
     if VERSION[2] is not None:
         version = '%s.%s' % (version, VERSION[2])
-    # Concatenate last two elements if forth not "final"
-    if VERSION[3] != 'final':
-        version = '%s%s%s' % (version, VERSION[3], VERSION[4])
+    # Concatenate third element if "dev"
+    if VERSION[3:] == ('dev', 0):
+        version = "%s%s" % (version, VERSION[3])
+    else:
+        # Concatenate last two elements if forth not "final"
+        if VERSION[3] != 'final':
+            version = '%s%s%s' % (version, VERSION[3], VERSION[4])
 
     return version
