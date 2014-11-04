@@ -82,9 +82,14 @@ class WMS11GetMapHandler(Component):
         renderer = self.renderer
         root_group = lookup_layers(layers, subsets, renderer.suffixes)
 
+        print dict((key[4:], values) for key, values in decoder.dimensions)
         result, _ = renderer.render(
             root_group, request.GET.items(),
-            time=decoder.time, bands=decoder.dim_bands, subsets=subsets
+            time=decoder.time, bands=decoder.dim_bands, subsets=subsets,
+            elevation=decoder.elevation,
+            dimensions=dict(
+                (key[4:], values) for key, values in decoder.dimensions
+            )
         )
         return to_http_response(result)
 
@@ -99,3 +104,5 @@ class WMS11GetMapDecoder(kvp.Decoder):
     height = kvp.Parameter(num=1)
     format = kvp.Parameter(num=1)
     dim_bands = kvp.Parameter(type=typelist(int_or_str, ","), num="?")
+    elevation = kvp.Parameter(type=float, num="?")
+    dimensions = kvp.MultiParameter(lambda s: s.startswith("dim_"), locator="dimension", num="*")

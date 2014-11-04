@@ -53,6 +53,25 @@ class Parameter(BaseParameter):
         return self._locator or self.key
 
 
+class MultiParameter(Parameter):
+    """ Class for selecting different KVP parameters at once.
+    """
+
+    def __init__(self, selector, num=1, default=None, locator=None):
+        super(MultiParameter, self).__init__(
+            "", lambda s: s, num, default, locator
+        )
+        self.key = selector
+
+    def select(self, decoder, decoder_class=None):
+        result = []
+        for key, values in decoder._query_dict.items():
+            if self.key(key):
+                result.append((key, values))
+
+        return result
+
+
 class DecoderMetaclass(type):
     """ Metaclass for KVP Decoders to allow easy parameter declaration.
     """
@@ -70,13 +89,13 @@ class Decoder(object):
     """ Base class for KVP decoders.
     """
     __metaclass__ = DecoderMetaclass
-    
+
     def __init__(self, params):
         query_dict = {}
         if isinstance(params, QueryDict):
             for key, values in params.lists():
                 query_dict[key.lower()] = values
-        
+
         elif isinstance(params, basestring):
             tmp = parse_qs(params)
             for key, values in tmp.items():
@@ -90,6 +109,6 @@ class Decoder(object):
             raise ValueError(
                 "Decoder input '%s' not supported." % type(params).__name__
             )
-        
+
         self.kvp = params
         self._query_dict = query_dict
