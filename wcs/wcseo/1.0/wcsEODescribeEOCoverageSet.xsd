@@ -5,12 +5,12 @@
     xmlns:gml="http://www.opengis.net/gml/3.2"
     xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0"
     xmlns:eop="http://www.opengis.net/eop/2.0"
-    xmlns="http://www.w3.org/2001/XMLSchema" 
+    xmlns="http://www.w3.org/2001/XMLSchema"
     elementFormDefault="qualified" version="1.0.0" xml:lang="en">
     <annotation>
         <appinfo>wcsEODescribeCoverageSet.xsd</appinfo>
         <documentation>This XML Schema Document defines the DescribeEOCoverageSet operation request and response XML elements and types, used by the OGC Web Coverage Service (WCS) Earth Observation Application Profile (EO-WCS).
-            Last updated: 2013-jun-11
+            Last updated: 2014-Nov-05
             Copyright (c) 2011 Open Geospatial Consortium, Inc. All Rights Reserved.
             To obtain additional rights of use, visit http://www.opengeospatial.org/legal/.
         </documentation>
@@ -116,15 +116,14 @@
     </element>
     <complexType name="DatasetSeriesDescriptionType">
         <complexContent>
-            <restriction base="wcs:CoverageDescriptionType">
+            <extension base="gml:AbstractFeatureType">
                 <sequence>
-                    <element ref="gml:boundedBy"/>
                     <element ref="wcseo:DatasetSeriesId"/>
                     <element ref="gml:TimePeriod"/>
                     <element ref="eop:Footprint" minOccurs="0"/>
                     <element ref="wcseo:ServiceParameters" minOccurs="0"/>
                 </sequence>
-            </restriction>
+            </extension>
         </complexContent>
     </complexType>
     <!-- =========================================================== -->
