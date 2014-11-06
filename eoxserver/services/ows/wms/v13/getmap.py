@@ -86,6 +86,7 @@ class WMS13GetMapHandler(Component):
 
         result, _ = renderer.render(
             root_group, request.GET.items(),
+            width=int(decoder.width), height=int(decoder.height),
             time=decoder.time, bands=decoder.dim_bands, subsets=subsets,
             elevation=decoder.elevation,
             dimensions=dict(

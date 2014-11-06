@@ -78,7 +78,8 @@ class WMS10GetMapHandler(Component):
         root_group = lookup_layers(layers, subsets)
 
         result, _ = self.renderer.render(
-            root_group, request.GET.items(), subsets=subsets
+            root_group, request.GET.items(), subsets=subsets,
+            width=int(decoder.width), height=int(decoder.height)
         )
         return to_http_response(result)
 

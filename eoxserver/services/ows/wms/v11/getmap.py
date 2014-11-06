@@ -85,6 +85,7 @@ class WMS11GetMapHandler(Component):
         print dict((key[4:], values) for key, values in decoder.dimensions)
         result, _ = renderer.render(
             root_group, request.GET.items(),
+            width=int(decoder.width), height=int(decoder.height),
             time=decoder.time, bands=decoder.dim_bands, subsets=subsets,
             elevation=decoder.elevation,
             dimensions=dict(
