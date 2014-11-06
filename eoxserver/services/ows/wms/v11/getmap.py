@@ -82,7 +82,6 @@ class WMS11GetMapHandler(Component):
         renderer = self.renderer
         root_group = lookup_layers(layers, subsets, renderer.suffixes)
 
-        print dict((key[4:], values) for key, values in decoder.dimensions)
         result, _ = renderer.render(
             root_group, request.GET.items(),
             width=int(decoder.width), height=int(decoder.height),
