@@ -10,8 +10,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -40,7 +40,7 @@ from eoxserver.services.gml.v32.encoders import (
 )
 from eoxserver.services.ows.common.v20.encoders import ns_xlink, ns_ows, OWS
 from eoxserver.services.exceptions import (
-    InvalidSubsettingException, InvalidAxisLabelException, 
+    InvalidSubsettingException, InvalidAxisLabelException,
     NoSuchFieldException, InvalidFieldSequenceException,
     InterpolationMethodNotSupportedException, InvalidScaleFactorException,
     InvalidScaleExtentException, ScaleAxisUndefinedException
@@ -52,15 +52,15 @@ ns_ogc = NameSpace("http://www.opengis.net/ogc", "ogc")
 ns_wcs = NameSpace("http://www.opengis.net/wcs/2.0", "wcs")
 ns_crs = NameSpace("http://www.opengis.net/wcs/crs/1.0", "crs")
 ns_rsub = NameSpace("http://www.opengis.net/wcs/range-subsetting/1.0", "rsub")
-ns_eowcs = NameSpace("http://www.opengis.net/wcseo/1.0", "wcseo", 
-                     "http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd")
+ns_eowcs = NameSpace("http://www.opengis.net/wcs/wcseo/1.0", "wcseo",
+                     "http://schemas.opengis.net/wcs/wcseo/1.0/wcsEOAll.xsd")
 ns_swe = NameSpace("http://www.opengis.net/swe/2.0", "swe")
 ns_int = NameSpace("http://www.opengis.net/wcs/interpolation/1.0", "int")
 ns_scal = NameSpace("http://www.opengis.net/wcs/scaling/1.0", "scal")
 
 # namespace map
 nsmap = NameSpaceMap(
-    ns_xlink, ns_ogc, ns_ows, ns_gml, ns_gmlcov, ns_wcs, ns_crs, ns_rsub, 
+    ns_xlink, ns_ogc, ns_ows, ns_gml, ns_gmlcov, ns_wcs, ns_crs, ns_rsub,
     ns_eowcs, ns_om, ns_eop, ns_swe, ns_int, ns_scal
 )
 
@@ -70,7 +70,7 @@ WCS = ElementMaker(namespace=ns_wcs.uri, nsmap=nsmap)
 CRS = ElementMaker(namespace=ns_crs.uri, nsmap=nsmap)
 EOWCS = ElementMaker(namespace=ns_eowcs.uri, nsmap=nsmap)
 SWE = ElementMaker(namespace=ns_swe.uri, nsmap=nsmap)
-INT = ElementMaker(namespace=ns_int.uri, nsmap=nsmap) 
+INT = ElementMaker(namespace=ns_int.uri, nsmap=nsmap)
 
 
 SUBSET_RE = re.compile(r'(\w+)\(([^,]*)(,([^)]*))?\)')
@@ -83,7 +83,7 @@ class RangeSubset(list):
     def get_band_indices(self, range_type, offset=0):
         current_idx = -1
         all_bands = range_type.cached_bands[:]
-        
+
         for subset in self:
             if isinstance(subset, basestring):
                 # slice, i.e single band
@@ -104,7 +104,7 @@ class RangeSubset(list):
                 for i in range(start_idx, stop_idx+1):
                     yield i + offset
 
-            else: 
+            else:
                 # return the item
                 yield start_idx + offset
 
@@ -179,7 +179,7 @@ def parse_subset_kvp(string):
 
         axis = match.group(1)
         parser = get_parser_for_axis(axis)
-        
+
         if match.group(4) is not None:
             return Trim(
                 axis, parser(match.group(2)), parser(match.group(4))
@@ -291,7 +291,7 @@ def parse_subset_xml(elem):
 
 
 SUPPORTED_INTERPOLATIONS = (
-    "average", "nearest-neighbour", "bilinear", "cubic", "cubic-spline", 
+    "average", "nearest-neighbour", "bilinear", "cubic", "cubic-spline",
     "lanczos", "mode"
 )
 
@@ -326,7 +326,7 @@ def parse_range_subset_xml(elem):
                 item.findtext(ns_rsub("startComponent")),
                 item.findtext(ns_rsub("endComponent"))
             ))
-    
+
     return rangesubset
 
 
