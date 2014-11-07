@@ -8,10 +8,11 @@
     elementFormDefault="qualified" version="1.0.0" xml:lang="en">
     <annotation>
         <appinfo>wcsEOCoverage.xsd</appinfo>
-        <documentation>This XML Schema Document encodes the coverage elements and types that are defined in the WCS EO-AP.
+        <documentation>This XML Schema Document encodes the coverage elements and types that are defined in the OGC Web Coverage Service (WCS) Earth Observation Application Profile (EO-WCS).
             This file is actually not needed by WCS EO-AP implementations but provided for completeness.
+            The OGC Web Coverage Service (WCS) Earth Observation Application Profile (EO-WCS) is an OGC Standard.
             Last updated: 2013-jun-11
-            Copyright (c) 2011 Open Geospatial Consortium, Inc. All Rights Reserved.
+            Copyright (c) 2011, 2014 Open Geospatial Consortium. All Rights Reserved.
             To obtain additional rights of use, visit http://www.opengeospatial.org/legal/.
         </documentation>
     </annotation>
@@ -21,7 +22,7 @@
     <!-- =========================================================== -->
     <import namespace="http://www.opengis.net/gml/3.2" schemaLocation="http://schemas.opengis.net/gml/3.2.1/gml.xsd"/>
     <import namespace="http://www.opengis.net/gmlcov/1.0" schemaLocation="http://schemas.opengis.net/gmlcov/1.0/gmlcovAll.xsd"/>
-    <import namespace="http://www.opengis.net/eop/2.0" schemaLocation="http://schemas.opengis.net/eop/2.0/eop.xsd"/> <!--TODO: Where will the schema reside?-->
+    <import namespace="http://www.opengis.net/eop/2.0" schemaLocation="http://schemas.opengis.net/omeo/1.0/eop.xsd"/>
     <include schemaLocation="wcsEOAll.xsd"/>
 
     <!-- =========================================================== -->

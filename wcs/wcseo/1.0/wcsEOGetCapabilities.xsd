@@ -9,8 +9,9 @@
     <annotation>
         <appinfo>wcsEOGetCapabilities.xsd</appinfo>
         <documentation>This XML Schema Document includes, directly and indirectly, all the XML Schema Documents defined by the OGC Web Coverage Service (WCS) Earth Observation Application Profile (EO-WCS).
+            The OGC Web Coverage Service (WCS) Earth Observation Application Profile (EO-WCS) is an OGC Standard.
             Last updated: 2013-jun-11
-            Copyright (c) 2011 Open Geospatial Consortium, Inc. All Rights Reserved.
+            Copyright (c) 2011, 2014 Open Geospatial Consortium. All Rights Reserved.
             To obtain additional rights of use, visit http://www.opengeospatial.org/legal/.
         </documentation>
     </annotation>

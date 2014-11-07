@@ -16,14 +16,6 @@ The most current schema are available at http://schemas.opengis.net/ .
 
 -----------------------------------------------------------------------
 
-2012-08-24  Stephan Meissl
-  * Added CRS extension schemas
-  * Added GeoTIFF encoding extension schemas
-  * Added Range subsetting extension schemas
-
-NOTE: wcs/1.1.0 is WCS 1.1.0 (circa 2007) plus the W3C XLink changes (2012-07-21).
-      WCS 1.1.0 is deprecated. -- 2012-08-28
-
 2012-07-21  Stephan Meissl
   * v2.0: Updates according to WCS 2.0.1
     + Updated xsd:schema/@version to 2.0.1
@@ -50,7 +42,7 @@ NOTE: wcs/1.1.0 is WCS 1.1.0 (circa 2007) plus the W3C XLink changes (2012-07-21
     per an approved TC and PC motion during the Dec. 2011 Brussels meeting.
     See http://www.opengeospatial.org/blog/1597 
   * wcs/1.1/GMLprofileForWCS: XLink changes 
-  * v1.1: No Changes except copyright changes
+  * v1.1: No Changes
   * v1.0.0, v1.1.0, v2.0: Per 11-025, all leaf documents of a namespace shall 
     retroactively and explicitly require/add an <include/> of the all-components schema.
   * v1.1.0: Updated xsd:schema/@version to 1.1.0.2

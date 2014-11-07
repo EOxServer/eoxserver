@@ -5,13 +5,14 @@
     xmlns:gml="http://www.opengis.net/gml/3.2"
     xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0"
     xmlns:eop="http://www.opengis.net/eop/2.0"
-    xmlns="http://www.w3.org/2001/XMLSchema" 
+    xmlns="http://www.w3.org/2001/XMLSchema"
     elementFormDefault="qualified" version="1.0.0" xml:lang="en">
     <annotation>
         <appinfo>wcsEODescribeCoverageSet.xsd</appinfo>
         <documentation>This XML Schema Document defines the DescribeEOCoverageSet operation request and response XML elements and types, used by the OGC Web Coverage Service (WCS) Earth Observation Application Profile (EO-WCS).
-            Last updated: 2013-jun-11
-            Copyright (c) 2011 Open Geospatial Consortium, Inc. All Rights Reserved.
+            The OGC Web Coverage Service (WCS) Earth Observation Application Profile (EO-WCS) is an OGC Standard.
+            Last updated: 2014-Nov-05
+            Copyright (c) 2011, 2014 Open Geospatial Consortium. All Rights Reserved.
             To obtain additional rights of use, visit http://www.opengeospatial.org/legal/.
         </documentation>
     </annotation>
@@ -22,7 +23,7 @@
     <import namespace="http://www.opengis.net/gml/3.2" schemaLocation="http://schemas.opengis.net/gml/3.2.1/gml.xsd"/>
     <import namespace="http://www.opengis.net/gmlcov/1.0" schemaLocation="http://schemas.opengis.net/gmlcov/1.0/gmlcovAll.xsd"/>
     <import namespace="http://www.opengis.net/wcs/2.0" schemaLocation="http://schemas.opengis.net/wcs/2.0/wcsAll.xsd"/>
-    <import namespace="http://www.opengis.net/eop/2.0" schemaLocation="http://schemas.opengis.net/eop/2.0/eop.xsd"/> <!--TODO: Where will the schema reside?-->
+    <import namespace="http://www.opengis.net/eop/2.0" schemaLocation="http://schemas.opengis.net/omeo/1.0/eop.xsd"/>
     <include schemaLocation="wcsEOAll.xsd"/>
 
     <!-- =========================================================== -->
@@ -116,15 +117,14 @@
     </element>
     <complexType name="DatasetSeriesDescriptionType">
         <complexContent>
-            <restriction base="wcs:CoverageDescriptionType">
+            <extension base="gml:AbstractFeatureType">
                 <sequence>
-                    <element ref="gml:boundedBy"/>
                     <element ref="wcseo:DatasetSeriesId"/>
                     <element ref="gml:TimePeriod"/>
                     <element ref="eop:Footprint" minOccurs="0"/>
                     <element ref="wcseo:ServiceParameters" minOccurs="0"/>
                 </sequence>
-            </restriction>
+            </extension>
         </complexContent>
     </complexType>
     <!-- =========================================================== -->
