@@ -10,9 +10,10 @@
     elementFormDefault="qualified" version="1.0.0" xml:lang="en">
     <annotation>
         <appinfo>wcsEOCommon.xsd</appinfo>
-        <documentation>This XML Schema Document encodes the elements and types that are shared by multiple EO-WCS operations.
+        <documentation>This XML Schema Document encodes the elements and types that are shared by multiple EO-WCS operations as defined in the OGC Web Coverage Service (WCS) Earth Observation Application Profile (EO-WCS).
+            The OGC Web Coverage Service (WCS) Earth Observation Application Profile (EO-WCS) is an OGC Standard.
             Last updated: 2013-jun-11
-            Copyright (c) 2011 Open Geospatial Consortium, Inc. All Rights Reserved.
+            Copyright (c) 2011, 2014 Open Geospatial Consortium. All Rights Reserved.
             To obtain additional rights of use, visit http://www.opengeospatial.org/legal/.
         </documentation>
     </annotation>
@@ -24,7 +25,7 @@
     <import namespace="http://www.opengis.net/ows/2.0" schemaLocation="http://schemas.opengis.net/ows/2.0/owsAll.xsd"/>
     <import namespace="http://www.opengis.net/gmlcov/1.0" schemaLocation="http://schemas.opengis.net/gmlcov/1.0/gmlcovAll.xsd"/>
     <import namespace="http://www.opengis.net/wcs/2.0" schemaLocation="http://schemas.opengis.net/wcs/2.0/wcsAll.xsd"/>
-    <import namespace="http://www.opengis.net/eop/2.0" schemaLocation="http://schemas.opengis.net/eop/2.0/eop.xsd"/> <!--TODO: Where will the schema reside?-->
+    <import namespace="http://www.opengis.net/eop/2.0" schemaLocation="http://schemas.opengis.net/omeo/1.0/eop.xsd"/>
     <include schemaLocation="wcsEOAll.xsd"/>
 
     <!-- =========================================================== -->
