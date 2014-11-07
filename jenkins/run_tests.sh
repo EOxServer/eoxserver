@@ -76,7 +76,10 @@ curl -sS -o tmp "http://localhost:8000/ows?service=WCS&version=2.0.1&request=Des
 xmllint --format tmp > tmp4
 
 # Restart development server otherwise the GetCoverage request hangs forever
-kill `ps --ppid $PID -o pid=`
+PID=`ps --ppid $PID -o pid=`
+if [ $PID ]; then
+    kill $PID
+fi
 python manage.py runserver 1>/dev/null 2>&1 &
 sleep 3
 PID=$!
@@ -95,7 +98,10 @@ if [ $OS != "Ubuntu" ]; then
 fi
 
 rm tmp tmp1 tmp2 tmp3 tmp4
-kill `ps --ppid $PID -o pid=`
+PID=`ps --ppid $PID -o pid=`
+if [ $PID ]; then
+    kill $PID
+fi
 
 python manage.py eoxs_collection_unlink --collection MER_FRS_1P_reduced --remove mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced --traceback
 python manage.py eoxs_dataset_deregister mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced mosaic_MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_RGB_reduced mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced --traceback
