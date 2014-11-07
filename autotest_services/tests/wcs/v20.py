@@ -348,7 +348,7 @@ class WCS20DescribeEOCoverageSetSectionsAllTestCase(testbase.WCS20DescribeEOCove
     def getExpectedSections(self):
         return [
             "{http://www.opengis.net/wcs/2.0}CoverageDescriptions",
-            "{http://www.opengis.net/wcseo/1.0}DatasetSeriesDescriptions"
+            "{http://www.opengis.net/wcs/wcseo/1.0}DatasetSeriesDescriptions"
         ]
 
     def getRequest(self):
@@ -359,7 +359,7 @@ class WCS20DescribeEOCoverageSetSectionsAll2TestCase(testbase.WCS20DescribeEOCov
     def getExpectedSections(self):
         return [
             "{http://www.opengis.net/wcs/2.0}CoverageDescriptions",
-            "{http://www.opengis.net/wcseo/1.0}DatasetSeriesDescriptions"
+            "{http://www.opengis.net/wcs/wcseo/1.0}DatasetSeriesDescriptions"
         ]
 
     def getRequest(self):
@@ -370,7 +370,7 @@ class WCS20DescribeEOCoverageSetSectionsAll3TestCase(testbase.WCS20DescribeEOCov
     def getExpectedSections(self):
         return [
             "{http://www.opengis.net/wcs/2.0}CoverageDescriptions",
-            "{http://www.opengis.net/wcseo/1.0}DatasetSeriesDescriptions"
+            "{http://www.opengis.net/wcs/wcseo/1.0}DatasetSeriesDescriptions"
         ]
 
     def getRequest(self):
@@ -381,7 +381,7 @@ class WCS20DescribeEOCoverageSetSectionsAll4TestCase(testbase.WCS20DescribeEOCov
     def getExpectedSections(self):
         return [
             "{http://www.opengis.net/wcs/2.0}CoverageDescriptions",
-            "{http://www.opengis.net/wcseo/1.0}DatasetSeriesDescriptions"
+            "{http://www.opengis.net/wcs/wcseo/1.0}DatasetSeriesDescriptions"
         ]
 
     def getRequest(self):
@@ -401,7 +401,7 @@ class WCS20DescribeEOCoverageSetSectionsCoverageDescriptionsTestCase(testbase.WC
 class WCS20DescribeEOCoverageSetSectionsDatasetSeriesDescriptionsTestCase(testbase.WCS20DescribeEOCoverageSetSectionsTestCase):
     def getExpectedSections(self):
         return [
-            "{http://www.opengis.net/wcseo/1.0}DatasetSeriesDescriptions"
+            "{http://www.opengis.net/wcs/wcseo/1.0}DatasetSeriesDescriptions"
         ]
 
     def getRequest(self):
@@ -1018,7 +1018,7 @@ class WCS20PostDescribeEOCoverageSetDatasetSeriesTestCase(testbase.XMLTestCase):
     """
     def getRequest(self):
         params = """<wcseo:DescribeEOCoverageSet service="WCS" version="2.0.0" count="100"
-           xmlns:wcseo="http://www.opengis.net/wcseo/1.0"
+           xmlns:wcseo="http://www.opengis.net/wcs/wcseo/1.0"
            xmlns:wcs="http://www.opengis.net/wcs/2.0">
           <wcseo:eoId>MER_FRS_1P_reduced</wcseo:eoId>
           <wcseo:containment>OVERLAPS</wcseo:containment>
