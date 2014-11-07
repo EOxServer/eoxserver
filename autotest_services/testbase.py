@@ -28,7 +28,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-import re 
+import re
 import os.path
 import logging
 from lxml import etree
@@ -41,7 +41,7 @@ from django.conf import settings
 from django.utils.unittest import SkipTest
 
 from eoxserver.core.config import get_eoxserver_config
-from eoxserver.core.util import multiparttools as mp 
+from eoxserver.core.util import multiparttools as mp
 from eoxserver.contrib import gdal, osr
 from eoxserver.testing.xcomp import xmlCompareFiles
 
@@ -49,7 +49,7 @@ from eoxserver.testing.xcomp import xmlCompareFiles
 root_dir = settings.PROJECT_DIR
 
 BASE_FIXTURES = [
-    "range_types.json", "meris_range_type.json", 
+    "range_types.json", "meris_range_type.json",
     "asar_range_type.json",
 ]
 
@@ -72,7 +72,7 @@ def extent_from_ds(ds):
     gt = ds.GetGeoTransform()
     size_x = ds.RasterXSize
     size_y = ds.RasterYSize
-    
+
     return (gt[0],                   # minx
             gt[3] + size_x * gt[5],  # miny
             gt[0] + size_y * gt[1],  # maxx
@@ -82,8 +82,8 @@ def resolution_from_ds(ds):
     gt = ds.GetGeoTransform()
     return (gt[1], abs(gt[5]))
 
-def _getMime( s ) : 
-    return s.partition(';')[0].strip().lower() 
+def _getMime( s ) :
+    return s.partition(';')[0].strip().lower()
 #===============================================================================
 # Common classes
 #===============================================================================
@@ -94,23 +94,23 @@ class OWSTestCase(TestCase):
     """ Main base class for testing the OWS interface
         of EOxServer.
     """
-    
+
     fixtures = [
-        "range_types.json", "meris_range_type.json", 
+        "range_types.json", "meris_range_type.json",
         "meris_coverages_uint16.json", "meris_coverages_rgb.json",
         "meris_coverages_reprojected_uint16.json",
         "asar_range_type.json", "asar_coverages.json"
     ]
-    
+
     def setUp(self):
         super(OWSTestCase, self).setUp()
 
         classname = self.__class__.__name__
 
         self.check_disabled()
-        
+
         logger.info("Starting Test Case: %s" % classname)
-        
+
         rq = self.getRequest()
 
         if classname in REQUEST_CACHE:
@@ -157,7 +157,7 @@ class OWSTestCase(TestCase):
                 "Test '%s' is disabled by the configuration." % name
             )
 
-    
+
     def isRequestConfigEnabled(self, config_key, default=False):
         config = get_eoxserver_config()
         try:
@@ -173,22 +173,22 @@ class OWSTestCase(TestCase):
             return False
         else:
             return default
-    
+
     def getRequest(self):
         raise Exception("Not implemented.")
-    
+
     def getFileExtension(self, file_type):
         return "xml"
-    
+
     def getResponseFileDir(self):
         return os.path.join(root_dir, "responses")
 
     def getDataFileDir(self):
         return os.path.join(root_dir, "data")
-    
+
     def getResponseFileName(self, file_type):
         return "%s.%s" % (self.__class__.__name__, self.getFileExtension(file_type))
-    
+
     def getResponseData(self):
         return self.response.content
 
@@ -197,10 +197,10 @@ class OWSTestCase(TestCase):
 
     def getExpectedFileDir(self):
         return os.path.join(root_dir, "expected")
-    
+
     def getExpectedFileName(self, file_type):
         return "%s.%s" % (self.__class__.__name__, self.getFileExtension(file_type))
-    
+
     def getXMLData(self):
         raise Exception("Not implemented.")
 
@@ -210,30 +210,30 @@ class OWSTestCase(TestCase):
         return etree.tostring(
             tree, pretty_print=True, encoding='UTF-8', xml_declaration=True
         )
-    
-    def _testXMLComparison(self, suffix="xml", response=None): 
+
+    def _testXMLComparison(self, suffix="xml", response=None):
         """
         Helper function for the basic XML tree comparison to be used by `testXMLComparison`.
         """
         expected_path = os.path.join(self.getExpectedFileDir(), self.getExpectedFileName(suffix))
         response_path = os.path.join(self.getResponseFileDir(), self.getResponseFileName(suffix))
-        
-        # store the XML response 
+
+        # store the XML response
         if response is None:
             response = self.prepareXMLData(self.getXMLData())
-        
-        # check that the expected XML response exists 
-        if not os.path.isfile(expected_path): 
+
+        # check that the expected XML response exists
+        if not os.path.isfile(expected_path):
             with open(response_path, 'w') as f:
                 f.write(response)
 
             self.skipTest("Missing the expected XML response '%s'." % expected_path)
-        
-        # perform the actual comparison 
-        try: 
+
+        # perform the actual comparison
+        try:
             xmlCompareFiles(expected_path, StringIO(response))
-        except Exception as e : 
-            with open(response_path, 'w') as f: 
+        except Exception as e :
+            with open(response_path, 'w') as f:
                 f.write(response)
 
             self.fail(
@@ -255,7 +255,7 @@ class OWSTestCase(TestCase):
 
         except IOError:
             expected = None
-        
+
         actual_response = None
         if data is None:
             if file_type in ("raster", "html"):
@@ -270,7 +270,7 @@ class OWSTestCase(TestCase):
         if expected != actual_response:
             if self.getFileExtension("raster") in ("hdf", "nc"):
                 self.skipTest(
-                    "Skipping binary comparison for HDF or NetCDF file '%s'." 
+                    "Skipping binary comparison for HDF or NetCDF file '%s'."
                     % expected_path
                 )
 
@@ -285,7 +285,7 @@ class OWSTestCase(TestCase):
                     self.skipTest(
                         "Expected response in '%s' is not present" % expected_path
                     )
-            
+
             if expected is None:
                 self.skipTest(
                     "Expected response in '%s' is not present" % expected_path
@@ -295,7 +295,7 @@ class OWSTestCase(TestCase):
                     "Response returned in '%s' is not equal to expected "
                     "response in '%s'." % (response_path, expected_path)
                 )
-    
+
     def testStatus(self):
         logger.info("Checking HTTP Status ...")
         self.assertEqual(self.response.status_code, 200)
@@ -305,10 +305,10 @@ class RasterTestCase(OWSTestCase):
     """
     Base class for test cases that expect a raster as response.
     """
-    
+
     def getFileExtension(self, file_type):
         return "tif"
-    
+
     def testBinaryComparisonRaster(self):
         if not self.isRequestConfigEnabled("binary_raster_comparison_enabled", True):
             self.skipTest("Binary raster comparison is explicitly disabled.")
@@ -320,7 +320,7 @@ class GDALDatasetTestCase(RasterTestCase):
     Extended RasterTestCases that open the result with GDAL and
     perform several tests.
     """
-    
+
     def tearDown(self):
         super(GDALDatasetTestCase, self).tearDown()
         try:
@@ -336,14 +336,14 @@ class GDALDatasetTestCase(RasterTestCase):
         f.write(self.getResponseData())
         f.close()
         gdal.AllRegister()
-        
+
         exp_path = os.path.join(self.getExpectedFileDir(), self.getExpectedFileName("raster"))
-        
+
         try:
             self.res_ds = gdal.Open(self.tmppath, gdal.GA_ReadOnly)
         except RuntimeError, e:
             self.fail("Response could not be opened with GDAL. Error was %s" % e)
-        
+
         try:
             self.exp_ds = gdal.Open(exp_path, gdal.GA_ReadOnly)
         except RuntimeError:
@@ -358,10 +358,10 @@ class RectifiedGridCoverageTestCase(GDALDatasetTestCase):
     def testExtent(self):
         self._openDatasets()
         EPSILON = 1e-8
-        
+
         res_extent = extent_from_ds(self.res_ds)
         exp_extent = extent_from_ds(self.exp_ds)
-        
+
         self.assert_(
             max([
                 abs(res_extent[i] - exp_extent[i]) for i in range(0, 4)
@@ -384,28 +384,28 @@ class ReferenceableGridCoverageTestCase(GDALDatasetTestCase):
         self._openDatasets()
         self.assertEqual((self.res_ds.RasterXSize, self.res_ds.RasterYSize),
                          (self.exp_ds.RasterXSize, self.exp_ds.RasterYSize))
-    
+
     def testBandCount(self):
         self._openDatasets()
         self.assertEqual(self.res_ds.RasterCount, self.exp_ds.RasterCount)
-        
+
     def testGCPs(self):
         self._openDatasets()
         self.assertEqual(self.res_ds.GetGCPCount(), self.exp_ds.GetGCPCount())
-        
+
     def testGCPProjection(self):
         self._openDatasets()
-        
+
         res_proj = self.res_ds.GetGCPProjection()
         if not res_proj:
             self.fail("Response Dataset has no GCP Projection defined")
         res_srs = osr.SpatialReference(res_proj)
-        
+
         exp_proj = self.exp_ds.GetGCPProjection()
         if not exp_proj:
             self.fail("Expected Dataset has no GCP Projection defined")
         exp_srs = osr.SpatialReference(exp_proj)
-        
+
         self.assert_(res_srs.IsSame(exp_srs))
 
 class XMLNoValTestCase(OWSTestCase):
@@ -413,10 +413,10 @@ class XMLNoValTestCase(OWSTestCase):
     Base class for test cases that expects XML output. The XML is NOT validated
     against a schema definition.
     """
-    
+
     def getXMLData(self):
         return self.response.content
-    
+
     def testXMLComparison(self):
         self._testXMLComparison()
 
@@ -429,14 +429,14 @@ class XMLTestCase(XMLNoValTestCase):
 
     def testValidate(self, XMLData=None):
         logger.info("Validating XML ...")
-        
+
         if XMLData is None:
             doc = etree.XML(self.getXMLData())
         else:
             doc = etree.XML(XMLData)
         schema_locations = doc.get("{http://www.w3.org/2001/XMLSchema-instance}schemaLocation")
         locations = schema_locations.split() if schema_locations else []
-        
+
         # get schema locations
         schema_def = etree.Element("schema", attrib={
                 "elementFormDefault": "qualified",
@@ -445,7 +445,7 @@ class XMLTestCase(XMLNoValTestCase):
                 None: "http://www.w3.org/2001/XMLSchema"
             }
         )
-        
+
         for ns, location in zip(locations[::2], locations[1::2]):
             if location == "../owsCoverages.xsd":
                 location = "http://schemas.opengis.net/wcs/1.1/wcsAll.xsd"
@@ -454,10 +454,10 @@ class XMLTestCase(XMLNoValTestCase):
                     "schemaLocation": location
                 }
             )
-        
+
         # TODO: ugly workaround. But otherwise, the doc is not recognized as schema
         schema = etree.XMLSchema(etree.XML(etree.tostring(schema_def)))
-                    
+
         try:
             schema.assertValid(doc)
         except etree.Error as e:
@@ -470,11 +470,11 @@ class SchematronTestMixIn(object): # requires to be mixed in with XMLTestCase
     Use the `schematron_locations`
     """
     schematron_locations = ()
-    
+
     def testSchematron(self):
         errors = []
         doc = etree.XML(self.getXMLData())
-        
+
         schematron_def = etree.Element("schema", attrib={
                 "queryBinding": "xslt2",
             }, nsmap={
@@ -482,7 +482,7 @@ class SchematronTestMixIn(object): # requires to be mixed in with XMLTestCase
             }
         )
         etree.SubElement(schematron_def, "pattern")
-        
+
 # TODO: Check if this is even possible:
 #        for ns, location in zip(self.schematron_locations[::2], self.schematron_locations[1::2]):
 #            etree.SubElement(schematron_def, "import", attrib={
@@ -490,10 +490,10 @@ class SchematronTestMixIn(object): # requires to be mixed in with XMLTestCase
 #                    "schemaLocation": location
 #                }
 #            )
-        
+
         # TODO: ugly workaround. But otherwise, the doc is not recognized as schema
         schematron = etree.Schematron(etree.XML(etree.tostring(schematron_def)))
-                    
+
         try:
             schematron.assertValid(doc)
         except etree.DocumentInvalid, e:
@@ -507,41 +507,41 @@ class SchematronTestMixIn(object): # requires to be mixed in with XMLTestCase
 
 class ExceptionTestCase(XMLTestCase):
     """
-    Exception test cases expect the request to fail and examine the 
+    Exception test cases expect the request to fail and examine the
     exception response.
     """
-    
+
     def getExpectedHTTPStatus(self):
         return 400
-    
+
     def getExpectedExceptionCode(self):
         return ""
-    
+
     def getExceptionCodeLocation(self):
         return "ows:Exception/@exceptionCode"
-        
+
     def testStatus(self):
         logger.info("Checking HTTP Status ...")
         #pylint: disable=E1103
         self.assertEqual(self.response.status_code, self.getExpectedHTTPStatus())
-    
+
     def testExceptionCode(self):
         logger.info("Checking OWS Exception Code ...")
 
         tree = etree.fromstring(self.getXMLData())
         self.assertEqual(
-            self.getExpectedExceptionCode(), 
+            self.getExpectedExceptionCode(),
             tree.xpath(self.getExceptionCodeLocation(), namespaces=tree.nsmap)[0]
-        )   
+        )
 
 class HTMLTestCase(OWSTestCase):
     """
     HTML test cases expect to receive HTML text.
     """
-    
+
     def getFileExtension(self, file_type):
         return "html"
-    
+
     def testBinaryComparisonHTML(self):
         self._testBinaryComparison("html")
 
@@ -572,21 +572,21 @@ class MultipartTestCase(XMLTestCase):
     Multipart tests combine XML and raster tests and split the response
     into a xml and a raster part which are examined separately.
     """
-    
+
     def setUp(self):
         self.xmlData = None
         self.imageData = None
         self.isSetUp = False
         super(MultipartTestCase, self).setUp()
-        
-        #self._setUpMultiparts()
-    
 
-    def _mangleXML( self , cbuffer ) : 
-        """ remove variable parts of selected XML elements text and attributes """ 
+        #self._setUpMultiparts()
+
+
+    def _mangleXML( self , cbuffer ) :
+        """ remove variable parts of selected XML elements text and attributes """
 
         return cbuffer
-        """#define XML names to be used 
+        """#define XML names to be used
 
         N0 = "{http://www.opengis.net/gml/3.2}rangeSet/" \
              "{http://www.opengis.net/gml/3.2}File/" \
@@ -601,17 +601,17 @@ class MultipartTestCase(XMLTestCase):
 
         HREF  = "{http://www.w3.org/1999/xlink}href"
 
-        # define handy closures 
+        # define handy closures
 
-        def cropFileName( name ) : 
+        def cropFileName( name ) :
             base , _ , ext = name.rpartition(".")
             base , _ , _   = base.rpartition("_")
-            return "%s.%s"%(base,ext) 
+            return "%s.%s"%(base,ext)
 
-        def changeHref(e) : 
+        def changeHref(e) :
             if e is not None: e.set(HREF, cropFileName(e.get(HREF)))
-                
-        def changeText(e) : 
+
+        def changeText(e) :
             if e is not None: e.text = cropFileName(e.text)
 
         # parse XML Note: etree.parse respects the encoding reported in XML delaration!
@@ -620,12 +620,12 @@ class MultipartTestCase(XMLTestCase):
         # mangle XML content to get rid of variable content
 
         # WCS 2.0.x - rangeSet/File
-        changeHref(xml.find(N0)) 
+        changeHref(xml.find(N0))
         changeText(xml.find(N1))
-        # WCS 1.1.x - Coverage/Reference 
-        changeHref(xml.find(N2)) 
+        # WCS 1.1.x - Coverage/Reference
+        changeHref(xml.find(N2))
 
-        # output xml - force UTF-8 encoding including the XML delaration 
+        # output xml - force UTF-8 encoding including the XML delaration
         return etree.tostring(xml , encoding="UTF-8" , xml_declaration=True)"""
 
     def _unpackMultipartContent(self, response):
@@ -641,17 +641,17 @@ class MultipartTestCase(XMLTestCase):
                 self.imageData = str(data)
 
     def _setUpMultiparts(self):
-        if self.isSetUp: 
+        if self.isSetUp:
             return
         self._unpackMultipartContent(self.response)
-        
-        # mangle XML data 
+
+        # mangle XML data
         if self.xmlData:
-            self.xmlData = self._mangleXML(self.xmlData) 
+            self.xmlData = self._mangleXML(self.xmlData)
 
         self.isSetUp = True
 
-    
+
     def getFileExtension(self, part=None):
         if part == "xml":
             return "xml"
@@ -665,19 +665,19 @@ class MultipartTestCase(XMLTestCase):
             return "TransactionDescribeCoverageDeleted.xml"
         else:
             return "dat"
-    
+
     def getXMLData(self):
         self._setUpMultiparts()
         if self.xmlData is None:
             self.fail("No XML data returned.")
         return self.xmlData
-    
+
     def getResponseData(self):
         self._setUpMultiparts()
         if self.imageData is None:
             self.fail("No image data returned.")
         return self.imageData
-        
+
 class RectifiedGridCoverageMultipartTestCase(
     MultipartTestCase,
     RectifiedGridCoverageTestCase
@@ -706,7 +706,7 @@ class WCSTransactionTestCase(XMLTestCase):
     def setUp(self):
         super(WCSTransactionTestCase, self).setUp()
         logger.debug("WCSTransactionTestCase for ID: %s" % self.ID)
-        
+
         if self.isAsync:
             from eoxserver.resources.processes.tracker import (
                 dequeueTask, TaskStatus, startTask, stopTaskSuccessIfNotFinished
@@ -729,7 +729,7 @@ class WCSTransactionTestCase(XMLTestCase):
                 stopTaskSuccessIfNotFinished( taskId )
             except Exception as e :
                 pStatus.setFailure( unicode(e) )
-        
+
         # Add DescribeCoverage request/response
         request = "service=WCS&version=2.0.0&request=DescribeCoverage&coverageid=%s" % str( self.ID )
         self.responseDescribeCoverage = self.client.get('/ows?%s' % request)
@@ -737,13 +737,13 @@ class WCSTransactionTestCase(XMLTestCase):
         # Add GetCoverage request/response
         request = "service=WCS&version=2.0.0&request=GetCoverage&format=image/tiff&mediatype=multipart/mixed&coverageid=%s" % str( self.ID )
         self.responseGetCoverage = self.client.get('/ows?%s' % request)
-        
+
         # Add delete coverage request/response
         requestBegin = """<wcst:Transaction service="WCS" version="1.1"
-            xmlns:wcst="http://www.opengis.net/wcs/1.1/wcst" 
-            xmlns:ows="http://www.opengis.net/ows/1.1" 
-            xmlns:xlink="http://www.w3.org/1999/xlink" 
-            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+            xmlns:wcst="http://www.opengis.net/wcs/1.1/wcst"
+            xmlns:ows="http://www.opengis.net/ows/1.1"
+            xmlns:xlink="http://www.w3.org/1999/xlink"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xsi:schemaLocation="http://www.opengis.net/wcs/1.1/wcst http://schemas.opengis.net/wcst/1.1/wcstTransaction.xsd">
             <wcst:InputCoverages>
                 <wcst:Coverage>
@@ -764,10 +764,10 @@ class WCSTransactionTestCase(XMLTestCase):
 
     def getRequest(self):
         requestBegin = """<wcst:Transaction service="WCS" version="1.1"
-            xmlns:wcst="http://www.opengis.net/wcs/1.1/wcst" 
-            xmlns:ows="http://www.opengis.net/ows/1.1" 
-            xmlns:xlink="http://www.w3.org/1999/xlink" 
-            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+            xmlns:wcst="http://www.opengis.net/wcs/1.1/wcst"
+            xmlns:ows="http://www.opengis.net/ows/1.1"
+            xmlns:xlink="http://www.w3.org/1999/xlink"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xsi:schemaLocation="http://www.opengis.net/wcs/1.1/wcst http://schemas.opengis.net/wcst/1.1/wcstTransaction.xsd">
             <wcst:InputCoverages>
                 <wcst:Coverage>
@@ -781,7 +781,7 @@ class WCSTransactionTestCase(XMLTestCase):
                 </wcst:Coverage>
             </wcst:InputCoverages>"""
         requestAsync = """<wcst:ResponseHandler>http://NOTUSED</wcst:ResponseHandler>"""
-        requestEnd = """</wcst:Transaction>"""        
+        requestEnd = """</wcst:Transaction>"""
 
         params =  requestBegin + self.ID + requestMid1 + self.getDataFullPath(self.ADDtiffFile) + requestMid2
         if self.ADDmetaFile is not None:
@@ -796,7 +796,7 @@ class WCSTransactionTestCase(XMLTestCase):
         return os.path.abspath( os.path.join( self.getDataFileDir() , path_to) )
 
     def testXMLComparison(self):
-        # the TimeStamp and RequestId elements are set during ingestion and 
+        # the TimeStamp and RequestId elements are set during ingestion and
         # thus have to be explicitly unified
         tree = etree.fromstring(self.getXMLData())
         for node in tree.findall("{http://www.opengis.net/wcs/1.1/wcst}RequestId"):
@@ -808,7 +808,7 @@ class WCSTransactionTestCase(XMLTestCase):
 
     def testResponseIdComparisonAdd(self):
         """
-        Tests that the <ows:Identifier> in the XML request and response is the 
+        Tests that the <ows:Identifier> in the XML request and response is the
         same
         """
         logger.debug("IDCompare testResponseIdComparison for ID: %s" % self.ID)
@@ -827,7 +827,7 @@ class WCSTransactionTestCase(XMLTestCase):
 
     def testXMLComparisonDescribeCoverage(self):
         #self._testBinaryComparison("TransactionDescribeCoverage", self.responseDescribeCoverage.content)
-        self._testXMLComparison( "TransactionDescribeCoverage" , self.responseDescribeCoverage.content ) 
+        self._testXMLComparison( "TransactionDescribeCoverage" , self.responseDescribeCoverage.content )
 
     def testStatusGetCoverage(self):
         """
@@ -855,7 +855,7 @@ class WCSTransactionTestCase(XMLTestCase):
 
     def testResponseIdComparisonDelete(self):
         """
-        Tests that the <ows:Identifier> in the XML request and response is the 
+        Tests that the <ows:Identifier> in the XML request and response is the
         same
         """
         logger.debug("IDCompare testResponseIdComparison for ID: %s" % self.ID)
@@ -863,7 +863,7 @@ class WCSTransactionTestCase(XMLTestCase):
 
     def testStatusDescribeCoverageDeleted(self):
         """
-        Tests that the deletec coverage is not longer available in a 
+        Tests that the deletec coverage is not longer available in a
         DescribeCoverage request
         """
         #pylint: disable=E1103
@@ -878,7 +878,7 @@ class WCSTransactionTestCase(XMLTestCase):
 
     def _testResponseIdComparison(self , id , rcontent ):
         """
-        Tests that the <ows:Identifier> in the XML request and response is the 
+        Tests that the <ows:Identifier> in the XML request and response is the
         same
         """
         logger.debug("_testResponseIdComparison for ID: %s" % id)
@@ -898,7 +898,7 @@ class WCSTransactionRectifiedGridCoverageTestCase(
     def _setUpMultiparts(self):
         if self.isSetUp: return
 
-        self._unpackMultipartContent( self.responseGetCoverage ) 
+        self._unpackMultipartContent( self.responseGetCoverage )
 
         self.isSetUp = True
 
@@ -917,7 +917,7 @@ class WCSTransactionReferenceableGridCoverageTestCase(
     def _setUpMultiparts(self):
         if self.isSetUp: return
 
-        self._unpackMultipartContent( self.responseGetCoverage ) 
+        self._unpackMultipartContent( self.responseGetCoverage )
 
         self.isSetUp = True
 
@@ -927,14 +927,14 @@ class WCSTransactionReferenceableGridCoverageTestCase(
 #===============================================================================
 # WCS 2.0
 #===============================================================================
-    
+
 class WCS20DescribeEOCoverageSetSubsettingTestCase(XMLTestCase):
     def getExpectedCoverageIds(self):
         return []
-    
+
     def testCoverageIds(self):
         logger.info("Checking Coverage Ids ...")
-        
+
         tree = etree.fromstring(self.getXMLData())
         result_coverage_ids = tree.xpath(
             "wcs:CoverageDescriptions/wcs:CoverageDescription/wcs:CoverageId/text()",
@@ -944,7 +944,7 @@ class WCS20DescribeEOCoverageSetSubsettingTestCase(XMLTestCase):
         )
         expected_coverage_ids = self.getExpectedCoverageIds()
         self.assertItemsEqual(result_coverage_ids, expected_coverage_ids)
-        
+
         # assert that every coverage ID is unique in the response
         for coverage_id in result_coverage_ids:
             self.assertTrue(result_coverage_ids.count(coverage_id) == 1, "CoverageID %s is not unique." % coverage_id)
@@ -955,7 +955,7 @@ class WCS20DescribeEOCoverageSetPagingTestCase(XMLTestCase):
 
     def getExpectedDatasetSeriesCount(self):
         return 0
-    
+
     def testCoverageCount(self):
         tree = etree.fromstring(self.getXMLData())
         coverage_ids = tree.xpath(
@@ -968,7 +968,7 @@ class WCS20DescribeEOCoverageSetPagingTestCase(XMLTestCase):
         dss_ids = tree.xpath(
             "wcseo:DatasetSeriesDescriptions/wcseo:DatasetSeriesDescription/wcseo:DatasetSeriesId/text()",
             namespaces={
-                "wcseo": "http://www.opengis.net/wcseo/1.0"
+                "wcseo": "http://www.opengis.net/wcs/wcseo/1.0"
             }
         )
         self.assertEqual(len(dss_ids), self.getExpectedDatasetSeriesCount())
@@ -976,7 +976,7 @@ class WCS20DescribeEOCoverageSetPagingTestCase(XMLTestCase):
 class WCS20DescribeEOCoverageSetSectionsTestCase(XMLTestCase):
     def getExpectedSections(self):
         return []
-    
+
     def testSections(self):
         tree = etree.fromstring(self.getXMLData())
         sections = tree.xpath(
@@ -987,37 +987,37 @@ class WCS20DescribeEOCoverageSetSectionsTestCase(XMLTestCase):
         )
         sections = [section.tag for section in sections]
         self.assertItemsEqual(sections, self.getExpectedSections())
-    
+
 class WCS20GetCoverageMultipartTestCase(MultipartTestCase):
     def testXMLComparison(self):
-        # The timePosition tag depends on the actual time the request was 
+        # The timePosition tag depends on the actual time the request was
         # answered. It has to be explicitly unified.
         tree = etree.fromstring(self.getXMLData())
         for node in tree.findall("{http://www.opengis.net/gmlcov/1.0}metadata/"
                                  "{http://www.opengis.net/gmlcov/1.0}Extension/"
-                                 "{http://www.opengis.net/wcseo/1.0}EOMetadata/"
-                                 "{http://www.opengis.net/wcseo/1.0}lineage/"
+                                 "{http://www.opengis.net/wcs/wcseo/1.0}EOMetadata/"
+                                 "{http://www.opengis.net/wcs/wcseo/1.0}lineage/"
                                  "{http://www.opengis.net/gml/3.2}timePosition"):
             node.text = "2011-01-01T00:00:00Z"
         self.xmlData = etree.tostring(tree, encoding="ISO-8859-1")
-        
+
         super(WCS20GetCoverageMultipartTestCase, self).testXMLComparison()
 
 class WCS20GetCoverageRectifiedGridCoverageMultipartTestCase(
-    WCS20GetCoverageMultipartTestCase, 
+    WCS20GetCoverageMultipartTestCase,
     RectifiedGridCoverageTestCase
 ):
     pass
 
 class WCS20GetCoverageReferenceableGridCoverageMultipartTestCase(
-    WCS20GetCoverageMultipartTestCase, 
+    WCS20GetCoverageMultipartTestCase,
     ReferenceableGridCoverageTestCase
 ):
     pass
 
 class RasdamanTestCaseMixIn(object):
     #fixtures = BASE_FIXTURES + ["testing_rasdaman_coverages.json"]
-    
+
     def setUp(self):
         # TODO check if connection to DB server is possible
         # TODO check if datasets are configured within the DB
@@ -1025,10 +1025,10 @@ class RasdamanTestCaseMixIn(object):
         gdal.AllRegister()
         if gdal.GetDriverByName("RASDAMAN") is None:
             self.skipTest("Rasdaman driver is not enabled.")
-        
+
         if not self.isRequestConfigEnabled("rasdaman_enabled"):
             self.skipTest("Rasdaman tests are not enabled. Use the "
                           "configuration option 'rasdaman_enabled' to allow "
                           "rasdaman tests.")
-        
+
         super(RasdamanTestCaseMixIn, self).setUp()
