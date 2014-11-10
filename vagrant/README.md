@@ -72,15 +72,11 @@ Run tests:
     vagrant ssh
     cd /var/eoxserver/autotest/
     export XML_CATALOG_FILES="../schemas/catalog.xml"
-    python manage.py test services -v2
+    python manage.py test autotest_services -v2
 ```
 
-Read and follow `autotest` HOWTO:
-
-```sh
-    vagrant ssh
-    vi /var/eoxserver/autotest/HOWTO
-```
+For further read and follow the autotest
+[README](https://github.com/EOxServer/autotest).
 
 
 ## How to use vagrant in a Windows environment
@@ -92,37 +88,46 @@ Use the following steps:
    http://download.virtualbox.org/virtualbox/4.3.2/VirtualBox-4.3.2-90405-Win.exe
 3. Install vagrant from http://downloads.vagrantup.com/tags/v1.3.5 (use the .msi file)
 4. Start a git bash and execute the following commands:
-   git clone git@github.com:EOxServer/eoxserver.git
-   cd eoxserver/
-   git submodule init
-   git submodule update
-5. Open the Vagrantfile (located in eoxserver/vagrant ) with an editor.
+
+```sh
+    git clone git@github.com:EOxServer/eoxserver.git
+    cd eoxserver/
+    git submodule init
+    git submodule update
+```
+
+5. Open the Vagrantfile (located in ngeo-b/vagrant ) with an editor.
 6. Add v.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/vagrant", "1"] before the line # Use GUI for debugging purposes
 7. Save and close Vagrantfile
 8. Open an Administrator Console (right click on the command prompt icon and select "Run as administrator")
 9. Enter secpol.msc (and hit enter). Navigate to Local Policies, User Rights Assignment and check "Create symbolic links". Make sure that the Administrator account is added. Close it.
-10. Still in the admin console enter: fsutil behavior set SymlinkEvaluation L2L:1 R2R:1 L2R:1 R2L:1 (and hit enter. This step isn't necessary on all systems. Only if you use net shares. But it does not hurt 
+10. Still in the admin console enter: fsutil behavior set SymlinkEvaluation L2L:1 R2R:1 L2R:1 R2L:1 (and hit enter. This step isn't necessary on all systems. Only if you use net shares. But it does not hurt
 11. Open the Administrative Tools Panel from the Control Panel. Open Component Services.
 12. Select Computers, My Computer, Select DCOM Config.
 13. Right click on "Virtual Box Application". Select Security. At "Launch and Activation Permissions" select Customize. Hit Edit.
 14. Add your user account and Administrator. Select Permissions: Local Launch, Remote Launch, Local Activation and Remote Activation. Hit Ok. And again ok. Close the Component Services.
 15. Log off and log on again.
 16. Open an Administrator console and enter:
+
+```sh
     vagrant plugin install sahara
     vagrant plugin install vagrant-vbguest
     vagrant plugin install vagrant-cachier
     cd vagrant/
     vagrant up
-17. Access server at:
-    http://localhost:8000/
+```
+
+17. EOxServer is now accessible at [http://localhost:8000/](http://localhost:8000/).
 18. Run tests:
+
+```sh
     vagrant ssh
     cd /var/eoxserver/autotest/
     export XML_CATALOG_FILES="../schemas/catalog.xml"
-    python manage.py test services -v2
-19. Read/Follow autotest HOWTO:
-    vagrant ssh
-    vi /var/eoxserver/autotest/HOWTO
+    python manage.py test autotest_services -v2
+```
+
+19. For further read and follow the autotest [README](https://github.com/EOxServer/autotest).
 
 
 ## Troubleshoot vagrant
@@ -133,11 +138,14 @@ Use the following steps:
 * Symlinks with VirtualBox 4.1 not working: vi /opt/vagrant/embedded/gems/gems/vagrant-1.3.5/plugins/providers/virtualbox/driver/version_4_1.rb and add those changes: https://github.com/mitchellh/vagrant/commit/387692f9c8fa4031050646e2773b3d2d9b2c994e
 
 
-## How to build EOxServer
-
-Check Jenkins build is passing.
+# Build preparations
 
 [Prepare a vagrant environment](https://gitlab.eox.at/vagrant/builder_rpm/tree/master).
+
+
+## How to build EOxServer
+
+# Check Jenkins build is passing.
 
 ```sh
     cd git/eoxserver/
