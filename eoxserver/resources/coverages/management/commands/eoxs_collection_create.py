@@ -10,8 +10,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -45,29 +45,29 @@ class Command(CommandOutputMixIn, BaseCommand):
         ),
         make_option("-t", "--type",
             dest="type", action="store", default="DatasetSeries",
-            help=("Dataset series identifier.")
+            help=("Optional. Type of the collection to create. Defaults to "
+                  "`DatasetSeries`.")
         ),
         make_option("-c", "--collection", dest="collection_ids",
             action='callback', callback=_variable_args_cb,
             default=None, help=("Optional. Link to one or more collections.")
-        ), 
+        ),
         make_option("-a", "--add", dest="object_ids",
             action='callback', callback=_variable_args_cb,
             default=None, help=("Optional. Link one or more eo-objects.")
         ),
-
         make_option('--ignore-missing-collection',
             dest='ignore_missing_collection',
             action="store_true", default=False,
             help=("Optional. Proceed even if the linked parent "
-                  "does not exist. By defualt, a missing parent " 
+                  "does not exist. By defualt, a missing parent "
                   "will terminate the command.")
         ),
         make_option('--ignore-missing-object',
             dest='ignore_missing_object',
             action="store_true", default=False,
             help=("Optional. Proceed even if the linked child "
-                  "does not exist. By defualt, a missing child " 
+                  "does not exist. By defualt, a missing child "
                   "will terminate the command.")
         )
     )
@@ -78,18 +78,18 @@ class Command(CommandOutputMixIn, BaseCommand):
         "[-a <eo-object-id> [-a <eo-object-id> ...]] "
         "[--ignore-missing-collection] [--ignore-missing-object]"
     )
-    
+
     help = """
         Creates a new Collection. By default the type of the new collection is
         DatasetSeries.
-        Optionally the collection can directly be inserted into other 
+        Optionally the collection can directly be inserted into other
         collections and can be directly supplied with sub-objects.
     """
 
     @nested_commit_on_success
     def handle(self, *args, **kwargs):
         identifier = kwargs['identifier']
-        if not identifier: 
+        if not identifier:
             raise CommandError("Missing the mandatory collection identifier.")
 
         collection_type = kwargs["type"]
@@ -122,15 +122,15 @@ class Command(CommandOutputMixIn, BaseCommand):
             ignore_missing_collection = kwargs["ignore_missing_collection"]
             # insert into super collections and insert child objects
             if kwargs["collection_ids"]:
-                call_command("eoxs_collection_link", 
-                    collection_ids=kwargs["collection_ids"], 
+                call_command("eoxs_collection_link",
+                    collection_ids=kwargs["collection_ids"],
                     add_ids=[identifier],
                     ignore_missing_collection=ignore_missing_collection
                 )
 
             if kwargs["object_ids"]:
-                call_command("eoxs_collection_link", 
-                    collection_ids=[identifier], add_ids=kwargs["object_ids"], 
+                call_command("eoxs_collection_link",
+                    collection_ids=[identifier], add_ids=kwargs["object_ids"],
                     ignore_missing_object=kwargs["ignore_missing_object"],
                 )
 
