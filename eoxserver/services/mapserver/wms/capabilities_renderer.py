@@ -39,6 +39,7 @@ from eoxserver.services.ows.wms.interfaces import (
 )
 from eoxserver.services.mapserver.interfaces import LayerFactoryInterface
 from eoxserver.services.result import result_set_from_raw_data, get_content_type
+from eoxserver.services.urls import get_http_service_url
 
 
 class MapServerWMSCapabilitiesRenderer(Component):
@@ -54,16 +55,17 @@ class MapServerWMSCapabilitiesRenderer(Component):
             chain(*[factory.suffixes for factory in self.layer_factories])
         )
 
-
-    def render(self, collections, coverages, request_values):
+    def render(self, collections, coverages, request_values, request):
         conf = CapabilitiesConfigReader(get_eoxserver_config())
 
         suffixes = self.suffixes
 
+        http_service_url = get_http_service_url(request)
+
         map_ = Map()
         map_.setMetaData({
             "enable_request": "*",
-            "onlineresource": conf.http_service_url,
+            "onlineresource": http_service_url,
             "service_onlineresource": conf.onlineresource,
             "updateSequence": conf.update_sequence,
             "name": conf.name,

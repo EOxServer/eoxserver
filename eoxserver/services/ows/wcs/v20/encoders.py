@@ -49,11 +49,12 @@ from eoxserver.services.ows.wcs.v20.util import (
     nsmap, ns_xlink, ns_gml, ns_wcs, ns_eowcs,
     OWS, GML, GMLCOV, WCS, CRS, EOWCS, SWE, INT, SUPPORTED_INTERPOLATIONS
 )
+from eoxserver.services.urls import get_http_service_url
 
 
 class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
     def encode_capabilities(self, sections, coverages_qs=None,
-                            dataset_series_qs=None):
+                            dataset_series_qs=None, request=None):
         conf = CapabilitiesConfigReader(get_eoxserver_config())
 
         all_sections = "all" in sections
@@ -120,7 +121,6 @@ class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
                 )
             )
 
-
         if all_sections or "operationsmetadata" in sections:
             component = ServiceComponent(env)
             versions = ("2.0.0", "2.0.1")
@@ -135,15 +135,17 @@ class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
                 key=lambda h: (getattr(h, "index", 10000), h.request)
             )
 
+            http_service_url = get_http_service_url(request)
+
             operations = []
             for handler in all_handlers:
                 methods = []
                 if handler in get_handlers:
                     methods.append(
-                        self.encode_reference("Get", conf.http_service_url)
+                        self.encode_reference("Get", http_service_url)
                     )
                 if handler in post_handlers:
-                    post = self.encode_reference("Post", conf.http_service_url)
+                    post = self.encode_reference("Post", http_service_url)
                     post.append(
                         OWS("Constraint",
                             OWS("AllowedValues",
@@ -172,7 +174,6 @@ class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
                 )
             caps.append(OWS("OperationsMetadata", *operations))
 
-
         if all_sections or "servicemetadata" in sections:
             service_metadata = WCS("ServiceMetadata")
 
@@ -185,7 +186,9 @@ class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
             )
 
             # get a list of supported CRSs from the CRS registry
-            supported_crss = crss.getSupportedCRS_WCS(format_function=crss.asURL)
+            supported_crss = crss.getSupportedCRS_WCS(
+                format_function=crss.asURL
+            )
             extension = WCS("Extension")
             service_metadata.append(extension)
             crs_metadata = CRS("CrsMetadata")
@@ -268,8 +271,6 @@ class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
 
     def get_schema_locations(self):
         return nsmap.schema_locations
-
-
 
 
 class GMLCOV10Encoder(GML32Encoder):

@@ -31,7 +31,7 @@ from eoxserver.core import Component, implements
 from eoxserver.core.decoders import xml, kvp, typelist, lower
 from eoxserver.resources.coverages import models
 from eoxserver.services.ows.interfaces import (
-    ServiceHandlerInterface, GetServiceHandlerInterface, 
+    ServiceHandlerInterface, GetServiceHandlerInterface,
     PostServiceHandlerInterface, VersionNegotiationInterface
 )
 from eoxserver.services.ows.wcs.basehandlers import (
@@ -51,13 +51,11 @@ class WCS20GetCapabilitiesHandler(WCSGetCapabilitiesHandlerBase, Component):
 
     versions = ("2.0.0", "2.0.1")
 
-
     def get_decoder(self, request):
         if request.method == "GET":
             return WCS20GetCapabilitiesKVPDecoder(request.GET)
         elif request.method == "POST":
             return WCS20GetCapabilitiesXMLDecoder(request.body)
-
 
     def lookup_coverages(self, decoder):
         sections = decoder.sections
@@ -69,19 +67,18 @@ class WCS20GetCapabilitiesHandler(WCSGetCapabilitiesHandlerBase, Component):
             dataset_series = models.DatasetSeries.objects \
                 .order_by("identifier") \
                 .exclude(
-                    footprint__isnull=True, begin_time__isnull=True, 
+                    footprint__isnull=True, begin_time__isnull=True,
                     end_time__isnull=True
                 )
             return coverages, dataset_series
         else:
             return (), ()
 
-
     def get_params(self, models, decoder):
         coverages, dataset_series = models
         return WCS20CapabilitiesRenderParams(
-            coverages, dataset_series, decoder.sections, 
-            decoder.acceptlanguages, decoder.acceptformats, 
+            coverages, dataset_series, decoder.sections,
+            decoder.acceptlanguages, decoder.acceptformats,
             decoder.updatesequence
         )
 

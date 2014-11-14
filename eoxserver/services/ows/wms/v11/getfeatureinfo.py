@@ -78,7 +78,7 @@ class WMS11GetFeatureInfoHandler(Component):
         root_group = lookup_layers(layers, subsets, renderer.suffixes)
 
         result, _ = renderer.render(
-            root_group, request.GET.items(), 
+            root_group, request.GET.items(), request,
             time=decoder.time, bands=decoder.dim_bands
         )
         return to_http_response(result)
