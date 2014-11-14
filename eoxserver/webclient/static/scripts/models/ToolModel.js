@@ -1,0 +1,1 @@
+(function(){"use strict";var a=this;a.define(["backbone","communicator"],function(a){var b=a.Model.extend({id:"",description:"",active:!1,enabled:!0,icon:"",type:""});return{ToolModel:b}})}).call(this);

@@ -1,0 +1,33 @@
+<div class="panel-heading">
+    <button type="button" class="close"><i class="fa fa-times-circle"></i></button>
+    <h3 class="panel-title"><i class="fa fa-fw fa-download"></i> Download Manager</h3>
+</div>
+<div class="panel-body" id="download-list"></div>
+<div class="panel-footer">
+  <p>
+    <select class="input-small" id="select-output-format">
+      <option value="image/tiff" selected>GeoTIFF</option>
+      <option value="image/jpeg">JPEG</option>
+      <option value="image/png">PNG</option>
+    </select>
+    <select class="input-medium" id="select-output-crs" style="width:380px">
+      <option value="epsg:4326" selected>Geog. Lat/Lon / WGS84 (EPSG:4326)</option>
+      <option value="epsg:3034">ETRS-LCC (EPSG:3034)</option>
+      <option value="epsg:3035">ETRS-LAEA (EPSG:3035)</option>
+      <option value="epsg:3857">Spherical Mercator (e.g. Google Maps) (EPSG:3857)</option>
+      <option value="epsg:31257">MGI Austria GK M28 (BMN - M28) (EPSG:31257)</option>
+      <option value="epsg:31258">MGI Austria GK M31 (BMN - M31) (EPSG:31258)</option>
+      <option value="epsg:31259">MGI Austria GK M34 (BMN - M34) (EPSG:31259)</option>
+      <option value="epsg:31287">MGI Austria Lambert (LCC/MGI) (EPSG:31287)</option>
+      <option value="epsg:32622">UTM 22N / WGS84 (EPSG:32622)</option>
+      <option value="epsg:32632">UTM 32N / WGS84 (EPSG:32632)</option>
+      <option value="epsg:32633">UTM 33N / WGS84 (EPSG:32633)</option>
+      <option value="epsg:32643">UTM 43N / WGS84 (EPSG:32643)</option>
+    </select>
+  </p>
+  <p>
+    <button type="button" class="btn btn-primary" id="btn-start-download" disabled="disabled"><i class="fa fa-fw fa-download"></i> Start Download</button>
+    <button type="button" class="btn btn-default" id="btn-select-all-coverages"><i class="fa fa-fw fa-check-square"></i> Select All</button>
+    <button type="button" class="btn btn-default" id="btn-invert-coverage-selection"><i class="fa fa-fw fa-check-square-o"></i> Invert Selection</button>
+  </p>
+</div>
