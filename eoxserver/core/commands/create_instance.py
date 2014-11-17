@@ -106,9 +106,17 @@ class Command(EOxServerAdminCommand):
                 print("Using sqlite3.")
 
             conn = db.connect(db_name)
+            try:
+                conn.enable_load_extension(True)
+            except:
+                raise Exception(
+                    "SQLite API does not allow loading of extensions."
+                )
+
             spatialite_lib = find_library('spatialite')
             try:
-                conn.execute("SELECT load_extension(%s)", (spatialite_lib,))
+                print("Trying to load extension module '%s'." % spatialite_lib)
+                conn.execute("SELECT load_extension('%s')" % (spatialite_lib,))
             except Exception, msg:
                 raise Exception(
                     'Unable to load the SpatiaLite library extension '
