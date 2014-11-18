@@ -2,7 +2,7 @@
     "bands": [
         {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
-            "description": "MERIS first band",
+            "description": "MERIS uint16 first band",
             "gdal_interpretation": "Undefined",
             "identifier": "MERIS_radiance_01_uint16",
             "name": "MERIS_radiance_01_uint16",
@@ -170,7 +170,7 @@
         },
         {
             "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
-            "description": "MERIS uint 16 thirteenth band",
+            "description": "MERIS uint16 thirteenth band",
             "gdal_interpretation": "Undefined",
             "identifier": "MERIS_radiance_13_uint16",
             "name": "MERIS_radiance_13_uint16",
