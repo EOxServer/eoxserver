@@ -107,7 +107,7 @@
         <swe:DataRecord>
           <swe:field name="MERIS_radiance_01_uint16">
             <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
-              <swe:description>MERIS first band</swe:description>
+              <swe:description>MERIS uint16 first band</swe:description>
               <swe:nilValues/>
               <swe:uom code="W.m-2.sr-1.nm-1"/>
               <swe:constraint>
@@ -263,7 +263,7 @@
           </swe:field>
           <swe:field name="MERIS_radiance_13_uint16">
             <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
-              <swe:description>MERIS uint 16 thirteenth band</swe:description>
+              <swe:description>MERIS uint16 thirteenth band</swe:description>
               <swe:nilValues/>
               <swe:uom code="W.m-2.sr-1.nm-1"/>
               <swe:constraint>
@@ -413,7 +413,7 @@
         <swe:DataRecord>
           <swe:field name="MERIS_radiance_01_uint16">
             <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
-              <swe:description>MERIS first band</swe:description>
+              <swe:description>MERIS uint16 first band</swe:description>
               <swe:nilValues/>
               <swe:uom code="W.m-2.sr-1.nm-1"/>
               <swe:constraint>
@@ -569,7 +569,7 @@
           </swe:field>
           <swe:field name="MERIS_radiance_13_uint16">
             <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
-              <swe:description>MERIS uint 16 thirteenth band</swe:description>
+              <swe:description>MERIS uint16 thirteenth band</swe:description>
               <swe:nilValues/>
               <swe:uom code="W.m-2.sr-1.nm-1"/>
               <swe:constraint>
