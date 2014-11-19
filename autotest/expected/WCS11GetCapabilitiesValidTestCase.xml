@@ -52,8 +52,8 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
     <ows:Operation name="GetCapabilities">
       <ows:DCP>
         <ows:HTTP>
-          <ows:Get xlink:type="simple" xlink:href="http://localhost:8000/ows?"/>
-          <ows:Post xlink:type="simple" xlink:href="http://localhost:8000/ows?"/>
+          <ows:Get xlink:type="simple" xlink:href="http://testserver/ows?"/>
+          <ows:Post xlink:type="simple" xlink:href="http://testserver/ows?"/>
         </ows:HTTP>
       </ows:DCP>
       <ows:Parameter name="service">
@@ -70,8 +70,8 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
     <ows:Operation name="DescribeCoverage">
       <ows:DCP>
         <ows:HTTP>
-          <ows:Get xlink:type="simple" xlink:href="http://localhost:8000/ows?"/>
-          <ows:Post xlink:type="simple" xlink:href="http://localhost:8000/ows?"/>
+          <ows:Get xlink:type="simple" xlink:href="http://testserver/ows?"/>
+          <ows:Post xlink:type="simple" xlink:href="http://testserver/ows?"/>
         </ows:HTTP>
       </ows:DCP>
       <ows:Parameter name="service">
@@ -96,8 +96,8 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
     <ows:Operation name="GetCoverage">
       <ows:DCP>
         <ows:HTTP>
-          <ows:Get xlink:type="simple" xlink:href="http://localhost:8000/ows?"/>
-          <ows:Post xlink:type="simple" xlink:href="http://localhost:8000/ows?"/>
+          <ows:Get xlink:type="simple" xlink:href="http://testserver/ows?"/>
+          <ows:Post xlink:type="simple" xlink:href="http://testserver/ows?"/>
         </ows:HTTP>
       </ows:DCP>
       <ows:Parameter name="service">
