@@ -176,13 +176,27 @@ def to_http_response(result_set, response_type=HttpResponse, boundary=None):
     """ Returns a response for a given result set. The ``response_type`` is the 
         class to be used. It must be capable to work with iterators.
     """
+    def get_payload_size(items, boundary):
+        boundary_str = "%s--%s%s" % (mp.CRLF, boundary, mp.CRLF)
+        boundary_str_end = "%s--%s--" % (mp.CRLF, boundary)
+
+        size = 0
+        for item in items:
+            size += len(boundary_str)
+            size += len(
+                mp.CRLF.join("%s: %s"%(k, v) for k, v in get_headers(item))
+            )
+            size += len(mp.CRLFCRLF)
+            size += len(item.data)
+        size += len(boundary_str_end)
+        return size
     
     # if more than one item is contained in the result set, the content type is
     # multipart
     if len(result_set) > 1:
         boundary = boundary or uuid4().hex
         content_type = "multipart/related; boundary=%s" % boundary
-        headers = ()
+        headers = (('Content-Length', get_payload_size(result_set, boundary)), )
 
     # otherwise, the content type is the content type of the first included item
     else:
