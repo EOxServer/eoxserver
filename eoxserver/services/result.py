@@ -10,8 +10,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -32,7 +32,6 @@ from cStringIO import StringIO
 from uuid import uuid4
 
 from django.http import HttpResponse
-from django.utils.datastructures import SortedDict
 
 from eoxserver.core.util import multiparttools as mp
 
@@ -45,7 +44,7 @@ class ResultItem(object):
         self.content_type = content_type
         self.filename = filename
         self.identifier = identifier
-    
+
     @property
     def data(self):
         """ Returns the "raw" data, usually as a string, buffer, memoryview, etc.
@@ -62,8 +61,12 @@ class ResultItem(object):
         """ Unified access to size of data.
         """
         raise NotImplementedError
-    
-    size = property(lambda self: len(self))
+
+    @property
+    def size(self):
+        """ Return size of the item.
+        """
+        return len(self)
 
     def chunked(self, chunksize):
         """ Returns a chunk of the data, which has at most ``chunksize`` bytes.
@@ -110,7 +113,7 @@ class ResultFile(ResultItem):
 
 
 class ResultBuffer(ResultItem):
-    """ Class for results that are actually a subset of a larger context. 
+    """ Class for results that are actually a subset of a larger context.
         Usually a buffer
     """
 
@@ -132,12 +135,12 @@ class ResultBuffer(ResultItem):
     def chunked(self, chunksize):
         if chunksize < 0:
             raise ValueError
-        
+
         size = len(self.buf)
         if chunksize >= size:
             yield self.buf
             return
-        
+
         i = 0
         while i < size:
             yield self.buf[i:i+chunksize]
@@ -145,7 +148,7 @@ class ResultBuffer(ResultItem):
 
 
 def get_content_type(result_set):
-    """ Returns the content type of a result set. If only one item is included 
+    """ Returns the content type of a result set. If only one item is included
         its content type is used.
     """
     if len(result_set) == 1:
@@ -162,7 +165,7 @@ def get_headers(result_item):
         yield "Content-Id", result_item.identifier
     if result_item.filename:
         yield (
-            "Content-Disposition", 'attachment; filename="%s"' 
+            "Content-Disposition", 'attachment; filename="%s"'
             % result_item.filename
         )
     try:
@@ -173,7 +176,7 @@ def get_headers(result_item):
 
 
 def to_http_response(result_set, response_type=HttpResponse, boundary=None):
-    """ Returns a response for a given result set. The ``response_type`` is the 
+    """ Returns a response for a given result set. The ``response_type`` is the
         class to be used. It must be capable to work with iterators.
     """
     def get_payload_size(items, boundary):
@@ -184,13 +187,13 @@ def to_http_response(result_set, response_type=HttpResponse, boundary=None):
         for item in items:
             size += len(boundary_str)
             size += len(
-                mp.CRLF.join("%s: %s"%(k, v) for k, v in get_headers(item))
+                mp.CRLF.join("%s: %s" % (k, v) for k, v in get_headers(item))
             )
             size += len(mp.CRLFCRLF)
             size += len(item.data)
         size += len(boundary_str_end)
         return size
-    
+
     # if more than one item is contained in the result set, the content type is
     # multipart
     if len(result_set) > 1:
@@ -215,9 +218,9 @@ def to_http_response(result_set, response_type=HttpResponse, boundary=None):
                 if boundary:
                     yield boundary_str
                     yield mp.CRLF.join(
-                        "%s: %s" % (key, value) 
-                        for key, value in get_headers(item)
-                    ) + mp.CRLFCRLF
+                        "%s: %s" % (k, v) for k, v in get_headers(item)
+                    )
+                    yield mp.CRLFCRLF
                 yield item.data
             if boundary:
                 yield boundary_str_end
@@ -226,6 +229,7 @@ def to_http_response(result_set, response_type=HttpResponse, boundary=None):
                 try:
                     item.delete()
                 except:
+                    # TODO: Log the failure as a warning!
                     pass # bad exception swallowing...
 
     # workaround for bug in django, that does not consume iterator in tests.
@@ -247,7 +251,7 @@ def to_http_response(result_set, response_type=HttpResponse, boundary=None):
 
 
 def parse_headers(headers):
-    """ Convenience function to read the "Content-Type", "Content-Disposition" 
+    """ Convenience function to read the "Content-Type", "Content-Disposition"
         and "Content-Id" headers.
     """
     content_type = headers.get("Content-Type", "application/octet-stream")
@@ -267,7 +271,7 @@ def parse_headers(headers):
 
 def result_set_from_raw_data(data):
     """ Create a result set from raw HTTP data. This can either be a single
-        or a multipart string. It returns a list containing objects of the 
+        or a multipart string. It returns a list containing objects of the
         `ResultBuffer` type that reference substrings of the given data.
     """
     return [
