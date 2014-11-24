@@ -43,8 +43,7 @@ from eoxserver.resources.processes import views as procViews
 
 urlpatterns = patterns('',
     (r'^$', 'eoxserver.views.index'),
-    #url(r'^ows', 'eoxserver.services.urls', name="ows"),
-    url(r'^ows$', include("eoxserver.services.urls")),#, namespace="eoxserver.services", app_name="eoxserver.services")),
+    url(r'^ows$', include("eoxserver.services.urls")),
 
     # enable the client
     (r'^client/$', 'eoxserver.webclient.views.index'),
