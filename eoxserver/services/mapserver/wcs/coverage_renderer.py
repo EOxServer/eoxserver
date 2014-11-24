@@ -119,13 +119,6 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         if subsets:
             subsets.srid  # this automatically checks the validity
 
-        if params.outputcrs is not None:
-            if not crss.validateEPSGCode(params.outputcrs):
-                raise InvalidOutputCrsException(
-                    "Failed to extract an EPSG code from the OutputCRS URI "
-                    "'%s'." % params.outputcrs
-                )
-
         # create and configure map object
         map_ = self.create_map()
 
@@ -264,6 +257,17 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
                         "%s(%f)" % (scale.axis, scale.value)
                         for scale in scaleaxes
                     )
+
+            if params.outputcrs is not None:
+                srid = crss.parseEPSGCode(params.outputcrs,
+                    (crss.fromURL, crss.fromURN, crss.fromShortCode)
+                )
+                if srid is None:
+                    raise InvalidOutputCrsException(
+                        "Failed to extract an EPSG code from the OutputCRS URI "
+                        "'%s'." % params.outputcrs
+                    )
+                yield "outputcrs", params.outputcrs
 
         else:
             for key, value in params:
