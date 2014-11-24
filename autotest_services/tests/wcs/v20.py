@@ -615,7 +615,7 @@ class WCS20GetCoverageSubsetInvalidEPSGFaultTestCase(testbase.ExceptionTestCase)
         return (params, "kvp")
 
     def getExpectedExceptionCode(self):
-        return "InvalidSubsetting"
+        return "SubsettingCrs-NotSupported"
 
     def getExpectedHTTPStatus(self):
         return 404
@@ -633,6 +633,17 @@ class WCS20GetCoverageOutputCRSotherUoMDatasetTestCase(wcsbase.WCS20GetCoverageM
     def getRequest(self):
         params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/related&outputcrs=http://www.opengis.net/def/crs/EPSG/0/3857"
         return (params, "kvp")
+
+class WCS20GetCoverageOutputCrsEPSGFaultTestCase(testbase.ExceptionTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/related&outputcrs=http://www.opengis.net/def/crs/EPSG/0/99999"
+        return (params, "kvp")
+
+    def getExpectedExceptionCode(self):
+        return "OutputCrs-NotSupported"
+
+    def getExpectedHTTPStatus(self):
+        return 404
 
 #===============================================================================
 # WCS 2.0: Size
