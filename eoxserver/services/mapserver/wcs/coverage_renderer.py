@@ -10,8 +10,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -46,15 +46,14 @@ from eoxserver.services.ows.wcs.v20.util import (
 from eoxserver.services.mapserver.interfaces import (
     ConnectorInterface, LayerFactoryInterface
 )
-from eoxserver.services.subset import Subsets
 from eoxserver.services.mapserver.wcs.base_renderer import (
     BaseRenderer, is_format_supported
 )
 from eoxserver.services.ows.version import Version
 from eoxserver.services.result import result_set_from_raw_data, ResultBuffer
 from eoxserver.services.exceptions import (
-    RenderException, OperationNotSupportedException, 
-    InterpolationMethodNotSupportedException
+    RenderException, OperationNotSupportedException,
+    InterpolationMethodNotSupportedException, InvalidOutputCrsException
 )
 
 
@@ -118,13 +117,14 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
         subsets = params.subsets
 
         if subsets:
-            srid = subsets.srid
-            if srid is not None:
-                if not crss.validateEPSGCode(srid):
-                    raise RenderException(
-                        "Failed to extract an EPSG code from the CRS URI "
-                        "'%s'." % srid, "subset"
-                    )
+            subsets.srid  # this automatically checks the validity
+
+        if params.outputcrs is not None:
+            if not crss.validateEPSGCode(params.outputcrs):
+                raise InvalidOutputCrsException(
+                    "Failed to extract an EPSG code from the OutputCRS URI "
+                    "'%s'." % params.outputcrs
+                )
 
         # create and configure map object
         map_ = self.create_map()
@@ -201,7 +201,7 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
                     )
 
                 result_set[0] = ResultBuffer(
-                    encoder.serialize(tree), 
+                    encoder.serialize(tree),
                     encoder.content_type
                 )
 
@@ -217,7 +217,7 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
                     interpolation = INTERPOLATION_TRANS.get(value)
                     if not interpolation:
                         raise InterpolationMethodNotSupportedException(
-                            "Interpolation method '%s' is not supported." 
+                            "Interpolation method '%s' is not supported."
                             % value
                         )
                     yield key, value
@@ -231,7 +231,7 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
                     map(str, rangesubset.get_band_indices(range_type, 1))
                 )
 
-            # TODO: this only works in newer MapServer implementations 
+            # TODO: this only works in newer MapServer implementations
             # (since 6.4?).
             SCALE_AVAILABLE = ms.msGetVersionInt() > 60401
             scalefactor = params.scalefactor
@@ -243,7 +243,6 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
                         "'ScaleFactor' is not supported by MapServer in the "
                         "current version.", "scalefactor"
                     )
-
 
             for scale in params.scales:
                 scaleaxes = []
@@ -262,7 +261,7 @@ class RectifiedCoverageMapServerRenderer(BaseRenderer):
 
                 if scaleaxes:
                     yield "scaleaxes", ",".join(
-                        "%s(%f)" % (scale.axis, scale.value) 
+                        "%s(%f)" % (scale.axis, scale.value)
                         for scale in scaleaxes
                     )
 
@@ -278,10 +277,10 @@ def split_format(frmt):
         lambda kv: map(lambda i: i.strip(), kv.split("=")), parts[1:]
     )
     return mime_type, options
-        
+
 
 def create_outputformat(mime_type, options, imagemode, basename, parameters):
-    """ Returns a ``mapscript.outputFormatObj`` for the given format name and 
+    """ Returns a ``mapscript.outputFormatObj`` for the given format name and
         imagemode.
     """
 
@@ -311,8 +310,8 @@ def create_outputformat(mime_type, options, imagemode, basename, parameters):
     return outputformat
 
 
-def _apply_gtiff(outputformat, compression=None, jpeg_quality=None, 
-                 predictor=None, interleave=None, tiling=False, 
+def _apply_gtiff(outputformat, compression=None, jpeg_quality=None,
+                 predictor=None, interleave=None, tiling=False,
                  tilewidth=None, tileheight=None):
 
     logger.info("Applying GeoTIFF parameters.")
@@ -343,8 +342,8 @@ def _apply_gtiff(outputformat, compression=None, jpeg_quality=None,
 
 
 def get_format_by_mime(mime_type):
-    """ Convenience function to return an enabled format descriptior for the 
-        given mime type or WCS 1.0 format name. Returns ``None``, if none 
+    """ Convenience function to return an enabled format descriptior for the
+        given mime type or WCS 1.0 format name. Returns ``None``, if none
         applies.
     """
 
