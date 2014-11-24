@@ -43,9 +43,13 @@ from eoxserver.resources.processes import views as procViews
 
 urlpatterns = patterns('',
     (r'^$', 'eoxserver.views.index'),
-    (r'^ows', 'eoxserver.services.views.ows'),
+    #url(r'^ows', 'eoxserver.services.urls', name="ows"),
+    url(r'^ows$', include("eoxserver.services.urls")),#, namespace="eoxserver.services", app_name="eoxserver.services")),
+
+    # enable the client
     (r'^client/$', 'eoxserver.webclient.views.index'),
     (r'^client/(.*)', 'eoxserver.webclient.views.webclient'),
+    #url(r'^client/', include("eoxserver.webclient.urls")),
 
     # Enable admin documentation:
     url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
