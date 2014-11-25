@@ -94,10 +94,14 @@ class Command(CommandOutputMixIn, BaseCommand):
 
         for filename in args:
             with open(filename) as f:
+                self.print_msg("Processing batch file '%s'." % filename)
                 reader = csv.DictReader(
                     f, fieldnames=header, delimiter=delimiter
                 )
                 self.handle_file(reader, kwargs)
+                self.print_msg(
+                    "Finished processing batch file '%s'." % filename
+                )
 
     def handle_file(self, reader, kwargs):
         sid = None
@@ -121,28 +125,30 @@ class Command(CommandOutputMixIn, BaseCommand):
                 raise
 
     def _translate_params(self, params):
-        print params
         out = {}
         for key, value in params.items():
             if key in SIMPLE_PARAMS:
                 out[key] = value
             elif key in BOOLEAN_PARAMS:
                 out[key] = (value.lower() in TRUTHY)
+
             elif key.startswith("data"):
                 out.setdefault("data", []).append(value.split())
             elif key.startswith("metadata"):
                 out.setdefault("metadata", []).append(value.split())
+
             elif key.startswith("collection"):
                 out.setdefault("collection_ids", []).append(value)
             elif key.startswith("semantic"):
                 out.setdefault("semantics", []).append(value)
             else:
                 raise CommandError("Invalid header field '%s'." % key)
+
         return out
 
 
 SIMPLE_PARAMS = set((
-    "identifier", "metadata", "range_type_name", "extent",
+    "identifier", "range_type_name", "extent",
     "size", "srid", "projection", "begin_time", "end_time",
     "coverage_type"
 ))
