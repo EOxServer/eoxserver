@@ -155,7 +155,7 @@ class EOMetadata(models.Model):
 
 
 class DataSource(backends.Dataset):
-    pattern = models.CharField(max_length=32, null=False, blank=False)
+    pattern = models.CharField(max_length=512, null=False, blank=False)
     collection = models.ForeignKey("Collection")
 
 
