@@ -10,8 +10,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -29,7 +29,7 @@
 
 import itertools
 
-from eoxserver.core import env, Component, implements, ExtensionPoint
+from eoxserver.core import env, Component, ExtensionPoint
 from eoxserver.backends.interfaces import *
 
 
@@ -38,13 +38,11 @@ class BackendComponent(Component):
     connected_storages = ExtensionPoint(ConnectedStorageInterface)
     packages = ExtensionPoint(PackageInterface)
 
-
     @property
     def storages(self):
         """ Helper for all storages.
         """
         return itertools.chain(self.file_storages, self.connected_storages)
-    
 
     def get_file_storage_component(self, storage_type):
         storage_type = storage_type.upper()
@@ -57,7 +55,6 @@ class BackendComponent(Component):
 
         return result_component
 
-
     def get_connected_storage_component(self, storage_type):
         storage_type = storage_type.upper()
         result_component = None
@@ -69,7 +66,6 @@ class BackendComponent(Component):
 
         return result_component
 
-
     def get_storage_component(self, storage_type):
         file_storage = self.get_file_storage_component(storage_type)
         connected_storage = self.get_connected_storage_component(storage_type)
@@ -78,7 +74,6 @@ class BackendComponent(Component):
             raise Exception("Ambigouus storage component")
 
         return file_storage or connected_storage
-
 
     def get_package_component(self, format):
         format = format.upper()
