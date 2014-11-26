@@ -108,15 +108,18 @@ class Command(CommandOutputMixIn, BaseCommand):
         on_error = kwargs["on_error"]
 
         for row in reader:
+            params = self._translate_params(row)
             if on_error != "rollback":
                 sid = transaction.savepoint()
             try:
                 call_command("eoxs_dataset_register",
-                    **self._translate_params(row)
+                    **params
                 )
                 if sid:
                     transaction.savepoint_commit(sid)
             except:
+                self.print_err(
+                )
                 transaction.savepoint_rollback(sid)
                 if on_error == "ignore":
                     continue
