@@ -1,1 +1,1 @@
-(function(){"use strict";var a=this;a.define(["backbone","communicator"],function(a){var b=a.Model.extend({id:"",description:"",active:!1,enabled:!0,icon:"",type:""});return{ToolModel:b}})}).call(this);
+(function(){"use strict";var a=this;a.define(["backbone","communicator"],function(a){var b=a.Model.extend({id:"",description:"",disabledDescription:"",active:!1,enabled:!0,icon:"",type:"",size:null});return{ToolModel:b}})}).call(this);

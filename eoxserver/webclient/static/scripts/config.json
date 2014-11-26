@@ -13,11 +13,38 @@
 
     "baseLayers": [
       {
+          "name": "Terrain-Light",
+          "visible": true,
+          "id": "terrain-light",
+          "protocol": "WMTS",
+          "requestEncoding": "REST",
+          "urls": [
+              "http://a.tiles.maps.eox.at/wmts/",
+              "http://b.tiles.maps.eox.at/wmts/",
+              "http://c.tiles.maps.eox.at/wmts/",
+              "http://d.tiles.maps.eox.at/wmts/",
+              "http://e.tiles.maps.eox.at/wmts/"
+          ],
+          "matrixSet": "WGS84",
+          "style": "default",
+          "format": "image/png",
+          "maxExtent": [-180.000000, -90.000000, 180.000000, 90.000000],
+          "resolutions": [0.70312500000000000000, 0.35156250000000000000, 0.17578125000000000000, 0.08789062500000000000, 0.04394531250000000000, 0.02197265625000000000, 0.01098632812500000000, 0.00549316406250000000, 0.00274658203125000000, 0.00137329101562500000, 0.00068664550781250000, 0.00034332275390625000, 0.00017166137695312500, 0.00008583068847656250, 0.00004291534423828120, 0.00002145767211914060, 0.00001072883605957030, 0.00000536441802978516],
+          "projection": "EPSG:4326",
+          "gutter": 0,
+          "buffer": 0,
+          "units": "dd",
+          "transitionEffect": "resize",
+          "isphericalMercator": false,
+          "wrapDateLine": true,
+          "zoomOffset": 0,
+          "attribution": "Terrain-Light { Data &copy; <a href=\"http://www.openstreetmap.org/copyright\" target=\"_blank\">OpenStreetMap</a> contributors and <a href='javascript:;' onClick='toggle(terrain_attribution)'>others</a>, Rendering &copy; <a href=\"http://eox.at\" target=\"_blank\">EOX</a> }"
+      },{
         "name": "Terrain",
         "id": "terrain",
         "protocol": "WMTS",
         "requestEncoding": "REST",
-        "visible": true,
+        "visible": false,
         "urls": [
           "http://a.tiles.maps.eox.at/wmts/",
           "http://b.tiles.maps.eox.at/wmts/",
@@ -37,12 +64,14 @@
         "transitionEffect": "resize",
         "isphericalMercator": false,
         "wrapDateLine": true,
-        "zoomOffset": 0
+        "zoomOffset": 0,
+        "attribution": "Terrain { Data &copy; <a href=\"http://www.openstreetmap.org/copyright\" target=\"_blank\">OpenStreetMap</a> contributors and <a href='javascript:;' onClick='toggle(terrain_attribution)'>others</a>, Rendering &copy; <a href=\"http://eox.at\" target=\"_blank\">EOX</a> }"
       },
       {
         "name": "Blue Marble",
         "id": "bluemarble",
         "protocol": "WMTS",
+        "requestEncoding": "REST",
         "visible": false,
         "urls": [
           "http://a.tiles.maps.eox.at/wmts/",
@@ -63,36 +92,16 @@
         "transitionEffect": "resize",
         "isphericalMercator": false,
         "wrapDateLine": true,
-        "zoomOffset": 0
+        "zoomOffset": 0,
+        "attribution": "Blue Marble { &copy; <a href=\"http://nasa.gov\" target=\"_blank\">NASA</a> }"
       }
     ],
     "products": [
       {
-        "name": "SPOT 4 View",
-        "visible": false,
-        "timeSlider": true,
-        "timeSliderProtocol": "WPS",
-        "color":"blue",
-        "view": {
-          "id": "SPOT4_View",
-          "protocol": "WMS",
-          "urls": [
-              "http://demo.v-manip.eox.at/browse/ows"
-          ],
-          "style": "default",
-          "format": "image/png"
-        },
-        "download": {
-          "id": "SPOT4_View",
-          "protocol": "EOWCS",
-          "url": "http://demo.v-manip.eox.at/browse/ows"
-        }
-      },
-      {
         "name": "PanEuropean Fractional Snow Cover",
         "visible": false,
         "timeSlider": true,
-        "timeSliderProtocol": "EOWCS",
+        "timeSliderProtocol":"EOWCS",
         "color":"green",
         "view": {
           "id": "daily_FSC_PanEuropean_Optical",
@@ -100,15 +109,54 @@
           "urls": [
               "http://neso.cryoland.enveo.at/cryoland/ows"
           ],
-          "style": "default",
-          "format": "image/png"
+          "style": "default"
         },
         "download": {
           "id": "daily_FSC_PanEuropean_Optical",
           "protocol": "EOWCS",
           "url": "http://neso.cryoland.enveo.at/cryoland/ows"
         }
-      }
+      },
+      {
+        "name": "PanEuropean Snow Water Equivalent",
+        "visible": false,
+        "timeSlider": true,
+        "timeSliderProtocol":"EOWCS",
+        "color":"red",
+        "view": {
+          "id": "daily_SWE_PanEuropean_Microwave",
+          "protocol": "WMS",
+          "urls": [
+              "http://neso.cryoland.enveo.at/cryoland/ows"
+          ],
+          "style": "default"
+        },
+        "download": {
+          "id": "daily_SWE_PanEuropean_Microwave",
+          "protocol": "EOWCS",
+          "url": "http://neso.cryoland.enveo.at/cryoland/ows"
+        }
+      },
+      {
+        "name": "ALARO Temperature surface",
+        "visible": true,
+        "timeSlider": true,
+        "timeSliderProtocol": "WPS",
+        "view": {
+            "id": "ALARO_Temperature_surface_201305150000",
+            "protocol": "WMS",
+            "urls": [
+                "http://demo.v-manip.eox.at/browse/ows"
+            ],
+            "style": "default",
+            "format": "image/png"
+          },
+          "download": {
+              "id": "ALARO_Temperature_surface_201305150000",
+              "protocol": "EOWCS",
+              "url": "http://demo.v-manip.eox.at/browse/ows"
+          }
+        }
     ],
     "overlays": [
        {
@@ -136,7 +184,8 @@
         "transitionEffect": "resize",
         "isphericalMercator": false,
         "wrapDateLine": true,
-        "zoomOffset": 0
+        "zoomOffset": 0,
+        "attribution": "Overlay { Data &copy; <a href=\"http://www.openstreetmap.org/copyright\" target=\"_blank\">OpenStreetMap</a> contributors, Rendering &copy; <a href=\"http://eox.at\" target=\"_blank\">EOX</a> and <a href=\"https://github.com/mapserver/basemaps\" target=\"_blank\">MapServer</a> }"
       }
     ]
   },
@@ -292,22 +341,22 @@
   "selectionTools":[
     {
       "id":"pointSelection",
-      "description": "Allows selection of Points in Map",
+      "description": "Point selection tool",
       "icon":"icon-screenshot"
     },
     {
       "id":"lineSelection",
-      "description": "Allows selection of Lines in Map",
+      "description": "Line selection tool",
       "icon":"icon-vector-path-line"
     },
     {
       "id":"polygonSelection",
-      "description": "Allows selection of Polygons in Map",
+      "description": "Polygon selection tool",
       "icon":"icon-vector-path-polygon"
     },
     {
       "id":"bboxSelection",
-      "description": "Allows drawing a bounding box selection in Map",
+      "description": "Bounding box selection tool",
       "icon":"icon-vector-path-square"
     }
   ],
@@ -316,7 +365,7 @@
     {
       "id":"selectionManager",
       "eventToRaise":"ui:open:selectionManager",
-      "description": "Allows importing, exporting and saving selections",
+      "description": "Import, export and saving functionality for selections",
       "icon":"icon-edit",
       "enabled":true,
       "active":false
@@ -324,7 +373,8 @@
     {
       "id":"download",
       "eventToRaise":"dialog:open:download",
-      "description": "WCS Download Tool for specific selections",
+      "description": "WCS Download Tool",
+      "disabledDescription": "Please make sure you have selected a product layer, an area of interest and a time of interest in order to use the download tool",
       "icon":"icon-download-alt",
       "enabled":false,
       "active":false
