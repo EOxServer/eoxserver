@@ -11,8 +11,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -28,6 +28,7 @@
 #-------------------------------------------------------------------------------
 
 import logging
+from datetime import timedelta
 
 from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
@@ -35,7 +36,6 @@ from django.http import Http404
 from django.conf import settings
 from django.template import RequestContext
 
-from eoxserver import get_version
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.core.decoders import config, enum
 from eoxserver.core.util.timetools import isoformat
@@ -45,22 +45,39 @@ from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 
 logger = logging.getLogger(__name__)
 
+
 def index(request):
-    dataset_series_ids = models.DatasetSeries.objects.values_list(
-        "identifier", flat=True
-    )
-    stitched_mosaic_ids = models.RectifiedStitchedMosaic.objects.values_list(
-        "identifier", flat=True
-    )
     return render_to_response(
         'webclient/index.html', {
-            "datasetseries_eoids": dataset_series_ids,
-            "stitchedmosaic_eoids": stitched_mosaic_ids,
             "path": request.path,
-            "version": get_version(),
         },
         context_instance=RequestContext(request)
     )
+
+
+def configuration(request):
+    collections = models.Collection.objects.all()
+    collection_ids = [collection.identifier for collection in collections]
+    start_time = min(collection.begin_time for collection in collections)
+    end_time = max(collection.end_time for collection in collections)
+
+    return render_to_response(
+        'webclient/config.json', {
+            "collection_ids": collection_ids,
+            "layers": collections,
+            "start_time_full": isoformat(start_time - timedelta(days=5)),
+            "end_time_full": isoformat(end_time + timedelta(days=5)),
+            "start_time": isoformat(start_time),
+            "end_time": isoformat(end_time)
+        },
+        context_instance=RequestContext(request)
+    )
+
+
+
+
+
+
 
 def webclient(request, identifier):
     """
