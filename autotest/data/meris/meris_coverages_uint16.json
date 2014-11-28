@@ -259,5 +259,16 @@
         "scale_max": 65535,
         "resampling": "NEAREST"
     }
+},
+{
+    "pk": 1, 
+    "model": "webclient.extra", 
+    "fields": {
+        "info": "", 
+        "color": "red", 
+        "default_visible": true, 
+        "display_name": "MER FRS 1P reduced RGB", 
+        "eo_object": 8
+    }
 }
 ]

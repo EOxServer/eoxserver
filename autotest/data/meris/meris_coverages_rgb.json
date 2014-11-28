@@ -310,5 +310,27 @@
         "dataset": 9, 
         "location": "autotest/data/meris/mosaic_cache/mosaic_MER_FRS_1P_reduced_RGB/tindex"
     }
+},
+{
+    "pk": 2, 
+    "model": "webclient.extra", 
+    "fields": {
+        "info": "", 
+        "color": "blue", 
+        "default_visible": false, 
+        "display_name": "MER FRS 1P reduced", 
+        "eo_object": 4
+    }
+},
+{
+    "pk": 3, 
+    "model": "webclient.extra", 
+    "fields": {
+        "info": "", 
+        "color": "green", 
+        "default_visible": false, 
+        "display_name": "mosaic MER FRS 1P reduced RGB", 
+        "eo_object": 9
+    }
 }
 ]
