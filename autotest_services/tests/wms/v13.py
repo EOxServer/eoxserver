@@ -383,7 +383,7 @@ class WMS13GetFeatureInfoEOOMTestCase(testbase.XMLTestCase):
 
 # currently disabled because of segfaults in MapServer
 
-'''
+
 class WMS13GetLegendGraphicDatasetStyledTestCase(testbase.RasterTestCase):
     """ Test a GetLegendGraphic request for a dataset with an associated style. """
     
@@ -397,4 +397,3 @@ class WMS13GetLegendGraphicDatasetStyledTestCase(testbase.RasterTestCase):
 
     def getFileExtension(self, file_type):
         return "png"
-'''
