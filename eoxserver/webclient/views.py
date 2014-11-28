@@ -29,18 +29,13 @@
 
 import logging
 from datetime import timedelta
+from itertools import chain
 
-from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
-from django.http import Http404
-from django.conf import settings
 from django.template import RequestContext
 
-from eoxserver.core.config import get_eoxserver_config
-from eoxserver.core.decoders import config, enum
 from eoxserver.core.util.timetools import isoformat
 from eoxserver.resources.coverages import models
-from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 
 
 logger = logging.getLogger(__name__)
@@ -57,14 +52,18 @@ def index(request):
 
 def configuration(request):
     collections = models.Collection.objects.all()
-    collection_ids = [collection.identifier for collection in collections]
+    coverages = filter(
+        lambda c: not models.iscollection(c),
+        models.Coverage.objects.filter(
+            visible=True, collections__isnull=True
+        )
+    )
     start_time = min(collection.begin_time for collection in collections)
     end_time = max(collection.end_time for collection in collections)
 
     return render_to_response(
         'webclient/config.json', {
-            "collection_ids": collection_ids,
-            "layers": collections,
+            "layers": chain(collections, coverages),
             "start_time_full": isoformat(start_time - timedelta(days=5)),
             "end_time_full": isoformat(end_time + timedelta(days=5)),
             "start_time": isoformat(start_time),
@@ -72,63 +71,3 @@ def configuration(request):
         },
         context_instance=RequestContext(request)
     )
-
-
-
-
-
-
-
-def webclient(request, identifier):
-    """
-    View for webclient interface.
-    
-    Uses `webclient.preview_service`, `webclient.outline_service`,
-    `webclient.preview_url`
-    """
-    
-    try:
-        eo_object = models.Collection.objects.get(identifier=identifier)
-    
-    except models.Collection.DoesNotExist:
-        raise Http404("No such collection.")
-    
-    begin = eo_object.begin_time
-    end = eo_object.end_time
-    
-    extent = eo_object.extent_wgs84
-    # zoom to Europe if we don't have a proper extent
-    if extent == (0,0,1,1):
-        extent = (-10,30,34,72)
-    reader = WebclientConfigReader(get_eoxserver_config())
-
-    return render_to_response(
-        'webclient/webclient.html', {
-            "eoid": identifier,
-            "ows_url": reverse("eoxserver.services.views.ows"), #reader.http_service_url,
-            "preview_service": reader.preview_service,
-            "outline_service": reader.outline_service,
-            "preview_url": reader.preview_url or reader.http_service_url,
-            "outline_url": reader.outline_url or reader.http_service_url,
-            #"begin": {"date": begin.strftime("%Y-%m-%d"),
-            #          "time": begin.strftime("%H:%M")},
-            #"end": {"date": end.strftime("%Y-%m-%d"),
-            #        "time": end.strftime("%H:%M")},
-            "begin": isoformat(begin),
-            "end": isoformat(end),
-            "extent": "%f,%f,%f,%f" % extent,
-            "debug": settings.DEBUG
-        },
-        context_instance=RequestContext(request)
-    )
-
-
-class WebclientConfigReader(CapabilitiesConfigReader):
-    section = "webclient"
-
-    preview_service = config.Option(type=enum(("wms", "wmts")), default="wms")
-    outline_service = config.Option(type=enum(("wms", "wmts")), default="wms")
-
-    preview_url = config.Option(default=None)
-    outline_url = config.Option(default=None)
-
