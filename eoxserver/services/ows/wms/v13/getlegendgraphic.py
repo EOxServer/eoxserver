@@ -10,8 +10,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -26,17 +26,13 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from itertools import chain
-
-from eoxserver.core import Component, env, implements, UniqueExtensionPoint
-from eoxserver.core.decoders import kvp, typelist, InvalidParameterException
+from eoxserver.core import Component, implements, UniqueExtensionPoint
+from eoxserver.core.decoders import kvp, InvalidParameterException
 from eoxserver.resources.coverages import models
 from eoxserver.services.ows.interfaces import (
     ServiceHandlerInterface, GetServiceHandlerInterface
 )
-from eoxserver.services.ows.wms.util import (
-    lookup_layers, parse_bbox, parse_time, int_or_str, LayerSelection
-)
+from eoxserver.services.ows.wms.util import LayerSelection
 from eoxserver.services.ows.wms.interfaces import (
     WMSLegendGraphicRendererInterface
 )
@@ -59,13 +55,13 @@ class WMS13GetLegendGraphicHandler(Component):
         layer_name = decoder.layer
         coverage_id = decoder.coverage
 
-        suffixes = (None, "_bands", "_outlines")
+        suffixes = self.renderer.suffixes
         for suffix in suffixes:
             try:
                 if len(suffix or "") == 0:
                     identifier = layer_name
                 else:
-                    layer_name[-len(suffix):]
+                    identifier = layer_name[-len(suffix):]
                 eo_object = models.EOObject.objects.get(identifier=identifier)
                 break
             except models.EOObject.DoesNotExist:
@@ -74,7 +70,6 @@ class WMS13GetLegendGraphicHandler(Component):
             raise InvalidParameterException(
                 "No such layer '%s'." % layer_name, "layer"
             )
-
 
         if models.iscollection(eo_object):
             def recursive_lookup(collection, used_ids, suffix):
@@ -110,7 +105,7 @@ class WMS13GetLegendGraphicHandler(Component):
                         break
                 else:
                     raise InvalidParameterException(
-                        "Layer '%s' does not contain a coverage with ID '%s'.", 
+                        "Layer '%s' does not contain a coverage with ID '%s'.",
                         "coverage"
                     )
         else:
