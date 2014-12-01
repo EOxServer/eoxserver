@@ -58,12 +58,14 @@ def configuration(request):
             visible=True, collections__isnull=True
         )
     )
-    start_time = min(collection.begin_time for collection in collections)
-    end_time = max(collection.end_time for collection in collections)
+
+    all_objects = list(chain(collections, coverages))
+    start_time = min(o.begin_time for o in all_objects)
+    end_time = max(o.end_time for o in all_objects)
 
     return render_to_response(
         'webclient/config.json', {
-            "layers": chain(collections, coverages),
+            "layers": all_objects,
             "start_time_full": isoformat(start_time - timedelta(days=5)),
             "end_time_full": isoformat(end_time + timedelta(days=5)),
             "start_time": isoformat(start_time),
