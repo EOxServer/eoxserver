@@ -81,31 +81,37 @@ class GetTimeDataProcess(Component):
 
         # get the dataset series matching the requested ID
         try:
-            series = models.Collection.objects.get(identifier=collection)
-        except models.Collection.DoesNotExist:
+            model = models.EOObject.objects.get(identifier=collection)
+        except models.EOObject.DoesNotExist:
             raise InvalidInputValueError(
                 "collection", "Invalid collection name '%s'!" % collection
             )
 
-        # recursive dataset series lookup
-        def _get_children_ids(ds):
-            ds_rct = ds.real_content_type
-            id_list = [ds.id]
-            for child in series.eo_objects.filter(real_content_type=ds_rct):
-                id_list.extend(_get_children_ids(child))
-            return id_list
+        if models.iscollection(model):
+            model = model.cast()
 
-        collection_ids = _get_children_ids(series)
+            # recursive dataset series lookup
+            def _get_children_ids(ds):
+                ds_rct = ds.real_content_type
+                id_list = [ds.id]
+                for child in model.eo_objects.filter(real_content_type=ds_rct):
+                    id_list.extend(_get_children_ids(child))
+                return id_list
 
-        # prepare coverage query set
-        coverages_qs = models.Coverage.objects.filter(
-            collections__id__in=collection_ids
-        )
-        if end_time is not None:
-            coverages_qs = coverages_qs.filter(begin_time__lte=end_time)
-        if begin_time is not None:
-            coverages_qs = coverages_qs.filter(end_time__gte=begin_time)
-        coverages_qs = coverages_qs.order_by('begin_time', 'end_time')
+            collection_ids = _get_children_ids(model)
+
+            # prepare coverage query set
+            coverages_qs = models.Coverage.objects.filter(
+                collections__id__in=collection_ids
+            )
+            if end_time is not None:
+                coverages_qs = coverages_qs.filter(begin_time__lte=end_time)
+            if begin_time is not None:
+                coverages_qs = coverages_qs.filter(end_time__gte=begin_time)
+            coverages_qs = coverages_qs.order_by('begin_time', 'end_time')
+
+        else:
+            coverages_qs = [model]
 
         # create the output
         output = CDAsciiTextBuffer()
