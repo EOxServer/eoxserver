@@ -143,7 +143,8 @@ class CoverageAdmin(EOObjectAdmin):
                        ('max_x', 'max_y'),
                        ('srid', 'projection'),
                        ('begin_time', 'end_time'),
-                       'footprint'),
+                       'footprint',
+                       'visible'),
             'description': 'Geospatial metadata'
         }),
     )
@@ -284,6 +285,7 @@ admin.site.register(models.RectifiedStitchedMosaic, RectifiedStitchedMosaicAdmin
 
 class DatasetSeriesAdmin(CollectionAdmin):
     model = models.DatasetSeries
+    inlines = (DataSourceInline, EOObjectInline, CollectionInline)
 
     fieldsets = (
         (None, {
@@ -293,7 +295,5 @@ class DatasetSeriesAdmin(CollectionAdmin):
             'fields': (('begin_time', 'end_time'), 'footprint')
         }),
     )
-
-    inlines = (DataSourceInline, EOObjectInline, CollectionInline)
 
 admin.site.register(models.DatasetSeries, DatasetSeriesAdmin)
