@@ -48,7 +48,7 @@ binding via :class:`eoxserver.core.component.ExtensionPoint`.
 
 All plugins are self-registering, which means the module containing the 
 component just needs to be imported through any kind of import mechanism and, 
-voilà, the component is registered.
+voilà, the component is registered and ready for use.
 
 
 Important
@@ -69,15 +69,23 @@ Loading modules
 EOxServer provides mechanisms to conveniently load modules and thus 
 registering all entailed plugins. This is done via the :obj:`COMPONENTS` setting in your instances :file:`settings.py`.
 
-This setting uses a 
+This setting must be an iterable of strings which follow the dotted python 
+module path notation, with two exceptions:
 
+ - Module paths ending with ".*" will import all modules of a package.
+ - Paths ending with ".**" will do the same, with the exception of doing so 
+   recursively.
 
+E.g: :obj:`"eoxserver.services.ows.**"` will load all subpackages and modules of the :mod:`eoxserver.services.ows` package. (This is an easy way to enable 
+all OWS services, by the way).
 
+To only enable WMS in version 1.3 you could use the following import line:
+:obj:`"eoxserver.services.ows.wms.v13.*"`. If you only want to only enable 
+specific requests (for whatever reason) you'd have to list their modules 
+seperately.
 
-
-
-
-
+The EOxServer instance :file:`settings.py` template is already preconfigured 
+with the most common components modules.
 
 
 Example

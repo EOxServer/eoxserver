@@ -83,22 +83,3 @@ GDAL/OGR
 In some cases EOxServer uses the `GDAL/OGR <http://www.gdal.org>`_ library for
 access to geospatial data directly (rather than through MapServer).
 
-Software Architecture
----------------------
-
-The basic software architecture of EOxServer's Python code is layed out in
-:doc:`/en/rfc/rfc2`. The main intention of the design is to keep EOxServer
-modular and extensible.
-
-In order to reach that goal, EOxServer relies on a central registry of
-classes that implement certain behaviour. The registry allows to find
-appropriate implementations (e.g. for certain OGC Web Service operations)
-according to a set of parameters.
-
-* Registry
-* Factories
-* Wrappers
-* Resources
-* Records
-
-

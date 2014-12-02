@@ -160,14 +160,14 @@ There are several easy options to install EOxServer:
 
       sudo pip install eoxserver
 
-  * or from the `EOxServer download page <http://eoxserver.org/wiki/Download>`_
+  * or from the `EOxServer release page <https://github.com/EOxServer/eoxserver/releases>`_
     using pip::
 
-      sudo pip install http://eoxserver.org/export/head/downloads/EOxServer-<version>.tar.gz
+      sudo pip install https://github.com/EOxServer/eoxserver/releases/download/release-<version>/EOxServer-<version>.tar.gz
 
-    or manual::
+    or manually::
 
-      wget http://eoxserver.org/export/head/downloads/EOxServer_full-<version>.tar.gz .
+      wget https://github.com/EOxServer/eoxserver/releases/download/release-<version>/EOxServer-<version>.tar.gz .
       tar xvfz EOxServer-<version>.tar.gz
       cd EOxServer-<version>
       sudo python setup.py install
@@ -177,16 +177,17 @@ There are several easy options to install EOxServer:
 
 * Install the latest development version, the best option for users who
   want the latest-and-greatest features and aren't afraid of running
-  brand-new code. Make sure you have `Subversion
-  <http://subversion.tigris.org/>`_ installed and install EOxServer's
-  main development branch (the trunk) using pip::
+  brand-new code. Make sure you have `git
+  <http://git-scm.com/>`_ installed and install EOxServer's
+  main development branch using pip::
 
-    sudo pip install svn+http://eoxserver.org/svn/trunk
+    sudo pip install git+https://github.com/EOxServer/eoxserver.git
 
-  or manual::
+  or manually::
 
-    svn co http://eoxserver.org/svn/trunk/ eoxserver-trunk
-    cd eoxserver-trunk
+    mkdir eoxserver_git
+    git clone git@github.com:EOxServer/eoxserver.git eoxserver_git
+    cd eoxserver_git
     sudo python setup.py install
 
 If the directory EOxServer is installed to is not on the Python path, you will
@@ -222,7 +223,7 @@ in case of a major version upgrade.
 .. _hardware_guidelines:
 
 Hardware Guidelines
----------------------
+-------------------
 
 EOxServer has been deployed on a variety of different computers and virtual
 machines with commonplace hardware configurations. The typical setup is:
