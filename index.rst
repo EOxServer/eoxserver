@@ -64,6 +64,7 @@ written in English.
    users/index
    developers/index
    rfc/index
+   release_notes/index
    copyright
    credits
 
