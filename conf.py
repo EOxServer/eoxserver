@@ -44,7 +44,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'EOxServer'
-copyright = u'2011, 2012, 2013, EOX IT Services GmbH'
+copyright = u'2011, 2012, 2013, 2014, EOX IT Services GmbH'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -105,7 +105,12 @@ html_theme = "sphinx_rtd_theme"
 #html_theme_options = {}
 
 # Add any paths that contain custom themes here, relative to this directory.
-html_theme_path = ["_themes/sphinx_rtd_theme", ]
+try:
+    import sphinx_rtd_theme
+    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+except ImportError:
+    html_theme_path = ["_themes/sphinx_rtd_theme", ]
+
 
 #html_style = "eoxserver.css"
 
