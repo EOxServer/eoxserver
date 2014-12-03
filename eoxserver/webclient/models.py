@@ -37,4 +37,3 @@ class Extra(models.Model):
     info = models.TextField(blank=True, null=True)
     color = models.CharField(max_length=64, blank=True, null=True)
     default_visible = models.BooleanField(default=False)
-

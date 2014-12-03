@@ -103,7 +103,7 @@
         "visible": {% if layer.webclient_extra.default_visible %}true{% else %}false{% endif %},
         "timeSlider": true,
         "timeSliderProtocol":"WPS",
-        "color":"{{ layer.webclient_extra.color }}",
+        {% if layer.webclient_extra.color %}"color": "{{ layer.webclient_extra.color }}",{% endif %}
         "view": {
           "id": "{{ layer.identifier }}",
           "protocol": "WMS",
