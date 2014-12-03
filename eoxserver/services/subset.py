@@ -10,8 +10,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -33,7 +33,8 @@ from django.contrib.gis.geos import Polygon, LineString
 
 from eoxserver.resources.coverages import crss
 from eoxserver.services.exceptions import (
-    InvalidAxisLabelException, InvalidSubsettingException
+    InvalidAxisLabelException, InvalidSubsettingException,
+    InvalidSubsettingCrsException
 )
 
 
@@ -43,7 +44,7 @@ logger = logging.getLogger(__name__)
 
 
 class Subsets(list):
-    """ Convenience class to handle a variety of spatial and/or temporal 
+    """ Convenience class to handle a variety of spatial and/or temporal
         subsets.
     """
 
@@ -60,17 +61,15 @@ class Subsets(list):
         self._crs = crs
 
     # List API
-    
+
     def extend(self, iterable):
         for subset in iterable:
             self._check_subset(subset)
             super(Subsets, self).append(subset)
 
-
     def append(self, subset):
         self._check_subset(subset)
         super(Subsets, self).append(subset)
-
 
     def insert(self, i, subset):
         self._check_subset(subset)
@@ -97,23 +96,22 @@ class Subsets(list):
     @crs.setter
     def crs(self, value):
         self._crs = value
-    
+
     @property
     def srid(self):
         """ Tries to find the correct integer SRID for the crs.
         """
         crs = self.crs
         if crs is not None:
-            srid = crss.parseEPSGCode(crs, 
+            srid = crss.parseEPSGCode(crs,
                 (crss.fromURL, crss.fromURN, crss.fromShortCode)
             )
             if srid is None and not crss.is_image_crs(crs):
-                raise InvalidSubsettingException(
+                raise InvalidSubsettingCrsException(
                     "Could not parse EPSG code from URI '%s'" % crs
                 )
             return srid
         return None
-
 
     def filter(self, queryset, containment="overlaps"):
         if not len(self):
@@ -154,7 +152,7 @@ class Subsets(list):
                         qs = qs.filter(
                             end_time__gte=low
                         )
-                
+
                     # check if the temporal bounds must be strictly contained
                     if containment == "contains":
                         if high is not None:
@@ -191,15 +189,16 @@ class Subsets(list):
                         bbox[1] = subset.low
                         bbox[3] = subset.high
 
-
         if bbox != [None, None, None, None]:
             bbox = map(
-                lambda v: v[0] if v[0] is not None else v[1], 
+                lambda v: v[0] if v[0] is not None else v[1],
                 zip(bbox, max_extent)
             )
 
-            bbox[0] -= tolerance; bbox[1] -= tolerance
-            bbox[2] += tolerance; bbox[3] += tolerance
+            bbox[0] -= tolerance
+            bbox[1] -= tolerance
+            bbox[2] += tolerance
+            bbox[3] += tolerance
 
             logger.debug(
                 "Applying BBox %s with containment '%s'." % (bbox, containment)
@@ -216,7 +215,6 @@ class Subsets(list):
                 qs = qs.filter(footprint__within=poly)
 
         return qs
-
 
     def matches(self, eo_object, containment="overlaps"):
         if not len(self):
@@ -259,12 +257,12 @@ class Subsets(list):
             else:
                 if is_slice:
                     if subset.is_x:
-                        line = Line(
+                        line = LineString(
                             (value, max_extent[1]),
                             (value, max_extent[3])
                         )
                     else:
-                        line = Line(
+                        line = LineString(
                             (max_extent[0], value),
                             (max_extent[2], value)
                         )
@@ -274,7 +272,7 @@ class Subsets(list):
 
                     if not line.intersects(footprint):
                         return False
-                    
+
                 else:
                     if subset.is_x:
                         bbox[0] = subset.low
@@ -283,15 +281,16 @@ class Subsets(list):
                         bbox[1] = subset.low
                         bbox[3] = subset.high
 
-
         if bbox != [None, None, None, None]:
             bbox = map(
                 lambda v: v[0] if v[0] is not None else v[1],
                 zip(bbox, max_extent)
             )
 
-            bbox[0] -= tolerance; bbox[1] -= tolerance
-            bbox[2] += tolerance; bbox[3] += tolerance
+            bbox[0] -= tolerance
+            bbox[1] -= tolerance
+            bbox[2] += tolerance
+            bbox[3] += tolerance
 
             logger.debug(
                 "Applying BBox %s with containment '%s'." % (bbox, containment)
@@ -309,7 +308,6 @@ class Subsets(list):
                 if not footprint.within(poly):
                     return False
         return True
-
 
     def _check_subset(self, subset):
         if not isinstance(subset, Subset):
@@ -335,7 +333,6 @@ class Subsets(list):
                 "Multiple subsets for time-axis given."
             )
 
-
     @property
     def xy_bbox(self):
         """ Returns the minimum bounding box for all X and Y subsets.
@@ -356,7 +353,6 @@ class Subsets(list):
                     bbox[1] = bbox[3] = subset.value
 
         return bbox
-
 
     def bounding_polygon(self, coverage):
         srid = coverage.srid

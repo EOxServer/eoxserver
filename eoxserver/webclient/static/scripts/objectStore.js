@@ -1,0 +1,1 @@
+define(["backbone"],function(){var a=function(){this.objects={}};return a.prototype.add=function(a,b){this.objects[a]=b,this.trigger("add",b)},a.prototype.remove=function(a){var b=this.object[a];delete this.objects[a],this.trigger("remove",b)},a.prototype.get=function(a){return this.objects[a]},_.extend(a.prototype,Backbone.Events),a});

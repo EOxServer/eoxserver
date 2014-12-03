@@ -53,15 +53,15 @@ class NativeWCS20CapabilitiesRenderer(Component):
         # TODO: accept_languages?
         return True
 
-
     def render(self, params):
         encoder = WCS20CapabilitiesXMLEncoder()
         return [
             ResultBuffer(
                 encoder.serialize(
                     encoder.encode_capabilities(
-                        params.sections or ("all"), params.coverages, 
-                        getattr(params, "dataset_series", ())
+                        params.sections or ("all"), params.coverages,
+                        getattr(params, "dataset_series", ()),
+                        params.http_request
                     ), pretty_print=settings.DEBUG
                 ),
                 encoder.content_type

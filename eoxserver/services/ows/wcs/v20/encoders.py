@@ -10,8 +10,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -49,11 +49,12 @@ from eoxserver.services.ows.wcs.v20.util import (
     nsmap, ns_xlink, ns_gml, ns_wcs, ns_eowcs,
     OWS, GML, GMLCOV, WCS, CRS, EOWCS, SWE, INT, SUPPORTED_INTERPOLATIONS
 )
+from eoxserver.services.urls import get_http_service_url
 
 
 class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
     def encode_capabilities(self, sections, coverages_qs=None,
-                            dataset_series_qs=None):
+                            dataset_series_qs=None, request=None):
         conf = CapabilitiesConfigReader(get_eoxserver_config())
 
         all_sections = "all" in sections
@@ -120,7 +121,6 @@ class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
                 )
             )
 
-
         if all_sections or "operationsmetadata" in sections:
             component = ServiceComponent(env)
             versions = ("2.0.0", "2.0.1")
@@ -135,15 +135,17 @@ class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
                 key=lambda h: (getattr(h, "index", 10000), h.request)
             )
 
+            http_service_url = get_http_service_url(request)
+
             operations = []
             for handler in all_handlers:
                 methods = []
                 if handler in get_handlers:
                     methods.append(
-                        self.encode_reference("Get", conf.http_service_url)
+                        self.encode_reference("Get", http_service_url)
                     )
                 if handler in post_handlers:
-                    post = self.encode_reference("Post", conf.http_service_url)
+                    post = self.encode_reference("Post", http_service_url)
                     post.append(
                         OWS("Constraint",
                             OWS("AllowedValues",
@@ -172,7 +174,6 @@ class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
                 )
             caps.append(OWS("OperationsMetadata", *operations))
 
-
         if all_sections or "servicemetadata" in sections:
             service_metadata = WCS("ServiceMetadata")
 
@@ -185,10 +186,14 @@ class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
             )
 
             # get a list of supported CRSs from the CRS registry
-            supported_crss = crss.getSupportedCRS_WCS(format_function=crss.asURL)
+            supported_crss = crss.getSupportedCRS_WCS(
+                format_function=crss.asURL
+            )
             extension = WCS("Extension")
             service_metadata.append(extension)
-            extension.extend(
+            crs_metadata = CRS("CrsMetadata")
+            extension.append(crs_metadata)
+            crs_metadata.extend(
                 map(lambda c: CRS("crsSupported", c), supported_crss)
             )
 
@@ -268,8 +273,6 @@ class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
         return nsmap.schema_locations
 
 
-
-
 class GMLCOV10Encoder(GML32Encoder):
     def __init__(self, *args, **kwargs):
         self._cache = {}
@@ -289,7 +292,7 @@ class GMLCOV10Encoder(GML32Encoder):
         size_x, size_y = size
         minx, miny, maxx, maxy = extent
         srs_name = sr.url
-        
+
         swap = crss.getAxesSwapper(sr.srid)
         frmt = "%.3f %.3f" if sr.IsProjected() else "%.8f %.8f"
         labels = ("x", "y") if sr.IsProjected() else ("long", "lat")

@@ -36,11 +36,12 @@ from eoxserver.core.decoders import (
 
 
 CODES_404 = frozenset((
-    "NoSuchCoverage", "NoSuchDatasetSeriesOrCoverage", "InvalidAxisLabel", 
-    "InvalidSubsetting", "InterpolationMethodNotSupported", "NoSuchField", 
+    "NoSuchCoverage", "NoSuchDatasetSeriesOrCoverage", "InvalidAxisLabel",
+    "InvalidSubsetting", "InterpolationMethodNotSupported", "NoSuchField",
     "InvalidFieldSequence", "InvalidScaleFactor", "InvalidExtent",
-    "ScaleAxisUndefined"
+    "ScaleAxisUndefined", "SubsettingCrs-NotSupported", "OutputCrs-NotSupported"
 ))
+
 
 class WCS20ExceptionHandler(Component):
     implements(ExceptionHandlerInterface)
@@ -54,7 +55,7 @@ class WCS20ExceptionHandler(Component):
         code = getattr(exception, "code", None)
         locator = getattr(exception, "locator", None)
         status = 400
-        
+
         if code is None:
             if isinstance(exception, MissingParameterException):
                 code = "MissingParameterValue"
