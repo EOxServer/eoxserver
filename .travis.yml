@@ -31,7 +31,7 @@ install:
   # patch Django 1.4 libgeos
   - 'if [ $DJANGO == "1.4.13" ]; then find /home/travis/virtualenv/ -name libgeos.py  -exec patch {} jenkins/geos-dev.patch \; ; fi'
   # actually install EOxServer
-  - pip install --install-option="--disable-extended-reftools" .
+  - pip install .
   - export XML_CATALOG_FILES="`pwd`/schemas/catalog.xml"
   - cd autotest
   - "sed -e 's/#binary_raster_comparison_enabled=false/binary_raster_comparison_enabled=false/' -i autotest/conf/eoxserver.conf"
