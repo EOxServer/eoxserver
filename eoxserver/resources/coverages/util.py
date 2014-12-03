@@ -12,8 +12,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -37,6 +37,7 @@ from django.contrib.gis.geos import MultiPolygon, Polygon
 from django.utils.timezone import is_naive, make_aware, get_current_timezone
 from django.utils.dateparse import parse_datetime
 
+from eoxserver.contrib import gdal
 
 def pk_equals(first, second):
     return first.pk == second.pk
@@ -154,3 +155,52 @@ def is_same_grid(coverages, epsilon=1e-10):
             return False
 
     return True
+
+
+def parse_raw_value(raw_value, dt):
+    """ Parse a raw value from a string according to a given data type.
+    """
+    if raw_value is None:  # allow null values
+        return None
+
+    is_float = False
+    is_complex = False
+
+    if dt in gdal.GDT_INTEGRAL_TYPES:
+        value = int(raw_value)
+
+    elif dt in gdal.GDT_FLOAT_TYPES:
+        value = float(raw_value)
+        is_float = True
+
+    elif dt in gdal.GDT_INTEGRAL_COMPLEX_TYPES:
+        value = complex(raw_value)
+        is_complex = True
+
+    elif dt in gdal.GDT_FLOAT_COMPLEX_TYPES:
+        value = complex(raw_value)
+        is_complex = True
+        is_float = True
+
+    else:
+        value = None
+
+    # range check makes sense for integral values only
+    if not is_float:
+        limits = gdal.GDT_NUMERIC_LIMITS.get(dt)
+
+        if limits and value is not None:
+            def within(v, low, high):
+                return (v >= low and v <= high)
+
+            error = ValueError(
+                "Stored value is out of the limits for the data type"
+            )
+            if not is_complex and not within(value, *limits):
+                raise error
+            elif is_complex:
+                if (not within(value.real, limits[0].real, limits[1].real)
+                    or not within(value.real, limits[0].real, limits[1].real)):
+                    raise error
+
+    return value

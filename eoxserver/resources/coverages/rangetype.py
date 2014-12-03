@@ -312,7 +312,7 @@ def getRangeType( name ) :
         # get range-type record 
         rt = RangeType.objects.get(name=name)
 
-        band = [] 
+        bands = [] 
 
         # loop over band records (ordering set in model) 
         for b in rt.bands.all() : 
@@ -326,23 +326,29 @@ def getRangeType( name ) :
                     # append created nil-value dictionary
                     nil_values.append( { 'reason': n.reason, 'value': n.raw_value } ) 
 
+
+            band = { 
+                'name'        : b.name,
+                'data_type'   : gdal.GDT_TO_NAME.get(b.data_type,'Invalid'), 
+                'identifier'  : b.identifier,
+                'description' : b.description, 
+                'definition'  : b.definition,
+                'uom'         : b.uom, 
+                'nil_values'  : nil_values,
+                'color_interpretation' :
+                    gdal.GCI_TO_NAME.get(b.color_interpretation,'Invalid'),
+            }
+            
+            if b.raw_value_min is not None:
+                band["value_min"] = b.raw_value_min
+            if b.raw_value_max is not None:
+                band["value_max"] = b.raw_value_max
+
             # append created band dictionary
-            band.append( 
-                { 
-                    'name'        : b.name,
-                    'data_type'   : gdal.GDT_TO_NAME.get(b.data_type,'Invalid'), 
-                    'identifier'  : b.identifier,
-                    'description' : b.description, 
-                    'definition'  : b.definition,
-                    'uom'         : b.uom, 
-                    'nil_values'  : nil_values,
-                    'color_interpretation' :
-                        gdal.GCI_TO_NAME.get(b.color_interpretation,'Invalid'),
-                } 
-            ) 
+            bands.append(band)
 
         # return JSON serializable dictionary 
-        return { 'name': rt.name, 'bands': band } 
+        return { 'name': rt.name, 'bands': bands } 
                 
     except RangeType.DoesNotExist : 
 
@@ -382,20 +388,22 @@ def setRangeType( rtype ) :
             cint  = gdal.NAME_TO_GCI[cint.lower()]
 
             # prepare nil-value set 
+            if band['nil_values']:
+                nvset = NilValueSet.objects.create( 
+                        name = "__%s_%2.2d__"%(rtype['name'],idx),
+                        data_type = dtype )  
+        
+                for nval in band['nil_values'] : 
 
-            nvset = NilValueSet.objects.create( 
-                    name = "__%s_%2.2d__"%(rtype['name'],idx),
-                    data_type = dtype )  
+                    nv = NilValue.objects.create( 
+                        reason = nval['reason'],
+                        raw_value = str(nval['value']),
+                        nil_value_set = nvset )
     
-            for nval in band['nil_values'] : 
-
-                nv = NilValue.objects.create( 
-                    reason = nval['reason'],
-                    raw_value = str(nval['value']),
-                    nil_value_set = nvset )
-    
-                # cheking value 
-                tmp = nv.value 
+                    # cheking value 
+                    tmp = nv.value 
+            else:
+                nvset = None
     
             bn = Band.objects.create( 
                     index = idx, 
@@ -407,5 +415,7 @@ def setRangeType( rtype ) :
                     uom = band['uom'],
                     color_interpretation = cint,
                     range_type = rt,
-                    nil_value_set = nvset 
+                    nil_value_set = nvset,
+                    raw_value_min = band.get("value_min"),
+                    raw_value_max = band.get("value_max")
                     )

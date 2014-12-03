@@ -10,8 +10,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -26,35 +26,31 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-
-from os.path import join
-from uuid import uuid4
-
 from eoxserver.core import Component, implements
-from eoxserver.contrib import vsi, vrt, ogr
+from eoxserver.contrib import ogr
 from eoxserver.contrib import mapserver as ms
 from eoxserver.backends.access import connect
 from eoxserver.services.mapserver.interfaces import ConnectorInterface
 
 
 class PolygonMaskConnector(Component):
-    """ Connects polygon mask files to MapServer polygon layers. For some 
+    """ Connects polygon mask files to MapServer polygon layers. For some
         purposes this can also be done via "reverse" polygons, where the actual
         polygons are subtracted from the coverages footprint.
     """
 
     implements(ConnectorInterface)
-    
+
     def supports(self, data_items):
         num = len(data_items)
         return (
-            len(data_items) >= 1 
+            len(data_items) >= 1
             and len(filter(
                 lambda d: d.semantic.startswith("polygonmask"), data_items
             )) == num
         )
 
-    def connect(self, coverage, data_items, layer):
+    def connect(self, coverage, data_items, layer, options):
         mask_item = data_items[0]
 
         try:
@@ -100,9 +96,8 @@ class PolygonMaskConnector(Component):
             # TODO: more than one mask_item?
 
         layer.setProjection("EPSG:4326")
-        layer.setMetaData("ows_srs", "EPSG:4326") 
+        layer.setMetaData("ows_srs", "EPSG:4326")
         layer.setMetaData("wms_srs", "EPSG:4326")
 
-
-    def disconnect(self, coverage, data_items, layer):
+    def disconnect(self, coverage, data_items, layer, options):
         pass
