@@ -162,7 +162,7 @@ setup(
     long_description=read("README.rst"),
     
     classifiers=[
-          'Development Status :: 3 - Alpha',
+          'Development Status :: 1 - Planning',
           'Environment :: Console',
           'Environment :: Web Environment',
           'Framework :: Django',
