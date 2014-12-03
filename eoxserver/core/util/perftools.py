@@ -5,7 +5,7 @@
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
 #-------------------------------------------------------------------------------
-# Copyright (C) 2011 EOX IT Services GmbH
+# Copyright (C) 2014 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,29 +26,43 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-
-import os.path
-
-from eoxserver.core import Component, implements
-from eoxserver.backends.access import connect
-from eoxserver.services.mapserver.interfaces import ConnectorInterface
+import time
+import logging
 
 
-class TileIndexConnector(Component):
-    """ Connects a tile index with the given layer. The tileitem is fixed to
-        "location".
+_logger = logging.getLogger(__name__)
+
+
+class DurationMeasurement(object):
+    def __init__(self, name, logger, level):
+        self.name = name
+        self.logger = logger
+        self.level = level
+        self.start = None
+        self.end = None
+
+    def __enter__(self):
+        self.start = time.time()
+        return self
+
+    def __exit__(self, *args, **kwargs):
+        self.end = time.time()
+        msg = "'%s' took %f seconds." % (self.name, self.duration)
+        self.logger.log(self.level, msg)
+
+    @property
+    def duration(self):
+        if self.start is not None and self.end is not None:
+            return self.end - self.start
+        return None
+
+
+def log_duration(name, logger=None, level=logging.DEBUG):
+    """ Convenience function to log the duration of a specific event.
+        :param name: The name of the event.
+        :param logger: The logger to use.
+        :param level: The log level to log the final message to.
     """
 
-    implements(ConnectorInterface)
-
-    def supports(self, data_items):
-        return (
-            len(data_items) == 1 and data_items[0].semantic == "tileindex"
-        )
-
-    def connect(self, coverage, data_items, layer, options):
-        layer.tileindex = os.path.abspath(connect(data_items[0]))
-        layer.tileitem = "location"
-
-    def disconnect(self, coverage, data_items, layer, options):
-        pass
+    logger = logger or _logger
+    return DurationMeasurement(name, logger, level)

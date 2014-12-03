@@ -10,8 +10,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -30,7 +30,6 @@
 import logging
 from itertools import chain
 
-from django.db.models import Q
 from django.utils.datastructures import SortedDict
 
 from eoxserver.core import Component, ExtensionPoint
@@ -42,7 +41,7 @@ from eoxserver.services.mapserver.interfaces import (
 )
 from eoxserver.services.result import result_set_from_raw_data, get_content_type
 from eoxserver.services.exceptions import RenderException
-from eoxserver.services.ows.wms.exceptions import InvalidCRS, InvalidFormat
+from eoxserver.services.ows.wms.exceptions import InvalidFormat
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +53,6 @@ class MapServerWMSBaseComponent(Component):
     connectors = ExtensionPoint(ConnectorInterface)
     layer_factories = ExtensionPoint(LayerFactoryInterface)
     style_applicators = ExtensionPoint(StyleApplicatorInterface)
-
 
     def render(self, layer_groups, request_values, **options):
         map_ = ms.Map()
@@ -73,14 +71,13 @@ class MapServerWMSBaseComponent(Component):
         self.check_parameters(map_, request_values)
 
         session = self.setup_map(layer_groups, map_, options)
-        
+
         with session:
             request = ms.create_request(request_values)
             raw_result = map_.dispatch(request)
 
             result = result_set_from_raw_data(raw_result)
             return result, get_content_type(result)
-
 
     def check_parameters(self, map_, request_values):
         for key, value in request_values:
@@ -89,7 +86,7 @@ class MapServerWMSBaseComponent(Component):
                     raise InvalidFormat(value)
                 break
         else:
-            raise RenderException("Missing 'format' parameter")        
+            raise RenderException("Missing 'format' parameter")
 
     @property
     def suffixes(self):
@@ -97,29 +94,26 @@ class MapServerWMSBaseComponent(Component):
             chain(*[factory.suffixes for factory in self.layer_factories])
         )
 
-
     def get_connector(self, data_items):
         for connector in self.connectors:
             if connector.supports(data_items):
                 return connector
         return None
 
-
     def get_layer_factory(self, suffix):
         result = None
         for factory in self.layer_factories:
             if suffix in factory.suffixes:
                 if result:
-                    pass # TODO
+                    pass  # TODO
                     #raise Exception("Found")
                 result = factory
                 return result
         return result
 
-
     def setup_map(self, layer_selection, map_, options):
         group_layers = SortedDict()
-        session = ConnectorSession()
+        session = ConnectorSession(options)
 
         # set up group layers before any "real" layers
         for collections, _, name, suffix in tuple(layer_selection.walk()):
@@ -132,7 +126,7 @@ class MapServerWMSBaseComponent(Component):
                 # raise or pass?
                 continue
 
-            # get the groups name, which is the name of the collection + the 
+            # get the groups name, which is the name of the collection + the
             # suffix
             group_name = collections[-1].identifier + (suffix or "")
 
@@ -174,18 +168,17 @@ class MapServerWMSBaseComponent(Component):
 
             for layer, data_items in layers_and_data_items:
                 connector = self.get_connector(data_items)
-                
+
                 if group_name:
                     layer.setMetaData("wms_layer_group", "/" + group_name)
 
                 session.add(connector, coverage, data_items, layer)
-                
 
         coverage_layers = [layer for _, layer, _ in session.coverage_layers]
         for layer in chain(group_layers.values(), coverage_layers):
             old_layer = map_.getLayerByName(layer.name)
             if old_layer:
-                # remove the old layer and reinsert the new one, to 
+                # remove the old layer and reinsert the new one, to
                 # raise the layer to the top.
                 # TODO: find a more efficient way to do this
                 map_.removeLayer(old_layer.index)
@@ -199,7 +192,6 @@ class MapServerWMSBaseComponent(Component):
 
         return session
 
-
     def get_empty_layers(self, name):
         layer = ms.layerObj()
         layer.name = name
@@ -208,11 +200,12 @@ class MapServerWMSBaseComponent(Component):
 
 
 class ConnectorSession(object):
-    """ Helper class to be used in `with` statements. Allows connecting and 
+    """ Helper class to be used in `with` statements. Allows connecting and
         disconnecting all added layers with the given data items.
     """
-    def __init__(self):
+    def __init__(self, options=None):
         self.item_list = []
+        self.options = options or {}
 
     def add(self, connector, coverage, data_items, layer):
         self.item_list.append(
@@ -222,13 +215,12 @@ class ConnectorSession(object):
     def __enter__(self):
         for connector, coverage, layer, data_items in self.item_list:
             if connector:
-                connector.connect(coverage, data_items, layer)
+                connector.connect(coverage, data_items, layer, self.options)
 
     def __exit__(self, *args, **kwargs):
         for connector, coverage, layer, data_items in self.item_list:
             if connector:
-                connector.disconnect(coverage, data_items, layer)
-
+                connector.disconnect(coverage, data_items, layer, self.options)
 
     @property
     def coverage_layers(self):

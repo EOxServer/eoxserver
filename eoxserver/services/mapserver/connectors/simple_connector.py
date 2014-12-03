@@ -10,8 +10,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -31,7 +31,7 @@ from uuid import uuid4
 
 from eoxserver.core import Component, implements
 from eoxserver.backends.access import connect
-from eoxserver.contrib import vsi, vrt, mapserver, gdal
+from eoxserver.contrib import vsi, gdal
 from eoxserver.services.mapserver.interfaces import ConnectorInterface
 from eoxserver.processing.gdal.vrt import create_simple_vrt
 from eoxserver.processing.gdal import reftools
@@ -43,12 +43,12 @@ class SimpleConnector(Component):
     """ Connector for single file layers.
     """
     implements(ConnectorInterface)
-    
+
     def supports(self, data_items):
         filtered = filter(lambda d: d.semantic.startswith("bands"), data_items)
-        return len(filtered) == 1 
+        return len(filtered) == 1
 
-    def connect(self, coverage, data_items, layer):
+    def connect(self, coverage, data_items, layer, options):
         filtered = filter(lambda d: d.semantic.startswith("bands"), data_items)
         data = connect(filtered[0])
 
@@ -68,16 +68,16 @@ class SimpleConnector(Component):
             vrt_ds = create_simple_vrt(ds, vrt_path)
             size_x = ds.RasterXSize
             size_y = ds.RasterYSize
-            
+
             dx = abs(e[0] - e[2]) / size_x
-            dy = abs(e[1] - e[3]) / size_y 
-            
+            dy = abs(e[1] - e[3]) / size_y
+
             vrt_ds.SetGeoTransform([e[0], dx, 0, e[3], 0, -dy])
             vrt_ds = None
-            
+
             layer.data = vrt_path
 
-    def disconnect(self, coverage, data_items, layer):
+    def disconnect(self, coverage, data_items, layer, options):
         if layer.metadata.get("eoxs_wrap_dateline") == "true":
             vsi.remove(layer.data)
 

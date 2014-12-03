@@ -59,8 +59,8 @@ class BaseParameter(object):
         """
 
         results = self.select(decoder, decoder_class)
-        count = len(results)        
-        
+        count = len(results)
+
         locator = self.locator
         multiple = self.num not in SINGLE_VALUES
 
@@ -79,7 +79,6 @@ class BaseParameter(object):
 
         # parse the value/values, or return the defaults
         if multiple:
-            
             if count == 0 and self.num == ANY and self.default is not None:
                 return self.default
 
