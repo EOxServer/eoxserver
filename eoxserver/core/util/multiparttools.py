@@ -37,7 +37,10 @@ buffers and especially avoid any unnecessary data copying.
 
 def capitalize(header_name):
     """ Capitalize header field name. Eg., 'content-type' is capilalized to
-    'Content-Type'."""
+    'Content-Type'.
+
+    .. deprecated:: 0.4
+    """
     return "-".join([f.capitalize() for f in header_name.split("-")])
 
 # local alias to prevent conflict with local variable
@@ -46,12 +49,18 @@ __capitalize = capitalize
 
 def getMimeType(content_type):
     """ Extract MIME-type from Content-Type string and convert it to
-    lower-case."""
+    lower-case.
+
+    .. deprecated:: 0.4
+    """
     return content_type.partition(";")[0].strip().lower()
 
 
 def getMultipartBoundary(content_type):
-    """ Extract boundary string from mutipart Content-Type string."""
+    """ Extract boundary string from mutipart Content-Type string.
+
+    .. deprecated:: 0.4
+    """
 
     for opt in content_type.split(";")[1:]:
         key, _, val = opt.partition("=")
@@ -82,6 +91,8 @@ Inputs:
 Ouput:
 
  - list of strings (which can be directly passsed as a Django response content)
+
+.. deprecated:: 0.4
     """
 
     # empty multipart package
@@ -135,6 +146,7 @@ Output:
  - list of parts - each part is a tuple of the header dictionary,
    payload ``cbuffer`` offset and payload size.
 
+.. deprecated:: 0.4
     """
 
     def findBorder(offset=0):

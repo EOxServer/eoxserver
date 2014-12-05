@@ -37,6 +37,9 @@ def isoformat(dt):
     """ Formats a datetime object to an ISO string. Timezone naive datetimes are
         are treated as UTC Zulu. UTC Zulu is expressed with the proper "Z"
         ending and not with the "+00:00" offset declaration.
+
+        :param dt: the :class:`datetime.datetime` to encode
+        :returns: an encoded string
     """
     if not dt.utcoffset():
         dt = dt.replace(tzinfo=None)
@@ -49,6 +52,11 @@ def parse_iso8601(value, tzinfo=None):
         Raises a `ValueError` if a conversion was not possible. The returned
         datetime is always considered time-zone aware and defaulting to the
         given timezone `tzinfo` or UTC Zulu if none was specified.
+
+        :param value: the string value to be parsed
+        :param tzinfo: an optional tzinfo object that is used when the input
+                       string is not timezone aware
+        :returns: a :class:`datetime.datetime`
     """
 
     tzinfo = tzinfo or utc
