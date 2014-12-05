@@ -25,6 +25,8 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+""" This module contains facilities to help decoding KVP strings.
+"""
 
 from cgi import parse_qs
 
@@ -35,6 +37,17 @@ from eoxserver.core.decoders.base import BaseParameter
 
 class Parameter(BaseParameter):
     """ Parameter for KVP values.
+
+        :param key: the lookup key; defaults to the property name of the
+                    :class:`Decoder`.
+        :param type: the type to parse the raw value; by default the raw
+                     string is returned
+        :param num: defines how many times the key can be present; use any
+                    numeric value to set it to a fixed count, "*" for any
+                    number, "?" for zero or one time or "+" for one or more
+                    times
+        :param default: the default value
+        :param locator: override the locator in case of exceptions
     """
 
     key = None
@@ -54,6 +67,15 @@ class Parameter(BaseParameter):
 
 class MultiParameter(Parameter):
     """ Class for selecting different KVP parameters at once.
+
+        :param selector: a function to determine if a key is used for the multi
+                         parameter selection
+        :param num: defines how many times the key can be present; use any
+                    numeric value to set it to a fixed count, "*" for any
+                    number, "?" for zero or one time or "+" for one or more
+                    times
+        :param default: the default value
+        :param locator: override the locator in case of exceptions
     """
 
     def __init__(self, selector, num=1, default=None, locator=None):
@@ -86,7 +108,34 @@ class DecoderMetaclass(type):
 
 class Decoder(object):
     """ Base class for KVP decoders.
+
+    :param params: an instance of either :class:`dict`,
+                   :class:`django.http.QueryDict` or :class:`basestring` (which
+                   will be parsed using :func:`cgi.parse_qs`)
+
+    Decoders should be used as such:
+    ::
+        from eoxserver.core.decoders import kvp
+        from eoxserver.core.decoders import typelist
+
+        class ExampleDecoder(kvp.Decoder):
+            mandatory_param = kvp.Parameter(num=1)
+            list_param = kvp.Parameter(type=typelist(separator=","))
+            multiple_param = kvp.Parameter("multi", num="+")
+            optional_param = kvp.Parameter(num="?", default="default_value")
+
+        decoder = ExampleDecoder(
+            "mandatory_param=value"
+            "&list_param=a,b,c"
+            "&multi=a&multi=b&multi=c"
+        )
+
+        print decoder.mandatory_param
+        print decoder.list_param
+        print decoder.multiple_param
+        print decoder.optional_param
     """
+
     __metaclass__ = DecoderMetaclass
 
     def __init__(self, params):

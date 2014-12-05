@@ -25,8 +25,12 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+""" This module provides base functionality for any other decoder class.
+"""
+
+
 from eoxserver.core.decoders import (
-    ZERO_OR_ONE, ONE_OR_MORE, ANY, SINGLE_VALUES, WrongMultiplicityException, 
+    ZERO_OR_ONE, ONE_OR_MORE, ANY, SINGLE_VALUES, WrongMultiplicityException,
     InvalidParameterException, MissingParameterException,
     MissingParameterMultipleException
 )
@@ -41,17 +45,14 @@ class BaseParameter(object):
         self.num = num
         self.default = default
 
-
     def select(self, decoder, decoder_class=None):
         """ Interface method.
         """
         raise NotImplementedError
 
-
     @property
     def locator(self):
         return ""
-
 
     def __get__(self, decoder, decoder_class=None):
         """ Property getter function.
