@@ -52,6 +52,14 @@ eoxserver.resources.coverages.management.commands.eoxs_dataset_register module
     :undoc-members:
     :show-inheritance:
 
+eoxserver.resources.coverages.management.commands.eoxs_dataset_register_batch module
+------------------------------------------------------------------------------------
+
+.. automodule:: eoxserver.resources.coverages.management.commands.eoxs_dataset_register_batch
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 eoxserver.resources.coverages.management.commands.eoxs_id_check module
 ----------------------------------------------------------------------
 

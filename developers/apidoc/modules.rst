@@ -1,5 +1,5 @@
-eoxserver
-=========
+EOxServer Source Tree
+=====================
 
 .. toctree::
    :maxdepth: 4

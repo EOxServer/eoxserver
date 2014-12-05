@@ -62,7 +62,7 @@ on the *User* side.
    soap_proxy
    handling_coverages
    atp_dev_guide
-   modules
+   apidoc/modules
    testing
 
 .. TODO

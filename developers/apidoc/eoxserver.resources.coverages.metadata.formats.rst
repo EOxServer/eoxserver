@@ -36,6 +36,14 @@ eoxserver.resources.coverages.metadata.formats.gdal_dataset_envisat module
     :undoc-members:
     :show-inheritance:
 
+eoxserver.resources.coverages.metadata.formats.inspire module
+-------------------------------------------------------------
+
+.. automodule:: eoxserver.resources.coverages.metadata.formats.inspire
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 eoxserver.resources.coverages.metadata.formats.native module
 ------------------------------------------------------------
 

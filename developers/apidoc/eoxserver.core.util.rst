@@ -44,6 +44,14 @@ eoxserver.core.util.multiparttools module
     :undoc-members:
     :show-inheritance:
 
+eoxserver.core.util.perftools module
+------------------------------------
+
+.. automodule:: eoxserver.core.util.perftools
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 eoxserver.core.util.rect module
 -------------------------------
 

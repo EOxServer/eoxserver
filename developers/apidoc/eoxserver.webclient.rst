@@ -4,6 +4,30 @@ eoxserver.webclient package
 Submodules
 ----------
 
+eoxserver.webclient.admin module
+--------------------------------
+
+.. automodule:: eoxserver.webclient.admin
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+eoxserver.webclient.models module
+---------------------------------
+
+.. automodule:: eoxserver.webclient.models
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+eoxserver.webclient.urls module
+-------------------------------
+
+.. automodule:: eoxserver.webclient.urls
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 eoxserver.webclient.views module
 --------------------------------
 
