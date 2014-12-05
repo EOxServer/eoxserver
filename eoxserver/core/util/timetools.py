@@ -35,7 +35,7 @@ from django.utils.dateparse import parse_datetime, parse_date
 
 def isoformat(dt):
     """ Formats a datetime object to an ISO string. Timezone naive datetimes are
-        are treated as UTC Zulu. UTC Zulu is expressed with the proper "Z" 
+        are treated as UTC Zulu. UTC Zulu is expressed with the proper "Z"
         ending and not with the "+00:00" offset declaration.
     """
     if not dt.utcoffset():
@@ -46,8 +46,8 @@ def isoformat(dt):
 
 def parse_iso8601(value, tzinfo=None):
     """ Parses an ISO 8601 date or datetime string to a python date or datetime.
-        Raises a `ValueError` if a conversion was not possible. The returned 
-        datetime is always considered time-zone aware and defaulting to the 
+        Raises a `ValueError` if a conversion was not possible. The returned
+        datetime is always considered time-zone aware and defaulting to the
         given timezone `tzinfo` or UTC Zulu if none was specified.
     """
 
@@ -68,7 +68,7 @@ def parse_iso8601(value, tzinfo=None):
             # use UTC, if the datetime is not already time-zone aware
             if not is_aware(temporal):
                 temporal = make_aware(temporal, tzinfo)
-            
+
             return temporal
 
     raise ValueError("Could not parse '%s' to a temporal value" % value)
@@ -84,11 +84,12 @@ RE_ISO_8601 = re.compile(
     r"(?:(?P<seconds>\d+(\.\d+)?)S)?$"
 )
 
+
 def parse_duration(value):
-    """ Parses an ISO 8601 duration string into a python timedelta object. 
+    """ Parses an ISO 8601 duration string into a python timedelta object.
         Raises a `ValueError` if a conversion was not possible.
     """
-    
+
     match = RE_ISO_8601.match(value)
     if not match:
         raise ValueError(
@@ -98,11 +99,10 @@ def parse_duration(value):
 
     sign = -1 if "-" == match['sign'] else 1
     days = float(match['days'] or 0)
-    days += float(match['months'] or 0) * 30 #?!
-    days += float(match['years'] or 0) * 365 #?!
+    days += float(match['months'] or 0) * 30  # ?!
+    days += float(match['years'] or 0) * 365  # ?!
     fsec = float(match['seconds'] or 0)
     fsec += float(match['minutes'] or 0) * 60
     fsec += float(match['hours'] or 0) * 3600
 
     return sign * timedelta(days, fsec)
-

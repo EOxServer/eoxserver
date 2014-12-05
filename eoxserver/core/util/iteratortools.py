@@ -25,6 +25,9 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+""" This module is an extension of the :mod:`iteratortools` module and provides
+additional helpers.
+"""
 
 from itertools import izip, tee
 
