@@ -11,8 +11,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -32,7 +32,7 @@ from django.contrib.gis.db import models
 
 
 class Castable(models.Model):
-    """ Model mix-in for 'castable' types. With this MixIn, type information and 
+    """ Model mix-in for 'castable' types. With this MixIn, type information and
         completed models can be retrieved.
     """
 
@@ -44,7 +44,6 @@ class Castable(models.Model):
 
         return self.type_registry[self.real_content_type]
 
-        
     def __init__(self, *args, **kwargs):
         super(Castable, self).__init__(*args, **kwargs)
         if not self.id:
@@ -53,10 +52,9 @@ class Castable(models.Model):
                     self.real_content_type = type_id
                     break
 
-
     def cast(self, refresh=False):
-        """'Cast' the model to its actual type, if it is not already. This 
-        invokes a database lookup if the real type is not the same as the type 
+        """'Cast' the model to its actual type, if it is not already. This
+        invokes a database lookup if the real type is not the same as the type
         of the current model.
         """
 
@@ -66,7 +64,6 @@ class Castable(models.Model):
             return self
 
         return self.real_type.objects.get(pk=self.pk)
-
 
     class Meta:
         abstract = True
