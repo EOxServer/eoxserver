@@ -47,6 +47,7 @@ guide with the ``pylint`` or ``pep8`` command line utilities.
 
 Then:
 ::
+
     >>> import this
     The Zen of Python, by Tim Peters
 
@@ -78,6 +79,7 @@ Use Python package structures to enable hierarchical namespaces. Do not encode
 the namespace in function or class names.
 
 E.g: don't do this:
+::
 
     # somemodule.py
 

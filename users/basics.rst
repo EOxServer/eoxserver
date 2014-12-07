@@ -100,9 +100,9 @@ EOxServer Documentation
 
 The EOxServer documentation consists of the
 
-* :doc:`/en/users/index` (which this document is part of)
-* :doc:`/en/developers/index` (where you can find implementation details)
-* :doc:`/en/rfc/index` (where you can find high-level design documentation)
+* :doc:`/users/index` (which this document is part of)
+* :doc:`/developers/index` (where you can find implementation details)
+* :doc:`/rfc/index` (where you can find high-level design documentation)
 
 Furthermore, you can consult the inline documentation in the source code
 e.g. in the `Source Browser <https://github.com/EOxServer/eoxserver>`_.

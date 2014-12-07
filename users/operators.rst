@@ -888,5 +888,5 @@ Regarding the performance of the services there are many influence factors:
   more expensive than processing rectified grid coverages)
 * the setup of IDM components (if any)
 
-For hints on improving performance of the services see :ref:`install_hw`,
-:ref:`ops_data` and :ref:`webclient_mapcache`.
+For hints on improving performance of the services see 
+:ref:`hardware_guidelines`, :ref:`ops_data` and :ref:`webclient_mapcache`.

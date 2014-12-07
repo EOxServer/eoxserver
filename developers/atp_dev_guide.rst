@@ -52,7 +52,7 @@ consumer is part of Asynchronous Task Processing Daemon.
 An overview of the ATP capabilities is presented in ":ref:`atp_sum`". The
 database model used in by the ATP subsystem is described in ":ref:`ATP Data
 Model`". The complete API reference can be found in
-":ref:`module_resources_processes_tracker`".
+":mod:`eoxserver.resources.processes.tracker`".
 
 Simple ATP Application
 ----------------------

@@ -70,7 +70,7 @@ or from the projects release page:
     cd autotest
 
 If you just want to run the tests with the default settings you should be fine 
-now and :ref:`can start testing <run-tests>`. If you want to run the instance, 
+now and :ref:`can start testing <run_tests>`. If you want to run the instance, 
 you have create the database first:
 ::
 
@@ -122,7 +122,7 @@ The autotest instance can be deployed :ref:`like any other EOxServer instance
     python manage.py runserver 0.0.0.0:8000
 
 
-:: _run-tests:
+.. _run_tests:
 
 Run tests
 ---------

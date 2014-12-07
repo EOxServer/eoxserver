@@ -282,7 +282,7 @@ parameters that are available with GetCoverage requests.
     | → geotiff:tileheight [3]_ | Defines the height of the internal tiles. Must be an      | 128                              | O                              |
     |                           | integer and a multiple of 16.                             |                                  |                                |
     +---------------------------+-----------------------------------------------------------+----------------------------------+--------------------------------+
-\
+
 
 .. [1]  Version, acceptVersions: Support for EO-WCS is available only together 
         with WCS version 2.0.1.

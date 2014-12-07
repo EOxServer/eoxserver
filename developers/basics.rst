@@ -37,8 +37,8 @@ Basics
     :depth: 3
     :backlinks: top
 
-The basic design of EOxServer has been proposed in :doc:`/en/rfc/rfc1` and
-:doc:`/en/rfc/rfc2`. Both are worth reading, although some of the concepts
+The basic design of EOxServer has been proposed in :doc:`/rfc/rfc1` and
+:doc:`/rfc/rfc2`. Both are worth reading, although some of the concepts
 mentioned there have not (yet) been fully implemented.
 
 This is a short description of the basic elements of the EOxServer software
@@ -53,7 +53,7 @@ of the Python code, but in this section we present the building blocks used
 for EOxServer.
 
 For further information on the dependencies please refer to the
-:doc:`/en/users/install` document in the :doc:`/en/users/index`.
+:doc:`/users/install` document in the :doc:`/users/index`.
 
 Django
 ~~~~~~

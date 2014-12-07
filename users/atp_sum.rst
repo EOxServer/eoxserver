@@ -257,4 +257,4 @@ The database model used in the ATP subsystem is described in the :ref:`ATP
 Data Model` section. The developers' guide, helping with the creation of ATP 
 based applications, can be found in the :ref:`atp_dev_guide` section.  The 
 complete API reference can be found in 
-:ref:`module_resources_processes_tracker`.
+:mod:`eoxserver.resources.processes.tracker`.
