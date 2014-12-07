@@ -84,7 +84,7 @@ class MultiParameter(Parameter):
         )
         self.key = selector
 
-    def select(self, decoder, decoder_class=None):
+    def select(self, decoder):
         result = []
         for key, values in decoder._query_dict.items():
             if self.key(key):

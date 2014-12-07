@@ -59,7 +59,7 @@ class BaseParameter(property):
         """ Property getter function.
         """
 
-        results = self.select(decoder, decoder_class)
+        results = self.select(decoder)
         count = len(results)
 
         locator = self.locator
