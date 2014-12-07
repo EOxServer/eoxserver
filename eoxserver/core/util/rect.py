@@ -70,7 +70,7 @@ class Rect(tuple):
     area = property(lambda self: self.size_x * self.size_y)
 
     def envelope(self, other):
-        """ Returns the envelope of two :class:`Rect`s, i.e., a smallest
+        """ Returns the envelope of two :class:`Rect`, i.e., a smallest
             rectange contaning the input rectangles.
         """
         return Rect(
@@ -83,7 +83,7 @@ class Rect(tuple):
     __or__ = envelope
 
     def intersection(self, other):
-        """ Returns the intersection of two :class:`Rect`s, i.e.,
+        """ Returns the intersection of two :class:`Rect`, i.e.,
             a largest common rectanle contained by the input rectangles.
         """
 
@@ -97,7 +97,7 @@ class Rect(tuple):
     __and__ = intersection
 
     def intersects(self, other):
-        """ Tests whether two :class:`Rect`s overlap (True) or not (False).
+        """ Tests whether two :class:`Rect` overlap (True) or not (False).
         """
         return self.intersection(other).area > 0
 

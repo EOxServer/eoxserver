@@ -36,12 +36,12 @@ from eoxserver.services.ows.common.v20.encoders import OWS20ExceptionXMLEncoder
 
 
 class PDPMiddleware(object):
-    """ Middleware to allow authorization agains a Policy Decision Point. This 
+    """ Middleware to allow authorization agains a Policy Decision Point. This
         middleware will be used for *all* requests and *all* configured views.
         If you only want to provide PDP authorization for a single view, use the
         `pdp_protect`.
     """
-    
+
     def process_view(self, request, view_func, view_args, view_kwargs):
         pdp = getPDP()
         if pdp:
@@ -66,9 +66,10 @@ class PDPMiddleware(object):
 
 def pdp_protect(view):
     """ Wrapper function for views that shall be protected by PDP authorization.
-        This function can be used as a decorator of a view function, or as a 
+        This function can be used as a decorator of a view function, or as a
         modifier to be used in the url configuration file.
-        e.g: 
+        e.g:
+        ::
 
             urlpatterns = patterns('',
                 ...

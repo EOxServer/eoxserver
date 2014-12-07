@@ -414,17 +414,17 @@ def get_footprint_wkt(ds, method=METHOD_GCP, order=0):
         - TPS and TPS_LSQ (order of augmenting polynomial)
            -1  for no-polynomial augmentation
             0  for 0th order (constant offset)
-            1, 2, and 3  for 1st, 2nd and 3rd polynomial order
+            1, 2, and 3 for 1st, 2nd and 3rd polynomial order
 
         General guide:
 
-            method TPS, order 3  should work in most cases
-            method TPS_LSQ, order 3  shoudl work in cases
-                of an excessive number of tiepoints but
-                it may become wobbly for small number
-                of tiepoints
+            method TPS, order 3 should work in most cases
+            method TPS_LSQ, order 3 should work in cases
+            of an excessive number of tiepoints but
+            it may become wobbly for small number
+            of tiepoints
 
-           The global polynomoal (GCP) interpolation does not work
+           The global polynomial (GCP) interpolation does not work
            well for images covering large geographic areas (e.g.,
            ENVISAT ASAR and MERIS).
 

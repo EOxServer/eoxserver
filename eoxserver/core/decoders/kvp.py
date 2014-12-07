@@ -39,7 +39,7 @@ class Parameter(BaseParameter):
     """ Parameter for KVP values.
 
         :param key: the lookup key; defaults to the property name of the
-                    :class:`Decoder`.
+                    :class:`Decoder`
         :param type: the type to parse the raw value; by default the raw
                      string is returned
         :param num: defines how many times the key can be present; use any
@@ -115,6 +115,7 @@ class Decoder(object):
 
     Decoders should be used as such:
     ::
+
         from eoxserver.core.decoders import kvp
         from eoxserver.core.decoders import typelist
 

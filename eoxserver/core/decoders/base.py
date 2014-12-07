@@ -36,16 +36,17 @@ from eoxserver.core.decoders import (
 )
 
 
-class BaseParameter(object):
+class BaseParameter(property):
     """ Abstract base class for XML, KVP or any other kind of parameter.
     """
 
     def __init__(self, type=None, num=1, default=None):
+        super(BaseParameter, self).__init__(self.fget)
         self.type = type or str
         self.num = num
         self.default = default
 
-    def select(self, decoder, decoder_class=None):
+    def select(self, decoder):
         """ Interface method.
         """
         raise NotImplementedError
@@ -54,7 +55,7 @@ class BaseParameter(object):
     def locator(self):
         return ""
 
-    def __get__(self, decoder, decoder_class=None):
+    def fget(self, decoder):
         """ Property getter function.
         """
 

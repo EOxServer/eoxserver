@@ -27,36 +27,36 @@
 #-------------------------------------------------------------------------------
 
 import os.path
-from StringIO import StringIO
 
 from lxml import etree
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
 
+
 class EOOMSchema(object):
-    # TODO: Change to online schema once available. 
-    # Alternatively add configuration parameter to eoxserver.conf
-    SCHEMA_LOCATION = os.path.join(settings.PROJECT_DIR, "..", "schemas", "omeo", "eop.xsd")
     schema = None
-    
+
     @classmethod
     def getSchema(cls):
         if cls.schema is None:
-            f = open(cls.SCHEMA_LOCATION)
-            cls.schema = etree.XMLSchema(etree.parse(f))
-            f.close()
-        
+            location = os.path.join(
+                settings.PROJECT_DIR, "..", "schemas", "omeo", "eop.xsd"
+            )
+            with open(location) as f:
+                cls.schema = etree.XMLSchema(etree.parse(f))
+
         return cls.schema
-        
+
+
 def validateEOOM(xml):
     schema = EOOMSchema.getSchema()
-    
+
     try:
         schema.assertValid(etree.fromstring(xml))
     except etree.Error as e:
         raise ValidationError(str(e))
-    
+
 #TODO:
 #def validateEOMetadata(...):
 #    """
@@ -78,14 +78,17 @@ def validateEOOM(xml):
 #                if not self.footprint.equals_exact(GEOSGeometry(md_int.getFootprint()), EPSILON * max(self.footprint.extent)): # compare the footprints with a tolerance in order to account for rounding and string conversion errors
 #                    raise ValidationError("EO GML footprint does not match.")
 
+
 def validateCoverageIDnotInEOOM(coverageID, xml):
     if xml is None or len(xml) == 0:
         return
-    
+
     tree = etree.fromstring(xml.encode("ascii"))
-    element = tree.find(".//*[@{http://www.opengis.net/gml/3.2}id='%s']" % coverageID)
-    
+    element = tree.find(
+        ".//*[@{http://www.opengis.net/gml/3.2}id='%s']" % coverageID
+    )
+
     if element is not None:
         raise ValidationError("The XML element '%s' contains a gml:id "
-                              "which is equal to the coverage ID '%s'." % 
+                              "which is equal to the coverage ID '%s'." %
                               (element.tag, coverageID))

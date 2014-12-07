@@ -139,12 +139,13 @@ class EOMetadata(models.Model):
     begin_time = models.DateTimeField(null=True, blank=True)
     end_time = models.DateTimeField(null=True, blank=True)
     footprint = models.MultiPolygonField(null=True, blank=True)
-    
-    objects = models.GeoManager()
+
+    #objects = models.GeoManager()
 
     @property
     def extent_wgs84(self):
-        if self.footprint is None: return None
+        if self.footprint is None:
+            return None
         return self.footprint.extent
 
     @property
@@ -223,7 +224,7 @@ class EOObject(base.Castable, EOMetadata):
 
 class ReservedIDManager(models.Manager):
     """ Model manager for `ReservedID` models for easier handling. Returns only
-        `QuerySet`s that contain valid reservations.
+        `QuerySets` that contain valid reservations.
     """
     def get_original_queryset(self):
         return super(ReservedIDManager, self).get_queryset()

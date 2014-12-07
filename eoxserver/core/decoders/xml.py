@@ -47,7 +47,7 @@ class Parameter(BaseParameter):
                     times
         :param default: the default value
         :param namespaces: any namespace necessary for the XPath expression;
-                           defaults to the :class:`Decoder`s namespaces.
+                           defaults to the :class:`Decoder` namespaces.
         :param locator: override the locator in case of exceptions
     """
 
@@ -58,10 +58,10 @@ class Parameter(BaseParameter):
         self.namespaces = namespaces
         self._locator = locator
 
-    def select(self, decoder, decoder_class=None):
+    def select(self, decoder):
         # prepare the XPath selector if necessary
         if isinstance(self.selector, basestring):
-            namespaces = self.namespaces or decoder_class.namespaces
+            namespaces = self.namespaces or decoder.namespaces
             self.selector = etree.XPath(self.selector, namespaces=namespaces)
 
         results = self.selector(decoder._tree)
@@ -84,6 +84,7 @@ class Decoder(object):
 
     Decoders should be used as such:
     ::
+
         from eoxserver.core.decoders import xml
         from eoxserver.core.decoders import typelist
 

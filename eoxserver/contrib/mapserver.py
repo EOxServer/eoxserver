@@ -31,7 +31,25 @@ from cgi import escape
 import tempfile
 import os
 
-from mapscript import *
+try:
+    from mapscript import *
+except ImportError:
+    # defaults for document generation
+    if os.environ.get('READTHEDOCS', None) == 'True':
+        class mapObj: pass
+        class layerObj: pass
+        class classObj: pass
+        class styleObj: pass
+        class shapeObj: pass
+        class colorObj: pass
+        MS_LAYER_RASTER = 0
+        MS_LAYER_POLYGON = 1
+        MS_GET_REQUEST = 0
+    else:
+        raise
+else:
+    msversion = msGetVersionInt()
+
 from lxml import etree
 
 from eoxserver.core.util.multiparttools import iterate
@@ -39,7 +57,7 @@ from eoxserver.contrib import gdal
 
 
 logger = logging.getLogger(__name__)
-msversion = msGetVersionInt()
+
 
 class MapServerException(Exception):
     def __init__(self, message, locator, code=None):

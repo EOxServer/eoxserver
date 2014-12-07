@@ -27,7 +27,11 @@
 
 import logging
 
-from eoxserver.contrib.mapserver import MS_VERSION_NUM
+try:
+    from eoxserver.contrib.mapserver import MS_VERSION_NUM
+except ImportError:
+    MS_VERSION_NUM = 0
+
 from eoxserver.core import Component, implements
 from eoxserver.backends.access import connect
 from eoxserver.services.mapserver.interfaces import StyleApplicatorInterface

@@ -46,7 +46,7 @@ def section(name):
     locals_["section"] = name
 
 
-class Option(object):
+class Option(property):
     """ The :class:`Option` is used as a :class:`property` for :class:`Reader`
         subclasses.
 
@@ -65,6 +65,8 @@ class Option(object):
     def __init__(self, key=None, type=None, separator=None, required=False,
                  default=None, section=None):
 
+        super(Option, self).__init__(self.fget)
+
         self.key = key  # needs to be set by the reader metaclass
         self.type = type
         self.separator = separator
@@ -77,7 +79,7 @@ class Option(object):
 
         self.section = section
 
-    def __get__(self, reader, objtype=None):
+    def fget(self, reader):
         section = self.section or reader.section
         try:
             if self.type is bool:
@@ -121,6 +123,7 @@ class Reader(object):
 
     Readers should be used as such:
     ::
+
         from ConfigParser import RawConfigParser
         from StringIO import StringIO
         from textwrap import dedent

@@ -57,15 +57,9 @@ class Type( models.Model ) :
         DB fields: 
             identifier   - process class ID; 
             handler      - python dot path to handler function;
-            timeout      - time in second after which the unfinished process is 
-                           considered to be abandoned and it is restarted 
-                           (number of restarts is limited by maxstart, default timeout is 3600 s);
-            timeret      - retention time - period of time to keep finished processes
-                           in case of zero or negative value the results will be kept forever 
-                           (default is -1);
-            maxstart     - max. number of attempt to execute the task (first run and possible restarts)
-                           When the number of (re)starts is exceeded the task is marked as failed 
-                           and rejected from further processing. (default is 3).
+            timeout      - time in second after which the unfinished process is considered to be abandoned and it is restarted (number of restarts is limited by maxstart, default timeout is 3600 s);
+            timeret      - retention time - period of time to keep finished processes in case of zero or negative value the results will be kept forever (default is -1);
+            maxstart     - max. number of attempt to execute the task (first run and possible restarts) When the number of (re)starts is exceeded the task is marked as failed and rejected from further processing. (default is 3).
 
     """
     identifier = models.CharField( max_length=64   , unique=True , blank=False , null=False, editable = False )
