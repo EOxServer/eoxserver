@@ -8,7 +8,6 @@ Subpackages
 
     eoxserver.core.commands
     eoxserver.core.decoders
-    eoxserver.core.migrations
     eoxserver.core.util
 
 Submodules

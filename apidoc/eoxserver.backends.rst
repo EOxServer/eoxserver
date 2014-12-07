@@ -6,7 +6,6 @@ Subpackages
 
 .. toctree::
 
-    eoxserver.backends.migrations
     eoxserver.backends.packages
     eoxserver.backends.storages
 

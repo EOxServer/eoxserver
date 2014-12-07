@@ -65,6 +65,7 @@ written in English.
    developers/index
    rfc/index
    release_notes/index
+   apidoc/modules
    copyright
    credits
 

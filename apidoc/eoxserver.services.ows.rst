@@ -8,7 +8,6 @@ Subpackages
 
     eoxserver.services.ows.common
     eoxserver.services.ows.wcs
-    eoxserver.services.ows.wcst
     eoxserver.services.ows.wms
     eoxserver.services.ows.wps
 
@@ -43,14 +42,6 @@ eoxserver.services.ows.version module
 -------------------------------------
 
 .. automodule:: eoxserver.services.ows.version
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-eoxserver.services.ows.wcs11Transaction module
-----------------------------------------------
-
-.. automodule:: eoxserver.services.ows.wcs11Transaction
     :members:
     :undoc-members:
     :show-inheritance:

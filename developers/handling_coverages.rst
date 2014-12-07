@@ -35,6 +35,26 @@
 Handling Coverages
 ==================
 
+This document will explain the basic principles of handling the most important
+EOxServer data models: coverages. The layout of the data models is explained in
+its `own chapter <Data Model Overview>`_.
+
+Since all data models in EOxServer are based upon the
+:class:`django.db.models.Model` class all associated documentation is also 
+applicable to all EOxServer models. Highly recommendable is also the `Django 
+QuerySet documentation <https://docs.djangoproject.com/en/dev/ref/models/querysets/>`_,
+
+
+Creating Coverages
+------------------
+
+As we allready mentioned, coverages are basically Django models and are also
+created as such.
+
+
+
+
+
 Creating coverages
 ------------------
 

@@ -12,22 +12,6 @@ Subpackages
 Submodules
 ----------
 
-eoxserver.processing.celery module
-----------------------------------
-
-.. automodule:: eoxserver.processing.celery
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-eoxserver.processing.coverage module
-------------------------------------
-
-.. automodule:: eoxserver.processing.coverage
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 eoxserver.processing.interfaces module
 --------------------------------------
 

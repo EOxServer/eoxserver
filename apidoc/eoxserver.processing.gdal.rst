@@ -4,14 +4,6 @@ eoxserver.processing.gdal package
 Submodules
 ----------
 
-eoxserver.processing.gdal.decoder module
-----------------------------------------
-
-.. automodule:: eoxserver.processing.gdal.decoder
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 eoxserver.processing.gdal.reftools module
 -----------------------------------------
 

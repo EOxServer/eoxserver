@@ -8,7 +8,6 @@ Subpackages
 
     eoxserver.resources.coverages.management
     eoxserver.resources.coverages.metadata
-    eoxserver.resources.coverages.migrations
 
 Submodules
 ----------
