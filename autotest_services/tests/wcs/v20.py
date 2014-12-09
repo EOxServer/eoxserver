@@ -80,6 +80,63 @@ class WCSVersionNegotiationFaultTestCase(testbase.ExceptionTestCase):
     def getExpectedExceptionCode(self):
         return "VersionNegotiationFailed"
 
+class WCS20GetCapabilitiesSectionsAllTestCase(testbase.XMLTestCase):
+    """This test shall retrieve a valid WCS 2.0 EO-AP (EO-WCS) GetCapabilities
+    response including all sections"""
+
+    def getRequest(self):
+        params = "service=WCS&version=2.0.1&request=GetCapabilities&sections=All"
+        return (params, "kvp")
+
+class WCS20GetCapabilitiesSectionsAll2TestCase(testbase.XMLTestCase):
+    """This test shall retrieve a valid WCS 2.0 EO-AP (EO-WCS) GetCapabilities
+    response including all sections"""
+
+    def getRequest(self):
+        params = "service=WCS&version=2.0.1&request=GetCapabilities&sections=ServiceIdentification,ServiceProvider,OperationsMetadata,ServiceMetadata,Contents"
+        return (params, "kvp")
+
+class WCS20GetCapabilitiesSectionsAll3TestCase(testbase.XMLTestCase):
+    """This test shall retrieve a valid WCS 2.0 EO-AP (EO-WCS) GetCapabilities
+    response including all sections"""
+
+    def getRequest(self):
+        params = "service=WCS&version=2.0.1&request=GetCapabilities&sections=ServiceIdentification,ServiceProvider,OperationsMetadata,ServiceMetadata,CoverageSummary,DatasetSeriesSummary"
+        return (params, "kvp")
+
+class WCS20GetCapabilitiesSectionsServiceIdentificationTestCase(testbase.XMLTestCase):
+    """This test shall retrieve a valid WCS 2.0 EO-AP (EO-WCS) GetCapabilities
+    response including all sections"""
+
+    def getRequest(self):
+        params = "service=WCS&version=2.0.1&request=GetCapabilities&sections=ServiceIdentification"
+        return (params, "kvp")
+
+class WCS20GetCapabilitiesSectionsContentsTestCase(testbase.XMLTestCase):
+    """This test shall retrieve a valid WCS 2.0 EO-AP (EO-WCS) GetCapabilities
+    response including all sections"""
+
+    def getRequest(self):
+        params = "service=WCS&version=2.0.1&request=GetCapabilities&sections=Contents"
+        return (params, "kvp")
+
+
+class WCS20GetCapabilitiesSectionsCoverageSummaryTestCase(testbase.XMLTestCase):
+    """This test shall retrieve a valid WCS 2.0 EO-AP (EO-WCS) GetCapabilities
+    response including all sections"""
+
+    def getRequest(self):
+        params = "service=WCS&version=2.0.1&request=GetCapabilities&sections=CoverageSummary"
+        return (params, "kvp")
+
+class WCS20GetCapabilitiesSectionsDatasetSeriesSummaryTestCase(testbase.XMLTestCase):
+    """This test shall retrieve a valid WCS 2.0 EO-AP (EO-WCS) GetCapabilities
+    response including all sections"""
+
+    def getRequest(self):
+        params = "service=WCS&version=2.0.1&request=GetCapabilities&sections=DatasetSeriesSummary"
+        return (params, "kvp")
+
 #===============================================================================
 # WCS 2.0 DescribeCoverage
 #===============================================================================

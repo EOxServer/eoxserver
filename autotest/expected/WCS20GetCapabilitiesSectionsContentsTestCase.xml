@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<wcs:Capabilities xmlns:crs="http://www.opengis.net/wcs/crs/1.0" xmlns:wcs="http://www.opengis.net/wcs/2.0" xmlns:scal="http://www.opengis.net/wcs/scaling/1.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:rsub="http://www.opengis.net/wcs/range-subsetting/1.0" xmlns:swe="http://www.opengis.net/swe/2.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:int="http://www.opengis.net/wcs/interpolation/1.0" xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:ows="http://www.opengis.net/ows/2.0" xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0" xmlns:wcseo="http://www.opengis.net/wcs/wcseo/1.0" xmlns:om="http://www.opengis.net/om/2.0" xmlns:ogc="http://www.opengis.net/ogc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" updateSequence="20131219T132000Z" version="2.0.1" xsi:schemaLocation="http://www.opengis.net/ows/2.0 http://schemas.opengis.net/ows/2.0/owsAll.xsd http://www.opengis.net/wcs/wcseo/1.0 http://schemas.opengis.net/wcs/wcseo/1.0/wcsEOAll.xsd">
+  <wcs:Contents>
+    <wcs:CoverageSummary>
+      <wcs:CoverageId>ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775</wcs:CoverageId>
+      <wcs:CoverageSubtype>ReferenceableDataset</wcs:CoverageSubtype>
+    </wcs:CoverageSummary>
+    <wcs:CoverageSummary>
+      <wcs:CoverageId>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</wcs:CoverageId>
+      <wcs:CoverageSubtype>RectifiedDataset</wcs:CoverageSubtype>
+    </wcs:CoverageSummary>
+    <wcs:CoverageSummary>
+      <wcs:CoverageId>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</wcs:CoverageId>
+      <wcs:CoverageSubtype>RectifiedDataset</wcs:CoverageSubtype>
+    </wcs:CoverageSummary>
+    <wcs:CoverageSummary>
+      <wcs:CoverageId>mosaic_MER_FRS_1P_reduced_RGB</wcs:CoverageId>
+      <wcs:CoverageSubtype>RectifiedStitchedMosaic</wcs:CoverageSubtype>
+    </wcs:CoverageSummary>
+    <wcs:Extension>
+      <wcseo:DatasetSeriesSummary>
+        <ows:WGS84BoundingBox>
+          <ows:LowerCorner>32.264541 -3.437981</ows:LowerCorner>
+          <ows:UpperCorner>46.218445 27.968591</ows:UpperCorner>
+        </ows:WGS84BoundingBox>
+        <wcseo:DatasetSeriesId>MER_FRS_1P_reduced</wcseo:DatasetSeriesId>
+        <gml:TimePeriod gml:id="MER_FRS_1P_reduced_timeperiod">
+          <gml:beginPosition>2006-08-16T09:09:29Z</gml:beginPosition>
+          <gml:endPosition>2006-08-30T10:13:06Z</gml:endPosition>
+        </gml:TimePeriod>
+      </wcseo:DatasetSeriesSummary>
+      <wcseo:DatasetSeriesSummary>
+        <ows:WGS84BoundingBox>
+          <ows:LowerCorner>32.264541 -3.437981</ows:LowerCorner>
+          <ows:UpperCorner>46.218445 27.968591</ows:UpperCorner>
+        </ows:WGS84BoundingBox>
+        <wcseo:DatasetSeriesId>MER_FRS_1P_reduced_RGB</wcseo:DatasetSeriesId>
+        <gml:TimePeriod gml:id="MER_FRS_1P_reduced_RGB_timeperiod">
+          <gml:beginPosition>2006-08-16T09:09:29Z</gml:beginPosition>
+          <gml:endPosition>2006-08-30T10:13:06Z</gml:endPosition>
+        </gml:TimePeriod>
+      </wcseo:DatasetSeriesSummary>
+    </wcs:Extension>
+  </wcs:Contents>
+</wcs:Capabilities>
