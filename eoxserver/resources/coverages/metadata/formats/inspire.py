@@ -65,7 +65,7 @@ class InspireFormatReader(Component):
 
 
 def parse_line_string(string):
-    raw_coords = map(float, string.strip().split(" "))
+    raw_coords = map(float, string.strip().split())
     return MultiPolygon(
         Polygon([(lon, lat) for lat, lon in pairwise(raw_coords)])
     )
