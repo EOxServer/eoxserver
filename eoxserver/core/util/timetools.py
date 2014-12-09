@@ -30,7 +30,14 @@ import re
 from datetime import datetime, timedelta
 
 from django.utils.timezone import utc, make_aware, is_aware
-from django.utils.dateparse import parse_datetime, parse_date
+#from django.utils.dateparse import parse_datetime, parse_date
+
+try:
+    from dateutil.parser import parse
+    HAVE_DATEUTIL = True
+except ImportError:
+    from django.utils.dateparse import parse_datetime, parse_date
+    HAVE_DATEUTIL = False
 
 
 def isoformat(dt):
@@ -53,6 +60,9 @@ def parse_iso8601(value, tzinfo=None):
         datetime is always considered time-zone aware and defaulting to the
         given timezone `tzinfo` or UTC Zulu if none was specified.
 
+        If the optional module :mod:`dateutil` is installed, it is used in
+        preference over the :mod:`dateparse <django.utils.dateparse>` functions.
+
         :param value: the string value to be parsed
         :param tzinfo: an optional tzinfo object that is used when the input
                        string is not timezone aware
@@ -60,7 +70,8 @@ def parse_iso8601(value, tzinfo=None):
     """
 
     tzinfo = tzinfo or utc
-    for parser in (parse_datetime, parse_date):
+    parsers = (parse,) if HAVE_DATEUTIL else (parse_datetime, parse_date)
+    for parser in parsers:
         try:
             temporal = parser(value)
         except Exception, e:
