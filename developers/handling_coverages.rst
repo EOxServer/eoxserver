@@ -51,245 +51,301 @@ Creating Coverages
 As we allready mentioned, coverages are basically Django models and are also
 created as such.
 
+The following example creates a :class:`Rectified Dataset 
+<eoxserver.resources.coverages.models.RectifiedDataset>`.
+::
+  
+    from eoxserver.core.util.timetools import parse_iso8601
+    from django.contrib.gis import geos
+    from eoxserver.resources.coverages import models
 
 
+    dataset = models.RectifiedDataset(
+        identifier="SomeIdentifier",
+        size_x=1024, size_y=1024,
+        min_x=0, min_y=0, max_x=90, max_y=90, srid=4326,
+        begin_time=parse_iso8601("2014-05-10"),
+        end_time=parse_iso8601("2014-05-12"),
+        footprint=geos.MultiPolygon(geos.Polygon.from_bbox((0, 0, 90, 90)))
+    )
 
+    dataset.full_clean()
+    dataset.save()
 
-Creating coverages
-------------------
+Of course, in a productive environment,  all of the above values would come 
+from a actual data and metadata files and would be parsed by
+:class:`metadata readers 
+<eoxserver.resources.coverages.metadata.interfaces.MetadataReaderInterface>`.
 
-The best (and suggested) way to create a coverage is to use a coverage manager.
-For each type of coverage there is the according coverage manager. As usual in,
-EOxServer the correct coverage manager can be retrieved by the systems registry,
-using the interface ID of the manager and the type of the coverages to identify
-and find the correct manager:
+Also, our dataset is currently not linked to any actual raster files. To do 
+this, we need to create at least one :class:`DataItem 
+<eoxserver.backends.models.DataItem>` and add it to our Dataset.
 ::
 
-    mgr = System.getRegistry().findAndBind(
-        intf_id="resources.coverages.interfaces.Manager",
-        params={
-            "resources.coverages.interfaces.res_type": "eo.rect_dataset"
-        }
+    from eoxserver.backends import models as backends
+
+
+    data_item = backends.DataItem(
+        dataset=dataset, location="/path/to/your/data.tif", format="image/tiff",
+        semantic="bands"
     )
 
-The managers ``create`` method can now be used to create a new record of the
-requested coverage. Since the possible arguments vary for each coverage type
-and use case, please refer to the actual :mod:`implementation documentation 
-<eoxserver.resources.coverages.covmgrs>` of the manager for the complete list 
-of possible parameters.
+    data_item.full_clean()
+    data_item.save()
 
-The following example creates a rectified dataset as simple as passing a local
-path to a data file and a meta-data-file and the name of the range type, which
-unfortunately cannot be identified otherwise at the time being.
+This would link the dataset to a local file with the path 
+``/path/to/your/data.tif``.
+
+.. note:: Be cautious with relative paths! Depending on the deployment of the
+   server instance the actual meaning of the paths might differ! If you are 
+   using :class:`Storages <eoxserver.backends.models.Storage>` or 
+   :class:`Packages <eoxserver.backends.models.Package>` relative paths are of
+   course okay and unambigous since they are relative to the package or storage
+   base location.
+
+
+If you want to set up a data item that resides in a package (such as a .zip or
+.tar file) or on a storage (like an HTTP or FTP server) you would need to set
+up the :class:`Packages <eoxserver.backends.models.Package>` or 
+:class:`Storages <eoxserver.backends.models.Storage>`:
 ::
 
-    mgr.create(
-        "SomeCoverageID",
-        local_path="path/to/data.tif",
-        md_local_path="path/to/metadata.xml",
-        range_type_name="RGB"
+    http_storage = backends.Storage(
+        url="http://example.com/base_path/",
+        storage_type="HTTP"
+    )
+    http_storage.full_clean()
+    http_storage.save()
+
+    data_item.storage = http_storage
+    data_item.full_clean()
+    data_item.save()
+
+    # *or* in case of a package
+
+    zip_package = backends.Package(
+        location="/path/to/package.zip",
+        format="ZIP"
+    )
+    zip_package.full_clean()
+    zip_package.save()
+
+    data_item.package = zip_package
+    data_item.full_clean()
+    data_item.save()
+
+
+.. note:: A ``DataItem`` can only be in either a storage *or* a package. If it
+   has defined both a storage and a package, the storage has precedence. If you
+   want to have a ``Package`` that resides on a ``Storage`` you must use the 
+   :attr:`storage <eoxserver.backends.models.Package.storage>` of the 
+   ``Package``.
+
+
+Creating Collections
+--------------------
+
+Collections are also created like `Coverages <Creating Coverages>`_, but usually
+require less initial information (because the metadata is usually collected from
+all entailed datasets).
+
+The following creates a :class:`DatasetSeries 
+<eoxserver.resources.coverages.models.DatasetSeries>`, a collection that can
+entail almost any object of any subtype of :class:`EOObject
+<eoxserver.resources.coverages.models.EOObject>`.
+::
+
+    dataset_series = models.DatasetSeries(identifier="CollectionIdentifier")
+    dataset_series.full_clean()
+    dataset_series.save()
+
+The handling of collections is fairly simple: you use :meth:`insert() 
+<eoxserver.resources.coverages.models.Collection.insert>` to add a dataset or
+subcollection to a collection and use :meth:`remove() 
+<eoxserver.resources.coverages.models.Collection.remove>` to remove them. 
+Whenever either of the action is performed, the EO metadata of the collection is
+updated according to the entailed datasets.
+::
+
+    dataset_series.insert(dataset)
+    dataset_series.footprint  # is now exactly the same as dataset.footprint
+    dataset_series.begin_time # is now exactly the same as dataset.begin_time
+    dataset_series.end_time   # is now exactly the same as dataset.end_time
+
+    dataset_series.remove(dataset)
+    dataset_series.footprint  # is now None
+    dataset_series.begin_time # is now None
+    dataset_series.end_time   # is now None
+
+
+Accessing Coverages
+-------------------
+
+The simplest way to retrieve a coverage is by its ID:
+::
+
+    from eoxserver.resources.coverages import models
+
+    dataset = models.Coverage.objects.get(identifier="SomeIdentifier")
+    
+This always returns an object of type :class:`Coverage
+<eoxserver.resources.coverages.models.Coverage>`, to "cast" it to the actual 
+type:
+::
+
+    dataset = dataset.cast()
+
+.. note:: the ``cast()`` method only makes a database lookup if the actual type
+   and the current type do not match. Otherwise (and only in this case), the
+   object itself is returned and no lookup is performed.
+
+If you know the exact type of the coverage you want to look up you can also
+make the query with the desired type:
+::
+
+    dataset = models.RectifiedDataset.objects.get(identifier="SomeIdentifier")
+
+If the ``get()`` query did not match any object (or possible more than one) an
+exception is raised.
+
+If you want to query more than one coverage at one (e.g: all coverages in a 
+certain time period) the ``filter()`` method is what you want:
+::
+
+    from eoxserver.core.util.timetools import parse_iso8601
+
+    start = parse_iso8601("2014-05-10")
+    stop = parse_iso8601("2014-05-12")
+    coverages_qs = models.Coverage.objects.filter(
+        begin_time__gte=start, end_time__lte=stop
+    )
+    for coverage in coverages_qs:
+        ... # Do whatever you like with the coverage
+
+.. note:: ``filter()`` returns a :class:`Django QuerySet 
+   <django.db.models.query.QuerySet>` which can be chained to further refine the
+   actual query. There is a lot of `documentation on the topic 
+   <https://docs.djangoproject.com/en/dev/topics/db/queries/>`_ I
+   highly recommend.
+
+Usually coverages are organized in collections. If you want to iterate over a
+collection simply do so:
+::
+
+    dataset_series = models.DatasetSeries.objects.get(
+        identifier="CollectionIdentifier"
+    )
+    for eo_object in dataset_series:
+        ...
+
+It is important to note that such an iteration *does not* yield coverages, but
+:class:`EOObjects <eoxserver.resources.coverages.models.EOObject>`. This is due
+to the fact that collections might also contain other collections that don't 
+necessarily have to inherit from :class:`Coverage 
+<eoxserver.resources.coverages.models.Coverage>`. If you just want to explicitly
+get all ``Coverages`` from a collection you can do it like this:
+::
+
+    coverages_qs = models.Coverage.objects.filter(
+        collections__in=[dataset_series.pk]
+    )
+
+You can also combine the filters for searches within a collection:
+::
+
+    coverages_qs = dataset_series.eo_objects.filter(
+        begin_time__gte=start, end_time__lte=stop
+    )
+
+    # append an additional geometry search
+    coverages_qs = coverages_qs.filter(
+        footprint__intersects=geos.Polygon.from_bbox((30,30,40,40))
     )
 
 
-Coverage ID Uniqueness 
-~~~~~~~~~~~~~~~~~~~~~~
+.. note:: There is no intrinsic order of ``EOObjects`` in a ``Collection``, but
+   the ``EOObjects`` can be sorted when they are retrieved from a collection. 
+   (e.g: by ``identifier``, ``begin_time`` or ``end_time``) using the 
+   QuerySets ``order_by()`` method.
 
-The :class:`~.CoverageIdManager` helps during creation of new, and querying
-existing Coverage IDs::
 
-    from eoxserver.resources.coverages.covmgrs import CoverageIDManager
-    idmgr = CoverageIDManager()
+Accessing Coverage Data
+-----------------------
 
-The Coverage ID must be unique for all types of coverages, such as, *Rectified*
-or *Referenceable* data-sets. This aspect is especially important for graceful
-handling of Coverage IDs' conflicts in case of concurrent inserts of new
-coverages. Once a new Coverage ID is approved by the EOxServer in course of the
-processing of an insert request, any other insert request must not be allowed 
-to use the same Coverage ID. Therefore the :class:`~.CoverageIdManager` allows
-Coverage ID *reservation* to grant the Coverage ID exclusivity during 
-of the actual coverage insert. The reservation is performed by the
-:func:`~eoxserver.resources.coverages.covmgrs.CoverageIdManager.reserve` method::
+As already discussed, the actual data and metadata files of a coverage are
+referenced via its associated :class:`DataItems
+<eoxserver.backends.models.DataItem>`. First, it is necessary to select the 
+``DataItems`` that are actually relevant. This depends on the current situation:
+for example in a metadata oriented request (such as the WCS DescribeCoverage 
+operation) only metadata items will be accessed (and only if they are of 
+relevance):
+::
 
-    from datetime import datetime, timedelta
-    idmgr.reserve("SomeCoverageID", until=datetime.now() + timedelta(days=1))
+    metadata_items = dataset.data_items.filter(
+        semantic="metadata", format="eogml"
+    )
 
-If the Coverage ID cannot be reserved (most likely, because it is used by an
-existing coverage, or reserved by another insert request) an exception is raised,
-as described in the method's documentation.
+The above example selected only metadata items with the format "eogml".
 
-The reservation is released automatically after expiration of the given time-out
-(the optional ``until`` parameter). The default time-out value can be configured 
-via EOxServer configuration file (section ``resources.coverages.coverage_id``,
-field ``reservation_time``, default value ``0:0:30:0``, i.e., 30 min.).
+In some cases the bands of a coverage are separated into multiple files that
+have a ``semantic`` like this: "bands[x:y]". To select only those, we can use
+the `startswith field lookup <https://docs.djangoproject.com/en/dev/ref/models/querysets/#std:fieldlookup-startswith>`_:
+::
 
-The reservation can be revoked by the  
-:func:`~eoxserver.resources.coverages.covmgrs.CoverageIdManager.release`
-method::
-
-    idmgr.release("SomeCoverageID")
-
-Although it is not necessary to release a booked Coverage ID, we encourage
-to do so when possible. 
-
-Whether a Coverage ID is neither in use nor reserved can be checked by the 
-:func:`~eoxserver.resources.coverages.covmgrs.CoverageIdManager.available`
-method::
-
-    if idmgr.available(someID):
-        # there is neither coverage nor cov.ID reservation 
+    band_items = dataset.data_items.filter(
+        semantic__startswith="bands"
+    )
+    for band_item in band_items:
+        # TODO: parse the band index or start/stop indices
         ...
 
 
-Finding Coverages
------------------
+Now that we have our relevant ``DataItems`` we can start using them.
 
-There are several techniques to search for coverages in the system,
-depending on what information is desired and/or provided.
-In a case, when the Coverage ID is known, it is possible to use 
-:func:`~eoxserver.resources.coverages.covmgrs.CoverageIdManager.check` method 
-of :class:`~.CoverageIdManager` to check whether this ID is used by an existing 
-coverage::
+We also explained that the DataItems can reside on a :class:`Storage 
+<eoxserver.backends.models.Storage>` or inside a :class:`Package 
+<eoxserver.backends.models.Package>`. Each storage has a specific storage type
+and each package has a specific format. What types and formats are available
+depends on your instance configuration, since the formats are implemented as
+:class:`Components <eoxserver.core.component.Component>`. EOxServer ships with 
+support of :mod:`local <eoxserver.backends.storages.local>`, :mod:`HTTP 
+<eoxserver.backends.storages.http>`, :mod:`FTP 
+<eoxserver.backends.storages.ftp>` and :mod:`Rasdaman 
+<eoxserver.backends.storages.rasdaman>` storages and with :mod:`ZIP
+<eoxserver.backends.packages.zip>` and :mod:`TAR
+<eoxserver.backends.packages.tar>` packages. This list of both storages and
+packages can be easily extended by creating plugin :class:`Components 
+<eoxserver.core.component.Component>` implementing either the
+:class:`FileStorageInterface
+<eoxserver.backends.interfaces.FileStorageInterface>`,
+:class:`ConnectedStorageInterface
+<eoxserver.backends.interfaces.ConnectedStorageInterface>` or the
+:class:`PackageInterface <eoxserver.backends.interfaces.PackageInterface>`.
+See the :ref:`documentation for writing Plugins <Plugins>` for further info.
 
-    if idmgr.check(someID):
-        # there is an coverage with this ID 
+To ease the actual data access, there are two main methods: :func:`retrieve() 
+<eoxserver.backends.access.retrieve>` and :func:`connect() 
+<eoxserver.backends.access.connect>`.
 
-Once we know there is an existing coverage we can query type of the coverage 
-by the
-:func:`~eoxserver.resources.coverages.covmgrs.CoverageIdManager.getCoverageType`
-method in order to select the proper handling of the coverage type:: 
+Both functions have in common, that they operate on ``DataItems`` which are 
+passed as the first parameter to the function.
 
-    ctype = idmgr.getCoverageType(someID):
+The function :func:`retrieve() <eoxserver.backends.access.retrieve>` returns a
+path to the local file: for already local files, the path is simply passed,
+in other cases the file is downloaded, unpacked, retrieved or whatever is
+necessary to make the file locally accessible. 
+::
 
-    if   ctype == "PlainCoverage" : 
-        ...
-    elif ctype == "RectifiedDataset" : 
-        ...
-    elif ctype == "ReferenceableDataset" : 
-        ...
-    elif ctype == "RectifiedStitchedMosaic" : 
-        ...
-    else : 
-        # invalid coverage ID 
-        ...
+    data_item = dataset.data_items.get(semantic="metadata")
+    local_path = retrieve(data_item)
 
-Alternatively, a factory can used to get the correct wrapper of a coverage, namely the
-:class:`~.EOCoverageFactory`. The simplest case is to find a coverage according 
-to its Coverage ID::
+You do not have to care for cleanup afterwards, since this is handled by 
+EOxServers cache layer.
 
-    from eoxserver.core.system import System
-
-    coverage_wrapper = System.getRegistry().getFromFactory(
-        "resources.coverages.wrappers.EOCoverageFactory",
-        {"obj_id": coverage_id}
-    )
-
-This command returns the proper coverage wrapper according to the coverages type, 
-or None, if no such coverage exists.
-
-For more sophisticated searches, filter expressions have to be used. In case of
-coverage filters, the :class:`~.CoverageExpressionFactory` creates the required
-expressions. In the following example, we create a filter expression to get
-all coverages whose footprint intersects with the area defined by the
-:class:`~.BoundedArea`::
-
-    from eoxserver.resources.coverages.filters import BoundedArea
-
-    filter_exprs = []
-    filter_exprs.append(System.getRegistry().getFromFactory(
-        "resources.coverages.filters.CoverageExpressionFactory",
-        {
-            "op_name": "footprint_intersects_area",
-            "operands": (BoundedArea(srid, minx, miny, maxx, maxy),)
-        }
-    ))
-
-With our filter expressions, we are now able to get the list of coverages
-complying to our filters with the ``find`` method of the
-:class:`~.EOCoverageFactory` which returns a list of all objects intersecting
-with our region.::
-
-    factory = System.getRegistry().bind(
-        "resources.coverages.wrappers.EOCoverageFactory"
-    )
-    coverages = factory.find(filter_exprs=filter_exprs)
-
-
-Updating Coverages
-------------------
-
-Updating a coverage is either done by the wrappers or, on a more higher level,
-with the coverage manager.
-
-Updating with the wrappers is limited to several methods on the specific
-wrapper itself (e.g.: the
-:meth:`~eoxserver.resources.coverages.wrappers.RectifiedStitchedMosaicWrapper.addCoverage`
-method of the :class:`~.RectifiedStitchedMosaicWrapper`) or the
-:meth:`~eoxserver.core.resources.ResourceWrapper.setAttrValue` method. The
-latter one is directly coupled to the wrappers ``FIELDS`` lookup dictionary
-which expands to field lookup on the according model.
-
-The following example demonstrates either use::
-
-    rect_stitched_mosaic_wrapper = System.getRegistry().getFromFactory(
-        "resources.coverages.wrappers.EOCoverageFactory",
-        {"obj_id": mosaic_coverage_id}
-    )
-
-    rect_stitched_mosaic_wrapper.addCoverage(
-        System.getRegistry().getFromFactory(
-            "resources.coverages.wrappers.EOCoverageFactory",
-            {"obj_id": coverage_id}
-        )
-    )
-
-    rect_stitched_mosaic_wrapper.setAttrValue("size_x", 1000)
-    rect_stitched_mosaic_wrapper.setAttrValue("size_y", 1000)
-
-To know what attributes are allowed in the `setAttrValue`, either look up the
-class variable ``FIELDS`` or call the
-:meth:`~eoxserver.core.wrappers.ResourceWrapper.getAttrNames` method of the
-wrapper .
-
-Another way to update existing coverages is to use the correct coverage manager.
-Its :meth:`~eoxserver.resources.coverages.covmgrs.BaseManager.update` method
-can be supplied three (optional) dictionary arguments:
-
- * ``link``: adds a reference to another object in the database. This is used,
-   e.g., for ``container_ids``, ``coverages`` or ``data_sources``.
- * ``unlink``: removes a reference to another object. It has the same arguments
-   as the ``link`` dictionary 
- * ``set``: Sets an integral value or a collection of values in the database
-   object. Here are also keys from the ``FIELDS`` accepted.
-
-The usable arguments depend on the actually used coverage manager type, but are
-almost the same as the arguments available for the ``create`` method.
-
-The following example demonstrates the use of the coverage managers ``update``
-method with a rectified stitched mosaic::
-
-    mgr = System.getRegistry().findAndBind(
-        intf_id="resources.coverages.interfaces.Manager",
-        params={
-            "resources.coverages.interfaces.res_type": "eo.rect_stitched_mosaic"
-        }
-    )
-
-    mgr.update(
-        obj_id=mosaic_coverage_id,
-        link={
-            "coverage_ids": ["RectifiedDatasetCoverageID"]
-        },
-        unlink={
-            "container_ids": ["DatasetSeriesEOID"]
-        }
-        set={
-            "size_x": 1000,
-            "size_y": 1000,
-            "eo_metadata": EOMetadata(
-                "NewEOID",
-                timestamp_begin,
-                timestamp_end,
-                GEOSGeometry(some_footprint)
-            )
-        }
-    )
+The function :func:`connect() <eoxserver.backends.access.connect>` works 
+similarly, apart from the fact that it takes also storages into account that
+do not provide files, but streams of data. Currently this only includes the
+:mod:`Rasdaman Storage <eoxserver.backends.storages.rasdaman>`. If this 
+function does not deal with a :class:`Connected Storages
+<eoxserver.backends.interfaces.ConnectedStorageInterface>` it behaves like the
+:func:`retrieve() <eoxserver.backends.access.retrieve>` function.
