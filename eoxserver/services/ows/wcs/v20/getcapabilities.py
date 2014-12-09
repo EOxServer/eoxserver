@@ -58,20 +58,33 @@ class WCS20GetCapabilitiesHandler(WCSGetCapabilitiesHandlerBase, Component):
 
     def lookup_coverages(self, decoder):
         sections = decoder.sections
-        if "contents" in sections or "all" in sections:
+        inc_coverages = (
+            "all" in sections or "contents" in sections
+            or "coveragesummary" in sections
+        )
+        inc_dataset_series = (
+            "all" in sections or "contents" in sections
+            or "datasetseriessummary" in sections
+        )
+
+        if inc_coverages:
             coverages = models.Coverage.objects \
                 .order_by("identifier") \
                 .filter(visible=True)
+        else:
+            coverages = ()
 
+        if inc_dataset_series:
             dataset_series = models.DatasetSeries.objects \
                 .order_by("identifier") \
                 .exclude(
                     footprint__isnull=True, begin_time__isnull=True,
                     end_time__isnull=True
                 )
-            return coverages, dataset_series
         else:
-            return (), ()
+            dataset_series = ()
+
+        return coverages, dataset_series
 
     def get_params(self, models, decoder):
         coverages, dataset_series = models
