@@ -20,14 +20,6 @@ eoxserver.resources.processes.models module
     :undoc-members:
     :show-inheritance:
 
-eoxserver.resources.processes.tests module
-------------------------------------------
-
-.. automodule:: eoxserver.resources.processes.tests
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 eoxserver.resources.processes.tracker module
 --------------------------------------------
 

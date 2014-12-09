@@ -1,9 +1,6 @@
 API Reference
 =============
 
-eoxserver package
-=================
-
 Subpackages
 -----------
 

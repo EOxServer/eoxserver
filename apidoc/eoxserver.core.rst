@@ -6,7 +6,6 @@ Subpackages
 
 .. toctree::
 
-    eoxserver.core.commands
     eoxserver.core.decoders
     eoxserver.core.util
 
@@ -41,14 +40,6 @@ eoxserver.core.models module
 ----------------------------
 
 .. automodule:: eoxserver.core.models
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-eoxserver.core.tests module
----------------------------
-
-.. automodule:: eoxserver.core.tests
     :members:
     :undoc-members:
     :show-inheritance:

@@ -56,14 +56,6 @@ eoxserver.services.subset module
     :undoc-members:
     :show-inheritance:
 
-eoxserver.services.tests module
--------------------------------
-
-.. automodule:: eoxserver.services.tests
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 eoxserver.services.urls module
 ------------------------------
 

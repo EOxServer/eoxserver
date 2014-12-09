@@ -84,14 +84,6 @@ eoxserver.backends.testbase module
     :undoc-members:
     :show-inheritance:
 
-eoxserver.backends.tests module
--------------------------------
-
-.. automodule:: eoxserver.backends.tests
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 
 Module contents
 ---------------

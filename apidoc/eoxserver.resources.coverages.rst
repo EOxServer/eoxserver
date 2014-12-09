@@ -6,7 +6,6 @@ Subpackages
 
 .. toctree::
 
-    eoxserver.resources.coverages.management
     eoxserver.resources.coverages.metadata
 
 Submodules
@@ -44,14 +43,6 @@ eoxserver.resources.coverages.formats module
     :undoc-members:
     :show-inheritance:
 
-eoxserver.resources.coverages.geo module
-----------------------------------------
-
-.. automodule:: eoxserver.resources.coverages.geo
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 eoxserver.resources.coverages.models module
 -------------------------------------------
 
@@ -68,26 +59,10 @@ eoxserver.resources.coverages.rangetype module
     :undoc-members:
     :show-inheritance:
 
-eoxserver.resources.coverages.tests module
-------------------------------------------
-
-.. automodule:: eoxserver.resources.coverages.tests
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 eoxserver.resources.coverages.util module
 -----------------------------------------
 
 .. automodule:: eoxserver.resources.coverages.util
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-eoxserver.resources.coverages.validators module
------------------------------------------------
-
-.. automodule:: eoxserver.resources.coverages.validators
     :members:
     :undoc-members:
     :show-inheritance:
