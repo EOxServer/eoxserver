@@ -38,12 +38,27 @@ from django.utils.dateparse import parse_datetime
 
 from eoxserver.contrib import gdal
 
+
 def pk_equals(first, second):
+    """ Helper function to check if the ``pk`` attributes of two models are
+    equal.
+    """
     return first.pk == second.pk
 
 
-def detect_circular_reference(eo_object, collection, supercollection_getter, equals=pk_equals):
-    """Utility function to detect circular references in model hierarchies."""
+def detect_circular_reference(eo_object, collection, supercollection_getter,
+                              equals=pk_equals):
+    """ Utility function to detect circular references in model hierarchies.
+
+    :param eo_object: the :class:`EOObject
+                      <eoxserver.resources.coverages.models.EOObject>` to check
+    :param collection: the :class:`Collection
+                       <eoxserver.resources.coverages.models.Collection>` to
+                       check against
+    :param supercollection_getter: a callable that shall return the collections
+                                   a single collection is contained in
+    :param equals: the equality checking function; defaults to :func:`pk_equals`
+    """
 
     #print "Checking for circular reference: %s %s" %(eo_object, collection)
     if equals(eo_object, collection):
@@ -51,17 +66,28 @@ def detect_circular_reference(eo_object, collection, supercollection_getter, equ
         return True
 
     for collection in supercollection_getter(collection):
-        if detect_circular_reference(eo_object, collection, supercollection_getter, equals):
+        if detect_circular_reference(eo_object, collection,
+                                     supercollection_getter, equals):
             return True
 
     return False
 
 
 def collect_eo_metadata(qs, insert=None, exclude=None, bbox=False):
-    """ Helper function to collect EO metadata from all EOObjects in a queryset, 
-    plus additionals from a list and exclude others from a different list. If 
-    bbox is `True` then the returned polygon will only be a minimal bounding box
-    of the collected footprints.
+    """ Helper function to collect EO metadata from all EOObjects in a queryset,
+    plus additionals from a list and exclude others from a different list. If
+    bbox is ``True`` then the returned polygon will only be a minimal bounding
+    box of the collected footprints.
+
+    :param qs: the :class:`django.db.QuerySet` to collect all EO metadata from
+    :param insert: an iterable of all objects that are to be inserted (thus not
+                   entailed in the queryset) and should be considered when
+                   collection metadata
+    :param exclude: an iterable of objects that are considered to be excluded
+                    from the list and should not be used for metadata collection
+    :param bbox: if this is set to ``True`` the footprint will only be
+                 represented as a minimal BBOX polygon of all collected
+                 footprints. This is preferable for large collections.
     """
 
     values = qs.exclude(
@@ -114,8 +140,12 @@ def collect_eo_metadata(qs, insert=None, exclude=None, bbox=False):
 
 def is_same_grid(coverages, epsilon=1e-10):
     """ Function to determine if the given coverages share the same base grid.
-        Returns a boolean value, whether or not the coverages share a common 
-        grid.
+    Returns a boolean value, whether or not the coverages share a common grid.
+
+    :param coverages: an iterable of :class:`Coverages
+                      <eoxserver.resources.coverages.models.Coverage>`
+    :param epsilon: the maximum difference each grid can have to be still
+                    considered equal
     """
 
     if len(coverages) < 2:
@@ -126,6 +156,8 @@ def is_same_grid(coverages, epsilon=1e-10):
     first_res = first.resolution
     first_srid = first.srid
     first_proj = first.projection
+
+    e = epsilon
 
     for other in coverages[1:]:
         other_ext = other.extent
@@ -149,8 +181,7 @@ def is_same_grid(coverages, epsilon=1e-10):
 
         v = tuple(map(operator.div, diff_origins, other_res))
 
-        if (abs(v[0] - round(v[0])) > epsilon 
-            or abs(v[1] - round(v[1])) > epsilon):
+        if (abs(v[0] - round(v[0])) > e or abs(v[1] - round(v[1])) > e):
             return False
 
     return True
@@ -158,6 +189,10 @@ def is_same_grid(coverages, epsilon=1e-10):
 
 def parse_raw_value(raw_value, dt):
     """ Parse a raw value from a string according to a given data type.
+
+    :param raw_value: the raw string value
+    :param dt: the data type enumeration
+    :returns: the parsed value
     """
     if raw_value is None:  # allow null values
         return None
