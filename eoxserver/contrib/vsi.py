@@ -36,7 +36,7 @@ from uuid import uuid4
 if os.environ.get('READTHEDOCS', None) != 'True':
     from eoxserver.contrib.gdal import (
         VSIFOpenL, VSIFCloseL, VSIFReadL, VSIFWriteL, VSIFSeekL, VSIFTellL,
-        VSIStatL, Unlink, Rename, FileFromBuffer
+        VSIStatL, Unlink, Rename, FileFromMemBuffer
     )
 
     rename = Rename
@@ -163,7 +163,7 @@ class TemporaryVSIFile(VSIFile):
         """
         if not filename:
             filename = "/vsimem/%s" % uuid4().hex()
-        FileFromBuffer(filename, buf)
+        FileFromMemBuffer(filename, buf)
         return cls(mode)
 
     def close(self):
