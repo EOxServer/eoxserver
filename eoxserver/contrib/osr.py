@@ -28,12 +28,19 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-try:
-    from osgeo.osr import *
-except ImportError:
-    from osr import *
+import os
 
-_SpatialReference = SpatialReference
+
+if os.environ.get('READTHEDOCS', None) != 'True':
+    try:
+        from osgeo.osr import *
+    except ImportError:
+        from osr import *
+
+    UseExceptions()
+
+    _SpatialReference = SpatialReference
+
 
 class SpatialReference(object):
     """ Extension to the original SpatialReference class.
@@ -89,8 +96,7 @@ class SpatialReference(object):
     def swap_axes(self):
         # TODO:
         pass
-    
+
     def __getattr__(self, name):
         return getattr(self.sr, name)
 
-UseExceptions()

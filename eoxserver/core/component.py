@@ -46,7 +46,7 @@ class ExtensionPoint(property):
         """
         property.__init__(self, self.extensions)
         self.interface = interface
-        self.__doc__ = ("List of components that implement `~%s.%s`" %
+        self.__doc__ = ("List of components that implement :class:`%s.%s`" %
                         (self.interface.__module__, self.interface.__name__))
 
     def extensions(self, component):

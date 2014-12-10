@@ -28,10 +28,14 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-try:
-    from osgeo.ogr import *
-except ImportError:
-    from ogr import *
+
+import os
 
 
-UseExceptions()
+if os.environ.get('READTHEDOCS', None) != 'True':
+    try:
+        from osgeo.ogr import *
+    except ImportError:
+        from ogr import *
+
+    UseExceptions()

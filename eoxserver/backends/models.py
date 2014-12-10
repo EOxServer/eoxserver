@@ -49,7 +49,7 @@ class BaseLocation(models.Model):
     format = models.CharField(max_length=64, null=True, blank=True)
 
     storage = models.ForeignKey(Storage, null=True, blank=True)
-    package = None # placeholder
+    package = None  # placeholder
 
     def clean(self):
         if self.storage is not None and self.package is not None:

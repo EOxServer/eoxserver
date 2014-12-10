@@ -28,4 +28,8 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from osgeo.gdal_array import *
+import os
+
+
+if os.environ.get('READTHEDOCS', None) != 'True':
+    from osgeo.gdal_array import *

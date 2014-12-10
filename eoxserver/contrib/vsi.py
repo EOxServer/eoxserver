@@ -35,11 +35,22 @@ from uuid import uuid4
 
 from gdal import (
     VSIFOpenL, VSIFCloseL, VSIFReadL, VSIFWriteL, VSIFSeekL, VSIFTellL,
-    VSIFTruncateL, VSIStatL, Unlink, Rename, FileFromMemBuffer
+    VSIStatL, Unlink, Rename, FileFromBuffer
 )
 
 
 def open(filename, mode="r"):
+    """ A function mimicking the builtin function
+    :func:`open <__builtins__.open>` but returning a :class:`VSIFile` instead.
+
+    :param filename: the path to the file; this might also be any VSI special
+                     path like "/vsicurl/..." or "/vsizip/...". See the `GDAL
+                     documentation
+                     <http://trac.osgeo.org/gdal/wiki/UserDocs/ReadInZip>`_
+                     for reference.
+    :param mode: the file opening mode
+    :returns: a :class:`VSIFile`
+    """
     return VSIFile(filename)
 
 rename = Rename
@@ -49,52 +60,81 @@ unlink = remove = Unlink
 
 class VSIFile(object):
     """ File-like object interface for VSI file API.
+
+    :param filename: the path to the file; this might also be any VSI special
+                     path like "/vsicurl/..." or "/vsizip/...". See the `GDAL
+                     documentation
+                     <http://trac.osgeo.org/gdal/wiki/UserDocs/ReadInZip>`_
+                     for reference.
+    :param mode: the file opening mode
     """
 
     def __init__(self, filename, mode="r"):
         self._handle = VSIFOpenL(filename, mode)
         self._filename = filename
 
-
     @property
     def filename(self):
+        """ Returns the filename referenced by this file
+        """
         return self._filename
 
-
     def read(self, size=None):
+        """ Read from the file. If no ``size`` is specified, read until the end
+        of the file.
+
+        :param size: the number of bytes to be read
+        :returns: the bytes read as a string
+        """
+
         if size is None:
             size = self.size - self.tell()
         return VSIFReadL(1, size, self._handle)
 
-
     def write(self, data):
+        """ Write the buffer ``data`` to the file.
+
+        :param data: the string buffer to be written
+        """
         VSIFWriteL(len(data), 1, data, self._handle)
 
-
     def tell(self):
+        """ Return the current read/write offset of the file.
+
+        :returns: an integer offset
+        """
         return VSIFTellL(self._handle)
 
-
     def seek(self, offset, whence=os.SEEK_SET):
+        """ Set the new read/write offset in the file.
+
+        :param offset: the new offset
+        :param whence: how the offset shall be interpreted; possible options are
+                       :const:`os.SEEK_SET`, :const:`os.SEEK_CUR` and
+                       :const:`os.SEEK_END`
+        """
         VSIFSeekL(self._handle, offset, whence)
 
-
     def close(self):
+        """ Close the file.
+        """
         if self._handle is not None:
             VSIFCloseL(self._handle)
         self._handle = None
 
-
     @property
     def closed(self):
+        """ Return a boolean value to indicate whether or not the file is
+        already closed.
+        """
         return (self._handle is None)
-
 
     @property
     def size(self):
+        """ Return the size of the file in bytes
+        """
         stat = VSIStatL(self.filename)
         return stat.size
-
 
     def __enter__(self):
         return self
@@ -113,11 +153,20 @@ class TemporaryVSIFile(VSIFile):
 
     @classmethod
     def from_buffer(cls, buf, mode="w", filename=None):
+        """ Creates a :class:`TemporaryVSIFile` from a string.
+
+        :param buf: the supplied string
+        :param mode: the file opening mode
+        :param filename: the optional filename the file shall be stored under;
+                         by default this is an in-memory location
+        """
         if not filename:
             filename = "/vsimem/%s" % uuid4().hex()
-        gdal.FileFromBuffer(filename, buf)
+        FileFromBuffer(filename, buf)
         return cls(mode)
 
     def close(self):
+        """ Close the file. This also deletes it.
+        """
         super(TemporaryVSIFile, self).close()
         remove(self.filename)

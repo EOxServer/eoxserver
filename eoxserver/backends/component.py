@@ -28,24 +28,35 @@
 
 import itertools
 
-from eoxserver.core import env, Component, implements, ExtensionPoint
+from eoxserver.core import env, Component, ExtensionPoint
 from eoxserver.backends.interfaces import *
 
 
 class BackendComponent(Component):
+    """ This :class:`Component <eoxserver.core.component.Component>` provides
+    extension points and helpers to easily retrive Package and Storage
+    components by their type names.
+    """
+
     file_storages = ExtensionPoint(FileStorageInterface)
     connected_storages = ExtensionPoint(ConnectedStorageInterface)
     packages = ExtensionPoint(PackageInterface)
 
-
     @property
     def storages(self):
-        """ Helper for all storages.
+        """ Helper to retrieve components for all storage interfaces.
         """
         return itertools.chain(self.file_storages, self.connected_storages)
-    
 
     def get_file_storage_component(self, storage_type):
+        """ Retrieve a component implementing the
+        :class:`eoxserver.backends.interfaces.FileStorageInterface` with the
+        desired ``storage_type``.
+
+        :param storage_type: the desired storage type
+        :returns: the desired storage component or ``None``
+        """
+
         storage_type = storage_type.upper()
         result_component = None
         for storage_component in self.file_storages:
@@ -56,8 +67,15 @@ class BackendComponent(Component):
 
         return result_component
 
-
     def get_connected_storage_component(self, storage_type):
+        """ Retrieve a component implementing the
+        :class:`eoxserver.backends.interfaces.ConnectedStorageInterface` with
+        the desired ``storage_type``.
+
+        :param storage_type: the desired storage type
+        :returns: the desired storage component or ``None``
+        """
+
         storage_type = storage_type.upper()
         result_component = None
         for storage_component in self.connected_storages:
@@ -68,8 +86,16 @@ class BackendComponent(Component):
 
         return result_component
 
-
     def get_storage_component(self, storage_type):
+        """ Retrieve a component implementing the
+        :class:`eoxserver.backends.interfaces.FileStorageInterface` or
+        :class:`eoxserver.backends.interfaces.ConnectedStorageInterface` with
+        the desired ``storage_type``.
+
+        :param storage_type: the desired storage type
+        :returns: the desired storage component or ``None``
+        """
+
         file_storage = self.get_file_storage_component(storage_type)
         connected_storage = self.get_connected_storage_component(storage_type)
 
@@ -78,8 +104,15 @@ class BackendComponent(Component):
 
         return file_storage or connected_storage
 
-
     def get_package_component(self, format):
+        """ Retrieve a component implementing the
+        :class:`eoxserver.backends.interfaces.PackageInterface` with
+        the desired ``format``.
+
+        :param format: the desired package format
+        :returns: the desired package component or ``None``
+        """
+
         format = format.upper()
         result_component = None
         for package_component in self.packages:

@@ -58,6 +58,7 @@ class DurationMeasurement(object):
 
 def log_duration(name, logger=None, level=logging.DEBUG):
     """ Convenience function to log the duration of a specific event.
+
         :param name: The name of the event.
         :param logger: The logger to use.
         :param level: The log level to log the final message to.

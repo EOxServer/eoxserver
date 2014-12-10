@@ -26,58 +26,39 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from tempfile import mkstemp
 import ctypes as C
 from ctypes.util import find_library
-import os.path
 import logging
 from itertools import izip, chain
 import math
-
-from functools import wraps 
 
 from eoxserver.contrib import gdal, osr
 from eoxserver.core.util.rect import Rect
 
 #-------------------------------------------------------------------------------
-# approximation transformer's threshold in pixel units 
-# 0.125 is the default value used by CLI gdalwarp tool 
+# approximation transformer's threshold in pixel units
+# 0.125 is the default value used by CLI gdalwarp tool
 
-APPROX_ERR_TOL=0.125 
+
+APPROX_ERR_TOL = 0.125
 
 #-------------------------------------------------------------------------------
-# GDAL transfomer methods 
+# GDAL transfomer methods
 
-METHOD_GCP=1  
-METHOD_TPS=2  
-METHOD_TPS_LSQ=3  
+METHOD_GCP = 1
+METHOD_TPS = 2
+METHOD_TPS_LSQ = 3
 
-METHOD2STR = { METHOD_GCP: "METHOD_GCP", METHOD_TPS:"METHOD_TPS", METHOD_TPS_LSQ:"METHOD_TPS_LSQ" } 
+METHOD2STR = {
+    METHOD_GCP: "METHOD_GCP",
+    METHOD_TPS: "METHOD_TPS",
+    METHOD_TPS_LSQ: "METHOD_TPS_LSQ"
+}
 
 #-------------------------------------------------------------------------------
 
 logger = logging.getLogger(__name__)
-"""
-class RECT(C.Structure):
-    _fields_ = [("x_off", C.c_int),
-                ("y_off", C.c_int),
-                ("x_size", C.c_int),
-                ("y_size", C.c_int)]
 
-
-class SUBSET(C.Structure):
-    _fields_ = [("srid", C.c_int),
-                ("minx", C.c_double),
-                ("miny", C.c_double),
-                ("maxx", C.c_double),
-                ("maxy", C.c_double)]
-
-
-class IMAGE_INFO(C.Structure):
-    _fields_ = [("x_size", C.c_int),
-                ("y_size", C.c_int),
-                ("geotransform", C.ARRAY(C.c_double, 6))]
-"""
 
 class WARP_OPTIONS(C.Structure):
     _fields_ = [
@@ -246,7 +227,6 @@ class CoordinateTransformation(object):
         OCTDestroyCoordinateTransformation(self)
 
 
-
 def _create_referenceable_grid_transformer(ds, method, order):
     # TODO: check method and order
     num_gcps = ds.GetGCPCount()
@@ -270,7 +250,6 @@ def _create_referenceable_grid_transformer(ds, method, order):
         raise
 
     return Transformer(handle)
-
 
 
 CSLFetchNameValue = _libgdal.CSLFetchNameValue
@@ -315,7 +294,7 @@ class CSL(object):
         return self._handle
 
     def __getitem__(self, key):
-        value = CSLGetNameValue(self, key)
+        value = CSLFetchNameValue(self, key)
         if not value:
             raise KeyError(key)
 
@@ -398,38 +377,35 @@ def _create_generic_transformer(src_ds, src_wkt, dst_ds, dst_wkt, method, order)
 
 
 def get_footprint_wkt(ds, method=METHOD_GCP, order=0):
-    """
-        methods:
+    """ Returns the footprint of the GDAL Dataset using its GCPs for
+    calculation.
 
-            METHOD_GCP
-            METHOD_TPS
-            METHOD_TPS_LSQ
 
-        order (method specific):
+    :param method: either of :const:`METHOD_GCP`, :const:`METHOD_TPS` or
+                   :const:`METHOD_TPS_LSQ`.
 
-        - GCP (order of global fitting polynomial)
-            0 for automatic order
-            1, 2, and 3  for 1st, 2nd and 3rd polynomial order
+    :param order: (method specific):
 
-        - TPS and TPS_LSQ (order of augmenting polynomial)
-           -1  for no-polynomial augmentation
-            0  for 0th order (constant offset)
-            1, 2, and 3 for 1st, 2nd and 3rd polynomial order
+                  - GCP (order of global fitting polynomial)
+                      0 for automatic order
+                      1, 2, and 3  for 1st, 2nd and 3rd polynomial order
 
-        General guide:
+                  - TPS and TPS_LSQ (order of augmenting polynomial)
+                      -1  for no-polynomial augmentation
+                      0  for 0th order (constant offset)
+                      1, 2, and 3 for 1st, 2nd and 3rd polynomial order
 
-            method TPS, order 3 should work in most cases
-            method TPS_LSQ, order 3 should work in cases
-            of an excessive number of tiepoints but
-            it may become wobbly for small number
-            of tiepoints
+    General guide:
 
-           The global polynomial (GCP) interpolation does not work
-           well for images covering large geographic areas (e.g.,
-           ENVISAT ASAR and MERIS).
+        - method TPS, order 3 should work in most cases
+        - method TPS_LSQ, order 3 should work in cases of an excessive number
+          of tiepoints but it may become wobbly for small number of tiepoints
 
-        NOTE: The default parameters are left for backward compatibility.
-              They can be, however, often inappropriate!
+       The global polynomial (GCP) interpolation does not work well for images
+       covering large geographic areas (e.g., ENVISAT ASAR and MERIS).
+
+    .. note:: The default parameters are left for backward compatibility.
+          They can be, however, often inappropriate!
     """
     transformer = _create_referenceable_grid_transformer(ds, method, order)
 
@@ -483,6 +459,21 @@ def get_footprint_wkt(ds, method=METHOD_GCP, order=0):
 def rect_from_subset(path_or_ds, srid, minx, miny, maxx, maxy,
                      method=METHOD_GCP, order=0):
     """ Returns the smallest area of an image for the given spatial subset.
+
+    :param path_or_ds: a :class:`GDAL Dataset <eoxserver.contrib.gdal.Dataset>`
+                       or a path to such
+    :param srid: the SRID the ``minx``, ``miny``, ``maxx`` and ``maxy`` are
+                 expressed in
+    :param minx: the minimum X subset coordinate
+    :param miny: the minimum Y subset coordinate
+    :param maxx: the maximum X subset coordinate
+    :param maxy: the maximum Y subset coordinate
+    :param method: either of :const:`METHOD_GCP`, :const:`METHOD_TPS` or
+                   :const:`METHOD_TPS_LSQ`.
+    :param order: the order of the function; see :func:`get_footprint_wkt` for
+                  reference
+    :returns: a :class:`Rect <eoxserver.core.util.rect.Rect>` portraing the
+              subset in image coordinates
     """
 
     #import pdb; pdb.set_trace()
@@ -584,8 +575,25 @@ def rect_from_subset(path_or_ds, srid, minx, miny, maxx, maxy,
 
 
 def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
-                         resample=gdal.GRA_NearestNeighbour, memory_limit=0.0,
+                         resample=0, memory_limit=0.0,
                          max_error=APPROX_ERR_TOL, method=METHOD_GCP, order=0):
+
+    """ Creates a VRT dataset that symbolizes a rectified version of the
+    passed "referenceable" GDAL dataset.
+
+    :param path_or_ds: a :class:`GDAL Dataset <eoxserver.contrib.gdal.Dataset>`
+                       or a path to such
+    :param vrt_path: the path to store the VRT dataset under
+
+    :param resample: the resample method to be used; defaults to 0 which means
+                     a nearest neighbour resampling
+    :param memory_limit: the memory limit; by default no limit is used
+    :param max_error: the maximum allowed error
+    :param method: either of :const:`METHOD_GCP`, :const:`METHOD_TPS` or
+                   :const:`METHOD_TPS_LSQ`.
+    :param order: the order of the function; see :func:`get_footprint_wkt` for
+                  reference
+    """
 
     ds = _open_ds(path_or_ds)
     ptr = C.c_void_p(long(ds.this))
@@ -649,6 +657,19 @@ def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
 
 
 def suggested_warp_output(ds, src_wkt, dst_wkt, method=METHOD_GCP, order=0):
+    """ Returns the suggested size and geotransform tuple for the given dataset.
+
+    :param ds: a :class:`GDAL Dataset <eoxserver.contrib.gdal.Dataset>`
+    :param src_wkt: override the source WKT notation of the transform
+    :param dst_wkt: the destination projection in WKT notation
+    :param method: either of :const:`METHOD_GCP`, :const:`METHOD_TPS` or
+                   :const:`METHOD_TPS_LSQ`.
+    :param order: the order of the function; see :func:`get_footprint_wkt` for
+                  reference
+    :returns: the X size of the suggested warped image
+    :returns: the Y size of the suggested warped image
+    :returns: the geotransform tuple of the suggested warped image
+    """
     geotransform = (C.c_double * 6)()
     x_size = C.c_int()
     y_size = C.c_int()
@@ -664,8 +685,25 @@ def suggested_warp_output(ds, src_wkt, dst_wkt, method=METHOD_GCP, order=0):
 
 
 def reproject_image(src_ds, src_wkt, dst_ds, dst_wkt,
-                    resample=gdal.GRA_NearestNeighbour, memory_limit=0.0,
+                    resample=0, memory_limit=0.0,
                     max_error=APPROX_ERR_TOL, method=METHOD_GCP, order=0):
+    """ Transforms the source dataset to the destination dataset.
+
+    :param src_ds: the source :class:`GDAL Dataset
+                   <eoxserver.contrib.gdal.Dataset>`
+    :param src_wkt: override the source projection in WKT notation
+    :param dst_ds: the source :class:`GDAL Dataset
+                   <eoxserver.contrib.gdal.Dataset>`
+    :param dst_wkt: override the destination projection in WKT notation
+    :param resample: the resample method to be used; defaults to 0 which means
+                     a nearest neighbour resampling
+    :param memory_limit: the memory limit; by default no limit is used
+    :param max_error: the maximum allowed error
+    :param method: either of :const:`METHOD_GCP`, :const:`METHOD_TPS` or
+                   :const:`METHOD_TPS_LSQ`.
+    :param order: the order of the function; see :func:`get_footprint_wkt` for
+                  reference
+    """
 
     transformer = _create_generic_transformer(
         src_ds.this, src_wkt, dst_ds.this, dst_wkt, method, order
@@ -719,7 +757,11 @@ def is_extended():
 
 def suggest_transformer(path_or_ds):
     """ suggest value of method and order to be passed
-        tp ``get_footprint_wkt`` and ``rect_from_subset``
+        to ``get_footprint_wkt`` and ``rect_from_subset``
+
+        :param path_or_ds: a :class:`GDAL Dataset
+                           <eoxserver.contrib.gdal.Dataset>` or a path to such.
+        :returns: a :class:`dict` containing the keys ``method`` and ``order``
     """
 
     # get info about the dataset

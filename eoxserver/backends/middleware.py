@@ -33,9 +33,13 @@ from eoxserver.backends.cache import setup_cache_session, shutdown_cache_session
 
 logger = logging.getLogger(__name__)
 
+
 class BackendsCacheMiddleware(object):
-    """ A request middleware f
+    """ A `Django Request Middleware
+    <https://docs.djangoproject.com/en/dev/topics/http/middleware/>`_ to manage
+    cache setup and teardown when a request is beeing processed.
     """
+
     def process_request(self, request):
         setup_cache_session()
 
@@ -50,5 +54,3 @@ class BackendsCacheMiddleware(object):
     def process_exception(self, request, exception):
         shutdown_cache_session()
         return None
-
-

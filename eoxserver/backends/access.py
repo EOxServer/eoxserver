@@ -26,7 +26,6 @@
 #-------------------------------------------------------------------------------
 
 
-from os import makedirs, path
 import hashlib
 import logging
 
@@ -35,6 +34,7 @@ from eoxserver.backends.component import BackendComponent, env
 
 
 logger = logging.getLogger(__name__)
+
 
 def generate_hash(location, format, hash_impl="sha1"):
     h = hashlib.new(hash_impl)
@@ -45,8 +45,17 @@ def generate_hash(location, format, hash_impl="sha1"):
 
 
 def connect(data_item, cache=None):
-    """ return a connection string, either for a local (cached) data or something 
-        residing on a server of some kind
+    """ Connect to a :class:`DataItem <eoxserver.backends.models.DataItem>`.
+    If the data item is not connectable but retrievable, this function uses
+    :func:`retrieve` as a fallback.
+
+    :param data_item: the :class:`DataItem <eoxserver.backends.models.DataItem>`
+                      to connect to
+    :param cache: an instance of :class:`CacheContext
+                  <eoxserver.backends.cache.CacheContext>` or ``None``
+                  if the caching shall be handled internally
+    :returns: the connection string to retrieve data from or a local path
+              if the ``DataItem`` was ``retrieved``
     """
 
     backend = BackendComponent(env)
@@ -54,7 +63,9 @@ def connect(data_item, cache=None):
     storage = data_item.storage
 
     if storage:
-        component = backend.get_connected_storage_component(storage.storage_type)
+        component = backend.get_connected_storage_component(
+            storage.storage_type
+        )
 
     if not storage or not component:
         return retrieve(data_item, cache)
@@ -62,9 +73,18 @@ def connect(data_item, cache=None):
     return component.connect(storage.url, data_item.location)
 
 
-
 def retrieve(data_item, cache=None):
-    """ 
+    """ Retrieve a :class:`DataItem <eoxserver.backends.models.DataItem>`, i.e:
+    make it locally available. This takes into account any download from a
+    :class:`Storage <eoxserver.backends.models.Storage>` and any unpacking from
+    a :class:`Package <eoxserver.backends.models.Package>` the ``DataItem``
+    might be contained in.
+
+    :param data_item: the :class:`DataItem <eoxserver.backends.models.DataItem>`
+                      to connect retrieve
+    :param cache: an instance of :class:`CacheContext
+                  <eoxserver.backends.cache.CacheContext>` or ``None``
+                  if the caching shall be handled internally
     """
 
     backend = BackendComponent(env)
@@ -82,7 +102,7 @@ def retrieve(data_item, cache=None):
         if item_id in cache:
             logger.debug("Item %s is already in the cache." % item_id)
             return path
-        
+
         if data_item.package is None and data_item.storage:
             return _retrieve_from_storage(
                 backend, data_item, data_item.storage, item_id, path, cache
@@ -97,10 +117,10 @@ def retrieve(data_item, cache=None):
             return data_item.location
 
 
-
 def _retrieve_from_storage(backend, data_item, storage, item_id, path, cache):
     """ Helper function to retrieve a file from a storage.
     """
+
     logger.debug("Accessing storage %s." % storage)
 
     component = backend.get_file_storage_component(
@@ -120,6 +140,7 @@ def _retrieve_from_storage(backend, data_item, storage, item_id, path, cache):
 def _extract_from_package(backend, data_item, package, item_id, path, cache):
     """ Helper function to extract a file from a package.
     """
+
     logger.debug("Accessing package %s." % package)
 
     package_location = retrieve(package, cache)
@@ -129,7 +150,7 @@ def _extract_from_package(backend, data_item, package, item_id, path, cache):
     )
 
     logger.debug(
-        "Extracting from %s: %s and saving it at %s" 
+        "Extracting from %s: %s and saving it at %s"
         % (package_location, data_item.location, path)
     )
 
@@ -143,7 +164,17 @@ def _extract_from_package(backend, data_item, package, item_id, path, cache):
     return actual_path or path
 
 
-def open(data_item, cache_context=None):
-    """ Returns a file object pointing to the given location.
+def open(data_item, cache=None):
+    """ Returns a file object pointing to the given location. This function
+    works like the builtin function :func:`open() <__builtins__.open>` but on
+    a :class:`DataItem <eoxserver.backends.models.DataItem>` and performs a
+    :func:`retrieve` first.
+
+    :param data_item: the :class:`DataItem <eoxserver.backends.models.DataItem>`
+                      to open
+    :param cache: an instance of :class:`CacheContext
+                  <eoxserver.backends.cache.CacheContext>` or ``None``
+                  if the caching shall be handled internally
     """
-    return __builtins__.open(retrieve(data_item, cache_context))
+
+    return __builtins__.open(retrieve(data_item, cache))
