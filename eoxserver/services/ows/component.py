@@ -29,7 +29,7 @@
 import itertools
 from functools import partial
 
-from eoxserver.core import env, Component, implements, ExtensionPoint
+from eoxserver.core import Component, ExtensionPoint, env
 
 from eoxserver.services.ows.interfaces import *
 from eoxserver.services.ows.decoders import get_decoder
@@ -51,20 +51,34 @@ class ServiceComponent(Component):
 
     version_negotiation_handlers = ExtensionPoint(VersionNegotiationInterface)
 
-
     def __init__(self, *args, **kwargs):
         super(ServiceComponent, self).__init__(*args, **kwargs)
 
-
     def query_service_handler(self, request):
-        """ Tries to find the correct service handler
+        """ Tries to find the correct service handler for a given request. The
+        request ``method`` can either be "POST" (in which case the request body
+        is parsed as XML) or "GET" (in which case the request is parsed
+        as "KVP").
+
+        If necessary a version negotiation is conducted, following OWS
+        guidelines.
+
+        :param request: a :class:`Django HttpRequest <django.http.HttpRequest>`
+                        object
+        :returns: the request handler component for the given request
+        :raises ServiceNotSupportedException: if the service is not supported
+                                              by any component
+        :raises VersionNotSupportedException: if the specified version is not
+                                              supported
+        :raises OperationNotSupportedException: if the specified request
+                                                operation is not supported
         """
 
         decoder = get_decoder(request)
         if request.method == "GET":
-            handlers = self.get_service_handlers 
+            handlers = self.get_service_handlers
         elif request.method == "POST":
-            handlers = self.post_service_handlers 
+            handlers = self.post_service_handlers
         else:
             handlers = self.service_handlers
 
@@ -96,7 +110,9 @@ class ServiceComponent(Component):
                     ), key=lambda h: max(h.versions), reverse=True
                 )[0]]
             else:
-                raise VersionNotSupportedException(decoder.service, decoder.version)
+                raise VersionNotSupportedException(
+                    decoder.service, decoder.version
+                )
         else:
             handlers = handlers_
 
@@ -117,8 +133,11 @@ class ServiceComponent(Component):
         # return the handler with the highest version
         return handlers[0]
 
-
-    def query_service_handlers(self, service=None, versions=None, request=None, method=None):
+    def query_service_handlers(self, service=None, versions=None, request=None,
+                               method=None):
+        """ Query the service handler components, filtering optionally by
+            ``service``, ``versions``, ``request`` or ``method``.
+        """
         method = method.upper() if method is not None else None
 
         if method == "GET":
@@ -133,14 +152,13 @@ class ServiceComponent(Component):
         handlers = filter_handlers(handlers, service, versions, request)
         return sort_handlers(handlers)
 
-
     def query_exception_handler(self, request):
         try:
             decoder = get_decoder(request)
             handlers = self.exception_handlers
             handlers = sorted(
                 filter(
-                    partial(handler_supports_service, service=decoder.service), 
+                    partial(handler_supports_service, service=decoder.service),
                     self.exception_handlers
                 ),
                 key=lambda h: max(h.versions), reverse=True
@@ -162,7 +180,6 @@ class ServiceComponent(Component):
 
         # last resort fallback is a plain OWS exception handler
         return OWS20ExceptionHandler()
-
 
     def version_negotiation(self, handlers, accepted_versions=None):
         version_to_handler = {}
@@ -212,7 +229,7 @@ def filter_handlers(handlers, service=None, versions=None, request=None):
 
 def sort_handlers(handlers, ascending=True):
     return sorted(
-        handlers, key=lambda h: getattr(h, "index", 100000), 
+        handlers, key=lambda h: getattr(h, "index", 100000),
         reverse=not ascending
     )
 

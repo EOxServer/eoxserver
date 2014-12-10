@@ -124,4 +124,3 @@ class ProcessInterface(object):
             one output item defined by the ``outputs``, one output value
             is allowed to be returned directly.
         """
-

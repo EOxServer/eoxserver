@@ -63,7 +63,7 @@ class Option(property):
     """
 
     def __init__(self, key=None, type=None, separator=None, required=False,
-                 default=None, section=None):
+                 default=None, section=None, doc=None):
 
         super(Option, self).__init__(self.fget)
 
@@ -112,6 +112,8 @@ class ReaderMetaclass(type):
         for key, value in dct.items():
             if isinstance(value, Option) and value.key is None:
                 value.key = key
+
+                value.__doc__ = "%s.%s" % (value.section, value.key)
 
         super(ReaderMetaclass, cls).__init__(name, bases, dct)
 

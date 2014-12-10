@@ -33,10 +33,15 @@
 import os
 from uuid import uuid4
 
-from gdal import (
-    VSIFOpenL, VSIFCloseL, VSIFReadL, VSIFWriteL, VSIFSeekL, VSIFTellL,
-    VSIStatL, Unlink, Rename, FileFromBuffer
-)
+if os.environ.get('READTHEDOCS', None) != 'True':
+    from eoxserver.contrib.gdal import (
+        VSIFOpenL, VSIFCloseL, VSIFReadL, VSIFWriteL, VSIFSeekL, VSIFTellL,
+        VSIStatL, Unlink, Rename, FileFromBuffer
+    )
+
+    rename = Rename
+
+    unlink = remove = Unlink
 
 
 def open(filename, mode="r"):
@@ -52,10 +57,6 @@ def open(filename, mode="r"):
     :returns: a :class:`VSIFile`
     """
     return VSIFile(filename)
-
-rename = Rename
-
-unlink = remove = Unlink
 
 
 class VSIFile(object):

@@ -69,7 +69,7 @@ class Version(object):
         Versions can be compared with other versions. Strings and tuples of the
         correct layout are also compareable.
 
-        Versions are compared by the "major" and the "minor" number. Only if 
+        Versions are compared by the "major" and the "minor" number. Only if
         both versions provide a "revision" it is taken into account. So Versions
         "1.0" and "1.0.1" are considered equal!
     """

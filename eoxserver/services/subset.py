@@ -45,6 +45,12 @@ logger = logging.getLogger(__name__)
 class Subsets(list):
     """ Convenience class to handle a variety of spatial and/or temporal
         subsets.
+
+        :param iterable: an iterable of objects inheriting from :class:`Trim`
+                         or :class:`Slice`
+        :param crs: the CRS definition
+        :param allowed_types: the allowed subset types. defaults to both
+                              :class:`Trim` and :class:`Slice`
     """
 
     def __init__(self, iterable, crs=None, allowed_types=None):
@@ -62,15 +68,18 @@ class Subsets(list):
     # List API
 
     def extend(self, iterable):
+        """ See :meth:`list.extend` """
         for subset in iterable:
             self._check_subset(subset)
             super(Subsets, self).append(subset)
 
     def append(self, subset):
+        """ See :meth:`list.append` """
         self._check_subset(subset)
         super(Subsets, self).append(subset)
 
     def insert(self, i, subset):
+        """ See :meth:`list.insert` """
         self._check_subset(subset)
         super(Subsets, self).insert(i, subset)
 
@@ -78,22 +87,27 @@ class Subsets(list):
 
     @property
     def has_x(self):
+        """ Check if a subset along the X-axis is given. """
         return any(map(lambda s: s.is_x, self))
 
     @property
     def has_y(self):
+        """ Check if a subset along the Y-axis is given. """
         return any(map(lambda s: s.is_y, self))
 
     @property
     def has_t(self):
+        """ Check if a subset along the temporal axis is given. """
         return any(map(lambda s: s.is_temporal, self))
 
     @property
     def crs(self):
+        """ Return the subset CRS definiton. """
         return self._crs
 
     @crs.setter
     def crs(self, value):
+        """ Set the subset CRS definiton. """
         self._crs = value
 
     @property
@@ -113,6 +127,14 @@ class Subsets(list):
         return None
 
     def filter(self, queryset, containment="overlaps"):
+        """ Filter a :class:`Django QuerySet <django.db.models.query.QuerySet>`
+        of objects inheriting from :class:`EOObject
+        <eoxserver.resources.coverages.models.EOObject>`.
+
+        :param queryset: the ``QuerySet`` to filter
+        :param containment: either "overlaps" or "contains"
+        :returns: a ``QuerySet`` with additional filters applied
+        """
         if not len(self):
             return queryset
 
@@ -216,6 +238,15 @@ class Subsets(list):
         return qs
 
     def matches(self, eo_object, containment="overlaps"):
+        """ Check if the given :class:`EOObject
+        <eoxserver.resources.coverages.models.EOObject>` matches the given
+        subsets.
+
+        :param eo_object: the ``EOObject`` to match
+        :param containment: either "overlaps" or "contains"
+        :returns: a boolean value indicating if the object is contained in the
+                  given subsets
+        """
         if not len(self):
             return True
 
@@ -335,6 +366,9 @@ class Subsets(list):
     @property
     def xy_bbox(self):
         """ Returns the minimum bounding box for all X and Y subsets.
+
+        :returns: a list of four elements [minx, miny, maxx, maxy], which might
+                  be ``None``
         """
         bbox = [None, None, None, None]
         for subset in self:
@@ -354,6 +388,14 @@ class Subsets(list):
         return bbox
 
     def bounding_polygon(self, coverage):
+        """ Returns a minimum bounding :class:`django.contrib.gis.geos.Polygon`
+        for the given :class:`Coverage
+        <eoxserver.resources.coverages.models.Coverage>`
+
+        :param coverage: the coverage to calculate the bounding polygon for
+        :returns: the calculated ``Polygon``
+        """
+
         srid = coverage.srid
         extent = coverage.extent
         size_x, size_y = coverage.size
@@ -417,6 +459,9 @@ class Subsets(list):
 
 
 class Subset(object):
+    """ Base class for all subsets.
+    """
+
     def __init__(self, axis):
         axis = axis.lower()
         if axis not in all_axes:
@@ -437,6 +482,12 @@ class Subset(object):
 
 
 class Slice(Subset):
+    """ Slice subsets reduce the dimension of the subsetted object by one and
+    slice the given ``axis`` at the specified ``value``.
+
+    :param axis: the axis name
+    :param value: the slice point
+    """
     def __init__(self, axis, value):
         super(Slice, self).__init__(axis)
         self.value = value
@@ -446,6 +497,14 @@ class Slice(Subset):
 
 
 class Trim(Subset):
+    """ Trim subsets reduce the domain of the specified ``axis``
+
+    :param axis: the axis name
+    :param low: the lower end of the ``Trim``; if omitted, the ``Trim`` has no
+                lower bound
+    :param high: the upper end of the ``Trim``; if omitted, the ``Trim`` has no
+                 upper bound
+    """
     def __init__(self, axis, low=None, high=None):
         super(Trim, self).__init__(axis)
 
