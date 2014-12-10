@@ -20,14 +20,6 @@ eoxserver.backends.access module
     :undoc-members:
     :show-inheritance:
 
-eoxserver.backends.admin module
--------------------------------
-
-.. automodule:: eoxserver.backends.admin
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 eoxserver.backends.cache module
 -------------------------------
 

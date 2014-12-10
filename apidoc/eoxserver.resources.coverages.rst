@@ -11,14 +11,6 @@ Subpackages
 Submodules
 ----------
 
-eoxserver.resources.coverages.admin module
-------------------------------------------
-
-.. automodule:: eoxserver.resources.coverages.admin
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 eoxserver.resources.coverages.crss module
 -----------------------------------------
 

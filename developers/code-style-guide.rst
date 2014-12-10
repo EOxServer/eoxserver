@@ -41,9 +41,10 @@ maintainability.
 Fundamentals
 ------------
 
-Above all rules, adhere the rules defined in the Python PEP 8. Please try to
-adhere the mentioned code styles. You can check if you compliant to the style
-guide with the ``pylint`` or ``pep8`` command line utilities.
+Above all rules, adhere the rules defined in the `Python PEP 8
+<https://www.python.org/dev/peps/pep-0008/>`_. Please try to adhere the 
+mentioned code styles. You can check if you compliant to the style guide with
+the ``pylint`` or ``pep8`` command line utilities.
 
 Then:
 ::
@@ -113,21 +114,19 @@ A developer using these functions can choose to use the namespace explicitly:
 Import rules
 ------------
 
-
 As defined in Python PEP 8, place all imports in the top of the file. This makes
 it easier to trace dependencies and allows to see and resolve importing issues.
 
 Try to use the following importing order:
 
-    1) Standard library imports or libraries that can be seen as industry 
-    standard (like numpy).
-    2) Third party libraries (or libraries that are not directly associated 
-    with the current project). E.g: GDAL, Django, etc.
-    3) Imports that are directly associated with the current project. In case of 
-    EOxServer, everything that is under the ``eoxserver`` package root.
+    1. Standard library imports or libraries that can be seen as industry 
+       standard (like numpy).
+    2. Third party libraries (or libraries that are not directly associated 
+       with the current project). E.g: GDAL, Django, etc.
+    3. Imports that are directly associated with the current project. In case of 
+       EOxServer, everything that is under the :mod:`eoxserver` package root.
 
 Use single empty lines to separate these import groups.
-
 
 
 Coding guidelines
@@ -190,7 +189,6 @@ exceptions.
 
 Where to add the tests?
 ^^^^^^^^^^^^^^^^^^^^^^^
-
 
 Try to let tests *fail* by calling the correct assertion or the 
 ``fail`` functions. Don't use exceptions (apart from ``AssertionError``), 

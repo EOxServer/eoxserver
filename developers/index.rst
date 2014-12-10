@@ -61,6 +61,7 @@ on the *User* side.
    autotest
    soap_proxy
    handling_coverages
+   processes
    atp_dev_guide
    testing
    code-style-guide

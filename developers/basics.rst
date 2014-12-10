@@ -37,10 +37,6 @@ Basics
     :depth: 3
     :backlinks: top
 
-The basic design of EOxServer has been proposed in :doc:`/rfc/rfc1` and
-:doc:`/rfc/rfc2`. Both are worth reading, although some of the concepts
-mentioned there have not (yet) been fully implemented.
-
 This is a short description of the basic elements of the EOxServer software
 architecture.
 
@@ -58,10 +54,10 @@ For further information on the dependencies please refer to the
 Django
 ~~~~~~
 
-EOxServer is designed as a Django app. It reuses the object-relational mapping
-Django provides as an abstraction layer for database access. Therefore, it is
-not bound to a specific database application, but can be run with different
-backends.
+EOxServer is designed as a series of Django apps. It reuses the 
+object-relational mapping Django provides as an abstraction layer for database 
+access. Therefore, it is not bound to a specific database application, but can
+be run with different backends.
 
 Database
 ~~~~~~~~
@@ -73,7 +69,7 @@ recommend either PostGIS or SpatiaLite.
 MapServer
 ~~~~~~~~~
 
-One of the most important components is `MapServer <http://www.mapserver.org>`_
+Many built-in functionalities rely on `MapServer <http://www.mapserver.org>`_
 which EOxServer uses through its Python bindings to handle certain OGC Web
 Service requests.
 

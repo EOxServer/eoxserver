@@ -32,3 +32,61 @@
 
 Services
 ========
+
+This section deals with the creation of new Hervices handlers that allow to process OGC web service requests and are easily exposed via the :func:`ows 
+<eoxserver.services.views.ows>` view.
+
+Service Handlers are :class:`Components <eoxserver.core.component.Component>`
+that at least implement the :class:`ServiceHandlerInterface
+<eoxserver.services.ows.interfaces.ServiceHandlerInterface>`. For a Service
+Handler to be fully accessible it is also necessary to implement either or both
+of :class:`GetServiceHandlerInterface 
+<eoxserver.services.ows.interfaces.GetServiceHandlerInterface>` and 
+:class:`PostServiceHandlerInterface 
+<eoxserver.services.ows.interfaces.PostServiceHandlerInterface>`.
+For general information about Plugins/Components please refer to the 
+:ref:`Plugins` documentation.
+
+
+Initial Setup
+-------------
+
+Each service handler must provide the following:
+
+  - The ``service`` the handler will contribute to
+  - The ``versions`` of the ``service`` the handler is capable of responding to
+  - The ``request`` of the ``service`` the handler is able to respond
+  - a ``handle`` method that takes a :class:`django.http.HttpRequest` as 
+    parameter
+
+A service handler *can* provide an ``index``, which allows the sorting of
+the handlers in a "GetCapabilities" response.
+
+The following is an example handler for the "GetCapabilities" handler of the
+fictional ``WES`` (Web Example Service):
+::
+
+    from eoxserver.core import Component, implements, ExtensionPoint
+    from eoxserver.services.ows.interfaces import (
+        ServiceHandlerInterface, GetServiceHandlerInterface,
+        PostServiceHandlerInterface
+    )
+
+    class WESGetCapabilitiesHandler(Component):
+        implements(ServiceHandlerInterface)
+        implements(GetServiceHandlerInterface)
+        implements(PostServiceHandlerInterface)
+
+        service = "WES"
+        request = "GetCapabilities"
+        versions = ["1.0"]
+
+        def handle(self, request):
+            ...
+
+.. note:: A word about versions: in EOxServer they are represented by the
+   :class:`Version <eoxserver.services.version.Version>` class. It follows OGC
+   conventions on treating versions. So for example the versions "1.0" and 
+   "1.0.1" are considered equal. For our example this means that our handler
+   will be able to respond to any request with a version "1.0.x".
+

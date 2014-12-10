@@ -44,18 +44,6 @@ EO-WCS (OGC 10-140) as shown below in Figure: ":ref:`fig_eo-wcs_data_model`".
 
    *EO-WCS Data Model from OGC 10-140*
 
-
-Core
-----
-
-Figure: ":ref:`fig_model_core`" below shows the data model of EOxServer's core.
-
-.. _fig_model_core:
-.. figure:: images/model_core.png
-   :align: center
-
-   *EOxServer Data Model for the Core*
-
 .. _Coverages Data Model:
 
 Data Integration Layer
