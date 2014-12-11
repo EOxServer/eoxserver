@@ -39,14 +39,22 @@ from eoxserver.backends.access import retrieve
 from eoxserver.backends import models as backends
 from eoxserver.backends.component import BackendComponent
 from eoxserver.resources.coverages import models
+from eoxserver.resources.coverages.registration.component import (
+    RegistratorComponent
+)
 
 
 logger = logging.getLogger(__name__)
 
-# TODO: create regexes   
+# TODO: create regexes
 
-TEMPLATE_RE = re.compile(r"template\[*\]", re.IGNORECASE)
-SOURCE_RE = re.compile(r"source\[*\]", re.IGNORECASE)
+TEMPLATE_RE = re.compile(
+    r"template\[(?P<value>[a-zA-Z0-9_\[\]]+)\]", re.IGNORECASE
+)
+SOURCE_RE = re.compile(
+    r"source\[(?P<value>[a-zA-Z0-9_\[\]]+)\]", re.IGNORECASE
+)
+#SOURCE_RE = re.compile(r"source\[*\]", re.IGNORECASE)
 
 
 class SynchronizationError(Exception):
@@ -73,7 +81,7 @@ def synchronize(collection, recursive=False):
     logger.info("Synchronizing collection %s" % collection)
 
     all_paths = []
-    for data_source in collection.data_sources:
+    for data_source in collection.data_sources.all():
         all_paths.extend(
             _expand_data_source(data_source)
         )
@@ -83,18 +91,22 @@ def synchronize(collection, recursive=False):
     for paths in all_paths:
         exists = True
         for filename, data_item, semantic in paths:
-            exists = backends.DataItem.objects.exists(
+            exists = backends.DataItem.objects.filter(
                 package=data_item.package, storage=data_item.storage,
                 location=filename
-            )
+            ).exists()
             if not exists:
                 break
 
         if not exists:
             logger.info("Creating new dataset.")
-            # TODO: register
-            pass
+            for registrator in RegistratorComponent(env).registrators:
+                # TODO: select registrator
+                pass
 
+            registrator.register(
+                items, overrides, cache
+            )
 
     # loop over all coverages in this collection. if any is not represented by
     # its referenced file, delete it.
@@ -107,7 +119,7 @@ def synchronize(collection, recursive=False):
             for paths in all_paths:
                 for filename, data_item, semantic in paths:
                     if existing_data_item.location == filename and \
-                        existing_data_item.semantic == semantic:
+                            existing_data_item.semantic == semantic:
                         files_exist = True
                         break
             if files_exist:
@@ -117,7 +129,7 @@ def _expand_data_source(data_source):
     """ Helper function to loop over all files referenced by a data source.
     """
 
-    data_items = tuple(data_source.data_items)
+    data_items = tuple(data_source.data_items.all())
 
     # detect the template data items and the primary data item of a data source
     template_data_items = [
@@ -186,7 +198,7 @@ def _expand_data_source(data_source):
     return all_paths
 
 
-def _expand_data_item(data_item, cache):
+def _expand_data_item(data_item, cache=None):
     """ Helper function to expand a source data item to a list of file
         identifiers.
     """
@@ -209,7 +221,7 @@ def _expand_data_item(data_item, cache):
 
     elif package:
         # get list of files of that package
-        local_filename = retrieve(package)
+        local_filename = retrieve(package, cache)
         component = backends.get_package_component(package.format)
         if not component:
             raise ValueError(
@@ -228,7 +240,7 @@ def _expand_data_item(data_item, cache):
         return component.list_files("", data_item.location)
 
 
-def _expand_template_data_item(data_item, template_values, cache):
+def _expand_template_data_item(data_item, template_values, cache=None):
     """ Helper function to expand a source data item to a list of file
         identifiers, but first expanding the template location with the string
         format syntax.

@@ -156,6 +156,12 @@ class Command(CommandOutputMixIn, BaseCommand):
             help=("Optional. If the coverage with the given identifier already "
                   "exists, replace it. Without this flag, this would result in "
                   "an error.")
+        ),
+
+        make_option("--scheme",
+            action="store", default="GDAL",
+            help=("Optional. How the input files shall be treated and "
+                  "registered. Default is the 'GDAL' scheme.")
         )
     )
 
