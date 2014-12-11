@@ -193,6 +193,8 @@ INSTALLED_APPS = (
     'django.contrib.admindocs',
     # Enable the databrowse:
     #'django.contrib.databrowse',
+    # Enable for better schema and data-migrations
+    #'south',
     # Enable for debugging
     #'django_extensions',
     #'django_nose',
@@ -206,6 +208,7 @@ INSTALLED_APPS = (
     'eoxserver.webclient',
     # Enable EOxServer autotests
     'autotest_services',
+    'autotest_coverages',
 )
 
 
@@ -237,7 +240,6 @@ COMPONENTS = (
     # test processes for WPS interface
     'autotest_services.processes.*',
 )
-
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
