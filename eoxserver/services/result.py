@@ -1,5 +1,4 @@
 #-------------------------------------------------------------------------------
-# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
@@ -10,8 +9,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -32,29 +31,35 @@ from cStringIO import StringIO
 from uuid import uuid4
 
 from django.http import HttpResponse
-from django.utils.datastructures import SortedDict
 
 from eoxserver.core.util import multiparttools as mp
 
 
 class ResultItem(object):
-    """ Base class for render results.
+    """ Base class (or interface) for result items of a result set.
+
+    :param content_type: the content type of the result item. in HTTP this will
+                         be translated to the ``Content-Type`` header
+    :param filename: the filename of the result item.
+    :param identifier: the identifier of the result item. translated to
+                       ``Content-Id`` HTTP header
     """
 
     def __init__(self, content_type=None, filename=None, identifier=None):
         self.content_type = content_type
         self.filename = filename
         self.identifier = identifier
-    
+
     @property
     def data(self):
-        """ Returns the "raw" data, usually as a string, buffer, memoryview, etc.
+        """ Returns the "raw" data, usually as a string, buffer, memoryview,
+        etc.
         """
         return ""
 
     @property
     def data_file(self):
-        """ Returns the data as a file-like object.
+        """ Returns the data as a Python file-like object.
         """
         return StringIO("")
 
@@ -62,7 +67,7 @@ class ResultItem(object):
         """ Unified access to size of data.
         """
         raise NotImplementedError
-    
+
     size = property(lambda self: len(self))
 
     def chunked(self, chunksize):
@@ -110,8 +115,8 @@ class ResultFile(ResultItem):
 
 
 class ResultBuffer(ResultItem):
-    """ Class for results that are actually a subset of a larger context. 
-        Usually a buffer
+    """ Class for results that are actually a subset of a larger context.
+        Usually a buffer.
     """
 
     def __init__(self, buf, content_type=None, filename=None, identifier=None):
@@ -132,12 +137,12 @@ class ResultBuffer(ResultItem):
     def chunked(self, chunksize):
         if chunksize < 0:
             raise ValueError
-        
+
         size = len(self.buf)
         if chunksize >= size:
             yield self.buf
             return
-        
+
         i = 0
         while i < size:
             yield self.buf[i:i+chunksize]
@@ -145,8 +150,8 @@ class ResultBuffer(ResultItem):
 
 
 def get_content_type(result_set):
-    """ Returns the content type of a result set. If only one item is included 
-        its content type is used.
+    """ Returns the content type of a result set. If only one item is included
+        its content type is used, otherwise the constant "multipart/related".
     """
     if len(result_set) == 1:
         return result_set[0].content_type
@@ -162,7 +167,7 @@ def get_headers(result_item):
         yield "Content-Id", result_item.identifier
     if result_item.filename:
         yield (
-            "Content-Disposition", 'attachment; filename="%s"' 
+            "Content-Disposition", 'attachment; filename="%s"'
             % result_item.filename
         )
     try:
@@ -171,12 +176,24 @@ def get_headers(result_item):
         pass
 
 
-
 def to_http_response(result_set, response_type=HttpResponse, boundary=None):
-    """ Returns a response for a given result set. The ``response_type`` is the 
-        class to be used. It must be capable to work with iterators.
+    """ Returns a response for a given result set. The ``response_type`` is the
+        class to be used. It must be capable to work with iterators. This
+        function is also responsible to delete any temporary files and buffers
+        of the ``result_set``.
+
+        :param result_set: an iterable of objects following the
+                           :class:`ResultItem` interface
+        :param response_type: the response type class to use; defaults to
+                              :class:`HttpResponse <django.http.HttpResponse>`.
+                              For streaming responses use
+                              :class:`StreamingHttpResponse
+                              <django.http.StreamingHttpResponse>`
+        :param boundary: the multipart boundary; if omitted a UUID hex string is
+                         computed and used
+        :returns: a response object of the desired type
     """
-    
+
     # if more than one item is contained in the result set, the content type is
     # multipart
     if len(result_set) > 1:
@@ -190,7 +207,6 @@ def to_http_response(result_set, response_type=HttpResponse, boundary=None):
         content_type = result_set[0].content_type or "application/octet-stream"
         headers = tuple(get_headers(result_set[0]))
 
-
     def response_iterator(items, boundary=None):
         try:
             if boundary:
@@ -201,7 +217,7 @@ def to_http_response(result_set, response_type=HttpResponse, boundary=None):
                 if boundary:
                     yield boundary_str
                     yield mp.CRLF.join(
-                        "%s: %s" % (key, value) 
+                        "%s: %s" % (key, value)
                         for key, value in get_headers(item)
                     ) + mp.CRLFCRLF
                 yield item.data
@@ -212,7 +228,7 @@ def to_http_response(result_set, response_type=HttpResponse, boundary=None):
                 try:
                     item.delete()
                 except:
-                    pass # bad exception swallowing...
+                    pass  # bad exception swallowing...
 
     # workaround for bug in django, that does not consume iterator in tests.
     if response_type == HttpResponse:
@@ -233,8 +249,10 @@ def to_http_response(result_set, response_type=HttpResponse, boundary=None):
 
 
 def parse_headers(headers):
-    """ Convenience function to read the "Content-Type", "Content-Disposition" 
+    """ Convenience function to read the "Content-Type", "Content-Disposition"
         and "Content-Id" headers.
+
+        :param headers: the raw header :class:`dict`
     """
     content_type = headers.get("Content-Type", "application/octet-stream")
     _, params = mp.parse_parametrized_option(
@@ -253,11 +271,14 @@ def parse_headers(headers):
 
 def result_set_from_raw_data(data):
     """ Create a result set from raw HTTP data. This can either be a single
-        or a multipart string. It returns a list containing objects of the 
-        `ResultBuffer` type that reference substrings of the given data.
+        or a multipart string. It returns a list containing objects of the
+        :class:`ResultBuffer` type that reference substrings of the given data.
+
+        :param data: the raw byte data
+        :returns: a result set: a list containing :class:`ResultBuffer`
     """
     return [
-        ResultBuffer(data, *parse_headers(headers))
-        for headers, data in mp.iterate(data)
+        ResultBuffer(d, *parse_headers(headers))
+        for headers, d in mp.iterate(data)
         if not headers.get("Content-Type").startswith("multipart")
     ]

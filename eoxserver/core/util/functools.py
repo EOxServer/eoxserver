@@ -3,7 +3,7 @@
 # http://voidspace.org.uk/blog
 
 """
-``total_ordering`` and ``force_total_ordering`` are class decorators for 
+``total_ordering`` and ``force_total_ordering`` are class decorators for
 Python 2.6 & Python 3.
 
 They provides *all* the rich comparison methods on a class by defining *any*
@@ -19,9 +19,9 @@ the base it fills in *all* the others - this overwrites additional comparison
 methods that may be implemented, guaranteeing consistent comparison semantics.
 
 ::
-    
+
     from total_ordering import total_ordering
-    
+
     @total_ordering
     class Something(object):
         def __init__(self, value):
@@ -32,9 +32,9 @@ methods that may be implemented, guaranteeing consistent comparison semantics.
 It also works with Python 2.5, but you need to do the wrapping yourself:
 
 ::
-    
+
     from total_ordering import total_ordering
-    
+
     class Something(object):
         def __init__(self, value):
             self.value = value
@@ -67,13 +67,12 @@ else:
         return False
 
 
-
 def _ordering(cls, overwrite):
     def setter(name, value):
         if overwrite or not _has_method(cls, name):
             value.__name__ = name
             setattr(cls, name, value)
-            
+
     comparison = None
     if not _has_method(cls, '__lt__'):
         for name in 'gt le ge'.split():
@@ -90,7 +89,9 @@ def _ordering(cls, overwrite):
             else:
                 setter('__lt__', lambda s, o: comparison(o, s) and ne(s, o))
             break
-        assert comparison is not None, 'must have at least one of ge, gt, le, lt'
+        assert comparison is not None, (
+            'must have at least one of ge, gt, le, lt'
+        )
 
     setter('__ne__', lambda s, o: s < o or o < s)
     setter('__eq__', lambda s, o: not s != o)
@@ -102,6 +103,7 @@ def _ordering(cls, overwrite):
 
 def total_ordering(cls):
     return _ordering(cls, False)
+
 
 def force_total_ordering(cls):
     return _ordering(cls, True)

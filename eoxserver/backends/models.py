@@ -49,7 +49,7 @@ class BaseLocation(models.Model):
     format = models.CharField(max_length=64, null=True, blank=True)
 
     storage = models.ForeignKey(Storage, null=True, blank=True)
-    package = None # placeholder
+    package = None  # placeholder
 
     def clean(self):
         if self.storage is not None and self.package is not None:
@@ -70,7 +70,7 @@ class Package(BaseLocation):
     """ Model for Packages. Packages are files that contain multiple files or
         provide access to multiple data items.
     """
-    package = models.ForeignKey("self", related_name="pakages", null=True, blank=True)
+    package = models.ForeignKey("self", related_name="packages", null=True, blank=True)
 
 
 class Dataset(models.Model):

@@ -11,8 +11,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -28,7 +28,7 @@
 #-------------------------------------------------------------------------------
 
 """This model contains Django views for the EOxServer software. Its main
-function is ows() which handles all incoming OWS requests"""
+function is :func:`ows` which handles all incoming OWS requests"""
 
 import logging
 import traceback
@@ -39,21 +39,26 @@ try:
 except:
     class StreamingHttpResponse(object):
         pass
-from django.conf import settings
 
-from eoxserver.services.ows.component import ServiceComponent, env
+from eoxserver.core import env
+from eoxserver.services.ows.component import ServiceComponent
 
 
 logger = logging.getLogger(__name__)
 
-def ows(request):
-    """ Main entry point for OWS requests against EOxServer. It uses the OWS 
-        component to dynamically determine the handler for this request. 
-        If an exception occurs during the handling of the request, an exception
-        handler is determined and dispatched.
 
-        Any response of the service handler and exception handler is transformed
-        to a django HttpResponse to adhere the required interface.
+def ows(request):
+    """ Main entry point for OWS requests against EOxServer. It uses the
+    :class:`ServiceComponent
+    <eoxserver.services.ows.component.ServiceComponent>` to dynamically
+    determine the handler component for this request.
+
+    If an exception occurs during the handling of the request, an exception
+    handler component is determined and dispatched.
+
+    Any response of the service handler and exception handler is transformed
+    to a django :class:`HttpResponse <django.http.HttpResponse>` to adhere the
+    required interface.
     """
 
     component = ServiceComponent(env)
@@ -83,7 +88,7 @@ def ows(request):
         )
     except ValueError:
         pass
-        
+
     try:
         content, content_type = result
         return HttpResponse(

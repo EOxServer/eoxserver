@@ -1,0 +1,332 @@
+{
+
+  "debug":true,
+
+  "mapConfig": {
+    "module": "views/MapView",
+    "model": "models/MapModel",
+    "visualizationLibs": [
+      "openlayers"
+    ],
+    "center": [13.41,52.52],
+    "zoom": 5,
+
+    "baseLayers": [
+      {
+          "name": "Terrain-Light",
+          "visible": true,
+          "id": "terrain-light",
+          "protocol": "WMTS",
+          "requestEncoding": "REST",
+          "urls": [
+              "http://a.tiles.maps.eox.at/wmts/",
+              "http://b.tiles.maps.eox.at/wmts/",
+              "http://c.tiles.maps.eox.at/wmts/",
+              "http://d.tiles.maps.eox.at/wmts/",
+              "http://e.tiles.maps.eox.at/wmts/"
+          ],
+          "matrixSet": "WGS84",
+          "style": "default",
+          "format": "image/png",
+          "maxExtent": [-180.000000, -90.000000, 180.000000, 90.000000],
+          "resolutions": [0.70312500000000000000, 0.35156250000000000000, 0.17578125000000000000, 0.08789062500000000000, 0.04394531250000000000, 0.02197265625000000000, 0.01098632812500000000, 0.00549316406250000000, 0.00274658203125000000, 0.00137329101562500000, 0.00068664550781250000, 0.00034332275390625000, 0.00017166137695312500, 0.00008583068847656250, 0.00004291534423828120, 0.00002145767211914060, 0.00001072883605957030, 0.00000536441802978516],
+          "projection": "EPSG:4326",
+          "gutter": 0,
+          "buffer": 0,
+          "units": "dd",
+          "transitionEffect": "resize",
+          "isphericalMercator": false,
+          "wrapDateLine": true,
+          "zoomOffset": 0,
+          "attribution": "Terrain-Light { Data &copy; <a href=\"http://www.openstreetmap.org/copyright\" target=\"_blank\">OpenStreetMap</a> contributors and <a href='javascript:;' onClick='toggle(terrain_attribution)'>others</a>, Rendering &copy; <a href=\"http://eox.at\" target=\"_blank\">EOX</a> }"
+      },{
+        "name": "Terrain",
+        "id": "terrain",
+        "protocol": "WMTS",
+        "requestEncoding": "REST",
+        "visible": false,
+        "urls": [
+          "http://a.tiles.maps.eox.at/wmts/",
+          "http://b.tiles.maps.eox.at/wmts/",
+          "http://c.tiles.maps.eox.at/wmts/",
+          "http://d.tiles.maps.eox.at/wmts/",
+          "http://e.tiles.maps.eox.at/wmts/"
+        ],
+        "matrixSet": "WGS84",
+        "style": "default",
+        "format": "image/png",
+        "maxExtent": [-180.000000,-90.000000,180.000000,90.000000],
+        "resolutions": [ 0.70312500000000000000,0.35156250000000000000,0.17578125000000000000,0.08789062500000000000,0.04394531250000000000,0.02197265625000000000,0.01098632812500000000,0.00549316406250000000,0.00274658203125000000,0.00137329101562500000,0.00068664550781250000,0.00034332275390625000,0.00017166137695312500,0.00008583068847656250,0.00004291534423828120,0.00002145767211914060,0.00001072883605957030,0.00000536441802978516 ],
+        "projection": "EPSG:4326",
+        "gutter": 0,
+        "buffer": 0,
+        "units": "dd",
+        "transitionEffect": "resize",
+        "isphericalMercator": false,
+        "wrapDateLine": true,
+        "zoomOffset": 0,
+        "attribution": "Terrain { Data &copy; <a href=\"http://www.openstreetmap.org/copyright\" target=\"_blank\">OpenStreetMap</a> contributors and <a href='javascript:;' onClick='toggle(terrain_attribution)'>others</a>, Rendering &copy; <a href=\"http://eox.at\" target=\"_blank\">EOX</a> }"
+      },
+      {
+        "name": "Blue Marble",
+        "id": "bluemarble",
+        "protocol": "WMTS",
+        "requestEncoding": "REST",
+        "visible": false,
+        "urls": [
+          "http://a.tiles.maps.eox.at/wmts/",
+          "http://b.tiles.maps.eox.at/wmts/",
+          "http://c.tiles.maps.eox.at/wmts/",
+          "http://d.tiles.maps.eox.at/wmts/",
+          "http://e.tiles.maps.eox.at/wmts/"
+        ],
+        "matrixSet": "WGS84",
+        "style": "default",
+        "format": "image/png",
+        "maxExtent": [-180.000000,-90.000000,180.000000,90.000000],
+        "resolutions": [ 0.70312500000000000000,0.35156250000000000000,0.17578125000000000000,0.08789062500000000000,0.04394531250000000000,0.02197265625000000000,0.01098632812500000000,0.00549316406250000000,0.00274658203125000000,0.00137329101562500000,0.00068664550781250000,0.00034332275390625000,0.00017166137695312500,0.00008583068847656250,0.00004291534423828120,0.00002145767211914060,0.00001072883605957030,0.00000536441802978516 ],
+        "projection": "EPSG:4326",
+        "gutter": 0,
+        "buffer": 0,
+        "units": "dd",
+        "transitionEffect": "resize",
+        "isphericalMercator": false,
+        "wrapDateLine": true,
+        "zoomOffset": 0,
+        "attribution": "Blue Marble { &copy; <a href=\"http://nasa.gov\" target=\"_blank\">NASA</a> }"
+      }
+    ],
+    "products": [
+      {% for layer in layers %}
+      {
+        "name": "{% if layer.webclient_extra.display_name %}{{ layer.webclient_extra.display_name }}{% else %}{{ layer.identifier }}{% endif %}",
+        "visible": {% if layer.webclient_extra.default_visible %}true{% else %}false{% endif %},
+        "timeSlider": true,
+        "timeSliderProtocol":"WPS",
+        {% if layer.webclient_extra.color %}"color": "{{ layer.webclient_extra.color }}",{% endif %}
+        "view": {
+          "id": "{{ layer.identifier }}",
+          "protocol": "WMS",
+          "urls": [
+              "{% url 'ows' %}"
+          ],
+          "style": "default"
+        },
+        "download": {
+          "id": "{{ layer.identifier }}",
+          "protocol": "EOWCS",
+          "url": "{% url 'ows' %}"
+        }
+      }{% if forloop.last %}{% else %},{% endif%}
+      {% endfor %}
+    ],
+    "overlays": [
+       {
+        "name": "Streets",
+        "id": "overlay",
+        "protocol": "WMTS",
+        "requestEncoding": "REST",
+        "visible": true,
+        "urls": [
+          "http://a.tiles.maps.eox.at/wmts/",
+          "http://b.tiles.maps.eox.at/wmts/",
+          "http://c.tiles.maps.eox.at/wmts/",
+          "http://d.tiles.maps.eox.at/wmts/",
+          "http://e.tiles.maps.eox.at/wmts/"
+        ],
+        "matrixSet": "WGS84",
+        "style": "default",
+        "format": "image/png",
+        "maxExtent": [-180.000000,-90.000000,180.000000,90.000000],
+        "resolutions": [ 0.70312500000000000000,0.35156250000000000000,0.17578125000000000000,0.08789062500000000000,0.04394531250000000000,0.02197265625000000000,0.01098632812500000000,0.00549316406250000000,0.00274658203125000000,0.00137329101562500000,0.00068664550781250000,0.00034332275390625000,0.00017166137695312500,0.00008583068847656250,0.00004291534423828120,0.00002145767211914060,0.00001072883605957030,0.00000536441802978516 ],
+        "projection": "EPSG:4326",
+        "gutter": 0,
+        "buffer": 0,
+        "units": "dd",
+        "transitionEffect": "resize",
+        "isphericalMercator": false,
+        "wrapDateLine": true,
+        "zoomOffset": 0,
+        "attribution": "Overlay { Data &copy; <a href=\"http://www.openstreetmap.org/copyright\" target=\"_blank\">OpenStreetMap</a> contributors, Rendering &copy; <a href=\"http://eox.at\" target=\"_blank\">EOX</a> and <a href=\"https://github.com/mapserver/basemaps\" target=\"_blank\">MapServer</a> }"
+      }
+    ]
+  },
+
+
+  "regions": [
+    {
+      "name": "map",
+      "class": ""
+    },
+    {
+      "name": "leftSideBar",
+      "class": ""
+    },
+    {
+      "name": "rightSideBar",
+      "class": ""
+    },
+    {
+      "name": "topBar",
+      "class": ""
+    },
+    {
+      "name": "bottomBar",
+      "class": ""
+    },
+    {
+      "name": "viewContent",
+      "class": ""
+    }
+  ],
+
+  "navBarConfig": {
+    "title" : "EOxServer - Webclient",
+    "url" : "http://eoxserver.org",
+    "items" : [
+      {
+        "name" : "Layers",
+        "icon" : "fa-globe",
+        "eventToRaise" : "ui:open:layercontrol",
+        "template" : "LayerControl",
+        "show":true
+      },
+      {
+        "name" : "Tools",
+        "icon" : "fa-wrench",
+        "eventToRaise" : "ui:open:toolselection",
+        "template" : "ToolSelection",
+        "show":true
+      },
+      {
+        "name" : "About",
+        "icon" : "fa-info-circle",
+        "eventToRaise" : "dialog:open:about",
+        "subitems" : [
+          {
+          "name" : "Info",
+          "eventToRaise" : "dialog:open:info",
+          "template" : "info"
+          },
+          {
+          "name" : "Help",
+          "eventToRaise" : "dialog:open:help",
+          "template" : "help"
+          }
+        ]
+      }
+    ]
+  },
+
+  "timeSlider": {
+    "domain": {
+      "start": "{{ start_time_full }}",
+      "end": "{{ end_time_full }}"
+    },
+    "brush": {
+       "start": "{{ start_time }}",
+      "end": "{{ end_time }}"
+    }
+  },
+
+
+  "views": [
+    "views/MapView",
+    "views/NavBarCollectionView",
+    "views/NavBarItemView",
+    "views/BaseLayerSelectionView",
+    "views/LayerSelectionView",
+    "views/LayerItemView",
+    "views/ContentView",
+    "views/TimeSliderView",
+    "views/ToolSelectionView",
+    "views/ToolItemView",
+    "views/DownloadView"
+  ],
+
+  "models":[
+    "models/LayerModel",
+    "models/MapModel",
+    "models/NavBarCollection",
+    "models/NavBarItemModel",
+    "models/ToolModel",
+    "models/ToolCollection"
+  ],
+
+  "templates":[
+    {
+      "id":"BulletLayer",
+      "template":"hbs!tmpl/BulletLayer"
+    },
+    {
+      "id":"CheckBoxLayer",
+      "template":"hbs!tmpl/CheckBoxLayer"
+    },
+    {
+      "id":"Info",
+      "template":"hbs!tmpl/Info"
+    },
+    {
+      "id":"LayerControl",
+      "template":"hbs!tmpl/LayerControl"
+    },
+    {
+      "id":"NavBar",
+      "template":"hbs!tmpl/NavBar"
+    },
+    {
+      "id":"NavBarItem",
+      "template":"hbs!tmpl/NavBarItem"
+    },
+    {
+      "id":"NavBarItemList",
+      "template":"hbs!tmpl/NavBarItemList"
+    },
+    {
+      "id":"UIElement",
+      "template":"hbs!tmpl/UIElement"
+    },
+    {
+      "id":"ToolControl",
+      "template":"hbs!tmpl/ToolControl"
+    },
+    {
+      "id":"ToolIcon",
+      "template":"hbs!tmpl/ToolIcon"
+    },
+    {
+      "id":"CheckBoxOverlayLayer",
+      "template":"hbs!tmpl/CheckBoxOverlayLayer"
+    }
+  ],
+
+  "selectionTools":[
+    {
+      "id":"bboxSelection",
+      "description": "Bounding box selection tool",
+      "icon":"icon-vector-path-square"
+    }
+  ],
+
+  "visualizationTools":[
+    {
+      "id":"selectionManager",
+      "eventToRaise":"ui:open:selectionManager",
+      "description": "Import, export and saving functionality for selections",
+      "icon":"icon-edit",
+      "enabled":true,
+      "active":false
+    },
+    {
+      "id":"download",
+      "eventToRaise":"dialog:open:download",
+      "description": "WCS Download Tool",
+      "disabledDescription": "Please make sure you have selected a product layer, an area of interest and a time of interest in order to use the download tool",
+      "icon":"icon-download-alt",
+      "enabled":false,
+      "active":false
+    }
+
+  ]
+
+}
