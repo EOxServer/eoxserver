@@ -227,6 +227,8 @@ COMPONENTS = (
     # metadata readers/writers
     'eoxserver.resources.coverages.metadata.formats.*',
 
+    'eoxserver.resources.coverages.registration.registrators.*',
+
     # service handlers
     'eoxserver.services.ows.wcs.**',
     'eoxserver.services.ows.wms.**',
