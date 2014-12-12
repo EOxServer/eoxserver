@@ -38,6 +38,7 @@ from eoxserver.core import env
 from eoxserver.backends.access import retrieve
 from eoxserver.backends import models as backends
 from eoxserver.backends.component import BackendComponent
+from eoxserver.backends.cache import CacheContext
 from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.registration.component import (
     RegistratorComponent
@@ -46,24 +47,31 @@ from eoxserver.resources.coverages.registration.component import (
 
 logger = logging.getLogger(__name__)
 
-# TODO: create regexes
-
 TEMPLATE_RE = re.compile(
     r"template\[(?P<value>[a-zA-Z0-9_\[\]]+)\]", re.IGNORECASE
 )
 SOURCE_RE = re.compile(
     r"source\[(?P<value>[a-zA-Z0-9_\[\]]+)\]", re.IGNORECASE
 )
-#SOURCE_RE = re.compile(r"source\[*\]", re.IGNORECASE)
 
 
 class SynchronizationError(Exception):
     pass
 
 
-def synchronize(collection, recursive=False):
+def synchronize(collection, recursive=False, force=False):
     """ Synchronizes a :class:`eoxserver.resources.coverages.models.Collection`
         and all its data sources with their respective storages.
+
+        :param collection: either the ID of a collection or the collection model
+                           itself. internally the collection will always be
+                           cast to its actual type.
+        :param recursive: perform a recursive synchronization for all
+                          sub-collections of the specified one. by default this
+                          is not performed.
+        :param force: force the re-registration of already inserted datasets.
+                      by default, existing datasets will be preserved and not
+                      refreshed.
     """
 
     # allow both model and identifier
@@ -71,6 +79,10 @@ def synchronize(collection, recursive=False):
         collection = models.Collection.objects.get(identifier=collection)
 
     collection = collection.cast()
+    if models.iscoverage(collection):
+        overrides = {"range_type_name": collection.range_type.name}
+    else:
+        overrides = {}
 
     if recursive:
         synchronize(
@@ -86,44 +98,71 @@ def synchronize(collection, recursive=False):
             _expand_data_source(data_source)
         )
 
-    # loop over all paths and check if there is already a dataset registered
-    # for it.
-    for paths in all_paths:
-        exists = True
-        for filename, data_item, semantic in paths:
-            exists = backends.DataItem.objects.filter(
-                package=data_item.package, storage=data_item.storage,
-                location=filename
-            ).exists()
+    with CacheContext() as cache:
+        # loop over all paths and check if there is already a dataset registered
+        # for it.
+        registered_pks = []
+        for paths in all_paths:
+            for filename, data_item, semantic in paths:
+                exists = backends.DataItem.objects.filter(
+                    package=data_item.package, storage=data_item.storage,
+                    location=filename
+                ).exists()
+                if not exists:
+                    break
+
             if not exists:
-                break
+                logger.info("Creating new dataset.")
+                for registrator in RegistratorComponent(env).registrators:
+                    # TODO: select registrator
+                    pass
 
-        if not exists:
-            logger.info("Creating new dataset.")
-            for registrator in RegistratorComponent(env).registrators:
-                # TODO: select registrator
-                pass
+                # translate for registrator
+                items = [
+                    (d.storage or d.package, location, semantic, d.format)
+                    for location, d, semantic in paths
+                ]
+                dataset = registrator.register(
+                    items, overrides, cache
+                )
+                collection.insert(dataset)
+                registered_pks.append(dataset.pk)
 
-            registrator.register(
-                items, overrides, cache
-            )
+        # loop over all coverages in this collection. if any is not represented
+        # by its referenced file, delete it. Skip the just added datasets for
+        # convenience (as we know that they must have referenced files)
+        contained = models.Coverage.objects.filter(
+            collections__in=[collection.pk]
+        ).exclude(pk__in=registered_pks)
 
-    # loop over all coverages in this collection. if any is not represented by
-    # its referenced file, delete it.
-    contained = models.Coverage.objects.filter(collections__in=[collection.pk])
-    for coverage in contained:
-        data_items = tuple(coverage.data_items)
-        all_exists = False
-        for existing_data_item in data_items:
-            files_exist = False
-            for paths in all_paths:
-                for filename, data_item, semantic in paths:
-                    if existing_data_item.location == filename and \
-                            existing_data_item.semantic == semantic:
-                        files_exist = True
+        for coverage in contained:
+            data_items = tuple(coverage.data_items.all())
+            all_exists = True
+
+            # loop over all its data items
+            for existing_data_item in data_items:
+                for paths in all_paths:
+                    for filename, data_item, semantic in paths:
+                        if existing_data_item.location == filename and \
+                                existing_data_item.semantic == semantic:
+                            pass
+                        else:
+                            logger.info(
+                                "Dataset '%s' is missing its file '%s'." % (
+                                    coverage.identifier,
+                                    existing_data_item.location
+                                ))
+                            all_exists = False
+                            break
+                    if not all_exists:
                         break
-            if files_exist:
-                break
+                if not all_exists:
+                    break
+
+            if not all_exists:
+                logger.info("Deleting dataset '%s'." % coverage.identifier)
+                coverage.delete()
+
 
 def _expand_data_source(data_source):
     """ Helper function to loop over all files referenced by a data source.
@@ -172,9 +211,10 @@ def _expand_data_source(data_source):
     for filename in files:
         # each template must match exactly one file
         dirname, basename = os.path.split(filename)
-        _, ext = os.path.splitext(basename)
+        root, ext = os.path.splitext(basename)
         template_values = {
             "basename": basename,
+            "root": root,
             "dirname": dirname,
             "extension": ext,
         }
@@ -185,13 +225,29 @@ def _expand_data_source(data_source):
                 template_data_item.semantic
             ).group("value")
 
-            template_files = _expand_template_data_item(
+            #template_files = _expand_template_data_item(
+            #    template_data_item, template_values
+            #)
+
+            # check count
+            #if len(template_files) > 1:
+            #    raise SynchronizationError(
+            #        "Template data item matched too many files. "
+            #        "Template: '%s', Files: %s" % (
+            #            template_data_item.location,
+            #            ", ".join(map(repr, template_files))
+            #        )
+            #    )
+            #elif not template_files:
+            #    raise SynchronizationError(
+            #        "Template data item did not match any file. "
+            #        "Template: '%s'" % template_data_item.location
+            #    )
+
+            template_file = _expand_template_location(
                 template_data_item, template_values
             )
-
-            # TODO: check count
-
-            paths.append((template_files, template_data_item, template_sem))
+            paths.append((template_file, template_data_item, template_sem))
 
         all_paths.append(paths)
 
@@ -240,7 +296,7 @@ def _expand_data_item(data_item, cache=None):
         return component.list_files("", data_item.location)
 
 
-def _expand_template_data_item(data_item, template_values, cache=None):
+def _expand_template_location(data_item, template_values):
     """ Helper function to expand a source data item to a list of file
         identifiers, but first expanding the template location with the string
         format syntax.
@@ -249,14 +305,16 @@ def _expand_template_data_item(data_item, template_values, cache=None):
     location = data_item.location
 
     try:
-        data_item.location = location.format(template_values)
+        location = location.format(template_values)
+        # allow both formatting mechanisms
+        if location == data_item.location:
+            location = location % template_values
     except:
-        try:
-            data_item.location = location % template_values
-        except:
-            raise ValueError(
-                "Invalid template '%s' in template data item %s."
-                % (location, data_item)
-            )
+        raise ValueError(
+            "Invalid template '%s' in template data item %s."
+            % (location, data_item)
+        )
 
-    return _expand_data_item(data_item, cache)
+    return location
+
+    #return _expand_data_item(data_item, cache)

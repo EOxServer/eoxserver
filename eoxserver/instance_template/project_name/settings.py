@@ -182,6 +182,8 @@ INSTALLED_APPS = (
     'django.contrib.admindocs',
     # Enable the databrowse:
     #'django.contrib.databrowse',
+    # Enable for better schema and data-migrations
+    #'south',
     # Enable for debugging
     #'django_extensions',
     # Enable EOxServer:
@@ -193,7 +195,8 @@ INSTALLED_APPS = (
     'eoxserver.testing',
     'eoxserver.webclient',
     # Enable EOxServer autotests
-    #'autotest_services',
+    'autotest_services',
+    'autotest_coverages',
 )
 
 
@@ -211,6 +214,9 @@ COMPONENTS = (
 
     # metadata readers/writers
     'eoxserver.resources.coverages.metadata.formats.*',
+
+	# registration schemes
+    'eoxserver.resources.coverages.registration.registrators.*',
 
     # service handlers
     'eoxserver.services.ows.wcs.**',

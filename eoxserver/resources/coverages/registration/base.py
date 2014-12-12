@@ -31,8 +31,8 @@ from eoxserver.core import Component, implements, env
 from eoxserver.contrib import osr
 from eoxserver.backends import models as backends
 from eoxserver.backends.access import retrieve
-from eoxserver.backends.component import MetadataComponent
 from eoxserver.resources.coverages import models
+from eoxserver.resources.coverages.metadata.component import MetadataComponent
 from eoxserver.resources.coverages.registration.exceptions import (
     RegistrationError
 )
@@ -79,18 +79,18 @@ class BaseRegistrator(Component):
                 break
             self._read_metadata_from_data(data_item, retrieved_metadata, cache)
 
-        if self.missing_metadata_keys:
+        if self.missing_metadata_keys(retrieved_metadata):
             raise RegistrationError(
                 "Missing metadata keys %s."
                 % ", ".join(self.missing_metadata_keys(retrieved_metadata))
             )
 
-        self._create_dataset(
+        return self._create_dataset(
             data_items=chain(metadata_items, data_items),
             **retrieved_metadata
         )
 
-    def _create_data_item(storage_or_package, location, semantic, format):
+    def _create_data_item(self, storage_or_package, location, semantic, format):
         """ Small helper function to create a :class:`DataItem
         <eoxserver.backends.models.DataItem>` from the available inputs.
         """
@@ -176,6 +176,8 @@ class BaseRegistrator(Component):
             data_item.dataset = coverage
             data_item.full_clean()
             data_item.save()
+
+        return coverage
 
     def missing_metadata_keys(self, retrieved_metadata):
         """ Return a :class:`frozenset` of metadata keys still missing.

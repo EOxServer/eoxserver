@@ -26,9 +26,9 @@
 #-------------------------------------------------------------------------------
 
 from eoxserver.core import env
-from eoxserver.backends.access import connect
-from eoxserver.backends.component import MetadataComponent
 from eoxserver.contrib import gdal
+from eoxserver.backends.access import connect
+from eoxserver.resources.coverages.metadata.component import MetadataComponent
 from eoxserver.resources.coverages.registration.base import BaseRegistrator
 
 
