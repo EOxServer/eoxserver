@@ -25,12 +25,9 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-
-from lxml import etree
-
-from django.utils.dateparse import parse_datetime
 from django.contrib.gis.geos import Polygon, MultiPolygon
 
+from eoxserver.core.util.timetools import parse_iso8601
 from eoxserver.core.util.xmltools import parse, NameSpace, NameSpaceMap
 from eoxserver.core.util.iteratortools import pairwise
 from eoxserver.core import Component, implements
@@ -81,8 +78,8 @@ def parse_ring(string):
 
 class EOOMFormatDecoder(xml.Decoder):
     identifier = xml.Parameter("eop:metaDataProperty/eop:EarthObservationMetaData/eop:identifier/text()", type=str, num=1)
-    begin_time = xml.Parameter("om:phenomenonTime/gml:TimePeriod/gml:beginPosition/text()", type=parse_datetime, num=1)
-    end_time = xml.Parameter("om:phenomenonTime/gml:TimePeriod/gml:endPosition/text()", type=parse_datetime, num=1)
+    begin_time = xml.Parameter("om:phenomenonTime/gml:TimePeriod/gml:beginPosition/text()", type=parse_iso8601, num=1)
+    end_time = xml.Parameter("om:phenomenonTime/gml:TimePeriod/gml:endPosition/text()", type=parse_iso8601, num=1)
     polygons = xml.Parameter("om:featureOfInterest/eop:Footprint/eop:multiExtentOf/gml:MultiSurface/gml:surfaceMember/gml:Polygon", type=parse_polygon_xml, num="+")
 
     namespaces = nsmap
