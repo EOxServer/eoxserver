@@ -9,14 +9,8 @@ Build-Depends: debhelper (>= 9),
                autoconf,
                automake,
                autotools-dev,
-               gcc, 
-               libproj-dev, 
-               libgeos-dev, 
-               libgeos++-dev, 
-               libgdal-dev (>= 1.10.1-0~),
                python-all (>= 2.6.6-3~),
-               python-all-dev (>= 2.6.6-3~),
-               libmapserver1-dev
+               python-all-dev (>= 2.6.6-3~)
 Standards-Version: 3.9.3
 X-Python-Version: >= 2.6
 Homepage: http://eoxserver.org

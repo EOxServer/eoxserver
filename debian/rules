@@ -5,7 +5,7 @@
 	dh  $@ --with python2
 
 override_dh_auto_build:
-	python setup.py build --disable-extended-reftools
+	python setup.py build
 
 override_dh_auto_install:
-	python setup.py install --disable-extended-reftools --no-compile --root=$(CURDIR)/debian/tmp --install-layout=deb;
+	python setup.py install --no-compile --root=$(CURDIR)/debian/tmp --install-layout=deb;
