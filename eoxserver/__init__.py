@@ -29,7 +29,7 @@
 
 #VERSION = (0, 4, None, 'dev', 0)
 #VERSION = (0, 4, None, 'alpha', 1)
-VERSION = (0, 4, None, 'beta', 1)
+VERSION = (0, 4, None, 'beta', 2)
 #VERSION = (0, 4, None, 'rc', 1)
 #VERSION = (0, 4, 0, 'final', 0)
 

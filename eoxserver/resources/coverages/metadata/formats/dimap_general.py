@@ -26,7 +26,7 @@
 #-------------------------------------------------------------------------------
 
 
-from django.utils.dateparse import parse_date, parse_datetime
+from eoxserver.core.util.timetools import parse_iso8601
 from django.contrib.gis.geos import Polygon, MultiPolygon
 
 from eoxserver.core import Component, implements
@@ -102,7 +102,7 @@ class DimapGeneralFormatReader(Component):
 
 
 def parse_date_or_datetime_11(string):
-    value = parse_date(string) or parse_datetime(string)
+    value = parse_iso8601(string)
     if not value:
         raise Exception("Could not parse date or datetime from '%s'." % string)
     return value
@@ -129,7 +129,7 @@ def parse_size_11(elem):
 
 def parse_geotransform_11(elem):
     values = (
-        elem.findtext("ULXMAP"), elem.findtext("XDIM"), 0, 
+        elem.findtext("ULXMAP"), elem.findtext("XDIM"), 0,
         elem.findtext("ULYMAP"), 0, elem.findtext("YDIM")
     )
     return map(float, values)
