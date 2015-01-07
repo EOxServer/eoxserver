@@ -4,7 +4,7 @@
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
 #-------------------------------------------------------------------------------
-# Copyright (C) 2013 EOX IT Services GmbH
+# Copyright (C) 2014 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,26 +26,5 @@
 #-------------------------------------------------------------------------------
 
 
-import os.path
-from glob import glob
-
-from eoxserver.core import Component, implements
-from eoxserver.backends.interfaces import FileStorageInterface
-
-
-class LocalStorage(Component):
-    """ Implementation of the
-        :class:`eoxserver.backends.interfaces.FileStorageInterface` for local
-        storages.
-    """
-
-    implements(FileStorageInterface)
-
-    name = "local"
-
-    def retrieve(self, url, location, path):
-        return location
-
-    def list_files(self, url, location_regex=None):
-        location_regex = location_regex or "*"
-        return glob(os.path.join(url, location_regex))
+class RegistrationError(Exception):
+    pass

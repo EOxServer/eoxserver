@@ -28,6 +28,7 @@
 
 import shutil
 from zipfile import ZipFile
+import re
 
 from eoxserver.core import Component, implements
 from eoxserver.backends.interfaces import PackageInterface
@@ -36,7 +37,7 @@ from eoxserver.backends.interfaces import PackageInterface
 class ZIPPackage(Component):
     """Implementation of the package interface for ZIP package files.
     """
-    
+
     implements(PackageInterface)
 
     name = "ZIP"
@@ -47,7 +48,9 @@ class ZIPPackage(Component):
         with open(path, "wb") as outfile:
             shutil.copyfileobj(infile, outfile)
 
-    
-    def list_files(self, package_filename):
+    def list_files(self, package_filename, location_regex=None):
         zipfile = ZipFile(package_filename, "r")
-        # TODO: get list
+        filenames = zipfile.namelist()
+        if location_regex:
+            filenames = [f for f in filenames if re.match(location_regex, f)]
+        return filenames

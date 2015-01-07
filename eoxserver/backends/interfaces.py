@@ -103,12 +103,12 @@ class PackageInterface(object):
                       this can be different than the passed ``path``
         """
 
-    def list_contents(self, package_filename, location):
+    def list_contents(self, package_filename, location_regex=None):
         """ Return a list of item locations under the specified location in the
             given package.
 
             :param package_filename: the local filename of the package
-            :param location: a template to find items within the package
+            :param location_regex: a template to find items within the package
             :returns: an iterable of the package contents under the specified
                       ``location``
         """

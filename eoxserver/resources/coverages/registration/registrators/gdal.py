@@ -4,7 +4,7 @@
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
 #-------------------------------------------------------------------------------
-# Copyright (C) 2013 EOX IT Services GmbH
+# Copyright (C) 2014 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,27 +25,28 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+from eoxserver.core import env
+from eoxserver.contrib import gdal
+from eoxserver.backends.access import connect
+from eoxserver.resources.coverages.metadata.component import MetadataComponent
+from eoxserver.resources.coverages.registration.base import BaseRegistrator
 
-import os.path
-from glob import glob
 
-from eoxserver.core import Component, implements
-from eoxserver.backends.interfaces import FileStorageInterface
+class GDALRegistrator(BaseRegistrator):
+    def _read_metadata_from_data(self, data_item, retrieved_metadata, cache):
+        metadata_component = MetadataComponent(env)
 
+        ds = gdal.Open(connect(data_item, cache))
+        reader = metadata_component.get_reader_by_test(ds)
+        if reader:
+            values = reader.read(ds)
 
-class LocalStorage(Component):
-    """ Implementation of the
-        :class:`eoxserver.backends.interfaces.FileStorageInterface` for local
-        storages.
-    """
+            format = values.pop("format", None)
+            if format:
+                data_item.format = format
+                data_item.full_clean()
+                data_item.save()
 
-    implements(FileStorageInterface)
-
-    name = "local"
-
-    def retrieve(self, url, location, path):
-        return location
-
-    def list_files(self, url, location_regex=None):
-        location_regex = location_regex or "*"
-        return glob(os.path.join(url, location_regex))
+            for key, value in values.items():
+                retrieved_metadata.setdefault(key, value)
+        ds = None

@@ -4,7 +4,7 @@
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
 #-------------------------------------------------------------------------------
-# Copyright (C) 2013 EOX IT Services GmbH
+# Copyright (C) 2014 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,27 +25,52 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-
 import os.path
-from glob import glob
+from cStringIO import StringIO
+from ConfigParser import RawConfigParser
 
 from eoxserver.core import Component, implements
-from eoxserver.backends.interfaces import FileStorageInterface
+from eoxserver.core.decoders import config
+from eoxserver.resources.coverages.metadata.interfaces import (
+    MetadataReaderInterface
+)
 
 
-class LocalStorage(Component):
-    """ Implementation of the
-        :class:`eoxserver.backends.interfaces.FileStorageInterface` for local
-        storages.
-    """
+class NativeConfigFormatReader(Component):
+    implements(MetadataReaderInterface)
 
-    implements(FileStorageInterface)
+    def open_reader(self, obj):
+        if isinstance(obj, basestring):
+            try:
+                parser = RawConfigParser()
+                if os.path.exists(obj):
+                    parser.read((obj,))
+                else:
+                    parser.readfp(StringIO(obj))
 
-    name = "local"
+                return NativeConfigReader(parser)
+            except:
+                pass
+        return None
 
-    def retrieve(self, url, location, path):
-        return location
+    def test(self, obj):
+        try:
+            reader = self.open_reader(obj)
+            reader.range_type_name
+            return True
+        except:
+            return False
 
-    def list_files(self, url, location_regex=None):
-        location_regex = location_regex or "*"
-        return glob(os.path.join(url, location_regex))
+    def get_format_name(self, obj):
+        return "native_config"
+
+    def read(self, obj):
+        reader = self.open_reader(obj)
+        if reader:
+            return {
+                "range_type_name": reader.range_type_name
+            }
+
+
+class NativeConfigReader(config.Reader):
+    range_type_name = config.Option(section="range_type")

@@ -4,7 +4,7 @@
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
 #-------------------------------------------------------------------------------
-# Copyright (C) 2013 EOX IT Services GmbH
+# Copyright (C) 2014 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,26 +26,26 @@
 #-------------------------------------------------------------------------------
 
 
-import os.path
-from glob import glob
-
-from eoxserver.core import Component, implements
-from eoxserver.backends.interfaces import FileStorageInterface
-
-
-class LocalStorage(Component):
-    """ Implementation of the
-        :class:`eoxserver.backends.interfaces.FileStorageInterface` for local
-        storages.
+class RegistratorInterface(object):
+    """ Interface for components that allow the registration files as datasets.
     """
 
-    implements(FileStorageInterface)
+    def register(self, items, overrides=None, cache=None):
+        """ Register a dataset as the given ``dataset_type`` and the provided
+        ``items``. All required metadata is retrieved from the
+        ``items``, overrides can be specified by supplying an ``overrides``
+        :class:`dict`.
 
-    name = "local"
-
-    def retrieve(self, url, location, path):
-        return location
-
-    def list_files(self, url, location_regex=None):
-        location_regex = location_regex or "*"
-        return glob(os.path.join(url, location_regex))
+        :param items: an iterable that yields four-tuples:
+                      (storage or package or ``None``, location, semantic,
+                      format).
+        :param overrides: a :class:`dict` containing any metadata value that
+                          cannot be retrieved from the supplied ``data_items``,
+                          or shall override any supplied value
+        :param cache: an instance of :class:`CacheContext
+                      <eoxserver.backends.cache.CacheContext>` for cached file
+                      access during registration
+        :returns: the registered dataset. the actual type depends on the passed
+                  metadata
+        """
+        pass
