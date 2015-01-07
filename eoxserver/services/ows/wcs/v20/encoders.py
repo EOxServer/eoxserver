@@ -51,6 +51,24 @@ from eoxserver.services.ows.wcs.v20.util import (
 )
 from eoxserver.services.urls import get_http_service_url
 
+PROFILES = [
+    "spec/WCS_application-profile_earth-observation/1.0/conf/eowcs",
+    "spec/WCS_application-profile_earth-observation/1.0/conf/eowcs_get-kvp",
+    "spec/WCS_service-extension_crs/1.0/conf/crs",
+    "spec/WCS/2.0/conf/core",
+    "spec/WCS_protocol-binding_get-kvp/1.0/conf/get-kvp",
+    "spec/WCS_protocol-binding_post-xml/1.0/conf/post-xml",
+    "spec/GMLCOV/1.0/conf/gml-coverage",
+    "spec/GMLCOV/1.0/conf/multipart",
+    "spec/GMLCOV/1.0/conf/special-format",
+    "spec/GMLCOV_geotiff-coverages/1.0/conf/geotiff-coverage",
+    "spec/WCS_geotiff-coverages/1.0/conf/geotiff-coverage",
+    "spec/WCS_service-model_crs-predefined/1.0/conf/crs-predefined",
+    "spec/WCS_service-extension_interpolation/1.0/conf/interpolation",
+    "spec/WCS_service-extension_range-subsetting/1.0/conf/record-subsetting",
+    "spec/WCS_service-extension_scaling/1.0/conf/scaling",
+]
+
 
 class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
     def encode_service_identification(self, conf):
@@ -65,8 +83,6 @@ class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
             reverse=True
         )
 
-        print versions
-
         elem = OWS("ServiceIdentification",
             OWS("Title", conf.title),
             OWS("Abstract", conf.abstract),
@@ -80,22 +96,12 @@ class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
             OWS("ServiceTypeVersion", version) for version in versions
         )
 
+        elem.extend(
+            OWS("Profile", "http://www.opengis.net/%s" % profile)
+            for profile in PROFILES
+        )
+
         elem.extend((
-            OWS("Profile", "http://www.opengis.net/spec/WCS_application-profile_earth-observation/1.0/conf/eowcs"),
-            OWS("Profile", "http://www.opengis.net/spec/WCS_application-profile_earth-observation/1.0/conf/eowcs_get-kvp"),
-            OWS("Profile", "http://www.opengis.net/spec/WCS_service-extension_crs/1.0/conf/crs"),
-            OWS("Profile", "http://www.opengis.net/spec/WCS/2.0/conf/core"),
-            OWS("Profile", "http://www.opengis.net/spec/WCS_protocol-binding_get-kvp/1.0/conf/get-kvp"),
-            OWS("Profile", "http://www.opengis.net/spec/WCS_protocol-binding_post-xml/1.0/conf/post-xml"),
-            OWS("Profile", "http://www.opengis.net/spec/GMLCOV/1.0/conf/gml-coverage"),
-            OWS("Profile", "http://www.opengis.net/spec/GMLCOV/1.0/conf/multipart"),
-            OWS("Profile", "http://www.opengis.net/spec/GMLCOV/1.0/conf/special-format"),
-            OWS("Profile", "http://www.opengis.net/spec/GMLCOV_geotiff-coverages/1.0/conf/geotiff-coverage"),
-            OWS("Profile", "http://www.opengis.net/spec/WCS_geotiff-coverages/1.0/conf/geotiff-coverage"),
-            OWS("Profile", "http://www.opengis.net/spec/WCS_service-model_crs-predefined/1.0/conf/crs-predefined"),
-            OWS("Profile", "http://www.opengis.net/spec/WCS_service-extension_interpolation/1.0/conf/interpolation"),
-            OWS("Profile", "http://www.opengis.net/spec/WCS_service-extension_range-subsetting/1.0/conf/record-subsetting"),
-            OWS("Profile", "http://www.opengis.net/spec/WCS_service-extension_scaling/1.0/conf/scaling"),
             OWS("Fees", conf.fees),
             OWS("AccessConstraints", conf.access_constraints)
         ))
