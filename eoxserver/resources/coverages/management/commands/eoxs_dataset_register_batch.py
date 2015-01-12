@@ -105,6 +105,8 @@ class Command(CommandOutputMixIn, BaseCommand):
     def handle_file(self, reader, kwargs):
         sid = None
         on_error = kwargs["on_error"]
+        traceback = kwargs["traceback"]
+        verbosity = kwargs["verbosity"]
 
         for row in reader:
             params = self._translate_params(row)
@@ -112,12 +114,13 @@ class Command(CommandOutputMixIn, BaseCommand):
                 sid = transaction.savepoint()
             try:
                 call_command("eoxs_dataset_register",
-                    **params
+                    traceback=traceback, verbosity=verbosity, **params
                 )
                 if sid:
                     transaction.savepoint_commit(sid)
-            except:
+            except Exception, e:
                 self.print_err(
+                    "Error occurred: '%s'" % e
                 )
                 transaction.savepoint_rollback(sid)
                 if on_error == "ignore":
