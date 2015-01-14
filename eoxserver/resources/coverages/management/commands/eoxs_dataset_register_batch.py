@@ -91,24 +91,43 @@ class Command(CommandOutputMixIn, BaseCommand):
         if header:
             header = header.split(",")
 
+        sum_successful = 0
+        sum_failed = 0
+
         for filename in args:
             with open(filename) as f:
                 self.print_msg("Processing batch file '%s'." % filename)
                 reader = csv.DictReader(
                     f, fieldnames=header, delimiter=delimiter
                 )
-                self.handle_file(reader, kwargs)
+                successful, failed = self.handle_file(reader, filename, kwargs)
                 self.print_msg(
-                    "Finished processing batch file '%s'." % filename
+                    "Finished processing batch file '%s'. Processed %d "
+                    "datasets (%d successful, %d failed)" % (
+                        filename, successful + failed, successful, failed
+                    )
                 )
+                sum_successful += successful
+                sum_failed += failed
 
-    def handle_file(self, reader, kwargs):
+        self.print_msg(
+            "Finished processing %d batch file%s. Processed %d datasets "
+            "(%d successful, %d failed)" % (
+                len(args), "s" if len(args) > 1 else "",
+                sum_successful + sum_failed, sum_successful, sum_failed
+            )
+        )
+
+    def handle_file(self, reader, filename, kwargs):
         sid = None
         on_error = kwargs["on_error"]
         traceback = kwargs["traceback"]
         verbosity = kwargs["verbosity"]
 
-        for row in reader:
+        successful = 0
+        failed = 0
+
+        for i, row in enumerate(reader):
             params = self._translate_params(row)
             if on_error != "rollback":
                 sid = transaction.savepoint()
@@ -118,16 +137,20 @@ class Command(CommandOutputMixIn, BaseCommand):
                 )
                 if sid:
                     transaction.savepoint_commit(sid)
-            except Exception, e:
+                successful += 1
+            except BaseException:  # need to catch SystemExit aswell
                 self.print_err(
-                    "Error occurred: '%s'" % e
+                    "Failed to register line %d of file '%s." % (i, filename)
                 )
                 transaction.savepoint_rollback(sid)
                 if on_error == "ignore":
+                    failed += 1
                     continue
                 elif on_error == "stop":
                     transaction.commit()
                 raise
+
+        return successful, failed
 
     def _translate_params(self, params):
         out = {}

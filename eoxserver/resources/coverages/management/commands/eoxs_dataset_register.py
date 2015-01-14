@@ -386,7 +386,10 @@ class Command(CommandOutputMixIn, BaseCommand):
 
         except Exception as e:
             self.print_traceback(e, kwargs)
-            raise CommandError("Dataset registration failed: %s" % e)
+            raise CommandError(
+                "Dataset '%s' registration failed: %s" %
+                (retrieved_metadata["identifier"], e)
+            )
 
         self.print_msg(
             "Dataset with ID '%s' registered sucessfully."
