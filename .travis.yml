@@ -13,7 +13,7 @@ before_install:
   - sudo apt-get update
   - sudo apt-get install aptitude
   # install a lot of deps from the apt-repos
-  - sudo aptitude install -y gdal-bin libgdal1-dev libxml2 python-lxml python-libxml2 libproj0 libproj-dev libgeos-dev libgeos++-dev cgi-mapserver python-mapscript python-psycopg2 postgis python-gdal
+  - sudo aptitude install -y gdal-bin libgdal1-dev libxml2 python-lxml python-libxml2 libproj0 libproj-dev libgeos-dev libgeos++-dev cgi-mapserver python-mapscript python-gdal
   # allowing sqlite to load extensions
   - 'if [ "$DB" == "spatialite" ]; then wget https://pypi.python.org/packages/source/p/pysqlite/pysqlite-2.6.3.tar.gz; fi'
   - 'if [ "$DB" == "spatialite" ]; then tar xzf pysqlite-2.6.3.tar.gz; fi'
@@ -21,6 +21,9 @@ before_install:
   - 'if [ "$DB" == "spatialite" ]; then sed -i "/define=SQLITE_OMIT_LOAD_EXTENSION/c\#define=SQLITE_OMIT_LOAD_EXTENSION" setup.cfg; fi'
   - 'if [ "$DB" == "spatialite" ]; then sudo python setup.py install; fi'
   - 'if [ "$DB" == "spatialite" ]; then cd -; fi'
+  - 'if [ "$DB" == "postgis" ]; then'
+  - 'sudo aptitude install -y postgis python-psycopg2 
+  - 'fi'
   - 'if [ "$DB" == "postgis" ]; then sudo psql postgres -tAc "CREATE USER eoxserver NOSUPERUSER CREATEDB NOCREATEROLE ENCRYPTED PASSWORD ''eoxserver'';"; fi'
   - 'if [ "$DB" == "postgis" ]; then sudo -u postgres createdb eoxserver_testing; fi'
   - 'if [ "$DB" == "postgis" ]; then sudo -u postgres psql eoxserver_testing -c ''create extension postgis;''; fi'
