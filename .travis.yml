@@ -2,7 +2,8 @@ language: python
 env:
   - 'DJANGO="1.4.13" GDAL=1.10 DB=spatialite'
   - 'DJANGO="1.5.8" GDAL=1.10 DB=spatialite'
-  #- DJANGO=1.6 GDAL=1.10 DB=spatialite
+  - 'DJANGO=1.6.10 GDAL=1.10 DB=spatialite'
+  - 'DJANGO=1.7.3 GDAL=1.10 DB=spatialite'
 python:
   - "2.7"
 virtualenv:
@@ -21,9 +22,7 @@ before_install:
   - 'if [ "$DB" == "spatialite" ]; then sed -i "/define=SQLITE_OMIT_LOAD_EXTENSION/c\#define=SQLITE_OMIT_LOAD_EXTENSION" setup.cfg; fi'
   - 'if [ "$DB" == "spatialite" ]; then sudo python setup.py install; fi'
   - 'if [ "$DB" == "spatialite" ]; then cd -; fi'
-  - 'if [ "$DB" == "postgis" ]; then'
-  - 'sudo aptitude install -y postgis python-psycopg2 
-  - 'fi'
+  - 'if [ "$DB" == "postgis" ]; then sudo aptitude install -y postgis python-psycopg2 fi'
   - 'if [ "$DB" == "postgis" ]; then sudo psql postgres -tAc "CREATE USER eoxserver NOSUPERUSER CREATEDB NOCREATEROLE ENCRYPTED PASSWORD ''eoxserver'';"; fi'
   - 'if [ "$DB" == "postgis" ]; then sudo -u postgres createdb eoxserver_testing; fi'
   - 'if [ "$DB" == "postgis" ]; then sudo -u postgres psql eoxserver_testing -c ''create extension postgis;''; fi'
