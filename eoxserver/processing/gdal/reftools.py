@@ -387,13 +387,15 @@ def get_footprint_wkt(ds, method=METHOD_GCP, order=0):
     :param order: (method specific):
 
                   - GCP (order of global fitting polynomial)
-                      0 for automatic order
-                      1, 2, and 3  for 1st, 2nd and 3rd polynomial order
+                      - ``0`` for automatic order
+                      - ``1``, ``2``, and ``3`` for 1st, 2nd and 3rd polynomial
+                      - order
 
                   - TPS and TPS_LSQ (order of augmenting polynomial)
-                      -1  for no-polynomial augmentation
-                      0  for 0th order (constant offset)
-                      1, 2, and 3 for 1st, 2nd and 3rd polynomial order
+                      - ``-1``  for no-polynomial augmentation
+                      - ``0``  for 0th order (constant offset)
+                      - ``1``, ``2``, and ``3`` for 1st, 2nd and 3rd polynomial
+                        order
 
     General guide:
 
