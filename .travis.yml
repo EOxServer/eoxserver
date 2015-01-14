@@ -31,7 +31,7 @@ install:
   - pip install Django==$DJANGO
   - django-admin.py --version
   # patch Django 1.4 libgeos
-  - 'if [ $DJANGO == "1.4.*" ]; then find /home/travis/virtualenv/ -name libgeos.py  -exec patch {} jenkins/geos-dev.patch \; ; fi'
+  - 'if [ "$DJANGO" == "1.4.*" ]; then find /home/travis/virtualenv/ -name libgeos.py  -exec patch {} jenkins/geos-dev.patch \; ; fi'
   # actually install EOxServer
   - pip install .
   - export XML_CATALOG_FILES="`pwd`/schemas/catalog.xml"
@@ -39,9 +39,10 @@ install:
   - "sed -e 's/#binary_raster_comparison_enabled=false/binary_raster_comparison_enabled=false/' -i autotest/conf/eoxserver.conf"
   - 'echo "disabled_tests=WCS20GetCoverageSubsetEPSG4326ResolutionInvalidAxisDatasetFaultTestCase,WCS20GetCoverageReferenceableDatasetGeogCRSSubsetTestCase,WCS20GetCoverageReferenceableDatasetGeogCRSSubsetExceedsExtentTestCase,WCS20GetCoverageOutputCRSotherUoMDatasetTestCase,WCS20GetCoverageJPEG2000TestCase,WCS20DescribeEOCoverageSetIncorrectSpatialSubsetFaultTestCase,WCS10DescribeCoverageMosaicTestCase,WCS10DescribeCoverageDatasetTestCase,WPS10ExecuteComplexDataTIFBase64InMemTestCase" >> autotest/conf/eoxserver.conf'
 script:
+  # tests are differently called since Django 1.6+
   - 'if [ "$DJANGO" == "1.4.*" ] || [ "$DJANGO" == "1.5.*" ]; then python manage.py test core -v2 ; else python manage.py test eoxserver.core.tests -v2 ; fi'
   - 'if [ "$DJANGO" == "1.4.*" ] || [ "$DJANGO" == "1.5.*" ]; then python manage.py test backends -v2 ; else python manage.py test eoxserver.backends.tests -v2 ; fi'
-  - 'if [ "$DJANGO" == "1.4.*" ] || [ "$DJANGO" == "1.5.*" ]; then python manage.py test coverages -v2 ; else python manage.py test eoxserver.coverages.tests -v2 ; fi'
+  - 'if [ "$DJANGO" == "1.4.*" ] || [ "$DJANGO" == "1.5.*" ]; then python manage.py test coverages -v2 ; else python manage.py test eoxserver.resources.coverages.tests -v2 ; fi'
   - 'if [ "$DJANGO" == "1.4.*" ] || [ "$DJANGO" == "1.5.*" ]; then python manage.py test autotest_services -v2 ; else python manage.py test autotest_services.tests -v2 ; fi'
   - 'if [ "$DJANGO" == "1.4.*" ] || [ "$DJANGO" == "1.5.*" ]; then python manage.py test autotest_coverages -v2 ; else python manage.py test autotest_coverages.tests -v2 ; fi'
 notifications:
