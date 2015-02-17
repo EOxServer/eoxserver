@@ -112,7 +112,7 @@ class WMS13GetLegendGraphicHandler(Component):
             coverages = ((eo_object.cast(), suffix),)
 
         layer_selection = LayerSelection(
-            collection.identifier if collection else None
+            collection if collection else None
         )
         layer_selection.extend(coverages)
 
