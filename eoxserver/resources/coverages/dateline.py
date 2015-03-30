@@ -9,8 +9,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -36,30 +36,31 @@ CRS_WIDTH = {
     4326: 360.0
 }
 
+
 def extent_crosses_dateline(extent, srid=4326):
-    """ Returns `True` if a dataset crosses the dateline border. """
-    
+    """ Returns ``True`` if a dataset crosses the dateline border. """
+
     poly = Polygon.from_bbox(extent)
     poly.srid = srid
-    
+
     poly.transform(EXTENT_EPSG_4326.srs)
-    
+
     if not EXTENT_EPSG_4326.contains(poly):
         return True
-    
+
     return False
 
-    
+
 def wrap_extent_around_dateline(extent, srid=4326):
-    """ Wraps the given extent around the dateline. Currently only works for 
+    """ Wraps the given extent around the dateline. Currently only works for
     EPSG:4326 and EPSG:3857"""
-    
+
     try:
-        return (extent[0] - CRS_WIDTH[srid], extent[1], 
+        return (extent[0] - CRS_WIDTH[srid], extent[1],
                 extent[2] - CRS_WIDTH[srid], extent[3])
     except KeyError:
         raise NotImplementedError(
             "Dateline wrapping is not implemented for SRID "
-            "%d. Supported are SRIDs %s." % 
+            "%d. Supported are SRIDs %s." %
             (srid, ", ".join(CRS_WIDTH.keys()))
         )

@@ -1,5 +1,4 @@
 #-------------------------------------------------------------------------------
-# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
@@ -10,8 +9,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -31,7 +30,7 @@ from eoxserver.core import Component, implements
 from eoxserver.core.decoders import xml, kvp, typelist, lower
 from eoxserver.resources.coverages import models
 from eoxserver.services.ows.interfaces import (
-    ServiceHandlerInterface, GetServiceHandlerInterface, 
+    ServiceHandlerInterface, GetServiceHandlerInterface,
     PostServiceHandlerInterface, VersionNegotiationInterface
 )
 from eoxserver.services.ows.wcs.basehandlers import (
@@ -51,37 +50,47 @@ class WCS20GetCapabilitiesHandler(WCSGetCapabilitiesHandlerBase, Component):
 
     versions = ("2.0.0", "2.0.1")
 
-
     def get_decoder(self, request):
         if request.method == "GET":
             return WCS20GetCapabilitiesKVPDecoder(request.GET)
         elif request.method == "POST":
             return WCS20GetCapabilitiesXMLDecoder(request.body)
 
-
     def lookup_coverages(self, decoder):
         sections = decoder.sections
-        if "contents" in sections or "all" in sections:
+        inc_coverages = (
+            "all" in sections or "contents" in sections
+            or "coveragesummary" in sections
+        )
+        inc_dataset_series = (
+            "all" in sections or "contents" in sections
+            or "datasetseriessummary" in sections
+        )
+
+        if inc_coverages:
             coverages = models.Coverage.objects \
                 .order_by("identifier") \
                 .filter(visible=True)
+        else:
+            coverages = ()
 
+        if inc_dataset_series:
             dataset_series = models.DatasetSeries.objects \
                 .order_by("identifier") \
                 .exclude(
-                    footprint__isnull=True, begin_time__isnull=True, 
+                    footprint__isnull=True, begin_time__isnull=True,
                     end_time__isnull=True
                 )
-            return coverages, dataset_series
         else:
-            return (), ()
+            dataset_series = ()
 
+        return coverages, dataset_series
 
     def get_params(self, models, decoder):
         coverages, dataset_series = models
         return WCS20CapabilitiesRenderParams(
-            coverages, dataset_series, decoder.sections, 
-            decoder.acceptlanguages, decoder.acceptformats, 
+            coverages, dataset_series, decoder.sections,
+            decoder.acceptlanguages, decoder.acceptformats,
             decoder.updatesequence
         )
 

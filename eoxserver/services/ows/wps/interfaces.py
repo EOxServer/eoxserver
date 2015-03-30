@@ -1,5 +1,4 @@
 #-------------------------------------------------------------------------------
-# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
@@ -125,4 +124,3 @@ class ProcessInterface(object):
             one output item defined by the ``outputs``, one output value
             is allowed to be returned directly.
         """
-

@@ -1,5 +1,4 @@
 #-------------------------------------------------------------------------------
-# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
@@ -10,8 +9,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -27,7 +26,7 @@
 #-------------------------------------------------------------------------------
 
 
-from django.utils.dateparse import parse_date, parse_datetime
+from eoxserver.core.util.timetools import parse_iso8601
 from django.contrib.gis.geos import Polygon, MultiPolygon
 
 from eoxserver.core import Component, implements
@@ -103,7 +102,7 @@ class DimapGeneralFormatReader(Component):
 
 
 def parse_date_or_datetime_11(string):
-    value = parse_date(string) or parse_datetime(string)
+    value = parse_iso8601(string)
     if not value:
         raise Exception("Could not parse date or datetime from '%s'." % string)
     return value
@@ -130,7 +129,7 @@ def parse_size_11(elem):
 
 def parse_geotransform_11(elem):
     values = (
-        elem.findtext("ULXMAP"), elem.findtext("XDIM"), 0, 
+        elem.findtext("ULXMAP"), elem.findtext("XDIM"), 0,
         elem.findtext("ULYMAP"), 0, elem.findtext("YDIM")
     )
     return map(float, values)

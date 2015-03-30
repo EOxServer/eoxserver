@@ -40,7 +40,7 @@ fi
 # Install EOxServer
 echo "**> installing eoxserver..."
 if [ $OS == "Ubuntu" ]; then
-    python setup.py develop --disable-extended-reftools
+    python setup.py develop
 else
     python setup.py develop
 fi

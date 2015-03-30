@@ -16,7 +16,7 @@
 # Author: Jonas Borgström <jonas@edgewall.com>
 #         Christopher Lenz <cmlenz@gmx.de>
 
-__all__ = ['Component', 'ExtensionPoint', 'UniqueExtensionPoint', 'implements', 
+__all__ = ['Component', 'ExtensionPoint', 'UniqueExtensionPoint', 'implements',
            'Interface', 'ComponentException', 'ComponentManager']
 
 
@@ -46,7 +46,7 @@ class ExtensionPoint(property):
         """
         property.__init__(self, self.extensions)
         self.interface = interface
-        self.__doc__ = ("List of components that implement `~%s.%s`" %
+        self.__doc__ = ("List of components that implement :class:`%s.%s`" %
                         (self.interface.__module__, self.interface.__name__))
 
     def extensions(self, component):
@@ -65,9 +65,8 @@ class ExtensionPoint(property):
 class UniqueExtensionPoint(ExtensionPoint):
     """Marker class for unique extension points in components."""
 
-
     def extensions(self, component):
-        """Return the single component that is implementing the interaface. If 
+        """Return the single component that is implementing the interaface. If
         none is found, or more than one, an exception is raised.
         """
         extensions = super(UniqueExtensionPoint, self).extensions(component)
@@ -83,7 +82,7 @@ class UniqueExtensionPoint(ExtensionPoint):
             raise ComponentException(
                 "No implementation was found for this extension point."
             )
-        
+
 
 class ComponentMeta(type):
     """Meta class for components.
@@ -163,7 +162,7 @@ class Component(object):
 
         # Some sanity checks
         assert locals_ is not frame.f_globals and '__module__' in locals_, \
-               'implements() can only be used in a class definition'
+            'implements() can only be used in a class definition'
 
         locals_.setdefault('_implements', []).extend(interfaces)
 

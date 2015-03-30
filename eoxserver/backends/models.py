@@ -11,8 +11,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -37,7 +37,7 @@ class Storage(models.Model):
     """
     url = models.CharField(max_length=1024)
     storage_type = models.CharField(max_length=32)
-    
+
     def __unicode__(self):
         return "%s: %s" % (self.storage_type, self.url)
 
@@ -47,9 +47,9 @@ class BaseLocation(models.Model):
     """
     location = models.CharField(max_length=1024)
     format = models.CharField(max_length=64, null=True, blank=True)
-    
+
     storage = models.ForeignKey(Storage, null=True, blank=True)
-    package = None # placeholder
+    package = None  # placeholder
 
     def clean(self):
         if self.storage is not None and self.package is not None:
@@ -67,10 +67,10 @@ class BaseLocation(models.Model):
 
 
 class Package(BaseLocation):
-    """ Model for Packages. Packages are files that contain multiple files or 
+    """ Model for Packages. Packages are files that contain multiple files or
         provide access to multiple data items.
     """
-    package = models.ForeignKey("self", related_name="pakages", null=True, blank=True)
+    package = models.ForeignKey("self", related_name="packages", null=True, blank=True)
 
 
 class Dataset(models.Model):
@@ -79,7 +79,7 @@ class Dataset(models.Model):
 
 
 class DataItem(BaseLocation):
-    """ Model for locateable data items contributing to a dataset. Data items 
+    """ Model for locateable data items contributing to a dataset. Data items
         can be linked to either a storage or a package or none of both.
     """
 

@@ -1,5 +1,4 @@
 #-------------------------------------------------------------------------------
-# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
@@ -10,8 +9,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -32,13 +31,13 @@ from eoxserver.core import Component, implements, ExtensionPoint
 from eoxserver.core.decoders import xml, kvp, typelist
 from eoxserver.services.subset import Subsets
 from eoxserver.services.ows.interfaces import (
-    ServiceHandlerInterface, GetServiceHandlerInterface, 
+    ServiceHandlerInterface, GetServiceHandlerInterface,
     PostServiceHandlerInterface
 )
 from eoxserver.services.ows.wcs.basehandlers import WCSGetCoverageHandlerBase
 from eoxserver.services.ows.wcs.v20.util import (
-    nsmap, parse_subset_kvp, parse_subset_xml, parse_range_subset_kvp, 
-    parse_range_subset_xml, parse_interpolation, 
+    nsmap, parse_subset_kvp, parse_subset_xml, parse_range_subset_kvp,
+    parse_range_subset_xml, parse_interpolation,
     parse_scaleaxis_kvp, parse_scalesize_kvp, parse_scaleextent_kvp,
     parse_scaleaxis_xml, parse_scalesize_xml, parse_scaleextent_xml,
 )
@@ -94,7 +93,7 @@ class WCS20GetCoverageHandler(WCSGetCoverageHandlerBase, Component):
             axes.add(scale.axis)
 
         return WCS20CoverageRenderParams(
-            coverage, subsets, decoder.rangesubset, decoder.format, 
+            coverage, subsets, decoder.rangesubset, decoder.format,
             decoder.outputcrs, decoder.mediatype, decoder.interpolation,
             scalefactor, scales, encoding_params or {}, request
         )
@@ -128,5 +127,5 @@ class WCS20GetCoverageXMLDecoder(xml.Decoder):
     outputcrs   = xml.Parameter("wcs:Extension/crs:outputCrs/text()", num="?", locator="outputcrs")
     mediatype   = xml.Parameter("wcs:mediaType/text()", num="?", locator="mediatype")
     interpolation = xml.Parameter("wcs:Extension/int:Interpolation/int:globalInterpolation/text()", type=parse_interpolation, num="?", locator="interpolation")
-    
+
     namespaces = nsmap

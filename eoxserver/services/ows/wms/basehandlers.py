@@ -63,6 +63,6 @@ class WMSGetCapabilitiesHandlerBase(object):
         ]
 
         result, _ = self.renderer.render(
-            collections_qs, coverages, request.GET.items()
+            collections_qs, coverages, request.GET.items(), request
         )
         return to_http_response(result)

@@ -1,5 +1,4 @@
 #-------------------------------------------------------------------------------
-# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
@@ -37,7 +36,13 @@ from eoxserver.core.util import multiparttools as mp
 
 
 class ResultItem(object):
-    """ Base class for render results.
+    """ Base class (or interface) for result items of a result set.
+
+    :param content_type: the content type of the result item. in HTTP this will
+                         be translated to the ``Content-Type`` header
+    :param filename: the filename of the result item.
+    :param identifier: the identifier of the result item. translated to
+                       ``Content-Id`` HTTP header
     """
 
     def __init__(self, content_type=None, filename=None, identifier=None):
@@ -47,13 +52,14 @@ class ResultItem(object):
 
     @property
     def data(self):
-        """ Returns the "raw" data, usually as a string, buffer, memoryview, etc.
+        """ Returns the "raw" data, usually as a string, buffer, memoryview,
+        etc.
         """
         return ""
 
     @property
     def data_file(self):
-        """ Returns the data as a file-like object.
+        """ Returns the data as a Python file-like object.
         """
         return StringIO("")
 
@@ -62,11 +68,7 @@ class ResultItem(object):
         """
         raise NotImplementedError
 
-    @property
-    def size(self):
-        """ Return size of the item.
-        """
-        return len(self)
+    size = property(lambda self: len(self))
 
     def chunked(self, chunksize):
         """ Returns a chunk of the data, which has at most ``chunksize`` bytes.
@@ -114,7 +116,7 @@ class ResultFile(ResultItem):
 
 class ResultBuffer(ResultItem):
     """ Class for results that are actually a subset of a larger context.
-        Usually a buffer
+        Usually a buffer.
     """
 
     def __init__(self, buf, content_type=None, filename=None, identifier=None):
@@ -148,7 +150,7 @@ class ResultBuffer(ResultItem):
 
 
 def get_content_type(result_set):
-    """ Returns the content type of a result set. If only one item is included
+    """ Returns the content type of a result set. If only one item is included 
         its content type is used.
     """
     if len(result_set) == 1:
@@ -174,10 +176,22 @@ def get_headers(result_item):
         pass
 
 
-
 def to_http_response(result_set, response_type=HttpResponse, boundary=None):
     """ Returns a response for a given result set. The ``response_type`` is the
-        class to be used. It must be capable to work with iterators.
+        class to be used. It must be capable to work with iterators. This
+        function is also responsible to delete any temporary files and buffers
+        of the ``result_set``.
+
+        :param result_set: an iterable of objects following the
+                           :class:`ResultItem` interface
+        :param response_type: the response type class to use; defaults to
+                              :class:`HttpResponse <django.http.HttpResponse>`.
+                              For streaming responses use
+                              :class:`StreamingHttpResponse
+                              <django.http.StreamingHttpResponse>`
+        :param boundary: the multipart boundary; if omitted a UUID hex string is
+                         computed and used
+        :returns: a response object of the desired type
     """
     def get_payload_size(items, boundary):
         boundary_str = "%s--%s%s" % (mp.CRLF, boundary, mp.CRLF)
@@ -207,7 +221,6 @@ def to_http_response(result_set, response_type=HttpResponse, boundary=None):
         content_type = result_set[0].content_type or "application/octet-stream"
         headers = tuple(get_headers(result_set[0]))
 
-
     def response_iterator(items, boundary=None):
         try:
             if boundary:
@@ -218,9 +231,9 @@ def to_http_response(result_set, response_type=HttpResponse, boundary=None):
                 if boundary:
                     yield boundary_str
                     yield mp.CRLF.join(
-                        "%s: %s" % (k, v) for k, v in get_headers(item)
-                    )
-                    yield mp.CRLFCRLF
+                        "%s: %s" % (key, value)
+                        for key, value in get_headers(item)
+                    ) + mp.CRLFCRLF
                 yield item.data
             if boundary:
                 yield boundary_str_end
@@ -229,8 +242,7 @@ def to_http_response(result_set, response_type=HttpResponse, boundary=None):
                 try:
                     item.delete()
                 except:
-                    # TODO: Log the failure as a warning!
-                    pass # bad exception swallowing...
+                    pass  # bad exception swallowing...
 
     # workaround for bug in django, that does not consume iterator in tests.
     if response_type == HttpResponse:
@@ -253,6 +265,8 @@ def to_http_response(result_set, response_type=HttpResponse, boundary=None):
 def parse_headers(headers):
     """ Convenience function to read the "Content-Type", "Content-Disposition"
         and "Content-Id" headers.
+
+        :param headers: the raw header :class:`dict`
     """
     content_type = headers.get("Content-Type", "application/octet-stream")
     _, params = mp.parse_parametrized_option(
@@ -272,10 +286,13 @@ def parse_headers(headers):
 def result_set_from_raw_data(data):
     """ Create a result set from raw HTTP data. This can either be a single
         or a multipart string. It returns a list containing objects of the
-        `ResultBuffer` type that reference substrings of the given data.
+        :class:`ResultBuffer` type that reference substrings of the given data.
+
+        :param data: the raw byte data
+        :returns: a result set: a list containing :class:`ResultBuffer`
     """
     return [
-        ResultBuffer(data, *parse_headers(headers))
-        for headers, data in mp.iterate(data)
+        ResultBuffer(d, *parse_headers(headers))
+        for headers, d in mp.iterate(data)
         if not headers.get("Content-Type").startswith("multipart")
     ]

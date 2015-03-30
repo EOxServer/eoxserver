@@ -1,5 +1,4 @@
 #-------------------------------------------------------------------------------
-# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
@@ -10,8 +9,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -38,14 +37,21 @@ SINGLE_VALUES = (ZERO_OR_ONE, 1)
 
 
 class DecodingException(Exception):
+    """ Base Exception class to be thrown whenever a decoding failed.
+    """
+
     def __init__(self, message, locator=None):
         super(DecodingException, self).__init__(message)
         self.locator = locator
 
 
 class WrongMultiplicityException(DecodingException):
+    """ Decoding Exception to be thrown when the multiplicity of a parameter did
+        not match the expected count.
+    """
+
     code = "InvalidParameterValue"
-    
+
     def __init__(self, locator, expected, result):
         super(WrongMultiplicityException, self).__init__(
             "Parameter '%s': expected %s got %d" % (locator, expected, result),
@@ -54,7 +60,7 @@ class WrongMultiplicityException(DecodingException):
 
 
 class MissingParameterException(DecodingException):
-    """ Exception to be thrown, when a decoder could not read one parameter, 
+    """ Exception to be thrown, when a decoder could not read one parameter,
         where exactly one was required.
     """
     code = "MissingParameterValue"
@@ -64,8 +70,9 @@ class MissingParameterException(DecodingException):
             "Missing required parameter '%s'" % locator, locator
         )
 
+
 class MissingParameterMultipleException(DecodingException):
-    """ Exception to be thrown, when a decoder could not read at least one 
+    """ Exception to be thrown, when a decoder could not read at least one
         parameter, where one ore more were required.
     """
     code = "MissingParameterValue"
@@ -83,9 +90,9 @@ class NoChoiceResultException(DecodingException):
 class ExclusiveException(DecodingException):
     pass
 
-
-# NOTE: The following exceptions may get propagated as OWS exceptions 
+# NOTE: The following exceptions may get propagated as OWS exceptions
 #       therefore it is necessary to set the proper OWS exception code.
+
 
 class InvalidParameterException(DecodingException):
     code = "InvalidParameterValue"
@@ -101,10 +108,9 @@ class Choice(object):
     def __init__(self, *choices):
         self.choices = choices
 
-
     def __get__(self, decoder, decoder_class=None):
         for choice in self.choices:
-            try: 
+            try:
                 return choice.__get__(decoder, decoder_class)
             except:
                 continue
@@ -118,12 +124,11 @@ class Exclusive(object):
     def __init__(self, *choices):
         self.choices = choices
 
-
     def __get__(self, decoder, decoder_class=None):
         result = None
         num = 0
         for choice in self.choices:
-            try: 
+            try:
                 result = choice.__get__(decoder, decoder_class)
                 num += 1
             except:
@@ -141,18 +146,17 @@ class Concatenate(object):
     def __init__(self, *choices, **kwargs):
         self.choices = choices
         self.allow_errors = kwargs.get("allow_errors", True)
-        
 
     def __get__(self, decoder, decoder_class=None):
         result = []
         for choice in self.choices:
-            try: 
+            try:
                 value = choice.__get__(decoder, decoder_class)
                 if isinstance(value, (list, tuple)):
                     result.extend(value)
                 else:
                     result.append(value)
-            except Exception, e:
+            except Exception:
                 if self.allow_errors:
                     # swallow exception
                     continue
@@ -167,28 +171,26 @@ class Concatenate(object):
 
 
 class typelist(object):
-    """ Helper for XMLDecoder schemas that expect a string that represents a 
+    """ Helper for XMLDecoder schemas that expect a string that represents a
         list of a type separated by some separator.
     """
-    
+
     def __init__(self, typ=None, separator=" "):
         self.typ = typ
         self.separator = separator
-        
-    
+
     def __call__(self, value):
         return map(self.typ, value.split(self.separator))
 
 
 class fixed(object):
-    """ Helper for parameters that are expected to be have a fixed value and 
+    """ Helper for parameters that are expected to be have a fixed value and
         raises a ValueError if not.
     """
 
     def __init__(self, value, case_sensitive=True):
         self.value = value if case_sensitive else value.lower()
         self.case_sensitive = case_sensitive
-
 
     def __call__(self, value):
         compare = value if self.case_sensitive else value.lower()
@@ -210,7 +212,6 @@ class enum(object):
         self.compare_values = values if case_sensitive else map(lower, values)
         self.case_sensitive = case_sensitive
 
-
     def __call__(self, value):
         compare = value if self.case_sensitive else value.lower()
         if compare not in self.compare_values:
@@ -225,6 +226,7 @@ def lower(value):
     """ Functor to return a lower-case string.
     """
     return value.lower()
+
 
 def upper(value):
     """ Functor to return a upper-case string.
@@ -251,7 +253,7 @@ class value_range(object):
         value = self._type(raw)
         if value < self._min or value > self._max:
             raise ValueError(
-                "Given value '%s' exceeds expected bounds (%s, %s)" 
+                "Given value '%s' exceeds expected bounds (%s, %s)"
                 % (value, self._min, self._max)
             )
         return value

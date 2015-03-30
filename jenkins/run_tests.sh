@@ -22,6 +22,7 @@ fi
 
 export XML_CATALOG_FILES="$WORKSPACE/schemas/catalog.xml"
 python manage.py test autotest_services -v2
+python manage.py test autotest_coverages -v2
 python manage.py test services coverages -v2
 #TODO: Enable testing of all apps
 #python manage.py test autotest_services core services coverages backends processes -v2
@@ -114,6 +115,25 @@ python manage.py eoxs_id_check --traceback nonexistent_XYZ || echo "Test of 'eox
 #python manage.py eoxs_collection_create -i test_sync -d autotest_jenkins/data/meris/MER_FRS_1P_reduced/ autotest_jenkins/data/meris/mosaic_MER_FRS_1P_reduced_RGB/ -p "*.tif" --traceback
 #python manage.py eoxs_synchronize -a --traceback
 python manage.py eoxs_id_list --traceback
+
+# deregister all of MER_FRS_1P_reduced
+python manage.py eoxs_dataset_deregister MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed
+
+# test batch registration
+echo "\"data\",\"metadata\",\"range_type_name\",\"visible\",\"collection\"
+\"autotest_jenkins/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.tif\",\"autotest_jenkins/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.xml\",\"MERIS_uint16\",TRUE,\"MER_FRS_1P_reduced\"
+\"autotest_jenkins/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif\",\"autotest_jenkins/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.xml\",\"MERIS_uint16\",TRUE,\"MER_FRS_1P_reduced\"
+\"autotest_jenkins/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed.tif\",\"autotest_jenkins/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed.xml\",\"MERIS_uint16\",TRUE,\"MER_FRS_1P_reduced\"
+" > batch.csv
+
+python manage.py eoxs_dataset_register_batch batch.csv --traceback
+
+rm batch.csv
+
+# test --replace flag
+python manage.py eoxs_dataset_register -d autotest_jenkins/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.tif -m autotest_jenkins/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.xml -r MERIS_uint16 --visible --replace --traceback
+python manage.py eoxs_dataset_register -d autotest_jenkins/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif -m autotest_jenkins/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.xml -r MERIS_uint16 --visible --replace --traceback
+python manage.py eoxs_dataset_register -d autotest_jenkins/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed.tif -m autotest_jenkins/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed.xml -r MERIS_uint16 --visible --replace --traceback
 
 # Run Selenium
 echo "**> running Selenium tests ..."

@@ -11,8 +11,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -38,7 +38,8 @@ from eoxserver.core import models as base
 from eoxserver.contrib import gdal, osr
 from eoxserver.backends import models as backends
 from eoxserver.resources.coverages.util import (
-    detect_circular_reference, collect_eo_metadata, is_same_grid
+    detect_circular_reference, collect_eo_metadata, is_same_grid,
+    parse_raw_value
 )
 
 
@@ -138,12 +139,13 @@ class EOMetadata(models.Model):
     begin_time = models.DateTimeField(null=True, blank=True)
     end_time = models.DateTimeField(null=True, blank=True)
     footprint = models.MultiPolygonField(null=True, blank=True)
-    
-    objects = models.GeoManager()
+
+    #objects = models.GeoManager()
 
     @property
     def extent_wgs84(self):
-        if self.footprint is None: return None
+        if self.footprint is None:
+            return None
         return self.footprint.extent
 
     @property
@@ -155,8 +157,8 @@ class EOMetadata(models.Model):
 
 
 class DataSource(backends.Dataset):
-    pattern = models.CharField(max_length=32, null=False, blank=False)
-    collection = models.ForeignKey("Collection")
+    pattern = models.CharField(max_length=512, null=False, blank=False)
+    collection = models.ForeignKey("Collection", related_name="data_sources")
 
 
 #===============================================================================
@@ -222,7 +224,7 @@ class EOObject(base.Castable, EOMetadata):
 
 class ReservedIDManager(models.Manager):
     """ Model manager for `ReservedID` models for easier handling. Returns only
-        `QuerySet`s that contain valid reservations.
+        `QuerySets` that contain valid reservations.
     """
     def get_original_queryset(self):
         return super(ReservedIDManager, self).get_queryset()
@@ -334,50 +336,7 @@ class NilValue(models.Model):
     def value(self):
         """ Get the parsed python value from the saved value string.
         """
-        dt = self.nil_value_set.data_type
-        is_float   = False 
-        is_complex = False
-
-        if dt in gdal.GDT_INTEGRAL_TYPES :
-            value =  int(self.raw_value)
-
-        elif dt in gdal.GDT_FLOAT_TYPES :
-            value =  float(self.raw_value)
-            is_float = True 
-
-        elif dt in gdal.GDT_INTEGRAL_COMPLEX_TYPES : 
-            value =  complex(self.raw_value)
-            is_complex = True
-
-        elif dt in gdal.GDT_FLOAT_COMPLEX_TYPES : 
-            value =  complex(self.raw_value)
-            is_complex = True
-            is_float = True 
-
-        else:
-            value = None
-
-        # range check makes sense for integral values only 
-        if not is_float : 
-
-            limits = gdal.GDT_NUMERIC_LIMITS.get(dt)
-
-            if limits and value is not None:
-                def within(v, low, high):
-                    return (v >= low and v <= high)
-
-                error = ValueError(
-                    "Stored value is out of the limits for the data type"
-                )
-                if not is_complex and not within(value, *limits) :
-                    raise error
-                elif is_complex:
-                    if (not within(value.real, limits[0].real, limits[1].real)
-                        or not within(value.real, limits[0].real, limits[1].real)):
-                        raise error
-
-        return value
-
+        return parse_raw_value(self.raw_value, self.nil_value_set.data_type)
 
     def clean(self):
         """ Check that the value can be parsed.
@@ -439,9 +398,11 @@ class Band(models.Model):
     data_type = models.PositiveIntegerField()
     color_interpretation = models.PositiveIntegerField(null=True, blank=True)
 
+    raw_value_min = models.CharField(max_length=512, null=True, blank=True, help_text="The string representation of the minimum value.")
+    raw_value_max = models.CharField(max_length=512, null=True, blank=True, help_text="The string representation of the maximum value.")
+
     range_type = models.ForeignKey(RangeType, related_name="bands", null=False, blank=False)
     nil_value_set = models.ForeignKey(NilValueSet, null=True, blank=True)
-    
 
     def clean(self):
         nil_value_set = self.nil_value_set
@@ -450,6 +411,12 @@ class Band(models.Model):
                 "The data type of the band is not equal to the data type of "
                 "its nil value set."
             )
+
+        min_ = parse_raw_value(self.raw_value_min, self.data_type)
+        max_ = parse_raw_value(self.raw_value_min, self.data_type)
+
+        if min_ is not None and max_ is not None and min_ > max_:
+            raise ValidationError("Minimum value larger than maximum value")
 
     class Meta:
         ordering = ('index',)
@@ -461,7 +428,15 @@ class Band(models.Model):
 
     @property
     def allowed_values(self):
-        return gdal.GDT_NUMERIC_LIMITS[self.data_type]
+        dt = self.data_type
+        min_ = parse_raw_value(self.raw_value_min, dt)
+        max_ = parse_raw_value(self.raw_value_max, dt)
+        limits = gdal.GDT_NUMERIC_LIMITS[dt]
+
+        return (
+            min_ if min_ is not None else limits[0],
+            max_ if max_ is not None else limits[1],
+        )
 
     @property
     def significant_figures(self):

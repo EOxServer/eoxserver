@@ -1,5 +1,4 @@
 #-------------------------------------------------------------------------------
-# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
@@ -10,8 +9,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -26,13 +25,10 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-
-from itertools import chain
-
 from eoxserver.core import Component, implements, UniqueExtensionPoint
 from eoxserver.core.decoders import kvp, typelist, InvalidParameterException
-from eoxserver.resources.coverages import models, crss
-from eoxserver.services.subset import Subsets, Trim, Slice
+from eoxserver.resources.coverages import crss
+from eoxserver.services.subset import Subsets, Trim
 from eoxserver.services.ows.interfaces import (
     ServiceHandlerInterface, GetServiceHandlerInterface
 )
@@ -48,7 +44,7 @@ class WMS10GetMapHandler(Component):
     implements(ServiceHandlerInterface)
     implements(GetServiceHandlerInterface)
 
-    renderer = UniqueExtensionPoint(WMSMapRendererInterface) 
+    renderer = UniqueExtensionPoint(WMSMapRendererInterface)
 
     service = ("WMS", None)
     versions = ("1.0", "1.0.0")
@@ -77,11 +73,12 @@ class WMS10GetMapHandler(Component):
             Trim("x", minx, maxx),
             Trim("y", miny, maxy),
         ), crs=srs)
-        
+
         root_group = lookup_layers(layers, subsets)
-        
+
         result, _ = self.renderer.render(
-            root_group, request.GET.items()
+            root_group, request.GET.items(), subsets=subsets,
+            width=int(decoder.width), height=int(decoder.height)
         )
         return to_http_response(result)
 

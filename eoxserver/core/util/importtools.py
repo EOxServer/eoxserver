@@ -1,5 +1,4 @@
 #-------------------------------------------------------------------------------
-# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
@@ -10,8 +9,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -26,6 +25,9 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+""" This module contains utilities to easily import hierarchies of packages and
+modules.
+"""
 
 import logging
 import traceback
@@ -36,11 +38,15 @@ from django.utils.importlib import import_module
 
 logger = logging.getLogger(__name__)
 
+
 def easy_import(module_path):
     """ Utility function to import one or more modules via a given module path.
-        The last component of the module path can also be a '*' or a '**' 
-        character string which imports all submodules of the package either 
+        The last component of the module path can also be a '*' or a '**'
+        character string which imports all submodules of the package either
         recursively (with '**') or not (with '*').
+
+        :param module_path: a typical python module path in the dotted notation.
+                            wildcards can be appeded at the last level.
     """
 
     parts = module_path.split(".")
@@ -58,8 +64,10 @@ def easy_import(module_path):
 
 
 def import_modules(base_module_path):
-    """ Helper function to import all direct submodules within a package. This 
+    """ Helper function to import all direct submodules within a package. This
         function is not recursive.
+
+        :param base_module_path: the base module path in the dotted notation.
     """
 
     path = import_module(base_module_path).__path__
@@ -75,6 +83,8 @@ def import_modules(base_module_path):
 
 def import_recursive(base_module_path):
     """  Helper function to recursively import all submodules and packages.
+
+        :param base_module_path: the base module path in the dotted notation.
     """
 
     path = import_module(base_module_path).__path__

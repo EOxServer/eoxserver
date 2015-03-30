@@ -1,5 +1,4 @@
 #-------------------------------------------------------------------------------
-# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
@@ -10,8 +9,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -26,6 +25,14 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+"""\
+The eoxserver.core package provides functionality for the initialization and
+re-initialization of the component system.
+For convenience, the module imports the most important items from the
+:mod:`eoxserver.core.component` module and instantiates a component manager
+:obj:`eoxserver.core.env`.
+"""
+
 
 import logging
 import threading
@@ -33,7 +40,7 @@ import threading
 from django.utils.importlib import import_module
 
 from eoxserver.core.component import (
-    ComponentManager, ComponentMeta, Component, 
+    ComponentManager, ComponentMeta, Component,
     ExtensionPoint, UniqueExtensionPoint, implements
 )
 from eoxserver.core.util.importtools import easy_import
@@ -47,10 +54,10 @@ __is_initialized = False
 
 
 def initialize():
-    """ Initialize the EOxServer plugin system by trying to import all the 
-        plugins referenced by the `PLUGINS` configuration entry from the 
-        settings module. If a module path ends with '*' then all direct 
-        submodules will be imported aswell and if it ends with '**' it means 
+    """ Initialize the EOxServer plugin system by trying to import all the
+        plugins referenced by the `PLUGINS` configuration entry from the
+        settings module. If a module path ends with '*' then all direct
+        submodules will be imported aswell and if it ends with '**' it means
         that the import will be done recursively.
     """
 

@@ -1,5 +1,4 @@
 #-------------------------------------------------------------------------------
-# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
@@ -10,8 +9,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -37,12 +36,12 @@ from eoxserver.services.ows.common.v20.encoders import OWS20ExceptionXMLEncoder
 
 
 class PDPMiddleware(object):
-    """ Middleware to allow authorization agains a Policy Decision Point. This 
+    """ Middleware to allow authorization agains a Policy Decision Point. This
         middleware will be used for *all* requests and *all* configured views.
         If you only want to provide PDP authorization for a single view, use the
         `pdp_protect`.
     """
-    
+
     def process_view(self, request, view_func, view_args, view_kwargs):
         pdp = getPDP()
         if pdp:
@@ -67,9 +66,10 @@ class PDPMiddleware(object):
 
 def pdp_protect(view):
     """ Wrapper function for views that shall be protected by PDP authorization.
-        This function can be used as a decorator of a view function, or as a 
+        This function can be used as a decorator of a view function, or as a
         modifier to be used in the url configuration file.
-        e.g: 
+        e.g:
+        ::
 
             urlpatterns = patterns('',
                 ...

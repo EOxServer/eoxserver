@@ -1,5 +1,4 @@
 #-------------------------------------------------------------------------------
-# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
@@ -11,8 +10,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -28,13 +27,11 @@
 #-------------------------------------------------------------------------------
 
 from optparse import make_option
-from itertools import chain
 
-from django.core.exceptions import ValidationError
 from django.core.management import call_command
 from django.core.management.base import CommandError, BaseCommand
 from django.utils.dateparse import parse_datetime
-from django.contrib.gis import geos 
+from django.contrib.gis import geos
 
 from eoxserver.core import env
 from eoxserver.contrib import gdal, osr
@@ -50,7 +47,7 @@ from eoxserver.resources.coverages.management.commands import (
 
 
 def _variable_args_cb_list(option, opt_str, value, parser):
-    """ Helper function for optparse module. Allows variable number of option 
+    """ Helper function for optparse module. Allows variable number of option
         values when used as a callback.
     """
     args = []
@@ -84,7 +81,7 @@ class Command(CommandOutputMixIn, BaseCommand):
                   "semantics 'band[*]' must be present for each '--data' "
                   "option.")
         ),
-        make_option("-m", "--meta-data", dest="metadata", 
+        make_option("-m", "--meta-data", dest="metadata",
             action="callback", callback=_variable_args_cb_list, default=[],
             help=("Optional. [storage_type:url] [package_type:location]* "
                   "format:location")
@@ -93,39 +90,39 @@ class Command(CommandOutputMixIn, BaseCommand):
             help=("Mandatory. Name of the stored range type. ")
         ),
 
-        make_option("-e", "--extent", dest="extent", 
+        make_option("-e", "--extent", dest="extent",
             action="store", default=None,
             help=("Override extent. Comma separated list of "
                   "<minx>,<miny>,<maxx>,<maxy>.")
         ),
 
-        make_option("--size", dest="size", 
+        make_option("--size", dest="size",
             action="store", default=None,
             help=("Override size. Comma separated list of <size-x>,<size-y>.")
         ),
 
-        make_option("--srid", dest="srid", 
+        make_option("--srid", dest="srid",
             action="store", default=None,
             help=("Override SRID. Integer number.")
         ),
 
-        make_option("-p", "--projection", dest="projection", 
+        make_option("-p", "--projection", dest="projection",
             action="store", default=None,
             help=("Override projection.")
         ),
 
-        make_option("-f", "--footprint", dest="footprint", 
+        make_option("-f", "--footprint", dest="footprint",
             action="store", default=None,
             help=("Override footprint. Must be supplied as WKT Polygons or "
                   "MultiPolygons.")
         ),
 
-        make_option("--begin-time", dest="begin_time", 
+        make_option("--begin-time", dest="begin_time",
             action="store", default=None,
             help=("Override begin time. Format is ISO8601 datetime strings.")
         ),
 
-        make_option("--end-time", dest="end_time", 
+        make_option("--end-time", dest="end_time",
             action="store", default=None,
             help=("Override end time. Format is ISO8601 datetime strings.")
         ),
@@ -142,16 +139,29 @@ class Command(CommandOutputMixIn, BaseCommand):
         ),
 
         make_option("--collection", dest="collection_ids",
-            action='callback', callback=_variable_args_cb, default=None, 
+            action='callback', callback=_variable_args_cb, default=None,
             help=("Optional. Link to one or more collection(s).")
-        ), 
+        ),
 
-        make_option('--ignore-missing-collection', 
-            dest='ignore_missing_collection', 
+        make_option('--ignore-missing-collection',
+            dest='ignore_missing_collection',
             action="store_true", default=False,
             help=("Optional. Proceed even if the linked collection "
-                  "does not exist. By defualt, a missing collection " 
+                  "does not exist. By defualt, a missing collection "
                   "will result in an error.")
+        ),
+
+        make_option("--replace",
+            action="store_true", default=False,
+            help=("Optional. If the coverage with the given identifier already "
+                  "exists, replace it. Without this flag, this would result in "
+                  "an error.")
+        ),
+
+        make_option("--scheme",
+            action="store", default="GDAL",
+            help=("Optional. How the input files shall be treated and "
+                  "registered. Default is the 'GDAL' scheme.")
         )
     )
 
@@ -168,17 +178,18 @@ class Command(CommandOutputMixIn, BaseCommand):
         "[--begin-time <begin-time>] [--end-time <end-time>] "
         "[--coverage-type <coverage-type-name>] "
         "[--visible] [--collection <collection-id> [--collection ... ]] "
-        "[--ignore-missing-collection]"
+        "[--ignore-missing-collection] "
+        "[--replace]"
     )
 
     help = """
         Registers a Dataset.
-        A dataset is a collection of data and metadata items. When beeing 
+        A dataset is a collection of data and metadata items. When beeing
         registered, as much metadata as possible is extracted from the supplied
-        (meta-)data items. If some metadata is still missing, it needs to be 
+        (meta-)data items. If some metadata is still missing, it needs to be
         supplied via the specific override options.
 
-        By default, datasets are not "visible" which means that they are not 
+        By default, datasets are not "visible" which means that they are not
         advertised in the GetCapabilities sections of the various services.
         This needs to be overruled via the `--visible` switch.
 
@@ -190,7 +201,6 @@ class Command(CommandOutputMixIn, BaseCommand):
     def handle(self, *args, **kwargs):
         with CacheContext() as cache:
             self.handle_with_cache(cache, *args, **kwargs)
-
 
     def handle_with_cache(self, cache, *args, **kwargs):
         metadata_component = MetadataComponent(env)
@@ -220,7 +230,7 @@ class Command(CommandOutputMixIn, BaseCommand):
                 metadata
             )
             data_item = backends.DataItem(
-                location=location, format=format or "", semantic="metadata", 
+                location=location, format=format or "", semantic="metadata",
                 storage=storage, package=package,
             )
             data_item.full_clean()
@@ -243,7 +253,6 @@ class Command(CommandOutputMixIn, BaseCommand):
                         if key in metadata_keys:
                             retrieved_metadata.setdefault(key, value)
 
-
         if len(datas) < 1:
             raise CommandError("No data files specified.")
 
@@ -256,15 +265,14 @@ class Command(CommandOutputMixIn, BaseCommand):
                     semantics = ["bands[1]"]
                 else:
                     semantics = ["bands[1:%d]" % len(range_type)]
-            
+
             else:
                 semantics = ["bands[%d]" % i for i in range(len(datas))]
-
 
         for data, semantic in zip(datas, semantics):
             storage, package, format, location = self._get_location_chain(data)
             data_item = backends.DataItem(
-                location=location, format=format or "", semantic=semantic, 
+                location=location, format=format or "", semantic=semantic,
                 storage=storage, package=package,
             )
             data_item.full_clean()
@@ -290,9 +298,40 @@ class Command(CommandOutputMixIn, BaseCommand):
 
         if len(metadata_keys - set(retrieved_metadata.keys())):
             raise CommandError(
-                "Missing metadata keys %s." 
+                "Missing metadata keys %s."
                 % ", ".join(metadata_keys - set(retrieved_metadata.keys()))
             )
+
+        # replace any already registered dataset
+        if kwargs["replace"]:
+            try:
+                # get a list of all collections the coverage was in.
+                coverage = models.Coverage.objects.get(
+                    identifier=retrieved_metadata["identifier"]
+                )
+                additional_ids = [
+                    c.identifier
+                    for c in models.Collection.objects.filter(
+                        eo_objects__in=[coverage.pk]
+                    )
+                ]
+                coverage.delete()
+
+                self.print_msg(
+                    "Replacing previous dataset '%s'."
+                    % retrieved_metadata["identifier"]
+                )
+
+                collection_ids = kwargs["collection_ids"] or []
+                for identifier in additional_ids:
+                    if identifier not in collection_ids:
+                        collection_ids.append(identifier)
+                kwargs["collection_ids"] = collection_ids
+            except models.Coverage.DoesNotExist:
+                self.print_msg(
+                    "Could not replace previous dataset '%s'."
+                    % retrieved_metadata["identifier"]
+                )
 
         try:
             # TODO: allow types of different apps
@@ -305,7 +344,7 @@ class Command(CommandOutputMixIn, BaseCommand):
         try:
             coverage = CoverageType()
             coverage.range_type = range_type
-            
+
             proj = retrieved_metadata.pop("projection")
             if isinstance(proj, int):
                 retrieved_metadata["srid"] = proj
@@ -340,24 +379,27 @@ class Command(CommandOutputMixIn, BaseCommand):
             if kwargs["collection_ids"]:
                 ignore_missing_collection = kwargs["ignore_missing_collection"]
                 call_command("eoxs_collection_link",
-                    collection_ids=kwargs["collection_ids"], 
+                    collection_ids=kwargs["collection_ids"],
                     add_ids=[coverage.identifier],
                     ignore_missing_collection=ignore_missing_collection
                 )
 
-        except Exception as e: 
+        except Exception as e:
             self.print_traceback(e, kwargs)
-            raise CommandError("Dataset registration failed: %s" % e)
+            raise CommandError(
+                "Dataset '%s' registration failed: %s" %
+                (retrieved_metadata["identifier"], e)
+            )
 
         self.print_msg(
-            "Dataset with ID '%s' registered sucessfully." 
+            "Dataset with ID '%s' registered sucessfully."
             % coverage.identifier
-        ) 
+        )
 
-        
-    def _get_overrides(self, identifier=None, size=None, extent=None, 
-                       begin_time=None, end_time=None, footprint=None, 
-                       projection=None, coverage_type=None, **kwargs):
+    def _get_overrides(self, identifier=None, size=None, extent=None,
+                       begin_time=None, end_time=None, footprint=None,
+                       projection=None, coverage_type=None, srid=None,
+                       **kwargs):
 
         overrides = {}
 
@@ -371,7 +413,7 @@ class Command(CommandOutputMixIn, BaseCommand):
             overrides["extent"] = map(float, extent.split(","))
 
         if size:
-            overrides["size"] = map(int, size.split(","))            
+            overrides["size"] = map(int, size.split(","))
 
         if begin_time:
             overrides["begin_time"] = parse_datetime(begin_time)
@@ -381,15 +423,15 @@ class Command(CommandOutputMixIn, BaseCommand):
 
         if footprint:
             footprint = geos.GEOSGeometry(footprint)
-            if footprint.hasz :
+            if footprint.hasz:
                 raise CommandError(
                     "Invalid footprint geometry! 3D geometry is not supported!"
                 )
-            if footprint.geom_type == "MultiPolygon" :
+            if footprint.geom_type == "MultiPolygon":
                 overrides["footprint"] = footprint
-            elif footprint.geom_type == "Polygon" :
+            elif footprint.geom_type == "Polygon":
                 overrides["footprint"] = geos.MultiPolygon(footprint)
-            else : 
+            else:
                 raise CommandError(
                     "Invalid footprint geometry type '%s'!"
                     % (footprint.geom_type)
@@ -401,8 +443,13 @@ class Command(CommandOutputMixIn, BaseCommand):
             except ValueError:
                 overrides["projection"] = projection
 
-        return overrides
+        elif srid:
+            try:
+                overrides["projection"] = int(srid)
+            except ValueError:
+                pass
 
+        return overrides
 
     def _get_location_chain(self, items):
         """ Returns the tuple
@@ -428,10 +475,10 @@ class Command(CommandOutputMixIn, BaseCommand):
             package_component = component.get_package_component(type_or_format)
             if package_component:
                 package, _ = backends.Package.objects.get_or_create(
-                    location=location, format=format, 
+                    location=location, format=format,
                     storage=storage, package=package
                 )
-                storage = None # override here
+                storage = None  # override here
             else:
                 raise Exception(
                     "Could not find package component for format '%s'"
@@ -441,14 +488,13 @@ class Command(CommandOutputMixIn, BaseCommand):
         format, location = self._split_location(items[-1])
         return storage, package, format, location
 
-
     def _split_location(self, item):
-        """ Splits string as follows: <format>:<location> where format can be 
+        """ Splits string as follows: <format>:<location> where format can be
             None.
         """
         p = item.find(":")
         if p == -1:
-            return None, item 
+            return None, item
         return item[:p], item[p + 1:]
 
 

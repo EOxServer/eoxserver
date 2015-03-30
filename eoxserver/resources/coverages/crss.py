@@ -9,8 +9,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -205,167 +205,190 @@ EPSG_AXES_REVERSED = set([
 ])
 
 #-------------------------------------------------------------------------------
-# format functions 
+# format functions
 
-def asInteger( epsg ): 
+
+def asInteger(epsg):
     """ convert EPSG code to integer """
-    return int(epsg) 
+    return int(epsg)
 
-def asShortCode( epsg ):  
+
+def asShortCode(epsg):
     """ convert EPSG code to short CRS ``EPSG:<code>`` notation """
-    return "EPSG:%d"%int(epsg)
+    return "EPSG:%d" % int(epsg)
 
-def asURL( epsg ):  
-    """ convert EPSG code to OGC URL CRS 
+
+def asURL(epsg):
+    """ convert EPSG code to OGC URL CRS
     ``http://www.opengis.net/def/crs/EPSG/0/<code>`` notation """
-    return "http://www.opengis.net/def/crs/EPSG/0/%d"%int(epsg) 
+    return "http://www.opengis.net/def/crs/EPSG/0/%d" % int(epsg)
 
-def asURN( epsg ):
-    """ convert EPSG code to OGC URN CRS ``urn:ogc:def:crs:epsg::<code>`` 
+
+def asURN(epsg):
+    """ convert EPSG code to OGC URN CRS ``urn:ogc:def:crs:epsg::<code>``
     notation """
-    return "urn:ogc:def:crs:epsg::%d"%int(epsg) 
+    return "urn:ogc:def:crs:epsg::%d" % int(epsg)
 
-def asProj4Str( epsg ) : 
+
+def asProj4Str(epsg):
     """ convert EPSG code to *proj4* ``+init=epsg:<code>`` notation """
-    return "+init=epsg:%d"%int(epsg)
-#
+    return "+init=epsg:%d" % int(epsg)
 
 #-------------------------------------------------------------------------------
-# format parsers  
+# format parsers
 
-# compiled regular expesions 
-_gerexURL = re.compile(r"^http://www.opengis.net/def/crs/epsg/\d+\.?\d*/(\d+)$",re.IGNORECASE)
-_gerexURN = re.compile(r"^urn:ogc:def:crs:epsg:\d*\.?\d*:(\d+)$",re.IGNORECASE)
-_gerexShortCode = re.compile(r"^epsg:(\d+)$",re.IGNORECASE)
+
+# compiled regular expesions
+_gerexURL = re.compile(
+    r"^http://www.opengis.net/def/crs/epsg/\d+\.?\d*/(\d+)$", re.IGNORECASE
+)
+_gerexURN = re.compile(r"^urn:ogc:def:crs:epsg:\d*\.?\d*:(\d+)$", re.IGNORECASE)
+_gerexShortCode = re.compile(r"^epsg:(\d+)$", re.IGNORECASE)
 _gerexProj4Str = re.compile(r"^\+init=epsg:(\d+)$")
 
-def validateEPSGCode( string ) : 
-    """Check whether the given string is a valid EPSG code (True) or not (False)""" 
+
+def validateEPSGCode(string):
+    """Check whether the given string is a valid EPSG code (True) or not
+    (False)"""
     try:
-        osr.SpatialReference().ImportFromEPSG(int(string)) 
-    except (ValueError, RuntimeError): 
+        osr.SpatialReference().ImportFromEPSG(int(string))
+    except (ValueError, RuntimeError):
         return False
     return True
 
-def fromInteger( string ) :  
+
+def fromInteger(string):
     """ parse EPSG code from simple integer string """
-    return int( string ) if validateEPSGCode( string ) else None  
+    return int(string) if validateEPSGCode(string) else None
 
-def _fromRegEx( string , gerex ) : 
+
+def _fromRegEx(string, gerex):
     """ parser EPSG code from given string and compiled regular expression """
-    match = gerex.match( string ) 
-    if match is None: return None 
-    return fromInteger( match.group(1) )
+    match = gerex.match(string)
+    if match is None:
+        return None
 
-def fromURL( string ) : 
-    """ parse EPSG code from given string in OGC URL CRS 
+    return fromInteger(match.group(1))
+
+
+def fromURL(string):
+    """ parse EPSG code from given string in OGC URL CRS
     ``http://www.opengis.net/def/crs/EPSG/0/<code>`` notation """
-    return _fromRegEx( string , _gerexURL ) 
+    return _fromRegEx(string, _gerexURL)
 
-def fromURN( string ) : 
-    """ parse EPSG code from given string in OGC URN CRS 
+
+def fromURN(string):
+    """ parse EPSG code from given string in OGC URN CRS
     ``urn:ogc:def:crs:epsg::<code>`` notation """
-    return _fromRegEx( string , _gerexURN ) 
+    return _fromRegEx(string, _gerexURN)
 
-def fromShortCode( string ) : 
-    """ parse EPSG code from given string in short CRS 
+
+def fromShortCode(string):
+    """ parse EPSG code from given string in short CRS
     ``EPSG:<code>`` notation """
-    return _fromRegEx( string , _gerexShortCode ) 
+    return _fromRegEx(string, _gerexShortCode)
 
-def fromProj4Str( string ) : 
-    """ parse EPSG code from given string in OGC Proj4Str CRS 
+
+def fromProj4Str(string):
+    """ parse EPSG code from given string in OGC Proj4Str CRS
     ``+init=epsg:<code>`` notation """
-    return _fromRegEx( string , _gerexProj4Str ) 
+    return _fromRegEx(string, _gerexProj4Str)
 
-def parseEPSGCode( string , parsers ) :  
-    """ parse EPSG code using provided sequence of EPSG parsers """ 
-    for parser in parsers : 
-        epsg = parser( string ) 
-        if epsg is not None : return epsg 
-    return None 
+
+def parseEPSGCode(string, parsers):
+    """ parse EPSG code using provided sequence of EPSG parsers """
+    for parser in parsers:
+        epsg = parser(string)
+        if epsg is not None:
+            return epsg
+
+    return None
 
 #-------------------------------------------------------------------------------
-# public API 
+# public API
 
 __SUPPORTED_CRS_WMS = None
 __SUPPORTED_CRS_WCS = None
 __SUPPORTED_CRS_ALL = None
-__SUPPORTED_CRS_REVERSED = None 
+__SUPPORTED_CRS_REVERSED = None
 
-def getSupportedCRS_WMS( format_function = asShortCode ) : 
+
+def getSupportedCRS_WMS(format_function=asShortCode):
     """ Get list of CRSes supported by WMS. The ``format_function`` is used to
-    format individual list items.""" 
+    format individual list items."""
 
     global __SUPPORTED_CRS_WMS
 
-    if __SUPPORTED_CRS_WMS is None : 
+    if __SUPPORTED_CRS_WMS is None:
         reader = CRSsConfigReader(get_eoxserver_config())
         __SUPPORTED_CRS_WMS = reader.supported_crss_wms
 
-    # return formated list of EPSG codes 
-    return map( format_function , __SUPPORTED_CRS_WMS ) 
+    # return formated list of EPSG codes
+    return map(format_function, __SUPPORTED_CRS_WMS)
 
 
-def getSupportedCRS_WCS( format_function = asShortCode ) : 
+def getSupportedCRS_WCS(format_function=asShortCode):
     """ Get list of CRSes supported by WCS. The ``format_function`` is used to
-    format individual list items.""" 
+    format individual list items."""
 
     global __SUPPORTED_CRS_WCS
 
-    if __SUPPORTED_CRS_WCS is None : 
+    if __SUPPORTED_CRS_WCS is None:
         reader = CRSsConfigReader(get_eoxserver_config())
         __SUPPORTED_CRS_WCS = reader.supported_crss_wcs
 
-    # return formated list of EPSG codes 
-    return map( format_function , __SUPPORTED_CRS_WCS ) 
+    # return formated list of EPSG codes
+    return map(format_function, __SUPPORTED_CRS_WCS)
 
 #-------------------------------------------------------------------------------
 
-def hasSwappedAxes( epsg ) : 
-    """Decide whether the coordinate system given by the passed EPSG code is 
+
+def hasSwappedAxes(epsg):
+    """Decide whether the coordinate system given by the passed EPSG code is
     displayed with swapped axes (True) or not (False)."""
 
-    # NOTE: the whole set of reversed axes is large so in case of the EPSG 
-    #       code being among the supported CRSes only limitted set is used. 
+    # NOTE: the whole set of reversed axes is large so in case of the EPSG
+    #       code being among the supported CRSes only limitted set is used.
 
     global __SUPPORTED_CRS_ALL
     global __SUPPORTED_CRS_REVERSED
 
-    if __SUPPORTED_CRS_REVERSED is None : 
+    if __SUPPORTED_CRS_REVERSED is None:
 
-        # get intersection of all supported and reversed axes CRSes 
+        # get intersection of all supported and reversed axes CRSes
 
-        crs_wms = set(getSupportedCRS_WMS(asInteger)) 
-        crs_wcs = set(getSupportedCRS_WCS(asInteger)) 
+        crs_wms = set(getSupportedCRS_WMS(asInteger))
+        crs_wcs = set(getSupportedCRS_WCS(asInteger))
 
         __SUPPORTED_CRS_ALL = crs_wms | crs_wcs
-        __SUPPORTED_CRS_REVERSED = __SUPPORTED_CRS_ALL & EPSG_AXES_REVERSED 
+        __SUPPORTED_CRS_REVERSED = __SUPPORTED_CRS_ALL & EPSG_AXES_REVERSED
 
-    if ( epsg in __SUPPORTED_CRS_ALL ) :  
-        return ( epsg in __SUPPORTED_CRS_REVERSED ) 
-    else : 
-        return ( epsg in EPSG_AXES_REVERSED ) 
+    if epsg in __SUPPORTED_CRS_ALL:
+        return epsg in __SUPPORTED_CRS_REVERSED
+    else:
+        return epsg in EPSG_AXES_REVERSED
 
 
-def getAxesSwapper( epsg , swapAxes = None ) : 
-        """ 
-        Second order function returning point tuple axes swaper 
-        f(x,y) -> (x,y) or f(x,y) -> (y,x). The axes order is determined 
+def getAxesSwapper(epsg, swapAxes=None):
+        """
+        Second order function returning point tuple axes swaper
+        f(x,y) -> (x,y) or f(x,y) -> (y,x). The axes order is determined
         by the provided EPSG code. (Or exlicitely by the swapAxes boolean
         flag.
-        """ 
+        """
 
-        if swapAxes not in (True,False) : 
-            swapAxes = hasSwappedAxes( epsg ) 
+        if swapAxes not in (True, False):
+            swapAxes = hasSwappedAxes(epsg)
 
-        return (lambda x,y:(y,x)) if swapAxes else (lambda x,y:(x,y))
+        return (lambda x, y: (y, x)) if swapAxes else (lambda x, y: (x, y))
 
-def isProjected( epsg ) : 
+
+def isProjected(epsg):
     """Is the coordinate system projected (True) or Geographic (False)? """
 
-    spat_ref = osr.SpatialReference() 
+    spat_ref = osr.SpatialReference()
     spat_ref.ImportFromEPSG(epsg)
-    return bool( spat_ref.IsProjected() ) 
+    return bool(spat_ref.IsProjected())
 
 
 def crs_bounds(srid):
@@ -373,12 +396,12 @@ def crs_bounds(srid):
 
     srs = osr.SpatialReference()
     srs.ImportFromEPSG(srid)
-        
+
     if srs.IsGeographic():
         return (-180.0, -90.0, 180.0, 90.0)
     else:
         earth_circumference = 2 * math.pi * srs.GetSemiMajor()
-    
+
         return (
             -earth_circumference,
             -earth_circumference,
@@ -386,12 +409,13 @@ def crs_bounds(srid):
             earth_circumference
         )
 
+
 def crs_tolerance(srid):
     """ Get the "tolerance" of the CRS """
 
     srs = osr.SpatialReference()
     srs.ImportFromEPSG(srid)
-        
+
     if srs.IsGeographic():
         return 1e-8
     else:
@@ -404,30 +428,32 @@ image_crss_ids = set((
     "http://www.opengis.net/def/crs/OGC/1.3/CRS1"
 ))
 
+
 def is_image_crs(string):
     return string in image_crss_ids
 
 
 #-------------------------------------------------------------------------------
 
-def _parseListOfCRS(raw_value) : 
-    """ parse CRS configuartion """ 
+def _parseListOfCRS(raw_value):
+    """ parse CRS configuartion """
 
-    # validate and convert to EPSG code 
-    def checkCode( v ) :
-        # validate the input CRS whether recognized by GDAL/Proj 
-        rv = validateEPSGCode( v ) 
-        if not rv : 
+    # validate and convert to EPSG code
+    def checkCode(v):
+        # validate the input CRS whether recognized by GDAL/Proj
+        rv = validateEPSGCode(v)
+        if not rv:
             logger.warning(
-                "Invalid EPSG code '%s'! This CRS will be ignored!" % str(v).strip()
+                "Invalid EPSG code '%s'! This CRS will be ignored!" %
+                str(v).strip()
             )
         return rv
 
-    # strip comments 
-    tmp = "".join([ l.partition("#")[0] for l in raw_value.split("\n") ])
+    # strip comments
+    tmp = "".join([l.partition("#")[0] for l in raw_value.split("\n")])
 
-    # filter out invalid EPSG codes and covert them to integer 
-    return map( int , filter( checkCode , tmp.split(",") ) ) 
+    # filter out invalid EPSG codes and covert them to integer
+    return map(int, filter(checkCode, tmp.split(",")))
 
 #-------------------------------------------------------------------------------
 
