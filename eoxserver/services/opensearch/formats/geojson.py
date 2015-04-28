@@ -1,11 +1,37 @@
-from json import dumps
+#-------------------------------------------------------------------------------
+#
+# Project: EOxServer <http://eoxserver.org>
+# Authors: Fabian Schindler <fabian.schindler@eox.at>
+#
+#-------------------------------------------------------------------------------
+# Copyright (C) 2015 EOX IT Services GmbH
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies of this Software or works derived from this Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#-------------------------------------------------------------------------------
 
-from eoxserver.core import Component, implements
-from eoxserver.core.util.timetools import isoformat
+
+from eoxserver.core import implements
 from eoxserver.services.opensearch.interfaces import ResultFormatInterface
+from eoxserver.services.opensearch.formats import base
 
 
-class GeoJSONResultFormat(Component):
+class GeoJSONResultFormat(base.BaseOGRResultFormat):
     """ GeoJSON result format.
     """
 
@@ -13,37 +39,10 @@ class GeoJSONResultFormat(Component):
 
     mimetype = "application/vnd.geo+json"
     name = "json"
+    extension = ".json"
+    driver_name = "GeoJSON"
 
-    def encode(self, queryset):
-        return dumps({
-            "type": "FeatureCollection",
-            "features": [
-                self.encode_feature(eo_object)
-                for eo_object in queryset
-            ]
-        })
-
-    def encode_feature(self, eo_object):
-        return {
-            "type": "Feature",
-            "id": eo_object.identifier,
-            "bbox": eo_object.footprint.extent,
-            "geometry": self.encode_geometry(eo_object.footprint),
-            "properties": {
-                "start_time": isoformat(eo_object.begin_time),
-                "end_time": isoformat(eo_object.end_time)
-            }
-        }
-
-    def encode_geometry(self, geometry):
-        return dict(
-            type=geometry.geom_type,
-            coordinates=[
-                [
-                    [
-                        [point[0], point[1]]
-                        for point in linestring
-                    ] for linestring in polygon
-                ] for polygon in geometry
-            ]
-        )
+    def create_layer(self, datasource):
+        """ Create the layer in the DataSource.
+        """
+        return datasource.CreateLayer("layer", options=["WRITE_BBOX=YES"])
