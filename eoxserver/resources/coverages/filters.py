@@ -11,8 +11,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -65,43 +65,43 @@ class Slice(object):
     """
     This class contains information about a slice subsetting. The
     constructor accepts three arguments:
-    
+
     * ``crs_id``: either ``"imageCRS"`` or an integer EPSG SRID,
     * ``axis_label``: the axis label the slicing operation refers to,
     * ``slice_point``: a :class:`float` or :class:`int` containing the
       slice point information
-    
+
     :exc:`~.InternalError` is raised if arguments do not validate.
     """
     def __init__(self, crs_id, axis_label, slice_point):
         self.__validate(crs_id, axis_label, slice_point)
-        
+
         self.__crs_id = crs_id
         self.__axis_label = axis_label
         self.__slice_point = slice_point
-    
+
     def __validate(self, crs_id, axis_label, slice_point):
         if not (crs_id == "imageCRS" or isinstance(crs_id, int)):
             raise InternalError(
                 "'crs_id' must be set to 'imageCRS' or to an integer."
             )
-        
+
         if not (isinstance(slice_point, float) or\
            isinstance(slice_point, int)):
             raise InternalError(
                 "Slice point must be float or int."
             )
-    
+
     #: Read only attribute.
     @property
     def crs_id(self):
         return self.__crs_id
-    
+
     #: Read only attribute.
     @property
     def axis_label(self):
         return self.__axis_label
-    
+
     # Read only attribute.
     @property
     def slice_point(self):
@@ -115,44 +115,44 @@ class BoundedArea(object):
     ``"imageCRS"`` or an integer EPSG SRID. The bounds parameters may
     be set to a :class:`float` or :class:`int` value designating the
     bound in the given coordinate system or to ``"unbounded"``.
-    
+
     :exc:`~.InternalError` is raised if the arguments do not validate.
     :exc:`~.InvalidExpressionError` is raised if the lower bounds of
     an axis are greater than the upper bounds.
     """
     def __init__(self, crs_id, minx, miny, maxx, maxy):
         self.__validate(crs_id, minx, miny, maxx, maxy)
-        
+
         self.__crs_id = crs_id
         self.__minx = minx
         self.__miny = miny
         self.__maxx = maxx
         self.__maxy = maxy
-    
+
     def __validate(self, crs_id, minx, miny, maxx, maxy):
         if not (crs_id == "imageCRS" or isinstance(crs_id, int)):
             raise InternalError(
                 "'crs_id' must be set to 'imageCRS' or to an integer."
             )
-        
+
         for bound in (minx, miny, maxx, maxy):
             if not (bound == "unbounded" or isinstance(bound, float) or\
                     isinstance(bound, int)):
                 raise InternalError(
                     "Bounds must be set to 'unbounded', float or int."
                 )
-        
+
         if (not (minx == "unbounded" or maxx == "unbounded") and minx > maxx) or\
            (not (miny == "unbounded" or maxy == "unbounded") and miny > maxy):
             raise InvalidExpressionError(
                 "Invalid bounds: lower bound greater than upper bound."
             )
-    
+
     #: Read only attribute.
     @property
     def crs_id(self):
         return self.__crs_id
-    
+
     #: Read only attribute.
     @property
     def minx(self):
@@ -179,34 +179,34 @@ class TimeInterval(object):
     constructor accepts two arguments: ``begin`` and ``end`` which
     must be set either to the string ``"unbounded"`` or a
     :class:`datetime.datetime` object.
-    
+
     :exc:`~.InternalError` is raised if the arguments do not validate.
     :exc:`~.InvalidExpressionError` is raised if the begin time is
     later than the end time.
     """
-    
+
     def __init__(self, begin, end):
         self.__validate(begin, end)
-        
+
         self.__begin = begin
         self.__end = end
-    
+
     def __validate(self, begin, end):
         for timestamp in (begin, end):
             if not (timestamp == "unbounded" or isinstance(timestamp, datetime)):
                 raise InternalError(
                     "Time bound must be 'unbounded' or 'datetime.datetime' object."
                 )
-        
+
         if not (begin == "unbounded" or end == "unbounded") and end < begin:
             raise InvalidExpressionError(
                 "Begin of time interval later than end."
             )
-    
+
     @property
     def begin(self):
         return self.__begin
-        
+
     @property
     def end(self):
         return self.__end
@@ -219,10 +219,10 @@ class AttributeExpression(SimpleExpression):
     """
     Filter expression implementation representing an attribute lookup
     on a model. Expects three operands:
-    
+
     * the attribute name; the possible names are defined separately for
       each resource class;
-    * the matching operation; the range of applicable operations 
+    * the matching operation; the range of applicable operations
       comprises the field lookups defined by Django; the 'search',
       'regex' and 'iregex' operations are not supported because they are
       database dependent; the shortcuts "=", "<", "<=", ">=", ">" are
@@ -235,21 +235,21 @@ class AttributeExpression(SimpleExpression):
         "impl_id": "resources.coverages.filters.AttributeExpression",
         "factory_ids": ("resources.coverages.filters.CoverageExpressionFactory",)
     }
-    
+
     OP_NAME = "attr"
     NUM_OPS = 3
-    
+
     LOOKUPS = (
         "=", "exact", "iexact", "contains", "icontains", "in", ">" ,
         "gt", ">=", "gte", "<", "lt", "<=", "lte", "startswith",
         "istartswith", "endswith", "iendswith", "range", "year",
         "month", "day", "weekday", "isnull"
     )
-    
-    
+
+
     def _validateOperands(self, operands):
         super(AttributeExpression, self)._validateOperands(operands)
-        
+
         if operands[1].lstrip("!") not in self.LOOKUPS:
             raise InternalError(
                 "'%s' is not a known field lookup operation." % \
@@ -270,13 +270,13 @@ class TimeSliceExpression(SimpleExpression):
         "impl_id": "resources.coverages.filters.TimeSliceExpression",
         "factory_ids": ("resources.coverages.filters.CoverageExpressionFactory",)
     }
-    
+
     OP_NAME = "time_slice"
     NUM_OPS = 1
-    
+
     def _validateOperands(self, operands):
         super(TimeSliceExpression, self)._validateOperands(operands)
-    
+
         if not isinstance(operands[0], datetime):
             raise InternalError(
                 "Expected 'datetime.datetime' object as operand, got '%s' object." % operands[0].__class__.__name__
@@ -291,10 +291,10 @@ class TimeIntervalExpression(SimpleExpression):
     It expects one operand of type :class:`TimeInterval`.
     """
     NUM_OPS = 1
-    
+
     def _validateOperands(self, operands):
         super(TimeIntervalExpression, self)._validateOperands(operands)
-    
+
         if not isinstance(operands[0], TimeInterval):
             raise InternalError(
                 "Expected 'TimeInterval' object as operand, got '%s' object." % operands[0].__class__.__name__
@@ -311,9 +311,9 @@ class IntersectingTimeIntervalExpression(TimeIntervalExpression):
         "impl_id": "resources.coverages.filters.IntersectingTimeIntervalExpression",
         "factory_ids": ("resources.coverages.filters.CoverageExpressionFactory",)
     }
-    
+
     OP_NAME = "time_intersects"
-    
+
 IntersectingTimeIntervalExpressionImplementation = \
 FilterExpressionInterface.implement(IntersectingTimeIntervalExpression)
 
@@ -328,9 +328,9 @@ class ContainingTimeIntervalExpression(TimeIntervalExpression):
         "impl_id": "resources.coverages.filters.ContainingTimeIntervalExpression",
         "factory_ids": ("resources.coverages.filters.CoverageExpressionFactory",)
     }
-    
+
     OP_NAME = "time_within"
-    
+
 ContainingTimeIntervalExpressionImplementation = \
 FilterExpressionInterface.implement(ContainingTimeIntervalExpression)
 
@@ -344,13 +344,13 @@ class SpatialSliceExpression(SimpleExpression):
         "impl_id": "resources.coverages.filters.SpatialSliceExpression",
         "factory_ids": ("resources.coverages.filters.CoverageExpressionFactory",)
     }
-    
+
     OP_NAME = "spatial_slice"
     NUM_OPS = 1
-    
+
     def _validateOperands(self, operands):
         super(SpatialSliceExpression, self)._validateOperands(operands)
-        
+
         if not isinstance(operands[0], Slice):
             raise InternalError(
                 "Expected operand of type 'Slice', got '%s' object" %\
@@ -366,10 +366,10 @@ class BoundedAreaExpression(SimpleExpression):
     subsetting. It expects one operand of type :class:`BoundedArea`.
     """
     NUM_OPS = 1
-    
+
     def _validateOperands(self, operands):
         super(BoundedAreaExpression, self)._validateOperands(operands)
-        
+
         if not isinstance(operands[0], BoundedArea):
             raise InvalidExpressionError(
                 "Expected 'BoundedArea' object as operand, got '%s' object" %\
@@ -387,7 +387,7 @@ class FootprintIntersectsAreaExpression(BoundedAreaExpression):
         "impl_id": "resources.coverages.filters.FootprintIntersectsAreaExpression",
         "factory_ids": ("resources.coverages.filters.CoverageExpressionFactory",)
     }
-    
+
     OP_NAME = "footprint_intersects_area"
 
 FootprintIntersectsAreaExpressionImplementation = \
@@ -404,7 +404,7 @@ class FootprintWithinAreaExpression(BoundedAreaExpression):
         "impl_id": "resources.coverages.filters.FootprintWithinAreaExpression",
         "factory_ids": ("resources.coverages.filters.CoverageExpressionFactory",)
     }
-    
+
     OP_NAME = "footprint_within_area"
 
 FootprintWithinAreaExpressionImplementation = \
@@ -422,13 +422,13 @@ class ContainedCoverageExpression(SimpleExpression):
         "impl_id": "resources.coverages.filters.ContainedCoverageExpression",
         "factory_ids": ("resources.coverages.filters.CoverageExpressionFactory",)
     }
-    
+
     OP_NAME = "contained_in"
     NUM_OPS = 1
-    
+
     def _validateOperands(self, operands):
         super(ContainedCoverageExpression, self)._validateOperands(operands)
-        
+
         if not isinstance(operands[0], int):
             raise InternalError(
                 "Expected integer resource ID, got '%s' object." %
@@ -449,13 +449,13 @@ class ContainsCoverageExpression(SimpleExpression):
         "impl_id": "resources.coverages.filters.ContainsCoverageExpression",
         "factory_ids": ("resources.coverages.filters.CoverageExpressionFactory",)
     }
-    
+
     OP_NAME = "contains"
     NUM_OPS = 1
-    
+
     def _validateOperands(self, operands):
         super(ContainsCoverageExpression, self)._validateOperands(operands)
-        
+
         if not isinstance(operands[0], int):
             raise InternalError(
                 "Expected integer resource ID, got '%s' object." %
@@ -471,16 +471,16 @@ class OrphanedCoverageExpression(SimpleExpression):
     not related to any container (StitchedMosaic or DatasetSeries).
     Takes no operands.
     """
-    
+
     REGISTRY_CONF = {
         "name": "Orphaned Coverage Expression",
         "impl_id": "resources.coverages.filters.OrphanedCoverageExpression",
         "factory_ids": ("resources.coverages.filters.CoverageExpressionFactory",)
     }
-    
+
     OP_NAME = "orphaned"
     NUM_OPS = 0
-    
+
 OrphanedCoverageExpressionImplementation = \
 FilterExpressionInterface.implement(OrphanedCoverageExpression)
 
@@ -489,19 +489,19 @@ class LocationReferencesDatasetExpression(SimpleExpression):
     """
     Filter expression that matches datasets which are referenced by a location.
     """
-    
+
     REGISTRY_CONF = {
         "name": "Location References Dataset Expression",
         "impl_id": "resources.coverages.filters.LocationReferencesDatasetExpression",
         "factory_ids": ("resources.coverages.filters.CoverageExpressionFactory",)
     }
-    
+
     OP_NAME = "referenced_by"
     NUM_OPS = 1
 
     def _validateOperands(self, operands):
         super(LocationReferencesDatasetExpression, self)._validateOperands(operands)
-        
+
         if not isinstance(operands[0], LocationWrapper):
             raise InternalError(
                 "Expected LocationWrapper, got '%s' object." %
@@ -519,12 +519,12 @@ class AttributeFilter(object):
     """
     Base class for attribute lookup filters.
     """
-    
+
     WRAPPER_CLASS = None # To be overridden by implementations
-    
+
     def _getField(self, attr):
         return self.WRAPPER_CLASS().getAttrField(attr)
-        
+
     def _getLookup(self, op):
         if op == "=":
             return ""
@@ -538,7 +538,7 @@ class AttributeFilter(object):
             return "__gt"
         else:
             return "__%s" % op
-    
+
     def _matchValues(self, model_value, op, value):
         try:
             if op in ("=", "exact"):
@@ -586,7 +586,7 @@ class AttributeFilter(object):
             raise InvalidExpressionError(
                 "Could not apply attribute expression to given attribute."
             )
-    
+
     def _splitRawOp(self, raw_op):
         if raw_op.startswith("!"):
             invert = True
@@ -594,20 +594,20 @@ class AttributeFilter(object):
         else:
             invert = False
             op = raw_op
-        
+
         return (invert, op)
 
     def applyToQuerySet(self, expr, qs):
         attr, raw_op, value = expr.getOperands()
-        
+
         invert, op = self._splitRawOp(raw_op)
-        
+
         try:
             field = self._getField(attr)
         # fail gracefully if the attribute name is unknown
         except UnknownAttribute:
             return qs
-            
+
         if not invert:
             return qs.filter(**{
                 "%s%s" % (field, self._getLookup(op)): value
@@ -616,14 +616,14 @@ class AttributeFilter(object):
             return qs.exclude(**{
                 "%s%s" % (field, self._getLookup(op)): value
             })
-    
+
     def resourceMatches(self, expr, res):
         attr, raw_op, value = expr.getOperands()
 
         invert, op = self._splitRawOp(raw_op)
-        
+
         model_value = res.getAttrValue(attr)
-        
+
         if not invert:
             return self._matchValues(model_value, op, value)
         else:
@@ -633,7 +633,7 @@ class RectifiedDatasetAttributeFilter(AttributeFilter):
     """
     Filter that executes attribute lookups on Rectified Datasets.
     """
-    
+
     REGISTRY_CONF = {
         "name": "Attribute Lookup Filter for Rectified Datasets",
         "impl_id": "resources.coverages.filters.RectifiedDatasetAttribute",
@@ -642,7 +642,7 @@ class RectifiedDatasetAttributeFilter(AttributeFilter):
             "core.filters.expr_class_id": "resources.coverages.filters.AttributeExpression"
         }
     }
-    
+
     WRAPPER_CLASS = RectifiedDatasetWrapper
 
 RectifiedDatasetAttributeFilterImplementation = \
@@ -653,7 +653,7 @@ class ReferenceableDatasetAttributeFilter(AttributeFilter):
     Filter that executes attribute lookup operations on Referenceable
     Datasets.
     """
-    
+
     REGISTRY_CONF = {
         "name": "Attribute Lookup Filter for Referenceable Datasets",
         "impl_id": "resources.coverages.filters.ReferenceableDatasetAttribute",
@@ -662,7 +662,7 @@ class ReferenceableDatasetAttributeFilter(AttributeFilter):
             "core.filters.expr_class_id": "resources.coverages.filters.AttributeExpression"
         }
     }
-    
+
     WRAPPER_CLASS = ReferenceableDatasetWrapper
 
 ReferenceableDatasetAttributeFilterImplementation = \
@@ -673,7 +673,7 @@ class RectifiedStitchedMosaicAttributeFilter(AttributeFilter):
     Filter that executes attribute lookup operations on Rectified
     Stitched Mosaics.
     """
-    
+
     REGISTRY_CONF = {
         "name": "Attribute Lookup Filter for Rectified Stitched Mosaics",
         "impl_id": "resources.coverages.filters.RectifiedStitchedMosaicAttribute",
@@ -682,7 +682,7 @@ class RectifiedStitchedMosaicAttributeFilter(AttributeFilter):
             "core.filters.expr_class_id": "resources.coverages.filters.AttributeExpression"
         }
     }
-    
+
     WRAPPER_CLASS = RectifiedStitchedMosaicWrapper
 
 RectifiedStitchedMosaicAttributeFilterImplementation = \
@@ -694,15 +694,15 @@ class TimeSliceFilter(object):
     """
     def applyToQuerySet(self, expr, qs):
         timestamp = expr.getOperands()[0]
-        
+
         qs = qs.exclude(eo_metadata__timestamp_begin__gt=timestamp)
         qs = qs.exclude(eo_metadata__timestamp_end__lt=timestamp)
-        
+
         return qs
-    
+
     def resourceMatches(self, expr, res):
         timestamp = expr.getOperands()[0]
-        
+
         return not timestamp < res.getBeginTime() or\
                not res.getEndTime() < timestamp
 
@@ -762,40 +762,62 @@ class IntersectingTimeIntervalFilter(object):
     Filter class for 'time_intersects' operations.
     """
     def applyToQuerySet(self, expr, qs):
+        time_interval_interpretation = System.getConfig().getConfigValue("services.owscommon", "time_interval_interpretation")
+
         begin = expr.getOperands()[0].begin
         end = expr.getOperands()[0].end
-        
-        if begin == "unbounded":
-            if end == "unbounded":
-                return qs
+
+        if time_interval_interpretation == "open":
+            if begin == "unbounded":
+                if end == "unbounded":
+                    return qs
+                else:
+                    return qs.filter(
+                        eo_metadata__timestamp_begin__lt=end
+                    )
             else:
-                return qs.filter(
-                    eo_metadata__timestamp_begin__lte=end
-                )
+                if end == "unbounded":
+                    return qs.filter(
+                        eo_metadata__timestamp_end__gt=begin
+                    )
+                else:
+                    return qs.exclude(
+                        eo_metadata__timestamp_begin__gte=end
+                    ).exclude(
+                        eo_metadata__timestamp_end__lte=begin
+                    )
         else:
-            if end == "unbounded":
-                return qs.filter(
-                    eo_metadata__timestamp_end__gte=begin
-                )
+            if begin == "unbounded":
+                if end == "unbounded":
+                    return qs
+                else:
+                    return qs.filter(
+                        eo_metadata__timestamp_begin__lte=end
+                    )
             else:
-                return qs.exclude(
-                    eo_metadata__timestamp_begin__gt=end
-                ).exclude(
-                    eo_metadata__timestamp_end__lt=begin
-                )
+                if end == "unbounded":
+                    return qs.filter(
+                        eo_metadata__timestamp_end__gte=begin
+                    )
+                else:
+                    return qs.exclude(
+                        eo_metadata__timestamp_begin__gt=end
+                    ).exclude(
+                        eo_metadata__timestamp_end__lt=begin
+                    )
 
     def resourceMatches(self, expr, res):
         begin = expr.getOperands()[0].begin
         end = expr.getOperands()[0].end
-        
-        res_begin = res.getBeginTime() 
+
+        res_begin = res.getBeginTime()
         res_end = res.getEndTime()
-        
+
         if res_begin.tzinfo is None and begin.tzinfo is not None:
             res_begin = res_begin.replace(tzinfo=UTCOffsetTimeZoneInfo())
         if res_end.tzinfo is None and end.tzinfo is not None:
             res_end = res_end.replace(tzinfo=UTCOffsetTimeZoneInfo())
-        
+
         return not end < res_begin and \
                not res_end < begin
 
@@ -855,31 +877,52 @@ class ContainingTimeIntervalFilter(object):
     Filter class for 'time_within' operations.
     """
     def applyToQuerySet(self, expr, qs):
+        time_interval_interpretation = System.getConfig().getConfigValue("services.owscommon", "time_interval_interpretation")
+
         begin = expr.getOperands()[0].begin
         end = expr.getOperands()[0].end
-        
-        if begin == "unbounded":
-            if end == "unbounded":
-                return qs
+
+        if time_interval_interpretation == "open":
+            if begin == "unbounded":
+                if end == "unbounded":
+                    return qs
+                else:
+                    return qs.filter(
+                        eo_metadata__timestamp_end__lt=end
+                    )
             else:
-                return qs.filter(
-                    eo_metadata__timestamp_end__lte=end
-                )
+                if end == "unbounded":
+                    return qs.filter(
+                        eo_metadata__timestamp_begin__gt=begin
+                    )
+                else:
+                    return qs.filter(
+                        eo_metadata__timestamp_begin__gt=begin,
+                        eo_metadata__timestamp_end__lt=end
+                    )
         else:
-            if end == "unbounded":
-                return qs.filter(
-                    eo_metadata__timestamp_begin__gte=begin
-                )
+            if begin == "unbounded":
+                if end == "unbounded":
+                    return qs
+                else:
+                    return qs.filter(
+                        eo_metadata__timestamp_end__lte=end
+                    )
             else:
-                return qs.filter(
-                    eo_metadata__timestamp_begin__gte=begin,
-                    eo_metadata__timestamp_end__lte=end
-                )
+                if end == "unbounded":
+                    return qs.filter(
+                        eo_metadata__timestamp_begin__gte=begin
+                    )
+                else:
+                    return qs.filter(
+                        eo_metadata__timestamp_begin__gte=begin,
+                        eo_metadata__timestamp_end__lte=end
+                    )
 
     def resourceMatches(self, expr, res):
         begin = expr.getOperands()[0].begin
         end = expr.getOperands()[0].end
-        
+
         return not res.getBeginTime() < begin and\
                not end < res.getEndTime()
 
@@ -933,12 +976,12 @@ class RectifiedStitchedMosaicContainingTimeIntervalFilter(ContainingTimeInterval
 
 RectifiedStitchedMosaicContainingTimeIntervalFilterImplementation = \
 FilterInterface.implement(RectifiedStitchedMosaicContainingTimeIntervalFilter)
-    
+
 class SpatialFilter(object):
     """
     Common base class for spatial filters.
     """
-            
+
     def _getSRS(self, crs_id):
         if crs_id == "imageCRS":
             raise InvalidExpressionError(
@@ -951,41 +994,41 @@ class SpatialFilter(object):
             raise InvalidExpressionError(
                 "Unknown SRID %d." % crs_id
             )
-            
+
         return srs
-        
+
     def _getCRSBounds(self, crs_id):
         srs = self._getSRS(crs_id)
-        
+
         if srs.geographic:
             return (-180.0, -90.0, 180.0, 90.0)
         else:
             earth_circumference = 2*math.pi*srs.semi_major
-        
+
             return (
                 -earth_circumference,
                 -earth_circumference,
                 earth_circumference,
                 earth_circumference
             )
-            
+
     def _getCRSTolerance(self, crs_id):
         srs = self._getSRS(crs_id)
-        
+
         if srs.geographic:
             return 1e-8
         else:
             return 1e-2
-            
+
 class SpatialSliceFilter(SpatialFilter):
     """
     Common base class for spatial slice filters.
     """
-    
+
     def _getLine(self, slice, max_extent):
         #_max_extent = self._transformMaxExtent(slice.crs_id, max_extent)
         _max_extent = self._getCRSBounds(slice.crs_id)
-        
+
         if slice.axis_label.lower() in ("x", "lon", "long"):
             line = Line(
                 (slice.slice_point, _max_extent[1]),
@@ -1000,40 +1043,40 @@ class SpatialSliceFilter(SpatialFilter):
             raise InvalidExpressionError(
                 "Unknown axis label '%s'." % slice.axis_label
             )
-        
+
         line.srid = slice.crs_id
-        
+
         if slice.crs_id != 4326:
             line.transform(4326)
-        
+
         return line
-    
+
     def applyToQuerySet(self, expr, qs):
         slice = expr.getOperands()[0]
-        
+
         line = self._getLine(slice)
-        
+
         # NOTE: this is a hack to account for bugs in GeoDjango
         # Should be:
         # return qs.filter(eo_metadata__footprint__intersects=line)
-        
+
         eoqs = EOMetadataRecord.objects.filter(
             footprint__intersects=line
         )
-        
+
         return qs.filter(
             eo_metadata__in=tuple(eoqs.values_list("pk", flat=True))
         )
-        
+
         # End of hack
-    
+
     def resourceMatches(self, expr, res):
         slice = expr.getOperands()[0]
-        
+
         footprint = res.getFootprint()
-        
+
         line = self._getLine(slice)
-        
+
         return footprint.intersects(line)
 
 class RectifiedDatasetSpatialSliceFilter(SpatialSliceFilter):
@@ -1049,13 +1092,13 @@ class RectifiedDatasetSpatialSliceFilter(SpatialSliceFilter):
             "core.filters.expr_class_id": "resources.coverages.filters.SpatialSliceExpression"
         }
     }
-    
+
     def _getRelationName(self):
         return "rectifieddatasetrecord_set"
 
 RectifiedDatasetSpatialSliceFilterImplementation = \
 FilterInterface.implement(RectifiedDatasetSpatialSliceFilter)
-    
+
 class ReferenceableDatasetSpatialSliceFilter(SpatialSliceFilter):
     """
     Filter which matches Referenceable Datasets whose footprint
@@ -1069,11 +1112,11 @@ class ReferenceableDatasetSpatialSliceFilter(SpatialSliceFilter):
             "core.filters.expr_class_id": "resources.coverages.filters.SpatialSliceExpression"
         }
     }
-    
+
     def _getRelationName(self):
         return "referenceabledatasetrecord_set"
 
-        
+
 ReferenceableDatasetSpatialSliceFilterImplementation = \
 FilterInterface.implement(ReferenceableDatasetSpatialSliceFilter)
 
@@ -1091,17 +1134,17 @@ class RectifiedStitchedMosaicSpatialSliceFilter(SpatialSliceFilter):
             "core.filters.expr_class_id": "resources.coverages.filters.SpatialSliceExpression"
         }
     }
-    
+
     def _getRelationName(self):
         return "rectifiedstitchedmosaicrecord_set"
-    
+
     def _getSizeField(self, axis_label):
         if axis_label in ("x", "lon", "long", "Long"):
             return "extent__size_x"
         else:
             return "extent__size_y"
 
-        
+
 RectifiedStitchedMosaicSpatialSliceFilterImplementation = \
 FilterInterface.implement(RectifiedStitchedMosaicSpatialSliceFilter)
 
@@ -1109,46 +1152,46 @@ FilterInterface.implement(RectifiedStitchedMosaicSpatialSliceFilter)
 class FootprintFilter(SpatialFilter):
     """
     Common base class for footprint-related filters.
-    """    
+    """
     def _getPolygon(self, bounded_area):
         #_max_extent = self._transformMaxExtent(
         #    bounded_area.crs_id, max_extent
         #)
-        
+
         _max_extent = self._getCRSBounds(bounded_area.crs_id)
-        
+
         if bounded_area.minx == "unbounded":
             minx = _max_extent[0]
         else:
             minx = max(bounded_area.minx, _max_extent[0])
-        
+
         if bounded_area.miny == "unbounded":
             miny = _max_extent[1]
         else:
             miny = max(bounded_area.miny, _max_extent[1])
-        
+
         if bounded_area.maxx == "unbounded":
             maxx = _max_extent[2]
         else:
             maxx = min(bounded_area.maxx, _max_extent[2])
-        
+
         if bounded_area.maxy == "unbounded":
             maxy = _max_extent[3]
         else:
             maxy = min(bounded_area.maxy, _max_extent[3])
-        
+
         # add a tolerance to the extent to account for string conversion and
         # rounding errors
         e = self._getCRSTolerance(bounded_area.crs_id)
         minx -= e; miny -= e; maxx += e; maxy += e
-        
+
         poly = Polygon.from_bbox((minx, miny, maxx, maxy))
         poly.srid = bounded_area.crs_id
-        
+
         if bounded_area.crs_id != 4326:
             # reproject to WGS 84
             poly.transform(4326)
-        
+
         return poly
 
 class FootprintIntersectsAreaFilter(FootprintFilter):
@@ -1158,28 +1201,28 @@ class FootprintIntersectsAreaFilter(FootprintFilter):
     """
     def applyToQuerySet(self, expr, qs):
         #max_extent = self._getMaxExtent(qs)
-                
+
         poly = self._getPolygon(expr.getOperands()[0])
-        
+
         # NOTE: this is a hack to account for bugs in GeoDjango
         # Should be:
         #return qs.filter(eo_metadata__footprint__intersects=poly)
-        
+
         eoqs = EOMetadataRecord.objects.filter(
             footprint__intersects=poly
         )
-        
+
         return qs.filter(
             eo_metadata__in=tuple(eoqs.values_list("pk", flat=True))
         )
-        
+
         # End of hack
-    
+
     def resourceMatches(self, expr, res):
         footprint = res.getFootprint()
 
         poly = self._getPolygon(expr.getOperands()[0])
-        
+
         return footprint.intersects(poly)
 
 class FootprintWithinAreaFilter(FootprintFilter):
@@ -1187,27 +1230,27 @@ class FootprintWithinAreaFilter(FootprintFilter):
     Filter matching EO Coverages whose footprint lies within a given
     area.
     """
-    
+
     def applyToQuerySet(self, expr, qs):
         poly = self._getPolygon(expr.getOperands()[0])
-        
+
         # NOTE: this is a hack to account for bugs in GeoDjango
         # Should be:
         # return qs.filter(eo_metadata__footprint__within=poly)
-        
+
         eoqs = EOMetadataRecord.objects.filter(footprint__within=poly)
-        
+
         return qs.filter(
             eo_metadata__in=tuple(eoqs.values_list("pk", flat=True))
         )
-        
+
         # End of hack
-    
+
     def resourceMatches(self, expr, res):
         footprint = res.getFootprint()
-        
+
         poly = self._getPolygon(expr.getOperands()[0])
-        
+
         return footprint.within(poly)
 
 class RectifiedDatasetFootprintIntersectsAreaFilter(FootprintIntersectsAreaFilter):
@@ -1223,7 +1266,7 @@ class RectifiedDatasetFootprintIntersectsAreaFilter(FootprintIntersectsAreaFilte
             "core.filters.expr_class_id": "resources.coverages.filters.FootprintIntersectsAreaExpression"
         }
     }
-    
+
     def _getRelationName(self):
         return "rectifieddatasetrecord_set"
 
@@ -1244,7 +1287,7 @@ class RectifiedDatasetFootprintWithinAreaFilter(FootprintWithinAreaFilter):
             "core.filters.expr_class_id": "resources.coverages.filters.FootprintWithinAreaExpression"
         }
     }
-    
+
     def _getRelationName(self):
         return "rectifieddatasetrecord_set"
 
@@ -1264,7 +1307,7 @@ class ReferenceableDatasetFootprintIntersectsAreaFilter(FootprintIntersectsAreaF
             "core.filters.expr_class_id": "resources.coverages.filters.FootprintIntersectsAreaExpression"
         }
     }
-    
+
     def _getRelationName(self):
         return "referenceabledatasetrecord_set"
 
@@ -1284,7 +1327,7 @@ class ReferenceableDatasetFootprintWithinAreaFilter(FootprintWithinAreaFilter):
             "core.filters.expr_class_id": "resources.coverages.filters.FootprintWithinAreaExpression"
         }
     }
-    
+
     def _getRelationName(self):
         return "referenceabledatasetrecord_set"
 
@@ -1304,7 +1347,7 @@ class RectifiedStitchedMosaicFootprintIntersectsAreaFilter(FootprintIntersectsAr
             "core.filters.expr_class_id": "resources.coverages.filters.FootprintIntersectsAreaExpression"
         }
     }
-    
+
     def _getRelationName(self):
         return "rectifiedstitchedmosaicrecord_set"
 
@@ -1325,7 +1368,7 @@ class RectifiedStitchedMosaicFootprintWithinAreaFilter(FootprintWithinAreaFilter
             "core.filters.expr_class_id": "resources.coverages.filters.FootprintWithinAreaExpression"
         }
     }
-    
+
     def _getRelationName(self):
         return "rectifiedstitchedmosaicrecord_set"
 
@@ -1345,18 +1388,18 @@ class ContainedRectifiedDatasetFilter(object):
             "core.filters.expr_class_id": "resources.coverages.filters.ContainedCoverageExpression"
         }
     }
-    
+
     def applyToQuerySet(self, expr, qs):
         container_id = expr.getOperands()[0]
-        
+
         return qs.filter(
             Q(rect_stitched_mosaics__pk=container_id) | \
             Q(dataset_series_set__pk=container_id)
         )
-        
+
     def resourceMatches(self, expr, res):
         container_id = expr.getOperands()[0]
-        
+
         return res.containedIn(container_id)
 
 ContainedRectifiedDatasetFilterImplementation = \
@@ -1375,15 +1418,15 @@ class ContainedReferenceableDatasetFilter(object):
             "core.filters.expr_class_id": "resources.coverages.filters.ContainedCoverageExpression"
         }
     }
-    
+
     def applyToQuerySet(self, expr, qs):
         container_id = expr.getOperands()[0]
-        
+
         return qs.filter(dataset_series_set__pk=container_id)
-    
+
     def resourceMatches(self, expr, res):
         container_id = expr.getOperands()[0]
-        
+
         return res.containedIn(container_id)
 
 ContainedReferenceableDatasetFilterImplementation = \
@@ -1402,15 +1445,15 @@ class ContainedRectifiedStitchedMosaicFilter(object):
             "core.filters.expr_class_id": "resources.coverages.filters.ContainedCoverageExpression"
         }
     }
-    
+
     def applyToQuerySet(self, expr, qs):
         container_id = expr.getOperands()[0]
-        
+
         return qs.filter(dataset_series_set__pk=container_id)
-    
+
     def resourceMatches(self, expr, res):
         container_id = expr.getOperands()[0]
-        
+
         return res.containedIn(container_id)
 
 ContainedRectifiedStitchedMosaicFilterImplementation = \
@@ -1422,7 +1465,7 @@ class RectifiedStitchedMosaicContainsFilter(object):
     RectifiedDataset with the resource primary key conveyed with the
     expression.
     """
-    
+
     REGISTRY_CONF = {
         "name": "Filter for 'contains' operations on RectifiedStitchedMosaics",
         "impl_id": "resources.coverages.filters.RectifiedStitchedMosaicContains",
@@ -1431,17 +1474,17 @@ class RectifiedStitchedMosaicContainsFilter(object):
             "core.filters.expr_class_id": "resources.coverages.filters.ContainsCoverageExpression"
         }
     }
-    
+
     def applyToQuerySet(self, expr, qs):
         res_id = expr.getOperands()[0]
-        
+
         return qs.filter(rect_datasets__pk=res_id)
-    
+
     def resourceMatches(self, expr, res):
         res_id = expr.getOperands()[0]
-        
+
         return res.contains(res_id)
-        
+
 RectifiedStitchedMosaicContainsFilterImplementation = \
 FilterInterface.implement(RectifiedStitchedMosaicContainsFilter)
 
@@ -1463,14 +1506,14 @@ class DatasetSeriesContainsFilter(object):
 
     def applyToQuerySet(self, expr, qs):
         res_id = expr.getOperands()[0]
-        
+
         return qs.filter(
             Q(rect_datasets__pk=res_id) | Q(ref_datasets__pk=res_id)
         )
-    
+
     def resourceMatches(self, expr, res):
         res_id = expr.getOperands()[0]
-        
+
         return res.contains(res_id)
 
 DatasetSeriesContainsFilterImplementation = \
@@ -1481,7 +1524,7 @@ class OrphanedRectifiedDatasetFilter(object):
     Filter which matches RectifiedDatasets that are neither contained
     in a DatasetSeries nor in a RectifiedStitchedMosaic.
     """
-    
+
     REGISTRY_CONF = {
         "name": "Orphan Filter for Rectified Datasets",
         "impl_id": "resources.coverages.filters.OrphanedRectifiedDataset",
@@ -1490,7 +1533,7 @@ class OrphanedRectifiedDatasetFilter(object):
             "core.filters.expr_class_id": "resources.coverages.filters.OrphanedCoverageExpression"
         }
     }
-    
+
     def applyToQuerySet(self, expr, qs):
         return qs.annotate(
             dataset_series_count=Count('dataset_series_set')
@@ -1500,7 +1543,7 @@ class OrphanedRectifiedDatasetFilter(object):
             dataset_series_count=0,
             rect_stitched_mosaics_count=0
         )
-    
+
     def resourceMatches(self, expr, res):
         return res.getContainerCount() == 0
 
@@ -1512,7 +1555,7 @@ class OrphanedReferenceableDatasetFilter(object):
     Filter which matches ReferenceableDatasets that are not contained
     in any DatasetSeries.
     """
-    
+
     REGISTRY_CONF = {
         "name": "Orphan Filter for Referenceable Datasets",
         "impl_id": "resources.coverages.filters.OrphanedReferenceableDataset",
@@ -1521,17 +1564,17 @@ class OrphanedReferenceableDatasetFilter(object):
             "core.filters.expr_class_id": "resources.coverages.filters.OrphanedCoverageExpression"
         }
     }
-    
+
     def applyToQuerySet(self, expr, qs):
         return qs.annotate(
             dataset_series_count=Count('dataset_series_set')
         ).filter(
             dataset_series_count=0
         )
-    
+
     def resourceMatches(self, expr, res):
         return res.getContainerCount() == 0
-        
+
 OrphanedReferenceableDatasetFilterImplementation = \
 FilterInterface.implement(OrphanedReferenceableDatasetFilter)
 
@@ -1540,7 +1583,7 @@ class OrphanedRectifiedStitchedMosaicFilter(object):
     Filter which matches RectifiedStitchedMosaics that are not contained
     in any DatasetSeries.
     """
-    
+
     REGISTRY_CONF = {
         "name": "Orphan Filter for Rectified Stitched Mosaics",
         "impl_id": "resources.coverages.filters.OrphanedRectifiedStitchedMosaic",
@@ -1549,17 +1592,17 @@ class OrphanedRectifiedStitchedMosaicFilter(object):
             "core.filters.expr_class_id": "resources.coverages.filters.OrphanedCoverageExpression"
         }
     }
-    
+
     def applyToQuerySet(self, expr, qs):
         return qs.annotate(
             dataset_series_count=Count('dataset_series_set')
         ).filter(
             dataset_series_count=0
         )
-    
+
     def resourceMatches(self, expr, res):
         return res.getContainerCount() == 0
-        
+
 OrphanedRectifiedStitchedMosaicFilterImplementation = \
 FilterInterface.implement(OrphanedRectifiedStitchedMosaicFilter)
 
@@ -1568,7 +1611,7 @@ class LocationReferencesRectifiedDatasetFilter(object):
     Filter which matches RectifiedDatasets which are referenced by a
     specified location.
     """
-    
+
     REGISTRY_CONF = {
         "name": "Location References Rectified Dataset Filter",
         "impl_id": "resources.coverages.filters.LocationReferencesRectifiedDatasetFilter",
@@ -1580,7 +1623,7 @@ class LocationReferencesRectifiedDatasetFilter(object):
 
     def applyToQuerySet(self, expr, qs):
         location = expr.getOperands()[0]
-        
+
         if location.getType() == "local":
             return qs.filter(
                 data_package__localdatapackage__data_location__path=location.getPath()
@@ -1604,10 +1647,10 @@ class LocationReferencesRectifiedDatasetFilter(object):
                 data_package__rasdamandatapackage__data_location__storage__user=location.getUser(),
                 data_package__rasdamandatapackage__data_location__storage__passwd=location.getPassword()
             )
-        
+
     def resourceMatches(self, expr, res):
         location = expr.getOperands()[0]
-        
+
         if location.getType() == "local":
             return location.getPath() == res.getData().getLocation().getPath()
         elif location.getType() == "ftp":
@@ -1636,7 +1679,7 @@ class LocationReferencesReferencableDatasetFilter(object):
     Filter which matches RectifiedDatasets which are referenced by a
     specified location.
     """
-    
+
     REGISTRY_CONF = {
         "name": "Location References Rectified Dataset Filter",
         "impl_id": "resources.coverages.filters.LocationReferencesReferencableDatasetFilter",
@@ -1648,7 +1691,7 @@ class LocationReferencesReferencableDatasetFilter(object):
 
     def applyToQuerySet(self, expr, qs):
         location = expr.getOperands()[0]
-        
+
         if location.getType() == "local":
             return qs.filter(
                 data_package__localdatapackage__data_location__path=location.getPath()
@@ -1672,10 +1715,10 @@ class LocationReferencesReferencableDatasetFilter(object):
                 data_package__rasdamandatapackage__data_location__storage__user=location.getUser(),
                 data_package__rasdamandatapackage__data_location__storage__passwd=location.getPassword()
             )
-        
+
     def resourceMatches(self, expr, res):
         location = expr.getOperands()[0]
-        
+
         if location.getType() == "local":
             return location.getPath() == res.getData().getLocation().getPath()
         elif location.getType() == "ftp":
@@ -1708,7 +1751,7 @@ class CoverageExpressionFactory(SimpleExpressionFactory):
     This is the factory which gives access to the filter expressions
     defined in this module. It inherits from
     :class:`~.SimpleExpressionFactory`.
-    """    
+    """
     REGISTRY_CONF = {
         "name": "Coverage Filter Expression Factory",
         "impl_id": "resources.coverages.filters.CoverageExpressionFactory"

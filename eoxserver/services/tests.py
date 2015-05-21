@@ -13,8 +13,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -56,7 +56,7 @@ class WCS10GetCapabilitiesValidTestCase(eoxstest.XMLTestCase):
 class WCS10GetCapabilitiesEmptyTestCase(eoxstest.XMLTestCase):
     """This test shall retrieve a valid but empty WCS 1.0 GetCapabilities response (see #41)"""
     fixtures = BASE_FIXTURES
-    
+
     def getRequest(self):
         params = "service=WCS&version=1.0.0&request=GetCapabilities"
         return (params, "kvp")
@@ -89,11 +89,11 @@ class WCS11GetCapabilitiesValidTestCase(eoxstest.XMLTestCase):
     def getRequest(self):
         params = "service=WCS&version=1.1.2&request=GetCapabilities"
         return (params, "kvp")
-    
+
 class WCS11GetCapabilitiesEmptyTestCase(eoxstest.XMLTestCase):
     """This test shall retrieve a valid but empty WCS 1.1 GetCapabilities response (see #41)"""
     fixtures = BASE_FIXTURES
-    
+
     def getRequest(self):
         params = "service=WCS&version=1.1.2&request=GetCapabilities"
         return (params, "kvp")
@@ -146,7 +146,7 @@ class WCS11DescribeCoverageNoSuchCoverageFaultTestCase(eoxstest.ExceptionTestCas
     def getRequest(self):
         params = "service=wcs&version=1.1.2&request=DescribeCoverage&identifier=INVALID"
         return (params, "kvp")
-    
+
     def getExpectedExceptionCode(self):
         return "NoSuchCoverage"
 
@@ -155,13 +155,13 @@ class WCS11GetCoverageNoSuchCoverageFaultTestCase(eoxstest.ExceptionTestCase):
     def getRequest(self):
         params = "service=wcs&version=1.1.2&request=GetCoverage&identifier=INVALID"
         return (params, "kvp")
-    
+
     def getExpectedExceptionCode(self):
         return "NoSuchCoverage"
 
-#NOTE: Support for Referenceable Datasets in WCS < 2.0.0 not avaiable. 
-#      Any attempt to access Ref.DS via WCS 1.x should be treated as 
-#      non-existing coverage. 
+#NOTE: Support for Referenceable Datasets in WCS < 2.0.0 not avaiable.
+#      Any attempt to access Ref.DS via WCS 1.x should be treated as
+#      non-existing coverage.
 class WCS11DescribeCoverageReferenceableFaultTestCase(eoxstest.ExceptionTestCase):
     def getRequest(self):
         params = "service=wcs&version=1.1.2&request=DescribeCoverage&identifier=ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775"
@@ -174,15 +174,15 @@ class WCS11GetCoverageReferenceableFaultTestCase(eoxstest.ExceptionTestCase):
     def getRequest(self):
         params = "service=wcs&version=1.1.2&request=GetCoverage&identifier=ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775"
         return (params, "kvp")
-    
+
     def getExpectedExceptionCode(self):
         return "NoSuchCoverage"
-    
+
 class WCS11GetCoverageBBoxFaultTestCase(eoxstest.ExceptionTestCase):
     def getRequest(self):
         params = "service=wcs&version=1.1.2&request=GetCoverage&identifier=mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced&boundingbox=80,80,90,90,urn:ogc:def:crs:EPSG::4326&format=image/tiff&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridBaseCRS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=46.5,12&GridOffsets=0.06,0.06"
         return (params, "kvp")
-    
+
     def getExpectedExceptionCode(self):
         return "bbox"
 
@@ -190,7 +190,7 @@ class WCS11GetCoverageFormatUnsupportedFaultTestCase(eoxstest.ExceptionTestCase)
     def getRequest(self):
         params = "service=wcs&version=1.1.2&request=GetCoverage&identifier=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/jpeg"
         return (params, "kvp")
-    
+
     def getExpectedExceptionCode(self):
         return "InvalidParameterValue"
 
@@ -198,7 +198,7 @@ class WCS11GetCoverageFormatUnknownFaultTestCase(eoxstest.ExceptionTestCase):
     def getRequest(self):
         params = "service=wcs&version=1.1.2&request=GetCoverage&identifier=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=unknown"
         return (params, "kvp")
-    
+
     def getExpectedExceptionCode(self):
         return "InvalidParameterValue"
 
@@ -207,9 +207,9 @@ class WCS11GetCoverageFormatUnknownFaultTestCase(eoxstest.ExceptionTestCase):
 #===============================================================================
 
 class WCS11TransactionRectifiedDatasetTestCase(eoxstest.WCSTransactionRectifiedGridCoverageTestCase):
-    """ This test case shall test the synchronous inserting of a new 
-        RectifiedGridCoverage by means of the WCS 1.1 Transaction operation 
-        ("Add" action). 
+    """ This test case shall test the synchronous inserting of a new
+        RectifiedGridCoverage by means of the WCS 1.1 Transaction operation
+        ("Add" action).
     """
     fixtures = BASE_FIXTURES
     ID = "RECTIFIED_MERIS_ID"
@@ -217,9 +217,9 @@ class WCS11TransactionRectifiedDatasetTestCase(eoxstest.WCSTransactionRectifiedG
     ADDmetaFile = "meris/mosaic_MER_FRS_1P_RGB_reduced/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.xml"
 
 class WCS11TransactionAsyncRectifiedDatasetTestCase(eoxstest.WCSTransactionRectifiedGridCoverageTestCase):
-    """ This test case shall test the asynchronous inserting of a new 
-        RectifiedGridCoverage by means of the WCS 1.1 Transaction operation 
-        ("Add" action). 
+    """ This test case shall test the asynchronous inserting of a new
+        RectifiedGridCoverage by means of the WCS 1.1 Transaction operation
+        ("Add" action).
     """
     fixtures = BASE_FIXTURES
     ID = "RECTIFIED_MERIS_ID"
@@ -228,9 +228,9 @@ class WCS11TransactionAsyncRectifiedDatasetTestCase(eoxstest.WCSTransactionRecti
     isAsync = True
 
 class WCS11TransactionReferenceableDatasetTestCase(eoxstest.WCSTransactionReferenceableGridCoverageTestCase):
-    """ This test case shall test the synchronous inserting of a new 
-        ReferenceableGridCoverage by means of the WCS 1.1 Transaction operation 
-        ("Add" action). 
+    """ This test case shall test the synchronous inserting of a new
+        ReferenceableGridCoverage by means of the WCS 1.1 Transaction operation
+        ("Add" action).
     """
     fixtures = BASE_FIXTURES
     ID = "REFERENCEABLE_ASAR_ID"
@@ -242,10 +242,10 @@ class WCS11TransactionReferenceableDatasetTestCase(eoxstest.WCSTransactionRefere
 
 class WCS20GetCapabilitiesValidTestCase(eoxstest.XMLTestCase, eoxstest.SchematronTestMixIn):
     """This test shall retrieve a valid WCS 2.0 EO-AP (EO-WCS) GetCapabilities response"""
-    
-    schematron_locations = ["http://schemas.opengis.net/wcs/crs/", 
+
+    schematron_locations = ["http://schemas.opengis.net/wcs/crs/",
                             "http://schemas.opengis.net/wcs/crs/1.0/wcsCrs.sch"]
-    
+
     def getRequest(self):
         params = "service=WCS&version=2.0.1&request=GetCapabilities"
         return (params, "kvp")
@@ -253,7 +253,7 @@ class WCS20GetCapabilitiesValidTestCase(eoxstest.XMLTestCase, eoxstest.Schematro
 class WCS20GetCapabilitiesEmptyTestCase(eoxstest.XMLTestCase):
     """This test shall retrieve a valid but empty WCS 2.0 EO-AP (EO-WCS) GetCapabilities response (see #41)"""
     fixtures = BASE_FIXTURES
-    
+
     def getRequest(self):
         params = "service=WCS&version=2.0.1&request=GetCapabilities"
         return (params, "kvp")
@@ -282,7 +282,7 @@ class WCSVersionNegotiationFaultTestCase(eoxstest.ExceptionTestCase):
 #===============================================================================
 # WCS 2.0 DescribeCoverage
 #===============================================================================
-    
+
 class WCS20DescribeCoverageDatasetTestCase(eoxstest.XMLTestCase):
     """This test shall retrieve a valid WCS 2.0 EO-AP (EO-WCS) DescribeCoverage response for a wcseo:RectifiedDataset."""
     def getRequest(self):
@@ -300,22 +300,22 @@ class WCS20DescribeCoverageDatasetSeriesFaultTestCase(eoxstest.ExceptionTestCase
     def getRequest(self):
         params = "service=WCS&version=2.0.0&request=DescribeCoverage&CoverageId=MER_FRS_1P_reduced"
         return (params, "kvp")
-    
+
     def getExpectedHTTPStatus(self):
         return 404
-    
+
     def getExpectedExceptionCode(self):
         return "NoSuchCoverage"
-        
+
 class WCS20DescribeCoverageFaultTestCase(eoxstest.ExceptionTestCase):
     """This test shall try to retrieve a CoverageDescription for a coverage that does not exist. It shall yield a valid ows:ExceptionReport"""
     def getRequest(self):
         params = "service=WCS&version=2.0.0&request=DescribeCoverage&CoverageId=some_coverage"
         return (params, "kvp")
-    
+
     def getExpectedHTTPStatus(self):
         return 404
-    
+
     def getExpectedExceptionCode(self):
         return "NoSuchCoverage"
 
@@ -324,12 +324,12 @@ class WCS20DescribeCoverageMissingParameterFaultTestCase(eoxstest.ExceptionTestC
     def getRequest(self):
         params = "service=WCS&version=2.0.0&request=DescribeCoverage"
         return (params, "kvp")
-    
+
     def getExpectedExceptionCode(self):
         return "MissingParameterValue"
 
 #===============================================================================
-# WCS 2.0 DescribeEOCoverageSet 
+# WCS 2.0 DescribeEOCoverageSet
 #===============================================================================
 
 class WCS20DescribeEOCoverageSetDatasetTestCase(eoxstest.XMLTestCase):
@@ -355,10 +355,10 @@ class WCS20DescribeEOCoverageSetFaultTestCase(eoxstest.ExceptionTestCase):
     def getRequest(self):
         params = "service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=some_eo_object"
         return (params, "kvp")
-    
+
     def getExpectedHTTPStatus(self):
         return 404
-    
+
     def getExpectedExceptionCode(self):
         return "NoSuchCoverage"
 
@@ -366,7 +366,7 @@ class WCS20DescribeEOCoverageSetMissingParameterFaultTestCase(eoxstest.Exception
     def getRequest(self):
         params = "service=WCS&version=2.0.0&request=DescribeEOCoverageSet"
         return (params, "kvp")
-    
+
     def getExpectedExceptionCode(self):
         return "MissingParameterValue"
 
@@ -402,7 +402,7 @@ class WCS20DescribeEOCoverageSetTwoSpatialSubsetsContainsTestCase(eoxstest.WCS20
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(32,47)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(11,33)&containment=contains"
         return (params, "kvp")
-    
+
     def getExpectedCoverageIds(self):
         return [
             "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed",
@@ -413,7 +413,7 @@ class WCS20DescribeEOCoverageSetTemporalSubsetTestCase(eoxstest.WCS20DescribeEOC
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced&subset=phenomenonTime(\"2006-08-01\",\"2006-08-22T09:22:00Z\")"
         return (params, "kvp")
-    
+
     def getExpectedCoverageIds(self):
         return [
             "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed",
@@ -426,7 +426,7 @@ class WCS20DescribeEOCoverageSetTemporalSubsetOverlapsTestCase(eoxstest.WCS20Des
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced&subset=phenomenonTime(\"2006-08-01\",\"2006-08-22T09:22:00Z\")&containment=overlaps"
         return (params, "kvp")
-    
+
     def getExpectedCoverageIds(self):
         return [
             "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed",
@@ -435,11 +435,34 @@ class WCS20DescribeEOCoverageSetTemporalSubsetOverlapsTestCase(eoxstest.WCS20Des
             "mosaic_MER_FRS_1P_RGB_reduced"
         ]
 
+class WCS20DescribeEOCoverageSetTemporalSubsetOverlapsIntervalBorderTestCase(eoxstest.WCS20DescribeEOCoverageSetSubsettingTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced&subset=phenomenonTime(\"2006-08-01\",\"2006-08-16T09:09:29Z\")&containment=overlaps"
+        return (params, "kvp")
+
+    def getExpectedCoverageIds(self):
+        return [
+            "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed",
+            "mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced",
+            "mosaic_MER_FRS_1P_RGB_reduced"
+        ]
+
 class WCS20DescribeEOCoverageSetTemporalSubsetContainsTestCase(eoxstest.WCS20DescribeEOCoverageSetSubsettingTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced&subset=phenomenonTime(\"2006-08-01\",\"2006-08-22T09:22:00Z\")&containment=contains"
         return (params, "kvp")
-    
+
+    def getExpectedCoverageIds(self):
+        return [
+            "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed",
+            "mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced"
+        ]
+
+class WCS20DescribeEOCoverageSetTemporalSubsetContainsIntervalBorderTestCase(eoxstest.WCS20DescribeEOCoverageSetSubsettingTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced&subset=phenomenonTime(\"2006-08-01\",\"2006-08-16T09:12:46Z\")&containment=contains"
+        return (params, "kvp")
+
     def getExpectedCoverageIds(self):
         return [
             "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed",
@@ -450,7 +473,7 @@ class WCS20DescribeEOCoverageSetSpatioTemporalSubsetTestCase(eoxstest.WCS20Descr
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced&subset=phenomenonTime(\"2006-08-01\",\"2006-08-22T09:22:00Z\")&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(32,47)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(11,33)"
         return (params, "kvp")
-        
+
     def getExpectedCoverageIds(self):
         return [
             "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed",
@@ -463,7 +486,7 @@ class WCS20DescribeEOCoverageSetSpatioTemporalSubsetOverlapsTestCase(eoxstest.WC
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced&subset=phenomenonTime(\"2006-08-01\",\"2006-08-22T09:22:00Z\")&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(32,47)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(11,33)&containment=overlaps"
         return (params, "kvp")
-        
+
     def getExpectedCoverageIds(self):
         return [
             "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed",
@@ -476,7 +499,7 @@ class WCS20DescribeEOCoverageSetSpatioTemporalSubsetContainsTestCase(eoxstest.WC
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced&subset=phenomenonTime(\"2006-08-01\",\"2006-08-22T09:22:00Z\")&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(32,47)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(11,33)&containment=contains"
         return (params, "kvp")
-        
+
     def getExpectedCoverageIds(self):
         return [
             "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed",
@@ -487,21 +510,21 @@ class WCS20DescribeEOCoverageSetIncorrectTemporalSubsetFaultTestCase(eoxstest.Ex
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced&subset=phenomenonTime(2006-08-01,2006-08-22)"
         return (params, "kvp")
-    
+
     def getExpectedHTTPStatus(self):
         return 404
-    
+
     def getExpectedExceptionCode(self):
         return "InvalidSubsetting"
-    
+
 class WCS20DescribeEOCoverageSetInvalidTemporalSubsetFaultTestCase(eoxstest.ExceptionTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced&subset=phenomenonTime(\"2006-08-01\",\"2006-31-31\")"
         return (params, "kvp")
-    
+
     def getExpectedHTTPStatus(self):
         return 404
-    
+
     def getExpectedExceptionCode(self):
         return "InvalidSubsetting"
 
@@ -509,10 +532,10 @@ class WCS20DescribeEOCoverageSetIncorrectSpatialSubsetFaultTestCase(eoxstest.Exc
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(some_lat,some_other_lat)"
         return (params, "kvp")
-    
+
     def getExpectedHTTPStatus(self):
         return 404
-    
+
     def getExpectedExceptionCode(self):
         return "InvalidSubsetting"
 
@@ -520,10 +543,10 @@ class WCS20DescribeEOCoverageSetInvalidSpatialSubsetFaultTestCase(eoxstest.Excep
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(47,32)"
         return (params, "kvp")
-    
+
     def getExpectedHTTPStatus(self):
         return 404
-    
+
     def getExpectedExceptionCode(self):
         return "InvalidSubsetting"
 
@@ -532,10 +555,10 @@ class WCS20DescribeEOCoverageSetInvalidAxisLabelFaultTestCase(eoxstest.Exception
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced&subset=x_axis,http://www.opengis.net/def/crs/EPSG/0/4326(32,47)"
         return (params, "kvp")
-    
+
     def getExpectedHTTPStatus(self):
         return 404
-    
+
     def getExpectedExceptionCode(self):
         return "InvalidAxisLabel"
 
@@ -546,7 +569,7 @@ class WCS20DescribeEOCoverageSetInvalidAxisLabelFaultTestCase(eoxstest.Exception
 class WCS20DescribeEOCoverageSetDatasetPagingCountTestCase(eoxstest.WCS20DescribeEOCoverageSetPagingTestCase):
     def getExpectedCoverageCount(self):
         return 2
-    
+
     def getRequest(self):
         params = "service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=MER_FRS_1P_reduced&count=2"
         return (params, "kvp")
@@ -561,7 +584,7 @@ class WCS20DescribeEOCoverageSetSectionsAllTestCase(eoxstest.WCS20DescribeEOCove
             "wcs:CoverageDescriptions",
             "wcseo:DatasetSeriesDescriptions"
         ]
-        
+
     def getRequest(self):
         params = "service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=MER_FRS_1P_reduced&sections=All"
         return (params, "kvp")
@@ -572,18 +595,18 @@ class WCS20DescribeEOCoverageSetSectionsAll2TestCase(eoxstest.WCS20DescribeEOCov
             "wcs:CoverageDescriptions",
             "wcseo:DatasetSeriesDescriptions"
         ]
-        
+
     def getRequest(self):
         params = "service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=MER_FRS_1P_reduced&sections=CoverageDescriptions,DatasetSeriesDescriptions"
         return (params, "kvp")
-    
+
 class WCS20DescribeEOCoverageSetSectionsAll3TestCase(eoxstest.WCS20DescribeEOCoverageSetSectionsTestCase):
     def getExpectedSections(self):
         return [
             "wcs:CoverageDescriptions",
             "wcseo:DatasetSeriesDescriptions"
         ]
-        
+
     def getRequest(self):
         params = "service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=MER_FRS_1P_reduced&sections=All,DatasetSeriesDescriptions"
         return (params, "kvp")
@@ -594,7 +617,7 @@ class WCS20DescribeEOCoverageSetSectionsAll4TestCase(eoxstest.WCS20DescribeEOCov
             "wcs:CoverageDescriptions",
             "wcseo:DatasetSeriesDescriptions"
         ]
-        
+
     def getRequest(self):
         params = "service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=MER_FRS_1P_reduced&sections=CoverageDescriptions,All"
         return (params, "kvp")
@@ -604,7 +627,7 @@ class WCS20DescribeEOCoverageSetSectionsCoverageDescriptionsTestCase(eoxstest.WC
         return [
             "wcs:CoverageDescriptions"
         ]
-        
+
     def getRequest(self):
         params = "service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=MER_FRS_1P_reduced&sections=CoverageDescriptions"
         return (params, "kvp")
@@ -614,7 +637,7 @@ class WCS20DescribeEOCoverageSetSectionsDatasetSeriesDescriptionsTestCase(eoxste
         return [
             "wcseo:DatasetSeriesDescriptions"
         ]
-        
+
     def getRequest(self):
         params = "service=WCS&version=2.0.0&request=DescribeEOCoverageSet&eoId=MER_FRS_1P_reduced&sections=DatasetSeriesDescriptions"
         return (params, "kvp")
@@ -623,19 +646,19 @@ class WCS20DescribeEOCoverageSetSectionsFaultTestCase(eoxstest.ExceptionTestCase
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced&sections=WrongSection"
         return (params, "kvp")
-    
+
     def getExpectedHTTPStatus(self):
         return 400
-    
+
     def getExpectedExceptionCode(self):
         return "InvalidParameterValue"
 
 
-class WCS20DescribeEOCoverageSetDatasetUniqueTestCase(eoxstest.WCS20DescribeEOCoverageSetSubsettingTestCase): 
+class WCS20DescribeEOCoverageSetDatasetUniqueTestCase(eoxstest.WCS20DescribeEOCoverageSetSubsettingTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed,MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed"
         return (params, "kvp")
-    
+
     def getExpectedCoverageIds(self):
         return [
             "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed"
@@ -645,15 +668,15 @@ class WCS20DescribeEOCoverageSetDatasetOutOfSubsetTestCase(eoxstest.WCS20Describ
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed&ubset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(0,1)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(0,1)"
         return (params, "kvp")
-    
+
     def getExpectedCoverageIds(self):
         return []
-    
+
 class WCS20DescribeEOCoverageSetDatasetSeriesStitchedMosaicTestCase(eoxstest.WCS20DescribeEOCoverageSetSubsettingTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced,mosaic_MER_FRS_1P_RGB_reduced"
         return (params, "kvp")
-    
+
     def getExpectedCoverageIds(self):
         return [
             "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed",
@@ -669,12 +692,12 @@ class WCS20DescribeEOCoverageSetDatasetSeriesStitchedMosaicTestCase(eoxstest.WCS
 # WCS 2.0: Exceptions
 #===============================================================================
 
-# after WCS 2.0.1 implementation does not lead to an error anymore 
+# after WCS 2.0.1 implementation does not lead to an error anymore
 #class WCS20GetCoverageFormatMissingFaultTestCase(eoxstest.ExceptionTestCase):
 #    def getRequest(self):
 #        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced"
 #        return (params, "kvp")
-#    
+#
 #    def getExpectedExceptionCode(self):
 #        return "MissingParameterValue"
 
@@ -685,7 +708,7 @@ class WCS20GetCoverageNoSuchCoverageFaultTestCase(eoxstest.ExceptionTestCase):
 
     def getExpectedHTTPStatus(self):
         return 404
-    
+
     def getExpectedExceptionCode(self):
         return "NoSuchCoverage"
 
@@ -693,7 +716,7 @@ class WCS20GetCoverageFormatUnsupportedFaultTestCase(eoxstest.ExceptionTestCase)
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/jpeg"
         return (params, "kvp")
-    
+
     def getExpectedExceptionCode(self):
         return "InvalidParameterValue"
 
@@ -701,7 +724,7 @@ class WCS20GetCoverageFormatUnknownFaultTestCase(eoxstest.ExceptionTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=unknown"
         return (params, "kvp")
-    
+
     def getExpectedExceptionCode(self):
         return "InvalidParameterValue"
 
@@ -736,7 +759,7 @@ class WCS20GetCoverageJPEG2000TestCase(eoxstest.RectifiedGridCoverageTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=image/jp2"
         return (params, "kvp")
-    
+
     def getFileExtension(self, part=None):
         return "jp2"
 
@@ -744,7 +767,7 @@ class WCS20GetCoverageNetCDFTestCase(eoxstest.RectifiedGridCoverageTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=application/x-netcdf"
         return (params, "kvp")
-    
+
     def getFileExtension(self, part=None):
         return "nc"
 
@@ -752,7 +775,7 @@ class WCS20GetCoverageHDFTestCase(eoxstest.RectifiedGridCoverageTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=application/x-hdf"
         return (params, "kvp")
-    
+
     def getFileExtension(self, part=None):
         return "hdf"
 
@@ -781,7 +804,7 @@ class WCS20GetCoverageJPEG2000InputTestCase(eoxstest.RectifiedGridCoverageTestCa
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced_JPEG2000&format=image/tiff"
         return (params, "kvp")
-    
+
 #===============================================================================
 # WCS 2.0: Multipart requests
 #===============================================================================
@@ -828,7 +851,7 @@ class WCS20GetCoverageSubsetEPSG4326DatasetTestCase(eoxstest.RectifiedGridCovera
     def getRequest(self):
         params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(38,40)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(20,22)"
         return (params, "kvp")
-    
+
 class WCS20GetCoverageSubsetEPSG4326MosaicTestCase(eoxstest.RectifiedGridCoverageTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=image/tiff&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(38,40)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(0,30)"
@@ -838,7 +861,7 @@ class WCS20GetCoverageSubsetInvalidEPSGFaultTestCase(eoxstest.ExceptionTestCase)
     def getRequest(self):
         params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=image/tiff&subset=x,http://www.opengis.net/def/crs/EPSG/0/99999(38,40)&subset=y,http://www.opengis.net/def/crs/EPSG/0/99999(20,22)"
         return (params, "kvp")
-    
+
     def getExpectedExceptionCode(self):
         return "InvalidParameterValue"
 
@@ -879,7 +902,7 @@ class WCS20GetCoverageSubsetEPSG4326SizeDatasetTestCase(eoxstest.WCS20GetCoverag
     def getRequest(self):
         params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/related&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(38,40)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(20,22)&size=lat(20)&size=long(20)"
         return (params, "kvp")
-    
+
 class WCS20GetCoverageSubsetEPSG4326SizeExceedsExtentDatasetTestCase(eoxstest.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(10,50)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(0,50)&size=lat(100)&size=long(100)&mediatype=multipart/related"
@@ -889,7 +912,7 @@ class WCS20GetCoverageInvalidSizeFaultTestCase(eoxstest.ExceptionTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=image/tiff&size=x(1.11)"
         return (params, "kvp")
-    
+
     def getExpectedExceptionCode(self):
         return "InvalidParameterValue"
 
@@ -901,7 +924,7 @@ class WCS20GetCoverageResolutionDatasetTestCase(eoxstest.RectifiedGridCoverageTe
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&resolution=x(0.1)&resolution=y(0.1)"
         return (params, "kvp")
-    
+
 class WCS20GetCoverageResolutionMosaicTestCase(eoxstest.RectifiedGridCoverageTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=mosaic_MER_FRS_1P_RGB_reduced&format=image/tiff&resolution=x(0.1)&resolution=y(0.1)"
@@ -921,7 +944,7 @@ class WCS20GetCoverageSubsetEPSG4326ResolutionInvalidAxisDatasetFaultTestCase(eo
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=lat,http://www.opengis.net/def/crs/EPSG/0/4326(38,40)&subset=long,http://www.opengis.net/def/crs/EPSG/0/4326(20,22)&resolution=x(0.01)&resolution=y(0.01)"
         return (params, "kvp")
-    
+
     def getExpectedExceptionCode(self):
         return "InvalidParameterValue"
 
@@ -948,9 +971,9 @@ class WCS20GetCoverageSubsetSizeResolutionOutputCRSRangeSubsetIndicesDatasetTest
     def getRequest(self):
         params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&subset=x(100,200)&subset=y(200,300)&size=y(100)&resolution=x(0.1)&outputcrs=http://www.opengis.net/def/crs/EPSG/0/3035&rangesubset=1,2,3&mediatype=multipart/related"
         return (params, "kvp")
-    
+
 #===============================================================================
-# WCS 2.0: Polygon Mask 
+# WCS 2.0: Polygon Mask
 #===============================================================================
 
 # TODO: Enable these tests once the feature is implemented in MapServer
@@ -958,12 +981,12 @@ class WCS20GetCoverageSubsetSizeResolutionOutputCRSRangeSubsetIndicesDatasetTest
 #class WCS20GetCoveragePolygonMaskTestCase(eoxstest.RectifiedGridCoverageTestCase):
 #    def getRequest(self):
 #        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mask=polygon(14.124422306243844,42.806626286621963,21.208516509273601,43.730638573973678,21.208516509273601,43.730638573973678,21.892970055460054,37.8443380767702,15.04843459359555,36.646544370943914,12.379065763468395,39.555471942236323,14.124422306243844,42.806626286621963)"
-#        return (params, "kvp") 
+#        return (params, "kvp")
 
 
 #class WCS20GetCoveragePolygonMaskProjectedTestCase(eoxstest.RectifiedGridCoverageTestCase):
 #    def getRequest(self): # TODO: swap axes
-#        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mask=polygon,http://www.opengis.net/def/crs/EPSG/0/4326(42.806626286621963,14.124422306243844,43.730638573973678,21.208516509273601,43.730638573973678,21.208516509273601,37.8443380767702,21.892970055460054,36.646544370943914,15.04843459359555,39.555471942236323,12.379065763468395,42.806626286621963,14.124422306243844)" 
+#        params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mask=polygon,http://www.opengis.net/def/crs/EPSG/0/4326(42.806626286621963,14.124422306243844,43.730638573973678,21.208516509273601,43.730638573973678,21.208516509273601,37.8443380767702,21.892970055460054,36.646544370943914,15.04843459359555,39.555471942236323,12.379065763468395,42.806626286621963,14.124422306243844)"
 #        return (params, "kvp")
 
 #class WCS20PostGetCoveragePolygonMaskTestCase(eoxstest.RectifiedGridCoverageTestCase):
@@ -986,7 +1009,7 @@ class WCS20GetCoverageSubsetSizeResolutionOutputCRSRangeSubsetIndicesDatasetTest
 class WCS20GetCoverageRasdamanMultipartDatasetTestCase(eoxstest.RasdamanTestCaseMixIn, eoxstest.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
     def getRequest(self):
         params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced_rasdaman&format=image/tiff&mediatype=multipart/related"
-        return (params, "kvp")   
+        return (params, "kvp")
 
 class WCS20GetCoverageRasdamanMultipartDatasetSubsetTestCase(eoxstest.RasdamanTestCaseMixIn, eoxstest.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
     def getRequest(self):
@@ -1030,7 +1053,7 @@ class WCS20GetCoverageRasdamanSubsetSizeResolutionOutputCRSRangeSubsetIndicesDat
 
 
 #===============================================================================
-# WCS 2.0: GetCov with EPSG:3035 input images 
+# WCS 2.0: GetCov with EPSG:3035 input images
 #===============================================================================
 
 class WCS20DescribeCoverageReprojectedDatasetTestCase(eoxstest.XMLTestCase):
@@ -1050,7 +1073,7 @@ class WCS20GetCoverageReprojectedSubsetDatasetTestCase(eoxstest.RectifiedGridCov
     def getRequest(self):
         params = "service=wcs&version=2.0.0&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected&format=image/tiff&subset=x(100,200)&subset=y(200,300)"
         return (params, "kvp")
-    
+
 class WCS20GetCoverageReprojectedSubsetEPSG4326DatasetTestCase(eoxstest.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
     fixtures = eoxstest.OWSTestCase.fixtures + ["testing_reprojected_coverages.json"]
     def getRequest(self):
@@ -1106,7 +1129,7 @@ class WCS20GetCoverageReferenceableDatasetGeogCRSSubsetOutsideExtentTestCase(eox
 
     def getExpectedHTTPStatus(self):
         return 400
-    
+
     def getExpectedExceptionCode(self):
         return "InvalidParameterValue"
 
@@ -1118,7 +1141,7 @@ class WCS20GetCoverageReferenceableDatasetGeogCRSSubsetOutsideExtentTestCase(eox
 class WCS20CorrigendumGetCapabilitiesEmptyTestCase(eoxstest.XMLTestCase):
     """This test shall retrieve a valid but empty WCS 2.0.1 EO-AP (EO-WCS) GetCapabilities response (see #162)"""
     fixtures = BASE_FIXTURES
-    
+
     def getRequest(self):
         params = "service=WCS&version=2.0.1&request=GetCapabilities"
         return (params, "kvp")
@@ -1158,15 +1181,15 @@ class WCS20PostGetCapabilitiesValidTestCase(eoxstest.XMLTestCase):
           xmlns:ns1="http://www.opengis.net/ows/2.0">
             <ns1:AcceptVersions><ns1:Version>2.0.0</ns1:Version></ns1:AcceptVersions>
           </ns:GetCapabilities>
-        """        
+        """
         return (params, "xml")
 
 class WCS20PostDescribeCoverageDatasetTestCase(eoxstest.XMLTestCase):
-    """This test shall retrieve a valid WCS 2.0 EO-AP (EO-WCS) DescribeCoverage response 
+    """This test shall retrieve a valid WCS 2.0 EO-AP (EO-WCS) DescribeCoverage response
        for a wcseo:RectifiedDataset via POST.
     """
     def getRequest(self):
-        params = """<ns:DescribeCoverage 
+        params = """<ns:DescribeCoverage
            xmlns:ns="http://www.opengis.net/wcs/2.0" service="WCS" version="2.0.0">
          <ns:CoverageId>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</ns:CoverageId>
         </ns:DescribeCoverage>"""
@@ -1179,7 +1202,7 @@ class WCS20PostDescribeEOCoverageSetDatasetSeriesTestCase(eoxstest.XMLTestCase):
     def getRequest(self):
         params = """<wcseo:DescribeEOCoverageSet service="WCS" version="2.0.0" count="100"
            xmlns:wcseo="http://www.opengis.net/wcseo/1.0"
-           xmlns:wcs="http://www.opengis.net/wcs/2.0">     
+           xmlns:wcs="http://www.opengis.net/wcs/2.0">
           <wcseo:eoId>MER_FRS_1P_reduced</wcseo:eoId>
           <wcseo:containment>OVERLAPS</wcseo:containment>
           <wcseo:Sections>
@@ -1233,7 +1256,7 @@ class WCS20PostGetCoverageSubsetMultipartDatasetTestCase(eoxstest.WCS20GetCovera
 #class WCS20PostGetCoverageSubsetEPSG4326MultipartDatasetTestCase(eoxstest.WCS20GetCoverageRectifiedGridCoverageMultipartTestCase):
 #    def getRequest(self):
 #        params = """<wcs:GetCoverage service="WCS" version="2.0.1"
-#           xmlns:wcs="http://www.opengis.net/wcs/2.0" 
+#           xmlns:wcs="http://www.opengis.net/wcs/2.0"
 #           xmlns:wcscrs="http://www.opengis.net/wcs/extensions/crs/1.0">
 #          <wcs:Extension>
 #            <wcscrs:GetCoverageCrs>
@@ -1284,33 +1307,33 @@ class WCS11PostGetCapabilitiesValidTestCase(eoxstest.XMLTestCase):
     """This test shall retrieve a valid WCS 1.1 GetCapabilities response via POST.
     """
     def getRequest(self):
-        params = """<ns:GetCapabilities xmlns:ns="http://www.opengis.net/wcs/1.1" 
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-          xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsGetCapabilities.xsd" 
+        params = """<ns:GetCapabilities xmlns:ns="http://www.opengis.net/wcs/1.1"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsGetCapabilities.xsd"
           service="WCS" version="1.1.2"/>"""
         return (params, "xml")
-        
+
 class WCS11PostDescribeCoverageDatasetTestCase(eoxstest.XMLTestCase):
-    """This test shall retrieve a valid WCS 1.1 DescribeCoverage response for a 
+    """This test shall retrieve a valid WCS 1.1 DescribeCoverage response for a
        wcseo:RectifiedDataset via POST.
     """
     def getRequest(self):
-        params = """<DescribeCoverage xmlns="http://www.opengis.net/wcs/1.1" 
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-          xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsDescribeCoverage.xsd" 
+        params = """<DescribeCoverage xmlns="http://www.opengis.net/wcs/1.1"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsDescribeCoverage.xsd"
           service="WCS" version="1.1.2">
             <Identifier>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</Identifier>
           </DescribeCoverage>"""
         return (params, "xml")
 
 class WCS11PostDescribeCoverageMosaicTestCase(eoxstest.XMLTestCase):
-    """This test shall retrieve a valid WCS 1.1 DescribeCoverage response for a 
+    """This test shall retrieve a valid WCS 1.1 DescribeCoverage response for a
        wcseo:RectifiedStitchedMosaic via POST.
     """
     def getRequest(self):
-        params = """<DescribeCoverage xmlns="http://www.opengis.net/wcs/1.1" 
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-          xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsDescribeCoverage.xsd" 
+        params = """<DescribeCoverage xmlns="http://www.opengis.net/wcs/1.1"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsDescribeCoverage.xsd"
           service="WCS" version="1.1.2">
             <Identifier>mosaic_MER_FRS_1P_RGB_reduced</Identifier>
           </DescribeCoverage>"""
@@ -1318,10 +1341,10 @@ class WCS11PostDescribeCoverageMosaicTestCase(eoxstest.XMLTestCase):
 
 class WCS11PostGetCoverageDatasetTestCase(eoxstest.RectifiedGridCoverageMultipartTestCase):
     def getRequest(self):
-        params = """<GetCoverage xmlns="http://www.opengis.net/wcs/1.1" 
-          xmlns:ows="http://www.opengis.net/ows/1.1" 
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-          xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsGetCoverage.xsd" 
+        params = """<GetCoverage xmlns="http://www.opengis.net/wcs/1.1"
+          xmlns:ows="http://www.opengis.net/ows/1.1"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsGetCoverage.xsd"
           service="WCS" version="1.1.2">
             <ows:Identifier>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</ows:Identifier>
             <DomainSubset>
@@ -1336,10 +1359,10 @@ class WCS11PostGetCoverageDatasetTestCase(eoxstest.RectifiedGridCoverageMultipar
 
 class WCS11PostGetCoverageMosaicTestCase(eoxstest.RectifiedGridCoverageMultipartTestCase):
     def getRequest(self):
-        params = """<GetCoverage xmlns="http://www.opengis.net/wcs/1.1" 
-          xmlns:ows="http://www.opengis.net/ows/1.1" 
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-          xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsGetCoverage.xsd" 
+        params = """<GetCoverage xmlns="http://www.opengis.net/wcs/1.1"
+          xmlns:ows="http://www.opengis.net/ows/1.1"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsGetCoverage.xsd"
           service="WCS" version="1.1.2">
             <ows:Identifier>mosaic_MER_FRS_1P_RGB_reduced</ows:Identifier>
             <DomainSubset>
@@ -1355,10 +1378,10 @@ class WCS11PostGetCoverageMosaicTestCase(eoxstest.RectifiedGridCoverageMultipart
 # TODO: Not working because of a bug in MapServer
 #class WCS11PostGetCoverageDatasetSubsetTestCase(eoxstest.RectifiedGridCoverageMultipartTestCase):
 #    def getRequest(self):
-#        params = """<GetCoverage xmlns="http://www.opengis.net/wcs/1.1" 
-#          xmlns:ows="http://www.opengis.net/ows/1.1" 
-#          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-#          xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsGetCoverage.xsd" 
+#        params = """<GetCoverage xmlns="http://www.opengis.net/wcs/1.1"
+#          xmlns:ows="http://www.opengis.net/ows/1.1"
+#          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+#          xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsGetCoverage.xsd"
 #          service="WCS" version="1.1.2">
 #            <ows:Identifier>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</ows:Identifier>
 #            <DomainSubset>
@@ -1417,7 +1440,7 @@ class WMS13GetCapabilitiesValidTestCase(eoxstest.XMLTestCase):
 class WMS13GetCapabilitiesEmptyTestCase(eoxstest.XMLTestCase):
     """This test shall retrieve a valid but empty WMS 1.3 GetCapabilities response (see #41)"""
     fixtures = BASE_FIXTURES
-    
+
     def getRequest(self):
         params = "service=WMS&version=1.3.0&request=GetCapabilities"
         return (params, "kvp")
@@ -1450,7 +1473,7 @@ class WMS13GetMapMultipleDatasetsTestCase(eoxstest.WMS13GetMapTestCase):
               )
     width = 200
     bbox = (-3.75, 32.19025, 28.29481, 46.268645)
-    
+
 class WMS13GetMapDatasetMultispectralTestCase(eoxstest.WMS13GetMapTestCase):
     """ Test a GetMap request with a dataset containing 15 bands. """
     layers = ("MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed",)
@@ -1484,7 +1507,7 @@ class WMS13GetMapLayerNotDefinedFaultTestCase(eoxstest.WMS13ExceptionTestCase):
     def getRequest(self):
         params = "service=WMS&version=1.3.0&request=GetMap&layers=INVALIDLAYER&bbox=0,0,1,1&crs=EPSG:4326&width=10&height=10&exceptions=XML&format=image/png"
         return (params, "kvp")
-    
+
     def getExpectedExceptionCode(self):
         return "LayerNotDefined"
 
@@ -1492,15 +1515,15 @@ class WMS13GetMapFormatUnknownFaultTestCase(eoxstest.WMS13ExceptionTestCase):
     def getRequest(self):
         params = "service=WMS&version=1.3.0&request=GetMap&layers=MER_FRS_1P_reduced&bbox=-32,-4,46,28&crs=EPSG:4326&width=100&height=100&format=image/INVALID&exceptions=application/vnd.ogc.se_xml"
         return (params, "kvp")
-    
+
     def getExpectedExceptionCode(self):
         return "InvalidFormat"
-    
+
 class WMS13GetMapInvalidBoundingBoxTestCase(eoxstest.WMS13ExceptionTestCase):
     def getRequest(self):
         params = "service=WMS&version=1.3.0&request=GetMap&layers=MER_FRS_1P_reduced&bbox=1,2,3&crs=EPSG:4326&width=100&height=100&format=image/jpeg&exceptions=application/vnd.ogc.se_xml"
         return (params, "kvp")
-    
+
     def getExpectedExceptionCode(self):
         return "InvalidParameterValue"
 
@@ -1508,7 +1531,7 @@ class WMS13GetMapInvalidCRSTestCase(eoxstest.WMS13ExceptionTestCase):
     def getRequest(self):
         params = "service=WMS&version=1.3.0&request=GetMap&layers=MER_FRS_1P_reduced&bbox=0,0,1,1&crs=INVALIDCRS&width=100&height=100&format=image/jpeg&exceptions=application/vnd.ogc.se_xml"
         return (params, "kvp")
-    
+
     def getExpectedExceptionCode(self):
         return "InvalidCRS"
 
@@ -1544,6 +1567,12 @@ class WMS13GetMapDatasetSeriesTimeIntervalTestCase(eoxstest.WMS13GetMapTestCase)
     bbox = (-3.75, 32.158895, 28.326165, 46.3)
     time = "2006-08-01T00:00:00Z/2006-08-22T23:59:59Z"
 
+class WMS13GetMapDatasetSeriesTimeIntervalBorderTestCase(eoxstest.WMS13GetMapTestCase):
+    layers = ("MER_FRS_1P_RGB_reduced",)
+    width = 200
+    bbox = (-3.75, 32.158895, 28.326165, 46.3)
+    time = "2006-08-01T00:00:00Z/2006-08-16T09:09:29Z"
+
 class WMS13GetMapDatasetSeriesOutlinesTestCase(eoxstest.WMS13GetMapTestCase):
     layers = ("MER_FRS_1P_reduced_outlines",)
     width = 200
@@ -1565,7 +1594,7 @@ class WMS13GetMapDatasetSeriesOutlinesTimeIntervalTestCase(eoxstest.WMS13GetMapT
     width = 200
     bbox = (-3.75, 32.158895, 28.326165, 46.3)
     time = "2006-08-16T09:09:29Z/2006-08-16T09:15:46Z"
-        
+
 class WMS13GetMapDatasetOneBandTestCase(eoxstest.WMS13GetMapTestCase):
     """ Test a GetMap request with a dataset containing 15 bands. """
     layers = ("MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed_bands",)
@@ -1581,7 +1610,7 @@ class WMS13GetMapDatasetThreeBandsTestCase(eoxstest.WMS13GetMapTestCase):
 class WMS13GetMapReprojectedDatasetTestCase(eoxstest.WMS13GetMapTestCase):
     """ Test a GetMap request with a reprojected dataset. """
     fixtures = eoxstest.OWSTestCase.fixtures + ["testing_reprojected_coverages.json"]
-    
+
     layers = ("MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected",)
     bbox = (8.487755775451660, 32.195316643454134, 25.407486727461219, 46.249103546142578)
 
@@ -1589,7 +1618,7 @@ class WMS13GetMapReprojectedDatasetTestCase(eoxstest.WMS13GetMapTestCase):
 class WMS13GetMapCrossesDatelineDatasetTestCase(eoxstest.WMS13GetMapTestCase):
     """ Test a GetMap request with a reprojected dataset. """
     fixtures = BASE_FIXTURES + ["testing_crosses_dateline.json"]
-    
+
     layers = ("crosses_dateline",)
     bbox = (-180, -90, 180, 90)
     width = 200
@@ -1597,14 +1626,14 @@ class WMS13GetMapCrossesDatelineDatasetTestCase(eoxstest.WMS13GetMapTestCase):
 
 class WMS13GetFeatureInfoTestCase(eoxstest.HTMLTestCase):
     """ Test a GetFeatureInfo on an outline layer. """
-    
+
     def getRequest(self):
         params = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&LAYERS=MER_FRS_1P_RGB_reduced_outlines&QUERY_LAYERS=MER_FRS_1P_RGB_reduced_outlines&STYLES=&BBOX=32.158895,-3.75,46.3,28.326165&FEATURE_COUNT=10&HEIGHT=100&WIDTH=200&FORMAT=image%2Fpng&INFO_FORMAT=text/html&CRS=EPSG:4326&I=100&J=50";
         return (params, "kvp")
 
 class WMS13GetFeatureInfoTimeIntervalTestCase(eoxstest.HTMLTestCase):
     """ Test a GetFeatureInfo on an outline layer with a given time slice. """
-    
+
     def getRequest(self):
         params = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&LAYERS=MER_FRS_1P_RGB_reduced_outlines&QUERY_LAYERS=MER_FRS_1P_RGB_reduced_outlines&STYLES=&BBOX=24.433594,-8.986816,60.205078,58.908691&FEATURE_COUNT=10&HEIGHT=814&WIDTH=1545&FORMAT=image%2Fpng&INFO_FORMAT=text/html&CRS=EPSG:4326&I=598&J=504&TIME=2006-08-16T09:09:29Z/2006-08-16T09:12:46Z";
         return (params, "kvp")
@@ -1612,7 +1641,7 @@ class WMS13GetFeatureInfoTimeIntervalTestCase(eoxstest.HTMLTestCase):
 
 class WMS13GetFeatureInfoEmptyTestCase(eoxstest.HTMLTestCase):
     """ Test a GetFeatureInfo request not hitting any datasets because of spatial/temporal bounds. """
-    
+
     def getRequest(self):
         params = "LAYERS=MER_FRS_1P_RGB_reduced_outlines&QUERY_LAYERS=MER_FRS_1P_RGB_reduced_outlines&STYLES=&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&EXCEPTIONS=INIMAGE&BBOX=20.742187%2C-19.401855%2C56.513672%2C48.493652&FEATURE_COUNT=10&HEIGHT=814&WIDTH=1545&FORMAT=image%2Fpng&INFO_FORMAT=text%2Fhtml&CRS=EPSG%3A4326&I=1038&J=505"
         return (params, "kvp")
@@ -1725,5 +1754,5 @@ class SecWMS13GetMapPNGDatasetTestCase(eoxstest.WMS13GetMapTestCase):
     dim_band = None
 
     swap_axes = True
-    
+
     httpHeaders = httpHeadersAuthnValid
