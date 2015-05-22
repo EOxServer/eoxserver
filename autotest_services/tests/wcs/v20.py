@@ -284,9 +284,29 @@ class WCS20DescribeEOCoverageSetTemporalSubsetOverlapsTestCase(testbase.WCS20Des
             "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"
         ]
 
+class WCS20DescribeEOCoverageSetTemporalSubsetOverlapsIntervalBorderTestCase(testbase.WCS20DescribeEOCoverageSetSubsettingTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced&subset=phenomenonTime(\"2006-08-01\",\"2006-08-16T09:09:29Z\")&containment=overlaps"
+        return (params, "kvp")
+
+    def getExpectedCoverageIds(self):
+        return [
+            "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed"
+        ]
+
 class WCS20DescribeEOCoverageSetTemporalSubsetContainsTestCase(testbase.WCS20DescribeEOCoverageSetSubsettingTestCase):
     def getRequest(self):
         params = 'service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced&subset=phenomenonTime("2006-08-01","2006-08-22T09:22:00Z")&containment=contains'
+        return (params, "kvp")
+
+    def getExpectedCoverageIds(self):
+        return [
+            "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed"
+        ]
+
+class WCS20DescribeEOCoverageSetTemporalSubsetContainsIntervalBorderTestCase(testbase.WCS20DescribeEOCoverageSetSubsettingTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced&subset=phenomenonTime(\"2006-08-01\",\"2006-08-16T09:12:46Z\")&containment=contains"
         return (params, "kvp")
 
     def getExpectedCoverageIds(self):
