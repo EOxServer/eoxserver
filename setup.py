@@ -28,13 +28,6 @@
 #-------------------------------------------------------------------------------
 
 import os
-
-# Hack to remove setuptools "feature" which resulted in
-# ignoring MANIFEST.in when code is in an svn repository.
-# TODO find a nicer solution
-from setuptools.command import sdist
-del sdist.finders[:]
-
 from setuptools import setup
 
 from eoxserver import get_version
