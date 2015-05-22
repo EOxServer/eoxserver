@@ -36,10 +36,10 @@
 Clone EOxServer:
 
 ```sh
-    git clone git@github.com:EOxServer/eoxserver.git
-    cd eoxserver/
-    git submodule init
-    git submodule update
+git clone git@github.com:EOxServer/eoxserver.git
+cd eoxserver/
+git submodule init
+git submodule update
 ```
 
 Install VirtualBox & Vagrant. The configuration is tested with:
@@ -52,16 +52,16 @@ Install Vagrant add-ons:
 * `vagrant-cachier` to [cache yum/apt/etc. packages](https://github.com/fgrehm/vagrant-cachier)
 
 ```sh
-    vagrant plugin install sahara
-    vagrant plugin install vagrant-vbguest
-    vagrant plugin install vagrant-cachier
+vagrant plugin install sahara
+vagrant plugin install vagrant-vbguest
+vagrant plugin install vagrant-cachier
 ```
 
 Run vagrant:
 
 ```sh
-    cd vagrant/
-    vagrant up
+cd vagrant/
+vagrant up
 ```
 
 EOxServer is now accessible at [http://localhost:8000/](http://localhost:8000/).
@@ -69,10 +69,10 @@ EOxServer is now accessible at [http://localhost:8000/](http://localhost:8000/).
 Run tests:
 
 ```sh
-    vagrant ssh
-    cd /var/eoxserver/autotest/
-    export XML_CATALOG_FILES="../schemas/catalog.xml"
-    python manage.py test autotest_services -v2
+vagrant ssh
+cd /var/eoxserver/autotest/
+export XML_CATALOG_FILES="../schemas/catalog.xml"
+python manage.py test autotest_services -v2
 ```
 
 For further read and follow the autotest
@@ -90,10 +90,10 @@ Use the following steps:
 4. Start a git bash and execute the following commands:
 
 ```sh
-    git clone git@github.com:EOxServer/eoxserver.git
-    cd eoxserver/
-    git submodule init
-    git submodule update
+git clone git@github.com:EOxServer/eoxserver.git
+cd eoxserver/
+git submodule init
+git submodule update
 ```
 
 5. Open the Vagrantfile (located in ngeo-b/vagrant ) with an editor.
@@ -110,21 +110,21 @@ Use the following steps:
 16. Open an Administrator console and enter:
 
 ```sh
-    vagrant plugin install sahara
-    vagrant plugin install vagrant-vbguest
-    vagrant plugin install vagrant-cachier
-    cd vagrant/
-    vagrant up
+vagrant plugin install sahara
+vagrant plugin install vagrant-vbguest
+vagrant plugin install vagrant-cachier
+cd vagrant/
+vagrant up
 ```
 
 17. EOxServer is now accessible at [http://localhost:8000/](http://localhost:8000/).
 18. Run tests:
 
 ```sh
-    vagrant ssh
-    cd /var/eoxserver/autotest/
-    export XML_CATALOG_FILES="../schemas/catalog.xml"
-    python manage.py test autotest_services -v2
+vagrant ssh
+cd /var/eoxserver/autotest/
+export XML_CATALOG_FILES="../schemas/catalog.xml"
+python manage.py test autotest_services -v2
 ```
 
 19. For further read and follow the autotest [README](https://github.com/EOxServer/autotest).
@@ -145,67 +145,67 @@ Use the following steps:
 
 ## How to build EOxServer
 
-# Check Jenkins build is passing.
+Check Jenkins build is passing.
 
 ```sh
-    cd git/eoxserver/
-    git pull
+cd git/eoxserver/
+git pull
 
-    # If starting a new release branch:
-    git checkout -b 0.4
-    vi eoxserver/__init__.py
-    # Adjust version to future one
-    git commit eoxserver/__init__.py -m "Adjusting version."
-    git push origin 0.4
+# If starting a new release branch:
+git checkout -b 0.4
+vi eoxserver/__init__.py
+# Adjust version to future one
+git commit eoxserver/__init__.py -m "Adjusting version."
+git push origin 0.4
 
-    vi eoxserver/__init__.py
-    # Adjust version
-    vi setup.py
-    # Adjust Development Status
-    git commit setup.py eoxserver/__init__.py -m "Adjusting version."
-    # Info:
-    #Development Status :: 1 - Planning
-    #Development Status :: 2 - Pre-Alpha
-    #Development Status :: 3 - Alpha
-    #Development Status :: 4 - Beta
-    #Development Status :: 5 - Production/Stable
-    #Development Status :: 6 - Mature
-    #Development Status :: 7 - Inactive
+vi eoxserver/__init__.py
+# Adjust version
+vi setup.py
+# Adjust Development Status
+git commit setup.py eoxserver/__init__.py -m "Adjusting version."
+# Info:
+#Development Status :: 1 - Planning
+#Development Status :: 2 - Pre-Alpha
+#Development Status :: 3 - Alpha
+#Development Status :: 4 - Beta
+#Development Status :: 5 - Production/Stable
+#Development Status :: 6 - Mature
+#Development Status :: 7 - Inactive
 
-    git tag -a release-0.3.2 -m "Tagging the 0.3.2 release of EOxServer."
-    git archive --format=tar --prefix=EOxServer-0.3.2/ release-0.3.2 | gzip > EOxServer-0.3.2.tar.gz
-    mv EOxServer-0.3.2.tar.gz <path-to-builder_rpm>
-    cd <path-to-builder_rpm>/
-    vagrant ssh
+git tag -a release-0.3.2 -m "Tagging the 0.3.2 release of EOxServer."
+git archive --format=tar --prefix=EOxServer-0.3.2/ release-0.3.2 | gzip > EOxServer-0.3.2.tar.gz
+mv EOxServer-0.3.2.tar.gz <path-to-builder_rpm>
+cd <path-to-builder_rpm>/
+vagrant ssh
 
-    tar xzf EOxServer-0.3.2.tar.gz
-    rm EOxServer-0.3.2.tar.gz
-    cd EOxServer-0.3.2/
+tar xzf EOxServer-0.3.2.tar.gz
+rm EOxServer-0.3.2.tar.gz
+cd EOxServer-0.3.2/
 
-    # pypi
-    python setup.py sdist
-    #Check newly generated file dist/EOxServer-0.3.2.tar.gz
-    python setup.py sdist upload
-    # Administrate visible versions at pypi.python.org
+# pypi
+python setup.py sdist
+#Check newly generated file dist/EOxServer-0.3.2.tar.gz
+python setup.py sdist upload
+# Administrate visible versions at pypi.python.org
 
-    # rpm
-    python setup.py bdist_rpm --release <NO>
-    # Test packages in dist/
+# rpm
+python setup.py bdist_rpm --release <NO>
+# Test packages in dist/
 
-    cd dist/
-    tar czf ../../rpmbuild/RPMS/EOxServer-0.3.2.tar.gz EOxServer-*rpm
-    # scp EOxServer-0.3.2.tar.gz -> packages@packages.eox.at:.
-    cd ../../
-    rm -r EOxServer-0.3.2/
+cd dist/
+tar czf ../../rpmbuild/RPMS/EOxServer-0.3.2.tar.gz EOxServer-*rpm
+# scp EOxServer-0.3.2.tar.gz -> packages@packages.eox.at:.
+cd ../../
+rm -r EOxServer-0.3.2/
 
-    vi eoxserver/__init__.py
-    # Adjust version to dev
-    vi setup.py
-    # Adjust Development Status if necessary
-    git commit setup.py eoxserver/__init__.py -m "Adjusting version."
+vi eoxserver/__init__.py
+# Adjust version to dev
+vi setup.py
+# Adjust Development Status if necessary
+git commit setup.py eoxserver/__init__.py -m "Adjusting version."
 
-    git push
-    git push --tags
+git push
+git push --tags
 ```
 
 * Edit release at https://github.com/EOxServer/eoxserver/releases
