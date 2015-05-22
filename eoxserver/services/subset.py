@@ -27,9 +27,12 @@
 
 
 import logging
+import operator
 
 from django.contrib.gis.geos import Polygon, LineString
 
+from eoxserver.core.config import get_eoxserver_config
+from eoxserver.core.decoders import config, enum
 from eoxserver.resources.coverages import crss
 from eoxserver.services.exceptions import (
     InvalidAxisLabelException, InvalidSubsettingException,
@@ -148,6 +151,16 @@ class Subsets(list):
         max_extent = crss.crs_bounds(srid)
         tolerance = crss.crs_tolerance(srid)
 
+        # check if time intervals are configured as "open" or "closed"
+        config = get_eoxserver_config()
+        reader = SubsetConfigReader(config)
+        if reader.time_interval_interpretation == "closed":
+            gt_op = "__gte"
+            lt_op = "__lte"
+        else:
+            gt_op = "__gt"
+            lt_op = "__lt"
+
         for subset in self:
             if isinstance(subset, Slice):
                 is_slice = True
@@ -159,31 +172,31 @@ class Subsets(list):
 
             if subset.is_temporal:
                 if is_slice:
-                    qs = qs.filter(
-                        begin_time__lte=value,
-                        end_time__gte=value
-                    )
+                    qs = qs.filter(**{
+                        "begin_time" + lt_op: value,
+                        "end_time" + gt_op: value
+                    })
 
                 else:
                     if high is not None:
-                        qs = qs.filter(
-                            begin_time__lte=high
-                        )
+                        qs = qs.filter(**{
+                            "begin_time" + lt_op: high
+                        })
                     if low is not None:
-                        qs = qs.filter(
-                            end_time__gte=low
-                        )
+                        qs = qs.filter(**{
+                            "end_time" + gt_op: low
+                        })
 
                     # check if the temporal bounds must be strictly contained
                     if containment == "contains":
                         if high is not None:
-                            qs = qs.filter(
-                                end_time__lte=high
-                            )
+                            qs = qs.filter(**{
+                                "end_time" + lt_op: high
+                            })
                         if low is not None:
-                            qs = qs.filter(
-                                begin_time__gte=low
-                            )
+                            qs = qs.filter(**{
+                                "begin_time" + gt_op: low
+                            })
 
             else:
                 if is_slice:
@@ -257,6 +270,16 @@ class Subsets(list):
         max_extent = crss.crs_bounds(srid)
         tolerance = crss.crs_tolerance(srid)
 
+        # check if time intervals are configured as "open" or "closed"
+        config = get_eoxserver_config()
+        reader = SubsetConfigReader(config)
+        if reader.time_interval_interpretation == "closed":
+            gt_op = operator.ge
+            lt_op = operator.le
+        else:
+            gt_op = operator.gt
+            lt_op = operator.lt
+
         footprint = eo_object.footprint
         begin_time = eo_object.begin_time
         end_time = eo_object.end_time
@@ -272,16 +295,16 @@ class Subsets(list):
 
             if subset.is_temporal:
                 if is_slice:
-                    if begin_time > value or end_time < value:
+                    if gt_op(begin_time, value) or lt_op(end_time, value):
                         return False
                 elif low is None and high is not None:
-                    if begin_time > high:
+                    if gt_op(begin_time, high):
                         return False
                 elif low is not None and high is None:
-                    if end_time < low:
+                    if lt_op(end_time, low):
                         return False
                 else:
-                    if begin_time > high or end_time < low:
+                    if gt_op(begin_time, high) or lt_op(end_time, low):
                         return False
 
             else:
@@ -533,3 +556,10 @@ def is_temporal(axis):
     """ Returns whether or not an axis is a temporal one.
     """
     return (axis.lower() in temporal_axes)
+
+
+class SubsetConfigReader(config.Reader):
+    section = "services.owscommon"
+    time_interval_interpretation = config.Option(
+        default="closed", type=enum(("closed", "open"), False)
+    )
