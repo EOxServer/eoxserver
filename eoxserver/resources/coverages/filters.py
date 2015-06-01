@@ -781,11 +781,16 @@ class IntersectingTimeIntervalFilter(object):
                         eo_metadata__timestamp_end__gt=begin
                     )
                 else:
-                    return qs.exclude(
-                        eo_metadata__timestamp_begin__gte=end
-                    ).exclude(
-                        eo_metadata__timestamp_end__lte=begin
-                    )
+                    if begin == end:
+                        return qs.filter(
+                            eo_metadata__timestamp_begin__lte=end,
+                            eo_metadata__timestamp_end__gte=begin
+                        )
+                    else:
+                        return qs.filter(
+                            eo_metadata__timestamp_begin__lt=end,
+                            eo_metadata__timestamp_end__gt=begin
+                        )
         else:
             if begin == "unbounded":
                 if end == "unbounded":
@@ -800,10 +805,9 @@ class IntersectingTimeIntervalFilter(object):
                         eo_metadata__timestamp_end__gte=begin
                     )
                 else:
-                    return qs.exclude(
-                        eo_metadata__timestamp_begin__gt=end
-                    ).exclude(
-                        eo_metadata__timestamp_end__lt=begin
+                    return qs.filter(
+                        eo_metadata__timestamp_begin__lte=end,
+                        eo_metadata__timestamp_end__gte=begin
                     )
 
     def resourceMatches(self, expr, res):
@@ -896,10 +900,16 @@ class ContainingTimeIntervalFilter(object):
                         eo_metadata__timestamp_begin__gt=begin
                     )
                 else:
-                    return qs.filter(
-                        eo_metadata__timestamp_begin__gt=begin,
-                        eo_metadata__timestamp_end__lt=end
-                    )
+                    if begin == end:
+                        return qs.filter(
+                            eo_metadata__timestamp_begin__gte=begin,
+                            eo_metadata__timestamp_end__lte=end
+                        )
+                    else:
+                        return qs.filter(
+                            eo_metadata__timestamp_begin__gt=begin,
+                            eo_metadata__timestamp_end__lt=end
+                        )
         else:
             if begin == "unbounded":
                 if end == "unbounded":
