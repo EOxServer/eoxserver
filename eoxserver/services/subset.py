@@ -175,8 +175,8 @@ class Subsets(list):
             if subset.is_temporal:
                 if is_slice or high == low:
                     qs = qs.filter(
-                        begin_time_lte=value,
-                        end_time_gte=value
+                        begin_time__lte=value,
+                        end_time__gte=value
                     )
 
                 else:
