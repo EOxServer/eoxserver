@@ -209,6 +209,6 @@ git push --tags
 ```
 
 * Edit release at https://github.com/EOxServer/eoxserver/releases
-* Edit milestones at https://github.com/EOxServer/eoxserver/issues/milestones
+* Edit milestones at https://github.com/EOxServer/eoxserver/milestones
 * Mail to dev & users
 * Tweet
