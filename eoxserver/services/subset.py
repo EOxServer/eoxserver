@@ -169,24 +169,17 @@ class Subsets(list):
                 is_slice = False
                 low = subset.low
                 high = subset.high
+                # we need the value in case low == high
+                value = low
 
             if subset.is_temporal:
-                if is_slice:
-                    qs = qs.filter(**{
-                        "begin_time" + lt_op: value,
-                        "end_time" + gt_op: value
-                    })
+                if is_slice or high == low:
+                    qs = qs.filter(
+                        begin_time_lte=value,
+                        end_time_gte=value
+                    )
 
                 else:
-                    if high is not None:
-                        qs = qs.filter(**{
-                            "begin_time" + lt_op: high
-                        })
-                    if low is not None:
-                        qs = qs.filter(**{
-                            "end_time" + gt_op: low
-                        })
-
                     # check if the temporal bounds must be strictly contained
                     if containment == "contains":
                         if high is not None:
@@ -196,6 +189,16 @@ class Subsets(list):
                         if low is not None:
                             qs = qs.filter(**{
                                 "begin_time" + gt_op: low
+                            })
+                    # or just overlapping
+                    else:
+                        if high is not None:
+                            qs = qs.filter(**{
+                                "begin_time" + lt_op: high
+                            })
+                        if low is not None:
+                            qs = qs.filter(**{
+                                "end_time" + gt_op: low
                             })
 
             else:
@@ -273,12 +276,14 @@ class Subsets(list):
         # check if time intervals are configured as "open" or "closed"
         config = get_eoxserver_config()
         reader = SubsetConfigReader(config)
+        # note that the operator is inverted from filter() above as the
+        # filters use an inclusive search whereas here it's exclusive
         if reader.time_interval_interpretation == "closed":
-            gt_op = operator.ge
-            lt_op = operator.le
-        else:
             gt_op = operator.gt
             lt_op = operator.lt
+        else:
+            gt_op = operator.ge
+            lt_op = operator.le
 
         footprint = eo_object.footprint
         begin_time = eo_object.begin_time
@@ -292,20 +297,30 @@ class Subsets(list):
                 is_slice = False
                 low = subset.low
                 high = subset.high
+                # we need the value in case low == high
+                value = low
 
             if subset.is_temporal:
-                if is_slice:
-                    if gt_op(begin_time, value) or lt_op(end_time, value):
-                        return False
-                elif low is None and high is not None:
-                    if gt_op(begin_time, high):
-                        return False
-                elif low is not None and high is None:
-                    if lt_op(end_time, low):
+                if is_slice or low == high:
+                    if begin_time > value or end_time < value:
                         return False
                 else:
-                    if gt_op(begin_time, high) or lt_op(end_time, low):
-                        return False
+                    # check if the temporal bounds must be strictly contained
+                    if containment == "contains":
+                        if high is not None:
+                            if gt_op(end_time, high):
+                                return False
+                        if low is not None:
+                            if lt_op(begin_time, low):
+                                return False
+                    # or just overlapping
+                    else:
+                        if high is not None:
+                            if gt_op(begin_time, high):
+                                return False
+                        if low is not None:
+                            if lt_op(end_time, low):
+                                return False
 
             else:
                 if is_slice:
