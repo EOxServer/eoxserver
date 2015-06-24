@@ -30,8 +30,8 @@ install:
   # test with various Django versions
   - pip install "django${DJANGO}"
   - django-admin.py --version
-  # patch Django 1.4 libgeos
-  - 'if [ $DJANGO == ">=1.4,<1.5" ]; then find /home/travis/virtualenv/ -name libgeos.py  -exec patch {} jenkins/geos-dev.patch \; ; fi'
+  # patch Django 1.4 libgeos -- not necessary anymore
+  #- 'if [ $DJANGO == ">=1.4,<1.5" ]; then find /home/travis/virtualenv/ -name libgeos.py  -exec patch {} jenkins/geos-dev.patch \; ; fi'
   # actually install EOxServer
   - pip install .
   - export XML_CATALOG_FILES="`pwd`/schemas/catalog.xml"
