@@ -39,7 +39,7 @@ from eoxserver.resources.coverages.management.commands import (
 
 class Command(CommandOutputMixIn, BaseCommand):
     option_list = BaseCommand.option_list + (
-        make_option("identifier", dest="collection_ids",
+        make_option("--identifier", dest="collection_ids",
             action='callback', callback=_variable_args_cb,
             default=None, help=("Collection(s) from which the "
                                 "objects shall be removed.")
