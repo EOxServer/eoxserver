@@ -57,6 +57,7 @@ def refresh(*objects):
         return refr(objects[0])
     return map(refr, objects)
 
+
 def union(*footprints):
     u = None
     for footprint in footprints:
@@ -79,7 +80,6 @@ class GeometryMixIn(object):
             "%r != %r" % (a.wkt, b.wkt)
         )
 
-
 class ModelTests(GeometryMixIn, TestCase):
     def setUp(self):
         self.range_type = create(RangeType,
@@ -89,9 +89,9 @@ class ModelTests(GeometryMixIn, TestCase):
         self.rectified_1 = create(RectifiedDataset,
             identifier="rectified-1",
             footprint=GEOSGeometry("MULTIPOLYGON (((-111.6210939999999994 26.8588260000000005, -113.0273439999999994 -4.0786740000000004, -80.6835939999999994 -9.7036739999999995, -68.0273439999999994 15.6088260000000005, -111.6210939999999994 26.8588260000000005)))"),
-            begin_time=parse_datetime("2013-06-11T14:55:23Z"), 
+            begin_time=parse_datetime("2013-06-11T14:55:23Z"),
             end_time=parse_datetime("2013-06-11T14:55:23Z"),
-            min_x=10, min_y=10, max_x=20, max_y=20, srid=4326, 
+            min_x=10, min_y=10, max_x=20, max_y=20, srid=4326,
             size_x=100, size_y=100,
             range_type=self.range_type
         )
@@ -101,7 +101,7 @@ class ModelTests(GeometryMixIn, TestCase):
             footprint=GEOSGeometry("MULTIPOLYGON (((-28.0371090000000009 19.4760129999999982, -32.9589840000000009 -0.9146120000000000, -2.8125000000000000 -3.8150019999999998, 4.2187500000000000 19.1244510000000005, -28.0371090000000009 19.4760129999999982)))"),
             begin_time=parse_datetime("2013-06-10T18:52:34Z"),
             end_time=parse_datetime("2013-06-10T18:52:32Z"),
-            min_x=10, min_y=10, max_x=20, max_y=20, srid=4326, 
+            min_x=10, min_y=10, max_x=20, max_y=20, srid=4326,
             size_x=100, size_y=100,
             range_type=self.range_type
         )
@@ -111,7 +111,7 @@ class ModelTests(GeometryMixIn, TestCase):
             footprint=GEOSGeometry("MULTIPOLYGON (((-85.5175780000000003 14.2904660000000003, -116.2792969999999997 -8.3853150000000003, -63.7207030000000003 -19.4595340000000014, -58.7988280000000003 7.2592160000000003, -85.5175780000000003 14.2904660000000003)))"),
             begin_time=parse_datetime("2013-06-10T18:55:54Z"),
             end_time=parse_datetime("2013-06-10T18:55:54Z"),
-            min_x=10, min_y=10, max_x=20, max_y=20, srid=4326, 
+            min_x=10, min_y=10, max_x=20, max_y=20, srid=4326,
             size_x=100, size_y=100,
             range_type=self.range_type
         )
@@ -121,14 +121,14 @@ class ModelTests(GeometryMixIn, TestCase):
             footprint=GEOSGeometry("MULTIPOLYGON (((-85.5175780000000003 14.2904660000000003, -116.2792969999999997 -8.3853150000000003, -63.7207030000000003 -19.4595340000000014, -58.7988280000000003 7.2592160000000003, -85.5175780000000003 14.2904660000000003)))"),
             begin_time=parse_datetime("2013-06-10T18:55:54Z"),
             end_time=parse_datetime("2013-06-10T18:55:54Z"),
-            min_x=10, min_y=10, max_x=20, max_y=20, srid=4326, 
+            min_x=10, min_y=10, max_x=20, max_y=20, srid=4326,
             size_x=100, size_y=100,
             range_type=self.range_type
         )
 
         self.mosaic = RectifiedStitchedMosaic(
             identifier="mosaic-1",
-            min_x=10, min_y=10, max_x=20, max_y=20, srid=4326, 
+            min_x=10, min_y=10, max_x=20, max_y=20, srid=4326,
             size_x=100, size_y=100,
             range_type=self.range_type
         )
@@ -137,7 +137,7 @@ class ModelTests(GeometryMixIn, TestCase):
         self.mosaic.identifier = "mosaic-1"
         self.mosaic.full_clean()
         self.mosaic.save()
-        
+
         #=======================================================================
         # Collections
         #=======================================================================
@@ -146,15 +146,12 @@ class ModelTests(GeometryMixIn, TestCase):
             identifier="series-1"
         )
 
-
         self.series_2 = create(DatasetSeries,
             identifier="series-2"
         )
 
-
     def tearDown(self):
         pass
-
 
     def test_insertion(self):
         rectified_1, rectified_2, rectified_3 = (
@@ -194,7 +191,6 @@ class ModelTests(GeometryMixIn, TestCase):
         self.assertEqual(len(series_1), 4)
         self.assertEqual(len(series_1), 4)
 
-
         mosaic = RectifiedStitchedMosaic.objects.get(identifier="mosaic-1")
         mosaic, series_1, series_2 = refresh(mosaic, series_1, series_2)
 
@@ -221,7 +217,6 @@ class ModelTests(GeometryMixIn, TestCase):
         for eo_obj in series_1:
             pass
 
-
     def test_insertion_cascaded(self):
         rectified_1, mosaic, series_1, series_2 = (
             self.rectified_1, self.mosaic, self.series_1, self.series_2
@@ -243,7 +238,6 @@ class ModelTests(GeometryMixIn, TestCase):
         for obj in series_2.iter_cast(True):
             pass
 
-
     def test_insertion_failed(self):
         referenceable, mosaic = self.referenceable, self.mosaic
 
@@ -252,7 +246,6 @@ class ModelTests(GeometryMixIn, TestCase):
 
         mosaic = refresh(mosaic)
         self.assertNotIn(referenceable, mosaic)
-
 
     def test_insertion_and_removal(self):
         rectified_1, rectified_2, series_1 = (
@@ -271,16 +264,15 @@ class ModelTests(GeometryMixIn, TestCase):
         self.assertGeometryEqual(
             MultiPolygon(
                 Polygon.from_bbox(rectified_1.footprint.extent)
-            ), 
+            ),
             series_1.footprint
         )
 
-    
     def test_propagate_eo_metadata_change(self):
         rectified_1, series_1 = self.rectified_1, self.series_1
 
         series_1.insert(rectified_1)
-        
+
         new_begin_time = parse_datetime("2010-06-11T14:55:23Z")
         new_end_time = parse_datetime("2010-06-11T14:55:23Z")
 
@@ -294,12 +286,10 @@ class ModelTests(GeometryMixIn, TestCase):
         self.assertEqual(series_1.begin_time, new_begin_time)
         self.assertEqual(series_1.end_time, new_end_time)
 
-
     def test_insert_in_self_fails(self):
         series_1 = self.series_1
         with self.assertRaises(ValidationError):
             series_1.insert(series_1)
-
 
     def test_circular_reference_fails(self):
         series_1, series_2 = self.series_1, self.series_2
@@ -333,7 +323,7 @@ class MetadataFormatTests(GeometryMixIn, TestCase):
         values = reader.read(xml)
 
         self.assertEqual({
-            "identifier": "some_unique_id", 
+            "identifier": "some_unique_id",
             "begin_time": datetime(2013, 8, 27, 10, 0, 0, tzinfo=utc),
             "end_time": datetime(2013, 8, 27, 10, 0, 10, tzinfo=utc),
             "footprint": MultiPolygon(
@@ -345,7 +335,7 @@ class MetadataFormatTests(GeometryMixIn, TestCase):
 
     def test_native_writer(self):
         values = {
-            "identifier": "some_unique_id", 
+            "identifier": "some_unique_id",
             "begin_time": datetime(2013, 8, 27, 10, 0, 0, tzinfo=utc),
             "end_time": datetime(2013, 8, 27, 10, 0, 10, tzinfo=utc),
             "footprint": MultiPolygon(
@@ -455,7 +445,7 @@ class MetadataFormatTests(GeometryMixIn, TestCase):
           </eop:metaDataProperty>
         </eop:EarthObservation>
         """
-        
+
         reader = eoom.EOOMFormatReader(env)
         self.assertTrue(reader.test(xml))
         values = reader.read(xml)
@@ -472,12 +462,30 @@ class MetadataFormatTests(GeometryMixIn, TestCase):
         }
         self.assertEqual(expected, values)
 
-
     def test_dimap_reader(self):
         xml = """
 
         """
         # TODO: find example DIMAP
-        
 
 
+class CastingTest(TestCase):
+    def test_cast(self):
+        range_type = create(RangeType,
+            name="RGB"
+        )
+        create(RectifiedDataset,
+            identifier="rectified-1",
+            footprint=GEOSGeometry("MULTIPOLYGON (((-111.6210939999999994 26.8588260000000005, -113.0273439999999994 -4.0786740000000004, -80.6835939999999994 -9.7036739999999995, -68.0273439999999994 15.6088260000000005, -111.6210939999999994 26.8588260000000005)))"),
+            begin_time=parse_datetime("2013-06-11T14:55:23Z"),
+            end_time=parse_datetime("2013-06-11T14:55:23Z"),
+            min_x=10, min_y=10, max_x=20, max_y=20, srid=4326,
+            size_x=100, size_y=100,
+            range_type=range_type
+        )
+
+        eo_object = EOObject.objects.get(identifier="rectified-1")
+        cast_object = eo_object.cast()
+
+        self.assertEqual(eo_object.real_type, RectifiedDataset)
+        self.assertEqual(type(cast_object), RectifiedDataset)
