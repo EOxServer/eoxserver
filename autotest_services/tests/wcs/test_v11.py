@@ -25,7 +25,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from autotest_services import testbase
+from autotest_services import base as testbase
 import base as wcsbase
 
 

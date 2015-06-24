@@ -26,7 +26,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from autotest_services import testbase
+from autotest_services import base as testbase
 from autotest_services.tests.wps.base import (
     WPS10ExecuteMixIn, ContentTypeCheckMixIn,
 )
