@@ -44,6 +44,9 @@ script:
   - python manage.py test --pythonpath=../eoxserver/resources coverages -v2
   - python manage.py test autotest_services -v2
   - python manage.py test autotest_coverages -v2
+after_failure:
+  # show differences
+  - 'for file in `ls autotest/responses/*` ; do  diff autotest/expected/`basename $file` $file ; done'
 notifications:
   irc:
     channels:
