@@ -217,6 +217,7 @@ class EOObjectInline(AbstractInline):
 class DataSourceInline(AbstractInline):
     model = models.DataSource
     form = LocationForm
+    fk_name = "collection"
     extra = 0
 
 
