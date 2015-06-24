@@ -45,6 +45,7 @@ PROJECT_URL_PREFIX = ''
 #TODO
 #TEST_RUNNER = 'eoxserver.testing.core.EOxServerTestRunner'
 #TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
