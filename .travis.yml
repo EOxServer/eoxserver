@@ -47,6 +47,7 @@ script:
 after_failure:
   # show differences
   - 'for file in `ls autotest/responses/*` ; do  diff autotest/expected/`basename $file` $file ; done'
+  - cat autotest/logs/eoxserver.log
 notifications:
   irc:
     channels:
