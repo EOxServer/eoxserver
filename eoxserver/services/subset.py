@@ -173,10 +173,16 @@ class Subsets(list):
                 value = low
 
             if subset.is_temporal:
-                if is_slice or high == low:
+                if is_slice or (high == low and containment == "overlaps"):
                     qs = qs.filter(
                         begin_time__lte=value,
                         end_time__gte=value
+                    )
+
+                elif high == low:
+                    qs = qs.filter(
+                        begin_time__gte=value,
+                        end_time__lte=value
                     )
 
                 else:
@@ -301,8 +307,11 @@ class Subsets(list):
                 value = low
 
             if subset.is_temporal:
-                if is_slice or low == high:
+                if is_slice or (low == high and containment == "overlaps"):
                     if begin_time > value or end_time < value:
+                        return False
+                elif low == high:
+                    if begin_time < value or end_time > value:
                         return False
                 else:
                     # check if the temporal bounds must be strictly contained

@@ -112,7 +112,7 @@ class TemporalTrimSubsetsTestCase(TransactionTestCase):
     def setUp(self):
         """ Set up a couple of test datasets to be distributed along the time
         axis as such:
-        |-A-|     |-B-|-D-|-F-|     |-G-|
+        |-A-|     |-B-|-D-|-F-|     |-G-|     H
                     |-C-||-E-|
         """
         p = parse_iso8601
@@ -181,6 +181,15 @@ class TemporalTrimSubsetsTestCase(TransactionTestCase):
                 srid=4326, min_x=0, min_y=0, max_x=5, max_y=5,
                 size_x=100, size_y=100,
                 range_type=range_type
+            ),
+            models.RectifiedDataset.objects.create(
+                identifier="H",
+                footprint=MultiPolygon(Polygon.from_bbox((0, 0, 5, 5))),
+                begin_time=p("2000-01-01T00:00:40Z"),
+                end_time=p("2000-01-01T00:00:40Z"),
+                srid=4326, min_x=0, min_y=0, max_x=5, max_y=5,
+                size_x=100, size_y=100,
+                range_type=range_type
             )
         ]
 
@@ -231,7 +240,7 @@ class TemporalTrimSubsetsTestCase(TransactionTestCase):
 
     def test_all_overlaps_open(self):
         """
-        |-A-|     |-B-|-D-|-F-|     |-G-|
+        |-A-|     |-B-|-D-|-F-|     |-G-|     H
                     |-C-||-E-|
         ]-------------------------------[
         """
@@ -245,7 +254,7 @@ class TemporalTrimSubsetsTestCase(TransactionTestCase):
 
     def test_all_overlaps_closed(self):
         """
-        |-A-|     |-B-|-D-|-F-|     |-G-|
+        |-A-|     |-B-|-D-|-F-|     |-G-|     H
                     |-C-||-E-|
         [-------------------------------]
         """
@@ -258,7 +267,7 @@ class TemporalTrimSubsetsTestCase(TransactionTestCase):
 
     def test_all_contains_open(self):
         """
-        |-A-|     |-B-|-D-|-F-|     |-G-|
+        |-A-|     |-B-|-D-|-F-|     |-G-|     H
                     |-C-||-E-|
         ]...............................[
         """
@@ -272,7 +281,7 @@ class TemporalTrimSubsetsTestCase(TransactionTestCase):
 
     def test_all_contains_closed(self):
         """
-        |-A-|     |-B-|-D-|-F-|     |-G-|
+        |-A-|     |-B-|-D-|-F-|     |-G-|     H
                     |-C-||-E-|
         [...............................]
         """
@@ -285,7 +294,7 @@ class TemporalTrimSubsetsTestCase(TransactionTestCase):
 
     def test_middle_overlaps_open(self):
         """
-        |-A-|     |-B-|-D-|-F-|     |-G-|
+        |-A-|     |-B-|-D-|-F-|     |-G-|     H
                     |-C-||-E-|
             ]-----------------------[
         """
@@ -299,7 +308,7 @@ class TemporalTrimSubsetsTestCase(TransactionTestCase):
 
     def test_middle_overlaps_closed(self):
         """
-        |-A-|     |-B-|-D-|-F-|     |-G-|
+        |-A-|     |-B-|-D-|-F-|     |-G-|     H
                     |-C-||-E-|
             [-----------------------]
         """
@@ -312,7 +321,7 @@ class TemporalTrimSubsetsTestCase(TransactionTestCase):
 
     def test_middle_contains_open(self):
         """
-        |-A-|     |-B-|-D-|-F-|     |-G-|
+        |-A-|     |-B-|-D-|-F-|     |-G-|     H
                     |-C-||-E-|
             ].......................[
         """
@@ -326,7 +335,7 @@ class TemporalTrimSubsetsTestCase(TransactionTestCase):
 
     def test_middle_contains_closed(self):
         """
-        |-A-|     |-B-|-D-|-F-|     |-G-|
+        |-A-|     |-B-|-D-|-F-|     |-G-|     H
                     |-C-||-E-|
             [.......................]
         """
@@ -339,7 +348,7 @@ class TemporalTrimSubsetsTestCase(TransactionTestCase):
 
     def test_small_overlaps_open(self):
         """
-        |-A-|     |-B-|-D-|-F-|     |-G-|
+        |-A-|     |-B-|-D-|-F-|     |-G-|     H
                     |-C-||-E-|
                       ]---[
         """
@@ -353,7 +362,7 @@ class TemporalTrimSubsetsTestCase(TransactionTestCase):
 
     def test_small_overlaps_closed(self):
         """
-        |-A-|     |-B-|-D-|-F-|     |-G-|
+        |-A-|     |-B-|-D-|-F-|     |-G-|     H
                     |-C-||-E-|
                       [---]
         """
@@ -366,7 +375,7 @@ class TemporalTrimSubsetsTestCase(TransactionTestCase):
 
     def test_small_contains_open(self):
         """
-        |-A-|     |-B-|-D-|-F-|     |-G-|
+        |-A-|     |-B-|-D-|-F-|     |-G-|     H
                     |-C-||-E-|
                       ]...[
         """
@@ -380,7 +389,7 @@ class TemporalTrimSubsetsTestCase(TransactionTestCase):
 
     def test_small_contains_closed(self):
         """
-        |-A-|     |-B-|-D-|-F-|     |-G-|
+        |-A-|     |-B-|-D-|-F-|     |-G-|     H
                     |-C-||-E-|
                       [...]
         """
@@ -389,4 +398,220 @@ class TemporalTrimSubsetsTestCase(TransactionTestCase):
                 "2000-01-01T00:00:15Z", "2000-01-01T00:00:20Z"
             ),
             "contains", ("D",)
+        )
+
+    def test_point_1_overlaps_open(self):
+        """
+        |-A-|     |-B-|-D-|-F-|     |-G-|     H
+                    |-C-||-E-|
+                                    |
+        """
+        self.set_interpretation("open")
+        self.evaluate_subsets(
+            self.make_subsets(
+                "2000-01-01T00:00:30Z", "2000-01-01T00:00:30Z"
+            ),
+            "overlaps", ("G",)
+        )
+
+    def test_point_1_overlaps_closed(self):
+        """
+        |-A-|     |-B-|-D-|-F-|     |-G-|     H
+                    |-C-||-E-|
+                                    |
+        """
+        self.evaluate_subsets(
+            self.make_subsets(
+                "2000-01-01T00:00:30Z", "2000-01-01T00:00:30Z"
+            ),
+            "overlaps", ("G",)
+        )
+
+    def test_point_1_contains_open(self):
+        """
+        |-A-|     |-B-|-D-|-F-|     |-G-|     H
+                    |-C-||-E-|
+                                    |
+        """
+        self.set_interpretation("open")
+        self.evaluate_subsets(
+            self.make_subsets(
+                "2000-01-01T00:00:30Z", "2000-01-01T00:00:30Z"
+            ),
+            "contains", ()
+        )
+
+    def test_point_1_contains_closed(self):
+        """
+        |-A-|     |-B-|-D-|-F-|     |-G-|     H
+                    |-C-||-E-|
+                                    |
+        """
+        self.evaluate_subsets(
+            self.make_subsets(
+                "2000-01-01T00:00:30Z", "2000-01-01T00:00:30Z"
+            ),
+            "contains", ()
+        )
+
+    def test_point_2_overlaps_open(self):
+        """
+        |-A-|     |-B-|-D-|-F-|     |-G-|     H
+                    |-C-||-E-|
+                                      |
+        """
+        self.set_interpretation("open")
+        self.evaluate_subsets(
+            self.make_subsets(
+                "2000-01-01T00:00:32Z", "2000-01-01T00:00:32Z"
+            ),
+            "overlaps", ("G",)
+        )
+
+    def test_point_2_overlaps_closed(self):
+        """
+        |-A-|     |-B-|-D-|-F-|     |-G-|     H
+                    |-C-||-E-|
+                                      |
+        """
+        self.evaluate_subsets(
+            self.make_subsets(
+                "2000-01-01T00:00:32Z", "2000-01-01T00:00:32Z"
+            ),
+            "overlaps", ("G",)
+        )
+
+    def test_point_2_contains_open(self):
+        """
+        |-A-|     |-B-|-D-|-F-|     |-G-|     H
+                    |-C-||-E-|
+                                      |
+        """
+        self.set_interpretation("open")
+        self.evaluate_subsets(
+            self.make_subsets(
+                "2000-01-01T00:00:32Z", "2000-01-01T00:00:32Z"
+            ),
+            "contains", ()
+        )
+
+    def test_point_2_contains_closed(self):
+        """
+        |-A-|     |-B-|-D-|-F-|     |-G-|     H
+                    |-C-||-E-|
+                                      |
+        """
+        self.evaluate_subsets(
+            self.make_subsets(
+                "2000-01-01T00:00:35Z", "2000-01-01T00:00:35Z"
+            ),
+            "contains", ()
+        )
+
+    def test_point_3_overlaps_open(self):
+        """
+        |-A-|     |-B-|-D-|-F-|     |-G-|     H
+                    |-C-||-E-|
+                                        |
+        """
+        self.set_interpretation("open")
+        self.evaluate_subsets(
+            self.make_subsets(
+                "2000-01-01T00:00:35Z", "2000-01-01T00:00:35Z"
+            ),
+            "overlaps", ("G",)
+        )
+
+    def test_point_3_overlaps_closed(self):
+        """
+        |-A-|     |-B-|-D-|-F-|     |-G-|     H
+                    |-C-||-E-|
+                                        |
+        """
+        self.evaluate_subsets(
+            self.make_subsets(
+                "2000-01-01T00:00:35Z", "2000-01-01T00:00:35Z"
+            ),
+            "overlaps", ("G",)
+        )
+
+    def test_point_3_contains_open(self):
+        """
+        |-A-|     |-B-|-D-|-F-|     |-G-|     H
+                    |-C-||-E-|
+                                        |
+        """
+        self.set_interpretation("open")
+        self.evaluate_subsets(
+            self.make_subsets(
+                "2000-01-01T00:00:35Z", "2000-01-01T00:00:35Z"
+            ),
+            "contains", ()
+        )
+
+    def test_point_3_contains_closed(self):
+        """
+        |-A-|     |-B-|-D-|-F-|     |-G-|     H
+                    |-C-||-E-|
+                                        |
+        """
+        self.evaluate_subsets(
+            self.make_subsets(
+                "2000-01-01T00:00:35Z", "2000-01-01T00:00:35Z"
+            ),
+            "contains", ()
+        )
+
+    def test_point_4_overlaps_open(self):
+        """
+        |-A-|     |-B-|-D-|-F-|     |-G-|     H
+                    |-C-||-E-|
+                                              |
+        """
+        self.set_interpretation("open")
+        self.evaluate_subsets(
+            self.make_subsets(
+                "2000-01-01T00:00:40Z", "2000-01-01T00:00:40Z"
+            ),
+            "overlaps", ("H",)
+        )
+
+    def test_point_4_overlaps_closed(self):
+        """
+        |-A-|     |-B-|-D-|-F-|     |-G-|     H
+                    |-C-||-E-|
+                                              |
+        """
+        self.evaluate_subsets(
+            self.make_subsets(
+                "2000-01-01T00:00:40Z", "2000-01-01T00:00:40Z"
+            ),
+            "overlaps", ("H",)
+        )
+
+    def test_point_4_contains_open(self):
+        """
+        |-A-|     |-B-|-D-|-F-|     |-G-|     H
+                    |-C-||-E-|
+                                              |
+        """
+        self.set_interpretation("open")
+        self.evaluate_subsets(
+            self.make_subsets(
+                "2000-01-01T00:00:40Z", "2000-01-01T00:00:40Z"
+            ),
+            "contains", ("H",)
+        )
+
+    def test_point_4_contains_closed(self):
+        """
+        |-A-|     |-B-|-D-|-F-|     |-G-|     H
+                    |-C-||-E-|
+                                              |
+        """
+        self.evaluate_subsets(
+            self.make_subsets(
+                "2000-01-01T00:00:40Z", "2000-01-01T00:00:40Z"
+            ),
+            "contains", ("H",)
         )
