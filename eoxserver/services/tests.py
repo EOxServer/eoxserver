@@ -108,7 +108,7 @@ class ResultSetTestCase(TestCase):
         self.assertEqual(str(second.data), "PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUgYm9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg==")
 
 
-class TemporalTrimSubsetsTestCase(TransactionTestCase):
+class TemporalSubsetsTestCase(TransactionTestCase):
     def setUp(self):
         """ Set up a couple of test datasets to be distributed along the time
         axis as such:
@@ -232,7 +232,7 @@ class TemporalTrimSubsetsTestCase(TransactionTestCase):
 
     def make_subsets(self, begin, end=None):
         if end is None:
-            return Subsets(Slice("t", parse_iso8601(begin)))
+            return Subsets([Slice("t", parse_iso8601(begin))])
         else:
             return Subsets([Trim(
                 "t", parse_iso8601(begin), parse_iso8601(end)
@@ -614,4 +614,85 @@ class TemporalTrimSubsetsTestCase(TransactionTestCase):
                 "2000-01-01T00:00:40Z", "2000-01-01T00:00:40Z"
             ),
             "contains", ("H",)
+        )
+
+    def test_slice_1_overlaps(self):
+        """
+        |-A-|     |-B-|-D-|-F-|     |-G-|     H
+                    |-C-||-E-|
+                                    |
+        """
+        self.set_interpretation("open")
+        self.evaluate_subsets(
+            self.make_subsets("2000-01-01T00:00:30Z"), "overlaps", ("G",)
+        )
+
+    def test_slice_1_contains(self):
+        """
+        |-A-|     |-B-|-D-|-F-|     |-G-|     H
+                    |-C-||-E-|
+                                    |
+        """
+        self.evaluate_subsets(
+            self.make_subsets("2000-01-01T00:00:30Z"), "contains", ("G",)
+        )
+
+    def test_slice_2_overlaps(self):
+        """
+        |-A-|     |-B-|-D-|-F-|     |-G-|     H
+                    |-C-||-E-|
+                                      |
+        """
+        self.evaluate_subsets(
+            self.make_subsets("2000-01-01T00:00:32Z"), "overlaps", ("G",)
+        )
+
+    def test_slice_2_contains(self):
+        """
+        |-A-|     |-B-|-D-|-F-|     |-G-|     H
+                    |-C-||-E-|
+                                      |
+        """
+        self.evaluate_subsets(
+            self.make_subsets("2000-01-01T00:00:32Z"), "contains", ("G",)
+        )
+
+    def test_slice_3_overlaps(self):
+        """
+        |-A-|     |-B-|-D-|-F-|     |-G-|     H
+                    |-C-||-E-|
+                                        |
+        """
+        self.evaluate_subsets(
+            self.make_subsets("2000-01-01T00:00:35Z"), "overlaps", ("G",)
+        )
+
+    def test_slice_3_contains(self):
+        """
+        |-A-|     |-B-|-D-|-F-|     |-G-|     H
+                    |-C-||-E-|
+                                        |
+        """
+        self.evaluate_subsets(
+            self.make_subsets("2000-01-01T00:00:35Z"), "contains", ("G",)
+        )
+
+    def test_slice_4_overlaps(self):
+        """
+        |-A-|     |-B-|-D-|-F-|     |-G-|     H
+                    |-C-||-E-|
+                                              |
+        """
+        self.evaluate_subsets(
+            self.make_subsets("2000-01-01T00:00:40Z"), "overlaps", ("H",)
+        )
+
+    def test_slice_4_contains(self):
+        """
+        |-A-|     |-B-|-D-|-F-|     |-G-|     H
+                    |-C-||-E-|
+                                              |
+        """
+        self.evaluate_subsets(
+            self.make_subsets("2000-01-01T00:00:40Z"), "contains", ("H",)
         )
