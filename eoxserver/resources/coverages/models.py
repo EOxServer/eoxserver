@@ -445,6 +445,8 @@ class Coverage(EOObject, Extent):
     """ Common base model for all coverage types.
     """
 
+    coverage_to_eo_object_ptr = models.OneToOneField(EOObject, parent_link=True)
+
     size_x = models.PositiveIntegerField()
     size_y = models.PositiveIntegerField()
 
@@ -478,6 +480,8 @@ class Coverage(EOObject, Extent):
 class Collection(EOObject):
     """ Base model for all collections.
     """
+
+    collection_to_eo_object_ptr = models.OneToOneField(EOObject, parent_link=True)
 
     eo_objects = models.ManyToManyField(EOObject, through="EOObjectToCollectionThrough", related_name="collections")
 
