@@ -58,7 +58,7 @@ option of your ``settings.py``. As the interface also requires several static
 files like style-sheets and script files, the option ``STATIC_URL`` has to be set
 to a path the webserver is able to serve, for example ``/static/``. The static
 media files are located under ``path/to/eoxserver/webclient/static`` and can be
-collected via the `` `collectstatic command
+collected via the `collectstatic command
 <https://docs.djangoproject.com/en/1.8/ref/contrib/staticfiles/#collectstatic>`_.
 
 To finally enable the webclient, a proper URL scheme has to be set up in
