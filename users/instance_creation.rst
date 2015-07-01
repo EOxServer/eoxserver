@@ -30,7 +30,7 @@
   #-----------------------------------------------------------------------------
 
 .. index::
-    single: EOxServer Service Instance Creation 
+    single: EOxServer Service Instance Creation
     single: Instance Creation
 
 .. _Creating an Instance:
@@ -43,35 +43,35 @@ Service Instance Creation and Configuration
     :depth: 3
     :backlinks: top
 
-Speaking of EOxServer we distinguish the common EOxServer installation (the 
-installed code implementing the software functionality) and EOxServer 
-instances. An instance is a collection of data and configuration files that 
-enables the deployment of a specific service. A single server will typically 
+Speaking of EOxServer we distinguish the common EOxServer installation (the
+installed code implementing the software functionality) and EOxServer
+instances. An instance is a collection of data and configuration files that
+enables the deployment of a specific service. A single server will typically
 contain a single software installation and one or more specific instances.
 
 This section deals with the creation and configuration of EOxServer instances.
 
-.. seealso:: 
+.. seealso::
 
     * :ref:`Installation`
             generic installation procedure for GNU/Linux operating systems.
     * :ref:`CentOSInstallation`
             for specific installation on CentOS.
-    * :ref:`OperationalInstallation` 
+    * :ref:`OperationalInstallation`
             to configure an operational EOxServer installation.
 
-Instance Creation 
+Instance Creation
 -----------------
 
-To create an instance, we recommend to use the :file:`eoxserver-admin.py` 
-script that comes with EOxServer. The script provides the command 
+To create an instance, we recommend to use the :file:`eoxserver-admin.py`
+script that comes with EOxServer. The script provides the command
 `create_instance` in order to create an EOxServer instance:
 
     Usage: ``eoxserver-admin.py create_instance [options] INSTANCE_ID [Optional destination directory]``
 
-    Creates a new EOxServer instance with name ``INSTANCE_ID`` in the current 
-    or optionally given directory with all necessary files and folder 
-    structure. If the ``--init_spatialite`` flag is set, then an initial 
+    Creates a new EOxServer instance with name ``INSTANCE_ID`` in the current
+    or optionally given directory with all necessary files and folder
+    structure. If the ``--init_spatialite`` flag is set, then an initial
     sqlite database will be created and initialized.
 
     Options:
@@ -86,20 +86,20 @@ script that comes with EOxServer. The script provides the command
 Instance Configuration
 ----------------------
 
-Every EOxServer instance has three configuration files:
+Every EOxServer instance has various configuration files:
 
 * ``settings.py`` - `template
-  <http://eoxserver.org/browser/trunk/eoxserver/conf/TEMPLATE_settings.py>`__
+  <https://github.com/EOxServer/eoxserver/blob/0.4/eoxserver/instance_template/project_name/settings.py>`__
+* `urls.py`` - `template
+  <https://github.com/EOxServer/eoxserver/blob/0.4/eoxserver/instance_template/project_name/urls.py>`__
 * ``conf/eoxserver.conf`` - `template
-  <http://eoxserver.org/browser/trunk/eoxserver/conf/TEMPLATE_eoxserver.conf>`__
-* ``conf/template.map`` - `template
-  <http://eoxserver.org/browser/trunk/eoxserver/conf/TEMPLATE_template.map>`__
+  <https://github.com/EOxServer/eoxserver/blob/0.4/eoxserver/instance_template/project_name/conf/eoxserver.conf>`__
 
-For each of them there is a template in the ``eoxserver/conf`` directory of the
-EOxServer distribution (referenced above) which is copied and adjusted by the
-`create_instance` command of the :file:`eoxserver-admin.py` script to the
-instance directory. If you create an EOxServer instance without the script you
-can copy those files and edit them yourself.
+For each of them there is a template in the ``eoxserver/instance_template``
+directory of the EOxServer distribution (referenced above) which is copied and
+adjusted by the `create_instance` command of the :file:`eoxserver-admin.py`
+script to the instance directory. If you create an EOxServer instance without
+the script you can copy those files and edit them yourself.
 
 The file ``settings.py`` contains the Django configuration. Settings that need
 to be customized:
@@ -107,6 +107,14 @@ to be customized:
 * ``PROJECT_DIR``: Absolute path to the instance directory.
 * ``DATABASES``: The database connection details. For detailed information see
   `Database Setup`_
+* ``COMPONENTS``: The EOxServer components enabled for this instance. This is
+  the main way how the active functionality of EOxServer is controlled, and also
+  a way to extend the existing capabilities with extensions. Please refer to the
+  `Plugins`_ section to see how this is done. By default all available components
+  are enabled.
+* ``LOGGING``: what and how logs are prcessed and stored. EOxServer provides a
+  very basic configuration that stores logfiles in the instace directory, but
+  they will probably not be suitable for every instance.
 
 You can also customize further settings, for a complete reference please refer
 to the `Django settings overview
@@ -116,14 +124,8 @@ Please especially consider the setting of the `TIME_ZONE
 <https://docs.djangoproject.com/en/1.4/ref/settings/#std:setting-TIME_ZONE>`_
 parameter and read the Notes provided in the ``settings.py`` file.
 
-
 The file ``conf/eoxserver.conf`` contains EOxServer specific settings. Please
-refer to the inline documentation for details.
-
-The file ``conf/template.map`` contains basic metadata for the OGC Web Services
-used by MapServer. For more information on metadata supported please refer to
-the `MapServer Mapfile documentation
-<http://mapserver.org/mapfile/index.html>`_.
+refer to the `configuration options section <ConfigurationOptions>`_ for details.
 
 Once you have created an instance, you have to configure and synchronize the
 database. If using the `create_instance` command of the
@@ -135,10 +137,11 @@ have to do is:
 
     python manage.py syncdb
 
-Note down the username and password you provide. You'll need it to log in to 
-the admin client.
+This script will also create an administration user if you want to. Note the
+username and password you provide. You'll need it to log in to the admin client.
 
-.. TODO: Logfile handling: configuration in settings.py and eoxserver.conf logrotate, etc.
+You can always create a user at a later time by running
+``python manage.py createsuperuser``.
 
 .. _Database Setup:
 .. _InstanceCreation_DBSetup:
@@ -163,13 +166,6 @@ following lines::
         }
     }
 
-.. note::
-
-    By default the number of SQL variables (SQLITE_MAX_VARIABLE_NUMBER) in SQL
-    is limited to 999. This leads to problems when having inserted 1000 
-    datasets or more. In this case the limit could either be increased or 
-    PostgreSQL/PostGIS must be used as a back-end database.
-
 Using a PostgreSQL/PostGIS database back-end configuration for EOxServer is a
 little bit more complex. Setting up a PostgreSQL database requires also
 installing the PostGIS extensions (the following example is an installation
@@ -191,7 +187,7 @@ database. Now a user with password can be set with the following line::
 
     createuser -d -R -P -S eoxserver-admin
 
-Depending on the configuration of the system used there may be the need to 
+Depending on the configuration of the system used there may be the need to
 enable access for the user in the ``pg_hba.conf``.
 
 In the ``settings.py`` the following entry has to be added::
@@ -225,7 +221,7 @@ EOxServer is deployed using the Python WSGI interface standard as any other
 The WSGI endpoint accepts HTTP requests passed from the web server and
 processes them synchronously. Each request is executed independently.
 
-In the `deployment git repository <https://github.com/EOxServer/deployment>`_ 
+In the `deployment git repository <https://github.com/EOxServer/deployment>`_
 we collect snippets for various deployment scenarios.
 
 In the following we present the way to deploy it using the `Apache2 Web Server
@@ -246,7 +242,7 @@ The deployment procedure consists of the following:
             Allow from all
     </Directory>
 
-* If using EOxServer < 0.3 customize ``wsgi.py`` in your EOxServer instance 
+* If using EOxServer < 0.3 customize ``wsgi.py`` in your EOxServer instance
   and add::
 
     import sys
@@ -255,16 +251,12 @@ The deployment procedure consists of the following:
     if path not in sys.path:
         sys.path.append(path)
 
-  * If using Django < 1.4 please copy ``TEMPLATE_wsgi.py`` from the EOxServer 
-    distribution ``eoxserver/conf`` directory in your instance under the name 
-    ``wsgi.py`` and customize it at the two indicated places.
-
 * Restart the Web Server
 
-As a general good idea the number of threads can be limited using the 
-following additional Apache2 configuration. In case an old version of 
-MapServer, i.e. < 6.2 or < 6.0.4, is used the number of threads **needs** to be 
-limited to 1 to avoid some `thread safety issues 
+As a general good idea the number of threads can be limited using the
+following additional Apache2 configuration. In case an old version of
+MapServer, i.e. < 6.2 or < 6.0.4, is used the number of threads **needs** to be
+limited to 1 to avoid some `thread safety issues
 <https://github.com/mapserver/mapserver/issues/4369>`_::
 
     WSGIDaemonProcess ows processes=10 threads=1
@@ -276,14 +268,8 @@ limited to 1 to avoid some `thread safety issues
 This setup will deploy your instance under the URL ``<url>`` and make it
 publicly accessible.
 
-Now that the public URL is known don't forget to adjust the configuration in
-``conf/eoxserver.conf``::
-
-    [services.owscommon]
-    http_service_url=http://<url>/ows
-
-Finally all the static files need to be collected at the location configured 
-by ``STATIC_ROOT`` in ``settings.py`` by using the following command from 
+Finally all the static files need to be collected at the location configured
+by ``STATIC_ROOT`` in ``settings.py`` by using the following command from
 within your instance::
 
     python manage.py collectstatic
@@ -303,163 +289,50 @@ EOxServer. As a Django application, the instance can be configured using the
 `manage.py <https://docs.djangoproject.com/en/1.4/ref/django-admin/>`_ script.
 
 EOxServer provides a specific command to insert datasets into the instance,
-called ``eoxs_register_dataset``. It is invoked from command line from your
+called ``eoxs_dataset_register``. It is invoked from command line from your
 instance base folder::
 
-    python manage.py eoxs_register_dataset --data-file DATAFILES --rangetype RANGETYPE
+    python manage.py eoxs_dataset_register --data DATAFILES --range-type RANGETYPE
 
-The mandatory parameter ``--data-file`` is a list of at least one path to a
-file containing the raster data for the dataset to be inserted. The files
-can be in any compliant (GDAL readable) format. When inserting datasets
-located in a Rasdaman database, this parameter defines the `collection` the
-dataset is contained in.
+The mandatory parameter ``--data`` is a path to a file containing the raster
+data for the dataset to be inserted. If the file resides in a package (a ZIP or
+TAR archive) then the location must be preceeded with the following:
+``<package-type>:<package-location>``. It also possible to chain multiple
+packages, e.g a ZIP file in a ZIP file containing the actual raster data.
+In conjunction to packages, it is also possible to state the storage of the
+data files. By default it is assumed that the data is available locally, but
+other storages (such as FTP or HTTP backends) are also possible. If used, it
+must be declared as first item in the aforementioned in the chain.
 
-Also mandatory is the parameter ``--rangetype``, the name of a range type
-which has to be already present in the instance's database.
+For each ``--data`` item a ``--semantic`` can be stated. The semantic defines
+how this data item is being used. For example a semantic of ``"bands[1:3]"``
+defines that the first three bands of the dataset is in the first data item.
 
-For each data file there may be given one metadata file containing Earth
-Observation specific metadata. The optional parameter ``--metadata-file``
-shall contain a list of paths to these files, where the items of this list
-refer to the data files with the same index of the according option. A
-metadata file for each data file is assumed with the same path, but with an
-`.xml` extension when this parameter is omitted. However, it is only used
-when it actually exists. Otherwise the data file itself is used to retrieve
-the metadata values. When this is not possible either, the default values
-are used as described below or the insertion is aborted.
+The same rules also apply for files declared via the ``--meta-data`` directive.
+This basically creates a ``--data`` item with ``"metadata"`` semantic. Also,
+these files are preferred when trying to determine the mandatory metadata of a
+dataset.
 
-When inserting datasets located in a Rasdaman database, this parameter is
-mandatory, since the metadata cannot be retrieved from within the rasdaman
-database and must be locally accessible.
+To specify the Range Type of the dataset, the ``--range-type`` parameter is
+mandatory to specify the name of a previously registered Range Type.
 
-For each dataset a coverage ID can be specified with the ``--coverage-id``
-parameter. As with the ``--metadata-file`` option, the items of the list refer
-to the items of the ``--data-file`` list. If omitted, an ID is generated using
-the data file name.
+The following options are used to supply metadata values that are either not
+possible to retrieve automatically or are to overwrite values automatically
+collected:
 
-The parameters ``--dataset-series`` and ``--stitched-mosaic`` allow to insert
-the dataset into all dataset series and rectified stitched mosaics specified
-by their EO IDs.
+  * ``--identifier``: the main identifier of the dataset
+  * ``--extent``: the (minx,miny,maxx,maxy) bounding box of the dataset
+                  expressed in the units defined in ``--srid`` or
+                  ``--projection``
+  * ``--size``: the pixel size of the dataset (size_x,size_y)
+  * ``--srid`` or ``--projection``: the native projection of the dataset
+  * ``--footprint``: the footprint (multi-) polygon in WKT format
+  * ``--begin-time`` and ``--end-time`: the datasets time span
+  * ``--coverage-type``: the type of the dataset
 
-The ``--mode`` parameter specifies the location of the data and metadata files
-as they may be located on a FTP server or in a Rasdaman database. This can
-either be `local`, `ftp` or `rasdaman`, whereas the default is `local`.
+By default, a dataset is not advertised in WMS/WCS GetCapabilities. In order to
+enable this, use the ``--visible`` flag.
 
-When the mode is set to either `ftp` or `rasdaman` the following options
-define the location of the dataset and the connection to it more
-thoroughly: ``--host``, ``--port``, ``--user``, ``--password``, and
-``--database`` (only for `rasdaman`). Only the ``--host`` parameter is
-mandatory, all others are optional.
-
-The ``--default-srid`` parameter is required when the SRID cannot be determined
-automatically, as for example with rasdaman datasets.
-
-For when you explicitly want to override the geospatial metadata of a dataset
-you can use ``--default-size`` and ``--default-extent``. Both parameters need
-to be used together and in combination with ``--default-srid``. This is
-required for datasets registered in a rasdaman database or for any other
-input method where the geospatial metadata cannot be retrieved.
-
-For datasets that do not have any EO metadata associated and want to be
-inserted anyways, the options ``--default-begin-time``, ``--default-end-time``
-and ``--default-footprint`` have to be used. These meta data values will only
-be used when no local meta data file is found (remote files are not checked).
-All three options have to be used in combination, so it is, for example, not
-possible to only provide the footprint via ``--default-footprint`` and let
-EOxServer gather the rest. There is one exception: when only begin and end
-dates are given, the footprint is generated using the image extent.
-
-With the ``--visible`` option, all registered datasets can be marked as either
-visible (``true``) or invisible (``false``). This effects the advertisment of
-the dataset in e.g: GetCapabilities responses. By default, all datasets are
-visible.
-
-This is an example usage of the ``eoxs_register_dataset`` command::
-
-    python manage.py eoxs_register_dataset --data-file data/meris/mosaic_MER_FRS_1P_reduced_RGB/*.tif --rangetype RGB \
-        --dataset-series MER_FRS_1P_reduced_RGB --stitched-mosaic mosaic_MER_FRS_1P_reduced_RGB -v3
-
-In this example, the parameter ``--metadata-file`` is omitted, since these files
-are in the same location as the data files and only differ in their extension.
-Also note that the ``--data-file`` parameter uses a shell wildcard `*.tif` which
-expands to all files with `.tif` extension in that directory. This
-funcitonality is not provided by EOxServer but by the operating system or the
-executing shell and is most certainly platform dependant.
-
-Here is another example including the ``--coverage-ids`` parameter which 
-overwrites the default ids based on the data file names e.g. because they 
-are not valid ``NCNames`` which is needed by the XML schemas::
-
-    python manage.py eoxs_register_dataset --data-files 1.tif 2.tif 3.tif \
-        --coverage-ids a b c --rangetype RGB  -v3
-
-The registered dataset is also inserted to the given dataset series and
-rectified stitched mosaic.
-
-Here is the full list of available options:
-
-  -v VERBOSITY, --verbosity=VERBOSITY
-                        Verbosity level; 0=minimal output, 1=normal output,
-                        2=all output
-  --settings=SETTINGS   The Python path to a settings module, e.g.
-                        "myproject.settings.main". If this isn't provided, the
-                        DJANGO_SETTINGS_MODULE environment variable will be
-                        used.
-  --pythonpath=PYTHONPATH
-                        A directory to add to the Python path, e.g.
-                        "/home/djangoprojects/myproject".
-  --traceback           Print traceback on exception
-  -d, --data-file, --data-files, --collection, --collections
-                        Mandatory. One or more paths to a files containing the
-                        image data. These paths can either be local, ftp
-                        paths, or rasdaman collection names.
-  -m, --metadata-file, --metadata-files
-                        Optional. One or more paths to a local files
-                        containing the image meta data. Defaults to the same
-                        path as the data file with the ".xml" extension.
-  -r RANGETYPE, --rangetype=RANGETYPE
-                        Mandatory identifier of the rangetype used in the
-                        dataset.
-  --dataset-series      Optional. One or more eo ids of a dataset series in
-                        which the created datasets shall be added.
-  --stitched-mosaic     Optional. One or more eo ids of a rectified stitched
-                        mosaic in which the dataset shall be added.
-  -i, --coverage-id, --coverage-ids
-                        Optional. One or more coverage identifier for each
-                        dataset that shall be added. Defaults to the base
-                        filename without extension.
-  --mode=MODE           Optional. Defines the location of the datasets to be
-                        registered. Can be 'local', 'ftp', or 'rasdaman'.
-                        Defaults to 'local'.
-  --host=HOST           Mandatory when mode is not 'local'. Defines the
-                        ftp/rasdaman host to locate the dataset.
-  --port=PORT           Optional. Defines the port for ftp/rasdaman host
-                        connections.
-  --user=USER           Optional. Defines the ftp/rasdaman user for the
-                        ftp/rasdaman connection.
-  --password=PASSWORD   Optional. Defines the ftp/rasdaman user password for
-                        the ftp/rasdaman connection.
-  --database=DATABASE   Optional. Defines the rasdaman database containing the
-                        data.
-  --oid, --oids         Optional. List of rasdaman oids for each dataset to be
-                        inserted.
-  --default-srid=DEFAULT_SRID
-                        Optional. Default SRID, needed if it cannot be
-                        determined automatically by GDAL.
-  --default-size=DEFAULT_SIZE
-                        Optional. Default size, needed if it cannot be
-                        determined automatically by GDAL. Format:
-                        <sizex>,<sizey>
-  --default-extent=DEFAULT_EXTENT
-                        Optional. Default extent, needed if it cannot be
-                        determined automatically by GDAL. Format:
-                        <minx>,<miny>,<maxx>,<maxy>
-  --default-begin-time  Optional. Default begin timestamp when no other EO-
-                        metadata is available. The format is ISO-8601.
-  --default-end-time    Optional. Default end timestamp when no other EO-
-                        metadata is available. The format is ISO-8601.
-  --default-footprint   Optional. The default footprint in WKT format when no
-                        other EO-metadata is available.s
-  --visible=VISIBLE     Optional. Sets the visibility status of all datasets
-                        to thegiven boolean value. Defaults to 'True'.
-  --version             show program's version number and exit
-  -h, --help            show this help message and exit
+When this dataset shall be inserted into a collection, use the ``--collection``
+option with the collections identifier. This option can be set multiple times
+for different collections.

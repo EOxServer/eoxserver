@@ -49,6 +49,15 @@ from 0.2.3 to 0.2.4 doesn't need any special considerations. For all other
 upgrades please carefully read the relevant sections below.
 
 
+Migration from 0.3 to 0.4
+-------------------------
+
+Unfortunately there are no migrations from version 0.3 to version 0.4 due to a
+major overhaul of the database schema and configuration. We recommend that you
+upgrade the EOxServer software, create a new instance and register all the data
+again.
+
+
 Migration from 0.2 to 0.3
 -------------------------
 

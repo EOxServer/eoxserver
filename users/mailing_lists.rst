@@ -68,7 +68,7 @@ Here are some points to remember when posting to the list:
  
 
 Dev Mailing List
-------------------
+----------------
 
 A separate mailing list is available for EOxServer developers. It is meant to be
 used by individuals working on EOxServer source code and related libraries to

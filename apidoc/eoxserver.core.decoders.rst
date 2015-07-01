@@ -20,14 +20,6 @@ eoxserver.core.decoders.config module
     :undoc-members:
     :show-inheritance:
 
-eoxserver.core.decoders.gml module
-----------------------------------
-
-.. automodule:: eoxserver.core.decoders.gml
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 eoxserver.core.decoders.kvp module
 ----------------------------------
 

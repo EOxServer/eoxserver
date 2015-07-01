@@ -12,15 +12,6 @@ eoxserver.testing.xcomp module
     :undoc-members:
     :show-inheritance:
 
-eoxserver.testing.xmlcompare module
------------------------------------
-
-.. automodule:: eoxserver.testing.xmlcompare
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
 Module contents
 ---------------
 

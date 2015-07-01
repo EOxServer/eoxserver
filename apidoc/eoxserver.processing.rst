@@ -12,15 +12,6 @@ Subpackages
 Submodules
 ----------
 
-eoxserver.processing.interfaces module
---------------------------------------
-
-.. automodule:: eoxserver.processing.interfaces
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
 Module contents
 ---------------
 

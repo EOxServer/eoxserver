@@ -430,14 +430,14 @@ Creating a custom Range Type
 Before registering any data in EOxServer some vital information on the datasets
 has to be provided. Detailed information regarding the kind of data stored can
 be defined in the Range Type. A Range Type is a collection of bands which
-themselves are assigned to a specifig Data Type (see :ref:`ops_range_types`).
+themselves are assigned to a specific Data Type (see :ref:`ops_range_types`).
 
 A simple standard PNG for example holds 4 bands (RGB + Alpha) each of them able
 to store 8 bit data. Therefore the Range Type would have to be defined with four
 bands (red, green, blue, alpha) each of them having 'Byte' as Data Type.
 
 In our example we use the reduced MERIS RGB data provided in the autotest
-instance. gdalinfo provides us with the most important information:
+instance. ``gdalinfo`` provides us with the most important information:
 ::
 
     [...]
@@ -445,107 +445,120 @@ instance. gdalinfo provides us with the most important information:
     Band 2 Block=541x5 Type=Byte, ColorInterp=Green
     Band 3 Block=541x5 Type=Byte, ColorInterp=Blue
 
-First, we have to define the bands by clicking "add" next to "Bands" in the 
-Admin interface. In "Name", "Identifier" and "Description" you can enter the
+
+In order to define a new Range Type we click on the "Add" button next to the
+"Range Types" in the home menu of the admin client. Here we define the name of
+the Range Type and add bands to it by clicking on "Add another band".
+
+For each band in "Name", "Identifier" and "Description" you can enter the
 same content for now. The default "Definition" value for now can be
 "http://www.opengis.net/def/property/OGC/0/Radiance". "UOM" stands for "unit of
 measurement" which in our case is radiance defined by the value "W.m-2.Sr-1".
 For displaying the data correctly it is recommended to assign the respective
-value in "GDAL Interpretation". NoData values can be defined by adding a
-"Nilvaluerecord". (see screenshot)
+value in "Color Interpretation". If your data is distributed in only a portion
+of the possible values of its data type it is best to define "Raw value min" and
+"Raw value max" to have a better visual representation in e.g WMS. You can add 
+a Nilvalue set to each of the bands, which is explained in the next section.
 
-.. _fig_admin_app_01_add_band:
-.. figure:: images/admin_app_01_add_band.png
+With the "index" you can finetune the index of the band within the range type.
+
+.. _fig_admin_app_01_add_range_type:
+.. figure:: images/admin_app_01_add_range_type.png
    :align: center
 
-.. _fig_admin_app_02_create_band1:
-.. figure:: images/admin_app_02_create_band1.png
+To define invalid values of the image, for each band a set of nil values can be
+defined. To create one navigate to "/admin/coverages/nilvalueset" and click on
+the button "Add Nil Value Set". Here you can define a name of the set (which you
+can later use to set it in the band) and set the nil value(s) definition and
+reason. You can also add additional nil values to the set by clicking "Add 
+another Nil Value". To add the NilValue set to the band(s), you have to navigate
+back to your range type admin page and set the nilvalue set to your band.
+
+.. _fig_admin_app_02_add_nil_value_set:
+.. figure:: images/admin_app_02_add_nilvalue_set.png
    :align: center
-
-.. _fig_admin_app_03_create_band2:
-.. figure:: images/admin_app_03_create_band2.png
-   :align: center
-
-After adding also the green and blue band we can proceed defining the Range
-Type. After providing the new Range Type with a name you will have to assign a
-Data Type of all data. In our case we select "Byte". Below we now have to add
-our three Bands by clicking on the lowermost "+" icon. The important part here 
-is to assign each Band it's respective number ('1' for red and so on). (see
-screenshot)
-
-.. _fig_admin_app_04_add_rangetype:
-.. figure:: images/admin_app_04_add_rangetype.png
-   :align: center
-
-Alternatively we could have started with the Range Type and added each band via 
-the "+" icons next to the bands directly.
 
 To list, export, and load range types using the command-line tools see
 :ref:`eoxs-range-type`.
 
-Linking to a Local Path
-~~~~~~~~~~~~~~~~~~~~~~~
+Creating a Dataset
+~~~~~~~~~~~~~~~~~~
 
-Click "Add" on "Local paths" and paste the desired local directory where your
-data is. Make sure the system user under which the web server process is 
-running, typically apache, has read access.
+To create a Rectified or Referenceable Dataset from the admin click on either
+of the "Add" buttons next to the corresponding dataset type in the home screen.
+For both Dataset types the following fields must be set:
 
-..
-  # Linking to a FTP Storage
-  # ~~~~~~~~~~~~~~~~~~~~~~~~
-  # TODO
+  * Identifier: a unique identifier for the Dataset
+  * Range Type
+  * Size for both X and Y axis
+  * The bounding box (min x, min y, max x, max y). The bounding box is expressed
+    in the CRS defined by either "SRID" or "Projection" of which one *must* be
+    specified
 
-..
-  # Linking to a rasdaman Storage
-  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # TODO
+The following items *should* be set:
 
-Creating a Data Package
-~~~~~~~~~~~~~~~~~~~~~~~
+  * Begin and end time: if available this should be set to let the various
+    services allow a temporal search
+  * Footprint: this should be set as-well to let the various services perform
+    spatial searches.
 
-A *Data Package* consists of a GDAL-readable image file and a corresponding
-XML metadata file using the WCS 2.0 Earth Observation Application Profile
-(EO-WCS).
+To link actual files containing data and metadata to the Dataset, we have to add
+Data Items. Each data item has a "location", a "format" (mime-type) and a 
+"semantic" (band data, metadata or anything else related).
 
-.. _fig_admin_app_05_data_package:
-.. figure:: images/admin_app_05_data_package.png
+The "location" is relative to either the "storage" or "package" if available,
+otherwise the location is treated a local (relative or absolute) path. A
+"Storage" defines a remote service like FTP, HTTP or similar. A package
+abstracts archives like TAR or ZIP files. Packages have a location themselves 
+and can also reside on a storage or be located within another package
+themselves.
+
+To add a local 15-bands GeoTIFF and a local metadata XML-file to the Dataset use
+the following values:
+  
+  +----------------------+------------+-------------+
+  | Location             | Format     | Semantic    |
+  +======================+============+=============+
+  | path/to/data.tiff    | image/tiff | bands[1:15] |
+  +----------------------+------------+-------------+
+  | path/to/metadata.xml | eogml      | metadata    |   
+  +----------------------+------------+-------------+
+
+If the raster-data is distributed among several files you can use several data
+items with semantic ``bands[low:high]`` where low and high are the 1-based
+indices.
+
+You can directly add the dataset to one or multiple collections in the 
+"EO Object to Collection Relations" section.
+
+.. _fig_admin_app_03_add_dataset:
+.. figure:: images/admin_app_03_add_dataset.png
    :align: center
 
-..
-  # Adding a single Rectified Dataset
-  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # TODO
 
-Adding Data Sources
-~~~~~~~~~~~~~~~~~~~
+Creating a Dataset Series or a Stitched Mosaic
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-After adding a Local Path or location (pointing to a single directory, not a
-specific file) you can combine this with a search pattern and create a Data
-Source. A viable search pattern would be something like "\*.tif" to add all TIFF
-files stored in that directory. Please note that in this case, every TIFF needs
-a XML file with the exact same name holding the EO-Metadata.
+A Dataset Series is a very basic type of collection that can contain Datasets,
+Stitched Mosaics and even other Dataset Series. The creation of a dataset series
+is fairly simple: In the admin click on "Add Dataset Series", enter a valid
+identifier, add elements (in the "EO Object to Collection Relations" section)
+and click on "save". The metadata (footprint, begin time and end time) are
+automatically collected upon the save.
 
-.. _fig_admin_app_06_add_data_source:
-.. figure:: images/admin_app_06_add_data_source.png
-   :align: center
+The creation of a Stitched Mosaic is similar to the creation of a Dataset Series
+with some restrictions:
 
-.. 
-  # Creating a Stitched Mosaic
-  # ~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # TODO
+  * the Range Type, overall size and exact bounding box must be specified
+    (exactly as with Datasets)
+  * only Rectified Datasets that lie on the exact same grid can be added
 
-Creating a Dataset Series
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-A Dataset Series can contain any number of EO Coverages i.e. Datasets or 
-Stitched Mosaics. A Dataset Series therefore has its own metadata entry with 
-respect to the metadata of its containing datasets.
-
-.. _fig_admin_app_07_add_dataset_series:
-.. figure:: images/admin_app_07_add_dataset_series.png
+.. _fig_admin_app_04_add_dataset_series:
+.. figure:: images/admin_app_04_add_dataset_series.png
    :align: center
 
 .. _ops_cli:
+
 
 Command Line Tools
 ------------------
@@ -557,22 +570,24 @@ The first important command line tool is used for :ref:`Creating an Instance`
 of EOxServer and is explained in the :ref:`Installation` section of this user' 
 guide.
 
+
+
 .. _eoxs-register-ds:
 
-eoxs_register_dataset
+eoxs_dataset_register
 ~~~~~~~~~~~~~~~~~~~~~
 
 Besides this tool EOxServer adds some custom commands to Django's manage.py 
-script. The ``eoxs_register_dataset`` command is detailed in the 
+script. The ``eoxs_dataset_register`` command is detailed in the 
 :ref:`Data Registration` section.
 
 
 .. _eoxs-deregister-ds:
 
-eoxs_deregister_dataset
+eoxs_dataset_deregister
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``eoxs_deregister_dataset`` command allows the de-registration of existing 
+The ``eoxs_dataset_deregister`` command allows the de-registration of existing 
 datasets (simple coverage types as Rectified and Referenceables datasets only)
 from an EOxServer instance including proper unlinking from relevant 
 container types. The functionality of this command is complementary to the 
@@ -586,17 +601,17 @@ their storage.
 To de-register a dataset (coverage) identified by its (Coverage/EO) identifier
 the following command shall be invoked::
 
-    python manage.py eoxs_deregister_dataset <CoverageID> 
+    python manage.py eoxs_dataset_deregister <identifier> 
 
 The de-registration command allows convenient de-registration of an arbitrary 
 number of datasets at the same time::
 
-    python manage.py eoxs_deregister_dataset <CoverageID> <CoverageID> ... 
+    python manage.py eoxs_dataset_deregister <identifier> [<identifier> ...]
 
-The ``eoxs_deregister_dataset`` does not allow the removing of container objects
+The ``eoxs_dataset_deregister`` does not allow the removing of container objects
 such as Rectified Stitched Mosaics or Dataset Series. 
 
-The ``eoxs_deregister_dataset`` command, by default, does not allow the 
+The ``eoxs_dataset_deregister`` command, by default, does not allow the 
 de-registration of automatic datasets (i.e, datasets registered by the 
 synchronisation process, see :ref:`what_is_sync`). Although this restriction 
 can be overridden by the ``--force`` option, it is not recommended to do so.
@@ -612,19 +627,13 @@ command) and register it again with the updated parameters (see
 linking of the *updated* dataset to all the container objects during the
 registration as this information is removed  by the de-registration.
 
-eoxs_add_dataset_series
-~~~~~~~~~~~~~~~~~~~~~~~
+eoxs_collection_create
+~~~~~~~~~~~~~~~~~~~~~~
 
-The ``eoxs_add_dataset_series`` command allows the creation of a dataset series
+The ``eoxs_collection_create`` command allows the creation of a dataset series
 with initial data sources or coverages included. In it's simplest use case,
-only the ``--eo-id`` parameter is required, which has to be a valid and not yet
-taken identifier for the Dataset Series.
-
-When supplied with the ``--data-sources`` parameter, given data sources will be
-added once the Dataset Series is created. When using the ``--data-sources`` it
-is highly recommended to also use ``--patterns``, a list of search patterns
-which will be used for the data source of the same index. When only one
-``--pattern`` is given, it is used for all data sources.
+only the ``--identifier`` parameter is required, which has to be a valid and not 
+yet taken identifier for the collection. By default a Dataset Series is created.
 
 Range types for datasets can be read from configuration files that are 
 accompanying them. There can be a configuration file for each dataset or one 
@@ -644,17 +653,40 @@ some of the datasets in a directory and a default range type defined in
 file and fall back to the default only if there is no individual ``.conf`` 
 file.
 
-Unless the ``--no-sync`` parameter is given, this also triggers a
-synchronization as explained in the chaper :ref:`what_is_sync`. 
-
 Already registered datasets can be automatically added to the Dataset Series by
-using the ``--add`` option which takes a list of IDs referencing either
-Rectified Datasets, Referenceable Datasets and Rectified Stitched Mosaics.
+using the ``--add`` option which takes an identifier of the Dataset or 
+collection to be added. This option can be used multiple times.
 
-The optional ``--default-begin-time``, ``--default-end-time`` and
-``--default-footprint`` parameters can be used to supply some default metadata
-values. Note: once the Dataset Series is synchronized, these values are
-overridden.
+If the collection is intended to be a sub-collection of another collection it
+can be inserted via the ``--collection`` parameter that also requires the
+identifier of the collection. Again, this parameter can be used multiple times.
+
+
+eoxs_collection_delete
+~~~~~~~~~~~~~~~~~~~~~~
+
+With this command an existing collection can be removed. When the ``--force``
+switch is not set, only empty collections can be deleted. With the
+``--recursive`` option all sub-collections will be deleted aswell.
+
+This command does *never* remove any Datasets.
+
+.. _eoxs-dss-remove-ds:
+.. _eoxs-dss-insert-ds:
+
+eoxs_collection_link and eoxs_collection_unlink
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+These two commands insert and remove links between objects and collections. To
+insert an object into a collection use the following command:
+::
+  
+  eoxs_collection_link --add <object-identifier> --collection <collection-identifier>
+
+To do the opposite do the following:
+::
+
+  eoxs_collection_unlink --remove <object-identifier> --collection <collection-identifier>
 
 eoxs_synchronize
 ~~~~~~~~~~~~~~~~
@@ -714,69 +746,9 @@ ensuring the databases consistency with the file system.
 The synchronization process may take some time, especially when FTP/Rasdaman
 storages are used and also depends on the number of synchronized objects.
 
-.. _eoxs-dss-insert-ds:
-
-eoxs_insert_into_series
-~~~~~~~~~~~~~~~~~~~~~~~
-
-This command allows to insert (link) existing coverages (datasets) into dataset
-series. 
-
-The same action can be obtained already during the dataset registration 
-by using of the ``--dataset-series`` option of the :ref:`eoxs-register-ds`.
-
-To insert a coverage into a dataset series use this command:
-::
-
-    python manage.py eoxs_insert_into_series <CoverageID> <DatasetSeriesID>
-
-For convenience, multiple coverages can be inserted at once:
-::
-
-    python manage.py eoxs_insert_into_series <CoverageID1> <CoverageID2> ... <DatasetSeriesID>
-
-All given IDs but the last are interpreted as coverage IDs and the last as the
-ID for the dataset series.
-
-The IDs can also be set explicitly via the ``--dataset`` and
-``--dataset-series`` options, which also allows the insertion of datasets into
-multiple dataset series:
-::
-
-    python manage.py eoxs_insert_into_series --datasets <CoverageID1> <CoverageID2> \
-                                 --dataset-series <DatasetSeriesID1> <DatasetSeriesID2>
-
-..  With the ``--mode`` parameter also the lookup type of coverages can be altered.
-    E.g with ``--mode=filename``, coverages can be inserted by their filename
-    instead of their coverage ID. Use this with caution, as this may lead to
-    unexpected results, as the data model allows multiple coverages with the same
-    file name. Also the paths must completely match with the paths saved in the
-    database, so an absolute path would not match a saved relative path.
-
-.. _eoxs-dss-remove-ds:
-
-eoxs_remove_from_series
-~~~~~~~~~~~~~~~~~~~~~~~
-
-This command is complemetary to the :ref:`eoxs-dss-insert-ds` as it removes
-(unlinks) coverages from a dataset series. As these two commands have a very 
-similar semantic, the parameters are the same and have the same meaning.
-
-To remove a single coverage from a dataset series type:
-::
-
-    python manage.py eoxs_remove_from_series <CoverageID> <DatasetSeriesID>
-
-Like :ref:`eoxs-dss-insert-ds` also multiple coverages can be excluded at once.
-
-It is worth to mention that the ``eoxs_remove_from_series`` command does not 
-deregister the unlinked datasets and these still held by the EOxServer. 
-In case the deregistration of datasets is desired the :ref:`eoxs-deregister-ds`
-command does so together with unlinking of the datasets from all datasets. 
-
 .. _eoxs-check-id:
 
-eoxs_check_id 
+eoxs_id_check
 ~~~~~~~~~~~~~
 
 The ``eoxs_check_id`` commands allows checking about status of the queried
@@ -784,62 +756,52 @@ coverage/EO identifier. The command returns the status via its return code (0 -
 ``True`` or 1 - ``False``).
 
 By default the command checks whether an identifier can be used (is available)
-as a new Coverage/EO ID::
+as a new Coverage/Collection ID::
 
-    python manage.py eoxs_check_id <ID> && echo True || echo False
+    python manage.py eoxs_id_check <ID> && echo True || echo False
 
-The default behaviour is equivalent to ``--is-available`` option::
+It is possible to check if the identifier is used for a specific type of object.
+For example, the following would check if the identifier is used for a
+Dataset Series:
+::
 
-    python manage.py eoxs_check_id --is-available <ID> && echo True || echo False
-
-The *available* coverage/EO ID is neither *used* by an existing objects nor
-*reserved* for use by a future object. 
-
-In order to check whether a coverage/EO ID is used by an existing object apply 
-the ``--is-used`` option:: 
-
-    python manage.py eoxs_check_id --is-used <ID> && echo True || echo False
-
-In order to check whether a coverage/EO ID is registered for future use apply
-the ``--is-reserved`` option:: 
-
-    python manage.py eoxs_check_id --is-reserved <ID> && echo True || echo False
+  python manage.py eoxs_id_check <ID> --type DatasetSeries && echo True || echo False
 
 .. _eoxs-range-type:
 
 Range Type Handling  
 ~~~~~~~~~~~~~~~~~~~
 
-The ``eoxs_list_rangetypes`` command, by default, lists the names of all 
+The ``eoxs_rangetypes_list`` command, by default, lists the names of all 
 registered range types::
 
-    python manage.py eoxs_list_rangetypes
+    python manage.py eoxs_rangetypes_list
 
 In case of more range types details required verbose listing may be requested by
 ``--details`` option. When one or more range type names are specified the output 
 will be limited to the specified range-types only::
 
-    python manage.py eoxs_list_rangetypes --details [<range-type-name> ...]
+    python manage.py eoxs_rangetypes_list --details [<range-type-name> ...]
 
 The same command can be also used to export rangetype in JSON format 
 (``--json`` option). Following example prints the selected RGB range type in
 JSON format::
 
-    python manage.py eoxs_list_rangetypes --json RGB  
+    python manage.py eoxs_rangetypes_list --json RGB  
 
 The output may be directly savaved to file by using the ``-o`` option. Following
 example saves all the registered range-types to a file named
 ``rangetypes.json``::
 
-    python manage.py eoxs_list_rangetypes --json -o rangetypes.json
+    python manage.py eoxs_rangetypes_list --json -o rangetypes.json
 
 
 The rangetypes saved in JSON format can be loaded (e.g., by another *EOxServer*
-instance) by using of the ``eoxs_load_rangetypes`` command. By default, this 
+instance) by using of the ``eoxs_rangetypes_load`` command. By default, this 
 command reads the JSON data from the standard input. To force the command to
 read the input from a file use ``-i`` ::
 
-    python manage.py eoxs_load_rangetypes -i rangetypes.json
+    python manage.py eoxs_rangetypes_load -i rangetypes.json
 
 
 Performance
