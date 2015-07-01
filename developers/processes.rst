@@ -23,7 +23,7 @@
   # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
   # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
   # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+  # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
   # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
   # IN THE SOFTWARE.
   #-----------------------------------------------------------------------------
@@ -38,7 +38,7 @@ interface.
 
 Processes are simply :class:`Components <eoxserver.core.component.Component>`
 that implement the :class:`ProcessInterface
-<eoxserver.services.ows.wps.interfaces.ProcessInterface>`. For general 
+<eoxserver.services.ows.wps.interfaces.ProcessInterface>`. For general
 information about Plugins/Components please refer to the :ref:`Plugins`
 documentation.
 
@@ -56,12 +56,13 @@ As we already mentioned, Processes are :class:`Components
         implements(ProcessInterface)
         ...
 
-Apart from some optional metadata and a mandatory identifier, each Process has 
-specific input parameters and output items. Those can be of various formats and 
-complexity. Each input and output must be declared in the processes section. 
+Apart from some optional metadata and a mandatory identifier, each Process has
+specific input parameters and output items. Those can be of various formats and
+complexity. Each input and output must be declared in the processes section.
 Let's start with a simple example, using `LiteralData
-<eoxserver.services.ows.wps.parameters.LiteralData>` inputs and outputs:
+<eoxserver.services.ows.wps.parameters.LiteralData>`_ inputs and outputs:
 ::
+
     from eoxserver.services.ows.wps.parameters import LiteralData
 
     class ExampleProcess(Component):
@@ -89,11 +90,11 @@ Let's start with a simple example, using `LiteralData
         ...
 
 :class:`LiteralData <eoxserver.services.ows.wps.parameters.LiteralData>`
-inputs will always try to parse the input to the defined type. E.g: if you 
+inputs will always try to parse the input to the defined type. E.g: if you
 defined your input type to ``float``, an error will be raised if the supplied
-parameters could not be passed. On the other hand, all your outputs will be 
-properly encoded and even translated to a specific unit if requested. Your 
-execute function will not need to hassle with type conversions of any kind for 
+parameters could not be passed. On the other hand, all your outputs will be
+properly encoded and even translated to a specific unit if requested. Your
+execute function will not need to hassle with type conversions of any kind for
 your inputs/outputs.
 
 Now that we have defined a Process with metadata, inputs and outputs we can
@@ -131,7 +132,7 @@ we only declared a single output, or a :class:`dict` of outputs where the
 
 
 Another often used type for Processes are :class:`BoundingBoxes
-<eoxserver.services.ows.wps.parameters.BoundingBox>`. They are declared as 
+<eoxserver.services.ows.wps.parameters.BoundingBox>`. They are declared as
 follows:
 ::
 

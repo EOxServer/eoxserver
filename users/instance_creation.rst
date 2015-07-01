@@ -110,7 +110,7 @@ to be customized:
 * ``COMPONENTS``: The EOxServer components enabled for this instance. This is
   the main way how the active functionality of EOxServer is controlled, and also
   a way to extend the existing capabilities with extensions. Please refer to the
-  `Plugins`_ section to see how this is done. By default all available components
+  :ref:`Plugins` section to see how this is done. By default all available components
   are enabled.
 * ``LOGGING``: what and how logs are prcessed and stored. EOxServer provides a
   very basic configuration that stores logfiles in the instace directory, but
@@ -327,7 +327,7 @@ collected:
   * ``--size``: the pixel size of the dataset (size_x,size_y)
   * ``--srid`` or ``--projection``: the native projection of the dataset
   * ``--footprint``: the footprint (multi-) polygon in WKT format
-  * ``--begin-time`` and ``--end-time`: the datasets time span
+  * ``--begin-time`` and ``--end-time``: the datasets time span
   * ``--coverage-type``: the type of the dataset
 
 By default, a dataset is not advertised in WMS/WCS GetCapabilities. In order to

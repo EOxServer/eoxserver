@@ -23,7 +23,7 @@
   # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
   # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
   # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+  # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
   # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
   # IN THE SOFTWARE.
   #-----------------------------------------------------------------------------
@@ -64,7 +64,7 @@ Especially for batch processing using the :ref:`ops_cli` may be preferable.
 Storage Backends
 ----------------
 
-EOxServer supports different kinds of data stores for coverage data (additional 
+EOxServer supports different kinds of data stores for coverage data (additional
 backends can be added as plugin):
 
 * as an image file stored on the local file system
@@ -117,14 +117,14 @@ Data Items
 A data item describes a single resource located on a storage, where the "local"
 storage (the local filesystem) is assumed if no other storage is defined. The
 path of a data item is always relative to its storage and might in some special
-cases have a specific meaning. This is defined in the Storage plugin that 
+cases have a specific meaning. This is defined in the Storage plugin that
 handles the specific backend.
 
-Each data item has a semantic, which defines the actual usage of this data 
-item. This might be "metadata" for metadata files or "bands[1:3]" for raster 
+Each data item has a semantic, which defines the actual usage of this data
+item. This might be "metadata" for metadata files or "bands[1:3]" for raster
 data. The usage of this field is really generic and depends on the context.
 
-The format of a data item has informative character of how it might be 
+The format of a data item has informative character of how it might be
 interpreted. Use default MIME types here.
 
 
@@ -145,7 +145,7 @@ inhomogeneous collection of coverages.
 Every coverage is a set of associated Data Items which define where the actual
 data of the coverage can be found.
 
-Additionally every coverage has associated EO Metadata, that defines the 
+Additionally every coverage has associated EO Metadata, that defines the
 acquisition time and the area of interest whithin the coverage.
 
 
@@ -155,7 +155,7 @@ Range Types
 ~~~~~~~~~~~
 
 Every coverage has a range type describing the structure of the data.
-Each range type has a given data type whereas the following data types are 
+Each range type has a given data type whereas the following data types are
 supported:
 
 ============== ===============
@@ -175,7 +175,7 @@ CFloat32       10
 CFloat64       11
 ============== ===============
 
-A range type contains of one or more bands. For each band you may specify a 
+A range type contains of one or more bands. For each band you may specify a
 name, an identifier and a definition that describes the property measured
 (e.g. radiation). Furthermore, you can define nil values for each band (i.e.
 values that indicate that there is no measurement at the given position).
@@ -202,10 +202,10 @@ of bands (either 1 or 3 bands).
 Rectified Datasets
 ~~~~~~~~~~~~~~~~~~
 
-Rectified Datasets are EO coverages whose domain set is a rectified grid i.e. 
-which are having a regular spacing in projected or geographic CRS. In practice, 
-this applies to ortho-rectified satellite data. The rectified grid is described 
-by the EPSG SRID of the coordinate reference system, the extent and pixel size 
+Rectified Datasets are EO coverages whose domain set is a rectified grid i.e.
+which are having a regular spacing in projected or geographic CRS. In practice,
+this applies to ortho-rectified satellite data. The rectified grid is described
+by the EPSG SRID of the coordinate reference system, the extent and pixel size
 of the coverage.
 
 Rectified Datasets can be added to Dataset Series and Rectified Stitched
@@ -216,9 +216,9 @@ Mosaics.
 Referenceable Datasets
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Referenceale Datasets are EO coverages whose domain set is a referenceable grid 
-i.e. which are not rectified, but are associated with (one or more) coordinate 
-transformation which relate the image to a projected or geographic CRS. 
+Referenceale Datasets are EO coverages whose domain set is a referenceable grid
+i.e. which are not rectified, but are associated with (one or more) coordinate
+transformation which relate the image to a projected or geographic CRS.
 That means that there is some general transformation between the grid cell
 coordinates and coordinates in an Earth-bound spatial reference system. This
 applies for satellite data in its original geometry.
@@ -249,9 +249,9 @@ top hiding the others.
 Dataset Series
 ~~~~~~~~~~~~~~
 
-Any Rectified and Referenceable Datasets can be organized in Dataset Series. 
-Multiple datasets which are spatially and/or temporally overlapping can be 
-organized in a Dataset Series. Furthermore Stitched Mosaics can also be 
+Any Rectified and Referenceable Datasets can be organized in Dataset Series.
+Multiple datasets which are spatially and/or temporally overlapping can be
+organized in a Dataset Series. Furthermore Stitched Mosaics can also be
 organized in Dataset Series.
 
 .. _ops_data:
@@ -278,7 +278,7 @@ contain the data (e.g. ENVISAT N1, GeoTIFF, JPEG 2000). But some data formats
 moment these data formats are only supported for data output, but not for data
 input.
 
-For more information on configuration of supported raster file formats read  
+For more information on configuration of supported raster file formats read
 ":ref:`FormatsConfiguration`".
 
 Raster Data Preparation
@@ -296,7 +296,7 @@ the ``gdal_translate`` command for that task::
 You can display the list of possible output formats with::
 
   $ gdalinfo --formats
-  
+
 For automatic registration of datasets, EOxServer relies on the geospatial
 metadata stored with the dataset, notably the EPSG ID of the coordinate
 reference system and the geospatial extent. In some cases the CRS information
@@ -416,12 +416,12 @@ a properly configured EOxServer instance.
 Admin Client
 ------------
 
-The Admin Client is accessible via any standard web browser at the path 
-/*admin* under the URL your instance is deployed or simply by following the 
-*admin* link on the start page. :ref:`EOxServer Deployment` provides more 
+The Admin Client is accessible via any standard web browser at the path
+/*admin* under the URL your instance is deployed or simply by following the
+*admin* link on the start page. :ref:`EOxServer Deployment` provides more
 details.
 
-Use the username and password you provided during the `syncdb` step as 
+Use the username and password you provided during the `syncdb` step as
 described in the :ref:`Creating an Instance` section.
 
 Creating a custom Range Type
@@ -457,7 +457,7 @@ measurement" which in our case is radiance defined by the value "W.m-2.Sr-1".
 For displaying the data correctly it is recommended to assign the respective
 value in "Color Interpretation". If your data is distributed in only a portion
 of the possible values of its data type it is best to define "Raw value min" and
-"Raw value max" to have a better visual representation in e.g WMS. You can add 
+"Raw value max" to have a better visual representation in e.g WMS. You can add
 a Nilvalue set to each of the bands, which is explained in the next section.
 
 With the "index" you can finetune the index of the band within the range type.
@@ -470,7 +470,7 @@ To define invalid values of the image, for each band a set of nil values can be
 defined. To create one navigate to "/admin/coverages/nilvalueset" and click on
 the button "Add Nil Value Set". Here you can define a name of the set (which you
 can later use to set it in the band) and set the nil value(s) definition and
-reason. You can also add additional nil values to the set by clicking "Add 
+reason. You can also add additional nil values to the set by clicking "Add
 another Nil Value". To add the NilValue set to the band(s), you have to navigate
 back to your range type admin page and set the nilvalue set to your band.
 
@@ -503,32 +503,32 @@ The following items *should* be set:
     spatial searches.
 
 To link actual files containing data and metadata to the Dataset, we have to add
-Data Items. Each data item has a "location", a "format" (mime-type) and a 
+Data Items. Each data item has a "location", a "format" (mime-type) and a
 "semantic" (band data, metadata or anything else related).
 
 The "location" is relative to either the "storage" or "package" if available,
 otherwise the location is treated a local (relative or absolute) path. A
 "Storage" defines a remote service like FTP, HTTP or similar. A package
-abstracts archives like TAR or ZIP files. Packages have a location themselves 
+abstracts archives like TAR or ZIP files. Packages have a location themselves
 and can also reside on a storage or be located within another package
 themselves.
 
 To add a local 15-bands GeoTIFF and a local metadata XML-file to the Dataset use
 the following values:
-  
+
   +----------------------+------------+-------------+
   | Location             | Format     | Semantic    |
   +======================+============+=============+
   | path/to/data.tiff    | image/tiff | bands[1:15] |
   +----------------------+------------+-------------+
-  | path/to/metadata.xml | eogml      | metadata    |   
+  | path/to/metadata.xml | eogml      | metadata    |
   +----------------------+------------+-------------+
 
 If the raster-data is distributed among several files you can use several data
 items with semantic ``bands[low:high]`` where low and high are the 1-based
 indices.
 
-You can directly add the dataset to one or multiple collections in the 
+You can directly add the dataset to one or multiple collections in the
 "EO Object to Collection Relations" section.
 
 .. _fig_admin_app_03_add_dataset:
@@ -566,8 +566,8 @@ Command Line Tools
 eoxserver-admin.py create_instance
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The first important command line tool is used for :ref:`Creating an Instance` 
-of EOxServer and is explained in the :ref:`Installation` section of this user' 
+The first important command line tool is used for :ref:`Creating an Instance`
+of EOxServer and is explained in the :ref:`Installation` section of this user'
 guide.
 
 
@@ -577,8 +577,8 @@ guide.
 eoxs_dataset_register
 ~~~~~~~~~~~~~~~~~~~~~
 
-Besides this tool EOxServer adds some custom commands to Django's manage.py 
-script. The ``eoxs_dataset_register`` command is detailed in the 
+Besides this tool EOxServer adds some custom commands to Django's manage.py
+script. The ``eoxs_dataset_register`` command is detailed in the
 :ref:`Data Registration` section.
 
 
@@ -587,36 +587,36 @@ script. The ``eoxs_dataset_register`` command is detailed in the
 eoxs_dataset_deregister
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``eoxs_dataset_deregister`` command allows the de-registration of existing 
+The ``eoxs_dataset_deregister`` command allows the de-registration of existing
 datasets (simple coverage types as Rectified and Referenceables datasets only)
-from an EOxServer instance including proper unlinking from relevant 
-container types. The functionality of this command is complementary to the 
-:ref:`eoxs-register-ds` command. 
+from an EOxServer instance including proper unlinking from relevant
+container types. The functionality of this command is complementary to the
+:ref:`eoxs-register-ds` command.
 
 It is worth to mention that the de-registration does not remove physical
-data stored in the file system or different storage backende. Therefore an 
-extra effort has to be spent to purge the physical data/meta-data files from 
-their storage. 
+data stored in the file system or different storage backende. Therefore an
+extra effort has to be spent to purge the physical data/meta-data files from
+their storage.
 
 To de-register a dataset (coverage) identified by its (Coverage/EO) identifier
 the following command shall be invoked::
 
-    python manage.py eoxs_dataset_deregister <identifier> 
+    python manage.py eoxs_dataset_deregister <identifier>
 
-The de-registration command allows convenient de-registration of an arbitrary 
+The de-registration command allows convenient de-registration of an arbitrary
 number of datasets at the same time::
 
     python manage.py eoxs_dataset_deregister <identifier> [<identifier> ...]
 
 The ``eoxs_dataset_deregister`` does not allow the removing of container objects
-such as Rectified Stitched Mosaics or Dataset Series. 
+such as Rectified Stitched Mosaics or Dataset Series.
 
-The ``eoxs_dataset_deregister`` command, by default, does not allow the 
-de-registration of automatic datasets (i.e, datasets registered by the 
-synchronisation process, see :ref:`what_is_sync`). Although this restriction 
+The ``eoxs_dataset_deregister`` command, by default, does not allow the
+de-registration of automatic datasets (i.e, datasets registered by the
+synchronisation process, see :ref:`what_is_sync`). Although this restriction
 can be overridden by the ``--force`` option, it is not recommended to do so.
 
-Updating Datasets 
+Updating Datasets
 ~~~~~~~~~~~~~~~~~
 
 There is currently no way how to update registered EOxServer datasets from the
@@ -632,29 +632,29 @@ eoxs_collection_create
 
 The ``eoxs_collection_create`` command allows the creation of a dataset series
 with initial data sources or coverages included. In it's simplest use case,
-only the ``--identifier`` parameter is required, which has to be a valid and not 
+only the ``--identifier`` parameter is required, which has to be a valid and not
 yet taken identifier for the collection. By default a Dataset Series is created.
 
-Range types for datasets can be read from configuration files that are 
-accompanying them. There can be a configuration file for each dataset or one 
-that applies to all datasets contained within a directory corresponding to a 
-data source. Configuration files have the file extension ``.conf``. The file 
-name is the same as the one of the dataset (so the dataset ``foo.tiff`` 
-needs to be accompanied by ``foo.conf``) or ``__default__.conf`` if you want 
-to use the config file for the whole directory. The syntax for the file is 
+Range types for datasets can be read from configuration files that are
+accompanying them. There can be a configuration file for each dataset or one
+that applies to all datasets contained within a directory corresponding to a
+data source. Configuration files have the file extension ``.conf``. The file
+name is the same as the one of the dataset (so the dataset ``foo.tiff``
+needs to be accompanied by ``foo.conf``) or ``__default__.conf`` if you want
+to use the config file for the whole directory. The syntax for the file is
 as follows::
 
    [range_type]
    range_type_name=<range type name>
 
-Both approaches may be combine and configuration files produced only for 
-some of the datasets in a directory and a default range type defined in 
-``__default__.conf``. EOxServer will first look up the dataset configuration 
-file and fall back to the default only if there is no individual ``.conf`` 
+Both approaches may be combine and configuration files produced only for
+some of the datasets in a directory and a default range type defined in
+``__default__.conf``. EOxServer will first look up the dataset configuration
+file and fall back to the default only if there is no individual ``.conf``
 file.
 
 Already registered datasets can be automatically added to the Dataset Series by
-using the ``--add`` option which takes an identifier of the Dataset or 
+using the ``--add`` option which takes an identifier of the Dataset or
 collection to be added. This option can be used multiple times.
 
 If the collection is intended to be a sub-collection of another collection it
@@ -680,7 +680,7 @@ eoxs_collection_link and eoxs_collection_unlink
 These two commands insert and remove links between objects and collections. To
 insert an object into a collection use the following command:
 ::
-  
+
   eoxs_collection_link --add <object-identifier> --collection <collection-identifier>
 
 To do the opposite do the following:
@@ -708,7 +708,7 @@ files matching the search pattern in the subscripted directories are found.
 
 When datasets are added to or deleted from a container object, the metadata
 (e.g the footprint of the features of interest or the time extent of the image)
-of the container is also likely to be adjusted. 
+of the container is also likely to be adjusted.
 
 Reasons for Synchronization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -769,25 +769,25 @@ Dataset Series:
 
 .. _eoxs-range-type:
 
-Range Type Handling  
+Range Type Handling
 ~~~~~~~~~~~~~~~~~~~
 
-The ``eoxs_rangetypes_list`` command, by default, lists the names of all 
+The ``eoxs_rangetypes_list`` command, by default, lists the names of all
 registered range types::
 
     python manage.py eoxs_rangetypes_list
 
 In case of more range types details required verbose listing may be requested by
-``--details`` option. When one or more range type names are specified the output 
+``--details`` option. When one or more range type names are specified the output
 will be limited to the specified range-types only::
 
     python manage.py eoxs_rangetypes_list --details [<range-type-name> ...]
 
-The same command can be also used to export rangetype in JSON format 
+The same command can be also used to export rangetype in JSON format
 (``--json`` option). Following example prints the selected RGB range type in
 JSON format::
 
-    python manage.py eoxs_rangetypes_list --json RGB  
+    python manage.py eoxs_rangetypes_list --json RGB
 
 The output may be directly savaved to file by using the ``-o`` option. Following
 example saves all the registered range-types to a file named
@@ -797,7 +797,7 @@ example saves all the registered range-types to a file named
 
 
 The rangetypes saved in JSON format can be loaded (e.g., by another *EOxServer*
-instance) by using of the ``eoxs_rangetypes_load`` command. By default, this 
+instance) by using of the ``eoxs_rangetypes_load`` command. By default, this
 command reads the JSON data from the standard input. To force the command to
 read the input from a file use ``-i`` ::
 
@@ -824,7 +824,7 @@ took about 61 ms, meaning that registering nearly 1000 datasets per minute is
 possible.
 
 The tests for the **generation of mosaics** were performed on a virtual machine
-with one CPU core allocated and 4 GB of RAM. Yet again, the input data were 
+with one CPU core allocated and 4 GB of RAM. Yet again, the input data were
 IKONOS scenes in GeoTIFF format.
 
 ==================== ============= ===== =============== =============== ======== ===============
@@ -850,5 +850,5 @@ Regarding the performance of the services there are many influence factors:
   more expensive than processing rectified grid coverages)
 * the setup of IDM components (if any)
 
-For hints on improving performance of the services see 
-:ref:`hardware_guidelines`, :ref:`ops_data` and :ref:`webclient_mapcache`.
+For hints on improving performance of the services see
+:ref:`hardware_guidelines` and :ref:`ops_data`.

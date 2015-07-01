@@ -42,7 +42,7 @@ The webclient interface is an application running in the browser and provides a
 preview of all Datasets in a specified Dataset Series. It uses an
 `OpenLayers <http://openlayers.org/>`_ display to show a WMS view of the
 datasets within a map context. The background map tiles are provided by
-`OSGeo <http://www.osgeo.org/>`_.
+`EOX <https://maps.eox.at//>`_.
 
 It can further be used to provide a download mechanism for registered datasets.
 
@@ -51,104 +51,26 @@ Enable the Webclient Interface
 ------------------------------
 
 To enable the webclient interface, several adjustments have to be made to the
-instances `settings.py` and `urls.py`.
+instances ``settings.py`` and ``urls.py``.
 
-First off, the `eoxserver.webclient` has to be inserted in the `INSTALLED_APPS`
-option of your `settings.py`. As the interface also requires several static
-files like style-sheets and script files, the option `STATIC_URL` has to be set
-to a path the webserver is able to serve, for example `/static/`. The static
-media files are located under `path/to/eoxserver/webclient/static`.
+First off, the ``eoxserver.webclient`` has to be inserted in the ``INSTALLED_APPS``
+option of your ``settings.py``. As the interface also requires several static
+files like style-sheets and script files, the option ``STATIC_URL`` has to be set
+to a path the webserver is able to serve, for example ``/static/``. The static
+media files are located under ``path/to/eoxserver/webclient/static`` and can be
+collected via the `` `collectstatic command
+<https://docs.djangoproject.com/en/1.8/ref/contrib/staticfiles/#collectstatic>`_.
 
 To finally enable the webclient, a proper URL scheme has to be set up in
-`urls.py`. The following lines would enable the index and the webclient view
-on the URL `www.yourdomain.com/client`.
+``urls.py``. The following lines would enable the index and the webclient view
+on the URL ``www.yourdomain.com/client``.
 ::
 
     urlpatterns = patterns('',
         ...
-        (r'^client/$', 'eoxserver.webclient.views.index'),
-        (r'^client/(.*)', 'eoxserver.webclient.views.webclient'),
+        url(r'^client/', include("eoxserver.webclient.urls")),
         ...
     )
-
-.. _configuration-options-label:
-
-Available configuration options
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Optionally some configuration settings can be set in the "eoxserver.conf"
-config file. These settings have to be put into the "webclient" section:
-::
-
-    preview_service=...
-    outline_service=...
-    preview_url=...
-    outline_url=...
-
-The `preview_...` settings defined the settings for the preview layer, showing
-an actual RGB representation of the registered datasets, whereas the
-`outline_...` settings are used for displaying the footprint of all registered
-datasets.
-
-The `..._service` parameter is used to define the service type used to retrieve
-the image tiles displayed on the map. Currently, "wms" and "wmts" are supported
-and "wms" is the default.
-
-The `..._url` parameter defines the URL of the service providing the image
-tiles. This configuration defaults to the configuration given for the
-"http_service_url" setting in the "services.owscommon" section.
-
-.. _webclient_mapcache:
-
-Improving Performance with MapCache
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-WMS offers a very flexible way to view the data; on the other hand performance
-is often a problem, especially when dealing with very large data files and
-different projections. In order to boost performance, you can use caching
-techniques. There are different software packages that provide caching
-for WMS services; in this context we present
-`MapCache <http://www.mapserver.org/mapcache/index.html>`_, an open
-source tool that is part of the MapServer project.
-
-MapCache supports various tile-based interfaces including the OGC `Web Map
-Tile Service <http://www.opengeospatial.org/standards/wmts>`_ (WMTS). We suggest
-to use WMTS for caching purposes, as it is a genuine OGC standard whereas the
-alternatives (WMS-C, TMS) are mere suggestions witout binding character.
-
-The XML file the ``MapCacheAlias`` directive points to contains the
-configuration of the cache. It specifies the services to be provided, the
-data sources, the provided layers, how they are cut into tiles and many other
-things. For a complete reference please refer to the `MapCache Configuration
-File Docs <http://www.mapserver.org/mapcache/config.html>`_.
-
-Specifically for EOxServer, the data source URL has to be set to the EOxServer
-OGC Web Services URL, usually something like
-``http://www.example.com/eoxserver_instance/ows``.
-
-As the web client expects input data in the WGS84 coordinate reference system
-(EPSG:4326), your MapCache instance must support this CRS. You have to define
-a grid using this CRS or use the predefined ``WGS84`` grid. Note that the web
-client expects that the map scale increases with the zoom level index. Level 0
-is the minimum scale showing the whole covered area (e.g. the whole world for
-the predefined ``WGS84`` grid).
-
-If you want to use WMTS with the EOxServer web client you have to define a
-tile set for each Recitfied Stitched Mosaic and Dataset Series on your site. The
-tile set name must be the same as the CoverageID for Rectified Stitched Mosaics
-and the EOID for Dataset Series.
-
-Note that usually a tile will be rendered and written to the cache only when
-it is requested, but you can pre-seed the cache using the ``mapcache_seed``
-command. Once you have built MapCache, you can find this tool in the
-``mapcache/src`` subdirectory of your MapServer directory. For a reference,
-see the `MapCache Seeder Docs
-<http://www.mapserver.org/mapcache/seed.html>`_.
-
-Once you have set up a WMTS instance, you can set the EOxServer configuration
-parameters ``preview_service`` to ``wmts`` and ``preview_url`` to the URL your
-MapCache instance is running under (see also
-:ref:`configuration-options-label`).
 
 Using the webclient interface
 -----------------------------
@@ -173,50 +95,17 @@ buttons located directly below the pan control buttons.
 
 A click on the small "+" sign on the upper right of the screen reveals the
 layer switcher control, where the preview and outline layers of the dataset
-series can be switched on or off. By default, the preview layer is switched
-off and only the outlines layer is visible.
+series can be switched on or off.
 
-In the upper center the EOxServer panel can be seen. It is used to select
-temporal and spatial subsets for the dataset series. It can be placed anywhere
-on the screen by dragging it like a window.
+The upper menu allows to switch the visibility of the "Layers", "Tools" and
+"About" panels. The "Layers" panel allows to set the visibility of all the
+enabled layers of the instance. This includes all non-empty collections and all
+coverages that are ``visible`` but not in a collection. Also the background and
+the overlay can be altered.
 
-The slider in the middle is used to select the spatial subset for datasets. The
-left slider handle determines the minimum date boundary and the right one the
-maximum date boundary for datasets to be displayed.
-
-While moving, the value of the minimum and maximum date can be viewed in the
-first tab, "Date/Time". There, it can also be adjusted manually, either as a
-text input or via a date-picker widget. For extra fine-grained queries, the
-minimum and maximum time values can be adjusted.
-
-Once the date/time has changed from either the slider or the input fields, the
-map is updated with the new parameters. The results varies, depending on the
-background map viewing service used, as WMTS services simply ignore the time
-parameter. If WMS services are configured, only datasets should be visible that
-are within the given date/time slice. Please refer to
-:ref:`configuration-options-label` for detailed information.
-
-Hidden under the second tab are controls for configuring the bounding box. The
-bounding box can either be entered manually with the input fields or drawn on
-the map once the "Draw BBOX" function is activated. The bouning box marker and
-the input values are tied together, a change on one affects the other.
-
-Unlike the date/time selection, the bounding box has no affect on the preview
-or the outlines visible. It is only used for the offering of coverages at the
-final Download of data.
-
-The third tab, "Service Info" displays the visible meta-data about your WCS
-service as configured by your instance and shown via GetCapabilities. This
-meta-data includes information about the service itself (type, keywords,
-abstract etc.) and its provider.
-
-The "Download" dialog is shown after the "Download" button in the EOxServer
-panel is clicked. It displays a list of all datasets matching the give spatial
-and temporal subsets. If no datasets with the given parameters were found, an
-error message is shown.
-
-Each coverage can be (de)selected using the checkbox. Only checked datasets
-will be downloaded when the "Start Download" button is clicked.
+The "Tools" panel allows to draw bounding boxes, manage selections and trigger
+the download. In order to download, first at least one bounding box must be
+drawn. Afterwards the download icon is clickable.
 
 .. _fig_webclient_autotest_download_view:
 .. figure:: images/webclient_autotest_download_view.png
@@ -224,40 +113,30 @@ will be downloaded when the "Start Download" button is clicked.
 
    *The download selection view.*
 
-The meaning of the size input fields depends on the actual type of the dataset.
-Rectified datasets can be scaled to the given size after all subsets are
-applied. Referencable datasets cannot be scaled, and so the size input fields
-only hint the overall (not subsetted) size of the raster data.
+Upon clicking on the download icon, the download view is shown. It displays all
+the coverages available for download that are in the active layers and are
+intersecting with the spatio-temporal subsets. There, additional download
+options can be made:
 
-When the "Select Bands" button is clicked, a dialog opens which allows the
-selecting and ordering of requested bands (range-subset). At least one band has
-to be selected. The ordering of the bands can be changed with dragging/dropping
-the bands on the desired index.
+  * actually selecting coverages for download
+  * selecting an output format
+  * selecting an output projection
 
-.. _fig_webclient_autotest_select_bands:
-.. figure:: images/webclient_autotest_select_bands.png
-   :align: center
+When all coverages to be downloaded are selected and all configuration is done
+a click on "Start Download" triggers the download of each coverage, subcetted by
+the given spatial subsets.
 
-   *A selection of bands for a soon-to-be downloaded coverage.*
+The "About" panel shows general info of `EOxClient
+<https://github.com/EOX-A/EOxClient>`_, the software used to build the
+webclient.
 
-Each coverage can be further inspected with the Coverage Info View which shows
-once the button "Show Info" for a coverage is clicked. In this view,
-addictional meta-data of the coverage is displayed and the coverage bands can
-be further selected and ordered.
-
-Due to limitations of the nature of this preview, only one or three bands can
-be viewed at a time. The selection is done with the small checkboxes associated
-with every band. The order of the bands can be manipulated by dragging/dropping
-the bands on the desired index.
-
-.. _fig_webclient_autotest_coverage_info:
-.. figure:: images/webclient_autotest_coverage_info.png
-   :align: center
-
-   *The Coverage Info View displaying details of the coverage and selected
-   bands.*
-
-Once the "Start Download" Button is clicked, all selected coverages with the
-given spatial and temporal subsets and all given parameters are downloaded. The
-actual behavior depends on the used browser, commonly a save file dialog
-is displayed.
+In the bottom there is the timeslider widget. It is only shown if at least one
+layer is active. Like the map, it is "zoomable" (use the mousewheel when the
+mouse is over the timeslider) and "pannable" (the bar that contains the actual
+dates and times is the handle). It also allows to draw time intervals by
+dragging over the upper half of the widget. The upper half is also where
+coverages are displayed as colored dots or lines. The color of the dots/lines is
+the same as the color of its associated collection, whereas only active
+collections are visible on the timeslider. Hollow dots/lines mean that
+the coverage is currently not in the maps viewport. By clicking on a dot/line
+the map zooms to the coverages extent.
