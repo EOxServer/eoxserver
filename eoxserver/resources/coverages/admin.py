@@ -193,8 +193,8 @@ class BandInline(AbstractInline):
     model = models.Band
     extra = 0
 
-    def get_queryset(self):
-        queryset = super(BandInline, self).get_queryset()
+    def get_queryset(self, *args, **kwargs):
+        queryset = super(BandInline, self).get_queryset(*args, **kwargs)
         return queryset.order_by("index")
 
 
