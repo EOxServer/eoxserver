@@ -194,7 +194,7 @@ def parse_raw_value(raw_value, dt):
     :param dt: the data type enumeration
     :returns: the parsed value
     """
-    if raw_value is None:  # allow null values
+    if raw_value is None or raw_value == "":  # allow null and empty values
         return None
 
     is_float = False
