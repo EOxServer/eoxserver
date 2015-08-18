@@ -744,7 +744,7 @@ def reproject_image(src_ds, src_wkt, dst_ds, dst_wkt,
 def _open_ds(path_or_ds):
     if isinstance(path_or_ds, basestring):
         gdal.AllRegister()
-        return gdal.Open(str(path_or_ds))
+        return gdal.OpenShared(str(path_or_ds))
     return path_or_ds
 
 
