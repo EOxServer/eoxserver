@@ -56,7 +56,7 @@ def open(filename, mode="r"):
     :param mode: the file opening mode
     :returns: a :class:`VSIFile`
     """
-    return VSIFile(filename)
+    return VSIFile(filename, mode)
 
 
 class VSIFile(object):
@@ -73,6 +73,9 @@ class VSIFile(object):
     def __init__(self, filename, mode="r"):
         self._handle = VSIFOpenL(filename, mode)
         self._filename = filename
+
+        if self._handle is None:
+            raise IOError("Failed to open file '%s'." % self._filename)
 
     @property
     def filename(self):
@@ -97,7 +100,7 @@ class VSIFile(object):
 
         :param data: the string buffer to be written
         """
-        VSIFWriteL(len(data), 1, data, self._handle)
+        VSIFWriteL(data, 1, len(data), self._handle)
 
     def tell(self):
         """ Return the current read/write offset of the file.
