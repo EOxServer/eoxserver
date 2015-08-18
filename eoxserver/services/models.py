@@ -36,13 +36,13 @@ class WMSRenderOptions(models.Model):
 
     coverage = models.OneToOneField(coverage_models.Coverage)
 
-    default_red = models.PositiveIntegerField(null=True, default=None)
-    default_green = models.PositiveIntegerField(null=True, default=None)
-    default_blue = models.PositiveIntegerField(null=True, default=None)
-    default_alpha = models.PositiveIntegerField(null=True, default=None)
+    default_red = models.PositiveIntegerField(null=True, blank=True, default=None)
+    default_green = models.PositiveIntegerField(null=True, blank=True, default=None)
+    default_blue = models.PositiveIntegerField(null=True, blank=True, default=None)
+    default_alpha = models.PositiveIntegerField(null=True, blank=True, default=None)
 
     resampling = models.CharField(null=True, blank=True, max_length=16)
 
     scale_auto = models.BooleanField(default=False)
-    scale_min = models.PositiveIntegerField(null=True)
-    scale_max = models.PositiveIntegerField(null=True)
+    scale_min = models.PositiveIntegerField(null=True, blank=True)
+    scale_max = models.PositiveIntegerField(null=True, blank=True)
