@@ -105,7 +105,7 @@ class VRTBuilder(object):
             ]
         self._ds.SetGCPs(gcps, ds.GetGCPProjection())
 
-    def add_band(self, data_type=None, options=None):
+    def add_band(self, data_type=None, options=None, nodata=None):
         """ Add a band to the VRT Dataset.
 
         :param data_type: the data type of the band to add. if omitted this is
@@ -114,13 +114,16 @@ class VRTBuilder(object):
                         band
         """
         self._ds.AddBand(data_type, options or [])
+        if nodata is not None:
+            band = self._ds.GetRasterBand(self._ds.RasterCount)
+            band.SetNoDataValue(nodata)
 
     def _add_source_to_band(self, band_index, source):
         band = self._ds.GetRasterBand(band_index)
         if not band:
             raise IndexError
 
-        band.SetMetadataItem("source_0", source, "new_vrt_sources")
+        band.SetMetadataItem("source_0", str(source), "new_vrt_sources")
 
     def add_simple_source(self, band_index, src, src_band,
                           src_rect=None, dst_rect=None):
@@ -141,7 +144,7 @@ class VRTBuilder(object):
                          <eoxserver.core.util.rect.Rect>` specifying the target
                          area to contribute
         """
-        if isinstance(src, str):
+        if isinstance(src, basestring):
             pass
 
         else:
@@ -170,3 +173,104 @@ class VRTBuilder(object):
         lines.append("</SimpleSource>")
 
         self._add_source_to_band(band_index, "".join(lines))
+
+
+class VRTBuilder2(object):
+    def __init__(self, size_x, size_y, num_bands=0, data_type=None, vrt_filename=None):
+        self.size_x = size_x
+        self.size_y = size_y
+        self.bands =[]
+        self.filename = vrt_filename
+        for i in range(0):
+            self.add_band(data_type)
+
+        self.transformer = None
+        self.geotransform = None
+
+    def set_geotransform(self, geotransform):
+        self.geotransform = geotransform
+
+    def add_band(self, data_type=None, options=None, nodata=None):
+        self.bands.append(
+            dict(data_type=data_type, options=options, nodata=nodata, sources=[])
+        )
+
+    def add_simple_source(self, band_index, src, src_band,
+                          src_rect=None, dst_rect=None):
+        """ Add a new simple source to the VRT.
+
+        :param band_index: the band index the source shall contribute to
+        :param src: either a :class:`GDAL Dataset
+                    <eoxserver.contrib.gdal.Dataset>` or a file path to the
+                    source dataset
+        :param src_band: specify which band of the source dataset shall
+                         contribute to the target VRT band
+        :param src_rect: a 4-tuple of integers in the form (offset-x, offset-y,
+                         size-x, size-y) or a :class:`Rect
+                         <eoxserver.core.util.rect.Rect>` specifying the source
+                         area to contribute
+        :param dst_rect: a 4-tuple of integers in the form (offset-x, offset-y,
+                         size-x, size-y) or a :class:`Rect
+                         <eoxserver.core.util.rect.Rect>` specifying the target
+                         area to contribute
+        """
+        if isinstance(src, basestring):
+            pass
+
+        else:
+            try:
+                src = src.GetFileList()[0]
+            except AttributeError:
+                raise ValueError("Expected string or GDAL Dataset.")
+            except IndexError:
+                raise ValueError("Supplied Dataset does not have a filename.")
+
+        self.bands[band_index-1]["sources"].append(
+            (src, src_band, src_rect, dst_rect)
+        )
+
+    def warped_gcps(self, gcp_dsc, resample="NearestNeighbour", order=0):
+        self.transformer = (gcp_ds, resample, order)
+
+    def build_sources(self, sources):
+        from lxml.builder import E
+        sources = []
+        for src, src_band, src_rect, dst_rect in sources:
+            elem = E("SimpleSource",
+                E("SourceFilename", src, relativeToVRT="0"),
+                E("SourceBand", str(src_band))
+            )
+            if src_rect:
+                elem.append(E("SrcRect",
+                    xOff=str(src_rect[0]), yOff=str(src_rect[1]),
+                    xSize=str(src_rect[2]), ySize=str(src_rect[3]))
+                )
+            if dst_rect:
+                elem.append(E("DstRect",
+                    xOff=str(dst_rect[0]), yOff=str(dst_rect[1]),
+                    xSize=str(dst_rect[2]), ySize=str(dst_rect[3]))
+                )
+
+            sources.append(elem)
+
+        return sources
+
+    def build(self):
+        from lxml.builder import E
+        from lxml import etree
+        root = E("VRTDataset", *[
+            E("VRTRasterBand",
+                *self.build_sources(band["sources"]),
+                dataType=gdal.GetDataTypeName(band["data_type"]),
+                band=str(i)
+            ) for i, band in enumerate(self.bands, start=1)
+        ], rasterXSize=str(self.size_x), rasterYSize=str(self.size_y))
+        #root.append()
+
+        if self.transformer:
+            gcp_ds, resample, order = self.transformer
+            root.append(E("GDALWarpOptions",
+                E("WarpMemoryLimit", "6.71089e+07"),
+                E("ResampleAlg", resample)
+            ))
+        return etree.tostring(root, pretty_print=True)
