@@ -1,5 +1,4 @@
 #-------------------------------------------------------------------------------
-# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
@@ -10,8 +9,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -39,6 +38,7 @@ from eoxserver.services.ows.wcs.interfaces import (
 )
 from eoxserver.services.ows.version import Version
 from eoxserver.services.result import result_set_from_raw_data, get_content_type
+from eoxserver.services.urls import get_http_service_url
 
 
 class MapServerWCSCapabilitiesRenderer(BaseRenderer):
@@ -54,10 +54,12 @@ class MapServerWCSCapabilitiesRenderer(BaseRenderer):
     def render(self, params):
         conf = CapabilitiesConfigReader(get_eoxserver_config())
 
+        http_service_url = get_http_service_url(params.http_request)
+
         map_ = Map()
         map_.setMetaData({
             "enable_request": "*",
-            "onlineresource": conf.http_service_url,
+            "onlineresource": http_service_url,
             "service_onlineresource": conf.onlineresource,
             "updateSequence": conf.update_sequence,
             "name": conf.name,

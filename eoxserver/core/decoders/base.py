@@ -1,5 +1,4 @@
 #-------------------------------------------------------------------------------
-# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
@@ -10,8 +9,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -26,41 +25,43 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+""" This module provides base functionality for any other decoder class.
+"""
+
+
 from eoxserver.core.decoders import (
-    ZERO_OR_ONE, ONE_OR_MORE, ANY, SINGLE_VALUES, WrongMultiplicityException, 
+    ZERO_OR_ONE, ONE_OR_MORE, ANY, SINGLE_VALUES, WrongMultiplicityException,
     InvalidParameterException, MissingParameterException,
     MissingParameterMultipleException
 )
 
 
-class BaseParameter(object):
+class BaseParameter(property):
     """ Abstract base class for XML, KVP or any other kind of parameter.
     """
 
     def __init__(self, type=None, num=1, default=None):
+        super(BaseParameter, self).__init__(self.fget)
         self.type = type or str
         self.num = num
         self.default = default
 
-
-    def select(self, decoder, decoder_class=None):
+    def select(self, decoder):
         """ Interface method.
         """
         raise NotImplementedError
-
 
     @property
     def locator(self):
         return ""
 
-
-    def __get__(self, decoder, decoder_class=None):
+    def fget(self, decoder):
         """ Property getter function.
         """
 
-        results = self.select(decoder, decoder_class)
-        count = len(results)        
-        
+        results = self.select(decoder)
+        count = len(results)
+
         locator = self.locator
         multiple = self.num not in SINGLE_VALUES
 
@@ -79,7 +80,6 @@ class BaseParameter(object):
 
         # parse the value/values, or return the defaults
         if multiple:
-            
             if count == 0 and self.num == ANY and self.default is not None:
                 return self.default
 

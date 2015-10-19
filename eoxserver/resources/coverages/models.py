@@ -11,8 +11,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -28,7 +28,6 @@
 #-------------------------------------------------------------------------------
 
 import logging
-from itertools import chain
 
 from django.core.exceptions import ValidationError
 from django.contrib.gis.db import models
@@ -38,7 +37,8 @@ from eoxserver.core import models as base
 from eoxserver.contrib import gdal, osr
 from eoxserver.backends import models as backends
 from eoxserver.resources.coverages.util import (
-    detect_circular_reference, collect_eo_metadata, is_same_grid
+    detect_circular_reference, collect_eo_metadata, is_same_grid,
+    parse_raw_value
 )
 
 
@@ -64,7 +64,7 @@ def iscollection(eo_object):
 #===============================================================================
 
 class Projection(models.Model):
-    """ Model for elaborate projection definitions. The `definition` is valid 
+    """ Model for elaborate projection definitions. The `definition` is valid
         for a given `format`. The `spatial_reference` property returns an
         osr.SpatialReference for this Projection.
     """
@@ -79,7 +79,6 @@ class Projection(models.Model):
         sr = osr.SpatialReference()
 
         # TODO: parse definition
-        
         return sr
 
     def __unicode__(self):
@@ -106,7 +105,7 @@ class Extent(models.Model):
             return sr
         else:
             return self.projection.spatial_reference
-    
+
     @property
     def extent(self):
         """ Returns the extent as a 4-tuple. """
@@ -138,12 +137,13 @@ class EOMetadata(models.Model):
     begin_time = models.DateTimeField(null=True, blank=True)
     end_time = models.DateTimeField(null=True, blank=True)
     footprint = models.MultiPolygonField(null=True, blank=True)
-    
-    objects = models.GeoManager()
+
+    #objects = models.GeoManager()
 
     @property
     def extent_wgs84(self):
-        if self.footprint is None: return None
+        if self.footprint is None:
+            return None
         return self.footprint.extent
 
     @property
@@ -155,8 +155,8 @@ class EOMetadata(models.Model):
 
 
 class DataSource(backends.Dataset):
-    pattern = models.CharField(max_length=32, null=False, blank=False)
-    collection = models.ForeignKey("Collection")
+    pattern = models.CharField(max_length=512, null=False, blank=False)
+    collection = models.ForeignKey("Collection", related_name="data_sources")
 
 
 #===============================================================================
@@ -168,8 +168,8 @@ class DataSource(backends.Dataset):
 EO_OBJECT_TYPE_REGISTRY = {}
 
 
-class EOObject(base.Castable, EOMetadata):
-    """ Base class for EO objects. All EO objects share a pool of unique 
+class EOObject(base.Castable, EOMetadata, backends.Dataset):
+    """ Base class for EO objects. All EO objects share a pool of unique
         `identifiers`.
     """
 
@@ -179,9 +179,7 @@ class EOObject(base.Castable, EOMetadata):
     real_content_type = models.PositiveSmallIntegerField()
     type_registry = EO_OBJECT_TYPE_REGISTRY
 
-
     objects = models.GeoManager()
-
 
     def __init__(self, *args, **kwargs):
         # TODO: encapsulate the change-tracking
@@ -189,7 +187,6 @@ class EOObject(base.Castable, EOMetadata):
         self._original_begin_time = self.begin_time
         self._original_end_time = self.end_time
         self._original_footprint = self.footprint
-
 
     def save(self, *args, **kwargs):
         super(EOObject, self).save(*args, **kwargs)
@@ -207,10 +204,8 @@ class EOObject(base.Castable, EOMetadata):
         self._original_end_time = self.end_time
         self._original_footprint = self.footprint
 
-
     def __unicode__(self):
         return "%s (%s)" % (self.identifier, self.real_type._meta.verbose_name)
-
 
     class Meta:
         verbose_name = "EO Object"
@@ -220,16 +215,17 @@ class EOObject(base.Castable, EOMetadata):
 # Identifier reservation
 #===============================================================================
 
+
 class ReservedIDManager(models.Manager):
     """ Model manager for `ReservedID` models for easier handling. Returns only
-        `QuerySet`s that contain valid reservations.
+        `QuerySets` that contain valid reservations.
     """
     def get_original_queryset(self):
         return super(ReservedIDManager, self).get_queryset()
 
     def get_queryset(self):
         Q = models.Q
-        self.get_original_queryset().filter(
+        return self.get_original_queryset().filter(
             Q(until__isnull=True) | Q(until__gt=now())
         )
 
@@ -255,7 +251,7 @@ class ReservedIDManager(models.Manager):
 
 
 class ReservedID(EOObject):
-    """ Model to reserve a specific ID. The field `until` can be used to 
+    """ Model to reserve a specific ID. The field `until` can be used to
         specify the end of the reservation.
     """
     until = models.DateTimeField(null=True)
@@ -318,13 +314,14 @@ NIL_VALUE_CHOICES = (
     ("http://www.opengis.net/def/nil/OGC/0/BelowDetectionRange", "Below detection range")
 )
 
+
 class NilValue(models.Model):
-    """ Single nil value contributing to a nil value set. 
+    """ Single nil value contributing to a nil value set.
     """
 
     raw_value = models.CharField(max_length=512, help_text="The string representation of the nil value.")
     reason = models.CharField(max_length=512, null=False, blank=False, choices=NIL_VALUE_CHOICES, help_text="A string identifier (commonly a URI or URL) for the reason of this nil value.")
-    
+
     nil_value_set = models.ForeignKey(NilValueSet, related_name="nil_values")
 
     def __unicode__(self):
@@ -334,56 +331,13 @@ class NilValue(models.Model):
     def value(self):
         """ Get the parsed python value from the saved value string.
         """
-        dt = self.nil_value_set.data_type
-        is_float   = False 
-        is_complex = False
-
-        if dt in gdal.GDT_INTEGRAL_TYPES :
-            value =  int(self.raw_value)
-
-        elif dt in gdal.GDT_FLOAT_TYPES :
-            value =  float(self.raw_value)
-            is_float = True 
-
-        elif dt in gdal.GDT_INTEGRAL_COMPLEX_TYPES : 
-            value =  complex(self.raw_value)
-            is_complex = True
-
-        elif dt in gdal.GDT_FLOAT_COMPLEX_TYPES : 
-            value =  complex(self.raw_value)
-            is_complex = True
-            is_float = True 
-
-        else:
-            value = None
-
-        # range check makes sense for integral values only 
-        if not is_float : 
-
-            limits = gdal.GDT_NUMERIC_LIMITS.get(dt)
-
-            if limits and value is not None:
-                def within(v, low, high):
-                    return (v >= low and v <= high)
-
-                error = ValueError(
-                    "Stored value is out of the limits for the data type"
-                )
-                if not is_complex and not within(value, *limits) :
-                    raise error
-                elif is_complex:
-                    if (not within(value.real, limits[0].real, limits[1].real)
-                        or not within(value.real, limits[0].real, limits[1].real)):
-                        raise error
-
-        return value
-
+        return parse_raw_value(self.raw_value, self.nil_value_set.data_type)
 
     def clean(self):
         """ Check that the value can be parsed.
         """
         try:
-            _ = self.value
+            self.value
         except Exception, e:
             raise ValidationError(str(e))
 
@@ -396,7 +350,6 @@ class RangeType(models.Model):
     """
 
     name = models.CharField(max_length=512, null=False, blank=False, unique=True)
-
 
     def __init__(self, *args, **kwargs):
         super(RangeType, self).__init__(*args, **kwargs)
@@ -425,7 +378,7 @@ class RangeType(models.Model):
 
 
 class Band(models.Model):
-    """ Model for storing band related metadata. 
+    """ Model for storing band related metadata.
     """
 
     index = models.PositiveSmallIntegerField()
@@ -434,14 +387,16 @@ class Band(models.Model):
     description = models.TextField(null=True, blank=True)
     definition = models.CharField(max_length=512, null=True, blank=True)
     uom = models.CharField(max_length=64, null=False, blank=False)
-    
+
     # GDAL specific
     data_type = models.PositiveIntegerField()
     color_interpretation = models.PositiveIntegerField(null=True, blank=True)
 
+    raw_value_min = models.CharField(max_length=512, null=True, blank=True, help_text="The string representation of the minimum value.")
+    raw_value_max = models.CharField(max_length=512, null=True, blank=True, help_text="The string representation of the maximum value.")
+
     range_type = models.ForeignKey(RangeType, related_name="bands", null=False, blank=False)
     nil_value_set = models.ForeignKey(NilValueSet, null=True, blank=True)
-    
 
     def clean(self):
         nil_value_set = self.nil_value_set
@@ -451,17 +406,30 @@ class Band(models.Model):
                 "its nil value set."
             )
 
+        min_ = parse_raw_value(self.raw_value_min, self.data_type)
+        max_ = parse_raw_value(self.raw_value_min, self.data_type)
+
+        if min_ is not None and max_ is not None and min_ > max_:
+            raise ValidationError("Minimum value larger than maximum value")
+
     class Meta:
         ordering = ('index',)
         unique_together = (('index', 'range_type'), ('identifier', 'range_type'))
-
 
     def __unicode__(self):
         return "%s (%s)" % (self.name, gdal.GetDataTypeName(self.data_type))
 
     @property
     def allowed_values(self):
-        return gdal.GDT_NUMERIC_LIMITS[self.data_type]
+        dt = self.data_type
+        min_ = parse_raw_value(self.raw_value_min, dt)
+        max_ = parse_raw_value(self.raw_value_max, dt)
+        limits = gdal.GDT_NUMERIC_LIMITS[dt]
+
+        return (
+            min_ if min_ is not None else limits[0],
+            max_ if max_ is not None else limits[1],
+        )
 
     @property
     def significant_figures(self):
@@ -473,13 +441,15 @@ class Band(models.Model):
 #===============================================================================
 
 
-class Coverage(EOObject, Extent, backends.Dataset):
+class Coverage(EOObject, Extent):
     """ Common base model for all coverage types.
     """
 
+    coverage_to_eo_object_ptr = models.OneToOneField(EOObject, parent_link=True)
+
     size_x = models.PositiveIntegerField()
     size_y = models.PositiveIntegerField()
-    
+
     range_type = models.ForeignKey(RangeType)
 
     visible = models.BooleanField(default=False) # True means that the dataset is visible in the GetCapabilities response
@@ -505,11 +475,13 @@ class Coverage(EOObject, Extent, backends.Dataset):
         return (self.resolution_x, self.resolution_y)
 
     objects = models.GeoManager()
-    
+
 
 class Collection(EOObject):
     """ Base model for all collections.
     """
+
+    collection_to_eo_object_ptr = models.OneToOneField(EOObject, parent_link=True)
 
     eo_objects = models.ManyToManyField(EOObject, through="EOObjectToCollectionThrough", related_name="collections")
 
@@ -521,7 +493,7 @@ class Collection(EOObject):
             raise ValidationError("A collection cannot contain itself.")
 
         if through is None:
-            # was not invoked by the through model, so create it first. 
+            # was not invoked by the through model, so create it first.
             # insert will be invoked again in the `through.save()` method.
             logger.debug("Creating relation model for %s and %s." % (self, eo_object))
             through = EOObjectToCollectionThrough(eo_object=eo_object, collection=self)
@@ -534,15 +506,13 @@ class Collection(EOObject):
         # cast self to actual collection type
         self.cast().perform_insertion(eo_object, through)
 
-
     def perform_insertion(self, eo_object, through=None):
-        """Interface method for collection insertions. If the insertion is not 
+        """Interface method for collection insertions. If the insertion is not
         possible, raise an exception.
         EO metadata collection needs to be done here as-well!
         """
 
         raise ValidationError("Collection %s cannot insert %s" % (str(self), str(eo_object)))
-
 
     def remove(self, eo_object, through=None):
         if through is None:
@@ -550,17 +520,15 @@ class Collection(EOObject):
             return
 
         logger.debug("Removing %s from %s." % (eo_object, self))
-        
+
         # call actual remove method on actual collection type
         self.cast().perform_removal(eo_object)
-
 
     def perform_removal(self, eo_object):
         """ Interface method for collection removals. Update of EO-metadata needs
         to be performed here. Abortion of removal is not possible (atm).
         """
         raise NotImplementedError
-
 
     def update_eo_metadata(self):
         logger.debug("Updating EO Metadata for %s." % self)
@@ -589,7 +557,6 @@ class Collection(EOObject):
 
         return False
 
-
     def __contains__(self, eo_object):
         """ Shorthand for non-recursive `contains()` method. """
         return self.contains(eo_object)
@@ -606,14 +573,14 @@ class Collection(EOObject):
                     yield item
 
     def __len__(self):
-        if self.id == None:
+        if self.id is None:
             return 0
         return self.eo_objects.count()
 
 
 class EOObjectToCollectionThrough(models.Model):
-    """Relation of objects to collections. 
-    Warning: do *not* use bulk methods of query sets of this collection, as it 
+    """Relation of objects to collections.
+    Warning: do *not* use bulk methods of query sets of this collection, as it
     will not invoke the correct `insert` and `remove` methods on the collection.
     """
 
@@ -622,12 +589,11 @@ class EOObjectToCollectionThrough(models.Model):
 
     objects = models.GeoManager()
 
-
     def __init__(self, *args, **kwargs):
         super(EOObjectToCollectionThrough, self).__init__(*args, **kwargs)
         try:
             self._original_eo_object = self.eo_object
-        except: 
+        except:
             self._original_eo_object = None
 
         try:
@@ -635,9 +601,8 @@ class EOObjectToCollectionThrough(models.Model):
         except:
             self._original_collection = None
 
-
     def save(self, *args, **kwargs):
-        if (self._original_eo_object is not None 
+        if (self._original_eo_object is not None
             and self._original_collection is not None
             and (self._original_eo_object != self.eo_object
                  or self._original_collection != self.collection)):
@@ -661,14 +626,15 @@ class EOObjectToCollectionThrough(models.Model):
         self._original_eo_object = self.eo_object
         self._original_collection = self.collection
 
-
     def delete(self, *args, **kwargs):
         # TODO: pre-remove method? (maybe to cancel remove?)
-        logger.debug("Deleting relation model between for %s and %s." % (self.collection, self.eo_object))
-        result =  super(EOObjectToCollectionThrough, self).delete(*args, **kwargs)
+        logger.debug(
+            "Deleting relation model between for %s and %s."
+            % (self.collection, self.eo_object)
+        )
+        result = super(EOObjectToCollectionThrough, self).delete(*args, **kwargs)
         self.collection.remove(self.eo_object, self)
         return result
-
 
     class Meta:
         unique_together = (("eo_object", "collection"),)
@@ -684,9 +650,9 @@ class EOObjectToCollectionThrough(models.Model):
 class RectifiedDataset(Coverage):
     """ Coverage type using a rectified grid.
     """
-    
+
     objects = models.GeoManager()
-    
+
     class Meta:
         verbose_name = "Rectified Dataset"
         verbose_name_plural = "Rectified Datasets"
@@ -697,9 +663,9 @@ EO_OBJECT_TYPE_REGISTRY[10] = RectifiedDataset
 class ReferenceableDataset(Coverage):
     """ Coverage type using a referenceable grid.
     """
-    
+
     objects = models.GeoManager()
-    
+
     class Meta:
         verbose_name = "Referenceable Dataset"
         verbose_name_plural = "Referenceable Datasets"
@@ -708,12 +674,12 @@ EO_OBJECT_TYPE_REGISTRY[11] = ReferenceableDataset
 
 
 class RectifiedStitchedMosaic(Coverage, Collection):
-    """ Collection type which can entail rectified datasets that share a common 
+    """ Collection type which can entail rectified datasets that share a common
         range type and are on the same grid.
     """
-    
+
     objects = models.GeoManager()
-    
+
     class Meta:
         verbose_name = "Rectified Stitched Mosaic"
         verbose_name_plural = "Rectified Stitched Mosaics"
@@ -735,7 +701,7 @@ class RectifiedStitchedMosaic(Coverage, Collection):
         if not is_same_grid((self, rectified_dataset)):
             raise ValidationError(
                 "Dataset '%s' has not the same base grid as the Rectified "
-                "Stitched Mosaic '%s'."  % (rectified_dataset, self.identifier)
+                "Stitched Mosaic '%s'." % (rectified_dataset, self.identifier)
             )
 
         self.begin_time, self.end_time, self.footprint = collect_eo_metadata(
@@ -759,7 +725,7 @@ EO_OBJECT_TYPE_REGISTRY[20] = RectifiedStitchedMosaic
 
 
 class DatasetSeries(Collection):
-    """ Collection type that can entail any type of EO object, even other 
+    """ Collection type that can entail any type of EO object, even other
         collections.
     """
 
@@ -768,7 +734,6 @@ class DatasetSeries(Collection):
     class Meta:
         verbose_name = "Dataset Series"
         verbose_name_plural = "Dataset Series"
-
 
     def perform_insertion(self, eo_object, through=None):
         self.begin_time, self.end_time, self.footprint = collect_eo_metadata(

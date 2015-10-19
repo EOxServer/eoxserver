@@ -12,8 +12,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -28,12 +28,19 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-try:
-    from osgeo.osr import *
-except ImportError:
-    from osr import *
+import os
 
-_SpatialReference = SpatialReference
+
+if os.environ.get('READTHEDOCS', None) != 'True':
+    try:
+        from osgeo.osr import *
+    except ImportError:
+        from osr import *
+
+    UseExceptions()
+
+    _SpatialReference = SpatialReference
+
 
 class SpatialReference(object):
     """ Extension to the original SpatialReference class.
@@ -89,8 +96,7 @@ class SpatialReference(object):
     def swap_axes(self):
         # TODO:
         pass
-    
+
     def __getattr__(self, name):
         return getattr(self.sr, name)
 
-UseExceptions()

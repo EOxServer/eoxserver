@@ -1,5 +1,4 @@
 #-------------------------------------------------------------------------------
-# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
@@ -10,8 +9,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -32,7 +31,25 @@ from cgi import escape
 import tempfile
 import os
 
-from mapscript import *
+try:
+    from mapscript import *
+except ImportError:
+    # defaults for document generation
+    if os.environ.get('READTHEDOCS', None) == 'True':
+        class mapObj: pass
+        class layerObj: pass
+        class classObj: pass
+        class styleObj: pass
+        class shapeObj: pass
+        class colorObj: pass
+        MS_LAYER_RASTER = 0
+        MS_LAYER_POLYGON = 1
+        MS_GET_REQUEST = 0
+    else:
+        raise
+else:
+    msversion = msGetVersionInt()
+
 from lxml import etree
 
 from eoxserver.core.util.multiparttools import iterate
@@ -40,7 +57,7 @@ from eoxserver.contrib import gdal
 
 
 logger = logging.getLogger(__name__)
-msversion = msGetVersionInt()
+
 
 class MapServerException(Exception):
     def __init__(self, message, locator, code=None):

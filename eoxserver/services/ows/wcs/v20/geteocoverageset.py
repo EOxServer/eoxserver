@@ -1,5 +1,4 @@
 #-------------------------------------------------------------------------------
-# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
@@ -10,8 +9,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -32,7 +31,6 @@ import os
 import tempfile
 import logging
 from itertools import chain
-from cStringIO import StringIO
 import mimetypes
 
 from django.db.models import Q
@@ -44,16 +42,15 @@ except:
 
 from eoxserver.core import Component, implements, ExtensionPoint
 from eoxserver.core.config import get_eoxserver_config
-from eoxserver.core.decoders import xml, kvp, typelist, upper, enum
+from eoxserver.core.decoders import xml, kvp, typelist, enum
 from eoxserver.resources.coverages import models
 from eoxserver.services.ows.interfaces import (
-    ServiceHandlerInterface, GetServiceHandlerInterface, 
+    ServiceHandlerInterface, GetServiceHandlerInterface,
     PostServiceHandlerInterface
 )
 from eoxserver.services.ows.wcs.v20.util import (
-    nsmap, SectionsMixIn, parse_subset_kvp, parse_subset_xml
+    nsmap, parse_subset_kvp, parse_subset_xml
 )
-from eoxserver.services.ows.wcs.v20.encoders import WCS20EOXMLEncoder
 from eoxserver.services.ows.wcs.v20.parameters import WCS20CoverageRenderParams
 from eoxserver.services.ows.common.config import WCSEOConfigReader
 from eoxserver.services.ows.wcs.interfaces import (
@@ -67,6 +64,7 @@ from eoxserver.services.exceptions import (
 
 
 logger = logging.getLogger(__name__)
+
 
 class WCS20GetEOCoverageSetHandler(Component):
     implements(ServiceHandlerInterface)
@@ -88,10 +86,9 @@ class WCS20GetEOCoverageSetHandler(Component):
         elif request.method == "POST":
             return WCS20GetEOCoverageSetXMLDecoder(request.body)
 
-
     def get_params(self, coverage, decoder, request):
         return WCS20CoverageRenderParams(
-            coverage, decoder.subsets, http_request=request
+            coverage, Subsets(decoder.subsets), http_request=request
         )
 
     def get_renderer(self, params):
@@ -135,7 +132,7 @@ class WCS20GetEOCoverageSetHandler(Component):
 
         try:
             subsets = Subsets(
-                decoder.subsets, 
+                decoder.subsets,
                 crs="http://www.opengis.net/def/crs/EPSG/0/4326",
                 allowed_types=Trim
             )
@@ -152,7 +149,7 @@ class WCS20GetEOCoverageSetHandler(Component):
 
         # match the requested EOIDs against the available ones. If any are
         # requested, that are not available, raise and exit.
-        failed = [ eo_id for eo_id in eo_ids if eo_id not in available_ids ]
+        failed = [eo_id for eo_id in eo_ids if eo_id not in available_ids]
         if failed:
             raise NoSuchDatasetSeriesOrCoverageException(failed)
 
@@ -161,8 +158,8 @@ class WCS20GetEOCoverageSetHandler(Component):
         ), containment="overlaps")
 
         # create a set of all indirectly referenced containers by iterating
-        # recursively. The containment is set to "overlaps", to also include 
-        # collections that might have been excluded with "contains" but would 
+        # recursively. The containment is set to "overlaps", to also include
+        # collections that might have been excluded with "contains" but would
         # have matching coverages inserted.
 
         def recursive_lookup(super_collection, collection_set):
@@ -198,7 +195,7 @@ class WCS20GetEOCoverageSetHandler(Component):
         coverages_no_limit_qs = coverages_qs
 
         # compute how many (if any) coverages can be retrieved. This depends on
-        # the "count" parameter and default setting. Also, if we already 
+        # the "count" parameter and default setting. Also, if we already
         # exceeded the count, limit the number of dataset series aswell
         """
         if inc_dss_section:
@@ -217,9 +214,10 @@ class WCS20GetEOCoverageSetHandler(Component):
 
         # get a number of coverages that *would* have been included, but are not
         # because of the count parameter
-        count_all_coverages = coverages_no_limit_qs.count()
+        # count_all_coverages = coverages_no_limit_qs.count()
 
-        # TODO: if containment is "within" we need to check all collections again
+        # TODO: if containment is "within" we need to check all collections
+        # again
         if containment == "within":
             collection_set = filter(lambda c: subsets.matches(c), collection_set)
 
@@ -231,7 +229,6 @@ class WCS20GetEOCoverageSetHandler(Component):
         for eo_object in chain(coverages_qs, collection_set):
             if issubclass(eo_object.real_type, models.Coverage):
                 coverages.append(eo_object.cast())
-
 
         fd, pkg_filename = tempfile.mkstemp()
         tmp = os.fdopen(fd)
@@ -250,7 +247,7 @@ class WCS20GetEOCoverageSetHandler(Component):
                 else:
                     filename = result_item.filename
                 if filename in all_filenames:
-                    continue # TODO: create new filename
+                    continue  # TODO: create new filename
                 all_filenames.add(filename)
                 location = "%s/%s" % (coverage.identifier, filename)
                 writer.add_to_package(
@@ -292,6 +289,7 @@ def pos_int(value):
 containment_enum = enum(
     ("overlaps", "contains"), False
 )
+
 
 def parse_format(string):
     parts = string.split(";")

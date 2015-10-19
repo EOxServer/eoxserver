@@ -10,8 +10,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -43,24 +43,24 @@ class Command(CommandOutputMixIn, BaseCommand):
             action='callback', callback=_variable_args_cb,
             default=None, help=("Collection(s) from which the "
                                 "objects shall be removed.")
-        ), 
+        ),
         make_option("-r", "--remove", dest="remove_ids",
             action='callback', callback=_variable_args_cb,
             default=None, help=("List of the to be removed "
                                 "eo-objects.")
-        ), 
+        ),
         make_option('--ignore-missing-collection',
             dest='ignore_missing_collection',
             action="store_true", default=False,
             help=("Optional. Proceed even if the linked parent "
-                  "does not exist. By defualt, a missing parent " 
+                  "does not exist. By defualt, a missing parent "
                   "will terminate the command.")
         ),
         make_option('--ignore-missing-object',
             dest='ignore_missing_object',
             action="store_true", default=False,
             help=("Optional. Proceed even if the linked child "
-                  "does not exist. By defualt, a missing child " 
+                  "does not exist. By defualt, a missing child "
                   "will terminate the command.")
         ),
     )
@@ -70,52 +70,51 @@ class Command(CommandOutputMixIn, BaseCommand):
         "--remove <eo-object-id> [--remove <eo-object-id> ...] "
         "[--ignore-missing-collection] [--ignore-missing-object]"
     )
-    
+
     help = """
-        Unlink (remove) one or more EOObjects from one or more dataset series. 
-        Note that the EOObjects will still remain in the data-base.
+        Unlink (remove) one or more EOObjects from one or more collections.
+        Note that the EOObjects will still remain in the database.
         Non-existing links are ignored.
     """
-
 
     @nested_commit_on_success
     def handle(self, *args, **kwargs):
         # check the required inputs
         collection_ids = kwargs.get('collection_ids', None)
         remove_ids = kwargs.get('remove_ids', None)
-        if not collection_ids: 
+        if not collection_ids:
             raise CommandError(
                 "Missing the mandatory collection identifier(s)!"
             )
 
-        if not remove_ids: 
+        if not remove_ids:
             raise CommandError(
                 "Missing the mandatory identifier(s) for to be removed "
                 "objects."
             )
 
-        # extract the collections 
+        # extract the collections
         ignore_missing_collection = kwargs['ignore_missing_collection']
-        collections = [] 
-        for collection_id in collection_ids: 
-            try: 
+        collections = []
+        for collection_id in collection_ids:
+            try:
                 collections.append(
                     models.Collection.objects.get(identifier=collection_id)
                 )
-            except models.Collection.DoesNotExist: 
+            except models.Collection.DoesNotExist:
                 msg = (
                     "There is no Collection matching the given "
                     "identifier: '%s'" % collection_id
                 )
-                if ignore_missing_collection: 
+                if ignore_missing_collection:
                     self.print_wrn(msg)
-                else: 
-                    raise CommandError(msg) 
+                else:
+                    raise CommandError(msg)
 
-        # extract the children  
+        # extract the children
         ignore_missing_object = kwargs['ignore_missing_object']
-        objects = [] 
-        for remove_id in remove_ids: 
+        objects = []
+        for remove_id in remove_ids:
             try:
                 objects.append(
                     models.EOObject.objects.get(identifier=remove_id)
@@ -129,7 +128,7 @@ class Command(CommandOutputMixIn, BaseCommand):
                     self.print_wrn(msg)
                 else:
                     raise CommandError(msg)
-        
+
         try:
             for collection, eo_object in product(collections, objects):
                 # check whether the link does not exist
@@ -141,7 +140,7 @@ class Command(CommandOutputMixIn, BaseCommand):
 
                 else:
                     self.print_wrn(
-                        "Collection %s does not contain %s" 
+                        "Collection %s does not contain %s"
                         % (collection, eo_object)
                     )
 

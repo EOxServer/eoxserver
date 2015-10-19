@@ -9,8 +9,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -36,13 +36,13 @@ class WMSRenderOptions(models.Model):
 
     coverage = models.OneToOneField(coverage_models.Coverage)
 
-    default_red = models.PositiveIntegerField(null=True, default=None)
-    default_green = models.PositiveIntegerField(null=True, default=None)
-    default_blue = models.PositiveIntegerField(null=True, default=None)
-    default_alpha = models.PositiveIntegerField(null=True, default=None)
+    default_red = models.PositiveIntegerField(null=True, blank=True, default=None)
+    default_green = models.PositiveIntegerField(null=True, blank=True, default=None)
+    default_blue = models.PositiveIntegerField(null=True, blank=True, default=None)
+    default_alpha = models.PositiveIntegerField(null=True, blank=True, default=None)
 
     resampling = models.CharField(null=True, blank=True, max_length=16)
 
     scale_auto = models.BooleanField(default=False)
-    scale_min = models.PositiveIntegerField(null=True)
-    scale_max = models.PositiveIntegerField(null=True)
+    scale_min = models.PositiveIntegerField(null=True, blank=True)
+    scale_max = models.PositiveIntegerField(null=True, blank=True)

@@ -10,8 +10,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -43,24 +43,24 @@ class Command(CommandOutputMixIn, BaseCommand):
             action='callback', callback=_variable_args_cb,
             default=None, help=("Collection(s) in which the "
                                 "objects shall be inserted.")
-        ), 
+        ),
         make_option("-a", "--add", dest="add_ids",
             action='callback', callback=_variable_args_cb,
             default=None, help=("List of the to be inserted "
                                 "eo-objects.")
-        ), 
+        ),
         make_option('--ignore-missing-collection',
             dest='ignore_missing_collection',
             action="store_true", default=False,
             help=("Optional. Proceed even if the linked parent "
-                  "does not exist. By defualt, a missing parent " 
+                  "does not exist. By defualt, a missing parent "
                   "will terminate the command.")
         ),
         make_option('--ignore-missing-object',
             dest='ignore_missing_object',
             action="store_true", default=False,
             help=("Optional. Proceed even if the linked child "
-                  "does not exist. By defualt, a missing child " 
+                  "does not exist. By defualt, a missing child "
                   "will terminate the command.")
         ),
     )
@@ -70,9 +70,9 @@ class Command(CommandOutputMixIn, BaseCommand):
         "--add <eo-object-id> [--add <eo-object-id> ...] "
         "[--ignore-missing-collection] [--ignore-missing-object]"
     )
-    
+
     help = """
-        Link (insert) one or more EOObjects into one or more dataset series. 
+        Link (insert) one or more EOObjects into one or more collections.
         Pre-existing links are ignored.
     """
 
@@ -81,39 +81,39 @@ class Command(CommandOutputMixIn, BaseCommand):
         # check the required inputs
         collection_ids = kwargs.get('collection_ids', None)
         add_ids = kwargs.get('add_ids', None)
-        if not collection_ids: 
+        if not collection_ids:
             raise CommandError(
                 "Missing the mandatory collection identifier(s)!"
             )
 
-        if not add_ids: 
+        if not add_ids:
             raise CommandError(
                 "Missing the mandatory identifier(s) for to be inserted "
                 "objects."
             )
 
-        # extract the collections 
+        # extract the collections
         ignore_missing_collection = kwargs['ignore_missing_collection']
-        collections = [] 
-        for collection_id in collection_ids: 
-            try: 
+        collections = []
+        for collection_id in collection_ids:
+            try:
                 collections.append(
                     models.Collection.objects.get(identifier=collection_id)
                 )
-            except models.Collection.DoesNotExist: 
+            except models.Collection.DoesNotExist:
                 msg = (
                     "There is no Collection matching the given "
                     "identifier: '%s'" % collection_id
                 )
-                if ignore_missing_collection: 
+                if ignore_missing_collection:
                     self.print_wrn(msg)
-                else: 
-                    raise CommandError(msg) 
+                else:
+                    raise CommandError(msg)
 
-        # extract the children  
+        # extract the children
         ignore_missing_object = kwargs['ignore_missing_object']
-        objects = [] 
-        for add_id in add_ids: 
+        objects = []
+        for add_id in add_ids:
             try:
                 objects.append(
                     models.EOObject.objects.get(identifier=add_id)
@@ -127,7 +127,7 @@ class Command(CommandOutputMixIn, BaseCommand):
                     self.print_wrn(msg)
                 else:
                     raise CommandError(msg)
-        
+
         try:
             for collection, eo_object in product(collections, objects):
                 # check whether the link does not exist
@@ -139,7 +139,7 @@ class Command(CommandOutputMixIn, BaseCommand):
 
                 else:
                     self.print_wrn(
-                        "Collection %s already contains %s" 
+                        "Collection %s already contains %s"
                         % (collection, eo_object)
                     )
 

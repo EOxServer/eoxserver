@@ -1,5 +1,4 @@
 #-------------------------------------------------------------------------------
-# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
@@ -27,6 +26,7 @@
 #-------------------------------------------------------------------------------
 
 
+from itertools import chain
 from lxml import etree
 
 from django.contrib.gis.geos import Polygon
@@ -49,227 +49,285 @@ from eoxserver.services.ows.wcs.v20.util import (
     nsmap, ns_xlink, ns_gml, ns_wcs, ns_eowcs,
     OWS, GML, GMLCOV, WCS, CRS, EOWCS, SWE, INT, SUPPORTED_INTERPOLATIONS
 )
+from eoxserver.services.urls import get_http_service_url
+
+PROFILES = [
+    "spec/WCS_application-profile_earth-observation/1.0/conf/eowcs",
+    "spec/WCS_application-profile_earth-observation/1.0/conf/eowcs_get-kvp",
+    "spec/WCS_service-extension_crs/1.0/conf/crs",
+    "spec/WCS/2.0/conf/core",
+    "spec/WCS_protocol-binding_get-kvp/1.0/conf/get-kvp",
+    "spec/WCS_protocol-binding_post-xml/1.0/conf/post-xml",
+    "spec/GMLCOV/1.0/conf/gml-coverage",
+    "spec/GMLCOV/1.0/conf/multipart",
+    "spec/GMLCOV/1.0/conf/special-format",
+    "spec/GMLCOV_geotiff-coverages/1.0/conf/geotiff-coverage",
+    "spec/WCS_geotiff-coverages/1.0/conf/geotiff-coverage",
+    "spec/WCS_service-model_crs-predefined/1.0/conf/crs-predefined",
+    "spec/WCS_service-extension_interpolation/1.0/conf/interpolation",
+    "spec/WCS_service-extension_range-subsetting/1.0/conf/record-subsetting",
+    "spec/WCS_service-extension_scaling/1.0/conf/scaling",
+]
 
 
 class WCS20CapabilitiesXMLEncoder(OWS20Encoder):
+    def encode_service_identification(self, conf):
+        # get a list of versions in descending order from all active
+        # GetCapabilities handlers.
+        component = ServiceComponent(env)
+        handlers = component.query_service_handlers(
+            service="WCS", request="GetCapabilities"
+        )
+        versions = sorted(
+            set(chain(*[handler.versions for handler in handlers])),
+            reverse=True
+        )
+
+        elem = OWS("ServiceIdentification",
+            OWS("Title", conf.title),
+            OWS("Abstract", conf.abstract),
+            OWS("Keywords", *[
+                OWS("Keyword", keyword) for keyword in conf.keywords
+            ]),
+            OWS("ServiceType", "OGC WCS", codeSpace="OGC")
+        )
+
+        elem.extend(
+            OWS("ServiceTypeVersion", version) for version in versions
+        )
+
+        elem.extend(
+            OWS("Profile", "http://www.opengis.net/%s" % profile)
+            for profile in PROFILES
+        )
+
+        elem.extend((
+            OWS("Fees", conf.fees),
+            OWS("AccessConstraints", conf.access_constraints)
+        ))
+        return elem
+
+    def encode_service_provider(self, conf):
+        return OWS("ServiceProvider",
+            OWS("ProviderName", conf.provider_name),
+            self.encode_reference("ProviderSite", conf.provider_site),
+            OWS("ServiceContact",
+                OWS("IndividualName", conf.individual_name),
+                OWS("PositionName", conf.position_name),
+                OWS("ContactInfo",
+                    OWS("Phone",
+                        OWS("Voice", conf.phone_voice),
+                        OWS("Facsimile", conf.phone_facsimile)
+                    ),
+                    OWS("Address",
+                        OWS("DeliveryPoint", conf.delivery_point),
+                        OWS("City", conf.city),
+                        OWS("AdministrativeArea", conf.administrative_area),
+                        OWS("PostalCode", conf.postal_code),
+                        OWS("Country", conf.country),
+                        OWS(
+                            "ElectronicMailAddress",
+                            conf.electronic_mail_address
+                        )
+                    ),
+                    self.encode_reference(
+                        "OnlineResource", conf.onlineresource
+                    ),
+                    OWS("HoursOfService", conf.hours_of_service),
+                    OWS("ContactInstructions", conf.contact_instructions)
+                ),
+                OWS("Role", conf.role)
+            )
+        )
+
+    def encode_operations_metadata(self, request):
+        component = ServiceComponent(env)
+        versions = ("2.0.0", "2.0.1")
+        get_handlers = component.query_service_handlers(
+            service="WCS", versions=versions, method="GET"
+        )
+        post_handlers = component.query_service_handlers(
+            service="WCS", versions=versions, method="POST"
+        )
+        all_handlers = sorted(
+            set(get_handlers + post_handlers),
+            key=lambda h: (getattr(h, "index", 10000), h.request)
+        )
+
+        http_service_url = get_http_service_url(request)
+
+        operations = []
+        for handler in all_handlers:
+            methods = []
+            if handler in get_handlers:
+                methods.append(
+                    self.encode_reference("Get", http_service_url)
+                )
+            if handler in post_handlers:
+                post = self.encode_reference("Post", http_service_url)
+                post.append(
+                    OWS("Constraint",
+                        OWS("AllowedValues",
+                            OWS("Value", "XML")
+                        ), name="PostEncoding"
+                    )
+                )
+                methods.append(post)
+
+            operations.append(
+                OWS("Operation",
+                    OWS("DCP",
+                        OWS("HTTP", *methods)
+                    ),
+                    # apply default values as constraints
+                    *[
+                        OWS("Constraint",
+                            OWS("NoValues"),
+                            OWS("DefaultValue", str(default)),
+                            name=name
+                        ) for name, default
+                        in getattr(handler, "constraints", {}).items()
+                    ],
+                    name=handler.request
+                )
+            )
+
+        return OWS("OperationsMetadata", *operations)
+
+    def encode_service_metadata(self):
+        service_metadata = WCS("ServiceMetadata")
+
+        # get the list of enabled formats from the format registry
+        formats = filter(
+            lambda f: f, getFormatRegistry().getSupportedFormatsWCS()
+        )
+        service_metadata.extend(
+            map(lambda f: WCS("formatSupported", f.mimeType), formats)
+        )
+
+        # get a list of supported CRSs from the CRS registry
+        supported_crss = crss.getSupportedCRS_WCS(
+            format_function=crss.asURL
+        )
+        extension = WCS("Extension")
+        service_metadata.append(extension)
+        crs_metadata = CRS("CrsMetadata")
+        extension.append(crs_metadata)
+        crs_metadata.extend(
+            map(lambda c: CRS("crsSupported", c), supported_crss)
+        )
+
+        base_url = "http://www.opengis.net/def/interpolation/OGC/1/"
+
+        extension.append(
+            INT("InterpolationMetadata", *[
+                INT("InterpolationSupported",
+                    base_url + supported_interpolation
+                ) for supported_interpolation in SUPPORTED_INTERPOLATIONS
+            ])
+        )
+        return service_metadata
+
+    def encode_contents(self, coverages_qs, dataset_series_qs):
+        contents = []
+
+        if coverages_qs:
+            coverages = []
+
+            # reduce data transfer by only selecting required elements
+            # TODO: currently runs into a bug
+            #coverages_qs = coverages_qs.only(
+            #    "identifier", "real_content_type"
+            #)
+
+            for coverage in coverages_qs:
+                coverages.append(
+                    WCS("CoverageSummary",
+                        WCS("CoverageId", coverage.identifier),
+                        WCS("CoverageSubtype", coverage.real_type.__name__)
+                    )
+                )
+            contents.extend(coverages)
+
+        if dataset_series_qs:
+            dataset_series_set = []
+
+            # reduce data transfer by only selecting required elements
+            # TODO: currently runs into a bug
+            #dataset_series_qs = dataset_series_qs.only(
+            #    "identifier", "begin_time", "end_time", "footprint"
+            #)
+
+            for dataset_series in dataset_series_qs:
+                minx, miny, maxx, maxy = dataset_series.extent_wgs84
+
+                dataset_series_set.append(
+                    EOWCS("DatasetSeriesSummary",
+                        OWS("WGS84BoundingBox",
+                            OWS("LowerCorner", "%f %f" % (miny, minx)),
+                            OWS("UpperCorner", "%f %f" % (maxy, maxx)),
+                        ),
+                        EOWCS("DatasetSeriesId", dataset_series.identifier),
+                        GML("TimePeriod",
+                            GML(
+                                "beginPosition",
+                                isoformat(dataset_series.begin_time)
+                            ),
+                            GML(
+                                "endPosition",
+                                isoformat(dataset_series.end_time)
+                            ),
+                            **{
+                                ns_gml("id"): dataset_series.identifier
+                                + "_timeperiod"
+                            }
+                        )
+                    )
+                )
+
+            contents.append(WCS("Extension", *dataset_series_set))
+
+        return WCS("Contents", *contents)
+
     def encode_capabilities(self, sections, coverages_qs=None,
-                            dataset_series_qs=None):
+                            dataset_series_qs=None, request=None):
         conf = CapabilitiesConfigReader(get_eoxserver_config())
 
         all_sections = "all" in sections
         caps = []
         if all_sections or "serviceidentification" in sections:
-            caps.append(
-                OWS("ServiceIdentification",
-                    OWS("Title", conf.title),
-                    OWS("Abstract", conf.abstract),
-                    OWS("Keywords", *[
-                        OWS("Keyword", keyword) for keyword in conf.keywords
-                    ]),
-                    OWS("ServiceType", "OGC WCS", codeSpace="OGC"),
-                    OWS("ServiceTypeVersion", "2.0.1"),
-                    OWS("Profile", "http://www.opengis.net/spec/WCS_application-profile_earth-observation/1.0/conf/eowcs"),
-                    OWS("Profile", "http://www.opengis.net/spec/WCS_application-profile_earth-observation/1.0/conf/eowcs_get-kvp"),
-                    OWS("Profile", "http://www.opengis.net/spec/WCS_service-extension_crs/1.0/conf/crs"),
-                    OWS("Profile", "http://www.opengis.net/spec/WCS/2.0/conf/core"),
-                    OWS("Profile", "http://www.opengis.net/spec/WCS_protocol-binding_get-kvp/1.0/conf/get-kvp"),
-                    OWS("Profile", "http://www.opengis.net/spec/WCS_protocol-binding_post-xml/1.0/conf/post-xml"),
-                    OWS("Profile", "http://www.opengis.net/spec/GMLCOV/1.0/conf/gml-coverage"),
-                    OWS("Profile", "http://www.opengis.net/spec/GMLCOV/1.0/conf/multipart"),
-                    OWS("Profile", "http://www.opengis.net/spec/GMLCOV/1.0/conf/special-format"),
-                    OWS("Profile", "http://www.opengis.net/spec/GMLCOV_geotiff-coverages/1.0/conf/geotiff-coverage"),
-                    OWS("Profile", "http://www.opengis.net/spec/WCS_geotiff-coverages/1.0/conf/geotiff-coverage"),
-                    OWS("Profile", "http://www.opengis.net/spec/WCS_service-model_crs-predefined/1.0/conf/crs-predefined"),
-                    OWS("Profile", "http://www.opengis.net/spec/WCS_service-extension_interpolation/1.0/conf/interpolation"),
-                    OWS("Profile", "http://www.opengis.net/spec/WCS_service-extension_range-subsetting/1.0/conf/record-subsetting"),
-                    OWS("Profile", "http://www.opengis.net/spec/WCS_service-extension_scaling/1.0/conf/scaling"),
-                    OWS("Fees", conf.fees),
-                    OWS("AccessConstraints", conf.access_constraints)
-                )
-            )
+            caps.append(self.encode_service_identification(conf))
 
         if all_sections or "serviceprovider" in sections:
-            caps.append(
-                OWS("ServiceProvider",
-                    OWS("ProviderName", conf.provider_name),
-                    self.encode_reference("ProviderSite", conf.provider_site),
-                    OWS("ServiceContact",
-                        OWS("IndividualName", conf.individual_name),
-                        OWS("PositionName", conf.position_name),
-                        OWS("ContactInfo",
-                            OWS("Phone",
-                                OWS("Voice", conf.phone_voice),
-                                OWS("Facsimile", conf.phone_facsimile)
-                            ),
-                            OWS("Address",
-                                OWS("DeliveryPoint", conf.delivery_point),
-                                OWS("City", conf.city),
-                                OWS("AdministrativeArea", conf.administrative_area),
-                                OWS("PostalCode", conf.postal_code),
-                                OWS("Country", conf.country),
-                                OWS("ElectronicMailAddress", conf.electronic_mail_address)
-                            ),
-                            self.encode_reference(
-                                "OnlineResource", conf.onlineresource
-                            ),
-                            OWS("HoursOfService", conf.hours_of_service),
-                            OWS("ContactInstructions", conf.contact_instructions)
-                        ),
-                        OWS("Role", conf.role)
-                    )
-                )
-            )
-
+            caps.append(self.encode_service_provider(conf))
 
         if all_sections or "operationsmetadata" in sections:
-            component = ServiceComponent(env)
-            versions = ("2.0.0", "2.0.1")
-            get_handlers = component.query_service_handlers(
-                service="WCS", versions=versions, method="GET"
-            )
-            post_handlers = component.query_service_handlers(
-                service="WCS", versions=versions, method="POST"
-            )
-            all_handlers = sorted(
-                set(get_handlers + post_handlers),
-                key=lambda h: (getattr(h, "index", 10000), h.request)
-            )
-
-            operations = []
-            for handler in all_handlers:
-                methods = []
-                if handler in get_handlers:
-                    methods.append(
-                        self.encode_reference("Get", conf.http_service_url)
-                    )
-                if handler in post_handlers:
-                    post = self.encode_reference("Post", conf.http_service_url)
-                    post.append(
-                        OWS("Constraint",
-                            OWS("AllowedValues",
-                                OWS("Value", "XML")
-                            ), name="PostEncoding"
-                        )
-                    )
-                    methods.append(post)
-
-                operations.append(
-                    OWS("Operation",
-                        OWS("DCP",
-                            OWS("HTTP", *methods)
-                        ),
-                        # apply default values as constraints
-                        *[
-                            OWS("Constraint",
-                                OWS("NoValues"),
-                                OWS("DefaultValue", str(default)),
-                                name=name
-                            ) for name, default
-                            in getattr(handler, "constraints", {}).items()
-                        ],
-                        name=handler.request
-                    )
-                )
-            caps.append(OWS("OperationsMetadata", *operations))
-
+            caps.append(self.encode_operations_metadata(request))
 
         if all_sections or "servicemetadata" in sections:
-            service_metadata = WCS("ServiceMetadata")
-
-            # get the list of enabled formats from the format registry
-            formats = filter(
-                lambda f: f, getFormatRegistry().getSupportedFormatsWCS()
-            )
-            service_metadata.extend(
-                map(lambda f: WCS("formatSupported", f.mimeType), formats)
-            )
-
-            # get a list of supported CRSs from the CRS registry
-            supported_crss = crss.getSupportedCRS_WCS(format_function=crss.asURL)
-            extension = WCS("Extension")
-            service_metadata.append(extension)
-            crs_metadata = CRS("CrsMetadata")
-            extension.append(crs_metadata)
-            crs_metadata.extend(
-                map(lambda c: CRS("crsSupported", c), supported_crss)
-            )
-
-            base_url = "http://www.opengis.net/def/interpolation/OGC/1/"
-
-            extension.append(
-                INT("InterpolationMetadata", *[
-                    INT("InterpolationSupported",
-                        base_url + supported_interpolation
-                    ) for supported_interpolation in SUPPORTED_INTERPOLATIONS
-                ])
-            )
-
-            caps.append(service_metadata)
+            caps.append(self.encode_service_metadata())
 
         inc_contents = all_sections or "contents" in sections
         inc_coverage_summary = inc_contents or "coveragesummary" in sections
-        inc_dataset_series_summary = inc_contents or "datasetseriessummary" in sections
-        inc_contents = inc_contents or inc_coverage_summary or inc_dataset_series_summary
+        inc_dataset_series_summary = (
+            inc_contents or "datasetseriessummary" in sections
+        )
 
-        if inc_contents:
-            contents = []
+        if inc_contents or inc_coverage_summary or inc_dataset_series_summary:
+            caps.append(
+                self.encode_contents(
+                    coverages_qs if inc_coverage_summary else None,
+                    dataset_series_qs if inc_dataset_series_summary else None
+                )
+            )
 
-            if inc_coverage_summary:
-                coverages = []
-
-                # reduce data transfer by only selecting required elements
-                # TODO: currently runs into a bug
-                #coverages_qs = coverages_qs.only(
-                #    "identifier", "real_content_type"
-                #)
-
-                for coverage in coverages_qs:
-                    coverages.append(
-                        WCS("CoverageSummary",
-                            WCS("CoverageId", coverage.identifier),
-                            WCS("CoverageSubtype", coverage.real_type.__name__)
-                        )
-                    )
-                contents.extend(coverages)
-
-            if inc_dataset_series_summary:
-                dataset_series_set = []
-
-                # reduce data transfer by only selecting required elements
-                # TODO: currently runs into a bug
-                #dataset_series_qs = dataset_series_qs.only(
-                #    "identifier", "begin_time", "end_time", "footprint"
-                #)
-
-                for dataset_series in dataset_series_qs:
-                    minx, miny, maxx, maxy = dataset_series.extent_wgs84
-
-                    dataset_series_set.append(
-                        EOWCS("DatasetSeriesSummary",
-                            OWS("WGS84BoundingBox",
-                                OWS("LowerCorner", "%f %f" % (miny, minx)),
-                                OWS("UpperCorner", "%f %f" % (maxy, maxx)),
-                            ),
-                            EOWCS("DatasetSeriesId", dataset_series.identifier),
-                            GML("TimePeriod",
-                                GML("beginPosition", isoformat(dataset_series.begin_time)),
-                                GML("endPosition", isoformat(dataset_series.end_time)),
-                                **{ns_gml("id"): dataset_series.identifier + "_timeperiod"}
-                            )
-                        )
-                    )
-
-                contents.append(WCS("Extension", *dataset_series_set))
-
-            caps.append(WCS("Contents", *contents))
-
-        root = WCS("Capabilities", *caps, version="2.0.1", updateSequence=conf.update_sequence)
-        return root
+        return WCS(
+            "Capabilities", *caps, version="2.0.1",
+            updateSequence=conf.update_sequence
+        )
 
     def get_schema_locations(self):
         return nsmap.schema_locations
-
-
 
 
 class GMLCOV10Encoder(GML32Encoder):
@@ -460,7 +518,7 @@ class WCS20CoverageDescriptionXMLEncoder(GMLCOV10Encoder):
             self.encode_range_type(self.get_range_type(coverage.range_type_id)),
             WCS("ServiceParameters",
                 WCS("CoverageSubtype", coverage.real_type.__name__)
-            )
+            ),
             **{ns_gml("id"): self.get_gml_id(coverage.identifier)}
         )
 
@@ -474,7 +532,8 @@ class WCS20CoverageDescriptionXMLEncoder(GMLCOV10Encoder):
         return {ns_wcs.uri: ns_wcs.schema_location}
 
 
-class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20Encoder):
+class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder,
+                        OWS20Encoder):
     def encode_eo_metadata(self, coverage, request=None, subset_polygon=None):
         data_items = list(coverage.data_items.filter(
             semantic="metadata", format="eogml"
@@ -493,7 +552,7 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20E
                         coverage.identifier
                     )
                 except IndexError:
-                    pass # no featureOfInterest
+                    pass  # no featureOfInterest
 
         else:
             earth_observation = self.encode_earth_observation(
@@ -512,13 +571,14 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20E
                     )
                 ), GML("timePosition", isoformat(now()))
             )
-        elif request.method == "POST": # TODO: better way to do this
+        elif request.method == "POST":  # TODO: better way to do this
+            href = request.build_absolute_uri().replace("&", "&amp;")
             lineage = EOWCS("lineage",
                 EOWCS("referenceGetCoverage",
                     OWS("ServiceReference",
                         OWS("RequestMessage",
                             etree.parse(request).getroot()
-                        ), **{ns_xlink("href"): request.build_absolute_uri().replace("&", "&amp;")}
+                        ), **{ns_xlink("href"): href}
                     )
                 ), GML("timePosition", isoformat(now()))
             )
@@ -532,9 +592,11 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20E
             )
         )
 
-    def encode_coverage_description(self, coverage, srid=None, size=None, extent=None, footprint=None):
+    def encode_coverage_description(self, coverage, srid=None, size=None,
+                                    extent=None, footprint=None):
         source_mime = None
-        for data_item in coverage.data_items.filter(semantic__startswith="bands"):
+        band_items = coverage.data_items.filter(semantic__startswith="bands")
+        for data_item in band_items:
             if data_item.format:
                 source_mime = data_item.format
                 break
@@ -542,7 +604,9 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20E
         if source_mime:
             source_format = getFormatRegistry().getFormatByMIME(source_mime)
             # map the source format to the native one
-            native_format = getFormatRegistry().mapSourceToNativeWCS20(source_format)
+            native_format = getFormatRegistry().mapSourceToNativeWCS20(
+                source_format
+            )
         elif issubclass(coverage.real_type, RectifiedStitchedMosaic):
             # use the default format for RectifiedStitchedMosaics
             native_format = getFormatRegistry().getDefaultNativeFormat()
@@ -559,7 +623,10 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20E
             extent = coverage.extent
             sr = coverage.spatial_reference
 
-        rectified = False if issubclass(coverage.real_type, ReferenceableDataset) else True
+        if issubclass(coverage.real_type, ReferenceableDataset):
+            rectified = False
+        else:
+            rectified = True
 
         return WCS("CoverageDescription",
             self.encode_bounded_by(extent, sr),
@@ -569,7 +636,10 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20E
             self.encode_range_type(self.get_range_type(coverage.range_type_id)),
             WCS("ServiceParameters",
                 WCS("CoverageSubtype", coverage.real_type.__name__),
-                WCS("nativeFormat", native_format.mimeType if native_format else "")
+                WCS(
+                    "nativeFormat",
+                    native_format.mimeType if native_format else ""
+                )
             ),
             **{ns_gml("id"): self.get_gml_id(coverage.identifier)}
         )
@@ -590,7 +660,8 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20E
             )
         )
 
-    def calculate_contribution(self, footprint, contributions, subset_polygon=None):
+    def calculate_contribution(self, footprint, contributions,
+                               subset_polygon=None):
         if subset_polygon:
             footprint = footprint.intersection(subset_polygon)
 
@@ -598,7 +669,6 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20E
             footprint = footprint.difference(contribution)
         contributions.append(footprint)
         return footprint
-
 
     def encode_contributing_datasets(self, coverage, subset_polygon=None):
         eo_objects = coverage.eo_objects
@@ -626,21 +696,23 @@ class WCS20EOXMLEncoder(WCS20CoverageDescriptionXMLEncoder, EOP20Encoder, OWS20E
                 WCS("CoverageId", eo_object.identifier),
                 EOWCS("contributingFootprint",
                     self.encode_footprint(
-                        contribution, eo_object.identifier
+                        contrib, eo_object.identifier
                     )
                 )
             )
-            for eo_object, contribution in reversed(actual_contributions)
+            for eo_object, contrib in reversed(actual_contributions)
         ])
 
-    def alter_rectified_dataset(self, coverage, request, tree, subset_polygon=None):
+    def alter_rectified_dataset(self, coverage, request, tree,
+                                subset_polygon=None):
         return EOWCS("RectifiedDataset", *(
             tree.getchildren() + [
                 self.encode_eo_metadata(coverage, request, subset_polygon)
             ]
         ), **tree.attrib)
 
-    def alter_rectified_stitched_mosaic(self, coverage, request, tree, subset_polygon=None):
+    def alter_rectified_stitched_mosaic(self, coverage, request, tree,
+                                        subset_polygon=None):
         return EOWCS("RectifiedStitchedMosaic", *(
             tree.getchildren() + [
                 self.encode_eo_metadata(coverage, request, subset_polygon),

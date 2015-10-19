@@ -1,5 +1,4 @@
 #-------------------------------------------------------------------------------
-# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
@@ -10,8 +9,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -30,12 +29,12 @@
 from lxml import etree
 from lxml.builder import E
 
-from django.utils.dateparse import parse_datetime
 from django.contrib.gis.geos import Polygon, MultiPolygon
 
 from eoxserver.core.util.xmltools import parse
 from eoxserver.core.util.timetools import isoformat
 from eoxserver.core.util.iteratortools import pairwise
+from eoxserver.core.util.timetools import parse_iso8601
 from eoxserver.core import Component, implements
 from eoxserver.core.decoders import xml
 from eoxserver.resources.coverages.metadata.interfaces import (
@@ -53,10 +52,8 @@ class NativeFormat(Component):
         xml = parse(obj)
         return xml is not None and xml.tag == "Metadata"
 
-
     def get_format_name(self, obj):
         return "native"
-    
 
     def read(self, obj):
         tree = parse(obj)
@@ -71,7 +68,6 @@ class NativeFormat(Component):
             }
         raise Exception("Could not parse from obj '%s'." % repr(obj))
 
-
     def write(self, values, file_obj, format=None, encoding=None, pretty=False):
         def flip(point):
             return point[1], point[0]
@@ -82,7 +78,7 @@ class NativeFormat(Component):
             E.BeginTime(isoformat(values["begin_time"])),
             E.EndTime(isoformat(values["end_time"])),
             E.Footprint(
-                *map(lambda polygon: 
+                *map(lambda polygon:
                     E.Polygon(
                         E.Exterior(
                             " ".join([
@@ -113,14 +109,14 @@ def parse_polygon_xml(elem):
         *map(lambda e: parse_ring(e.text), elem.findall("Interior"))
     )
 
+
 def parse_ring(string):
-    points = []
     raw_coords = map(float, string.split(" "))
     return [(lon, lat) for lat, lon in pairwise(raw_coords)]
 
 
 class NativeFormatDecoder(xml.Decoder):
     identifier = xml.Parameter("EOID/text()")
-    begin_time = xml.Parameter("BeginTime/text()", type=parse_datetime)
-    end_time = xml.Parameter("EndTime/text()", type=parse_datetime)
+    begin_time = xml.Parameter("BeginTime/text()", type=parse_iso8601)
+    end_time = xml.Parameter("EndTime/text()", type=parse_iso8601)
     polygons = xml.Parameter("Footprint/Polygon", type=parse_polygon_xml, num="+")

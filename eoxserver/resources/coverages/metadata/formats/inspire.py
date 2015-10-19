@@ -1,5 +1,4 @@
 #-------------------------------------------------------------------------------
-# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
@@ -26,10 +25,10 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from django.utils.dateparse import parse_datetime
 from django.contrib.gis.geos import Polygon, MultiPolygon
 
 from eoxserver.core.util.xmltools import parse, NameSpace, NameSpaceMap
+from eoxserver.core.util.timetools import parse_iso8601
 from eoxserver.core.util.iteratortools import pairwise
 from eoxserver.core import Component, implements
 from eoxserver.core.decoders import xml
@@ -66,7 +65,7 @@ class InspireFormatReader(Component):
 
 
 def parse_line_string(string):
-    raw_coords = map(float, string.strip().split(" "))
+    raw_coords = map(float, string.strip().split())
     return MultiPolygon(
         Polygon([(lon, lat) for lat, lon in pairwise(raw_coords)])
     )
@@ -74,8 +73,8 @@ def parse_line_string(string):
 
 class InspireFormatDecoder(xml.Decoder):
     identifier = xml.Parameter("gmd:fileIdentifier/gco:CharacterString/text()", type=str, num=1)
-    begin_time = xml.Parameter("gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:lineage/gmd:LI_Lineage/gmd:source/gmd:LI_Source/gmd:sourceExtent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:beginPosition/text()", type=parse_datetime, num=1)
-    end_time = xml.Parameter("gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:lineage/gmd:LI_Lineage/gmd:source/gmd:LI_Source/gmd:sourceExtent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:endPosition/text()", type=parse_datetime, num=1)
+    begin_time = xml.Parameter("gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:lineage/gmd:LI_Lineage/gmd:source/gmd:LI_Source/gmd:sourceExtent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:beginPosition/text()", type=parse_iso8601, num=1)
+    end_time = xml.Parameter("gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:lineage/gmd:LI_Lineage/gmd:source/gmd:LI_Source/gmd:sourceExtent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:endPosition/text()", type=parse_iso8601, num=1)
     footprint = xml.Parameter("gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_BoundingPolygon/gmd:polygon/gml:LineString/gml:posList/text()", type=parse_line_string, num=1)
 
     namespaces = nsmap

@@ -15,8 +15,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -57,15 +57,9 @@ class Type( models.Model ) :
         DB fields: 
             identifier   - process class ID; 
             handler      - python dot path to handler function;
-            timeout      - time in second after which the unfinished process is 
-                           considered to be abandoned and it is restarted 
-                           (number of restarts is limited by maxstart, default timeout is 3600 s);
-            timeret      - retention time - period of time to keep finished processes
-                           in case of zero or negative value the results will be kept forever 
-                           (default is -1);
-            maxstart     - max. number of attempt to execute the task (first run and possible restarts)
-                           When the number of (re)starts is exceeded the task is marked as failed 
-                           and rejected from further processing. (default is 3).
+            timeout      - time in second after which the unfinished process is considered to be abandoned and it is restarted (number of restarts is limited by maxstart, default timeout is 3600 s);
+            timeret      - retention time - period of time to keep finished processes in case of zero or negative value the results will be kept forever (default is -1);
+            maxstart     - max. number of attempt to execute the task (first run and possible restarts) When the number of (re)starts is exceeded the task is marked as failed and rejected from further processing. (default is 3).
 
     """
     identifier = models.CharField( max_length=64   , unique=True , blank=False , null=False, editable = False )

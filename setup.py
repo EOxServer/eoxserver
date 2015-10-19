@@ -27,24 +27,17 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-import os, sys
-
-# Hack to remove setuptools "feature" which resulted in
-# ignoring MANIFEST.in when code is in an svn repository.
-# TODO find a nicer solution
-import subprocess
-from setuptools.command import sdist
-from distutils.extension import Extension
-del sdist.finders[:]
-
+import os
 from setuptools import setup
 
 from eoxserver import get_version
 
 version = get_version()
 
+
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
+
 
 def fullsplit(path, result=None):
     """
@@ -60,79 +53,24 @@ def fullsplit(path, result=None):
         return result
     return fullsplit(head, [tail] + result)
 
-def get_gdal_libs(default=None):
-    if default is None:
-        default = ("", "")
-    
-    p = subprocess.Popen(["gdal-config", "--libs"], stdout=subprocess.PIPE)
-    if p.wait() != 0:
-        return default
-    output = p.stdout.read().strip().split(" ")
-    lib = ""
-    libdir = ""
-    for part in output:
-        if part.startswith("-L"):
-            libdir = part[2:]
-        elif part.startswith("-l"):
-            lib = part[2:]
-
-    return libdir, lib
-
-def get_gdal_incdirs(default=None):
-    if default is None:
-        default = ("", "")
-    
-    p = subprocess.Popen(["gdal-config", "--cflags"], stdout=subprocess.PIPE)
-    if p.wait() != 0:
-        return default
-    output = p.stdout.read().strip().split(" ")
-    lib = ""
-    libdir = ""
-    for part in output:
-        if part.startswith("-I"):
-            incdir = part[2:]
-
-    return incdir
 
 packages, data_files = [], []
 for dirpath, dirnames, filenames in os.walk('eoxserver'):
     for i, dirname in enumerate(dirnames):
-        if dirname.startswith('.'): del dirnames[i]
+        if dirname.startswith('.'):
+            del dirnames[i]
     if '__init__.py' in filenames:
         packages.append('.'.join(fullsplit(dirpath)))
     elif filenames:
-        data_files.append([dirpath, [os.path.join(dirpath, f) for f in filenames]])
+        data_files.append(
+            [dirpath, [os.path.join(dirpath, f) for f in filenames]]
+        )
+
 
 # On readthecods.org we don't want the reftools to be build
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 if on_rtd:
     ext_modules = []
-else:
-    gdal_libdir, gdal_lib = get_gdal_libs()
-    gdal_incdir = get_gdal_incdirs()
-
-    ext_modules = [
-        Extension(
-            'eoxserver.processing.gdal._reftools',
-            sources=['eoxserver/processing/gdal/reftools.c'],
-            libraries=[gdal_lib],
-            library_dirs=[gdal_libdir],
-            include_dirs=[gdal_incdir],
-        ),
-        Extension(
-            'eoxserver.processing.gdal._reftools_ext',
-            sources=['eoxserver/processing/gdal/reftools.c'],
-            libraries=[gdal_lib],
-            library_dirs=[gdal_libdir],
-            include_dirs=[gdal_incdir],
-            define_macros = [('USE_GDAL_EOX_EXTENSIONS', '1')],
-        )
-    ]
-
-    # Check if we should build the extended reftools relying on gdal-eox
-    if "--disable-extended-reftools" in sys.argv:
-        ext_modules.pop()
-        sys.argv.remove("--disable-extended-reftools")
 
 setup(
     name='EOxServer',
@@ -146,47 +84,47 @@ setup(
         "tools/eoxserver-validate_xml.py",
         "tools/eoxserver-preprocess.py"
     ],
-    ext_modules=ext_modules,
     install_requires=[
         'django>=1.4',
+        'python-dateutil',
     ],
-    zip_safe = False,
-    
+    zip_safe=False,
+
     # Metadata
     author="EOX IT Services GmbH",
     author_email="office@eox.at",
     maintainer="EOX IT Services GmbH",
     maintainer_email="packages@eox.at",
-    
+
     description="EOxServer is a server for Earth Observation (EO) data",
     long_description=read("README.rst"),
-    
+
     classifiers=[
-          'Development Status :: 1 - Planning',
-          'Environment :: Console',
-          'Environment :: Web Environment',
-          'Framework :: Django',
-          'Intended Audience :: End Users/Desktop',
-          'Intended Audience :: Other Audience',
-          'Intended Audience :: System Administrators',
-          'Intended Audience :: Science/Research',
-          'License :: OSI Approved :: MIT License',
-          'Natural Language :: English',
-          'Operating System :: OS Independent',
-          'Programming Language :: Python',
-          'Programming Language :: Python :: 2.5',
-          'Programming Language :: Python :: 2.6',
-          'Programming Language :: Python :: 2.7',
-          'Topic :: Database',
-          'Topic :: Internet',
-          'Topic :: Internet :: WWW/HTTP',
-          'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
-          'Topic :: Multimedia :: Graphics',
-          'Topic :: Scientific/Engineering :: GIS',
-          'Topic :: Scientific/Engineering :: Information Analysis',
-          'Topic :: Scientific/Engineering :: Visualization',
+        'Development Status :: 1 - Planning',
+        'Environment :: Console',
+        'Environment :: Web Environment',
+        'Framework :: Django',
+        'Intended Audience :: End Users/Desktop',
+        'Intended Audience :: Other Audience',
+        'Intended Audience :: System Administrators',
+        'Intended Audience :: Science/Research',
+        'License :: OSI Approved :: MIT License',
+        'Natural Language :: English',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2.5',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
+        'Topic :: Database',
+        'Topic :: Internet',
+        'Topic :: Internet :: WWW/HTTP',
+        'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
+        'Topic :: Multimedia :: Graphics',
+        'Topic :: Scientific/Engineering :: GIS',
+        'Topic :: Scientific/Engineering :: Information Analysis',
+        'Topic :: Scientific/Engineering :: Visualization',
     ],
-    
+
     license="EOxServer Open License (MIT-style)",
     keywords="Earth Observation, EO, OGC, WCS, WMS",
     url="http://eoxserver.org/"

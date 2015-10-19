@@ -10,8 +10,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -32,7 +32,7 @@ from optparse import make_option
 from django.core.management.base import CommandError, BaseCommand
 
 from eoxserver.resources.coverages.management.commands import (
-    CommandOutputMixIn, _variable_args_cb
+    CommandOutputMixIn
 )
 
 from eoxserver.resources.coverages import models
@@ -40,7 +40,7 @@ from eoxserver.resources.coverages import models
 
 class Command(CommandOutputMixIn, BaseCommand):
     option_list = BaseCommand.option_list + (
-        make_option("-t", "--type", 
+        make_option("-t", "--type",
             dest="type_name", action="store", default="EOObject",
             help=("Optional. Restrict the listed identifiers to given type.")
         ),
@@ -49,10 +49,10 @@ class Command(CommandOutputMixIn, BaseCommand):
     args = "<id> [<id> ...] [-t <type>]"
 
     help = """
-        Check whether one or more identifier are used by existing EOObjects or 
-        objects of a specified subtype. 
+        Check whether one or more identifier are used by existing EOObjects or
+        objects of a specified subtype.
 
-        The existence is indicated by the returned exit-code. A non-zero value 
+        The existence is indicated by the returned exit-code. A non-zero value
         indicates that any of the supplied identifiers is already in use.
     """
 
@@ -70,13 +70,12 @@ class Command(CommandOutputMixIn, BaseCommand):
         except AttributeError:
             raise CommandError("Unsupported type '%s'." % type_name)
 
-
         used = False
         for identifier in identifiers:
             try:
                 obj = ObjectType.objects.get(identifier=identifier)
                 self.print_msg(
-                    "The identifier '%s' is already in use by a '%s'." 
+                    "The identifier '%s' is already in use by a '%s'."
                     % (identifier, obj.real_type.__name__)
                 )
                 used = True

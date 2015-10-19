@@ -1,0 +1,1 @@
+(function(){"use strict";var a=this;a.define(["backbone","communicator"],function(a){var b=a.Model.extend({selections:[]});return{SelectionModel:b}})}).call(this);

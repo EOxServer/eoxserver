@@ -1,5 +1,4 @@
 #-------------------------------------------------------------------------------
-# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
@@ -10,8 +9,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -26,12 +25,9 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-
-from lxml import etree
-
-from django.utils.dateparse import parse_datetime
 from django.contrib.gis.geos import Polygon, MultiPolygon
 
+from eoxserver.core.util.timetools import parse_iso8601
 from eoxserver.core.util.xmltools import parse, NameSpace, NameSpaceMap
 from eoxserver.core.util.iteratortools import pairwise
 from eoxserver.core import Component, implements
@@ -82,8 +78,8 @@ def parse_ring(string):
 
 class EOOMFormatDecoder(xml.Decoder):
     identifier = xml.Parameter("eop:metaDataProperty/eop:EarthObservationMetaData/eop:identifier/text()", type=str, num=1)
-    begin_time = xml.Parameter("om:phenomenonTime/gml:TimePeriod/gml:beginPosition/text()", type=parse_datetime, num=1)
-    end_time = xml.Parameter("om:phenomenonTime/gml:TimePeriod/gml:endPosition/text()", type=parse_datetime, num=1)
+    begin_time = xml.Parameter("om:phenomenonTime/gml:TimePeriod/gml:beginPosition/text()", type=parse_iso8601, num=1)
+    end_time = xml.Parameter("om:phenomenonTime/gml:TimePeriod/gml:endPosition/text()", type=parse_iso8601, num=1)
     polygons = xml.Parameter("om:featureOfInterest/eop:Footprint/eop:multiExtentOf/gml:MultiSurface/gml:surfaceMember/gml:Polygon", type=parse_polygon_xml, num="+")
 
     namespaces = nsmap

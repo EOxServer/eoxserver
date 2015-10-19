@@ -1,5 +1,4 @@
 #-------------------------------------------------------------------------------
-# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
@@ -10,8 +9,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -50,13 +49,14 @@ class VersionedParams(object):
 
 class CapabilitiesRenderParams(object):
     def __init__(self, coverages, version, sections=None, accept_languages=None,
-                 accept_formats=None, updatesequence=None):
+                 accept_formats=None, updatesequence=None, request=None):
         self._coverages = coverages
         self._version = version
         self._sections = sections or ()
         self._accept_languages = accept_languages or ()
         self._accept_formats = accept_formats or ()
         self._updatesequence = updatesequence
+        self._request = request
 
     coverages        = property(lambda self: self._coverages)
     version          = property(lambda self: self._version)
@@ -65,6 +65,13 @@ class CapabilitiesRenderParams(object):
     accept_formats   = property(lambda self: self._accept_formats)
     updatesequence   = property(lambda self: self._updatesequence)
 
+    @property
+    def request(self):
+        return self._request
+
+    @request.setter
+    def request(self, value):
+        self._request = value
 
     def __iter__(self):
         yield "request", "GetCapabilities"

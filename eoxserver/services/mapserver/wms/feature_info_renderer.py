@@ -1,5 +1,4 @@
 #-------------------------------------------------------------------------------
-# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
@@ -10,8 +9,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -41,7 +40,7 @@ from eoxserver.services.ows.wcs.v20.encoders import WCS20EOXMLEncoder
 from eoxserver.services.result import (
     result_set_from_raw_data, get_content_type, ResultBuffer
 )
-
+from eoxserver.services.urls import get_http_service_url
 
 class MapServerWMSFeatureInfoRenderer(MapServerWMSBaseComponent):
     """ A WMS feature info renderer using MapServer.
@@ -49,19 +48,19 @@ class MapServerWMSFeatureInfoRenderer(MapServerWMSBaseComponent):
     implements(WMSFeatureInfoRendererInterface)
 
     
-    def render(self, layer_groups, request_values, **options):
+    def render(self, layer_groups, request_values, request, **options):
         config = CapabilitiesConfigReader(get_eoxserver_config())
+        http_service_url = get_http_service_url(request)
         map_ = ms.Map()
         map_.setMetaData({
             "enable_request": "*",
-            "onlineresource": config.http_service_url,
+            "onlineresource": http_service_url,
         }, namespace="ows")
 
         map_.setMetaData("wms_getfeatureinfo_formatlist", "text/html")
         map_.setProjection("EPSG:4326")
 
         session = self.setup_map(layer_groups, map_, options)
-
 
         # check if the required format is EO O&M
         frmt = pop_param(request_values, "info_format")

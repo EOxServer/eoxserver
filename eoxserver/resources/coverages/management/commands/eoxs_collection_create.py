@@ -46,7 +46,8 @@ class Command(CommandOutputMixIn, BaseCommand):
         ),
         make_option("-t", "--type",
             dest="type", action="store", default="DatasetSeries",
-            help=("Dataset series identifier.")
+            help=("Optional. Type of the collection to create. Defaults to "
+                  "`DatasetSeries`.")
         ),
         make_option("-c", "--collection", dest="collection_ids",
             action='callback', callback=_variable_args_cb,
@@ -56,7 +57,6 @@ class Command(CommandOutputMixIn, BaseCommand):
             action='callback', callback=_variable_args_cb,
             default=None, help=("Optional. Link one or more eo-objects.")
         ),
-
         make_option('--ignore-missing-collection',
             dest='ignore_missing_collection',
             action="store_true", default=False,

@@ -10,8 +10,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -31,26 +31,27 @@ class InvalidRequestException(Exception):
     """
     This exception indicates that the request was invalid and an exception
     report shall be returned to the client.
-    
+
     The constructor takes three arguments, namely ``msg``, the error message,
     ``code``, the error code, and ``locator``, which is needed in OWS
     exception reports for indicating which part of the request produced the
     error.
-    
+
     How exactly the exception reports are constructed is not defined by the
     exception, but by exception handlers.
     """
     def __init__(self, msg, code=None, locator=None):
         super(InvalidRequestException, self).__init__(msg)
-    
+
         self.code = code or "InvalidRequest"
         self.locator = locator
-    
+
     def __str__(self):
         return "Invalid Request: Code: %s; Locator: %s; Message: '%s'" % (
-            self.code, self.locator, 
+            self.code, self.locator,
             super(InvalidRequestException, self).__str__()
         )
+
 
 class VersionNegotiationException(Exception):
     """
@@ -64,7 +65,7 @@ class VersionNegotiationException(Exception):
 
 
 class LocatorListException(Exception):
-    """ Base class for exceptions that report that a number of items are 
+    """ Base class for exceptions that report that a number of items are
         missing or invalid
     """
     def __init__(self, items):
@@ -88,7 +89,7 @@ class InvalidAxisLabelException(Exception):
             "Invalid axis label: '%s'." % axis_label
         )
         self.locator = axis_label
-    
+
 
 class InvalidSubsettingException(Exception):
     """
@@ -99,8 +100,26 @@ class InvalidSubsettingException(Exception):
     locator = "subset"
 
 
+class InvalidSubsettingCrsException(Exception):
+    """
+    This exception indicates an invalid WCS 2.0 subsettingCrs parameter was
+    submitted.
+    """
+    code = "SubsettingCrs-NotSupported"
+    locator = "subsettingCrs"
+
+
+class InvalidOutputCrsException(Exception):
+    """
+    This exception indicates an invalid WCS 2.0 outputCrs parameter was
+    submitted.
+    """
+    code = "OutputCrs-NotSupported"
+    locator = "outputCrs"
+
+
 class NoSuchCoverageException(LocatorListException):
-    """ This exception indicates that the requested coverage(s) do not 
+    """ This exception indicates that the requested coverage(s) do not
         exist.
     """
     code = "NoSuchCoverage"
@@ -113,7 +132,7 @@ class NoSuchCoverageException(LocatorListException):
 
 
 class NoSuchDatasetSeriesOrCoverageException(LocatorListException):
-    """ This exception indicates that the requested coverage(s) or dataset 
+    """ This exception indicates that the requested coverage(s) or dataset
         series do not exist.
     """
     code = "NoSuchDatasetSeriesOrCoverage"
@@ -126,7 +145,7 @@ class NoSuchDatasetSeriesOrCoverageException(LocatorListException):
 
 
 class OperationNotSupportedException(Exception):
-    """ Exception to be thrown when some operations are not supported or 
+    """ Exception to be thrown when some operations are not supported or
         disabled.
     """
     def __init__(self, message, operation=None):
@@ -154,7 +173,7 @@ class ServiceNotSupportedException(OperationNotSupportedException):
 
 
 class VersionNotSupportedException(Exception):
-    """ Exception to be thrown when a specific OWS service version is not 
+    """ Exception to be thrown when a specific OWS service version is not
         supported.
     """
     def __init__(self, service, version):

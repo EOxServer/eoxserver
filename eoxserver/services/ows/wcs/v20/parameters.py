@@ -1,5 +1,4 @@
 #-------------------------------------------------------------------------------
-# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
@@ -10,8 +9,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -35,11 +34,12 @@ from eoxserver.services.ows.wcs.parameters import (
 
 
 class WCS20CapabilitiesRenderParams(WCSCapabilitiesRenderParams):
-    def __init__(self, coverages, dataset_series=None, sections=None, 
-                 accept_languages=None, accept_formats=None, updatesequence=None):
+    def __init__(self, coverages, dataset_series=None, sections=None,
+                 accept_languages=None, accept_formats=None,
+                 updatesequence=None, request=None):
         super(WCS20CapabilitiesRenderParams, self).__init__(
             coverages, "2.0.1", sections, accept_languages, accept_formats,
-            updatesequence
+            updatesequence, request
         )
         self._dataset_series = dataset_series or ()
 

@@ -1,0 +1,1 @@
+(function(){"use strict";var a=this;a.define(["backbone","communicator","models/ToolModel"],function(a,b,c){var d=a.Collection.extend({model:c});return{ToolCollection:d}})}).call(this);

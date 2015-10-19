@@ -10,8 +10,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -29,11 +29,10 @@
 from optparse import make_option
 
 from django.core.management.base import CommandError, BaseCommand
-from django.contrib.gis.geos import GEOSGeometry
 
 from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.management.commands import (
-    CommandOutputMixIn, _variable_args_cb, nested_commit_on_success
+    CommandOutputMixIn, nested_commit_on_success
 )
 
 
@@ -43,7 +42,7 @@ class Command(CommandOutputMixIn, BaseCommand):
             dest="identifier", action="store", default=None,
             help=("Collection identifier.")
         ),
-        make_option("-r", "--recursive", "--recursive-delete", 
+        make_option("-r", "--recursive", "--recursive-delete",
             dest="recursive", action="store_true", default=False,
             help=("Optional. Delete all contained collections.")
         ),
@@ -54,19 +53,18 @@ class Command(CommandOutputMixIn, BaseCommand):
     )
 
     args = "-i <collection-id> [-r] [-f]"
-    
+
     help = """
         Deletes a Collection.
 
-        By default this command does not remove non-empty collections. If the 
-        `--recursive` option is set, then all sub-ordinate collections are 
+        By default this command does not remove non-empty collections. If the
+        `--recursive` option is set, then all sub-ordinate collections are
         deleted before. It is not checked whether or not the sub-collection is
         itself contained in a different collection.
 
-        If the `--force` option is set, then the collection(s) will even be 
+        If the `--force` option is set, then the collection(s) will even be
         removed when they are still containing objects.
     """
-
 
     @nested_commit_on_success
     def handle(self, *args, **kwargs):
@@ -88,7 +86,6 @@ class Command(CommandOutputMixIn, BaseCommand):
             raise CommandError("Deletion of the collection failed: %s" % e)
 
         self.print_msg("Successfully deleted %d collections." % count)
-
 
     def _delete_collection(self, collection, recursive, force):
         collection = collection.cast()

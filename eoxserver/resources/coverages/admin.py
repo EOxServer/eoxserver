@@ -143,7 +143,8 @@ class CoverageAdmin(EOObjectAdmin):
                        ('max_x', 'max_y'),
                        ('srid', 'projection'),
                        ('begin_time', 'end_time'),
-                       'footprint'),
+                       'footprint',
+                       'visible'),
             'description': 'Geospatial metadata'
         }),
     )
@@ -190,10 +191,10 @@ class NilValueInline(AbstractInline):
 class BandInline(AbstractInline):
     form = BandInlineForm # TODO: not working as expected...
     model = models.Band
-    extra = 1
+    extra = 0
 
-    def get_queryset(self):
-        queryset = super(BandInline, self).get_queryset()
+    def get_queryset(self, *args, **kwargs):
+        queryset = super(BandInline, self).get_queryset(*args, **kwargs)
         return queryset.order_by("index")
 
 
@@ -216,6 +217,7 @@ class EOObjectInline(AbstractInline):
 class DataSourceInline(AbstractInline):
     model = models.DataSource
     form = LocationForm
+    fk_name = "collection"
     extra = 0
 
 
@@ -284,6 +286,7 @@ admin.site.register(models.RectifiedStitchedMosaic, RectifiedStitchedMosaicAdmin
 
 class DatasetSeriesAdmin(CollectionAdmin):
     model = models.DatasetSeries
+    inlines = (DataSourceInline, EOObjectInline, CollectionInline)
 
     fieldsets = (
         (None, {
@@ -293,7 +296,5 @@ class DatasetSeriesAdmin(CollectionAdmin):
             'fields': (('begin_time', 'end_time'), 'footprint')
         }),
     )
-
-    inlines = (DataSourceInline, EOObjectInline, CollectionInline)
 
 admin.site.register(models.DatasetSeries, DatasetSeriesAdmin)
