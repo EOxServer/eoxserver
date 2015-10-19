@@ -176,6 +176,25 @@ def get_headers(result_item):
         pass
 
 
+def get_payload_size(result_set, boundary):
+    """ Calculate the size of the result set and all entailed result items plus
+        headers.
+    """
+    boundary_str = "%s--%s%s" % (mp.CRLF, boundary, mp.CRLF)
+    boundary_str_end = "%s--%s--" % (mp.CRLF, boundary)
+
+    size = 0
+    for item in result_set:
+        size += len(boundary_str)
+        size += len(
+            mp.CRLF.join("%s: %s" % (k, v) for k, v in get_headers(item))
+        )
+        size += len(mp.CRLFCRLF)
+        size += len(item)
+    size += len(boundary_str_end)
+    return size
+
+
 def to_http_response(result_set, response_type=HttpResponse, boundary=None):
     """ Returns a response for a given result set. The ``response_type`` is the
         class to be used. It must be capable to work with iterators. This
