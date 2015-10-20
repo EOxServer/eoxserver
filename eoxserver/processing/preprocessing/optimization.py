@@ -305,10 +305,25 @@ class OverviewOptimization(DatasetPostOptimization):
 
         filename = ds.GetFileList()[0]
         process = subprocess.Popen(
-            "gdaladdo -q -clean %s; gdaladdo -q -r %s %s %s" % (
-                filename, self.resampling, filename,
-                " ".join(str(level) for level in levels)
-            ),
+            ["gdaladdo", "-q", "-clean", filename],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+
+        out, err = process.communicate()
+        for string in (out, err):
+            for line in string.split("\n"):
+                if line != '':
+                    logger.info("MapCache output: %s" % line)
+
+        if process.returncode != 0:
+            logger.warning(
+                "Creation of Overviews failed. (Returncode: %d)"
+                % process.returncode
+            )
+
+        process = subprocess.Popen(
+            ["gdaladdo", "-q", "-r", self.resampling or "nearest", filename]
+            + [str(l) for l in levels],
             stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
 
