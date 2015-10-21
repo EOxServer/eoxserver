@@ -184,7 +184,7 @@ class WCS11GetCoverageBBoxFaultTestCase(eoxstest.ExceptionTestCase):
         return (params, "kvp")
 
     def getExpectedExceptionCode(self):
-        return "bbox"
+        return "NoApplicableCode"
 
 class WCS11GetCoverageFormatUnsupportedFaultTestCase(eoxstest.ExceptionTestCase):
     def getRequest(self):
