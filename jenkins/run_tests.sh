@@ -13,6 +13,13 @@ echo "**> running pylint tests ..."
 # Run unit tests
 echo "**> running unit tests tests ..."
 cd autotest
+
+# Make sure the PostGIS test database is not present
+if [ $DB == "postgis" ] && [ `psql template_postgis jenkins -tAc "SELECT 1 FROM pg_database WHERE datname='test_eoxserver_testing'"` ] ; then
+    echo "Dropping PostGIS test database."
+    dropdb test_eoxserver_testing
+fi
+
 export XML_CATALOG_FILES="$WORKSPACE/schemas/catalog.xml"
 # ftp tests are disabled
 if [ $OS == "Ubuntu" ]; then
