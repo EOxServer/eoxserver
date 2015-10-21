@@ -25,7 +25,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from autotest_services import testbase
+from autotest_services import base as testbase
 import base as wcsbase
 
 
@@ -37,11 +37,11 @@ class WCS11GetCapabilitiesValidTestCase(testbase.XMLTestCase):
     def getRequest(self):
         params = "service=WCS&version=1.1.2&request=GetCapabilities"
         return (params, "kvp")
-    
+
 class WCS11GetCapabilitiesEmptyTestCase(testbase.XMLTestCase):
     """This test shall retrieve a valid but empty WCS 1.1 GetCapabilities response (see #41)"""
     fixtures = testbase.BASE_FIXTURES
-    
+
     def getRequest(self):
         params = "service=WCS&version=1.1.2&request=GetCapabilities"
         return (params, "kvp")
@@ -94,7 +94,7 @@ class WCS11DescribeCoverageNoSuchCoverageFaultTestCase(testbase.ExceptionTestCas
     def getRequest(self):
         params = "service=wcs&version=1.1.2&request=DescribeCoverage&identifier=INVALID&boundingbox=35,10,42,20,urn:ogc:def:crs:EPSG::4326&format=image/tiff&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridBaseCRS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=40,10&GridOffsets=-0.06,0.06"
         return (params, "kvp")
-    
+
     def getExpectedExceptionCode(self):
         return "NoSuchCoverage"
 
@@ -103,13 +103,13 @@ class WCS11GetCoverageNoSuchCoverageFaultTestCase(testbase.ExceptionTestCase):
     def getRequest(self):
         params = "service=wcs&version=1.1.2&request=GetCoverage&identifier=INVALID&boundingbox=35,10,42,20,urn:ogc:def:crs:EPSG::4326&format=image/tiff&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridBaseCRS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=40,10&GridOffsets=-0.06,0.06"
         return (params, "kvp")
-    
+
     def getExpectedExceptionCode(self):
         return "NoSuchCoverage"
 
-#NOTE: Support for Referenceable Datasets in WCS < 2.0.0 not avaiable. 
-#      Any attempt to access Ref.DS via WCS 1.x should be treated as 
-#      non-existing coverage. 
+#NOTE: Support for Referenceable Datasets in WCS < 2.0.0 not avaiable.
+#      Any attempt to access Ref.DS via WCS 1.x should be treated as
+#      non-existing coverage.
 class WCS11DescribeCoverageReferenceableFaultTestCase(testbase.ExceptionTestCase):
     def getRequest(self):
         params = "service=wcs&version=1.1.2&request=DescribeCoverage&identifier=ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775"
@@ -122,23 +122,23 @@ class WCS11GetCoverageReferenceableFaultTestCase(testbase.ExceptionTestCase):
     def getRequest(self):
         params = "service=wcs&version=1.1.2&request=GetCoverage&identifier=ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775&boundingbox=80,80,90,90,urn:ogc:def:crs:EPSG::4326&format=image/tiff&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridBaseCRS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=46.5,12&GridOffsets=0.06,0.06"
         return (params, "kvp")
-    
+
     def getExpectedExceptionCode(self):
         return "NoSuchCoverage"
-    
+
 class WCS11GetCoverageBBoxFaultTestCase(testbase.ExceptionTestCase):
     def getRequest(self):
         params = "service=wcs&version=1.1.2&request=GetCoverage&identifier=mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced&boundingbox=80,80,90,90,urn:ogc:def:crs:EPSG::4326&format=image/tiff&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridBaseCRS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=46.5,12&GridOffsets=0.06,0.06"
         return (params, "kvp")
-    
+
     def getExpectedExceptionCode(self):
-        return "bbox"
+        return "NoApplicableCode"
 
 class WCS11GetCoverageFormatUnsupportedFaultTestCase(testbase.ExceptionTestCase):
     def getRequest(self):
         params = "service=wcs&version=1.1.2&request=GetCoverage&identifier=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/jpeg&boundingbox=35,10,42,20,urn:ogc:def:crs:EPSG::4326&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridBaseCRS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=40,10&GridOffsets=-0.06,0.06"
         return (params, "kvp")
-    
+
     def getExpectedExceptionCode(self):
         return "InvalidParameterValue"
 
@@ -146,7 +146,7 @@ class WCS11GetCoverageFormatUnknownFaultTestCase(testbase.ExceptionTestCase):
     def getRequest(self):
         params = "service=wcs&version=1.1.2&request=GetCoverage&identifier=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=unknown&boundingbox=35,10,42,20,urn:ogc:def:crs:EPSG::4326&GridCS=urn:ogc:def:crs:OGC::imageCRS&GridBaseCRS=urn:ogc:def:crs:OGC::imageCRS&GridType=urn:ogc:def:method:WCS:1.1:2dGridIn2dCrs&GridOrigin=40,10&GridOffsets=-0.06,0.06"
         return (params, "kvp")
-    
+
     def getExpectedExceptionCode(self):
         return "InvalidParameterValue"
 
@@ -155,9 +155,9 @@ class WCS11GetCoverageFormatUnknownFaultTestCase(testbase.ExceptionTestCase):
 #===============================================================================
 '''
 class WCS11TransactionRectifiedDatasetTestCase(testbase.WCSTransactionRectifiedGridCoverageTestCase):
-    """ This test case shall test the synchronous inserting of a new 
-        RectifiedGridCoverage by means of the WCS 1.1 Transaction operation 
-        ("Add" action). 
+    """ This test case shall test the synchronous inserting of a new
+        RectifiedGridCoverage by means of the WCS 1.1 Transaction operation
+        ("Add" action).
     """
     fixtures = testbase.BASE_FIXTURES
     ID = "RECTIFIED_MERIS_ID"
@@ -165,9 +165,9 @@ class WCS11TransactionRectifiedDatasetTestCase(testbase.WCSTransactionRectifiedG
     ADDmetaFile = "meris/mosaic_MER_FRS_1P_reduced_RGB/mosaic_ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.xml"
 
 class WCS11TransactionAsyncRectifiedDatasetTestCase(testbase.WCSTransactionRectifiedGridCoverageTestCase):
-    """ This test case shall test the asynchronous inserting of a new 
-        RectifiedGridCoverage by means of the WCS 1.1 Transaction operation 
-        ("Add" action). 
+    """ This test case shall test the asynchronous inserting of a new
+        RectifiedGridCoverage by means of the WCS 1.1 Transaction operation
+        ("Add" action).
     """
     fixtures = testbase.BASE_FIXTURES
     ID = "RECTIFIED_MERIS_ID"
@@ -176,9 +176,9 @@ class WCS11TransactionAsyncRectifiedDatasetTestCase(testbase.WCSTransactionRecti
     isAsync = True
 
 class WCS11TransactionReferenceableDatasetTestCase(testbase.WCSTransactionReferenceableGridCoverageTestCase):
-    """ This test case shall test the synchronous inserting of a new 
-        ReferenceableGridCoverage by means of the WCS 1.1 Transaction operation 
-        ("Add" action). 
+    """ This test case shall test the synchronous inserting of a new
+        ReferenceableGridCoverage by means of the WCS 1.1 Transaction operation
+        ("Add" action).
     """
     fixtures = testbase.BASE_FIXTURES
     ID = "REFERENCEABLE_ASAR_ID"
@@ -193,33 +193,33 @@ class WCS11PostGetCapabilitiesValidTestCase(testbase.XMLTestCase):
     """This test shall retrieve a valid WCS 1.1 GetCapabilities response via POST.
     """
     def getRequest(self):
-        params = """<ns:GetCapabilities xmlns:ns="http://www.opengis.net/wcs/1.1" 
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-          xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsGetCapabilities.xsd" 
+        params = """<ns:GetCapabilities xmlns:ns="http://www.opengis.net/wcs/1.1"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsGetCapabilities.xsd"
           service="WCS" version="1.1.2"/>"""
         return (params, "xml")
-        
+
 class WCS11PostDescribeCoverageDatasetTestCase(testbase.XMLTestCase):
-    """This test shall retrieve a valid WCS 1.1 DescribeCoverage response for a 
+    """This test shall retrieve a valid WCS 1.1 DescribeCoverage response for a
        wcseo:RectifiedDataset via POST.
     """
     def getRequest(self):
-        params = """<DescribeCoverage xmlns="http://www.opengis.net/wcs/1.1" 
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-          xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsDescribeCoverage.xsd" 
+        params = """<DescribeCoverage xmlns="http://www.opengis.net/wcs/1.1"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsDescribeCoverage.xsd"
           service="WCS" version="1.1.2">
             <Identifier>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</Identifier>
           </DescribeCoverage>"""
         return (params, "xml")
 
 class WCS11PostDescribeCoverageMosaicTestCase(testbase.XMLTestCase):
-    """This test shall retrieve a valid WCS 1.1 DescribeCoverage response for a 
+    """This test shall retrieve a valid WCS 1.1 DescribeCoverage response for a
        wcseo:RectifiedStitchedMosaic via POST.
     """
     def getRequest(self):
-        params = """<DescribeCoverage xmlns="http://www.opengis.net/wcs/1.1" 
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-          xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsDescribeCoverage.xsd" 
+        params = """<DescribeCoverage xmlns="http://www.opengis.net/wcs/1.1"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsDescribeCoverage.xsd"
           service="WCS" version="1.1.2">
             <Identifier>mosaic_MER_FRS_1P_reduced_RGB</Identifier>
           </DescribeCoverage>"""
@@ -227,10 +227,10 @@ class WCS11PostDescribeCoverageMosaicTestCase(testbase.XMLTestCase):
 
 class WCS11PostGetCoverageDatasetTestCase(wcsbase.WCS11GetCoverageMixIn, testbase.RectifiedGridCoverageMultipartTestCase):
     def getRequest(self):
-        params = """<GetCoverage xmlns="http://www.opengis.net/wcs/1.1" 
-          xmlns:ows="http://www.opengis.net/ows/1.1" 
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-          xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsGetCoverage.xsd" 
+        params = """<GetCoverage xmlns="http://www.opengis.net/wcs/1.1"
+          xmlns:ows="http://www.opengis.net/ows/1.1"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsGetCoverage.xsd"
           service="WCS" version="1.1.2">
             <ows:Identifier>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</ows:Identifier>
             <DomainSubset>
@@ -245,10 +245,10 @@ class WCS11PostGetCoverageDatasetTestCase(wcsbase.WCS11GetCoverageMixIn, testbas
 
 class WCS11PostGetCoverageMosaicTestCase(wcsbase.WCS11GetCoverageMixIn, testbase.RectifiedGridCoverageMultipartTestCase):
     def getRequest(self):
-        params = """<GetCoverage xmlns="http://www.opengis.net/wcs/1.1" 
-          xmlns:ows="http://www.opengis.net/ows/1.1" 
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-          xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsGetCoverage.xsd" 
+        params = """<GetCoverage xmlns="http://www.opengis.net/wcs/1.1"
+          xmlns:ows="http://www.opengis.net/ows/1.1"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsGetCoverage.xsd"
           service="WCS" version="1.1.2">
             <ows:Identifier>mosaic_MER_FRS_1P_reduced_RGB</ows:Identifier>
             <DomainSubset>
@@ -264,10 +264,10 @@ class WCS11PostGetCoverageMosaicTestCase(wcsbase.WCS11GetCoverageMixIn, testbase
 # TODO: Not working because of a bug in MapServer
 #class WCS11PostGetCoverageDatasetSubsetTestCase(eoxstest.RectifiedGridCoverageMultipartTestCase):
 #    def getRequest(self):
-#        params = """<GetCoverage xmlns="http://www.opengis.net/wcs/1.1" 
-#          xmlns:ows="http://www.opengis.net/ows/1.1" 
-#          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-#          xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsGetCoverage.xsd" 
+#        params = """<GetCoverage xmlns="http://www.opengis.net/wcs/1.1"
+#          xmlns:ows="http://www.opengis.net/ows/1.1"
+#          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+#          xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsGetCoverage.xsd"
 #          service="WCS" version="1.1.2">
 #            <ows:Identifier>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</ows:Identifier>
 #            <DomainSubset>

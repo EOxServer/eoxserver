@@ -25,7 +25,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from autotest_services import testbase
+from autotest_services import base as testbase
 import base as wmsbase
 
 
@@ -193,6 +193,12 @@ class WMS13GetMapDatasetSeriesTimeIntervalTestCase(wmsbase.WMS13GetMapTestCase):
     width = 200
     bbox = (-3.75, 32.158895, 28.326165, 46.3)
     time = "2006-08-01T00:00:00Z/2006-08-22T23:59:59Z"
+
+class WMS13GetMapDatasetSeriesTimeIntervalBorderTestCase(wmsbase.WMS13GetMapTestCase):
+    layers = ("MER_FRS_1P_reduced_RGB",)
+    width = 200
+    bbox = (-3.75, 32.158895, 28.326165, 46.3)
+    time = "2006-08-01T00:00:00Z/2006-08-16T09:09:29Z"
 
 #===============================================================================
 # Outlines
@@ -383,7 +389,7 @@ class WMS13GetFeatureInfoEOOMTestCase(testbase.XMLTestCase):
 
 # currently disabled because of segfaults in MapServer
 
-'''
+
 class WMS13GetLegendGraphicDatasetStyledTestCase(testbase.RasterTestCase):
     """ Test a GetLegendGraphic request for a dataset with an associated style. """
     
@@ -397,4 +403,3 @@ class WMS13GetLegendGraphicDatasetStyledTestCase(testbase.RasterTestCase):
 
     def getFileExtension(self, file_type):
         return "png"
-'''

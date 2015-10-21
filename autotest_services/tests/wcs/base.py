@@ -2,15 +2,16 @@
 
 from lxml import etree
 
+
 class WCS11GetCoverageMixIn(object):
     def prepareXMLData(self, xml_data):
         parser = etree.XMLParser(remove_blank_text=True)
         tree = etree.fromstring(xml_data, parser)
 
         try:
-            reference = tree.xpath("wcs:Coverage/ows:Reference", 
+            reference = tree.xpath("wcs:Coverage/ows:Reference",
                 namespaces={
-                    "wcs": "http://www.opengis.net/wcs/1.1", 
+                    "wcs": "http://www.opengis.net/wcs/1.1",
                     "ows": "http://www.opengis.net/ows/1.1"
                 }
             )[0]
@@ -37,12 +38,12 @@ class WCS20GetCoverageMixIn(object):
 
         try:
             range_parameters = tree.xpath(
-                "gml:rangeSet/gml:File/gml:rangeParameters", 
+                "gml:rangeSet/gml:File/gml:rangeParameters",
                 namespaces={"gml": "http://www.opengis.net/gml/3.2"}
             )[0]
 
             file_reference = tree.xpath(
-                "gml:rangeSet/gml:File/gml:fileReference", 
+                "gml:rangeSet/gml:File/gml:fileReference",
                 namespaces={"gml": "http://www.opengis.net/gml/3.2"}
             )[0]
 
@@ -59,7 +60,7 @@ class WCS20GetCoverageMixIn(object):
                 tree, pretty_print=True, encoding='UTF-8', xml_declaration=True
             )
         except:
-            return xml_data[:] 
+            return xml_data[:]
 
 
 class GeoTIFFMixIn(object):
@@ -68,7 +69,6 @@ class GeoTIFFMixIn(object):
     expected_predictor = None # TODO: not possible to get predictor?
     expected_interleave = None
     expected_tiling = None # (width, height)
-
 
     def test_geotiff(self):
         self._openDatasets()
@@ -89,6 +89,6 @@ class GeoTIFFMixIn(object):
         if self.expected_tiling:
             b = ds.GetRasterBand(1)
             block_x_size, block_y_size = b.GetBlockSize()
-            
+
             self.assertEqual(self.expected_tiling[0], block_x_size)
             self.assertEqual(self.expected_tiling[1], block_y_size)

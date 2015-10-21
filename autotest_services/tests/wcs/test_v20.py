@@ -27,7 +27,7 @@
 
 from urllib import quote
 
-from autotest_services import testbase
+from autotest_services import base as testbase
 import base as wcsbase
 
 
@@ -79,6 +79,63 @@ class WCSVersionNegotiationFaultTestCase(testbase.ExceptionTestCase):
 
     def getExpectedExceptionCode(self):
         return "VersionNegotiationFailed"
+
+class WCS20GetCapabilitiesSectionsAllTestCase(testbase.XMLTestCase):
+    """This test shall retrieve a valid WCS 2.0 EO-AP (EO-WCS) GetCapabilities
+    response including all sections"""
+
+    def getRequest(self):
+        params = "service=WCS&version=2.0.1&request=GetCapabilities&sections=All"
+        return (params, "kvp")
+
+class WCS20GetCapabilitiesSectionsAll2TestCase(testbase.XMLTestCase):
+    """This test shall retrieve a valid WCS 2.0 EO-AP (EO-WCS) GetCapabilities
+    response including all sections"""
+
+    def getRequest(self):
+        params = "service=WCS&version=2.0.1&request=GetCapabilities&sections=ServiceIdentification,ServiceProvider,OperationsMetadata,ServiceMetadata,Contents"
+        return (params, "kvp")
+
+class WCS20GetCapabilitiesSectionsAll3TestCase(testbase.XMLTestCase):
+    """This test shall retrieve a valid WCS 2.0 EO-AP (EO-WCS) GetCapabilities
+    response including all sections"""
+
+    def getRequest(self):
+        params = "service=WCS&version=2.0.1&request=GetCapabilities&sections=ServiceIdentification,ServiceProvider,OperationsMetadata,ServiceMetadata,CoverageSummary,DatasetSeriesSummary"
+        return (params, "kvp")
+
+class WCS20GetCapabilitiesSectionsServiceIdentificationTestCase(testbase.XMLTestCase):
+    """This test shall retrieve a valid WCS 2.0 EO-AP (EO-WCS) GetCapabilities
+    response including all sections"""
+
+    def getRequest(self):
+        params = "service=WCS&version=2.0.1&request=GetCapabilities&sections=ServiceIdentification"
+        return (params, "kvp")
+
+class WCS20GetCapabilitiesSectionsContentsTestCase(testbase.XMLTestCase):
+    """This test shall retrieve a valid WCS 2.0 EO-AP (EO-WCS) GetCapabilities
+    response including all sections"""
+
+    def getRequest(self):
+        params = "service=WCS&version=2.0.1&request=GetCapabilities&sections=Contents"
+        return (params, "kvp")
+
+
+class WCS20GetCapabilitiesSectionsCoverageSummaryTestCase(testbase.XMLTestCase):
+    """This test shall retrieve a valid WCS 2.0 EO-AP (EO-WCS) GetCapabilities
+    response including all sections"""
+
+    def getRequest(self):
+        params = "service=WCS&version=2.0.1&request=GetCapabilities&sections=CoverageSummary"
+        return (params, "kvp")
+
+class WCS20GetCapabilitiesSectionsDatasetSeriesSummaryTestCase(testbase.XMLTestCase):
+    """This test shall retrieve a valid WCS 2.0 EO-AP (EO-WCS) GetCapabilities
+    response including all sections"""
+
+    def getRequest(self):
+        params = "service=WCS&version=2.0.1&request=GetCapabilities&sections=DatasetSeriesSummary"
+        return (params, "kvp")
 
 #===============================================================================
 # WCS 2.0 DescribeCoverage
@@ -227,9 +284,29 @@ class WCS20DescribeEOCoverageSetTemporalSubsetOverlapsTestCase(testbase.WCS20Des
             "MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed"
         ]
 
+class WCS20DescribeEOCoverageSetTemporalSubsetOverlapsIntervalBorderTestCase(testbase.WCS20DescribeEOCoverageSetSubsettingTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced&subset=phenomenonTime(\"2006-08-01\",\"2006-08-16T09:09:29Z\")&containment=overlaps"
+        return (params, "kvp")
+
+    def getExpectedCoverageIds(self):
+        return [
+            "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed"
+        ]
+
 class WCS20DescribeEOCoverageSetTemporalSubsetContainsTestCase(testbase.WCS20DescribeEOCoverageSetSubsettingTestCase):
     def getRequest(self):
         params = 'service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced&subset=phenomenonTime("2006-08-01","2006-08-22T09:22:00Z")&containment=contains'
+        return (params, "kvp")
+
+    def getExpectedCoverageIds(self):
+        return [
+            "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed"
+        ]
+
+class WCS20DescribeEOCoverageSetTemporalSubsetContainsIntervalBorderTestCase(testbase.WCS20DescribeEOCoverageSetSubsettingTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.0&request=DescribeEOCoverageSet&EOID=MER_FRS_1P_reduced&subset=phenomenonTime(\"2006-08-01\",\"2006-08-16T09:12:46Z\")&containment=contains"
         return (params, "kvp")
 
     def getExpectedCoverageIds(self):
@@ -615,7 +692,7 @@ class WCS20GetCoverageSubsetInvalidEPSGFaultTestCase(testbase.ExceptionTestCase)
         return (params, "kvp")
 
     def getExpectedExceptionCode(self):
-        return "InvalidSubsetting"
+        return "SubsettingCrs-NotSupported"
 
     def getExpectedHTTPStatus(self):
         return 404
@@ -633,6 +710,17 @@ class WCS20GetCoverageOutputCRSotherUoMDatasetTestCase(wcsbase.WCS20GetCoverageM
     def getRequest(self):
         params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/related&outputcrs=http://www.opengis.net/def/crs/EPSG/0/3857"
         return (params, "kvp")
+
+class WCS20GetCoverageOutputCrsEPSGFaultTestCase(testbase.ExceptionTestCase):
+    def getRequest(self):
+        params = "service=wcs&version=2.0.1&request=GetCoverage&CoverageId=MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed&format=image/tiff&mediatype=multipart/related&outputcrs=http://www.opengis.net/def/crs/EPSG/0/99999"
+        return (params, "kvp")
+
+    def getExpectedExceptionCode(self):
+        return "OutputCrs-NotSupported"
+
+    def getExpectedHTTPStatus(self):
+        return 404
 
 #===============================================================================
 # WCS 2.0: Size

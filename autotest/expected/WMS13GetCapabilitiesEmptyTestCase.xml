@@ -1,15 +1,13 @@
-<?xml version="1.0" encoding="ISO-8859-1"?>
-<WMS_Capabilities xmlns="http://www.opengis.net/wms" xmlns:ms="http://mapserver.gis.umn.edu/mapserver" xmlns:sld="http://www.opengis.net/sld" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" updateSequence="20131219T132000Z" version="1.3.0" xsi:schemaLocation="http://www.opengis.net/wms http://schemas.opengis.net/wms/1.3.0/capabilities_1_3_0.xsd  http://www.opengis.net/sld http://schemas.opengis.net/sld/1.1.0/sld_capabilities.xsd  http://mapserver.gis.umn.edu/mapserver http://localhost:8000/ows?service=WMS&amp;version=1.3.0&amp;request=GetSchemaExtension">
+<?xml version='1.0' encoding='UTF-8'?>
+<WMS_Capabilities xmlns="http://www.opengis.net/wms" xmlns:sld="http://www.opengis.net/sld" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ms="http://mapserver.gis.umn.edu/mapserver" version="1.3.0" updateSequence="20131219T132000Z" xsi:schemaLocation="http://www.opengis.net/wms http://schemas.opengis.net/wms/1.3.0/capabilities_1_3_0.xsd  http://www.opengis.net/sld http://schemas.opengis.net/sld/1.1.0/sld_capabilities.xsd  http://mapserver.gis.umn.edu/mapserver http://testserver/ows?service=WMS&amp;version=1.3.0&amp;request=GetSchemaExtension">
   <!-- MapServer version 6.2.0 OUTPUT=GIF OUTPUT=PNG OUTPUT=JPEG OUTPUT=KML SUPPORTS=PROJ SUPPORTS=GD SUPPORTS=AGG SUPPORTS=FREETYPE SUPPORTS=CAIRO SUPPORTS=ICONV SUPPORTS=FRIBIDI SUPPORTS=WMS_SERVER SUPPORTS=WMS_CLIENT SUPPORTS=WFS_SERVER SUPPORTS=WFS_CLIENT SUPPORTS=WCS_SERVER SUPPORTS=SOS_SERVER SUPPORTS=FASTCGI SUPPORTS=THREADS SUPPORTS=GEOS INPUT=JPEG INPUT=POSTGIS INPUT=OGR INPUT=GDAL INPUT=SHAPEFILE -->
   <Service>
     <Name>WMS</Name>
     <Title>Test configuration of MapServer used to demonstrate EOxServer</Title>
-    <Abstract>
-Test configuration of MapServer used to demonstrate EOxServer
+    <Abstract>Test configuration of MapServer used to demonstrate EOxServer
 The MERIS test data is produced from the following ESA remote sensing data:
 MERIS L1b sample data available at: http://earth.esa.int/object/index.cfm?fobjectid=4320
-Copyright (C) European Space Agency - ESA
-</Abstract>
+Copyright (C) European Space Agency - ESA</Abstract>
     <KeywordList>
       <Keyword>EO-WCS</Keyword>
       <Keyword>WCS EO-AP</Keyword>
@@ -52,10 +50,10 @@ Copyright (C) European Space Agency - ESA
         <DCPType>
           <HTTP>
             <Get>
-              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://localhost:8000/ows?"/>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://testserver/ows?"/>
             </Get>
             <Post>
-              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://localhost:8000/ows?"/>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://testserver/ows?"/>
             </Post>
           </HTTP>
         </DCPType>
@@ -68,10 +66,10 @@ Copyright (C) European Space Agency - ESA
         <DCPType>
           <HTTP>
             <Get>
-              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://localhost:8000/ows?"/>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://testserver/ows?"/>
             </Get>
             <Post>
-              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://localhost:8000/ows?"/>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://testserver/ows?"/>
             </Post>
           </HTTP>
         </DCPType>
@@ -83,10 +81,10 @@ Copyright (C) European Space Agency - ESA
         <DCPType>
           <HTTP>
             <Get>
-              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://localhost:8000/ows?"/>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://testserver/ows?"/>
             </Get>
             <Post>
-              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://localhost:8000/ows?"/>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://testserver/ows?"/>
             </Post>
           </HTTP>
         </DCPType>
@@ -96,10 +94,10 @@ Copyright (C) European Space Agency - ESA
         <DCPType>
           <HTTP>
             <Get>
-              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://localhost:8000/ows?"/>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://testserver/ows?"/>
             </Get>
             <Post>
-              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://localhost:8000/ows?"/>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://testserver/ows?"/>
             </Post>
           </HTTP>
         </DCPType>
@@ -112,10 +110,10 @@ Copyright (C) European Space Agency - ESA
         <DCPType>
           <HTTP>
             <Get>
-              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://localhost:8000/ows?"/>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://testserver/ows?"/>
             </Get>
             <Post>
-              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://localhost:8000/ows?"/>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://testserver/ows?"/>
             </Post>
           </HTTP>
         </DCPType>
@@ -125,10 +123,10 @@ Copyright (C) European Space Agency - ESA
         <DCPType>
           <HTTP>
             <Get>
-              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://localhost:8000/ows?"/>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://testserver/ows?"/>
             </Get>
             <Post>
-              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://localhost:8000/ows?"/>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://testserver/ows?"/>
             </Post>
           </HTTP>
         </DCPType>
@@ -139,7 +137,7 @@ Copyright (C) European Space Agency - ESA
       <Format>INIMAGE</Format>
       <Format>BLANK</Format>
     </Exception>
-    <sld:UserDefinedSymbolization InlineFeature="0" RemoteWCS="0" RemoteWFS="0" SupportSLD="1" UserLayer="0" UserStyle="1"/>
+    <sld:UserDefinedSymbolization SupportSLD="1" UserLayer="0" UserStyle="1" RemoteWFS="0" InlineFeature="0" RemoteWCS="0"/>
     <!-- WARNING: No WMS layers are enabled. Check wms/ows_enable_request settings. -->
   </Capability>
 </WMS_Capabilities>

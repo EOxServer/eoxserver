@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<WMS_Capabilities xmlns="http://www.opengis.net/wms" xmlns:sld="http://www.opengis.net/sld" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ms="http://mapserver.gis.umn.edu/mapserver" version="1.3.0" updateSequence="20131219T132000Z" xsi:schemaLocation="http://www.opengis.net/wms http://schemas.opengis.net/wms/1.3.0/capabilities_1_3_0.xsd  http://www.opengis.net/sld http://schemas.opengis.net/sld/1.1.0/sld_capabilities.xsd  http://mapserver.gis.umn.edu/mapserver http://localhost:8000/ows?service=WMS&amp;version=1.3.0&amp;request=GetSchemaExtension">
+<WMS_Capabilities xmlns="http://www.opengis.net/wms" xmlns:sld="http://www.opengis.net/sld" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ms="http://mapserver.gis.umn.edu/mapserver" version="1.3.0" updateSequence="20131219T132000Z" xsi:schemaLocation="http://www.opengis.net/wms http://schemas.opengis.net/wms/1.3.0/capabilities_1_3_0.xsd  http://www.opengis.net/sld http://schemas.opengis.net/sld/1.1.0/sld_capabilities.xsd  http://mapserver.gis.umn.edu/mapserver http://testserver/ows?service=WMS&amp;version=1.3.0&amp;request=GetSchemaExtension">
   <!-- MapServer version 6.2.0 OUTPUT=GIF OUTPUT=PNG OUTPUT=JPEG OUTPUT=KML SUPPORTS=PROJ SUPPORTS=GD SUPPORTS=AGG SUPPORTS=FREETYPE SUPPORTS=CAIRO SUPPORTS=ICONV SUPPORTS=FRIBIDI SUPPORTS=WMS_SERVER SUPPORTS=WMS_CLIENT SUPPORTS=WFS_SERVER SUPPORTS=WFS_CLIENT SUPPORTS=WCS_SERVER SUPPORTS=SOS_SERVER SUPPORTS=FASTCGI SUPPORTS=THREADS SUPPORTS=GEOS INPUT=JPEG INPUT=POSTGIS INPUT=OGR INPUT=GDAL INPUT=SHAPEFILE -->
   <Service>
     <Name>WMS</Name>
@@ -50,10 +50,10 @@ Copyright (C) European Space Agency - ESA</Abstract>
         <DCPType>
           <HTTP>
             <Get>
-              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://localhost:8000/ows?"/>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://testserver/ows?"/>
             </Get>
             <Post>
-              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://localhost:8000/ows?"/>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://testserver/ows?"/>
             </Post>
           </HTTP>
         </DCPType>
@@ -66,10 +66,10 @@ Copyright (C) European Space Agency - ESA</Abstract>
         <DCPType>
           <HTTP>
             <Get>
-              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://localhost:8000/ows?"/>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://testserver/ows?"/>
             </Get>
             <Post>
-              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://localhost:8000/ows?"/>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://testserver/ows?"/>
             </Post>
           </HTTP>
         </DCPType>
@@ -81,10 +81,10 @@ Copyright (C) European Space Agency - ESA</Abstract>
         <DCPType>
           <HTTP>
             <Get>
-              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://localhost:8000/ows?"/>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://testserver/ows?"/>
             </Get>
             <Post>
-              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://localhost:8000/ows?"/>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://testserver/ows?"/>
             </Post>
           </HTTP>
         </DCPType>
@@ -94,10 +94,10 @@ Copyright (C) European Space Agency - ESA</Abstract>
         <DCPType>
           <HTTP>
             <Get>
-              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://localhost:8000/ows?"/>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://testserver/ows?"/>
             </Get>
             <Post>
-              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://localhost:8000/ows?"/>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://testserver/ows?"/>
             </Post>
           </HTTP>
         </DCPType>
@@ -110,10 +110,10 @@ Copyright (C) European Space Agency - ESA</Abstract>
         <DCPType>
           <HTTP>
             <Get>
-              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://localhost:8000/ows?"/>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://testserver/ows?"/>
             </Get>
             <Post>
-              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://localhost:8000/ows?"/>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://testserver/ows?"/>
             </Post>
           </HTTP>
         </DCPType>
@@ -123,10 +123,10 @@ Copyright (C) European Space Agency - ESA</Abstract>
         <DCPType>
           <HTTP>
             <Get>
-              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://localhost:8000/ows?"/>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://testserver/ows?"/>
             </Get>
             <Post>
-              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://localhost:8000/ows?"/>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://testserver/ows?"/>
             </Post>
           </HTTP>
         </DCPType>
@@ -183,7 +183,7 @@ Copyright (C) European Space Agency - ESA</Abstract>
           <Title>default</Title>
           <LegendURL width="77" height="21">
             <Format>image/png</Format>
-            <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="http://localhost:8000/ows?version=1.3.0&amp;service=WMS&amp;request=GetLegendGraphic&amp;sld_version=1.1.0&amp;layer=MER_FRS_1P_reduced_group&amp;format=image/png&amp;STYLE=default"/>
+            <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="http://testserver/ows?version=1.3.0&amp;service=WMS&amp;request=GetLegendGraphic&amp;sld_version=1.1.0&amp;layer=MER_FRS_1P_reduced_group&amp;format=image/png&amp;STYLE=default"/>
           </LegendURL>
         </Style>
         <Layer queryable="0" opaque="0" cascaded="0">
@@ -281,7 +281,7 @@ Copyright (C) European Space Agency - ESA</Abstract>
           <Title>default</Title>
           <LegendURL width="77" height="21">
             <Format>image/png</Format>
-            <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="http://localhost:8000/ows?version=1.3.0&amp;service=WMS&amp;request=GetLegendGraphic&amp;sld_version=1.1.0&amp;layer=MER_FRS_1P_reduced_RGB_group&amp;format=image/png&amp;STYLE=default"/>
+            <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="http://testserver/ows?version=1.3.0&amp;service=WMS&amp;request=GetLegendGraphic&amp;sld_version=1.1.0&amp;layer=MER_FRS_1P_reduced_RGB_group&amp;format=image/png&amp;STYLE=default"/>
           </LegendURL>
         </Style>
         <Layer queryable="0" opaque="0" cascaded="0">
@@ -379,7 +379,7 @@ Copyright (C) European Space Agency - ESA</Abstract>
           <Title>default</Title>
           <LegendURL width="77" height="21">
             <Format>image/png</Format>
-            <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="http://localhost:8000/ows?version=1.3.0&amp;service=WMS&amp;request=GetLegendGraphic&amp;sld_version=1.1.0&amp;layer=mosaic_MER_FRS_1P_reduced_RGB_group&amp;format=image/png&amp;STYLE=default"/>
+            <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="http://testserver/ows?version=1.3.0&amp;service=WMS&amp;request=GetLegendGraphic&amp;sld_version=1.1.0&amp;layer=mosaic_MER_FRS_1P_reduced_RGB_group&amp;format=image/png&amp;STYLE=default"/>
           </LegendURL>
         </Style>
         <Layer queryable="0" opaque="0" cascaded="0">

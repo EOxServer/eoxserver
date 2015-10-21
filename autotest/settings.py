@@ -45,6 +45,7 @@ PROJECT_URL_PREFIX = ''
 #TODO
 #TEST_RUNNER = 'eoxserver.testing.core.EOxServerTestRunner'
 #TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+#TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -193,6 +194,8 @@ INSTALLED_APPS = (
     'django.contrib.admindocs',
     # Enable the databrowse:
     #'django.contrib.databrowse',
+    # Enable for better schema and data-migrations
+    #'south',
     # Enable for debugging
     #'django_extensions',
     #'django_nose',
@@ -206,6 +209,7 @@ INSTALLED_APPS = (
     'eoxserver.webclient',
     # Enable EOxServer autotests
     'autotest_services',
+    'autotest_coverages',
 )
 
 
@@ -224,6 +228,8 @@ COMPONENTS = (
     # metadata readers/writers
     'eoxserver.resources.coverages.metadata.formats.*',
 
+    'eoxserver.resources.coverages.registration.registrators.*',
+
     # service handlers
     'eoxserver.services.ows.wcs.**',
     'eoxserver.services.ows.wms.**',
@@ -237,7 +243,6 @@ COMPONENTS = (
     # test processes for WPS interface
     'autotest_services.processes.*',
 )
-
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to

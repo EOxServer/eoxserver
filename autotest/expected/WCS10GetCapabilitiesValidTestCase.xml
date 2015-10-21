@@ -45,14 +45,14 @@
         <DCPType>
           <HTTP>
             <Get>
-              <OnlineResource xlink:type="simple" xlink:href="http://localhost:8000/ows?"/>
+              <OnlineResource xlink:type="simple" xlink:href="http://testserver/ows?"/>
             </Get>
           </HTTP>
         </DCPType>
         <DCPType>
           <HTTP>
             <Post>
-              <OnlineResource xlink:type="simple" xlink:href="http://localhost:8000/ows?"/>
+              <OnlineResource xlink:type="simple" xlink:href="http://testserver/ows?"/>
             </Post>
           </HTTP>
         </DCPType>
@@ -61,14 +61,14 @@
         <DCPType>
           <HTTP>
             <Get>
-              <OnlineResource xlink:type="simple" xlink:href="http://localhost:8000/ows?"/>
+              <OnlineResource xlink:type="simple" xlink:href="http://testserver/ows?"/>
             </Get>
           </HTTP>
         </DCPType>
         <DCPType>
           <HTTP>
             <Post>
-              <OnlineResource xlink:type="simple" xlink:href="http://localhost:8000/ows?"/>
+              <OnlineResource xlink:type="simple" xlink:href="http://testserver/ows?"/>
             </Post>
           </HTTP>
         </DCPType>
@@ -77,14 +77,14 @@
         <DCPType>
           <HTTP>
             <Get>
-              <OnlineResource xlink:type="simple" xlink:href="http://localhost:8000/ows?"/>
+              <OnlineResource xlink:type="simple" xlink:href="http://testserver/ows?"/>
             </Get>
           </HTTP>
         </DCPType>
         <DCPType>
           <HTTP>
             <Post>
-              <OnlineResource xlink:type="simple" xlink:href="http://localhost:8000/ows?"/>
+              <OnlineResource xlink:type="simple" xlink:href="http://testserver/ows?"/>
             </Post>
           </HTTP>
         </DCPType>

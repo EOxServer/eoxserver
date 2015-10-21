@@ -1,9 +1,9 @@
-from wcs.v10 import *
-from wcs.v11 import *
-from wcs.v20 import *
+from wcs.test_v10 import *
+from wcs.test_v11 import *
+from wcs.test_v20 import *
 
-from wms.v10 import *
-from wms.v11 import *
-from wms.v13 import *
+from wms.test_v10 import *
+from wms.test_v11 import *
+from wms.test_v13 import *
 
-from wps.v10 import *
+from wps.test_v10 import *
