@@ -45,8 +45,7 @@ eoxserver-admin.py create_instance autotest --init_spatialite
 cp -R tmp1/autotest/data/ autotest/autotest/
 cp -R tmp1/autotest/expected/ autotest/autotest/
 cp tmp1/autotest/conf/template.map autotest/autotest/conf/template.map
-cp -R tmp1/.git/ autotest/
-cp tmp1/.gitignore autotest/
+cp tmp1/.git tmp1/.gitignore autotest/
 mkdir -p autotest/autotest/responses/
 rm -r tmp1
 
