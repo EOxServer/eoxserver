@@ -313,11 +313,11 @@ class OverviewOptimization(DatasetPostOptimization):
         for string in (out, err):
             for line in string.split("\n"):
                 if line != '':
-                    logger.info("MapCache output: %s" % line)
+                    logger.info("gdaladdo output: %s" % line)
 
         if process.returncode != 0:
             logger.warning(
-                "Creation of Overviews failed. (Returncode: %d)"
+                "Deletion of overviews failed. (Returncode: %d)"
                 % process.returncode
             )
 
@@ -331,11 +331,11 @@ class OverviewOptimization(DatasetPostOptimization):
         for string in (out, err):
             for line in string.split("\n"):
                 if line != '':
-                    logger.info("MapCache output: %s" % line)
+                    logger.info("gdaladdo output: %s" % line)
 
         if process.returncode != 0:
             logger.warning(
-                "Creation of Overviews failed. (Returncode: %d)"
+                "Creation of overviews failed. (Returncode: %d)"
                 % process.returncode
             )
 
