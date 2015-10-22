@@ -28,6 +28,8 @@
 #-------------------------------------------------------------------------------
 
 import logging
+import os
+import subprocess
 
 import numpy
 
@@ -268,7 +270,7 @@ class DatasetPostOptimization(object):
         opotimizations are performed on the actually produced dataset. This is
         required by some optimization techiques.
     """
-    
+
     def __call__(self, ds):
         raise NotImplementedError
 
@@ -277,38 +279,66 @@ class OverviewOptimization(DatasetPostOptimization):
     """ Dataset optimization step to add overviews to the dataset. This step may
         have to be applied after the dataset has been reprojected.
     """
-    
+
     def __init__(self, resampling=None, levels=None, minsize=None):
         self.resampling = resampling
         self.levels = levels
         self.minsize = minsize
-    
-    
+
     def __call__(self, ds):
         levels = self.levels
-        
+
         # calculate the overviews automatically.
         if not levels:
             desired_size = abs(self.minsize or 256)
             size = max(ds.RasterXSize, ds.RasterYSize)
             level = 1
             levels = []
-            
+
             while size > desired_size:
                 size /= 2
                 level *= 2
                 levels.append(level)
-        
+
         logger.info("Building overview levels %s with resampling method '%s'."
                     % (", ".join(map(str, levels)), self.resampling))
-        
-        # workaround for libtiff 3.X systems, which generated wrong overviews on
-        # some levels. Skip with warning if workaround is not working.
-        for level in levels:
-            try:
-                ds.BuildOverviews(self.resampling, [level])
-            except RuntimeError:
-                logger.warning("Ovierview building failed for level '%s'." % level)
+
+        filename = ds.GetFileList()[0]
+        process = subprocess.Popen(
+            ["gdaladdo", "-q", "-clean", filename],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+
+        out, err = process.communicate()
+        for string in (out, err):
+            for line in string.split("\n"):
+                if line != '':
+                    logger.info("MapCache output: %s" % line)
+
+        if process.returncode != 0:
+            logger.warning(
+                "Creation of Overviews failed. (Returncode: %d)"
+                % process.returncode
+            )
+
+        process = subprocess.Popen(
+            ["gdaladdo", "-q", "-r", self.resampling or "nearest", filename]
+            + [str(l) for l in levels],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+
+        out, err = process.communicate()
+        for string in (out, err):
+            for line in string.split("\n"):
+                if line != '':
+                    logger.info("MapCache output: %s" % line)
+
+        if process.returncode != 0:
+            logger.warning(
+                "Creation of Overviews failed. (Returncode: %d)"
+                % process.returncode
+            )
+
         return ds
 
 
@@ -317,7 +347,7 @@ class OverviewOptimization(DatasetPostOptimization):
 #===============================================================================
 
 class AlphaBandOptimization(object):
-    """ This optimization renders the footprint into the alpha channel of the 
+    """ This optimization renders the footprint into the alpha channel of the
     image. """
     
     def __call__(self, src_ds, footprint_wkt):

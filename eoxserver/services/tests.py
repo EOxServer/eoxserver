@@ -184,7 +184,7 @@ class WCS11GetCoverageBBoxFaultTestCase(eoxstest.ExceptionTestCase):
         return (params, "kvp")
 
     def getExpectedExceptionCode(self):
-        return "bbox"
+        return "NoApplicableCode"
 
 class WCS11GetCoverageFormatUnsupportedFaultTestCase(eoxstest.ExceptionTestCase):
     def getRequest(self):
@@ -946,7 +946,7 @@ class WCS20GetCoverageSubsetEPSG4326ResolutionInvalidAxisDatasetFaultTestCase(eo
         return (params, "kvp")
 
     def getExpectedExceptionCode(self):
-        return "InvalidParameterValue"
+        return "InvalidAxisLabel"
 
 #===============================================================================
 # WCS 2.0: Rangesubset

@@ -13,13 +13,20 @@ echo "**> running pylint tests ..."
 # Run unit tests
 echo "**> running unit tests tests ..."
 cd autotest
+
+# Make sure the PostGIS test database is not present
+if [ $DB == "postgis" ] && [ `psql template_postgis jenkins -tAc "SELECT 1 FROM pg_database WHERE datname='test_eoxserver_testing'"` ] ; then
+    echo "Dropping PostGIS test database."
+    dropdb test_eoxserver_testing
+fi
+
 export XML_CATALOG_FILES="$WORKSPACE/schemas/catalog.xml"
 # ftp tests are disabled
 if [ $OS == "Ubuntu" ]; then
-    python manage.py test "services|WCS20GetCoverageJPEG2000TestCase,WCS10DescribeCoverageDatasetTestCase,WCS10DescribeCoverageMosaicTestCase,WCS11TransactionReferenceableDatasetTestCase,WCS20GetCoverageReferenceableDatasetGeogCRSSubsetExceedsExtentTestCase,WCS20GetCoverageReferenceableDatasetGeogCRSSubsetTestCase,WCS20GetCoverageReferenceableDatasetImageCRSSubsetTestCase,WCS20PostGetCoverageReferenceableMultipartDatasetTestCase,WCS20GetCoverageOutputCRSotherUoMDatasetTestCase,WCS20GetCoverageSubsetEPSG4326ResolutionInvalidAxisDatasetFaultTestCase" -v2
+    python manage.py test "services|WCS20GetCoverageJPEG2000TestCase,WCS10DescribeCoverageDatasetTestCase,WCS10DescribeCoverageMosaicTestCase,WCS11TransactionReferenceableDatasetTestCase,WCS20GetCoverageReferenceableDatasetGeogCRSSubsetExceedsExtentTestCase,WCS20GetCoverageReferenceableDatasetGeogCRSSubsetTestCase,WCS20GetCoverageReferenceableDatasetImageCRSSubsetTestCase,WCS20PostGetCoverageReferenceableMultipartDatasetTestCase,WCS20GetCoverageOutputCRSotherUoMDatasetTestCase" -v2
     python manage.py test "coverages|RegisterRemoteDatasetTestCase,RectifiedStitchedMosaicCreateWithRemotePathTestCase" -v2
 else
-    python manage.py test "services|WCS20GetCoverageReprojectedEPSG3857DatasetTestCase" -v2
+    python manage.py test "services|WCS20GetCoverageReprojectedEPSG3857DatasetTestCase,WMS13GetCapabilitiesEmptyTestCase" -v2
     python manage.py test "coverages|RegisterRemoteDatasetTestCase,RectifiedStitchedMosaicCreateWithRemotePathTestCase" -v2
 fi
 #TODO: Enable testing of all apps
