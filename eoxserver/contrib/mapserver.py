@@ -231,7 +231,7 @@ def gdalconst_to_imagemode(const):
         return MS_IMAGEMODE_BYTE
     elif const in (gdal.GDT_Int16, gdal.GDT_UInt16):
         return MS_IMAGEMODE_INT16
-    elif const == GDT_Float32:
+    elif const == gdal.GDT_Float32:
         return MS_IMAGEMODE_FLOAT32
     else:
         raise InternalError(

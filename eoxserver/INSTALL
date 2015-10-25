@@ -1,7 +1,7 @@
 --------------------------------------------------------------------------------
 
  Project: EOxServer <http://eoxserver.org>
- Purpose: 
+ Purpose:
  Authors: Stephan Krause <stephan.krause@eox.at>
           Stephan Meissl <stephan.meissl@eox.at>
 
@@ -11,8 +11,8 @@ Copyright (C) 2011 EOX IT Services GmbH
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-copies of the Software, and to permit persons to whom the Software is 
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
 
 The above copyright notice and this permission notice shall be included in all
@@ -54,7 +54,7 @@ python manage.py runserver
 mkdir static
 python manage.py collectstatic --noinput
 
-# Add the following to your Apache web server configuration 
+# Add the following to your Apache web server configuration
 # (e.g. /etc/apache2/sites-enabled/eoxserver):
 -----------------------------------------------------------------
 Alias /static "<path_to_eoxserver_instance>/static"
@@ -67,14 +67,14 @@ Alias /eoxserver "<path_to_eoxserver_instance>/wsgi.py"
     allow from all
 </Directory>
 -----------------------------------------------------------------
-# Restart Apache web server and point your browser to: 
+# Restart Apache web server and point your browser to:
 # "http://<url-to-your-server/eoxserver/"
 
 
 ##############################################
 # Installation guide                         #
 ##############################################
-A comprehensive installation guide is provided at: 
+A comprehensive installation guide is provided at:
 http://eoxserver.org/doc_trunk/en/users/install.html
 
 
