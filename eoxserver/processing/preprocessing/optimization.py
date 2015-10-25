@@ -27,6 +27,8 @@
 #-------------------------------------------------------------------------------
 
 import logging
+import os
+import subprocess
 
 import numpy
 
@@ -303,15 +305,42 @@ class OverviewOptimization(DatasetPostOptimization):
         logger.info("Building overview levels %s with resampling method '%s'."
                     % (", ".join(map(str, levels)), self.resampling))
 
-        # workaround for libtiff 3.X systems, which generated wrong overviews on
-        # some levels. Skip with warning if workaround is not working.
-        for level in levels:
-            try:
-                ds.BuildOverviews(self.resampling, [level])
-            except RuntimeError:
-                logger.warning(
-                    "Overview building failed for level '%s'." % level
-                )
+        filename = ds.GetFileList()[0]
+        process = subprocess.Popen(
+            ["gdaladdo", "-q", "-clean", filename],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+
+        out, err = process.communicate()
+        for string in (out, err):
+            for line in string.split("\n"):
+                if line != '':
+                    logger.info("gdaladdo output: %s" % line)
+
+        if process.returncode != 0:
+            logger.warning(
+                "Deletion of overviews failed. (Returncode: %d)"
+                % process.returncode
+            )
+
+        process = subprocess.Popen(
+            ["gdaladdo", "-q", "-r", self.resampling or "nearest", filename]
+            + [str(l) for l in levels],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+
+        out, err = process.communicate()
+        for string in (out, err):
+            for line in string.split("\n"):
+                if line != '':
+                    logger.info("gdaladdo output: %s" % line)
+
+        if process.returncode != 0:
+            logger.warning(
+                "Creation of overviews failed. (Returncode: %d)"
+                % process.returncode
+            )
+
         return ds
 
 
