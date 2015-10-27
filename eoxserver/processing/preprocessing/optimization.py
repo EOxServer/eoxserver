@@ -332,7 +332,7 @@ class OverviewOptimization(DatasetPostOptimization):
 
         if process.returncode != 0:
             logger.warning(
-                "Creation of Overviews failed. (Returncode: %d)"
+                "Deletion of overviews failed. (Returncode: %d)"
                 % process.returncode
             )
 
@@ -350,7 +350,7 @@ class OverviewOptimization(DatasetPostOptimization):
 
         if process.returncode != 0:
             logger.warning(
-                "Creation of Overviews failed. (Returncode: %d)"
+                "Creation of overviews failed. (Returncode: %d)"
                 % process.returncode
             )
 
