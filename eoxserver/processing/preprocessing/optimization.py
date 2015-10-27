@@ -171,14 +171,16 @@ class BandSelectionOptimization(DatasetOptimization):
 
             block_x_size, block_y_size = 512, 512
 
-            num_x = math.ceil(src_band.XSize / block_x_size)
-            num_y = math.ceil(src_band.YSize / block_y_size)
+            num_x = int(math.ceil(float(src_band.XSize) / block_x_size))
+            num_y = int(math.ceil(float(src_band.YSize) / block_y_size))
 
             for block_x, block_y in product(range(num_x), range(num_y)):
                 offset_x = block_x * block_x_size
                 offset_y = block_y * block_y_size
+                size_x = min(src_band.XSize - offset_x, block_x_size)
+                size_y = min(src_band.YSize - offset_y, block_y_size)
                 data = src_band.ReadAsArray(
-                    offset_x, offset_y, block_x_size, block_y_size
+                    offset_x, offset_y, size_x, size_y
                 )
 
                 # perform clipping and scaling
