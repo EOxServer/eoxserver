@@ -89,9 +89,14 @@ def create_temp(sizex, sizey, numbands, datatype=gdal.GDT_Byte,
 def cleanup_temp(ds):
     """ Delete a temporary dataset.
     """
-    driver = ds.GetDriver()
-    filelist = ds.GetFileList()
-    ds = None
+    if isinstance(ds, str):
+        driver = gdal.IdentifyDriver(ds)
+        filelist = [ds]
+    else:
+        driver = ds.GetDriver()
+        filelist = ds.GetFileList()
+        ds = None
+
     if filelist and filelist[0]:
         driver.Delete(filelist[0])
 
