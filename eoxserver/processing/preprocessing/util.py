@@ -95,6 +95,7 @@ def cleanup_temp(ds):
     else:
         driver = ds.GetDriver()
         filelist = ds.GetFileList()
+        ds.FlushCache()
         ds = None
 
     if filelist and filelist[0]:
