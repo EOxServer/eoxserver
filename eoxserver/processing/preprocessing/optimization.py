@@ -91,12 +91,20 @@ class ReprojectionOptimization(DatasetOptimization):
 
         # create a temporary dataset to get information about the output size
         tmp_ds = gdal.AutoCreateWarpedVRT(src_ds, None, dst_sr.ExportToWkt(),
-                                          gdal.GRA_Bilinear, 0.125)
+                                          gdal.GRA_NearestNeighbour, 0.125)
 
         # create the output dataset
         dst_ds = create_temp(tmp_ds.RasterXSize, tmp_ds.RasterYSize,
                              src_ds.RasterCount,
                              src_ds.GetRasterBand(1).DataType)
+
+        # initialize with no data
+        for i in range(src_ds.RasterCount):
+            src_band = src_ds.GetRasterBand(i+1)
+            if src_band.GetNoDataValue() is not None:
+                dst_band = dst_ds.GetRasterBand(i+1)
+                dst_band.SetNoDataValue(src_band.GetNoDataValue())
+                dst_band.Fill(src_band.GetNoDataValue())
 
         # reproject the image
         dst_ds.SetProjection(dst_sr.ExportToWkt())
@@ -111,7 +119,6 @@ class ReprojectionOptimization(DatasetOptimization):
 
         # copy the metadata
         copy_metadata(src_ds, dst_ds)
-        copy_nodatavalue(src_ds, dst_ds)
 
         return dst_ds
 
