@@ -233,7 +233,7 @@ class PreProcessor(object):
 
 
     def _generate_footprint_wkt(self, ds):
-        """ Generate a fooptrint from a raster, using black/no-data as exclusion
+        """ Generate a footprint from a raster, using black/no-data as exclusion
         """
 
         # create an empty boolean array initialized as 'False' to store where
@@ -271,9 +271,8 @@ class PreProcessor(object):
         # polygonize the mask band and store the result in the OGR layer
         gdal.Polygonize(tmp_band, tmp_band, layer, 0)
 
-        if layer.GetFeatureCount() != 1:
-            # if there is more than one polygon, compute the minimum bounding
-            # polygon
+        if layer.GetFeatureCount() > 1:
+            # if there is more than one polygon, compute the minimum bounding polygon
             geometry = ogr.Geometry(ogr.wkbPolygon)
             while True:
                 feature = layer.GetNextFeature()
@@ -284,14 +283,17 @@ class PreProcessor(object):
             # TODO: improve this for a better minimum bounding polygon
             geometry = geometry.ConvexHull()
 
+        elif layer.GetFeatureCount() < 1:
+            # there was an error during polygonization
+            raise RuntimeError("Error during polygonization. No feature "
+                               "obtained.")
         else:
             # obtain geometry from the first (and only) layer
             feature = layer.GetNextFeature()
             geometry = feature.GetGeometryRef()
 
         if geometry.GetGeometryType() != ogr.wkbPolygon:
-            logger.error(geometry.ExportToWkt())
-            raise RuntimeError("Error during poligonization. Wrong geometry "
+            raise RuntimeError("Error during polygonization. Wrong geometry "
                                "type: %s" % ogr.GeometryTypeToName(
                                     geometry.GetGeometryType()))
 
