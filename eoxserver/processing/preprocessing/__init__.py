@@ -325,6 +325,9 @@ class WMSPreProcessor(PreProcessor):
     """
 
     def get_optimizations(self, ds):
+        if self.no_data_value is not None:
+            yield NoDataValueOptimization(self.no_data_value)
+
         if self.crs:
             yield ReprojectionOptimization(self.crs)
 
@@ -382,9 +385,6 @@ class WMSPreProcessor(PreProcessor):
 
         if self.color_index:
             yield ColorIndexOptimization(self.palette_file)
-
-        if self.no_data_value is not None:
-            yield NoDataValueOptimization(self.no_data_value)
 
 
     def get_post_optimizations(self, ds):
