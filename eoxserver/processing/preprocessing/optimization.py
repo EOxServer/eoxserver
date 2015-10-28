@@ -140,7 +140,7 @@ class BandSelectionOptimization(DatasetOptimization):
                              len(self.bands), self.datatype)
         dst_range = get_limits(self.datatype)
 
-        multiple = 0
+        multiple, multiple_written = 0, False
 
         for dst_index, (src_index, dmin, dmax) in enumerate(self.bands, 1):
             # check if next band is equal
@@ -163,7 +163,6 @@ class BandSelectionOptimization(DatasetOptimization):
             # use src_ds band otherwise
             else:
                 src_band = src_ds.GetRasterBand(src_index)
-                data = src_band.ReadAsArray()
                 src_min, src_max = src_band.ComputeRasterMinMax()
 
             # get min/max values or calculate from band
@@ -209,9 +208,13 @@ class BandSelectionOptimization(DatasetOptimization):
                 # write equal bands at once
                 if multiple > 0:
                     for i in range(multiple):
-                        dst_band = dst_ds.GetRasterBand(dst_index-1-i)
-                        dst_band.WriteArray(data, offset_x, offset_y)
-                    multiple = 0
+                        dst_band_multiple = dst_ds.GetRasterBand(dst_index-1-i)
+                        dst_band_multiple.WriteArray(data, offset_x, offset_y)
+                    multiple_written = True
+
+            if multiple_written:
+                multiple = 0
+                multiple_written = False
 
         copy_projection(src_ds, dst_ds)
         copy_metadata(src_ds, dst_ds)
