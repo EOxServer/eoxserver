@@ -35,7 +35,7 @@ import numpy
 
 from eoxserver.contrib import gdal, gdal_array, osr, ogr
 from eoxserver.processing.preprocessing.util import (
-    get_limits, create_temp, copy_metadata, copy_projection
+    get_limits, create_temp, copy_metadata, copy_projection, copy_nodatavalue
 )
 from eoxserver.resources.coverages.crss import (
     parseEPSGCode, fromShortCode, fromURL, fromURN, fromProj4Str
@@ -111,6 +111,7 @@ class ReprojectionOptimization(DatasetOptimization):
 
         # copy the metadata
         copy_metadata(src_ds, dst_ds)
+        copy_nodatavalue(src_ds, dst_ds)
 
         return dst_ds
 
@@ -174,6 +175,10 @@ class BandSelectionOptimization(DatasetOptimization):
             num_x = int(math.ceil(float(src_band.XSize) / block_x_size))
             num_y = int(math.ceil(float(src_band.YSize) / block_y_size))
 
+            dst_band = dst_ds.GetRasterBand(dst_index)
+            if src_band.GetNoDataValue() is not None:
+                dst_band.SetNoDataValue(src_band.GetNoDataValue())
+
             for block_x, block_y in product(range(num_x), range(num_y)):
                 offset_x = block_x * block_x_size
                 offset_y = block_y * block_y_size
@@ -192,7 +197,6 @@ class BandSelectionOptimization(DatasetOptimization):
                 data = data.astype(gdal_array.codes[self.datatype])
 
                 # write result
-                dst_band = dst_ds.GetRasterBand(dst_index)
                 dst_band.WriteArray(data, offset_x, offset_y)
 
                 # write equal bands at once

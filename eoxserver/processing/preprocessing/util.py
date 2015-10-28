@@ -96,6 +96,16 @@ def copy_metadata(src_ds, dst_ds):
     dst_ds.SetMetadata(src_ds.GetMetadata_Dict())
 
 
+def copy_nodatavalue(src_ds, dst_ds):
+    """ Copy the nodata value from on dataset to another """
+    assert src_ds.RasterCount == dst_ds.RasterCount
+    for i in range(src_ds.RasterCount):
+        src_band = src_ds.GetRasterBand(i+1)
+        if src_band.GetNoDataValue() is not None:
+            dst_band = dst_ds.GetRasterBand(i+1)
+            dst_band.SetNoDataValue(src_band.GetNoDataValue())
+
+
 def check_file_existence(filename):
     " Check if file exists and raise an IOError if it does. "
     if exists(filename):

@@ -383,7 +383,7 @@ class WMSPreProcessor(PreProcessor):
         if self.color_index:
             yield ColorIndexOptimization(self.palette_file)
 
-        if self.no_data_value:
+        if self.no_data_value is not None:
             yield NoDataValueOptimization(self.no_data_value)
 
 
