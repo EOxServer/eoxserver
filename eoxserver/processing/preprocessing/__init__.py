@@ -233,7 +233,7 @@ class PreProcessor(object):
 
 
     def _generate_footprint_wkt(self, ds):
-        """ Generate a fooptrint from a raster, using black/no-data as exclusion
+        """ Generate a footprint from a raster, using black/no-data as exclusion
         """
 
         # create an empty boolean array initialized as 'False' to store where
@@ -283,14 +283,15 @@ class PreProcessor(object):
 
         elif layer.GetFeatureCount() < 1:
             # there was an error during polygonization
-            pass
+            raise RuntimeError("Error during polygonization. No feature "
+                               "obtained.")
         else:
             # obtain geometry from the first (and only) layer
             feature = layer.GetNextFeature()
             geometry = feature.GetGeometryRef()
 
         if geometry.GetGeometryType() != ogr.wkbPolygon:
-            raise RuntimeError("Error during poligonization. Wrong geometry "
+            raise RuntimeError("Error during polygonization. Wrong geometry "
                                "type.")
 
         # check if reprojection to latlon is necessary
