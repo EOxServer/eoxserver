@@ -91,7 +91,7 @@ class ReprojectionOptimization(DatasetOptimization):
 
         # create a temporary dataset to get information about the output size
         tmp_ds = gdal.AutoCreateWarpedVRT(src_ds, None, dst_sr.ExportToWkt(),
-                                          gdal.GRA_NearestNeighbour, 0.125)
+                                          gdal.GRA_Bilinear, 0.125)
 
         # create the output dataset
         dst_ds = create_temp(tmp_ds.RasterXSize, tmp_ds.RasterYSize,
