@@ -261,7 +261,8 @@ class PreProcessor(object):
         tmp_band.WriteArray(nodata_map.astype(numpy.uint8))
 
         # create an OGR in memory layer to hold the created polygon
-        sr = osr.SpatialReference(); sr.ImportFromWkt(ds.GetProjectionRef())
+        sr = osr.SpatialReference()
+        sr.ImportFromWkt(ds.GetProjectionRef())
         ogr_ds = ogr.GetDriverByName('Memory').CreateDataSource('out')
         layer = ogr_ds.CreateLayer('poly', sr, ogr.wkbPolygon)
         fd = ogr.FieldDefn('DN', ogr.OFTInteger)
@@ -270,32 +271,34 @@ class PreProcessor(object):
         # polygonize the mask band and store the result in the OGR layer
         gdal.Polygonize(tmp_band, tmp_band, layer, 0)
 
-        if layer.GetFeatureCount() > 1:
-            # if there is more than one polygon, compute the minimum bounding polygon
+        if layer.GetFeatureCount() != 1:
+            # if there is more than one polygon, compute the minimum bounding
+            # polygon
             geometry = ogr.Geometry(ogr.wkbPolygon)
             while True:
                 feature = layer.GetNextFeature()
-                if not feature: break
+                if not feature:
+                    break
                 geometry = geometry.Union(feature.GetGeometryRef())
 
             # TODO: improve this for a better minimum bounding polygon
             geometry = geometry.ConvexHull()
 
-        elif layer.GetFeatureCount() < 1:
-            # there was an error during polygonization
-            pass
         else:
             # obtain geometry from the first (and only) layer
             feature = layer.GetNextFeature()
             geometry = feature.GetGeometryRef()
 
         if geometry.GetGeometryType() != ogr.wkbPolygon:
+            logger.error(geometry.ExportToWkt())
             raise RuntimeError("Error during poligonization. Wrong geometry "
-                               "type.")
+                               "type: %s" % ogr.GeometryTypeToName(
+                                    geometry.GetGeometryType()))
 
         # check if reprojection to latlon is necessary
         if not sr.IsGeographic():
-            dst_sr = osr.SpatialReference(); dst_sr.ImportFromEPSG(4326)
+            dst_sr = osr.SpatialReference()
+            dst_sr.ImportFromEPSG(4326)
             try:
                 geometry.TransformTo(dst_sr)
             except RuntimeError:

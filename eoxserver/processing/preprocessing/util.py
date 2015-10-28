@@ -30,6 +30,7 @@
 from os.path import exists, join
 from uuid import uuid4
 import tempfile
+import contextlib
 
 import numpy
 
@@ -83,6 +84,23 @@ def create_temp(sizex, sizey, numbands, datatype=gdal.GDT_Byte,
         join(temp_root, '%s.tif' % uuid4().hex), sizex, sizey, numbands,
         datatype, options
     )
+
+
+def cleanup_temp(ds):
+    """ Delete a temporary dataset.
+    """
+    driver = ds.driver
+    filelist = ds.GetFileList()
+    if filelist and filelist[0]:
+        driver.Delete(filelist[0])
+
+
+@contextlib.contextmanager
+def temporary_dataset(sizex, sizey, numbands, datatype=gdal.GDT_Byte,
+                      options=None, temp_root=None):
+    ds = create_temp(sizex, sizey, numbands, datatype, options, temp_root)
+    yield ds
+    cleanup_temp(ds)
 
 
 def copy_projection(src_ds, dst_ds):
