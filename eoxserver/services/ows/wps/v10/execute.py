@@ -120,7 +120,7 @@ class WPS10ExcecuteHandler(Component):
         response = encoder.encode_response(
                       process, packed_outputs, resp_form, inputs, raw_inputs)
 
-        return encoder.serialize(response, encoding='utf-8'), encoder.content_type
+        return encoder.serialize(response, encoding='utf-8')
 
 
 def _normalize_params(param_defs):
