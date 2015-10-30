@@ -75,7 +75,7 @@ class CDObject(CDBase):
         NOTE: CDObject is not used for the input JSON and XML.
     """
     def __init__(self, data, mime_type=None, encoding=None, schema=None,
-                        format=None, **kwargs):
+                 format=None, **kwargs):
         CDBase.__init__(self, mime_type, encoding, schema, format, **kwargs)
         self.data = data
 
@@ -85,7 +85,7 @@ class CDByteBuffer(StringIO, CDBase):
         To be used to hold a generic binary (byte-stream) payload.
     """
     def __init__(self, data='', mime_type=None, encoding=None, schema=None,
-                        format=None, **kwargs):
+                 format=None, **kwargs):
         StringIO.__init__(self, str(data))
         CDBase.__init__(self, mime_type, encoding, schema, format, **kwargs)
 
@@ -108,7 +108,7 @@ class CDTextBuffer(StringIO, CDBase):
         shall be applied.
     """
     def __init__(self, data=u'', mime_type=None, encoding=None, schema=None,
-                        format=None, text_encoding=None, **kwargs):
+                 format=None, text_encoding=None, **kwargs):
         StringIO.__init__(self, unicode(data))
         CDBase.__init__(self, mime_type, encoding, schema, format, **kwargs)
         self.text_encoding = text_encoding
@@ -143,7 +143,7 @@ class CDAsciiTextBuffer(CDByteBuffer):
         characters outside of the 7-bit ascii characters' range.
     """
     def __init__(self, data='', mime_type=None, encoding=None, schema=None,
-                        format=None, text_encoding=None, **kwargs):
+                 format=None, text_encoding=None, **kwargs):
         CDByteBuffer.__init__(
             self, data, mime_type, encoding, schema, format, **kwargs
         )
@@ -176,8 +176,8 @@ class CDFile(CDBase):
     """
 
     def __init__(self, name, mode='r', buffering=-1,
-                    mime_type=None, encoding=None, schema=None, format=None,
-                    remove_file=True, **kwargs):
+                 mime_type=None, encoding=None, schema=None, format=None,
+                 remove_file=True, **kwargs):
         CDBase.__init__(self, mime_type, encoding, schema, format, **kwargs)
         self._file = file(name, mode, buffering)
         self._remove_file = remove_file
@@ -206,8 +206,8 @@ class CDPermanentFile(CDFile):
     """
 
     def __init__(self, remove_file, name, mode='r', buffering=-1,
-                    mime_type=None, encoding=None, schema=None, format=None,
-                    **kwargs):
+                 mime_type=None, encoding=None, schema=None, format=None,
+                 **kwargs):
         CDFile.__init__(name, mode, buffering, mime_type, encoding, schema,
                         format, False, **kwargs)
 
@@ -269,7 +269,9 @@ class ComplexData(Parameter):
         if format_.is_xml:
             parsed_data = CDObject(etree.fromstring(data), **fattr)
         elif format_.is_json:
-            parsed_data = CDObject(json.loads(_unicode(data, text_encoding)), **fattr)
+            parsed_data = CDObject(
+                json.loads(_unicode(data, text_encoding)), **fattr
+            )
         elif format_.is_text:
             parsed_data = CDTextBuffer(_unicode(data, text_encoding), **fattr)
             parsed_data.seek(0)
@@ -340,7 +342,9 @@ class ComplexData(Parameter):
                                 xml_declaration=True, encoding=text_encoding))
             content_type = "%s; charset=%s"%(format_.mime_type, text_encoding)
         elif format_.is_json:
-            data = FastStringIO(json.dumps(data, ensure_ascii=False).encode(text_encoding))
+            data = FastStringIO(
+                json.dumps(data, ensure_ascii=False).encode(text_encoding)
+            )
             content_type = "%s; charset=%s"%(format_.mime_type, text_encoding)
         elif format_.is_text:
             if isinstance(data, (CDTextBuffer, CDAsciiTextBuffer)):
