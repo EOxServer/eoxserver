@@ -39,8 +39,9 @@ from django.contrib.gis.gdal.geometries import OGRGeometry
 from eoxserver.contrib import  gdal, ogr, osr
 from eoxserver.core.util.xmltools import XMLEncoder
 from eoxserver.processing.preprocessing.util import (
-    create_mem, create_mem_copy, copy_projection
+    create_mem, create_mem_copy, copy_projection, cleanup_temp
 )
+
 from eoxserver.processing.preprocessing.optimization import (
     BandSelectionOptimization, ColorIndexOptimization, NoDataValueOptimization,
     OverviewOptimization, ReprojectionOptimization, AlphaBandOptimization
@@ -147,7 +148,9 @@ class PreProcessor(object):
             logger.debug("Applying optimization '%s'."
                          % type(optimization).__name__)
             new_ds = optimization(ds)
-            ds = None
+
+            # cleanup afterwards
+            cleanup_temp(ds)
             ds = new_ds
 
         # generate the footprint from the dataset
@@ -174,6 +177,10 @@ class PreProcessor(object):
         driver = gdal.GetDriverByName(self.format_selection.driver_name)
         ds = driver.CreateCopy(output_filename, ds,
                                options=self.format_selection.creation_options)
+
+        # close the dataset and write it to the disc
+        ds = None
+        ds = gdal.Open(output_filename)
 
         for optimization in self.get_post_optimizations(ds):
             logger.debug("Applying post-optimization '%s'."
@@ -220,7 +227,7 @@ class PreProcessor(object):
 
         num_bands = ds.RasterCount
 
-        # close the dataset and write it to the disc
+        # finally close the dataset and write it to the disc
         ds = None
 
         return PreProcessResult(output_filename, footprint, num_bands)
