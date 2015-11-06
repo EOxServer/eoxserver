@@ -28,7 +28,7 @@
 
 from autotest_services import base as testbase
 from autotest_services.tests.wps.base import (
-    WPS10ExecuteMixIn, ContentTypeCheckMixIn,
+    WPS10ExecuteMixIn, ContentTypeCheckMixIn, ContentDispositionCheckMixIn,
 )
 
 #===============================================================================
@@ -558,7 +558,7 @@ class WPS10ExecuteComplexDataJPGBase64KVPTestCase(WPS10ExecuteMixIn, testbase.XM
 
 class WPS10ExecuteComplexDataPNGRawOutputKVPTestCase(ContentTypeCheckMixIn, ContentDispositionCheckMixIn, testbase.GDALDatasetTestCase):
     expectedContentType = "image/png"
-    expectedContentDisposition = 'attachment; filename="test03_binary_complex.tif"'
+    expectedContentDisposition = 'attachment; filename="test03_binary_complex.png"'
     def getFileExtension(self, file_type):
         return "png"
     def getRequest(self):
