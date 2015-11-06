@@ -81,6 +81,7 @@ class TestProcess02(Component):
     @staticmethod
     def execute(input00, output00, **kwarg):
         outputs = {}
+        output_filename_base = "test02_identity_complex"
 
         # process specific format constraint known only by the execute() method
         if input00.mime_type != output00['mime_type']:
@@ -89,25 +90,47 @@ class TestProcess02(Component):
 
         if input00.mime_type == "text/plain":
             # CDTextBuffer object inherited from StringIO - works with unicode
-            outputs['output00'] = CDTextBuffer(input00.read()) # default format
+            # The 'filename' parameter sets the raw output
+            # 'Content-Disposition: filename=' HTTP header.
+            outputs['output00'] = CDTextBuffer( # default format is used
+                input00.read(), filename=(output_filename_base + ".txt")
+            )
             # provides 'data' propery for convenience (equivalent of 'read()')
-            outputs['output01'] = StringIO(input00.data) # text also accepts StringIO
+            # text output also accepts StringIO
+            outputs['output01'] = StringIO(input00.data)
 
         elif input00.mime_type == "text/xml":
             # CDObject - generic object container - holds the xml.etree._Element
-            # the etree._ElementTree object is accessible via the 'data' property
-            outputs['output00'] = CDObject(input00.data, mime_type="text/xml")
-            tmp = unicode(etree.tostring(input00.data, encoding='utf-8',
-                    pretty_print=True), 'utf-8')
-            outputs['output01'] = tmp # text also accepts unicode strings
+            # the etree._ElementTree object is accessed via the 'data' property
+            # The 'filename' parameter sets the raw output
+            # 'Content-Disposition: filename=' HTTP header.
+            outputs['output00'] = CDObject(
+                input00.data, mime_type="text/xml",
+                filename=(output_filename_base + ".xml")
+            )
+            # text output also accepts unicode strings
+            outputs['output01'] = unicode(
+                etree.tostring(
+                    input00.data, encoding='utf-8', pretty_print=True
+                ), 'utf-8'
+            )
 
         elif input00.mime_type == "application/json":
-            # CDObject - generic object container - holds the parsed JSON # object
-            outputs['output00'] = CDObject(input00.data, format=FormatJSON())
+            # CDObject - generic object container - holds the parsed JSON object
+            # The 'filename' parameter sets the raw output
+            # 'Content-Disposition: filename=' HTTP header.
+            outputs['output00'] = CDObject(
+                input00.data, format=FormatJSON(),
+                filename=(output_filename_base + ".json")
+            )
             # file-like text output
             tmp = CDTextBuffer()
-            tmp.write(json.dumps(input00.data, ensure_ascii=False,
-                                    indent=4, separators=(',', ': ')))
+            tmp.write(
+                json.dumps(
+                    input00.data, ensure_ascii=False, indent=4,
+                    separators=(',', ': ')
+                )
+            )
             outputs['output01'] = tmp
 
         return outputs
