@@ -78,6 +78,19 @@ else:
 
 SPATIALITE_SQL = join(PROJECT_DIR, 'data/init_spatialite-2.3.sql')
 
+# Use faster ramfs tablespace for testing in case of PostGIS e.g. in Jenkins
+# Configure via:
+#    mount -t ramfs none /mnt/
+#    mkdir /mnt/pgdata/
+#    chown postgres:postgres /mnt/pgdata/
+#    su postgres
+#    psql -d postgres -c "CREATE TABLESPACE ramfs LOCATION '/mnt/pgdata'"
+#    psql -d postgres -c "GRANT CREATE ON TABLESPACE ramfs TO jenkins;"
+#    exit
+#from sys import argv
+#if 'test' in argv:
+#    DEFAULT_TABLESPACE = 'ramfs'
+
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = []
@@ -90,7 +103,7 @@ ALLOWED_HOSTS = []
 # dates/times -- not necessarily the timezone of the server.
 # If you are using UTC (Zulu) time zone for your data (e.g. most
 # satellite imagery) it is highly recommended to use 'UTC' here. Otherwise
-# you will encounter time-shifts between your data, search request & the 
+# you will encounter time-shifts between your data, search request & the
 # returned results.
 TIME_ZONE = 'UTC'
 
@@ -214,11 +227,11 @@ INSTALLED_APPS = (
 
 
 # The configured EOxServer components. Components add specific functionality
-# to the EOxServer and must adhere to a given interface. In order to activate 
+# to the EOxServer and must adhere to a given interface. In order to activate
 # a component, its module must be included in the following list or imported at
-# some other place. To help configuring all required components, each module 
+# some other place. To help configuring all required components, each module
 # path can end with either a '*' or '**'. The single '*' means that all direct
-# modules in the package will be included. With the double '**' a recursive 
+# modules in the package will be included. With the double '**' a recursive
 # search will be done.
 COMPONENTS = (
     # backends
@@ -299,6 +312,6 @@ FIXTURE_DIRS = (
     join(PROJECT_DIR, 'data/fixtures'),
 )
 
-# Set this variable if the path to the instance cannot be resolved 
+# Set this variable if the path to the instance cannot be resolved
 # automatically, e.g. in case of redirects
 #FORCE_SCRIPT_NAME="/path/to/instance/"
