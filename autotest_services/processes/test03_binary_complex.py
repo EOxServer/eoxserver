@@ -87,7 +87,6 @@ class TestProcess03(Component):
     #       the format selection argument contains the default format.
     @staticmethod
     def execute(method, seed, output):
-        base_fname = os.path.join("/tmp", str(uuid.uuid4()))
         size_x, size_y = (768, 512)
 
         mem_driver = gdal.GetDriverByName("MEM")
@@ -98,38 +97,47 @@ class TestProcess03(Component):
             mem_ds.GetRasterBand(i+1).WriteArray(data)
 
         if output['mime_type'] == "image/png":
-            fname = base_fname+".png"
+            extension = ".png"
             driver = gdal.GetDriverByName("PNG")
             options = []
         elif output['mime_type'] == "image/jpeg":
-            fname = base_fname+".jpg"
+            extension = ".jpg"
             driver = gdal.GetDriverByName("JPEG")
             options = []
         elif output['mime_type'] == "image/tiff":
-            fname = base_fname+".tif"
+            extension = ".tif"
             driver = gdal.GetDriverByName("GTiff")
             options = ["TILED=YES", "COMPRESS=DEFLATE", "PHOTOMETRIC=RGB"]
         else:
             ExecuteError("Unexpected output format received! %r"%output)
 
+        tmp_filename = os.path.join("/tmp", str(uuid.uuid4())) + extension
+        output_filename = "test03_binary_complex" + extension
+
         try:
-            driver.CreateCopy(fname, mem_ds, 0, options)
+            driver.CreateCopy(tmp_filename, mem_ds, 0, options)
             del mem_ds
 
             if method == 'file':
                 # Return object as a temporary Complex Data File.
                 # None that the object holds the format attributes!
-                return CDFile(fname, **output)
+                # The 'filename' parameter sets the raw output
+                # 'Content-Disposition: filename=' HTTP header.
+                return CDFile(tmp_filename, filename=output_filename, **output)
 
             elif method == 'in-memory-buffer':
                 # Return object as an im-memore Complex Data Buffer.
                 # None that the object holds the format attributes!
-                with file(fname) as fid:
-                    _output = CDByteBuffer(fid.read(), **output)
-                os.remove(fname)
+                # The 'filename' parameter sets the raw output
+                # 'Content-Disposition: filename=' HTTP header.
+                with file(tmp_filename) as fid:
+                    _output = CDByteBuffer(
+                        fid.read(), filename=output_filename, **output
+                    )
+                os.remove(tmp_filename)
                 return _output
         except:
-            # make sure no temporary file is left
-            if os.path.isfile(fname):
-                os.remove(fname)
+            # make sure no temporary file is left in case of an exception
+            if os.path.isfile(tmp_filename):
+                os.remove(tmp_filename)
             raise

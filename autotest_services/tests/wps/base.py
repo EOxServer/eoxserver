@@ -55,3 +55,10 @@ class ContentTypeCheckMixIn(object):
             content_type = self.getResponseHeader('Content-Type')
             self.assertEqual(self.expectedContentType, content_type)
 
+class ContentDispositionCheckMixIn(object):
+    def testContentDisposition(self):
+        if hasattr(self, 'expectedContentDisposition'):
+            content_disposition = self.getResponseHeader('Content-Disposition')
+            self.assertEqual(
+                self.expectedContentDisposition, content_disposition
+            )

@@ -28,7 +28,7 @@
 
 from autotest_services import base as testbase
 from autotest_services.tests.wps.base import (
-    WPS10ExecuteMixIn, ContentTypeCheckMixIn,
+    WPS10ExecuteMixIn, ContentTypeCheckMixIn, ContentDispositionCheckMixIn,
 )
 
 #===============================================================================
@@ -383,8 +383,9 @@ class WPS10ExecuteComplexDataXMLKVPTestCase(WPS10ExecuteMixIn, testbase.XMLTestC
         return (params, "kvp")
 
 
-class WPS10ExecuteComplexDataTextRawOutputTestCase(ContentTypeCheckMixIn, testbase.PlainTextTestCase):
+class WPS10ExecuteComplexDataTextRawOutputTestCase(ContentTypeCheckMixIn, ContentDispositionCheckMixIn, testbase.PlainTextTestCase):
     expectedContentType = "text/plain; charset=utf-8"
+    expectedContentDisposition = 'attachment; filename="test02_identity_complex.txt"'
     def getRequest(self):
         params = """<wps:Execute version="1.0.0" service="WPS"
         xmlns:wps="http://www.opengis.net/wps/1.0.0"
@@ -410,8 +411,9 @@ payload.</wps:ComplexData>
         """
         return (params, "xml")
 
-class WPS10ExecuteComplexDataJSONRawOutputTestCase(ContentTypeCheckMixIn, testbase.JSONTestCase):
+class WPS10ExecuteComplexDataJSONRawOutputTestCase(ContentTypeCheckMixIn, ContentDispositionCheckMixIn, testbase.JSONTestCase):
     expectedContentType = "application/json; charset=utf-8"
+    expectedContentDisposition = 'attachment; filename="test02_identity_complex.json"'
     def getRequest(self):
         params = """<wps:Execute version="1.0.0" service="WPS"
         xmlns:wps="http://www.opengis.net/wps/1.0.0"
@@ -434,8 +436,9 @@ class WPS10ExecuteComplexDataJSONRawOutputTestCase(ContentTypeCheckMixIn, testba
         """
         return (params, "xml")
 
-class WPS10ExecuteComplexDataXMLRawOutputTestCase(ContentTypeCheckMixIn, testbase.XMLNoValTestCase):
+class WPS10ExecuteComplexDataXMLRawOutputTestCase(ContentTypeCheckMixIn, ContentDispositionCheckMixIn, testbase.XMLNoValTestCase):
     expectedContentType = "text/xml; charset=utf-8"
+    expectedContentDisposition = 'attachment; filename="test02_identity_complex.xml"'
     def getRequest(self):
         params = """<wps:Execute version="1.0.0" service="WPS"
         xmlns:wps="http://www.opengis.net/wps/1.0.0"
@@ -461,20 +464,23 @@ class WPS10ExecuteComplexDataXMLRawOutputTestCase(ContentTypeCheckMixIn, testbas
         return (params, "xml")
 
 
-class WPS10ExecuteComplexDataTextRawOutputKVPTestCase(ContentTypeCheckMixIn, testbase.PlainTextTestCase):
+class WPS10ExecuteComplexDataTextRawOutputKVPTestCase(ContentTypeCheckMixIn, ContentDispositionCheckMixIn, testbase.PlainTextTestCase):
     expectedContentType = "text/plain; charset=utf-8"
+    expectedContentDisposition = 'attachment; filename="test02_identity_complex.txt"'
     def getRequest(self):
         params = "service=WPS&version=1.0.0&request=Execute&identifier=TC02:identity:complex&DataInputs=TC02:input00=P%C5%99%C3%ADli%C5%A1%20%C5%BElu%C5%A5ou%C4%8Dk%C3%BD%20k%C5%AF%C5%88%20%C3%BAp%C4%9Bl%20%C4%8F%C3%A1belsk%C3%A9%20%C3%B3dy.&RawDataOutput=TC02:output00"
         return (params, "kvp")
 
-class WPS10ExecuteComplexDataJSONRawOutputKVPTestCase(ContentTypeCheckMixIn, testbase.JSONTestCase):
+class WPS10ExecuteComplexDataJSONRawOutputKVPTestCase(ContentTypeCheckMixIn, ContentDispositionCheckMixIn, testbase.JSONTestCase):
     expectedContentType = "application/json; charset=utf-8"
+    expectedContentDisposition = 'attachment; filename="test02_identity_complex.json"'
     def getRequest(self):
         params = "service=WPS&version=1.0.0&request=Execute&identifier=TC02:identity:complex&DataInputs=TC02:input00={%22text%22:%22P%C5%99%C3%ADli%C5%A1%20%C5%BElu%C5%A5ou%C4%8Dk%C3%BD%20k%C5%AF%C5%88%20%C3%BAp%C4%9Bl%20%C4%8F%C3%A1belsk%C3%A9%20%C3%B3dy.%22}@mimeType=application%2Fjson&ResponseDocument=TC02:output00@mimeType=application%2Fjson&RawDataOutput=TC02:output00@mimeType=application%2Fjson"
         return (params, "kvp")
 
-class WPS10ExecuteComplexDataXMLRawOutputKVPTestCase(ContentTypeCheckMixIn, testbase.XMLNoValTestCase):
+class WPS10ExecuteComplexDataXMLRawOutputKVPTestCase(ContentTypeCheckMixIn, ContentDispositionCheckMixIn, testbase.XMLNoValTestCase):
     expectedContentType = "text/xml; charset=utf-8"
+    expectedContentDisposition = 'attachment; filename="test02_identity_complex.xml"'
     def getRequest(self):
         params = "service=WPS&version=1.0.0&request=Execute&identifier=TC02:identity:complex&DataInputs=TC02:input00=%3Ctest%3AtestXML+xmlns%3Atest%3D%22http%3A%2F%2Fxml.eox.at%2Ftest%22%3EP%C5%99%C3%ADli%C5%A1%20%C5%BElu%C5%A5ou%C4%8Dk%C3%BD%20k%C5%AF%C5%88%20%C3%BAp%C4%9Bl%20%C4%8F%C3%A1belsk%C3%A9%20%C3%B3dy.%3C%2Ftest%3AtestXML%3E@mimeType=text%2Fxml&RawDataOutput=TC02:output00@mimeType=text%2Fxml"
         return (params, "kvp")
@@ -550,24 +556,27 @@ class WPS10ExecuteComplexDataJPGBase64KVPTestCase(WPS10ExecuteMixIn, testbase.XM
         params = "service=WPS&version=1.0.0&request=Execute&identifier=TC03:image_generator:complex&DataInputs=TC03:seed=0&ResponseDocument=TC03:output00@mimeType=image%2Fjpeg@encoding=base64&lineage=true"
         return (params, "kvp")
 
-class WPS10ExecuteComplexDataPNGRawOutputKVPTestCase(ContentTypeCheckMixIn, testbase.GDALDatasetTestCase):
+class WPS10ExecuteComplexDataPNGRawOutputKVPTestCase(ContentTypeCheckMixIn, ContentDispositionCheckMixIn, testbase.GDALDatasetTestCase):
     expectedContentType = "image/png"
+    expectedContentDisposition = 'attachment; filename="test03_binary_complex.png"'
     def getFileExtension(self, file_type):
         return "png"
     def getRequest(self):
         params = "service=WPS&version=1.0.0&request=Execute&identifier=TC03:image_generator:complex&DataInputs=TC03:seed=0&RawDataOutput=TC03:output00"
         return (params, "kvp")
 
-class WPS10ExecuteComplexDataTIFRawOutputKVPTestCase(ContentTypeCheckMixIn, testbase.GDALDatasetTestCase):
+class WPS10ExecuteComplexDataTIFRawOutputKVPTestCase(ContentTypeCheckMixIn, ContentDispositionCheckMixIn, testbase.GDALDatasetTestCase):
     expectedContentType = "image/tiff"
+    expectedContentDisposition = 'attachment; filename="test03_binary_complex.tif"'
     def getFileExtension(self, file_type):
         return "tif"
     def getRequest(self):
         params = "service=WPS&version=1.0.0&request=Execute&identifier=TC03:image_generator:complex&DataInputs=TC03:seed=0&RawDataOutput=TC03:output00@mimeType=image%2Ftiff"
         return (params, "kvp")
 
-class WPS10ExecuteComplexDataJPGRawOutputTestCase(ContentTypeCheckMixIn, testbase.GDALDatasetTestCase):
+class WPS10ExecuteComplexDataJPGRawOutputTestCase(ContentTypeCheckMixIn, ContentDispositionCheckMixIn, testbase.GDALDatasetTestCase):
     expectedContentType = "image/jpeg"
+    expectedContentDisposition = 'attachment; filename="test03_binary_complex.jpg"'
     def getFileExtension(self, file_type):
         return "jpg"
     def getRequest(self):
@@ -591,4 +600,3 @@ class WPS10ExecuteComplexDataJPGRawOutputTestCase(ContentTypeCheckMixIn, testbas
         </wps:Execute>
         """
         return (params, "xml")
-
