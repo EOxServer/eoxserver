@@ -61,10 +61,10 @@ def configuration(request):
     )
 
     all_objects = list(chain(collections, coverages))
-    if all_objects:
+    try:
         start_time = min(o.begin_time for o in all_objects if o.begin_time)
         end_time = max(o.end_time for o in all_objects if o.end_time)
-    else:
+    except ValueError:
         start_time = now() - timedelta(days=5)
         end_time = now()
 
