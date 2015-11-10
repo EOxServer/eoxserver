@@ -128,7 +128,13 @@ class Command(EOxServerAdminCommand):
         if (int(rs[0]), int(rs[1])) >= (2, 4):
             print("SpatiaLite found, initializing using "
                   "'InitSpatialMetadata()'.")
-            conn.execute("SELECT InitSpatialMetadata()")
+            # Since spatialite 4.1, InitSpatialMetadata() is not longer run
+            # automatically in a transaction. It has to be triggered
+            # explicitly.
+            if (int(rs[0]), int(rs[1])) >= (4, 1):
+                conn.execute("SELECT InitSpatialMetadata(1)")
+            else:
+                conn.execute("SELECT InitSpatialMetadata()")
         else:
             print("SpatiaLite version <2.4 found, trying to "
                   "initialize using 'init_spatialite-2.3.sql'.")
