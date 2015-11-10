@@ -43,6 +43,7 @@ from eoxserver.resources.coverages.dateline import (
 
 #-------------------------------------------------------------------------------
 
+
 class BaseStyleMixIn(object):
     STYLES = (
         ("red", 255, 0, 0),
@@ -58,7 +59,6 @@ class BaseStyleMixIn(object):
     )
 
     DEFAULT_STYLE = "red"
-
 
     def apply_styles(self, layer, fill=False):
         # add style info
@@ -81,11 +81,10 @@ class OffsiteColorMixIn(object):
         """ Helper function to create an offsite color for a given range type
             and optionally band indices.
         """
-
-        if band_indices == None:
+        if band_indices is None:
             if len(range_type) == 1:
                 band_indices = [0, 0, 0]
-            elif len(range_type) >=3:
+            elif len(range_type) >= 3:
                 band_indices = [0, 1, 2]
             else:
                 # no offsite color possible
@@ -139,7 +138,8 @@ class PolygonLayerMixIn(object):
 
 class PlainLayerMixIn(object):
 
-    def _create_layer(self, coverage, name, extent=None, group=None, wrapped=False):
+    def _create_layer(self, coverage, name, extent=None, group=None,
+                      wrapped=False):
         layer = ms.layerObj()
         layer.name = name
         layer.type = ms.MS_LAYER_RASTER
@@ -152,7 +152,8 @@ class PlainLayerMixIn(object):
         #)
 
         if wrapped:
-            # set the info for the connector to wrap this layer around the dateline
+            # set the info for the connector to wrap this layer around the
+            # dateline
             layer.setMetaData("eoxs_wrap_dateline", "true")
 
         self._set_projection(layer, coverage.spatial_reference)
@@ -200,10 +201,11 @@ class PlainLayerMixIn(object):
                 layer.setProcessingKey("RESAMPLE", str(options.resampling))
 
     def _set_projection(self, layer, sr):
-        short_epsg = "EPSG:%d" % sr.srid
+        if sr.srid is not None:
+            short_epsg = "EPSG:%d" % sr.srid
+            layer.setMetaData("ows_srs", short_epsg)
+            layer.setMetaData("wms_srs", short_epsg)
         layer.setProjection(sr.proj)
-        layer.setMetaData("ows_srs", short_epsg)
-        layer.setMetaData("wms_srs", short_epsg)
 
 
 class AbstractLayerFactory(PlainLayerMixIn, Component):
@@ -232,7 +234,7 @@ class BaseCoverageLayerFactory(OffsiteColorMixIn, PlainLayerMixIn, Component):
         offsite = self.offsite_color_from_range_type(range_type)
         options = self.get_render_options(coverage)
 
-        if extent_crosses_dateline(extent, srid):
+        if srid is not None and extent_crosses_dateline(extent, srid):
             identifier = coverage.identifier
             wrapped_extent = wrap_extent_around_dateline(extent, srid)
             layer = self._create_layer(
@@ -253,7 +255,6 @@ class BaseCoverageLayerFactory(OffsiteColorMixIn, PlainLayerMixIn, Component):
             )
             self.set_render_options(layer, offsite, options)
             yield layer, data_items
-
 
     def generate_group(self, name):
         return ms.Layer(name)

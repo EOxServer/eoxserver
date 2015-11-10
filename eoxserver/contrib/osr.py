@@ -90,7 +90,8 @@ class SpatialReference(object):
         else:
             cstype = 'PROJCS'
 
-        return int(self.sr.GetAuthorityCode(cstype))
+        srid = self.sr.GetAuthorityCode(cstype)
+        return int(srid) if srid is not None else None
 
     @property
     def swap_axes(self):
@@ -99,4 +100,3 @@ class SpatialReference(object):
 
     def __getattr__(self, name):
         return getattr(self.sr, name)
-
