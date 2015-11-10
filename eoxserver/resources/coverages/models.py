@@ -77,8 +77,12 @@ class Projection(models.Model):
     @property
     def spatial_reference(self):
         sr = osr.SpatialReference()
-
-        # TODO: parse definition
+        if self.format == "WKT":
+            sr.ImportFromWkt(self.definition)
+        elif self.format == "XML":
+            sr.ImportFromXML(self.definition)
+        elif self.format == "URL":
+            sr.ImportFromXUrl(self.definition)
         return sr
 
     def __unicode__(self):
