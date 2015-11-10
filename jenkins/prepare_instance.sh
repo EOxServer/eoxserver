@@ -60,6 +60,10 @@ case $DB in
         echo "Using postgis database!"
         sed -e "s/'USER':.*/'USER': 'jenkins',/" -i autotest/autotest/settings.py
         sed -e "s/'PASSWORD':.*/'PASSWORD': 'eeJ0Kain',/" -i autotest/autotest/settings.py
+        #Run test using faster ramfs tablespace
+        sed -e "s/#from sys import argv/from sys import argv/" -i autotest/autotest/settings.py
+        sed -e "s/#if 'test' in argv:/if 'test' in argv:/" -i autotest/autotest/settings.py
+        sed -e "s/#    DEFAULT_TABLESPACE = 'ramfs'/    DEFAULT_TABLESPACE = 'ramfs'/" -i autotest/autotest/settings.py
         ;;
     *)
         echo "Unknown database system, Exiting..."
