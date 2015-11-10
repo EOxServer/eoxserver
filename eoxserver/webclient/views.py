@@ -33,6 +33,7 @@ from itertools import chain
 
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.utils.timezone import now
 
 from eoxserver.core.util.timetools import isoformat
 from eoxserver.resources.coverages import models
@@ -60,8 +61,12 @@ def configuration(request):
     )
 
     all_objects = list(chain(collections, coverages))
-    start_time = min(o.begin_time for o in all_objects)
-    end_time = max(o.end_time for o in all_objects)
+    if all_objects:
+        start_time = min(o.begin_time for o in all_objects)
+        end_time = max(o.end_time for o in all_objects)
+    else:
+        start_time = now() - timedelta(days=5)
+        end_time = now()
 
     return render_to_response(
         'webclient/config.json', {
