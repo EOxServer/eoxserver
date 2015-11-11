@@ -118,9 +118,10 @@ class WPS10ExcecuteHandler(Component):
             encoder = WPS10ExecuteResponseXMLEncoder()
 
         response = encoder.encode_response(
-                      process, packed_outputs, resp_form, inputs, raw_inputs)
+            process, packed_outputs, resp_form, inputs, raw_inputs
+        )
 
-        return encoder.serialize(response, encoding='utf-8'), encoder.content_type
+        return encoder.serialize(response, encoding='utf-8')
 
 
 def _normalize_params(param_defs):
@@ -176,11 +177,16 @@ def prepare_process_output_requests(output_defs, response_form):
     for name, prm in output_defs:
         outreq = response_form.get_output(prm.identifier)
         if isinstance(prm, ComplexData):
-            format_ = prm.get_format(outreq.mime_type, outreq.encoding, outreq.schema)
+            format_ = prm.get_format(
+                outreq.mime_type, outreq.encoding, outreq.schema
+            )
             if format_ is None:
-                raise InvalidOutputDefError(prm.identifier, "Invalid "
-                    "complex data format! mimeType=%r encoding=%r schema=%r"
-                    ""%(outreq.mime_type, outreq.encoding, outreq.schema))
+                raise InvalidOutputDefError(
+                    prm.identifier, "Invalid complex data format!"
+                    " mimeType=%r encoding=%r schema=%r" % (
+                        outreq.mime_type, outreq.encoding, outreq.schema
+                    )
+                )
             output_requests[name] = {
                 "mime_type": format_.mime_type,
                 "encoding": format_.encoding,
@@ -228,14 +234,18 @@ def _resolve_reference(iref, request):
     # prepare HTTP/POST request
     if iref.method == "POST":
         if iref.body_href is not None:
-            iref.body = _resolve_url(iref.body_href, None, iref.headers, request)
+            iref.body = _resolve_url(
+                iref.body_href, None, iref.headers, request
+            )
         if iref.body is not None:
             ValueError("Missing the POST request body!")
     else:
         iref.body = None
     data = _resolve_url(iref.href, iref.body, iref.headers, request)
-    return InputData(iref.identifier, iref.title, iref.abstract, data,
-                        None, None, iref.mime_type, iref.encoding, iref.schema)
+    return InputData(
+        iref.identifier, iref.title, iref.abstract, data,
+        None, None, iref.mime_type, iref.encoding, iref.schema
+    )
 
 def _resolve_url(href, body, headers, request):
     """ Resolve the input reference URL."""

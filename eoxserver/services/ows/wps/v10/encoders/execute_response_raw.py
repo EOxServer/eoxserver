@@ -29,6 +29,10 @@
 #-------------------------------------------------------------------------------
 
 import types
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from StringIO import StringIO
 
 from eoxserver.services.result import (
     to_http_response, ResultItem, #ResultFile,
@@ -36,14 +40,7 @@ from eoxserver.services.result import (
 from eoxserver.services.ows.wps.parameters import (
     LiteralData, ComplexData, BoundingBoxData,
 )
-
 from eoxserver.services.ows.wps.exceptions import InvalidOutputValueError
-
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
-
 
 #-------------------------------------------------------------------------------
 
@@ -74,8 +71,8 @@ class WPS10ExecuteResponseRawEncoder(object):
 
 class ResultAlt(ResultItem):
     """ Alternative implementation of the result buffer. The object can be
-    inifilized by a byte-string, by a sequence or generator of byte-string,
-    or by a seekable file(-like) object.
+    initialized with a byte-string, sequence or generator of byte-strings,
+    or seekable file(-like) object.
     """
 
     def __init__(self, buf, content_type=None, filename=None, identifier=None,
@@ -111,7 +108,7 @@ class ResultAlt(ResultItem):
 
     def chunked(self, chunksize):
         if chunksize < 0:
-            raise ValueError("Invalid chunk-size %d"%chunksize)
+            raise ValueError("Invalid chunk-size %d!" % chunksize)
         data_file = self.data_file
         for chunk in iter(lambda: data_file.read(chunksize), ''):
             yield chunk
@@ -136,8 +133,9 @@ def _encode_raw_literal(data, prm, req):
         encoded_data = prm.encode(data, req.uom or prm.default_uom, 'utf-8')
     except (ValueError, TypeError) as exc:
         raise InvalidOutputValueError(prm.identifier, exc)
-    return ResultAlt(encoded_data, identifier=prm.identifier,
-        content_type=content_type)
+    return ResultAlt(
+        encoded_data, identifier=prm.identifier, content_type=content_type
+    )
 
 def _encode_raw_bbox(data, prm, req):
     """ Encode a raw bounding box."""
@@ -147,11 +145,15 @@ def _encode_raw_bbox(data, prm, req):
         encoded_data = prm.encode_kvp(data).encode('utf-8')
     except (ValueError, TypeError) as exc:
         raise InvalidOutputValueError(prm.identifier, exc)
-    return ResultAlt(encoded_data, identifier=prm.identifier,
-        content_type="text/plain" if req.mime_type is None else req.mime_type)
+    return ResultAlt(
+        encoded_data, identifier=prm.identifier,
+        content_type="text/plain" if req.mime_type is None else req.mime_type
+    )
 
 def _encode_raw_complex(data, prm):
     """ Encode raw complex data."""
     payload, content_type = prm.encode_raw(data)
-    return ResultAlt(payload, identifier=prm.identifier,
-                                                     content_type=content_type)
+    return ResultAlt(
+        payload, identifier=prm.identifier, content_type=content_type,
+        filename=getattr(data, "filename", None)
+    )
