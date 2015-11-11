@@ -180,7 +180,7 @@ class CDFile(CDBase):
         self._remove_file = remove_file
 
     def __del__(self):
-        if self._file is not None:
+        if hasattr(self, "_file"):
             name = self.name
             self.close()
             if self._remove_file:
@@ -193,8 +193,7 @@ class CDFile(CDBase):
 
     def __getattr__(self, attr):
         if attr == "_file":
-            # The nonexisting _file attribute defaults to None.
-            return None
+            raise AttributeError("Instance has no attribute '_file'")
         else:
             # Allow object to behave like a file.
             return getattr(self._file, attr)
