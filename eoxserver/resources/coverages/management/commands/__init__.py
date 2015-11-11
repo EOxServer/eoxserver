@@ -47,8 +47,10 @@ def _variable_args_cb(option, opt_str, value, parser):
         if not arg.startswith('-'):
             args.append(arg)
         else:
-            del parser.rargs[:len(args)]
             break
+
+    del parser.rargs[:len(args)]
+
     if getattr(parser.values, option.dest):
         args.extend(getattr(parser.values, option.dest))
     setattr(parser.values, option.dest, args)
