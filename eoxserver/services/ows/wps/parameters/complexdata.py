@@ -180,10 +180,11 @@ class CDFile(CDBase):
         self._remove_file = remove_file
 
     def __del__(self):
-        name = self.name
-        self.close()
-        if self._remove_file:
-            os.remove(name)
+        if self._file is not None:
+            name = self.name
+            self.close()
+            if self._remove_file:
+                os.remove(name)
 
     @property
     def data(self):
@@ -191,7 +192,12 @@ class CDFile(CDBase):
         return self.read()
 
     def __getattr__(self, attr):
-        return getattr(self._file, attr)
+        if attr == "_file":
+            # The nonexisting _file attribute defaults to None.
+            return None
+        else:
+            # Allow object to behave like a file.
+            return getattr(self._file, attr)
 
 
 class CDPermanentFile(CDFile):
