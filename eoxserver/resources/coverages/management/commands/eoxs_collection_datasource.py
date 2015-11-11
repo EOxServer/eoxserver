@@ -30,7 +30,7 @@ from optparse import make_option
 from django.core.management.base import CommandError, BaseCommand
 
 from eoxserver.resources.coverages import models
-from eoxserver.resources.coverages.synchronization import synchronize
+from eoxserver.backends import models as backends
 from eoxserver.resources.coverages.management.commands import (
     CommandOutputMixIn, _variable_args_cb, nested_commit_on_success
 )
@@ -40,30 +40,54 @@ class Command(CommandOutputMixIn, BaseCommand):
     option_list = BaseCommand.option_list + (
         make_option("--identifier", "-i", dest="collection_ids",
             action='callback', callback=_variable_args_cb,
-            default=None, help=("Collection(s) to be synchronized.")
+            default=None, help=("Collection(s) that will be provided with the "
+                                "datasource.")
         ),
-        make_option("--all", "-a", dest="all",
-            action='store_true', default=False,
-            help=("Optional. Synchronize all collections.")
+        make_option("--source", "-s", dest="source",
+            action="store", default=None,
+            help="Mandatory. The source glob pattern to match datasets"
+        ),
+        make_option("--template", "-t", dest="templates",
+            action='callback', callback=_variable_args_cb,
+            default=None, help=("Collection(s) that will be provided with the "
+                                "datasource.")
         )
     )
 
     args = (
-        "-i <collection-id> [-i <collection-id> ...] "
+        "-i <collection-id> [-i ...] -s <source-path-glob> "
+        "[-t <template-path-glob> ...]"
     )
 
     help = """
-        Synchronizes one or more collections and all their data sources.
+        Add a datasource to a collection.
     """
 
     @nested_commit_on_success
-    def handle(self, collection_ids, all, *args, **kwargs):
+    def handle(self, collection_ids, source, templates, *args, **kwargs):
         if not collection_ids:
             raise CommandError(
                 "Missing the mandatory collection identifier(s)!"
             )
 
-        print collection_ids
+        if not source:
+            raise CommandError("Missing mandatory --source.")
+
+        print templates
+        templates = templates or []
+
         for collection_id in collection_ids:
             collection = models.Collection.objects.get(identifier=collection_id)
-            synchronize(collection.cast())
+            datasource = models.DataSource.objects.create(collection=collection)
+
+            backends.DataItem.objects.create(
+                dataset=datasource, semantic="source[bands]", location=source
+            )
+            print source
+
+            for template in templates:
+                backends.DataItem.objects.create(
+                    dataset=datasource, semantic="template[metadata]",
+                    location=template
+                )
+                print template
