@@ -158,17 +158,18 @@ class BaseRenderer(Component):
                 "interval": "%d %d" % band.allowed_values
             }, namespace="wcs_%s" % band.name)
 
-        nilvalues = " ".join(
-            str(nil_value.value) for nil_value in bands[0].nil_value_set
-        )
-        nilvalues_reasons = " ".join(
-            nil_value.reason for nil_value in bands[0].nil_value_set
-        )
-        if nilvalues:
-            ms.setMetaData(layer, {
-                "nilvalues": nilvalues,
-                "nilvalues_reasons": nilvalues_reasons
-            }, namespace="wcs")
+        if bands[0].nil_value_set:
+            nilvalues = " ".join(
+                str(nil_value.value) for nil_value in bands[0].nil_value_set
+            )
+            nilvalues_reasons = " ".join(
+                nil_value.reason for nil_value in bands[0].nil_value_set
+            )
+            if nilvalues:
+                ms.setMetaData(layer, {
+                    "nilvalues": nilvalues,
+                    "nilvalues_reasons": nilvalues_reasons
+                }, namespace="wcs")
 
         return layer
 
