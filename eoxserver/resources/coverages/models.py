@@ -82,7 +82,9 @@ class Projection(models.Model):
         elif self.format == "XML":
             sr.ImportFromXML(self.definition)
         elif self.format == "URL":
-            sr.ImportFromXUrl(self.definition)
+            sr.ImportFromUrl(self.definition)
+        elif self.format == "PROJ":
+            sr.ImportFromProj4(self.definition)
         return sr
 
     def __unicode__(self):
