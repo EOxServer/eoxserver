@@ -76,10 +76,11 @@ class GDALDatasetMetadataReader(Component):
         #       matrix - not matter what are the values.
         if ds.GetProjection():
             values["coverage_type"] = "RectifiedDataset"
-            values["projection"] = (ds.GetProjection(), "WKT")
+            values["projection_definition"] = (ds.GetProjection(), "WKT")
 
             # get coordinates of all four image corners
             gt = ds.GetGeoTransform()
+
             def gtrans(x, y):
                 return gt[0] + x*gt[1] + y*gt[2], gt[3] + x*gt[4] + y*gt[5]
             vpix = [(0, 0), (0, size[1]), (size[0], 0), (size[0], size[1])]
@@ -97,7 +98,7 @@ class GDALDatasetMetadataReader(Component):
         elif ds.GetGCPProjection() and ds.GetGCPCount() > 0:
             values["coverage_type"] = "ReferenceableDataset"
             projection = ds.GetGCPProjection()
-            values["projection"] = (projection, "WKT")
+            values["projection_definition"] = (projection, "WKT")
 
             # parse the spatial reference to get the EPSG code
             sr = osr.SpatialReference(projection, "WKT")

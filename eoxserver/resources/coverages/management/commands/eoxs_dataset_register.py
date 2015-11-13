@@ -34,7 +34,7 @@ from django.utils.dateparse import parse_datetime
 from django.contrib.gis import geos
 
 from eoxserver.core import env
-from eoxserver.contrib import gdal, osr
+from eoxserver.contrib import gdal
 from eoxserver.backends import models as backends
 from eoxserver.backends.component import BackendComponent
 from eoxserver.backends.cache import CacheContext
@@ -108,7 +108,8 @@ class Command(CommandOutputMixIn, BaseCommand):
 
         make_option("-p", "--projection", dest="projection",
             action="store", default=None,
-            help=("Override projection.")
+            help=("Override projection. This parameter must be the name of the "
+                  "registered projection.")
         ),
 
         make_option("-f", "--footprint", dest="footprint",
@@ -173,7 +174,7 @@ class Command(CommandOutputMixIn, BaseCommand):
         "[--identifier <identifier>] "
         "[-e <minx>,<miny>,<maxx>,<maxy>] "
         "[--size <size-x> <size-y>] "
-        "[--srid <srid> | --projection <projection-def>] "
+        "[--srid <srid> | --projection <projection-name>] "
         "[--footprint <footprint-wkt>] "
         "[--begin-time <begin-time>] [--end-time <end-time>] "
         "[--coverage-type <coverage-type-name>] "
@@ -345,21 +346,36 @@ class Command(CommandOutputMixIn, BaseCommand):
             coverage = CoverageType()
             coverage.range_type = range_type
 
-            proj = retrieved_metadata.pop("projection")
-            if isinstance(proj, int):
-                retrieved_metadata["srid"] = proj
-            else:
-                definition, format = proj
+            # try to get the projection by definition and format
+            projection = retrieved_metadata.pop("projection")
+            definition, frmt = retrieved_metadata.pop(
+                "projection_definition", (None, None)
+            )
 
+            if definition and frmt and not projection:
+                input_sr = models.Projection(
+                    definition=definition, format=frmt
+                ).spatial_reference
+
+                # loop over all registered projections with the same format and
+                # get the matching one, if one exists
+                for proj_model in models.Projection.objects.filter(format=frmt):
+                    existing_sr = proj_model.spatial_reference
+                    if existing_sr.IsSame(input_sr):
+                        projection = proj_model.name
+                        break
+
+            if isinstance(projection, int):
+                retrieved_metadata["srid"] = projection
+            else:
                 # Try to identify the SRID from the given input
                 try:
-                    sr = osr.SpatialReference(definition, format)
-                    retrieved_metadata["srid"] = sr.srid
-                except Exception, e:
-                    prj = models.Projection.objects.get(
-                        format=format, definition=definition
+                    proj_model = models.Projection.objects.get(name=projection)
+                except models.Projection.DoesNotExist:
+                    raise CommandError(
+                        "No projection with name '%s' defined." % projection
                     )
-                    retrieved_metadata["projection"] = prj
+                retrieved_metadata["projection"] = proj_model
 
             # TODO: bug in models for some coverages
             for key, value in retrieved_metadata.items():
@@ -399,7 +415,7 @@ class Command(CommandOutputMixIn, BaseCommand):
     def _get_overrides(self, identifier=None, size=None, extent=None,
                        begin_time=None, end_time=None, footprint=None,
                        projection=None, coverage_type=None, srid=None,
-                       **kwargs):
+                       projection_definition=None, **kwargs):
 
         overrides = {}
 
