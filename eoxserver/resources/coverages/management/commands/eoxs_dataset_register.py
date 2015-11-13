@@ -34,15 +34,15 @@ from django.utils.dateparse import parse_datetime
 from django.contrib.gis import geos
 
 from eoxserver.core import env
-from eoxserver.contrib import gdal
 from eoxserver.backends import models as backends
 from eoxserver.backends.component import BackendComponent
 from eoxserver.backends.cache import CacheContext
-from eoxserver.backends.access import connect
 from eoxserver.resources.coverages import models
-from eoxserver.resources.coverages.metadata.component import MetadataComponent
 from eoxserver.resources.coverages.management.commands import (
     CommandOutputMixIn, _variable_args_cb, nested_commit_on_success
+)
+from eoxserver.resources.coverages.registration.component import (
+    RegistratorComponent
 )
 
 
@@ -204,7 +204,6 @@ class Command(CommandOutputMixIn, BaseCommand):
             self.handle_with_cache(cache, *args, **kwargs)
 
     def handle_with_cache(self, cache, *args, **kwargs):
-        metadata_component = MetadataComponent(env)
         datas = kwargs["data"]
         semantics = kwargs.get("semantics")
         metadatas = kwargs["metadata"]
@@ -213,11 +212,6 @@ class Command(CommandOutputMixIn, BaseCommand):
         if range_type_name is None:
             raise CommandError("No range type name specified.")
         range_type = models.RangeType.objects.get(name=range_type_name)
-
-        metadata_keys = set((
-            "identifier", "extent", "size", "projection",
-            "footprint", "begin_time", "end_time", "coverage_type",
-        ))
 
         all_data_items = []
         retrieved_metadata = {}
@@ -237,22 +231,6 @@ class Command(CommandOutputMixIn, BaseCommand):
             data_item.full_clean()
             data_item.save()
             all_data_items.append(data_item)
-
-            with open(connect(data_item, cache)) as f:
-                content = f.read()
-                reader = metadata_component.get_reader_by_test(content)
-                if reader:
-                    values = reader.read(content)
-
-                    format = values.pop("format", None)
-                    if format:
-                        data_item.format = format
-                        data_item.full_clean()
-                        data_item.save()
-
-                    for key, value in values.items():
-                        if key in metadata_keys:
-                            retrieved_metadata.setdefault(key, value)
 
         if len(datas) < 1:
             raise CommandError("No data files specified.")
@@ -279,29 +257,6 @@ class Command(CommandOutputMixIn, BaseCommand):
             data_item.full_clean()
             data_item.save()
             all_data_items.append(data_item)
-
-            # TODO: other opening methods than GDAL
-            ds = gdal.Open(connect(data_item, cache))
-            reader = metadata_component.get_reader_by_test(ds)
-            if reader:
-                values = reader.read(ds)
-
-                format = values.pop("format", None)
-                if format:
-                    data_item.format = format
-                    data_item.full_clean()
-                    data_item.save()
-
-                for key, value in values.items():
-                    if key in metadata_keys:
-                        retrieved_metadata.setdefault(key, value)
-            ds = None
-
-        if len(metadata_keys - set(retrieved_metadata.keys())):
-            raise CommandError(
-                "Missing metadata keys %s."
-                % ", ".join(metadata_keys - set(retrieved_metadata.keys()))
-            )
 
         # replace any already registered dataset
         if kwargs["replace"]:
@@ -335,61 +290,13 @@ class Command(CommandOutputMixIn, BaseCommand):
                 )
 
         try:
-            # TODO: allow types of different apps
-            CoverageType = getattr(models, retrieved_metadata["coverage_type"])
-        except AttributeError:
-            raise CommandError(
-                "Type '%s' is not supported." % kwargs["coverage_type"]
+            for registrator in RegistratorComponent(env).registrators:
+                # TODO: select registrator
+                pass
+
+            coverage = registrator.register(
+                all_data_items, self._get_overrides(**kwargs), cache
             )
-
-        try:
-            coverage = CoverageType()
-            coverage.range_type = range_type
-
-            # try to get the projection by definition and format
-            projection = retrieved_metadata.pop("projection")
-            definition, frmt = retrieved_metadata.pop(
-                "projection_definition", (None, None)
-            )
-
-            if definition and frmt and not projection:
-                input_sr = models.Projection(
-                    definition=definition, format=frmt
-                ).spatial_reference
-
-                # loop over all registered projections with the same format and
-                # get the matching one, if one exists
-                for proj_model in models.Projection.objects.filter(format=frmt):
-                    existing_sr = proj_model.spatial_reference
-                    if existing_sr.IsSame(input_sr):
-                        projection = proj_model.name
-                        break
-
-            if isinstance(projection, int):
-                retrieved_metadata["srid"] = projection
-            else:
-                # Try to identify the SRID from the given input
-                try:
-                    proj_model = models.Projection.objects.get(name=projection)
-                except models.Projection.DoesNotExist:
-                    raise CommandError(
-                        "No projection with name '%s' defined." % projection
-                    )
-                retrieved_metadata["projection"] = proj_model
-
-            # TODO: bug in models for some coverages
-            for key, value in retrieved_metadata.items():
-                setattr(coverage, key, value)
-
-            coverage.visible = kwargs["visible"]
-
-            coverage.full_clean()
-            coverage.save()
-
-            for data_item in all_data_items:
-                data_item.dataset = coverage
-                data_item.full_clean()
-                data_item.save()
 
             # link with collection(s)
             if kwargs["collection_ids"]:

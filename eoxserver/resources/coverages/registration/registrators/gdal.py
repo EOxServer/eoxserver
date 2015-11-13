@@ -41,9 +41,9 @@ class GDALRegistrator(BaseRegistrator):
         if reader:
             values = reader.read(ds)
 
-            format = values.pop("format", None)
+            frmt = values.pop("format", None)
             if format:
-                data_item.format = format
+                data_item.format = frmt
                 data_item.full_clean()
                 data_item.save()
 

@@ -137,27 +137,35 @@ class BaseRegistrator(Component):
 
     def _create_dataset(self, identifier, extent, size, projection,
                         footprint, begin_time, end_time, coverage_type,
-                        range_type_name, data_items):
+                        range_type_name, data_items, **kwargs):
 
         CoverageType = getattr(models, coverage_type)
 
         coverage = CoverageType()
         coverage.range_type = models.RangeType.objects.get(name=range_type_name)
 
+        # try to get the projection by definition and format
+        definition, frmt = kwargs.pop("projection_definition", (None, None))
+
+        if definition and frmt and not projection:
+            input_sr = models.Projection(
+                definition=definition, format=frmt
+            ).spatial_reference
+
+            # loop over all registered projections with the same format and
+            # get the matching one, if one exists
+            for proj_model in models.Projection.objects.filter(format=frmt):
+                existing_sr = proj_model.spatial_reference
+                if existing_sr.IsSame(input_sr):
+                    projection = proj_model.name
+                    break
+
         if isinstance(projection, int):
             coverage.srid = projection
         else:
-            definition, format = projection
-
             # Try to identify the SRID from the given input
-            try:
-                sr = osr.SpatialReference(definition, format)
-                coverage.srid = sr.srid
-            except:
-                prj = models.Projection.objects.get(
-                    format=format, definition=definition
-                )
-                coverage.projection = prj
+            proj_model = models.Projection.objects.get(name=projection)
+            coverage.projection = proj_model
 
         coverage.identifier = identifier
         coverage.extent = extent
@@ -166,7 +174,7 @@ class BaseRegistrator(Component):
         coverage.begin_time = begin_time
         coverage.end_time = end_time
 
-#        coverage.visible = kwargs["visible"]
+        coverage.visible = kwargs.get("visible", False)
 
         coverage.full_clean()
         coverage.save()
