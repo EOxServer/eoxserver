@@ -10,11 +10,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # please see the online documentation at vagrantup.com.
 
   # Every Vagrant virtual environment requires a box to build off of.
-  config.vm.box = "centos-6.5-x86_64"
+  config.vm.box = "centos-6.7-x86_64"
 
   # The url from where the 'config.vm.box' box will be fetched if it
   # doesn't already exist on the user's system.
-  config.vm.box_url = "http://downloads.eox.at/boxes/centos-6.5-x86_64.box"
+  config.vm.box_url = "http://downloads.eox.at/boxes/centos-6.7-x86_64.box"
 
   config.vm.hostname = "eoxserver-vagrant"
 
@@ -52,7 +52,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     # Increase memory and cpus
     v.customize ["modifyvm", :id, "--memory", 1024, "--cpus", 2]
-    # Increase performance i.e. don't use swap extensively 
+    # Increase performance i.e. don't use swap extensively
     v.customize ["modifyvm", :id, "--ioapic", "on", "--largepages", "off", "--vtxvpid", "off"]
 
     # Use GUI for debugging purposes
