@@ -304,7 +304,8 @@
     {
       "id":"bboxSelection",
       "description": "Bounding box selection tool",
-      "icon":"icon-vector-path-square"
+      "icon":"icon-vector-path-square",
+      "selectionType":"single"
     }
   ],
 
