@@ -37,6 +37,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.provision "shell", path: "scripts/repositories.sh"
   config.vm.provision "shell", path: "scripts/packages.sh"
   config.vm.provision "shell", path: "scripts/postgres.sh"
+  config.vm.provision "shell", path: "scripts/spatialite.py"
   config.vm.provision "shell", path: "scripts/development_installation.sh"
   config.vm.provision "shell", path: "scripts/httpd.sh"
   config.vm.provision "shell", path: "scripts/user_custom.sh"
