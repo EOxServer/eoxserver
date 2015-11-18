@@ -26,6 +26,8 @@
 #-------------------------------------------------------------------------------
 
 from optparse import make_option
+from itertools import product
+from os.path import isabs
 
 from django.core.management.base import CommandError, BaseCommand
 
@@ -38,32 +40,42 @@ from eoxserver.resources.coverages.management.commands import (
 
 class Command(CommandOutputMixIn, BaseCommand):
     option_list = BaseCommand.option_list + (
-        make_option("--identifier", "-i", dest="collection_ids",
+        make_option("--root", "-r", dest="root",
             action='callback', callback=_variable_args_cb,
-            default=None, help=("Collection(s) to be synchronized.")
+            default=None, help=("Collection(s) from which the "
+                                "objects shall be removed.")
         ),
-        make_option("--all", "-a", dest="all",
-            action='store_true', default=False,
-            help=("Optional. Synchronize all collections.")
+        make_option("--dry", "-d", dest="dry",
+            action="store_true", default=False,
+            help="Only do a dry-run and don't delete/register collections."
         )
     )
 
     args = (
-        "-i <collection-id> [-i <collection-id> ...] "
+        "<root-dir> [-p <pattern> [ ... ] ] "
     )
 
     help = """
         Synchronizes one or more collections and all their data sources.
     """
 
-    @nested_commit_on_success
-    def handle(self, collection_ids, all, *args, **kwargs):
-        if not collection_ids:
-            raise CommandError(
-                "Missing the mandatory collection identifier(s)!"
-            )
+    def handle(self, patterns, *root_dirs):
+        root_dir = root_dirs[0]
 
-        print collection_ids
-        for collection_id in collection_ids:
-            collection = models.Collection.objects.get(identifier=collection_id)
-            synchronize(collection.cast())
+        subdirs = []
+        existing_collections = models.DatasetSeries.objects.filter()  # TODO
+        registered_ids = set(c.identifier for c in existing_collections)
+        existing_ids = set(subdirs)
+
+        for identifier in registered_ids - existing_ids:
+            pass
+            # TODO delete series
+
+        for identifier in existing_ids - registered_ids:
+            pass
+            # TODO: register series
+
+        for identifier in existing_ids & registered_ids:
+            pass
+            # TODO: print
+

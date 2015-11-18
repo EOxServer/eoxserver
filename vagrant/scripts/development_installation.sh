@@ -13,9 +13,15 @@ if ! grep -Fxq "<900913> +proj=tmerc +lat_0=0 +lon_0=21 +k=1 +x_0=21500000 +y_0=
     $SUDO sh -c 'echo "<900913> +proj=tmerc +lat_0=0 +lon_0=21 +k=1 +x_0=21500000 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs  <>" >> /usr/share/proj/epsg'
 fi
 
-# EOxServer
+# Install EOxServer in development mode ignoring dependencies which are
+# already installed
 cd "$EOX_ROOT/"
-$SUDO python setup.py develop
+$SUDO python setup.py develop --no-deps
+
+# Initialize SpatiaLite database if not already present
+if [ ! -e "$EOX_ROOT/autotest/autotest/data/config.sqlite" ] ; then
+    $EOX_ROOT/vagrant/scripts/spatialite.py
+fi
 
 # Configure EOxServer autotest instance
 cd "$EOX_ROOT/autotest/"
@@ -44,7 +50,6 @@ if python manage.py eoxs_id_check "$SERIES" --type DatasetSeries --traceback  ; 
     python manage.py eoxs_collection_create --type DatasetSeries -i "$SERIES" --traceback
     for TIF in "$EOX_ROOT/autotest/autotest/data/meris/mosaic_MER_FRS_1P_reduced_RGB/"*.tif
     do
-        python manage.py eoxs_id_check
         python manage.py eoxs_dataset_register -r RGB -d "$TIF" -m "${TIF//.tif/.xml}" --collection "$SERIES" --traceback
     done
 fi
