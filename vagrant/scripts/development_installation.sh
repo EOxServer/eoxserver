@@ -18,6 +18,11 @@ fi
 cd "$EOX_ROOT/"
 $SUDO python setup.py develop --no-deps
 
+# Initialize SpatiaLite database if not already present
+if [ ! -e "$EOX_ROOT/autotest/autotest/data/config.sqlite" ] ; then
+    $EOX_ROOT/vagrant/scripts/spatialite.py
+fi
+
 # Configure EOxServer autotest instance
 cd "$EOX_ROOT/autotest/"
 
