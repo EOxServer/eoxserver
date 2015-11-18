@@ -45,7 +45,6 @@ if python manage.py eoxs_id_check "$SERIES" --type DatasetSeries --traceback  ; 
     python manage.py eoxs_collection_create --type DatasetSeries -i "$SERIES" --traceback
     for TIF in "$EOX_ROOT/autotest/autotest/data/meris/mosaic_MER_FRS_1P_reduced_RGB/"*.tif
     do
-        python manage.py eoxs_id_check
         python manage.py eoxs_dataset_register -r RGB -d "$TIF" -m "${TIF//.tif/.xml}" --collection "$SERIES" --traceback
     done
 fi
