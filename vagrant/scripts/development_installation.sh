@@ -13,9 +13,10 @@ if ! grep -Fxq "<900913> +proj=tmerc +lat_0=0 +lon_0=21 +k=1 +x_0=21500000 +y_0=
     $SUDO sh -c 'echo "<900913> +proj=tmerc +lat_0=0 +lon_0=21 +k=1 +x_0=21500000 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs  <>" >> /usr/share/proj/epsg'
 fi
 
-# EOxServer
+# Install EOxServer in development mode ignoring dependencies which are
+# already installed
 cd "$EOX_ROOT/"
-$SUDO python setup.py develop
+$SUDO python setup.py develop --no-deps
 
 # Configure EOxServer autotest instance
 cd "$EOX_ROOT/autotest/"
