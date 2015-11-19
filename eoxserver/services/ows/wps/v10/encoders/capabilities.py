@@ -71,6 +71,15 @@ class WPS10CapabilitiesXMLEncoder(WPS10BaseXMLEncoder):
     @staticmethod
     def encode_capabilities(processes):
         conf = CapabilitiesConfigReader(get_eoxserver_config())
+
+        # Avoid duplicate process offerings ...
+        process_set = set()
+        process_offerings = []
+        for process in processes:
+            if process.identifier not in process_set:
+                process_offerings.append(encode_process_brief(process))
+                process_set.add(process.identifier)
+
         return WPS("Capabilities",
             OWS("ServiceIdentification",
                 OWS("Title", conf.title),
@@ -98,13 +107,16 @@ class WPS10CapabilitiesXMLEncoder(WPS10BaseXMLEncoder):
                             OWS("AdministrativeArea", conf.administrative_area),
                             OWS("PostalCode", conf.postal_code),
                             OWS("Country", conf.country),
-                            OWS("ElectronicMailAddress", conf.electronic_mail_address)
+                            OWS(
+                                "ElectronicMailAddress",
+                                conf.electronic_mail_address
+                            )
                         )
                     )
                 )
             ),
             _encode_operations_metadata(conf),
-            WPS("ProcessOfferings", *(encode_process_brief(p) for p in processes)),
+            WPS("ProcessOfferings", *process_offerings),
             WPS("Languages",
                 WPS("Default",
                     OWS("Language", "en-US")
