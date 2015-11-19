@@ -305,7 +305,7 @@ def _expand_template_location(data_item, template_values):
     location = data_item.location
 
     try:
-        location = location.format(template_values)
+        location = location.format(**template_values)
         # allow both formatting mechanisms
         if location == data_item.location:
             location = location % template_values
