@@ -16,7 +16,7 @@ fi
 # Install EOxServer in development mode ignoring dependencies which are
 # already installed
 cd "$EOX_ROOT/"
-$SUDO python setup.py develop --no-deps
+$SUDO pip install -e .
 
 # Initialize SpatiaLite database if not already present
 if [ ! -e "$EOX_ROOT/autotest/autotest/data/config.sqlite" ] ; then

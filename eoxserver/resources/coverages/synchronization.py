@@ -61,17 +61,21 @@ class SynchronizationError(Exception):
 
 def synchronize(collection, recursive=False, force=False):
     """ Synchronizes a :class:`eoxserver.resources.coverages.models.Collection`
-        and all its data sources with their respective storages.
+        and all its data sources with their respective storages. Synchronization
+        means to compare the contents of a collection with the contents of the
+        file system referenced by each of the datasources.
 
         :param collection: either the ID of a collection or the collection model
-                           itself. internally the collection will always be
+                           itself. Internally the collection will always be
                            cast to its actual type.
         :param recursive: perform a recursive synchronization for all
-                          sub-collections of the specified one. by default this
+                          sub-collections of the specified one. By default this
                           is not performed.
         :param force: force the re-registration of already inserted datasets.
-                      by default, existing datasets will be preserved and not
+                      By default, existing datasets will be preserved and not
                       refreshed.
+        :returns: a two-tuple: the number of newly registered and deleted stale
+                  datasets.
     """
 
     # allow both model and identifier
@@ -92,11 +96,14 @@ def synchronize(collection, recursive=False, force=False):
 
     logger.info("Synchronizing collection %s" % collection)
 
+    # expand all filesystem globs to actually existing paths
     all_paths = []
     for data_source in collection.data_sources.all():
         all_paths.extend(
             _expand_data_source(data_source)
         )
+
+    deleted_count = 0
 
     with CacheContext() as cache:
         # loop over all paths and check if there is already a dataset registered
@@ -131,37 +138,50 @@ def synchronize(collection, recursive=False, force=False):
         # loop over all coverages in this collection. if any is not represented
         # by its referenced file, delete it. Skip the just added datasets for
         # convenience (as we know that they must have referenced files)
-        contained = models.Coverage.objects.filter(
-            collections__in=[collection.pk]
-        ).exclude(pk__in=registered_pks)
+
+        # TODO: large exclusions like this run into problems with SQLite
+        # contained = models.Coverage.objects.filter(
+        #     collections__in=[collection.pk]
+        # ).exclude(pk__in=registered_pks)
+
+        # TODO: temporary (but slow) workaround
+        registered_pks = set(registered_pks)
+        contained = list(
+            c for c in models.Coverage.objects.filter(
+                collections__in=[collection.pk]
+            )
+            if c.pk not in registered_pks
+        )
 
         for coverage in contained:
             data_items = tuple(coverage.data_items.all())
-            all_exists = True
 
-            # loop over all its data items
-            for existing_data_item in data_items:
+            # loop over all data items of the coverage and check if it was found
+            # in the filesystem lookup
+            for data_item in data_items:
+
+                found = False
+                # loop over all paths and check if the data item was still found
+                # in the filesystem
                 for paths in all_paths:
-                    for filename, data_item, semantic in paths:
-                        if existing_data_item.location == filename and \
-                                existing_data_item.semantic == semantic:
-                            pass
-                        else:
-                            logger.info(
-                                "Dataset '%s' is missing its file '%s'." % (
-                                    coverage.identifier,
-                                    existing_data_item.location
-                                ))
-                            all_exists = False
-                            break
-                    if not all_exists:
+                    if found:
                         break
-                if not all_exists:
+
+                    for filename, _, semantic in paths:
+                        if data_item.location == filename and \
+                                data_item.semantic == semantic:
+                            found = True
+                            break
+
+                # if the data item as not found in the paths on the filesystem,
+                # delete the model
+                if not found:
+                    logger.info("Deleting dataset '%s'." % coverage.identifier)
+                    coverage.delete()
+                    deleted_count += 1
                     break
 
-            if not all_exists:
-                logger.info("Deleting dataset '%s'." % coverage.identifier)
-                coverage.delete()
+        return len(registered_pks), deleted_count
 
 
 def _expand_data_source(data_source):
@@ -305,7 +325,7 @@ def _expand_template_location(data_item, template_values):
     location = data_item.location
 
     try:
-        location = location.format(template_values)
+        location = location.format(**template_values)
         # allow both formatting mechanisms
         if location == data_item.location:
             location = location % template_values

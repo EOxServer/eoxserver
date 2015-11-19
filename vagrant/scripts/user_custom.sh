@@ -6,9 +6,11 @@
 if ! grep -Fxq "alias l=\"ls -lah\"" /root/.bashrc ; then
     cat << EOF >> /root/.bashrc
 alias l="ls -lah"
+export XML_CATALOG_FILES="/var/eoxserver/schemas/catalog.xml"
 EOF
     cat << EOF >> /home/vagrant/.bashrc
 alias l="ls -lah"
+export XML_CATALOG_FILES="/var/eoxserver/schemas/catalog.xml"
 EOF
 fi
 
