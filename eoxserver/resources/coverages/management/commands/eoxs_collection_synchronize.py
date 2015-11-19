@@ -42,7 +42,7 @@ class Command(CommandOutputMixIn, BaseCommand):
             action='callback', callback=_variable_args_cb,
             default=None, help=("Collection(s) to be synchronized.")
         ),
-        make_option("--all", "-a", dest="all",
+        make_option("--all", "-a", dest="all_collections",
             action='store_true', default=False,
             help=("Optional. Synchronize all collections.")
         )
@@ -52,18 +52,35 @@ class Command(CommandOutputMixIn, BaseCommand):
         "-i <collection-id> [-i <collection-id> ...] "
     )
 
-    help = """
-        Synchronizes one or more collections and all their data sources.
-    """
+    help = "Synchronizes one or more collections and all their data sources."
 
     @nested_commit_on_success
-    def handle(self, collection_ids, all, *args, **kwargs):
-        if not collection_ids:
+    def handle(self, collection_ids, all_collections, *args, **kwargs):
+        if not collection_ids and not all_collections:
             raise CommandError(
                 "Missing the mandatory collection identifier(s)!"
             )
 
-        print collection_ids
+        if all_collections:
+            collection_ids = (
+                c.identifier for c in models.Collection.objects.all()
+            )
+
         for collection_id in collection_ids:
-            collection = models.Collection.objects.get(identifier=collection_id)
-            synchronize(collection.cast())
+            try:
+                collection = models.Collection.objects.get(
+                    identifier=collection_id
+                )
+            except models.Collection.DoesNotExist:
+                raise CommandError(
+                    "Collection '%s' does not exist." % collection_id
+                )
+
+            self.print_msg("Synchronizing collection '%s'." % collection_id)
+            registered, deleted = synchronize(collection.cast())
+            self.print_msg(
+                "Finished synchronizing collection '%s'. Registered %d new "
+                "datasets, deleted %d stale datasets." % (
+                    collection_id, registered, deleted
+                )
+            )
