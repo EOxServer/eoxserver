@@ -6,7 +6,8 @@ yum update -y
 # Install packages
 yum install -y gdal-eox gdal-eox-python postgis proj-epsg \
                python-django-extensions python-werkzeug
-yum install -y python-lxml mod_wsgi httpd postgresql-server python-psycopg2 pytz
+yum install -y python-lxml mod_wsgi httpd postgresql-server python-psycopg2 \
+               pytz python-dateutil
 yum install -y libxml2 libxml2-python mapserver mapserver-python python-pysqlite-eox
 
 # Install some build dependencies
