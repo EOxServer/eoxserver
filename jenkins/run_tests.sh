@@ -15,6 +15,7 @@ echo "**> running unit tests tests ..."
 cd autotest
 
 # Make sure the PostGIS test database is not present
+# Nothing to do for SpatiaLite which uses an in-memory database
 if [ $DB == "postgis" ] && [ `psql template_postgis jenkins -tAc "SELECT 1 FROM pg_database WHERE datname='test_eoxserver_testing'"` ] ; then
     echo "Dropping PostGIS test database."
     dropdb test_eoxserver_testing
@@ -32,7 +33,7 @@ cd ..
 echo "**> running command line tests ..."
 cd autotest_jenkins
 
-# Restet PostGIS database if used
+# Reset PostGIS database if used
 if [ $DB == "postgis" ]; then
     if [ `psql template_postgis jenkins -tAc "SELECT 1 FROM pg_database WHERE datname='eoxserver_testing'"` ] ; then
         echo "Dropping PostGIS database."
