@@ -33,10 +33,11 @@ from itertools import izip
 import numpy
 import logging
 
-from django.contrib.gis.geos import GEOSGeometry, MultiPolygon, Polygon, LinearRing, Point
-from django.contrib.gis.gdal.geometries import OGRGeometry
+from django.contrib.gis.geos import (
+    GEOSGeometry, MultiPolygon, Polygon, LinearRing
+)
 
-from eoxserver.contrib import  gdal, ogr, osr
+from eoxserver.contrib import gdal, ogr, osr
 from eoxserver.core.util.xmltools import XMLEncoder
 from eoxserver.processing.preprocessing.util import (
     create_mem, create_mem_copy, copy_projection
@@ -48,6 +49,7 @@ from eoxserver.processing.preprocessing.optimization import (
 
 
 logger = logging.getLogger(__name__)
+
 
 def pairwise(iterable):
     "s -> (s0,s1), (s2,s3), (s4, s5), ..."
@@ -97,7 +99,8 @@ class PreProcessor(object):
                  color_index=False, palette_file=None, no_data_value=None,
                  overview_resampling=None, overview_levels=None,
                  overview_minsize=None, radiometric_interval_min=None,
-                 radiometric_interval_max=None, simplification_factor=None):
+                 radiometric_interval_max=None, simplification_factor=None,
+                 temporary_directory=None):
 
         self.format_selection = format_selection
         self.overviews = overviews
@@ -121,6 +124,8 @@ class PreProcessor(object):
         else:
             # default 2 * resolution == 2 pixels
             self.simplification_factor = 2
+
+        self.temporary_directory = temporary_directory
 
 
     def process(self, input_filename, output_filename,

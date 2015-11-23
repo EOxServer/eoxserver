@@ -64,7 +64,7 @@ class ReprojectionOptimization(DatasetOptimization):
         projection identified by an SRID.
     """
 
-    def __init__(self, crs_or_srid):
+    def __init__(self, crs_or_srid, temporary_directory=None):
         if isinstance(crs_or_srid, int):
             pass
         elif isinstance(crs_or_srid, basestring):
@@ -74,6 +74,7 @@ class ReprojectionOptimization(DatasetOptimization):
             raise ValueError("Unable to obtain CRS from '%s'." %
                              type(crs_or_srid).__name__)
         self.srid = crs_or_srid
+        self.temporary_directory = temporary_directory
 
     def __call__(self, src_ds):
         # setup
@@ -96,7 +97,8 @@ class ReprojectionOptimization(DatasetOptimization):
         # create the output dataset
         dst_ds = create_temp(tmp_ds.RasterXSize, tmp_ds.RasterYSize,
                              src_ds.RasterCount,
-                             src_ds.GetRasterBand(1).DataType)
+                             src_ds.GetRasterBand(1).DataType,
+                             temp_root=self.temporary_directory)
 
         # initialize with no data
         for i in range(src_ds.RasterCount):
@@ -128,16 +130,18 @@ class BandSelectionOptimization(DatasetOptimization):
     respective scale and copies them to the result dataset.
     """
 
-    def __init__(self, bands, datatype=gdal.GDT_Byte):
+    def __init__(self, bands, datatype=gdal.GDT_Byte, temporary_directory=None):
         # preprocess bands list
         # TODO: improve
         self.bands = map(lambda b: b if len(b) == 3 else (b[0], None, None),
                          bands)
         self.datatype = datatype
+        self.temporary_directory = temporary_directory
 
     def __call__(self, src_ds):
         dst_ds = create_temp(src_ds.RasterXSize, src_ds.RasterYSize,
-                             len(self.bands), self.datatype)
+                             len(self.bands), self.datatype,
+                             temp_root=self.temporary_directory)
         dst_range = get_limits(self.datatype)
 
         multiple, multiple_written = 0, False
@@ -176,7 +180,9 @@ class BandSelectionOptimization(DatasetOptimization):
                 dmax = src_max
             src_range = (float(dmin), float(dmax))
 
-            block_x_size, block_y_size = 512, 512
+            # TODO: make this more efficient by setting the block size
+
+            block_x_size, block_y_size = src_band.GetBlockSize()
 
             num_x = int(math.ceil(float(src_band.XSize) / block_x_size))
             num_y = int(math.ceil(float(src_band.YSize) / block_y_size))
@@ -229,12 +235,14 @@ class ColorIndexOptimization(DatasetOptimization):
         computes a median color table.
     """
 
-    def __init__(self, palette_file=None):
+    def __init__(self, palette_file=None, temporary_directory=None):
         self.palette_file = palette_file
+        self.temporary_directory = temporary_directory
 
     def __call__(self, src_ds):
         dst_ds = create_temp(src_ds.RasterXSize, src_ds.RasterYSize,
-                             1, gdal.GDT_Byte)
+                             1, gdal.GDT_Byte,
+                             temp_root=self.temporary_directory)
 
         if not self.palette_file:
             # create a color table as a median of the given dataset
@@ -310,7 +318,7 @@ class OverviewOptimization(DatasetPostOptimization):
     """
 
     def __init__(self, resampling=None, levels=None, minsize=None):
-        self.resampling = resampling
+        self.resampling = resampling or "NEAREST"
         self.levels = levels
         self.minsize = minsize
 
@@ -332,41 +340,11 @@ class OverviewOptimization(DatasetPostOptimization):
         logger.info("Building overview levels %s with resampling method '%s'."
                     % (", ".join(map(str, levels)), self.resampling))
 
-        filename = ds.GetFileList()[0]
-        process = subprocess.Popen(
-            ["gdaladdo", "-q", "-clean", filename],
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
+        # drop previous overviews
+        ds.BuildOverviews(self.resampling, [])
 
-        out, err = process.communicate()
-        for string in (out, err):
-            for line in string.split("\n"):
-                if line != '':
-                    logger.info("gdaladdo output: %s" % line)
-
-        if process.returncode != 0:
-            logger.warning(
-                "Deletion of overviews failed. (Returncode: %d)"
-                % process.returncode
-            )
-
-        process = subprocess.Popen(
-            ["gdaladdo", "-q", "-r", self.resampling or "nearest", filename]
-            + [str(l) for l in levels],
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
-
-        out, err = process.communicate()
-        for string in (out, err):
-            for line in string.split("\n"):
-                if line != '':
-                    logger.info("gdaladdo output: %s" % line)
-
-        if process.returncode != 0:
-            logger.warning(
-                "Creation of overviews failed. (Returncode: %d)"
-                % process.returncode
-            )
+        # re-build overviews
+        ds.BuildOverviews(self.resampling, levels)
 
         return ds
 
