@@ -60,14 +60,14 @@ class Command(CommandOutputMixIn, BaseCommand):
             dest='ignore_missing_collection',
             action="store_true", default=False,
             help=("Optional. Proceed even if the linked parent "
-                  "does not exist. By defualt, a missing parent "
+                  "does not exist. By default, a missing parent "
                   "will terminate the command.")
         ),
         make_option('--ignore-missing-object',
             dest='ignore_missing_object',
             action="store_true", default=False,
             help=("Optional. Proceed even if the linked child "
-                  "does not exist. By defualt, a missing child "
+                  "does not exist. By default, a missing child "
                   "will terminate the command.")
         )
     )
