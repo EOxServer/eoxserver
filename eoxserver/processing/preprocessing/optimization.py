@@ -180,8 +180,6 @@ class BandSelectionOptimization(DatasetOptimization):
                 dmax = src_max
             src_range = (float(dmin), float(dmax))
 
-            # TODO: make this more efficient by setting the block size
-
             block_x_size, block_y_size = src_band.GetBlockSize()
 
             num_x = int(math.ceil(float(src_band.XSize) / block_x_size))
