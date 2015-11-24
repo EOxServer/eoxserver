@@ -136,6 +136,19 @@ python manage.py eoxs_dataset_register -d autotest_jenkins/data/meris/MER_FRS_1P
 python manage.py eoxs_dataset_register -d autotest_jenkins/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.tif -m autotest_jenkins/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060822_092058_000001972050_00308_23408_0077_uint16_reduced_compressed.xml -r MERIS_uint16 --visible --replace --traceback
 python manage.py eoxs_dataset_register -d autotest_jenkins/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed.tif -m autotest_jenkins/data/meris/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_uint16_reduced_compressed.xml -r MERIS_uint16 --visible --replace --traceback
 
+# tests using cci_soilmoisture data
+# define a range type for real SM data
+python manage.py eoxs_rangetype_load -i autotest_jenkins/data/cci_soilmoisture/sm_rangetype.json
+# create empty collections
+python manage.py eoxs_collection_create -i SoilMoisture
+python manage.py eoxs_collection_create -i SoilMoistureRGB
+# add datasources to the collections: a template to look up files
+python manage.py eoxs_collection_datasource -i SoilMoisture -s "`pwd`/autotest_jenkins/data/cci_soilmoisture/*tif" -t "`pwd`/autotest_jenkins/data/cci_soilmoisture/{basename}.xml" -t "`pwd`/autotest_jenkins/data/cci_soilmoisture/sm_rangetype.conf"
+python manage.py eoxs_collection_datasource -i SoilMoistureRGB -s "`pwd`/autotest_jenkins/data/cci_soilmoisture/*png" -t "`pwd`/autotest_jenkins/data/cci_soilmoisture/{basename}.xml" -t "`pwd`/autotest_jenkins/data/cci_soilmoisture/rgb_rangetype.conf"
+# synchronize the collections: register/unregister depending on the files in the datasources
+python manage.py eoxs_collection_synchronize -i SoilMoisture
+python manage.py eoxs_collection_synchronize -i SoilMoistureRGB
+
 # Run Selenium
 echo "**> running Selenium tests ..."
 #TODO
