@@ -165,7 +165,7 @@ def is_extended() :
 @requires_reftools
 def suggest_transformer( path_or_ds ) :
     """ suggest value of method and order to be passed
-        tp ``get_footprint_wkt`` and ``rect_from_subset``
+        to ``get_footprint_wkt`` and ``rect_from_subset``
     """
 
     # get info about the dataset
@@ -175,26 +175,29 @@ def suggest_transformer( path_or_ds ) :
     sx = ds.RasterXSize
     sy = ds.RasterYSize
 
-    # guess reasonable limit number of tie-points
-    # (Assuming that the tiepoints cover but not execeed
+    # Guess a reasonable limit for the number of tie-points to use with
+    # the TPS transformer.
+    # The limit calculation uses the image aspect ratio.
+    # (Assuming that the tie-points cover but not exceed
     # the full raster image. That way we don't need
-    # to calculate bounding box of the tiepoints' set.)
+    # to calculate a bounding box of the tie-points' set.)
+    # (For images with far bigger sx than sy usually the GCP method works fine)
     nx = 5
     ny = int(max(1,0.5*nx*float(sy)/float(sx)))
     ng = (nx+1)*(ny+1)+10
 
-    # check if we deal with an outline along the image's vertical edges
-    if nn < 500 : # avoid check for large tie-point sets
-        cnt = 0
-        for gcp in ds.GetGCPs() :
-            cnt += ( gcp.GCPPixel < 1 ) or ( gcp.GCPPixel >= ( sx-1 ) )
-        is_vertical_outline = ( cnt == nn )
-    else :
-        is_vertical_outline = False
-
     # check whether the GDAL extensions are available
 
     if is_extended() : # extended GDAL
+
+        # check if we deal with an outline along the image's vertical edges
+        if nn < 500 : # avoid check for large tie-point sets
+            cnt = 0
+            for gcp in ds.GetGCPs() :
+                cnt += ( gcp.GCPPixel < 1 ) or ( gcp.GCPPixel >= ( sx-1 ) )
+            is_vertical_outline = ( cnt == nn )
+        else :
+            is_vertical_outline = False
 
         # set default to TPS and 3rd order augmenting polynomial
         order  = 3
@@ -205,12 +208,12 @@ def suggest_transformer( path_or_ds ) :
         if ( 4*sy < sx ) :
             order = 1
 
-        # small fotprints such as ngEO should use lower TPS-AP order
+        # small footprints such as in ngEO should use lower TPS-AP order
         if is_vertical_outline :
             order = 1
 
-        # for excessive number of source tiepoints use Least-Square TPS fit
-        if ( nn > ng ) :
+        # for excessive number of source tie-points use Least-Square TPS fit
+        if nn > 500 and nn > ng:
             method = METHOD_TPS_LSQ
 
     else : # baseline GDAL
@@ -220,10 +223,10 @@ def suggest_transformer( path_or_ds ) :
         order  = 1
         method = METHOD_TPS
 
-        # for excessive number of source tiepoints use polynomial GCP fit
-        # (the result will most likely incorrect but there is nothing
-        # better to be done with the baseline GDAL)
-        if ( nn > ng ) :
+        # for excessive number of source tie-points use polynomial GCP fit
+        # (the result will most likely be incorrect but there is nothing
+        # better to be done using the baseline GDAL)
+        if nn > 500 and nn > ng:
             method = METHOD_GCP
             order  = 0 # automatic order selection
 
