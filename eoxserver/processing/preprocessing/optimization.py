@@ -27,14 +27,13 @@
 #-------------------------------------------------------------------------------
 
 import logging
-import subprocess
 import math
 from itertools import product
 import numpy
 
 from eoxserver.contrib import gdal, gdal_array, osr, ogr
 from eoxserver.processing.preprocessing.util import (
-    get_limits, create_temp, copy_metadata, copy_projection, copy_nodatavalue
+    get_limits, create_temp, copy_metadata, copy_projection, cleanup_temp
 )
 from eoxserver.resources.coverages.crss import (
     parseEPSGCode, fromShortCode, fromURL, fromURN, fromProj4Str
@@ -93,35 +92,39 @@ class ReprojectionOptimization(DatasetOptimization):
         tmp_ds = gdal.AutoCreateWarpedVRT(src_ds, None, dst_sr.ExportToWkt(),
                                           gdal.GRA_Bilinear, 0.125)
 
-        # create the output dataset
-        dst_ds = create_temp(tmp_ds.RasterXSize, tmp_ds.RasterYSize,
-                             src_ds.RasterCount,
-                             src_ds.GetRasterBand(1).DataType,
-                             temp_root=self.temporary_directory)
+        try:
+            # create the output dataset
+            dst_ds = create_temp(tmp_ds.RasterXSize, tmp_ds.RasterYSize,
+                                 src_ds.RasterCount,
+                                 src_ds.GetRasterBand(1).DataType,
+                                 temp_root=self.temporary_directory)
 
-        # initialize with no data
-        for i in range(src_ds.RasterCount):
-            src_band = src_ds.GetRasterBand(i+1)
-            if src_band.GetNoDataValue() is not None:
-                dst_band = dst_ds.GetRasterBand(i+1)
-                dst_band.SetNoDataValue(src_band.GetNoDataValue())
-                dst_band.Fill(src_band.GetNoDataValue())
+            # initialize with no data
+            for i in range(src_ds.RasterCount):
+                src_band = src_ds.GetRasterBand(i+1)
+                if src_band.GetNoDataValue() is not None:
+                    dst_band = dst_ds.GetRasterBand(i+1)
+                    dst_band.SetNoDataValue(src_band.GetNoDataValue())
+                    dst_band.Fill(src_band.GetNoDataValue())
 
-        # reproject the image
-        dst_ds.SetProjection(dst_sr.ExportToWkt())
-        dst_ds.SetGeoTransform(tmp_ds.GetGeoTransform())
+            # reproject the image
+            dst_ds.SetProjection(dst_sr.ExportToWkt())
+            dst_ds.SetGeoTransform(tmp_ds.GetGeoTransform())
 
-        gdal.ReprojectImage(src_ds, dst_ds,
-                            src_sr.ExportToWkt(),
-                            dst_sr.ExportToWkt(),
-                            gdal.GRA_Bilinear)
+            gdal.ReprojectImage(src_ds, dst_ds,
+                                src_sr.ExportToWkt(),
+                                dst_sr.ExportToWkt(),
+                                gdal.GRA_Bilinear)
 
-        tmp_ds = None
+            tmp_ds = None
 
-        # copy the metadata
-        copy_metadata(src_ds, dst_ds)
+            # copy the metadata
+            copy_metadata(src_ds, dst_ds)
 
-        return dst_ds
+            return dst_ds
+        except:
+            cleanup_temp(dst_ds)
+            raise
 
 
 class BandSelectionOptimization(DatasetOptimization):
@@ -138,91 +141,100 @@ class BandSelectionOptimization(DatasetOptimization):
         self.temporary_directory = temporary_directory
 
     def __call__(self, src_ds):
-        dst_ds = create_temp(src_ds.RasterXSize, src_ds.RasterYSize,
-                             len(self.bands), self.datatype,
-                             temp_root=self.temporary_directory)
-        dst_range = get_limits(self.datatype)
+        try:
+            dst_ds = create_temp(src_ds.RasterXSize, src_ds.RasterYSize,
+                                 len(self.bands), self.datatype,
+                                 temp_root=self.temporary_directory)
+            dst_range = get_limits(self.datatype)
 
-        multiple, multiple_written = 0, False
+            multiple, multiple_written = 0, False
 
-        for dst_index, (src_index, dmin, dmax) in enumerate(self.bands, 1):
-            # check if next band is equal
-            if dst_index < len(self.bands) and \
-                    (src_index, dmin, dmax) == self.bands[dst_index]:
-                multiple += 1
-                continue
-            # check that src band is available
-            if src_index > src_ds.RasterCount:
-                continue
+            for dst_index, (src_index, dmin, dmax) in enumerate(self.bands, 1):
+                # check if next band is equal
+                if dst_index < len(self.bands) and \
+                        (src_index, dmin, dmax) == self.bands[dst_index]:
+                    multiple += 1
+                    continue
+                # check that src band is available
+                if src_index > src_ds.RasterCount:
+                    continue
 
-            # initialize with zeros if band is 0
-            if src_index == 0:
-                src_band = src_ds.GetRasterBand(1)
-                data = numpy.zeros(
-                    (src_band.YSize, src_band.XSize),
-                    dtype=gdal_array.codes[self.datatype]
-                )
-                src_min, src_max = (0, 0)
-            # use src_ds band otherwise
-            else:
-                src_band = src_ds.GetRasterBand(src_index)
-                src_min, src_max = src_band.ComputeRasterMinMax()
+                # initialize with zeros if band is 0
+                if src_index == 0:
+                    src_band = src_ds.GetRasterBand(1)
+                    data = numpy.zeros(
+                        (src_band.YSize, src_band.XSize),
+                        dtype=gdal_array.codes[self.datatype]
+                    )
+                    src_min, src_max = (0, 0)
+                # use src_ds band otherwise
+                else:
+                    src_band = src_ds.GetRasterBand(src_index)
+                    src_min, src_max = src_band.ComputeRasterMinMax()
 
-            # get min/max values or calculate from band
-            if dmin is None:
-                dmin = get_limits(src_band.DataType)[0]
-            elif dmin == "min":
-                dmin = src_min
-            if dmax is None:
-                dmax = get_limits(src_band.DataType)[1]
-            elif dmax == "max":
-                dmax = src_max
-            src_range = (float(dmin), float(dmax))
+                # get min/max values or calculate from band
+                if dmin is None:
+                    dmin = get_limits(src_band.DataType)[0]
+                elif dmin == "min":
+                    dmin = src_min
+                if dmax is None:
+                    dmax = get_limits(src_band.DataType)[1]
+                elif dmax == "max":
+                    dmax = src_max
+                src_range = (float(dmin), float(dmax))
 
-            block_x_size, block_y_size = src_band.GetBlockSize()
+                block_x_size, block_y_size = src_band.GetBlockSize()
 
-            num_x = int(math.ceil(float(src_band.XSize) / block_x_size))
-            num_y = int(math.ceil(float(src_band.YSize) / block_y_size))
+                num_x = int(math.ceil(float(src_band.XSize) / block_x_size))
+                num_y = int(math.ceil(float(src_band.YSize) / block_y_size))
 
-            dst_band = dst_ds.GetRasterBand(dst_index)
-            if src_band.GetNoDataValue() is not None:
-                dst_band.SetNoDataValue(src_band.GetNoDataValue())
+                dst_band = dst_ds.GetRasterBand(dst_index)
+                if src_band.GetNoDataValue() is not None:
+                    dst_band.SetNoDataValue(src_band.GetNoDataValue())
 
-            for block_x, block_y in product(range(num_x), range(num_y)):
-                offset_x = block_x * block_x_size
-                offset_y = block_y * block_y_size
-                size_x = min(src_band.XSize - offset_x, block_x_size)
-                size_y = min(src_band.YSize - offset_y, block_y_size)
-                data = src_band.ReadAsArray(
-                    offset_x, offset_y, size_x, size_y
-                )
+                for block_x, block_y in product(range(num_x), range(num_y)):
+                    offset_x = block_x * block_x_size
+                    offset_y = block_y * block_y_size
+                    size_x = min(src_band.XSize - offset_x, block_x_size)
+                    size_y = min(src_band.YSize - offset_y, block_y_size)
+                    data = src_band.ReadAsArray(
+                        offset_x, offset_y, size_x, size_y
+                    )
 
-                # perform clipping and scaling
-                data = ((dst_range[1] - dst_range[0]) *
-                        ((numpy.clip(data, dmin, dmax) - src_range[0]) /
-                        (src_range[1] - src_range[0])))
+                    # perform clipping and scaling
+                    data = ((dst_range[1] - dst_range[0]) *
+                            ((numpy.clip(data, dmin, dmax) - src_range[0]) /
+                            (src_range[1] - src_range[0])))
 
-                # set new datatype
-                data = data.astype(gdal_array.codes[self.datatype])
+                    # set new datatype
+                    data = data.astype(gdal_array.codes[self.datatype])
 
-                # write result
-                dst_band.WriteArray(data, offset_x, offset_y)
+                    # write result
+                    dst_band.WriteArray(data, offset_x, offset_y)
 
-                # write equal bands at once
-                if multiple > 0:
-                    for i in range(multiple):
-                        dst_band_multiple = dst_ds.GetRasterBand(dst_index-1-i)
-                        dst_band_multiple.WriteArray(data, offset_x, offset_y)
-                    multiple_written = True
+                    # write equal bands at once
+                    if multiple > 0:
+                        for i in range(multiple):
+                            dst_band_multiple = dst_ds.GetRasterBand(
+                                dst_index-1-i
+                            )
+                            dst_band_multiple.WriteArray(
+                                data, offset_x, offset_y
+                            )
+                        multiple_written = True
 
-            if multiple_written:
-                multiple = 0
-                multiple_written = False
+                if multiple_written:
+                    multiple = 0
+                    multiple_written = False
 
-        copy_projection(src_ds, dst_ds)
-        copy_metadata(src_ds, dst_ds)
+            copy_projection(src_ds, dst_ds)
+            copy_metadata(src_ds, dst_ds)
 
-        return dst_ds
+            return dst_ds
+
+        except:
+            cleanup_temp(dst_ds)
+            raise
 
 
 class ColorIndexOptimization(DatasetOptimization):
@@ -237,38 +249,42 @@ class ColorIndexOptimization(DatasetOptimization):
         self.temporary_directory = temporary_directory
 
     def __call__(self, src_ds):
-        dst_ds = create_temp(src_ds.RasterXSize, src_ds.RasterYSize,
-                             1, gdal.GDT_Byte,
-                             temp_root=self.temporary_directory)
+        try:
+            dst_ds = create_temp(src_ds.RasterXSize, src_ds.RasterYSize,
+                                 1, gdal.GDT_Byte,
+                                 temp_root=self.temporary_directory)
 
-        if not self.palette_file:
-            # create a color table as a median of the given dataset
-            ct = gdal.ColorTable()
-            gdal.ComputeMedianCutPCT(src_ds.GetRasterBand(1),
-                                     src_ds.GetRasterBand(2),
-                                     src_ds.GetRasterBand(3),
-                                     256, ct)
+            if not self.palette_file:
+                # create a color table as a median of the given dataset
+                ct = gdal.ColorTable()
+                gdal.ComputeMedianCutPCT(src_ds.GetRasterBand(1),
+                                         src_ds.GetRasterBand(2),
+                                         src_ds.GetRasterBand(3),
+                                         256, ct)
 
-        else:
-            # copy the color table from the given palette file
-            pct_ds = gdal.Open(self.palette_file)
-            pct_ct = pct_ds.GetRasterBand(1).GetRasterColorTable()
-            if not pct_ct:
-                raise ValueError("The palette file '%s' does not have a Color "
-                                 "Table." % self.palette_file)
-            ct = pct_ct.Clone()
-            pct_ds = None
+            else:
+                # copy the color table from the given palette file
+                pct_ds = gdal.Open(self.palette_file)
+                pct_ct = pct_ds.GetRasterBand(1).GetRasterColorTable()
+                if not pct_ct:
+                    raise ValueError("The palette file '%s' does not have a "
+                                     "Color Table." % self.palette_file)
+                ct = pct_ct.Clone()
+                pct_ds = None
 
-        dst_ds.GetRasterBand(1).SetRasterColorTable(ct)
-        gdal.DitherRGB2PCT(src_ds.GetRasterBand(1),
-                           src_ds.GetRasterBand(2),
-                           src_ds.GetRasterBand(3),
-                           dst_ds.GetRasterBand(1), ct)
+            dst_ds.GetRasterBand(1).SetRasterColorTable(ct)
+            gdal.DitherRGB2PCT(src_ds.GetRasterBand(1),
+                               src_ds.GetRasterBand(2),
+                               src_ds.GetRasterBand(3),
+                               dst_ds.GetRasterBand(1), ct)
 
-        copy_projection(src_ds, dst_ds)
-        copy_metadata(src_ds, dst_ds)
+            copy_projection(src_ds, dst_ds)
+            copy_metadata(src_ds, dst_ds)
 
-        return dst_ds
+            return dst_ds
+        except:
+            cleanup_temp(dst_ds)
+            raise
 
 
 class NoDataValueOptimization(DatasetOptimization):
