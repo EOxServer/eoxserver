@@ -78,7 +78,6 @@ class NativeMetadataFormatEncoder(XMLEncoder):
             ])
         ])
 
-
     def _posListToString(self, ring):
         return " ".join(map(str, ring))
 
@@ -88,6 +87,7 @@ RGB, RGBA, ORIG_BANDS = range(3)
 #===============================================================================
 # Pre-Processors
 #===============================================================================
+
 
 class PreProcessor(object):
     """
@@ -128,7 +128,6 @@ class PreProcessor(object):
 
         self.temporary_directory = temporary_directory
 
-
     def process(self, input_filename, output_filename,
                 geo_reference=None, generate_metadata=True):
 
@@ -140,7 +139,8 @@ class PreProcessor(object):
         footprint_wkt = None
 
         if not geo_reference:
-            if gt == (0.0, 1.0, 0.0, 0.0, 0.0, 1.0): # TODO: maybe use a better check
+            if gt == (0.0, 1.0, 0.0, 0.0, 0.0, 1.0):
+                # TODO: maybe use a better check
                 raise ValueError("No geospatial reference for unreferenced "
                                  "dataset given.")
         else:
@@ -163,12 +163,10 @@ class PreProcessor(object):
             logger.debug("Generating footprint.")
             footprint_wkt = self._generate_footprint_wkt(ds)
 
-
         if self.footprint_alpha:
             logger.debug("Applying optimization 'AlphaBandOptimization'.")
             opt = AlphaBandOptimization()
             opt(ds, footprint_wkt)
-
 
         output_filename = self.generate_filename(output_filename)
 
@@ -216,11 +214,7 @@ class PreProcessor(object):
                 if isinstance(footprint, Polygon):
                     footprint = MultiPolygon(footprint)
 
-
-
             logger.info("Calculated Footprint: '%s'" % footprint.wkt)
-
-
 
             # use the provided footprint
             #geom = OGRGeometry(footprint_wkt)
@@ -229,7 +223,6 @@ class PreProcessor(object):
             #    exterior.append(y); exterior.append(x)
 
             #polygon = [exterior]
-
         num_bands = ds.RasterCount
 
         # finally close the dataset and write it to the disc
@@ -237,12 +230,10 @@ class PreProcessor(object):
 
         return PreProcessResult(output_filename, footprint, num_bands)
 
-
     def generate_filename(self, filename):
         """ Adjust the filename with the correct extension. """
         base_filename, _ = splitext(filename)
         return base_filename + self.format_selection.extension
-
 
     def _generate_footprint_wkt(self, ds):
         """ Generate a footprint from a raster, using black/no-data as exclusion
@@ -284,7 +275,8 @@ class PreProcessor(object):
         gdal.Polygonize(tmp_band, tmp_band, layer, 0)
 
         if layer.GetFeatureCount() > 1:
-            # if there is more than one polygon, compute the minimum bounding polygon
+            # if there is more than one polygon, compute the minimum
+            # bounding polygon
             geometry = ogr.Geometry(ogr.wkbPolygon)
             while True:
                 feature = layer.GetNextFeature()
@@ -329,7 +321,11 @@ class PreProcessor(object):
             geometry = geometry.SimplifyPreserveTopology(simplification_value)
         except AttributeError:
             # use GeoDjango bindings if OGR is too old
-            geometry = ogr.CreateGeometryFromWkt(GEOSGeometry(geometry.ExportToWkt()).simplify(simplification_value, True).wkt)
+            geometry = ogr.CreateGeometryFromWkt(
+                GEOSGeometry(geometry.ExportToWkt()).simplify(
+                    simplification_value, True
+                ).wkt
+            )
 
         return geometry.ExportToWkt()
 
@@ -346,8 +342,7 @@ class WMSPreProcessor(PreProcessor):
             yield NoDataValueOptimization(self.no_data_value)
 
         if self.crs:
-            yield ReprojectionOptimization(self.crs)
-
+            yield ReprojectionOptimization(self.crs, self.temporary_directory)
 
         if self.bandmode not in (RGB, RGBA, ORIG_BANDS):
             raise ValueError
@@ -368,13 +363,17 @@ class WMSPreProcessor(PreProcessor):
                                  "%d." % len(self.bands))
 
             if ds.RasterCount == 1:
-                yield BandSelectionOptimization(self.bands or [(1, rad_min, rad_max),
-                                                               (1, rad_min, rad_max),
-                                                               (1, rad_min, rad_max)])
+                yield BandSelectionOptimization(
+                    self.bands or [(1, rad_min, rad_max),
+                                   (1, rad_min, rad_max),
+                                   (1, rad_min, rad_max)],
+                    temporary_directory=self.temporary_directory)
             else:
-                yield BandSelectionOptimization(self.bands or [(1, rad_min, rad_max),
-                                                               (2, rad_min, rad_max),
-                                                               (3, rad_min, rad_max)])
+                yield BandSelectionOptimization(
+                    self.bands or [(1, rad_min, rad_max),
+                                   (2, rad_min, rad_max),
+                                   (3, rad_min, rad_max)],
+                    temporary_directory=self.temporary_directory)
 
         # if RGBA is requested, use the given bands or the first 4 bands as RGBA
         elif self.bandmode == RGBA:
@@ -382,15 +381,19 @@ class WMSPreProcessor(PreProcessor):
                 raise ValueError("Wrong number of bands given. Expected 4, got "
                                  "%d." % len(self.bands))
             if ds.RasterCount == 1:
-                yield BandSelectionOptimization(self.bands or [(1, rad_min, rad_max),
-                                                               (1, rad_min, rad_max),
-                                                               (1, rad_min, rad_max),
-                                                               (0, 0, 0)]) # add zero band
+                yield BandSelectionOptimization(
+                    self.bands or [(1, rad_min, rad_max),
+                                   (1, rad_min, rad_max),
+                                   (1, rad_min, rad_max),
+                                   (0, 0, 0)],
+                    temporary_directory=self.temporary_directory)
             else:
-                yield BandSelectionOptimization(self.bands or [(1, rad_min, rad_max),
-                                                               (2, rad_min, rad_max),
-                                                               (3, rad_min, rad_max),
-                                                               (4, rad_min, rad_max)])
+                yield BandSelectionOptimization(
+                    self.bands or [(1, rad_min, rad_max),
+                                   (2, rad_min, rad_max),
+                                   (3, rad_min, rad_max),
+                                   (4, rad_min, rad_max)],
+                    temporary_directory=self.temporary_directory)
 
         # when band mode is set to original bands, don't use this optimization
         elif self.bandmode == ORIG_BANDS:
@@ -398,11 +401,13 @@ class WMSPreProcessor(PreProcessor):
                 raise ValueError("Bandmode is set to 'original', but bands are "
                                  "given.")
 
-        else: raise ValueError("Illegal bandmode given.")
+        else:
+            raise ValueError("Illegal bandmode given.")
 
         if self.color_index:
-            yield ColorIndexOptimization(self.palette_file)
-
+            yield ColorIndexOptimization(
+                self.palette_file, self.temporary_directory
+            )
 
     def get_post_optimizations(self, ds):
         if self.overviews:
@@ -424,13 +429,12 @@ class PreProcessResult(object):
 
     @property
     def footprint_raw(self):
-        pass # TODO: return as a list of tuples
+        pass  # TODO: return as a list of tuples
 
     @property
     def footprint_wkt(self):
         """ Returns the stored footprint as WKT."""
         return self.footprint_geom.wkt
-
 
     @property
     def footprint_geom(self):
