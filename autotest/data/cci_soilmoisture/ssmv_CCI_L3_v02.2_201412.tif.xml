@@ -1,0 +1,11 @@
+
+<Metadata>
+    <EOID>ssmv_CCI_L3_v02.2_201412</EOID>
+    <BeginTime>2014-12-01T00:00:00Z</BeginTime>
+    <EndTime>2014-12-31T23:59:59.9999Z</EndTime>
+    <Footprint>
+        <Polygon>
+            <Exterior>-90 -180 90 -180 90 180 -90 180 -90 -180</Exterior>
+        </Polygon>
+    </Footprint>
+</Metadata>
