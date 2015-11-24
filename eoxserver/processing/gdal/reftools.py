@@ -1,5 +1,4 @@
 #-------------------------------------------------------------------------------
-# $Id$
 #
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Stephan Krause <stephan.krause@eox.at>
@@ -11,8 +10,8 @@
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all
@@ -32,26 +31,26 @@ import ctypes as C
 import os.path
 import logging
 
-from functools import wraps 
+from functools import wraps
 
 from eoxserver.contrib import gdal
 from eoxserver.core.util.bbox import BBox
 from eoxserver.core.exceptions import InternalError
 
 #-------------------------------------------------------------------------------
-# approximation transformer's threshold in pixel units 
-# 0.125 is the default value used by CLI gdalwarp tool 
+# approximation transformer's threshold in pixel units
+# 0.125 is the default value used by CLI gdalwarp tool
 
-APPROX_ERR_TOL=0.125 
+APPROX_ERR_TOL=0.125
 
 #-------------------------------------------------------------------------------
-# GDAL transfomer methods 
+# GDAL transfomer methods
 
-METHOD_GCP=1  
-METHOD_TPS=2  
-METHOD_TPS_LSQ=3  
+METHOD_GCP=1
+METHOD_TPS=2
+METHOD_TPS_LSQ=3
 
-METHOD2STR = { METHOD_GCP: "METHOD_GCP", METHOD_TPS:"METHOD_TPS", METHOD_TPS_LSQ:"METHOD_TPS_LSQ" } 
+METHOD2STR = { METHOD_GCP: "METHOD_GCP", METHOD_TPS:"METHOD_TPS", METHOD_TPS_LSQ:"METHOD_TPS_LSQ" }
 
 #-------------------------------------------------------------------------------
 
@@ -89,18 +88,18 @@ _lib_path_extended = os.path.join(
 )
 
 global REFTOOLS_USEABLE
-    
+
 try:
 
     try :
-        # load the extended reftools firts 
+        # load the extended reftools firts
         _lib = C.LibraryLoader(C.CDLL).LoadLibrary(_lib_path_extended)
-    except OSError : 
+    except OSError :
         # load the baseline reftools if the extended not available
         _lib = C.LibraryLoader(C.CDLL).LoadLibrary(_lib_path_baseline)
 
     _is_extended = _lib.eoxs_is_extended
-    _is_extended.argtypes = [] 
+    _is_extended.argtypes = []
     _is_extended.restype = C.c_int
 
     _get_footprint_wkt = _lib.eoxs_get_footprint_wkt
@@ -131,7 +130,7 @@ try:
 except OSError:
 
     logger.warn("Could not load '%s'. Referenceable Datasets will not be usable." % _lib_path)
-    
+
     REFTOOLS_USABLE = False
 
 
@@ -143,10 +142,10 @@ def _open_ds(path_or_ds):
 
 
 def requires_reftools(func):
-    """ Decorator function that checks whether or not the reftools library is 
+    """ Decorator function that checks whether or not the reftools library is
         available and raises if not.
     """
-    
+
     @wraps(func)
     def wrapped(*args, **kwargs):
         if not REFTOOLS_USABLE:
@@ -157,19 +156,19 @@ def requires_reftools(func):
     return wrapped
 
 @requires_reftools
-def is_extended() : 
+def is_extended() :
     """ check whether the EOX's GDAL extensions are available
         (True) or not (False)
     """
-    return bool( _is_extended() ) 
+    return bool( _is_extended() )
 
 @requires_reftools
-def suggest_transformer( path_or_ds ) : 
-    """ suggest value of method and order to be passed 
+def suggest_transformer( path_or_ds ) :
+    """ suggest value of method and order to be passed
         tp ``get_footprint_wkt`` and ``rect_from_subset``
     """
 
-    # get info about the dataset 
+    # get info about the dataset
     ds = _open_ds(path_or_ds)
 
     nn = ds.GetGCPCount()
@@ -178,114 +177,114 @@ def suggest_transformer( path_or_ds ) :
 
     # guess reasonable limit number of tie-points
     # (Assuming that the tiepoints cover but not execeed
-    # the full raster image. That way we don't need 
-    # to calculate bounding box of the tiepoints' set.)  
-    nx = 5 
-    ny = int(max(1,0.5*nx*float(sy)/float(sx))) 
-    ng = (nx+1)*(ny+1)+10 
+    # the full raster image. That way we don't need
+    # to calculate bounding box of the tiepoints' set.)
+    nx = 5
+    ny = int(max(1,0.5*nx*float(sy)/float(sx)))
+    ng = (nx+1)*(ny+1)+10
 
     # check if we deal with an outline along the image's vertical edges
-    if nn < 500 : # avoid check for large tie-point sets 
-        cnt = 0 
-        for gcp in ds.GetGCPs() : 
-            cnt += ( gcp.GCPPixel < 1 ) or ( gcp.GCPPixel >= ( sx-1 ) ) 
-        is_vertical_outline = ( cnt == nn ) 
-    else : 
+    if nn < 500 : # avoid check for large tie-point sets
+        cnt = 0
+        for gcp in ds.GetGCPs() :
+            cnt += ( gcp.GCPPixel < 1 ) or ( gcp.GCPPixel >= ( sx-1 ) )
+        is_vertical_outline = ( cnt == nn )
+    else :
         is_vertical_outline = False
-    
-    # check whether the GDAL extensions are available 
 
-    if is_extended() : # extended GDAL 
-        
-        # set default to TPS and 3rd order augmenting polynomial 
+    # check whether the GDAL extensions are available
+
+    if is_extended() : # extended GDAL
+
+        # set default to TPS and 3rd order augmenting polynomial
         order  = 3
         method = METHOD_TPS
 
         # some very short ASAR products need 1st order augmenting polynomial
         # the numerics for higher order aug.pol. becomes a bit `wobbly`
         if ( 4*sy < sx ) :
-            order = 1 
-         
-        # small fotprints such as ngEO should use lower TPS-AP order  
-        if is_vertical_outline : 
-            order = 1 
+            order = 1
 
-        # for excessive number of source tiepoints use Least-Square TPS fit 
-        if ( nn > ng ) : 
+        # small fotprints such as ngEO should use lower TPS-AP order
+        if is_vertical_outline :
+            order = 1
+
+        # for excessive number of source tiepoints use Least-Square TPS fit
+        if ( nn > ng ) :
             method = METHOD_TPS_LSQ
-         
-    else : # baseline GDAL 
 
-        # set default to TPS and 1st order 
+    else : # baseline GDAL
+
+        # set default to TPS and 1st order
         # (the only order available in baseline GDAL)
-        order  = 1 
+        order  = 1
         method = METHOD_TPS
-        
-        # for excessive number of source tiepoints use polynomial GCP fit 
-        # (the result will most likely incorrect but there is nothing 
-        # better to be done with the baseline GDAL)  
-        if ( nn > ng ) : 
-            method = METHOD_GCP
-            order  = 0 # automatic order selection 
 
-    return {'method':method,'order':order} 
+        # for excessive number of source tiepoints use polynomial GCP fit
+        # (the result will most likely incorrect but there is nothing
+        # better to be done with the baseline GDAL)
+        if ( nn > ng ) :
+            method = METHOD_GCP
+            order  = 0 # automatic order selection
+
+    return {'method':method,'order':order}
 
 
 @requires_reftools
 def get_footprint_wkt(path_or_ds, method=METHOD_GCP, order=0):
-    """ 
-        methods: 
+    """
+        methods:
 
-            METHOD_GCP 
+            METHOD_GCP
             METHOD_TPS
-            METHOD_TPS_LSQ 
+            METHOD_TPS_LSQ
 
         order (method specific):
 
-        - GCP (order of global fitting polynomial)  
+        - GCP (order of global fitting polynomial)
             0 for automatic order
-            1, 2, and 3  for 1st, 2nd and 3rd polynomial order  
+            1, 2, and 3  for 1st, 2nd and 3rd polynomial order
 
-        - TPS and TPS_LSQ (order of augmenting polynomial) 
-           -1  for no-polynomial augmentation 
-            0  for 0th order (constant offset) 
-            1, 2, and 3  for 1st, 2nd and 3rd polynomial order  
+        - TPS and TPS_LSQ (order of augmenting polynomial)
+           -1  for no-polynomial augmentation
+            0  for 0th order (constant offset)
+            1, 2, and 3  for 1st, 2nd and 3rd polynomial order
 
-        General guide: 
+        General guide:
 
             method TPS, order 3  should work in most cases
-            method TPS_LSQ, order 3  shoudl work in cases 
+            method TPS_LSQ, order 3  shoudl work in cases
                 of an excessive number of tiepoints but
                 it may become wobbly for small number
-                of tiepoints 
-            
-           The global polynomoal (GCP) interpolation does not work 
+                of tiepoints
+
+           The global polynomoal (GCP) interpolation does not work
            well for images covering large geographic areas (e.g.,
            ENVISAT ASAR and MERIS).
 
         NOTE: The default parameters are left for backward compatibility.
               They can be, however, often inappropriate!
     """
-    
+
     ds = _open_ds(path_or_ds)
-    
+
     result = C.c_char_p()
-    
+
     ret = _get_footprint_wkt(C.c_void_p(long(ds.this)), method, order, C.byref(result))
     if ret != gdal.CE_None:
         raise RuntimeError(gdal.GetLastErrorMsg())
-    
+
     string = C.cast(result, C.c_char_p).value
-    
+
     _free_string(result)
     return string
 
 @requires_reftools
 def rect_from_subset(path_or_ds, srid, minx, miny, maxx, maxy,
                                         method=METHOD_GCP, order=0):
-    
+
     ds = _open_ds(path_or_ds)
-    
+
     rect = RECT()
     ret = _rect_from_subset(
         C.c_void_p(long(ds.this)),
@@ -295,7 +294,7 @@ def rect_from_subset(path_or_ds, srid, minx, miny, maxx, maxy,
     )
     if ret != gdal.CE_None:
         raise RuntimeError(gdal.GetLastErrorMsg())
-    
+
     return BBox(rect.x_size, rect.y_size, rect.x_off, rect.y_off)
 
 
@@ -307,13 +306,13 @@ def create_rectified_vrt(path_or_ds, vrt_path, srid=None,
     ds = _open_ds(path_or_ds)
     ptr = C.c_void_p(long(ds.this))
 
-    # when not provided set SRID to 0 
-    if srid is None : srid = 0 
+    # when not provided set SRID to 0
+    if srid is None : srid = 0
 
     ret = _create_rectified_vrt(ptr, vrt_path, srid,
-        resample, memory_limit, max_error, 
+        resample, memory_limit, max_error,
         method, order)
-    
+
     if ret != gdal.CE_None:
         raise RuntimeError(gdal.GetLastErrorMsg())
 
@@ -327,16 +326,16 @@ def create_temporary_rectified_vrt(path_or_ds, srid=None,
         from eoxserver.core.system import System
         vrt_tmp_dir = System.getConfig().getConfigValue("processing.gdal.reftools", "vrt_tmp_dir")
     except: vrt_tmp_dir = None
-    
+
     _, vrt_path = mkstemp(
         dir = vrt_tmp_dir,
         suffix = ".vrt"
     )
-    
-    create_rectified_vrt(path_or_ds, vrt_path, srid, 
-        resample, memory_limit, max_error, 
+
+    create_rectified_vrt(path_or_ds, vrt_path, srid,
+        resample, memory_limit, max_error,
         method, order)
-    
+
     return vrt_path
 
 
@@ -346,7 +345,7 @@ def suggested_warp_output(path_or_ds, src_wkt, dst_wkt, method=METHOD_GCP, order
     ds = _open_ds(path_or_ds)
     ptr = C.c_void_p(long(ds.this))
     info = IMAGE_INFO()
-    
+
     ret = _suggested_warp_output(
         ptr,
         src_wkt,
@@ -354,19 +353,19 @@ def suggested_warp_output(path_or_ds, src_wkt, dst_wkt, method=METHOD_GCP, order
         method, order,
         C.byref(info)
     )
-    
+
     if ret != gdal.CE_None:
         raise RuntimeError(gdal.GetLastErrorMsg())
-    
+
     return info.x_size, info.y_size, info.geotransform
-    
+
 @requires_reftools
-def reproject_image(src_ds, src_wkt, dst_ds, dst_wkt, 
-    resample=gdal.GRA_NearestNeighbour, 
+def reproject_image(src_ds, src_wkt, dst_ds, dst_wkt,
+    resample=gdal.GRA_NearestNeighbour,
     memory_limit=0.0,
-    max_error=APPROX_ERR_TOL, 
+    max_error=APPROX_ERR_TOL,
     method=METHOD_GCP, order=0):
-    
+
     ret = _reproject_image(
         C.c_void_p(long(src_ds.this)),
         src_wkt,
@@ -377,6 +376,6 @@ def reproject_image(src_ds, src_wkt, dst_ds, dst_wkt,
         max_error,
         method, order
     )
-    
+
     if ret != gdal.CE_None:
         raise RuntimeError(gdal.GetLastErrorMsg())
