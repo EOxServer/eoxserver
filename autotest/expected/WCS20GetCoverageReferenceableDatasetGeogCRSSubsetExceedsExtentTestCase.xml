@@ -11,7 +11,7 @@
       <gml:limits>
         <gml:GridEnvelope>
           <gml:low>0 0</gml:low>
-          <gml:high>674 445</gml:high>
+          <gml:high>673 446</gml:high>
         </gml:GridEnvelope>
       </gml:limits>
       <gml:axisLabels>lat long</gml:axisLabels>
