@@ -331,7 +331,7 @@ class OverviewOptimization(DatasetPostOptimization):
     """
 
     def __init__(self, resampling=None, levels=None, minsize=None):
-        self.resampling = resampling or "NEAREST"
+        self.resampling = resampling
         self.levels = levels
         self.minsize = minsize
 
