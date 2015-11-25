@@ -71,7 +71,6 @@ Run tests:
 ```sh
 vagrant ssh
 cd /var/eoxserver/autotest/
-export XML_CATALOG_FILES="../schemas/catalog.xml"
 python manage.py test services -v2
 ```
 
@@ -136,7 +135,6 @@ Use the following steps:
     ```sh
     vagrant ssh
     cd /var/eoxserver/autotest/
-    export XML_CATALOG_FILES="../schemas/catalog.xml"
     python manage.py test autotest_services -v2
     ```
 
