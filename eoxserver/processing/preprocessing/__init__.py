@@ -151,16 +151,31 @@ class PreProcessor(object):
         for optimization in self.get_optimizations(ds):
             logger.debug("Applying optimization '%s'."
                          % type(optimization).__name__)
-            new_ds = optimization(ds)
 
-            # cleanup afterwards
-            cleanup_temp(ds)
-            ds = new_ds
+            try:
+                new_ds = optimization(ds)
+
+                if new_ds is not ds:
+                    # cleanup afterwards
+                    cleanup_temp(ds)
+                    ds = new_ds
+            except:
+                cleanup_temp(ds)
+                raise
 
         # generate the footprint from the dataset
         if not footprint_wkt:
             logger.debug("Generating footprint.")
             footprint_wkt = self._generate_footprint_wkt(ds)
+        # check that footprint is inside of extent of generated image
+        # regenerate otherwise
+        else:
+            tmp_extent = getExtentFromRectifiedDS(ds)
+            tmp_bbox = Polygon.from_bbox((tmp_extent[0], tmp_extent[1],
+                                          tmp_extent[2], tmp_extent[3]))
+            tmp_footprint = GEOSGeometry(footprint_wkt)
+            if not tmp_bbox.contains(tmp_footprint):
+                footprint_wkt = tmp_footprint.intersection(tmp_bbox).wkt
 
         if self.footprint_alpha:
             logger.debug("Applying optimization 'AlphaBandOptimization'.")
@@ -179,10 +194,6 @@ class PreProcessor(object):
         driver = gdal.GetDriverByName(self.format_selection.driver_name)
         ds = driver.CreateCopy(output_filename, ds,
                                options=self.format_selection.creation_options)
-
-        # close the dataset and write it to the disc
-        ds = None
-        ds = gdal.Open(output_filename)
 
         for optimization in self.get_post_optimizations(ds):
             logger.debug("Applying post-optimization '%s'."
