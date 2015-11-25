@@ -30,10 +30,14 @@ from os.path import exists, join
 from uuid import uuid4
 import tempfile
 import contextlib
+import logging
 
 import numpy
 
 from eoxserver.contrib import gdal, gdal_array
+
+
+logger = logging.getLogger(__name__)
 
 
 def get_limits(dt):
@@ -79,10 +83,13 @@ def create_temp(sizex, sizey, numbands, datatype=gdal.GDT_Byte,
         options = []
 
     tiff_drv = gdal.GetDriverByName('GTiff')
-    return tiff_drv.Create(
-        join(temp_root, '%s.tif' % uuid4().hex), sizex, sizey, numbands,
-        datatype, options
+    filename = join(temp_root, '%s.tif' % uuid4().hex)
+    logger.debug(
+        "Creating temporary dataset '%s' (%dx%dx%d)" % (
+            filename, sizex, sizey, numbands
+        )
     )
+    return tiff_drv.Create(filename, sizex, sizey, numbands, datatype, options)
 
 
 def cleanup_temp(ds):
@@ -98,6 +105,7 @@ def cleanup_temp(ds):
         ds = None
 
     if filelist and filelist[0]:
+        logger.debug("Cleaning up temporary dataset '%s'." % filelist[0])
         driver.Delete(filelist[0])
 
 
