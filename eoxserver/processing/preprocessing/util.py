@@ -100,13 +100,23 @@ def cleanup_temp(ds):
         filelist = [ds]
     else:
         driver = ds.GetDriver()
-        filelist = ds.GetFileList()
+        filelist = ds.GetFileList() or []
         ds.FlushCache()
         ds = None
 
-    if filelist and filelist[0]:
-        logger.debug("Cleaning up temporary dataset '%s'." % filelist[0])
-        driver.Delete(filelist[0])
+    try:
+        for filename in filelist:
+            if filename.endswith(".ovr") or filename.endswith(".msk"):
+                continue
+            logger.debug("Cleaning up temporary dataset '%s'." % filename)
+            driver.Delete(filename)
+    except:
+        logger.warning(
+            "Failed to delete dataset '%s', falling back to raw delete."
+            % filename
+        )
+        for filename in filelist:
+            gdal.Unlink(filename)
 
 
 @contextlib.contextmanager
