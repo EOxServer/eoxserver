@@ -43,8 +43,8 @@ git submodule update
 ```
 
 Install VirtualBox & Vagrant. The configuration is tested with:
-* [Vagrant v1.3.5](http://downloads.vagrantup.com/tags/v1.3.5)
 * [VirtualBox 4.3.0](https://www.virtualbox.org/wiki/Downloads)
+* [Vagrant v1.3.5](http://downloads.vagrantup.com/tags/v1.3.5)
 
 Install Vagrant add-ons:
 * `sahara` for [sandboxing](https://github.com/jedi4ever/sahara)
@@ -57,7 +57,7 @@ vagrant plugin install vagrant-vbguest
 vagrant plugin install vagrant-cachier
 ```
 
-Run vagrant:
+Run Vagrant:
 
 ```sh
 cd vagrant/
@@ -71,11 +71,10 @@ Run tests:
 ```sh
 vagrant ssh
 cd /var/eoxserver/autotest/
-export XML_CATALOG_FILES="../schemas/catalog.xml"
 python manage.py test services -v2
 ```
 
-For further read and follow the autotest
+For further steps read and follow the autotest
 [README](https://github.com/EOxServer/autotest).
 
 
@@ -83,51 +82,63 @@ For further read and follow the autotest
 
 Use the following steps:
 
-1. Install git from http://git-scm.com/download/win
-2. Install VirtualBox from
-   http://download.virtualbox.org/virtualbox/4.3.2/VirtualBox-4.3.2-90405-Win.exe
-3. Install vagrant from http://downloads.vagrantup.com/tags/v1.3.5 (use the .msi file)
-4. Start a git bash and execute the following commands:
+1. Install [Git](http://git-scm.com/download/win)
+2. To clone EOxServer start a Git bash and execute the following commands:
 
-```sh
-git clone git@github.com:EOxServer/eoxserver.git
-cd eoxserver/
-git submodule init
-git submodule update
-```
+    ```sh
+    git clone git@github.com:EOxServer/eoxserver.git
+    cd eoxserver/
+    git submodule init
+    git submodule update
+    ```
 
-5. Open the Vagrantfile (located in ngeo-b/vagrant ) with an editor.
-6. Add v.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/vagrant", "1"] before the line # Use GUI for debugging purposes
-7. Save and close Vagrantfile
-8. Open an Administrator Console (right click on the command prompt icon and select "Run as administrator")
-9. Enter secpol.msc (and hit enter). Navigate to Local Policies, User Rights Assignment and check "Create symbolic links". Make sure that the Administrator account is added. Close it.
-10. Still in the admin console enter: fsutil behavior set SymlinkEvaluation L2L:1 R2R:1 L2R:1 R2L:1 (and hit enter. This step isn't necessary on all systems. Only if you use net shares. But it does not hurt
-11. Open the Administrative Tools Panel from the Control Panel. Open Component Services.
-12. Select Computers, My Computer, Select DCOM Config.
-13. Right click on "Virtual Box Application". Select Security. At "Launch and Activation Permissions" select Customize. Hit Edit.
-14. Add your user account and Administrator. Select Permissions: Local Launch, Remote Launch, Local Activation and Remote Activation. Hit Ok. And again ok. Close the Component Services.
-15. Log off and log on again.
-16. Open an Administrator console and enter:
+3. Install [VirtualBox](https://www.virtualbox.org/wiki/Downloads) (tested with version 4.3.0)
+4. Install [vagrant](https://www.vagrantup.com/downloads.html) (tested with version 1.3.5)
+5. Open the `Vagrantfile` (located in `eoxserver/vagrant/`) with an editor and add the line
 
-```sh
-vagrant plugin install sahara
-vagrant plugin install vagrant-vbguest
-vagrant plugin install vagrant-cachier
-cd vagrant/
-vagrant up
-```
+    ```sh
+    v.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/vagrant", "1"]
+    ```
 
-17. EOxServer is now accessible at [http://localhost:8000/](http://localhost:8000/).
-18. Run tests:
+   right before the line
 
-```sh
-vagrant ssh
-cd /var/eoxserver/autotest/
-export XML_CATALOG_FILES="../schemas/catalog.xml"
-python manage.py test services -v2
-```
+    ```sh
+    # Use GUI for debugging purposes
+    ```
 
-19. For further read and follow the autotest [README](https://github.com/EOxServer/autotest).
+6. Open an Administrator Console (right click on the command prompt icon and select `Run as administrator`)
+7. Enter `secpol.msc` (and hit enter). Navigate to Local Policies, User Rights Assignment and check `Create symbolic links`. Make sure that the Administrator account is added. Close it.
+8. Still in the admin console enter `fsutil behavior set SymlinkEvaluation L2L:1 R2R:1 L2R:1 R2L:1` and hit enter. This step isn't necessary on all systems. Only if you use net shares but it does not hurt.
+9. Open the Administrative Tools Panel from the Control Panel. Open Component Services.
+10. Select Computers, My Computer, Select DCOM Config.
+11. Right click on `Virtual Box Application`. Select Security. At `Launch and Activation Permissions` select `Customize`. Hit Edit.
+12. Add your user account and Administrator. Select Permissions: Local Launch, Remote Launch, Local Activation and Remote Activation. Hit Ok. And again ok. Close the Component Services.
+13. Log off and log on again.
+14. To install Vagrant add-ons open an Administrator console and enter:
+
+    ```sh
+    vagrant plugin install sahara
+    vagrant plugin install vagrant-vbguest
+    vagrant plugin install vagrant-cachier
+    ```
+
+15. To run Vagrant open an Administrator console and enter:
+
+    ```sh
+    cd vagrant/
+    vagrant up
+    ```
+
+16. EOxServer is now accessible at [http://localhost:8000/](http://localhost:8000/).
+17. To run tests open an Administrator console and enter:
+
+    ```sh
+    vagrant ssh
+    cd /var/eoxserver/autotest/
+    python manage.py test autotest_services -v2
+    ```
+
+18. For further steps read and follow the autotest [README](https://github.com/EOxServer/autotest).
 
 
 ## Troubleshoot vagrant
@@ -172,7 +183,9 @@ git commit setup.py eoxserver/__init__.py -m "Adjusting version."
 #Development Status :: 6 - Mature
 #Development Status :: 7 - Inactive
 
-git tag -a release-0.3.2 -m "Tagging the 0.3.2 release of EOxServer."
+git tag -s release-0.3.2 -m "Tagging the 0.3.2 release of EOxServer."
+# TODO add tag in autotest (needed for osgeo-live), documentation, etc.
+
 git archive --format=tar --prefix=EOxServer-0.3.2/ release-0.3.2 | gzip > EOxServer-0.3.2.tar.gz
 mv EOxServer-0.3.2.tar.gz <path-to-builder_rpm>
 cd <path-to-builder_rpm>/
