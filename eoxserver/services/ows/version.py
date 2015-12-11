@@ -56,7 +56,7 @@ def convert_to_version(f):
             return f(self, Version(*other))
         except TypeError:
             pass
-        raise TypeError("Cannot convert '%s' to version" % type(other),__name__)
+        raise TypeError("Cannot convert '%s' to version" % type(other).__name__)
     return wrapper
 
 
@@ -78,7 +78,7 @@ class Version(object):
         try:
             assert(isinstance(major, int) and major >= 0)
             assert(isinstance(minor, int) and minor >= 0)
-            assert(revision is None 
+            assert(revision is None
                    or (isinstance(revision, int) and revision >= 0))
         except AssertionError:
             raise ValueError("Invalid version components supplied.")
@@ -87,7 +87,6 @@ class Version(object):
             self._values = (major, minor)
         else:
             self._values = (major, minor, revision)
-
 
     @property
     def major(self):
@@ -104,14 +103,12 @@ class Version(object):
         except IndexError:
             return None
 
-
     @convert_to_version
     def __eq__(self, other):
         for self_v, other_v in zip(self._values, other._values):
             if self_v != other_v:
                 return False
         return True
-
 
     @convert_to_version
     def __lt__(self, other):
@@ -122,10 +119,8 @@ class Version(object):
                 return False
         return False
 
-
     def __str__(self):
         return ".".join(map(str, self._values))
-
 
     def __repr__(self):
         return '<%s.%s ("%s") instance at 0x%x>' % (
