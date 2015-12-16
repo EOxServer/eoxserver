@@ -185,7 +185,9 @@ git commit setup.py eoxserver/__init__.py -m "Adjusting version."
 #Development Status :: 6 - Mature
 #Development Status :: 7 - Inactive
 
-git tag -a release-0.3.2 -m "Tagging the 0.3.2 release of EOxServer."
+git tag -s release-0.3.2 -m "Tagging the 0.3.2 release of EOxServer."
+# TODO add tag in autotest (needed for osgeo-live), documentation, etc.
+
 git archive --format=tar --prefix=EOxServer-0.3.2/ release-0.3.2 | gzip > EOxServer-0.3.2.tar.gz
 mv EOxServer-0.3.2.tar.gz <path-to-builder_rpm>
 cd <path-to-builder_rpm>/
