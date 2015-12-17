@@ -147,7 +147,7 @@ class Command(CommandOutputMixIn, BaseCommand):
             dest='ignore_missing_collection',
             action="store_true", default=False,
             help=("Optional. Proceed even if the linked collection "
-                  "does not exist. By defualt, a missing collection "
+                  "does not exist. By default, a missing collection "
                   "will result in an error.")
         ),
 

@@ -26,6 +26,7 @@
 #-------------------------------------------------------------------------------
 
 
+import logging
 import itertools
 from functools import partial
 
@@ -40,6 +41,9 @@ from eoxserver.services.exceptions import (
 from eoxserver.services.ows.common.v20.exceptionhandler import (
     OWS20ExceptionHandler
 )
+
+
+logger = logging.getLogger(__name__)
 
 
 class ServiceComponent(Component):
@@ -131,6 +135,9 @@ class ServiceComponent(Component):
             )
 
         # return the handler with the highest version
+        logger.debug("Handling '%s' request for '%s' service version '%s'." %
+                     (handlers[0].request, handlers[0].service,
+                      handlers[0].versions[0]))
         return handlers[0]
 
     def query_service_handlers(self, service=None, versions=None, request=None,
