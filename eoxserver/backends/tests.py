@@ -29,6 +29,7 @@
 import os.path
 from glob import glob
 import logging
+from unittest import skip
 
 from django.test import TestCase
 
@@ -54,15 +55,12 @@ def create(Model, *args, **kwargs):
     return model
 
 
-
 class RetrieveTestCase(TestCase):
     def setUp(self):
         pass
 
-
     def tearDown(self):
         pass
-
 
     def test_retrieve_http(self):
         import storages, packages
@@ -83,10 +81,11 @@ class RetrieveTestCase(TestCase):
 
         self.assertFalse(os.path.exists(cache_path))
 
-
+    @skip("not yet implemented")
     @withFTPServer()
     def test_retrieve_ftp_zip(self):
-        import storages, packages
+        import storages
+        import packages
 
         storage = create(models.Storage,
             url="ftp://anonymous:@localhost:2121/",
@@ -125,4 +124,3 @@ class RetrieveTestCase(TestCase):
 
         self.assertFalse(os.path.exists(cache_path))
         self.assertFalse(os.path.exists(cache_path2))
-
