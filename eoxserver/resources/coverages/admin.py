@@ -27,12 +27,13 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, MultipleObjectsReturned
 from django.contrib.gis import forms
 from django.contrib.gis import admin
 from django.contrib import messages
 
 from eoxserver.contrib import gdal
+from eoxserver.backends import models as backends
 from eoxserver.resources.coverages import models
 from eoxserver.backends.admin import LocationForm
 
@@ -59,7 +60,8 @@ num_collections.short_description = "Collections contained in this collection"
 
 
 def get_projection_format_choices():
-    # TODO: replace with dynamic lookup via plugins? or stick with gdal supported stuff?
+    # TODO: replace with dynamic lookup via plugins? or stick with gdal
+    # supported stuff?
     return (
         ("WKT", "WKT"),
         ("XML", "XML"),
@@ -163,7 +165,6 @@ class CollectionAdmin(EOObjectAdmin):
             for m in e.messages:
                 self.message_user(request, str(m), messages.ERROR)
 
-
     def synchronize(self, request, queryset):
         for model in queryset:
             self.message_user(
@@ -171,7 +172,8 @@ class CollectionAdmin(EOObjectAdmin):
                 messages.INFO
             )
 
-    synchronize.short_description = "Synchronizes the collections with its data sources."
+    synchronize.short_description = \
+        "Synchronizes the collections with its data sources."
 
     actions = EOObjectAdmin.actions + ["synchronize"]
 
@@ -189,7 +191,7 @@ class NilValueInline(AbstractInline):
 
 
 class BandInline(AbstractInline):
-    form = BandInlineForm # TODO: not working as expected...
+    form = BandInlineForm  # TODO: not working as expected...
     model = models.Band
     extra = 0
 
@@ -219,6 +221,27 @@ class DataSourceInline(AbstractInline):
     form = LocationForm
     fk_name = "collection"
     extra = 0
+
+    def source(self, obj):
+        """ Readonly field to return the source location.
+        """
+        try:
+            return obj.data_items.get(semantic__startswith="source").location
+        except (backends.DataItem.DoesNotExist, MultipleObjectsReturned):
+            return ""
+
+    def templates(self, obj):
+        """ Readonly field to get a list of all template names
+        """
+        try:
+            return ", ".join(obj.data_items.filter(
+                semantic__startswith="template"
+            ).values_list("location", flat=True))
+        except (backends.DataItem.DoesNotExist, MultipleObjectsReturned):
+            return ""
+
+    fields = ("source", "templates")
+    readonly_fields = ("source", "templates")
 
 
 class DataItemInline(AbstractInline):
@@ -250,6 +273,13 @@ class RangeTypeAdmin(admin.ModelAdmin):
     inlines = (BandInline,)
 
 admin.site.register(models.RangeType, RangeTypeAdmin)
+
+
+class DataSourceAdmin(admin.ModelAdmin):
+    model = models.DataSource
+    inlines = (DataItemInline,)
+
+admin.site.register(models.DataSource, DataSourceAdmin)
 
 
 class RectifiedDatasetAdmin(CoverageAdmin):

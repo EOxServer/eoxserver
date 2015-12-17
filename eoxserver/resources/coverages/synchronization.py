@@ -237,6 +237,7 @@ def _expand_data_source(data_source):
             "root": root,
             "dirname": dirname,
             "extension": ext,
+            "source": filename
         }
 
         paths = [(filename, primary_data_item, primary_sem)]
@@ -244,25 +245,6 @@ def _expand_data_source(data_source):
             template_sem = TEMPLATE_RE.match(
                 template_data_item.semantic
             ).group("value")
-
-            #template_files = _expand_template_data_item(
-            #    template_data_item, template_values
-            #)
-
-            # check count
-            #if len(template_files) > 1:
-            #    raise SynchronizationError(
-            #        "Template data item matched too many files. "
-            #        "Template: '%s', Files: %s" % (
-            #            template_data_item.location,
-            #            ", ".join(map(repr, template_files))
-            #        )
-            #    )
-            #elif not template_files:
-            #    raise SynchronizationError(
-            #        "Template data item did not match any file. "
-            #        "Template: '%s'" % template_data_item.location
-            #    )
 
             template_file = _expand_template_location(
                 template_data_item, template_values
@@ -336,5 +318,3 @@ def _expand_template_location(data_item, template_values):
         )
 
     return location
-
-    #return _expand_data_item(data_item, cache)

@@ -26,6 +26,7 @@
 #-------------------------------------------------------------------------------
 
 from optparse import make_option
+from textwrap import dedent
 
 from django.core.management.base import CommandError, BaseCommand
 
@@ -59,9 +60,20 @@ class Command(CommandOutputMixIn, BaseCommand):
         "[-t <template-path-glob> ...]"
     )
 
-    help = """
+    help = dedent("""
         Add a datasource to a collection.
-    """
+
+        The datasource must have a primary source regular expression. When
+        synchronized, all files matched will then be associated with expanded
+        templates. The templates can make use the following template tags that
+        will be replaced for each source file:
+
+          - {basename}: the sources file basename (name without directory)
+          - {root}: like {basename}, but without file extension
+          - {extension}: the source files extension
+          - {dirname}: the directory path of the source file
+          - {source}: the full path of the source file
+    """)
 
     @nested_commit_on_success
     def handle(self, collection_ids, source, templates, *args, **kwargs):
@@ -71,7 +83,7 @@ class Command(CommandOutputMixIn, BaseCommand):
             )
 
         if not source:
-            raise CommandError("Missing mandatory --source.")
+            raise CommandError("Missing mandatory parameter `--source.")
 
         print templates
         templates = templates or []
