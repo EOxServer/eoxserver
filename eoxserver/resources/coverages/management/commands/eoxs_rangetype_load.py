@@ -29,6 +29,7 @@ import sys
 import traceback
 import json
 from optparse import make_option
+
 from django.core.management.base import BaseCommand, CommandError
 from eoxserver.resources.coverages.rangetype import isRangeTypeName
 from eoxserver.resources.coverages.rangetype import setRangeType
@@ -97,9 +98,6 @@ class Command(CommandOutputMixIn, BaseCommand):
             raise CommandError("Failed to open the input file '%s' ! "
                                     "REASON: %s " % (filename, str(exc)))
 
-            raise CommandError( "Failed to open the input file '%s' ! "
-                                    "REASON: %s " % ( filename , str(e) ) )
-
         # allow single range-type objects
         if isinstance(rts, dict):
             rts = [rts]
@@ -134,8 +132,6 @@ class Command(CommandOutputMixIn, BaseCommand):
                         %(rt_name, (i+1)))
                 continue
 
-                continue
-
             #------------------------------------------------------------------
 
             try :
@@ -153,10 +149,6 @@ class Command(CommandOutputMixIn, BaseCommand):
                 self._error(rt['name'], "%s: %s"%(type(exc).__name__, str(exc)))
                 continue # continue by next dataset
 
-
-                continue # continue by next dataset
-
-        # print the final info
 
             self.print_msg( "Range type '%s' loaded."%rt['name'])
 
