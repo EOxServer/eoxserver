@@ -123,22 +123,16 @@ def parse(obj):
         to whatever ``lxml.etree.parse`` parses. Returns ``None`` if it could
         not parse any XML.
     """
-
-    tree = None
-    if etree.iselement(obj):
+    if etree.iselement(obj) or isinstance(obj, etree._ElementTree):
         return obj
-    elif isinstance(obj, basestring):
-        try:
-            tree = etree.fromstring(obj)
-        except:
-            pass
-    else:
-        try:
-            tree = etree.parse(obj)
-        except:
-            pass
-
-    return tree
+    try:
+        return etree.fromstring(obj)
+    except:
+        pass
+    try:
+        return etree.parse(obj)
+    except:
+        pass
 
 
 ns_xsi = NameSpace("http://www.w3.org/2001/XMLSchema-instance", "xsi")
