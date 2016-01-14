@@ -48,7 +48,7 @@ class InspireFormatReader(Component):
 
     def test(self, obj):
         tree = parse(obj)
-        return tree is not None and tree.tag == NS_GMD("MD_Metadata")
+        return tree is not None and tree.getroot().tag == NS_GMD("MD_Metadata")
 
     def read(self, obj):
         tree = parse(obj)

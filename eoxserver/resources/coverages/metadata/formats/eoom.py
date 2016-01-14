@@ -48,7 +48,7 @@ class EOOMFormatReader(Component):
 
     def test(self, obj):
         tree = parse(obj)
-        return tree is not None and tree.tag == NS_EOP("EarthObservation")
+        return tree is not None and tree.getroot().tag == NS_EOP("EarthObservation")
 
     def read(self, obj):
         tree = parse(obj)

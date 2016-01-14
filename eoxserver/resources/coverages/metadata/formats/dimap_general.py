@@ -42,7 +42,7 @@ class DimapGeneralFormatReader(Component):
 
     def test(self, obj):
         tree = parse(obj)
-        return tree is not None and tree.tag == "Dimap_Document"
+        return tree is not None and tree.getroot().tag == "Dimap_Document"
 
     def get_format_name(self, obj):
         return "dimap"
@@ -63,7 +63,7 @@ class DimapGeneralFormatReader(Component):
                     "DIMAP version '%s' is not supported." % version
                 )
 
-            values =  {
+            values = {
                 "identifier": decoder.identifier,
                 "format": "dimap"
             }
