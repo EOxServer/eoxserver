@@ -123,10 +123,15 @@ def parse(obj):
         to whatever ``lxml.etree.parse`` parses. Returns ``None`` if it could
         not parse any XML.
     """
-    if etree.iselement(obj) or isinstance(obj, etree._ElementTree):
+    if etree.iselement(obj):
+        return obj.getroottree()
+    elif isinstance(obj, etree._ElementTree):
         return obj
     try:
-        return etree.fromstring(obj)
+        tree_or_elem = etree.fromstring(obj)
+        if etree.iselement(tree_or_elem):
+            return tree_or_elem.getroottree()
+        return tree_or_elem
     except:
         pass
     try:
