@@ -26,31 +26,30 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from optparse import make_option
 
 from django.core.management.base import CommandError, BaseCommand
 
 from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.management.commands import (
-    CommandOutputMixIn, _variable_args_cb, nested_commit_on_success
+    CommandOutputMixIn, nested_commit_on_success
 )
 
 
 class Command(CommandOutputMixIn, BaseCommand):
 
     args = "<identifier> [<identifier> ...]"
-    
+
     help = "Deregister on or more Datasets."
 
     @nested_commit_on_success
     def handle(self, *identifiers, **kwargs):
-        if not identifiers: 
+        if not identifiers:
             raise CommandError("Missing the mandatory dataset identifier(s).")
 
         for identifier in identifiers:
             self.print_msg("Deleting Dataset: '%s'" % (identifier))
             try:
-                # locate coverage an check the type 
+                # locate coverage an check the type
                 coverage = models.Coverage.objects.get(
                     identifier=identifier
                 ).cast()
@@ -58,7 +57,7 @@ class Command(CommandOutputMixIn, BaseCommand):
                 # final removal
                 coverage.delete()
 
-            except models.Coverage.DoesNotExist: 
+            except models.Coverage.DoesNotExist:
                 raise CommandError(
                     "No dataset is matching the given identifier: '%s'."
                     % identifier
@@ -70,4 +69,4 @@ class Command(CommandOutputMixIn, BaseCommand):
                     "Dataset deregistration failed: %s" % e
                 )
 
-        self.print_msg("Dataset deregistered sucessfully.") 
+        self.print_msg("Dataset deregistered sucessfully.")

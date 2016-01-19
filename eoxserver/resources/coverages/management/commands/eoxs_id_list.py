@@ -33,11 +33,12 @@ from django.core.management.base import CommandError, BaseCommand
 
 from eoxserver.resources.coverages import models
 
-INDENT="  "
+INDENT = "  "
+
 
 class Command(BaseCommand):
     option_list = BaseCommand.option_list + (
-        make_option("-t", "--type", 
+        make_option("-t", "--type",
             dest="type_name", action="store", default="EOObject",
             help=("Optional. Restrict the listed identifiers to given type.")
         ),
@@ -45,12 +46,17 @@ class Command(BaseCommand):
             dest="recursive", action="store_true", default=False,
             help=("Optional. Recursive listing for collections.")
         ),
+        make_option("-s", "--suppress-type",
+            dest="suppress_type", action="store_true", default=False,
+            help=("Optional. Supress the output of the type. By default, the "
+                  "type is also printed after the identifier.")
+        )
     )
 
     args = "[<id> [<id> ...]] [-t <type>] [-r]"
 
-    help = """ 
-        Print a list of all objects in the database. Alternatively the list 
+    help = """
+        Print a list of all objects in the database. Alternatively the list
         can be filtered by a give set of identifiers or a given object type.
 
         The listing can also be done recursively with the `-r` option
@@ -58,6 +64,7 @@ class Command(BaseCommand):
 
     def handle(self, *identifiers, **kwargs):
         type_name = kwargs["type_name"]
+        suppress_type = kwargs["suppress_type"]
 
         try:
             # TODO: allow types residing in different apps
@@ -73,15 +80,20 @@ class Command(BaseCommand):
             eo_objects = eo_objects.filter(identifier__in=identifiers)
 
         for eo_object in eo_objects:
-            self.print_object(eo_object, kwargs["recursive"])
+            self.print_object(eo_object, kwargs["recursive"], suppress_type)
 
-
-    def print_object(self, eo_object, recursive=False, level=0):
+    def print_object(self, eo_object, recursive=False, suppress_type=False,
+                     level=0):
         indent = INDENT * level
         eo_object = eo_object.cast()
-        print("%s%s %s" % (indent, eo_object.identifier,
-                                eo_object.__class__.__name__))
+        if not suppress_type:
+            print("%s%s %s" % (indent, eo_object.identifier,
+                               eo_object.__class__.__name__))
+        else:
+            print("%s%s" % (indent, eo_object.identifier))
 
         if recursive and models.iscollection(eo_object):
             for sub_eo_object in eo_object.eo_objects.all():
-                self.print_object(sub_eo_object, recursive, level+1)
+                self.print_object(
+                    sub_eo_object, recursive, suppress_type, level+1
+                )
