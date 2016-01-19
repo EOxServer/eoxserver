@@ -688,10 +688,43 @@ To do the opposite do the following:
 
   eoxs_collection_unlink --remove <object-identifier> --collection <collection-identifier>
 
-eoxs_synchronize
-~~~~~~~~~~~~~~~~
+eoxs_collection_purge
+~~~~~~~~~~~~~~~~~~~~~
 
-This command allows to synchronize an EOxServer instance with the file system.
+To quickly remove the contents of a single collection from the database, the 
+``eoxs_collection_purge`` command can be used. This command deregisters all
+contained datasets of a collection. When the ``--recursive`` option is set, all
+contained sub-collections are purged aswell.
+Using the ``--delete`` option, the purged collections themselves are deleted too. 
+
+eoxs_collection_datasource
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This command allows to add a datasource to a collection. A datasource consists
+of a primary ``source`` and zero or more secondary ``templates``. The ``source``
+should be a path using unix shell regular expressions to match files in the
+given directory structure. The ``templates`` are similar, but should make use of
+template tags that are then replaced the values of the ``source``. Possible tags
+are:
+
+  - ``{basename}``: the sources file basename (name without directory)
+  - ``{root}``: like ``{basename}``, but without file extension
+  - ``{extension}``: the source files extension
+  - ``{dirname}``: the directory path of the source file
+  - ``{source}``: the full path of the source file
+
+Example:
+::
+
+  python manage.py eoxs_collection_datasource -i MER_FRS_1P \
+      -s data/MER_FRS_1P_reduced/*tif \
+      -t data/MER_FRS_1P_reduced/{root}.xml
+
+eoxs_collection_synchronize
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This command allows to synchronize a collection with the file system using its
+datasources.
 
 .. _what_is_sync:
 
@@ -725,13 +758,13 @@ HowTo
 
 Synchronization can be triggered by a custom `Django admin command
 <https://docs.djangoproject.com/en/1.4/ref/django-admin/>`_, called
-``eoxs_synchronize``.
+``eoxs_collection_synchronize``.
 
 To start the synchronization process, navigate to your instances directory and
 type:
 ::
 
-    python manage.py eoxs_synchronize <IDs>
+    python manage.py eoxs_synchronize -i <ID> [ -i <ID> ... ]
 
 whereas ``<IDs>`` are the coverage/EO IDs of the containers that shall be
 synchronized.
@@ -741,7 +774,7 @@ the database will be synchronized. This option is useful for a daily cron-job,
 ensuring the databases consistency with the file system.
 ::
 
-    python manage.py eoxs_synchronize --all
+    python manage.py eoxs_collection_synchronize --all
 
 The synchronization process may take some time, especially when FTP/Rasdaman
 storages are used and also depends on the number of synchronized objects.
