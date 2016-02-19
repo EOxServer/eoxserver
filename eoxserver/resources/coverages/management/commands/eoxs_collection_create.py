@@ -31,6 +31,7 @@ from optparse import make_option
 from django.core.management import call_command
 from django.core.management.base import CommandError, BaseCommand
 
+from eoxserver.core.util.importtools import import_module
 from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.management.commands import (
     CommandOutputMixIn, _variable_args_cb, nested_commit_on_success
@@ -84,6 +85,10 @@ class Command(CommandOutputMixIn, BaseCommand):
         DatasetSeries.
         Optionally the collection can directly be inserted into other
         collections and can be directly supplied with sub-objects.
+
+        The type of the collection must be specified with a prepended module
+        path if the type is not one of the standard collection types.
+        E.g: 'myapp.models.MyCollection'.
     """
 
     @nested_commit_on_success
@@ -94,8 +99,12 @@ class Command(CommandOutputMixIn, BaseCommand):
 
         collection_type = kwargs["type"]
         try:
-            # TODO: allow collections residing in other apps as-well
-            CollectionType = getattr(models, collection_type)
+            module = models
+            if "." in collection_type:
+                mod_name, _, collection_type = collection_type.rpartition(".")
+                module = import_module(mod_name)
+
+            CollectionType = getattr(module, collection_type)
 
             if not issubclass(CollectionType, models.Collection):
                 raise CommandError(
