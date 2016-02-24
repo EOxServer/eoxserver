@@ -12,6 +12,7 @@ virtualenv:
 before_install:
 - sudo add-apt-repository -y ppa:ubuntugis/ubuntugis-unstable
 - sudo apt-get update
+- sudo apt-get upgrade
 - sudo apt-get install aptitude
 - sudo aptitude install -y gdal-bin libgdal1-dev libxml2 python-lxml python-libxml2
   libproj0 libproj-dev libgeos-dev libgeos++-dev cgi-mapserver python-mapscript python-psycopg2
