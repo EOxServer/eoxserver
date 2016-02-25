@@ -1,1 +1,1 @@
-(function(){"use strict";var a=this;a.define(["backbone","communicator"],function(a){var b=a.Model.extend({visualizationLibs:[],center:[],zoom:0});return{MapModel:b}})}).call(this);
+(function(){"use strict";var a=this;a.define(["backbone","communicator"],function(a,b){var c=a.Model.extend({visualizationLibs:[],center:[],zoom:0});return{MapModel:c}})}).call(this);
