@@ -1,4 +1,6 @@
 language: python
+sudo: required
+dist: trusty
 env:
 - DJANGO=">=1.4,<1.5" GDAL=1.10 DB=spatialite
 - DJANGO=">=1.5,<1.6" GDAL=1.10 DB=spatialite
