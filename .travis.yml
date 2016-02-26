@@ -7,16 +7,15 @@ env:
 - DJANGO=">=1.8,<1.9" GDAL=1.10 DB=spatialite
 python:
 - '2.7'
+services:
+- postgres
 virtualenv:
   system_site_packages: true
 before_install:
 - sudo add-apt-repository -y ppa:ubuntugis/ubuntugis-unstable
-- sudo apt-get update
-- sudo apt-get upgrade
 - sudo apt-get install aptitude
-- sudo aptitude install -y gdal-bin libgdal1-dev libxml2 python-lxml python-libxml2
-  libproj0 libproj-dev libgeos-dev libgeos++-dev cgi-mapserver python-mapscript python-psycopg2
-  postgis python-gdal
+- sudo aptitude install -y gdal-bin libxml2 python-lxml python-libxml2
+  libproj0 cgi-mapserver python-mapscript python-psycopg2 python-gdal
 - if [ "$DB" == "spatialite" ]; then wget https://pypi.python.org/packages/source/p/pysqlite/pysqlite-2.6.3.tar.gz;
   fi
 - if [ "$DB" == "spatialite" ]; then tar xzf pysqlite-2.6.3.tar.gz; fi
