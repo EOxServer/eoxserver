@@ -29,11 +29,10 @@
 
 import logging
 from datetime import timedelta
-from itertools import chain
 
-from django.shortcuts import render_to_response
-from django.template import RequestContext
+from django.shortcuts import render
 from django.utils.timezone import now
+from django.db.models import Q, Max, Min
 
 from eoxserver.core.util.timetools import isoformat
 from eoxserver.resources.coverages import models
@@ -43,38 +42,50 @@ logger = logging.getLogger(__name__)
 
 
 def index(request):
-    return render_to_response(
-        'webclient/index.html', {
+    return render(
+        request, 'webclient/index.html', {
             "path": request.path,
-        },
-        context_instance=RequestContext(request)
+        }
     )
 
 
 def configuration(request):
-    collections = models.Collection.objects.all()
-    coverages = filter(
-        lambda c: not models.iscollection(c),
-        models.Coverage.objects.filter(
-            visible=True, collections__isnull=True
+    # select collections or coverages not contained in collections that are
+    # visible
+    qs = models.EOObject.objects.filter(
+        Q(collection__isnull=False) |
+        Q(
+            coverage__isnull=False, coverage__visible=True,
+            collections__isnull=True, collection__isnull=True
         )
     )
 
-    all_objects = list(chain(collections, coverages))
-    try:
-        start_time = min(o.begin_time for o in all_objects if o.begin_time)
-        end_time = max(o.end_time for o in all_objects if o.end_time)
-    except ValueError:
-        start_time = now() - timedelta(days=5)
-        end_time = now()
+    # get the min/max values for begin and end time
+    values = qs.aggregate(Min("begin_time"), Max("end_time"))
+    start_time = values["begin_time__min"] or now() - timedelta(days=5)
+    end_time = values["end_time__max"] or now()
+    start_time_full = start_time - timedelta(days=5)
+    end_time_full = end_time + timedelta(days=5)
 
-    return render_to_response(
-        'webclient/config.json', {
-            "layers": all_objects,
-            "start_time_full": isoformat(start_time - timedelta(days=5)),
-            "end_time_full": isoformat(end_time + timedelta(days=5)),
+    try:
+        # get only coverages that are in a collection or are visible
+        # limit them to 10 and select the first time, so that we can limit the
+        # initial brush
+        coverages_qs = models.EOObject.objects.filter(
+            Q(collection__isnull=True),
+            Q(collections__isnull=False) | Q(coverage__visible=True)
+        )
+        first = list(coverages_qs.order_by("-begin_time")[:10])[-1]
+        start_time = first.begin_time
+    except models.EOObject.DoesNotExist:
+        pass
+
+    return render(
+        request, 'webclient/config.json', {
+            "layers": qs,
+            "start_time_full": isoformat(start_time_full),
+            "end_time_full": isoformat(end_time_full),
             "start_time": isoformat(start_time),
             "end_time": isoformat(end_time)
-        },
-        context_instance=RequestContext(request)
+        }
     )
