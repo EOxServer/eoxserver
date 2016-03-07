@@ -491,6 +491,8 @@ class GMLCOV10Encoder(GML32Encoder):
                         SWE("significantFigures", str(band.significant_figures))
                     )
                 ),
+                # TODO: lookup correct definition according to data type:
+                # http://www.opengis.net/def/dataType/OGC/0/
                 definition=band.definition
             ),
             name=band.name
