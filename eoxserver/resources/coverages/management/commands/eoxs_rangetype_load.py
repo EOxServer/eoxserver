@@ -32,8 +32,7 @@ from optparse import make_option
 
 from django.core.management.base import BaseCommand, CommandError
 
-from eoxserver.resources.coverages.rangetype import isRangeTypeName
-from eoxserver.resources.coverages.rangetype import setRangeType
+from eoxserver.resources.coverages.rangetype import isRangeTypeName, setRangeType
 from eoxserver.resources.coverages.management.commands import CommandOutputMixIn
 
 
