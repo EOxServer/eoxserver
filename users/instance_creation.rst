@@ -63,21 +63,20 @@ This section deals with the creation and configuration of EOxServer instances.
 Instance Creation
 -----------------
 
-To create an instance, we recommend to use the :file:`eoxserver-admin.py`
-script that comes with EOxServer. The script provides the command
-`create_instance` in order to create an EOxServer instance:
+To create an instance, we recommend to use the :file:`eoxserver-instance.py`
+script that comes with EOxServer:
 
-    Usage: ``eoxserver-admin.py create_instance [options] INSTANCE_ID [Optional destination directory]``
+    Usage: ``eoxserver-instance.py [options] INSTANCE_ID [Optional destination directory]``
 
     Creates a new EOxServer instance with name ``INSTANCE_ID`` in the current
     or optionally given directory with all necessary files and folder
-    structure. If the ``--init_spatialite`` flag is set, then an initial
+    structure. If the ``--init-spatialite`` flag is set, then an initial
     sqlite database will be created and initialized.
 
     Options:
 
     -h, --help           show this help message and exit
-    --init_spatialite    Flag to initialize the sqlite database.
+    --init-spatialite    Flag to initialize the sqlite database.
 
 .. index::
     single: EOxServer Configuration
@@ -97,9 +96,9 @@ Every EOxServer instance has various configuration files:
 
 For each of them there is a template in the ``eoxserver/instance_template``
 directory of the EOxServer distribution (referenced above) which is copied and
-adjusted by the `create_instance` command of the :file:`eoxserver-admin.py`
-script to the instance directory. If you create an EOxServer instance without
-the script you can copy those files and edit them yourself.
+adjusted by the :file:`eoxserver-instance.py` script to the instance directory.
+If you create an EOxServer instance without the script you can copy those files
+and edit them yourself.
 
 The file ``settings.py`` contains the Django configuration. Settings that need
 to be customized:
@@ -128,9 +127,8 @@ The file ``conf/eoxserver.conf`` contains EOxServer specific settings. Please
 refer to the `configuration options section <ConfigurationOptions>`_ for details.
 
 Once you have created an instance, you have to configure and synchronize the
-database. If using the `create_instance` command of the
-:file:`eoxserver-admin.py` script with the ``--init_spatialite`` flag, all you
-have to do is:
+database. If you are using the :file:`eoxserver-instance.py` script with the
+``--init-spatialite`` flag, all you have to do is:
 
 * Make sure EOxServer is on your ``PYTHONPATH`` environment variable
 * run in your instance directory::
