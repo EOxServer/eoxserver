@@ -29,6 +29,11 @@
 #-------------------------------------------------------------------------------
 
 from eoxserver.core.management import execute_from_commandline
+import warnings
 
 if __name__ == "__main__":
+    warnings.warn(
+        "'eoxserver-admin.py' is deprecated. Use 'eoxserver-instance.py' to "
+        "create an instance", DeprecationWarning
+    )
     execute_from_commandline()
