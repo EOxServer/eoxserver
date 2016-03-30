@@ -88,29 +88,32 @@ class GetTimeDataProcess(Component):
             )
 
         if models.iscollection(model):
+            model = model.cast()
+
             # recursive dataset series lookup
-            def _get_children_ids(eoobj):
-                qset = (
-                    eoobj.cast().eo_objects
-                    .filter(real_content_type=eoobj.real_content_type)
-                )
-                id_list = [eoobj.id]
-                for child_eoobj in qset:
-                    id_list.extend(_get_children_ids(child_eoobj))
+            def _get_children_ids(ds):
+                ds_rct = ds.real_content_type
+                id_list = [ds.id]
+                for child in model.eo_objects.filter(real_content_type=ds_rct):
+                    id_list.extend(_get_children_ids(child))
                 return id_list
+
+            collection_ids = _get_children_ids(model)
 
             # prepare coverage query set
             coverages_qs = models.Coverage.objects.filter(
-                collections__id__in=_get_children_ids(model)
+                collections__id__in=collection_ids
             )
             if end_time is not None:
                 coverages_qs = coverages_qs.filter(begin_time__lte=end_time)
             if begin_time is not None:
                 coverages_qs = coverages_qs.filter(end_time__gte=begin_time)
             coverages_qs = coverages_qs.order_by('begin_time', 'end_time')
+            coverages_qs = coverages_qs.values_list("begin_time", "end_time", "identifier", "min_x", "min_y", "max_x", "max_y")
 
         else:
-            coverages_qs = [model]
+            min_x, min_y, max_x, max_y = model.extent_wgs84
+            coverages_qs = ((model.begin_time, model.end_time, model.identifier, min_x, min_y, max_x, max_y),)
 
         # create the output
         output = CDAsciiTextBuffer()
@@ -118,13 +121,8 @@ class GetTimeDataProcess(Component):
         header = ["starttime", "endtime", "bbox", "identifier"]
         writer.writerow(header)
 
-        for coverage in coverages_qs:
-            starttime = coverage.begin_time
-            endtime = coverage.end_time
-            identifier = coverage.identifier
-            bbox = coverage.extent_wgs84
-            writer.writerow(
-                [isoformat(starttime), isoformat(endtime), bbox, identifier]
-            )
+        for starttime, endtime, identifier, min_x, min_y, max_x, max_y in coverages_qs:
+            bbox = (min_x, min_y, max_x, max_y)
+            writer.writerow([isoformat(starttime), isoformat(endtime), bbox, identifier])
 
         return output
