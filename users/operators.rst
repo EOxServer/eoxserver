@@ -563,8 +563,8 @@ with some restrictions:
 Command Line Tools
 ------------------
 
-eoxserver-admin.py create_instance
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+eoxserver-instance.py
+~~~~~~~~~~~~~~~~~~~~~
 
 The first important command line tool is used for :ref:`Creating an Instance`
 of EOxServer and is explained in the :ref:`Installation` section of this user'

@@ -350,10 +350,10 @@ Step 4 - Instance Creation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Now it's time to setup a sample instance of EOxServer. Create a new instance 
-e.g., named ``instance00``, using the ``eoxserver-admin.py`` command:: 
+e.g., named ``instance00``, using the ``eoxserver-instance.py`` command::
 
     sudo -u eoxserver mkdir /srv/eoxserver/instance00
-    sudo -u eoxserver eoxserver-admin.py create_instance instance00 /srv/eoxserver/instance00
+    sudo -u eoxserver eoxserver-instance.py instance00 /srv/eoxserver/instance00
 
 Now our first bare instance exists and needs to be configured. 
 
