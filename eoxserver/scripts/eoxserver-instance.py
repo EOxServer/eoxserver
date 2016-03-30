@@ -53,8 +53,8 @@ def main():
         """),
         version=eoxserver.get_version()
     )
-    parser.add_option('-i', '--init-spatialite', dest='init_spatialite',
-        action='store_true', default=False,
+    parser.add_option('-i', '--init-spatialite', '--init_spatialite',
+        dest='init_spatialite', action='store_true', default=False,
         help='Flag to initialize the sqlite database.'
     )
     parser.add_option('-v', '--verbosity',
