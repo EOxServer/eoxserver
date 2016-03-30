@@ -59,7 +59,6 @@ written in English.
 
 .. toctree::
    :maxdepth: 1
-   :titlesonly:
 
    users/index
    developers/index
