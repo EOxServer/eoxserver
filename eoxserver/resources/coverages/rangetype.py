@@ -369,7 +369,12 @@ def setRangeType( rtype ) :
 
     # create record 
 
-    with transaction.commit_on_success():
+    try:
+        transaction_func = transaction.atomic
+    except:
+        transaction_func = transaction.commit_on_success
+
+    with transaction_func():
 
         rt = RangeType.objects.create( name = rtype['name'] )
 
