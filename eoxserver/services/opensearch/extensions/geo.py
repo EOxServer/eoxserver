@@ -26,7 +26,7 @@
 #-------------------------------------------------------------------------------
 
 
-from django.contrib.gis.geos import GEOSGeometry, Point
+from django.contrib.gis.geos import GEOSGeometry, Point, Polygon
 from django.contrib.gis.measure import D
 
 from eoxserver.core import Component, implements
@@ -49,7 +49,7 @@ class GeoExtension(Component):
     )
 
     schema = {
-        "bbox": ("bbox", True),
+        "bbox": ("box", True),
         "r": ("radius", True),
         "geom": ("geometry", True),
         "lon": ("lon", True),
@@ -90,7 +90,7 @@ def parse_bbox(raw):
     values = map(float, raw.split(","))
     if len(values) != 4:
         raise ValueError("Invalid number of coordinates in 'bbox'.")
-    return GEOSGeometry.from_bbox(values)
+    return Polygon.from_bbox(values)
 
 
 def parse_radius(raw):

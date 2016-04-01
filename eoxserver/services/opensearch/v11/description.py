@@ -79,9 +79,9 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
         return description
 
     def encode_url(self, collection, search_extensions, result_format, request):
-        search_url = reverse("opensearch_search",
-            #kwargs={"collection_id": collection.identifier}
-            #args=[collection.identifier]
+        search_url = reverse("opensearch:search",
+            kwargs={"collection_id": collection.identifier}
+            # args=[collection.identifier]
         )
         if request:
             search_url = request.build_absolute_uri(search_url)
