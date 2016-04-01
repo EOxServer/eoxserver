@@ -80,6 +80,7 @@ setup(
     include_package_data=True,
     scripts=[
         "eoxserver/scripts/eoxserver-admin.py",
+        "eoxserver/scripts/eoxserver-instance.py",
         "tools/eoxserver-atpd.py",
         "tools/eoxserver-validate_xml.py",
         "tools/eoxserver-preprocess.py"
