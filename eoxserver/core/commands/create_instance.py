@@ -56,4 +56,10 @@ class Command(EOxServerAdminCommand):
         if instance_id is None:
             raise CommandError("Instance ID not given.")
 
-        create_instance(instance_id, target, **options)
+        init_spatialite = options["init_spatialite"]
+        verbosity = options["verbosity"]
+        traceback = options["traceback"]
+
+        create_instance(
+            instance_id, target, init_spatialite, verbosity, traceback
+        )
