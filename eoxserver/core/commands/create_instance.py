@@ -58,7 +58,7 @@ class Command(EOxServerAdminCommand):
 
         init_spatialite = options["init_spatialite"]
         verbosity = options["verbosity"]
-        traceback = options["traceback"]
+        traceback = options.get("traceback")
 
         create_instance(
             instance_id, target, init_spatialite, verbosity, traceback

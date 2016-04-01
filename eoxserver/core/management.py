@@ -117,11 +117,14 @@ def execute_from_commandline():
 
     else:
         try:
-            commands[subcommand].run_from_argv(sys.argv)
+            command = commands[subcommand]
         except KeyError:
-            print "Command '%s' not found.\n" % sys.argv[2]
+            print "Command '%s' not found.\n" % sys.argv[1]
             print_possible_commands(commands)
             sys.exit(1)
+
+        try:
+            command.run_from_argv(sys.argv)
         except CommandError, e:
             print termcolors.colorize("Error: %s" % e, fg="red")
             sys.exit(1)
