@@ -36,6 +36,7 @@ from eoxserver.services.ows.wps.parameters import (
 )
 from eoxserver.services.ows.wps.v10.util import nsmap, ns_wps, ns_ows, ns_xlink
 
+
 def _bool(raw_bool):
     """ Parse WPS boolean string."""
     return raw_bool == "true"
@@ -125,7 +126,7 @@ def _parse_input_data(elem, identifier, title, abstract):
 
 def _parse_input_literal(elem):
     args = {}
-    args['data'] = elem.text
+    args['data'] = elem.text or ""
     args['uom'] = elem.attrib.get("uom")
     return args
 
@@ -144,7 +145,7 @@ def _parse_input_complex(elem):
         args['data'] = etree.tostring(elem[0], pretty_print=False,
                                         xml_declaration=True, encoding="utf-8")
     else:
-        args['data'] = elem.text
+        args['data'] = elem.text or ""
     args['mime_type'] = elem.attrib.get("mimeType")
     args['encoding'] = elem.attrib.get("encoding")
     args['schema'] = elem.attrib.get("schema")
