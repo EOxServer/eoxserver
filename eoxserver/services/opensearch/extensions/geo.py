@@ -28,6 +28,7 @@
 
 from django.contrib.gis.geos import GEOSGeometry, Point, Polygon
 from django.contrib.gis.measure import D
+from django.utils.datastructures import SortedDict
 
 from eoxserver.core import Component, implements
 from eoxserver.core.decoders import kvp, enum
@@ -48,14 +49,14 @@ class GeoExtension(Component):
         "http://a9.com/-/opensearch/extensions/geo/1.0/", "geo"
     )
 
-    schema = {
-        "bbox": ("box", True),
-        "r": ("radius", True),
-        "geom": ("geometry", True),
-        "lon": ("lon", True),
-        "lat": ("lat", True),
-        "georel": ("relation", True)
-    }
+    schema = SortedDict((
+        ("bbox", ("box", True)),
+        ("geom", ("geometry", True)),
+        ("lon", ("lon", True)),
+        ("lat", ("lat", True)),
+        ("r", ("radius", True)),
+        ("georel", ("relation", True))
+    ))
 
     def filter(self, qs, parameters):
         decoder = GeoExtensionDecoder(parameters)
