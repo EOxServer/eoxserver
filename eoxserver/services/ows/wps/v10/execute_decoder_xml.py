@@ -142,8 +142,9 @@ def _parse_input_bbox(elem):
 def _parse_input_complex(elem):
     args = {}
     if len(elem):
-        args['data'] = etree.tostring(elem[0], pretty_print=False,
-                                        xml_declaration=True, encoding="utf-8")
+        args['data'] = etree.tostring(
+            elem[0], pretty_print=False, xml_declaration=True, encoding="utf-8"
+        )
     else:
         args['data'] = elem.text or ""
     args['mime_type'] = elem.attrib.get("mimeType")
@@ -157,12 +158,15 @@ def _create_output(identifier, attrs, title=None, abstract=None):
     if attr_as_reference is not None:
         attr_as_reference = _bool(attr_as_reference)
 
-    return Output(identifier, title, abstract, attrs.get("uom"),
-            attrs.get("crs"), attrs.get("mimeType"), attrs.get("encoding"),
-            attrs.get("schema"), attr_as_reference)
+    return Output(
+        identifier, title, abstract, attrs.get("uom"),
+        attrs.get("crs"), attrs.get("mimeType"), attrs.get("encoding"),
+        attrs.get("schema"), attr_as_reference
+    )
 
 
 class WPS10ExecuteXMLDecoder(xml.Decoder):
+    """ WPS 1.0 POST/XML Execute request decoder class. """
     identifier = xml.Parameter("ows:Identifier/text()")
     inputs_ = xml.Parameter("wps:DataInputs/wps:Input", type=_parse_input, num="*", default=[])
     _response_form = xml.Parameter("wps:ResponseForm", type=_parse_response_form, num="?")
@@ -177,4 +181,3 @@ class WPS10ExecuteXMLDecoder(xml.Decoder):
         return dict(self.inputs_)
 
     namespaces = nsmap
-
