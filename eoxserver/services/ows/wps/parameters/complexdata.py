@@ -282,14 +282,16 @@ class ComplexData(Parameter):
 #        tmp = (format.mime_type, format.encoding, format.schema)
 #        if tmp in self.formats:
 #            return format
-#        raise ValueError("Invalid format %r"%format)
+#        raise ValueError("Invalid format %r" % format)
 
     def parse(self, data, mime_type, schema, encoding, **opt):
         """ parse input complex data """
         format_ = self.get_format(mime_type, encoding, schema)
         if format_ is None:
-            raise ValueError("Invalid format specification! mime_type=%r, "
-                "encoding=%r, schema=%r"%(mime_type, encoding, schema))
+            raise ValueError(
+                "Invalid format specification! mime_type=%r, "
+                "encoding=%r, schema=%r" % (mime_type, encoding, schema)
+            )
         text_encoding = getattr(format_, 'text_encoding', 'utf-8')
         fattr = {
             'mime_type': format_.mime_type,
@@ -322,12 +324,15 @@ class ComplexData(Parameter):
         schema = getattr(data, 'schema', None)
         format_ = self.get_format(mime_type, encoding, schema)
         if format_ is None:
-            raise ValueError("Invalid format specification! mime_type=%r, "
-                "encoding=%r, schema=%r"%(mime_type, encoding, schema))
+            raise ValueError(
+                "Invalid format specification! mime_type=%r, "
+                "encoding=%r, schema=%r" % (mime_type, encoding, schema)
+            )
         if not format_.allows_xml_embedding:
-            raise ValueError("Selected format does not allows XML embedding! "
-                                "mime_type=%r, encoding=%r, schema=%r"%(
-                                mime_type, encoding, schema))
+            raise ValueError(
+                "Selected format does not allows XML embedding! mime_type=%r, "
+                "encoding=%r, schema=%r" % (mime_type, encoding, schema)
+            )
         if isinstance(data, CDObject):
             data = data.data
         if format_.is_xml:
@@ -363,25 +368,29 @@ class ComplexData(Parameter):
         format_ = self.get_format(mime_type, encoding, schema)
         text_encoding = getattr(format_, 'text_encoding', 'utf-8')
         if format_ is None:
-            raise ValueError("Invalid format specification! mime_type=%r, "
-                "encoding=%r, schema=%r"%(mime_type, encoding, schema))
+            raise ValueError(
+                "Invalid format specification! mime_type=%r, "
+                "encoding=%r, schema=%r" % (mime_type, encoding, schema)
+            )
         if isinstance(data, CDObject):
             data = data.data
         if format_.is_xml:
-            data = FastStringIO(etree.tostring(data, pretty_print=False,
-                                xml_declaration=True, encoding=text_encoding))
-            content_type = "%s; charset=%s"%(format_.mime_type, text_encoding)
+            data = FastStringIO(etree.tostring(
+                data, pretty_print=False, xml_declaration=True,
+                encoding=text_encoding
+            ))
+            content_type = "%s; charset=%s" % (format_.mime_type, text_encoding)
         elif format_.is_json:
             data = FastStringIO(
                 json.dumps(data, ensure_ascii=False).encode(text_encoding)
             )
-            content_type = "%s; charset=%s"%(format_.mime_type, text_encoding)
+            content_type = "%s; charset=%s" % (format_.mime_type, text_encoding)
         elif format_.is_text:
             if isinstance(data, (CDTextBuffer, CDAsciiTextBuffer)):
                 data.text_encoding = text_encoding
             else:
                 data = FastStringIO(_rewind(data).read().encode(text_encoding))
-            content_type = "%s; charset=%s"%(format_.mime_type, text_encoding)
+            content_type = "%s; charset=%s" % (format_.mime_type, text_encoding)
         else: # generic binary byte-stream
             if format_.encoding is not None:
                 data_out = FastStringIO()
@@ -395,11 +404,13 @@ class ComplexData(Parameter):
 def _bytestring(data):
     if isinstance(data, str):
         return data
-    raise TypeError("Byte string expected, %s received!"%type(data))
+    raise TypeError("Byte string expected, %s received!" % type(data))
 
 def _unicode(data, encoding):
     if isinstance(data, unicode):
         return data
     elif isinstance(data, str):
         return unicode(data, encoding)
-    raise TypeError("Byte od unicode string expected, %s received!"%type(data))
+    raise TypeError(
+        "Byte od unicode string expected, %s received!" % type(data)
+    )
