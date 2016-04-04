@@ -32,6 +32,7 @@ from urllib import urlencode
 
 from lxml.builder import ElementMaker
 from django.core.urlresolvers import reverse
+from django.http import QueryDict
 
 from eoxserver.core import Component, ExtensionPoint
 from eoxserver.core.util.xmltools import (
@@ -80,8 +81,10 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
 
     def encode_url(self, collection, search_extensions, result_format, request):
         search_url = reverse("opensearch:search",
-            kwargs={"collection_id": collection.identifier}
-            # args=[collection.identifier]
+            kwargs={
+                "collection_id": collection.identifier,
+                "format_name": result_format.name
+            }
         )
         if request:
             search_url = request.build_absolute_uri(search_url)
@@ -97,10 +100,8 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
 
         return OS("Url",
             type=result_format.mimetype,
-            template="%s?q={searchTerms}&count={count?}"
-                "&startIndex={startIndex?}&%s&format=%s" % (
-                    search_url, query_template, result_format.name
-                )
+            template="%s?q={searchTerms?}&count={count?}"
+                "&startIndex={startIndex?}&%s" % (search_url, query_template)
         )
 
 

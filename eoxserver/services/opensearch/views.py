@@ -46,9 +46,9 @@ def description(request):
     )
 
 
-def search(request, collection_id=None):
+def search(request, collection_id=None, format_name=None):
     content, content_type = OpenSearch11SearchHandler(env).handle(
-        request, collection_id
+        request, collection_id, format_name
     )
     return HttpResponse(
         content=content, content_type=content_type, status=200

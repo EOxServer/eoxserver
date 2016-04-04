@@ -38,7 +38,7 @@ class OpenSearch11SearchHandler(Component):
     search_extensions = ExtensionPoint(SearchExtensionInterface)
     result_formats = ExtensionPoint(ResultFormatInterface)
 
-    def handle(self, request, collection_id=None):
+    def handle(self, request, collection_id=None, format_name=None):
         decoder = OpenSearch11BaseDecoder(request.GET)
 
         if collection_id:
@@ -58,6 +58,8 @@ class OpenSearch11SearchHandler(Component):
             )
             qs = search_extension.filter(qs, params)
 
+        total_count = len(qs)
+
         if decoder.start_index and not decoder.count:
             qs = qs[decoder.start_index:]
         elif decoder.start_index and decoder.count:
@@ -68,11 +70,14 @@ class OpenSearch11SearchHandler(Component):
         result_format = next(
             result_format
             for result_format in self.result_formats
-            if result_format.name == decoder.format
+            if result_format.name == format_name
         )
 
         return (
-            result_format.encode(qs), result_format.mimetype
+            result_format.encode(
+                request, collection_id, qs, decoder.start_index, total_count
+            ),
+            result_format.mimetype
         )
 
 
@@ -91,7 +96,6 @@ def pos_int(raw):
 
 
 class OpenSearch11BaseDecoder(kvp.Decoder):
-    format = kvp.Parameter("format", num=1)
     start_index = kvp.Parameter("startIndex", pos_int_zero, num="?", default=0)
     count = kvp.Parameter("count", pos_int, num="?", default=None)
     output_encoding = kvp.Parameter("outputEncoding", num="?", default="UTF-8")

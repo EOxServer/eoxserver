@@ -32,5 +32,8 @@ from eoxserver.services.opensearch.views import description, search
 
 urlpatterns = ([
     url(r'^$', description, name='description'),
-    url(r'^(?P<collection_id>[^/]+)', search, name='search')
+    url(
+        r'^(?P<collection_id>[^/]+)\.(?P<format_name>[^/]+)$', search,
+        name='search'
+    )
 ], 'opensearch', 'opensearch')
