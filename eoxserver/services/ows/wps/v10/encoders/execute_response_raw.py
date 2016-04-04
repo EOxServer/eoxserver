@@ -76,7 +76,7 @@ class ResultAlt(ResultItem):
     """
 
     def __init__(self, buf, content_type=None, filename=None, identifier=None,
-                    close=False):
+                    close=False, headers=None):
         ResultItem.__init__(self, content_type, filename, identifier)
         if isinstance(buf, basestring):
             self._file = StringIO(str(buf)) # make sure a byte string is passed
@@ -88,6 +88,7 @@ class ResultAlt(ResultItem):
         else:
             self._file = buf
         self._close = close
+        self.headers = headers or []
 
     def __del__(self):
         if self._close:
@@ -155,5 +156,6 @@ def _encode_raw_complex(data, prm):
     payload, content_type = prm.encode_raw(data)
     return ResultAlt(
         payload, identifier=prm.identifier, content_type=content_type,
-        filename=getattr(data, "filename", None)
+        filename=getattr(data, "filename", None),
+        headers=getattr(data, "headers", None),
     )
