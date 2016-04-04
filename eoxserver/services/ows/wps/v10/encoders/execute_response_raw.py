@@ -76,7 +76,7 @@ class ResultAlt(ResultItem):
     """
 
     def __init__(self, buf, content_type=None, filename=None, identifier=None,
-                    close=False, headers=None):
+                 close=False, headers=None):
         ResultItem.__init__(self, content_type, filename, identifier)
         if isinstance(buf, basestring):
             self._file = StringIO(str(buf)) # make sure a byte string is passed
