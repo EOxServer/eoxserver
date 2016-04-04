@@ -168,29 +168,23 @@ class CDAsciiTextBuffer(CDByteBuffer):
             return data.encode(self.text_encoding)
 
 
-class CDFile(CDBase):
-    """ Complex data binary file.
+class CDFileWrapper(CDBase):
+    """ Complex data file (or file-like) object wrapper.
+        The file object must be seek-able.
 
         To be used to hold a generic binary (byte-stream) payload.
-
-        NOTE: The file allows you to specify whether the file is
-              temporary (will be atomatically removed - by default)
-              or permanent (preserverved after object destruction).
     """
 
-    def __init__(self, name, mode='r', buffering=-1,
+    def __init__(self, file_object,
                  mime_type=None, encoding=None, schema=None, format=None,
                  remove_file=True, **kwargs):
         CDBase.__init__(self, mime_type, encoding, schema, format, **kwargs)
-        self._file = file(name, mode, buffering)
+        self._file = file_object
         self._remove_file = remove_file
 
     def __del__(self):
         if hasattr(self, "_file"):
-            name = self.name
             self.close()
-            if self._remove_file:
-                os.remove(name)
 
     @property
     def data(self):
@@ -203,6 +197,34 @@ class CDFile(CDBase):
         else:
             # Allow object to behave like a file.
             return getattr(self._file, attr)
+
+
+class CDFile(CDFileWrapper):
+    """ Complex data binary file.
+
+        To be used to hold a generic binary (byte-stream) payload.
+
+        NOTE: The file allows you to specify whether the file is
+              temporary (will be atomatically removed - by default)
+              or permanent (preserverved after object destruction).
+    """
+
+    def __init__(self, name, mode='r', buffering=-1,
+                 mime_type=None, encoding=None, schema=None, format=None,
+                 remove_file=True, **kwargs):
+        CDFileWrapper.__init__(
+            self, open(name, mode, buffering), mime_type, encoding, schema,
+            format, **kwargs
+        )
+        self._file = file(name, mode, buffering)
+        self._remove_file = remove_file
+
+    def __del__(self):
+        if hasattr(self, "_file"):
+            name = self.name
+            self.close()
+            if self._remove_file:
+                os.remove(name)
 
 
 class CDPermanentFile(CDFile):
