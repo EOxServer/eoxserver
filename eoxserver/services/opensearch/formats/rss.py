@@ -26,14 +26,29 @@
 #-------------------------------------------------------------------------------
 
 
-from eoxserver.core import implements
-from eoxserver.core.util.timetools import isoformat
-from eoxserver.contrib import ogr
+from lxml.builder import ElementMaker
+from django.core.urlresolvers import reverse
+from django.http import QueryDict
+
+from eoxserver.core import implements, Component
+from eoxserver.core.util.xmltools import etree, NameSpace, NameSpaceMap
 from eoxserver.services.opensearch.interfaces import ResultFormatInterface
-from eoxserver.services.opensearch.formats import base
 
 
-class RSSResultFormat(base.BaseOGRResultFormat):
+# namespace declarations
+ns_atom = NameSpace("http://www.w3.org/2005/Atom", "atom")
+ns_opensearch = NameSpace("http://a9.com/-/spec/opensearch/1.1/", "opensearch")
+
+# namespace map
+nsmap = NameSpaceMap(ns_atom, ns_opensearch)
+
+# Element factories
+RSS = ElementMaker(namespace=None, nsmap=nsmap)
+ATOM = ElementMaker(namespace=ns_atom.uri, nsmap=nsmap)
+OS = ElementMaker(namespace=ns_opensearch.uri, nsmap=nsmap)
+
+
+class RSSResultFormat(Component):
     """ RSS result format.
     """
 
@@ -41,24 +56,49 @@ class RSSResultFormat(base.BaseOGRResultFormat):
 
     mimetype = "application/rss+xml"
     name = "rss"
-    extension = ".rss"
-    driver_name = "GeoRSS"
 
-    def create_datasource(self, driver, filename):
-        return driver.CreateDataSource(filename, ["USE_EXTENSIONS=YES"])
-
-    def create_fields(self, layer):
-        layer.CreateField(ogr.FieldDefn("title", ogr.OFTString))
-        layer.CreateField(ogr.FieldDefn("begintime", ogr.OFTString))
-        layer.CreateField(ogr.FieldDefn("endtime", ogr.OFTString))
-
-    def set_feature_values(self, feature, eo_object):
-        # TODO: try to convert to polygon
-        feature.SetGeometry(
-            ogr.ForceToPolygon(
-                ogr.CreateGeometryFromWkb(str(eo_object.footprint.wkb))
-            )
+    def encode(self, request, collection_id, queryset, start_index, total_count):
+        tree = RSS("rss",
+            RSS("channel",
+                RSS("title", "%s Search" % collection_id),
+                RSS("link", request.build_absolute_uri()),
+                RSS("description"),
+                OS("totalResults", str(total_count)),
+                OS("startIndex", str(start_index or 0)),
+                OS("itemsPerPage", str(len(queryset))),
+                ATOM("link",
+                    rel="search", type="application/opensearchdescription+xml",
+                    href=request.build_absolute_uri(
+                        reverse("opensearch:description")
+                    )
+                ),
+                ATOM("link",
+                    rel="self", type="application/rss+xml",
+                    href="%s?%s" % (
+                        request.build_absolute_uri(), request.GET.urlencode()
+                    )
+                ),
+                # OS("Query", role="request", ), # TODO: params
+                *[
+                    self.encode_item(request, item) for item in queryset
+                ]
+            ),
+            version="2.0"
         )
-        feature.SetField("title", eo_object.identifier.encode("utf-8"))
-        feature.SetField("begintime", isoformat(eo_object.begin_time))
-        feature.SetField("endtime", isoformat(eo_object.end_time))
+        return etree.tostring(tree, pretty_print=True)
+
+    def encode_item(self, request, item):
+        qdict = QueryDict(
+            "service=WCS&version=2.0.1&request=DescribeCoverage", mutable=True
+        )
+        qdict["coverageId"] = item.identifier
+        link_url = request.build_absolute_uri(
+            "%s?%s" % (reverse("ows"), qdict.urlencode())
+        )
+
+        return RSS("item",
+            RSS("title", item.identifier),
+            # RSS("description", ), # TODO
+            RSS("link", link_url),
+            RSS("guid", item.identifier, isPermaLink="false")
+        )
