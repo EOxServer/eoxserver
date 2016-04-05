@@ -83,9 +83,12 @@ class ReprojectionOptimization(DatasetOptimization):
         dst_sr.ImportFromEPSG(self.srid)
 
         if src_sr.IsSame(dst_sr) and (src_ds.GetGeoTransform()[1] > 0) \
-                and (src_ds.GetGeoTransform()[5] < 0):
+                and (src_ds.GetGeoTransform()[5] < 0) \
+                and (src_ds.GetGeoTransform()[2] == 0) \
+                and (src_ds.GetGeoTransform()[4] == 0):
             logger.info("Source and destination projection are equal and image "
-                        "is not flipped. Thus, no reprojection is required.")
+                        "is not flipped or has rotated axes. Thus, no "
+                        "reprojection is required.")
             return src_ds
 
         # create a temporary dataset to get information about the output size
