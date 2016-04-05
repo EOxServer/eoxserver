@@ -360,7 +360,14 @@ class OverviewOptimization(DatasetPostOptimization):
         ds.BuildOverviews(self.resampling, [])
 
         # re-build overviews
-        ds.BuildOverviews(self.resampling, levels)
+        # workaround for libtiff 3.X systems, which generated wrong overviews
+        # on some levels. Skip with warning if workaround is not working.
+        for level in levels:
+            try:
+                ds.BuildOverviews(self.resampling, [level])
+            except RuntimeError:
+                logger.warning("Overview building failed for level '%s'." %
+                               level)
 
         return ds
 
