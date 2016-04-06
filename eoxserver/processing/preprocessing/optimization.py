@@ -387,8 +387,8 @@ class AlphaBandOptimization(object):
         elif src_ds.RasterCount == 4:
             pass  # okay
         else:
-            raise Exception("Cannot add alpha band, as the current band number "
-                            "'%d' does not match" % src_ds.RasterCount)
+            raise Exception("Cannot add alpha band, as the current number of "
+                            "bands '%d' does not match" % src_ds.RasterCount)
 
         # initialize the alpha band with zeroes (completely transparent)
         band = src_ds.GetRasterBand(4)
