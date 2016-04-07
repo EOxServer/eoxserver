@@ -55,7 +55,8 @@ class GeoExtension(Component):
         ("lon", ("lon", True)),
         ("lat", ("lat", True)),
         ("r", ("radius", True)),
-        ("georel", ("relation", True))
+        ("georel", ("relation", True)),
+        ("uid", ("uid", True))
     ))
 
     def filter(self, qs, parameters):
@@ -65,6 +66,7 @@ class GeoExtension(Component):
         lon, lat = decoder.lon, decoder.lat
         distance = decoder.radius
         relation = decoder.relation
+        uid = decoder.uid
 
         if geom:
             if relation == "intersects":
@@ -83,6 +85,9 @@ class GeoExtension(Component):
                 qs = qs.filter(footprint__dwithin=(geom, distance))
             elif relation == "disjoint":
                 qs = qs.filter(footprint__distance_gt=(geom, distance))
+
+        if uid:
+            qs = qs.filter(identifier=uid)
 
         return qs
 
@@ -112,3 +117,4 @@ class GeoExtensionDecoder(kvp.Decoder):
         type=enum(("intersects", "contains", "disjoint"), False),
         default="intersects"
     )
+    uid = kvp.Parameter(num="?")
