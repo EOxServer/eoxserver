@@ -53,18 +53,17 @@ OS = ElementMaker(namespace=ns_os.uri, nsmap=nsmap)
 class OpenSearch11DescriptionEncoder(XMLEncoder):
     content_type = "application/opensearchdescription+xml"
 
-    def encode_description(self, collections, search_extensions, result_formats,
-                           request=None):
+    def encode_description(self, request, collection_id,
+                           search_extensions, result_formats):
         description = OS("OpenSearchDescription",
             OS("ShortName"),
             OS("Description")
         )
         description.extend([
             self.encode_url(
-                collection, search_extensions, result_format, request
+                request, collection_id, search_extensions, result_format
             )
-            for collection, result_format
-            in product(collections, result_formats)
+            for result_format in result_formats
         ]),
         description.extend([
             OS("Contact"),
@@ -79,15 +78,23 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
         ])
         return description
 
-    def encode_url(self, collection, search_extensions, result_format, request):
-        search_url = reverse("opensearch:search",
-            kwargs={
-                "collection_id": collection.identifier,
-                "format_name": result_format.name
-            }
-        )
-        if request:
-            search_url = request.build_absolute_uri(search_url)
+    def encode_url(self, request, collection_id,
+                   search_extensions, result_format):
+        if collection_id:
+            search_url = reverse("opensearch:collection:search",
+                kwargs={
+                    "collection_id": collection_id,
+                    "format_name": result_format.name
+                }
+            )
+        else:
+            search_url = reverse("opensearch:search",
+                kwargs={
+                    "format_name": result_format.name
+                }
+            )
+
+        search_url = request.build_absolute_uri(search_url)
 
         query_template = "&".join(
             "%s={%s:%s%s}" % (
@@ -101,7 +108,8 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
         return OS("Url",
             type=result_format.mimetype,
             template="%s?q={searchTerms?}&count={count?}"
-                "&startIndex={startIndex?}&%s" % (search_url, query_template)
+                "&startIndex={startIndex?}&%s" % (search_url, query_template),
+            rel="results" if collection_id else "collection"
         )
 
 
@@ -109,14 +117,13 @@ class OpenSearch11DescriptionHandler(Component):
     search_extensions = ExtensionPoint(SearchExtensionInterface)
     result_formats = ExtensionPoint(ResultFormatInterface)
 
-    def handle(self, request):
+    def handle(self, request, collection_id=None):
         encoder = OpenSearch11DescriptionEncoder()
-        collections = models.Collection.objects.all()
         return (
             encoder.serialize(
                 encoder.encode_description(
-                    collections, self.search_extensions, self.result_formats,
-                    request
+                    request, collection_id,
+                    self.search_extensions, self.result_formats
                 )
             ),
             encoder.content_type

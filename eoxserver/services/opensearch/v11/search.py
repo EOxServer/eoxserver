@@ -25,13 +25,29 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+from collections import namedtuple
 
 from eoxserver.core import Component, ExtensionPoint
 from eoxserver.core.decoders import kvp
+from eoxserver.core.util.xmltools import NameSpaceMap
 from eoxserver.resources.coverages import models
 from eoxserver.services.opensearch.interfaces import (
     SearchExtensionInterface, ResultFormatInterface
 )
+
+
+class SearchContext(namedtuple("SearchContext", [
+        "total_count", "start_index", "page_size", "count",
+        "parameters", "namespaces"
+        ])):
+
+    @property
+    def page_count(self):
+        return self.total_count // (self.page_size or self.count)
+
+    @property
+    def current_page(self):
+        return self.start_index // (self.page_size or self.count)
 
 
 class OpenSearch11SearchHandler(Component):
@@ -46,8 +62,14 @@ class OpenSearch11SearchHandler(Component):
                 identifier=collection_id
             ).eo_objects.all()
         else:
-            qs = models.EOObject.objects.all()
+            qs = models.Collection.objects.all()
 
+        if decoder.search_terms:
+            # TODO: search descriptions, summary etc once available
+            qs = qs.filter(identifier__icontains=decoder.search_terms)
+
+        namespaces = NameSpaceMap()
+        all_parameters = {}
         for search_extension in self.search_extensions:
             # get all search extension related parameters and translate the name
             # to the actual parameter name
@@ -57,6 +79,8 @@ class OpenSearch11SearchHandler(Component):
                 if key in request.GET
             )
             qs = search_extension.filter(qs, params)
+            namespaces.add(search_extension.namespace)
+            all_parameters[search_extension.namespace.prefix] = params
 
         total_count = len(qs)
 
@@ -73,10 +97,13 @@ class OpenSearch11SearchHandler(Component):
             if result_format.name == format_name
         )
 
+        search_context = SearchContext(
+            total_count, decoder.start_index, decoder.count, len(qs),
+            all_parameters, namespaces
+        )
+
         return (
-            result_format.encode(
-                request, collection_id, qs, decoder.start_index, total_count
-            ),
+            result_format.encode(request, collection_id, qs, search_context),
             result_format.mimetype
         )
 
@@ -96,6 +123,7 @@ def pos_int(raw):
 
 
 class OpenSearch11BaseDecoder(kvp.Decoder):
+    search_terms = kvp.Parameter("q", num="?")
     start_index = kvp.Parameter("startIndex", pos_int_zero, num="?", default=0)
     count = kvp.Parameter("count", pos_int, num="?", default=None)
     output_encoding = kvp.Parameter("outputEncoding", num="?", default="UTF-8")

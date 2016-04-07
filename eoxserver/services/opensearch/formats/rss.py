@@ -25,80 +25,94 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+from itertools import chain
 
-from lxml.builder import ElementMaker
+from lxml.builder import ElementMaker, E
 from django.core.urlresolvers import reverse
-from django.http import QueryDict
 
-from eoxserver.core import implements, Component
+
 from eoxserver.core.util.xmltools import etree, NameSpace, NameSpaceMap
-from eoxserver.services.opensearch.interfaces import ResultFormatInterface
+from eoxserver.core.util.timetools import isoformat
+from eoxserver.services.opensearch.formats.base import (
+    BaseFeedResultFormat, ns_opensearch
+)
 
 
 # namespace declarations
-ns_atom = NameSpace("http://www.w3.org/2005/Atom", "atom")
-ns_opensearch = NameSpace("http://a9.com/-/spec/opensearch/1.1/", "opensearch")
+ns_georss = NameSpace("http://www.georss.org/georss", "georss")
+ns_gml = NameSpace("http://www.opengis.net/gml", "gml")
 
 # namespace map
-nsmap = NameSpaceMap(ns_atom, ns_opensearch)
+nsmap = NameSpaceMap(ns_georss, ns_gml, ns_opensearch)
 
 # Element factories
-RSS = ElementMaker(namespace=None, nsmap=nsmap)
-ATOM = ElementMaker(namespace=ns_atom.uri, nsmap=nsmap)
-OS = ElementMaker(namespace=ns_opensearch.uri, nsmap=nsmap)
+GEORSS = ElementMaker(namespace=ns_georss.uri, nsmap=nsmap)
+GML = ElementMaker(namespace=ns_gml.uri, nsmap=nsmap)
 
 
-class RSSResultFormat(Component):
+class RSSResultFormat(BaseFeedResultFormat):
     """ RSS result format.
     """
-
-    implements(ResultFormatInterface)
 
     mimetype = "application/rss+xml"
     name = "rss"
 
-    def encode(self, request, collection_id, queryset, start_index, total_count):
+    def encode(self, request, collection_id, queryset, search_context):
+        # prepare RSS factory with additional namespaces from search context
+        namespaces = dict(nsmap)
+        namespaces.update(search_context.namespaces)
+        RSS = ElementMaker(namespace=None, nsmap=namespaces)
+
         tree = RSS("rss",
             RSS("channel",
                 RSS("title", "%s Search" % collection_id),
                 RSS("link", request.build_absolute_uri()),
                 RSS("description"),
-                OS("totalResults", str(total_count)),
-                OS("startIndex", str(start_index or 0)),
-                OS("itemsPerPage", str(len(queryset))),
-                ATOM("link",
-                    rel="search", type="application/opensearchdescription+xml",
-                    href=request.build_absolute_uri(
-                        reverse("opensearch:description")
-                    )
-                ),
-                ATOM("link",
-                    rel="self", type="application/rss+xml",
-                    href="%s?%s" % (
-                        request.build_absolute_uri(), request.GET.urlencode()
-                    )
-                ),
-                # OS("Query", role="request", ), # TODO: params
-                *[
-                    self.encode_item(request, item) for item in queryset
-                ]
+                *chain(
+                    self.encode_opensearch_elements(search_context),
+                    self.encode_feed_links(request, search_context), [
+                        self.encode_item(request, item, search_context)
+                        for item in queryset
+                    ]
+                )
             ),
             version="2.0"
         )
         return etree.tostring(tree, pretty_print=True)
 
-    def encode_item(self, request, item):
-        qdict = QueryDict(
-            "service=WCS&version=2.0.1&request=DescribeCoverage", mutable=True
-        )
-        qdict["coverageId"] = item.identifier
+    def encode_item(self, request, item, search_context):
         link_url = request.build_absolute_uri(
-            "%s?%s" % (reverse("ows"), qdict.urlencode())
+            "%s?service=WCS&version=2.0.1&request=DescribeCoverage&coverageId=%s"
+            % (reverse("ows"), item.identifier)
         )
 
-        return RSS("item",
-            RSS("title", item.identifier),
+        rss_item = E("item",
+            E("title", item.identifier),
             # RSS("description", ), # TODO
-            RSS("link", link_url),
-            RSS("guid", item.identifier, isPermaLink="false")
+            E("link", link_url),
         )
+
+        if "geo" in search_context.parameters:
+            rss_item.append(E("guid", request.build_absolute_uri()))
+        else:
+            rss_item.append(E("guid", item.identifier, isPermaLink="false"))
+
+        rss_item.extend(self.encode_item_links(request, item))
+
+        if item.footprint:
+            extent = item.extent_wgs84
+            rss_item.append(
+                GEORSS("box",
+                    "%f %f %f %f" % (extent[1], extent[0], extent[3], extent[2])
+                )
+            )
+
+        if item.begin_time and item.end_time:
+            rss_item.append(
+                GML("TimePeriod",
+                    GML("beginPosition", isoformat(item.begin_time)),
+                    GML("endPosition", isoformat(item.end_time)),
+                    **{ns_gml("id"): item.identifier}
+                )
+            )
+        return rss_item

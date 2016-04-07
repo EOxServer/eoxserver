@@ -37,10 +37,12 @@ from eoxserver.services.opensearch.v11.search import (
 )
 
 
-def description(request):
+def description(request, collection_id=None):
     """ View function for OpenSearch Descripton requests.
     """
-    content, content_type = OpenSearch11DescriptionHandler(env).handle(request)
+    content, content_type = OpenSearch11DescriptionHandler(env).handle(
+        request, collection_id
+    )
     return HttpResponse(
         content=content, content_type=content_type, status=200
     )

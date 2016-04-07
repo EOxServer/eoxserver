@@ -26,43 +26,79 @@
 #-------------------------------------------------------------------------------
 
 
-from eoxserver.core import implements
-from eoxserver.core.util.timetools import isoformat
-from eoxserver.contrib import ogr
-from eoxserver.services.opensearch.interfaces import ResultFormatInterface
-from eoxserver.services.opensearch.formats import base
+from itertools import chain
+
+from lxml.builder import ElementMaker
+
+from eoxserver.core.util.xmltools import etree, NameSpace, NameSpaceMap
+from eoxserver.services.opensearch.formats.base import BaseFeedResultFormat
 
 
-class AtomResultFormat(base.BaseOGRResultFormat):
+# namespace declarations
+ns_atom = NameSpace("http://www.w3.org/2005/Atom", None)
+ns_opensearch = NameSpace("http://a9.com/-/spec/opensearch/1.1/", "opensearch")
+ns_georss = NameSpace("http://www.georss.org/georss", "georss")
+ns_gml = NameSpace("http://www.opengis.net/gml", "gml")
+
+# namespace map
+nsmap = NameSpaceMap(ns_atom, ns_opensearch, ns_georss)
+
+# Element factories
+ATOM = ElementMaker(namespace=ns_atom.uri, nsmap=nsmap)
+OS = ElementMaker(namespace=ns_opensearch.uri, nsmap=nsmap)
+GEORSS = ElementMaker(namespace=ns_georss.uri, nsmap=nsmap)
+GML = ElementMaker(namespace=ns_gml.uri, nsmap=nsmap)
+
+
+class AtomResultFormat(BaseFeedResultFormat):
     """ Atom result format.
     """
 
-    implements(ResultFormatInterface)
-
     mimetype = "application/atom+xml"
     name = "atom"
-    extension = ".xml"
-    driver_name = "GeoRSS"
 
-    def create_datasource(self, driver, filename):
-        return driver.CreateDataSource(
-            filename, ["FORMAT=ATOM", "USE_EXTENSIONS=YES"]
-        )
+    def encode(self, request, collection_id, queryset, search_context):
 
-    def create_fields(self, layer):
-        layer.CreateField(ogr.FieldDefn("id", ogr.OFTString))
-        layer.CreateField(ogr.FieldDefn("title", ogr.OFTString))
-        layer.CreateField(ogr.FieldDefn("begintime", ogr.OFTString))
-        layer.CreateField(ogr.FieldDefn("endtime", ogr.OFTString))
+        namespaces = dict(nsmap)
+        namespaces.update(search_context.namespaces)
+        ATOM = ElementMaker(namespace=ns_atom.uri, nsmap=namespaces)
 
-    def set_feature_values(self, feature, eo_object):
-        # TODO: try to convert to polygon
-        feature.SetGeometry(
-            ogr.ForceToPolygon(
-                ogr.CreateGeometryFromWkb(str(eo_object.footprint.wkb))
+        tree = ATOM("feed",
+            ATOM("id", request.build_absolute_uri()),
+            ATOM("title", "%s Search" % collection_id),
+            ATOM("link", rel="self", href=request.build_absolute_uri()),
+            ATOM("description"),
+            OS("totalResults", str(search_context.total_count)),
+            OS("startIndex", str(search_context.start_index or 0)),
+            OS("itemsPerPage", str(search_context.count)),
+            OS("Query", role="request", **dict(
+                ("{%s}%s" % (namespaces[prefix], name), value)
+                for prefix, params in search_context.parameters.items()
+                for name, value in params.items()
+            )),
+            *chain(
+                self.encode_feed_links(request, search_context), [
+                    self.encode_entry(request, item) for item in queryset
+                ]
             )
         )
-        feature.SetField("id", eo_object.identifier.encode("utf-8"))
-        feature.SetField("title", eo_object.identifier.encode("utf-8"))
-        feature.SetField("begintime", isoformat(eo_object.begin_time))
-        feature.SetField("endtime", isoformat(eo_object.end_time))
+        return etree.tostring(tree, pretty_print=True)
+
+    def encode_entry(self, request, item):
+        entry = ATOM("entry",
+            ATOM("title", item.identifier),
+            ATOM("id", item.identifier)
+            # ATOM("summary", ), # TODO
+        )
+
+        entry.extend(self.encode_item_links(request, item))
+
+        if item.footprint:
+            extent = item.extent_wgs84
+            entry.append(
+                GEORSS("box",
+                    "%f %f %f %f" % (extent[1], extent[0], extent[3], extent[2])
+                )
+            )
+
+        return entry

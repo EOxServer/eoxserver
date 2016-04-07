@@ -28,10 +28,15 @@
 
 import uuid
 
-from eoxserver.contrib import ogr, vsi
+from django.http import QueryDict
+from lxml.builder import ElementMaker
+from django.core.urlresolvers import reverse
 
+from eoxserver.contrib import ogr, vsi
 from eoxserver.core import Component, implements
 from eoxserver.core.util.timetools import isoformat
+from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap
+from eoxserver.resources.coverages import models
 from eoxserver.services.opensearch.interfaces import ResultFormatInterface
 
 
@@ -130,3 +135,124 @@ class BaseOGRResultFormat(BaseResultFormat):
             file.
         """
         driver.DeleteDataSource(filename)
+
+
+ns_atom = NameSpace("http://www.w3.org/2005/Atom", "atom")
+ns_opensearch = NameSpace("http://a9.com/-/spec/opensearch/1.1/", "opensearch")
+nsmap = NameSpaceMap(ns_atom)
+ATOM = ElementMaker(namespace=ns_atom.uri)
+OS = ElementMaker(namespace=ns_opensearch.uri)
+
+
+class BaseFeedResultFormat(BaseResultFormat):
+    """ Abstract base component for feed result formats like RSS and atom. Adds
+    functionality to encode the paging mechanisms by using ``atom:link``s.
+    """
+    abstract = True
+
+    def encode_feed_links(self, request, search_context):
+        sc = search_context
+        qdict = QueryDict(request.GET.urlencode(), mutable=True)
+        qdict.pop("startIndex", None)
+        links = [
+            ATOM("link",
+                rel="search", type="application/opensearchdescription+xml",
+                href=request.build_absolute_uri(
+                    reverse("opensearch:description")
+                )
+            ),
+            ATOM("link",
+                rel="self", type=self.mimetype, href=request.build_absolute_uri()
+            ),
+            ATOM("link",
+                rel="first", type=self.mimetype,
+                href="%s?%s" % (
+                    request.build_absolute_uri(request.path),
+                    qdict.urlencode()
+                )
+            )
+        ]
+
+        # add link to last page
+        qdict["startIndex"] = str(sc.page_count * (sc.page_size or sc.count))
+        links.append(
+            ATOM("link",
+                rel="last", type=self.mimetype,
+                href="%s?%s" % (
+                    request.build_absolute_uri(request.path),
+                    qdict.urlencode()
+                )
+            )
+        )
+
+        # if not already on the first page, include link to previous page
+        if sc.current_page != 0:
+            qdict["startIndex"] = str(max(0, sc.start_index - sc.page_size))
+            links.append(
+                ATOM("link",
+                    rel="previous", type=self.mimetype,
+                    href="%s?%s" % (
+                        request.build_absolute_uri(request.path),
+                        qdict.urlencode()
+                    )
+                )
+            )
+
+        # if not already on the last page, include link to next page
+        if sc.start_index + sc.count < sc.total_count:
+            qdict["startIndex"] = str(sc.start_index + sc.count)
+            links.append(
+                ATOM("link",
+                    rel="next", type=self.mimetype,
+                    href="%s?%s" % (
+                        request.build_absolute_uri(request.path),
+                        qdict.urlencode()
+                    )
+                )
+            )
+        return links
+
+    def encode_opensearch_elements(self, search_context):
+        return [
+            OS("totalResults", str(search_context.total_count)),
+            OS("startIndex", str(search_context.start_index or 0)),
+            OS("itemsPerPage", str(search_context.count)),
+            OS("Query", role="request", **dict(
+                ("{%s}%s" % (search_context.namespaces[prefix], name), value)
+                for prefix, params in search_context.parameters.items()
+                for name, value in params.items()
+            ))
+        ]
+
+    def encode_item_links(self, request, item):
+        links = []
+        if issubclass(item.real_type, models.Collection):
+            # add link to opensearch collection search
+            links.append(
+                ATOM("link", rel="search", href=request.build_absolute_uri(
+                    reverse("opensearch:collection:description", kwargs={
+                        "collection_id": item.identifier
+                    })
+                ))
+            )
+            # TODO: link to WMS (GetCapabilities)
+
+        if issubclass(item.real_type, models.Coverage):
+            # add a link for a Describe and GetCoverage request for
+            # metadata and data download
+            links.extend([
+                ATOM("link", rel="enclosure", href=request.build_absolute_uri(
+                        "%s?service=WCS&version=2.0.1&request=GetCoverage"
+                        "&coverageId=%s" % (reverse("ows"), item.identifier)
+                    )
+                ),
+                ATOM("link", rel="via", href=request.build_absolute_uri(
+                        "%s?service=WCS&version=2.0.1&request=DescribeCoverage"
+                        "&coverageId=%s" % (reverse("ows"), item.identifier)
+                    )
+                )
+            ])
+        return links
+
+    def encode_summary(self, request, item):
+        pass

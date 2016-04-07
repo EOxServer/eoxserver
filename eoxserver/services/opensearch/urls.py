@@ -26,14 +26,18 @@
 #-------------------------------------------------------------------------------
 
 
-from django.conf.urls import url
+from django.conf.urls import url, include
 
 from eoxserver.services.opensearch.views import description, search
 
 urlpatterns = ([
     url(r'^$', description, name='description'),
-    url(
-        r'^(?P<collection_id>[^/]+)\.(?P<format_name>[^/]+)$', search,
-        name='search'
-    )
+    url(r'^(?P<format_name>[^/]+)/$', search, name='search'),
+    url(r'^collections/(?P<collection_id>[^/]+)/', include([
+        url(r'^$', description, name='description'),
+        url(
+            r'^(?P<format_name>[^/]+)/$', search,
+            name='search'
+        )
+    ], namespace='collection'))
 ], 'opensearch', 'opensearch')
