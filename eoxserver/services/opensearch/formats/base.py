@@ -57,7 +57,7 @@ class BaseOGRResultFormat(BaseResultFormat):
     driver_name = None
     extension = None
 
-    def encode(self, queryset):
+    def encode(self, request, collection_id, queryset, search_context):
         """ Encode a query set as an OGR datasource and retrieve its contents.
         """
         # create a datasource and its fields
