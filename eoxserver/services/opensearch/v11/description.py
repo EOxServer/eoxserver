@@ -26,13 +26,9 @@
 #-------------------------------------------------------------------------------
 
 
-from copy import deepcopy
-from itertools import product
-from urllib import urlencode
-
 from lxml.builder import ElementMaker
 from django.core.urlresolvers import reverse
-from django.http import QueryDict
+from django.shortcuts import get_object_or_404
 
 from eoxserver.core import Component, ExtensionPoint
 from eoxserver.core.util.xmltools import (
@@ -53,7 +49,7 @@ OS = ElementMaker(namespace=ns_os.uri, nsmap=nsmap)
 class OpenSearch11DescriptionEncoder(XMLEncoder):
     content_type = "application/opensearchdescription+xml"
 
-    def encode_description(self, request, collection_id,
+    def encode_description(self, request, collection,
                            search_extensions, result_formats):
         description = OS("OpenSearchDescription",
             OS("ShortName"),
@@ -61,7 +57,7 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
         )
         description.extend([
             self.encode_url(
-                request, collection_id, search_extensions, result_format
+                request, collection, search_extensions, result_format
             )
             for result_format in result_formats
         ]),
@@ -78,12 +74,11 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
         ])
         return description
 
-    def encode_url(self, request, collection_id,
-                   search_extensions, result_format):
-        if collection_id:
+    def encode_url(self, request, collection, search_extensions, result_format):
+        if collection:
             search_url = reverse("opensearch:collection:search",
                 kwargs={
-                    "collection_id": collection_id,
+                    "collection_id": collection.identifier,
                     "format_name": result_format.name
                 }
             )
@@ -109,7 +104,7 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
             type=result_format.mimetype,
             template="%s?q={searchTerms?}&count={count?}"
                 "&startIndex={startIndex?}&%s" % (search_url, query_template),
-            rel="results" if collection_id else "collection"
+            rel="results" if collection else "collection"
         )
 
 
@@ -119,10 +114,17 @@ class OpenSearch11DescriptionHandler(Component):
 
     def handle(self, request, collection_id=None):
         encoder = OpenSearch11DescriptionEncoder()
+
+        collection = None
+        if collection_id:
+            collection = get_object_or_404(models.Collection,
+                identifier=collection_id
+            )
+
         return (
             encoder.serialize(
                 encoder.encode_description(
-                    request, collection_id,
+                    request, collection,
                     self.search_extensions, self.result_formats
                 )
             ),
