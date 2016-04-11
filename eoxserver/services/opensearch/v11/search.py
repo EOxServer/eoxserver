@@ -27,6 +27,8 @@
 
 from collections import namedtuple
 
+from django.http import Http404
+
 from eoxserver.core import Component, ExtensionPoint
 from eoxserver.core.decoders import kvp
 from eoxserver.core.util.xmltools import NameSpaceMap
@@ -91,11 +93,14 @@ class OpenSearch11SearchHandler(Component):
         elif decoder.count:
             qs = qs[:decoder.count]
 
-        result_format = next(
-            result_format
-            for result_format in self.result_formats
-            if result_format.name == format_name
-        )
+        try:
+            result_format = next(
+                result_format
+                for result_format in self.result_formats
+                if result_format.name == format_name
+            )
+        except StopIteration:
+            raise Http404("No such result format '%s'." % format_name)
 
         search_context = SearchContext(
             total_count, decoder.start_index, decoder.count, len(qs),
