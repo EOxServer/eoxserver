@@ -1,0 +1,22 @@
+<html>
+<head>
+  <title>Search Results</title>
+</head>
+<body>
+  <h1>Search Results</h1>
+  {% block content %}
+    {% for record in queryset %}
+      <h2>{{ record.identifier }}</h2>
+      <ul>
+        {% if record.iscoverage %}
+          <li><a href="{% url 'ows' %}?service=WCS&amp;version=2.0.1&amp;request=DescribeCoverage&amp;coverageid={{ record.identifier }}">WCS 2.0 Coverage Description</a></li>
+        {% endif %}
+        {% if record.iscollection %}
+          <li><a href="{% url 'ows' %}?service=WCS&amp;version=2.0.1&amp;request=DescribeEOCoverageSet&amp;eoid={{ record.identifier }}">WCS 2.0 EO Coverage Set Description</a></li>
+          <li><a href="{% url 'opensearch:collection:description' collection_id=record.identifier %}">OpenSearch Description</a></li>
+        {% endif %}
+      </ul>
+    {% endfor %}
+  {% endblock %}
+</body>
+</html>
