@@ -1,6 +1,7 @@
 <html>
 <head>
   <title>Search Results</title>
+  <link rel="search" type="application/opensearchdescription+xml" href="{% if collection_id %}{% url 'opensearch:collection:description' collection_id=collection_id %}{% else %}{% url 'opensearch:description' %}{% endif %}" title="Content search" />
 </head>
 <body>
   <h1>Search Results</h1>

@@ -42,5 +42,6 @@ class HTMLResultFormat(BaseResultFormat):
 
         # TODO: make the template configurable
         return render(request, 'opensearch/result.html', {
+            'collection_id': collection_id,
             'queryset': queryset
         }).content
