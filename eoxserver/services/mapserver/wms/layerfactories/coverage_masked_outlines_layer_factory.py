@@ -26,24 +26,19 @@
 #-------------------------------------------------------------------------------
 
 
-from eoxserver.core import Component, implements
 from eoxserver.contrib import mapserver as ms
-from eoxserver.resources.coverages import models
-from eoxserver.services.mapserver.interfaces import LayerFactoryInterface
 from eoxserver.services.mapserver.wms.layerfactories.base import (
     AbstractLayerFactory, BaseStyleMixIn, PolygonLayerMixIn
 )
 
 
-class CoverageMaskedOutlinesLayerFactory(BaseStyleMixIn, PolygonLayerMixIn, AbstractLayerFactory):
-    handles = (models.RectifiedDataset, models.ReferenceableDataset,
-               models.RectifiedStitchedMosaic,)
+class CoverageMaskedOutlinesLayerFactory(BaseStyleMixIn, PolygonLayerMixIn,
+                                         AbstractLayerFactory):
     suffixes = ("_masked_outlines",)
     requires_connection = False
 
-    
     def generate(self, eo_object, group_layer, suffix, options):
-        # don't generate any layers, but add the footprint as feature to the 
+        # don't generate any layers, but add the footprint as feature to the
         # group layer
 
         if group_layer:
@@ -66,9 +61,8 @@ class CoverageMaskedOutlinesLayerFactory(BaseStyleMixIn, PolygonLayerMixIn, Abst
             shape.initValues(1)
             shape.setValue(0, eo_object.identifier)
             layer.addFeature(shape)
-        
-        yield layer, mask_items
 
+        yield layer, mask_items
 
     def generate_group(self, name):
         return self._create_polygon_layer(name)

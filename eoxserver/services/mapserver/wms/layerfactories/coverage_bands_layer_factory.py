@@ -26,24 +26,14 @@
 #-------------------------------------------------------------------------------
 
 
-import os.path
+from eoxserver.contrib.mapserver import Layer
 
-from django.conf import settings
-
-from eoxserver.core import Component, implements
-from eoxserver.contrib.mapserver import (
-    Layer, MS_LAYER_POLYGON, shapeObj, classObj, styleObj, colorObj
-)
-from eoxserver.resources.coverages import models
-from eoxserver.services.mapserver.interfaces import LayerFactoryInterface
 from eoxserver.services.mapserver.wms.layerfactories.base import (
     AbstractLayerFactory, OffsiteColorMixIn
 )
 
 
 class CoverageBandsLayerFactory(OffsiteColorMixIn, AbstractLayerFactory):
-    handles = (models.RectifiedDataset, models.RectifiedStitchedMosaic,)
-              # TODO: ReferenceableDatasets
     suffixes = ("_bands",)
     requires_connection = True
 
@@ -53,7 +43,7 @@ class CoverageBandsLayerFactory(OffsiteColorMixIn, AbstractLayerFactory):
         layer.setMetaData("ows_title", name)
         layer.setMetaData("wms_label", name)
         layer.addProcessing("CLOSE_CONNECTION=CLOSE")
-    
+
         coverage = eo_object.cast()
         range_type = coverage.range_type
 
@@ -74,7 +64,8 @@ class CoverageBandsLayerFactory(OffsiteColorMixIn, AbstractLayerFactory):
                         break
                 else:
                     raise Exception(
-                        "Coverage '%s' does not have a band with name '%s'." 
+                        "Coverage '%s' does not have a band with name '%s'."
+                        % (coverage.identifier, req_band)
                     )
 
         if len(req_bands) in (3, 4):
@@ -86,7 +77,7 @@ class CoverageBandsLayerFactory(OffsiteColorMixIn, AbstractLayerFactory):
             offsite_indices = [v, v, v]
         else:
             raise Exception("Invalid number of bands requested.")
-        
+
         offsite = self.offsite_color_from_range_type(
             range_type, offsite_indices
         )

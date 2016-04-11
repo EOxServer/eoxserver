@@ -33,25 +33,24 @@ from eoxserver.services.mapserver.wms.layerfactories.base import (
     BaseCoverageLayerFactory
 )
 
-class CoverageMaskedLayerFactory(BaseCoverageLayerFactory): 
+
+class CoverageMaskedLayerFactory(BaseCoverageLayerFactory):
     handles = (models.RectifiedDataset, models.RectifiedStitchedMosaic)
     suffixes = ("_masked",)
     requires_connection = True
 
     def generate(self, eo_object, group_layer, suffix, options):
-        name = eo_object.identifier + suffix
         mask_layer_name = eo_object.identifier + "__mask__"
 
-        #---------------------------------------------------------------------
-        # handle the mask layers 
+        # handle the mask layers
 
-        # get the applicable sematics 
+        # get the applicable sematics
         mask_semantics = ("polygonmask",)
         mask_items = eo_object.data_items.all()
         for mask_semantic in mask_semantics:
             mask_items = mask_items.filter(semantic__startswith=mask_semantic)
 
-        # layer creating closure 
+        # layer creating closure
         def _create_mask_polygon_layer(name):
             mask_layer = ms.layerObj()
             mask_layer.name = name
@@ -68,37 +67,32 @@ class CoverageMaskedLayerFactory(BaseCoverageLayerFactory):
         if len(mask_items) > 1:
 
             # more than one mask, requires a mask group layer
-            mask_layer = Layer(mask_layer_name)
+            mask_layer = ms.Layer(mask_layer_name)
 
-            yield (mask_group_layer, ())
+            yield (mask_layer, ())
 
             # generate mask layers
             for i, mask_item in enumerate(mask_items):
 
                 mask_sublayer = _create_mask_polygon_layer(
-                    "%s%2.2d"%(mask_layer_name,i)
+                    "%s%2.2d" % (mask_layer_name, i)
                 )
                 mask_sublayer.group = mask_layer.name
 
                 yield (mask_sublayer, (mask_item,))
 
-
-        # single mask shall be used directly as a "group" layer 
-        elif len(mask_items) == 1 :
+        # single mask shall be used directly as a "group" layer
+        elif len(mask_items) == 1:
 
             mask_layer = _create_mask_polygon_layer(mask_layer_name)
 
             yield (mask_layer, (mask_items[0],))
 
-
-        # no mask at all 
-        else: 
-
+        # no mask at all
+        else:
             mask_layer = None
 
-        #---------------------------------------------------------------------
-        # handle the image layers 
-
+        # handle the image layers
         super_items = super(CoverageMaskedLayerFactory, self).generate(
             eo_object, group_layer, suffix, options
         )
@@ -117,10 +111,8 @@ class CoverageMaskedLayerFactory(BaseCoverageLayerFactory):
             # "re-yield" the layer and its items
             yield (layer, data_items)
 
-
     def generate_group(self, name):
         layer = ms.layerObj()
         layer.name = name
         layer.type = ms.MS_LAYER_RASTER
         return layer
-

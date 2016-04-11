@@ -26,13 +26,12 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from eoxserver.resources.coverages import models
+
 from eoxserver.services.mapserver.wms.layerfactories.base import (
     BaseCoverageLayerFactory
 )
 
+
 class CoverageLayerFactory(BaseCoverageLayerFactory):
-    handles = (models.RectifiedDataset, models.RectifiedStitchedMosaic, 
-               models.ReferenceableDataset)
     suffixes = (None,)
     requires_connection = True
