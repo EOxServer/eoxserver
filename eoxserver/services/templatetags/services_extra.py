@@ -4,7 +4,7 @@
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
 #
 #-------------------------------------------------------------------------------
-# Copyright (C) 2015 EOX IT Services GmbH
+# Copyright (C) 2016 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,24 +25,42 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+# from https://gist.github.com/kulturlupenguen/69aec1259131b5619fb7
 
-from django.shortcuts import render
+from django.template import Library
+from django.template.defaulttags import URLNode, url
 
-from eoxserver.services.opensearch.formats.base import BaseResultFormat
+register = Library()
 
 
-class HTMLResultFormat(BaseResultFormat):
-    """ HTML result format.
-    """
+class AbsoluteURL(str):
+    pass
 
-    mimetype = "text/html"
-    name = "html"
 
-    def encode(self, request, collection_id, queryset, search_context):
+class AbsoluteURLNode(URLNode):
+    def render(self, context):
+        asvar, self.asvar = self.asvar, None
+        path = super(AbsoluteURLNode, self).render(context)
+        request_obj = context['request']
+        abs_url = AbsoluteURL(request_obj.build_absolute_uri(path))
 
-        # TODO: make the template configurable
-        return render(request, 'opensearch/result.html', {
-            'collection_id': collection_id,
-            'queryset': queryset,
-            'request': request
-        }).content
+        if not asvar:
+            return str(abs_url)
+        else:
+            if path == request_obj.path:
+                abs_url.active = 'active'
+            else:
+                abs_url.active = ''
+            context[asvar] = abs_url
+            return ''
+
+
+@register.tag
+def absurl(parser, token):
+    node = url(parser, token)
+    return AbsoluteURLNode(
+        view_name=node.view_name,
+        args=node.args,
+        kwargs=node.kwargs,
+        asvar=node.asvar
+    )
