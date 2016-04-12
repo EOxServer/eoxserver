@@ -31,7 +31,7 @@ from django.db.models import Q
 from eoxserver.core import Component, implements
 from eoxserver.core.decoders import kvp, enum
 from eoxserver.core.util.xmltools import NameSpace
-from eoxserver.core.util.timetools import parse_iso8601
+from eoxserver.core.util.timetools import parse_iso8601, isoformat
 from eoxserver.services.opensearch.interfaces import SearchExtensionInterface
 
 
@@ -44,12 +44,6 @@ class TimeExtension(Component):
     namespace = NameSpace(
         "http://a9.com/-/opensearch/extensions/time/1.0/", "time"
     )
-
-    schema = {
-        "start": ("start", True),
-        "end": ("end", True),
-        "timerel": ("relation", True)
-    }
 
     def filter(self, qs, parameters):
         decoder = TimeExtensionDecoder(parameters)
@@ -73,9 +67,8 @@ class TimeExtension(Component):
             if relation == "intersects":
                 qs = qs.filter(end_time__gte=start)
             elif relation == "contains":
-                # TODO: not possible for a coverage to contain an open interval
+                # not possible for a coverage to contain an open interval
                 pass
-                #qs = qs.filter(Q(begin_time__lte=start) & Q(end_time__gte=end))
             elif relation == "during":
                 qs = qs.filter(begin_time__gte=start)
             elif relation == "disjoint":
@@ -86,9 +79,8 @@ class TimeExtension(Component):
             if relation == "intersects":
                 qs = qs.filter(begin_time__lte=end)
             elif relation == "contains":
+                # see above
                 pass
-                # TODO: see above
-                #qs = qs.filter(Q(begin_time__lte=start) & Q(end_time__gte=end))
             elif relation == "during":
                 qs = qs.filter(end_time__lte=end)
             elif relation == "disjoint":
@@ -96,6 +88,22 @@ class TimeExtension(Component):
             elif relation == "equals":
                 qs = qs.filter(end_time=end)
         return qs
+
+    def get_schema(self, collection=None):
+        minmax = {}
+        if collection:
+            if collection.begin_time:
+                minmax["minimum"] = isoformat(collection.begin_time)
+            if collection.end_time:
+                minmax["maximum"] = isoformat(collection.end_time)
+
+        return (
+            dict(name="start", type="start", **minmax),
+            dict(name="end", type="end", **minmax),
+            dict(name="timerel", type="relation",
+                options=["intersects", "contains", "disjoint", "equals"]
+            )
+        )
 
 
 class TimeExtensionDecoder(kvp.Decoder):

@@ -76,9 +76,9 @@ class OpenSearch11SearchHandler(Component):
             # get all search extension related parameters and translate the name
             # to the actual parameter name
             params = dict(
-                (value[0], request.GET[key])
-                for key, value in search_extension.schema.items()
-                if key in request.GET
+                (parameter["type"], request.GET[parameter["name"]])
+                for parameter in search_extension.get_schema()
+                if parameter["name"] in request.GET
             )
             qs = search_extension.filter(qs, params)
             namespaces.add(search_extension.namespace)
