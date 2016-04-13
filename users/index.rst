@@ -57,6 +57,7 @@ and APIs please refer to the :ref:`EOxServer Developers' Guide`.
    mailing_lists
    demonstration
    EO-WCS_request_parameters
+   opensearch
    operators
    webclient
    idm/index
