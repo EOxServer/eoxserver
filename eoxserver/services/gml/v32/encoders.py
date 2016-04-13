@@ -27,14 +27,14 @@
 
 from lxml.builder import ElementMaker
 
-from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap, ns_xsi
+from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap
 from eoxserver.core.util.timetools import isoformat
 from eoxserver.resources.coverages import crss
 
 # namespace declarations
 ns_gml = NameSpace("http://www.opengis.net/gml/3.2", "gml")
 ns_gmlcov = NameSpace("http://www.opengis.net/gmlcov/1.0", "gmlcov")
-ns_om  = NameSpace("http://www.opengis.net/om/2.0", "om")
+ns_om = NameSpace("http://www.opengis.net/om/2.0", "om")
 ns_eop = NameSpace("http://www.opengis.net/eop/2.0", "eop")
 
 nsmap = NameSpaceMap(ns_gml, ns_gmlcov, ns_om, ns_eop)
@@ -42,7 +42,7 @@ nsmap = NameSpaceMap(ns_gml, ns_gmlcov, ns_om, ns_eop)
 # Element factories
 GML = ElementMaker(namespace=ns_gml.uri, nsmap=nsmap)
 GMLCOV = ElementMaker(namespace=ns_gmlcov.uri, nsmap=nsmap)
-OM  = ElementMaker(namespace=ns_om.uri, nsmap=nsmap)
+OM = ElementMaker(namespace=ns_om.uri, nsmap=nsmap)
 EOP = ElementMaker(namespace=ns_eop.uri, nsmap=nsmap)
 
 
@@ -50,7 +50,7 @@ class GML32Encoder(object):
     def encode_linear_ring(self, ring, sr):
         frmt = "%.3f %.3f" if sr.projected else "%.8f %.8f"
 
-        swap = crss.getAxesSwapper(sr.srid) 
+        swap = crss.getAxesSwapper(sr.srid)
         pos_list = " ".join(frmt % swap(*point) for point in ring)
 
         return GML("LinearRing",
@@ -73,7 +73,7 @@ class GML32Encoder(object):
     def encode_multi_surface(self, geom, base_id):
         if geom.geom_typeid in (6, 7):  # MultiPolygon and GeometryCollection
             polygons = [
-                self.encode_polygon(polygon, "%s_%d" % (base_id, i+1))    
+                self.encode_polygon(polygon, "%s_%d" % (base_id, i+1))
                 for i, polygon in enumerate(geom)
             ]
         elif geom.geom_typeid == 3:     # Polygon
@@ -96,8 +96,9 @@ class GML32Encoder(object):
     def encode_time_instant(self, time, identifier):
         return GML("TimeInstant",
             GML("timePosition", isoformat(time)),
-            **{ns_gml("id"): identifier}   
+            **{ns_gml("id"): identifier}
         )
+
 
 class EOP20Encoder(GML32Encoder):
     def encode_footprint(self, footprint, eo_id):
@@ -112,13 +113,14 @@ class EOP20Encoder(GML32Encoder):
                 EOP("identifier", eo_id),
                 EOP("acquisitionType", "NOMINAL"),
                 EOP("status", "ARCHIVED"),
-                *([EOP("composedOf", contributing_datasets)] 
+                *([EOP("composedOf", contributing_datasets)]
                     if contributing_datasets else []
                 )
             )
         )
 
-    def encode_earth_observation(self, eo_metadata, contributing_datasets=None, subset_polygon=None):
+    def encode_earth_observation(self, eo_metadata, contributing_datasets=None,
+                                 subset_polygon=None):
         identifier = eo_metadata.identifier
         begin_time = eo_metadata.begin_time
         end_time = eo_metadata.end_time
@@ -128,10 +130,11 @@ class EOP20Encoder(GML32Encoder):
         if subset_polygon is not None:
             footprint = footprint.intersection(subset_polygon)
 
-        
         return EOP("EarthObservation",
             OM("phenomenonTime",
-                self.encode_time_period(begin_time, end_time, "phen_time_%s" % identifier)
+                self.encode_time_period(
+                    begin_time, end_time, "phen_time_%s" % identifier
+                )
             ),
             OM("resultTime",
                 self.encode_time_instant(result_time, "res_time_%s" % identifier)

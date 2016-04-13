@@ -224,6 +224,8 @@ COMPONENTS = (
     'eoxserver.services.native.**',
     'eoxserver.services.gdal.**',
     'eoxserver.services.mapserver.**',
+
+    'eoxserver.services.opensearch.**'
 )
 
 

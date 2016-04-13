@@ -211,6 +211,14 @@ class EOObject(base.Castable, EOMetadata, backends.Dataset):
     def __unicode__(self):
         return "%s (%s)" % (self.identifier, self.real_type._meta.verbose_name)
 
+    @property
+    def iscoverage(self):
+        return issubclass(self.real_type, Coverage)
+
+    @property
+    def iscollection(self):
+        return issubclass(self.real_type, Collection)
+
     class Meta:
         verbose_name = "EO Object"
         verbose_name_plural = "EO Objects"

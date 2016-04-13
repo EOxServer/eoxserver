@@ -58,7 +58,10 @@ class Parameter(BaseParameter):
         self._locator = locator
 
     def select(self, decoder, decoder_class=None):
-        return decoder._query_dict.get(self.key, [])
+        return [
+            value for value in decoder._query_dict.get(self.key, [])
+            if value != ""
+        ]
 
     @property
     def locator(self):

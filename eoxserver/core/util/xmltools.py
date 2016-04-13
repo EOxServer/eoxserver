@@ -66,8 +66,8 @@ class NameSpace(object):
         decoding.
 
         :param uri: the namespace URI
-        :param uri: the namespace prefix
-        :param uri: the schema location of this namespace
+        :param prefix: the namespace prefix
+        :param schema_location: the schema location of this namespace
     """
 
     def __init__(self, uri, prefix=None, schema_location=None):
