@@ -27,6 +27,7 @@
 
 from autotest_services import base as testbase
 import base as wcsbase
+import mapscript
 
 
 #===============================================================================
@@ -132,6 +133,9 @@ class WCS11GetCoverageBBoxFaultTestCase(testbase.ExceptionTestCase):
         return (params, "kvp")
 
     def getExpectedExceptionCode(self):
+        # newer versions return a different exception code and message
+        if mapscript.MS_VERSION_NUM >= 60400:
+            return "bbox"
         return "NoApplicableCode"
 
 class WCS11GetCoverageFormatUnsupportedFaultTestCase(testbase.ExceptionTestCase):
