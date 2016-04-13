@@ -40,10 +40,15 @@ admin.autodiscover()
 
 # Enable the ATP auxiliary views:
 from eoxserver.resources.processes import views as procViews
+from eoxserver.services.opensearch.urls import urlpatterns as opensearch
+
 
 urlpatterns = patterns('',
     (r'^$', 'eoxserver.views.index'),
     url(r'^ows$', include("eoxserver.services.urls")),
+
+    # enable OpenSearch URLs
+    url(r'^opensearch/', include(opensearch)),
 
     # enable the client
     url(r'^client/', include("eoxserver.webclient.urls")),
