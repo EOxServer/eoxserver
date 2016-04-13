@@ -224,7 +224,7 @@
       "end": "{{ end_time_full }}"
     },
     "brush": {
-       "start": "{{ start_time }}",
+      "start": "{{ start_time }}",
       "end": "{{ end_time }}"
     }
   },

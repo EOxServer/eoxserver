@@ -65,7 +65,7 @@ class Parameter(BaseParameter):
             self.selector = etree.XPath(self.selector, namespaces=namespaces)
 
         results = self.selector(decoder._tree)
-        if isinstance(results, basestring):
+        if isinstance(results, (basestring, float, int)):
             results = [results]
 
         return results

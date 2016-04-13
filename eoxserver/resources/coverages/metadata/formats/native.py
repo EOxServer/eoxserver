@@ -50,7 +50,7 @@ class NativeFormat(Component):
 
     def test(self, obj):
         xml = parse(obj)
-        return xml is not None and xml.tag == "Metadata"
+        return xml is not None and xml.getroot().tag == "Metadata"
 
     def get_format_name(self, obj):
         return "native"

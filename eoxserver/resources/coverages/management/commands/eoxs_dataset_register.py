@@ -32,6 +32,7 @@ from django.core.management import call_command
 from django.core.management.base import CommandError, BaseCommand
 from django.utils.dateparse import parse_datetime
 from django.contrib.gis import geos
+from django.utils.importlib import import_module
 
 from eoxserver.core import env
 from eoxserver.contrib import gdal, osr
@@ -279,8 +280,12 @@ class Command(CommandOutputMixIn, BaseCommand):
             data_item.save()
             all_data_items.append(data_item)
 
-            # TODO: other opening methods than GDAL
-            ds = gdal.Open(connect(data_item, cache))
+            try:
+                ds = gdal.Open(connect(data_item, cache))
+            except:
+                with open(connect(data_item, cache)) as f:
+                    ds = f.read()
+
             reader = metadata_component.get_reader_by_test(ds)
             if reader:
                 values = reader.read(ds)
@@ -292,8 +297,7 @@ class Command(CommandOutputMixIn, BaseCommand):
                     data_item.save()
 
                 for key, value in values.items():
-                    if key in metadata_keys:
-                        retrieved_metadata.setdefault(key, value)
+                    retrieved_metadata.setdefault(key, value)
             ds = None
 
         if len(metadata_keys - set(retrieved_metadata.keys())):
@@ -334,11 +338,19 @@ class Command(CommandOutputMixIn, BaseCommand):
                 )
 
         try:
+            coverage_type = retrieved_metadata["coverage_type"]
             # TODO: allow types of different apps
-            CoverageType = getattr(models, retrieved_metadata["coverage_type"])
+
+            if len(coverage_type.split(".")) > 1:
+                module_name, _, coverage_type = coverage_type.rpartition(".")
+                module = import_module(module_name)
+                CoverageType = getattr(module, coverage_type)
+            else:
+                CoverageType = getattr(models, coverage_type)
         except AttributeError:
             raise CommandError(
-                "Type '%s' is not supported." % kwargs["coverage_type"]
+                "Type '%s' is not supported."
+                % retrieved_metadata["coverage_type"]
             )
 
         try:

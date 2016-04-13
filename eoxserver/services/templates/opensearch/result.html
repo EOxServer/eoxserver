@@ -1,0 +1,27 @@
+{% load services_extra %}
+<html>
+<head>
+  <title>Search Results</title>
+  <link rel="search" type="application/opensearchdescription+xml" href="{% absurl 'opensearch:description' %}" title="Collection search" />
+  {% if collection_id %}
+  <link rel="search" type="application/opensearchdescription+xml" href="{% absurl 'opensearch:collection:description' collection_id=collection_id %}" title="Record search" />
+  {% endif %}
+</head>
+<body>
+  <h1>Search Results</h1>
+  {% block content %}
+    {% for record in queryset %}
+      <h2>{{ record.identifier }}</h2>
+      <ul>
+        {% if record.iscoverage %}
+          <li><a href="{% absurl 'ows' %}?service=WCS&amp;version=2.0.1&amp;request=DescribeCoverage&amp;coverageid={{ record.identifier }}">WCS 2.0 Coverage Description</a></li>
+        {% endif %}
+        {% if record.iscollection %}
+          <li><a href="{% absurl 'ows' %}?service=WCS&amp;version=2.0.1&amp;request=DescribeEOCoverageSet&amp;eoid={{ record.identifier }}">WCS 2.0 EO Coverage Set Description</a></li>
+          <li><a href="{% absurl 'opensearch:collection:description' collection_id=record.identifier %}">OpenSearch Description</a></li>
+        {% endif %}
+      </ul>
+    {% endfor %}
+  {% endblock %}
+</body>
+</html>

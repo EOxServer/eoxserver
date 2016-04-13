@@ -1,1 +1,1 @@
-(function(){"use strict";var a=this;a.define(["backbone","communicator"],function(a){var b=a.Model.extend({ToI:{},AoI:[],products:{}});return{DownloadModel:b}})}).call(this);
+(function(){"use strict";var a=this;a.define(["backbone","communicator"],function(a,b){var c=a.Model.extend({ToI:{},AoI:[],products:{}});return{DownloadModel:c}})}).call(this);

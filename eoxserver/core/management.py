@@ -31,6 +31,7 @@ import os
 import sys
 from optparse import make_option
 
+import django
 from django.utils.importlib import import_module
 from django.core.management import BaseCommand
 from django.core.management.base import CommandError
@@ -38,58 +39,67 @@ from django.utils import termcolors
 
 import eoxserver
 
+
 class CommandNotFound(Exception):
     def __init__(self, cmdname):
         self.cmdname = cmdname
 
+
 class EOxServerAdminCommand(BaseCommand):
-    option_list = (
-        make_option('-v', '--verbosity', action='store', dest='verbosity', default='1',
-            type='choice', choices=['0', '1', '2', '3'],
-        ),
-    )
-    
+    if django.VERSION < (1, 8):
+        option_list = (
+            make_option('-v', '--verbosity',
+                action='store', dest='verbosity', default='1',
+                type='choice', choices=['0', '1', '2', '3'],
+            ),
+        )
+
     def run_from_argv(self, argv):
         self.parser = self.create_parser(argv[0], argv[1])
         options, args = self.parser.parse_args(argv[2:])
         self.handle(*args, **options.__dict__)
 
+
 def get_commands():
     import eoxserver.core.commands
     command_dir = os.path.dirname(eoxserver.core.commands.__file__)
-    command_names = [f[:-3] for f in os.listdir(command_dir)
-                                if not f.startswith('_') and f.endswith('.py')]
-    
+    command_names = [
+        f[:-3] for f in os.listdir(command_dir)
+        if not f.startswith('_') and f.endswith('.py')
+    ]
+
     commands = {}
     for name in command_names:
         try:
             module = import_module("eoxserver.core.commands.%s" % name)
             commands[name] = module.Command()
-            
+
         except ImportError:
             raise
-    
+
     return commands
-    
+
+
 def print_possible_commands(commands, stream=sys.stdout):
     stream.write(
         "Type 'eoxserver-admin.py help <subcommand>' "
         "for help on a specific subcommand.\n\n"
     )
     stream.write(
-        "Possible commands are:\n" + 
+        "Possible commands are:\n" +
         "\t%s" % ("\n\t".join(commands.keys())) +
         "\n"
     )
+
 
 def execute_from_commandline():
     try:
         subcommand = sys.argv[1]
     except IndexError:
         subcommand = 'help'
-    
+
     commands = get_commands()
-    
+
     if subcommand in ('help', '--help', '-h'):
         try:
             cmd = commands[sys.argv[2]]
@@ -101,17 +111,20 @@ def execute_from_commandline():
         except KeyError:
             print "Command '%s' not found.\n" % sys.argv[2]
             print_possible_commands(commands)
-        
+
     elif subcommand == '--version':
         print eoxserver.get_version()
-    
+
     else:
         try:
-            commands[subcommand].run_from_argv(sys.argv)
+            command = commands[subcommand]
         except KeyError:
-            print "Command '%s' not found.\n" % sys.argv[2]
+            print "Command '%s' not found.\n" % sys.argv[1]
             print_possible_commands(commands)
             sys.exit(1)
+
+        try:
+            command.run_from_argv(sys.argv)
         except CommandError, e:
             print termcolors.colorize("Error: %s" % e, fg="red")
             sys.exit(1)

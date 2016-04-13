@@ -1,1 +1,1 @@
-(function(){"use strict";var a=this;a.define(["backbone","communicator","underscore"],function(a){var b=a.Marionette.CollectionView.extend({tagName:"div",className:"btn-group-vertical",initialize:function(){},onShow:function(){}});return{ToolSelectionView:b}})}).call(this);
+(function(){"use strict";var a=this;a.define(["backbone","communicator","underscore"],function(a,b,c){var d=a.Marionette.CollectionView.extend({tagName:"div",className:"btn-group-vertical",initialize:function(a){},onShow:function(a){}});return{ToolSelectionView:d}})}).call(this);

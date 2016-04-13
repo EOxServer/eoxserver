@@ -1,1 +1,1 @@
-(function(){"use strict";var a=this;a.define(["backbone","communicator","underscore"],function(a){var b=a.Marionette.CollectionView.extend({tagName:"ul",className:"radio",initialize:function(){},onShow:function(){}});return{BaseLayerSelectionView:b}})}).call(this);
+(function(){"use strict";var a=this;a.define(["backbone","communicator","underscore"],function(a,b,c){var d=a.Marionette.CollectionView.extend({tagName:"ul",className:"radio",initialize:function(a){},onShow:function(a){}});return{BaseLayerSelectionView:d}})}).call(this);

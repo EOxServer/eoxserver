@@ -66,8 +66,8 @@ class NameSpace(object):
         decoding.
 
         :param uri: the namespace URI
-        :param uri: the namespace prefix
-        :param uri: the schema location of this namespace
+        :param prefix: the namespace prefix
+        :param schema_location: the schema location of this namespace
     """
 
     def __init__(self, uri, prefix=None, schema_location=None):
@@ -123,22 +123,21 @@ def parse(obj):
         to whatever ``lxml.etree.parse`` parses. Returns ``None`` if it could
         not parse any XML.
     """
-
-    tree = None
     if etree.iselement(obj):
+        return obj.getroottree()
+    elif isinstance(obj, etree._ElementTree):
         return obj
-    elif isinstance(obj, basestring):
-        try:
-            tree = etree.fromstring(obj)
-        except:
-            pass
-    else:
-        try:
-            tree = etree.parse(obj)
-        except:
-            pass
-
-    return tree
+    try:
+        tree_or_elem = etree.fromstring(obj)
+        if etree.iselement(tree_or_elem):
+            return tree_or_elem.getroottree()
+        return tree_or_elem
+    except:
+        pass
+    try:
+        return etree.parse(obj)
+    except:
+        pass
 
 
 ns_xsi = NameSpace("http://www.w3.org/2001/XMLSchema-instance", "xsi")

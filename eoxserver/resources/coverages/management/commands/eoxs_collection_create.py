@@ -31,6 +31,7 @@ from optparse import make_option
 from django.core.management import call_command
 from django.core.management.base import CommandError, BaseCommand
 
+from eoxserver.core.util.importtools import import_module
 from eoxserver.resources.coverages import models
 from eoxserver.resources.coverages.management.commands import (
     CommandOutputMixIn, _variable_args_cb, nested_commit_on_success

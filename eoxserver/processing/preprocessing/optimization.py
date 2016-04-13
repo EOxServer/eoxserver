@@ -84,9 +84,12 @@ class ReprojectionOptimization(DatasetOptimization):
         dst_sr.ImportFromEPSG(self.srid)
 
         if src_sr.IsSame(dst_sr) and (src_ds.GetGeoTransform()[1] > 0) \
-                and (src_ds.GetGeoTransform()[5] < 0):
+                and (src_ds.GetGeoTransform()[5] < 0) \
+                and (src_ds.GetGeoTransform()[2] == 0) \
+                and (src_ds.GetGeoTransform()[4] == 0):
             logger.info("Source and destination projection are equal and image "
-                        "is not flipped. Thus, no reprojection is required.")
+                        "is not flipped or has rotated axes. Thus, no "
+                        "reprojection is required.")
             return src_ds
 
         # create a temporary dataset to get information about the output size
@@ -358,7 +361,14 @@ class OverviewOptimization(DatasetPostOptimization):
         ds.BuildOverviews(self.resampling, [])
 
         # re-build overviews
-        ds.BuildOverviews(self.resampling, levels)
+        # workaround for libtiff 3.X systems, which generated wrong overviews
+        # on some levels. Skip with warning if workaround is not working.
+        for level in levels:
+            try:
+                ds.BuildOverviews(self.resampling, [level])
+            except RuntimeError:
+                logger.warning("Overview building failed for level '%s'." %
+                               level)
 
         return ds
 
@@ -378,8 +388,8 @@ class AlphaBandOptimization(object):
         elif src_ds.RasterCount == 4:
             pass  # okay
         else:
-            raise Exception("Cannot add alpha band, as the current band number "
-                            "'%d' does not match" % src_ds.RasterCount)
+            raise Exception("Cannot add alpha band, as the current number of "
+                            "bands '%d' does not match" % src_ds.RasterCount)
 
         # initialize the alpha band with zeroes (completely transparent)
         band = src_ds.GetRasterBand(4)

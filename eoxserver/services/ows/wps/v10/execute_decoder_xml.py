@@ -36,6 +36,7 @@ from eoxserver.services.ows.wps.parameters import (
 )
 from eoxserver.services.ows.wps.v10.util import nsmap, ns_wps, ns_ows, ns_xlink
 
+
 def _bool(raw_bool):
     """ Parse WPS boolean string."""
     return raw_bool == "true"
@@ -125,7 +126,7 @@ def _parse_input_data(elem, identifier, title, abstract):
 
 def _parse_input_literal(elem):
     args = {}
-    args['data'] = elem.text
+    args['data'] = elem.text or ""
     args['uom'] = elem.attrib.get("uom")
     return args
 
@@ -141,10 +142,11 @@ def _parse_input_bbox(elem):
 def _parse_input_complex(elem):
     args = {}
     if len(elem):
-        args['data'] = etree.tostring(elem[0], pretty_print=False,
-                                        xml_declaration=True, encoding="utf-8")
+        args['data'] = etree.tostring(
+            elem[0], pretty_print=False, xml_declaration=True, encoding="utf-8"
+        )
     else:
-        args['data'] = elem.text
+        args['data'] = elem.text or ""
     args['mime_type'] = elem.attrib.get("mimeType")
     args['encoding'] = elem.attrib.get("encoding")
     args['schema'] = elem.attrib.get("schema")
@@ -156,12 +158,15 @@ def _create_output(identifier, attrs, title=None, abstract=None):
     if attr_as_reference is not None:
         attr_as_reference = _bool(attr_as_reference)
 
-    return Output(identifier, title, abstract, attrs.get("uom"),
-            attrs.get("crs"), attrs.get("mimeType"), attrs.get("encoding"),
-            attrs.get("schema"), attr_as_reference)
+    return Output(
+        identifier, title, abstract, attrs.get("uom"),
+        attrs.get("crs"), attrs.get("mimeType"), attrs.get("encoding"),
+        attrs.get("schema"), attr_as_reference
+    )
 
 
 class WPS10ExecuteXMLDecoder(xml.Decoder):
+    """ WPS 1.0 POST/XML Execute request decoder class. """
     identifier = xml.Parameter("ows:Identifier/text()")
     inputs_ = xml.Parameter("wps:DataInputs/wps:Input", type=_parse_input, num="*", default=[])
     _response_form = xml.Parameter("wps:ResponseForm", type=_parse_response_form, num="?")
@@ -176,4 +181,3 @@ class WPS10ExecuteXMLDecoder(xml.Decoder):
         return dict(self.inputs_)
 
     namespaces = nsmap
-

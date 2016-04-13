@@ -162,6 +162,9 @@ def get_content_type(result_set):
 def get_headers(result_item):
     """ Yields content headers, if they are set in the result item.
     """
+    if hasattr(result_item, 'headers'):
+        for header in result_item.headers:
+            yield header
     yield "Content-Type", result_item.content_type or "application/octet-stream"
     if result_item.identifier:
         yield "Content-Id", result_item.identifier

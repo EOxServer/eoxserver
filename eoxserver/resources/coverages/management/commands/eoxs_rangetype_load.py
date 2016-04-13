@@ -31,8 +31,7 @@ import json
 from optparse import make_option
 
 from django.core.management.base import BaseCommand, CommandError
-from eoxserver.resources.coverages.rangetype import isRangeTypeName
-from eoxserver.resources.coverages.rangetype import setRangeType
+from eoxserver.resources.coverages.rangetype import isRangeTypeName, setRangeType
 from eoxserver.resources.coverages.management.commands import CommandOutputMixIn
 
 
@@ -48,124 +47,102 @@ class Command(CommandOutputMixIn, BaseCommand):
     )
 
     help = ("""
-    Load rangetypes stored in JSON format from standard input (defualt) or from
+    Load rangetypes stored in JSON format from standard input (default) or from
     a file (-i option).
 
     NOTE: This command supports JSON formats produced by both the new
-          (>=v0.4) and the old (<0.4) versions of the EOxServer.
-          It is thus possible to export range types from an older EOxServer
-          instance and import them to a new one.
+          (>=v0.4) and old (<0.4) versions of EOxServer.
+          It is thus possible to export rangetypes from an older EOxServer
+          instances and import them to a new one.
     """)
-
 
     def _error(self, rt_name, msg):
         self.print_err("Failed to register rangetype '%s'!"
-                        " Reason: %s" % (rt_name, msg))
-
+                       " Reason: %s" % (rt_name, msg))
 
     def handle(self, *args, **options):
         filename = options.get('filename', '-')
 
         # Collect parameters
-        self.traceback = bool(options.get("traceback", False) )
+        self.traceback = bool(options.get("traceback", False))
         self.verbosity = int(options.get('verbosity', 1))
-        filename       = options.get('filename','-')
+        filename = options.get('filename', '-')
 
-        # dataset's (coverages') ids
-        rt_list = args
-
-        #----------------------------------------------------------------------
         # load and parse the input data
 
-        try :
-
-            if filename == "-" :
+        try:
+            if filename == "-":
 
                 # standard input
-                rts = json.load( sys.stdin )
+                rts = json.load(sys.stdin)
 
-            else :
-
+            else:
                 # file input
-                with open(filename,"r") as fin :
-                    rts = json.load( fin )
+                with open(filename, "r") as fin:
+                    rts = json.load(fin)
 
-        except IOError as e :
-
+        except IOError as e:
             # print stack trace if required
-            if self.traceback :
+            if self.traceback:
                 self.print_msg(traceback.format_exc())
+
             raise CommandError("Failed to open the input file '%s' ! "
-                                    "REASON: %s " % (filename, str(exc)))
+                               "REASON: %s " % (filename, str(e)))
 
         # allow single range-type objects
         if isinstance(rts, dict):
             rts = [rts]
-        #----------------------------------------------------------------------
         # insert the range types to DB
 
-        # insert the range types to DB
-        success_count = 0 # success counter - counts finished syncs
+        success_count = 0  # success counter - counts finished syncs
+
         for i, rt in enumerate(rts):
-            rt_name = rt.get('name', None)
-            if not (isinstance(rt_name, basestring) and rt_name):
-                self.print_err("Range type #%d rejected as it has no valid"
-                                " name."%(i+1))
-                continue
-
-        for i,rt in enumerate(rts) :
-
             # extract RT name
 
-            rt_name = rt.get('name',None)
+            rt_name = rt.get('name', None)
 
-            if not ( isinstance(rt_name, basestring) and rt_name ) :
+            if not (isinstance(rt_name, basestring) and rt_name):
 
-                self.print_err( "Range type #%d rejected as it has no valid"
-                                " name."%(i+1) )
+                self.print_err("Range type #%d rejected as it has no valid"
+                               " name." % (i + 1))
                 continue
 
-            if isRangeTypeName( rt_name ):
+            if isRangeTypeName(rt_name):
+                self.print_err("The name '%s' is already used by another "
+                    "range type! Import of range type #%d aborted!"
+                        % (rt_name, (i + 1)))
 
-                self.print_err( "The name '%s' is already used by another "
-                "range type! Import of range type #%d aborted!" \
-                        %(rt_name, (i+1)))
                 continue
 
-            #------------------------------------------------------------------
-
-            try :
-
+            try:
                 # create rangetype record
-                setRangeType( rt )
+                setRangeType(rt)
 
-                success_count += 1 # increment success counter
+                success_count += 1  # increment success counter
 
             except Exception as e:
 
                 # print stack trace if required
-                if self.traceback :
+                if self.traceback:
                     self.print_msg(traceback.format_exc())
-                self._error(rt['name'], "%s: %s"%(type(exc).__name__, str(exc)))
-                continue # continue by next dataset
 
+                self._error(rt['name'], "%s: %s" % (type(e).__name__, str(e)))
 
-            self.print_msg( "Range type '%s' loaded."%rt['name'])
+                continue  # continue by next dataset
 
-        #----------------------------------------------------------------------
+            self.print_msg("Range type '%s' loaded." % rt['name'])
+
         # print the final info
 
         count = len(rts)
         error_count = count - success_count
 
-        if ( error_count > 0 ) :
-            self.print_msg( "Failed to load %d range types." % (
-                error_count ) , 1 )
+        if (error_count > 0):
+            self.print_msg("Failed to load %d range types." % (
+                error_count), 1)
 
-        if ( success_count > 0 ) :
-            self.print_msg( "Successfully loaded %d of %s range types." % (
-                success_count , count ) , 1 )
-        else :
-            self.print_msg( "No range type loaded." )
-
-#------------------------------------------------------------------------------
+        if (success_count > 0):
+            self.print_msg("Successfully loaded %d of %s range types." % (
+                success_count, count), 1)
+        else:
+            self.print_msg("No range type loaded.")
