@@ -35,6 +35,7 @@ from lxml import etree
 import tempfile
 import mimetypes
 from cStringIO import StringIO
+import cgi
 
 from django.test import Client, TransactionTestCase
 from django.conf import settings
@@ -332,6 +333,17 @@ class RasterTestCase(OWSTestCase):
         if not self.isRequestConfigEnabled("binary_raster_comparison_enabled", True):
             self.skipTest("Binary raster comparison is explicitly disabled.")
         self._testBinaryComparison("raster")
+
+    def testExtension(self):
+        content_disposition = self.response.get("Content-Disposition")
+        if content_disposition is not None:
+            _, params = cgi.parse_header(content_disposition)
+            self.assertEqual(
+                self.getFileExtension("raster"),
+                os.path.splitext(params["filename"])[1][1:]
+            )
+        else:
+            self.skipTest("No 'Content-Disposition' header detected.")
 
 
 class GDALDatasetTestCase(RasterTestCase):
