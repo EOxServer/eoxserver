@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schema targetNamespace="http://www.opengis.net/wcs_service-extension_crs/1.0" 
-    xmlns="http://www.w3.org/2001/XMLSchema" 
+<schema targetNamespace="http://www.opengis.net/wcs_service-extension_crs/1.0"
+    xmlns="http://www.w3.org/2001/XMLSchema"
     elementFormDefault="qualified" version="1.0.0" xml:lang="en">
     <annotation>
         <appinfo>wcsCrs.xsd</appinfo>
