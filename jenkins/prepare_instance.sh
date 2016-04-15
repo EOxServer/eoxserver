@@ -24,6 +24,10 @@ case $DJANGO in
         echo "Using latest django 1.5"
         pip install "django<1.6,>=1.5"
         ;;
+    "django1.6")
+        echo "Using latest django 1.6"
+        pip install "django<1.7,>=1.6"
+        ;;
     *)
         echo "Unknown django version, Exiting..."
         exit 1
