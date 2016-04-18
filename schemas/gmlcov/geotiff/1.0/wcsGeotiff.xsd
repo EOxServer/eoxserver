@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema targetNamespace="http://www.opengis.net/wcs/geotiff/1.0" 
+    xmlns:geotiff="http://www.opengis.net/wcs/geotiff/1.0"
+    xmlns="http://www.w3.org/2001/XMLSchema" 
+    elementFormDefault="qualified" version="1.0.0" xml:lang="en">
+    <annotation>
+        <appinfo>wcsGeotiff.xsd</appinfo>
+        <documentation>This XML Schema Document is part of the WCS GeoTIFF 
+        Encoding Extension [OGC 12-101]. It encodes the elements and types that 
+        allow expressing GeoTIFF features in WCS client/server communication.
+            Last updated: 2012-aug-23
+            Copyright (c) 2012 Open Geospatial Consortium.
+            To obtain additional rights of use, visit http://www.opengeospatial.org/legal/.
+        </documentation>
+    </annotation>
+    <!-- ============================================================== -->
+    <!-- includes and imports                                           -->
+    <!-- ============================================================== -->
+    <import namespace="http://www.opengis.net/wcs/2.0" schemaLocation="http://schemas.opengis.net/wcs/2.0/wcsAll.xsd"/>
+    <!-- ============================================================== -->
+    <!-- elements and types                                             -->
+    <!-- ============================================================== -->
+    <element name="compression" type="geotiff:compressionType" default="None"/>
+    <simpleType name="compressionType">
+        <annotation>
+            <documentation>Compression used in GeoTIFF.</documentation>
+        </annotation>
+        <restriction base="string">
+            <enumeration value="None"/>
+            <enumeration value="PackBits"/>
+            <enumeration value="Huffman"/>
+            <enumeration value="LZW"/>
+            <enumeration value="JPEG"/>
+            <enumeration value="DEFLATE"/>
+        </restriction>
+    </simpleType>
+    <!-- ============================================================== -->
+    <element name="jpeg_quality" type="geotiff:jpeg_qualityType" default="75"/>
+    <simpleType name="jpeg_qualityType">
+        <annotation>
+            <documentation>Quality used in JPEG compression in GeoTIFF.</documentation>
+        </annotation>
+        <restriction base="integer">
+            <minInclusive value="1"/>
+            <maxInclusive value="100"/>
+        </restriction>
+    </simpleType>
+    <!-- ============================================================== -->
+    <element name="predictor" type="geotiff:predictorType" default="None"/>
+    <simpleType name="predictorType">
+        <annotation>
+            <documentation>Interleaving used in GeoTIFF.</documentation>
+        </annotation>
+        <restriction base="string">
+            <enumeration value="None"/>
+            <enumeration value="Horizontal"/>
+            <enumeration value="Floatingpoint"/>
+        </restriction>
+    </simpleType>
+    <!-- ============================================================== -->
+    <element name="interleave" type="geotiff:interleaveType" default="pixel"/>
+    <simpleType name="interleaveType">
+        <annotation>
+            <documentation>Interleaving used in GeoTIFF.</documentation>
+        </annotation>
+        <restriction base="string">
+            <enumeration value="pixel"/>
+            <enumeration value="band"/>
+        </restriction>
+    </simpleType>
+    <!-- ============================================================== -->
+    <element name="tiling" type="boolean">
+        <annotation>
+            <documentation>Determines if tiling is used in GeoTIFF.</documentation>
+        </annotation>
+    </element>
+    <!-- ============================================================== -->
+    <element name="tileheight" type="geotiff:tileheightType"/>
+    <simpleType name="tileheightType">
+        <annotation>
+            <documentation>tileheight used in tiling in GeoTIFF.</documentation>
+        </annotation>
+        <restriction base="integer">
+            <minExclusive value="0"/>
+        </restriction>
+    </simpleType>
+    <!-- ============================================================== -->
+    <element name="tilewidth" type="geotiff:tilewidthType"/>
+    <simpleType name="tilewidthType">
+        <annotation>
+            <documentation>tilewidth used in tiling in GeoTIFF.</documentation>
+        </annotation>
+        <restriction base="integer">
+            <minExclusive value="0"/>
+        </restriction>
+    </simpleType>
+</schema>
