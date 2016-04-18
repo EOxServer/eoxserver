@@ -43,11 +43,7 @@ fi
 
 # Install EOxServer
 echo "**> installing eoxserver..."
-if [ $OS == "Ubuntu" ]; then
-    python setup.py develop
-else
-    python setup.py develop
-fi
+python setup.py develop
 
 if [ $OS == "Ubuntu" ]; then
   sed -e 's/#binary_raster_comparison_enabled=false/binary_raster_comparison_enabled=false/' -i autotest/autotest/conf/eoxserver.conf
