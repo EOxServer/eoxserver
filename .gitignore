@@ -3,9 +3,3 @@
 
 # Django
 /autotest/data/config.sqlite
-/autotest/static
-
-# EOxServer
-/autotest/logs/eoxserver.log
-/autotest/wcst_perm
-/autotest/wcst_temp
