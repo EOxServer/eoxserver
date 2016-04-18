@@ -24,9 +24,11 @@ fi
 export XML_CATALOG_FILES="$WORKSPACE/schemas/catalog.xml"
 python manage.py test autotest_services -v2
 python manage.py test autotest_coverages -v2
-python manage.py test services coverages -v2
-#TODO: Enable testing of all apps
-#python manage.py test autotest_services core services coverages backends processes -v2
+python manage.py test eoxserver.core -v2
+#TODO python manage.py test eoxserver.backends -v2
+python manage.py test eoxserver.services -v2
+python manage.py test eoxserver.resources.coverages -v2
+python manage.py test eoxserver.resources.processes -v2
 cd ..
 
 # Run command line tests

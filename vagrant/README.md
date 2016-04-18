@@ -38,8 +38,6 @@ Clone EOxServer:
 ```sh
 git clone git@github.com:EOxServer/eoxserver.git
 cd eoxserver/
-git submodule init
-git submodule update
 ```
 
 Install VirtualBox & Vagrant. The configuration is tested with:
@@ -89,8 +87,6 @@ Use the following steps:
     ```sh
     git clone git@github.com:EOxServer/eoxserver.git
     cd eoxserver/
-    git submodule init
-    git submodule update
     ```
 
 3. Install [VirtualBox](https://www.virtualbox.org/wiki/Downloads) (tested with version 4.3.0)
