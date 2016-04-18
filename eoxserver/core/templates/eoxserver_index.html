@@ -47,9 +47,11 @@
     <ul>
         <li><a href="{% url 'ows' %}">OGC Web Services base URL</a></li>
             <ul>
-                <li><a href="{% url 'ows' %}?service=wms&request=getcapabilities">EO-WMS</a></li>
-                <li><a href="{% url 'ows' %}?service=wcs&request=getcapabilities">EO-WCS</a></li>
+                <li><a href="{% url 'ows' %}?service=wms&amp;request=getcapabilities">EO-WMS</a></li>
+                <li><a href="{% url 'ows' %}?service=wcs&amp;request=getcapabilities">EO-WCS</a></li>
+                <li><a href="{% url 'ows' %}?service=wps&amp;request=getcapabilities">WPS</a></li>
             </ul>
+        <li><a href="{% url 'opensearch:description' %}">OpenSearch</a></li>
         <li><a href="{% url 'eoxserver.webclient.views.index' %}">Web Client</a></li>
         <li><a href="{% url 'admin:index' %}">Admin Client</a></li>
     </ul>
