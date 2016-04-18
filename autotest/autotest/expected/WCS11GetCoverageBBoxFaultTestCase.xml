@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ows:ExceptionReport xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.1.2" xml:lang="en" xsi:schemaLocation="http://www.opengis.net/ows/1.1 http://schemas.opengis.net/ows/1.1.0/owsExceptionReport.xsd">
+  <ows:Exception locator="bbox" exceptionCode="NoApplicableCode">
+    <ows:ExceptionText>msWCSGetCoverage(): WCS server error. Requested BBOX (12,46.5,90,79.98) is outside requested coverage BBOX (11.331755,32.19025,28.29481,46.268645)</ows:ExceptionText>
+  </ows:Exception>
+</ows:ExceptionReport>

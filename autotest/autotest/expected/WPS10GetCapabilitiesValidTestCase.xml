@@ -1,0 +1,130 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<wps:Capabilities xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" updateSequence="20131219T132000Z" version="1.0.0" xml:lang="en-US" service="WPS" xsi:schemaLocation="wps http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
+  <ows:ServiceIdentification>
+    <ows:Title>Test configuration of MapServer used to demonstrate EOxServer</ows:Title>
+    <ows:Abstract>Test configuration of MapServer used to demonstrate EOxServer
+The MERIS test data is produced from the following ESA remote sensing data:
+MERIS L1b sample data available at: http://earth.esa.int/object/index.cfm?fobjectid=4320
+Copyright (C) European Space Agency - ESA</ows:Abstract>
+    <ows:Keywords>
+      <ows:Keyword>EO-WCS</ows:Keyword>
+      <ows:Keyword>WCS EO-AP</ows:Keyword>
+      <ows:Keyword>WCS 2.0</ows:Keyword>
+      <ows:Keyword>WCS</ows:Keyword>
+      <ows:Keyword>WMS</ows:Keyword>
+      <ows:Keyword>EO-WMS</ows:Keyword>
+      <ows:Keyword>MERIS</ows:Keyword>
+      <ows:Keyword>ASAR</ows:Keyword>
+      <ows:Keyword>Envisat</ows:Keyword>
+    </ows:Keywords>
+    <ows:ServiceType>WPS</ows:ServiceType>
+    <ows:ServiceTypeVersion>1.0.0</ows:ServiceTypeVersion>
+    <ows:Fees>None</ows:Fees>
+    <ows:AccessConstraints>None</ows:AccessConstraints>
+  </ows:ServiceIdentification>
+  <ows:ServiceProvider>
+    <ows:ProviderName>EOX IT Services GmbH - HG Wien - FN 312068z - UID ATU64265057</ows:ProviderName>
+    <ows:ProviderSite xlink:href="http://eoxserver.org"/>
+    <ows:ServiceContact>
+      <ows:IndividualName>Stephan Meissl</ows:IndividualName>
+      <ows:PositionName>Senior IT Consultant</ows:PositionName>
+      <ows:ContactInfo>
+        <ows:Phone>
+          <ows:Voice>Provided on request</ows:Voice>
+          <ows:Facsimile>None</ows:Facsimile>
+        </ows:Phone>
+        <ows:Address>
+          <ows:DeliveryPoint>Thurngasse 8/4</ows:DeliveryPoint>
+          <ows:City>Wien</ows:City>
+          <ows:AdministrativeArea>Vienna</ows:AdministrativeArea>
+          <ows:PostalCode>1090</ows:PostalCode>
+          <ows:Country>Austria</ows:Country>
+          <ows:ElectronicMailAddress>office@eox.at</ows:ElectronicMailAddress>
+        </ows:Address>
+      </ows:ContactInfo>
+    </ows:ServiceContact>
+  </ows:ServiceProvider>
+  <ows:OperationsMetadata>
+    <ows:Operation name="DescribeProcess">
+      <ows:DCP>
+        <ows:HTTP>
+          <ows:Get xlink:href="http://localhost:8000/ows?"/>
+          <ows:Post xlink:href="http://localhost:8000/ows?"/>
+        </ows:HTTP>
+      </ows:DCP>
+    </ows:Operation>
+    <ows:Operation name="Execute">
+      <ows:DCP>
+        <ows:HTTP>
+          <ows:Get xlink:href="http://localhost:8000/ows?"/>
+          <ows:Post xlink:href="http://localhost:8000/ows?"/>
+        </ows:HTTP>
+      </ows:DCP>
+    </ows:Operation>
+    <ows:Operation name="GetCapabilities">
+      <ows:DCP>
+        <ows:HTTP>
+          <ows:Get xlink:href="http://localhost:8000/ows?"/>
+          <ows:Post xlink:href="http://localhost:8000/ows?"/>
+        </ows:HTTP>
+      </ows:DCP>
+    </ows:Operation>
+  </ows:OperationsMetadata>
+  <wps:ProcessOfferings>
+    <wps:Process wps:processVersion="1.0.0">
+      <ows:Identifier>getTimeData</ows:Identifier>
+      <ows:Title>Get times of collection coverages.</ows:Title>
+      <ows:Abstract> GetTimeDataProcess defines a WPS process needed by the EOxClient
+        time-slider componenet </ows:Abstract>
+      <wps:Profile>EOxServer:GetTimeData</wps:Profile>
+    </wps:Process>
+    <wps:Process wps:processVersion="1.0.0">
+      <ows:Identifier>TC00:identity:literal</ows:Identifier>
+      <ows:Title>Test Case 00: Literal data identity.</ows:Title>
+      <ows:Abstract> Test identity process (the ouptuts are copies of the inputs)
+        demonstrating various features of the literal data inputs
+        and outputs.
+    </ows:Abstract>
+      <ows:Metadata xlink:href="http://www.metadata.com/test-metadata" xlink:title="test-metadata"/>
+      <wps:Profile>test_profile</wps:Profile>
+    </wps:Process>
+    <wps:Process wps:processVersion="1.0.0">
+      <ows:Identifier>TC01:identity:bbox</ows:Identifier>
+      <ows:Title>Test Case 01: Bounding box data identity.</ows:Title>
+      <ows:Abstract> Test identity process (the ouptuts are copies of the inputs)
+        demonstrating various features of the bounding box data inputs
+        and outputs.
+    </ows:Abstract>
+      <ows:Metadata xlink:href="http://www.metadata.com/test-metadata" xlink:title="test-metadata"/>
+      <wps:Profile>test_profile</wps:Profile>
+    </wps:Process>
+    <wps:Process wps:processVersion="1.0.0">
+      <ows:Identifier>TC02:identity:complex</ows:Identifier>
+      <ows:Title>Test Case 02: Complex data identity.</ows:Title>
+      <ows:Abstract> Test identity process (the ouptuts are copies of the inputs)
+        demonstrating various features of the complex data inputs
+        and outputs.
+    </ows:Abstract>
+      <ows:Metadata xlink:href="http://www.metadata.com/test-metadata" xlink:title="test-metadata"/>
+      <wps:Profile>test_profile</wps:Profile>
+    </wps:Process>
+    <wps:Process wps:processVersion="1.0.0">
+      <ows:Identifier>TC03:image_generator:complex</ows:Identifier>
+      <ows:Title>Test Case 03: Complex data binary data with format selection.</ows:Title>
+      <ows:Abstract> Test process generating complext data binary output (image) with
+        fomat selection.
+    implements(ProcessInterface)
+    </ows:Abstract>
+      <ows:Metadata xlink:href="http://www.metadata.com/test-metadata" xlink:title="test-metadata"/>
+      <wps:Profile>test_profile</wps:Profile>
+    </wps:Process>
+  </wps:ProcessOfferings>
+  <wps:Languages>
+    <wps:Default>
+      <ows:Language>en-US</ows:Language>
+    </wps:Default>
+    <wps:Supported>
+      <ows:Language>en-US</ows:Language>
+    </wps:Supported>
+  </wps:Languages>
+</wps:Capabilities>

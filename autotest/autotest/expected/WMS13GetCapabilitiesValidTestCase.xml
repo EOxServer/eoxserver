@@ -1,0 +1,502 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<WMS_Capabilities xmlns="http://www.opengis.net/wms" xmlns:sld="http://www.opengis.net/sld" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ms="http://mapserver.gis.umn.edu/mapserver" version="1.3.0" updateSequence="20131219T132000Z" xsi:schemaLocation="http://www.opengis.net/wms http://schemas.opengis.net/wms/1.3.0/capabilities_1_3_0.xsd  http://www.opengis.net/sld http://schemas.opengis.net/sld/1.1.0/sld_capabilities.xsd  http://mapserver.gis.umn.edu/mapserver http://testserver/ows?service=WMS&amp;version=1.3.0&amp;request=GetSchemaExtension">
+  <!-- MapServer version 6.2.0 OUTPUT=GIF OUTPUT=PNG OUTPUT=JPEG OUTPUT=KML SUPPORTS=PROJ SUPPORTS=GD SUPPORTS=AGG SUPPORTS=FREETYPE SUPPORTS=CAIRO SUPPORTS=ICONV SUPPORTS=FRIBIDI SUPPORTS=WMS_SERVER SUPPORTS=WMS_CLIENT SUPPORTS=WFS_SERVER SUPPORTS=WFS_CLIENT SUPPORTS=WCS_SERVER SUPPORTS=SOS_SERVER SUPPORTS=FASTCGI SUPPORTS=THREADS SUPPORTS=GEOS INPUT=JPEG INPUT=POSTGIS INPUT=OGR INPUT=GDAL INPUT=SHAPEFILE -->
+  <Service>
+    <Name>WMS</Name>
+    <Title>Test configuration of MapServer used to demonstrate EOxServer</Title>
+    <Abstract>Test configuration of MapServer used to demonstrate EOxServer
+The MERIS test data is produced from the following ESA remote sensing data:
+MERIS L1b sample data available at: http://earth.esa.int/object/index.cfm?fobjectid=4320
+Copyright (C) European Space Agency - ESA</Abstract>
+    <KeywordList>
+      <Keyword>EO-WCS</Keyword>
+      <Keyword>WCS EO-AP</Keyword>
+      <Keyword>WCS 2.0</Keyword>
+      <Keyword>WCS</Keyword>
+      <Keyword>WMS</Keyword>
+      <Keyword>EO-WMS</Keyword>
+      <Keyword>MERIS</Keyword>
+      <Keyword>ASAR</Keyword>
+      <Keyword>Envisat</Keyword>
+    </KeywordList>
+    <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://eoxserver.org"/>
+    <ContactInformation>
+      <ContactPersonPrimary>
+        <ContactPerson>Stephan Meissl</ContactPerson>
+        <ContactOrganization>EOX IT Services GmbH - HG Wien - FN 312068z - UID ATU64265057</ContactOrganization>
+      </ContactPersonPrimary>
+      <ContactPosition>Senior IT Consultant</ContactPosition>
+      <ContactAddress>
+        <AddressType>postal</AddressType>
+        <Address>Thurngasse 8/4</Address>
+        <City>Wien</City>
+        <StateOrProvince>Vienna</StateOrProvince>
+        <PostCode>1090</PostCode>
+        <Country>Austria</Country>
+      </ContactAddress>
+      <ContactVoiceTelephone>Provided on request</ContactVoiceTelephone>
+      <ContactFacsimileTelephone>None</ContactFacsimileTelephone>
+      <ContactElectronicMailAddress>office@eox.at</ContactElectronicMailAddress>
+    </ContactInformation>
+    <Fees>None</Fees>
+    <AccessConstraints>None</AccessConstraints>
+    <MaxWidth>2048</MaxWidth>
+    <MaxHeight>2048</MaxHeight>
+  </Service>
+  <Capability>
+    <Request>
+      <GetCapabilities>
+        <Format>text/xml</Format>
+        <DCPType>
+          <HTTP>
+            <Get>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://testserver/ows?"/>
+            </Get>
+            <Post>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://testserver/ows?"/>
+            </Post>
+          </HTTP>
+        </DCPType>
+      </GetCapabilities>
+      <GetMap>
+        <Format>image/png</Format>
+        <Format>image/jpeg</Format>
+        <Format>image/gif</Format>
+        <Format>image/tiff</Format>
+        <DCPType>
+          <HTTP>
+            <Get>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://testserver/ows?"/>
+            </Get>
+            <Post>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://testserver/ows?"/>
+            </Post>
+          </HTTP>
+        </DCPType>
+      </GetMap>
+      <GetFeatureInfo>
+        <Format>text/html</Format>
+        <Format>application/vnd.ogc.gml</Format>
+        <Format>text/plain</Format>
+        <DCPType>
+          <HTTP>
+            <Get>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://testserver/ows?"/>
+            </Get>
+            <Post>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://testserver/ows?"/>
+            </Post>
+          </HTTP>
+        </DCPType>
+      </GetFeatureInfo>
+      <sld:DescribeLayer>
+        <Format>text/xml</Format>
+        <DCPType>
+          <HTTP>
+            <Get>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://testserver/ows?"/>
+            </Get>
+            <Post>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://testserver/ows?"/>
+            </Post>
+          </HTTP>
+        </DCPType>
+      </sld:DescribeLayer>
+      <sld:GetLegendGraphic>
+        <Format>image/png</Format>
+        <Format>image/jpeg</Format>
+        <Format>image/gif</Format>
+        <Format>image/png; mode=8bit</Format>
+        <DCPType>
+          <HTTP>
+            <Get>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://testserver/ows?"/>
+            </Get>
+            <Post>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://testserver/ows?"/>
+            </Post>
+          </HTTP>
+        </DCPType>
+      </sld:GetLegendGraphic>
+      <ms:GetStyles>
+        <Format>text/xml</Format>
+        <DCPType>
+          <HTTP>
+            <Get>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://testserver/ows?"/>
+            </Get>
+            <Post>
+              <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://testserver/ows?"/>
+            </Post>
+          </HTTP>
+        </DCPType>
+      </ms:GetStyles>
+    </Request>
+    <Exception>
+      <Format>XML</Format>
+      <Format>INIMAGE</Format>
+      <Format>BLANK</Format>
+    </Exception>
+    <sld:UserDefinedSymbolization SupportSLD="1" UserLayer="0" UserStyle="1" RemoteWFS="0" InlineFeature="0" RemoteWCS="0"/>
+    <Layer>
+      <Name>MS</Name>
+      <Title>Test configuration of MapServer used to demonstrate EOxServer</Title>
+      <Abstract>Test configuration of MapServer used to demonstrate EOxServer
+The MERIS test data is produced from the following ESA remote sensing data:
+MERIS L1b sample data available at: http://earth.esa.int/object/index.cfm?fobjectid=4320
+Copyright (C) European Space Agency - ESA</Abstract>
+      <KeywordList>
+        <Keyword>EO-WCS</Keyword>
+        <Keyword>WCS EO-AP</Keyword>
+        <Keyword>WCS 2.0</Keyword>
+        <Keyword>WCS</Keyword>
+        <Keyword>WMS</Keyword>
+        <Keyword>EO-WMS</Keyword>
+        <Keyword>MERIS</Keyword>
+        <Keyword>ASAR</Keyword>
+        <Keyword>Envisat</Keyword>
+      </KeywordList>
+      <CRS>EPSG:4326</CRS>
+      <CRS>EPSG:3857</CRS>
+      <CRS>EPSG:900913</CRS>
+      <CRS>EPSG:3035</CRS>
+      <EX_GeographicBoundingBox>
+        <westBoundLongitude>-3.43798</westBoundLongitude>
+        <eastBoundLongitude>27.9686</eastBoundLongitude>
+        <southBoundLatitude>-36.2591</southBoundLatitude>
+        <northBoundLatitude>46.2184</northBoundLatitude>
+      </EX_GeographicBoundingBox>
+      <BoundingBox CRS="EPSG:4326" minx="-36.2591" miny="-3.43798" maxx="46.2184" maxy="27.9686"/>
+      <Layer queryable="0" opaque="0" cascaded="0">
+        <Name>MER_FRS_1P_reduced_group</Name>
+        <Title>MER_FRS_1P_reduced_group</Title>
+        <Abstract>MER_FRS_1P_reduced_group</Abstract>
+        <EX_GeographicBoundingBox>
+          <westBoundLongitude>-3.43798</westBoundLongitude>
+          <eastBoundLongitude>27.9686</eastBoundLongitude>
+          <southBoundLatitude>32.2645</southBoundLatitude>
+          <northBoundLatitude>46.2184</northBoundLatitude>
+        </EX_GeographicBoundingBox>
+        <BoundingBox CRS="EPSG:4326" minx="32.2645" miny="-3.43798" maxx="46.2184" maxy="27.9686"/>
+        <Style>
+          <Name>default</Name>
+          <Title>default</Title>
+          <LegendURL width="77" height="21">
+            <Format>image/png</Format>
+            <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="http://testserver/ows?version=1.3.0&amp;service=WMS&amp;request=GetLegendGraphic&amp;sld_version=1.1.0&amp;layer=MER_FRS_1P_reduced_group&amp;format=image/png&amp;STYLE=default"/>
+          </LegendURL>
+        </Style>
+        <Layer queryable="0" opaque="0" cascaded="0">
+          <Name>MER_FRS_1P_reduced_clouds</Name>
+          <Title>MER_FRS_1P_reduced_clouds</Title>
+          <Abstract>MER_FRS_1P_reduced_clouds</Abstract>
+          <EX_GeographicBoundingBox>
+            <westBoundLongitude>-3.43798</westBoundLongitude>
+            <eastBoundLongitude>27.9686</eastBoundLongitude>
+            <southBoundLatitude>32.2645</southBoundLatitude>
+            <northBoundLatitude>46.2184</northBoundLatitude>
+          </EX_GeographicBoundingBox>
+          <BoundingBox CRS="EPSG:4326" minx="32.2645" miny="-3.43798" maxx="46.2184" maxy="27.9686"/>
+          <Dimension name="time" units="ISO8601" nearestValue="0">2006-08-16T09:09:29Z/2006-08-16T09:12:46Z/PT1S,2006-08-22T09:20:58Z/2006-08-22T09:24:15Z/PT1S,2006-08-30T10:09:49Z/2006-08-30T10:13:06Z/PT1S</Dimension>
+        </Layer>
+        <Layer queryable="0" opaque="0" cascaded="0">
+          <Name>MER_FRS_1P_reduced_bands</Name>
+          <Title>MER_FRS_1P_reduced_bands</Title>
+          <Abstract>MER_FRS_1P_reduced_bands</Abstract>
+          <EX_GeographicBoundingBox>
+            <westBoundLongitude>-3.43798</westBoundLongitude>
+            <eastBoundLongitude>27.9686</eastBoundLongitude>
+            <southBoundLatitude>32.2645</southBoundLatitude>
+            <northBoundLatitude>46.2184</northBoundLatitude>
+          </EX_GeographicBoundingBox>
+          <BoundingBox CRS="EPSG:4326" minx="32.2645" miny="-3.43798" maxx="46.2184" maxy="27.9686"/>
+          <Dimension name="time" units="ISO8601" nearestValue="0">2006-08-16T09:09:29Z/2006-08-16T09:12:46Z/PT1S,2006-08-22T09:20:58Z/2006-08-22T09:24:15Z/PT1S,2006-08-30T10:09:49Z/2006-08-30T10:13:06Z/PT1S</Dimension>
+        </Layer>
+        <Layer queryable="0" opaque="0" cascaded="0">
+          <Name>MER_FRS_1P_reduced</Name>
+          <Title>MER_FRS_1P_reduced</Title>
+          <Abstract>MER_FRS_1P_reduced</Abstract>
+          <EX_GeographicBoundingBox>
+            <westBoundLongitude>-3.43798</westBoundLongitude>
+            <eastBoundLongitude>27.9686</eastBoundLongitude>
+            <southBoundLatitude>32.2645</southBoundLatitude>
+            <northBoundLatitude>46.2184</northBoundLatitude>
+          </EX_GeographicBoundingBox>
+          <BoundingBox CRS="EPSG:4326" minx="32.2645" miny="-3.43798" maxx="46.2184" maxy="27.9686"/>
+          <Dimension name="time" units="ISO8601" nearestValue="0">2006-08-16T09:09:29Z/2006-08-16T09:12:46Z/PT1S,2006-08-22T09:20:58Z/2006-08-22T09:24:15Z/PT1S,2006-08-30T10:09:49Z/2006-08-30T10:13:06Z/PT1S</Dimension>
+        </Layer>
+        <Layer queryable="0" opaque="0" cascaded="0">
+          <Name>MER_FRS_1P_reduced_masked</Name>
+          <Title>MER_FRS_1P_reduced_masked</Title>
+          <Abstract>MER_FRS_1P_reduced_masked</Abstract>
+          <EX_GeographicBoundingBox>
+            <westBoundLongitude>-3.43798</westBoundLongitude>
+            <eastBoundLongitude>27.9686</eastBoundLongitude>
+            <southBoundLatitude>32.2645</southBoundLatitude>
+            <northBoundLatitude>46.2184</northBoundLatitude>
+          </EX_GeographicBoundingBox>
+          <BoundingBox CRS="EPSG:4326" minx="32.2645" miny="-3.43798" maxx="46.2184" maxy="27.9686"/>
+          <Dimension name="time" units="ISO8601" nearestValue="0">2006-08-16T09:09:29Z/2006-08-16T09:12:46Z/PT1S,2006-08-22T09:20:58Z/2006-08-22T09:24:15Z/PT1S,2006-08-30T10:09:49Z/2006-08-30T10:13:06Z/PT1S</Dimension>
+        </Layer>
+        <Layer queryable="0" opaque="0" cascaded="0">
+          <Name>MER_FRS_1P_reduced_masked_outlines</Name>
+          <Title>MER_FRS_1P_reduced_masked_outlines</Title>
+          <Abstract>MER_FRS_1P_reduced_masked_outlines</Abstract>
+          <EX_GeographicBoundingBox>
+            <westBoundLongitude>-3.43798</westBoundLongitude>
+            <eastBoundLongitude>27.9686</eastBoundLongitude>
+            <southBoundLatitude>32.2645</southBoundLatitude>
+            <northBoundLatitude>46.2184</northBoundLatitude>
+          </EX_GeographicBoundingBox>
+          <BoundingBox CRS="EPSG:4326" minx="32.2645" miny="-3.43798" maxx="46.2184" maxy="27.9686"/>
+          <Dimension name="time" units="ISO8601" nearestValue="0">2006-08-16T09:09:29Z/2006-08-16T09:12:46Z/PT1S,2006-08-22T09:20:58Z/2006-08-22T09:24:15Z/PT1S,2006-08-30T10:09:49Z/2006-08-30T10:13:06Z/PT1S</Dimension>
+        </Layer>
+        <Layer queryable="0" opaque="0" cascaded="0">
+          <Name>MER_FRS_1P_reduced_outlines</Name>
+          <Title>MER_FRS_1P_reduced_outlines</Title>
+          <Abstract>MER_FRS_1P_reduced_outlines</Abstract>
+          <EX_GeographicBoundingBox>
+            <westBoundLongitude>-3.43798</westBoundLongitude>
+            <eastBoundLongitude>27.9686</eastBoundLongitude>
+            <southBoundLatitude>32.2645</southBoundLatitude>
+            <northBoundLatitude>46.2184</northBoundLatitude>
+          </EX_GeographicBoundingBox>
+          <BoundingBox CRS="EPSG:4326" minx="32.2645" miny="-3.43798" maxx="46.2184" maxy="27.9686"/>
+          <Dimension name="time" units="ISO8601" nearestValue="0">2006-08-16T09:09:29Z/2006-08-16T09:12:46Z/PT1S,2006-08-22T09:20:58Z/2006-08-22T09:24:15Z/PT1S,2006-08-30T10:09:49Z/2006-08-30T10:13:06Z/PT1S</Dimension>
+        </Layer>
+      </Layer>
+      <Layer queryable="0" opaque="0" cascaded="0">
+        <Name>MER_FRS_1P_reduced_RGB_group</Name>
+        <Title>MER_FRS_1P_reduced_RGB_group</Title>
+        <Abstract>MER_FRS_1P_reduced_RGB_group</Abstract>
+        <EX_GeographicBoundingBox>
+          <westBoundLongitude>-3.43798</westBoundLongitude>
+          <eastBoundLongitude>27.9686</eastBoundLongitude>
+          <southBoundLatitude>32.2645</southBoundLatitude>
+          <northBoundLatitude>46.2184</northBoundLatitude>
+        </EX_GeographicBoundingBox>
+        <BoundingBox CRS="EPSG:4326" minx="32.2645" miny="-3.43798" maxx="46.2184" maxy="27.9686"/>
+        <Style>
+          <Name>default</Name>
+          <Title>default</Title>
+          <LegendURL width="77" height="21">
+            <Format>image/png</Format>
+            <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="http://testserver/ows?version=1.3.0&amp;service=WMS&amp;request=GetLegendGraphic&amp;sld_version=1.1.0&amp;layer=MER_FRS_1P_reduced_RGB_group&amp;format=image/png&amp;STYLE=default"/>
+          </LegendURL>
+        </Style>
+        <Layer queryable="0" opaque="0" cascaded="0">
+          <Name>MER_FRS_1P_reduced_RGB_clouds</Name>
+          <Title>MER_FRS_1P_reduced_RGB_clouds</Title>
+          <Abstract>MER_FRS_1P_reduced_RGB_clouds</Abstract>
+          <EX_GeographicBoundingBox>
+            <westBoundLongitude>-3.43798</westBoundLongitude>
+            <eastBoundLongitude>27.9686</eastBoundLongitude>
+            <southBoundLatitude>32.2645</southBoundLatitude>
+            <northBoundLatitude>46.2184</northBoundLatitude>
+          </EX_GeographicBoundingBox>
+          <BoundingBox CRS="EPSG:4326" minx="32.2645" miny="-3.43798" maxx="46.2184" maxy="27.9686"/>
+          <Dimension name="time" units="ISO8601" nearestValue="0">2006-08-16T09:09:29Z/2006-08-16T09:12:46Z/PT1S,2006-08-22T09:20:58Z/2006-08-22T09:24:15Z/PT1S,2006-08-30T10:09:49Z/2006-08-30T10:13:06Z/PT1S</Dimension>
+        </Layer>
+        <Layer queryable="0" opaque="0" cascaded="0">
+          <Name>MER_FRS_1P_reduced_RGB_bands</Name>
+          <Title>MER_FRS_1P_reduced_RGB_bands</Title>
+          <Abstract>MER_FRS_1P_reduced_RGB_bands</Abstract>
+          <EX_GeographicBoundingBox>
+            <westBoundLongitude>-3.43798</westBoundLongitude>
+            <eastBoundLongitude>27.9686</eastBoundLongitude>
+            <southBoundLatitude>32.2645</southBoundLatitude>
+            <northBoundLatitude>46.2184</northBoundLatitude>
+          </EX_GeographicBoundingBox>
+          <BoundingBox CRS="EPSG:4326" minx="32.2645" miny="-3.43798" maxx="46.2184" maxy="27.9686"/>
+          <Dimension name="time" units="ISO8601" nearestValue="0">2006-08-16T09:09:29Z/2006-08-16T09:12:46Z/PT1S,2006-08-22T09:20:58Z/2006-08-22T09:24:15Z/PT1S,2006-08-30T10:09:49Z/2006-08-30T10:13:06Z/PT1S</Dimension>
+        </Layer>
+        <Layer queryable="0" opaque="0" cascaded="0">
+          <Name>MER_FRS_1P_reduced_RGB</Name>
+          <Title>MER_FRS_1P_reduced_RGB</Title>
+          <Abstract>MER_FRS_1P_reduced_RGB</Abstract>
+          <EX_GeographicBoundingBox>
+            <westBoundLongitude>-3.43798</westBoundLongitude>
+            <eastBoundLongitude>27.9686</eastBoundLongitude>
+            <southBoundLatitude>32.2645</southBoundLatitude>
+            <northBoundLatitude>46.2184</northBoundLatitude>
+          </EX_GeographicBoundingBox>
+          <BoundingBox CRS="EPSG:4326" minx="32.2645" miny="-3.43798" maxx="46.2184" maxy="27.9686"/>
+          <Dimension name="time" units="ISO8601" nearestValue="0">2006-08-16T09:09:29Z/2006-08-16T09:12:46Z/PT1S,2006-08-22T09:20:58Z/2006-08-22T09:24:15Z/PT1S,2006-08-30T10:09:49Z/2006-08-30T10:13:06Z/PT1S</Dimension>
+        </Layer>
+        <Layer queryable="0" opaque="0" cascaded="0">
+          <Name>MER_FRS_1P_reduced_RGB_masked</Name>
+          <Title>MER_FRS_1P_reduced_RGB_masked</Title>
+          <Abstract>MER_FRS_1P_reduced_RGB_masked</Abstract>
+          <EX_GeographicBoundingBox>
+            <westBoundLongitude>-3.43798</westBoundLongitude>
+            <eastBoundLongitude>27.9686</eastBoundLongitude>
+            <southBoundLatitude>32.2645</southBoundLatitude>
+            <northBoundLatitude>46.2184</northBoundLatitude>
+          </EX_GeographicBoundingBox>
+          <BoundingBox CRS="EPSG:4326" minx="32.2645" miny="-3.43798" maxx="46.2184" maxy="27.9686"/>
+          <Dimension name="time" units="ISO8601" nearestValue="0">2006-08-16T09:09:29Z/2006-08-16T09:12:46Z/PT1S,2006-08-22T09:20:58Z/2006-08-22T09:24:15Z/PT1S,2006-08-30T10:09:49Z/2006-08-30T10:13:06Z/PT1S</Dimension>
+        </Layer>
+        <Layer queryable="0" opaque="0" cascaded="0">
+          <Name>MER_FRS_1P_reduced_RGB_masked_outlines</Name>
+          <Title>MER_FRS_1P_reduced_RGB_masked_outlines</Title>
+          <Abstract>MER_FRS_1P_reduced_RGB_masked_outlines</Abstract>
+          <EX_GeographicBoundingBox>
+            <westBoundLongitude>-3.43798</westBoundLongitude>
+            <eastBoundLongitude>27.9686</eastBoundLongitude>
+            <southBoundLatitude>32.2645</southBoundLatitude>
+            <northBoundLatitude>46.2184</northBoundLatitude>
+          </EX_GeographicBoundingBox>
+          <BoundingBox CRS="EPSG:4326" minx="32.2645" miny="-3.43798" maxx="46.2184" maxy="27.9686"/>
+          <Dimension name="time" units="ISO8601" nearestValue="0">2006-08-16T09:09:29Z/2006-08-16T09:12:46Z/PT1S,2006-08-22T09:20:58Z/2006-08-22T09:24:15Z/PT1S,2006-08-30T10:09:49Z/2006-08-30T10:13:06Z/PT1S</Dimension>
+        </Layer>
+        <Layer queryable="0" opaque="0" cascaded="0">
+          <Name>MER_FRS_1P_reduced_RGB_outlines</Name>
+          <Title>MER_FRS_1P_reduced_RGB_outlines</Title>
+          <Abstract>MER_FRS_1P_reduced_RGB_outlines</Abstract>
+          <EX_GeographicBoundingBox>
+            <westBoundLongitude>-3.43798</westBoundLongitude>
+            <eastBoundLongitude>27.9686</eastBoundLongitude>
+            <southBoundLatitude>32.2645</southBoundLatitude>
+            <northBoundLatitude>46.2184</northBoundLatitude>
+          </EX_GeographicBoundingBox>
+          <BoundingBox CRS="EPSG:4326" minx="32.2645" miny="-3.43798" maxx="46.2184" maxy="27.9686"/>
+          <Dimension name="time" units="ISO8601" nearestValue="0">2006-08-16T09:09:29Z/2006-08-16T09:12:46Z/PT1S,2006-08-22T09:20:58Z/2006-08-22T09:24:15Z/PT1S,2006-08-30T10:09:49Z/2006-08-30T10:13:06Z/PT1S</Dimension>
+        </Layer>
+      </Layer>
+      <Layer queryable="0" opaque="0" cascaded="0">
+        <Name>mosaic_MER_FRS_1P_reduced_RGB_group</Name>
+        <Title>mosaic_MER_FRS_1P_reduced_RGB_group</Title>
+        <Abstract>mosaic_MER_FRS_1P_reduced_RGB_group</Abstract>
+        <EX_GeographicBoundingBox>
+          <westBoundLongitude>-3.43798</westBoundLongitude>
+          <eastBoundLongitude>27.9686</eastBoundLongitude>
+          <southBoundLatitude>32.2645</southBoundLatitude>
+          <northBoundLatitude>46.2184</northBoundLatitude>
+        </EX_GeographicBoundingBox>
+        <BoundingBox CRS="EPSG:4326" minx="32.2645" miny="-3.43798" maxx="46.2184" maxy="27.9686"/>
+        <Style>
+          <Name>default</Name>
+          <Title>default</Title>
+          <LegendURL width="77" height="21">
+            <Format>image/png</Format>
+            <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="http://testserver/ows?version=1.3.0&amp;service=WMS&amp;request=GetLegendGraphic&amp;sld_version=1.1.0&amp;layer=mosaic_MER_FRS_1P_reduced_RGB_group&amp;format=image/png&amp;STYLE=default"/>
+          </LegendURL>
+        </Style>
+        <Layer queryable="0" opaque="0" cascaded="0">
+          <Name>mosaic_MER_FRS_1P_reduced_RGB_clouds</Name>
+          <Title>mosaic_MER_FRS_1P_reduced_RGB_clouds</Title>
+          <Abstract>mosaic_MER_FRS_1P_reduced_RGB_clouds</Abstract>
+          <EX_GeographicBoundingBox>
+            <westBoundLongitude>-3.43798</westBoundLongitude>
+            <eastBoundLongitude>27.9686</eastBoundLongitude>
+            <southBoundLatitude>32.2645</southBoundLatitude>
+            <northBoundLatitude>46.2184</northBoundLatitude>
+          </EX_GeographicBoundingBox>
+          <BoundingBox CRS="EPSG:4326" minx="32.2645" miny="-3.43798" maxx="46.2184" maxy="27.9686"/>
+          <Dimension name="time" units="ISO8601" nearestValue="0">2006-08-16T09:09:29Z/2006-08-16T09:12:46Z/PT1S,2006-08-22T09:20:58Z/2006-08-22T09:24:15Z/PT1S,2006-08-30T10:09:49Z/2006-08-30T10:13:06Z/PT1S</Dimension>
+        </Layer>
+        <Layer queryable="0" opaque="0" cascaded="0">
+          <Name>mosaic_MER_FRS_1P_reduced_RGB_bands</Name>
+          <Title>mosaic_MER_FRS_1P_reduced_RGB_bands</Title>
+          <Abstract>mosaic_MER_FRS_1P_reduced_RGB_bands</Abstract>
+          <EX_GeographicBoundingBox>
+            <westBoundLongitude>-3.43798</westBoundLongitude>
+            <eastBoundLongitude>27.9686</eastBoundLongitude>
+            <southBoundLatitude>32.2645</southBoundLatitude>
+            <northBoundLatitude>46.2184</northBoundLatitude>
+          </EX_GeographicBoundingBox>
+          <BoundingBox CRS="EPSG:4326" minx="32.2645" miny="-3.43798" maxx="46.2184" maxy="27.9686"/>
+          <Dimension name="time" units="ISO8601" nearestValue="0">2006-08-16T09:09:29Z/2006-08-16T09:12:46Z/PT1S,2006-08-22T09:20:58Z/2006-08-22T09:24:15Z/PT1S,2006-08-30T10:09:49Z/2006-08-30T10:13:06Z/PT1S</Dimension>
+        </Layer>
+        <Layer queryable="0" opaque="0" cascaded="0">
+          <Name>mosaic_MER_FRS_1P_reduced_RGB</Name>
+          <Title>mosaic_MER_FRS_1P_reduced_RGB</Title>
+          <Abstract>mosaic_MER_FRS_1P_reduced_RGB</Abstract>
+          <EX_GeographicBoundingBox>
+            <westBoundLongitude>-3.43798</westBoundLongitude>
+            <eastBoundLongitude>27.9686</eastBoundLongitude>
+            <southBoundLatitude>32.2645</southBoundLatitude>
+            <northBoundLatitude>46.2184</northBoundLatitude>
+          </EX_GeographicBoundingBox>
+          <BoundingBox CRS="EPSG:4326" minx="32.2645" miny="-3.43798" maxx="46.2184" maxy="27.9686"/>
+          <Dimension name="time" units="ISO8601" nearestValue="0">2006-08-16T09:09:29Z/2006-08-16T09:12:46Z/PT1S,2006-08-22T09:20:58Z/2006-08-22T09:24:15Z/PT1S,2006-08-30T10:09:49Z/2006-08-30T10:13:06Z/PT1S</Dimension>
+        </Layer>
+        <Layer queryable="0" opaque="0" cascaded="0">
+          <Name>mosaic_MER_FRS_1P_reduced_RGB_masked</Name>
+          <Title>mosaic_MER_FRS_1P_reduced_RGB_masked</Title>
+          <Abstract>mosaic_MER_FRS_1P_reduced_RGB_masked</Abstract>
+          <EX_GeographicBoundingBox>
+            <westBoundLongitude>-3.43798</westBoundLongitude>
+            <eastBoundLongitude>27.9686</eastBoundLongitude>
+            <southBoundLatitude>32.2645</southBoundLatitude>
+            <northBoundLatitude>46.2184</northBoundLatitude>
+          </EX_GeographicBoundingBox>
+          <BoundingBox CRS="EPSG:4326" minx="32.2645" miny="-3.43798" maxx="46.2184" maxy="27.9686"/>
+          <Dimension name="time" units="ISO8601" nearestValue="0">2006-08-16T09:09:29Z/2006-08-16T09:12:46Z/PT1S,2006-08-22T09:20:58Z/2006-08-22T09:24:15Z/PT1S,2006-08-30T10:09:49Z/2006-08-30T10:13:06Z/PT1S</Dimension>
+        </Layer>
+        <Layer queryable="0" opaque="0" cascaded="0">
+          <Name>mosaic_MER_FRS_1P_reduced_RGB_masked_outlines</Name>
+          <Title>mosaic_MER_FRS_1P_reduced_RGB_masked_outlines</Title>
+          <Abstract>mosaic_MER_FRS_1P_reduced_RGB_masked_outlines</Abstract>
+          <EX_GeographicBoundingBox>
+            <westBoundLongitude>-3.43798</westBoundLongitude>
+            <eastBoundLongitude>27.9686</eastBoundLongitude>
+            <southBoundLatitude>32.2645</southBoundLatitude>
+            <northBoundLatitude>46.2184</northBoundLatitude>
+          </EX_GeographicBoundingBox>
+          <BoundingBox CRS="EPSG:4326" minx="32.2645" miny="-3.43798" maxx="46.2184" maxy="27.9686"/>
+          <Dimension name="time" units="ISO8601" nearestValue="0">2006-08-16T09:09:29Z/2006-08-16T09:12:46Z/PT1S,2006-08-22T09:20:58Z/2006-08-22T09:24:15Z/PT1S,2006-08-30T10:09:49Z/2006-08-30T10:13:06Z/PT1S</Dimension>
+        </Layer>
+        <Layer queryable="0" opaque="0" cascaded="0">
+          <Name>mosaic_MER_FRS_1P_reduced_RGB_outlines</Name>
+          <Title>mosaic_MER_FRS_1P_reduced_RGB_outlines</Title>
+          <Abstract>mosaic_MER_FRS_1P_reduced_RGB_outlines</Abstract>
+          <EX_GeographicBoundingBox>
+            <westBoundLongitude>-3.43798</westBoundLongitude>
+            <eastBoundLongitude>27.9686</eastBoundLongitude>
+            <southBoundLatitude>32.2645</southBoundLatitude>
+            <northBoundLatitude>46.2184</northBoundLatitude>
+          </EX_GeographicBoundingBox>
+          <BoundingBox CRS="EPSG:4326" minx="32.2645" miny="-3.43798" maxx="46.2184" maxy="27.9686"/>
+          <Dimension name="time" units="ISO8601" nearestValue="0">2006-08-16T09:09:29Z/2006-08-16T09:12:46Z/PT1S,2006-08-22T09:20:58Z/2006-08-22T09:24:15Z/PT1S,2006-08-30T10:09:49Z/2006-08-30T10:13:06Z/PT1S</Dimension>
+        </Layer>
+      </Layer>
+      <Layer queryable="0" opaque="0" cascaded="0">
+        <Name>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</Name>
+        <Title>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</Title>
+        <Abstract>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</Abstract>
+        <EX_GeographicBoundingBox>
+          <westBoundLongitude>11.6483</westBoundLongitude>
+          <eastBoundLongitude>27.9686</eastBoundLongitude>
+          <southBoundLatitude>32.2697</southBoundLatitude>
+          <northBoundLatitude>46.2166</northBoundLatitude>
+        </EX_GeographicBoundingBox>
+        <BoundingBox CRS="EPSG:4326" minx="32.2697" miny="11.6483" maxx="46.2166" maxy="27.9686"/>
+      </Layer>
+      <Layer queryable="0" opaque="0" cascaded="0">
+        <Name>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</Name>
+        <Title>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</Title>
+        <Abstract>mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced</Abstract>
+        <EX_GeographicBoundingBox>
+          <westBoundLongitude>11.6483</westBoundLongitude>
+          <eastBoundLongitude>27.9686</eastBoundLongitude>
+          <southBoundLatitude>32.2697</southBoundLatitude>
+          <northBoundLatitude>46.2166</northBoundLatitude>
+        </EX_GeographicBoundingBox>
+        <BoundingBox CRS="EPSG:4326" minx="32.2697" miny="11.6483" maxx="46.2166" maxy="27.9686"/>
+      </Layer>
+      <Layer queryable="0" opaque="0" cascaded="0">
+        <Name>ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775</Name>
+        <Title>ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775</Title>
+        <Abstract>ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775</Abstract>
+        <EX_GeographicBoundingBox>
+          <westBoundLongitude>16.7276</westBoundLongitude>
+          <eastBoundLongitude>22.3018</eastBoundLongitude>
+          <southBoundLatitude>-36.2591</southBoundLatitude>
+          <northBoundLatitude>-31.9849</northBoundLatitude>
+        </EX_GeographicBoundingBox>
+        <BoundingBox CRS="EPSG:4326" minx="-36.2591" miny="16.7276" maxx="-31.9849" maxy="22.3018"/>
+      </Layer>
+    </Layer>
+  </Capability>
+</WMS_Capabilities>

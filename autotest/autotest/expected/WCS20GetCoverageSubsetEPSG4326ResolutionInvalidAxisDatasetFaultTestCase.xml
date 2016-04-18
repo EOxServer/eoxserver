@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ows:ExceptionReport xmlns:ows="http://www.opengis.net/ows/2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="2.0.1" xml:lang="en" xsi:schemaLocation="http://www.opengis.net/ows/2.0 http://schemas.opengis.net/ows/2.0/owsAll.xsd">
+  <ows:Exception locator="extent" exceptionCode="InvalidParameterValue">
+    <ows:ExceptionText>msWCSValidateAndFindSubsets20(): WCS server error. The axis with the name 'long' corresponds to the same axis as the subset with the name 'x'.</ows:ExceptionText>
+  </ows:Exception>
+</ows:ExceptionReport>

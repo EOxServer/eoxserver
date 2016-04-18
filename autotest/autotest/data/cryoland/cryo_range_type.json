@@ -1,0 +1,25 @@
+[
+{
+    "pk": 25, 
+    "model": "coverages.band", 
+    "fields": {
+        "index": 1, 
+        "name": "Snowtype", 
+        "data_type": 2, 
+        "definition": "", 
+        "range_type": 6, 
+        "color_interpretation": 2, 
+        "identifier": "Snowtype", 
+        "uom": "?", 
+        "description": "Snow",
+        "nil_value_set": null
+    }
+},
+{
+    "pk": 6, 
+    "model": "coverages.rangetype", 
+    "fields": {
+        "name": "Snow"
+    }
+}
+]

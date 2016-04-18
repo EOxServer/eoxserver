@@ -1,0 +1,8 @@
+include README.rst
+include MANIFEST.in
+include HOWTO
+graft autotest
+graft selenium
+graft scripts
+exclude autotest/data/config.sqlite
+recursive-exclude . *.pyc

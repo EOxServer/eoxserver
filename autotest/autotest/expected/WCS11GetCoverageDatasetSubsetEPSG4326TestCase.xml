@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Coverages
+     xmlns="http://www.opengis.net/wcs/1.1"
+     xmlns:ows="http://www.opengis.net/ows/1.1"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://www.opengis.net/ows/1.1 ../owsCoverages.xsd">
+  <Coverage>
+    <ows:Reference xlink:href="cid:coverage/mosaic_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_RGB_reduced.tif"/>
+  </Coverage>
+</Coverages>

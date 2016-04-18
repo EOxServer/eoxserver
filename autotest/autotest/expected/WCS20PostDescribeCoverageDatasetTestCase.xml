@@ -1,0 +1,369 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<wcs:CoverageDescriptions xmlns:crs="http://www.opengis.net/wcs/crs/1.0" xmlns:wcs="http://www.opengis.net/wcs/2.0" xmlns:scal="http://www.opengis.net/wcs/scaling/1.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:rsub="http://www.opengis.net/wcs/range-subsetting/1.0" xmlns:swe="http://www.opengis.net/swe/2.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:int="http://www.opengis.net/wcs/interpolation/1.0" xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:ows="http://www.opengis.net/ows/2.0" xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0" xmlns:wcseo="http://www.opengis.net/wcs/wcseo/1.0" xmlns:om="http://www.opengis.net/om/2.0" xmlns:ogc="http://www.opengis.net/ogc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/wcs/wcseo/1.0 http://schemas.opengis.net/wcs/wcseo/1.0/wcsEOAll.xsd">
+  <wcs:CoverageDescription gml:id="MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed">
+    <gml:boundedBy>
+      <gml:Envelope axisLabels="lat long" srsName="http://www.opengis.net/def/crs/EPSG/0/4326" uomLabels="deg deg" srsDimension="2">
+        <gml:lowerCorner>32.20144629 11.36106586</gml:lowerCorner>
+        <gml:upperCorner>46.25202561 28.28384572</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+    <wcs:CoverageId>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</wcs:CoverageId>
+    <gmlcov:metadata>
+      <gmlcov:Extension>
+        <wcseo:EOMetadata>
+          <eop:EarthObservation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:swe="http://www.opengis.net/swe/1.0" xsi:schemaLocation="http://www.opengis.net/opt/2.0 ../xsd/opt.xsd" gml:id="eop_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed">
+            <om:phenomenonTime>
+              <gml:TimePeriod gml:id="tp_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed">
+                <gml:beginPosition>2006-08-16T09:09:29Z</gml:beginPosition>
+                <gml:endPosition>2006-08-16T09:12:46Z</gml:endPosition>
+              </gml:TimePeriod>
+            </om:phenomenonTime>
+            <om:resultTime>
+              <!-- repeat of archiving date? -->
+              <gml:TimeInstant gml:id="archivingdate_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed">
+                <gml:timePosition>2006-08-16T11:03:08Z</gml:timePosition>
+              </gml:TimeInstant>
+            </om:resultTime>
+            <om:procedure>
+              <eop:EarthObservationEquipment gml:id="equ_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed">
+                <eop:platform>
+                  <eop:Platform>
+                    <eop:shortName>ENVISAT</eop:shortName>
+                  </eop:Platform>
+                </eop:platform>
+                <eop:instrument>
+                  <eop:Instrument>
+                    <eop:shortName>MERIS</eop:shortName>
+                  </eop:Instrument>
+                </eop:instrument>
+                <eop:sensor>
+                  <eop:Sensor>
+                    <eop:sensorType>OPTICAL</eop:sensorType>
+                  </eop:Sensor>
+                </eop:sensor>
+              </eop:EarthObservationEquipment>
+            </om:procedure>
+            <om:observedProperty xlink:href="#params1"/>
+            <om:featureOfInterest>
+              <eop:Footprint gml:id="footprint_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed">
+                <eop:multiExtentOf>
+                  <gml:MultiSurface gml:id="multisurface_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed" srsName="EPSG:4326">
+                    <gml:surfaceMember>
+                      <gml:Polygon gml:id="polygon_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed">
+                        <gml:exterior>
+                          <gml:LinearRing>
+                            <gml:posList>46.216558117161831 14.322575965570632 46.152076035932481 14.889221273108005 46.044474823463794 15.714163344615594 45.874384258110481 16.939196215846479 45.707637144588894 18.041167934827204 45.437660686504373 19.696621277900043 45.188708312816836 21.061979138012749 44.985502338431836 22.146529676798433 44.817601054763827 22.972838987446604 44.548719301064217 24.216794365275184 44.3530257779924 25.078471192994467 44.22240050905593 25.619454330500787 43.869452681903326 27.09669054643166 43.648677594634755 27.968590771844294 42.914276071713552 27.608908709842403 41.406744994495533 26.904154140811876 39.890886830729123 26.231198447937022 38.857425138443418 25.792810051163016 37.327455393788711 25.159378338866166 35.916979840274777 24.607823210234383 34.659955537947333 24.126821684115889 33.485864484245845 23.695476694402991 32.269745756399814 23.26447084501703 32.597366402196513 21.93771962779514 32.937415353394336 20.490341506430831 33.329502252603099 18.720985177579344 33.615994276288191 17.307239088316752 33.851259307900314 16.11996944899975 34.086158876902616 14.837090472242945 34.286728058386622 13.6927083205932 34.450209004129491 12.702328609369403 34.61257554817076 11.648344319329102 35.404301926952847 11.818952124495301 36.49644381567186 12.060892168743793 37.456615498759454 12.273681516152488 38.338767896663171 12.465752226451535 39.179619054397598 12.658488985584443 40.085426060828823 12.861885998466006 41.224754298927756 13.125704236676295 41.773101066725957 13.249297855403793 42.58703007421078 13.442093948019213 43.450338489759865 13.64731130090046 43.879741506184544 13.749195683701547 44.515959757778518 13.904244341338821 45.247153632802366 14.076176234357471 45.812576564427765 14.215619939492056 46.216558117161831 14.322575965570632</gml:posList>
+                          </gml:LinearRing>
+                        </gml:exterior>
+                      </gml:Polygon>
+                    </gml:surfaceMember>
+                  </gml:MultiSurface>
+                </eop:multiExtentOf>
+              </eop:Footprint>
+            </om:featureOfInterest>
+            <om:result/>
+            <eop:metaDataProperty>
+              <eop:EarthObservationMetaData>
+                <eop:identifier>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</eop:identifier>
+                <eop:acquisitionType>NOMINAL</eop:acquisitionType>
+                <eop:productType>MER_FRS_1P</eop:productType>
+                <eop:status>ARCHIVED</eop:status>
+                <eop:downlinkedTo>
+                  <eop:DownlinkInformation>
+                    <eop:acquisitionStation>PDHS-E</eop:acquisitionStation>
+                  </eop:DownlinkInformation>
+                </eop:downlinkedTo>
+                <eop:processing>
+                  <eop:ProcessingInformation>
+                    <eop:processingCenter>PDHS-E</eop:processingCenter>
+                  </eop:ProcessingInformation>
+                </eop:processing>
+              </eop:EarthObservationMetaData>
+            </eop:metaDataProperty>
+          </eop:EarthObservation>
+        </wcseo:EOMetadata>
+      </gmlcov:Extension>
+    </gmlcov:metadata>
+    <gml:domainSet>
+      <gml:RectifiedGrid gml:id="MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_grid" dimension="2">
+        <gml:limits>
+          <gml:GridEnvelope>
+            <gml:low>0 0</gml:low>
+            <gml:high>538 447</gml:high>
+          </gml:GridEnvelope>
+        </gml:limits>
+        <gml:axisLabels>lat long</gml:axisLabels>
+        <gml:origin>
+          <gml:Point srsName="http://www.opengis.net/def/crs/EPSG/0/4326" gml:id="MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_grid_origin">
+            <gml:pos>46.25202560 11.36106586</gml:pos>
+          </gml:Point>
+        </gml:origin>
+        <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/4326">0.00000000 0.03139662</gml:offsetVector>
+        <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/4326">-0.03136290 0.00000000</gml:offsetVector>
+      </gml:RectifiedGrid>
+    </gml:domainSet>
+    <gmlcov:rangeType>
+      <swe:DataRecord>
+        <swe:field name="MERIS_radiance_01_uint16">
+          <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+            <swe:description>MERIS uint16 first band</swe:description>
+            <swe:nilValues>
+              <swe:NilValues>
+                <swe:nilValue reason="http://www.opengis.net/def/nil/OGC/0/unknown">0</swe:nilValue>
+              </swe:NilValues>
+            </swe:nilValues>
+            <swe:uom code="W.m-2.sr-1.nm-1"/>
+            <swe:constraint>
+              <swe:AllowedValues>
+                <swe:interval>0 65535</swe:interval>
+                <swe:significantFigures>5</swe:significantFigures>
+              </swe:AllowedValues>
+            </swe:constraint>
+          </swe:Quantity>
+        </swe:field>
+        <swe:field name="MERIS_radiance_02_uint16">
+          <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+            <swe:description>MERIS uint16 second band</swe:description>
+            <swe:nilValues>
+              <swe:NilValues>
+                <swe:nilValue reason="http://www.opengis.net/def/nil/OGC/0/unknown">0</swe:nilValue>
+              </swe:NilValues>
+            </swe:nilValues>
+            <swe:uom code="W.m-2.sr-1.nm-1"/>
+            <swe:constraint>
+              <swe:AllowedValues>
+                <swe:interval>0 65535</swe:interval>
+                <swe:significantFigures>5</swe:significantFigures>
+              </swe:AllowedValues>
+            </swe:constraint>
+          </swe:Quantity>
+        </swe:field>
+        <swe:field name="MERIS_radiance_03_uint16">
+          <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+            <swe:description>MERIS uint16 third band</swe:description>
+            <swe:nilValues>
+              <swe:NilValues>
+                <swe:nilValue reason="http://www.opengis.net/def/nil/OGC/0/unknown">0</swe:nilValue>
+              </swe:NilValues>
+            </swe:nilValues>
+            <swe:uom code="W.m-2.sr-1.nm-1"/>
+            <swe:constraint>
+              <swe:AllowedValues>
+                <swe:interval>0 65535</swe:interval>
+                <swe:significantFigures>5</swe:significantFigures>
+              </swe:AllowedValues>
+            </swe:constraint>
+          </swe:Quantity>
+        </swe:field>
+        <swe:field name="MERIS_radiance_04_uint16">
+          <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+            <swe:description>MERIS uint16 fourth band</swe:description>
+            <swe:nilValues>
+              <swe:NilValues>
+                <swe:nilValue reason="http://www.opengis.net/def/nil/OGC/0/unknown">0</swe:nilValue>
+              </swe:NilValues>
+            </swe:nilValues>
+            <swe:uom code="W.m-2.sr-1.nm-1"/>
+            <swe:constraint>
+              <swe:AllowedValues>
+                <swe:interval>0 65535</swe:interval>
+                <swe:significantFigures>5</swe:significantFigures>
+              </swe:AllowedValues>
+            </swe:constraint>
+          </swe:Quantity>
+        </swe:field>
+        <swe:field name="MERIS_radiance_05_uint16">
+          <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+            <swe:description>MERIS uint16 fifth band</swe:description>
+            <swe:nilValues>
+              <swe:NilValues>
+                <swe:nilValue reason="http://www.opengis.net/def/nil/OGC/0/unknown">0</swe:nilValue>
+              </swe:NilValues>
+            </swe:nilValues>
+            <swe:uom code="W.m-2.sr-1.nm-1"/>
+            <swe:constraint>
+              <swe:AllowedValues>
+                <swe:interval>0 65535</swe:interval>
+                <swe:significantFigures>5</swe:significantFigures>
+              </swe:AllowedValues>
+            </swe:constraint>
+          </swe:Quantity>
+        </swe:field>
+        <swe:field name="MERIS_radiance_06_uint16">
+          <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+            <swe:description>MERIS uint16 sixth band</swe:description>
+            <swe:nilValues>
+              <swe:NilValues>
+                <swe:nilValue reason="http://www.opengis.net/def/nil/OGC/0/unknown">0</swe:nilValue>
+              </swe:NilValues>
+            </swe:nilValues>
+            <swe:uom code="W.m-2.sr-1.nm-1"/>
+            <swe:constraint>
+              <swe:AllowedValues>
+                <swe:interval>0 65535</swe:interval>
+                <swe:significantFigures>5</swe:significantFigures>
+              </swe:AllowedValues>
+            </swe:constraint>
+          </swe:Quantity>
+        </swe:field>
+        <swe:field name="MERIS_radiance_07_uint16">
+          <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+            <swe:description>MERIS uint16 seventh band</swe:description>
+            <swe:nilValues>
+              <swe:NilValues>
+                <swe:nilValue reason="http://www.opengis.net/def/nil/OGC/0/unknown">0</swe:nilValue>
+              </swe:NilValues>
+            </swe:nilValues>
+            <swe:uom code="W.m-2.sr-1.nm-1"/>
+            <swe:constraint>
+              <swe:AllowedValues>
+                <swe:interval>0 65535</swe:interval>
+                <swe:significantFigures>5</swe:significantFigures>
+              </swe:AllowedValues>
+            </swe:constraint>
+          </swe:Quantity>
+        </swe:field>
+        <swe:field name="MERIS_radiance_08_uint16">
+          <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+            <swe:description>MERIS uint16 eighth band</swe:description>
+            <swe:nilValues>
+              <swe:NilValues>
+                <swe:nilValue reason="http://www.opengis.net/def/nil/OGC/0/unknown">0</swe:nilValue>
+              </swe:NilValues>
+            </swe:nilValues>
+            <swe:uom code="W.m-2.sr-1.nm-1"/>
+            <swe:constraint>
+              <swe:AllowedValues>
+                <swe:interval>0 65535</swe:interval>
+                <swe:significantFigures>5</swe:significantFigures>
+              </swe:AllowedValues>
+            </swe:constraint>
+          </swe:Quantity>
+        </swe:field>
+        <swe:field name="MERIS_radiance_09_uint16">
+          <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+            <swe:description>MERIS uint16 ninth band</swe:description>
+            <swe:nilValues>
+              <swe:NilValues>
+                <swe:nilValue reason="http://www.opengis.net/def/nil/OGC/0/unknown">0</swe:nilValue>
+              </swe:NilValues>
+            </swe:nilValues>
+            <swe:uom code="W.m-2.sr-1.nm-1"/>
+            <swe:constraint>
+              <swe:AllowedValues>
+                <swe:interval>0 65535</swe:interval>
+                <swe:significantFigures>5</swe:significantFigures>
+              </swe:AllowedValues>
+            </swe:constraint>
+          </swe:Quantity>
+        </swe:field>
+        <swe:field name="MERIS_radiance_10_uint16">
+          <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+            <swe:description>MERIS uint16 tenth band</swe:description>
+            <swe:nilValues>
+              <swe:NilValues>
+                <swe:nilValue reason="http://www.opengis.net/def/nil/OGC/0/unknown">0</swe:nilValue>
+              </swe:NilValues>
+            </swe:nilValues>
+            <swe:uom code="W.m-2.sr-1.nm-1"/>
+            <swe:constraint>
+              <swe:AllowedValues>
+                <swe:interval>0 65535</swe:interval>
+                <swe:significantFigures>5</swe:significantFigures>
+              </swe:AllowedValues>
+            </swe:constraint>
+          </swe:Quantity>
+        </swe:field>
+        <swe:field name="MERIS_radiance_11_uint16">
+          <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+            <swe:description>MERIS uint16 eleventh band</swe:description>
+            <swe:nilValues>
+              <swe:NilValues>
+                <swe:nilValue reason="http://www.opengis.net/def/nil/OGC/0/unknown">0</swe:nilValue>
+              </swe:NilValues>
+            </swe:nilValues>
+            <swe:uom code="W.m-2.sr-1.nm-1"/>
+            <swe:constraint>
+              <swe:AllowedValues>
+                <swe:interval>0 65535</swe:interval>
+                <swe:significantFigures>5</swe:significantFigures>
+              </swe:AllowedValues>
+            </swe:constraint>
+          </swe:Quantity>
+        </swe:field>
+        <swe:field name="MERIS_radiance_12_uint16">
+          <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+            <swe:description>MERIS uint16 twelfth band</swe:description>
+            <swe:nilValues>
+              <swe:NilValues>
+                <swe:nilValue reason="http://www.opengis.net/def/nil/OGC/0/unknown">0</swe:nilValue>
+              </swe:NilValues>
+            </swe:nilValues>
+            <swe:uom code="W.m-2.sr-1.nm-1"/>
+            <swe:constraint>
+              <swe:AllowedValues>
+                <swe:interval>0 65535</swe:interval>
+                <swe:significantFigures>5</swe:significantFigures>
+              </swe:AllowedValues>
+            </swe:constraint>
+          </swe:Quantity>
+        </swe:field>
+        <swe:field name="MERIS_radiance_13_uint16">
+          <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+            <swe:description>MERIS uint16 thirteenth band</swe:description>
+            <swe:nilValues>
+              <swe:NilValues>
+                <swe:nilValue reason="http://www.opengis.net/def/nil/OGC/0/unknown">0</swe:nilValue>
+              </swe:NilValues>
+            </swe:nilValues>
+            <swe:uom code="W.m-2.sr-1.nm-1"/>
+            <swe:constraint>
+              <swe:AllowedValues>
+                <swe:interval>0 65535</swe:interval>
+                <swe:significantFigures>5</swe:significantFigures>
+              </swe:AllowedValues>
+            </swe:constraint>
+          </swe:Quantity>
+        </swe:field>
+        <swe:field name="MERIS_radiance_14_uint16">
+          <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+            <swe:description>MERIS uint16 fourteenth band</swe:description>
+            <swe:nilValues>
+              <swe:NilValues>
+                <swe:nilValue reason="http://www.opengis.net/def/nil/OGC/0/unknown">0</swe:nilValue>
+              </swe:NilValues>
+            </swe:nilValues>
+            <swe:uom code="W.m-2.sr-1.nm-1"/>
+            <swe:constraint>
+              <swe:AllowedValues>
+                <swe:interval>0 65535</swe:interval>
+                <swe:significantFigures>5</swe:significantFigures>
+              </swe:AllowedValues>
+            </swe:constraint>
+          </swe:Quantity>
+        </swe:field>
+        <swe:field name="MERIS_radiance_15_uint16">
+          <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+            <swe:description>MERIS uint16 fifteenth band</swe:description>
+            <swe:nilValues>
+              <swe:NilValues>
+                <swe:nilValue reason="http://www.opengis.net/def/nil/OGC/0/unknown">0</swe:nilValue>
+              </swe:NilValues>
+            </swe:nilValues>
+            <swe:uom code="W.m-2.sr-1.nm-1"/>
+            <swe:constraint>
+              <swe:AllowedValues>
+                <swe:interval>0 65535</swe:interval>
+                <swe:significantFigures>5</swe:significantFigures>
+              </swe:AllowedValues>
+            </swe:constraint>
+          </swe:Quantity>
+        </swe:field>
+      </swe:DataRecord>
+    </gmlcov:rangeType>
+    <wcs:ServiceParameters>
+      <wcs:CoverageSubtype>RectifiedDataset</wcs:CoverageSubtype>
+      <wcs:nativeFormat>image/tiff</wcs:nativeFormat>
+    </wcs:ServiceParameters>
+  </wcs:CoverageDescription>
+</wcs:CoverageDescriptions>

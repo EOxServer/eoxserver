@@ -1,0 +1,34 @@
+
+
+<html>
+<body>
+<form action="ows" method="post" enctype="text/plain">
+    POST request
+    <textarea rows=40 cols=100></textarea>
+
+    <input id="realvalue" type="hidden"></input>
+    <input type="submit"/>
+</form>
+
+<script>
+$ = function(arg) {
+    return document.querySelector(arg);
+}
+
+$('form').onsubmit = function() {
+    var t=$("textarea")   ;
+    t.setAttribute("disabled", "disabled");
+
+    var hidden = $("#realvalue");
+    hidden.setAttribute("name", "<?xml version");
+    hidden.setAttribute("value", '"1.0"?>' + t.value);
+    
+    setTimeout(function() { 
+        t.removeAttribute("disabled"); 
+    });
+
+    return true;
+};
+</script>
+<body>
+</html>
