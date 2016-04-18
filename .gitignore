@@ -2,13 +2,4 @@
 *.pyc
 
 # Django
-/autotest/logs/django.log
 /autotest/data/config.sqlite
-/autotest/static
-
-# EOxServer
-/autotest/logs/eoxserver.log
-/autotest/wcst_perm
-/autotest/wcst_temp
-/autotest/ftpcache
-/autotest/responses
