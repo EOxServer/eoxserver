@@ -1,0 +1,98 @@
+[
+    {
+        "pk": 8, 
+        "model": "coverages.extentrecord", 
+        "fields": {
+            "maxx": 6052990.778,  
+            "maxy": 2743981.154, 
+            "minx": 4426066.922, 
+            "miny": 1023659.818, 
+            "size_x": 540, 
+            "size_y": 571, 
+            "srid": 3035
+        }
+    },
+    {
+        "pk": 8, 
+        "model": "coverages.lineagerecord", 
+        "fields": {}
+    },
+    {
+        "pk": 10, 
+        "model": "coverages.eometadatarecord", 
+        "fields": {
+            "footprint": "MULTIPOLYGON (((14.3225759999999998 46.2165579999999991, 14.8892209999999992 46.1520760000000010, 15.7141629999999992 46.0444749999999985, 16.9391959999999990 45.8743839999999992, 18.0411679999999990 45.7076369999999983, 19.6966210000000004 45.4376609999999985, 21.0619790000000009 45.1887079999999983, 22.1465299999999985 44.9855019999999968, 22.9728390000000005 44.8176010000000034, 24.2167940000000002 44.5487189999999984, 25.0784710000000004 44.3530259999999998, 25.6194540000000011 44.2224009999999979, 27.0966909999999999 43.8694530000000000, 27.9685910000000000 43.6486779999999968, 27.6089090000000006 42.9142760000000010, 26.9041539999999983 41.4067450000000008, 26.2311979999999991 39.8908869999999993, 25.7928099999999993 38.8574249999999992, 25.1593780000000002 37.3274550000000005, 24.6078229999999998 35.9169800000000023, 24.1268220000000007 34.6599560000000011, 23.6954770000000003 33.4858639999999994, 23.2644710000000003 32.2697459999999978, 21.9377199999999988 32.5973660000000010, 20.4903419999999983 32.9374150000000014, 18.7209849999999989 33.3295019999999980, 17.3072389999999992 33.6159940000000006, 16.1199690000000011 33.8512589999999989, 14.8370899999999999 34.0861590000000021, 13.6927079999999997 34.2867279999999965, 12.7023290000000006 34.4502090000000010, 11.6483439999999998 34.6125759999999971, 11.8189519999999995 35.4043020000000013, 12.0608920000000008 36.4964439999999968, 12.2736820000000009 37.4566149999999993, 12.4657520000000002 38.3387680000000017, 12.6584889999999994 39.1796190000000024, 12.8618860000000002 40.0854259999999982, 13.1257040000000007 41.2247539999999972, 13.2492979999999996 41.7731009999999969, 13.4420940000000009 42.5870299999999986, 13.6473110000000002 43.4503380000000021, 13.7491959999999995 43.8797420000000002, 13.9042440000000003 44.5159599999999998, 14.0761760000000002 45.2471540000000019, 14.2156199999999995 45.8125769999999974, 14.3225759999999998 46.2165579999999991)))", 
+            "timestamp_end": "2006-08-16 09:12:46Z", 
+            "timestamp_begin": "2006-08-16 09:09:29Z", 
+            "eo_gml": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<?xml-stylesheet type=\"text/xsl\" href=\"schematron_result_for_eop.xsl\"?>\n<eop:EarthObservation xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n    xsi:schemaLocation=\"http://www.opengis.net/opt/2.0 ../xsd/opt.xsd\"\n    xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:gml=\"http://www.opengis.net/gml/3.2\"\n    xmlns:eop=\"http://www.opengis.net/eop/2.0\"\n    xmlns:swe=\"http://www.opengis.net/swe/1.0\"\n    xmlns:om=\"http://www.opengis.net/om/2.0\"\n    gml:id=\"eop_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed\">\n    <om:phenomenonTime>\n        <gml:TimePeriod gml:id=\"tp_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed\">\n            <gml:beginPosition>2006-08-16T09:09:29Z</gml:beginPosition>\n            <gml:endPosition>2006-08-16T09:12:46Z</gml:endPosition>\n        </gml:TimePeriod>\n    </om:phenomenonTime>\n    <om:resultTime>\n        <!-- repeat of archiving date? -->\n        <gml:TimeInstant gml:id=\"archivingdate_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed\">\n            <gml:timePosition>2006-08-16T11:03:08Z</gml:timePosition>\n        </gml:TimeInstant>\n    </om:resultTime>\n    <om:procedure>\n        <eop:EarthObservationEquipment gml:id=\"equ_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed\">\n            <eop:platform>\n                <eop:Platform>\n                    <eop:shortName>ENVISAT</eop:shortName>\n                </eop:Platform>\n            </eop:platform>\n            <eop:instrument>\n                <eop:Instrument>\n                    <eop:shortName>MERIS</eop:shortName>\n                </eop:Instrument>\n            </eop:instrument>\n            <eop:sensor>\n                <eop:Sensor>\n                    <eop:sensorType>OPTICAL</eop:sensorType>\n                </eop:Sensor>\n            </eop:sensor>\n        </eop:EarthObservationEquipment>\n    </om:procedure>\n    <om:observedProperty xlink:href=\"#params1\"/>\n    <om:featureOfInterest>\n        <eop:Footprint gml:id=\"footprint_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed\">\n            <eop:multiExtentOf>\n                <gml:MultiSurface gml:id=\"multisurface_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed\" srsName=\"EPSG:4326\">\n                    <gml:surfaceMember>\n                        <gml:Polygon gml:id=\"polygon_MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed\">\n                            <gml:exterior>\n                                <gml:LinearRing>\n                                    <gml:posList>46.216558117161831 14.322575965570632 46.152076035932481 14.889221273108005 46.044474823463794 15.714163344615594 45.874384258110481 16.939196215846479 45.707637144588894 18.041167934827204 45.437660686504373 19.696621277900043 45.188708312816836 21.061979138012749 44.985502338431836 22.146529676798433 44.817601054763827 22.972838987446604 44.548719301064217 24.216794365275184 44.3530257779924 25.078471192994467 44.22240050905593 25.619454330500787 43.869452681903326 27.09669054643166 43.648677594634755 27.968590771844294 42.914276071713552 27.608908709842403 41.406744994495533 26.904154140811876 39.890886830729123 26.231198447937022 38.857425138443418 25.792810051163016 37.327455393788711 25.159378338866166 35.916979840274777 24.607823210234383 34.659955537947333 24.126821684115889 33.485864484245845 23.695476694402991 32.269745756399814 23.26447084501703 32.597366402196513 21.93771962779514 32.937415353394336 20.490341506430831 33.329502252603099 18.720985177579344 33.615994276288191 17.307239088316752 33.851259307900314 16.11996944899975 34.086158876902616 14.837090472242945 34.286728058386622 13.6927083205932 34.450209004129491 12.702328609369403 34.61257554817076 11.648344319329102 35.404301926952847 11.818952124495301 36.49644381567186 12.060892168743793 37.456615498759454 12.273681516152488 38.338767896663171 12.465752226451535 39.179619054397598 12.658488985584443 40.085426060828823 12.861885998466006 41.224754298927756 13.125704236676295 41.773101066725957 13.249297855403793 42.58703007421078 13.442093948019213 43.450338489759865 13.64731130090046 43.879741506184544 13.749195683701547 44.515959757778518 13.904244341338821 45.247153632802366 14.076176234357471 45.812576564427765 14.215619939492056 46.216558117161831 14.322575965570632</gml:posList>\n                                </gml:LinearRing>\n                            </gml:exterior>\n                        </gml:Polygon>\n                    </gml:surfaceMember>\n                </gml:MultiSurface>\n            </eop:multiExtentOf>\n        </eop:Footprint>\n    </om:featureOfInterest>\n    <om:result/>\n    <eop:metaDataProperty>\n        <eop:EarthObservationMetaData>\n            <eop:identifier>MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed</eop:identifier>\n            <eop:acquisitionType>NOMINAL</eop:acquisitionType>\n            <eop:productType>MER_FRS_1P</eop:productType>\n            <eop:status>ARCHIVED</eop:status>\n            <eop:downlinkedTo>\n                <eop:DownlinkInformation>\n                    <eop:acquisitionStation>PDHS-E</eop:acquisitionStation>\n                </eop:DownlinkInformation>\n            </eop:downlinkedTo>\n            <eop:processing>\n                <eop:ProcessingInformation>\n                    <eop:processingCenter>PDHS-E</eop:processingCenter>\n                </eop:ProcessingInformation>\n            </eop:processing>\n        </eop:EarthObservationMetaData>\n    </eop:metaDataProperty>\n</eop:EarthObservation>\n"
+        }
+    },
+    {
+        "pk": 7, 
+        "model": "coverages.datapackage", 
+        "fields": {
+            "metadata_format_name": "eogml", 
+            "data_package_type": "local"
+        }
+    },
+    {
+        "pk": 7, 
+        "model": "coverages.localdatapackage", 
+        "fields": {
+            "metadata_location": 16, 
+            "data_location": 15,
+            "source_format": "image/tiff"
+        }
+    },
+    {
+        "pk": 8, 
+        "model": "coverages.coveragerecord", 
+        "fields": {
+            "range_type": 4, 
+            "data_source": 2, 
+            "automatic": true, 
+            "coverage_id": "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected", 
+            "layer_metadata": []
+        }
+    },
+    {
+        "pk": 8, 
+        "model": "coverages.rectifieddatasetrecord", 
+        "fields": {
+            "lineage": 8, 
+            "data_package": 7, 
+            "visible": true, 
+            "eo_metadata": 10, 
+            "extent": 8, 
+            "eo_id": "MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected"
+        }
+    },
+    {
+        "pk": 15, 
+        "model": "backends.location", 
+        "fields": {
+            "location_type": "local"
+        }
+    },
+    {
+        "pk": 16, 
+        "model": "backends.location", 
+        "fields": {
+            "location_type": "local"
+        }
+    },
+    {
+        "pk": 15, 
+        "model": "backends.localpath", 
+        "fields": {
+            "path": "autotest/data/meris/MER_FRS_1P_reduced_reprojected/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected.tif"
+        }
+    }, 
+    {
+        "pk": 16, 
+        "model": "backends.localpath", 
+        "fields": {
+            "path": "autotest/data/meris/MER_FRS_1P_reduced_reprojected/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed_reprojected.xml"
+        }
+    }
+]

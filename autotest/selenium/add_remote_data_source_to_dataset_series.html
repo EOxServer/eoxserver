@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>add_remote_data_source_to_dataset_series</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">add_remote_data_source_to_dataset_series</td></tr>
+</thead><tbody>
+<tr>
+	<td>open</td>
+	<td>/admin/</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>link=Remote paths</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>link=Add remote path</td>
+	<td></td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>id=id_storage</td>
+	<td>label=FTPStorage object</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_path</td>
+	<td>/test/MER_FRS_1P_reduced</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>name=_save</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>link=Home</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>link=Dataset Series</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>link=DATASET_SERIES</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=#add_id_data_sources &gt; img[alt=&quot;Add Another&quot;]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForPopUp</td>
+	<td>id_data_sources</td>
+	<td>30000</td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>name=id_data_sources</td>
+	<td></td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>id=id_location</td>
+	<td>label=ftp://hma.eox.at//test/MER_FRS_1P_reduced</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_search_pattern</td>
+	<td>*.tif</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>name=_save</td>
+	<td></td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>null</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>name=_save</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>css=li.info</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementNotPresent</td>
+	<td>css=p.errornote</td>
+	<td></td>
+</tr>
+</tbody></table>
+</body>
+</html>

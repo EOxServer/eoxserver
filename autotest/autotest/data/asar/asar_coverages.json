@@ -1,0 +1,89 @@
+[
+    {
+        "pk": 9, 
+        "model": "coverages.extentrecord", 
+        "fields": {
+            "maxx":  22.301754, 
+            "maxy": -31.984922,  
+            "minx":  16.727605, 
+            "miny": -36.259107, 
+            "size_x": 569, 
+            "size_y": 486, 
+            "srid": 4326
+        }
+    },
+    {
+        "pk": 10, 
+        "model": "core.resource", 
+        "fields": {}
+    }, 
+    {
+        "pk": 9, 
+        "model": "coverages.lineagerecord", 
+        "fields": {}
+    }, 
+    {
+        "pk": 13, 
+        "model": "coverages.eometadatarecord", 
+        "fields": {
+            "footprint": "MULTIPOLYGON (((22.301754 -33.039026,20.099457 -32.530560,17.925622 -31.984922,16.727605 -35.166903,18.976948 -35.733683,21.262123 -36.259107,22.301754 -33.039026)))",
+            "timestamp_end": "2005-03-31 08:00:36.342970Z", 
+            "timestamp_begin": "2005-03-31 07:59:36.409059Z", 
+            "eo_gml": ""
+        }
+    }, 
+    {
+        "pk": 8, 
+        "model": "coverages.datapackage", 
+        "fields": {
+            "metadata_format_name": null, 
+            "data_package_type": "local"
+        }
+    }, 
+    {
+        "pk": 8, 
+        "model": "coverages.localdatapackage", 
+        "fields": {
+            "metadata_location": 20, 
+            "data_location": 20,
+	    "source_format": "image/tiff"
+        }
+    }, 
+    {
+        "pk": 10, 
+        "model": "coverages.coveragerecord", 
+        "fields": {
+            "range_type": 5, 
+            "data_source": null, 
+            "automatic": false, 
+            "coverage_id": "ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775", 
+            "layer_metadata": []
+        }
+    }, 
+    {
+        "pk": 10, 
+        "model": "coverages.referenceabledatasetrecord", 
+        "fields": {
+            "lineage": 9, 
+            "data_package": 8, 
+            "visible": true, 
+            "eo_metadata": 13, 
+            "extent": 9, 
+            "eo_id": "ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775"
+        }
+    }, 
+    {
+        "pk": 20, 
+        "model": "backends.location", 
+        "fields": {
+            "location_type": "local"
+        }
+    }, 
+    {
+        "pk": 20, 
+        "model": "backends.localpath", 
+        "fields": {
+            "path": "autotest/data/asar/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tiff"
+        }
+    }
+]

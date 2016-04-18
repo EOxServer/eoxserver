@@ -1,0 +1,5 @@
+# Python
+*.pyc
+
+# Django
+/autotest/data/config.sqlite

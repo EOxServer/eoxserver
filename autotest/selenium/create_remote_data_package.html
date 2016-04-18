@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>create_remote_data_package</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">create_remote_data_package</td></tr>
+</thead><tbody>
+<tr>
+	<td>open</td>
+	<td>/admin/</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>link=Ftp storages</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>link=Add ftp storage</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_name</td>
+	<td>HMA</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_host</td>
+	<td>hma.eox.at</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_port</td>
+	<td>21</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_user</td>
+	<td>anonymous</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_paths-0-path</td>
+	<td>/test/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.tif</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>link=Add another Remote Path</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_paths-1-path</td>
+	<td>/test/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.xml</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>name=_save</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>link=Home</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>link=Remote data packages</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>link=Add remote data package</td>
+	<td></td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>id=id_data_location</td>
+	<td>label=ftp://hma.eox.at//test/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.tif</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>id=id_metadata_location</td>
+	<td>label=ftp://hma.eox.at//test/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.xml</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=#add_id_cache_file &gt; img[alt=&quot;Add Another&quot;]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForPopUp</td>
+	<td>id_cache_file</td>
+	<td>30000</td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>name=id_cache_file</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=img[alt=&quot;Add Another&quot;]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForPopUp</td>
+	<td>id_location</td>
+	<td>30000</td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>name=id_location</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_path</td>
+	<td>../autotest/ftpcache</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>name=_save</td>
+	<td></td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>name=id_cache_file</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_size</td>
+	<td>0</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>link=Today</td>
+	<td></td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>name=id_cache_file</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_access_timestamp_0</td>
+	<td>2011-11-03</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_access_timestamp_1</td>
+	<td>11:16:08</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>name=_save</td>
+	<td></td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>null</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>name=_save</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>css=li.info</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementNotPresent</td>
+	<td>css=p.errornote</td>
+	<td></td>
+</tr>
+</tbody></table>
+</body>
+</html>

@@ -1,0 +1,955 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>create_range_type_multispectral</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">create_range_type_multispectral</td></tr>
+</thead><tbody>
+<tr>
+	<td>open</td>
+	<td>/admin/</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>link=Range Types</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>link=Add Range Type</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_name</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_name</td>
+	<td>MERIS_uint16</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>id=id_data_type</td>
+	<td>label=Unsigned Integer 16-bit</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>id=add_id_rangetype2band_set-0-band</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForPopUp</td>
+	<td>id_rangetype2band_set__dash__0__dash__band</td>
+	<td>30000</td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>name=id_rangetype2band_set__dash__0__dash__band</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_name</td>
+	<td>MERIS_radiance_01_uint16</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_identifier</td>
+	<td>MERIS_radiance_01_uint16</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_description</td>
+	<td>MERIS first band</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_definition</td>
+	<td>http://www.opengis.net/def/property/OGC/0/Radiance</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_uom</td>
+	<td>W.m-2.sr-1.nm-1</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>name=_save</td>
+	<td></td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>null</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>link=Add another Band In Range Type</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=#add_id_rangetype2band_set-1-band &gt; img[alt=&quot;Add Another&quot;]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForPopUp</td>
+	<td>id_rangetype2band_set__dash__1__dash__band</td>
+	<td>30000</td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>name=id_rangetype2band_set__dash__1__dash__band</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_name</td>
+	<td>MERIS_radiance_02_uint16</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_identifier</td>
+	<td>MERIS_radiance_02_uint16</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_description</td>
+	<td>MERIS uint16 second band</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_definition</td>
+	<td>http://www.opengis.net/def/property/OGC/0/Radiance</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_uom</td>
+	<td>W.m-2.sr-1.nm-1</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>name=_save</td>
+	<td></td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>null</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>link=Add another Band In Range Type</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=#add_id_rangetype2band_set-2-band &gt; img[alt=&quot;Add Another&quot;]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForPopUp</td>
+	<td>id_rangetype2band_set__dash__2__dash__band</td>
+	<td>30000</td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>name=id_rangetype2band_set__dash__2__dash__band</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_name</td>
+	<td>MERIS_radiance_03_uint16</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_identifier</td>
+	<td>MERIS_radiance_03_uint16</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_description</td>
+	<td>MERIS uint16 third band</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_definition</td>
+	<td>http://www.opengis.net/def/property/OGC/0/Radiance</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_uom</td>
+	<td>W.m-2.sr-1.nm-1</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>name=_save</td>
+	<td></td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>null</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>link=Add another Band In Range Type</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=#add_id_rangetype2band_set-3-band &gt; img[alt=&quot;Add Another&quot;]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForPopUp</td>
+	<td>id_rangetype2band_set__dash__3__dash__band</td>
+	<td>30000</td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>name=id_rangetype2band_set__dash__3__dash__band</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_name</td>
+	<td>MERIS_radiance_04_uint16</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_identifier</td>
+	<td>MERIS_radiance_04_uint16</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_description</td>
+	<td>MERIS uint16 fourth band</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_definition</td>
+	<td>http://www.opengis.net/def/property/OGC/0/Radiance</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_uom</td>
+	<td>W.m-2.sr-1.nm-1</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>name=_save</td>
+	<td></td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>null</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>link=Add another Band In Range Type</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=#add_id_rangetype2band_set-4-band &gt; img[alt=&quot;Add Another&quot;]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForPopUp</td>
+	<td>id_rangetype2band_set__dash__4__dash__band</td>
+	<td>30000</td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>name=id_rangetype2band_set__dash__4__dash__band</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_name</td>
+	<td>MERIS_radiance_05_uint16</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_identifier</td>
+	<td>MERIS_radiance_05_uint16</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_description</td>
+	<td>MERIS uint16 fifth band</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_definition</td>
+	<td>http://www.opengis.net/def/property/OGC/0/Radiance</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_uom</td>
+	<td>W.m-2.sr-1.nm-1</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>name=_save</td>
+	<td></td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>null</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>link=Add another Band In Range Type</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=#add_id_rangetype2band_set-5-band &gt; img[alt=&quot;Add Another&quot;]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForPopUp</td>
+	<td>id_rangetype2band_set__dash__5__dash__band</td>
+	<td>30000</td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>name=id_rangetype2band_set__dash__5__dash__band</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_name</td>
+	<td>MERIS_radiance_06_uint16</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_identifier</td>
+	<td>MERIS_radiance_06_uint16</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_description</td>
+	<td>MERIS uint16 sixth band</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_definition</td>
+	<td>http://www.opengis.net/def/property/OGC/0/Radiance</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_uom</td>
+	<td>W.m-2.sr-1.nm-1</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>name=_save</td>
+	<td></td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>null</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>link=Add another Band In Range Type</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=#add_id_rangetype2band_set-6-band &gt; img[alt=&quot;Add Another&quot;]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForPopUp</td>
+	<td>id_rangetype2band_set__dash__6__dash__band</td>
+	<td>30000</td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>name=id_rangetype2band_set__dash__6__dash__band</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_name</td>
+	<td>MERIS_radiance_07_uint16</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_identifier</td>
+	<td>MERIS_radiance_07_uint16</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_description</td>
+	<td>MERIS uint16 seventh band</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_definition</td>
+	<td>http://www.opengis.net/def/property/OGC/0/Radiance</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_uom</td>
+	<td>W.m-2.sr-1.nm-1</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>name=_save</td>
+	<td></td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>null</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>link=Add another Band In Range Type</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=#add_id_rangetype2band_set-7-band &gt; img[alt=&quot;Add Another&quot;]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForPopUp</td>
+	<td>id_rangetype2band_set__dash__7__dash__band</td>
+	<td>30000</td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>name=id_rangetype2band_set__dash__7__dash__band</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_name</td>
+	<td>MERIS_radiance_08_uint16</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_identifier</td>
+	<td>MERIS_radiance_08_uint16</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_description</td>
+	<td>MERIS uint16 eighth band</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_definition</td>
+	<td>http://www.opengis.net/def/property/OGC/0/Radiance</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_uom</td>
+	<td>W.m-2.sr-1.nm-1</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>name=_save</td>
+	<td></td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>null</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>link=Add another Band In Range Type</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=#add_id_rangetype2band_set-8-band &gt; img[alt=&quot;Add Another&quot;]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForPopUp</td>
+	<td>id_rangetype2band_set__dash__8__dash__band</td>
+	<td>30000</td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>name=id_rangetype2band_set__dash__8__dash__band</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_name</td>
+	<td>MERIS_radiance_09_uint16</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_identifier</td>
+	<td>MERIS_radiance_09_uint16</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_description</td>
+	<td>MERIS uint16 ninth band</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_definition</td>
+	<td>http://www.opengis.net/def/property/OGC/0/Radiance</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_uom</td>
+	<td>W.m-2.sr-1.nm-1</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>name=_save</td>
+	<td></td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>null</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>link=Add another Band In Range Type</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=#add_id_rangetype2band_set-9-band &gt; img[alt=&quot;Add Another&quot;]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForPopUp</td>
+	<td>id_rangetype2band_set__dash__9__dash__band</td>
+	<td>30000</td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>name=id_rangetype2band_set__dash__9__dash__band</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_name</td>
+	<td>MERIS_radiance_10_uint16</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_identifier</td>
+	<td>MERIS_radiance_10_uint16</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_description</td>
+	<td>MERIS uint16 tenth band</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_definition</td>
+	<td>http://www.opengis.net/def/property/OGC/0/Radiance</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_uom</td>
+	<td>W.m-2.sr-1.nm-1</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>name=_save</td>
+	<td></td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>null</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>link=Add another Band In Range Type</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=#add_id_rangetype2band_set-10-band &gt; img[alt=&quot;Add Another&quot;]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForPopUp</td>
+	<td>id_rangetype2band_set__dash__10__dash__band</td>
+	<td>30000</td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>name=id_rangetype2band_set__dash__10__dash__band</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_name</td>
+	<td>MERIS_radiance_11_uint16</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_identifier</td>
+	<td>MERIS_radiance_11_uint16</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_description</td>
+	<td>MERIS uint16 eleventh band</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_definition</td>
+	<td>http://www.opengis.net/def/property/OGC/0/Radiance</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_uom</td>
+	<td>W.m-2.sr-1.nm-1</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>name=_save</td>
+	<td></td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>null</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>link=Add another Band In Range Type</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=#add_id_rangetype2band_set-11-band &gt; img[alt=&quot;Add Another&quot;]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForPopUp</td>
+	<td>id_rangetype2band_set__dash__11__dash__band</td>
+	<td>30000</td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>name=id_rangetype2band_set__dash__11__dash__band</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_name</td>
+	<td>MERIS_radiance_12_uint16</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_identifier</td>
+	<td>MERIS_radiance_12_uint16</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_description</td>
+	<td>MERIS uint16 twelfth band</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_definition</td>
+	<td>http://www.opengis.net/def/property/OGC/0/Radiance</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_uom</td>
+	<td>W.m-2.sr-1.nm-1</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>name=_save</td>
+	<td></td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>null</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>link=Add another Band In Range Type</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=#add_id_rangetype2band_set-12-band &gt; img[alt=&quot;Add Another&quot;]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForPopUp</td>
+	<td>id_rangetype2band_set__dash__12__dash__band</td>
+	<td>30000</td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>name=id_rangetype2band_set__dash__12__dash__band</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_name</td>
+	<td>MERIS_radiance_13_uint16</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_identifier</td>
+	<td>MERIS_radiance_13_uint16</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_description</td>
+	<td>MERIS uint 16 thirteenth band</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_definition</td>
+	<td>http://www.opengis.net/def/property/OGC/0/Radiance</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_uom</td>
+	<td>W.m-2.sr-1.nm-1</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>name=_save</td>
+	<td></td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>null</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>link=Add another Band In Range Type</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=#add_id_rangetype2band_set-13-band &gt; img[alt=&quot;Add Another&quot;]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForPopUp</td>
+	<td>id_rangetype2band_set__dash__13__dash__band</td>
+	<td>30000</td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>name=id_rangetype2band_set__dash__13__dash__band</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_name</td>
+	<td>MERIS_radiance_14_uint16</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_identifier</td>
+	<td>MERIS_radiance_14_uint16</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_description</td>
+	<td>MERIS uint16 fourteenth band</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_definition</td>
+	<td>http://www.opengis.net/def/property/OGC/0/Radiance</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_uom</td>
+	<td>W.m-2.sr-1.nm-1</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>name=_save</td>
+	<td></td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>null</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>link=Add another Band In Range Type</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=#add_id_rangetype2band_set-14-band &gt; img[alt=&quot;Add Another&quot;]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForPopUp</td>
+	<td>id_rangetype2band_set__dash__14__dash__band</td>
+	<td>30000</td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>name=id_rangetype2band_set__dash__14__dash__band</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_name</td>
+	<td>MERIS_radiance_15_uint16</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_identifier</td>
+	<td>MERIS_radiance_15_uint16</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_description</td>
+	<td>MERIS uint16 fifteenth band</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_definition</td>
+	<td>http://www.opengis.net/def/property/OGC/0/Radiance</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_uom</td>
+	<td>W.m-2.sr-1.nm-1</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>name=_save</td>
+	<td></td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>null</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_rangetype2band_set-0-no</td>
+	<td>1</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_rangetype2band_set-1-no</td>
+	<td>2</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_rangetype2band_set-2-no</td>
+	<td>3</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_rangetype2band_set-3-no</td>
+	<td>4</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_rangetype2band_set-4-no</td>
+	<td>5</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_rangetype2band_set-5-no</td>
+	<td>6</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_rangetype2band_set-6-no</td>
+	<td>7</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_rangetype2band_set-7-no</td>
+	<td>8</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_rangetype2band_set-8-no</td>
+	<td>9</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_rangetype2band_set-9-no</td>
+	<td>10</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_rangetype2band_set-10-no</td>
+	<td>11</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_rangetype2band_set-11-no</td>
+	<td>12</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_rangetype2band_set-12-no</td>
+	<td>13</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_rangetype2band_set-13-no</td>
+	<td>14</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_rangetype2band_set-14-no</td>
+	<td>15</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>name=_save</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>css=li.info</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementNotPresent</td>
+	<td>css=p.errornote</td>
+	<td></td>
+</tr>
+</tbody></table>
+</body>
+</html>

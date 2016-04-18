@@ -1,0 +1,370 @@
+[
+    {
+        "pk": 6, 
+        "model": "coverages.bandrecord", 
+        "fields": {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+            "name": "MERIS_radiance_01_uint16", 
+            "nil_values": [
+                2
+            ], 
+            "gdal_interpretation": 0, 
+            "identifier": "MERIS_radiance_01_uint16", 
+            "uom": "W.m-2.sr-1.nm-1", 
+            "description": "MERIS first band"
+        }
+    }, 
+    {
+        "pk": 7, 
+        "model": "coverages.bandrecord", 
+        "fields": {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+            "name": "MERIS_radiance_02_uint16", 
+            "nil_values": [
+                2
+            ], 
+            "gdal_interpretation": 0, 
+            "identifier": "MERIS_radiance_02_uint16", 
+            "uom": "W.m-2.sr-1.nm-1", 
+            "description": "MERIS uint16 second band"
+        }
+    }, 
+    {
+        "pk": 8, 
+        "model": "coverages.bandrecord", 
+        "fields": {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+            "name": "MERIS_radiance_03_uint16", 
+            "nil_values": [
+                2
+            ], 
+            "gdal_interpretation": 0, 
+            "identifier": "MERIS_radiance_03_uint16", 
+            "uom": "W.m-2.sr-1.nm-1", 
+            "description": "MERIS uint16 third band"
+        }
+    }, 
+    {
+        "pk": 9, 
+        "model": "coverages.bandrecord", 
+        "fields": {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+            "name": "MERIS_radiance_04_uint16", 
+            "nil_values": [
+                2
+            ], 
+            "gdal_interpretation": 0, 
+            "identifier": "MERIS_radiance_04_uint16", 
+            "uom": "W.m-2.sr-1.nm-1", 
+            "description": "MERIS uint16 fourth band"
+        }
+    }, 
+    {
+        "pk": 10, 
+        "model": "coverages.bandrecord", 
+        "fields": {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+            "name": "MERIS_radiance_05_uint16", 
+            "nil_values": [
+                2
+            ], 
+            "gdal_interpretation": 0, 
+            "identifier": "MERIS_radiance_05_uint16", 
+            "uom": "W.m-2.sr-1.nm-1", 
+            "description": "MERIS uint16 fifth band"
+        }
+    }, 
+    {
+        "pk": 11, 
+        "model": "coverages.bandrecord", 
+        "fields": {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+            "name": "MERIS_radiance_06_uint16", 
+            "nil_values": [
+                2
+            ], 
+            "gdal_interpretation": 0, 
+            "identifier": "MERIS_radiance_06_uint16", 
+            "uom": "W.m-2.sr-1.nm-1", 
+            "description": "MERIS uint16 sixth band"
+        }
+    }, 
+    {
+        "pk": 12, 
+        "model": "coverages.bandrecord", 
+        "fields": {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+            "name": "MERIS_radiance_07_uint16", 
+            "nil_values": [
+                2
+            ], 
+            "gdal_interpretation": 0, 
+            "identifier": "MERIS_radiance_07_uint16", 
+            "uom": "W.m-2.sr-1.nm-1", 
+            "description": "MERIS uint16 seventh band"
+        }
+    }, 
+    {
+        "pk": 13, 
+        "model": "coverages.bandrecord", 
+        "fields": {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+            "name": "MERIS_radiance_08_uint16", 
+            "nil_values": [
+                2
+            ], 
+            "gdal_interpretation": 0, 
+            "identifier": "MERIS_radiance_08_uint16", 
+            "uom": "W.m-2.sr-1.nm-1", 
+            "description": "MERIS uint16 eighth band"
+        }
+    }, 
+    {
+        "pk": 14, 
+        "model": "coverages.bandrecord", 
+        "fields": {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+            "name": "MERIS_radiance_09_uint16", 
+            "nil_values": [
+                2
+            ], 
+            "gdal_interpretation": 0, 
+            "identifier": "MERIS_radiance_09_uint16", 
+            "uom": "W.m-2.sr-1.nm-1", 
+            "description": "MERIS uint16 ninth band"
+        }
+    }, 
+    {
+        "pk": 15, 
+        "model": "coverages.bandrecord", 
+        "fields": {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+            "name": "MERIS_radiance_10_uint16", 
+            "nil_values": [
+                2
+            ], 
+            "gdal_interpretation": 0, 
+            "identifier": "MERIS_radiance_10_uint16", 
+            "uom": "W.m-2.sr-1.nm-1", 
+            "description": "MERIS uint16 tenth band"
+        }
+    }, 
+    {
+        "pk": 16, 
+        "model": "coverages.bandrecord", 
+        "fields": {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+            "name": "MERIS_radiance_11_uint16", 
+            "nil_values": [
+                2
+            ], 
+            "gdal_interpretation": 0, 
+            "identifier": "MERIS_radiance_11_uint16", 
+            "uom": "W.m-2.sr-1.nm-1", 
+            "description": "MERIS uint16 eleventh band"
+        }
+    }, 
+    {
+        "pk": 17, 
+        "model": "coverages.bandrecord", 
+        "fields": {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+            "name": "MERIS_radiance_12_uint16", 
+            "nil_values": [
+                2
+            ], 
+            "gdal_interpretation": 0, 
+            "identifier": "MERIS_radiance_12_uint16", 
+            "uom": "W.m-2.sr-1.nm-1", 
+            "description": "MERIS uint16 twelfth band"
+        }
+    }, 
+    {
+        "pk": 18, 
+        "model": "coverages.bandrecord", 
+        "fields": {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+            "name": "MERIS_radiance_13_uint16", 
+            "nil_values": [
+                2
+            ], 
+            "gdal_interpretation": 0, 
+            "identifier": "MERIS_radiance_13_uint16", 
+            "uom": "W.m-2.sr-1.nm-1", 
+            "description": "MERIS uint 16 thirteenth band"
+        }
+    }, 
+    {
+        "pk": 19, 
+        "model": "coverages.bandrecord", 
+        "fields": {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+            "name": "MERIS_radiance_14_uint16", 
+            "nil_values": [
+                2
+            ], 
+            "gdal_interpretation": 0, 
+            "identifier": "MERIS_radiance_14_uint16", 
+            "uom": "W.m-2.sr-1.nm-1", 
+            "description": "MERIS uint16 fourteenth band"
+        }
+    }, 
+    {
+        "pk": 20, 
+        "model": "coverages.bandrecord", 
+        "fields": {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+            "name": "MERIS_radiance_15_uint16", 
+            "nil_values": [
+                2
+            ], 
+            "gdal_interpretation": 0, 
+            "identifier": "MERIS_radiance_15_uint16", 
+            "uom": "W.m-2.sr-1.nm-1", 
+            "description": "MERIS uint16 fifteenth band"
+        }
+    }, 
+    {
+        "pk": 4, 
+        "model": "coverages.rangetyperecord", 
+        "fields": {
+            "name": "MERIS_uint16", 
+            "data_type": 2
+        }
+    }, 
+    {
+        "pk": 9, 
+        "model": "coverages.rangetype2band", 
+        "fields": {
+            "range_type": 4, 
+            "band": 6, 
+            "no": 1
+        }
+    }, 
+    {
+        "pk": 10, 
+        "model": "coverages.rangetype2band", 
+        "fields": {
+            "range_type": 4, 
+            "band": 7, 
+            "no": 2
+        }
+    }, 
+    {
+        "pk": 11, 
+        "model": "coverages.rangetype2band", 
+        "fields": {
+            "range_type": 4, 
+            "band": 8, 
+            "no": 3
+        }
+    }, 
+    {
+        "pk": 12, 
+        "model": "coverages.rangetype2band", 
+        "fields": {
+            "range_type": 4, 
+            "band": 9, 
+            "no": 4
+        }
+    }, 
+    {
+        "pk": 13, 
+        "model": "coverages.rangetype2band", 
+        "fields": {
+            "range_type": 4, 
+            "band": 10, 
+            "no": 5
+        }
+    }, 
+    {
+        "pk": 14, 
+        "model": "coverages.rangetype2band", 
+        "fields": {
+            "range_type": 4, 
+            "band": 11, 
+            "no": 6
+        }
+    }, 
+    {
+        "pk": 15, 
+        "model": "coverages.rangetype2band", 
+        "fields": {
+            "range_type": 4, 
+            "band": 12, 
+            "no": 7
+        }
+    }, 
+    {
+        "pk": 16, 
+        "model": "coverages.rangetype2band", 
+        "fields": {
+            "range_type": 4, 
+            "band": 13, 
+            "no": 8
+        }
+    }, 
+    {
+        "pk": 17, 
+        "model": "coverages.rangetype2band", 
+        "fields": {
+            "range_type": 4, 
+            "band": 14, 
+            "no": 9
+        }
+    }, 
+    {
+        "pk": 18, 
+        "model": "coverages.rangetype2band", 
+        "fields": {
+            "range_type": 4, 
+            "band": 15, 
+            "no": 10
+        }
+    }, 
+    {
+        "pk": 19, 
+        "model": "coverages.rangetype2band", 
+        "fields": {
+            "range_type": 4, 
+            "band": 16, 
+            "no": 11
+        }
+    }, 
+    {
+        "pk": 20, 
+        "model": "coverages.rangetype2band", 
+        "fields": {
+            "range_type": 4, 
+            "band": 17, 
+            "no": 12
+        }
+    }, 
+    {
+        "pk": 21, 
+        "model": "coverages.rangetype2band", 
+        "fields": {
+            "range_type": 4, 
+            "band": 18, 
+            "no": 13
+        }
+    }, 
+    {
+        "pk": 22, 
+        "model": "coverages.rangetype2band", 
+        "fields": {
+            "range_type": 4, 
+            "band": 19, 
+            "no": 14
+        }
+    }, 
+    {
+        "pk": 23, 
+        "model": "coverages.rangetype2band", 
+        "fields": {
+            "range_type": 4, 
+            "band": 20, 
+            "no": 15
+        }
+    }
+]

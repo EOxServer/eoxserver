@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<ows:ExceptionReport version="2.0.0" xml:lang="en" xmlns:ows="http://www.opengis.net/ows/2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/ows/2.0 http://schemas.opengis.net/ows/2.0/owsAll.xsd">
+  <ows:Exception exceptionCode="InvalidParameterValue" locator="subset">
+    <ows:ExceptionText>Failed to extract an EPSG code from the CRS URI 'http://www.opengis.net/def/crs/EPSG/0/99999'!</ows:ExceptionText>
+  </ows:Exception>
+</ows:ExceptionReport>

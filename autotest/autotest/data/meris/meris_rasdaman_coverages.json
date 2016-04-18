@@ -1,0 +1,121 @@
+[
+    {
+        "pk": 1,
+        "model": "backends.storage",
+        "fields": {
+            "name": "rasdaman test storage",
+            "storage_type": "rasdaman"
+        }
+    },
+    {
+        "pk": 1,
+        "model": "backends.rasdamanstorage",
+        "fields": {
+            "host": "localhost",
+            "port": null,
+            "user": null,
+            "passwd": null,
+            "db_name": "RASBASE"
+        }
+    },
+    {
+        "pk": 15,
+        "model": "backends.location",
+        "fields": {
+            "location_type": "rasdaman"
+        }
+    },
+    {
+        "pk": 15,
+        "model": "backends.rasdamanlocation",
+        "fields": {
+            "storage": 1,
+            "collection": "MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced"
+        }
+    }, 
+    {
+        "pk": 16,
+        "model": "backends.location",
+        "fields": {
+            "location_type": "local"
+        }
+    }, 
+    {
+        "pk": 16,
+        "model": "backends.localpath",
+        "fields": {
+            "path": "autotest/data/meris/mosaic_MER_FRS_1P_RGB_reduced_rasdaman/mosaic_ENVISAT-MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced.xml" 
+        }
+    }, 
+    {
+        "pk": 7,
+        "model": "coverages.datapackage", 
+        "fields": {
+            "data_package_type": "rasdaman", 
+            "metadata_format_name": "eogml" 
+        }
+    }, 
+    {
+        "pk": 7, 
+        "model": "coverages.rasdamandatapackage", 
+        "fields": {
+            "data_location": 15,
+            "metadata_location": 16
+        }
+    }, 
+    {
+        "pk": 8,
+        "model": "coverages.extentrecord", 
+        "fields": {
+            "srid": 4326,
+            "size_x": 541, 
+            "size_y": 449,
+            "minx": -3.75000000000000, 
+            "miny": 32.19025000000000, 
+            "maxx": 13.21305500000000,
+            "maxy": 46.26864500000000
+        }
+    },
+    {
+        "pk": 8,
+        "model": "coverages.lineagerecord", 
+        "fields": {}
+    }, 
+    {
+        "pk": 9, 
+        "model": "coverages.eometadatarecord", 
+        "fields": {
+            "footprint": "MULTIPOLYGON (((-0.7697720000000000 46.2184450000000027, 0.2885470000000000 46.0829060000000013, 2.7334200000000002 45.7363629999999972, 4.8156569999999999 45.3994700000000009, 6.8947760000000002 45.0094819999999984, 8.1549139999999998 44.7501850000000019, 9.6342459999999992 44.4195240000000027, 11.0061820000000008 44.1060659999999984, 12.2788330000000006 43.7998090000000033, 12.8747340000000001 43.6403559999999970, 12.2287479999999995 42.2970240000000004, 11.4284250000000007 40.5405590000000018, 10.6609879999999997 38.7441839999999971, 9.9275389999999994 36.9630879999999991, 9.2395879999999995 35.1822599999999994, 8.7282869999999999 33.8078110000000009, 8.1744629999999994 32.2645410000000012, 7.3466579999999997 32.4744570000000010, 5.4890010000000000 32.9147210000000001, 3.5949130000000000 33.3292950000000019, 1.6795620000000000 33.7189490000000021, -0.2562130000000000 34.0828819999999979, -1.7440840000000000 34.3405720000000017, -3.4379810000000002 34.6029479999999978, -3.3121380000000000 35.2004999999999981, -2.9686140000000001 36.7570940000000022, -2.6820100000000000 38.0557960000000008, -2.3507590000000000 39.5173360000000002, -1.9420690000000000 41.3009210000000024, -1.5538600000000000 42.9462159999999997, -1.1669950000000000 44.5925110000000018, -0.7697720000000000 46.2184450000000027)))", 
+            "timestamp_end": "2008-08-30 10:13:06Z", 
+            "timestamp_begin": "2008-08-30 10:09:49Z", 
+            "eo_gml": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<?xml-stylesheet type=\"text/xsl\" href=\"schematron_result_for_eop.xsl\"?>\n<eop:EarthObservation xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n    xsi:schemaLocation=\"http://www.opengis.net/opt/2.0 ../xsd/opt.xsd\"\n    xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:gml=\"http://www.opengis.net/gml/3.2\"\n    xmlns:eop=\"http://www.opengis.net/eop/2.0\"\n    xmlns:swe=\"http://www.opengis.net/swe/1.0\"\n    xmlns:om=\"http://www.opengis.net/om/2.0\"\n    gml:id=\"eop_mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced_rasdaman\">\n    <om:phenomenonTime>\n        <gml:TimePeriod gml:id=\"tp_mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced_rasdaman\">\n            <gml:beginPosition>2008-08-30T10:09:49Z</gml:beginPosition>\n            <gml:endPosition>2008-08-30T10:13:06Z</gml:endPosition>\n        </gml:TimePeriod>\n    </om:phenomenonTime>\n    <om:resultTime>\n        <!-- repeat of archiving date? -->\n        <gml:TimeInstant gml:id=\"archivingdate_mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced_rasdaman\">\n            <gml:timePosition>2006-08-30T13:08:46Z</gml:timePosition>\n        </gml:TimeInstant>\n    </om:resultTime>\n    <om:procedure>\n        <eop:EarthObservationEquipment gml:id=\"equ_mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced_rasdaman\">\n            <eop:platform>\n                <eop:Platform>\n                    <eop:shortName>ENVISAT</eop:shortName>\n                </eop:Platform>\n            </eop:platform>\n            <eop:instrument>\n                <eop:Instrument>\n                    <eop:shortName>MERIS</eop:shortName>\n                </eop:Instrument>\n            </eop:instrument>\n            <eop:sensor>\n                <eop:Sensor>\n                    <eop:sensorType>OPTICAL</eop:sensorType>\n                </eop:Sensor>\n            </eop:sensor>\n        </eop:EarthObservationEquipment>\n    </om:procedure>\n    <om:observedProperty xlink:href=\"#params1\"/>\n    <om:featureOfInterest>\n        <eop:Footprint gml:id=\"footprint_mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced_rasdaman\">\n            <eop:multiExtentOf>\n                <gml:MultiSurface gml:id=\"ms_mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced_rasdaman\" srsName=\"EPSG:4326\">\n                    <gml:surfaceMember>\n                        <gml:Polygon gml:id=\"poly_mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced_rasdaman\">\n                            <gml:exterior>\n                                <gml:LinearRing>\n                                    <gml:posList>-0.76977182361738 46.218445404185523 0.288547363821689 46.082906444151412 2.733419759721718 45.736362636726184 4.815657039292408 45.39947037754385 6.894775798282314 45.009481751872841 8.154913571318612 44.75018471574041 9.634245839133294 44.419523953086873 11.006182471486037 44.106065841642724 12.278832827641576 43.799809353864482 12.874734457414554 43.64035642239579 12.228748112726354 42.297024153936299 11.428424700783859 40.540559047616689 10.660987879488511 38.744184017222707 9.927539260629768 36.963087985384199 9.239587579469651 35.182260410114758 8.728287480275119 33.807810710102451 8.174463354403226 32.264540577585258 7.346658308388547 32.474457463913588 5.48900097684443 32.914720908552496 3.594912710998026 33.32929471736243 1.679561673218221 33.718948965521164 -0.256213475006078 34.082882201063725 -1.744083689584682 34.340572432492237 -3.43798101398678 34.602947959526702 -3.312138031931722 35.200500221283981 -2.96861379128801 36.757093701370252 -2.682010254826003 38.055795734748088 -2.350758514252345 39.51733579731436 -1.942069312500661 41.300920677569081 -1.553859522839208 42.946216061481564 -1.166995203885614 44.592511014222083 -0.76977182361738 46.218445404185523</gml:posList>\n                                </gml:LinearRing>\n                            </gml:exterior>\n                        </gml:Polygon>\n                    </gml:surfaceMember>\n                </gml:MultiSurface>\n            </eop:multiExtentOf>\n        </eop:Footprint>\n    </om:featureOfInterest>\n    <om:result/>\n    <eop:metaDataProperty>\n        <eop:EarthObservationMetaData>\n            <eop:identifier>mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced</eop:identifier>\n            <eop:acquisitionType>NOMINAL</eop:acquisitionType>\n            <eop:productType>MER_FRS_1P</eop:productType>\n            <eop:status>ARCHIVED</eop:status>\n            <eop:downlinkedTo>\n                <eop:DownlinkInformation>\n                    <eop:acquisitionStation>PDHS-E</eop:acquisitionStation>\n                </eop:DownlinkInformation>\n            </eop:downlinkedTo>\n            <eop:processing>\n                <eop:ProcessingInformation>\n                    <eop:processingCenter>PDHS-E</eop:processingCenter>\n                </eop:ProcessingInformation>\n            </eop:processing>\n        </eop:EarthObservationMetaData>\n    </eop:metaDataProperty>\n</eop:EarthObservation>\n"
+        }
+    }, 
+    {
+        "pk": 9,
+        "model": "core.resource",
+        "fields": {}
+    }, 
+    {
+        "pk": 9,
+        "model": "coverages.coveragerecord",
+        "fields": {
+            "coverage_id": "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced_rasdaman",
+            "range_type": 1, 
+            "layer_metadata": [], 
+            "automatic": true
+        }
+    }, 
+    {
+        "pk": 9, 
+        "model": "coverages.rectifieddatasetrecord", 
+        "fields": {
+            "lineage": 8,
+            "eo_id": "mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced_rasdaman",
+            "visible": false, 
+            "eo_metadata": 9,
+            "data_package": 7,
+            "extent": 8
+        }
+    }
+]

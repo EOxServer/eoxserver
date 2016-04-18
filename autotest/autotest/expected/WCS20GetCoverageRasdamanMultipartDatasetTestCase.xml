@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<wcseo:RectifiedDataset xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0" xmlns:om="http://www.opengis.net/om/2.0" xmlns:ows="http://www.opengis.net/ows/2.0" xmlns:swe="http://www.opengis.net/swe/2.0" xmlns:wcseo="http://www.opengis.net/wcseo/1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" gml:id="mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced_rasdaman" xsi:schemaLocation="http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd">
+  <gml:boundedBy>
+    <gml:Envelope axisLabels="lat long" srsDimension="2" srsName="http://www.opengis.net/def/crs/EPSG/0/4326" uomLabels="deg deg">
+      <gml:lowerCorner>-3.75 32.19025</gml:lowerCorner>
+      <gml:upperCorner>13.213055 46.268645</gml:upperCorner>
+    </gml:Envelope>
+  </gml:boundedBy>
+  <gml:domainSet>
+    <gml:RectifiedGrid dimension="2" gml:id="grid_mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced_rasdaman">
+      <gml:limits>
+        <gml:GridEnvelope>
+          <gml:low>0 0</gml:low>
+          <gml:high>540 448</gml:high>
+        </gml:GridEnvelope>
+      </gml:limits>
+      <gml:axisLabels>lat long</gml:axisLabels>
+      <gml:origin>
+        <gml:Point gml:id="grid_origin_mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced_rasdaman" srsName="http://www.opengis.net/def/crs/EPSG/0/4326">
+          <gml:pos>-3.750000 46.268645</gml:pos>
+        </gml:Point>
+      </gml:origin>
+      <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/4326">0.031355 0</gml:offsetVector>
+      <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/4326">0 -0.031355</gml:offsetVector>
+    </gml:RectifiedGrid>
+  </gml:domainSet>
+  <gml:rangeSet>
+    <gml:File>
+      <gml:rangeParameters xlink:arcrole="fileReference" xlink:href="coverage/out.tif" xlink:role="image/tiff"/>
+      <gml:fileReference>coverage/out.tif</gml:fileReference>
+      <gml:fileStructure/>
+      <gml:mimeType>image/tiff</gml:mimeType>
+    </gml:File>
+  </gml:rangeSet>
+  <gmlcov:rangeType>
+    <swe:DataRecord>
+      <swe:field name="red">
+        <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+          <swe:description>Red Channel</swe:description>
+          <swe:nilValues/>
+          <swe:uom code="W.m-2.Sr-1"/>
+          <swe:constraint>
+            <swe:AllowedValues>
+              <swe:interval>0 255</swe:interval>
+              <swe:significantFigures>3</swe:significantFigures>
+            </swe:AllowedValues>
+          </swe:constraint>
+        </swe:Quantity>
+      </swe:field>
+      <swe:field name="green">
+        <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+          <swe:description>Green Channel</swe:description>
+          <swe:nilValues/>
+          <swe:uom code="W.m-2.Sr-1"/>
+          <swe:constraint>
+            <swe:AllowedValues>
+              <swe:interval>0 255</swe:interval>
+              <swe:significantFigures>3</swe:significantFigures>
+            </swe:AllowedValues>
+          </swe:constraint>
+        </swe:Quantity>
+      </swe:field>
+      <swe:field name="blue">
+        <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+          <swe:description>Blue Channel</swe:description>
+          <swe:nilValues/>
+          <swe:uom code="W.m-2.Sr-1"/>
+          <swe:constraint>
+            <swe:AllowedValues>
+              <swe:interval>0 255</swe:interval>
+              <swe:significantFigures>3</swe:significantFigures>
+            </swe:AllowedValues>
+          </swe:constraint>
+        </swe:Quantity>
+      </swe:field>
+    </swe:DataRecord>
+  </gmlcov:rangeType>
+  <gmlcov:metadata>
+    <gmlcov:Extension>
+      <wcseo:EOMetadata>
+        <eop:EarthObservation xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:om="http://www.opengis.net/om/2.0" xmlns:swe="http://www.opengis.net/swe/1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" gml:id="eop_mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced_rasdaman" xsi:schemaLocation="http://www.opengis.net/opt/2.0 ../xsd/opt.xsd">
+          <om:phenomenonTime>
+            <gml:TimePeriod gml:id="tp_mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced_rasdaman">
+              <gml:beginPosition>2008-08-30T10:09:49Z</gml:beginPosition>
+              <gml:endPosition>2008-08-30T10:13:06Z</gml:endPosition>
+            </gml:TimePeriod>
+          </om:phenomenonTime>
+          <om:resultTime>
+            <!-- repeat of archiving date? -->
+            <gml:TimeInstant gml:id="archivingdate_mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced_rasdaman">
+              <gml:timePosition>2006-08-30T13:08:46Z</gml:timePosition>
+            </gml:TimeInstant>
+          </om:resultTime>
+          <om:procedure>
+            <eop:EarthObservationEquipment gml:id="equ_mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced_rasdaman">
+              <eop:platform>
+                <eop:Platform>
+                  <eop:shortName>ENVISAT</eop:shortName>
+                </eop:Platform>
+              </eop:platform>
+              <eop:instrument>
+                <eop:Instrument>
+                  <eop:shortName>MERIS</eop:shortName>
+                </eop:Instrument>
+              </eop:instrument>
+              <eop:sensor>
+                <eop:Sensor>
+                  <eop:sensorType>OPTICAL</eop:sensorType>
+                </eop:Sensor>
+              </eop:sensor>
+            </eop:EarthObservationEquipment>
+          </om:procedure>
+          <om:observedProperty xlink:href="#params1"/>
+          <om:featureOfInterest>
+            <eop:Footprint gml:id="footprint_mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced_rasdaman">
+              <eop:multiExtentOf>
+                <gml:MultiSurface gml:id="ms_mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced_rasdaman" srsName="EPSG:4326">
+                  <gml:surfaceMember>
+                    <gml:Polygon gml:id="poly_mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced_rasdaman">
+                      <gml:exterior>
+                        <gml:LinearRing>
+                          <gml:posList>-0.76977182361738 46.218445404185523 0.288547363821689 46.082906444151412 2.733419759721718 45.736362636726184 4.815657039292408 45.39947037754385 6.894775798282314 45.009481751872841 8.154913571318612 44.75018471574041 9.634245839133294 44.419523953086873 11.006182471486037 44.106065841642724 12.278832827641576 43.799809353864482 12.874734457414554 43.64035642239579 12.228748112726354 42.297024153936299 11.428424700783859 40.540559047616689 10.660987879488511 38.744184017222707 9.927539260629768 36.963087985384199 9.239587579469651 35.182260410114758 8.728287480275119 33.807810710102451 8.174463354403226 32.264540577585258 7.346658308388547 32.474457463913588 5.48900097684443 32.914720908552496 3.594912710998026 33.32929471736243 1.679561673218221 33.718948965521164 -0.256213475006078 34.082882201063725 -1.744083689584682 34.340572432492237 -3.43798101398678 34.602947959526702 -3.312138031931722 35.200500221283981 -2.96861379128801 36.757093701370252 -2.682010254826003 38.055795734748088 -2.350758514252345 39.51733579731436 -1.942069312500661 41.300920677569081 -1.553859522839208 42.946216061481564 -1.166995203885614 44.592511014222083 -0.76977182361738 46.218445404185523</gml:posList>
+                        </gml:LinearRing>
+                      </gml:exterior>
+                    </gml:Polygon>
+                  </gml:surfaceMember>
+                </gml:MultiSurface>
+              </eop:multiExtentOf>
+            </eop:Footprint>
+          </om:featureOfInterest>
+          <om:result/>
+          <eop:metaDataProperty>
+            <eop:EarthObservationMetaData>
+              <eop:identifier>mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced</eop:identifier>
+              <eop:acquisitionType>NOMINAL</eop:acquisitionType>
+              <eop:productType>MER_FRS_1P</eop:productType>
+              <eop:status>ARCHIVED</eop:status>
+              <eop:downlinkedTo>
+                <eop:DownlinkInformation>
+                  <eop:acquisitionStation>PDHS-E</eop:acquisitionStation>
+                </eop:DownlinkInformation>
+              </eop:downlinkedTo>
+              <eop:processing>
+                <eop:ProcessingInformation>
+                  <eop:processingCenter>PDHS-E</eop:processingCenter>
+                </eop:ProcessingInformation>
+              </eop:processing>
+            </eop:EarthObservationMetaData>
+          </eop:metaDataProperty>
+        </eop:EarthObservation>
+        <wcseo:lineage>
+          <wcseo:referenceGetCoverage>
+            <ows:Reference xlink:href="http://testserver/ows?service=wcs&amp;amp;version=2.0.0&amp;amp;request=GetCoverage&amp;amp;CoverageId=mosaic_MER_FRS_1PNPDE20060830_100949_000001972050_00423_23523_0079_RGB_reduced_rasdaman&amp;amp;format=image/tiff&amp;amp;mediatype=multipart/mixed"/>
+          </wcseo:referenceGetCoverage>
+          <gml:timePosition>2011-01-01T00:00:00Z</gml:timePosition>
+        </wcseo:lineage>
+      </wcseo:EOMetadata>
+    </gmlcov:Extension>
+  </gmlcov:metadata>
+</wcseo:RectifiedDataset>

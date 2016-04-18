@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<WCS_Capabilities xmlns="http://www.opengis.net/wcs" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:gml="http://www.opengis.net/gml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.0.0" updateSequence="20110610T153000Z" xsi:schemaLocation="http://www.opengis.net/wcs http://schemas.opengis.net/wcs/1.0.0/wcsCapabilities.xsd">
+  <Service>
+    <name/>
+    <label>EOxServer WCS</label>
+    <keywords>
+      <keyword>EO-WCS</keyword>
+      <keyword>WCS EO-AP</keyword>
+      <keyword>WCS 2.0</keyword>
+      <keyword>WCS</keyword>
+      <keyword>WMS</keyword>
+      <keyword>EO-WMS</keyword>
+      <keyword>MERIS</keyword>
+      <keyword>ASAR</keyword>
+      <keyword>Envisat</keyword>
+    </keywords>
+    <responsibleParty>
+      <individualName>Stephan Meissl</individualName>
+      <organisationName>EOX IT Services GmbH - HG Wien - FN 312068z - UID ATU64265057</organisationName>
+      <positionName>Senior IT Consultant</positionName>
+      <contactInfo>
+        <phone>
+          <voice>Provided on request</voice>
+          <facsimile>None</facsimile>
+        </phone>
+        <address>
+          <deliveryPoint>Thurngasse 8/4</deliveryPoint>
+          <city>Wien</city>
+          <administrativeArea>Vienna</administrativeArea>
+          <postalCode>1090</postalCode>
+          <country>Austria</country>
+          <electronicMailAddress>office@eox.at</electronicMailAddress>
+        </address>
+        <onlineResource xlink:type="simple" xlink:href="http://eoxserver.org"/>
+      </contactInfo>
+    </responsibleParty>
+    <fees>None</fees>
+    <accessConstraints>
+    None
+  </accessConstraints>
+  </Service>
+  <Capability>
+    <Request>
+      <GetCapabilities>
+        <DCPType>
+          <HTTP>
+            <Get>
+              <OnlineResource xlink:type="simple" xlink:href="http://localhost:8000/ows?"/>
+            </Get>
+          </HTTP>
+        </DCPType>
+        <DCPType>
+          <HTTP>
+            <Post>
+              <OnlineResource xlink:type="simple" xlink:href="http://localhost:8000/ows?"/>
+            </Post>
+          </HTTP>
+        </DCPType>
+      </GetCapabilities>
+      <DescribeCoverage>
+        <DCPType>
+          <HTTP>
+            <Get>
+              <OnlineResource xlink:type="simple" xlink:href="http://localhost:8000/ows?"/>
+            </Get>
+          </HTTP>
+        </DCPType>
+        <DCPType>
+          <HTTP>
+            <Post>
+              <OnlineResource xlink:type="simple" xlink:href="http://localhost:8000/ows?"/>
+            </Post>
+          </HTTP>
+        </DCPType>
+      </DescribeCoverage>
+      <GetCoverage>
+        <DCPType>
+          <HTTP>
+            <Get>
+              <OnlineResource xlink:type="simple" xlink:href="http://localhost:8000/ows?"/>
+            </Get>
+          </HTTP>
+        </DCPType>
+        <DCPType>
+          <HTTP>
+            <Post>
+              <OnlineResource xlink:type="simple" xlink:href="http://localhost:8000/ows?"/>
+            </Post>
+          </HTTP>
+        </DCPType>
+      </GetCoverage>
+    </Request>
+    <Exception>
+      <Format>application/vnd.ogc.se_xml</Format>
+    </Exception>
+  </Capability>
+  <ContentMetadata>
+    <!-- WARNING: No WCS layers are enabled. Check wcs/ows_enable_request settings. -->
+  </ContentMetadata>
+</WCS_Capabilities>

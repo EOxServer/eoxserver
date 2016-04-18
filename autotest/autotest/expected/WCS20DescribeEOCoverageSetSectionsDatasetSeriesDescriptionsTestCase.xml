@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<wcseo:EOCoverageSetDescription xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:wcseo="http://www.opengis.net/wcseo/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" numberMatched="5" numberReturned="5" xsi:schemaLocation="http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd">
+  <wcseo:DatasetSeriesDescriptions>
+    <wcseo:DatasetSeriesDescription gml:id="MER_FRS_1P_reduced">
+      <gml:boundedBy>
+        <gml:Envelope axisLabels="lat long" srsDimension="2" srsName="http://www.opengis.net/def/crs/EPSG/0/4326" uomLabels="deg deg">
+          <gml:lowerCorner>32.08007800 -4.04296900</gml:lowerCorner>
+          <gml:upperCorner>45.17578100 33.13476600</gml:upperCorner>
+        </gml:Envelope>
+      </gml:boundedBy>
+      <wcseo:DatasetSeriesId>MER_FRS_1P_reduced</wcseo:DatasetSeriesId>
+      <gml:TimePeriod gml:id="MER_FRS_1P_reduced_timeperiod">
+        <gml:beginPosition>2006-08-16T00:00:00</gml:beginPosition>
+        <gml:endPosition>2006-08-31T00:00:00</gml:endPosition>
+      </gml:TimePeriod>
+    </wcseo:DatasetSeriesDescription>
+  </wcseo:DatasetSeriesDescriptions>
+</wcseo:EOCoverageSetDescription>

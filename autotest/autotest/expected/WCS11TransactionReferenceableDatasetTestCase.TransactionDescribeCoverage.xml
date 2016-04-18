@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<wcs:CoverageDescriptions xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0" xmlns:om="http://www.opengis.net/om/2.0" xmlns:swe="http://www.opengis.net/swe/2.0" xmlns:wcs="http://www.opengis.net/wcs/2.0" xmlns:wcseo="http://www.opengis.net/wcseo/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/wcseo/1.0 http://schemas.opengis.net/wcseo/1.0/wcsEOAll.xsd">
+  <wcs:CoverageDescription gml:id="REFERENCEABLE_ASAR_ID">
+    <gml:boundedBy>
+      <gml:Envelope axisLabels="lat long" srsDimension="2" srsName="http://www.opengis.net/def/crs/EPSG/0/4326" uomLabels="deg deg">
+        <gml:lowerCorner>-36.25952800 16.72708800</gml:lowerCorner>
+        <gml:upperCorner>-31.98449500 22.30224700</gml:upperCorner>
+      </gml:Envelope>
+    </gml:boundedBy>
+    <wcs:CoverageId>REFERENCEABLE_ASAR_ID</wcs:CoverageId>
+    <gmlcov:metadata>
+      <gmlcov:Extension>
+        <wcseo:EOMetadata>
+          <eop:EarthObservation gml:id="eop_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775">
+            <om:phenomenonTime>
+              <gml:TimePeriod gml:id="phen_time_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775">
+                <gml:beginPosition>2005-03-31T07:59:36Z</gml:beginPosition>
+                <gml:endPosition>2005-03-31T08:00:36Z</gml:endPosition>
+              </gml:TimePeriod>
+            </om:phenomenonTime>
+            <om:resultTime>
+              <gml:TimeInstant gml:id="res_time_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775">
+                <gml:timePosition>2005-03-31T08:00:36Z</gml:timePosition>
+              </gml:TimeInstant>
+            </om:resultTime>
+            <om:procedure/>
+            <om:observedProperty/>
+            <om:featureOfInterest>
+              <eop:Footprint gml:id="footprint_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775">
+                <eop:multiExtentOf>
+                  <gml:MultiSurface gml:id="multisurface_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775" srsName="EPSG:4326">
+                    <gml:surfaceMember>
+                      <gml:Polygon gml:id="polygon_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775_1">
+                        <gml:exterior>
+                          <gml:LinearRing>
+                            <gml:posList>-33.03878000 22.30224700 -32.78918900 21.19719700 -32.53023000 20.09956800 -32.26198900 19.00910500 -31.98449500 17.92536100 -31.98449500 17.92536100 -33.04666200 17.53528600 -34.10733300 17.13516600 -35.16712700 16.72708800 -35.16712700 16.72708800 -35.45523600 17.84583200 -35.73305300 18.97284900 -36.00055200 20.10871900 -36.25952800 21.26242400 -36.25952800 21.26242400 -35.18601500 21.61261100 -34.11288800 21.96120900 -33.03878000 22.30224700 -33.03878000 22.30224700</gml:posList>
+                          </gml:LinearRing>
+                        </gml:exterior>
+                      </gml:Polygon>
+                    </gml:surfaceMember>
+                  </gml:MultiSurface>
+                </eop:multiExtentOf>
+              </eop:Footprint>
+            </om:featureOfInterest>
+            <om:result/>
+            <eop:metaDataProperty>
+              <eop:EarthObservationMetaData>
+                <eop:identifier>ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775</eop:identifier>
+                <eop:acquisitionType>NOMINAL</eop:acquisitionType>
+                <eop:status>ARCHIVED</eop:status>
+              </eop:EarthObservationMetaData>
+            </eop:metaDataProperty>
+          </eop:EarthObservation>
+        </wcseo:EOMetadata>
+      </gmlcov:Extension>
+    </gmlcov:metadata>
+    <gml:domainSet>
+      <gml:ReferenceableGrid dimension="2" gml:id="REFERENCEABLE_ASAR_ID_grid">
+        <gml:limits>
+          <gml:GridEnvelope>
+            <gml:low>0 0</gml:low>
+            <gml:high>568 485</gml:high>
+          </gml:GridEnvelope>
+        </gml:limits>
+        <gml:axisLabels>lat long</gml:axisLabels>
+      </gml:ReferenceableGrid>
+    </gml:domainSet>
+    <gmlcov:rangeType>
+      <swe:DataRecord>
+        <swe:field name="ASAR_Amplitude">
+          <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Amplitude">
+            <swe:description>ASAR Amplitude Band</swe:description>
+            <swe:nilValues>
+              <swe:NilValues>
+                <swe:nilValue reason="http://www.opengis.net/def/nil/OGC/0/unknown">0</swe:nilValue>
+              </swe:NilValues>
+            </swe:nilValues>
+            <swe:uom code="?"/>
+            <swe:constraint>
+              <swe:AllowedValues>
+                <swe:interval>0 65535</swe:interval>
+                <swe:significantFigures>5</swe:significantFigures>
+              </swe:AllowedValues>
+            </swe:constraint>
+          </swe:Quantity>
+        </swe:field>
+      </swe:DataRecord>
+    </gmlcov:rangeType>
+    <wcs:ServiceParameters>
+      <wcs:CoverageSubtype>ReferenceableDataset</wcs:CoverageSubtype>
+      <wcs:nativeFormat>image/tiff</wcs:nativeFormat>
+    </wcs:ServiceParameters>
+  </wcs:CoverageDescription>
+</wcs:CoverageDescriptions>
