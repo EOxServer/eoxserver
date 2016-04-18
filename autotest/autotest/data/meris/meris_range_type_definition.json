@@ -1,0 +1,216 @@
+[{
+    "bands": [
+        {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+            "description": "MERIS uint16 first band",
+            "gdal_interpretation": "Undefined",
+            "identifier": "MERIS_radiance_01_uint16",
+            "name": "MERIS_radiance_01_uint16",
+            "nil_values": [
+                {
+                    "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+                    "value": 0
+                }
+            ],
+            "uom": "W.m-2.sr-1.nm-1"
+        },
+        {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+            "description": "MERIS uint16 second band",
+            "gdal_interpretation": "Undefined",
+            "identifier": "MERIS_radiance_02_uint16",
+            "name": "MERIS_radiance_02_uint16",
+            "nil_values": [
+                {
+                    "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+                    "value": 0
+                }
+            ],
+            "uom": "W.m-2.sr-1.nm-1"
+        },
+        {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+            "description": "MERIS uint16 third band",
+            "gdal_interpretation": "Undefined",
+            "identifier": "MERIS_radiance_03_uint16",
+            "name": "MERIS_radiance_03_uint16",
+            "nil_values": [
+                {
+                    "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+                    "value": 0
+                }
+            ],
+            "uom": "W.m-2.sr-1.nm-1"
+        },
+        {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+            "description": "MERIS uint16 fourth band",
+            "gdal_interpretation": "Undefined",
+            "identifier": "MERIS_radiance_04_uint16",
+            "name": "MERIS_radiance_04_uint16",
+            "nil_values": [
+                {
+                    "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+                    "value": 0
+                }
+            ],
+            "uom": "W.m-2.sr-1.nm-1"
+        },
+        {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+            "description": "MERIS uint16 fifth band",
+            "gdal_interpretation": "Undefined",
+            "identifier": "MERIS_radiance_05_uint16",
+            "name": "MERIS_radiance_05_uint16",
+            "nil_values": [
+                {
+                    "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+                    "value": 0
+                }
+            ],
+            "uom": "W.m-2.sr-1.nm-1"
+        },
+        {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+            "description": "MERIS uint16 sixth band",
+            "gdal_interpretation": "Undefined",
+            "identifier": "MERIS_radiance_06_uint16",
+            "name": "MERIS_radiance_06_uint16",
+            "nil_values": [
+                {
+                    "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+                    "value": 0
+                }
+            ],
+            "uom": "W.m-2.sr-1.nm-1"
+        },
+        {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+            "description": "MERIS uint16 seventh band",
+            "gdal_interpretation": "Undefined",
+            "identifier": "MERIS_radiance_07_uint16",
+            "name": "MERIS_radiance_07_uint16",
+            "nil_values": [
+                {
+                    "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+                    "value": 0
+                }
+            ],
+            "uom": "W.m-2.sr-1.nm-1"
+        },
+        {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+            "description": "MERIS uint16 eighth band",
+            "gdal_interpretation": "Undefined",
+            "identifier": "MERIS_radiance_08_uint16",
+            "name": "MERIS_radiance_08_uint16",
+            "nil_values": [
+                {
+                    "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+                    "value": 0
+                }
+            ],
+            "uom": "W.m-2.sr-1.nm-1"
+        },
+        {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+            "description": "MERIS uint16 ninth band",
+            "gdal_interpretation": "Undefined",
+            "identifier": "MERIS_radiance_09_uint16",
+            "name": "MERIS_radiance_09_uint16",
+            "nil_values": [
+                {
+                    "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+                    "value": 0
+                }
+            ],
+            "uom": "W.m-2.sr-1.nm-1"
+        },
+        {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+            "description": "MERIS uint16 tenth band",
+            "gdal_interpretation": "Undefined",
+            "identifier": "MERIS_radiance_10_uint16",
+            "name": "MERIS_radiance_10_uint16",
+            "nil_values": [
+                {
+                    "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+                    "value": 0
+                }
+            ],
+            "uom": "W.m-2.sr-1.nm-1"
+        },
+        {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+            "description": "MERIS uint16 eleventh band",
+            "gdal_interpretation": "Undefined",
+            "identifier": "MERIS_radiance_11_uint16",
+            "name": "MERIS_radiance_11_uint16",
+            "nil_values": [
+                {
+                    "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+                    "value": 0
+                }
+            ],
+            "uom": "W.m-2.sr-1.nm-1"
+        },
+        {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+            "description": "MERIS uint16 twelfth band",
+            "gdal_interpretation": "Undefined",
+            "identifier": "MERIS_radiance_12_uint16",
+            "name": "MERIS_radiance_12_uint16",
+            "nil_values": [
+                {
+                    "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+                    "value": 0
+                }
+            ],
+            "uom": "W.m-2.sr-1.nm-1"
+        },
+        {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+            "description": "MERIS uint16 thirteenth band",
+            "gdal_interpretation": "Undefined",
+            "identifier": "MERIS_radiance_13_uint16",
+            "name": "MERIS_radiance_13_uint16",
+            "nil_values": [
+                {
+                    "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+                    "value": 0
+                }
+            ],
+            "uom": "W.m-2.sr-1.nm-1"
+        },
+        {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+            "description": "MERIS uint16 fourteenth band",
+            "gdal_interpretation": "Undefined",
+            "identifier": "MERIS_radiance_14_uint16",
+            "name": "MERIS_radiance_14_uint16",
+            "nil_values": [
+                {
+                    "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+                    "value": 0
+                }
+            ],
+            "uom": "W.m-2.sr-1.nm-1"
+        },
+        {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+            "description": "MERIS uint16 fifteenth band",
+            "gdal_interpretation": "Undefined",
+            "identifier": "MERIS_radiance_15_uint16",
+            "name": "MERIS_radiance_15_uint16",
+            "nil_values": [
+                {
+                    "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+                    "value": 0
+                }
+            ],
+            "uom": "W.m-2.sr-1.nm-1"
+        }
+    ],
+    "data_type": "UInt16",
+    "name": "MERIS_uint16"
+}]

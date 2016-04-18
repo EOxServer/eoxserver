@@ -1,0 +1,168 @@
+[
+{
+    "pk": 1, 
+    "model": "coverages.nilvalueset", 
+    "fields": {
+        "name": "RGB Nil Value Set", 
+        "data_type": 1
+    }
+},
+{
+    "pk": 1, 
+    "model": "coverages.nilvalue", 
+    "fields": {
+        "reason": "http://www.opengis.net/def/nil/OGC/0/unknown", 
+        "nil_value_set": 1, 
+        "raw_value": "0"
+    }
+},
+{
+    "pk": 1, 
+    "model": "coverages.rangetype", 
+    "fields": {
+        "name": "RGB"
+    }
+},
+{
+    "pk": 2, 
+    "model": "coverages.rangetype", 
+    "fields": {
+        "name": "Grayscale"
+    }
+},
+{
+    "pk": 3, 
+    "model": "coverages.rangetype", 
+    "fields": {
+        "name": "RGBA"
+    }
+},
+{
+    "pk": 1, 
+    "model": "coverages.band", 
+    "fields": {
+        "index": 0, 
+        "name": "red", 
+        "data_type": 1, 
+        "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+        "range_type": 1, 
+        "color_interpretation": 3, 
+        "identifier": "red", 
+        "uom": "W.m-2.Sr-1", 
+        "description": "Red Channel", 
+        "nil_value_set": 1 
+    }
+},
+{
+    "pk": 2, 
+    "model": "coverages.band", 
+    "fields": {
+        "index": 1, 
+        "name": "green", 
+        "data_type": 1, 
+        "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+        "range_type": 1, 
+        "color_interpretation": 4, 
+        "identifier": "green", 
+        "uom": "W.m-2.Sr-1", 
+        "description": "Green Channel", 
+        "nil_value_set": 1 
+    }
+},
+{
+    "pk": 3, 
+    "model": "coverages.band", 
+    "fields": {
+        "index": 2, 
+        "name": "blue", 
+        "data_type": 1, 
+        "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+        "range_type": 1, 
+        "color_interpretation": 5, 
+        "identifier": "blue", 
+        "uom": "W.m-2.Sr-1", 
+        "description": "Blue Channel", 
+        "nil_value_set": 1 
+    }
+},
+{
+    "pk": 4, 
+    "model": "coverages.band", 
+    "fields": {
+        "index": 0, 
+        "name": "gray", 
+        "data_type": 1, 
+        "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+        "range_type": 2, 
+        "color_interpretation": 0, 
+        "identifier": "gray", 
+        "uom": "W.m-2.Sr-1", 
+        "description": "Gray Channel", 
+        "nil_value_set": 1 
+    }
+},
+{
+    "pk": 5, 
+    "model": "coverages.band", 
+    "fields": {
+        "index": 0, 
+        "name": "red", 
+        "data_type": 1, 
+        "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+        "range_type": 3, 
+        "color_interpretation": 3, 
+        "identifier": "red", 
+        "uom": "W.m-2.Sr-1", 
+        "description": "Red Channel", 
+        "nil_value_set": 1 
+    }
+},
+{
+    "pk": 6, 
+    "model": "coverages.band", 
+    "fields": {
+        "index": 1, 
+        "name": "green", 
+        "data_type": 1, 
+        "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+        "range_type": 3, 
+        "color_interpretation": 4, 
+        "identifier": "green", 
+        "uom": "W.m-2.Sr-1", 
+        "description": "Green Channel", 
+        "nil_value_set": 1 
+    }
+},
+{
+    "pk": 7, 
+    "model": "coverages.band", 
+    "fields": {
+        "index": 2, 
+        "name": "blue", 
+        "data_type": 1, 
+        "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+        "range_type": 3, 
+        "color_interpretation": 5, 
+        "identifier": "blue", 
+        "uom": "W.m-2.Sr-1", 
+        "description": "Blue Channel", 
+        "nil_value_set": 1 
+    }
+},
+{
+    "pk": 8, 
+    "model": "coverages.band", 
+    "fields": {
+        "index": 3, 
+        "name": "alpha", 
+        "data_type": 1, 
+        "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+        "range_type": 3, 
+        "color_interpretation": 6, 
+        "identifier": "alpha", 
+        "uom": "W.m-2.Sr-1", 
+        "description": "Alpha Channel", 
+        "nil_value_set": 1 
+    }
+}
+]

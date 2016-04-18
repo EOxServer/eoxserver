@@ -1,0 +1,62 @@
+[
+{
+    "pk": 13, 
+    "model": "backends.dataset", 
+    "fields": {}
+},
+{
+    "pk": 21, 
+    "model": "backends.dataitem", 
+    "fields": {
+        "semantic": "bands[1]", 
+        "package": null, 
+        "format": "image/tiff", 
+        "storage": null, 
+        "dataset": 13, 
+        "location": "autotest/data/asar/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tiff"
+    }
+},
+{
+    "pk": 13, 
+    "model": "coverages.eoobject", 
+    "fields": {
+        "footprint": "MULTIPOLYGON (((22.301754 -33.039026,20.099457 -32.530560,17.925622 -31.984922,16.727605 -35.166903,18.976948 -35.733683,21.262123 -36.259107,22.301754 -33.039026)))", 
+        "real_content_type": 11, 
+        "identifier": "ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775", 
+        "end_time": "2005-03-31T08:00:36.342970Z", 
+        "begin_time": "2005-03-31T07:59:36.409059Z"
+    }
+},
+{
+    "pk": 13, 
+    "model": "coverages.coverage", 
+    "fields": {
+        "min_x": 16.727605, 
+        "min_y": -36.259107, 
+        "dataset_ptr": 13, 
+        "size_y": 486, 
+        "range_type": 5, 
+        "size_x": 569, 
+        "projection": null, 
+        "srid": 4326, 
+        "max_x": 22.301754, 
+        "max_y": -31.984922, 
+        "visible": true
+    }
+},
+{
+    "pk": 13, 
+    "model": "coverages.referenceabledataset", 
+    "fields": {}
+},
+{
+    "pk": 13,
+    "model": "services.WMSRenderOptions",
+    "fields": {
+        "coverage": 13,
+        "scale_min": 10,
+        "scale_max": 4000,
+        "resampling": "NEAREST"
+    }
+}
+]

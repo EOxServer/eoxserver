@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<wps:ExecuteResponse xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.0.0" xml:lang="en-US" service="WPS" serviceInstance="http://localhost:8000/ows?service=WPS&amp;version=1.0.0&amp;request=GetCapabilities" xsi:schemaLocation="wps http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
+  <wps:Process wps:processVersion="1.0.0">
+    <ows:Identifier>TC02:identity:complex</ows:Identifier>
+    <ows:Title>Test Case 02: Complex data identity.</ows:Title>
+    <ows:Abstract> Test identity process (the ouptuts are copies of the inputs)
+        demonstrating various features of the complex data inputs
+        and outputs.
+    </ows:Abstract>
+    <ows:Metadata xlink:href="http://www.metadata.com/test-metadata" xlink:title="test-metadata"/>
+    <wps:Profile>test_profile</wps:Profile>
+  </wps:Process>
+  <wps:Status creationTime="2000-01-01T00:00:00.000000Z">
+    <wps:ProcessSucceeded/>
+  </wps:Status>
+  <wps:ProcessOutputs>
+    <wps:Output>
+      <ows:Identifier>TC02:output00</ows:Identifier>
+      <ows:Title>Test case #02: Complex output #00</ows:Title>
+      <ows:Abstract>Copy of the input00. Output format must be the same as the input format.</ows:Abstract>
+      <wps:Data>
+        <wps:ComplexData mimeType="text/plain">Sample
+text
+complex
+payload.</wps:ComplexData>
+      </wps:Data>
+    </wps:Output>
+    <wps:Output>
+      <ows:Identifier>TC02:output01</ows:Identifier>
+      <ows:Title>Test case #02: Complex output #01</ows:Title>
+      <ows:Abstract>String representation of the input00.</ows:Abstract>
+      <wps:Data>
+        <wps:ComplexData mimeType="text/plain">Sample
+text
+complex
+payload.</wps:ComplexData>
+      </wps:Data>
+    </wps:Output>
+  </wps:ProcessOutputs>
+</wps:ExecuteResponse>
+

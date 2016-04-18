@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ows:ExceptionReport xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.1.2" xml:lang="en" xsi:schemaLocation="http://www.opengis.net/ows/1.1 http://schemas.opengis.net/ows/1.1.0/owsExceptionReport.xsd">
+  <ows:Exception locator="format" exceptionCode="InvalidParameterValue">
+    <ows:ExceptionText>Unsupported output format 'image/jpeg'.</ows:ExceptionText>
+  </ows:Exception>
+</ows:ExceptionReport>

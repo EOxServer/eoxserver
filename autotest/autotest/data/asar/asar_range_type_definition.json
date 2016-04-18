@@ -1,0 +1,20 @@
+[{
+    "bands": [
+        {
+            "definition": "http://www.opengis.net/def/property/OGC/0/Amplitude",
+            "description": "ASAR Amplitude Band",
+            "gdal_interpretation": "Undefined",
+            "identifier": "ASAR_Amplitude",
+            "name": "ASAR_Amplitude",
+            "nil_values": [
+                {
+                    "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+                    "value": 0
+                }
+            ],
+            "uom": "?"
+        }
+    ],
+    "data_type": "UInt16",
+    "name": "ASAR"
+}]

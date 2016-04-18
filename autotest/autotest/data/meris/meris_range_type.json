@@ -1,0 +1,266 @@
+[
+{
+    "pk": 2, 
+    "model": "coverages.nilvalueset", 
+    "fields": {
+        "name": "MERIS UInt16 Nil Value Set", 
+        "data_type": 2
+    }
+},
+{
+    "pk": 3, 
+    "model": "coverages.nilvalue", 
+    "fields": {
+        "reason": "http://www.opengis.net/def/nil/OGC/0/unknown", 
+        "nil_value_set": 2, 
+        "raw_value": "0"
+    }
+},
+{
+    "pk": 4, 
+    "model": "coverages.rangetype", 
+    "fields": {
+        "name": "MERIS_uint16"
+    }
+},
+{
+    "pk": 9, 
+    "model": "coverages.band", 
+    "fields": {
+        "index": 1, 
+        "name": "MERIS_radiance_01_uint16", 
+        "data_type": 2, 
+        "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+        "range_type": 4, 
+        "color_interpretation": 0, 
+        "identifier": "MERIS_radiance_01_uint16", 
+        "uom": "W.m-2.sr-1.nm-1", 
+        "description": "MERIS uint16 first band", 
+        "nil_value_set": 2
+    }
+},
+{
+    "pk": 10, 
+    "model": "coverages.band", 
+    "fields": {
+        "index": 2, 
+        "name": "MERIS_radiance_02_uint16", 
+        "data_type": 2, 
+        "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+        "range_type": 4, 
+        "color_interpretation": 0, 
+        "identifier": "MERIS_radiance_02_uint16", 
+        "uom": "W.m-2.sr-1.nm-1", 
+        "description": "MERIS uint16 second band", 
+        "nil_value_set": 2
+    }
+},
+{
+    "pk": 11, 
+    "model": "coverages.band", 
+    "fields": {
+        "index": 3, 
+        "name": "MERIS_radiance_03_uint16", 
+        "data_type": 2, 
+        "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+        "range_type": 4, 
+        "color_interpretation": 0, 
+        "identifier": "MERIS_radiance_03_uint16", 
+        "uom": "W.m-2.sr-1.nm-1", 
+        "description": "MERIS uint16 third band", 
+        "nil_value_set": 2
+    }
+},
+{
+    "pk": 12, 
+    "model": "coverages.band", 
+    "fields": {
+        "index": 4, 
+        "name": "MERIS_radiance_04_uint16", 
+        "data_type": 2, 
+        "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+        "range_type": 4, 
+        "color_interpretation": 0, 
+        "identifier": "MERIS_radiance_04_uint16", 
+        "uom": "W.m-2.sr-1.nm-1", 
+        "description": "MERIS uint16 fourth band", 
+        "nil_value_set": 2
+    }
+},
+{
+    "pk": 13, 
+    "model": "coverages.band", 
+    "fields": {
+        "index": 5, 
+        "name": "MERIS_radiance_05_uint16", 
+        "data_type": 2, 
+        "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+        "range_type": 4, 
+        "color_interpretation": 0, 
+        "identifier": "MERIS_radiance_05_uint16", 
+        "uom": "W.m-2.sr-1.nm-1", 
+        "description": "MERIS uint16 fifth band", 
+        "nil_value_set": 2
+    }
+},
+{
+    "pk": 14, 
+    "model": "coverages.band", 
+    "fields": {
+        "index": 6, 
+        "name": "MERIS_radiance_06_uint16", 
+        "data_type": 2, 
+        "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+        "range_type": 4, 
+        "color_interpretation": 0, 
+        "identifier": "MERIS_radiance_06_uint16", 
+        "uom": "W.m-2.sr-1.nm-1", 
+        "description": "MERIS uint16 sixth band", 
+        "nil_value_set": 2
+    }
+},
+{
+    "pk": 15, 
+    "model": "coverages.band", 
+    "fields": {
+        "index": 7, 
+        "name": "MERIS_radiance_07_uint16", 
+        "data_type": 2, 
+        "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+        "range_type": 4, 
+        "color_interpretation": 0, 
+        "identifier": "MERIS_radiance_07_uint16", 
+        "uom": "W.m-2.sr-1.nm-1", 
+        "description": "MERIS uint16 seventh band", 
+        "nil_value_set": 2
+    }
+},
+{
+    "pk": 16, 
+    "model": "coverages.band", 
+    "fields": {
+        "index": 8, 
+        "name": "MERIS_radiance_08_uint16", 
+        "data_type": 2, 
+        "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+        "range_type": 4, 
+        "color_interpretation": 0, 
+        "identifier": "MERIS_radiance_08_uint16", 
+        "uom": "W.m-2.sr-1.nm-1", 
+        "description": "MERIS uint16 eighth band", 
+        "nil_value_set": 2
+    }
+},
+{
+    "pk": 17, 
+    "model": "coverages.band", 
+    "fields": {
+        "index": 9, 
+        "name": "MERIS_radiance_09_uint16", 
+        "data_type": 2, 
+        "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+        "range_type": 4, 
+        "color_interpretation": 0, 
+        "identifier": "MERIS_radiance_09_uint16", 
+        "uom": "W.m-2.sr-1.nm-1", 
+        "description": "MERIS uint16 ninth band", 
+        "nil_value_set": 2
+    }
+},
+{
+    "pk": 18, 
+    "model": "coverages.band", 
+    "fields": {
+        "index": 10, 
+        "name": "MERIS_radiance_10_uint16", 
+        "data_type": 2, 
+        "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+        "range_type": 4, 
+        "color_interpretation": 0, 
+        "identifier": "MERIS_radiance_10_uint16", 
+        "uom": "W.m-2.sr-1.nm-1", 
+        "description": "MERIS uint16 tenth band", 
+        "nil_value_set": 2
+    }
+},
+{
+    "pk": 19, 
+    "model": "coverages.band", 
+    "fields": {
+        "index": 11, 
+        "name": "MERIS_radiance_11_uint16", 
+        "data_type": 2, 
+        "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+        "range_type": 4, 
+        "color_interpretation": 0, 
+        "identifier": "MERIS_radiance_11_uint16", 
+        "uom": "W.m-2.sr-1.nm-1", 
+        "description": "MERIS uint16 eleventh band", 
+        "nil_value_set": 2
+    }
+},
+{
+    "pk": 20, 
+    "model": "coverages.band", 
+    "fields": {
+        "index": 12, 
+        "name": "MERIS_radiance_12_uint16", 
+        "data_type": 2, 
+        "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+        "range_type": 4, 
+        "color_interpretation": 0, 
+        "identifier": "MERIS_radiance_12_uint16", 
+        "uom": "W.m-2.sr-1.nm-1", 
+        "description": "MERIS uint16 twelfth band", 
+        "nil_value_set": 2
+    }
+},
+{
+    "pk": 21, 
+    "model": "coverages.band", 
+    "fields": {
+        "index": 13, 
+        "name": "MERIS_radiance_13_uint16", 
+        "data_type": 2, 
+        "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+        "range_type": 4, 
+        "color_interpretation": 0, 
+        "identifier": "MERIS_radiance_13_uint16", 
+        "uom": "W.m-2.sr-1.nm-1", 
+        "description": "MERIS uint16 thirteenth band", 
+        "nil_value_set": 2
+    }
+},
+{
+    "pk": 22, 
+    "model": "coverages.band", 
+    "fields": {
+        "index": 14, 
+        "name": "MERIS_radiance_14_uint16", 
+        "data_type": 2, 
+        "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+        "range_type": 4, 
+        "color_interpretation": 0, 
+        "identifier": "MERIS_radiance_14_uint16", 
+        "uom": "W.m-2.sr-1.nm-1", 
+        "description": "MERIS uint16 fourteenth band", 
+        "nil_value_set": 2
+    }
+},
+{
+    "pk": 23, 
+    "model": "coverages.band", 
+    "fields": {
+        "index": 15, 
+        "name": "MERIS_radiance_15_uint16", 
+        "data_type": 2, 
+        "definition": "http://www.opengis.net/def/property/OGC/0/Radiance", 
+        "range_type": 4, 
+        "color_interpretation": 0, 
+        "identifier": "MERIS_radiance_15_uint16", 
+        "uom": "W.m-2.sr-1.nm-1", 
+        "description": "MERIS uint16 fifteenth band", 
+        "nil_value_set": 2
+    }
+}
+]

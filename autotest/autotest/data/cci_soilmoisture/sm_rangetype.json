@@ -1,0 +1,17 @@
+[{
+    "bands": [
+        {
+            "color_interpretation": "Undefined",
+            "data_type": "Float32",
+            "definition": "Soil Moisture",
+            "description": "Soil Moisture",
+            "identifier": "sm",
+            "name": "sm",
+            "nil_values": [],
+            "uom": "m3 m-3",
+            "value_max": "1",
+            "value_min": "0"
+        }
+    ],
+    "name": "SM"
+}]

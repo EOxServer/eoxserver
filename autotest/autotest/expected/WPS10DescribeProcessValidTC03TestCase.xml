@@ -1,0 +1,79 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<wps:ProcessDescriptions xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.0.0" xml:lang="en-US" service="WPS" xsi:schemaLocation="wps http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
+  <ProcessDescription wps:processVersion="1.0.0">
+    <ows:Identifier>TC03:image_generator:complex</ows:Identifier>
+    <ows:Title>Test Case 03: Complex data binary data with format selection.</ows:Title>
+    <ows:Abstract> Test process generating complext data binary output (image) with
+        fomat selection.
+    implements(ProcessInterface)
+    </ows:Abstract>
+    <ows:Metadata xlink:href="http://www.metadata.com/test-metadata" xlink:title="test-metadata"/>
+    <wps:Profile>test_profile</wps:Profile>
+    <DataInputs>
+      <Input minOccurs="0" maxOccurs="1">
+        <ows:Identifier>TC03:method</ows:Identifier>
+        <ows:Title>Complex data passing method.</ows:Title>
+        <ows:Abstract>Select method how the complex data output is passed.</ows:Abstract>
+        <LiteralData>
+          <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">string</ows:DataType>
+          <ows:AllowedValues>
+            <ows:Value>in-memory-buffer</ows:Value>
+            <ows:Value>file</ows:Value>
+          </ows:AllowedValues>
+          <DefaultValue>file</DefaultValue>
+        </LiteralData>
+      </Input>
+      <Input minOccurs="0" maxOccurs="1">
+        <ows:Identifier>TC03:seed</ows:Identifier>
+        <ows:Title>Random generator seed.</ows:Title>
+        <ows:Abstract>Random generator seed that can be used to obtain reproduceable results</ows:Abstract>
+        <LiteralData>
+          <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#integer">integer</ows:DataType>
+          <ows:AllowedValues>
+            <ows:Range>
+              <ows:MinimumValue>0</ows:MinimumValue>
+            </ows:Range>
+          </ows:AllowedValues>
+        </LiteralData>
+      </Input>
+    </DataInputs>
+    <ProcessOutputs>
+      <Output>
+        <ows:Identifier>TC03:output00</ows:Identifier>
+        <ows:Title>Test case #02: Complex output #00</ows:Title>
+        <ows:Abstract>Copy of the input00.</ows:Abstract>
+        <ComplexOutput>
+          <Default>
+            <Format>
+              <MimeType>image/png</MimeType>
+            </Format>
+          </Default>
+          <Supported>
+            <Format>
+              <MimeType>image/png</MimeType>
+            </Format>
+            <Format>
+              <MimeType>image/png</MimeType>
+              <Encoding>base64</Encoding>
+            </Format>
+            <Format>
+              <MimeType>image/jpeg</MimeType>
+            </Format>
+            <Format>
+              <MimeType>image/jpeg</MimeType>
+              <Encoding>base64</Encoding>
+            </Format>
+            <Format>
+              <MimeType>image/tiff</MimeType>
+            </Format>
+            <Format>
+              <MimeType>image/tiff</MimeType>
+              <Encoding>base64</Encoding>
+            </Format>
+          </Supported>
+        </ComplexOutput>
+      </Output>
+    </ProcessOutputs>
+  </ProcessDescription>
+</wps:ProcessDescriptions>
+

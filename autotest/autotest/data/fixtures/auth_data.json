@@ -1,0 +1,20 @@
+[
+    {
+        "pk": 1, 
+        "model": "auth.user", 
+        "fields": {
+            "username": "admin", 
+            "first_name": "", 
+            "last_name": "", 
+            "is_active": true, 
+            "is_superuser": true, 
+            "is_staff": true, 
+            "last_login": "2011-02-21T18:13:54Z", 
+            "groups": [], 
+            "user_permissions": [], 
+            "password": "sha1$ae30f$4912598cc980cd2fdfc8469e72d7adf618821132", 
+            "email": "office@eox.at", 
+            "date_joined": "2010-08-31T19:16:40Z"
+        }
+    }
+]

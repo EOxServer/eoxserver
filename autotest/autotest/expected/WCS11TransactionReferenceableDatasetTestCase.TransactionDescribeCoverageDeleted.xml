@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<ows:ExceptionReport xmlns:ows="http://www.opengis.net/ows/2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="2.0.0" xml:lang="en" xsi:schemaLocation="http://www.opengis.net/ows/2.0 http://schemas.opengis.net/ows/2.0/owsAll.xsd">
+  <ows:Exception exceptionCode="NoSuchCoverage" locator="REFERENCEABLE_ASAR_ID">
+    <ows:ExceptionText>No coverage with coverage id 'REFERENCEABLE_ASAR_ID' found</ows:ExceptionText>
+  </ows:Exception>
+</ows:ExceptionReport>

@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>create_referenceable_dataset</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">create_referenceable_dataset</td></tr>
+</thead><tbody>
+<tr>
+	<td>open</td>
+	<td>/admin/</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>link=Local data packages</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>link=Add local data package</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=img[alt=&quot;Add Another&quot;]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForPopUp</td>
+	<td>id_data_location</td>
+	<td>30000</td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>name=id_data_location</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_path</td>
+	<td>../autotest/data/asar/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tiff</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>name=_save</td>
+	<td></td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>null</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=#add_id_metadata_location &gt; img[alt=&quot;Add Another&quot;]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForPopUp</td>
+	<td>id_metadata_location</td>
+	<td>30000</td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>name=id_metadata_location</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_path</td>
+	<td>../autotest/data/asar/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tiff</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>name=_save</td>
+	<td></td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>null</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>name=_save</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>link=Coverages</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>link=Range Types</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>link=Add Range Type</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_name</td>
+	<td>ASAR</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>id=id_data_type</td>
+	<td>label=Unsigned Integer 16-bit</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=img[alt=&quot;Add Another&quot;]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForPopUp</td>
+	<td>id_rangetype2band_set__dash__0__dash__band</td>
+	<td>30000</td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>name=id_rangetype2band_set__dash__0__dash__band</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_name</td>
+	<td>ASAR_Amplitude</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_identifier</td>
+	<td>ASAR_Amplitude</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_description</td>
+	<td>ASAR Amplitude Band</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_definition</td>
+	<td>http://www.opengis.net/def/property/OGC/0/Amplitude</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_uom</td>
+	<td>?</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>name=_save</td>
+	<td></td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>null</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_rangetype2band_set-0-no</td>
+	<td>1</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>name=_save</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>link=Coverages</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>link=Referenceable Datasets</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>link=Add Referenceable Dataset</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_coverage_id</td>
+	<td>REFERENCEABLE_DATASET</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_eo_id</td>
+	<td>REFERENCEABLE_DATASET</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>id=id_range_type</td>
+	<td>label=ASAR</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_size_x</td>
+	<td>569</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_size_y</td>
+	<td>486</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=#add_id_eo_metadata &gt; img[alt=&quot;Add Another&quot;]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForPopUp</td>
+	<td>id_eo_metadata</td>
+	<td>30000</td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>name=id_eo_metadata</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_timestamp_begin_0</td>
+	<td>2011-11-03</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_timestamp_begin_1</td>
+	<td>11:16:08</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_timestamp_end_0</td>
+	<td>2012-02-17</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_timestamp_end_1</td>
+	<td>15:47:50</td>
+</tr>
+<tr>
+	<td>runScript</td>
+	<td>geodjango_footprint.map.setCenter(new OpenLayers.LonLat(19,40), 8);</td>
+	<td></td>
+</tr>
+<tr>
+	<td>mouseDownAt</td>
+	<td>id=OpenLayers.Map_2_OpenLayers_ViewPort</td>
+	<td>100,100</td>
+</tr>
+<tr>
+	<td>mouseUpAt</td>
+	<td>id=OpenLayers.Map_2_OpenLayers_ViewPort</td>
+	<td>100,100</td>
+</tr>
+<tr>
+	<td>mouseDownAt</td>
+	<td>id=OpenLayers.Map_2_OpenLayers_ViewPort</td>
+	<td>100,200</td>
+</tr>
+<tr>
+	<td>mouseUpAt</td>
+	<td>id=OpenLayers.Map_2_OpenLayers_ViewPort</td>
+	<td>100,200</td>
+</tr>
+<tr>
+	<td>mouseDownAt</td>
+	<td>id=OpenLayers.Map_2_OpenLayers_ViewPort</td>
+	<td>200,200</td>
+</tr>
+<tr>
+	<td>mouseUpAt</td>
+	<td>id=OpenLayers.Map_2_OpenLayers_ViewPort</td>
+	<td>200,200</td>
+</tr>
+<tr>
+	<td>doubleClickAt</td>
+	<td>id=OpenLayers.Map_2_OpenLayers_ViewPort</td>
+	<td>200,100</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>name=_save</td>
+	<td></td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>null</td>
+	<td></td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>id=id_data_package</td>
+	<td>label=Local Data Package: ../autotest/data/asar/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tiff / ../autotest/data/asar/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tiff</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>id=add_id_lineage</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForPopUp</td>
+	<td>id_lineage</td>
+	<td>30000</td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>name=id_lineage</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>name=_save</td>
+	<td></td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>null</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>name=_save</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>css=li.info</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementNotPresent</td>
+	<td>css=p.errornote</td>
+	<td></td>
+</tr>
+
+</tbody></table>
+</body>
+</html>

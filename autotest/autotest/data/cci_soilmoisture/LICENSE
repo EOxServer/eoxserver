@@ -1,0 +1,26 @@
+http://www.esa-soilmoisture-cci.org/dataregistration/terms-and-conditions
+
+Terms and Conditions of Data Usage
+
+The Essential Climate Variable Soil Moisture (ECV SM) product was initiated within the Water Cycle Multi-mission Observation Strategy (WACMOS) project inside ESA's Support To Science Element programme, and is now being continued and refined in the context of the Climate Change Initiative (CCI).
+
+The CCI SM project kindly requests that data users follow the Terms and Conditions as set out in the following:
+
+Registration. Users of the ECV SM product are required to register before being able to download product. Registration is required to deter automated systems having direct access to the product. Data downloaded by the registered user can be used by the user and the associated organisation, no onward distribution is permitted.
+
+Scientific use only. The ECV SM product is intended for scientific purposes only.
+
+No onward distribution. Re-export or transfer of the original data (as received from the ECV SM sftp) by the data users to a third party is prohibited. This is in the best interest of both the individual data providers and the potential users as unrestricted copying of the original data by multiple, independent users may lead to errors in the data.
+
+Intellectual Property Rights. User acknowledges the respective data owner's full title and ownership of the data and nothing in these terms and conditions shall be construed as granting or implying any rights to, or interest in copyrights or intellectual property rights of the respective data owners.
+
+Acknowledgement and citation. Whenever the product, made available by the CCI SM project, is used for publication, the data's origin (i.e. the CCI SM project) must be acknowledged and referenced.
+
+The data set should be cited using the complete two references as follows:
+
+    Liu, Y. Y., W. A. Dorigo, et al. (2012). "Trend-preserving blending of passive and active microwave soil moisture retrievals." Remote Sensing of Environment 123: 280-297.
+    Wagner, W., W. Dorigo, R. de Jeu, D. Fernandez, J. Benveniste, E. Haas, M. Ertl (2012). Fusion of active and passive microwave observations to create an Essential Climate Variable data record on soil moisture. ISPRS Annals of the Photogrammetry, Remote Sensing and Spatial Information Sciences, Volume I-7, 2012. XXII ISPRS Congress, 25 August – 01 September 2012, Melbourne, Australia
+
+User feedback. Use feedback is warmly welcomed and encouraged. All questions and remarks concerning the product can be addressed to ecv_sm_contact@ipf.tuwien.ac.at.
+
+No warranties. The product distributed from the CCI SM project are provided for free and "as is", i.e. without any warranty as to their condition or consistency or suitability for a particular purpose. Neither the I.P.F., nor ESA, can be held responsible for any errors or inconsistencies in the data provided

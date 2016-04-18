@@ -1,0 +1,170 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<wps:ProcessDescriptions xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.0.0" xml:lang="en-US" service="WPS" xsi:schemaLocation="wps http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
+  <ProcessDescription wps:processVersion="1.0.0">
+    <ows:Identifier>TC00:identity:literal</ows:Identifier>
+    <ows:Title>Test Case 00: Literal data identity.</ows:Title>
+    <ows:Abstract> Test identity process (the ouptuts are copies of the inputs)
+        demonstrating various features of the literal data inputs
+        and outputs.
+    </ows:Abstract>
+    <ows:Metadata xlink:href="http://www.metadata.com/test-metadata" xlink:title="test-metadata"/>
+    <wps:Profile>test_profile</wps:Profile>
+    <DataInputs>
+      <Input minOccurs="1" maxOccurs="1">
+        <ows:Identifier>input00</ows:Identifier>
+        <ows:Title>input00</ows:Title>
+        <LiteralData>
+          <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">string</ows:DataType>
+          <ows:AnyValue/>
+        </LiteralData>
+      </Input>
+      <Input minOccurs="0" maxOccurs="1">
+        <ows:Identifier>TC00:input01</ows:Identifier>
+        <ows:Title>TC00:input01</ows:Title>
+        <ows:Abstract>Simple string input.</ows:Abstract>
+        <LiteralData>
+          <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">string</ows:DataType>
+          <ows:AnyValue/>
+        </LiteralData>
+      </Input>
+      <Input minOccurs="0" maxOccurs="1">
+        <ows:Identifier>TC00:input02</ows:Identifier>
+        <ows:Title>TC00:input02</ows:Title>
+        <ows:Abstract>Enumerated string input. Optional with the default.</ows:Abstract>
+        <LiteralData>
+          <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">string</ows:DataType>
+          <ows:AllowedValues>
+            <ows:Value>high</ows:Value>
+            <ows:Value>medium</ows:Value>
+            <ows:Value>low</ows:Value>
+          </ows:AllowedValues>
+          <DefaultValue>medium</DefaultValue>
+        </LiteralData>
+      </Input>
+      <Input minOccurs="0" maxOccurs="1">
+        <ows:Identifier>TC00:input03</ows:Identifier>
+        <ows:Title>Distance</ows:Title>
+        <ows:Abstract>Restricted float input. Optional with default. UOM conversion.</ows:Abstract>
+        <LiteralData>
+          <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">double</ows:DataType>
+          <UOMs>
+            <Default>
+              <ows:UOM>m</ows:UOM>
+            </Default>
+            <Supported>
+              <ows:UOM>m</ows:UOM>
+              <ows:UOM>mm</ows:UOM>
+              <ows:UOM>cm</ows:UOM>
+              <ows:UOM>dm</ows:UOM>
+              <ows:UOM>yd</ows:UOM>
+              <ows:UOM>ft</ows:UOM>
+              <ows:UOM>in</ows:UOM>
+              <ows:UOM>km</ows:UOM>
+              <ows:UOM>mi</ows:UOM>
+              <ows:UOM>NM</ows:UOM>
+            </Supported>
+          </UOMs>
+          <ows:AllowedValues>
+            <ows:Range>
+              <ows:MinimumValue>0</ows:MinimumValue>
+              <ows:MaximumValue>2</ows:MaximumValue>
+            </ows:Range>
+          </ows:AllowedValues>
+          <DefaultValue>0.0</DefaultValue>
+        </LiteralData>
+      </Input>
+      <Input minOccurs="0" maxOccurs="1">
+        <ows:Identifier>TC00:input04</ows:Identifier>
+        <ows:Title>Distance</ows:Title>
+        <ows:Abstract>Restricted float input. Optional with default.  Advanced UOM conversion.</ows:Abstract>
+        <LiteralData>
+          <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">double</ows:DataType>
+          <UOMs>
+            <Default>
+              <ows:UOM>K</ows:UOM>
+            </Default>
+            <Supported>
+              <ows:UOM>K</ows:UOM>
+              <ows:UOM>C</ows:UOM>
+              <ows:UOM>F</ows:UOM>
+            </Supported>
+          </UOMs>
+          <ows:AllowedValues>
+            <ows:Range>
+              <ows:MinimumValue>0</ows:MinimumValue>
+            </ows:Range>
+          </ows:AllowedValues>
+          <DefaultValue>298.15</DefaultValue>
+        </LiteralData>
+      </Input>
+    </DataInputs>
+    <ProcessOutputs>
+      <Output>
+        <ows:Identifier>output00</ows:Identifier>
+        <ows:Title>output00</ows:Title>
+        <LiteralOutput>
+          <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">string</ows:DataType>
+        </LiteralOutput>
+      </Output>
+      <Output>
+        <ows:Identifier>TC00:output01</ows:Identifier>
+        <ows:Title>TC00:output01</ows:Title>
+        <ows:Abstract>Simple string output.</ows:Abstract>
+        <LiteralOutput>
+          <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">string</ows:DataType>
+        </LiteralOutput>
+      </Output>
+      <Output>
+        <ows:Identifier>TC00:output02</ows:Identifier>
+        <ows:Title>TC00:output02</ows:Title>
+        <ows:Abstract>Enumerated string output.</ows:Abstract>
+        <LiteralOutput>
+          <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">string</ows:DataType>
+        </LiteralOutput>
+      </Output>
+      <Output>
+        <ows:Identifier>TC00:output03</ows:Identifier>
+        <ows:Title>Distance</ows:Title>
+        <ows:Abstract>Restricted float input. UOM conversion.</ows:Abstract>
+        <LiteralOutput>
+          <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">double</ows:DataType>
+          <UOMs>
+            <Default>
+              <ows:UOM>m</ows:UOM>
+            </Default>
+            <Supported>
+              <ows:UOM>m</ows:UOM>
+              <ows:UOM>mm</ows:UOM>
+              <ows:UOM>cm</ows:UOM>
+              <ows:UOM>dm</ows:UOM>
+              <ows:UOM>yd</ows:UOM>
+              <ows:UOM>ft</ows:UOM>
+              <ows:UOM>in</ows:UOM>
+              <ows:UOM>km</ows:UOM>
+              <ows:UOM>mi</ows:UOM>
+              <ows:UOM>NM</ows:UOM>
+            </Supported>
+          </UOMs>
+        </LiteralOutput>
+      </Output>
+      <Output>
+        <ows:Identifier>TC00:output04</ows:Identifier>
+        <ows:Title>Distance</ows:Title>
+        <ows:Abstract>Restricted float input. Optional with default.  Advanced UOM conversion.</ows:Abstract>
+        <LiteralOutput>
+          <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">double</ows:DataType>
+          <UOMs>
+            <Default>
+              <ows:UOM>K</ows:UOM>
+            </Default>
+            <Supported>
+              <ows:UOM>K</ows:UOM>
+              <ows:UOM>C</ows:UOM>
+              <ows:UOM>F</ows:UOM>
+            </Supported>
+          </UOMs>
+        </LiteralOutput>
+      </Output>
+    </ProcessOutputs>
+  </ProcessDescription>
+</wps:ProcessDescriptions>

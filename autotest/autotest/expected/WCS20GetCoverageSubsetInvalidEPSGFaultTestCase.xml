@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ows:ExceptionReport xmlns:ows="http://www.opengis.net/ows/2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="2.0.1" xml:lang="en" xsi:schemaLocation="http://www.opengis.net/ows/2.0 http://schemas.opengis.net/ows/2.0/owsAll.xsd">
+  <ows:Exception locator="subsettingCrs" exceptionCode="SubsettingCrs-NotSupported">
+    <ows:ExceptionText>Could not parse EPSG code from URI 'http://www.opengis.net/def/crs/EPSG/0/99999'</ows:ExceptionText>
+  </ows:Exception>
+</ows:ExceptionReport>

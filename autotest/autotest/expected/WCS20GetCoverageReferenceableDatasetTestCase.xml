@@ -1,0 +1,95 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<wcseo:ReferenceableDataset xmlns:crs="http://www.opengis.net/wcs/crs/1.0" xmlns:wcs="http://www.opengis.net/wcs/2.0" xmlns:scal="http://www.opengis.net/wcs/scaling/1.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:rsub="http://www.opengis.net/wcs/range-subsetting/1.0" xmlns:swe="http://www.opengis.net/swe/2.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:int="http://www.opengis.net/wcs/interpolation/1.0" xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:ows="http://www.opengis.net/ows/2.0" xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0" xmlns:wcseo="http://www.opengis.net/wcs/wcseo/1.0" xmlns:om="http://www.opengis.net/om/2.0" xmlns:ogc="http://www.opengis.net/ogc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" gml:id="ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775" xsi:schemaLocation="http://www.opengis.net/wcs/wcseo/1.0 http://schemas.opengis.net/wcs/wcseo/1.0/wcsEOAll.xsd">
+  <gml:boundedBy>
+    <gml:Envelope axisLabels="lat long" srsName="http://www.opengis.net/def/crs/EPSG/0/4326" uomLabels="deg deg" srsDimension="2">
+      <gml:lowerCorner>-36.25910700 16.72760500</gml:lowerCorner>
+      <gml:upperCorner>-31.98492200 22.30175400</gml:upperCorner>
+    </gml:Envelope>
+  </gml:boundedBy>
+  <gml:domainSet>
+    <gml:ReferenceableGrid gml:id="ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775_grid" dimension="2">
+      <gml:limits>
+        <gml:GridEnvelope>
+          <gml:low>0 0</gml:low>
+          <gml:high>568 485</gml:high>
+        </gml:GridEnvelope>
+      </gml:limits>
+      <gml:axisLabels>lat long</gml:axisLabels>
+    </gml:ReferenceableGrid>
+  </gml:domainSet>
+  <gml:rangeSet>
+    <gml:File>
+      <gml:rangeParameters xlink:href="cid:coverage/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tif" xlink:arcrole="fileReference" xlink:role="image/tiff"/>
+      <gml:fileReference>cid:coverage/ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775.tif</gml:fileReference>
+      <gml:fileStructure/>
+      <gml:mimeType>image/tiff</gml:mimeType>
+    </gml:File>
+  </gml:rangeSet>
+  <gmlcov:rangeType>
+    <swe:DataRecord>
+      <swe:field name="ASAR_Amplitude">
+        <swe:Quantity definition="http://www.opengis.net/def/property/OGC/0/Amplitude">
+          <swe:description>ASAR Amplitude Band</swe:description>
+          <swe:nilValues>
+            <swe:NilValues>
+              <swe:nilValue reason="http://www.opengis.net/def/nil/OGC/0/unknown">0</swe:nilValue>
+            </swe:NilValues>
+          </swe:nilValues>
+          <swe:uom code="?"/>
+          <swe:constraint>
+            <swe:AllowedValues>
+              <swe:interval>0 65535</swe:interval>
+              <swe:significantFigures>5</swe:significantFigures>
+            </swe:AllowedValues>
+          </swe:constraint>
+        </swe:Quantity>
+      </swe:field>
+    </swe:DataRecord>
+  </gmlcov:rangeType>
+  <gmlcov:metadata>
+    <gmlcov:Extension>
+      <wcseo:EOMetadata>
+        <eop:EarthObservation gml:id="eop_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775">
+          <om:phenomenonTime>
+            <gml:TimePeriod gml:id="phen_time_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775">
+              <gml:beginPosition>2005-03-31T07:59:36.409059Z</gml:beginPosition>
+              <gml:endPosition>2005-03-31T08:00:36.342970Z</gml:endPosition>
+            </gml:TimePeriod>
+          </om:phenomenonTime>
+          <om:resultTime>
+            <gml:TimeInstant gml:id="res_time_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775">
+              <gml:timePosition>2005-03-31T08:00:36.342970Z</gml:timePosition>
+            </gml:TimeInstant>
+          </om:resultTime>
+          <om:procedure/>
+          <om:observedProperty/>
+          <om:featureOfInterest>
+            <eop:Footprint gml:id="footprint_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775">
+              <eop:multiExtentOf>
+                <gml:MultiSurface srsName="EPSG:4326" gml:id="multisurface_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775">
+                  <gml:surfaceMember>
+                    <gml:Polygon gml:id="polygon_ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775_1">
+                      <gml:exterior>
+                        <gml:LinearRing>
+                          <gml:posList>-33.03902600 22.30175400 -32.53056000 20.09945700 -31.98492200 17.92562200 -35.16690300 16.72760500 -35.73368300 18.97694800 -36.25910700 21.26212300 -33.03902600 22.30175400</gml:posList>
+                        </gml:LinearRing>
+                      </gml:exterior>
+                    </gml:Polygon>
+                  </gml:surfaceMember>
+                </gml:MultiSurface>
+              </eop:multiExtentOf>
+            </eop:Footprint>
+          </om:featureOfInterest>
+          <om:result/>
+          <eop:metaDataProperty>
+            <eop:EarthObservationMetaData>
+              <eop:identifier>ASA_WSM_1PNDPA20050331_075939_000000552036_00035_16121_0775</eop:identifier>
+              <eop:acquisitionType>NOMINAL</eop:acquisitionType>
+              <eop:status>ARCHIVED</eop:status>
+            </eop:EarthObservationMetaData>
+          </eop:metaDataProperty>
+        </eop:EarthObservation>
+      </wcseo:EOMetadata>
+    </gmlcov:Extension>
+  </gmlcov:metadata>
+</wcseo:ReferenceableDataset>

@@ -1,0 +1,14 @@
+[
+{
+    "pk": 15, 
+    "model": "backends.dataitem", 
+    "fields": {
+        "semantic": "polygonmask[clouds]", 
+        "package": null, 
+        "format": "text/json", 
+        "storage": null, 
+        "dataset": 5, 
+        "location": "autotest/data/meris/mask/mask.json"
+    }
+}
+]

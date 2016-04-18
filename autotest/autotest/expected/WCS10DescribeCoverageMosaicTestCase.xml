@@ -1,0 +1,95 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<CoverageDescription xmlns="http://www.opengis.net/wcs" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:gml="http://www.opengis.net/gml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.0.0" updateSequence="20131219T132000Z" xsi:schemaLocation="http://www.opengis.net/wcs http://schemas.opengis.net/wcs/1.0.0/describeCoverage.xsd">
+  <CoverageOffering>
+    <name>mosaic_MER_FRS_1P_reduced_RGB</name>
+    <label>mosaic_MER_FRS_1P_reduced_RGB</label>
+    <lonLatEnvelope srsName="urn:ogc:def:crs:OGC:1.3:CRS84">
+      <gml:pos>-3.75 32.158895</gml:pos>
+      <gml:pos>28.326165 46.3</gml:pos>
+    </lonLatEnvelope>
+    <domainSet>
+      <spatialDomain>
+        <gml:Envelope srsName="EPSG:4326">
+          <gml:pos>-3.75 32.158895</gml:pos>
+          <gml:pos>28.326165 46.3</gml:pos>
+        </gml:Envelope>
+        <gml:Envelope srsName="EPSG:4326">
+          <gml:pos>-3.75 32.158895</gml:pos>
+          <gml:pos>28.326165 46.3</gml:pos>
+        </gml:Envelope>
+        <gml:RectifiedGrid dimension="2">
+          <gml:limits>
+            <gml:GridEnvelope>
+              <gml:low>0 0</gml:low>
+              <gml:high>1022 450</gml:high>
+            </gml:GridEnvelope>
+          </gml:limits>
+          <gml:axisName>x</gml:axisName>
+          <gml:axisName>y</gml:axisName>
+          <gml:origin>
+            <gml:pos>-3.75 46.3</gml:pos>
+          </gml:origin>
+          <gml:offsetVector>0.031355 0</gml:offsetVector>
+          <gml:offsetVector>0 -0.031355</gml:offsetVector>
+        </gml:RectifiedGrid>
+      </spatialDomain>
+    </domainSet>
+    <rangeSet>
+      <RangeSet>
+        <name>RGB</name>
+        <label>RGB</label>
+        <axisDescription>
+          <AxisDescription>
+            <name>red</name>
+            <label>red</label>
+            <values>
+              <interval>
+                <min>0 255</min>
+              </interval>
+            </values>
+          </AxisDescription>
+        </axisDescription>
+        <axisDescription>
+          <AxisDescription>
+            <name>green</name>
+            <label>green</label>
+            <values>
+              <interval>
+                <min>0 255</min>
+              </interval>
+            </values>
+          </AxisDescription>
+        </axisDescription>
+        <axisDescription>
+          <AxisDescription>
+            <name>blue</name>
+            <label>blue</label>
+            <values>
+              <interval>
+                <min>0 255</min>
+              </interval>
+            </values>
+          </AxisDescription>
+        </axisDescription>
+      </RangeSet>
+    </rangeSet>
+    <supportedCRSs>
+      <requestResponseCRSs>EPSG:4326</requestResponseCRSs>
+      <requestResponseCRSs>EPSG:3857</requestResponseCRSs>
+      <requestResponseCRSs>EPSG:900913</requestResponseCRSs>
+      <requestResponseCRSs>EPSG:3035</requestResponseCRSs>
+      <nativeCRSs>EPSG:4326</nativeCRSs>
+    </supportedCRSs>
+    <supportedFormats nativeFormat="GeoTIFF">
+      <formats>GeoTIFF</formats>
+      <formats>JP2OpenJPEG</formats>
+      <formats>netCDF</formats>
+      <formats>HDF4Image</formats>
+      <formats>PNG</formats>
+    </supportedFormats>
+    <supportedInterpolations default="nearest neighbor">
+      <interpolationMethod>nearest neighbor</interpolationMethod>
+      <interpolationMethod>bilinear</interpolationMethod>
+    </supportedInterpolations>
+  </CoverageOffering>
+</CoverageDescription>

@@ -1,0 +1,76 @@
+[
+{
+    "pk": 11, 
+    "model": "backends.dataset", 
+    "fields": {}
+},
+{
+    "pk": 16, 
+    "model": "backends.dataitem", 
+    "fields": {
+        "semantic": "metadata", 
+        "package": null, 
+        "format": "native", 
+        "storage": null, 
+        "dataset": 11, 
+        "location": "autotest/data/cryoland/FSC_0.0025deg_201303030930_201303031110_MOD_Alps_ENVEOV2.1.00.tif_20130913121829.xml"
+    }
+},
+{
+    "pk": 17, 
+    "model": "backends.dataitem", 
+    "fields": {
+        "semantic": "bands[1]", 
+        "package": null, 
+        "format": "image/tiff", 
+        "storage": null, 
+        "dataset": 11, 
+        "location": "autotest/data/cryoland/FSC_0.0025deg_201303030930_201303031110_MOD_Alps_ENVEOV2.1.00.tif_20130913121829.tif"
+    }
+},
+{
+    "pk": 18, 
+    "model": "backends.dataitem", 
+    "fields": {
+        "semantic": "style", 
+        "package": null, 
+        "format": "SLD", 
+        "storage": null, 
+        "dataset": 11, 
+        "location": "autotest/data/cryoland/FSC_Alps_default.sld"
+    }
+},
+{
+    "pk": 11, 
+    "model": "coverages.eoobject", 
+    "fields": {
+        "footprint": "MULTIPOLYGON (((5.6948239999999997 44.3212890000000002, 5.6948239999999997 48.5839840000000009, 16.7250979999999991 48.5839840000000009, 16.7250979999999991 44.3212890000000002, 5.6948239999999997 44.3212890000000002)))", 
+        "real_content_type": 10, 
+        "identifier": "FSC_0.0025deg_201303030930_201303031110_MOD_Alps_ENVEOV2.1.00", 
+        "end_time": "2013-09-13T23:59:59Z", 
+        "begin_time": "2013-09-13T00:00:00Z"
+    }
+},
+{
+    "pk": 11, 
+    "model": "coverages.coverage", 
+    "fields": {
+        "min_x": 5.69482421875, 
+        "min_y": 44.3212890625, 
+        "dataset_ptr": 11, 
+        "size_y": 1413, 
+        "range_type": 6, 
+        "size_x": 3655, 
+        "projection": null, 
+        "srid": 4326, 
+        "max_x": 16.7250976562, 
+        "max_y": 48.583984375, 
+        "visible": false
+    }
+},
+{
+    "pk": 11, 
+    "model": "coverages.rectifieddataset", 
+    "fields": {}
+}
+]

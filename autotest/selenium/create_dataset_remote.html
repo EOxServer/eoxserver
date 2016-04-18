@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>create_dataset_remote</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">create_dataset_remote</td></tr>
+</thead><tbody>
+<tr>
+	<td>open</td>
+	<td>/admin/</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>link=Rectified Datasets</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>link=Add Rectified Dataset</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_coverage_id</td>
+	<td>REMOTE_DATASET</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_eo_id</td>
+	<td>REMOTE_DATASET</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>id=id_range_type</td>
+	<td>label=RGB</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=#add_id_extent &gt; img[alt=&quot;Add Another&quot;]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForPopUp</td>
+	<td>id_extent</td>
+	<td>30000</td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>name=id_extent</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_srid</td>
+	<td>4326</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_size_x</td>
+	<td>541</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_size_y</td>
+	<td>449</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_minx</td>
+	<td>11.3317550</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_miny</td>
+	<td>32.1902500</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_maxx</td>
+	<td>28.2948100</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_maxy</td>
+	<td>46.2686450</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>name=_save</td>
+	<td></td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>null</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=#add_id_eo_metadata &gt; img[alt=&quot;Add Another&quot;]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForPopUp</td>
+	<td>id_eo_metadata</td>
+	<td>30000</td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>name=id_eo_metadata</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_timestamp_begin_0</td>
+	<td>2011-11-03</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_timestamp_begin_1</td>
+	<td>11:16:08</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_timestamp_end_0</td>
+	<td>2011-11-03</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=id_timestamp_end_1</td>
+	<td>11:16:08</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=div.form-row.timestamp_end &gt; div &gt; p.datetime &gt; span.datetimeshortcuts &gt; a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>//form[@id='eometadatarecord_form']/div[2]/fieldset/div[2]/div/p/span[2]/a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>runScript</td>
+	<td>geodjango_footprint.map.setCenter(new OpenLayers.LonLat(19,40), 8);</td>
+	<td></td>
+</tr>
+<tr>
+	<td>mouseDownAt</td>
+	<td>id=OpenLayers.Map_2_OpenLayers_ViewPort</td>
+	<td>100,100</td>
+</tr>
+<tr>
+	<td>mouseUpAt</td>
+	<td>id=OpenLayers.Map_2_OpenLayers_ViewPort</td>
+	<td>100,100</td>
+</tr>
+<tr>
+	<td>mouseDownAt</td>
+	<td>id=OpenLayers.Map_2_OpenLayers_ViewPort</td>
+	<td>100,200</td>
+</tr>
+<tr>
+	<td>mouseUpAt</td>
+	<td>id=OpenLayers.Map_2_OpenLayers_ViewPort</td>
+	<td>100,200</td>
+</tr>
+<tr>
+	<td>mouseDownAt</td>
+	<td>id=OpenLayers.Map_2_OpenLayers_ViewPort</td>
+	<td>200,200</td>
+</tr>
+<tr>
+	<td>mouseUpAt</td>
+	<td>id=OpenLayers.Map_2_OpenLayers_ViewPort</td>
+	<td>200,200</td>
+</tr>
+<tr>
+	<td>doubleClickAt</td>
+	<td>id=OpenLayers.Map_2_OpenLayers_ViewPort</td>
+	<td>200,100</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>name=_save</td>
+	<td></td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>null</td>
+	<td></td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>id=id_data_package</td>
+	<td>label=Remote Data Package: ftp://hma.eox.at//test/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.tif / ftp://hma.eox.at//test/MER_FRS_1P_reduced/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058/ENVISAT-MER_FRS_1PNPDE20060816_090929_000001972050_00222_23322_0058_uint16_reduced_compressed.xml</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=#add_id_lineage &gt; img[alt=&quot;Add Another&quot;]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForPopUp</td>
+	<td>id_lineage</td>
+	<td>30000</td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>name=id_lineage</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>name=_save</td>
+	<td></td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>null</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>name=_save</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>css=li.info</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementNotPresent</td>
+	<td>css=p.errornote</td>
+	<td></td>
+</tr>
+</tbody></table>
+</body>
+</html>

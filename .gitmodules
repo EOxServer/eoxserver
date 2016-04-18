@@ -1,6 +1,3 @@
-[submodule "autotest"]
-	path = autotest
-	url = https://github.com/EOxServer/autotest.git
 [submodule "schemas"]
 	path = schemas
 	url = https://github.com/EOxServer/schemas.git

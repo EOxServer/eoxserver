@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>wc_draw_bbox</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">wc_draw_bbox</td></tr>
+</thead><tbody>
+<tr>
+	<td>open</td>
+	<td>/client_v2/MER_FRS_1P_reduced</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForElementPresent</td>
+	<td>id=btn-download</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>//div[@id='tabs-main']/ul/li[2]/a/span</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>id=chk-draw-bbox</td>
+	<td></td>
+</tr>
+<tr>
+	<td>mouseDownAt</td>
+	<td>//div[@id='div-map']</td>
+	<td>0,0</td>
+</tr>
+<tr>
+	<td>mouseMoveAt</td>
+	<td>//div[@id='div-map']</td>
+	<td>-500,-500</td>
+</tr>
+<tr>
+	<td>mouseUpAt</td>
+	<td>//div[@id='div-map']</td>
+	<td>-500,-500</td>
+</tr>
+<tr>
+	<td>storeValue</td>
+	<td>id=minx</td>
+	<td>minx</td>
+</tr>
+<tr>
+	<td>storeValue</td>
+	<td>id=miny</td>
+	<td>miny</td>
+</tr>
+<tr>
+	<td>storeValue</td>
+	<td>id=maxx</td>
+	<td>maxx</td>
+</tr>
+<tr>
+	<td>storeValue</td>
+	<td>id=maxy</td>
+	<td>maxy</td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>(!isNaN(storedVars['minx']) &amp;&amp; !isNaN(storedVars['miny']) &amp;&amp; !isNaN(storedVars['maxx']) &amp;&amp; !isNaN(storedVars['maxy']));</td>
+	<td>true</td>
+</tr>
+</tbody></table>
+</body>
+</html>
