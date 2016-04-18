@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-from eoxserver.core.commands import create_instance
+from eoxserver.core.instance import _init_spatialite
 
-tmp = create_instance.Command()
-tmp._init_spatialite("autotest","/var/eoxserver/")
+_init_spatialite("autotest","/var/eoxserver/autotest/")
