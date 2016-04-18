@@ -31,6 +31,11 @@ if ! grep -Fxq "includepkgs=mapserver mapserver-python mapcache libxml2 libxml2-
     sed -e 's/^\[eox\]$/&\nincludepkgs=mapserver mapserver-python mapcache libxml2 libxml2-python libxerces-c-3_1 gdal-eox gdal-eox-devel gdal-eox-driver-envisat gdal-eox-driver-netcdf gdal-eox-driver-openjpeg2 gdal-eox-java gdal-eox-libs gdal-eox-python openjpeg2 python-pysqlite-eox/' -i /etc/yum.repos.d/eox.repo
 fi
 
+# Set exclude in EPEL
+if ! grep -Fxq "exclude=openjpeg2" /etc/yum.repos.d/epel.repo ; then
+    sed -e 's/^\[epel\]$/&\nexclude=openjpeg2/' -i /etc/yum.repos.d/epel.repo
+fi
+
 # Set exclude in CentOS-Base
 if ! grep -Fxq "exclude=libxml2 libxml2-python libxerces-c-3_1" /etc/yum.repos.d/CentOS-Base.repo ; then
     sed -e 's/^\[base\]$/&\nexclude=libxml2 libxml2-python libxerces-c-3_1/' -i /etc/yum.repos.d/CentOS-Base.repo
