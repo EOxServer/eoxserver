@@ -42,7 +42,9 @@ install:
 script:
 - python manage.py test --pythonpath=../eoxserver/ core -v2
 - python manage.py test --pythonpath=../eoxserver/ backends -v2
+- python manage.py test --pythonpath=../eoxserver/ services -v2
 - python manage.py test --pythonpath=../eoxserver/resources coverages -v2
+- python manage.py test --pythonpath=../eoxserver/resources processes -v2
 - python manage.py test autotest_services -v2
 - python manage.py test autotest_coverages -v2
 after_failure:
