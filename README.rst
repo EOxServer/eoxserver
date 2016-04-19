@@ -7,10 +7,10 @@ EOxServer
 .. image:: https://jenkins.eox.at/buildStatus/icon?job=EOxServer_master
    :target: https://jenkins.eox.at/job/EOxServer_master/
 
-.. image:: https://readthedocs.org/projects/eoxserver/badge/?version=0.4
+.. image:: https://readthedocs.org/projects/eoxserver/badge/?version=master
     :alt: Documentation Status
     :scale: 100%
-    :target: http://docs.eoxserver.org/en/0.4
+    :target: http://docs.eoxserver.org/en/master
 
 EOxServer is a Python application and framework for presenting Earth
 Observation (EO) data and metadata.
