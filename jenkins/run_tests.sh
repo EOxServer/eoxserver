@@ -25,10 +25,10 @@ export XML_CATALOG_FILES="$WORKSPACE/schemas/catalog.xml"
 python manage.py test autotest_services -v2
 python manage.py test autotest_coverages -v2
 python manage.py test --pythonpath=../eoxserver/ core -v2
-#python manage.py test --pythonpath=../eoxserver/ backends -v2
+#TODO python manage.py test --pythonpath=../eoxserver/ backends -v2
 python manage.py test --pythonpath=../eoxserver/ services -v2
 python manage.py test --pythonpath=../eoxserver/resources coverages -v2
-python manage.py test --pythonpath=../eoxserver/resources processes -v2
+#TODO python manage.py test --pythonpath=../eoxserver/resources processes -v2
 cd ..
 
 # Run command line tests
