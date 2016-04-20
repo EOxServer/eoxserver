@@ -29,15 +29,9 @@
 
 import os, sys
 
-# Hack to remove setuptools "feature" which resulted in
-# ignoring MANIFEST.in when code is in an svn repository.
-# TODO find a nicer solution
 import subprocess
-from setuptools.command import sdist
-from distutils.extension import Extension
-del sdist.finders[:]
 
-from setuptools import setup
+from setuptools import setup, Extension
 
 from eoxserver import get_version
 
@@ -63,7 +57,7 @@ def fullsplit(path, result=None):
 def get_gdal_libs(default=None):
     if default is None:
         default = ("", "")
-    
+
     p = subprocess.Popen(["gdal-config", "--libs"], stdout=subprocess.PIPE)
     if p.wait() != 0:
         return default
@@ -81,7 +75,7 @@ def get_gdal_libs(default=None):
 def get_gdal_incdirs(default=None):
     if default is None:
         default = ("", "")
-    
+
     p = subprocess.Popen(["gdal-config", "--cflags"], stdout=subprocess.PIPE)
     if p.wait() != 0:
         return default
@@ -151,16 +145,16 @@ setup(
         'django>=1.4',
     ],
     zip_safe = False,
-    
+
     # Metadata
     author="EOX IT Services GmbH",
     author_email="office@eox.at",
     maintainer="EOX IT Services GmbH",
     maintainer_email="packages@eox.at",
-    
+
     description="EOxServer is a server for Earth Observation (EO) data",
     long_description=read("README.rst"),
-    
+
     classifiers=[
           'Development Status :: 5 - Production/Stable',
           'Environment :: Console',
@@ -186,7 +180,7 @@ setup(
           'Topic :: Scientific/Engineering :: Information Analysis',
           'Topic :: Scientific/Engineering :: Visualization',
     ],
-    
+
     license="EOxServer Open License (MIT-style)",
     keywords="Earth Observation, EO, OGC, WCS, WMS",
     url="http://eoxserver.org/"
