@@ -184,7 +184,7 @@ git commit setup.py eoxserver/__init__.py -m "Adjusting version."
 git tag -s release-0.3.2 -m "Tagging the 0.3.2 release of EOxServer."
 # TODO add tag in autotest (needed for osgeo-live), documentation, etc.
 
-git archive --format=tar --prefix=EOxServer-0.3.2/ release-0.3.2 | gzip > EOxServer-0.3.2.tar.gz
+git archive --format=tar.gz --prefix=EOxServer-0.3.2/ -o EOxServer-0.3.2.tar.gz release-0.3.2 eoxserver/ MANIFEST.in README.rst setup.cfg setup.py tools/
 mv EOxServer-0.3.2.tar.gz <path-to-builder_rpm>
 cd <path-to-builder_rpm>/
 vagrant ssh
