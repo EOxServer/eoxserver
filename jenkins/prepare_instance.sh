@@ -28,6 +28,14 @@ case $DJANGO in
         echo "Using latest django 1.6"
         pip install "django<1.7,>=1.6"
         ;;
+    "django1.7")
+        echo "Using latest django 1.7"
+        pip install "django<1.8,>=1.7"
+        ;;
+    "django1.8")
+        echo "Using latest django 1.8"
+        pip install "django<1.9,>=1.8"
+        ;;
     *)
         echo "Unknown django version, Exiting..."
         exit 1
