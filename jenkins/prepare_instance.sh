@@ -18,23 +18,23 @@ source .venv/bin/activate
 case $DJANGO in
     "django1.4")
         echo "Using latest django 1.4"
-        pip install "django<1.5,>=1.4"
+        pip install "django>=1.4,<1.5a0"
         ;;
     "django1.5")
         echo "Using latest django 1.5"
-        pip install "django<1.6,>=1.5"
+        pip install "django>=1.5,<1.6a0"
         ;;
     "django1.6")
         echo "Using latest django 1.6"
-        pip install "django<1.7,>=1.6"
+        pip install "django>=1.6,<1.7a0"
         ;;
     "django1.7")
         echo "Using latest django 1.7"
-        pip install "django<1.8,>=1.7"
+        pip install "django>=1.7,<1.8a0"
         ;;
     "django1.8")
         echo "Using latest django 1.8"
-        pip install "django<1.9,>=1.8"
+        pip install "django>=1.8,<1.9a0"
         ;;
     *)
         echo "Unknown django version, Exiting..."
