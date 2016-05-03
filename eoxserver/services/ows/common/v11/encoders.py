@@ -26,7 +26,8 @@
 #-------------------------------------------------------------------------------
 
 from lxml.builder import ElementMaker
-
+from lxml.etree import ProcessingInstruction, ElementTree
+from django.conf import settings
 from eoxserver.core.util.xmltools import XMLEncoder, NameSpace, NameSpaceMap
 
 
@@ -49,10 +50,18 @@ class OWS11ExceptionXMLEncoder(XMLEncoder):
 
         exception_text = (OWS("ExceptionText", message),) if message else ()
 
-        return OWS("ExceptionReport", 
+        xml_tree = ElementTree(OWS("ExceptionReport",
             OWS("Exception", *exception_text, **exception_attributes
             ), version=version, **{ns_xml("lang"): "en"}
-        )
+        ))
+
+        xls_url = getattr(settings, "OWS11_EXCEPTION_XSL", None)
+        if xls_url:
+            xml_tree.getroot().addprevious(ProcessingInstruction(
+                'xml-stylesheet', 'type="text/xsl" href="%s"' % xls_url
+            ))
+
+        return xml_tree
 
     def get_schema_locations(self):
         return nsmap.schema_locations
