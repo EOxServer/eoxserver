@@ -155,7 +155,9 @@ class XMLEncoder(object):
             attribute to the root node.
         """
         schema_locations = self.get_schema_locations()
-        tree.attrib[ns_xsi("schemaLocation")] = " ".join(
+        # Both Element and ElementTree have to be supported.
+        root = tree if hasattr(tree, 'attrib') else tree.getroot()
+        root.attrib[ns_xsi("schemaLocation")] = " ".join(
             "%s %s" % (uri, loc) for uri, loc in schema_locations.items()
         )
 
