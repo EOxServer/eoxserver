@@ -77,7 +77,7 @@ def configuration(request):
         )
         first = list(coverages_qs.order_by("-begin_time")[:10])[-1]
         start_time = first.begin_time
-    except models.EOObject.DoesNotExist:
+    except (models.EOObject.DoesNotExist, IndexError):
         pass
 
     return render(
