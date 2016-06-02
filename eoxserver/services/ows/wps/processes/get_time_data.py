@@ -109,11 +109,11 @@ class GetTimeDataProcess(Component):
             if begin_time is not None:
                 coverages_qs = coverages_qs.filter(end_time__gte=begin_time)
             coverages_qs = coverages_qs.order_by('begin_time', 'end_time')
-            coverages_qs = coverages_qs.values_list("begin_time", "end_time", "identifier", "min_x", "min_y", "max_x", "max_y")
+            coverages_qs = coverages_qs.envelope()
+            coverages_qs = coverages_qs.values_list("begin_time", "end_time", "identifier", "envelope")
 
         else:
-            min_x, min_y, max_x, max_y = model.extent_wgs84
-            coverages_qs = ((model.begin_time, model.end_time, model.identifier, min_x, min_y, max_x, max_y),)
+            coverages_qs = ((model.begin_time, model.end_time, model.identifier, model.footprint),)
 
         # create the output
         output = CDAsciiTextBuffer()
@@ -121,8 +121,7 @@ class GetTimeDataProcess(Component):
         header = ["starttime", "endtime", "bbox", "identifier"]
         writer.writerow(header)
 
-        for starttime, endtime, identifier, min_x, min_y, max_x, max_y in coverages_qs:
-            bbox = (min_x, min_y, max_x, max_y)
-            writer.writerow([isoformat(starttime), isoformat(endtime), bbox, identifier])
+        for starttime, endtime, identifier, bbox in coverages_qs:
+            writer.writerow([isoformat(starttime), isoformat(endtime), bbox.extent, identifier])
 
         return output
