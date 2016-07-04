@@ -168,8 +168,12 @@ def _create_output(identifier, attrs, title=None, abstract=None):
 class WPS10ExecuteXMLDecoder(xml.Decoder):
     """ WPS 1.0 POST/XML Execute request decoder class. """
     identifier = xml.Parameter("ows:Identifier/text()")
-    inputs_ = xml.Parameter("wps:DataInputs/wps:Input", type=_parse_input, num="*", default=[])
-    _response_form = xml.Parameter("wps:ResponseForm", type=_parse_response_form, num="?")
+    inputs_ = xml.Parameter(
+        "wps:DataInputs/wps:Input", type=_parse_input, num="*", default=[]
+    )
+    _response_form = xml.Parameter(
+        "wps:ResponseForm", type=_parse_response_form, num="?"
+    )
 
     @property
     def response_form(self):

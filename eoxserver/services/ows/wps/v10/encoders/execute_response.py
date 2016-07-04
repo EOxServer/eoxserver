@@ -55,10 +55,18 @@ class WPS10ExecuteResponseXMLEncoder(WPS10BaseXMLEncoder):
     content_type = "application/xml; charset=utf-8"
 
     @staticmethod
-    def encode_response(process, results, resp_form, inputs, raw_inputs):
+    def encode_response(process, results, resp_form, inputs, raw_inputs,
+                        status_location=None):
         """Encode execute response (SUCCESS) including the output data."""
-        status = WPS("ProcessSucceeded")
-        elem = _encode_common_response(process, status, inputs, raw_inputs, resp_form)
+        status = WPS(
+            "ProcessSucceeded",
+            "The processes execution completed successfully."
+        )
+        elem = _encode_common_response(
+            process, status, inputs, raw_inputs, resp_form
+        )
+        if status_location:
+            elem.set("statusLocation", status_location)
 
         outputs = []
         for result, prm, req in results.itervalues():
@@ -67,14 +75,67 @@ class WPS10ExecuteResponseXMLEncoder(WPS10BaseXMLEncoder):
 
         return elem
 
-    #@staticmethod
-    #def encode_failure()
+    @staticmethod
+    def encode_failed(process, resp_form, inputs, raw_inputs, status_location,
+                      exception):
+        """ Encode execute response for a running asynchronous job."""
+        #TODO: proper OWS exception report.
+        status = WPS("ProcessFailed")
+        elem = _encode_common_response(
+            process, status, inputs, raw_inputs, resp_form
+        )
+        if status_location:
+            elem.set("statusLocation", status_location)
 
-    #@staticmethod
-    #def encode_progress()
+        return elem
 
-    #@staticmethod
-    #def encode_accepted()
+    @staticmethod
+    def encode_started(process, resp_form, inputs, raw_inputs, status_location,
+                       progress=0):
+        """ Encode execute response for a running asynchronous job."""
+        status = WPS(
+            "ProcessStarted", "The processes execution is in progress.",
+            percentCompleted=("%d" % min(99, max(0, int(float(progress)))))
+        )
+        elem = _encode_common_response(
+            process, status, inputs, raw_inputs, resp_form
+        )
+        if status_location:
+            elem.set("statusLocation", status_location)
+
+        return elem
+
+    @staticmethod
+    def encode_paused(process, resp_form, inputs, raw_inputs, status_location,
+                      progress=0):
+        """ Encode execute response for a paused asynchronous job."""
+        status = WPS(
+            "ProcessPaused", "The processes execution is paused.",
+            percentCompleted=("%d" % min(99, max(0, int(float(progress)))))
+        )
+        elem = _encode_common_response(
+            process, status, inputs, raw_inputs, resp_form
+        )
+        if status_location:
+            elem.set("statusLocation", status_location)
+
+        return elem
+
+    @staticmethod
+    def encode_accepted(process, resp_form, inputs, raw_inputs, status_location):
+        """ Encode execute response for a successfully accepted asynchronous
+        request.
+        """
+        status = WPS(
+            "ProcessAccepted", "The processes was accepted for execution."
+        )
+        elem = _encode_common_response(
+            process, status, inputs, raw_inputs, resp_form
+        )
+        if status_location:
+            elem.set("statusLocation", status_location)
+
+        return elem
 
 #-------------------------------------------------------------------------------
 

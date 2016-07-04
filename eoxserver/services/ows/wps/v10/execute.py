@@ -42,11 +42,14 @@ from eoxserver.services.ows.interfaces import (
     ServiceHandlerInterface, GetServiceHandlerInterface,
     PostServiceHandlerInterface
 )
-from eoxserver.services.ows.wps.interfaces import ProcessInterface
+from eoxserver.services.ows.wps.interfaces import (
+    ProcessInterface, AsyncBackendInterface,
+)
 from eoxserver.services.ows.wps.exceptions import (
     NoSuchProcessError, MissingRequiredInputError,
     InvalidInputError, InvalidOutputError, InvalidOutputDefError,
     InvalidInputReferenceError, InvalidInputValueError,
+    InvalidParameterValue,
 )
 from eoxserver.services.ows.wps.parameters import (
     fix_parameter, LiteralData, BoundingBoxData, ComplexData,
@@ -74,10 +77,11 @@ class WPS10ExcecuteHandler(Component):
     request = "Execute"
 
     processes = ExtensionPoint(ProcessInterface)
-    #result_storage = ExtensionPoint(ResultStorageInterface)
+    async_backends = ExtensionPoint(AsyncBackendInterface)
 
     @staticmethod
     def get_decoder(request):
+        """ Get request decoder matching the request format. """
         if request.method == "GET":
             return WPS10ExecuteKVPDecoder(request.GET)
         elif request.method == "POST":
@@ -88,12 +92,23 @@ class WPS10ExcecuteHandler(Component):
             return WPS10ExecuteXMLDecoder(request.body)
 
     def get_process(self, identifier):
+        """ Get process component matched by the identifier. """
         for process in self.processes:
             if process.identifier == identifier:
                 return process
         raise NoSuchProcessError(identifier)
 
+    def get_async_backend(self):
+        """ Get available asynchronous back-end matched by the service version.
+        """
+        version_set = set(self.versions)
+        for backend in self.async_backends:
+            if set(backend.supported_versions) & version_set:
+                return backend
+
     def handle(self, request):
+        """ Request handler. """
+        async_backend = self.get_async_backend()
         decoder = self.get_decoder(request)
         process = self.get_process(decoder.identifier)
         input_defs, input_ids = _normalize_params(process.inputs)
@@ -104,22 +119,70 @@ class WPS10ExcecuteHandler(Component):
         _check_invalid_inputs(input_ids, raw_inputs)
         _check_invalid_outputs(output_ids, resp_form)
 
-        inputs = {}
-        inputs.update(prepare_process_output_requests(output_defs, resp_form))
-        inputs.update(decode_process_inputs(input_defs, raw_inputs, request))
+        if not resp_form.raw and resp_form.store_response:
+            # asynchronous execution
+            if not async_backend:
+                raise InvalidParameterValue(
+                    "This service instance does not support asynchronous "
+                    "execution!", "storeExecuteResponse"
+                )
+            if not getattr(process, 'asynchronous', False):
+                raise InvalidParameterValue(
+                    "This process does not allow asynchronous execution!",
+                    "storeExecuteResponse"
+                )
+            if not resp_form.status:
+                raise InvalidParameterValue(
+                    "The status update cannot be blocked for an asynchronous "
+                    "execute request!", "status"
+                )
 
-        outputs = process.execute(**inputs)
+            job_id = async_backend.execute(
+               process, raw_inputs, resp_form, request=request,
+            )
 
-        packed_outputs = pack_process_outputs(output_defs, outputs, resp_form)
-
-        if resp_form.raw:
-            encoder = WPS10ExecuteResponseRawEncoder()
-        else:
             encoder = WPS10ExecuteResponseXMLEncoder()
+            response = encoder.encode_accepted(
+                #TODO: Fix the lineage output.
+                process, resp_form, {}, raw_inputs,
+                async_backend.get_response_url(job_id)
+            )
 
-        response = encoder.encode_response(
-            process, packed_outputs, resp_form, inputs, raw_inputs
-        )
+        elif resp_form.status:
+            # invalid parameter combination
+            raise InvalidParameterValue(
+                "The status update cannot be provided for a synchronous "
+                "execute request!", "status"
+            )
+
+        else:
+            # synchronous execution
+            if not async_backend or not getattr(process, 'synchronous', True):
+                raise InvalidParameterValue(
+                    "This process does not allow synchronous execution!",
+                    "storeExecuteResponse"
+                )
+
+            inputs = {}
+            inputs.update(
+                prepare_process_output_requests(output_defs, resp_form)
+            )
+            inputs.update(
+                decode_process_inputs(input_defs, raw_inputs, request)
+            )
+
+            outputs = process.execute(**inputs)
+
+            packed_outputs = pack_process_outputs(output_defs, outputs, resp_form)
+
+            if resp_form.raw:
+                encoder = WPS10ExecuteResponseRawEncoder()
+            else:
+                encoder = WPS10ExecuteResponseXMLEncoder()
+
+            response = encoder.encode_response(
+                process, packed_outputs, resp_form, inputs, raw_inputs
+            )
 
         return encoder.serialize(response, encoding='utf-8')
 
@@ -224,8 +287,10 @@ def _decode_input(prm, raw_value):
     elif isinstance(prm, BoundingBoxData):
         return prm.parse(raw_value.data)
     elif isinstance(prm, ComplexData):
-        return prm.parse(raw_value.data, raw_value.mime_type,
-                raw_value.schema, raw_value.encoding, urlsafe=raw_value.asurl)
+        return prm.parse(
+            raw_value.data, raw_value.mime_type,
+            raw_value.schema, raw_value.encoding, urlsafe=raw_value.asurl
+        )
     else:
         raise TypeError("Unsupported parameter type %s!"%(type(prm)))
 

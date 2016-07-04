@@ -28,10 +28,8 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-
 import urllib
 from eoxserver.core.decoders import kvp
-
 from eoxserver.services.ows.wps.parameters import (
     InputData, InputReference, Output, ResponseDocument, RawDataOutput
 )
@@ -95,19 +93,33 @@ def _create_output(identifier, _, attrs):
     #if attr_as_reference is not None:
     #    attr_as_reference = attr_as_reference == true
 
-    return Output(identifier, None, None, attrs.get("uom"),
-            attrs.get("crs"), attrs.get("mimeType"), attrs.get("encoding"),
-            attrs.get("schema"), attr_as_reference)
+    return Output(
+        identifier, None, None, attrs.get("uom"),
+        attrs.get("crs"), attrs.get("mimeType"), attrs.get("encoding"),
+        attrs.get("schema"), attr_as_reference
+    )
 
 
 class WPS10ExecuteKVPDecoder(kvp.Decoder):
     identifier = kvp.Parameter()
-    inputs = kvp.Parameter("DataInputs", type=_parse_inputs, num="?", default={})
-    outputs = kvp.Parameter("ResponseDocument", type=_parse_outputs, num="?", default=[])
-    raw_response = kvp.Parameter("RawDataOutput", type=_parse_raw_output, num="?")
-    status = kvp.Parameter("status", type=_parse_bool, num="?", default=False)
-    lineage = kvp.Parameter("lineage", type=_parse_bool, num="?", default=False)
-    store_response = kvp.Parameter("storeExecuteResponse= ", type=_parse_bool, num="?", default=False)
+    inputs = kvp.Parameter(
+        "DataInputs", type=_parse_inputs, num="?", default={}
+    )
+    outputs = kvp.Parameter(
+        "ResponseDocument", type=_parse_outputs, num="?", default=[]
+    )
+    raw_response = kvp.Parameter(
+        "RawDataOutput", type=_parse_raw_output, num="?"
+    )
+    status = kvp.Parameter(
+        "status", type=_parse_bool, num="?", default=False
+    )
+    lineage = kvp.Parameter(
+        "lineage", type=_parse_bool, num="?", default=False
+    )
+    store_response = kvp.Parameter(
+        "storeExecuteResponse", type=_parse_bool, num="?", default=False
+    )
 
     @property
     def response_form(self):
@@ -123,4 +135,3 @@ class WPS10ExecuteKVPDecoder(kvp.Decoder):
         for output in self.outputs:
             resp_doc.set_output(output)
         return resp_doc
-

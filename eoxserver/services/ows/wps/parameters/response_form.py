@@ -79,10 +79,25 @@ class ResponseDocument(ResponseForm):
         self.status = status
         self.store_response = store_response
 
+    def __str__(self):
+        return (
+            "ResponseDocument(lineage=%s, status=%s, store_response=%s)[%s]" %
+            (self.lineage, self.status, self.store_response, " ,".join(
+                repr(k) for k in self.keys()
+            ))
+        )
 
 class RawDataOutput(ResponseForm):
     raw = True
+    lineage = False
+    status = False
+    store_response = False
 
     def __init__(self, output):
         super(RawDataOutput, self).__init__()
         self.set_output(output)
+
+    def __str__(self):
+        return (
+            "RawDataOutput()[%s]" % " ,".join(repr(k) for k in self.keys())
+        )
