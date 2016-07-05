@@ -30,14 +30,14 @@
 
 # NOTE: Currently, the inputs parameters are not allowed to be present
 #       more that once (maxOccurs=1) per request. These input parameters
-#       are, by default, mandatory (minOccur=1). Unpon explicit requests
+#       are, by default, mandatory (minOccur=1). Upon explicit requests
 #       the parameters can be made optional (minOccur=0).
 #
-#       Although not explicitely mentioned by the WPS 1.0.0 standard
+#       Although not explicitly mentioned by the WPS 1.0.0 standard
 #       it is a common practice that the outputs do not appear more than
-#       once per output (maxOccurs=1). When the exlicit specification
+#       once per output (maxOccurs=1). When the explicit specification
 #       of the outputs is omitted in the request all process output are
-#       contained in the default respose.
+#       contained in the default repose.
 
 class BaseParamMetadata(object):
     """ Common metadata base of all parameter classes."""
@@ -50,7 +50,7 @@ class BaseParamMetadata(object):
 
 class ParamMetadata(BaseParamMetadata):
     """ Common metadata of the execute request parameters."""
-    
+
     def __init__(self, identifier, title=None, abstract=None, uom=None,
                  crs=None, mime_type=None, encoding=None, schema=None):
         super(ParamMetadata, self).__init__(identifier, title, abstract)
@@ -69,8 +69,8 @@ class Parameter(BaseParamMetadata):
         """ Object constructor.
 
             Parameters:
-                identifier  idetnfier of the parameter.
-                title       optional human-readable name (defaults to idetfier).
+                identifier  identifier of the parameter.
+                title       optional human-readable name (defaults to identifier).
                 abstract    optional human-readable verbose description.
                 metadata    optional metadata (title/URL dictionary).
                 optional    optional boolean flag indicating whether the input

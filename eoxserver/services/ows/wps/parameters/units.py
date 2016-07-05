@@ -34,7 +34,7 @@ class UnitOfMeasure(object):
         self.name = name
 
     def apply(self, value):
-        """ Convert value from the common base to this uinit."""
+        """ Convert value from the common base to this unit."""
         raise NotImplementedError
 
     def strip(self, value):
@@ -48,7 +48,7 @@ class UnitLinear(UnitOfMeasure):
             value_uom = (value_base - offset)/scale
             value_base = value_uom*scale + offset
 
-        Set scale linear conversion from  the base uinit E.g.,
+        Set scale linear conversion from  the base unit E.g.,
         for 'F' UOM and base unit in 'K' set scale to 5.0/9.0 and
         offset to 459.67*5.0/9.0 .
 
@@ -65,10 +65,9 @@ class UnitLinear(UnitOfMeasure):
             raise ValueError("Invalid zero UOM scale!")
 
     def apply(self, value):
-        """ Convert value from the common base to this uinit."""
+        """ Convert value from the common base to this unit."""
         return (value - self._offset)/self._scale
 
     def strip(self, value):
         """ Convert value of this unit to the common base."""
         return value*self._scale + self._offset
-

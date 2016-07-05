@@ -45,17 +45,17 @@ class BaseType(object):
 
     @classmethod
     def parse(cls, raw_value):
-        """ Cast or parse input to its proper represenation."""
+        """ Cast or parse input to its proper representation."""
         return cls.dtype(raw_value)
 
     @classmethod
     def encode(cls, value):
-        """ Encode value to a unicode string."""
+        """ Encode value to a Unicode string."""
         return unicode(value)
 
     @classmethod
     def get_diff_dtype(cls): # difference type - change if differs from the base
-        """ Get type of the differece of this type.
+        """ Get type of the difference of this type.
             E.g., `timedelta` for a `datetime`.
         """
         return cls
@@ -67,8 +67,8 @@ class BaseType(object):
 
     @classmethod
     def sub(cls, value0, value1):
-        """ substract value0 - value1 """
-        raise TypeError("Data type %s cannot be substracted!" % cls)
+        """ subtract value0 - value1 """
+        raise TypeError("Data type %s cannot be subtracted!" % cls)
 
 
 class Boolean(BaseType):
@@ -84,7 +84,7 @@ class Boolean(BaseType):
             elif raw_value in ('0', 'false'):
                 return False
             else:
-                raise ValueError("Cannot parse boolean value '%s'!"%raw_value)
+                raise ValueError("Cannot parse boolean value '%s'!" % raw_value)
         else:
             return bool(raw_value)
 
@@ -98,7 +98,7 @@ class Boolean(BaseType):
 
     @classmethod
     def sub(cls, value0, value1):
-        """ substract value0 - value1 """
+        """ subtract value0 - value1 """
         return value0 - value1
 
 
@@ -109,7 +109,7 @@ class Integer(BaseType):
 
     @classmethod
     def encode(cls, value):
-        """ Encode value to a unicode string."""
+        """ Encode value to a Unicode string."""
         return unicode(int(value))
 
     @classmethod
@@ -118,7 +118,7 @@ class Integer(BaseType):
 
     @classmethod
     def sub(cls, value0, value1):
-        """ substract value0 - value1 """
+        """ subtract value0 - value1 """
         return value0 - value1
 
 
@@ -129,7 +129,7 @@ class Double(BaseType):
 
     @classmethod
     def encode(cls, value):
-        return u"%.15g"%cls.dtype(value)
+        return u"%.15g" % cls.dtype(value)
 
     @classmethod
     def as_number(cls, value):
@@ -137,7 +137,7 @@ class Double(BaseType):
 
     @classmethod
     def sub(cls, value0, value1):
-        """ substract value0 - value1 """
+        """ subtract value0 - value1 """
         return value0 - value1
 
 
@@ -149,7 +149,7 @@ class String(BaseType):
 
     @classmethod
     def encode(cls, value):
-        """ Encode value to a unicode string."""
+        """ Encode value to a Unicode string."""
         try:
             return unicode(value)
         except UnicodeDecodeError:
@@ -179,28 +179,28 @@ class Duration(BaseType):
     def encode(cls, value):
         # NOTE: USE OF MONTH AND YEAR IS AMBIGUOUS! WE DO NOT ENCODE THEM!
         if not isinstance(value, cls.dtype):
-            raise ValueError("Invalid value type '%s'!"%type(value))
+            raise ValueError("Invalid value type '%s'!" % type(value))
         items = []
         if value.days < 0:
             items.append('-')
             value = -value
         items.append('P')
         if value.days != 0:
-            items.append('%dD'%value.days)
+            items.append('%dD' % value.days)
         elif value.seconds == 0 and value.microseconds == 0:
-            items.append('T0S') # zero interaval
+            items.append('T0S') # zero interval
         if value.seconds != 0 or value.microseconds != 0:
             minutes, seconds = divmod(value.seconds, 60)
             hours, minutes = divmod(minutes, 60)
             items.append('T')
             if hours != 0:
-                items.append('%dH'%hours)
+                items.append('%dH' % hours)
             if minutes != 0:
-                items.append('%dM'%minutes)
+                items.append('%dM' % minutes)
             if value.microseconds != 0:
-                items.append("%.6fS"%(seconds+1e-6*value.microseconds))
+                items.append("%.6fS" % (seconds + 1e-6*value.microseconds))
             elif seconds != 0:
-                items.append('%dS'%seconds)
+                items.append('%dS' % seconds)
 
         return unicode("".join(items))
 
@@ -210,7 +210,7 @@ class Duration(BaseType):
 
     @classmethod
     def sub(cls, value0, value1):
-        """ substract value0 - value1 """
+        """ subtract value0 - value1 """
         return value0 - value1
 
 
@@ -229,17 +229,17 @@ class Date(BaseType):
         value = parse_date(raw_value)
         if value:
             return value
-        raise ValueError("Could not parse ISO date from '%s'."%raw_value)
+        raise ValueError("Could not parse ISO date from '%s'." % raw_value)
 
     @classmethod
     def encode(cls, value):
         if isinstance(value, cls.dtype):
             return unicode(value.isoformat())
-        raise ValueError("Invalid value type '%s'!"%type(value))
+        raise ValueError("Invalid value type '%s'!" % type(value))
 
     @classmethod
     def sub(cls, value0, value1):
-        """ substract value0 - value1 """
+        """ subtract value0 - value1 """
         return value0 - value1
 
 
@@ -259,17 +259,17 @@ class Time(BaseType):
         value = parse_time(raw_value)
         if value is not None:
             return value
-        raise ValueError("Could not parse ISO time from '%s'."%raw_value)
+        raise ValueError("Could not parse ISO time from '%s'." % raw_value)
 
     @classmethod
     def encode(cls, value):
         if isinstance(value, cls.dtype):
             return unicode(value.isoformat())
-        raise ValueError("Invalid value type '%s'!"%type(value))
+        raise ValueError("Invalid value type '%s'!" % type(value))
 
     @classmethod
     def sub(cls, value0, value1):
-        """ substract value0 - value1 """
+        """ subtract value0 - value1 """
         aux_date = datetime.now().date()
         dt0 = datetime.combine(aux_date, value0)
         dt1 = datetime.combine(aux_date, value1)
@@ -281,8 +281,8 @@ class DateTime(BaseType):
     dtype = datetime
 
     # tzinfo helpers
-    UTC = utc               # zulu-time TZ instance
-    TZOffset = FixedOffset  # fixed TZ offset class, set mintues to instantiate
+    UTC = utc               # Zulu-time TZ instance
+    TZOffset = FixedOffset  # fixed TZ offset class, set minutes to instantiate
 
     @classmethod
     def get_diff_dtype(cls):
@@ -295,17 +295,17 @@ class DateTime(BaseType):
         value = parse_datetime(raw_value)
         if value:
             return value
-        raise ValueError("Could not parse ISO date-time from '%s'."%raw_value)
+        raise ValueError("Could not parse ISO date-time from '%s'." % raw_value)
 
     @classmethod
     def encode(cls, value):
         if isinstance(value, cls.dtype):
             return unicode(isoformat(value))
-        raise ValueError("Invalid value type '%s'!"%type(value))
+        raise ValueError("Invalid value type '%s'!" % type(value))
 
     @classmethod
     def sub(cls, value0, value1):
-        """ substract value0 - value1 """
+        """ subtract value0 - value1 """
         return value0 - value1
 
 

@@ -35,7 +35,7 @@ from eoxserver.resources.coverages.crss import (
 
 class CRSType(BaseType):
     """ CRS data-type.
-        CRS are preresented by the EPSG codes + 0 meaning the ImageCRC.
+        CRS are represented by the EPSG codes + 0 meaning the ImageCRC.
     """
     name = "anyURI"
     dtype = int
@@ -44,7 +44,7 @@ class CRSType(BaseType):
 
     @classmethod
     def parse(cls, raw_value):
-        """ Cast or parse input to its proper represenation."""
+        """ Cast or parse input to its proper representation."""
         if isinstance(raw_value, cls.dtype):
             if raw_value == 0 or validateEPSGCode(raw_value):
                 return raw_value
@@ -52,14 +52,16 @@ class CRSType(BaseType):
             if raw_value == "ImageCRS":
                 return 0
             else:
-                value = parseEPSGCode(raw_value, (fromURL, fromURN, fromShortCode))
+                value = parseEPSGCode(
+                    raw_value, (fromURL, fromURN, fromShortCode)
+                )
                 if value is not None:
                     return value
         raise ValueError("Invalid CRS %r!" % raw_value)
 
     @classmethod
     def encode(cls, value):
-        """ Encode value to a unicode string."""
+        """ Encode value to a Unicode string."""
         if value == 0:
             return u'ImageCRS'
         elif validateEPSGCode(value):

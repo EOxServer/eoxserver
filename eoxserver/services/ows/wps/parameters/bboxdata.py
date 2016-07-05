@@ -53,8 +53,10 @@ class BoundingBox(tuple):
         lower = tuple(float(v) for v in lower)
         upper = tuple(float(v) for v in upper)
         if len(lower) != len(upper):
-            raise ValueError("Dimension mismatch! Both the lower and uppper "
-                             "corners must have the same dimension!")
+            raise ValueError(
+                "Dimension mismatch! Both the lower and upper "
+                "corners must have the same dimension!"
+            )
         return tuple.__new__(cls, (lower, upper))
 
     def __init__(self, bbox, crs=None):
@@ -91,8 +93,9 @@ class BoundingBox(tuple):
     def as_rect(self):
         """Cast to a Rect object."""
         if self.dimension != 2:
-            raise RuntimeError("Only 2D bounding-box can be cast to "
-                                "a rectangle object!")
+            raise RuntimeError(
+                "Only 2D bounding-box can be cast to a rectangle object!"
+            )
         return Rect(self[0][0], self[0][1], None, None, self[1][0], self[1][1])
 
     def __str__(self):
@@ -139,11 +142,13 @@ class BoundingBoxData(Parameter):
     def _encode(self, bbox):
         """ Common low-level encoding method."""
         if self.dimension != bbox.dimension:
-            raise ValueError("Invalid dimension %s of the encoded bounding "
-                              "box!"%bbox.dimension)
+            raise ValueError(
+                "Invalid dimension %s of the encoded bounding box!" %
+                bbox.dimension
+            )
         crs = bbox.crs if bbox.crs is not None else self.default_crs
         if crs not in self.crss:
-            raise ValueError("Invalid crs %s of the encoded bounding box!"%crs)
+            raise ValueError("Invalid crs %s of the encoded bounding box!" % crs)
 
         return (
             (self.dtype.encode(v) for v in bbox.lower),
@@ -162,8 +167,10 @@ class BoundingBoxData(Parameter):
 
     def parse(self, raw_bbox):
         if isinstance(raw_bbox, BoundingBox):
-            bbox = BoundingBox((raw_bbox.lower, raw_bbox.upper),
-                raw_bbox.crs if raw_bbox.crs is not None else self.default_crs)
+            bbox = BoundingBox(
+                (raw_bbox.lower, raw_bbox.upper),
+                raw_bbox.crs if raw_bbox.crs is not None else self.default_crs
+            )
         elif isinstance(raw_bbox, basestring):
             items = raw_bbox.split(',')
             dim = len(items)/2
@@ -178,8 +185,10 @@ class BoundingBoxData(Parameter):
             lower = _RE_MULTIWS.sub(",", raw_bbox[0].strip()).split(",")
             upper = _RE_MULTIWS.sub(",", raw_bbox[1].strip()).split(",")
             if len(lower) != len(upper):
-                raise ValueError("Dimension mismatch of the bounding box's"
-                       " corner coordinates! %d != %d"%(len(lower), len(upper)))
+                raise ValueError(
+                    "Dimension mismatch of the bounding box's"
+                    " corner coordinates! %d != %d" % (len(lower), len(upper))
+                )
             lower = [self.dtype.parse(item) for item in lower]
             upper = [self.dtype.parse(item) for item in upper]
             if raw_bbox[2] is not None:
@@ -188,11 +197,14 @@ class BoundingBoxData(Parameter):
                 crs = self.default_crs
             bbox = BoundingBox((lower, upper), crs)
         if bbox.dimension != self.dimension:
-            raise ValueError("Invalid dimenstion %d of the parsed bounding"
-                             " box!"%(bbox.dimension))
+            raise ValueError(
+                "Invalid dimenstion %d of the parsed bounding box!" %
+                bbox.dimension
+            )
         if bbox.crs not in self.crss:
-            raise ValueError("Invalid CRS %r of the parsed bounding"
-                             " box!"%(bbox.crs))
+            raise ValueError(
+                "Invalid CRS %r of the parsed bounding box!" % bbox.crs
+            )
         return bbox
 
     @classmethod

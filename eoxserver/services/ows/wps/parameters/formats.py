@@ -33,22 +33,21 @@ from .codecs import CodecBase64, CodecRaw
 
 class Format(object):
     """ Base complex data format. """
-
     # boolean flag indicating whether the format allows the payload to be
     # embedded to XML response or not. The XML embedding is disabled by default.
     allows_xml_embedding = False
 
     def __init__(self, encoder, mime_type, schema=None,
-                is_text=False, is_xml=False, is_json=False):
+                 is_text=False, is_xml=False, is_json=False):
         """ Object constructor.
 
             Parameters:
                 encoder     format's encoder object (defines the encoding)
                 mime_type   mime-type of the format
                 schema      optional schema of the document
-                is_text     optioonal boolean flag indicating text-based data
+                is_text     optional boolean flag indicating text-based data
                             format.
-                is_xml      optional boolean flag indicatind XML-based format.
+                is_xml      optional boolean flag indicating XML-based format.
                             The flag enables is_text flag.
                 is_json     optional boolean flag indicating JSON-bases format.
                             The flag enables is_text flag.
@@ -74,33 +73,38 @@ class Format(object):
         """ Encoding generator."""
         return self._codec.decode(file_in, **opt)
 
-#-------------------------------------------------------------------------------
 
 class FormatText(Format):
     allows_xml_embedding = True
-    def __init__(self, mime_type="text/plain", schema=None, text_encoding='utf-8'):
+    def __init__(self, mime_type="text/plain", schema=None,
+                 text_encoding='utf-8'):
         Format.__init__(self, CodecRaw, mime_type, schema, True, False, False)
         self.text_encoding = text_encoding
 
+
 class FormatXML(Format):
     allows_xml_embedding = True
-    def __init__(self, mime_type="application/xml", schema=None, text_encoding='utf-8'):
+    def __init__(self, mime_type="application/xml", schema=None,
+                 text_encoding='utf-8'):
         Format.__init__(self, CodecRaw, mime_type, schema, True, True, False)
         self.text_encoding = text_encoding
 
+
 class FormatJSON(Format):
     allows_xml_embedding = True
-    def __init__(self, mime_type="application/json", schema=None, text_encoding='utf-8'):
+    def __init__(self, mime_type="application/json", schema=None,
+                 text_encoding='utf-8'):
         Format.__init__(self, CodecRaw, mime_type, schema, True, False, True)
         self.text_encoding = text_encoding
+
 
 class FormatBinaryRaw(Format):
     allows_xml_embedding = False
     def __init__(self, mime_type="application/octet-stream"):
         Format.__init__(self, CodecRaw, mime_type, None, False, False, False)
 
+
 class FormatBinaryBase64(Format):
     allows_xml_embedding = True
     def __init__(self, mime_type="application/octet-stream"):
         Format.__init__(self, CodecBase64, mime_type, None, False, False, False)
-

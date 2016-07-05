@@ -42,15 +42,19 @@ class Output(ParamMetadata):
     """ Output request."""
 
     def __init__(self, identifier, title=None, abstract=None, uom=None,
-                    crs=None, mime_type=None, encoding=None, schema=None,
-                    as_reference=False):
-        ParamMetadata.__init__(self, identifier, title, abstract, uom, crs,
-                                                   mime_type, encoding, schema)
+                 crs=None, mime_type=None, encoding=None, schema=None,
+                 as_reference=False):
+        ParamMetadata.__init__(
+            self, identifier, title, abstract, uom, crs,
+            mime_type, encoding, schema
+        )
         self.as_reference = as_reference
 
 
 class ResponseForm(OrderedDict):
-    """ Response form defined as an ordered dict. of the output definitions."""
+    """ Response form defined as an ordered dictionary of the output
+    definitions.
+    """
 
     def __init__(self):
         super(ResponseForm, self).__init__()

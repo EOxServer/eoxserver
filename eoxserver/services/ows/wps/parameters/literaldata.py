@@ -49,8 +49,8 @@ class LiteralData(Parameter):
 
             Parameters:
                 identifier  identifier of the parameter.
-                title       optional human-raedable name (defaults to identifier).
-                abstract    optional human-redable verbose description.
+                title       optional human-readable name (defaults to identifier).
+                abstract    optional human-readable verbose description.
                 metadata    optional metadata (title/URL dictionary).
                 optional    optional boolean flag indicating whether the input
                             parameter is optional or not.
@@ -62,7 +62,7 @@ class LiteralData(Parameter):
                             default value sets the parameter optional.
                 allowed_values optional restriction on the accepted values.
                             By default any value of the given type is
-                            supported. The allowed value can be specified by an
+                            supported. The allowed value can be specified by
                             an enumerated list (iterable) of values or by
                             instance of one of the following classes:
                             ``AllowedAny``, ``AllowedEnum``, ``AllowedRange``,
@@ -75,20 +75,22 @@ class LiteralData(Parameter):
         elif dtype in DTYPES:
             self._dtype = DTYPES[dtype]
         else:
-            raise TypeError("Non-supported data type %s! "%dtype)
+            raise TypeError("Non-supported data type %s!" % dtype)
 
         if isinstance(allowed_values, BaseAllowed):
-            if (hasattr(allowed_values, 'dtype')
-                                      and self._dtype != allowed_values.dtype):
-                raise TypeError("The allowed values vs. literal data  type"
-                      " mismatch! %s != %s", allowed_values.dtype, self._dtype)
+            if (hasattr(allowed_values, 'dtype') and
+                    self._dtype != allowed_values.dtype):
+                raise TypeError(
+                    "The allowed values vs. literal data  type mismatch! "
+                    "%s != %s" % (allowed_values.dtype, self._dtype)
+                )
             self._allowed_values = allowed_values
         elif allowed_values is not None:
             self._allowed_values = AllowedEnum(allowed_values, self._dtype)
         else:
             self._allowed_values = AllowedAny()
 
-        if uoms: # the first uom is the default one
+        if uoms: # the first UOM is the default one
             tmp = OrderedDict()
             for uom in uoms:
                 if not isinstance(uom, UnitOfMeasure):
@@ -136,7 +138,7 @@ class LiteralData(Parameter):
         try:
             return self._uoms[uom].apply(value)
         except KeyError:
-            raise ValueError("Invalid UOM '%s'!"%uom)
+            raise ValueError("Invalid UOM '%s'!" % uom)
 
     def strip_uom(self, value, uom):
         if uom is None:
@@ -144,7 +146,7 @@ class LiteralData(Parameter):
         try:
             return self._uoms[uom].strip(value)
         except KeyError:
-            raise ValueError("Invalid UOM '%s'!"%uom)
+            raise ValueError("Invalid UOM '%s'!" % uom)
 
     def encode(self, value, uom=None, encoding=None):
         """ Encode the output value to its string representation.
@@ -152,7 +154,7 @@ class LiteralData(Parameter):
             The value is checked to match the defined allowed values
             restriction and the UOM conversion is applied.
 
-            Returns unicode or byte-string if the encoding is given.
+            Returns Unicode or byte-string if the encoding is given.
         """
         try:
             _value = self._allowed_values.verify(value)
@@ -160,8 +162,9 @@ class LiteralData(Parameter):
             _value = self._dtype.encode(_value)
             return _value.encode(encoding) if encoding else _value
         except (ValueError, TypeError) as exc:
-            raise ValueError("Output encoding error: '%s' (value '%s')"
-                                                        "" % (str(exc), value))
+            raise ValueError(
+                "Output encoding error: '%s' (value '%s')" % (str(exc), value)
+            )
 
     def parse(self, raw_value, uom=None, encoding="utf-8"):
         """ Parse the input value from its string representation.
@@ -169,8 +172,8 @@ class LiteralData(Parameter):
             The value is checked to match the defined allowed values
             restriction and the UOM conversion is applied.
 
-            Non-unicode raw_data are converted to unicode before parsing.
-            Byte strings are decoded using the profided encoding (utf8 by
+            Non-Unicode raw_data are converted to Unicode before parsing.
+            Byte strings are decoded using the profited encoding (utf8 by
             default).
         """
         try:

@@ -34,10 +34,12 @@ class InputReference(ParamMetadata):
     """ Input data reference."""
 
     def __init__(self, href, identifier, title=None, abstract=None,
-                    headers=None, body=None, method=None, mime_type=None,
-                    encoding=None, schema=None, body_href=None):
-        ParamMetadata.__init__(self, identifier, title, abstract, None, None,
-                                                   mime_type, encoding, schema)
+                 headers=None, body=None, method=None, mime_type=None,
+                 encoding=None, schema=None, body_href=None):
+        ParamMetadata.__init__(
+            self, identifier, title, abstract, None, None,
+            mime_type, encoding, schema
+        )
         self.href = href
         self.headers = headers or ()
         self.body = body
@@ -48,10 +50,12 @@ class InputReference(ParamMetadata):
 class InputData(ParamMetadata):
     """ Raw input data."""
     def __init__(self, identifier, title=None, abstract=None,
-                        data=None, uom=None, crs=None, mime_type=None,
-                        encoding=None, schema=None, asurl=False):
-        ParamMetadata.__init__(self, identifier, title, abstract, uom, crs,
-                                                   mime_type, encoding, schema)
+                 data=None, uom=None, crs=None, mime_type=None,
+                 encoding=None, schema=None, asurl=False):
+        ParamMetadata.__init__(
+            self, identifier, title, abstract, uom, crs,
+            mime_type, encoding, schema
+        )
         self.data = data
         self.asurl = asurl # set to True if data are passed as HTTP/GET URL
 

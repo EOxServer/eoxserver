@@ -127,7 +127,7 @@ class AllowedRange(BaseAllowed, TypedMixIn):
         TypedMixIn.__init__(self, dtype)
 
         if not self._dtype.comparable:
-            raise ValueError("Non-supported range data type '%s'!"%self._dtype)
+            raise ValueError("Non-supported range data type '%s'!" % self._dtype)
 
         if closure not in self.ALLOWED_CLOSURES:
             raise ValueError("Invalid closure specification!")
@@ -187,10 +187,16 @@ class AllowedRange(BaseAllowed, TypedMixIn):
     def _out_of_bounds(self, value):
         if value != value: # cheap type-safe NaN check (sucks for Python<=2.5)
             return True
-        below = self._minval is not None and (value < self._minval or
-                (value == self._minval and self._closure in (1, 2)))
-        above = self._maxval is not None and (value > self._maxval or
-                (value == self._maxval and self._closure in (1, 3)))
+        below = self._minval is not None and (
+            value < self._minval or (
+                value == self._minval and self._closure in (1, 2)
+            )
+        )
+        above = self._maxval is not None and (
+            value > self._maxval or (
+                value == self._maxval and self._closure in (1, 3)
+            )
+        )
         return below or above
 
     def check(self, value):
@@ -213,8 +219,10 @@ class AllowedRangeCollection(BaseAllowed, TypedMixIn):
 
     def __init__(self, *objs):
         if not objs:
-            raise ValueError("At least one AllowedEnum or AllowedRange object"
-                             " must be provided!")
+            raise ValueError(
+                "At least one AllowedEnum or AllowedRange object "
+                "must be provided!"
+            )
         TypedMixIn.__init__(self, objs[0].dtype)
 
         values = set()
@@ -228,8 +236,10 @@ class AllowedRangeCollection(BaseAllowed, TypedMixIn):
             elif isinstance(obj, AllowedRange):
                 ranges.append(obj)
             else:
-                raise ValueError("An object which is neither AllowedEnum"
-                                 " nor AllowedRange instance! OBJ=%r"%obj)
+                raise ValueError(
+                    "An object which is neither AllowedEnum"
+                    " nor AllowedRange instance! OBJ=%r" % obj
+                )
 
             # Check that all ranges and value sets are of the same type.
             if self.dtype != obj.dtype:
@@ -255,5 +265,6 @@ class AllowedRangeCollection(BaseAllowed, TypedMixIn):
     def verify(self, value):
         if self.check(value):
             return value
-        raise ValueError("The value does not match the range of the allowed"
-                         " values!")
+        raise ValueError(
+            "The value does not match the range of the allowed values!"
+        )
