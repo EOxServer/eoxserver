@@ -67,6 +67,11 @@ class LiteralData(Parameter):
                             instance of one of the following classes:
                             ``AllowedAny``, ``AllowedEnum``, ``AllowedRange``,
                             or ``AllowedByReference``.
+                resolve_input_references Set this option to False not to resolve
+                            input references. By default the references are
+                            resolved (downloaded and parsed) transparently.
+                            If set to False the references must be handled
+                            by the process.
         """
         super(LiteralData, self).__init__(identifier, *args, **kwargs)
 

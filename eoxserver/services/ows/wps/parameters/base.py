@@ -65,7 +65,7 @@ class Parameter(BaseParamMetadata):
     """ Base parameter class used by the process definition."""
 
     def __init__(self, identifier=None, title=None, abstract=None,
-                 metadata=None, optional=False):
+                 metadata=None, optional=False, resolve_input_references=True):
         """ Object constructor.
 
             Parameters:
@@ -75,6 +75,11 @@ class Parameter(BaseParamMetadata):
                 metadata    optional metadata (title/URL dictionary).
                 optional    optional boolean flag indicating whether the input
                             parameter is optional or not.
+                resolve_input_references Set this option to False not to resolve
+                            input references. By default the references are
+                            resolved (downloaded and parsed) transparently.
+                            If set to False the references must be handled
+                            by the process.
         """
         super(Parameter, self).__init__(identifier, title, abstract)
         self.metadata = metadata or {}

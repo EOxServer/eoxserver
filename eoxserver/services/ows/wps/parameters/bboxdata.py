@@ -127,6 +127,11 @@ class BoundingBoxData(Parameter):
                             codes. Defaults to WGS84 (EPSG:4326).
                 dimension   optional dimension of the bounding box coordinates.
                             Defaults to 2.
+                resolve_input_references Set this option to False not to resolve
+                            input references. By default the references are
+                            resolved (downloaded and parsed) transparently.
+                            If set to False the references must be handled
+                            by the process.
         """
         super(BoundingBoxData, self).__init__(identifier, *args, **kwargs)
         self.dimension = int(dimension)

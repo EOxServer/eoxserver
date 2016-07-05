@@ -144,6 +144,11 @@ def decode_raw_inputs(raw_inputs, input_defs, resolver):
         raw_value = raw_inputs.get(identifier)
         if raw_value is not None:
             if isinstance(raw_value, InputReference):
+                if not input_def.resolve_input_references:
+                    # do not resolve reference if this is explicitly required
+                    # by the input definition
+                    decoded_inputs[name] = raw_value
+                    continue
                 try:
                     raw_value = _resolve_reference(raw_value, resolver)
                 except ValueError as exc:
