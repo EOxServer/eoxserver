@@ -55,7 +55,7 @@ class Context(object):
         self.logger = logger or getLogger(__name__)
         self._path_temp = path_temp
         self._path_perm = path_perm
-        self._url_base = url_base
+        self._url_base = url_base if url_base[-1] == '/' else url_base + '/'
 
     def __enter__(self):
         # initialize context

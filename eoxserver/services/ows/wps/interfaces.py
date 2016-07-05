@@ -34,15 +34,18 @@ class AsyncBackendInterface(object):
         """ A list of versions of the WPS standard supported by the back-end.
         """
 
-    def execute(self, process, raw_inputs, response_document,
+    def execute(self, process, raw_inputs, resp_form, extra_parts=None,
                 job_id=None, version="1.0.0", **kwargs):
         """ Execute process asynchronously.
         The request is defined by the process's identifier ``process_id``,
         ``raw_inputs`` (before the decoding and resolution
-        of the references), and the ``response_document`` (holding
+        of the references), and the ``resp_form`` (holding
         the outputs' parameters).  The ``version`` of the WPS standard
         to be used.  Optionally, the user defined ``job_id`` can be passed.
         If the ``job_id`` cannot be used the execute shall fail.
+
+        The ``extra_parts`` should contain a dictionary of named request parts
+        should the request contain multi-part/related CID references.
 
         On success, the method returns the ``job_id`` assigned to the
         executed job.
