@@ -11,7 +11,7 @@
     <wps:Profile>test_profile</wps:Profile>
   </wps:Process>
   <wps:Status creationTime="2000-01-01T00:00:00.000000Z">
-    <wps:ProcessSucceeded/>
+    <wps:ProcessSucceeded>The processes execution completed successfully.</wps:ProcessSucceeded>
   </wps:Status>
   <wps:ProcessOutputs>
     <wps:Output>

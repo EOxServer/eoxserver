@@ -44,16 +44,20 @@ class WPS10ExecuteMixIn(object):
         creation_time = elm_status.get("creationTime")
         elm_status.set("creationTime", "2000-01-01T00:00:00.000000Z")
         if None is parse_datetime(creation_time):
-            raise ValueError("Invalid creation time attribute of the execute"
-                " response status! creationTime=%r"%creation_time)
+            raise ValueError(
+                "Invalid creation time attribute of the execute"
+                " response status! creationTime=%r" % creation_time
+            )
 
         return etree.tostring(xml, **XML_OPTS)
+
 
 class ContentTypeCheckMixIn(object):
     def testContentType(self):
         if hasattr(self, 'expectedContentType'):
             content_type = self.getResponseHeader('Content-Type')
             self.assertEqual(self.expectedContentType, content_type)
+
 
 class ContentDispositionCheckMixIn(object):
     def testContentDisposition(self):
