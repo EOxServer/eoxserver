@@ -69,11 +69,8 @@ class CDBase(object):
 
 
 class CDObject(CDBase):
-    """ Complex data wraper arround an arbitraty python object.
-
-        To be used to set custom format attributes for the XML
-        and JSON payload.
-
+    """ Complex data wrapper around an arbitrary python object.
+        To be used to set custom format attributes for the XML and JSON payload.
         NOTE: CDObject is not used for the input JSON and XML.
     """
     def __init__(self, data, mime_type=None, encoding=None, schema=None,
@@ -84,7 +81,6 @@ class CDObject(CDBase):
 
 class CDByteBuffer(StringIO, CDBase):
     """ Complex data binary in-memory buffer (StringIO).
-
         To be used to hold a generic binary (byte-stream) payload.
     """
     def __init__(self, data='', mime_type=None, encoding=None, schema=None,
@@ -102,12 +98,10 @@ class CDByteBuffer(StringIO, CDBase):
 
 
 class CDTextBuffer(StringIO, CDBase):
-    """ Complex data text (unicode) in-memory buffer (StringIO).
-
-        To be used to hold generic text. The the text payload
-        is stored as a unicode-stream.
-
-        Set the 'text_encoding' parameter is unicode encoding/decoding
+    """ Complex data text (Unicode) in-memory buffer (StringIO).
+        To be used to hold generic text. The text payload is stored as
+        a Unicode-stream.
+        Set the 'text_encoding' parameter is Unicode encoding/decoding
         shall be applied.
     """
     def __init__(self, data=u'', mime_type=None, encoding=None, schema=None,
@@ -139,11 +133,10 @@ class CDTextBuffer(StringIO, CDBase):
 
 
 class CDAsciiTextBuffer(CDByteBuffer):
-    """ Complex data text (ascii) in-memory buffer (StringIO).
-
-        To be used to hold generic ascii text. The the text payload
+    """ Complex data text (ASCII) in-memory buffer (StringIO).
+        To be used to hold generic ASCII text. The text payload
         is stored as a byte-stream and this class cannot hold
-        characters outside of the 7-bit ascii characters' range.
+        characters outside of the 7-bit ASCII characters' range.
     """
     def __init__(self, data='', mime_type=None, encoding=None, schema=None,
                  format=None, text_encoding=None, **kwargs):
@@ -205,8 +198,8 @@ class CDFile(CDFileWrapper):
         To be used to hold a generic binary (byte-stream) payload.
 
         NOTE: The file allows you to specify whether the file is
-              temporary (will be atomatically removed - by default)
-              or permanent (preserverved after object destruction).
+              temporary (will be automatically removed - by default)
+              or permanent (preserved after object destruction).
     """
 
     def __init__(self, name, mode='r', buffering=-1,
@@ -417,5 +410,5 @@ def _unicode(data, encoding):
     elif isinstance(data, str):
         return unicode(data, encoding)
     raise TypeError(
-        "Byte od unicode string expected, %s received!" % type(data)
+        "Byte or Unicode string expected, %s received!" % type(data)
     )
