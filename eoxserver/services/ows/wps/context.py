@@ -28,7 +28,7 @@
 #-------------------------------------------------------------------------------
 
 from logging import getLogger
-from os  import makedirs, chdir
+from os  import makedirs, chdir, rmdir, listdir
 from os.path import join, isfile, isdir, exists, relpath, dirname
 from shutil import move, rmtree
 from urlparse import urljoin
@@ -77,6 +77,9 @@ class Context(object):
         if isdir(self._path_temp):
             rmtree(self._path_temp)
             self.logger.debug("removed %s", self._path_temp)
+        if isdir(self._path_perm) and not listdir(self._path_perm):
+            rmdir(self._path_perm)
+            self.logger.debug("removed %s", self._path_perm)
 
     @property
     def workspace_path(self):
