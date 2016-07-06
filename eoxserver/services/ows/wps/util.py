@@ -225,6 +225,7 @@ def decode_output_requests(response_form, output_defs):
                 "mime_type": format_.mime_type,
                 "encoding": format_.encoding,
                 "schema": format_.schema,
+                "as_reference": request.as_reference,
             }
     return output_requests
 

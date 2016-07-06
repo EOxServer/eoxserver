@@ -27,6 +27,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
+#pylint: disable=bad-continuation
 
 from lxml import etree
 from django.utils.timezone import now
@@ -37,7 +38,7 @@ from eoxserver.services.ows.wps.v10.util import WPS, OWS, ns_xlink, ns_xml
 
 from eoxserver.services.ows.wps.parameters import (
     Parameter, LiteralData, ComplexData, BoundingBoxData,
-    fix_parameter, InputReference
+    fix_parameter, InputReference, Reference,
 )
 
 from .process_description import encode_process_brief
@@ -176,6 +177,7 @@ def _encode_common_response(process, status_elem, inputs, raw_inputs, resp_doc):
 
     return elem
 
+
 def _encode_input(data, prm, raw):
     elem = encode_input_exec(raw)
 
@@ -189,10 +191,14 @@ def _encode_input(data, prm, raw):
         elem.append(WPS("Data", _encode_complex(data, prm)))
     return elem
 
+
 def _encode_output(data, prm, req):
-    elem = encode_output_exec(Parameter(prm.identifier,
-                        req.title or prm.title, req.abstract or prm.abstract))
-    if isinstance(prm, LiteralData):
+    elem = encode_output_exec(Parameter(
+        prm.identifier, req.title or prm.title, req.abstract or prm.abstract
+    ))
+    if isinstance(data, Reference):
+        elem.append(_encode_output_reference(data, prm))
+    elif isinstance(prm, LiteralData):
         elem.append(WPS("Data", _encode_literal(data, prm, req)))
     elif isinstance(prm, BoundingBoxData):
         elem.append(WPS("Data", _encode_bbox(data, prm)))
@@ -200,9 +206,36 @@ def _encode_output(data, prm, req):
         elem.append(WPS("Data", _encode_complex(data, prm)))
     return elem
 
+
 def _encode_input_reference(ref):
     #TODO proper input reference encoding
     return WPS("Reference", **{ns_xlink("href"): ref.href})
+
+
+def _encode_output_reference(ref, prm):
+    #TODO proper output reference encoding
+    mime_type = getattr(ref, 'mime_type', None)
+    encoding = getattr(ref, 'encoding', None)
+    schema = getattr(ref, 'schema', None)
+    if mime_type is None and hasattr(prm, 'default_format'):
+        default_format = prm.default_format
+        mime_type = default_format.mime_type
+        encoding = default_format.encoding
+        schema = default_format.schema
+
+    attr = {
+        #ns_xlink("href"): ref.href,
+        'href': ref.href,
+    }
+    if mime_type:
+        attr['mimeType'] = mime_type
+    if encoding is not None:
+        attr['encoding'] = encoding
+    if schema is not None:
+        attr['schema'] = schema
+
+    return WPS("Reference", **attr)
+
 
 def _encode_literal(data, prm, req):
     attrib = {'dataType': prm.dtype.name}
@@ -214,6 +247,7 @@ def _encode_literal(data, prm, req):
     except (ValueError, TypeError) as exc:
         raise InvalidOutputValueError(prm.identifier, exc)
     return WPS("LiteralData", encoded_data, **attrib)
+
 
 def _encode_bbox(data, prm):
     try:
@@ -229,6 +263,7 @@ def _encode_bbox(data, prm):
     )
     #NOTE: Although derived from OWS BoundingBox the WPS (schema) does not
     #      allow the dimenstion attribute.
+
 
 def _encode_format_attr(data, prm):
     mime_type = getattr(data, 'mime_type', None)
@@ -246,6 +281,7 @@ def _encode_format_attr(data, prm):
     if schema is not None:
         attr['schema'] = schema
     return attr
+
 
 def _encode_complex(data, prm):
     try:

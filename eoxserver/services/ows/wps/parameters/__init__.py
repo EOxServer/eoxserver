@@ -59,3 +59,13 @@ def fix_parameter(name, prm):
     if isinstance(prm, Parameter):
         return prm
     return LiteralData(name, dtype=prm)
+
+
+class Reference(object):
+    """ Output reference. """
+    def __init__(self, path, href, mime_type=None, encoding=None, schema=None):
+        self.path = path
+        self.href = href
+        self.mime_type = mime_type
+        self.encoding = encoding
+        self.schema = schema

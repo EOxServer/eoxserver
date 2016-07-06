@@ -55,7 +55,7 @@ from .formats import Format
 class CDBase(object):
     """ Base class of the complex data container. """
     def __init__(self, mime_type=None, encoding=None, schema=None, format=None,
-                 filename=None, headers=None):
+                 filename=None, headers=None, **kwargs):
         if isinstance(format, Format):
             self.mime_type = format.mime_type
             self.encoding = format.encoding
