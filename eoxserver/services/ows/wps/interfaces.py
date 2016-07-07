@@ -104,6 +104,13 @@ class ProcessInterface(object):
         """
 
     @property
+    def retention_period(self):
+        """ This optional property (`datetime.timedelta`) indicates the minimum
+        time the process results shall be retained after the completion.
+        If omitted the default server retention policy is applied.
+        """
+
+    @property
     def identifier(self):
         """ An identifier (URI) of the process. Optional.
             When omitted it defaults to the process' class-name.
