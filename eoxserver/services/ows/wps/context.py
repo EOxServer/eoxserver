@@ -27,8 +27,9 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+import errno
 from logging import getLogger
-from os  import makedirs, chdir, rmdir, listdir
+from os import makedirs, chdir, rmdir, listdir
 from os.path import join, isfile, isdir, exists, relpath, dirname
 from shutil import move, rmtree
 from urlparse import urljoin
@@ -51,23 +52,65 @@ class Context(object):
     The permanent storage contains the processing outputs and it exists
     even after the process termination.
     """
-    def __init__(self, path_temp, path_perm, url_base, logger=None):
+    def __init__(self, path_temp, path_perm, url_base, logger=None,
+                 path_perm_exists=False):
+        """ Inputs:
+            path_temp   - temporary storage path (aka workspace)
+            path_perm   - permanent storage path (aka output bucket)
+            url_base    - public URL of the output bucket
+            path_perm_exists
+                        - the context can be set several times by different
+                          processes.  The first time the output bucket must not
+                          exist but later it must exists. Whether the output
+                          bucket exists or not is controlled by this process.
+        """
         self.logger = logger or getLogger(__name__)
         self._path_temp = path_temp
         self._path_perm = path_perm
         self._url_base = url_base if url_base[-1] == '/' else url_base + '/'
+        self._path_perm_exists = path_perm_exists
 
     def __enter__(self):
         # initialize context
         self.logger.info("Setting up the context.")
-        if isdir(self._path_perm) or isdir(self._path_temp):
-            self.logger.error("Context exists!")
-            raise ContextError("Failed to initialize context!")
-        makedirs(self._path_perm)
+        # create the temporary directory
+        try:
+            makedirs(self._path_temp)
+        except OSError as exc:
+            if exc.errno == errno.EEXIST:
+                raise ContextError(
+                    "Temporary path must not exist! PATH=%s" % self._path_temp
+                )
+            raise
         self.logger.debug("created %s", self._path_perm)
-        makedirs(self._path_temp)
-        self.logger.debug("created %s", self._path_temp)
-        chdir(self._path_temp) # assure we stay in the workspace
+        # create the permanent directory
+        try:
+            if self._path_perm_exists:
+                if not isdir(self._path_perm):
+                    # the path must be directory
+                    raise ContextError(
+                        "Permanent path must be an existing directory! PATH=%s"
+                        % self._path_perm
+                    )
+            else:
+                # the directory must not exist
+                try:
+                    makedirs(self._path_perm)
+                except OSError as exc:
+                    if exc.errno == errno.EEXIST:
+                        raise ContextError(
+                            "Permanent path must not exist! PATH=%s"
+                            % self._path_perm
+                        )
+                    raise
+                self.logger.debug("created %s", self._path_temp)
+        except:
+            # in case of failure remove the already existing temporary directory
+            rmdir(self._path_temp)
+            self.logger.debug("removed %s", self._path_perm)
+            raise
+        # assure we stay in the temporary directory
+        chdir(self._path_temp)
         self.logger.debug("dir. changed to  %s", self._path_temp)
         return self
 
@@ -75,9 +118,11 @@ class Context(object):
         # remove workspace
         self.logger.info("Releasing the context.")
         if isdir(self._path_temp):
+            # wipe out temporary workspace
             rmtree(self._path_temp)
             self.logger.debug("removed %s", self._path_temp)
         if isdir(self._path_perm) and not listdir(self._path_perm):
+            # remove permanent directory if empty
             rmdir(self._path_perm)
             self.logger.debug("removed %s", self._path_perm)
 
