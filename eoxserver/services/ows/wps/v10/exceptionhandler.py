@@ -39,8 +39,11 @@ class WPS10ExceptionHandler(Component):
     
 
     def handle_exception(self, request, exception):
+        code = getattr(exception, "code", None)
         locator = getattr(exception, "locator", None)
-        code = getattr(exception, "code", None) or type(exception).__name__
+        if not code:
+            code = "NoApplicableCode"
+            locator = type(exception).__name__
 
         encoder = OWS11ExceptionXMLEncoder()
 

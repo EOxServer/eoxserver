@@ -27,6 +27,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
+#pylint: disable=too-many-arguments, missing-docstring, too-many-locals
 #pylint: disable=bad-continuation
 
 from lxml import etree
@@ -77,11 +78,25 @@ class WPS10ExecuteResponseXMLEncoder(WPS10BaseXMLEncoder):
         return elem
 
     @staticmethod
-    def encode_failed(process, resp_form, inputs, raw_inputs, status_location,
-                      exception):
+    def encode_failed(process, exception, resp_form, inputs, raw_inputs,
+                      status_location):
         """ Encode execute response for a running asynchronous job."""
-        #TODO: proper OWS exception report.
-        status = WPS("ProcessFailed")
+        code = getattr(exception, "code", None)
+        locator = getattr(exception, "locator", None)
+        message = str(exception)
+
+        if not code:
+            code = "NoApplicableCode"
+            locator = type(exception).__name__
+
+        exc_attr = {"exceptionCode": code}
+        if locator:
+            exc_attr["locator"] = locator
+
+        exc_elem = OWS("Exception", OWS("ExceptionText", message), **exc_attr)
+
+        status = WPS("ProcessFailed", WPS("ExceptionReport", exc_elem))
+
         elem = _encode_common_response(
             process, status, inputs, raw_inputs, resp_form
         )

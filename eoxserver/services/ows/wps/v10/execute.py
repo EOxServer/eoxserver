@@ -124,15 +124,14 @@ class WPS10ExcecuteHandler(Component):
             # asynchronous execution
             async_backend = self.get_async_backend()
             if not async_backend:
-                raise InvalidParameterValue(
+                raise StorageNotSupported(
                     "This service instance does not support asynchronous "
-                    "execution!", "storeExecuteResponse"
+                    "execution!"
                 )
 
             if not getattr(process, 'asynchronous', False):
-                raise InvalidParameterValue(
+                raise StorageNotSupported(
                     "This process does not allow asynchronous execution!",
-                    "storeExecuteResponse"
                 )
 
             if not resp_form.status:
