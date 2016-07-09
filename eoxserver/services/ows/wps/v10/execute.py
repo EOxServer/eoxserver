@@ -37,9 +37,7 @@ from eoxserver.services.ows.wps.interfaces import (
     ProcessInterface, AsyncBackendInterface,
 )
 from eoxserver.services.ows.wps.util import (
-    parse_params, check_invalid_inputs, check_invalid_outputs,
     parse_named_parts, InMemoryURLResolver,
-    decode_raw_inputs, decode_output_requests, pack_outputs,
 )
 from eoxserver.services.ows.wps.exceptions import (
     NoSuchProcessError, InvalidParameterValue, StorageNotSupported,
@@ -52,6 +50,10 @@ from eoxserver.services.ows.wps.v10.execute_decoder_xml import (
 )
 from eoxserver.services.ows.wps.v10.execute_decoder_kvp import (
     WPS10ExecuteKVPDecoder
+)
+from eoxserver.services.ows.wps.v10.execute_util import (
+    parse_params, check_invalid_inputs, check_invalid_outputs,
+    decode_raw_inputs, decode_output_requests, pack_outputs,
 )
 
 class WPS10ExcecuteHandler(Component):
