@@ -35,7 +35,7 @@ except ImportError:
     from StringIO import StringIO
 
 from eoxserver.services.result import (
-    to_http_response, ResultItem, #ResultFile,
+    to_http_response, ResultItem,
 )
 from eoxserver.services.ows.wps.parameters import (
     LiteralData, ComplexData, BoundingBoxData,
@@ -50,14 +50,15 @@ class WPS10ExecuteResponseRawEncoder(object):
     def serialize(result_items, **kwargs):
         return to_http_response(result_items)
 
-    def __init__(self):
+    def __init__(self, resp_form):
         self.content_type = None
+        self.resp_form = resp_form
 
-    def encode_response(self, process, results, resp_form, inputs, raw_inputs):
+    def encode_response(self, results):
         """Pack the raw execute response."""
         outputs = []
         for data, prm, req in results.itervalues():
-            if prm.identifier in resp_form:
+            if prm.identifier in self.resp_form:
                 outputs.append(_encode_raw_output(data, prm, req))
 
         if len(outputs) == 1:

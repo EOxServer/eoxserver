@@ -56,107 +56,78 @@ class WPS10ExecuteResponseXMLEncoder(WPS10BaseXMLEncoder):
 
     content_type = "application/xml; charset=utf-8"
 
-    @staticmethod
-    def encode_response(process, results, resp_form, inputs, raw_inputs,
-                        status_location=None):
-        """Encode execute response (SUCCESS) including the output data."""
-        status = WPS(
+    def __init__(self, process, resp_form, raw_inputs, inputs=None,
+                 status_location=None):
+        super(WPS10ExecuteResponseXMLEncoder, self).__init__()
+        self.process = process
+        self.resp_form = resp_form
+        self.raw_inputs = raw_inputs
+        self.inputs = inputs
+        self.status_location = status_location
+
+    def _encode_common(self, status):
+        """ Encode common response element. """
+        elem = _encode_common_response(
+            self.process, status, self.inputs, self.raw_inputs, self.resp_form
+        )
+        if self.status_location:
+            elem.set("statusLocation", self.status_location)
+        return elem
+
+    def encode_response(self, results):
+        """Encode ProcessSucceeded execute response including the output data."""
+        elem = self._encode_common(WPS(
             "ProcessSucceeded",
             "The processes execution completed successfully."
-        )
-        elem = _encode_common_response(
-            process, status, inputs, raw_inputs, resp_form
-        )
-        if status_location:
-            elem.set("statusLocation", status_location)
-
+        ))
         outputs = []
         for result, prm, req in results.itervalues():
             outputs.append(_encode_output(result, prm, req))
         elem.append(WPS("ProcessOutputs", *outputs))
-
         return elem
 
-    @staticmethod
-    def encode_failed(process, exception, resp_form, inputs, raw_inputs,
-                      status_location):
-        """ Encode execute response for a running asynchronous job."""
+    def encode_failed(self, exception):
+        """ Encode ProcessFailed execute response."""
         code = getattr(exception, "code", None)
         locator = getattr(exception, "locator", None)
         message = str(exception)
-
         if not code:
             code = "NoApplicableCode"
             locator = type(exception).__name__
-
         exc_attr = {"exceptionCode": code}
         if locator:
             exc_attr["locator"] = locator
-
         exc_elem = OWS("Exception", OWS("ExceptionText", message), **exc_attr)
-
         status = WPS("ProcessFailed", WPS("ExceptionReport", exc_elem))
+        return self._encode_common(status)
 
-        elem = _encode_common_response(
-            process, status, inputs, raw_inputs, resp_form
-        )
-        if status_location:
-            elem.set("statusLocation", status_location)
-
-        return elem
-
-    @staticmethod
-    def encode_started(process, resp_form, inputs, raw_inputs, status_location,
-                       progress=0):
-        """ Encode execute response for a running asynchronous job."""
-        status = WPS(
-            "ProcessStarted", "The processes execution is in progress.",
+    def encode_started(self, progress=0, message=None):
+        """ Encode ProcessStarted execute response."""
+        if not message:
+            message = "The processes execution is in progress."
+        return self._encode_common(WPS(
+            "ProcessStarted", message,
             percentCompleted=("%d" % min(99, max(0, int(float(progress)))))
-        )
-        elem = _encode_common_response(
-            process, status, inputs, raw_inputs, resp_form
-        )
-        if status_location:
-            elem.set("statusLocation", status_location)
+        ))
 
-        return elem
-
-    @staticmethod
-    def encode_paused(process, resp_form, inputs, raw_inputs, status_location,
-                      progress=0):
-        """ Encode execute response for a paused asynchronous job."""
-        status = WPS(
+    def encode_paused(self, progress=0):
+        """ Encode ProcessPaused execute response."""
+        return self._encode_common(WPS(
             "ProcessPaused", "The processes execution is paused.",
             percentCompleted=("%d" % min(99, max(0, int(float(progress)))))
-        )
-        elem = _encode_common_response(
-            process, status, inputs, raw_inputs, resp_form
-        )
-        if status_location:
-            elem.set("statusLocation", status_location)
+        ))
 
-        return elem
-
-    @staticmethod
-    def encode_accepted(process, resp_form, inputs, raw_inputs, status_location):
-        """ Encode execute response for a successfully accepted asynchronous
-        request.
-        """
-        status = WPS(
+    def encode_accepted(self):
+        """ Encode ProcessAccepted execute response."""
+        return self._encode_common(WPS(
             "ProcessAccepted", "The processes was accepted for execution."
-        )
-        elem = _encode_common_response(
-            process, status, inputs, raw_inputs, resp_form
-        )
-        if status_location:
-            elem.set("statusLocation", status_location)
-
-        return elem
+        ))
 
 #-------------------------------------------------------------------------------
 
 def _encode_common_response(process, status_elem, inputs, raw_inputs, resp_doc):
     """Encode common execute response part shared by all specific responses."""
+    inputs = inputs or {}
     conf = CapabilitiesConfigReader(get_eoxserver_config())
     url = conf.http_service_url
     dlm = "?" if url[-1] != "?" else ""
@@ -199,10 +170,14 @@ def _encode_input(data, prm, raw):
     if isinstance(raw, InputReference):
         elem.append(_encode_input_reference(raw))
     elif isinstance(prm, LiteralData):
-        elem.append(WPS("Data", _encode_literal(data, prm, raw)))
+        elem.append(WPS("Data", _encode_raw_input_literal(raw, prm)))
     elif isinstance(prm, BoundingBoxData):
+        if data is None:
+            data = prm.parse(raw.data)
         elem.append(WPS("Data", _encode_bbox(data, prm)))
     elif isinstance(prm, ComplexData):
+        if data is None:
+            data = prm.parse(raw.data)
         elem.append(WPS("Data", _encode_complex(data, prm)))
     return elem
 
@@ -252,6 +227,14 @@ def _encode_output_reference(ref, prm):
     return WPS("Reference", **attr)
 
 
+def _encode_raw_input_literal(input_raw, prm):
+    attrib = {'dataType': prm.dtype.name}
+    uom = input_raw.uom or prm.default_uom
+    if prm.uoms:
+        attrib['uom'] = uom
+    return WPS("LiteralData", input_raw.data, **attrib)
+
+
 def _encode_literal(data, prm, req):
     attrib = {'dataType': prm.dtype.name}
     uom = req.uom or prm.default_uom
@@ -277,7 +260,7 @@ def _encode_bbox(data, prm):
         #dimension="%d"%prm.dimension,
     )
     #NOTE: Although derived from OWS BoundingBox the WPS (schema) does not
-    #      allow the dimenstion attribute.
+    #      allow the dimension attribute.
 
 
 def _encode_format_attr(data, prm):

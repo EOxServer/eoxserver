@@ -42,7 +42,7 @@ from eoxserver.services.ows.wps.util import (
     decode_raw_inputs, decode_output_requests, pack_outputs,
 )
 from eoxserver.services.ows.wps.exceptions import (
-    NoSuchProcessError, InvalidParameterValue,
+    NoSuchProcessError, InvalidParameterValue, StorageNotSupported,
 )
 from eoxserver.services.ows.wps.v10.encoders import (
     WPS10ExecuteResponseXMLEncoder, WPS10ExecuteResponseRawEncoder
@@ -78,14 +78,6 @@ class WPS10ExcecuteHandler(Component):
                 return WPS10ExecuteXMLDecoder(data)
             return WPS10ExecuteXMLDecoder(request.body)
 
-    @staticmethod
-    def get_encoder(is_raw=False):
-        """ Get the response encoder. """
-        if is_raw:
-            return WPS10ExecuteResponseRawEncoder()
-        else:
-            return WPS10ExecuteResponseXMLEncoder()
-
     def get_process(self, identifier):
         """ Get process component matched by the identifier. """
         for process in self.processes:
@@ -102,6 +94,7 @@ class WPS10ExcecuteHandler(Component):
                 return backend
 
     def handle(self, request):
+        # pylint: disable=redefined-variable-type, too-many-locals
         """ Request handler. """
         logger = getLogger(__name__)
         # decode request
@@ -119,6 +112,13 @@ class WPS10ExcecuteHandler(Component):
         # get the unparsed (raw) inputs and the requested response parameters
         raw_inputs = check_invalid_inputs(decoder.inputs, input_defs)
         resp_form = check_invalid_outputs(decoder.response_form, output_defs)
+
+        if resp_form.raw:
+            encoder = WPS10ExecuteResponseRawEncoder(resp_form)
+        else:
+            encoder = WPS10ExecuteResponseXMLEncoder(
+                process, resp_form, raw_inputs
+            )
 
         if not resp_form.raw and resp_form.store_response:
             # asynchronous execution
@@ -146,12 +146,8 @@ class WPS10ExcecuteHandler(Component):
             )
 
             # encode the StatusAccepted response
-            encoder = self.get_encoder()
-            response = encoder.encode_accepted(
-                #TODO: Fix the lineage output.
-                process, resp_form, {}, raw_inputs,
-                async_backend.get_response_url(job_id)
-            )
+            encoder.status_location = async_backend.get_response_url(job_id)
+            response = encoder.encode_accepted()
 
         else:
             # synchronous execution
@@ -173,6 +169,8 @@ class WPS10ExcecuteHandler(Component):
             inputs.update(decode_raw_inputs(
                 raw_inputs, input_defs, InMemoryURLResolver(extra_parts, logger)
             ))
+            if not resp_form.raw:
+                encoder.inputs = inputs
 
             # execute the process
             outputs = process.execute(**inputs)
@@ -181,9 +179,6 @@ class WPS10ExcecuteHandler(Component):
             packed_outputs = pack_outputs(outputs, resp_form, output_defs)
 
             # encode the StatusSucceeded response
-            encoder = self.get_encoder(resp_form.raw)
-            response = encoder.encode_response(
-                process, packed_outputs, resp_form, inputs, raw_inputs
-            )
+            response = encoder.encode_response(packed_outputs)
 
         return encoder.serialize(response, encoding='utf-8')
