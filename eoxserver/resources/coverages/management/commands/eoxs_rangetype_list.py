@@ -30,11 +30,8 @@ from sys import stdout
 import json
 from optparse import make_option
 from django.core.management.base import BaseCommand, CommandError
-from eoxserver.contrib.gdal import GDT_TO_NAME
+from eoxserver.contrib.gdal import GDT_TO_NAME, GCI_TO_NAME
 from eoxserver.resources.coverages.models import RangeType
-from eoxserver.resources.coverages.rangetype import (
-    range_type_to_dict,
-)
 from eoxserver.resources.coverages.management.commands import CommandOutputMixIn
 
 JSON_OPTIONS = {
@@ -145,3 +142,44 @@ def output_json(range_types):
         yield ',\n'
         yield json.dumps(range_type_to_dict(range_type), **JSON_OPTIONS)
     yield ']\n'
+
+
+def range_type_to_dict(range_type):
+    """ Convert range-type to a JSON serializable dictionary.
+    """
+    # loop over band records (ordering set in model)
+    output_bands = []
+    for band in range_type.bands.all():
+        output_nil_values = []
+        if band.nil_value_set:
+            # loop over nil values
+            for nil_value in band.nil_value_set.nil_values.all():
+                # append created nil-value dictionary
+                output_nil_values.append({
+                    'reason': nil_value.reason,
+                    'value': nil_value.raw_value,
+                })
+
+        output_band = {
+            'name': band.name,
+            'data_type': GDT_TO_NAME.get(band.data_type, 'Invalid'),
+            'identifier': band.identifier,
+            'description': band.description,
+            'definition': band.definition,
+            'uom': band.uom,
+            'nil_values': output_nil_values,
+            'color_interpretation': GCI_TO_NAME.get(
+                band.color_interpretation, 'Invalid'
+            ),
+        }
+
+        if band.raw_value_min is not None:
+            output_band["value_min"] = band.raw_value_min
+        if band.raw_value_max is not None:
+            output_band["value_max"] = band.raw_value_max
+
+        # append created band dictionary
+        output_bands.append(output_band)
+
+    # return a JSON serializable dictionary
+    return {'name': range_type.name, 'bands': output_bands}

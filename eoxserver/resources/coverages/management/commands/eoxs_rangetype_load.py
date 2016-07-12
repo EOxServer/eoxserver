@@ -30,10 +30,12 @@ import traceback
 import json
 from optparse import make_option
 from django.core.management.base import BaseCommand, CommandError
-from eoxserver.resources.coverages.management.commands import CommandOutputMixIn
-from eoxserver.resources.coverages.models import RangeType
-from eoxserver.resources.coverages.rangetype import (
-    create_range_type_from_dict, update_range_type_from_dict,
+from eoxserver.contrib.gdal import NAME_TO_GDT, NAME_TO_GCI
+from eoxserver.resources.coverages.management.commands import (
+    CommandOutputMixIn, nested_commit_on_success,
+)
+from eoxserver.resources.coverages.models import (
+    RangeType, Band, NilValueSet, NilValue,
 )
 
 
@@ -153,3 +155,82 @@ class Command(CommandOutputMixIn, BaseCommand):
             )
         else:
             self.print_msg("No range type loaded.")
+
+
+@nested_commit_on_success
+def create_range_type_from_dict(range_type_dict):
+    """ Create new range-type from a JSON serializable dictionary.
+    """
+    range_type = RangeType.objects.create(name=range_type_dict['name'])
+
+    # compatibility with the old range-type JSON format
+    global_data_type = range_type_dict.get('data_type', None)
+
+    for idx, band_dict in enumerate(range_type_dict['bands']):
+        _create_band_from_dict(band_dict, idx, range_type, global_data_type)
+
+    return range_type
+
+
+@nested_commit_on_success
+def update_range_type_from_dict(range_type_dict):
+    """ Create new range-type from a JSON serializable dictionary.
+    """
+    range_type = RangeType.objects.get(name=range_type_dict['name'])
+
+    # remove all current bands
+    range_type.bands.all().delete()
+
+    # compatibility with the old range-type JSON format
+    global_data_type = range_type_dict.get('data_type', None)
+
+    for idx, band_dict in enumerate(range_type_dict['bands']):
+        _create_band_from_dict(band_dict, idx, range_type, global_data_type)
+
+    return range_type
+
+
+def _create_band_from_dict(band_dict, index, range_type, global_data_type=None):
+    """ Create new range-type from a JSON serializable dictionary.
+    """
+    # compatibility with the old range-type JSON format
+    data_type = global_data_type if global_data_type else band_dict['data_type']
+    color_interpretation = band_dict[
+        'gdal_interpretation' if 'gdal_interpretation' in band_dict else
+        'color_interpretation'
+    ]
+
+    # convert strings to GDAL codes
+    data_type_code = NAME_TO_GDT[data_type.lower()]
+    color_interpretation_code = NAME_TO_GCI[color_interpretation.lower()]
+
+    # prepare nil-value set
+    if band_dict['nil_values']:
+        nil_value_set = NilValueSet.objects.create(
+            name="__%s_%2.2d__" % (range_type.name, index),
+            data_type=data_type_code
+        )
+
+        for nil_value in band_dict['nil_values']:
+            NilValue.objects.create(
+                reason=nil_value['reason'],
+                raw_value=str(nil_value['value']),
+                nil_value_set=nil_value_set,
+            )
+    else:
+        nil_value_set = None
+
+    return Band.objects.create(
+        index=index,
+        name=band_dict['name'],
+        identifier=band_dict['identifier'],
+        data_type=data_type_code,
+        description=band_dict['description'],
+        definition=band_dict['definition'],
+        uom=band_dict['uom'],
+        color_interpretation=color_interpretation_code,
+        range_type=range_type,
+        nil_value_set=nil_value_set,
+        raw_value_min=band_dict.get("value_min"),
+        raw_value_max=band_dict.get("value_max")
+    )
