@@ -27,11 +27,107 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from django.db import transaction
 from eoxserver.contrib import gdal
 from eoxserver.resources.coverages.models import (
     RangeType, Band, NilValueSet, NilValue,
 )
+from eoxserver.resources.coverages.management.commands import (
+    nested_commit_on_success
+)
+
+def range_type_to_dict(range_type):
+    """ Convert range-type to a JSON serializable dictionary.
+    """
+    # loop over band records (ordering set in model)
+    output_bands = []
+    for band in range_type.bands.all():
+        output_nil_values = []
+        if band.nil_value_set:
+            # loop over nil values
+            for nil_value in band.nil_value_set.nil_values.all():
+                # append created nil-value dictionary
+                output_nil_values.append({
+                    'reason': nil_value.reason,
+                    'value': nil_value.raw_value,
+                })
+
+        output_band = {
+            'name': band.name,
+            'data_type': gdal.GDT_TO_NAME.get(band.data_type, 'Invalid'),
+            'identifier': band.identifier,
+            'description': band.description,
+            'definition': band.definition,
+            'uom': band.uom,
+            'nil_values': output_nil_values,
+            'color_interpretation': gdal.GCI_TO_NAME.get(
+                band.color_interpretation, 'Invalid'
+            ),
+        }
+
+        if band.raw_value_min is not None:
+            output_band["value_min"] = band.raw_value_min
+        if band.raw_value_max is not None:
+            output_band["value_max"] = band.raw_value_max
+
+        # append created band dictionary
+        output_bands.append(output_band)
+
+    # return a JSON serializable dictionary
+    return {'name': range_type.name, 'bands': output_bands}
+
+
+@nested_commit_on_success
+def create_range_type_from_dict(range_type_dict):
+    """ Create new range-type from a JSON serializable dictionary.
+    """
+    range_type = RangeType.objects.create(name=range_type_dict['name'])
+
+    # compatibility with the old range-type JSON format
+    global_data_type = range_type_dict.get('data_type', None)
+
+    for idx, band in enumerate(range_type_dict['bands']):
+        # convert strings to GDAL codes
+        data_type = gdal.NAME_TO_GDT[(
+            # compatibility with the old range-type JSON format
+            global_data_type if global_data_type else band['data_type']
+        ).lower()]
+        color_interpretation = gdal.NAME_TO_GCI[band[
+            # compatibility with the old range-type JSON format
+            'gdal_interpretation' if 'gdal_interpretation' in band else
+            'color_interpretation'
+        ].lower()]
+
+        # prepare nil-value set
+        if band['nil_values']:
+            nil_value_set = NilValueSet.objects.create(
+                name="__%s_%2.2d__" % (range_type_dict['name'], idx),
+                data_type=data_type
+            )
+
+            for nil_value in band['nil_values']:
+                NilValue.objects.create(
+                    reason=nil_value['reason'],
+                    raw_value=str(nil_value['value']),
+                    nil_value_set=nil_value_set,
+                )
+        else:
+            nil_value_set = None
+
+        Band.objects.create(
+            index=idx,
+            name=band['name'],
+            identifier=band['identifier'],
+            data_type=data_type,
+            description=band['description'],
+            definition=band['definition'],
+            uom=band['uom'],
+            color_interpretation=color_interpretation,
+            range_type=range_type,
+            nil_value_set=nil_value_set,
+            raw_value_min=band.get("value_min"),
+            raw_value_max=band.get("value_max")
+        )
+
 
 def getAllRangeTypeNames():
     """Return a list of identifiers of all registered range-types."""
@@ -53,111 +149,15 @@ def getRangeType(name):
     record corresponding to the given name ``None`` is returned.
     """
     try:
-        # get range-type record
-        range_type = RangeType.objects.get(name=name)
-
-        # loop over band records (ordering set in model)
-        output_bands = []
-        for band in range_type.bands.all():
-            output_nil_values = []
-            if band.nil_value_set:
-                # loop over nil values
-                for nil_value in band.nil_value_set.nil_values.all():
-                    # append created nil-value dictionary
-                    output_nil_values.append({
-                        'reason': nil_value.reason,
-                        'value': nil_value.raw_value,
-                    })
-
-            output_band = {
-                'name': band.name,
-                'data_type': gdal.GDT_TO_NAME.get(band.data_type, 'Invalid'),
-                'identifier': band.identifier,
-                'description': band.description,
-                'definition': band.definition,
-                'uom': band.uom,
-                'nil_values': output_nil_values,
-                'color_interpretation': gdal.GCI_TO_NAME.get(
-                    band.color_interpretation, 'Invalid'
-                ),
-            }
-
-            if band.raw_value_min is not None:
-                output_band["value_min"] = band.raw_value_min
-            if band.raw_value_max is not None:
-                output_band["value_max"] = band.raw_value_max
-
-            # append created band dictionary
-            output_bands.append(output_band)
-
-        # return a JSON serializable dictionary
-        return {'name': range_type.name, 'bands': output_bands}
-
+        return range_type_to_dict(RangeType.objects.get(name=name))
     except RangeType.DoesNotExist:
         return None
 
 
-def setRangeType(input_range_type):
+def setRangeType(range_type_dict):
     """
     Insert range type to the DB. The range type record is
     defined by the ``input_range_type`` which is a dictionary as returned by
     ``getRangeType()`` or parsed form JSON.
     """
-    # check the input's data type
-    if not isinstance(input_range_type, dict):
-        raise ValueError("Invalid input object type!")
-
-    # create record
-    try:
-        transaction_func = transaction.atomic
-    except:
-        transaction_func = transaction.commit_on_success
-
-    with transaction_func():
-        range_type = RangeType.objects.create(name=input_range_type['name'])
-
-        # compatibility with the old range-type JSON format
-        global_data_type = input_range_type.get('data_type', None)
-
-        for idx, band in enumerate(input_range_type['bands']):
-            # convert strings to GDAL codes
-            data_type = gdal.NAME_TO_GDT[(
-                # compatibility with the old range-type JSON format
-                global_data_type if global_data_type else band['data_type']
-            ).lower()]
-            color_interpretation = gdal.NAME_TO_GCI[band[
-                # compatibility with the old range-type JSON format
-                'gdal_interpretation' if 'gdal_interpretation' in band else
-                'color_interpretation'
-            ].lower()]
-
-            # prepare nil-value set
-            if band['nil_values']:
-                nil_value_set = NilValueSet.objects.create(
-                    name="__%s_%2.2d__" % (input_range_type['name'], idx),
-                    data_type=data_type
-                )
-
-                for nil_value in band['nil_values']:
-                    NilValue.objects.create(
-                        reason=nil_value['reason'],
-                        raw_value=str(nil_value['value']),
-                        nil_value_set=nil_value_set,
-                    )
-            else:
-                nil_value_set = None
-
-            Band.objects.create(
-                index=idx,
-                name=band['name'],
-                identifier=band['identifier'],
-                data_type=data_type,
-                description=band['description'],
-                definition=band['definition'],
-                uom=band['uom'],
-                color_interpretation=color_interpretation,
-                range_type=range_type,
-                nil_value_set=nil_value_set,
-                raw_value_min=band.get("value_min"),
-                raw_value_max=band.get("value_max")
-            )
+    return create_range_type_from_dict(range_type_dict)

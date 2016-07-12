@@ -30,10 +30,18 @@ from sys import stdout
 import json
 from optparse import make_option
 from django.core.management.base import BaseCommand, CommandError
+from eoxserver.contrib.gdal import GDT_TO_NAME
+from eoxserver.resources.coverages.models import RangeType
 from eoxserver.resources.coverages.rangetype import (
-    getAllRangeTypeNames, isRangeTypeName, getRangeType
+    range_type_to_dict,
 )
 from eoxserver.resources.coverages.management.commands import CommandOutputMixIn
+
+JSON_OPTIONS = {
+    "indent": 4,
+    "separators": (',', ': '),
+    "sort_keys": True,
+}
 
 
 class Command(CommandOutputMixIn, BaseCommand):
@@ -73,50 +81,32 @@ class Command(CommandOutputMixIn, BaseCommand):
           to EOxServer 0.3.* and earlier.
     """
 
-
     def handle(self, *args, **options):
         # collect input parameters
         self.verbosity = int(options.get('verbosity', 1))
         print_details = bool(options.get('details', False))
         print_json = bool(options.get('json_dump', False))
         filename = options.get('filename', '-')
-        range_types = args
 
-        # check the input range-type names
-
-        if not range_types:
-            # if no identifier is specified get all identifiers
-            range_types = getAllRangeTypeNames()
-
+        # get the range types
+        if args:
+            range_types = RangeType.objects.filter(name__in=args)
         else:
-            # filter existing range-type names
-            def _is_range_type(rt_name):
-                flag = isRangeTypeName(rt_name)
-                if not flag:
-                    self.print_err(
-                        "Invalid range-type identifier '%s' !" % rt_name
-                    )
-                return flag
-
-            range_types = (rt for rt in range_types if _is_range_type(rt))
+            range_types = RangeType.objects.all()
 
         # select the right output formatter
         if print_json:
-            output_formatter = OutputJSON
+            output_formatter = output_json
         elif print_details:
-            output_formatter = OutputDetailed
+            output_formatter = output_detailed
         else:
-            output_formatter = OutputBrief
+            output_formatter = output_brief
 
         # write the output
         try:
             with (stdout if filename == "-" else open(filename, "w")) as fout:
-                fout.write(output_formatter.lead())
-                for idx, rt_name in enumerate(range_types):
-                    if idx > 0:
-                        fout.write(output_formatter.separator())
-                    fout.write(output_formatter.object(rt_name))
-                fout.write(output_formatter.trail())
+                for item in output_formatter(range_types):
+                    fout.write(item)
         except IOError as exc:
             raise CommandError(
                 "Failed to write the output file %r! %s" % (filename, str(exc))
@@ -125,86 +115,33 @@ class Command(CommandOutputMixIn, BaseCommand):
 
 # output formatters ...
 
-class OutputBase(object):
-    """ base output formatter class class """
-
-    @classmethod
-    def lead(cls):
-        return ""
-
-    @classmethod
-    def object(cls, name):
-        return name
-
-    @classmethod
-    def trail(cls):
-        return ""
-
-    @classmethod
-    def separator(cls):
-        return ", "
+def output_brief(range_types):
+    """ Brief range-type name output. """
+    for range_type in range_types:
+        yield "%s\n" % range_type.name
 
 
-class OutputBrief(OutputBase):
-    """ brief text output - RT name only """
+def output_detailed(range_types):
+    """ Detailed range-type output (includes brief bands' info). """
+    for range_type in range_types:
+        name = range_type.name
+        bands = list(range_type.bands.all())
+        nbands = len(bands)
+        yield "%s (%d band%s)\n" % (name, nbands, "" if nbands == 1 else "s")
+        for band in bands:
+            data_type = GDT_TO_NAME.get(band.data_type, 'Invalid')
+            yield "    %-8s %s\n" % (data_type, band.identifier)
+        yield "\n"
 
-    @classmethod
-
-    def separator(cls):
-        return "\n"
-
-    @classmethod
-    def trail(cls):
-        return "\n"
-
-
-class OutputDetailed(OutputBase):
-    """ detailed text output """
-
-    @classmethod
-    def lead(cls):
-        return "\n"
-
-    @classmethod
-    def trail(cls):
-        return "\n\n"
-
-    @classmethod
-    def separator(cls):
-        return "\n\n"
-
-    @classmethod
-    def object(cls, name):
-
-        def _output_(range_type):
-            bands = range_type['bands']
-            yield "%s (%d band%s)" % (
-                range_type['name'], len(bands), "s" if len(bands) != 1 else ""
-            )
-            for band in bands:
-                yield "    %-8s %s" % (band['data_type'], band['identifier'])
-
-        return "\n".join(_output_(getRangeType(name)))
-
-
-class OutputJSON(OutputBase):
-    """ JSON output """
-
-    @classmethod
-    def lead(cls):
-        return "["
-
-    @classmethod
-    def trail(cls):
-        return "]\n"
-
-    @classmethod
-    def separator(cls):
-        return ",\n"
-
-    @classmethod
-    def object(cls, name):
-        # get range-type as dictionary and dump the JSON
-        return json.dumps(
-            getRangeType(name), indent=4, separators=(',', ': '), sort_keys=True
-        )
+def output_json(range_types):
+    """ Full JSON range-type dump. """
+    range_types = iter(range_types)
+    yield '['
+    try:
+        yield json.dumps(range_type_to_dict(range_types.next()), **JSON_OPTIONS)
+    except StopIteration:
+        pass
+    for range_type in range_types:
+        yield ',\n'
+        yield json.dumps(range_type_to_dict(range_type), **JSON_OPTIONS)
+    yield ']\n'
