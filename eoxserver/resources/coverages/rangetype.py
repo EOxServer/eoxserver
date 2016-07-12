@@ -85,48 +85,74 @@ def create_range_type_from_dict(range_type_dict):
     # compatibility with the old range-type JSON format
     global_data_type = range_type_dict.get('data_type', None)
 
-    for idx, band in enumerate(range_type_dict['bands']):
-        # convert strings to GDAL codes
-        data_type = gdal.NAME_TO_GDT[(
-            # compatibility with the old range-type JSON format
-            global_data_type if global_data_type else band['data_type']
-        ).lower()]
-        color_interpretation = gdal.NAME_TO_GCI[band[
-            # compatibility with the old range-type JSON format
-            'gdal_interpretation' if 'gdal_interpretation' in band else
-            'color_interpretation'
-        ].lower()]
+    for idx, band_dict in enumerate(range_type_dict['bands']):
+        _create_band_from_dict(band_dict, idx, range_type, global_data_type)
 
-        # prepare nil-value set
-        if band['nil_values']:
-            nil_value_set = NilValueSet.objects.create(
-                name="__%s_%2.2d__" % (range_type_dict['name'], idx),
-                data_type=data_type
-            )
+    return range_type
 
-            for nil_value in band['nil_values']:
-                NilValue.objects.create(
-                    reason=nil_value['reason'],
-                    raw_value=str(nil_value['value']),
-                    nil_value_set=nil_value_set,
-                )
-        else:
-            nil_value_set = None
 
-        Band.objects.create(
-            index=idx,
-            name=band['name'],
-            identifier=band['identifier'],
-            data_type=data_type,
-            description=band['description'],
-            definition=band['definition'],
-            uom=band['uom'],
-            color_interpretation=color_interpretation,
-            range_type=range_type,
-            nil_value_set=nil_value_set,
-            raw_value_min=band.get("value_min"),
-            raw_value_max=band.get("value_max")
+@nested_commit_on_success
+def update_range_type_from_dict(range_type_dict):
+    """ Create new range-type from a JSON serializable dictionary.
+    """
+    range_type = RangeType.objects.get(name=range_type_dict['name'])
+
+    # remove all current bands
+    range_type.bands.all().delete()
+
+    # compatibility with the old range-type JSON format
+    global_data_type = range_type_dict.get('data_type', None)
+
+    for idx, band_dict in enumerate(range_type_dict['bands']):
+        _create_band_from_dict(band_dict, idx, range_type, global_data_type)
+
+    return range_type
+
+
+def _create_band_from_dict(band_dict, index, range_type, global_data_type=None):
+    """ Create new range-type from a JSON serializable dictionary.
+    """
+    # compatibility with the old range-type JSON format
+    data_type = global_data_type if global_data_type else band_dict['data_type']
+    color_interpretation = band_dict[
+        'gdal_interpretation' if 'gdal_interpretation' in band_dict else
+        'color_interpretation'
+    ]
+
+    # convert strings to GDAL codes
+    data_type_code = gdal.NAME_TO_GDT[data_type.lower()]
+    color_interpretation_code = gdal.NAME_TO_GCI[color_interpretation.lower()]
+
+    # prepare nil-value set
+    if band_dict['nil_values']:
+        nil_value_set = NilValueSet.objects.create(
+            name="__%s_%2.2d__" % (range_type.name, index),
+            data_type=data_type_code
         )
+
+        for nil_value in band_dict['nil_values']:
+            NilValue.objects.create(
+                reason=nil_value['reason'],
+                raw_value=str(nil_value['value']),
+                nil_value_set=nil_value_set,
+            )
+    else:
+        nil_value_set = None
+
+    return Band.objects.create(
+        index=index,
+        name=band_dict['name'],
+        identifier=band_dict['identifier'],
+        data_type=data_type_code,
+        description=band_dict['description'],
+        definition=band_dict['definition'],
+        uom=band_dict['uom'],
+        color_interpretation=color_interpretation_code,
+        range_type=range_type,
+        nil_value_set=nil_value_set,
+        raw_value_min=band_dict.get("value_min"),
+        raw_value_max=band_dict.get("value_max")
+    )
 
 
 def getAllRangeTypeNames():

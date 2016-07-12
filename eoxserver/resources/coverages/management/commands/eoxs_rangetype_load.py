@@ -33,7 +33,7 @@ from django.core.management.base import BaseCommand, CommandError
 from eoxserver.resources.coverages.management.commands import CommandOutputMixIn
 from eoxserver.resources.coverages.models import RangeType
 from eoxserver.resources.coverages.rangetype import (
-    create_range_type_from_dict,
+    create_range_type_from_dict, update_range_type_from_dict,
 )
 
 
@@ -41,12 +41,18 @@ class Command(CommandOutputMixIn, BaseCommand):
 
     option_list = BaseCommand.option_list + (
         make_option(
-            '-i', '--input',
-            dest='filename',
-            action='store', type='string',
-            default='-',
-            help=("Optional. Read input from a file rather than from the "
-                  "default standard input.")
+            '-i', '--input', dest='filename', action='store', type='string',
+            default='-', help=(
+                "Optional. Read input from a file rather than from the "
+                "default standard input."
+            )
+        ),
+        make_option(
+            '-u', '--update', dest='update', action='store_true', default=False,
+            help=(
+                "Optional. Update the existing range-types. By default the "
+                "range type updates are not allowed."
+            )
         ),
     )
 
@@ -70,6 +76,7 @@ class Command(CommandOutputMixIn, BaseCommand):
         self.traceback = bool(options.get("traceback", False))
         self.verbosity = int(options.get('verbosity', 1))
         filename = options.get('filename', '-')
+        update = options.get('update', False)
 
 
         self.print_msg("Importing range type from %s ..." % (
@@ -106,13 +113,18 @@ class Command(CommandOutputMixIn, BaseCommand):
 
             try:
                 if RangeType.objects.filter(name=rt_name).exists():
-                    self.print_err(
-                        "The name '%s' is already used by another "
-                        "range type! Import of range type #%d aborted!" %
-                        (rt_name, (idx + 1))
-                    )
-                    continue
-
+                    if update:
+                        # update the existing range-type object
+                        update_range_type_from_dict(range_type)
+                        self.print_msg("Range type '%s' updated." % rt_name)
+                    else:
+                        # update is not allowed
+                        self.print_err(
+                            "The name '%s' is already used by another "
+                            "range type! Import of range type #%d aborted!" %
+                            (rt_name, (idx + 1))
+                        )
+                        continue
                 else:
                     # create new range-type object
                     create_range_type_from_dict(range_type)
