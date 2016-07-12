@@ -29,9 +29,7 @@ import sys
 import traceback
 import json
 from optparse import make_option
-
 from django.core.management.base import BaseCommand, CommandError
-
 from eoxserver.resources.coverages.rangetype import isRangeTypeName, setRangeType
 from eoxserver.resources.coverages.management.commands import CommandOutputMixIn
 
@@ -39,7 +37,8 @@ from eoxserver.resources.coverages.management.commands import CommandOutputMixIn
 class Command(CommandOutputMixIn, BaseCommand):
 
     option_list = BaseCommand.option_list + (
-        make_option('-i', '--input',
+        make_option(
+            '-i', '--input',
             dest='filename',
             action='store', type='string',
             default='-',
@@ -58,92 +57,84 @@ class Command(CommandOutputMixIn, BaseCommand):
           instances and import them to a new one.
     """)
 
-    def _error(self, rt_name, msg):
-        self.print_err("Failed to register rangetype '%s'!"
-                       " Reason: %s" % (rt_name, msg))
+    def _error(self, rt_name, message):
+        self.print_err(
+            "Failed to register rangetype '%s'! %s" % (rt_name, message)
+        )
 
     def handle(self, *args, **options):
-
         # Collect parameters
         self.traceback = bool(options.get("traceback", False))
         self.verbosity = int(options.get('verbosity', 1))
         filename = options.get('filename', '-')
 
         # load and parse the input data
-
         try:
-            if filename == "-":
-
-                # standard input
-                rts = json.load(sys.stdin)
-
+            if filename == "-": # standard input
+                range_types = json.load(sys.stdin)
             else:
                 # file input
                 with open(filename, "r") as fin:
-                    rts = json.load(fin)
+                    range_types = json.load(fin)
 
-        except IOError as e:
+        except IOError as exc:
             # print stack trace if required
             if self.traceback:
                 self.print_msg(traceback.format_exc())
 
-            raise CommandError("Failed to open the input file '%s' ! "
-                               "REASON: %s " % (filename, str(e)))
+            raise CommandError(
+                "Failed to open the input file '%s'! %s " % (filename, str(exc))
+            )
 
         # allow single range-type objects
-        if isinstance(rts, dict):
-            rts = [rts]
+        if isinstance(range_types, dict):
+            range_types = [range_types]
         # insert the range types to DB
 
         success_count = 0  # success counter - counts finished syncs
 
-        for i, rt in enumerate(rts):
-            # extract RT name
-
-            rt_name = rt.get('name', None)
-
-            if not (isinstance(rt_name, basestring) and rt_name):
-
-                self.print_err("Range type #%d rejected as it has no valid"
-                               " name." % (i + 1))
+        for idx, range_type in enumerate(range_types):
+            # check range-type name
+            rt_name = range_type.get('name', None)
+            if not isinstance(rt_name, basestring) or not rt_name:
+                self.print_err(
+                    "Range type #%d rejected as it has no valid name." %
+                    (idx + 1)
+                )
                 continue
 
             if isRangeTypeName(rt_name):
-                self.print_err("The name '%s' is already used by another "
-                    "range type! Import of range type #%d aborted!"
-                        % (rt_name, (i + 1)))
-
+                self.print_err(
+                    "The name '%s' is already used by another "
+                    "range type! Import of range type #%d aborted!" %
+                    (rt_name, (idx + 1))
+                )
                 continue
 
             try:
-                # create rangetype record
-                setRangeType(rt)
-
+                # create range-type record
+                setRangeType(range_type)
                 success_count += 1  # increment success counter
 
-            except Exception as e:
-
-                # print stack trace if required
+            except Exception as exc:
                 if self.traceback:
                     self.print_msg(traceback.format_exc())
+                self._error(rt_name, "%s: %s" % (type(exc).__name__, str(exc)))
+                continue
 
-                self._error(rt['name'], "%s: %s" % (type(e).__name__, str(e)))
-
-                continue  # continue by next dataset
-
-            self.print_msg("Range type '%s' loaded." % rt['name'])
+            self.print_msg("Range type '%s' loaded." % rt_name)
 
         # print the final info
-
-        count = len(rts)
+        count = len(range_types)
         error_count = count - success_count
 
-        if (error_count > 0):
-            self.print_msg("Failed to load %d range types." % (
-                error_count), 1)
+        if error_count > 0:
+            self.print_msg("Failed to load %d range types." % error_count, 1)
 
-        if (success_count > 0):
-            self.print_msg("Successfully loaded %d of %s range types." % (
-                success_count, count), 1)
+        if success_count > 0:
+            self.print_msg(
+                "Successfully loaded %d of %s range types." %
+                (success_count, count), 1
+            )
         else:
             self.print_msg("No range type loaded.")
