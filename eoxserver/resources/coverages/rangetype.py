@@ -155,35 +155,35 @@ def _create_band_from_dict(band_dict, index, range_type, global_data_type=None):
     )
 
 
-def getAllRangeTypeNames():
-    """Return a list of identifiers of all registered range-types."""
-    return [item.name for item in RangeType.objects.all()]
-
-
-def isRangeTypeName(name):
-    """
-    Check whether there is (``True``) or is not (``False``) a registered
-    range-type with given identifier``name``.
-    """
-    return RangeType.objects.filter(name=name).count() > 0
-
-
-def getRangeType(name):
-    """
-    Return range type ``name`` as JSON serializable dictionary.
-    The values are loaded from the DB. If there is no ``RangeType``
-    record corresponding to the given name ``None`` is returned.
-    """
-    try:
-        return range_type_to_dict(RangeType.objects.get(name=name))
-    except RangeType.DoesNotExist:
-        return None
-
-
-def setRangeType(range_type_dict):
-    """
-    Insert range type to the DB. The range type record is
-    defined by the ``input_range_type`` which is a dictionary as returned by
-    ``getRangeType()`` or parsed form JSON.
-    """
-    return create_range_type_from_dict(range_type_dict)
+#def getAllRangeTypeNames():
+#    """Return a list of identifiers of all registered range-types."""
+#    return [item.name for item in RangeType.objects.all()]
+#
+#
+#def isRangeTypeName(name):
+#    """
+#    Check whether there is (``True``) or is not (``False``) a registered
+#    range-type with given identifier``name``.
+#    """
+#    return RangeType.objects.filter(name=name).count() > 0
+#
+#
+#def getRangeType(name):
+#    """
+#    Return range type ``name`` as JSON serializable dictionary.
+#    The values are loaded from the DB. If there is no ``RangeType``
+#    record corresponding to the given name ``None`` is returned.
+#    """
+#    try:
+#        return range_type_to_dict(RangeType.objects.get(name=name))
+#    except RangeType.DoesNotExist:
+#        return None
+#
+#
+#def setRangeType(range_type_dict):
+#    """
+#    Insert range type to the DB. The range type record is
+#    defined by the ``input_range_type`` which is a dictionary as returned by
+#    ``getRangeType()`` or parsed form JSON.
+#    """
+#    return create_range_type_from_dict(range_type_dict)
