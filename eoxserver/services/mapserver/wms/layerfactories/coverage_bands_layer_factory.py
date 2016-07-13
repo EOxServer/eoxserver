@@ -85,6 +85,21 @@ class CoverageBandsLayerFactory(OffsiteColorMixIn, AbstractLayerFactory):
         self.set_render_options(layer, offsite, options)
 
         layer.setProcessingKey("BANDS", indices_str)
+
+        if options.bands_scale_min and options.bands_scale_max:
+            bands_scale_min = str(options.bands_scale_min).split(',')
+            bands_scale_max = str(options.bands_scale_max).split(',')
+            idx1, idx2, idx3 = offsite_indices
+            layer.setProcessingKey("SCALE_1", "%s,%s" % (
+                bands_scale_min[idx1], bands_scale_max[idx1]
+            ))
+            layer.setProcessingKey("SCALE_2", "%s,%s" % (
+                bands_scale_min[idx2], bands_scale_max[idx2]
+            ))
+            layer.setProcessingKey("SCALE_3", "%s,%s" % (
+                bands_scale_min[idx3], bands_scale_max[idx3]
+            ))
+
         yield (layer, coverage.data_items.all())
 
     def generate_group(self, name):
