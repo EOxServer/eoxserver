@@ -30,11 +30,6 @@ from sys import stdin
 import traceback
 import json
 from optparse import make_option
-try:
-    # available in Python 2.7+
-    from collections import OrderedDict
-except ImportError:
-    from django.utils.datastructures import SortedDict as OrderedDict
 from django.core.management.base import BaseCommand, CommandError
 from eoxserver.resources.coverages.management.commands import (
     CommandOutputMixIn, nested_commit_on_success,
@@ -73,7 +68,7 @@ class Command(CommandOutputMixIn, BaseCommand):
         # load and parse the input data
         try:
             with (stdin if filename == "-" else open(filename, "r")) as fin:
-                wms_opts = json.load(fin, object_pairs_hook=OrderedDict)
+                wms_opts = json.load(fin)
         except IOError as exc:
             raise CommandError(
                 "Failed to open the input file '%s'! %s " % (filename, str(exc))
@@ -83,8 +78,9 @@ class Command(CommandOutputMixIn, BaseCommand):
 
         success_count = 0  # success counter - counts finished syncs
 
-        for eoid, wms_opt in wms_opts.items():
+        for wms_opt in wms_opts:
             try:
+                eoid = wms_opt['coverage_identifier']
                 insert_or_update_wms_opt(eoid, wms_opt)
             except Exception as exc:
                 if self.traceback:

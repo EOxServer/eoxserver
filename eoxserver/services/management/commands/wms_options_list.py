@@ -39,9 +39,9 @@ from eoxserver.resources.coverages.management.commands import CommandOutputMixIn
 from eoxserver.services.models import WMSRenderOptions
 
 JSON_OPTIONS = {
-    "indent": 2,
-    "separators": (',', ': '),
-    "sort_keys": True,
+    "indent": None,
+    "separators": (', ', ': '),
+    "sort_keys": False,
 }
 
 class Command(CommandOutputMixIn, BaseCommand):
@@ -108,28 +108,29 @@ def output_detailed(wms_opts):
         for key, val in wms_opt_to_dict(wms_opt).items():
             if hasattr(val, '__len__') and not isinstance(val, basestring):
                 val = ",".join(str(v) for v in val)
+            if key == "coverage_identifier":
+                continue
             if key == "scale_auto" and not val:
                 continue
             yield "    %s: %s\n" % (key, val)
         yield "\n"
 
+
 def output_json(wms_opts):
     """ Full JSON range-type dump. """
-    yield '{'
-    delim = ''
+    yield '['
+    delimiter = ''
     for wms_opt in wms_opts:
-        yield '%s\n  "%s": ' % (delim, wms_opt.coverage.identifier)
-        tmp = json.dumps(wms_opt_to_dict(wms_opt), **JSON_OPTIONS)
-        yield tmp.replace('\n', '\n  ')
-        delim = ','
-    if delim:
-        yield '\n'
-    yield '}\n'
+        yield delimiter
+        yield json.dumps(wms_opt_to_dict(wms_opt), **JSON_OPTIONS)
+        delimiter = ',\n'
+    yield ']\n'
 
 
 def wms_opt_to_dict(wms_opt):
     """ Dump objects object to a JSON serializable dictionary. """
     options = OrderedDict()
+    options['coverage_identifier'] = wms_opt.coverage.identifier
     if wms_opt.default_red is not None:
         options['red'] = wms_opt.default_red
     if wms_opt.default_green is not None:
