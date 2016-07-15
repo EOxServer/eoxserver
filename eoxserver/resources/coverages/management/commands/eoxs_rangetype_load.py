@@ -59,18 +59,18 @@ class Command(CommandOutputMixIn, BaseCommand):
     )
 
     help = """
-    Load rangetypes stored in JSON format from standard input (default) or from
+    Load range-types stored in JSON format from standard input (default) or from
     a file (-i option).
 
     NOTE: This command supports JSON formats produced by both the new
           (>=v0.4) and old (<0.4) versions of EOxServer.
-          It is thus possible to export rangetypes from an older EOxServer
+          It is thus possible to export range-types from an older EOxServer
           instances and import them to a new one.
     """
 
     def _error(self, rt_name, message):
         self.print_err(
-            "Failed to register rangetype '%s'! %s" % (rt_name, message)
+            "Failed to register range-type '%s'! %s" % (rt_name, message)
         )
 
     def handle(self, *args, **options):

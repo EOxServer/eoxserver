@@ -51,7 +51,7 @@ class Command(CommandOutputMixIn, BaseCommand):
         make_option(
             '--json', dest='json_dump', action='store_true', default=False,
             help=(
-                "Optional. Dump rangetype(s) in JSON format. This JSON "
+                "Optional. Dump range-type(s) in JSON format. This JSON "
                 "dump can be loaded by another instance of EOxServer."
             )
         ),
@@ -67,14 +67,14 @@ class Command(CommandOutputMixIn, BaseCommand):
     args = "[<rt-id> [<rt-id> ...]]"
 
     help = """
-    Print either list of all rangetype indentifiers and their details.
-    When the range-type identifiers are specified than only these rangetypes
-    are selected. In addition complete rangetypes cans be dumped in JSON
+    Print either list of all range-type identifiers and their details.
+    When the range-type identifiers are specified than only these range-types
+    are selected. In addition complete range-types cans be dumped in JSON
     format which can be then loaded by another EOxServer instance.
 
     NOTE: JSON format of the range-types has slightly changed with the new
           range-type data model introduced in the EOxServer version v0.4.
-          The produced JSON is not backward comatible and cannot be loaded
+          The produced JSON is not backward compatible and cannot be loaded
           to EOxServer 0.3.* and earlier.
     """
 
