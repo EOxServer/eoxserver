@@ -37,6 +37,7 @@ from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.core.util.timetools import isoformat
 from eoxserver.services.ows.wps.v10.util import WPS, OWS, ns_xlink, ns_xml
 
+from eoxserver.services.ows.wps.exceptions import OWS10Exception
 from eoxserver.services.ows.wps.parameters import (
     Parameter, LiteralData, ComplexData, BoundingBoxData,
     fix_parameter, InputReference, Reference,
@@ -88,15 +89,19 @@ class WPS10ExecuteResponseXMLEncoder(WPS10BaseXMLEncoder):
 
     def encode_failed(self, exception):
         """ Encode ProcessFailed execute response."""
-        code = getattr(exception, "code", None)
-        locator = getattr(exception, "locator", None)
-        message = str(exception)
-        if not code:
+        # NOTE: Some exceptions such as the urllib2.HTTPError have also
+        # the 'code' attribute and the duck typing does not work very well.
+        # Therefore we need match the exception base type.
+        if isinstance(exception, OWS10Exception):
+            code = exception.code
+            locator = exception.locator
+        else:
             code = "NoApplicableCode"
             locator = type(exception).__name__
-        exc_attr = {"exceptionCode": code}
+        message = str(exception)
+        exc_attr = {"exceptionCode": str(code)}
         if locator:
-            exc_attr["locator"] = locator
+            exc_attr["locator"] = str(locator)
         exc_elem = OWS("Exception", OWS("ExceptionText", message), **exc_attr)
         status = WPS("ProcessFailed", WPS("ExceptionReport", exc_elem))
         return self._encode_common(status)
