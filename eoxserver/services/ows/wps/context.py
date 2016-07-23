@@ -36,7 +36,7 @@ class ContextError(Exception):
 class BaseContext(object):
     """ Base context class.
     This is the base abstract asynchronous WPS context class defining the
-    minimal common interface of a context objects passed to asynchronous
+    minimal common interface of a context object passed to an asynchronous
     WPS process.
 
     The purpose of the context is to manage status, storage and other resources
@@ -47,14 +47,31 @@ class BaseContext(object):
     """
 
     @property
+    def identifier(self):
+        """ Get the context specific identifier (job id.)
+        """
+        raise NotImplementedError
+
+    @property
+    def logger(self):
+        """ Get the context specific logger. The returned logger is expected
+        to be a context aware logger adapter.
+        """
+        raise NotImplementedError
+
+    @property
     def workspace_path(self):
-        """ Get the workspace path. """
+        """ Get the workspace path.
+        Note that this path is expected to be the working directory when
+        an asynchronous process gets executed. This allows the process
+        to write safely to its working directory.
+        """
         raise NotImplementedError
 
     def publish(self, path):
         """ Publish file from the local workspace and return its path
         and public URL.
-        The file path must be relative to the workspace path.
+        The input file path must be relative to the workspace path.
         Publishing of files outside of the workspace directory sub-tree
         is not allowed.
         """
