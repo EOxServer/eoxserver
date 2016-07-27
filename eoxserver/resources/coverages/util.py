@@ -88,6 +88,8 @@ def collect_eo_metadata(qs, insert=None, exclude=None, bbox=False):
     :param bbox: if this is set to ``True`` the footprint will only be
                  represented as a minimal BBOX polygon of all collected
                  footprints. This is preferable for large collections.
+    :returns: a three-tuple of ``begin_time``, ``end_time`` and ``footprint``.
+              Either might be ``None``.
     """
 
     values = qs.exclude(
@@ -131,6 +133,47 @@ def collect_eo_metadata(qs, insert=None, exclude=None, bbox=False):
 
     if not isinstance(footprint, MultiPolygon) and footprint is not None:
         footprint = MultiPolygon(footprint)
+
+    if bbox and footprint is not None:
+        footprint = MultiPolygon(Polygon.from_bbox(footprint.extent))
+
+    return begin_time, end_time, footprint
+
+
+def combine_eo_metadata(eo_objects, bbox=False):
+    """ Helper function to combine the EO metadata of at least two EO Objects.
+    :param eo_objects: a sequence of EO Objects to combine all EO metadata from
+    :param bbox: if this is set to ``True`` the footprint will only be
+                 represented as a minimal BBOX polygon of all collected
+                 footprints. This is preferable for large collections.
+    :returns: a three-tuple of ``begin_time``, ``end_time`` and ``footprint``.
+              Either might be ``None``.
+    """
+
+    if len(eo_objects) <= 1:
+        raise ValueError("Must provide at least two EO Objects.")
+
+    first = eo_objects[0]
+    begin_time = first.begin_time
+    end_time = first.end_time
+    footprint = first.footprint
+    rest = eo_objects[1:]
+
+    for eo_object in rest:
+        if begin_time and eo_object.begin_time:
+            begin_time = min(begin_time, eo_object.begin_time)
+        else:
+            begin_time = begin_time or eo_object.begin_time
+
+        if end_time and eo_object.end_time:
+            end_time = max(end_time, eo_object.end_time)
+        else:
+            end_time = end_time or eo_object.end_time
+
+        if footprint is not None and eo_object.footprint is not None:
+            footprint = footprint.union(eo_object.footprint)
+        else:
+            footprint = footprint or eo_object.footprint
 
     if bbox and footprint is not None:
         footprint = MultiPolygon(Polygon.from_bbox(footprint.extent))

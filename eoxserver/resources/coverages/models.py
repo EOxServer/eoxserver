@@ -37,8 +37,8 @@ from eoxserver.core import models as base
 from eoxserver.contrib import gdal, osr
 from eoxserver.backends import models as backends
 from eoxserver.resources.coverages.util import (
-    detect_circular_reference, collect_eo_metadata, is_same_grid,
-    parse_raw_value
+    detect_circular_reference, collect_eo_metadata, combine_eo_metadata,
+    is_same_grid, parse_raw_value
 )
 
 
@@ -748,8 +748,8 @@ class DatasetSeries(Collection):
         verbose_name_plural = "Dataset Series"
 
     def perform_insertion(self, eo_object, through=None):
-        self.begin_time, self.end_time, self.footprint = collect_eo_metadata(
-            self.eo_objects.all(), insert=[eo_object], bbox=True
+        self.begin_time, self.end_time, self.footprint = combine_eo_metadata(
+            (self, eo_object), bbox=True
         )
         self.full_clean()
         self.save()
