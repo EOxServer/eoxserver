@@ -40,7 +40,7 @@ from eoxserver.services.ows.wps.v10.util import WPS, OWS, ns_xlink, ns_xml
 from eoxserver.services.ows.wps.exceptions import OWS10Exception
 from eoxserver.services.ows.wps.parameters import (
     Parameter, LiteralData, ComplexData, BoundingBoxData,
-    fix_parameter, InputReference, Reference,
+    fix_parameter, InputReference, Reference, RequestParameter,
 )
 
 from .process_description import encode_process_brief
@@ -151,6 +151,8 @@ def _encode_common_response(process, status_elem, inputs, raw_inputs, resp_doc):
     if resp_doc.lineage:
         inputs_data = []
         for id_, prm in process.inputs:
+            if isinstance(prm, RequestParameter):
+                continue
             prm = fix_parameter(id_, prm)
             data = inputs.get(id_)
             rawinp = raw_inputs.get(prm.identifier)

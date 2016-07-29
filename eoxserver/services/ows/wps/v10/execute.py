@@ -54,6 +54,7 @@ from eoxserver.services.ows.wps.v10.execute_decoder_kvp import (
 from eoxserver.services.ows.wps.v10.execute_util import (
     parse_params, check_invalid_inputs, check_invalid_outputs,
     decode_raw_inputs, decode_output_requests, pack_outputs,
+    resolve_request_parameters,
 )
 
 class WPS10ExcecuteHandler(Component):
@@ -114,6 +115,9 @@ class WPS10ExcecuteHandler(Component):
         # get the unparsed (raw) inputs and the requested response parameters
         raw_inputs = check_invalid_inputs(decoder.inputs, input_defs)
         resp_form = check_invalid_outputs(decoder.response_form, output_defs)
+
+        # resolve the special request input parameters
+        raw_inputs = resolve_request_parameters(raw_inputs, input_defs, request)
 
         if resp_form.raw:
             encoder = WPS10ExecuteResponseRawEncoder(resp_form)
