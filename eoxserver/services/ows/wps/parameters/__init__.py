@@ -54,15 +54,44 @@ from .response_form import (
     Output, ResponseForm, ResponseDocument, RawDataOutput
 )
 
+class RequestParameter(object):
+    """ Special input parameter extracting input from the request metadata.
+    This might be used to pass information such as, e.g., HTTP headers or
+    user authentication to the process like a regular input variable.
+
+    This class is the base class and it expected that `parse_request`
+    method get overloaded by inheritance or by a function passed as
+    an argument to the constructor.
+    """
+    # pylint: disable=method-hidden, too-few-public-methods
+
+    def __init__(self, request_parser=None):
+        if request_parser:
+            self.parse_request = request_parser
+
+    def parse_request(self, request):
+        """ Method extracting information from the Django HTTP request object.
+        """
+        raise NotImplementedError
+
+
 def fix_parameter(name, prm):
     """ Expand short-hand definition of the parameter."""
     if isinstance(prm, Parameter):
         return prm
-    return LiteralData(name, dtype=prm)
+    elif isinstance(prm, RequestParameter):
+        # The leading backslash indicates an internal parameter.
+        # Note: backslash is not an allowed URI character and it cannot appear
+        # in the WPS inputs' names.
+        prm.identifier = "\\" + name
+        return prm
+    else:
+        return LiteralData(name, dtype=prm)
 
 
 class Reference(object):
     """ Output reference. """
+    # pylint: disable=too-few-public-methods, too-many-arguments
     def __init__(self, path, href, mime_type=None, encoding=None, schema=None):
         self.path = path
         self.href = href

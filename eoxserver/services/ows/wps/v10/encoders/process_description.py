@@ -78,8 +78,14 @@ def encode_process_full(process):
     if isinstance(process.outputs, dict):
         process.outputs = process.outputs.items()
 
-    inputs = [encode_input_descr(fix_parameter(n, p)) for n, p in process.inputs]
-    outputs = [encode_output_descr(fix_parameter(n, p)) for n, p in process.outputs]
+    inputs = [
+        item for item in (
+            encode_input_descr(fix_parameter(n, p)) for n, p in process.inputs
+        ) if item
+    ]
+    outputs = [
+        encode_output_descr(fix_parameter(n, p)) for n, p in process.outputs
+    ]
 
     elem = _encode_process_brief(process, NIL("ProcessDescription"))
     if supports_store:

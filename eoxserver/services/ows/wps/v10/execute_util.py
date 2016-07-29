@@ -29,7 +29,7 @@
 from eoxserver.services.ows.wps.util import OrderedDict
 from eoxserver.services.ows.wps.parameters import (
     fix_parameter, LiteralData, BoundingBoxData, ComplexData,
-    InputReference, InputData,
+    InputReference, InputData, RequestParameter,
 )
 from eoxserver.services.ows.wps.exceptions import (
     InvalidInputError, MissingRequiredInputError,
@@ -65,6 +65,14 @@ def check_invalid_outputs(outputs, output_defs):
     return outputs
 
 
+def resolve_request_parameters(inputs, input_defs, request):
+    """ Resolve request parameters. """
+    for identifier, (_, input_def) in input_defs.iteritems():
+        if isinstance(input_def, RequestParameter):
+            inputs[identifier] = input_def.parse_request(request)
+    return inputs
+
+
 def decode_raw_inputs(raw_inputs, input_defs, resolver):
     """ Iterates over all input options stated in the process and parses
         all given inputs. This also includes resolving of references.
@@ -72,7 +80,9 @@ def decode_raw_inputs(raw_inputs, input_defs, resolver):
     decoded_inputs = {}
     for identifier, (name, input_def) in input_defs.iteritems():
         raw_value = raw_inputs.get(identifier)
-        if raw_value is not None:
+        if isinstance(input_def, RequestParameter):
+            value = raw_value
+        elif raw_value is not None:
             if isinstance(raw_value, InputReference):
                 if not input_def.resolve_input_references:
                     # do not resolve reference if this is explicitly required

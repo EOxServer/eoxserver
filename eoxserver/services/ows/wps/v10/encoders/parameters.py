@@ -31,7 +31,7 @@
 from eoxserver.services.ows.wps.parameters import (
     LiteralData, ComplexData, BoundingBoxData,
     AllowedAny, AllowedEnum, AllowedRange, AllowedRangeCollection,
-    AllowedByReference,
+    AllowedByReference, RequestParameter
 )
 
 from eoxserver.services.ows.wps.v10.util import (
@@ -42,6 +42,9 @@ from eoxserver.services.ows.wps.v10.util import (
 
 def encode_input_descr(prm):
     """ Encode process description input."""
+    # Request input parameters are not visible from the process description.
+    if isinstance(prm, RequestParameter):
+        return None
     elem = NIL("Input", *_encode_param_common(prm))
     elem.attrib["minOccurs"] = ("1", "0")[bool(prm.is_optional)]
     elem.attrib["maxOccurs"] = "1"
