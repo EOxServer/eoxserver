@@ -31,16 +31,20 @@ from autotest_services.tests.wps.base import (
     WPS10ExecuteMixIn, ContentTypeCheckMixIn, ContentDispositionCheckMixIn,
 )
 
+XML_CONTENT_TYPE = "application/xml; charset=utf-8"
+
 #===============================================================================
 # WCS 1.0 GetCapabilities
 #===============================================================================
 
-class WPS10GetCapabilitiesValidTestCase(testbase.XMLTestCase):
+class WPS10GetCapabilitiesValidTestCase(ContentTypeCheckMixIn, testbase.XMLTestCase):
+    expectedContentType = XML_CONTENT_TYPE
     def getRequest(self):
         params = "service=WPS&version=1.0.0&request=GetCapabilities"
         return (params, "kvp")
 
-class WPS10PostGetCapabilitiesValidTestCase(testbase.XMLTestCase):
+class WPS10PostGetCapabilitiesValidTestCase(ContentTypeCheckMixIn, testbase.XMLTestCase):
+    expectedContentType = XML_CONTENT_TYPE
     def getRequest(self):
         params = """<wps:GetCapabilities updateSequence="u2001" service="WPS"
           xmlns:wps="http://www.opengis.net/wps/1.0"
@@ -56,12 +60,14 @@ class WPS10PostGetCapabilitiesValidTestCase(testbase.XMLTestCase):
 #===============================================================================
 
 
-class WPS10DescribeProcessValidTestCase(testbase.XMLTestCase):
+class WPS10DescribeProcessValidTestCase(ContentTypeCheckMixIn, testbase.XMLTestCase):
+    expectedContentType = XML_CONTENT_TYPE
     def getRequest(self):
         params = "service=WPS&version=1.0.0&request=DescribeProcess&identifier=TC00:identity:literal"
         return (params, "kvp")
 
-class WPS10PostDescribeProcessValidTestCase(testbase.XMLTestCase):
+class WPS10PostDescribeProcessValidTestCase(ContentTypeCheckMixIn, testbase.XMLTestCase):
+    expectedContentType = XML_CONTENT_TYPE
     def getRequest(self):
         params = """<wps:DescribeProcess service="WPS" version="1.0.0"
           xmlns:wps="http://www.opengis.net/wps/1.0"
@@ -71,17 +77,20 @@ class WPS10PostDescribeProcessValidTestCase(testbase.XMLTestCase):
         """
         return (params, "xml")
 
-class WPS10DescribeProcessValidTC01TestCase(testbase.XMLTestCase):
+class WPS10DescribeProcessValidTC01TestCase(ContentTypeCheckMixIn, testbase.XMLTestCase):
+    expectedContentType = XML_CONTENT_TYPE
     def getRequest(self):
         params = "service=WPS&version=1.0.0&request=DescribeProcess&identifier=TC01:identity:bbox"
         return (params, "kvp")
 
-class WPS10DescribeProcessValidTC02TestCase(testbase.XMLTestCase):
+class WPS10DescribeProcessValidTC02TestCase(ContentTypeCheckMixIn, testbase.XMLTestCase):
+    expectedContentType = XML_CONTENT_TYPE
     def getRequest(self):
         params = "service=WPS&version=1.0.0&request=DescribeProcess&identifier=TC02:identity:complex"
         return (params, "kvp")
 
-class WPS10DescribeProcessValidTC03TestCase(testbase.XMLTestCase):
+class WPS10DescribeProcessValidTC03TestCase(ContentTypeCheckMixIn, testbase.XMLTestCase):
+    expectedContentType = XML_CONTENT_TYPE
     def getRequest(self):
         params = "service=WPS&version=1.0.0&request=DescribeProcess&identifier=TC03:image_generator:complex"
         return (params, "kvp")
@@ -92,7 +101,8 @@ class WPS10DescribeProcessValidTC03TestCase(testbase.XMLTestCase):
 # WCS 1.0 Execute - Literal Data Tests
 #===============================================================================
 
-class WPS10ExecuteTestCase(WPS10ExecuteMixIn, testbase.XMLTestCase):
+class WPS10ExecuteTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
+    expectedContentType = XML_CONTENT_TYPE
     def getRequest(self):
         params = """<wps:Execute version="1.0.0" service="WPS"
         xmlns:wps="http://www.opengis.net/wps/1.0.0"
@@ -110,12 +120,14 @@ class WPS10ExecuteTestCase(WPS10ExecuteMixIn, testbase.XMLTestCase):
         """
         return (params, "xml")
 
-class WPS10ExecuteKVPTestCase(WPS10ExecuteMixIn, testbase.XMLTestCase):
+class WPS10ExecuteKVPTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
+    expectedContentType = XML_CONTENT_TYPE
     def getRequest(self):
         params = "service=WPS&version=1.0.0&request=Execute&identifier=TC00:identity:literal&DataInputs=input00=Test+string."
         return (params, "kvp")
 
-class WPS10ExecuteLiteralDataTestCase(WPS10ExecuteMixIn, testbase.XMLTestCase):
+class WPS10ExecuteLiteralDataTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
+    expectedContentType = XML_CONTENT_TYPE
     def getRequest(self):
         params = """<wps:Execute version="1.0.0" service="WPS"
         xmlns:wps="http://www.opengis.net/wps/1.0.0"
@@ -166,7 +178,8 @@ class WPS10ExecuteLiteralDataTestCase(WPS10ExecuteMixIn, testbase.XMLTestCase):
         """
         return (params, "xml")
 
-class WPS10ExecuteLiteralDataKVPTestCase(WPS10ExecuteMixIn, testbase.XMLTestCase):
+class WPS10ExecuteLiteralDataKVPTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
+    expectedContentType = XML_CONTENT_TYPE
     def getRequest(self):
         params = "service=WPS&version=1.0.0&request=Execute&identifier=TC00:identity:literal&DataInputs=input00=Some+text.%3BTC00%3Ainput03=123@uom=mm%3BTC00%3Ainput04=19.5@uom=C&ResponseDocument=TC00%3Aoutput03@uom=cm%3BTC00%3Aoutput04@uom=F&lineage=true"
         return (params, "kvp")
@@ -222,7 +235,8 @@ class WPS10ExecuteLiteralDataRawOutputKVPTestCase(ContentTypeCheckMixIn, testbas
 # WCS 1.0 Execute - Bounding Box Data Tests
 #===============================================================================
 
-class WPS10ExecuteBoundingBoxTestCase(WPS10ExecuteMixIn, testbase.XMLTestCase):
+class WPS10ExecuteBoundingBoxTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
+    expectedContentType = XML_CONTENT_TYPE
     def getRequest(self):
         params = """<wps:Execute version="1.0.0" service="WPS"
         xmlns:wps="http://www.opengis.net/wps/1.0.0"
@@ -246,7 +260,8 @@ class WPS10ExecuteBoundingBoxTestCase(WPS10ExecuteMixIn, testbase.XMLTestCase):
         """
         return (params, "xml")
 
-class WPS10ExecuteBoundingBoxKVPTestCase(WPS10ExecuteMixIn, testbase.XMLTestCase):
+class WPS10ExecuteBoundingBoxKVPTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
+    expectedContentType = XML_CONTENT_TYPE
     def getRequest(self):
         params = "service=WPS&version=1.0.0&request=Execute&identifier=TC01:identity:bbox&DataInputs=TC01:input00=0,1,2,3,urn:ogc:def:crs:EPSG::4326&lineage=true"
         return (params, "kvp")
@@ -294,7 +309,8 @@ class WPS10ExecuteBoundingBoxRawOutputKVPTestCase(ContentTypeCheckMixIn, testbas
 # WCS 1.0 Execute - Complex Data Tests (text-based payload)
 #===============================================================================
 
-class WPS10ExecuteComplexDataTextTestCase(WPS10ExecuteMixIn, testbase.XMLTestCase):
+class WPS10ExecuteComplexDataTextTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
+    expectedContentType = XML_CONTENT_TYPE
     def getRequest(self):
         params = """<wps:Execute version="1.0.0" service="WPS"
         xmlns:wps="http://www.opengis.net/wps/1.0.0"
@@ -315,7 +331,8 @@ payload.</wps:ComplexData>
         """
         return (params, "xml")
 
-class WPS10ExecuteComplexDataJSONTestCase(WPS10ExecuteMixIn, testbase.XMLTestCase):
+class WPS10ExecuteComplexDataJSONTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
+    expectedContentType = XML_CONTENT_TYPE
     def getRequest(self):
         params = """<wps:Execute version="1.0.0" service="WPS"
         xmlns:wps="http://www.opengis.net/wps/1.0.0"
@@ -340,7 +357,8 @@ class WPS10ExecuteComplexDataJSONTestCase(WPS10ExecuteMixIn, testbase.XMLTestCas
         """
         return (params, "xml")
 
-class WPS10ExecuteComplexDataXMLTestCase(WPS10ExecuteMixIn, testbase.XMLTestCase):
+class WPS10ExecuteComplexDataXMLTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
+    expectedContentType = XML_CONTENT_TYPE
     def getRequest(self):
         params = """<wps:Execute version="1.0.0" service="WPS"
         xmlns:wps="http://www.opengis.net/wps/1.0.0"
@@ -367,17 +385,20 @@ class WPS10ExecuteComplexDataXMLTestCase(WPS10ExecuteMixIn, testbase.XMLTestCase
         """
         return (params, "xml")
 
-class WPS10ExecuteComplexDataTextKVPTestCase(WPS10ExecuteMixIn, testbase.XMLTestCase):
+class WPS10ExecuteComplexDataTextKVPTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
+    expectedContentType = XML_CONTENT_TYPE
     def getRequest(self):
         params = "service=WPS&version=1.0.0&request=Execute&identifier=TC02:identity:complex&DataInputs=TC02:input00=P%C5%99%C3%ADli%C5%A1%20%C5%BElu%C5%A5ou%C4%8Dk%C3%BD%20k%C5%AF%C5%88%20%C3%BAp%C4%9Bl%20%C4%8F%C3%A1belsk%C3%A9%20%C3%B3dy.&lineage=true"
         return (params, "kvp")
 
-class WPS10ExecuteComplexDataJSONKVPTestCase(WPS10ExecuteMixIn, testbase.XMLTestCase):
+class WPS10ExecuteComplexDataJSONKVPTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
+    expectedContentType = XML_CONTENT_TYPE
     def getRequest(self):
         params = "service=WPS&version=1.0.0&request=Execute&identifier=TC02:identity:complex&DataInputs=TC02:input00={%22text%22:%22P%C5%99%C3%ADli%C5%A1%20%C5%BElu%C5%A5ou%C4%8Dk%C3%BD%20k%C5%AF%C5%88%20%C3%BAp%C4%9Bl%20%C4%8F%C3%A1belsk%C3%A9%20%C3%B3dy.%22}@mimeType=application%2Fjson&ResponseDocument=TC02:output00@mimeType=application%2Fjson&lineage=true"
         return (params, "kvp")
 
-class WPS10ExecuteComplexDataXMLKVPTestCase(WPS10ExecuteMixIn, testbase.XMLTestCase):
+class WPS10ExecuteComplexDataXMLKVPTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
+    expectedContentType = XML_CONTENT_TYPE
     def getRequest(self):
         params = "service=WPS&version=1.0.0&request=Execute&identifier=TC02:identity:complex&DataInputs=TC02:input00=%3Ctest%3AtestXML+xmlns%3Atest%3D%22http%3A%2F%2Fxml.eox.at%2Ftest%22%3EP%C5%99%C3%ADli%C5%A1%20%C5%BElu%C5%A5ou%C4%8Dk%C3%BD%20k%C5%AF%C5%88%20%C3%BAp%C4%9Bl%20%C4%8F%C3%A1belsk%C3%A9%20%C3%B3dy.%3C%2Ftest%3AtestXML%3E@mimeType=text%2Fxml&ResponseDocument=TC02:output00@mimeType=text%2Fxml&lineage=true"
         return (params, "kvp")
@@ -489,7 +510,8 @@ class WPS10ExecuteComplexDataXMLRawOutputKVPTestCase(ContentTypeCheckMixIn, Cont
 # WCS 1.0 Execute - Complex Data Tests (binary payload)
 #===============================================================================
 
-class WPS10ExecuteComplexDataPNGBase64FileTestCase(WPS10ExecuteMixIn, testbase.XMLTestCase):
+class WPS10ExecuteComplexDataPNGBase64FileTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
+    expectedContentType = XML_CONTENT_TYPE
     def getRequest(self):
         params = """<wps:Execute version="1.0.0" service="WPS"
         xmlns:wps="http://www.opengis.net/wps/1.0.0"
@@ -520,7 +542,8 @@ class WPS10ExecuteComplexDataPNGBase64FileTestCase(WPS10ExecuteMixIn, testbase.X
         """
         return (params, "xml")
 
-class WPS10ExecuteComplexDataTIFBase64InMemTestCase(WPS10ExecuteMixIn, testbase.XMLTestCase):
+class WPS10ExecuteComplexDataTIFBase64InMemTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
+    expectedContentType = XML_CONTENT_TYPE
     def getRequest(self):
         params = """<wps:Execute version="1.0.0" service="WPS"
         xmlns:wps="http://www.opengis.net/wps/1.0.0"
@@ -551,7 +574,8 @@ class WPS10ExecuteComplexDataTIFBase64InMemTestCase(WPS10ExecuteMixIn, testbase.
         """
         return (params, "xml")
 
-class WPS10ExecuteComplexDataJPGBase64KVPTestCase(WPS10ExecuteMixIn, testbase.XMLTestCase):
+class WPS10ExecuteComplexDataJPGBase64KVPTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
+    expectedContentType = XML_CONTENT_TYPE
     def getRequest(self):
         params = "service=WPS&version=1.0.0&request=Execute&identifier=TC03:image_generator:complex&DataInputs=TC03:seed=0&ResponseDocument=TC03:output00@mimeType=image%2Fjpeg@encoding=base64&lineage=true"
         return (params, "kvp")
