@@ -46,7 +46,7 @@ from .allowed_values import (
 )
 from .data_types import (
     DTYPES, BaseType, Boolean, Integer, Double, String,
-    Duration, Date, Time, DateTime
+    Duration, Date, Time, DateTime, DateTimeTZAware
 )
 from .crs import CRSType
 from .inputs import InputReference, InputData

@@ -75,7 +75,9 @@ class LiteralData(Parameter):
         """
         super(LiteralData, self).__init__(identifier, *args, **kwargs)
 
-        if issubclass(dtype, BaseType):
+        if isinstance(dtype, type) and issubclass(dtype, BaseType):
+            self._dtype = dtype
+        elif isinstance(dtype, BaseType):
             self._dtype = dtype
         elif dtype in DTYPES:
             self._dtype = DTYPES[dtype]

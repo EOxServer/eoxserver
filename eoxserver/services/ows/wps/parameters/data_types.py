@@ -31,7 +31,7 @@ from datetime import datetime, date, time, timedelta
 from django.utils.dateparse import parse_date, parse_datetime, parse_time, utc
 from django.utils.tzinfo import FixedOffset
 
-from eoxserver.core.util.timetools import isoformat, parse_duration
+from eoxserver.core.util.timetools import parse_duration
 
 
 class BaseType(object):
@@ -300,13 +300,51 @@ class DateTime(BaseType):
     @classmethod
     def encode(cls, value):
         if isinstance(value, cls.dtype):
-            return unicode(isoformat(value))
+            return unicode(cls._isoformat(value))
         raise ValueError("Invalid value type '%s'!" % type(value))
 
     @classmethod
     def sub(cls, value0, value1):
         """ subtract value0 - value1 """
         return value0 - value1
+
+    @staticmethod
+    def _isoformat(value):
+        """ Covert date-time object to ISO 8601 date-time string. """
+        if value.tzinfo and not value.utcoffset():
+            return value.replace(tzinfo=None).isoformat("T") + "Z"
+        return value.isoformat("T")
+
+
+class DateTimeTZAware(DateTime):
+    """ This data-type is a variant of the `DateTime` which assures that
+    the parsed date-time is time-zone aware and optionally
+    also converted to a common target time-zone.
+
+    The default time-zone applied to the unaware time-input is passed trough
+    the constructor. By default the UTC time-zone is used.
+    By default the target time-zone is set to None which means that
+    the original time-zone is preserved.
+
+    Unlike the `DateTime` this class must be instantiated and it cannot be used
+    directly as a data-type.
+    """
+    def __init__(self, default_tz=DateTime.UTC, target_tz=None):
+        self.default_tz = default_tz
+        self.target_tz = target_tz
+
+    def set_time_zone(self, value):
+        if value.tzinfo is None:
+            value = value.replace(tzinfo=self.default_tz)
+        if self.target_tz:
+            value = value.astimezone(self.target_tz)
+        return value
+
+    def parse(self, raw_value):
+        return self.set_time_zone(super(DateTimeTZAware, self).parse(raw_value))
+
+    def encode(self, value):
+        return super(DateTimeTZAware, self).encode(self.set_time_zone(value))
 
 
 # mapping of plain Python types to data type classes

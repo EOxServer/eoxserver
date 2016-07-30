@@ -71,7 +71,7 @@ def encode_process_full(process):
     inputs = [
         item for item in (
             encode_input_descr(fix_parameter(n, p)) for n, p in process.inputs
-        ) if item
+        ) if item is not None
     ]
     outputs = [
         encode_output_descr(fix_parameter(n, p)) for n, p in process.outputs

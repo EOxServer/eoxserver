@@ -29,8 +29,10 @@
 
 import datetime as dt
 import unittest
-from parameters import (BaseType, Boolean, Integer, Double, String,
-                        Duration, Date, Time, DateTime, CRSType)
+from parameters import (
+    BaseType, Boolean, Integer, Double, String,
+    Duration, Date, Time, DateTime, DateTimeTZAware, CRSType,
+)
 
 #------------------------------------------------------------------------------
 
@@ -62,6 +64,20 @@ class BaseTestMixin(object):
             def test():
                 self.dtype.encode(src)
             self.assertRaises(ValueError,test)
+
+class TimeZoneTestMixin(object):
+    def testParseTimeZone(self):
+        try:
+            for src, dst in self.parsed:
+                res = self.dtype.parse(src)
+                if dst.tzinfo is None:
+                    self.assertTrue(res.tzinfo is None)
+                else:
+                    self.assertTrue(res.tzinfo is not None)
+                    self.assertTrue(res.utcoffset() == dst.utcoffset())
+        except:
+            print "%r != %r" % (res, dst)
+            raise
 
 #------------------------------------------------------------------------------
 
@@ -199,28 +215,28 @@ class TestDataTypeTime(unittest.TestCase, BaseTestMixin):
         ]
 
 
-class TestDataTypeTime(unittest.TestCase, BaseTestMixin):
+class TestDataTypeDateTime(unittest.TestCase, BaseTestMixin, TimeZoneTestMixin):
     def setUp(self):
         UTC = DateTime.UTC
         TZOffset = DateTime.TZOffset
         self.name = 'dateTime'
         self.dtype = DateTime
         self.dtype_diff = Duration
-        # NOTE: The eoxserver isoformat tool localizes the time-zone unaware
-        #       time by adding the UTC timezone!
         self.encoded= [
             (dt.datetime(2014,6,1,12,30,14,123456,UTC), u'2014-06-01T12:30:14.123456Z'),
             (dt.datetime(2014,6,1,12,30,14,500000,TZOffset(90)),
                                         u'2014-06-01T12:30:14.500000+01:30'),
             (dt.datetime(2014,6,1,12,30,0,0,UTC), u'2014-06-01T12:30:00Z'),
-            (dt.datetime(2014,6,1,12,30,0,0), u'2014-06-01T12:30:00Z'),
+            (dt.datetime(2014,6,1,12,30,0,0), u'2014-06-01T12:30:00'),
         ]
         self.encoded_rejected = ['anything']
         self.parsed= [
+            (dt.datetime(2014,6,1,11,00,14,123456),dt.datetime(2014,6,1,11,00,14,123456)),
+            (dt.datetime(2014,6,1,11,00,14,123456,TZOffset(90)),dt.datetime(2014,6,1,11,00,14,123456,TZOffset(90))),
             (dt.datetime(2014,6,1,11,00,14,123456,UTC),dt.datetime(2014,6,1,11,00,14,123456,UTC)),
             (u'2014-06-01T12:30:14.123456',dt.datetime(2014,6,1,12,30,14,123456)),
             (u'2014-06-01T12:30:14.123456Z',dt.datetime(2014,6,1,12,30,14,123456,UTC)),
-            (u'2014-06-01T12:30:14.123456+01:30',dt.datetime(2014,6,1,11,00,14,123456,UTC)),
+            (u'2014-06-01T12:30:14.123456+01:30',dt.datetime(2014,6,1,12,30,14,123456,TZOffset(90))),
             (u'2014-06-01 12:30:14',dt.datetime(2014,6,1,12,30,14,0)),
             (u'2014-06-01T00:00Z',dt.datetime(2014,6,1,0,0,0,0,UTC)),
         ]
@@ -230,6 +246,47 @@ class TestDataTypeTime(unittest.TestCase, BaseTestMixin):
             u'2014-02-29T00:00', u'2014-13-01T00:00',
             u'2014-02-00T00:00', u'2014-00-01T00:00',
         ]
+
+
+class TestDataTypeDateTimeTZAware(unittest.TestCase, BaseTestMixin, TimeZoneTestMixin):
+    def setUp(self):
+        UTC = DateTime.UTC
+        TZOffset = DateTime.TZOffset
+        self.name = 'dateTime'
+        self.dtype = DateTimeTZAware(TZOffset(90))
+        self.dtype_diff = Duration
+        self.encoded= []
+        self.encoded_rejected = []
+        self.parsed= [
+            (dt.datetime(2014,6,1,12,30,14,123456, TZOffset(-90)), dt.datetime(2014,6,1,12,30,14,123456, TZOffset(-90))),
+            (dt.datetime(2014,6,1,12,30,14,123456), dt.datetime(2014,6,1,12,30,14,123456, TZOffset(90))),
+            (dt.datetime(2014,6,1,12,30,14,123456, UTC), dt.datetime(2014,6,1,12,30,14,123456, UTC)),
+            (u'2014-06-01T12:30:14.123456-01:30',dt.datetime(2014,6,1,12,30,14,123456, TZOffset(-90))),
+            (u'2014-06-01 12:30:14', dt.datetime(2014,6,1,12,30,14,0, TZOffset(90))),
+            (u'2014-06-01T00:00Z', dt.datetime(2014,6,1,0,0,0,0,UTC)),
+        ]
+        self.parsed_rejected = []
+
+
+class TestDataTypeDateTimeTZAwareWithTZConversion(unittest.TestCase, BaseTestMixin, TimeZoneTestMixin):
+    def setUp(self):
+        UTC = DateTime.UTC
+        TZOffset = DateTime.TZOffset
+        self.name = 'dateTime'
+        self.dtype = DateTimeTZAware(TZOffset(90), TZOffset(-120))
+        self.dtype_diff = Duration
+        self.encoded= []
+        self.encoded_rejected = []
+        self.parsed= [
+            (dt.datetime(2014,6,1,12,30,14,123456, TZOffset(-90)), dt.datetime(2014,6,1,12,0,14,123456, TZOffset(-120))),
+            (dt.datetime(2014,6,1,12,30,14,123456), dt.datetime(2014,6,1,9,0,14,123456, TZOffset(-120))),
+            (dt.datetime(2014,6,1,12,30,14,123456, UTC), dt.datetime(2014,6,1,10,30,14,123456, TZOffset(-120))),
+            (u'2014-06-01T12:30:14.123456-01:30',dt.datetime(2014,6,1,12,0,14,123456,TZOffset(-120))),
+            (u'2014-06-01 12:30:14', dt.datetime(2014,6,1,9,0,14,0,TZOffset(-120))),
+            (u'2014-06-01T00:00Z', dt.datetime(2014,5,31,22,0,0,0,TZOffset(-120))),
+        ]
+        self.parsed_rejected = []
+
 
 class TestDataTypeCRS(unittest.TestCase, BaseTestMixin):
     def setUp(self):
