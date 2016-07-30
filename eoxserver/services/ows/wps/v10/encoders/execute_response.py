@@ -55,8 +55,6 @@ from eoxserver.services.ows.wps.exceptions import InvalidOutputValueError
 
 class WPS10ExecuteResponseXMLEncoder(WPS10BaseXMLEncoder):
 
-    content_type = "application/xml; charset=utf-8"
-
     def __init__(self, process, resp_form, raw_inputs, inputs=None,
                  status_location=None):
         super(WPS10ExecuteResponseXMLEncoder, self).__init__()

@@ -39,35 +39,7 @@ from .process_description import encode_process_brief
 from .base import WPS10BaseXMLEncoder
 
 
-def _encode_operations_metadata(conf):
-    component = ServiceComponent(env)
-    versions = ("1.0.0",)
-    get_handlers = component.query_service_handlers(
-        service="WPS", versions=versions, method="GET"
-    )
-    post_handlers = component.query_service_handlers(
-        service="WPS", versions=versions, method="POST"
-    )
-    all_handlers = sorted(
-        set(get_handlers + post_handlers), key=lambda h: h.request
-    )
-    url = conf.http_service_url
-    return OWS("OperationsMetadata", *[
-        OWS("Operation",
-            OWS("DCP",
-                OWS("HTTP",
-                    # TODO: only select available
-                    OWS("Get", **{ns_xlink("href"): url}),
-                    OWS("Post", **{ns_xlink("href"): url}),
-                )
-            ), name=handler.request
-        )
-        for handler in all_handlers
-    ])
-
-
 class WPS10CapabilitiesXMLEncoder(WPS10BaseXMLEncoder):
-
     @staticmethod
     def encode_capabilities(processes):
         conf = CapabilitiesConfigReader(get_eoxserver_config())
@@ -133,3 +105,30 @@ class WPS10CapabilitiesXMLEncoder(WPS10BaseXMLEncoder):
                 "updateSequence": conf.update_sequence,
             }
         )
+
+
+def _encode_operations_metadata(conf):
+    component = ServiceComponent(env)
+    versions = ("1.0.0",)
+    get_handlers = component.query_service_handlers(
+        service="WPS", versions=versions, method="GET"
+    )
+    post_handlers = component.query_service_handlers(
+        service="WPS", versions=versions, method="POST"
+    )
+    all_handlers = sorted(
+        set(get_handlers + post_handlers), key=lambda h: h.request
+    )
+    url = conf.http_service_url
+    return OWS("OperationsMetadata", *[
+        OWS("Operation",
+            OWS("DCP",
+                OWS("HTTP",
+                    # TODO: only select available
+                    OWS("Get", **{ns_xlink("href"): url}),
+                    OWS("Post", **{ns_xlink("href"): url}),
+                )
+            ), name=handler.request
+        )
+        for handler in all_handlers
+    ])

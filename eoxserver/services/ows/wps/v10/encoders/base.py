@@ -32,5 +32,16 @@ from eoxserver.core.util.xmltools import XMLEncoder
 from eoxserver.services.ows.wps.v10.util import ns_wps
 
 class WPS10BaseXMLEncoder(XMLEncoder):
+    content_type = "application/xml; charset=utf-8"
+
     def get_schema_locations(self):
         return {"wps": ns_wps.schema_location}
+
+    def serialize(self, tree, **kwargs):
+        """ Serialize a XML tree to the pair (tuple) of the XML string
+        and the content type.
+        """
+        # override the default ASCII encoding to the standard UTF-8
+        kwargs['encoding'] = 'utf-8'
+        payload = super(WPS10BaseXMLEncoder, self).serialize(tree, **kwargs)
+        return payload, self.content_type

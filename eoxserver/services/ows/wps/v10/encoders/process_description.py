@@ -36,43 +36,33 @@ from .base import WPS10BaseXMLEncoder
 from eoxserver.services.ows.wps.parameters import fix_parameter
 
 
-def _encode_metadata(title, href):
-    return OWS("Metadata", **{ns_xlink("title"): title, ns_xlink("href"): href})
+class WPS10ProcessDescriptionsXMLEncoder(WPS10BaseXMLEncoder):
+    @staticmethod
+    def encode_process_descriptions(processes):
+        _proc = [encode_process_full(p) for p in processes]
+        _attr = {
+            "service": "WPS",
+            "version": "1.0.0",
+            ns_xml("lang"): "en-US",
+        }
+        return WPS("ProcessDescriptions", *_proc, **_attr)
 
-def _encode_process_brief(process, elem):
-    """ auxiliary shared brief process description encoder"""
-    id_ = getattr(process, 'identifier', process.__class__.__name__)
-    title = getattr(process, 'title', id_)
-    #abstract = getattr(process, 'abstract', process.__class__.__doc__)
-    abstract = getattr(process, 'description', process.__class__.__doc__)
-    version = getattr(process, "version", "1.0.0")
-    metadata = getattr(process, "metadata", {})
-    profiles = getattr(process, "profiles", [])
-    wsdl = getattr(process, "wsdl", None)
-
-    elem.append(OWS("Identifier", id_))
-    elem.append(OWS("Title", title))
-    elem.attrib[ns_wps("processVersion")] = version
-    if abstract:
-        elem.append(OWS("Abstract", abstract))
-    elem.extend(_encode_metadata(k, metadata[k]) for k in metadata)
-    elem.extend(WPS("Profile", p) for p in profiles)
-    if wsdl:
-        elem.append(WPS("WSDL", **{ns_xlink("href"): wsdl}))
-
-    return elem
 
 def encode_process_brief(process):
     """ Encode brief process description used in GetCapabilities response."""
     return _encode_process_brief(process, WPS("Process"))
 
+
 def encode_process_full(process):
     """ Encode full process description used in DescribeProcess response."""
-    # TODO: support for async processes
-    supports_store = False
-    supports_update = False
+    if getattr(process, 'asynchronous', False):
+        supports_store = True
+        supports_update = True
+    else:
+        supports_store = False
+        supports_update = False
 
-    # TODO: remove backward compatibitity support for inputs/outputs dicts
+    # TODO: remove backward compatibility support for inputs/outputs dicts
     if isinstance(process.inputs, dict):
         process.inputs = process.inputs.items()
     if isinstance(process.outputs, dict):
@@ -98,13 +88,29 @@ def encode_process_full(process):
     return elem
 
 
-class WPS10ProcessDescriptionsXMLEncoder(WPS10BaseXMLEncoder):
-    @staticmethod
-    def encode_process_descriptions(processes):
-        _proc = [encode_process_full(p) for p in processes]
-        _attr = {
-            "service": "WPS",
-            "version": "1.0.0",
-            ns_xml("lang"): "en-US",
-        }
-        return WPS("ProcessDescriptions", *_proc, **_attr)
+def _encode_metadata(title, href):
+    return OWS("Metadata", **{ns_xlink("title"): title, ns_xlink("href"): href})
+
+
+def _encode_process_brief(process, elem):
+    """ auxiliary shared brief process description encoder"""
+    id_ = getattr(process, 'identifier', process.__class__.__name__)
+    title = getattr(process, 'title', id_)
+    #abstract = getattr(process, 'abstract', process.__class__.__doc__)
+    abstract = getattr(process, 'description', process.__class__.__doc__)
+    version = getattr(process, "version", "1.0.0")
+    metadata = getattr(process, "metadata", {})
+    profiles = getattr(process, "profiles", [])
+    wsdl = getattr(process, "wsdl", None)
+
+    elem.append(OWS("Identifier", id_))
+    elem.append(OWS("Title", title))
+    elem.attrib[ns_wps("processVersion")] = version
+    if abstract:
+        elem.append(OWS("Abstract", abstract))
+    elem.extend(_encode_metadata(k, metadata[k]) for k in metadata)
+    elem.extend(WPS("Profile", p) for p in profiles)
+    if wsdl:
+        elem.append(WPS("WSDL", **{ns_xlink("href"): wsdl}))
+
+    return elem
