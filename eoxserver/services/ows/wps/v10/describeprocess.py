@@ -75,7 +75,7 @@ class WPS10DescribeProcessHandler(Component):
         encoder = WPS10ProcessDescriptionsXMLEncoder()
         return encoder.serialize(
             encoder.encode_process_descriptions(used_processes)
-        ), encoder.content_type
+        )
 
 
 class WPS10DescribeProcessKVPDecoder(kvp.Decoder):
@@ -85,4 +85,3 @@ class WPS10DescribeProcessKVPDecoder(kvp.Decoder):
 class WPS10DescribeProcessXMLDecoder(xml.Decoder):
     identifiers = xml.Parameter("ows:Identifier/text()", num="+")
     namespaces = nsmap
-

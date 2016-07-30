@@ -50,9 +50,7 @@ class WPS10GetCapabilitiesHandler(Component):
 
     def handle(self, request):
         encoder = WPS10CapabilitiesXMLEncoder()
-        return encoder.serialize(
-            encoder.encode_capabilities(self.processes)
-        ), encoder.content_type
+        return encoder.serialize(encoder.encode_capabilities(self.processes))
 
 
 class WPS10GetCapabilitiesKVPDecoder(kvp.Decoder):

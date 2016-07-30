@@ -187,4 +187,4 @@ class WPS10ExcecuteHandler(Component):
             # encode the StatusSucceeded response
             response = encoder.encode_response(packed_outputs)
 
-        return encoder.serialize(response, encoding='utf-8')
+        return encoder.serialize(response)
