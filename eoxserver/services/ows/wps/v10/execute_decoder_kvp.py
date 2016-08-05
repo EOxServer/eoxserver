@@ -28,7 +28,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-import urllib
+from urllib import unquote_plus
 from eoxserver.core.decoders import kvp
 from eoxserver.services.ows.wps.parameters import (
     InputData, InputReference, Output, ResponseDocument, RawDataOutput
@@ -61,14 +61,15 @@ def _parse_inputs(raw_string):
         inputs[id_] = input_
     return inputs
 
+
 def _parse_param(raw_string):
     items = (item.partition('=') for item in raw_string.split("@"))
     attr = {}
     id_, dlm, data = items.next()
-    data = urllib.unquote_plus(data) if dlm else None
-    for key, dlm, val in items:
-        if dlm:
-            attr[urllib.unquote_plus(key)] = urllib.unquote_plus(val)
+    id_ = unquote_plus(id_)
+    data = unquote_plus(data) if dlm else None
+    for key, dlm, value in items:
+        attr[unquote_plus(key)] = unquote_plus(value) if dlm else None
     return id_, data, attr
 
 
@@ -97,6 +98,25 @@ def _create_output(identifier, _, attrs):
         identifier, None, None, attrs.get("uom"),
         attrs.get("crs"), attrs.get("mimeType"), attrs.get("encoding"),
         attrs.get("schema"), attr_as_reference
+    )
+
+
+def parse_query_string(query_string):
+    """ Parse URL query string preserving the URL-encoded
+    DataInputs, ResponseDocument, and RawDataOutput WPS Execute parameters.
+    Note that the standard parser URL-decodes the parameter values and, in cases
+    when, e.g., a data input contains an percent-encoded separator
+    ('%40' vs. '@') the encoded and non-encoded delimiters cannot
+    be distinguished ('@' vs. '@') and the correct parsing cannot be guaranteed.
+    """
+    unescaped = set(('datainputs', 'responsedocument', 'rawdataoutput'))
+    return dict(
+        (key, value if key.lower() in unescaped else unquote_plus(value))
+        for key, value in (
+            (unquote_plus(key), value) for key, _, value in (
+                item.partition('=') for item in query_string.split('&')
+            )
+        )
     )
 
 

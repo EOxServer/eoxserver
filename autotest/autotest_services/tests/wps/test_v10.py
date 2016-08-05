@@ -126,6 +126,12 @@ class WPS10ExecuteKVPTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase
         params = "service=WPS&version=1.0.0&request=Execute&identifier=TC00:identity:literal&DataInputs=input00=Test+string."
         return (params, "kvp")
 
+class WPS10ExecuteKVPSpecialCharactersTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
+    expectedContentType = XML_CONTENT_TYPE
+    def getRequest(self):
+        params = "service=WPS&version=1.0.0&request=Execute&identifier=TC00:identity:literal&DataInputs=input00=john.doe%40foo.com%3Brichard.roe%40foo.com"
+        return (params, "kvp")
+
 class WPS10ExecuteLiteralDataTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
     expectedContentType = XML_CONTENT_TYPE
     def getRequest(self):
@@ -181,7 +187,7 @@ class WPS10ExecuteLiteralDataTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, 
 class WPS10ExecuteLiteralDataKVPTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
     expectedContentType = XML_CONTENT_TYPE
     def getRequest(self):
-        params = "service=WPS&version=1.0.0&request=Execute&identifier=TC00:identity:literal&DataInputs=input00=Some+text.%3BTC00%3Ainput03=123@uom=mm%3BTC00%3Ainput04=19.5@uom=C&ResponseDocument=TC00%3Aoutput03@uom=cm%3BTC00%3Aoutput04@uom=F&lineage=true"
+        params = "service=WPS&version=1.0.0&request=Execute&identifier=TC00:identity:literal&DataInputs=input00=Some+text.;TC00%3Ainput03=123@uom=mm;TC00%3Ainput04=19.5@uom=C&ResponseDocument=TC00%3Aoutput03@uom=cm;TC00%3Aoutput04@uom=F&lineage=true"
         return (params, "kvp")
 
 class WPS10ExecuteLiteralDataRawOutputTestCase(ContentTypeCheckMixIn, testbase.PlainTextTestCase):
@@ -218,7 +224,7 @@ class WPS10ExecuteLiteralDataRawOutputTestCase(ContentTypeCheckMixIn, testbase.P
 class WPS10ExecuteLiteralDataRawOutputKVPTestCase(ContentTypeCheckMixIn, testbase.PlainTextTestCase):
     expectedContentType = "text/plain; charset=utf-8"
     def getRequest(self):
-        params = "service=WPS&version=1.0.0&request=Execute&identifier=TC00:identity:literal&DataInputs=input00=Some+text.%3BTC00%3Ainput04=19.5@uom=C&RawDataOutput=TC00%3Aoutput04@uom=F"
+        params = "service=WPS&version=1.0.0&request=Execute&identifier=TC00:identity:literal&DataInputs=input00=Some+text.;TC00%3Ainput04=19.5@uom=C&RawDataOutput=TC00%3Aoutput04@uom=F"
         # response: 67.1
         return (params, "kvp")
 
