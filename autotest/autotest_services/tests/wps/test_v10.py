@@ -187,7 +187,7 @@ class WPS10ExecuteLiteralDataTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, 
 class WPS10ExecuteLiteralDataKVPTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
     expectedContentType = XML_CONTENT_TYPE
     def getRequest(self):
-        params = "service=WPS&version=1.0.0&request=Execute&identifier=TC00:identity:literal&DataInputs=input00=Some+text.;TC00%3Ainput03=123@uom=mm;TC00%3Ainput04=19.5@uom=C&ResponseDocument=TC00%3Aoutput03@uom=cm;TC00%3Aoutput04@uom=F&lineage=true"
+        params = "service=WPS&version=1.0.0&request=Execute&identifier=TC00:identity:literal&DataInputs=input00=Some+text.;TC00%3Ainput03=123@uom=mm;TC00%3Ainput04=19.5@uom=C&ResponseDocument=TC00%3Aoutput03@uom=cm@asReference=false;TC00%3Aoutput04@uom=F&lineage=true"
         return (params, "kvp")
 
 class WPS10ExecuteLiteralDataRawOutputTestCase(ContentTypeCheckMixIn, testbase.PlainTextTestCase):

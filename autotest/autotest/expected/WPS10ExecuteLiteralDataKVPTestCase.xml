@@ -37,7 +37,7 @@
     <wps:Output asReference="false" uom="cm">
       <ows:Identifier>TC00:output03</ows:Identifier>
     </wps:Output>
-    <wps:Output asReference="false" uom="F">
+    <wps:Output uom="F">
       <ows:Identifier>TC00:output04</ows:Identifier>
     </wps:Output>
   </wps:OutputDefinitions>
@@ -83,4 +83,3 @@
     </wps:Output>
   </wps:ProcessOutputs>
 </wps:ExecuteResponse>
-

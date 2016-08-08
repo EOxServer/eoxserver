@@ -24,7 +24,7 @@
     </wps:Input>
   </wps:DataInputs>
   <wps:OutputDefinitions>
-    <wps:Output mimeType="text/xml" asReference="false">
+    <wps:Output mimeType="text/xml">
       <ows:Identifier>TC02:output00</ows:Identifier>
     </wps:Output>
   </wps:OutputDefinitions>
@@ -50,4 +50,3 @@
     </wps:Output>
   </wps:ProcessOutputs>
 </wps:ExecuteResponse>
-

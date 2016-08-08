@@ -37,8 +37,11 @@ from eoxserver.services.ows.wps.parameters import fix_parameter
 
 
 class WPS10ProcessDescriptionsXMLEncoder(WPS10BaseXMLEncoder):
+    """ WPS 1.0 ProcessDescriptions XML response encoder. """
+
     @staticmethod
     def encode_process_descriptions(processes):
+        """ Encode the ProcessDescriptions XML document. """
         _proc = [encode_process_full(p) for p in processes]
         _attr = {
             "service": "WPS",
@@ -49,12 +52,16 @@ class WPS10ProcessDescriptionsXMLEncoder(WPS10BaseXMLEncoder):
 
 
 def encode_process_brief(process):
-    """ Encode brief process description used in GetCapabilities response."""
+    """ Encode a brief process description (Process element) of the
+    Capabilities XML document.
+    """
     return _encode_process_brief(process, WPS("Process"))
 
 
 def encode_process_full(process):
-    """ Encode full process description used in DescribeProcess response."""
+    """ Encode a full process description (ProcessDescription element) of the
+    ProcessDescriptions XML document.
+    """
     if getattr(process, 'asynchronous', False):
         supports_store = True
         supports_update = True
@@ -88,12 +95,12 @@ def encode_process_full(process):
     return elem
 
 
-def _encode_metadata(title, href):
-    return OWS("Metadata", **{ns_xlink("title"): title, ns_xlink("href"): href})
-
-
 def _encode_process_brief(process, elem):
-    """ auxiliary shared brief process description encoder"""
+    """ Insert a brief process description into an XML element passed as the
+    second argument.
+    The brief process description is shared by both the Capabilities and
+    ProcessDescriptions XML encoders.
+    """
     id_ = getattr(process, 'identifier', process.__class__.__name__)
     title = getattr(process, 'title', id_)
     #abstract = getattr(process, 'abstract', process.__class__.__doc__)
@@ -114,3 +121,8 @@ def _encode_process_brief(process, elem):
         elem.append(WPS("WSDL", **{ns_xlink("href"): wsdl}))
 
     return elem
+
+
+def _encode_metadata(title, href):
+    """ Encode one Metadata element. """
+    return OWS("Metadata", **{ns_xlink("title"): title, ns_xlink("href"): href})

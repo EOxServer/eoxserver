@@ -1,7 +1,10 @@
 #-------------------------------------------------------------------------------
 #
+#  Execute - common decoder subroutines
+#
 # Project: EOxServer <http://eoxserver.org>
 # Authors: Fabian Schindler <fabian.schindler@eox.at>
+#          Martin Paces <martin.paces@eox.at>
 #
 #-------------------------------------------------------------------------------
 # Copyright (C) 2013 EOX IT Services GmbH
@@ -25,35 +28,13 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from eoxserver.core import Component, implements
-from eoxserver.services.ows.interfaces import ExceptionHandlerInterface
-from eoxserver.services.ows.common.v11.encoders import OWS11ExceptionXMLEncoder
-
-
-class WPS10ExceptionHandler(Component):
-    """ WPS 1.0 exception handler. """
-    implements(ExceptionHandlerInterface)
-
-    service = "WPS"
-    versions = ("1.0.0", "1.0")
-    request = None
-
-    def handle_exception(self, request, exception):
-        """ Handle exception. """
-        # pylint: disable=unused-argument, no-self-use
-        code = getattr(exception, "code", None)
-        locator = getattr(exception, "locator", None)
-        if not code:
-            code = "NoApplicableCode"
-            locator = type(exception).__name__
-
-        encoder = OWS11ExceptionXMLEncoder()
-
-        return (
-            encoder.serialize(
-                encoder.encode_exception(
-                    str(exception), "1.1.0", code, locator
-                )
-            ),
-            encoder.content_type, 400
-        )
+def parse_bool(raw_value):
+    """ Parse boolean value. """
+    if raw_value is None:
+        return None
+    elif raw_value == 'true':
+        return True
+    elif raw_value == 'false':
+        return False
+    else:
+        raise ValueError('Not a valid boolean value! %r' % raw_value)

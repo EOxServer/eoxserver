@@ -24,17 +24,19 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
+# pylint: disable=invalid-name, unused-import
 
 from lxml.builder import ElementMaker
-
 from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap, ns_xsi
 from eoxserver.services.ows.common.v11.encoders import (
     ns_xlink, ns_xml, ns_ows, OWS
 )
 
 # namespace declarations
-ns_wps = NameSpace("http://www.opengis.net/wps/1.0.0", "wps",
-                            "http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd")
+ns_wps = NameSpace(
+    "http://www.opengis.net/wps/1.0.0", "wps",
+    "http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd"
+)
 
 # namespace map
 nsmap = NameSpaceMap(ns_xlink, ns_xml, ns_ows, ns_wps)
@@ -42,4 +44,3 @@ nsmap = NameSpaceMap(ns_xlink, ns_xml, ns_ows, ns_wps)
 # Element factories
 WPS = ElementMaker(namespace=ns_wps.uri, nsmap=nsmap)
 NIL = ElementMaker() # nil-name
-

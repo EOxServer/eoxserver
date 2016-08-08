@@ -58,6 +58,7 @@ from eoxserver.services.ows.wps.v10.execute_util import (
 )
 
 class WPS10ExcecuteHandler(Component):
+    """ WPS 1.0 Execute service handler. """
     implements(ServiceHandlerInterface)
     implements(GetServiceHandlerInterface)
     implements(PostServiceHandlerInterface)

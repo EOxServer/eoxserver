@@ -22,7 +22,7 @@
     </wps:Input>
   </wps:DataInputs>
   <wps:OutputDefinitions>
-    <wps:Output mimeType="application/json" asReference="false">
+    <wps:Output mimeType="application/json">
       <ows:Identifier>TC02:output00</ows:Identifier>
     </wps:Output>
   </wps:OutputDefinitions>
@@ -47,4 +47,3 @@
     </wps:Output>
   </wps:ProcessOutputs>
 </wps:ExecuteResponse>
-

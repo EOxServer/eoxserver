@@ -22,7 +22,7 @@
     </wps:Input>
   </wps:DataInputs>
   <wps:OutputDefinitions>
-    <wps:Output mimeType="image/jpeg" asReference="false" encoding="base64">
+    <wps:Output mimeType="image/jpeg" encoding="base64">
       <ows:Identifier>TC03:output00</ows:Identifier>
     </wps:Output>
   </wps:OutputDefinitions>
@@ -4192,4 +4192,3 @@ IW969779mtG9+ml32/J4de2V5f5de3Ra6b2ltdH/2Q==</wps:ComplexData>
     </wps:Output>
   </wps:ProcessOutputs>
 </wps:ExecuteResponse>
-

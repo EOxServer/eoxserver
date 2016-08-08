@@ -32,6 +32,7 @@ from eoxserver.core.util.xmltools import XMLEncoder
 from eoxserver.services.ows.wps.v10.util import ns_wps
 
 class WPS10BaseXMLEncoder(XMLEncoder):
+    """ Base class of the WPS 1.0 XML response encoders. """
     content_type = "application/xml; charset=utf-8"
 
     def get_schema_locations(self):

@@ -33,8 +33,13 @@ from eoxserver.core.decoders import kvp
 from eoxserver.services.ows.wps.parameters import (
     InputData, InputReference, Output, ResponseDocument, RawDataOutput
 )
+from eoxserver.services.ows.wps.v10.execute_decoder_common import (
+    parse_bool,
+)
+
 
 def _parse_inputs(raw_string):
+    """ Parse DataInputs value. """
     inputs = {}
     for item in raw_string.split(";"):
         id_, value, param = _parse_param(item)
@@ -49,7 +54,7 @@ def _parse_inputs(raw_string):
             )
         else:
             #NOTE: KVP Bounding box cannot be safely detected and parsed.
-            input_ = InputData(
+            input_ = InputData( # pylint: disable=redefined-variable-type
                 identifier=id_,
                 data=value,
                 uom=param.get("uom"),
@@ -63,6 +68,7 @@ def _parse_inputs(raw_string):
 
 
 def _parse_param(raw_string):
+    """ Parse one input or output item. """
     items = (item.partition('=') for item in raw_string.split("@"))
     attr = {}
     id_, dlm, data = items.next()
@@ -74,6 +80,7 @@ def _parse_param(raw_string):
 
 
 def _parse_outputs(raw_string):
+    """ Parse ResponseDocument parameter. """
     outputs = []
     for output in raw_string.split(";"):
         outputs.append(_create_output(*_parse_param(output)))
@@ -81,23 +88,16 @@ def _parse_outputs(raw_string):
 
 
 def _parse_raw_output(raw_string):
+    """ Parse RawDataOutput parameter. """
     return RawDataOutput(_create_output(*_parse_param(raw_string)))
 
 
-def _parse_bool(raw_string):
-    return raw_string == 'true'
-
-
 def _create_output(identifier, _, attrs):
-    attr_as_reference = False
-    #attr_as_reference = attrs.get("asReference")
-    #if attr_as_reference is not None:
-    #    attr_as_reference = attr_as_reference == true
-
+    """ Create one Output object from the parsed identifier and attributes. """
     return Output(
         identifier, None, None, attrs.get("uom"),
         attrs.get("crs"), attrs.get("mimeType"), attrs.get("encoding"),
-        attrs.get("schema"), attr_as_reference
+        attrs.get("schema"), parse_bool(attrs.get("asReference"))
     )
 
 
@@ -121,6 +121,8 @@ def parse_query_string(query_string):
 
 
 class WPS10ExecuteKVPDecoder(kvp.Decoder):
+    """ WPS 1.0 Execute HTTP/GET KVP request decoder. """
+    #pylint: disable=too-few-public-methods
     identifier = kvp.Parameter()
     inputs = kvp.Parameter(
         "DataInputs", type=_parse_inputs, num="?", default={}
@@ -132,17 +134,20 @@ class WPS10ExecuteKVPDecoder(kvp.Decoder):
         "RawDataOutput", type=_parse_raw_output, num="?"
     )
     status = kvp.Parameter(
-        "status", type=_parse_bool, num="?", default=False
+        "status", type=parse_bool, num="?", default=False
     )
     lineage = kvp.Parameter(
-        "lineage", type=_parse_bool, num="?", default=False
+        "lineage", type=parse_bool, num="?", default=False
     )
     store_response = kvp.Parameter(
-        "storeExecuteResponse", type=_parse_bool, num="?", default=False
+        "storeExecuteResponse", type=parse_bool, num="?", default=False
     )
 
     @property
     def response_form(self):
+        """ Get response unified form parsed either from ResponseDocument or
+        RawDataOutput parameters.
+        """
         raw_response = self.raw_response
         if raw_response:
             return raw_response
@@ -152,6 +157,6 @@ class WPS10ExecuteKVPDecoder(kvp.Decoder):
             status=self.status,
             store_response=self.store_response
         )
-        for output in self.outputs:
+        for output in self.outputs: # pylint: disable=not-an-iterable
             resp_doc.set_output(output)
         return resp_doc
