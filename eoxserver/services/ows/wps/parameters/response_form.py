@@ -36,11 +36,23 @@ except ImportError:
 
 from .base import ParamMetadata
 
-#-------------------------------------------------------------------------------
 
 class Output(ParamMetadata):
-    """ Output request."""
+    # pylint: disable=too-few-public-methods,too-many-arguments
+    """ Requested output definition.
 
+    Constructor parameters:
+        identifier   output identifier
+        title        output title (human-readable name)
+        abstract     output abstract (human-readable description)
+        uom          output LiteralData UOM
+        crs          output BoundingBox CRS
+        mime_type    output ComplexData mime-type
+        encoding     output ComplexData encoding
+        schema       output ComplexData schema
+        as_reference  boolean flag indicating whether the output should
+                     passed as a reference op directly in the response.
+    """
     def __init__(self, identifier, title=None, abstract=None, uom=None,
                  crs=None, mime_type=None, encoding=None, schema=None,
                  as_reference=False):
@@ -74,7 +86,13 @@ class ResponseForm(OrderedDict):
 
 
 class ResponseDocument(ResponseForm):
-    """ Object representation of the response document."""
+    """ Object representation of the (WPS Execute) response document.
+
+    Constructor parameters (meaning described in  OGC 05-007r7, Table 50):
+        lineage         boolean flag, set to True to print the lineage
+        status          boolean flag, set to True to update status
+        store_response  boolean flag, set to True to store execute response
+    """
     raw = False
 
     def __init__(self, lineage=False, status=False, store_response=False):
@@ -91,7 +109,13 @@ class ResponseDocument(ResponseForm):
             ))
         )
 
+
 class RawDataOutput(ResponseForm):
+    """ Object representation of the raw output response.
+
+    Constructor parameters:
+        output      name of the requested output parameter
+    """
     raw = True
     lineage = False
     status = False

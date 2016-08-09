@@ -31,7 +31,8 @@ from itertools import chain
 from .data_types import BaseType, Double, DTYPES
 
 class TypedMixIn(object):
-    """ adding type to a allowed value range """
+    """ Mix-in class adding date-type to an allowed value range. """
+    # pylint: disable=too-few-public-methods
 
     def __init__(self, dtype):
         if issubclass(dtype, BaseType):
@@ -43,11 +44,12 @@ class TypedMixIn(object):
 
     @property
     def dtype(self):
+        """ Get data-type. """
         return self._dtype
 
 
 class BaseAllowed(object):
-    """ allowed values base class """
+    """ Allowed values base class. """
 
     def check(self, value):
         """ check validity """
@@ -59,9 +61,8 @@ class BaseAllowed(object):
 
 
 class AllowedAny(BaseAllowed):
-    """ dummy allowed values class """
+    """ Allowed values class allowing any value. """
 
-    # TODO: NaN check
     def check(self, value):
         return True
 
@@ -70,16 +71,21 @@ class AllowedAny(BaseAllowed):
 
 
 class AllowedByReference(BaseAllowed):
-    """ class of allowed values defined by a reference """
+    """ Allowed values class defined by a reference.
+
+    NOTE: As it is not how such a reference definition looks like
+    this class has the same behaviour as the AllowedAny class.
+    """
+    # TODO: Implement proper handling of the allowed values defined by a reference.
 
     def __init__(self, url):
         self._url = url
 
     @property
     def url(self):
+        """ Get the URL of the reference. """
         return self._url
 
-    # TODO: implement proper checking
     def check(self, value):
         return True
 
@@ -88,7 +94,7 @@ class AllowedByReference(BaseAllowed):
 
 
 class AllowedEnum(BaseAllowed, TypedMixIn):
-    """ enumerated set of allowed values class """
+    """ Allowed values class allowing values from an enumerated set. """
 
     def __init__(self, values, dtype=Double):
         TypedMixIn.__init__(self, dtype)
@@ -96,6 +102,7 @@ class AllowedEnum(BaseAllowed, TypedMixIn):
 
     @property
     def values(self):
+        """ Get the allowed values. """
         return self._values
 
     def check(self, value):
@@ -108,22 +115,22 @@ class AllowedEnum(BaseAllowed, TypedMixIn):
 
 
 class AllowedRange(BaseAllowed, TypedMixIn):
-    """ range of allowed values class """
+    """ Allowed values class allowing values from a range.
 
-    ALLOWED_CLOSURES = ['closed', 'open', 'open-closed', 'closed-open']
-
-    # NOTE: Use of spacing with float discrete range is not recommended.
-    def __init__(self, minval, maxval, closure='closed',
-                 spacing=None, spacing_rtol=1e-9, dtype=Double):
-        """ Range constructor.
-
-            parameters:
+    Constructor parameters:
                 minval      range lower bound - set to None if unbound
                 maxval      range upper bound - set to None if unbound
                 closure    *'closed'|'open'|'open-closed'|'closed-open'
                 spacing     uniform spacing of discretely sampled ranges
                 spacing_rtol relative tolerance of the spacing match
         """
+
+    ALLOWED_CLOSURES = ['closed', 'open', 'open-closed', 'closed-open']
+
+    # NOTE: Use of spacing with float discrete range is not recommended.
+    def __init__(self, minval, maxval, closure='closed',
+                 spacing=None, spacing_rtol=1e-9, dtype=Double):
+        # pylint: disable=too-many-arguments
         TypedMixIn.__init__(self, dtype)
 
         if not self._dtype.comparable:
@@ -147,7 +154,7 @@ class AllowedRange(BaseAllowed, TypedMixIn):
         if spacing is not None:
             ddtype = self._dtype.get_diff_dtype()
 
-            # check wehther the type has difference operation defined
+            # check whether the type has difference operation defined
             if ddtype is None or ddtype.zero is None:
                 raise TypeError(
                     "Spacing is not applicable for type '%s'!" % dtype
@@ -161,18 +168,22 @@ class AllowedRange(BaseAllowed, TypedMixIn):
 
     @property
     def minval(self):
+        """ Get the lower bound of the range. """
         return self._minval
 
     @property
     def maxval(self):
+        """ Get the upper bound of the range. """
         return self._maxval
 
     @property
     def spacing(self):
+        """ Get the range spacing. """
         return self._spacing
 
     @property
     def closure(self):
+        """ Get the range closure type. """
         return self.ALLOWED_CLOSURES[self._closure]
 
     def _out_of_spacing(self, value):
@@ -185,7 +196,7 @@ class AllowedRange(BaseAllowed, TypedMixIn):
         return not self._rtol >= abs(tmp2 - round(tmp2))
 
     def _out_of_bounds(self, value):
-        if value != value: # cheap type-safe NaN check (sucks for Python<=2.5)
+        if value != value: # simple type-safe NaN check (works in Python > 2.5)
             return True
         below = self._minval is not None and (
             value < self._minval or (
@@ -213,8 +224,8 @@ class AllowedRange(BaseAllowed, TypedMixIn):
 
 
 class AllowedRangeCollection(BaseAllowed, TypedMixIn):
-    """ allowed values resctriction class combined of multiple
-        AllowedEnum and AllowedRange objects.
+    """ Allowed value class allowing values from a collection of AllowedEnum
+    and AllowedRange instances.
     """
 
     def __init__(self, *objs):
@@ -229,7 +240,7 @@ class AllowedRangeCollection(BaseAllowed, TypedMixIn):
         ranges = []
 
         for obj in objs:
-            # Collect enumarated values to a one set.
+            # Merge enumerated values into one set.
             if isinstance(obj, AllowedEnum):
                 values.update(obj.values)
             # Collect ranges.
@@ -250,10 +261,12 @@ class AllowedRangeCollection(BaseAllowed, TypedMixIn):
 
     @property
     def enum(self):
+        """ Get merged set of the enumerated allowed values. """
         return self._enum
 
     @property
     def ranges(self):
+        """ Get list of the allowed values' ranges. """
         return self._ranges
 
     def check(self, value):

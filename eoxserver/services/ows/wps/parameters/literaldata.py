@@ -41,38 +41,38 @@ from .units import UnitOfMeasure, UnitLinear
 
 
 class LiteralData(Parameter):
-    """ literal-data parameter class """
+    """ Literal-data parameter class.
+
+    Constructor parameters:
+        identifier  identifier of the parameter used by the WPS service
+        title       optional human-readable name (defaults to identifier)
+        abstract    optional human-readable verbose description
+        metadata    optional metadata (title/URL dictionary)
+        optional    optional boolean flag indicating whether the input
+                    parameter is optional or not
+        dtype       optional data type of the parameter. String type
+                    ``str`` is set by default. For list of supported
+                    types see ``LiteralData.SUPPORTED_TYPES``)
+        uoms        optional sequence of the supported units
+        default     optional default input value. Presence of the
+                    default value sets the parameter optional.
+        allowed_values optional restriction on the accepted values.
+                    By default any value of the given type is
+                    supported. The allowed value can be specified by
+                    an enumerated list (iterable) of values or by
+                    instance of one of the following classes:
+                    ``AllowedAny``, ``AllowedEnum``, ``AllowedRange``,
+                    or ``AllowedByReference``.
+        resolve_input_references  Set this option to False not to resolve
+                    input references. By default the references are
+                    resolved (downloaded and parsed) transparently.
+                    If set to False the references must be handled
+                    by the process.
+    """
 
     def __init__(self, identifier, dtype=String, uoms=None, default=None,
                  allowed_values=None, *args, **kwargs):
-        """ Object constructor.
-
-            Parameters:
-                identifier  identifier of the parameter.
-                title       optional human-readable name (defaults to identifier).
-                abstract    optional human-readable verbose description.
-                metadata    optional metadata (title/URL dictionary).
-                optional    optional boolean flag indicating whether the input
-                            parameter is optional or not.
-                dtype       optional data type of the parameter. String type
-                            ``str`` is set by default. For list of supported
-                            types see ``LiteralData.SUPPORTED_TYPES``).
-                uoms        optional sequence of the supported units.
-                default     optional default input value. Presence of the
-                            default value sets the parameter optional.
-                allowed_values optional restriction on the accepted values.
-                            By default any value of the given type is
-                            supported. The allowed value can be specified by
-                            an enumerated list (iterable) of values or by
-                            instance of one of the following classes:
-                            ``AllowedAny``, ``AllowedEnum``, ``AllowedRange``,
-                            or ``AllowedByReference``.
-                resolve_input_references Set this option to False not to resolve
-                            input references. By default the references are
-                            resolved (downloaded and parsed) transparently.
-                            If set to False the references must be handled
-                            by the process.
-        """
+        # pylint: disable=too-many-arguments, too-many-branches
         super(LiteralData, self).__init__(identifier, *args, **kwargs)
 
         if isinstance(dtype, type) and issubclass(dtype, BaseType):
@@ -88,14 +88,15 @@ class LiteralData(Parameter):
             if (hasattr(allowed_values, 'dtype') and
                     self._dtype != allowed_values.dtype):
                 raise TypeError(
-                    "The allowed values vs. literal data  type mismatch! "
-                    "%s != %s" % (allowed_values.dtype, self._dtype)
+                    "The allowed values has a different data-type "
+                    "then the literal data object %s != %s" %
+                    (allowed_values.dtype, self._dtype)
                 )
             self._allowed_values = allowed_values
         elif allowed_values is not None:
             self._allowed_values = AllowedEnum(allowed_values, self._dtype)
         else:
-            self._allowed_values = AllowedAny()
+            self._allowed_values = AllowedAny() # pylint: disable=redefined-variable-type
 
         if uoms: # the first UOM is the default one
             tmp = OrderedDict()
@@ -115,10 +116,12 @@ class LiteralData(Parameter):
 
     @property
     def default_uom(self):
+        """ Get the default UOM. """
         return self._uoms.keys()[0] if self._uoms else None
 
     @property
     def uoms(self):
+        """ Get all allowed UOMs. """
         return self._uoms.keys() if self._uoms else None
 
     @property
@@ -140,6 +143,7 @@ class LiteralData(Parameter):
         return self._allowed_values.verify(value)
 
     def apply_uom(self, value, uom):
+        """ Convert value from the common base to the desired UOM. """
         if uom is None:
             return value
         try:
@@ -148,6 +152,7 @@ class LiteralData(Parameter):
             raise ValueError("Invalid UOM '%s'!" % uom)
 
     def strip_uom(self, value, uom):
+        """ Convert value from the provided UOM to the common base. """
         if uom is None:
             return value
         try:

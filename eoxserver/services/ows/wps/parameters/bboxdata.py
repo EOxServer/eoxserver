@@ -30,22 +30,29 @@
 
 import re
 from itertools import chain
-
 from eoxserver.core.util.rect import Rect
 from .data_types import Double
 from .crs import CRSType
 from .base import Parameter
 
-
-# precompiled reg.ex. used to eliminate repeated white-spaces
+# pre-compiled regular expression used to eliminate repeated extra white-spaces
 _RE_MULTIWS = re.compile(r"\s+")
 
-#-------------------------------------------------------------------------------
 
 class BoundingBox(tuple):
-    """ Bounding Box representation. """
+    """ Bounding-box class.
+
+    Constructor parameters:
+        bbox    N-dimensional bounding box definition:
+                    ((xmin,),(xmax,))
+                    ((xmin,ymin),(xmax,ymax))
+                    ((xmin,ymin,zmin),(xmax,ymax,zmax))
+                or instance of the ``Rect`` class.
+        crs     optional CRS identifier (URI)
+    """
 
     def __new__(cls, bbox, crs=None):
+        # pylint: disable=unused-argument
         if isinstance(bbox, Rect):
             lower, upper = bbox.offset, bbox.upper
         else:
@@ -60,38 +67,32 @@ class BoundingBox(tuple):
         return tuple.__new__(cls, (lower, upper))
 
     def __init__(self, bbox, crs=None):
-        """ bounding box constructor
-
-            Parameters:
-                bbox    n-dimensional bounding box definition:
-                            ((xmin,),(xmax,))
-                            ((xmin,ymin),(xmax,ymax))
-                            ((xmin,ymin,zmin),(xmax,ymax,zmax))
-                        or instance of the ``Rect`` class.
-                crs     optional crs identifier (URI)
-        """
         tuple.__init__(self)
         self._crs = crs if crs is not None else getattr(bbox, "crs", None)
 
     @property
     def crs(self):
+        """ Get the bounding-box CRS. """
         return self._crs
 
     @property
     def lower(self):
+        """ Get the bounding-box lower coordinates. """
         return self[0]
 
     @property
     def upper(self):
+        """ Get the bounding-box upper coordinates. """
         return self[1]
 
     @property
     def dimension(self):
+        """ Get the bounding-box dimension. """
         return len(self[0])
 
     @property
     def as_rect(self):
-        """Cast to a Rect object."""
+        """Cast to a `Rect` object. (Available only for the 2D bounding-box)."""
         if self.dimension != 2:
             raise RuntimeError(
                 "Only 2D bounding-box can be cast to a rectangle object!"
@@ -102,37 +103,35 @@ class BoundingBox(tuple):
         crs = ", crs=%s" % (self.crs if self.crs is not None else "")
         return "BoundingBox((%s, %s)%s)" % (self.lower, self.upper, crs)
 
-#-------------------------------------------------------------------------------
 
 class BoundingBoxData(Parameter):
-    """ bunding box parameter class """
+    """ Bounding-box parameter class
+
+    Constructor parameters:
+        identifier  identifier of the parameter.
+        title       optional human-readable name (defaults to identifier).
+        abstract    optional human-readable verbose description.
+        metadata    optional metadata (title/URL dictionary).
+        optional    optional boolean flag indicating whether the input
+                    parameter is optional or not.
+        default     optional default input value. Presence of the
+                    default value sets the parameter optional.
+        crss        list of accepted CRSs (Coordinate Reference Systems).
+                    The CRSs shall be given in form of the integer EPSG
+                    codes. Defaults to WGS84 (EPSG:4326).
+        dimension   optional dimension of the bounding box coordinates.
+                    Defaults to 2.
+        resolve_input_references Set this option to False not to resolve
+                    input references. By default the references are
+                    resolved (downloaded and parsed) transparently.
+                    If set to False the references must be handled
+                    by the process.
+    """
     dtype = Double
     dtype_crs = CRSType
 
     def __init__(self, identifier, crss=None, dimension=2, default=None,
                  *args, **kwargs):
-        """ Object constructor.
-
-            Parameters:
-                identifier  identifier of the parameter.
-                title       optional human-raedable name (defaults to identifier).
-                abstract    optional human-redable verbose description.
-                metadata    optional metadata (title/URL dictionary).
-                optional    optional boolean flag indicating whether the input
-                            parameter is optional or not.
-                default     optional default input value. Presence of the
-                            default value sets the parameter optional.
-                crss        list of accepted CRSs (Coordinate Reference Systems).
-                            The CRSs shall be given in form of the integer EPSG
-                            codes. Defaults to WGS84 (EPSG:4326).
-                dimension   optional dimension of the bounding box coordinates.
-                            Defaults to 2.
-                resolve_input_references Set this option to False not to resolve
-                            input references. By default the references are
-                            resolved (downloaded and parsed) transparently.
-                            If set to False the references must be handled
-                            by the process.
-        """
         super(BoundingBoxData, self).__init__(identifier, *args, **kwargs)
         self.dimension = int(dimension)
         self.crss = tuple(self.parse_crs(crs) for crs in crss or (4326,))
@@ -142,6 +141,7 @@ class BoundingBoxData(Parameter):
 
     @property
     def default_crs(self):
+        """ Get the bounding-box default CRS. """
         return self.crss[0]
 
     def _encode(self, bbox):
@@ -153,7 +153,7 @@ class BoundingBoxData(Parameter):
             )
         crs = bbox.crs if bbox.crs is not None else self.default_crs
         if crs not in self.crss:
-            raise ValueError("Invalid crs %s of the encoded bounding box!" % crs)
+            raise ValueError("Invalid CRS %s of the encoded bounding box!" % crs)
 
         return (
             (self.dtype.encode(v) for v in bbox.lower),
@@ -171,6 +171,7 @@ class BoundingBoxData(Parameter):
         return (" ".join(lower), " ".join(upper), crs[0])
 
     def parse(self, raw_bbox):
+        """ Parse the input CRS. """
         if isinstance(raw_bbox, BoundingBox):
             bbox = BoundingBox(
                 (raw_bbox.lower, raw_bbox.upper),
@@ -203,7 +204,7 @@ class BoundingBoxData(Parameter):
             bbox = BoundingBox((lower, upper), crs)
         if bbox.dimension != self.dimension:
             raise ValueError(
-                "Invalid dimenstion %d of the parsed bounding box!" %
+                "Invalid dimension %d of the parsed bounding box!" %
                 bbox.dimension
             )
         if bbox.crs not in self.crss:
@@ -214,9 +215,10 @@ class BoundingBoxData(Parameter):
 
     @classmethod
     def parse_crs(cls, raw_crs):
+        """ Parse the input bounding CRS. """
         return cls.dtype_crs.parse(raw_crs)
 
     @classmethod
     def encode_crs(cls, crs):
+        """ Encode the output bounding CRS. """
         return cls.dtype_crs.encode(crs)
-

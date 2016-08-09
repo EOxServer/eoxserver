@@ -55,8 +55,8 @@ def _parse_inputs(raw_string):
         else:
             #NOTE: KVP Bounding box cannot be safely detected and parsed.
             input_ = InputData( # pylint: disable=redefined-variable-type
-                identifier=id_,
                 data=value,
+                identifier=id_,
                 uom=param.get("uom"),
                 mime_type=param.get("mimeType"),
                 encoding=param.get("encoding"),

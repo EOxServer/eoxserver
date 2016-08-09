@@ -128,7 +128,9 @@ def _parse_input_data(elem, identifier, title, abstract):
         args = _parse_input_complex(elem)
     else:
         raise ValueError("Invalid input content of the 'wps:Data' element!")
-    return InputData(identifier, title, abstract, **args)
+    return InputData(
+        identifier=identifier, title=title, abstract=abstract, **args
+    )
 
 
 def _parse_input_literal(elem):
