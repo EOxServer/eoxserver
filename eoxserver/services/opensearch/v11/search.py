@@ -45,11 +45,19 @@ class SearchContext(namedtuple("SearchContext", [
 
     @property
     def page_count(self):
-        return self.total_count // (self.page_size or self.count)
+        divisor = (self.page_size or self.count)
+        if divisor == 0:
+            return 1
+
+        return self.total_count // divisor
 
     @property
     def current_page(self):
-        return self.start_index // (self.page_size or self.count)
+        divisor = (self.page_size or self.count)
+        if divisor == 0:
+            return 1
+
+        return self.start_index // divisor
 
 
 class OpenSearch11SearchHandler(Component):
