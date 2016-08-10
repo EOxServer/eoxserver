@@ -131,7 +131,9 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
         return self.PARAM("Parameter", *[
             self.PARAM("Option", value=option, label=option)
             for option in options
-        ], minimum="0" if parameter.get("optional", True) else "1", maximum="1")
+        ], minimum="0" if parameter.get("optional", True) else "1", maximum="1",
+            **parameter
+        )
 
 
 class OpenSearch11DescriptionHandler(Component):
