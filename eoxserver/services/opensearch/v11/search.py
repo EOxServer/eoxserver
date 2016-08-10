@@ -110,8 +110,12 @@ class OpenSearch11SearchHandler(Component):
         except StopIteration:
             raise Http404("No such result format '%s'." % format_name)
 
+
+        default_page_size = 100  # TODO: make this configurable
+
         search_context = SearchContext(
-            total_count, decoder.start_index, decoder.count, len(qs),
+            total_count, decoder.start_index,
+            decoder.count or default_page_size, len(qs),
             all_parameters, namespaces
         )
 
