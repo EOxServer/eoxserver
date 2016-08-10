@@ -101,9 +101,9 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
         search_url = request.build_absolute_uri(search_url)
 
         default_parameters = (
-            dict(name="q", type="searchTerms"),
-            dict(name="count", type="count"),
-            dict(name="startIndex", type="startIndex"),
+            dict(name="q", type="searchTerms", namespace=None),
+            dict(name="count", type="count", namespace=None),
+            dict(name="startIndex", type="startIndex", namespace=None),
         )
         parameters = chain(default_parameters, *[
             [
@@ -124,7 +124,7 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
         )
 
         url = self.OS("Url", *[
-                self.encode_parameter(parameter, search_extension.namespace)
+                self.encode_parameter(parameter, parameter["namespace"])
                 for parameter in parameters
             ],
             type=result_format.mimetype,
@@ -136,9 +136,13 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
 
     def encode_parameter(self, parameter, namespace):
         options = parameter.pop("options", [])
-        parameter["value"] = "{%s:%s}" % (
-            namespace.prefix, parameter.pop("type")
-        )
+        if namespace:
+            parameter["value"] = "{%s:%s}" % (
+                namespace.prefix, parameter.pop("type")
+            )
+        else:
+            parameter["value"] = "{%s}" % parameter.pop("type")
+
         return self.PARAM("Parameter", *[
             self.PARAM("Option", value=option, label=option)
             for option in options
