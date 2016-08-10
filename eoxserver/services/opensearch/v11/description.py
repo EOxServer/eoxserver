@@ -26,6 +26,8 @@
 #-------------------------------------------------------------------------------
 
 
+from itertools import chain
+
 from lxml.builder import ElementMaker
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
@@ -98,26 +100,35 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
 
         search_url = request.build_absolute_uri(search_url)
 
+        default_parameters = (
+            dict(name="q", type="searchTerms"),
+            dict(name="count", type="count"),
+            dict(name="startIndex", type="startIndex"),
+        )
+        parameters = chain(default_parameters, *[
+            [
+                dict(parameter, **{"namespace": search_extension.namespace})
+                for parameter in search_extension.get_schema()
+            ] for search_extension in self.search_extensions
+        ])
+
         query_template = "&".join(
-            "%s={%s:%s%s}" % (
-                parameter["name"], search_extension.namespace.prefix,
+            "%s={%s%s%s%s}" % (
+                parameter["name"],
+                parameter["namespace"].prefix if parameter["namespace"] else "",
+                ":" if parameter["namespace"] else "",
                 parameter["type"],
                 "?" if parameter.get("optional", True) else ""
             )
-            for search_extension in self.search_extensions
-            for parameter in search_extension.get_schema()
+            for parameter in parameters
         )
 
         url = self.OS("Url", *[
                 self.encode_parameter(parameter, search_extension.namespace)
-                for search_extension in self.search_extensions
-                for parameter in search_extension.get_schema()
+                for parameter in parameters
             ],
             type=result_format.mimetype,
-            template=(
-                "%s?q={searchTerms?}&count={count?}"
-                "&startIndex={startIndex?}&%s" % (search_url, query_template)
-            ),
+            template="%s?%s" % (search_url, query_template),
             rel="results" if collection else "collection"
         )
 

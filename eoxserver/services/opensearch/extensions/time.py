@@ -31,7 +31,7 @@ from django.db.models import Q
 from eoxserver.core import Component, implements
 from eoxserver.core.decoders import kvp, enum
 from eoxserver.core.util.xmltools import NameSpace
-from eoxserver.core.util.timetools import parse_iso8601, isoformat
+from eoxserver.core.util.timetools import parse_iso8601
 from eoxserver.services.opensearch.interfaces import SearchExtensionInterface
 
 
