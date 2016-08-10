@@ -105,13 +105,13 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
                 "?" if parameter.get("optional", True) else ""
             )
             for search_extension in self.search_extensions
-            for parameter in search_extension.get_schema(collection)
+            for parameter in search_extension.get_schema()
         )
 
         url = self.OS("Url", *[
                 self.encode_parameter(parameter, search_extension.namespace)
                 for search_extension in self.search_extensions
-                for parameter in search_extension.get_schema(collection)
+                for parameter in search_extension.get_schema()
             ],
             type=result_format.mimetype,
             template=(
@@ -131,7 +131,7 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
         return self.PARAM("Parameter", *[
             self.PARAM("Option", value=option, label=option)
             for option in options
-        ], **parameter)
+        ], minimum="0" if parameter.get("optional", True) else "1", maximum="1")
 
 
 class OpenSearch11DescriptionHandler(Component):
