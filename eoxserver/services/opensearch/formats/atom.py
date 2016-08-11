@@ -37,16 +37,14 @@ from eoxserver.services.opensearch.formats.base import BaseFeedResultFormat
 # namespace declarations
 ns_atom = NameSpace("http://www.w3.org/2005/Atom", None)
 ns_opensearch = NameSpace("http://a9.com/-/spec/opensearch/1.1/", "opensearch")
-ns_georss = NameSpace("http://www.georss.org/georss", "georss")
 ns_gml = NameSpace("http://www.opengis.net/gml", "gml")
 
 # namespace map
-nsmap = NameSpaceMap(ns_atom, ns_opensearch, ns_georss)
+nsmap = NameSpaceMap(ns_atom, ns_opensearch)
 
 # Element factories
 ATOM = ElementMaker(namespace=ns_atom.uri, nsmap=nsmap)
 OS = ElementMaker(namespace=ns_opensearch.uri, nsmap=nsmap)
-GEORSS = ElementMaker(namespace=ns_georss.uri, nsmap=nsmap)
 GML = ElementMaker(namespace=ns_gml.uri, nsmap=nsmap)
 
 
@@ -92,13 +90,6 @@ class AtomResultFormat(BaseFeedResultFormat):
         )
 
         entry.extend(self.encode_item_links(request, item))
-
-        if item.footprint:
-            extent = item.extent_wgs84
-            entry.append(
-                GEORSS("box",
-                    "%f %f %f %f" % (extent[1], extent[0], extent[3], extent[2])
-                )
-            )
+        entry.extend(self.encode_spatio_temporal(item))
 
         return entry

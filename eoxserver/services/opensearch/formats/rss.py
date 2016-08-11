@@ -99,14 +99,7 @@ class RSSResultFormat(BaseFeedResultFormat):
 
         rss_item.extend(self.encode_item_links(request, item))
 
-        if item.footprint:
-            extent = item.extent_wgs84
-            rss_item.append(
-                GEORSS("box",
-                    "%f %f %f %f" % (extent[1], extent[0], extent[3], extent[2])
-                )
-            )
-
+        # TODO: remove this for the general dc:date?
         if item.begin_time and item.end_time:
             rss_item.append(
                 GML("TimePeriod",
@@ -115,4 +108,6 @@ class RSSResultFormat(BaseFeedResultFormat):
                     **{ns_gml("id"): item.identifier}
                 )
             )
+
+        rss_item.extend(self.encode_spatio_temporal(item))
         return rss_item

@@ -139,9 +139,15 @@ class BaseOGRResultFormat(BaseResultFormat):
 
 ns_atom = NameSpace("http://www.w3.org/2005/Atom", "atom")
 ns_opensearch = NameSpace("http://a9.com/-/spec/opensearch/1.1/", "opensearch")
-nsmap = NameSpaceMap(ns_atom)
+ns_dc = NameSpace("http://purl.org/dc/elements/1.1/", "dc")
+ns_georss = NameSpace("http://www.georss.org/georss", "georss")
+
+nsmap = NameSpaceMap(ns_atom, ns_dc, ns_georss)
+
 ATOM = ElementMaker(namespace=ns_atom.uri)
 OS = ElementMaker(namespace=ns_opensearch.uri)
+DC = ElementMaker(namespace=ns_dc.uri, nsmap=nsmap)
+GEORSS = ElementMaker(namespace=ns_georss.uri, nsmap=nsmap)
 
 
 class BaseFeedResultFormat(BaseResultFormat):
@@ -256,3 +262,24 @@ class BaseFeedResultFormat(BaseResultFormat):
 
     def encode_summary(self, request, item):
         pass
+
+    def encode_spatio_temporal(self, item):
+        entries = []
+        if item.footprint:
+            extent = item.extent_wgs84
+            entries.append(
+                GEORSS("box",
+                    "%f %f %f %f" % (extent[1], extent[0], extent[3], extent[2])
+                )
+            )
+
+        begin_time, end_time = item.time_extent
+        if begin_time and end_time:
+            if begin_time != end_time:
+                entries.append(
+                    DC("date", "%s/%s" % (
+                        isoformat(begin_time), isoformat(end_time)
+                    ))
+                )
+            else:
+                entries.append(DC("date", isoformat(begin_time)))
