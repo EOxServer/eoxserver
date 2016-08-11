@@ -283,3 +283,5 @@ class BaseFeedResultFormat(BaseResultFormat):
                 )
             else:
                 entries.append(DC("date", isoformat(begin_time)))
+
+        return entries
