@@ -95,7 +95,46 @@ class WPS10DescribeProcessValidTC03TestCase(ContentTypeCheckMixIn, testbase.XMLT
         params = "service=WPS&version=1.0.0&request=DescribeProcess&identifier=TC03:image_generator:complex"
         return (params, "kvp")
 
+class WPS10DescribeProcessTC06MinimalValidProcess(ContentTypeCheckMixIn, testbase.XMLTestCase):
+    expectedContentType = XML_CONTENT_TYPE
+    def getRequest(self):
+        params = "service=WPS&version=1.0.0&request=DescribeProcess&identifier=Test06MinimalValidProcess"
+        return (params, "kvp")
+
+class WPS10DescribeProcessTC06MinimalAllowedProcess(ContentTypeCheckMixIn, testbase.XMLTestCase):
+    expectedContentType = XML_CONTENT_TYPE
+    def getRequest(self):
+        params = "service=WPS&version=1.0.0&request=DescribeProcess&identifier=Test06MinimalAllowedProcess"
+        return (params, "kvp")
+
+    def testValidate(self):
+        # NOTE: The minimal process allowed by the implementation is not
+        # standard compliant as it does not contain any input nor output.
+        pass
+
 #TODO: Error - invalid process identifier
+
+#===============================================================================
+# WCS 1.0 Execute - Minimal Process
+#===============================================================================
+
+class WPS10ExecuteTC06MinimalValidProcess(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
+    expectedContentType = XML_CONTENT_TYPE
+    def getRequest(self):
+        params = "service=WPS&version=1.0.0&request=execute&identifier=Test06MinimalValidProcess&DataInputs=input=TEST&lineage=true"
+        return (params, "kvp")
+
+class WPS10ExecuteTC06MinimalAllowedProcess(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
+    expectedContentType = XML_CONTENT_TYPE
+    def getRequest(self):
+        params = "service=WPS&version=1.0.0&request=execute&identifier=Test06MinimalAllowedProcess"
+        return (params, "kvp")
+
+class WPS10ExecuteTC06MinimalAllowedProcessWithLineage(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
+    expectedContentType = XML_CONTENT_TYPE
+    def getRequest(self):
+        params = "service=WPS&version=1.0.0&request=execute&identifier=Test06MinimalAllowedProcess&lineage=true"
+        return (params, "kvp")
 
 #===============================================================================
 # WCS 1.0 Execute - Literal Data Tests
