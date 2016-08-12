@@ -34,7 +34,7 @@ from django.core.urlresolvers import reverse
 from eoxserver.core.util.xmltools import etree, NameSpace, NameSpaceMap
 from eoxserver.core.util.timetools import isoformat
 from eoxserver.services.opensearch.formats.base import (
-    BaseFeedResultFormat, ns_opensearch
+    BaseFeedResultFormat, ns_opensearch, ns_dc, ns_atom
 )
 
 
@@ -43,7 +43,7 @@ ns_georss = NameSpace("http://www.georss.org/georss", "georss")
 ns_gml = NameSpace("http://www.opengis.net/gml", "gml")
 
 # namespace map
-nsmap = NameSpaceMap(ns_georss, ns_gml, ns_opensearch)
+nsmap = NameSpaceMap(ns_georss, ns_gml, ns_opensearch, ns_dc, ns_atom)
 
 # Element factories
 GEORSS = ElementMaker(namespace=ns_georss.uri, nsmap=nsmap)
