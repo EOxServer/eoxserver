@@ -68,8 +68,11 @@ class WPS10DescribeProcessHandler(Component):
 
         used_processes = []
         for process in self.processes:
-            if process.identifier in identifiers:
-                identifiers.remove(process.identifier)
+            process_identifier = (
+                getattr(process, 'identifier', None) or type(process).__name__
+            )
+            if process_identifier in identifiers:
+                identifiers.remove(process_identifier)
                 used_processes.append(process)
 
         for identifier in identifiers:

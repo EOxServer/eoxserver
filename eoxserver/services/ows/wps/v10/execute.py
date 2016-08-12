@@ -87,7 +87,10 @@ class WPS10ExcecuteHandler(Component):
     def get_process(self, identifier):
         """ Get process component matched by the identifier. """
         for process in self.processes:
-            if process.identifier == identifier:
+            process_identifier = (
+                getattr(process, 'identifier', None) or type(process).__name__
+            )
+            if process_identifier == identifier:
                 return process
         raise NoSuchProcessError(identifier)
 

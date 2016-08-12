@@ -50,9 +50,12 @@ class WPS10CapabilitiesXMLEncoder(WPS10BaseXMLEncoder):
         process_set = set()
         process_offerings = []
         for process in processes:
-            if process.identifier not in process_set:
+            process_identifier = (
+                getattr(process, 'identifier', None) or type(process).__name__
+            )
+            if process_identifier not in process_set:
                 process_offerings.append(encode_process_brief(process))
-                process_set.add(process.identifier)
+                process_set.add(process_identifier)
 
         return WPS("Capabilities",
             OWS("ServiceIdentification",

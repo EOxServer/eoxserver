@@ -101,22 +101,21 @@ def _encode_process_brief(process, elem):
     The brief process description is shared by both the Capabilities and
     ProcessDescriptions XML encoders.
     """
-    id_ = getattr(process, 'identifier', process.__class__.__name__)
-    title = getattr(process, 'title', id_)
-    #abstract = getattr(process, 'abstract', process.__class__.__doc__)
-    abstract = getattr(process, 'description', process.__class__.__doc__)
+    identifier = getattr(process, 'identifier', type(process).__name__)
+    title = getattr(process, 'title', identifier)
+    abstract = getattr(process, 'description', process.__doc__)
     version = getattr(process, "version", "1.0.0")
     metadata = getattr(process, "metadata", {})
     profiles = getattr(process, "profiles", [])
     wsdl = getattr(process, "wsdl", None)
 
-    elem.append(OWS("Identifier", id_))
+    elem.append(OWS("Identifier", identifier))
     elem.append(OWS("Title", title))
     elem.attrib[ns_wps("processVersion")] = version
     if abstract:
         elem.append(OWS("Abstract", abstract))
     elem.extend(_encode_metadata(k, metadata[k]) for k in metadata)
-    elem.extend(WPS("Profile", p) for p in profiles)
+    elem.extend(WPS("Profile", profile) for profile in profiles)
     if wsdl:
         elem.append(WPS("WSDL", **{ns_xlink("href"): wsdl}))
 
