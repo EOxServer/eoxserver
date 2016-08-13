@@ -3,9 +3,8 @@
   <wps:Process wps:processVersion="1.0.0">
     <ows:Identifier>TC01:identity:bbox</ows:Identifier>
     <ows:Title>Test Case 01: Bounding box data identity.</ows:Title>
-    <ows:Abstract> Test identity process (the ouptuts are copies of the inputs)
-        demonstrating various features of the bounding box data inputs
-        and outputs.
+    <ows:Abstract> Test identity process (the output is a copy of the input)
+    demonstrating various features of the bounding box data inputs and outputs.
     </ows:Abstract>
     <ows:Metadata xlink:href="http://www.metadata.com/test-metadata" xlink:title="test-metadata"/>
     <wps:Profile>test_profile</wps:Profile>
@@ -38,4 +37,3 @@
     </wps:Output>
   </wps:ProcessOutputs>
 </wps:ExecuteResponse>
-

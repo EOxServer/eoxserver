@@ -50,29 +50,28 @@ CRSS = (
 )
 
 class TestProcess01(Component):
-    """ Test identity process (the ouptuts are copies of the inputs)
-        demonstrating various features of the bounding box data inputs
-        and outputs.
+    """ Test identity process (the output is a copy of the input)
+    demonstrating various features of the bounding box data inputs and outputs.
     """
     implements(ProcessInterface)
 
     identifier = "TC01:identity:bbox"
     title = "Test Case 01: Bounding box data identity."
-    metadata = {"test-metadata":"http://www.metadata.com/test-metadata"}
+    metadata = {"test-metadata": "http://www.metadata.com/test-metadata"}
     profiles = ["test_profile"]
 
     inputs = [
-        ("input00", BoundingBoxData("TC01:input00", crss=CRSS,
+        ("input00", BoundingBoxData(
+            "TC01:input00", crss=CRSS,
             default=BoundingBox([[-90, -180], [+90, +180]]),
         )),
     ]
+
     outputs = [
         ("output00", BoundingBoxData("TC01:output00", crss=(4326, 0))),
     ]
 
     @staticmethod
-    def execute(**inputs):
-        outputs = {}
-        outputs['output00'] = inputs['input00']
-        return outputs
-
+    def execute(input00, **kwargs):
+        """ WPS Process execute handler. """
+        return input00

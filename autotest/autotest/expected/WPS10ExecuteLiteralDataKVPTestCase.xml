@@ -3,9 +3,8 @@
   <wps:Process wps:processVersion="1.0.0">
     <ows:Identifier>TC00:identity:literal</ows:Identifier>
     <ows:Title>Test Case 00: Literal data identity.</ows:Title>
-    <ows:Abstract> Test identity process (the ouptuts are copies of the inputs)
-        demonstrating various features of the literal data inputs
-        and outputs.
+    <ows:Abstract> Test identity process (the outputs are copies of the inputs)
+    demonstrating various features of the literal data inputs and outputs.
     </ows:Abstract>
     <ows:Metadata xlink:href="http://www.metadata.com/test-metadata" xlink:title="test-metadata"/>
     <wps:Profile>test_profile</wps:Profile>
@@ -68,15 +67,15 @@
     <wps:Output>
       <ows:Identifier>TC00:output03</ows:Identifier>
       <ows:Title>Distance</ows:Title>
-      <ows:Abstract>Restricted float input. UOM conversion.</ows:Abstract>
+      <ows:Abstract>Restricted float output with UOM conversion.</ows:Abstract>
       <wps:Data>
         <wps:LiteralData dataType="double" uom="cm">12.3</wps:LiteralData>
       </wps:Data>
     </wps:Output>
     <wps:Output>
       <ows:Identifier>TC00:output04</ows:Identifier>
-      <ows:Title>Distance</ows:Title>
-      <ows:Abstract>Restricted float input. Optional with default.  Advanced UOM conversion.</ows:Abstract>
+      <ows:Title>Temperature</ows:Title>
+      <ows:Abstract>Restricted float output advanced UOM conversion.</ows:Abstract>
       <wps:Data>
         <wps:LiteralData dataType="double" uom="F">67.1</wps:LiteralData>
       </wps:Data>

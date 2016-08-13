@@ -24,10 +24,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
+#pylint: disable=missing-docstring,line-too-long,too-many-ancestors
 
 from autotest_services import base as testbase
 from autotest_services.tests.wps.base import (
-    WPS10ExecuteMixIn, ContentTypeCheckMixIn, ContentDispositionCheckMixIn,
+    WPS10ExecuteMixIn, ContentTypeCheckMixIn,
 )
 
 XML_CONTENT_TYPE = "application/xml; charset=utf-8"

@@ -25,6 +25,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
+#pylint: disable=missing-docstring,line-too-long,too-many-ancestors
 
 from autotest_services import base as testbase
 from autotest_services.tests.wps.base import (
@@ -107,7 +108,7 @@ class WPS10DescribeProcessTC06MinimalAllowedProcess(ContentTypeCheckMixIn, testb
         params = "service=WPS&version=1.0.0&request=DescribeProcess&identifier=Test06MinimalAllowedProcess"
         return (params, "kvp")
 
-    def testValidate(self):
+    def testValidate(self, XMLData=None):
         # NOTE: The minimal process allowed by the implementation is not
         # standard compliant as it does not contain any input nor output.
         pass
@@ -274,7 +275,6 @@ class WPS10ExecuteLiteralDataRawOutputKVPTestCase(ContentTypeCheckMixIn, testbas
 #TODO: Error - invalid input (identifier)
 #TODO: Error - invalid input (value type)
 #TODO: Error - invalid input (out of the allowed range)
-#TODO: DateTime test
 
 #===============================================================================
 # WCS 1.0 Execute - Bounding Box Data Tests

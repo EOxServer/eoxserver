@@ -3,9 +3,8 @@
   <ProcessDescription wps:processVersion="1.0.0">
     <ows:Identifier>TC00:identity:literal</ows:Identifier>
     <ows:Title>Test Case 00: Literal data identity.</ows:Title>
-    <ows:Abstract> Test identity process (the ouptuts are copies of the inputs)
-        demonstrating various features of the literal data inputs
-        and outputs.
+    <ows:Abstract> Test identity process (the outputs are copies of the inputs)
+    demonstrating various features of the literal data inputs and outputs.
     </ows:Abstract>
     <ows:Metadata xlink:href="http://www.metadata.com/test-metadata" xlink:title="test-metadata"/>
     <wps:Profile>test_profile</wps:Profile>
@@ -21,7 +20,7 @@
       <Input minOccurs="0" maxOccurs="1">
         <ows:Identifier>TC00:input01</ows:Identifier>
         <ows:Title>TC00:input01</ows:Title>
-        <ows:Abstract>Simple string input.</ows:Abstract>
+        <ows:Abstract>Optional simple string input.</ows:Abstract>
         <LiteralData>
           <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">string</ows:DataType>
           <ows:AnyValue/>
@@ -30,7 +29,7 @@
       <Input minOccurs="0" maxOccurs="1">
         <ows:Identifier>TC00:input02</ows:Identifier>
         <ows:Title>TC00:input02</ows:Title>
-        <ows:Abstract>Enumerated string input. Optional with the default.</ows:Abstract>
+        <ows:Abstract>Optional enumerated string input with default value.</ows:Abstract>
         <LiteralData>
           <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">string</ows:DataType>
           <ows:AllowedValues>
@@ -44,7 +43,7 @@
       <Input minOccurs="0" maxOccurs="1">
         <ows:Identifier>TC00:input03</ows:Identifier>
         <ows:Title>Distance</ows:Title>
-        <ows:Abstract>Restricted float input. Optional with default. UOM conversion.</ows:Abstract>
+        <ows:Abstract>Optional restricted float input with default value and simple UOM conversion.</ows:Abstract>
         <LiteralData>
           <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">double</ows:DataType>
           <UOMs>
@@ -75,8 +74,8 @@
       </Input>
       <Input minOccurs="0" maxOccurs="1">
         <ows:Identifier>TC00:input04</ows:Identifier>
-        <ows:Title>Distance</ows:Title>
-        <ows:Abstract>Restricted float input. Optional with default.  Advanced UOM conversion.</ows:Abstract>
+        <ows:Title>Temperature</ows:Title>
+        <ows:Abstract>Optional restricted float input with default value and advanced UOM conversion.</ows:Abstract>
         <LiteralData>
           <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">double</ows:DataType>
           <UOMs>
@@ -125,7 +124,7 @@
       <Output>
         <ows:Identifier>TC00:output03</ows:Identifier>
         <ows:Title>Distance</ows:Title>
-        <ows:Abstract>Restricted float input. UOM conversion.</ows:Abstract>
+        <ows:Abstract>Restricted float output with UOM conversion.</ows:Abstract>
         <LiteralOutput>
           <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">double</ows:DataType>
           <UOMs>
@@ -149,8 +148,8 @@
       </Output>
       <Output>
         <ows:Identifier>TC00:output04</ows:Identifier>
-        <ows:Title>Distance</ows:Title>
-        <ows:Abstract>Restricted float input. Optional with default.  Advanced UOM conversion.</ows:Abstract>
+        <ows:Title>Temperature</ows:Title>
+        <ows:Abstract>Restricted float output advanced UOM conversion.</ows:Abstract>
         <LiteralOutput>
           <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">double</ows:DataType>
           <UOMs>

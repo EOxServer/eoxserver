@@ -25,22 +25,30 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
+# pylint: disable=invalid-name, missing-docstring, too-few-public-methods
 
 from lxml import etree
 from django.utils.dateparse import parse_datetime
 
 XML_OPTS = {"pretty_print": True, "encoding": 'UTF-8', "xml_declaration": True}
 
+WPS10_ExecuteResponse = "{http://www.opengis.net/wps/1.0.0}ExecuteResponse"
+WPS10_Status = "{http://www.opengis.net/wps/1.0.0}Status"
+
 class WPS10ExecuteMixIn(object):
+    """ Mix-in class seting WPS 1.0 ExecuteResponse status time stamp
+    to "2000-01-01T00:00:00.000000Z" in order to allow XML file comparison.
+    """
+
     def prepareXMLData(self, xml_data):
         parser = etree.XMLParser(remove_blank_text=True)
         xml = etree.fromstring(xml_data, parser)
 
-        if xml.find('.').tag != "{http://www.opengis.net/wps/1.0.0}ExecuteResponse":
+        if xml.find('.').tag != WPS10_ExecuteResponse:
             return xml_data
 
         # Check the variable time-stamp and set it to a predefined constant.
-        elm_status = xml.find("{http://www.opengis.net/wps/1.0.0}Status")
+        elm_status = xml.find(WPS10_Status)
         creation_time = elm_status.get("creationTime")
         elm_status.set("creationTime", "2000-01-01T00:00:00.000000Z")
         if None is parse_datetime(creation_time):
@@ -53,6 +61,8 @@ class WPS10ExecuteMixIn(object):
 
 
 class ContentTypeCheckMixIn(object):
+    """ Mix-in class adding test of the response Content-Type header. """
+
     def testContentType(self):
         if hasattr(self, 'expectedContentType'):
             content_type = self.getResponseHeader('Content-Type')
@@ -60,6 +70,8 @@ class ContentTypeCheckMixIn(object):
 
 
 class ContentDispositionCheckMixIn(object):
+    """ Mix-in class adding test of the response Content-Disposition header. """
+
     def testContentDisposition(self):
         if hasattr(self, 'expectedContentDisposition'):
             content_disposition = self.getResponseHeader('Content-Disposition')

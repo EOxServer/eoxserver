@@ -27,9 +27,8 @@
 
 import uuid
 import os.path
-import numpy as np
+from numpy.random import RandomState
 from osgeo import gdal
-from numpy import random as np_rnd
 from eoxserver.core import Component, implements
 from eoxserver.services.ows.wps.exceptions import ExecuteError
 from eoxserver.services.ows.wps.interfaces import ProcessInterface
@@ -39,63 +38,68 @@ from eoxserver.services.ows.wps.parameters import (
 )
 
 class TestProcess03(Component):
-    """ Test process generating complext data binary output (image) with
-        fomat selection.
-    implements(ProcessInterface)
-    """
+    """ Test process generating binary complex data output. """
     implements(ProcessInterface)
 
     identifier = "TC03:image_generator:complex"
-    title = "Test Case 03: Complex data binary data with format selection."
-    metadata = {"test-metadata":"http://www.metadata.com/test-metadata"}
+    title = "Test Case 03: Complex data binary output with format selection."
+    description = (
+        "Test process generating binary complex data output (an image)."
+    )
+    metadata = {"test-metadata": "http://www.metadata.com/test-metadata"}
     profiles = ["test_profile"]
 
     inputs = [
-        ("method", LiteralData('TC03:method', str, optional=True,
-            title="Complex data passing method.",
-            abstract="Select method how the complex data output is passed.",
+        ("method", LiteralData(
+            'TC03:method', str, optional=True,
+            title="Complex data output passing method.",
+            abstract=(
+                "This option controls the method how the complex data output "
+                "payload is passed from process code."
+            ),
             allowed_values=('in-memory-buffer', 'file'), default='file',
         )),
-        ("seed", LiteralData('TC03:seed', int, optional=True,
-            title="Random generator seed.", abstract="Random generator seed "
-            "that can be used to obtain reproduceable results",
+        ("seed", LiteralData(
+            'TC03:seed', int, optional=True, title="Random generator seed.",
+            abstract=(
+                "Optional random generator seed that can be used to obtain "
+                "reproducible random-generated result."
+            ),
             allowed_values=AllowedRange(0, None, dtype=int),
         )),
     ]
 
     outputs = [
-        ("output",
-            ComplexData('TC03:output00',
-                title="Test case #02: Complex output #00",
-                abstract="Copy of the input00.",
-                formats=(
-                    FormatBinaryRaw('image/png'),
-                    FormatBinaryBase64('image/png'),
-                    FormatBinaryRaw('image/jpeg'),
-                    FormatBinaryBase64('image/jpeg'),
-                    FormatBinaryRaw('image/tiff'),
-                    FormatBinaryBase64('image/tiff'),
-                )
+        ("output", ComplexData(
+            'TC03:output00', title="Test case #02: Complex output #00",
+            abstract="Binary complex data output (random-generated image).",
+            formats=(
+                FormatBinaryRaw('image/png'),
+                FormatBinaryBase64('image/png'),
+                FormatBinaryRaw('image/jpeg'),
+                FormatBinaryBase64('image/jpeg'),
+                FormatBinaryRaw('image/tiff'),
+                FormatBinaryBase64('image/tiff'),
             )
-        ),
+        )),
     ]
 
-    # NOTE: For complex outputs the format selection must be handled
-    #       by the actual process. Therefore there are additional inputs
-    #       having the identifiers of the outputs containing the actual
-    #       format selection. In case of no format selected by the user
-    #       the format selection argument contains the default format.
+    # NOTE:
+    #   The output complex data format has to be handled by the processes
+    #   itself and the format selection has to be passed to the 'execute'
+    #   subroutine.  The output complex data format selection is passed
+    #   to the process as an additional input argument - a simple dictionary
+    #   with the 'mime_type', 'encoding', 'schema', and 'as_reference' keywords.
+    #   In case no format being selected by the user this format selection
+    #   is set to the default format.  The name of the input argument holding
+    #   the is controlled by the process output definition.
+
     @staticmethod
     def execute(method, seed, output):
+        # size of the output image
         size_x, size_y = (768, 512)
 
-        mem_driver = gdal.GetDriverByName("MEM")
-        mem_ds = mem_driver.Create("", size_x, size_y, 3, gdal.GDT_Byte)
-        np_rnd.seed(seed)
-        for i in xrange(3):
-            data = np.array(np_rnd.random((size_y, size_x))*256, 'uint8')
-            mem_ds.GetRasterBand(i+1).WriteArray(data)
-
+        # output format selection
         if output['mime_type'] == "image/png":
             extension = ".png"
             driver = gdal.GetDriverByName("PNG")
@@ -109,9 +113,19 @@ class TestProcess03(Component):
             driver = gdal.GetDriverByName("GTiff")
             options = ["TILED=YES", "COMPRESS=DEFLATE", "PHOTOMETRIC=RGB"]
         else:
-            ExecuteError("Unexpected output format received! %r"%output)
+            ExecuteError("Unexpected output format received! %r" % output)
 
-        tmp_filename = os.path.join("/tmp", str(uuid.uuid4())) + extension
+        # generate a random in-memory GDAL dataset
+        mem_driver = gdal.GetDriverByName("MEM")
+        mem_ds = mem_driver.Create("", size_x, size_y, 3, gdal.GDT_Byte)
+        random_state = RandomState(seed)
+        for i in xrange(3):
+            mem_ds.GetRasterBand(i+1).WriteArray(
+                (256.0 * random_state.rand(size_y, size_x)).astype('uint8')
+            )
+
+        # convert in-memory dataset to the desired output
+        tmp_filename = os.path.join("/tmp", str(uuid.uuid4()) + extension)
         output_filename = "test03_binary_complex" + extension
 
         try:
@@ -126,7 +140,7 @@ class TestProcess03(Component):
                 return CDFile(tmp_filename, filename=output_filename, **output)
 
             elif method == 'in-memory-buffer':
-                # Return object as an im-memore Complex Data Buffer.
+                # Return object as an in-memory Complex Data Buffer.
                 # None that the object holds the format attributes!
                 # The 'filename' parameter sets the raw output
                 # 'Content-Disposition: filename=' HTTP header.
