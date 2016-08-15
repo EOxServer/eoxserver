@@ -40,13 +40,13 @@ install:
 - echo "disabled_tests=WCS20GetCoverageSubsetEPSG4326ResolutionInvalidAxisDatasetFaultTestCase,WCS20GetCoverageReferenceableDatasetGeogCRSSubsetTestCase,WCS20GetCoverageReferenceableDatasetGeogCRSSubsetExceedsExtentTestCase,WCS20GetCoverageOutputCRSotherUoMDatasetTestCase,WCS20GetCoverageJPEG2000TestCase,WCS20DescribeEOCoverageSetIncorrectSpatialSubsetFaultTestCase,WCS10DescribeCoverageMosaicTestCase,WCS10DescribeCoverageDatasetTestCase,WPS10ExecuteComplexDataTIFBase64InMemTestCase,WPS10GetCapabilitiesValidTestCase,WPS10PostGetCapabilitiesValidTestCase,WCS11GetCoverageBBoxFaultTestCase"
   >> autotest/conf/eoxserver.conf
 script:
+- python -m eoxserver.services.ows.wps.test_data_types -v
+- python -m eoxserver.services.ows.wps.test_allowed_values -v
 - python manage.py test --pythonpath=../eoxserver/ core -v2
 - python manage.py test --pythonpath=../eoxserver/ backends -v2
 - python manage.py test --pythonpath=../eoxserver/ services -v2
 - python manage.py test --pythonpath=../eoxserver/resources coverages -v2
 - python manage.py test --pythonpath=../eoxserver/resources processes -v2
-- python manage.py test eoxserver.services.ows.wps.test_data_types -v2
-- python manage.py test eoxserver.services.ows.wps.test_allowed_values -v2
 - python manage.py test autotest_services -v2
 - python manage.py test autotest_coverages -v2
 after_failure:
