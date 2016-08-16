@@ -30,21 +30,34 @@
 from autotest_services import base as testbase
 from autotest_services.tests.wps.base import (
     WPS10ExecuteMixIn, ContentTypeCheckMixIn, ContentDispositionCheckMixIn,
+    WPS10CapabilitiesMixIn,
 )
 
+ALLOWED_PROCESSES = [
+    'TC00:identity:literal',
+    'TC01:identity:bbox',
+    'TC02:identity:complex',
+    'TC03:image_generator:complex',
+    'TC04:identity:literal:datetime',
+    'TC05:identity:literal:datetime',
+    'Test06MinimalValidProcess',
+    'Test06MinimalAllowedProcess',
+]
 XML_CONTENT_TYPE = "application/xml; charset=utf-8"
 
 #===============================================================================
 # WCS 1.0 GetCapabilities
 #===============================================================================
 
-class WPS10GetCapabilitiesValidTestCase(ContentTypeCheckMixIn, testbase.XMLTestCase):
+class WPS10GetCapabilitiesValidTestCase(ContentTypeCheckMixIn, WPS10CapabilitiesMixIn, testbase.XMLTestCase):
+    allowedProcesses = ALLOWED_PROCESSES
     expectedContentType = XML_CONTENT_TYPE
     def getRequest(self):
         params = "service=WPS&version=1.0.0&request=GetCapabilities"
         return (params, "kvp")
 
-class WPS10PostGetCapabilitiesValidTestCase(ContentTypeCheckMixIn, testbase.XMLTestCase):
+class WPS10PostGetCapabilitiesValidTestCase(ContentTypeCheckMixIn, WPS10CapabilitiesMixIn, testbase.XMLTestCase):
+    allowedProcesses = ALLOWED_PROCESSES
     expectedContentType = XML_CONTENT_TYPE
     def getRequest(self):
         params = """<wps:GetCapabilities updateSequence="u2001" service="WPS"

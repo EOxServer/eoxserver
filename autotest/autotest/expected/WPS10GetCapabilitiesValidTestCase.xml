@@ -72,13 +72,6 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
   </ows:OperationsMetadata>
   <wps:ProcessOfferings>
     <wps:Process wps:processVersion="1.0.0">
-      <ows:Identifier>getTimeData</ows:Identifier>
-      <ows:Title>Get times of collection coverages.</ows:Title>
-      <ows:Abstract> GetTimeDataProcess defines a WPS process needed by the EOxClient
-        time-slider componenet </ows:Abstract>
-      <wps:Profile>EOxServer:GetTimeData</wps:Profile>
-    </wps:Process>
-    <wps:Process wps:processVersion="1.0.0">
       <ows:Identifier>TC00:identity:literal</ows:Identifier>
       <ows:Title>Test Case 00: Literal data identity.</ows:Title>
       <ows:Abstract> Test identity process (the outputs are copies of the inputs)

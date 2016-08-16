@@ -34,9 +34,13 @@ XML_OPTS = {"pretty_print": True, "encoding": 'UTF-8', "xml_declaration": True}
 
 WPS10_ExecuteResponse = "{http://www.opengis.net/wps/1.0.0}ExecuteResponse"
 WPS10_Status = "{http://www.opengis.net/wps/1.0.0}Status"
+WPS10_Capabilities = "{http://www.opengis.net/wps/1.0.0}Capabilities"
+WPS10_ProcessOfferings = "{http://www.opengis.net/wps/1.0.0}ProcessOfferings"
+WPS10_Process = "{http://www.opengis.net/wps/1.0.0}Process"
+OWS11_Identifier = "{http://www.opengis.net/ows/1.1}Identifier"
 
 class WPS10ExecuteMixIn(object):
-    """ Mix-in class seting WPS 1.0 ExecuteResponse status time stamp
+    """ Mix-in class setting WPS 1.0 ExecuteResponse status time stamp
     to "2000-01-01T00:00:00.000000Z" in order to allow XML file comparison.
     """
 
@@ -56,6 +60,36 @@ class WPS10ExecuteMixIn(object):
                 "Invalid creation time attribute of the execute"
                 " response status! creationTime=%r" % creation_time
             )
+
+        return etree.tostring(xml, **XML_OPTS)
+
+
+class WPS10CapabilitiesMixIn(object):
+    """ Mix-in class filtering the WPS 1.0 Capabilities and optionally removing
+    process offerings which should not be included in XML file comparison.
+    """
+
+    def prepareXMLData(self, xml_data):
+        parser = etree.XMLParser(remove_blank_text=True)
+        xml = etree.fromstring(xml_data, parser)
+
+        if xml.find('.').tag != WPS10_Capabilities:
+            return xml_data
+
+        # get allowed processes if defined
+        if not hasattr(self, 'allowedProcesses'):
+            return xml_data
+        allowed_processes = set(self.allowedProcesses)
+
+        # filter processes by identifier
+        processes = xml.findall(
+            "./%s/%s" % (WPS10_ProcessOfferings, WPS10_Process)
+        )
+        for process_elm in processes:
+            id_elm = process_elm.find(OWS11_Identifier)
+            if id_elm is not None and id_elm.text not in allowed_processes:
+                # remove non-listed process offering
+                process_elm.getparent().remove(process_elm)
 
         return etree.tostring(xml, **XML_OPTS)
 
