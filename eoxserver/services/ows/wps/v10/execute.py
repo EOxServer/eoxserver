@@ -46,10 +46,10 @@ from eoxserver.services.ows.wps.v10.encoders import (
     WPS10ExecuteResponseXMLEncoder, WPS10ExecuteResponseRawEncoder
 )
 from eoxserver.services.ows.wps.v10.execute_decoder_xml import (
-    WPS10ExecuteXMLDecoder
+    WPS10ExecuteXMLDecoder,
 )
 from eoxserver.services.ows.wps.v10.execute_decoder_kvp import (
-    WPS10ExecuteKVPDecoder
+    WPS10ExecuteKVPDecoder, parse_query_string,
 )
 from eoxserver.services.ows.wps.v10.execute_util import (
     parse_params, check_invalid_inputs, check_invalid_outputs,
@@ -58,6 +58,7 @@ from eoxserver.services.ows.wps.v10.execute_util import (
 )
 
 class WPS10ExcecuteHandler(Component):
+    """ WPS 1.0 Execute service handler. """
     implements(ServiceHandlerInterface)
     implements(GetServiceHandlerInterface)
     implements(PostServiceHandlerInterface)
@@ -73,7 +74,9 @@ class WPS10ExcecuteHandler(Component):
     def get_decoder(request):
         """ Get request decoder matching the request format. """
         if request.method == "GET":
-            return WPS10ExecuteKVPDecoder(request.GET)
+            return WPS10ExecuteKVPDecoder(
+                parse_query_string(request.META['QUERY_STRING'])
+            )
         elif request.method == "POST":
             # support for multipart items
             if request.META["CONTENT_TYPE"].startswith("multipart/"):
@@ -84,7 +87,10 @@ class WPS10ExcecuteHandler(Component):
     def get_process(self, identifier):
         """ Get process component matched by the identifier. """
         for process in self.processes:
-            if process.identifier == identifier:
+            process_identifier = (
+                getattr(process, 'identifier', None) or type(process).__name__
+            )
+            if process_identifier == identifier:
                 return process
         raise NoSuchProcessError(identifier)
 

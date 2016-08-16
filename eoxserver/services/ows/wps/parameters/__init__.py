@@ -46,7 +46,7 @@ from .allowed_values import (
 )
 from .data_types import (
     DTYPES, BaseType, Boolean, Integer, Double, String,
-    Duration, Date, Time, DateTime
+    Duration, Date, Time, DateTime, DateTimeTZAware
 )
 from .crs import CRSType
 from .inputs import InputReference, InputData
@@ -90,7 +90,16 @@ def fix_parameter(name, prm):
 
 
 class Reference(object):
-    """ Output reference. """
+    """ Output reference. An instance of this class defines a CommplexData
+    output passed by a reference. The output must be stored in a file.
+
+    Constructor parameters:
+        path        path to the output file in the local file-system
+        href        public URL of the output reference
+        mime_type   output ComplexData mime-type
+        encoding    output ComplexData encoding
+        schema      output ComplexData schema
+    """
     # pylint: disable=too-few-public-methods, too-many-arguments
     def __init__(self, path, href, mime_type=None, encoding=None, schema=None):
         self.path = path

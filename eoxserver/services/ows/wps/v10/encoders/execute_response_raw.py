@@ -42,12 +42,14 @@ from eoxserver.services.ows.wps.parameters import (
 )
 from eoxserver.services.ows.wps.exceptions import InvalidOutputValueError
 
-#-------------------------------------------------------------------------------
 
 class WPS10ExecuteResponseRawEncoder(object):
+    """ WPS 1.0 raw output Execute response encoder. """
 
     @staticmethod
     def serialize(result_items, **kwargs):
+        """ Serialize the result items to the HTTP response object. """
+        # pylint: disable=unused-argument
         return to_http_response(result_items)
 
     def __init__(self, resp_form):
@@ -78,6 +80,7 @@ class ResultAlt(ResultItem):
 
     def __init__(self, buf, content_type=None, filename=None, identifier=None,
                  close=False, headers=None):
+        # pylint: disable=too-many-arguments
         ResultItem.__init__(self, content_type, filename, identifier)
         if isinstance(buf, basestring):
             self._file = StringIO(str(buf)) # make sure a byte string is passed

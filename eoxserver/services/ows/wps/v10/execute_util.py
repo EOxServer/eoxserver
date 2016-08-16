@@ -134,8 +134,13 @@ def _resolve_reference(input_ref, resolver):
         input_ref.body = None
     data = resolver(input_ref.href, input_ref.body, input_ref.headers)
     return InputData(
-        input_ref.identifier, input_ref.title, input_ref.abstract, data,
-        None, None, input_ref.mime_type, input_ref.encoding, input_ref.schema
+        data=data,
+        identifier=input_ref.identifier,
+        title=input_ref.title,
+        abstract=input_ref.abstract,
+        mime_type=input_ref.mime_type,
+        encoding=input_ref.encoding,
+        schema=input_ref.schema,
     )
 
 

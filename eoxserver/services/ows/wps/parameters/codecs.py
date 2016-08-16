@@ -27,7 +27,9 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-import base64
+from base64 import (
+    standard_b64encode, standard_b64decode, urlsafe_b64encode, urlsafe_b64decode,
+)
 
 
 class Codec(object):
@@ -46,31 +48,25 @@ class Codec(object):
 
 
 class CodecBase64(Codec):
-    """ BASE64 codec """
+    """ Base64 codec """
     encoding = 'base64'
 
     @staticmethod
-    def encode(file_in, **opt):
+    def encode(file_in, urlsafe=False, **opt):
         """ Encoding generator."""
-        if opt.get('urlsafe', False):
-            _encode = base64.urlsafe_b64encode
-        else:
-            _encode = base64.standard_b64encode
+        b64encode = urlsafe_b64encode if urlsafe else standard_b64encode
         dlm = ""
         for data in iter(lambda: file_in.read(57), ''):
             yield dlm
-            yield _encode(data)
+            yield b64encode(data)
             dlm = "\r\n"
 
     @staticmethod
-    def decode(file_in, **opt):
+    def decode(file_in, urlsafe=False, **opt):
         """ Decoding generator."""
-        if opt.get('urlsafe', False):
-            _decode = base64.urlsafe_b64decode
-        else:
-            _decode = base64.standard_b64decode
+        b64decode = urlsafe_b64decode if urlsafe else standard_b64decode
         for data in file_in:
-            yield _decode(data)
+            yield b64decode(data)
 
 
 class CodecRaw(Codec):

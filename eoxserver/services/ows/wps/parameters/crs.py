@@ -27,11 +27,11 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from .data_types import BaseType
-
 from eoxserver.resources.coverages.crss import (
     asURL, fromURL, fromURN, fromShortCode, validateEPSGCode, parseEPSGCode,
 )
+from .data_types import BaseType
+
 
 class CRSType(BaseType):
     """ CRS data-type.

@@ -31,14 +31,16 @@ from eoxserver.services.ows.common.v11.encoders import OWS11ExceptionXMLEncoder
 
 
 class WPS10ExceptionHandler(Component):
+    """ WPS 1.0 exception handler. """
     implements(ExceptionHandlerInterface)
 
     service = "WPS"
     versions = ("1.0.0", "1.0")
     request = None
-    
 
     def handle_exception(self, request, exception):
+        """ Handle exception. """
+        # pylint: disable=unused-argument, no-self-use
         code = getattr(exception, "code", None)
         locator = getattr(exception, "locator", None)
         if not code:
@@ -52,6 +54,6 @@ class WPS10ExceptionHandler(Component):
                 encoder.encode_exception(
                     str(exception), "1.1.0", code, locator
                 )
-            ), 
+            ),
             encoder.content_type, 400
         )

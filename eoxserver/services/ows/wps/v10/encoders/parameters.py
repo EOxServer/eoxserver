@@ -27,6 +27,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
+# pylint: disable=bad-continuation
 
 from eoxserver.services.ows.wps.parameters import (
     LiteralData, ComplexData, BoundingBoxData,
@@ -38,10 +39,9 @@ from eoxserver.services.ows.wps.v10.util import (
     OWS, WPS, NIL, ns_ows,
 )
 
-#-------------------------------------------------------------------------------
 
 def encode_input_descr(prm):
-    """ Encode process description input."""
+    """ Encode process description Input element."""
     # Request input parameters are not visible from the process description.
     if isinstance(prm, RequestParameter):
         return None
@@ -56,8 +56,9 @@ def encode_input_descr(prm):
         elem.append(_encode_bbox(prm, True))
     return elem
 
+
 def encode_output_descr(prm):
-    """ Encode process description output."""
+    """ Encode process description Output element."""
     elem = NIL("Output", *_encode_param_common(prm))
     if isinstance(prm, LiteralData):
         elem.append(_encode_literal(prm, False))
@@ -67,16 +68,19 @@ def encode_output_descr(prm):
         elem.append(_encode_bbox(prm, False))
     return elem
 
+
 def encode_input_exec(prm):
-    """ Encode common part of the execure response data input."""
+    """ Encode common part of the execute response Input (data) element. """
     return WPS("Input", *_encode_param_common(prm, False))
 
+
 def encode_output_exec(prm):
-    """ Encode common part of the execure response data output."""
+    """ Encode common part of the execute response Output (data) element. """
     return WPS("Output", *_encode_param_common(prm))
 
+
 def encode_output_def(outdef):
-    """ Encode the execure response output definition."""
+    """ Encode execute response Output (definition) element. """
     attrib = {}
     if outdef.uom is not None:
         attrib['uom'] = outdef.uom
@@ -92,8 +96,11 @@ def encode_output_def(outdef):
         attrib['asReference'] = 'true' if outdef.as_reference else 'false'
     return WPS("Output", *_encode_param_common(outdef, False), **attrib)
 
+
 def _encode_param_common(prm, title_required=True):
-    """ Encode common sub-elements of all XML parameters."""
+    """ Encode the Identifier, Title and Abstract sub-elements common to all
+    input and output parameters.
+    """
     elist = [OWS("Identifier", prm.identifier)]
     if prm.title or title_required:
         elist.append(OWS("Title", prm.title or prm.identifier))
@@ -101,9 +108,10 @@ def _encode_param_common(prm, title_required=True):
         elist.append(OWS("Abstract", prm.abstract))
     return elist
 
-#-------------------------------------------------------------------------------
 
 def _encode_literal(prm, is_input):
+    """ Encode process description LiteralData (parameter definition) element.
+    """
     dtype = prm.dtype
     elem = NIL("LiteralData" if is_input else "LiteralOutput")
 
@@ -125,7 +133,12 @@ def _encode_literal(prm, is_input):
 
     return elem
 
+
 def _encode_allowed_value(avobj):
+    """ Encode process description LiteralData allowed values definition.
+    Based on the type of the allowed value definition either AnyValue,
+    ValuesReference, or AllowedValues element is returned.
+    """
     enum, ranges, elist = None, [], []
 
     if isinstance(avobj, AllowedAny):
@@ -163,15 +176,20 @@ def _encode_allowed_value(avobj):
 
     return OWS("AllowedValues", *elist)
 
-#-------------------------------------------------------------------------------
 
 def _encode_complex(prm, is_input):
+    """ Encode process description ComplexData (parameter definition) element.
+    """
     return NIL("ComplexData" if is_input else "ComplexOutput",
         NIL("Default", _encode_format(prm.default_format)),
         NIL("Supported", *[_encode_format(f) for f in prm.formats.itervalues()])
     )
 
+
 def _encode_format(frmt):
+    """ Encode process description ComplexData format definition.
+    The function returns Format element.
+    """
     elem = NIL("Format", NIL("MimeType", frmt.mime_type))
     if frmt.encoding is not None:
         elem.append(NIL("Encoding", frmt.encoding))
@@ -179,11 +197,12 @@ def _encode_format(frmt):
         elem.append(NIL("Schema", frmt.schema))
     return elem
 
-#-------------------------------------------------------------------------------
 
 def _encode_bbox(prm, is_input):
+    """ Encode process description BoundingBoxData (parameter definition)
+    element.
+    """
     return NIL("BoundingBoxData" if is_input else "BoundingBoxOutput",
         NIL("Default", NIL("CRS", prm.encode_crs(prm.default_crs))),
         NIL("Supported", *[NIL("CRS", prm.encode_crs(crs)) for crs in prm.crss])
     )
-

@@ -28,87 +28,98 @@
 from eoxserver.core import Component, implements
 from eoxserver.services.ows.wps.interfaces import ProcessInterface
 from eoxserver.services.ows.wps.parameters import (
-    LiteralData, String,
-    AllowedRange, UnitLinear,
-    )
-
-#from datetime import datetime
-#from eoxserver.services.ows.wps.parameters import LiteralData, ComplexData
-#from eoxserver.services.ows.wps.parameters import (AllowedAny, AllowedEnum,
-#    AllowedRange, AllowedByReference)
+    LiteralData, String, AllowedRange, UnitLinear,
+)
 
 class TestProcess00(Component):
-    """ Test identity process (the ouptuts are copies of the inputs)
-        demonstrating various features of the literal data inputs
-        and outputs.
+    """ Test identity process (the outputs are copies of the inputs)
+    demonstrating various features of the literal data inputs and outputs.
     """
     implements(ProcessInterface)
 
     identifier = "TC00:identity:literal"
     title = "Test Case 00: Literal data identity."
-    metadata = {"test-metadata":"http://www.metadata.com/test-metadata"}
+    metadata = {"test-metadata": "http://www.metadata.com/test-metadata"}
     profiles = ["test_profile"]
 
     inputs = [
-        ("input00", str),
-        ("input01", LiteralData('TC00:input01', String, optional=True,
-            abstract="Simple string input.",
+        ("input00", str), # mandatory minimal string input
+        ("input01", LiteralData(
+            'TC00:input01', String, optional=True,
+            abstract="Optional simple string input.",
         )),
-        ("input02", LiteralData('TC00:input02', str, optional=True,
-            abstract="Enumerated string input. Optional with the default.",
-            allowed_values=('low','medium','high'), default='medium',
+        ("input02", LiteralData(
+            'TC00:input02', str, optional=True,
+            abstract="Optional enumerated string input with default value.",
+            allowed_values=('low', 'medium', 'high'), default='medium',
         )),
-        ("input03", LiteralData('TC00:input03', float, optional=True,
-            title="Distance",
-            abstract="Restricted float input. Optional with default. UOM conversion.",
+        ("input03", LiteralData(
+            'TC00:input03', float, optional=True, title="Distance",
+            abstract=(
+                "Optional restricted float input with default value and simple "
+                "UOM conversion."
+            ),
             allowed_values=AllowedRange(0, 2, dtype=float), default=0,
-            uoms=(('m', 1.0), ('mm', 1e-3), ('cm', 1e-2), ('dm', 1e-1),
+            uoms=[
+                ('m', 1.0), ('mm', 1e-3), ('cm', 1e-2), ('dm', 1e-1),
                 ('yd', 0.9144), ('ft', 0.3048), ('in', 0.0254),
                 ('km', 1000.0), ('mi', 1609.344), ('NM', 1852.0),
-            ),
+            ],
         )),
-        ("input04", LiteralData('TC00:input04', float, optional=True,
-            title="Distance",
-            abstract="Restricted float input. Optional with default.  Advanced UOM conversion.",
+        ("input04", LiteralData(
+            'TC00:input04', float, optional=True, title="Temperature",
+            abstract=(
+                "Optional restricted float input with default value and "
+                "advanced UOM conversion."
+            ),
             allowed_values=AllowedRange(0, None, dtype=float), default=298.15,
-            uoms=(('K', 1.0), UnitLinear('C', 1.0, 273.15),
-                UnitLinear('F', 5.0/9.0, 459.67*5.0/9.0))
+            uoms=(
+                ('K', 1.0),
+                UnitLinear('C', 1.0, 273.15),
+                UnitLinear('F', 5.0/9.0, 459.67*5.0/9.0)
+            ),
         )),
     ]
 
     outputs = [
-        ("output00", str),
-        ("output01", LiteralData('TC00:output01', String,
-            abstract="Simple string output.", default="n/a"
+        ("output00", str), # minimal string output
+        ("output01", LiteralData(
+            # NOTE: Outputs can be optional and have default value too.
+            'TC00:output01', String, optional=True, default='n/a',
+            abstract="Simple string output.",
         )),
-        ("output02", LiteralData('TC00:output02', str, optional=True,
-            abstract="Enumerated string output.",
-            allowed_values=('low','medium','high'), default='medium',
+        ("output02", LiteralData(
+            'TC00:output02', str, abstract="Enumerated string output.",
+            allowed_values=('low', 'medium', 'high'), default='medium',
         )),
-        ("output03", LiteralData('TC00:output03', float,
-            title="Distance",
-            abstract="Restricted float input. UOM conversion.",
+        ("output03", LiteralData(
+            'TC00:output03', float, title="Distance",
+            abstract="Restricted float output with UOM conversion.",
             allowed_values=AllowedRange(0, 1, dtype=float),
-            uoms=(('m', 1.0), ('mm', 1e-3), ('cm', 1e-2), ('dm', 1e-1),
+            uoms=[
+                ('m', 1.0), ('mm', 1e-3), ('cm', 1e-2), ('dm', 1e-1),
                 ('yd', 0.9144), ('ft', 0.3048), ('in', 0.0254),
                 ('km', 1000.0), ('mi', 1609.344), ('NM', 1852.0),
-            ),
+            ],
         )),
-        ("output04", LiteralData('TC00:output04', float, optional=True,
-            title="Distance",
-            abstract="Restricted float input. Optional with default.  Advanced UOM conversion.",
+        ("output04", LiteralData(
+            'TC00:output04', float, title="Temperature",
+            abstract="Restricted float output advanced UOM conversion.",
             allowed_values=AllowedRange(0, None, dtype=float),
-            uoms=(('K', 1.0), UnitLinear('C', 1.0, 273.15),
-                UnitLinear('F', 5.0/9.0, 459.67*5.0/9.0))
+            uoms=(
+                ('K', 1.0),
+                UnitLinear('C', 1.0, 273.15),
+                UnitLinear('F', 5.0/9.0, 459.67*5.0/9.0),
+            ),
         )),
     ]
 
     def execute(self, **inputs):
-        outputs = {}
-        outputs['output00'] = inputs['input00']
-        outputs['output01'] = inputs.get('input01')
-        outputs['output02'] = inputs['input02']
-        outputs['output03'] = inputs['input03']
-        outputs['output04'] = inputs['input04']
-        return outputs
-
+        """ WPS Process execute handler. """
+        return {
+            'output00': inputs['input00'],
+            'output01': inputs.get('input01'),
+            'output02': inputs['input02'],
+            'output03': inputs['input03'],
+            'output04': inputs['input04'],
+        }

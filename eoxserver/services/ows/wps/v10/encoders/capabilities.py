@@ -27,30 +27,35 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
+#pylint: disable=bad-continuation
 
 from eoxserver.core.config import get_eoxserver_config
 from eoxserver.services.ows.component import ServiceComponent, env
 from eoxserver.services.ows.common.config import CapabilitiesConfigReader
 from eoxserver.services.ows.wps.v10.util import (
-    OWS, WPS, ns_ows, ns_wps, ns_xlink, ns_xml
+    OWS, WPS, ns_xlink, ns_xml,
 )
-
 from .process_description import encode_process_brief
 from .base import WPS10BaseXMLEncoder
 
 
 class WPS10CapabilitiesXMLEncoder(WPS10BaseXMLEncoder):
+    """ WPS 1.0 Capabilities XML response encoder. """
     @staticmethod
     def encode_capabilities(processes):
+        """ Encode Capabilities XML document. """
         conf = CapabilitiesConfigReader(get_eoxserver_config())
 
         # Avoid duplicate process offerings ...
         process_set = set()
         process_offerings = []
         for process in processes:
-            if process.identifier not in process_set:
+            process_identifier = (
+                getattr(process, 'identifier', None) or type(process).__name__
+            )
+            if process_identifier not in process_set:
                 process_offerings.append(encode_process_brief(process))
-                process_set.add(process.identifier)
+                process_set.add(process_identifier)
 
         return WPS("Capabilities",
             OWS("ServiceIdentification",
@@ -97,7 +102,7 @@ class WPS10CapabilitiesXMLEncoder(WPS10BaseXMLEncoder):
                     OWS("Language", "en-US")
                 )
             ),
-            # TODO: WPS("WSDL") ?
+            # TODO: WPS("WSDL")
             **{
                 "service": "WPS",
                 "version": "1.0.0",
@@ -108,6 +113,7 @@ class WPS10CapabilitiesXMLEncoder(WPS10BaseXMLEncoder):
 
 
 def _encode_operations_metadata(conf):
+    """ Encode OperationsMetadata XML element. """
     component = ServiceComponent(env)
     versions = ("1.0.0",)
     get_handlers = component.query_service_handlers(
@@ -124,7 +130,6 @@ def _encode_operations_metadata(conf):
         OWS("Operation",
             OWS("DCP",
                 OWS("HTTP",
-                    # TODO: only select available
                     OWS("Get", **{ns_xlink("href"): url}),
                     OWS("Post", **{ns_xlink("href"): url}),
                 )

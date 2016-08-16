@@ -31,7 +31,7 @@ from datetime import datetime, date, time, timedelta
 from django.utils.dateparse import parse_date, parse_datetime, parse_time, utc
 from django.utils.tzinfo import FixedOffset
 
-from eoxserver.core.util.timetools import isoformat, parse_duration
+from eoxserver.core.util.timetools import parse_duration
 
 
 class BaseType(object):
@@ -61,17 +61,18 @@ class BaseType(object):
         return cls
 
     @classmethod
-    def as_number(cls, value):
+    def as_number(cls, value): # pylint: disable=unused-argument
         """ convert to a number (e.g., duration)"""
         raise TypeError("Data type %s cannot be converted to a number!" % cls)
 
     @classmethod
-    def sub(cls, value0, value1):
+    def sub(cls, value0, value1): # pylint: disable=unused-argument
         """ subtract value0 - value1 """
         raise TypeError("Data type %s cannot be subtracted!" % cls)
 
 
 class Boolean(BaseType):
+    """ Boolean literal data type class. """
     name = "boolean"
     dtype = bool
 
@@ -103,6 +104,7 @@ class Boolean(BaseType):
 
 
 class Integer(BaseType):
+    """ Integer literal data type class. """
     name = "integer"
     dtype = int
     zero = 0
@@ -123,6 +125,7 @@ class Integer(BaseType):
 
 
 class Double(BaseType):
+    """ Double precision float literal data type class. """
     name = "double"
     dtype = float
     zero = 0.0
@@ -142,6 +145,7 @@ class Double(BaseType):
 
 
 class String(BaseType):
+    """ Unicode character string literal data type class. """
     name = "string"
     dtype = unicode
     encoding = 'utf-8'
@@ -165,6 +169,7 @@ class String(BaseType):
 
 
 class Duration(BaseType):
+    """ Duration (`datetime.timedelta`) literal data type class. """
     name = "duration"
     dtype = timedelta
     zero = timedelta(0)
@@ -215,6 +220,7 @@ class Duration(BaseType):
 
 
 class Date(BaseType):
+    """ Date (`datetime.date`) literal data type class. """
     name = "date"
     dtype = date
 
@@ -244,9 +250,10 @@ class Date(BaseType):
 
 
 class Time(BaseType):
+    """ Time (`datetime.time`) literal data type class. """
     name = "time"
     dtype = time
-    # TODO: proper time-zone handling
+    # TODO: implement proper Time time-zone handling
 
     @classmethod
     def get_diff_dtype(cls):
@@ -277,6 +284,7 @@ class Time(BaseType):
 
 
 class DateTime(BaseType):
+    """ Date-time (`datetime.datetime`) literal data type class. """
     name = "dateTime"
     dtype = datetime
 
@@ -300,13 +308,60 @@ class DateTime(BaseType):
     @classmethod
     def encode(cls, value):
         if isinstance(value, cls.dtype):
-            return unicode(isoformat(value))
+            return unicode(cls._isoformat(value))
         raise ValueError("Invalid value type '%s'!" % type(value))
 
     @classmethod
     def sub(cls, value0, value1):
         """ subtract value0 - value1 """
         return value0 - value1
+
+    @staticmethod
+    def _isoformat(value):
+        """ Covert date-time object to ISO 8601 date-time string. """
+        if value.tzinfo and not value.utcoffset():
+            return value.replace(tzinfo=None).isoformat("T") + "Z"
+        return value.isoformat("T")
+
+
+class DateTimeTZAware(DateTime):
+    """ Time-zone aware date-time (`datetime.datetime`) literal data type class.
+
+    This data-type is a variant of the `DateTime` which assures that
+    the parsed date-time is time-zone aware and optionally
+    also converted to a common target time-zone.
+
+    The default time-zone applied to the unaware time-input is passed trough
+    the constructor. By default the UTC time-zone is used.
+    By default the target time-zone is set to None which means that
+    the original time-zone is preserved.
+
+    Unlike the `DateTime` this class must be instantiated and it cannot be used
+    directly as a data-type.
+
+    Constructor parameters:
+        default_tz  default time-zone
+        target_tz   optional target time-zone
+    """
+    def __init__(self, default_tz=DateTime.UTC, target_tz=None):
+        self.default_tz = default_tz
+        self.target_tz = target_tz
+
+    def set_time_zone(self, value):
+        """ Make a date-time value time-zone aware by setting the default
+        time-zone and convert the time-zone if the target time-zone is given.
+        """
+        if value.tzinfo is None:
+            value = value.replace(tzinfo=self.default_tz)
+        if self.target_tz:
+            value = value.astimezone(self.target_tz)
+        return value
+
+    def parse(self, raw_value):
+        return self.set_time_zone(super(DateTimeTZAware, self).parse(raw_value))
+
+    def encode(self, value):
+        return super(DateTimeTZAware, self).encode(self.set_time_zone(value))
 
 
 # mapping of plain Python types to data type classes

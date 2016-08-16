@@ -40,6 +40,7 @@ from eoxserver.services.ows.wps.v10.util import nsmap
 
 
 class WPS10DescribeProcessHandler(Component):
+    """ WPS 1.0 DescribeProcess service handler. """
 
     implements(ServiceHandlerInterface)
     implements(GetServiceHandlerInterface)
@@ -53,6 +54,7 @@ class WPS10DescribeProcessHandler(Component):
 
     @staticmethod
     def get_decoder(request):
+        """ Get the WPS request decoder. """
         if request.method == "GET":
             return WPS10DescribeProcessKVPDecoder(request.GET)
         else:
@@ -60,13 +62,17 @@ class WPS10DescribeProcessHandler(Component):
 
 
     def handle(self, request):
+        """ Handle HTTP request. """
         decoder = self.get_decoder(request)
         identifiers = set(decoder.identifiers)
 
         used_processes = []
         for process in self.processes:
-            if process.identifier in identifiers:
-                identifiers.remove(process.identifier)
+            process_identifier = (
+                getattr(process, 'identifier', None) or type(process).__name__
+            )
+            if process_identifier in identifiers:
+                identifiers.remove(process_identifier)
                 used_processes.append(process)
 
         for identifier in identifiers:
@@ -79,9 +85,13 @@ class WPS10DescribeProcessHandler(Component):
 
 
 class WPS10DescribeProcessKVPDecoder(kvp.Decoder):
+    """ WPS 1.0 DescribeProcess HTTP/GET KVP request decoder. """
+    #pylint: disable=too-few-public-methods
     identifiers = kvp.Parameter("identifier", type=typelist(str, ","))
 
 
 class WPS10DescribeProcessXMLDecoder(xml.Decoder):
+    """ WPS 1.0 DescribeProcess HTTP/POST XML request decoder. """
+    #pylint: disable=too-few-public-methods
     identifiers = xml.Parameter("ows:Identifier/text()", num="+")
     namespaces = nsmap

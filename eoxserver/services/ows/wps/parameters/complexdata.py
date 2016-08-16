@@ -27,11 +27,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
+# pylint: disable=too-few-public-methods,
 
-import os
-import os.path
 import json
-from lxml import etree
+from os import remove
 from copy import deepcopy
 from StringIO import StringIO
 
@@ -46,6 +45,7 @@ try:
 except ImportError:
     from django.utils.datastructures import SortedDict as OrderedDict
 
+from lxml import etree
 from .base import Parameter
 from .formats import Format
 
@@ -53,9 +53,22 @@ from .formats import Format
 # complex data - data containers
 
 class CDBase(object):
-    """ Base class of the complex data container. """
+    """ Base class of the complex data container.
+
+    Constructor parameters (all optional and all defaulting to None):
+        mime_type  ComplexData mime-type
+        encoding   ComplexData encoding
+        schema     ComplexData XML schema (applicable XML only)
+        format     an alternative format object defining the ComplexData
+                   mime_type, encoding, and XML schema
+        filename   optional raw output file-name set in the Content-Disposition
+                   HTTP header.
+        headers    additional raw output HTTP headers encoded as a list
+                   of <key>, <value> pairs (tuples).
+    """
     def __init__(self, mime_type=None, encoding=None, schema=None, format=None,
                  filename=None, headers=None, **kwargs):
+        # pylint: disable=redefined-builtin, unused-argument, too-many-arguments
         if isinstance(format, Format):
             self.mime_type = format.mime_type
             self.encoding = format.encoding
@@ -67,26 +80,58 @@ class CDBase(object):
         self.filename = filename
         self.headers = headers or []
 
+    @property
+    def data(self):
+        """ Get the payload data. """
+        raise NotImplementedError
+
 
 class CDObject(CDBase):
     """ Complex data wrapper around an arbitrary python object.
         To be used to set custom format attributes for the XML and JSON payload.
         NOTE: CDObject is not used for the input JSON and XML.
+
+    Constructor parameters:
+        data       mandatory object holding the payload data
+        mime_type  ComplexData mime-type
+        encoding   ComplexData encoding
+        schema     ComplexData XML schema (applicable XML only)
+        format     an alternative format object defining the ComplexData
+                   mime_type, encoding, and XML schema
+        filename   optional raw output file-name set in the Content-Disposition
+                   HTTP header.
+        headers    additional raw output HTTP headers encoded as a list
+                   of <key>, <value> pairs (tuples).
     """
-    def __init__(self, data, mime_type=None, encoding=None, schema=None,
-                 format=None, **kwargs):
-        CDBase.__init__(self, mime_type, encoding, schema, format, **kwargs)
-        self.data = data
+    def __init__(self, data, *args, **kwargs):
+        CDBase.__init__(self, *args, **kwargs)
+        self._data = data
+
+    @property
+    def data(self):
+        return self._data
 
 
 class CDByteBuffer(StringIO, CDBase):
     """ Complex data binary in-memory buffer (StringIO).
         To be used to hold a generic binary (byte-stream) payload.
+
+    Constructor parameters:
+        data       optional initial payload byte string
+        mime_type  ComplexData mime-type
+        encoding   ComplexData encoding
+        schema     ComplexData XML schema (applicable XML only)
+        format     an alternative format object defining the ComplexData
+                   mime_type, encoding, and XML schema
+        filename   optional raw output file-name set in the Content-Disposition
+                   HTTP header.
+        headers    additional raw output HTTP headers encoded as a list
+                   of <key>, <value> pairs (tuples).
     """
-    def __init__(self, data='', mime_type=None, encoding=None, schema=None,
-                 format=None, **kwargs):
+    def __init__(self, data='', *args, **kwargs):
+        # NOTE: StringIO is an old-style class and super cannot be used!
         StringIO.__init__(self, str(data))
-        CDBase.__init__(self, mime_type, encoding, schema, format, **kwargs)
+        CDBase.__init__(self, *args, **kwargs)
 
     def write(self, data):
         StringIO.write(self, str(data))
@@ -101,14 +146,26 @@ class CDTextBuffer(StringIO, CDBase):
     """ Complex data text (Unicode) in-memory buffer (StringIO).
         To be used to hold generic text. The text payload is stored as
         a Unicode-stream.
-        Set the 'text_encoding' parameter is Unicode encoding/decoding
-        shall be applied.
+
+    Constructor parameters:
+        data       optional initial payload Unicode string
+        mime_type  ComplexData mime-type
+        encoding   ComplexData encoding
+        schema     ComplexData XML schema (applicable XML only)
+        format     an alternative format object defining the ComplexData
+                   mime_type, encoding, and XML schema
+        filename   optional raw output file-name set in the Content-Disposition
+                   HTTP header.
+        headers    additional raw output HTTP headers encoded as a list
+                   of <key>, <value> pairs (tuples).
+        text_encoding   optional keyword parameter defining the input text
+                   encoding. By default UTF-8 is assumed.
     """
-    def __init__(self, data=u'', mime_type=None, encoding=None, schema=None,
-                 format=None, text_encoding=None, **kwargs):
+    def __init__(self, data=u'', *args, **kwargs):
+        # NOTE: StringIO is an old-style class and super cannot be used!
         StringIO.__init__(self, unicode(data))
-        CDBase.__init__(self, mime_type, encoding, schema, format, **kwargs)
-        self.text_encoding = text_encoding
+        CDBase.__init__(self, *args, **kwargs)
+        self.text_encoding = kwargs.get('text_encoding', None)
 
     @property
     def data(self):
@@ -126,10 +183,9 @@ class CDTextBuffer(StringIO, CDBase):
             data = StringIO.read(self)
         else:
             data = StringIO.read(self, size)
-        if self.text_encoding is None:
-            return data
-        else:
-            return data.encode(self.text_encoding)
+        if self.text_encoding is not None:
+            data = data.encode(self.text_encoding)
+        return data
 
 
 class CDAsciiTextBuffer(CDByteBuffer):
@@ -137,13 +193,24 @@ class CDAsciiTextBuffer(CDByteBuffer):
         To be used to hold generic ASCII text. The text payload
         is stored as a byte-stream and this class cannot hold
         characters outside of the 7-bit ASCII characters' range.
+
+    Constructor parameters:
+        data       optional initial payload ASCII string
+        mime_type  ComplexData mime-type
+        encoding   ComplexData encoding
+        schema     ComplexData XML schema (applicable XML only)
+        format     an alternative format object defining the ComplexData
+                   mime_type, encoding, and XML schema
+        filename   optional raw output file-name set in the Content-Disposition
+                   HTTP header.
+        headers    additional raw output HTTP headers encoded as a list
+                   of <key>, <value> pairs (tuples).
+        text_encoding   optional keyword parameter defining the input text
+                   encoding. By default ASCII is assumed.
     """
-    def __init__(self, data='', mime_type=None, encoding=None, schema=None,
-                 format=None, text_encoding=None, **kwargs):
-        CDByteBuffer.__init__(
-            self, data, mime_type, encoding, schema, format, **kwargs
-        )
-        self.text_encoding = text_encoding
+    def __init__(self, data='', *args, **kwargs):
+        CDByteBuffer.__init__(self, data.encode('ascii'), *args, **kwargs)
+        self.text_encoding = kwargs.get('text_encoding', None)
 
     def write(self, data):
         if not isinstance(data, basestring):
@@ -155,25 +222,28 @@ class CDAsciiTextBuffer(CDByteBuffer):
             data = StringIO.read(self)
         else:
             data = StringIO.read(self, size)
-        if self.text_encoding is None:
-            return data
-        else:
-            return data.encode(self.text_encoding)
+        if self.text_encoding is not None:
+            data = data.encode(self.text_encoding)
+        return data
 
 
 class CDFileWrapper(CDBase):
     """ Complex data file (or file-like) object wrapper.
-        The file object must be seek-able.
 
-        To be used to hold a generic binary (byte-stream) payload.
+    Constructor parameters:
+        file_object  mandatory seekable Python file or file-like object.
+        mime_type  ComplexData mime-type
+        encoding   ComplexData encoding
+        schema     ComplexData XML schema (applicable XML only)
+        format     an alternative format object defining the ComplexData
+                   mime_type, encoding, and XML schema
+        filename   optional raw output file-name set in the Content-Disposition
+                   HTTP header.
     """
 
-    def __init__(self, file_object,
-                 mime_type=None, encoding=None, schema=None, format=None,
-                 remove_file=True, **kwargs):
-        CDBase.__init__(self, mime_type, encoding, schema, format, **kwargs)
+    def __init__(self, file_object, *args, **kwargs):
+        CDBase.__init__(self, *args, **kwargs)
         self._file = file_object
-        self._remove_file = remove_file
 
     def __del__(self):
         if hasattr(self, "_file"):
@@ -194,68 +264,84 @@ class CDFileWrapper(CDBase):
 
 class CDFile(CDFileWrapper):
     """ Complex data binary file.
-
         To be used to hold a generic binary (byte-stream) payload.
-
         NOTE: The file allows you to specify whether the file is
               temporary (will be automatically removed - by default)
               or permanent (preserved after object destruction).
+
+    Constructor parameters:
+        name       mandatory file-name
+        mode       opening mode (passed to `open`, 'r' by default)
+        buffering  buffering mode (passed to `open`, -1 by default)
+        mime_type  ComplexData mime-type
+        encoding   ComplexData encoding
+        schema     ComplexData XML schema (applicable XML only)
+        format     an alternative format object defining the ComplexData
+                   mime_type, encoding, and XML schema
+        filename   optional raw output file-name set in the Content-Disposition
+                   HTTP header.
+        remove_file  optional  keyword argument defining whether the file
+                   should be removed or not. Set to True by default.
     """
 
-    def __init__(self, name, mode='r', buffering=-1,
-                 mime_type=None, encoding=None, schema=None, format=None,
-                 remove_file=True, **kwargs):
+    def __init__(self, name, mode='r', buffering=-1, *args, **kwargs):
         CDFileWrapper.__init__(
-            self, open(name, mode, buffering), mime_type, encoding, schema,
-            format, **kwargs
+            self, open(name, mode, buffering), *args, **kwargs
         )
-        self._file = file(name, mode, buffering)
-        self._remove_file = remove_file
+        self._remove_file = kwargs.get('remove_file', True)
 
     def __del__(self):
         if hasattr(self, "_file"):
             name = self.name
             self.close()
             if self._remove_file:
-                os.remove(name)
+                remove(name)
 
 
-class CDPermanentFile(CDFile):
+class CDPermanentFile(CDFileWrapper):
     """ Complex data permanent binary file.
-
         To be used to hold a generic binary (byte-stream) payload.
-
         NOTE: This class preserves the actual file.
+
+    Constructor parameters:
+        name       mandatory file-name
+        mode       opening mode (passed to `open`, 'r' by default)
+        buffering  buffering mode (passed to `open`, -1 by default)
+        mime_type  ComplexData mime-type
+        encoding   ComplexData encoding
+        schema     ComplexData XML schema (applicable XML only)
+        format     an alternative format object defining the ComplexData
+                   mime_type, encoding, and XML schema
+        filename   optional raw output file-name set in the Content-Disposition
+                   HTTP header.
     """
 
-    def __init__(self, remove_file, name, mode='r', buffering=-1,
-                 mime_type=None, encoding=None, schema=None, format=None,
-                 **kwargs):
-        CDFile.__init__(name, mode, buffering, mime_type, encoding, schema,
-                        format, False, **kwargs)
+    def __init__(self, name, mode='r', buffering=-1, *args, **kwargs):
+        CDFileWrapper.__init__(
+            self, open(name, mode, buffering), *args, **kwargs
+        )
 
 #-------------------------------------------------------------------------------
 
 class ComplexData(Parameter):
-    """ complex-data parameter class """
+    """ Complex-data parameter class
+
+    Constructor parameters:
+        identifier  identifier of the parameter.
+        title       optional human-readable name (defaults to identifier).
+        abstract    optional human-readable verbose description.
+        metadata    optional metadata (title/URL dictionary).
+        optional    optional boolean flag indicating whether the input
+                    parameter is optional or not.
+        formats     List of supported formats.
+        resolve_input_references Set this option to False not to resolve
+                    input references. By default the references are
+                    resolved (downloaded and parsed) transparently.
+                    If set to False the references must be handled
+                    by the process.
+    """
 
     def __init__(self, identifier, formats, *args, **kwargs):
-        """ Object constructor.
-
-            Parameters:
-                identifier  identifier of the parameter.
-                title       optional human-readable name (defaults to identifier).
-                abstract    optional human-readable verbose description.
-                metadata    optional metadata (title/URL dictionary).
-                optional    optional boolean flag indicating whether the input
-                            parameter is optional or not.
-                formats     List of supported formats.
-                resolve_input_references Set this option to False not to resolve
-                            input references. By default the references are
-                            resolved (downloaded and parsed) transparently.
-                            If set to False the references must be handled
-                            by the process.
-        """
         super(ComplexData, self).__init__(identifier, *args, **kwargs)
         self.formats = OrderedDict()
         if isinstance(formats, Format):
@@ -265,9 +351,13 @@ class ComplexData(Parameter):
 
     @property
     def default_format(self):
+        """ Get default the default format. """
         return self.formats.itervalues().next()
 
     def get_format(self, mime_type, encoding=None, schema=None):
+        """ Get format definition for the given mime-type and the optional
+        encoding and schema.
+        """
         if mime_type is None:
             return self.default_format
         else:
@@ -303,6 +393,7 @@ class ComplexData(Parameter):
                 json.loads(_unicode(data, text_encoding)), **fattr
             )
         elif format_.is_text:
+            # pylint: disable=redefined-variable-type
             parsed_data = CDTextBuffer(_unicode(data, text_encoding), **fattr)
             parsed_data.seek(0)
         else: # generic binary byte-stream
@@ -403,6 +494,7 @@ def _bytestring(data):
     if isinstance(data, str):
         return data
     raise TypeError("Byte string expected, %s received!" % type(data))
+
 
 def _unicode(data, encoding):
     if isinstance(data, unicode):

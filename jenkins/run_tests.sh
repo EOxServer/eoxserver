@@ -22,6 +22,9 @@ if [ $DB == "postgis" ] && [ `psql template_postgis jenkins -tAc "SELECT 1 FROM 
 fi
 
 export XML_CATALOG_FILES="$WORKSPACE/schemas/catalog.xml"
+# the WPS unit-tests cannot be run via manage.py test in Django <=1.5
+python -m eoxserver.services.ows.wps.test_data_types -v
+python -m eoxserver.services.ows.wps.test_allowed_values -v
 python manage.py test autotest_services -v2
 python manage.py test autotest_coverages -v2
 python manage.py test --pythonpath=../eoxserver/ core -v2

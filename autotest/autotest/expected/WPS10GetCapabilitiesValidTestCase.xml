@@ -81,9 +81,8 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
     <wps:Process wps:processVersion="1.0.0">
       <ows:Identifier>TC00:identity:literal</ows:Identifier>
       <ows:Title>Test Case 00: Literal data identity.</ows:Title>
-      <ows:Abstract> Test identity process (the ouptuts are copies of the inputs)
-        demonstrating various features of the literal data inputs
-        and outputs.
+      <ows:Abstract> Test identity process (the outputs are copies of the inputs)
+    demonstrating various features of the literal data inputs and outputs.
     </ows:Abstract>
       <ows:Metadata xlink:href="http://www.metadata.com/test-metadata" xlink:title="test-metadata"/>
       <wps:Profile>test_profile</wps:Profile>
@@ -91,9 +90,8 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
     <wps:Process wps:processVersion="1.0.0">
       <ows:Identifier>TC01:identity:bbox</ows:Identifier>
       <ows:Title>Test Case 01: Bounding box data identity.</ows:Title>
-      <ows:Abstract> Test identity process (the ouptuts are copies of the inputs)
-        demonstrating various features of the bounding box data inputs
-        and outputs.
+      <ows:Abstract> Test identity process (the output is a copy of the input)
+    demonstrating various features of the bounding box data inputs and outputs.
     </ows:Abstract>
       <ows:Metadata xlink:href="http://www.metadata.com/test-metadata" xlink:title="test-metadata"/>
       <wps:Profile>test_profile</wps:Profile>
@@ -101,22 +99,42 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
     <wps:Process wps:processVersion="1.0.0">
       <ows:Identifier>TC02:identity:complex</ows:Identifier>
       <ows:Title>Test Case 02: Complex data identity.</ows:Title>
-      <ows:Abstract> Test identity process (the ouptuts are copies of the inputs)
-        demonstrating various features of the complex data inputs
-        and outputs.
+      <ows:Abstract> Test identity process (the outputs are copies of the inputs)
+    demonstrating various features of the complex data inputs and outputs.
     </ows:Abstract>
       <ows:Metadata xlink:href="http://www.metadata.com/test-metadata" xlink:title="test-metadata"/>
       <wps:Profile>test_profile</wps:Profile>
     </wps:Process>
     <wps:Process wps:processVersion="1.0.0">
       <ows:Identifier>TC03:image_generator:complex</ows:Identifier>
-      <ows:Title>Test Case 03: Complex data binary data with format selection.</ows:Title>
-      <ows:Abstract> Test process generating complext data binary output (image) with
-        fomat selection.
-    implements(ProcessInterface)
-    </ows:Abstract>
+      <ows:Title>Test Case 03: Complex data binary output with format selection.</ows:Title>
+      <ows:Abstract>Test process generating binary complex data output (an image).</ows:Abstract>
       <ows:Metadata xlink:href="http://www.metadata.com/test-metadata" xlink:title="test-metadata"/>
       <wps:Profile>test_profile</wps:Profile>
+    </wps:Process>
+    <wps:Process wps:processVersion="1.0.0">
+      <ows:Identifier>TC04:identity:literal:datetime</ows:Identifier>
+      <ows:Title>Test Case 04: Literal input date-time time-zone test.</ows:Title>
+      <ows:Abstract> Test processes testing time-zone aware date-time input data-type
+    with automatic time-zone conversion.
+    </ows:Abstract>
+      <wps:Profile>test_profile</wps:Profile>
+    </wps:Process>
+    <wps:Process wps:processVersion="1.0.0">
+      <ows:Identifier>TC05:identity:literal:datetime</ows:Identifier>
+      <ows:Title>Test Case 05: Literal output date-time time-zone test.</ows:Title>
+      <ows:Abstract> Test processes testing time-zone aware date-time input data-type
+    with automatic time-zone conversion.
+    </ows:Abstract>
+      <wps:Profile>test_profile</wps:Profile>
+    </wps:Process>
+    <wps:Process wps:processVersion="1.0.0">
+      <ows:Identifier>Test06MinimalValidProcess</ows:Identifier>
+      <ows:Title>Test06MinimalValidProcess</ows:Title>
+    </wps:Process>
+    <wps:Process wps:processVersion="1.0.0">
+      <ows:Identifier>Test06MinimalAllowedProcess</ows:Identifier>
+      <ows:Title>Test06MinimalAllowedProcess</ows:Title>
     </wps:Process>
   </wps:ProcessOfferings>
   <wps:Languages>

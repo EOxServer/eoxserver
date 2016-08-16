@@ -3,9 +3,8 @@
   <wps:Process wps:processVersion="1.0.0">
     <ows:Identifier>TC02:identity:complex</ows:Identifier>
     <ows:Title>Test Case 02: Complex data identity.</ows:Title>
-    <ows:Abstract> Test identity process (the ouptuts are copies of the inputs)
-        demonstrating various features of the complex data inputs
-        and outputs.
+    <ows:Abstract> Test identity process (the outputs are copies of the inputs)
+    demonstrating various features of the complex data inputs and outputs.
     </ows:Abstract>
     <ows:Metadata xlink:href="http://www.metadata.com/test-metadata" xlink:title="test-metadata"/>
     <wps:Profile>test_profile</wps:Profile>
@@ -30,7 +29,7 @@
     <wps:Output>
       <ows:Identifier>TC02:output00</ows:Identifier>
       <ows:Title>Test case #02: Complex output #00</ows:Title>
-      <ows:Abstract>Copy of the input00. Output format must be the same as the input format.</ows:Abstract>
+      <ows:Abstract>Text based complex data output (copy of the input). Note that the output format must be the same as the input format.</ows:Abstract>
       <wps:Data>
         <wps:ComplexData mimeType="application/json">{"numbers": [1, 2, 3, 1.2345678901234568e-124], "string": "Hallo world!"}</wps:ComplexData>
       </wps:Data>
@@ -38,7 +37,7 @@
     <wps:Output>
       <ows:Identifier>TC02:output01</ows:Identifier>
       <ows:Title>Test case #02: Complex output #01</ows:Title>
-      <ows:Abstract>String representation of the input00.</ows:Abstract>
+      <ows:Abstract>Plain text data output (copy of the input).</ows:Abstract>
       <wps:Data>
         <wps:ComplexData mimeType="text/plain">{
     "numbers": [
@@ -53,4 +52,3 @@
     </wps:Output>
   </wps:ProcessOutputs>
 </wps:ExecuteResponse>
-

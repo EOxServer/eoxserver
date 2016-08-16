@@ -27,8 +27,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
-#pylint: disable=too-many-arguments, missing-docstring, too-many-locals
-#pylint: disable=bad-continuation
+#pylint: disable=too-many-arguments, too-many-locals, bad-continuation
 
 from lxml import etree
 from django.utils.timezone import now
@@ -48,12 +47,11 @@ from .parameters import (
     encode_input_exec, encode_output_exec, encode_output_def
 )
 from .base import WPS10BaseXMLEncoder
-
 from eoxserver.services.ows.wps.exceptions import InvalidOutputValueError
 
-#-------------------------------------------------------------------------------
 
 class WPS10ExecuteResponseXMLEncoder(WPS10BaseXMLEncoder):
+    """ WPS 1.0 ExecuteResponse XML response encoder. """
 
     def __init__(self, process, resp_form, raw_inputs, inputs=None,
                  status_location=None):
@@ -133,7 +131,8 @@ def _encode_common_response(process, status_elem, inputs, raw_inputs, resp_doc):
     inputs = inputs or {}
     conf = CapabilitiesConfigReader(get_eoxserver_config())
     url = conf.http_service_url
-    dlm = "?" if url[-1] != "?" else ""
+    if url[-1] == "?":
+        url = url[:-1]
     elem = WPS("ExecuteResponse",
         encode_process_brief(process),
         WPS("Status", status_elem, creationTime=isoformat(now())),
@@ -141,8 +140,9 @@ def _encode_common_response(process, status_elem, inputs, raw_inputs, resp_doc):
             "service": "WPS",
             "version": "1.0.0",
             ns_xml("lang"): "en-US",
-            "serviceInstance": "%s%sservice=WPS&version=1.0.0&request="\
-                               "GetCapabilities"%(url, dlm)
+            "serviceInstance": (
+                "%s?service=WPS&version=1.0.0&request=GetCapabilities" % url
+            )
         },
     )
 
@@ -170,8 +170,8 @@ def _encode_common_response(process, status_elem, inputs, raw_inputs, resp_doc):
 
 
 def _encode_input(data, prm, raw):
+    """ Encode one DataInputs sub-element. """
     elem = encode_input_exec(raw)
-
     if isinstance(raw, InputReference):
         elem.append(_encode_input_reference(raw))
     elif isinstance(prm, LiteralData):
@@ -188,6 +188,7 @@ def _encode_input(data, prm, raw):
 
 
 def _encode_output(data, prm, req):
+    """ Encode one ProcessOutputs sub-element. """
     elem = encode_output_exec(Parameter(
         prm.identifier, req.title or prm.title, req.abstract or prm.abstract
     ))
@@ -203,11 +204,13 @@ def _encode_output(data, prm, req):
 
 
 def _encode_input_reference(ref):
+    """ Encode DataInputs/Reference element. """
     #TODO proper input reference encoding
     return WPS("Reference", **{ns_xlink("href"): ref.href})
 
 
 def _encode_output_reference(ref, prm):
+    """ Encode ProcessOutputs/Reference element. """
     #TODO proper output reference encoding
     mime_type = getattr(ref, 'mime_type', None)
     encoding = getattr(ref, 'encoding', None)
@@ -217,7 +220,6 @@ def _encode_output_reference(ref, prm):
         mime_type = default_format.mime_type
         encoding = default_format.encoding
         schema = default_format.schema
-
     attr = {
         #ns_xlink("href"): ref.href,
         'href': ref.href,
@@ -228,11 +230,11 @@ def _encode_output_reference(ref, prm):
         attr['encoding'] = encoding
     if schema is not None:
         attr['schema'] = schema
-
     return WPS("Reference", **attr)
 
 
 def _encode_raw_input_literal(input_raw, prm):
+    """ Encode Data/LiteralData element from a raw (unparsed) input ."""
     attrib = {'dataType': prm.dtype.name}
     uom = input_raw.uom or prm.default_uom
     if prm.uoms:
@@ -241,6 +243,7 @@ def _encode_raw_input_literal(input_raw, prm):
 
 
 def _encode_literal(data, prm, req):
+    """ Encode Data/LiteralData element. """
     attrib = {'dataType': prm.dtype.name}
     uom = req.uom or prm.default_uom
     if prm.uoms:
@@ -253,6 +256,7 @@ def _encode_literal(data, prm, req):
 
 
 def _encode_bbox(data, prm):
+    """ Encode Data/BoundingBoxData element. """
     try:
         lower, upper, crs = prm.encode_xml(data)
     except (ValueError, TypeError) as exc:
@@ -269,6 +273,7 @@ def _encode_bbox(data, prm):
 
 
 def _encode_format_attr(data, prm):
+    """ Get format attributes of the Data/ComplexData element. """
     mime_type = getattr(data, 'mime_type', None)
     if mime_type is not None:
         encoding = getattr(data, 'encoding', None)
@@ -287,11 +292,11 @@ def _encode_format_attr(data, prm):
 
 
 def _encode_complex(data, prm):
+    """ Encode Data/ComplexData element. """
     try:
         payload = prm.encode_xml(data)
     except (ValueError, TypeError) as exc:
         raise InvalidOutputValueError(prm.identifier, exc)
-
     elem = WPS("ComplexData", **_encode_format_attr(data, prm))
     if isinstance(payload, etree._Element):
         elem.append(payload)
