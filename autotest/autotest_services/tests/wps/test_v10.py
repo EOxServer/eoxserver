@@ -632,6 +632,12 @@ class WPS10ExecuteComplexDataTIFBase64InMemTestCase(ContentTypeCheckMixIn, WPS10
         """
         return (params, "xml")
 
+class WPS10ExecuteComplexDataPNGBase64InMemKVPTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
+    expectedContentType = XML_CONTENT_TYPE
+    def getRequest(self):
+        params = "service=WPS&version=1.0.0&request=Execute&identifier=TC03:image_generator:complex&DataInputs=TC03:method=in-memory-buffer;TC03:seed=0&ResponseDocument=TC03:output00@mimeType=image%2Fpng@encoding=base64&lineage=true"
+        return (params, "kvp")
+
 class WPS10ExecuteComplexDataJPGBase64KVPTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
     expectedContentType = XML_CONTENT_TYPE
     def getRequest(self):
