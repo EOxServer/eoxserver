@@ -122,12 +122,12 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
       <wps:Profile>test_profile</wps:Profile>
     </wps:Process>
     <wps:Process wps:processVersion="1.0.0">
-      <ows:Identifier>Test06MinimalValidProcess</ows:Identifier>
-      <ows:Title>Test06MinimalValidProcess</ows:Title>
-    </wps:Process>
-    <wps:Process wps:processVersion="1.0.0">
       <ows:Identifier>Test06MinimalAllowedProcess</ows:Identifier>
       <ows:Title>Test06MinimalAllowedProcess</ows:Title>
+    </wps:Process>
+    <wps:Process wps:processVersion="1.0.0">
+      <ows:Identifier>Test06MinimalValidProcess</ows:Identifier>
+      <ows:Title>Test06MinimalValidProcess</ows:Title>
     </wps:Process>
   </wps:ProcessOfferings>
   <wps:Languages>

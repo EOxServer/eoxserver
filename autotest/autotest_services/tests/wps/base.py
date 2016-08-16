@@ -76,20 +76,28 @@ class WPS10CapabilitiesMixIn(object):
         if xml.find('.').tag != WPS10_Capabilities:
             return xml_data
 
-        # get allowed processes if defined
-        if not hasattr(self, 'allowedProcesses'):
+        process_offerings_elm = xml.find(WPS10_ProcessOfferings)
+        if process_offerings_elm is None:
             return xml_data
-        allowed_processes = set(self.allowedProcesses)
 
-        # filter processes by identifier
-        processes = xml.findall(
-            "./%s/%s" % (WPS10_ProcessOfferings, WPS10_Process)
+        def _process_id(elm):
+            " Extract process identifier from the given wps:Process element. "
+            id_elm = elm.find(OWS11_Identifier)
+            return None if id_elm is None else id_elm.text
+
+        # filter out process offerings not listed in the allowed processes
+        if hasattr(self, 'allowedProcesses'):
+            allowed_processes = set(self.allowedProcesses)
+
+            for process_elm in process_offerings_elm.findall(WPS10_Process):
+                if _process_id(process_elm) not in allowed_processes:
+                    # remove non-listed process offering
+                    process_elm.getparent().remove(process_elm)
+
+        # sort process offerings to get a predictable element order
+        process_offerings_elm[:] = sorted(
+            process_offerings_elm, key=lambda elm: (elm.tag, _process_id(elm))
         )
-        for process_elm in processes:
-            id_elm = process_elm.find(OWS11_Identifier)
-            if id_elm is not None and id_elm.text not in allowed_processes:
-                # remove non-listed process offering
-                process_elm.getparent().remove(process_elm)
 
         return etree.tostring(xml, **XML_OPTS)
 
