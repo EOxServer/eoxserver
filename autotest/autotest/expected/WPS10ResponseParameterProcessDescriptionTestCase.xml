@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<wps:ProcessDescriptions xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.0.0" xml:lang="en-US" service="WPS" xsi:schemaLocation="wps http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
+  <ProcessDescription wps:processVersion="1.0.0">
+    <ows:Identifier>TC07:request-parameter</ows:Identifier>
+    <ows:Title>Test Case 07: Request parameter.</ows:Title>
+    <ows:Abstract>This test process demonstrates use of the RequestParameters input. The request parameter is a special input which passes meta-data extracted from the Django HTTPRequest object to the executed process.</ows:Abstract>
+    <DataInputs>
+      <Input minOccurs="0" maxOccurs="1">
+        <ows:Identifier>TC07:input01</ows:Identifier>
+        <ows:Title>TC07:input01</ows:Title>
+        <ows:Abstract>Optional simple string input.</ows:Abstract>
+        <LiteralData>
+          <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">string</ows:DataType>
+          <ows:AnyValue/>
+        </LiteralData>
+      </Input>
+    </DataInputs>
+    <ProcessOutputs>
+      <Output>
+        <ows:Identifier>TC07:output01</ows:Identifier>
+        <ows:Title>TC07:output01</ows:Title>
+        <ows:Abstract>Simple string input.</ows:Abstract>
+        <LiteralOutput>
+          <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">string</ows:DataType>
+        </LiteralOutput>
+      </Output>
+    </ProcessOutputs>
+  </ProcessDescription>
+</wps:ProcessDescriptions>

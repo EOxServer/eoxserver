@@ -30,21 +30,35 @@
 from autotest_services import base as testbase
 from autotest_services.tests.wps.base import (
     WPS10ExecuteMixIn, ContentTypeCheckMixIn, ContentDispositionCheckMixIn,
+    WPS10CapabilitiesMixIn,
 )
 
+ALLOWED_PROCESSES = [
+    'TC00:identity:literal',
+    'TC01:identity:bbox',
+    'TC02:identity:complex',
+    'TC03:image_generator:complex',
+    'TC04:identity:literal:datetime',
+    'TC05:identity:literal:datetime',
+    'Test06MinimalValidProcess',
+    'Test06MinimalAllowedProcess',
+    'TC07:request-parameter',
+]
 XML_CONTENT_TYPE = "application/xml; charset=utf-8"
 
 #===============================================================================
 # WCS 1.0 GetCapabilities
 #===============================================================================
 
-class WPS10GetCapabilitiesValidTestCase(ContentTypeCheckMixIn, testbase.XMLTestCase):
+class WPS10GetCapabilitiesValidTestCase(ContentTypeCheckMixIn, WPS10CapabilitiesMixIn, testbase.XMLTestCase):
+    allowedProcesses = ALLOWED_PROCESSES
     expectedContentType = XML_CONTENT_TYPE
     def getRequest(self):
         params = "service=WPS&version=1.0.0&request=GetCapabilities"
         return (params, "kvp")
 
-class WPS10PostGetCapabilitiesValidTestCase(ContentTypeCheckMixIn, testbase.XMLTestCase):
+class WPS10PostGetCapabilitiesValidTestCase(ContentTypeCheckMixIn, WPS10CapabilitiesMixIn, testbase.XMLTestCase):
+    allowedProcesses = ALLOWED_PROCESSES
     expectedContentType = XML_CONTENT_TYPE
     def getRequest(self):
         params = """<wps:GetCapabilities updateSequence="u2001" service="WPS"
@@ -619,6 +633,12 @@ class WPS10ExecuteComplexDataTIFBase64InMemTestCase(ContentTypeCheckMixIn, WPS10
         """
         return (params, "xml")
 
+class WPS10ExecuteComplexDataPNGBase64InMemKVPTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
+    expectedContentType = XML_CONTENT_TYPE
+    def getRequest(self):
+        params = "service=WPS&version=1.0.0&request=Execute&identifier=TC03:image_generator:complex&DataInputs=TC03:method=in-memory-buffer;TC03:seed=0&ResponseDocument=TC03:output00@mimeType=image%2Fpng@encoding=base64&lineage=true"
+        return (params, "kvp")
+
 class WPS10ExecuteComplexDataJPGBase64KVPTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
     expectedContentType = XML_CONTENT_TYPE
     def getRequest(self):
@@ -669,3 +689,20 @@ class WPS10ExecuteComplexDataJPGRawOutputTestCase(ContentTypeCheckMixIn, Content
         </wps:Execute>
         """
         return (params, "xml")
+
+#===============================================================================
+# response parameter input test
+#===============================================================================
+
+class WPS10ResponseParameterProcessDescriptionTestCase(ContentTypeCheckMixIn, testbase.XMLTestCase):
+    expectedContentType = XML_CONTENT_TYPE
+    def getRequest(self):
+        params = "service=WPS&version=1.0.0&request=DescribeProcess&identifier=TC07:request-parameter"
+        return (params, "kvp")
+
+
+class WPS10ResponseParameterExecuteTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
+    expectedContentType = XML_CONTENT_TYPE
+    def getRequest(self):
+        params = "service=WPS&version=1.0.0&request=Execute&identifier=TC07:request-parameter&lineage=true"
+        return (params, "kvp", {"X-Test-Header": "Test-Header-Value"})
