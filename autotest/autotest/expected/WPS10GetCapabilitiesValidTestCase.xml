@@ -122,6 +122,11 @@ Copyright (C) European Space Agency - ESA</ows:Abstract>
       <wps:Profile>test_profile</wps:Profile>
     </wps:Process>
     <wps:Process wps:processVersion="1.0.0">
+      <ows:Identifier>TC07:request-parameter</ows:Identifier>
+      <ows:Title>Test Case 07: Request parameter.</ows:Title>
+      <ows:Abstract>This test process demonstrates use of the RequestParameters input. The request parameter is a special input which passes meta-data extracted from the Django HTTPRequest object to the executed process.</ows:Abstract>
+    </wps:Process>
+    <wps:Process wps:processVersion="1.0.0">
       <ows:Identifier>Test06MinimalAllowedProcess</ows:Identifier>
       <ows:Title>Test06MinimalAllowedProcess</ows:Title>
     </wps:Process>

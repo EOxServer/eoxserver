@@ -42,6 +42,7 @@ ALLOWED_PROCESSES = [
     'TC05:identity:literal:datetime',
     'Test06MinimalValidProcess',
     'Test06MinimalAllowedProcess',
+    'TC07:request-parameter',
 ]
 XML_CONTENT_TYPE = "application/xml; charset=utf-8"
 
@@ -688,3 +689,20 @@ class WPS10ExecuteComplexDataJPGRawOutputTestCase(ContentTypeCheckMixIn, Content
         </wps:Execute>
         """
         return (params, "xml")
+
+#===============================================================================
+# response parameter input test
+#===============================================================================
+
+class WPS10ResponseParameterProcessDescriptionTestCase(ContentTypeCheckMixIn, testbase.XMLTestCase):
+    expectedContentType = XML_CONTENT_TYPE
+    def getRequest(self):
+        params = "service=WPS&version=1.0.0&request=DescribeProcess&identifier=TC07:request-parameter"
+        return (params, "kvp")
+
+
+class WPS10ResponseParameterExecuteTestCase(ContentTypeCheckMixIn, WPS10ExecuteMixIn, testbase.XMLTestCase):
+    expectedContentType = XML_CONTENT_TYPE
+    def getRequest(self):
+        params = "service=WPS&version=1.0.0&request=Execute&identifier=TC07:request-parameter&lineage=true"
+        return (params, "kvp", {"X-Test-Header": "Test-Header-Value"})
