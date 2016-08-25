@@ -30,7 +30,7 @@ import logging
 import itertools
 from functools import partial
 
-from django.http.response import HttpResponse
+from django.http import HttpResponse
 
 from eoxserver.core import Component, ExtensionPoint, env
 from eoxserver.services.ows.interfaces import *
