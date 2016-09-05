@@ -262,7 +262,7 @@ class BaseFeedResultFormat(BaseResultFormat):
             wms_small = request.build_absolute_uri(
                 "%s?service=WMS&version=1.3.0&request=GetMap"
                 "&layers=%s&format=image/png&TRANSPARENT=true"
-                "&width=%d&height=%d&SRS=EPSG:4326&STYLES="
+                "&width=%d&height=%d&CRS=EPSG:4326&STYLES="
                 "&BBOX=-%f,%f,%f,%f"
                 "" % (
                     reverse("ows"), item.identifier,
@@ -274,7 +274,7 @@ class BaseFeedResultFormat(BaseResultFormat):
             wms_large = request.build_absolute_uri(
                 "%s?service=WMS&version=1.3.0&request=GetMap"
                 "&layers=%s&format=image/png&TRANSPARENT=true"
-                "&width=%d&height=%d&SRS=EPSG:4326&STYLES="
+                "&width=%d&height=%d&CRS=EPSG:4326&STYLES="
                 "&BBOX=-%f,%f,%f,%f"
                 "" % (
                     reverse("ows"), item.identifier,
