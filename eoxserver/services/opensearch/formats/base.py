@@ -141,6 +141,7 @@ ns_atom = NameSpace("http://www.w3.org/2005/Atom", "atom")
 ns_opensearch = NameSpace("http://a9.com/-/spec/opensearch/1.1/", "opensearch")
 ns_dc = NameSpace("http://purl.org/dc/elements/1.1/", "dc")
 ns_georss = NameSpace("http://www.georss.org/georss", "georss")
+ns_media = NameSpace("http://search.yahoo.com/mrss/", "media")
 
 nsmap = NameSpaceMap(ns_atom, ns_dc, ns_georss)
 
@@ -148,6 +149,7 @@ ATOM = ElementMaker(namespace=ns_atom.uri)
 OS = ElementMaker(namespace=ns_opensearch.uri)
 DC = ElementMaker(namespace=ns_dc.uri, nsmap=nsmap)
 GEORSS = ElementMaker(namespace=ns_georss.uri, nsmap=nsmap)
+MEDIA = ElementMaker(namespace=ns_media.uri, nsmap=nsmap)
 
 
 class BaseFeedResultFormat(BaseResultFormat):
@@ -246,6 +248,41 @@ class BaseFeedResultFormat(BaseResultFormat):
         if issubclass(item.real_type, models.Coverage):
             # add a link for a Describe and GetCoverage request for
             # metadata and data download
+
+            minx, miny, maxx, maxy = item.extent_wgs84
+
+            fx = 1.0
+            fy = 1.0
+
+            if (maxx - minx) > (maxy - miny):
+                fy = (maxy - miny) / (maxx - minx)
+            else:
+                fx = (maxx - minx) / (maxy - miny)
+
+            wms_small = request.build_absolute_uri(
+                "%s?service=WMS&version=1.3.0&request=GetMap"
+                "&layers=%s&format=image/png&TRANSPARENT=true"
+                "&width=%d&height=%d&SRS=EPSG:4326&STYLES="
+                "&BBOX=-%f,%f,%f,%f"
+                "" % (
+                    reverse("ows"), item.identifier,
+                    int(100 * fx), int(100 * fy),
+                    miny, minx, maxy, maxx
+                )
+            )
+
+            wms_large = request.build_absolute_uri(
+                "%s?service=WMS&version=1.3.0&request=GetMap"
+                "&layers=%s&format=image/png&TRANSPARENT=true"
+                "&width=%d&height=%d&SRS=EPSG:4326&STYLES="
+                "&BBOX=-%f,%f,%f,%f"
+                "" % (
+                    reverse("ows"), item.identifier,
+                    int(500 * fx), int(500 * fy),
+                    miny, minx, maxy, maxx
+                )
+            )
+
             links.extend([
                 ATOM("link", rel="enclosure", href=request.build_absolute_uri(
                         "%s?service=WCS&version=2.0.1&request=GetCoverage"
@@ -256,7 +293,23 @@ class BaseFeedResultFormat(BaseResultFormat):
                         "%s?service=WCS&version=2.0.1&request=DescribeCoverage"
                         "&coverageId=%s" % (reverse("ows"), item.identifier)
                     )
-                )
+                ),
+                # "Browse" image
+                ATOM("link", rel="icon", href=wms_large),
+            ])
+
+            # media RSS style links
+            links.extend([
+                # "Browse" image
+                MEDIA("content",
+                    MEDIA("category", "QUICKLOOK"),
+                    url=wms_large
+                ),
+                # "Thumbnail" image
+                MEDIA("content",
+                    MEDIA("category", "THUMBNAIL"),
+                    url=wms_small
+                ),
             ])
         return links
 
