@@ -33,6 +33,7 @@ from django.conf import settings
 
 from eoxserver.core import Component, implements
 from eoxserver.contrib import mapserver as ms
+from eoxserver.contrib import gdal
 from eoxserver.resources.coverages import models, crss
 from eoxserver.services.mapserver.interfaces import LayerFactoryInterface
 from eoxserver.services import models as service_models
@@ -99,6 +100,11 @@ class OffsiteColorMixIn(object):
         for index in band_indices:
             band = range_type[index]
             nil_value_set = band.nil_value_set
+
+            # we only support offsite colors for "Byte" bands
+            if nil_value_set.data_type != gdal.GDT_Byte:
+                return None
+
             if nil_value_set and len(nil_value_set) > 0:
                 values.append(nil_value_set[0].value)
             else:
