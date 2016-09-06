@@ -275,7 +275,7 @@ class BaseFeedResultFormat(BaseResultFormat):
                 "%s?service=WMS&version=1.3.0&request=GetMap"
                 "&layers=%s&format=image/png&TRANSPARENT=true"
                 "&width=%d&height=%d&CRS=EPSG:4326&STYLES="
-                "&BBOX=-%f,%f,%f,%f"
+                "&BBOX=%f,%f,%f,%f"
                 "" % (
                     reverse("ows"), item.identifier,
                     int(500 * fx), int(500 * fy),
