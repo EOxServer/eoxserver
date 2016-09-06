@@ -102,7 +102,7 @@ class OffsiteColorMixIn(object):
             nil_value_set = band.nil_value_set
 
             # we only support offsite colors for "Byte" bands
-            if nil_value_set.data_type != gdal.GDT_Byte:
+            if nil_value_set and nil_value_set.data_type != gdal.GDT_Byte:
                 return None
 
             if nil_value_set and len(nil_value_set) > 0:
