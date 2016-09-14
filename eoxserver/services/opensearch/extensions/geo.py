@@ -51,7 +51,7 @@ class GeoExtension(Component):
     def filter(self, qs, parameters):
         decoder = GeoExtensionDecoder(parameters)
 
-        geom = decoder.bbox or decoder.geometry
+        geom = decoder.box or decoder.geometry
         lon, lat = decoder.lon, decoder.lat
         distance = decoder.radius
         relation = decoder.relation
@@ -74,6 +74,14 @@ class GeoExtension(Component):
                 qs = qs.filter(footprint__dwithin=(geom, distance))
             elif relation == "disjoint":
                 qs = qs.filter(footprint__distance_gt=(geom, distance))
+        elif lon is not None and lat is not None:
+            geom = Point(lon, lat)
+            if relation == "intersects":
+                qs = qs.filter(footprint__intersects=geom)
+            elif relation == "contains":
+                qs = qs.filter(footprint__coveredby=geom)
+            elif relation == "disjoint":
+                qs = qs.filter(footprint__disjoint=geom)
 
         if uid:
             qs = qs.filter(identifier=uid)
@@ -110,7 +118,7 @@ def parse_radius(raw):
 
 
 class GeoExtensionDecoder(kvp.Decoder):
-    bbox = kvp.Parameter(num="?", type=parse_bbox)
+    box = kvp.Parameter(num="?", type=parse_bbox)
     radius = kvp.Parameter(num="?", type=float)
     geometry = kvp.Parameter(num="?", type=GEOSGeometry)
     lon = kvp.Parameter(num="?", type=float)
