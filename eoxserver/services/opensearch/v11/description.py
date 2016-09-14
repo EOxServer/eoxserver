@@ -47,7 +47,7 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
 
     def __init__(self, search_extensions):
         ns_os = NameSpace("http://a9.com/-/spec/opensearch/1.1/", None)
-        ns_param = NameSpace(
+        self.ns_param = ns_param = NameSpace(
             "http://a9.com/-/spec/opensearch/extensions/parameters/1.0/",
             "parameters"
         )
@@ -64,12 +64,13 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
             OS("ShortName", collection.identifier if collection else ""),
             OS("Description")
         )
-        description.extend([
-            self.encode_url(
-                request, collection, result_format
-            )
-            for result_format in result_formats
-        ]),
+        for method in ("GET", "POST"):
+            description.extend([
+                self.encode_url(
+                    request, collection, result_format, method
+                )
+                for result_format in result_formats
+            ])
         description.extend([
             OS("Contact"),
             OS("LongName"),
@@ -83,7 +84,7 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
         ])
         return description
 
-    def encode_url(self, request, collection, result_format):
+    def encode_url(self, request, collection, result_format, method):
         if collection:
             search_url = reverse("opensearch:collection:search",
                 kwargs={
@@ -129,15 +130,19 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
                 for parameter in parameters
             ],
             type=result_format.mimetype,
-            template="%s?%s" % (search_url, query_template),
-            rel="results" if collection else "collection"
+            template="%s?%s" % (search_url, query_template)
+            if method == "GET" else search_url,
+            rel="results" if collection else "collection", ** {
+                self.ns_param("method"): method,
+                self.ns_param("enctype"): "application/x-www-form-urlencoded"
+            }
         )
 
         return url
 
     def encode_parameter(self, parameter, namespace):
         options = parameter.pop("options", [])
-        attributes = {}
+        attributes = {"name": parameter["name"]}
         if namespace:
             attributes["value"] = "{%s:%s}" % (
                 namespace.prefix, parameter.pop("type")

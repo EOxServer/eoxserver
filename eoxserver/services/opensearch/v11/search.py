@@ -65,7 +65,14 @@ class OpenSearch11SearchHandler(Component):
     result_formats = ExtensionPoint(ResultFormatInterface)
 
     def handle(self, request, collection_id=None, format_name=None):
-        decoder = OpenSearch11BaseDecoder(request.GET)
+        if request.method == "GET":
+            request_parameters = request.GET
+        elif request.method == "POST":
+            request_parameters = request.POST
+        else:
+            raise Exception("Invalid request method '%s'." % request.method)
+
+        decoder = OpenSearch11BaseDecoder(request_parameters)
 
         if collection_id:
             qs = models.Collection.objects.get(
@@ -84,10 +91,11 @@ class OpenSearch11SearchHandler(Component):
             # get all search extension related parameters and translate the name
             # to the actual parameter name
             params = dict(
-                (parameter["type"], request.GET[parameter["name"]])
+                (parameter["type"], request_parameters[parameter["name"]])
                 for parameter in search_extension.get_schema()
-                if parameter["name"] in request.GET
+                if parameter["name"] in request_parameters
             )
+
             qs = search_extension.filter(qs, params)
             namespaces.add(search_extension.namespace)
             all_parameters[search_extension.namespace.prefix] = params
