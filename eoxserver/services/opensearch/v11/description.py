@@ -101,22 +101,23 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
         search_url = request.build_absolute_uri(search_url)
 
         default_parameters = (
-            dict(name="q", type="searchTerms", namespace=None),
-            dict(name="count", type="count", namespace=None),
-            dict(name="startIndex", type="startIndex", namespace=None),
+            dict(name="q", type="searchTerms"),
+            dict(name="count", type="count"),
+            dict(name="startIndex", type="startIndex"),
         )
-        parameters = chain(default_parameters, *[
+        parameters = list(chain(default_parameters, *[
             [
                 dict(parameter, **{"namespace": search_extension.namespace})
                 for parameter in search_extension.get_schema()
             ] for search_extension in self.search_extensions
-        ])
+        ]))
 
         query_template = "&".join(
             "%s={%s%s%s%s}" % (
                 parameter["name"],
-                parameter["namespace"].prefix if parameter["namespace"] else "",
-                ":" if parameter["namespace"] else "",
+                parameter["namespace"].prefix
+                if "namespace" in parameter else "",
+                ":" if "namespace" in parameter else "",
                 parameter["type"],
                 "?" if parameter.get("optional", True) else ""
             )
@@ -124,7 +125,7 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
         )
 
         url = self.OS("Url", *[
-                self.encode_parameter(parameter, parameter["namespace"])
+                self.encode_parameter(parameter, parameter.get("namespace"))
                 for parameter in parameters
             ],
             type=result_format.mimetype,
@@ -136,18 +137,19 @@ class OpenSearch11DescriptionEncoder(XMLEncoder):
 
     def encode_parameter(self, parameter, namespace):
         options = parameter.pop("options", [])
+        attributes = {}
         if namespace:
-            parameter["value"] = "{%s:%s}" % (
+            attributes["value"] = "{%s:%s}" % (
                 namespace.prefix, parameter.pop("type")
             )
         else:
-            parameter["value"] = "{%s}" % parameter.pop("type")
+            attributes["value"] = "{%s}" % parameter.pop("type")
 
         return self.PARAM("Parameter", *[
             self.PARAM("Option", value=option, label=option)
             for option in options
         ], minimum="0" if parameter.get("optional", True) else "1", maximum="1",
-            **parameter
+            **attributes
         )
 
 
