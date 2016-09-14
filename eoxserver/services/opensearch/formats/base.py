@@ -37,6 +37,7 @@ from eoxserver.core import Component, implements
 from eoxserver.core.util.timetools import isoformat
 from eoxserver.core.util.xmltools import NameSpace, NameSpaceMap
 from eoxserver.resources.coverages import models
+from eoxserver.services.gml.v32.encoders import GML32Encoder
 from eoxserver.services.opensearch.interfaces import ResultFormatInterface
 
 
@@ -143,7 +144,7 @@ ns_dc = NameSpace("http://purl.org/dc/elements/1.1/", "dc")
 ns_georss = NameSpace("http://www.georss.org/georss", "georss")
 ns_media = NameSpace("http://search.yahoo.com/mrss/", "media")
 
-nsmap = NameSpaceMap(ns_atom, ns_dc, ns_georss)
+nsmap = NameSpaceMap(ns_atom, ns_dc, ns_georss, ns_media)
 
 ATOM = ElementMaker(namespace=ns_atom.uri)
 OS = ElementMaker(namespace=ns_opensearch.uri)
@@ -323,6 +324,13 @@ class BaseFeedResultFormat(BaseResultFormat):
             entries.append(
                 GEORSS("box",
                     "%f %f %f %f" % (extent[1], extent[0], extent[3], extent[2])
+                )
+            )
+            entries.append(
+                GEORSS("where",
+                    GML32Encoder().encode_multi_surface(
+                        item.footprint, item.identifier
+                    )
                 )
             )
 
