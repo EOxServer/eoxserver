@@ -27,9 +27,9 @@
 
 from itertools import chain
 
+from lxml.etree import CDATA
 from lxml.builder import ElementMaker, E
 from django.core.urlresolvers import reverse
-
 
 from eoxserver.core.util.xmltools import etree, NameSpace, NameSpaceMap
 from eoxserver.core.util.timetools import isoformat
@@ -88,7 +88,9 @@ class RSSResultFormat(BaseFeedResultFormat):
 
         rss_item = E("item",
             E("title", item.identifier),
-            # RSS("description", ), # TODO
+            E("description", CDATA(
+                item.identifier
+            )),
             E("link", link_url),
         )
 

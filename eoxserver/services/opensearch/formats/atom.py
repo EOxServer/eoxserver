@@ -28,6 +28,7 @@
 
 from itertools import chain
 
+from lxml.etree import CDATA
 from lxml.builder import ElementMaker
 
 from eoxserver.core.util.xmltools import etree, NameSpace, NameSpaceMap
@@ -87,8 +88,10 @@ class AtomResultFormat(BaseFeedResultFormat):
     def encode_entry(self, request, item):
         entry = ATOM("entry",
             ATOM("title", item.identifier),
-            ATOM("id", item.identifier)
-            # ATOM("summary", ), # TODO
+            ATOM("id", item.identifier),
+            ATOM("summary", CDATA(
+                item.identifier
+            )),
         )
 
         entry.extend(self.encode_item_links(request, item))
