@@ -143,14 +143,16 @@ ns_opensearch = NameSpace("http://a9.com/-/spec/opensearch/1.1/", "opensearch")
 ns_dc = NameSpace("http://purl.org/dc/elements/1.1/", "dc")
 ns_georss = NameSpace("http://www.georss.org/georss", "georss")
 ns_media = NameSpace("http://search.yahoo.com/mrss/", "media")
+ns_owc = NameSpace("http://www.opengis.net/owc/1.0", "owc")
 
-nsmap = NameSpaceMap(ns_atom, ns_dc, ns_georss, ns_media)
+nsmap = NameSpaceMap(ns_atom, ns_dc, ns_georss, ns_media, ns_owc)
 
 ATOM = ElementMaker(namespace=ns_atom.uri)
 OS = ElementMaker(namespace=ns_opensearch.uri)
 DC = ElementMaker(namespace=ns_dc.uri, nsmap=nsmap)
 GEORSS = ElementMaker(namespace=ns_georss.uri, nsmap=nsmap)
 MEDIA = ElementMaker(namespace=ns_media.uri, nsmap=nsmap)
+OWC = ElementMaker(namespace=ns_owc.uri, nsmap=nsmap)
 
 
 class BaseFeedResultFormat(BaseResultFormat):
@@ -260,6 +262,10 @@ class BaseFeedResultFormat(BaseResultFormat):
             else:
                 fx = (maxx - minx) / (maxy - miny)
 
+            wms_get_capabilities = request.build_absolute_uri(
+                "%s?service=WMS&version=1.3.0&request=GetCapabilities"
+            )
+
             wms_small = request.build_absolute_uri(
                 "%s?service=WMS&version=1.3.0&request=GetMap"
                 "&layers=%s&format=image/png&TRANSPARENT=true"
@@ -284,17 +290,23 @@ class BaseFeedResultFormat(BaseResultFormat):
                 )
             )
 
+            wcs_get_capabilities = request.build_absolute_uri(
+                "%s?service=WCS&version=2.0.1&request=GetCapabilities"
+            )
+
+            wcs_describe_coverage = request.build_absolute_uri(
+                "%s?service=WCS&version=2.0.1&request=DescribeCoverage"
+                "&coverageId=%s" % (reverse("ows"), item.identifier)
+            )
+
+            wcs_get_coverage = request.build_absolute_uri(
+                "%s?service=WCS&version=2.0.1&request=GetCoverage"
+                "&coverageId=%s" % (reverse("ows"), item.identifier)
+            )
+
             links.extend([
-                ATOM("link", rel="enclosure", href=request.build_absolute_uri(
-                        "%s?service=WCS&version=2.0.1&request=GetCoverage"
-                        "&coverageId=%s" % (reverse("ows"), item.identifier)
-                    )
-                ),
-                ATOM("link", rel="via", href=request.build_absolute_uri(
-                        "%s?service=WCS&version=2.0.1&request=DescribeCoverage"
-                        "&coverageId=%s" % (reverse("ows"), item.identifier)
-                    )
-                ),
+                ATOM("link", rel="enclosure", href=wcs_get_coverage),
+                ATOM("link", rel="via", href=wcs_describe_coverage),
                 # "Browse" image
                 ATOM("link", rel="icon", href=wms_large),
             ])
@@ -311,6 +323,37 @@ class BaseFeedResultFormat(BaseResultFormat):
                     MEDIA("category", "THUMBNAIL"),
                     url=wms_small
                 ),
+            ])
+
+            # OWC offerings for WMS/WCS
+            links.extend([
+                OWC("offering",
+                    OWC("operation",
+                        code="GetCapabilities", method="GET",
+                        type="application/xml", href=wms_get_capabilities
+                    ),
+                    OWC("operation",
+                        code="GetMap", method="GET",
+                        type="image/png", href=wms_large
+                    ),
+                    code="http://www.opengis.net/spec/owc-atom/1.0/req/wms",
+                ),
+                OWC("offering",
+                    OWC("operation",
+                        code="GetCapabilities", method="GET",
+                        type="application/xml", href=wcs_get_capabilities
+                    ),
+                    OWC("operation",
+                        code="DescribeCoverage", method="GET",
+                        type="application/xml", href=wcs_describe_coverage
+                    ),
+                    OWC("operation",
+                        code="GetCoverage", method="GET",
+                        type="image/tiff", href=wcs_get_coverage
+                        # TODO: native format
+                    ),
+                    code="http://www.opengis.net/spec/owc-atom/1.0/req/wcs",
+                )
             ])
         return links
 
